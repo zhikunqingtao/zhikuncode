@@ -1,0 +1,34 @@
+# === Java / Maven ===
+backend/target/
+*.class
+*.jar
+*.war
+*.log
+.mvn/wrapper/maven-wrapper.jar
+
+# === Node / Frontend ===
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# === Python ===
+python-service/__pycache__/
+python-service/.venv/
+python-service/venv/
+*.pyc
+*.pyo
+
+# === IDE ===
+.idea/
+*.iml
+.vscode/
+.qoder/
+
+# === OS ===
+.DS_Store
+Thumbs.db
+
+# === Misc ===
+*.swp
+*.swo
+*~

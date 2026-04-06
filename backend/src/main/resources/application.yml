@@ -1,0 +1,27 @@
+# AI Code Assistant Backend
+server:
+  port: 8080
+
+spring:
+  application:
+    name: ai-code-assistant
+  threads:
+    virtual:
+      enabled: true
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    default-property-inclusion: non_null
+
+# Python 服务配置
+python:
+  service:
+    host: 127.0.0.1
+    port: 8000
+    health-check-interval: 30000
+
+# 日志配置
+logging:
+  level:
+    com.aicodeassistant: DEBUG
+    org.springframework.web.socket: INFO

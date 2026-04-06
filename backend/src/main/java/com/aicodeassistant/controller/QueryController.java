@@ -1,0 +1,502 @@
+package com.aicodeassistant.controller;
+
+import com.aicodeassistant.engine.CompactService;
+import com.aicodeassistant.engine.QueryConfig;
+import com.aicodeassistant.engine.QueryEngine;
+import com.aicodeassistant.engine.QueryLoopState;
+import com.aicodeassistant.engine.QueryMessageHandler;
+import com.aicodeassistant.engine.TokenCounter;
+import com.aicodeassistant.exception.SessionNotFoundException;
+import com.aicodeassistant.llm.LlmProviderRegistry;
+import com.aicodeassistant.llm.ModelCapabilities;
+import com.aicodeassistant.llm.ThinkingConfig;
+import com.aicodeassistant.model.ContentBlock;
+import com.aicodeassistant.model.Message;
+import com.aicodeassistant.model.PermissionMode;
+import com.aicodeassistant.model.Usage;
+import com.aicodeassistant.session.SessionData;
+import com.aicodeassistant.session.SessionManager;
+import com.aicodeassistant.tool.Tool;
+import com.aicodeassistant.tool.ToolRegistry;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.io.IOException;
+import java.time.Instant;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+/**
+ * QueryController — 查询 API (CLI/SDK 专用)。
+ * <p>
+ * 端点:
+ * <ul>
+ *   <li>POST /api/query — 同步单次查询</li>
+ *   <li>POST /api/query/stream — SSE 流式查询</li>
+ *   <li>POST /api/query/conversation — 多轮会话查询</li>
+ * </ul>
+ * <p>
+ * 与 WebSocket API (§6.2) 的分工:
+ * - WebSocket STOMP: Web 前端长连接，双向实时交互
+ * - REST /api/query: CLI/脚本单次调用，请求-响应模式
+ * - SSE /api/query/stream: CLI 流式输出，实时展示
+ *
+ * @see <a href="SPEC §6.1.6a">QueryController 完整实现</a>
+ */
+@RestController
+@RequestMapping("/api/query")
+public class QueryController {
+
+    private static final Logger log = LoggerFactory.getLogger(QueryController.class);
+
+    private final QueryEngine queryEngine;
+    private final ToolRegistry toolRegistry;
+    private final SessionManager sessionManager;
+    private final LlmProviderRegistry providerRegistry;
+    private final TokenCounter tokenCounter;
+    private final ObjectMapper objectMapper;
+
+    public QueryController(QueryEngine queryEngine,
+                           ToolRegistry toolRegistry,
+                           SessionManager sessionManager,
+                           LlmProviderRegistry providerRegistry,
+                           TokenCounter tokenCounter,
+                           ObjectMapper objectMapper) {
+        this.queryEngine = queryEngine;
+        this.toolRegistry = toolRegistry;
+        this.sessionManager = sessionManager;
+        this.providerRegistry = providerRegistry;
+        this.tokenCounter = tokenCounter;
+        this.objectMapper = objectMapper;
+    }
+
+    // ════════════════════════════════════════════
+    // 端点 1: 同步查询 — 等待完成后返回完整结果
+    // ════════════════════════════════════════════
+
+    /**
+     * POST /api/query — 同步单次查询。
+     * <p>
+     * 阻塞直到 LLM 完成所有轮次，返回完整结果。
+     * 在 Virtual Thread 中执行，不阻塞平台线程。
+     * 权限策略: 默认 DONT_ASK (非交互场景)。
+     */
+    @PostMapping
+    public ResponseEntity<QueryResponse> query(@RequestBody QueryRequest request) {
+        // 1. 创建或复用会话
+        String sessionId = resolveSessionId(request);
+
+        // 2. 组装工具池
+        List<Tool> tools = assembleToolPool(request.allowedTools(), request.disallowedTools());
+
+        // 3. 构建系统提示
+        String systemPrompt = buildSystemPrompt(request.systemPrompt(),
+                request.appendSystemPrompt(), request.model());
+
+        // 4. 组装用户消息
+        String userMessage = buildUserMessage(request.prompt(), request.context());
+
+        // 5. 构建 QueryConfig
+        String model = request.model() != null ? request.model() : providerRegistry.getDefaultModel();
+        int maxTurns = request.maxTurns() != null ? request.maxTurns() : 10;
+        int contextWindow = getContextWindow(model);
+
+        QueryConfig config = new QueryConfig(
+                model, systemPrompt, tools,
+                toolRegistry.getToolDefinitions(),
+                QueryConfig.DEFAULT_MAX_TOKENS,
+                contextWindow,
+                new ThinkingConfig.Disabled(),
+                maxTurns, "rest-api"
+        );
+
+        // 6. 初始化循环状态
+        QueryLoopState state = new QueryLoopState(new ArrayList<>(), null);
+        // 添加用户消息
+        state.addMessage(new Message.UserMessage(
+                UUID.randomUUID().toString(), Instant.now(),
+                List.of(new ContentBlock.TextBlock(userMessage)),
+                null, null));
+
+        // 7. 执行查询
+        ResultCollectingHandler handler = new ResultCollectingHandler();
+        QueryEngine.QueryResult result = queryEngine.execute(config, state, handler);
+
+        // 8. 提取最终文本
+        String finalText = extractFinalText(result.messages());
+
+        return ResponseEntity.ok(new QueryResponse(
+                sessionId,
+                finalText,
+                result.totalUsage(),
+                0.0, // costUsd — 后续 CostTracker 实现
+                handler.getToolCalls(),
+                result.stopReason(),
+                result.isSuccess() ? null : result.error()
+        ));
+    }
+
+    // ════════════════════════════════════════════
+    // 端点 2: SSE 流式查询 — 实时事件流
+    // ════════════════════════════════════════════
+
+    /**
+     * POST /api/query/stream — SSE 流式查询。
+     * <p>
+     * 通过 Server-Sent Events 实时推送:
+     * stream_delta / thinking_delta / tool_use / tool_result / message_complete / error
+     */
+    @PostMapping("/stream")
+    public SseEmitter streamQuery(@RequestBody QueryRequest request) {
+        long timeoutMs = (request.timeoutSeconds() != null
+                ? request.timeoutSeconds() : 600) * 1000L;
+        SseEmitter emitter = new SseEmitter(timeoutMs);
+
+        // 在 Virtual Thread 中执行
+        Thread.startVirtualThread(() -> {
+            try {
+                String sessionId = resolveSessionId(request);
+                List<Tool> tools = assembleToolPool(
+                        request.allowedTools(), request.disallowedTools());
+                String systemPrompt = buildSystemPrompt(
+                        request.systemPrompt(), request.appendSystemPrompt(), request.model());
+                String userMessage = buildUserMessage(request.prompt(), request.context());
+                String model = request.model() != null
+                        ? request.model() : providerRegistry.getDefaultModel();
+                int maxTurns = request.maxTurns() != null ? request.maxTurns() : 10;
+                int contextWindow = getContextWindow(model);
+
+                QueryConfig config = new QueryConfig(
+                        model, systemPrompt, tools,
+                        toolRegistry.getToolDefinitions(),
+                        QueryConfig.DEFAULT_MAX_TOKENS,
+                        contextWindow,
+                        new ThinkingConfig.Disabled(),
+                        maxTurns, "rest-api-stream"
+                );
+
+                QueryLoopState state = new QueryLoopState(new ArrayList<>(), null);
+                state.addMessage(new Message.UserMessage(
+                        UUID.randomUUID().toString(), Instant.now(),
+                        List.of(new ContentBlock.TextBlock(userMessage)),
+                        null, null));
+
+                // 流式回调 → SSE 推送
+                SseStreamHandler handler = new SseStreamHandler(emitter, sessionId);
+                QueryEngine.QueryResult result = queryEngine.execute(config, state, handler);
+
+                // 完成事件
+                sendEvent(emitter, "message_complete", Map.of(
+                        "sessionId", sessionId,
+                        "usage", result.totalUsage(),
+                        "stopReason", result.stopReason()));
+                emitter.complete();
+
+            } catch (Exception e) {
+                log.error("Stream query error", e);
+                sendEvent(emitter, "error", Map.of(
+                        "type", "error", "message", e.getMessage()));
+                emitter.completeWithError(e);
+            }
+        });
+
+        return emitter;
+    }
+
+    // ════════════════════════════════════════════
+    // 端点 3: 多轮会话查询 — 关联已有会话
+    // ════════════════════════════════════════════
+
+    /**
+     * POST /api/query/conversation — 在已有会话中追加查询。
+     * <p>
+     * 与 /api/query 的区别:
+     * - 必须提供 sessionId
+     * - 自动加载会话历史消息
+     */
+    @PostMapping("/conversation")
+    public ResponseEntity<QueryResponse> conversationQuery(
+            @RequestBody ConversationRequest request) {
+
+        // 1. 加载会话
+        SessionData session = sessionManager.loadSession(request.sessionId())
+                .orElseThrow(() -> new SessionNotFoundException(request.sessionId()));
+
+        // 2. 准备工具和系统提示
+        List<Tool> tools = assembleToolPool(
+                request.allowedTools(), request.disallowedTools());
+        String systemPrompt = buildSystemPrompt(
+                request.systemPrompt(), request.appendSystemPrompt(), request.model());
+        String model = request.model() != null ? request.model() : session.model();
+        int maxTurns = request.maxTurns() != null ? request.maxTurns() : 10;
+        int contextWindow = getContextWindow(model);
+
+        QueryConfig config = new QueryConfig(
+                model, systemPrompt, tools,
+                toolRegistry.getToolDefinitions(),
+                QueryConfig.DEFAULT_MAX_TOKENS,
+                contextWindow,
+                new ThinkingConfig.Disabled(),
+                maxTurns, "rest-api-conversation"
+        );
+
+        // 3. 初始化状态 — 加载历史消息
+        QueryLoopState state = new QueryLoopState(new ArrayList<>(session.messages()), null);
+
+        // 追加新用户消息
+        state.addMessage(new Message.UserMessage(
+                UUID.randomUUID().toString(), Instant.now(),
+                List.of(new ContentBlock.TextBlock(request.prompt())),
+                null, null));
+
+        // 4. 执行查询
+        ResultCollectingHandler handler = new ResultCollectingHandler();
+        QueryEngine.QueryResult result = queryEngine.execute(config, state, handler);
+
+        String finalText = extractFinalText(result.messages());
+
+        return ResponseEntity.ok(new QueryResponse(
+                request.sessionId(),
+                finalText,
+                result.totalUsage(),
+                0.0,
+                handler.getToolCalls(),
+                result.stopReason(),
+                result.isSuccess() ? null : result.error()
+        ));
+    }
+
+    // ═══ 私有方法 ═══
+
+    private String resolveSessionId(QueryRequest request) {
+        if (request.sessionId() != null) {
+            return request.sessionId();
+        }
+        String model = request.model() != null ? request.model() : providerRegistry.getDefaultModel();
+        String workingDir = request.workingDirectory() != null
+                ? request.workingDirectory() : System.getProperty("user.dir");
+        return sessionManager.createSession(model, workingDir);
+    }
+
+    private List<Tool> assembleToolPool(List<String> allowedTools, List<String> disallowedTools) {
+        List<Tool> tools = toolRegistry.getEnabledTools();
+        if (allowedTools != null && !allowedTools.isEmpty()) {
+            Set<String> allowed = Set.copyOf(allowedTools);
+            tools = tools.stream().filter(t -> allowed.contains(t.getName())).toList();
+        }
+        if (disallowedTools != null && !disallowedTools.isEmpty()) {
+            Set<String> denied = Set.copyOf(disallowedTools);
+            tools = tools.stream().filter(t -> !denied.contains(t.getName())).toList();
+        }
+        return tools;
+    }
+
+    private String buildSystemPrompt(String systemPrompt, String appendSystemPrompt, String model) {
+        if (systemPrompt != null) {
+            return systemPrompt;
+        }
+        // P0: 使用默认系统提示
+        String base = "You are a helpful AI coding assistant. "
+                + "Use available tools to help the user with their coding tasks.";
+        if (appendSystemPrompt != null) {
+            return base + "\n\n" + appendSystemPrompt;
+        }
+        return base;
+    }
+
+    private String buildUserMessage(String prompt, QueryContext context) {
+        StringBuilder sb = new StringBuilder();
+        if (context != null && context.stdin() != null && !context.stdin().isBlank()) {
+            sb.append("<stdin>\n").append(context.stdin()).append("\n</stdin>\n\n");
+        }
+        if (prompt != null) {
+            sb.append(prompt);
+        }
+        return sb.toString();
+    }
+
+    private int getContextWindow(String model) {
+        try {
+            ModelCapabilities caps = providerRegistry.getProvider(model)
+                    .getModelCapabilities(model);
+            return caps.contextWindow();
+        } catch (Exception e) {
+            return 128000; // 默认 128k
+        }
+    }
+
+    private String extractFinalText(List<Message> messages) {
+        // 从最后一条 AssistantMessage 提取文本
+        for (int i = messages.size() - 1; i >= 0; i--) {
+            Message msg = messages.get(i);
+            if (msg instanceof Message.AssistantMessage assistant && assistant.content() != null) {
+                StringBuilder sb = new StringBuilder();
+                for (var block : assistant.content()) {
+                    if (block instanceof ContentBlock.TextBlock text) {
+                        sb.append(text.text());
+                    }
+                }
+                if (!sb.isEmpty()) return sb.toString();
+            }
+        }
+        return "";
+    }
+
+    private void sendEvent(SseEmitter emitter, String eventName, Object data) {
+        try {
+            emitter.send(SseEmitter.event()
+                    .name(eventName)
+                    .data(data, MediaType.APPLICATION_JSON));
+        } catch (IOException e) {
+            // 客户端断开连接，静默忽略
+        }
+    }
+
+    // ═══ 内部回调实现 ═══
+
+    /**
+     * 结果收集处理器 — 收集工具调用信息。
+     */
+    private static class ResultCollectingHandler implements QueryMessageHandler {
+        private final List<ToolCallSummary> toolCalls = new ArrayList<>();
+
+        @Override public void onTextDelta(String text) {}
+
+        @Override
+        public void onToolUseStart(String toolUseId, String toolName) {
+            toolCalls.add(new ToolCallSummary(toolName, null, null, false));
+        }
+
+        @Override
+        public void onToolUseComplete(String toolUseId, ContentBlock.ToolUseBlock toolUse) {}
+
+        @Override
+        public void onToolResult(String toolUseId, ContentBlock.ToolResultBlock result) {
+            // 更新最后一个工具调用的结果
+            if (!toolCalls.isEmpty()) {
+                ToolCallSummary last = toolCalls.getLast();
+                toolCalls.set(toolCalls.size() - 1,
+                        new ToolCallSummary(last.tool(), last.input(),
+                                result.content(), result.isError()));
+            }
+        }
+
+        @Override
+        public void onAssistantMessage(Message.AssistantMessage message) {}
+
+        public List<ToolCallSummary> getToolCalls() { return toolCalls; }
+    }
+
+    /**
+     * SSE 流式处理器 — 将事件推送到 SseEmitter。
+     */
+    private class SseStreamHandler implements QueryMessageHandler {
+        private final SseEmitter emitter;
+        private final String sessionId;
+
+        SseStreamHandler(SseEmitter emitter, String sessionId) {
+            this.emitter = emitter;
+            this.sessionId = sessionId;
+        }
+
+        @Override
+        public void onTextDelta(String text) {
+            sendEvent(emitter, "stream_delta",
+                    Map.of("type", "text", "content", text));
+        }
+
+        @Override
+        public void onThinkingDelta(String thinking) {
+            sendEvent(emitter, "thinking_delta",
+                    Map.of("type", "thinking", "content", thinking));
+        }
+
+        @Override
+        public void onToolUseStart(String toolUseId, String toolName) {
+            sendEvent(emitter, "tool_use", Map.of(
+                    "type", "tool_use", "toolUseId", toolUseId,
+                    "tool", toolName));
+        }
+
+        @Override
+        public void onToolUseComplete(String toolUseId, ContentBlock.ToolUseBlock toolUse) {}
+
+        @Override
+        public void onToolResult(String toolUseId, ContentBlock.ToolResultBlock result) {
+            sendEvent(emitter, "tool_result", Map.of(
+                    "type", "tool_result", "toolUseId", toolUseId,
+                    "output", result.content() != null ? result.content() : "",
+                    "isError", result.isError()));
+        }
+
+        @Override
+        public void onAssistantMessage(Message.AssistantMessage message) {}
+
+        @Override
+        public void onError(Throwable error) {
+            sendEvent(emitter, "error",
+                    Map.of("type", "error", "message", error.getMessage()));
+        }
+    }
+
+    // ═══ DTO Records ═══
+
+    public record QueryRequest(
+            String prompt,
+            String model,
+            String systemPrompt,
+            String appendSystemPrompt,
+            PermissionMode permissionMode,
+            Integer maxTurns,
+            Double maxBudgetUsd,
+            List<String> allowedTools,
+            List<String> disallowedTools,
+            String sessionId,
+            String workingDirectory,
+            Integer timeoutSeconds,
+            String outputFormat,
+            QueryContext context
+    ) {}
+
+    public record QueryContext(
+            String stdin,
+            List<String> files
+    ) {}
+
+    public record ConversationRequest(
+            String sessionId,
+            String prompt,
+            String model,
+            String systemPrompt,
+            String appendSystemPrompt,
+            PermissionMode permissionMode,
+            Integer maxTurns,
+            Double maxBudgetUsd,
+            List<String> allowedTools,
+            List<String> disallowedTools,
+            String workingDirectory,
+            Integer timeoutSeconds
+    ) {}
+
+    public record QueryResponse(
+            String sessionId,
+            String result,
+            Usage usage,
+            double costUsd,
+            List<ToolCallSummary> toolCalls,
+            String stopReason,
+            String error
+    ) {}
+
+    public record ToolCallSummary(
+            String tool,
+            Object input,
+            String output,
+            boolean isError
+    ) {}
+}

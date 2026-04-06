@@ -1,0 +1,227 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* ===== Light 主题 (默认) ===== */
+  :root {
+    /* §8.6 26 个核心 CSS 变量 — Light */
+    --bg-primary:              #ffffff;
+    --bg-secondary:            #f8f9fa;
+    --text-primary:            #1a1a2e;
+    --text-secondary:          #6b7280;
+    --border:                  #e5e7eb;
+    --accent:                  var(--accent-color, #3b82f6);
+    --code-bg:                 #f3f4f6;
+    --diff-add:                #d4edda;
+    --diff-remove:             #f8d7da;
+    --focus-ring:              #6366f1;
+
+    /* 扩展色板 — Tailwind 集成 */
+    --color-surface:           #ffffff;
+    --color-surface-elevated:  #f8fafc;
+    --color-surface-sunken:    #f1f5f9;
+    --color-primary:           #6366f1;
+    --color-primary-hover:     #4f46e5;
+    --color-primary-active:    #4338ca;
+    --color-accent:            var(--accent-color, #8b5cf6);
+    --color-accent-muted:      #c4b5fd;
+    --color-muted:             #64748b;
+    --color-border:            #e2e8f0;
+    --color-text:              #0f172a;
+    --color-text-secondary:    #475569;
+    --color-text-muted:        #94a3b8;
+    --color-code-bg:           #f1f5f9;
+    --color-code-border:       #e2e8f0;
+    --color-info:              #3b82f6;
+    --color-info-bg:           #eff6ff;
+    --color-success:           #22c55e;
+    --color-success-bg:        #f0fdf4;
+    --color-warning:           #eab308;
+    --color-warning-bg:        #fefce8;
+    --color-danger:            #ef4444;
+    --color-danger-bg:         #fef2f2;
+    --color-scrollbar:         #cbd5e1;
+    --color-scrollbar-hover:   #94a3b8;
+    --color-focus-ring:        #6366f1;
+    --color-skeleton:          #e2e8f0;
+    --color-overlay:           rgba(0, 0, 0, 0.5);
+
+    /* §8.6 可配置主题属性 */
+    --accent-color:            #3b82f6;
+    --font-size:               14px;
+    --font-family-code:        'JetBrains Mono', 'Fira Code', monospace;
+    --border-radius:           8px;
+
+    /* 虚拟键盘 (§8.8.3) */
+    --keyboard-height:         0px;
+    --viewport-height:         100dvh;
+  }
+
+  /* ===== Dark 主题 ===== */
+  .dark {
+    /* §8.6 26 个核心 CSS 变量 — Dark */
+    --bg-primary:              #0d1117;
+    --bg-secondary:            #161b22;
+    --text-primary:            #e6edf3;
+    --text-secondary:          #8b949e;
+    --border:                  #30363d;
+    --accent:                  var(--accent-color, #3b82f6);
+    --code-bg:                 #1c2128;
+    --diff-add:                #1a4d2e;
+    --diff-remove:             #4d1a1a;
+    --focus-ring:              #818cf8;
+
+    /* 扩展色板 — Tailwind 集成 */
+    --color-surface:           #0f172a;
+    --color-surface-elevated:  #1e293b;
+    --color-surface-sunken:    #020617;
+    --color-primary:           #818cf8;
+    --color-primary-hover:     #6366f1;
+    --color-primary-active:    #4f46e5;
+    --color-accent:            var(--accent-color, #a78bfa);
+    --color-accent-muted:      #5b21b6;
+    --color-muted:             #94a3b8;
+    --color-border:            #334155;
+    --color-text:              #f8fafc;
+    --color-text-secondary:    #cbd5e1;
+    --color-text-muted:        #64748b;
+    --color-code-bg:           #1e293b;
+    --color-code-border:       #334155;
+    --color-info:              #60a5fa;
+    --color-info-bg:           #172554;
+    --color-success:           #4ade80;
+    --color-success-bg:        #052e16;
+    --color-warning:           #facc15;
+    --color-warning-bg:        #422006;
+    --color-danger:            #f87171;
+    --color-danger-bg:         #450a0a;
+    --color-scrollbar:         #475569;
+    --color-scrollbar-hover:   #64748b;
+    --color-focus-ring:        #818cf8;
+    --color-skeleton:          #334155;
+    --color-overlay:           rgba(0, 0, 0, 0.7);
+  }
+
+  /* ===== prefers-color-scheme 自动跟随系统 ===== */
+  @media (prefers-color-scheme: dark) {
+    :root:not(.light) {
+      --bg-primary:              #0d1117;
+      --bg-secondary:            #161b22;
+      --text-primary:            #e6edf3;
+      --text-secondary:          #8b949e;
+      --border:                  #30363d;
+      --code-bg:                 #1c2128;
+      --diff-add:                #1a4d2e;
+      --diff-remove:             #4d1a1a;
+      --focus-ring:              #818cf8;
+    }
+  }
+}
+
+/* ===== 全局 Body 样式 ===== */
+body {
+  margin: 0;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: var(--font-size, 14px);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== §8.6a 无障碍 — Skip Link ===== */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  z-index: 100;
+}
+.skip-link:focus {
+  position: fixed;
+  left: 8px;
+  top: 8px;
+  width: auto;
+  height: auto;
+  padding: 8px 16px;
+  background: var(--accent);
+  color: white;
+  border-radius: var(--border-radius);
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 9999;
+  outline: 2px solid var(--focus-ring);
+}
+
+/* ===== §8.6a 焦点指示器 ===== */
+*:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* ===== §8.8.3 触控优化 ===== */
+@layer utilities {
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+}
+
+/* ===== §8.8.4 安全区域 ===== */
+.app-root {
+  height: var(--viewport-height, 100dvh);
+  padding-top: env(safe-area-inset-top);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+.prompt-input-container {
+  padding-bottom: calc(var(--keyboard-height, 0px) + env(safe-area-inset-bottom));
+  transition: padding-bottom 0.25s ease-out;
+}
+
+/* ===== §8.8.5 动画偏好 ===== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ===== 滚动条样式 ===== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-scrollbar);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-scrollbar-hover);
+}
+
+/* ===== §8.8 移动端代码块横向滚动 ===== */
+@media (max-width: 639px) {
+  pre {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ===== Shimmer / 骨架屏动画 ===== */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
