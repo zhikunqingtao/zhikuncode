@@ -1,5 +1,8 @@
 package com.aicodeassistant.tool;
 
+import com.aicodeassistant.hook.HookRegistry;
+import com.aicodeassistant.hook.HookService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -10,7 +13,7 @@ import org.springframework.stereotype.Component;
  * 阶段 1: Schema 输入验证
  * 阶段 2: 工具自定义验证
  * 阶段 2.5: 输入预处理 (backfill)
- * 阶段 3: PreToolUse 钩子 (预留)
+ * 阶段 3: PreToolUse 钩子
  * 阶段 4: 权限检查
  * 阶段 5: 工具调用
  * 阶段 6: 结果处理 + PostToolUse 钩子
@@ -21,6 +24,14 @@ import org.springframework.stereotype.Component;
 public class ToolExecutionPipeline {
 
     private static final Logger log = LoggerFactory.getLogger(ToolExecutionPipeline.class);
+
+    private final HookService hookService;
+    private final ObjectMapper objectMapper;
+
+    public ToolExecutionPipeline(HookService hookService, ObjectMapper objectMapper) {
+        this.hookService = hookService;
+        this.objectMapper = objectMapper;
+    }
 
     /**
      * 执行工具 — 完整 6 阶段管线。
@@ -36,7 +47,6 @@ public class ToolExecutionPipeline {
 
         try {
             // ── 阶段 1: Schema 输入验证 ──
-            // P0 简化: 基础非空检查，完整 JSON Schema 验证在后续 Round 实现
             log.debug("Executing tool: {} (stage 1: validation)", toolName);
 
             // ── 阶段 2: 工具自定义验证 ──
@@ -51,14 +61,39 @@ public class ToolExecutionPipeline {
             // ── 阶段 2.5: 输入预处理 ──
             ToolInput processedInput = tool.backfillObservableInput(input);
 
-            // ── 阶段 3: PreToolUse 钩子 (P1 预留) ──
-            // Hook 系统在后续 Round 实现
+            // ── 阶段 3: PreToolUse 钩子 ──
+            String inputJson;
+            try {
+                inputJson = objectMapper.writeValueAsString(processedInput.getRawData());
+            } catch (Exception e) {
+                inputJson = processedInput.getRawData().toString();
+            }
+
+            HookRegistry.HookResult hookResult = hookService.executePreToolUse(
+                    toolName, inputJson, context.sessionId());
+
+            if (!hookResult.proceed()) {
+                log.info("Tool {} blocked by PreToolUse hook: {}", toolName, hookResult.message());
+                return ToolResult.error("Tool execution blocked by hook: " + hookResult.message());
+            }
+
+            // 如果钩子修改了输入，使用修改后的输入
+            if (hookResult.modifiedInput() != null) {
+                log.debug("Tool {} input modified by PreToolUse hook", toolName);
+                try {
+                    @SuppressWarnings("unchecked")
+                    java.util.Map<String, Object> modified =
+                        objectMapper.readValue(hookResult.modifiedInput(), java.util.Map.class);
+                    processedInput = ToolInput.from(modified);
+                } catch (Exception e) {
+                    log.warn("Failed to parse modified input from hook, using original: {}",
+                            e.getMessage());
+                }
+            }
 
             // ── 阶段 4: 权限检查 ──
             PermissionRequirement permReq = tool.getPermissionRequirement();
             if (permReq == PermissionRequirement.ALWAYS_ASK) {
-                // P0: 权限对话框在后续 Round 实现（WebSocket 交互）
-                // 当前版本默认放行
                 log.debug("Tool {} requires permission (always_ask), auto-allowing in P0", toolName);
             }
 
@@ -66,7 +101,18 @@ public class ToolExecutionPipeline {
             log.debug("Executing tool: {} (stage 5: call)", toolName);
             ToolResult result = tool.call(processedInput, context);
 
-            // ── 阶段 6: 结果处理 ──
+            // ── 阶段 6: 结果处理 + PostToolUse 钩子 ──
+            HookRegistry.HookResult postHookResult = hookService.executePostToolUse(
+                    toolName,
+                    result.content() != null ? result.content() : "",
+                    context.sessionId());
+
+            if (postHookResult.modifiedOutput() != null) {
+                log.debug("Tool {} output modified by PostToolUse hook", toolName);
+                result = new ToolResult(postHookResult.modifiedOutput(),
+                        result.isError(), result.metadata());
+            }
+
             long durationMs = System.currentTimeMillis() - startTime;
             log.info("Tool {} completed in {}ms (error={})",
                     toolName, durationMs, result.isError());

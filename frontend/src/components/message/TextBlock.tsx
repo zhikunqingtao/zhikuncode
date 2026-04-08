@@ -26,7 +26,7 @@ const TextBlock: React.FC<TextBlockProps> = ({ text, streaming = false }) => {
             if (!match && !codeStr.includes('\n')) {
                 return (
                     <code
-                        className="px-1.5 py-0.5 rounded bg-gray-800 text-sm font-mono text-gray-200"
+                        className="px-1.5 py-0.5 rounded bg-[var(--code-bg)] text-sm font-mono text-[var(--text-primary)]"
                         {...props}
                     >
                         {children}
@@ -49,7 +49,7 @@ const TextBlock: React.FC<TextBlockProps> = ({ text, streaming = false }) => {
         li: ({ children }) => <li className="leading-relaxed">{children}</li>,
         // Blockquotes
         blockquote: ({ children }) => (
-            <blockquote className="border-l-4 border-blue-500 pl-4 my-3 text-gray-400 italic">
+            <blockquote className="border-l-4 border-blue-500 pl-4 my-3 text-[var(--text-secondary)] italic">
                 {children}
             </blockquote>
         ),
@@ -67,28 +67,28 @@ const TextBlock: React.FC<TextBlockProps> = ({ text, streaming = false }) => {
         // Tables
         table: ({ children }) => (
             <div className="overflow-x-auto my-3">
-                <table className="min-w-full border-collapse border border-gray-700 text-sm">
+                <table className="min-w-full border-collapse border border-[var(--border)] text-sm">
                     {children}
                 </table>
             </div>
         ),
         th: ({ children }) => (
-            <th className="border border-gray-700 px-3 py-2 bg-gray-800 text-left font-semibold">
+            <th className="border border-[var(--border)] px-3 py-2 bg-[var(--bg-secondary)] text-left font-semibold">
                 {children}
             </th>
         ),
         td: ({ children }) => (
-            <td className="border border-gray-700 px-3 py-2">{children}</td>
+            <td className="border border-[var(--border)] px-3 py-2">{children}</td>
         ),
         // Horizontal rule
-        hr: () => <hr className="my-4 border-gray-700" />,
+        hr: () => <hr className="my-4 border-[var(--border)]" />,
         // Strong / Em
         strong: ({ children }) => <strong className="font-bold">{children}</strong>,
         em: ({ children }) => <em className="italic">{children}</em>,
     }), []);
 
     return (
-        <div className="text-block prose prose-invert max-w-none text-sm">
+        <div className="text-block max-w-none text-sm text-[var(--text-primary)] leading-relaxed">
             <ReactMarkdown components={components}>{text}</ReactMarkdown>
             {streaming && (
                 <span className="inline-block w-2 h-4 ml-0.5 bg-blue-400 animate-pulse rounded-sm" />

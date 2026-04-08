@@ -1,7 +1,6 @@
 package com.aicodeassistant.service;
 
 import com.aicodeassistant.config.database.SqliteConfig;
-import com.aicodeassistant.model.McpServerConfig;
 import com.aicodeassistant.model.PermissionMode;
 import com.aicodeassistant.model.PermissionRule;
 import com.aicodeassistant.model.ProjectConfig;
@@ -16,7 +15,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.Path;
-import java.util.List;
+import java.util.*;
 import java.util.Map;
 
 /**
@@ -51,7 +50,7 @@ public class ConfigService {
      * 获取用户全局配置。
      */
     public UserConfig getUserConfig() {
-        String json = loadConfigJson(globalJdbcTemplate, "user_config");
+        String json = loadConfigJson(globalJdbcTemplate, "global_config", "user_config");
         if (json == null) {
             return defaultUserConfig();
         }
@@ -76,7 +75,7 @@ public class ConfigService {
             currentMap.putAll(updates);
             String mergedJson = objectMapper.writeValueAsString(currentMap);
             UserConfig updated = objectMapper.readValue(mergedJson, UserConfig.class);
-            saveConfigJson(globalJdbcTemplate, "user_config", mergedJson);
+            saveConfigJson(globalJdbcTemplate, "global_config", "user_config", mergedJson);
             log.info("User config updated: {} fields", updates.size());
             return updated;
         } catch (JsonProcessingException e) {
@@ -88,7 +87,7 @@ public class ConfigService {
      * 获取项目级配置。
      */
     public ProjectConfig getProjectConfig() {
-        String json = loadConfigJson(projectJdbcTemplate, "project_config");
+        String json = loadConfigJson(projectJdbcTemplate, "project_config", "project_config");
         if (json == null) {
             return defaultProjectConfig();
         }
@@ -112,7 +111,7 @@ public class ConfigService {
             currentMap.putAll(updates);
             String mergedJson = objectMapper.writeValueAsString(currentMap);
             ProjectConfig updated = objectMapper.readValue(mergedJson, ProjectConfig.class);
-            saveConfigJson(projectJdbcTemplate, "project_config", mergedJson);
+            saveConfigJson(projectJdbcTemplate, "project_config", "project_config", mergedJson);
             log.info("Project config updated: {} fields", updates.size());
             return updated;
         } catch (JsonProcessingException e) {
@@ -122,19 +121,35 @@ public class ConfigService {
 
     // ───── 内部方法 ─────
 
-    private String loadConfigJson(JdbcTemplate jdbc, String key) {
-        List<String> results = jdbc.queryForList(
-                "SELECT value FROM config WHERE key = ?", String.class, key);
-        return results.isEmpty() ? null : results.getFirst();
+    /**
+     * 从指定数据库的指定表读取配置 JSON。
+     *
+     * @param jdbc      JdbcTemplate（global.db 或 data.db）
+     * @param tableName 表名（global_config 或 project_config）
+     * @param key       配置键
+     */
+    private String loadConfigJson(JdbcTemplate jdbc, String tableName, String key) {
+        try {
+            List<String> results = jdbc.queryForList(
+                    "SELECT value FROM " + tableName + " WHERE key = ?", String.class, key);
+            return results.isEmpty() ? null : results.getFirst();
+        } catch (Exception e) {
+            log.warn("Failed to load config from {}.{}: {}", tableName, key, e.getMessage());
+            return null;
+        }
     }
 
-    private void saveConfigJson(JdbcTemplate jdbc, String key, String json) {
+    /**
+     * 保存配置 JSON 到指定数据库的指定表。
+     * 使用 UPDATE + INSERT 模式（兼容无数据时的首次写入）。
+     */
+    private void saveConfigJson(JdbcTemplate jdbc, String tableName, String key, String json) {
         int updated = jdbc.update(
-                "UPDATE config SET value = ?, updated_at = datetime('now') WHERE key = ?",
+                "UPDATE " + tableName + " SET value = ?, updated_at = datetime('now') WHERE key = ?",
                 json, key);
         if (updated == 0) {
             jdbc.update(
-                    "INSERT INTO config (key, value, updated_at) VALUES (?, ?, datetime('now'))",
+                    "INSERT INTO " + tableName + " (key, value, updated_at) VALUES (?, ?, datetime('now'))",
                     key, json);
         }
     }
@@ -155,5 +170,83 @@ public class ConfigService {
                 null, null, 0.0,
                 List.of(), Map.of(), Map.of()
         );
+    }
+
+    /**
+     * 获取合并后的有效配置 — 5 层优先级合并。
+     *
+     * 优先级（低→高）:
+     * 1. 默认值 (代码内置)
+     * 2. 企业级 (managed-settings.json, P2 延后)
+     * 3. 用户级 (~/.config/.../settings.json → global SQLite)
+     * 4. 项目级 (.ai-assistant/settings.json → project SQLite)
+     * 5. 本地级 (.ai-assistant/local-settings.json, 不提交到 VCS)
+     */
+    public Map<String, Object> getEffectiveSettings() {
+        Map<String, Object> result = new LinkedHashMap<>();
+
+        // Layer 1: 默认值
+        result.putAll(getDefaultSettings());
+
+        // Layer 2: 企业级 — P2 预留
+        // Map<String, Object> enterprise = loadEnterpriseManagedSettings();
+        // if (enterprise != null) result.putAll(enterprise);
+
+        // Layer 3: 用户级
+        try {
+            UserConfig userConfig = getUserConfig();
+            String json = objectMapper.writeValueAsString(userConfig);
+            Map<String, Object> userMap = objectMapper.readValue(json,
+                    new TypeReference<Map<String, Object>>() {});
+            result.putAll(userMap);
+        } catch (Exception e) {
+            log.warn("Failed to merge user config: {}", e.getMessage());
+        }
+
+        // Layer 4: 项目级
+        try {
+            ProjectConfig projectConfig = getProjectConfig();
+            String json = objectMapper.writeValueAsString(projectConfig);
+            Map<String, Object> projMap = objectMapper.readValue(json,
+                    new TypeReference<Map<String, Object>>() {});
+            result.putAll(projMap);
+        } catch (Exception e) {
+            log.warn("Failed to merge project config: {}", e.getMessage());
+        }
+
+        // Layer 5: 本地级 (不提交到 VCS)
+        Map<String, Object> localSettings = loadLocalSettings();
+        if (localSettings != null) result.putAll(localSettings);
+
+        return Collections.unmodifiableMap(result);
+    }
+
+    private Map<String, Object> getDefaultSettings() {
+        return new LinkedHashMap<>(Map.of(
+            "theme", "auto",
+            "verbose", false,
+            "outputStyle", "normal",
+            "maxTurns", 100,
+            "autoCompact", true
+        ));
+    }
+
+    /**
+     * 加载本地级配置 — .ai-assistant/local-settings.json（不提交 VCS）。
+     */
+    private Map<String, Object> loadLocalSettings() {
+        try {
+            // 注意: SqliteConfig 无 getProjectDir() 方法，使用 user.dir 系统属性
+            Path localPath = Path.of(System.getProperty("user.dir"),
+                ".ai-assistant", "local-settings.json");
+            if (java.nio.file.Files.exists(localPath)) {
+                String json = java.nio.file.Files.readString(localPath);
+                return objectMapper.readValue(json,
+                    new TypeReference<Map<String, Object>>() {});
+            }
+        } catch (Exception e) {
+            log.warn("Failed to load local settings: {}", e.getMessage());
+        }
+        return null;
     }
 }

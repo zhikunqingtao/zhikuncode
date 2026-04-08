@@ -34,7 +34,7 @@ public class WebFetchTool implements Tool {
     private static final Logger log = LoggerFactory.getLogger(WebFetchTool.class);
     private static final int MAX_CONTENT_CHARS = 100_000;
     private static final int TIMEOUT_SECONDS = 30;
-    private static final long MAX_RESPONSE_BYTES = 10 * 1024 * 1024; // 10MB
+    private static final long MAX_RESPONSE_BYTES = 10_485_760; // 10MB (SPEC: MAX_HTTP_CONTENT)
 
     private final OkHttpClient httpClient;
 

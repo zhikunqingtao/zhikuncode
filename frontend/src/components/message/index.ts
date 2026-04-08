@@ -19,3 +19,8 @@ export { default as CodeBlock } from './CodeBlock';
 export { default as ThinkingBlock } from './ThinkingBlock';
 export { default as ToolCallBlock } from './ToolCallBlock';
 export { default as ImageBlock } from './ImageBlock';
+
+// 增强渲染组件
+export { default as GroupedToolUseBlock } from './GroupedToolUseBlock';
+export { default as CollapsedReadSearchBlock } from './CollapsedReadSearchBlock';
+export { default as OutputStyleSelector } from './OutputStyleSelector';

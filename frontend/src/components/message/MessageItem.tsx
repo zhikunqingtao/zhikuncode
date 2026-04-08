@@ -47,7 +47,7 @@ const MessageItem: React.FC<MessageItemProps> = ({
             {/* Timestamp divider */}
             {showTimestamp && (
                 <div className="flex justify-center py-2">
-                    <span className="text-xs text-gray-600">
+                    <span className="text-xs text-[var(--text-muted)]">
                         {formatTimestamp(message.timestamp)}
                     </span>
                 </div>
@@ -98,10 +98,10 @@ const AttachmentMessage: React.FC<{
     message: Extract<Message, { type: 'attachment' }>;
 }> = ({ message }) => (
     <div className="px-4 py-2 my-1">
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-800/50 border border-gray-700/50 text-sm">
-            <Paperclip size={14} className="text-gray-500" />
-            <span className="text-gray-300">{message.fileName}</span>
-            <span className="text-xs text-gray-500">
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--bg-secondary)] border border-[var(--border)] text-sm">
+            <Paperclip size={14} className="text-[var(--text-muted)]" />
+            <span className="text-[var(--text-primary)]">{message.fileName}</span>
+            <span className="text-xs text-[var(--text-muted)]">
                 ({formatFileSize(message.size)})
             </span>
         </div>
@@ -114,9 +114,9 @@ const GroupedToolUseMessage: React.FC<{
     message: Extract<Message, { type: 'grouped_tool_use' }>;
 }> = ({ message }) => (
     <div className="px-4 py-2 my-1">
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-800/30 border border-gray-700/50">
-            <Layers size={14} className="text-gray-500" />
-            <span className="text-xs text-gray-400">
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--bg-secondary)]/30 border border-[var(--border)]">
+            <Layers size={14} className="text-[var(--text-muted)]" />
+            <span className="text-xs text-[var(--text-secondary)]">
                 {message.toolCalls.length} tool calls
             </span>
             <div className="flex flex-wrap gap-1 ml-1">
@@ -128,7 +128,7 @@ const GroupedToolUseMessage: React.FC<{
                                 ? 'bg-green-900/30 text-green-400'
                                 : tc.status === 'error'
                                   ? 'bg-red-900/30 text-red-400'
-                                  : 'bg-gray-800 text-gray-400'
+                                  : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)]'
                         }`}
                     >
                         {tc.toolName}
@@ -155,9 +155,9 @@ const CollapsedReadSearchMessage: React.FC<{
 
     return (
         <div className="px-4 py-2 my-1">
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-800/30 border border-gray-700/50">
-                <FolderSearch size={14} className="text-gray-500" />
-                <span className="text-xs text-gray-400">{summary}</span>
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--bg-secondary)]/30 border border-[var(--border)]">
+                <FolderSearch size={14} className="text-[var(--text-muted)]" />
+                <span className="text-xs text-[var(--text-secondary)]">{summary}</span>
             </div>
         </div>
     );

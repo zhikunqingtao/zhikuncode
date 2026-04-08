@@ -1,0 +1,82 @@
+# =============================================================================
+# AI Code Assistant — Docker Compose
+# =============================================================================
+version: '3.9'
+
+services:
+  # ---------- Backend (Spring Boot) ----------
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    container_name: ai-code-assistant-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=production
+      - JAVA_OPTS=-Xms256m -Xmx1024m
+      - PYTHON_SERVICE_HOST=python-service
+      - PYTHON_SERVICE_PORT=8000
+    volumes:
+      - app-data:/app/data
+      - ./workspace:/app/workspace
+    depends_on:
+      python-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  # ---------- Python Service ----------
+  python-service:
+    build:
+      context: ./python-service
+      dockerfile: Dockerfile
+    container_name: ai-code-assistant-python
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+    volumes:
+      - app-data:/app/data
+      - ./workspace:/app/workspace
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  # ---------- Frontend (Nginx) ----------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ai-code-assistant-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app-network
+
+volumes:
+  app-data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge

@@ -46,6 +46,8 @@ public class GrepTool implements Tool {
                         "pattern", Map.of("type", "string", "description", "Regex search pattern"),
                         "path", Map.of("type", "string", "description", "Search path (default: cwd)"),
                         "glob", Map.of("type", "string", "description", "File filter (e.g. \"*.java\")"),
+                        "include", Map.of("type", "string", "description", "Include files matching glob (e.g. \"*.java\")"),
+                        "exclude", Map.of("type", "string", "description", "Exclude files matching glob (e.g. \"*.min.js\")"),
                         "output_mode", Map.of("type", "string", "description", "content|files_with_matches|count"),
                         "-i", Map.of("type", "boolean", "description", "Case-insensitive search")
                 ),
@@ -101,6 +103,8 @@ public class GrepTool implements Tool {
 
             // 文件类型过滤
             input.getOptionalString("glob").ifPresent(g -> args.addAll(List.of("--glob", g)));
+            input.getOptionalString("include").ifPresent(g -> args.addAll(List.of("--glob", g)));
+            input.getOptionalString("exclude").ifPresent(g -> args.addAll(List.of("--glob", "!" + g)));
             input.getOptionalString("type").ifPresent(t -> args.addAll(List.of("--type", t)));
 
             // pattern 以 - 开头时使用 -e 防止误解析

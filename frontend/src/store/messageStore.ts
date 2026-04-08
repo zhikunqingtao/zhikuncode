@@ -38,8 +38,47 @@ export const useMessageStore = create<MessageStoreState>()(
         activeToolCalls: new Map(),
 
         addMessage: (msg) => set(d => { d.messages.push(msg); }),
-        appendStreamDelta: (delta) => set(d => { d.streamingContent += delta; }),
-        appendThinkingDelta: (delta) => set(d => { d.thinkingContent += delta; }),
+        appendStreamDelta: (delta) => set(d => {
+            // 首次收到 stream_delta 时，创建占位 assistant 消息
+            if (!d.streamingMessageId) {
+                const msgId = crypto.randomUUID();
+                d.streamingMessageId = msgId;
+                d.messages.push({
+                    uuid: msgId,
+                    type: 'assistant',
+                    content: [{ type: 'text', text: '' }],
+                    timestamp: Date.now(),
+                } as Message);
+            }
+            d.streamingContent += delta;
+        }),
+        appendThinkingDelta: (delta) => set(d => {
+            // 首次收到 thinking_delta 时，也创建占位 assistant 消息
+            if (!d.streamingMessageId) {
+                const msgId = crypto.randomUUID();
+                d.streamingMessageId = msgId;
+                d.messages.push({
+                    uuid: msgId,
+                    type: 'assistant',
+                    content: [],
+                    timestamp: Date.now(),
+                    stopReason: '',
+                    usage: { inputTokens: 0, outputTokens: 0, cacheReadInputTokens: 0, cacheCreationInputTokens: 0 },
+                } as unknown as Message);
+            }
+            d.thinkingContent += delta;
+            // 同步更新 streaming message 中的 thinking block
+            const msg = d.messages.find(m => m.uuid === d.streamingMessageId);
+            if (msg && msg.type === 'assistant' && Array.isArray((msg as any).content)) {
+                const content = (msg as any).content;
+                const thinkingBlock = content.find((b: any) => b.type === 'thinking' && !b.completed);
+                if (thinkingBlock) {
+                    thinkingBlock.text = d.thinkingContent;
+                } else {
+                    content.unshift({ type: 'thinking', text: d.thinkingContent, completed: false });
+                }
+            }
+        }),
         startToolCall: (id, name, input) => set(d => {
             d.activeToolCalls.set(id, {
                 toolName: name, input, status: 'running', startTime: Date.now(),
@@ -58,6 +97,22 @@ export const useMessageStore = create<MessageStoreState>()(
             }
         }),
         finalizeStream: (_usage) => set(d => {
+            // 将累积的流式内容保存到 messages 中的 assistant 消息
+            if (d.streamingMessageId) {
+                const msg = d.messages.find(m => m.uuid === d.streamingMessageId);
+                if (msg && 'content' in msg && msg.type === 'assistant') {
+                    const content: any[] = [];
+                    // 保留 thinking block (标记为 completed)
+                    if (d.thinkingContent) {
+                        content.push({ type: 'thinking' as const, text: d.thinkingContent, completed: true });
+                    }
+                    // 文本内容
+                    if (d.streamingContent) {
+                        content.push({ type: 'text' as const, text: d.streamingContent });
+                    }
+                    (msg as { content: unknown }).content = content;
+                }
+            }
             d.streamingMessageId = null;
             d.streamingContent = '';
             d.thinkingContent = '';

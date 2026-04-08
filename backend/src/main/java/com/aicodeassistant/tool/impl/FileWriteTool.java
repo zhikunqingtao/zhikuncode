@@ -1,5 +1,6 @@
 package com.aicodeassistant.tool.impl;
 
+import com.aicodeassistant.history.FileHistoryService;
 import com.aicodeassistant.tool.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +25,12 @@ import java.util.Map;
 public class FileWriteTool implements Tool {
 
     private static final Logger log = LoggerFactory.getLogger(FileWriteTool.class);
+
+    private final FileHistoryService fileHistoryService;
+
+    public FileWriteTool(FileHistoryService fileHistoryService) {
+        this.fileHistoryService = fileHistoryService;
+    }
 
     @Override
     public String getName() {
@@ -72,10 +79,13 @@ public class FileWriteTool implements Tool {
 
             // 2. 判断操作类型
             boolean isCreate = !Files.exists(path);
-            String originalContent = null;
+
+            // ── 新增: 编辑前保存快照 ──
             if (!isCreate) {
-                originalContent = Files.readString(path, StandardCharsets.UTF_8);
+                fileHistoryService.trackEdit(filePath, context.sessionId(), context.toolUseId());
             }
+
+            String originalContent = !isCreate ? Files.readString(path, StandardCharsets.UTF_8) : null;
 
             // 3. 写入文件
             Files.writeString(path, content, StandardCharsets.UTF_8);

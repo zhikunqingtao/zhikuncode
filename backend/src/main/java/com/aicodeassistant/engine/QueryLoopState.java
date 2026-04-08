@@ -23,6 +23,9 @@ public class QueryLoopState {
     private Integer maxTokensOverride = null;
     private boolean hasAttemptedReactiveCompact = false;
     private int turnCount = 0;
+    private String abortReason = null;
+    private boolean stopHookActive = false;
+    private String lastTransitionReason = null;
 
     public QueryLoopState(List<Message> messages, ToolUseContext toolUseContext) {
         this.messages = new ArrayList<>(messages);
@@ -39,6 +42,8 @@ public class QueryLoopState {
     public Integer getMaxTokensOverride() { return maxTokensOverride; }
     public boolean hasAttemptedReactiveCompact() { return hasAttemptedReactiveCompact; }
     public int getTurnCount() { return turnCount; }
+    public String getAbortReason() { return abortReason; }
+    public boolean isStopHookActive() { return stopHookActive; }
 
     // ==================== Setters ====================
 
@@ -85,6 +90,21 @@ public class QueryLoopState {
     public void incrementTurnCount() {
         this.turnCount++;
     }
+
+    public void setAbortReason(String reason) {
+        this.abortReason = reason;
+    }
+
+    public void setStopHookActive(boolean active) {
+        this.stopHookActive = active;
+    }
+
+    public void resetRecoveryCount() {
+        this.maxOutputTokensRecoveryCount = 0;
+    }
+
+    public String getLastTransitionReason() { return lastTransitionReason; }
+    public void setLastTransitionReason(String reason) { this.lastTransitionReason = reason; }
 
     /** 获取有效的 maxTokens (考虑 override) */
     public int getEffectiveMaxTokens(int defaultMaxTokens) {

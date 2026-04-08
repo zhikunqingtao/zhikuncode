@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -13,6 +14,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * FileReadTool — 读取文件内容。
@@ -101,23 +103,34 @@ public class FileReadTool implements Tool {
                 return ToolResult.image(base64, mimeType, fileSize);
             }
 
-            // 5. 文本文件处理
-            List<String> allLines = Files.readAllLines(path, StandardCharsets.UTF_8);
+            // 5. 文本文件处理 — 使用 BufferedReader 流式读取，避免大文件 OOM
             int rawStart = input.getOptionalInt("offset").orElse(0);
-            int startLine = Math.max(0, Math.min(rawStart, allLines.size()));
-            int endLine = input.getOptionalInt("limit")
-                    .map(limit -> Math.min(startLine + limit, allLines.size()))
-                    .orElse(allLines.size());
-            endLine = Math.max(startLine, Math.min(endLine, allLines.size()));
+            int startLine = Math.max(0, rawStart);
+            int limit = input.getOptionalInt("limit").orElse(0);
 
-            List<String> selectedLines = allLines.subList(startLine, endLine);
+            List<String> selectedLines;
+            int totalLines;
+            try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+                if (startLine > 0 || limit > 0) {
+                    // 流式跳过 + 限制，不加载整个文件
+                    selectedLines = reader.lines()
+                            .skip(startLine)
+                            .limit(limit > 0 ? limit : Long.MAX_VALUE)
+                            .collect(Collectors.toList());
+                    totalLines = -1; // 流式模式下不计算总行数
+                } else {
+                    selectedLines = reader.lines().collect(Collectors.toList());
+                    totalLines = selectedLines.size();
+                }
+            }
+
             String content = String.join("\n", selectedLines);
 
             return ToolResult.text(content)
                     .withMetadata("filePath", filePath)
                     .withMetadata("numLines", selectedLines.size())
                     .withMetadata("startLine", startLine)
-                    .withMetadata("totalLines", allLines.size());
+                    .withMetadata("totalLines", totalLines);
 
         } catch (IOException e) {
             log.error("Failed to read file: {}", filePath, e);

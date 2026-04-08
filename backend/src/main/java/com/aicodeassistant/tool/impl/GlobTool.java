@@ -44,7 +44,8 @@ public class GlobTool implements Tool {
                 "type", "object",
                 "properties", Map.of(
                         "pattern", Map.of("type", "string", "description", "Glob pattern (e.g. \"**/*.java\")"),
-                        "path", Map.of("type", "string", "description", "Search directory (default: cwd)")
+                        "path", Map.of("type", "string", "description", "Search directory (default: cwd)"),
+                        "max_results", Map.of("type", "integer", "description", "Maximum number of results to return (default: 200)")
                 ),
                 "required", List.of("pattern")
         );
@@ -64,6 +65,7 @@ public class GlobTool implements Tool {
     public ToolResult call(ToolInput input, ToolUseContext context) {
         String pattern = input.getString("pattern");
         String searchPath = input.getString("path", context.workingDirectory());
+        int maxResults = input.getInt("max_results", 200);
         Path basePath = Path.of(searchPath);
 
         if (!Files.isDirectory(basePath)) {
@@ -89,7 +91,7 @@ public class GlobTool implements Tool {
 
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-                    if (results.size() >= DEFAULT_MAX_RESULTS) {
+                    if (results.size() >= maxResults) {
                         return FileVisitResult.TERMINATE;
                     }
                     Path relativePath = basePath.relativize(file);
@@ -105,7 +107,7 @@ public class GlobTool implements Tool {
                 }
             });
 
-            truncated = results.size() >= DEFAULT_MAX_RESULTS;
+            truncated = results.size() >= maxResults;
 
         } catch (IOException e) {
             log.error("Glob search failed for pattern '{}' in '{}'", pattern, searchPath, e);

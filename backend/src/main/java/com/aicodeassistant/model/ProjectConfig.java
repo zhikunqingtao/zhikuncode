@@ -1,5 +1,7 @@
 package com.aicodeassistant.model;
 
+import com.aicodeassistant.mcp.McpServerConfig;
+
 import java.util.List;
 import java.util.Map;
 

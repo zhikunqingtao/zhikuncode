@@ -1,5 +1,7 @@
 package com.aicodeassistant.engine;
 
+import com.aicodeassistant.llm.LlmProvider;
+import com.aicodeassistant.llm.LlmProviderRegistry;
 import com.aicodeassistant.model.ContentBlock;
 import com.aicodeassistant.model.Message;
 import com.aicodeassistant.model.SystemMessageType;
@@ -48,10 +50,49 @@ public class CompactService {
     private static final int AUTOCOMPACT_BUFFER_TOKENS = 13000;
 
     private final TokenCounter tokenCounter;
+    private final LlmProviderRegistry providerRegistry;
 
-    public CompactService(TokenCounter tokenCounter) {
+    public CompactService(TokenCounter tokenCounter, LlmProviderRegistry providerRegistry) {
         this.tokenCounter = tokenCounter;
+        this.providerRegistry = providerRegistry;
     }
+
+    // ============ 压缩系统提示 ============
+
+    private static final String NO_TOOLS_PREAMBLE = """
+            CRITICAL: Respond with TEXT ONLY. Do NOT call any tools.
+            Tool calls will be REJECTED and will waste your only turn.
+            Your entire response must be plain text: an <analysis> block followed by a <summary> block.
+            """;
+
+    private static final String COMPACT_SYSTEM_PROMPT = NO_TOOLS_PREAMBLE + """
+            Your task is to create a detailed summary of the conversation so far,
+            paying close attention to the user's explicit requests and your previous actions.
+
+            Before providing your final summary, wrap your analysis in <analysis> tags.
+            In your analysis process:
+            1. Chronologically analyze each message. For each section identify:
+               - The user's explicit requests and intents
+               - Key decisions, technical concepts and code patterns
+               - Specific details: file names, code snippets, function signatures, file edits
+               - Errors encountered and how they were fixed
+               - User feedback, especially corrections
+            2. Double-check for technical accuracy and completeness.
+
+            Your summary should include these sections in <summary> tags:
+            1. Primary Request and Intent
+            2. Key Technical Concepts
+            3. Files and Code Sections (with code snippets)
+            4. Errors and fixes
+            5. Problem Solving
+            6. All user messages (non tool-result)
+            7. Pending Tasks
+            8. Current Work (precise description with file names)
+            9. Optional Next Step (only if directly related to recent work)
+
+            Preserve all file paths, error messages, and concrete values.
+            Do NOT use vague references like "the file" - use actual paths.
+            """;
 
     // ============ 压缩计划 ============
 
@@ -151,7 +192,19 @@ public class CompactService {
 
         int beforeTokens = tokenCounter.estimateTokens(messages);
 
-        // ---- P0: 使用关键消息选择 (跳过 LLM 摘要) ----
+        // ---- Level 1: LLM 摘要 ----
+        Optional<String> summary = generateLlmSummary(plan.compactionMessages(), plan.targetSummaryTokens());
+        if (summary.isPresent()) {
+            List<Message> compactedMessages = buildCompactResultWithSummary(plan, summary.get());
+            int afterTokens = tokenCounter.estimateTokens(compactedMessages);
+            double ratio = beforeTokens > 0 ? (double) (beforeTokens - afterTokens) / beforeTokens : 0.0;
+            log.info("压缩完成 (LLM 摘要): {} → {} tokens, 压缩率 {:.1f}%",
+                    beforeTokens, afterTokens, ratio * 100);
+            return new CompactResult(compactedMessages, beforeTokens, afterTokens,
+                    plan.compactionMessages().size(), ratio);
+        }
+
+        // ---- Level 2: 关键消息选择 ----
         try {
             int tokenBudget = (int) (contextWindowSize * COMPACT_TARGET_RATIO);
             List<Message> selected = fallbackKeyMessageSelection(plan.compactionMessages(), tokenBudget);
@@ -239,6 +292,88 @@ public class CompactService {
         targetSummaryTokens = Math.max(targetSummaryTokens, 512);
 
         return new CompactionPlan(frozen, compaction, preserved, compactionTokens, targetSummaryTokens);
+    }
+
+    // ============ Level 1: LLM 摘要 ============
+
+    /**
+     * 生成 LLM 摘要 — 用轻量模型生成对话摘要。
+     */
+    private Optional<String> generateLlmSummary(List<Message> compactionMessages, int targetTokens) {
+        if (providerRegistry == null || !providerRegistry.hasProviders()) {
+            return Optional.empty();
+        }
+        try {
+            String conversationText = formatMessagesForSummary(compactionMessages);
+            String prompt = "Target summary length: ~" + targetTokens + " tokens.\n\n" + conversationText;
+            String model = providerRegistry.getFastModel();
+            LlmProvider provider = providerRegistry.getProvider(model);
+            String summaryText = provider.chatSync(
+                    model, COMPACT_SYSTEM_PROMPT, prompt,
+                    SUMMARY_MAX_TOKENS, null, 30_000L);
+            if (summaryText != null && !summaryText.isBlank()) {
+                int summaryTokens = tokenCounter.estimateTokens(summaryText);
+                if (summaryTokens <= SUMMARY_MAX_TOKENS) {
+                    return Optional.of(summaryText);
+                }
+            }
+            return Optional.empty();
+        } catch (Exception e) {
+            log.warn("LLM summary failed, falling back to key message selection", e);
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * 将消息列表格式化为摘要输入文本。
+     */
+    private String formatMessagesForSummary(List<Message> messages) {
+        StringBuilder sb = new StringBuilder();
+        for (Message msg : messages) {
+            switch (msg) {
+                case Message.UserMessage user -> {
+                    if (user.toolUseResult() != null) {
+                        sb.append("[ToolResult] ").append(user.toolUseResult(), 0,
+                                Math.min(user.toolUseResult().length(), 500)).append("\n");
+                    } else if (user.content() != null) {
+                        for (var block : user.content()) {
+                            if (block instanceof ContentBlock.TextBlock text) {
+                                sb.append("[User] ").append(text.text()).append("\n");
+                            }
+                        }
+                    }
+                }
+                case Message.AssistantMessage assistant -> {
+                    if (assistant.content() != null) {
+                        for (var block : assistant.content()) {
+                            if (block instanceof ContentBlock.TextBlock text) {
+                                sb.append("[Assistant] ").append(text.text(), 0,
+                                        Math.min(text.text().length(), 500)).append("\n");
+                            } else if (block instanceof ContentBlock.ToolUseBlock toolUse) {
+                                sb.append("[ToolUse] ").append(toolUse.name()).append("\n");
+                            }
+                        }
+                    }
+                }
+                case Message.SystemMessage sys ->
+                        sb.append("[System] ").append(sys.content()).append("\n");
+            }
+        }
+        return sb.toString();
+    }
+
+    /**
+     * 使用 LLM 摘要构建压缩结果。
+     */
+    private List<Message> buildCompactResultWithSummary(CompactionPlan plan, String summary) {
+        List<Message> compactedMessages = new ArrayList<>();
+        compactedMessages.addAll(plan.frozenMessages());
+        Message summaryMessage = new Message.SystemMessage(
+                UUID.randomUUID().toString(), Instant.now(),
+                summary, SystemMessageType.COMPACT_SUMMARY);
+        compactedMessages.add(summaryMessage);
+        compactedMessages.addAll(plan.preservedMessages());
+        return compactedMessages;
     }
 
     // ============ 关键消息选择 ============

@@ -1,10 +1,8 @@
 package com.aicodeassistant.session;
 
 import com.aicodeassistant.config.database.SqliteConfig;
-import com.aicodeassistant.model.Message;
-import com.aicodeassistant.model.SessionStatus;
-import com.aicodeassistant.model.SessionSummary;
-import com.aicodeassistant.model.Usage;
+import com.aicodeassistant.hook.HookService;
+import com.aicodeassistant.model.*;
 import com.aicodeassistant.state.AppStateStore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -18,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -41,15 +40,18 @@ public class SessionManager {
     private final ObjectMapper objectMapper;
     private final SqliteConfig sqliteConfig;
     private final AppStateStore appStateStore;
+    private final HookService hookService;
 
     public SessionManager(@Qualifier("projectJdbcTemplate") JdbcTemplate jdbcTemplate,
                           ObjectMapper objectMapper,
                           SqliteConfig sqliteConfig,
-                          AppStateStore appStateStore) {
+                          AppStateStore appStateStore,
+                          HookService hookService) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
         this.sqliteConfig = sqliteConfig;
         this.appStateStore = appStateStore;
+        this.hookService = hookService;
     }
 
     // ───── RowMapper ─────
@@ -88,6 +90,13 @@ public class SessionManager {
         );
 
         log.info("Session created: {} (model={})", sessionId, model);
+
+        // 触发 SESSION_START 钩子
+        try {
+            hookService.executeSessionStart(sessionId);
+        } catch (Exception e) {
+            log.warn("SESSION_START hook failed: {}", e.getMessage());
+        }
 
         // 更新 AppState
         appStateStore.setState(state ->
@@ -190,21 +199,16 @@ public class SessionManager {
         String now = Instant.now().toString();
         String contentJson = toJsonString(content);
 
-        // 获取下一个 seq_num
-        Integer maxSeq = jdbcTemplate.queryForObject(
-                "SELECT COALESCE(MAX(seq_num), 0) FROM messages WHERE session_id = ?",
-                Integer.class, sessionId
-        );
-        int seqNum = (maxSeq != null ? maxSeq : 0) + 1;
-
+        // 原子获取 seq_num — 避免 SELECT MAX + INSERT 竞态
         jdbcTemplate.update(
                 """
                 INSERT INTO messages (id, session_id, role, content_json, stop_reason,
                     input_tokens, output_tokens, created_at, seq_num)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?,
+                    (SELECT COALESCE(MAX(seq_num), 0) + 1 FROM messages WHERE session_id = ?))
                 """,
                 msgId, sessionId, role, contentJson, stopReason,
-                inputTokens, outputTokens, now, seqNum
+                inputTokens, outputTokens, now, sessionId
         );
 
         // 更新会话的 updated_at
@@ -276,6 +280,13 @@ public class SessionManager {
      * 删除会话（级联删除消息、文件快照、任务）。
      */
     public void deleteSession(String sessionId) {
+        // 触发 SESSION_END 钩子 (在删除前，以便钩子可访问会话数据)
+        try {
+            hookService.executeSessionEnd(sessionId, Map.of("reason", "deleted"));
+        } catch (Exception e) {
+            log.warn("SESSION_END hook failed: {}", e.getMessage());
+        }
+
         jdbcTemplate.update("DELETE FROM sessions WHERE id = ?", sessionId);
         log.info("Session deleted: {}", sessionId);
     }
@@ -304,21 +315,120 @@ public class SessionManager {
     // ───── 内部工具方法 ─────
 
     private Optional<Message> mapRowToMessage(Map<String, Object> row) {
-        // 消息暂以 Map 形式返回，后续 Round 会完善反序列化
-        // 这里构造 UserMessage 作为占位
         try {
             String role = (String) row.get("role");
-            String contentJson = (String) row.get("content_json");
             String id = (String) row.get("id");
+            String contentJson = (String) row.get("content_json");
             Instant createdAt = Instant.parse((String) row.get("created_at"));
+            String stopReason = (String) row.get("stop_reason");
+            int inputTokens = toInt(row.get("input_tokens"));
+            int outputTokens = toInt(row.get("output_tokens"));
 
-            return Optional.of((Message) new Message.UserMessage(
-                    id, createdAt, List.of(), contentJson, null
-            ));
+            // 反序列化 content blocks
+            List<ContentBlock> blocks = parseContentBlocks(contentJson);
+
+            return Optional.of(switch (role) {
+                case "user" -> {
+                    String toolUseResult = extractToolUseResult(contentJson);
+                    String sourceToolAssistantUUID = extractSourceToolUUID(contentJson);
+                    yield (Message) new Message.UserMessage(
+                            id, createdAt, blocks, toolUseResult, sourceToolAssistantUUID);
+                }
+                case "assistant" -> {
+                    Usage usage = new Usage(inputTokens, outputTokens, 0, 0);
+                    yield (Message) new Message.AssistantMessage(
+                            id, createdAt, blocks,
+                            stopReason != null ? stopReason : "end_turn",
+                            usage);
+                }
+                case "system" -> (Message) new Message.SystemMessage(
+                        id, createdAt,
+                        blocks.isEmpty() ? contentJson
+                                : blocks.stream()
+                                .filter(b -> b instanceof ContentBlock.TextBlock)
+                                .map(b -> ((ContentBlock.TextBlock) b).text())
+                                .collect(java.util.stream.Collectors.joining("\n")),
+                        SystemMessageType.INFO);
+                default -> throw new IllegalArgumentException("Unknown role: " + role);
+            });
         } catch (Exception e) {
             log.warn("Failed to deserialize message: {}", e.getMessage());
             return Optional.empty();
         }
+    }
+
+    private List<ContentBlock> parseContentBlocks(String contentJson) {
+        if (contentJson == null || contentJson.isBlank()) {
+            return List.of();
+        }
+        try {
+            if (contentJson.trim().startsWith("[")) {
+                com.fasterxml.jackson.databind.JsonNode array =
+                        objectMapper.readTree(contentJson);
+                List<ContentBlock> blocks = new ArrayList<>();
+                for (com.fasterxml.jackson.databind.JsonNode node : array) {
+                    String type = node.has("type") ? node.get("type").asText() : "text";
+                    switch (type) {
+                        case "text" -> blocks.add(new ContentBlock.TextBlock(
+                                node.has("text") ? node.get("text").asText() : ""));
+                        case "tool_use" -> blocks.add(new ContentBlock.ToolUseBlock(
+                                node.get("id").asText(),
+                                node.get("name").asText(),
+                                node.get("input")));
+                        case "tool_result" -> blocks.add(new ContentBlock.ToolResultBlock(
+                                node.get("tool_use_id").asText(),
+                                node.has("content") ? node.get("content").asText() : "",
+                                node.has("is_error") && node.get("is_error").asBoolean()));
+                        case "image" -> {
+                            com.fasterxml.jackson.databind.JsonNode source = node.get("source");
+                            blocks.add(new ContentBlock.ImageBlock(
+                                    source.get("media_type").asText(),
+                                    source.get("data").asText()));
+                        }
+                        case "thinking" -> blocks.add(new ContentBlock.ThinkingBlock(
+                                node.has("thinking") ? node.get("thinking").asText() : ""));
+                        case "redacted_thinking" -> blocks.add(new ContentBlock.RedactedThinkingBlock(
+                                node.has("data") ? node.get("data").asText() : ""));
+                        default -> log.debug("Unknown content block type: {}", type);
+                    }
+                }
+                return blocks;
+            }
+            return List.of(new ContentBlock.TextBlock(contentJson));
+        } catch (Exception e) {
+            log.warn("Failed to parse content blocks: {}", e.getMessage());
+            return List.of(new ContentBlock.TextBlock(contentJson));
+        }
+    }
+
+    private String extractToolUseResult(String contentJson) {
+        try {
+            if (contentJson != null && contentJson.trim().startsWith("[")) {
+                com.fasterxml.jackson.databind.JsonNode array =
+                        objectMapper.readTree(contentJson);
+                for (com.fasterxml.jackson.databind.JsonNode node : array) {
+                    if ("tool_result".equals(node.path("type").asText())) {
+                        return node.has("content") ? node.get("content").asText() : null;
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+        return null;
+    }
+
+    private String extractSourceToolUUID(String contentJson) {
+        try {
+            if (contentJson != null && contentJson.trim().startsWith("[")) {
+                com.fasterxml.jackson.databind.JsonNode array =
+                        objectMapper.readTree(contentJson);
+                for (com.fasterxml.jackson.databind.JsonNode node : array) {
+                    if ("tool_result".equals(node.path("type").asText())) {
+                        return node.has("tool_use_id") ? node.get("tool_use_id").asText() : null;
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+        return null;
     }
 
     private Map<String, Object> parseJsonMap(String json) {

@@ -79,6 +79,12 @@ public class ToolRegistry {
                 .toList();
     }
 
+    /** 列出启用的工具（按会话级过滤，当前实现与无参版本一致） */
+    public List<Tool> getEnabledTools(String sessionId) {
+        // P1: 未来可根据 sessionId 做会话级工具过滤
+        return getEnabledTools();
+    }
+
     /** 按分组列出工具 */
     public Map<String, List<Tool>> getToolsByGroup() {
         Map<String, List<Tool>> grouped = new LinkedHashMap<>();

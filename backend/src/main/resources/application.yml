@@ -20,8 +20,68 @@ python:
     port: 8000
     health-check-interval: 30000
 
-# 日志配置
+# LLM 配置 - 阿里云百炼 (通义千问)
+llm:
+  provider: openai
+  openai:
+    # 阿里云百炼 API Key
+    api-key: sk-93625146d2c343d78735213013794ed5
+    # 阿里云百炼 OpenAI 兼容端点
+    base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
+    # 默认模型
+    default-model: qwen3.6-plus
+    # 支持的模型列表
+    models: qwen3.6-plus,qwen-max,qwen-plus,qwen-turbo,qwen-coder-plus
+  http:
+    pool:
+      max-idle-connections: 5
+      keep-alive-seconds: 30
+    connect-timeout-seconds: 10
+    write-timeout-seconds: 10
+    retry-on-failure: true
+
+# 特性标志
+features:
+  flags:
+    THINKING_MODE: false
+    TOOL_SEARCH: false
+    SANDBOX_DEFAULT_ON: false
+    CLASSIFIER_V2: false
+    ENABLE_AGENT_SWARMS: false
+    MCP_SKILLS: false
+
+# MCP 配置 - 阿里云百炼 MCP 服务
+mcp:
+  servers:
+    # 智谱 WebSearch MCP (通过阿里云百炼)
+    zhipu-websearch:
+      type: SSE
+      url: https://dashscope.aliyuncs.com/api/v1/mcps/zhipu-websearch/sse
+      headers:
+        Authorization: Bearer sk-93625146d2c343d78735213013794ed5
+      scope: USER
+
+# 沙箱配置
+sandbox:
+  enabled: false
+  image: ai-code-assistant-sandbox:latest
+  timeout-seconds: 300
+  memory-limit: 512m
+
+# SpringDoc OpenAPI
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    tags-sorter: alpha
+    operations-sorter: alpha
+  show-actuator: false
+  default-produces-media-type: application/json
+
+# 日志配置 — 详细配置见 log4j2.xml
+# Log4j2 由 spring-boot-starter-log4j2 自动加载 classpath:log4j2.xml
 logging:
-  level:
-    com.aicodeassistant: DEBUG
-    org.springframework.web.socket: INFO
+  config: classpath:log4j2.xml

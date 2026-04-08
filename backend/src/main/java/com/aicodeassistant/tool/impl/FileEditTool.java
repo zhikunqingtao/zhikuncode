@@ -1,5 +1,6 @@
 package com.aicodeassistant.tool.impl;
 
+import com.aicodeassistant.history.FileHistoryService;
 import com.aicodeassistant.tool.*;
 import com.github.difflib.DiffUtils;
 import com.github.difflib.UnifiedDiffUtils;
@@ -31,6 +32,12 @@ public class FileEditTool implements Tool {
 
     private static final Logger log = LoggerFactory.getLogger(FileEditTool.class);
     private static final long MAX_EDIT_FILE_SIZE = 1024L * 1024 * 1024; // 1GB
+
+    private final FileHistoryService fileHistoryService;
+
+    public FileEditTool(FileHistoryService fileHistoryService) {
+        this.fileHistoryService = fileHistoryService;
+    }
 
     @Override
     public String getName() {
@@ -102,6 +109,9 @@ public class FileEditTool implements Tool {
             }
 
             String fileContent = Files.readString(path, StandardCharsets.UTF_8);
+
+            // ── 新增: 编辑前保存快照 ──
+            fileHistoryService.trackEdit(filePath, context.sessionId(), context.toolUseId());
 
             // 4. 查找 old_string (3 策略 fuzzy matching)
             String actualOldString = findActualString(fileContent, oldString);

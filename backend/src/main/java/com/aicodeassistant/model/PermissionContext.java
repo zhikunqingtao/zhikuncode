@@ -16,5 +16,21 @@ public record PermissionContext(
         Map<String, List<PermissionRule>> alwaysDenyRules,
         Map<String, List<PermissionRule>> alwaysAskRules,
         boolean isBypassPermissionsModeAvailable,
-        boolean isAutoModeAvailable
-) {}
+        boolean isAutoModeAvailable,
+        boolean isHeadless,
+        boolean hasLocalDenialTracking
+) {
+    /** 向后兼容构造（无 isHeadless / hasLocalDenialTracking） */
+    public PermissionContext(
+            PermissionMode mode,
+            Set<String> additionalWorkingDirectories,
+            Map<String, List<PermissionRule>> alwaysAllowRules,
+            Map<String, List<PermissionRule>> alwaysDenyRules,
+            Map<String, List<PermissionRule>> alwaysAskRules,
+            boolean isBypassPermissionsModeAvailable,
+            boolean isAutoModeAvailable) {
+        this(mode, additionalWorkingDirectories, alwaysAllowRules, alwaysDenyRules,
+                alwaysAskRules, isBypassPermissionsModeAvailable, isAutoModeAvailable,
+                false, false);
+    }
+}

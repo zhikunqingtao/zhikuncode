@@ -48,7 +48,7 @@ const AssistantMessage: React.FC<AssistantMessageProps> = ({
 
             {/* Content */}
             <div className="flex-1 min-w-0">
-                <div className="text-xs text-gray-400 mb-1 font-medium">Assistant</div>
+                <div className="text-xs text-[var(--text-secondary)] mb-1 font-medium">Assistant</div>
 
                 {isStreaming ? (
                     <StreamingContent
@@ -80,7 +80,7 @@ const StreamingContent: React.FC<StreamingContentProps> = ({
     thinkingContent,
     activeToolCalls,
 }) => (
-    <div className="text-sm text-gray-100">
+    <div className="text-sm text-[var(--text-primary)]">
         {/* Thinking (streaming) */}
         {thinkingContent && (
             <ThinkingBlock content={thinkingContent} streaming />
@@ -102,7 +102,7 @@ const StreamingContent: React.FC<StreamingContentProps> = ({
 
         {/* Show waiting indicator if nothing visible yet */}
         {!streamingContent && !thinkingContent && (!activeToolCalls || activeToolCalls.size === 0) && (
-            <div className="flex items-center gap-2 text-gray-500 text-sm">
+            <div className="flex items-center gap-2 text-[var(--text-muted)] text-sm">
                 <span className="inline-block w-2 h-4 bg-purple-400 animate-pulse rounded-sm" />
                 <span>Thinking...</span>
             </div>
@@ -118,7 +118,7 @@ interface FinalizedContentProps {
 }
 
 const FinalizedContent: React.FC<FinalizedContentProps> = ({ blocks, activeToolCalls }) => (
-    <div className="text-sm text-gray-100">
+    <div className="text-sm text-[var(--text-primary)]">
         {blocks.map((block, i) => (
             <AssistantBlockRenderer
                 key={i}

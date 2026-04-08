@@ -72,6 +72,12 @@ public record PermissionDecision(
                 reasonType, reason, null, null, false, null, false);
     }
 
+    /** 基于字符串原因询问（分类器降级用） */
+    public static PermissionDecision ask(String reason) {
+        return new PermissionDecision(PermissionBehavior.ASK,
+                PermissionDecisionReason.CLASSIFIER, reason, null, null, false, null, false);
+    }
+
     // ==================== 转换方法 ====================
 
     /** 设置冒泡标记 */

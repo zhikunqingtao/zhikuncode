@@ -1,6 +1,10 @@
 package com.aicodeassistant.websocket;
 
+import com.aicodeassistant.engine.QueryEngine;
+import com.aicodeassistant.llm.LlmProviderRegistry;
 import com.aicodeassistant.model.Usage;
+import com.aicodeassistant.prompt.EffectiveSystemPromptBuilder;
+import com.aicodeassistant.tool.ToolRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,7 +37,12 @@ class WebSocketStompIntegrationTest {
     void setUp() {
         messaging = mock(SimpMessagingTemplate.class);
         sessionManager = new WebSocketSessionManager();
-        controller = new WebSocketController(messaging, sessionManager);
+        QueryEngine queryEngine = mock(QueryEngine.class);
+        ToolRegistry toolRegistry = mock(ToolRegistry.class);
+        LlmProviderRegistry providerRegistry = mock(LlmProviderRegistry.class);
+        EffectiveSystemPromptBuilder systemPromptBuilder = mock(EffectiveSystemPromptBuilder.class);
+        controller = new WebSocketController(messaging, sessionManager,
+                queryEngine, toolRegistry, providerRegistry, systemPromptBuilder);
     }
 
     // ═══════════════ 1. 推送消息格式验证 ═══════════════

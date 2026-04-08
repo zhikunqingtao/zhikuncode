@@ -48,37 +48,51 @@ public class OpenAiCompatibleProvider implements LlmProvider {
     private final ObjectMapper objectMapper;
     private final List<String> supportedModels;
     private final String defaultModel;
+    private final ApiKeyRotationManager keyRotationManager;
 
     private volatile Call currentCall;
 
     /** 内置模型能力映射表 — 对齐 SPEC §3.1.3 */
     private static final Map<String, ModelCapabilities> MODEL_CAPABILITIES = Map.ofEntries(
+            // OpenAI 模型
             Map.entry("gpt-4o", new ModelCapabilities("gpt-4o", "GPT-4o", 16384, 128000, true, false, true, true, 0.005, 0.015)),
             Map.entry("gpt-4o-mini", new ModelCapabilities("gpt-4o-mini", "GPT-4o Mini", 16384, 128000, true, false, true, true, 0.00015, 0.0006)),
             Map.entry("gpt-4-turbo", new ModelCapabilities("gpt-4-turbo", "GPT-4 Turbo", 4096, 128000, true, false, true, true, 0.01, 0.03)),
+            // DeepSeek 模型
             Map.entry("deepseek-chat", new ModelCapabilities("deepseek-chat", "DeepSeek Chat", 8192, 64000, true, true, false, true, 0.00027, 0.0011)),
             Map.entry("deepseek-reasoner", new ModelCapabilities("deepseek-reasoner", "DeepSeek Reasoner", 8192, 64000, true, true, false, false, 0.00055, 0.0022)),
-            Map.entry("qwen-turbo", new ModelCapabilities("qwen-turbo", "Qwen Turbo", 8192, 131072, true, false, false, true, 0.0003, 0.0006))
+            // 阿里云百炼 - 通义千问模型
+            Map.entry("qwen3.6-plus", new ModelCapabilities("qwen3.6-plus", "通义千问 3.6 Plus", 8192, 131072, true, false, true, true, 0.0008, 0.002)),
+            Map.entry("qwen-max", new ModelCapabilities("qwen-max", "通义千问 Max", 8192, 32768, true, false, true, true, 0.0007, 0.002)),
+            Map.entry("qwen-plus", new ModelCapabilities("qwen-plus", "通义千问 Plus", 8192, 131072, true, false, true, true, 0.0008, 0.002)),
+            Map.entry("qwen-turbo", new ModelCapabilities("qwen-turbo", "通义千问 Turbo", 8192, 131072, true, false, false, true, 0.0003, 0.0006)),
+            Map.entry("qwen-coder-plus", new ModelCapabilities("qwen-coder-plus", "通义千问 Coder Plus", 8192, 131072, true, false, false, true, 0.0007, 0.002))
     );
 
     public OpenAiCompatibleProvider(
             ObjectMapper objectMapper,
+            LlmHttpProperties httpProperties,
+            ApiKeyRotationManager keyRotationManager,
             @Value("${llm.openai.api-key:}") String apiKey,
             @Value("${llm.openai.base-url:https://api.openai.com/v1}") String baseUrl,
             @Value("${llm.openai.default-model:gpt-4o}") String defaultModel,
             @Value("${llm.openai.models:gpt-4o,gpt-4o-mini,gpt-4-turbo}") List<String> supportedModels) {
         this.objectMapper = objectMapper;
         this.apiKey = apiKey;
+        this.keyRotationManager = keyRotationManager;
         this.baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
         this.defaultModel = defaultModel;
         this.supportedModels = supportedModels;
 
         this.httpClient = new OkHttpClient.Builder()
-                .connectionPool(new ConnectionPool(5, 30, java.util.concurrent.TimeUnit.SECONDS))
-                .connectTimeout(Duration.ofSeconds(10))
+                .connectionPool(new ConnectionPool(
+                        httpProperties.pool().maxIdleConnections(),
+                        httpProperties.pool().keepAliveSeconds(),
+                        java.util.concurrent.TimeUnit.SECONDS))
+                .connectTimeout(Duration.ofSeconds(httpProperties.connectTimeoutSeconds()))
                 .readTimeout(Duration.ZERO) // SSE 无读超时
-                .writeTimeout(Duration.ofSeconds(10))
-                .retryOnConnectionFailure(true)
+                .writeTimeout(Duration.ofSeconds(httpProperties.writeTimeoutSeconds()))
+                .retryOnConnectionFailure(httpProperties.retryOnFailure())
                 .build();
 
         log.info("OpenAI compatible provider initialized: baseUrl={}, models={}", this.baseUrl, supportedModels);
@@ -114,9 +128,13 @@ public class OpenAiCompatibleProvider implements LlmProvider {
 
         ObjectNode requestBody = buildOpenAiRequest(model, messages, systemPrompt, tools, maxTokens);
 
+        // P1-12: 使用 Key 轮换管理器获取 API Key
+        String effectiveApiKey = keyRotationManager.getKeyCount() > 0
+                ? keyRotationManager.getNextKey() : apiKey;
+
         Request request = new Request.Builder()
                 .url(baseUrl + "/chat/completions")
-                .header("Authorization", "Bearer " + apiKey)
+                .header("Authorization", "Bearer " + effectiveApiKey)
                 .header("Content-Type", "application/json")
                 .post(RequestBody.create(requestBody.toString(), JSON_MEDIA))
                 .build();
@@ -209,15 +227,94 @@ public class OpenAiCompatibleProvider implements LlmProvider {
             sysMsg.put("content", systemPrompt);
         }
 
-        // 2. 转换消息列表
+        // 2. 转换消息列表 — Anthropic 内部格式 → OpenAI Chat Completions 格式
         for (Map<String, Object> msg : messages) {
-            ObjectNode msgNode = messagesArray.addObject();
-            msgNode.set("role", objectMapper.valueToTree(msg.get("role")));
+            String role = (String) msg.get("role");
             Object content = msg.get("content");
-            if (content instanceof String s) {
-                msgNode.put("content", s);
+
+            if (content instanceof List<?> blocks) {
+                // 检查是否包含 tool_result 块 → 转为 role:"tool" 消息
+                boolean hasToolResult = blocks.stream().anyMatch(b ->
+                        b instanceof Map<?,?> m && "tool_result".equals(m.get("type")));
+                if (hasToolResult) {
+                    for (Object block : blocks) {
+                        if (block instanceof Map<?,?> b && "tool_result".equals(b.get("type"))) {
+                            ObjectNode toolMsg = messagesArray.addObject();
+                            toolMsg.put("role", "tool");
+                            toolMsg.put("tool_call_id", (String) b.get("tool_use_id"));
+                            Object resultContent = b.get("content");
+                            toolMsg.put("content", resultContent != null ? resultContent.toString() : "");
+                        }
+                    }
+                    continue;
+                }
+
+                // 检查 assistant 消息是否包含 tool_use 块 → 转为 tool_calls 数组
+                boolean hasToolUse = blocks.stream().anyMatch(b ->
+                        b instanceof Map<?,?> m && "tool_use".equals(m.get("type")));
+                if ("assistant".equals(role) && hasToolUse) {
+                    ObjectNode msgNode = messagesArray.addObject();
+                    msgNode.put("role", "assistant");
+                    // 提取文本内容
+                    StringBuilder textContent = new StringBuilder();
+                    for (Object block : blocks) {
+                        if (block instanceof Map<?,?> b && "text".equals(b.get("type"))) {
+                            Object text = b.get("text");
+                            if (text != null && !text.toString().isEmpty()) {
+                                if (!textContent.isEmpty()) textContent.append("\n");
+                                textContent.append(text);
+                            }
+                        }
+                    }
+                    if (!textContent.isEmpty()) {
+                        msgNode.put("content", textContent.toString());
+                    } else {
+                        msgNode.putNull("content");
+                    }
+                    // 构建 tool_calls 数组
+                    ArrayNode toolCalls = msgNode.putArray("tool_calls");
+                    for (Object block : blocks) {
+                        if (block instanceof Map<?,?> b && "tool_use".equals(b.get("type"))) {
+                            ObjectNode tc = toolCalls.addObject();
+                            tc.put("id", (String) b.get("id"));
+                            tc.put("type", "function");
+                            ObjectNode fn = tc.putObject("function");
+                            fn.put("name", (String) b.get("name"));
+                            Object input = b.get("input");
+                            try {
+                                fn.put("arguments", input != null
+                                        ? objectMapper.writeValueAsString(input) : "{}");
+                            } catch (Exception e) {
+                                fn.put("arguments", "{}");
+                            }
+                        }
+                    }
+                    continue;
+                }
+
+                // 普通 assistant/user 消息: 提取文本内容为字符串
+                StringBuilder textContent = new StringBuilder();
+                for (Object block : blocks) {
+                    if (block instanceof Map<?,?> b && "text".equals(b.get("type"))) {
+                        Object text = b.get("text");
+                        if (text != null && !text.toString().isEmpty()) {
+                            if (!textContent.isEmpty()) textContent.append("\n");
+                            textContent.append(text);
+                        }
+                    }
+                }
+                ObjectNode msgNode = messagesArray.addObject();
+                msgNode.put("role", role != null ? role : "user");
+                msgNode.put("content", textContent.toString());
             } else {
-                msgNode.set("content", objectMapper.valueToTree(content));
+                // 纯字符串消息
+                ObjectNode msgNode = messagesArray.addObject();
+                msgNode.put("role", role != null ? role : "user");
+                if (content instanceof String s) {
+                    msgNode.put("content", s);
+                } else {
+                    msgNode.put("content", content != null ? content.toString() : "");
+                }
             }
         }
 
@@ -323,6 +420,19 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         } catch (Exception e) {
             errorMsg = "HTTP " + code;
         }
+
+        // P1-12: 429 限流时标记 Key 冷却
+        if (code == 429 && keyRotationManager.getKeyCount() > 1) {
+            String retryAfter = response.header("Retry-After");
+            java.time.Duration cooldown = null;
+            if (retryAfter != null) {
+                try {
+                    cooldown = java.time.Duration.ofSeconds(Long.parseLong(retryAfter));
+                } catch (NumberFormatException ignored) {}
+            }
+            keyRotationManager.markRateLimited(keyRotationManager.getCurrentKey(), cooldown);
+        }
+
         callback.onError(new LlmApiException(errorMsg, retryable, code));
     }
 

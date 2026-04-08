@@ -1,6 +1,6 @@
 package com.aicodeassistant.state;
 
-import com.aicodeassistant.model.McpServerConnection;
+import com.aicodeassistant.mcp.McpServerConnection;
 
 import java.util.List;
 import java.util.Map;

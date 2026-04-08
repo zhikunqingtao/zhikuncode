@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Log4j2 Configuration — AI Code Assistant Backend
+  对齐 SPEC §10.6.4 日志策略与 Debug 系统:
+    - 5 级日志: TRACE(VERBOSE), DEBUG, INFO, WARN, ERROR
+    - 控制台 + 文件输出 + 滚动策略
+    - MCP 日志分离: 每个 MCP 服务器独立日志文件
+    - 内存错误队列: 由 InMemoryErrorLog bean 实现 (非 Log4j2 管理)
+-->
+<Configuration status="WARN" monitorInterval="30">
+
+    <Properties>
+        <!-- 日志目录: 项目根/log/ -->
+        <Property name="LOG_DIR">${sys:user.dir}/../log</Property>
+        <!-- 控制台日志格式: 时间 级别 [线程] 类名 - 消息 -->
+        <Property name="CONSOLE_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight{%-5level} [%thread] %cyan{%logger{36}} - %msg%n</Property>
+        <!-- 文件日志格式: 时间 级别 [线程] 类全名 - 消息 -->
+        <Property name="FILE_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{60} - %msg%n</Property>
+    </Properties>
+
+    <Appenders>
+        <!-- ===== 控制台输出 ===== -->
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${CONSOLE_PATTERN}" charset="UTF-8"/>
+        </Console>
+
+        <!-- ===== 主日志文件 (滚动策略: 每天 + 10MB 切割, 保留 30 天) ===== -->
+        <RollingFile name="AppFile"
+                     fileName="${LOG_DIR}/app.log"
+                     filePattern="${LOG_DIR}/app-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="${FILE_PATTERN}" charset="UTF-8"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="10MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="30">
+                <Delete basePath="${LOG_DIR}" maxDepth="1">
+                    <IfFileName glob="app-*.log.gz"/>
+                    <IfLastModified age="30d"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+
+        <!-- ===== 错误日志 (仅 WARN+ERROR, 独立文件便于快速排查) ===== -->
+        <RollingFile name="ErrorFile"
+                     fileName="${LOG_DIR}/error.log"
+                     filePattern="${LOG_DIR}/error-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="${FILE_PATTERN}" charset="UTF-8"/>
+            <Filters>
+                <ThresholdFilter level="WARN" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="10MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="30">
+                <Delete basePath="${LOG_DIR}" maxDepth="1">
+                    <IfFileName glob="error-*.log.gz"/>
+                    <IfLastModified age="30d"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+
+        <!-- ===== Debug 日志 (TRACE+DEBUG 级别, 对齐 SPEC getDebugWriter 缓冲写入) ===== -->
+        <RollingFile name="DebugFile"
+                     fileName="${LOG_DIR}/debug/debug.log"
+                     filePattern="${LOG_DIR}/debug/debug-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="${FILE_PATTERN}" charset="UTF-8"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="10MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="7">
+                <Delete basePath="${LOG_DIR}/debug" maxDepth="1">
+                    <IfFileName glob="debug-*.log.gz"/>
+                    <IfLastModified age="7d"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+
+        <!-- ===== MCP 日志分离: 通过 Routing Appender 按 MCP 服务器名路由 ===== -->
+        <!-- 用法: MDC.put("mcpServer", serverName); log.info("..."); MDC.remove("mcpServer"); -->
+        <Routing name="McpRouting">
+            <Routes pattern="${ctx:mcpServer}">
+                <!-- 默认路由 (无 mcpServer MDC 时不输出到此 appender) -->
+                <Route key="${ctx:mcpServer}">
+                    <RollingFile name="McpFile-${ctx:mcpServer}"
+                                 fileName="${LOG_DIR}/mcp/${ctx:mcpServer}.log"
+                                 filePattern="${LOG_DIR}/mcp/${ctx:mcpServer}-%d{yyyy-MM-dd}-%i.log.gz">
+                        <PatternLayout pattern="${FILE_PATTERN}" charset="UTF-8"/>
+                        <Policies>
+                            <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                            <SizeBasedTriggeringPolicy size="5MB"/>
+                        </Policies>
+                        <DefaultRolloverStrategy max="10">
+                            <Delete basePath="${LOG_DIR}/mcp" maxDepth="1">
+                                <IfFileName glob="${ctx:mcpServer}-*.log.gz"/>
+                                <IfLastModified age="14d"/>
+                            </Delete>
+                        </DefaultRolloverStrategy>
+                    </RollingFile>
+                </Route>
+            </Routes>
+        </Routing>
+    </Appenders>
+
+    <Loggers>
+        <!-- ===== 应用日志 ===== -->
+        <Logger name="com.aicodeassistant" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="AppFile"/>
+            <AppenderRef ref="ErrorFile"/>
+            <AppenderRef ref="DebugFile"/>
+            <AppenderRef ref="McpRouting"/>
+        </Logger>
+
+        <!-- ===== Spring Framework 日志 ===== -->
+        <Logger name="org.springframework" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="AppFile"/>
+            <AppenderRef ref="ErrorFile"/>
+        </Logger>
+        <Logger name="org.springframework.web.socket" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="AppFile"/>
+        </Logger>
+
+        <!-- ===== 第三方库降噪 ===== -->
+        <Logger name="org.apache.catalina" level="WARN"/>
+        <Logger name="org.hibernate" level="WARN"/>
+        <Logger name="com.zaxxer.hikari" level="INFO"/>
+        <Logger name="org.xerial.snappy" level="WARN"/>
+
+        <!-- ===== Root ===== -->
+        <Root level="INFO">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="AppFile"/>
+            <AppenderRef ref="ErrorFile"/>
+        </Root>
+    </Loggers>
+
+</Configuration>

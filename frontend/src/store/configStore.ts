@@ -9,6 +9,7 @@ import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { subscribeWithSelector } from 'zustand/middleware';
+import { broadcastMiddleware } from './broadcastMiddleware';
 import type { ThemeConfig, OutputStyleDef, Config } from '@/types';
 
 export interface ConfigStoreState {
@@ -19,6 +20,7 @@ export interface ConfigStoreState {
     verbose: boolean;
     expandedView: boolean;
     outputStyle: { availableStyles: OutputStyleDef[]; activeStyleName: string | null };
+    defaultModel: string;
 
     // Actions
     setTheme: (update: Partial<ThemeConfig>) => void;
@@ -41,13 +43,26 @@ const DEFAULT_THEME: ThemeConfig = {
 export const useConfigStore = create<ConfigStoreState>()(
     subscribeWithSelector(
         persist(
-            immer((set) => ({
+            broadcastMiddleware<ConfigStoreState>(
+                'ai-coder-config-broadcast',
+                (s) => ({
+                    theme: s.theme,
+                    locale: s.locale,
+                    autoCompact: s.autoCompact,
+                    verbose: s.verbose,
+                    expandedView: s.expandedView,
+                    outputStyle: s.outputStyle,
+                    defaultModel: s.defaultModel,
+                })
+            )(
+                immer((set) => ({
                 theme: { ...DEFAULT_THEME },
                 locale: 'zh-CN',
                 autoCompact: { enabled: true, threshold: 80 },
                 verbose: false,
                 expandedView: false,
                 outputStyle: { availableStyles: [] as OutputStyleDef[], activeStyleName: null as string | null },
+                defaultModel: 'claude-sonnet-4-20250514',
 
                 setTheme: (update) => set(d => { Object.assign(d.theme, update); }),
                 resetTheme: () => set(d => { d.theme = { ...DEFAULT_THEME }; }),
@@ -68,6 +83,7 @@ export const useConfigStore = create<ConfigStoreState>()(
                                 if (config.verbose !== undefined) d.verbose = config.verbose;
                                 if (config.expandedView !== undefined) d.expandedView = config.expandedView;
                                 if (config.outputStyle) d.outputStyle = config.outputStyle;
+                                if (config.defaultModel) d.defaultModel = config.defaultModel;
                             });
                             localStorage.setItem('config_cache', JSON.stringify(config));
                             return;
@@ -89,6 +105,7 @@ export const useConfigStore = create<ConfigStoreState>()(
                                 if (config.verbose !== undefined) d.verbose = config.verbose;
                                 if (config.expandedView !== undefined) d.expandedView = config.expandedView;
                                 if (config.outputStyle) d.outputStyle = config.outputStyle;
+                                if (config.defaultModel) d.defaultModel = config.defaultModel;
                             });
                             return;
                         } catch { /* ignore parse error */ }
@@ -105,7 +122,8 @@ export const useConfigStore = create<ConfigStoreState>()(
                 },
                 setOutputStyles: (styles) => set(d => { d.outputStyle.availableStyles = styles; }),
                 setActiveOutputStyle: (name) => set(d => { d.outputStyle.activeStyleName = name; }),
-            })),
+            }))
+            ),
             {
                 name: 'ai-coder-config',
                 storage: createJSONStorage(() => localStorage),
@@ -116,6 +134,7 @@ export const useConfigStore = create<ConfigStoreState>()(
                     verbose: s.verbose,
                     expandedView: s.expandedView,
                     outputStyle: s.outputStyle,
+                    defaultModel: s.defaultModel,
                 }),
                 version: 2,
                 migrate: (persisted: unknown, version: number) => {

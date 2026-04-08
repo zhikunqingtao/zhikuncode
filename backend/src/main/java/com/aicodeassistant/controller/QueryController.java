@@ -14,6 +14,8 @@ import com.aicodeassistant.model.ContentBlock;
 import com.aicodeassistant.model.Message;
 import com.aicodeassistant.model.PermissionMode;
 import com.aicodeassistant.model.Usage;
+import com.aicodeassistant.prompt.EffectiveSystemPromptBuilder;
+import com.aicodeassistant.prompt.SystemPromptConfig;
 import com.aicodeassistant.session.SessionData;
 import com.aicodeassistant.session.SessionManager;
 import com.aicodeassistant.tool.Tool;
@@ -27,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -60,19 +63,22 @@ public class QueryController {
     private final LlmProviderRegistry providerRegistry;
     private final TokenCounter tokenCounter;
     private final ObjectMapper objectMapper;
+    private final EffectiveSystemPromptBuilder systemPromptBuilder;
 
     public QueryController(QueryEngine queryEngine,
                            ToolRegistry toolRegistry,
                            SessionManager sessionManager,
                            LlmProviderRegistry providerRegistry,
                            TokenCounter tokenCounter,
-                           ObjectMapper objectMapper) {
+                           ObjectMapper objectMapper,
+                           EffectiveSystemPromptBuilder systemPromptBuilder) {
         this.queryEngine = queryEngine;
         this.toolRegistry = toolRegistry;
         this.sessionManager = sessionManager;
         this.providerRegistry = providerRegistry;
         this.tokenCounter = tokenCounter;
         this.objectMapper = objectMapper;
+        this.systemPromptBuilder = systemPromptBuilder;
     }
 
     // ════════════════════════════════════════════
@@ -94,9 +100,12 @@ public class QueryController {
         // 2. 组装工具池
         List<Tool> tools = assembleToolPool(request.allowedTools(), request.disallowedTools());
 
-        // 3. 构建系统提示
-        String systemPrompt = buildSystemPrompt(request.systemPrompt(),
-                request.appendSystemPrompt(), request.model());
+        // 3. 构建系统提示（使用新的 SystemPromptBuilder）
+        SystemPromptConfig promptConfig = SystemPromptConfig.defaults()
+                .withCustom(request.systemPrompt())
+                .withAppend(request.appendSystemPrompt());
+        String systemPrompt = systemPromptBuilder.buildEffectiveSystemPrompt(
+                promptConfig, tools, request.model(), Path.of(System.getProperty("user.dir")));
 
         // 4. 组装用户消息
         String userMessage = buildUserMessage(request.prompt(), request.context());
@@ -106,7 +115,7 @@ public class QueryController {
         int maxTurns = request.maxTurns() != null ? request.maxTurns() : 10;
         int contextWindow = getContextWindow(model);
 
-        QueryConfig config = new QueryConfig(
+        QueryConfig config = QueryConfig.withDefaults(
                 model, systemPrompt, tools,
                 toolRegistry.getToolDefinitions(),
                 QueryConfig.DEFAULT_MAX_TOKENS,
@@ -163,15 +172,18 @@ public class QueryController {
                 String sessionId = resolveSessionId(request);
                 List<Tool> tools = assembleToolPool(
                         request.allowedTools(), request.disallowedTools());
-                String systemPrompt = buildSystemPrompt(
-                        request.systemPrompt(), request.appendSystemPrompt(), request.model());
+                SystemPromptConfig promptConfig = SystemPromptConfig.defaults()
+                        .withCustom(request.systemPrompt())
+                        .withAppend(request.appendSystemPrompt());
+                String systemPrompt = systemPromptBuilder.buildEffectiveSystemPrompt(
+                        promptConfig, tools, request.model(), Path.of(System.getProperty("user.dir")));
                 String userMessage = buildUserMessage(request.prompt(), request.context());
                 String model = request.model() != null
                         ? request.model() : providerRegistry.getDefaultModel();
                 int maxTurns = request.maxTurns() != null ? request.maxTurns() : 10;
                 int contextWindow = getContextWindow(model);
 
-                QueryConfig config = new QueryConfig(
+                QueryConfig config = QueryConfig.withDefaults(
                         model, systemPrompt, tools,
                         toolRegistry.getToolDefinitions(),
                         QueryConfig.DEFAULT_MAX_TOKENS,
@@ -186,8 +198,8 @@ public class QueryController {
                         List.of(new ContentBlock.TextBlock(userMessage)),
                         null, null));
 
-                // 流式回调 → SSE 推送
-                SseStreamHandler handler = new SseStreamHandler(emitter, sessionId);
+                // 流式回调 → SSE 推送（使用独立 SseStreamHandler）
+                SseStreamHandler handler = new SseStreamHandler(emitter, objectMapper);
                 QueryEngine.QueryResult result = queryEngine.execute(config, state, handler);
 
                 // 完成事件
@@ -230,13 +242,16 @@ public class QueryController {
         // 2. 准备工具和系统提示
         List<Tool> tools = assembleToolPool(
                 request.allowedTools(), request.disallowedTools());
-        String systemPrompt = buildSystemPrompt(
-                request.systemPrompt(), request.appendSystemPrompt(), request.model());
+        SystemPromptConfig promptConfig = SystemPromptConfig.defaults()
+                .withCustom(request.systemPrompt())
+                .withAppend(request.appendSystemPrompt());
+        String systemPrompt = systemPromptBuilder.buildEffectiveSystemPrompt(
+                promptConfig, tools, request.model(), Path.of(System.getProperty("user.dir")));
         String model = request.model() != null ? request.model() : session.model();
         int maxTurns = request.maxTurns() != null ? request.maxTurns() : 10;
         int contextWindow = getContextWindow(model);
 
-        QueryConfig config = new QueryConfig(
+        QueryConfig config = QueryConfig.withDefaults(
                 model, systemPrompt, tools,
                 toolRegistry.getToolDefinitions(),
                 QueryConfig.DEFAULT_MAX_TOKENS,
@@ -294,19 +309,6 @@ public class QueryController {
             tools = tools.stream().filter(t -> !denied.contains(t.getName())).toList();
         }
         return tools;
-    }
-
-    private String buildSystemPrompt(String systemPrompt, String appendSystemPrompt, String model) {
-        if (systemPrompt != null) {
-            return systemPrompt;
-        }
-        // P0: 使用默认系统提示
-        String base = "You are a helpful AI coding assistant. "
-                + "Use available tools to help the user with their coding tasks.";
-        if (appendSystemPrompt != null) {
-            return base + "\n\n" + appendSystemPrompt;
-        }
-        return base;
     }
 
     private String buildUserMessage(String prompt, QueryContext context) {
@@ -390,58 +392,6 @@ public class QueryController {
         public void onAssistantMessage(Message.AssistantMessage message) {}
 
         public List<ToolCallSummary> getToolCalls() { return toolCalls; }
-    }
-
-    /**
-     * SSE 流式处理器 — 将事件推送到 SseEmitter。
-     */
-    private class SseStreamHandler implements QueryMessageHandler {
-        private final SseEmitter emitter;
-        private final String sessionId;
-
-        SseStreamHandler(SseEmitter emitter, String sessionId) {
-            this.emitter = emitter;
-            this.sessionId = sessionId;
-        }
-
-        @Override
-        public void onTextDelta(String text) {
-            sendEvent(emitter, "stream_delta",
-                    Map.of("type", "text", "content", text));
-        }
-
-        @Override
-        public void onThinkingDelta(String thinking) {
-            sendEvent(emitter, "thinking_delta",
-                    Map.of("type", "thinking", "content", thinking));
-        }
-
-        @Override
-        public void onToolUseStart(String toolUseId, String toolName) {
-            sendEvent(emitter, "tool_use", Map.of(
-                    "type", "tool_use", "toolUseId", toolUseId,
-                    "tool", toolName));
-        }
-
-        @Override
-        public void onToolUseComplete(String toolUseId, ContentBlock.ToolUseBlock toolUse) {}
-
-        @Override
-        public void onToolResult(String toolUseId, ContentBlock.ToolResultBlock result) {
-            sendEvent(emitter, "tool_result", Map.of(
-                    "type", "tool_result", "toolUseId", toolUseId,
-                    "output", result.content() != null ? result.content() : "",
-                    "isError", result.isError()));
-        }
-
-        @Override
-        public void onAssistantMessage(Message.AssistantMessage message) {}
-
-        @Override
-        public void onError(Throwable error) {
-            sendEvent(emitter, "error",
-                    Map.of("type", "error", "message", error.getMessage()));
-        }
     }
 
     // ═══ DTO Records ═══

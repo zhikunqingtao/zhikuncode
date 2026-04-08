@@ -46,11 +46,14 @@ public class PermissionPipeline {
 
     private final PermissionRuleMatcher ruleMatcher;
     private final PermissionRuleRepository ruleRepository;
+    private final AutoModeClassifier autoModeClassifier;
 
     public PermissionPipeline(PermissionRuleMatcher ruleMatcher,
-                              PermissionRuleRepository ruleRepository) {
+                              PermissionRuleRepository ruleRepository,
+                              AutoModeClassifier autoModeClassifier) {
         this.ruleMatcher = ruleMatcher;
         this.ruleRepository = ruleRepository;
+        this.autoModeClassifier = autoModeClassifier;
     }
 
     /**
@@ -186,13 +189,29 @@ public class PermissionPipeline {
                     "Current permission mode (Don't Ask) auto-rejects write operations");
             case BYPASS_PERMISSIONS -> PermissionDecision.allow(PermissionDecisionReason.MODE, mode);
             case AUTO -> {
-                // P0: AUTO 模式简化处理 — 文件编辑自动允许，其他询问
-                // 完整的 YoloClassifier 在后续 Round 实现
-                if (isFileEditTool(tool)) {
-                    yield PermissionDecision.allow(PermissionDecisionReason.CLASSIFIER, PermissionMode.AUTO);
+                // LLM 驱动的两阶段权限分类（对齐 yoloClassifier）
+                try {
+                    PermissionContext classifierContext = ruleRepository.buildContext(
+                            PermissionMode.AUTO, false, false);
+                    PermissionDecision classifierDecision = autoModeClassifier.classify(
+                            tool, input, classifierContext);
+
+                    if (classifierDecision.isAllowed()) {
+                        yield classifierDecision;
+                    }
+                    if (classifierDecision.isDenied()) {
+                        yield PermissionDecision.ask(PermissionDecisionReason.CLASSIFIER,
+                                classifierDecision.reason() != null
+                                        ? classifierDecision.reason()
+                                        : "AUTO mode: classifier blocked, requesting confirmation");
+                    }
+                    yield classifierDecision;
+                } catch (Exception e) {
+                    // 分类器异常时降级为 ASK
+                    log.warn("AUTO classifier error, falling back to ASK: {}", e.getMessage());
+                    yield PermissionDecision.ask(PermissionDecisionReason.CLASSIFIER,
+                            "AUTO mode: classifier unavailable, requesting confirmation");
                 }
-                yield PermissionDecision.ask(PermissionDecisionReason.CLASSIFIER,
-                        "AUTO mode: requires classification (P0 stub)");
             }
             case BUBBLE -> PermissionDecision.ask(PermissionDecisionReason.ASYNC_AGENT,
                     "Bubble mode: delegating to parent agent")

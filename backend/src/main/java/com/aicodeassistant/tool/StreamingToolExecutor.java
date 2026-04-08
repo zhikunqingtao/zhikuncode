@@ -67,11 +67,6 @@ public class StreamingToolExecutor {
         public ToolResult getResult() { return result; }
     }
 
-    private final Queue<TrackedTool> executionQueue = new ConcurrentLinkedQueue<>();
-    private final List<TrackedTool> results = new CopyOnWriteArrayList<>();
-    private final AtomicInteger activeCount = new AtomicInteger(0);
-    private volatile boolean discarded = false;
-
     /**
      * 创建一个新的执行会话（每次 runTools 调用一个新实例）。
      */
@@ -118,14 +113,16 @@ public class StreamingToolExecutor {
                 Thread.startVirtualThread(() -> {
                     try {
                         if (sessionDiscarded) {
-                            next.result = ToolResult.error("Tool execution discarded");
+                            next.result = ToolResult.error(
+                                    "<tool_use_error>Tool execution discarded</tool_use_error>");
                         } else {
                             next.result = pipeline.execute(next.tool, next.input,
                                     next.context.withToolUseId(next.toolUseId));
                         }
                         next.state = ToolState.COMPLETED;
                     } catch (Exception e) {
-                        next.result = ToolResult.error("Execution error: " + e.getMessage());
+                        next.result = ToolResult.error(
+                                "<tool_use_error>Execution error: " + e.getMessage() + "</tool_use_error>");
                         next.state = ToolState.COMPLETED;
                     } finally {
                         active.decrementAndGet();
@@ -166,6 +163,28 @@ public class StreamingToolExecutor {
         /** 丢弃所有挂起工具 */
         public void discard() {
             this.sessionDiscarded = true;
+        }
+
+        /** 是否已被丢弃 */
+        public boolean isDiscarded() {
+            return sessionDiscarded;
+        }
+
+        /**
+         * 直接添加一个已完成的 error result（工具未找到等场景）。
+         * 对齐原版 StreamingToolExecutor.ts:78-101
+         */
+        public void addErrorResult(String toolUseId, String errorContent) {
+            TrackedTool tt = new TrackedTool(toolUseId, null, null, null);
+            tt.result = ToolResult.error(errorContent);
+            tt.state = ToolState.COMPLETED;
+            tracked.add(tt);
+        }
+
+        /** 是否有未完成的工具 */
+        public boolean hasUnfinishedTools() {
+            return tracked.stream().anyMatch(t ->
+                    t.state == ToolState.QUEUED || t.state == ToolState.EXECUTING);
         }
     }
 }

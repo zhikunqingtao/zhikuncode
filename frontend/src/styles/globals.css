@@ -52,6 +52,7 @@
     --font-size:               14px;
     --font-family-code:        'JetBrains Mono', 'Fira Code', monospace;
     --border-radius:           8px;
+    --text-muted:              #94a3b8;
 
     /* 虚拟键盘 (§8.8.3) */
     --keyboard-height:         0px;
@@ -71,6 +72,7 @@
     --diff-add:                #1a4d2e;
     --diff-remove:             #4d1a1a;
     --focus-ring:              #818cf8;
+    --text-muted:              #64748b;
 
     /* 扩展色板 — Tailwind 集成 */
     --color-surface:           #0f172a;
@@ -115,6 +117,28 @@
       --diff-add:                #1a4d2e;
       --diff-remove:             #4d1a1a;
       --focus-ring:              #818cf8;
+      --text-muted:              #64748b;
+
+      --color-surface:           #0f172a;
+      --color-surface-elevated:  #1e293b;
+      --color-surface-sunken:    #020617;
+      --color-primary:           #818cf8;
+      --color-primary-hover:     #6366f1;
+      --color-primary-active:    #4f46e5;
+      --color-accent:            var(--accent-color, #a78bfa);
+      --color-accent-muted:      #5b21b6;
+      --color-muted:             #94a3b8;
+      --color-border:            #334155;
+      --color-text:              #f8fafc;
+      --color-text-secondary:    #cbd5e1;
+      --color-text-muted:        #64748b;
+      --color-code-bg:           #1e293b;
+      --color-code-border:       #334155;
+      --color-scrollbar:         #475569;
+      --color-scrollbar-hover:   #64748b;
+      --color-focus-ring:        #818cf8;
+      --color-skeleton:          #334155;
+      --color-overlay:           rgba(0, 0, 0, 0.7);
     }
   }
 }

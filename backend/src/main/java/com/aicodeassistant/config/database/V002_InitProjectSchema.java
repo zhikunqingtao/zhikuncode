@@ -29,6 +29,15 @@ public class V002_InitProjectSchema implements Migration {
     public void execute() {
         log.info("Creating data.db schema...");
 
+        // 项目级配置 KV 表（与 global.db 的 global_config 结构一致）
+        projectJdbcTemplate.execute("""
+                CREATE TABLE IF NOT EXISTS project_config (
+                    key         TEXT PRIMARY KEY,
+                    value       TEXT NOT NULL,
+                    updated_at  TEXT NOT NULL
+                )
+                """);
+
         // 会话表
         projectJdbcTemplate.execute("""
                 CREATE TABLE IF NOT EXISTS sessions (

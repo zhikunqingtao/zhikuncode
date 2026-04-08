@@ -1,13 +1,12 @@
 package com.aicodeassistant.engine;
 
+import com.aicodeassistant.hook.HookRegistry;
+import com.aicodeassistant.hook.HookService;
 import com.aicodeassistant.llm.*;
 import com.aicodeassistant.model.*;
 import com.aicodeassistant.permission.PermissionPipeline;
 import com.aicodeassistant.permission.PermissionRuleRepository;
-import com.aicodeassistant.tool.Tool;
-import com.aicodeassistant.tool.ToolInput;
-import com.aicodeassistant.tool.ToolResult;
-import com.aicodeassistant.tool.ToolUseContext;
+import com.aicodeassistant.tool.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -16,7 +15,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 /**
  * QueryEngine — 查询引擎核心循环。
@@ -47,6 +48,20 @@ public class QueryEngine {
     private final PermissionRuleRepository permissionRuleRepository;
     private final TokenCounter tokenCounter;
     private final ObjectMapper objectMapper;
+    private final StreamingToolExecutor streamingToolExecutor;
+    private final MessageNormalizer messageNormalizer;
+    private final HookService hookService;
+    private final SnipService snipService;
+    private final MicroCompactService microCompactService;
+    private final ModelRegistry modelRegistry;  // P0-1 新增
+
+    /** 单条工具结果最大占上下文窗口的 30% */
+    private static final double TOOL_RESULT_BUDGET_RATIO = 0.3;
+    /** MicroCompact 保护尾部消息数 */
+    private static final int MICRO_COMPACT_PROTECTED_TAIL = 10;
+
+    /** 记录已通知的 thinking 降级 (once-only) */
+    private final Set<String> notifiedThinkingDowngrades = ConcurrentHashMap.newKeySet();
 
     public QueryEngine(LlmProviderRegistry providerRegistry,
                        CompactService compactService,
@@ -54,7 +69,13 @@ public class QueryEngine {
                        PermissionPipeline permissionPipeline,
                        PermissionRuleRepository permissionRuleRepository,
                        TokenCounter tokenCounter,
-                       ObjectMapper objectMapper) {
+                       ObjectMapper objectMapper,
+                       StreamingToolExecutor streamingToolExecutor,
+                       MessageNormalizer messageNormalizer,
+                       HookService hookService,
+                       SnipService snipService,
+                       MicroCompactService microCompactService,
+                       ModelRegistry modelRegistry) {
         this.providerRegistry = providerRegistry;
         this.compactService = compactService;
         this.apiRetryService = apiRetryService;
@@ -62,6 +83,12 @@ public class QueryEngine {
         this.permissionRuleRepository = permissionRuleRepository;
         this.tokenCounter = tokenCounter;
         this.objectMapper = objectMapper;
+        this.streamingToolExecutor = streamingToolExecutor;
+        this.messageNormalizer = messageNormalizer;
+        this.hookService = hookService;
+        this.snipService = snipService;
+        this.microCompactService = microCompactService;
+        this.modelRegistry = modelRegistry;
     }
 
     /**
@@ -106,79 +133,246 @@ public class QueryEngine {
     private Usage queryLoop(QueryConfig config, QueryLoopState state,
                             QueryMessageHandler handler, AtomicBoolean aborted) {
         Usage totalUsage = Usage.zero();
+        String[] currentModel = { config.model() };
+        TokenBudgetTracker tokenBudgetTracker = config.tokenBudget() != null
+                ? new TokenBudgetTracker() : null;
 
         while (!aborted.get()) {
             state.incrementTurnCount();
             int turn = state.getTurnCount();
             handler.onTurnStart(turn);
 
-            // ===== Step 1: 压缩检查 =====
+            // ===== Step 1: 压缩级联 =====
+            // Layer 1: ToolResultBudget (单条工具结果大小裁剪)
+            int contextWindow = config.contextWindow() > 0
+                    ? config.contextWindow()
+                    : modelRegistry.getContextWindowForModel(currentModel[0]);
+            int toolResultBudget = (int)(contextWindow * TOOL_RESULT_BUDGET_RATIO * 3.5);
+            state.setMessages(snipService.snipToolResults(state.getMessages(), toolResultBudget));
+
+            // Layer 2: MicroCompact (清除旧工具结果内容)
+            var mcResult = microCompactService.compactMessages(
+                    state.getMessages(), MICRO_COMPACT_PROTECTED_TAIL);
+            if (mcResult.tokensFreed() > 0) {
+                state.setMessages(mcResult.messages());
+            }
+
+            // Layer 3: AutoCompact (LLM 摘要)
             if (state.isAutoCompactEnabled() && !state.isAutoCompactCircuitBroken()) {
                 tryAutoCompact(config, state, handler);
             }
 
-            // ===== Step 2: 流式工具执行器初始化 (P0: 非流式模式) =====
-            // P0 使用非流式模式: 等 API 完成后批量执行工具
+            // ===== Step 2: 创建流式执行会话 =====
+            StreamingToolExecutor.ExecutionSession session =
+                    streamingToolExecutor.newSession();
 
             // ===== Step 3: API 调用 =====
             int effectiveMaxTokens = state.getEffectiveMaxTokens(config.maxTokens());
-            LlmProvider provider = providerRegistry.getProvider(config.model());
+            LlmProvider provider = providerRegistry.getProvider(currentModel[0]);
+            List<Map<String, Object>> apiMessages = messageNormalizer.normalize(state.getMessages());
 
-            // 构建 API 消息格式
-            List<Map<String, Object>> apiMessages = buildApiMessages(state.getMessages());
+            // StreamCollector 持有 session, 支持流式工具启动
+            StreamCollector collector = new StreamCollector(
+                    handler, session, config.tools(),
+                    state.getToolUseContext(), objectMapper);
 
-            // 收集流式响应
-            StreamCollector collector = new StreamCollector(handler);
+            // P1-16: ThinkingConfig 降级检查
+            ThinkingConfig resolvedThinking = resolveThinking(
+                    config.thinkingConfig(), provider, currentModel[0], handler);
 
             try {
                 apiRetryService.executeWithRetry(() -> {
                     provider.streamChat(
-                            config.model(),
+                            currentModel[0],
                             apiMessages,
                             config.systemPrompt(),
                             config.toolDefinitions(),
                             effectiveMaxTokens,
-                            config.thinkingConfig(),
+                            resolvedThinking,
                             collector
                     );
                     return null;
                 }, config.querySource());
             } catch (LlmApiException e) {
-                // 413 prompt_too_long → 反应式压缩
+                // 413 prompt_too_long → 两阶段恢复
                 if (e.getStatusCode() == 413 || (e.getMessage() != null
                         && e.getMessage().contains("prompt_too_long"))) {
-                    if (tryReactiveCompact(config, state, handler)) {
-                        continue; // 压缩后重试
+
+                    // Phase 1: context-collapse drain (防止重复)
+                    if (!"collapse_drain_retry".equals(state.getLastTransitionReason())) {
+                        int drained = tryContextCollapseDrain(config, state, handler);
+                        if (drained > 0) {
+                            state.setLastTransitionReason("collapse_drain_retry");
+                            continue;
+                        }
                     }
+
+                    // Phase 2: reactive compact (单次 guard)
+                    if (tryReactiveCompact(config, state, handler)) {
+                        state.setLastTransitionReason("reactive_compact_retry");
+                        continue;
+                    }
+
+                    log.error("413 recovery exhausted: collapse drain failed, reactive compact failed");
+                }
+                // FIX-03: Fallback 模型降级
+                if (e instanceof LlmApiException llmEx && llmEx.isFallbackTrigger()
+                        && config.fallbackModel() != null
+                        && !config.fallbackModel().equals(currentModel[0])) {
+                    log.warn("Fallback triggered: {} → {}, reason: {}",
+                            currentModel[0], config.fallbackModel(), e.getMessage());
+                    hookService.executeNotification("warn",
+                            "Model fallback: " + currentModel[0] + " → " + config.fallbackModel());
+                    session.discard();
+                    // 为 orphan tool_use 生成 synthetic results
+                    List<ContentBlock.ToolUseBlock> orphanBlocks =
+                            extractToolUseBlocks(collector.buildAssistantMessage());
+                    if (!orphanBlocks.isEmpty()) {
+                        List<Message> syntheticResults = generateSyntheticResults(
+                                orphanBlocks, session, "Model fallback triggered");
+                        state.addMessages(syntheticResults);
+                    }
+                    currentModel[0] = config.fallbackModel();
+                    // 移除 thinking blocks 防止跨模型 API 400
+                    stripThinkingBlocks(state);
+                    handler.onTurnEnd(turn, "fallback");
+                    continue;
                 }
                 throw e;
             }
 
-            // ===== Step 4: 流处理完成，收集结果 =====
+            // ===== Step 4: 收集 API 响应 =====
             Message.AssistantMessage assistantMessage = collector.buildAssistantMessage();
             state.addMessage(assistantMessage);
             handler.onAssistantMessage(assistantMessage);
 
-            // 累计 usage
             if (assistantMessage.usage() != null) {
                 totalUsage = totalUsage.add(assistantMessage.usage());
                 handler.onUsage(assistantMessage.usage());
             }
 
-            // ===== Step 5: 工具执行 =====
+            // ===== Abort 检查（必须在 Step 5 之前）=====
             List<ContentBlock.ToolUseBlock> toolUseBlocks = extractToolUseBlocks(assistantMessage);
 
+            if (aborted.get()) {
+                // FIX-02: 完整 abort 处理
+                session.discard();
+
+                // 收集已完成的工具结果
+                List<StreamingToolExecutor.TrackedTool> completed = session.yieldCompleted();
+                for (StreamingToolExecutor.TrackedTool tt : completed) {
+                    ContentBlock.ToolResultBlock resultBlock = new ContentBlock.ToolResultBlock(
+                            tt.getToolUseId(), tt.getResult().content(), tt.getResult().isError());
+                    state.addMessage(buildToolResultMessage(resultBlock));
+                }
+
+                // 为所有未完成的 tool_use 生成 synthetic error results
+                Set<String> completedIds = completed.stream()
+                        .map(StreamingToolExecutor.TrackedTool::getToolUseId)
+                        .collect(Collectors.toSet());
+                for (ContentBlock.ToolUseBlock block : toolUseBlocks) {
+                    if (!completedIds.contains(block.id())) {
+                        ContentBlock.ToolResultBlock synthetic = new ContentBlock.ToolResultBlock(
+                                block.id(),
+                                "<tool_use_error>Interrupted by user</tool_use_error>",
+                                true);
+                        state.addMessage(buildToolResultMessage(synthetic));
+                    }
+                }
+
+                // 注入用户中断消息（非 submit-interrupt 时）
+                String abortReason = state.getAbortReason() != null
+                        ? state.getAbortReason() : "user_abort";
+                if (!"submit_interrupt".equals(abortReason)) {
+                    Message.UserMessage interruptMsg = new Message.UserMessage(
+                            UUID.randomUUID().toString(), Instant.now(),
+                            List.of(new ContentBlock.TextBlock(
+                                    "[User interrupted the assistant's response]")),
+                            null, null);
+                    state.addMessage(interruptMsg);
+                }
+
+                handler.onTurnEnd(turn, "aborted");
+                break;
+            }
+
+            // ===== Step 5: 消费工具结果（流式并行执行已在 StreamCollector 中启动）=====
             if (!toolUseBlocks.isEmpty()) {
-                List<Message> toolResults = executeTools(
-                        toolUseBlocks, config, state, handler);
+                List<Message> toolResults = consumeToolResults(session, handler, aborted);
                 state.addMessages(toolResults);
             }
 
             // ===== Step 6: 继续/终止判定 =====
             String stopReason = assistantMessage.stopReason();
 
-            // 6a: end_turn 且无工具调用 → 终止
+            // 6a: end_turn 且无工具调用 → 执行 stopHooks 后终止
             if ("end_turn".equals(stopReason) && toolUseBlocks.isEmpty()) {
+                // 对齐 query.ts:1258-1264: API error 不执行 stopHooks
+                boolean isApiError = "api_error".equals(assistantMessage.stopReason())
+                        || (assistantMessage.content() != null
+                            && assistantMessage.content().size() == 1
+                            && assistantMessage.content().getFirst() instanceof ContentBlock.TextBlock tb
+                            && tb.text() != null
+                            && tb.text().startsWith("<api_error>"));
+
+                if (!isApiError && !state.isStopHookActive()) {
+                    try {
+                        HookRegistry.StopHookResult stopResult = hookService.executeStopHooks(
+                                state.getMessages(),
+                                state.getToolUseContext().sessionId());
+
+                        // preventContinuation → 直接终止
+                        if (stopResult.preventContinuation()) {
+                            handler.onTurnEnd(turn, "stop_hook_prevented");
+                            break;
+                        }
+
+                        // blockingErrors → 注入错误消息继续循环
+                        if (stopResult.hasBlockingErrors()) {
+                            for (String errorMsg : stopResult.blockingErrors()) {
+                                Message.UserMessage errorMessage = new Message.UserMessage(
+                                        UUID.randomUUID().toString(), Instant.now(),
+                                        List.of(new ContentBlock.TextBlock(errorMsg)),
+                                        null, null);
+                                state.addMessage(errorMessage);
+                            }
+                            state.resetRecoveryCount();
+                            state.setStopHookActive(true);
+                            handler.onTurnEnd(turn, "stop_hook_blocking");
+                            continue; // 继续循环
+                        }
+                    } catch (Exception e) {
+                        log.warn("Stop hook execution failed: {}", e.getMessage());
+                        handler.onSystemMessage(new Message.SystemMessage(
+                                UUID.randomUUID().toString(), Instant.now(),
+                                "Stop hook failed: " + e.getMessage(),
+                                SystemMessageType.WARNING));
+                    }
+                }
+
+                // Token Budget 续写检查 (对齐 query.ts:1308-1355)
+                if (tokenBudgetTracker != null) {
+                    int globalTurnTokens = totalUsage.outputTokens();
+                    String agentId = state.getToolUseContext() != null
+                            && state.getToolUseContext().nestingDepth() > 0
+                            ? "subagent-" + state.getToolUseContext().nestingDepth() : null;
+                    TokenBudgetTracker.Decision decision = tokenBudgetTracker.check(
+                            agentId, config.tokenBudget(), globalTurnTokens);
+
+                    if (decision instanceof TokenBudgetTracker.ContinueDecision cont) {
+                        log.info("Token budget continuation #{}: {}%",
+                                cont.continuationCount(), cont.pct());
+                        Message.UserMessage nudgeMsg = new Message.UserMessage(
+                                UUID.randomUUID().toString(), Instant.now(),
+                                List.of(new ContentBlock.TextBlock(cont.nudgeMessage())),
+                                null, null);
+                        state.addMessage(nudgeMsg);
+                        state.setHasAttemptedReactiveCompact(false);
+                        handler.onTurnEnd(turn, "token_budget_continuation");
+                        continue;
+                    }
+                }
+
                 handler.onTurnEnd(turn, stopReason);
                 break;
             }
@@ -209,7 +403,7 @@ public class QueryEngine {
                 continue;
             }
 
-            // 6c: 用户中断
+            // 6c: 用户中断（二次检查，工具执行后可能 aborted）
             if (aborted.get()) {
                 handler.onTurnEnd(turn, "aborted");
                 break;
@@ -235,6 +429,40 @@ public class QueryEngine {
 
     // ==================== Step 1: 压缩 ====================
 
+    /**
+     * P1-16: ThinkingConfig 降级检查 — 如果 Provider 不支持 thinking，自动降级并一次性通知。
+     * 对标原版 thinking.ts 的 modelSupportsThinking / modelSupportsAdaptiveThinking 检查。
+     */
+    private ThinkingConfig resolveThinking(ThinkingConfig config, LlmProvider provider,
+                                            String model, QueryMessageHandler handler) {
+        if (config == null || !config.requiresThinkingSupport()) {
+            return config;
+        }
+
+        if (!provider.supportsThinking(model)) {
+            // Provider/Model 不支持 thinking → 降级为 Disabled
+            String key = "thinking-downgrade-" + provider.getProviderName() + "-" + model;
+            if (notifiedThinkingDowngrades.add(key)) {
+                String msg = String.format("Extended thinking disabled: model %s on %s does not support it",
+                        model, provider.getProviderName());
+                log.info(msg);
+                hookService.executeNotification("warn", msg);
+                handler.onSystemMessage(new Message.SystemMessage(
+                        java.util.UUID.randomUUID().toString(), Instant.now(),
+                        msg, SystemMessageType.WARNING));
+            }
+            return new ThinkingConfig.Disabled();
+        }
+
+        // Adaptive 降级检查: 如果是 Adaptive 但 provider 只支持基础 thinking，降级为 Enabled
+        if (config instanceof ThinkingConfig.Adaptive) {
+            // 简化: 支持 thinking 即支持 adaptive，后续可细化
+            return config;
+        }
+
+        return config;
+    }
+
     private void tryAutoCompact(QueryConfig config, QueryLoopState state,
                                  QueryMessageHandler handler) {
         try {
@@ -251,6 +479,8 @@ public class QueryEngine {
                     state.resetAutoCompactFailures();
                     handler.onCompactEvent("auto_compact",
                             result.beforeTokens(), result.afterTokens());
+                    hookService.executeNotification("info", "Context auto-compacted: "
+                            + result.beforeTokens() + " → " + result.afterTokens() + " tokens");
                     log.info("自动压缩完成: {}", result.summary());
                 }
             }
@@ -285,66 +515,138 @@ public class QueryEngine {
         return false;
     }
 
-    // ==================== Step 5: 工具执行 ====================
+    /**
+     * Context-collapse drain — 尝试更激进的压缩恢复 413。
+     * 简化版: 使用 contextWindow*0.5 作为目标重新压缩。
+     * 对齐原版 contextCollapse.recoverFromOverflow()
+     */
+    private int tryContextCollapseDrain(QueryConfig config, QueryLoopState state,
+                                         QueryMessageHandler handler) {
+        try {
+            CompactService.CompactResult result = compactService.compact(
+                    state.getMessages(),
+                    (int)(config.contextWindow() * 0.5),
+                    true);
 
-    private List<Message> executeTools(
-            List<ContentBlock.ToolUseBlock> toolUseBlocks,
-            QueryConfig config, QueryLoopState state,
-            QueryMessageHandler handler) {
+            if (result.skipReason() == null) {
+                state.setMessages(result.compactedMessages());
+                handler.onCompactEvent("context_collapse_drain",
+                        result.beforeTokens(), result.afterTokens());
+                log.info("Context-collapse drain: {} → {} tokens",
+                        result.beforeTokens(), result.afterTokens());
+                return result.beforeTokens() - result.afterTokens();
+            }
+        } catch (Exception e) {
+            log.warn("Context-collapse drain failed: {}", e.getMessage());
+        }
+        return 0;
+    }
 
+    // ==================== Step 5: 消费工具结果 ====================
+
+    /**
+     * 从 ExecutionSession 消费所有工具结果（按原始顺序）。
+     * 对齐原版 query.ts:1380-1382 getRemainingResults()
+     */
+    private List<Message> consumeToolResults(
+            StreamingToolExecutor.ExecutionSession session,
+            QueryMessageHandler handler,
+            AtomicBoolean aborted) {
         List<Message> results = new ArrayList<>();
 
-        for (ContentBlock.ToolUseBlock toolUse : toolUseBlocks) {
-            // onToolUseStart 已在 StreamCollector 流式阶段通知过，此处不再重复
-
-            // 查找工具
-            Tool tool = findTool(toolUse.name(), config.tools());
-            if (tool == null) {
-                ContentBlock.ToolResultBlock errorResult = new ContentBlock.ToolResultBlock(
-                        toolUse.id(), "Tool not found: " + toolUse.name(), true);
-                handler.onToolResult(toolUse.id(), errorResult);
-                results.add(buildToolResultMessage(errorResult));
-                continue;
+        // 轮询等待所有工具完成
+        while (!session.isAllCompleted()) {
+            // 检查 abort 信号
+            if (aborted.get()) {
+                session.discard();
+                break;
             }
 
-            // 构建 ToolInput
-            ToolInput input = ToolInput.fromJsonNode(toolUse.input());
-
-            // 权限检查
-            PermissionContext permContext = permissionRuleRepository.buildContext(
-                    PermissionMode.DEFAULT, false, false);
-            PermissionDecision decision = permissionPipeline.checkPermission(
-                    tool, input, state.getToolUseContext(), permContext);
-
-            if (decision.isDenied()) {
-                ContentBlock.ToolResultBlock denyResult = new ContentBlock.ToolResultBlock(
-                        toolUse.id(),
-                        "Permission denied: " + (decision.reason() != null
-                                ? decision.reason() : "Operation not allowed"),
-                        true);
-                handler.onToolResult(toolUse.id(), denyResult);
-                results.add(buildToolResultMessage(denyResult));
-                continue;
-            }
-
-            // 执行工具
-            try {
-                ToolResult toolResult = tool.call(input, state.getToolUseContext());
+            List<StreamingToolExecutor.TrackedTool> yielded = session.yieldCompleted();
+            for (StreamingToolExecutor.TrackedTool tt : yielded) {
                 ContentBlock.ToolResultBlock resultBlock = new ContentBlock.ToolResultBlock(
-                        toolUse.id(), toolResult.content(), toolResult.isError());
-                handler.onToolResult(toolUse.id(), resultBlock);
-                handler.onToolUseComplete(toolUse.id(), toolUse);
+                        tt.getToolUseId(),
+                        tt.getResult().content(),
+                        tt.getResult().isError());
+                handler.onToolResult(tt.getToolUseId(), resultBlock);
                 results.add(buildToolResultMessage(resultBlock));
-            } catch (Exception e) {
-                log.error("工具执行异常: tool={}", toolUse.name(), e);
-                ContentBlock.ToolResultBlock errorResult = new ContentBlock.ToolResultBlock(
-                        toolUse.id(), "Tool execution error: " + e.getMessage(), true);
-                handler.onToolResult(toolUse.id(), errorResult);
-                results.add(buildToolResultMessage(errorResult));
+            }
+
+            if (!session.isAllCompleted()) {
+                try { Thread.sleep(50); } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
             }
         }
 
+        // 最终一次 yield
+        for (StreamingToolExecutor.TrackedTool tt : session.yieldCompleted()) {
+            ContentBlock.ToolResultBlock resultBlock = new ContentBlock.ToolResultBlock(
+                    tt.getToolUseId(), tt.getResult().content(), tt.getResult().isError());
+            handler.onToolResult(tt.getToolUseId(), resultBlock);
+            results.add(buildToolResultMessage(resultBlock));
+        }
+
         return results;
+    }
+
+    /**
+     * 为所有未产出 tool_result 的 tool_use 生成 synthetic error 结果。
+     * 对齐原版 StreamingToolExecutor.ts:153-205 createSyntheticErrorMessage()
+     */
+    private List<Message> generateSyntheticResults(
+            List<ContentBlock.ToolUseBlock> toolUseBlocks,
+            StreamingToolExecutor.ExecutionSession session,
+            String reason) {
+        Set<String> completedIds = new HashSet<>();
+        for (StreamingToolExecutor.TrackedTool tt : session.yieldCompleted()) {
+            completedIds.add(tt.getToolUseId());
+        }
+
+        List<Message> results = new ArrayList<>();
+        for (ContentBlock.ToolUseBlock block : toolUseBlocks) {
+            if (completedIds.contains(block.id())) {
+                continue;
+            }
+            ContentBlock.ToolResultBlock synthetic = new ContentBlock.ToolResultBlock(
+                    block.id(),
+                    "<tool_use_error>" + reason + "</tool_use_error>",
+                    true);
+            results.add(buildToolResultMessage(synthetic));
+        }
+        return results;
+    }
+
+    /**
+     * 移除消息历史中的 thinking blocks，防止跨模型 API 400。
+     * 对齐原版 query.ts:927-929 stripSignatureBlocks()
+     */
+    private void stripThinkingBlocks(QueryLoopState state) {
+        List<Message> messages = state.getMessages();
+        List<Message> cleaned = new ArrayList<>();
+        for (Message msg : messages) {
+            if (msg instanceof Message.AssistantMessage assistant && assistant.content() != null) {
+                List<ContentBlock> filtered = assistant.content().stream()
+                        .filter(b -> !(b instanceof ContentBlock.ThinkingBlock)
+                                && !(b instanceof ContentBlock.RedactedThinkingBlock))
+                        .toList();
+                if (filtered.size() != assistant.content().size()) {
+                    // 如果过滤后为空，添加一个空文本块防止 API 400
+                    if (filtered.isEmpty()) {
+                        filtered = List.of(new ContentBlock.TextBlock(""));
+                    }
+                    cleaned.add(new Message.AssistantMessage(
+                            assistant.uuid(), assistant.timestamp(), filtered,
+                            assistant.stopReason(), assistant.usage()));
+                } else {
+                    cleaned.add(msg);
+                }
+            } else {
+                cleaned.add(msg);
+            }
+        }
+        state.setMessages(cleaned);
     }
 
     // ==================== 辅助方法 ====================
@@ -456,10 +758,15 @@ public class QueryEngine {
 
     /**
      * 流式收集器 — 将 StreamChatCallback 事件收集为 AssistantMessage。
+     * 持有 ExecutionSession 引用，在 flushToolBlock 时立即启动工具并行执行。
      */
     private static class StreamCollector implements StreamChatCallback {
 
         private final QueryMessageHandler handler;
+        private final StreamingToolExecutor.ExecutionSession session;
+        private final List<Tool> tools;
+        private final ToolUseContext toolUseContext;
+        private final ObjectMapper objectMapper;
         private final List<ContentBlock> contentBlocks = new ArrayList<>();
         private final StringBuilder currentText = new StringBuilder();
         private String currentToolId;
@@ -468,8 +775,16 @@ public class QueryEngine {
         private Usage usage;
         private String stopReason;
 
-        StreamCollector(QueryMessageHandler handler) {
+        StreamCollector(QueryMessageHandler handler,
+                        StreamingToolExecutor.ExecutionSession session,
+                        List<Tool> tools,
+                        ToolUseContext toolUseContext,
+                        ObjectMapper objectMapper) {
             this.handler = handler;
+            this.session = session;
+            this.tools = tools;
+            this.toolUseContext = toolUseContext;
+            this.objectMapper = objectMapper;
         }
 
         @Override
@@ -529,20 +844,43 @@ public class QueryEngine {
             if (currentToolId != null) {
                 JsonNode inputNode;
                 try {
-                    ObjectMapper mapper = new ObjectMapper();
                     String inputStr = currentToolInput.toString();
                     inputNode = inputStr.isEmpty()
-                            ? mapper.createObjectNode()
-                            : mapper.readTree(inputStr);
+                            ? objectMapper.createObjectNode()
+                            : objectMapper.readTree(inputStr);
                 } catch (Exception e) {
-                    inputNode = new ObjectMapper().createObjectNode();
+                    inputNode = objectMapper.createObjectNode();
                 }
-                contentBlocks.add(new ContentBlock.ToolUseBlock(
-                        currentToolId, currentToolName, inputNode));
+                ContentBlock.ToolUseBlock toolBlock = new ContentBlock.ToolUseBlock(
+                        currentToolId, currentToolName, inputNode);
+                contentBlocks.add(toolBlock);
+
+                // 立即提交到 StreamingToolExecutor 开始并行执行
+                if (session != null && !session.isDiscarded()) {
+                    Tool tool = findToolByName(currentToolName);
+                    if (tool != null) {
+                        ToolInput toolInput = ToolInput.fromJsonNode(inputNode);
+                        session.addTool(tool, toolInput, currentToolId, toolUseContext);
+                    } else {
+                        // 工具未找到 — 直接标记 COMPLETED + error
+                        log.warn("Tool not found in streaming phase: {}", currentToolName);
+                        session.addErrorResult(currentToolId,
+                                "<tool_use_error>Error: No such tool available: "
+                                + currentToolName + "</tool_use_error>");
+                    }
+                }
+
                 currentToolId = null;
                 currentToolName = null;
                 currentToolInput.setLength(0);
             }
+        }
+
+        private Tool findToolByName(String name) {
+            if (tools == null) return null;
+            return tools.stream()
+                    .filter(t -> t.getName().equals(name) || t.getAliases().contains(name))
+                    .findFirst().orElse(null);
         }
 
         Message.AssistantMessage buildAssistantMessage() {

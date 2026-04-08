@@ -47,6 +47,19 @@ public class SecurityConfig {
                 // 所有请求放行 — 认证由 RemoteAccessSecurityFilter 处理
                 .authorizeHttpRequests(auth -> auth
                         .anyRequest().permitAll()
+                )
+                // CSP 安全头 + 禁止 iframe 嵌入
+                .headers(headers -> headers
+                    .contentSecurityPolicy(csp -> csp
+                        .policyDirectives(
+                            "default-src 'self'; " +
+                            "script-src 'self'; " +
+                            "style-src 'self' 'unsafe-inline'; " +
+                            "connect-src 'self' ws: wss:; " +
+                            "img-src 'self' data: blob:; " +
+                            "font-src 'self' data:;")
+                    )
+                    .frameOptions(frame -> frame.deny())
                 );
         return http.build();
     }

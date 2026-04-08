@@ -25,8 +25,8 @@ const UserMessage: React.FC<UserMessageProps> = ({ message }) => {
 
             {/* Content */}
             <div className="flex-1 min-w-0">
-                <div className="text-xs text-gray-400 mb-1 font-medium">You</div>
-                <div className="text-sm text-gray-100">
+                <div className="text-xs text-[var(--text-secondary)] mb-1 font-medium">You</div>
+                <div className="text-sm text-[var(--text-primary)]">
                     {message.content.map((block, i) => (
                         <ContentBlockRenderer key={i} block={block} />
                     ))}

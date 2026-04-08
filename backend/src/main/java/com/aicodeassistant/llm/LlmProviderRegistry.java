@@ -23,6 +23,17 @@ public class LlmProviderRegistry {
 
     private final Map<String, LlmProvider> providers = new ConcurrentHashMap<>();
 
+    /**
+     * 构造函数 — 通过 Spring 自动注入所有 LlmProvider 实现，自动注册。
+     */
+    public LlmProviderRegistry(List<LlmProvider> providerList) {
+        for (LlmProvider provider : providerList) {
+            register(provider);
+        }
+        log.info("LlmProviderRegistry initialized with {} providers: {}",
+                this.providers.size(), this.providers.keySet());
+    }
+
     /** 根据模型名称查找对应供应商 */
     public LlmProvider getProvider(String model) {
         return providers.values().stream()
@@ -74,5 +85,33 @@ public class LlmProviderRegistry {
     /** 检查是否有任何 Provider 已注册 */
     public boolean hasProviders() {
         return !providers.isEmpty();
+    }
+
+    /** 获取轻量级模型 — 用于分类器、摘要等低延迟场景 (SPEC: YoloClassifier) */
+    public String getLightweightModel() {
+        return getFastModel();
+    }
+
+    /** 获取主循环模型 — 用于核心对话循环 (SPEC: MainLoop) */
+    public String getMainLoopModel() {
+        return getDefaultModel();
+    }
+
+    /**
+     * 四级回退解析分类器模型。
+     * 对齐原版 resolveClassifierModel():
+     * env → Spring配置 → getFastModel → getDefaultModel
+     */
+    public String resolveClassifierModel() {
+        // Level 1: 环境变量
+        String envModel = System.getenv("CLASSIFIER_MODEL");
+        if (envModel != null && !envModel.isBlank()) return envModel;
+
+        // Level 2: 轻量模型
+        String fast = getFastModel();
+        if (fast != null) return fast;
+
+        // Level 3: 主循环模型
+        return getDefaultModel();
     }
 }

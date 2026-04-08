@@ -64,7 +64,7 @@ const MessageList: React.FC = () => {
     }
 
     return (
-        <div className="message-list flex-1 overflow-hidden" role="log" aria-live="polite" aria-label="对话消息">
+        <div className="message-list h-full overflow-hidden" role="log" aria-live="polite" aria-label="对话消息">
             <Virtuoso
                 ref={virtuosoRef}
                 totalCount={messages.length}

@@ -1,6 +1,23 @@
 package com.aicodeassistant.websocket;
 
+import com.aicodeassistant.engine.ElicitationService;
+import com.aicodeassistant.engine.QueryConfig;
+import com.aicodeassistant.engine.QueryEngine;
+import com.aicodeassistant.engine.QueryLoopState;
+import com.aicodeassistant.engine.QueryMessageHandler;
+import com.aicodeassistant.llm.LlmProviderRegistry;
+import com.aicodeassistant.llm.ModelCapabilities;
+import com.aicodeassistant.llm.ModelRegistry;
+import com.aicodeassistant.llm.ThinkingConfig;
+import com.aicodeassistant.model.ContentBlock;
+import com.aicodeassistant.model.Message;
 import com.aicodeassistant.model.Usage;
+import com.aicodeassistant.prompt.EffectiveSystemPromptBuilder;
+import com.aicodeassistant.prompt.SystemPromptConfig;
+import com.aicodeassistant.session.SessionData;
+import com.aicodeassistant.session.SessionManager;
+import com.aicodeassistant.tool.Tool;
+import com.aicodeassistant.tool.ToolRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -8,9 +25,10 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
+import java.nio.file.Path;
 import java.security.Principal;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.time.Instant;
+import java.util.*;
 
 /**
  * WebSocket STOMP 消息控制器 (§8.5.4)。
@@ -30,11 +48,32 @@ public class WebSocketController {
 
     private final SimpMessagingTemplate messaging;
     private final WebSocketSessionManager wsSessionManager;
+    private final QueryEngine queryEngine;
+    private final ToolRegistry toolRegistry;
+    private final LlmProviderRegistry providerRegistry;
+    private final EffectiveSystemPromptBuilder systemPromptBuilder;
+    private final ModelRegistry modelRegistry;            // P0-1 新增
+    private final SessionManager sessionManager;           // P1-0 新增
+    private final ElicitationService elicitationService;   // P1-5 新增
 
     public WebSocketController(SimpMessagingTemplate messaging,
-                                WebSocketSessionManager wsSessionManager) {
+                                WebSocketSessionManager wsSessionManager,
+                                QueryEngine queryEngine,
+                                ToolRegistry toolRegistry,
+                                LlmProviderRegistry providerRegistry,
+                                EffectiveSystemPromptBuilder systemPromptBuilder,
+                                ModelRegistry modelRegistry,
+                                SessionManager sessionManager,
+                                ElicitationService elicitationService) {
         this.messaging = messaging;
         this.wsSessionManager = wsSessionManager;
+        this.queryEngine = queryEngine;
+        this.toolRegistry = toolRegistry;
+        this.providerRegistry = providerRegistry;
+        this.systemPromptBuilder = systemPromptBuilder;
+        this.modelRegistry = modelRegistry;
+        this.sessionManager = sessionManager;
+        this.elicitationService = elicitationService;
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -302,10 +341,125 @@ public class WebSocketController {
         String sessionId = resolveSessionId(principal);
         log.info("WS user_message: sessionId={}, text={}", sessionId,
                 msg.text() != null ? msg.text().substring(0, Math.min(50, msg.text().length())) : "");
-        // TODO: 接入 QueryEngine.submitUserMessage(sessionId, msg)
-        // P0 阶段: 回显确认
-        sendNotification(sessionId, "msg-received", "info",
-                "Message received: " + (msg.text() != null ? msg.text().substring(0, Math.min(30, msg.text().length())) : ""), 3000);
+
+        // 在 Virtual Thread 中执行 QueryEngine
+        Thread.startVirtualThread(() -> {
+            try {
+                executeQuery(sessionId, msg.text());
+            } catch (Exception e) {
+                log.error("QueryEngine 执行异常: sessionId={}", sessionId, e);
+                sendError(sessionId, "query_error", e.getMessage() != null ? e.getMessage() : "Unknown error", true);
+            }
+        });
+    }
+
+    /**
+     * 执行查询 — 组装 QueryConfig + QueryLoopState，调用 QueryEngine.execute()。
+     */
+    private void executeQuery(String sessionId, String userText) {
+        // 1. 组装工具池
+        List<Tool> tools = toolRegistry.getEnabledTools();
+
+        // 2. 构建系统提示
+        SystemPromptConfig promptConfig = SystemPromptConfig.defaults();
+        String model = providerRegistry.getDefaultModel();
+        String systemPrompt = systemPromptBuilder.buildEffectiveSystemPrompt(
+                promptConfig, tools, model, Path.of(System.getProperty("user.dir")));
+
+        // 3. 构建 QueryConfig
+        int contextWindow = getContextWindow(model);
+        QueryConfig config = QueryConfig.withDefaults(
+                model, systemPrompt, tools,
+                toolRegistry.getToolDefinitions(),
+                QueryConfig.DEFAULT_MAX_TOKENS,
+                contextWindow,
+                new ThinkingConfig.Disabled(),
+                10, "websocket"
+        );
+
+        // 4. 初始化循环状态 + 添加用户消息
+        QueryLoopState state = new QueryLoopState(new ArrayList<>(), null);
+        state.addMessage(new Message.UserMessage(
+                UUID.randomUUID().toString(), Instant.now(),
+                List.of(new ContentBlock.TextBlock(userText)),
+                null, null));
+
+        // 5. 执行查询，通过 WsMessageHandler 流式推送
+        log.info("QueryEngine 开始执行: sessionId={}, model={}", sessionId, model);
+        WsMessageHandler handler = new WsMessageHandler(sessionId);
+        QueryEngine.QueryResult result = queryEngine.execute(config, state, handler);
+
+        // 6. 发送完成消息
+        Usage totalUsage = result.totalUsage() != null ? result.totalUsage() : Usage.zero();
+        sendMessageComplete(sessionId, totalUsage, result.stopReason());
+        log.info("QueryEngine 完成: sessionId={}, stopReason={}, turns={}",
+                sessionId, result.stopReason(), result.turnCount());
+    }
+
+    private int getContextWindow(String model) {
+        return modelRegistry.getContextWindowForModel(model);
+    }
+
+    /**
+     * WebSocket 流式消息处理器 — 将 QueryEngine 事件推送到前端。
+     */
+    private class WsMessageHandler implements QueryMessageHandler {
+        private final String sessionId;
+
+        WsMessageHandler(String sessionId) {
+            this.sessionId = sessionId;
+        }
+
+        @Override
+        public void onTextDelta(String text) {
+            sendStreamDelta(sessionId, text);
+        }
+
+        @Override
+        public void onThinkingDelta(String thinking) {
+            sendThinkingDelta(sessionId, thinking);
+        }
+
+        @Override
+        public void onToolUseStart(String toolUseId, String toolName) {
+            sendToolUseStart(sessionId, toolUseId, toolName, Map.of());
+        }
+
+        @Override
+        public void onToolUseComplete(String toolUseId, ContentBlock.ToolUseBlock toolUse) {
+            // 工具执行完成，已在 onToolResult 中处理
+        }
+
+        @Override
+        public void onToolResult(String toolUseId, ContentBlock.ToolResultBlock result) {
+            sendToolResult(sessionId, toolUseId,
+                    result.content() != null ? result.content() : "", result.isError());
+        }
+
+        @Override
+        public void onAssistantMessage(Message.AssistantMessage message) {
+            // 已通过 onTextDelta 流式推送
+        }
+
+        @Override
+        public void onError(Throwable error) {
+            log.error("WsMessageHandler error: sessionId={}", sessionId, error);
+            sendError(sessionId, "query_error",
+                    error.getMessage() != null ? error.getMessage() : "Unknown error", true);
+        }
+
+        @Override
+        public void onUsage(Usage usage) {
+            sendCostUpdate(sessionId, 0.0, 0.0, usage);
+        }
+
+        @Override
+        public void onCompactEvent(String type, int beforeTokens, int afterTokens) {
+            if ("auto_compact".equals(type) || "reactive_compact".equals(type)) {
+                sendCompactStart(sessionId);
+                sendCompactComplete(sessionId, type, beforeTokens - afterTokens);
+            }
+        }
     }
 
     /**
@@ -396,7 +550,8 @@ public class WebSocketController {
                                            Principal principal) {
         String sessionId = resolveSessionId(principal);
         log.info("WS elicitation_response: sessionId={}, requestId={}", sessionId, payload.requestId());
-        // TODO: 接入 QueryEngine.resolveElicitation(sessionId, payload)
+        // 注意: ElicitationResponsePayload 字段名是 answer（非 response）
+        elicitationService.resolveElicitation(payload.requestId(), payload.answer());
     }
 
     /**
@@ -406,6 +561,43 @@ public class WebSocketController {
     public void handlePing(Principal principal) {
         String sessionId = resolveSessionId(principal);
         sendPong(sessionId);
+    }
+
+    /**
+     * #11 绑定会话 → /app/bind-session
+     */
+    @MessageMapping("/bind-session")
+    public void handleBindSession(@Payload Map<String, String> payload, Principal principal) {
+        String sessionId = payload.get("sessionId");
+        if (sessionId != null && principal != null) {
+            wsSessionManager.bindSession(principal.getName(), sessionId);
+            log.info("WS bind-session: principal={}, sessionId={}", principal.getName(), sessionId);
+
+            // ── 新增: 推送 session_restored ──
+            try {
+                Optional<SessionData> dataOpt = sessionManager.loadSession(sessionId);
+                if (dataOpt.isPresent()) {
+                    SessionData data = dataOpt.get();
+                    Map<String, Object> metadata = Map.of(
+                        "sessionId", sessionId,
+                        "model", data.model() != null ? data.model() : "",
+                        "permissionMode", "DEFAULT",
+                        "status", data.status() != null ? data.status() : "idle"
+                    );
+                    push(sessionId, "session_restored", Map.of(
+                        "messages", data.messages(),
+                        "metadata", metadata
+                    ));
+                    log.info("Pushed session_restored: sessionId={}, messages={}",
+                        sessionId, data.messages().size());
+                }
+            } catch (Exception e) {
+                log.warn("Failed to push session_restored for {}: {}", sessionId, e.getMessage());
+            }
+        } else {
+            log.warn("WS bind-session failed: principal={}, sessionId={}",
+                    principal != null ? principal.getName() : "null", sessionId);
+        }
     }
 
     // ───── 辅助方法 ─────

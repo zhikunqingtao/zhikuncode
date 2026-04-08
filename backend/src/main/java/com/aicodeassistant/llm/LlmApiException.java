@@ -52,4 +52,18 @@ public class LlmApiException extends RuntimeException {
     public int getStatusCode() { return httpStatus; }
     public String getErrorType() { return errorType; }
     public long getRetryAfterMs() { return retryAfterMs; }
+
+    /**
+     * 判断是否应触发模型降级。
+     * 对齐原版 FallbackTriggeredError 的触发条件:
+     * - 429 Too Many Requests
+     * - 529 Overloaded
+     * - error_type 包含 "overloaded"
+     */
+    public boolean isFallbackTrigger() {
+        if (httpStatus == 429 || httpStatus == 529) return true;
+        if (errorType != null && errorType.contains("overloaded")) return true;
+        String msg = getMessage();
+        return msg != null && msg.contains("overloaded");
+    }
 }

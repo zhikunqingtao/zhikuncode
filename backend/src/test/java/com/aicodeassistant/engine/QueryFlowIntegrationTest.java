@@ -1,7 +1,10 @@
 package com.aicodeassistant.engine;
 
+import com.aicodeassistant.hook.HookRegistry;
+import com.aicodeassistant.hook.HookService;
 import com.aicodeassistant.llm.*;
 import com.aicodeassistant.model.*;
+import com.aicodeassistant.permission.AutoModeClassifier;
 import com.aicodeassistant.permission.PermissionPipeline;
 import com.aicodeassistant.permission.PermissionRuleMatcher;
 import com.aicodeassistant.permission.PermissionRuleRepository;
@@ -40,18 +43,26 @@ class QueryFlowIntegrationTest {
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
-        providerRegistry = new LlmProviderRegistry();
+        providerRegistry = new LlmProviderRegistry(List.of());
         PermissionRuleRepository ruleRepo = new PermissionRuleRepository();
         PermissionRuleMatcher ruleMatcher = new PermissionRuleMatcher();
-        permissionPipeline = new PermissionPipeline(ruleMatcher, ruleRepo);
+        AutoModeClassifier autoModeClassifier = new AutoModeClassifier(providerRegistry);
+        permissionPipeline = new PermissionPipeline(ruleMatcher, ruleRepo, autoModeClassifier);
 
         TokenCounter tokenCounter = new TokenCounter();
-        CompactService compactService = new CompactService(tokenCounter);
+        CompactService compactService = new CompactService(tokenCounter, providerRegistry);
         ApiRetryService apiRetryService = new ApiRetryService();
+        HookService hookService = new HookService(new HookRegistry());
+        StreamingToolExecutor streamingToolExecutor = new StreamingToolExecutor(new ToolExecutionPipeline(hookService, objectMapper));
+        MessageNormalizer messageNormalizer = new MessageNormalizer();
+        SnipService snipService = new SnipService();
+        MicroCompactService microCompactService = new MicroCompactService(tokenCounter);
 
         queryEngine = new QueryEngine(
                 providerRegistry, compactService, apiRetryService,
-                permissionPipeline, ruleRepo, tokenCounter, objectMapper
+                permissionPipeline, ruleRepo, tokenCounter, objectMapper,
+                streamingToolExecutor, messageNormalizer, hookService,
+                snipService, microCompactService, null
         );
 
         handler = new RecordingHandler();
@@ -281,7 +292,7 @@ class QueryFlowIntegrationTest {
     // ═══════════════ 辅助: 构建方法 ═══════════════
 
     private QueryConfig buildConfig() {
-        return new QueryConfig(
+        return QueryConfig.withDefaults(
                 "mock-model", "You are a helpful assistant.",
                 List.of(), List.of(),
                 8192, 200000,
@@ -292,7 +303,7 @@ class QueryFlowIntegrationTest {
     private QueryConfig buildConfigWithTools(List<Tool> tools) {
         List<Map<String, Object>> defs = tools.stream()
                 .map(Tool::toToolDefinition).toList();
-        return new QueryConfig(
+        return QueryConfig.withDefaults(
                 "mock-model", "You are a helpful assistant.",
                 tools, defs,
                 8192, 200000,
