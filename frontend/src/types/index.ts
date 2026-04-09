@@ -62,6 +62,13 @@ export interface SessionRestoredPayload { type: 'session_restored'; messages: Me
 export interface MessageCompletePayload { type: 'message_complete'; messageId: string; usage: Usage; stopReason: string }
 export interface PongPayload { type: 'pong'; timestamp: number }
 export interface ErrorPayload { type: 'error'; code: string; message: string; retryable: boolean }
+export interface CompactEventPayload { type: 'compact_event'; phase: string; usagePercent: number; currentTokens: number }
+export interface TokenWarningPayload { type: 'token_warning'; currentTokens: number; maxTokens: number; usagePercent: number; warningLevel: string }
+export interface InterruptAckPayload { type: 'interrupt_ack'; reason: string }
+export interface ModelChangedPayload { type: 'model_changed'; model: string }
+export interface PermissionModeChangedPayload { type: 'permission_mode_changed'; mode: string }
+export interface CommandResultPayload { type: 'command_result'; command: string; output: string }
+export interface RewindCompletePayload { type: 'rewind_complete'; messageId: string; files: string[] }
 
 export type ServerMessage =
     | StreamDeltaPayload
@@ -87,7 +94,14 @@ export type ServerMessage =
     | SessionRestoredPayload
     | MessageCompletePayload
     | PongPayload
-    | ErrorPayload;
+    | ErrorPayload
+    | CompactEventPayload
+    | TokenWarningPayload
+    | InterruptAckPayload
+    | ModelChangedPayload
+    | PermissionModeChangedPayload
+    | CommandResultPayload
+    | RewindCompletePayload;
 
 // ==================== 工具相关类型 ====================
 

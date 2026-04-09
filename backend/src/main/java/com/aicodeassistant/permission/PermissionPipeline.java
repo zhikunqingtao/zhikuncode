@@ -4,11 +4,16 @@ import com.aicodeassistant.model.*;
 import com.aicodeassistant.tool.Tool;
 import com.aicodeassistant.tool.ToolInput;
 import com.aicodeassistant.tool.ToolUseContext;
+import com.aicodeassistant.websocket.WebSocketController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 /**
  * 权限决策管线 — 7 步顺序检查（短路返回）。
@@ -43,6 +48,33 @@ public class PermissionPipeline {
     private static final Set<String> FILE_EDIT_TOOLS = Set.of(
             "FileEdit", "FileWrite", "Write", "Edit"
     );
+
+    /** 裸壳前缀 — 禁止为这些前缀生成 "Always allow" 建议 */
+    private static final Set<String> BARE_SHELL_PREFIXES = Set.of(
+            "sh", "bash", "zsh", "fish", "csh", "tcsh", "ksh", "dash",
+            "cmd", "powershell", "pwsh",
+            "env", "xargs",
+            "nice", "stdbuf", "nohup", "timeout", "time",
+            "sudo", "doas", "pkexec",
+            "su"
+    );
+
+    /** 内容级危险模式 (即使 bypass 也强制 ask) */
+    private static final List<Pattern> CONTENT_LEVEL_ASK_PATTERNS = List.of(
+            Pattern.compile("rm\\s+(-[rRf]+\\s+)*(/|~|\\$HOME)"),
+            Pattern.compile("chmod\\s+(-R\\s+)?777\\s+/"),
+            Pattern.compile(">(\\s*)/dev/sd[a-z]"),
+            Pattern.compile("mkfs\\."),
+            Pattern.compile("dd\\s+.*of=/dev/"),
+            Pattern.compile(":(){ :\\|:& };:"),
+            Pattern.compile("git\\s+push\\s+.*--force"),
+            Pattern.compile("git\\s+(reset|clean)\\s+--hard"),
+            Pattern.compile("DROP\\s+(TABLE|DATABASE)", Pattern.CASE_INSENSITIVE)
+    );
+
+    /** 异步权限等待 — toolUseId → CompletableFuture<PermissionDecision> */
+    private final ConcurrentHashMap<String, CompletableFuture<PermissionDecision>> pendingRequests =
+            new ConcurrentHashMap<>();
 
     private final PermissionRuleMatcher ruleMatcher;
     private final PermissionRuleRepository ruleRepository;
@@ -108,6 +140,13 @@ public class PermissionPipeline {
             log.debug("Step 1e: tool requires user interaction for tool={}", tool.getName());
             return PermissionDecision.ask(PermissionDecisionReason.PERMISSION_PROMPT_TOOL,
                     "Tool requires user interaction");
+        }
+
+        // ===== Step 1f: 内容级 ask 规则 (优先于 bypass 模式) =====
+        PermissionDecision contentAskDecision = checkContentLevelAsk(tool, input);
+        if (contentAskDecision != null) {
+            log.debug("Step 1f: content-level ask triggered for tool={}", tool.getName());
+            return contentAskDecision;
         }
 
         // ===== Step 1g: 安全检查（bypass 免疫） =====
@@ -259,6 +298,117 @@ public class PermissionPipeline {
                 toolName, allowed, scope, ruleContent);
     }
 
+    // ==================== 异步权限请求 ====================
+
+    /**
+     * 发起异步权限请求 — 返回 CompletableFuture 等待用户决策。
+     * <p>
+     * 对齐原版 createPermissionRequestMessage():
+     * 通过 WebSocket 推送 permission_request 到前端，前端展示权限对话框，
+     * 用户选择后通过 /app/permission 回传，最终 resolvePermission() 完成 future。
+     *
+     * @param toolUseId  工具调用 ID
+     * @param toolName   工具名称
+     * @param input      工具输入（前端展示用）
+     * @param reason     请求原因（前端展示用）
+     * @param wsPusher   WebSocket 推送器（由调用方注入，避免循环依赖）
+     * @param sessionId  会话 ID
+     * @return 用户决策的 CompletableFuture
+     */
+    public CompletableFuture<PermissionDecision> requestPermission(
+            String toolUseId, String toolName, Map<String, Object> input,
+            String reason, WebSocketController wsPusher, String sessionId) {
+
+        CompletableFuture<PermissionDecision> future = new CompletableFuture<>();
+        pendingRequests.put(toolUseId, future);
+
+        // 通过 WebSocket 推送权限请求到前端
+        String riskLevel = BARE_SHELL_PREFIXES.stream()
+                .anyMatch(p -> String.valueOf(input.getOrDefault("command", "")).startsWith(p))
+                ? "high" : "normal";
+
+        wsPusher.sendPermissionRequest(sessionId, toolUseId, toolName, input, riskLevel, reason);
+
+        // 120 秒超时 → 自动拒绝
+        future.orTimeout(120, TimeUnit.SECONDS)
+              .exceptionally(ex -> {
+                  pendingRequests.remove(toolUseId);
+                  log.warn("Permission request timed out: toolUseId={}", toolUseId);
+                  return PermissionDecision.denyByMode("Permission request timed out");
+              });
+
+        return future;
+    }
+
+    /**
+     * 解决挂起的权限请求 — 由 WebSocketController.handlePermissionResponse() 调用。
+     *
+     * @param toolUseId 工具调用 ID
+     * @param decision  用户的权限决策
+     */
+    public void resolvePermission(String toolUseId, PermissionDecision decision) {
+        CompletableFuture<PermissionDecision> future = pendingRequests.remove(toolUseId);
+        if (future != null) {
+            future.complete(decision);
+            log.info("Permission resolved: toolUseId={}, behavior={}", toolUseId, decision.behavior());
+        } else {
+            log.warn("No pending permission request for toolUseId={}", toolUseId);
+        }
+    }
+
+    /**
+     * 取消所有挂起的权限请求（会话中断时调用）。
+     */
+    public void cancelAllPending() {
+        pendingRequests.forEach((id, future) -> {
+            future.complete(PermissionDecision.denyByMode("Session interrupted"));
+        });
+        pendingRequests.clear();
+    }
+
+    // ==================== 建议生成 ====================
+
+    /**
+     * 生成权限建议 — 对齐原版 suggestions: PermissionUpdate[]。
+     * 前端展示 "Allow for this session" / "Always allow" 等选项。
+     */
+    public List<Map<String, String>> buildSuggestions(Tool tool, ToolInput input) {
+        List<Map<String, String>> suggestions = new ArrayList<>();
+        suggestions.add(Map.of(
+                "label", "Allow for this session",
+                "scope", "session",
+                "toolName", tool.getName()));
+        suggestions.add(Map.of(
+                "label", "Always allow " + tool.getName(),
+                "scope", "global",
+                "toolName", tool.getName()));
+
+        // BashTool: 生成前缀规则建议
+        if ("Bash".equals(tool.getName())) {
+            String cmd = input.getOptionalString("command").orElse(null);
+            if (cmd != null) {
+                String prefix = extractCommandPrefix(cmd);
+                if (prefix != null && !BARE_SHELL_PREFIXES.contains(prefix.split("\\s+")[0])) {
+                    suggestions.add(Map.of(
+                            "label", String.format("Always allow 'Bash(%s:*)'", prefix),
+                            "scope", "global",
+                            "toolName", "Bash",
+                            "ruleContent", prefix));
+                }
+            }
+        }
+        return suggestions;
+    }
+
+    /**
+     * 提取命令前缀（前 2 个词）。
+     */
+    private String extractCommandPrefix(String command) {
+        if (command == null || command.isBlank()) return null;
+        String[] parts = command.trim().split("\\s+", 3);
+        return parts.length >= 2 ? parts[0] + " " + parts[1] : parts[0];
+    }
+
     // ==================== 辅助方法 ====================
 
     private boolean isFileEditTool(Tool tool) {
@@ -276,5 +426,34 @@ public class PermissionPipeline {
             }
         }
         return false;
+    }
+
+    /**
+     * Step 1f: 内容级 ask 规则检查 — 对齐原版 BARE_SHELL_PREFIXES + 危险命令模式。
+     * 即使在 bypass 模式下，危险命令仍需要用户确认。
+     */
+    @SuppressWarnings("unchecked")
+    private PermissionDecision checkContentLevelAsk(Tool tool, ToolInput input) {
+        if (!"BashTool".equals(tool.getName()) && !"Bash".equals(tool.getName())) return null;
+        String command = input.getOptionalString("command").orElse(null);
+        if (command == null) return null;
+
+        // 检查 1: 裸 shell 前缀
+        String firstWord = command.trim().split("\\s+")[0];
+        if (BARE_SHELL_PREFIXES.contains(firstWord)) {
+            return PermissionDecision.ask(
+                    PermissionDecisionReason.SAFETY_CHECK,
+                    "Shell wrapper '" + firstWord + "' can execute arbitrary commands");
+        }
+
+        // 检查 2: 内容级危险模式
+        for (Pattern pattern : CONTENT_LEVEL_ASK_PATTERNS) {
+            if (pattern.matcher(command).find()) {
+                return PermissionDecision.ask(
+                        PermissionDecisionReason.SAFETY_CHECK,
+                        "Dangerous command pattern detected: " + pattern.pattern());
+            }
+        }
+        return null; // 未命中，继续正常流程
     }
 }

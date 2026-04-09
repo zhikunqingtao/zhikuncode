@@ -35,4 +35,18 @@ public sealed interface LlmStreamEvent {
 
     /** 错误事件 */
     record Error(String message, boolean retryable) implements LlmStreamEvent {}
+
+    // ===== Anthropic SSE 新增事件类型 =====
+
+    /** 消息开始 (Anthropic message_start) */
+    record MessageStart(String messageId) implements LlmStreamEvent {}
+
+    /** 文本块开始 (Anthropic content_block_start type=text) */
+    record TextStart(int index) implements LlmStreamEvent {}
+
+    /** 思考块开始 (Anthropic content_block_start type=thinking) */
+    record ThinkingStart(int index) implements LlmStreamEvent {}
+
+    /** 内容块结束 (Anthropic content_block_stop) */
+    record BlockStop(int index) implements LlmStreamEvent {}
 }

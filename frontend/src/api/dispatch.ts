@@ -17,6 +17,7 @@ import { useBridgeStore } from '@/store/bridgeStore';
 import { useNotificationStore } from '@/store/notificationStore';
 import { useInboxStore } from '@/store/inboxStore';
 import { useMcpStore } from '@/store/mcpStore';
+import { appendStreamDelta } from '@/hooks/useStreamingText';
 
 /** 序列号校验器 — 检测乱序/丢失消息 */
 let lastSeqTs = 0;
@@ -52,7 +53,7 @@ export function resetSequence(): void {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const handlers: Record<string, (data: any) => void> = {
     // === messageStore (5 种) ===
-    'stream_delta':       (d) => useMessageStore.getState().appendStreamDelta(d.delta),
+    'stream_delta':       (d) => appendStreamDelta(d.delta),
     'thinking_delta':     (d) => useMessageStore.getState().appendThinkingDelta(d.delta),
     'tool_use_start':     (d) => useMessageStore.getState().startToolCall(d.toolUseId, d.toolName, d.input),
     'tool_use_progress':  (d) => useMessageStore.getState().updateToolCallProgress(d.toolUseId, d.progress),
@@ -103,6 +104,64 @@ const handlers: Record<string, (data: any) => void> = {
 
     // === 心跳 (1 种) ===
     'pong':               ()  => { /* 连接存活确认, 重置超时计时器 */ },
+
+    // === 新增: 压缩进度/token警告/中断确认 (3 种) ===
+    'compact_event':      (d: { phase: string; usagePercent: number }) => {
+        if (d.phase === 'warning') {
+            useNotificationStore.getState().addNotification({
+                key: 'compact-warning',
+                level: 'warning',
+                message: `\u4e0a\u4e0b\u6587\u4f7f\u7528\u7387 ${d.usagePercent}%\uff0c\u5373\u5c06\u81ea\u52a8\u538b\u7f29`,
+                timeout: 5000,
+            });
+        }
+    },
+    'token_warning':      (d: { currentTokens: number; maxTokens: number; usagePercent: number; warningLevel: string }) => {
+        useNotificationStore.getState().addNotification({
+            key: 'token-warning',
+            level: d.warningLevel === 'critical' ? 'error' : 'warning',
+            message: `Token \u4f7f\u7528\u7387 ${d.usagePercent}% (${d.currentTokens}/${d.maxTokens})`,
+            timeout: 5000,
+        });
+    },
+    'interrupt_ack':      (d: { reason: string }) => {
+        useSessionStore.getState().setStatus('idle');
+        if (d.reason === 'USER_INTERRUPT') {
+            useMessageStore.getState().addMessage({
+                type: 'system',
+                uuid: crypto.randomUUID(),
+                timestamp: Date.now(),
+                content: '\u5df2\u4e2d\u65ad AI \u54cd\u5e94',
+                subtype: 'interrupt',
+            } as Message);
+        }
+    },
+    // === 新增: 模型/权限模式切换确认 (2 种) ===
+    'model_changed':            (d: { model: string }) => {
+        useSessionStore.getState().setModel(d.model);
+    },
+    'permission_mode_changed':  (d: { mode: string }) => {
+        console.log('[dispatch] Permission mode changed:', d.mode);
+        // TODO: setPermissionMode when sessionStore supports it
+    },
+    // === 新增: 命令结果/文件回退完成 (2 种) ===
+    'command_result':     (d: { command: string; output: string }) => {
+        useMessageStore.getState().addMessage({
+            type: 'system',
+            uuid: crypto.randomUUID(),
+            timestamp: Date.now(),
+            content: `/${d.command}: ${d.output}`,
+            subtype: 'command_result',
+        } as Message);
+    },
+    'rewind_complete':    (d: { messageId: string; files: string[] }) => {
+        useNotificationStore.getState().addNotification({
+            key: `rewind-${d.messageId}`,
+            level: 'info',
+            message: `\u5df2\u56de\u9000 ${d.files.length} \u4e2a\u6587\u4ef6`,
+            timeout: 5000,
+        });
+    },
 };
 
 // ==================== 跨 Store 私有方法 ====================

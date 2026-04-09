@@ -153,6 +153,18 @@ public class BashSecurityAnalyzer {
 
     private final BashParser parser = new BashParser();
 
+    // ──── 危险子命令黑名单 (对齐原版 bashSecurity.ts) ────
+
+    private static final Map<String, Set<String>> DANGEROUS_SUBCOMMANDS = Map.of(
+            "git", Set.of("push --force", "push -f", "reset --hard", "clean -fd", "clean -fdx"),
+            "docker", Set.of("rm", "rmi", "system prune", "exec", "run"),
+            "npm", Set.of("publish", "unpublish"),
+            "kubectl", Set.of("delete", "apply", "exec", "edit")
+    );
+
+    /** 安全级别 */
+    public enum SecurityLevel { SAFE, ASK, DENY }
+
     // ──── 公共入口 ────
 
     /**
@@ -456,6 +468,53 @@ public class BashSecurityAnalyzer {
         }
 
         return null;
+    }
+
+    // ──── 参数级安全判断 (对齐原版 bashSecurity.ts) ────
+
+    /**
+     * 参数级安全检查 — 分析 rm/chmod 等命令的参数组合。
+     *
+     * @param command 完整命令字符串
+     * @param args    解析后的参数列表
+     * @return 安全级别
+     */
+    public SecurityLevel checkArgLevelSecurity(String command, List<String> args) {
+        if (args.isEmpty()) return SecurityLevel.SAFE;
+        String cmd = args.getFirst();
+
+        // rm 命令: -rf + 危险路径 → DENY
+        if ("rm".equals(cmd)) {
+            boolean hasForce = args.stream().anyMatch(a -> a.contains("f"));
+            boolean hasRecursive = args.stream().anyMatch(a -> a.contains("r") || a.contains("R"));
+            boolean targetsDangerousPath = args.stream().anyMatch(
+                    a -> "/".equals(a) || "~".equals(a) || a.startsWith("$HOME"));
+            if ((hasForce || hasRecursive) && targetsDangerousPath)
+                return SecurityLevel.DENY;
+        }
+
+        // chmod 命令: 777 -R / → DENY
+        if ("chmod".equals(cmd)) {
+            boolean has777 = args.contains("777");
+            boolean hasRecursive = args.contains("-R");
+            boolean targetsRoot = args.stream().anyMatch(a -> "/".equals(a));
+            if (has777 && hasRecursive && targetsRoot)
+                return SecurityLevel.DENY;
+        }
+
+        // 危险子命令检查
+        for (var entry : DANGEROUS_SUBCOMMANDS.entrySet()) {
+            if (cmd.equals(entry.getKey())) {
+                String rest = command.substring(command.indexOf(cmd) + cmd.length()).trim();
+                for (String dangerous : entry.getValue()) {
+                    if (rest.startsWith(dangerous)) {
+                        return SecurityLevel.ASK;
+                    }
+                }
+            }
+        }
+
+        return SecurityLevel.SAFE;
     }
 
     /**

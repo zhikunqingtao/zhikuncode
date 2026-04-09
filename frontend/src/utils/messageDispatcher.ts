@@ -1,4 +1,6 @@
 /**
+ * @deprecated Use '@/api/dispatch' instead. This file is kept for backward compatibility.
+ * All message dispatching logic has been consolidated into dispatch.ts.
  * messageDispatcher — 25 种 ServerMessage 分发器
  * SPEC: §8.5.3 消息分发机制
  */

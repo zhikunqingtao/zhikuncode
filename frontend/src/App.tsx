@@ -74,8 +74,10 @@ function App() {
 
   // 中断请求
   const handleInterrupt = useCallback(() => {
-    // 通过 store 中断
+    // 通过 store 中断前端状态
     useSessionStore.getState().abort();
+    // 发送 WebSocket 中断消息到后端
+    sendToServer('/app/interrupt', { isSubmitInterrupt: false });
   }, []);
 
   return (

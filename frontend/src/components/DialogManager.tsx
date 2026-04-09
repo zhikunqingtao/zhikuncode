@@ -11,6 +11,8 @@ import React from 'react';
 import { useDialogStore } from '@/store/dialogStore';
 import { usePermissionStore } from '@/store/permissionStore';
 import { useAppUiStore } from '@/store/appUiStore';
+import { useSessionStore } from '@/store/sessionStore';
+import { sendToServer } from '@/hooks/useWebSocket';
 import PermissionDialog from '@/components/permission/PermissionDialog';
 import { ElicitationDialog } from '@/components/dialog/ElicitationDialog';
 import { SettingsPanel } from '@/components/dialog/SettingsPanel';
@@ -26,17 +28,27 @@ export const DialogManager: React.FC = () => {
         clearPendingPermission();
     }, [respondPermission, clearPendingPermission]);
 
-    // Handle elicitation submit
+    // Handle elicitation submit — send response to backend via WebSocket
     const handleElicitationSubmit = React.useCallback((requestId: string, response: string | string[]) => {
-        // TODO: Send elicitation response to backend
-        console.log('[Elicitation] Response:', requestId, response);
+        sendToServer('/app/elicitation', {
+            requestId,
+            answer: response,
+        });
         dismissElicitationDialog();
+        useSessionStore.getState().setStatus('streaming');
     }, [dismissElicitationDialog]);
 
-    // Handle elicitation cancel
+    // Handle elicitation cancel — send cancellation to backend
     const handleElicitationCancel = React.useCallback(() => {
+        if (elicitationDialog?.requestId) {
+            sendToServer('/app/elicitation', {
+                requestId: elicitationDialog.requestId,
+                answer: null, // null indicates cancellation
+            });
+        }
         dismissElicitationDialog();
-    }, [dismissElicitationDialog]);
+        useSessionStore.getState().setStatus('idle');
+    }, [elicitationDialog, dismissElicitationDialog]);
 
     return (
         <>

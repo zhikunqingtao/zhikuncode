@@ -8,6 +8,7 @@ import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { subscribeWithSelector } from 'zustand/middleware';
 import type { Message, ToolResult, ToolCallState, Usage } from '@/types';
+import { streamingStore, flushStreamingBuffer } from '@/hooks/useStreamingText';
 
 export interface MessageStoreState {
     // 状态
@@ -97,7 +98,12 @@ export const useMessageStore = create<MessageStoreState>()(
             }
         }),
         finalizeStream: (_usage) => set(d => {
+            // 先刷新 streamingStore 中的剩余缓冲
+            flushStreamingBuffer();
+            const externalContent = streamingStore.clear();
+
             // 将累积的流式内容保存到 messages 中的 assistant 消息
+            const combinedContent = d.streamingContent + externalContent;
             if (d.streamingMessageId) {
                 const msg = d.messages.find(m => m.uuid === d.streamingMessageId);
                 if (msg && 'content' in msg && msg.type === 'assistant') {
@@ -107,8 +113,8 @@ export const useMessageStore = create<MessageStoreState>()(
                         content.push({ type: 'thinking' as const, text: d.thinkingContent, completed: true });
                     }
                     // 文本内容
-                    if (d.streamingContent) {
-                        content.push({ type: 'text' as const, text: d.streamingContent });
+                    if (combinedContent) {
+                        content.push({ type: 'text' as const, text: combinedContent });
                     }
                     (msg as { content: unknown }).content = content;
                 }

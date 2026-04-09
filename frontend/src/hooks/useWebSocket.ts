@@ -6,7 +6,8 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { Client, IMessage, StompSubscription } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-import { dispatchServerMessage } from '@/utils/messageDispatcher';
+import { dispatch } from '@/api/dispatch';
+import { useBridgeStore } from '@/store/bridgeStore';
 
 interface UseWebSocketOptions {
     onConnect?: () => void;
@@ -18,6 +19,33 @@ interface UseWebSocketOptions {
 let globalClient: Client | null = null;
 let globalSubscription: StompSubscription | null = null;
 let connectionCount = 0;
+
+// 重连递增退避参数
+const RECONNECT_DELAYS = [1000, 2000, 5000, 10000, 30000]; // 最大 30s
+let reconnectAttempt = 0;
+let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+
+/**
+ * 递增退避重连。
+ */
+function scheduleReconnect() {
+    if (reconnectTimer) return; // 已有重连计划
+    const delay = RECONNECT_DELAYS[Math.min(reconnectAttempt, RECONNECT_DELAYS.length - 1)];
+    reconnectAttempt++;
+    useBridgeStore.getState().updateBridgeStatus({
+        status: 'reconnecting',
+        url: '',
+        nextRetryAt: Date.now() + delay,
+        attempt: reconnectAttempt,
+    });
+    console.log(`[WebSocket] Reconnecting in ${delay}ms (attempt #${reconnectAttempt})`);
+    reconnectTimer = setTimeout(() => {
+        reconnectTimer = null;
+        if (!globalClient?.active) {
+            globalClient?.activate();
+        }
+    }, delay);
+}
 
 /**
  * 模块级发送 — 可从任何地方调用（不限于 React 组件内）。
@@ -69,11 +97,19 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 
         const client = new Client({
             webSocketFactory: () => new SockJS('/ws'),
-            reconnectDelay: 5000,
+            reconnectDelay: 0, // 禁用内置重连，使用自定义递增退避
             heartbeatIncoming: 4000,
             heartbeatOutgoing: 4000,
             onConnect: () => {
                 console.log(`[WebSocket][${instanceId.current}] Connected`);
+                reconnectAttempt = 0; // 连接成功重置计数器
+
+                // 同步状态到 BridgeStore
+                useBridgeStore.getState().updateBridgeStatus({
+                    status: 'connected',
+                    url: window.location.origin,
+                    connectedAt: Date.now(),
+                });
                 
                 // Subscribe to user queue (only once globally)
                 if (!globalSubscription) {
@@ -82,7 +118,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
                         (message: IMessage) => {
                             try {
                                 const payload = JSON.parse(message.body);
-                                dispatchServerMessage(payload);
+                                dispatch(payload);
                             } catch (error) {
                                 console.error('[WebSocket] Failed to parse message:', error);
                             }
@@ -95,15 +131,31 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
             onDisconnect: () => {
                 console.log(`[WebSocket][${instanceId.current}] Disconnected`);
                 globalSubscription = null;
+
+                useBridgeStore.getState().updateBridgeStatus({
+                    status: 'disconnected',
+                    url: '',
+                });
                 optionsRef.current.onDisconnect?.();
+
+                // 自定义重连 (递增退避)
+                scheduleReconnect();
             },
             onStompError: (frame) => {
                 console.error(`[WebSocket][${instanceId.current}] STOMP error:`, frame);
+                useBridgeStore.getState().updateBridgeStatus({
+                    status: 'error',
+                    url: '',
+                    error: frame.headers['message'] || 'STOMP error',
+                });
                 optionsRef.current.onError?.(new Error(frame.headers['message'] || 'STOMP error'));
             },
             onWebSocketError: (event) => {
                 console.error(`[WebSocket][${instanceId.current}] WebSocket error:`, event);
                 optionsRef.current.onError?.(new Error('WebSocket connection failed'));
+            },
+            onWebSocketClose: (evt) => {
+                console.warn('[WebSocket] Connection closed:', evt.code, evt.reason);
             },
         });
 

@@ -16,6 +16,10 @@ import {
 } from 'lucide-react';
 import type { ToolCallState } from '@/types';
 import CodeBlock from './CodeBlock';
+import { TerminalRenderer } from './renderers/TerminalRenderer';
+import { DiffRenderer } from './renderers/DiffRenderer';
+import { SearchResultRenderer } from './renderers/SearchResultRenderer';
+import { FileListRenderer } from './renderers/FileListRenderer';
 
 interface ToolCallBlockProps {
     toolUseId: string;
@@ -173,10 +177,25 @@ const ToolResultRenderer: React.FC<ToolResultRendererProps> = ({
         );
     }
 
-    // Select language for syntax highlighting based on tool type
-    const lang = getResultLanguage(toolName);
-
-    return <CodeBlock code={content} language={lang} showLineNumbers={false} maxHeight={400} />;
+    // 根据工具类型选择专用渲染器
+    switch (toolName) {
+        case 'BashTool':
+        case 'Bash':
+            return <TerminalRenderer content={content} isError={isError} />;
+        case 'FileEditTool':
+        case 'FileEdit':
+            return <DiffRenderer content={content} />;
+        case 'GrepTool':
+        case 'Grep':
+            return <SearchResultRenderer content={content} />;
+        case 'GlobTool':
+        case 'Glob':
+            return <FileListRenderer content={content} />;
+        default: {
+            const lang = getResultLanguage(toolName);
+            return <CodeBlock code={content} language={lang} showLineNumbers={false} maxHeight={400} />;
+        }
+    }
 };
 
 function getResultLanguage(toolName: string): string {

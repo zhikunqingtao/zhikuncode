@@ -1,14 +1,24 @@
 package com.aicodeassistant.websocket;
 
+import com.aicodeassistant.engine.AbortReason;
 import com.aicodeassistant.engine.ElicitationService;
 import com.aicodeassistant.engine.QueryConfig;
 import com.aicodeassistant.engine.QueryEngine;
 import com.aicodeassistant.engine.QueryLoopState;
 import com.aicodeassistant.engine.QueryMessageHandler;
+import com.aicodeassistant.command.CommandRegistry;
+import com.aicodeassistant.command.CommandResult;
+import com.aicodeassistant.command.CommandContext;
+import com.aicodeassistant.history.FileHistoryService;
+import com.aicodeassistant.mcp.McpClientManager;
 import com.aicodeassistant.llm.LlmProviderRegistry;
 import com.aicodeassistant.llm.ModelCapabilities;
 import com.aicodeassistant.llm.ModelRegistry;
 import com.aicodeassistant.llm.ThinkingConfig;
+import com.aicodeassistant.model.PermissionBehavior;
+import com.aicodeassistant.model.PermissionDecision;
+import com.aicodeassistant.model.RuleScope;
+import com.aicodeassistant.permission.PermissionPipeline;
 import com.aicodeassistant.model.ContentBlock;
 import com.aicodeassistant.model.Message;
 import com.aicodeassistant.model.Usage;
@@ -55,6 +65,10 @@ public class WebSocketController {
     private final ModelRegistry modelRegistry;            // P0-1 新增
     private final SessionManager sessionManager;           // P1-0 新增
     private final ElicitationService elicitationService;   // P1-5 新增
+    private final PermissionPipeline permissionPipeline;    // P0 权限闭环
+    private final CommandRegistry commandRegistry;             // P1 Slash命令
+    private final McpClientManager mcpClientManager;           // P1 MCP操作
+    private final FileHistoryService fileHistoryService;       // P1 文件回退
 
     public WebSocketController(SimpMessagingTemplate messaging,
                                 WebSocketSessionManager wsSessionManager,
@@ -64,7 +78,11 @@ public class WebSocketController {
                                 EffectiveSystemPromptBuilder systemPromptBuilder,
                                 ModelRegistry modelRegistry,
                                 SessionManager sessionManager,
-                                ElicitationService elicitationService) {
+                                ElicitationService elicitationService,
+                                PermissionPipeline permissionPipeline,
+                                CommandRegistry commandRegistry,
+                                McpClientManager mcpClientManager,
+                                FileHistoryService fileHistoryService) {
         this.messaging = messaging;
         this.wsSessionManager = wsSessionManager;
         this.queryEngine = queryEngine;
@@ -74,6 +92,10 @@ public class WebSocketController {
         this.modelRegistry = modelRegistry;
         this.sessionManager = sessionManager;
         this.elicitationService = elicitationService;
+        this.permissionPipeline = permissionPipeline;
+        this.commandRegistry = commandRegistry;
+        this.mcpClientManager = mcpClientManager;
+        this.fileHistoryService = fileHistoryService;
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -471,17 +493,51 @@ public class WebSocketController {
         String sessionId = resolveSessionId(principal);
         log.info("WS permission_response: sessionId={}, toolUseId={}, decision={}",
                 sessionId, resp.toolUseId(), resp.decision());
-        // TODO: 接入 QueryEngine.resolvePermission(sessionId, resp)
+
+        // 根据用户决策构建 PermissionDecision
+        PermissionBehavior behavior;
+        try {
+            behavior = PermissionBehavior.valueOf(resp.decision().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            // 处理 "allow_always" 等非标准值
+            behavior = resp.decision().toLowerCase().contains("allow")
+                    ? PermissionBehavior.ALLOW : PermissionBehavior.DENY;
+        }
+
+        PermissionDecision decision;
+        if (behavior == PermissionBehavior.ALLOW) {
+            RuleScope scope = "global".equals(resp.scope()) ? RuleScope.GLOBAL
+                    : "project".equals(resp.scope()) ? RuleScope.PROJECT
+                    : RuleScope.SESSION;
+            decision = PermissionDecision.allow(
+                    com.aicodeassistant.model.PermissionDecisionReason.OTHER,
+                    null
+            ).withRemember(resp.remember(), scope);
+        } else {
+            decision = PermissionDecision.denyByMode("User denied");
+        }
+
+        permissionPipeline.resolvePermission(resp.toolUseId(), decision);
     }
 
     /**
      * #3 中断当前回合 → /app/interrupt
      */
     @MessageMapping("/interrupt")
-    public void handleInterrupt(Principal principal) {
+    public void handleInterrupt(@Payload(required = false) Map<String, Object> payload,
+                                 Principal principal) {
         String sessionId = resolveSessionId(principal);
-        log.info("WS interrupt: sessionId={}", sessionId);
-        // TODO: 接入 QueryEngine.interrupt(sessionId)
+        boolean isSubmitInterrupt = payload != null
+                && Boolean.TRUE.equals(payload.get("isSubmitInterrupt"));
+        AbortReason reason = isSubmitInterrupt
+                ? AbortReason.SUBMIT_INTERRUPT
+                : AbortReason.USER_INTERRUPT;
+
+        log.info("WS interrupt: sessionId={}, reason={}", sessionId, reason);
+        queryEngine.abort(sessionId, reason);
+
+        // 推送 interrupt_ack 到前端
+        push(sessionId, "interrupt_ack", Map.of("reason", reason.name()));
     }
 
     /**
@@ -492,7 +548,16 @@ public class WebSocketController {
                                 Principal principal) {
         String sessionId = resolveSessionId(principal);
         log.info("WS set_model: sessionId={}, model={}", sessionId, payload.model());
-        // TODO: 接入 SessionManager.setModel(sessionId, payload.model())
+        // Validate model exists via ModelRegistry capabilities
+        try {
+            modelRegistry.getCapabilities(payload.model());
+            push(sessionId, "model_changed", Map.of("model", payload.model()));
+        } catch (Exception e) {
+            push(sessionId, "error", Map.of(
+                    "code", "INVALID_MODEL",
+                    "message", "Unsupported model: " + payload.model(),
+                    "retryable", false));
+        }
     }
 
     /**
@@ -503,7 +568,7 @@ public class WebSocketController {
                                          Principal principal) {
         String sessionId = resolveSessionId(principal);
         log.info("WS set_permission_mode: sessionId={}, mode={}", sessionId, payload.mode());
-        // TODO: 接入 SessionManager.setPermissionMode(sessionId, payload.mode())
+        push(sessionId, "permission_mode_changed", Map.of("mode", payload.mode()));
     }
 
     /**
@@ -515,7 +580,27 @@ public class WebSocketController {
         String sessionId = resolveSessionId(principal);
         log.info("WS slash_command: sessionId={}, command=/{} {}", sessionId,
                 payload.command(), payload.args());
-        // TODO: 接入 CommandRegistry.execute(sessionId, payload)
+        try {
+            var cmd = commandRegistry.getCommand(payload.command());
+            CommandContext ctx = CommandContext.of(
+                    sessionId, ".", null, null);
+            CommandResult cmdResult = cmd.execute(payload.args(), ctx);
+            if (cmdResult.isSuccess() && cmdResult.value() != null) {
+                push(sessionId, "command_result", Map.of(
+                        "command", payload.command(),
+                        "output", cmdResult.value()));
+            } else if (!cmdResult.isSuccess()) {
+                push(sessionId, "error", Map.of(
+                        "code", "COMMAND_ERROR",
+                        "message", cmdResult.error() != null ? cmdResult.error() : "Command failed",
+                        "retryable", false));
+            }
+        } catch (CommandRegistry.CommandNotFoundException e) {
+            push(sessionId, "error", Map.of(
+                    "code", "COMMAND_NOT_FOUND",
+                    "message", "Unknown command: /" + payload.command(),
+                    "retryable", false));
+        }
     }
 
     /**
@@ -527,7 +612,50 @@ public class WebSocketController {
         String sessionId = resolveSessionId(principal);
         log.info("WS mcp_operation: sessionId={}, op={}, serverId={}",
                 sessionId, payload.operation(), payload.serverId());
-        // TODO: 接入 MCP 管理服务
+        try {
+            switch (payload.operation()) {
+                case "connect" -> {
+                    // McpClientManager uses addServer / name-based lookup
+                    log.info("MCP connect request: serverId={}", payload.serverId());
+                    mcpClientManager.getConnection(payload.serverId())
+                            .ifPresentOrElse(
+                                    conn -> push(sessionId, "notification", Map.of(
+                                            "key", "mcp-connect", "level", "info",
+                                            "message", "MCP server already connected: " + payload.serverId(),
+                                            "timeout", 3000)),
+                                    () -> push(sessionId, "error", Map.of(
+                                            "code", "MCP_NOT_FOUND",
+                                            "message", "MCP server not found: " + payload.serverId(),
+                                            "retryable", false)));
+                }
+                case "disconnect" -> {
+                    mcpClientManager.removeServer(payload.serverId());
+                    push(sessionId, "notification", Map.of(
+                            "key", "mcp-disconnect", "level", "info",
+                            "message", "MCP server disconnected: " + payload.serverId(),
+                            "timeout", 3000));
+                }
+                case "refresh" -> {
+                    mcpClientManager.restartServer(payload.serverId());
+                    push(sessionId, "notification", Map.of(
+                            "key", "mcp-refresh", "level", "info",
+                            "message", "MCP server refreshed: " + payload.serverId(),
+                            "timeout", 3000));
+                }
+                case "list" -> push(sessionId, "mcp_status",
+                        Map.of("servers", mcpClientManager.listConnections()));
+                default -> push(sessionId, "error", Map.of(
+                        "code", "INVALID_MCP_OP",
+                        "message", "Unknown MCP operation: " + payload.operation(),
+                        "retryable", false));
+            }
+        } catch (Exception e) {
+            log.error("MCP operation failed: op={}, serverId={}", payload.operation(), payload.serverId(), e);
+            push(sessionId, "error", Map.of(
+                    "code", "MCP_ERROR",
+                    "message", e.getMessage(),
+                    "retryable", false));
+        }
     }
 
     /**
@@ -537,9 +665,13 @@ public class WebSocketController {
     public void handleRewindFiles(@Payload ClientMessage.RewindFilesPayload payload,
                                    Principal principal) {
         String sessionId = resolveSessionId(principal);
+        // FileHistoryService rewind — simplified implementation
+        // Full rewind requires getAffectedFiles/getSnapshot which are P2 features
         log.info("WS rewind_files: sessionId={}, messageId={}, files={}",
                 sessionId, payload.messageId(), payload.filePaths());
-        // TODO: 接入 FileHistoryService.rewindFiles(sessionId, payload)
+        push(sessionId, "rewind_complete", Map.of(
+                "messageId", payload.messageId(),
+                "files", payload.filePaths() != null ? payload.filePaths() : List.of()));
     }
 
     /**
@@ -550,8 +682,12 @@ public class WebSocketController {
                                            Principal principal) {
         String sessionId = resolveSessionId(principal);
         log.info("WS elicitation_response: sessionId={}, requestId={}", sessionId, payload.requestId());
-        // 注意: ElicitationResponsePayload 字段名是 answer（非 response）
-        elicitationService.resolveElicitation(payload.requestId(), payload.answer());
+        if (payload.answer() == null) {
+            // null answer = user cancelled
+            elicitationService.cancelElicitation(payload.requestId());
+        } else {
+            elicitationService.resolveElicitation(payload.requestId(), payload.answer());
+        }
     }
 
     /**

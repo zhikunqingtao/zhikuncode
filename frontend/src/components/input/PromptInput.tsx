@@ -14,8 +14,11 @@
 import React, { useState, useRef, useCallback, useEffect, type KeyboardEvent } from 'react';
 import { Send, Square } from 'lucide-react';
 import type { Command, LocalAttachment, SubmitEvent, Message, Attachment } from '@/types';
+import { useSessionStore } from '@/store/sessionStore';
+import { sendToServer } from '@/hooks/useWebSocket';
 import CommandPalette from './CommandPalette';
 import FileUpload from './FileUpload';
+import { FileAutoComplete } from './FileAutoComplete';
 
 interface PromptInputProps {
     onSubmit: (event: SubmitEvent) => void;
@@ -40,6 +43,8 @@ const PromptInput: React.FC<PromptInputProps> = ({
     const [attachments, setAttachments] = useState<LocalAttachment[]>([]);
     const [showCommands, setShowCommands] = useState(false);
     const [showGlobalPalette, setShowGlobalPalette] = useState(false);
+    const [showFileComplete, setShowFileComplete] = useState(false);
+    const [fileQuery, setFileQuery] = useState('');
     const [historyIndex, setHistoryIndex] = useState(-1);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const historyRef = useRef<string[]>([]);
@@ -137,6 +142,10 @@ const PromptInput: React.FC<PromptInputProps> = ({
         }
 
         // Normal message submission
+        // 如果当前正在流式响应，发送 submit-interrupt（对齐原版 reason !== 'interrupt'）
+        if (useSessionStore.getState().status === 'streaming') {
+            sendToServer('/app/interrupt', { isSubmitInterrupt: true });
+        }
         historyRef.current.push(trimmed);
         setHistoryIndex(-1);
         const submitAttachments: Attachment[] = attachments.map(a => ({
@@ -182,6 +191,24 @@ const PromptInput: React.FC<PromptInputProps> = ({
             onDrop={handleDrop}
             onDragOver={e => e.preventDefault()}
         >
+            {/* File auto-complete (@trigger) */}
+            {showFileComplete && (
+                <FileAutoComplete
+                    query={fileQuery}
+                    onSelect={(filePath) => {
+                        const cursor = textareaRef.current?.selectionStart || 0;
+                        const textBeforeCursor = input.slice(0, cursor);
+                        const atStart = textBeforeCursor.lastIndexOf('@');
+                        if (atStart >= 0) {
+                            const newText = input.slice(0, atStart) + '@' + filePath + ' ' + input.slice(cursor);
+                            setInput(newText);
+                        }
+                        setShowFileComplete(false);
+                    }}
+                    onClose={() => setShowFileComplete(false)}
+                />
+            )}
+
             {/* Slash command palette */}
             {showCommands && (
                 <CommandPalette
@@ -241,8 +268,22 @@ const PromptInput: React.FC<PromptInputProps> = ({
                     ref={textareaRef}
                     value={input}
                     onChange={e => {
-                        setInput(e.target.value);
-                        if (e.target.value.startsWith('/')) setShowCommands(true);
+                        const text = e.target.value;
+                        const cursor = e.target.selectionStart || 0;
+                        setInput(text);
+
+                        // 检测 @ 触发
+                        const textBeforeCursor = text.slice(0, cursor);
+                        const atMatch = textBeforeCursor.match(/@([\w./\-]*)$/);
+                        if (atMatch) {
+                            setFileQuery(atMatch[1]);
+                            setShowFileComplete(true);
+                        } else {
+                            setShowFileComplete(false);
+                        }
+
+                        // 检测 / 命令触发
+                        if (text.startsWith('/')) setShowCommands(true);
                         else setShowCommands(false);
                     }}
                     onKeyDown={handleKeyDown}

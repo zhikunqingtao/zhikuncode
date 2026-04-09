@@ -137,6 +137,29 @@ public final class ServerMessage {
         ) {}
     }
 
+    // ==================== #26-32: 新增消息类型 ====================
+
+    /** #26 compact_event — 压缩进度事件 */
+    public record CompactEvent(String phase, int usagePercent, int currentTokens) {}
+
+    /** #27 token_warning — Token 用量警告 */
+    public record TokenWarning(int currentTokens, int maxTokens, int usagePercent, String warningLevel) {}
+
+    /** #28 interrupt_ack — 中断确认 */
+    public record InterruptAck(String reason) {}
+
+    /** #29 model_changed — 模型切换确认 */
+    public record ModelChanged(String model) {}
+
+    /** #30 permission_mode_changed — 权限模式切换确认 */
+    public record PermissionModeChanged(String mode) {}
+
+    /** #31 command_result — 命令执行结果 */
+    public record CommandResult(String command, String output) {}
+
+    /** #32 rewind_complete — 文件回退完成 */
+    public record RewindComplete(String messageId, List<String> files) {}
+
     // ==================== #25: 心跳 ====================
 
     /** #25 pong — 心跳响应 */

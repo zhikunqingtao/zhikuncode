@@ -63,6 +63,9 @@ public class QueryEngine {
     /** 记录已通知的 thinking 降级 (once-only) */
     private final Set<String> notifiedThinkingDowngrades = ConcurrentHashMap.newKeySet();
 
+    /** 会话级中断上下文 — sessionId → AbortContext */
+    private final ConcurrentHashMap<String, AbortContext> abortContexts = new ConcurrentHashMap<>();
+
     public QueryEngine(LlmProviderRegistry providerRegistry,
                        CompactService compactService,
                        ApiRetryService apiRetryService,
@@ -89,6 +92,37 @@ public class QueryEngine {
         this.snipService = snipService;
         this.microCompactService = microCompactService;
         this.modelRegistry = modelRegistry;
+    }
+
+    /**
+     * 中断指定会话的查询循环。
+     * 由 WebSocketController.handleInterrupt() 调用。
+     *
+     * @param sessionId 会话 ID
+     * @param reason    中断原因
+     */
+    public void abort(String sessionId, AbortReason reason) {
+        AbortContext ctx = abortContexts.get(sessionId);
+        if (ctx != null) {
+            ctx.abort(reason);
+            log.info("QueryEngine abort: sessionId={}, reason={}", sessionId, reason);
+        } else {
+            log.warn("No active AbortContext for sessionId={}", sessionId);
+        }
+    }
+
+    /**
+     * 获取或创建会话的 AbortContext。
+     */
+    public AbortContext getOrCreateAbortContext(String sessionId) {
+        return abortContexts.computeIfAbsent(sessionId, k -> new AbortContext());
+    }
+
+    /**
+     * 移除会话的 AbortContext。
+     */
+    public void removeAbortContext(String sessionId) {
+        abortContexts.remove(sessionId);
     }
 
     /**
@@ -281,9 +315,9 @@ public class QueryEngine {
                 }
 
                 // 注入用户中断消息（非 submit-interrupt 时）
-                String abortReason = state.getAbortReason() != null
-                        ? state.getAbortReason() : "user_abort";
-                if (!"submit_interrupt".equals(abortReason)) {
+                AbortReason abortReason = state.getAbortReason() != null
+                        ? state.getAbortReason() : AbortReason.USER_INTERRUPT;
+                if (abortReason != AbortReason.SUBMIT_INTERRUPT) {
                     Message.UserMessage interruptMsg = new Message.UserMessage(
                             UUID.randomUUID().toString(), Instant.now(),
                             List.of(new ContentBlock.TextBlock(
@@ -819,6 +853,11 @@ public class QueryEngine {
                 case LlmStreamEvent.Error error -> {
                     handler.onError(new LlmApiException(error.message(), error.retryable()));
                 }
+                // Anthropic 细粒度事件 — 无需额外处理
+                case LlmStreamEvent.MessageStart ms -> { /* no-op */ }
+                case LlmStreamEvent.TextStart ts -> { /* no-op */ }
+                case LlmStreamEvent.ThinkingStart ths -> { /* no-op */ }
+                case LlmStreamEvent.BlockStop bs -> { /* no-op */ }
             }
         }
 

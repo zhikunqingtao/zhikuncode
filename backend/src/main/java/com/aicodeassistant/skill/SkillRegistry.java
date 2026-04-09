@@ -2,9 +2,13 @@ package com.aicodeassistant.skill;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
+import jakarta.annotation.PostConstruct;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -42,6 +46,39 @@ public class SkillRegistry {
 
     /** 项目技能目录 */
     private static final String PROJECT_SKILLS_DIR = ".qoder/skills";
+
+    /** 内置技能列表 */
+    private static final List<String> BUILTIN_SKILL_NAMES = List.of(
+            "commit", "review", "fix", "test", "pr"
+    );
+
+    /**
+     * 启动时加载内置技能。
+     */
+    @PostConstruct
+    public void registerBuiltinSkills() {
+        for (String name : BUILTIN_SKILL_NAMES) {
+            try {
+                String resourcePath = "skills/bundled/" + name + ".md";
+                ClassPathResource resource = new ClassPathResource(resourcePath);
+                if (resource.exists()) {
+                    try (InputStream is = resource.getInputStream()) {
+                        String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+                        SkillDefinition skill = SkillDefinition.fromMarkdown(
+                                name + ".md", content,
+                                SkillDefinition.SkillSource.BUNDLED, null);
+                        registerBuiltin(skill);
+                        log.info("Loaded builtin skill: /{}", name);
+                    }
+                } else {
+                    log.debug("Builtin skill resource not found: {}", resourcePath);
+                }
+            } catch (IOException e) {
+                log.warn("Failed to load builtin skill '{}': {}", name, e.getMessage());
+            }
+        }
+        log.info("Builtin skills loaded: {}/{}", builtinSkills.size(), BUILTIN_SKILL_NAMES.size());
+    }
 
     /**
      * 注册内置技能。

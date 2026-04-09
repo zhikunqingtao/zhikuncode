@@ -23,7 +23,7 @@ public class QueryLoopState {
     private Integer maxTokensOverride = null;
     private boolean hasAttemptedReactiveCompact = false;
     private int turnCount = 0;
-    private String abortReason = null;
+    private AbortReason abortReason = null;
     private boolean stopHookActive = false;
     private String lastTransitionReason = null;
 
@@ -42,7 +42,7 @@ public class QueryLoopState {
     public Integer getMaxTokensOverride() { return maxTokensOverride; }
     public boolean hasAttemptedReactiveCompact() { return hasAttemptedReactiveCompact; }
     public int getTurnCount() { return turnCount; }
-    public String getAbortReason() { return abortReason; }
+    public AbortReason getAbortReason() { return abortReason; }
     public boolean isStopHookActive() { return stopHookActive; }
 
     // ==================== Setters ====================
@@ -91,7 +91,7 @@ public class QueryLoopState {
         this.turnCount++;
     }
 
-    public void setAbortReason(String reason) {
+    public void setAbortReason(AbortReason reason) {
         this.abortReason = reason;
     }
 

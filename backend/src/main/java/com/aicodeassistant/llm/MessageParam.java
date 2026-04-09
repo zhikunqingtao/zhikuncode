@@ -14,20 +14,42 @@ public sealed interface MessageParam {
 
     String role();
 
+    // ===== ContentPart 子类型 (对齐附录 J adaptMessages()) =====
+    sealed interface ContentPart {
+        record TextPart(String text) implements ContentPart {}
+        record ToolUsePart(String id, String name, Map<String, Object> input) implements ContentPart {}
+        record ToolResultPart(String toolUseId, String content, boolean isError) implements ContentPart {}
+        record ThinkingPart(String thinking) implements ContentPart {}
+        record RedactedThinkingPart(String data) implements ContentPart {}
+        record ImagePart(String mediaType, String base64Data) implements ContentPart {}
+    }
+
+    // ===== 新版 record (目标结构) =====
+    record UserParam(List<ContentPart> content) implements MessageParam {
+        @Override public String role() { return "user"; }
+    }
+    record AssistantParam(List<ContentPart> content) implements MessageParam {
+        @Override public String role() { return "assistant"; }
+    }
+
+    // ===== 旧版 record (向后兼容，渐进废弃) =====
+    @Deprecated
     record UserMessage(String content) implements MessageParam {
         @Override
         public String role() { return "user"; }
     }
 
+    @Deprecated
     record UserMessageWithBlocks(List<Map<String, Object>> contentBlocks) implements MessageParam {
         @Override
         public String role() { return "user"; }
     }
 
+    @Deprecated
     record AssistantMessage(
             String content,
             List<ToolUse> toolUses,
-            String thinkingContent  // extended thinking 输出 (可为 null)
+            String thinkingContent
     ) implements MessageParam {
         @Override
         public String role() { return "assistant"; }
@@ -41,6 +63,7 @@ public sealed interface MessageParam {
         }
     }
 
+    @Deprecated
     record ToolResultMessage(
             String toolUseId,
             String content,
