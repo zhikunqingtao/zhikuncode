@@ -45,6 +45,24 @@ public class ToolSearchTool implements Tool {
     }
 
     @Override
+    public String prompt() {
+        return """
+                Fetches full schema definitions for deferred tools so they can be called.
+                
+                Deferred tools appear by name in system-reminder messages. Until fetched, only \
+                the name is known \u2014 there is no parameter schema, so the tool cannot be invoked. \
+                This tool takes a query, matches it against the deferred tool list, and returns \
+                the matched tools' complete JSONSchema definitions. Once a tool's schema appears \
+                in that result, it is callable exactly like any tool defined at the top of the prompt.
+                
+                Query forms:
+                - "select:Read,Edit,Grep" \u2014 fetch these exact tools by name
+                - "notebook jupyter" \u2014 keyword search, up to max_results best matches
+                - "+slack send" \u2014 require "slack" in the name, rank by remaining terms
+                """;
+    }
+
+    @Override
     public Map<String, Object> getInputSchema() {
         return Map.of(
                 "type", "object",

@@ -22,7 +22,10 @@ import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 
 /**
  * 远程访问安全过滤器 (§9.1.0a) — 三层递进认证。
@@ -45,8 +48,11 @@ public class RemoteAccessSecurityFilter extends OncePerRequestFilter {
     /** 启动时生成的随机 Access Token — 32 字节 Base64URL 编码 */
     private final String accessToken;
 
-    /** Session 存储 — ConcurrentHashMap (P0/P1 单机部署足够) */
-    private final Map<String, Instant> sessionStore = new ConcurrentHashMap<>();
+    /** Session 存储 — Caffeine Cache（P1-03: 限容 10_000 + 30天过期，防止无限增长） */
+    private final Cache<String, Instant> sessionStore = Caffeine.newBuilder()
+            .maximumSize(10_000)
+            .expireAfterWrite(30, TimeUnit.DAYS)
+            .build();
 
     /** Token 文件路径 */
     private static final Path TOKEN_FILE = Path.of(
@@ -85,7 +91,9 @@ public class RemoteAccessSecurityFilter extends OncePerRequestFilter {
             saveToken();
         }
 
-        log.info("Mobile access: http://{}:{}?token={}", getLocalIp(), 8080, accessToken);
+        log.info("Mobile access: http://{}:{}?token={}...{}", getLocalIp(), serverPort,
+                accessToken.substring(0, Math.min(4, accessToken.length())),
+                accessToken.substring(Math.max(0, accessToken.length() - 4)));
     }
 
     @Override
@@ -164,10 +172,10 @@ public class RemoteAccessSecurityFilter extends OncePerRequestFilter {
     }
 
     private boolean validateSessionCookie(String sessionId) {
-        Instant expiry = sessionStore.get(sessionId);
+        Instant expiry = sessionStore.getIfPresent(sessionId);
         if (expiry == null) return false;
         if (Instant.now().isAfter(expiry)) {
-            sessionStore.remove(sessionId);
+            sessionStore.invalidate(sessionId);
             return false;
         }
         return true;
@@ -200,8 +208,17 @@ public class RemoteAccessSecurityFilter extends OncePerRequestFilter {
 
     // ───── 网络检查 ─────
 
+    /**
+     * P1-07: 使用 InetAddress 进行科学的私有网络判断，替代字符串前缀匹配。
+     */
     private boolean isPrivateNetwork(String ip) {
-        return PRIVATE_SUBNETS.stream().anyMatch(ip::startsWith);
+        try {
+            InetAddress addr = InetAddress.getByName(ip);
+            return addr.isSiteLocalAddress() || addr.isLoopbackAddress() || addr.isLinkLocalAddress();
+        } catch (Exception e) {
+            log.warn("Failed to resolve IP address: {}", ip);
+            return false;
+        }
     }
 
     // ───── Token 持久化 ─────

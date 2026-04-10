@@ -46,6 +46,8 @@ class QueryEngineUnitTest {
     @Mock SnipService snipService;
     @Mock MicroCompactService microCompactService;
     @Mock ModelRegistry modelRegistry;
+    @Mock ThinkingBudgetCalculator thinkingBudgetCalculator;
+    @Mock ModelTierService modelTierService;
 
     private ObjectMapper objectMapper;
     private QueryEngine queryEngine;
@@ -58,13 +60,16 @@ class QueryEngineUnitTest {
                 providerRegistry, compactService, apiRetryService,
                 permissionPipeline, permissionRuleRepository, tokenCounter,
                 objectMapper, streamingToolExecutor, messageNormalizer, hookService,
-                snipService, microCompactService, modelRegistry);
+                snipService, microCompactService, modelRegistry,
+                thinkingBudgetCalculator, modelTierService);
         handler = new TestHandler();
 
         // 默认 Snip/MicroCompact mock: 直接返回原消息列表
         lenient().when(snipService.snipToolResults(anyList(), anyInt())).thenAnswer(inv -> inv.getArgument(0));
         lenient().when(microCompactService.compactMessages(anyList(), anyInt()))
                 .thenReturn(new MicroCompactService.MicroCompactResult(List.of(), 0));
+        // 默认 ModelTierService mock: 返回原模型（无降级）
+        lenient().when(modelTierService.resolveModel(anyString(), anyList())).thenAnswer(inv -> inv.getArgument(0));
     }
 
     // ═══════════════ 8步循环测试 ═══════════════
@@ -86,7 +91,7 @@ class QueryEngineUnitTest {
             when(streamingToolExecutor.newSession()).thenReturn(session);
 
             // 配置 apiRetryService 让它直接执行传入的 supplier
-            when(apiRetryService.executeWithRetry(any(), anyString())).thenAnswer(invocation -> {
+            when(apiRetryService.executeWithRetry(any(), anyString(), anyString())).thenAnswer(invocation -> {
                 @SuppressWarnings("unchecked")
                 var supplier = invocation.getArgument(0, Supplier.class);
                 return supplier.get();
@@ -130,7 +135,7 @@ class QueryEngineUnitTest {
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
             when(streamingToolExecutor.newSession()).thenReturn(session);
 
-            when(apiRetryService.executeWithRetry(any(), anyString())).thenAnswer(inv -> {
+            when(apiRetryService.executeWithRetry(any(), anyString(), anyString())).thenAnswer(inv -> {
                 @SuppressWarnings("unchecked")
                 var supplier = inv.getArgument(0, Supplier.class);
                 return supplier.get();
@@ -197,7 +202,7 @@ class QueryEngineUnitTest {
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
             when(streamingToolExecutor.newSession()).thenReturn(session);
 
-            when(apiRetryService.executeWithRetry(any(), anyString())).thenAnswer(inv -> {
+            when(apiRetryService.executeWithRetry(any(), anyString(), anyString())).thenAnswer(inv -> {
                 @SuppressWarnings("unchecked")
                 var supplier = inv.getArgument(0, Supplier.class);
                 return supplier.get();
@@ -238,7 +243,7 @@ class QueryEngineUnitTest {
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
             when(streamingToolExecutor.newSession()).thenReturn(session);
 
-            when(apiRetryService.executeWithRetry(any(), anyString())).thenAnswer(inv -> {
+            when(apiRetryService.executeWithRetry(any(), anyString(), anyString())).thenAnswer(inv -> {
                 @SuppressWarnings("unchecked")
                 var supplier = inv.getArgument(0, Supplier.class);
                 return supplier.get();
@@ -312,7 +317,7 @@ class QueryEngineUnitTest {
             when(streamingToolExecutor.newSession()).thenReturn(session);
 
             // First call: throw 413, second call: succeed
-            when(apiRetryService.executeWithRetry(any(), anyString())).thenAnswer(inv -> {
+            when(apiRetryService.executeWithRetry(any(), anyString(), anyString())).thenAnswer(inv -> {
                 @SuppressWarnings("unchecked")
                 var supplier = inv.getArgument(0, Supplier.class);
                 if (callCount.incrementAndGet() == 1) {
@@ -358,7 +363,7 @@ class QueryEngineUnitTest {
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
             when(streamingToolExecutor.newSession()).thenReturn(session);
 
-            when(apiRetryService.executeWithRetry(any(), anyString())).thenAnswer(inv -> {
+            when(apiRetryService.executeWithRetry(any(), anyString(), anyString())).thenAnswer(inv -> {
                 @SuppressWarnings("unchecked")
                 var supplier = inv.getArgument(0, Supplier.class);
                 return supplier.get();
@@ -403,7 +408,7 @@ class QueryEngineUnitTest {
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
             when(streamingToolExecutor.newSession()).thenReturn(session);
 
-            when(apiRetryService.executeWithRetry(any(), anyString())).thenAnswer(inv -> {
+            when(apiRetryService.executeWithRetry(any(), anyString(), anyString())).thenAnswer(inv -> {
                 @SuppressWarnings("unchecked")
                 var supplier = inv.getArgument(0, Supplier.class);
                 return supplier.get();
@@ -452,7 +457,7 @@ class QueryEngineUnitTest {
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
             when(streamingToolExecutor.newSession()).thenReturn(session);
 
-            when(apiRetryService.executeWithRetry(any(), anyString())).thenAnswer(inv -> {
+            when(apiRetryService.executeWithRetry(any(), anyString(), anyString())).thenAnswer(inv -> {
                 @SuppressWarnings("unchecked")
                 var supplier = inv.getArgument(0, Supplier.class);
                 return supplier.get();
@@ -503,7 +508,7 @@ class QueryEngineUnitTest {
             when(streamingToolExecutor.newSession()).thenReturn(session);
 
             // First call: throw 529 overloaded (fallback trigger)
-            when(apiRetryService.executeWithRetry(any(), anyString())).thenAnswer(inv -> {
+            when(apiRetryService.executeWithRetry(any(), anyString(), anyString())).thenAnswer(inv -> {
                 @SuppressWarnings("unchecked")
                 var supplier = inv.getArgument(0, Supplier.class);
                 if (callCount.incrementAndGet() == 1) {
@@ -532,7 +537,7 @@ class QueryEngineUnitTest {
                     "mock-model", "fallback-model", "You are helpful.",
                     List.of(), List.of(),
                     8192, 200000,
-                    new ThinkingConfig.Disabled(), 10, "test", null
+                    new ThinkingConfig.Disabled(), 10, "test", null, List.of()
             );
             QueryLoopState state = buildState("question");
 
@@ -556,7 +561,7 @@ class QueryEngineUnitTest {
             when(streamingToolExecutor.newSession()).thenReturn(session);
             when(session.yieldCompleted()).thenReturn(List.of());
 
-            when(apiRetryService.executeWithRetry(any(), anyString())).thenAnswer(inv -> {
+            when(apiRetryService.executeWithRetry(any(), anyString(), anyString())).thenAnswer(inv -> {
                 @SuppressWarnings("unchecked")
                 var supplier = inv.getArgument(0, Supplier.class);
                 return supplier.get();
@@ -602,7 +607,7 @@ class QueryEngineUnitTest {
             when(streamingToolExecutor.newSession()).thenReturn(session);
             when(session.yieldCompleted()).thenReturn(List.of());
 
-            when(apiRetryService.executeWithRetry(any(), anyString())).thenAnswer(inv -> {
+            when(apiRetryService.executeWithRetry(any(), anyString(), anyString())).thenAnswer(inv -> {
                 @SuppressWarnings("unchecked")
                 var supplier = inv.getArgument(0, Supplier.class);
                 return supplier.get();

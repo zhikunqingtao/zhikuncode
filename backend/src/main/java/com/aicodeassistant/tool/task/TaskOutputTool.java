@@ -38,6 +38,22 @@ public class TaskOutputTool implements Tool {
     }
 
     @Override
+    public String prompt() {
+        return """
+                Report output from a sub-task to its parent task. Can only be used within \
+                a sub-task context.
+                
+                Parameters:
+                - output (required): Output content to report to parent task
+                - isError (optional): Whether this output represents an error (default: false)
+                
+                Notes:
+                - Maximum output size is 1MB; content exceeding this limit will be truncated
+                - The output is written to the parent task's result buffer
+                """;
+    }
+
+    @Override
     public Map<String, Object> getInputSchema() {
         return Map.of(
                 "type", "object",

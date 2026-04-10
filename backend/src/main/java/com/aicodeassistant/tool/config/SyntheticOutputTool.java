@@ -45,6 +45,23 @@ public class SyntheticOutputTool implements Tool {
     }
 
     @Override
+    public String prompt() {
+        return """
+                Provide structured output conforming to a specified JSON schema. This tool is used \
+                internally by the system when structured data is required.
+
+                Use cases:
+                - Generating structured commit messages
+                - Returning classifier/categorization results
+                - Producing MCP prompt structured parameters
+                - Any scenario where the output must match a predefined JSON schema
+
+                The schema is dynamically injected by the query engine. Your output MUST conform \
+                exactly to the provided schema. Do not add extra fields or omit required fields.
+                """;
+    }
+
+    @Override
     public Map<String, Object> getInputSchema() {
         // 动态 Schema: 由 currentSchema 决定
         if (currentSchema != null) {

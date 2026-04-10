@@ -4,10 +4,12 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import javax.sql.DataSource;
 import java.nio.file.Path;
@@ -24,7 +26,7 @@ import java.util.function.Supplier;
  * @see <a href="SPEC §7.1.1">SQLite WAL 模式与并发写入策略</a>
  */
 @Configuration
-public class SqliteConfig {
+public class SqliteConfig implements DisposableBean {
 
     private static final Logger log = LoggerFactory.getLogger(SqliteConfig.class);
 
@@ -131,5 +133,42 @@ public class SqliteConfig {
         // SQLite 不支持连接测试查询 isValid()，使用此配置
         config.setConnectionTestQuery("SELECT 1");
         return new HikariDataSource(config);
+    }
+
+    // ───── P1-02: 连接池清理 ─────
+
+    /**
+     * 定时清理空闲的项目库连接池 — 每小时检查一次。
+     */
+    @Scheduled(fixedRate = 3600_000)
+    public void cleanupIdleDataSources() {
+        projectDataSources.forEach((path, ds) -> {
+            if (ds instanceof HikariDataSource hikariDs) {
+                if (hikariDs.getHikariPoolMXBean() != null
+                        && hikariDs.getHikariPoolMXBean().getActiveConnections() == 0
+                        && hikariDs.getHikariPoolMXBean().getIdleConnections() <= 1) {
+                    log.debug("Idle project DataSource: {}", path);
+                }
+            }
+        });
+    }
+
+    /**
+     * 应用关闭时关闭所有连接池 — 防止 SQLite 锁文件残留。
+     */
+    @Override
+    public void destroy() {
+        log.info("Closing all SQLite DataSources...");
+        projectDataSources.forEach((path, ds) -> {
+            if (ds instanceof HikariDataSource hikariDs) {
+                try {
+                    hikariDs.close();
+                    log.debug("Closed project DataSource: {}", path);
+                } catch (Exception e) {
+                    log.warn("Failed to close DataSource {}: {}", path, e.getMessage());
+                }
+            }
+        });
+        projectDataSources.clear();
     }
 }

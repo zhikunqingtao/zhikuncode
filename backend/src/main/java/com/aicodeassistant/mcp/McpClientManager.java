@@ -5,9 +5,12 @@ import com.aicodeassistant.tool.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
@@ -37,11 +40,16 @@ public class McpClientManager implements SmartLifecycle {
     static final long MAX_BACKOFF_MS = 30_000;
 
     private final McpConfiguration mcpConfiguration;
+    private final ToolRegistry toolRegistry;
+    private final McpApprovalService approvalService;
     private final Map<String, McpServerConnection> connections = new ConcurrentHashMap<>();
     private volatile boolean running = false;
 
-    public McpClientManager(McpConfiguration mcpConfiguration) {
+    public McpClientManager(McpConfiguration mcpConfiguration, @Lazy ToolRegistry toolRegistry,
+                            McpApprovalService approvalService) {
         this.mcpConfiguration = mcpConfiguration;
+        this.toolRegistry = toolRegistry;
+        this.approvalService = approvalService;
     }
 
     // ===== SmartLifecycle =====
@@ -82,12 +90,22 @@ public class McpClientManager implements SmartLifecycle {
         log.info("MCP initialization complete — {} connections from config", connections.size());
     }
 
-    /** 动态添加 MCP 服务器 */
+    /** 动态添加 MCP 服务器 — 含信任检查 (§11.2.2) */
     public McpServerConnection addServer(McpServerConfig config) {
+        // ★ 信任检查: 未信任的服务器设置为 PENDING_APPROVAL
+        if (!approvalService.isTrusted(config)) {
+            log.info("MCP server not trusted, pending approval: {}", config.name());
+            McpServerConnection conn = new McpServerConnection(config);
+            conn.setStatus(McpConnectionStatus.NEEDS_AUTH);
+            connections.put(config.name(), conn);
+            return conn;
+        }
+
         McpServerConnection conn = new McpServerConnection(config);
         try {
             conn.connect();
             connections.put(config.name(), conn);
+            registerToolsFromConnection(conn);
             log.info("MCP server connected: {}", config.name());
         } catch (Exception e) {
             log.error("Failed to connect MCP server: {}", config.name(), e);
@@ -101,6 +119,7 @@ public class McpClientManager implements SmartLifecycle {
     public boolean removeServer(String name) {
         McpServerConnection conn = connections.remove(name);
         if (conn != null) {
+            toolRegistry.unregisterByPrefix("mcp__" + name + "__");
             conn.close();
             log.info("MCP server removed: {}", name);
             return true;
@@ -241,6 +260,90 @@ public class McpClientManager implements SmartLifecycle {
             }
         });
         connections.clear();
+    }
+
+    // ===== 工具动态注册与权限控制 =====
+
+    /**
+     * 从已连接的 MCP 服务器注册工具 — 对齐原版 registerMcpTools。
+     * 包括：工具发现、包装为 McpToolAdapter、权限控制、变更通知监听。
+     */
+    private void registerToolsFromConnection(McpServerConnection conn) {
+        for (McpToolDefinition mcpTool : conn.getTools()) {
+            // 权限检查
+            if (!isToolAllowed(conn.getName(), mcpTool.name())) {
+                log.info("MCP tool {}:{} blocked by channel permissions",
+                        conn.getName(), mcpTool.name());
+                continue;
+            }
+            McpToolAdapter adapter = new McpToolAdapter(
+                    "mcp__" + conn.getName() + "__" + mcpTool.name(),
+                    mcpTool.description(), mcpTool.inputSchema(),
+                    conn, mcpTool.name());
+            toolRegistry.registerDynamic(adapter);
+        }
+
+        // 监听工具变更通知 — 自动重新注册
+        conn.onToolsChanged(() -> {
+            toolRegistry.unregisterByPrefix("mcp__" + conn.getName() + "__");
+            registerToolsFromConnection(conn);
+            log.info("MCP tools refreshed for server: {}", conn.getName());
+        });
+    }
+
+    /**
+     * 检查 MCP 工具是否被允许 — 对齐原版 channelPermissions。
+     */
+    private boolean isToolAllowed(String serverName, String toolName) {
+        Map<String, List<String>> permissions = mcpConfiguration.getChannelPermissions();
+        if (permissions == null || permissions.isEmpty()) return true;
+        List<String> blocked = permissions.getOrDefault(serverName, List.of());
+        return !blocked.contains(toolName) && !blocked.contains("*");
+    }
+
+    // ===== 健康检查 + 指数退避重连 =====
+
+    /**
+     * 健康检查 + 自动重连 — 对齐原版重连策略。
+     */
+    @Scheduled(fixedDelay = 30000)
+    public void healthCheck() {
+        if (!running) return;
+        connections.forEach((id, conn) -> {
+            if (conn.getStatus() == McpConnectionStatus.CONNECTED && !conn.isAlive()) {
+                log.warn("MCP server {} connection lost", id);
+                conn.setStatus(McpConnectionStatus.FAILED);
+            }
+            if (conn.getStatus() == McpConnectionStatus.FAILED
+                    && conn.getConfig().type() != McpTransportType.STDIO) {
+                attemptReconnect(id, conn);
+            }
+        });
+    }
+
+    private void attemptReconnect(String serverId, McpServerConnection conn) {
+        int attempt = conn.getReconnectAttempts();
+        if (attempt >= MAX_RECONNECT_ATTEMPTS) {
+            log.error("MCP server {} exceeded max reconnect attempts ({})",
+                    serverId, MAX_RECONNECT_ATTEMPTS);
+            return;
+        }
+        long backoffMs = calculateBackoff(attempt + 1);
+        log.info("Reconnecting MCP server {} in {}ms (attempt {}/{})",
+                serverId, backoffMs, attempt + 1, MAX_RECONNECT_ATTEMPTS);
+
+        try {
+            Thread.sleep(backoffMs);
+            conn.connect();
+            conn.resetReconnectAttempts();
+            registerToolsFromConnection(conn);
+            log.info("MCP server {} reconnected successfully", serverId);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (Exception e) {
+            conn.incrementReconnectAttempts();
+            log.warn("Reconnect failed for {}: {}", serverId, e.getMessage());
+        }
     }
 
     /** 连接数量（测试用） */

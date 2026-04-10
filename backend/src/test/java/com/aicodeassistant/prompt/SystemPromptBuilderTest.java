@@ -37,7 +37,7 @@ class SystemPromptBuilderTest {
         claudeMdLoader = mock(ClaudeMdLoader.class);
         featureFlags = mock(FeatureFlagService.class);
         gitService = mock(GitService.class);
-        builder = new SystemPromptBuilder(claudeMdLoader, featureFlags, gitService);
+        builder = new SystemPromptBuilder(claudeMdLoader, featureFlags, gitService, null, null);
 
         // 默认 mock 行为
         when(gitService.getGitStatus(any(Path.class))).thenReturn("main (clean)");

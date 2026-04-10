@@ -39,6 +39,37 @@ public class BriefTool implements Tool {
     }
 
     @Override
+    public String prompt() {
+        return """
+                Send a message the user will read. Text outside this tool is visible in the \
+                detail view, but most won't open it \u2014 the answer lives here.
+                
+                `message` supports markdown. `attachments` takes file paths (absolute or \
+                cwd-relative) for images, diffs, logs.
+                
+                `status` labels intent: 'normal' when replying to what they just asked; \
+                'proactive' when you're initiating \u2014 a scheduled task finished, a blocker \
+                surfaced during background work, you need input on something they haven't \
+                asked about. Set it honestly; downstream routing uses it.
+                
+                ## Talking to the user
+                This tool is where your replies go. Text outside it is visible if the user \
+                expands the detail view, but most won't \u2014 assume unread. Anything you want \
+                them to actually see goes through this tool.
+                
+                So: every time the user says something, the reply they actually read comes \
+                through this tool. Even for "hi". Even for "thanks".
+                
+                If you can answer right away, send the answer. If you need to go look \u2014 run \
+                a command, read files, check something \u2014 ack first in one line ("On it \u2014 \
+                checking the test output"), then work, then send the result.
+                
+                Keep messages tight \u2014 the decision, the file:line, the PR number. Second \
+                person always ("your config"), never third.
+                """;
+    }
+
+    @Override
     public Map<String, Object> getInputSchema() {
         return Map.of(
                 "type", "object",

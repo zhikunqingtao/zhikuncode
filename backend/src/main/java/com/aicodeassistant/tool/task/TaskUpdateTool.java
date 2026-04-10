@@ -32,6 +32,37 @@ public class TaskUpdateTool implements Tool {
     }
 
     @Override
+    public String prompt() {
+        return """
+                Use this tool to update a task in the task list.
+                
+                ## When to Use This Tool
+                **Mark tasks as resolved:**
+                - When you have completed the work described in a task
+                - When a task is no longer needed or has been superseded
+                - IMPORTANT: Always mark your assigned tasks as resolved when you finish them
+                - After resolving, call TaskList to find your next task
+                
+                - ONLY mark a task as completed when you have FULLY accomplished it
+                - If you encounter errors, blockers, or cannot finish, keep the task as in_progress
+                - Never mark a task as completed if:
+                  - Tests are failing
+                  - Implementation is partial
+                  - You encountered unresolved errors
+                
+                **Update task details:**
+                - When requirements change or become clearer
+                
+                ## Status Workflow
+                Status progresses: `pending` \u2192 `in_progress` \u2192 `completed`
+                
+                ## Examples
+                Mark task as in progress: {"taskId": "1", "status": "in_progress"}
+                Mark task as completed: {"taskId": "1", "status": "completed"}
+                """;
+    }
+
+    @Override
     public Map<String, Object> getInputSchema() {
         return Map.of(
                 "type", "object",

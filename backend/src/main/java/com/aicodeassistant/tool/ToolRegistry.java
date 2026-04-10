@@ -105,4 +105,47 @@ public class ToolRegistry {
     public int size() {
         return toolsByName.size();
     }
+
+    // ============ 动态注册方法 ============
+
+    /**
+     * 动态注册工具 — 用于 MCP 服务器工具、认证工具等运行时发现的工具。
+     */
+    public void registerDynamic(Tool tool) {
+        register(tool);
+        log.info("Dynamically registered tool: {}", tool.getName());
+    }
+
+    /**
+     * 按名称前缀批量注销工具 — 用于 MCP 服务器重连时清理旧工具。
+     *
+     * @param prefix 工具名称前缀
+     * @return 被注销的工具数量
+     */
+    public int unregisterByPrefix(String prefix) {
+        List<String> toRemove = toolsByName.keySet().stream()
+                .filter(name -> name.startsWith(prefix))
+                .toList();
+        for (String name : toRemove) {
+            unregister(name);
+        }
+        if (!toRemove.isEmpty()) {
+            log.info("Unregistered {} tools with prefix '{}'", toRemove.size(), prefix);
+        }
+        return toRemove.size();
+    }
+
+    /** 子代理禁用的工具名集合 */
+    private static final Set<String> SUB_AGENT_DENIED_TOOLS = Set.of(
+            "Agent", "TeamCreate", "TeamDelete", "TaskCreate"
+    );
+
+    /**
+     * 获取子代理可用工具子集 — 过滤掉 Agent/Team/Task 等子代理禁用的工具。
+     */
+    public List<Tool> getSubAgentTools() {
+        return getEnabledTools().stream()
+                .filter(t -> !SUB_AGENT_DENIED_TOOLS.contains(t.getName()))
+                .toList();
+    }
 }

@@ -38,6 +38,21 @@ public class ReadMcpResourceTool implements Tool {
     }
 
     @Override
+    public String prompt() {
+        return """
+                Reads a specific resource from an MCP server, identified by server name and \
+                resource URI.
+                
+                Parameters:
+                - server (required): The name of the MCP server from which to read the resource
+                - uri (required): The URI of the resource to read
+                
+                Usage examples:
+                - Read a resource: `readMcpResource({ server: "myserver", uri: "my-resource-uri" })`
+                """;
+    }
+
+    @Override
     public Map<String, Object> getInputSchema() {
         return Map.of(
                 "type", "object",

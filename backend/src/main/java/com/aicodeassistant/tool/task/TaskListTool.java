@@ -31,6 +31,28 @@ public class TaskListTool implements Tool {
     }
 
     @Override
+    public String prompt() {
+        return """
+                Use this tool to list all tasks in the task list.
+                
+                ## When to Use This Tool
+                - To see what tasks are available to work on (status: 'pending', no owner, not blocked)
+                - To check overall progress on the project
+                - To find tasks that are blocked and need dependencies resolved
+                - After completing a task, to check for newly unblocked work or claim the next task
+                - **Prefer working on tasks in ID order** (lowest ID first) when multiple tasks are available
+                
+                ## Output
+                Returns a summary of each task:
+                - **id**: Task identifier (use with TaskGet, TaskUpdate)
+                - **subject**: Brief description of the task
+                - **status**: 'pending', 'in_progress', or 'completed'
+                
+                Use TaskGet with a specific task ID to view full details including description.
+                """;
+    }
+
+    @Override
     public Map<String, Object> getInputSchema() {
         return Map.of(
                 "type", "object",

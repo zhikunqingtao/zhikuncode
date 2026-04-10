@@ -17,7 +17,7 @@ class HookServiceTest {
     @BeforeEach
     void setUp() {
         registry = new HookRegistry();
-        hookService = new HookService(registry);
+        hookService = new HookService(registry, null);
     }
 
     @Test

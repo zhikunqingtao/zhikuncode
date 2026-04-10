@@ -40,6 +40,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private static final Logger log = LoggerFactory.getLogger(WebSocketConfig.class);
 
+    private final RemoteAccessSecurityFilter securityFilter;
+
+    public WebSocketConfig(RemoteAccessSecurityFilter securityFilter) {
+        this.securityFilter = securityFilter;
+    }
+
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         // 客户端订阅前缀: /topic (广播) + /queue (用户专属)
@@ -56,7 +62,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         // v1.44.0: 固定端点 /ws，sessionId 通过 CONNECT 帧 header 传递
         registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("*")
+                .setAllowedOrigins(
+                    "http://localhost:5173", "http://localhost:8080",
+                    "http://127.0.0.1:5173", "http://127.0.0.1:8080")
                 .withSockJS();
     }
 
@@ -65,7 +73,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
      */
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(new StompAuthInterceptor());
+        registration.interceptors(new StompAuthInterceptor(securityFilter));
     }
 
     /**
@@ -83,12 +91,18 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     // ───── STOMP 认证拦截器 ─────
 
     /**
-     * STOMP CONNECT 帧拦截器 — 提取 Authorization + X-Session-Id。
+     * STOMP CONNECT 帧拦截器 — Bearer Token 认证 + X-Session-Id 提取。
      * <p>
-     * P0 阶段: localhost 模式不校验 JWT，为每个连接生成唯一 Principal。
-     * P1 阶段: 集成 JwtService 进行 Bearer Token 校验。
+     * 验证逻辑: Bearer token 与 RemoteAccessSecurityFilter 生成的 accessToken 匹配。
+     * localhost 连接若无 token 则生成匿名 Principal（保持本地开发兼容）。
      */
     private static class StompAuthInterceptor implements ChannelInterceptor {
+
+        private final RemoteAccessSecurityFilter securityFilter;
+
+        StompAuthInterceptor(RemoteAccessSecurityFilter securityFilter) {
+            this.securityFilter = securityFilter;
+        }
 
         @Override
         public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -96,20 +110,23 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                     .getAccessor(message, StompHeaderAccessor.class);
 
             if (accessor != null && StompCommand.CONNECT.equals(accessor.getCommand())) {
-                // 提取 Authorization header (P0: 仅记录, 不做 JWT 验证)
                 String authHeader = accessor.getFirstNativeHeader("Authorization");
                 String principalName;
 
                 if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                    // P1: 此处应调用 jwtService.authenticate(token)
-                    // P0: 使用 token 尾部作为标识
                     String token = authHeader.substring(7);
+                    // 验证 token 与 accessToken 匹配
+                    if (!securityFilter.getAccessToken().equals(token)) {
+                        log.warn("STOMP CONNECT rejected: invalid Bearer token");
+                        throw new org.springframework.security.access.AccessDeniedException(
+                                "Invalid access token");
+                    }
                     principalName = "user-" + token.substring(Math.max(0, token.length() - 8));
-                    log.debug("STOMP CONNECT with Bearer token, principal={}", principalName);
+                    log.debug("STOMP CONNECT authenticated, principal={}", principalName);
                 } else {
-                    // P0 localhost 模式: 生成唯一标识
+                    // localhost 模式: 无 token 时生成匿名 Principal（本地开发兼容）
                     principalName = "anon-" + UUID.randomUUID().toString().substring(0, 8);
-                    log.debug("STOMP CONNECT without auth, principal={}", principalName);
+                    log.debug("STOMP CONNECT without auth (localhost), principal={}", principalName);
                 }
 
                 // 设置 Principal

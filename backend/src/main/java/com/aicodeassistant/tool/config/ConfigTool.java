@@ -59,6 +59,34 @@ public class ConfigTool implements Tool {
     }
 
     @Override
+    public String prompt() {
+        return """
+                Get or set configuration settings.
+                
+                View or change settings. Use when the user requests configuration changes, \
+                asks about current settings, or when adjusting a setting would benefit them.
+                
+                ## Usage
+                - **Get current value:** Omit the "value" parameter
+                - **Set new value:** Include the "value" parameter
+                
+                ## Configurable settings
+                - theme: "system", "light", "dark" - UI theme
+                - model: "sonnet", "opus", "haiku" - Override the default model
+                - maxTokens: integer - Maximum response tokens
+                - autoCompact: true/false - Enable auto-compaction
+                - verboseLogging: true/false - Enable verbose logging
+                - maxTurns: integer - Maximum conversation turns
+                - language: "auto", "en", "zh", etc. - UI language
+                
+                ## Examples
+                - Get theme: { "setting": "theme" }
+                - Set dark theme: { "setting": "theme", "value": "dark" }
+                - Change model: { "setting": "model", "value": "opus" }
+                """;
+    }
+
+    @Override
     public Map<String, Object> getInputSchema() {
         return Map.of(
                 "type", "object",

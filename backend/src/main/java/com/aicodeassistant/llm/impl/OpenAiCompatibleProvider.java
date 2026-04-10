@@ -19,6 +19,7 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * OpenAI 兼容供应商实现 — 支持所有 OpenAI Chat Completions API 兼容的模型服务。
@@ -50,7 +51,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
     private final String defaultModel;
     private final ApiKeyRotationManager keyRotationManager;
 
-    private volatile Call currentCall;
+    private final ConcurrentHashMap<String, Call> activeCalls = new ConcurrentHashMap<>();
 
     /** 内置模型能力映射表 — 对齐 SPEC §3.1.3 */
     private static final Map<String, ModelCapabilities> MODEL_CAPABILITIES = Map.ofEntries(
@@ -90,7 +91,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
                         httpProperties.pool().keepAliveSeconds(),
                         java.util.concurrent.TimeUnit.SECONDS))
                 .connectTimeout(Duration.ofSeconds(httpProperties.connectTimeoutSeconds()))
-                .readTimeout(Duration.ZERO) // SSE 无读超时
+                .readTimeout(Duration.ofMinutes(5)) // SSE 5分钟读超时（防止连接泄漏）
                 .writeTimeout(Duration.ofSeconds(httpProperties.writeTimeoutSeconds()))
                 .retryOnConnectionFailure(httpProperties.retryOnFailure())
                 .build();
@@ -139,12 +140,14 @@ public class OpenAiCompatibleProvider implements LlmProvider {
                 .post(RequestBody.create(requestBody.toString(), JSON_MEDIA))
                 .build();
 
-        this.currentCall = httpClient.newCall(request);
+        String callId = "openai-" + System.nanoTime();
+        Call call = httpClient.newCall(request);
+        activeCalls.put(callId, call);
 
         // 工具调用累积器 — OpenAI 的工具调用通过多个 delta 增量拼接
         Map<Integer, ToolCallAccumulator> toolCallAccumulators = new HashMap<>();
 
-        try (Response response = currentCall.execute()) {
+        try (Response response = call.execute()) {
             if (!response.isSuccessful()) {
                 handleErrorResponse(response, callback);
                 return;
@@ -184,20 +187,20 @@ public class OpenAiCompatibleProvider implements LlmProvider {
             callback.onComplete();
 
         } catch (IOException e) {
-            if (currentCall != null && currentCall.isCanceled()) {
+            if (call.isCanceled()) {
                 callback.onComplete();
             } else {
                 callback.onError(new LlmApiException("OpenAI stream error: " + e.getMessage(), true));
             }
+        } finally {
+            activeCalls.remove(callId);
         }
     }
 
     @Override
     public void abort() {
-        Call call = this.currentCall;
-        if (call != null) {
-            call.cancel();
-        }
+        activeCalls.values().forEach(Call::cancel);
+        activeCalls.clear();
     }
 
     // ═══════════════════════════════════════════
@@ -333,6 +336,22 @@ public class OpenAiCompatibleProvider implements LlmProvider {
     // SSE chunk 处理
     // ═══════════════════════════════════════════
 
+    /**
+     * 标准化 OpenAI finish_reason 为内部统一格式。
+     * <p>
+     * OpenAI/Qwen 返回: "stop", "length", "tool_calls", "content_filter"
+     * 内部统一:      "end_turn", "max_tokens", "tool_use", "content_filter"
+     */
+    private static String normalizeFinishReason(String finishReason) {
+        if (finishReason == null) return null;
+        return switch (finishReason) {
+            case "stop" -> "end_turn";
+            case "tool_calls" -> "tool_use";
+            case "length" -> "max_tokens";
+            default -> finishReason;
+        };
+    }
+
     private void processChunk(String json,
                               Map<Integer, ToolCallAccumulator> accumulators,
                               StreamChatCallback callback) {
@@ -344,15 +363,16 @@ public class OpenAiCompatibleProvider implements LlmProvider {
                 // usage-only chunk
                 if (chunk.has("usage")) {
                     Usage usage = parseUsage(chunk.get("usage"));
-                    callback.onEvent(new LlmStreamEvent.MessageDelta(usage, "stop"));
+                    callback.onEvent(new LlmStreamEvent.MessageDelta(usage, "end_turn"));
                 }
                 return;
             }
 
             JsonNode choice = choices.get(0);
             JsonNode delta = choice.get("delta");
-            String finishReason = choice.has("finish_reason") && !choice.get("finish_reason").isNull()
+            String rawFinishReason = choice.has("finish_reason") && !choice.get("finish_reason").isNull()
                     ? choice.get("finish_reason").asText() : null;
+            String finishReason = normalizeFinishReason(rawFinishReason);
 
             if (delta != null) {
                 // 文本增量
@@ -389,9 +409,11 @@ public class OpenAiCompatibleProvider implements LlmProvider {
                 }
             }
 
-            // 流结束原因
-            if (finishReason != null && chunk.has("usage")) {
-                Usage usage = parseUsage(chunk.get("usage"));
+            // 流结束原因 — 接受有 usage 或有 finish_reason 的 chunk
+            if (finishReason != null) {
+                Usage usage = chunk.has("usage")
+                        ? parseUsage(chunk.get("usage"))
+                        : Usage.zero();
                 callback.onEvent(new LlmStreamEvent.MessageDelta(usage, finishReason));
             }
 

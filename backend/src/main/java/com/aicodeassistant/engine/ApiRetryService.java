@@ -30,6 +30,13 @@ public class ApiRetryService {
     private static final long MAX_DELAY_MS = 30_000;
     private static final double BACKOFF_MULTIPLIER = 2.0;
 
+    // ==================== 依赖注入 ====================
+    private final ModelTierService modelTierService;
+
+    public ApiRetryService(ModelTierService modelTierService) {
+        this.modelTierService = modelTierService;
+    }
+
     // ==================== 529 源分类 ====================
     private static final Set<String> FOREGROUND_529_RETRY_SOURCES = Set.of(
             "repl_main_thread",
@@ -52,22 +59,32 @@ public class ApiRetryService {
     /**
      * 带完整重试策略的 API 调用。
      *
-     * @param operation   API 调用操作
-     * @param querySource 查询源标识（用于 529 源分类）
+     * @param operation    API 调用操作
+     * @param querySource  查询源标识（用于 529 源分类）
+     * @param currentModel 当前使用的模型标识
      * @return API 调用结果
      */
-    public <T> T executeWithRetry(Supplier<T> operation, String querySource) {
+    public <T> T executeWithRetry(Supplier<T> operation, String querySource,
+                                   String currentModel) {
         int attempt = 0;
         int retries529 = 0;
 
         while (true) {
             try {
-                return operation.get();
+                T result = operation.get();
+                // ★ 成功 → 报告给 ModelTierService
+                modelTierService.reportSuccess(currentModel);
+                return result;
             } catch (LlmApiException e) {
                 attempt++;
 
                 // 1. 检查是否为 529 错误 (容量超限)
                 if (e.getStatusCode() == 529) {
+                    // ★ 触发模型冷却
+                    modelTierService.triggerCooldown(
+                            currentModel, e.getRetryAfterMs(),
+                            "529_overloaded: " + e.getMessage());
+
                     if (!shouldRetry529(querySource, retries529)) {
                         throw e;
                     }

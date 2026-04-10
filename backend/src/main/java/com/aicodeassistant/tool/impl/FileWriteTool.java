@@ -1,6 +1,7 @@
 package com.aicodeassistant.tool.impl;
 
 import com.aicodeassistant.history.FileHistoryService;
+import com.aicodeassistant.session.SessionManager;
 import com.aicodeassistant.tool.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,9 +28,11 @@ public class FileWriteTool implements Tool {
     private static final Logger log = LoggerFactory.getLogger(FileWriteTool.class);
 
     private final FileHistoryService fileHistoryService;
+    private final SessionManager sessionManager;
 
-    public FileWriteTool(FileHistoryService fileHistoryService) {
+    public FileWriteTool(FileHistoryService fileHistoryService, SessionManager sessionManager) {
         this.fileHistoryService = fileHistoryService;
+        this.sessionManager = sessionManager;
     }
 
     @Override
@@ -41,6 +44,24 @@ public class FileWriteTool implements Tool {
     public String getDescription() {
         return "Create or overwrite a file with the given content. "
                 + "The file must have been read first using the Read tool.";
+    }
+
+    @Override
+    public String prompt() {
+        return """
+                Writes a file to the local filesystem.
+                
+                Usage:
+                - This tool will overwrite the existing file if there is one at the provided path.
+                - If this is an existing file, you MUST use the Read tool first to read the file's \
+                contents. This tool will fail if you did not read the file first.
+                - Prefer the Edit tool for modifying existing files \u2014 it only sends the diff. Only \
+                use this tool to create new files or for complete rewrites.
+                - NEVER create documentation files (*.md) or README files unless explicitly \
+                requested by the User.
+                - Only use emojis if the user explicitly requests it. Avoid writing emojis to \
+                files unless asked.
+                """;
     }
 
     @Override
@@ -92,6 +113,10 @@ public class FileWriteTool implements Tool {
 
             // 4. 构建结果
             String type = isCreate ? "create" : "update";
+
+            // ★ FileStateCache 集成 — 标记已修改 (§11.5.9)
+            sessionManager.getFileStateCache(context.sessionId()).markModified(filePath);
+
             return ToolResult.success(type + ": " + filePath)
                     .withMetadata("type", type)
                     .withMetadata("filePath", filePath);

@@ -1,5 +1,6 @@
 package com.aicodeassistant.hook;
 
+import com.aicodeassistant.memdir.MemdirService;
 import com.aicodeassistant.model.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +10,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 /**
@@ -34,9 +36,18 @@ public class HookService {
     private static final Logger log = LoggerFactory.getLogger(HookService.class);
 
     private final HookRegistry hookRegistry;
+    private final MemdirService memdirService;
 
-    public HookService(HookRegistry hookRegistry) {
+    /**
+     * 会话级配置快照 — 确保会话内钩子配置一致性 (§11.5.8)。
+     * key=sessionId, value=会话开始时的钩子注册快照
+     */
+    private final ConcurrentHashMap<String, Map<HookEvent, List<HookRegistry.HookRegistration>>> sessionSnapshots
+            = new ConcurrentHashMap<>();
+
+    public HookService(HookRegistry hookRegistry, MemdirService memdirService) {
         this.hookRegistry = hookRegistry;
+        this.memdirService = memdirService;
     }
 
     /**
@@ -215,11 +226,11 @@ public class HookService {
      */
     private boolean matchesContext(String matcher, HookRegistry.HookContext context) {
         if (matcher == null || matcher.isEmpty()) {
-            return true; // 空匹配器匹配所有
+            return true;
         }
         String target = context.toolName();
         if (target == null || target.isEmpty()) {
-            return true; // 非工具事件（如 UserPromptSubmit）始终匹配
+            return true;
         }
         try {
             return Pattern.matches(matcher, target);
@@ -227,5 +238,103 @@ public class HookService {
             log.warn("Invalid hook matcher pattern: {}", matcher);
             return false;
         }
+    }
+
+    // ============ 新增：TaskCompleted 和 PostStop 钩子 ============
+
+    public void executeTaskCompletedHooks(String sessionId, String taskResult) {
+        List<HookRegistry.HookRegistration> hooks = hookRegistry.getHooks(HookEvent.TASK_COMPLETED);
+        for (HookRegistry.HookRegistration hook : hooks) {
+            try {
+                HookRegistry.HookContext context = HookRegistry.HookContext.forMessage(
+                    taskResult, sessionId);
+                hook.handler().apply(context);
+            } catch (Exception e) {
+                log.warn("TaskCompleted hook failed: {}", e.getMessage());
+            }
+        }
+    }
+
+    public void executePostStopActions(List<Message> messages, String sessionId) {
+        String lastAssistantText = extractLastAssistantText(messages);
+        if (lastAssistantText != null && shouldExtractMemory(lastAssistantText)) {
+            try {
+                memdirService.writeMemory(
+                    "Auto-extracted from session " + sessionId + ": " +
+                    lastAssistantText.substring(0, Math.min(200, lastAssistantText.length())),
+                    MemdirService.MemorySource.AUTO);
+                log.info("Post-stop memory extraction completed for session: {}", sessionId);
+            } catch (Exception e) {
+                log.warn("Memory extraction failed for session {}: {}", sessionId, e.getMessage());
+            }
+        }
+    }
+
+    private boolean shouldExtractMemory(String text) {
+        if (text == null) return false;
+        String lower = text.toLowerCase();
+        return lower.contains("remember")
+            || lower.contains("note for future")
+            || lower.contains("请记住")
+            || lower.contains("备忘");
+    }
+
+    private String extractLastAssistantText(List<Message> messages) {
+        for (int i = messages.size() - 1; i >= 0; i--) {
+            if (messages.get(i) instanceof Message.AssistantMessage am && am.content() != null) {
+                for (var block : am.content()) {
+                    if (block instanceof com.aicodeassistant.model.ContentBlock.TextBlock tb) {
+                        return tb.text();
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    // ============ 会话级配置快照 (§11.5.8) ============
+
+    /**
+     * 为指定会话拍摄当前钩子配置快照。
+     * 应在会话开始时调用，确保会话内钩子配置不变。
+     *
+     * @param sessionId 会话ID
+     */
+    public void snapshotConfig(String sessionId) {
+        Map<HookEvent, List<HookRegistry.HookRegistration>> snapshot = new java.util.EnumMap<>(HookEvent.class);
+        for (HookEvent event : HookEvent.values()) {
+            List<HookRegistry.HookRegistration> hooks = hookRegistry.getHooks(event);
+            if (!hooks.isEmpty()) {
+                snapshot.put(event, List.copyOf(hooks));
+            }
+        }
+        sessionSnapshots.put(sessionId, snapshot);
+        log.debug("Hook config snapshot created for session: {}", sessionId);
+    }
+
+    /**
+     * 获取会话级钩子快照 — 如果有快照则使用快照，否则回退到实时查询。
+     *
+     * @param sessionId 会话ID
+     * @param event     钩子事件类型
+     * @return 匹配的钩子列表
+     */
+    public List<HookRegistry.HookRegistration> getSessionHooks(String sessionId, HookEvent event) {
+        Map<HookEvent, List<HookRegistry.HookRegistration>> snapshot = sessionSnapshots.get(sessionId);
+        if (snapshot != null) {
+            return snapshot.getOrDefault(event, List.of());
+        }
+        // 无快照时回退到实时查询
+        return hookRegistry.getHooks(event);
+    }
+
+    /**
+     * 释放会话快照 — 会话结束时调用。
+     *
+     * @param sessionId 会话ID
+     */
+    public void releaseSnapshot(String sessionId) {
+        sessionSnapshots.remove(sessionId);
+        log.debug("Hook config snapshot released for session: {}", sessionId);
     }
 }

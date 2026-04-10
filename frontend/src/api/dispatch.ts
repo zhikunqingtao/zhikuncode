@@ -37,7 +37,8 @@ export function dispatch(data: ServerMessage & { ts?: number }): void {
 
     const handler = handlers[data.type];
     if (handler) {
-        handler(data as never);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        handler(data as any);
     } else {
         console.warn(`[WS] Unknown message type: ${data.type}`);
     }
@@ -53,7 +54,14 @@ export function resetSequence(): void {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const handlers: Record<string, (data: any) => void> = {
     // === messageStore (5 种) ===
-    'stream_delta':       (d) => appendStreamDelta(d.delta),
+    'stream_delta':       (d) => {
+        // 首次 delta 时在 messageStore 创建占位 assistant 消息
+        if (!useMessageStore.getState().streamingMessageId) {
+            useMessageStore.getState().appendStreamDelta('');
+        }
+        // 后续 delta 仅写入外部高性能 store（绕过 Immer 开销）
+        appendStreamDelta(d.delta);
+    },
     'thinking_delta':     (d) => useMessageStore.getState().appendThinkingDelta(d.delta),
     'tool_use_start':     (d) => useMessageStore.getState().startToolCall(d.toolUseId, d.toolName, d.input),
     'tool_use_progress':  (d) => useMessageStore.getState().updateToolCallProgress(d.toolUseId, d.progress),

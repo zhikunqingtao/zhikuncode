@@ -29,8 +29,8 @@ public class PythonCapabilityAwareClient {
     private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(3);
     private static final Duration READ_TIMEOUT = Duration.ofSeconds(30);
     private static final Duration HEAVY_READ_TIMEOUT = Duration.ofSeconds(120);
-    private static final int MAX_RETRIES = 2;
-    private static final Duration RETRY_DELAY = Duration.ofMillis(500);
+    private static final int MAX_RETRIES = 3;
+    private static final Duration RETRY_BASE_DELAY = Duration.ofMillis(500);
     private static final long REFRESH_INTERVAL_MS = 300_000; // 5 minutes
 
     private final HttpClient httpClient;
@@ -130,7 +130,7 @@ public class PythonCapabilityAwareClient {
     }
 
     /**
-     * 带重试的 HTTP POST 调用。
+     * 带重试的 HTTP POST 调用（指数退避）。
      */
     public <T> Optional<T> callWithRetry(String endpoint, Object body,
                                          Class<T> resultType) {
@@ -152,16 +152,17 @@ public class PythonCapabilityAwareClient {
                         response.statusCode(), response.body());
             } catch (Exception e) {
                 if (attempt < MAX_RETRIES) {
-                    log.debug("Python 调用 {} 失败 (尝试 {}/{}), 重试中...",
-                            endpoint, attempt + 1, MAX_RETRIES);
+                    long delayMs = RETRY_BASE_DELAY.toMillis() * (1L << attempt); // 指数退避: 500, 1000, 2000, 4000
+                    log.debug("Python 调用 {} 失败 (尝试 {}/{}), {}ms 后重试...",
+                            endpoint, attempt + 1, MAX_RETRIES, delayMs);
                     try {
-                        Thread.sleep(RETRY_DELAY.toMillis());
+                        Thread.sleep(delayMs);
                     } catch (InterruptedException ie) {
                         Thread.currentThread().interrupt();
                         break;
                     }
                 } else {
-                    log.error("Python 调用 {} 最终失败", endpoint, e);
+                    log.error("Python 调用 {} 最终失败 ({} 次重试耗尽)", endpoint, MAX_RETRIES, e);
                 }
             }
         }

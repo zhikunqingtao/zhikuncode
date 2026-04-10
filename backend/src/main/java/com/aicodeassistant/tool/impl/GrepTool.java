@@ -23,6 +23,7 @@ public class GrepTool implements Tool {
 
     private static final Logger log = LoggerFactory.getLogger(GrepTool.class);
     private static final int DEFAULT_HEAD_LIMIT = 250;
+    private static final int MAX_RESULT_SIZE_CHARS = 20_000;
     private static final int MAX_COLUMNS = 500;
     private static final Set<String> VCS_EXCLUDE = Set.of(
             ".git", ".svn", ".hg", ".bzr", ".jj", ".sl");
@@ -36,6 +37,27 @@ public class GrepTool implements Tool {
     public String getDescription() {
         return "Search file contents using regular expressions. Powered by ripgrep (rg). "
                 + "Supports file type filtering, context lines, and multiple output modes.";
+    }
+
+    @Override
+    public String prompt() {
+        return """
+                A powerful search tool built on ripgrep
+                
+                Usage:
+                - ALWAYS use Grep for search tasks. NEVER invoke `grep` or `rg` as a Bash command. \
+                The Grep tool has been optimized for correct permissions and access.
+                - Supports full regex syntax (e.g., "log.*Error", "function\\s+\\w+")
+                - Filter files with glob parameter (e.g., "*.js", "**/*.tsx") or type parameter \
+                (e.g., "js", "py", "rust")
+                - Output modes: "content" shows matching lines, "files_with_matches" shows only \
+                file paths (default), "count" shows match counts
+                - Use Agent tool for open-ended searches requiring multiple rounds
+                - Pattern syntax: Uses ripgrep (not grep) - literal braces need escaping \
+                (use `interface\\{\\}` to find `interface{}` in Go code)
+                - Multiline matching: By default patterns match within single lines only. For \
+                cross-line patterns like `struct \\{[\\s\\S]*?field`, use `multiline: true`
+                """;
     }
 
     @Override
@@ -141,11 +163,20 @@ public class GrepTool implements Tool {
             // 4. 提取匹配文件列表
             Set<String> matchedFiles = extractFileNames(lines, outputMode);
 
-            return ToolResult.success(String.join("\n", lines))
+            // 5. 字符数截断
+            String result = String.join("\n", lines);
+            boolean charsTruncated = false;
+            if (result.length() > MAX_RESULT_SIZE_CHARS) {
+                result = result.substring(0, MAX_RESULT_SIZE_CHARS);
+                charsTruncated = true;
+            }
+
+            return ToolResult.success(result
+                            + (wasTruncated || charsTruncated ? "\n[Results truncated]" : ""))
                     .withMetadata("mode", outputMode)
                     .withMetadata("numFiles", matchedFiles.size())
                     .withMetadata("filenames", new ArrayList<>(matchedFiles))
-                    .withMetadata("truncated", wasTruncated);
+                    .withMetadata("truncated", wasTruncated || charsTruncated);
 
         } catch (IOException e) {
             log.error("Grep failed for pattern '{}': {}", pattern, e.getMessage());

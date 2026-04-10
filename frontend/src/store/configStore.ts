@@ -62,7 +62,7 @@ export const useConfigStore = create<ConfigStoreState>()(
                 verbose: false,
                 expandedView: false,
                 outputStyle: { availableStyles: [] as OutputStyleDef[], activeStyleName: null as string | null },
-                defaultModel: 'claude-sonnet-4-20250514',
+                defaultModel: 'qwen3.6-plus',
 
                 setTheme: (update) => set(d => { Object.assign(d.theme, update); }),
                 resetTheme: () => set(d => { d.theme = { ...DEFAULT_THEME }; }),
@@ -113,12 +113,30 @@ export const useConfigStore = create<ConfigStoreState>()(
                     console.warn('[ConfigStore] loadConfig failed, using defaults');
                 },
                 saveConfig: async (updates) => {
+                    // P2-11: try-catch + 回滚
+                    const prevState = useConfigStore.getState();
+                    const snapshot = {
+                        theme: prevState.theme,
+                        locale: prevState.locale,
+                        autoCompact: prevState.autoCompact,
+                        verbose: prevState.verbose,
+                        expandedView: prevState.expandedView,
+                        outputStyle: prevState.outputStyle,
+                        defaultModel: prevState.defaultModel,
+                    };
                     set(d => { Object.assign(d, updates); });
-                    await fetch('/api/config', {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(updates),
-                    });
+                    try {
+                        const resp = await fetch('/api/config', {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(updates),
+                        });
+                        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                    } catch (e) {
+                        // 回滚到之前的状态
+                        set(d => { Object.assign(d, snapshot); });
+                        console.error('[ConfigStore] saveConfig failed, rolled back:', e);
+                    }
                 },
                 setOutputStyles: (styles) => set(d => { d.outputStyle.availableStyles = styles; }),
                 setActiveOutputStyle: (name) => set(d => { d.outputStyle.activeStyleName = name; }),

@@ -36,6 +36,7 @@ class AliyunIntegrationTest {
         provider = new OpenAiCompatibleProvider(
                 objectMapper,
                 DEFAULT_HTTP_PROPS,
+                new ApiKeyRotationManager(List.of(), ALIYUN_API_KEY),
                 ALIYUN_API_KEY,
                 "https://dashscope.aliyuncs.com/compatible-mode/v1",
                 "qwen3.6-plus",

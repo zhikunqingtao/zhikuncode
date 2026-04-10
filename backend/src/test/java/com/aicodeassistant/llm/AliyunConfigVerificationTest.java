@@ -25,6 +25,7 @@ class AliyunConfigVerificationTest {
         OpenAiCompatibleProvider provider = new OpenAiCompatibleProvider(
                 objectMapper,
                 DEFAULT_HTTP_PROPS,
+                new ApiKeyRotationManager(List.of(), "sk-test-key"),
                 "sk-test-key",
                 "https://dashscope.aliyuncs.com/compatible-mode/v1",
                 "qwen3.6-plus",
@@ -54,6 +55,7 @@ class AliyunConfigVerificationTest {
         OpenAiCompatibleProvider provider = new OpenAiCompatibleProvider(
                 objectMapper,
                 DEFAULT_HTTP_PROPS,
+                new ApiKeyRotationManager(List.of(), "sk-test-key"),
                 "sk-test-key",
                 "https://dashscope.aliyuncs.com/compatible-mode/v1",
                 "qwen3.6-plus",
@@ -80,6 +82,7 @@ class AliyunConfigVerificationTest {
         OpenAiCompatibleProvider provider = new OpenAiCompatibleProvider(
                 objectMapper,
                 DEFAULT_HTTP_PROPS,
+                new ApiKeyRotationManager(List.of(), apiKey),
                 apiKey,
                 baseUrl,
                 "qwen3.6-plus",
@@ -103,6 +106,7 @@ class AliyunConfigVerificationTest {
         OpenAiCompatibleProvider provider = new OpenAiCompatibleProvider(
                 objectMapper,
                 DEFAULT_HTTP_PROPS,
+                new ApiKeyRotationManager(List.of(), "sk-test-key"),
                 "sk-test-key",
                 "https://dashscope.aliyuncs.com/compatible-mode/v1",
                 "qwen3.6-plus",

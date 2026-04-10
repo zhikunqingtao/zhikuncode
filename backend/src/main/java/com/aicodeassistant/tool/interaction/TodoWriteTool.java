@@ -48,6 +48,46 @@ public class TodoWriteTool implements Tool {
     }
 
     @Override
+    public String prompt() {
+        return """
+                Use this tool to create and manage a structured task list for your current coding \
+                session. This helps you track progress, organize complex tasks, and demonstrate \
+                thoroughness to the user. It also helps the user understand the progress of the \
+                task and overall progress of their requests.
+                
+                ## When to Use This Tool
+                Use this tool proactively in these scenarios:
+                1. Complex multi-step tasks - When a task requires 3 or more distinct steps
+                2. Non-trivial and complex tasks - Tasks that require careful planning
+                3. User explicitly requests todo list
+                4. User provides multiple tasks - When users provide a list of things to be done
+                5. After receiving new instructions - Immediately capture user requirements as todos
+                6. When you start working on a task - Mark it as in_progress BEFORE beginning work
+                7. After completing a task - Mark it as completed
+                
+                ## When NOT to Use This Tool
+                Skip using this tool when:
+                1. There is only a single, straightforward task
+                2. The task is trivial
+                3. The task can be completed in less than 3 trivial steps
+                4. The task is purely conversational or informational
+                
+                ## Task States and Management
+                1. **Task States**: pending, in_progress, completed
+                   - Exactly ONE task must be in_progress at any time
+                   - Mark tasks complete IMMEDIATELY after finishing
+                2. **Task Completion Requirements**:
+                   - ONLY mark as completed when FULLY accomplished
+                   - If you encounter errors or blockers, keep as in_progress
+                   - Never mark as completed if tests are failing or implementation is partial
+                3. **Task Breakdown**:
+                   - Create specific, actionable items
+                   - Break complex tasks into smaller, manageable steps
+                   - Always provide both content (imperative) and activeForm (present continuous)
+                """;
+    }
+
+    @Override
     public Map<String, Object> getInputSchema() {
         return Map.of(
                 "type", "object",

@@ -8,6 +8,7 @@ import com.aicodeassistant.permission.AutoModeClassifier;
 import com.aicodeassistant.permission.PermissionPipeline;
 import com.aicodeassistant.permission.PermissionRuleMatcher;
 import com.aicodeassistant.permission.PermissionRuleRepository;
+import com.aicodeassistant.security.SensitiveDataFilter;
 import com.aicodeassistant.tool.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -51,9 +52,12 @@ class QueryFlowIntegrationTest {
 
         TokenCounter tokenCounter = new TokenCounter();
         CompactService compactService = new CompactService(tokenCounter, providerRegistry);
-        ApiRetryService apiRetryService = new ApiRetryService();
-        HookService hookService = new HookService(new HookRegistry());
-        StreamingToolExecutor streamingToolExecutor = new StreamingToolExecutor(new ToolExecutionPipeline(hookService, objectMapper));
+        ModelTierService modelTierService = new ModelTierService();
+        ApiRetryService apiRetryService = new ApiRetryService(modelTierService);
+        HookService hookService = new HookService(new HookRegistry(), null);
+        SensitiveDataFilter sensitiveDataFilter = new SensitiveDataFilter();
+        StreamingToolExecutor streamingToolExecutor = new StreamingToolExecutor(
+                new ToolExecutionPipeline(hookService, objectMapper, permissionPipeline, ruleRepo, sensitiveDataFilter));
         MessageNormalizer messageNormalizer = new MessageNormalizer();
         SnipService snipService = new SnipService();
         MicroCompactService microCompactService = new MicroCompactService(tokenCounter);
@@ -62,7 +66,7 @@ class QueryFlowIntegrationTest {
                 providerRegistry, compactService, apiRetryService,
                 permissionPipeline, ruleRepo, tokenCounter, objectMapper,
                 streamingToolExecutor, messageNormalizer, hookService,
-                snipService, microCompactService, null
+                snipService, microCompactService, null, null, modelTierService
         );
 
         handler = new RecordingHandler();

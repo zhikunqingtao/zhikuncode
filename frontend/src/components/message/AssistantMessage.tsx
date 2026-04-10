@@ -19,6 +19,7 @@ import TextBlock from './TextBlock';
 import ThinkingBlock from './ThinkingBlock';
 import ToolCallBlock from './ToolCallBlock';
 import ImageBlock from './ImageBlock';
+import { useStreamingText } from '@/hooks/useStreamingText';
 
 interface AssistantMessageProps {
     message: Extract<Message, { type: 'assistant' }>;
@@ -79,7 +80,12 @@ const StreamingContent: React.FC<StreamingContentProps> = ({
     streamingContent,
     thinkingContent,
     activeToolCalls,
-}) => (
+}) => {
+    // 使用外部高性能 streaming store 获取实时文本（绕过 Immer 开销）
+    const externalStreamingText = useStreamingText();
+    const displayText = externalStreamingText || streamingContent;
+
+    return (
     <div className="text-sm text-[var(--text-primary)]">
         {/* Thinking (streaming) */}
         {thinkingContent && (
@@ -87,8 +93,8 @@ const StreamingContent: React.FC<StreamingContentProps> = ({
         )}
 
         {/* Text (streaming) */}
-        {streamingContent && (
-            <TextBlock text={streamingContent} streaming />
+        {displayText && (
+            <TextBlock text={displayText} streaming />
         )}
 
         {/* Active tool calls */}
@@ -101,14 +107,15 @@ const StreamingContent: React.FC<StreamingContentProps> = ({
         )}
 
         {/* Show waiting indicator if nothing visible yet */}
-        {!streamingContent && !thinkingContent && (!activeToolCalls || activeToolCalls.size === 0) && (
+        {!displayText && !thinkingContent && (!activeToolCalls || activeToolCalls.size === 0) && (
             <div className="flex items-center gap-2 text-[var(--text-muted)] text-sm">
                 <span className="inline-block w-2 h-4 bg-purple-400 animate-pulse rounded-sm" />
                 <span>Thinking...</span>
             </div>
         )}
     </div>
-);
+    );
+};
 
 // ==================== Finalized Mode ====================
 

@@ -36,6 +36,9 @@ public class ConfigService {
     private final ObjectMapper objectMapper;
     private final SqliteConfig sqliteConfig;
 
+    private volatile UserConfig cachedUserConfig;
+    private volatile ProjectConfig cachedProjectConfig;
+
     public ConfigService(@Qualifier("globalJdbcTemplate") JdbcTemplate globalJdbcTemplate,
                          @Qualifier("projectJdbcTemplate") JdbcTemplate projectJdbcTemplate,
                          ObjectMapper objectMapper,
@@ -50,12 +53,16 @@ public class ConfigService {
      * 获取用户全局配置。
      */
     public UserConfig getUserConfig() {
+        if (cachedUserConfig != null) {
+            return cachedUserConfig;
+        }
         String json = loadConfigJson(globalJdbcTemplate, "global_config", "user_config");
         if (json == null) {
             return defaultUserConfig();
         }
         try {
-            return objectMapper.readValue(json, UserConfig.class);
+            cachedUserConfig = objectMapper.readValue(json, UserConfig.class);
+            return cachedUserConfig;
         } catch (JsonProcessingException e) {
             log.warn("Failed to parse user config, returning default: {}", e.getMessage());
             return defaultUserConfig();
@@ -77,6 +84,7 @@ public class ConfigService {
             UserConfig updated = objectMapper.readValue(mergedJson, UserConfig.class);
             saveConfigJson(globalJdbcTemplate, "global_config", "user_config", mergedJson);
             log.info("User config updated: {} fields", updates.size());
+            cachedUserConfig = updated;
             return updated;
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to update user config", e);
@@ -87,12 +95,16 @@ public class ConfigService {
      * 获取项目级配置。
      */
     public ProjectConfig getProjectConfig() {
+        if (cachedProjectConfig != null) {
+            return cachedProjectConfig;
+        }
         String json = loadConfigJson(projectJdbcTemplate, "project_config", "project_config");
         if (json == null) {
             return defaultProjectConfig();
         }
         try {
-            return objectMapper.readValue(json, ProjectConfig.class);
+            cachedProjectConfig = objectMapper.readValue(json, ProjectConfig.class);
+            return cachedProjectConfig;
         } catch (JsonProcessingException e) {
             log.warn("Failed to parse project config, returning default: {}", e.getMessage());
             return defaultProjectConfig();
@@ -113,10 +125,22 @@ public class ConfigService {
             ProjectConfig updated = objectMapper.readValue(mergedJson, ProjectConfig.class);
             saveConfigJson(projectJdbcTemplate, "project_config", "project_config", mergedJson);
             log.info("Project config updated: {} fields", updates.size());
+            cachedProjectConfig = updated;
             return updated;
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to update project config", e);
         }
+    }
+
+    // ───── 公共方法 ─────
+
+    /**
+     * 重新加载配置 — 清空内部缓存，下次 get 时重新从数据库加载。
+     */
+    public void reload() {
+        log.info("Reloading configuration");
+        this.cachedUserConfig = null;
+        this.cachedProjectConfig = null;
     }
 
     // ───── 内部方法 ─────

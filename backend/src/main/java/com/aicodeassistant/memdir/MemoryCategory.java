@@ -1,13 +1,14 @@
 package com.aicodeassistant.memdir;
 
 /**
- * 记忆分类枚举 — 三类记忆系统。
+ * 记忆分类枚举 — 四类记忆系统。
  * <p>
  * 对标认知心理学的记忆分类模型:
  * <ul>
  *   <li>EPISODIC: 事件记忆 (具体操作历史、调试经过)</li>
  *   <li>SEMANTIC: 语义记忆 (项目知识、用户偏好、技术约定)</li>
  *   <li>PROCEDURAL: 程序记忆 (常用工作流、部署流程、构建步骤)</li>
+ *   <li>TEAM: 团队记忆 (团队级别的共享知识、规范和约定)</li>
  * </ul>
  *
  * @see <a href="SPEC §4.11">Memdir 自动记忆系统</a>
@@ -21,7 +22,10 @@ public enum MemoryCategory {
     SEMANTIC("semantic"),
 
     /** 程序记忆 — 常用工作流 */
-    PROCEDURAL("procedural");
+    PROCEDURAL("procedural"),
+
+    /** 团队记忆 — 团队级共享知识、规范 */
+    TEAM("team");
 
     private final String tag;
 

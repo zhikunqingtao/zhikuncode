@@ -4,7 +4,6 @@ import com.aicodeassistant.model.*;
 import com.aicodeassistant.tool.Tool;
 import com.aicodeassistant.tool.ToolInput;
 import com.aicodeassistant.tool.ToolUseContext;
-import com.aicodeassistant.websocket.WebSocketController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -66,7 +65,7 @@ public class PermissionPipeline {
             Pattern.compile(">(\\s*)/dev/sd[a-z]"),
             Pattern.compile("mkfs\\."),
             Pattern.compile("dd\\s+.*of=/dev/"),
-            Pattern.compile(":(){ :\\|:& };:"),
+            Pattern.compile(":\\(\\)\\{\\s*:\\|:&\\s*\\};:"),
             Pattern.compile("git\\s+push\\s+.*--force"),
             Pattern.compile("git\\s+(reset|clean)\\s+--hard"),
             Pattern.compile("DROP\\s+(TABLE|DATABASE)", Pattern.CASE_INSENSITIVE)
@@ -317,7 +316,7 @@ public class PermissionPipeline {
      */
     public CompletableFuture<PermissionDecision> requestPermission(
             String toolUseId, String toolName, Map<String, Object> input,
-            String reason, WebSocketController wsPusher, String sessionId) {
+            String reason, PermissionNotifier wsPusher, String sessionId) {
 
         CompletableFuture<PermissionDecision> future = new CompletableFuture<>();
         pendingRequests.put(toolUseId, future);
@@ -341,7 +340,7 @@ public class PermissionPipeline {
     }
 
     /**
-     * 解决挂起的权限请求 — 由 WebSocketController.handlePermissionResponse() 调用。
+     * 解决挂起的权限请求 — 由权限响应处理方调用。
      *
      * @param toolUseId 工具调用 ID
      * @param decision  用户的权限决策

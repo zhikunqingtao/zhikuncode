@@ -1,5 +1,6 @@
 package com.aicodeassistant.tool.bash;
 
+import com.aicodeassistant.state.AppStateStore;
 import com.aicodeassistant.tool.bash.ast.BashAstNode;
 import com.aicodeassistant.tool.bash.ast.BashAstNode.*;
 import com.aicodeassistant.tool.bash.ast.ParseForSecurityResult;
@@ -152,6 +153,13 @@ public class BashSecurityAnalyzer {
     // ──── 解析器实例 ────
 
     private final BashParser parser = new BashParser();
+    private final PathValidator pathValidator;
+    private final AppStateStore appStateStore;
+
+    public BashSecurityAnalyzer(PathValidator pathValidator, AppStateStore appStateStore) {
+        this.pathValidator = pathValidator;
+        this.appStateStore = appStateStore;
+    }
 
     // ──── 危险子命令黑名单 (对齐原版 bashSecurity.ts) ────
 
@@ -198,7 +206,55 @@ public class BashSecurityAnalyzer {
         }
 
         // ── AST 遍历 ──
-        return walkProgram(cmd, root);
+        ParseForSecurityResult result = walkProgram(cmd, root);
+
+        // ★ 新增：路径安全验证（仅对 Simple 结果） ★
+        if (result instanceof ParseForSecurityResult.Simple simple) {
+            var sessionState = appStateStore.getState().session();
+            String workDir = sessionState.workingDirectory();
+            java.nio.file.Path cwd = workDir != null ? java.nio.file.Path.of(workDir) 
+                    : java.nio.file.Path.of(System.getProperty("user.dir"));
+            String projRoot = sessionState.projectRoot();
+            java.nio.file.Path projectRoot = projRoot != null ? java.nio.file.Path.of(projRoot) : cwd;
+
+            // 路径约束检查
+            String pathConstraint = pathValidator.checkPathConstraints(cmd, cwd, projectRoot);
+            if (pathConstraint != null) {
+                return new ParseForSecurityResult.TooComplex(pathConstraint, "path-constraint");
+            }
+
+            // 逐命令路径验证
+            for (var sc : simple.commands()) {
+                List<String> argv = sc.argv();
+                if (!argv.isEmpty()) {
+                    String cmdName = argv.getFirst();
+                    String pathCheck = pathValidator.validateCommandPaths(
+                            cmdName, argv.subList(1, argv.size()), cwd, projectRoot);
+                    if (pathCheck != null) {
+                        return new ParseForSecurityResult.TooComplex(pathCheck, "path-validation");
+                    }
+                }
+            }
+        }
+
+        // ★ Heredoc 安全分析 — 对齐原版 heredoc 处理策略 (§11.5.3)
+        if (HeredocExtractor.containsHeredoc(cmd)) {
+            var extractor = new HeredocExtractor();
+            var heredocResult = extractor.extract(cmd);
+            for (var entry : heredocResult.heredocs().entrySet()) {
+                int heredocPos = cmd.indexOf("<<");
+                String cmdBefore = heredocPos > 0
+                        ? cmd.substring(0, heredocPos).trim().split("\\s+")[0]
+                        : "";
+                // cat/echo/printf + heredoc → 只读
+                if (Set.of("cat", "echo", "printf").contains(cmdBefore)) continue;
+                // python/bash/sh/node/ruby/perl + heredoc → 代码注入风险
+                return new ParseForSecurityResult.TooComplex(
+                        "Heredoc with " + cmdBefore + " requires permission", "heredoc-security");
+            }
+        }
+
+        return result;
     }
 
     // ──── 预检查 ────

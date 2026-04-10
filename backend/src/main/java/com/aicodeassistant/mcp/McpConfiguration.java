@@ -37,12 +37,25 @@ public class McpConfiguration {
      */
     private Map<String, ServerConfig> servers = Map.of();
 
+    /**
+     * MCP 工具权限控制 — serverName → blocked tools list
+     */
+    private Map<String, List<String>> channelPermissions = Map.of();
+
     public Map<String, ServerConfig> getServers() {
         return servers;
     }
 
     public void setServers(Map<String, ServerConfig> servers) {
         this.servers = servers;
+    }
+
+    public Map<String, List<String>> getChannelPermissions() {
+        return channelPermissions;
+    }
+
+    public void setChannelPermissions(Map<String, List<String>> channelPermissions) {
+        this.channelPermissions = channelPermissions;
     }
 
     /**

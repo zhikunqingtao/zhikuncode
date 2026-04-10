@@ -54,6 +54,8 @@ public class QueryEngine {
     private final SnipService snipService;
     private final MicroCompactService microCompactService;
     private final ModelRegistry modelRegistry;  // P0-1 新增
+    private final ThinkingBudgetCalculator thinkingBudgetCalculator;
+    private final ModelTierService modelTierService;
 
     /** 单条工具结果最大占上下文窗口的 30% */
     private static final double TOOL_RESULT_BUDGET_RATIO = 0.3;
@@ -78,7 +80,9 @@ public class QueryEngine {
                        HookService hookService,
                        SnipService snipService,
                        MicroCompactService microCompactService,
-                       ModelRegistry modelRegistry) {
+                       ModelRegistry modelRegistry,
+                       ThinkingBudgetCalculator thinkingBudgetCalculator,
+                       ModelTierService modelTierService) {
         this.providerRegistry = providerRegistry;
         this.compactService = compactService;
         this.apiRetryService = apiRetryService;
@@ -92,6 +96,8 @@ public class QueryEngine {
         this.snipService = snipService;
         this.microCompactService = microCompactService;
         this.modelRegistry = modelRegistry;
+        this.thinkingBudgetCalculator = thinkingBudgetCalculator;
+        this.modelTierService = modelTierService;
     }
 
     /**
@@ -150,6 +156,13 @@ public class QueryEngine {
             handler.onError(e);
             return new QueryResult(state.getMessages(), totalUsage,
                     "error", e.getMessage(), state.getTurnCount());
+        } finally {
+            // P1-04: 确保清理 AbortContext，防止内存泄漏
+            String sessionId = state.getToolUseContext() != null
+                    ? state.getToolUseContext().sessionId() : null;
+            if (sessionId != null) {
+                abortContexts.remove(sessionId);
+            }
         }
 
         String stopReason = state.getTurnCount() >= config.maxTurns()
@@ -202,7 +215,19 @@ public class QueryEngine {
 
             // ===== Step 3: API 调用 =====
             int effectiveMaxTokens = state.getEffectiveMaxTokens(config.maxTokens());
-            LlmProvider provider = providerRegistry.getProvider(currentModel[0]);
+            // ★ 模型降级解析 — 检查当前模型是否在冷却期
+            String effectiveModel = modelTierService.resolveModel(
+                    currentModel[0],
+                    config.modelTierChain()
+            );
+            if (!effectiveModel.equals(currentModel[0])) {
+                log.info("Model tier switch: {} → {}", currentModel[0], effectiveModel);
+                // 检查新模型是否支持 thinking，不支持则移除 thinking blocks
+                if (!providerRegistry.getProvider(effectiveModel).supportsThinking(effectiveModel)) {
+                    stripThinkingBlocks(state);
+                }
+            }
+            LlmProvider provider = providerRegistry.getProvider(effectiveModel);
             List<Map<String, Object>> apiMessages = messageNormalizer.normalize(state.getMessages());
 
             // StreamCollector 持有 session, 支持流式工具启动
@@ -212,12 +237,12 @@ public class QueryEngine {
 
             // P1-16: ThinkingConfig 降级检查
             ThinkingConfig resolvedThinking = resolveThinking(
-                    config.thinkingConfig(), provider, currentModel[0], handler);
+                    config.thinkingConfig(), provider, currentModel[0], handler, state);
 
             try {
                 apiRetryService.executeWithRetry(() -> {
                     provider.streamChat(
-                            currentModel[0],
+                            effectiveModel,
                             apiMessages,
                             config.systemPrompt(),
                             config.toolDefinitions(),
@@ -226,7 +251,7 @@ public class QueryEngine {
                             collector
                     );
                     return null;
-                }, config.querySource());
+                }, config.querySource(), effectiveModel);
             } catch (LlmApiException e) {
                 // 413 prompt_too_long → 两阶段恢复
                 if (e.getStatusCode() == 413 || (e.getMessage() != null
@@ -279,6 +304,13 @@ public class QueryEngine {
             Message.AssistantMessage assistantMessage = collector.buildAssistantMessage();
             state.addMessage(assistantMessage);
             handler.onAssistantMessage(assistantMessage);
+
+            // ★ 每轮关键日志: 模型、stopReason、工具调用、token 用量
+            log.info("Turn {} 完成: model={}, stopReason={}, contentBlocks={}, usage={}",
+                    turn, effectiveModel,
+                    assistantMessage.stopReason(),
+                    assistantMessage.content() != null ? assistantMessage.content().size() : 0,
+                    assistantMessage.usage() != null ? assistantMessage.usage().totalTokens() : 0);
 
             if (assistantMessage.usage() != null) {
                 totalUsage = totalUsage.add(assistantMessage.usage());
@@ -340,7 +372,8 @@ public class QueryEngine {
             String stopReason = assistantMessage.stopReason();
 
             // 6a: end_turn 且无工具调用 → 执行 stopHooks 后终止
-            if ("end_turn".equals(stopReason) && toolUseBlocks.isEmpty()) {
+            // 防御性检查: 同时接受 Anthropic 的 "end_turn" 和 OpenAI 的 "stop"
+            if (("end_turn".equals(stopReason) || "stop".equals(stopReason)) && toolUseBlocks.isEmpty()) {
                 // 对齐 query.ts:1258-1264: API error 不执行 stopHooks
                 boolean isApiError = "api_error".equals(assistantMessage.stopReason())
                         || (assistantMessage.content() != null
@@ -468,7 +501,8 @@ public class QueryEngine {
      * 对标原版 thinking.ts 的 modelSupportsThinking / modelSupportsAdaptiveThinking 检查。
      */
     private ThinkingConfig resolveThinking(ThinkingConfig config, LlmProvider provider,
-                                            String model, QueryMessageHandler handler) {
+                                            String model, QueryMessageHandler handler,
+                                            QueryLoopState state) {
         if (config == null || !config.requiresThinkingSupport()) {
             return config;
         }
@@ -488,10 +522,11 @@ public class QueryEngine {
             return new ThinkingConfig.Disabled();
         }
 
-        // Adaptive 降级检查: 如果是 Adaptive 但 provider 只支持基础 thinking，降级为 Enabled
+        // Adaptive 动态预算计算 — 基于上一轮上下文指标
         if (config instanceof ThinkingConfig.Adaptive) {
-            // 简化: 支持 thinking 即支持 adaptive，后续可细化
-            return config;
+            int budget = thinkingBudgetCalculator.calculateBudget(
+                    state.getContextMetrics());
+            return new ThinkingConfig.Adaptive(budget);
         }
 
         return config;
@@ -503,8 +538,20 @@ public class QueryEngine {
             if (compactService.shouldAutoCompactBufferBased(
                     state.getMessages(), config.contextWindow())) {
                 log.info("触发自动压缩: 当前消息数={}", state.getMessages().size());
-                int beforeTokens = tokenCounter.estimateTokens(state.getMessages());
 
+                // 先尝试 SMC (Session Memory Compaction)
+                CompactService.CompactResult smcResult = compactService.trySessionMemoryCompaction(
+                        state.getMessages(), config.contextWindow());
+                if (smcResult.skipReason() == null) {
+                    state.setMessages(smcResult.compactedMessages());
+                    state.resetAutoCompactFailures();
+                    handler.onCompactEvent("smc_compact",
+                            smcResult.beforeTokens(), smcResult.afterTokens());
+                    log.info("SMC 压缩完成: {}", smcResult.summary());
+                    return;
+                }
+
+                // SMC 不足时回退到完整压缩
                 CompactService.CompactResult result = compactService.compact(
                         state.getMessages(), config.contextWindow(), false);
 
@@ -514,7 +561,7 @@ public class QueryEngine {
                     handler.onCompactEvent("auto_compact",
                             result.beforeTokens(), result.afterTokens());
                     hookService.executeNotification("info", "Context auto-compacted: "
-                            + result.beforeTokens() + " → " + result.afterTokens() + " tokens");
+                            + result.beforeTokens() + " \u2192 " + result.afterTokens() + " tokens");
                     log.info("自动压缩完成: {}", result.summary());
                 }
             }

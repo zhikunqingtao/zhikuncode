@@ -30,12 +30,20 @@ public class SensitiveDataFilter {
             Pattern.compile("(AKIA[0-9A-Z]{16})"),
             // GitHub Personal Access Token
             Pattern.compile("(ghp_[a-zA-Z0-9]{36})"),
+            // GitLab Personal Access Token
+            Pattern.compile("(glpat-[a-zA-Z0-9_-]{20,})"),
+            // Anthropic API Key
+            Pattern.compile("(sk-ant-[a-zA-Z0-9_-]{20,})"),
+            // Slack Token
+            Pattern.compile("(xox[bpsar]-[a-zA-Z0-9-]{10,})"),
             // Generic key=value secrets
-            Pattern.compile("(?i)(api[_-]?key|secret|password|token|auth)\\s*[=:]\\s*['\"]?([^\\s'\"]{8,})"),
+            Pattern.compile("(?i)(api[_-]?key|secret|password|token|auth|credential)\\s*[=:]\\s*['\"]?([^\\s'\"]{8,})"),
             // JWT Token
             Pattern.compile("(eyJ[a-zA-Z0-9_-]{10,}\\.[a-zA-Z0-9_-]{10,}\\.[a-zA-Z0-9_-]{10,})"),
             // PEM Private Key header
-            Pattern.compile("-----BEGIN (RSA |EC |DSA )?PRIVATE KEY-----")
+            Pattern.compile("-----BEGIN (RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----"),
+            // Connection strings with passwords
+            Pattern.compile("(?i)(mongodb|postgres|mysql|redis)://[^:]+:([^@]{4,})@")
     );
 
     /**

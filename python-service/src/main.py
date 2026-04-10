@@ -54,11 +54,17 @@ async def lifespan(app: FastAPI):
     logger.info("Python Service 关闭")
 
 
+# 始终加载的路由 (不依赖能力域)
+from routers.token_estimator import router as token_router
+
 app = FastAPI(
     title="AI Code Assistant - Python Service",
     version="1.15.0",
     lifespan=lifespan,
 )
+
+# 注册始终可用的 Token 估算路由
+app.include_router(token_router, prefix="/api/v1/tokens", tags=["Token Estimation"])
 
 # ───── CORS ─────
 allowed_origins = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:8080").split(",")

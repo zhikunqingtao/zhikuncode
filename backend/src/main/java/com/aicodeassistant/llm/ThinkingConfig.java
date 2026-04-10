@@ -16,8 +16,11 @@ import java.util.Map;
  */
 public sealed interface ThinkingConfig {
 
-    /** 自适应模式 — 模型自行决定思考量（Opus 4.6+ 推荐） */
-    record Adaptive() implements ThinkingConfig {}
+    /** 自适应模式 — 基于 complexityMultiplier 动态调整预算 */
+    record Adaptive(Integer computedBudget) implements ThinkingConfig {
+        /** 无预算时使用默认构造 */
+        public Adaptive() { this(null); }
+    }
 
     /** 启用模式 — 固定思考 token 预算 */
     record Enabled(Integer budgetTokens) implements ThinkingConfig {}
@@ -37,10 +40,12 @@ public sealed interface ThinkingConfig {
      */
     default Map<String, Object> toApiFormat() {
         return switch (this) {
-            case Adaptive a -> Map.of(
-                    "type", "enabled",
-                    "budget_tokens", DEFAULT_BUDGET_TOKENS
-            );
+            case Adaptive a -> {
+                int budget = a.computedBudget() != null
+                        ? a.computedBudget()
+                        : DEFAULT_BUDGET_TOKENS;
+                yield Map.of("type", "enabled", "budget_tokens", budget);
+            }
             case Enabled e -> Map.of(
                     "type", "enabled",
                     "budget_tokens", e.budgetTokens() != null ? e.budgetTokens() : DEFAULT_BUDGET_TOKENS

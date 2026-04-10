@@ -24,8 +24,8 @@ python:
 llm:
   provider: openai
   openai:
-    # 阿里云百炼 API Key
-    api-key: sk-93625146d2c343d78735213013794ed5
+    # 阿里云百炼 API Key — 从环境变量读取，禁止硬编码
+    api-key: ${LLM_API_KEY:}
     # 阿里云百炼 OpenAI 兼容端点
     base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
     # 默认模型
@@ -58,7 +58,7 @@ mcp:
       type: SSE
       url: https://dashscope.aliyuncs.com/api/v1/mcps/zhipu-websearch/sse
       headers:
-        Authorization: Bearer sk-93625146d2c343d78735213013794ed5
+        Authorization: Bearer ${LLM_API_KEY:}
       scope: USER
 
 # 沙箱配置
@@ -85,3 +85,50 @@ springdoc:
 # Log4j2 由 spring-boot-starter-log4j2 自动加载 classpath:log4j2.xml
 logging:
   config: classpath:log4j2.xml
+
+# 应用配置
+app:
+  security:
+    path-validation:
+      enabled: true
+      project-boundary-check: true
+      symlink-resolution: true
+  memory:
+    team-memories-enabled: true
+    max-age-days: 90
+    auto-purge: true
+  compact:
+    session-memory-compact-enabled: true
+    smc-min-tokens: 10000
+    smc-max-tokens: 40000
+  settings:
+    watch-enabled: true
+    watch-interval-ms: 5000
+  mcp:
+    channel-permissions-enabled: true
+    health-check-interval-ms: 30000
+    max-reconnect-attempts: 5
+  bridge:
+    enabled: true
+    max-sessions: 5
+    session-timeout-hours: 24
+  model:
+    # 默认模型（千问示例）
+    default: qwen3.6-plus
+    # 降级链 — 按性能从高到低
+    tier-chain:
+      - qwen3.6-plus
+      - qwen-plus
+      - qwen-turbo
+    # 降级时是否自动剥离 thinking blocks
+    strip-thinking-on-downgrade: true
+
+# Spring Actuator 监控
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,info,prometheus
+  metrics:
+    tags:
+      application: zhikuncode

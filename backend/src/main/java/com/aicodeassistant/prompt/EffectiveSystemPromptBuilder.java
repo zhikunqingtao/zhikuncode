@@ -1,6 +1,7 @@
 package com.aicodeassistant.prompt;
 
 import com.aicodeassistant.config.FeatureFlagService;
+import com.aicodeassistant.coordinator.CoordinatorPromptBuilder;
 import com.aicodeassistant.tool.Tool;
 import com.aicodeassistant.tool.agent.SubAgentExecutor;
 import org.slf4j.Logger;
@@ -43,11 +44,14 @@ public class EffectiveSystemPromptBuilder {
 
     private final SystemPromptBuilder systemPromptBuilder;
     private final FeatureFlagService featureFlags;
+    private final CoordinatorPromptBuilder coordinatorPromptBuilder;
 
     public EffectiveSystemPromptBuilder(SystemPromptBuilder systemPromptBuilder,
-                                        FeatureFlagService featureFlags) {
+                                        FeatureFlagService featureFlags,
+                                        CoordinatorPromptBuilder coordinatorPromptBuilder) {
         this.systemPromptBuilder = systemPromptBuilder;
         this.featureFlags = featureFlags;
+        this.coordinatorPromptBuilder = coordinatorPromptBuilder;
     }
 
     /**
@@ -96,10 +100,16 @@ public class EffectiveSystemPromptBuilder {
         }
 
         // 优先级 1: Coordinator 模式
-        if (featureFlags.isEnabled("COORDINATOR_MODE")
-                && config.getCoordinatorPrompt() != null) {
-            log.debug("Using coordinator system prompt");
-            return config.getCoordinatorPrompt();
+        if (featureFlags.isEnabled("COORDINATOR_MODE")) {
+            String coordinatorPrompt = config.getCoordinatorPrompt();
+            if (coordinatorPrompt == null && coordinatorPromptBuilder != null) {
+                coordinatorPrompt = coordinatorPromptBuilder.buildCoordinatorPrompt(
+                        config.getSessionId());
+            }
+            if (coordinatorPrompt != null) {
+                log.debug("Using coordinator system prompt");
+                return coordinatorPrompt;
+            }
         }
 
         // 优先级 2: Agent 模式

@@ -1,6 +1,10 @@
 package com.aicodeassistant.tool.impl;
 
 import com.aicodeassistant.history.FileHistoryService;
+import com.aicodeassistant.security.PathSecurityService;
+import com.aicodeassistant.security.PathSecurityService.PathCheckResult;
+import com.aicodeassistant.service.FileStateCache;
+import com.aicodeassistant.session.SessionManager;
 import com.aicodeassistant.tool.*;
 import com.github.difflib.DiffUtils;
 import com.github.difflib.UnifiedDiffUtils;
@@ -34,9 +38,14 @@ public class FileEditTool implements Tool {
     private static final long MAX_EDIT_FILE_SIZE = 1024L * 1024 * 1024; // 1GB
 
     private final FileHistoryService fileHistoryService;
+    private final PathSecurityService pathSecurity;
+    private final SessionManager sessionManager;
 
-    public FileEditTool(FileHistoryService fileHistoryService) {
+    public FileEditTool(FileHistoryService fileHistoryService, PathSecurityService pathSecurity,
+                        SessionManager sessionManager) {
         this.fileHistoryService = fileHistoryService;
+        this.pathSecurity = pathSecurity;
+        this.sessionManager = sessionManager;
     }
 
     @Override
@@ -48,6 +57,31 @@ public class FileEditTool implements Tool {
     public String getDescription() {
         return "Make a targeted edit to a file by replacing a specific string with a new string. "
                 + "Requires the file to have been read first.";
+    }
+
+    @Override
+    public String prompt() {
+        return """
+                Performs exact string replacements in files.
+                
+                Usage:
+                - You must use your `Read` tool at least once in the conversation before editing. \
+                This tool will error if you attempt an edit without reading the file.
+                - When editing text from Read tool output, ensure you preserve the exact indentation \
+                (tabs/spaces) as it appears AFTER the line number prefix. The line number prefix \
+                format is: spaces + line number + arrow. Everything after that is the actual file \
+                content to match. Never include any part of the line number prefix in the old_string \
+                or new_string.
+                - ALWAYS prefer editing existing files in the codebase. NEVER write new files \
+                unless explicitly required.
+                - Only use emojis if the user explicitly requests it. Avoid adding emojis to \
+                files unless asked.
+                - The edit will FAIL if `old_string` is not unique in the file. Either provide a \
+                larger string with more surrounding context to make it unique or use `replace_all` \
+                to change every instance of `old_string`.
+                - Use `replace_all` for replacing and renaming strings across the file. This \
+                parameter is useful if you want to rename a variable for instance.
+                """;
     }
 
     @Override
@@ -76,10 +110,21 @@ public class FileEditTool implements Tool {
 
     @Override
     public ToolResult call(ToolInput input, ToolUseContext context) {
-        String filePath = resolvePath(input.getString("file_path"), context.workingDirectory());
+        Path resolved = pathSecurity.resolvePath(input.getString("file_path"), context.workingDirectory());
+        String filePath = resolved.toString();
         String oldString = input.getString("old_string");
         String newString = input.getString("new_string");
         boolean replaceAll = input.getBoolean("replace_all", false);
+
+        // 0. PathSecurityService 统一写入安全检查
+        PathCheckResult checkResult = pathSecurity.checkWritePermission(
+                input.getString("file_path"), context.workingDirectory());
+        if (!checkResult.isAllowed()) {
+            return ToolResult.error(checkResult.message());
+        }
+        if (checkResult.needsConfirmation()) {
+            log.warn("Writing to sensitive path (allowed with warning): {}", filePath);
+        }
 
         try {
             // 1. 基础验证
@@ -87,7 +132,16 @@ public class FileEditTool implements Tool {
                 return ToolResult.error("old_string and new_string are identical. No changes to make.");
             }
 
-            Path path = Path.of(filePath);
+            // ★ FileStateCache 前置检查 — Read-before-Edit + 过期检测 (§11.5.9)
+            FileStateCache cache = sessionManager.getFileStateCache(context.sessionId());
+            if (!oldString.isEmpty() && !cache.hasBeenRead(filePath)) {
+                return ToolResult.error("请先使用 Read 工具读取文件内容");
+            }
+            if (!oldString.isEmpty() && cache.isStale(filePath)) {
+                return ToolResult.error("文件已被外部修改，请重新 Read");
+            }
+
+            Path path = resolved;
 
             // 2. 文件不存在 + old_string 为空 = 创建新文件
             if (!Files.exists(path)) {
@@ -214,11 +268,5 @@ public class FileEditTool implements Tool {
             idx += search.length();
         }
         return count;
-    }
-
-    private String resolvePath(String filePath, String workingDirectory) {
-        Path path = Path.of(filePath);
-        if (path.isAbsolute()) return path.toString();
-        return Path.of(workingDirectory).resolve(filePath).normalize().toString();
     }
 }

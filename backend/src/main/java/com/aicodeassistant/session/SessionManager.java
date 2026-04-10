@@ -21,6 +21,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
+import com.aicodeassistant.service.FileStateCache;
 
 /**
  * 会话管理器 — 会话的完整生命周期管理。
@@ -41,6 +44,17 @@ public class SessionManager {
     private final SqliteConfig sqliteConfig;
     private final AppStateStore appStateStore;
     private final HookService hookService;
+
+    // ★ FileStateCache — 会话级文件状态缓存 (§11.5.9)
+    private final ConcurrentHashMap<String, FileStateCache> fileStateCaches = new ConcurrentHashMap<>();
+
+    public FileStateCache getFileStateCache(String sessionId) {
+        return fileStateCaches.computeIfAbsent(sessionId, k -> new FileStateCache());
+    }
+
+    public void removeFileStateCache(String sessionId) {
+        fileStateCaches.remove(sessionId);
+    }
 
     public SessionManager(@Qualifier("projectJdbcTemplate") JdbcTemplate jdbcTemplate,
                           ObjectMapper objectMapper,
@@ -288,6 +302,7 @@ public class SessionManager {
         }
 
         jdbcTemplate.update("DELETE FROM sessions WHERE id = ?", sessionId);
+        removeFileStateCache(sessionId);
         log.info("Session deleted: {}", sessionId);
     }
 

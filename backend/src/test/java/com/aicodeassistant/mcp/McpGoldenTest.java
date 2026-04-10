@@ -80,7 +80,7 @@ class McpGoldenTest {
 
         @BeforeEach
         void setUp() {
-            manager = new McpClientManager(new McpConfiguration());
+            manager = new McpClientManager(new McpConfiguration(), null);
         }
 
         @Test
@@ -288,7 +288,7 @@ class McpGoldenTest {
 
         @BeforeEach
         void setUp() {
-            manager = new McpClientManager(new McpConfiguration());
+            manager = new McpClientManager(new McpConfiguration(), null);
             tool = new ListMcpResourcesTool(manager);
         }
 
@@ -350,7 +350,7 @@ class McpGoldenTest {
 
         @BeforeEach
         void setUp() {
-            manager = new McpClientManager(new McpConfiguration());
+            manager = new McpClientManager(new McpConfiguration(), null);
             tool = new ReadMcpResourceTool(manager);
         }
 

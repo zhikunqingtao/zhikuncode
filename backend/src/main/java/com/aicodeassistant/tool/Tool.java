@@ -147,13 +147,13 @@ public interface Tool {
 
     // ==================== API 格式 ====================
 
-    /** 转换为 API 工具定义格式 */
+    /** 转换为 API 工具定义格式 — 使用 prompt() 作为 LLM 可见描述 */
     default Map<String, Object> toToolDefinition() {
         return Map.of(
                 "type", "function",
                 "function", Map.of(
                         "name", getName(),
-                        "description", getDescription(),
+                        "description", prompt(),
                         "parameters", getInputSchema()
                 )
         );

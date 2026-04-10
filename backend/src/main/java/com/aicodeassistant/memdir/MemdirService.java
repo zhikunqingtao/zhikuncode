@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -44,6 +45,8 @@ public class MemdirService {
     static final String ENTRYPOINT_NAME = "MEMORY.md";
     /** 记忆文件路径 */
     private final Path memoryFile;
+    /** BM25 搜索引擎 */
+    private final MemorySearchEngine searchEngine;
 
     /** 最大行数限制 */
     static final int MAX_ENTRYPOINT_LINES = 200;
@@ -53,6 +56,11 @@ public class MemdirService {
     static final int MAX_MEMORY_SIZE = 50_000;
     /** 压缩保留比例 */
     private static final double COMPACT_KEEP_RATIO = 0.7;
+
+    /** 团队记忆目录名 */
+    private static final String TEAM_MEM_DIR = ".claude/team-memories";
+    /** 记忆最大存活时间（天） */
+    private static final int MAX_MEMORY_AGE_DAYS = 90;
 
     /** 记忆条目头部匹配模式 (增强版，支持分类标签) */
     private static final Pattern ENTRY_HEADER_PATTERN = Pattern.compile(
@@ -69,14 +77,22 @@ public class MemdirService {
      * 可测试构造器 — 允许指定记忆目录。
      */
     public MemdirService(Path memoryDir) {
-        this.memoryDir = memoryDir;
-        this.memoryFile = memoryDir.resolve(ENTRYPOINT_NAME);
+        this(memoryDir, new MemorySearchEngine());
     }
 
-    // ==================== 查询（TF-IDF 语义搜索） ====================
+    /**
+     * 完整构造器 — 允许注入自定义搜索引擎。
+     */
+    public MemdirService(Path memoryDir, MemorySearchEngine searchEngine) {
+        this.memoryDir = memoryDir;
+        this.memoryFile = memoryDir.resolve(ENTRYPOINT_NAME);
+        this.searchEngine = searchEngine;
+    }
+
+    // ==================== 查询（BM25 语义搜索） ====================
 
     /**
-     * 语义搜索记忆 — 基于 TF-IDF 加权的关键词匹配。
+     * 语义搜索记忆 — 基于 BM25 加权的关键词匹配。
      *
      * @param query    查询文本
      * @param topK     返回前 K 条
@@ -89,50 +105,37 @@ public class MemdirService {
         List<MemoryEntry> entries = parseEntries(content);
         if (entries.isEmpty()) return List.of();
 
-        List<String> queryTokens = tokenize(query);
-        if (queryTokens.isEmpty()) return List.of();
-
-        // 构建 IDF (inverse document frequency)
-        Map<String, Integer> docFrequency = new HashMap<>();
-        List<List<String>> allTokenized = new ArrayList<>();
-        for (MemoryEntry entry : entries) {
-            List<String> tokens = tokenize(entry.content());
-            allTokenized.add(tokens);
-            Set<String> uniqueTokens = new HashSet<>(tokens);
-            for (String token : uniqueTokens) {
-                docFrequency.merge(token, 1, Integer::sum);
-            }
-        }
-        int totalDocs = entries.size();
-
-        // 计算每个条目的 TF-IDF 得分
-        List<ScoredEntry> scored = new ArrayList<>();
-        for (int i = 0; i < entries.size(); i++) {
-            List<String> docTokens = allTokenized.get(i);
-            double score = 0;
-            for (String qToken : queryTokens) {
-                // TF: 查询词在文档中出现次数 / 文档总词数
-                long tf = docTokens.stream().filter(t -> t.equals(qToken)).count();
-                if (tf == 0) continue;
-                double tfNorm = (double) tf / Math.max(1, docTokens.size());
-                // IDF: log(N / df)
-                int df = docFrequency.getOrDefault(qToken, 1);
-                double idf = Math.log((double) totalDocs / df);
-                score += tfNorm * idf;
-            }
-            if (score > 0) {
-                scored.add(new ScoredEntry(entries.get(i), score));
-            }
-        }
-
-        return scored.stream()
-                .sorted(Comparator.comparingDouble(ScoredEntry::score).reversed())
-                .limit(topK)
-                .map(se -> new Memory(
-                        se.entry.source().name() + "_" + se.entry.timestamp().getEpochSecond(),
-                        se.entry.content(),
-                        se.entry.category()))
+        // 构建搜索文档列表
+        List<MemorySearchEngine.DocumentEntry> documents = entries.stream()
+                .map(e -> new MemorySearchEngine.DocumentEntry(
+                        extractTitle(e.content()),    // 提取 markdown 标题
+                        e.content()
+                ))
                 .toList();
+
+        // BM25 搜索
+        List<MemorySearchEngine.ScoredResult> results = searchEngine.search(
+                documents, query, topK);
+
+        return results.stream()
+                .map(sr -> {
+                    MemoryEntry entry = entries.get(sr.index());
+                    return new Memory(
+                            entry.source().name() + "_" + entry.timestamp().getEpochSecond(),
+                            entry.content(),
+                            entry.category());
+                })
+                .toList();
+    }
+
+    /**
+     * 从记忆内容中提取 markdown 标题。
+     */
+    private String extractTitle(String content) {
+        if (content == null) return "";
+        int newline = content.indexOf('\n');
+        String firstLine = newline > 0 ? content.substring(0, newline) : content;
+        return firstLine.replaceAll("^#+\\s*", "").trim();
     }
 
     /**
@@ -471,5 +474,89 @@ public class MemdirService {
         public MemdirException(String message, Throwable cause) {
             super(message, cause);
         }
+    }
+
+    // ==================== 团队记忆 ====================
+
+    /**
+     * 加载团队记忆 — 扫描项目根目录的 .claude/team-memories/。
+     */
+    public List<Memory> loadTeamMemories(Path projectRoot) {
+        if (projectRoot == null) return List.of();
+        Path teamDir = projectRoot.resolve(TEAM_MEM_DIR);
+        if (!Files.isDirectory(teamDir)) return List.of();
+        List<Memory> memories = new ArrayList<>();
+        try (var stream = Files.list(teamDir)) {
+            stream.filter(p -> p.toString().endsWith(".md"))
+                  .forEach(p -> {
+                      try {
+                          String content = Files.readString(p, StandardCharsets.UTF_8);
+                          memories.add(new Memory("team:" + p.getFileName(), content,
+                                                   MemoryCategory.TEAM));
+                      } catch (IOException e) {
+                          log.warn("Failed to read team memory: {}", p, e);
+                      }
+                  });
+        } catch (IOException e) {
+            log.warn("Failed to scan team memory dir: {}", teamDir, e);
+        }
+        return memories;
+    }
+
+    /**
+     * 清理过期记忆。
+     */
+    public int purgeExpiredMemories() {
+        String content = readMemories();
+        if (content.isEmpty()) return 0;
+        List<MemoryEntry> entries = parseEntries(content);
+        Instant cutoff = Instant.now().minus(Duration.ofDays(MAX_MEMORY_AGE_DAYS));
+        List<MemoryEntry> remaining = entries.stream()
+                .filter(e -> e.timestamp().isAfter(cutoff) || e.timestamp().equals(Instant.EPOCH))
+                .toList();
+        int purged = entries.size() - remaining.size();
+        if (purged > 0) {
+            String updated = remaining.stream()
+                    .map(e -> String.format("<!-- source:%s time:%s category:%s -->\n%s",
+                            e.source().name(), e.timestamp(), e.category().tag(), e.content()))
+                    .collect(Collectors.joining("\n\n"));
+            try {
+                Files.writeString(memoryFile, updated,
+                        StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+                log.info("Purged {} expired memories", purged);
+            } catch (IOException e) {
+                log.error("Failed to purge memories", e);
+            }
+        }
+        return purged;
+    }
+
+    /**
+     * 构建记忆提示行 — 用于注入系统提示。
+     */
+    public String buildMemoryPrompt(Path projectRoot) {
+        StringBuilder sb = new StringBuilder();
+        String personalMemory = readMemoriesForPrompt();
+        if (!personalMemory.isEmpty()) {
+            sb.append("## Personal Memory\n");
+            sb.append(personalMemory);
+            sb.append("\n\n");
+        }
+        List<Memory> teamMemories = loadTeamMemories(projectRoot);
+        if (!teamMemories.isEmpty()) {
+            sb.append("## Team Memory\n");
+            for (Memory mem : teamMemories) {
+                sb.append("### ").append(mem.name()).append("\n");
+                sb.append(mem.content()).append("\n\n");
+            }
+        }
+        if (!sb.isEmpty()) {
+            sb.append("\n---\n");
+            sb.append("Memory categories: USER_PREFERENCE, PROJECT_CONVENTION, ");
+            sb.append("CODE_PATTERN, ERROR_SOLUTION, SEMANTIC, TEAM\n");
+            sb.append("To save memory: use MemoryTool with appropriate category\n");
+            sb.append("To search memory: use MemoryTool search with keywords\n");
+        }
+        return sb.toString();
     }
 }

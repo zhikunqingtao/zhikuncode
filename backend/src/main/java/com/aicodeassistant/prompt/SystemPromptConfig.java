@@ -29,6 +29,9 @@ public class SystemPromptConfig {
     // 追加到最终提示末尾（除非使用 Override）
     private String appendSystemPrompt;
 
+    // 会话 ID（用于 Coordinator 模式动态生成提示）
+    private String sessionId;
+
     public SystemPromptConfig() {
     }
 
@@ -112,5 +115,18 @@ public class SystemPromptConfig {
 
     public void setAppendSystemPrompt(String appendSystemPrompt) {
         this.appendSystemPrompt = appendSystemPrompt;
+    }
+
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
+    }
+
+    public SystemPromptConfig withSessionId(String sessionId) {
+        this.sessionId = sessionId;
+        return this;
     }
 }

@@ -328,7 +328,7 @@ public class QueryController {
                     .getModelCapabilities(model);
             return caps.contextWindow();
         } catch (Exception e) {
-            return 128000; // 默认 128k
+            return ModelCapabilities.DEFAULT.contextWindow();
         }
     }
 

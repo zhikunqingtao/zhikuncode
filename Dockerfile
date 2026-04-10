@@ -66,9 +66,9 @@ ENV JAVA_OPTS="-Xms256m -Xmx1024m --enable-preview"
 ENV PYTHON_SERVICE_PATH="/app/python-service"
 ENV SPRING_PROFILES_ACTIVE="production"
 
-# Health check
+# Health check (wget — curl not available in jre base image)
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
-    CMD curl -f http://localhost:8080/actuator/health || exit 1
+    CMD wget -q --spider http://localhost:8080/api/health || exit 1
 
 EXPOSE 8080
 

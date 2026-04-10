@@ -1,5 +1,7 @@
 package com.aicodeassistant.tool.agent;
 
+import com.aicodeassistant.config.FeatureFlagService;
+import com.aicodeassistant.coordinator.TaskNotificationFormatter;
 import com.aicodeassistant.engine.QueryConfig;
 import com.aicodeassistant.engine.QueryEngine;
 import com.aicodeassistant.engine.QueryLoopState;
@@ -45,6 +47,8 @@ public class SubAgentExecutor {
     private final ToolRegistry toolRegistry;
     private final BackgroundAgentTracker backgroundTracker;
     private final WorktreeManager worktreeManager;
+    private final TaskNotificationFormatter taskNotificationFormatter;
+    private final FeatureFlagService featureFlagService;
 
     /** 子代理结果最大字符数 */
     static final int MAX_RESULT_SIZE_CHARS = 100_000;
@@ -56,12 +60,16 @@ public class SubAgentExecutor {
                             QueryEngine queryEngine,
                             @Lazy ToolRegistry toolRegistry,
                             BackgroundAgentTracker backgroundTracker,
-                            WorktreeManager worktreeManager) {
+                            WorktreeManager worktreeManager,
+                            TaskNotificationFormatter taskNotificationFormatter,
+                            FeatureFlagService featureFlagService) {
         this.concurrencyController = concurrencyController;
         this.queryEngine = queryEngine;
         this.toolRegistry = toolRegistry;
         this.backgroundTracker = backgroundTracker;
         this.worktreeManager = worktreeManager;
+        this.taskNotificationFormatter = taskNotificationFormatter;
+        this.featureFlagService = featureFlagService;
     }
 
     /**
@@ -73,6 +81,7 @@ public class SubAgentExecutor {
      */
     public AgentResult executeSync(AgentRequest request, ToolUseContext parentContext) {
         int nestingDepth = parentContext.nestingDepth() + 1;
+        Instant startTime = Instant.now();
 
         try (var slot = concurrencyController.acquireSlot(
                 request.agentId(), nestingDepth, parentContext.sessionId())) {
@@ -142,6 +151,16 @@ public class SubAgentExecutor {
             String answer = extractFinalAnswer(result);
             if (answer.length() > MAX_RESULT_SIZE_CHARS) {
                 answer = answer.substring(0, MAX_RESULT_SIZE_CHARS) + "\n...[truncated]";
+            }
+
+            // Coordinator 模式下格式化为 task-notification
+            if (taskNotificationFormatter != null
+                    && featureFlagService.isEnabled("COORDINATOR_MODE")) {
+                long durationMs = Duration.between(startTime, Instant.now()).toMillis();
+                answer = taskNotificationFormatter.formatNotification(
+                        request.agentId(),
+                        new AgentResult("completed", answer, request.prompt(), null),
+                        durationMs);
             }
 
             return new AgentResult("completed", answer, request.prompt(), null);

@@ -5,8 +5,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
+import java.io.IOException;
+import java.nio.file.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 版本迁移运行器 — 在应用启动时执行所有待运行的迁移。
@@ -25,6 +30,9 @@ import java.util.List;
 public class MigrationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(MigrationRunner.class);
+
+    private static final Path MIGRATION_STATE_FILE = Path.of(
+        System.getProperty("user.home"), ".ai-code-assistant", "migrations.json");
 
     private final List<Migration> migrations;
     private final List<MigrationRecord> executionLog = new ArrayList<>();
@@ -48,12 +56,19 @@ public class MigrationRunner {
         }
 
         log.info("Running {} registered migration(s)...", migrations.size());
+
+        Set<String> executedMigrations = loadExecutedMigrations();
         int executed = 0;
         int skipped = 0;
         int failed = 0;
 
         for (Migration migration : migrations) {
             try {
+                if (executedMigrations.contains(migration.name())) {
+                    log.debug("Migration already executed: {}", migration.name());
+                    skipped++;
+                    continue;
+                }
                 if (migration.shouldRun()) {
                     log.info("Executing migration: {}", migration.name());
                     long startTime = System.currentTimeMillis();
@@ -65,6 +80,7 @@ public class MigrationRunner {
 
                     executionLog.add(new MigrationRecord(
                             migration.name(), MigrationStatus.SUCCESS, duration, null));
+                    markMigrationExecuted(migration.name());
                     executed++;
                 } else {
                     log.debug("Migration skipped (not needed): {}", migration.name());
@@ -97,6 +113,35 @@ public class MigrationRunner {
      */
     public int getMigrationCount() {
         return migrations.size();
+    }
+
+    // ===== 版本状态持久化 =====
+
+    private Set<String> loadExecutedMigrations() {
+        try {
+            if (Files.exists(MIGRATION_STATE_FILE)) {
+                String json = Files.readString(MIGRATION_STATE_FILE);
+                return new HashSet<>(List.of(
+                    json.replaceAll("[\\[\\]\"\\s]", "").split(",")));
+            }
+        } catch (IOException e) {
+            log.warn("Failed to load migration state: {}", e.getMessage());
+        }
+        return new HashSet<>();
+    }
+
+    private void markMigrationExecuted(String migrationName) {
+        try {
+            Set<String> executed = loadExecutedMigrations();
+            executed.add(migrationName);
+            Files.createDirectories(MIGRATION_STATE_FILE.getParent());
+            String json = "[" + executed.stream()
+                .map(s -> "\"" + s + "\"")
+                .collect(Collectors.joining(",")) + "]";
+            Files.writeString(MIGRATION_STATE_FILE, json);
+        } catch (IOException e) {
+            log.warn("Failed to save migration state: {}", e.getMessage());
+        }
     }
 
     // ===== 内部类型 =====

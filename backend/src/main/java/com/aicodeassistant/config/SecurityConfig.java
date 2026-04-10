@@ -10,6 +10,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -65,18 +67,32 @@ public class SecurityConfig {
     }
 
     /**
-     * CORS 配置 — 允许前端 dev server (Vite) 跨域访问。
+     * CORS 配置 — 显式白名单，禁止全开放。
      * <p>
-     * P0 阶段: 允许所有来源 (开发模式)
-     * P1 阶段: 仅允许指定来源 (生产模式)
+     * 默认允许 localhost:5173 (Vite dev) 和 localhost:8080 (后端)。
+     * 额外来源通过环境变量 CORS_ALLOWED_ORIGINS 配置。
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        // P0: 允许所有来源 (开发模式)
-        config.setAllowedOriginPatterns(List.of("*"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
+        // 显式指定允许的来源 — 对齐最小权限原则
+        List<String> allowedOrigins = new ArrayList<>(List.of(
+            "http://localhost:5173",   // Vite dev server
+            "http://localhost:8080",   // 后端前端
+            "http://127.0.0.1:5173",
+            "http://127.0.0.1:8080"
+        ));
+        // 从环境变量读取额外允许来源
+        String extraOrigins = System.getenv("CORS_ALLOWED_ORIGINS");
+        if (extraOrigins != null && !extraOrigins.isBlank()) {
+            Arrays.stream(extraOrigins.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .forEach(allowedOrigins::add);
+        }
+        config.setAllowedOrigins(allowedOrigins);
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Session-Id"));
         config.setAllowCredentials(true);
         config.setExposedHeaders(List.of("Set-Cookie", "X-Session-Id"));
         config.setMaxAge(3600L);

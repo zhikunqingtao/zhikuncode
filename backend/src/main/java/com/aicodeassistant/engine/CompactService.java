@@ -49,6 +49,11 @@ public class CompactService {
     /** 自动压缩缓冲 token 数 (ContextCascade 用) */
     private static final int AUTOCOMPACT_BUFFER_TOKENS = 13000;
 
+    /** SessionMemoryCompact 配置 */
+    private static final int SMC_MIN_TOKENS = 10_000;
+    private static final int SMC_MIN_TEXT_BLOCK_MESSAGES = 5;
+    private static final int SMC_MAX_TOKENS = 40_000;
+
     private final TokenCounter tokenCounter;
     private final LlmProviderRegistry providerRegistry;
 
@@ -190,18 +195,28 @@ public class CompactService {
             return CompactResult.notNeeded();
         }
 
+        // ★ 新增：SMC 配对完整性保证 ★
+        plan = ensureToolPairIntegrity(plan, messages);
+
         int beforeTokens = tokenCounter.estimateTokens(messages);
 
-        // ---- Level 1: LLM 摘要 ----
-        Optional<String> summary = generateLlmSummary(plan.compactionMessages(), plan.targetSummaryTokens());
-        if (summary.isPresent()) {
-            List<Message> compactedMessages = buildCompactResultWithSummary(plan, summary.get());
-            int afterTokens = tokenCounter.estimateTokens(compactedMessages);
-            double ratio = beforeTokens > 0 ? (double) (beforeTokens - afterTokens) / beforeTokens : 0.0;
-            log.info("压缩完成 (LLM 摘要): {} → {} tokens, 压缩率 {:.1f}%",
-                    beforeTokens, afterTokens, ratio * 100);
-            return new CompactResult(compactedMessages, beforeTokens, afterTokens,
-                    plan.compactionMessages().size(), ratio);
+        // ---- Level 1: LLM 摘要 (增强版) ----
+        Optional<String> rawSummary = generateLlmSummary(plan.compactionMessages(), plan.targetSummaryTokens());
+        if (rawSummary.isPresent()) {
+            String structuredSummary = extractStructuredSummary(rawSummary.get());
+            if (validateSummaryQuality(structuredSummary, plan.compactionMessages())) {
+                List<Message> compactedMessages = buildCompactResultWithSummary(plan, structuredSummary);
+                int afterTokens = tokenCounter.estimateTokens(compactedMessages);
+                double ratio = beforeTokens > 0 ? (double) (beforeTokens - afterTokens) / beforeTokens : 0.0;
+                log.info("压缩完成 (LLM 摘要, 质量校验通过): {} → {} tokens, 压缩率 {}%",
+                        beforeTokens, afterTokens, String.format("%.1f", ratio * 100));
+                CompactResult result = new CompactResult(compactedMessages, beforeTokens, afterTokens,
+                        plan.compactionMessages().size(), ratio);
+                executeCompactHooks(compactedMessages, result);
+                return result;
+            } else {
+                log.warn("LLM 摘要质量不足，降级到关键消息选择");
+            }
         }
 
         // ---- Level 2: 关键消息选择 ----
@@ -446,6 +461,257 @@ public class CompactService {
     }
 
     // ============ 辅助方法 ============
+
+    // ============ SMC (SessionMemoryCompact) 方法 ============
+
+    /**
+     * Session Memory Compaction — 对齐原版 trySessionMemoryCompaction。
+     * 保留所有消息，仅生成摘要注入。
+     */
+    public CompactResult trySessionMemoryCompaction(List<Message> messages, int contextWindow) {
+        if (!shouldAutoCompactBufferBased(messages, contextWindow)) {
+            return CompactResult.notNeeded();
+        }
+        int lastSummaryIndex = findLastSummaryIndex(messages);
+        int keepIndex = calculateMessagesToKeepIndex(messages, lastSummaryIndex);
+        if (keepIndex <= 0 || keepIndex >= messages.size()) {
+            return CompactResult.notNeeded();
+        }
+        keepIndex = adjustIndexToPreserveApiInvariants(messages, keepIndex);
+        List<Message> toSummarize = messages.subList(
+                Math.max(0, lastSummaryIndex + 1), keepIndex);
+        if (toSummarize.isEmpty()) return CompactResult.notNeeded();
+        int beforeTokens = tokenCounter.estimateTokens(messages);
+        Optional<String> summary = generateLlmSummary(toSummarize, SMC_MAX_TOKENS);
+        if (summary.isEmpty()) {
+            return CompactResult.notNeeded();
+        }
+        List<Message> result = new ArrayList<>();
+        if (lastSummaryIndex >= 0) {
+            result.addAll(messages.subList(0, lastSummaryIndex + 1));
+        }
+        result.add(new Message.SystemMessage(
+                UUID.randomUUID().toString(), Instant.now(),
+                summary.get(), SystemMessageType.COMPACT_SUMMARY));
+        result.addAll(messages.subList(keepIndex, messages.size()));
+        int afterTokens = tokenCounter.estimateTokens(result);
+        return CompactResult.success(result, beforeTokens, afterTokens);
+    }
+
+    private int calculateMessagesToKeepIndex(List<Message> messages, int lastSummaryIndex) {
+        int startIndex = Math.max(0, lastSummaryIndex + 1);
+        int tokenCount = 0;
+        int textBlockCount = 0;
+        for (int i = startIndex; i < messages.size(); i++) {
+            tokenCount += tokenCounter.estimateTokens(List.of(messages.get(i)));
+            if (hasTextBlocks(messages.get(i))) textBlockCount++;
+        }
+        if (tokenCount >= SMC_MAX_TOKENS) return startIndex;
+        if (tokenCount >= SMC_MIN_TOKENS && textBlockCount >= SMC_MIN_TEXT_BLOCK_MESSAGES) return startIndex;
+        for (int i = startIndex - 1; i >= 0; i--) {
+            Message msg = messages.get(i);
+            tokenCount += tokenCounter.estimateTokens(List.of(msg));
+            if (hasTextBlocks(msg)) textBlockCount++;
+            startIndex = i;
+            if (tokenCount >= SMC_MAX_TOKENS) break;
+            if (tokenCount >= SMC_MIN_TOKENS && textBlockCount >= SMC_MIN_TEXT_BLOCK_MESSAGES) break;
+        }
+        return startIndex;
+    }
+
+    private boolean hasTextBlocks(Message message) {
+        if (message instanceof Message.AssistantMessage am && am.content() != null) {
+            return am.content().stream().anyMatch(b -> b instanceof ContentBlock.TextBlock);
+        }
+        if (message instanceof Message.UserMessage user && user.content() != null) {
+            return user.content().stream().anyMatch(b -> b instanceof ContentBlock.TextBlock);
+        }
+        return false;
+    }
+
+    private int adjustIndexToPreserveApiInvariants(List<Message> messages, int startIndex) {
+        if (startIndex <= 0 || startIndex >= messages.size()) return startIndex;
+        int adjustedIndex = startIndex;
+        Set<String> allToolResultIds = new HashSet<>();
+        for (int i = startIndex; i < messages.size(); i++) {
+            if (messages.get(i) instanceof Message.UserMessage user && user.toolUseResult() != null) {
+                allToolResultIds.add(user.sourceToolAssistantUUID());
+            }
+        }
+        if (!allToolResultIds.isEmpty()) {
+            Set<String> toolUseIdsInKept = new HashSet<>();
+            for (int i = adjustedIndex; i < messages.size(); i++) {
+                if (messages.get(i) instanceof Message.AssistantMessage am && am.content() != null) {
+                    for (var block : am.content()) {
+                        if (block instanceof ContentBlock.ToolUseBlock tub) toolUseIdsInKept.add(tub.id());
+                    }
+                }
+            }
+            Set<String> neededIds = new HashSet<>(allToolResultIds);
+            neededIds.removeAll(toolUseIdsInKept);
+            for (int i = adjustedIndex - 1; i >= 0 && !neededIds.isEmpty(); i--) {
+                if (messages.get(i) instanceof Message.AssistantMessage am && am.content() != null) {
+                    boolean hasNeeded = am.content().stream()
+                            .anyMatch(b -> b instanceof ContentBlock.ToolUseBlock tub && neededIds.contains(tub.id()));
+                    if (hasNeeded) {
+                        adjustedIndex = i;
+                        am.content().stream()
+                                .filter(b -> b instanceof ContentBlock.ToolUseBlock)
+                                .map(b -> ((ContentBlock.ToolUseBlock) b).id())
+                                .forEach(neededIds::remove);
+                    }
+                }
+            }
+        }
+        Set<String> uuidsInKept = new HashSet<>();
+        for (int i = adjustedIndex; i < messages.size(); i++) {
+            if (messages.get(i) instanceof Message.AssistantMessage am) uuidsInKept.add(am.uuid());
+        }
+        for (int i = adjustedIndex - 1; i >= 0; i--) {
+            if (messages.get(i) instanceof Message.AssistantMessage am && uuidsInKept.contains(am.uuid())) {
+                adjustedIndex = i;
+            }
+        }
+        return adjustedIndex;
+    }
+
+    private int findLastSummaryIndex(List<Message> messages) {
+        for (int i = messages.size() - 1; i >= 0; i--) {
+            if (messages.get(i) instanceof Message.SystemMessage sys
+                    && sys.type() == SystemMessageType.COMPACT_SUMMARY) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    // ============ §9.1 增强方法 ============
+
+    /** 结构化摘要解析 */
+    private String extractStructuredSummary(String rawSummary) {
+        if (rawSummary == null || rawSummary.isBlank()) return "";
+        int summaryStart = rawSummary.indexOf("<summary>");
+        int summaryEnd = rawSummary.indexOf("</summary>");
+        if (summaryStart >= 0 && summaryEnd > summaryStart) {
+            return rawSummary.substring(summaryStart + "<summary>".length(), summaryEnd).trim();
+        }
+        int analysisEnd = rawSummary.indexOf("</analysis>");
+        if (analysisEnd >= 0) {
+            return rawSummary.substring(analysisEnd + "</analysis>".length()).trim();
+        }
+        return rawSummary.trim();
+    }
+
+    /** 摘要质量校验 */
+    private boolean validateSummaryQuality(String summary, List<Message> originalMessages) {
+        if (summary.length() < 100) return false;
+        int filePathCount = 0;
+        for (String line : summary.split("\n")) {
+            if (line.contains("/") && (line.contains(".java") || line.contains(".ts")
+                    || line.contains(".py") || line.contains(".md"))) {
+                filePathCount++;
+            }
+        }
+        boolean hasFileOps = originalMessages.stream().anyMatch(m ->
+                m instanceof Message.AssistantMessage am && am.content() != null
+                        && am.content().stream().anyMatch(b ->
+                        b instanceof ContentBlock.ToolUseBlock tub
+                                && (tub.name().contains("File") || tub.name().contains("Bash"))));
+        if (hasFileOps && filePathCount == 0) {
+            log.warn("摘要质量不足：原始消息包含文件操作但摘要中无文件路径");
+            return false;
+        }
+        return true;
+    }
+
+    /** SMC 配对完整性保证 */
+    public CompactionPlan ensureToolPairIntegrity(CompactionPlan plan, List<Message> allMessages) {
+        Set<String> toolUseIds = new HashSet<>();
+        Set<String> toolResultIds = new HashSet<>();
+        for (Message msg : plan.compactionMessages()) {
+            if (msg instanceof Message.AssistantMessage am && am.content() != null) {
+                for (ContentBlock block : am.content()) {
+                    if (block instanceof ContentBlock.ToolUseBlock tub) toolUseIds.add(tub.id());
+                }
+            }
+            if (msg instanceof Message.UserMessage um && um.content() != null) {
+                for (ContentBlock block : um.content()) {
+                    if (block instanceof ContentBlock.ToolResultBlock trb) toolResultIds.add(trb.toolUseId());
+                }
+            }
+        }
+        Set<String> orphanResultIds = new HashSet<>();
+        Set<String> orphanUseIds = new HashSet<>();
+        for (Message msg : plan.preservedMessages()) {
+            if (msg instanceof Message.UserMessage um && um.content() != null) {
+                for (ContentBlock block : um.content()) {
+                    if (block instanceof ContentBlock.ToolResultBlock trb && toolUseIds.contains(trb.toolUseId())) {
+                        orphanResultIds.add(trb.toolUseId());
+                    }
+                }
+            }
+            if (msg instanceof Message.AssistantMessage am && am.content() != null) {
+                for (ContentBlock block : am.content()) {
+                    if (block instanceof ContentBlock.ToolUseBlock tub && toolResultIds.contains(tub.id())) {
+                        orphanUseIds.add(tub.id());
+                    }
+                }
+            }
+        }
+        if (orphanResultIds.isEmpty() && orphanUseIds.isEmpty()) return plan;
+        log.info("SMC: 检测到 {} 个孤立 tool_result, {} 个孤立 tool_use，调整压缩边界",
+                orphanResultIds.size(), orphanUseIds.size());
+        List<Message> newCompaction = new ArrayList<>(plan.compactionMessages());
+        List<Message> newPreserved = new ArrayList<>();
+        Set<String> allOrphans = new HashSet<>();
+        allOrphans.addAll(orphanResultIds);
+        allOrphans.addAll(orphanUseIds);
+        for (Message msg : plan.preservedMessages()) {
+            boolean isOrphan = false;
+            if (msg instanceof Message.UserMessage um && um.content() != null) {
+                for (ContentBlock block : um.content()) {
+                    if (block instanceof ContentBlock.ToolResultBlock trb && allOrphans.contains(trb.toolUseId())) {
+                        isOrphan = true; break;
+                    }
+                }
+            }
+            if (msg instanceof Message.AssistantMessage am && am.content() != null) {
+                for (ContentBlock block : am.content()) {
+                    if (block instanceof ContentBlock.ToolUseBlock tub && allOrphans.contains(tub.id())) {
+                        isOrphan = true; break;
+                    }
+                }
+            }
+            if (isOrphan) newCompaction.add(msg);
+            else newPreserved.add(msg);
+        }
+        int newCompactionTokens = tokenCounter.estimateTokens(newCompaction);
+        return new CompactionPlan(plan.frozenMessages(), newCompaction, newPreserved,
+                newCompactionTokens, plan.targetSummaryTokens());
+    }
+
+    // ============ 压缩后钩子 ============
+
+    /** 压缩后钩子接口 */
+    public interface CompactHook {
+        void afterCompact(List<Message> compactedMessages, CompactResult result);
+    }
+
+    private final List<CompactHook> compactHooks = new ArrayList<>();
+
+    public void registerCompactHook(CompactHook hook) {
+        compactHooks.add(hook);
+    }
+
+    private void executeCompactHooks(List<Message> compactedMessages, CompactResult result) {
+        for (CompactHook hook : compactHooks) {
+            try {
+                hook.afterCompact(compactedMessages, result);
+            } catch (Exception e) {
+                log.warn("Compact hook failed: {}", e.getMessage());
+            }
+        }
+    }
 
     /**
      * 查找轮次边界 — 从消息列表末尾回溯 N 个用户消息轮次。

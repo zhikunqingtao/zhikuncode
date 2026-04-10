@@ -3,10 +3,10 @@ package com.aicodeassistant.tool;
 import com.aicodeassistant.hook.HookRegistry;
 import com.aicodeassistant.hook.HookService;
 import com.aicodeassistant.model.*;
+import com.aicodeassistant.permission.PermissionNotifier;
 import com.aicodeassistant.permission.PermissionPipeline;
 import com.aicodeassistant.permission.PermissionRuleRepository;
 import com.aicodeassistant.security.SensitiveDataFilter;
-import com.aicodeassistant.websocket.WebSocketController;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +59,7 @@ public class ToolExecutionPipeline {
      * @return 工具执行结果
      */
     public ToolResult execute(Tool tool, ToolInput input, ToolUseContext context,
-                               WebSocketController wsPusher) {
+                               PermissionNotifier wsPusher) {
         return doExecute(tool, input, context, wsPusher);
     }
 
@@ -76,7 +76,7 @@ public class ToolExecutionPipeline {
     }
 
     private ToolResult doExecute(Tool tool, ToolInput input, ToolUseContext context,
-                                  WebSocketController wsPusher) {
+                                  PermissionNotifier wsPusher) {
         String toolName = tool.getName();
         long startTime = System.currentTimeMillis();
 

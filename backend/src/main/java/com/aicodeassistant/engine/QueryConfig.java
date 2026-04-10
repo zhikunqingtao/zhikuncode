@@ -22,6 +22,7 @@ import java.util.Map;
  * @param maxTurns        最大循环轮次 (防止无限循环)
  * @param querySource     查询源标识 (用于重试分类)
  * @param tokenBudget     Token 预算（null 表示不限，对齐 tokenBudget.ts）
+ * @param modelTierChain  模型降级链（有序列表，index 0 = 最优）
  * @see <a href="SPEC §3.1.1a">查询主循环实现细节</a>
  */
 public record QueryConfig(
@@ -35,7 +36,8 @@ public record QueryConfig(
         ThinkingConfig thinkingConfig,
         int maxTurns,
         String querySource,
-        Integer tokenBudget
+        Integer tokenBudget,
+        List<String> modelTierChain
 ) {
     /** 默认最大输出 token */
     public static final int DEFAULT_MAX_TOKENS = 8192;
@@ -60,6 +62,6 @@ public record QueryConfig(
             int maxTurns, String querySource) {
         return new QueryConfig(model, null, systemPrompt, tools,
                 toolDefinitions, maxTokens, contextWindow,
-                thinkingConfig, maxTurns, querySource, null);
+                thinkingConfig, maxTurns, querySource, null, List.of());
     }
 }

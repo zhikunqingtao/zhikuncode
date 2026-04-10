@@ -32,3 +32,15 @@ Thumbs.db
 *.swp
 *.swo
 *~
+
+# === 敏感文件 ===
+.env
+.env.*
+*.db
+*.db-wal
+*.db-shm
+backend/.ai-code-assistant/
+log/
+access-token
+*.pem
+*.key

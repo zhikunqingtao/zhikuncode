@@ -261,6 +261,29 @@ public class McpServerConnection {
     public void incrementReconnectAttempts() { this.reconnectAttempts++; }
     public void resetReconnectAttempts() { this.reconnectAttempts = 0; }
 
+    /** 检查连接是否存活 — STDIO 检查进程，其他传输检查状态 */
+    public boolean isAlive() {
+        if (config.type() == McpTransportType.STDIO) {
+            return process != null && process.isAlive();
+        }
+        return status == McpConnectionStatus.CONNECTED;
+    }
+
+    /** 工具变更回调 */
+    private Runnable toolsChangedCallback;
+
+    /** 注册工具变更监听器 */
+    public void onToolsChanged(Runnable callback) {
+        this.toolsChangedCallback = callback;
+    }
+
+    /** 触发工具变更通知 */
+    public void notifyToolsChanged() {
+        if (toolsChangedCallback != null) {
+            toolsChangedCallback.run();
+        }
+    }
+
     /** MCP 工具定义 */
     public record McpToolDefinition(
             String name,

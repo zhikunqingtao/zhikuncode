@@ -1,13 +1,32 @@
 package com.aicodeassistant.model;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * 内容块 — sealed interface 保证类型穷举。
  * 含 text / tool_use / tool_result / image / thinking / redacted_thinking 六种子类型。
  *
+ * ★ 审查修复 [S2]：Jackson 多态序列化配置 ★
+ * sealed interface 需要 @JsonTypeInfo + @JsonSubTypes 才能正确序列化/反序列化。
+ * 使用 NAME 策略将类型信息写入 JSON 的 "type" 字段。
+ *
  * @see <a href="SPEC §5.1">消息模型</a>
  */
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.PROPERTY,
+    property = "type"
+)
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = ContentBlock.TextBlock.class, name = "text"),
+    @JsonSubTypes.Type(value = ContentBlock.ToolUseBlock.class, name = "tool_use"),
+    @JsonSubTypes.Type(value = ContentBlock.ToolResultBlock.class, name = "tool_result"),
+    @JsonSubTypes.Type(value = ContentBlock.ThinkingBlock.class, name = "thinking"),
+    @JsonSubTypes.Type(value = ContentBlock.ImageBlock.class, name = "image"),
+    @JsonSubTypes.Type(value = ContentBlock.RedactedThinkingBlock.class, name = "redacted_thinking")
+})
 public sealed interface ContentBlock {
 
     record TextBlock(

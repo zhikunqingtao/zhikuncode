@@ -53,6 +53,33 @@ public class REPLTool implements Tool {
     }
 
     @Override
+    public String prompt() {
+        return """
+                Start or connect to an interactive code interpreter session (REPL). Execute code in a \
+                persistent environment where variables and state are maintained across calls.
+
+                Use this tool when:
+                - You need to execute code that depends on previously defined variables or imports
+                - You want to iteratively explore data or test code snippets
+                - The task requires maintaining state between multiple code executions
+                - You need an interactive computing environment (e.g., data analysis, prototyping)
+
+                Do NOT use this tool when:
+                - A simple one-off command can be run via Bash/PowerShell
+                - You need to run shell commands (use Bash or PowerShell instead)
+                - The code doesn't require persistent state
+
+                Supported languages: python (primary), node, ruby.
+
+                Session management:
+                - Use session_id to reconnect to an existing session and maintain state
+                - Sessions have a 30-second execution timeout per call
+                - Sessions auto-destroy after 10 minutes of inactivity
+                - Maximum 3 concurrent REPL sessions
+                """;
+    }
+
+    @Override
     public Map<String, Object> getInputSchema() {
         return Map.of(
                 "type", "object",

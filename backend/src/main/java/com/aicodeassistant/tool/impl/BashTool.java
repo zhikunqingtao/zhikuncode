@@ -45,7 +45,9 @@ public class BashTool implements Tool {
     // 高危破坏性命令 — 经 AST 包装命令剥离后检查 argv[0]
     private static final Set<String> DESTRUCTIVE_COMMANDS = Set.of(
             "rm", "rmdir", "chmod", "chown", "mkfs", "dd",
-            "shred", "truncate");
+            "shred", "truncate", "wipefs", "fdisk", "parted",
+            "kill", "killall", "pkill", "reboot", "shutdown",
+            "halt", "poweroff", "init", "systemctl");
 
     private final BashSecurityAnalyzer securityAnalyzer;
     private final BashCommandClassifier commandClassifier;
@@ -68,6 +70,99 @@ public class BashTool implements Tool {
     public String getDescription() {
         return "Execute a shell command. Use for running scripts, installing packages, "
                 + "compiling code, managing files, and performing system operations.";
+    }
+
+    @Override
+    public String prompt() {
+        return """
+                Executes a given bash command and returns its output.
+                
+                The working directory persists between commands, but shell state does not. \
+                The shell environment is initialized from the user's profile (bash or zsh).
+                
+                IMPORTANT: Avoid using this tool to run `find`, `grep`, `cat`, `head`, `tail`, \
+                `sed`, `awk`, or `echo` commands, unless explicitly instructed or after you have \
+                verified that a dedicated tool cannot accomplish your task. Instead, use the \
+                appropriate dedicated tool as this will provide a much better experience for the user:
+                - File search: Use Glob (NOT find or ls)
+                - Content search: Use Grep (NOT grep or rg)
+                - Read files: Use Read (NOT cat/head/tail)
+                - Edit files: Use FileEdit (NOT sed/awk)
+                - Write files: Use Write (NOT echo >/cat <<EOF)
+                - Communication: Output text directly (NOT echo/printf)
+                While the Bash tool can do similar things, it's better to use the built-in tools \
+                as they provide a better user experience and make it easier to review tool calls \
+                and give permission.
+                
+                # Instructions
+                - If your command will create new directories or files, first use this tool to \
+                run `ls` to verify the parent directory exists and is the correct location.
+                - Always quote file paths that contain spaces with double quotes in your command \
+                (e.g., cd "path with spaces/file.txt")
+                - Try to maintain your current working directory throughout the session by using \
+                absolute paths and avoiding usage of `cd`. You may use `cd` if the User explicitly \
+                requests it.
+                - You may specify an optional timeout in milliseconds (up to 600000ms / 10 minutes). \
+                By default, your command will timeout after 120000ms (2 minutes).
+                - You can use the `is_background` parameter to run the command in the background. \
+                Only use this if you don't need the result immediately and are OK being notified \
+                when the command completes later.
+                - When issuing multiple commands:
+                  - If the commands are independent and can run in parallel, make multiple Bash \
+                tool calls in a single message.
+                  - If the commands depend on each other and must run sequentially, use a single \
+                Bash call with '&&' to chain them together.
+                  - Use ';' only when you need to run commands sequentially but don't care if \
+                earlier commands fail.
+                  - DO NOT use newlines to separate commands (newlines are ok in quoted strings).
+                - For git commands:
+                  - Prefer to create a new commit rather than amending an existing commit.
+                  - Before running destructive operations (e.g., git reset --hard, git push --force, \
+                git checkout --), consider whether there is a safer alternative. Only use destructive \
+                operations when they are truly the best approach.
+                  - Never skip hooks (--no-verify) or bypass signing (--no-gpg-sign) unless the \
+                user has explicitly asked for it. If a hook fails, investigate and fix the \
+                underlying issue.
+                - Avoid unnecessary `sleep` commands:
+                  - Do not sleep between commands that can run immediately — just run them.
+                  - If your command is long running and you would like to be notified when it \
+                finishes — use `is_background`. No sleep needed.
+                  - Do not retry failing commands in a sleep loop — diagnose the root cause.
+                
+                # Committing changes with git
+                
+                Only create commits when requested by the user. If unclear, ask first. \
+                When the user asks you to create a new git commit, follow these steps carefully:
+                
+                Git Safety Protocol:
+                - NEVER update the git config
+                - NEVER run destructive git commands (push --force, reset --hard, checkout ., \
+                restore ., clean -f, branch -D) unless the user explicitly requests these actions
+                - NEVER skip hooks (--no-verify, --no-gpg-sign, etc) unless the user explicitly \
+                requests it
+                - NEVER run force push to main/master, warn the user if they request it
+                - CRITICAL: Always create NEW commits rather than amending, unless the user \
+                explicitly requests a git amend. When a pre-commit hook fails, the commit did \
+                NOT happen — so --amend would modify the PREVIOUS commit. Instead, after hook \
+                failure, fix the issue, re-stage, and create a NEW commit
+                - When staging files, prefer adding specific files by name rather than using \
+                "git add -A" or "git add .", which can accidentally include sensitive files
+                - NEVER commit changes unless the user explicitly asks you to
+                
+                1. Run git status + git diff + git log in parallel
+                2. Analyze changes and draft a concise commit message (focus on "why" not "what")
+                3. Add relevant files, create the commit, run git status to verify
+                4. If the commit fails due to pre-commit hook: fix the issue and create a NEW commit
+                
+                Important notes:
+                - DO NOT push to the remote repository unless the user explicitly asks
+                - IMPORTANT: Never use git commands with the -i flag (interactive)
+                - If there are no changes to commit, do not create an empty commit
+                - Always pass the commit message via a HEREDOC for good formatting
+                
+                # Creating pull requests
+                Use the gh command via the Bash tool for ALL GitHub-related tasks.
+                """;
     }
 
     @Override
@@ -226,7 +321,12 @@ public class BashTool implements Tool {
                 ProcessBuilder pb = new ProcessBuilder("bash", "-c", wrappedCommand);
                 pb.directory(new File(workingDir));
                 pb.redirectErrorStream(true);
+                // P1-05: 后台进程重定向输出到 /dev/null，防止管道填满导致进程阻塞
+                pb.redirectOutput(ProcessBuilder.Redirect.DISCARD);
+                pb.redirectError(ProcessBuilder.Redirect.DISCARD);
                 Process process = pb.start();
+                // 关闭 stdin，防止资源泄漏
+                process.getOutputStream().close();
                 long pid = process.pid();
                 log.info("Background process started: pid={}, command={}", pid, command);
                 return ToolResult.success(String.format(

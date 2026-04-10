@@ -9,15 +9,18 @@ import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
 /**
- * CLAUDE.md 配置文件加载器 — 4 层配置加载。
+ * CLAUDE.md 配置文件加载器 — 6 层配置加载。
  * <p>
  * 加载顺序（优先级从低到高）:
  * <ol>
  *     <li>用户级: ~/.claude/CLAUDE.md</li>
  *     <li>项目级: {cwd}/CLAUDE.md</li>
  *     <li>项目级: {cwd}/.claude/CLAUDE.md</li>
+ *     <li>本地级: {cwd}/.claude/CLAUDE.local.md</li>
+ *     <li>rules 目录: {cwd}/.claude/rules/*.md</li>
  *     <li>父目录向上遍历的 CLAUDE.md</li>
  * </ol>
  * <p>
@@ -71,16 +74,28 @@ public class ClaudeMdLoader {
         loadFile(normalizedCwd.resolve(CLAUDE_DIR).resolve(CLAUDE_MD), "project-local")
                 .ifPresent(sections::add);
 
-        // Layer 4: 父目录向上遍历
+        // Layer 4: .local.md 个人覆盖（新增 — 对齐原版）
+        loadFile(normalizedCwd.resolve(CLAUDE_DIR).resolve("CLAUDE.local.md"), "local")
+                .ifPresent(sections::add);
+
+        // Layer 5: rules 目录扫描（新增 — 对齐原版 @include）
+        sections.addAll(loadRulesDirectory(normalizedCwd));
+
+        // Layer 6: 父目录向上遍历
         Path parent = normalizedCwd.getParent();
         int maxDepth = 5; // 最多向上遍历 5 层
         int depth = 0;
         while (parent != null && depth < maxDepth) {
             loadFile(parent.resolve(CLAUDE_MD), "parent-" + depth)
                     .ifPresent(sections::add);
+            loadFile(parent.resolve(CLAUDE_DIR).resolve(CLAUDE_MD), "parent-local-" + depth)
+                    .ifPresent(sections::add);
             parent = parent.getParent();
             depth++;
         }
+
+        // 处理 @include 指令
+        sections = resolveIncludes(sections, normalizedCwd);
 
         // 更新缓存
         cache.put(normalizedCwd, new CachedConfig(sections, System.currentTimeMillis()));
@@ -126,6 +141,67 @@ public class ClaudeMdLoader {
     }
 
     // ===== 内部方法 =====
+
+    /** Layer 5: rules 目录扫描 */
+    private List<ClaudeMdSection> loadRulesDirectory(Path cwd) {
+        List<ClaudeMdSection> sections = new ArrayList<>();
+        Path rulesDir = cwd.resolve(CLAUDE_DIR).resolve("rules");
+        if (Files.isDirectory(rulesDir)) {
+            try (var stream = Files.list(rulesDir)) {
+                stream.filter(p -> p.toString().endsWith(".md"))
+                      .sorted()
+                      .forEach(p -> loadFile(p, "rule:" + p.getFileName())
+                          .ifPresent(sections::add));
+            } catch (IOException e) {
+                log.warn("Failed to scan rules directory: {}", rulesDir, e);
+            }
+        }
+        return sections;
+    }
+
+    /** @include 指令解析（增加路径安全验证） */
+    private List<ClaudeMdSection> resolveIncludes(List<ClaudeMdSection> sections, Path basePath) {
+        List<ClaudeMdSection> resolved = new ArrayList<>();
+        Pattern includePattern = Pattern.compile("@include\\s+(.+)");
+
+        for (ClaudeMdSection section : sections) {
+            StringBuilder content = new StringBuilder();
+            for (String line : section.content().split("\n")) {
+                java.util.regex.Matcher m = includePattern.matcher(line.trim());
+                if (m.matches()) {
+                    String includePath = m.group(1).trim();
+                    Path includeFile = basePath.resolve(includePath).normalize();
+
+                    // 安全检查：include 路径必须在项目目录内
+                    if (!includeFile.startsWith(basePath)) {
+                        log.warn("Blocked @include outside project boundary: {} (base: {})",
+                                 includeFile, basePath);
+                        content.append("<!-- @include blocked: path outside project -->").append("\n");
+                        continue;
+                    }
+
+                    try {
+                        if (Files.exists(includeFile) && Files.isRegularFile(includeFile)) {
+                            long size = Files.size(includeFile);
+                            if (size > 100_000) { // 100KB 上限
+                                log.warn("@include file too large: {} ({} bytes)", includeFile, size);
+                                continue;
+                            }
+                            content.append(Files.readString(includeFile));
+                            content.append("\n");
+                        }
+                    } catch (IOException e) {
+                        log.warn("Failed to include: {}", includeFile);
+                    }
+                } else {
+                    content.append(line).append("\n");
+                }
+            }
+            resolved.add(new ClaudeMdSection(section.label(), section.filePath(),
+                                              content.toString().trim()));
+        }
+        return resolved;
+    }
 
     private List<ClaudeMdSection> loadUserLevel() {
         List<ClaudeMdSection> sections = new ArrayList<>();

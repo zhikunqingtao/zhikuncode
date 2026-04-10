@@ -1,5 +1,7 @@
 package com.aicodeassistant.engine;
 
+import com.aicodeassistant.llm.ThinkingBudgetCalculator;
+import com.aicodeassistant.model.ContentBlock;
 import com.aicodeassistant.model.Message;
 import com.aicodeassistant.tool.ToolUseContext;
 
@@ -114,5 +116,24 @@ public class QueryLoopState {
     /** 电路断路器 — 自动压缩连续失败超过阈值时禁用 */
     public boolean isAutoCompactCircuitBroken() {
         return autoCompactFailures >= 3;
+    }
+
+    /**
+     * 提取上一轮 assistant 消息的上下文指标。
+     * 用于 ThinkingBudgetCalculator 计算本轮思考预算。
+     */
+    public ThinkingBudgetCalculator.ContextMetrics getContextMetrics() {
+        // 从 messages 中倒序查找最近的 assistant 消息
+        for (int i = messages.size() - 1; i >= 0; i--) {
+            if (messages.get(i) instanceof Message.AssistantMessage am) {
+                int toolCallCount = (int) am.content().stream()
+                        .filter(b -> b instanceof ContentBlock.ToolUseBlock)
+                        .count();
+                int outputTokens = am.usage() != null ? am.usage().outputTokens() : 0;
+                return new ThinkingBudgetCalculator.ContextMetrics(
+                        toolCallCount, outputTokens, turnCount);
+            }
+        }
+        return ThinkingBudgetCalculator.ContextMetrics.INITIAL;
     }
 }

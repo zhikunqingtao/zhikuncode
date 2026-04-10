@@ -11,6 +11,7 @@ import com.aicodeassistant.command.CommandResult;
 import com.aicodeassistant.command.CommandContext;
 import com.aicodeassistant.history.FileHistoryService;
 import com.aicodeassistant.mcp.McpClientManager;
+import com.aicodeassistant.permission.PermissionNotifier;
 import com.aicodeassistant.llm.LlmProviderRegistry;
 import com.aicodeassistant.llm.ModelCapabilities;
 import com.aicodeassistant.llm.ModelRegistry;
@@ -52,7 +53,7 @@ import java.util.*;
  * @see ClientMessage 10 种客户端消息类型定义
  */
 @Controller
-public class WebSocketController {
+public class WebSocketController implements PermissionNotifier {
 
     private static final Logger log = LoggerFactory.getLogger(WebSocketController.class);
 
@@ -137,13 +138,21 @@ public class WebSocketController {
      */
     private void push(String sessionId, String type, Map<String, Object> fields) {
         String principal = wsSessionManager.getPrincipalForSession(sessionId);
-        if (principal == null) return;
+        if (principal == null) {
+            log.warn("push({}) skipped: no principal for sessionId={}", type, sessionId);
+            return;
+        }
 
         Map<String, Object> message = new LinkedHashMap<>();
         message.put("type", type);
         message.put("ts", System.currentTimeMillis());
         message.putAll(fields);
 
+        if ("stream_delta".equals(type)) {
+            log.debug("push stream_delta to principal={}, len={}", principal, fields.getOrDefault("delta", "").toString().length());
+        } else {
+            log.info("push({}) to principal={}, sessionId={}", type, principal, sessionId);
+        }
         messaging.convertAndSendToUser(principal, "/queue/messages", message);
     }
 

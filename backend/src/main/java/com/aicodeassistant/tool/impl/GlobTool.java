@@ -24,6 +24,7 @@ public class GlobTool implements Tool {
 
     private static final Logger log = LoggerFactory.getLogger(GlobTool.class);
     private static final int DEFAULT_MAX_RESULTS = 100;
+    private static final int MAX_RESULT_SIZE_CHARS = 100_000;
     private static final Set<String> VCS_EXCLUDE = Set.of(
             ".git", ".svn", ".hg", ".bzr", ".jj", ".sl");
 
@@ -36,6 +37,18 @@ public class GlobTool implements Tool {
     public String getDescription() {
         return "Search for files matching a glob pattern. Fast file discovery "
                 + "for when you know the filename pattern you're looking for.";
+    }
+
+    @Override
+    public String prompt() {
+        return """
+                - Fast file pattern matching tool that works with any codebase size
+                - Supports glob patterns like "**/*.js" or "src/**/*.ts"
+                - Returns matching file paths sorted by modification time
+                - Use this tool when you need to find files by name patterns
+                - When you are doing an open ended search that may require multiple rounds of \
+                globbing and grepping, use the Agent tool instead
+                """;
     }
 
     @Override
@@ -70,6 +83,11 @@ public class GlobTool implements Tool {
 
         if (!Files.isDirectory(basePath)) {
             return ToolResult.error("Directory does not exist: " + searchPath);
+        }
+
+        // UNC路径安全检查
+        if (searchPath.startsWith("\\\\") || searchPath.startsWith("//")) {
+            return ToolResult.error("UNC paths are not allowed");
         }
 
         long start = System.currentTimeMillis();
@@ -115,10 +133,17 @@ public class GlobTool implements Tool {
         }
 
         long durationMs = System.currentTimeMillis() - start;
-        return ToolResult.success(String.join("\n", results))
+        String result = String.join("\n", results);
+        boolean charsTruncated = false;
+        if (result.length() > MAX_RESULT_SIZE_CHARS) {
+            result = result.substring(0, MAX_RESULT_SIZE_CHARS);
+            charsTruncated = true;
+        }
+        boolean finalTruncated = truncated || charsTruncated;
+        return ToolResult.success(result + (finalTruncated ? "\n[Results truncated]" : ""))
                 .withMetadata("filenames", results)
                 .withMetadata("numFiles", results.size())
                 .withMetadata("durationMs", durationMs)
-                .withMetadata("truncated", truncated);
+                .withMetadata("truncated", finalTruncated);
     }
 }

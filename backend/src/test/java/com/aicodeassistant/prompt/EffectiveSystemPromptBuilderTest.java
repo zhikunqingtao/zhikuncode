@@ -28,7 +28,7 @@ class EffectiveSystemPromptBuilderTest {
     void setUp() {
         systemPromptBuilder = mock(SystemPromptBuilder.class);
         featureFlags = mock(FeatureFlagService.class);
-        effectiveBuilder = new EffectiveSystemPromptBuilder(systemPromptBuilder, featureFlags);
+        effectiveBuilder = new EffectiveSystemPromptBuilder(systemPromptBuilder, featureFlags, null);
 
         // 默认 mock 行为
         when(systemPromptBuilder.buildDefaultSystemPrompt(anyList(), anyString()))

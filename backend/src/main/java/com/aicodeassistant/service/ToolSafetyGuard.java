@@ -4,8 +4,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.FileStore;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
@@ -94,7 +97,13 @@ public class ToolSafetyGuard {
                     "路径越界: " + normalized + " 不在工作目录 " + workspaceRoot + " 内");
         }
 
-        // 4. 黑名单检查
+        // 4. 挂载点边界检查 — 防止跨文件系统访问 (§11.3.1)
+        if (isMountPoint(normalized) && !normalized.equals(workspaceRoot)) {
+            throw new SecurityException(
+                    "路径跨越挂载点边界: " + normalized + " (可能是外部文件系统挂载)");
+        }
+
+        // 5. 黑名单检查
         String absolutePath = normalized.toString();
         String home = System.getProperty("user.home");
         for (String blocked : BLOCKED_PATHS) {
@@ -106,6 +115,46 @@ public class ToolSafetyGuard {
         }
 
         return normalized;
+    }
+
+    /**
+     * 检测路径是否为挂载点 — 跨平台实现 (§11.3.1)。
+     * <p>
+     * Linux: 解析 /proc/mounts 匹配挂载点路径。
+     * macOS/通用: 比较路径与其父目录的 FileStore，不同则为挂载点。
+     *
+     * @param path 要检测的路径
+     * @return true 如果路径是挂载点
+     */
+    boolean isMountPoint(Path path) {
+        try {
+            Path procMounts = Path.of("/proc/mounts");
+            if (Files.exists(procMounts)) {
+                // Linux: 解析 /proc/mounts
+                String absolutePath = path.toAbsolutePath().toString();
+                try (BufferedReader reader = new BufferedReader(new FileReader(procMounts.toFile()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        String[] parts = line.split("\\s+");
+                        if (parts.length >= 2 && parts[1].equals(absolutePath)) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            } else {
+                // macOS / 通用: 比较 FileStore
+                if (!Files.exists(path) || path.getParent() == null) {
+                    return false;
+                }
+                FileStore pathStore = Files.getFileStore(path);
+                FileStore parentStore = Files.getFileStore(path.getParent());
+                return !pathStore.equals(parentStore);
+            }
+        } catch (IOException e) {
+            log.debug("挂载点检测失败 (非致命): {}", path);
+            return false;
+        }
     }
 
     // ============ Bash 命令安全 ============

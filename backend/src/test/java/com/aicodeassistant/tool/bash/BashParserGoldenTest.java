@@ -29,7 +29,7 @@ class BashParserGoldenTest {
     @BeforeEach
     void setUp() {
         parser = new BashParser();
-        analyzer = new BashSecurityAnalyzer();
+        analyzer = new BashSecurityAnalyzer(new PathValidator(), null);
     }
 
     // ═══════════════════════════════════════════════════════════════════

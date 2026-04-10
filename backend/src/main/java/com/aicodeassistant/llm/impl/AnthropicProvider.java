@@ -81,7 +81,7 @@ public class AnthropicProvider implements LlmProvider {
                         httpProperties.pool().keepAliveSeconds(),
                         java.util.concurrent.TimeUnit.SECONDS))
                 .connectTimeout(Duration.ofSeconds(httpProperties.connectTimeoutSeconds()))
-                .readTimeout(Duration.ZERO)
+                .readTimeout(Duration.ofMinutes(5)) // SSE 5分钟读超时（防止连接泄漏）
                 .writeTimeout(Duration.ofSeconds(httpProperties.writeTimeoutSeconds()))
                 .retryOnConnectionFailure(httpProperties.retryOnFailure())
                 .build();

@@ -6,12 +6,17 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
 /**
@@ -51,6 +56,15 @@ public class SkillRegistry {
     private static final List<String> BUILTIN_SKILL_NAMES = List.of(
             "commit", "review", "fix", "test", "pr"
     );
+
+    /** 文件监听 WatchService 实例 (§11.3.3) */
+    private volatile WatchService watchService;
+    private final AtomicBoolean watching = new AtomicBoolean(false);
+    private final ScheduledExecutorService debounceExecutor = Executors.newSingleThreadScheduledExecutor(
+            r -> { Thread t = new Thread(r, "skill-watcher-debounce"); t.setDaemon(true); return t; });
+    /** 防抖标记: 路径 → 最后事件时间戳 */
+    private final ConcurrentHashMap<Path, Long> pendingEvents = new ConcurrentHashMap<>();
+    private static final long DEBOUNCE_MS = 500;
 
     /**
      * 启动时加载内置技能。
@@ -215,5 +229,141 @@ public class SkillRegistry {
     public void clear() {
         skills.clear();
         builtinSkills.clear();
+    }
+
+    // ============ 动态技能发现 WatchService (§11.3.3) ============
+
+    /**
+     * 启动文件监听 — 监听 .qoder/skills/ 目录变化，自动注册/反注册技能。
+     *
+     * @param workingDirectory 项目工作目录
+     */
+    public void startWatching(String workingDirectory) {
+        if (workingDirectory == null || !watching.compareAndSet(false, true)) {
+            return;
+        }
+
+        Path skillsDir = Path.of(workingDirectory, PROJECT_SKILLS_DIR);
+        if (!Files.isDirectory(skillsDir)) {
+            watching.set(false);
+            return;
+        }
+
+        try {
+            watchService = FileSystems.getDefault().newWatchService();
+            // 注册主目录和子目录 (两级)
+            registerWatchDir(skillsDir);
+            try (Stream<Path> subdirs = Files.list(skillsDir)) {
+                subdirs.filter(Files::isDirectory).forEach(this::registerWatchDir);
+            }
+
+            Thread watchThread = new Thread(() -> watchLoop(skillsDir), "skill-file-watcher");
+            watchThread.setDaemon(true);
+            watchThread.start();
+
+            log.info("Started watching skills directory: {}", skillsDir);
+        } catch (IOException e) {
+            log.warn("Failed to start skills file watcher: {}", e.getMessage());
+            watching.set(false);
+        }
+    }
+
+    private void registerWatchDir(Path dir) {
+        try {
+            dir.register(watchService,
+                    StandardWatchEventKinds.ENTRY_CREATE,
+                    StandardWatchEventKinds.ENTRY_MODIFY,
+                    StandardWatchEventKinds.ENTRY_DELETE);
+        } catch (IOException e) {
+            log.warn("Failed to register watch on: {}", dir);
+        }
+    }
+
+    private void watchLoop(Path skillsDir) {
+        while (watching.get()) {
+            try {
+                WatchKey key = watchService.take();
+                Path watchedDir = (Path) key.watchable();
+
+                for (WatchEvent<?> event : key.pollEvents()) {
+                    WatchEvent.Kind<?> kind = event.kind();
+                    if (kind == StandardWatchEventKinds.OVERFLOW) continue;
+
+                    @SuppressWarnings("unchecked")
+                    WatchEvent<Path> pathEvent = (WatchEvent<Path>) event;
+                    Path changed = watchedDir.resolve(pathEvent.context());
+
+                    if (Files.isDirectory(changed) && kind == StandardWatchEventKinds.ENTRY_CREATE) {
+                        registerWatchDir(changed);
+                        continue;
+                    }
+
+                    if (!changed.toString().endsWith(".md")) continue;
+
+                    // 500ms 防抖
+                    pendingEvents.put(changed, System.currentTimeMillis());
+                    debounceExecutor.schedule(() -> handleFileEvent(changed, kind, skillsDir),
+                            DEBOUNCE_MS, TimeUnit.MILLISECONDS);
+                }
+
+                boolean valid = key.reset();
+                if (!valid) {
+                    log.debug("Watch key invalidated for: {}", watchedDir);
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            } catch (ClosedWatchServiceException e) {
+                break;
+            }
+        }
+    }
+
+    private void handleFileEvent(Path changed, WatchEvent.Kind<?> kind, Path skillsDir) {
+        Long lastEvent = pendingEvents.remove(changed);
+        if (lastEvent == null) return;
+        // 如果已经有更新的事件在排队，跳过此次
+        if (System.currentTimeMillis() - lastEvent > DEBOUNCE_MS + 100) return;
+
+        String fileName = changed.getFileName().toString();
+        try {
+            if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
+                // 反注册
+                String skillName = fileName.replace(".md", "").toLowerCase();
+                skills.remove(skillName);
+                log.info("Skill unregistered (file deleted): {}", skillName);
+            } else {
+                // CREATE 或 MODIFY — (重新)注册
+                if (Files.isRegularFile(changed)) {
+                    String content = Files.readString(changed);
+                    SkillDefinition skill = SkillDefinition.fromMarkdown(
+                            fileName, content,
+                            SkillDefinition.SkillSource.PROJECT,
+                            changed.toAbsolutePath().toString());
+                    register(skill);
+                    log.info("Skill {} (file {}): {}",
+                            kind == StandardWatchEventKinds.ENTRY_CREATE ? "registered" : "reregistered",
+                            kind.name(), skill.name());
+                }
+            }
+        } catch (IOException e) {
+            log.warn("Failed to handle skill file event: {} {}", kind, changed, e);
+        }
+    }
+
+    /**
+     * 停止文件监听。
+     */
+    @PreDestroy
+    public void stopWatching() {
+        watching.set(false);
+        if (watchService != null) {
+            try {
+                watchService.close();
+            } catch (IOException e) {
+                log.debug("Error closing watch service: {}", e.getMessage());
+            }
+        }
+        debounceExecutor.shutdownNow();
     }
 }
