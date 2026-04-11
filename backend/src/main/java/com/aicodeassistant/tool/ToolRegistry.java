@@ -135,6 +135,27 @@ public class ToolRegistry {
         return toRemove.size();
     }
 
+    /**
+     * 获取启用工具（排序：内建工具在前，MCP工具在后）。
+     * <p>
+     * prompt cache 分区排序：内建工具（非 MCP）排在前面，确保 cache hit 率最大化。
+     * MCP 工具（动态注册、可能变化）排在后面。
+     */
+    public List<Tool> getEnabledToolsSorted() {
+        List<Tool> enabled = getEnabledTools();
+        List<Tool> builtIn = new ArrayList<>();
+        List<Tool> mcp = new ArrayList<>();
+        for (Tool t : enabled) {
+            if (t.isMcp()) {
+                mcp.add(t);
+            } else {
+                builtIn.add(t);
+            }
+        }
+        builtIn.addAll(mcp);
+        return builtIn;
+    }
+
     /** 子代理禁用的工具名集合 */
     private static final Set<String> SUB_AGENT_DENIED_TOOLS = Set.of(
             "Agent", "TeamCreate", "TeamDelete", "TaskCreate"

@@ -140,6 +140,43 @@ public interface Tool {
     /** 工具提示词片段 */
     default String prompt() { return getDescription(); }
 
+    // ==================== 原版对齐三方法 ====================
+
+    /**
+     * 搜索提示 — 返回工具调用相关的搜索关键信息。
+     * <p>
+     * 对齐原版 Tool.ts searchHint()。
+     * 用于文件读取工具返回文件路径，搜索工具返回搜索模式等。
+     *
+     * @param input 工具输入
+     * @return 搜索提示字符串，或 null 表示无提示
+     */
+    default String searchHint(ToolInput input) { return null; }
+
+    /**
+     * 结果映射 — 对工具返回结果进行后处理转换。
+     * <p>
+     * 对齐原版 Tool.ts mapToolResult()。
+     * 工具可通过覆写此方法对结果进行标准化、截断或富化处理。
+     *
+     * @param result 原始工具结果
+     * @return 处理后的工具结果
+     */
+    default ToolResult mapToolResult(ToolResult result) { return result; }
+
+    /**
+     * 权限匹配器准备 — 为权限规则匹配提供工具特定上下文。
+     * <p>
+     * 对齐原版 Tool.ts preparePermissionMatcher()。
+     * BashTool 可提取命令前缀用于匹配 alwaysAllow/deny 规则。
+     *
+     * @param input 工具输入
+     * @return 权限行为指示，默认 PASSTHROUGH
+     */
+    default PermissionBehavior preparePermissionMatcher(ToolInput input) {
+        return PermissionBehavior.PASSTHROUGH;
+    }
+
     // ==================== 类型标记 ====================
 
     /** 是否为 MCP 工具 */

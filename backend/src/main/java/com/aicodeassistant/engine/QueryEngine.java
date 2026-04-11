@@ -1,5 +1,6 @@
 package com.aicodeassistant.engine;
 
+import com.aicodeassistant.history.FileHistoryService;
 import com.aicodeassistant.hook.HookRegistry;
 import com.aicodeassistant.hook.HookService;
 import com.aicodeassistant.llm.*;
@@ -56,6 +57,7 @@ public class QueryEngine {
     private final ModelRegistry modelRegistry;  // P0-1 新增
     private final ThinkingBudgetCalculator thinkingBudgetCalculator;
     private final ModelTierService modelTierService;
+    private final FileHistoryService fileHistoryService;
 
     /** 单条工具结果最大占上下文窗口的 30% */
     private static final double TOOL_RESULT_BUDGET_RATIO = 0.3;
@@ -82,7 +84,8 @@ public class QueryEngine {
                        MicroCompactService microCompactService,
                        ModelRegistry modelRegistry,
                        ThinkingBudgetCalculator thinkingBudgetCalculator,
-                       ModelTierService modelTierService) {
+                       ModelTierService modelTierService,
+                       FileHistoryService fileHistoryService) {
         this.providerRegistry = providerRegistry;
         this.compactService = compactService;
         this.apiRetryService = apiRetryService;
@@ -98,6 +101,7 @@ public class QueryEngine {
         this.modelRegistry = modelRegistry;
         this.thinkingBudgetCalculator = thinkingBudgetCalculator;
         this.modelTierService = modelTierService;
+        this.fileHistoryService = fileHistoryService;
     }
 
     /**
@@ -228,7 +232,8 @@ public class QueryEngine {
                 }
             }
             LlmProvider provider = providerRegistry.getProvider(effectiveModel);
-            List<Map<String, Object>> apiMessages = messageNormalizer.normalize(state.getMessages());
+            List<MessageParam> typedMessages = messageNormalizer.normalizeTyped(state.getMessages());
+            List<Map<String, Object>> apiMessages = MessageParamConverter.toMaps(typedMessages);
 
             // StreamCollector 持有 session, 支持流式工具启动
             StreamCollector collector = new StreamCollector(
@@ -253,26 +258,39 @@ public class QueryEngine {
                     return null;
                 }, config.querySource(), effectiveModel);
             } catch (LlmApiException e) {
-                // 413 prompt_too_long → 两阶段恢复
+                // 413 prompt_too_long → 消息扣留 + 两阶段恢复
                 if (e.getStatusCode() == 413 || (e.getMessage() != null
                         && e.getMessage().contains("prompt_too_long"))) {
+
+                    // 扣留错误，不立即释放给消费者
+                    state.addWithheldError(e);
+                    int recoveryAttempt = state.getWithheldErrors().size();
+                    handler.onRecovery(RecoveryEvent.of413(recoveryAttempt, "collapse drain"));
 
                     // Phase 1: context-collapse drain (防止重复)
                     if (!"collapse_drain_retry".equals(state.getLastTransitionReason())) {
                         int drained = tryContextCollapseDrain(config, state, handler);
                         if (drained > 0) {
                             state.setLastTransitionReason("collapse_drain_retry");
+                            state.clearWithheldErrors();
                             continue;
                         }
                     }
 
                     // Phase 2: reactive compact (单次 guard)
+                    handler.onRecovery(RecoveryEvent.of413(recoveryAttempt, "reactive compact"));
                     if (tryReactiveCompact(config, state, handler)) {
                         state.setLastTransitionReason("reactive_compact_retry");
+                        state.clearWithheldErrors();
                         continue;
                     }
 
+                    // 恢复耗尽，释放扣留错误给消费者
                     log.error("413 recovery exhausted: collapse drain failed, reactive compact failed");
+                    for (LlmApiException withheld : state.getWithheldErrors()) {
+                        handler.onError(withheld);
+                    }
+                    state.clearWithheldErrors();
                 }
                 // FIX-03: Fallback 模型降级
                 if (e instanceof LlmApiException llmEx && llmEx.isFallbackTrigger()
@@ -304,6 +322,14 @@ public class QueryEngine {
             Message.AssistantMessage assistantMessage = collector.buildAssistantMessage();
             state.addMessage(assistantMessage);
             handler.onAssistantMessage(assistantMessage);
+
+            // ===== 事务边界: 开始 =====
+            String txSessionId = state.getToolUseContext() != null
+                    ? state.getToolUseContext().sessionId() : null;
+            if (txSessionId != null) {
+                fileHistoryService.beginTransaction(
+                        txSessionId, assistantMessage.uuid(), state.getMessages().size());
+            }
 
             // ★ 每轮关键日志: 模型、stopReason、工具调用、token 用量
             log.info("Turn {} 完成: model={}, stopReason={}, contentBlocks={}, usage={}",
@@ -366,6 +392,11 @@ public class QueryEngine {
             if (!toolUseBlocks.isEmpty()) {
                 List<Message> toolResults = consumeToolResults(session, handler, aborted);
                 state.addMessages(toolResults);
+            }
+
+            // ===== 事务边界: 提交 =====
+            if (txSessionId != null) {
+                fileHistoryService.commitTransaction(txSessionId);
             }
 
             // ===== Step 6: 继续/终止判定 =====

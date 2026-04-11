@@ -2,6 +2,7 @@ package com.aicodeassistant.memdir;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -47,6 +48,10 @@ public class MemdirService {
     private final Path memoryFile;
     /** BM25 搜索引擎 */
     private final MemorySearchEngine searchEngine;
+
+    /** LLM rerank 服务（可选注入） */
+    @Autowired(required = false)
+    private MemoryRerankService rerankService;
 
     /** 最大行数限制 */
     static final int MAX_ENTRYPOINT_LINES = 200;
@@ -113,11 +118,13 @@ public class MemdirService {
                 ))
                 .toList();
 
-        // BM25 搜索
+        // BM25 搜索 — 扩大候选集（rerank 启用时取 Top-20，否则取 topK）
+        int bm25Limit = (rerankService != null && rerankService.isEnabled())
+                ? Math.max(topK, 20) : topK;
         List<MemorySearchEngine.ScoredResult> results = searchEngine.search(
-                documents, query, topK);
+                documents, query, bm25Limit);
 
-        return results.stream()
+        List<Memory> bm25Results = results.stream()
                 .map(sr -> {
                     MemoryEntry entry = entries.get(sr.index());
                     return new Memory(
@@ -126,6 +133,13 @@ public class MemdirService {
                             entry.category());
                 })
                 .toList();
+
+        // LLM rerank 精排（启用时）
+        if (rerankService != null && rerankService.isEnabled() && bm25Results.size() > topK) {
+            return rerankService.rerank(query, bm25Results, topK);
+        }
+
+        return bm25Results;
     }
 
     /**

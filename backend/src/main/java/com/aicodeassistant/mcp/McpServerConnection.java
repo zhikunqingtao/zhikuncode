@@ -48,6 +48,11 @@ public class McpServerConnection {
     private static final int MAX_RECONNECT_ATTEMPTS = 3;
     private static final long DEFAULT_REQUEST_TIMEOUT_MS = 30_000;
 
+    /** HTTP Streamable 传输实例 */
+    private volatile McpStreamableHttpTransport httpTransport;
+    /** WebSocket 传输实例 */
+    private volatile McpWebSocketTransport wsTransport;
+
     public McpServerConnection(McpServerConfig config) {
         this.config = config;
         this.status = McpConnectionStatus.PENDING;
@@ -57,10 +62,27 @@ public class McpServerConnection {
     }
 
     /**
-     * 连接到 MCP 服务器 — STDIO 传输: 启动子进程。
+     * 连接到 MCP 服务器 — 根据 McpTransportType 选择传输层。
      */
     public void connect() {
-        if (config.type() == McpTransportType.STDIO && config.command() != null) {
+        switch (config.type()) {
+            case STDIO -> connectStdio();
+            case HTTP -> connectHttp();
+            case WS -> connectWebSocket();
+            case SSE, SSE_IDE -> {
+                // SSE 传输由 McpSseTransport 单独管理
+                this.status = McpConnectionStatus.CONNECTED;
+            }
+            default -> {
+                log.warn("Unsupported transport type '{}' for MCP server '{}', marking as connected",
+                        config.type(), config.name());
+                this.status = McpConnectionStatus.CONNECTED;
+            }
+        }
+    }
+
+    /** STDIO 传输: 启动子进程 */
+    private void connectStdio() {
             try {
                 List<String> cmd = new ArrayList<>();
                 cmd.add(config.command());
@@ -80,22 +102,58 @@ public class McpServerConnection {
                 this.status = McpConnectionStatus.CONNECTED;
                 log.info("MCP server '{}' connected via STDIO (pid={})",
                         config.name(), process.pid());
-            } catch (IOException e) {
-                log.error("Failed to start MCP server '{}': {}", config.name(), e.getMessage());
-                this.status = McpConnectionStatus.FAILED;
-            }
-        } else {
-            // SSE/HTTP 传输暂不实现
-            this.status = McpConnectionStatus.CONNECTED;
+        } catch (IOException e) {
+            log.error("Failed to start MCP server '{}': {}", config.name(), e.getMessage());
+            this.status = McpConnectionStatus.FAILED;
         }
     }
 
-    /** 关闭连接 — STDIO: SIGTERM → 5s → SIGKILL */
+    /** HTTP Streamable 传输: OkHttp 实现 */
+    private void connectHttp() {
+        if (config.url() == null) {
+            log.error("MCP server '{}' HTTP transport requires a URL", config.name());
+            this.status = McpConnectionStatus.FAILED;
+            return;
+        }
+        try {
+            this.httpTransport = new McpStreamableHttpTransport(config.url());
+            httpTransport.connect(null).get(30, java.util.concurrent.TimeUnit.SECONDS);
+            this.status = McpConnectionStatus.CONNECTED;
+            log.info("MCP server '{}' connected via Streamable HTTP (url={})",
+                    config.name(), config.url());
+        } catch (Exception e) {
+            log.error("Failed to connect MCP server '{}' via HTTP: {}", config.name(), e.getMessage());
+            this.status = McpConnectionStatus.FAILED;
+        }
+    }
+
+    /** WebSocket 传输: Java-WebSocket 实现 */
+    private void connectWebSocket() {
+        if (config.url() == null) {
+            log.error("MCP server '{}' WS transport requires a URL", config.name());
+            this.status = McpConnectionStatus.FAILED;
+            return;
+        }
+        try {
+            String wsUrl = config.url().replace("http://", "ws://").replace("https://", "wss://");
+            this.wsTransport = new McpWebSocketTransport(wsUrl);
+            wsTransport.connect().get(30, java.util.concurrent.TimeUnit.SECONDS);
+            this.status = McpConnectionStatus.CONNECTED;
+            log.info("MCP server '{}' connected via WebSocket (url={})",
+                    config.name(), wsUrl);
+        } catch (Exception e) {
+            log.error("Failed to connect MCP server '{}' via WebSocket: {}", config.name(), e.getMessage());
+            this.status = McpConnectionStatus.FAILED;
+        }
+    }
+
+    /** 关闭连接 — 根据传输类型清理资源 */
     public void close() {
         this.status = McpConnectionStatus.DISABLED;
         this.tools = List.of();
         this.resources = List.of();
 
+        // STDIO 清理
         if (process != null && process.isAlive()) {
             process.destroy();
             try {
@@ -109,6 +167,16 @@ public class McpServerConnection {
         }
         try { if (stdoutReader != null) stdoutReader.close(); } catch (Exception ignored) {}
         try { if (stdinWriter != null) stdinWriter.close(); } catch (Exception ignored) {}
+
+        // HTTP 传输清理
+        if (httpTransport != null) {
+            try { httpTransport.close(); } catch (Exception ignored) {}
+        }
+
+        // WebSocket 传输清理
+        if (wsTransport != null) {
+            try { wsTransport.close(); } catch (Exception ignored) {}
+        }
     }
 
     /**
@@ -261,12 +329,14 @@ public class McpServerConnection {
     public void incrementReconnectAttempts() { this.reconnectAttempts++; }
     public void resetReconnectAttempts() { this.reconnectAttempts = 0; }
 
-    /** 检查连接是否存活 — STDIO 检查进程，其他传输检查状态 */
+    /** 检查连接是否存活 — 根据传输类型检查 */
     public boolean isAlive() {
-        if (config.type() == McpTransportType.STDIO) {
-            return process != null && process.isAlive();
-        }
-        return status == McpConnectionStatus.CONNECTED;
+        return switch (config.type()) {
+            case STDIO -> process != null && process.isAlive();
+            case HTTP -> httpTransport != null && httpTransport.isConnected();
+            case WS -> wsTransport != null && wsTransport.isConnected();
+            default -> status == McpConnectionStatus.CONNECTED;
+        };
     }
 
     /** 工具变更回调 */
@@ -298,4 +368,66 @@ public class McpServerConnection {
             String mimeType,
             String description
     ) {}
+
+    /** MCP Prompt 模板定义 */
+    public record McpPromptDefinition(
+            String name,
+            String description,
+            List<McpPromptArgument> arguments
+    ) {}
+
+    /** MCP Prompt 参数 */
+    public record McpPromptArgument(
+            String name,
+            String description,
+            boolean required
+    ) {}
+
+    // ===== Prompt 发现 =====
+
+    /**
+     * 列出 MCP 服务器支持的 prompt 模板 — 发送 prompts/list 请求。
+     *
+     * @return prompt 模板列表
+     */
+    public List<McpPromptDefinition> listPrompts() {
+        if (status != McpConnectionStatus.CONNECTED) {
+            log.warn("Cannot list prompts — server '{}' not connected (status={})", config.name(), status);
+            return List.of();
+        }
+        try {
+            Object result = sendRequestAndWait("prompts/list", null);
+            if (result instanceof com.fasterxml.jackson.databind.JsonNode jsonNode) {
+                com.fasterxml.jackson.databind.JsonNode promptsArray = jsonNode.path("prompts");
+                if (!promptsArray.isArray()) return List.of();
+
+                List<McpPromptDefinition> prompts = new ArrayList<>();
+                for (com.fasterxml.jackson.databind.JsonNode p : promptsArray) {
+                    String name = p.path("name").asText(null);
+                    String desc = p.path("description").asText("");
+                    List<McpPromptArgument> args = new ArrayList<>();
+
+                    com.fasterxml.jackson.databind.JsonNode argsArray = p.path("arguments");
+                    if (argsArray.isArray()) {
+                        for (com.fasterxml.jackson.databind.JsonNode a : argsArray) {
+                            args.add(new McpPromptArgument(
+                                    a.path("name").asText(""),
+                                    a.path("description").asText(""),
+                                    a.path("required").asBoolean(false)
+                            ));
+                        }
+                    }
+                    if (name != null) {
+                        prompts.add(new McpPromptDefinition(name, desc, args));
+                    }
+                }
+                log.info("Discovered {} prompts from MCP server '{}'", prompts.size(), config.name());
+                return prompts;
+            }
+            return List.of();
+        } catch (McpProtocolException e) {
+            log.warn("prompts/list not supported by MCP server '{}': {}", config.name(), e.getMessage());
+            return List.of();
+        }
+    }
 }

@@ -25,6 +25,7 @@ class CapabilityDomain(Enum):
     DOC_GENERATION = auto()   # P2 — 文档生成: Jinja2 + pygments + markdown-it-py
     GIT_ENHANCED = auto()     # P2 — Git 增强: GitPython
     FILE_PROCESSING = auto()  # P0 — 文件处理: chardet + python-magic + watchfiles
+    BROWSER_AUTOMATION = auto()  # P2 — 浏览器自动化: playwright
 
 
 @dataclass
@@ -88,6 +89,14 @@ CAPABILITY_REGISTRY: Dict[CapabilityDomain, CapabilityInfo] = {
         name="文件处理",
         required_packages=["chardet"],
         router_module="routers.file_processing",
+    ),
+    CapabilityDomain.BROWSER_AUTOMATION: CapabilityInfo(
+        domain=CapabilityDomain.BROWSER_AUTOMATION,
+        name="浏览器自动化",
+        required_packages=["playwright"],
+        min_versions={"playwright": "1.40.0"},
+        system_binaries=[],  # Playwright 自带浏览器二进制
+        router_module="routers.browser",
     ),
 }
 

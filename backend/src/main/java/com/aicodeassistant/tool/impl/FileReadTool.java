@@ -108,6 +108,11 @@ public class FileReadTool implements Tool {
     }
 
     @Override
+    public String searchHint(ToolInput input) {
+        return input.getOptionalString("file_path").orElse(null);
+    }
+
+    @Override
     public ToolResult call(ToolInput input, ToolUseContext context) {
         Path resolved = pathSecurity.resolvePath(input.getString("file_path"), context.workingDirectory());
         String filePath = resolved.toString();

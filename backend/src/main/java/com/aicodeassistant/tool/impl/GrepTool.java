@@ -88,6 +88,11 @@ public class GrepTool implements Tool {
     }
 
     @Override
+    public String searchHint(ToolInput input) {
+        return input.getOptionalString("pattern").orElse(null);
+    }
+
+    @Override
     public ToolResult call(ToolInput input, ToolUseContext context) {
         String pattern = input.getString("pattern");
         String searchPath = input.getString("path", context.workingDirectory());

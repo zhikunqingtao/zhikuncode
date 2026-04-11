@@ -29,7 +29,7 @@ class FileReadToolUnitTest {
 
     @BeforeEach
     void setUp() {
-        fileReadTool = new FileReadTool();
+        fileReadTool = new FileReadTool(null, null);
         context = ToolUseContext.of(tempDir.toString(), "test-session");
     }
 

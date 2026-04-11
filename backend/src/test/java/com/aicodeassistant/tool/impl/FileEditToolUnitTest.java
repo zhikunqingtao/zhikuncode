@@ -28,7 +28,7 @@ class FileEditToolUnitTest {
 
     @BeforeEach
     void setUp() {
-        fileEditTool = new FileEditTool(null);
+        fileEditTool = new FileEditTool(null, null, null);
         context = ToolUseContext.of(tempDir.toString(), "test-session");
     }
 

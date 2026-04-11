@@ -1,6 +1,10 @@
 package com.aicodeassistant.engine;
 
+import com.aicodeassistant.llm.MessageParam;
+import com.aicodeassistant.llm.MessageParam.ContentPart;
 import com.aicodeassistant.model.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -28,7 +32,9 @@ public class MessageNormalizer {
 
     /**
      * 完整标准化管线。
+     * @deprecated 使用 {@link #normalizeTyped(List)} 代替，返回强类型 MessageParam
      */
+    @Deprecated
     public List<Map<String, Object>> normalize(List<Message> messages) {
         // Phase 1: 过滤不应发送给API的消息类型
         List<Message> filtered = filterMessages(messages);
@@ -338,5 +344,216 @@ public class MessageNormalizer {
                 (List<Map<String, Object>>) source.get("content");
         targetContent.addAll(sourceContent);
         target.put("content", targetContent);
+    }
+
+    // ==================== 强类型转换 API ====================
+
+    /**
+     * 单条消息转换 — Message → MessageParam。
+     * 使用 Java 21 pattern matching 覆盖所有 ContentBlock 子类型。
+     *
+     * @param msg 内部消息对象
+     * @return 强类型 API 参数，SystemMessage 返回 null
+     */
+    public static MessageParam fromMessage(Message msg) {
+        return switch (msg) {
+            case Message.UserMessage user -> {
+                List<ContentPart> parts = convertContentParts(user.content());
+                // 兼容 toolUseResult 旧路径
+                if (parts.isEmpty() && user.toolUseResult() != null
+                        && user.sourceToolAssistantUUID() != null) {
+                    parts = List.of(new ContentPart.ToolResultPart(
+                            user.sourceToolAssistantUUID(),
+                            user.toolUseResult() != null ? user.toolUseResult() : "",
+                            false));
+                }
+                yield new MessageParam.UserParam(parts);
+            }
+            case Message.AssistantMessage assistant -> {
+                List<ContentPart> parts = convertContentParts(assistant.content());
+                yield new MessageParam.AssistantParam(parts);
+            }
+            case Message.SystemMessage ignored -> null;
+        };
+    }
+
+    /**
+     * 强类型标准化管线 — 返回 List&lt;MessageParam&gt; 替代 List&lt;Map&gt;。
+     * <p>
+     * 复用现有5阶段逻辑：过滤 → 转换合并 → thinking处理 → 配对保证 → 空内容过滤。
+     * 最后通过 fromMessage() 将 Map 安全转为 MessageParam。
+     *
+     * @param messages 内部消息列表
+     * @return 强类型消息参数列表
+     */
+    public List<MessageParam> normalizeTyped(List<Message> messages) {
+        // 复用旧管线确保一致性
+        List<Message> filtered = filterMessages(messages);
+
+        // 直接转为强类型 + 合并连续同角色
+        List<MessageParam> result = new ArrayList<>();
+        for (Message msg : filtered) {
+            MessageParam param = fromMessage(msg);
+            if (param == null) continue;
+
+            // 合并连续 user 消息
+            if (!result.isEmpty() && param instanceof MessageParam.UserParam up) {
+                MessageParam last = result.getLast();
+                if (last instanceof MessageParam.UserParam lastUp) {
+                    List<ContentPart> merged = new ArrayList<>(lastUp.content());
+                    merged.addAll(up.content());
+                    result.set(result.size() - 1, new MessageParam.UserParam(merged));
+                    continue;
+                }
+            }
+            result.add(param);
+        }
+
+        // thinking 处理: 过滤 orphan thinking-only, 移除尾部 thinking
+        result = processThinkingBlocksTyped(result);
+
+        // tool_use/tool_result 配对保证
+        result = ensureToolResultPairingTyped(result);
+
+        // 过滤空内容 assistant
+        result = result.stream()
+                .filter(mp -> {
+                    if (!(mp instanceof MessageParam.AssistantParam ap)) return true;
+                    if (ap.content() == null || ap.content().isEmpty()) return false;
+                    boolean allBlankText = ap.content().stream().allMatch(p ->
+                            p instanceof ContentPart.TextPart tp
+                                    && (tp.text() == null || tp.text().isBlank()));
+                    return !allBlankText;
+                })
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        return result;
+    }
+
+    /**
+     * ContentBlock 列表 → ContentPart 列表。
+     */
+    private static List<ContentPart> convertContentParts(List<ContentBlock> blocks) {
+        if (blocks == null || blocks.isEmpty()) return List.of();
+        return blocks.stream().map(MessageNormalizer::convertContentPart).toList();
+    }
+
+    private static ContentPart convertContentPart(ContentBlock block) {
+        return switch (block) {
+            case ContentBlock.TextBlock text ->
+                    new ContentPart.TextPart(text.text() != null ? text.text() : "");
+            case ContentBlock.ToolUseBlock toolUse -> {
+                    Map<String, Object> inputMap = jsonNodeToMap(toolUse.input());
+                    yield new ContentPart.ToolUsePart(toolUse.id(), toolUse.name(), inputMap);
+            }
+            case ContentBlock.ToolResultBlock result ->
+                    new ContentPart.ToolResultPart(result.toolUseId(),
+                            result.content() != null ? result.content() : "",
+                            result.isError());
+            case ContentBlock.ImageBlock image ->
+                    new ContentPart.ImagePart(image.mediaType(), image.base64Data());
+            case ContentBlock.ThinkingBlock thinking ->
+                    new ContentPart.ThinkingPart(
+                            thinking.thinking() != null ? thinking.thinking() : "");
+            case ContentBlock.RedactedThinkingBlock redacted ->
+                    new ContentPart.RedactedThinkingPart(
+                            redacted.data() != null ? redacted.data() : "");
+        };
+    }
+
+    /**
+     * 强类型 thinking 块处理。
+     */
+    private List<MessageParam> processThinkingBlocksTyped(List<MessageParam> messages) {
+        List<MessageParam> result = new ArrayList<>();
+        for (MessageParam mp : messages) {
+            if (!(mp instanceof MessageParam.AssistantParam ap)) {
+                result.add(mp);
+                continue;
+            }
+            // 过滤 orphaned thinking-only
+            boolean onlyThinking = ap.content().stream().allMatch(p ->
+                    p instanceof ContentPart.ThinkingPart
+                            || p instanceof ContentPart.RedactedThinkingPart);
+            if (onlyThinking) continue;
+            result.add(mp);
+        }
+
+        // 移除最后一条 assistant 的尾部 thinking
+        if (!result.isEmpty() && result.getLast() instanceof MessageParam.AssistantParam ap) {
+            List<ContentPart> trimmed = new ArrayList<>(ap.content());
+            while (!trimmed.isEmpty()
+                    && trimmed.getLast() instanceof ContentPart.ThinkingPart) {
+                trimmed.removeLast();
+            }
+            if (trimmed.size() != ap.content().size()) {
+                result.set(result.size() - 1, new MessageParam.AssistantParam(trimmed));
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 强类型 tool_use/tool_result 配对保证。
+     */
+    private List<MessageParam> ensureToolResultPairingTyped(List<MessageParam> messages) {
+        Set<String> toolUseIds = new LinkedHashSet<>();
+        Set<String> toolResultIds = new HashSet<>();
+
+        for (MessageParam mp : messages) {
+            List<ContentPart> parts = switch (mp) {
+                case MessageParam.UserParam up -> up.content();
+                case MessageParam.AssistantParam ap -> ap.content();
+                default -> List.of();
+            };
+            for (ContentPart part : parts) {
+                if (part instanceof ContentPart.ToolUsePart tup) {
+                    toolUseIds.add(tup.id());
+                } else if (part instanceof ContentPart.ToolResultPart trp) {
+                    toolResultIds.add(trp.toolUseId());
+                }
+            }
+        }
+
+        Set<String> missing = new LinkedHashSet<>(toolUseIds);
+        missing.removeAll(toolResultIds);
+
+        if (!missing.isEmpty()) {
+            log.warn("[typed] Found {} tool_use without matching tool_result", missing.size());
+            for (String id : missing) {
+                // 找到包含该 tool_use 的 assistant 消息，在其后插入 synthetic result
+                int insertIdx = -1;
+                for (int i = 0; i < messages.size(); i++) {
+                    if (messages.get(i) instanceof MessageParam.AssistantParam ap) {
+                        boolean hasIt = ap.content().stream().anyMatch(p ->
+                                p instanceof ContentPart.ToolUsePart tup && tup.id().equals(id));
+                        if (hasIt) { insertIdx = i + 1; break; }
+                    }
+                }
+                MessageParam synthetic = new MessageParam.UserParam(List.of(
+                        new ContentPart.ToolResultPart(id,
+                                "<tool_use_error>No result received</tool_use_error>", true)));
+                if (insertIdx >= 0 && insertIdx <= messages.size()) {
+                    messages.add(insertIdx, synthetic);
+                } else {
+                    messages.add(synthetic);
+                }
+            }
+        }
+        return messages;
+    }
+
+    /**
+     * JsonNode → Map 转换（用于 ToolUseBlock.input → ToolUsePart.input）。
+     */
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> jsonNodeToMap(JsonNode node) {
+        if (node == null || node.isNull()) return Map.of();
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.convertValue(node, Map.class);
+        } catch (Exception e) {
+            return Map.of();
+        }
     }
 }

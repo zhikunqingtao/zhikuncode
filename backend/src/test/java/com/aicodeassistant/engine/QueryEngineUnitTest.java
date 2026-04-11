@@ -1,5 +1,6 @@
 package com.aicodeassistant.engine;
 
+import com.aicodeassistant.history.FileHistoryService;
 import com.aicodeassistant.hook.HookRegistry;
 import com.aicodeassistant.hook.HookService;
 import com.aicodeassistant.llm.*;
@@ -48,6 +49,7 @@ class QueryEngineUnitTest {
     @Mock ModelRegistry modelRegistry;
     @Mock ThinkingBudgetCalculator thinkingBudgetCalculator;
     @Mock ModelTierService modelTierService;
+    @Mock FileHistoryService fileHistoryService;
 
     private ObjectMapper objectMapper;
     private QueryEngine queryEngine;
@@ -61,7 +63,7 @@ class QueryEngineUnitTest {
                 permissionPipeline, permissionRuleRepository, tokenCounter,
                 objectMapper, streamingToolExecutor, messageNormalizer, hookService,
                 snipService, microCompactService, modelRegistry,
-                thinkingBudgetCalculator, modelTierService);
+                thinkingBudgetCalculator, modelTierService, fileHistoryService);
         handler = new TestHandler();
 
         // 默认 Snip/MicroCompact mock: 直接返回原消息列表
@@ -84,7 +86,7 @@ class QueryEngineUnitTest {
             // 配置 mock
             LlmProvider mockProvider = mock(LlmProvider.class);
             when(providerRegistry.getProvider(anyString())).thenReturn(mockProvider);
-            when(messageNormalizer.normalize(anyList())).thenReturn(List.of());
+            when(messageNormalizer.normalizeTyped(anyList())).thenReturn(List.of());
 
             // 配置 session mock
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
@@ -130,7 +132,7 @@ class QueryEngineUnitTest {
         void endTurnStopsLoop() {
             LlmProvider mockProvider = mock(LlmProvider.class);
             when(providerRegistry.getProvider(anyString())).thenReturn(mockProvider);
-            when(messageNormalizer.normalize(anyList())).thenReturn(List.of());
+            when(messageNormalizer.normalizeTyped(anyList())).thenReturn(List.of());
 
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
             when(streamingToolExecutor.newSession()).thenReturn(session);
@@ -197,7 +199,7 @@ class QueryEngineUnitTest {
             AtomicInteger callCount = new AtomicInteger(0);
             LlmProvider mockProvider = mock(LlmProvider.class);
             when(providerRegistry.getProvider(anyString())).thenReturn(mockProvider);
-            when(messageNormalizer.normalize(anyList())).thenReturn(List.of());
+            when(messageNormalizer.normalizeTyped(anyList())).thenReturn(List.of());
 
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
             when(streamingToolExecutor.newSession()).thenReturn(session);
@@ -238,7 +240,7 @@ class QueryEngineUnitTest {
         void stopHookPreventContinuation() {
             LlmProvider mockProvider = mock(LlmProvider.class);
             when(providerRegistry.getProvider(anyString())).thenReturn(mockProvider);
-            when(messageNormalizer.normalize(anyList())).thenReturn(List.of());
+            when(messageNormalizer.normalizeTyped(anyList())).thenReturn(List.of());
 
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
             when(streamingToolExecutor.newSession()).thenReturn(session);
@@ -311,7 +313,7 @@ class QueryEngineUnitTest {
             AtomicInteger callCount = new AtomicInteger();
             LlmProvider mockProvider = mock(LlmProvider.class);
             when(providerRegistry.getProvider(anyString())).thenReturn(mockProvider);
-            when(messageNormalizer.normalize(anyList())).thenReturn(List.of());
+            when(messageNormalizer.normalizeTyped(anyList())).thenReturn(List.of());
 
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
             when(streamingToolExecutor.newSession()).thenReturn(session);
@@ -358,7 +360,7 @@ class QueryEngineUnitTest {
         void maxTurns_reached_returnsMaxTurns() {
             LlmProvider mockProvider = mock(LlmProvider.class);
             when(providerRegistry.getProvider(anyString())).thenReturn(mockProvider);
-            when(messageNormalizer.normalize(anyList())).thenReturn(List.of());
+            when(messageNormalizer.normalizeTyped(anyList())).thenReturn(List.of());
 
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
             when(streamingToolExecutor.newSession()).thenReturn(session);
@@ -403,7 +405,7 @@ class QueryEngineUnitTest {
             AtomicInteger callCount = new AtomicInteger();
             LlmProvider mockProvider = mock(LlmProvider.class);
             when(providerRegistry.getProvider(anyString())).thenReturn(mockProvider);
-            when(messageNormalizer.normalize(anyList())).thenReturn(List.of());
+            when(messageNormalizer.normalizeTyped(anyList())).thenReturn(List.of());
 
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
             when(streamingToolExecutor.newSession()).thenReturn(session);
@@ -452,7 +454,7 @@ class QueryEngineUnitTest {
             AtomicInteger callCount = new AtomicInteger();
             LlmProvider mockProvider = mock(LlmProvider.class);
             when(providerRegistry.getProvider(anyString())).thenReturn(mockProvider);
-            when(messageNormalizer.normalize(anyList())).thenReturn(List.of());
+            when(messageNormalizer.normalizeTyped(anyList())).thenReturn(List.of());
 
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
             when(streamingToolExecutor.newSession()).thenReturn(session);
@@ -502,7 +504,7 @@ class QueryEngineUnitTest {
             LlmProvider fallbackProvider = mock(LlmProvider.class);
             when(providerRegistry.getProvider("mock-model")).thenReturn(mockProvider);
             when(providerRegistry.getProvider("fallback-model")).thenReturn(fallbackProvider);
-            when(messageNormalizer.normalize(anyList())).thenReturn(List.of());
+            when(messageNormalizer.normalizeTyped(anyList())).thenReturn(List.of());
 
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
             when(streamingToolExecutor.newSession()).thenReturn(session);
@@ -555,7 +557,7 @@ class QueryEngineUnitTest {
         void abort_generatesSyntheticResults() {
             LlmProvider mockProvider = mock(LlmProvider.class);
             when(providerRegistry.getProvider(anyString())).thenReturn(mockProvider);
-            when(messageNormalizer.normalize(anyList())).thenReturn(List.of());
+            when(messageNormalizer.normalizeTyped(anyList())).thenReturn(List.of());
 
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
             when(streamingToolExecutor.newSession()).thenReturn(session);
@@ -601,7 +603,7 @@ class QueryEngineUnitTest {
         void submitInterrupt_doesNotInjectInterruptMessage() {
             LlmProvider mockProvider = mock(LlmProvider.class);
             when(providerRegistry.getProvider(anyString())).thenReturn(mockProvider);
-            when(messageNormalizer.normalize(anyList())).thenReturn(List.of());
+            when(messageNormalizer.normalizeTyped(anyList())).thenReturn(List.of());
 
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
             when(streamingToolExecutor.newSession()).thenReturn(session);

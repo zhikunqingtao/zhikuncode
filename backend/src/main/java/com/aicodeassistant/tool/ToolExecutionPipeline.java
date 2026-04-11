@@ -58,7 +58,7 @@ public class ToolExecutionPipeline {
      * @param wsPusher WebSocket 推送器（用于权限请求推送）
      * @return 工具执行结果
      */
-    public ToolResult execute(Tool tool, ToolInput input, ToolUseContext context,
+    public ToolExecutionResult execute(Tool tool, ToolInput input, ToolUseContext context,
                                PermissionNotifier wsPusher) {
         return doExecute(tool, input, context, wsPusher);
     }
@@ -71,11 +71,11 @@ public class ToolExecutionPipeline {
      * @param context 执行上下文
      * @return 工具执行结果
      */
-    public ToolResult execute(Tool tool, ToolInput input, ToolUseContext context) {
+    public ToolExecutionResult execute(Tool tool, ToolInput input, ToolUseContext context) {
         return doExecute(tool, input, context, null);
     }
 
-    private ToolResult doExecute(Tool tool, ToolInput input, ToolUseContext context,
+    private ToolExecutionResult doExecute(Tool tool, ToolInput input, ToolUseContext context,
                                   PermissionNotifier wsPusher) {
         String toolName = tool.getName();
         long startTime = System.currentTimeMillis();
@@ -89,8 +89,8 @@ public class ToolExecutionPipeline {
             if (!validation.isValid()) {
                 log.warn("Tool input validation failed for {}: {} - {}",
                         toolName, validation.errorCode(), validation.errorMessage());
-                return ToolResult.error(
-                        "Input validation failed: " + validation.errorMessage());
+                return ToolExecutionResult.of(ToolResult.error(
+                        "Input validation failed: " + validation.errorMessage()));
             }
 
             // ── 阶段 2.5: 输入预处理 ──
@@ -109,7 +109,7 @@ public class ToolExecutionPipeline {
 
             if (!hookResult.proceed()) {
                 log.info("Tool {} blocked by PreToolUse hook: {}", toolName, hookResult.message());
-                return ToolResult.error("Tool execution blocked by hook: " + hookResult.message());
+                return ToolExecutionResult.of(ToolResult.error("Tool execution blocked by hook: " + hookResult.message()));
             }
 
             // 如果钩子修改了输入，使用修改后的输入
@@ -137,13 +137,13 @@ public class ToolExecutionPipeline {
 
                 if (decision.isDenied()) {
                     log.info("Tool {} permission denied: {}", toolName, decision.reason());
-                    return ToolResult.error("Permission denied: " + decision.reason());
+                    return ToolExecutionResult.of(ToolResult.error("Permission denied: " + decision.reason()));
                 }
 
                 if (decision.behavior() == PermissionBehavior.ASK) {
                     if (wsPusher == null || context.sessionId() == null) {
                         log.warn("Tool {} requires permission but no WebSocket pusher available, denying", toolName);
-                        return ToolResult.error("Permission required but cannot prompt user");
+                        return ToolExecutionResult.of(ToolResult.error("Permission required but cannot prompt user"));
                     }
                     // 异步等待用户决策（在 VirtualThread 上 join() 不会阻塞平台线程）
                     String toolUseId = context.toolUseId() != null ? context.toolUseId() : toolName;
@@ -160,7 +160,7 @@ public class ToolExecutionPipeline {
 
                     if (!userDecision.isAllowed()) {
                         log.info("Tool {} permission denied by user", toolName);
-                        return ToolResult.error("Permission denied by user");
+                        return ToolExecutionResult.of(ToolResult.error("Permission denied by user"));
                     }
 
                     // 如果用户选择 "remember"，持久化规则
@@ -205,18 +205,26 @@ public class ToolExecutionPipeline {
             if (result.content() != null && result.content().length() > tool.getMaxResultSizeChars()) {
                 String truncated = result.content().substring(0, tool.getMaxResultSizeChars())
                         + "\n... [truncated, " + result.content().length() + " chars total]";
-                return new ToolResult(truncated, result.isError(), result.metadata());
+                result = new ToolResult(truncated, result.isError(), result.metadata());
             }
 
-            return result;
+            // ── 阶段 7: contextModifier 提取与应用 ──
+            var modifier = result.getContextModifier();
+            ToolUseContext updatedContext = null;
+            if (modifier != null) {
+                updatedContext = modifier.apply(context);
+                log.debug("Tool {} applied contextModifier", toolName);
+            }
+
+            return ToolExecutionResult.of(result.toSerializable(), updatedContext);
 
         } catch (ToolInputValidationException e) {
             log.warn("Tool {} input validation error: {}", toolName, e.getMessage());
-            return ToolResult.error("Input validation error: " + e.getMessage());
+            return ToolExecutionResult.of(ToolResult.error("Input validation error: " + e.getMessage()));
         } catch (Exception e) {
             long durationMs = System.currentTimeMillis() - startTime;
             log.error("Tool {} execution failed after {}ms: {}", toolName, durationMs, e.getMessage(), e);
-            return ToolResult.error("Tool execution error: " + e.getMessage());
+            return ToolExecutionResult.of(ToolResult.error("Tool execution error: " + e.getMessage()));
         }
     }
 }

@@ -53,4 +53,9 @@ public record ToolUseContext(
     public ToolUseContext withCurrentTaskId(String currentTaskId) {
         return new ToolUseContext(workingDirectory, sessionId, toolUseId, onProgress, additionalDirs, userModified, nestingDepth, currentTaskId);
     }
+
+    /** 带 workingDirectory — contextModifier 场景使用 */
+    public ToolUseContext withWorkingDirectory(String workingDirectory) {
+        return new ToolUseContext(workingDirectory, sessionId, toolUseId, onProgress, additionalDirs, userModified, nestingDepth, currentTaskId);
+    }
 }

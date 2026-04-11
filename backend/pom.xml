@@ -160,6 +160,27 @@
             <groupId>org.apache.httpcomponents.client5</groupId>
             <artifactId>httpclient5</artifactId>
         </dependency>
+
+        <!-- Cron Utils (B2: ScheduleCronTool — 5 字段 Unix cron 解析器) -->
+        <dependency>
+            <groupId>com.cronutils</groupId>
+            <artifactId>cron-utils</artifactId>
+            <version>9.2.1</version>
+        </dependency>
+
+        <!-- JSON Schema Generator (SideQuery 结构化输出 — 从 POJO 自动生成 JSON Schema) -->
+        <dependency>
+            <groupId>com.github.victools</groupId>
+            <artifactId>jsonschema-generator</artifactId>
+            <version>4.35.0</version>
+        </dependency>
+
+        <!-- Java-WebSocket (MCP WebSocket 传输层) -->
+        <dependency>
+            <groupId>org.java-websocket</groupId>
+            <artifactId>Java-WebSocket</artifactId>
+            <version>1.5.6</version>
+        </dependency>
     </dependencies>
 
     <build>

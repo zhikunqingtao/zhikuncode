@@ -2,6 +2,7 @@ package com.aicodeassistant.prompt;
 
 import com.aicodeassistant.config.ClaudeMdLoader;
 import com.aicodeassistant.config.FeatureFlagService;
+import com.aicodeassistant.context.ProjectContextService;
 import com.aicodeassistant.llm.SystemPrompt;
 import com.aicodeassistant.mcp.McpConnectionStatus;
 import com.aicodeassistant.mcp.McpServerConnection;
@@ -17,6 +18,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.Arrays;
 
 /**
  * SystemPromptBuilder — 系统提示组装器。
@@ -52,6 +54,7 @@ public class SystemPromptBuilder {
     private final GitService gitService;
     private final ConfigService configService;
     private final AppStateStore appStateStore;
+    private final ProjectContextService projectContextService;
 
     // 段缓存 — /clear 或 /compact 时清除
     private final Map<String, String> sectionCache = new ConcurrentHashMap<>();
@@ -60,12 +63,14 @@ public class SystemPromptBuilder {
                                FeatureFlagService featureFlags,
                                GitService gitService,
                                ConfigService configService,
-                               AppStateStore appStateStore) {
+                               AppStateStore appStateStore,
+                               ProjectContextService projectContextService) {
         this.claudeMdLoader = claudeMdLoader;
         this.featureFlags = featureFlags;
         this.gitService = gitService;
         this.configService = configService;
         this.appStateStore = appStateStore;
+        this.projectContextService = projectContextService;
     }
 
     /**
@@ -112,7 +117,10 @@ public class SystemPromptBuilder {
                 new MemoizedSection("summarize_tool_results",
                         () -> SUMMARIZE_TOOL_RESULTS_SECTION),
                 new MemoizedSection("token_budget",
-                        () -> getTokenBudgetSection())
+                        () -> getTokenBudgetSection()),
+                new MemoizedSection("project_context",
+                        () -> projectContextService.formatProjectContext(
+                                projectContextService.getContext(workingDir)))
         );
 
         // 解析动态段（利用缓存）
@@ -418,6 +426,12 @@ public class SystemPromptBuilder {
 
     // ── 段落 10: 临时目录指引 ──
     private String getScratchpadInstructions() {
+        if (!featureFlags.isEnabled("SCRATCHPAD")) {
+            return null;
+        }
+        if (appStateStore == null) {
+            return null; // test 环境 appStateStore 可能为 null
+        }
         var sessionState = appStateStore.getState().session();
         String workDir = sessionState.workingDirectory();
         if (workDir == null) return null;
@@ -426,17 +440,21 @@ public class SystemPromptBuilder {
         return """
                 # Scratchpad Directory
                 
-                IMPORTANT: Always use this scratchpad directory for temporary files instead of /tmp:
-                %s
+                IMPORTANT: Always use this scratchpad directory for temporary files \
+                instead of `/tmp` or other system temp directories:
+                `%s`
                 
                 Use this directory for ALL temporary file needs:
                 - Storing intermediate results or data during multi-step tasks
                 - Writing temporary scripts or configuration files
                 - Saving outputs that don't belong in the user's project
-                - Any file that would otherwise go to /tmp
+                - Creating working files during analysis or processing
+                - Any file that would otherwise go to `/tmp`
                 
-                Only use /tmp if the user explicitly requests it.
-                The scratchpad directory is session-specific and isolated from the user's project.
+                Only use `/tmp` if the user explicitly requests it.
+                
+                The scratchpad directory is session-specific, isolated from the user's \
+                project, and can be used freely without permission prompts.
                 """.formatted(scratchpadDir);
     }
 
@@ -521,17 +539,38 @@ public class SystemPromptBuilder {
     }
 
     private String getFunctionResultClearingSection(String model) {
-        if (model == null || !model.toLowerCase().contains("haiku")) {
+        if (!featureFlags.isEnabled("CACHED_MICROCOMPACT")) {
             return null;
         }
-        return "When processing function results, extract only the relevant information.";
+        if (model == null) {
+            return null;
+        }
+        // 模型支持检查：匹配 supportedModels 列表中任意模式
+        String supportedModels = featureFlags.getFeatureValue(
+                "FRC_SUPPORTED_MODELS", "haiku,sonnet");
+        boolean isSupported = Arrays.stream(supportedModels.split(","))
+                .map(String::trim)
+                .anyMatch(pattern -> model.toLowerCase().contains(pattern));
+        if (!isSupported) {
+            return null;
+        }
+        int keepRecent = featureFlags.getFeatureValue("FRC_KEEP_RECENT", 3);
+        return "# Function Result Clearing\n\n"
+             + "Old tool results will be automatically cleared from context "
+             + "to free up space. The " + keepRecent
+             + " most recent results are always kept.";
     }
 
     private String getTokenBudgetSection() {
-        if (!featureFlags.isEnabled("TOKEN_BUDGET_HINTS")) {
+        if (!featureFlags.isEnabled("TOKEN_BUDGET")) {
             return null;
         }
-        return "Be mindful of token usage. Keep responses concise when possible.";
+        return "When the user specifies a token target (e.g., \"+500k\", "
+             + "\"spend 2M tokens\", \"use 1B tokens\"), your output token count "
+             + "will be shown each turn. Keep working until you approach the target "
+             + "\u2014 plan your work to fill it productively. The target is a hard "
+             + "minimum, not a suggestion. If you stop early, the system will "
+             + "automatically continue you.";
     }
 
     // ==================== 辅助方法 ====================
@@ -560,11 +599,8 @@ public class SystemPromptBuilder {
 
     // ==================== 常量 ====================
 
-    private static final String SUMMARIZE_TOOL_RESULTS_SECTION = """
-            TOOL RESULT SUMMARIZATION:
-            When tool results are lengthy, provide a concise summary highlighting:
-            - Key findings or changes
-            - Any errors or warnings
-            - Relevant file paths or identifiers
-            """;
+    private static final String SUMMARIZE_TOOL_RESULTS_SECTION =
+        "When working with tool results, write down any important information "
+        + "you might need later in your response, as the original tool result "
+        + "may be cleared later.";
 }

@@ -171,7 +171,7 @@ class ZhipuMcpIntegrationTest {
         McpConfiguration configuration = new McpConfiguration();
         configuration.setServers(java.util.Map.of());
 
-        McpClientManager clientManager = new McpClientManager(configuration, null);
+        McpClientManager clientManager = new McpClientManager(configuration, null, null);
 
         // When - 添加服务器
         McpServerConfig config = McpServerConfig.sse("zhipu-websearch", MCP_SSE_URL);
@@ -199,7 +199,7 @@ class ZhipuMcpIntegrationTest {
     void testMcpToolDiscovery() {
         // Given
         McpConfiguration configuration = new McpConfiguration();
-        McpClientManager clientManager = new McpClientManager(configuration, null);
+        McpClientManager clientManager = new McpClientManager(configuration, null, null);
 
         // 添加一个模拟的 MCP 服务器（带工具）
         McpServerConfig config = McpServerConfig.sse("zhipu-websearch", MCP_SSE_URL);

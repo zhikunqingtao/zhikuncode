@@ -147,6 +147,26 @@ public class McpClientManager implements SmartLifecycle {
     // ===== 工具发现 =====
 
     /**
+     * 发现并注册所有已连接 MCP 服务器的 prompt 模板为 slash 命令。
+     *
+     * @return 所有发现的 prompt 适配器列表
+     */
+    public List<McpPromptAdapter> discoverPrompts() {
+        List<McpPromptAdapter> adapters = new ArrayList<>();
+        for (McpServerConnection conn : getConnectedServers()) {
+            List<McpServerConnection.McpPromptDefinition> prompts = conn.listPrompts();
+            for (McpServerConnection.McpPromptDefinition prompt : prompts) {
+                McpPromptAdapter adapter = new McpPromptAdapter(
+                        conn.getName(), prompt, conn);
+                adapters.add(adapter);
+            }
+        }
+        log.info("Discovered {} MCP prompts across {} servers",
+                adapters.size(), getConnectedServers().size());
+        return adapters;
+    }
+
+    /**
      * 重启指定 MCP 服务器。
      */
     public void restartServer(String name) {

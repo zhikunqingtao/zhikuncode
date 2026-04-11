@@ -49,6 +49,15 @@ features:
     CLASSIFIER_V2: false
     ENABLE_AGENT_SWARMS: false
     MCP_SKILLS: false
+    # ── A 组：SystemPrompt 动态段 ──
+    TOKEN_BUDGET: false          # A1: 默认关闭，用户指定 token 目标时手动开启
+    SCRATCHPAD: true              # A3: 必须默认开启，否则已有功能回退
+    CACHED_MICROCOMPACT: true     # A4: FRC 总开关
+    FRC_SUPPORTED_MODELS: "haiku,sonnet"  # A4: FRC 支持的模型模式
+    FRC_KEEP_RECENT: 3            # A4: FRC 保留最近 N 条工具结果
+    # ── B 组：P2 实验性工具 ──
+    AGENT_TRIGGERS: false         # B2: CronTool 门控，默认关闭
+    WEB_BROWSER_TOOL: false       # B3: WebBrowserTool 门控，默认关闭
 
 # MCP 配置 - 阿里云百炼 MCP 服务
 mcp:
@@ -97,6 +106,8 @@ app:
     team-memories-enabled: true
     max-age-days: 90
     auto-purge: true
+    rerank-enabled: true
+    rerank-timeout-ms: 3000
   compact:
     session-memory-compact-enabled: true
     smc-min-tokens: 10000

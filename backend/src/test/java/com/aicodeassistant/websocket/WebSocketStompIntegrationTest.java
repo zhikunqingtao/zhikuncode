@@ -43,7 +43,7 @@ class WebSocketStompIntegrationTest {
         EffectiveSystemPromptBuilder systemPromptBuilder = mock(EffectiveSystemPromptBuilder.class);
         controller = new WebSocketController(messaging, sessionManager,
                 queryEngine, toolRegistry, providerRegistry, systemPromptBuilder,
-                null, null, null, null, null, null, null);
+                null, null, null, null, null, null, null, null);
     }
 
     // ═══════════════ 1. 推送消息格式验证 ═══════════════

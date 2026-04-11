@@ -118,7 +118,7 @@ class ZhipuMcpConfigTest {
         McpConfiguration configuration = new McpConfiguration();
         configuration.setServers(Map.of());
 
-        McpClientManager clientManager = new McpClientManager(configuration, null);
+        McpClientManager clientManager = new McpClientManager(configuration, null, null);
 
         // When - 添加服务器
         McpServerConfig config = McpServerConfig.sse("zhipu-websearch", MCP_SSE_URL);

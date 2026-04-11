@@ -49,17 +49,20 @@ public class ContextCascade {
 
     private final SnipService snipService;
     private final MicroCompactService microCompactService;
+    private final ContextCollapseService contextCollapseService;
     private final CompactService compactService;
     private final TokenCounter tokenCounter;
     private final ModelRegistry modelRegistry;
 
     public ContextCascade(SnipService snipService,
                           MicroCompactService microCompactService,
+                          ContextCollapseService contextCollapseService,
                           CompactService compactService,
                           TokenCounter tokenCounter,
                           ModelRegistry modelRegistry) {
         this.snipService = snipService;
         this.microCompactService = microCompactService;
+        this.contextCollapseService = contextCollapseService;
         this.compactService = compactService;
         this.tokenCounter = tokenCounter;
         this.modelRegistry = modelRegistry;
@@ -209,6 +212,15 @@ public class ContextCascade {
             mcTokensFreed = mcResult.tokensFreed();
             current = mcResult.messages();
             log.debug("Level 1 MicroCompact: freed {} tokens", mcTokensFreed);
+        }
+
+        // ===== Level 1.5: ContextCollapse (骨架化旧消息) =====
+        ContextCollapseService.CollapseResult collapseResult =
+                contextCollapseService.collapseMessages(current);
+        if (collapseResult.collapsedCount() > 0) {
+            current = collapseResult.messages();
+            log.debug("Level 1.5 ContextCollapse: collapsed {} messages, ~{} chars freed",
+                    collapseResult.collapsedCount(), collapseResult.estimatedCharsFreed());
         }
 
         // ===== Level 2: AutoCompact (LLM 摘要) =====

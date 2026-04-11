@@ -2,6 +2,7 @@ package com.aicodeassistant.tool;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.UnaryOperator;
 
 /**
  * 工具执行结果 — 包含内容、错误标志和元数据。
@@ -55,5 +56,31 @@ public record ToolResult(
         var newMetadata = new HashMap<>(this.metadata);
         newMetadata.put(key, value);
         return new ToolResult(this.content, this.isError, newMetadata);
+    }
+
+    // ==================== contextModifier 支持 ====================
+
+    private static final String CONTEXT_MODIFIER_KEY = "__contextModifier";
+
+    /** 携带 contextModifier 的新 ToolResult（modifier 存入 metadata） */
+    public ToolResult withContextModifier(UnaryOperator<ToolUseContext> modifier) {
+        var newMetadata = new HashMap<>(this.metadata);
+        newMetadata.put(CONTEXT_MODIFIER_KEY, modifier);
+        return new ToolResult(this.content, this.isError, newMetadata);
+    }
+
+    /** 提取 contextModifier（可能为 null） */
+    @SuppressWarnings("unchecked")
+    public UnaryOperator<ToolUseContext> getContextModifier() {
+        Object modifier = this.metadata.get(CONTEXT_MODIFIER_KEY);
+        return modifier instanceof UnaryOperator ? (UnaryOperator<ToolUseContext>) modifier : null;
+    }
+
+    /** 返回可安全序列化的副本（去除不可序列化的 contextModifier） */
+    public ToolResult toSerializable() {
+        if (!this.metadata.containsKey(CONTEXT_MODIFIER_KEY)) return this;
+        var cleanMeta = new HashMap<>(this.metadata);
+        cleanMeta.remove(CONTEXT_MODIFIER_KEY);
+        return new ToolResult(this.content, this.isError, cleanMeta);
     }
 }

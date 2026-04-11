@@ -8,6 +8,8 @@ import com.aicodeassistant.permission.AutoModeClassifier;
 import com.aicodeassistant.permission.PermissionPipeline;
 import com.aicodeassistant.permission.PermissionRuleMatcher;
 import com.aicodeassistant.permission.PermissionRuleRepository;
+import com.aicodeassistant.permission.PluginSettingsSource;
+import com.aicodeassistant.permission.PolicySettingsSource;
 import com.aicodeassistant.security.SensitiveDataFilter;
 import com.aicodeassistant.tool.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,7 +47,8 @@ class QueryFlowIntegrationTest {
     void setUp() {
         objectMapper = new ObjectMapper();
         providerRegistry = new LlmProviderRegistry(List.of());
-        PermissionRuleRepository ruleRepo = new PermissionRuleRepository();
+        PermissionRuleRepository ruleRepo = new PermissionRuleRepository(
+                        new PolicySettingsSource(objectMapper), new PluginSettingsSource());
         PermissionRuleMatcher ruleMatcher = new PermissionRuleMatcher();
         AutoModeClassifier autoModeClassifier = new AutoModeClassifier(providerRegistry);
         permissionPipeline = new PermissionPipeline(ruleMatcher, ruleRepo, autoModeClassifier);
@@ -66,7 +69,7 @@ class QueryFlowIntegrationTest {
                 providerRegistry, compactService, apiRetryService,
                 permissionPipeline, ruleRepo, tokenCounter, objectMapper,
                 streamingToolExecutor, messageNormalizer, hookService,
-                snipService, microCompactService, null, null, modelTierService
+                snipService, microCompactService, null, null, modelTierService, null
         );
 
         handler = new RecordingHandler();

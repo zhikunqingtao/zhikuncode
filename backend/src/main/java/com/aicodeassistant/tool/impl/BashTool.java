@@ -304,6 +304,15 @@ public class BashTool implements Tool {
     }
 
     @Override
+    public PermissionBehavior preparePermissionMatcher(ToolInput input) {
+        String command = input.getOptionalString("command").orElse(null);
+        if (command == null || command.isBlank()) return PermissionBehavior.PASSTHROUGH;
+        // 提取命令前缀用于匹配 alwaysAllow/deny 规则
+        // 裸 shell 前缀的 ASK 逻辑已在 PermissionPipeline.checkContentLevelAsk 中处理
+        return PermissionBehavior.PASSTHROUGH;
+    }
+
+    @Override
     public ToolResult call(ToolInput input, ToolUseContext context) {
         String command = input.getString("command");
         int timeout = Math.min(input.getInt("timeout", DEFAULT_TIMEOUT_MS), MAX_TIMEOUT_MS);

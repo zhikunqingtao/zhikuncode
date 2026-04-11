@@ -1,5 +1,6 @@
 package com.aicodeassistant.websocket;
 
+import com.aicodeassistant.context.ProjectContextService;
 import com.aicodeassistant.engine.AbortReason;
 import com.aicodeassistant.engine.ElicitationService;
 import com.aicodeassistant.engine.QueryConfig;
@@ -70,6 +71,7 @@ public class WebSocketController implements PermissionNotifier {
     private final CommandRegistry commandRegistry;             // P1 Slash命令
     private final McpClientManager mcpClientManager;           // P1 MCP操作
     private final FileHistoryService fileHistoryService;       // P1 文件回退
+    private final ProjectContextService projectContextService;  // F5 项目上下文
 
     public WebSocketController(SimpMessagingTemplate messaging,
                                 WebSocketSessionManager wsSessionManager,
@@ -83,7 +85,8 @@ public class WebSocketController implements PermissionNotifier {
                                 PermissionPipeline permissionPipeline,
                                 CommandRegistry commandRegistry,
                                 McpClientManager mcpClientManager,
-                                FileHistoryService fileHistoryService) {
+                                FileHistoryService fileHistoryService,
+                                ProjectContextService projectContextService) {
         this.messaging = messaging;
         this.wsSessionManager = wsSessionManager;
         this.queryEngine = queryEngine;
@@ -97,6 +100,7 @@ public class WebSocketController implements PermissionNotifier {
         this.commandRegistry = commandRegistry;
         this.mcpClientManager = mcpClientManager;
         this.fileHistoryService = fileHistoryService;
+        this.projectContextService = projectContextService;
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -388,6 +392,10 @@ public class WebSocketController implements PermissionNotifier {
      * 执行查询 — 组装 QueryConfig + QueryLoopState，调用 QueryEngine.execute()。
      */
     private void executeQuery(String sessionId, String userText) {
+        // 0. 异步预加载项目上下文
+        Path workingDir = Path.of(System.getProperty("user.dir"));
+        projectContextService.ensureContext(workingDir);
+
         // 1. 组装工具池
         List<Tool> tools = toolRegistry.getEnabledTools();
 
@@ -669,17 +677,24 @@ public class WebSocketController implements PermissionNotifier {
 
     /**
      * #8 回退文件 → /app/rewind
+     * F2 实装：执行真实文件恢复后再推送结果。
      */
     @MessageMapping("/rewind")
     public void handleRewindFiles(@Payload ClientMessage.RewindFilesPayload payload,
                                    Principal principal) {
         String sessionId = resolveSessionId(principal);
-        // FileHistoryService rewind — simplified implementation
-        // Full rewind requires getAffectedFiles/getSnapshot which are P2 features
         log.info("WS rewind_files: sessionId={}, messageId={}, files={}",
                 sessionId, payload.messageId(), payload.filePaths());
+
+        var result = fileHistoryService.rewindFiles(
+                sessionId, payload.messageId(), payload.filePaths());
+
         push(sessionId, "rewind_complete", Map.of(
                 "messageId", payload.messageId(),
+                "success", result.success(),
+                "restoredFiles", result.restoredFiles(),
+                "skippedFiles", result.skippedFiles(),
+                "errors", result.errors(),
                 "files", payload.filePaths() != null ? payload.filePaths() : List.of()));
     }
 

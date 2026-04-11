@@ -2,6 +2,9 @@ package com.aicodeassistant.engine;
 
 import com.aicodeassistant.llm.LlmProvider;
 import com.aicodeassistant.llm.LlmProviderRegistry;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.github.victools.jsonschema.generator.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -28,9 +31,16 @@ public class SideQueryService {
     private static final int DEFAULT_MAX_TOKENS = 1024;
 
     private final LlmProviderRegistry providerRegistry;
+    private final ObjectMapper objectMapper;
+    private final SchemaGenerator schemaGenerator;
 
-    public SideQueryService(LlmProviderRegistry providerRegistry) {
+    public SideQueryService(LlmProviderRegistry providerRegistry, ObjectMapper objectMapper) {
         this.providerRegistry = providerRegistry;
+        this.objectMapper = objectMapper;
+        // 初始化 JSON Schema 生成器
+        SchemaGeneratorConfigBuilder configBuilder = new SchemaGeneratorConfigBuilder(
+                SchemaVersion.DRAFT_2020_12, OptionPreset.PLAIN_JSON);
+        this.schemaGenerator = new SchemaGenerator(configBuilder.build());
     }
 
     // ═══════════════════════════════════════════
@@ -67,6 +77,79 @@ public class SideQueryService {
      */
     public String query(String systemPrompt, String userContent) {
         return query(systemPrompt, userContent, DEFAULT_MAX_TOKENS, DEFAULT_TIMEOUT_MS);
+    }
+
+    // ═══════════════════════════════════════════
+    // 结构化输出
+    // ═══════════════════════════════════════════
+
+    /**
+     * 结构化输出查询 — 用小模型返回类型安全的 JSON 对象。
+     * <p>
+     * 对齐原版 sideQuery.ts 的 BetaJSONOutputFormat 能力。
+     * 使用 victools/jsonschema-generator 从 POJO 自动生成 JSON Schema，
+     * 注入 systemPrompt 指示 LLM 输出 JSON，然后 Jackson 反序列化。
+     *
+     * @param systemPrompt 系统提示
+     * @param userContent  用户内容
+     * @param responseType 响应类型
+     * @return 反序列化后的对象，或 null 如果失败
+     */
+    public <T> T queryStructured(String systemPrompt, String userContent, Class<T> responseType) {
+        return queryStructured(systemPrompt, userContent, responseType, DEFAULT_MAX_TOKENS, DEFAULT_TIMEOUT_MS);
+    }
+
+    /**
+     * 结构化输出查询（完整参数）。
+     */
+    public <T> T queryStructured(String systemPrompt, String userContent, Class<T> responseType,
+                                  int maxTokens, long timeoutMs) {
+        try {
+            // 1. 从 POJO 类生成 JSON Schema
+            ObjectNode schema = schemaGenerator.generateSchema(responseType);
+            String schemaStr = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(schema);
+
+            // 2. 将 Schema 注入 systemPrompt
+            String enhancedPrompt = systemPrompt + "\n\n" +
+                    "You MUST respond with a valid JSON object that conforms to this schema:\n" +
+                    "```json\n" + schemaStr + "\n```\n" +
+                    "Return ONLY the JSON object, no additional text or markdown.";
+
+            // 3. 调用 LLM
+            String jsonResponse = query(enhancedPrompt, userContent, maxTokens, timeoutMs);
+            if (jsonResponse == null || jsonResponse.isBlank()) {
+                log.warn("Structured SideQuery returned empty response for type {}", responseType.getSimpleName());
+                return null;
+            }
+
+            // 4. 清理 JSON（去除可能的 markdown 代码块包装）
+            String cleanJson = cleanJsonResponse(jsonResponse);
+
+            // 5. Jackson 反序列化
+            return objectMapper.readValue(cleanJson, responseType);
+        } catch (Exception e) {
+            log.warn("Structured SideQuery failed for type {}: {}",
+                    responseType.getSimpleName(), e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * 清理 JSON 响应 — 去除 markdown 代码块包装。
+     */
+    private String cleanJsonResponse(String response) {
+        String trimmed = response.strip();
+        // 去除 ```json ... ``` 包装
+        if (trimmed.startsWith("```")) {
+            int firstNewline = trimmed.indexOf('\n');
+            if (firstNewline > 0) {
+                trimmed = trimmed.substring(firstNewline + 1);
+            }
+            if (trimmed.endsWith("```")) {
+                trimmed = trimmed.substring(0, trimmed.length() - 3);
+            }
+        }
+        return trimmed.strip();
     }
 
     // ═══════════════════════════════════════════

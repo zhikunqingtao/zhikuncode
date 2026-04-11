@@ -29,6 +29,7 @@ ROUTER_PREFIX_MAP = {
     "routers.code_quality": ("/api/quality", ["Code Quality"]),
     "routers.visualization": ("/api/viz", ["Visualization"]),
     "routers.doc_generation": ("/api/docs", ["Documentation"]),
+    "routers.browser": ("/api/browser", ["Browser Automation"]),
 }
 
 
@@ -40,6 +41,7 @@ async def lifespan(app: FastAPI):
     capabilities = discover_capabilities()
 
     # 动态注册可用能力域的路由
+    browser_lifecycle = None
     for domain, info in capabilities.items():
         if info.is_available and info.router_module in ROUTER_PREFIX_MAP:
             try:
@@ -47,10 +49,21 @@ async def lifespan(app: FastAPI):
                 prefix, tags = ROUTER_PREFIX_MAP[info.router_module]
                 app.include_router(module.router, prefix=prefix, tags=tags)
                 logger.info(f"路由已注册: {prefix} [{info.name}]")
+                # 浏览器自动化能力域需要启动/关闭 Playwright
+                if info.router_module == "routers.browser" and hasattr(module, "startup_browser"):
+                    await module.startup_browser()
+                    browser_lifecycle = module
             except Exception as e:
                 logger.error(f"加载路由失败 [{info.name}]: {e}")
 
     yield
+
+    # 关闭浏览器服务
+    if browser_lifecycle and hasattr(browser_lifecycle, "shutdown_browser"):
+        try:
+            await browser_lifecycle.shutdown_browser()
+        except Exception as e:
+            logger.error(f"关闭浏览器服务失败: {e}")
     logger.info("Python Service 关闭")
 
 

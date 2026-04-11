@@ -7,7 +7,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Coordinator 服务 — 多代理协作模式核心。
@@ -29,6 +32,16 @@ public class CoordinatorService {
 
     private final FeatureFlagService featureFlags;
     private final ToolRegistry toolRegistry;
+
+    /**
+     * 运行时环境变量存储 — 替代 System.getenv()/System.setProperty()。
+     * <p>
+     * 修复原 getenv() vs setProperty() 命名空间不匹配 bug：
+     * Java 中 System.getenv() 返回只读 OS 环境变量 Map，
+     * System.setProperty() 操作的是 JVM 系统属性，二者完全独立。
+     * 使用会话级 ConcurrentHashMap 统一读写，初始化时回退读取 System.getenv()。
+     */
+    private final ConcurrentHashMap<String, String> runtimeEnv = new ConcurrentHashMap<>();
 
     /** 工人不可见的内部工具 */
     private static final Set<String> INTERNAL_WORKER_TOOLS = Set.of(
@@ -54,7 +67,9 @@ public class CoordinatorService {
      */
     public boolean isCoordinatorMode() {
         return featureFlags.isEnabled("COORDINATOR_MODE")
-                && isEnvTruthy(System.getenv("CLAUDE_CODE_COORDINATOR_MODE"));
+                && isEnvTruthy(runtimeEnv.getOrDefault(
+                        "CLAUDE_CODE_COORDINATOR_MODE",
+                        System.getenv("CLAUDE_CODE_COORDINATOR_MODE")));
     }
 
     /**
@@ -89,9 +104,9 @@ public class CoordinatorService {
         if (current == target) return null;
 
         if (target) {
-            System.setProperty("CLAUDE_CODE_COORDINATOR_MODE", "1");
+            runtimeEnv.put("CLAUDE_CODE_COORDINATOR_MODE", "1");
         } else {
-            System.clearProperty("CLAUDE_CODE_COORDINATOR_MODE");
+            runtimeEnv.remove("CLAUDE_CODE_COORDINATOR_MODE");
         }
 
         return target
@@ -126,6 +141,22 @@ public class CoordinatorService {
      */
     public Set<String> getCoordinatorAllowedTools() {
         return COORDINATOR_ALLOWED_TOOLS;
+    }
+
+    // ============ Scratchpad ============
+
+    /**
+     * 获取会话的 scratchpad 目录（Worker 间共享文件交换区）。
+     * 自动创建，位于 .claude/scratchpad/{sessionId}/
+     */
+    public Path getScratchpadDir(String sessionId) {
+        Path dir = Path.of(System.getProperty("user.dir"), ".claude", "scratchpad", sessionId);
+        try {
+            Files.createDirectories(dir);
+        } catch (Exception e) {
+            log.warn("Failed to create scratchpad dir: {}", dir, e);
+        }
+        return dir;
     }
 
     // ============ 辅助方法 ============

@@ -56,6 +56,9 @@ public interface QueryMessageHandler {
     /** 错误事件 */
     default void onError(Throwable error) {}
 
+    /** 恢复事件 — 系统正在尝试从可恢复错误中自动恢复 */
+    default void onRecovery(RecoveryEvent event) {}
+
     // ==================== P1 消息类型 ====================
 
     default void onTombstone(String targetMessageId) {}

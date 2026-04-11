@@ -1,5 +1,6 @@
 package com.aicodeassistant.engine;
 
+import com.aicodeassistant.llm.LlmApiException;
 import com.aicodeassistant.llm.ThinkingBudgetCalculator;
 import com.aicodeassistant.model.ContentBlock;
 import com.aicodeassistant.model.Message;
@@ -28,6 +29,9 @@ public class QueryLoopState {
     private AbortReason abortReason = null;
     private boolean stopHookActive = false;
     private String lastTransitionReason = null;
+
+    /** 扣留的错误 — 413/max_output_tokens 等可恢复错误在恢复尝试期间扣留，不立即释放给消费者 */
+    private List<LlmApiException> withheldErrors = new ArrayList<>();
 
     public QueryLoopState(List<Message> messages, ToolUseContext toolUseContext) {
         this.messages = new ArrayList<>(messages);
@@ -107,6 +111,28 @@ public class QueryLoopState {
 
     public String getLastTransitionReason() { return lastTransitionReason; }
     public void setLastTransitionReason(String reason) { this.lastTransitionReason = reason; }
+
+    // ==================== Withheld Errors ====================
+
+    /** 添加扣留错误 */
+    public void addWithheldError(LlmApiException error) {
+        this.withheldErrors.add(error);
+    }
+
+    /** 清空扣留错误（恢复成功时调用） */
+    public void clearWithheldErrors() {
+        this.withheldErrors.clear();
+    }
+
+    /** 是否有扣留错误 */
+    public boolean hasWithheldErrors() {
+        return !this.withheldErrors.isEmpty();
+    }
+
+    /** 获取扣留错误列表 */
+    public List<LlmApiException> getWithheldErrors() {
+        return List.copyOf(this.withheldErrors);
+    }
 
     /** 获取有效的 maxTokens (考虑 override) */
     public int getEffectiveMaxTokens(int defaultMaxTokens) {

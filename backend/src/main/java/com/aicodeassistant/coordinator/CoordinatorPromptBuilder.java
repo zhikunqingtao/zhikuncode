@@ -1,7 +1,11 @@
 package com.aicodeassistant.coordinator;
 
+import com.aicodeassistant.mcp.McpClientManager;
+import com.aicodeassistant.mcp.McpServerConnection;
 import org.springframework.stereotype.Component;
 
+import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -15,21 +19,71 @@ import java.util.Map;
 public class CoordinatorPromptBuilder {
 
     private final CoordinatorService coordinatorService;
+    private final McpClientManager mcpClientManager;
 
-    public CoordinatorPromptBuilder(CoordinatorService coordinatorService) {
+    public CoordinatorPromptBuilder(CoordinatorService coordinatorService,
+                                     McpClientManager mcpClientManager) {
         this.coordinatorService = coordinatorService;
+        this.mcpClientManager = mcpClientManager;
     }
 
     /**
-     * 构建 Coordinator 系统提示。
+     * 构建 Coordinator 系统提示（基础版）。
      */
     public String buildCoordinatorPrompt(String sessionId) {
+        return buildCoordinatorPrompt(sessionId, null);
+    }
+
+    /**
+     * 构建 Coordinator 系统提示（增强版）。
+     * 包含 MCP 客户端列表和 scratchpad 目录信息。
+     *
+     * @param sessionId      会话 ID
+     * @param scratchpadDir  scratchpad 目录（可为 null，自动读取）
+     */
+    public String buildCoordinatorPrompt(String sessionId, Path scratchpadDir) {
         Map<String, String> workerContext =
                 coordinatorService.getWorkerToolsContext(sessionId);
         String workerTools = workerContext.getOrDefault(
                 "workerToolsContext", "standard tools");
 
-        return COORDINATOR_SYSTEM_PROMPT_TEMPLATE.formatted(workerTools);
+        // Scratchpad 目录
+        Path scratchpad = scratchpadDir != null
+                ? scratchpadDir
+                : coordinatorService.getScratchpadDir(sessionId);
+
+        // MCP 客户端列表
+        String mcpClients = buildMcpClientsSection();
+
+        return COORDINATOR_SYSTEM_PROMPT_TEMPLATE.formatted(
+                workerTools, scratchpad.toString(), mcpClients);
+    }
+
+    /**
+     * 构建 MCP 客户端列表段落。
+     */
+    private String buildMcpClientsSection() {
+        List<McpServerConnection> connected = mcpClientManager.getConnectedServers();
+        if (connected.isEmpty()) {
+            return "No MCP servers connected.";
+        }
+        StringBuilder sb = new StringBuilder();
+        for (McpServerConnection conn : connected) {
+            sb.append("- **").append(conn.getName()).append("**: ")
+                    .append(conn.getTools().size()).append(" tools");
+            if (!conn.getTools().isEmpty()) {
+                sb.append(" (");
+                sb.append(conn.getTools().stream()
+                        .limit(5)
+                        .map(McpServerConnection.McpToolDefinition::name)
+                        .reduce((a, b) -> a + ", " + b)
+                        .orElse(""));
+                if (conn.getTools().size() > 5) sb.append(", ...");
+                sb.append(")");
+            }
+            sb.append("\n");
+        }
+        return sb.toString();
     }
 
     private static final String COORDINATOR_SYSTEM_PROMPT_TEMPLATE = """
@@ -45,6 +99,13 @@ public class CoordinatorPromptBuilder {
             - **TaskStop**: Stop a running worker agent
 
             ## Worker Capabilities
+            %s
+
+            ## Scratchpad Directory
+            Workers share a scratchpad at: `%s`
+            Use this directory for intermediate files, partial results, and cross-worker data exchange.
+
+            ## MCP Servers
             %s
 
             ## Workflow Protocol

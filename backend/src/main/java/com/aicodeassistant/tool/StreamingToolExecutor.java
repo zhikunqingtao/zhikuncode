@@ -51,6 +51,7 @@ public class StreamingToolExecutor {
         private final ToolUseContext context;
         private volatile ToolState state;
         private volatile ToolResult result;
+        private volatile ToolUseContext updatedContext;  // contextModifier 产生的更新上下文
 
         public TrackedTool(String toolUseId, Tool tool, ToolInput input, ToolUseContext context) {
             this.toolUseId = toolUseId;
@@ -65,6 +66,7 @@ public class StreamingToolExecutor {
         public ToolInput getInput() { return input; }
         public ToolState getState() { return state; }
         public ToolResult getResult() { return result; }
+        public ToolUseContext getUpdatedContext() { return updatedContext; }
     }
 
     /**
@@ -116,8 +118,10 @@ public class StreamingToolExecutor {
                             next.result = ToolResult.error(
                                     "<tool_use_error>Tool execution discarded</tool_use_error>");
                         } else {
-                            next.result = pipeline.execute(next.tool, next.input,
+                            ToolExecutionResult execResult = pipeline.execute(next.tool, next.input,
                                     next.context.withToolUseId(next.toolUseId));
+                            next.result = execResult.result();
+                            next.updatedContext = execResult.updatedContext();
                         }
                         next.state = ToolState.COMPLETED;
                     } catch (Exception e) {

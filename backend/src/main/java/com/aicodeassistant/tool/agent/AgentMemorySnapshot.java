@@ -46,10 +46,13 @@ public class AgentMemorySnapshot {
 
     public void save(Snapshot snapshot) throws IOException {
         Files.createDirectories(snapshotDir);
-        Path file = snapshotDir.resolve(snapshot.agentId() + ".json");
-        objectMapper.writeValue(file.toFile(), snapshot);
+        Path targetFile = snapshotDir.resolve(snapshot.agentId() + ".json");
+        // 原子写入：先写 tmpFile 再 ATOMIC_MOVE，防崩溃时快照损坏
+        Path tmpFile = snapshotDir.resolve(snapshot.agentId() + ".json.tmp");
+        objectMapper.writeValue(tmpFile.toFile(), snapshot);
+        Files.move(tmpFile, targetFile, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
 
-        long size = Files.size(file);
+        long size = Files.size(targetFile);
         if (size > MAX_SNAPSHOT_SIZE) {
             log.warn("Agent snapshot exceeds size limit: {} bytes for agent {}",
                 size, snapshot.agentId());
