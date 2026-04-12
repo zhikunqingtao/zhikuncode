@@ -9,10 +9,12 @@ import com.aicodeassistant.engine.TokenCounter;
 import com.aicodeassistant.exception.SessionNotFoundException;
 import com.aicodeassistant.llm.LlmProviderRegistry;
 import com.aicodeassistant.llm.ModelCapabilities;
+import com.aicodeassistant.llm.ModelRegistry;
 import com.aicodeassistant.llm.ThinkingConfig;
 import com.aicodeassistant.model.ContentBlock;
 import com.aicodeassistant.model.Message;
 import com.aicodeassistant.model.PermissionMode;
+import com.aicodeassistant.permission.PermissionModeManager;
 import com.aicodeassistant.model.Usage;
 import com.aicodeassistant.prompt.EffectiveSystemPromptBuilder;
 import com.aicodeassistant.prompt.SystemPromptConfig;
@@ -20,6 +22,7 @@ import com.aicodeassistant.session.SessionData;
 import com.aicodeassistant.session.SessionManager;
 import com.aicodeassistant.tool.Tool;
 import com.aicodeassistant.tool.ToolRegistry;
+import com.aicodeassistant.tool.ToolUseContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,6 +67,8 @@ public class QueryController {
     private final TokenCounter tokenCounter;
     private final ObjectMapper objectMapper;
     private final EffectiveSystemPromptBuilder systemPromptBuilder;
+    private final PermissionModeManager permissionModeManager;
+    private final ModelRegistry modelRegistry;
 
     public QueryController(QueryEngine queryEngine,
                            ToolRegistry toolRegistry,
@@ -71,7 +76,9 @@ public class QueryController {
                            LlmProviderRegistry providerRegistry,
                            TokenCounter tokenCounter,
                            ObjectMapper objectMapper,
-                           EffectiveSystemPromptBuilder systemPromptBuilder) {
+                           EffectiveSystemPromptBuilder systemPromptBuilder,
+                           PermissionModeManager permissionModeManager,
+                           ModelRegistry modelRegistry) {
         this.queryEngine = queryEngine;
         this.toolRegistry = toolRegistry;
         this.sessionManager = sessionManager;
@@ -79,6 +86,8 @@ public class QueryController {
         this.tokenCounter = tokenCounter;
         this.objectMapper = objectMapper;
         this.systemPromptBuilder = systemPromptBuilder;
+        this.permissionModeManager = permissionModeManager;
+        this.modelRegistry = modelRegistry;
     }
 
     // ════════════════════════════════════════════
@@ -96,6 +105,9 @@ public class QueryController {
     public ResponseEntity<QueryResponse> query(@RequestBody QueryRequest request) {
         // 1. 创建或复用会话
         String sessionId = resolveSessionId(request);
+
+        // REST API 非交互场景 — 设置 BYPASS_PERMISSIONS 避免权限弹窗阻塞
+        permissionModeManager.setMode(sessionId, PermissionMode.BYPASS_PERMISSIONS);
 
         // 2. 组装工具池
         List<Tool> tools = assembleToolPool(request.allowedTools(), request.disallowedTools());
@@ -125,7 +137,9 @@ public class QueryController {
         );
 
         // 6. 初始化循环状态
-        QueryLoopState state = new QueryLoopState(new ArrayList<>(), null);
+        ToolUseContext toolCtx = ToolUseContext.of(
+                System.getProperty("user.dir"), sessionId);
+        QueryLoopState state = new QueryLoopState(new ArrayList<>(), toolCtx);
         // 添加用户消息
         state.addMessage(new Message.UserMessage(
                 UUID.randomUUID().toString(), Instant.now(),
@@ -135,6 +149,29 @@ public class QueryController {
         // 7. 执行查询
         ResultCollectingHandler handler = new ResultCollectingHandler();
         QueryEngine.QueryResult result = queryEngine.execute(config, state, handler);
+
+        // 7.5 ★ 持久化消息到数据库 ★
+        // SessionManager.addMessage 签名: (sessionId, role, content, stopReason, inputTokens, outputTokens)
+        try {
+            for (Message msg : result.messages()) {
+                switch (msg) {
+                    case Message.UserMessage user -> sessionManager.addMessage(
+                            sessionId, "user", user.content(), null, 0, 0);
+                    case Message.AssistantMessage assistant -> sessionManager.addMessage(
+                            sessionId, "assistant", assistant.content(),
+                            assistant.stopReason(),
+                            assistant.usage() != null ? assistant.usage().inputTokens() : 0,
+                            assistant.usage() != null ? assistant.usage().outputTokens() : 0);
+                    case Message.SystemMessage system -> sessionManager.addMessage(
+                            sessionId, "system", system.content(), null, 0, 0);
+                }
+            }
+            log.debug("REST API /api/query: 已持久化 {} 条消息到会话 {}",
+                    result.messages().size(), sessionId);
+        } catch (Exception e) {
+            log.error("REST API 消息持久化失败, sessionId={}", sessionId, e);
+            // 持久化失败不阻塞响应返回（降级策略）
+        }
 
         // 8. 提取最终文本
         String finalText = extractFinalText(result.messages());
@@ -170,6 +207,8 @@ public class QueryController {
         Thread.startVirtualThread(() -> {
             try {
                 String sessionId = resolveSessionId(request);
+                // REST SSE 非交互场景 — 设置 BYPASS_PERMISSIONS
+                permissionModeManager.setMode(sessionId, PermissionMode.BYPASS_PERMISSIONS);
                 List<Tool> tools = assembleToolPool(
                         request.allowedTools(), request.disallowedTools());
                 SystemPromptConfig promptConfig = SystemPromptConfig.defaults()
@@ -192,7 +231,9 @@ public class QueryController {
                         maxTurns, "rest-api-stream"
                 );
 
-                QueryLoopState state = new QueryLoopState(new ArrayList<>(), null);
+                ToolUseContext toolCtx = ToolUseContext.of(
+                        System.getProperty("user.dir"), sessionId);
+                QueryLoopState state = new QueryLoopState(new ArrayList<>(), toolCtx);
                 state.addMessage(new Message.UserMessage(
                         UUID.randomUUID().toString(), Instant.now(),
                         List.of(new ContentBlock.TextBlock(userMessage)),
@@ -201,6 +242,25 @@ public class QueryController {
                 // 流式回调 → SSE 推送（使用独立 SseStreamHandler）
                 SseStreamHandler handler = new SseStreamHandler(emitter, objectMapper);
                 QueryEngine.QueryResult result = queryEngine.execute(config, state, handler);
+
+                // ★ 持久化消息（使用实际 6 参数签名）★
+                try {
+                    for (Message msg : result.messages()) {
+                        switch (msg) {
+                            case Message.UserMessage user -> sessionManager.addMessage(
+                                    sessionId, "user", user.content(), null, 0, 0);
+                            case Message.AssistantMessage assistant -> sessionManager.addMessage(
+                                    sessionId, "assistant", assistant.content(),
+                                    assistant.stopReason(),
+                                    assistant.usage() != null ? assistant.usage().inputTokens() : 0,
+                                    assistant.usage() != null ? assistant.usage().outputTokens() : 0);
+                            case Message.SystemMessage system -> sessionManager.addMessage(
+                                    sessionId, "system", system.content(), null, 0, 0);
+                        }
+                    }
+                } catch (Exception e) {
+                    log.error("SSE 消息持久化失败, sessionId={}", sessionId, e);
+                }
 
                 // 完成事件
                 sendEvent(emitter, "message_complete", Map.of(
@@ -239,6 +299,9 @@ public class QueryController {
         SessionData session = sessionManager.loadSession(request.sessionId())
                 .orElseThrow(() -> new SessionNotFoundException(request.sessionId()));
 
+        // REST API 非交互场景 — 设置 BYPASS_PERMISSIONS
+        permissionModeManager.setMode(request.sessionId(), PermissionMode.BYPASS_PERMISSIONS);
+
         // 2. 准备工具和系统提示
         List<Tool> tools = assembleToolPool(
                 request.allowedTools(), request.disallowedTools());
@@ -261,7 +324,9 @@ public class QueryController {
         );
 
         // 3. 初始化状态 — 加载历史消息
-        QueryLoopState state = new QueryLoopState(new ArrayList<>(session.messages()), null);
+        ToolUseContext toolCtx = ToolUseContext.of(
+                System.getProperty("user.dir"), request.sessionId());
+        QueryLoopState state = new QueryLoopState(new ArrayList<>(session.messages()), toolCtx);
 
         // 追加新用户消息
         state.addMessage(new Message.UserMessage(
@@ -272,6 +337,32 @@ public class QueryController {
         // 4. 执行查询
         ResultCollectingHandler handler = new ResultCollectingHandler();
         QueryEngine.QueryResult result = queryEngine.execute(config, state, handler);
+
+        // ★ 持久化新增消息（排除已有历史消息，使用实际 6 参数签名）★
+        try {
+            int existingCount = session.messages().size();
+            List<Message> newMessages = result.messages().subList(
+                    Math.min(existingCount, result.messages().size()),
+                    result.messages().size());
+            for (Message msg : newMessages) {
+                switch (msg) {
+                    case Message.UserMessage user -> sessionManager.addMessage(
+                            request.sessionId(), "user", user.content(), null, 0, 0);
+                    case Message.AssistantMessage assistant -> sessionManager.addMessage(
+                            request.sessionId(), "assistant", assistant.content(),
+                            assistant.stopReason(),
+                            assistant.usage() != null ? assistant.usage().inputTokens() : 0,
+                            assistant.usage() != null ? assistant.usage().outputTokens() : 0);
+                    case Message.SystemMessage system -> sessionManager.addMessage(
+                            request.sessionId(), "system", system.content(), null, 0, 0);
+                }
+            }
+            log.debug("REST API /api/query/conversation: 已持久化 {} 条新消息到会话 {}",
+                    newMessages.size(), request.sessionId());
+        } catch (Exception e) {
+            log.error("Conversation 消息持久化失败, sessionId={}",
+                    request.sessionId(), e);
+        }
 
         String finalText = extractFinalText(result.messages());
 
@@ -323,13 +414,9 @@ public class QueryController {
     }
 
     private int getContextWindow(String model) {
-        try {
-            ModelCapabilities caps = providerRegistry.getProvider(model)
-                    .getModelCapabilities(model);
-            return caps.contextWindow();
-        } catch (Exception e) {
-            return ModelCapabilities.DEFAULT.contextWindow();
-        }
+        // 使用 ModelRegistry 的四级查询（自定义→Provider→内置→默认），
+        // 避免 Provider 未注册千问模型能力时 fallback 到 DEFAULT(8192) 导致 effectiveWindow 为负
+        return modelRegistry.getContextWindowForModel(model);
     }
 
     private String extractFinalText(List<Message> messages) {

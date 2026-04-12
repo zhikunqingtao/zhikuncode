@@ -105,6 +105,17 @@ public class OpenAiCompatibleProvider implements LlmProvider {
     public String getDefaultModel() { return defaultModel; }
 
     @Override
+    public String getFastModel() {
+        // 优先使用轻量级模型用于摘要/分类等低延迟场景
+        for (String candidate : List.of("qwen-turbo", "qwen-plus", "gpt-4o-mini")) {
+            if (supportedModels.contains(candidate)) {
+                return candidate;
+            }
+        }
+        return defaultModel;
+    }
+
+    @Override
     public ModelCapabilities getModelCapabilities(String model) {
         ModelCapabilities caps = MODEL_CAPABILITIES.get(model);
         if (caps != null) return caps;

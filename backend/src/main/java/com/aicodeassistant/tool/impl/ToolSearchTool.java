@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -113,36 +114,64 @@ public class ToolSearchTool implements Tool {
             return ToolResult.error("Query parameter is required");
         }
 
-        String queryLower = query.toLowerCase();
         log.debug("ToolSearch query: '{}'", query);
 
-        // 搜索所有工具（包括延迟加载和已加载的）
-        List<ToolSearchResult> matches = toolRegistry.getAllTools().stream()
-                .filter(tool -> matchesQuery(tool, queryLower))
-                .map(tool -> new ToolSearchResult(
-                        tool.getName(),
-                        tool.getDescription(),
-                        tool.shouldDefer(),
-                        tool.getGroup()
-                ))
-                .toList();
+        List<Tool> matchedTools;
 
-        if (matches.isEmpty()) {
+        if (query.startsWith("select:")) {
+            // "select:Read,Edit,Grep" — 按名称精确匹配
+            String[] names = query.substring("select:".length()).split(",");
+            matchedTools = new ArrayList<>();
+            for (String name : names) {
+                String trimmed = name.trim();
+                if (trimmed.isEmpty()) continue;
+                toolRegistry.findByNameOptional(trimmed).ifPresent(matchedTools::add);
+            }
+        } else if (query.startsWith("+")) {
+            // "+slack send" — 要求名称包含第一个词，按其余词排名
+            String rest = query.substring(1).trim();
+            String[] parts = rest.split("\\s+", 2);
+            String requiredInName = parts[0].toLowerCase();
+            matchedTools = toolRegistry.getAllTools().stream()
+                    .filter(tool -> tool.getName().toLowerCase().contains(requiredInName))
+                    .toList();
+        } else {
+            // 关键词搜索
+            String queryLower = query.toLowerCase();
+            matchedTools = toolRegistry.getAllTools().stream()
+                    .filter(tool -> matchesQuery(tool, queryLower))
+                    .toList();
+        }
+
+        if (matchedTools.isEmpty()) {
             return ToolResult.success("No tools found matching: " + query +
                     "\n\nTry different keywords or use /help to see all available commands.");
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append("Found ").append(matches.size()).append(" tool(s) matching '").append(query).append("':\n\n");
+        sb.append("Found ").append(matchedTools.size()).append(" tool(s) matching '").append(query).append("':\n\n");
 
-        for (ToolSearchResult match : matches) {
-            sb.append("**").append(match.name()).append("**");
-            if (match.deferred()) {
-                sb.append(" (deferred)");
+        for (Tool tool : matchedTools) {
+            sb.append("**").append(tool.getName()).append("**");
+            if (tool.shouldDefer()) {
+                sb.append(" (deferred → now activated)");
             }
             sb.append("\n");
-            sb.append("  Group: ").append(match.group()).append("\n");
-            sb.append("  ").append(match.description()).append("\n\n");
+            sb.append("  Group: ").append(tool.getGroup()).append("\n");
+            sb.append("  ").append(tool.getDescription()).append("\n");
+
+            // 对于 deferred 工具，返回完整 schema 以便模型可以调用
+            if (tool.shouldDefer()) {
+                try {
+                    String schemaJson = objectMapper.writerWithDefaultPrettyPrinter()
+                            .writeValueAsString(tool.toToolDefinition());
+                    sb.append("  Schema:\n").append(schemaJson).append("\n");
+                } catch (Exception e) {
+                    log.warn("Failed to serialize schema for tool {}: {}", tool.getName(), e.getMessage());
+                    sb.append("  Schema: (serialization failed)\n");
+                }
+            }
+            sb.append("\n");
         }
 
         return ToolResult.success(sb.toString());

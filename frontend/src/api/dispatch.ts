@@ -6,7 +6,7 @@
  * 跨 Store 消息通过私有 handle* 方法协调。
  */
 
-import type { Message, ServerMessage, Usage, PermissionRequest } from '@/types';
+import type { Message, ServerMessage, Usage, PermissionRequest, PermissionMode } from '@/types';
 import { useMessageStore } from '@/store/messageStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { usePermissionStore } from '@/store/permissionStore';
@@ -150,7 +150,21 @@ const handlers: Record<string, (data: any) => void> = {
     },
     'permission_mode_changed':  (d: { mode: string }) => {
         console.log('[dispatch] Permission mode changed:', d.mode);
-        // TODO: setPermissionMode when sessionStore supports it
+        // ★ 大小写安全：后端 PermissionMode 枚举为大写（如 "AUTO"），前端类型为小写（如 'auto'）
+        const normalizedMode = d.mode.toLowerCase() as PermissionMode;
+        // 更新权限 Store 的权限模式
+        usePermissionStore.getState().setPermissionMode(normalizedMode);
+        // 清除挂起的权限请求
+        if (usePermissionStore.getState().pendingPermission) {
+            usePermissionStore.getState().clearPendingPermission();
+        }
+        // 通知用户权限模式已变更
+        useNotificationStore.getState().addNotification({
+            key: 'permission-mode-changed',
+            level: 'info',
+            message: `权限模式已切换为: ${normalizedMode}`,
+            timeout: 3000,
+        });
     },
     // === 新增: 命令结果/文件回退完成 (2 种) ===
     'command_result':     (d: { command: string; output: string }) => {

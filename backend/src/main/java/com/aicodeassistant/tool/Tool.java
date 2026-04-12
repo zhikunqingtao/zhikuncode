@@ -2,6 +2,7 @@ package com.aicodeassistant.tool;
 
 import com.aicodeassistant.model.PermissionBehavior;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -28,8 +29,22 @@ public interface Tool {
     /** 工具描述 — 展示给 LLM 的功能说明 */
     String getDescription();
 
-    /** 输入参数的 JSON Schema */
+    /** 输入参数的 JSON Schema — 给 LLM 的 function calling 描述 */
     Map<String, Object> getInputSchema();
+
+    /**
+     * 结构化 JSON Schema — 给 ToolExecutionPipeline 做输入验证。
+     * <p>
+     * 与 {@link #getInputSchema()} 的职责区分：
+     * <ul>
+     *   <li>{@code getInputSchema()}: 给 LLM 的 function calling 描述，用于提示词生成</li>
+     *   <li>{@code getSchema()}: 给 ToolExecutionPipeline 做结构化验证，使用 JSON Schema 规范</li>
+     * </ul>
+     * 默认返回空映射表示跳过 Schema 验证。工具可覆写此方法提供验证规则。
+     *
+     * @return JSON Schema 定义的 Map，空映射表示跳过验证
+     */
+    default Map<String, Object> getSchema() { return Collections.emptyMap(); }
 
     /** 工具分组 — 用于 UI 分类展示 (read/edit/bash/mcp/...) */
     default String getGroup() { return "general"; }

@@ -102,7 +102,7 @@ public class PermissionModeManager {
         PermissionMode mode = getMode(sessionId);
         return switch (mode) {
             case BYPASS_PERMISSIONS -> true;
-            case DONT_ASK -> true;
+            case DONT_ASK -> false;  // DONT_ASK = 不弹窗但自动拒绝，不能跳过权限检查
             case ACCEPT_EDITS -> isEditTool(toolName);
             case AUTO -> {
                 // AUTO 模式: 非危险操作自动允许
@@ -110,6 +110,30 @@ public class PermissionModeManager {
                 yield !isDangerousExecution(command) && !isEditTool(toolName);
             }
             default -> false;
+        };
+    }
+
+    /**
+     * 判断当前模式下指定操作是否需要用户确认。
+     * <p>
+     * 与 shouldSkipPermission() 不同，此方法返回 true 表示"需要弹窗确认"，
+     * 而非"跳过权限检查"。
+     *
+     * @param sessionId 会话 ID
+     * @param toolName  工具名称
+     * @param isReadOnly 是否为只读操作
+     * @return true = 需要弹窗确认, false = 自动决定（允许或拒绝）
+     */
+    public boolean needsUserConfirmation(String sessionId, String toolName, boolean isReadOnly) {
+        PermissionMode mode = getMode(sessionId);
+        return switch (mode) {
+            case DEFAULT -> true;
+            case PLAN -> !isReadOnly;
+            case ACCEPT_EDITS -> !isEditTool(toolName);
+            case DONT_ASK -> false;           // 不弹窗（自动拒绝写操作）
+            case BYPASS_PERMISSIONS -> false;  // 不弹窗（自动允许）
+            case AUTO -> false;               // LLM 自动判定
+            case BUBBLE -> true;              // 冒泡到父代理确认
         };
     }
 

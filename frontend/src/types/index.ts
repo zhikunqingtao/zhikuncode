@@ -212,7 +212,7 @@ export interface Attachment {
 
 // ==================== 权限相关 ====================
 
-export type PermissionMode = 'default' | 'plan' | 'accept_edits' | 'dont_ask' | 'bypass_permissions';
+export type PermissionMode = 'default' | 'plan' | 'accept_edits' | 'dont_ask' | 'bypass_permissions' | 'auto' | 'bubble';
 
 export interface PermissionDecision {
     toolUseId: string;

@@ -231,7 +231,7 @@ public class McpSseTransport implements McpTransport {
                         future.complete(node.has("result") ? node.get("result") : null);
                     }
                 } else {
-                    log.warn("Received response for unknown request id: {}", id);
+                    log.debug("Received response for unknown request id: {} (may be server keepalive)", id);
                 }
             } else if (node.has("method")) {
                 // 通知: 服务端推送

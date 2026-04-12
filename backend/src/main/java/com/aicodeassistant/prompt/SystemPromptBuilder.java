@@ -16,6 +16,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -61,6 +64,18 @@ public class SystemPromptBuilder {
 
     // 段缓存 — /clear 或 /compact 时清除
     private final Map<String, String> sectionCache = new ConcurrentHashMap<>();
+
+    // Prompt 模板缓存 — 避免重复IO
+    private final Map<String, String> promptTemplateCache = new ConcurrentHashMap<>();
+
+    /** 外部 prompt 模板文件名（按顺序加载追加到系统提示末尾） */
+    private static final List<String> PROMPT_TEMPLATE_NAMES = List.of(
+            "tool_examples",
+            "boundary_conditions",
+            "code_style_guide",
+            "security_practices",
+            "error_recovery"
+    );
 
     // 上下文感知状态 — 用于 summarize_tool_results 动态段条件注入
     private volatile List<Message> currentMessages;
@@ -195,6 +210,14 @@ public class SystemPromptBuilder {
         List<String> prompt = new ArrayList<>();
         // --- 静态段（跨组织可缓存）---
         prompt.addAll(buildStaticSections(enabledTools));
+
+        // --- 外部 prompt 模板段（追加到静态段之后）---
+        for (String templateName : PROMPT_TEMPLATE_NAMES) {
+            String content = loadPromptTemplate(templateName);
+            if (!content.isEmpty()) {
+                prompt.add(content);
+            }
+        }
 
         // === 缓存分割标记 ===
         if (shouldUseGlobalCacheScope()) {
@@ -1049,6 +1072,33 @@ public class SystemPromptBuilder {
              + "\u2014 plan your work to fill it productively. The target is a hard "
              + "minimum, not a suggestion. If you stop early, the system will "
              + "automatically continue you.";
+    }
+
+    // ==================== Prompt 模板加载 ====================
+
+    /**
+     * 从 classpath:prompts/ 加载外部 prompt 模板文件。
+     * 带缓存以避免重复 IO，文件不存在或读取失败时返回空字符串。
+     *
+     * @param templateName 模板文件名（不含 .txt 后缀）
+     * @return 模板内容，或空字符串
+     */
+    private String loadPromptTemplate(String templateName) {
+        return promptTemplateCache.computeIfAbsent(templateName, name -> {
+            String resourcePath = "/prompts/" + name + ".txt";
+            try (InputStream is = getClass().getResourceAsStream(resourcePath)) {
+                if (is == null) {
+                    log.warn("Prompt template not found: {}", resourcePath);
+                    return "";
+                }
+                String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+                log.debug("Loaded prompt template: {} ({} chars)", name, content.length());
+                return content;
+            } catch (IOException e) {
+                log.warn("Failed to load prompt template: {}", resourcePath, e);
+                return "";
+            }
+        });
     }
 
     // ==================== 辅助方法 ====================

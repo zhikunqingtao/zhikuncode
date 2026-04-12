@@ -4,7 +4,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -43,6 +46,7 @@ public class McpServerConnection {
 
     /**
      * 连接到 MCP 服务器 — 通过工厂方法创建对应传输实例。
+     * 连接成功后自动执行 MCP 协议握手: initialize → initialized 通知 → tools/list。
      */
     public void connect() {
         try {
@@ -59,9 +63,87 @@ public class McpServerConnection {
             transport.connect().get(30, TimeUnit.SECONDS);
             this.status = McpConnectionStatus.CONNECTED;
             log.info("MCP server '{}' connected via {}", config.name(), config.type());
+
+            // ★ MCP 协议握手: initialize → initialized 通知 → tools/list
+            performProtocolHandshake();
+
         } catch (Exception e) {
             log.error("Failed to connect MCP server '{}': {}", config.name(), e.getMessage());
             this.status = McpConnectionStatus.FAILED;
+        }
+    }
+
+    /**
+     * 执行 MCP 协议握手 — 标准流程: initialize → notifications/initialized → tools/list。
+     * <p>
+     * 参考 MCP 规范:
+     * 1. 客户端发送 initialize 请求，声明自身能力
+     * 2. 服务端返回 serverInfo + capabilities
+     * 3. 客户端发送 notifications/initialized 通知
+     * 4. 客户端调用 tools/list 获取工具列表
+     */
+    private void performProtocolHandshake() {
+        try {
+            // Step 1: 发送 initialize 请求
+            Map<String, Object> initParams = new LinkedHashMap<>();
+            initParams.put("protocolVersion", "2024-11-05");
+            Map<String, Object> clientInfo = new LinkedHashMap<>();
+            clientInfo.put("name", "zhikuncode");
+            clientInfo.put("version", "1.0.0");
+            initParams.put("clientInfo", clientInfo);
+            Map<String, Object> capabilities = new LinkedHashMap<>();
+            capabilities.put("tools", Map.of());
+            capabilities.put("prompts", Map.of());
+            capabilities.put("resources", Map.of());
+            initParams.put("capabilities", capabilities);
+
+            JsonNode initResult = transport.sendRequest("initialize", initParams, DEFAULT_REQUEST_TIMEOUT_MS);
+            log.info("MCP server '{}' initialize response: {}", config.name(),
+                    initResult != null ? initResult.toString().substring(0, Math.min(200, initResult.toString().length())) : "null");
+
+            // Step 2: 发送 notifications/initialized 通知
+            transport.sendNotification("notifications/initialized", null);
+            log.info("MCP server '{}' initialized notification sent", config.name());
+
+            // Step 3: 发送 tools/list 请求获取工具
+            discoverTools();
+
+        } catch (Exception e) {
+            log.warn("MCP protocol handshake failed for '{}': {} — server connected but tools may be unavailable",
+                    config.name(), e.getMessage());
+            // 握手失败不影响连接状态 — 服务器可能不支持某些协议方法
+        }
+    }
+
+    /**
+     * 发现并加载 MCP 服务器提供的工具 — 发送 tools/list 请求。
+     */
+    public void discoverTools() {
+        try {
+            JsonNode toolsResult = transport.sendRequest("tools/list", Map.of(), DEFAULT_REQUEST_TIMEOUT_MS);
+            if (toolsResult != null && toolsResult.has("tools") && toolsResult.get("tools").isArray()) {
+                List<McpToolDefinition> discovered = new ArrayList<>();
+                ObjectMapper mapper = new ObjectMapper();
+                for (JsonNode toolNode : toolsResult.get("tools")) {
+                    String name = toolNode.path("name").asText(null);
+                    String desc = toolNode.path("description").asText("");
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> schema = toolNode.has("inputSchema")
+                            ? mapper.convertValue(toolNode.get("inputSchema"), Map.class)
+                            : Map.of();
+                    if (name != null) {
+                        discovered.add(new McpToolDefinition(name, desc, schema));
+                    }
+                }
+                this.tools = List.copyOf(discovered);
+                log.info("MCP server '{}' tools/list: discovered {} tools: {}",
+                        config.name(), discovered.size(),
+                        discovered.stream().map(McpToolDefinition::name).toList());
+            } else {
+                log.info("MCP server '{}' tools/list returned no tools", config.name());
+            }
+        } catch (McpProtocolException e) {
+            log.warn("tools/list failed for MCP server '{}': {}", config.name(), e.getMessage());
         }
     }
 

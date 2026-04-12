@@ -7,7 +7,7 @@ import { useMessageStore } from '@/store/messageStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { useConfigStore } from '@/store/configStore';
 import { sendToServer, isWsConnected } from '@/hooks/useWebSocket';
-import type { SubmitEvent } from '@/types';
+import type { SubmitEvent, Message } from '@/types';
 
 function App() {
   const { messages, addMessage } = useMessageStore();
@@ -34,10 +34,24 @@ function App() {
     // 创建会话（如果没有）
     let currentSessionId = useSessionStore.getState().sessionId;
     if (!currentSessionId) {
-      const defaultModel = useConfigStore.getState().defaultModel ?? 'claude-sonnet-4-20250514';
-      await createSession('.', defaultModel);
-      currentSessionId = useSessionStore.getState().sessionId;
-      console.log('[App] Session created:', currentSessionId);
+      try {
+        const defaultModel = useConfigStore.getState().defaultModel ?? 'claude-sonnet-4-20250514';
+        await createSession('.', defaultModel);
+        currentSessionId = useSessionStore.getState().sessionId;
+        console.log('[App] Session created:', currentSessionId);
+      } catch (error) {
+        console.error('[App] Failed to create session:', error);
+        addMessage({
+          uuid: crypto.randomUUID(),
+          type: 'system',
+          content: '连接服务器失败，请检查后端服务是否正常运行。',
+          timestamp: Date.now(),
+          subtype: 'error',
+          errorCode: 'CONNECTION_ERROR',
+        } as Message);
+        useSessionStore.getState().setStatus('idle');
+        return;
+      }
     }
 
     // 等待 WebSocket 连接就绪

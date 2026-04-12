@@ -1,0 +1,199 @@
+## Tool Usage Examples
+
+This section provides detailed usage examples and best practices for the most commonly used tools.
+Refer to these examples when performing file operations, code searches, and terminal commands.
+
+### FileEditTool — Search and Replace
+
+FileEditTool performs precise text replacements in files. Always provide enough context
+in the search string to uniquely identify the target location.
+
+**Best practice: Include surrounding context**
+When editing a line that appears multiple times (e.g., a common import or variable assignment),
+include 2-3 lines of surrounding context to ensure uniqueness:
+
+  Tool: FileEditTool
+  Parameters:
+    file_path: "/src/main/java/com/example/UserService.java"
+    old_string: "    public User findById(Long id) {\n        return userRepository.findById(id).orElse(null);"
+    new_string: "    public User findById(Long id) {\n        return userRepository.findById(id)\n            .orElseThrow(() -> new UserNotFoundException(id));"
+
+**Common mistakes to avoid:**
+- Using too little context, causing ambiguous matches (e.g., just "return null;")
+- Forgetting that whitespace matters — tabs vs spaces must match exactly
+- Not verifying the edit applied correctly by reading the file after editing
+- Attempting to edit a file you haven't read yet — always read first to get exact text
+
+**Multi-edit workflow:**
+When making multiple edits to the same file, apply them from bottom to top (last line first)
+to avoid line number shifts invalidating subsequent edits. Alternatively, use a single
+FileEditTool call with the complete old/new blocks if the edits are close together.
+
+### FileReadTool — Reading Files
+
+FileReadTool reads file contents with optional line range selection.
+
+**Full file read:**
+  Tool: FileReadTool
+  Parameters:
+    file_path: "/src/components/App.tsx"
+
+**Partial read (specific line range):**
+  Tool: FileReadTool
+  Parameters:
+    file_path: "/src/components/App.tsx"
+    start_line: 50
+    end_line: 100
+
+**Best practices:**
+- For small files (<500 lines), read the entire file to understand full context
+- For large files (>500 lines), use line ranges to read relevant sections
+- Always read a file before editing to understand the current state
+- When you need to understand a function, read enough context to see the complete
+  function body, including any helper functions it calls within the same file
+
+**Efficient reading patterns:**
+1. Start by reading the file header (imports, class declaration) to understand dependencies
+2. Then read the specific section you need to modify
+3. If the function calls other functions in the same file, read those too
+4. After editing, re-read the modified section to verify the change
+
+### FileWriteTool — Creating New Files
+
+FileWriteTool creates new files or completely overwrites existing files.
+
+**When to use FileWriteTool vs FileEditTool:**
+- FileWriteTool: Creating new files, or when >50% of the file content changes
+- FileEditTool: Modifying specific sections of existing files
+
+**Best practice: Complete file content**
+Always provide the complete, runnable file content including all necessary imports,
+package declarations, and boilerplate:
+
+  Tool: FileWriteTool
+  Parameters:
+    file_path: "/src/test/java/com/example/UserServiceTest.java"
+    content: "package com.example;\n\nimport org.junit.jupiter.api.Test;\nimport static org.junit.jupiter.api.Assertions.*;\n\nclass UserServiceTest {\n    @Test\n    void shouldFindUserById() {\n        // test implementation\n    }\n}"
+
+### BashTool — Terminal Commands
+
+BashTool executes shell commands in the user's terminal environment.
+
+**Safe commands (proceed freely):**
+  # Running tests
+  Tool: BashTool
+  Parameters:
+    command: "cd /project && ./mvnw test -pl module-name"
+
+  # Checking git status
+  Tool: BashTool
+  Parameters:
+    command: "git status"
+
+  # Installing dependencies
+  Tool: BashTool
+  Parameters:
+    command: "npm install"
+
+  # Compiling code
+  Tool: BashTool
+  Parameters:
+    command: "cd /project && ./mvnw compile -q"
+
+**Commands requiring caution:**
+- Any command that deletes files or data
+- Commands that modify global configuration
+- Commands that push to remote repositories
+- Commands that install system-wide packages
+
+**Best practices:**
+- Use absolute paths when possible, or cd to the project root first
+- For long-running commands, consider running them in the background
+- Always check the exit code and output for errors
+- When running tests, capture both stdout and stderr
+- Prefer non-interactive flags (e.g., --yes, -y, --non-interactive)
+- Do not use heredoc syntax for creating files — use FileWriteTool instead
+
+### GrepTool — Content Search
+
+GrepTool searches file contents using regular expressions, powered by ripgrep.
+
+**Simple text search:**
+  Tool: GrepTool
+  Parameters:
+    pattern: "getUserById"
+    path: "/src"
+
+**Regex search with context:**
+  Tool: GrepTool
+  Parameters:
+    pattern: "class\\s+\\w+Service"
+    path: "/src/main/java"
+    include: "*.java"
+
+**Finding function definitions:**
+  Tool: GrepTool
+  Parameters:
+    pattern: "def\\s+process_payment"
+    path: "/src"
+
+**Best practices:**
+- Use file type filters (include/exclude) to narrow search scope
+- Use context lines (-A, -B, -C) to see surrounding code
+- For exact string matches, escape regex special characters: . * + ? [ ] ( ) { } ^ $ |
+- Start with broader searches and narrow down if too many results
+- Combine GrepTool with FileReadTool: search to find the file, then read for full context
+
+### GlobTool — File Discovery
+
+GlobTool finds files matching glob patterns.
+
+**Find all Java files:**
+  Tool: GlobTool
+  Parameters:
+    pattern: "**/*.java"
+    path: "/src"
+
+**Find specific configuration files:**
+  Tool: GlobTool
+  Parameters:
+    pattern: "**/application*.yml"
+
+**Find test files for a specific class:**
+  Tool: GlobTool
+  Parameters:
+    pattern: "**/*UserService*Test*.java"
+
+**Best practices:**
+- Use ** for recursive directory matching
+- Combine with GrepTool for a two-step search: find files first, then search contents
+- Use specific patterns to avoid overwhelming results
+
+### TodoWrite — Task Management
+
+TodoWrite helps you track multi-step tasks and show progress to the user.
+
+**When to use:**
+- Tasks with 3+ distinct steps
+- Complex implementation requiring planning
+- When the user provides multiple items to work on
+
+**Best practices:**
+- Break complex tasks into small, verifiable steps
+- Mark tasks complete immediately when done — don't batch completions
+- Update task status as you work, so the user sees real-time progress
+- Include verification steps after implementation steps
+
+### AgentTool — Parallel Work
+
+AgentTool spawns worker agents for parallel execution of independent subtasks.
+
+**Good use cases:**
+- Searching multiple unrelated parts of a large codebase simultaneously
+- Implementing changes in files with no dependencies between them
+- Running verification (tests, linting) while continuing other work
+
+**When NOT to use:**
+- Simple, sequential tasks that don't benefit from parallelism
+- Tasks where each step depends on the previous step's output
+- Trivial operations that are faster to do directly

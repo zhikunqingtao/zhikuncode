@@ -49,6 +49,12 @@ public class CompactService {
     /** 自动压缩缓冲 token 数 (ContextCascade 用) */
     private static final int AUTOCOMPACT_BUFFER_TOKENS = 13000;
 
+    /** 自动压缩最低消息数守卫 — 至少 N 条消息才考虑压缩 */
+    private static final int MIN_MESSAGES_FOR_COMPACT = 5;
+
+    /** 输出预留 token 上限 — 对齐原版 MAX_OUTPUT_TOKENS_FOR_SUMMARY */
+    private static final int MAX_OUTPUT_RESERVE = 20_000;
+
     /** SessionMemoryCompact 配置 */
     private static final int SMC_MIN_TOKENS = 10_000;
     private static final int SMC_MIN_TEXT_BLOCK_MESSAGES = 5;
@@ -172,9 +178,36 @@ public class CompactService {
      * 基于 buffer 的精确阈值检查 (ContextCascade 算法)。
      */
     public boolean shouldAutoCompactBufferBased(List<Message> messages, int contextWindowSize) {
-        int effectiveWindow = contextWindowSize - contextWindowSize / 4;
+        // ★ 守卫 1: 最低消息数量检查 — 至少 5 条消息才考虑压缩 ★
+        if (messages.size() < MIN_MESSAGES_FOR_COMPACT) {
+            log.debug("自动压缩跳过: 消息数 {} < 最低阈值 {}", messages.size(), MIN_MESSAGES_FOR_COMPACT);
+            return false;
+        }
+
+        // ★ 守卫 2: 排除纯系统消息（如仅包含系统提示词） ★
+        long userOrAssistantCount = messages.stream()
+                .filter(m -> m instanceof Message.UserMessage || m instanceof Message.AssistantMessage)
+                .count();
+        if (userOrAssistantCount < 2) {
+            log.debug("自动压缩跳过: 用户/助手消息数 {} < 2", userOrAssistantCount);
+            return false;
+        }
+
+        int effectiveWindow = contextWindowSize - Math.max(contextWindowSize / 4, MAX_OUTPUT_RESERVE);
+        // 安全下限保护: 防止 contextWindowSize 过小导致 effectiveWindow 为负数
+        // 最低有效窗口 = AUTOCOMPACT_BUFFER_TOKENS * 2，确保只在真正接近上下文极限时触发
+        int minimumEffectiveWindow = AUTOCOMPACT_BUFFER_TOKENS * 2;
+        if (effectiveWindow < minimumEffectiveWindow) {
+            log.warn("自动压缩: effectiveWindow={} 过小(小于{})[上下文窗口={}], 已钳制为最小安全值",
+                    effectiveWindow, minimumEffectiveWindow, contextWindowSize);
+            effectiveWindow = minimumEffectiveWindow;
+        }
         int threshold = effectiveWindow - AUTOCOMPACT_BUFFER_TOKENS;
         int estimatedTokens = tokenCounter.estimateTokens(messages);
+
+        log.debug("自动压缩检查: tokens={}, threshold={}, effectiveWindow={}, messages={}",
+                estimatedTokens, threshold, effectiveWindow, messages.size());
+
         return estimatedTokens > threshold;
     }
 
@@ -238,8 +271,8 @@ public class CompactService {
 
                 int afterTokens = tokenCounter.estimateTokens(compactedMessages);
                 double ratio = beforeTokens > 0 ? (double) (beforeTokens - afterTokens) / beforeTokens : 0.0;
-                log.info("压缩完成 (关键消息选择): {} → {} tokens, 压缩率 {:.1f}%",
-                        beforeTokens, afterTokens, ratio * 100);
+                log.info("压缩完成 (关键消息选择): {} → {} tokens, 压缩率 {}",
+                        beforeTokens, afterTokens, String.format("%.1f%%", ratio * 100));
                 return new CompactResult(compactedMessages, beforeTokens, afterTokens,
                         plan.compactionMessages().size() - selected.size(), ratio);
             }
@@ -316,25 +349,36 @@ public class CompactService {
      */
     private Optional<String> generateLlmSummary(List<Message> compactionMessages, int targetTokens) {
         if (providerRegistry == null || !providerRegistry.hasProviders()) {
+            log.warn("LLM 摘要跳过: 无可用 Provider");
             return Optional.empty();
         }
         try {
             String conversationText = formatMessagesForSummary(compactionMessages);
             String prompt = "Target summary length: ~" + targetTokens + " tokens.\n\n" + conversationText;
             String model = providerRegistry.getFastModel();
+            log.info("LLM 摘要开始: 模型={}, 压缩消息数={}, 目标tokens={}, prompt长度={}",
+                    model, compactionMessages.size(), targetTokens, prompt.length());
             LlmProvider provider = providerRegistry.getProvider(model);
+            // 超时从 30s 增加到 90s，避免大体量摘要生成超时
             String summaryText = provider.chatSync(
                     model, COMPACT_SYSTEM_PROMPT, prompt,
-                    SUMMARY_MAX_TOKENS, null, 30_000L);
+                    SUMMARY_MAX_TOKENS, null, 90_000L);
             if (summaryText != null && !summaryText.isBlank()) {
                 int summaryTokens = tokenCounter.estimateTokens(summaryText);
+                log.info("LLM 摘要成功: 摘要长度={}字符, 估算tokens={}, 上限={}",
+                        summaryText.length(), summaryTokens, SUMMARY_MAX_TOKENS);
                 if (summaryTokens <= SUMMARY_MAX_TOKENS) {
                     return Optional.of(summaryText);
                 }
+                log.warn("LLM 摘要 token 超限: {} > {}，尝试截断", summaryTokens, SUMMARY_MAX_TOKENS);
+                // 截断而非丢弃，保留部分摘要仍优于完全丢失
+                String truncated = summaryText.substring(0, Math.min(summaryText.length(), summaryText.length() * SUMMARY_MAX_TOKENS / summaryTokens));
+                return Optional.of(truncated);
             }
+            log.warn("LLM 摘要返回空内容: model={}", model);
             return Optional.empty();
         } catch (Exception e) {
-            log.warn("LLM summary failed, falling back to key message selection", e);
+            log.error("LLM 摘要失败 [{}]: {}", e.getClass().getSimpleName(), e.getMessage(), e);
             return Optional.empty();
         }
     }

@@ -1,8 +1,12 @@
 package com.aicodeassistant.migration;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -13,6 +17,17 @@ import static org.junit.jupiter.api.Assertions.*;
  * MigrationRunner 单元测试。
  */
 class MigrationRunnerTest {
+
+    @BeforeEach
+    void setUp() {
+        Path stateFile = Path.of(System.getProperty("user.home"),
+            ".ai-code-assistant", "migrations.json");
+        try {
+            Files.deleteIfExists(stateFile);
+        } catch (IOException e) {
+            // ignore
+        }
+    }
 
     @Test
     @DisplayName("空迁移列表不报错")

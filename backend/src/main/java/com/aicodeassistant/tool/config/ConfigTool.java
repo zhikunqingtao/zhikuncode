@@ -1,5 +1,6 @@
 package com.aicodeassistant.tool.config;
 
+import com.aicodeassistant.llm.LlmProviderRegistry;
 import com.aicodeassistant.tool.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +47,25 @@ public class ConfigTool implements Tool {
 
     /** 运行时配置存储 */
     private final ConcurrentMap<String, Object> store = new ConcurrentHashMap<>(DEFAULTS);
+
+    private final LlmProviderRegistry providerRegistry;
+
+    public ConfigTool(LlmProviderRegistry providerRegistry) {
+        this.providerRegistry = providerRegistry;
+    }
+
+    /** 动态获取模型选项列表（内置别名 + 实际可用模型） */
+    private List<String> getModelOptions() {
+        List<String> options = new ArrayList<>(providerRegistry.getBuiltinAliases());
+        try {
+            providerRegistry.listAvailableModels().stream()
+                    .filter(m -> !options.contains(m))
+                    .forEach(options::add);
+        } catch (Exception e) {
+            log.debug("Failed to fetch available models for config options: {}", e.getMessage());
+        }
+        return options;
+    }
 
     @Override
     public String getName() {
@@ -168,8 +188,10 @@ public class ConfigTool implements Tool {
                             "Setting '" + key + "' reset to default: " + defaultVal);
                 }
 
-                // 选项验证
-                List<String> options = OPTIONS.get(key);
+                // 选项验证（模型选项动态获取）
+                List<String> options = "model".equals(key)
+                        ? getModelOptions()
+                        : OPTIONS.get(key);
                 if (options != null && !options.contains(value)) {
                     yield ToolResult.error(
                             "Invalid value for '" + key + "'. Options: " + options);

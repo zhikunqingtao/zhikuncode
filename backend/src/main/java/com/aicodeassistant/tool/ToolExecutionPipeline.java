@@ -3,28 +3,37 @@ package com.aicodeassistant.tool;
 import com.aicodeassistant.hook.HookRegistry;
 import com.aicodeassistant.hook.HookService;
 import com.aicodeassistant.model.*;
+import com.aicodeassistant.permission.PermissionModeManager;
 import com.aicodeassistant.permission.PermissionNotifier;
 import com.aicodeassistant.permission.PermissionPipeline;
 import com.aicodeassistant.permission.PermissionRuleRepository;
 import com.aicodeassistant.security.SensitiveDataFilter;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.networknt.schema.JsonSchema;
+import com.networknt.schema.JsonSchemaFactory;
+import com.networknt.schema.SpecVersion;
+import com.networknt.schema.ValidationMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * 工具执行管线 — 6 阶段执行流程。
+ * 工具执行管线 — 7 阶段执行流程。
  * <p>
  * 阶段 1: Schema 输入验证
+ * 阶段 1.5: JSON Schema 结构化验证
  * 阶段 2: 工具自定义验证
  * 阶段 2.5: 输入预处理 (backfill)
  * 阶段 3: PreToolUse 钩子
  * 阶段 4: 权限检查
  * 阶段 5: 工具调用
  * 阶段 6: 结果处理 + PostToolUse 钩子
+ * 阶段 7: contextModifier 提取与应用
  *
  * @see <a href="SPEC §3.2.1b">工具执行管线</a>
  */
@@ -38,20 +47,23 @@ public class ToolExecutionPipeline {
     private final PermissionPipeline permissionPipeline;
     private final PermissionRuleRepository permissionRuleRepository;
     private final SensitiveDataFilter sensitiveDataFilter;
+    private final PermissionModeManager permissionModeManager;
 
     public ToolExecutionPipeline(HookService hookService, ObjectMapper objectMapper,
                                   PermissionPipeline permissionPipeline,
                                   PermissionRuleRepository permissionRuleRepository,
-                                  SensitiveDataFilter sensitiveDataFilter) {
+                                  SensitiveDataFilter sensitiveDataFilter,
+                                  PermissionModeManager permissionModeManager) {
         this.hookService = hookService;
         this.objectMapper = objectMapper;
         this.permissionPipeline = permissionPipeline;
         this.permissionRuleRepository = permissionRuleRepository;
         this.sensitiveDataFilter = sensitiveDataFilter;
+        this.permissionModeManager = permissionModeManager;
     }
 
     /**
-     * 执行工具 — 完整 6 阶段管线。
+     * 执行工具 — 完整 7 阶段管线。
      *
      * @param tool    工具实例
      * @param input   工具输入
@@ -65,7 +77,7 @@ public class ToolExecutionPipeline {
     }
 
     /**
-     * 执行工具 — 完整 6 阶段管线。
+     * 执行工具 — 完整 7 阶段管线。
      *
      * @param tool    工具实例
      * @param input   工具输入
@@ -78,12 +90,20 @@ public class ToolExecutionPipeline {
 
     private ToolExecutionResult doExecute(Tool tool, ToolInput input, ToolUseContext context,
                                   PermissionNotifier wsPusher) {
+        // 回退: 若调用方未传 wsPusher，从 context 中获取
+        PermissionNotifier effectivePusher = wsPusher != null
+                ? wsPusher : context.permissionNotifier();
         String toolName = tool.getName();
         long startTime = System.currentTimeMillis();
 
         try {
             // ── 阶段 1: Schema 输入验证 ──
             log.debug("Executing tool: {} (stage 1: validation)", toolName);
+
+            // ── 阶段 1.5: JSON Schema 结构化验证 ──
+            validateSchema(tool, input.getRawData() instanceof Map
+                    ? (Map<String, Object>) input.getRawData()
+                    : Map.of("input", String.valueOf(input.getRawData())));
 
             // ── 阶段 2: 工具自定义验证 ──
             ValidationResult validation = tool.validateInput(input, context);
@@ -130,9 +150,10 @@ public class ToolExecutionPipeline {
             // ── 阶段 4: 权限检查 ──
             PermissionRequirement permReq = tool.getPermissionRequirement();
             if (permReq != PermissionRequirement.NONE) {
-                // 构建权限上下文
+                // 构建权限上下文 — 从 PermissionModeManager 获取会话级模式
+                PermissionMode sessionMode = permissionModeManager.getMode(context.sessionId());
                 PermissionContext permContext = permissionRuleRepository.buildContext(
-                        PermissionMode.DEFAULT, false, false);
+                        sessionMode, false, false);
                 PermissionDecision decision = permissionPipeline.checkPermission(
                         tool, processedInput, context, permContext);
 
@@ -147,13 +168,13 @@ public class ToolExecutionPipeline {
                         log.info("Forwarding permission to parent session: tool={}, parentSession={}",
                                 toolName, context.parentSessionId());
                         ToolExecutionResult bubbleResult = forwardPermissionToParent(
-                                tool, processedInput, decision, context, wsPusher);
+                                tool, processedInput, decision, context, effectivePusher);
                         if (bubbleResult != null) {
                             return bubbleResult; // 拒绝或错误
                         }
                         // null 表示父代理已批准，继续执行工具
                     } else {
-                    if (wsPusher == null || context.sessionId() == null) {
+                    if (effectivePusher == null || context.sessionId() == null) {
                         log.warn("Tool {} requires permission but no WebSocket pusher available, denying", toolName);
                         return ToolExecutionResult.of(ToolResult.error("Permission required but cannot prompt user"));
                     }
@@ -167,7 +188,7 @@ public class ToolExecutionPipeline {
                     PermissionDecision userDecision = permissionPipeline.requestPermission(
                             toolUseId, toolName, inputMap,
                             decision.reason() != null ? decision.reason() : "Tool requires permission",
-                            wsPusher, context.sessionId()
+                            effectivePusher, context.sessionId()
                     ).join();
 
                     if (!userDecision.isAllowed()) {
@@ -283,6 +304,46 @@ public class ToolExecutionPipeline {
         } catch (Exception e) {
             log.error("Failed to forward permission to parent: {}", e.getMessage(), e);
             return ToolExecutionResult.of(ToolResult.error("Permission forwarding failed: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * JSON Schema 结构化验证 — 管线阶段 1.5。
+     * <p>
+     * 使用 networknt json-schema-validator 对工具输入进行结构化验证。
+     * 降级策略：Schema 验证过程本身出异常时（如 Schema 格式错误），仅 warn 日志不阻断执行。
+     *
+     * @param tool  工具实例
+     * @param input 工具输入参数
+     */
+    @SuppressWarnings("unchecked")
+    private void validateSchema(Tool tool, Map<String, Object> input) {
+        Map<String, Object> schema = tool.getSchema();
+        if (schema == null || schema.isEmpty()) {
+            return; // 空映射 = 跳过验证
+        }
+
+        try {
+            JsonNode schemaNode = objectMapper.valueToTree(schema);
+            JsonNode inputNode = objectMapper.valueToTree(input);
+
+            JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7);
+            JsonSchema jsonSchema = factory.getSchema(schemaNode);
+            Set<ValidationMessage> errors = jsonSchema.validate(inputNode);
+
+            if (!errors.isEmpty()) {
+                StringBuilder sb = new StringBuilder("Schema validation failed for tool "
+                        + tool.getName() + ":");
+                for (ValidationMessage msg : errors) {
+                    sb.append(" ").append(msg.getMessage()).append(";");
+                }
+                throw new ToolInputValidationException(sb.toString());
+            }
+        } catch (ToolInputValidationException e) {
+            throw e; // 验证失败直接上抛
+        } catch (Exception e) {
+            log.warn("Schema validation error for tool {} (degraded, continuing): {}",
+                    tool.getName(), e.getMessage());
         }
     }
 }

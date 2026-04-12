@@ -25,7 +25,7 @@ class CompactServiceUnitTest {
     @BeforeEach
     void setUp() {
         tokenCounter = new TokenCounter();
-        compactService = new CompactService(tokenCounter, new LlmProviderRegistry(List.of()));
+        compactService = new CompactService(tokenCounter, new LlmProviderRegistry(List.of(), null));
     }
 
     // ═══════════════ 三区划分 ═══════════════

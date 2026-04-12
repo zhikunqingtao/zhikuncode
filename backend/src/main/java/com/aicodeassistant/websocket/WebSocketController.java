@@ -30,6 +30,7 @@ import com.aicodeassistant.session.SessionData;
 import com.aicodeassistant.session.SessionManager;
 import com.aicodeassistant.tool.Tool;
 import com.aicodeassistant.tool.ToolRegistry;
+import com.aicodeassistant.tool.ToolUseContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -428,7 +429,10 @@ public class WebSocketController implements PermissionNotifier {
         );
 
         // 4. 初始化循环状态 + 添加用户消息
-        QueryLoopState state = new QueryLoopState(new ArrayList<>(), null);
+        ToolUseContext toolUseContext = ToolUseContext.of(
+                workingDir.toString(), sessionId)
+                .withPermissionNotifier(this);
+        QueryLoopState state = new QueryLoopState(new ArrayList<>(), toolUseContext);
         state.addMessage(new Message.UserMessage(
                 UUID.randomUUID().toString(), Instant.now(),
                 List.of(new ContentBlock.TextBlock(userText)),

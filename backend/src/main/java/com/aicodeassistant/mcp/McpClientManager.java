@@ -94,15 +94,26 @@ public class McpClientManager implements SmartLifecycle {
     /** 从配置源加载并连接所有 MCP 服务器 */
     public void initializeAll() {
         // 1. 从多来源解析器加载合并配置（LOCAL > USER > ENTERPRISE > ENV）
+        //    ★ 来自配置文件的服务器自动信任
         List<McpServerConfig> resolvedConfigs = configurationResolver.resolveAll();
         for (McpServerConfig config : resolvedConfigs) {
+            if (!approvalService.isTrusted(config)) {
+                approvalService.recordApproval(config, config.scope() != null ? config.scope().name() : "LOCAL");
+                log.info("Auto-trusted config-file MCP server: {} (scope={})", config.name(), config.scope());
+            }
             addServer(config);
         }
 
         // 2. 从 application.yml 加载配置（补充未被多来源覆盖的服务器）
+        //    ★ application.yml 中配置的服务器自动信任 — 来自应用配置文件的服务器无需交互式审批
         List<McpServerConfig> appConfigs = mcpConfiguration.toMcpServerConfigs();
         for (McpServerConfig config : appConfigs) {
             if (!connections.containsKey(config.name())) {
+                // 自动信任 application.yml 配置的服务器
+                if (!approvalService.isTrusted(config)) {
+                    approvalService.recordApproval(config, "APPLICATION_CONFIG");
+                    log.info("Auto-trusted application.yml MCP server: {}", config.name());
+                }
                 addServer(config);
             }
         }

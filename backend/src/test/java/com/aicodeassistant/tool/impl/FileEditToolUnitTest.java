@@ -1,11 +1,18 @@
 package com.aicodeassistant.tool.impl;
 
+import com.aicodeassistant.history.FileHistoryService;
+import com.aicodeassistant.security.PathSecurityService;
+import com.aicodeassistant.security.PathSecurityService.PathCheckResult;
+import com.aicodeassistant.service.FileStateCache;
+import com.aicodeassistant.session.SessionManager;
 import com.aicodeassistant.tool.ToolInput;
 import com.aicodeassistant.tool.ToolResult;
 import com.aicodeassistant.tool.ToolUseContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -14,6 +21,10 @@ import java.nio.file.Path;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
 
 /**
  * FileEditTool 单元测试 — 覆盖搜索替换、新建文件、多匹配、错误处理等场景。
@@ -22,13 +33,53 @@ class FileEditToolUnitTest {
 
     private FileEditTool fileEditTool;
     private ToolUseContext context;
+    private FileStateCache fileStateCache;
+
+    @Mock private PathSecurityService pathSecurityService;
+    @Mock private FileHistoryService fileHistoryService;
+    @Mock private SessionManager sessionManager;
 
     @TempDir
     Path tempDir;
 
     @BeforeEach
     void setUp() {
-        fileEditTool = new FileEditTool(null, null, null);
+        MockitoAnnotations.openMocks(this);
+
+        // Mock PathSecurityService — 默认允许所有路径操作
+        when(pathSecurityService.checkWritePermission(anyString(), anyString()))
+                .thenReturn(PathCheckResult.allowed());
+        when(pathSecurityService.checkReadPermission(anyString(), anyString()))
+                .thenReturn(PathCheckResult.allowed());
+        // 注意：简化 mock，模拟真实的路径解析逻辑——绝对路径直接返回，相对路径基于 workingDirectory 解析。
+        when(pathSecurityService.resolvePath(anyString(), anyString()))
+                .thenAnswer(inv -> {
+                    String filePath = inv.getArgument(0);
+                    String workDir = inv.getArgument(1);
+                    java.nio.file.Path p = Path.of(filePath);
+                    return p.isAbsolute() ? p : Path.of(workDir).resolve(filePath);
+                });
+
+        // Mock SessionManager — 返回一个共享的真实 FileStateCache 实例
+        // 测试中需要在编辑前先 markRead 文件，以满足 Read-before-Edit 校验
+        fileStateCache = new FileStateCache() {
+            @Override
+            public synchronized boolean hasBeenRead(String path) {
+                // 测试环境中跳过 Read-before-Edit 校验
+                return true;
+            }
+            @Override
+            public synchronized boolean isStale(String path) {
+                return false;
+            }
+        };
+        when(sessionManager.getFileStateCache(anyString())).thenReturn(fileStateCache);
+
+        // Mock FileHistoryService — trackEdit 默认无操作（仅 FileEditTool 需要）
+        doNothing().when(fileHistoryService).trackEdit(anyString(), anyString(), any());
+
+        // 使用 mock 依赖构造工具实例（完整 3 参数构造函数）
+        fileEditTool = new FileEditTool(fileHistoryService, pathSecurityService, sessionManager);
         context = ToolUseContext.of(tempDir.toString(), "test-session");
     }
 

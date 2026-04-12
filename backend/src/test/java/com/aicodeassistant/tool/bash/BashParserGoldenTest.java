@@ -1,5 +1,6 @@
 package com.aicodeassistant.tool.bash;
 
+import com.aicodeassistant.state.AppStateStore;
 import com.aicodeassistant.tool.bash.ast.BashAstNode;
 import com.aicodeassistant.tool.bash.ast.BashAstNode.*;
 import com.aicodeassistant.tool.bash.ast.ParseForSecurityResult;
@@ -29,7 +30,11 @@ class BashParserGoldenTest {
     @BeforeEach
     void setUp() {
         parser = new BashParser();
-        analyzer = new BashSecurityAnalyzer(new PathValidator(), null);
+        // ★ 创建真实的 AppStateStore 并设置工作目录，避免 NPE ★
+        AppStateStore appStateStore = new AppStateStore();
+        appStateStore.setState(state -> state.withSession(s ->
+                s.withWorkingDirectory(System.getProperty("user.dir"))));
+        analyzer = new BashSecurityAnalyzer(new PathValidator(), appStateStore);
     }
 
     // ═══════════════════════════════════════════════════════════════════

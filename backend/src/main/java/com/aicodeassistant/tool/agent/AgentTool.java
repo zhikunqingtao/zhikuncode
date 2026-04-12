@@ -1,5 +1,6 @@
 package com.aicodeassistant.tool.agent;
 
+import com.aicodeassistant.llm.LlmProviderRegistry;
 import com.aicodeassistant.tool.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,9 +41,12 @@ public class AgentTool implements Tool {
     private static final Duration PER_AGENT_TIMEOUT = Duration.ofMinutes(5);
 
     private final SubAgentExecutor subAgentExecutor;
+    private final LlmProviderRegistry providerRegistry;  // ★ 新增: 动态模型枚举 ★
 
-    public AgentTool(SubAgentExecutor subAgentExecutor) {
+    public AgentTool(SubAgentExecutor subAgentExecutor,
+                     LlmProviderRegistry providerRegistry) {
         this.subAgentExecutor = subAgentExecutor;
+        this.providerRegistry = providerRegistry;
     }
 
     @Override
@@ -130,8 +134,9 @@ public class AgentTool implements Tool {
                                 "description", "Type of sub-agent to use"),
                         "model", Map.of(
                                 "type", "string",
-                                "enum", List.of("sonnet", "opus", "haiku"),
-                                "description", "Model override for the sub-agent"),
+                                "enum", getAvailableModelAliases(),
+                                "description", "Model override for the sub-agent. "
+                                        + "Use aliases (haiku/sonnet/opus) or actual model names."),
                         "run_in_background", Map.of(
                                 "type", "boolean",
                                 "description", "Run the agent in the background"),
@@ -218,5 +223,20 @@ public class AgentTool implements Tool {
     public boolean isConcurrencySafe(ToolInput input) {
         // 子代理有独立的并发控制
         return true;
+    }
+
+    /**
+     * 获取可用模型别名列表 — 包含内置别名 + 实际可用模型名。
+     */
+    private List<String> getAvailableModelAliases() {
+        List<String> aliases = new ArrayList<>(providerRegistry.getBuiltinAliases());
+        try {
+            providerRegistry.listAvailableModels().stream()
+                    .filter(m -> !aliases.contains(m))
+                    .forEach(aliases::add);
+        } catch (Exception e) {
+            log.debug("Failed to fetch available models, using aliases only: {}", e.getMessage());
+        }
+        return aliases;
     }
 }

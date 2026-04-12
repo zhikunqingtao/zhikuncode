@@ -1,5 +1,6 @@
 package com.aicodeassistant.permission;
 
+import com.aicodeassistant.llm.LlmProvider;
 import com.aicodeassistant.llm.LlmProviderRegistry;
 import com.aicodeassistant.model.*;
 import com.aicodeassistant.tool.Tool;
@@ -96,7 +97,8 @@ class PermissionEnhancementGoldenTest {
 
         @BeforeEach
         void setUp() {
-            classifier = new AutoModeClassifier(new LlmProviderRegistry(List.of()));
+            List<LlmProvider> emptyProviders = List.of();
+            classifier = new AutoModeClassifier(new LlmProviderRegistry(emptyProviders, null));
             context = new PermissionContext(
                     PermissionMode.AUTO,
                     Set.of(),

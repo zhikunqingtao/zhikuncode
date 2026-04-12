@@ -416,7 +416,8 @@ public class QueryEngine {
                             && tb.text() != null
                             && tb.text().startsWith("<api_error>"));
 
-                if (!isApiError && !state.isStopHookActive()) {
+                if (!isApiError && !state.isStopHookActive()
+                        && state.getToolUseContext() != null) {
                     try {
                         HookRegistry.StopHookResult stopResult = hookService.executeStopHooks(
                                 state.getMessages(),

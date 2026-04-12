@@ -2,7 +2,7 @@
 server:
   port: 8080
 
-spring:
+spring: 
   application:
     name: ai-code-assistant
   threads:
@@ -39,6 +39,18 @@ llm:
     connect-timeout-seconds: 10
     write-timeout-seconds: 10
     retry-on-failure: true
+
+# 子代理模型别名映射
+# Claude 系列别名 → 实际部署模型（可通过环境变量 AGENT_MODEL_<ALIAS> 覆盖）
+agent:
+  model-aliases:
+    haiku: qwen-plus
+    sonnet: qwen3.6-plus
+    opus: qwen-max
+
+# 分类器模型配置（留空则按四级回退: env → 此配置 → lightweight → default）
+classifier:
+  model: ""
 
 # 特性标志
 features:

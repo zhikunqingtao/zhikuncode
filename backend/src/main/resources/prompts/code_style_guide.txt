@@ -1,0 +1,161 @@
+## Code Style Guide
+
+When writing or modifying code, always match the existing style of the project. These guidelines
+serve as defaults when no project-specific convention is apparent.
+
+### General Principles
+
+**Consistency over preference:**
+- Match the existing codebase's conventions — indentation, naming, formatting
+- If the project uses tabs, use tabs. If it uses 2-space indent, use 2-space indent
+- If the project uses single quotes for strings, follow that. Same for double quotes
+- Don't impose your preferred style on an existing codebase
+
+**Minimal changes:**
+- Only modify code that is directly related to the task
+- Don't reformat surrounding code, even if it doesn't match your style preferences
+- Don't add type annotations, docstrings, or comments to code you didn't change
+- Don't rename variables or refactor code that isn't part of the current task
+
+**Readability over cleverness:**
+- Prefer straightforward, readable code over clever one-liners
+- Use descriptive variable names that reveal intent
+- Keep functions focused — each function should do one thing well
+- Prefer explicit code over implicit magic
+
+### Java Code Style
+
+**Naming conventions:**
+- Classes: PascalCase (e.g., `UserService`, `OrderRepository`)
+- Methods: camelCase (e.g., `findById`, `calculateTotal`)
+- Constants: UPPER_SNAKE_CASE (e.g., `MAX_RETRY_COUNT`, `DEFAULT_TIMEOUT`)
+- Packages: lowercase dot-separated (e.g., `com.example.service`)
+- Local variables: camelCase, descriptive (e.g., `userCount` not `uc`)
+- Boolean methods: prefix with is/has/can/should (e.g., `isValid()`, `hasPermission()`)
+
+**Structure:**
+- One class per file (except inner classes)
+- Import order: java.*, javax.*, org.*, com.*, then project-specific
+- Avoid wildcard imports (import java.util.*) — use explicit imports
+- Keep methods under 30 lines when practical; extract helper methods for clarity
+- Prefer composition over inheritance
+- Use Optional instead of returning null from methods
+- Use try-with-resources for AutoCloseable resources
+
+**Modern Java (11+) idioms:**
+- Use var for local variables when the type is obvious from the right-hand side
+- Use text blocks (""") for multi-line strings
+- Use record types for immutable data carriers
+- Use sealed classes/interfaces when the set of implementations is fixed
+- Prefer Stream API for collection transformations, but use traditional loops for complex logic
+- Use switch expressions where appropriate
+
+### Python Code Style
+
+**Naming conventions:**
+- Functions and variables: snake_case (e.g., `find_user_by_id`, `total_count`)
+- Classes: PascalCase (e.g., `UserService`, `DataProcessor`)
+- Constants: UPPER_SNAKE_CASE (e.g., `MAX_RETRIES`, `API_BASE_URL`)
+- Private members: prefix with underscore (e.g., `_internal_state`)
+- Module names: short, lowercase (e.g., `utils`, `config`)
+
+**Structure:**
+- Follow PEP 8 guidelines as the baseline
+- Use type hints for function signatures: def process(data: list[str]) -> bool:
+- Prefer f-strings over .format() or % formatting
+- Use dataclasses or NamedTuple for structured data
+- Use context managers (with statement) for resource management
+- Keep functions under 25 lines when practical
+- Use list/dict/set comprehensions for simple transformations
+- Avoid mutable default arguments (use None with internal defaults)
+
+**Import organization:**
+1. Standard library imports
+2. Third-party imports
+3. Local/project imports
+Each group separated by a blank line, alphabetically sorted within groups
+
+### JavaScript/TypeScript Code Style
+
+**Naming conventions:**
+- Variables and functions: camelCase (e.g., `getUserName`, `itemCount`)
+- Classes and interfaces: PascalCase (e.g., `UserService`, `ApiResponse`)
+- Constants: UPPER_SNAKE_CASE or camelCase depending on project convention
+- React components: PascalCase (e.g., `UserProfile`, `NavigationBar`)
+- Files: Match the export — PascalCase for components, camelCase for utilities
+- CSS classes: kebab-case or camelCase depending on project (CSS modules vs plain CSS)
+
+**TypeScript-specific:**
+- Prefer interfaces over type aliases for object shapes
+- Use strict mode — avoid any type unless absolutely necessary
+- Use union types and discriminated unions over enums when appropriate
+- Prefer const assertions for literal types
+- Use generic types for reusable utilities
+- Avoid type assertions (as) — prefer type guards and narrowing
+
+**Modern patterns:**
+- Use const/let, never var
+- Prefer arrow functions for callbacks and short functions
+- Use async/await over .then() chains
+- Destructure objects and arrays when it improves readability
+- Use optional chaining (?.) and nullish coalescing (??) operators
+- Use template literals for string interpolation
+
+**React-specific:**
+- Prefer functional components with hooks over class components
+- Keep components focused — extract sub-components when a component exceeds 150 lines
+- Use custom hooks to extract reusable stateful logic
+- Prefer controlled components over uncontrolled
+- Use React.memo() only when profiling shows a performance need
+- Name event handlers with handle* prefix (e.g., handleClick, handleSubmit)
+
+### Go Code Style
+
+**Naming conventions:**
+- Exported names: PascalCase (e.g., `NewUserService`, `ProcessOrder`)
+- Unexported names: camelCase (e.g., `findById`, `internalState`)
+- Interfaces: Named by behavior, often -er suffix (e.g., `Reader`, `Validator`)
+- Packages: short, lowercase, single-word when possible (e.g., `user`, `config`)
+- Acronyms: All caps (e.g., `HTTPClient`, `UserID`, `HTMLURL`)
+
+**Structure:**
+- Follow Effective Go and the Go Code Review Comments guide
+- Handle errors explicitly — don't ignore returned errors
+- Prefer returning errors over panicking
+- Use fmt.Errorf with %w for error wrapping
+- Keep interfaces small — one or two methods when possible
+- Accept interfaces, return structs
+- Use context.Context as the first parameter for functions that may block
+- Group related functionality into packages; avoid monolithic packages
+
+### SQL Code Style
+
+**Formatting:**
+- Keywords in UPPERCASE (SELECT, FROM, WHERE, JOIN, ORDER BY)
+- Table and column names in lowercase or snake_case
+- Each major clause on its own line
+- Indent sub-clauses and conditions
+- Use meaningful table aliases (e.g., u for users, o for orders)
+
+**Best practices:**
+- Always use parameterized queries — never concatenate user input into SQL
+- Prefer explicit column lists over SELECT *
+- Use appropriate indexes for frequently queried columns
+- Prefer JOINs over subqueries when both produce the same result
+- Comment complex queries to explain the business logic
+
+### Comments and Documentation
+
+**When to comment:**
+- Hidden constraints or invariants not obvious from the code
+- Workarounds for known bugs or platform limitations
+- Performance-critical decisions (why this algorithm over that one)
+- Complex business rules that can't be simplified further
+- TODO/FIXME with a clear description of what needs to change
+
+**When NOT to comment:**
+- What the code does (the code should be self-explanatory)
+- Changelog entries ("Added X for feature Y" — use git history)
+- Commented-out code (delete it; git has the history)
+- Restating the function name or parameter names
+- Trivial operations obvious from the code structure

@@ -101,10 +101,9 @@ public class V002_InitProjectSchema implements Migration {
                 CREATE TABLE IF NOT EXISTS file_snapshots (
                     id           TEXT PRIMARY KEY,
                     session_id   TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+                    message_id   TEXT,
                     file_path    TEXT NOT NULL,
                     content      BLOB,
-                    operation    TEXT NOT NULL,
-                    tool_use_id  TEXT,
                     created_at   TEXT NOT NULL
                 )
                 """);

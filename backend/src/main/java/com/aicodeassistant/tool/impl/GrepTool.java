@@ -28,6 +28,20 @@ public class GrepTool implements Tool {
     private static final Set<String> VCS_EXCLUDE = Set.of(
             ".git", ".svn", ".hg", ".bzr", ".jj", ".sl");
 
+    /** 是否使用 ripgrep (rg)。启动时检测一次。 */
+    private static final boolean HAS_RIPGREP = detectRipgrep();
+
+    private static boolean detectRipgrep() {
+        try {
+            Process p = new ProcessBuilder("rg", "--version")
+                    .redirectErrorStream(true).start();
+            p.getInputStream().readAllBytes();
+            return p.waitFor() == 0;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     @Override
     public String getName() {
         return "Grep";
@@ -101,48 +115,15 @@ public class GrepTool implements Tool {
         int offset = input.getInt("offset", 0);
 
         try {
-            // 1. 构建 ripgrep 参数
-            List<String> args = new ArrayList<>(List.of("rg", "--hidden"));
-            for (String dir : VCS_EXCLUDE) {
-                args.addAll(List.of("--glob", "!" + dir));
-            }
-            args.addAll(List.of("--max-columns", String.valueOf(MAX_COLUMNS)));
-
-            // 多行模式
-            if (input.getBoolean("multiline", false)) {
-                args.addAll(List.of("-U", "--multiline-dotall"));
-            }
-
-            // 大小写
-            if (input.getBoolean("-i", false)) args.add("-i");
-
-            // 输出模式
-            switch (outputMode) {
-                case "files_with_matches" -> args.add("-l");
-                case "count" -> args.add("-c");
-                case "content" -> {
-                    args.add("-n"); // 行号
-                    input.getOptionalInt("-C").ifPresent(c -> args.addAll(List.of("-C", String.valueOf(c))));
-                    input.getOptionalInt("-B").ifPresent(b -> args.addAll(List.of("-B", String.valueOf(b))));
-                    input.getOptionalInt("-A").ifPresent(a -> args.addAll(List.of("-A", String.valueOf(a))));
-                }
-            }
-
-            // 文件类型过滤
-            input.getOptionalString("glob").ifPresent(g -> args.addAll(List.of("--glob", g)));
-            input.getOptionalString("include").ifPresent(g -> args.addAll(List.of("--glob", g)));
-            input.getOptionalString("exclude").ifPresent(g -> args.addAll(List.of("--glob", "!" + g)));
-            input.getOptionalString("type").ifPresent(t -> args.addAll(List.of("--type", t)));
-
-            // pattern 以 - 开头时使用 -e 防止误解析
-            if (pattern.startsWith("-")) {
-                args.addAll(List.of("-e", pattern));
+            List<String> args;
+            if (HAS_RIPGREP) {
+                args = buildRipgrepArgs(input, pattern, searchPath, outputMode);
             } else {
-                args.add(pattern);
+                log.debug("ripgrep not found, falling back to system grep");
+                args = buildGrepFallbackArgs(input, pattern, searchPath, outputMode);
             }
-            args.add(searchPath);
 
-            // 2. 执行 ripgrep
+            // 执行搜索命令
             ProcessBuilder pb = new ProcessBuilder(args);
             pb.redirectErrorStream(true);
             Process process = pb.start();
@@ -190,6 +171,86 @@ public class GrepTool implements Tool {
             Thread.currentThread().interrupt();
             return ToolResult.error("Grep search interrupted");
         }
+    }
+
+    /** 构建 ripgrep 参数列表 */
+    private List<String> buildRipgrepArgs(ToolInput input, String pattern, String searchPath, String outputMode) {
+        List<String> args = new ArrayList<>(List.of("rg", "--hidden"));
+        for (String dir : VCS_EXCLUDE) {
+            args.addAll(List.of("--glob", "!" + dir));
+        }
+        args.addAll(List.of("--max-columns", String.valueOf(MAX_COLUMNS)));
+
+        if (input.getBoolean("multiline", false)) {
+            args.addAll(List.of("-U", "--multiline-dotall"));
+        }
+        if (input.getBoolean("-i", false)) args.add("-i");
+
+        switch (outputMode) {
+            case "files_with_matches" -> args.add("-l");
+            case "count" -> args.add("-c");
+            case "content" -> {
+                args.add("-n");
+                input.getOptionalInt("-C").ifPresent(c -> args.addAll(List.of("-C", String.valueOf(c))));
+                input.getOptionalInt("-B").ifPresent(b -> args.addAll(List.of("-B", String.valueOf(b))));
+                input.getOptionalInt("-A").ifPresent(a -> args.addAll(List.of("-A", String.valueOf(a))));
+            }
+        }
+
+        input.getOptionalString("glob").ifPresent(g -> args.addAll(List.of("--glob", g)));
+        input.getOptionalString("include").ifPresent(g -> args.addAll(List.of("--glob", g)));
+        input.getOptionalString("exclude").ifPresent(g -> args.addAll(List.of("--glob", "!" + g)));
+        input.getOptionalString("type").ifPresent(t -> args.addAll(List.of("--type", t)));
+
+        if (pattern.startsWith("-")) {
+            args.addAll(List.of("-e", pattern));
+        } else {
+            args.add(pattern);
+        }
+        args.add(searchPath);
+        return args;
+    }
+
+    /** 构建系统 grep fallback 参数列表 */
+    private List<String> buildGrepFallbackArgs(ToolInput input, String pattern, String searchPath, String outputMode) {
+        List<String> args = new ArrayList<>(List.of("grep", "-r", "--include=*"));
+
+        // 排除 VCS 目录
+        for (String dir : VCS_EXCLUDE) {
+            args.add("--exclude-dir=" + dir);
+        }
+        // 也排除常见无用目录
+        args.add("--exclude-dir=node_modules");
+        args.add("--exclude-dir=target");
+
+        if (input.getBoolean("-i", false)) args.add("-i");
+
+        switch (outputMode) {
+            case "files_with_matches" -> args.add("-l");
+            case "count" -> args.add("-c");
+            case "content" -> {
+                args.add("-n");
+                input.getOptionalInt("-C").ifPresent(c -> args.addAll(List.of("-C", String.valueOf(c))));
+                input.getOptionalInt("-B").ifPresent(b -> args.addAll(List.of("-B", String.valueOf(b))));
+                input.getOptionalInt("-A").ifPresent(a -> args.addAll(List.of("-A", String.valueOf(a))));
+            }
+        }
+
+        // glob 过滤转 grep --include
+        input.getOptionalString("glob").ifPresent(g -> args.addAll(List.of("--include", g)));
+        input.getOptionalString("include").ifPresent(g -> args.addAll(List.of("--include", g)));
+        input.getOptionalString("exclude").ifPresent(g -> args.addAll(List.of("--exclude", g)));
+
+        // 使用 -E (extended regex) 以兼容 ripgrep 的正则语法
+        args.add("-E");
+
+        if (pattern.startsWith("-")) {
+            args.addAll(List.of("-e", pattern));
+        } else {
+            args.add(pattern);
+        }
+        args.add(searchPath);
+        return args;
     }
 
     /** 从输出行中提取文件名 */

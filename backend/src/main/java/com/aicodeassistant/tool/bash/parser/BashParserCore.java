@@ -407,7 +407,8 @@ public class BashParserCore {
             }
 
             // 危险 token 类型 → 直接返回 TooComplexNode
-            if (current.type() == BashTokenType.DOLLAR_DPAREN) {
+            if (current.type() == BashTokenType.DOLLAR_DPAREN ||
+                    current.type() == BashTokenType.ARITHMETIC_EXPANSION) {
                 return parseTooComplex("arithmetic_expansion", startB, startI);
             }
             if (current.type() == BashTokenType.LT_PAREN
@@ -1006,7 +1007,7 @@ public class BashParserCore {
     private boolean isWordToken() {
         return switch (current.type()) {
             case WORD, NUMBER, SQUOTE, DQUOTE, ANSI_C, DOLLAR,
-                 DOLLAR_PAREN, DOLLAR_BRACE, BACKTICK -> true;
+                 DOLLAR_PAREN, DOLLAR_BRACE, BACKTICK, ARITHMETIC_EXPANSION -> true;
             default -> false;
         };
     }

@@ -3,7 +3,7 @@
  * 功能: stdout/stderr 分色 + 可折叠 + 复制按钮 + 退出码标签
  */
 
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 
 interface TerminalRendererProps {
     content: string;

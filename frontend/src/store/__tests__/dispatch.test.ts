@@ -3,7 +3,6 @@ import { useMessageStore } from '@/store/messageStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { usePermissionStore } from '@/store/permissionStore';
 import { useNotificationStore } from '@/store/notificationStore';
-import { useAppUiStore } from '@/store/appUiStore';
 import { dispatch } from '@/api/dispatch';
 
 beforeEach(() => {

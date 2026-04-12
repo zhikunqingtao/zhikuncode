@@ -8,6 +8,9 @@ import com.aicodeassistant.engine.QueryConfig;
 import com.aicodeassistant.engine.QueryEngine;
 import com.aicodeassistant.engine.QueryLoopState;
 import com.aicodeassistant.engine.QueryMessageHandler;
+import com.aicodeassistant.llm.LlmProviderRegistry;
+import com.aicodeassistant.model.PermissionMode;
+import com.aicodeassistant.permission.PermissionModeManager;
 import com.aicodeassistant.llm.ThinkingConfig;
 import com.aicodeassistant.model.ContentBlock;
 import com.aicodeassistant.model.Message;
@@ -56,6 +59,8 @@ public class SubAgentExecutor {
     private final CoordinatorService coordinatorService;
     private final SessionManager sessionManager;
     private final TeamManager teamManager;
+    private final LlmProviderRegistry providerRegistry;  // ★ 新增: 模型别名解析 ★
+    private final PermissionModeManager permissionModeManager;  // ★ 新增: Worker 权限冒泡 ★
 
     /** 子代理结果最大字符数 */
     static final int MAX_RESULT_SIZE_CHARS = 100_000;
@@ -72,7 +77,9 @@ public class SubAgentExecutor {
                             FeatureFlagService featureFlagService,
                             CoordinatorService coordinatorService,
                             SessionManager sessionManager,
-                            TeamManager teamManager) {
+                            TeamManager teamManager,
+                            LlmProviderRegistry providerRegistry,
+                            PermissionModeManager permissionModeManager) {
         this.concurrencyController = concurrencyController;
         this.queryEngine = queryEngine;
         this.toolRegistry = toolRegistry;
@@ -83,6 +90,8 @@ public class SubAgentExecutor {
         this.coordinatorService = coordinatorService;
         this.sessionManager = sessionManager;
         this.teamManager = teamManager;
+        this.providerRegistry = providerRegistry;
+        this.permissionModeManager = permissionModeManager;
     }
 
     /**
@@ -149,6 +158,14 @@ public class SubAgentExecutor {
             FileStateCache parentCache = sessionManager.getFileStateCache(parentContext.sessionId());
             FileStateCache childCache = parentCache.cloneCache();
             String childSessionId = "subagent-" + request.agentId();
+
+            // ★ 新增: 为子代理会话设置权限模式（Worker 权限冒泡）★
+            PermissionMode workerMode = resolveWorkerPermissionMode(
+                    request.agentType(), parentContext);
+            permissionModeManager.setMode(childSessionId, workerMode);
+            log.debug("Worker permission mode: agentId={}, agentType={}, mode={}",
+                    request.agentId(), request.agentType(), workerMode);
+
             // 临时注册子代理的 FileStateCache
             sessionManager.getFileStateCache(childSessionId);
             // 用 clone 的缓存替换空缓存
@@ -157,7 +174,8 @@ public class SubAgentExecutor {
             ToolUseContext subContext = ToolUseContext.of(workDir.toString(), childSessionId)
                     .withNestingDepth(nestingDepth)
                     .withParentSessionId(parentContext.sessionId())
-                    .withAgentHierarchy(buildAgentHierarchy(parentContext));
+                    .withAgentHierarchy(buildAgentHierarchy(parentContext))
+                    .withPermissionNotifier(parentContext.permissionNotifier());
             QueryLoopState state = new QueryLoopState(
                     new ArrayList<>(List.of(buildUserMessage(request.prompt()))),
                     subContext);
@@ -242,6 +260,38 @@ public class SubAgentExecutor {
         return new AgentResult("async_launched", null, request.prompt(), outputFile);
     }
 
+    // ═══ Worker 权限模式解析 ═══
+
+    /**
+     * 解析 Worker 代理的权限模式。
+     * <p>
+     * 规则:
+     * <ul>
+     *   <li>explore / verification 类型 → BUBBLE 模式（权限请求上报到父代理）</li>
+     *   <li>其他类型 → 继承父代理的权限模式</li>
+     * </ul>
+     *
+     * @param agentType     代理类型
+     * @param parentContext 父代理上下文
+     * @return 子代理应使用的权限模式
+     */
+    private PermissionMode resolveWorkerPermissionMode(
+            String agentType, ToolUseContext parentContext) {
+        // 只读型 Worker 使用 BUBBLE 模式，权限请求上报到父代理
+        if ("explore".equalsIgnoreCase(agentType)
+                || "verification".equalsIgnoreCase(agentType)) {
+            log.debug("resolveWorkerPermissionMode: agentType='{}' → BUBBLE", agentType);
+            return PermissionMode.BUBBLE;
+        }
+        // 其他类型: 继承父代理的权限模式
+        PermissionMode parentMode = permissionModeManager.getMode(
+                parentContext.sessionId());
+        PermissionMode resolved = parentMode != null ? parentMode : PermissionMode.DEFAULT;
+        log.debug("resolveWorkerPermissionMode: agentType='{}', parentMode={} → {}",
+                agentType, parentMode, resolved);
+        return resolved;
+    }
+
     // ═══ 代理层级构建 ═══
 
     private String buildAgentHierarchy(ToolUseContext parentContext) {
@@ -264,9 +314,18 @@ public class SubAgentExecutor {
     }
 
     private String resolveModel(String requestModel, AgentDefinition agentDef) {
-        if (requestModel != null && !requestModel.isBlank()) return requestModel;
-        if (agentDef.defaultModel() != null) return agentDef.defaultModel();
-        return "sonnet";  // 默认子代理模型
+        String rawModel;
+        if (requestModel != null && !requestModel.isBlank()) {
+            rawModel = requestModel;
+        } else if (agentDef.defaultModel() != null) {
+            rawModel = agentDef.defaultModel();
+        } else {
+            rawModel = "sonnet";
+        }
+        // ★ 通过别名解析机制映射到实际模型 ★
+        String resolved = providerRegistry.resolveModelAlias(rawModel);
+        log.debug("resolveModel: raw='{}' → resolved='{}'", rawModel, resolved);
+        return resolved;
     }
 
     // ═══ 工具池组装 ═══
@@ -425,11 +484,19 @@ public class SubAgentExecutor {
             String childSessionId = "fork-" + request.agentId();
             sessionManager.getFileStateCache(childSessionId).merge(childCache);
 
+            // ★ 新增: 为 Fork 子代理会话设置权限模式（Worker 权限冒泡）★
+            PermissionMode forkMode = resolveWorkerPermissionMode(
+                    request.agentType(), parentContext);
+            permissionModeManager.setMode(childSessionId, forkMode);
+            log.debug("Fork worker permission mode: agentId={}, agentType={}, mode={}",
+                    request.agentId(), request.agentType(), forkMode);
+
             ToolUseContext forkContext = ToolUseContext.of(
                     parentContext.workingDirectory(), childSessionId)
                     .withNestingDepth(parentContext.nestingDepth() + 1)
                     .withParentSessionId(parentContext.sessionId())
-                    .withAgentHierarchy(buildAgentHierarchy(parentContext));
+                    .withAgentHierarchy(buildAgentHierarchy(parentContext))
+                    .withPermissionNotifier(parentContext.permissionNotifier());
 
             QueryLoopState state = new QueryLoopState(forkMessages, forkContext);
 

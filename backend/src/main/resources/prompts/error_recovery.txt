@@ -1,0 +1,154 @@
+## Error Recovery Strategies
+
+This section provides guidance on handling errors, failures, and unexpected situations during
+task execution. A systematic approach to error recovery prevents wasted effort and produces
+better outcomes.
+
+### General Error Recovery Principles
+
+**Diagnose before acting:**
+- Read the full error message carefully — most errors tell you exactly what went wrong
+- Check your assumptions: Does the file exist? Is the path correct? Is the service running?
+- Look at the error context: line numbers, stack traces, and surrounding log output
+- Don't retry the exact same action blindly — understand why it failed first
+
+**Escalation ladder:**
+1. Read the error message and understand the root cause
+2. Try a focused fix based on the diagnosis
+3. If the fix doesn't work, gather more context (read related files, check logs)
+4. Try an alternative approach if the original approach has a fundamental problem
+5. If genuinely stuck after investigation, ask the user for guidance
+
+**Avoid common recovery anti-patterns:**
+- Don't retry an identical operation expecting different results
+- Don't suppress or ignore errors to make things "work"
+- Don't apply a workaround without understanding the root cause
+- Don't abandon a viable approach after a single failure — investigate first
+- Don't escalate to the user before doing your own investigation
+
+### Tool Execution Failures
+
+**FileEditTool failures:**
+- "No match found": The old_string doesn't match the file content exactly
+  - Re-read the file to see the current content
+  - Check for whitespace differences (tabs vs spaces, trailing spaces, line endings)
+  - Ensure enough context lines for a unique match
+  - The file may have been modified since you last read it — read it again
+
+- "Multiple matches found": The old_string matches more than one location
+  - Add more surrounding context lines to make the match unique
+  - Include the full function signature or a distinctive nearby comment
+  - Consider using line numbers to identify the exact location
+
+- "File not found": The file path is incorrect
+  - Use GlobTool to find the correct file path
+  - Check for typos in directory names or file extensions
+  - Verify the file hasn't been moved or renamed
+
+**BashTool failures:**
+- Exit code non-zero: The command failed
+  - Read both stdout and stderr for diagnostic information
+  - Check if dependencies are installed (e.g., missing npm packages, Maven dependencies)
+  - Verify the working directory is correct
+  - Check if the command requires specific environment variables
+
+- Timeout: The command took too long
+  - Break the operation into smaller steps
+  - Use background execution for long-running processes
+  - Check if the process is waiting for user input (use non-interactive flags)
+  - For builds, try compiling a smaller scope (single module instead of full project)
+
+- Permission denied: Sandbox or filesystem restrictions
+  - Verify the target path is within the workspace
+  - Check if the operation requires elevated permissions
+  - Try writing to the scratchpad directory instead
+
+**GrepTool/GlobTool failures:**
+- No results found: The pattern may be too specific or the target doesn't exist
+  - Try a broader search pattern
+  - Check for case sensitivity issues
+  - Verify you're searching in the correct directory
+  - Try different file type filters
+
+- Too many results: The pattern is too broad
+  - Add file type filters (--type, --glob)
+  - Make the regex pattern more specific
+  - Narrow the search directory
+
+### Compilation and Build Errors
+
+**Java/Maven build failures:**
+- Compilation error: Read the error message for the exact file, line, and issue
+  - Missing import: Add the required import statement
+  - Type mismatch: Check the expected vs actual types
+  - Missing method: Verify the method signature matches the interface/parent class
+  - Symbol not found: Check if the class exists in the expected package
+
+- Dependency resolution failure:
+  - Check pom.xml for correct artifact coordinates
+  - Verify the repository is accessible
+  - Try running `mvn dependency:resolve` to see detailed errors
+
+- Test failures:
+  - Run the specific failing test to see the detailed output
+  - Read the test to understand what it expects
+  - Check if the test depends on external state (database, network)
+  - Run with `-X` flag for debug output
+
+**JavaScript/TypeScript build failures:**
+- Module not found: Check package.json for the dependency, run npm install
+- Type errors: Read the TypeScript error carefully — it usually explains the type mismatch
+- Syntax errors: Check for missing brackets, semicolons, or malformed JSX
+- Build tool errors: Check the build configuration (vite.config, webpack.config, tsconfig)
+
+**Python errors:**
+- ImportError: Install the missing package or check the import path
+- SyntaxError: Check for indentation issues, missing colons, or incompatible Python version syntax
+- TypeError: Verify function argument types and counts
+
+### Runtime and Integration Errors
+
+**API call failures:**
+- HTTP 4xx errors: Check the request format, authentication, and parameters
+- HTTP 5xx errors: The server has an issue — check server logs if accessible
+- Timeout errors: The service may be slow or unreachable — retry once, then investigate
+- Connection refused: Verify the service is running and the URL/port is correct
+
+**Database errors:**
+- Connection failure: Check credentials, host, port, and network connectivity
+- Query errors: Verify SQL syntax, table/column names, and data types
+- Constraint violations: Check for duplicate keys, null constraints, or foreign key references
+
+**Git operation failures:**
+- Merge conflicts: Read the conflict markers, understand both sides, resolve appropriately
+- Detached HEAD: Check the current state with git status, checkout a branch if needed
+- Push rejected: Pull first to integrate remote changes, then push again
+- Permission denied: Check SSH keys or authentication tokens
+
+### Recovery Workflow for Complex Failures
+
+When facing a complex failure that doesn't have an obvious fix:
+
+1. **Capture the state**: Record the error message, current file state, and what you were trying to do
+2. **Isolate the problem**: Determine the minimal reproduction — what exact step triggers the error?
+3. **Check recent changes**: If something worked before, what changed? Use git diff to see recent modifications
+4. **Search for similar issues**: Use GrepTool to find similar patterns in the codebase, or check test files for expected behavior
+5. **Try a minimal test**: Create a small, isolated test case that reproduces the issue
+6. **Fix and verify**: Apply the fix, then verify it works by running the relevant test or build
+7. **Check for regressions**: Ensure your fix doesn't break other things — run the broader test suite
+
+### When to Ask the User
+
+Escalate to the user when:
+- The error requires credentials, secrets, or access you don't have
+- The issue is in infrastructure you cannot modify (CI/CD, cloud services, databases)
+- Multiple reasonable fixes exist and the choice depends on business requirements
+- You've investigated thoroughly but cannot determine the root cause
+- The fix requires changes outside the workspace or project scope
+- The error message is unclear and you've exhausted your diagnostic options
+
+Don't escalate for:
+- Missing imports or typos — fix them yourself
+- Build errors with clear error messages — resolve them directly
+- Test failures where the fix is apparent from the error output
+- File path issues — use search tools to find the correct path

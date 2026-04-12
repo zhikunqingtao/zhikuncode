@@ -119,7 +119,8 @@ public class StreamingToolExecutor {
                                     "<tool_use_error>Tool execution discarded</tool_use_error>");
                         } else {
                             ToolExecutionResult execResult = pipeline.execute(next.tool, next.input,
-                                    next.context.withToolUseId(next.toolUseId));
+                                    next.context.withToolUseId(next.toolUseId),
+                                    next.context.permissionNotifier());
                             next.result = execResult.result();
                             next.updatedContext = execResult.updatedContext();
                         }

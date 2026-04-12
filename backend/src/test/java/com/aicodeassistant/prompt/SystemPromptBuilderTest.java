@@ -2,6 +2,8 @@ package com.aicodeassistant.prompt;
 
 import com.aicodeassistant.config.ClaudeMdLoader;
 import com.aicodeassistant.config.FeatureFlagService;
+import com.aicodeassistant.context.ProjectContextService;
+import com.aicodeassistant.engine.ToolResultSummarizer;
 import com.aicodeassistant.mcp.McpServerConnection;
 import com.aicodeassistant.service.GitService;
 import com.aicodeassistant.tool.Tool;
@@ -27,6 +29,7 @@ class SystemPromptBuilderTest {
     private ClaudeMdLoader claudeMdLoader;
     private FeatureFlagService featureFlags;
     private GitService gitService;
+    private ProjectContextService projectContextService;
     private SystemPromptBuilder builder;
 
     @TempDir
@@ -37,7 +40,10 @@ class SystemPromptBuilderTest {
         claudeMdLoader = mock(ClaudeMdLoader.class);
         featureFlags = mock(FeatureFlagService.class);
         gitService = mock(GitService.class);
-        builder = new SystemPromptBuilder(claudeMdLoader, featureFlags, gitService, null, null, null);
+        projectContextService = mock(ProjectContextService.class);
+        when(projectContextService.getContext(any())).thenReturn(null);
+        when(projectContextService.formatProjectContext(any())).thenReturn("");
+        builder = new SystemPromptBuilder(claudeMdLoader, featureFlags, gitService, null, null, projectContextService, null);
 
         // 默认 mock 行为
         when(gitService.getGitStatus(any(Path.class))).thenReturn("main (clean)");

@@ -13,6 +13,40 @@
 import { Client as StompClient, IFrame, IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { dispatch, resetSequence } from './dispatch';
+import type { ServerMessage } from '@/types';
+
+/**
+ * 防御性消息解析 — 处理心跳、SockJS 协议帧等非 JSON 消息
+ * 对齐 P-FE-02 修复方案
+ */
+function parseMessage(raw: string): (ServerMessage & { ts?: number }) | null {
+    // 防御 null/undefined/空字符串
+    if (!raw || raw.trim() === '') {
+        return null;
+    }
+
+    // 跳过心跳消息
+    if (raw === '\n' || raw === 'h') {
+        return null;
+    }
+
+    try {
+        return JSON.parse(raw);
+    } catch {
+        // 降级: 尝试从 STOMP 帧中提取 body
+        const bodyMatch = raw.match(/\n\n(.+)\u0000/);
+        if (bodyMatch) {
+            try {
+                return JSON.parse(bodyMatch[1]);
+            } catch {
+                // 静默忽略非 JSON 消息（如 SockJS 协议帧）
+                return null;
+            }
+        }
+        console.debug('[WS] Non-JSON message ignored:', raw.substring(0, 100));
+        return null;
+    }
+}
 import { useBridgeStore } from '@/store/bridgeStore';
 import { useNotificationStore } from '@/store/notificationStore';
 import type { Attachment } from '@/types';
@@ -72,11 +106,9 @@ export function createStompClient(sessionId: string, authToken: string): StompCl
 
             // 订阅用户专属消息队列 — 对齐 §8.5.3 onConnected
             client.subscribe('/user/queue/messages', (message: IMessage) => {
-                try {
-                    const data = JSON.parse(message.body);
+                const data = parseMessage(message.body);
+                if (data) {
                     dispatch(data);
-                } catch (err) {
-                    console.error('[WS] Failed to parse message:', err, message.body);
                 }
             });
         },

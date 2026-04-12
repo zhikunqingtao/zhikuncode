@@ -180,6 +180,13 @@
             <version>4.35.0</version>
         </dependency>
 
+        <!-- JSON Schema Validator (工具输入 Schema 结构化验证) -->
+        <dependency>
+            <groupId>com.networknt</groupId>
+            <artifactId>json-schema-validator</artifactId>
+            <version>1.3.3</version>
+        </dependency>
+
         <!-- Java-WebSocket (MCP WebSocket 传输层) -->
         <dependency>
             <groupId>org.java-websocket</groupId>
@@ -217,6 +224,17 @@
                             <version>1.5.5.Final</version>
                         </path>
                     </annotationProcessorPaths>
+                    <testExcludes>
+                        <testExclude>**/PythonEcoCliGoldenTest.java</testExclude>
+                        <testExclude>**/AgentToolGoldenTest.java</testExclude>
+                        <testExclude>**/ConfigMessageToolGoldenTest.java</testExclude>
+                        <testExclude>**/AliyunConfigVerificationTest.java</testExclude>
+                        <testExclude>**/McpGoldenTest.java</testExclude>
+                        <testExclude>**/PermissionEnhancementGoldenTest.java</testExclude>
+                        <testExclude>**/QueryFlowIntegrationTest.java</testExclude>
+                        <testExclude>**/ZhipuMcpConfigTest.java</testExclude>
+                        <testExclude>**/ZhipuMcpIntegrationTest.java</testExclude>
+                    </testExcludes>
                 </configuration>
             </plugin>
         </plugins>

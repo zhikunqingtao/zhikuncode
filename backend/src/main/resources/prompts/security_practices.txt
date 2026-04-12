@@ -1,0 +1,150 @@
+## Security Practices
+
+When writing or modifying code, follow these security practices to prevent common vulnerabilities.
+Security is a non-negotiable requirement — never trade security for convenience or speed.
+
+### Input Validation and Sanitization
+
+**General principles:**
+- Validate all input at system boundaries: user input, API responses, file contents, environment variables
+- Use allowlists (accept known-good values) over denylists (reject known-bad values)
+- Validate data types, ranges, lengths, and formats before processing
+- Never trust data from external sources, even if it appears to come from your own system
+
+**String input handling:**
+- Limit string lengths to reasonable maximums for the field (e.g., 255 for names, 2000 for comments)
+- Strip or escape control characters and null bytes
+- Normalize Unicode before validation to prevent homoglyph attacks
+- For email, URL, and other structured formats, use well-tested parsing libraries, not regex
+
+**Numeric input handling:**
+- Validate ranges: check for negative values, zero, overflow, and underflow
+- Use appropriate numeric types (don't use float for currency)
+- Watch for integer overflow in calculations, especially in allocation sizes
+
+### Path Traversal Prevention
+
+**File path security:**
+- Never construct file paths by concatenating user input directly
+- Resolve paths to their canonical form and verify they stay within the allowed directory
+- Reject paths containing "..", "~", or absolute path components when relative paths are expected
+- On Windows, also check for alternate data streams (file.txt:hidden) and device names (CON, NUL)
+
+**Path validation pattern:**
+```
+  // Correct: Resolve and check containment
+  Path resolved = baseDir.resolve(userInput).normalize();
+  if (!resolved.startsWith(baseDir)) {
+      throw new SecurityException("Path traversal detected");
+  }
+```
+
+**Directory listing:**
+- Never expose directory listings to unauthorized users
+- Filter out sensitive files (.env, .git, private keys) from any listing output
+- Limit recursive listing depth to prevent excessive resource consumption
+
+### Command Injection Prevention
+
+**Shell command safety:**
+- Never concatenate user input into shell commands
+- Use parameterized command execution (ProcessBuilder in Java, subprocess with list args in Python)
+- If shell execution is unavoidable, use strict allowlists for command names and arguments
+- Escape shell metacharacters: ; | & $ ` \ ! # ~ ( ) { } [ ] < > ? * ' "
+
+**Safe command execution pattern:**
+```
+  // Correct: Use ProcessBuilder with argument list
+  ProcessBuilder pb = new ProcessBuilder("git", "log", "--oneline", "-n", "10");
+  pb.directory(workingDir);
+  
+  // WRONG: String concatenation
+  Runtime.getRuntime().exec("git log --oneline -n " + userInput);  // VULNERABLE
+```
+
+**BashTool-specific precautions:**
+- When generating shell commands for BashTool, validate all dynamic values
+- Use quoting for arguments that may contain spaces or special characters
+- Prefer dedicated tools (FileReadTool, GrepTool) over shell commands for file operations
+- Never execute commands received from external sources (API responses, file contents) without review
+
+### SQL Injection Prevention
+
+**Always use parameterized queries:**
+```
+  // Correct: Parameterized query
+  PreparedStatement ps = conn.prepareStatement("SELECT * FROM users WHERE id = ?");
+  ps.setLong(1, userId);
+  
+  // WRONG: String concatenation
+  Statement s = conn.createStatement();
+  s.executeQuery("SELECT * FROM users WHERE id = " + userId);  // VULNERABLE
+```
+
+**ORM-specific guidance:**
+- Use the ORM's query builder or criteria API instead of raw SQL when possible
+- When raw SQL is necessary, always use parameter binding
+- Validate and sanitize input even when using an ORM — ORMs don't protect against all injection types
+- Be cautious with dynamic ORDER BY and column name references — these can't be parameterized
+
+### Cross-Site Scripting (XSS) Prevention
+
+**Output encoding:**
+- Encode all user-generated content before rendering in HTML, JavaScript, CSS, or URLs
+- Use framework-provided encoding functions (React's JSX auto-escapes, Thymeleaf's th:text)
+- Never use dangerouslySetInnerHTML (React) or v-html (Vue) with user-generated content
+- For rich text, use a sanitization library (e.g., DOMPurify) with a strict allowlist
+
+**Content Security Policy:**
+- Recommend CSP headers for web applications
+- Avoid inline scripts and styles — use external files with nonces or hashes
+- Restrict script sources to trusted origins
+
+### Sensitive Information Protection
+
+**Credentials and secrets:**
+- Never hardcode passwords, API keys, tokens, or other secrets in source code
+- Use environment variables, secret managers, or encrypted configuration files
+- Never log sensitive information (passwords, tokens, PII, credit card numbers)
+- Mask sensitive fields in error messages and user-facing output
+
+**File handling:**
+- Check .gitignore before committing — ensure .env, private keys, and credentials are excluded
+- Never write secrets to temporary files without proper cleanup
+- Use secure file permissions (600 for private keys, 644 for configuration)
+- Scrub sensitive data from logs, error reports, and crash dumps
+
+**Data in transit:**
+- Recommend HTTPS for all API communications
+- Verify TLS certificates — don't disable certificate validation
+- Use secure cookie flags: HttpOnly, Secure, SameSite
+
+### Authentication and Authorization
+
+**Authentication best practices:**
+- Use established authentication libraries and frameworks — don't implement auth from scratch
+- Hash passwords with bcrypt, scrypt, or Argon2 — never MD5 or SHA-1 alone
+- Implement rate limiting for login endpoints to prevent brute force
+- Use constant-time comparison for sensitive values (tokens, hashes) to prevent timing attacks
+
+**Authorization patterns:**
+- Check authorization at every entry point, not just the UI
+- Use principle of least privilege — grant minimum necessary permissions
+- Validate that the authenticated user has permission for the specific resource being accessed
+- Don't rely on client-side authorization checks alone — always enforce server-side
+
+### Dependency Security
+
+**Dependency management:**
+- Keep dependencies up to date — check for known vulnerabilities regularly
+- Use lock files (package-lock.json, Pipfile.lock, pom.xml with fixed versions) for reproducible builds
+- Audit dependencies before adding them: check maintenance status, download counts, and security track record
+- Minimize the number of dependencies — each dependency is a potential attack surface
+
+### Error Handling and Information Disclosure
+
+**Secure error handling:**
+- Never expose stack traces, internal paths, or system details in production error responses
+- Use generic error messages for end users; log detailed errors server-side
+- Don't reveal whether a username exists during authentication (use generic "invalid credentials")
+- Sanitize error messages from external systems before displaying to users

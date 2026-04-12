@@ -1,11 +1,17 @@
 package com.aicodeassistant.tool.impl;
 
+import com.aicodeassistant.security.PathSecurityService;
+import com.aicodeassistant.security.PathSecurityService.PathCheckResult;
+import com.aicodeassistant.service.FileStateCache;
+import com.aicodeassistant.session.SessionManager;
 import com.aicodeassistant.tool.ToolInput;
 import com.aicodeassistant.tool.ToolResult;
 import com.aicodeassistant.tool.ToolUseContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -15,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 /**
  * FileReadTool 单元测试 — 覆盖读取、行号范围、大文件截断、图片、错误处理等场景。
@@ -24,12 +32,37 @@ class FileReadToolUnitTest {
     private FileReadTool fileReadTool;
     private ToolUseContext context;
 
+    @Mock private PathSecurityService pathSecurityService;
+    @Mock private SessionManager sessionManager;
+
     @TempDir
     Path tempDir;
 
     @BeforeEach
     void setUp() {
-        fileReadTool = new FileReadTool(null, null);
+        MockitoAnnotations.openMocks(this);
+
+        // Mock PathSecurityService — 默认允许所有路径操作
+        when(pathSecurityService.checkReadPermission(anyString(), anyString()))
+                .thenReturn(PathCheckResult.allowed());
+        // 设备文件路径返回 denied，对齐 PathSecurityService 真实行为
+        when(pathSecurityService.checkReadPermission(org.mockito.ArgumentMatchers.eq("/dev/zero"), anyString()))
+                .thenReturn(PathCheckResult.denied("Cannot read device file: /dev/zero"));
+        // 注意：简化 mock，模拟真实的路径解析逻辑——绝对路径直接返回，相对路径基于 workingDirectory 解析。
+        when(pathSecurityService.resolvePath(anyString(), anyString()))
+                .thenAnswer(inv -> {
+                    String filePath = inv.getArgument(0);
+                    String workDir = inv.getArgument(1);
+                    java.nio.file.Path p = Path.of(filePath);
+                    return p.isAbsolute() ? p : Path.of(workDir).resolve(filePath);
+                });
+
+        // Mock SessionManager — 返回一个真实的 FileStateCache 实例
+        FileStateCache fileStateCache = new FileStateCache();
+        when(sessionManager.getFileStateCache(anyString())).thenReturn(fileStateCache);
+
+        // FileReadTool 构造函数为 2 参数（PathSecurityService, SessionManager）
+        fileReadTool = new FileReadTool(pathSecurityService, sessionManager);
         context = ToolUseContext.of(tempDir.toString(), "test-session");
     }
 

@@ -255,8 +255,16 @@ public class PermissionPipeline {
                 yield PermissionDecision.ask(PermissionDecisionReason.MODE,
                         "Accept-edits mode requires confirmation for non-edit operations");
             }
-            case DONT_ASK -> PermissionDecision.denyByMode(
-                    "Current permission mode (Don't Ask) auto-rejects write operations");
+            case DONT_ASK -> {
+                // DONT_ASK 语义: 不弹窗确认。只读工具自动允许，写操作自动拒绝。
+                if (tool.isReadOnly(input)) {
+                    log.debug("Mode DONT_ASK: auto-allowing read-only tool={}", tool.getName());
+                    yield PermissionDecision.allow(PermissionDecisionReason.MODE, mode);
+                }
+                log.debug("Mode DONT_ASK: auto-denying write tool={}", tool.getName());
+                yield PermissionDecision.denyByMode(
+                        "DONT_ASK mode: write operations are auto-denied without user confirmation");
+            }
             case BYPASS_PERMISSIONS -> PermissionDecision.allow(PermissionDecisionReason.MODE, mode);
             case AUTO -> {
                 // LLM 驱动的两阶段权限分类（对齐 yoloClassifier）
