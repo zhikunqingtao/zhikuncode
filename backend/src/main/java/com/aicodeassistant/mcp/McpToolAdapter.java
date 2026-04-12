@@ -2,12 +2,10 @@ package com.aicodeassistant.mcp;
 
 import com.aicodeassistant.tool.*;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * MCP 工具适配器 — 将 MCP 服务器暴露的工具包装为内部 Tool 接口。
@@ -28,14 +26,26 @@ public class McpToolAdapter implements Tool {
     private final Map<String, Object> inputSchema;
     private final McpServerConnection connection;
     private final String originalToolName;
+    private final String enhancedDescription;  // 注册表中文描述
+    private final long timeoutMs;              // 注册表超时配置
 
+    /** 原有构造函数 — 保持向后兼容 */
     public McpToolAdapter(String name, String description, Map<String, Object> inputSchema,
                           McpServerConnection connection, String originalToolName) {
+        this(name, description, inputSchema, connection, originalToolName, null, 0);
+    }
+
+    /** 增强构造函数 — 支持描述覆盖和超时覆盖 */
+    public McpToolAdapter(String name, String description, Map<String, Object> inputSchema,
+                          McpServerConnection connection, String originalToolName,
+                          String enhancedDescription, long timeoutMs) {
         this.name = name;
         this.description = description;
         this.inputSchema = inputSchema;
         this.connection = connection;
         this.originalToolName = originalToolName;
+        this.enhancedDescription = enhancedDescription;
+        this.timeoutMs = timeoutMs;
     }
 
     @Override
@@ -45,6 +55,9 @@ public class McpToolAdapter implements Tool {
 
     @Override
     public String getDescription() {
+        if (enhancedDescription != null && !enhancedDescription.isEmpty()) {
+            return enhancedDescription;
+        }
         return description != null ? description : "MCP tool: " + originalToolName;
     }
 
@@ -73,8 +86,6 @@ public class McpToolAdapter implements Tool {
         return true;
     }
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-
     @Override
     public ToolResult call(ToolInput input, ToolUseContext context) {
         if (connection.getStatus() != McpConnectionStatus.CONNECTED) {
@@ -83,38 +94,11 @@ public class McpToolAdapter implements Tool {
         }
 
         try {
-            // 1. 构建 JSON-RPC 请求
-            Map<String, Object> request = Map.of(
-                    "jsonrpc", "2.0",
-                    "id", UUID.randomUUID().toString(),
-                    "method", "tools/call",
-                    "params", Map.of(
-                            "name", this.originalToolName,
-                            "arguments", input.getRawData()
-                    )
-            );
-            String requestJson = objectMapper.writeValueAsString(request);
+            // 一行代码，传输无关 — SSE/HTTP/WS/STDIO 全部走同一路径
+            JsonNode result = connection.callTool(originalToolName, input.getRawData(), timeoutMs);
 
-            // 2. 发送到 MCP server 的 stdin
-            connection.sendRequest(requestJson);
-
-            // 3. 从 stdout 读取 JSON-RPC 响应
-            String responseLine = connection.readResponse();
-            if (responseLine == null) {
-                return ToolResult.error("MCP server '" + connection.getName() + "' closed connection");
-            }
-
-            // 4. 解析响应
-            JsonNode response = objectMapper.readTree(responseLine);
-            if (response.has("error")) {
-                JsonNode error = response.get("error");
-                String errorMsg = error.has("message") ? error.get("message").asText() : error.toString();
-                return ToolResult.error("MCP error: " + errorMsg);
-            }
-
-            JsonNode result = response.get("result");
+            // 解析 MCP 标准 content 数组
             if (result != null && result.has("content")) {
-                // MCP 标准: content 是数组
                 StringBuilder sb = new StringBuilder();
                 for (JsonNode item : result.get("content")) {
                     if ("text".equals(item.path("type").asText())) {
@@ -122,24 +106,28 @@ public class McpToolAdapter implements Tool {
                     }
                 }
                 String content = sb.toString();
-
-                // 内容截断保护
                 if (content.length() > MAX_MCP_RESULT_SIZE) {
                     content = content.substring(0, MAX_MCP_RESULT_SIZE)
-                            + "\n[Truncated: result exceeded " + MAX_MCP_RESULT_SIZE + " chars]";
+                            + "\n[Truncated: exceeded " + MAX_MCP_RESULT_SIZE + " chars]";
                 }
-
                 return ToolResult.success(content)
                         .withMetadata("mcpServer", connection.getName())
                         .withMetadata("mcpTool", originalToolName);
             }
 
-            // 没有 content 字段 — 返回原始 result
             String fallback = result != null ? result.toString() : "{}";
             return ToolResult.success(fallback)
                     .withMetadata("mcpServer", connection.getName())
                     .withMetadata("mcpTool", originalToolName);
 
+        } catch (McpProtocolException e) {
+            if (e.getCode() == JsonRpcError.REQUEST_TIMEOUT) {
+                log.warn("MCP tool call timed out after {}ms: {} on {}",
+                        timeoutMs, originalToolName, connection.getName());
+                return ToolResult.error("MCP tool call timed out after " + timeoutMs + "ms");
+            }
+            log.error("MCP tool call failed: {} on {}", originalToolName, connection.getName(), e);
+            return ToolResult.error("MCP error: " + e.getMessage());
         } catch (Exception e) {
             log.error("MCP tool call failed: {} on {}", originalToolName, connection.getName(), e);
             return ToolResult.error("MCP tool call failed: " + e.getMessage());

@@ -42,6 +42,9 @@ public class McpConfiguration {
      */
     private Map<String, List<String>> channelPermissions = Map.of();
 
+    /** MCP 能力注册表文件路径 */
+    private String capabilityRegistryPath = "configuration/mcp/mcp_capability_registry.json";
+
     public Map<String, ServerConfig> getServers() {
         return servers;
     }
@@ -56,6 +59,14 @@ public class McpConfiguration {
 
     public void setChannelPermissions(Map<String, List<String>> channelPermissions) {
         this.channelPermissions = channelPermissions;
+    }
+
+    public String getCapabilityRegistryPath() {
+        return capabilityRegistryPath;
+    }
+
+    public void setCapabilityRegistryPath(String capabilityRegistryPath) {
+        this.capabilityRegistryPath = capabilityRegistryPath;
     }
 
     /**

@@ -1,7 +1,8 @@
 import { useState } from 'react';
+import { McpCapabilityPanel } from './McpCapabilityPanel';
 
 /** 设置面板 Tab 类型 */
-type SettingsTab = 'model' | 'theme' | 'permission' | 'memory' | 'keybindings';
+type SettingsTab = 'model' | 'theme' | 'permission' | 'memory' | 'keybindings' | 'mcp';
 
 interface SettingsTabConfig {
   id: SettingsTab;
@@ -15,6 +16,7 @@ const TABS: SettingsTabConfig[] = [
   { id: 'permission', label: 'Permissions', icon: '🔒' },
   { id: 'memory', label: 'Memory', icon: '🧠' },
   { id: 'keybindings', label: 'Keybindings', icon: '⌨️' },
+  { id: 'mcp', label: 'MCP Tools', icon: '🔌' },
 ];
 
 /**
@@ -59,6 +61,7 @@ export function SettingsPanel() {
         {activeTab === 'permission' && <PermissionModePicker />}
         {activeTab === 'memory' && <MemoryManager />}
         {activeTab === 'keybindings' && <KeybindingsEditor />}
+        {activeTab === 'mcp' && <McpCapabilityPanel />}
       </div>
     </div>
   );

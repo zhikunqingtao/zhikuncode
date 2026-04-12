@@ -400,12 +400,9 @@ public class BashLexer {
 
         char next = source.charAt(i);
 
-        // $(( — 算术展开
+        // $(( — 算术扩展 (完整内容，必须在 $( 之前检测！)
         if (next == '(' && peek(1) == '(') {
-            advance(); // (
-            advance(); // (
-            atCmdStart = false;
-            return makeToken(BashTokenType.DOLLAR_DPAREN, "$((", startI, i, startB, b);
+            return lexArithmeticExpansion(startI, startB);
         }
 
         // $( — 命令替换
@@ -415,11 +412,9 @@ public class BashLexer {
             return makeToken(BashTokenType.DOLLAR_PAREN, "$(", startI, i, startB, b);
         }
 
-        // ${ — 参数展开
+        // ${ — 参数扩展变体 (完整内容)
         if (next == '{') {
-            advance(); // {
-            atCmdStart = false;
-            return makeToken(BashTokenType.DOLLAR_BRACE, "${", startI, i, startB, b);
+            return lexParameterExpansion(startI, startB);
         }
 
         // $SPECIAL_VAR — 特殊变量 ($? $$ $! $# $@ $* $- $_)
@@ -475,12 +470,12 @@ public class BashLexer {
             } else {
                 advanceN(2);
                 updateCmdStartAfterOp(op2);
-                // <( 和 >( 是进程替换
-                if (op2.equals("<(")) {
-                    return makeToken(BashTokenType.LT_PAREN, op2, startI, i, startB, b);
-                }
-                if (op2.equals(">(")) {
-                    return makeToken(BashTokenType.GT_PAREN, op2, startI, i, startB, b);
+                // <( 和 >( 是进程替换 — 使用完整内容词法分析
+                if (op2.equals("<(") || op2.equals(">(")) {
+                    // 回退 advanceN(2)，由 lexProcessSubstitution 统一处理
+                    this.i = startI;
+                    this.b = startB;
+                    return lexProcessSubstitution(startI, startB);
                 }
                 return makeToken(BashTokenType.OP, op2, startI, i, startB, b);
             }
@@ -626,6 +621,197 @@ public class BashLexer {
      */
     public static int utf8ByteLength(String s) {
         return s.getBytes(StandardCharsets.UTF_8).length;
+    }
+
+    // ──── 扩展语法词法分析方法 ────
+
+    /**
+     * 解析算术扩展 $((...))。
+     * <p>
+     * 匹配模式: $(( expression ))
+     * 支持嵌套括号: $((1 + (2 * 3)))
+     * 使用括号深度计数匹配到对应的 ))。
+     *
+     * @param startI 起始 Java 字符索引 (指向 $)
+     * @param startB 起始 UTF-8 字节偏移
+     * @return ARITHMETIC_EXPANSION Token，文本为完整的 $((expression))
+     */
+    private BashToken lexArithmeticExpansion(int startI, int startB) {
+        advance(); // 跳过 (
+        advance(); // 跳过 (
+        // 现在 i 在 $(( 之后
+
+        int depth = 1; // )) 深度计数
+
+        while (i < length && depth > 0) {
+            char ch = source.charAt(i);
+            if (ch == ')' && peek(1) == ')') {
+                depth--;
+                if (depth == 0) {
+                    advance(); // 第一个 )
+                    advance(); // 第二个 )
+                    break;
+                }
+                advance();
+                advance();
+            } else if (ch == '(' && peek(1) == '(') {
+                depth++;
+                advance();
+                advance();
+            } else {
+                advance();
+            }
+        }
+
+        String text = source.substring(startI, i);
+        atCmdStart = false;
+        return makeToken(BashTokenType.ARITHMETIC_EXPANSION, text, startI, i, startB, b);
+    }
+
+    /**
+     * 解析参数扩展变体 ${...}。
+     * <p>
+     * 在现有 ${var} 解析的基础上扩展，支持 12 种变体：
+     * <ul>
+     *   <li>${var:-default}   使用默认值</li>
+     *   <li>${var:=default}   赋值默认值</li>
+     *   <li>${var:+alternate} 替代值</li>
+     *   <li>${var:?error}     错误消息</li>
+     *   <li>${var#pattern}    最短前缀删除</li>
+     *   <li>${var##pattern}   最长前缀删除</li>
+     *   <li>${var%pattern}    最短后缀删除</li>
+     *   <li>${var%%pattern}   最长后缀删除</li>
+     *   <li>${var/pat/repl}   首次替换</li>
+     *   <li>${var//pat/repl}  全局替换</li>
+     *   <li>${#var}           字符串长度</li>
+     *   <li>${var:off:len}    子串提取</li>
+     * </ul>
+     *
+     * @param startI 起始 Java 字符索引 (指向 $)
+     * @param startB 起始 UTF-8 字节偏移
+     * @return PARAMETER_EXPANSION Token，文本为完整的 ${...}
+     */
+    private BashToken lexParameterExpansion(int startI, int startB) {
+        advance(); // 跳过 {
+        // 现在 i 在 ${ 之后
+
+        int braceDepth = 1;
+
+        while (i < length && braceDepth > 0) {
+            char ch = source.charAt(i);
+            if (ch == '\\') {
+                advance(); // 跳过反斜杠
+                if (i < length) advance(); // 跳过被转义字符
+                continue;
+            }
+            if (ch == '{') {
+                braceDepth++;
+            } else if (ch == '}') {
+                braceDepth--;
+                if (braceDepth == 0) {
+                    advance(); // 跳过闭合 }
+                    break;
+                }
+            }
+            advance();
+        }
+
+        String text = source.substring(startI, i);
+        atCmdStart = false;
+        return makeToken(BashTokenType.PARAMETER_EXPANSION, text, startI, i, startB, b);
+    }
+
+    /**
+     * 解析进程替换 <(...) 和 >(...)。
+     * <p>
+     * 匹配 &lt;(command) 返回 PROCESS_SUBSTITUTION_IN，
+     * 匹配 &gt;(command) 返回 PROCESS_SUBSTITUTION_OUT。
+     * 使用括号深度计数匹配到对应的 )。
+     *
+     * @param startI 起始 Java 字符索引 (指向 &lt; 或 &gt;)
+     * @param startB 起始 UTF-8 字节偏移
+     * @return PROCESS_SUBSTITUTION_IN 或 PROCESS_SUBSTITUTION_OUT Token
+     */
+    private BashToken lexProcessSubstitution(int startI, int startB) {
+        char prefix = source.charAt(i); // < 或 >
+        advance(); // 跳过 < 或 >
+        advance(); // 跳过 (
+
+        int parenDepth = 1;
+
+        while (i < length && parenDepth > 0) {
+            char ch = source.charAt(i);
+            if (ch == '(') {
+                parenDepth++;
+            } else if (ch == ')') {
+                parenDepth--;
+                if (parenDepth == 0) {
+                    advance(); // 跳过闭合 )
+                    break;
+                }
+            }
+            advance();
+        }
+
+        String text = source.substring(startI, i);
+        BashTokenType type = (prefix == '<')
+                ? BashTokenType.PROCESS_SUBSTITUTION_IN
+                : BashTokenType.PROCESS_SUBSTITUTION_OUT;
+        atCmdStart = false;
+        return makeToken(type, text, startI, i, startB, b);
+    }
+
+    /**
+     * 参数扩展变体类型 — 用于识别 ${...} 内的操作符类型。
+     */
+    public enum ParameterExpansionType {
+        /** 简单变量引用 ${var} */
+        SIMPLE,
+        /** 字符串长度 ${#var} */
+        LENGTH,
+        /** 默认值 ${var:-default} */
+        DEFAULT_VALUE,
+        /** 赋值默认值 ${var:=default} */
+        ASSIGN_DEFAULT,
+        /** 替代值 ${var:+alternate} */
+        ALTERNATE,
+        /** 错误消息 ${var:?error} */
+        ERROR,
+        /** 最短前缀删除 ${var#pattern} */
+        PREFIX_SHORT,
+        /** 最长前缀删除 ${var##pattern} */
+        PREFIX_LONG,
+        /** 最短后缀删除 ${var%pattern} */
+        SUFFIX_SHORT,
+        /** 最长后缀删除 ${var%%pattern} */
+        SUFFIX_LONG,
+        /** 首次替换 ${var/pat/repl} */
+        REPLACE_FIRST,
+        /** 全局替换 ${var//pat/repl} */
+        REPLACE_ALL,
+        /** 子串提取 ${var:off:len} */
+        SUBSTRING
+    }
+
+    /**
+     * 分类参数扩展类型。
+     *
+     * @param content ${...} 内部内容 (不含 ${ 和 })
+     * @return 对应的 ParameterExpansionType
+     */
+    public static ParameterExpansionType classifyParameterExpansion(String content) {
+        if (content.startsWith("#")) return ParameterExpansionType.LENGTH;
+        if (content.contains(":-")) return ParameterExpansionType.DEFAULT_VALUE;
+        if (content.contains(":=")) return ParameterExpansionType.ASSIGN_DEFAULT;
+        if (content.contains(":+")) return ParameterExpansionType.ALTERNATE;
+        if (content.contains(":?")) return ParameterExpansionType.ERROR;
+        if (content.contains("##")) return ParameterExpansionType.PREFIX_LONG;
+        if (content.contains("#")) return ParameterExpansionType.PREFIX_SHORT;
+        if (content.contains("%%")) return ParameterExpansionType.SUFFIX_LONG;
+        if (content.contains("%")) return ParameterExpansionType.SUFFIX_SHORT;
+        if (content.contains("//")) return ParameterExpansionType.REPLACE_ALL;
+        if (content.contains("/")) return ParameterExpansionType.REPLACE_FIRST;
+        return ParameterExpansionType.SIMPLE;
     }
 
     // ──── 异常 ────

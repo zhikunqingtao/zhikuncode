@@ -62,11 +62,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
             // DeepSeek 模型
             Map.entry("deepseek-chat", new ModelCapabilities("deepseek-chat", "DeepSeek Chat", 8192, 64000, true, true, false, true, 0.00027, 0.0011)),
             Map.entry("deepseek-reasoner", new ModelCapabilities("deepseek-reasoner", "DeepSeek Reasoner", 8192, 64000, true, true, false, false, 0.00055, 0.0022)),
-            // 阿里云百炼 - 通义千问模型
-            Map.entry("qwen3.6-plus", new ModelCapabilities("qwen3.6-plus", "通义千问 3.6 Plus", 8192, 131072, true, false, true, true, 0.0008, 0.002)),
-            Map.entry("qwen-max", new ModelCapabilities("qwen-max", "通义千问 Max", 8192, 32768, true, false, true, true, 0.0007, 0.002)),
-            Map.entry("qwen-plus", new ModelCapabilities("qwen-plus", "通义千问 Plus", 8192, 131072, true, false, true, true, 0.0008, 0.002)),
-            Map.entry("qwen-turbo", new ModelCapabilities("qwen-turbo", "通义千问 Turbo", 8192, 131072, true, false, false, true, 0.0003, 0.0006)),
+            // 阿里云百炼 - 通义千问模型（qwen-max/plus/turbo/3.6-plus 已迁移至 ModelRegistry.BUILTIN_MODELS）
             Map.entry("qwen-coder-plus", new ModelCapabilities("qwen-coder-plus", "通义千问 Coder Plus", 8192, 131072, true, false, false, true, 0.0007, 0.002))
     );
 
@@ -110,7 +106,11 @@ public class OpenAiCompatibleProvider implements LlmProvider {
 
     @Override
     public ModelCapabilities getModelCapabilities(String model) {
-        return MODEL_CAPABILITIES.getOrDefault(model, ModelCapabilities.DEFAULT);
+        ModelCapabilities caps = MODEL_CAPABILITIES.get(model);
+        if (caps != null) return caps;
+        // 未匹配时抛异常，让 ModelRegistry.getCapabilities() Level 2 的 catch(Exception)
+        // 捕获后 fallback 到 Level 3（BUILTIN_MODELS），确保千问模型走正确的查询路径
+        throw new IllegalArgumentException("Model not in provider capabilities: " + model);
     }
 
     // ═══════════════════════════════════════════
@@ -214,12 +214,28 @@ public class OpenAiCompatibleProvider implements LlmProvider {
             List<Map<String, Object>> tools,
             int maxTokens) {
 
-        ObjectNode root = objectMapper.createObjectNode();
-        root.put("model", model);
-        root.put("max_tokens", maxTokens);
+        ObjectNode root = buildBaseRequest(model, messages, systemPrompt, tools, maxTokens);
         root.put("stream", true);
         ObjectNode streamOptions = root.putObject("stream_options");
         streamOptions.put("include_usage", true);
+        return root;
+    }
+
+    /**
+     * 构建基础请求体（不含 stream 设置）。
+     * 公共逻辑：model、max_tokens、messages、system prompt、tools。
+     * 由 buildOpenAiRequest（流式）和 chatSync（非流式）共享。
+     */
+    private ObjectNode buildBaseRequest(
+            String model,
+            List<Map<String, Object>> messages,
+            String systemPrompt,
+            List<Map<String, Object>> tools,
+            int maxTokens) {
+
+        ObjectNode root = objectMapper.createObjectNode();
+        root.put("model", model);
+        root.put("max_tokens", maxTokens);
 
         ArrayNode messagesArray = root.putArray("messages");
 
@@ -330,6 +346,94 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         }
 
         return root;
+    }
+
+    // ═══════════════════════════════════════════
+    // 同步调用（分类器等低延迟场景）
+    // ═══════════════════════════════════════════
+
+    /**
+     * 同步调用 LLM — 用于 AutoModeClassifier 等低延迟场景。
+     * <p>
+     * 使用非流式请求（stream:false），支持 stopSequences。
+     * HTTP 429 时内部执行一次指数退避重试（AutoModeClassifier.callClassifierLLM()
+     * 不使用 ApiRetryService，429 异常会被包装为 ClassifierUnavailableException）。
+     *
+     * @see com.aicodeassistant.permission.AutoModeClassifier#callClassifierLLM
+     */
+    @Override
+    public String chatSync(String model, String systemPrompt, String userContent,
+                           int maxTokens, String[] stopSequences, long timeoutMs) {
+        // 1. 构建非流式请求体
+        ObjectNode requestBody = buildBaseRequest(model,
+                List.of(Map.of("role", "user", "content", userContent)),
+                systemPrompt, List.of(), maxTokens);
+        requestBody.put("stream", false);
+
+        // 2. 添加 stop sequences
+        if (stopSequences != null && stopSequences.length > 0) {
+            ArrayNode stopArray = requestBody.putArray("stop");
+            for (String seq : stopSequences) {
+                stopArray.add(seq);
+            }
+        }
+
+        // 3. 构建带超时的 OkHttpClient（共享连接池，线程安全）
+        OkHttpClient syncClient = httpClient.newBuilder()
+                .callTimeout(Duration.ofMillis(timeoutMs))
+                .readTimeout(Duration.ofMillis(timeoutMs))
+                .build();
+
+        String effectiveApiKey = keyRotationManager.getKeyCount() > 0
+                ? keyRotationManager.getNextKey() : apiKey;
+
+        Request request = new Request.Builder()
+                .url(baseUrl + "/chat/completions")
+                .header("Authorization", "Bearer " + effectiveApiKey)
+                .header("Content-Type", "application/json")
+                .post(RequestBody.create(requestBody.toString(), JSON_MEDIA))
+                .build();
+
+        // 4. 执行请求（429 时一次指数退避重试）
+        for (int attempt = 0; attempt < 2; attempt++) {
+            try (Response response = syncClient.newCall(request).execute()) {
+                if (response.code() == 429 && attempt == 0) {
+                    long waitMs = 1000;
+                    String retryAfter = response.header("Retry-After");
+                    if (retryAfter != null) {
+                        try { waitMs = Long.parseLong(retryAfter) * 1000; }
+                        catch (NumberFormatException ignored) {}
+                    }
+                    log.warn("chatSync 429 rate limited, retrying after {}ms", Math.min(waitMs, 5000));
+                    Thread.sleep(Math.min(waitMs, 5000));
+                    continue;
+                }
+
+                if (!response.isSuccessful()) {
+                    throw new LlmApiException(
+                            "chatSync HTTP " + response.code(),
+                            response.code() >= 500, response.code());
+                }
+
+                ResponseBody body = response.body();
+                if (body == null) {
+                    throw new LlmApiException("Empty chatSync response", true);
+                }
+
+                JsonNode root = objectMapper.readTree(body.string());
+                return root.path("choices").path(0)
+                           .path("message").path("content").asText("");
+
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new LlmApiException("chatSync interrupted", false);
+            } catch (LlmApiException e) {
+                throw e;
+            } catch (IOException e) {
+                throw new LlmApiException("chatSync IO error: " + e.getMessage(), true);
+            }
+        }
+        throw new LlmApiException("chatSync failed after 429 retry", true, 429);
     }
 
     // ═══════════════════════════════════════════

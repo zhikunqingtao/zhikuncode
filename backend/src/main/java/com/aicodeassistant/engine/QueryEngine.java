@@ -58,6 +58,7 @@ public class QueryEngine {
     private final ThinkingBudgetCalculator thinkingBudgetCalculator;
     private final ModelTierService modelTierService;
     private final FileHistoryService fileHistoryService;
+    private final ToolResultSummarizer toolResultSummarizer;
 
     /** 单条工具结果最大占上下文窗口的 30% */
     private static final double TOOL_RESULT_BUDGET_RATIO = 0.3;
@@ -85,7 +86,8 @@ public class QueryEngine {
                        ModelRegistry modelRegistry,
                        ThinkingBudgetCalculator thinkingBudgetCalculator,
                        ModelTierService modelTierService,
-                       FileHistoryService fileHistoryService) {
+                       FileHistoryService fileHistoryService,
+                       ToolResultSummarizer toolResultSummarizer) {
         this.providerRegistry = providerRegistry;
         this.compactService = compactService;
         this.apiRetryService = apiRetryService;
@@ -102,6 +104,7 @@ public class QueryEngine {
         this.thinkingBudgetCalculator = thinkingBudgetCalculator;
         this.modelTierService = modelTierService;
         this.fileHistoryService = fileHistoryService;
+        this.toolResultSummarizer = toolResultSummarizer;
     }
 
     /**
@@ -517,7 +520,14 @@ public class QueryEngine {
             // 6e: 有工具结果 → 继续循环
             handler.onTurnEnd(turn, stopReason);
 
-            // ===== Step 7: 工具使用摘要注入 (P1, P0 跳过) =====
+            // ===== Step 7: 工具使用摘要注入 =====
+            // 处理过大的工具结果：截断或标记旧结果可清理
+            List<Message> currentMessages = state.getMessages();
+            List<Message> processedMessages = toolResultSummarizer
+                    .processToolResults(currentMessages, turn);
+            if (processedMessages != currentMessages) {
+                state.setMessages(processedMessages);
+            }
 
             // ===== Step 8: 状态更新 → 回到 Step 1 =====
         }

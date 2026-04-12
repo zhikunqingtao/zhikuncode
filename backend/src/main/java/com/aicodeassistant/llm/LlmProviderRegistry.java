@@ -61,7 +61,16 @@ public class LlmProviderRegistry {
     public List<ModelCapabilities> listModelCapabilities() {
         return providers.values().stream()
                 .flatMap(p -> p.getSupportedModels().stream()
-                        .map(p::getModelCapabilities))
+                        .map(model -> {
+                            try {
+                                return p.getModelCapabilities(model);
+                            } catch (Exception e) {
+                                log.debug("Skipping model '{}' from provider '{}': {}",
+                                        model, p.getProviderName(), e.getMessage());
+                                return null;
+                            }
+                        }))
+                .filter(java.util.Objects::nonNull)
                 .toList();
     }
 

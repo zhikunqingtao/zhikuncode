@@ -29,7 +29,7 @@ import java.util.function.Consumer;
  *
  * @see <a href="SPEC §4.3.3">MCP 客户端管理 - HTTP 传输</a>
  */
-public class McpStreamableHttpTransport implements AutoCloseable {
+public class McpStreamableHttpTransport implements McpTransport {
 
     private static final Logger log = LoggerFactory.getLogger(McpStreamableHttpTransport.class);
 
@@ -45,6 +45,9 @@ public class McpStreamableHttpTransport implements AutoCloseable {
 
     /** 服务端通知处理器 */
     private Consumer<JsonNode> notificationHandler;
+
+    /** ★ 新增: 缓存 clientCapabilities 供无参 connect() 使用 */
+    private Map<String, Object> clientCapabilities;
 
     private static final long DEFAULT_TIMEOUT_MS = 30_000;
     private static final MediaType JSON_MEDIA = MediaType.parse("application/json");
@@ -64,10 +67,23 @@ public class McpStreamableHttpTransport implements AutoCloseable {
     }
 
     /**
+     * 设置 clientCapabilities 供无参 connect() 使用。
+     */
+    public void setClientCapabilities(Map<String, Object> caps) {
+        this.clientCapabilities = caps;
+    }
+
+    /**
      * 设置通知处理器。
      */
     public void setNotificationHandler(Consumer<JsonNode> handler) {
         this.notificationHandler = handler;
+    }
+
+    /** ★ McpTransport 接口要求的无参 connect() — 委托给原有方法 */
+    @Override
+    public CompletableFuture<Void> connect() {
+        return connect(this.clientCapabilities);
     }
 
     /**

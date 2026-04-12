@@ -71,7 +71,7 @@ public class McpPromptAdapter {
                     "arguments", arguments != null ? arguments : Map.of()
             );
 
-            Object result = connection.sendRequestAndWait("prompts/get", params);
+            Object result = connection.request("prompts/get", params);
             if (result instanceof com.fasterxml.jackson.databind.JsonNode jsonNode) {
                 com.fasterxml.jackson.databind.JsonNode messagesArray = jsonNode.path("messages");
                 if (!messagesArray.isArray()) return List.of();

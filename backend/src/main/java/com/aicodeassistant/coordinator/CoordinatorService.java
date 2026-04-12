@@ -5,6 +5,7 @@ import com.aicodeassistant.tool.Tool;
 import com.aicodeassistant.tool.ToolRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.Files;
@@ -54,7 +55,7 @@ public class CoordinatorService {
     );
 
     public CoordinatorService(FeatureFlagService featureFlags,
-                              ToolRegistry toolRegistry) {
+                              @Lazy ToolRegistry toolRegistry) {
         this.featureFlags = featureFlags;
         this.toolRegistry = toolRegistry;
     }

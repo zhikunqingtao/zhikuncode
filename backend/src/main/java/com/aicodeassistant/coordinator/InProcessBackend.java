@@ -6,6 +6,7 @@ import com.aicodeassistant.tool.agent.SubAgentExecutor.AgentRequest;
 import com.aicodeassistant.tool.agent.SubAgentExecutor.AgentResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -30,7 +31,7 @@ public class InProcessBackend {
 
     private final SubAgentExecutor subAgentExecutor;
 
-    public InProcessBackend(SubAgentExecutor subAgentExecutor) {
+    public InProcessBackend(@Lazy SubAgentExecutor subAgentExecutor) {
         this.subAgentExecutor = subAgentExecutor;
     }
 

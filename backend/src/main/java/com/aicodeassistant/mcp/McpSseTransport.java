@@ -24,12 +24,13 @@ import java.util.function.Consumer;
  *
  * @see <a href="SPEC §4.3.3">MCP 客户端管理 - SSE 传输</a>
  */
-public class McpSseTransport implements AutoCloseable {
+public class McpSseTransport implements McpTransport {
 
     private static final Logger log = LoggerFactory.getLogger(McpSseTransport.class);
 
     private final String sseUrl;
     private final String postUrl;
+    private final String baseOrigin;
     private final OkHttpClient httpClient;
     private final ObjectMapper objectMapper;
     private final AtomicLong requestIdSequence = new AtomicLong(1);
@@ -44,6 +45,14 @@ public class McpSseTransport implements AutoCloseable {
     public McpSseTransport(String baseUrl, OkHttpClient httpClient) {
         this.sseUrl = baseUrl + "/sse";
         this.postUrl = baseUrl;
+        // 提取 origin (scheme + host + port) 用于 SSE endpoint 拼接
+        try {
+            java.net.URI uri = new java.net.URI(baseUrl);
+            String port = uri.getPort() > 0 ? ":" + uri.getPort() : "";
+            this.baseOrigin = uri.getScheme() + "://" + uri.getHost() + port;
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid base URL: " + baseUrl, e);
+        }
         this.httpClient = httpClient;
         this.objectMapper = new ObjectMapper();
     }
@@ -196,7 +205,9 @@ public class McpSseTransport implements AutoCloseable {
         try {
             if ("endpoint".equals(type)) {
                 // MCP SSE 协议: 第一个事件是 endpoint URL
-                this.sessionEndpoint = postUrl + data;
+                // data 可能是绝对路径 (/api/...) 或相对路径
+                this.sessionEndpoint = data.startsWith("http") ? data
+                        : (data.startsWith("/") ? baseOrigin + data : postUrl + "/" + data);
                 log.info("MCP SSE endpoint: {}", sessionEndpoint);
                 if (!connectFuture.isDone()) {
                     connectFuture.complete(null);

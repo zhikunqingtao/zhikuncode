@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -22,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * <p>能力清单缓存在内存中，每 5 分钟刷新。</p>
  */
+@Service
 public class PythonCapabilityAwareClient {
 
     private static final Logger log = LoggerFactory.getLogger(PythonCapabilityAwareClient.class);
@@ -49,11 +52,9 @@ public class PythonCapabilityAwareClient {
     public record CapabilityStatus(String name, boolean available, String reason) {
     }
 
-    public PythonCapabilityAwareClient(String baseUrl) {
-        this(baseUrl, new ObjectMapper());
-    }
-
-    public PythonCapabilityAwareClient(String baseUrl, ObjectMapper objectMapper) {
+    public PythonCapabilityAwareClient(
+            @Value("http://${python.service.host:127.0.0.1}:${python.service.port:8000}") String baseUrl,
+            ObjectMapper objectMapper) {
         this.baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
         this.objectMapper = objectMapper;
         this.httpClient = HttpClient.newBuilder()

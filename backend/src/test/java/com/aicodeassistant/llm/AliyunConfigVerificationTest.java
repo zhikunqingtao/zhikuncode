@@ -10,6 +10,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * 阿里云百炼配置验证测试 — 无需真实 API 调用，仅验证配置正确性。
+ * <p>
+ * 千问模型能力已迁移至 ModelRegistry.BUILTIN_MODELS，
+ * Provider 中仅保留 qwen-coder-plus。
  *
  * @see OpenAiCompatibleProvider
  */
@@ -19,109 +22,73 @@ class AliyunConfigVerificationTest {
     private static final LlmHttpProperties DEFAULT_HTTP_PROPS = new LlmHttpProperties(
             new LlmHttpProperties.PoolProperties(5, 30), 10, 10, true);
 
-    @Test
-    void testQwen36PlusModelCapabilities() {
-        // Given
-        OpenAiCompatibleProvider provider = new OpenAiCompatibleProvider(
+    private OpenAiCompatibleProvider createProvider(List<String> models) {
+        return new OpenAiCompatibleProvider(
                 objectMapper,
                 DEFAULT_HTTP_PROPS,
                 new ApiKeyRotationManager(List.of(), "sk-test-key"),
                 "sk-test-key",
                 "https://dashscope.aliyuncs.com/compatible-mode/v1",
-                "qwen3.6-plus",
-                List.of("qwen3.6-plus", "qwen-max", "qwen-plus")
+                models.get(0),
+                models
         );
-
-        // When & Then
-        ModelCapabilities caps = provider.getModelCapabilities("qwen3.6-plus");
-        assertNotNull(caps);
-        assertEquals("qwen3.6-plus", caps.modelId());
-        assertEquals("通义千问 3.6 Plus", caps.displayName());
-        assertEquals(131072, caps.contextWindow());
-        assertTrue(caps.supportsStreaming());
-        assertTrue(caps.supportsToolUse());
-        assertTrue(caps.supportsImages());
-
-        System.out.println("✅ qwen3.6-plus 模型能力:");
-        System.out.println("   - 上下文窗口: " + caps.contextWindow());
-        System.out.println("   - 支持流式: " + caps.supportsStreaming());
-        System.out.println("   - 支持工具: " + caps.supportsToolUse());
-        System.out.println("   - 支持图片: " + caps.supportsImages());
     }
 
     @Test
-    void testAllQwenModelsSupported() {
-        // Given
-        OpenAiCompatibleProvider provider = new OpenAiCompatibleProvider(
-                objectMapper,
-                DEFAULT_HTTP_PROPS,
-                new ApiKeyRotationManager(List.of(), "sk-test-key"),
-                "sk-test-key",
-                "https://dashscope.aliyuncs.com/compatible-mode/v1",
-                "qwen3.6-plus",
-                List.of("qwen3.6-plus", "qwen-max", "qwen-plus", "qwen-turbo", "qwen-coder-plus")
-        );
+    void testQwenCoderPlusModelCapabilities() {
+        // qwen-coder-plus 仍在 Provider MODEL_CAPABILITIES 中
+        OpenAiCompatibleProvider provider = createProvider(
+                List.of("qwen-coder-plus"));
 
-        // When & Then
-        List<String> models = List.of("qwen3.6-plus", "qwen-max", "qwen-plus", "qwen-turbo", "qwen-coder-plus");
+        ModelCapabilities caps = provider.getModelCapabilities("qwen-coder-plus");
+        assertNotNull(caps);
+        assertEquals("qwen-coder-plus", caps.modelId());
+        assertTrue(caps.supportsStreaming());
+        assertTrue(caps.supportsToolUse());
+        assertFalse(caps.supportsImages());
+    }
 
-        for (String model : models) {
-            ModelCapabilities caps = provider.getModelCapabilities(model);
-            assertNotNull(caps, "Model " + model + " should have capabilities");
-            assertTrue(caps.supportsStreaming(), model + " should support streaming");
-            System.out.println("✅ " + model + ": " + caps.displayName());
+    @Test
+    void testQwenModelsRemovedFromProvider() {
+        // 千问主力模型已从 Provider 迁移至 ModelRegistry.BUILTIN_MODELS
+        // Provider.getModelCapabilities() 应抛出 IllegalArgumentException
+        OpenAiCompatibleProvider provider = createProvider(
+                List.of("qwen3.6-plus", "qwen-max", "qwen-plus", "qwen-turbo"));
+
+        for (String model : List.of("qwen3.6-plus", "qwen-max", "qwen-plus", "qwen-turbo")) {
+            assertThrows(IllegalArgumentException.class,
+                    () -> provider.getModelCapabilities(model),
+                    model + " should not be in Provider MODEL_CAPABILITIES");
         }
     }
 
     @Test
     void testProviderConfiguration() {
-        // Given
-        String baseUrl = "https://dashscope.aliyuncs.com/compatible-mode/v1";
-        String apiKey = "sk-93625146d2c343d78735213013794ed5";
+        OpenAiCompatibleProvider provider = createProvider(
+                List.of("qwen3.6-plus"));
 
-        OpenAiCompatibleProvider provider = new OpenAiCompatibleProvider(
-                objectMapper,
-                DEFAULT_HTTP_PROPS,
-                new ApiKeyRotationManager(List.of(), apiKey),
-                apiKey,
-                baseUrl,
-                "qwen3.6-plus",
-                List.of("qwen3.6-plus")
-        );
-
-        // Then
         assertEquals("openai-compatible", provider.getProviderName());
         assertEquals("qwen3.6-plus", provider.getDefaultModel());
         assertTrue(provider.getSupportedModels().contains("qwen3.6-plus"));
-
-        System.out.println("✅ Provider 配置:");
-        System.out.println("   - 名称: " + provider.getProviderName());
-        System.out.println("   - 默认模型: " + provider.getDefaultModel());
-        System.out.println("   - 支持模型: " + provider.getSupportedModels());
     }
 
     @Test
-    void testModelCostConfiguration() {
-        // Given
-        OpenAiCompatibleProvider provider = new OpenAiCompatibleProvider(
-                objectMapper,
-                DEFAULT_HTTP_PROPS,
-                new ApiKeyRotationManager(List.of(), "sk-test-key"),
-                "sk-test-key",
-                "https://dashscope.aliyuncs.com/compatible-mode/v1",
-                "qwen3.6-plus",
-                List.of("qwen3.6-plus")
-        );
+    void testModelRegistryBuiltinQwenModels() {
+        // 验证 ModelRegistry.BUILTIN_MODELS 中千问模型 contextWindow 已更新为官方最新值
+        // 由于 ModelRegistry 需要 LlmProviderRegistry，这里通过构造 mock 的 registry 来测试
+        OpenAiCompatibleProvider provider = createProvider(
+                List.of("qwen3.6-plus", "qwen-max", "qwen-plus", "qwen-turbo"));
+        LlmProviderRegistry providerRegistry = new LlmProviderRegistry(List.of(provider));
+        ModelRegistry modelRegistry = new ModelRegistry(providerRegistry);
 
-        // When
-        ModelCapabilities caps = provider.getModelCapabilities("qwen3.6-plus");
-
-        // Then
-        assertTrue(caps.costPer1kInput() > 0);
-        assertTrue(caps.costPer1kOutput() > 0);
-
-        System.out.println("✅ qwen3.6-plus 价格配置:");
-        System.out.println("   - 输入: $" + caps.costPer1kInput() + "/1K tokens");
-        System.out.println("   - 输出: $" + caps.costPer1kOutput() + "/1K tokens");
+        // 千问模型应通过 Level 2 抛异常 → fallback 到 Level 3 BUILTIN_MODELS
+        assertEquals(262144, modelRegistry.getCapabilities("qwen-max").contextWindow(),
+                "qwen-max contextWindow should be 262144 (official)");
+        assertEquals(1000000, modelRegistry.getCapabilities("qwen-plus").contextWindow(),
+                "qwen-plus contextWindow should be 1000000 (official)");
+        assertEquals(1000000, modelRegistry.getCapabilities("qwen-turbo").contextWindow(),
+                "qwen-turbo contextWindow should be 1000000 (official)");
+        assertEquals(1000000, modelRegistry.getCapabilities("qwen3.6-plus").contextWindow(),
+                "qwen3.6-plus contextWindow should be 1000000 (official)");
     }
 }

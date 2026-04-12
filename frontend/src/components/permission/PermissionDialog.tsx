@@ -111,12 +111,26 @@ const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision
                 <div className="px-5 py-3 border-b border-gray-700/50 flex items-center gap-3">
                     <RiskIcon size={20} className={risk.badge.split(' ')[1]} />
                     <div className="flex-1">
-                        <div id="permission-title" className="font-semibold text-sm text-gray-200">
+                        <div id="permission-title" className="font-semibold text-sm text-gray-200 flex items-center gap-2">
                             {request.toolName}
+                            {request.source === 'subagent' && (
+                                <span className="inline-block text-xs px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400">
+                                    Sub-Agent
+                                </span>
+                            )}
                         </div>
-                        <span className={`inline-block text-xs px-1.5 py-0.5 rounded ${risk.badge} mt-0.5`}>
-                            {risk.label}
-                        </span>
+                        <div className="flex items-center gap-2 mt-0.5">
+                            <span className={`inline-block text-xs px-1.5 py-0.5 rounded ${risk.badge}`}>
+                                {risk.label}
+                            </span>
+                            {request.source === 'subagent' && request.childSessionId && (
+                                <span className="text-xs text-gray-500">
+                                    Forwarded from: {request.childSessionId.length > 12
+                                        ? `${request.childSessionId.slice(0, 12)}…`
+                                        : request.childSessionId}
+                                </span>
+                            )}
+                        </div>
                     </div>
                     <button
                         onClick={handleDeny}

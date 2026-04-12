@@ -46,7 +46,7 @@ export interface ToolResultPayload { type: 'tool_result'; toolUseId: string; con
 export interface CompactStartPayload { type: 'compact_start'; sessionId: string }
 export interface CompactCompletePayload { type: 'compact_complete'; sessionId: string; removedCount: number; summary: string }
 export interface RateLimitPayload { type: 'rate_limit'; retryAfterMs: number; limitType: string }
-export interface PermissionRequestPayload { type: 'permission_request'; toolUseId: string; toolName: string; input: Record<string, unknown>; riskLevel: 'low' | 'medium' | 'high'; reason: string }
+export interface PermissionRequestPayload { type: 'permission_request'; toolUseId: string; toolName: string; input: Record<string, unknown>; riskLevel: 'low' | 'medium' | 'high'; reason: string; source?: 'subagent' | string; childSessionId?: string }
 export interface CostUpdatePayload { type: 'cost_update'; sessionCost: number; totalCost: number; usage: Usage }
 export interface TaskUpdatePayload { type: 'task_update'; taskId: string; status: string; progress?: unknown; result?: unknown }
 export interface AgentSpawnPayload { type: 'agent_spawn'; taskId: string; agentName: string; agentType: string }
@@ -232,6 +232,8 @@ export interface PermissionRequest {
     input: Record<string, unknown>;
     riskLevel: 'low' | 'medium' | 'high';
     reason: string;
+    source?: 'subagent' | string;
+    childSessionId?: string;
 }
 
 // ==================== 配置相关 ====================

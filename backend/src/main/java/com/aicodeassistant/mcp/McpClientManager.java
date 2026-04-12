@@ -14,6 +14,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
+import org.springframework.core.env.Environment;
 
 /**
  * MCP 客户端管理器 — 管理所有 MCP 服务器连接的生命周期。
@@ -40,16 +41,26 @@ public class McpClientManager implements SmartLifecycle {
     static final long MAX_BACKOFF_MS = 30_000;
 
     private final McpConfiguration mcpConfiguration;
+    private final McpConfigurationResolver configurationResolver;
     private final ToolRegistry toolRegistry;
     private final McpApprovalService approvalService;
+    private final McpCapabilityRegistryService registryService;
+    private final Environment environment;
     private final Map<String, McpServerConnection> connections = new ConcurrentHashMap<>();
     private volatile boolean running = false;
 
-    public McpClientManager(McpConfiguration mcpConfiguration, @Lazy ToolRegistry toolRegistry,
-                            McpApprovalService approvalService) {
+    public McpClientManager(McpConfiguration mcpConfiguration,
+                            McpConfigurationResolver configurationResolver,
+                            @Lazy ToolRegistry toolRegistry,
+                            McpApprovalService approvalService,
+                            @Lazy McpCapabilityRegistryService registryService,
+                            Environment environment) {
         this.mcpConfiguration = mcpConfiguration;
+        this.configurationResolver = configurationResolver;
         this.toolRegistry = toolRegistry;
         this.approvalService = approvalService;
+        this.registryService = registryService;
+        this.environment = environment;
     }
 
     // ===== SmartLifecycle =====
@@ -82,12 +93,41 @@ public class McpClientManager implements SmartLifecycle {
 
     /** 从配置源加载并连接所有 MCP 服务器 */
     public void initializeAll() {
-        // 从 application.yml 加载配置
-        List<McpServerConfig> configs = mcpConfiguration.toMcpServerConfigs();
-        for (McpServerConfig config : configs) {
+        // 1. 从多来源解析器加载合并配置（LOCAL > USER > ENTERPRISE > ENV）
+        List<McpServerConfig> resolvedConfigs = configurationResolver.resolveAll();
+        for (McpServerConfig config : resolvedConfigs) {
             addServer(config);
         }
-        log.info("MCP initialization complete — {} connections from config", connections.size());
+
+        // 2. 从 application.yml 加载配置（补充未被多来源覆盖的服务器）
+        List<McpServerConfig> appConfigs = mcpConfiguration.toMcpServerConfigs();
+        for (McpServerConfig config : appConfigs) {
+            if (!connections.containsKey(config.name())) {
+                addServer(config);
+            }
+        }
+
+        log.info("MCP initialization complete — {} connections ({} from resolver, {} from application.yml)",
+                connections.size(), resolvedConfigs.size(), appConfigs.size());
+
+        // 3. 从能力注册表加载已启用的工具定义，自动创建连接
+        if (registryService != null && registryService.size() > 0) {
+            List<McpCapabilityDefinition> enabledCaps = registryService.listEnabled();
+            int registryConnections = 0;
+            for (McpCapabilityDefinition cap : enabledCaps) {
+                String serverKey = cap.extractServerKey();
+                if (!connections.containsKey(serverKey)) {
+                    try {
+                        enableFromRegistry(cap);
+                        registryConnections++;
+                    } catch (Exception e) {
+                        log.warn("Failed to enable registry capability '{}': {}", cap.id(), e.getMessage());
+                    }
+                }
+            }
+            log.info("MCP registry: activated {} capabilities from {} enabled entries",
+                    registryConnections, enabledCaps.size());
+        }
     }
 
     /** 动态添加 MCP 服务器 — 含信任检查 (§11.2.2) */
@@ -217,12 +257,23 @@ public class McpClientManager implements SmartLifecycle {
     /** 将 MCP 服务器工具包装为内部 Tool 接口 */
     private List<Tool> wrapMcpTools(McpServerConnection connection) {
         return connection.getTools().stream()
-                .map(mcpTool -> (Tool) new McpToolAdapter(
-                        "mcp__" + connection.getName() + "__" + mcpTool.name(),
-                        mcpTool.description(),
-                        mcpTool.inputSchema(),
-                        connection,
-                        mcpTool.name()))
+                .map(mcpTool -> {
+                    String enhancedDesc = null;
+                    long customTimeout = 0;
+                    if (registryService != null) {
+                        var capOpt = registryService.findByToolName(
+                                connection.getName(), mcpTool.name());
+                        if (capOpt.isPresent()) {
+                            enhancedDesc = capOpt.get().description();
+                            customTimeout = capOpt.get().timeoutMs();
+                        }
+                    }
+                    return (Tool) new McpToolAdapter(
+                            "mcp__" + connection.getName() + "__" + mcpTool.name(),
+                            mcpTool.description(), mcpTool.inputSchema(),
+                            connection, mcpTool.name(),
+                            enhancedDesc, customTimeout);
+                })
                 .toList();
     }
 
@@ -296,10 +347,21 @@ public class McpClientManager implements SmartLifecycle {
                         conn.getName(), mcpTool.name());
                 continue;
             }
+            String enhancedDesc = null;
+            long customTimeout = 0;
+            if (registryService != null) {
+                var capOpt = registryService.findByToolName(conn.getName(), mcpTool.name());
+                if (capOpt.isPresent()) {
+                    McpCapabilityDefinition cap = capOpt.get();
+                    enhancedDesc = cap.description();
+                    customTimeout = cap.timeoutMs();
+                }
+            }
             McpToolAdapter adapter = new McpToolAdapter(
                     "mcp__" + conn.getName() + "__" + mcpTool.name(),
                     mcpTool.description(), mcpTool.inputSchema(),
-                    conn, mcpTool.name());
+                    conn, mcpTool.name(),
+                    enhancedDesc, customTimeout);
             toolRegistry.registerDynamic(adapter);
         }
 
@@ -369,5 +431,44 @@ public class McpClientManager implements SmartLifecycle {
     /** 连接数量（测试用） */
     int connectionCount() {
         return connections.size();
+    }
+
+    // ===== 注册表集成 =====
+
+    /**
+     * 从能力注册表启用工具 — 自动构建 McpServerConfig 并创建连接。
+     */
+    public McpServerConnection enableFromRegistry(McpCapabilityDefinition def) {
+        McpServerConfig config = buildConfigFromRegistry(def);
+
+        log.info("Enabling MCP capability '{}' \u2192 server '{}'", def.id(), config.name());
+
+        // 注册表工具自动信任 — 跳过交互式审批
+        if (!approvalService.isTrusted(config)) {
+            approvalService.recordApproval(config, "REGISTRY");
+            log.info("Auto-trusted registry capability: {}", def.id());
+        }
+
+        return addServer(config);
+    }
+
+    /** 从注册表定义构建 McpServerConfig — 供 enableFromRegistry 和 testCapability 共用 */
+    public McpServerConfig buildConfigFromRegistry(McpCapabilityDefinition def) {
+        String serverKey = def.extractServerKey();
+        String apiKey = null;
+        if (def.apiKeyConfig() != null) {
+            apiKey = environment.getProperty(def.apiKeyConfig());
+        }
+        if (apiKey == null || apiKey.isEmpty()) {
+            apiKey = def.apiKeyDefault();
+        }
+        Map<String, String> headers = new LinkedHashMap<>();
+        if (apiKey != null && !apiKey.isEmpty()) {
+            headers.put("Authorization", "Bearer " + apiKey);
+        }
+        return new McpServerConfig(
+                serverKey, McpTransportType.SSE,
+                null, List.of(), Map.of(),
+                def.sseUrl(), headers, McpConfigScope.DYNAMIC);
     }
 }

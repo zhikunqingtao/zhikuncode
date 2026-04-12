@@ -27,3 +27,6 @@ export { dispatch, resetSequence } from './dispatch';
 
 // WebSocket Provider + Hook
 export { WebSocketProvider, useWebSocket } from './WebSocketProvider';
+
+// MCP Capability Store
+export { useMcpCapabilityStore } from '@/store/mcpCapabilityStore';

@@ -203,6 +203,17 @@ public class WebSocketController implements PermissionNotifier {
                         "input", input, "riskLevel", riskLevel, "reason", reason));
     }
 
+    /** #6b 来自子代理的权限请求 — 转发到父会话 */
+    @Override
+    public void sendPermissionRequestFromChild(String parentSessionId, String childSessionId,
+                                                String toolUseId, String toolName,
+                                                Object input, String riskLevel, String reason) {
+        push(parentSessionId, "permission_request",
+                Map.of("toolUseId", toolUseId, "toolName", toolName,
+                        "input", input, "riskLevel", riskLevel, "reason", reason,
+                        "source", "subagent", "childSessionId", childSessionId));
+    }
+
     // ───── #7: messageStore + sessionStore ─────
 
     /** #7 助手回合完成 */

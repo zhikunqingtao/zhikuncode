@@ -2,6 +2,7 @@ package com.aicodeassistant.controller;
 
 import com.aicodeassistant.llm.LlmProviderRegistry;
 import com.aicodeassistant.llm.ModelCapabilities;
+import com.aicodeassistant.llm.ModelRegistry;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,15 +21,18 @@ import java.util.Map;
 public class ModelController {
 
     private final LlmProviderRegistry providerRegistry;
+    private final ModelRegistry modelRegistry;
 
-    public ModelController(LlmProviderRegistry providerRegistry) {
+    public ModelController(LlmProviderRegistry providerRegistry, ModelRegistry modelRegistry) {
         this.providerRegistry = providerRegistry;
+        this.modelRegistry = modelRegistry;
     }
 
     /** 列出所有可用模型及其能力信息 */
     @GetMapping
     public ResponseEntity<ModelListResponse> listModels() {
-        List<ModelInfo> models = providerRegistry.listModelCapabilities().stream()
+        // 使用 ModelRegistry.listAllModels() — 包含内置 + 自定义 + Provider 注册的完整模型列表
+        List<ModelInfo> models = modelRegistry.listAllModels().stream()
                 .map(mc -> new ModelInfo(
                         mc.modelId(),
                         mc.displayName(),

@@ -36,6 +36,7 @@ Thumbs.db
 # === 敏感文件 ===
 .env
 .env.*
+configuration/mcp/mcp_capability_registry.json
 *.db
 *.db-wal
 *.db-shm

@@ -47,8 +47,15 @@ public sealed interface ContentBlock {
 
     record ImageBlock(
             String mediaType,
-            String base64Data
-    ) implements ContentBlock {}
+            String base64Data,
+            int width,
+            int height
+    ) implements ContentBlock {
+        /** 向后兼容: 无尺寸信息时使用默认值 */
+        public ImageBlock(String mediaType, String base64Data) {
+            this(mediaType, base64Data, 0, 0);
+        }
+    }
 
     record ThinkingBlock(
             String thinking

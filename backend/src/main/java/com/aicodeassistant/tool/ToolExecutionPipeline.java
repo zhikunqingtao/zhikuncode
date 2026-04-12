@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * 工具执行管线 — 6 阶段执行流程。
@@ -141,6 +142,17 @@ public class ToolExecutionPipeline {
                 }
 
                 if (decision.behavior() == PermissionBehavior.ASK) {
+                    // NEW: 检查是否需要冒泡转发给父代理
+                    if (decision.bubble() && context.parentSessionId() != null) {
+                        log.info("Forwarding permission to parent session: tool={}, parentSession={}",
+                                toolName, context.parentSessionId());
+                        ToolExecutionResult bubbleResult = forwardPermissionToParent(
+                                tool, processedInput, decision, context, wsPusher);
+                        if (bubbleResult != null) {
+                            return bubbleResult; // 拒绝或错误
+                        }
+                        // null 表示父代理已批准，继续执行工具
+                    } else {
                     if (wsPusher == null || context.sessionId() == null) {
                         log.warn("Tool {} requires permission but no WebSocket pusher available, denying", toolName);
                         return ToolExecutionResult.of(ToolResult.error("Permission required but cannot prompt user"));
@@ -169,6 +181,7 @@ public class ToolExecutionPipeline {
                                 true, userDecision.rememberScope() != null
                                         ? userDecision.rememberScope() : RuleScope.SESSION);
                     }
+                    } // end else (non-bubble path)
                 }
             }
 
@@ -225,6 +238,51 @@ public class ToolExecutionPipeline {
             long durationMs = System.currentTimeMillis() - startTime;
             log.error("Tool {} execution failed after {}ms: {}", toolName, durationMs, e.getMessage(), e);
             return ToolExecutionResult.of(ToolResult.error("Tool execution error: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * 将权限请求冒泡转发给父代理的前端界面。
+     *
+     * @return null 表示父代理已批准（继续执行工具）；非 null 表示拒绝或错误
+     */
+    @SuppressWarnings("unchecked")
+    private ToolExecutionResult forwardPermissionToParent(
+            Tool tool, ToolInput processedInput, PermissionDecision decision,
+            ToolUseContext context, PermissionNotifier wsPusher) {
+        try {
+            String toolUseId = context.toolUseId() != null ? context.toolUseId() : tool.getName();
+            Map<String, Object> inputMap = processedInput.getRawData() instanceof Map
+                    ? (Map<String, Object>) processedInput.getRawData()
+                    : Map.of("input", String.valueOf(processedInput.getRawData()));
+
+            // 通过父会话的 sessionId 转发权限请求
+            CompletableFuture<PermissionDecision> parentDecision = permissionPipeline.requestPermission(
+                    toolUseId, tool.getName(), inputMap,
+                    String.format("[From Sub-Agent] %s",
+                            decision.reason() != null ? decision.reason() : "Tool requires permission"),
+                    wsPusher,
+                    context.parentSessionId()  // 转发到父会话
+            );
+
+            PermissionDecision result = parentDecision.join();
+
+            if (!result.isAllowed()) {
+                log.info("Parent agent denied permission for tool={}", tool.getName());
+                return ToolExecutionResult.of(ToolResult.error("Permission denied by parent agent"));
+            }
+
+            // 记忆规则
+            if (result.remember()) {
+                permissionPipeline.rememberDecision(tool, processedInput,
+                        true, result.rememberScope() != null
+                                ? result.rememberScope() : RuleScope.SESSION);
+            }
+
+            return null; // null 表示继续执行工具
+        } catch (Exception e) {
+            log.error("Failed to forward permission to parent: {}", e.getMessage(), e);
+            return ToolExecutionResult.of(ToolResult.error("Permission forwarding failed: " + e.getMessage()));
         }
     }
 }

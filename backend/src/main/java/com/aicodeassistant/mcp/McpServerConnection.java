@@ -1,27 +1,20 @@
 package com.aicodeassistant.mcp;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * MCP 服务器连接状态 — 封装连接、工具和资源信息。
  * <p>
- * STDIO 传输: 通过 Process stdin/stdout 进行 JSON-RPC 通信。
+ * 持有统一 McpTransport 实例，消除传输类型 switch 分支。
  *
+ * @see McpTransport
  * @see <a href="SPEC §4.3.3">MCP 客户端管理</a>
  */
 public class McpServerConnection {
@@ -34,24 +27,11 @@ public class McpServerConnection {
     private volatile List<McpResourceDefinition> resources;
     private volatile int reconnectAttempts;
 
-    /** STDIO 传输: 子进程 */
-    private volatile Process process;
-    /** STDIO 传输: stdout reader (JSON-RPC 响应) */
-    private volatile BufferedReader stdoutReader;
-    /** STDIO 传输: stdin writer (JSON-RPC 请求) */
-    private volatile OutputStream stdinWriter;
-
-    // JSON-RPC 2.0 增强
-    private final AtomicLong requestIdSequence = new AtomicLong(1);
-    private final ConcurrentHashMap<String, CompletableFuture<JsonRpcMessage.Response>> pendingRequests = new ConcurrentHashMap<>();
-    private final ObjectMapper objectMapper = new ObjectMapper();
     private static final int MAX_RECONNECT_ATTEMPTS = 3;
     private static final long DEFAULT_REQUEST_TIMEOUT_MS = 30_000;
 
-    /** HTTP Streamable 传输实例 */
-    private volatile McpStreamableHttpTransport httpTransport;
-    /** WebSocket 传输实例 */
-    private volatile McpWebSocketTransport wsTransport;
+    /** 统一传输实例 — 替代原来的 process/stdinWriter/stdoutReader/httpTransport/wsTransport */
+    private volatile McpTransport transport;
 
     public McpServerConnection(McpServerConfig config) {
         this.config = config;
@@ -62,228 +42,131 @@ public class McpServerConnection {
     }
 
     /**
-     * 连接到 MCP 服务器 — 根据 McpTransportType 选择传输层。
+     * 连接到 MCP 服务器 — 通过工厂方法创建对应传输实例。
      */
     public void connect() {
-        switch (config.type()) {
-            case STDIO -> connectStdio();
-            case HTTP -> connectHttp();
-            case WS -> connectWebSocket();
-            case SSE, SSE_IDE -> {
-                // SSE 传输由 McpSseTransport 单独管理
-                this.status = McpConnectionStatus.CONNECTED;
+        try {
+            // 重连安全: 关闭旧 transport 防止资源泄漏 (connectWithRetry 场景)
+            if (transport != null) {
+                try { transport.close(); } catch (Exception ignored) {}
             }
+            this.transport = createTransport(config);
+            if (transport == null) {
+                // 不支持的传输类型 — 容错标记为 CONNECTED (与原始行为一致)
+                this.status = McpConnectionStatus.CONNECTED;
+                return;
+            }
+            transport.connect().get(30, TimeUnit.SECONDS);
+            this.status = McpConnectionStatus.CONNECTED;
+            log.info("MCP server '{}' connected via {}", config.name(), config.type());
+        } catch (Exception e) {
+            log.error("Failed to connect MCP server '{}': {}", config.name(), e.getMessage());
+            this.status = McpConnectionStatus.FAILED;
+        }
+    }
+
+    /** 传输工厂 — 根据配置类型创建对应传输实例 */
+    private static McpTransport createTransport(McpServerConfig config) {
+        return switch (config.type()) {
+            case STDIO      -> new McpStdioTransport(config);
+            case SSE, SSE_IDE -> createSseTransport(config);
+            case HTTP        -> new McpStreamableHttpTransport(config.url());
+            case WS, WS_IDE  -> new McpWebSocketTransport(
+                    config.url().replace("http://", "ws://").replace("https://", "wss://"));
             default -> {
-                log.warn("Unsupported transport type '{}' for MCP server '{}', marking as connected",
+                // SDK, CLAUDEAI_PROXY 等尚未实现的传输类型 — 容错处理
+                log.warn("Unsupported transport type '{}' for MCP server '{}', no transport created",
                         config.type(), config.name());
-                this.status = McpConnectionStatus.CONNECTED;
+                yield null;
             }
-        }
+        };
     }
 
-    /** STDIO 传输: 启动子进程 */
-    private void connectStdio() {
-            try {
-                List<String> cmd = new ArrayList<>();
-                cmd.add(config.command());
-                if (config.args() != null) cmd.addAll(config.args());
-
-                ProcessBuilder pb = new ProcessBuilder(cmd);
-                pb.redirectErrorStream(false);
-                if (config.env() != null && !config.env().isEmpty()) {
-                    pb.environment().putAll(config.env());
-                }
-
-                this.process = pb.start();
-                this.stdinWriter = process.getOutputStream();
-                this.stdoutReader = new BufferedReader(
-                        new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8));
-
-                this.status = McpConnectionStatus.CONNECTED;
-                log.info("MCP server '{}' connected via STDIO (pid={})",
-                        config.name(), process.pid());
-        } catch (IOException e) {
-            log.error("Failed to start MCP server '{}': {}", config.name(), e.getMessage());
-            this.status = McpConnectionStatus.FAILED;
+    /** SSE 传输创建 — 处理 URL 格式 + Headers 注入 */
+    private static McpSseTransport createSseTransport(McpServerConfig config) {
+        // McpSseTransport 构造需要 baseUrl (不含 /sse)，它会自动追加 /sse
+        String baseUrl = config.url().endsWith("/sse")
+                ? config.url().substring(0, config.url().length() - 4)
+                : config.url();
+        // 注入自定义 headers (Authorization 等)
+        okhttp3.OkHttpClient.Builder builder = new okhttp3.OkHttpClient.Builder()
+                .connectTimeout(java.time.Duration.ofSeconds(10))
+                .readTimeout(java.time.Duration.ZERO)
+                .writeTimeout(java.time.Duration.ofSeconds(10));
+        if (config.headers() != null && !config.headers().isEmpty()) {
+            builder.addInterceptor(chain -> {
+                okhttp3.Request.Builder req = chain.request().newBuilder();
+                config.headers().forEach(req::header);
+                return chain.proceed(req.build());
+            });
         }
-    }
-
-    /** HTTP Streamable 传输: OkHttp 实现 */
-    private void connectHttp() {
-        if (config.url() == null) {
-            log.error("MCP server '{}' HTTP transport requires a URL", config.name());
-            this.status = McpConnectionStatus.FAILED;
-            return;
-        }
-        try {
-            this.httpTransport = new McpStreamableHttpTransport(config.url());
-            httpTransport.connect(null).get(30, java.util.concurrent.TimeUnit.SECONDS);
-            this.status = McpConnectionStatus.CONNECTED;
-            log.info("MCP server '{}' connected via Streamable HTTP (url={})",
-                    config.name(), config.url());
-        } catch (Exception e) {
-            log.error("Failed to connect MCP server '{}' via HTTP: {}", config.name(), e.getMessage());
-            this.status = McpConnectionStatus.FAILED;
-        }
-    }
-
-    /** WebSocket 传输: Java-WebSocket 实现 */
-    private void connectWebSocket() {
-        if (config.url() == null) {
-            log.error("MCP server '{}' WS transport requires a URL", config.name());
-            this.status = McpConnectionStatus.FAILED;
-            return;
-        }
-        try {
-            String wsUrl = config.url().replace("http://", "ws://").replace("https://", "wss://");
-            this.wsTransport = new McpWebSocketTransport(wsUrl);
-            wsTransport.connect().get(30, java.util.concurrent.TimeUnit.SECONDS);
-            this.status = McpConnectionStatus.CONNECTED;
-            log.info("MCP server '{}' connected via WebSocket (url={})",
-                    config.name(), wsUrl);
-        } catch (Exception e) {
-            log.error("Failed to connect MCP server '{}' via WebSocket: {}", config.name(), e.getMessage());
-            this.status = McpConnectionStatus.FAILED;
-        }
-    }
-
-    /** 关闭连接 — 根据传输类型清理资源 */
-    public void close() {
-        this.status = McpConnectionStatus.DISABLED;
-        this.tools = List.of();
-        this.resources = List.of();
-
-        // STDIO 清理
-        if (process != null && process.isAlive()) {
-            process.destroy();
-            try {
-                if (!process.waitFor(5, TimeUnit.SECONDS)) {
-                    process.destroyForcibly();
-                }
-            } catch (InterruptedException e) {
-                process.destroyForcibly();
-                Thread.currentThread().interrupt();
-            }
-        }
-        try { if (stdoutReader != null) stdoutReader.close(); } catch (Exception ignored) {}
-        try { if (stdinWriter != null) stdinWriter.close(); } catch (Exception ignored) {}
-
-        // HTTP 传输清理
-        if (httpTransport != null) {
-            try { httpTransport.close(); } catch (Exception ignored) {}
-        }
-
-        // WebSocket 传输清理
-        if (wsTransport != null) {
-            try { wsTransport.close(); } catch (Exception ignored) {}
-        }
+        return new McpSseTransport(baseUrl, builder.build());
     }
 
     /**
-     * 发送 JSON-RPC 请求到 MCP server stdin。
-     */
-    public void sendRequest(String jsonRpcRequest) throws IOException {
-        if (stdinWriter == null) {
-            throw new IOException("MCP server stdin not available");
-        }
-        stdinWriter.write((jsonRpcRequest + "\n").getBytes(StandardCharsets.UTF_8));
-        stdinWriter.flush();
-    }
-
-    /**
-     * 从 MCP server stdout 读取一行 JSON-RPC 响应。
-     */
-    public String readResponse() throws IOException {
-        if (stdoutReader == null) {
-            throw new IOException("MCP server stdout not available");
-        }
-        return stdoutReader.readLine();
-    }
-
-    // ===== JSON-RPC 2.0 增强方法 =====
-
-    /**
-     * 发送 JSON-RPC 请求并等待响应 — 支持超时和错误处理。
+     * 传输无关的工具调用 — 委托给底层 McpTransport。
+     * SSE/HTTP/WS/STDIO 全部通过同一代码路径执行。
      *
-     * @param method 方法名
-     * @param params 参数 (可为 null)
-     * @return 响应结果 (result 字段)
-     * @throws McpProtocolException JSON-RPC 错误响应
+     * @param toolName   MCP 工具原始名称
+     * @param arguments  工具参数
+     * @param timeoutMs  超时 (ms), ≤0 使用默认值
+     * @return JSON-RPC result 字段
+     * @throws McpProtocolException 通信或协议错误
      */
-    public Object sendRequestAndWait(String method, Object params) throws McpProtocolException {
-        return sendRequestAndWait(method, params, DEFAULT_REQUEST_TIMEOUT_MS);
-    }
-
-    /**
-     * 发送 JSON-RPC 请求并等待响应 — 带自定义超时。
-     */
-    public Object sendRequestAndWait(String method, Object params, long timeoutMs) throws McpProtocolException {
-        long id = requestIdSequence.getAndIncrement();
-        JsonRpcMessage.Request request = new JsonRpcMessage.Request(id, method, params);
-
-        try {
-            String json = objectMapper.writeValueAsString(request);
-            sendRequest(json);
-
-            // 同步读取响应 (STDIO 是行协议)
-            String responseLine = readResponseWithTimeout(timeoutMs);
-            if (responseLine == null) {
-                throw new McpProtocolException(new JsonRpcError(
-                        JsonRpcError.REQUEST_TIMEOUT, "Request timeout: " + method));
-            }
-
-            JsonNode responseNode = objectMapper.readTree(responseLine);
-            if (responseNode.has("error") && !responseNode.get("error").isNull()) {
-                JsonRpcError error = objectMapper.treeToValue(responseNode.get("error"), JsonRpcError.class);
-                throw new McpProtocolException(error);
-            }
-
-            return responseNode.has("result") ? responseNode.get("result") : null;
-
-        } catch (McpProtocolException e) {
-            throw e;
-        } catch (IOException e) {
-            throw new McpProtocolException("JSON-RPC communication error: " + e.getMessage(), e);
+    public JsonNode callTool(String toolName, Map<String, Object> arguments, long timeoutMs)
+            throws McpProtocolException {
+        if (status != McpConnectionStatus.CONNECTED || transport == null) {
+            throw new McpProtocolException(new JsonRpcError(
+                    JsonRpcError.SERVER_NOT_INITIALIZED,
+                    "Server '" + config.name() + "' not connected (status: " + status + ")"));
         }
+        return transport.sendRequest("tools/call",
+                Map.of("name", toolName, "arguments", arguments),
+                timeoutMs > 0 ? timeoutMs : DEFAULT_REQUEST_TIMEOUT_MS);
     }
 
     /**
-     * 发送 JSON-RPC 通知 — 不期望响应。
+     * 通用 JSON-RPC 请求 — 替代已删除的 sendRequestAndWait()。
+     * 供内部调用 tools/list、resources/list 等 MCP 协议方法。
      */
+    public JsonNode request(String method, Object params, long timeoutMs) throws McpProtocolException {
+        if (transport == null) {
+            throw new McpProtocolException(new JsonRpcError(
+                    JsonRpcError.SERVER_NOT_INITIALIZED,
+                    "Server '" + config.name() + "' has no transport"));
+        }
+        return transport.sendRequest(method, params,
+                timeoutMs > 0 ? timeoutMs : DEFAULT_REQUEST_TIMEOUT_MS);
+    }
+
+    /** 通用请求 — 使用默认超时 */
+    public JsonNode request(String method, Object params) throws McpProtocolException {
+        return request(method, params, DEFAULT_REQUEST_TIMEOUT_MS);
+    }
+
+    /** 发送 JSON-RPC 通知 — 委托到 transport */
     public void sendNotification(String method, Object params) {
-        JsonRpcMessage.Notification notification = new JsonRpcMessage.Notification(method, params);
-        try {
-            String json = objectMapper.writeValueAsString(notification);
-            sendRequest(json);
-        } catch (IOException e) {
-            log.warn("Failed to send notification '{}' to '{}': {}", method, config.name(), e.getMessage());
-        }
+        if (transport != null) { transport.sendNotification(method, params); }
     }
 
-    /**
-     * 发送 JSON-RPC 通知 — 无参数。
-     */
+    /** 发送 JSON-RPC 通知 — 无参数 */
     public void sendNotification(String method) {
         sendNotification(method, null);
     }
 
-    /**
-     * 带超时的响应读取。
-     */
-    private String readResponseWithTimeout(long timeoutMs) throws IOException {
-        long deadline = System.currentTimeMillis() + timeoutMs;
-        while (System.currentTimeMillis() < deadline) {
-            if (stdoutReader != null && stdoutReader.ready()) {
-                return stdoutReader.readLine();
-            }
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                return null;
-            }
+    /** 关闭连接并释放资源 */
+    public void close() {
+        this.status = McpConnectionStatus.DISABLED;
+        this.tools = List.of();
+        this.resources = List.of();
+        if (transport != null) {
+            try { transport.close(); } catch (Exception ignored) {}
         }
-        return null;
+    }
+
+    /** 检查连接是否存活 */
+    public boolean isAlive() {
+        return transport != null && transport.isConnected();
     }
 
     // ===== 连接重试 =====
@@ -328,16 +211,6 @@ public class McpServerConnection {
     public int getReconnectAttempts() { return reconnectAttempts; }
     public void incrementReconnectAttempts() { this.reconnectAttempts++; }
     public void resetReconnectAttempts() { this.reconnectAttempts = 0; }
-
-    /** 检查连接是否存活 — 根据传输类型检查 */
-    public boolean isAlive() {
-        return switch (config.type()) {
-            case STDIO -> process != null && process.isAlive();
-            case HTTP -> httpTransport != null && httpTransport.isConnected();
-            case WS -> wsTransport != null && wsTransport.isConnected();
-            default -> status == McpConnectionStatus.CONNECTED;
-        };
-    }
 
     /** 工具变更回调 */
     private Runnable toolsChangedCallback;
@@ -396,20 +269,20 @@ public class McpServerConnection {
             return List.of();
         }
         try {
-            Object result = sendRequestAndWait("prompts/list", null);
-            if (result instanceof com.fasterxml.jackson.databind.JsonNode jsonNode) {
-                com.fasterxml.jackson.databind.JsonNode promptsArray = jsonNode.path("prompts");
+            JsonNode result = request("prompts/list", null);
+            if (result != null) {
+                JsonNode promptsArray = result.path("prompts");
                 if (!promptsArray.isArray()) return List.of();
 
                 List<McpPromptDefinition> prompts = new ArrayList<>();
-                for (com.fasterxml.jackson.databind.JsonNode p : promptsArray) {
+                for (JsonNode p : promptsArray) {
                     String name = p.path("name").asText(null);
                     String desc = p.path("description").asText("");
                     List<McpPromptArgument> args = new ArrayList<>();
 
-                    com.fasterxml.jackson.databind.JsonNode argsArray = p.path("arguments");
+                    JsonNode argsArray = p.path("arguments");
                     if (argsArray.isArray()) {
-                        for (com.fasterxml.jackson.databind.JsonNode a : argsArray) {
+                        for (JsonNode a : argsArray) {
                             args.add(new McpPromptArgument(
                                     a.path("name").asText(""),
                                     a.path("description").asText(""),

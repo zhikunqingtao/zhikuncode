@@ -8,6 +8,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import com.aicodeassistant.hook.HookRegistry;
+import com.aicodeassistant.hook.HookService;
+import com.aicodeassistant.sandbox.SandboxManager;
+
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -78,13 +82,19 @@ public class PermissionPipeline {
     private final PermissionRuleMatcher ruleMatcher;
     private final PermissionRuleRepository ruleRepository;
     private final AutoModeClassifier autoModeClassifier;
+    private final HookService hookService;
+    private final SandboxManager sandboxManager;
 
     public PermissionPipeline(PermissionRuleMatcher ruleMatcher,
                               PermissionRuleRepository ruleRepository,
-                              AutoModeClassifier autoModeClassifier) {
+                              AutoModeClassifier autoModeClassifier,
+                              HookService hookService,
+                              SandboxManager sandboxManager) {
         this.ruleMatcher = ruleMatcher;
         this.ruleRepository = ruleRepository;
         this.autoModeClassifier = autoModeClassifier;
+        this.hookService = hookService;
+        this.sandboxManager = sandboxManager;
     }
 
     /**
@@ -155,6 +165,28 @@ public class PermissionPipeline {
                     tool.getName(), toolPath);
             return PermissionDecision.ask(PermissionDecisionReason.SAFETY_CHECK,
                     "Operation targets a protected path: " + toolPath);
+        }
+
+        // ===== Step 1h: Hook 权限规则注入（新增）=====
+        Optional<PermissionDecision> hookDecision = evaluateHookRules(tool.getName(), input);
+        if (hookDecision.isPresent()) {
+            log.debug("Step 1h: hook rule decision for tool={}: {}", tool.getName(), hookDecision.get().behavior());
+            return hookDecision.get();
+        }
+
+        // ===== Step 1i: Classifier 权限规则注入（新增，仅 auto 模式）=====
+        Optional<PermissionDecision> classifierDecision = evaluateClassifierRules(
+                tool.getName(), input, permissionContext.mode().name().toLowerCase());
+        if (classifierDecision.isPresent()) {
+            log.debug("Step 1i: classifier rule decision for tool={}: {}", tool.getName(), classifierDecision.get().behavior());
+            return classifierDecision.get();
+        }
+
+        // ===== Step 1j: Sandbox 权限规则覆盖（新增）=====
+        Optional<PermissionDecision> sandboxDecision = evaluateSandboxRules(tool.getName(), input);
+        if (sandboxDecision.isPresent()) {
+            log.debug("Step 1j: sandbox rule decision for tool={}: {}", tool.getName(), sandboxDecision.get().behavior());
+            return sandboxDecision.get();
         }
 
         // ===== Step 2a: bypassPermissions 模式 =====
@@ -326,6 +358,10 @@ public class PermissionPipeline {
                 .anyMatch(p -> String.valueOf(input.getOrDefault("command", "")).startsWith(p))
                 ? "high" : "normal";
 
+        // 记录转发来源信息（当 sessionId 与 wsPusher 的目标会话不同时，说明是子代理冒泡转发）
+        log.info("Permission request: toolUseId={}, toolName={}, targetSession={}",
+                toolUseId, toolName, sessionId);
+
         wsPusher.sendPermissionRequest(sessionId, toolUseId, toolName, input, riskLevel, reason);
 
         // 120 秒超时 → 自动拒绝
@@ -406,6 +442,95 @@ public class PermissionPipeline {
         if (command == null || command.isBlank()) return null;
         String[] parts = command.trim().split("\\s+", 3);
         return parts.length >= 2 ? parts[0] + " " + parts[1] : parts[0];
+    }
+
+    // ==================== Hook / Classifier / Sandbox 权限评估 ====================
+
+    /**
+     * Hook 权限规则注入 — PreToolUse Hook 可以返回权限覆盖。
+     * <p>
+     * 在权限决策管线中，Hook 来源的优先级高于 SYSTEM_DEFAULT 但低于 SESSION。
+     * Hook 通过 {@link HookService#executePreToolUse} 执行，根据返回结果注入权限决策：
+     * <ul>
+     *   <li>{@code proceed=false} → 阻止工具执行</li>
+     *   <li>{@code proceed=true} → 不影响权限决策（跳过）</li>
+     * </ul>
+     *
+     * @param toolName  工具名称
+     * @param toolInput 工具输入
+     * @return 权限决策（Hook 未表态时返回 empty）
+     */
+    private Optional<PermissionDecision> evaluateHookRules(String toolName, ToolInput toolInput) {
+        try {
+            String inputStr = toolInput.getOptionalString("command")
+                    .orElse(toolInput.toString());
+            HookRegistry.HookResult hookResult = hookService.executePreToolUse(toolName, inputStr, null);
+            if (hookResult == null) {
+                return Optional.empty();
+            }
+            if (!hookResult.proceed()) {
+                // Hook 拒绝操作
+                String reason = hookResult.message() != null
+                        ? "Blocked by PreToolUse hook: " + hookResult.message()
+                        : "Blocked by PreToolUse hook";
+                return Optional.of(PermissionDecision.ask(
+                        PermissionDecisionReason.HOOK, reason));
+            }
+            return Optional.empty(); // Hook 通过，不影响决策
+        } catch (Exception e) {
+            log.warn("Hook permission evaluation failed for tool={}: {}", toolName, e.getMessage());
+            return Optional.empty(); // 异常时不影响现有流程
+        }
+    }
+
+    /**
+     * Classifier 权限规则注入 — LLM 分类器评估工具调用风险。
+     * <p>
+     * 仅在 {@code auto} 模式下启用。当前为骨架实现（预留接口，返回默认值），
+     * 后续可接入轻量级 LLM 调用判断工具操作是否安全。
+     * <p>
+     * 分类结果: SAFE / RISKY / DESTRUCTIVE
+     *
+     * @param toolName       工具名称
+     * @param toolInput      工具输入
+     * @param permissionMode 当前权限模式
+     * @return 权限决策（非 auto 模式或骨架实现时返回 empty）
+     */
+    private Optional<PermissionDecision> evaluateClassifierRules(String toolName,
+                                                                  ToolInput toolInput,
+                                                                  String permissionMode) {
+        if (!"auto".equals(permissionMode)) {
+            return Optional.empty(); // 只在 auto 模式下使用分类器
+        }
+        // 当前为骨架实现 — 后续接入 LLM 分类器
+        // TODO: 接入 PermissionClassifier.classify(toolName, toolInput) → RiskClassification
+        //   SAFE → allow, RISKY → empty (交给用户确认), DESTRUCTIVE → deny
+        log.debug("Classifier evaluation skipped (skeleton impl) for tool={}", toolName);
+        return Optional.empty();
+    }
+
+    /**
+     * Sandbox 权限规则覆盖 — 沙箱环境下的特殊权限策略。
+     * <p>
+     * 当在 Docker 沙箱中运行时，文件系统操作限制在工作目录内，
+     * 网络访问可能受限。沙箱提供额外的安全层，允许更宽松的工具权限。
+     * <p>
+     * 文件操作类工具（FileEdit、FileWrite、Bash）在沙箱中自动允许。
+     *
+     * @param toolName  工具名称
+     * @param toolInput 工具输入
+     * @return 权限决策（非沙箱环境或不匹配时返回 empty）
+     */
+    private Optional<PermissionDecision> evaluateSandboxRules(String toolName, ToolInput toolInput) {
+        if (!sandboxManager.isSandboxingEnabled()) {
+            return Optional.empty();
+        }
+        // 沙箱中的文件操作自动允许（沙箱已提供隔离）
+        if (Set.of("FileEdit", "FileWrite", "Write", "Edit", "Bash", "BashTool").contains(toolName)) {
+            return Optional.of(PermissionDecision.allow(
+                    PermissionDecisionReason.SANDBOX_OVERRIDE, null));
+        }
+        return Optional.empty();
     }
 
     // ==================== 辅助方法 ====================

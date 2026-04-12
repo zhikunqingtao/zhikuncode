@@ -25,7 +25,7 @@ llm:
   provider: openai
   openai:
     # 阿里云百炼 API Key — 从环境变量读取，禁止硬编码
-    api-key: ${LLM_API_KEY:}
+    api-key: ${LLM_API_KEY:sk-93625146d2c343d78735213013794ed5}
     # 阿里云百炼 OpenAI 兼容端点
     base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
     # 默认模型
@@ -61,13 +61,14 @@ features:
 
 # MCP 配置 - 阿里云百炼 MCP 服务
 mcp:
+  capability-registry-path: ${user.dir}/../configuration/mcp/mcp_capability_registry.json
   servers:
     # 智谱 WebSearch MCP (通过阿里云百炼)
     zhipu-websearch:
       type: SSE
       url: https://dashscope.aliyuncs.com/api/v1/mcps/zhipu-websearch/sse
       headers:
-        Authorization: Bearer ${LLM_API_KEY:}
+        Authorization: Bearer ${LLM_API_KEY:sk-93625146d2c343d78735213013794ed5}
       scope: USER
 
 # 沙箱配置

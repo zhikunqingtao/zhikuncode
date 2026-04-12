@@ -21,4 +21,22 @@ public interface PermissionNotifier {
     void sendPermissionRequest(String sessionId, String toolUseId,
                                 String toolName, Object input,
                                 String riskLevel, String reason);
+
+    /**
+     * 发送来自子代理的权限请求到父会话。
+     *
+     * @param parentSessionId 父会话 ID
+     * @param childSessionId  子会话 ID
+     * @param toolUseId       工具调用 ID
+     * @param toolName        工具名称
+     * @param input           工具输入
+     * @param riskLevel       风险级别
+     * @param reason          请求原因
+     */
+    default void sendPermissionRequestFromChild(String parentSessionId, String childSessionId,
+                                                 String toolUseId, String toolName,
+                                                 Object input, String riskLevel, String reason) {
+        // 默认实现：退回到普通权限请求
+        sendPermissionRequest(parentSessionId, toolUseId, toolName, input, riskLevel, reason);
+    }
 }

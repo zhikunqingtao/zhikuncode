@@ -27,7 +27,7 @@ import java.util.function.Consumer;
  *
  * @see <a href="SPEC §4.3.3">MCP 客户端管理 - WebSocket 传输</a>
  */
-public class McpWebSocketTransport implements AutoCloseable {
+public class McpWebSocketTransport implements McpTransport {
 
     private static final Logger log = LoggerFactory.getLogger(McpWebSocketTransport.class);
 

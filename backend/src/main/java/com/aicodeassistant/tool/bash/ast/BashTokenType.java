@@ -63,6 +63,20 @@ public enum BashTokenType {
     /** >( 进程替换 (输出) */
     GT_PAREN,
 
+    // ──── 扩展语法 Token ────
+
+    /** $((expression)) 算术扩展 (完整内容) */
+    ARITHMETIC_EXPANSION,
+
+    /** ${var#pattern} 等参数扩展变体 (完整内容) */
+    PARAMETER_EXPANSION,
+
+    /** <(command) 输入进程替换 (完整内容) */
+    PROCESS_SUBSTITUTION_IN,
+
+    /** >(command) 输出进程替换 (完整内容) */
+    PROCESS_SUBSTITUTION_OUT,
+
     // ──── 结束标记 ────
 
     /** 输入结束 */
