@@ -143,7 +143,16 @@ public class McpClientManager implements SmartLifecycle {
 
     /** 动态添加 MCP 服务器 — 含信任检查 (§11.2.2) */
     public McpServerConnection addServer(McpServerConfig config) {
-        // ★ 信任检查: 未信任的服务器设置为 PENDING_APPROVAL
+        // 运行时添加的服务器，若来源为可信配置文件则自动信任
+        if (!approvalService.isTrusted(config) && config.scope() != null) {
+            // scope 非空表示来自配置文件解析（LOCAL/USER/ENTERPRISE），而非手动添加
+            approvalService.recordApproval(config,
+                    config.scope().name() + "_RUNTIME");
+            log.info("Auto-trusted runtime MCP server: {} (scope={})",
+                    config.name(), config.scope());
+        }
+
+        // 原有信任检查逻辑保留
         if (!approvalService.isTrusted(config)) {
             log.info("MCP server not trusted, pending approval: {}", config.name());
             McpServerConnection conn = new McpServerConnection(config);

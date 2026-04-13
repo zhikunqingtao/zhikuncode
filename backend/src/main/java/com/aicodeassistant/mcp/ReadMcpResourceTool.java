@@ -123,21 +123,17 @@ public class ReadMcpResourceTool implements Tool {
 
             var resource = resourceOpt.get();
 
-            // 3. P1 简化: 返回资源元信息（实际内容读取需要 MCP SDK）
-            String content = String.format(
-                    "Resource: %s\nURI: %s\nType: %s\nDescription: %s\n\n"
-                            + "[P1 placeholder: actual content reading requires MCP Java SDK integration]",
-                    resource.name(), resource.uri(),
-                    resource.mimeType() != null ? resource.mimeType() : "unknown",
-                    resource.description() != null ? resource.description() : "N/A");
-
-            // 4. 截断保护
-            if (content.length() > MAX_MCP_RESULT_SIZE) {
-                content = content.substring(0, MAX_MCP_RESULT_SIZE)
-                        + "\n[Content truncated at " + MAX_MCP_RESULT_SIZE / 1024 + "KB]";
+            // 3. 调用 resources/read 获取真实内容
+            try {
+                String content = conn.readResource(uri);
+                if (content.length() > MAX_MCP_RESULT_SIZE) {
+                    content = content.substring(0, MAX_MCP_RESULT_SIZE)
+                            + "\n[Content truncated at " + MAX_MCP_RESULT_SIZE / 1024 + "KB]";
+                }
+                return ToolResult.success(content);
+            } catch (McpProtocolException e) {
+                return ToolResult.error("Failed to read resource: " + e.getMessage());
             }
-
-            return ToolResult.success(content);
 
         } catch (Exception e) {
             return ToolResult.error("Failed to read resource '" + uri

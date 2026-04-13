@@ -324,8 +324,11 @@ public class QueryController {
         );
 
         // 3. 初始化状态 — 加载历史消息
+        // REST API 无交互式权限确认能力，设置 null notifier + BYPASS 模式双保险
         ToolUseContext toolCtx = ToolUseContext.of(
-                System.getProperty("user.dir"), request.sessionId());
+                System.getProperty("user.dir"), request.sessionId())
+                .withPermissionNotifier(null);  // 明确标注: REST无pusher
+        log.debug("REST API conversation: permissionMode=BYPASS, notifier=null (by design)");
         QueryLoopState state = new QueryLoopState(new ArrayList<>(session.messages()), toolCtx);
 
         // 追加新用户消息

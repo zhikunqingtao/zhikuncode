@@ -1,5 +1,6 @@
 package com.aicodeassistant.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -34,15 +35,15 @@ public sealed interface ContentBlock {
     ) implements ContentBlock {}
 
     record ToolUseBlock(
-            String id,
-            String name,
-            JsonNode input
+            @JsonProperty("id") String id,
+            @JsonProperty("name") String name,
+            @JsonProperty("input") JsonNode input
     ) implements ContentBlock {}
 
     record ToolResultBlock(
-            String toolUseId,
-            String content,
-            boolean isError
+            @JsonProperty("tool_use_id") String toolUseId,
+            @JsonProperty("content") String content,
+            @JsonProperty("is_error") boolean isError
     ) implements ContentBlock {}
 
     record ImageBlock(

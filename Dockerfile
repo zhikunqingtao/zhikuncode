@@ -32,9 +32,9 @@ FROM eclipse-temurin:21-jre AS runtime
 LABEL maintainer="AI Code Assistant Team"
 LABEL description="AI Code Assistant Backend Service"
 
-# Install Python for python-service integration
+# Install Python for python-service integration + ripgrep for GrepTool
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends python3 python3-pip python3-venv && \
+    apt-get install -y --no-install-recommends python3 python3-pip python3-venv ripgrep && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 

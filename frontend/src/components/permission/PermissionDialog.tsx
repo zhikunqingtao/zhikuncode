@@ -52,7 +52,8 @@ const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision
     const [remember, setRemember] = useState(false);
     const [scope, setScope] = useState<'session' | 'project' | 'global'>('session');
     const dialogRef = useRef<HTMLDivElement>(null);
-    const risk = RISK_CONFIG[request.riskLevel];
+    const riskLevel = (request.riskLevel || 'medium').toLowerCase() as keyof typeof RISK_CONFIG;
+    const risk = RISK_CONFIG[riskLevel] ?? RISK_CONFIG.medium;
     const RiskIcon = risk.icon;
 
     // Keyboard shortcuts: Y=allow, N=deny, Escape=deny

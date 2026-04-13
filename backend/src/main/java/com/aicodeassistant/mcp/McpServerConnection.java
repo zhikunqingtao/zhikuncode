@@ -109,9 +109,23 @@ public class McpServerConnection {
             discoverTools();
 
         } catch (Exception e) {
-            log.warn("MCP protocol handshake failed for '{}': {} — server connected but tools may be unavailable",
-                    config.name(), e.getMessage());
-            // 握手失败不影响连接状态 — 服务器可能不支持某些协议方法
+            log.error("MCP protocol handshake failed for '{}': {}", config.name(), e.getMessage());
+            this.status = McpConnectionStatus.DEGRADED;
+            // 尝试重新握手（指数退避，最多3次）
+            for (int retry = 0; retry < 3; retry++) {
+                try {
+                    Thread.sleep(500L * (1L << retry));
+                    discoverTools();
+                    if (!this.tools.isEmpty()) {
+                        this.status = McpConnectionStatus.CONNECTED;
+                        log.info("Handshake retry {} succeeded for '{}'", retry + 1, config.name());
+                        return;
+                    }
+                } catch (Exception retryEx) {
+                    log.debug("Handshake retry {} failed for '{}': {}", retry + 1, config.name(), retryEx.getMessage());
+                }
+            }
+            log.warn("All handshake retries exhausted for '{}' — tools unavailable", config.name());
         }
     }
 
@@ -281,6 +295,31 @@ public class McpServerConnection {
     }
 
     // ===== Getters/Setters =====
+
+    /**
+     * 读取 MCP 资源内容 — 发送 resources/read 请求。
+     *
+     * @param uri 资源 URI
+     * @return 资源文本内容
+     * @throws McpProtocolException 通信或协议错误
+     */
+    public String readResource(String uri) throws McpProtocolException {
+        JsonNode response = request("resources/read", Map.of("uri", uri));
+        if (response == null || !response.has("contents") || !response.get("contents").isArray()) {
+            throw new McpProtocolException(new JsonRpcError(
+                -32600, "Invalid resources/read response: missing 'contents' array"));
+        }
+        JsonNode contents = response.get("contents");
+        StringBuilder sb = new StringBuilder();
+        for (JsonNode content : contents) {
+            if (content.has("text")) {
+                sb.append(content.get("text").asText());
+            } else if (content.has("blob")) {
+                sb.append("[Binary content: ").append(content.path("mimeType").asText("unknown")).append("]");
+            }
+        }
+        return sb.toString();
+    }
 
     public McpServerConfig getConfig() { return config; }
     public String getName() { return config.name(); }

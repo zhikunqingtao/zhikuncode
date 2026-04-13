@@ -364,7 +364,7 @@ public class PermissionPipeline {
         // 通过 WebSocket 推送权限请求到前端
         String riskLevel = BARE_SHELL_PREFIXES.stream()
                 .anyMatch(p -> String.valueOf(input.getOrDefault("command", "")).startsWith(p))
-                ? "high" : "normal";
+                ? "high" : "medium";
 
         // 记录转发来源信息（当 sessionId 与 wsPusher 的目标会话不同时，说明是子代理冒泡转发）
         log.info("Permission request: toolUseId={}, toolName={}, targetSession={}",
@@ -397,6 +397,19 @@ public class PermissionPipeline {
         } else {
             log.warn("No pending permission request for toolUseId={}", toolUseId);
         }
+    }
+
+    /**
+     * 注册待处理的权限请求 — 用于子代理冒泡场景。
+     * 当前端响应时，resolvePermission(toolUseId, decision) 会完成此 future。
+     *
+     * @param toolUseId 工具调用 ID
+     * @param future    待完成的 CompletableFuture
+     */
+    public void registerPendingRequest(String toolUseId, CompletableFuture<PermissionDecision> future) {
+        pendingRequests.put(toolUseId, future);
+        // 超时清理: future 完成后确保从 map 中移除
+        future.whenComplete((result, ex) -> pendingRequests.remove(toolUseId));
     }
 
     /**

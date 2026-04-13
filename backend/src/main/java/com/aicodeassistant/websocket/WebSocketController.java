@@ -12,6 +12,7 @@ import com.aicodeassistant.command.CommandResult;
 import com.aicodeassistant.command.CommandContext;
 import com.aicodeassistant.history.FileHistoryService;
 import com.aicodeassistant.mcp.McpClientManager;
+import com.aicodeassistant.permission.PermissionModeManager;
 import com.aicodeassistant.permission.PermissionNotifier;
 import com.aicodeassistant.llm.LlmProviderRegistry;
 import com.aicodeassistant.llm.ModelCapabilities;
@@ -73,6 +74,7 @@ public class WebSocketController implements PermissionNotifier {
     private final McpClientManager mcpClientManager;           // P1 MCP操作
     private final FileHistoryService fileHistoryService;       // P1 文件回退
     private final ProjectContextService projectContextService;  // F5 项目上下文
+    private final PermissionModeManager permissionModeManager;    // P1-03 权限模式
 
     public WebSocketController(SimpMessagingTemplate messaging,
                                 WebSocketSessionManager wsSessionManager,
@@ -87,7 +89,8 @@ public class WebSocketController implements PermissionNotifier {
                                 CommandRegistry commandRegistry,
                                 McpClientManager mcpClientManager,
                                 FileHistoryService fileHistoryService,
-                                ProjectContextService projectContextService) {
+                                ProjectContextService projectContextService,
+                                PermissionModeManager permissionModeManager) {
         this.messaging = messaging;
         this.wsSessionManager = wsSessionManager;
         this.queryEngine = queryEngine;
@@ -102,6 +105,7 @@ public class WebSocketController implements PermissionNotifier {
         this.mcpClientManager = mcpClientManager;
         this.fileHistoryService = fileHistoryService;
         this.projectContextService = projectContextService;
+        this.permissionModeManager = permissionModeManager;
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -429,6 +433,12 @@ public class WebSocketController implements PermissionNotifier {
         );
 
         // 4. 初始化循环状态 + 添加用户消息
+        // 确保 WebSocket 会话使用 DEFAULT 权限模式（允许交互式权限确认）
+        if (!permissionModeManager.hasExplicitMode(sessionId)) {
+            permissionModeManager.setMode(sessionId, com.aicodeassistant.model.PermissionMode.DEFAULT);
+        }
+        log.debug("WebSocket session permissionMode: {}",
+                permissionModeManager.getMode(sessionId));
         ToolUseContext toolUseContext = ToolUseContext.of(
                 workingDir.toString(), sessionId)
                 .withPermissionNotifier(this);

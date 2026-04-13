@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 工具执行管线 — 7 阶段执行流程。
@@ -175,8 +176,14 @@ public class ToolExecutionPipeline {
                         // null 表示父代理已批准，继续执行工具
                     } else {
                     if (effectivePusher == null || context.sessionId() == null) {
-                        log.warn("Tool {} requires permission but no WebSocket pusher available, denying", toolName);
-                        return ToolExecutionResult.of(ToolResult.error("Permission required but cannot prompt user"));
+                        log.warn("Tool {} requires permission but no WebSocket pusher available, denying. "
+                                + "sessionId={}, contextNotifier={}, wsPusherParam={}",
+                                toolName, context.sessionId(),
+                                context.permissionNotifier() != null ? context.permissionNotifier().getClass().getSimpleName() : "null",
+                                wsPusher != null ? wsPusher.getClass().getSimpleName() : "null");
+                        return ToolExecutionResult.of(ToolResult.error(
+                                "Permission required but cannot prompt user. "
+                                + "This typically occurs in REST API mode \u2014 use WebSocket for interactive permission prompts."));
                     }
                     // 异步等待用户决策（在 VirtualThread 上 join() 不会阻塞平台线程）
                     String toolUseId = context.toolUseId() != null ? context.toolUseId() : toolName;
@@ -277,14 +284,28 @@ public class ToolExecutionPipeline {
                     ? (Map<String, Object>) processedInput.getRawData()
                     : Map.of("input", String.valueOf(processedInput.getRawData()));
 
-            // 通过父会话的 sessionId 转发权限请求
-            CompletableFuture<PermissionDecision> parentDecision = permissionPipeline.requestPermission(
-                    toolUseId, tool.getName(), inputMap,
-                    String.format("[From Sub-Agent] %s",
-                            decision.reason() != null ? decision.reason() : "Tool requires permission"),
-                    wsPusher,
-                    context.parentSessionId()  // 转发到父会话
-            );
+            // 通过子代理专用接口转发权限请求，携带 source 和 childSessionId 信息
+            String childSessionId = context.sessionId();
+            String riskLevel = (decision.reason() != null
+                    && (decision.reason().contains("dangerous") || decision.reason().contains("destructive")))
+                    ? "high" : "medium";
+            String reason = String.format("[From Sub-Agent] %s",
+                    decision.reason() != null ? decision.reason() : "Tool requires permission");
+
+            // 使用子代理专用接口，确保前端收到 source: "subagent" + childSessionId
+            wsPusher.sendPermissionRequestFromChild(
+                    context.parentSessionId(), childSessionId,
+                    toolUseId, tool.getName(), inputMap, riskLevel, reason);
+
+            // 注册 pending future 以便接收前端响应
+            CompletableFuture<PermissionDecision> future = new CompletableFuture<>();
+            permissionPipeline.registerPendingRequest(toolUseId, future);
+            CompletableFuture<PermissionDecision> parentDecision = future
+                    .orTimeout(120, TimeUnit.SECONDS)
+                    .exceptionally(ex -> {
+                        log.warn("Parent permission request timed out for tool={}", tool.getName());
+                        return PermissionDecision.denyByMode("Parent permission request timed out");
+                    });
 
             PermissionDecision result = parentDecision.join();
 

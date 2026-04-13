@@ -1,7 +1,7 @@
 package com.aicodeassistant.mcp;
 
 /**
- * MCP 服务器连接状态 — 5 种状态。
+ * MCP 服务器连接状态 — 6 种状态。
  *
  * @see <a href="SPEC §4.3.3">MCP 客户端管理</a>
  */
@@ -15,5 +15,7 @@ public enum McpConnectionStatus {
     /** 正在连接中（支持重连尝试） */
     PENDING,
     /** 被用户/配置禁用 */
-    DISABLED
+    DISABLED,
+    /** 传输连接正常但协议握手失败，功能受限 */
+    DEGRADED
 }

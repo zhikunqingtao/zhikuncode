@@ -115,6 +115,18 @@ public class GrepTool implements Tool {
         int offset = input.getInt("offset", 0);
 
         try {
+            // 检查是否使用了 rg 特有功能但 rg 不可用
+            if (!HAS_RIPGREP) {
+                if (input.getBoolean("multiline", false)
+                        || input.getOptionalString("type").isPresent()) {
+                    return ToolResult.error(
+                        "This search uses ripgrep-specific features (multiline/type) but rg is not installed.\n"
+                        + "Install: brew install ripgrep (macOS) | apt-get install ripgrep (Linux)\n"
+                        + "Falling back to grep which does not support these features.");
+                }
+                log.info("Using grep fallback (ripgrep not available)");
+            }
+
             List<String> args;
             if (HAS_RIPGREP) {
                 args = buildRipgrepArgs(input, pattern, searchPath, outputMode);

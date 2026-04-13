@@ -70,6 +70,13 @@ public class PermissionModeManager {
     }
 
     /**
+     * 检查会话是否已显式设置过权限模式（区别于 getMode 的默认 DEFAULT 回退）。
+     */
+    public boolean hasExplicitMode(String sessionId) {
+        return sessionModes.containsKey(sessionId);
+    }
+
+    /**
      * 设置权限模式。
      */
     public void setMode(String sessionId, PermissionMode mode) {

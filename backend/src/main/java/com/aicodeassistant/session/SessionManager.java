@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -382,29 +383,41 @@ public class SessionManager {
                         objectMapper.readTree(contentJson);
                 List<ContentBlock> blocks = new ArrayList<>();
                 for (com.fasterxml.jackson.databind.JsonNode node : array) {
-                    String type = node.has("type") ? node.get("type").asText() : "text";
-                    switch (type) {
-                        case "text" -> blocks.add(new ContentBlock.TextBlock(
-                                node.has("text") ? node.get("text").asText() : ""));
-                        case "tool_use" -> blocks.add(new ContentBlock.ToolUseBlock(
-                                node.get("id").asText(),
-                                node.get("name").asText(),
-                                node.get("input")));
-                        case "tool_result" -> blocks.add(new ContentBlock.ToolResultBlock(
-                                node.get("tool_use_id").asText(),
-                                node.has("content") ? node.get("content").asText() : "",
-                                node.has("is_error") && node.get("is_error").asBoolean()));
-                        case "image" -> {
-                            com.fasterxml.jackson.databind.JsonNode source = node.get("source");
-                            blocks.add(new ContentBlock.ImageBlock(
-                                    source.get("media_type").asText(),
-                                    source.get("data").asText()));
+                    try {
+                        String type = node.has("type") ? node.get("type").asText() : "text";
+                        switch (type) {
+                            case "text" -> blocks.add(new ContentBlock.TextBlock(
+                                    node.has("text") ? node.get("text").asText() : ""));
+                            case "tool_use" -> blocks.add(new ContentBlock.ToolUseBlock(
+                                    node.get("id").asText(),
+                                    node.get("name").asText(),
+                                    node.get("input")));
+                            case "tool_result" -> blocks.add(new ContentBlock.ToolResultBlock(
+                                    // 兼容 "tool_use_id" (新 snake_case) 和 "toolUseId" (旧 camelCase)
+                                    node.has("tool_use_id") ? node.get("tool_use_id").asText()
+                                        : node.has("toolUseId") ? node.get("toolUseId").asText()
+                                        : UUID.randomUUID().toString(),
+                                    node.has("content") ? node.get("content").asText() : "",
+                                    (node.has("is_error") && node.get("is_error").asBoolean())
+                                        || (node.has("isError") && node.get("isError").asBoolean())));
+                            case "image" -> {
+                                com.fasterxml.jackson.databind.JsonNode source = node.get("source");
+                                if (source != null) {
+                                    blocks.add(new ContentBlock.ImageBlock(
+                                            source.get("media_type").asText(),
+                                            source.get("data").asText()));
+                                }
+                            }
+                            case "thinking" -> blocks.add(new ContentBlock.ThinkingBlock(
+                                    node.has("thinking") ? node.get("thinking").asText() : ""));
+                            case "redacted_thinking" -> blocks.add(new ContentBlock.RedactedThinkingBlock(
+                                    node.has("data") ? node.get("data").asText() : ""));
+                            default -> log.debug("Unknown content block type: {}", type);
                         }
-                        case "thinking" -> blocks.add(new ContentBlock.ThinkingBlock(
-                                node.has("thinking") ? node.get("thinking").asText() : ""));
-                        case "redacted_thinking" -> blocks.add(new ContentBlock.RedactedThinkingBlock(
-                                node.has("data") ? node.get("data").asText() : ""));
-                        default -> log.debug("Unknown content block type: {}", type);
+                    } catch (Exception blockEx) {
+                        log.warn("Failed to parse content block (type={}), skipping: {}",
+                                node.has("type") ? node.get("type").asText() : "unknown",
+                                blockEx.getMessage());
                     }
                 }
                 return blocks;
@@ -459,10 +472,62 @@ public class SessionManager {
     private String toJsonString(Object obj) {
         if (obj == null) return null;
         try {
+            // 特殊处理 ContentBlock 列表: 使用手工序列化确保 snake_case
+            if (obj instanceof List<?> list && !list.isEmpty()
+                    && list.getFirst() instanceof ContentBlock) {
+                List<Map<String, Object>> maps = list.stream()
+                    .map(b -> contentBlockToMap((ContentBlock) b))
+                    .toList();
+                return objectMapper.writeValueAsString(maps);
+            }
             return objectMapper.writeValueAsString(obj);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("JSON serialization failed", e);
         }
+    }
+
+    // 复用 QueryEngine.contentBlockToMap 的逻辑
+    private Map<String, Object> contentBlockToMap(ContentBlock block) {
+        return switch (block) {
+            case ContentBlock.TextBlock text ->
+                Map.of("type", "text", "text", text.text() != null ? text.text() : "");
+            case ContentBlock.ToolUseBlock toolUse -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("type", "tool_use");
+                map.put("id", toolUse.id());
+                map.put("name", toolUse.name());
+                map.put("input", toolUse.input() != null ? toolUse.input() : objectMapper.createObjectNode());
+                yield map;
+            }
+            case ContentBlock.ToolResultBlock result -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("type", "tool_result");
+                map.put("tool_use_id", result.toolUseId());
+                map.put("content", result.content() != null ? result.content() : "");
+                if (result.isError()) map.put("is_error", true);
+                yield map;
+            }
+            case ContentBlock.ImageBlock image -> {
+                Map<String, Object> sourceMap = new HashMap<>();
+                sourceMap.put("type", "base64");
+                sourceMap.put("media_type", image.mediaType());
+                sourceMap.put("data", image.base64Data());
+                Map<String, Object> map = new HashMap<>();
+                map.put("type", "image");
+                map.put("source", sourceMap);
+                if (image.width() > 0 || image.height() > 0) {
+                    map.put("width", image.width());
+                    map.put("height", image.height());
+                }
+                yield map;
+            }
+            case ContentBlock.ThinkingBlock thinking ->
+                Map.of("type", "thinking", "thinking",
+                        thinking.thinking() != null ? thinking.thinking() : "");
+            case ContentBlock.RedactedThinkingBlock redacted ->
+                Map.of("type", "redacted_thinking", "data",
+                        redacted.data() != null ? redacted.data() : "");
+        };
     }
 
     private int toInt(Object value) {
