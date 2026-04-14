@@ -24,9 +24,9 @@ from capabilities import (
 class TestCapabilityDomain:
     """CapabilityDomain 枚举测试"""
 
-    def test_has_seven_domains(self):
-        """应包含 7 个能力域"""
-        assert len(CapabilityDomain) == 7
+    def test_has_eight_domains(self):
+        """应包含 8 个能力域"""
+        assert len(CapabilityDomain) == 8
 
     def test_core_domains_exist(self):
         """P0 核心域: CODE_INTEL 和 FILE_PROCESSING 必须存在"""
@@ -119,7 +119,7 @@ class TestDiscoverCapabilities:
         """应返回完整的 CAPABILITY_REGISTRY"""
         result = discover_capabilities()
         assert result is CAPABILITY_REGISTRY
-        assert len(result) == 7
+        assert len(result) == 8
 
     def test_all_entries_checked(self):
         """调用后每个条目的 is_available 应为 bool 值"""

@@ -33,17 +33,28 @@ function parseMessage(raw: string): (ServerMessage & { ts?: number }) | null {
     try {
         return JSON.parse(raw);
     } catch {
-        // 降级: 尝试从 STOMP 帧中提取 body
-        const bodyMatch = raw.match(/\n\n(.+)\u0000/);
+        // 降级1: 尝试从 STOMP 帧中提取 body（支持多行 JSON）
+        const bodyMatch = raw.match(/\n\n([\s\S]+?)\u0000/);
         if (bodyMatch) {
             try {
                 return JSON.parse(bodyMatch[1]);
             } catch {
-                // 静默忽略非 JSON 消息（如 SockJS 协议帧）
-                return null;
+                // 静默忽略
             }
         }
-        console.debug('[WS] Non-JSON message ignored:', raw.substring(0, 100));
+        // 降级2: 尝试提取最后一个 JSON 对象
+        const jsonMatch = raw.match(/(\{[\s\S]*\})\s*\u0000?$/);
+        if (jsonMatch) {
+            try {
+                return JSON.parse(jsonMatch[1]);
+            } catch {
+                // 静默忽略
+            }
+        }
+        // 非 JSON 消息（SockJS 协议帧等）静默忽略
+        if (raw.length > 2) {
+            console.debug('[STOMP] Non-JSON message ignored:', raw.substring(0, 80));
+        }
         return null;
     }
 }

@@ -104,6 +104,7 @@ public class V002_InitProjectSchema implements Migration {
                     message_id   TEXT,
                     file_path    TEXT NOT NULL,
                     content      BLOB,
+                    operation    TEXT NOT NULL DEFAULT 'edit',
                     created_at   TEXT NOT NULL
                 )
                 """);

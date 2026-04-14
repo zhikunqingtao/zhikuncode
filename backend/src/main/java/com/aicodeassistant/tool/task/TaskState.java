@@ -1,5 +1,7 @@
 package com.aicodeassistant.tool.task;
 
+import com.aicodeassistant.model.TaskStatus;
+
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;

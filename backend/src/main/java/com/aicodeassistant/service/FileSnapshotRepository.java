@@ -31,22 +31,23 @@ public class FileSnapshotRepository {
     /** 保存文件快照 */
     public void save(FileSnapshot snapshot) {
         projectJdbcTemplate.update(
-                "INSERT INTO file_snapshots (id, session_id, message_id, file_path, content, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+                "INSERT INTO file_snapshots (id, session_id, message_id, file_path, content, operation, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
                 snapshot.id(), snapshot.sessionId(), snapshot.messageId(),
-                snapshot.filePath(), snapshot.content(), snapshot.createdAt());
-        log.debug("Saved file snapshot: session={}, file={}", snapshot.sessionId(), snapshot.filePath());
+                snapshot.filePath(), snapshot.content(), snapshot.operation(), snapshot.createdAt());
+        log.debug("Saved file snapshot: session={}, file={}, operation={}", snapshot.sessionId(), snapshot.filePath(), snapshot.operation());
     }
 
     /** 按会话 ID 查找所有快照 */
     public List<FileSnapshot> findBySessionId(String sessionId) {
         return projectJdbcTemplate.query(
-                "SELECT id, session_id, message_id, file_path, content, created_at FROM file_snapshots WHERE session_id = ? ORDER BY created_at",
+                "SELECT id, session_id, message_id, file_path, content, operation, created_at FROM file_snapshots WHERE session_id = ? ORDER BY created_at",
                 (rs, rowNum) -> new FileSnapshot(
                         rs.getString("id"),
                         rs.getString("session_id"),
                         rs.getString("message_id"),
                         rs.getString("file_path"),
                         rs.getString("content"),
+                        rs.getString("operation"),
                         rs.getString("created_at")),
                 sessionId);
     }
@@ -54,18 +55,20 @@ public class FileSnapshotRepository {
     /** 按消息 ID 查找快照 */
     public List<FileSnapshot> findByMessageId(String messageId) {
         return projectJdbcTemplate.query(
-                "SELECT id, session_id, message_id, file_path, content, created_at FROM file_snapshots WHERE message_id = ? ORDER BY created_at",
+                "SELECT id, session_id, message_id, file_path, content, operation, created_at FROM file_snapshots WHERE message_id = ? ORDER BY created_at",
                 (rs, rowNum) -> new FileSnapshot(
                         rs.getString("id"),
                         rs.getString("session_id"),
                         rs.getString("message_id"),
                         rs.getString("file_path"),
                         rs.getString("content"),
+                        rs.getString("operation"),
                         rs.getString("created_at")),
                 messageId);
     }
 
     /** 文件快照记录 */
     public record FileSnapshot(String id, String sessionId, String messageId,
-                                String filePath, String content, String createdAt) {}
+                                String filePath, String content, String operation,
+                                String createdAt) {}
 }

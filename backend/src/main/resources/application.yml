@@ -61,6 +61,7 @@ features:
     CLASSIFIER_V2: false
     ENABLE_AGENT_SWARMS: false
     MCP_SKILLS: false
+    COORDINATOR_MODE: true
     # ── A 组：SystemPrompt 动态段 ──
     TOKEN_BUDGET: false          # A1: 默认关闭，用户指定 token 目标时手动开启
     SCRATCHPAD: true              # A3: 必须默认开启，否则已有功能回退
@@ -85,10 +86,12 @@ mcp:
 
 # 沙箱配置
 sandbox:
-  enabled: false
+  enabled: true
   image: ai-code-assistant-sandbox:latest
   timeout-seconds: 300
   memory-limit: 512m
+  network-enabled: false
+  mount-mode: ro
 
 # SpringDoc OpenAPI
 springdoc:

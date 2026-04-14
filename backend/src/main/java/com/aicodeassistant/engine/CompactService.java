@@ -11,6 +11,12 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.*;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * CompactService — 对话历史压缩引擎。
@@ -771,5 +777,118 @@ public class CompactService {
             }
         }
         return 0;
+    }
+
+    // ==================== 压缩后文件重注入 ====================
+
+    /**
+     * 压缩后文件重注入 — 对齐 Claude Code 的 reInjectFilesAfterCompact。
+     * <p>
+     * 从摘要文本中提取文件路径引用，重新读取文件内容，
+     * 以 SystemMessage 形式注入到压缩结果中。
+     */
+    public List<Message> reInjectFilesAfterCompact(
+            List<Message> compactedMessages, String workingDirectory) {
+
+        // 1. 从 COMPACT_SUMMARY 消息中提取 LLM 摘要文本
+        String summaryText = compactedMessages.stream()
+                .filter(m -> m instanceof Message.SystemMessage sys
+                        && sys.type() == SystemMessageType.COMPACT_SUMMARY)
+                .map(m -> ((Message.SystemMessage) m).content())
+                .reduce((first, second) -> second)
+                .orElse(null);
+        if (summaryText == null || summaryText.isBlank()) {
+            log.debug("压缩后文件重注入: 未找到 COMPACT_SUMMARY 消息");
+            return compactedMessages;
+        }
+
+        // 2. 从摘要中提取文件路径
+        Set<String> filePaths = extractFilePathsFromSummary(summaryText);
+        if (filePaths.isEmpty()) {
+            log.debug("压缩后文件重注入: 未检测到文件路径引用");
+            return compactedMessages;
+        }
+
+        // 3. 过滤有效且存在的文件
+        int MAX_REINJECT_FILES = 5;
+        int MAX_FILE_SIZE_CHARS = 10_000;
+        List<String> validPaths = filePaths.stream()
+                .map(p -> resolveFilePath(p, workingDirectory))
+                .filter(p -> p != null && Files.exists(Path.of(p)))
+                .filter(p -> {
+                    try { return Files.size(Path.of(p)) < MAX_FILE_SIZE_CHARS * 2L; }
+                    catch (IOException e) { return false; }
+                })
+                .limit(MAX_REINJECT_FILES)
+                .toList();
+
+        if (validPaths.isEmpty()) {
+            log.debug("压缩后文件重注入: 无有效文件可注入");
+            return compactedMessages;
+        }
+
+        // 4. 读取文件内容并构建注入消息
+        List<Message> result = new ArrayList<>(compactedMessages);
+        StringBuilder fileContent = new StringBuilder();
+        fileContent.append("[压缩后文件重注入] 以下文件在上下文压缩中被引用，已重新加载最新内容:\n\n");
+
+        for (String path : validPaths) {
+            try {
+                String content = Files.readString(Path.of(path), StandardCharsets.UTF_8);
+                if (content.length() > MAX_FILE_SIZE_CHARS) {
+                    content = content.substring(0, MAX_FILE_SIZE_CHARS) + "\n...[truncated]";
+                }
+                fileContent.append("--- ").append(path).append(" ---\n");
+                fileContent.append(content).append("\n\n");
+            } catch (IOException e) {
+                log.warn("文件重注入读取失败: {}", path, e);
+            }
+        }
+
+        // 5. 插入到摘要消息之后
+        Message reInjectMsg = new Message.SystemMessage(
+                UUID.randomUUID().toString(), Instant.now(),
+                fileContent.toString(), SystemMessageType.FILE_REINJECT);
+
+        int insertIndex = -1;
+        for (int i = 0; i < result.size(); i++) {
+            if (result.get(i) instanceof Message.SystemMessage sys
+                    && sys.type() == SystemMessageType.COMPACT_SUMMARY) {
+                insertIndex = i + 1;
+            }
+        }
+        if (insertIndex >= 0 && insertIndex <= result.size()) {
+            result.add(insertIndex, reInjectMsg);
+        } else {
+            result.add(reInjectMsg);
+        }
+
+        log.info("压缩后文件重注入完成: {}个文件 [{}]", validPaths.size(),
+                String.join(", ", validPaths));
+        return result;
+    }
+
+    private Set<String> extractFilePathsFromSummary(String summary) {
+        Set<String> paths = new LinkedHashSet<>();
+        Pattern pathPattern = Pattern.compile(
+                "(?:^|\\s)(/[\\w./\\-]+\\.(java|ts|tsx|py|json|yml|yaml|xml|md|sql|sh))"
+                + "|(?:^|\\s)([\\w./\\-]+\\.(java|ts|tsx|py|json|yml|yaml|xml|md|sql|sh))",
+                Pattern.MULTILINE);
+        Matcher matcher = pathPattern.matcher(summary);
+        while (matcher.find()) {
+            String path = matcher.group(1) != null ? matcher.group(1) : matcher.group(3);
+            if (path != null) paths.add(path.trim());
+        }
+        return paths;
+    }
+
+    private String resolveFilePath(String path, String workingDirectory) {
+        if (path == null) return null;
+        Path p = Path.of(path);
+        if (p.isAbsolute()) return p.toString();
+        if (workingDirectory != null) {
+            return Path.of(workingDirectory).resolve(path).normalize().toString();
+        }
+        return null;
     }
 }

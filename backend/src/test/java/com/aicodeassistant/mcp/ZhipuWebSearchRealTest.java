@@ -1,6 +1,8 @@
 package com.aicodeassistant.mcp;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -25,6 +27,8 @@ class ZhipuWebSearchRealTest {
     private static final String API_KEY = "sk-93625146d2c343d78735213013794ed5";
 
     @Test
+    @EnabledIfEnvironmentVariable(named = "ZHIPU_API_KEY", matches = ".+")
+    @Timeout(value = 30, unit = java.util.concurrent.TimeUnit.SECONDS)
     void testRealWebSearch() throws Exception {
         // ==================== 入参 ====================
         String searchQuery = "阿里巴巴通义千问最新版本";

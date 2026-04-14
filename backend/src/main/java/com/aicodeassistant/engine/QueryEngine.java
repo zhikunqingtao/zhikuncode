@@ -585,7 +585,10 @@ public class QueryEngine {
                 CompactService.CompactResult smcResult = compactService.trySessionMemoryCompaction(
                         state.getMessages(), config.contextWindow());
                 if (smcResult.skipReason() == null) {
-                    state.setMessages(smcResult.compactedMessages());
+                    List<Message> compactedWithFiles = compactService.reInjectFilesAfterCompact(
+                            smcResult.compactedMessages(),
+                            state.getToolUseContext() != null ? state.getToolUseContext().workingDirectory() : null);
+                    state.setMessages(compactedWithFiles);
                     state.resetAutoCompactFailures();
                     handler.onCompactEvent("smc_compact",
                             smcResult.beforeTokens(), smcResult.afterTokens());
@@ -598,7 +601,10 @@ public class QueryEngine {
                         state.getMessages(), config.contextWindow(), false);
 
                 if (result.skipReason() == null) {
-                    state.setMessages(result.compactedMessages());
+                    List<Message> compactedWithFiles = compactService.reInjectFilesAfterCompact(
+                            result.compactedMessages(),
+                            state.getToolUseContext() != null ? state.getToolUseContext().workingDirectory() : null);
+                    state.setMessages(compactedWithFiles);
                     state.resetAutoCompactFailures();
                     handler.onCompactEvent("auto_compact",
                             result.beforeTokens(), result.afterTokens());

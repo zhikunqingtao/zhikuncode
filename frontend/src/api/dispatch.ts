@@ -199,10 +199,13 @@ function handlePermissionRequest(data: PermissionRequest): void {
  * v1.53.0: 不再更新 costStore，费用由 #15 cost_update 权威推送
  */
 function handleMessageComplete(data: { usage: Usage; stopReason: string }): void {
-    useMessageStore.getState().finalizeStream(data.usage);
-    if (data.stopReason === 'end_turn') {
-        useSessionStore.getState().setStatus('idle');
-    }
+    // 延迟 finalizeStream，确保最后的 stream_delta 已渲染
+    queueMicrotask(() => {
+        useMessageStore.getState().finalizeStream(data.usage);
+        if (data.stopReason === 'end_turn') {
+            useSessionStore.getState().setStatus('idle');
+        }
+    });
     // stopReason === 'tool_use' 时保持 streaming 状态，等待工具结果
 }
 

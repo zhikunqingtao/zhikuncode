@@ -1,5 +1,6 @@
 package com.aicodeassistant.coordinator;
 
+import com.aicodeassistant.model.TaskStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -140,9 +141,6 @@ public class SharedTaskList {
     }
 
     // ── DTO ──────────────────────────────────────────────────
-
-    /** 任务状态 */
-    public enum TaskStatus { PENDING, IN_PROGRESS, COMPLETED, FAILED }
 
     /** 共享任务 */
     public record SharedTask(

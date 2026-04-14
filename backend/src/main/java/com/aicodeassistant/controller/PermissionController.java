@@ -5,6 +5,7 @@ import com.aicodeassistant.model.PermissionRule;
 import com.aicodeassistant.model.PermissionRuleSource;
 import com.aicodeassistant.model.PermissionRuleValue;
 import com.aicodeassistant.permission.PermissionRuleRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -93,6 +94,38 @@ public class PermissionController {
         return ResponseEntity.ok(Map.of(
                 "success", true,
                 "rules", request.rules()));
+    }
+
+    /** 创建单条权限规则 */
+    @PostMapping
+    public ResponseEntity<Map<String, Object>> createRule(@RequestBody RuleDto rule) {
+        String id = UUID.randomUUID().toString();
+        PermissionRuleSource source = "session".equals(rule.scope())
+                ? PermissionRuleSource.USER_SESSION
+                : PermissionRuleSource.USER_GLOBAL;
+        PermissionRuleValue value = new PermissionRuleValue(
+                rule.toolName(), rule.ruleContent());
+        PermissionRule permRule = new PermissionRule(
+                source,
+                "allow".equals(rule.decision()) ? PermissionBehavior.ALLOW : PermissionBehavior.DENY,
+                value);
+
+        ruleRepository.addRuleWithId(id, permRule);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
+                "success", true,
+                "id", id,
+                "rule", rule));
+    }
+
+    /** 删除单条权限规则 */
+    @DeleteMapping("/{ruleId}")
+    public ResponseEntity<Void> deleteRule(@PathVariable String ruleId) {
+        boolean removed = ruleRepository.removeRuleById(ruleId);
+        if (removed) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.notFound().build();
     }
 
     private String scopeFromSource(PermissionRuleSource source) {

@@ -1,5 +1,6 @@
 package com.aicodeassistant.tool.task;
 
+import com.aicodeassistant.model.TaskStatus;
 import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

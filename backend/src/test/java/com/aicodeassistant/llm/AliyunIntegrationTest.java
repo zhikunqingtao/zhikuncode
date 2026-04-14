@@ -63,6 +63,7 @@ class AliyunIntegrationTest {
     }
 
     @Test
+    @EnabledIfEnvironmentVariable(named = "ALIYUN_API_KEY", matches = ".+")
     void testSimpleChatCompletion() throws InterruptedException {
         // ==================== 入参 ====================
         String model = "qwen3.6-plus";
@@ -146,6 +147,7 @@ class AliyunIntegrationTest {
     }
 
     @Test
+    @EnabledIfEnvironmentVariable(named = "ALIYUN_API_KEY", matches = ".+")
     void testToolUseCapability() throws InterruptedException {
         // Given - 定义一个简单的搜索工具
         Map<String, Object> searchTool = Map.of(

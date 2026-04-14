@@ -8,7 +8,19 @@ package com.aicodeassistant.model;
 public enum TaskStatus {
     PENDING,
     RUNNING,
+    IN_PROGRESS,
     COMPLETED,
     FAILED,
-    KILLED
+    CANCELLED,
+    KILLED;
+
+    /** 是否为终态（不可再变更） */
+    public boolean isTerminal() {
+        return this == COMPLETED || this == FAILED || this == CANCELLED || this == KILLED;
+    }
+
+    /** RUNNING 和 IN_PROGRESS 视为等价 */
+    public boolean isActive() {
+        return this == RUNNING || this == IN_PROGRESS;
+    }
 }

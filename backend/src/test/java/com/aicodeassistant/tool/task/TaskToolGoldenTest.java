@@ -1,5 +1,6 @@
 package com.aicodeassistant.tool.task;
 
+import com.aicodeassistant.model.TaskStatus;
 import com.aicodeassistant.tool.ToolInput;
 import com.aicodeassistant.tool.ToolResult;
 import com.aicodeassistant.tool.ToolUseContext;

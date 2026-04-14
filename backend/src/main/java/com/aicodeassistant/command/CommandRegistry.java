@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -38,8 +39,15 @@ public class CommandRegistry {
     public static final Set<String> REMOTE_SAFE_COMMANDS = Set.of(
             "clear", "compact", "cost", "diff", "effort", "exit", "export",
             "fast", "files", "help", "keybindings", "model", "output-style",
-            "permissions", "session", "status", "theme", "usage", "vim"
+            "permissions", "session", "status", "theme", "usage", "vim",
+            // 新增安全命令
+            "doctor", "allowed-tools",
+            "mcp-servers", "mcp-tools", "mcp-resources",
+            "symbols", "explain"
     );
+
+    /** 动态命令源 — 支持 MCP/插件等运行时注册命令 */
+    private final Map<String, Supplier<List<Command>>> dynamicSources = new ConcurrentHashMap<>();
 
     /** 桥接安全命令集 — 可在 IDE 桥接模式下安全执行 */
     public static final Set<String> BRIDGE_SAFE_COMMANDS;
@@ -150,6 +158,27 @@ public class CommandRegistry {
      */
     public Collection<Command> getAllCommands() {
         return Collections.unmodifiableCollection(commandsByName.values());
+    }
+
+    /**
+     * 注册动态命令源。
+     */
+    public void registerDynamicCommandSource(String sourceName,
+            Supplier<List<Command>> commandSupplier) {
+        dynamicSources.put(sourceName, commandSupplier);
+        log.info("Registered dynamic command source: {}", sourceName);
+    }
+
+    /**
+     * 合并静态命令 + 动态命令源。
+     */
+    public List<Command> getVisibleCommandsWithDynamic() {
+        List<Command> all = new ArrayList<>(getVisibleCommands());
+        dynamicSources.values().forEach(supplier -> {
+            try { all.addAll(supplier.get()); }
+            catch (Exception e) { log.warn("动态命令源加载失败", e); }
+        });
+        return all;
     }
 
     /**

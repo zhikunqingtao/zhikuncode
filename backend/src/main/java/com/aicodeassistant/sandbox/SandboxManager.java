@@ -33,6 +33,7 @@ public class SandboxManager {
 
     private final SandboxConfig config;
     private volatile Boolean dockerAvailable = null;
+    private volatile boolean dockerUnavailableWarned = false;
 
     public SandboxManager(SandboxConfig config) {
         this.config = config;
@@ -44,6 +45,13 @@ public class SandboxManager {
      * 条件: 配置启用 + Docker 可用
      */
     public boolean isSandboxingEnabled() {
+        if (config.isEnabled() && !isDockerAvailable()) {
+            if (!dockerUnavailableWarned) {
+                dockerUnavailableWarned = true;
+                log.warn("Sandbox enabled in config but Docker is unavailable — running WITHOUT sandbox isolation");
+            }
+            return false;
+        }
         return config.isEnabled() && isDockerAvailable();
     }
 

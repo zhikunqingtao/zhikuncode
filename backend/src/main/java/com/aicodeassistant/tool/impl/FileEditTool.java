@@ -109,6 +109,11 @@ public class FileEditTool implements Tool {
     }
 
     @Override
+    public String getPath(ToolInput input) {
+        return input.has("file_path") ? input.getString("file_path") : null;
+    }
+
+    @Override
     public ToolResult call(ToolInput input, ToolUseContext context) {
         Path resolved = pathSecurity.resolvePath(input.getString("file_path"), context.workingDirectory());
         String filePath = resolved.toString();
@@ -165,7 +170,7 @@ public class FileEditTool implements Tool {
             String fileContent = Files.readString(path, StandardCharsets.UTF_8);
 
             // ── 新增: 编辑前保存快照 ──
-            fileHistoryService.trackEdit(filePath, context.sessionId(), context.toolUseId());
+            fileHistoryService.trackEdit(filePath, context.sessionId(), context.toolUseId(), "edit");
 
             // 4. 查找 old_string (3 策略 fuzzy matching)
             String actualOldString = findActualString(fileContent, oldString);

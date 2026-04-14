@@ -1,5 +1,6 @@
 package com.aicodeassistant.tool.task;
 
+import com.aicodeassistant.model.TaskStatus;
 import com.aicodeassistant.tool.*;
 import org.springframework.stereotype.Component;
 

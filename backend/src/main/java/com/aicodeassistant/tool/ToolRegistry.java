@@ -158,7 +158,8 @@ public class ToolRegistry {
 
     /** 子代理禁用的工具名集合 */
     private static final Set<String> SUB_AGENT_DENIED_TOOLS = Set.of(
-            "Agent", "TeamCreate", "TeamDelete", "TaskCreate"
+            "Agent", "TeamCreate", "TeamDelete", "TaskCreate",
+            "VerifyPlanExecution"  // 计划验证仅主代理可用
     );
 
     /**

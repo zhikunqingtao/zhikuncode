@@ -61,9 +61,9 @@ class SystemPromptBuilderTest {
 
         // Then
         assertNotNull(prompt);
-        assertTrue(prompt.contains("Claude"));
-        assertTrue(prompt.contains("SYSTEM RULES"));
-        assertTrue(prompt.contains("TASK EXECUTION"));
+        assertTrue(prompt.contains("interactive AI coding assistant"));
+        assertTrue(prompt.contains("# System"));
+        assertTrue(prompt.contains("# Doing tasks"));
         assertTrue(prompt.contains("ENVIRONMENT:"));
         assertTrue(prompt.contains("gpt-4o"));
     }
@@ -78,13 +78,13 @@ class SystemPromptBuilderTest {
         String prompt = builder.buildDefaultSystemPrompt(tools, model);
 
         // Then - 验证所有静态段都存在
-        assertTrue(prompt.contains("Claude, an AI assistant"), "Intro section missing");
-        assertTrue(prompt.contains("SYSTEM RULES:"), "System section missing");
-        assertTrue(prompt.contains("TASK EXECUTION:"), "DoingTasks section missing");
-        assertTrue(prompt.contains("RISK CLASSIFICATION:"), "Actions section missing");
-        assertTrue(prompt.contains("TOOL USAGE:"), "UsingTools section missing");
-        assertTrue(prompt.contains("COMMUNICATION STYLE:"), "ToneStyle section missing");
-        assertTrue(prompt.contains("OUTPUT EFFICIENCY:"), "OutputEfficiency section missing");
+        assertTrue(prompt.contains("interactive AI coding assistant"), "Intro section missing");
+        assertTrue(prompt.contains("# System"), "System section missing");
+        assertTrue(prompt.contains("# Doing tasks"), "DoingTasks section missing");
+        assertTrue(prompt.contains("# Executing actions with care"), "Actions section missing");
+        assertTrue(prompt.contains("# Using your tools"), "UsingTools section missing");
+        assertTrue(prompt.contains("# Tone and style"), "ToneStyle section missing");
+        assertTrue(prompt.contains("# Communicating with the user"), "OutputEfficiency section missing");
     }
 
     @Test
@@ -137,7 +137,7 @@ class SystemPromptBuilderTest {
         String prompt = builder.buildDefaultSystemPrompt(tools, "gpt-4o");
 
         // Then
-        assertTrue(prompt.contains("SESSION GUIDANCE:"));
+        assertTrue(prompt.contains("# Session-specific guidance"));
         assertTrue(prompt.contains("Multi-agent"));
         assertTrue(prompt.contains("Task tracking"));
         assertTrue(prompt.contains("Web search"));
@@ -155,7 +155,7 @@ class SystemPromptBuilderTest {
         String prompt = builder.buildDefaultSystemPrompt(tools, model);
 
         // Then
-        assertTrue(prompt.contains("SCRATCHPAD:"));
+        assertTrue(prompt.contains("# Scratchpad Directory"));
         assertTrue(prompt.contains("scratchpad.md"));
     }
 
@@ -171,7 +171,7 @@ class SystemPromptBuilderTest {
         String prompt = builder.buildDefaultSystemPrompt(tools, model);
 
         // Then
-        assertFalse(prompt.contains("SCRATCHPAD:"));
+        assertFalse(prompt.contains("# Scratchpad Directory"));
     }
 
     @Test
@@ -246,10 +246,10 @@ class SystemPromptBuilderTest {
 
         // When
         String prompt = builder.buildSystemPrompt(tools, model, tempDir, List.of(), List.of(mockClient))
-                .stream().filter(s -> s.contains("MCP SERVERS")).findFirst().orElse("");
+                .stream().filter(s -> s.contains("MCP Server")).findFirst().orElse("");
 
         // Then
-        assertTrue(prompt.contains("MCP SERVERS:"));
+        assertTrue(prompt.contains("# MCP Server Instructions"));
         assertTrue(prompt.contains("filesystem"));
         assertTrue(prompt.contains("read_file"));
         assertTrue(prompt.contains("write_file"));

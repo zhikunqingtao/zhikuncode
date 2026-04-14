@@ -40,6 +40,9 @@ public class PermissionRuleRepository {
     private final Map<String, List<PermissionRule>> sessionAllowRules = new ConcurrentHashMap<>();
     private final Map<String, List<PermissionRule>> sessionDenyRules = new ConcurrentHashMap<>();
 
+    /** 规则 ID → 规则对象的反向映射，支持按 ID 查找和删除 */
+    private final Map<String, PermissionRule> ruleById = new ConcurrentHashMap<>();
+
     public PermissionRuleRepository(PolicySettingsSource policySettingsSource,
                                      PluginSettingsSource pluginSettingsSource) {
         this.policySettingsSource = policySettingsSource;
@@ -84,6 +87,54 @@ public class PermissionRuleRepository {
         askRules.computeIfAbsent(key, k -> new ArrayList<>()).add(rule);
         log.info("Added ask rule: tool={}, content={}, source={}", 
                 key, rule.ruleValue().ruleContent(), rule.source());
+    }
+
+    /**
+     * 添加规则并记录 ID 映射，支持后续按 ID 删除。
+     * 根据规则的 ruleBehavior 自动分发到 allow/deny/ask 存储。
+     */
+    public void addRuleWithId(String ruleId, PermissionRule rule) {
+        ruleById.put(ruleId, rule);
+        switch (rule.ruleBehavior()) {
+            case ALLOW -> addAllowRule(rule);
+            case DENY  -> addDenyRule(rule);
+            case ASK   -> addAskRule(rule);
+            default    -> log.warn("Unsupported behavior for rule {}: {}", ruleId, rule.ruleBehavior());
+        }
+        log.info("Added rule with ID: {} -> tool={}, behavior={}",
+                ruleId, rule.ruleValue().toolName(), rule.ruleBehavior());
+    }
+
+    /**
+     * 按 ID 删除规则。
+     * 同时从 ruleById 映射和对应的 allow/deny/ask 列表中移除。
+     */
+    public boolean removeRuleById(String ruleId) {
+        PermissionRule rule = ruleById.remove(ruleId);
+        if (rule == null) return false;
+
+        String toolName = rule.ruleValue().toolName();
+        boolean removed = switch (rule.ruleBehavior()) {
+            case ALLOW -> removeFromMap(allowRules, toolName, rule)
+                       || removeFromMap(sessionAllowRules, toolName, rule);
+            case DENY  -> removeFromMap(denyRules, toolName, rule)
+                       || removeFromMap(sessionDenyRules, toolName, rule);
+            case ASK   -> removeFromMap(askRules, toolName, rule);
+            default    -> false;
+        };
+        if (removed) {
+            log.info("Removed rule by ID: {} -> tool={}", ruleId, toolName);
+        }
+        return removed;
+    }
+
+    private boolean removeFromMap(Map<String, List<PermissionRule>> map,
+                                   String toolName, PermissionRule rule) {
+        List<PermissionRule> rules = map.get(toolName);
+        if (rules == null) return false;
+        boolean removed = rules.remove(rule);
+        if (rules.isEmpty()) map.remove(toolName);
+        return removed;
     }
 
     // ==================== 规则查询 ====================

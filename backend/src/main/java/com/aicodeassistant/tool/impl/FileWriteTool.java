@@ -87,6 +87,11 @@ public class FileWriteTool implements Tool {
     }
 
     @Override
+    public String getPath(ToolInput input) {
+        return input.has("file_path") ? input.getString("file_path") : null;
+    }
+
+    @Override
     public ToolResult call(ToolInput input, ToolUseContext context) {
         String filePath = resolvePath(input.getString("file_path"), context.workingDirectory());
         String content = input.getString("content");
@@ -103,7 +108,7 @@ public class FileWriteTool implements Tool {
 
             // ── 新增: 编辑前保存快照 ──
             if (!isCreate) {
-                fileHistoryService.trackEdit(filePath, context.sessionId(), context.toolUseId());
+                fileHistoryService.trackEdit(filePath, context.sessionId(), context.toolUseId(), "write");
             }
 
             String originalContent = !isCreate ? Files.readString(path, StandardCharsets.UTF_8) : null;

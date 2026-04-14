@@ -1,6 +1,7 @@
 package com.aicodeassistant.permission;
 
 import com.aicodeassistant.model.*;
+import com.aicodeassistant.security.PathSecurityService;
 import com.aicodeassistant.tool.Tool;
 import com.aicodeassistant.tool.ToolInput;
 import com.aicodeassistant.tool.ToolUseContext;
@@ -59,7 +60,8 @@ public class PermissionPipeline {
             "env", "xargs",
             "nice", "stdbuf", "nohup", "timeout", "time",
             "sudo", "doas", "pkexec",
-            "su"
+            "su",
+            "eval"  // eval 几乎总是危险的
     );
 
     /** 内容级危险模式 (即使 bypass 也强制 ask) */
@@ -72,7 +74,13 @@ public class PermissionPipeline {
             Pattern.compile(":\\(\\)\\{\\s*:\\|:&\\s*\\};:"),
             Pattern.compile("git\\s+push\\s+.*--force"),
             Pattern.compile("git\\s+(reset|clean)\\s+--hard"),
-            Pattern.compile("DROP\\s+(TABLE|DATABASE)", Pattern.CASE_INSENSITIVE)
+            Pattern.compile("DROP\\s+(TABLE|DATABASE)", Pattern.CASE_INSENSITIVE),
+            // eval/source/exec 危险函数绕过防护
+            Pattern.compile("\\beval\\s+"),
+            Pattern.compile("\\bsource\\s+"),
+            Pattern.compile("\\bexec\\s+"),
+            // sed -i 就地编辑
+            Pattern.compile("\\bsed\\s+(-[a-zA-Z]*i|-i[a-zA-Z]*)\\s+")
     );
 
     /** 异步权限等待 — toolUseId → CompletableFuture<PermissionDecision> */
@@ -84,17 +92,20 @@ public class PermissionPipeline {
     private final AutoModeClassifier autoModeClassifier;
     private final HookService hookService;
     private final SandboxManager sandboxManager;
+    private final PathSecurityService pathSecurityService;
 
     public PermissionPipeline(PermissionRuleMatcher ruleMatcher,
                               PermissionRuleRepository ruleRepository,
                               AutoModeClassifier autoModeClassifier,
                               HookService hookService,
-                              SandboxManager sandboxManager) {
+                              SandboxManager sandboxManager,
+                              PathSecurityService pathSecurityService) {
         this.ruleMatcher = ruleMatcher;
         this.ruleRepository = ruleRepository;
         this.autoModeClassifier = autoModeClassifier;
         this.hookService = hookService;
         this.sandboxManager = sandboxManager;
+        this.pathSecurityService = pathSecurityService;
     }
 
     /**
@@ -158,8 +169,39 @@ public class PermissionPipeline {
             return contentAskDecision;
         }
 
-        // ===== Step 1g: 安全检查（bypass 免疫） =====
+        // ===== Step 1f-pre: 提前获取 toolPath（后续多处复用） =====
         String toolPath = tool.getPath(input);
+
+        // ===== Step 1f-write: 写路径危险文件/目录检查 (Layer 2+3+5) =====
+        if (!tool.isReadOnly(input) && toolPath != null) {
+            PathSecurityService.PathCheckResult writeCheck =
+                    pathSecurityService.checkWritePermission(toolPath, context.workingDirectory());
+            if (!writeCheck.isAllowed() && !writeCheck.needsConfirmation()) {
+                return PermissionDecision.denyByMode(writeCheck.message());
+            }
+            if (writeCheck.needsConfirmation()) {
+                return PermissionDecision.ask(writeCheck.message());
+            }
+        }
+
+        // ===== Step 1f-bash: Bash 命令危险删除 + 环境变量检查 (Layer 4+7) =====
+        if ("Bash".equals(tool.getName())) {
+            String command = input.getString("command");
+            String rmBlock = pathSecurityService.checkDangerousRemoval(command);
+            if (rmBlock != null) {
+                return PermissionDecision.denyByMode(rmBlock);
+            }
+            String envBlock = pathSecurityService.checkEnvVarAccess(command);
+            if (envBlock != null) {
+                if (envBlock.startsWith("ASK:")) {
+                    return PermissionDecision.ask(envBlock.substring(4).trim());
+                }
+                return PermissionDecision.denyByMode(envBlock);
+            }
+        }
+
+        // ===== Step 1g: 安全检查（bypass 免疫） =====
+        toolPath = tool.getPath(input);
         if (toolPath != null && isProtectedPath(toolPath)) {
             log.debug("Step 1g: protected path detected for tool={}, path={}", 
                     tool.getName(), toolPath);

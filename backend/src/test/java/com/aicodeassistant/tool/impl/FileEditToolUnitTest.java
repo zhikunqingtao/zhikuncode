@@ -76,7 +76,7 @@ class FileEditToolUnitTest {
         when(sessionManager.getFileStateCache(anyString())).thenReturn(fileStateCache);
 
         // Mock FileHistoryService — trackEdit 默认无操作（仅 FileEditTool 需要）
-        doNothing().when(fileHistoryService).trackEdit(anyString(), anyString(), any());
+        doNothing().when(fileHistoryService).trackEdit(anyString(), anyString(), any(), anyString());
 
         // 使用 mock 依赖构造工具实例（完整 3 参数构造函数）
         fileEditTool = new FileEditTool(fileHistoryService, pathSecurityService, sessionManager);

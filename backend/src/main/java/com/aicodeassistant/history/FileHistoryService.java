@@ -173,8 +173,13 @@ public class FileHistoryService {
     /**
      * 编辑前保存文件快照 — 在 FileWrite/FileEdit 执行前调用。
      * 仅在文件已存在时保存（新建文件无需快照）。
+     *
+     * @param filePath  文件路径
+     * @param sessionId 会话 ID
+     * @param messageId 消息 ID
+     * @param operation 操作类型（如 "write"、"edit"、"rewind"）
      */
-    public void trackEdit(String filePath, String sessionId, String messageId) {
+    public void trackEdit(String filePath, String sessionId, String messageId, String operation) {
         try {
             Path path = Path.of(filePath);
             if (Files.exists(path) && Files.isRegularFile(path)) {
@@ -191,6 +196,7 @@ public class FileHistoryService {
                         messageId,
                         filePath,
                         content,
+                        operation,
                         Instant.now().toString()
                 );
                 snapshotRepository.save(snapshot);
@@ -269,7 +275,7 @@ public class FileHistoryService {
 
                 // 安全措施：恢复前对当前文件做二次快照
                 if (Files.exists(targetPath) && Files.isRegularFile(targetPath)) {
-                    trackEdit(snapshot.filePath(), sessionId, rewindMessageId);
+                    trackEdit(snapshot.filePath(), sessionId, rewindMessageId, "rewind");
                 }
 
                 // 原子写入：临时文件 + move

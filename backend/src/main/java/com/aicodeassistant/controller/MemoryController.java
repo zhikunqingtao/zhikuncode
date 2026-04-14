@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -69,6 +70,36 @@ public class MemoryController {
         }
         log.info("Updated {} memory entries", request.entries().size());
         return ResponseEntity.ok(Map.of("success", true));
+    }
+
+    /** 创建单条记忆 */
+    @PostMapping
+    public ResponseEntity<Map<String, Object>> createMemory(@RequestBody MemoryEntry entry) {
+        String id = entry.id() != null ? entry.id() : UUID.randomUUID().toString();
+        String now = Instant.now().toString();
+
+        globalJdbcTemplate.update(
+                "INSERT INTO memories (id, category, title, content, keywords, scope, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                id, entry.category(), entry.title(), entry.content(),
+                entry.keywords(), entry.scope() != null ? entry.scope() : "global",
+                now, now);
+
+        log.info("Created memory entry: id={}", id);
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
+                "success", true,
+                "id", id));
+    }
+
+    /** 删除单条记忆 */
+    @DeleteMapping("/{memoryId}")
+    public ResponseEntity<Void> deleteMemory(@PathVariable String memoryId) {
+        int deleted = globalJdbcTemplate.update(
+                "DELETE FROM memories WHERE id = ?", memoryId);
+        if (deleted > 0) {
+            log.info("Deleted memory entry: id={}", memoryId);
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.notFound().build();
     }
 
     // ═══ DTO Records ═══
