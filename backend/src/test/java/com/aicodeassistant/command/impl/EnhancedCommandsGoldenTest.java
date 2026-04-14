@@ -1,6 +1,9 @@
 package com.aicodeassistant.command.impl;
 
 import com.aicodeassistant.command.*;
+import com.aicodeassistant.model.Usage;
+import com.aicodeassistant.session.SessionData;
+import com.aicodeassistant.session.SessionManager;
 import com.aicodeassistant.state.AppState;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -8,10 +11,15 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * 增强命令 (59个) 黄金测试 — 覆盖 §4.2 所有增强命令。
@@ -68,7 +76,7 @@ class EnhancedCommandsGoldenTest {
                 acct.usageCommand(), acct.extraUsageCommand(), acct.rateLimitOptionsCommand(),
                 acct.upgradeCommand(), acct.versionCommand(),
                 // Info (11)
-                info.feedbackCommand(), info.statusCommand(), info.statsCommand(),
+                info.feedbackCommand(), createStatusCommand(), info.statsCommand(),
                 info.stickersCommand(), info.releaseNotesCommand(), info.advisorCommand(),
                 info.btwCommand(), info.statuslineCommand(), info.privacySettingsCommand(),
                 info.sandboxToggleCommand(), info.heapdumpCommand(),
@@ -81,6 +89,20 @@ class EnhancedCommandsGoldenTest {
         registry = new CommandRegistry(commands);
         defaultContext = CommandContext.of("test-session", "/tmp/workspace", "claude-3.5-sonnet",
                 AppState.defaultState());
+    }
+
+    /**
+     * 创建带 mock SessionManager 的 StatusCommand，模拟真实的会话加载行为。
+     */
+    private StatusCommand createStatusCommand() {
+        SessionManager mockSessionManager = mock(SessionManager.class);
+        SessionData mockSession = mock(SessionData.class);
+        when(mockSession.messages()).thenReturn(Collections.emptyList());
+        when(mockSession.totalUsage()).thenReturn(Usage.zero());
+        when(mockSession.workingDir()).thenReturn("/tmp/workspace");
+        when(mockSession.model()).thenReturn("claude-3.5-sonnet");
+        when(mockSessionManager.loadSession(anyString())).thenReturn(Optional.of(mockSession));
+        return new StatusCommand(mockSessionManager);
     }
 
     // ===== 1. 命令注册与发现 =====
@@ -401,8 +423,9 @@ class EnhancedCommandsGoldenTest {
         void systemStatus() {
             Command cmd = registry.getCommand("status");
             CommandResult result = cmd.execute("", defaultContext);
-            assertTrue(result.value().contains("claude-3.5-sonnet"));
-            assertTrue(result.value().contains("Authenticated:"));
+            assertTrue(result.value().contains("系统状态"));
+            assertTrue(result.value().contains("会话 ID: test-session"));
+            assertTrue(result.value().contains("当前模型: claude-3.5-sonnet"));
         }
 
         @Test

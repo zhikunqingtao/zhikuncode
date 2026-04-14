@@ -37,23 +37,7 @@ public class InfoHelpCommands {
         };
     }
 
-    @Bean
-    Command statusCommand() {
-        return new Command() {
-            @Override public String getName() { return "status"; }
-            @Override public String getDescription() { return "系统状态（模型/权限/MCP 连接）"; }
-            @Override public CommandType getType() { return CommandType.LOCAL; }
-            @Override
-            public CommandResult execute(String args, CommandContext context) {
-                return CommandResult.text("System status:\n" +
-                        "  Model: " + context.currentModel() + "\n" +
-                        "  Authenticated: " + context.isAuthenticated() + "\n" +
-                        "  Remote mode: " + context.isRemoteMode() + "\n" +
-                        "  Bridge mode: " + context.isBridgeMode() + "\n" +
-                        "  MCP connections: (P1 — integrate with McpClientManager)");
-            }
-        };
-    }
+    // statusCommand 已由独立的 StatusCommand.java (@Component) 提供，此处移除以避免 Bean 名称冲突
 
     @Bean
     Command statsCommand() {
