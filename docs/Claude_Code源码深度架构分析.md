@@ -595,3 +595,22 @@ src/state/ 实现了一个轻量级的状态管理系统。AppState 使用 DeepI
 | MCP 配置 | src/services/mcp/config.ts | 1,578 |
 | 全局状态 | src/bootstrap/state.ts | ~800 |
 | 应用状态 | src/state/AppStateStore.ts | ~400 |
+
+---
+
+## 附录：ZhikuCode 敏感数据过滤器（SensitiveDataFilter）
+
+`SensitiveDataFilter.java` 支持 **10 种**敏感信息模式检测与自动脱敏（`***REDACTED***`）：
+
+| # | 模式 | 正则描述 | 示例 |
+|---|------|----------|------|
+| 1 | OpenAI API Key | `sk-[a-zA-Z0-9]{20,}` | `sk-abc123...` |
+| 2 | AWS Access Key ID | `AKIA[0-9A-Z]{16}` | `AKIAIOSFODNN7EXAMPLE` |
+| 3 | GitHub Personal Access Token | `ghp_[a-zA-Z0-9]{36}` | `ghp_xxxx...` |
+| 4 | GitLab Personal Access Token | `glpat-[a-zA-Z0-9_-]{20,}` | `glpat-xxxx...` |
+| 5 | Anthropic API Key | `sk-ant-[a-zA-Z0-9_-]{20,}` | `sk-ant-xxxx...` |
+| 6 | Slack Token | `xox[bpsar]-[a-zA-Z0-9-]{10,}` | `xoxb-xxxx...` |
+| 7 | 通用凭证（key=value） | `api_key\|secret\|password\|token\|auth\|credential` | `api_key=xxx` |
+| 8 | JWT Token | `eyJ...` 三段式 | `eyJhbGciOi...` |
+| 9 | PEM 私钥头 | `-----BEGIN ... PRIVATE KEY-----` | RSA/EC/DSA/OPENSSH |
+| 10 | 数据库连接串 | `mongodb\|postgres\|mysql\|redis://...` | `postgres://user:pass@host` |

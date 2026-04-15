@@ -2,6 +2,7 @@ package com.aicodeassistant.prompt;
 
 import com.aicodeassistant.config.FeatureFlagService;
 import com.aicodeassistant.coordinator.CoordinatorPromptBuilder;
+import com.aicodeassistant.coordinator.CoordinatorService;
 import com.aicodeassistant.tool.Tool;
 import com.aicodeassistant.tool.agent.SubAgentExecutor;
 import org.slf4j.Logger;
@@ -45,13 +46,16 @@ public class EffectiveSystemPromptBuilder {
     private final SystemPromptBuilder systemPromptBuilder;
     private final FeatureFlagService featureFlags;
     private final CoordinatorPromptBuilder coordinatorPromptBuilder;
+    private final CoordinatorService coordinatorService;
 
     public EffectiveSystemPromptBuilder(SystemPromptBuilder systemPromptBuilder,
                                         FeatureFlagService featureFlags,
-                                        CoordinatorPromptBuilder coordinatorPromptBuilder) {
+                                        CoordinatorPromptBuilder coordinatorPromptBuilder,
+                                        CoordinatorService coordinatorService) {
         this.systemPromptBuilder = systemPromptBuilder;
         this.featureFlags = featureFlags;
         this.coordinatorPromptBuilder = coordinatorPromptBuilder;
+        this.coordinatorService = coordinatorService;
     }
 
     /**
@@ -100,7 +104,10 @@ public class EffectiveSystemPromptBuilder {
         }
 
         // 优先级 1: Coordinator 模式
-        if (featureFlags.isEnabled("COORDINATOR_MODE")) {
+        // 对齐原版: 必须同时满足 feature flag + 环境变量 CLAUDE_CODE_COORDINATOR_MODE
+        // 且当前无 Agent 定义时才激活 Coordinator 模式
+        // ERR-2 fix: 使用语义化方法，消除内联条件组合
+        if (coordinatorService.isCoordinatorTopLevel(config.getAgentDefinition())) {
             String coordinatorPrompt = config.getCoordinatorPrompt();
             if (coordinatorPrompt == null && coordinatorPromptBuilder != null) {
                 coordinatorPrompt = coordinatorPromptBuilder.buildCoordinatorPrompt(

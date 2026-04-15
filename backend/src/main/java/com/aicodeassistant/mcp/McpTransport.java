@@ -38,6 +38,14 @@ public interface McpTransport extends AutoCloseable {
     /** 发送 JSON-RPC 通知 — 不期望响应 */
     void sendNotification(String method, Object params);
 
+    /**
+     * 健康探测 — 子类可覆盖以提供传输层特定的健康检测。
+     * 默认返回连接状态。
+     */
+    default boolean sendHealthPing() {
+        return isConnected();
+    }
+
     /** 连接是否存活 */
     boolean isConnected();
 

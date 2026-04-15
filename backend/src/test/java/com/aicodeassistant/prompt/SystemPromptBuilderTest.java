@@ -4,8 +4,11 @@ import com.aicodeassistant.config.ClaudeMdLoader;
 import com.aicodeassistant.config.FeatureFlagService;
 import com.aicodeassistant.context.ProjectContextService;
 import com.aicodeassistant.engine.ToolResultSummarizer;
+import com.aicodeassistant.mcp.McpConnectionStatus;
 import com.aicodeassistant.mcp.McpServerConnection;
 import com.aicodeassistant.service.GitService;
+import com.aicodeassistant.state.AppState;
+import com.aicodeassistant.state.AppStateStore;
 import com.aicodeassistant.tool.Tool;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -64,7 +67,7 @@ class SystemPromptBuilderTest {
         assertTrue(prompt.contains("interactive AI coding assistant"));
         assertTrue(prompt.contains("# System"));
         assertTrue(prompt.contains("# Doing tasks"));
-        assertTrue(prompt.contains("ENVIRONMENT:"));
+        assertTrue(prompt.contains("# Environment"));
         assertTrue(prompt.contains("gpt-4o"));
     }
 
@@ -84,7 +87,8 @@ class SystemPromptBuilderTest {
         assertTrue(prompt.contains("# Executing actions with care"), "Actions section missing");
         assertTrue(prompt.contains("# Using your tools"), "UsingTools section missing");
         assertTrue(prompt.contains("# Tone and style"), "ToneStyle section missing");
-        assertTrue(prompt.contains("# Communicating with the user"), "OutputEfficiency section missing");
+        // 外部用户使用 "# Output efficiency" 段落
+        assertTrue(prompt.contains("# Output efficiency"), "OutputEfficiency section missing");
     }
 
     @Test
@@ -98,11 +102,10 @@ class SystemPromptBuilderTest {
         // When
         String prompt = builder.buildDefaultSystemPrompt(tools, model);
 
-        // Then
-        assertTrue(prompt.contains("ENVIRONMENT:"));
-        assertTrue(prompt.contains("feature-branch (+2~3)"));
+        // Then - computeEnvInfo 使用 "# Environment" 格式
+        assertTrue(prompt.contains("# Environment"));
         assertTrue(prompt.contains("claude-sonnet-4"));
-        assertTrue(prompt.contains("OS:"));
+        assertTrue(prompt.contains("Platform:"));
         assertTrue(prompt.contains("Shell:"));
     }
 
@@ -127,25 +130,34 @@ class SystemPromptBuilderTest {
 
     @Test
     void testDynamicSections_SessionGuidance() {
-        // Given
-        Tool agentTool = createMockTool("Agent");
-        Tool todoTool = createMockTool("TodoWrite");
-        Tool webSearchTool = createMockTool("WebSearch");
-        List<Tool> tools = List.of(agentTool, todoTool, webSearchTool);
+        // Given - 使用实际的工具名称以触发 session guidance 条件分支
+        Tool agentTool = createMockTool("AgentTool");
+        Tool askTool = createMockTool("AskUserQuestion");
+        Tool skillTool = createMockTool("SkillTool");
+        List<Tool> tools = List.of(agentTool, askTool, skillTool);
 
         // When
         String prompt = builder.buildDefaultSystemPrompt(tools, "gpt-4o");
 
-        // Then
+        // Then - session guidance 始终包含基础条目，工具匹配时包含对应指导
         assertTrue(prompt.contains("# Session-specific guidance"));
-        assertTrue(prompt.contains("Multi-agent"));
-        assertTrue(prompt.contains("Task tracking"));
-        assertTrue(prompt.contains("Web search"));
+        assertTrue(prompt.contains("AgentTool"));
+        assertTrue(prompt.contains("AskUserQuestion"));
+        assertTrue(prompt.contains("SkillTool"));
     }
 
     @Test
     void testDynamicSections_Scratchpad_WhenEnabled() {
-        // Given
+        // Given - 需要 appStateStore 返回有效的 workingDirectory
+        when(featureFlags.isEnabled("SCRATCHPAD")).thenReturn(true);
+        AppStateStore appStateStore = mock(AppStateStore.class);
+        AppState appState = AppState.defaultState()
+                .withSession(s -> s.withWorkingDirectory(tempDir.toString()));
+        when(appStateStore.getState()).thenReturn(appState);
+        // 重新创建 builder，包含 appStateStore
+        builder = new SystemPromptBuilder(claudeMdLoader, featureFlags, gitService, null, appStateStore, projectContextService, null);
+        when(gitService.getGitStatus(any(Path.class))).thenReturn("main (clean)");
+        when(featureFlags.isEnabled(anyString())).thenReturn(false);
         when(featureFlags.isEnabled("SCRATCHPAD")).thenReturn(true);
 
         List<Tool> tools = List.of();
@@ -156,7 +168,7 @@ class SystemPromptBuilderTest {
 
         // Then
         assertTrue(prompt.contains("# Scratchpad Directory"));
-        assertTrue(prompt.contains("scratchpad.md"));
+        assertTrue(prompt.contains(".scratchpad"));
     }
 
     @Test
@@ -176,7 +188,11 @@ class SystemPromptBuilderTest {
 
     @Test
     void testFrcSection_ForHaikuModel() {
-        // Given
+        // Given - FRC 段需要 CACHED_MICROCOMPACT 特性标记和模型匹配
+        when(featureFlags.isEnabled("CACHED_MICROCOMPACT")).thenReturn(true);
+        when(featureFlags.getFeatureValue(eq("FRC_SUPPORTED_MODELS"), anyString())).thenReturn("haiku,sonnet");
+        when(featureFlags.getFeatureValue(eq("FRC_KEEP_RECENT"), anyInt())).thenReturn(3);
+
         List<Tool> tools = List.of();
         String model = "claude-3-5-haiku";
 
@@ -184,8 +200,8 @@ class SystemPromptBuilderTest {
         String prompt = builder.buildDefaultSystemPrompt(tools, model);
 
         // Then
-        assertTrue(prompt.contains("function results"));
-        assertTrue(prompt.contains("relevant information"));
+        assertTrue(prompt.contains("Function Result Clearing"));
+        assertTrue(prompt.contains("most recent results"));
     }
 
     @Test
@@ -233,9 +249,10 @@ class SystemPromptBuilderTest {
 
     @Test
     void testMcpInstructions_WithMcpClients() {
-        // Given
+        // Given - MCP 指令段要求连接状态为 CONNECTED
         McpServerConnection mockClient = mock(McpServerConnection.class);
         when(mockClient.getName()).thenReturn("filesystem");
+        when(mockClient.getStatus()).thenReturn(McpConnectionStatus.CONNECTED);
         when(mockClient.getTools()).thenReturn(List.of(
                 new McpServerConnection.McpToolDefinition("read_file", "Read a file", Map.of()),
                 new McpServerConnection.McpToolDefinition("write_file", "Write a file", Map.of())
@@ -271,19 +288,17 @@ class SystemPromptBuilderTest {
 
     @Test
     void testToolListSorting() {
-        // Given - 工具按名称字母序排列
-        Tool toolZ = createMockTool("ZooTool");
-        Tool toolA = createMockTool("AlphaTool");
-        Tool toolM = createMockTool("MiddleTool");
-        List<Tool> tools = List.of(toolZ, toolA, toolM);
+        // Given - 工具名称出现在条件段落中（enabledTools 集合用于条件判断）
+        Tool toolAgent = createMockTool("AgentTool");
+        Tool toolAsk = createMockTool("AskUserQuestion");
+        List<Tool> tools = List.of(toolAgent, toolAsk);
 
         // When
         String prompt = builder.buildDefaultSystemPrompt(tools, "gpt-4o");
 
-        // Then - 验证工具列表存在（实际排序在输出中验证）
-        assertTrue(prompt.contains("AlphaTool"));
-        assertTrue(prompt.contains("MiddleTool"));
-        assertTrue(prompt.contains("ZooTool"));
+        // Then - enabledTools 用于 session guidance 条件分支，工具名称出现在指导文本中
+        assertTrue(prompt.contains("AgentTool"), "AgentTool should appear in session guidance");
+        assertTrue(prompt.contains("AskUserQuestion"), "AskUserQuestion should appear in session guidance");
     }
 
     // ===== Helper Methods =====

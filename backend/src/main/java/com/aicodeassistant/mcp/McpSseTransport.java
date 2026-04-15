@@ -39,6 +39,7 @@ public class McpSseTransport implements McpTransport {
     private volatile EventSource eventSource;
     private volatile String sessionEndpoint;
     private Consumer<JsonNode> notificationHandler;
+    private volatile Runnable disconnectCallback;
 
     private static final long DEFAULT_TIMEOUT_MS = 30_000;
 
@@ -60,7 +61,8 @@ public class McpSseTransport implements McpTransport {
     public McpSseTransport(String baseUrl) {
         this(baseUrl, new OkHttpClient.Builder()
                 .connectTimeout(Duration.ofSeconds(10))
-                .readTimeout(Duration.ZERO)
+                // ERR-3 fix: 90s readTimeout（3倍心跳间隔）替代 Duration.ZERO，兼顾 SSE 长连接和死连接检测
+                .readTimeout(Duration.ofSeconds(90))
                 .writeTimeout(Duration.ofSeconds(10))
                 .build());
     }
@@ -70,6 +72,14 @@ public class McpSseTransport implements McpTransport {
      */
     public void setNotificationHandler(Consumer<JsonNode> handler) {
         this.notificationHandler = handler;
+    }
+
+    /**
+     * 设置断连回调 — 外部连接管理器用于触发重连。
+     * ERR-3 fix: SSE 连接断开时通知 McpClientManager 执行重连。
+     */
+    public void setDisconnectCallback(Runnable callback) {
+        this.disconnectCallback = callback;
     }
 
     /**
@@ -102,6 +112,10 @@ public class McpSseTransport implements McpTransport {
                 if (!connectFuture.isDone()) {
                     connectFuture.completeExceptionally(
                             t != null ? t : new IOException("SSE connection failed"));
+                }
+                // ERR-3 fix: 通知外部连接管理器触发重连
+                if (disconnectCallback != null) {
+                    disconnectCallback.run();
                 }
             }
 
@@ -199,6 +213,37 @@ public class McpSseTransport implements McpTransport {
     }
 
     /**
+     * 健康探测 — 发送 ping 通知并返回连接是否正常。
+     * 与 sendNotification 不同：HTTP 非 2xx 或网络异常时返回 false。
+     */
+    @Override
+    public boolean sendHealthPing() {
+        if (!connected.get()) return false;
+        try {
+            JsonRpcMessage.Notification notification =
+                    new JsonRpcMessage.Notification("notifications/ping", null);
+            String json = objectMapper.writeValueAsString(notification);
+            String targetUrl = sessionEndpoint != null ? sessionEndpoint : postUrl;
+            RequestBody body = RequestBody.create(json, MediaType.parse("application/json"));
+            Request request = new Request.Builder()
+                    .url(targetUrl)
+                    .post(body)
+                    .build();
+
+            try (Response response = httpClient.newCall(request).execute()) {
+                if (!response.isSuccessful()) {
+                    log.warn("Health ping failed: HTTP {}", response.code());
+                    return false;
+                }
+                return true;
+            }
+        } catch (Exception e) {
+            log.warn("Health ping exception: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    /**
      * 处理 SSE 事件。
      */
     private void handleSseEvent(String type, String data, CompletableFuture<Void> connectFuture) {
@@ -259,5 +304,19 @@ public class McpSseTransport implements McpTransport {
                 future.completeExceptionally(new McpProtocolException(
                         new JsonRpcError(JsonRpcError.INTERNAL_ERROR, "Transport closed"))));
         pendingRequests.clear();
+
+        // ERR-1 fix: 关闭 OkHttpClient 资源，防止非守护线程阻止 JVM 退出
+        if (httpClient != null) {
+            httpClient.dispatcher().executorService().shutdown();
+            httpClient.connectionPool().evictAll();
+            if (httpClient.cache() != null) {
+                try {
+                    httpClient.cache().close();
+                } catch (IOException e) {
+                    log.warn("Failed to close OkHttpClient cache: {}", e.getMessage());
+                }
+            }
+        }
+        log.debug("McpSseTransport closed: SSE={}, pending requests cleared, httpClient resources released", sseUrl);
     }
 }

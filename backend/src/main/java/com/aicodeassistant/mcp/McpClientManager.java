@@ -13,6 +13,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 import org.springframework.core.env.Environment;
 
@@ -446,6 +447,18 @@ public class McpClientManager implements SmartLifecycle {
             conn.incrementReconnectAttempts();
             log.warn("Reconnect failed for {}: {}", serverId, e.getMessage());
         }
+    }
+
+    /**
+     * ERR-3 fix: 调度指定连接的异步重连（健康检查失败时调用）。
+     * 由 SseHealthChecker 主动 ping 失败时触发。
+     */
+    public void scheduleReconnect(String connectionName) {
+        getConnection(connectionName).ifPresent(conn -> {
+            conn.setStatus(McpConnectionStatus.DEGRADED);
+            // 使用已有的 attemptReconnect 基础设施异步执行
+            CompletableFuture.runAsync(() -> attemptReconnect(connectionName, conn));
+        });
     }
 
     /** 连接数量（测试用） */

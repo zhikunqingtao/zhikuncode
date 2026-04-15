@@ -1,6 +1,7 @@
 package com.aicodeassistant.prompt;
 
 import com.aicodeassistant.config.FeatureFlagService;
+import com.aicodeassistant.coordinator.CoordinatorService;
 import com.aicodeassistant.tool.Tool;
 import com.aicodeassistant.tool.agent.SubAgentExecutor;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,18 +23,22 @@ class EffectiveSystemPromptBuilderTest {
 
     private SystemPromptBuilder systemPromptBuilder;
     private FeatureFlagService featureFlags;
+    private CoordinatorService coordinatorService;
     private EffectiveSystemPromptBuilder effectiveBuilder;
 
     @BeforeEach
     void setUp() {
         systemPromptBuilder = mock(SystemPromptBuilder.class);
         featureFlags = mock(FeatureFlagService.class);
-        effectiveBuilder = new EffectiveSystemPromptBuilder(systemPromptBuilder, featureFlags, null);
+        coordinatorService = mock(CoordinatorService.class);
+        effectiveBuilder = new EffectiveSystemPromptBuilder(
+                systemPromptBuilder, featureFlags, null, coordinatorService);
 
         // 默认 mock 行为
         when(systemPromptBuilder.buildDefaultSystemPrompt(anyList(), anyString()))
                 .thenReturn("DEFAULT_SYSTEM_PROMPT");
         when(featureFlags.isEnabled(anyString())).thenReturn(false);
+        when(coordinatorService.isCoordinatorMode()).thenReturn(false);
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -82,8 +87,8 @@ class EffectiveSystemPromptBuilderTest {
 
     @Test
     void testPriority1_CoordinatorMode_WhenEnabled() {
-        // Given
-        when(featureFlags.isEnabled("COORDINATOR_MODE")).thenReturn(true);
+        // Given — coordinatorService.isCoordinatorMode() returns true
+        when(coordinatorService.isCoordinatorMode()).thenReturn(true);
 
         SystemPromptConfig config = SystemPromptConfig.defaults()
                 .withCoordinator("COORDINATOR_PROMPT")
@@ -101,8 +106,8 @@ class EffectiveSystemPromptBuilderTest {
 
     @Test
     void testPriority1_CoordinatorMode_WhenDisabled() {
-        // Given
-        when(featureFlags.isEnabled("COORDINATOR_MODE")).thenReturn(false);
+        // Given — coordinatorService.isCoordinatorMode() returns false
+        when(coordinatorService.isCoordinatorMode()).thenReturn(false);
 
         SystemPromptConfig config = SystemPromptConfig.defaults()
                 .withCoordinator("COORDINATOR_PROMPT")
@@ -121,7 +126,7 @@ class EffectiveSystemPromptBuilderTest {
     @Test
     void testPriority1_CoordinatorWithAppend() {
         // Given
-        when(featureFlags.isEnabled("COORDINATOR_MODE")).thenReturn(true);
+        when(coordinatorService.isCoordinatorMode()).thenReturn(true);
 
         SystemPromptConfig config = SystemPromptConfig.defaults()
                 .withCoordinator("COORDINATOR_PROMPT")
@@ -355,8 +360,8 @@ class EffectiveSystemPromptBuilderTest {
 
     @Test
     void testCoordinatorNullWhenEnabled() {
-        // Given - Coordinator 启用但 prompt 为 null
-        when(featureFlags.isEnabled("COORDINATOR_MODE")).thenReturn(true);
+        // Given - Coordinator 启用但 prompt 为 null，且无 CoordinatorPromptBuilder
+        when(coordinatorService.isCoordinatorMode()).thenReturn(true);
 
         SystemPromptConfig config = SystemPromptConfig.defaults()
                 .withCoordinator(null)

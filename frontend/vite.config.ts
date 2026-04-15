@@ -39,11 +39,7 @@ export default defineConfig(({ mode }) => {
                     target: env.VITE_API_URL || 'http://localhost:8080',
                     changeOrigin: true,
                     secure: false,
-                },
-                '/ws/**': {
-                    target: env.VITE_API_URL || 'http://localhost:8080',
-                    changeOrigin: true,
-                    secure: false,
+                    ws: true,  // 启用 WebSocket 升级代理，SockJS 原生 WS 传输需要
                 },
             },
         },

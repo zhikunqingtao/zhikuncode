@@ -54,12 +54,12 @@ class AliyunIntegrationTest {
 
     @Test
     void testModelCapabilities() {
-        ModelCapabilities caps = provider.getModelCapabilities("qwen3.6-plus");
-        assertNotNull(caps);
-        assertEquals("qwen3.6-plus", caps.modelId());
-        assertTrue(caps.supportsStreaming());
-        assertTrue(caps.supportsToolUse());
-        assertEquals(131072, caps.contextWindow());
+        // qwen3.6-plus 已迁移至 ModelRegistry.BUILTIN_MODELS，
+        // OpenAiCompatibleProvider.getModelCapabilities 不再直接包含它，
+        // 验证抛出预期的 IllegalArgumentException
+        assertThrows(IllegalArgumentException.class,
+                () -> provider.getModelCapabilities("qwen3.6-plus"),
+                "qwen3.6-plus should not be in provider MODEL_CAPABILITIES");
     }
 
     @Test
@@ -210,14 +210,19 @@ class AliyunIntegrationTest {
 
     @Test
     void testMultipleModelsSupport() {
-        // 验证所有配置的模型都有能力定义
-        List<String> models = List.of("qwen3.6-plus", "qwen-max", "qwen-plus", "qwen-turbo");
-
-        for (String model : models) {
-            ModelCapabilities caps = provider.getModelCapabilities(model);
-            assertNotNull(caps, "Model " + model + " should have capabilities defined");
-            assertTrue(caps.supportsStreaming(), model + " should support streaming");
-            System.out.println("✅ 模型 " + model + " 能力: context=" + caps.contextWindow() + ", toolUse=" + caps.supportsToolUse());
+        // qwen 模型已迁移至 ModelRegistry.BUILTIN_MODELS，
+        // OpenAiCompatibleProvider 仅保留 OpenAI/DeepSeek/qwen-coder-plus 模型。
+        // 验证 provider 的 supportedModels 列表配置正确
+        List<String> configuredModels = List.of("qwen3.6-plus", "qwen-max", "qwen-plus", "qwen-turbo");
+        for (String model : configuredModels) {
+            assertTrue(provider.getSupportedModels().contains(model),
+                    "Provider should list " + model + " in supported models");
+        }
+        // 验证这些模型的 capabilities 抱出异常（已迁移至 ModelRegistry）
+        for (String model : configuredModels) {
+            assertThrows(IllegalArgumentException.class,
+                    () -> provider.getModelCapabilities(model),
+                    model + " should fall through to ModelRegistry");
         }
     }
 }

@@ -74,6 +74,17 @@ public class CoordinatorService {
     }
 
     /**
+     * ERR-2 fix: 检查当前是否处于 Coordinator 顶层模式（非子代理）。
+     * 适用于需要区分"协调者"与"工人代理"的场景。
+     *
+     * @param agentDefinition 当前代理定义，null 表示顶层协调者
+     * @return true 仅当 Coordinator 模式启用且当前不是子代理
+     */
+    public boolean isCoordinatorTopLevel(Object agentDefinition) {
+        return isCoordinatorMode() && agentDefinition == null;
+    }
+
+    /**
      * 自动检测任务复杂度决定是否建议启用 Coordinator。
      * 基础版：基于用户消息中的关键词启发式判断。
      */
@@ -151,7 +162,8 @@ public class CoordinatorService {
      * 自动创建，位于 .claude/scratchpad/{sessionId}/
      */
     public Path getScratchpadDir(String sessionId) {
-        Path dir = Path.of(System.getProperty("user.dir"), ".claude", "scratchpad", sessionId);
+        String safeSessionId = sessionId != null ? sessionId : "default";
+        Path dir = Path.of(System.getProperty("user.dir"), ".claude", "scratchpad", safeSessionId);
         try {
             Files.createDirectories(dir);
         } catch (Exception e) {

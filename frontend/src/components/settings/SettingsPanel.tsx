@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { McpCapabilityPanel } from './McpCapabilityPanel';
+import { ThemePicker } from '@/components/theme/ThemePicker';
 
 /** 设置面板 Tab 类型 */
 type SettingsTab = 'model' | 'theme' | 'permission' | 'memory' | 'keybindings' | 'mcp';
@@ -90,32 +91,6 @@ function ModelPicker() {
           </option>
         ))}
       </select>
-    </div>
-  );
-}
-
-/** 主题切换 */
-function ThemePicker() {
-  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
-
-  return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold">Theme</h3>
-      <div className="flex gap-2">
-        {(['light', 'dark', 'system'] as const).map((t) => (
-          <button
-            key={t}
-            className={`px-4 py-2 rounded border transition-colors
-              ${theme === t
-                ? 'bg-blue-500 text-white border-blue-500'
-                : 'border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-            onClick={() => setTheme(t)}
-          >
-            {t.charAt(0).toUpperCase() + t.slice(1)}
-          </button>
-        ))}
-      </div>
     </div>
   );
 }

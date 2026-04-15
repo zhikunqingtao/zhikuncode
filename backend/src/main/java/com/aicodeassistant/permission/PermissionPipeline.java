@@ -565,11 +565,57 @@ public class PermissionPipeline {
         if (!"auto".equals(permissionMode)) {
             return Optional.empty(); // 只在 auto 模式下使用分类器
         }
-        // 当前为骨架实现 — 后续接入 LLM 分类器
-        // TODO: 接入 PermissionClassifier.classify(toolName, toolInput) → RiskClassification
-        //   SAFE → allow, RISKY → empty (交给用户确认), DESTRUCTIVE → deny
-        log.debug("Classifier evaluation skipped (skeleton impl) for tool={}", toolName);
-        return Optional.empty();
+
+        try {
+            // UNI-6 fix: 提取命令内容进行快速风险评估
+            // 注意：此处仅做快速轻量级预检（无 LLM 调用），
+            // 完整的 LLM 分类在 applyModeTransformation 的 case AUTO 中执行。
+            // 与 CONTENT_LEVEL_ASK_PATTERNS 的职责边界：
+            //   - CONTENT_LEVEL_ASK_PATTERNS: 在所有模式下强制 ask（包括 BYPASS）
+            //   - isHighRiskCommand: 仅在 AUTO 模式的 Step 1i 阶段提前拦截
+            log.debug("Classifier pre-evaluation for tool={} in auto mode", toolName);
+
+            String command = toolInput.getOptionalString("command").orElse(null);
+            if (command != null && isHighRiskCommand(command)) {
+                return Optional.of(PermissionDecision.ask(
+                        PermissionDecisionReason.CLASSIFIER,
+                        "AUTO mode pre-check: high-risk command detected, requiring confirmation"));
+            }
+
+            return Optional.empty(); // 非高风险命令，交给后续 case AUTO 完整分类
+
+        } catch (Exception e) {
+            log.warn("Classifier pre-evaluation failed for tool={}: {}", toolName, e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * UNI-6 fix: 快速高风险命令判断（无需 LLM 调用）。
+     * 覆盖危险指令包括但不限于 rm -rf、sudo、env、chmod 777、dd、mkfs、
+     * DROP TABLE/DATABASE、git push --force、git reset --hard 等。
+     * 与 CONTENT_LEVEL_ASK_PATTERNS 互补：后者使用正则匹配，本方法使用字符串前缀快速检测。
+     */
+    private boolean isHighRiskCommand(String command) {
+        String lower = command.toLowerCase().trim();
+        // 文件系统破坏性命令
+        if (lower.startsWith("rm ") || lower.contains("rm -")) return true;
+        // 权限提升与环境篡改
+        if (lower.startsWith("sudo ") || lower.startsWith("env ")) return true;
+        // 磁盘格式化与裸写
+        if (lower.contains("mkfs") || lower.startsWith("dd ")) return true;
+        if (lower.contains("chmod") && lower.contains("777")) return true;
+        // 数据库破坏性操作
+        if (lower.contains("drop table") || lower.contains("drop database")) return true;
+        // Git 不可逆操作
+        if (lower.contains("git push") && lower.contains("--force")) return true;
+        if (lower.contains("git reset") && lower.contains("--hard")) return true;
+        if (lower.contains("git clean") && (lower.contains("-f") || lower.contains("--force"))) return true;
+        // 危险的 shell 元命令
+        if (lower.startsWith("eval ")) return true;
+        // Windows 磁盘格式化（兼容性考虑）
+        if (lower.matches("format\\s+[a-z]:.*")) return true;
+        return false;
     }
 
     /**

@@ -71,6 +71,8 @@ features:
     # ── B 组：P2 实验性工具 ──
     AGENT_TRIGGERS: false         # B2: CronTool 门控，默认关闭
     WEB_BROWSER_TOOL: false       # B3: WebBrowserTool 门控，默认关闭
+    GIT_ENHANCED_TOOL: ${GIT_ENHANCED_TOOL:true}   # B4: GitTool 门控，默认开启（只读工具）
+    RESOURCE_MONITOR: ${RESOURCE_MONITOR:false}    # B5: MonitorTool 门控，默认关闭
 
 # MCP 配置 - 阿里云百炼 MCP 服务
 mcp:
@@ -156,6 +158,10 @@ management:
     web:
       exposure:
         include: health,metrics,info,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
   metrics:
     tags:
       application: zhikuncode

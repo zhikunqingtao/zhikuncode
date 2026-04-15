@@ -106,8 +106,13 @@ public class QueryController {
         // 1. 创建或复用会话
         String sessionId = resolveSessionId(request);
 
-        // REST API 非交互场景 — 设置 BYPASS_PERMISSIONS 避免权限弹窗阻塞
-        permissionModeManager.setMode(sessionId, PermissionMode.BYPASS_PERMISSIONS);
+        // INC-3 fix: 使用请求传入的 permissionMode，默认仍为 BYPASS
+        PermissionMode effectiveMode = request.permissionMode() != null
+                ? request.permissionMode()
+                : PermissionMode.BYPASS_PERMISSIONS;  // REST API 默认仍为 BYPASS
+        permissionModeManager.setMode(sessionId, effectiveMode);
+        log.debug("REST API /api/query: permissionMode={} (requested={})",
+                effectiveMode, request.permissionMode());
 
         // 2. 组装工具池
         List<Tool> tools = assembleToolPool(request.allowedTools(), request.disallowedTools());
@@ -115,7 +120,8 @@ public class QueryController {
         // 3. 构建系统提示（使用新的 SystemPromptBuilder）
         SystemPromptConfig promptConfig = SystemPromptConfig.defaults()
                 .withCustom(request.systemPrompt())
-                .withAppend(request.appendSystemPrompt());
+                .withAppend(request.appendSystemPrompt())
+                .withSessionId(sessionId);
         String systemPrompt = systemPromptBuilder.buildEffectiveSystemPrompt(
                 promptConfig, tools, request.model(), Path.of(System.getProperty("user.dir")));
 
@@ -207,13 +213,17 @@ public class QueryController {
         Thread.startVirtualThread(() -> {
             try {
                 String sessionId = resolveSessionId(request);
-                // REST SSE 非交互场景 — 设置 BYPASS_PERMISSIONS
-                permissionModeManager.setMode(sessionId, PermissionMode.BYPASS_PERMISSIONS);
+                // INC-3 fix: 使用请求传入的 permissionMode
+                PermissionMode effectiveMode = request.permissionMode() != null
+                        ? request.permissionMode()
+                        : PermissionMode.BYPASS_PERMISSIONS;
+                permissionModeManager.setMode(sessionId, effectiveMode);
                 List<Tool> tools = assembleToolPool(
                         request.allowedTools(), request.disallowedTools());
                 SystemPromptConfig promptConfig = SystemPromptConfig.defaults()
                         .withCustom(request.systemPrompt())
-                        .withAppend(request.appendSystemPrompt());
+                        .withAppend(request.appendSystemPrompt())
+                        .withSessionId(sessionId);
                 String systemPrompt = systemPromptBuilder.buildEffectiveSystemPrompt(
                         promptConfig, tools, request.model(), Path.of(System.getProperty("user.dir")));
                 String userMessage = buildUserMessage(request.prompt(), request.context());
@@ -299,15 +309,19 @@ public class QueryController {
         SessionData session = sessionManager.loadSession(request.sessionId())
                 .orElseThrow(() -> new SessionNotFoundException(request.sessionId()));
 
-        // REST API 非交互场景 — 设置 BYPASS_PERMISSIONS
-        permissionModeManager.setMode(request.sessionId(), PermissionMode.BYPASS_PERMISSIONS);
+        // INC-3 fix: 使用请求传入的 permissionMode
+        PermissionMode effectiveMode = request.permissionMode() != null
+                ? request.permissionMode()
+                : PermissionMode.BYPASS_PERMISSIONS;
+        permissionModeManager.setMode(request.sessionId(), effectiveMode);
 
         // 2. 准备工具和系统提示
         List<Tool> tools = assembleToolPool(
                 request.allowedTools(), request.disallowedTools());
         SystemPromptConfig promptConfig = SystemPromptConfig.defaults()
                 .withCustom(request.systemPrompt())
-                .withAppend(request.appendSystemPrompt());
+                .withAppend(request.appendSystemPrompt())
+                .withSessionId(request.sessionId());
         String systemPrompt = systemPromptBuilder.buildEffectiveSystemPrompt(
                 promptConfig, tools, request.model(), Path.of(System.getProperty("user.dir")));
         String model = request.model() != null ? request.model() : session.model();

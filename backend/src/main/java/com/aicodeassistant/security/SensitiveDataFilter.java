@@ -8,13 +8,19 @@ import java.util.regex.Pattern;
 /**
  * 敏感信息过滤器 — 在工具结果返回前过滤敏感信息。
  * <p>
- * 支持 6 种模式匹配：
- * 1. OpenAI API Key (sk-...)
- * 2. AWS Access Key (AKIA...)
- * 3. GitHub Personal Token (ghp_...)
- * 4. 通用 key=value 格式 (api_key, secret, password, token, auth)
- * 5. JWT Token (eyJ...)
- * 6. PEM 私钥头
+ * 支持 10 种敏感信息模式检测与自动脱敏：
+ * <ol>
+ *   <li>OpenAI API Key (sk-...)</li>
+ *   <li>AWS Access Key ID (AKIA...)</li>
+ *   <li>GitHub Personal Access Token (ghp_...)</li>
+ *   <li>GitLab Personal Access Token (glpat-...)</li>
+ *   <li>Anthropic API Key (sk-ant-...)</li>
+ *   <li>Slack Token (xox...)</li>
+ *   <li>通用凭证 key=value 格式 (api_key, secret, password, token, auth, credential)</li>
+ *   <li>JWT Token (eyJ...)</li>
+ *   <li>PEM 私钥头 (RSA/EC/DSA/OPENSSH)</li>
+ *   <li>数据库连接串 (mongodb/postgres/mysql/redis)</li>
+ * </ol>
  *
  * @see <a href="SPEC §3.5">敏感信息过滤</a>
  */

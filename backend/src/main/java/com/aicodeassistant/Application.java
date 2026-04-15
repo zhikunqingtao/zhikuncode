@@ -4,6 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import com.aicodeassistant.llm.LlmHttpProperties;
 
 /**
@@ -13,6 +14,7 @@ import com.aicodeassistant.llm.LlmHttpProperties;
  */
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
 @EnableConfigurationProperties(LlmHttpProperties.class)
+@EnableScheduling  // ERR-3 fix: 启用定时任务（healthCheck + SseHealthChecker）
 public class Application {
 
     public static void main(String[] args) {

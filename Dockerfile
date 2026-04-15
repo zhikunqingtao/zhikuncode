@@ -54,7 +54,8 @@ COPY python-service/ ./python-service/
 
 # Setup Python virtual environment
 RUN python3 -m venv /app/python-service/.venv && \
-    /app/python-service/.venv/bin/pip install --no-cache-dir -r /app/python-service/requirements.txt
+    /app/python-service/.venv/bin/pip install --no-cache-dir -r /app/python-service/requirements.txt && \
+    /app/python-service/.venv/bin/python -m playwright install chromium --with-deps
 
 # Set ownership
 RUN chown -R appuser:appuser /app

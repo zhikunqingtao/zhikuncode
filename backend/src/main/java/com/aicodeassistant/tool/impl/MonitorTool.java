@@ -82,7 +82,8 @@ public class MonitorTool implements Tool {
     public ToolResult call(ToolInput input, ToolUseContext context) {
         // 门控检查
         if (!featureFlagService.isEnabled("RESOURCE_MONITOR")) {
-            return ToolResult.error("MonitorTool is disabled. Enable feature flag 'RESOURCE_MONITOR' to use.");
+            return ToolResult.error("MonitorTool is disabled. Set environment variable RESOURCE_MONITOR=true "
+                    + "or update features.flags.RESOURCE_MONITOR in application.yml to enable.");
         }
 
         String category = input.getOptionalString("category").orElse("all");

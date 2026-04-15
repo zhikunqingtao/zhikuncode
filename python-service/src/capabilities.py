@@ -47,7 +47,7 @@ CAPABILITY_REGISTRY: Dict[CapabilityDomain, CapabilityInfo] = {
         domain=CapabilityDomain.CODE_INTEL,
         name="代码智能",
         required_packages=["tree_sitter", "tree_sitter_languages", "rope", "jedi"],
-        min_versions={"tree_sitter": "0.22.0"},
+        min_versions={"tree_sitter": "0.21.0"},
         router_module="routers.code_intel",
     ),
     CapabilityDomain.SECURITY: CapabilityInfo(
@@ -80,7 +80,7 @@ CAPABILITY_REGISTRY: Dict[CapabilityDomain, CapabilityInfo] = {
         domain=CapabilityDomain.GIT_ENHANCED,
         name="Git 增强",
         required_packages=["git"],
-        min_versions={"git": "3.0.0"},
+        min_versions={"GitPython": "3.0.0"},
         system_binaries=["git"],
         router_module="routers.git_enhanced",
     ),

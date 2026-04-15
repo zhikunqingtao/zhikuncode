@@ -60,6 +60,13 @@ public class McpServerConnection {
                 this.status = McpConnectionStatus.CONNECTED;
                 return;
             }
+            // ★ ERR-3 修复: 为 SSE transport 注入 disconnectCallback
+            if (transport instanceof McpSseTransport sseTransport) {
+                sseTransport.setDisconnectCallback(() -> {
+                    log.warn("SSE disconnect callback triggered for '{}'", config.name());
+                    this.status = McpConnectionStatus.FAILED;
+                });
+            }
             transport.connect().get(30, TimeUnit.SECONDS);
             this.status = McpConnectionStatus.CONNECTED;
             log.info("MCP server '{}' connected via {}", config.name(), config.type());
@@ -187,7 +194,8 @@ public class McpServerConnection {
         // 注入自定义 headers (Authorization 等)
         okhttp3.OkHttpClient.Builder builder = new okhttp3.OkHttpClient.Builder()
                 .connectTimeout(java.time.Duration.ofSeconds(10))
-                .readTimeout(java.time.Duration.ZERO)
+                // ERR-3 fix: 90s readTimeout（3倍心跳间隔）替代 Duration.ZERO，兼顾 SSE 长连接和死连接检测
+                .readTimeout(java.time.Duration.ofSeconds(90))
                 .writeTimeout(java.time.Duration.ofSeconds(10));
         if (config.headers() != null && !config.headers().isEmpty()) {
             builder.addInterceptor(chain -> {
@@ -243,6 +251,19 @@ public class McpServerConnection {
     /** 发送 JSON-RPC 通知 — 委托到 transport */
     public void sendNotification(String method, Object params) {
         if (transport != null) { transport.sendNotification(method, params); }
+    }
+
+    /**
+     * 发送健康检测 ping — 返回 boolean 表示连接是否活跃。
+     * 仅供 SseHealthChecker 使用。
+     */
+    public boolean sendHealthPing() {
+        if (transport == null) return false;
+        try {
+            return transport.sendHealthPing();
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /** 发送 JSON-RPC 通知 — 无参数 */

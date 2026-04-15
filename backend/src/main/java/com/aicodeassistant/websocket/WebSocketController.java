@@ -416,7 +416,8 @@ public class WebSocketController implements PermissionNotifier {
         List<Tool> tools = toolRegistry.getEnabledTools();
 
         // 2. 构建系统提示
-        SystemPromptConfig promptConfig = SystemPromptConfig.defaults();
+        SystemPromptConfig promptConfig = SystemPromptConfig.defaults()
+                .withSessionId(sessionId);
         String model = providerRegistry.getDefaultModel();
         String systemPrompt = systemPromptBuilder.buildEffectiveSystemPrompt(
                 promptConfig, tools, model, Path.of(System.getProperty("user.dir")));

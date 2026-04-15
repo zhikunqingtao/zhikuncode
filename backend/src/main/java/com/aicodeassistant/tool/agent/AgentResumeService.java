@@ -73,8 +73,9 @@ public class AgentResumeService {
             .map(Tool::toToolDefinition).toList();
 
         String model = snapshot.model() != null ? snapshot.model() : "default";
+        String sessionId = snapshot.parentSessionId();
         String systemPrompt = systemPromptBuilder.buildEffectiveSystemPrompt(
-            SystemPromptConfig.defaults(), tools, model,
+            SystemPromptConfig.defaults().withSessionId(sessionId), tools, model,
             Path.of(snapshot.workingDirectory() != null
                 ? snapshot.workingDirectory()
                 : System.getProperty("user.dir")));
