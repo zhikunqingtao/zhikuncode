@@ -70,7 +70,7 @@ features:
     FRC_KEEP_RECENT: 3            # A4: FRC 保留最近 N 条工具结果
     # ── B 组：P2 实验性工具 ──
     AGENT_TRIGGERS: false         # B2: CronTool 门控，默认关闭
-    WEB_BROWSER_TOOL: false       # B3: WebBrowserTool 门控，默认关闭
+    WEB_BROWSER_TOOL: true        # B3: WebBrowserTool 门控，测试启用
     GIT_ENHANCED_TOOL: ${GIT_ENHANCED_TOOL:true}   # B4: GitTool 门控，默认开启（只读工具）
     RESOURCE_MONITOR: ${RESOURCE_MONITOR:false}    # B5: MonitorTool 门控，默认关闭
 
@@ -161,7 +161,7 @@ management:
       base-path: /actuator
   endpoint:
     health:
-      show-details: when-authorized
+      show-details: always
   metrics:
     tags:
       application: zhikuncode

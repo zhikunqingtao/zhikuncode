@@ -6,7 +6,7 @@
  */
 
 import React, { useCallback } from 'react';
-import { X, Moon, Sun, Monitor, Keyboard, Shield, Globe } from 'lucide-react';
+import { X, Moon, Sun, Monitor, Keyboard, Shield, Globe, Sparkles } from 'lucide-react';
 import { useConfigStore } from '@/store/configStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { usePermissionStore } from '@/store/permissionStore';
@@ -52,7 +52,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
                             <Sun className="w-4 h-4" />
                             主题
                         </h3>
-                        <div className="grid grid-cols-3 gap-3">
+                        <div className="grid grid-cols-4 gap-3">
                             <ThemeOption
                                 icon={Sun}
                                 label="浅色"
@@ -70,6 +70,12 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
                                 label="跟随系统"
                                 selected={theme.mode === 'system'}
                                 onClick={() => handleThemeChange('system')}
+                            />
+                            <ThemeOption
+                                icon={Sparkles}
+                                label="液态玻璃"
+                                selected={theme.mode === 'glass'}
+                                onClick={() => handleThemeChange('glass')}
                             />
                         </div>
                     </section>

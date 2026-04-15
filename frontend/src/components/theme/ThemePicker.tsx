@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { Sun, Moon, Monitor, Check } from 'lucide-react';
+import { Sun, Moon, Monitor, Check, Sparkles } from 'lucide-react';
 import { useConfigStore } from '@/store/configStore';
 import type { ThemeConfig } from '@/types';
 
@@ -17,6 +17,7 @@ export const ThemePicker: React.FC = () => {
         { value: 'light', label: '浅色', icon: Sun },
         { value: 'dark', label: '深色', icon: Moon },
         { value: 'system', label: '系统', icon: Monitor },
+        { value: 'glass', label: '液态玻璃', icon: Sparkles },
     ];
 
     const accentColors = [

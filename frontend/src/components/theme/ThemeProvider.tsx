@@ -2,7 +2,7 @@
  * ThemeProvider — 主题提供者
  * SPEC: §8.7 主题系统
  *
- * 管理主题模式切换 (light/dark/system) 和 CSS 变量应用
+ * 管理主题模式切换 (light/dark/system/glass) 和 CSS 变量应用
  */
 
 import React, { useEffect, useCallback } from 'react';
@@ -20,10 +20,13 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         const root = document.documentElement;
         
         // 移除旧的 theme class
-        root.classList.remove('light', 'dark');
+        root.classList.remove('light', 'dark', 'glass');
         
         // 根据模式设置
-        if (theme.mode === 'system') {
+        if (theme.mode === 'glass') {
+            // 液态玻璃模式: 添加 glass class，基于浅色方案
+            root.classList.add('glass');
+        } else if (theme.mode === 'system') {
             // 检测系统偏好
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             root.classList.add(prefersDark ? 'dark' : 'light');
@@ -59,7 +62,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         }
     }, [theme]);
 
-    // 监听系统主题变化
+    // 监听系统主题变化 (仅 system 模式需要)
     useEffect(() => {
         if (theme.mode !== 'system') return;
         

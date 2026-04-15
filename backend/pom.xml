@@ -38,6 +38,12 @@
             <artifactId>spring-boot-starter-websocket</artifactId>
         </dependency>
 
+        <!-- Spring Boot Actuator (INC-6 fix: 标准健康检查端点) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
         <!-- Log4j2 (替换 Logback) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

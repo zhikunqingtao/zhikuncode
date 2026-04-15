@@ -72,6 +72,7 @@ class BrowserService:
 
         # 配置（可通过环境变量覆盖）
         self.browser_type = os.getenv("BROWSER_TYPE", "chromium")
+        self.browser_channel = os.getenv("BROWSER_CHANNEL", "chrome")  # 使用系统 Chrome，避免下载 Playwright 自带浏览器
         self.headless = os.getenv("BROWSER_HEADLESS", "true").lower() == "true"
         self.idle_timeout = timedelta(
             minutes=int(os.getenv("BROWSER_IDLE_TIMEOUT_MIN", "5"))
@@ -85,15 +86,19 @@ class BrowserService:
         """启动 Playwright 和浏览器进程"""
         self._playwright = await async_playwright().start()
         launcher = getattr(self._playwright, self.browser_type)
-        self._browser = await launcher.launch(
-            headless=self.headless,
-            args=[
+        launch_kwargs = {
+            "headless": self.headless,
+            "args": [
                 "--no-sandbox",
                 "--disable-dev-shm-usage",  # 容器友好
                 "--disable-gpu",
                 "--disable-extensions",
             ],
-        )
+        }
+        # 使用系统浏览器 channel（如 chrome），避免需要 playwright install
+        if self.browser_channel:
+            launch_kwargs["channel"] = self.browser_channel
+        self._browser = await launcher.launch(**launch_kwargs)
         # 启动定期清理任务
         self._cleanup_task = asyncio.create_task(self._periodic_cleanup())
         logger.info(

@@ -16,6 +16,7 @@
     --diff-add:                #d4edda;
     --diff-remove:             #f8d7da;
     --focus-ring:              #6366f1;
+    --bg-hover:                #f3f4f6;
 
     /* 扩展色板 — Tailwind 集成 */
     --color-surface:           #ffffff;
@@ -72,6 +73,7 @@
     --diff-add:                #1a4d2e;
     --diff-remove:             #4d1a1a;
     --focus-ring:              #818cf8;
+    --bg-hover:                #1c2128;
     --text-muted:              #64748b;
 
     /* 扩展色板 — Tailwind 集成 */
@@ -105,9 +107,71 @@
     --color-overlay:           rgba(0, 0, 0, 0.7);
   }
 
+  /* ===== Apple Liquid Glass 主题 ===== */
+  .glass {
+    /* §8.7 液态玻璃核心变量 — 半透明 + 毛玻璃 */
+    --bg-primary:              rgba(255, 255, 255, 0.45);
+    --bg-secondary:            rgba(245, 245, 247, 0.55);
+    --text-primary:            #1c1c1e;
+    --text-secondary:          #636366;
+    --border:                  rgba(0, 0, 0, 0.08);
+    --accent:                  var(--accent-color, #007aff);
+    --code-bg:                 rgba(245, 245, 247, 0.6);
+    --diff-add:                rgba(52, 199, 89, 0.15);
+    --diff-remove:             rgba(255, 59, 48, 0.15);
+    --focus-ring:              rgba(0, 122, 255, 0.6);
+    --bg-hover:                rgba(0, 0, 0, 0.04);
+    --text-muted:              #aeaeb2;
+
+    /* 液态玻璃专属变量 */
+    --glass-blur:              20px;
+    --glass-saturation:        180%;
+    --glass-brightness:        1.05;
+    --glass-border:            rgba(255, 255, 255, 0.35);
+    --glass-shadow:            0 8px 32px rgba(0, 0, 0, 0.08),
+                               0 2px 8px rgba(0, 0, 0, 0.04);
+    --glass-inner-shadow:      inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    --glass-specular:          linear-gradient(
+                                 135deg,
+                                 rgba(255, 255, 255, 0.4) 0%,
+                                 rgba(255, 255, 255, 0.05) 50%,
+                                 rgba(255, 255, 255, 0.15) 100%
+                               );
+
+    /* 扩展色板 — 半透明适配 */
+    --color-surface:           rgba(255, 255, 255, 0.45);
+    --color-surface-elevated:  rgba(255, 255, 255, 0.65);
+    --color-surface-sunken:    rgba(245, 245, 247, 0.35);
+    --color-primary:           #007aff;
+    --color-primary-hover:     #0056cc;
+    --color-primary-active:    #004099;
+    --color-accent:            var(--accent-color, #5856d6);
+    --color-accent-muted:      rgba(88, 86, 214, 0.25);
+    --color-muted:             #8e8e93;
+    --color-border:            rgba(0, 0, 0, 0.08);
+    --color-text:              #1c1c1e;
+    --color-text-secondary:    #636366;
+    --color-text-muted:        #aeaeb2;
+    --color-code-bg:           rgba(245, 245, 247, 0.6);
+    --color-code-border:       rgba(0, 0, 0, 0.06);
+    --color-info:              #007aff;
+    --color-info-bg:           rgba(0, 122, 255, 0.1);
+    --color-success:           #34c759;
+    --color-success-bg:        rgba(52, 199, 89, 0.1);
+    --color-warning:           #ff9500;
+    --color-warning-bg:        rgba(255, 149, 0, 0.1);
+    --color-danger:            #ff3b30;
+    --color-danger-bg:         rgba(255, 59, 48, 0.1);
+    --color-scrollbar:         rgba(0, 0, 0, 0.15);
+    --color-scrollbar-hover:   rgba(0, 0, 0, 0.25);
+    --color-focus-ring:        rgba(0, 122, 255, 0.6);
+    --color-skeleton:          rgba(0, 0, 0, 0.06);
+    --color-overlay:           rgba(0, 0, 0, 0.3);
+  }
+
   /* ===== prefers-color-scheme 自动跟随系统 ===== */
   @media (prefers-color-scheme: dark) {
-    :root:not(.light) {
+    :root:not(.light):not(.dark):not(.glass) {
       --bg-primary:              #0d1117;
       --bg-secondary:            #161b22;
       --text-primary:            #e6edf3;
@@ -117,6 +181,7 @@
       --diff-add:                #1a4d2e;
       --diff-remove:             #4d1a1a;
       --focus-ring:              #818cf8;
+      --bg-hover:                #1c2128;
       --text-muted:              #64748b;
 
       --color-surface:           #0f172a;
@@ -248,4 +313,85 @@ body {
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== §8.7 Apple Liquid Glass 效果样式 ===== */
+
+/* 液态玻璃主题背景: 抽象渐变起、波光效果 */
+.glass body {
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(0, 122, 255, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(88, 86, 214, 0.10) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(255, 149, 0, 0.06) 0%, transparent 50%),
+    linear-gradient(135deg, #f5f5f7 0%, #e8e8ed 50%, #f0f0f5 100%);
+  background-attachment: fixed;
+}
+
+/* Header 毛玻璃 */
+.glass header {
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation)) brightness(var(--glass-brightness));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation)) brightness(var(--glass-brightness));
+  background: var(--bg-secondary) !important;
+  border-bottom-color: var(--glass-border) !important;
+  box-shadow: var(--glass-shadow);
+}
+
+/* Sidebar 毛玻璃 */
+.glass aside {
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+  background: var(--bg-secondary) !important;
+  border-right-color: var(--glass-border) !important;
+  box-shadow: var(--glass-inner-shadow);
+}
+
+/* StatusBar 毛玻璃 */
+.glass footer {
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+  background: var(--bg-secondary) !important;
+  border-top-color: var(--glass-border) !important;
+}
+
+/* 设置面板/对话框玻璃效果 */
+.glass [role="dialog"],
+.glass .settings-panel {
+  backdrop-filter: blur(calc(var(--glass-blur) * 1.5)) saturate(var(--glass-saturation)) brightness(var(--glass-brightness));
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 1.5)) saturate(var(--glass-saturation)) brightness(var(--glass-brightness));
+  background: rgba(255, 255, 255, 0.72) !important;
+  border-color: var(--glass-border) !important;
+  box-shadow: var(--glass-shadow), var(--glass-inner-shadow);
+}
+
+/* 按钮微玻璃效果 */
+.glass button:hover {
+  backdrop-filter: blur(8px) saturate(150%);
+  -webkit-backdrop-filter: blur(8px) saturate(150%);
+}
+
+/* 下拉菜单/输入框玻璃 */
+.glass select,
+.glass input[type="text"],
+.glass textarea {
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  background: rgba(255, 255, 255, 0.5) !important;
+  border-color: var(--glass-border) !important;
+}
+
+/* 代码块玻璃效果 */
+.glass pre,
+.glass code {
+  backdrop-filter: blur(10px) saturate(140%);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
+}
+
+/* 液态玻璃卡片 — 通用工具类 */
+.glass .glass-card {
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation)) brightness(var(--glass-brightness));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation)) brightness(var(--glass-brightness));
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow), var(--glass-inner-shadow);
+  border-radius: var(--border-radius);
 }

@@ -80,6 +80,10 @@ public class FeatureFlagService {
         // 2. YAML 配置
         Object yamlVal = flags.get(featureKey);
         if (yamlVal != null) {
+            // 处理 YAML 占位符解析后类型不匹配的情况（如 ${KEY:true} 解析为 String "true"）
+            if (defaultValue instanceof Boolean && yamlVal instanceof String) {
+                return (T) Boolean.valueOf((String) yamlVal);
+            }
             return (T) yamlVal;
         }
 

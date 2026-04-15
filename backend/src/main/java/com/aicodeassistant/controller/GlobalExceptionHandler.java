@@ -23,7 +23,7 @@ import java.util.Map;
  *
  * @see <a href="SPEC §6.1.6a">全局异常处理</a>
  */
-@RestControllerAdvice
+@RestControllerAdvice(basePackages = "com.aicodeassistant")
 public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);

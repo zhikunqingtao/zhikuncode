@@ -6,10 +6,11 @@
  */
 
 import { useCallback } from 'react';
-import { Settings, Plus, Menu, Bot, DollarSign } from 'lucide-react';
+import { Settings, Plus, Menu, Bot, DollarSign, Sun, Moon, Sparkles } from 'lucide-react';
 import { useSessionStore } from '@/store/sessionStore';
 import { useCostStore } from '@/store/costStore';
 import { useDialogStore } from '@/store/dialogStore';
+import { useConfigStore } from '@/store/configStore';
 
 interface HeaderProps {
     onMenuClick?: () => void;
@@ -20,6 +21,23 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
     const { sessionId, model, setModel } = useSessionStore();
     const { sessionCost, totalCost } = useCostStore();
     const { openDialog } = useDialogStore();
+    const { theme, setTheme } = useConfigStore();
+
+    // 判断当前是否为深色模式（含 system 跟随）
+    const isDark = theme.mode === 'dark' || 
+        (theme.mode === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    const isGlass = theme.mode === 'glass';
+
+    const toggleTheme = useCallback(() => {
+        // 循环切换: light → dark → glass → light
+        if (theme.mode === 'light') {
+            setTheme({ mode: 'dark' });
+        } else if (theme.mode === 'dark') {
+            setTheme({ mode: 'glass' });
+        } else {
+            setTheme({ mode: 'light' });
+        }
+    }, [theme.mode, setTheme]);
 
     const handleNewSession = useCallback(() => {
         window.location.reload();
@@ -86,6 +104,16 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                         / {formatCost(totalCost)}
                     </span>
                 </div>
+
+                {/* Theme Toggle */}
+                <button
+                    onClick={toggleTheme}
+                    className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-secondary)] transition-colors"
+                    title={isGlass ? '切换到浅色模式' : isDark ? '切换到液态玻璃模式' : '切换到深色模式'}
+                    aria-label={isGlass ? '切换到浅色模式' : isDark ? '切换到液态玻璃模式' : '切换到深色模式'}
+                >
+                    {isGlass ? <Sparkles className="w-5 h-5" /> : isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                </button>
 
                 {/* New Session */}
                 <button

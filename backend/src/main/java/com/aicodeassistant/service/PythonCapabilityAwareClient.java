@@ -99,6 +99,7 @@ public class PythonCapabilityAwareClient {
      * 检查某能力域是否可用。
      */
     public boolean isCapabilityAvailable(String domain) {
+        refreshIfStale();
         var status = capabilities.get(domain);
         return status != null && status.available();
     }

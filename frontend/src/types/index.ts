@@ -239,7 +239,7 @@ export interface PermissionRequest {
 // ==================== 配置相关 ====================
 
 export interface ThemeConfig {
-    mode: 'light' | 'dark' | 'system';
+    mode: 'light' | 'dark' | 'system' | 'glass';
     accentColor: string;
     fontSize?: string;
     fontFamily?: string;
