@@ -30,7 +30,7 @@ class ConfigMessageToolGoldenTest {
 
         @BeforeEach
         void setUp() {
-            tool = new ConfigTool();
+            tool = new ConfigTool(null);
         }
 
         @Test

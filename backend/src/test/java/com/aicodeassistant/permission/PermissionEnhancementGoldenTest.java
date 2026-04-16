@@ -265,12 +265,13 @@ class PermissionEnhancementGoldenTest {
         }
 
         @Test
-        @DisplayName("classify: 默认桩返回 ALLOW (因为桩返回 <block>no</block>)")
+        @DisplayName("classify: 无 LLM 提供者时降级为 ASK")
         void classifyDefaultStub() {
             Tool tool = createMockTool("Bash", "git status");
             ToolInput input = ToolInput.from(Map.of("command", "git status"));
             PermissionDecision decision = classifier.classify(tool, input, context);
-            assertTrue(decision.isAllowed());
+            // 无 LLM 提供者 → ClassifierUnavailableException → fallback → 无匹配规则 → ASK
+            assertFalse(decision.isAllowed());
         }
 
         @Test

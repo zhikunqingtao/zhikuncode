@@ -230,17 +230,7 @@
                             <version>1.5.5.Final</version>
                         </path>
                     </annotationProcessorPaths>
-                    <testExcludes>
-                        <testExclude>**/PythonEcoCliGoldenTest.java</testExclude>
-                        <testExclude>**/AgentToolGoldenTest.java</testExclude>
-                        <testExclude>**/ConfigMessageToolGoldenTest.java</testExclude>
-                        <testExclude>**/AliyunConfigVerificationTest.java</testExclude>
-                        <testExclude>**/McpGoldenTest.java</testExclude>
-                        <testExclude>**/PermissionEnhancementGoldenTest.java</testExclude>
-                        <testExclude>**/QueryFlowIntegrationTest.java</testExclude>
-                        <testExclude>**/ZhipuMcpConfigTest.java</testExclude>
-                        <testExclude>**/ZhipuMcpIntegrationTest.java</testExclude>
-                    </testExcludes>
+
                 </configuration>
             </plugin>
         </plugins>

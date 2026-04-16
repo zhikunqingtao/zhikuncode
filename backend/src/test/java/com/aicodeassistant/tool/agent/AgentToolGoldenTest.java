@@ -1,5 +1,6 @@
 package com.aicodeassistant.tool.agent;
 
+import com.aicodeassistant.llm.LlmProviderRegistry;
 import com.aicodeassistant.tool.ToolInput;
 import com.aicodeassistant.tool.ToolResult;
 import com.aicodeassistant.tool.ToolUseContext;
@@ -366,7 +367,10 @@ class AgentToolGoldenTest {
         @BeforeEach
         void setUp() {
             mockExecutor = mock(SubAgentExecutor.class);
-            agentTool = new AgentTool(mockExecutor);
+            LlmProviderRegistry mockRegistry = mock(LlmProviderRegistry.class);
+            when(mockRegistry.getBuiltinAliases()).thenReturn(List.of("qwen-max"));
+            when(mockRegistry.listAvailableModels()).thenReturn(List.of("qwen-max"));
+            agentTool = new AgentTool(mockExecutor, mockRegistry);
         }
 
         @Test

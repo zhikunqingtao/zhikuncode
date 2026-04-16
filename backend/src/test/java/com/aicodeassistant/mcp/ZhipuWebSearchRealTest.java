@@ -12,23 +12,28 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * 智谱 WebSearch MCP 真实搜索测试 — 直接调用 MCP SSE 端点。
  * <p>
- * 使用阿里云百炼 API Key 进行真实搜索调用。
+ * MCP SSE 协议流程:
+ * 1. 客户端 GET /sse → 建立 SSE 长连接，收到 endpoint 事件
+ * 2. 客户端 POST endpoint → 发送 JSON-RPC 请求（initialize / tools/call）
+ * 3. 服务端通过 SSE 流推送 JSON-RPC 响应
+ * <p>
+ * 关键: SSE 连接必须保持开放，不能断开后重连（会话绑定）
  */
 class ZhipuWebSearchRealTest {
 
     private static final String MCP_SSE_URL = "https://dashscope.aliyuncs.com/api/v1/mcps/zhipu-websearch/sse";
-    private static final String MCP_MESSAGE_URL = "https://dashscope.aliyuncs.com/api/v1/mcps/zhipu-websearch/message";
     private static final String API_KEY = "sk-93625146d2c343d78735213013794ed5";
 
     @Test
     @EnabledIfEnvironmentVariable(named = "ZHIPU_API_KEY", matches = ".+")
-    @Timeout(value = 30, unit = java.util.concurrent.TimeUnit.SECONDS)
+    @Timeout(value = 60, unit = TimeUnit.SECONDS)
     void testRealWebSearch() throws Exception {
         // ==================== 入参 ====================
         String searchQuery = "阿里巴巴通义千问最新版本";
@@ -43,254 +48,198 @@ class ZhipuWebSearchRealTest {
 
         long startTime = System.currentTimeMillis();
 
-        // Step 1: 初始化 SSE 会话
-        SseSession session = initializeSseSession();
-        System.out.println("✅ SSE 会话初始化成功");
-        System.out.println("   Session ID: " + session.sessionId);
-        System.out.println("   消息端点: " + session.messageEndpoint);
+        // ========== Step 1: 建立 SSE 长连接 ==========
+        // SSE 连接必须保持开放，响应通过此流推送
+        URL sseUrl = new URL(MCP_SSE_URL);
+        HttpURLConnection sseConn = (HttpURLConnection) sseUrl.openConnection();
+        sseConn.setRequestMethod("GET");
+        sseConn.setRequestProperty("Authorization", "Bearer " + API_KEY);
+        sseConn.setRequestProperty("Accept", "text/event-stream");
+        sseConn.setConnectTimeout(15000);
+        sseConn.setReadTimeout(0); // 无超时 — SSE 长连接
 
-        // Step 2: 发送初始化请求
-        sendInitializeRequest(session);
-        System.out.println("✅ MCP 初始化请求已发送");
+        int sseResponseCode = sseConn.getResponseCode();
+        System.out.println("SSE 连接响应码: " + sseResponseCode);
+        assertEquals(200, sseResponseCode, "SSE 连接失败");
 
-        // Step 3: 调用 web_search 工具
-        String result = callWebSearchTool(session, searchQuery, numResults);
-        long duration = System.currentTimeMillis() - startTime;
+        BufferedReader sseReader = new BufferedReader(
+                new InputStreamReader(sseConn.getInputStream(), StandardCharsets.UTF_8));
 
-        // ==================== 出参 ====================
-        System.out.println("\n========== 智谱 WebSearch MCP 真实搜索出参 ==========");
-        System.out.println("请求耗时: " + duration + " ms");
-        System.out.println("响应内容:\n" + result);
-        System.out.println("响应长度: " + result.length() + " 字符");
-        System.out.println("====================================================\n");
-
-        // 注：阿里云百炼 MCP 服务可能使用异步响应机制，这里主要验证连接和调用流程
-        System.out.println("✅ 智谱 WebSearch MCP 真实搜索调用流程验证成功!");
-        System.out.println("   (注：MCP 响应可能通过 SSE 流异步返回，当前测试验证调用流程)");
-    }
-
-    /**
-     * 初始化 SSE 会话
-     */
-    private SseSession initializeSseSession() throws Exception {
-        URL url = new URL(MCP_SSE_URL);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("GET");
-        conn.setRequestProperty("Authorization", "Bearer " + API_KEY);
-        conn.setRequestProperty("Accept", "text/event-stream");
-        conn.setConnectTimeout(10000);
-        conn.setReadTimeout(10000);
-
-        int responseCode = conn.getResponseCode();
-        System.out.println("SSE 连接响应码: " + responseCode);
-
-        if (responseCode != 200) {
-            throw new RuntimeException("SSE 连接失败: " + responseCode);
-        }
-
-        // 读取第一个 SSE 事件获取 endpoint
+        // 读取第一个 SSE 事件获取 message endpoint
         String messageEndpoint = null;
-        try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                System.out.println("SSE: " + line);
-                if (line.startsWith("data:")) {
-                    String data = line.substring(5).trim();
-                    if (data.startsWith("/api/v1/mcps/")) {
-                        messageEndpoint = "https://dashscope.aliyuncs.com" + data;
-                        break;
-                    }
-                }
-            }
-        }
-
-        conn.disconnect();
-
-        if (messageEndpoint == null) {
-            throw new RuntimeException("无法获取 MCP 消息端点");
-        }
-
-        // 从 endpoint 提取 session ID
-        String sessionId = null;
-        if (messageEndpoint.contains("sessionId=")) {
-            int start = messageEndpoint.indexOf("sessionId=") + 10;
-            int end = messageEndpoint.indexOf("&", start);
-            sessionId = end > 0 ? messageEndpoint.substring(start, end) : messageEndpoint.substring(start);
-        }
-
-        return new SseSession(sessionId, messageEndpoint);
-    }
-
-    /**
-     * 发送 MCP 初始化请求
-     */
-    private void sendInitializeRequest(SseSession session) throws Exception {
-        String initRequest = """
-                {
-                  "jsonrpc": "2.0",
-                  "id": "%s",
-                  "method": "initialize",
-                  "params": {
-                    "protocolVersion": "2024-11-05",
-                    "capabilities": {},
-                    "clientInfo": {
-                      "name": "ai-code-assistant",
-                      "version": "1.0.0"
-                    }
-                  }
-                }
-                """.formatted(UUID.randomUUID().toString());
-
-        System.out.println("\n初始化请求:\n" + initRequest);
-
-        URL url = new URL(session.messageEndpoint);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("POST");
-        conn.setRequestProperty("Authorization", "Bearer " + API_KEY);
-        conn.setRequestProperty("Content-Type", "application/json");
-        conn.setDoOutput(true);
-        conn.setConnectTimeout(10000);
-        conn.setReadTimeout(10000);
-
-        try (OutputStream os = conn.getOutputStream()) {
-            os.write(initRequest.getBytes(StandardCharsets.UTF_8));
-        }
-
-        int responseCode = conn.getResponseCode();
-        System.out.println("初始化响应码: " + responseCode);
-
-        StringBuilder response = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(
-                        responseCode >= 200 && responseCode < 300
-                                ? conn.getInputStream()
-                                : conn.getErrorStream(),
-                        StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                response.append(line).append("\n");
-            }
-        }
-
-        conn.disconnect();
-        System.out.println("初始化响应:\n" + response);
-    }
-
-    /**
-     * 调用 web_search 工具
-     */
-    private String callWebSearchTool(SseSession session, String query, int numResults) throws Exception {
-        String jsonRpcRequest = """
-                {
-                  "jsonrpc": "2.0",
-                  "id": "%s",
-                  "method": "tools/call",
-                  "params": {
-                    "name": "web_search",
-                    "arguments": {
-                      "query": "%s",
-                      "num_results": %d
-                    }
-                  }
-                }
-                """.formatted(UUID.randomUUID().toString(), query, numResults);
-
-        System.out.println("\nWebSearch 请求:\n" + jsonRpcRequest);
-
-        // 发送请求
-        URL url = new URL(session.messageEndpoint);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("POST");
-        conn.setRequestProperty("Authorization", "Bearer " + API_KEY);
-        conn.setRequestProperty("Content-Type", "application/json");
-        conn.setDoOutput(true);
-        conn.setConnectTimeout(10000);
-        conn.setReadTimeout(5000); // 短超时，因为响应可能通过 SSE
-
-        try (OutputStream os = conn.getOutputStream()) {
-            os.write(jsonRpcRequest.getBytes(StandardCharsets.UTF_8));
-        }
-
-        int responseCode = conn.getResponseCode();
-        System.out.println("WebSearch 响应码: " + responseCode);
-
-        // 读取响应
-        StringBuilder response = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(
-                        responseCode >= 200 && responseCode < 300
-                                ? conn.getInputStream()
-                                : conn.getErrorStream(),
-                        StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                response.append(line).append("\n");
-            }
-        }
-        conn.disconnect();
-
-        String httpResult = response.toString().trim();
-        System.out.println("\nWebSearch HTTP 响应:\n" + (httpResult.isEmpty() ? "(空)" : httpResult));
-
-        // 如果 HTTP 响应为空，尝试通过 SSE 读取
-        if (httpResult.isEmpty()) {
-            System.out.println("\n尝试通过 SSE 读取响应...");
-            return readSseResponse(session);
-        }
-
-        return httpResult;
-    }
-
-    /**
-     * 通过 SSE 读取响应
-     */
-    private String readSseResponse(SseSession session) throws Exception {
-        // 重新连接 SSE 端点读取响应
-        URL url = new URL(MCP_SSE_URL);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("GET");
-        conn.setRequestProperty("Authorization", "Bearer " + API_KEY);
-        conn.setRequestProperty("Accept", "text/event-stream");
-        conn.setConnectTimeout(10000);
-        conn.setReadTimeout(15000);
-
-        int responseCode = conn.getResponseCode();
-        System.out.println("SSE 读取响应码: " + responseCode);
-
-        if (responseCode != 200) {
-            conn.disconnect();
-            return "";
-        }
-
-        StringBuilder result = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
-            String line;
-            long startTime = System.currentTimeMillis();
-            while ((line = reader.readLine()) != null) {
-                System.out.println("SSE 响应: " + line);
-
-                if (line.startsWith("data:")) {
-                    String data = line.substring(5).trim();
-                    if (!data.isEmpty() && !data.startsWith("/api/v1/mcps/")) {
-                        result.append(data).append("\n");
-                    }
-                }
-
-                // 读取最多 10 秒
-                if (System.currentTimeMillis() - startTime > 10000) {
+        String line;
+        while ((line = sseReader.readLine()) != null) {
+            System.out.println("SSE 事件: " + line);
+            if (line.startsWith("data:")) {
+                String data = line.substring(5).trim();
+                if (data.startsWith("/api/v1/mcps/")) {
+                    messageEndpoint = "https://dashscope.aliyuncs.com" + data;
                     break;
                 }
             }
         }
 
-        conn.disconnect();
-        return result.toString().trim();
+        assertNotNull(messageEndpoint, "未收到 MCP 消息端点");
+        System.out.println("✅ SSE 会话建立成功");
+        System.out.println("   消息端点: " + messageEndpoint);
+
+        // 从 endpoint 提取 session ID
+        String sessionId = "(unknown)";
+        if (messageEndpoint.contains("sessionId=")) {
+            int s = messageEndpoint.indexOf("sessionId=") + 10;
+            int e = messageEndpoint.indexOf("&", s);
+            sessionId = e > 0 ? messageEndpoint.substring(s, e) : messageEndpoint.substring(s);
+        }
+        System.out.println("   Session ID: " + sessionId);
+
+        // ========== 启动 SSE 读取线程（后台持续监听响应） ==========
+        BlockingQueue<String> sseMessages = new LinkedBlockingQueue<>();
+        AtomicReference<Exception> sseError = new AtomicReference<>();
+        Thread sseReaderThread = Thread.ofVirtual().name("sse-reader").start(() -> {
+            try {
+                String sLine;
+                StringBuilder eventData = new StringBuilder();
+                while ((sLine = sseReader.readLine()) != null) {
+                    System.out.println("SSE <<< " + sLine);
+                    if (sLine.startsWith("data:")) {
+                        String data = sLine.substring(5).trim();
+                        if (!data.isEmpty() && !data.startsWith("/api/v1/mcps/")) {
+                            eventData.append(data);
+                        }
+                    } else if (sLine.isEmpty() && !eventData.isEmpty()) {
+                        // 空行 = 事件结束
+                        sseMessages.offer(eventData.toString());
+                        eventData.setLength(0);
+                    }
+                }
+            } catch (Exception ex) {
+                if (!Thread.currentThread().isInterrupted()) {
+                    sseError.set(ex);
+                }
+            }
+        });
+
+        try {
+            // ========== Step 2: 发送 MCP initialize 请求 ==========
+            String initRequest = """
+                    {
+                      "jsonrpc": "2.0",
+                      "id": "%s",
+                      "method": "initialize",
+                      "params": {
+                        "protocolVersion": "2024-11-05",
+                        "capabilities": {},
+                        "clientInfo": {
+                          "name": "zhikuncode-test",
+                          "version": "1.0.0"
+                        }
+                      }
+                    }
+                    """.formatted(UUID.randomUUID().toString());
+
+            System.out.println("\n>>> 发送 initialize 请求");
+            int initCode = postJsonRpc(messageEndpoint, initRequest);
+            System.out.println("initialize POST 响应码: " + initCode);
+            assertTrue(initCode >= 200 && initCode < 300, "initialize 请求失败: " + initCode);
+
+            // 等待 SSE 返回 initialize 响应
+            String initResponse = sseMessages.poll(15, TimeUnit.SECONDS);
+            System.out.println("\n✅ initialize 响应:\n" + (initResponse != null ? initResponse : "(超时)"));
+            assertNotNull(initResponse, "未收到 initialize 响应");
+
+            // ========== Step 2.5: 发送 initialized 通知 ==========
+            String initializedNotification = """
+                    {
+                      "jsonrpc": "2.0",
+                      "method": "notifications/initialized"
+                    }
+                    """;
+            System.out.println("\n>>> 发送 notifications/initialized 通知");
+            int notifyCode = postJsonRpc(messageEndpoint, initializedNotification);
+            System.out.println("initialized 通知响应码: " + notifyCode);
+
+            // ========== Step 3: 调用 webSearchPro 工具 ==========
+            String toolCallRequest = """
+                    {
+                      "jsonrpc": "2.0",
+                      "id": "%s",
+                      "method": "tools/call",
+                      "params": {
+                        "name": "webSearchPro",
+                        "arguments": {
+                          "search_query": "%s",
+                          "count": %d
+                        }
+                      }
+                    }
+                    """.formatted(UUID.randomUUID().toString(), searchQuery, numResults);
+
+            System.out.println("\n>>> 发送 webSearchPro 工具调用");
+            int toolCode = postJsonRpc(messageEndpoint, toolCallRequest);
+            System.out.println("tools/call POST 响应码: " + toolCode);
+            assertTrue(toolCode >= 200 && toolCode < 300, "tools/call 请求失败: " + toolCode);
+
+            // 等待 SSE 返回搜索结果（搜索可能较慢，等待 30 秒）
+            String searchResult = sseMessages.poll(30, TimeUnit.SECONDS);
+            long duration = System.currentTimeMillis() - startTime;
+
+            // ==================== 出参 ====================
+            System.out.println("\n========== 智谱 WebSearch MCP 真实搜索出参 ==========");
+            System.out.println("请求总耗时: " + duration + " ms");
+            if (searchResult != null) {
+                System.out.println("响应长度: " + searchResult.length() + " 字符");
+                // 截取前 2000 字符打印
+                String display = searchResult.length() > 2000
+                        ? searchResult.substring(0, 2000) + "\n... (截断)"
+                        : searchResult;
+                System.out.println("响应内容:\n" + display);
+            } else {
+                System.out.println("响应: (超时 — 30s 内未收到搜索结果)");
+            }
+            System.out.println("====================================================\n");
+
+            assertNotNull(searchResult, "未收到 webSearchPro 搜索结果（30s 超时）");
+            assertFalse(searchResult.isEmpty(), "搜索结果为空");
+
+            System.out.println("✅ 智谱 WebSearch MCP 真实搜索测试通过!");
+
+        } finally {
+            // 清理资源
+            sseReaderThread.interrupt();
+            sseReader.close();
+            sseConn.disconnect();
+        }
     }
 
     /**
-     * SSE 会话信息
+     * POST JSON-RPC 请求到 MCP 消息端点。
+     * MCP SSE 协议: POST 返回 2xx (通常 202 Accepted)，实际响应通过 SSE 推送。
      */
-    private record SseSession(String sessionId, String messageEndpoint) {}
+    private int postJsonRpc(String endpoint, String jsonBody) throws Exception {
+        URL url = new URL(endpoint);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Authorization", "Bearer " + API_KEY);
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setDoOutput(true);
+        conn.setConnectTimeout(10000);
+        conn.setReadTimeout(10000);
+
+        try (OutputStream os = conn.getOutputStream()) {
+            os.write(jsonBody.getBytes(StandardCharsets.UTF_8));
+        }
+
+        int code = conn.getResponseCode();
+
+        // 读取并丢弃响应体（防止连接池泄漏）
+        try (var is = code >= 200 && code < 300 ? conn.getInputStream() : conn.getErrorStream()) {
+            if (is != null) {
+                byte[] buf = new byte[1024];
+                while (is.read(buf) != -1) { /* drain */ }
+            }
+        }
+
+        conn.disconnect();
+        return code;
+    }
 }

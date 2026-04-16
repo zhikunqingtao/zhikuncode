@@ -78,7 +78,7 @@ class AliyunConfigVerificationTest {
         // 由于 ModelRegistry 需要 LlmProviderRegistry，这里通过构造 mock 的 registry 来测试
         OpenAiCompatibleProvider provider = createProvider(
                 List.of("qwen3.6-plus", "qwen-max", "qwen-plus", "qwen-turbo"));
-        LlmProviderRegistry providerRegistry = new LlmProviderRegistry(List.of(provider));
+        LlmProviderRegistry providerRegistry = new LlmProviderRegistry(List.of(provider), null);
         ModelRegistry modelRegistry = new ModelRegistry(providerRegistry);
 
         // 千问模型应通过 Level 2 抛异常 → fallback 到 Level 3 BUILTIN_MODELS

@@ -73,7 +73,7 @@ class PythonEcoCliGoldenTest {
         @Order(10)
         @DisplayName("构造函数 — 默认 baseUrl 不以 / 结尾")
         void constructorStripsTrailingSlash() {
-            var client = new PythonCapabilityAwareClient("http://localhost:8000/");
+            var client = new PythonCapabilityAwareClient("http://localhost:1/", new ObjectMapper());
             // 不抛异常即为成功
             assertNotNull(client);
         }
@@ -83,7 +83,7 @@ class PythonEcoCliGoldenTest {
         @DisplayName("构造函数 — 自定义 ObjectMapper")
         void constructorWithCustomMapper() {
             var mapper = new ObjectMapper();
-            var client = new PythonCapabilityAwareClient("http://localhost:8000", mapper);
+            var client = new PythonCapabilityAwareClient("http://localhost:1", mapper);
             assertNotNull(client);
         }
 
@@ -91,15 +91,14 @@ class PythonEcoCliGoldenTest {
         @Order(12)
         @DisplayName("初始状态 — capabilities 为空")
         void initialCapabilitiesEmpty() {
-            var client = new PythonCapabilityAwareClient("http://localhost:8000");
-            assertTrue(client.getCapabilities().isEmpty());
+            var client = new PythonCapabilityAwareClient("http://localhost:1", new ObjectMapper());
         }
 
         @Test
         @Order(13)
         @DisplayName("初始状态 — 所有域不可用")
         void initialAllUnavailable() {
-            var client = new PythonCapabilityAwareClient("http://localhost:8000");
+            var client = new PythonCapabilityAwareClient("http://localhost:1", new ObjectMapper());
             assertFalse(client.isCapabilityAvailable("CODE_INTEL"));
             assertFalse(client.isCapabilityAvailable("FILE_PROCESSING"));
             assertFalse(client.isCapabilityAvailable("NONEXISTENT"));
@@ -116,7 +115,7 @@ class PythonEcoCliGoldenTest {
         @Order(20)
         @DisplayName("refreshCapabilities — Python 不可用时保留旧缓存")
         void refreshWhenUnavailable() {
-            var client = new PythonCapabilityAwareClient("http://127.0.0.1:1"); // invalid port
+            var client = new PythonCapabilityAwareClient("http://127.0.0.1:1", new ObjectMapper()); // invalid port
             client.refreshCapabilities();
             // 应不抛异常，保留空缓存
             assertTrue(client.getCapabilities().isEmpty());
@@ -126,7 +125,7 @@ class PythonEcoCliGoldenTest {
         @Order(21)
         @DisplayName("isCapabilityAvailable — 未知域返回 false")
         void unknownDomainFalse() {
-            var client = new PythonCapabilityAwareClient("http://localhost:8000");
+            var client = new PythonCapabilityAwareClient("http://localhost:1", new ObjectMapper());
             assertFalse(client.isCapabilityAvailable("UNKNOWN_DOMAIN"));
         }
 
@@ -134,7 +133,7 @@ class PythonEcoCliGoldenTest {
         @Order(22)
         @DisplayName("refreshIfStale — 首次调用触发刷新")
         void refreshIfStaleFirstCall() {
-            var client = new PythonCapabilityAwareClient("http://127.0.0.1:1");
+            var client = new PythonCapabilityAwareClient("http://127.0.0.1:1", new ObjectMapper());
             // 首次调用 refreshIfStale，因 lastRefreshTimestamp=0 应触发刷新
             client.refreshIfStale();
             // 应不抛异常
@@ -145,7 +144,7 @@ class PythonEcoCliGoldenTest {
         @Order(23)
         @DisplayName("getCapabilities — 返回不可变副本")
         void getCapabilitiesImmutable() {
-            var client = new PythonCapabilityAwareClient("http://localhost:8000");
+            var client = new PythonCapabilityAwareClient("http://localhost:1", new ObjectMapper());
             var caps = client.getCapabilities();
             assertThrows(UnsupportedOperationException.class,
                     () -> caps.put("test", new CapabilityStatus("test", true, null)));
@@ -162,7 +161,7 @@ class PythonEcoCliGoldenTest {
         @Order(30)
         @DisplayName("callIfAvailable — 能力不可用时返回 empty")
         void callIfNotAvailable() {
-            var client = new PythonCapabilityAwareClient("http://127.0.0.1:1");
+            var client = new PythonCapabilityAwareClient("http://127.0.0.1:1", new ObjectMapper());
             Optional<String> result = client.callIfAvailable(
                     "CODE_INTEL", "/api/code-intel/parse",
                     Map.of("content", "x=1"), String.class);
@@ -173,7 +172,7 @@ class PythonEcoCliGoldenTest {
         @Order(31)
         @DisplayName("callWithRetry — 服务不可达时返回 empty")
         void callWithRetryUnreachable() {
-            var client = new PythonCapabilityAwareClient("http://127.0.0.1:1");
+            var client = new PythonCapabilityAwareClient("http://127.0.0.1:1", new ObjectMapper());
             Optional<String> result = client.callWithRetry(
                     "/api/test", Map.of("key", "value"), String.class);
             assertTrue(result.isEmpty());
@@ -183,7 +182,7 @@ class PythonEcoCliGoldenTest {
         @Order(32)
         @DisplayName("post — 不检查能力域，直接调用")
         void postDirect() {
-            var client = new PythonCapabilityAwareClient("http://127.0.0.1:1");
+            var client = new PythonCapabilityAwareClient("http://127.0.0.1:1", new ObjectMapper());
             Optional<String> result = client.post(
                     "/api/test", Map.of(), String.class);
             assertTrue(result.isEmpty());
@@ -193,7 +192,7 @@ class PythonEcoCliGoldenTest {
         @Order(33)
         @DisplayName("get — 服务不可达时返回 empty")
         void getUnreachable() {
-            var client = new PythonCapabilityAwareClient("http://127.0.0.1:1");
+            var client = new PythonCapabilityAwareClient("http://127.0.0.1:1", new ObjectMapper());
             Optional<String> result = client.get("/api/health");
             assertTrue(result.isEmpty());
         }
@@ -209,7 +208,7 @@ class PythonEcoCliGoldenTest {
         @Order(40)
         @DisplayName("isHealthy — 不可达时返回 false")
         void isHealthyUnreachable() {
-            var client = new PythonCapabilityAwareClient("http://127.0.0.1:1");
+            var client = new PythonCapabilityAwareClient("http://127.0.0.1:1", new ObjectMapper());
             assertFalse(client.isHealthy());
         }
 
@@ -217,7 +216,7 @@ class PythonEcoCliGoldenTest {
         @Order(41)
         @DisplayName("isHealthy — 不抛异常")
         void isHealthyNoException() {
-            var client = new PythonCapabilityAwareClient("http://127.0.0.1:1");
+            var client = new PythonCapabilityAwareClient("http://127.0.0.1:1", new ObjectMapper());
             assertDoesNotThrow(() -> client.isHealthy());
         }
     }

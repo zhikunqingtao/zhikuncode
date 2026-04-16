@@ -1,6 +1,7 @@
 package com.aicodeassistant.mcp;
 
 import com.aicodeassistant.tool.Tool;
+import com.aicodeassistant.tool.ToolRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
@@ -17,6 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 /**
  * 智谱 WebSearch MCP 集成测试 — 验证阿里云百炼 MCP 服务连接。
@@ -28,6 +30,13 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @EnabledIfEnvironmentVariable(named = "ALIYUN_API_KEY", matches = "sk-.*")
 class ZhipuMcpIntegrationTest {
+
+    private static McpClientManager createTestManager(McpConfiguration configuration) {
+        McpApprovalService approval = mock(McpApprovalService.class);
+        when(approval.isTrusted(any())).thenReturn(true);
+        ToolRegistry toolRegistry = mock(ToolRegistry.class);
+        return new McpClientManager(configuration, null, toolRegistry, approval, null, null);
+    }
 
     private static final String MCP_SSE_URL = "https://dashscope.aliyuncs.com/api/v1/mcps/zhipu-websearch/sse";
     private String apiKey;
@@ -171,7 +180,7 @@ class ZhipuMcpIntegrationTest {
         McpConfiguration configuration = new McpConfiguration();
         configuration.setServers(java.util.Map.of());
 
-        McpClientManager clientManager = new McpClientManager(configuration, null, null);
+        McpClientManager clientManager = createTestManager(configuration);
 
         // When - 添加服务器
         McpServerConfig config = McpServerConfig.sse("zhipu-websearch", MCP_SSE_URL);
@@ -199,7 +208,7 @@ class ZhipuMcpIntegrationTest {
     void testMcpToolDiscovery() {
         // Given
         McpConfiguration configuration = new McpConfiguration();
-        McpClientManager clientManager = new McpClientManager(configuration, null, null);
+        McpClientManager clientManager = createTestManager(configuration);
 
         // 添加一个模拟的 MCP 服务器（带工具）
         McpServerConfig config = McpServerConfig.sse("zhipu-websearch", MCP_SSE_URL);

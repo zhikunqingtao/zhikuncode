@@ -1,5 +1,6 @@
 package com.aicodeassistant.engine;
 
+import com.aicodeassistant.history.FileHistoryService;
 import com.aicodeassistant.hook.HookRegistry;
 import com.aicodeassistant.hook.HookService;
 import com.aicodeassistant.llm.*;
@@ -24,6 +25,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 /**
  * QueryEngine 集成测试 — 验证端到端消息流 + 工具调用循环 + 错误场景。
@@ -46,12 +48,12 @@ class QueryFlowIntegrationTest {
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
-        providerRegistry = new LlmProviderRegistry(List.of());
+        providerRegistry = new LlmProviderRegistry(List.of(), null);
         PermissionRuleRepository ruleRepo = new PermissionRuleRepository(
                         new PolicySettingsSource(objectMapper), new PluginSettingsSource());
         PermissionRuleMatcher ruleMatcher = new PermissionRuleMatcher();
         AutoModeClassifier autoModeClassifier = new AutoModeClassifier(providerRegistry);
-        permissionPipeline = new PermissionPipeline(ruleMatcher, ruleRepo, autoModeClassifier);
+        permissionPipeline = new PermissionPipeline(ruleMatcher, ruleRepo, autoModeClassifier, null, null, null);
 
         TokenCounter tokenCounter = new TokenCounter();
         CompactService compactService = new CompactService(tokenCounter, providerRegistry);
@@ -60,7 +62,7 @@ class QueryFlowIntegrationTest {
         HookService hookService = new HookService(new HookRegistry(), null);
         SensitiveDataFilter sensitiveDataFilter = new SensitiveDataFilter();
         StreamingToolExecutor streamingToolExecutor = new StreamingToolExecutor(
-                new ToolExecutionPipeline(hookService, objectMapper, permissionPipeline, ruleRepo, sensitiveDataFilter));
+                new ToolExecutionPipeline(hookService, objectMapper, permissionPipeline, ruleRepo, sensitiveDataFilter, null));
         MessageNormalizer messageNormalizer = new MessageNormalizer();
         SnipService snipService = new SnipService();
         MicroCompactService microCompactService = new MicroCompactService(tokenCounter);
@@ -69,7 +71,7 @@ class QueryFlowIntegrationTest {
                 providerRegistry, compactService, apiRetryService,
                 permissionPipeline, ruleRepo, tokenCounter, objectMapper,
                 streamingToolExecutor, messageNormalizer, hookService,
-                snipService, microCompactService, null, null, modelTierService, null
+                snipService, microCompactService, null, null, modelTierService, mock(FileHistoryService.class), mock(ToolResultSummarizer.class)
         );
 
         handler = new RecordingHandler();

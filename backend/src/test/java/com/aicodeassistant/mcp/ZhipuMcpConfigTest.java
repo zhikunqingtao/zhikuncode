@@ -1,11 +1,13 @@
 package com.aicodeassistant.mcp;
 
+import com.aicodeassistant.tool.ToolRegistry;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 /**
  * 智谱 MCP 配置验证测试 — 无需网络连接。
@@ -118,7 +120,10 @@ class ZhipuMcpConfigTest {
         McpConfiguration configuration = new McpConfiguration();
         configuration.setServers(Map.of());
 
-        McpClientManager clientManager = new McpClientManager(configuration, null, null);
+        McpApprovalService approval = mock(McpApprovalService.class);
+        when(approval.isTrusted(any())).thenReturn(true);
+        ToolRegistry toolRegistry = mock(ToolRegistry.class);
+        McpClientManager clientManager = new McpClientManager(configuration, null, toolRegistry, approval, null, null);
 
         // When - 添加服务器
         McpServerConfig config = McpServerConfig.sse("zhipu-websearch", MCP_SSE_URL);
