@@ -112,7 +112,7 @@ public class StreamingToolExecutor {
                 active.incrementAndGet();
                 next.state = ToolState.EXECUTING;
 
-                Thread.startVirtualThread(() -> {
+                Thread.ofVirtual().name("zhiku-tool-" + next.tool.getName()).start(() -> {
                     try {
                         if (sessionDiscarded) {
                             next.result = ToolResult.error(

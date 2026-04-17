@@ -54,8 +54,8 @@ public class InProcessBackend {
 
         // 使用 Virtual Thread Executor
         try (ExecutorService executor = maxConcurrency > 0
-                ? Executors.newFixedThreadPool(maxConcurrency, Thread.ofVirtual().factory())
-                : Executors.newVirtualThreadPerTaskExecutor()) {
+                ? Executors.newFixedThreadPool(maxConcurrency, Thread.ofVirtual().name("zhiku-task-worker-", 0).factory())
+                : Executors.newThreadPerTaskExecutor(Thread.ofVirtual().name("zhiku-task-worker-", 0).factory())) {
 
             List<Future<AgentResult>> futures = new ArrayList<>(requests.size());
 

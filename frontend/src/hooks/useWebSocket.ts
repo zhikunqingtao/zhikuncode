@@ -1,13 +1,20 @@
 /**
- * useWebSocket — WebSocket STOMP 连接管理
+ * useWebSocket — WebSocket STOMP 连接管理 (薄封装)
  * SPEC: §8.5 WebSocket 消息协议
+ *
+ * P1-01: 统一为 stompClient.ts 核心实现，本文件仅为 React Hook 适配层。
+ * 所有连接管理、重连、心跳、消息解析逻辑均委托给 stompClient。
  */
 
-import { useEffect, useRef, useCallback } from 'react';
-import { Client, IMessage, StompSubscription } from '@stomp/stompjs';
-import SockJS from 'sockjs-client';
-import { dispatch } from '@/api/dispatch';
-import { useBridgeStore } from '@/store/bridgeStore';
+import { useEffect, useCallback, useRef, useState } from 'react';
+import {
+    createStompClient,
+    disconnectStomp,
+    isConnected as stompIsConnected,
+    sendToServer as stompSendToServer,
+    isWsConnected as stompIsWsConnected,
+} from '@/api/stompClient';
+import { useSessionStore } from '@/store/sessionStore';
 
 interface UseWebSocketOptions {
     onConnect?: () => void;
@@ -15,182 +22,81 @@ interface UseWebSocketOptions {
     onError?: (error: Error) => void;
 }
 
-// Module-level singleton to survive React StrictMode
-let globalClient: Client | null = null;
-let globalSubscription: StompSubscription | null = null;
-let connectionCount = 0;
-
-// 重连递增退避参数
-const RECONNECT_DELAYS = [1000, 2000, 5000, 10000, 30000]; // 最大 30s
-let reconnectAttempt = 0;
-let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+// 模块级标志 — 防止 React StrictMode 双重挂载导致重复连接
+let globalConnected = false;
 
 /**
- * 递增退避重连。
- */
-function scheduleReconnect() {
-    if (reconnectTimer) return; // 已有重连计划
-    const delay = RECONNECT_DELAYS[Math.min(reconnectAttempt, RECONNECT_DELAYS.length - 1)];
-    reconnectAttempt++;
-    useBridgeStore.getState().updateBridgeStatus({
-        status: 'reconnecting',
-        url: '',
-        nextRetryAt: Date.now() + delay,
-        attempt: reconnectAttempt,
-    });
-    console.log(`[WebSocket] Reconnecting in ${delay}ms (attempt #${reconnectAttempt})`);
-    reconnectTimer = setTimeout(() => {
-        reconnectTimer = null;
-        if (!globalClient?.active) {
-            globalClient?.activate();
-        }
-    }, delay);
-}
-
-/**
- * 模块级发送 — 可从任何地方调用（不限于 React 组件内）。
+ * 模块级发送 — 委托给 stompClient.sendToServer
+ * 保持向后兼容：可从任何地方调用（不限于 React 组件内）。
  */
 export function sendToServer(destination: string, body: unknown): boolean {
-    if (!globalClient?.active) {
-        console.error('[WebSocket] sendToServer: not connected');
-        return false;
-    }
-    console.log('[WebSocket] sendToServer:', destination, body);
-    globalClient.publish({
-        destination,
-        body: JSON.stringify(body),
-    });
-    return true;
+    return stompSendToServer(destination, body);
 }
 
 /**
- * 模块级连接状态检查。
+ * 模块级连接状态检查 — 委托给 stompClient.isWsConnected
  */
 export function isWsConnected(): boolean {
-    return globalClient?.active ?? false;
+    return stompIsWsConnected();
 }
 
+/**
+ * useWebSocket Hook — 薄封装层
+ *
+ * 保留原有 hook 签名（参数和返回值类型）以保持向后兼容。
+ * 内部实现全部委托给 stompClient，移除重复的连接管理/重连/心跳逻辑。
+ */
 export function useWebSocket(options: UseWebSocketOptions = {}) {
     const optionsRef = useRef(options);
-    const instanceId = useRef(++connectionCount);
-    
+    const [, setConnectedState] = useState(false);
+
     // Keep options ref up to date
     useEffect(() => {
         optionsRef.current = options;
     }, [options]);
 
     const connect = useCallback(() => {
-        // If global client exists and is active, just call onConnect
-        if (globalClient?.active) {
-            console.log(`[WebSocket][${instanceId.current}] Using existing connection`);
+        // 如果已连接，仅触发回调
+        if (stompIsConnected()) {
             optionsRef.current.onConnect?.();
+            setConnectedState(true);
             return;
         }
 
-        // If connecting, wait for it
-        if (globalClient && !globalClient.active) {
-            console.log(`[WebSocket][${instanceId.current}] Connection in progress, waiting...`);
+        // 防止重复连接
+        if (globalConnected) {
             return;
         }
+        globalConnected = true;
 
-        console.log(`[WebSocket][${instanceId.current}] Creating new connection`);
+        // 获取 session 信息
+        const sessionId = useSessionStore.getState().sessionId || 'default';
+        const authToken = ''; // 当前无需 auth token，由 SockJS/STOMP 处理
 
-        const client = new Client({
-            webSocketFactory: () => new SockJS('/ws'),
-            reconnectDelay: 0, // 禁用内置重连，使用自定义递增退避
-            heartbeatIncoming: 4000,
-            heartbeatOutgoing: 4000,
-            onConnect: () => {
-                console.log(`[WebSocket][${instanceId.current}] Connected`);
-                reconnectAttempt = 0; // 连接成功重置计数器
-
-                // 同步状态到 BridgeStore
-                useBridgeStore.getState().updateBridgeStatus({
-                    status: 'connected',
-                    url: window.location.origin,
-                    connectedAt: Date.now(),
-                });
-                
-                // Subscribe to user queue (only once globally)
-                if (!globalSubscription) {
-                    globalSubscription = client.subscribe(
-                        '/user/queue/messages',
-                        (message: IMessage) => {
-                            try {
-                                const payload = JSON.parse(message.body);
-                                dispatch(payload);
-                            } catch (error) {
-                                console.error('[WebSocket] Failed to parse message:', error);
-                            }
-                        }
-                    );
-                }
-
-                optionsRef.current.onConnect?.();
-            },
-            onDisconnect: () => {
-                console.log(`[WebSocket][${instanceId.current}] Disconnected`);
-                globalSubscription = null;
-
-                useBridgeStore.getState().updateBridgeStatus({
-                    status: 'disconnected',
-                    url: '',
-                });
-                optionsRef.current.onDisconnect?.();
-
-                // 自定义重连 (递增退避)
-                scheduleReconnect();
-            },
-            onStompError: (frame) => {
-                console.error(`[WebSocket][${instanceId.current}] STOMP error:`, frame);
-                useBridgeStore.getState().updateBridgeStatus({
-                    status: 'error',
-                    url: '',
-                    error: frame.headers['message'] || 'STOMP error',
-                });
-                optionsRef.current.onError?.(new Error(frame.headers['message'] || 'STOMP error'));
-            },
-            onWebSocketError: (event) => {
-                console.error(`[WebSocket][${instanceId.current}] WebSocket error:`, event);
-                optionsRef.current.onError?.(new Error('WebSocket connection failed'));
-            },
-            onWebSocketClose: (evt) => {
-                console.warn('[WebSocket] Connection closed:', evt.code, evt.reason);
-            },
-        });
-
-        globalClient = client;
-        client.activate();
+        try {
+            createStompClient(sessionId, authToken);
+            optionsRef.current.onConnect?.();
+            setConnectedState(true);
+        } catch (err) {
+            globalConnected = false;
+            optionsRef.current.onError?.(err instanceof Error ? err : new Error(String(err)));
+            setConnectedState(false);
+        }
     }, []);
 
     const disconnect = useCallback(() => {
-        // Only disconnect if this is the last instance
-        if (instanceId.current === connectionCount) {
-            console.log(`[WebSocket][${instanceId.current}] Last instance, keeping connection alive`);
-        } else {
-            console.log(`[WebSocket][${instanceId.current}] Instance unmounted, connection preserved`);
-        }
-        // Note: We don't actually disconnect here to survive StrictMode
-        // The connection will be reused by the next mount
+        // Note: 不主动断开以支持 React StrictMode — 连接将被复用
     }, []);
 
     const sendMessage = useCallback((destination: string, body: unknown) => {
-        if (!globalClient?.active) {
-            console.error('[WebSocket] Not connected');
-            return false;
-        }
-
-        globalClient.publish({
-            destination,
-            body: JSON.stringify(body),
-        });
-        return true;
+        return stompSendToServer(destination, body);
     }, []);
 
-    const isConnected = useCallback(() => {
-        return globalClient?.active ?? false;
+    const isConnectedFn = useCallback(() => {
+        return stompIsConnected();
     }, []);
 
+    // 自动连接
     useEffect(() => {
         connect();
         return () => {
@@ -201,13 +107,13 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
     return {
         connect,
         disconnect: () => {
-            // Actual disconnect only when explicitly called
-            globalSubscription?.unsubscribe();
-            globalSubscription = null;
-            globalClient?.deactivate();
-            globalClient = null;
+            // 显式调用时才真正断开
+            globalConnected = false;
+            disconnectStomp();
+            optionsRef.current.onDisconnect?.();
+            setConnectedState(false);
         },
         sendMessage,
-        isConnected,
+        isConnected: isConnectedFn,
     };
 }

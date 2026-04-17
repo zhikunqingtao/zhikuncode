@@ -7,6 +7,7 @@ import com.aicodeassistant.state.AppStateStore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -45,6 +46,7 @@ public class SessionManager {
     private final SqliteConfig sqliteConfig;
     private final AppStateStore appStateStore;
     private final HookService hookService;
+    private final SessionSnapshotService snapshotService;
 
     // ★ FileStateCache — 会话级文件状态缓存 (§11.5.9)
     private final ConcurrentHashMap<String, FileStateCache> fileStateCaches = new ConcurrentHashMap<>();
@@ -61,12 +63,14 @@ public class SessionManager {
                           ObjectMapper objectMapper,
                           SqliteConfig sqliteConfig,
                           AppStateStore appStateStore,
-                          HookService hookService) {
+                          HookService hookService,
+                          SessionSnapshotService snapshotService) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
         this.sqliteConfig = sqliteConfig;
         this.appStateStore = appStateStore;
         this.hookService = hookService;
+        this.snapshotService = snapshotService;
     }
 
     // ───── RowMapper ─────
@@ -326,6 +330,63 @@ public class SessionManager {
             log.info("Session resumed: {} ({} messages)", sessionId, data.messages().size());
         });
         return dataOpt;
+    }
+
+    // ───── 快照相关方法 ─────
+
+    /**
+     * 手动保存当前会话的快照。
+     */
+    public void saveCurrentSessionSnapshot(String sessionId) {
+        loadSession(sessionId).ifPresent(data -> {
+            int turnCount = (int) data.messages().stream()
+                    .filter(m -> m instanceof Message.UserMessage)
+                    .count();
+
+            Map<String, Object> metadata = new HashMap<>();
+            metadata.put("title", data.title());
+            metadata.put("workingDir", data.workingDir());
+            metadata.put("status", data.status());
+            if (data.totalUsage() != null) {
+                metadata.put("totalInputTokens", data.totalUsage().inputTokens());
+                metadata.put("totalOutputTokens", data.totalUsage().outputTokens());
+            }
+            metadata.put("totalCostUsd", data.totalCostUsd());
+
+            SessionSnapshot snapshot = new SessionSnapshot(
+                    data.sessionId(),
+                    data.messages(),
+                    data.model(),
+                    turnCount,
+                    Instant.now(),
+                    metadata
+            );
+            snapshotService.saveSnapshot(sessionId, snapshot);
+        });
+    }
+
+    /**
+     * Graceful shutdown — 自动保存所有活跃会话的快照。
+     */
+    @PreDestroy
+    public void onShutdown() {
+        log.info("Shutdown detected — saving snapshots for all active sessions...");
+        try {
+            List<SessionSummary> activeSessions = listSessions(100);
+            int saved = 0;
+            for (SessionSummary session : activeSessions) {
+                try {
+                    saveCurrentSessionSnapshot(session.id());
+                    saved++;
+                } catch (Exception e) {
+                    log.warn("Failed to save snapshot for session {} during shutdown: {}",
+                            session.id(), e.getMessage());
+                }
+            }
+            log.info("Shutdown snapshot complete: {}/{} sessions saved", saved, activeSessions.size());
+        } catch (Exception e) {
+            log.error("Failed to save session snapshots during shutdown: {}", e.getMessage(), e);
+        }
     }
 
     // ───── 内部工具方法 ─────

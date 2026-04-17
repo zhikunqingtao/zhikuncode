@@ -394,7 +394,7 @@ public class WebSocketController implements PermissionNotifier {
                 msg.text() != null ? msg.text().substring(0, Math.min(50, msg.text().length())) : "");
 
         // 在 Virtual Thread 中执行 QueryEngine
-        Thread.startVirtualThread(() -> {
+        Thread.ofVirtual().name("zhiku-ws-query-" + sessionId).start(() -> {
             try {
                 executeQuery(sessionId, msg.text());
             } catch (Exception e) {

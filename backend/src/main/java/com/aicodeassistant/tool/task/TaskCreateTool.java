@@ -1,8 +1,13 @@
 package com.aicodeassistant.tool.task;
 
 import com.aicodeassistant.tool.*;
+import com.aicodeassistant.tool.agent.SubAgentExecutor;
+import com.aicodeassistant.tool.agent.SubAgentExecutor.AgentRequest;
+import com.aicodeassistant.tool.agent.SubAgentExecutor.AgentResult;
+import com.aicodeassistant.tool.agent.SubAgentExecutor.IsolationMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -32,9 +37,15 @@ public class TaskCreateTool implements Tool {
     private static final Logger log = LoggerFactory.getLogger(TaskCreateTool.class);
 
     private final TaskCoordinator taskCoordinator;
+    private final SubAgentExecutor subAgentExecutor;
+    private final ToolRegistry toolRegistry;
 
-    public TaskCreateTool(TaskCoordinator taskCoordinator) {
+    public TaskCreateTool(TaskCoordinator taskCoordinator,
+                          SubAgentExecutor subAgentExecutor,
+                          @Lazy ToolRegistry toolRegistry) {
         this.taskCoordinator = taskCoordinator;
+        this.subAgentExecutor = subAgentExecutor;
+        this.toolRegistry = toolRegistry;
     }
 
     @Override
@@ -128,15 +139,16 @@ public class TaskCreateTool implements Tool {
         log.info("Creating task: id={}, type={}, description={}", taskId, taskType, description);
 
         try {
-            // 提交任务到 TaskCoordinator — 执行体为占位实现
-            // 实际执行逻辑由 taskType 决定:
-            //   - agent: 创建子 QueryEngine + AgentTool 工具集
-            //   - shell: ProcessBuilder 执行命令 + 输出监控
-            //   - in_process_teammate: InProcessBackend 启动
+            // 提交任务到 TaskCoordinator — 按 taskType 分发执行
             TaskState taskState = taskCoordinator.submit(taskId, sessionId, description, () -> {
-                // P1 占位: 实际任务执行体将在集成阶段填充
-                log.info("Task {} executing: type={}, prompt={}", taskId, taskType,
-                        prompt.length() > 100 ? prompt.substring(0, 100) + "..." : prompt);
+                switch (taskType) {
+                    case "agent" -> executeAgentTask(taskId, prompt, context);
+                    case "shell" -> executeShellTask(taskId, prompt, context);
+                    case "local_workflow" -> executeLocalWorkflowTask(taskId, prompt, context);
+                    case "monitor_mcp" -> executeMonitorMcpTask(taskId, prompt, context);
+                    case "dream" -> executeDreamTask(taskId, prompt, context);
+                    default -> log.warn("Task type '{}' not yet implemented, task {} skipped", taskType, taskId);
+                }
             });
 
             return ToolResult.success(
@@ -144,6 +156,119 @@ public class TaskCreateTool implements Tool {
 
         } catch (IllegalStateException e) {
             return ToolResult.error("Failed to create task: " + e.getMessage());
+        }
+    }
+
+    // ═══ 任务执行方法 ═══
+
+    private void executeAgentTask(String taskId, String prompt, ToolUseContext context) {
+        try {
+            log.info("Executing agent task: {}", taskId);
+            AgentRequest request = new AgentRequest(
+                    "task-" + taskId,          // agentId
+                    prompt,                     // prompt
+                    null,                       // agentType (default general-purpose)
+                    null,                       // model (default)
+                    IsolationMode.NONE,         // isolation
+                    false                       // runInBackground
+            );
+            AgentResult result = subAgentExecutor.executeSync(request, context);
+            log.info("Agent task {} completed: status={}", taskId,
+                    result != null ? result.status() : "null");
+        } catch (Exception e) {
+            log.error("Agent task {} failed: {}", taskId, e.getMessage(), e);
+        }
+    }
+
+    private void executeShellTask(String taskId, String prompt, ToolUseContext context) {
+        try {
+            log.info("Executing shell task: {}", taskId);
+            var bashToolOpt = toolRegistry.findByNameOptional("Bash");
+            if (bashToolOpt.isEmpty()) {
+                log.error("BashTool not found in registry, shell task {} skipped", taskId);
+                return;
+            }
+            var bashTool = bashToolOpt.get();
+            ToolInput bashInput = ToolInput.from(Map.of("command", prompt));
+            ToolResult result = bashTool.call(bashInput, context);
+            log.info("Shell task {} completed: {}", taskId,
+                    result != null ? "success" : "null result");
+        } catch (Exception e) {
+            log.error("Shell task {} failed: {}", taskId, e.getMessage(), e);
+        }
+    }
+
+    private void executeLocalWorkflowTask(String taskId, String prompt, ToolUseContext context) {
+        try {
+            log.info("Executing local_workflow task: {}", taskId);
+            // local_workflow 本质是脚本驱动的 agent，使用 "workflow" 类型标识
+            AgentRequest request = new AgentRequest(
+                    "workflow-" + taskId,
+                    prompt,
+                    "workflow",             // agentType: 标识为工作流代理
+                    null,
+                    IsolationMode.NONE,
+                    false
+            );
+            AgentResult result = subAgentExecutor.executeSync(request, context);
+            log.info("Local workflow task {} completed: status={}", taskId,
+                    result != null ? result.status() : "null");
+        } catch (Exception e) {
+            log.error("Local workflow task {} failed: {}", taskId, e.getMessage(), e);
+        }
+    }
+
+    private void executeMonitorMcpTask(String taskId, String prompt, ToolUseContext context) {
+        try {
+            log.info("Executing monitor_mcp task: {}", taskId);
+            // 解析监控间隔（从 prompt 中提取，默认 60 秒）
+            String effectivePrompt = prompt;
+            int intervalSeconds = 60;
+            try {
+                // 支持格式: "interval=30 <actual_prompt>"
+                if (prompt.startsWith("interval=")) {
+                    String[] parts = prompt.split("\\s+", 2);
+                    intervalSeconds = Integer.parseInt(parts[0].substring("interval=".length()));
+                    effectivePrompt = parts.length > 1 ? parts[1] : prompt;
+                }
+            } catch (NumberFormatException e) {
+                log.warn("Invalid interval in monitor_mcp prompt, using default 60s");
+            }
+
+            // 使用 agent 模式执行 MCP 监控指令
+            AgentRequest request = new AgentRequest(
+                    "mcp-monitor-" + taskId,
+                    effectivePrompt,
+                    "monitor",
+                    null,
+                    IsolationMode.NONE,
+                    true                    // runInBackground: MCP 监控任务后台运行
+            );
+            AgentResult result = subAgentExecutor.executeSync(request, context);
+            log.info("Monitor MCP task {} completed: status={}", taskId,
+                    result != null ? result.status() : "null");
+        } catch (Exception e) {
+            log.error("Monitor MCP task {} failed: {}", taskId, e.getMessage(), e);
+        }
+    }
+
+    private void executeDreamTask(String taskId, String prompt, ToolUseContext context) {
+        try {
+            log.info("Executing dream task: {}", taskId);
+            // dream 任务: 后台梦境式思考 — 低优先级、非阻塞
+            AgentRequest request = new AgentRequest(
+                    "dream-" + taskId,
+                    prompt,
+                    "dream",
+                    null,
+                    IsolationMode.NONE,     // IsolationMode 无 SNAPSHOT，使用 NONE
+                    true                    // runInBackground
+            );
+            AgentResult result = subAgentExecutor.executeSync(request, context);
+            log.info("Dream task {} completed: status={}", taskId,
+                    result != null ? result.status() : "null");
+        } catch (Exception e) {
+            log.error("Dream task {} failed: {}", taskId, e.getMessage(), e);
         }
     }
 

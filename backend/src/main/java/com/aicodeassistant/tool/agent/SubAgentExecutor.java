@@ -244,7 +244,7 @@ public class SubAgentExecutor {
     public AgentResult executeAsync(AgentRequest request, ToolUseContext parentContext) {
         String outputFile = "/tmp/agent-" + request.agentId() + "-output.txt";
 
-        Thread.startVirtualThread(() -> {
+        Thread.ofVirtual().name("zhiku-agent-" + request.agentId()).start(() -> {
             try {
                 AgentResult result = executeSync(request, parentContext);
                 Files.writeString(Path.of(outputFile), result.result() != null ? result.result() : "");
@@ -332,7 +332,7 @@ public class SubAgentExecutor {
 
     private List<Tool> assembleToolPool(AgentDefinition agentDef, ToolUseContext ctx) {
         // 所有子代理禁用的工具
-        Set<String> denied = Set.of("Agent", "TeamCreate", "TeamDelete", "TaskCreate");
+        Set<String> denied = Set.of("Agent", "TeamCreate", "TeamDelete", "TaskCreate", "VerifyPlanExecution");
         Set<String> agentDenied = agentDef.deniedTools() != null
                 ? agentDef.deniedTools() : Set.of();
 

@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import com.aicodeassistant.tool.bash.BashCommandClassifier;
 import com.aicodeassistant.hook.HookRegistry;
 import com.aicodeassistant.hook.HookService;
 import com.aicodeassistant.sandbox.SandboxManager;
@@ -53,6 +54,9 @@ public class PermissionPipeline {
             "FileEdit", "FileWrite", "Write", "Edit"
     );
 
+    /** Bash 工具名称集合 */
+    private static final Set<String> BASH_TOOL_NAMES = Set.of("Bash", "BashTool");
+
     /** 裸壳前缀 — 禁止为这些前缀生成 "Always allow" 建议 */
     private static final Set<String> BARE_SHELL_PREFIXES = Set.of(
             "sh", "bash", "zsh", "fish", "csh", "tcsh", "ksh", "dash",
@@ -93,19 +97,22 @@ public class PermissionPipeline {
     private final HookService hookService;
     private final SandboxManager sandboxManager;
     private final PathSecurityService pathSecurityService;
+    private final BashCommandClassifier bashCommandClassifier;
 
     public PermissionPipeline(PermissionRuleMatcher ruleMatcher,
                               PermissionRuleRepository ruleRepository,
                               AutoModeClassifier autoModeClassifier,
                               HookService hookService,
                               SandboxManager sandboxManager,
-                              PathSecurityService pathSecurityService) {
+                              PathSecurityService pathSecurityService,
+                              BashCommandClassifier bashCommandClassifier) {
         this.ruleMatcher = ruleMatcher;
         this.ruleRepository = ruleRepository;
         this.autoModeClassifier = autoModeClassifier;
         this.hookService = hookService;
         this.sandboxManager = sandboxManager;
         this.pathSecurityService = pathSecurityService;
+        this.bashCommandClassifier = bashCommandClassifier;
     }
 
     /**
@@ -185,7 +192,7 @@ public class PermissionPipeline {
         }
 
         // ===== Step 1f-bash: Bash 命令危险删除 + 环境变量检查 (Layer 4+7) =====
-        if ("Bash".equals(tool.getName())) {
+        if (BASH_TOOL_NAMES.contains(tool.getName())) {
             String command = input.getString("command");
             String rmBlock = pathSecurityService.checkDangerousRemoval(command);
             if (rmBlock != null) {
@@ -357,7 +364,7 @@ public class PermissionPipeline {
         String ruleContent = null;
 
         // BashTool: 记住具体命令
-        if ("Bash".equals(toolName)) {
+        if (BASH_TOOL_NAMES.contains(toolName)) {
             ruleContent = input.getOptionalString("command").orElse(null);
         }
 
@@ -404,9 +411,15 @@ public class PermissionPipeline {
         pendingRequests.put(toolUseId, future);
 
         // 通过 WebSocket 推送权限请求到前端
-        String riskLevel = BARE_SHELL_PREFIXES.stream()
-                .anyMatch(p -> String.valueOf(input.getOrDefault("command", "")).startsWith(p))
-                ? "high" : "medium";
+        String commandStr = String.valueOf(input.getOrDefault("command", ""));
+        String riskLevel;
+        if (BARE_SHELL_PREFIXES.stream().anyMatch(commandStr::startsWith)) {
+            riskLevel = "high";
+        } else if ("Bash".equals(toolName)) {
+            riskLevel = bashCommandClassifier.isReadOnlyCommand(commandStr) ? "low" : "medium";
+        } else {
+            riskLevel = "medium";
+        }
 
         // 记录转发来源信息（当 sessionId 与 wsPusher 的目标会话不同时，说明是子代理冒泡转发）
         log.info("Permission request: toolUseId={}, toolName={}, targetSession={}",
@@ -482,7 +495,7 @@ public class PermissionPipeline {
                 "toolName", tool.getName()));
 
         // BashTool: 生成前缀规则建议
-        if ("Bash".equals(tool.getName())) {
+        if (BASH_TOOL_NAMES.contains(tool.getName())) {
             String cmd = input.getOptionalString("command").orElse(null);
             if (cmd != null) {
                 String prefix = extractCommandPrefix(cmd);

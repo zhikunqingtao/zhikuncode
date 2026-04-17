@@ -100,7 +100,7 @@ public class SendMessageTool implements Tool {
 
     @Override
     public String getGroup() {
-        return "config";
+        return "agent";
     }
 
     @Override
@@ -118,7 +118,9 @@ public class SendMessageTool implements Tool {
         String to = input.getString("to");
         String message = input.getString("message");
         String summary = input.getString("summary", "");
-        String senderId = "main"; // P1: 从 context 获取 agentId
+        String senderId = (context.agentHierarchy() != null && !context.agentHierarchy().isBlank())
+                ? context.agentHierarchy()
+                : "main";
 
         // 1. 广播模式
         if ("*".equals(to)) {
@@ -145,10 +147,11 @@ public class SendMessageTool implements Tool {
 
         // 4. STOMP 通知
         try {
+            String safeSenderId = senderId.replaceAll("[^a-zA-Z0-9_\\->/\\s]", "_");
             messagingTemplate.convertAndSend(
                     "/topic/session/" + context.sessionId(),
                     Map.of("type", "agent_message",
-                            "from", senderId,
+                            "from", safeSenderId,
                             "to", to,
                             "timestamp", Instant.now().toEpochMilli()));
         } catch (Exception e) {

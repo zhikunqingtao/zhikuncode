@@ -12,7 +12,7 @@ import { useDialogStore } from '@/store/dialogStore';
 import { usePermissionStore } from '@/store/permissionStore';
 import { useAppUiStore } from '@/store/appUiStore';
 import { useSessionStore } from '@/store/sessionStore';
-import { sendToServer } from '@/hooks/useWebSocket';
+import { sendToServer } from '@/api/stompClient';
 import PermissionDialog from '@/components/permission/PermissionDialog';
 import { ElicitationDialog } from '@/components/dialog/ElicitationDialog';
 import { SettingsPanel } from '@/components/dialog/SettingsPanel';

@@ -4,6 +4,7 @@ import com.aicodeassistant.model.ContentBlock;
 import com.aicodeassistant.model.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -28,14 +29,23 @@ public class ContextCollapseService {
 
     private static final Logger log = LoggerFactory.getLogger(ContextCollapseService.class);
 
-    /** 默认保护尾部消息数 */
-    private static final int DEFAULT_PROTECTED_TAIL = 6;
+    /** 保护尾部消息数，尾部 N 条消息不参与折叠，保留最近上下文完整性 */
+    private final int defaultProtectedTail;
 
-    /** 助手消息文本截断阈值（字符数） */
-    private static final int TEXT_TRUNCATE_THRESHOLD = 2000;
+    /** 助手消息文本截断阈值（字符数），超过此长度的文本块将被截断 */
+    private final int textTruncateThreshold;
 
-    /** 截断后保留的字符数 */
-    private static final int TEXT_TRUNCATE_KEEP = 500;
+    /** 截断后保留的前缀字符数 */
+    private final int textTruncateKeep;
+
+    public ContextCollapseService(
+            @Value("${zhiku.context.collapse.protected-tail:6}") int defaultProtectedTail,
+            @Value("${zhiku.context.collapse.threshold:2000}") int textTruncateThreshold,
+            @Value("${zhiku.context.collapse.keep:500}") int textTruncateKeep) {
+        this.defaultProtectedTail = defaultProtectedTail;
+        this.textTruncateThreshold = textTruncateThreshold;
+        this.textTruncateKeep = textTruncateKeep;
+    }
 
     /**
      * 折叠消息列表 — 保留骨架，清空旧内容。
@@ -49,7 +59,7 @@ public class ContextCollapseService {
             return new CollapseResult(messages != null ? messages : List.of(), 0, 0);
         }
 
-        int tail = Math.max(protectedTail, DEFAULT_PROTECTED_TAIL);
+        int tail = Math.max(protectedTail, defaultProtectedTail);
         int collapseEnd = messages.size() - tail;
 
         List<Message> result = new ArrayList<>(messages.size());
@@ -112,7 +122,7 @@ public class ContextCollapseService {
      * 使用默认保护尾部数折叠。
      */
     public CollapseResult collapseMessages(List<Message> messages) {
-        return collapseMessages(messages, DEFAULT_PROTECTED_TAIL);
+        return collapseMessages(messages, defaultProtectedTail);
     }
 
     // ── 内部方法 ──────────────────────────────────────────────
@@ -120,15 +130,15 @@ public class ContextCollapseService {
     private boolean hasLongText(List<ContentBlock> blocks) {
         return blocks.stream()
                 .anyMatch(b -> b instanceof ContentBlock.TextBlock t
-                        && t.text() != null && t.text().length() > TEXT_TRUNCATE_THRESHOLD);
+                        && t.text() != null && t.text().length() > textTruncateThreshold);
     }
 
     private List<ContentBlock> truncateBlocks(List<ContentBlock> blocks) {
         return blocks.stream()
                 .map(block -> {
                     if (block instanceof ContentBlock.TextBlock t
-                            && t.text() != null && t.text().length() > TEXT_TRUNCATE_THRESHOLD) {
-                        String truncated = t.text().substring(0, TEXT_TRUNCATE_KEEP)
+                            && t.text() != null && t.text().length() > textTruncateThreshold) {
+                        String truncated = t.text().substring(0, textTruncateKeep)
                                 + "\n...[collapsed: " + t.text().length() + " chars]";
                         return (ContentBlock) new ContentBlock.TextBlock(truncated);
                     }

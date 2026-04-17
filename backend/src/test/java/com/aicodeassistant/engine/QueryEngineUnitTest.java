@@ -1,5 +1,6 @@
 package com.aicodeassistant.engine;
 
+import com.aicodeassistant.engine.ContextCascade;
 import com.aicodeassistant.history.FileHistoryService;
 import com.aicodeassistant.hook.HookRegistry;
 import com.aicodeassistant.hook.HookService;
@@ -51,6 +52,7 @@ class QueryEngineUnitTest {
     @Mock ModelTierService modelTierService;
     @Mock FileHistoryService fileHistoryService;
     @Mock ToolResultSummarizer toolResultSummarizer;
+    @Mock ContextCascade contextCascade;
 
     private ObjectMapper objectMapper;
     private QueryEngine queryEngine;
@@ -65,7 +67,7 @@ class QueryEngineUnitTest {
                 objectMapper, streamingToolExecutor, messageNormalizer, hookService,
                 snipService, microCompactService, modelRegistry,
                 thinkingBudgetCalculator, modelTierService, fileHistoryService,
-                toolResultSummarizer);
+                toolResultSummarizer, contextCascade);
         handler = new TestHandler();
 
         // 默认 Snip/MicroCompact mock: 直接返回原消息列表

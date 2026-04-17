@@ -2,8 +2,10 @@ package com.aicodeassistant.tool.task;
 
 import com.aicodeassistant.model.TaskStatus;
 import com.aicodeassistant.tool.ToolInput;
+import com.aicodeassistant.tool.ToolRegistry;
 import com.aicodeassistant.tool.ToolResult;
 import com.aicodeassistant.tool.ToolUseContext;
+import com.aicodeassistant.tool.agent.SubAgentExecutor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -271,7 +273,7 @@ class TaskToolGoldenTest {
         @BeforeEach
         void setUp() {
             coordinator = new TaskCoordinator(mock(SimpMessagingTemplate.class));
-            tool = new TaskCreateTool(coordinator);
+            tool = new TaskCreateTool(coordinator, mock(SubAgentExecutor.class), mock(ToolRegistry.class));
         }
 
         @Test

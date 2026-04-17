@@ -6,7 +6,7 @@ import { DialogManager } from '@/components/DialogManager';
 import { useMessageStore } from '@/store/messageStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { useConfigStore } from '@/store/configStore';
-import { sendToServer, isWsConnected } from '@/hooks/useWebSocket';
+import { sendToServer, isWsConnected } from '@/api/stompClient';
 import type { SubmitEvent, Message } from '@/types';
 
 function App() {

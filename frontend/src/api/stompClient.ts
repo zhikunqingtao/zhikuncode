@@ -16,8 +16,21 @@ import { dispatch, resetSequence } from './dispatch';
 import type { ServerMessage } from '@/types';
 
 /**
+ * 合法消息类型白名单 — 从 dispatch.ts handlers 和 ServerMessage 类型推断
+ */
+const VALID_MESSAGE_TYPES: ReadonlySet<string> = new Set([
+    'stream_delta', 'thinking_delta', 'tool_use_start', 'tool_use_progress', 'tool_result',
+    'error', 'compact_complete', 'message_complete', 'compact_start', 'rate_limit',
+    'permission_request', 'cost_update', 'task_update', 'agent_spawn', 'agent_update',
+    'agent_complete', 'elicitation', 'prompt_suggestion', 'speculation_result',
+    'bridge_status', 'notification', 'teammate_message', 'mcp_tool_update',
+    'session_restored', 'pong', 'compact_event', 'token_warning', 'interrupt_ack',
+    'model_changed', 'permission_mode_changed', 'command_result', 'rewind_complete',
+]);
+
+/**
  * 防御性消息解析 — 处理心跳、SockJS 协议帧等非 JSON 消息
- * 对齐 P-FE-02 修复方案
+ * 对齐 P-FE-02 修复方案 + P1-08 增强
  */
 function parseMessage(raw: string): (ServerMessage & { ts?: number }) | null {
     // 防御 null/undefined/空字符串
@@ -30,11 +43,30 @@ function parseMessage(raw: string): (ServerMessage & { ts?: number }) | null {
         return null;
     }
 
+    // P1-08: 处理 SockJS 数组帧 a["..."] 格式
+    let data = raw;
+    if (typeof data === 'string' && data.startsWith('a[')) {
+        try {
+            const arr = JSON.parse(data.slice(1));
+            if (Array.isArray(arr) && arr.length > 0) {
+                data = arr[0];
+            }
+        } catch { /* ignore SockJS frame parse failure */ }
+    }
+
     try {
-        return JSON.parse(raw);
+        const payload = JSON.parse(data);
+
+        // P1-08: payload.type 有效性校验
+        if (payload && payload.type && !VALID_MESSAGE_TYPES.has(payload.type)) {
+            console.debug('[STOMP] Unknown message type, skipping:', payload.type);
+            return null;
+        }
+
+        return payload;
     } catch {
         // 降级1: 尝试从 STOMP 帧中提取 body（支持多行 JSON）
-        const bodyMatch = raw.match(/\n\n([\s\S]+?)\u0000/);
+        const bodyMatch = data.match(/\n\n([\s\S]+?)\u0000/);
         if (bodyMatch) {
             try {
                 return JSON.parse(bodyMatch[1]);
@@ -43,7 +75,7 @@ function parseMessage(raw: string): (ServerMessage & { ts?: number }) | null {
             }
         }
         // 降级2: 尝试提取最后一个 JSON 对象
-        const jsonMatch = raw.match(/(\{[\s\S]*\})\s*\u0000?$/);
+        const jsonMatch = data.match(/(\{[\s\S]*\})\s*\u0000?$/);
         if (jsonMatch) {
             try {
                 return JSON.parse(jsonMatch[1]);
@@ -51,9 +83,9 @@ function parseMessage(raw: string): (ServerMessage & { ts?: number }) | null {
                 // 静默忽略
             }
         }
-        // 非 JSON 消息（SockJS 协议帧等）静默忽略
-        if (raw.length > 2) {
-            console.debug('[STOMP] Non-JSON message ignored:', raw.substring(0, 80));
+        // 非 JSON 消息（SockJS 协议帧等）— 解析错误降为 debug 级别
+        if (data.length > 2) {
+            console.debug('[STOMP] Non-JSON message ignored:', data.substring(0, 80));
         }
         return null;
     }
@@ -275,4 +307,29 @@ export function sendElicitationResponse(requestId: string, answer: string | stri
 /** #10 心跳探测 → /app/ping */
 export function sendPing(): void {
     send('/app/ping', {});
+}
+
+// ==================== 兼容导出 — 统一 useWebSocket 迁移 ====================
+
+/**
+ * sendToServer — 兼容原 useWebSocket.ts 的模块级发送函数
+ * 返回 boolean 表示是否发送成功
+ */
+export function sendToServer(destination: string, body: unknown): boolean {
+    if (!stompClient?.active) {
+        console.warn('[WS] sendToServer: not connected');
+        return false;
+    }
+    stompClient.publish({
+        destination,
+        body: JSON.stringify(body),
+    });
+    return true;
+}
+
+/**
+ * isWsConnected — 兼容原 useWebSocket.ts 的连接状态检查
+ */
+export function isWsConnected(): boolean {
+    return stompClient?.active ?? false;
 }

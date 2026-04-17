@@ -59,6 +59,7 @@ public class QueryEngine {
     private final ModelTierService modelTierService;
     private final FileHistoryService fileHistoryService;
     private final ToolResultSummarizer toolResultSummarizer;
+    private final ContextCascade contextCascade;
 
     /** 单条工具结果最大占上下文窗口的 30% */
     private static final double TOOL_RESULT_BUDGET_RATIO = 0.3;
@@ -87,7 +88,8 @@ public class QueryEngine {
                        ThinkingBudgetCalculator thinkingBudgetCalculator,
                        ModelTierService modelTierService,
                        FileHistoryService fileHistoryService,
-                       ToolResultSummarizer toolResultSummarizer) {
+                       ToolResultSummarizer toolResultSummarizer,
+                       ContextCascade contextCascade) {
         this.providerRegistry = providerRegistry;
         this.compactService = compactService;
         this.apiRetryService = apiRetryService;
@@ -105,6 +107,7 @@ public class QueryEngine {
         this.modelTierService = modelTierService;
         this.fileHistoryService = fileHistoryService;
         this.toolResultSummarizer = toolResultSummarizer;
+        this.contextCascade = contextCascade;
     }
 
     /**
@@ -196,24 +199,19 @@ public class QueryEngine {
             int turn = state.getTurnCount();
             handler.onTurnStart(turn);
 
-            // ===== Step 1: 压缩级联 =====
-            // Layer 1: ToolResultBudget (单条工具结果大小裁剪)
-            int contextWindow = config.contextWindow() > 0
-                    ? config.contextWindow()
-                    : modelRegistry.getContextWindowForModel(currentModel[0]);
-            int toolResultBudget = (int)(contextWindow * TOOL_RESULT_BUDGET_RATIO * 3.5);
-            state.setMessages(snipService.snipToolResults(state.getMessages(), toolResultBudget));
+            // ===== Step 1: 压缩级联（统一入口）=====
+            ContextCascade.AutoCompactTrackingState trackingState = state.isAutoCompactEnabled()
+                    ? state.toAutoCompactTrackingState()
+                    : new ContextCascade.AutoCompactTrackingState(false, state.getTurnCount(), null, Integer.MAX_VALUE);
+            ContextCascade.CascadeResult cascadeResult = contextCascade.executePreApiCascade(
+                    state.getMessages(), currentModel[0], trackingState);
+            state.setMessages(cascadeResult.messages());
 
-            // Layer 2: MicroCompact (清除旧工具结果内容)
-            var mcResult = microCompactService.compactMessages(
-                    state.getMessages(), MICRO_COMPACT_PROTECTED_TAIL);
-            if (mcResult.tokensFreed() > 0) {
-                state.setMessages(mcResult.messages());
-            }
-
-            // Layer 3: AutoCompact (LLM 摘要)
-            if (state.isAutoCompactEnabled() && !state.isAutoCompactCircuitBroken()) {
-                tryAutoCompact(config, state, handler);
+            // ===== Step 1b: AutoCompact 状态回写 =====
+            if (cascadeResult.autoCompactExecuted()) {
+                state.resetAutoCompactFailures();
+            } else if (cascadeResult.autoCompactAttempted()) {
+                state.incrementAutoCompactFailures();
             }
 
             // ===== Step 2: 创建流式执行会话 =====
@@ -779,87 +777,6 @@ public class QueryEngine {
     }
 
     // ==================== 辅助方法 ====================
-
-    /**
-     * 构建 API 消息格式 — 将内部 Message 转为 Map 格式。
-     */
-    private List<Map<String, Object>> buildApiMessages(List<Message> messages) {
-        List<Map<String, Object>> apiMessages = new ArrayList<>();
-
-        for (Message msg : messages) {
-            switch (msg) {
-                case Message.UserMessage user -> {
-                    if (user.toolUseResult() != null) {
-                        // tool_result 消息
-                        apiMessages.add(Map.of(
-                                "role", "user",
-                                "content", List.of(Map.of(
-                                        "type", "tool_result",
-                                        "tool_use_id", user.sourceToolAssistantUUID() != null
-                                                ? user.sourceToolAssistantUUID() : "",
-                                        "content", user.toolUseResult()
-                                ))
-                        ));
-                    } else {
-                        // 普通用户消息
-                        List<Map<String, Object>> contentBlocks = new ArrayList<>();
-                        if (user.content() != null) {
-                            for (ContentBlock block : user.content()) {
-                                contentBlocks.add(contentBlockToMap(block));
-                            }
-                        }
-                        apiMessages.add(Map.of("role", "user", "content", contentBlocks));
-                    }
-                }
-                case Message.AssistantMessage assistant -> {
-                    List<Map<String, Object>> contentBlocks = new ArrayList<>();
-                    if (assistant.content() != null) {
-                        for (ContentBlock block : assistant.content()) {
-                            contentBlocks.add(contentBlockToMap(block));
-                        }
-                    }
-                    apiMessages.add(Map.of("role", "assistant", "content", contentBlocks));
-                }
-                case Message.SystemMessage system -> {
-                    // 系统消息不直接发送给 API，已在 systemPrompt 中处理
-                }
-            }
-        }
-
-        return apiMessages;
-    }
-
-    private Map<String, Object> contentBlockToMap(ContentBlock block) {
-        return switch (block) {
-            case ContentBlock.TextBlock text ->
-                    Map.of("type", "text", "text", text.text() != null ? text.text() : "");
-            case ContentBlock.ToolUseBlock toolUse -> {
-                Map<String, Object> map = new HashMap<>();
-                map.put("type", "tool_use");
-                map.put("id", toolUse.id());
-                map.put("name", toolUse.name());
-                map.put("input", toolUse.input() != null ? toolUse.input() : objectMapper.createObjectNode());
-                yield map;
-            }
-            case ContentBlock.ToolResultBlock result -> {
-                Map<String, Object> map = new HashMap<>();
-                map.put("type", "tool_result");
-                map.put("tool_use_id", result.toolUseId());
-                map.put("content", result.content() != null ? result.content() : "");
-                if (result.isError()) map.put("is_error", true);
-                yield map;
-            }
-            case ContentBlock.ImageBlock image ->
-                    Map.of("type", "image", "source", Map.of(
-                            "type", "base64",
-                            "media_type", image.mediaType(),
-                            "data", image.base64Data()));
-            case ContentBlock.ThinkingBlock thinking ->
-                    Map.of("type", "thinking", "thinking", thinking.thinking() != null ? thinking.thinking() : "");
-            case ContentBlock.RedactedThinkingBlock redacted ->
-                    Map.of("type", "redacted_thinking", "data", redacted.data() != null ? redacted.data() : "");
-        };
-    }
 
     private List<ContentBlock.ToolUseBlock> extractToolUseBlocks(Message.AssistantMessage message) {
         if (message.content() == null) return List.of();

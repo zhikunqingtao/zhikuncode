@@ -162,4 +162,17 @@ public class QueryLoopState {
         }
         return ThinkingBudgetCalculator.ContextMetrics.INITIAL;
     }
+
+    /**
+     * 构建 ContextCascade 所需的 AutoCompactTrackingState。
+     * 每轮开始时 compactedThisTurn 重置为 false。
+     */
+    public ContextCascade.AutoCompactTrackingState toAutoCompactTrackingState() {
+        return new ContextCascade.AutoCompactTrackingState(
+                false,                // compactedThisTurn: 每轮开始重置
+                turnCount,            // turnCounter
+                null,                 // lastTurnId
+                autoCompactFailures   // consecutiveFailures
+        );
+    }
 }

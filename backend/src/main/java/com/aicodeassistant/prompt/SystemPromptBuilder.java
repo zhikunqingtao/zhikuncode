@@ -3,6 +3,7 @@ package com.aicodeassistant.prompt;
 import com.aicodeassistant.config.ClaudeMdLoader;
 import com.aicodeassistant.config.FeatureFlagService;
 import com.aicodeassistant.context.ProjectContextService;
+import com.aicodeassistant.context.SystemPromptSectionCache;
 import com.aicodeassistant.engine.ToolResultSummarizer;
 import com.aicodeassistant.llm.SystemPrompt;
 import com.aicodeassistant.mcp.McpConnectionStatus;
@@ -22,6 +23,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.Arrays;
 
@@ -62,8 +65,8 @@ public class SystemPromptBuilder {
     private final ProjectContextService projectContextService;
     private final ToolResultSummarizer toolResultSummarizer;
 
-    // 段缓存 — /clear 或 /compact 时清除
-    private final Map<String, String> sectionCache = new ConcurrentHashMap<>();
+    // 段缓存 — 委托给 SystemPromptSectionCache（带 TTL + session 隔离）
+    private final SystemPromptSectionCache promptSectionCache;
 
     // Prompt 模板缓存 — 避免重复IO
     private final Map<String, String> promptTemplateCache = new ConcurrentHashMap<>();
@@ -78,8 +81,8 @@ public class SystemPromptBuilder {
     );
 
     // 上下文感知状态 — 用于 summarize_tool_results 动态段条件注入
-    private volatile List<Message> currentMessages;
-    private volatile int currentContextLimit;
+    private final AtomicReference<List<Message>> currentMessages = new AtomicReference<>();
+    private final AtomicInteger currentContextLimit = new AtomicInteger();
 
     public SystemPromptBuilder(ClaudeMdLoader claudeMdLoader,
                                FeatureFlagService featureFlags,
@@ -87,7 +90,8 @@ public class SystemPromptBuilder {
                                ConfigService configService,
                                AppStateStore appStateStore,
                                ProjectContextService projectContextService,
-                               ToolResultSummarizer toolResultSummarizer) {
+                               ToolResultSummarizer toolResultSummarizer,
+                               SystemPromptSectionCache promptSectionCache) {
         this.claudeMdLoader = claudeMdLoader;
         this.featureFlags = featureFlags;
         this.gitService = gitService;
@@ -95,6 +99,7 @@ public class SystemPromptBuilder {
         this.appStateStore = appStateStore;
         this.projectContextService = projectContextService;
         this.toolResultSummarizer = toolResultSummarizer;
+        this.promptSectionCache = promptSectionCache;
     }
 
     /**
@@ -105,8 +110,8 @@ public class SystemPromptBuilder {
      * @param contextLimit 上下文 token 限制
      */
     public void setContextState(List<Message> messages, int contextLimit) {
-        this.currentMessages = messages;
-        this.currentContextLimit = contextLimit;
+        this.currentMessages.set(messages);
+        this.currentContextLimit.set(contextLimit);
     }
 
     /**
@@ -140,7 +145,7 @@ public class SystemPromptBuilder {
                         () -> computeEnvInfo(model, additionalDirs, workingDir)),
                 new MemoizedSection("language",
                         () -> getLanguageSection()),
-                new MemoizedSection("output_style",
+                new GlobalMemoizedSection("output_style",
                         () -> getOutputStyleSection()),
                 // MCP 指令每轮重算 — 服务器可能在轮次间连接/断开
                 new UncachedSection("mcp_instructions",
@@ -148,15 +153,15 @@ public class SystemPromptBuilder {
                         "MCP servers connect/disconnect between turns"),
                 new MemoizedSection("scratchpad",
                         () -> getScratchpadInstructions()),
-                new MemoizedSection("frc",
+                new GlobalMemoizedSection("frc",
                         () -> getFunctionResultClearingSection(model)),
                 new UncachedSection("summarize_tool_results",
                         () -> getSummarizeToolResultsSection(),
                         "Context-dependent: inject urgent hint when context is large"),
-                new MemoizedSection("token_budget",
+                new GlobalMemoizedSection("token_budget",
                         () -> getTokenBudgetSection()),
                 // 内部用户专属指导（对标原版 Ant-only 段落）
-                new MemoizedSection("ant_specific_guidance", () -> {
+                new GlobalMemoizedSection("ant_specific_guidance", () -> {
                     if (!isInternalUser()) return null;
                     return """
                         ## Internal user guidance
@@ -185,7 +190,7 @@ public class SystemPromptBuilder {
                         """;
                 }),
                 // 数值长度锚点（控制工具调用间的输出简洁性）
-                new MemoizedSection("numeric_length_anchors", () -> {
+                new GlobalMemoizedSection("numeric_length_anchors", () -> {
                     if (!featureFlags.isEnabled("NUMERIC_LENGTH_ANCHORS")) return null;
                     return """
                         ## Numeric length anchors
@@ -270,27 +275,52 @@ public class SystemPromptBuilder {
     }
 
     /**
-     * 解析段列表 — 记忆化段从缓存读取，易变段每次重算
+     * 解析段列表 — 记忆化段通过 SystemPromptSectionCache 缓存（带 TTL + session 隔离），
+     * 易变段（cacheBreak=true）每次重算。
      */
     private List<String> resolveSections(List<SystemPromptSection> sections) {
+        String sessionId = getCurrentSessionId();
         return sections.stream().map(s -> {
-            if (!s.cacheBreak() && sectionCache.containsKey(s.name())) {
-                return sectionCache.get(s.name());
+            if (s.cacheBreak()) {
+                // UncachedSection: 每轮重算
+                return s.compute().get();
             }
-            String value = s.compute().get();
-            if (value != null) {
-                sectionCache.put(s.name(), value);
+            if (s instanceof GlobalMemoizedSection) {
+                // GlobalMemoizedSection: 通过全局缓存获取（跨 session 共享）
+                return promptSectionCache.getOrComputeGlobal(
+                        s.name(), 0, () -> s.compute().get());
             }
-            return value;
+            // MemoizedSection: 通过 session 级缓存获取（30 min TTL）
+            return promptSectionCache.getOrComputeSession(
+                    sessionId, s.name(), 0, () -> s.compute().get());
         }).filter(Objects::nonNull).toList();
     }
 
     /**
-     * 清除段缓存 — /clear 或 /compact 时调用
+     * 清除段缓存 — /clear 或 /compact 时调用。
+     * 委托给 SystemPromptSectionCache，按 session 清除或全局清除。
      */
     public void clearSectionCache() {
-        sectionCache.clear();
-        log.debug("System prompt section cache cleared");
+        String sessionId = getCurrentSessionId();
+        if (!"default".equals(sessionId)) {
+            promptSectionCache.clearSession(sessionId);
+        } else {
+            promptSectionCache.clearAll();
+        }
+        log.debug("System prompt section cache cleared (session={})", sessionId);
+    }
+
+    /**
+     * 从 AppStateStore 获取当前会话 ID，无法获取时回退到 "default"。
+     */
+    private String getCurrentSessionId() {
+        if (appStateStore != null) {
+            var session = appStateStore.getState().session();
+            if (session != null && session.sessionId() != null) {
+                return session.sessionId();
+            }
+        }
+        return "default";
     }
 
     // ==================== 14 段落静态常量 (对齐原版 getSystemPrompt 组装顺序) ====================
@@ -1145,8 +1175,8 @@ public class SystemPromptBuilder {
      * 当上下文接近限制时返回紧急提示，否则返回基础提示。
      */
     private String getSummarizeToolResultsSection() {
-        List<Message> msgs = this.currentMessages;
-        int limit = this.currentContextLimit;
+        List<Message> msgs = this.currentMessages.get();
+        int limit = this.currentContextLimit.get();
         if (msgs != null && limit > 0
                 && toolResultSummarizer.shouldInjectSummarizeHint(msgs, limit)) {
             return URGENT_SUMMARIZE_HINT;

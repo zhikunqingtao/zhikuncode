@@ -48,26 +48,17 @@ const RISK_CONFIG = {
     },
 } as const;
 
+const TIMEOUT_SECONDS = 120;
+
 const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision }) => {
     const [remember, setRemember] = useState(false);
     const [scope, setScope] = useState<'session' | 'project' | 'global'>('session');
+    const [remainingSeconds, setRemainingSeconds] = useState(TIMEOUT_SECONDS);
+    const [decided, setDecided] = useState(false);
     const dialogRef = useRef<HTMLDivElement>(null);
     const riskLevel = (request.riskLevel || 'medium').toLowerCase() as keyof typeof RISK_CONFIG;
     const risk = RISK_CONFIG[riskLevel] ?? RISK_CONFIG.medium;
     const RiskIcon = risk.icon;
-
-    // Keyboard shortcuts: Y=allow, N=deny, Escape=deny
-    useEffect(() => {
-        const handler = (e: KeyboardEvent) => {
-            if (e.key === 'y' || e.key === 'Y') {
-                onDecision({ toolUseId: request.toolUseId, decision: 'allow', remember, scope });
-            } else if (e.key === 'n' || e.key === 'N' || e.key === 'Escape') {
-                onDecision({ toolUseId: request.toolUseId, decision: 'deny', remember: false });
-            }
-        };
-        window.addEventListener('keydown', handler);
-        return () => window.removeEventListener('keydown', handler);
-    }, [remember, scope, onDecision, request.toolUseId]);
 
     // Focus trap
     useEffect(() => { dialogRef.current?.focus(); }, []);
@@ -89,12 +80,55 @@ const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision
     }, [request.toolName]);
 
     const handleAllow = useCallback(() => {
+        if (decided) return;
+        setDecided(true);
         onDecision({ toolUseId: request.toolUseId, decision: 'allow', remember, scope });
-    }, [onDecision, request.toolUseId, remember, scope]);
+    }, [decided, onDecision, request.toolUseId, remember, scope]);
 
     const handleDeny = useCallback(() => {
+        if (decided) return;
+        setDecided(true);
         onDecision({ toolUseId: request.toolUseId, decision: 'deny', remember: false });
-    }, [onDecision, request.toolUseId]);
+    }, [decided, onDecision, request.toolUseId]);
+
+    // Keyboard shortcuts: Y=allow, N=deny, Escape=deny
+    useEffect(() => {
+        const handler = (e: KeyboardEvent) => {
+            if (decided) return;
+            if (e.key === 'y' || e.key === 'Y') {
+                handleAllow();
+            } else if (e.key === 'n' || e.key === 'N' || e.key === 'Escape') {
+                handleDeny();
+            }
+        };
+        window.addEventListener('keydown', handler);
+        return () => window.removeEventListener('keydown', handler);
+    }, [decided, handleAllow, handleDeny]);
+
+    // Reset countdown and decided state when request changes (dialog reopens)
+    useEffect(() => {
+        setDecided(false);
+        setRemainingSeconds(TIMEOUT_SECONDS);
+    }, [request.toolUseId]);
+
+    // Countdown timer — only decrements
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setRemainingSeconds(prev => (prev <= 0 ? 0 : prev - 1));
+        }, 1000);
+        return () => clearInterval(timer);
+    }, [request.toolUseId]);
+
+    // Auto-deny on expiry — separated from countdown to avoid race condition
+    useEffect(() => {
+        if (remainingSeconds === 0 && !decided) {
+            setDecided(true);
+            handleDeny();
+        }
+    }, [remainingSeconds, decided, handleDeny]);
+
+    const timerUrgent = remainingSeconds <= 30;
+    const timerCritical = remainingSeconds <= 10;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -152,6 +186,26 @@ const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision
                             language={inputLang}
                             showLineNumbers={false}
                             maxHeight={180}
+                        />
+                    </div>
+                </div>
+
+                {/* Countdown progress bar */}
+                <div className="px-5 pt-3">
+                    <div className="flex items-center justify-between mb-1.5">
+                        <span className={`text-xs ${
+                            timerUrgent ? 'text-red-400 font-bold' : 'text-gray-500'
+                        } ${timerCritical ? 'animate-pulse' : ''}`}>
+                            {remainingSeconds}s remaining
+                        </span>
+                        <span className="text-xs text-gray-600">Auto-deny on timeout</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-gray-700/50 rounded-full overflow-hidden">
+                        <div
+                            className={`h-full rounded-full transition-all duration-1000 ease-linear ${
+                                timerUrgent ? 'bg-red-500' : 'bg-blue-500'
+                            } ${timerCritical ? 'animate-pulse' : ''}`}
+                            style={{ width: `${(remainingSeconds / TIMEOUT_SECONDS) * 100}%` }}
                         />
                     </div>
                 </div>

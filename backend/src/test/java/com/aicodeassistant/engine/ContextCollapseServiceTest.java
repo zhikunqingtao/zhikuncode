@@ -26,7 +26,7 @@ class ContextCollapseServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new ContextCollapseService();
+        service = new ContextCollapseService(6, 2000, 500);
     }
 
     // ═══════════════════════════════════════════════════════════════

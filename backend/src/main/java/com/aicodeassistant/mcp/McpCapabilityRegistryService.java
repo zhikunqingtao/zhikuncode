@@ -143,7 +143,7 @@ public class McpCapabilityRegistryService {
     private final java.util.concurrent.locks.ReentrantLock saveLock =
             new java.util.concurrent.locks.ReentrantLock();
     private final java.util.concurrent.ScheduledExecutorService saveScheduler =
-            java.util.concurrent.Executors.newSingleThreadScheduledExecutor(Thread.ofVirtual().factory());
+            java.util.concurrent.Executors.newSingleThreadScheduledExecutor(Thread.ofVirtual().name("zhiku-mcp-registry-save").factory());
     /** AtomicReference 确保 cancel + schedule 的原子性 */
     private final java.util.concurrent.atomic.AtomicReference<java.util.concurrent.ScheduledFuture<?>>
             pendingSave = new java.util.concurrent.atomic.AtomicReference<>();

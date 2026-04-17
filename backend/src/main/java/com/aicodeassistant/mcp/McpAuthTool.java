@@ -53,17 +53,20 @@ public class McpAuthTool implements Tool {
     private final McpClientManager mcpClientManager;
     private final ObjectMapper objectMapper;
     private final HttpClient httpClient;
+    private final TokenEncryptionService encryptionService;
 
     /** 令牌存储目录 */
     private static final Path TOKEN_DIR = Path.of(
             System.getProperty("user.home"), ".claude", "mcp-tokens");
 
     public McpAuthTool(String serverName, String serverUrl,
-                       McpClientManager mcpClientManager, ObjectMapper objectMapper) {
+                       McpClientManager mcpClientManager, ObjectMapper objectMapper,
+                       TokenEncryptionService encryptionService) {
         this.serverName = serverName;
         this.serverUrl = serverUrl;
         this.mcpClientManager = mcpClientManager;
         this.objectMapper = objectMapper;
+        this.encryptionService = encryptionService;
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(HTTP_TIMEOUT)
                 .build();
@@ -246,7 +249,7 @@ public class McpAuthTool implements Tool {
     private CompletableFuture<String> startCallbackServer(int port, String expectedState) {
         CompletableFuture<String> codeFuture = new CompletableFuture<>();
 
-        Thread.ofVirtual().start(() -> {
+        Thread.ofVirtual().name("zhiku-mcp-auth-callback").start(() -> {
             try (var server = new ServerSocket(port)) {
                 server.setSoTimeout((int) CALLBACK_TIMEOUT.toMillis());
                 try (var socket = server.accept()) {
@@ -339,8 +342,9 @@ public class McpAuthTool implements Tool {
                 "created_at", tokens.createdAt().toString()
         );
 
-        Files.writeString(tokenFile, objectMapper.writeValueAsString(tokenData));
-        log.info("OAuth tokens stored for server: {}", serverName);
+        String jsonData = objectMapper.writeValueAsString(tokenData);
+        Files.writeString(tokenFile, encryptionService.encrypt(jsonData));
+        log.info("OAuth tokens stored (encrypted) for server: {}", serverName);
     }
 
     // ==================== 工具方法 ====================

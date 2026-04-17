@@ -15,7 +15,7 @@ import React, { useState, useRef, useCallback, useEffect, type KeyboardEvent } f
 import { Send, Square } from 'lucide-react';
 import type { Command, LocalAttachment, SubmitEvent, Message, Attachment } from '@/types';
 import { useSessionStore } from '@/store/sessionStore';
-import { sendToServer } from '@/hooks/useWebSocket';
+import { sendToServer } from '@/api/stompClient';
 import CommandPalette from './CommandPalette';
 import FileUpload from './FileUpload';
 import { FileAutoComplete } from './FileAutoComplete';

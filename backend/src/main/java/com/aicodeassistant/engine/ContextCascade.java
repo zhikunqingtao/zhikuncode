@@ -94,6 +94,9 @@ public class ContextCascade {
             int snipTokensFreed,
             boolean microCompactExecuted,
             int microCompactTokensFreed,
+            boolean contextCollapseExecuted,      // Level 1.5 是否执行
+            int contextCollapseCharsFreed,        // Level 1.5 释放字符数
+            boolean autoCompactAttempted,          // 是否达到阈值并尝试执行
             boolean autoCompactExecuted,
             CompactService.CompactResult autoCompactResult
     ) {
@@ -106,6 +109,8 @@ public class ContextCascade {
             sb.append(originalTokens).append(" → ").append(finalTokens).append(" tokens");
             if (snipExecuted) sb.append(", Snip: -").append(snipTokensFreed);
             if (microCompactExecuted) sb.append(", MicroCompact: -").append(microCompactTokensFreed);
+            if (contextCollapseExecuted) sb.append(", Collapse: -").append(contextCollapseCharsFreed).append("chars");
+            if (autoCompactAttempted && !autoCompactExecuted) sb.append(", AutoCompact: ATTEMPTED_FAILED");
             if (autoCompactExecuted && autoCompactResult != null)
                 sb.append(", AutoCompact: ").append(autoCompactResult.summary());
             return sb.toString();
@@ -190,6 +195,9 @@ public class ContextCascade {
         int snipTokensFreed = 0;
         boolean mcExecuted = false;
         int mcTokensFreed = 0;
+        boolean collapseExecuted = false;
+        int collapseCharsFreed = 0;
+        boolean acAttempted = false;
         boolean acExecuted = false;
         CompactService.CompactResult acResult = null;
 
@@ -218,6 +226,8 @@ public class ContextCascade {
         ContextCollapseService.CollapseResult collapseResult =
                 contextCollapseService.collapseMessages(current);
         if (collapseResult.collapsedCount() > 0) {
+            collapseExecuted = true;
+            collapseCharsFreed = collapseResult.estimatedCharsFreed();
             current = collapseResult.messages();
             log.debug("Level 1.5 ContextCollapse: collapsed {} messages, ~{} chars freed",
                     collapseResult.collapsedCount(), collapseResult.estimatedCharsFreed());
@@ -229,6 +239,7 @@ public class ContextCascade {
             if (warning.isAboveAutoCompactThreshold()) {
                 log.info("Level 2 AutoCompact triggered: {} tokens > threshold {}",
                         warning.currentTokens(), warning.autoCompactThreshold());
+                acAttempted = true;
                 try {
                     acResult = compactService.compact(current, contextWindow, false);
                     if (acResult.skipReason() == null && !acResult.compactedMessages().isEmpty()) {
@@ -245,6 +256,8 @@ public class ContextCascade {
         int finalTokens = tokenCounter.estimateTokens(current);
         CascadeResult result = new CascadeResult(current, originalTokens, finalTokens,
                 snipExecuted, snipTokensFreed, mcExecuted, mcTokensFreed,
+                collapseExecuted, collapseCharsFreed,
+                acAttempted,
                 acExecuted, acResult);
 
         if (result.totalTokensFreed() > 0) {

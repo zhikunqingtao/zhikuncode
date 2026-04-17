@@ -1,5 +1,6 @@
 package com.aicodeassistant.engine;
 
+import com.aicodeassistant.engine.ContextCascade;
 import com.aicodeassistant.history.FileHistoryService;
 import com.aicodeassistant.hook.HookRegistry;
 import com.aicodeassistant.hook.HookService;
@@ -11,8 +12,11 @@ import com.aicodeassistant.permission.PermissionRuleMatcher;
 import com.aicodeassistant.permission.PermissionRuleRepository;
 import com.aicodeassistant.permission.PluginSettingsSource;
 import com.aicodeassistant.permission.PolicySettingsSource;
+import com.aicodeassistant.sandbox.SandboxManager;
+import com.aicodeassistant.security.PathSecurityService;
 import com.aicodeassistant.security.SensitiveDataFilter;
 import com.aicodeassistant.tool.*;
+import com.aicodeassistant.tool.bash.BashCommandClassifier;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,7 +57,9 @@ class QueryFlowIntegrationTest {
                         new PolicySettingsSource(objectMapper), new PluginSettingsSource());
         PermissionRuleMatcher ruleMatcher = new PermissionRuleMatcher();
         AutoModeClassifier autoModeClassifier = new AutoModeClassifier(providerRegistry);
-        permissionPipeline = new PermissionPipeline(ruleMatcher, ruleRepo, autoModeClassifier, null, null, null);
+        permissionPipeline = new PermissionPipeline(ruleMatcher, ruleRepo, autoModeClassifier,
+                mock(HookService.class), mock(SandboxManager.class),
+                mock(PathSecurityService.class), mock(BashCommandClassifier.class));
 
         TokenCounter tokenCounter = new TokenCounter();
         CompactService compactService = new CompactService(tokenCounter, providerRegistry);
@@ -71,7 +77,8 @@ class QueryFlowIntegrationTest {
                 providerRegistry, compactService, apiRetryService,
                 permissionPipeline, ruleRepo, tokenCounter, objectMapper,
                 streamingToolExecutor, messageNormalizer, hookService,
-                snipService, microCompactService, null, null, modelTierService, mock(FileHistoryService.class), mock(ToolResultSummarizer.class)
+                snipService, microCompactService, null, null, modelTierService, mock(FileHistoryService.class), mock(ToolResultSummarizer.class),
+                mock(ContextCascade.class)
         );
 
         handler = new RecordingHandler();

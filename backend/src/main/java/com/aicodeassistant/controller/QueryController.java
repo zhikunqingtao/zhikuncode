@@ -210,7 +210,7 @@ public class QueryController {
         SseEmitter emitter = new SseEmitter(timeoutMs);
 
         // 在 Virtual Thread 中执行
-        Thread.startVirtualThread(() -> {
+        Thread.ofVirtual().name("zhiku-query-stream").start(() -> {
             try {
                 String sessionId = resolveSessionId(request);
                 // INC-3 fix: 使用请求传入的 permissionMode

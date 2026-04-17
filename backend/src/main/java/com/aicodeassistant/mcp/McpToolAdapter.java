@@ -87,6 +87,11 @@ public class McpToolAdapter implements Tool {
     }
 
     @Override
+    public boolean isMcp() {
+        return true;
+    }
+
+    @Override
     public ToolResult call(ToolInput input, ToolUseContext context) {
         if (connection.getStatus() != McpConnectionStatus.CONNECTED) {
             return ToolResult.error("MCP server '" + connection.getName()

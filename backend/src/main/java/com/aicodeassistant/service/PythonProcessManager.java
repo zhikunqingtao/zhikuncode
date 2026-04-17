@@ -101,7 +101,7 @@ public class PythonProcessManager {
             processRef.set(process);
 
             // 后台线程读取输出
-            Thread.ofVirtual().start(() -> drainOutput(process));
+            Thread.ofVirtual().name("zhiku-python-drain").start(() -> drainOutput(process));
 
             // 等待启动
             Thread.sleep(2000);

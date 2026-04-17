@@ -77,3 +77,19 @@ record UncachedSection(String name, Supplier<String> compute, String reason) imp
         return name + " (" + reason + ")";
     }
 }
+
+/**
+ * 全局记忆化段 — 不依赖会话，跨 session 共享缓存。
+ * <p>
+ * 适用于内容跨会话不变的段，如：
+ * - language: 语言偏好
+ * - token_budget: 功能开关控制
+ * - ant_specific_guidance: 内部用户指导
+ */
+record GlobalMemoizedSection(String name, Supplier<String> compute) implements SystemPromptSection {
+
+    @Override
+    public boolean cacheBreak() {
+        return false;
+    }
+}

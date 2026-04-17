@@ -1,5 +1,5 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
-import { sendToServer, isWsConnected } from '@/hooks/useWebSocket';
+import { sendToServer, isWsConnected } from '@/api/stompClient';
 
 // Mock @stomp/stompjs
 const mockActivate = vi.fn();
