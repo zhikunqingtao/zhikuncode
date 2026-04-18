@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -27,9 +28,9 @@ public class SwarmState {
     private final Instant createdAt;
 
     /** 已完成任务计数 */
-    private volatile int completedTaskCount;
+    private final AtomicInteger completedTaskCount = new AtomicInteger(0);
     /** 总提交任务计数 */
-    private volatile int totalTaskCount;
+    private final AtomicInteger totalTaskCount = new AtomicInteger(0);
 
     public SwarmState(String swarmId, String teamName) {
         this.swarmId = swarmId;
@@ -37,8 +38,7 @@ public class SwarmState {
         this.phase = new AtomicReference<>(SwarmPhase.INITIALIZING);
         this.workers = new ConcurrentHashMap<>();
         this.createdAt = Instant.now();
-        this.completedTaskCount = 0;
-        this.totalTaskCount = 0;
+        // AtomicInteger fields initialized at declaration
     }
 
     // ═══ Getters ═══
@@ -48,8 +48,8 @@ public class SwarmState {
     public SwarmPhase phase() { return phase.get(); }
     public Map<String, WorkerState> workers() { return workers; }
     public Instant createdAt() { return createdAt; }
-    public int completedTaskCount() { return completedTaskCount; }
-    public int totalTaskCount() { return totalTaskCount; }
+    public int completedTaskCount() { return completedTaskCount.get(); }
+    public int totalTaskCount() { return totalTaskCount.get(); }
 
     // ═══ Phase Transitions ═══
 
@@ -76,7 +76,7 @@ public class SwarmState {
         workers.put(workerId, new WorkerState(
                 workerId, WorkerStatus.STARTING, 0, 0L,
                 taskPrompt, List.of(), Instant.now()));
-        totalTaskCount++;
+        totalTaskCount.incrementAndGet();
     }
 
     /** 更新 Worker 状态为工作中 */
@@ -125,7 +125,7 @@ public class SwarmState {
                     workerId, WorkerStatus.IDLE, current.toolCallCount(),
                     current.tokenConsumed(), "idle",
                     current.recentToolCalls(), current.startedAt()));
-            completedTaskCount++;
+            completedTaskCount.incrementAndGet();
         }
     }
 
