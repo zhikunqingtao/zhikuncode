@@ -5,6 +5,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * ERR-3 fix: SSE 连接健康检查器 — 周期性主动 ping 检测死连接。
  * <p>
@@ -24,6 +28,10 @@ public class SseHealthChecker {
 
     private final McpClientManager mcpClientManager;
 
+    // ★ 新增健康指标字段
+    private final Map<String, Integer> consecutiveFailures = new ConcurrentHashMap<>();
+    private final Map<String, Instant> lastSuccessfulPing = new ConcurrentHashMap<>();
+
     public SseHealthChecker(McpClientManager mcpClientManager) {
         this.mcpClientManager = mcpClientManager;
     }
@@ -37,13 +45,47 @@ public class SseHealthChecker {
             if (connection.getStatus() != McpConnectionStatus.CONNECTED) {
                 continue;
             }
-            // ★ ERR-3 修复: 使用返回 boolean 的 sendHealthPing() 替代会吞异常的 sendNotification()
-            if (!connection.sendHealthPing()) {
-                log.warn("Active ping failed for '{}', marking as DEGRADED",
-                        connection.getName());
-                connection.setStatus(McpConnectionStatus.DEGRADED);
-                mcpClientManager.scheduleReconnect(connection.getName());
+            String name = connection.getName();
+            try {
+                boolean alive = connection.sendHealthPing();
+                if (alive) {
+                    // ★ ping 成功时重置计数器
+                    consecutiveFailures.put(name, 0);
+                    lastSuccessfulPing.put(name, Instant.now());
+                } else {
+                    // ★ 记录连续失败次数
+                    int failures = consecutiveFailures.merge(name, 1, Integer::sum);
+                    log.warn("Health ping failed for '{}', consecutive failures: {}", name, failures);
+                    if (failures >= 2) {
+                        connection.setStatus(McpConnectionStatus.DEGRADED);
+                        mcpClientManager.scheduleReconnect(name);
+                    }
+                }
+            } catch (Exception e) {
+                // ★ 异常也计入连续失败
+                int failures = consecutiveFailures.merge(name, 1, Integer::sum);
+                log.warn("Health ping exception for '{}' (failures={}): {}", name, failures, e.getMessage());
+                if (failures >= 2) {
+                    connection.setStatus(McpConnectionStatus.DEGRADED);
+                    mcpClientManager.scheduleReconnect(name);
+                }
             }
         }
+    }
+
+    // ───── Getter 方法 ─────
+
+    /**
+     * 获取指定服务器的连续失败次数。
+     */
+    public int getConsecutiveFailures(String serverName) {
+        return consecutiveFailures.getOrDefault(serverName, 0);
+    }
+
+    /**
+     * 获取指定服务器的最后成功 ping 时间。
+     */
+    public Instant getLastSuccessfulPing(String serverName) {
+        return lastSuccessfulPing.get(serverName);
     }
 }

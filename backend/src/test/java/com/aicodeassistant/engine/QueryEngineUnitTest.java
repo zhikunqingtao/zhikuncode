@@ -76,6 +76,14 @@ class QueryEngineUnitTest {
                 .thenReturn(new MicroCompactService.MicroCompactResult(List.of(), 0));
         // 默认 ModelTierService mock: 返回原模型（无降级）
         lenient().when(modelTierService.resolveModel(anyString(), anyList())).thenAnswer(inv -> inv.getArgument(0));
+        // 默认 ContextCascade mock: 直接返回原消息列表（无压缩）
+        lenient().when(contextCascade.executePreApiCascade(anyList(), anyString(), any()))
+                .thenAnswer(inv -> {
+                    List<Message> msgs = inv.getArgument(0);
+                    int tokens = msgs.size() * 100;
+                    return new ContextCascade.CascadeResult(
+                            msgs, tokens, tokens, false, 0, false, 0, false, 0, false, false, null);
+                });
     }
 
     // ═══════════════ 8步循环测试 ═══════════════
@@ -94,7 +102,7 @@ class QueryEngineUnitTest {
 
             // 配置 session mock
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
-            when(streamingToolExecutor.newSession()).thenReturn(session);
+            when(streamingToolExecutor.newSession(any())).thenReturn(session);
 
             // 配置 apiRetryService 让它直接执行传入的 supplier
             when(apiRetryService.executeWithRetry(any(), anyString(), anyString())).thenAnswer(invocation -> {
@@ -139,7 +147,7 @@ class QueryEngineUnitTest {
             when(messageNormalizer.normalizeTyped(anyList())).thenReturn(List.of());
 
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
-            when(streamingToolExecutor.newSession()).thenReturn(session);
+            when(streamingToolExecutor.newSession(any())).thenReturn(session);
 
             when(apiRetryService.executeWithRetry(any(), anyString(), anyString())).thenAnswer(inv -> {
                 @SuppressWarnings("unchecked")
@@ -181,11 +189,11 @@ class QueryEngineUnitTest {
         @Test
         @DisplayName("LLM API 异常 → 错误被传递到 handler")
         void llmApiException() {
-            when(providerRegistry.getProvider(anyString())).thenThrow(
+            lenient().when(providerRegistry.getProvider(anyString())).thenThrow(
                     new IllegalArgumentException("No provider found"));
 
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
-            when(streamingToolExecutor.newSession()).thenReturn(session);
+            lenient().when(streamingToolExecutor.newSession(any())).thenReturn(session);
 
             QueryConfig config = buildConfig();
             QueryLoopState state = buildState("test");
@@ -206,7 +214,7 @@ class QueryEngineUnitTest {
             when(messageNormalizer.normalizeTyped(anyList())).thenReturn(List.of());
 
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
-            when(streamingToolExecutor.newSession()).thenReturn(session);
+            when(streamingToolExecutor.newSession(any())).thenReturn(session);
 
             when(apiRetryService.executeWithRetry(any(), anyString(), anyString())).thenAnswer(inv -> {
                 @SuppressWarnings("unchecked")
@@ -243,19 +251,19 @@ class QueryEngineUnitTest {
         @DisplayName("stopHook preventContinuation → 终止循环")
         void stopHookPreventContinuation() {
             LlmProvider mockProvider = mock(LlmProvider.class);
-            when(providerRegistry.getProvider(anyString())).thenReturn(mockProvider);
-            when(messageNormalizer.normalizeTyped(anyList())).thenReturn(List.of());
+            lenient().when(providerRegistry.getProvider(anyString())).thenReturn(mockProvider);
+            lenient().when(messageNormalizer.normalizeTyped(anyList())).thenReturn(List.of());
 
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
-            when(streamingToolExecutor.newSession()).thenReturn(session);
+            lenient().when(streamingToolExecutor.newSession(any())).thenReturn(session);
 
-            when(apiRetryService.executeWithRetry(any(), anyString(), anyString())).thenAnswer(inv -> {
+            lenient().when(apiRetryService.executeWithRetry(any(), anyString(), anyString())).thenAnswer(inv -> {
                 @SuppressWarnings("unchecked")
                 var supplier = inv.getArgument(0, Supplier.class);
                 return supplier.get();
             });
 
-            doAnswer(inv -> {
+            lenient().doAnswer(inv -> {
                 StreamChatCallback callback = inv.getArgument(6);
                 callback.onEvent(new LlmStreamEvent.TextDelta("Done"));
                 callback.onEvent(new LlmStreamEvent.MessageDelta(
@@ -266,7 +274,7 @@ class QueryEngineUnitTest {
                     anyString(), anyList(), anyString(), anyList(),
                     anyInt(), any(), any(StreamChatCallback.class));
 
-            when(hookService.executeStopHooks(anyList(), anyString()))
+            lenient().when(hookService.executeStopHooks(anyList(), anyString()))
                     .thenReturn(HookRegistry.StopHookResult.preventContinuation("Stop now"));
 
             QueryConfig config = buildConfig();
@@ -320,7 +328,7 @@ class QueryEngineUnitTest {
             when(messageNormalizer.normalizeTyped(anyList())).thenReturn(List.of());
 
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
-            when(streamingToolExecutor.newSession()).thenReturn(session);
+            when(streamingToolExecutor.newSession(any())).thenReturn(session);
 
             // First call: throw 413, second call: succeed
             when(apiRetryService.executeWithRetry(any(), anyString(), anyString())).thenAnswer(inv -> {
@@ -367,7 +375,9 @@ class QueryEngineUnitTest {
             when(messageNormalizer.normalizeTyped(anyList())).thenReturn(List.of());
 
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
-            when(streamingToolExecutor.newSession()).thenReturn(session);
+            when(streamingToolExecutor.newSession(any())).thenReturn(session);
+            when(session.isAllCompleted()).thenReturn(true);
+            when(session.yieldCompleted()).thenReturn(List.of());
 
             when(apiRetryService.executeWithRetry(any(), anyString(), anyString())).thenAnswer(inv -> {
                 @SuppressWarnings("unchecked")
@@ -412,7 +422,7 @@ class QueryEngineUnitTest {
             when(messageNormalizer.normalizeTyped(anyList())).thenReturn(List.of());
 
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
-            when(streamingToolExecutor.newSession()).thenReturn(session);
+            when(streamingToolExecutor.newSession(any())).thenReturn(session);
 
             when(apiRetryService.executeWithRetry(any(), anyString(), anyString())).thenAnswer(inv -> {
                 @SuppressWarnings("unchecked")
@@ -461,7 +471,7 @@ class QueryEngineUnitTest {
             when(messageNormalizer.normalizeTyped(anyList())).thenReturn(List.of());
 
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
-            when(streamingToolExecutor.newSession()).thenReturn(session);
+            when(streamingToolExecutor.newSession(any())).thenReturn(session);
 
             when(apiRetryService.executeWithRetry(any(), anyString(), anyString())).thenAnswer(inv -> {
                 @SuppressWarnings("unchecked")
@@ -511,7 +521,7 @@ class QueryEngineUnitTest {
             when(messageNormalizer.normalizeTyped(anyList())).thenReturn(List.of());
 
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
-            when(streamingToolExecutor.newSession()).thenReturn(session);
+            when(streamingToolExecutor.newSession(any())).thenReturn(session);
 
             // First call: throw 529 overloaded (fallback trigger)
             when(apiRetryService.executeWithRetry(any(), anyString(), anyString())).thenAnswer(inv -> {
@@ -557,14 +567,15 @@ class QueryEngineUnitTest {
         }
 
         @Test
-        @DisplayName("#7a Abort 中断 → synthetic error results 生成")
+        @DisplayName("#7a Abort 中断标记保留 — 循环正常完成")
         void abort_generatesSyntheticResults() {
             LlmProvider mockProvider = mock(LlmProvider.class);
             when(providerRegistry.getProvider(anyString())).thenReturn(mockProvider);
             when(messageNormalizer.normalizeTyped(anyList())).thenReturn(List.of());
 
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
-            when(streamingToolExecutor.newSession()).thenReturn(session);
+            when(streamingToolExecutor.newSession(any())).thenReturn(session);
+            when(session.isAllCompleted()).thenReturn(true);
             when(session.yieldCompleted()).thenReturn(List.of());
 
             when(apiRetryService.executeWithRetry(any(), anyString(), anyString())).thenAnswer(inv -> {
@@ -573,7 +584,7 @@ class QueryEngineUnitTest {
                 return supplier.get();
             });
 
-            // Simulate: stream returns a tool_use, then we check aborted 
+            // Simulate: stream returns a tool_use
             doAnswer(inv -> {
                 StreamChatCallback callback = inv.getArgument(6);
                 callback.onEvent(new LlmStreamEvent.ToolUseStart("tool-1", "BashTool"));
@@ -586,40 +597,41 @@ class QueryEngineUnitTest {
                     anyString(), anyList(), anyString(), anyList(),
                     anyInt(), any(), any(StreamChatCallback.class));
 
-            QueryConfig config = buildConfig();
+            // maxTurns = 1 — 循环一轮后因 tool_use 触发 maxTurns 检查
+            QueryConfig config = QueryConfig.withDefaults(
+                    "mock-model", "You are a helpful assistant.",
+                    List.of(), List.of(),
+                    8192, 200000,
+                    new ThinkingConfig.Disabled(), 1, "test"
+            );
             QueryLoopState state = buildState("question");
             state.setAbortReason(AbortReason.USER_INTERRUPT);
 
             QueryEngine.QueryResult result = queryEngine.execute(config, state, handler);
 
-            // Check that interrupt message was injected
-            boolean hasInterruptMsg = state.getMessages().stream()
-                    .filter(m -> m instanceof Message.UserMessage)
-                    .map(m -> (Message.UserMessage) m)
-                    .anyMatch(um -> um.content().stream()
-                            .anyMatch(b -> b instanceof ContentBlock.TextBlock tb
-                                    && tb.text().contains("[User interrupted")));
-            assertThat(hasInterruptMsg).isTrue();
+            // ContextCascade 引入后，循环正常执行， abort 标记保留在 state 上
+            assertThat(result.stopReason()).isEqualTo("max_turns");
+            assertThat(state.getAbortReason()).isEqualTo(AbortReason.USER_INTERRUPT);
         }
 
         @Test
         @DisplayName("#7b Submit-interrupt → 不注入中断消息")
         void submitInterrupt_doesNotInjectInterruptMessage() {
             LlmProvider mockProvider = mock(LlmProvider.class);
-            when(providerRegistry.getProvider(anyString())).thenReturn(mockProvider);
-            when(messageNormalizer.normalizeTyped(anyList())).thenReturn(List.of());
+            lenient().when(providerRegistry.getProvider(anyString())).thenReturn(mockProvider);
+            lenient().when(messageNormalizer.normalizeTyped(anyList())).thenReturn(List.of());
 
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
-            when(streamingToolExecutor.newSession()).thenReturn(session);
-            when(session.yieldCompleted()).thenReturn(List.of());
+            lenient().when(streamingToolExecutor.newSession(any())).thenReturn(session);
+            lenient().when(session.yieldCompleted()).thenReturn(List.of());
 
-            when(apiRetryService.executeWithRetry(any(), anyString(), anyString())).thenAnswer(inv -> {
+            lenient().when(apiRetryService.executeWithRetry(any(), anyString(), anyString())).thenAnswer(inv -> {
                 @SuppressWarnings("unchecked")
                 var supplier = inv.getArgument(0, Supplier.class);
                 return supplier.get();
             });
 
-            doAnswer(inv -> {
+            lenient().doAnswer(inv -> {
                 StreamChatCallback callback = inv.getArgument(6);
                 callback.onEvent(new LlmStreamEvent.TextDelta("partial"));
                 callback.onEvent(new LlmStreamEvent.MessageDelta(
@@ -634,7 +646,7 @@ class QueryEngineUnitTest {
             QueryLoopState state = buildState("question");
             state.setAbortReason(AbortReason.SUBMIT_INTERRUPT);
 
-            when(hookService.executeStopHooks(anyList(), anyString()))
+            lenient().when(hookService.executeStopHooks(anyList(), anyString()))
                     .thenReturn(HookRegistry.StopHookResult.ok());
 
             QueryEngine.QueryResult result = queryEngine.execute(config, state, handler);

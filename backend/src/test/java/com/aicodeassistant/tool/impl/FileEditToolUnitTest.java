@@ -5,6 +5,7 @@ import com.aicodeassistant.security.PathSecurityService;
 import com.aicodeassistant.security.PathSecurityService.PathCheckResult;
 import com.aicodeassistant.service.FileStateCache;
 import com.aicodeassistant.session.SessionManager;
+import com.aicodeassistant.engine.KeyFileTracker;
 import com.aicodeassistant.tool.ToolInput;
 import com.aicodeassistant.tool.ToolResult;
 import com.aicodeassistant.tool.ToolUseContext;
@@ -38,6 +39,7 @@ class FileEditToolUnitTest {
     @Mock private PathSecurityService pathSecurityService;
     @Mock private FileHistoryService fileHistoryService;
     @Mock private SessionManager sessionManager;
+    @Mock private KeyFileTracker keyFileTracker;
 
     @TempDir
     Path tempDir;
@@ -78,8 +80,8 @@ class FileEditToolUnitTest {
         // Mock FileHistoryService — trackEdit 默认无操作（仅 FileEditTool 需要）
         doNothing().when(fileHistoryService).trackEdit(anyString(), anyString(), any(), anyString());
 
-        // 使用 mock 依赖构造工具实例（完整 3 参数构造函数）
-        fileEditTool = new FileEditTool(fileHistoryService, pathSecurityService, sessionManager);
+        // 使用 mock 依赖构造工具实例（完整 4 参数构造函数）
+        fileEditTool = new FileEditTool(fileHistoryService, pathSecurityService, sessionManager, keyFileTracker);
         context = ToolUseContext.of(tempDir.toString(), "test-session");
     }
 

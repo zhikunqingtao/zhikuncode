@@ -216,7 +216,7 @@ public class QueryEngine {
 
             // ===== Step 2: 创建流式执行会话 =====
             StreamingToolExecutor.ExecutionSession session =
-                    streamingToolExecutor.newSession();
+                    streamingToolExecutor.newSession(state.getToolUseContext());
 
             // ===== Step 3: API 调用 =====
             int effectiveMaxTokens = state.getEffectiveMaxTokens(config.maxTokens());
@@ -393,6 +393,12 @@ public class QueryEngine {
             if (!toolUseBlocks.isEmpty()) {
                 List<Message> toolResults = consumeToolResults(session, handler, aborted);
                 state.addMessages(toolResults);
+
+                // ★ 新增：获取工具执行后更新的 context（contextModifier 传播）
+                ToolUseContext updatedContext = session.getCurrentContext();
+                if (updatedContext != null) {
+                    state.setToolUseContext(updatedContext);
+                }
             }
 
             // ===== 事务边界: 提交 =====
@@ -467,6 +473,10 @@ public class QueryEngine {
                                 List.of(new ContentBlock.TextBlock(cont.nudgeMessage())),
                                 null, null);
                         state.addMessage(nudgeMsg);
+
+                        // ★ WebSocket 推送 token_budget_nudge 到前端
+                        handler.onTokenBudgetNudge(cont.pct(), cont.turnTokens(), cont.budget());
+
                         state.setHasAttemptedReactiveCompact(false);
                         handler.onTurnEnd(turn, "token_budget_continuation");
                         continue;
@@ -869,7 +879,11 @@ public class QueryEngine {
                 case LlmStreamEvent.MessageStart ms -> { /* no-op */ }
                 case LlmStreamEvent.TextStart ts -> { /* no-op */ }
                 case LlmStreamEvent.ThinkingStart ths -> { /* no-op */ }
-                case LlmStreamEvent.BlockStop bs -> { /* no-op */ }
+                case LlmStreamEvent.BlockStop bs -> {
+                    // ★ 流式即时启动：tool_use block 结束时立即 flush 并提交执行
+                    // 无需等待 MessageDelta，实现 "收到即启动" 而非 "收集完再启动"
+                    flushToolBlock();
+                }
             }
         }
 

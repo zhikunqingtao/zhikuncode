@@ -10,6 +10,7 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 import java.security.Principal;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -116,5 +117,13 @@ public class WebSocketSessionManager {
      */
     public boolean isSessionOnline(String sessionId) {
         return sessionToPrincipal.containsKey(sessionId);
+    }
+
+    /**
+     * ★ 新增：获取所有活跃的应用层 sessionId。
+     * 用于广播式推送（如 MCP 健康状态变更）。
+     */
+    public Set<String> getActiveSessionIds() {
+        return Set.copyOf(sessionToPrincipal.keySet());
     }
 }

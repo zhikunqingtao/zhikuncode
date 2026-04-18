@@ -4,6 +4,7 @@ import com.aicodeassistant.config.ClaudeMdLoader;
 import com.aicodeassistant.config.FeatureFlagService;
 import com.aicodeassistant.context.ProjectContextService;
 import com.aicodeassistant.context.SystemPromptSectionCache;
+import com.aicodeassistant.service.PromptCacheBreakDetector;
 import com.aicodeassistant.engine.ToolResultSummarizer;
 import com.aicodeassistant.mcp.McpConnectionStatus;
 import com.aicodeassistant.mcp.McpServerConnection;
@@ -35,6 +36,7 @@ class SystemPromptBuilderTest {
     private GitService gitService;
     private ProjectContextService projectContextService;
     private SystemPromptSectionCache promptSectionCache;
+    private PromptCacheBreakDetector promptCacheBreakDetector;
     private SystemPromptBuilder builder;
 
     @TempDir
@@ -49,7 +51,9 @@ class SystemPromptBuilderTest {
         when(projectContextService.getContext(any())).thenReturn(null);
         when(projectContextService.formatProjectContext(any())).thenReturn("");
         promptSectionCache = new SystemPromptSectionCache();
-        builder = new SystemPromptBuilder(claudeMdLoader, featureFlags, gitService, null, null, projectContextService, null, promptSectionCache);
+        promptCacheBreakDetector = mock(PromptCacheBreakDetector.class);
+        when(promptCacheBreakDetector.computeBreakpointPosition(any())).thenReturn(0);
+        builder = new SystemPromptBuilder(claudeMdLoader, featureFlags, gitService, null, null, projectContextService, null, promptSectionCache, promptCacheBreakDetector);
 
         // 默认 mock 行为
         when(gitService.getGitStatus(any(Path.class))).thenReturn("main (clean)");
@@ -158,7 +162,7 @@ class SystemPromptBuilderTest {
                 .withSession(s -> s.withWorkingDirectory(tempDir.toString()));
         when(appStateStore.getState()).thenReturn(appState);
         // 重新创建 builder，包含 appStateStore
-        builder = new SystemPromptBuilder(claudeMdLoader, featureFlags, gitService, null, appStateStore, projectContextService, null, promptSectionCache);
+        builder = new SystemPromptBuilder(claudeMdLoader, featureFlags, gitService, null, appStateStore, projectContextService, null, promptSectionCache, promptCacheBreakDetector);
         when(gitService.getGitStatus(any(Path.class))).thenReturn("main (clean)");
         when(featureFlags.isEnabled(anyString())).thenReturn(false);
         when(featureFlags.isEnabled("SCRATCHPAD")).thenReturn(true);

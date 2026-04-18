@@ -35,24 +35,26 @@ class TaskToolGoldenTest {
     class TaskStatusTests {
 
         @Test
-        @DisplayName("1.1 终态判定 — COMPLETED/FAILED/CANCELLED 为终态")
+        @DisplayName("1.1 终态判定 — COMPLETED/FAILED/CANCELLED/KILLED 为终态")
         void terminalStates() {
             assertTrue(TaskStatus.COMPLETED.isTerminal());
             assertTrue(TaskStatus.FAILED.isTerminal());
             assertTrue(TaskStatus.CANCELLED.isTerminal());
+            assertTrue(TaskStatus.KILLED.isTerminal());
         }
 
         @Test
-        @DisplayName("1.2 非终态判定 — PENDING/RUNNING 为非终态")
+        @DisplayName("1.2 非终态判定 — PENDING/RUNNING/IN_PROGRESS 为非终态")
         void nonTerminalStates() {
             assertFalse(TaskStatus.PENDING.isTerminal());
             assertFalse(TaskStatus.RUNNING.isTerminal());
+            assertFalse(TaskStatus.IN_PROGRESS.isTerminal());
         }
 
         @Test
-        @DisplayName("1.3 枚举值完整性 — 5 个状态")
+        @DisplayName("1.3 枚举值完整性 — 7 个状态")
         void allValues() {
-            assertEquals(5, TaskStatus.values().length);
+            assertEquals(7, TaskStatus.values().length);
         }
     }
 

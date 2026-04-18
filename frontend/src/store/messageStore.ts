@@ -10,6 +10,13 @@ import { subscribeWithSelector } from 'zustand/middleware';
 import type { Message, ToolResult, ToolCallState, Usage } from '@/types';
 import { streamingStore, flushStreamingBuffer } from '@/hooks/useStreamingText';
 
+export interface TokenBudgetState {
+    pct: number;
+    currentTokens: number;
+    budgetTokens: number;
+    visible: boolean;
+}
+
 export interface MessageStoreState {
     // 状态
     messages: Message[];
@@ -17,6 +24,7 @@ export interface MessageStoreState {
     streamingContent: string;
     thinkingContent: string;
     activeToolCalls: Map<string, ToolCallState>;
+    tokenBudgetState: TokenBudgetState | null;
 
     // Actions
     addMessage: (msg: Message) => void;
@@ -28,6 +36,8 @@ export interface MessageStoreState {
     finalizeStream: (usage: Usage) => void;
     clearMessages: () => void;
     rewindToMessage: (messageId: string) => void;
+    setTokenBudgetState: (state: TokenBudgetState | null) => void;
+    clearTokenBudgetState: () => void;
 }
 
 export const useMessageStore = create<MessageStoreState>()(
@@ -37,6 +47,7 @@ export const useMessageStore = create<MessageStoreState>()(
         streamingContent: '',
         thinkingContent: '',
         activeToolCalls: new Map(),
+        tokenBudgetState: null,
 
         addMessage: (msg) => set(d => { d.messages.push(msg); }),
         appendStreamDelta: (delta) => set(d => {
@@ -123,10 +134,12 @@ export const useMessageStore = create<MessageStoreState>()(
             d.streamingContent = '';
             d.thinkingContent = '';
         }),
-        clearMessages: () => set(d => { d.messages = []; d.activeToolCalls.clear(); }),
+        clearMessages: () => set(d => { d.messages = []; d.activeToolCalls.clear(); d.tokenBudgetState = null; }),
         rewindToMessage: (messageId) => set(d => {
             const idx = d.messages.findIndex(m => m.uuid === messageId);
             if (idx >= 0) d.messages.splice(idx + 1);
         }),
+        setTokenBudgetState: (state) => set(d => { d.tokenBudgetState = state; }),
+        clearTokenBudgetState: () => set(d => { d.tokenBudgetState = null; }),
     })))
 );

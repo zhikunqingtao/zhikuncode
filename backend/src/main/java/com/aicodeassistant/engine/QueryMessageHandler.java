@@ -65,4 +65,9 @@ public interface QueryMessageHandler {
     default void onProgress(String toolUseId, String progressText) {}
     default void onStreamRequestStart(String requestId) {}
     default void onToolUseSummary(String toolUseId, String summary) {}
+
+    // ==================== Token 预算续写 ====================
+
+    /** Token 预算续写 nudge — 推送到前端显示进度 */
+    default void onTokenBudgetNudge(int pct, int currentTokens, int budgetTokens) {}
 }

@@ -222,19 +222,47 @@ public class ContextCascade {
             log.debug("Level 1 MicroCompact: freed {} tokens", mcTokensFreed);
         }
 
-        // ===== Level 1.5: ContextCollapse (骨架化旧消息) =====
+        // ===== Level 1.5: ContextCollapse (三级渐进折叠) =====
+        boolean collapseAttempted = true;
         ContextCollapseService.CollapseResult collapseResult =
-                contextCollapseService.collapseMessages(current);
+                contextCollapseService.progressiveCollapse(current);
         if (collapseResult.collapsedCount() > 0) {
             collapseExecuted = true;
             collapseCharsFreed = collapseResult.estimatedCharsFreed();
             current = collapseResult.messages();
-            log.debug("Level 1.5 ContextCollapse: collapsed {} messages, ~{} chars freed",
+            log.debug("Level 1.5 ProgressiveCollapse: collapsed {} messages, ~{} chars freed",
                     collapseResult.collapsedCount(), collapseResult.estimatedCharsFreed());
         }
 
-        // ===== Level 2: AutoCompact (LLM 摘要) =====
-        if (!trackingState.isCircuitBroken()) {
+        // ===== Level 2: AutoCompact (LLM 摘要) — 含 Collapse 互斥协调 =====
+        boolean collapseDidExecute = collapseAttempted && collapseResult.collapsedCount() > 0;
+        int collapseFreedChars = collapseResult.estimatedCharsFreed();
+
+        if (collapseDidExecute) {
+            // Collapse 已执行，重新评估是否仍需 AutoCompact
+            TokenWarningState postCollapseWarning = calculateTokenWarningState(current, model);
+            if (!postCollapseWarning.isAboveAutoCompactThreshold()) {
+                log.info("Level 2 AutoCompact 跳过: Collapse 已释放足够空间 " +
+                        "(collapseCharsFreed={}, postTokens={}, threshold={})",
+                        collapseFreedChars, postCollapseWarning.currentTokens(),
+                        postCollapseWarning.autoCompactThreshold());
+            } else if (!trackingState.isCircuitBroken()) {
+                log.info("Level 2 AutoCompact 触发: Collapse 释放不足 (postTokens={} > threshold={})",
+                        postCollapseWarning.currentTokens(), postCollapseWarning.autoCompactThreshold());
+                acAttempted = true;
+                try {
+                    acResult = compactService.compact(current, contextWindow, false);
+                    if (acResult.skipReason() == null && !acResult.compactedMessages().isEmpty()) {
+                        acExecuted = true;
+                        current = acResult.compactedMessages();
+                        log.info("Level 2 AutoCompact completed: {}", acResult.summary());
+                    }
+                } catch (Exception e) {
+                    log.error("Level 2 AutoCompact failed", e);
+                }
+            }
+        } else if (!trackingState.isCircuitBroken()) {
+            // Collapse 未执行，保持原有 AutoCompact 判断逻辑
             TokenWarningState warning = calculateTokenWarningState(current, model);
             if (warning.isAboveAutoCompactThreshold()) {
                 log.info("Level 2 AutoCompact triggered: {} tokens > threshold {}",

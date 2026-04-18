@@ -27,7 +27,7 @@ class McpGoldenTest {
         McpApprovalService approval = mock(McpApprovalService.class);
         when(approval.isTrusted(any())).thenReturn(true);
         ToolRegistry toolRegistry = mock(ToolRegistry.class);
-        return new McpClientManager(new McpConfiguration(), null, toolRegistry, approval, null, null);
+        return new McpClientManager(new McpConfiguration(), null, toolRegistry, approval, null, null, null, null);
     }
 
     // ===== 1. 配置模型测试 =====

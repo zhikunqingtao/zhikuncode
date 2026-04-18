@@ -576,6 +576,129 @@ public class BashCommandClassifier {
     }
 
     // ══════════════════════════════════════════════════════════════
+    // 命令风险分级体系 (SAFE / MODERATE / DANGEROUS / BLOCKED)
+    // ══════════════════════════════════════════════════════════════
+
+    /**
+     * 命令风险级别。
+     * <ul>
+     *   <li>SAFE: 只读命令，无副作用，直接放行</li>
+     *   <li>MODERATE: 可能有副作用但风险可控，需权限确认</li>
+     *   <li>DANGEROUS: 破坏性操作，需严格权限确认</li>
+     *   <li>BLOCKED: 绝对禁止，直接拒绝执行</li>
+     * </ul>
+     */
+    public enum RiskLevel {
+        SAFE,       // 只读命令，无副作用
+        MODERATE,   // 可能有副作用但风险可控
+        DANGEROUS,  // 破坏性操作
+        BLOCKED     // 绝对禁止
+    }
+
+    /**
+     * 命令风险评估结果。
+     */
+    public record RiskAssessment(
+            RiskLevel level,
+            String reason,
+            String command
+    ) {
+        public boolean isBlocked() { return level == RiskLevel.BLOCKED; }
+        public boolean isSafe() { return level == RiskLevel.SAFE; }
+    }
+
+    // 绝对禁止命令 — 100% 拒绝执行
+    private static final Set<String> BLOCKED_COMMAND_SET = Set.of(
+            "sudo", "su", "doas");
+
+    // 破坏性命令 — 需严格权限确认
+    private static final Set<String> DANGEROUS_COMMAND_SET = Set.of(
+            "rm", "rmdir", "chmod", "chown", "mkfs", "dd",
+            "shred", "truncate", "wipefs", "fdisk", "parted",
+            "kill", "killall", "pkill", "reboot", "shutdown",
+            "halt", "poweroff", "init", "systemctl");
+
+    // 中等风险命令 — 有副作用但风险可控
+    private static final Set<String> MODERATE_COMMAND_SET = Set.of(
+            "mv", "cp", "mkdir", "touch", "ln", "cd",
+            "export", "unset", "tee", "install",
+            "npm", "yarn", "pip", "brew", "apt", "apt-get",
+            "git", "docker", "make", "cmake",
+            "wget", "curl", "ssh", "scp");
+
+    // 敏感信息泄露命令 — 需权限确认
+    private static final Set<String> SENSITIVE_INFO_COMMANDS = Set.of(
+            "env", "printenv", "set");
+
+    /**
+     * 评估命令的风险级别。
+     * <p>
+     * 支持管道/链式命令，取所有子命令中的最高风险级别。
+     *
+     * @param command 完整命令字符串
+     * @return 风险评估结果
+     */
+    public RiskAssessment assessRisk(String command) {
+        if (command == null || command.isBlank()) {
+            return new RiskAssessment(RiskLevel.SAFE, "Empty command", command);
+        }
+        String trimmed = command.trim();
+
+        // 拆分管道/链式命令
+        String[] segments = trimmed.split("\\s*(?:\\|\\||&&|[|;])\\s*");
+        RiskLevel maxLevel = RiskLevel.SAFE;
+        String maxReason = "Read-only command";
+
+        for (String segment : segments) {
+            String seg = segment.trim();
+            if (seg.isEmpty()) continue;
+
+            // 剥离环境变量赋值前缀
+            String stripped = seg.replaceAll("^(\\w+=\\S*\\s+)+", "");
+            String firstToken = extractFirstToken(stripped);
+            if (firstToken.isEmpty()) continue;
+
+            RiskLevel segLevel;
+            String segReason;
+
+            if (BLOCKED_COMMAND_SET.contains(firstToken)) {
+                segLevel = RiskLevel.BLOCKED;
+                segReason = "Privilege escalation command: " + firstToken;
+            } else if (DANGEROUS_COMMAND_SET.contains(firstToken)) {
+                segLevel = RiskLevel.DANGEROUS;
+                segReason = "Destructive command: " + firstToken;
+            } else if (SENSITIVE_INFO_COMMANDS.contains(firstToken)
+                    && (stripped.equals(firstToken) || stripped.startsWith(firstToken + " "))) {
+                // env 无参数或 printenv → 信息泄露风险
+                // 但 env <cmd> 包装命令不算
+                if (stripped.equals(firstToken) || "printenv".equals(firstToken) || "set".equals(firstToken)) {
+                    segLevel = RiskLevel.MODERATE;
+                    segReason = "Sensitive info disclosure risk: " + firstToken;
+                } else {
+                    segLevel = RiskLevel.MODERATE;
+                    segReason = "Command wrapper: " + firstToken;
+                }
+            } else if (MODERATE_COMMAND_SET.contains(firstToken)) {
+                segLevel = RiskLevel.MODERATE;
+                segReason = "Side-effect command: " + firstToken;
+            } else if (isSearchOrReadCommand(firstToken) || READONLY_COMMANDS.contains(firstToken)) {
+                segLevel = RiskLevel.SAFE;
+                segReason = "Read-only command: " + firstToken;
+            } else {
+                segLevel = RiskLevel.MODERATE;
+                segReason = "Unknown command: " + firstToken;
+            }
+
+            if (segLevel.ordinal() > maxLevel.ordinal()) {
+                maxLevel = segLevel;
+                maxReason = segReason;
+            }
+        }
+
+        return new RiskAssessment(maxLevel, maxReason, command);
+    }
+
+    // ══════════════════════════════════════════════════════════════
     // 原有分类表 (用于 classify 方法)
     // ══════════════════════════════════════════════════════════════
     private static final Set<String> SEARCH_CMDS = Set.of(

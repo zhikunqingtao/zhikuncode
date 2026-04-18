@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 企业策略权限规则源 — 从 policy.json 加载企业级(MDM)权限规则。
@@ -49,7 +50,7 @@ public class PolicySettingsSource {
 
     private final ObjectMapper objectMapper;
     private volatile List<PermissionRule> cachedRules = Collections.emptyList();
-    private volatile long lastModified = 0;
+    private final AtomicLong lastModified = new AtomicLong(0L);
 
     public PolicySettingsSource(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
@@ -69,7 +70,7 @@ public class PolicySettingsSource {
 
         try {
             long currentModified = Files.getLastModifiedTime(policyFilePath).toMillis();
-            if (currentModified == lastModified && !cachedRules.isEmpty()) {
+            if (currentModified == lastModified.get() && !cachedRules.isEmpty()) {
                 return cachedRules;
             }
 
@@ -87,7 +88,7 @@ public class PolicySettingsSource {
             parseRuleArray(permissions.path("ask"), PermissionBehavior.ASK, rules);
 
             cachedRules = Collections.unmodifiableList(rules);
-            lastModified = currentModified;
+            lastModified.set(currentModified);
 
             log.info("Loaded {} enterprise policy rules from {}", rules.size(), policyFilePath);
             return cachedRules;
@@ -118,7 +119,7 @@ public class PolicySettingsSource {
      * 强制重新加载（清除缓存）。
      */
     public void invalidateCache() {
-        lastModified = 0;
+        lastModified.set(0L);
         cachedRules = Collections.emptyList();
     }
 

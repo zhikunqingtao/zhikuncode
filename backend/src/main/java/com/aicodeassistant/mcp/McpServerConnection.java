@@ -1,6 +1,8 @@
 package com.aicodeassistant.mcp;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +34,12 @@ public class McpServerConnection {
 
     private static final int MAX_RECONNECT_ATTEMPTS = 3;
     private static final long DEFAULT_REQUEST_TIMEOUT_MS = 30_000;
+
+    /** 资源列表缓存 — Caffeine TTL 5分钟，防止频繁调用 MCP 服务器 */
+    private final Cache<String, List<McpResourceDefinition>> resourceCache = Caffeine.newBuilder()
+            .expireAfterWrite(5, TimeUnit.MINUTES)
+            .maximumSize(1)
+            .build();
 
     /** 统一传输实例 — 替代原来的 process/stdinWriter/stdoutReader/httpTransport/wsTransport */
     private volatile McpTransport transport;
@@ -313,6 +321,63 @@ public class McpServerConnection {
         }
         log.error("MCP server '{}' connection failed after {} attempts",
                 config.name(), MAX_RECONNECT_ATTEMPTS + 1);
+    }
+
+    // ===== 资源发现 =====
+
+    /**
+     * 发现并加载 MCP 服务器提供的资源 — 发送 resources/list 请求。
+     * <p>
+     * 结果使用 Caffeine 缓存（TTL 5分钟），避免频繁调用 MCP 服务器。
+     *
+     * @return 资源定义列表
+     */
+    public List<McpResourceDefinition> discoverResources() {
+        if (status != McpConnectionStatus.CONNECTED) {
+            log.warn("Cannot discover resources — server '{}' not connected (status={})", config.name(), status);
+            return List.of();
+        }
+
+        // 尝试从缓存获取
+        List<McpResourceDefinition> cached = resourceCache.getIfPresent("resources");
+        if (cached != null) {
+            return cached;
+        }
+
+        try {
+            JsonNode result = transport.sendRequest("resources/list", Map.of(), DEFAULT_REQUEST_TIMEOUT_MS);
+            if (result != null && result.has("resources") && result.get("resources").isArray()) {
+                List<McpResourceDefinition> discovered = new ArrayList<>();
+                for (JsonNode resNode : result.get("resources")) {
+                    String uri = resNode.path("uri").asText(null);
+                    String name = resNode.path("name").asText("");
+                    String mimeType = resNode.path("mimeType").asText(null);
+                    String description = resNode.path("description").asText(null);
+                    if (uri != null) {
+                        discovered.add(new McpResourceDefinition(uri, name, mimeType, description));
+                    }
+                }
+                List<McpResourceDefinition> immutable = List.copyOf(discovered);
+                this.resources = immutable;
+                resourceCache.put("resources", immutable);
+                log.info("MCP server '{}' resources/list: discovered {} resources",
+                        config.name(), discovered.size());
+                return immutable;
+            } else {
+                log.info("MCP server '{}' resources/list returned no resources", config.name());
+                List<McpResourceDefinition> empty = List.of();
+                resourceCache.put("resources", empty);
+                return empty;
+            }
+        } catch (McpProtocolException e) {
+            log.warn("resources/list not supported by MCP server '{}': {}", config.name(), e.getMessage());
+            return List.of();
+        }
+    }
+
+    /** 使资源缓存失效 — 强制下次 discoverResources() 重新请求 MCP 服务器 */
+    public void invalidateResourceCache() {
+        resourceCache.invalidateAll();
     }
 
     // ===== Getters/Setters =====

@@ -217,6 +217,9 @@ public class ToolExecutionPipeline {
             log.debug("Executing tool: {} (stage 5: call)", toolName);
             ToolResult result = tool.call(processedInput, context);
 
+            // ── 阶段 5b: mapToolResult — 工具自定义结果映射 ──
+            result = tool.mapToolResult(result);
+
             // ── 阶段 6: 结果处理 + PostToolUse 钩子 ──
             HookRegistry.HookResult postHookResult = hookService.executePostToolUse(
                     toolName,

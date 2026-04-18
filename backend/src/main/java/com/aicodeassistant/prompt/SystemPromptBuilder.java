@@ -1,5 +1,6 @@
 package com.aicodeassistant.prompt;
 
+import com.aicodeassistant.service.PromptCacheBreakDetector;
 import com.aicodeassistant.config.ClaudeMdLoader;
 import com.aicodeassistant.config.FeatureFlagService;
 import com.aicodeassistant.context.ProjectContextService;
@@ -49,6 +50,14 @@ public class SystemPromptBuilder {
     private static final Logger log = LoggerFactory.getLogger(SystemPromptBuilder.class);
 
     /**
+     * 工具缓存断点标记 — 分隔内建工具和MCP工具。
+     * 内建工具定义（稳定）在此标记之前，MCP工具定义（动态）在此标记之后。
+     * 该标记用于提示 LLM API 层在此位置放置 cache_control 断点。
+     */
+    public static final String TOOL_CACHE_BREAKPOINT =
+            "__TOOL_CACHE_BREAKPOINT__";
+
+    /**
      * 缓存分割标记 — 分隔静态内容和动态内容。
      * 标记之前的内容可使用 scope: 'global' 跨组织缓存。
      * 标记之后的内容包含用户/会话特定信息，不应全局缓存。
@@ -64,6 +73,7 @@ public class SystemPromptBuilder {
     private final AppStateStore appStateStore;
     private final ProjectContextService projectContextService;
     private final ToolResultSummarizer toolResultSummarizer;
+    private final PromptCacheBreakDetector promptCacheBreakDetector;
 
     // 段缓存 — 委托给 SystemPromptSectionCache（带 TTL + session 隔离）
     private final SystemPromptSectionCache promptSectionCache;
@@ -91,7 +101,8 @@ public class SystemPromptBuilder {
                                AppStateStore appStateStore,
                                ProjectContextService projectContextService,
                                ToolResultSummarizer toolResultSummarizer,
-                               SystemPromptSectionCache promptSectionCache) {
+                               SystemPromptSectionCache promptSectionCache,
+                               PromptCacheBreakDetector promptCacheBreakDetector) {
         this.claudeMdLoader = claudeMdLoader;
         this.featureFlags = featureFlags;
         this.gitService = gitService;
@@ -100,6 +111,7 @@ public class SystemPromptBuilder {
         this.projectContextService = projectContextService;
         this.toolResultSummarizer = toolResultSummarizer;
         this.promptSectionCache = promptSectionCache;
+        this.promptCacheBreakDetector = promptCacheBreakDetector;
     }
 
     /**
@@ -228,6 +240,13 @@ public class SystemPromptBuilder {
         if (shouldUseGlobalCacheScope()) {
             prompt.add(SYSTEM_PROMPT_DYNAMIC_BOUNDARY);
         }
+
+        // === 工具缓存断点标记（内建/MCP工具分界） ===
+        int breakpointPos = promptCacheBreakDetector.computeBreakpointPosition(tools);
+        if (breakpointPos >= 0) {
+            prompt.add(TOOL_CACHE_BREAKPOINT);
+        }
+
         // --- 动态段（会话特定）---
         prompt.addAll(resolvedDynamic);
 
@@ -238,12 +257,16 @@ public class SystemPromptBuilder {
      * 构建带缓存控制的系统提示 — 返回 SystemPrompt 分段对象。
      * DYNAMIC_BOUNDARY 之前的内容标记 cacheControl=true（可全局缓存）。
      * DYNAMIC_BOUNDARY 之后的内容标记 cacheControl=false（每会话动态）。
+     * TOOL_CACHE_BREAKPOINT 标记会被过滤掉（仅用于工具定义层的 cache_control）。
      */
     public SystemPrompt buildSystemPromptWithCacheControl(
             List<Tool> tools, String model, Path workingDir,
             List<String> additionalDirs, List<McpServerConnection> mcpClients) {
 
-        List<String> rawParts = buildSystemPrompt(tools, model, workingDir, additionalDirs, mcpClients);
+        List<String> rawParts = buildSystemPrompt(tools, model, workingDir, additionalDirs, mcpClients)
+                .stream()
+                .filter(p -> !TOOL_CACHE_BREAKPOINT.equals(p))
+                .toList();
 
         int boundaryIdx = rawParts.indexOf(SYSTEM_PROMPT_DYNAMIC_BOUNDARY);
         if (boundaryIdx < 0) {
@@ -270,7 +293,10 @@ public class SystemPromptBuilder {
      * 构建默认系统提示（简化版，用于无特殊配置的场景）。
      */
     public String buildDefaultSystemPrompt(List<Tool> tools, String model) {
-        List<String> sections = buildSystemPrompt(tools, model, null, List.of(), List.of());
+        List<String> sections = buildSystemPrompt(tools, model, null, List.of(), List.of())
+                .stream()
+                .filter(p -> !TOOL_CACHE_BREAKPOINT.equals(p))
+                .toList();
         return String.join("\n\n", sections);
     }
 

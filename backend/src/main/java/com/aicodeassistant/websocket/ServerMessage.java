@@ -164,4 +164,68 @@ public final class ServerMessage {
 
     /** #25 pong — 心跳响应 */
     public record Pong() {}
+
+    // ==================== #33: MCP 健康状态 ====================
+
+    /** #33 mcp_health_status — MCP 服务器连接健康状态变更 */
+    public record McpHealthStatus(
+            String serverName, String status, int consecutiveFailures,
+            Long lastSuccessfulPing
+    ) {}
+
+    // ==================== #37: Token 预算续写 ====================
+
+    /** #37 token_budget_nudge — Token 预算续写提示 */
+    public record TokenBudgetNudge(int pct, int currentTokens, int budgetTokens) {}
+
+    // ==================== #38-40: swarmStore ====================
+
+    /** #38 swarm_state_update — Swarm 状态变更通知 */
+    public record SwarmStateUpdate(
+            String swarmId,
+            String phase,           // INITIALIZING | RUNNING | IDLE | SHUTTING_DOWN | TERMINATED
+            int activeWorkers,
+            int totalWorkers,
+            int completedTasks,
+            int totalTasks,
+            Map<String, WorkerSnapshot> workers
+    ) {
+        public record WorkerSnapshot(
+                String workerId, String status, String currentTask,
+                int toolCallCount, long tokenConsumed
+        ) {}
+    }
+
+    /** #39 worker_progress — Worker 实时进度 */
+    public record WorkerProgress(
+            String swarmId,
+            String workerId,
+            String status,          // STARTING | WORKING | IDLE | TERMINATED
+            String currentTask,
+            int toolCallCount,
+            long tokenConsumed,
+            List<String> recentToolCalls  // 最近 5 个
+    ) {}
+
+    /** #40 permission_bubble — Worker 权限冒泡请求 */
+    public record PermissionBubble(
+            String requestId,       // LeaderPermissionBridge 用于匹配回调
+            String workerId,
+            String toolName,
+            String riskLevel,
+            String reason
+    ) {}
+
+    // ==================== #41: coordinatorStore ====================
+
+    /** #41 workflow_phase_update — Coordinator 四阶段工作流阶段变更 */
+    public record WorkflowPhaseUpdate(
+            String workflowId,
+            String phaseName,       // Research | Synthesis | Implementation | Verification | ""
+            String status,          // NOT_STARTED | RUNNING | COMPLETED | FAILED | CANCELLED
+            int phaseIndex,         // 0-3, -1 when completed
+            int totalPhases,        // 4
+            String phasePrompt,     // 阶段引导提示词
+            String objective        // 工作流目标
+    ) {}
 }

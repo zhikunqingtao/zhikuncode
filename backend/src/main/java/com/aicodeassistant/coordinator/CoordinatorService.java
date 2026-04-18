@@ -14,6 +14,12 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * @see CoordinatorWorkflowEngine 四阶段工作流编排引擎
+ * @see CoordinatorWorkflow 工作流实例
+ * @see WorkflowPhase 工作流阶段定义
+ */
+
+/**
  * Coordinator 服务 — 多代理协作模式核心。
  * <p>
  * 对标原版 src/coordinator/coordinatorMode.ts (370行)。
@@ -33,6 +39,7 @@ public class CoordinatorService {
 
     private final FeatureFlagService featureFlags;
     private final ToolRegistry toolRegistry;
+    private final CoordinatorWorkflowEngine workflowEngine;
 
     /**
      * 运行时环境变量存储 — 替代 System.getenv()/System.setProperty()。
@@ -55,9 +62,11 @@ public class CoordinatorService {
     );
 
     public CoordinatorService(FeatureFlagService featureFlags,
-                              @Lazy ToolRegistry toolRegistry) {
+                              @Lazy ToolRegistry toolRegistry,
+                              @Lazy CoordinatorWorkflowEngine workflowEngine) {
         this.featureFlags = featureFlags;
         this.toolRegistry = toolRegistry;
+        this.workflowEngine = workflowEngine;
     }
 
     // ============ 模式检测 ============
@@ -153,6 +162,64 @@ public class CoordinatorService {
      */
     public Set<String> getCoordinatorAllowedTools() {
         return COORDINATOR_ALLOWED_TOOLS;
+    }
+
+    // ============ 四阶段工作流集成 ============
+
+    /**
+     * 使用四阶段工作流引擎执行复杂任务。
+     * <p>
+     * 创建并启动 Research → Synthesis → Implementation → Verification 工作流。
+     * 通过 SwarmService 委派各阶段的实际工作给 Worker。
+     *
+     * @param sessionId 会话 ID
+     * @param objective 任务目标描述
+     * @return CoordinatorWorkflow 工作流实例
+     */
+    public CoordinatorWorkflow executeWithWorkflow(String sessionId, String objective) {
+        if (!isCoordinatorMode()) {
+            log.warn("executeWithWorkflow called but Coordinator mode is not enabled");
+            return null;
+        }
+        return workflowEngine.executeWorkflow(sessionId, objective);
+    }
+
+    /**
+     * 推进当前会话的工作流到下一阶段。
+     *
+     * @param sessionId     会话 ID
+     * @param resultSummary 当前阶段结果摘要
+     * @return 下一阶段，若已完成返回 null
+     */
+    public WorkflowPhase advanceWorkflow(String sessionId, String resultSummary) {
+        return workflowEngine.advanceWorkflow(sessionId, resultSummary);
+    }
+
+    /**
+     * 获取当前会话的活跃工作流。
+     */
+    public CoordinatorWorkflow getActiveWorkflow(String sessionId) {
+        return workflowEngine.getActiveWorkflow(sessionId);
+    }
+
+    /**
+     * 验证 Agent 派发指令质量（"不委派理解"原则）。
+     *
+     * @param sessionId   会话 ID
+     * @param phase       当前阶段
+     * @param agentPrompt Agent 任务 prompt
+     * @return 验证结果
+     */
+    public CoordinatorWorkflowEngine.ValidationResult validateDelegation(
+            String sessionId, WorkflowPhase phase, String agentPrompt) {
+        return workflowEngine.validateAndNotify(sessionId, phase, agentPrompt);
+    }
+
+    /**
+     * 获取工作流引擎（供外部直接访问高级 API）。
+     */
+    public CoordinatorWorkflowEngine getWorkflowEngine() {
+        return workflowEngine;
     }
 
     // ============ Scratchpad ============

@@ -1,5 +1,6 @@
 package com.aicodeassistant.tool.impl;
 
+import com.aicodeassistant.engine.KeyFileTracker;
 import com.aicodeassistant.tool.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +28,12 @@ public class GrepTool implements Tool {
     private static final int MAX_COLUMNS = 500;
     private static final Set<String> VCS_EXCLUDE = Set.of(
             ".git", ".svn", ".hg", ".bzr", ".jj", ".sl");
+
+    private final KeyFileTracker keyFileTracker;
+
+    public GrepTool(KeyFileTracker keyFileTracker) {
+        this.keyFileTracker = keyFileTracker;
+    }
 
     /** 是否使用 ripgrep (rg)。启动时检测一次。 */
     private static final boolean HAS_RIPGREP = detectRipgrep();
@@ -160,6 +167,11 @@ public class GrepTool implements Tool {
 
             // 4. 提取匹配文件列表
             Set<String> matchedFiles = extractFileNames(lines, outputMode);
+
+            // ★ KeyFileTracker 埋点 — 记录搜索命中文件 ★
+            for (String matchedFile : matchedFiles) {
+                keyFileTracker.trackFileReference(context.sessionId(), matchedFile, context.toolUseId());
+            }
 
             // 5. 字符数截断
             String result = String.join("\n", lines);

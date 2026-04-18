@@ -1,11 +1,17 @@
 package com.aicodeassistant.tool;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * 工具注册表 — Spring Bean 自动发现并注册所有 Tool 实现。
@@ -21,6 +27,12 @@ public class ToolRegistry {
 
     private final Map<String, Tool> toolsByName = new ConcurrentHashMap<>();
     private final Map<String, Tool> toolsByAlias = new ConcurrentHashMap<>();
+
+    /** Caffeine 缓存：排序后的工具列表（key = sessionId::toolSetHash） */
+    private final Cache<String, List<Tool>> sortedToolCache = Caffeine.newBuilder()
+            .maximumSize(100)
+            .expireAfterWrite(Duration.ofMinutes(5))
+            .build();
 
     /**
      * 构造函数 — 通过 Spring 自动注入所有 Tool 实现。
@@ -94,11 +106,47 @@ public class ToolRegistry {
         return grouped;
     }
 
-    /** 获取所有工具的 API 定义格式 */
+    /** 获取所有工具的 API 定义格式（排序：内建在前，MCP在后，组内按名称排序） */
     public List<Map<String, Object>> getToolDefinitions() {
-        return getEnabledTools().stream()
+        return getEnabledToolsSorted().stream()
                 .map(Tool::toToolDefinition)
                 .toList();
+    }
+
+    /**
+     * 获取工具定义并在内建/MCP分界处插入 cache_control 断点。
+     * <p>
+     * 在最后一个内建工具的定义上添加 cache_control: {type: "ephemeral"}，
+     * 使 MCP 工具变更不影响内建工具部分的缓存命中。
+     *
+     * @return 带缓存断点的工具定义列表
+     */
+    public List<Map<String, Object>> getToolDefinitionsWithCacheBreakpoint() {
+        List<Tool> sorted = getEnabledToolsSorted();
+        List<Map<String, Object>> definitions = new ArrayList<>();
+
+        // 找到内建工具的最后一个索引
+        int lastBuiltInIdx = -1;
+        for (int i = 0; i < sorted.size(); i++) {
+            if (!sorted.get(i).isMcp()) {
+                lastBuiltInIdx = i;
+            }
+        }
+
+        boolean hasMcpTools = sorted.stream().anyMatch(Tool::isMcp);
+
+        for (int i = 0; i < sorted.size(); i++) {
+            Map<String, Object> def = sorted.get(i).toToolDefinition();
+            // 在最后一个内建工具上添加 cache_control 断点（仅当存在MCP工具时）
+            if (i == lastBuiltInIdx && hasMcpTools) {
+                Map<String, Object> defWithCache = new LinkedHashMap<>(def);
+                defWithCache.put("cache_control", Map.of("type", "ephemeral"));
+                definitions.add(defWithCache);
+            } else {
+                definitions.add(def);
+            }
+        }
+        return definitions;
     }
 
     /** 工具数量 */
@@ -113,6 +161,7 @@ public class ToolRegistry {
      */
     public void registerDynamic(Tool tool) {
         register(tool);
+        invalidateSortedCache();
         log.info("Dynamically registered tool: {}", tool.getName());
     }
 
@@ -131,29 +180,61 @@ public class ToolRegistry {
         }
         if (!toRemove.isEmpty()) {
             log.info("Unregistered {} tools with prefix '{}'", toRemove.size(), prefix);
+            invalidateSortedCache();
         }
         return toRemove.size();
     }
 
     /**
-     * 获取启用工具（排序：内建工具在前，MCP工具在后）。
+     * 获取启用工具（排序：内建工具按名称排序在前，MCP工具按名称排序在后）。
      * <p>
      * prompt cache 分区排序：内建工具（非 MCP）排在前面，确保 cache hit 率最大化。
-     * MCP 工具（动态注册、可能变化）排在后面。
+     * MCP 工具（动态注册、可能变化）排在后面。组内均按名称字母序排列以保证顺序稳定。
      */
     public List<Tool> getEnabledToolsSorted() {
-        List<Tool> enabled = getEnabledTools();
-        List<Tool> builtIn = new ArrayList<>();
-        List<Tool> mcp = new ArrayList<>();
-        for (Tool t : enabled) {
-            if (t.isMcp()) {
-                mcp.add(t);
-            } else {
-                builtIn.add(t);
-            }
+        return getEnabledTools().stream()
+                .sorted(Comparator.comparing((Tool t) -> t.isMcp() ? 1 : 0)
+                        .thenComparing(Tool::getName))
+                .toList();
+    }
+
+    /**
+     * 获取启用工具（带 Caffeine 缓存，避免每轮重新排序）。
+     * <p>
+     * 缓存 key 格式：sessionId::toolSetHash，工具集变更时自动失效。
+     *
+     * @param sessionId 会话ID
+     * @return 排序后的工具列表（内建在前，MCP在后，组内按名称排序）
+     */
+    public List<Tool> getEnabledToolsSortedCached(String sessionId) {
+        String cacheKey = sessionId + "::" + computeToolSetHash();
+        return sortedToolCache.get(cacheKey, k -> getEnabledToolsSorted());
+    }
+
+    /**
+     * 计算当前启用工具集的 SHA-256 哈希（前16位）。
+     * 用于缓存 key 构建，工具增减时哈希自动变化。
+     */
+    private String computeToolSetHash() {
+        String toolNames = getEnabledTools().stream()
+                .map(Tool::getName)
+                .sorted()
+                .collect(Collectors.joining(","));
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(toolNames.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(hash).substring(0, 16);
+        } catch (Exception e) {
+            return String.valueOf(toolNames.hashCode());
         }
-        builtIn.addAll(mcp);
-        return builtIn;
+    }
+
+    /**
+     * 使排序工具缓存全部失效 — 在工具注册/注销后调用。
+     */
+    public void invalidateSortedCache() {
+        sortedToolCache.invalidateAll();
+        log.debug("Sorted tool cache invalidated");
     }
 
     /** 子代理禁用的工具名集合 */

@@ -29,6 +29,13 @@ public class PermissionRuleMatcher {
     }
 
     /**
+     * 查找匹配的 deny 规则（带子命令级匹配）。
+     */
+    public PermissionRule findDenyRule(PermissionContext context, Tool tool, ToolInput input) {
+        return findMatchingRule(context.alwaysDenyRules(), tool, input);
+    }
+
+    /**
      * 查找匹配的 ask 规则。
      */
     public PermissionRule findAskRule(PermissionContext context, Tool tool) {
@@ -36,10 +43,24 @@ public class PermissionRuleMatcher {
     }
 
     /**
+     * 查找匹配的 ask 规则（带子命令级匹配）。
+     */
+    public PermissionRule findAskRule(PermissionContext context, Tool tool, ToolInput input) {
+        return findMatchingRule(context.alwaysAskRules(), tool, input);
+    }
+
+    /**
      * 查找匹配的 allow 规则。
      */
     public PermissionRule findAllowRule(PermissionContext context, Tool tool) {
         return findMatchingRule(context.alwaysAllowRules(), tool, null);
+    }
+
+    /**
+     * 查找匹配的 allow 规则（带子命令级匹配）。
+     */
+    public PermissionRule findAllowRule(PermissionContext context, Tool tool, ToolInput input) {
+        return findMatchingRule(context.alwaysAllowRules(), tool, input);
     }
 
     // ==================== 核心匹配 ====================
@@ -120,9 +141,9 @@ public class PermissionRuleMatcher {
     // ==================== 内容匹配（3 种模式） ====================
 
     /**
-     * Shell 命令规则匹配 — 3 种模式。
+     * Shell 命令规则匹配 — 3 种模式 + 子命令级前缀匹配。
      *
-     * @param ruleContent 规则内容（如 "npm:*", "git push *", "git status"）
+     * @param ruleContent 规则内容（如 "npm:*", "git push *", "git status", "docker run")
      * @param command     实际命令
      * @return 是否匹配
      */
@@ -133,12 +154,28 @@ public class PermissionRuleMatcher {
             return command.equals(prefix) || command.startsWith(prefix + " ");
         }
 
-        // 2. 检查含未转义 * → 通配符规则
+        // 2. 子命令级前缀匹配 — 支持 "git commit"、"docker run" 等多级命令
+        //    规则 "git commit" 匹配 "git commit -m 'msg'" 和 "git commit"
+        //    规则 "git *" 匹配所有 git 子命令
+        if (ruleContent.contains(" ")) {
+            // 多词规则：检查是否为子命令级匹配
+            if (ruleContent.endsWith(" *")) {
+                // "git *" 模式 → 匹配命令前缀
+                String cmdPrefix = ruleContent.substring(0, ruleContent.length() - 2);
+                return command.equals(cmdPrefix) || command.startsWith(cmdPrefix + " ");
+            }
+            // "git commit" 模式 → 精确子命令匹配
+            if (command.equals(ruleContent) || command.startsWith(ruleContent + " ")) {
+                return true;
+            }
+        }
+
+        // 3. 检查含未转义 * → 通配符规则
         if (containsUnescapedWildcard(ruleContent)) {
             return matchWildcardPattern(ruleContent, command);
         }
 
-        // 3. 精确匹配
+        // 4. 精确匹配
         return command.equals(ruleContent);
     }
 

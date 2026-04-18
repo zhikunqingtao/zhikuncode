@@ -1,5 +1,8 @@
 package com.aicodeassistant.service;
 
+import com.aicodeassistant.tool.Tool;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -7,10 +10,12 @@ import org.springframework.stereotype.Component;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Duration;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * 提示缓存断裂检测器 (§11.3.6)。
@@ -45,6 +50,15 @@ public class PromptCacheBreakDetector {
 
     /** 会话ID → 上次缓存状态 */
     private final ConcurrentHashMap<String, SessionCacheState> sessionStates = new ConcurrentHashMap<>();
+
+    /** Caffeine 缓存：工具定义哈希，用于检测工具列表变更 */
+    private final Cache<String, String> toolDefinitionHashCache = Caffeine.newBuilder()
+            .maximumSize(200)
+            .expireAfterWrite(Duration.ofMinutes(10))
+            .build();
+
+    /** 上一次工具集哈希，用于全局变更检测 */
+    private volatile String lastToolSetHash = null;
 
     /**
      * 检测提示缓存是否断裂。
@@ -95,6 +109,65 @@ public class PromptCacheBreakDetector {
      */
     public int trackedSessionCount() {
         return sessionStates.size();
+    }
+
+    /**
+     * 计算内建工具和MCP工具之间的缓存断点位置。
+     * <p>
+     * 断点位置 = 内建工具数量（即MCP工具起始索引）。
+     * 调用方应在此位置的前一个 tool definition 上添加 cache_control 标记。
+     *
+     * @param sortedTools 已排序的工具列表（内建在前，MCP在后）
+     * @return 断点位置索引，-1 表示无MCP工具（无需断点）
+     */
+    public int computeBreakpointPosition(List<Tool> sortedTools) {
+        int breakpoint = -1;
+        for (int i = 0; i < sortedTools.size(); i++) {
+            if (sortedTools.get(i).isMcp()) {
+                breakpoint = i;
+                break;
+            }
+        }
+        return breakpoint;
+    }
+
+    /**
+     * 检测工具集是否发生变更（基于 Caffeine 缓存的哈希对比）。
+     * <p>
+     * 对当前工具定义计算 SHA-256 哈希，与缓存中的哈希比较。
+     * 不一致时表示工具集发生变更（如MCP服务器新增/移除工具）。
+     *
+     * @param sessionId 会话ID
+     * @param tools     当前工具列表
+     * @return true 表示工具集发生变更
+     */
+    public boolean hasToolSetChanged(String sessionId, List<Tool> tools) {
+        String currentHash = computeToolDefinitionsHash(tools);
+        String cacheKey = "toolset::" + sessionId;
+        String cachedHash = toolDefinitionHashCache.getIfPresent(cacheKey);
+        toolDefinitionHashCache.put(cacheKey, currentHash);
+
+        if (cachedHash == null) {
+            return false; // 首次调用，无前序哈希可比较
+        }
+
+        boolean changed = !currentHash.equals(cachedHash);
+        if (changed) {
+            log.info("Tool set changed in session {}: old={}, new={}",
+                    sessionId, cachedHash.substring(0, 8), currentHash.substring(0, 8));
+        }
+        return changed;
+    }
+
+    /**
+     * 计算工具定义列表的 SHA-256 哈希。
+     * 基于工具名称 + 描述 + schema 的组合哈希。
+     */
+    private String computeToolDefinitionsHash(List<Tool> tools) {
+        String content = tools.stream()
+                .map(t -> t.getName() + ":" + t.getDescription() + ":" + t.getInputSchema().hashCode())
+                .collect(Collectors.joining("|"));
+        return sha256(content);
     }
 
     /**

@@ -24,7 +24,7 @@ class CoordinatorServiceTest {
     void setUp() {
         featureFlags = mock(FeatureFlagService.class);
         toolRegistry = mock(ToolRegistry.class);
-        coordinatorService = new CoordinatorService(featureFlags, toolRegistry);
+        coordinatorService = new CoordinatorService(featureFlags, toolRegistry, null);
     }
 
     @Test

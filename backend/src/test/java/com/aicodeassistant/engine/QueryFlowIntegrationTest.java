@@ -17,6 +17,7 @@ import com.aicodeassistant.security.PathSecurityService;
 import com.aicodeassistant.security.SensitiveDataFilter;
 import com.aicodeassistant.tool.*;
 import com.aicodeassistant.tool.bash.BashCommandClassifier;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,6 +30,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 /**
@@ -62,23 +65,30 @@ class QueryFlowIntegrationTest {
                 mock(PathSecurityService.class), mock(BashCommandClassifier.class));
 
         TokenCounter tokenCounter = new TokenCounter();
-        CompactService compactService = new CompactService(tokenCounter, providerRegistry);
+        CompactService compactService = new CompactService(tokenCounter, providerRegistry, null, null);
         ModelTierService modelTierService = new ModelTierService();
         ApiRetryService apiRetryService = new ApiRetryService(modelTierService);
         HookService hookService = new HookService(new HookRegistry(), null);
         SensitiveDataFilter sensitiveDataFilter = new SensitiveDataFilter();
         StreamingToolExecutor streamingToolExecutor = new StreamingToolExecutor(
-                new ToolExecutionPipeline(hookService, objectMapper, permissionPipeline, ruleRepo, sensitiveDataFilter, null));
+                new ToolExecutionPipeline(hookService, objectMapper, permissionPipeline, ruleRepo, sensitiveDataFilter, null), new SimpleMeterRegistry());
         MessageNormalizer messageNormalizer = new MessageNormalizer();
         SnipService snipService = new SnipService();
         MicroCompactService microCompactService = new MicroCompactService(tokenCounter);
+
+        ContextCascade contextCascade = mock(ContextCascade.class);
+        when(contextCascade.executePreApiCascade(any(), anyString(), any())).thenAnswer(inv -> {
+            List<Message> msgs = inv.getArgument(0);
+            int tokens = tokenCounter.estimateTokens(msgs);
+            return new ContextCascade.CascadeResult(msgs, tokens, tokens, false, 0, false, 0, false, 0, false, false, null);
+        });
 
         queryEngine = new QueryEngine(
                 providerRegistry, compactService, apiRetryService,
                 permissionPipeline, ruleRepo, tokenCounter, objectMapper,
                 streamingToolExecutor, messageNormalizer, hookService,
                 snipService, microCompactService, null, null, modelTierService, mock(FileHistoryService.class), mock(ToolResultSummarizer.class),
-                mock(ContextCascade.class)
+                contextCascade
         );
 
         handler = new RecordingHandler();

@@ -47,7 +47,19 @@ public class BashTool implements Tool {
             "rm", "rmdir", "chmod", "chown", "mkfs", "dd",
             "shred", "truncate", "wipefs", "fdisk", "parted",
             "kill", "killall", "pkill", "reboot", "shutdown",
-            "halt", "poweroff", "init", "systemctl");
+            "halt", "poweroff", "init", "systemctl",
+            "sudo", "su", "doas");  // 禁止特权提升命令
+
+    // 绝对拦截命令 — 这些命令在任何情况下都必须 100% 拒绝执行
+    private static final Set<String> BLOCKED_COMMANDS = Set.of(
+            "sudo", "su", "doas");  // 特权提升命令
+
+    // 危险 flag 模式 — 检测特定命令+危险flag组合
+    private static final Map<String, Set<String>> DANGEROUS_FLAG_PATTERNS = Map.of(
+            "rm", Set.of("-rf", "-fr", "--recursive", "--force"),
+            "chmod", Set.of("777", "755", "666", "+s", "u+s", "g+s"),
+            "chown", Set.of("-R", "--recursive")
+    );
 
     private final BashSecurityAnalyzer securityAnalyzer;
     private final BashCommandClassifier commandClassifier;
@@ -312,9 +324,101 @@ public class BashTool implements Tool {
         return PermissionBehavior.PASSTHROUGH;
     }
 
+    /**
+     * 预执行安全验证 — 在执行前拦截绝对禁止的危险命令。
+     * <p>
+     * 检查项:
+     * 1. 特权提升命令 (sudo/su/doas) → 100% 拦截
+     * 2. 危险 rm -rf / 模式 → 拦截
+     * 3. chmod 危险权限修改 → 拦截
+     * 4. 危险 flag 组合检测
+     *
+     * @param command 待执行命令
+     * @return 拒绝原因，null 表示通过验证
+     */
+    private String validateCommandSafety(String command) {
+        if (command == null || command.isBlank()) return null;
+        String trimmed = command.trim();
+
+        // 1. 拆分管道/链式命令，逐段检查
+        String[] segments = trimmed.split("\\s*(?:\\|\\||&&|[|;])\\s*");
+        for (String segment : segments) {
+            String seg = segment.trim();
+            if (seg.isEmpty()) continue;
+
+            // 剥离环境变量赋值前缀 (KEY=VAL)
+            String stripped = seg.replaceAll("^(\\w+=\\S*\\s+)+", "");
+
+            // 提取首 token
+            String[] tokens = stripped.split("\\s+");
+            if (tokens.length == 0) continue;
+            String argv0 = tokens[0];
+
+            // 1a. 特权提升命令绝对拦截
+            if (BLOCKED_COMMANDS.contains(argv0)) {
+                return String.format("Blocked: '%s' is a privilege escalation command and is not allowed. "
+                        + "Execute commands directly without privilege escalation.", argv0);
+            }
+
+            // 1b. 危险 rm -rf / 模式检测
+            if ("rm".equals(argv0)) {
+                String argsStr = stripped.substring(2).trim();
+                boolean hasRecursiveForce = argsStr.contains("-rf") || argsStr.contains("-fr")
+                        || (argsStr.contains("--recursive") && argsStr.contains("--force"));
+                if (hasRecursiveForce) {
+                    // 检查是否针对根目录或关键系统目录
+                    for (String token : tokens) {
+                        if ("/".equals(token) || "/*".equals(token)
+                                || token.startsWith("/etc") || token.startsWith("/usr")
+                                || token.startsWith("/bin") || token.startsWith("/sbin")
+                                || token.startsWith("/boot") || token.startsWith("/var")
+                                || token.startsWith("/sys") || token.startsWith("/proc")
+                                || token.equals("~") || token.equals("$HOME")) {
+                            return String.format("Blocked: 'rm -rf %s' targets a critical system path "
+                                    + "and is not allowed.", token);
+                        }
+                    }
+                }
+            }
+
+            // 1c. chmod 危险权限模式检测
+            if ("chmod".equals(argv0) && tokens.length >= 2) {
+                for (int i = 1; i < tokens.length; i++) {
+                    String t = tokens[i];
+                    if ("777".equals(t) || "+s".equals(t) || "u+s".equals(t) || "g+s".equals(t)) {
+                        return String.format("Blocked: 'chmod %s' sets dangerous permissions "
+                                + "and is not allowed.", t);
+                    }
+                }
+            }
+
+            // 1d. 危险 flag 组合检测
+            Set<String> dangerousFlags = DANGEROUS_FLAG_PATTERNS.get(argv0);
+            if (dangerousFlags != null) {
+                for (int i = 1; i < tokens.length; i++) {
+                    if (dangerousFlags.contains(tokens[i])) {
+                        log.debug("Dangerous flag detected: {} {} (flag: {})",
+                                argv0, tokens[i], tokens[i]);
+                        // 仅标记日志，不拦截 —— 由权限系统(ASK)决定
+                        break;
+                    }
+                }
+            }
+        }
+        return null; // 验证通过
+    }
+
     @Override
     public ToolResult call(ToolInput input, ToolUseContext context) {
         String command = input.getString("command");
+
+        // ── 预执行安全验证 — 绝对拦截危险命令 ──
+        String rejection = validateCommandSafety(command);
+        if (rejection != null) {
+            log.warn("Command blocked by safety validation: {} — reason: {}", command, rejection);
+            return ToolResult.error(rejection);
+        }
+
         int timeout = Math.min(input.getInt("timeout", DEFAULT_TIMEOUT_MS), MAX_TIMEOUT_MS);
         boolean isBackground = input.getBoolean("is_background", false);
         String sessionId = context.sessionId();

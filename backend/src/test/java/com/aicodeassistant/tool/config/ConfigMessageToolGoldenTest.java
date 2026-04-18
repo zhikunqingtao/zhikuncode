@@ -163,7 +163,7 @@ class ConfigMessageToolGoldenTest {
         @DisplayName("2.1 工具名称和标记")
         void nameAndFlags() {
             assertEquals("SendMessage", tool.getName());
-            assertEquals("config", tool.getGroup());
+            assertEquals("agent", tool.getGroup());
             assertTrue(tool.isConcurrencySafe(ToolInput.from(Map.of())));
         }
 

@@ -58,7 +58,7 @@ public class ToolOrchestration {
     public List<ToolResultBlock> runTools(List<ToolUseBlock> toolCalls, ToolUseContext context) {
         log.info("Running {} tool calls", toolCalls.size());
 
-        StreamingToolExecutor.ExecutionSession session = executor.newSession();
+        StreamingToolExecutor.ExecutionSession session = executor.newSession(context);
 
         // 将所有工具加入执行器
         for (ToolUseBlock call : toolCalls) {

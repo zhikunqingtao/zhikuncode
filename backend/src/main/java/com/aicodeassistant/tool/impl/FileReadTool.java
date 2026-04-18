@@ -1,5 +1,6 @@
 package com.aicodeassistant.tool.impl;
 
+import com.aicodeassistant.engine.KeyFileTracker;
 import com.aicodeassistant.security.PathSecurityService;
 import com.aicodeassistant.security.PathSecurityService.PathCheckResult;
 import com.aicodeassistant.service.FileStateCache;
@@ -35,10 +36,13 @@ public class FileReadTool implements Tool {
 
     private final PathSecurityService pathSecurity;
     private final SessionManager sessionManager;
+    private final KeyFileTracker keyFileTracker;
 
-    public FileReadTool(PathSecurityService pathSecurity, SessionManager sessionManager) {
+    public FileReadTool(PathSecurityService pathSecurity, SessionManager sessionManager,
+                        KeyFileTracker keyFileTracker) {
         this.pathSecurity = pathSecurity;
         this.sessionManager = sessionManager;
+        this.keyFileTracker = keyFileTracker;
     }
 
     private static final long MAX_SIZE_BYTES = 200 * 1024 * 1024; // 200MB
@@ -180,6 +184,9 @@ public class FileReadTool implements Tool {
             int readLimit = limit;
             cache.markRead(filePath, content, readOffset > 0 ? readOffset : null,
                     readLimit > 0 ? readLimit : null, selectedLines.size() >= MAX_OUTPUT_LINES);
+
+            // ★ KeyFileTracker 埋点 — 记录文件访问 ★
+            keyFileTracker.trackFileReference(context.sessionId(), filePath, context.toolUseId());
 
             return ToolResult.text(content)
                     .withMetadata("filePath", filePath)

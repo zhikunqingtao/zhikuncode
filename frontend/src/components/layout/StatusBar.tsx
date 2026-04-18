@@ -10,6 +10,7 @@ import { useSessionStore } from '@/store/sessionStore';
 import { useCostStore } from '@/store/costStore';
 import { usePermissionStore } from '@/store/permissionStore';
 import { useBridgeStore } from '@/store/bridgeStore';
+import { TokenBudgetIndicator } from '@/components/status/TokenBudgetIndicator';
 
 export function StatusBar() {
     const { model, status, turnCount } = useSessionStore();
@@ -47,8 +48,12 @@ export function StatusBar() {
     };
 
     return (
-        <footer className="h-8 border-t border-[var(--border)] bg-[var(--bg-secondary)] 
-            flex items-center px-4 text-xs shrink-0">
+        <div className="shrink-0">
+            {/* Token Budget Indicator */}
+            <TokenBudgetIndicator />
+
+            <footer className="h-8 border-t border-[var(--border)] bg-[var(--bg-secondary)] 
+                flex items-center px-4 text-xs shrink-0">
             
             {/* Left: Permission Mode & Status */}
             <div className="flex items-center gap-4">
@@ -122,5 +127,6 @@ export function StatusBar() {
                 </div>
             </div>
         </footer>
+        </div>
     );
 }

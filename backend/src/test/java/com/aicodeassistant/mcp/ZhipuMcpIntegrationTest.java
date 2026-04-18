@@ -35,7 +35,7 @@ class ZhipuMcpIntegrationTest {
         McpApprovalService approval = mock(McpApprovalService.class);
         when(approval.isTrusted(any())).thenReturn(true);
         ToolRegistry toolRegistry = mock(ToolRegistry.class);
-        return new McpClientManager(configuration, null, toolRegistry, approval, null, null);
+        return new McpClientManager(configuration, null, toolRegistry, approval, null, null, null, null);
     }
 
     private static final String MCP_SSE_URL = "https://dashscope.aliyuncs.com/api/v1/mcps/zhipu-websearch/sse";

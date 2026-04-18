@@ -17,6 +17,8 @@ import { useBridgeStore } from '@/store/bridgeStore';
 import { useNotificationStore } from '@/store/notificationStore';
 import { useInboxStore } from '@/store/inboxStore';
 import { useMcpStore } from '@/store/mcpStore';
+import { useSwarmStore } from '@/store/swarmStore';
+import { useCoordinatorStore } from '@/store/coordinatorStore';
 import { appendStreamDelta } from '@/hooks/useStreamingText';
 
 /** 序列号校验器 — 检测乱序/丢失消息 */
@@ -107,6 +109,17 @@ const handlers: Record<string, (data: any) => void> = {
     // === mcpStore (1 种) ===
     'mcp_tool_update':    (d) => useMcpStore.getState().updateMcpTools(d),
 
+    // === mcpStore: MCP 健康状态 (1 种) ===
+    'mcp_health_status':  (d: { serverName: string; status: string; consecutiveFailures?: number; lastSuccessfulPing?: number; timestamp?: number }) => {
+        useMcpStore.getState().updateHealthStatus({
+            serverName: d.serverName,
+            status: d.status,
+            consecutiveFailures: d.consecutiveFailures ?? 0,
+            lastSuccessfulPing: d.lastSuccessfulPing ?? null,
+            timestamp: d.timestamp ?? Date.now(),
+        });
+    },
+
     // === 断线重连 (1 种) ===
     'session_restored':   (d) => handleSessionRestore(d),
 
@@ -184,6 +197,31 @@ const handlers: Record<string, (data: any) => void> = {
             timeout: 5000,
         });
     },
+    // === #37: Token 预算续写 nudge (1 种) ===
+    'token_budget_nudge':  (d: { pct: number; currentTokens: number; budgetTokens: number }) => {
+        useMessageStore.getState().setTokenBudgetState({
+            pct: d.pct,
+            currentTokens: d.currentTokens,
+            budgetTokens: d.budgetTokens,
+            visible: true,
+        });
+    },
+
+    // === #38-40: Swarm 消息 (3 种) ===
+    'swarm_state_update':  (d: import('@/types').SwarmStateUpdatePayload) => {
+        useSwarmStore.getState().updateSwarmState(d);
+    },
+    'worker_progress':     (d: import('@/types').WorkerProgressPayload) => {
+        useSwarmStore.getState().updateWorkerProgress(d);
+    },
+    'permission_bubble':   (d: import('@/types').PermissionBubblePayload) => {
+        useSwarmStore.getState().addPermissionBubble(d);
+    },
+
+    // === #41: Coordinator 工作流 (1 种) ===
+    'workflow_phase_update': (d: import('@/types').WorkflowPhaseUpdatePayload) => {
+        useCoordinatorStore.getState().updateWorkflowPhase(d);
+    },
 };
 
 // ==================== 跨 Store 私有方法 ====================
@@ -202,6 +240,8 @@ function handleMessageComplete(data: { usage: Usage; stopReason: string }): void
     // 延迟 finalizeStream，确保最后的 stream_delta 已渲染
     queueMicrotask(() => {
         useMessageStore.getState().finalizeStream(data.usage);
+        // ★ 回合结束时清除 token budget 状态
+        useMessageStore.getState().clearTokenBudgetState();
         if (data.stopReason === 'end_turn') {
             useSessionStore.getState().setStatus('idle');
         }

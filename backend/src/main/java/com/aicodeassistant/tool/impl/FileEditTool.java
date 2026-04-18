@@ -1,5 +1,6 @@
 package com.aicodeassistant.tool.impl;
 
+import com.aicodeassistant.engine.KeyFileTracker;
 import com.aicodeassistant.history.FileHistoryService;
 import com.aicodeassistant.security.PathSecurityService;
 import com.aicodeassistant.security.PathSecurityService.PathCheckResult;
@@ -40,12 +41,14 @@ public class FileEditTool implements Tool {
     private final FileHistoryService fileHistoryService;
     private final PathSecurityService pathSecurity;
     private final SessionManager sessionManager;
+    private final KeyFileTracker keyFileTracker;
 
     public FileEditTool(FileHistoryService fileHistoryService, PathSecurityService pathSecurity,
-                        SessionManager sessionManager) {
+                        SessionManager sessionManager, KeyFileTracker keyFileTracker) {
         this.fileHistoryService = fileHistoryService;
         this.pathSecurity = pathSecurity;
         this.sessionManager = sessionManager;
+        this.keyFileTracker = keyFileTracker;
     }
 
     @Override
@@ -219,6 +222,9 @@ public class FileEditTool implements Tool {
         } catch (IOException e) {
             log.error("Failed to edit file: {}", filePath, e);
             return ToolResult.error("Failed to edit file: " + e.getMessage());
+        } finally {
+            // ★ KeyFileTracker 埋点 — 记录文件编辑 ★
+            keyFileTracker.trackFileReference(context.sessionId(), filePath, context.toolUseId());
         }
     }
 

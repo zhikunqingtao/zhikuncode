@@ -4,6 +4,7 @@ import com.aicodeassistant.security.PathSecurityService;
 import com.aicodeassistant.security.PathSecurityService.PathCheckResult;
 import com.aicodeassistant.service.FileStateCache;
 import com.aicodeassistant.session.SessionManager;
+import com.aicodeassistant.engine.KeyFileTracker;
 import com.aicodeassistant.tool.ToolInput;
 import com.aicodeassistant.tool.ToolResult;
 import com.aicodeassistant.tool.ToolUseContext;
@@ -34,6 +35,7 @@ class FileReadToolUnitTest {
 
     @Mock private PathSecurityService pathSecurityService;
     @Mock private SessionManager sessionManager;
+    @Mock private KeyFileTracker keyFileTracker;
 
     @TempDir
     Path tempDir;
@@ -61,8 +63,8 @@ class FileReadToolUnitTest {
         FileStateCache fileStateCache = new FileStateCache();
         when(sessionManager.getFileStateCache(anyString())).thenReturn(fileStateCache);
 
-        // FileReadTool 构造函数为 2 参数（PathSecurityService, SessionManager）
-        fileReadTool = new FileReadTool(pathSecurityService, sessionManager);
+        // FileReadTool 构造函数为 3 参数（PathSecurityService, SessionManager, KeyFileTracker）
+        fileReadTool = new FileReadTool(pathSecurityService, sessionManager, keyFileTracker);
         context = ToolUseContext.of(tempDir.toString(), "test-session");
     }
 

@@ -583,7 +583,7 @@ public class SubAgentExecutor {
 
     // ═══ Agent 系统提示模板 ═══
 
-    private static final String EXPLORE_AGENT_PROMPT = """
+    static final String EXPLORE_AGENT_PROMPT = """
             You are a search and exploration specialist. You operate in STRICT READ-ONLY mode.
             
             ## Constraints
@@ -622,7 +622,7 @@ public class SubAgentExecutor {
     // 【参考来源】Claude Code verificationAgent.ts (153行) VERIFICATION_SYSTEM_PROMPT
     // 原版约 ~2700 字符，包含完整的验证策略、已知陷阱、对抗性探测和强制输出格式
 
-    private static final String VERIFICATION_AGENT_PROMPT = """
+    static final String VERIFICATION_AGENT_PROMPT = """
             You are a verification specialist. Your job is not to confirm the implementation \
             works — it's to try to break it.
             
@@ -777,7 +777,7 @@ public class SubAgentExecutor {
             should know.
             """;
 
-    private static final String PLAN_AGENT_PROMPT = """
+    static final String PLAN_AGENT_PROMPT = """
             You are a software architect and planning specialist. You operate in READ-ONLY mode.
             
             ## Your Role
@@ -834,7 +834,7 @@ public class SubAgentExecutor {
             ```
             """;
 
-    private static final String GENERAL_PURPOSE_AGENT_PROMPT = """
+    static final String GENERAL_PURPOSE_AGENT_PROMPT = """
             You are a general-purpose worker agent. Complete the assigned task efficiently \
             and correctly.
             
@@ -852,7 +852,7 @@ public class SubAgentExecutor {
             working around it silently
             """;
 
-    private static final String GUIDE_AGENT_PROMPT = """
+    static final String GUIDE_AGENT_PROMPT = """
             You are a specialized guide agent, expert in Claude Code CLI, Agent SDK, and \
             Claude API.
             

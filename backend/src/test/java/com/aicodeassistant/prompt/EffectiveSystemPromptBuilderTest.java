@@ -39,6 +39,7 @@ class EffectiveSystemPromptBuilderTest {
                 .thenReturn("DEFAULT_SYSTEM_PROMPT");
         when(featureFlags.isEnabled(anyString())).thenReturn(false);
         when(coordinatorService.isCoordinatorMode()).thenReturn(false);
+        lenient().when(coordinatorService.isCoordinatorTopLevel(any())).thenReturn(false);
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -89,6 +90,7 @@ class EffectiveSystemPromptBuilderTest {
     void testPriority1_CoordinatorMode_WhenEnabled() {
         // Given — coordinatorService.isCoordinatorMode() returns true
         when(coordinatorService.isCoordinatorMode()).thenReturn(true);
+        when(coordinatorService.isCoordinatorTopLevel(null)).thenReturn(true);
 
         SystemPromptConfig config = SystemPromptConfig.defaults()
                 .withCoordinator("COORDINATOR_PROMPT")
@@ -127,6 +129,7 @@ class EffectiveSystemPromptBuilderTest {
     void testPriority1_CoordinatorWithAppend() {
         // Given
         when(coordinatorService.isCoordinatorMode()).thenReturn(true);
+        when(coordinatorService.isCoordinatorTopLevel(null)).thenReturn(true);
 
         SystemPromptConfig config = SystemPromptConfig.defaults()
                 .withCoordinator("COORDINATOR_PROMPT")
@@ -362,6 +365,7 @@ class EffectiveSystemPromptBuilderTest {
     void testCoordinatorNullWhenEnabled() {
         // Given - Coordinator 启用但 prompt 为 null，且无 CoordinatorPromptBuilder
         when(coordinatorService.isCoordinatorMode()).thenReturn(true);
+        when(coordinatorService.isCoordinatorTopLevel(null)).thenReturn(true);
 
         SystemPromptConfig config = SystemPromptConfig.defaults()
                 .withCoordinator(null)

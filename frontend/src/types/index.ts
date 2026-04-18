@@ -69,6 +69,48 @@ export interface ModelChangedPayload { type: 'model_changed'; model: string }
 export interface PermissionModeChangedPayload { type: 'permission_mode_changed'; mode: string }
 export interface CommandResultPayload { type: 'command_result'; command: string; output: string }
 export interface RewindCompletePayload { type: 'rewind_complete'; messageId: string; files: string[] }
+export interface TokenBudgetNudgePayload { type: 'token_budget_nudge'; pct: number; currentTokens: number; budgetTokens: number }
+
+// ==================== Swarm 消息类型 (#38-#40) ====================
+
+export interface SwarmStateUpdatePayload {
+    type: 'swarm_state_update';
+    swarmId: string;
+    phase: 'INITIALIZING' | 'RUNNING' | 'IDLE' | 'SHUTTING_DOWN' | 'TERMINATED';
+    activeWorkers: number;
+    totalWorkers: number;
+    completedTasks: number;
+    totalTasks: number;
+    workers: Record<string, WorkerSnapshot>;
+}
+
+export interface WorkerSnapshot {
+    workerId: string;
+    status: 'STARTING' | 'WORKING' | 'IDLE' | 'TERMINATED';
+    currentTask: string;
+    toolCallCount: number;
+    tokenConsumed: number;
+}
+
+export interface WorkerProgressPayload {
+    type: 'worker_progress';
+    swarmId: string;
+    workerId: string;
+    status: 'STARTING' | 'WORKING' | 'IDLE' | 'TERMINATED';
+    currentTask: string;
+    toolCallCount: number;
+    tokenConsumed: number;
+    recentToolCalls: string[];
+}
+
+export interface PermissionBubblePayload {
+    type: 'permission_bubble';
+    requestId: string;
+    workerId: string;
+    toolName: string;
+    riskLevel: 'low' | 'medium' | 'high';
+    reason: string;
+}
 
 export type ServerMessage =
     | StreamDeltaPayload
@@ -101,7 +143,12 @@ export type ServerMessage =
     | ModelChangedPayload
     | PermissionModeChangedPayload
     | CommandResultPayload
-    | RewindCompletePayload;
+    | RewindCompletePayload
+    | TokenBudgetNudgePayload
+    | SwarmStateUpdatePayload
+    | WorkerProgressPayload
+    | PermissionBubblePayload
+    | WorkflowPhaseUpdatePayload;
 
 // ==================== 工具相关类型 ====================
 
@@ -153,6 +200,66 @@ export interface McpTool {
     description: string;
     inputSchema: Record<string, unknown>;
     serverId: string;
+}
+
+// ==================== MCP Prompt 类型 ====================
+
+/** MCP Prompt 参数定义 */
+export interface McpPromptArgument {
+    name: string;
+    description: string;
+    required: boolean;
+}
+
+/** MCP Prompt 模板定义 */
+export interface McpPrompt {
+    name: string;
+    description: string;
+    serverName: string;
+    arguments: McpPromptArgument[];
+}
+
+/** MCP Prompt 执行结果 */
+export interface McpPromptExecuteResult {
+    success: boolean;
+    serverName: string;
+    promptName: string;
+    messages?: Array<{ role: string; content: string }>;
+    error?: string;
+    details?: string[];
+}
+
+// ==================== MCP 资源 ====================
+
+/** MCP 资源定义 — 对齐后端 McpServerConnection.McpResourceDefinition */
+export interface McpResource {
+    uri: string;
+    name: string;
+    description: string;
+    mimeType: string;
+    serverName: string;
+}
+
+/** MCP 资源内容 — 对齐 GET /api/mcp/resources/read 响应 */
+export interface McpResourceContent {
+    uri: string;
+    serverName: string;
+    content: string;
+}
+
+/** MCP Prompt 定义 — 对齐后端 McpServerConnection.McpPromptDefinition */
+export interface McpPrompt {
+    name: string;
+    description: string;
+    serverName: string;
+    arguments: McpPromptArgument[];
+}
+
+/** MCP Prompt 参数 */
+export interface McpPromptArgument {
+    name: string;
+    description: string;
+    required: boolean;
 }
 
 // ==================== AI 反向提问 ====================
@@ -296,3 +403,94 @@ export type InputTarget =
     | { type: 'main' }
     | { type: 'agent'; taskId: string }
     | { type: 'coordinator'; taskId: string };
+
+// ==================== Coordinator 工作流类型 (#41) ====================
+
+export type WorkflowPhaseName = 'Research' | 'Synthesis' | 'Implementation' | 'Verification';
+export type WorkflowStatus = 'NOT_STARTED' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+
+export interface WorkflowPhaseUpdatePayload {
+    type: 'workflow_phase_update';
+    workflowId: string;
+    phaseName: WorkflowPhaseName | '';
+    status: WorkflowStatus;
+    phaseIndex: number;      // 0-3, -1 when completed
+    totalPhases: number;     // 4
+    phasePrompt: string;
+    objective: string;
+}
+
+export interface WorkflowPhaseState {
+    name: WorkflowPhaseName;
+    index: number;
+    status: 'pending' | 'active' | 'completed' | 'skipped';
+    prompt: string;
+    startTime?: number;
+    endTime?: number;
+}
+
+export interface WorkflowState {
+    workflowId: string;
+    objective: string;
+    status: WorkflowStatus;
+    currentPhaseIndex: number;
+    phases: WorkflowPhaseState[];
+    startTime: number;
+}
+
+export interface DelegationWarning {
+    id: string;
+    message: string;
+    timestamp: number;
+    dismissed: boolean;
+}
+
+export interface AgentTask {
+    taskId: string;
+    agentName: string;
+    agentType: string;
+    description: string;
+    status: 'running' | 'completed' | 'failed';
+    progress?: string;
+    result?: string;
+    startTime: number;
+}
+
+// ==================== Swarm 状态类型 ====================
+
+export interface SwarmInfo {
+    swarmId: string;
+    teamName: string;
+    phase: 'INITIALIZING' | 'RUNNING' | 'IDLE' | 'SHUTTING_DOWN' | 'TERMINATED';
+    activeWorkers: number;
+    totalWorkers: number;
+    completedTasks: number;
+    totalTasks: number;
+    workers: Record<string, WorkerInfo>;
+}
+
+export interface WorkerInfo {
+    workerId: string;
+    status: 'STARTING' | 'WORKING' | 'IDLE' | 'TERMINATED';
+    currentTask: string;
+    toolCallCount: number;
+    tokenConsumed: number;
+    recentToolCalls: string[];
+}
+
+export interface PermissionBubbleRequest {
+    requestId: string;
+    workerId: string;
+    toolName: string;
+    riskLevel: 'low' | 'medium' | 'high';
+    reason: string;
+    timestamp: number;
+}
+
+export interface SwarmLogEntry {
+    id: string;
+    timestamp: number;
+    type: 'worker_start' | 'worker_complete' | 'worker_error' | 'task_assigned' | 'permission_bubble' | 'message';
+    workerId?: string;
+    content: string;
+}

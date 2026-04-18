@@ -5,6 +5,7 @@ import com.aicodeassistant.llm.LlmProviderRegistry;
 import com.aicodeassistant.model.ContentBlock;
 import com.aicodeassistant.model.Message;
 import com.aicodeassistant.model.SystemMessageType;
+import com.aicodeassistant.security.PathSecurityService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -68,10 +69,15 @@ public class CompactService {
 
     private final TokenCounter tokenCounter;
     private final LlmProviderRegistry providerRegistry;
+    private final KeyFileTracker keyFileTracker;
+    private final PathSecurityService pathSecurity;
 
-    public CompactService(TokenCounter tokenCounter, LlmProviderRegistry providerRegistry) {
+    public CompactService(TokenCounter tokenCounter, LlmProviderRegistry providerRegistry,
+                          KeyFileTracker keyFileTracker, PathSecurityService pathSecurity) {
         this.tokenCounter = tokenCounter;
         this.providerRegistry = providerRegistry;
+        this.keyFileTracker = keyFileTracker;
+        this.pathSecurity = pathSecurity;
     }
 
     // ============ 压缩系统提示 ============
@@ -781,6 +787,9 @@ public class CompactService {
 
     // ==================== 压缩后文件重注入 ====================
 
+    private static final int MAX_REINJECT_FILES = 5;
+    private static final int MAX_FILE_SIZE_CHARS = 10_000;
+
     /**
      * 压缩后文件重注入 — 对齐 Claude Code 的 reInjectFilesAfterCompact。
      * <p>
@@ -809,12 +818,19 @@ public class CompactService {
             return compactedMessages;
         }
 
-        // 3. 过滤有效且存在的文件
-        int MAX_REINJECT_FILES = 5;
-        int MAX_FILE_SIZE_CHARS = 10_000;
+        // 3. 过滤有效且存在的文件 + PathSecurityService 安全检查
         List<String> validPaths = filePaths.stream()
                 .map(p -> resolveFilePath(p, workingDirectory))
                 .filter(p -> p != null && Files.exists(Path.of(p)))
+                .filter(p -> {
+                    // ★ PathSecurityService 安全检查 ★
+                    var securityCheck = pathSecurity.checkReadPermission(p, workingDirectory);
+                    if (!securityCheck.isAllowed()) {
+                        log.warn("文件重注入安全拦截: {} - {}", p, securityCheck.message());
+                        return false;
+                    }
+                    return true;
+                })
                 .filter(p -> {
                     try { return Files.size(Path.of(p)) < MAX_FILE_SIZE_CHARS * 2L; }
                     catch (IOException e) { return false; }
@@ -865,6 +881,92 @@ public class CompactService {
 
         log.info("压缩后文件重注入完成: {}个文件 [{}]", validPaths.size(),
                 String.join(", ", validPaths));
+        return result;
+    }
+
+    /**
+     * 基于访问历史的文件重注入 — 优先使用 KeyFileTracker，降级回退到正则提取。
+     * <p>
+     * 在 AutoCompact 完成后调用，从 KeyFileTracker 获取 Top-5 关键文件，
+     * 经过 PathSecurityService 安全检查后，读取文件内容注入到压缩结果中。
+     *
+     * @param compactedMessages 压缩后的消息列表
+     * @param sessionId         会话 ID（用于查询 KeyFileTracker）
+     * @param workingDirectory  工作目录
+     * @return 注入关键文件后的消息列表
+     */
+    public List<Message> rebuildAfterCompact(
+            List<Message> compactedMessages, String sessionId, String workingDirectory) {
+
+        // 1. 优先使用 KeyFileTracker 获取 Top-5 关键文件
+        List<String> keyFiles = keyFileTracker.getKeyFiles(sessionId, MAX_REINJECT_FILES);
+
+        // 2. 降级回退：KeyFileTracker 无记录时，使用现有正则提取方案
+        if (keyFiles.isEmpty()) {
+            return reInjectFilesAfterCompact(compactedMessages, workingDirectory);
+        }
+
+        // 3. 安全检查 + 文件过滤
+        List<String> validPaths = keyFiles.stream()
+                .filter(path -> {
+                    // ★ PathSecurityService 安全检查 ★
+                    var checkResult = pathSecurity.checkReadPermission(path, workingDirectory);
+                    if (!checkResult.isAllowed()) {
+                        log.warn("文件重注入安全拦截: {} - {}", path, checkResult.message());
+                        return false;
+                    }
+                    return true;
+                })
+                .filter(p -> {
+                    try { return Files.exists(Path.of(p)) && Files.size(Path.of(p)) < MAX_FILE_SIZE_CHARS * 4L; }
+                    catch (IOException e) { return false; }
+                })
+                .limit(MAX_REINJECT_FILES)
+                .toList();
+
+        if (validPaths.isEmpty()) {
+            log.debug("压缩后文件重注入: 无有效文件可注入");
+            return compactedMessages;
+        }
+
+        // 4. 读取文件内容并截断
+        List<Message> result = new ArrayList<>(compactedMessages);
+        StringBuilder fileContent = new StringBuilder();
+        fileContent.append("[Key Files re-injected after compression (by access frequency)]\n\n");
+
+        for (String path : validPaths) {
+            try {
+                String content = Files.readString(Path.of(path), StandardCharsets.UTF_8);
+                if (content.length() > MAX_FILE_SIZE_CHARS) {
+                    content = content.substring(0, MAX_FILE_SIZE_CHARS) + "\n...[truncated]";
+                }
+                fileContent.append("--- ").append(path).append(" ---\n");
+                fileContent.append(content).append("\n\n");
+            } catch (IOException e) {
+                log.warn("文件重注入读取失败: {}", path, e);
+            }
+        }
+
+        // 5. 插入到 COMPACT_SUMMARY 消息之后
+        Message reInjectMsg = new Message.SystemMessage(
+                UUID.randomUUID().toString(), Instant.now(),
+                fileContent.toString(), SystemMessageType.FILE_REINJECT);
+
+        int insertIndex = -1;
+        for (int i = 0; i < result.size(); i++) {
+            if (result.get(i) instanceof Message.SystemMessage sys
+                    && sys.type() == SystemMessageType.COMPACT_SUMMARY) {
+                insertIndex = i + 1;
+            }
+        }
+        if (insertIndex >= 0 && insertIndex <= result.size()) {
+            result.add(insertIndex, reInjectMsg);
+        } else {
+            result.add(reInjectMsg);
+        }
+
+        log.info("压缩后文件重注入完成 (KeyFileTracker): {}个文件 [{}]",
+                validPaths.size(), String.join(", ", validPaths));
         return result;
     }
 

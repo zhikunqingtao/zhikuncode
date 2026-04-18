@@ -75,6 +75,7 @@ public class WebSocketController implements PermissionNotifier {
     private final FileHistoryService fileHistoryService;       // P1 文件回退
     private final ProjectContextService projectContextService;  // F5 项目上下文
     private final PermissionModeManager permissionModeManager;    // P1-03 权限模式
+    private final com.aicodeassistant.coordinator.LeaderPermissionBridge leaderPermissionBridge;  // Swarm 权限冒泡
 
     public WebSocketController(SimpMessagingTemplate messaging,
                                 WebSocketSessionManager wsSessionManager,
@@ -90,7 +91,8 @@ public class WebSocketController implements PermissionNotifier {
                                 McpClientManager mcpClientManager,
                                 FileHistoryService fileHistoryService,
                                 ProjectContextService projectContextService,
-                                PermissionModeManager permissionModeManager) {
+                                PermissionModeManager permissionModeManager,
+                                @org.springframework.context.annotation.Lazy com.aicodeassistant.coordinator.LeaderPermissionBridge leaderPermissionBridge) {
         this.messaging = messaging;
         this.wsSessionManager = wsSessionManager;
         this.queryEngine = queryEngine;
@@ -106,6 +108,7 @@ public class WebSocketController implements PermissionNotifier {
         this.fileHistoryService = fileHistoryService;
         this.projectContextService = projectContextService;
         this.permissionModeManager = permissionModeManager;
+        this.leaderPermissionBridge = leaderPermissionBridge;
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -525,6 +528,12 @@ public class WebSocketController implements PermissionNotifier {
                 sendCompactComplete(sessionId, type, beforeTokens - afterTokens);
             }
         }
+
+        @Override
+        public void onTokenBudgetNudge(int pct, int currentTokens, int budgetTokens) {
+            push(sessionId, "token_budget_nudge",
+                    Map.of("pct", pct, "currentTokens", currentTokens, "budgetTokens", budgetTokens));
+        }
     }
 
     /**
@@ -561,6 +570,23 @@ public class WebSocketController implements PermissionNotifier {
         }
 
         permissionPipeline.resolvePermission(resp.toolUseId(), decision);
+    }
+
+    /**
+     * #2b 权限冒泡响应 → /app/permission-bubble
+     * Swarm Worker 权限冒泡决策回调。
+     */
+    @MessageMapping("/permission-bubble")
+    public void handlePermissionBubbleResponse(@Payload Map<String, Object> payload,
+                                                Principal principal) {
+        String sessionId = resolveSessionId(principal);
+        String requestId = (String) payload.get("requestId");
+        boolean approved = Boolean.TRUE.equals(payload.get("approved"));
+        log.info("WS permission_bubble_response: sessionId={}, requestId={}, approved={}",
+                sessionId, requestId, approved);
+        if (requestId != null && leaderPermissionBridge != null) {
+            leaderPermissionBridge.resolvePermission(requestId, approved);
+        }
     }
 
     /**

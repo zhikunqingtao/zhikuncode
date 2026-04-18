@@ -1,0 +1,89 @@
+# ═══════════════════════════════════════════════════════════════
+# BashTool 权限规则配置
+# ═══════════════════════════════════════════════════════════════
+# 规则格式:
+#   command: 命令模式 (支持精确匹配、前缀匹配、通配符)
+#   risk: 风险级别 (safe/moderate/dangerous/blocked)
+#   action: 动作 (allow/deny/prompt)
+#
+# 匹配优先级: blocked > deny > prompt > allow
+# 通配符: * 匹配任意字符, :* 匹配命令前缀
+# 子命令匹配: "git commit" 匹配 "git commit -m 'msg'"
+# ═══════════════════════════════════════════════════════════════
+
+# 绝对禁止 — 这些命令在任何情况下都被拦截
+blocked:
+  - command: "sudo"
+    reason: "Privilege escalation not allowed"
+  - command: "su"
+    reason: "Privilege escalation not allowed"
+  - command: "doas"
+    reason: "Privilege escalation not allowed"
+
+# 拒绝 — 默认拒绝，需要显式覆盖才能执行
+deny:
+  - command: "rm -rf /"
+    reason: "Recursive deletion of root filesystem"
+  - command: "rm -rf /*"
+    reason: "Recursive deletion of root filesystem"
+  - command: "chmod 777"
+    reason: "World-writable permission is dangerous"
+  - command: "chmod +s"
+    reason: "SetUID/SetGID permission is dangerous"
+  - command: "mkfs *"
+    reason: "Filesystem creation can destroy data"
+  - command: "dd *"
+    reason: "Raw disk operations can destroy data"
+
+# 需要用户确认 — 有副作用的操作
+prompt:
+  - command: "rm *"
+    risk: dangerous
+    reason: "File deletion"
+  - command: "chmod *"
+    risk: moderate
+    reason: "Permission modification"
+  - command: "chown *"
+    risk: moderate
+    reason: "Ownership modification"
+  - command: "git push *"
+    risk: moderate
+    reason: "Remote repository modification"
+  - command: "git reset *"
+    risk: dangerous
+    reason: "Git history modification"
+  - command: "docker run *"
+    risk: moderate
+    reason: "Container execution"
+  - command: "npm install *"
+    risk: moderate
+    reason: "Package installation"
+  - command: "pip install *"
+    risk: moderate
+    reason: "Package installation"
+
+# 始终允许 — 安全的只读操作
+allow:
+  # 安全命令前缀
+  - command: "git status"
+  - command: "git log *"
+  - command: "git diff *"
+  - command: "git show *"
+  - command: "git branch"
+  - command: "npm list"
+  - command: "npm info *"
+  - command: "pip list"
+  - command: "pip show *"
+  - command: "docker ps *"
+  - command: "docker images *"
+  - command: "kubectl get *"
+  - command: "kubectl describe *"
+
+# 敏感信息 — 可能泄露环境变量等敏感信息
+sensitive:
+  - command: "env"
+    reason: "May expose sensitive environment variables (API keys, passwords)"
+  - command: "printenv"
+    reason: "Displays all environment variables"
+  - command: "set"
+    reason: "May expose shell variables and functions"

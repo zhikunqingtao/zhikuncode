@@ -9,11 +9,16 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import com.aicodeassistant.websocket.WebSocketSessionManager;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Stream;
 import org.springframework.core.env.Environment;
 
@@ -47,21 +52,35 @@ public class McpClientManager implements SmartLifecycle {
     private final McpApprovalService approvalService;
     private final McpCapabilityRegistryService registryService;
     private final Environment environment;
+    private final SimpMessagingTemplate messaging;
+    private final WebSocketSessionManager wsSessionManager;
     private final Map<String, McpServerConnection> connections = new ConcurrentHashMap<>();
     private volatile boolean running = false;
+
+    // ★ 新增：自定义重连线程池（避免占用公共 ForkJoinPool）
+    private static final ExecutorService RECONNECT_POOL =
+        Executors.newFixedThreadPool(2,
+            r -> { Thread t = new Thread(r, "mcp-reconnect"); t.setDaemon(true); return t; });
+
+    // ★ 新增：幂等重连保护（原子操作，不使用 synchronized）
+    private final ConcurrentHashMap<String, Boolean> reconnectingServers = new ConcurrentHashMap<>();
 
     public McpClientManager(McpConfiguration mcpConfiguration,
                             McpConfigurationResolver configurationResolver,
                             @Lazy ToolRegistry toolRegistry,
                             McpApprovalService approvalService,
                             @Lazy McpCapabilityRegistryService registryService,
-                            Environment environment) {
+                            Environment environment,
+                            SimpMessagingTemplate messaging,
+                            WebSocketSessionManager wsSessionManager) {
         this.mcpConfiguration = mcpConfiguration;
         this.configurationResolver = configurationResolver;
         this.toolRegistry = toolRegistry;
         this.approvalService = approvalService;
         this.registryService = registryService;
         this.environment = environment;
+        this.messaging = messaging;
+        this.wsSessionManager = wsSessionManager;
     }
 
     // ===== SmartLifecycle =====
@@ -452,13 +471,58 @@ public class McpClientManager implements SmartLifecycle {
     /**
      * ERR-3 fix: 调度指定连接的异步重连（健康检查失败时调用）。
      * 由 SseHealthChecker 主动 ping 失败时触发。
+     * <p>
+     * ★ 幂等保护：通过 ConcurrentHashMap.putIfAbsent 原子操作防止并发重连。
+     * ★ 自定义线程池：使用 RECONNECT_POOL 替代默认 ForkJoinPool。
+     * ★ WebSocket 广播：重连完成后推送状态变更。
      */
     public void scheduleReconnect(String connectionName) {
         getConnection(connectionName).ifPresent(conn -> {
+            // ★ 幂等检查：通过 putIfAbsent 原子操作避免重复触发重连
+            if (reconnectingServers.putIfAbsent(connectionName, Boolean.TRUE) != null) {
+                log.debug("Reconnect already in progress for '{}', skipping", connectionName);
+                return;
+            }
             conn.setStatus(McpConnectionStatus.DEGRADED);
-            // 使用已有的 attemptReconnect 基础设施异步执行
-            CompletableFuture.runAsync(() -> attemptReconnect(connectionName, conn));
+            broadcastHealthStatus(connectionName, McpConnectionStatus.DEGRADED);
+            // ★ 使用自定义线程池替代默认 ForkJoinPool
+            CompletableFuture.runAsync(() -> {
+                try {
+                    attemptReconnect(connectionName, conn);
+                    broadcastHealthStatus(connectionName, conn.getStatus());
+                } finally {
+                    // ★ 无论成功失败，必须清除幂等标记，允许后续重试
+                    reconnectingServers.remove(connectionName);
+                }
+            }, RECONNECT_POOL);
         });
+    }
+
+    /**
+     * ★ 新增: WebSocket 广播 MCP 连接状态变更 — 推送到所有活跃前端会话。
+     */
+    private void broadcastHealthStatus(String serverName, McpConnectionStatus status) {
+        try {
+            Map<String, Object> payload = new LinkedHashMap<>();
+            payload.put("type", "mcp_health_status");
+            payload.put("ts", System.currentTimeMillis());
+            payload.put("serverName", serverName);
+            payload.put("status", status.name());
+            payload.put("timestamp", Instant.now().toEpochMilli());
+
+            wsSessionManager.getActiveSessionIds().forEach(sessionId -> {
+                try {
+                    String principal = wsSessionManager.getPrincipalForSession(sessionId);
+                    if (principal != null) {
+                        messaging.convertAndSendToUser(principal, "/queue/messages", payload);
+                    }
+                } catch (Exception e) {
+                    log.debug("Failed to push health status to session {}: {}", sessionId, e.getMessage());
+                }
+            });
+        } catch (Exception e) {
+            log.debug("Failed to broadcast MCP health status: {}", e.getMessage());
+        }
     }
 
     /** 连接数量（测试用） */
