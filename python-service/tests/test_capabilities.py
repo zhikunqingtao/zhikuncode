@@ -24,9 +24,9 @@ from capabilities import (
 class TestCapabilityDomain:
     """CapabilityDomain 枚举测试"""
 
-    def test_has_eight_domains(self):
-        """应包含 8 个能力域"""
-        assert len(CapabilityDomain) == 8
+    def test_has_four_domains(self):
+        """应包含 4 个能力域（SECURITY/CODE_QUALITY/VISUALIZATION/DOC_GENERATION 已降级移除）"""
+        assert len(CapabilityDomain) == 4
 
     def test_core_domains_exist(self):
         """P0 核心域: CODE_INTEL 和 FILE_PROCESSING 必须存在"""
@@ -88,7 +88,7 @@ class TestCheckCapability:
     def test_unavailable_when_binary_missing(self):
         """缺少系统二进制时应标记为不可用"""
         info = CapabilityInfo(
-            domain=CapabilityDomain.VISUALIZATION,
+            domain=CapabilityDomain.CODE_INTEL,
             name="测试域",
             required_packages=["os"],
             system_binaries=["nonexistent_binary_xyz_12345"],
@@ -101,7 +101,7 @@ class TestCheckCapability:
     def test_multiple_reasons_joined(self):
         """多个失败原因应用分号拼接"""
         info = CapabilityInfo(
-            domain=CapabilityDomain.VISUALIZATION,
+            domain=CapabilityDomain.CODE_INTEL,
             name="测试域",
             required_packages=["nonexistent_pkg_abc"],
             system_binaries=["nonexistent_bin_abc"],
@@ -119,7 +119,7 @@ class TestDiscoverCapabilities:
         """应返回完整的 CAPABILITY_REGISTRY"""
         result = discover_capabilities()
         assert result is CAPABILITY_REGISTRY
-        assert len(result) == 8
+        assert len(result) == 4
 
     def test_all_entries_checked(self):
         """调用后每个条目的 is_available 应为 bool 值"""

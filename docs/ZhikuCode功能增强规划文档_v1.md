@@ -1,17 +1,29 @@
-# ZhikuCode 功能增强规划文档 v1.3
+# ZhikuCode 功能增强规划文档 v1.4
 
-> **文档版本**: 1.3  
+> **文档版本**: 1.4  
 > **创建日期**: 2026-04-18  
 > **技术栈**: Java 21 + Spring Boot 3.3 + React 18 + TypeScript + Zustand + Python 3.11 + FastAPI  
-> **适用范围**: ZhikuCode 全栈功能增强，共 7 项新增功能 + 2 项已实现功能增强，总计约 12.5 人天
-> **审查版本**: v1.3（基于第三轮 14 维度源码级审查，修正返回类型/字段名/浏览器体验优化）
+> **适用范围**: ZhikuCode 全栈功能增强，共 7 项新增功能 + 2 项已实现功能增强，总计约 13 人天
+> **审查版本**: v1.4（基于第四轮 14 维度源码级审查，修复 2 个 CRITICAL 阻塞问题 + 7 个文档错误 + 3 个安全风险）
 >
 > **全局 API 约定说明**:
 > - `CommandResult` 可用工厂方法: `text(String)` / `error(String)` / `jsx(Map)` / `compact(String, Map)` / `skip()`
+> - `CommandResult` record 字段: `type(ResultType)` / `value(String)` / `data(Map)` / `error(String)`
+>   - `jsx()` 返回: type=JSX, **value=null**, data=结构化数据 — 注意 value 为 null
+>   - `compact()` 返回: type=COMPACT, value=displayText, data=压缩元数据
+>   - `text()` 返回: type=TEXT, value=文本内容, data=空Map
 > - `CommandContext` record 字段: `sessionId` / `workingDir` / `currentModel` / `appState` / `isAuthenticated` / `isRemoteMode` / `isBridgeMode`（共 7 字段）
 > - `SessionData` record 字段: `sessionId` / `model` / `workingDir` / `title` / `status` / `messages` / `config` / `totalUsage` / `totalCostUsd` / `summary` / `createdAt` / `updatedAt`（共 12 字段）
 > - 项目配置目录统一使用 `.qoder/`（与代码中 SkillRegistry/Skills 目录一致）
 > - 项目记忆文件统一使用 `zhikun.md` / `zhikun.local.md`（不使用 QODER.md 或 CLAUDE.md）
+>
+> **⚠️ v1.4 CRITICAL 前置修复**:
+> - **CRITICAL-1**: `WebSocketController.handleSlashCommand()` 当前仅推送 `value != null` 的结果（TEXT/COMPACT），
+>   `jsx()` 返回的 value 为 null 会被静默丢弃。F3/F4/F6 所有 `jsx()` 方案**必须先修复此问题**才能生效。
+>   详见「全局前置修复 G0」章节。
+> - **CRITICAL-2**: `GitCommands.java` 已有 `commitCommand`/`reviewCommand` @Bean（PROMPT 类型），
+>   F6 提议的 `GitCommitCommand`/`GitReviewCommand` @Component 会产生 Bean 命名冲突。
+>   详见 F6 章节修正。
 
 ---
 
@@ -28,6 +40,173 @@
 | F7 | Plan Mode 规划模式 UI | 2 人天 | P2 |
 | F8 | 文件变更可视化 Dashboard（前端 UI，后端 API 已有） | 2.5 人天 | P2 |
 | F9 | ~~Skills 技能系统~~ Skills UI 增强（后端已实现） | 1 人天 | P2 |
+
+---
+
+## G0: 全局前置修复 — WebSocketController JSX/COMPACT 推送支持（0.5 人天）
+
+> **⚠️ CRITICAL-1**: 此修复是 F3/F4/F6 所有 `jsx()` 方案的**前置依赖**，必须在其他功能开发前完成。
+
+### G0.1 现状分析
+
+**问题根因**: `WebSocketController.handleSlashCommand()`（L646-673）当前仅检查 `cmdResult.value() != null` 来决定是否推送结果。
+而 `CommandResult.jsx(Map)` 的 value 字段为 null（结构化数据存储在 data 字段中），导致 JSX 类型结果被静默丢弃。
+
+```java
+// 当前代码（WebSocketController.java L657-666）— 仅支持 TEXT
+if (cmdResult.isSuccess() && cmdResult.value() != null) {
+    // JSX 结果的 value=null，永远不会进入此分支！
+    push(sessionId, "command_result", Map.of(
+            "command", payload.command(),
+            "output", cmdResult.value()));
+} else if (!cmdResult.isSuccess()) {
+    push(sessionId, "error", Map.of(...));
+}
+// JSX/COMPACT 结果: isSuccess()=true, value()=null → 两个分支都不进入 → 静默丢弃
+```
+
+**影响范围**: F3（MemoryCommand jsx()）、F4（DoctorCommand jsx()）、F6（DiffCommand/GitCommitCommand jsx()）
+
+### G0.2 技术方案
+
+**文件**: `backend/src/main/java/com/aicodeassistant/websocket/WebSocketController.java`
+
+```java
+@MessageMapping("/command")
+public void handleSlashCommand(@Payload ClientMessage.SlashCommandPayload payload,
+                                Principal principal) {
+    String sessionId = resolveSessionId(principal);
+    log.info("WS slash_command: sessionId={}, command=/{} {}", sessionId,
+            payload.command(), payload.args());
+    try {
+        var cmd = commandRegistry.getCommand(payload.command());
+        CommandContext ctx = CommandContext.of(
+                sessionId, ".", null, null);
+        CommandResult cmdResult = cmd.execute(payload.args(), ctx);
+
+        // v1.4 修复: 根据 ResultType 分别处理 TEXT/JSX/COMPACT 类型
+        if (cmdResult.isSuccess()) {
+            switch (cmdResult.type()) {
+                case TEXT -> {
+                    if (cmdResult.value() != null) {
+                        push(sessionId, "command_result", Map.of(
+                                "command", payload.command(),
+                                "type", "text",
+                                "output", cmdResult.value()));
+                    }
+                }
+                case JSX -> {
+                    // JSX 结果: value=null, data=结构化数据
+                    push(sessionId, "command_result", Map.of(
+                            "command", payload.command(),
+                            "type", "jsx",
+                            "data", cmdResult.data()));
+                }
+                case COMPACT -> {
+                    // COMPACT 结果: value=displayText, data=压缩元数据
+                    push(sessionId, "compact_complete", Map.of(
+                            "displayText", cmdResult.value() != null ? cmdResult.value() : "",
+                            "compactionData", cmdResult.data()));
+                }
+                case SKIP -> { /* 无操作 */ }
+                default -> log.warn("Unhandled command result type: {}", cmdResult.type());
+            }
+        } else {
+            push(sessionId, "error", Map.of(
+                    "code", "COMMAND_ERROR",
+                    "message", cmdResult.error() != null ? cmdResult.error() : "Command failed",
+                    "retryable", false));
+        }
+    } catch (CommandRegistry.CommandNotFoundException e) {
+        push(sessionId, "error", Map.of(
+                "code", "COMMAND_NOT_FOUND",
+                "message", "Unknown command: /" + payload.command(),
+                "retryable", false));
+    }
+}
+```
+
+### G0.3 前端配套修改
+
+**文件**: `frontend/src/api/dispatch.ts` — 增强 `command_result` 处理，支持 jsx 类型路由
+
+```typescript
+// 修改 command_result handler，支持 text/jsx 两种类型
+'command_result': (d: { command: string; type?: string; output?: string; data?: Record<string, unknown> }) => {
+    if (d.type === 'jsx' && d.data) {
+        // JSX 类型: 根据 data.action 路由到对应组件
+        useMessageStore.getState().addMessage({
+            type: 'system',
+            uuid: crypto.randomUUID(),
+            timestamp: Date.now(),
+            content: '',
+            subtype: 'jsx_result',
+            metadata: { command: d.command, ...d.data },
+        } as Message);
+    } else {
+        // TEXT 类型: 保持原有行为
+        useMessageStore.getState().addMessage({
+            type: 'system',
+            uuid: crypto.randomUUID(),
+            timestamp: Date.now(),
+            content: `/${d.command}: ${d.output ?? ''}`,
+            subtype: 'command_result',
+        } as Message);
+    }
+},
+```
+
+### G0.4 实现步骤
+
+| 步骤 | 内容 | 耗时 |
+|------|------|------|
+| 1 | 修改 `handleSlashCommand()`，按 ResultType 分支推送 TEXT/JSX/COMPACT | 1h |
+| 2 | 增强 `dispatch.ts` 的 `command_result` handler 支持 jsx 类型 | 0.5h |
+| 3 | 单元测试: 验证三种 ResultType 都能正确推送 | 1h |
+| 4 | 集成测试: 前端收到 jsx 结果后正确渲染对应组件 | 0.5h |
+
+### G0.5 测试用例
+
+```java
+@SpringBootTest
+class WebSocketControllerSlashCommandTest {
+
+    // 测试 JSX 结果推送
+    @Test
+    void testJsxResultIsPushed() {
+        // 模拟一个返回 jsx() 的命令
+        when(commandRegistry.getCommand("doctor")).thenReturn(doctorCommand);
+        when(doctorCommand.execute(any(), any())).thenReturn(
+            CommandResult.jsx(Map.of("action", "diagnosticReport", "checks", List.of())));
+
+        // 执行
+        controller.handleSlashCommand(new SlashCommandPayload("doctor", ""), principal);
+
+        // 验证推送了 command_result 类型为 jsx
+        verify(messagingTemplate).convertAndSendToUser(
+            eq(sessionId), eq("/queue/messages"),
+            argThat(msg -> {
+                Map<?, ?> body = (Map<?, ?>) msg;
+                return "command_result".equals(body.get("type"))
+                    && "jsx".equals(((Map<?,?>)body.get("data")).get("type"));
+            }));
+    }
+
+    // 测试 COMPACT 结果推送
+    @Test
+    void testCompactResultIsPushed() {
+        when(commandRegistry.getCommand("compact")).thenReturn(compactCommand);
+        when(compactCommand.execute(any(), any())).thenReturn(
+            CommandResult.compact("Compacted", Map.of("savedTokens", 5000)));
+
+        controller.handleSlashCommand(new SlashCommandPayload("compact", ""), principal);
+
+        verify(messagingTemplate).convertAndSendToUser(
+            eq(sessionId), eq("/queue/messages"),
+            argThat(msg -> "compact_complete".equals(((Map<?,?>)msg).get("type"))));
+    }
+}
+```
 
 ---
 
@@ -441,22 +620,22 @@ updateCost: (data) => set(d => {
 ### 2.4 测试用例
 
 ```typescript
-// CostDisplay.test.tsx
-describe('CostDisplay', () => {
+// StatusBar.test.tsx — v1.4 修正: 组件名从 CostDisplay 改为 StatusBar（已有组件）
+describe('StatusBar Cost Enhancement', () => {
     it('should format tokens correctly', () => {
         useCostStore.setState({
             usage: { inputTokens: 15000, outputTokens: 3000, cacheReadInputTokens: 5000, cacheCreationInputTokens: 0 },
             sessionCost: 0.0234,
             totalCost: 1.567,
         });
-        render(<CostDisplay />);
+        render(<StatusBar />);
         expect(screen.getByText(/18\.0K tokens/)).toBeInTheDocument();
         expect(screen.getByText(/\$0\.023/)).toBeInTheDocument();
     });
 
     it('should show budget warning when threshold exceeded', () => {
         useCostStore.setState({ totalCost: 4.8, budgetUsd: 5.0 });
-        render(<CostDisplay />);
+        render(<StatusBar />);
         expect(screen.getByTitle(/预算/)).toHaveClass('text-red-400');
     });
 });
@@ -604,7 +783,13 @@ public class ProjectMemoryService {
      */
     public void writeMemory(Path workingDir, String content, boolean isLocal) throws IOException {
         String fileName = isLocal ? "zhikun.local.md" : "zhikun.md";
-        Path memFile = workingDir.resolve(fileName);
+        Path memFile = workingDir.resolve(fileName).normalize();
+
+        // v1.4 SEC-2 修复: 路径遍历防护 — 确保目标文件在工作目录下
+        if (!memFile.startsWith(workingDir)) {
+            throw new IOException("Path traversal detected: " + memFile);
+        }
+
         Files.writeString(memFile, content, StandardCharsets.UTF_8);
         log.info("Written memory file: {} ({}B)", memFile, content.length());
     }
@@ -623,7 +808,9 @@ public class ProjectMemoryService {
 
 #### 3.2.3 后端：系统提示词注入记忆
 
-**文件**: `backend/src/main/java/com/aicodeassistant/engine/EffectiveSystemPromptBuilder.java` — 修改
+**文件**: `backend/src/main/java/com/aicodeassistant/prompt/EffectiveSystemPromptBuilder.java` — 修改
+
+> **v1.4 修正**: 实际包路径为 `prompt`（非 `engine`），源码确认位于 `com.aicodeassistant.prompt.EffectiveSystemPromptBuilder`。
 
 在 `buildEffectiveSystemPrompt()` 方法中注入记忆内容：
 
@@ -660,6 +847,10 @@ public class MemoryCommand implements Command {
 
     @Override
     public CommandResult execute(String args, CommandContext context) {
+        // v1.4 SEC-3 修复: workingDir null 防护
+        if (context.workingDir() == null || context.workingDir().isBlank()) {
+            return CommandResult.error("工作目录未设置，无法加载记忆文件");
+        }
         Path workingDir = Path.of(context.workingDir());
 
         if (args == null || args.isBlank() || args.equals("show")) {
@@ -714,6 +905,7 @@ public class MemoryCommand implements Command {
 ```tsx
 import React, { useState, useCallback, useEffect } from 'react';
 import { Save, Eye, Edit3, FileText, Plus, RefreshCw } from 'lucide-react';
+import DOMPurify from 'dompurify'; // v1.4 SEC-1: XSS 防护依赖（npm install dompurify @types/dompurify）
 
 interface MemoryEditorProps {
     workingDir: string;
@@ -815,8 +1007,10 @@ export const MemoryEditorPanel: React.FC<MemoryEditorProps> = ({
             {/* Editor / Preview */}
             <div className="flex-1 overflow-auto">
                 {isPreview ? (
-                    <div className="p-4 prose prose-invert prose-sm max-w-none"
-                         dangerouslySetInnerHTML={{ __html: simpleMarkdownToHtml(content) }} />
+                    <div className="p-4 prose prose-invert prose-sm max-w-none">
+                        {/* v1.4 SEC-1 修复: 使用 DOMPurify 防止 XSS，替代原始 dangerouslySetInnerHTML */}
+                        <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(simpleMarkdownToHtml(content)) }} />
+                    </div>
                 ) : (
                     <textarea
                         value={content}
@@ -872,6 +1066,7 @@ function simpleMarkdownToHtml(md: string): string {
 | 1 | 新建 `ProjectMemoryService.java` — 加载/写入/检查 | 2h |
 | 2 | 修改 `EffectiveSystemPromptBuilder` 注入记忆到系统提示词 | 1h |
 | 3 | 重写已有 `MemoryCommand.java` — `/memory show`/`init`，从 CLAUDE.md 改为 zhikun.md，保持 jsx() 返回 | 1h |
+| 3.1 | **v1.4 ERR-6 修复**: 修改 `InitCommand.java` L31，将 `CLAUDE.md` 引用改为 `zhikun.md`（当前: `prompt.append("Then create or update the CLAUDE.md file...")`） | 0.5h |
 | 4 | 添加 `.gitignore` 条目 `zhikun.local.md` | 0.5h |
 | 5 | 新建 `MemoryEditorPanel.tsx` 浏览器可视化编辑器（实时预览 + 模板插入 + 语法高亮） | 3h |
 | 6 | 集成 dispatch.ts 记忆编辑器路由 + CommandPalette 中确认 /memory 命令显示 | 1h |
@@ -930,6 +1125,9 @@ class ProjectMemoryServiceTest {
 | zhikun.md 过大增加 token 消耗 | 中 | 100KB 上限 + 截断；后续可实现 LLM 摘要缩减 |
 | 多级目录搜索性能 | 低 | 最多搜索 5 层，Files.isRegularFile 为 O(1) 文件系统调用 |
 | 敏感信息泄露 | 中 | zhikun.local.md 建议加入 .gitignore；文档中注明不要存放密钥 |
+| 记忆编辑器 XSS 风险 | 中 | v1.4 SEC-1 修复: 使用 DOMPurify 对 Markdown 转 HTML 结果进行消毒，新增 `dompurify` 依赖 |
+| 记忆文件写入路径遍历 | 高 | v1.4 SEC-2 修复: writeMemory 方法增加 normalize() + startsWith() 路径校验 |
+| workingDir 为 null 时 NPE | 中 | v1.4 SEC-3 修复: MemoryCommand.execute() 开头增加 null/blank 检查 |
 
 ---
 
@@ -1021,7 +1219,7 @@ public class DoctorCommand implements Command {
         // 5. Session
         boolean hasSession = context.sessionId() != null;
         checks.add(buildCheck("session", "Active Session",
-            hasSession ? context.sessionId() : "无活跟会话",
+            hasSession ? context.sessionId() : "无活跃会话",
             hasSession ? "ok" : "warn", null));
 
         // 6. Git
@@ -1280,6 +1478,25 @@ export const DiagnosticPanel: React.FC<{ checks: DiagnosticCheck[]; summary: Dia
 
 ### 6.2 技术方案
 
+#### 6.2.0 前置修复: 删除 GitCommands.java 中冲突的 @Bean 定义
+
+> **⚠️ CRITICAL-2 修复**: `GitCommands.java`（@Configuration）已有 `commitCommand()` 和 `reviewCommand()` @Bean，
+> 命令名分别为 `"commit"` 和 `"review"`（PROMPT 类型）。新建的 @Component `GitCommitCommand`/`GitReviewCommand`
+> 同样注册名为 `"commit"`/`"review"` 会导致 `CommandRegistry` 命名冲突。
+>
+> **解决方案**: 删除 `GitCommands.java` 中的 `commitCommand()` 和 `reviewCommand()` @Bean 定义，
+> 用新的 @Component 类替代。新类提供更完整的功能（结构化 diff、前端确认、可视化展示）。
+
+**文件**: `backend/src/main/java/com/aicodeassistant/command/impl/GitCommands.java`
+
+```java
+// v1.4 CRITICAL-2 修复: 删除以下两个 @Bean，用新的 GitCommitCommand/GitReviewCommand @Component 替代
+// 已删除:
+//   @Bean Command commitCommand()  — 名称 "commit"，PROMPT 类型
+//   @Bean Command reviewCommand()  — 名称 "review"，PROMPT 类型
+// 保留 GitCommands.java 中其他 @Bean 定义（如有）
+```
+
 #### 6.2.1 后端：GitCommitCommand
 
 **文件**: `backend/src/main/java/com/aicodeassistant/command/impl/GitCommitCommand.java`（新建）
@@ -1325,6 +1542,10 @@ public class GitCommitCommand implements Command {
 
     @Override
     public CommandResult execute(String args, CommandContext context) {
+        // v1.4 SEC-3 修复: workingDir null 防护
+        if (context.workingDir() == null || context.workingDir().isBlank()) {
+            return CommandResult.error("工作目录未设置");
+        }
         Path workDir = Path.of(context.workingDir());
 
         if (!gitService.isGitRepository(workDir)) {
@@ -1395,6 +1616,10 @@ public class DiffCommand implements Command {
 
     @Override
     public CommandResult execute(String args, CommandContext context) {
+        // v1.4 SEC-3 修复: workingDir null 防护
+        if (context.workingDir() == null || context.workingDir().isBlank()) {
+            return CommandResult.error("工作目录未设置");
+        }
         Path workDir = Path.of(context.workingDir());
 
         if (!gitService.isGitRepository(workDir)) {
@@ -1456,6 +1681,10 @@ public class GitReviewCommand implements Command {
 
     @Override
     public CommandResult execute(String args, CommandContext context) {
+        // v1.4 SEC-3 修复: workingDir null 防护
+        if (context.workingDir() == null || context.workingDir().isBlank()) {
+            return CommandResult.error("工作目录未设置");
+        }
         Path workDir = Path.of(context.workingDir());
 
         if (!gitService.isGitRepository(workDir)) {
@@ -1700,6 +1929,7 @@ export const GitCommitPanel: React.FC<{
 
 | 步骤 | 内容 | 耗时 |
 |------|------|------|
+| 0 | **v1.4 CRITICAL-2 前置**: 删除 `GitCommands.java` 中 `commitCommand()`/`reviewCommand()` @Bean，避免命名冲突 | 0.5h |
 | 1 | 增强 GitService，暴露 execGitPublic 方法 | 0.5h |
 | 2 | 新建 GitCommitCommand（LOCAL 类型，返回 jsx() 供前端确认） | 2h |
 | 3 | 重写已有 DiffCommand（LOCAL_JSX 类型，返回 jsx() 可视化 diff） | 1.5h |
@@ -1744,8 +1974,10 @@ class GitCommitCommandTest {
 
         var result = command.execute("",
             new CommandContext("test", ".", "qwen", null, true, false, false));
-        assertThat(result.type()).isEqualTo(CommandResult.ResultType.TEXT);
-        assertThat(result.value()).contains("commit message");
+        // v1.4 ERR-4 修正: 无参数时返回 jsx() 类型（非 TEXT），供前端 GitCommitPanel 渲染
+        assertThat(result.type()).isEqualTo(CommandResult.ResultType.JSX);
+        assertThat(result.data()).containsKey("action");
+        assertThat(result.data().get("action")).isEqualTo("gitCommitPreview");
     }
 }
 ```
@@ -1758,6 +1990,8 @@ class GitCommitCommandTest {
 | 大仓库 diff 过大 | 中 | 截断 diff 到 5000-10000 字符；`--stat` 先展示概览；前端文件级折叠展示 |
 | 非 Git 仓库误调用 | 低 | 每个命令开头检查 `isGitRepository()` |
 | /commit 自动提交安全性 | 中 | LOCAL 类型 + 前端 GitCommitPanel 确认后再执行，用户可审查和编辑 message |
+| 命名冲突 | 高 | v1.4 CRITICAL-2 修复: 删除 GitCommands.java 中旧的 commitCommand/reviewCommand @Bean，避免与新 @Component 冲突 |
+| workingDir 为 null | 中 | v1.4 SEC-3 修复: 所有 Git 命令 execute() 开头增加 null/blank 检查 |
 
 ---
 
@@ -2005,7 +2239,7 @@ public record SnapshotSummary(
     String messageId,        // ✅ 前端使用 snap.messageId
     List<String> trackedFiles, // ✅ 前端使用 snap.trackedFiles（非 snap.files）
     int fileCount,           // ✅ 前端使用 snap.fileCount
-    Instant timestamp        // ✅ 前端使用 snap.timestamp
+    String timestamp         // ✅ v1.4 修正: 实际类型为 String（非 Instant），源码确认于 FileHistoryController.java L91-92
 ) {}
 ```
 
@@ -2255,44 +2489,48 @@ public class SkillController {
 
 ## 附录 A: 工作量汇总
 
-> **⚠️ 审查修正**: F5/F9 已实现（0 天新开发），F2/F4/F8 工作量下调，总计从 21 天降至 12.5 天。
+> **⚠️ 审查修正**: F5/F9 已实现（0 天新开发），F2/F4/F8 工作量下调，v1.4 新增 G0 前置修复 0.5 天，总计从 12.5 天调整至 13 天。
 
 | 功能 | 后端 | 前端 | 测试 | 总计 | 审查备注 |
 |------|------|------|------|------|----------|
+| **G0: JSX/COMPACT 推送修复** | **1h** | **0.5h** | **1h** | **0.5 天** | **v1.4 CRITICAL-1 前置修复，F3/F4/F6 依赖** |
 | F1: /compact 命令 | 2h | 1.5h | 2h | **1 天** | |
-| F2: 成本/Token 显示 | 0.5h | 1.5h | 1h | **0.5 天** | StatusBar.tsx 已有 UI，修 onUsage bug |
-| F3: zhikun.md 记忆 | 4h | 3.5h | 4h | **2 天** | 重写已有 MemoryCommand + 浏览器编辑器 |
-| F4: /doctor 诊断 | 1.5h | 2.5h | 1h | **1 天** | 增强已有 DoctorCommand（80 行），改 jsx() + DiagnosticPanel |
+| F2: 成本/Token 显示 | 0.5h | 1.5h | 1h | **0.5 天** | StatusBar.tsx 已有 UI，修 onUsage bug；v1.4 测试组件名修正为 StatusBar |
+| F3: zhikun.md 记忆 | 4.5h | 3.5h | 4h | **2 天** | 重写 MemoryCommand + 浏览器编辑器；v1.4 增加 InitCommand 修复/SEC-1/SEC-2/SEC-3/ERR-1 |
+| F4: /doctor 诊断 | 1.5h | 2.5h | 1h | **1 天** | 增强 DoctorCommand；v1.4 修正错别字 |
 | F5: WebFetchTool | — | — | — | **0 天** | ✅ 已实现（358 行），无需开发 |
-| F6: Git 深度集成 | 6h | 6.5h | 5h | **3.5 天** | GitCommitCommand LOCAL + GitDiffPanel/GitCommitPanel |
+| F6: Git 深度集成 | 6.5h | 6.5h | 5h | **3.5 天** | v1.4 CRITICAL-2 前置删除 @Bean + ERR-4 测试修正 + SEC-3 |
 | F7: Plan Mode UI | 2h | 7h | 1.5h | **2 天** | |
-| F8: 文件变更 Dashboard | 1h | 10h | 3h | **2.5 天** | 后端已有 FileHistoryController |
+| F8: 文件变更 Dashboard | 1h | 10h | 3h | **2.5 天** | 后端已有 FileHistoryController；v1.4 修正 timestamp 类型 |
 | F9: Skills UI 增强 | 1h | 2h | 2h | **1 天** | ✅ 后端已实现（370+128+96 行）|
-| **合计** | **18.5h** | **24h** | **19.5h** | **12.5 天** |
+| **合计** | **20.5h** | **25.5h** | **20.5h** | **≈ 13 天** |
 
 ## 附录 B: 技术栈依赖矩阵
 
 | 功能 | Java 后端 | React 前端 | Python 服务 | 新依赖 |
 |------|-----------|------------|-------------|--------|
+| **G0** | **WebSocketController (handleSlashCommand 重写)** | **dispatch.ts (command_result 增强)** | — | 无 |
 | F1 | CompactService, CommandRegistry | dispatch.ts, messageStore | — | 无 |
 | F2 | CostTrackerService, WsMessageHandler (修 onUsage) | StatusBar.tsx (增强) | — | 无 |
-| F3 | MemoryCommand (重写), ProjectMemoryService (新建) | MemoryEditorPanel (新建) | — | 无 |
+| F3 | MemoryCommand (重写), ProjectMemoryService (新建), **InitCommand (修正)** | MemoryEditorPanel (新建) | — | **dompurify** (SEC-1) |
 | F4 | DoctorCommand (增强, jsx() 返回) | DiagnosticPanel (新建) | — | 无 |
 | F5 | ✅ WebFetchTool 已实现 | — | — | — |
-| F6 | GitService, GitCommitCommand (LOCAL), DiffCommand (LOCAL_JSX) | GitDiffPanel, GitCommitPanel (新建) | — | 无 |
+| F6 | GitService, GitCommitCommand (LOCAL), DiffCommand (LOCAL_JSX), **删除 GitCommands @Bean** | GitDiffPanel, GitCommitPanel (新建) | — | 无 |
 | F7 | WebSocket 新消息类型 | 新 Store + 组件 | — | 无 |
 | F8 | FileHistoryController (已有) | 新 Dashboard 组件 | — | 可选: react-window |
 | F9 | SkillRegistry (已有), 可选 SkillController | CommandPalette 扩展 | — | 无 |
 
 ## 附录 C: 实施顺序建议
 
-> **审查修正**: F5 已实现无需排期，F9 仅需 UI 工作，总周期从 6 周压缩至 3 周。
+> **审查修正**: F5 已实现无需排期，F9 仅需 UI 工作，v1.4 新增 G0 前置修复，总周期压缩至 3 周。
 
 ```
+第 0 周(前置): G0 (WebSocketController JSX/COMPACT 推送修复) — 0.5 天
+             ↓ 所有 jsx() 方案的前置依赖，必须首先完成
 第 1 周: F1 (/compact) + F4 (/doctor) + F2 (成本显示) + F9 (Skills UI)
          ↓ 基础命令 + 快速见效项（F2/F4/F9 均为增强已有功能）
          ↓ F5 (WebFetchTool) 已实现，跳过
-第 2 周: F3 (zhikun.md 记忆 + 浏览器编辑器) + F6 (Git 集成 + 可视化 diff)
+第 2 周: F3 (zhikun.md 记忆 + 浏览器编辑器 + InitCommand 修正) + F6 (Git 集成 + 可视化 diff + 删除旧 @Bean)
          ↓ 核心功能闭环
 第 3 周: F7 (Plan Mode) + F8 (文件变更 Dashboard)
          ↓ 高级功能
@@ -2300,10 +2538,19 @@ public class SkillController {
 
 ---
 
-> **文档结束** (v1.3 第三轮审查修订版)  
-> 所有方案基于 ZhikuCode 现有代码库的**源码级审查**，修正了返回类型不匹配、字段名错误、浏览器体验未充分利用等问题。  
-> v1.3 核心修正: 项目记忆文件统一为 zhikun.md；DoctorCommand/DiffCommand/GitCommitCommand 返回 jsx() 结构化数据；  
-> 新增 CompactResultPanel/DiagnosticPanel/GitDiffPanel/GitCommitPanel/MemoryEditorPanel 前端可视化组件；  
-> SnapshotSummary 前端 DTO 字段与后端 record 对齐。  
+> **文档结束** (v1.4 第四轮审查修订版)  
+> 所有方案基于 ZhikuCode 现有代码库的**源码级审查**。  
+> v1.4 核心修复:  
+> - **CRITICAL-1**: WebSocketController.handleSlashCommand 增加 JSX/COMPACT ResultType 分支推送，解除 F3/F4/F6 阻塞；  
+> - **CRITICAL-2**: 删除 GitCommands.java 中冲突的 commitCommand/reviewCommand @Bean；  
+> - **ERR-1**: EffectiveSystemPromptBuilder 包路径 engine → prompt；  
+> - **ERR-2**: SnapshotSummary timestamp 类型 Instant → String；  
+> - **ERR-4**: F6 测试断言类型 TEXT → JSX；  
+> - **ERR-5**: 错别字 "无活跟会话" → "无活跃会话"；  
+> - **ERR-6**: InitCommand.java CLAUDE.md → zhikun.md；  
+> - **ERR-7**: F2 测试组件名 CostDisplay → StatusBar；  
+> - **SEC-1**: MemoryEditorPanel 增加 DOMPurify XSS 防护；  
+> - **SEC-2**: writeMemory 增加路径遍历防护；  
+> - **SEC-3**: F3/F6 所有命令增加 workingDir null 防护。  
 > 确保与现有架构（CommandRouter/ToolRegistry/WebSocket STOMP/Zustand Store）完全兼容。  
 > 审查工具: 14 维度源码级验证（问题存在性/准确性/完整性/可行性/技术栈适配/安全性/必要性/真实性/浏览器适配等）。

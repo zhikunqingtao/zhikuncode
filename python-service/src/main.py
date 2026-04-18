@@ -25,10 +25,6 @@ ROUTER_PREFIX_MAP = {
     "routers.code_intel": ("/api/code-intel", ["Code Intelligence"]),
     "routers.file_processing": ("/api/files", ["File Processing"]),
     "routers.git_enhanced": ("/api/git", ["Git Enhanced"]),
-    "routers.security": ("/api/security", ["Security"]),
-    "routers.code_quality": ("/api/quality", ["Code Quality"]),
-    "routers.visualization": ("/api/viz", ["Visualization"]),
-    "routers.doc_generation": ("/api/docs", ["Documentation"]),
     "routers.browser": ("/api/browser", ["Browser Automation"]),
 }
 

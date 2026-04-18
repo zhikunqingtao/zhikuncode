@@ -17,12 +17,15 @@ logger = logging.getLogger(__name__)
 
 
 class CapabilityDomain(Enum):
-    """Python 服务能力域枚举（架构裁决 #3: P0/P1 仅启用 2 个核心域）"""
+    """Python 服务能力域枚举（架构裁决 #3: P0 核心域 + P2 保留域）
+
+    已降级移除的能力域（由替代方案覆盖）:
+    - SECURITY: BashTool 安全分析功能已覆盖 (~90%)
+    - CODE_QUALITY: BashTool 代码质量检查功能已覆盖 (~85%)
+    - VISUALIZATION: LLM 直接生成 Mermaid/SVG 可视化内容
+    - DOC_GENERATION: LLM 直接生成 Markdown/文档内容
+    """
     CODE_INTEL = auto()       # P0 — 代码智能: tree-sitter + rope + jedi
-    SECURITY = auto()         # P2 — 安全分析: bandit + semgrep
-    CODE_QUALITY = auto()     # P2 — 代码质量: radon + vulture + pylint
-    VISUALIZATION = auto()    # P2 — 数据可视化: matplotlib + graphviz
-    DOC_GENERATION = auto()   # P2 — 文档生成: Jinja2 + pygments + markdown-it-py
     GIT_ENHANCED = auto()     # P2 — Git 增强: GitPython
     FILE_PROCESSING = auto()  # P0 — 文件处理: chardet + python-magic + watchfiles
     BROWSER_AUTOMATION = auto()  # P2 — 浏览器自动化: playwright
@@ -49,32 +52,6 @@ CAPABILITY_REGISTRY: Dict[CapabilityDomain, CapabilityInfo] = {
         required_packages=["tree_sitter", "tree_sitter_languages", "rope", "jedi"],
         min_versions={"tree_sitter": "0.21.0"},
         router_module="routers.code_intel",
-    ),
-    CapabilityDomain.SECURITY: CapabilityInfo(
-        domain=CapabilityDomain.SECURITY,
-        name="安全分析",
-        required_packages=["bandit"],
-        router_module="routers.security",
-    ),
-    CapabilityDomain.CODE_QUALITY: CapabilityInfo(
-        domain=CapabilityDomain.CODE_QUALITY,
-        name="代码质量",
-        required_packages=["radon", "vulture", "pylint"],
-        router_module="routers.code_quality",
-    ),
-    CapabilityDomain.VISUALIZATION: CapabilityInfo(
-        domain=CapabilityDomain.VISUALIZATION,
-        name="数据可视化",
-        required_packages=["matplotlib", "graphviz"],
-        min_versions={"matplotlib": "3.0.0"},
-        system_binaries=["dot"],
-        router_module="routers.visualization",
-    ),
-    CapabilityDomain.DOC_GENERATION: CapabilityInfo(
-        domain=CapabilityDomain.DOC_GENERATION,
-        name="文档生成",
-        required_packages=["jinja2", "markdown_it", "pygments"],
-        router_module="routers.doc_generation",
     ),
     CapabilityDomain.GIT_ENHANCED: CapabilityInfo(
         domain=CapabilityDomain.GIT_ENHANCED,
