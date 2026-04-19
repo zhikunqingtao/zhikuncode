@@ -1,0 +1,140 @@
+# Test application.yml — overrides main config for testing
+# All paths use java.io.tmpdir to avoid touching real data.
+
+server:
+  port: 0  # random port for test isolation
+
+spring:
+  application:
+    name: ai-code-assistant-test
+  threads:
+    virtual:
+      enabled: true
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    default-property-inclusion: non_null
+
+# ── Python service: disabled ──
+python:
+  service:
+    host: 127.0.0.1
+    port: 0
+    health-check-interval: 99999999
+
+# ── LLM: dummy config (tests use MockWebServer) ──
+llm:
+  provider: openai
+  openai:
+    api-key: ${LLM_API_KEY:sk-test-dummy}
+    base-url: http://127.0.0.1:0/
+    default-model: test-model
+    models: test-model
+  http:
+    pool:
+      max-idle-connections: 2
+      keep-alive-seconds: 5
+    connect-timeout-seconds: 2
+    write-timeout-seconds: 2
+    retry-on-failure: false
+
+agent:
+  model-aliases:
+    haiku: test-model
+    sonnet: test-model
+    opus: test-model
+
+classifier:
+  model: ""
+
+# ── Feature flags: keep essentials, disable experimental ──
+features:
+  flags:
+    THINKING_MODE: false
+    TOOL_SEARCH: false
+    SANDBOX_DEFAULT_ON: false
+    CLASSIFIER_V2: false
+    ENABLE_AGENT_SWARMS: false
+    MCP_SKILLS: false
+    COORDINATOR_MODE: true
+    TOKEN_BUDGET: false
+    SCRATCHPAD: true
+    CACHED_MICROCOMPACT: true
+    FRC_SUPPORTED_MODELS: "haiku,sonnet"
+    FRC_KEEP_RECENT: 3
+    AGENT_TRIGGERS: false
+    WEB_BROWSER_TOOL: true
+    GIT_ENHANCED_TOOL: true
+    RESOURCE_MONITOR: false
+
+# ── MCP: disable real servers ──
+mcp:
+  capability-registry-path: ${java.io.tmpdir}/mcp_capability_registry.json
+  servers: {}
+
+# ── Sandbox: disabled ──
+sandbox:
+  enabled: false
+  image: ai-code-assistant-sandbox:latest
+  timeout-seconds: 300
+  memory-limit: 512m
+  network-enabled: false
+  mount-mode: ro
+
+# ── Springdoc / Swagger: disabled ──
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+# ── Logging: ERROR to reduce test noise ──
+logging:
+  level:
+    root: ERROR
+    com.aicodeassistant: ERROR
+
+# ── App settings: disable external integrations ──
+app:
+  security:
+    path-validation:
+      enabled: true
+      project-boundary-check: true
+      symlink-resolution: true
+  memory:
+    team-memories-enabled: false
+    max-age-days: 90
+    auto-purge: false
+    rerank-enabled: false
+    rerank-timeout-ms: 1000
+  compact:
+    session-memory-compact-enabled: true
+    smc-min-tokens: 10000
+    smc-max-tokens: 40000
+  settings:
+    watch-enabled: false
+    watch-interval-ms: 5000
+  mcp:
+    channel-permissions-enabled: false
+    health-check-interval-ms: 99999999
+    max-reconnect-attempts: 0
+  bridge:
+    enabled: false
+    max-sessions: 0
+    session-timeout-hours: 1
+  model:
+    default: test-model
+    tier-chain:
+      - test-model
+    strip-thinking-on-downgrade: false
+
+# ── Management endpoints: minimal ──
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always

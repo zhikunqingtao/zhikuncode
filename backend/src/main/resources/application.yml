@@ -59,7 +59,7 @@ features:
     TOOL_SEARCH: false
     SANDBOX_DEFAULT_ON: false
     CLASSIFIER_V2: false
-    ENABLE_AGENT_SWARMS: false
+    ENABLE_AGENT_SWARMS: true
     MCP_SKILLS: false
     COORDINATOR_MODE: true
     # ── A 组：SystemPrompt 动态段 ──

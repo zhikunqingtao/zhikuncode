@@ -674,6 +674,13 @@ public class WebSocketController implements PermissionNotifier {
                                          Principal principal) {
         String sessionId = resolveSessionId(principal);
         log.info("WS set_permission_mode: sessionId={}, mode={}", sessionId, payload.mode());
+        try {
+            com.aicodeassistant.model.PermissionMode mode =
+                    com.aicodeassistant.model.PermissionMode.valueOf(payload.mode().toUpperCase());
+            permissionModeManager.setMode(sessionId, mode);
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid permission mode: {}", payload.mode());
+        }
         push(sessionId, "permission_mode_changed", Map.of("mode", payload.mode()));
     }
 

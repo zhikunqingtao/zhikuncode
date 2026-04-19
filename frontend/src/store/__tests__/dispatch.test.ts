@@ -107,7 +107,7 @@ describe('dispatch 消息分发', () => {
         expect(useSessionStore.getState().model).toBe('claude-sonnet-4-20250514');
     });
 
-    test('message_complete → finalizeStream + idle', () => {
+    test('message_complete → finalizeStream + idle', async () => {
         // Start streaming first
         useMessageStore.getState().appendStreamDelta('Test response');
 
@@ -116,6 +116,9 @@ describe('dispatch 消息分发', () => {
             usage: { inputTokens: 100, outputTokens: 50, cacheReadInputTokens: 0, cacheCreationInputTokens: 0 },
             stopReason: 'end_turn',
         } as never);
+
+        // handleMessageComplete uses queueMicrotask, so we need to wait for it
+        await new Promise(resolve => queueMicrotask(resolve));
 
         expect(useSessionStore.getState().status).toBe('idle');
         expect(useMessageStore.getState().streamingContent).toBe('');
