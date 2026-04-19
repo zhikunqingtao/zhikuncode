@@ -1,55 +1,69 @@
 package com.aicodeassistant.command.impl;
 
 import com.aicodeassistant.command.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.aicodeassistant.service.GitService;
 import org.springframework.stereotype.Component;
 
+import java.nio.file.Path;
 import java.util.Map;
 
-/**
- * /diff — 显示本次会话的文件改动。
- *
- * @see <a href="SPEC §3.3.2">/diff 命令</a>
- */
 @Component
 public class DiffCommand implements Command {
 
-    private static final Logger log = LoggerFactory.getLogger(DiffCommand.class);
+    private final GitService gitService;
+
+    public DiffCommand(GitService gitService) {
+        this.gitService = gitService;
+    }
 
     @Override public String getName() { return "diff"; }
-    @Override public String getDescription() { return "Show file changes in this session"; }
-    @Override public CommandType getType() { return CommandType.LOCAL; }
+    @Override public String getDescription() { return "显示 Git 差异"; }
+    @Override public CommandType getType() { return CommandType.LOCAL_JSX; }
 
     @Override
     public CommandResult execute(String args, CommandContext context) {
-        try {
-            ProcessBuilder pb = new ProcessBuilder("git", "diff", "HEAD")
-                    .directory(context.workingDir() != null
-                            ? new java.io.File(context.workingDir()) : null)
-                    .redirectErrorStream(true);
-
-            Process process = pb.start();
-            String output;
-            try (var reader = new java.io.BufferedReader(
-                    new java.io.InputStreamReader(process.getInputStream()))) {
-                output = reader.lines().collect(java.util.stream.Collectors.joining("\n"));
-            }
-
-            int exitCode = process.waitFor();
-            if (exitCode != 0) {
-                return CommandResult.error("git diff failed with exit code: " + exitCode);
-            }
-
-            if (output.isBlank()) {
-                return CommandResult.text("No uncommitted changes.");
-            }
-
-            return CommandResult.text(output);
-
-        } catch (Exception e) {
-            log.error("Diff command failed: {}", e.getMessage(), e);
-            return CommandResult.error("Failed to get diff: " + e.getMessage());
+        if (context.workingDir() == null || context.workingDir().isBlank()) {
+            return CommandResult.error("工作目录未设置");
         }
+        Path workDir = Path.of(context.workingDir());
+
+        Path normalizedWorkDir = workDir.toAbsolutePath().normalize();
+        String workDirStr = normalizedWorkDir.toString();
+        if (workDirStr.equals("/") || workDirStr.startsWith("/etc") || workDirStr.startsWith("/usr")) {
+            return CommandResult.error("不允许在系统目录中执行 Git 操作");
+        }
+
+        if (!gitService.isGitRepository(workDir)) {
+            return CommandResult.error("当前目录非 Git 仓库");
+        }
+
+        boolean staged = args != null && args.contains("staged");
+
+        String[] statArgs = staged
+            ? new String[]{"diff", "--cached", "--stat"}
+            : new String[]{"diff", "--stat"};
+        String[] diffArgs = staged
+            ? new String[]{"diff", "--cached"}
+            : new String[]{"diff"};
+
+        String stat = gitService.execGitPublic(workDir, statArgs);
+        String diff = gitService.execGitPublic(workDir, diffArgs);
+
+        if ((stat == null || stat.isBlank()) && (diff == null || diff.isBlank())) {
+            return CommandResult.text("无差异");
+        }
+
+        return CommandResult.jsx(Map.of(
+            "action", "gitDiffView",
+            "staged", staged,
+            "stat", stat != null ? stat : "",
+            "diff", truncate(diff, 10000),
+            "fileCount", stat != null ? stat.lines().count() - 1 : 0
+        ));
+    }
+
+    private String truncate(String text, int maxLen) {
+        if (text == null) return "";
+        return text.length() > maxLen ? text.substring(0, maxLen) + "\n...(已截断)" : text;
     }
 }

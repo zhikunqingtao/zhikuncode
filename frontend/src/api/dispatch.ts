@@ -18,6 +18,7 @@ import { useNotificationStore } from '@/store/notificationStore';
 import { useInboxStore } from '@/store/inboxStore';
 import { useMcpStore } from '@/store/mcpStore';
 import { useSwarmStore } from '@/store/swarmStore';
+import { usePlanStore, type PlanStep } from '@/store/planStore';
 import { useCoordinatorStore } from '@/store/coordinatorStore';
 import { appendStreamDelta } from '@/hooks/useStreamingText';
 
@@ -180,14 +181,27 @@ const handlers: Record<string, (data: any) => void> = {
         });
     },
     // === 新增: 命令结果/文件回退完成 (2 种) ===
-    'command_result':     (d: { command: string; output: string }) => {
-        useMessageStore.getState().addMessage({
-            type: 'system',
-            uuid: crypto.randomUUID(),
-            timestamp: Date.now(),
-            content: `/${d.command}: ${d.output}`,
-            subtype: 'command_result',
-        } as Message);
+    'command_result':     (d: { command: string; type: 'text' | 'jsx'; output?: string; data?: Record<string, unknown> }) => {
+        if (d.type === 'jsx' && d.data) {
+            // JSX 类型: 创建带 metadata 的 system Message
+            useMessageStore.getState().addMessage({
+                type: 'system',
+                uuid: crypto.randomUUID(),
+                timestamp: Date.now(),
+                content: '',
+                subtype: 'jsx_result',
+                metadata: { command: d.command, ...d.data },
+            } as Message);
+        } else {
+            // TEXT 类型: 保持原有行为
+            useMessageStore.getState().addMessage({
+                type: 'system',
+                uuid: crypto.randomUUID(),
+                timestamp: Date.now(),
+                content: `/${d.command}: ${d.output ?? ''}`,
+                subtype: 'command_result',
+            } as Message);
+        }
     },
     'rewind_complete':    (d: { messageId: string; files: string[] }) => {
         useNotificationStore.getState().addNotification({
@@ -221,6 +235,24 @@ const handlers: Record<string, (data: any) => void> = {
     // === #41: Coordinator 工作流 (1 种) ===
     'workflow_phase_update': (d: import('@/types').WorkflowPhaseUpdatePayload) => {
         useCoordinatorStore.getState().updateWorkflowPhase(d);
+    },
+
+    // === planStore: Plan Mode 更新 (1 种) ===
+    'plan_update': (d: {
+        isPlanMode: boolean;
+        planName?: string;
+        planOverview?: string;
+        steps?: PlanStep[];
+        currentStepId?: string;
+    }) => {
+        const store = usePlanStore.getState();
+        if (d.isPlanMode !== undefined) {
+            d.isPlanMode
+                ? store.enablePlanMode(d.planName || '', d.planOverview || '')
+                : store.disablePlanMode();
+        }
+        if (d.steps) store.setSteps(d.steps);
+        if (d.currentStepId) store.setCurrentStep(d.currentStepId);
     },
 };
 
@@ -264,15 +296,31 @@ function handleError(data: { code: string; message: string; retryable: boolean }
 }
 
 /** 上下文压缩完成 — messageStore + sessionStore */
-function handleCompactComplete(data: { summary: string; tokensSaved: number }): void {
+function handleCompactComplete(data: {
+    summary?: string; tokensSaved?: number;  // 旧格式: 自动压缩
+    displayText?: string; compactionData?: Record<string, unknown>;  // 新格式: /compact 手动压缩
+}): void {
     useSessionStore.getState().setStatus('idle');
-    useMessageStore.getState().addMessage({
-        type: 'system',
-        uuid: crypto.randomUUID(),
-        timestamp: Date.now(),
-        content: `上下文已压缩，节省 ${data.tokensSaved} tokens`,
-        subtype: 'compact_boundary',
-    } as Message);
+    if (data.compactionData) {
+        // 新格式: 来自 /compact 命令
+        useMessageStore.getState().addMessage({
+            type: 'system',
+            uuid: crypto.randomUUID(),
+            timestamp: Date.now(),
+            content: data.displayText ?? '',
+            subtype: 'compact_result',
+            metadata: data.compactionData,
+        } as Message);
+    } else {
+        // 旧格式: 来自自动压缩
+        useMessageStore.getState().addMessage({
+            type: 'system',
+            uuid: crypto.randomUUID(),
+            timestamp: Date.now(),
+            content: `上下文已压缩，节省 ${data.tokensSaved ?? 0} tokens`,
+            subtype: 'compact_boundary',
+        } as Message);
+    }
 }
 
 /**

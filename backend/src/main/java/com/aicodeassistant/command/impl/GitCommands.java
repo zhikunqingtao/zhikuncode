@@ -17,42 +17,6 @@ import java.util.Set;
 public class GitCommands {
 
     @Bean
-    Command commitCommand() {
-        return new PromptCommand() {
-            @Override public String getName() { return "commit"; }
-            @Override public String getDescription() { return "分析 diff，生成 commit message，执行 git commit"; }
-            @Override public ContentLength getContentLength() { return ContentLength.LONG; }
-            @Override public Set<String> getAllowedTools() { return Set.of("bash", "read_file"); }
-            @Override
-            public CommandResult execute(String args, CommandContext context) {
-                // P1: 分析当前 git diff，生成结构化 commit message
-                String prompt = "Please analyze the current git diff and generate a conventional commit message. " +
-                        "Follow the Conventional Commits specification. " +
-                        (args.isBlank() ? "" : "Additional instructions: " + args);
-                return CommandResult.text(prompt);
-            }
-        };
-    }
-
-    @Bean
-    Command reviewCommand() {
-        return new PromptCommand() {
-            @Override public String getName() { return "review"; }
-            @Override public String getDescription() { return "代码审查，分析改动并提供审查意见"; }
-            @Override public ContentLength getContentLength() { return ContentLength.LONG; }
-            @Override public Set<String> getAllowedTools() { return Set.of("bash", "read_file", "list_dir"); }
-            @Override
-            public CommandResult execute(String args, CommandContext context) {
-                String prompt = "Please review the current code changes (git diff). " +
-                        "Analyze for bugs, security issues, performance problems, and code quality. " +
-                        "Provide specific, actionable feedback. " +
-                        (args.isBlank() ? "" : "Focus on: " + args);
-                return CommandResult.text(prompt);
-            }
-        };
-    }
-
-    @Bean
     Command commitPushPrCommand() {
         return new PromptCommand() {
             @Override public String getName() { return "commit-push-pr"; }

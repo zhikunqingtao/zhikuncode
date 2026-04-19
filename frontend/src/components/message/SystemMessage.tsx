@@ -12,6 +12,9 @@
 import React from 'react';
 import { Info, Scissors, Terminal, Minimize2 } from 'lucide-react';
 import type { Message } from '@/types';
+import { GitDiffPanel } from '@/components/git/GitDiffPanel';
+import { GitCommitPanel } from '@/components/git/GitCommitPanel';
+import { sendSlashCommand } from '@/api/stompClient';
 
 interface SystemMessageProps {
     message: Extract<Message, { type: 'system' }>;
@@ -19,6 +22,43 @@ interface SystemMessageProps {
 
 const SystemMessage: React.FC<SystemMessageProps> = ({ message }) => {
     const subtype = message.subtype;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const metadata = (message as any).metadata as Record<string, unknown> | undefined;
+
+    // JSX result — route by metadata.action
+    if (subtype === 'jsx_result' && metadata) {
+        const action = metadata.action as string;
+
+        if (action === 'gitDiffView') {
+            return (
+                <div className="system-message px-4 py-2 my-1">
+                    <GitDiffPanel data={{
+                        staged: metadata.staged as boolean,
+                        stat: metadata.stat as string,
+                        diff: metadata.diff as string,
+                        fileCount: metadata.fileCount as number,
+                    }} />
+                </div>
+            );
+        }
+
+        if (action === 'gitCommitPreview') {
+            return (
+                <div className="system-message px-4 py-2 my-1">
+                    <GitCommitPanel
+                        data={{
+                            status: metadata.status as string,
+                            stagedDiff: metadata.stagedDiff as string,
+                            detailedDiff: metadata.detailedDiff as string,
+                            changedFiles: metadata.changedFiles as string[],
+                            fileCount: metadata.fileCount as number,
+                        }}
+                        onCommit={(msg) => sendSlashCommand('commit', `"${msg}"`)}
+                    />
+                </div>
+            );
+        }
+    }
 
     // Compact boundary — context compaction divider
     if (subtype === 'compact_boundary' || subtype === 'microcompact_boundary') {

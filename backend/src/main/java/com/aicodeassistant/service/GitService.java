@@ -86,6 +86,17 @@ public class GitService {
         }
     }
 
+    /**
+     * 执行 Git 命令并返回输出（公开方法，供 Command 调用）。
+     *
+     * @param workingDir 工作目录
+     * @param args       Git 命令参数
+     * @return 命令输出，失败返回 null
+     */
+    public String execGitPublic(Path workingDir, String... args) {
+        return execGit(workingDir, args);
+    }
+
     private String execGit(Path workingDir, String... args) {
         try {
             String[] command = new String[args.length + 1];

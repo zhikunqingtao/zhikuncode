@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import { AppLayout } from '@/components/layout';
 import { MessageList } from '@/components/message';
 import { PromptInput } from '@/components/input';
@@ -6,18 +6,56 @@ import { DialogManager } from '@/components/DialogManager';
 import { useMessageStore } from '@/store/messageStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { useConfigStore } from '@/store/configStore';
-import { sendToServer, isWsConnected } from '@/api/stompClient';
-import type { SubmitEvent, Message } from '@/types';
+import { sendToServer, isWsConnected, sendSlashCommand } from '@/api/stompClient';
+import { SkillDetailModal } from '@/components/skills/SkillDetailModal';
+import type { SubmitEvent, Message, Command } from '@/types';
+
+interface SkillItem {
+  name: string;
+  description: string;
+  source: string;
+}
 
 function App() {
   const { messages, addMessage } = useMessageStore();
   const { createSession, status } = useSessionStore();
   const { loadConfig } = useConfigStore();
 
+  // 技能列表
+  const [skills, setSkills] = useState<SkillItem[]>([]);
+  const [selectedSkill, setSelectedSkill] = useState<string | null>(null);
+
   // 加载配置
   useEffect(() => {
     loadConfig();
   }, [loadConfig]);
+
+  // 动态加载技能列表
+  useEffect(() => {
+    fetch('/api/skills')
+      .then(r => r.json())
+      .then((data: SkillItem[]) => setSkills(data))
+      .catch(() => {});
+  }, []);
+
+  // 内置命令
+  const builtinCommands: Command[] = useMemo(() => [
+    { name: 'help', description: '显示帮助信息', group: 'Commands' },
+    { name: 'clear', description: '清除对话记录', group: 'Commands' },
+    { name: 'compact', description: '压缩对话上下文', group: 'Commands' },
+    { name: 'model', description: '切换 AI 模型', group: 'Commands' },
+  ], []);
+
+  // 将技能转换为 Command 格式
+  const allCommands: Command[] = useMemo(() => {
+    const skillCommands: Command[] = skills.map(s => ({
+      name: `skill ${s.name}`,
+      description: s.description,
+      group: 'Skills',
+      hidden: false,
+    }));
+    return [...builtinCommands, ...skillCommands];
+  }, [builtinCommands, skills]);
 
   // 发送消息
   const handleSubmit = useCallback(async (event: SubmitEvent) => {
@@ -84,6 +122,34 @@ function App() {
   // 处理命令
   const handleSlashCommand = useCallback((command: string) => {
     console.log('Command:', command);
+    const raw = command.startsWith('/') ? command.slice(1) : command;
+    // 技能命令：/skill <name> → 打开详情弹窗
+    if (raw.startsWith('skill ')) {
+      const skillName = raw.slice(6).trim();
+      if (skillName) {
+        setSelectedSkill(skillName);
+        return;
+      }
+    }
+
+    // 添加系统消息到 UI
+    addMessage({
+      uuid: crypto.randomUUID(),
+      type: 'system',
+      content: `执行命令: /${raw}`,
+      timestamp: Date.now(),
+      subtype: 'command',
+    } as Message);
+
+    // 其他 slash 命令通过 STOMP 发送
+    const parts = raw.split(/\s+/);
+    sendSlashCommand(parts[0], parts.slice(1).join(' '));
+  }, [addMessage]);
+
+  // 执行技能
+  const executeSkill = useCallback((skillName: string) => {
+    sendSlashCommand('skill', skillName);
+    setSelectedSkill(null);
   }, []);
 
   // 中断请求
@@ -125,12 +191,21 @@ function App() {
               isLoading={status === 'streaming'}
               permissionMode="read_write"
               messages={messages}
-              commands={[]}
+              commands={allCommands}
             />
           </div>
         </div>
       </AppLayout>
       
+      {/* Skill Detail Modal */}
+      {selectedSkill && (
+        <SkillDetailModal
+          skillName={selectedSkill}
+          onClose={() => setSelectedSkill(null)}
+          onExecute={executeSkill}
+        />
+      )}
+
       {/* Global Dialogs */}
       <DialogManager />
     </>

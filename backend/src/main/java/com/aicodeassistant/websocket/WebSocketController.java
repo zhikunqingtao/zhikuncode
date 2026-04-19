@@ -1,6 +1,7 @@
 package com.aicodeassistant.websocket;
 
 import com.aicodeassistant.context.ProjectContextService;
+import com.aicodeassistant.service.CostTrackerService;
 import com.aicodeassistant.engine.AbortReason;
 import com.aicodeassistant.engine.ElicitationService;
 import com.aicodeassistant.engine.QueryConfig;
@@ -76,6 +77,7 @@ public class WebSocketController implements PermissionNotifier {
     private final ProjectContextService projectContextService;  // F5 项目上下文
     private final PermissionModeManager permissionModeManager;    // P1-03 权限模式
     private final com.aicodeassistant.coordinator.LeaderPermissionBridge leaderPermissionBridge;  // Swarm 权限冒泡
+    private final CostTrackerService costTrackerService;                                          // F2 费用追踪
 
     public WebSocketController(SimpMessagingTemplate messaging,
                                 WebSocketSessionManager wsSessionManager,
@@ -92,7 +94,8 @@ public class WebSocketController implements PermissionNotifier {
                                 FileHistoryService fileHistoryService,
                                 ProjectContextService projectContextService,
                                 PermissionModeManager permissionModeManager,
-                                @org.springframework.context.annotation.Lazy com.aicodeassistant.coordinator.LeaderPermissionBridge leaderPermissionBridge) {
+                                @org.springframework.context.annotation.Lazy com.aicodeassistant.coordinator.LeaderPermissionBridge leaderPermissionBridge,
+                                CostTrackerService costTrackerService) {
         this.messaging = messaging;
         this.wsSessionManager = wsSessionManager;
         this.queryEngine = queryEngine;
@@ -109,6 +112,7 @@ public class WebSocketController implements PermissionNotifier {
         this.projectContextService = projectContextService;
         this.permissionModeManager = permissionModeManager;
         this.leaderPermissionBridge = leaderPermissionBridge;
+        this.costTrackerService = costTrackerService;
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -382,6 +386,13 @@ public class WebSocketController implements PermissionNotifier {
         push(sessionId, "pong", Map.of());
     }
 
+    // ───── #26: planStore ─────
+
+    /** #26 Plan Mode 状态更新 */
+    public void sendPlanUpdate(String sessionId, Map<String, Object> planData) {
+        push(sessionId, "plan_update", planData);
+    }
+
     // ══════════════════════════════════════════════════════════════
     // Client → Server: 全部 10 种 @MessageMapping Handler
     // ══════════════════════════════════════════════════════════════
@@ -518,7 +529,11 @@ public class WebSocketController implements PermissionNotifier {
 
         @Override
         public void onUsage(Usage usage) {
-            sendCostUpdate(sessionId, 0.0, 0.0, usage);
+            var sessionCostSummary = costTrackerService.getSessionCost(sessionId);
+            var globalCostSummary = costTrackerService.getGlobalCost();
+            double sessionCost = sessionCostSummary.totalCost();
+            double globalCost = globalCostSummary.totalCost();
+            sendCostUpdate(sessionId, sessionCost, globalCost, usage);
         }
 
         @Override
@@ -654,11 +669,33 @@ public class WebSocketController implements PermissionNotifier {
             CommandContext ctx = CommandContext.of(
                     sessionId, ".", null, null);
             CommandResult cmdResult = cmd.execute(payload.args(), ctx);
-            if (cmdResult.isSuccess() && cmdResult.value() != null) {
-                push(sessionId, "command_result", Map.of(
-                        "command", payload.command(),
-                        "output", cmdResult.value()));
-            } else if (!cmdResult.isSuccess()) {
+            if (cmdResult.isSuccess()) {
+                switch (cmdResult.type()) {
+                    case TEXT -> {
+                        if (cmdResult.value() != null) {
+                            push(sessionId, "command_result", Map.of(
+                                    "command", payload.command(),
+                                    "type", "text",
+                                    "output", cmdResult.value()));
+                        }
+                    }
+                    case JSX -> {
+                        // JSX 结果: value=null, data=结构化数据
+                        push(sessionId, "command_result", Map.of(
+                                "command", payload.command(),
+                                "type", "jsx",
+                                "data", cmdResult.data()));
+                    }
+                    case COMPACT -> {
+                        // COMPACT 结果: value=displayText, data=压缩元数据
+                        push(sessionId, "compact_complete", Map.of(
+                                "displayText", cmdResult.value() != null ? cmdResult.value() : "",
+                                "compactionData", cmdResult.data()));
+                    }
+                    case SKIP -> { /* 无操作 */ }
+                    default -> log.warn("Unhandled command result type: {}", cmdResult.type());
+                }
+            } else {
                 push(sessionId, "error", Map.of(
                         "code", "COMMAND_ERROR",
                         "message", cmdResult.error() != null ? cmdResult.error() : "Command failed",

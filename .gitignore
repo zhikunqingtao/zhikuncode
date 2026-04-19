@@ -45,3 +45,6 @@ log/
 access-token
 *.pem
 *.key
+
+# ZhikuCode 本地记忆文件
+zhikun.local.md

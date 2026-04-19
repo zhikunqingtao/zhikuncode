@@ -1,5 +1,6 @@
 package com.aicodeassistant.prompt;
 
+import com.aicodeassistant.service.ProjectMemoryService;
 import com.aicodeassistant.service.PromptCacheBreakDetector;
 import com.aicodeassistant.config.ClaudeMdLoader;
 import com.aicodeassistant.config.FeatureFlagService;
@@ -67,6 +68,7 @@ public class SystemPromptBuilder {
 
     // 依赖服务
     private final ClaudeMdLoader claudeMdLoader;
+    private final ProjectMemoryService projectMemoryService;
     private final FeatureFlagService featureFlags;
     private final GitService gitService;
     private final ConfigService configService;
@@ -102,8 +104,10 @@ public class SystemPromptBuilder {
                                ProjectContextService projectContextService,
                                ToolResultSummarizer toolResultSummarizer,
                                SystemPromptSectionCache promptSectionCache,
-                               PromptCacheBreakDetector promptCacheBreakDetector) {
+                               PromptCacheBreakDetector promptCacheBreakDetector,
+                               ProjectMemoryService projectMemoryService) {
         this.claudeMdLoader = claudeMdLoader;
+        this.projectMemoryService = projectMemoryService;
         this.featureFlags = featureFlags;
         this.gitService = gitService;
         this.configService = configService;
@@ -1084,11 +1088,10 @@ public class SystemPromptBuilder {
     // ── memory + output_style + frc + token_budget ──
 
     private String loadMemoryPrompt(Path workingDir) {
-        String content = claudeMdLoader.loadMergedContent(workingDir);
-        if (content == null || content.isBlank()) {
-            return null;
-        }
-        return "USER MEMORIES AND PREFERENCES:\n" + content;
+        if (projectMemoryService == null) return "";
+        String memory = projectMemoryService.loadMemory(workingDir);
+        if (memory == null || memory.isBlank()) return "";
+        return "\n\n<project_memory>\n" + memory + "\n</project_memory>\n";
     }
 
     private String getOutputStyleSection() {

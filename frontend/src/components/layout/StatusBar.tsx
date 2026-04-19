@@ -15,7 +15,7 @@ import { TokenBudgetIndicator } from '@/components/status/TokenBudgetIndicator';
 export function StatusBar() {
     const { model, status, turnCount } = useSessionStore();
     const { permissionMode } = usePermissionStore();
-    const { sessionCost, usage } = useCostStore();
+    const { sessionCost, totalCost, usage } = useCostStore();
     const { pendingPermission } = usePermissionStore();
     const { bridgeStatus } = useBridgeStore();
 
@@ -116,6 +116,11 @@ export function StatusBar() {
                     <Coins className="w-3.5 h-3.5" />
                     <span>${sessionCost.toFixed(3)}</span>
                 </div>
+
+                {/* Global Total Cost */}
+                <span className="text-xs text-[var(--text-muted)]" title={`全局累计: $${totalCost.toFixed(3)}`}>
+                    ∑ ${totalCost.toFixed(3)}
+                </span>
 
                 {/* Connection Status */}
                 <div className="flex items-center gap-1" title={bridgeStatus === 'connected' ? '已连接' : '未连接'}>

@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { McpCapabilityPanel } from './McpCapabilityPanel';
 import { PromptsTab } from './PromptsTab';
 import { ThemePicker } from '@/components/theme/ThemePicker';
+import { MemoryEditorPanel } from '@/components/memory/MemoryEditorPanel';
 
 /** 设置面板 Tab 类型 */
 type SettingsTab = 'model' | 'theme' | 'permission' | 'memory' | 'keybindings' | 'mcp' | 'prompts';
@@ -137,41 +138,58 @@ function PermissionModePicker() {
   );
 }
 
-/** 记忆条目管理 */
+/** 记忆条目管理 — 集成 MemoryEditorPanel */
 function MemoryManager() {
-  const [memories, setMemories] = useState<string[]>([
-    'User prefers TypeScript over JavaScript',
-    'Project uses Tailwind CSS for styling',
-  ]);
+  const [activeFile, setActiveFile] = useState<'zhikun.md' | 'zhikun.local.md'>('zhikun.md');
+  const [globalContent, setGlobalContent] = useState('');
+  const [localContent, setLocalContent] = useState('');
 
-  const removeMemory = (index: number) => {
-    setMemories((prev) => prev.filter((_, i) => i !== index));
-  };
+  const handleSave = useCallback(async (content: string) => {
+    // TODO: 调用后端 API 保存记忆文件
+    if (activeFile === 'zhikun.md') {
+      setGlobalContent(content);
+    } else {
+      setLocalContent(content);
+    }
+  }, [activeFile]);
 
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold">Memory Manager</h3>
       <p className="text-sm text-gray-500">
-        Manage persistent memories that carry across sessions.
+        管理跨会话持久化的项目记忆文件。
       </p>
-      <div className="space-y-2">
-        {memories.map((memory, index) => (
-          <div
-            key={index}
-            className="flex items-center justify-between p-3 rounded border border-gray-200 dark:border-gray-700"
-          >
-            <span className="text-sm">{memory}</span>
-            <button
-              onClick={() => removeMemory(index)}
-              className="text-red-500 hover:text-red-700 text-sm"
-            >
-              Remove
-            </button>
-          </div>
-        ))}
-        {memories.length === 0 && (
-          <p className="text-sm text-gray-400 italic">No memories stored.</p>
-        )}
+      {/* 文件切换 */}
+      <div className="flex gap-2">
+        <button
+          onClick={() => setActiveFile('zhikun.md')}
+          className={`px-3 py-1.5 min-h-10 rounded text-sm transition-colors ${
+            activeFile === 'zhikun.md'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+          }`}
+        >
+          🌐 zhikun.md (全局)
+        </button>
+        <button
+          onClick={() => setActiveFile('zhikun.local.md')}
+          className={`px-3 py-1.5 min-h-10 rounded text-sm transition-colors ${
+            activeFile === 'zhikun.local.md'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+          }`}
+        >
+          📁 zhikun.local.md (项目)
+        </button>
+      </div>
+      {/* 编辑器 */}
+      <div className="h-[400px]">
+        <MemoryEditorPanel
+          workingDir="."
+          initialContent={activeFile === 'zhikun.md' ? globalContent : localContent}
+          fileName={activeFile}
+          onSave={handleSave}
+        />
       </div>
     </div>
   );

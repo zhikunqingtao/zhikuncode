@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import java.util.Set;
 
 /**
- * /init — 交互式创建/更新 CLAUDE.md、技能和钩子。
+ * /init — 交互式创建/更新 zhikun.md、技能和钩子。
  * <p>
  * PromptCommand: 生成多阶段提示词发送给 LLM。
  *
@@ -16,7 +16,7 @@ import java.util.Set;
 public class InitCommand implements PromptCommand {
 
     @Override public String getName() { return "init"; }
-    @Override public String getDescription() { return "Initialize project configuration (CLAUDE.md, skills, hooks)"; }
+    @Override public String getDescription() { return "Initialize project configuration (zhikun.md, skills, hooks)"; }
     @Override public ContentLength getContentLength() { return ContentLength.LONG; }
 
     @Override
@@ -28,7 +28,7 @@ public class InitCommand implements PromptCommand {
         prompt.append("1. Build system and commands (build, test, lint)\n");
         prompt.append("2. Programming languages and frameworks\n");
         prompt.append("3. Project conventions and coding standards\n\n");
-        prompt.append("Then create or update the CLAUDE.md file with relevant project information ");
+        prompt.append("Then create or update the zhikun.md file with relevant project information ");
         prompt.append("that would be helpful for an AI assistant working on this project.\n\n");
 
         if (context.workingDir() != null) {

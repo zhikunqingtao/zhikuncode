@@ -11,7 +11,8 @@ export type Message =
     | { type: 'user';      uuid: string; timestamp: number; content: ContentBlock[]; toolUseResult?: string }
     | { type: 'assistant';  uuid: string; timestamp: number; content: ContentBlock[]; stopReason: string; usage: Usage }
     | { type: 'system';     uuid: string; timestamp: number; content: string; subtype?: string;
-        errorCode?: string; retryable?: boolean }
+        errorCode?: string; retryable?: boolean;
+        metadata?: Record<string, unknown> }
     | { type: 'attachment'; uuid: string; timestamp: number;
         filePath: string; fileName: string; mimeType: string; size: number }
     | { type: 'grouped_tool_use'; uuid: string; timestamp: number;
