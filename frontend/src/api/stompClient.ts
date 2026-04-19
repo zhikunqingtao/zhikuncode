@@ -24,9 +24,10 @@ const VALID_MESSAGE_TYPES: ReadonlySet<string> = new Set([
     'permission_request', 'cost_update', 'task_update', 'agent_spawn', 'agent_update',
     'agent_complete', 'elicitation', 'prompt_suggestion', 'speculation_result',
     'bridge_status', 'notification', 'teammate_message', 'mcp_tool_update',
-    'session_restored', 'pong', 'compact_event', 'token_warning', 'interrupt_ack',
-    'model_changed', 'permission_mode_changed', 'command_result', 'rewind_complete',
-    'token_budget_nudge',
+    'mcp_health_status', 'session_restored', 'pong', 'compact_event', 'token_warning',
+    'interrupt_ack', 'model_changed', 'permission_mode_changed', 'command_result',
+    'rewind_complete', 'token_budget_nudge', 'plan_update',
+    'swarm_state_update', 'worker_progress', 'permission_bubble', 'workflow_phase_update',
 ]);
 
 /**

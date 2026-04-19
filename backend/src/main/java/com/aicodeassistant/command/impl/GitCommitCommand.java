@@ -44,6 +44,9 @@ public class GitCommitCommand implements Command {
 
         if (args != null && !args.isBlank()) {
             String commitResult = gitService.execGitPublic(workDir, "commit", "-m", args);
+            if (commitResult == null || commitResult.isBlank()) {
+                return CommandResult.error("git commit 失败，请检查 Git 输出或本地钩子。");
+            }
             return CommandResult.text("✅ 已提交:\n" + commitResult);
         }
 

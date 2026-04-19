@@ -14,6 +14,7 @@ import { Info, Scissors, Terminal, Minimize2 } from 'lucide-react';
 import type { Message } from '@/types';
 import { GitDiffPanel } from '@/components/git/GitDiffPanel';
 import { GitCommitPanel } from '@/components/git/GitCommitPanel';
+import { DiagnosticPanel } from '@/components/doctor/DiagnosticPanel';
 import { sendSlashCommand } from '@/api/stompClient';
 
 interface SystemMessageProps {
@@ -54,6 +55,17 @@ const SystemMessage: React.FC<SystemMessageProps> = ({ message }) => {
                             fileCount: metadata.fileCount as number,
                         }}
                         onCommit={(msg) => sendSlashCommand('commit', `"${msg}"`)}
+                    />
+                </div>
+            );
+        }
+
+        if (action === 'diagnosticReport') {
+            return (
+                <div className="system-message px-4 py-2 my-1">
+                    <DiagnosticPanel
+                        checks={metadata.checks as Array<{ category: string; name: string; value: string; status: 'ok' | 'warn' | 'error'; hint?: string }>}
+                        summary={metadata.summary as { ok: number; warn: number; error: number; total: number }}
                     />
                 </div>
             );

@@ -181,8 +181,8 @@ const handlers: Record<string, (data: any) => void> = {
         });
     },
     // === 新增: 命令结果/文件回退完成 (2 种) ===
-    'command_result':     (d: { command: string; type: 'text' | 'jsx'; output?: string; data?: Record<string, unknown> }) => {
-        if (d.type === 'jsx' && d.data) {
+    'command_result':     (d: { command: string; resultType: 'text' | 'jsx'; output?: string; data?: Record<string, unknown> }) => {
+        if (d.resultType === 'jsx' && d.data) {
             // JSX 类型: 创建带 metadata 的 system Message
             useMessageStore.getState().addMessage({
                 type: 'system',

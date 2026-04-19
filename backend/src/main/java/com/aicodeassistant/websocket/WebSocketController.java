@@ -675,7 +675,7 @@ public class WebSocketController implements PermissionNotifier {
                         if (cmdResult.value() != null) {
                             push(sessionId, "command_result", Map.of(
                                     "command", payload.command(),
-                                    "type", "text",
+                                    "resultType", "text",
                                     "output", cmdResult.value()));
                         }
                     }
@@ -683,7 +683,7 @@ public class WebSocketController implements PermissionNotifier {
                         // JSX 结果: value=null, data=结构化数据
                         push(sessionId, "command_result", Map.of(
                                 "command", payload.command(),
-                                "type", "jsx",
+                                "resultType", "jsx",
                                 "data", cmdResult.data()));
                     }
                     case COMPACT -> {
