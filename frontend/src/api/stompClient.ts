@@ -123,8 +123,10 @@ export function createStompClient(sessionId: string, authToken: string): StompCl
         webSocketFactory: () => new SockJS('/ws') as WebSocket,
 
         // CONNECT 帧 headers — 对齐 §8.5.4
+        // 仅当 authToken 非空时才携带 Authorization 头，
+        // 否则后端 localhost 模式走匿名 Principal 路径
         connectHeaders: {
-            Authorization: `Bearer ${authToken}`,
+            ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
             'X-Session-Id': sessionId,
         },
 

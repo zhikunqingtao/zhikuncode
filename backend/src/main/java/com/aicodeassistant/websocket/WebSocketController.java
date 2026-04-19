@@ -38,6 +38,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.context.event.EventListener;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import org.springframework.stereotype.Controller;
 
 import java.nio.file.Path;
@@ -622,6 +625,25 @@ public class WebSocketController implements PermissionNotifier {
 
         // 推送 interrupt_ack 到前端
         push(sessionId, "interrupt_ack", Map.of("reason", reason.name()));
+    }
+
+    /**
+     * WebSocket 断连监听 — 主动中止孤立会话的 QueryEngine 循环。
+     * <p>
+     * 当前端刷新或关闭页面时，STOMP 断连会触发此事件。
+     * 由于 WebSocketSessionManager 已经清理了 principal 映射，
+     * 这里通过 transport sessionId 找到 app sessionId 并触发 abort。
+     */
+    @EventListener
+    public void handleWebSocketDisconnect(SessionDisconnectEvent event) {
+        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
+        // 从 session attributes 中获取 app sessionId
+        Map<String, Object> attrs = accessor.getSessionAttributes();
+        String appSessionId = attrs != null ? (String) attrs.get("sessionId") : null;
+        if (appSessionId != null) {
+            log.info("WebSocket disconnect detected, aborting QueryEngine: sessionId={}", appSessionId);
+            queryEngine.abort(appSessionId, AbortReason.SESSION_DISCONNECTED);
+        }
     }
 
     /**

@@ -159,6 +159,17 @@ public class QueryEngine {
         AtomicBoolean aborted = new AtomicBoolean(false);
         Usage totalUsage = Usage.zero();
 
+        // 将 AbortContext 连接到本地 aborted 标志，使得外部 abort() 调用能实际停止循环
+        String sessionId = state.getToolUseContext() != null
+                ? state.getToolUseContext().sessionId() : null;
+        if (sessionId != null) {
+            AbortContext abortCtx = getOrCreateAbortContext(sessionId);
+            abortCtx.onAbort().thenAccept(reason -> {
+                aborted.set(true);
+                state.setAbortReason(reason);
+            });
+        }
+
         try {
             totalUsage = queryLoop(config, state, handler, aborted);
         } catch (Exception e) {
@@ -168,8 +179,6 @@ public class QueryEngine {
                     "error", e.getMessage(), state.getTurnCount());
         } finally {
             // P1-04: 确保清理 AbortContext，防止内存泄漏
-            String sessionId = state.getToolUseContext() != null
-                    ? state.getToolUseContext().sessionId() : null;
             if (sessionId != null) {
                 abortContexts.remove(sessionId);
             }
@@ -373,10 +382,11 @@ public class QueryEngine {
                     }
                 }
 
-                // 注入用户中断消息（非 submit-interrupt 时）
+                // 注入用户中断消息（非 submit-interrupt 且非 session 断连时）
                 AbortReason abortReason = state.getAbortReason() != null
                         ? state.getAbortReason() : AbortReason.USER_INTERRUPT;
-                if (abortReason != AbortReason.SUBMIT_INTERRUPT) {
+                if (abortReason != AbortReason.SUBMIT_INTERRUPT
+                        && abortReason != AbortReason.SESSION_DISCONNECTED) {
                     Message.UserMessage interruptMsg = new Message.UserMessage(
                             UUID.randomUUID().toString(), Instant.now(),
                             List.of(new ContentBlock.TextBlock(

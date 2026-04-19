@@ -13,5 +13,7 @@ public enum AbortReason {
     /** maxTurns 或 token 超时 */
     TIMEOUT,
     /** 不可恢复错误 */
-    ERROR
+    ERROR,
+    /** WebSocket 断连 — 客户端已离线，无需继续执行 */
+    SESSION_DISCONNECTED
 }

@@ -113,7 +113,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 String authHeader = accessor.getFirstNativeHeader("Authorization");
                 String principalName;
 
-                if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                if (authHeader != null && authHeader.startsWith("Bearer ")
+                        && authHeader.length() > 7) {
                     String token = authHeader.substring(7);
                     // 验证 token 与 accessToken 匹配
                     if (!securityFilter.getAccessToken().equals(token)) {

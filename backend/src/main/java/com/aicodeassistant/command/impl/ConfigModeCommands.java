@@ -73,19 +73,7 @@ public class ConfigModeCommands {
         };
     }
 
-    @Bean
-    Command planCommand() {
-        return new Command() {
-            @Override public String getName() { return "plan"; }
-            @Override public String getDescription() { return "计划模式切换"; }
-            @Override public CommandType getType() { return CommandType.LOCAL; }
-            @Override
-            public CommandResult execute(String args, CommandContext context) {
-                // P1: 切换到 Plan 模式，只读协作
-                return CommandResult.text("Plan mode activated. Read-only collaborative planning enabled.");
-            }
-        };
-    }
+    // planCommand 已由 PlanCommand.java (@Component) 提供完整实现，此处不再重复注册
 
     @Bean
     Command themeCommand() {

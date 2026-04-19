@@ -41,7 +41,8 @@ public class AbortContext {
      * submit-interrupt 不注入中断消息（保留用户新输入）。
      */
     public boolean shouldInjectInterruptMessage() {
-        return reason != AbortReason.SUBMIT_INTERRUPT;
+        return reason != AbortReason.SUBMIT_INTERRUPT
+                && reason != AbortReason.SESSION_DISCONNECTED;
     }
 
     /**
