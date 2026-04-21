@@ -44,10 +44,10 @@
 ## 🎬 Demo
 
 ### 写入文件
-![写入文件演示](https://zhikundemo.oss-cn-beijing.aliyuncs.com/hub/%E5%AE%8C%E6%95%B4.gif)
+![写入文件演示](docs/assets/demo-write-file.gif)
 
 ### iPad 浏览器全流程操控
-![iPad浏览器操控演示](https://zhikundemo.oss-cn-beijing.aliyuncs.com/hub/%E8%B4%AA%E5%90%83%E8%9B%87.gif)
+![iPad浏览器操控演示](docs/assets/demo-ipad-browser.gif)
 
 ---
 

@@ -45,10 +45,10 @@
 ## 🎬 Demo
 
 ### File Writing
-![File Writing Demo](https://zhikundemo.oss-cn-beijing.aliyuncs.com/hub/%E5%AE%8C%E6%95%B4.gif)
+![File Writing Demo](assets/demo-write-file.gif)
 
 ### Full Browser-Based Control on iPad
-![iPad Browser Control Demo](https://zhikundemo.oss-cn-beijing.aliyuncs.com/hub/%E8%B4%AA%E5%90%83%E8%9B%87.gif)
+![iPad Browser Control Demo](assets/demo-ipad-browser.gif)
 
 ---
 
