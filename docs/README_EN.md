@@ -25,8 +25,8 @@
 
 ---
 
-> **3 weeks of spare time, ~77K lines of code.**
-> One person can build a complete AI coding assistant with AI — deploy it to a server, open a browser, and start coding. Works on your phone too.
+> **deploy it to a server, open a browser, and start coding. Works on your phone too.**
+
 
 ---
 
@@ -608,5 +608,4 @@ If this project is useful to you, a Star ⭐ would be appreciated.
 
 <div align="center">
   <p>Built with ❤️ and AI</p>
-  <p><sub>3 weeks of spare time, ~77K lines of code — proof that one person plus AI can ship a complete product</sub></p>
 </div>
