@@ -274,6 +274,14 @@ The following paths require user confirmation even in bypass mode:
 - Includes command injection, path traversal, permission bypass, and other attack scenarios
 - The full security test suite runs on every code change
 
+### 🧪 Quality Assurance
+
+Full test report: [ZhikunCode Core Functionality Test Report](ZhikunCode核心功能测试报告.md)
+
+- **110 test cases** — 100% pass rate
+- **280+ automated tests** — all passing (Vitest + Pytest + Playwright + JUnit 5)
+- **Feature completeness** — 100% coverage of benchmark features
+
 ---
 
 ## 📱 Full Browser-Based Control
