@@ -11,6 +11,7 @@
     <a href="#-key-features">Key Features</a> ·
     <a href="#-demo">Demo</a> ·
     <a href="#-cli-tools">CLI Tools</a> ·
+    <a href="#-skill-system">Skill System</a> ·
     <a href="#-comparison">Comparison</a> ·
     <a href="../README.md">中文</a>
   </p>
@@ -163,6 +164,7 @@ Configure `LLM_BASE_URL` and `LLM_API_KEY` in `.env` to switch providers:
 | Security Sandbox | ✅ 8-layer | ❌ | ❌ | ⚠️ Enterprise | ✅ OS-level | N/A |
 | MCP Tool Extension | ✅ | ⚠️ 3rd-party | ✅ | ❌ | ✅ | ✅ |
 | CLI Terminal Tools | ✅ aica + 35+ slash cmds | ✅ CLI-first | ⚠️ VS Code only | ❌ | ✅ CLI-only | ❌ |
+| Extensible Skill System | ✅ Markdown-driven + 6-level sources | ❌ | ❌ | ✅ Rules | ✅ Hooks | ❌ |
 | No Client Install | ✅ | ❌ | ❌ | ⚠️ | ✅ | ❌ |
 
 > ¹ **Full Browser Control**: After deployment, any device's browser (including mobile) can fully control the entire coding workflow — permission approval, plan negotiation, task management. This is different from Cline/Cursor's "AI controlling a browser for automated testing".
@@ -296,6 +298,74 @@ Full test report: [ZhikunCode Core Functionality Test Report](ZhikunCode核心�
 - **110 test cases** — 100% pass rate
 - **280+ automated tests** — all passing (Vitest + Pytest + Playwright + JUnit 5)
 - **Feature completeness** — 100% coverage of benchmark features
+
+---
+
+## 🎯 Skill System
+
+ZhikunCode's Skill System is a **Markdown-driven extensible workflow engine**. Each skill is a `.md` file — YAML frontmatter defines metadata, Markdown body defines execution instructions.
+
+### 5 Built-in Skills
+
+Ready to use out of the box — type `/skill-name` to invoke:
+
+| Skill | Command | Description |
+|-------|---------|-------------|
+| **Smart Commit** | `/commit` | Analyzes staged changes, generates commit messages in Conventional Commits format |
+| **Code Review** | `/review` | Reviews uncommitted changes, categorizes issues by P0/P1/P2 severity |
+| **Smart Fix** | `/fix` | Diagnoses root cause from error messages, applies minimal fix and verifies |
+| **Smart Test** | `/test` | Generates/runs tests for specified code or recent changes, covers edge cases |
+| **PR Assistant** | `/pr` | Analyzes branch diff, generates structured PR description and review notes |
+
+### 6-Level Loading Priority
+
+Skills with the same name are overridden by priority chain — higher priority automatically shadows lower:
+
+```
+managed > user > project > plugin > bundled > mcp
+```
+
+| Source | Directory | Description |
+|--------|-----------|-------------|
+| **managed** | Policy-managed directory | Enterprise-distributed skills |
+| **user** | `~/.zhikun/skills/` | User global custom skills |
+| **project** | `.zhikun/skills/` | Project-level skills, distributed with the codebase |
+| **plugin** | Plugin-provided | Skills embedded in JAR plugins |
+| **bundled** | Built-in | 5 out-of-the-box skills |
+| **mcp** | MCP-built | Skills registered via MCP protocol |
+
+### Custom Skills
+
+Create `.md` files in `~/.zhikun/skills/` or `.zhikun/skills/` in your project root:
+
+```markdown
+---
+description: "Translate code to a specified language"
+arguments:
+  - language
+---
+
+# Translation Task
+
+Translate the selected code to {{language}}, preserving original logic and comment style.
+```
+
+Invoke with: `/translate language=python` or `/translate python`
+
+**Supported frontmatter fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `description` | string | Skill description |
+| `name` | string | Display name (overrides filename) |
+| `arguments` | list | Parameter definition list |
+| `argument_hint` | string | Parameter hint text |
+| `when_to_use` | string | Conditions for automatic model invocation |
+| `allowed_tools` | list | Tool allowlist for this skill |
+| `context` | string | `inline` (default, inject into current conversation) or `fork` (create independent sub-agent) |
+| `model` | string | Specify model (`inherit` uses parent model) |
+
+> Skills support hot reload — changes take effect immediately after saving, no service restart needed. Powered by Java NIO WatchService with 500ms debounce.
 
 ---
 
