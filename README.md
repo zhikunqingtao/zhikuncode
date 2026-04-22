@@ -53,6 +53,17 @@
 
 ## ⚡ 快速开始
 
+### 前置准备：获取 LLM API Key
+
+本项目需要 LLM（大语言模型）API Key 才能运行。默认使用**阿里云千问（DashScope）**，国内网络直连。
+
+**获取千问 API Key：**
+1. 访问 [阿里云百炼平台 API Key 管理](https://bailian.console.aliyun.com/cn-beijing/?tab=model#/api-key)
+2. 注册或登录阿里云账号
+3. 创建 API Key，复制完整密钥（以 `sk-` 开头）
+
+> 千问提供免费额度，足够个人开发使用。也可以使用 [DeepSeek](https://platform.deepseek.com/)、[Moonshot/Kimi](https://platform.moonshot.cn/) 等国内服务商，详见下方"支持的 LLM 服务商"。
+
 ### 方式一：Docker 部署（推荐）
 
 只需 3 步，从零到可用：
@@ -69,6 +80,8 @@ cp .env.example .env
 # 3. 启动
 docker compose up -d
 ```
+
+> **首次构建说明：** 第一次运行会自动构建 Docker 镜像，需要下载依赖并编译，预计耗时 **15-30 分钟**（取决于网络速度）。后续启动只需几秒。可通过 `docker compose logs -f` 查看构建进度。
 
 启动完成后，打开浏览器访问 **http://localhost:8080** 即可使用。
 
@@ -447,6 +460,8 @@ ZhikunCode 内置 47 个工具，覆盖开发全流程：
 | 健康检查间隔 | 30s |
 | 启动等待时间 | 60s |
 
+> **注意：** 首次构建镜像期间需要更多内存（约 3-4GB）。如果构建失败，请在 Docker Desktop 设置中增加内存分配至 4GB 以上。
+
 ---
 
 ## ❓ FAQ
@@ -622,6 +637,25 @@ docker exec -it zhikuncode tail -100 /app/log/app.log
 ```bash
 JAVA_OPTS=-Xms512m -Xmx2048m --enable-preview
 ```
+
+</details>
+
+<details>
+<summary><b>Q10：8080 端口被占用怎么办？</b></summary>
+
+修改 `.env` 文件中的端口配置：
+
+```bash
+ZHIKUN_PORT=9090  # 改为任意未被占用的端口
+```
+
+然后重新启动：
+```bash
+docker compose down
+docker compose up -d
+```
+
+访问 `http://localhost:9090` 即可。
 
 </details>
 

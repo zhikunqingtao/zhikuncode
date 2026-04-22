@@ -54,6 +54,17 @@
 
 ## ⚡ Quick Start
 
+### Prerequisites: Get an LLM API Key
+
+This project requires an LLM (Large Language Model) API Key to run. It defaults to **Alibaba Cloud Qwen (DashScope)**, which works directly in China without VPN.
+
+**Get a Qwen API Key:**
+1. Visit [Alibaba Cloud Bailian API Key Management](https://bailian.console.aliyun.com/cn-beijing/?tab=model#/api-key)
+2. Sign up or log in to your Alibaba Cloud account
+3. Create an API Key and copy the full key (starts with `sk-`)
+
+> Qwen offers a free quota sufficient for personal development. You can also use [DeepSeek](https://platform.deepseek.com/), [Moonshot/Kimi](https://platform.moonshot.cn/), or other providers. See "Supported LLM Providers" below.
+
 ### Option 1: Docker Deployment (Recommended)
 
 Three steps from zero to running:
@@ -70,6 +81,8 @@ cp .env.example .env
 # 3. Start
 docker compose up -d
 ```
+
+> **First build note:** The first run will automatically build the Docker image, downloading dependencies and compiling the project. This takes approximately **15-30 minutes** depending on network speed. Subsequent starts take only a few seconds. Use `docker compose logs -f` to monitor build progress.
 
 Once started, open **http://localhost:8080** in your browser.
 
@@ -448,6 +461,8 @@ Default resource configuration (adjustable in `docker-compose.yml`):
 | Health check interval | 30s |
 | Startup grace period | 60s |
 
+> **Note:** The initial image build requires more memory (~3-4GB). If the build fails, increase Docker Desktop's memory allocation to 4GB or more in its settings.
+
 ---
 
 ## ❓ FAQ
@@ -623,6 +638,25 @@ Set in `.env`:
 ```bash
 JAVA_OPTS=-Xms512m -Xmx2048m --enable-preview
 ```
+
+</details>
+
+<details>
+<summary><b>Q10: What if port 8080 is already in use?</b></summary>
+
+Edit the port in your `.env` file:
+
+```bash
+ZHIKUN_PORT=9090  # Change to any available port
+```
+
+Then restart:
+```bash
+docker compose down
+docker compose up -d
+```
+
+Access `http://localhost:9090` instead.
 
 </details>
 
