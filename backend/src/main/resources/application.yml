@@ -87,7 +87,7 @@ features:
 
 # MCP 配置
 mcp:
-  capability-registry-path: ${user.dir}/../configuration/mcp/mcp_capability_registry.json
+  capability-registry-path: ${MCP_REGISTRY_PATH:${user.dir}/../configuration/mcp/mcp_capability_registry.json}
   servers:
     # 智谱 WebSearch MCP (通过阿里云百炼)
     zhipu-websearch:

@@ -94,7 +94,8 @@ USER zhikun
 ENV JAVA_OPTS="-Xms256m -Xmx1024m --enable-preview" \
     SPRING_PROFILES_ACTIVE="production" \
     PYTHON_SERVICE_PATH="/app/python-service" \
-    PYTHONPATH="/app/python-service/src"
+    PYTHONPATH="/app/python-service/src" \
+    MCP_REGISTRY_PATH="/app/configuration/mcp/mcp_capability_registry.json"
 
 EXPOSE 8080
 

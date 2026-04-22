@@ -46,7 +46,6 @@ Thumbs.db
 .env
 .env.*
 !.env.example
-configuration/mcp/mcp_capability_registry.json
 *.db
 *.db-wal
 *.db-shm
