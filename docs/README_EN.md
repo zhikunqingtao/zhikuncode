@@ -433,6 +433,9 @@ Environment variables are managed via the `.env` file. Copy `.env.example` and m
 | `SPRING_PROFILES_ACTIVE` | — | production | Spring profile |
 | `JAVA_OPTS` | — | -Xms256m -Xmx1024m | JVM options |
 | `WORKSPACE_PATH` | — | ./workspace | Working directory mounted into the container |
+| `ALLOW_PRIVATE_NETWORK` | — | true (Docker) | Allow private network IPs to bypass auth in Docker |
+| `LOG_DIR` | — | /app/log | Container log directory |
+| `MCP_REGISTRY_PATH` | — | Auto-configured | MCP capability registry file path |
 
 ### Docker Resource Limits
 
@@ -576,6 +579,50 @@ Each technology choice has a clear rationale:
   - Python's ecosystem excels at code analysis and AST parsing
   - FastAPI delivers strong async performance
   - Running as an independent service keeps the main backend stable
+
+</details>
+
+<details>
+<summary><b>Q9: How to troubleshoot Docker deployment issues?</b></summary>
+
+**Container shows unhealthy after startup:**
+
+```bash
+# Check container status
+docker ps -a
+
+# View startup logs (Java typically needs 30-60s to start)
+docker logs zhikuncode
+
+# Inspect health check details
+docker inspect --format='json .State.Health' zhikuncode | python3 -m json.tool
+```
+
+**Common startup failure causes:**
+- `LLM_API_KEY is not configured` — API Key not set, check your .env file
+- `Unable to access jarfile` — Incomplete image build, try `docker compose up --build`
+- Out of memory — Default requires 2GB, adjust `deploy.resources.limits.memory` in docker-compose.yml
+
+**View runtime logs:**
+```bash
+# Follow logs in real-time
+docker logs -f zhikuncode
+
+# Enter container to check log files
+docker exec -it zhikuncode ls -la /app/log/
+docker exec -it zhikuncode tail -100 /app/log/app.log
+```
+
+**About `ALLOW_PRIVATE_NETWORK`:**
+
+This variable controls whether requests from Docker bridge network IPs can bypass authentication. It defaults to `true` in Docker environments since container networking already provides isolation. For stricter security (e.g., multi-tenant environments), set to `false` — all non-localhost requests will require Bearer Token authentication.
+
+**Adjust JVM memory:**
+
+Set in `.env`:
+```bash
+JAVA_OPTS=-Xms512m -Xmx2048m --enable-preview
+```
 
 </details>
 

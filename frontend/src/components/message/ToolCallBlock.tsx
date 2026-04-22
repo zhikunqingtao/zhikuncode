@@ -149,7 +149,7 @@ interface ToolResultRendererProps {
 }
 
 /**
- * selectRenderer — SPEC §8.2.2 渲染器选择逻辑
+ * selectRenderer —  渲染器选择逻辑
  * 根据工具名选择合适的渲染模式。
  * 复杂渲染器 (DiffView, TerminalOutput 等) 将在后续 Round 中实现，
  * 此处使用 CodeBlock 作为基础渲染。

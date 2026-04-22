@@ -16,7 +16,7 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * 插件系统黄金测试 — 覆盖 SPEC §4.6 的核心功能。
+ * 插件系统黄金测试
  */
 class PluginSystemGoldenTest {
 

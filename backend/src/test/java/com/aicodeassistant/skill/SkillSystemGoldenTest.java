@@ -12,7 +12,7 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Skill 系统黄金测试 — 覆盖 SPEC §4.7 / §4.1.20 的核心功能。
+ * Skill 系统黄金测试 — 
  */
 class SkillSystemGoldenTest {
 

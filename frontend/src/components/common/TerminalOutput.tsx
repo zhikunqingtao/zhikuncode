@@ -11,7 +11,6 @@ import { useEffect, useRef } from 'react';
  * - FitAddon 自适应容器
  * - WebLinksAddon 可点击 URL
  *
- * @see SPEC §4.10.4
  */
 interface TerminalOutputProps {
   /** 终端输出内容 (可能含 ANSI 转义序列) */

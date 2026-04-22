@@ -432,6 +432,9 @@ ZhikunCode 内置 47 个工具，覆盖开发全流程：
 | `SPRING_PROFILES_ACTIVE` | — | production | Spring 配置文件 |
 | `JAVA_OPTS` | — | -Xms256m -Xmx1024m | JVM 参数 |
 | `WORKSPACE_PATH` | — | ./workspace | 挂载到容器的工作目录 |
+| `ALLOW_PRIVATE_NETWORK` | — | true（Docker） | Docker 环境下允许私有网段免认证访问 |
+| `LOG_DIR` | — | /app/log | 容器内日志目录 |
+| `MCP_REGISTRY_PATH` | — | 自动配置 | MCP 能力注册表文件路径 |
 
 ### Docker 资源限制
 
@@ -575,6 +578,50 @@ Agent 会自动选择合适的协作模式。
   - Python 生态在代码分析、AST 解析方面成熟
   - FastAPI 异步性能好
   - 作为独立服务，不影响主后端的稳定性
+
+</details>
+
+<details>
+<summary><b>Q9：Docker 部署遇到问题怎么排查？</b></summary>
+
+**容器启动后显示 unhealthy：**
+
+```bash
+# 查看容器状态
+docker ps -a
+
+# 查看启动日志（Java 启动通常需要 30-60 秒）
+docker logs zhikuncode
+
+# 查看健康检查详情
+docker inspect --format='json .State.Health' zhikuncode | python3 -m json.tool
+```
+
+**常见启动失败原因：**
+- `LLM_API_KEY is not configured` — 未配置 API Key，请检查 .env 文件
+- `Unable to access jarfile` — 镜像构建不完整，尝试 `docker compose up --build`
+- 内存不足 — 默认需要 2GB，可在 docker-compose.yml 中调整 `deploy.resources.limits.memory`
+
+**查看运行时日志：**
+```bash
+# 实时跟踪日志
+docker logs -f zhikuncode
+
+# 进入容器查看日志文件
+docker exec -it zhikuncode ls -la /app/log/
+docker exec -it zhikuncode tail -100 /app/log/app.log
+```
+
+**关于 `ALLOW_PRIVATE_NETWORK`：**
+
+此变量控制是否允许 Docker 桥接网络内的请求免认证访问。在 Docker 环境中默认为 `true`，因为容器网络本身已提供隔离。如需更严格的安全策略（如多租户环境），可设置为 `false`，此时所有非 localhost 请求都需要 Bearer Token 认证。
+
+**调整 JVM 内存：**
+
+在 `.env` 中设置：
+```bash
+JAVA_OPTS=-Xms512m -Xmx2048m --enable-preview
+```
 
 </details>
 

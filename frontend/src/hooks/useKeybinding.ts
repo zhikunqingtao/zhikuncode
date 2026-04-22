@@ -28,7 +28,6 @@ interface KeyBinding {
  * - 浏览器冲突键处理
  * - 上下文感知
  *
- * @see SPEC §4.8
  */
 export function useKeybinding(bindings: KeyBinding[]) {
   const bindingsRef = useRef(bindings);

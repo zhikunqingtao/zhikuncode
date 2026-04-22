@@ -231,7 +231,7 @@ class PythonEcoCliGoldenTest {
         @Order(50)
         @DisplayName("7 个能力域枚举名称")
         void capabilityDomainNames() {
-            // 验证 SPEC 定义的 7 个能力域名称可被 client 识别
+            // 验证 7 个能力域名称可被 client 识别
             var knownDomains = java.util.List.of(
                     "CODE_INTEL", "SECURITY", "CODE_QUALITY",
                     "VISUALIZATION", "DOC_GENERATION", "GIT_ENHANCED",

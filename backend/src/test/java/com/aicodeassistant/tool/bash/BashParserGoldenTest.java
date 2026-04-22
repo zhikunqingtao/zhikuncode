@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * BashParser 50 条黄金测试 — 对齐 SPEC §3.2.3c 精选语料库。
+ * BashParser 50 条黄金测试 — 精选语料库。
  * <p>
  * 覆盖 12 个核心语法类别：简单命令(5)/管道(4)/重定向(5)/变量展开(5)/
  * 命令替换(4)/引号转义(5)/控制流(6)/复合(4)/函数(2)/Glob(3)/声明(3)/安全边界(4)。

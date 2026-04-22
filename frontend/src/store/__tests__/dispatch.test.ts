@@ -118,7 +118,7 @@ describe('dispatch 消息分发', () => {
         } as never);
 
         // handleMessageComplete uses queueMicrotask, so we need to wait for it
-        await new Promise(resolve => queueMicrotask(resolve));
+        await new Promise<void>(resolve => queueMicrotask(() => resolve()));
 
         expect(useSessionStore.getState().status).toBe('idle');
         expect(useMessageStore.getState().streamingContent).toBe('');

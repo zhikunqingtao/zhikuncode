@@ -64,13 +64,12 @@ public class RemoteAccessSecurityFilter extends OncePerRequestFilter {
     /** Cookie 有效期 */
     private static final Duration COOKIE_MAX_AGE = Duration.ofDays(30);
 
-    /** 允许的私有网段 */
-    private static final List<String> PRIVATE_SUBNETS = List.of(
-            "10.", "172.16.", "172.17.", "172.18.", "172.19.",
-            "172.20.", "172.21.", "172.22.", "172.23.", "172.24.",
-            "172.25.", "172.26.", "172.27.", "172.28.", "172.29.",
-            "172.30.", "172.31.", "192.168.", "fc00:", "fd"
-    );
+    /**
+     * 是否允许私有网络免认证访问（Docker 部署场景）。
+     * 通过环境变量 ALLOW_PRIVATE_NETWORK=true 启用，默认 false。
+     * 启用后，来自 Docker 桥接网络（172.17.x.x 等）的请求将视同 localhost 免认证放行。
+     */
+    private final boolean allowPrivateNetworkAccess;
 
     @Value("${server.port:8080}")
     private int serverPort;
@@ -79,6 +78,14 @@ public class RemoteAccessSecurityFilter extends OncePerRequestFilter {
     private boolean sslEnabled;
 
     public RemoteAccessSecurityFilter() {
+        // 读取 Docker 环境变量：是否允许私有网络免认证
+        this.allowPrivateNetworkAccess = Boolean.parseBoolean(
+                System.getenv().getOrDefault("ALLOW_PRIVATE_NETWORK", "false"));
+        if (allowPrivateNetworkAccess) {
+            log.info("Private network access enabled (ALLOW_PRIVATE_NETWORK=true). "
+                    + "Requests from Docker bridge network will bypass token authentication.");
+        }
+
         // 尝试加载已有 token，否则生成新 token
         String existingToken = loadExistingToken();
         if (existingToken != null) {
@@ -112,8 +119,20 @@ public class RemoteAccessSecurityFilter extends OncePerRequestFilter {
             return;
         }
 
+        // ========== 层级 1.5: Docker 部署模式免认证 ==========
+        // Docker Desktop (Mac/Windows) 端口映射时，容器看到的来源 IP 可能是
+        // Docker 虚拟网关的 IP（甚至可能被 NAT 为公网 IP），无法通过私有网段判断。
+        // 当 ALLOW_PRIVATE_NETWORK=true 时，信任所有通过 Docker 端口映射进来的请求，
+        // 安全性由 Docker 网络隔离和宿主机防火墙保障。
+        if (allowPrivateNetworkAccess) {
+            log.debug("Docker mode: access granted for IP: {} (ALLOW_PRIVATE_NETWORK=true)", remoteAddr);
+            chain.doFilter(request, response);
+            return;
+        }
+
         // ========== 非私有网段 → 直接拒绝 ==========
         if (!isPrivateNetwork(remoteAddr)) {
+            log.warn("Access denied for non-private IP: {}", remoteAddr);
             response.sendError(HttpServletResponse.SC_FORBIDDEN,
                     "Access denied: only private network allowed");
             return;

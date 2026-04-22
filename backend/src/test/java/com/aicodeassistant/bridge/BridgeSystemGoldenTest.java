@@ -16,7 +16,6 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * IDE 桥接系统 — 黄金测试。
  * <p>
- * 覆盖 SPEC §4.5 全部子系统:
  * <ul>
  *   <li>§4.5.1 BridgeMessage — 消息类型与工厂方法</li>
  *   <li>§4.5.2 BridgeProtocolVersion — 双协议枚举</li>

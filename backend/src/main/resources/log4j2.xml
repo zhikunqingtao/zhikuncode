@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   Log4j2 Configuration — AI Code Assistant Backend
-  对齐 SPEC §10.6.4 日志策略与 Debug 系统:
+  日志策略与 Debug 系统:
     - 5 级日志: TRACE(VERBOSE), DEBUG, INFO, WARN, ERROR
     - 控制台 + 文件输出 + 滚动策略
     - MCP 日志分离: 每个 MCP 服务器独立日志文件
@@ -10,8 +10,8 @@
 <Configuration status="WARN" monitorInterval="30">
 
     <Properties>
-        <!-- 日志目录: 项目根/log/ -->
-        <Property name="LOG_DIR">${sys:user.dir}/../log</Property>
+        <!-- 日志目录: 优先使用环境变量 LOG_DIR，回退到项目根/log/ -->
+        <Property name="LOG_DIR">${env:LOG_DIR:-${sys:user.dir}/../log}</Property>
         <!-- 控制台日志格式: 时间 级别 [线程] 类名 - 消息 -->
         <Property name="CONSOLE_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight{%-5level} [%thread] %cyan{%logger{36}} - %msg%n</Property>
         <!-- 文件日志格式: 时间 级别 [线程] 类全名 - 消息 -->
@@ -61,7 +61,7 @@
             </DefaultRolloverStrategy>
         </RollingFile>
 
-        <!-- ===== Debug 日志 (TRACE+DEBUG 级别, 对齐 SPEC getDebugWriter 缓冲写入) ===== -->
+        <!-- ===== Debug 日志 (TRACE+DEBUG 级别, getDebugWriter 缓冲写入) ===== -->
         <RollingFile name="DebugFile"
                      fileName="${LOG_DIR}/debug/debug.log"
                      filePattern="${LOG_DIR}/debug/debug-%d{yyyy-MM-dd}-%i.log.gz">

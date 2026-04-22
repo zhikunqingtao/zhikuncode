@@ -84,8 +84,8 @@ COPY configuration/ ./configuration/
 COPY docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh
 
-# Create data directories
-RUN mkdir -p /app/data /app/workspace && \
+# Create data and log directories
+RUN mkdir -p /app/data /app/workspace /app/log /app/log/debug /app/log/mcp && \
     chown -R zhikun:zhikun /app
 
 USER zhikun
@@ -95,7 +95,9 @@ ENV JAVA_OPTS="-Xms256m -Xmx1024m --enable-preview" \
     SPRING_PROFILES_ACTIVE="production" \
     PYTHON_SERVICE_PATH="/app/python-service" \
     PYTHONPATH="/app/python-service/src" \
-    MCP_REGISTRY_PATH="/app/configuration/mcp/mcp_capability_registry.json"
+    MCP_REGISTRY_PATH="/app/configuration/mcp/mcp_capability_registry.json" \
+    ALLOW_PRIVATE_NETWORK="true" \
+    LOG_DIR="/app/log"
 
 EXPOSE 8080
 

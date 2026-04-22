@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /**
- * AgentTool 子代理系统黄金测试 — 对齐 SPEC §4.1.1。
+ * AgentTool 子代理系统黄金测试 
  * <p>
  * 覆盖 6 个核心类别:
  * 1. AgentConcurrencyController — 并发限制 (8 tests)

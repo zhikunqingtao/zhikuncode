@@ -33,7 +33,6 @@ const TABS: SettingsTabConfig[] = [
  * 4. Memory — 记忆条目管理
  * 5. Keybindings — 快捷键编辑
  *
- * @see SPEC §4.10.2
  */
 export function SettingsPanel() {
   const [activeTab, setActiveTab] = useState<SettingsTab>('model');
