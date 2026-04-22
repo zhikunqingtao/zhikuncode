@@ -409,11 +409,11 @@ class SkillSystemGoldenTest {
         }
 
         @Test
-        @DisplayName("目录扫描 — .qoder/skills/")
+        @DisplayName("目录扫描 — .zhikun/skills/")
         void directoryScanning() throws IOException {
             // 创建临时目录结构
             Path tempDir = Files.createTempDirectory("skill-test");
-            Path skillsDir = tempDir.resolve(".qoder/skills");
+            Path skillsDir = tempDir.resolve(".zhikun/skills");
             Files.createDirectories(skillsDir);
 
             String skillContent = """
@@ -434,7 +434,7 @@ class SkillSystemGoldenTest {
             // 清理
             Files.deleteIfExists(skillsDir.resolve("test-scan.md"));
             Files.deleteIfExists(skillsDir);
-            Files.deleteIfExists(tempDir.resolve(".qoder"));
+            Files.deleteIfExists(tempDir.resolve(".zhikun"));
             Files.deleteIfExists(tempDir);
         }
 

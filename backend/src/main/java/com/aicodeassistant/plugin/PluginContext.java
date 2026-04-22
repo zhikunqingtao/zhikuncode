@@ -17,7 +17,7 @@ public interface PluginContext {
     /** 读取配置值 */
     Optional<String> getConfig(String key);
 
-    /** 插件数据目录 (~/.qoder/plugins/{pluginName}/data/) */
+    /** 插件数据目录 (~/.zhikun/plugins/{pluginName}/data/) */
     Path getDataDirectory();
 
     /** 宿主 API 版本 */

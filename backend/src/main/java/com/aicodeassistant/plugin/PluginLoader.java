@@ -16,7 +16,7 @@ import java.util.stream.Stream;
  * 加载顺序:
  * <ol>
  *     <li>内置插件 (classpath SPI)</li>
- *     <li>本地 JAR 插件 (~/.qoder/plugins/*.jar)</li>
+ *     <li>本地 JAR 插件 (~/.zhikun/plugins/*.jar)</li>
  *     <li>市场插件 (未来扩展)</li>
  * </ol>
  *
@@ -30,7 +30,7 @@ public class PluginLoader {
     public static final String PLUGIN_API_VERSION = "1.0.0";
 
     /** 插件目录 */
-    private static final String PLUGINS_DIR = ".qoder/plugins";
+    private static final String PLUGINS_DIR = ".zhikun/plugins";
 
     /**
      * 加载所有插件 — 含内置与外部插件。
@@ -98,7 +98,7 @@ public class PluginLoader {
     }
 
     /**
-     * 从 ~/.qoder/plugins/ 目录加载本地 JAR 插件。
+     * 从 ~/.zhikun/plugins/ 目录加载本地 JAR 插件。
      */
     private void loadLocalPlugins(List<LoadedPlugin> enabled,
                                    List<LoadedPlugin> disabled,
@@ -222,7 +222,7 @@ public class PluginLoader {
         @Override
         public Path getDataDirectory() {
             String home = System.getProperty("user.home", ".");
-            Path dataDir = Path.of(home, ".qoder", "plugins", pluginName, "data");
+            Path dataDir = Path.of(home, ".zhikun", "plugins", pluginName, "data");
             try {
                 Files.createDirectories(dataDir);
             } catch (IOException e) {

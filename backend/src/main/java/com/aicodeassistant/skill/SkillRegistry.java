@@ -25,8 +25,8 @@ import java.util.stream.Stream;
  * 加载来源优先级 (高→低):
  * <ol>
  *     <li>managed — 策略管理目录</li>
- *     <li>user    — 用户全局目录 (~/.qoder/skills/)</li>
- *     <li>project — 项目目录 (.qoder/skills/)</li>
+ *     <li>user    — 用户全局目录 (~/.zhikun/skills/)</li>
+ *     <li>project — 项目目录 (.zhikun/skills/)</li>
  *     <li>plugin  — 插件提供的技能</li>
  *     <li>bundled — 内置技能</li>
  *     <li>mcp     — MCP 构建的技能</li>
@@ -46,10 +46,10 @@ public class SkillRegistry {
     private final Map<String, SkillDefinition> builtinSkills = new ConcurrentHashMap<>();
 
     /** 用户全局技能目录 */
-    private static final String USER_SKILLS_DIR = ".qoder/skills";
+    private static final String USER_SKILLS_DIR = ".zhikun/skills";
 
     /** 项目技能目录 */
-    private static final String PROJECT_SKILLS_DIR = ".qoder/skills";
+    private static final String PROJECT_SKILLS_DIR = ".zhikun/skills";
 
     /** 内置技能列表 */
     private static final List<String> BUILTIN_SKILL_NAMES = List.of(
@@ -135,7 +135,7 @@ public class SkillRegistry {
     }
 
     /**
-     * 获取项目技能 — 扫描项目 .qoder/skills/ 目录。
+     * 获取项目技能 — 扫描项目 .zhikun/skills/ 目录。
      */
     public List<SkillDefinition> getProjectSkills(String workingDirectory) {
         if (workingDirectory == null) return List.of();
@@ -144,7 +144,7 @@ public class SkillRegistry {
     }
 
     /**
-     * 获取用户全局技能 — 扫描 ~/.qoder/skills/ 目录。
+     * 获取用户全局技能 — 扫描 ~/.zhikun/skills/ 目录。
      */
     public List<SkillDefinition> getUserSkills() {
         String home = System.getProperty("user.home");
@@ -175,7 +175,7 @@ public class SkillRegistry {
     }
 
     /**
-     * 加载并注册指定目录下的所有 .qoder/skills/ 技能。
+     * 加载并注册指定目录下的所有 .zhikun/skills/ 技能。
      *
      * @param workingDirectory 项目工作目录
      */
@@ -233,7 +233,7 @@ public class SkillRegistry {
     // ============ 动态技能发现 WatchService (§11.3.3) ============
 
     /**
-     * 启动文件监听 — 监听 .qoder/skills/ 目录变化，自动注册/反注册技能。
+     * 启动文件监听 — 监听 .zhikun/skills/ 目录变化，自动注册/反注册技能。
      *
      * @param workingDirectory 项目工作目录
      */

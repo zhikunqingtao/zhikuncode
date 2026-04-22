@@ -17,7 +17,7 @@ import java.util.*;
 /**
  * MCP 审批服务 — 管理第三方 MCP 服务器的信任记录。
  * <p>
- * 信任记录存储在 ~/.qoder/mcp-trusted.json。
+ * 信任记录存储在 ~/.zhikun/mcp-trusted.json。
  * configHash = SHA256(command + args + url)，配置变更需重新审批。
  *
  */
@@ -27,7 +27,7 @@ public class McpApprovalService {
     private static final Logger log = LoggerFactory.getLogger(McpApprovalService.class);
 
     private static final Path TRUST_FILE = Path.of(System.getProperty("user.home"),
-            ".qoder", "mcp-trusted.json");
+            ".zhikun", "mcp-trusted.json");
 
     private final ObjectMapper objectMapper;
 

@@ -5,7 +5,7 @@ package com.aicodeassistant.plugin;
  *
  */
 public enum PluginSourceType {
-    /** 本地 JAR 目录 (~/.qoder/plugins/*.jar) */
+    /** 本地 JAR 目录 (~/.zhikun/plugins/*.jar) */
     LOCAL,
     /** 市场插件 (plugin@marketplace → 下载 JAR) */
     MARKETPLACE,

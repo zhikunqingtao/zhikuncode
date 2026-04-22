@@ -32,7 +32,7 @@ public class AttachmentController {
     private final Path uploadDir;
 
     public AttachmentController(
-            @Value("${app.upload-dir:${user.home}/.qoder/uploads}") String dir) {
+            @Value("${app.upload-dir:${user.home}/.zhikun/uploads}") String dir) {
         this.uploadDir = Path.of(dir);
     }
 
