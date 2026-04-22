@@ -538,7 +538,21 @@ The frontend and backend maintain a persistent WebSocket connection:
 
 ## 🤖 Multi-Agent Collaboration
 
-ZhikunCode offers three Agent collaboration modes for tasks of varying complexity:
+ZhikunCode offers three Agent collaboration modes and five typed Agent definitions for tasks of varying complexity.
+
+### Five Built-in Agent Types
+
+Built on Java 21 sealed interfaces with compile-time exhaustiveness checking. Each Agent type has its own toolset, model preference, and system prompt:
+
+| Agent Type | Purpose | Toolset | Model Preference |
+|-----------|---------|---------|------------------|
+| **General-Purpose** | Full implementation capability | All tools, unrestricted | Inherits parent |
+| **Explore** | Read-only code search | FileEdit/FileWrite denied | Lightweight (light) |
+| **Verification** | Adversarial test validation | FileEdit/FileWrite denied | Inherits parent |
+| **Plan** | Analysis & solution design | FileEdit/FileWrite denied | Inherits parent |
+| **Guide** | Documentation & usage guidance | Only Glob/Grep/FileRead/WebFetch/WebSearch | Lightweight (light) |
+
+> All sub-agents are blocked from calling Agent/TeamCreate/TeamDelete tools, architecturally preventing infinite recursion.
 
 ### Team Mode — Fixed Roles
 
@@ -558,30 +572,56 @@ Team collaboration with predefined roles. Each Agent has a clear set of responsi
 ```
 
 - Use case: frontend/backend split development, test + dev collaboration
-- Agents communicate via TeamMailbox
-- Tasks shared through SharedTaskList
+- Agents communicate via `TeamMailbox` (async, ConcurrentLinkedQueue)
+- Tasks shared through `SharedTaskList` FIFO queue with claim & status tracking
+- `InProcessBackend` runs multiple Workers concurrently via Virtual Threads
 
 ### Swarm Mode — Dynamic Negotiation
 
-Dynamic multi-Worker collaboration built on Java 21 virtual threads, with a four-phase workflow:
+Dynamic multi-Worker collaboration built on Java 21 virtual threads, orchestrated by the Coordinator through a four-phase workflow:
 
 ```
 Research → Synthesis → Implementation → Verification
 ```
 
+Phases follow strict sequential order (no skipping). Each phase records timestamps and result summaries. `CoordinatorWorkflow` manages the full phase lifecycle.
+
 - Use case: complex refactoring, large-scale code migrations
-- Worker count adjusts dynamically
-- Permissions bubble up to the UI for unified user approval
-- Real-time status updates via WebSocket
+- Worker count adjusts dynamically, no pre-declaration needed
+- One Virtual Thread per Worker, 30-minute timeout protection
+- Worker toolsets precisely controlled via allowList/denyList
+- Permissions bubble up to UI (`LeaderPermissionBridge`), 60-second timeout auto-denies to prevent deadlocks
+- Real-time status pushed via STOMP WebSocket
+- Active Swarms managed by Caffeine cache, 4-hour TTL auto-evicts stale instances
 
 ### SubAgent Mode — Parent-Child Delegation
 
-The main Agent delegates subtasks to independent child Agents:
+The main Agent delegates subtasks to independent child Agents, with three isolation levels:
 
-- Use case: tasks requiring isolated execution environments
-- Supports Git Worktree isolation (independent working directories)
-- Supports Fork mode (inherits parent Agent context)
-- Supports background async execution
+| Isolation Mode | Behavior | Use Case |
+|---------------|----------|----------|
+| **NONE** | Shares parent Agent working directory | Lightweight subtasks |
+| **WORKTREE** | Creates independent Git Worktree, auto-merges or discards on completion | Experimental changes needing isolation |
+| **Fork** | Inherits parent session’s full message history, reuses LLM KV cache | Continuation tasks needing full context |
+
+- Supports background async execution (`BackgroundAgentTracker`), pushing start/complete/fail events via WebSocket
+- Per-agent 5-minute timeout, results capped at 100,000 characters
+
+### Three-Layer Concurrency Safety
+
+`AgentConcurrencyController` enforces three-layer limits via Semaphore + session-level counters:
+
+| Dimension | Limit | Protection Target |
+|-----------|-------|-------------------|
+| Global concurrency | ≤ 30 agents | Memory & API pressure |
+| Session concurrency | ≤ 10 agents/session | Interactive resource isolation |
+| Nesting depth | ≤ 3 levels | Prevents infinite recursion |
+
+Slots are auto-released via RAII pattern (`try-with-resources`), ensuring no resource leaks on exception paths.
+
+### Model Alias Routing
+
+Agents use a three-level fallback strategy for model resolution: user parameter → Agent type default → global default. Aliases are configured in `application.yml` under `agent.model-aliases` (e.g., `light → qwen-plus`), avoiding hardcoded model names — configure once, apply everywhere.
 
 ---
 
