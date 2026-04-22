@@ -12,6 +12,7 @@
     <a href="#-demo">Demo</a> ·
     <a href="#-cli-tools">CLI Tools</a> ·
     <a href="#-skill-system">Skill System</a> ·
+    <a href="#-memory-system">Memory</a> ·
     <a href="#-comparison">Comparison</a> ·
     <a href="../README.md">中文</a>
   </p>
@@ -165,6 +166,7 @@ Configure `LLM_BASE_URL` and `LLM_API_KEY` in `.env` to switch providers:
 | MCP Tool Extension | ✅ | ⚠️ 3rd-party | ✅ | ❌ | ✅ | ✅ |
 | CLI Terminal Tools | ✅ aica + 35+ slash cmds | ✅ CLI-first | ⚠️ VS Code only | ❌ | ✅ CLI-only | ❌ |
 | Extensible Skill System | ✅ Markdown-driven + 6-level sources | ❌ | ❌ | ✅ Rules | ✅ Hooks | ❌ |
+| Cross-Session Memory | ✅ 3-layer memory + BM25 search | ❌ | ❌ | ✅ Rules | ✅ Memory | ❌ |
 | No Client Install | ✅ | ❌ | ❌ | ⚠️ | ✅ | ❌ |
 
 > ¹ **Full Browser Control**: After deployment, any device's browser (including mobile) can fully control the entire coding workflow — permission approval, plan negotiation, task management. This is different from Cline/Cursor's "AI controlling a browser for automated testing".
@@ -366,6 +368,73 @@ Invoke with: `/translate language=python` or `/translate python`
 | `model` | string | Specify model (`inherit` uses parent model) |
 
 > Skills support hot reload — changes take effect immediately after saving, no service restart needed. Powered by Java NIO WatchService with 500ms debounce.
+
+---
+
+## 🧠 Memory System
+
+ZhikunCode features a three-layer memory architecture that lets the AI assistant **remember your preferences, project conventions, and workflows across sessions**.
+
+### Three-Layer Memory Architecture
+
+| Layer | File | Scope | Description |
+|-------|------|-------|-------------|
+| **Personal Memory** | `~/.ai-code-assistant/MEMORY.md` | Global, cross-project | AI auto-records user preferences, common patterns, error solutions |
+| **Project Memory** | `zhikun.md` / `zhikun.local.md` | Current project | Project-level coding conventions, architecture decisions, build processes |
+| **Team Memory** | `.zhikun/team-memories/*.md` | Shared with team | Team standards and shared knowledge distributed with the codebase |
+
+### Memory Categories
+
+Based on cognitive psychology models, memories are automatically classified into four types:
+
+| Category | Description | Example |
+|----------|-------------|----------|
+| **Semantic** | Project knowledge, user preferences, technical conventions | "This project uses JUnit 5 + AssertJ" |
+| **Episodic** | Specific operation history, debugging sessions | "Port conflict fix from last deployment" |
+| **Procedural** | Common workflows, deployment processes | "Always run `mvn test` before committing" |
+| **Team** | Team-level shared knowledge and standards | "All APIs return unified Result wrapper" |
+
+### Automatic Memory & Search
+
+The AI automatically records and retrieves memories via the built-in MemoryTool:
+
+- **Auto-write** — AI proactively records important information (user preferences, project norms, etc.)
+- **Auto-load** — Memories are automatically injected into the system prompt at session start
+- **BM25 Search** — Pure Java BM25 search engine with Chinese+English support (Unigram + Bigram CJK tokenization)
+- **LLM Reranking** — Optional LLM reranking service for precision after BM25 initial retrieval
+
+### Project Memory Files
+
+Create memory files in your project root — the AI will automatically read and follow them:
+
+```markdown
+# zhikun.md — Project conventions (committed to repo)
+
+## Coding Standards
+- Java methods use camelCase naming
+- Test classes end with Test suffix
+
+## Build Process
+- Run `./mvnw test` before every commit
+- Use Conventional Commits format
+```
+
+```markdown
+# zhikun.local.md — Local config (not committed, add to .gitignore)
+
+## Local Environment
+- My API Key is in the .env file
+- Local database port: 5432
+```
+
+> Project memory files are loaded by traversing up to 5 parent directories, with a 100KB per-file limit. `zhikun.md` is committed for team sharing; `zhikun.local.md` is for personal local configuration.
+
+### Safety Protections
+
+- Truncation protection: Personal memory capped at 200 lines / 25KB to prevent system prompt token explosion
+- Auto-compaction: When exceeding 50,000 characters, automatically compacts keeping the newest 70%
+- Auto-expiration: Memories untouched for 90 days are automatically purged
+- Path traversal protection: Absolute path and symlink validation on project memory writes
 
 ---
 
