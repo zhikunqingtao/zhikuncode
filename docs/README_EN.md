@@ -12,6 +12,7 @@
     <a href="#-demo">Demo</a> ·
     <a href="#-cli-tools">CLI Tools</a> ·
     <a href="#-skill-system">Skill System</a> ·
+    <a href="#-plugin-system">Plugin System</a> ·
     <a href="#-memory-system">Memory</a> ·
     <a href="#-comparison">Comparison</a> ·
     <a href="../README.md">中文</a>
@@ -166,6 +167,7 @@ Configure `LLM_BASE_URL` and `LLM_API_KEY` in `.env` to switch providers:
 | MCP Tool Extension | ✅ | ⚠️ 3rd-party | ✅ | ✅ | ✅ | ✅ |
 | CLI Terminal Tools | ✅ aica + 35+ slash cmds | ✅ CLI-first | ⚠️ VS Code only | ❌ | ✅ CLI-only | ✅ Copilot CLI |
 | Extensible Skill System | ✅ Markdown-driven + 6-level sources | ❌ | ❌ | ✅ Rules | ✅ Hooks | ❌ |
+| Plugin System | ✅ Java SPI plugins + sandbox isolation + hot reload | ❌ | ❌ | ✅ Plugins | ✅ Skills/Hooks | ✅ Plugins |
 | Cross-Session Memory | ✅ 3-layer memory + BM25 search | ❌ | ❌ | ✅ Rules | ✅ Memory | ❌ |
 | No Client Install | ✅ | ❌ | ❌ | ⚠️ | ✅ | ❌ |
 
@@ -368,6 +370,87 @@ Invoke with: `/translate language=python` or `/translate python`
 | `model` | string | Specify model (`inherit` uses parent model) |
 
 > Skills support hot reload — changes take effect immediately after saving, no service restart needed. Powered by Java NIO WatchService with 500ms debounce.
+
+---
+
+## 🧩 Plugin System
+
+ZhikunCode's Plugin System uses standard **Java SPI (ServiceLoader)** to discover and load third-party JAR plugins, providing four bridging capabilities: command registration, tool registration, hook interception, and MCP server integration. Controlled by the `plugin.enabled` feature flag.
+
+### Four Bridging Capabilities
+
+| Bridge Type | Description | Example |
+|-------------|-------------|--------|
+| **Command Registration** | Plugins can register custom slash commands, auto-prefixed with plugin name | `/myplugin:hello` |
+| **Tool Registration** | Plugins can provide custom tools for AI Agents to invoke | Custom code analysis tool |
+| **Hook Interception** | Plugins can execute custom logic before/after key events | Security audit before tool execution |
+| **MCP Server** | Plugins can register MCP servers to extend AI capabilities | Connect to external data sources |
+
+### Security Features
+
+- **PluginClassLoader Sandbox Isolation** — Plugins access host APIs via package allowlists: Core API packages (`com.aicodeassistant.plugin.*`, `tool.*`, `command.*`, `mcp.*`), standard libraries (`java.*`, `javax.*`, `jdk.*`, `sun.*`, `org.slf4j.*`), and core frameworks (`org.springframework.*`, `com.fasterxml.jackson.*`, `jakarta.*`). Access to non-allowlisted host classes throws `ClassNotFoundException`
+- **Hook Execution Timeout Protection** — Virtual Thread + `CompletableFuture.orTimeout(5s)`, auto-allows on timeout to prevent plugins from blocking the main flow
+- **JAR File Validation** — Pre-load validation of file existence, JAR format, size limit (default 50MB), and SPI config file (`META-INF/services/`) completeness
+- **API Version Compatibility Check** — Plugins declare `minApiVersion` / `maxApiVersion`, the host automatically validates compatibility
+
+### Hot Reload
+
+Supports runtime reloading of all plugins without service restart:
+
+- Uses `ReentrantReadWriteLock` to ensure concurrency safety during reload
+- Reload flow: unload all plugins (unregister commands/tools/hooks/MCP + close ClassLoaders) → re-scan and load
+- Trigger via: `/reload-plugins` slash command or REST API
+
+### 8 Hook Event Types
+
+Plugins can register hooks for the following events to execute custom logic at key points:
+
+| Event Type | Trigger |
+|------------|--------|
+| `PreToolExecution` | Before tool execution |
+| `PostToolExecution` | After tool execution |
+| `UserPromptSubmit` | When a prompt is submitted |
+| `SessionStart` | Session begins |
+| `SessionEnd` | Session ends |
+| `TaskCompleted` | Task completion |
+| `Notification` | Notification event |
+| `Stop` | Stop event |
+
+### Plugin Development Guide
+
+Developing a ZhikunCode plugin takes just four steps:
+
+**1. Implement the `PluginExtension` SPI interface**
+
+```java
+public class MyPlugin implements PluginExtension {
+    @Override public String name() { return "my-plugin"; }
+    @Override public String version() { return "1.0.0"; }
+
+    @Override
+    public List<Command> getCommands() {
+        return List.of(/* custom commands */);
+    }
+
+    @Override
+    public void onLoad(PluginContext ctx) {
+        ctx.getLogger().info("Plugin loaded!");
+    }
+}
+```
+
+**2. Register via `META-INF/services/`**
+
+```
+# META-INF/services/com.aicodeassistant.plugin.PluginExtension
+com.example.MyPlugin
+```
+
+**3. Place the JAR in `~/.zhikun/plugins/`**
+
+**4. Restart the service or run `/reload-plugins` to hot reload**
+
+> The `PluginExtension` interface uses default methods — a minimal implementation only requires `name()` and `version()`. Additional capabilities (commands/tools/hooks/MCP) can be overridden as needed.
 
 ---
 
