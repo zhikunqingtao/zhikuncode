@@ -406,6 +406,13 @@ public class WebSocketController implements PermissionNotifier {
         push(sessionId, "plan_update", planData);
     }
 
+    // ───── #27: 会话列表变更通知 ─────
+
+    /** #27 会话列表变更 — 通知前端按需刷新会话列表，替代 5s 轮询 */
+    public void sendSessionListUpdated(String sessionId) {
+        push(sessionId, "session_list_updated", Map.of());
+    }
+
     // ══════════════════════════════════════════════════════════════
     // Client → Server: 全部 10 种 @MessageMapping Handler
     // ══════════════════════════════════════════════════════════════
@@ -535,6 +542,9 @@ public class WebSocketController implements PermissionNotifier {
             sendMessageComplete(sessionId, totalUsage, result.stopReason());
             log.info("QueryEngine 完成: sessionId={}, stopReason={}, turns={}",
                     sessionId, result.stopReason(), result.turnCount());
+
+            // 7b. ★ 通知前端刷新会话列表（放在 message_complete 之后，确保前端先处理完状态切换）
+            sendSessionListUpdated(sessionId);
         } catch (Exception e) {
             log.error("executeQuery 执行异常: sessionId={}", sessionId, e);
             handler.onError(e);

@@ -5,13 +5,13 @@
  * 包含: SessionList, TaskPanel, FileTracker
  */
 
-import { useState, useCallback, useEffect, useRef } from 'react';
-import { 
-    MessageSquare, 
-    CheckCircle2, 
-    XCircle, 
-    Loader2, 
-    FileText, 
+import { useState, useCallback, useEffect } from 'react';
+import {
+    MessageSquare,
+    CheckCircle2,
+    XCircle,
+    Loader2,
+    FileText,
     Folder,
     ChevronDown,
     ChevronRight,
@@ -94,7 +94,6 @@ function SessionList() {
     const [nextCursor, setNextCursor] = useState<string | null>(null);
     const currentSessionId = useSessionStore(s => s.sessionId);
     const sessionStatus = useSessionStore(s => s.status);
-    const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     // 加载会话列表
     const fetchSessions = useCallback(async (cursor?: string | null) => {
@@ -118,12 +117,14 @@ function SessionList() {
         }
     }, []);
 
-    // 初始加载 + 轮询刷新
+    // 初始加载 + 监听 WebSocket 推送的会话列表变更事件
     useEffect(() => {
         fetchSessions();
-        // 每 5 秒刷新一次
-        pollRef.current = setInterval(() => fetchSessions(), 5000);
-        return () => { if (pollRef.current) clearInterval(pollRef.current); };
+        const handleSessionListUpdated = () => fetchSessions();
+        window.addEventListener('session-list-updated', handleSessionListUpdated);
+        return () => {
+            window.removeEventListener('session-list-updated', handleSessionListUpdated);
+        };
     }, [fetchSessions]);
 
     // 当消息完成时刷新列表（status 从 streaming 变为 idle）
@@ -333,7 +334,7 @@ function TaskPanel({ tasks, onClear }: { tasks: Map<string, TaskState>; onClear:
                     <Trash2 className="w-3.5 h-3.5" />
                 </button>
             </div>
-            
+
             {Array.from(tasks.entries()).map(([taskId, task]) => (
                 <div key={taskId} className="mb-1">
                     <button
@@ -350,12 +351,12 @@ function TaskPanel({ tasks, onClear }: { tasks: Map<string, TaskState>; onClear:
                             {task.agentName || taskId.slice(0, 8)}
                         </span>
                     </button>
-                    
+
                     {expandedTasks.has(taskId) && (
                         <div className="ml-9 mt-1 space-y-1">
                             {task.progress !== undefined && (
                                 <div className="h-1.5 bg-[var(--bg-primary)] rounded-full overflow-hidden">
-                                    <div 
+                                    <div
                                         className="h-full bg-blue-500 transition-all"
                                         style={{ width: `${(task.progress as number) * 100}%` }}
                                     />
@@ -395,7 +396,7 @@ function FileTracker() {
                     <RefreshCw className="w-3.5 h-3.5" />
                 </button>
             </div>
-            
+
             {recentFiles.length === 0 ? (
                 <div className="p-4 text-center text-[var(--text-muted)] text-sm">
                     暂无文件记录
@@ -417,8 +418,8 @@ function FileTracker() {
                                 </div>
                             </div>
                             <span className={`text-xs px-1.5 py-0.5 rounded ${
-                                file.type === 'edit' 
-                                    ? 'bg-yellow-500/20 text-yellow-600' 
+                                file.type === 'edit'
+                                    ? 'bg-yellow-500/20 text-yellow-600'
                                     : 'bg-blue-500/20 text-blue-600'
                             }`}>
                                 {file.type === 'edit' ? '编辑' : '读取'}

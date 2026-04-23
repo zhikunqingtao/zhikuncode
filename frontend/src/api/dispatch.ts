@@ -277,6 +277,14 @@ const handlers: Record<string, (data: any) => void> = {
         useCoordinatorStore.getState().updateWorkflowPhase(d);
     },
 
+    // === 会话列表变更通知 (1 种) ===
+    'session_list_updated': () => {
+        // 延迟 200ms 再通知刷新，确保数据库落盘完成（SQLite WAL 可见性）
+        setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('session-list-updated'));
+        }, 200);
+    },
+
     // === planStore: Plan Mode 更新 (1 种) ===
     'plan_update': (d: {
         isPlanMode: boolean;
