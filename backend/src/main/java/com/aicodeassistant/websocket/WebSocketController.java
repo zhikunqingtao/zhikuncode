@@ -406,6 +406,13 @@ public class WebSocketController implements PermissionNotifier {
         push(sessionId, "plan_update", planData);
     }
 
+    // ───── #27: 会话列表变更通知 ─────
+
+    /** #27 会话列表变更 — 通知前端按需刷新会话列表 */
+    public void sendSessionListUpdated(String sessionId) {
+        push(sessionId, "session_list_updated", Map.of());
+    }
+
     // ══════════════════════════════════════════════════════════════
     // Client → Server: 全部 10 种 @MessageMapping Handler
     // ══════════════════════════════════════════════════════════════
@@ -417,6 +424,8 @@ public class WebSocketController implements PermissionNotifier {
     public void handleUserMessage(@Payload ClientMessage.UserMessagePayload msg,
                                    Principal principal) {
         String sessionId = resolveSessionId(principal);
+        // 刷新 session 活跃时间（明确的用户动作）
+        wsSessionManager.refreshActivity(sessionId);
         log.info("WS user_message: sessionId={}, text={}", sessionId,
                 msg.text() != null ? msg.text().substring(0, Math.min(50, msg.text().length())) : "");
 
@@ -533,6 +542,13 @@ public class WebSocketController implements PermissionNotifier {
             // 7. 发送完成消息
             Usage totalUsage = result.totalUsage() != null ? result.totalUsage() : Usage.zero();
             sendMessageComplete(sessionId, totalUsage, result.stopReason());
+            // 7b. ★ 通知前端刷新会话列表（放在 message_complete 之后，确保前端先处理完状态切换）
+            // 独立 try-catch: 推送失败不应影响已完成的查询结果，避免触发 handler.onError
+            try {
+                sendSessionListUpdated(sessionId);
+            } catch (Exception ex) {
+                log.warn("Failed to push session_list_updated: sessionId={}", sessionId, ex);
+            }
             log.info("QueryEngine 完成: sessionId={}, stopReason={}, turns={}",
                     sessionId, result.stopReason(), result.turnCount());
         } catch (Exception e) {
@@ -792,6 +808,10 @@ public class WebSocketController implements PermissionNotifier {
                     }
                     case SKIP -> { /* 无操作 */ }
                     default -> log.warn("Unhandled command result type: {}", cmdResult.type());
+                }
+                // ★ 斜杠命令可能变更会话列表（如 /clear 创建新会话），通知前端刷新
+                try { sendSessionListUpdated(sessionId); } catch (Exception ex) {
+                    log.debug("Failed to push session_list_updated after slash command: {}", ex.getMessage());
                 }
             } else {
                 push(sessionId, "error", Map.of(

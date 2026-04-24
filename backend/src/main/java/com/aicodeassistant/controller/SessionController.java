@@ -8,11 +8,13 @@ import com.aicodeassistant.model.SessionSummary;
 import com.aicodeassistant.session.SessionData;
 import com.aicodeassistant.session.SessionManager;
 import com.aicodeassistant.session.SessionPage;
+import com.aicodeassistant.websocket.WebSocketSessionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
@@ -44,13 +46,19 @@ public class SessionController {
     private final SessionManager sessionManager;
     private final CompactService compactService;
     private final LlmProviderRegistry providerRegistry;
+    private final SimpMessagingTemplate messaging;
+    private final WebSocketSessionManager wsSessionManager;
 
     public SessionController(SessionManager sessionManager,
                              CompactService compactService,
-                             LlmProviderRegistry providerRegistry) {
+                             LlmProviderRegistry providerRegistry,
+                             SimpMessagingTemplate messaging,
+                             WebSocketSessionManager wsSessionManager) {
         this.sessionManager = sessionManager;
         this.compactService = compactService;
         this.providerRegistry = providerRegistry;
+        this.messaging = messaging;
+        this.wsSessionManager = wsSessionManager;
     }
 
     /**
@@ -68,6 +76,9 @@ public class SessionController {
         String permissionMode = request != null ? request.permissionMode() : null;
 
         String sessionId = sessionManager.createSession(model, workingDir);
+
+        // 通知所有活跃 WebSocket 连接刷新会话列表
+        notifySessionListChanged();
 
         return ResponseEntity.status(201).body(new CreateSessionResponse(
                 sessionId,
@@ -132,6 +143,8 @@ public class SessionController {
     @DeleteMapping("/{sessionId}")
     public ResponseEntity<Map<String, Boolean>> deleteSession(@PathVariable String sessionId) {
         sessionManager.deleteSession(sessionId);
+        // 通知所有活跃 WebSocket 连接刷新会话列表
+        notifySessionListChanged();
         return ResponseEntity.ok(Map.of("success", true));
     }
 
@@ -234,6 +247,26 @@ public class SessionController {
     }
 
     // ───── 辅助方法 ─────
+
+    /**
+     * 通知所有活跃 WebSocket 连接刷新会话列表。
+     * 直接使用 SimpMessagingTemplate 推送，避免 Controller 间耦合。
+     */
+    private void notifySessionListChanged() {
+        try {
+            for (String activeSessionId : wsSessionManager.getActiveSessionIds()) {
+                String principal = wsSessionManager.getPrincipalForSession(activeSessionId);
+                if (principal != null) {
+                    Map<String, Object> message = Map.of(
+                            "type", "session_list_updated",
+                            "ts", System.currentTimeMillis());
+                    messaging.convertAndSendToUser(principal, "/queue/messages", message);
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to notify session list change: {}", e.getMessage());
+        }
+    }
 
     private SessionData getSessionOrThrow(String sessionId) {
         return sessionManager.loadSession(sessionId)

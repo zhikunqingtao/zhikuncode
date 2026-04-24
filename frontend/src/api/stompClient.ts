@@ -28,6 +28,7 @@ const VALID_MESSAGE_TYPES: ReadonlySet<string> = new Set([
     'interrupt_ack', 'model_changed', 'permission_mode_changed', 'command_result',
     'rewind_complete', 'token_budget_nudge', 'plan_update',
     'swarm_state_update', 'worker_progress', 'permission_bubble', 'workflow_phase_update',
+    'session_list_updated',
 ]);
 
 /**

@@ -1,5 +1,5 @@
 /**
- * WebSocket 消息分发器 — 覆盖全部 25 种 Server→Client 消息类型
+ * WebSocket 消息分发器 — 覆盖全部 40 种 Server→Client 消息类型
  * SPEC: §8.5.3 dispatch 函数
  *
  * 按 type 字段分发到对应 Zustand Store，
@@ -276,6 +276,14 @@ const handlers: Record<string, (data: any) => void> = {
     // === #41: Coordinator 工作流 (1 种) ===
     'workflow_phase_update': (d: import('@/types').WorkflowPhaseUpdatePayload) => {
         useCoordinatorStore.getState().updateWorkflowPhase(d);
+    },
+
+    // === 会话列表变更通知 (1 种) ===
+    'session_list_updated': () => {
+        // 延迟 200ms 再通知刷新，确保数据库落盘完成（SQLite WAL 可见性）
+        setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('session-list-updated'));
+        }, 200);
     },
 
     // === planStore: Plan Mode 更新 (1 种) ===

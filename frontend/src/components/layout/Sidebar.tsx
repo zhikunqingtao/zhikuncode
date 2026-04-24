@@ -93,7 +93,6 @@ function SessionList() {
     const [hasMore, setHasMore] = useState(false);
     const [nextCursor, setNextCursor] = useState<string | null>(null);
     const currentSessionId = useSessionStore(s => s.sessionId);
-    const sessionStatus = useSessionStore(s => s.status);
     const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     // 加载会话列表
@@ -118,20 +117,19 @@ function SessionList() {
         }
     }, []);
 
-    // 初始加载 + 轮询刷新
+    // 初始加载 + 兆底轮询（60s，防止 WS 推送丢失）
     useEffect(() => {
         fetchSessions();
-        // 每 5 秒刷新一次
-        pollRef.current = setInterval(() => fetchSessions(), 5000);
+        pollRef.current = setInterval(() => fetchSessions(), 60000);
         return () => { if (pollRef.current) clearInterval(pollRef.current); };
     }, [fetchSessions]);
 
-    // 当消息完成时刷新列表（status 从 streaming 变为 idle）
+    // WebSocket 推送驱动的即时刷新
     useEffect(() => {
-        if (sessionStatus === 'idle') {
-            fetchSessions();
-        }
-    }, [sessionStatus, fetchSessions]);
+        const handler = () => fetchSessions();
+        window.addEventListener('session-list-updated', handler);
+        return () => window.removeEventListener('session-list-updated', handler);
+    }, [fetchSessions]);
 
     // 切换会话
     const handleSwitchSession = useCallback(async (sessionId: string) => {
