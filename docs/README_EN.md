@@ -57,6 +57,9 @@
 ### Code Optimization
 ![Code Optimization Demo](assets/demo-code-optimization.gif)
 
+### Multi-Agent Collaborative Full-Stack Development
+![Multi-Agent Collaboration Demo](assets/demo-multi-agent-todo.gif)
+
 ### Full Browser-Based Control on iPad
 ![iPad Browser Control Demo](assets/demo-ipad-browser.gif)
 

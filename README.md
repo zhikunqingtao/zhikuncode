@@ -56,6 +56,9 @@
 ### 优化代码
 ![优化代码演示](docs/assets/demo-code-optimization.gif)
 
+### 多 Agent 协作开发前后端应用
+![多 Agent 协作演示](docs/assets/demo-multi-agent-todo.gif)
+
 ### iPad 浏览器全流程操控
 ![iPad浏览器操控演示](docs/assets/demo-ipad-browser.gif)
 
