@@ -149,8 +149,9 @@ function App() {
   }, [addMessage]);
 
   // 执行技能
-  const executeSkill = useCallback((skillName: string) => {
-    sendSlashCommand('skill', skillName);
+  const executeSkill = useCallback((skillName: string, userInput: string) => {
+    const args = userInput ? `${skillName} ${userInput}` : skillName;
+    sendSlashCommand('skill', args);
     setSelectedSkill(null);
   }, []);
 

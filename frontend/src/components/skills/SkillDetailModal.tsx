@@ -12,9 +12,10 @@ interface SkillDetail {
 export const SkillDetailModal: React.FC<{
     skillName: string;
     onClose: () => void;
-    onExecute: (name: string) => void;
+    onExecute: (name: string, userInput: string) => void;
 }> = ({ skillName, onClose, onExecute }) => {
     const [detail, setDetail] = useState<SkillDetail | null>(null);
+    const [userInput, setUserInput] = useState('');
 
     useEffect(() => {
         fetch(`/api/skills/${skillName}`)
@@ -50,9 +51,22 @@ export const SkillDetailModal: React.FC<{
                         {detail.content}
                     </pre>
                 </div>
+                {/* User Input */}
+                <div className="px-4 pb-3">
+                    <label className="text-xs text-[var(--text-muted)] mb-1 block">补充说明（可选）</label>
+                    <textarea
+                        value={userInput}
+                        onChange={e => setUserInput(e.target.value)}
+                        placeholder="输入你希望 AI 处理的内容或补充说明..."
+                        className="w-full h-20 text-sm bg-[var(--bg-tertiary)] border border-[var(--border)] rounded-lg p-2
+                                   text-[var(--text-primary)] placeholder-[var(--text-muted)] resize-none
+                                   focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        autoFocus
+                    />
+                </div>
                 {/* Footer */}
                 <div className="p-3 border-t border-[var(--border)] flex justify-end">
-                    <button onClick={() => onExecute(detail.name)}
+                    <button onClick={() => onExecute(detail.name, userInput.trim())}
                             className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg
                                        bg-blue-600 hover:bg-blue-500 text-white transition-colors">
                         <Play size={12} />

@@ -91,6 +91,15 @@ public class SkillRegistry {
             }
         }
         log.info("Builtin skills loaded: {}/{}", builtinSkills.size(), BUILTIN_SKILL_NAMES.size());
+
+        // 加载项目级和用户级自定义技能，并启动文件监听热重载
+        String workingDirectory = resolveWorkingDirectory();
+        if (workingDirectory != null) {
+            loadAndRegister(workingDirectory);
+            startWatching(workingDirectory);
+        } else {
+            log.info("No working directory resolved, skipping custom skill loading");
+        }
     }
 
     /**
@@ -228,6 +237,40 @@ public class SkillRegistry {
     public void clear() {
         skills.clear();
         builtinSkills.clear();
+    }
+
+    /**
+     * 解析项目工作目录 — 用于定位 .zhikun/skills/ 目录。
+     * <p>
+     * start.sh 从项目根目录执行 {@code java -jar backend/target/xxx.jar}，
+     * 因此 {@code user.dir} 指向项目根目录。
+     * 如果 user.dir 是 backend/ 子目录（IDE 内运行），则尝试上级目录。
+     *
+     * @return 包含 .zhikun/skills/ 目录的工作目录路径，或 user.dir 本身
+     */
+    private String resolveWorkingDirectory() {
+        String userDir = System.getProperty("user.dir");
+        if (userDir == null) {
+            return null;
+        }
+
+        // 优先检查当前目录下是否有 .zhikun/skills/
+        if (Files.isDirectory(Path.of(userDir, PROJECT_SKILLS_DIR))) {
+            log.info("Resolved working directory: {} (has {})", userDir, PROJECT_SKILLS_DIR);
+            return userDir;
+        }
+
+        // 兜底：IDE 内 user.dir 可能是 backend/ 子目录，尝试上级
+        Path parent = Path.of(userDir).getParent();
+        if (parent != null && Files.isDirectory(parent.resolve(PROJECT_SKILLS_DIR))) {
+            String parentDir = parent.toString();
+            log.info("Resolved working directory: {} (parent, has {})", parentDir, PROJECT_SKILLS_DIR);
+            return parentDir;
+        }
+
+        // 目录不存在也返回 user.dir，让 loadAndRegister/startWatching 内部处理
+        log.info("Working directory resolved to: {} (no {} found yet)", userDir, PROJECT_SKILLS_DIR);
+        return userDir;
     }
 
     // ============ 动态技能发现 WatchService (§11.3.3) ============
