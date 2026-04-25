@@ -48,8 +48,8 @@
 
 ## 🎬 Demo
 
-### File Writing
-![File Writing Demo](assets/demo-write-file.gif)
+### File Operations
+![File Operations Demo](assets/demo-file-operation.gif)
 
 ### Full Browser-Based Control on iPad
 ![iPad Browser Control Demo](assets/demo-ipad-browser.gif)
