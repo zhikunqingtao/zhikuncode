@@ -336,6 +336,7 @@ public class QueryEngine {
             }
 
             // ===== Step 4: 收集 API 响应 =====
+            log.info("[DIAG-TOOL] Turn {} Step4: streamChat returned, building AssistantMessage...", turn);
             Message.AssistantMessage assistantMessage = collector.buildAssistantMessage();
             state.addMessage(assistantMessage);
             handler.onAssistantMessage(assistantMessage);
@@ -896,6 +897,7 @@ public class QueryEngine {
                 case LlmStreamEvent.MessageDelta delta -> {
                     this.usage = delta.usage();
                     this.stopReason = delta.stopReason();
+                    log.info("[DIAG-TOOL] MessageDelta: stopReason={}, currentToolId={}", delta.stopReason(), currentToolId);
                     // 结束所有待处理的块
                     flushTextBlock();
                     flushToolBlock();
@@ -910,6 +912,7 @@ public class QueryEngine {
                 case LlmStreamEvent.BlockStop bs -> {
                     // ★ 流式即时启动：tool_use block 结束时立即 flush 并提交执行
                     // 无需等待 MessageDelta，实现 "收到即启动" 而非 "收集完再启动"
+                    log.info("[DIAG-TOOL] BlockStop event: currentToolId={}, currentToolName={}", currentToolId, currentToolName);
                     flushToolBlock();
                 }
             }
@@ -917,6 +920,7 @@ public class QueryEngine {
 
         @Override
         public void onComplete() {
+            log.info("[DIAG-TOOL] onComplete: contentBlocks={}, stopReason={}", contentBlocks.size(), stopReason);
             flushTextBlock();
             flushToolBlock();
         }
@@ -943,6 +947,8 @@ public class QueryEngine {
 
         private void flushToolBlock() {
             if (currentToolId != null) {
+                log.info("[DIAG-TOOL] flushToolBlock: toolId={}, toolName={}, inputLen={}",
+                        currentToolId, currentToolName, currentToolInput.length());
                 JsonNode inputNode;
                 try {
                     String inputStr = currentToolInput.toString();
@@ -950,6 +956,7 @@ public class QueryEngine {
                             ? objectMapper.createObjectNode()
                             : objectMapper.readTree(inputStr);
                 } catch (Exception e) {
+                    log.warn("[DIAG-TOOL] flushToolBlock JSON parse error: toolId={}, error={}", currentToolId, e.getMessage());
                     inputNode = objectMapper.createObjectNode();
                 }
                 ContentBlock.ToolUseBlock toolBlock = new ContentBlock.ToolUseBlock(
@@ -957,11 +964,15 @@ public class QueryEngine {
                 contentBlocks.add(toolBlock);
 
                 // 立即提交到 StreamingToolExecutor 开始并行执行
+                log.info("[DIAG-TOOL] flushToolBlock submit: session={}, discarded={}",
+                        session != null, session != null && session.isDiscarded());
                 if (session != null && !session.isDiscarded()) {
                     Tool tool = findToolByName(currentToolName);
+                    log.info("[DIAG-TOOL] findToolByName({}): found={}", currentToolName, tool != null);
                     if (tool != null) {
                         ToolInput toolInput = ToolInput.fromJsonNode(inputNode);
                         session.addTool(tool, toolInput, currentToolId, toolUseContext);
+                        log.info("[DIAG-TOOL] addTool submitted: toolId={}, toolName={}", currentToolId, currentToolName);
                     } else {
                         // 工具未找到 — 直接标记 COMPLETED + error
                         log.warn("Tool not found in streaming phase: {}", currentToolName);
@@ -985,6 +996,7 @@ public class QueryEngine {
         }
 
         Message.AssistantMessage buildAssistantMessage() {
+            log.info("[DIAG-TOOL] buildAssistantMessage: contentBlocks={}, stopReason={}", contentBlocks.size(), stopReason);
             flushTextBlock();
             flushToolBlock();
             return new Message.AssistantMessage(

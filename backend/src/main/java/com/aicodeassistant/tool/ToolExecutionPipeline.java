@@ -149,6 +149,7 @@ public class ToolExecutionPipeline {
 
             // ── 阶段 4: 权限检查 ──
             PermissionRequirement permReq = tool.getPermissionRequirement();
+            log.info("[DIAG-PERM] Stage 4: tool={}, permReq={}, sessionId={}", toolName, permReq, context.sessionId());
             if (permReq != PermissionRequirement.NONE) {
                 // 构建权限上下文 — 从 PermissionModeManager 获取会话级模式
                 PermissionMode sessionMode = permissionModeManager.getMode(context.sessionId());
@@ -156,6 +157,8 @@ public class ToolExecutionPipeline {
                         sessionMode, false, false);
                 PermissionDecision decision = permissionPipeline.checkPermission(
                         tool, processedInput, context, permContext);
+                log.info("[DIAG-PERM] Stage 4 decision: tool={}, behavior={}, reason={}",
+                        toolName, decision.behavior(), decision.reason());
 
                 if (decision.isDenied()) {
                     log.info("Tool {} permission denied: {}", toolName, decision.reason());

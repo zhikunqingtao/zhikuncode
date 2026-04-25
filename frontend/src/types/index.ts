@@ -369,6 +369,7 @@ export interface Config {
     verbose: boolean;
     expandedView: boolean;
     outputStyle: { availableStyles: OutputStyleDef[]; activeStyleName: string | null };
+    defaultModel: string;
 }
 
 // ==================== 命令 ====================

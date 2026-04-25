@@ -45,6 +45,12 @@ kill_port 8080
 kill_port 8000
 kill_port 5173
 
+# 清理 Backend 编译产物，防止残留 class 导致 NoClassDefFoundError
+if [ -d "$PROJECT_ROOT/backend/target" ]; then
+    rm -rf "$PROJECT_ROOT/backend/target"
+    log_info "Backend target 目录已清理"
+fi
+
 echo ""
 log_info "所有服务已停止"
 echo ""

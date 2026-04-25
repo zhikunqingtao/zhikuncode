@@ -114,6 +114,12 @@ public class WebSocketSessionManager {
 
     /**
      * STOMP 断开 — 清理映射。
+     * <p>
+     * ★ 只清理 transport 映射，不立即清理 principal ↔ sessionId 映射。
+     * 原因：浏览器窗口临时不可见、短暂网络波动等场景会触发 STOMP DISCONNECT，
+     * 但此时可能有正在执行的工具（如 Bash）需要通过 push() 发送 permission_request。
+     * 如果立即清理 session 映射，push() 会找不到 principal 而静默丢弃消息。
+     * session 映射由 TTL 定时清理机制负责回收，不会内存泄漏。
      */
     @EventListener
     public void handleSessionDisconnect(SessionDisconnectEvent event) {
@@ -123,12 +129,11 @@ public class WebSocketSessionManager {
         String principalName = transportToSession.remove(transportSessionId);
         transportLastActive.remove(transportSessionId);
         if (principalName != null) {
-            String appSessionId = principalToSession.remove(principalName);
-            if (appSessionId != null) {
-                sessionToPrincipal.remove(appSessionId);
-                sessionLastActive.remove(appSessionId);
-            }
-            log.info("WebSocket session unbound: principal={}, sessionId={}", principalName, appSessionId);
+            // ★ 不立即移除 principal ↔ session 映射 — 留给重连窗口和进行中的工具执行
+            // 重连后前端会发送 bind-session 覆盖旧映射，TTL 清理会回收孤儿条目
+            String appSessionId = principalToSession.get(principalName);
+            log.info("WebSocket transport disconnected: principal={}, sessionId={} (mapping retained for reconnect)",
+                    principalName, appSessionId);
         }
     }
 
@@ -152,6 +157,15 @@ public class WebSocketSessionManager {
      * 手动绑定 principal ↔ sessionId（用于 REST API 创建会话后绑定）。
      */
     public void bindSession(String principalName, String sessionId) {
+        // ★ 重连场景: 旧 principal (anon-OLD) 映射到同一 sessionId，
+        //   新 principal (anon-NEW) 绑定时需清理旧条目，否则 principalToSession 中
+        //   旧条目永远无法被 TTL 清理（TTL 以 sessionId 遍历，找不到已覆盖的旧 principal）。
+        String oldPrincipal = sessionToPrincipal.get(sessionId);
+        if (oldPrincipal != null && !oldPrincipal.equals(principalName)) {
+            principalToSession.remove(oldPrincipal);
+            log.info("Replaced stale principal mapping: old={}, new={}, sessionId={}",
+                    oldPrincipal, principalName, sessionId);
+        }
         principalToSession.put(principalName, sessionId);
         sessionToPrincipal.put(sessionId, principalName);
         sessionLastActive.put(sessionId, System.currentTimeMillis());

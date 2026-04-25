@@ -103,7 +103,12 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                 
                 <select
                     value={model || ''}
-                    onChange={(e) => setModel(e.target.value)}
+                    onChange={(e) => {
+                        const newModel = e.target.value;
+                        setModel(newModel);
+                        // 同步更新 configStore 默认模型并持久化到后端数据库
+                        useConfigStore.getState().saveConfig({ defaultModel: newModel });
+                    }}
                     className="px-3 py-1.5 text-sm rounded-lg border border-[var(--border)] 
                         bg-[var(--bg-primary)] text-[var(--text-primary)]
                         focus:outline-none focus:ring-2 focus:ring-blue-500"

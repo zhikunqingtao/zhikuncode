@@ -122,8 +122,9 @@ kill_port $FRONTEND_PORT
 # ======================== 启动 Backend ========================
 log_step "启动 Backend (Java Spring Boot :$BACKEND_PORT)..."
 cd "$PROJECT_ROOT/backend"
-# 先 clean compile 确保所有类（含 inner record）完整编译，再 spring-boot:run 启动
-./mvnw clean compile -DskipTests > "$BACKEND_LOG" 2>&1
+# 先 clean compile 确保所有类（含 inner record）完整编译，避免残留 class 导致 NoClassDefFoundError
+log_info "正在编译 Backend (clean compile)..."
+./mvnw clean compile -DskipTests -q > "$BACKEND_LOG" 2>&1
 if [ $? -ne 0 ]; then
     log_error "Backend 编译失败，请查看日志: $BACKEND_LOG"
     exit 1

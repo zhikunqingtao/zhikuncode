@@ -555,11 +555,17 @@ public class WebSocketController implements PermissionNotifier {
             }
             log.info("QueryEngine 完成: sessionId={}, stopReason={}, turns={}",
                     sessionId, result.stopReason(), result.turnCount());
-        } catch (Exception e) {
-            log.error("executeQuery 执行异常: sessionId={}", sessionId, e);
-            handler.onError(e);
+        } catch (Throwable t) {
+            log.error("[DIAG-TOOL] executeQuery 执行异常: sessionId={}, exType={}, message={}",
+                    sessionId, t.getClass().getName(), t.getMessage(), t);
+            if (t instanceof Exception e) {
+                handler.onError(e);
+            } else {
+                handler.onError(new RuntimeException("Internal error: " + t.getClass().getName(), t));
+            }
         } finally {
             // ★ 保障: 即使异常也确保发送 message_complete，防止前端卡在加载态
+            log.info("[DIAG-TOOL] executeQuery finally: sessionId={}, resultIsNull={}", sessionId, result == null);
             if (result == null) {
                 sendMessageComplete(sessionId, Usage.zero(), "error");
             }

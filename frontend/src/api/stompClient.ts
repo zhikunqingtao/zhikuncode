@@ -13,6 +13,7 @@
 import { Client as StompClient, IFrame, IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { dispatch, resetSequence, resetBoundSession } from './dispatch';
+import { useSessionStore } from '@/store/sessionStore';
 import type { ServerMessage } from '@/types';
 
 /**
@@ -162,6 +163,20 @@ export function createStompClient(sessionId: string, authToken: string): StompCl
                     dispatch(data);
                 }
             });
+
+            // ★ 重连后立即重发 bind-session — 恢复后端 principal↔sessionId 映射
+            // 确保正在执行的工具（如 Bash 权限请求）的 push() 能找到 principal
+            // 注意: 不调用 markSessionBound — 保留 App.tsx handleSubmit 中
+            //       bind-session → waitForSessionRestore → addMessage 的安全时序，
+            //       防止 session_restored 的 clearMessages() 吞掉用户消息
+            const activeSessionId = useSessionStore.getState().sessionId;
+            if (activeSessionId) {
+                client.publish({
+                    destination: '/app/bind-session',
+                    body: JSON.stringify({ sessionId: activeSessionId }),
+                });
+                console.info('[WS] Reconnect: re-bound session', activeSessionId);
+            }
         },
 
         // STOMP 错误回调

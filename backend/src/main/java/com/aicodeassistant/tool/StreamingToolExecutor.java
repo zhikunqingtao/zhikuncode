@@ -126,6 +126,8 @@ public class StreamingToolExecutor {
             TrackedTool tt = new TrackedTool(toolUseId, tool, input, effectiveContext);
             tracked.add(tt);
             queue.add(tt);
+            log.info("[DIAG-TOOL] addTool: toolUseId={}, toolName={}, queueSize={}, trackedSize={}",
+                    toolUseId, tool.getName(), queue.size(), tracked.size());
             processQueue();
         }
 
@@ -141,13 +143,20 @@ public class StreamingToolExecutor {
         private void processQueue() {
             while (!queue.isEmpty()) {
                 TrackedTool next = queue.peek();
-                if (!canExecute(next)) break;
+                boolean canExec = canExecute(next);
+                log.info("[DIAG-TOOL] processQueue: tool={}, canExecute={}, active={}, queueSize={}",
+                        next.tool.getName(), canExec, active.get(), queue.size());
+                if (!canExec) break;
 
                 queue.poll();
                 active.incrementAndGet();
                 next.state = ToolState.EXECUTING;
+                log.info("[DIAG-TOOL] processQueue: launching virtual thread for tool={}, toolUseId={}",
+                        next.tool.getName(), next.toolUseId);
 
                 Thread.ofVirtual().name("zhiku-tool-" + next.tool.getName()).start(() -> {
+                    log.info("[DIAG-TOOL] virtual thread started: tool={}, threadName={}",
+                            next.tool.getName(), Thread.currentThread().getName());
                     activeVirtualThreads.incrementAndGet();
                     Timer.Sample sample = Timer.start(meterRegistry);
                     try {

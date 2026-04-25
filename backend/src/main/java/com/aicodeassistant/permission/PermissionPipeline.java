@@ -134,6 +134,7 @@ public class PermissionPipeline {
                 tool.getName(), permissionContext.mode());
 
         // ===== Step 1a: deny 规则 =====
+        log.info("[DIAG-PERM] Step 1a: checking deny rules for tool={}", tool.getName());
         PermissionRule denyRule = ruleMatcher.findDenyRule(permissionContext, tool);
         if (denyRule != null) {
             log.debug("Step 1a: deny rule matched for tool={}", tool.getName());
@@ -142,6 +143,7 @@ public class PermissionPipeline {
         }
 
         // ===== Step 1b: ask 规则 =====
+        log.info("[DIAG-PERM] Step 1b: checking ask rules for tool={}", tool.getName());
         PermissionRule askRule = ruleMatcher.findAskRule(permissionContext, tool);
         if (askRule != null) {
             log.debug("Step 1b: ask rule matched for tool={}", tool.getName());
@@ -149,9 +151,11 @@ public class PermissionPipeline {
         }
 
         // ===== Step 1c: 工具自身权限检查 =====
+        log.info("[DIAG-PERM] Step 1c: tool.checkPermissions() for tool={}", tool.getName());
         PermissionBehavior toolBehavior;
         try {
             toolBehavior = tool.checkPermissions(input, context);
+            log.info("[DIAG-PERM] Step 1c result: tool={}, behavior={}", tool.getName(), toolBehavior);
         } catch (Exception e) {
             log.warn("Step 1c: tool.checkPermissions() failed for tool={}: {}",
                     tool.getName(), e.getMessage());
@@ -172,6 +176,7 @@ public class PermissionPipeline {
         }
 
         // ===== Step 1f: 内容级 ask 规则 (优先于 bypass 模式) =====
+        log.info("[DIAG-PERM] Step 1f: checkContentLevelAsk for tool={}", tool.getName());
         PermissionDecision contentAskDecision = checkContentLevelAsk(tool, input);
         if (contentAskDecision != null) {
             log.debug("Step 1f: content-level ask triggered for tool={}", tool.getName());
@@ -194,6 +199,7 @@ public class PermissionPipeline {
         }
 
         // ===== Step 1f-bash: Bash 命令危险删除 + 环境变量检查 (Layer 4+7) =====
+        log.info("[DIAG-PERM] Step 1f-bash: checking for tool={}", tool.getName());
         if (BASH_TOOL_NAMES.contains(tool.getName())) {
             String command = input.getString("command");
             String rmBlock = pathSecurityService.checkDangerousRemoval(command);
@@ -210,6 +216,7 @@ public class PermissionPipeline {
         }
 
         // ===== Step 1g: 安全检查（bypass 免疫） =====
+        log.info("[DIAG-PERM] Step 1g: safety check for tool={}", tool.getName());
         toolPath = tool.getPath(input);
         if (toolPath != null && isProtectedPath(toolPath)) {
             log.debug("Step 1g: protected path detected for tool={}, path={}", 
@@ -278,6 +285,7 @@ public class PermissionPipeline {
             return PermissionDecision.allow(PermissionDecisionReason.MODE, mode);
         }
 
+        log.info("[DIAG-PERM] Step 3: applyModeTransformation: tool={}, behavior={}, mode={}", tool.getName(), toolBehavior, mode);
         return applyModeTransformation(toolBehavior, mode, tool, input);
     }
 

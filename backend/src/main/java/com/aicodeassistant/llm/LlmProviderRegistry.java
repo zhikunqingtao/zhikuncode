@@ -7,11 +7,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * LLM Provider 注册表 — 管理多供应商实例。
@@ -24,7 +23,7 @@ public class LlmProviderRegistry {
 
     private static final Logger log = LoggerFactory.getLogger(LlmProviderRegistry.class);
 
-    private final Map<String, LlmProvider> providers = new ConcurrentHashMap<>();
+    private final Map<String, LlmProvider> providers = Collections.synchronizedMap(new java.util.LinkedHashMap<>());
     private final Environment env;
 
     @Value("${classifier.model:}")
@@ -75,11 +74,18 @@ public class LlmProviderRegistry {
                 provider.getProviderName(), provider.getSupportedModels());
     }
 
-    /** 列出所有可用模型 */
+    /** 列出所有可用模型 — 默认模型排在最前 */
     public List<String> listAvailableModels() {
-        return providers.values().stream()
+        String defaultModel = getDefaultModel();
+        List<String> all = providers.values().stream()
                 .flatMap(p -> p.getSupportedModels().stream())
-                .toList();
+                .distinct()
+                .collect(java.util.stream.Collectors.toCollection(java.util.ArrayList::new));
+        // 将默认模型移到列表最前面
+        if (defaultModel != null && all.remove(defaultModel)) {
+            all.add(0, defaultModel);
+        }
+        return List.copyOf(all);
     }
 
     /** 列出所有可用模型及其能力 */
@@ -99,12 +105,16 @@ public class LlmProviderRegistry {
                 .toList();
     }
 
-    /** 获取全局默认模型 */
+    /** 获取全局默认模型 — 优先使用 app.model.default 配置 */
     public String getDefaultModel() {
+        // 优先使用配置文件/环境变量中指定的默认模型
+        if (configuredDefaultModel != null && !configuredDefaultModel.isBlank()) {
+            return configuredDefaultModel;
+        }
         return providers.values().stream()
                 .findFirst()
                 .map(LlmProvider::getDefaultModel)
-                .orElse(configuredDefaultModel);
+                .orElse("qwen3.6-max-preview");
     }
 
     /** 获取快速模型 — 用于分类器/摘要 */
