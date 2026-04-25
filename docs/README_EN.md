@@ -54,6 +54,9 @@
 ### Game Generation
 ![Game Generation Demo](assets/demo-game-generation.gif)
 
+### Code Optimization
+![Code Optimization Demo](assets/demo-code-optimization.gif)
+
 ### Full Browser-Based Control on iPad
 ![iPad Browser Control Demo](assets/demo-ipad-browser.gif)
 

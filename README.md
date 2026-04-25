@@ -53,6 +53,9 @@
 ### 生成游戏
 ![生成游戏演示](docs/assets/demo-game-generation.gif)
 
+### 优化代码
+![优化代码演示](docs/assets/demo-code-optimization.gif)
+
 ### iPad 浏览器全流程操控
 ![iPad浏览器操控演示](docs/assets/demo-ipad-browser.gif)
 
