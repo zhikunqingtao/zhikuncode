@@ -51,6 +51,10 @@
 
 https://github.com/user-attachments/assets/bf1f1d3a-4a9b-4d91-af48-97a7d3dd7b8a
 
+### 📱 项目分析和命令执行演示
+
+https://github.com/user-attachments/assets/7b45c5d4-e540-4ffd-80d4-e11502477dba
+
 ### 文件操作
 ![文件操作演示](docs/assets/demo-file-operation.gif)
 

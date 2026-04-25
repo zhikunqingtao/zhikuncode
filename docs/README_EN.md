@@ -52,6 +52,10 @@
 
 https://github.com/user-attachments/assets/bf1f1d3a-4a9b-4d91-af48-97a7d3dd7b8a
 
+### 📱 Project Analysis and Command Execution Demo
+
+https://github.com/user-attachments/assets/7b45c5d4-e540-4ffd-80d4-e11502477dba
+
 ### File Operations
 ![File Operations Demo](assets/demo-file-operation.gif)
 
