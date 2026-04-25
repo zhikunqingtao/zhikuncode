@@ -222,7 +222,7 @@ const handlers: Record<string, (data: any) => void> = {
         });
     },
     // === 新增: 命令结果/文件回退完成 (2 种) ===
-    'command_result':     (d: { command: string; resultType: 'text' | 'jsx'; output?: string; data?: Record<string, unknown> }) => {
+    'command_result':     (d: { command: string; resultType: 'text' | 'jsx' | 'prompt'; output?: string; data?: Record<string, unknown> }) => {
         if (d.resultType === 'jsx' && d.data) {
             // JSX 类型: 创建带 metadata 的 system Message
             useMessageStore.getState().addMessage({
@@ -233,8 +233,17 @@ const handlers: Record<string, (data: any) => void> = {
                 subtype: 'jsx_result',
                 metadata: { command: d.command, ...d.data },
             } as Message);
+        } else if (d.resultType === 'prompt') {
+            // PROMPT 命令: 显示简洁的加载指示器（不含完整提示词）
+            useMessageStore.getState().addMessage({
+                type: 'system',
+                uuid: generateUUID(),
+                timestamp: Date.now(),
+                content: `AI 正在处理 /${d.command} 命令...`,
+                subtype: 'prompt_executing',
+            } as Message);
         } else {
-            // TEXT 类型: 保持原有行为
+            // TEXT 类型: LOCAL 命令结果，保持原有行为
             useMessageStore.getState().addMessage({
                 type: 'system',
                 uuid: generateUUID(),

@@ -22,7 +22,7 @@ public class GitCommands {
             @Override public String getName() { return "commit-push-pr"; }
             @Override public String getDescription() { return "自动提交 + 推送 + 创建 PR"; }
             @Override public ContentLength getContentLength() { return ContentLength.LONG; }
-            @Override public Set<String> getAllowedTools() { return Set.of("bash", "read_file"); }
+            @Override public Set<String> getAllowedTools() { return Set.of("Bash", "Read"); }
             @Override
             public CommandResult execute(String args, CommandContext context) {
                 String prompt = "Please commit current changes, push to remote, and create a Pull Request. " +
@@ -91,7 +91,7 @@ public class GitCommands {
             @Override public String getName() { return "security-review"; }
             @Override public String getDescription() { return "安全审查（分析潜在漏洞）"; }
             @Override public ContentLength getContentLength() { return ContentLength.LONG; }
-            @Override public Set<String> getAllowedTools() { return Set.of("bash", "read_file", "list_dir"); }
+            @Override public Set<String> getAllowedTools() { return Set.of("Bash", "Read", "Glob"); }
             @Override
             public CommandResult execute(String args, CommandContext context) {
                 String prompt = "Please perform a security review of the current code changes. " +

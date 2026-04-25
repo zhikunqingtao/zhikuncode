@@ -216,7 +216,11 @@ public class WebSocketSessionManager {
                 String staleSessionId = entry.getKey();
                 String principal = sessionToPrincipal.remove(staleSessionId);
                 if (principal != null) {
-                    principalToSession.remove(principal);
+                    // 仅当 principalToSession 仍指向该 staleSessionId 时才移除，
+                    // 避免误删已被 /bind-session 更新为真实 sessionId 的合法映射
+                    principalToSession.compute(principal, (k, v) ->
+                        (v != null && v.equals(staleSessionId)) ? null : v
+                    );
                 }
                 sessionIter.remove();
                 cleaned++;

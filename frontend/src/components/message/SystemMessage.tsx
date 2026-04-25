@@ -10,7 +10,7 @@
  */
 
 import React from 'react';
-import { Info, Scissors, Terminal, Minimize2 } from 'lucide-react';
+import { Info, Scissors, Terminal, Minimize2, Loader2 } from 'lucide-react';
 import type { Message } from '@/types';
 import { GitDiffPanel } from '@/components/git/GitDiffPanel';
 import { GitCommitPanel } from '@/components/git/GitCommitPanel';
@@ -108,6 +108,44 @@ const SystemMessage: React.FC<SystemMessageProps> = ({ message }) => {
                     <span>{message.content || 'Context truncated'}</span>
                 </div>
                 <div className="flex-1 h-px bg-yellow-700/50" />
+            </div>
+        );
+    }
+
+    // Command execution indicator (created by App.tsx before sending WS message)
+    if (subtype === 'command') {
+        return (
+            <div className="system-message px-4 py-1 my-0.5">
+                <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                    <Terminal size={12} className="text-gray-600" />
+                    <span>{message.content}</span>
+                </div>
+            </div>
+        );
+    }
+
+    // Command text result (LOCAL commands, non-PROMPT)
+    if (subtype === 'command_result') {
+        return (
+            <div className="system-message px-4 py-2 my-1">
+                <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-gray-800/50 border border-gray-700/50">
+                    <Terminal size={14} className="text-gray-500 flex-shrink-0 mt-0.5" />
+                    <pre className="text-xs text-gray-400 whitespace-pre-wrap flex-1">
+                        {message.content}
+                    </pre>
+                </div>
+            </div>
+        );
+    }
+
+    // PROMPT command executing indicator
+    if (subtype === 'prompt_executing') {
+        return (
+            <div className="system-message px-4 py-1 my-0.5">
+                <div className="flex items-center gap-1.5 text-xs text-blue-400/70">
+                    <Loader2 size={12} className="animate-spin" />
+                    <span className="text-gray-500">{message.content}</span>
+                </div>
             </div>
         );
     }

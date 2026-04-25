@@ -68,7 +68,7 @@ export interface TokenWarningPayload { type: 'token_warning'; currentTokens: num
 export interface InterruptAckPayload { type: 'interrupt_ack'; reason: string }
 export interface ModelChangedPayload { type: 'model_changed'; model: string }
 export interface PermissionModeChangedPayload { type: 'permission_mode_changed'; mode: string }
-export interface CommandResultPayload { type: 'command_result'; command: string; resultType: 'text' | 'jsx'; output?: string; data?: Record<string, unknown> }
+export interface CommandResultPayload { type: 'command_result'; command: string; resultType: 'text' | 'jsx' | 'prompt'; output?: string; data?: Record<string, unknown> }
 export interface RewindCompletePayload { type: 'rewind_complete'; messageId: string; files: string[] }
 export interface TokenBudgetNudgePayload { type: 'token_budget_nudge'; pct: number; currentTokens: number; budgetTokens: number }
 export interface PlanUpdatePayload { type: 'plan_update'; isPlanMode: boolean; planName?: string; planOverview?: string; steps?: Array<{ id: string; title: string; status: string }>; currentStepId?: string }

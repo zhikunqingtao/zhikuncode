@@ -8,9 +8,12 @@ import com.aicodeassistant.engine.QueryConfig;
 import com.aicodeassistant.engine.QueryEngine;
 import com.aicodeassistant.engine.QueryLoopState;
 import com.aicodeassistant.engine.QueryMessageHandler;
+import com.aicodeassistant.command.Command;
+import com.aicodeassistant.command.CommandContext;
 import com.aicodeassistant.command.CommandRegistry;
 import com.aicodeassistant.command.CommandResult;
-import com.aicodeassistant.command.CommandContext;
+import com.aicodeassistant.command.CommandType;
+import com.aicodeassistant.command.PromptCommand;
 import com.aicodeassistant.history.FileHistoryService;
 import com.aicodeassistant.mcp.McpClientManager;
 import com.aicodeassistant.permission.PermissionModeManager;
@@ -455,29 +458,83 @@ public class WebSocketController implements PermissionNotifier {
     }
 
     /**
-     * 执行查询 — 组装 QueryConfig + QueryLoopState，调用 QueryEngine.execute()。
+     * 执行普通用户查询。使用全量工具和会话默认模型。
      */
     private void executeQuery(String sessionId, String userText) {
         // 0. 异步预加载项目上下文
         Path workingDir = Path.of(System.getProperty("user.dir"));
         projectContextService.ensureContext(workingDir);
 
-        // 1. 组装工具池
+        // 1. 组装全量工具池
         List<Tool> tools = toolRegistry.getEnabledTools();
+        List<Map<String, Object>> toolDefs = toolRegistry.getToolDefinitions();
 
-        // 2. 构建系统提示
-        SystemPromptConfig promptConfig = SystemPromptConfig.defaults()
-                .withSessionId(sessionId);
+        // 2. 会话模型 → 全局默认
         String model = sessionModels.getOrDefault(sessionId, providerRegistry.getDefaultModel());
         log.info("executeQuery: sessionId={}, model={}", sessionId, model);
-        String systemPrompt = systemPromptBuilder.buildEffectiveSystemPrompt(
-                promptConfig, tools, model, Path.of(System.getProperty("user.dir")));
 
-        // 3. 构建 QueryConfig
+        executeQueryInternal(sessionId, userText, tools, toolDefs, model);
+    }
+
+    /**
+     * 执行 PROMPT 命令注入 LLM 对话。
+     * 支持 PromptCommand 扩展字段：allowedTools 工具过滤、model 模型覆盖。
+     *
+     * @param sessionId        会话ID
+     * @param promptText       PROMPT命令生成的提示词
+     * @param allowedToolNames 允许的工具名称集合（null或空=全部工具）
+     * @param modelOverride    模型覆盖（null=使用会话默认模型）
+     */
+    private void executePromptCommand(String sessionId, String promptText,
+                                      Set<String> allowedToolNames, String modelOverride) {
+        Path workingDir = Path.of(System.getProperty("user.dir"));
+        projectContextService.ensureContext(workingDir);
+
+        // 工具池组装：按 allowedToolNames 过滤
+        List<Tool> tools;
+        List<Map<String, Object>> toolDefs;
+        if (allowedToolNames != null && !allowedToolNames.isEmpty()) {
+            tools = toolRegistry.getEnabledTools().stream()
+                    .filter(t -> allowedToolNames.contains(t.getName()))
+                    .toList();
+            toolDefs = tools.stream().map(Tool::toToolDefinition).toList();
+        } else {
+            tools = toolRegistry.getEnabledTools();
+            toolDefs = toolRegistry.getToolDefinitions();
+        }
+
+        // 模型覆盖优先 → 会话模型 → 全局默认
+        String model = modelOverride != null ? modelOverride
+                : sessionModels.getOrDefault(sessionId, providerRegistry.getDefaultModel());
+
+        executeQueryInternal(sessionId, promptText, tools, toolDefs, model);
+    }
+
+    /**
+     * 查询执行核心引擎。
+     * 包含权限初始化、历史加载、QueryEngine执行、消息持久化、完成通知及异常保障。
+     *
+     * @param sessionId 会话ID
+     * @param userText  用户文本（普通消息或PROMPT命令生成的提示词）
+     * @param tools     工具列表（全量或过滤后子集）
+     * @param toolDefs  工具API定义列表（与tools对应）
+     * @param model     模型标识
+     */
+    private void executeQueryInternal(String sessionId, String userText,
+                                      List<Tool> tools, List<Map<String, Object>> toolDefs,
+                                      String model) {
+        Path workingDir = Path.of(System.getProperty("user.dir"));
+
+        // 构建系统提示
+        SystemPromptConfig promptConfig = SystemPromptConfig.defaults()
+                .withSessionId(sessionId);
+        String systemPrompt = systemPromptBuilder.buildEffectiveSystemPrompt(
+                promptConfig, tools, model, workingDir);
+
+        // 构建 QueryConfig
         int contextWindow = getContextWindow(model);
         QueryConfig config = QueryConfig.withDefaults(
-                model, systemPrompt, tools,
-                toolRegistry.getToolDefinitions(),
+                model, systemPrompt, tools, toolDefs,
                 QueryConfig.DEFAULT_MAX_TOKENS,
                 contextWindow,
                 new ThinkingConfig.Disabled(),
@@ -556,7 +613,7 @@ public class WebSocketController implements PermissionNotifier {
             log.info("QueryEngine 完成: sessionId={}, stopReason={}, turns={}",
                     sessionId, result.stopReason(), result.turnCount());
         } catch (Throwable t) {
-            log.error("[DIAG-TOOL] executeQuery 执行异常: sessionId={}, exType={}, message={}",
+            log.error("[DIAG-TOOL] executeQueryInternal 执行异常: sessionId={}, exType={}, message={}",
                     sessionId, t.getClass().getName(), t.getMessage(), t);
             if (t instanceof Exception e) {
                 handler.onError(e);
@@ -565,7 +622,7 @@ public class WebSocketController implements PermissionNotifier {
             }
         } finally {
             // ★ 保障: 即使异常也确保发送 message_complete，防止前端卡在加载态
-            log.info("[DIAG-TOOL] executeQuery finally: sessionId={}, resultIsNull={}", sessionId, result == null);
+            log.info("[DIAG-TOOL] executeQueryInternal finally: sessionId={}, resultIsNull={}", sessionId, result == null);
             if (result == null) {
                 sendMessageComplete(sessionId, Usage.zero(), "error");
             }
@@ -806,10 +863,55 @@ public class WebSocketController implements PermissionNotifier {
                 switch (cmdResult.type()) {
                     case TEXT -> {
                         if (cmdResult.value() != null) {
-                            push(sessionId, "command_result", Map.of(
-                                    "command", payload.command(),
-                                    "resultType", "text",
-                                    "output", cmdResult.value()));
+                            if (cmd.getType() == CommandType.PROMPT) {
+                                // ★ PROMPT 命令 → 注入 LLM 对话
+
+                                // 1. 推送简洁通知到前端（不含完整提示词）
+                                push(sessionId, "command_result", Map.of(
+                                        "command", payload.command(),
+                                        "resultType", "prompt"));
+
+                                // 2. 提取 PromptCommand 扩展字段
+                                //    GitReviewCommand 实现 Command（非 PromptCommand），
+                                //    instanceof 为 false → allowedTools=null → 全部工具
+                                Set<String> allowedTools = (cmd instanceof PromptCommand pc)
+                                        ? pc.getAllowedTools() : null;
+                                String modelOverride = (cmd instanceof PromptCommand pc2)
+                                        ? pc2.getModel() : null;
+
+                                // 3. 并发保护（复用 sessionQueryRunning）
+                                AtomicBoolean running = sessionQueryRunning
+                                        .computeIfAbsent(sessionId, k -> new AtomicBoolean(false));
+                                if (!running.compareAndSet(false, true)) {
+                                    sendError(sessionId, "query_busy",
+                                            "当前会话正在处理中，请等待上一个请求完成", false);
+                                    return;
+                                }
+
+                                // 4. Virtual Thread 异步执行
+                                Thread.ofVirtual()
+                                        .name("zhiku-prompt-cmd-" + sessionId)
+                                        .start(() -> {
+                                            try {
+                                                executePromptCommand(sessionId, cmdResult.value(),
+                                                        allowedTools, modelOverride);
+                                            } catch (Exception e) {
+                                                log.error("PromptCommand 执行异常: cmd=/{}, sessionId={}",
+                                                        payload.command(), sessionId, e);
+                                                sendError(sessionId, "query_error",
+                                                        e.getMessage() != null ? e.getMessage()
+                                                                : "Unknown error", true);
+                                            } finally {
+                                                running.set(false);
+                                            }
+                                        });
+                            } else {
+                                // 非 PROMPT 命令（LOCAL 等）: 保持原有行为
+                                push(sessionId, "command_result", Map.of(
+                                        "command", payload.command(),
+                                        "resultType", "text",
+                                        "output", cmdResult.value()));
+                            }
                         }
                     }
                     case JSX -> {
@@ -1005,8 +1107,18 @@ public class WebSocketController implements PermissionNotifier {
      */
     private String resolveSessionId(Principal principal) {
         if (principal == null) return "unknown";
-        String sessionId = wsSessionManager.getSessionForPrincipal(principal.getName());
-        return sessionId != null ? sessionId : principal.getName();
+        String principalName = principal.getName();
+        String sessionId = wsSessionManager.getSessionForPrincipal(principalName);
+        if (sessionId != null) {
+            return sessionId;
+        }
+        // Fallback: 映射缺失时，使用 principalName 作为临时 sessionId，
+        // 并主动建立双向映射，确保后续 push() 能找到 principal。
+        // 配合 cleanupStaleEntries 的条件删除逻辑，
+        // 当后续 /bind-session 更新为真实 sessionId 后，此临时映射不会误伤合法映射。
+        log.warn("resolveSessionId: no mapping for principal={}, creating fallback binding", principalName);
+        wsSessionManager.bindSession(principalName, principalName);
+        return principalName;
     }
 
     // ───── WS 消息序列化辅助方法 ─────
