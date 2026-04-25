@@ -47,6 +47,10 @@
 
 ## 🎬 Demo
 
+### 📱 手机开发前后端 TODO 应用完整演示
+
+https://github.com/user-attachments/assets/bf1f1d3a-4a9b-4d91-af48-97a7d3dd7b8a
+
 ### 文件操作
 ![文件操作演示](docs/assets/demo-file-operation.gif)
 
@@ -61,10 +65,6 @@
 
 ### iPad 浏览器全流程操控
 ![iPad浏览器操控演示](docs/assets/demo-ipad-browser.gif)
-
-### 📱 手机开发前后端 TODO 应用完整演示
-
-https://github.com/user-attachments/assets/bf1f1d3a-4a9b-4d91-af48-97a7d3dd7b8a
 
 ---
 
