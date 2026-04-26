@@ -191,9 +191,9 @@ public class PathSecurityService {
     public String checkDangerousRemoval(String command) {
         if (command == null) return null;
         Matcher m = Pattern.compile(
-            "\\b(rm|rmdir)\\s+(-[a-zA-Z]*[rRf][a-zA-Z]*\\s+)*(\\S+)").matcher(command);
+            "\\b(rm|rmdir)\\s+(?:-[a-zA-Z]{0,10}\\s+){0,5}(\\S+)").matcher(command);
         while (m.find()) {
-            String target = m.group(3);
+            String target = m.group(2);
             if (target == null) continue;
             String resolved = resolvePathVariables(target);
             String normTarget = normalizePath(resolved);

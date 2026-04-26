@@ -1,5 +1,7 @@
 package com.aicodeassistant.tool.bash;
 
+import com.aicodeassistant.security.CommandBlacklistService;
+import com.aicodeassistant.security.SecurityAuditLogger;
 import com.aicodeassistant.state.AppStateStore;
 import com.aicodeassistant.tool.bash.ast.BashAstNode;
 import com.aicodeassistant.tool.bash.ast.BashAstNode.*;
@@ -34,7 +36,8 @@ class BashParserGoldenTest {
         AppStateStore appStateStore = new AppStateStore();
         appStateStore.setState(state -> state.withSession(s ->
                 s.withWorkingDirectory(System.getProperty("user.dir"))));
-        analyzer = new BashSecurityAnalyzer(new PathValidator(), appStateStore);
+        analyzer = new BashSecurityAnalyzer(new PathValidator(), appStateStore,
+                new CommandBlacklistService(null, new SecurityAuditLogger()));
     }
 
     // ═══════════════════════════════════════════════════════════════════

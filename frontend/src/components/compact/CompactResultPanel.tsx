@@ -1,6 +1,6 @@
 import React from 'react';
 
-interface CompactResultData {
+export interface CompactResultData {
     originalMessageCount: number;
     compactedMessageCount: number;
     beforeTokens: number;

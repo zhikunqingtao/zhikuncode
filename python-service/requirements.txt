@@ -34,18 +34,18 @@ bashlex==0.18
 gitpython==3.1.43
 
 # ──── MCP SDK ────
-mcp>=1.0.0,<2.0.0
+mcp==1.12.4
 
 # ──── Token 估算 ────
-tiktoken>=0.7.0
+tiktoken==0.12.0
 
 # ──── CLI 域 (§4.21) ────
-typer[all]>=0.9.0
-httpx-sse>=0.4.0
-rich>=13.0.0
+typer[all]==0.24.1
+httpx-sse==0.4.3
+rich==15.0.0
 
 # ──── BROWSER_AUTOMATION 域 (B3) ────
-playwright>=1.40.0  # 安装后需执行: python -m playwright install chromium
+playwright==1.58.0  # 安装后需执行: python -m playwright install chromium
 
 # ──── 测试依赖 ────
 pytest==8.3.4

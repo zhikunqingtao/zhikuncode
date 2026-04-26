@@ -267,6 +267,7 @@ function DesktopPanel() {
 
 function TabletPanel() {
     const [expanded, setExpanded] = useState(false);
+    const steps = usePlanStore(state => state.steps);
 
     return (
         <aside
@@ -289,7 +290,7 @@ function TabletPanel() {
             ) : (
                 /* 图标条模式: 显示步骤状态图标 */
                 <div className="flex-1 overflow-y-auto py-2 space-y-2">
-                    {usePlanStore.getState().steps.map(step => (
+                    {steps.map(step => (
                         <div key={step.id} className="flex items-center justify-center" title={step.title}>
                             <StatusIcon status={step.status} />
                         </div>

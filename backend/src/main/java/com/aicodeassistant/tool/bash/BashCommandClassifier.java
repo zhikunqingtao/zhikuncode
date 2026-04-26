@@ -610,7 +610,8 @@ public class BashCommandClassifier {
             "rm", "rmdir", "chmod", "chown", "mkfs", "dd",
             "shred", "truncate", "wipefs", "fdisk", "parted",
             "kill", "killall", "pkill", "reboot", "shutdown",
-            "halt", "poweroff", "init", "systemctl");
+            "halt", "poweroff", "init", "systemctl",
+            "cron", "crontab", "at", "atq", "atrm");
 
     // 中等风险命令 — 有副作用但风险可控
     private static final Set<String> MODERATE_COMMAND_SET = Set.of(

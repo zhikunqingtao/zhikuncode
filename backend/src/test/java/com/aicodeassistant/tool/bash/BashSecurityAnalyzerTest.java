@@ -1,5 +1,7 @@
 package com.aicodeassistant.tool.bash;
 
+import com.aicodeassistant.security.CommandBlacklistService;
+import com.aicodeassistant.security.SecurityAuditLogger;
 import com.aicodeassistant.state.AppStateStore;
 import com.aicodeassistant.tool.bash.ast.ParseForSecurityResult;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,7 +29,8 @@ class BashSecurityAnalyzerTest {
         appStateStore.setState(state -> state.withSession(s ->
                 s.withWorkingDirectory(System.getProperty("user.dir"))
                  .withProjectRoot(System.getProperty("user.dir"))));
-        analyzer = new BashSecurityAnalyzer(new PathValidator(), appStateStore);
+        analyzer = new BashSecurityAnalyzer(new PathValidator(), appStateStore,
+                new CommandBlacklistService(null, new SecurityAuditLogger()));
     }
 
     private ParseForSecurityResult.Simple assertSimple(String cmd) {

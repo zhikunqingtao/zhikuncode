@@ -16,14 +16,36 @@ export const SkillDetailModal: React.FC<{
 }> = ({ skillName, onClose, onExecute }) => {
     const [detail, setDetail] = useState<SkillDetail | null>(null);
     const [userInput, setUserInput] = useState('');
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         fetch(`/api/skills/${skillName}`)
-            .then(r => r.json())
-            .then(setDetail)
-            .catch(() => {});
+            .then(r => {
+                if (!r.ok) {
+                    if (r.status === 404) {
+                        setError(`Skill "${skillName}" not found`);
+                    } else {
+                        setError(`Request failed: ${r.status}`);
+                    }
+                    return null;
+                }
+                return r.json();
+            })
+            .then(data => { if (data) setDetail(data); })
+            .catch(() => setError('Network error'));
     }, [skillName]);
 
+    if (error) return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
+            <div className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl shadow-2xl
+                            w-full max-w-lg mx-4 p-6" onClick={e => e.stopPropagation()}>
+                <p className="text-red-400 text-sm">{error}</p>
+                <button onClick={onClose} className="mt-3 text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)]">
+                    Close
+                </button>
+            </div>
+        </div>
+    );
     if (!detail) return null;
 
     return (

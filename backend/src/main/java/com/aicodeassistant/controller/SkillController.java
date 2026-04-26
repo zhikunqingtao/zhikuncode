@@ -1,7 +1,8 @@
 package com.aicodeassistant.controller;
 
-import com.aicodeassistant.skill.SkillDefinition;
+import com.aicodeassistant.exception.ResourceNotFoundException;
 import com.aicodeassistant.skill.SkillRegistry;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,17 +35,18 @@ public class SkillController {
 
     /** 获取单个技能详情（用于技能详情弹窗） */
     @GetMapping("/{name}")
-    public Map<String, Object> getSkillDetail(@PathVariable String name) {
+    public ResponseEntity<Map<String, Object>> getSkillDetail(@PathVariable String name) {
         return skillRegistry.getAllSkills().stream()
             .filter(s -> s.effectiveName().equals(name))
             .findFirst()
-            .map(s -> Map.<String, Object>of(
+            .map(s -> ResponseEntity.ok(Map.<String, Object>of(
                 "name", s.effectiveName(),
                 "description", s.effectiveDescription(),
                 "source", s.source().name(),
                 "content", s.content(),
                 "filePath", s.filePath() != null ? s.filePath() : ""
-            ))
-            .orElse(Map.of("error", "Skill not found: " + name));
+            )))
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "SKILL_NOT_FOUND", "Skill not found: " + name));
     }
 }

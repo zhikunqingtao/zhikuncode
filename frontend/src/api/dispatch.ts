@@ -295,6 +295,18 @@ const handlers: Record<string, (data: any) => void> = {
         }, 200);
     },
 
+    // === messageStore: 记忆变更通知 (1 种, 配合 P0-2 统一存储) ===
+    'memory_update': (d: { action: 'created' | 'updated' | 'deleted'; entry?: Record<string, unknown>; entryId?: string }) => {
+        useMessageStore.getState().addMessage({
+            type: 'system',
+            uuid: generateUUID(),
+            timestamp: Date.now(),
+            content: '',
+            subtype: 'memory_update',
+            metadata: d,
+        } as Message);
+    },
+
     // === planStore: Plan Mode 更新 (1 种) ===
     'plan_update': (d: {
         isPlanMode: boolean;

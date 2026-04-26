@@ -46,6 +46,14 @@ public class LlmErrorClassifier {
         if (status == 413) {
             return ErrorCategory.PROMPT_TOO_LONG;
         }
+        // HTTP 400 中的上下文溢出检测（多 Provider 兼容：Gemini/Ollama/通用）
+        if (status == 400) {
+            String msg400 = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
+            if (msg400.contains("max_tokens") || msg400.contains("token limit")
+                    || msg400.contains("request too large") || msg400.contains("input is too long")) {
+                return ErrorCategory.PROMPT_TOO_LONG;
+            }
+        }
         if (status == 401 || status == 403) {
             return ErrorCategory.AUTH_FAILED;
         }

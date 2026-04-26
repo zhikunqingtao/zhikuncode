@@ -460,19 +460,83 @@ public class CompactService {
 
     /**
      * 关键消息选择 — 按优先级保留消息直到 token 预算耗尽。
+     * <p>
+     * 增强策略：
+     * 1. 优先保留 system 消息
+     * 2. 工具调用对（tool_use + tool_result）成对保留
+     * 3. 最近用户消息优先保留
+     * 4. 剩余按优先级填充
      */
     public List<Message> fallbackKeyMessageSelection(List<Message> messages, int tokenBudget) {
-        List<PrioritizedMessage> prioritized = messages.stream()
-                .map(m -> new PrioritizedMessage(m, classifyPriority(m)))
-                .sorted(Comparator.comparing(PrioritizedMessage::priority))
-                .toList();
+        // Phase 1: 无条件保留 system 消息
+        List<Message> systemMessages = new ArrayList<>();
+        List<Message> nonSystemMessages = new ArrayList<>();
+        for (Message m : messages) {
+            if (m instanceof Message.SystemMessage) {
+                systemMessages.add(m);
+            } else {
+                nonSystemMessages.add(m);
+            }
+        }
 
-        List<Message> selected = new ArrayList<>();
-        int usedTokens = 0;
-        for (PrioritizedMessage pm : prioritized) {
-            int msgTokens = tokenCounter.estimateTokens(List.of(pm.message()));
+        List<Message> selected = new ArrayList<>(systemMessages);
+        int usedTokens = tokenCounter.estimateTokens(selected);
+
+        // Phase 2: 识别工具调用对（AssistantMessage 含 ToolUseBlock + 紧随的 UserMessage 含 toolUseResult）
+        List<List<Message>> toolPairs = new ArrayList<>();
+        Set<Integer> pairedIndices = new HashSet<>();
+        for (int i = 0; i < nonSystemMessages.size(); i++) {
+            Message msg = nonSystemMessages.get(i);
+            if (msg instanceof Message.AssistantMessage assistant && assistant.content() != null) {
+                boolean hasToolUse = assistant.content().stream()
+                        .anyMatch(b -> b instanceof ContentBlock.ToolUseBlock);
+                if (hasToolUse && i + 1 < nonSystemMessages.size()) {
+                    Message next = nonSystemMessages.get(i + 1);
+                    if (next instanceof Message.UserMessage user && user.toolUseResult() != null) {
+                        toolPairs.add(List.of(msg, next));
+                        pairedIndices.add(i);
+                        pairedIndices.add(i + 1);
+                    }
+                }
+            }
+        }
+
+        // 从最近的工具调用对开始填充
+        for (int i = toolPairs.size() - 1; i >= 0; i--) {
+            int pairTokens = tokenCounter.estimateTokens(toolPairs.get(i));
+            if (usedTokens + pairTokens <= tokenBudget) {
+                selected.addAll(toolPairs.get(i));
+                usedTokens += pairTokens;
+            }
+        }
+
+        // Phase 3: 填充剩余消息（从最近开始，优先用户消息）
+        List<Message> remaining = new ArrayList<>();
+        for (int i = 0; i < nonSystemMessages.size(); i++) {
+            if (!pairedIndices.contains(i)) {
+                remaining.add(nonSystemMessages.get(i));
+            }
+        }
+
+        // 先填充最近的用户消息
+        for (int i = remaining.size() - 1; i >= 0; i--) {
+            Message msg = remaining.get(i);
+            if (msg instanceof Message.UserMessage user && user.toolUseResult() == null) {
+                int msgTokens = tokenCounter.estimateTokens(List.of(msg));
+                if (usedTokens + msgTokens <= tokenBudget) {
+                    selected.add(msg);
+                    usedTokens += msgTokens;
+                    remaining.remove(i);
+                }
+            }
+        }
+
+        // 填充其他剩余消息
+        for (int i = remaining.size() - 1; i >= 0; i--) {
+            Message msg = remaining.get(i);
+            int msgTokens = tokenCounter.estimateTokens(List.of(msg));
             if (usedTokens + msgTokens <= tokenBudget) {
-                selected.add(pm.message());
+                selected.add(msg);
                 usedTokens += msgTokens;
             }
         }

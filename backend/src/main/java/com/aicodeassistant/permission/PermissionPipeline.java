@@ -1,6 +1,7 @@
 package com.aicodeassistant.permission;
 
 import com.aicodeassistant.model.*;
+import com.aicodeassistant.security.CommandBlacklistService;
 import com.aicodeassistant.security.PathSecurityService;
 import com.aicodeassistant.tool.Tool;
 import com.aicodeassistant.tool.ToolInput;
@@ -69,11 +70,11 @@ public class PermissionPipeline {
 
     /** 内容级危险模式 (即使 bypass 也强制 ask) */
     private static final List<Pattern> CONTENT_LEVEL_ASK_PATTERNS = List.of(
-            Pattern.compile("rm\\s+(-[rRf]+\\s+)*(/|~|\\$HOME)"),
+            Pattern.compile("rm\\s+(?:-[rRf]+\\s+){0,5}(/|~|\\$HOME)"),
             Pattern.compile("chmod\\s+(-R\\s+)?777\\s+/"),
             Pattern.compile(">(\\s*)/dev/sd[a-z]"),
             Pattern.compile("mkfs\\."),
-            Pattern.compile("dd\\s+.*of=/dev/"),
+            Pattern.compile("dd\\s+[^\\n]{0,200}of=/dev/"),
             Pattern.compile(":\\(\\)\\{\\s*:\\|:&\\s*\\};:"),
             Pattern.compile("git\\s+push\\s+.*--force"),
             Pattern.compile("git\\s+(reset|clean)\\s+--hard"),
@@ -98,6 +99,7 @@ public class PermissionPipeline {
     private final PathSecurityService pathSecurityService;
     private final BashCommandClassifier bashCommandClassifier;
     private final FeatureFlagService featureFlags;
+    private final CommandBlacklistService commandBlacklistService;
 
     public PermissionPipeline(PermissionRuleMatcher ruleMatcher,
                               PermissionRuleRepository ruleRepository,
@@ -106,7 +108,8 @@ public class PermissionPipeline {
                               SandboxManager sandboxManager,
                               PathSecurityService pathSecurityService,
                               BashCommandClassifier bashCommandClassifier,
-                              FeatureFlagService featureFlags) {
+                              FeatureFlagService featureFlags,
+                              CommandBlacklistService commandBlacklistService) {
         this.ruleMatcher = ruleMatcher;
         this.ruleRepository = ruleRepository;
         this.autoModeClassifier = autoModeClassifier;
@@ -115,6 +118,7 @@ public class PermissionPipeline {
         this.pathSecurityService = pathSecurityService;
         this.bashCommandClassifier = bashCommandClassifier;
         this.featureFlags = featureFlags;
+        this.commandBlacklistService = commandBlacklistService;
     }
 
     /**
@@ -177,6 +181,24 @@ public class PermissionPipeline {
 
         // ===== Step 1f: 内容级 ask 规则 (优先于 bypass 模式) =====
         log.info("[DIAG-PERM] Step 1f: checkContentLevelAsk for tool={}", tool.getName());
+
+        // ===== Step 1f-pre: 系统级命令黑名单（bypass 免疫）=====
+        if (BASH_TOOL_NAMES.contains(tool.getName())) {
+            String bashCmd = input.getOptionalString("command").orElse(null);
+            if (bashCmd != null) {
+                var blockResult = commandBlacklistService.checkCommand(bashCmd);
+                if (blockResult.level() == CommandBlacklistService.BlockLevel.ABSOLUTE_DENY) {
+                    return PermissionDecision.denyByMode(
+                            "Blocked by command blacklist: " + blockResult.reason());
+                }
+                if (blockResult.level() == CommandBlacklistService.BlockLevel.HIGH_RISK_ASK) {
+                    return PermissionDecision.ask(
+                            PermissionDecisionReason.SAFETY_CHECK,
+                            "High-risk command detected: " + blockResult.reason());
+                }
+            }
+        }
+
         PermissionDecision contentAskDecision = checkContentLevelAsk(tool, input);
         if (contentAskDecision != null) {
             log.debug("Step 1f: content-level ask triggered for tool={}", tool.getName());

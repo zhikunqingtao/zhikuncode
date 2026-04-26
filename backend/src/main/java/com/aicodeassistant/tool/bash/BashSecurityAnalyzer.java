@@ -1,5 +1,6 @@
 package com.aicodeassistant.tool.bash;
 
+import com.aicodeassistant.security.CommandBlacklistService;
 import com.aicodeassistant.state.AppStateStore;
 import com.aicodeassistant.tool.bash.ast.BashAstNode;
 import com.aicodeassistant.tool.bash.ast.BashAstNode.*;
@@ -152,10 +153,14 @@ public class BashSecurityAnalyzer {
     private final BashParser parser = new BashParser();
     private final PathValidator pathValidator;
     private final AppStateStore appStateStore;
+    private final CommandBlacklistService commandBlacklistService;
 
-    public BashSecurityAnalyzer(PathValidator pathValidator, AppStateStore appStateStore) {
+    public BashSecurityAnalyzer(PathValidator pathValidator,
+                                AppStateStore appStateStore,
+                                CommandBlacklistService commandBlacklistService) {
         this.pathValidator = pathValidator;
         this.appStateStore = appStateStore;
+        this.commandBlacklistService = commandBlacklistService;
     }
 
     // ──── 危险子命令黑名单 ────
@@ -187,6 +192,13 @@ public class BashSecurityAnalyzer {
         // 命令过长 → parse-unavailable
         if (cmd.length() > MAX_COMMAND_LENGTH) {
             return new ParseForSecurityResult.ParseUnavailable();
+        }
+
+        // ★ 系统级命令黑名单前置检查（在预检查链之前）
+        var blockResult = commandBlacklistService.checkCommand(cmd);
+        if (blockResult.level() == CommandBlacklistService.BlockLevel.ABSOLUTE_DENY) {
+            return new ParseForSecurityResult.TooComplex(
+                    blockResult.reason(), "command-blacklist-deny");
         }
 
         // ── 预检查链 ──

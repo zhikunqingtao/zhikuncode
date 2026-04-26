@@ -24,6 +24,7 @@ public enum ErrorCode {
     SESSION_CONCURRENT_MODIFICATION("会话被并发修改", 409),
 
     // ── 模型错误 (MODEL_*) ──
+    MODEL_INVALID("无效的模型标识", 400),
     MODEL_NOT_FOUND("模型不存在或无访问权限", 404),
     MODEL_RATE_LIMITED("模型请求频率超限", 429),
     MODEL_OVERLOADED("模型服务过载", 529),
@@ -31,6 +32,8 @@ public enum ErrorCode {
     MODEL_TIMEOUT("模型请求超时", 504),
 
     // ── 工具错误 (TOOL_*) ──
+    TOOL_NOT_FOUND("工具不存在", 404),
+    TOOL_STATE_NOT_FOUND("工具会话状态不存在", 404),
     TOOL_PERMISSION_DENIED("工具调用权限被拒绝", 403),
     TOOL_EXECUTION_FAILED("工具执行失败", 500),
     TOOL_SANDBOX_VIOLATION("工具沙箱违规", 403),
@@ -54,6 +57,9 @@ public enum ErrorCode {
     MCP_SERVER_CONNECTION_FAILED("MCP 服务器连接失败", 502),
     MCP_CONFIG_INVALID("MCP 服务器配置无效", 400),
     MCP_TOOL_EXECUTION_FAILED("MCP 工具执行失败", 500),
+
+    // ── 技能错误 (SKILL_*) ──
+    SKILL_NOT_FOUND("技能不存在", 404),
 
     // ── 插件错误 (PLUGIN_*) ──
     PLUGIN_NOT_FOUND("插件不存在", 404),

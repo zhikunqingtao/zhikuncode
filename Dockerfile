@@ -66,13 +66,14 @@ COPY --from=frontend-build /build/frontend/dist ./static/
 
 # Copy python-service source (PythonProcessManager starts it as subprocess)
 COPY python-service/src ./python-service/src/
+COPY python-service/requirements.lock ./python-service/
 COPY python-service/requirements.txt ./python-service/
 COPY python-service/pyproject.toml ./python-service/
 
 # Setup Python virtual environment
 RUN python3 -m venv /app/python-service/.venv && \
-    /app/python-service/.venv/bin/pip install --no-cache-dir --upgrade pip && \
-    /app/python-service/.venv/bin/pip install --no-cache-dir -r /app/python-service/requirements.txt
+    /app/python-service/.venv/bin/pip install --no-cache-dir pip==24.0 && \
+    /app/python-service/.venv/bin/pip install --no-cache-dir -r /app/python-service/requirements.lock
 
 # Create symlink so PythonProcessManager can resolve 'python' command
 RUN ln -sf /app/python-service/.venv/bin/python /usr/local/bin/python

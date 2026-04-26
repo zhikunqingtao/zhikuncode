@@ -16,6 +16,7 @@ import { GitDiffPanel } from '@/components/git/GitDiffPanel';
 import { GitCommitPanel } from '@/components/git/GitCommitPanel';
 import { DiagnosticPanel } from '@/components/doctor/DiagnosticPanel';
 import { HelpPanel } from '@/components/help/HelpPanel';
+import { CompactResultPanel, type CompactResultData } from '@/components/compact/CompactResultPanel';
 import { sendSlashCommand } from '@/api/stompClient';
 
 interface SystemMessageProps {
@@ -82,6 +83,18 @@ const SystemMessage: React.FC<SystemMessageProps> = ({ message }) => {
                 </div>
             );
         }
+    }
+
+    // Compact result — /compact command visualization
+    if (subtype === 'compact_result' && metadata) {
+        return (
+            <div className="system-message px-4 py-2 my-1">
+                <CompactResultPanel
+                    data={metadata as unknown as CompactResultData}
+                    displayText={(metadata.displayText as string) ?? ''}
+                />
+            </div>
+        );
     }
 
     // Compact boundary — context compaction divider

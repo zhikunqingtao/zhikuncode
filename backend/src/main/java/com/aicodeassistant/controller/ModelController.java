@@ -6,6 +6,7 @@ import com.aicodeassistant.llm.ModelRegistry;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -29,11 +30,19 @@ public class ModelController {
 
     /** 列出所有已配置的可用模型及其能力信息 */
     @GetMapping
-    public ResponseEntity<ModelListResponse> listModels() {
+    public ResponseEntity<ModelListResponse> listModels(
+            @RequestParam(required = false) String modelId) {
+        // 新增：单个模型查询时验证存在性
+        if (modelId != null && !modelId.isBlank()) {
+            ModelCapabilities mc = modelRegistry.getCapabilities(modelId);
+            if (mc == ModelCapabilities.DEFAULT) {
+                throw new IllegalArgumentException("Invalid model: " + modelId);
+            }
+        }
         // 优先使用 Provider 注册的模型（实际可用），通过 ModelRegistry 补充能力信息
         List<ModelInfo> models = providerRegistry.listAvailableModels().stream()
-                .map(modelId -> {
-                    ModelCapabilities mc = modelRegistry.getCapabilities(modelId);
+                .map(id -> {
+                    ModelCapabilities mc = modelRegistry.getCapabilities(id);
                     return new ModelInfo(
                             mc.modelId(),
                             mc.displayName(),

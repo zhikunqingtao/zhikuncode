@@ -9,10 +9,12 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -66,6 +68,9 @@ public class MemdirService {
     private static final int MAX_MEMORY_AGE_DAYS = 90;
 
     /** 记忆条目头部匹配模式 (增强版，支持分类标签) */
+    /** 写操作并发保护锁 */
+    private final ReentrantLock writeLock = new ReentrantLock();
+
     private static final Pattern ENTRY_HEADER_PATTERN = Pattern.compile(
             "<!-- source:(\\w+) time:(\\S+)(?: category:(\\w+))? -->");
 
@@ -306,6 +311,7 @@ public class MemdirService {
      * @param category 记忆分类
      */
     public void writeMemory(String content, MemorySource source, MemoryCategory category) {
+        writeLock.lock();
         try {
             Files.createDirectories(memoryDir);
 
@@ -319,13 +325,18 @@ public class MemdirService {
                     "\n<!-- source:%s time:%s category:%s -->\n%s\n",
                     source.name(), Instant.now(), category.tag(), content);
 
-            Files.writeString(memoryFile, existing + entry,
+            Path tempFile = memoryFile.resolveSibling(memoryFile.getFileName() + ".tmp");
+            Files.writeString(tempFile, existing + entry,
                     StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            Files.move(tempFile, memoryFile, StandardCopyOption.ATOMIC_MOVE,
+                    StandardCopyOption.REPLACE_EXISTING);
 
             log.info("Memory written: source={}, category={}, length={}", source, category, content.length());
         } catch (IOException e) {
             log.error("Failed to write memory: {}", e.getMessage(), e);
             throw new MemdirException("Failed to write memory", e);
+        } finally {
+            writeLock.unlock();
         }
     }
 
@@ -348,20 +359,26 @@ public class MemdirService {
      * @return true 如果有条目被删除
      */
     public boolean deleteMemory(String searchPattern) {
-        String content = readMemories();
-        if (content.isEmpty()) return false;
-
-        String updated = removeMatchingEntries(content, searchPattern);
-        if (updated.equals(content)) return false;
-
+        writeLock.lock();
         try {
-            Files.writeString(memoryFile, updated,
+            String content = readMemories();
+            if (content.isEmpty()) return false;
+
+            String updated = removeMatchingEntries(content, searchPattern);
+            if (updated.equals(content)) return false;
+
+            Path tempFile = memoryFile.resolveSibling(memoryFile.getFileName() + ".tmp");
+            Files.writeString(tempFile, updated,
                     StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            Files.move(tempFile, memoryFile, StandardCopyOption.ATOMIC_MOVE,
+                    StandardCopyOption.REPLACE_EXISTING);
             log.info("Memory deleted: pattern={}", searchPattern);
             return true;
         } catch (IOException e) {
             log.error("Failed to delete memory: {}", e.getMessage(), e);
             return false;
+        } finally {
+            writeLock.unlock();
         }
     }
 
@@ -451,6 +468,13 @@ public class MemdirService {
      */
     public Path getMemoryFile() {
         return memoryFile;
+    }
+
+    /**
+     * 返回所有记忆条目（供外部调用）。
+     */
+    public List<MemoryEntry> listEntries() {
+        return parseEntries(readMemories());
     }
 
     /**

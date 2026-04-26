@@ -58,6 +58,7 @@ public class QueryEngine {
     private final FileHistoryService fileHistoryService;
     private final ToolResultSummarizer toolResultSummarizer;
     private final ContextCascade contextCascade;
+    private final CompactMetrics compactMetrics;
 
     /** 单条工具结果最大占上下文窗口的 30% */
     private static final double TOOL_RESULT_BUDGET_RATIO = 0.3;
@@ -87,7 +88,8 @@ public class QueryEngine {
                        ModelTierService modelTierService,
                        FileHistoryService fileHistoryService,
                        ToolResultSummarizer toolResultSummarizer,
-                       ContextCascade contextCascade) {
+                       ContextCascade contextCascade,
+                       CompactMetrics compactMetrics) {
         this.providerRegistry = providerRegistry;
         this.compactService = compactService;
         this.apiRetryService = apiRetryService;
@@ -106,6 +108,7 @@ public class QueryEngine {
         this.fileHistoryService = fileHistoryService;
         this.toolResultSummarizer = toolResultSummarizer;
         this.contextCascade = contextCascade;
+        this.compactMetrics = compactMetrics;
     }
 
     /**
@@ -653,6 +656,8 @@ public class QueryEngine {
 
         log.warn("触发反应式压缩 (413 prompt_too_long)");
         state.setHasAttemptedReactiveCompact(true);
+        compactMetrics.recordRecoveryAttempt();
+        long startTime = System.currentTimeMillis();
 
         try {
             CompactService.CompactResult result = compactService.reactiveCompact(
@@ -661,6 +666,9 @@ public class QueryEngine {
                 state.setMessages(result.compactedMessages());
                 handler.onCompactEvent("reactive_compact",
                         result.beforeTokens(), result.afterTokens());
+                compactMetrics.recordRecoverySuccess(
+                        result.compressionRatio(),
+                        System.currentTimeMillis() - startTime);
                 return true;
             }
         } catch (Exception e) {
@@ -675,6 +683,8 @@ public class QueryEngine {
          */
     private int tryContextCollapseDrain(QueryConfig config, QueryLoopState state,
                                          QueryMessageHandler handler) {
+        compactMetrics.recordRecoveryAttempt();
+        long startTime = System.currentTimeMillis();
         try {
             CompactService.CompactResult result = compactService.compact(
                     state.getMessages(),
@@ -685,6 +695,9 @@ public class QueryEngine {
                 state.setMessages(result.compactedMessages());
                 handler.onCompactEvent("context_collapse_drain",
                         result.beforeTokens(), result.afterTokens());
+                compactMetrics.recordRecoverySuccess(
+                        result.compressionRatio(),
+                        System.currentTimeMillis() - startTime);
                 log.info("Context-collapse drain: {} → {} tokens",
                         result.beforeTokens(), result.afterTokens());
                 return result.beforeTokens() - result.afterTokens();

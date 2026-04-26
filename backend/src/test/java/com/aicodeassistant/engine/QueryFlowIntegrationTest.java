@@ -14,6 +14,7 @@ import com.aicodeassistant.permission.PermissionRuleRepository;
 import com.aicodeassistant.permission.PluginSettingsSource;
 import com.aicodeassistant.permission.PolicySettingsSource;
 import com.aicodeassistant.sandbox.SandboxManager;
+import com.aicodeassistant.security.CommandBlacklistService;
 import com.aicodeassistant.security.PathSecurityService;
 import com.aicodeassistant.security.SensitiveDataFilter;
 import com.aicodeassistant.tool.*;
@@ -64,7 +65,7 @@ class QueryFlowIntegrationTest {
         permissionPipeline = new PermissionPipeline(ruleMatcher, ruleRepo, autoModeClassifier,
                 mock(HookService.class), mock(SandboxManager.class),
                 mock(PathSecurityService.class), mock(BashCommandClassifier.class),
-                mock(FeatureFlagService.class));
+                mock(FeatureFlagService.class), mock(CommandBlacklistService.class));
 
         TokenCounter tokenCounter = new TokenCounter();
         CompactService compactService = new CompactService(tokenCounter, providerRegistry, null, null);
@@ -90,7 +91,7 @@ class QueryFlowIntegrationTest {
                 permissionPipeline, ruleRepo, tokenCounter, objectMapper,
                 streamingToolExecutor, messageNormalizer, hookService,
                 snipService, microCompactService, null, null, modelTierService, mock(FileHistoryService.class), mock(ToolResultSummarizer.class),
-                contextCascade
+                contextCascade, mock(CompactMetrics.class)
         );
 
         handler = new RecordingHandler();

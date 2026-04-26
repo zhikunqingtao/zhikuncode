@@ -121,6 +121,13 @@ sandbox:
   network-enabled: false
   mount-mode: ro
 
+# 安全增强配置
+security:
+  enhanced-blacklist:
+    enabled: true
+    custom-config: security-blacklist.json
+    audit-log-enabled: true
+
 # SpringDoc OpenAPI
 springdoc:
   api-docs:

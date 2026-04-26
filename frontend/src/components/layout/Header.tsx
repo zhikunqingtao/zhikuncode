@@ -31,9 +31,15 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
 
     useEffect(() => {
         fetch('/api/models')
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) {
+                    console.error(`Failed to fetch models: ${res.status}`);
+                    return null;
+                }
+                return res.json();
+            })
             .then(data => {
-                if (data.models && data.models.length > 0) {
+                if (data && data.models && data.models.length > 0) {
                     setAvailableModels(data.models.map((m: any) => ({
                         id: m.id,
                         displayName: m.displayName || m.id,
