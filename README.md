@@ -51,6 +51,12 @@
 
 https://github.com/user-attachments/assets/bf1f1d3a-4a9b-4d91-af48-97a7d3dd7b8a
 
+### 自动写代码下载小红书视频
+
+https://github.com/user-attachments/assets/4b66261b-3258-44bd-82d3-6b2b3bbd4995
+
+![自动写代码下载小红书视频](docs/local/自动开发工具下载小红书视频.gif)
+
 ### 📱 项目分析和命令执行演示
 
 https://github.com/user-attachments/assets/7b45c5d4-e540-4ffd-80d4-e11502477dba
