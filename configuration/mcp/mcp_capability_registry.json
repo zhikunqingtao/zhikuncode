@@ -1,7 +1,7 @@
 {
   "_schema_version" : "1.0",
   "description" : "MCP能力注册表 - 细粒度MCP工具定义（每个MCP Server一个工具，规范化入参出参）",
-  "lastUpdated" : "2026-04-14",
+  "lastUpdated" : "2026-04-26",
   "usage_guide" : {
     "id" : "MCP能力唯一标识（建议mcp_前缀）",
     "name" : "显示名称（中文）",

@@ -1,0 +1,142 @@
+[
+  {
+    "id": "mem-zh-001",
+    "content": "Java项目统一使用Google Java Format进行代码格式化，缩进为2个空格，行宽限制120字符，所有public方法必须添加Javadoc注释",
+    "category": "CODING_CONVENTION",
+    "scope": "project",
+    "tags": ["java", "format", "coding-style", "javadoc"]
+  },
+  {
+    "id": "mem-zh-002",
+    "content": "Spring Boot项目采用分层架构：Controller层处理HTTP请求，Service层封装业务逻辑，Repository层负责数据访问，各层之间通过接口解耦",
+    "category": "ARCHITECTURE",
+    "scope": "project",
+    "tags": ["spring-boot", "layered-architecture", "controller", "service", "repository"]
+  },
+  {
+    "id": "mem-zh-003",
+    "content": "使用Builder模式构建复杂对象，避免构造函数参数过多。配合Lombok的@Builder注解可以减少样板代码，提高代码可读性",
+    "category": "DESIGN_PATTERN",
+    "scope": "team",
+    "tags": ["builder-pattern", "lombok", "design-pattern"]
+  },
+  {
+    "id": "mem-zh-004",
+    "content": "IntelliJ IDEA中配置Save Actions插件，保存时自动格式化代码、优化import语句、添加final修饰符到局部变量",
+    "category": "TOOL_USAGE",
+    "scope": "personal",
+    "tags": ["intellij", "ide", "save-actions", "format"]
+  },
+  {
+    "id": "mem-zh-005",
+    "content": "项目中所有REST API遵循统一响应格式：{code, message, data}，成功返回200，业务异常返回对应错误码，系统异常返回500",
+    "category": "CODING_CONVENTION",
+    "scope": "project",
+    "tags": ["rest-api", "response-format", "error-code", "coding-style"]
+  },
+  {
+    "id": "mem-zh-006",
+    "content": "微服务之间通过消息队列RabbitMQ进行异步通信，使用死信队列处理失败消息，确保消息不丢失且支持重试机制",
+    "category": "ARCHITECTURE",
+    "scope": "project",
+    "tags": ["microservice", "rabbitmq", "message-queue", "async"]
+  },
+  {
+    "id": "mem-zh-007",
+    "content": "数据库敏感字段必须加密存储，使用AES-256-GCM算法，密钥通过环境变量注入，禁止硬编码在代码或配置文件中",
+    "category": "SECURITY",
+    "scope": "team",
+    "tags": ["encryption", "database", "aes", "security", "sensitive-data"]
+  },
+  {
+    "id": "mem-zh-008",
+    "content": "单元测试覆盖率要求：核心业务逻辑不低于80%，工具类不低于90%，使用JUnit 5 + Mockito框架，测试方法命名采用should_xxx_when_xxx格式",
+    "category": "TESTING",
+    "scope": "project",
+    "tags": ["unit-test", "coverage", "junit", "mockito", "testing"]
+  },
+  {
+    "id": "mem-zh-009",
+    "content": "使用Docker Compose管理本地开发环境，包含MySQL、Redis、RabbitMQ等基础服务，通过.env文件配置端口映射避免冲突",
+    "category": "DEPLOYMENT",
+    "scope": "team",
+    "tags": ["docker", "docker-compose", "local-dev", "deployment"]
+  },
+  {
+    "id": "mem-zh-010",
+    "content": "项目采用策略模式处理不同类型的消息推送：邮件、短信、企业微信，通过Spring的依赖注入自动装配对应策略实现类",
+    "category": "DESIGN_PATTERN",
+    "scope": "project",
+    "tags": ["strategy-pattern", "spring", "dependency-injection", "design-pattern"]
+  },
+  {
+    "id": "mem-en-001",
+    "content": "REST API endpoints should use plural nouns for resources, support pagination via limit/offset parameters, and return proper HTTP status codes for each operation",
+    "category": "CODING_CONVENTION",
+    "scope": "team",
+    "tags": ["rest-api", "api-design", "pagination", "http-status"]
+  },
+  {
+    "id": "mem-en-002",
+    "content": "Integration tests should use Testcontainers for database dependencies, ensuring test isolation. Each test class gets a fresh container instance to prevent state leakage",
+    "category": "TESTING",
+    "scope": "project",
+    "tags": ["integration-test", "testcontainers", "database", "testing", "isolation"]
+  },
+  {
+    "id": "mem-en-003",
+    "content": "Kubernetes deployment uses rolling update strategy with maxSurge=1 and maxUnavailable=0. Health checks configured with readiness and liveness probes on /actuator/health endpoint",
+    "category": "DEPLOYMENT",
+    "scope": "team",
+    "tags": ["kubernetes", "rolling-update", "health-check", "deployment"]
+  },
+  {
+    "id": "mem-en-004",
+    "content": "All API endpoints must implement rate limiting using Token Bucket algorithm. Default limit: 100 requests per minute per user. Critical endpoints like login have stricter limits of 10 per minute",
+    "category": "SECURITY",
+    "scope": "project",
+    "tags": ["rate-limiting", "token-bucket", "api-security", "security"]
+  },
+  {
+    "id": "mem-en-005",
+    "content": "Use the Repository pattern with Spring Data JPA. Custom queries should prefer @Query annotation with JPQL over native SQL. Complex queries can use Specification API for dynamic filtering",
+    "category": "DESIGN_PATTERN",
+    "scope": "project",
+    "tags": ["repository-pattern", "spring-data", "jpa", "design-pattern", "query"]
+  },
+  {
+    "id": "mem-en-006",
+    "content": "Git workflow follows trunk-based development. Feature branches prefixed with feat/, bugfix branches with fix/. All merges require pull request review by at least one team member",
+    "category": "CODING_CONVENTION",
+    "scope": "team",
+    "tags": ["git", "workflow", "branch-naming", "code-review", "coding-style"]
+  },
+  {
+    "id": "mem-en-007",
+    "content": "Application monitoring uses Prometheus for metrics collection and Grafana for visualization. Custom metrics should follow naming convention: app_module_action_unit format",
+    "category": "TOOL_USAGE",
+    "scope": "team",
+    "tags": ["prometheus", "grafana", "monitoring", "metrics"]
+  },
+  {
+    "id": "mem-en-008",
+    "content": "CI/CD pipeline stages: lint -> unit-test -> build -> integration-test -> security-scan -> deploy-staging -> deploy-production. Each stage must pass before proceeding to the next",
+    "category": "DEPLOYMENT",
+    "scope": "project",
+    "tags": ["ci-cd", "pipeline", "deployment", "automation"]
+  },
+  {
+    "id": "mem-en-009",
+    "content": "JWT tokens for API authentication expire after 1 hour. Refresh tokens valid for 7 days. Token rotation enabled: each refresh generates new refresh token and invalidates the old one",
+    "category": "SECURITY",
+    "scope": "project",
+    "tags": ["jwt", "authentication", "token-rotation", "security", "api-security"]
+  },
+  {
+    "id": "mem-en-010",
+    "content": "Performance testing with JMeter targets: API response time p95 < 200ms, throughput > 500 req/s under normal load. Load test results must be reviewed before each major release",
+    "category": "TESTING",
+    "scope": "team",
+    "tags": ["performance-test", "jmeter", "load-test", "testing", "benchmark"]
+  }
+]
