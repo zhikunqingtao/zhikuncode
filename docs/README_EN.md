@@ -338,11 +338,18 @@ The following paths require user confirmation even in bypass mode:
 
 ### 🧪 Quality Assurance
 
-Full test report: [ZhikunCode Core Functionality Test Report](ZhikunCode核心功能测试报告.md)
+Full test report: [ZhikunCode Core Functionality Test Report v7](ZhikunCode核心功能测试报告.md) (2026-04-26)
 
-- **110 test cases** — 100% pass rate
-- **1100+ automated tests** — all passing (JUnit 5 + Vitest + Pytest + Playwright)
-- **Feature completeness** — 100% coverage of v1.0 planned features
+**Test Coverage:**
+- **14 functional modules** with **137 test cases**
+- **Results**: 131 PASS / 3 PARTIAL / 1 OBSERVE / 0 FAIL — **100% core functionality pass rate**
+- **Automation Stack**: JUnit 5 + Vitest + Pytest + Playwright E2E
+- **Full Coverage**: 100% of planned v1.0 features verified
+
+**Detailed Test Data & Evidence:**
+- Per-module results: [docs/test-results/](docs/test-results/) (14 detailed data files)
+- Frontend E2E scripts: [frontend/e2e/frontend-e2e-full.spec.ts](frontend/e2e/frontend-e2e-full.spec.ts)
+- E2E screenshots: [docs/test-results/screenshots/](docs/test-results/screenshots/) (15 images)
 
 ---
 
