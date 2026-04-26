@@ -253,7 +253,7 @@ ZhikunCode uses a three-tier architecture: the Java backend handles core orchest
 
 | Layer | Tech Stack | Responsibilities |
 |-------|-----------|-----------------|
-| **Backend** | Java 21, Spring Boot 3.4.x, WebSocket, SQLite | Core orchestration engine, LLM API routing, Agent management, tool execution (41 built-in tools + MCP dynamic extensions), permission pipeline, session persistence |
+| **Backend** | Java 21, Spring Boot 3.4.x, WebSocket, SQLite | Core orchestration engine, LLM API routing, Agent management, tool execution (48 built-in tools + MCP dynamic extensions), permission pipeline, session persistence |
 | **Frontend** | React 18, TypeScript 5.6, Vite 5, TailwindCSS, Monaco Editor, xterm.js, Zustand | Conversational UI, code editor, built-in terminal, file browser, settings panel, real-time streaming output, Agent collaboration visualization |
 | **Python Service** | FastAPI, Uvicorn, Python 3.11+ | Code analysis, AST parsing, MCP tool bridging |
 
@@ -289,7 +289,7 @@ All shell commands must pass through these 8 layers before execution:
 | Layer | Check | Description |
 |-------|-------|-------------|
 | **Layer 1** | Command parsing | Parses command structure; identifies pipes, redirects, and subcommands |
-| **Layer 2** | Blocklist filtering | Blocks known dangerous commands (`rm -rf /`, `mkfs`, `dd`, `format`, etc.) |
+| **Layer 2** | Blocklist filtering | Three-tier interception system (ABSOLUTE_DENY/HIGH_RISK_ASK/AUDIT_LOG), blocks known dangerous commands (`rm -rf /`, `mkfs`, `dd`, `format`, etc.), with ReDoS regex protection |
 | **Layer 3** | Path traversal detection | Prevents `../` path traversal attacks; blocks device paths and UNC paths |
 | **Layer 4** | Permission verification | 14-step permission pipeline decision; sensitive operations require user approval |
 | **Layer 5** | Sandboxed execution | Destructive commands run in a Docker sandbox (read-only filesystem + memory limits + network isolation) |
@@ -357,7 +357,7 @@ Full test report: [ZhikunCode Core Functionality Test Report v7](ZhikunCode核�
 
 ZhikunCode's Skill System is a **Markdown-driven extensible workflow engine**. Each skill is a `.md` file — YAML frontmatter defines metadata, Markdown body defines execution instructions.
 
-### 5 Built-in Skills
+### 6 Built-in Skills
 
 Ready to use out of the box — type `/skill-name` to invoke:
 
@@ -383,7 +383,7 @@ managed > user > project > plugin > bundled > mcp
 | **user** | `~/.zhikun/skills/` | User global custom skills |
 | **project** | `.zhikun/skills/` | Project-level skills, distributed with the codebase |
 | **plugin** | Plugin-provided | Skills embedded in JAR plugins |
-| **bundled** | Built-in | 5 out-of-the-box skills |
+| **bundled** | Built-in | 6 out-of-the-box skills |
 | **mcp** | MCP-built | Skills registered via MCP protocol |
 
 ### Custom Skills
@@ -532,6 +532,7 @@ The AI automatically records and retrieves memories via the built-in MemoryTool:
 - **Auto-write** — AI proactively records important information (user preferences, project norms, etc.)
 - **Auto-load** — Memories are automatically injected into the system prompt at session start
 - **BM25 Search** — Pure Java BM25 search engine with Chinese+English support (Unigram + Bigram CJK tokenization)
+- **Source Tracking** — Memory source tracking (source field) to distinguish REST API-created vs LLM tool-created memories
 - **LLM Reranking** — Optional LLM reranking service for precision after BM25 initial retrieval
 
 ### Project Memory Files
@@ -792,7 +793,7 @@ Register new MCP tools in `configuration/mcp/mcp_capability_registry.json`:
 
 ## 🛠️ Built-in Tools
 
-ZhikunCode ships with 41 built-in tools + MCP dynamic extensions, covering the full development lifecycle:
+ZhikunCode ships with 48 built-in tools + MCP dynamic extensions, covering the full development lifecycle:
 
 | Category | Tools | Description |
 |----------|-------|-------------|
