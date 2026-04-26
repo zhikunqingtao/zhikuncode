@@ -56,7 +56,7 @@ https://github.com/user-attachments/assets/bf1f1d3a-4a9b-4d91-af48-97a7d3dd7b8a
 
 https://github.com/user-attachments/assets/4b66261b-3258-44bd-82d3-6b2b3bbd4995
 
-![Auto-Code to Download Xiaohongshu Videos](local/自动开发工具下载小红书视频.gif)
+![Auto-Code to Download Xiaohongshu Videos](assets/demo-auto-code-xiaohongshu.gif)
 
 ### 📱 Project Analysis and Command Execution Demo
 
