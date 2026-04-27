@@ -48,6 +48,18 @@ kill_port 5173
 # 等待进程完全退出并释放文件句柄
 sleep 2
 
+# 清理 Agent 残留的 git worktree（避免 VS Code 源代码管理面板显示大量虚假变更）
+agent_worktrees=$(git -C "$PROJECT_ROOT" worktree list --porcelain 2>/dev/null | grep '^worktree ' | grep -v "$PROJECT_ROOT" | sed 's/^worktree //')
+if [ -n "$agent_worktrees" ]; then
+    while IFS= read -r wt; do
+        git -C "$PROJECT_ROOT" worktree remove --force "$wt" 2>/dev/null && log_info "已清理 Agent worktree: $wt"
+    done <<< "$agent_worktrees"
+    # 清理对应的 agent 临时分支
+    git -C "$PROJECT_ROOT" branch --list 'agent-*' | xargs -r git -C "$PROJECT_ROOT" branch -D 2>/dev/null && log_info "已清理 Agent 临时分支"
+else
+    log_info "无残留 Agent worktree"
+fi
+
 # 清理 Backend 编译产物（可选，java -jar 模式下已不会锁定 target）
 if [ -d "$PROJECT_ROOT/backend/target" ]; then
     rm -rf "$PROJECT_ROOT/backend/target" 2>/dev/null
