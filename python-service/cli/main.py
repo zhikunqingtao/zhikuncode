@@ -20,6 +20,7 @@ import signal
 from pathlib import Path
 from typing import Optional
 from enum import Enum
+from importlib.metadata import version as pkg_version, PackageNotFoundError
 
 import typer
 import httpx
@@ -37,6 +38,16 @@ app = typer.Typer(
 )
 console = Console(stderr=True)   # 元信息输出到 stderr
 stdout_console = Console()       # LLM 内容输出到 stdout
+
+
+def _version_callback(value: bool):
+    if value:
+        try:
+            v = pkg_version("zhikuncode-python-service")
+        except PackageNotFoundError:
+            v = "1.0.0"
+        print(f"aica {v}")
+        raise typer.Exit()
 
 
 class OutputFormat(str, Enum):
@@ -67,6 +78,9 @@ def _handle_sigint(signum, frame):
 @app.command()
 def main(
     prompt: Optional[str] = typer.Argument(None, help="查询内容"),
+    version: bool = typer.Option(
+        False, "--version", "-V", callback=_version_callback,
+        is_eager=True, help="显示版本号"),
     # 输出控制
     output_format: OutputFormat = typer.Option(
         OutputFormat.text, "--output-format", "-f", help="输出格式"),
@@ -199,13 +213,14 @@ def main(
     # 7. 创建客户端并执行查询
     client = AicaClient(server=server, token=token, timeout=timeout)
 
+    response_sid = None
     try:
         if output_format == OutputFormat.stream_json:
-            _stream_query(client, request_body, verbose)
+            response_sid = _stream_query(client, request_body, verbose)
         elif output_format == OutputFormat.json:
-            _sync_query_json(client, request_body)
+            response_sid = _sync_query_json(client, request_body)
         else:
-            _sync_query_text(client, request_body, verbose, quiet)
+            response_sid = _sync_query_text(client, request_body, verbose, quiet)
     except httpx.ConnectError:
         console.print(f"[red]Error: Backend not reachable at {server}[/red]")
         raise typer.Exit(code=3)
@@ -216,25 +231,32 @@ def main(
         console.print(f"[red]Error: HTTP {e.response.status_code}[/red]")
         raise typer.Exit(code=1)
 
-    # 8. 更新本地会话缓存
+    # 8. 更新本地会话缓存（优先使用后端响应中的 sessionId）
+    final_sid = response_sid or resolved_sid or ""
     if not no_session:
-        cache.save_last_session(wd, resolved_sid or "", model or "")
+        cache.save_last_session(wd, final_sid, model or "")
 
 
-def _stream_query(client: AicaClient, body: dict, verbose: bool) -> None:
+def _stream_query(client: AicaClient, body: dict, verbose: bool) -> Optional[str]:
     """SSE 流式查询 — POST /api/query/stream"""
+    response_session_id = None
     for event in client.stream_query(body):
         print(json.dumps(event, ensure_ascii=False), flush=True)
+        # 从 message_complete 事件中提取 sessionId
+        if isinstance(event, dict) and event.get("sessionId"):
+            response_session_id = event["sessionId"]
+    return response_session_id
 
 
-def _sync_query_json(client: AicaClient, body: dict) -> None:
+def _sync_query_json(client: AicaClient, body: dict) -> Optional[str]:
     """同步查询 JSON 输出"""
     data = client.sync_query(body)
     print(json.dumps(data, ensure_ascii=False, indent=2))
+    return data.get("sessionId")
 
 
 def _sync_query_text(client: AicaClient, body: dict,
-                     verbose: bool, quiet: bool) -> None:
+                     verbose: bool, quiet: bool) -> Optional[str]:
     """同步查询文本输出"""
     if not quiet:
         console.print("[dim]Thinking...[/dim]")
@@ -254,6 +276,8 @@ def _sync_query_text(client: AicaClient, body: dict,
             f"+ {usage.get('outputTokens', 0)}out | "
             f"Cost: ${cost:.4f}[/dim]"
         )
+
+    return data.get("sessionId")
 
 
 if __name__ == "__main__":

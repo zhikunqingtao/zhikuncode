@@ -141,10 +141,16 @@ public class QueryController {
                 maxTurns, "rest-api"
         );
 
-        // 6. 初始化循环状态
+        // 6. 初始化循环状态 — 如果是已有会话，加载历史消息
+        List<Message> historyMessages = new ArrayList<>();
+        if (request.sessionId() != null) {
+            sessionManager.loadSession(request.sessionId()).ifPresent(session ->
+                historyMessages.addAll(session.messages())
+            );
+        }
         ToolUseContext toolCtx = ToolUseContext.of(
                 System.getProperty("user.dir"), sessionId);
-        QueryLoopState state = new QueryLoopState(new ArrayList<>(), toolCtx);
+        QueryLoopState state = new QueryLoopState(historyMessages, toolCtx);
         // 添加用户消息
         state.addMessage(new Message.UserMessage(
                 UUID.randomUUID().toString(), Instant.now(),
@@ -155,10 +161,13 @@ public class QueryController {
         ResultCollectingHandler handler = new ResultCollectingHandler();
         QueryEngine.QueryResult result = queryEngine.execute(config, state, handler);
 
-        // 7.5 ★ 持久化消息到数据库 ★
-        // SessionManager.addMessage 签名: (sessionId, role, content, stopReason, inputTokens, outputTokens)
+        // 7.5 ★ 持久化新增消息到数据库（跳过历史消息，避免重复持久化）★
         try {
-            for (Message msg : result.messages()) {
+            int existingCount = historyMessages.size();
+            List<Message> newMessages = result.messages().subList(
+                    Math.min(existingCount, result.messages().size()),
+                    result.messages().size());
+            for (Message msg : newMessages) {
                 switch (msg) {
                     case Message.UserMessage user -> sessionManager.addMessage(
                             sessionId, "user", user.content(), null, 0, 0);
@@ -171,8 +180,8 @@ public class QueryController {
                             sessionId, "system", system.content(), null, 0, 0);
                 }
             }
-            log.debug("REST API /api/query: 已持久化 {} 条消息到会话 {}",
-                    result.messages().size(), sessionId);
+            log.debug("REST API /api/query: 已持久化 {} 条新消息到会话 {}（历史 {} 条）",
+                    newMessages.size(), sessionId, historyMessages.size());
         } catch (Exception e) {
             log.error("REST API 消息持久化失败, sessionId={}", sessionId, e);
             // 持久化失败不阻塞响应返回（降级策略）
@@ -240,9 +249,16 @@ public class QueryController {
                         maxTurns, "rest-api-stream"
                 );
 
+                // 如果是已有会话，加载历史消息
+                List<Message> historyMessages = new ArrayList<>();
+                if (request.sessionId() != null) {
+                    sessionManager.loadSession(request.sessionId()).ifPresent(session ->
+                        historyMessages.addAll(session.messages())
+                    );
+                }
                 ToolUseContext toolCtx = ToolUseContext.of(
                         System.getProperty("user.dir"), sessionId);
-                QueryLoopState state = new QueryLoopState(new ArrayList<>(), toolCtx);
+                QueryLoopState state = new QueryLoopState(historyMessages, toolCtx);
                 state.addMessage(new Message.UserMessage(
                         UUID.randomUUID().toString(), Instant.now(),
                         List.of(new ContentBlock.TextBlock(userMessage)),
@@ -252,9 +268,13 @@ public class QueryController {
                 SseStreamHandler handler = new SseStreamHandler(emitter, objectMapper);
                 QueryEngine.QueryResult result = queryEngine.execute(config, state, handler);
 
-                // ★ 持久化消息（使用实际 6 参数签名）★
+                // ★ 持久化新增消息（跳过历史消息）★
                 try {
-                    for (Message msg : result.messages()) {
+                    int existingCount = historyMessages.size();
+                    List<Message> newMessages = result.messages().subList(
+                            Math.min(existingCount, result.messages().size()),
+                            result.messages().size());
+                    for (Message msg : newMessages) {
                         switch (msg) {
                             case Message.UserMessage user -> sessionManager.addMessage(
                                     sessionId, "user", user.content(), null, 0, 0);
@@ -267,6 +287,8 @@ public class QueryController {
                                     sessionId, "system", system.content(), null, 0, 0);
                         }
                     }
+                    log.debug("SSE /api/query/stream: 已持久化 {} 条新消息到会话 {}（历史 {} 条）",
+                            newMessages.size(), sessionId, historyMessages.size());
                 } catch (Exception e) {
                     log.error("SSE 消息持久化失败, sessionId={}", sessionId, e);
                 }
