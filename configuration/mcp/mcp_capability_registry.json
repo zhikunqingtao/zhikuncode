@@ -56,7 +56,7 @@
       }
     },
     "timeoutMs" : 120000,
-    "enabled" : true,
+    "enabled" : false,
     "videoCallEnabled" : false
   }, {
     "id" : "mcp_wan25_image_gen",
@@ -89,7 +89,7 @@
       }
     },
     "timeoutMs" : 120000,
-    "enabled" : true,
+    "enabled" : false,
     "videoCallEnabled" : false
   }, {
     "id" : "mcp_web_search_pro",
@@ -167,7 +167,7 @@
       }
     },
     "timeoutMs" : 30000,
-    "enabled" : true,
-    "videoCallEnabled" : true
+    "enabled" : false,
+    "videoCallEnabled" : false
   } ]
 }

@@ -103,14 +103,14 @@ features:
 # MCP 配置
 mcp:
   capability-registry-path: ${MCP_REGISTRY_PATH:${user.dir}/../configuration/mcp/mcp_capability_registry.json}
-  servers:
-    # 智谱 WebSearch MCP (通过阿里云百炼)
-    zhipu-websearch:
-      type: SSE
-      url: https://dashscope.aliyuncs.com/api/v1/mcps/zhipu-websearch/sse
-      headers:
-        Authorization: Bearer ${LLM_PROVIDER_DASHSCOPE_API_KEY:${LLM_API_KEY:your-api-key-here}}
-      scope: USER
+  servers: {}
+    # 智谱 WebSearch MCP (通过阿里云百炼) - 默认禁用，如需启用请配置 LLM_PROVIDER_DASHSCOPE_API_KEY 后取消下方注释
+    # zhipu-websearch:
+    #   type: SSE
+    #   url: https://dashscope.aliyuncs.com/api/v1/mcps/zhipu-websearch/sse
+    #   headers:
+    #     Authorization: Bearer ${LLM_PROVIDER_DASHSCOPE_API_KEY:${LLM_API_KEY:your-api-key-here}}
+    #   scope: USER
 
 # 沙箱配置
 sandbox:
