@@ -187,6 +187,27 @@ LLM_PROVIDER_DEEPSEEK_API_KEY=your-deepseek-key
 
 > 任何兼容 OpenAI API 格式的服务商都可以接入，只需配置对应的 Base URL 和 API Key。
 
+### 可选：启用 DashScope 托管 MCP 服务
+
+从最新版本起，为避免未配置阿里云百炼 Key 的用户遭遇启动日志刷屏，**默认不启用**以下托管在 `dashscope.aliyuncs.com` 上的 MCP 服务：
+
+| MCP 服务 | 能力 | 对应工具 ID |
+|---------|------|-------------|
+| `Wan25Media` | 万相 2.5 图像生成 / 图生图 | `mcp_wan25_image_gen`、`mcp_wan25_image_edit` |
+| `zhipu-websearch` | 智谱联网搜索 Pro | `mcp_web_search_pro` |
+
+> ℹ️ 不启用这些 MCP 完全不影响核心对话、代码编辑、本地工具使用。
+
+**如需使用**（需要阿里云百炼 API Key 且在控制台开通相应 MCP 能力）：
+
+1. 在 `.env` 中配置 DashScope Key：
+   ```bash
+   LLM_PROVIDER_DASHSCOPE_API_KEY=sk-xxxxxxxx
+   ```
+2. 在 [`backend/src/main/resources/application.yml`](backend/src/main/resources/application.yml) 中取消 `zhipu-websearch` 配置块的注释。
+3. 在 [`configuration/mcp/mcp_capability_registry.json`](configuration/mcp/mcp_capability_registry.json) 中把需要的条目 `enabled` 改为 `true`。
+4. 通过 `./stop.sh && ./start.sh` 完整重启三端使配置生效。
+
 ---
 
 ## 📊 竞品对比

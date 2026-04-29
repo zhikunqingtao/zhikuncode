@@ -188,6 +188,27 @@ If no multi-Provider keys are configured, the system automatically falls back to
 
 > Any provider compatible with the OpenAI API format can be integrated — just configure the corresponding Base URL and API Key.
 
+### Optional: Enable DashScope-hosted MCP Services
+
+Starting from the latest version, the following MCP services hosted on `dashscope.aliyuncs.com` are **disabled by default**, to avoid startup log flooding for users who have not configured an Alibaba Cloud Bailian API Key:
+
+| MCP Service | Capability | Tool IDs |
+|-------------|------------|----------|
+| `Wan25Media` | Wanx 2.5 image generation / image-to-image editing | `mcp_wan25_image_gen`, `mcp_wan25_image_edit` |
+| `zhipu-websearch` | Zhipu Web Search Pro | `mcp_web_search_pro` |
+
+> ℹ️ Disabling these MCPs does **not** affect core chat, code editing, or local tools.
+
+**To enable them** (requires an Alibaba Cloud Bailian API Key with the corresponding MCP capabilities activated in the console):
+
+1. Configure your DashScope key in `.env`:
+   ```bash
+   LLM_PROVIDER_DASHSCOPE_API_KEY=sk-xxxxxxxx
+   ```
+2. Uncomment the `zhipu-websearch` block in [`backend/src/main/resources/application.yml`](../backend/src/main/resources/application.yml).
+3. Flip `enabled` to `true` for the entries you need in [`configuration/mcp/mcp_capability_registry.json`](../configuration/mcp/mcp_capability_registry.json).
+4. Run `./stop.sh && ./start.sh` to fully restart all three tiers so the changes take effect.
+
 ---
 
 ## 📊 Comparison
