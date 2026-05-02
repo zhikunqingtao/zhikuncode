@@ -67,7 +67,7 @@ export function Drawer({
                     }`}
                 style={{ width: `${width}px` }}
             >
-                <div className="h-full overflow-y-auto overscroll-contain">
+                <div className="h-full flex flex-col overscroll-contain">
                     {children}
                 </div>
             </div>

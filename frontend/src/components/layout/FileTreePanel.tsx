@@ -170,7 +170,7 @@ function FileNode({ node, style, dragHandle }: NodeRendererProps<ArboristNode>) 
 // ── 默认 rootPath ──
 const DEFAULT_ROOT = '.';
 
-export function FileTreePanel() {
+export function FileTreePanel({ sidebarWidth = 256 }: { sidebarWidth?: number }) {
     const { treeData, loading, error, searchQuery, fetchTree, setSearchQuery } = useFileTreeStore();
     const containerRef = useRef<HTMLDivElement>(null);
     const [containerHeight, setContainerHeight] = useState(500);
@@ -213,7 +213,7 @@ export function FileTreePanel() {
     return (
         <div className="flex flex-col h-full">
             {/* 顶部工具栏：搜索 + 刷新 */}
-            <div className="p-2 border-b border-[var(--border)] flex items-center gap-1.5">
+            <div className="p-2 border-b border-[var(--border)] flex items-center gap-1.5 flex-shrink-0">
                 <div className="flex-1 relative">
                     <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)]" />
                     <input
@@ -276,7 +276,7 @@ export function FileTreePanel() {
                 {treeData && (arboristData.length > 0 || !searchQuery) && (
                     <Tree<ArboristNode>
                         data={arboristData}
-                        width={256}
+                        width={Math.max(sidebarWidth - 16, 200)}
                         height={containerHeight}
                         rowHeight={28}
                         indent={16}

@@ -21,7 +21,8 @@ import {
     GitBranch,
     GitCommitHorizontal,
     BarChart3,
-    FileText
+    FileText,
+    ExternalLink
 } from 'lucide-react';
 import { APISequenceDiagram } from '@/components/visualization/backend/APISequenceDiagram';
 import { FileTreePanel } from '@/components/layout/FileTreePanel';
@@ -40,13 +41,84 @@ import type { TaskState } from '@/types';
 
 type TabType = 'sessions' | 'tasks' | 'files' | 'sequence' | 'dag' | 'git' | 'complexity' | 'impact' | 'api-docs';
 
-interface SidebarProps {
+// ═══ Sidebar 宽度配置 ═══
+const MIN_WIDTH = 256;
+const MAX_WIDTH = 800;
+const DEFAULT_WIDTH = 320;
+const STORAGE_KEY = 'sidebar-width';
+
+export interface SidebarProps {
     className?: string;
+    /** 是否在 Drawer 模式下（移动端），不显示拖拽手柄 */
+    isDrawerMode?: boolean;
+    /** 独立窗口模式下的默认 Tab */
+    defaultTab?: string;
 }
 
-export function Sidebar({ className = '' }: SidebarProps) {
-    const [activeTab, setActiveTab] = useState<TabType>('sessions');
+export function Sidebar({ className = '', isDrawerMode = false, defaultTab }: SidebarProps) {
+    const [activeTab, setActiveTab] = useState<TabType>(() => {
+        if (defaultTab && ['sessions','tasks','files','sequence','dag','git','complexity','impact','api-docs'].includes(defaultTab)) {
+            return defaultTab as TabType;
+        }
+        return 'sessions';
+    });
     const { tasks, clearTasks } = useTaskStore();
+
+    // ── 可拖拽宽度 ──
+    // 动态最大宽度：不超过 800px 且不超过视口 70%
+    const getMaxWidth = useCallback(() => Math.min(MAX_WIDTH, Math.floor(window.innerWidth * 0.7)), []);
+
+    const [width, setWidth] = useState(() => {
+        if (isDrawerMode) return 280;
+        const saved = localStorage.getItem(STORAGE_KEY);
+        const maxW = Math.min(MAX_WIDTH, Math.floor(window.innerWidth * 0.7));
+        return saved ? Math.min(Math.max(Number(saved), MIN_WIDTH), maxW) : DEFAULT_WIDTH;
+    });
+    const [isDragging, setIsDragging] = useState(false);
+    const widthRef = useRef(width);
+    widthRef.current = width;
+
+    // 拖拽手柄 — mousedown
+    const handleMouseDown = useCallback((e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const startX = e.clientX;
+        const startWidth = widthRef.current;
+        const maxW = getMaxWidth();
+        setIsDragging(true);
+
+        const handleMouseMove = (ev: MouseEvent) => {
+            const newWidth = Math.min(Math.max(startWidth + (ev.clientX - startX), MIN_WIDTH), maxW);
+            setWidth(newWidth);
+            widthRef.current = newWidth;
+        };
+
+        const handleMouseUp = () => {
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+            setIsDragging(false);
+            localStorage.setItem(STORAGE_KEY, String(widthRef.current));
+        };
+
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+    }, [getMaxWidth]);
+
+    // 双击重置
+    const handleDoubleClick = useCallback(() => {
+        setWidth(DEFAULT_WIDTH);
+        localStorage.setItem(STORAGE_KEY, String(DEFAULT_WIDTH));
+    }, []);
+
+    // 新窗口打开
+    const handleOpenInNewWindow = useCallback(() => {
+        const url = `${window.location.origin}${window.location.pathname}?sidebar=detached&tab=${activeTab}`;
+        window.open(url, 'zhikun-sidebar', 'width=600,height=800,menubar=no,toolbar=no');
+    }, [activeTab]);
 
     const tabs: { id: TabType; label: string; icon: typeof MessageSquare }[] = [
         { id: 'sessions', label: '会话', icon: MessageSquare },
@@ -60,15 +132,23 @@ export function Sidebar({ className = '' }: SidebarProps) {
         { id: 'api-docs', label: 'API文档', icon: FileText },
     ];
 
+    // Drawer 模式不使用动态宽度
+    const sidebarStyle = isDrawerMode ? undefined : { width: `${width}px` };
+    const sidebarWidthClass = isDrawerMode ? 'w-full' : '';
+
     return (
-        <aside className={`w-64 h-full bg-[var(--bg-secondary)] border-r border-[var(--border)] flex flex-col relative z-10 ${className}`}>
+        <aside
+            className={`${sidebarWidthClass} h-full bg-[var(--bg-secondary)] border-r border-[var(--border)] flex flex-col relative z-10 ${className}`}
+            style={sidebarStyle}
+        >
             {/* Tab Navigation */}
-            <div className="flex border-b border-[var(--border)] overflow-x-hidden">
+            <div className="flex flex-wrap border-b border-[var(--border)] flex-shrink-0">
                 {tabs.map((tab) => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`flex-1 py-3 px-2 text-sm font-medium flex items-center justify-center gap-1.5
+                        title={tab.label}
+                        className={`py-2 px-2 text-sm font-medium flex items-center justify-center
                             transition-colors ${
                             activeTab === tab.id
                                 ? 'text-[var(--text-primary)] border-b-2 border-blue-500 bg-[var(--bg-hover)]'
@@ -76,34 +156,41 @@ export function Sidebar({ className = '' }: SidebarProps) {
                         }`}
                     >
                         <tab.icon className="w-4 h-4" />
-                        <span className="hidden sm:inline">{tab.label}</span>
                     </button>
                 ))}
+                {/* 新窗口打开按钮 */}
+                <button
+                    onClick={handleOpenInNewWindow}
+                    className="p-1.5 ml-auto text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] rounded transition-colors self-center mr-1"
+                    title="在新窗口中打开侧边栏"
+                >
+                    <ExternalLink className="w-4 h-4" />
+                </button>
             </div>
 
             {/* Content */}
             <div className="flex-1 overflow-y-auto">
                 {activeTab === 'sessions' && <SessionList />}
                 {activeTab === 'tasks' && <TaskPanel tasks={tasks} onClear={clearTasks} />}
-                {activeTab === 'files' && <FileTreePanel />}
+                {activeTab === 'files' && <FileTreePanel sidebarWidth={isDrawerMode ? 280 : width} />}
                 {activeTab === 'sequence' && <APISequenceDiagram />}
                 {activeTab === 'dag' && (
-                    <div className="h-[calc(100vh-100px)]">
+                    <div className="h-full">
                         <AgentDAGChart />
                     </div>
                 )}
                 {activeTab === 'git' && (
-                    <div className="h-[calc(100vh-100px)]">
+                    <div className="h-full">
                         <GitTimeline repoPath="." />
                     </div>
                 )}
                 {activeTab === 'complexity' && (
-                    <div className="h-[calc(100vh-100px)]">
+                    <div className="h-full">
                         <CodeComplexityTreemap />
                     </div>
                 )}
                 {activeTab === 'impact' && (
-                    <div className="h-[calc(100vh-100px)]">
+                    <div className="h-full">
                         <ChangeImpactGraph />
                     </div>
                 )}
@@ -111,6 +198,20 @@ export function Sidebar({ className = '' }: SidebarProps) {
                     <ApiDocsTab />
                 )}
             </div>
+
+            {/* 拖拽手柄 — 仅桌面端 */}
+            {!isDrawerMode && (
+                <div
+                    className={`absolute right-0 top-0 bottom-0 w-1 cursor-col-resize
+                        transition-colors z-30
+                        ${isDragging ? 'bg-blue-500/70' : 'hover:bg-blue-500/50'}`}
+                    onMouseDown={handleMouseDown}
+                    onDoubleClick={handleDoubleClick}
+                >
+                    {/* 增大可点击区域到 8px */}
+                    <div className="absolute -left-2 -right-2 top-0 bottom-0" />
+                </div>
+            )}
         </aside>
     );
 }
@@ -122,7 +223,7 @@ function ApiDocsTab() {
         fetchOpenApiSpec('merged');
     }, [fetchOpenApiSpec]);
     return (
-        <div className="h-[calc(100vh-100px)]">
+        <div className="h-full">
             <APIContractViewer />
         </div>
     );
@@ -372,8 +473,8 @@ function TaskPanel({ tasks, onClear }: { tasks: Map<string, TaskState>; onClear:
     }
 
     return (
-        <div className="p-2">
-            <div className="flex items-center justify-between mb-2 px-2">
+        <div className="flex flex-col h-full p-2">
+            <div className="flex items-center justify-between mb-2 px-2 flex-shrink-0">
                 <span className="text-xs text-[var(--text-muted)]">
                     {tasks.size} 个任务
                 </span>
@@ -386,6 +487,7 @@ function TaskPanel({ tasks, onClear }: { tasks: Map<string, TaskState>; onClear:
                 </button>
             </div>
             
+            <div className="flex-1 overflow-y-auto">
             {Array.from(tasks.entries()).map(([taskId, task]) => (
                 <div key={taskId} className="mb-1">
                     <button
@@ -422,6 +524,7 @@ function TaskPanel({ tasks, onClear }: { tasks: Map<string, TaskState>; onClear:
                     )}
                 </div>
             ))}
+            </div>
         </div>
     );
 }

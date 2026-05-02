@@ -6,7 +6,7 @@
  * 响应式: 移动端 Sidebar 变为 Drawer
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { StatusBar } from './StatusBar';
@@ -20,6 +20,17 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
+
+    // 检测是否为独立 Sidebar 模式（新窗口打开）
+    const isDetachedSidebar = useMemo(() => {
+        const params = new URLSearchParams(window.location.search);
+        return params.get('sidebar') === 'detached';
+    }, []);
+
+    const detachedTab = useMemo(() => {
+        const params = new URLSearchParams(window.location.search);
+        return params.get('tab') || undefined;
+    }, []);
 
     // 检测移动端
     useEffect(() => {
@@ -57,6 +68,23 @@ export function AppLayout({ children }: AppLayoutProps) {
         setSidebarOpen(false);
     }, []);
 
+    // 独立 Sidebar 模式：只渲染 Sidebar 全屏
+    if (isDetachedSidebar) {
+        return (
+            <div className="h-screen flex flex-col bg-[var(--bg-primary)] overflow-hidden">
+                <Sidebar className="flex-1" isDrawerMode={false} defaultTab={detachedTab} />
+                {!isConnected && (
+                    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 
+                        px-4 py-2 bg-red-500 text-white text-sm rounded-lg shadow-lg
+                        flex items-center gap-2 z-50">
+                        <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                        连接断开，正在重连...
+                    </div>
+                )}
+            </div>
+        );
+    }
+
     return (
         <div className="h-screen flex flex-col bg-[var(--bg-primary)] overflow-hidden">
             {/* Header */}
@@ -75,7 +103,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                 {/* Mobile Drawer */}
                 {isMobile && (
                     <Drawer open={sidebarOpen} onClose={closeSidebar}>
-                        <Sidebar />
+                        <Sidebar isDrawerMode />
                     </Drawer>
                 )}
 
