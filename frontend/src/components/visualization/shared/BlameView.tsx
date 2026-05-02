@@ -120,7 +120,7 @@ export function BlameView({ repoPath, filePath, gitRef }: BlameViewProps) {
                 <div
                     ref={leftPanelRef}
                     onScroll={() => handleScroll('left')}
-                    className="w-[180px] shrink-0 overflow-y-auto border-r border-[var(--border)] bg-[var(--bg-secondary)] scrollbar-thin"
+                    className="w-[220px] shrink-0 overflow-y-auto border-r border-[var(--border)] bg-[var(--bg-secondary)] scrollbar-thin"
                 >
                     {activeBlame.lines.map((line, i) => {
                         const bgColor = shaColorMap.get(line.sha) ?? '';
@@ -133,17 +133,17 @@ export function BlameView({ repoPath, filePath, gitRef }: BlameViewProps) {
                             >
                                 {showInfo ? (
                                     <>
-                                        <span className="w-[60px] truncate text-[var(--text-muted)]" title={line.author}>
+                                        <span className="w-[80px] shrink-0 truncate text-[var(--text-muted)]" title={line.author}>
                                             {line.author}
                                         </span>
-                                        <span className="w-[30px] text-center text-[var(--text-muted)]">
+                                        <span className="w-[36px] shrink-0 text-center text-[var(--text-muted)]">
                                             {relativeTime(line.date)}
                                         </span>
                                         <span
-                                            className="ml-auto font-mono text-[var(--text-muted)] cursor-pointer hover:text-blue-400 transition-colors"
+                                            className="ml-auto shrink-0 font-mono text-[var(--text-muted)] cursor-pointer hover:text-blue-400 transition-colors"
                                             title={`Commit ${line.sha}`}
                                         >
-                                            {line.sha.slice(0, 5)}
+                                            {line.sha.slice(0, 7)}
                                         </span>
                                     </>
                                 ) : (
