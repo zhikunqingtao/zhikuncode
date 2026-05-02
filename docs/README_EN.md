@@ -118,7 +118,7 @@ Once started, open **http://localhost:8080** in your browser.
 
 ### Option 2: Local Development
 
-**Prerequisites:** JDK 21, Node.js 20+, Python 3.11~3.12 (does not support 3.13+)
+**Prerequisites:** JDK 21, Node.js 22+, Python 3.11~3.12 (does not support 3.13+)
 
 ```bash
 git clone https://github.com/zhikunqingtao/zhikuncode.git
@@ -1019,7 +1019,7 @@ Quick steps:
 
 We recommend starting with Issues labeled `good first issue`.
 
-**Development environment:** JDK 21, Node.js 20+, Python 3.11~3.12, Maven 3.9+
+**Development environment:** JDK 21, Node.js 22+, Python 3.11~3.12, Maven 3.9+
 
 </details>
 

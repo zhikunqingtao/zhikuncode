@@ -7,7 +7,7 @@ Thank you for your interest in contributing to ZhikunCode! Every contribution ma
 ### Prerequisites
 
 - **JDK 21** (e.g., Eclipse Temurin or GraalVM)
-- **Node.js 20+** and **npm**
+- **Node.js 22+** and **npm**
 - **Python 3.11+**
 - **Maven 3.9+**
 

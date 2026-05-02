@@ -117,7 +117,7 @@ docker compose up -d
 
 ### 方式二：本地开发
 
-**前置条件：** JDK 21、Node.js 20+、Python 3.11~3.12（不支持 3.13+）
+**前置条件：** JDK 21、Node.js 22+、Python 3.11~3.12（不支持 3.13+）
 
 ```bash
 git clone https://github.com/zhikunqingtao/zhikuncode.git
@@ -1018,7 +1018,7 @@ Agent 会自动选择合适的协作模式。
 
 推荐从标记为 `good first issue` 的 Issue 开始。
 
-**开发环境需要：** JDK 21、Node.js 20+、Python 3.11~3.12、Maven 3.9+
+**开发环境需要：** JDK 21、Node.js 22+、Python 3.11~3.12、Maven 3.9+
 
 </details>
 
