@@ -26,6 +26,8 @@ ROUTER_PREFIX_MAP = {
     "routers.file_processing": ("/api/files", ["File Processing"]),
     "routers.git_enhanced": ("/api/git", ["Git Enhanced"]),
     "routers.browser": ("/api/browser", ["Browser Automation"]),
+    "routers.code_quality": ("/api/code-quality", ["Code Quality"]),
+    "routers.analysis": ("/api/analysis", ["Analysis"]),
 }
 
 

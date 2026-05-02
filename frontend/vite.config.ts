@@ -40,6 +40,16 @@ export default defineConfig(({ mode }) => {
                     changeOrigin: true,
                     secure: false,
                 },
+                '/api/code-quality': {
+                    target: env.VITE_PYTHON_URL || 'http://localhost:8000',
+                    changeOrigin: true,
+                    secure: false,
+                },
+                '/api/analysis': {
+                    target: env.VITE_PYTHON_URL || 'http://localhost:8000',
+                    changeOrigin: true,
+                    secure: false,
+                },
                 '/api': {
                     target: env.VITE_API_URL || 'http://localhost:8080',
                     changeOrigin: true,

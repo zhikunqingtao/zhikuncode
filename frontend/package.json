@@ -46,6 +46,7 @@
     "react-dom": "^18.3.1",
     "react-markdown": "^9.0.1",
     "react-router-dom": "^6.28.0",
+    "recharts": "^2.15.0",
     "react-syntax-highlighter": "^15.6.1",
     "react-virtuoso": "^4.12.3",
     "sockjs-client": "^1.6.1",

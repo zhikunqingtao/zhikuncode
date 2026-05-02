@@ -29,6 +29,8 @@ class CapabilityDomain(Enum):
     GIT_ENHANCED = auto()     # P2 — Git 增强: GitPython
     FILE_PROCESSING = auto()  # P0 — 文件处理: chardet + python-magic + watchfiles
     BROWSER_AUTOMATION = auto()  # P2 — 浏览器自动化: playwright
+    CODE_QUALITY = auto()     # P0 — 代码质量分析: radon + pygount (F3)
+    ANALYSIS = auto()         # P0 — 分析服务: httpx + libcst + networkx (F25/F33)
 
 
 @dataclass
@@ -74,6 +76,20 @@ CAPABILITY_REGISTRY: Dict[CapabilityDomain, CapabilityInfo] = {
         min_versions={"playwright": "1.40.0"},
         system_binaries=[],  # Playwright 自带浏览器二进制
         router_module="routers.browser",
+    ),
+    CapabilityDomain.CODE_QUALITY: CapabilityInfo(
+        domain=CapabilityDomain.CODE_QUALITY,
+        name="代码质量分析",
+        required_packages=["radon", "pygount"],
+        min_versions={"radon": "6.0.1", "pygount": "1.8.0"},
+        router_module="routers.code_quality",
+    ),
+    CapabilityDomain.ANALYSIS: CapabilityInfo(
+        domain=CapabilityDomain.ANALYSIS,
+        name="分析服务",
+        required_packages=["httpx", "libcst", "networkx"],
+        min_versions={"libcst": "1.1.0", "networkx": "3.2"},
+        router_module="routers.analysis",
     ),
 }
 

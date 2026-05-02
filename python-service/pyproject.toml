@@ -35,8 +35,17 @@ file-processing = [
     "python-magic>=0.4.27",
     "watchfiles>=1.0.0",
 ]
+code-quality = [
+    "radon>=6.0.1",
+    "pygount>=1.8.0",
+]
+analysis = [
+    "libcst>=1.1.0",
+    "networkx>=3.2",
+    "httpx>=0.27.0",
+]
 full = [
-    "zhikuncode-python-service[cli,code-intel,file-processing]",
+    "zhikuncode-python-service[cli,code-intel,file-processing,code-quality,analysis]",
 ]
 
 [project.scripts]

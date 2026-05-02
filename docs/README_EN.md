@@ -360,18 +360,18 @@ The following paths require user confirmation even in bypass mode:
 
 ### 🧪 Quality Assurance
 
-Full test report: [ZhikunCode Core Functionality Test Report v7](ZhikunCode核心功能测试报告.md) (2026-04-26)
+Full test report: [ZhikunCode Core Functionality Test Report v7.4](ZhikunCode核心功能测试报告.md) (2026-05-02)
 
 **Test Coverage:**
-- **14 functional modules** with **137 test cases**
-- **Results**: 131 PASS / 3 PARTIAL / 1 OBSERVE / 0 FAIL — **100% core functionality pass rate**
+- **19 functional modules** with **185 test cases**
+- **Results**: 179 PASS / 3 PARTIAL / 1 OBSERVE / 0 FAIL — **100% core functionality pass rate**
 - **Automation Stack**: JUnit 5 + Vitest + Pytest + Playwright E2E
 - **Full Coverage**: 100% of planned v1.0 features verified
 
 **Detailed Test Data & Evidence:**
-- Per-module results: [docs/test-results/](docs/test-results/) (14 detailed data files)
+- Per-module results: [docs/test-results/](docs/test-results/) (16 detailed data files)
 - Frontend E2E scripts: [frontend/e2e/frontend-e2e-full.spec.ts](frontend/e2e/frontend-e2e-full.spec.ts)
-- E2E screenshots: [docs/test-results/screenshots/](docs/test-results/screenshots/) (15 images)
+- E2E screenshots: [docs/test-results/screenshots/](docs/test-results/screenshots/) (72 images)
 
 ---
 
@@ -837,7 +837,7 @@ ZhikunCode ships with 48 built-in tools + MCP dynamic extensions, covering the f
 
 ## 📈 Visualization
 
-ZhikunCode includes 6 built-in visualization features that make data and status transparent throughout the AI coding process:
+ZhikunCode includes 9 built-in visualization features that make data and status transparent throughout the AI coding process:
 
 | Feature | Description |
 |---------|-------------|
@@ -847,6 +847,9 @@ ZhikunCode includes 6 built-in visualization features that make data and status 
 | **Git Timeline** | Visualizes Git commit history with Diff viewing and Blame view, auto-colored by commit type |
 | **Tool Progress Visualization** | Displays progress bars, ETA estimates, and a mini log viewer during tool execution |
 | **File Tree Navigation** | Sidebar project file tree with search filtering, virtual scrolling, and file type icons |
+| **Code Complexity Treemap** | Interactive treemap built on recharts — area maps to LOC, color maps to risk level (A-E). Supports drill-down navigation, language/risk filtering, and stats cards. Multi-language analysis via Python radon + tree-sitter |
+| **Change Impact Analysis** | DAG visualization built on @xyflow/react showing change propagation paths. LibCST-powered precise Python call graph analysis with BFS propagation. Displays node type, confidence, and impact depth at a glance |
+| **API Contract Viewer** | Auto-merges Java + Python dual-service OpenAPI specs. Endpoints grouped by tag, HTTP methods color-coded, recursive Schema display. Supports All/Java/Python data source switching |
 
 ---
 

@@ -19,12 +19,18 @@ import {
     Clock,
     ArrowDownUp,
     GitBranch,
-    GitCommitHorizontal
+    GitCommitHorizontal,
+    BarChart3,
+    FileText
 } from 'lucide-react';
 import { APISequenceDiagram } from '@/components/visualization/backend/APISequenceDiagram';
 import { FileTreePanel } from '@/components/layout/FileTreePanel';
 import { AgentDAGChart } from '@/components/visualization/shared/AgentDAGChart';
 import { GitTimeline } from '@/components/visualization/shared/GitTimeline';
+import { CodeComplexityTreemap } from '@/components/visualization/backend/CodeComplexityTreemap';
+import { ChangeImpactGraph } from '@/components/visualization/backend/ChangeImpactGraph';
+import { APIContractViewer } from '@/components/visualization/backend/APIContractViewer';
+import { useApiContractStore } from '@/store/apiContractStore';
 import { useTaskStore } from '@/store/taskStore';
 import { useMessageStore } from '@/store/messageStore';
 import { useSessionStore } from '@/store/sessionStore';
@@ -32,7 +38,7 @@ import { useConfigStore } from '@/store/configStore';
 import { sendToServer } from '@/api/stompClient';
 import type { TaskState } from '@/types';
 
-type TabType = 'sessions' | 'tasks' | 'files' | 'sequence' | 'dag' | 'git';
+type TabType = 'sessions' | 'tasks' | 'files' | 'sequence' | 'dag' | 'git' | 'complexity' | 'impact' | 'api-docs';
 
 interface SidebarProps {
     className?: string;
@@ -49,6 +55,9 @@ export function Sidebar({ className = '' }: SidebarProps) {
         { id: 'sequence', label: '序列图', icon: ArrowDownUp },
         { id: 'dag', label: 'DAG', icon: GitBranch },
         { id: 'git', label: 'Git', icon: GitCommitHorizontal },
+        { id: 'complexity', label: '复杂度', icon: BarChart3 },
+        { id: 'impact', label: '影响分析', icon: GitBranch },
+        { id: 'api-docs', label: 'API文档', icon: FileText },
     ];
 
     return (
@@ -88,8 +97,34 @@ export function Sidebar({ className = '' }: SidebarProps) {
                         <GitTimeline repoPath="." />
                     </div>
                 )}
+                {activeTab === 'complexity' && (
+                    <div className="h-[calc(100vh-100px)]">
+                        <CodeComplexityTreemap />
+                    </div>
+                )}
+                {activeTab === 'impact' && (
+                    <div className="h-[calc(100vh-100px)]">
+                        <ChangeImpactGraph />
+                    </div>
+                )}
+                {activeTab === 'api-docs' && (
+                    <ApiDocsTab />
+                )}
             </div>
         </aside>
+    );
+}
+
+// ═══ API Docs Tab — 自动加载 ═══
+function ApiDocsTab() {
+    const fetchOpenApiSpec = useApiContractStore(s => s.fetchOpenApiSpec);
+    useEffect(() => {
+        fetchOpenApiSpec('merged');
+    }, [fetchOpenApiSpec]);
+    return (
+        <div className="h-[calc(100vh-100px)]">
+            <APIContractViewer />
+        </div>
     );
 }
 
