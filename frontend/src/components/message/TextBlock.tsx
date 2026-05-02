@@ -10,6 +10,7 @@ import React, { useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import type { Components } from 'react-markdown';
 import CodeBlock from './CodeBlock';
+import MermaidBlock from '../visualization/shared/MermaidBlock';
 
 interface TextBlockProps {
     text: string;
@@ -21,6 +22,7 @@ const TextBlock: React.FC<TextBlockProps> = ({ text, streaming = false }) => {
         code({ className, children, ...props }) {
             const match = /language-(\w+)/.exec(className ?? '');
             const codeStr = String(children).replace(/\n$/, '');
+            const lang = match?.[1];
 
             // Inline code
             if (!match && !codeStr.includes('\n')) {
@@ -34,8 +36,13 @@ const TextBlock: React.FC<TextBlockProps> = ({ text, streaming = false }) => {
                 );
             }
 
+            // Mermaid diagram
+            if (lang === 'mermaid') {
+                return <MermaidBlock code={codeStr} />;
+            }
+
             // Fenced code block
-            return <CodeBlock code={codeStr} language={match?.[1]} />;
+            return <CodeBlock code={codeStr} language={lang} />;
         },
         // Headings
         h1: ({ children }) => <h1 className="text-2xl font-bold mt-6 mb-3">{children}</h1>,

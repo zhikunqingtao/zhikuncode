@@ -20,6 +20,8 @@ import { TerminalRenderer } from './renderers/TerminalRenderer';
 import { DiffRenderer } from './renderers/DiffRenderer';
 import { SearchResultRenderer } from './renderers/SearchResultRenderer';
 import { FileListRenderer } from './renderers/FileListRenderer';
+import ToolProgressBar from '../visualization/shared/ToolProgressBar';
+import MiniLogViewer from '../visualization/shared/MiniLogViewer';
 
 interface ToolCallBlockProps {
     toolUseId: string;
@@ -85,8 +87,17 @@ const ToolCallBlock: React.FC<ToolCallBlockProps> = ({ toolUseId, toolCall }) =>
 
             {/* Progress */}
             {toolCall.progress && toolCall.status === 'running' && (
-                <div className="px-3 py-1 text-xs text-gray-400 border-t border-gray-700/50 bg-blue-900/10">
-                    {toolCall.progress}
+                <div className="px-3 py-2 border-t border-gray-700/50">
+                    <ToolProgressBar
+                        progress={toolCall.progress}
+                        startTime={toolCall.startTime}
+                    />
+                    {toolCall.progressHistory && toolCall.progressHistory.length > 1 && (
+                        <MiniLogViewer
+                            logs={toolCall.progressHistory}
+                            defaultCollapsed={true}
+                        />
+                    )}
                 </div>
             )}
 

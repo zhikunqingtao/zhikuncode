@@ -7,6 +7,7 @@ File Processing Router — §4.14.7
 
 import json
 import logging
+import os
 from datetime import datetime
 from typing import Optional
 
@@ -15,6 +16,8 @@ from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["File Processing"])
+
+BASE_ROOT = os.path.abspath(os.getenv("WORKSPACE_ROOT", os.getcwd()))
 
 
 # ── Pydantic 模型 ──
@@ -54,6 +57,24 @@ class EncodingDetectBytesRequest(BaseModel):
     data_base64: str = Field(..., description="Base64 编码的原始字节")
 
 
+class FileTreeRequest(BaseModel):
+    root_path: str = Field(..., description="项目根目录路径")
+    max_depth: Optional[int] = Field(5, description="最大递归深度")
+    exclude_patterns: Optional[list[str]] = Field(None, description="额外排除的目录/文件名")
+
+
+class FileTreeNode(BaseModel):
+    name: str
+    path: str
+    type: str  # 'file' or 'dir'
+    children: Optional[list['FileTreeNode']] = None
+    size: Optional[int] = None
+    extension: Optional[str] = None
+
+
+FileTreeNode.model_rebuild()
+
+
 # ── Service 延迟初始化 ──
 
 _detector = None
@@ -68,6 +89,83 @@ def _get_detector():
 
 
 # ── 路由端点 ──
+
+
+@router.post("/tree")
+async def get_file_tree(request: FileTreeRequest):
+    """返回项目文件树结构"""
+    DEFAULT_EXCLUDES = {
+        'node_modules', '.git', '__pycache__', 'target', 'dist',
+        '.venv', 'venv', '.idea', '.vscode', '.next', 'build',
+        '.qoder', '.claude', '.ai-code-assistant', '.scratchpad',
+        '.zhikun', '.zhikun-scratchpad', 'egg-info',
+    }
+
+    excludes = set(request.exclude_patterns or []) | DEFAULT_EXCLUDES
+
+    def build_tree(path: str, depth: int) -> FileTreeNode:
+        name = os.path.basename(path) or path
+        if os.path.isfile(path):
+            ext = os.path.splitext(name)[1]
+            try:
+                size = os.path.getsize(path)
+            except OSError:
+                size = None
+            return FileTreeNode(
+                name=name,
+                path=os.path.relpath(path, request.root_path),
+                type='file',
+                size=size,
+                extension=ext if ext else None,
+            )
+
+        children = []
+        if depth < max_depth:
+            try:
+                entries = sorted(os.listdir(path))
+                dirs = []
+                files = []
+                for entry in entries:
+                    if entry in excludes or entry.startswith('.'):
+                        continue
+                    full_path = os.path.join(path, entry)
+                    if os.path.isdir(full_path):
+                        dirs.append(full_path)
+                    else:
+                        files.append(full_path)
+                # 目录排前面，文件排后面
+                for d in dirs:
+                    children.append(build_tree(d, depth + 1))
+                for f in files:
+                    children.append(build_tree(f, depth + 1))
+            except PermissionError:
+                pass
+
+        return FileTreeNode(
+            name=name,
+            path=os.path.relpath(path, request.root_path),
+            type='dir',
+            children=children,
+        )
+
+    # 安全校验：限制在工作空间内
+    requested_root = os.path.abspath(os.path.join(BASE_ROOT, request.root_path))
+    if not (requested_root == BASE_ROOT or requested_root.startswith(BASE_ROOT + os.sep)):
+        raise HTTPException(status_code=400, detail="root_path outside workspace is not allowed")
+
+    root = requested_root
+    if not os.path.isdir(root):
+        raise HTTPException(status_code=400, detail="Invalid root path")
+
+    max_depth = request.max_depth if request.max_depth is not None else 5
+
+    try:
+        tree = build_tree(root, 0)  # noqa: uses max_depth from closure
+        return {"success": True, "data": tree}
+    except Exception as e:
+        logger.error(f"File tree build failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.post("/detect-encoding", response_model=EncodingResponse)
 async def detect_encoding(request: EncodingRequest):

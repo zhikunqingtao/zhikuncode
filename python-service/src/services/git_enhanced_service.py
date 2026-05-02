@@ -9,15 +9,27 @@ from typing import Optional
 logger = logging.getLogger(__name__)
 
 
+# 工作空间根目录 — 用于解析相对路径（Python CWD 可能是 python-service/）
+_WORKSPACE_ROOT = os.path.abspath(os.getenv("WORKSPACE_ROOT", os.path.join(os.path.dirname(__file__), "..", "..", "..")))
+
+
 class GitEnhancedService:
     """Git 增强服务 — 基于 gitpython 提供结构化 Git 分析能力"""
 
     # 禁止访问的路径黑名单
     _UNSAFE_PATHS = frozenset(['/', '/root', '/etc', '/var', '/usr'])
 
+    def _resolve_repo_path(self, repo_path: str) -> str:
+        """将相对路径解析为基于工作空间根目录的绝对路径"""
+        if not repo_path or repo_path == '.':
+            return _WORKSPACE_ROOT
+        if not os.path.isabs(repo_path):
+            return os.path.abspath(os.path.join(_WORKSPACE_ROOT, repo_path))
+        return repo_path
+
     def _validate_repo_path(self, repo_path: str) -> str:
         """路径安全校验 — 防止路径穿越和访问敏感目录"""
-        real_path = os.path.realpath(repo_path)
+        real_path = os.path.realpath(self._resolve_repo_path(repo_path))
         # 禁止访问系统根目录和用户根目录
         if real_path in self._UNSAFE_PATHS or real_path == os.path.expanduser('~'):
             raise ValueError(f"Unsafe repo path: {repo_path}")

@@ -17,3 +17,4 @@ export { useMcpStore, type McpStoreState } from './mcpStore';
 export { useBridgeStore, type BridgeStoreState } from './bridgeStore';
 export { useNotificationStore, type NotificationStoreState } from './notificationStore';
 export { useInboxStore, type InboxStoreState } from './inboxStore';
+export { useCodeInsightStore, type CodeInsightState } from './codeInsightStore';

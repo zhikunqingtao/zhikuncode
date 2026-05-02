@@ -30,6 +30,16 @@ export default defineConfig(({ mode }) => {
             port: 5173,
             host: true,
             proxy: {
+                '/api/git': {
+                    target: env.VITE_PYTHON_URL || 'http://localhost:8000',
+                    changeOrigin: true,
+                    secure: false,
+                },
+                '/api/files': {
+                    target: env.VITE_PYTHON_URL || 'http://localhost:8000',
+                    changeOrigin: true,
+                    secure: false,
+                },
                 '/api': {
                     target: env.VITE_API_URL || 'http://localhost:8080',
                     changeOrigin: true,

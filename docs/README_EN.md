@@ -13,6 +13,7 @@
     <a href="#-cli-tools">CLI Tools</a> ·
     <a href="#-skill-system">Skill System</a> ·
     <a href="#-plugin-system">Plugin System</a> ·
+    <a href="#-visualization">Visualization</a> ·
     <a href="#-memory-system">Memory</a> ·
     <a href="#-comparison">Comparison</a> ·
     <a href="../README.md">中文</a>
@@ -831,6 +832,21 @@ ZhikunCode ships with 48 built-in tools + MCP dynamic extensions, covering the f
 | **Configuration** | ConfigTool, SendMessage, SyntheticOutput | Config management, message sending, synthetic output |
 | **Monitoring** | MonitorTool, CtxInspect, TerminalCapture | System monitoring, context inspection, terminal output capture |
 | **MCP Extensions** | MCP tool adapters | Connect to external MCP services (dynamically registered) |
+
+---
+
+## 📈 Visualization
+
+ZhikunCode includes 6 built-in visualization features that make data and status transparent throughout the AI coding process:
+
+| Feature | Description |
+|---------|-------------|
+| **Mermaid Diagram Rendering** | Mermaid code blocks in AI responses are automatically rendered as interactive vector diagrams, with copy SVG / download PNG support |
+| **API Sequence Diagram** | Automatically extracts tool call records from conversations and generates Mermaid sequence diagrams, with filtering and detail viewing |
+| **Agent DAG** | Real-time display of multi-Agent task dependency graphs, built on React Flow, with TB/LR layout switching |
+| **Git Timeline** | Visualizes Git commit history with Diff viewing and Blame view, auto-colored by commit type |
+| **Tool Progress Visualization** | Displays progress bars, ETA estimates, and a mini log viewer during tool execution |
+| **File Tree Navigation** | Sidebar project file tree with search filtering, virtual scrolling, and file type icons |
 
 ---
 

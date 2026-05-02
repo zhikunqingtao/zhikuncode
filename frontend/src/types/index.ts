@@ -168,6 +168,7 @@ export interface ToolCallState {
     status: 'pending' | 'running' | 'completed' | 'error' | 'permission_needed';
     result?: ToolResult;
     progress?: string;
+    progressHistory?: string[];
     startTime: number;
     duration?: number;
 }

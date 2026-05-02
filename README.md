@@ -13,6 +13,7 @@
     <a href="#-cli-工具">CLI 工具</a> ·
     <a href="#-skill技能系统">skill技能系统</a> ·
     <a href="#-插件系统">插件系统</a> ·
+    <a href="#-可视化">可视化</a> ·
     <a href="#-记忆系统">记忆系统</a> ·
     <a href="#-竞品对比">竞品对比</a> ·
     <a href="docs/README_EN.md">English</a>
@@ -830,6 +831,21 @@ ZhikunCode 内置 48 个工具 + MCP 动态扩展，覆盖开发全流程：
 | **配置** | ConfigTool、SendMessage、SyntheticOutput | 配置管理、消息发送、合成输出 |
 | **监控** | MonitorTool、CtxInspect、TerminalCapture | 系统监控、上下文检查、终端输出捕获 |
 | **MCP 扩展** | MCP 工具适配器 | 连接外部 MCP 服务（动态注册） |
+
+---
+
+## 📈 可视化
+
+ZhikunCode 内置 6 项可视化能力，让 AI 编程过程中的数据和状态一目了然：
+
+| 功能 | 说明 |
+|------|------|
+| **Mermaid 图表渲染** | AI 回复中的 mermaid 代码块自动渲染为交互式矢量图，支持复制 SVG / 下载 PNG |
+| **API 序列图** | 自动从会话中提取工具调用记录，生成 Mermaid 序列图，支持过滤和详情查看 |
+| **Agent DAG** | 实时展示多 Agent 协作的任务依赖图，基于 React Flow，支持 TB/LR 布局切换 |
+| **Git 时间线** | 可视化 Git 提交历史，支持 Diff 查看和 Blame 视图，commit 类型自动着色 |
+| **工具进度可视化** | 工具执行过程显示进度条、ETA 预估和迷你日志查看器 |
+| **文件树导航** | 侧边栏项目文件树，支持搜索过滤、虚拟滚动、文件类型图标 |
 
 ---
 

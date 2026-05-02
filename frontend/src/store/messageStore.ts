@@ -99,7 +99,11 @@ export const useMessageStore = create<MessageStoreState>()(
         }),
         updateToolCallProgress: (id, progress) => set(d => {
             const tc = d.activeToolCalls.get(id);
-            if (tc) tc.progress = progress;
+            if (tc) {
+                tc.progress = progress;
+                if (!tc.progressHistory) tc.progressHistory = [];
+                tc.progressHistory.push(progress);
+            }
         }),
         completeToolCall: (id, result) => set(d => {
             const tc = d.activeToolCalls.get(id);
