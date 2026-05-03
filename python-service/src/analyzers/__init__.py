@@ -1,4 +1,4 @@
-"""Code analyzers package for F33 change impact analysis."""
+"""Code analyzers package for change impact analysis and diagram generation."""
 
 from .call_graph_builder import CallGraphBuilder, CallGraphNode
 from .change_impact_analyzer import (
@@ -8,6 +8,9 @@ from .change_impact_analyzer import (
     ChangeImpactResult,
     ChangeImpactSummary,
 )
+from .diagram_models import DiagramMetadata, DiagramResult
+from .sequence_diagram_generator import SequenceDiagramGenerator
+from .flow_chart_generator import FlowChartGenerator
 
 __all__ = [
     "CallGraphBuilder",
@@ -17,4 +20,8 @@ __all__ = [
     "ChangeImpactEdge",
     "ChangeImpactResult",
     "ChangeImpactSummary",
+    "DiagramMetadata",
+    "DiagramResult",
+    "SequenceDiagramGenerator",
+    "FlowChartGenerator",
 ]

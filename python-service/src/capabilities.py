@@ -30,7 +30,7 @@ class CapabilityDomain(Enum):
     FILE_PROCESSING = auto()  # P0 — 文件处理: chardet + python-magic + watchfiles
     BROWSER_AUTOMATION = auto()  # P2 — 浏览器自动化: playwright
     CODE_QUALITY = auto()     # P0 — 代码质量分析: radon + pygount (F3)
-    ANALYSIS = auto()         # P0 — 分析服务: httpx + libcst + networkx (F25/F33)
+    ANALYSIS = auto()         # P0 — 分析服务: httpx + libcst + networkx (F25/F33/F35)
 
 
 @dataclass
@@ -89,6 +89,7 @@ CAPABILITY_REGISTRY: Dict[CapabilityDomain, CapabilityInfo] = {
         name="分析服务",
         required_packages=["httpx", "libcst", "networkx"],
         min_versions={"libcst": "1.1.0", "networkx": "3.2"},
+        smoke_test="import networkx; import libcst",
         router_module="routers.analysis",
     ),
 }

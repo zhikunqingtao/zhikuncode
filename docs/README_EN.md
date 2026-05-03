@@ -837,7 +837,7 @@ ZhikunCode ships with 48 built-in tools + MCP dynamic extensions, covering the f
 
 ## 📈 Visualization
 
-ZhikunCode includes 9 built-in visualization features that make data and status transparent throughout the AI coding process:
+ZhikunCode includes 10 built-in visualization features that make data and status transparent throughout the AI coding process:
 
 | Feature | Description |
 |---------|-------------|
@@ -850,6 +850,7 @@ ZhikunCode includes 9 built-in visualization features that make data and status 
 | **Code Complexity Treemap** | Interactive treemap built on recharts — area maps to LOC, color maps to risk level (A-E). Supports drill-down navigation, language/risk filtering, and stats cards. Multi-language analysis via Python radon + tree-sitter |
 | **Change Impact Analysis** | DAG visualization built on @xyflow/react showing change propagation paths. LibCST-powered precise Python call graph analysis with BFS propagation. Displays node type, confidence, and impact depth at a glance |
 | **API Contract Viewer** | Auto-merges Java + Python dual-service OpenAPI specs. Endpoints grouped by tag, HTTP methods color-coded, recursive Schema display. Supports All/Java/Python data source switching |
+| **Code-to-Diagram Auto-Generation** | Input a code file path to auto-generate Mermaid sequence diagrams / flowcharts. Python LibCST + tree-sitter multi-language parsing, BFS call-chain traversal with auto-identification of Controller/Service/Repository participants, five-dimensional confidence scoring (0-1), Monaco Editor for real-time source editing, SVG copy / PNG download export, supports 1-5 level traversal depth control |
 
 ---
 

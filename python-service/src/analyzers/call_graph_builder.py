@@ -160,13 +160,13 @@ class CallGraphBuilder:
                         positions = wrapper.resolve(PositionProvider)
                         visitor = _PythonCallGraphVisitor(module_name, str(path))
                         visitor._positions = positions
-                        tree.walk(visitor)
+                        tree.visit(visitor)
                     except Exception:
                         visitor = _PythonCallGraphVisitor(module_name, str(path))
-                        tree.walk(visitor)
+                        tree.visit(visitor)
                 else:
                     visitor = _PythonCallGraphVisitor(module_name, str(path))
-                    tree.walk(visitor)
+                    tree.visit(visitor)
                 self._ingest_python_results(visitor, str(path), module_name)
             except Exception as e:
                 logger.warning("Failed to parse Python file %s: %s", path, e)
@@ -440,17 +440,27 @@ class CallGraphBuilder:
 # LibCST Python 访问者
 # ═══════════════════════════════════════════════════════════════
 
-class _PythonCallGraphVisitor:
+# 延迟导入 libcst 基类，不可用时回退到 object
+try:
+    import libcst as _cst
+    _CSTVisitorBase = _cst.CSTVisitor
+except ImportError:
+    _CSTVisitorBase = object  # type: ignore[misc,assignment]
+
+
+class _PythonCallGraphVisitor(_CSTVisitorBase):  # type: ignore[misc]
     """LibCST 访问者 — 提取 Python 调用图信息
 
     需要通过 MetadataWrapper.visit() 调用以启用 PositionProvider。
-    继承自 cst.CSTVisitor 以支持 get_metadata()。
+    继承自 cst.CSTVisitor 以支持 tree.visit(visitor)。
     """
 
     # 声明元数据依赖（兼容性保留）
     METADATA_DEPENDENCIES: tuple = ()
 
     def __init__(self, module_name: str, file_path: str):
+        if _CSTVisitorBase is not object:
+            super().__init__()
         self.module_name = module_name
         self.file_path = file_path
         self.imports: List[Tuple[str, str]] = []    # (from_module, imported_name)

@@ -59,6 +59,7 @@ public class PythonCapabilityAwareClient {
         this.objectMapper = objectMapper;
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(CONNECT_TIMEOUT)
+                .version(HttpClient.Version.HTTP_1_1)
                 .build();
     }
 
@@ -139,6 +140,8 @@ public class PythonCapabilityAwareClient {
         for (int attempt = 0; attempt <= MAX_RETRIES; attempt++) {
             try {
                 String jsonBody = objectMapper.writeValueAsString(body);
+                log.debug("POST {} body({}chars): {}", endpoint, jsonBody.length(),
+                        jsonBody.length() > 500 ? jsonBody.substring(0, 500) + "..." : jsonBody);
                 var request = HttpRequest.newBuilder()
                         .uri(URI.create(baseUrl + endpoint))
                         .timeout(READ_TIMEOUT)
