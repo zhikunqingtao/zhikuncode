@@ -173,6 +173,9 @@ LLM_PROVIDER_DASHSCOPE_API_KEY=your-dashscope-key
 
 # DeepSeek
 LLM_PROVIDER_DEEPSEEK_API_KEY=your-deepseek-key
+
+# Moonshot (Kimi)
+LLM_PROVIDER_MOONSHOT_API_KEY=your-moonshot-key
 ```
 
 **Option B: Single-Provider Configuration (Backward Compatible)**
@@ -183,7 +186,7 @@ If no multi-Provider keys are configured, the system automatically falls back to
 |----------|----------|-------------------|-------|
 | **Qwen / DashScope** | `https://dashscope.aliyuncs.com/compatible-mode/v1` | qwen3.6-max-preview | **Default**, direct connection in China |
 | **DeepSeek** | `https://api.deepseek.com/v1` | deepseek-v4-pro | Direct connection in China |
-| **Moonshot (Kimi)** | `https://api.moonshot.cn/v1` | moonshot-v1-auto | Direct connection in China |
+| **Moonshot (Kimi)** | `https://api.moonshot.cn/v1` | kimi-k2.6 | Direct connection in China |
 | **OpenAI** | `https://api.openai.com/v1` | gpt-4o | Requires international network access |
 | **Local Ollama** | `http://localhost:11434/v1` | qwen2.5:latest | Fully offline |
 
@@ -867,6 +870,7 @@ Environment variables are managed via the `.env` file. Copy `.env.example` and m
 |----------|:---:|---------|-------------|
 | `LLM_PROVIDER_DASHSCOPE_API_KEY` | — | — | Qwen/DashScope API Key |
 | `LLM_PROVIDER_DEEPSEEK_API_KEY` | — | — | DeepSeek API Key |
+| `LLM_PROVIDER_MOONSHOT_API_KEY` | — | — | Moonshot/Kimi API Key |
 | `LLM_DEFAULT_MODEL` | — | qwen3.6-max-preview | Default model (used when no explicit selection) |
 
 > In multi-Provider mode, configure at least one Provider's API Key. The frontend supports free switching between configured Providers.
@@ -901,6 +905,7 @@ Environment variables are managed via the `.env` file. Copy `.env.example` and m
 | `ZHIKUN_COORDINATOR_MODE` | — | 0 | Feature flag, enable coordinator mode (0=off, 1=on) |
 | `LLM_PROVIDER_DASHSCOPE_MODELS` | — | qwen3.6-max-preview,qwen3.6-plus | DashScope available models (comma-separated) |
 | `LLM_PROVIDER_DEEPSEEK_MODELS` | — | deepseek-v4-pro,deepseek-v4-flash | DeepSeek available models (comma-separated) |
+| `LLM_PROVIDER_MOONSHOT_MODELS` | — | kimi-k2.6,moonshot-v1-auto | Moonshot available models (comma-separated) |
 
 ### Docker Resource Limits
 

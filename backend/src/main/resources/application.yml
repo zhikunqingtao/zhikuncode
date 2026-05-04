@@ -41,6 +41,11 @@ llm:
       base-url: https://api.deepseek.com/v1
       default-model: deepseek-v4-pro
       models: ${LLM_PROVIDER_DEEPSEEK_MODELS:deepseek-v4-pro,deepseek-v4-flash}
+    moonshot:
+      api-key: ${LLM_PROVIDER_MOONSHOT_API_KEY:}
+      base-url: https://api.moonshot.cn/v1
+      default-model: kimi-k2.6
+      models: ${LLM_PROVIDER_MOONSHOT_MODELS:kimi-k2.6,moonshot-v1-auto}
   # ===== 单 Provider 配置（向后兼容）=====
   # 如果 llm.providers 为空，回退到此配置
   openai:

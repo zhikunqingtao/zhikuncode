@@ -24,6 +24,9 @@ fi
 if [ -n "$LLM_PROVIDER_DEEPSEEK_API_KEY" ] && [ "$LLM_PROVIDER_DEEPSEEK_API_KEY" != "your-deepseek-api-key-here" ]; then
     HAS_PROVIDER_KEY=true
 fi
+if [ -n "$LLM_PROVIDER_MOONSHOT_API_KEY" ] && [ "$LLM_PROVIDER_MOONSHOT_API_KEY" != "your-moonshot-api-key-here" ]; then
+    HAS_PROVIDER_KEY=true
+fi
 HAS_LEGACY_KEY=false
 if [ -n "$LLM_API_KEY" ] && [ "$LLM_API_KEY" != "your-api-key-here" ]; then
     HAS_LEGACY_KEY=true
@@ -56,6 +59,10 @@ fi
 if [ -n "$LLM_PROVIDER_DEEPSEEK_API_KEY" ] && [ "$LLM_PROVIDER_DEEPSEEK_API_KEY" != "your-deepseek-api-key-here" ]; then
     MASKED="${LLM_PROVIDER_DEEPSEEK_API_KEY:0:6}****${LLM_PROVIDER_DEEPSEEK_API_KEY: -4}"
     echo "  DeepSeek Key:   $MASKED"
+fi
+if [ -n "$LLM_PROVIDER_MOONSHOT_API_KEY" ] && [ "$LLM_PROVIDER_MOONSHOT_API_KEY" != "your-moonshot-api-key-here" ]; then
+    MASKED="${LLM_PROVIDER_MOONSHOT_API_KEY:0:6}****${LLM_PROVIDER_MOONSHOT_API_KEY: -4}"
+    echo "  Moonshot Key:   $MASKED"
 fi
 if [ "$HAS_LEGACY_KEY" = true ]; then
     MASKED="${LLM_API_KEY:0:6}****${LLM_API_KEY: -4}"

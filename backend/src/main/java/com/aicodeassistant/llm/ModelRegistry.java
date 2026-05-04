@@ -32,6 +32,9 @@ public class ModelRegistry {
         entry("deepseek-reasoner", caps("deepseek-reasoner", "DeepSeek Reasoner",  8192,  64000,  true, true, false, false, 0.00055, 0.0022)),
         entry("deepseek-v4-pro",   caps("deepseek-v4-pro",   "DeepSeek V4 Pro",  384000, 1000000, true, true, false, true, 0.001, 0.004)),
         entry("deepseek-v4-flash", caps("deepseek-v4-flash", "DeepSeek V4 Flash", 384000, 1000000, true, true, false, true, 0.0005, 0.002)),
+        // Moonshot
+        entry("kimi-k2.6",          caps("kimi-k2.6",          "Kimi K2.6",         16384, 256000,  true, true, true, true, 0.002, 0.012)),
+        entry("moonshot-v1-auto",   caps("moonshot-v1-auto",   "Moonshot V1 Auto",   8192, 128000,  true, false, false, true, 0.001, 0.002)),
         entry("qwen-turbo",        caps("qwen-turbo",        "Qwen Turbo",         8192, 1000000,  true, false, false, true, 0.0003, 0.0006)),
         entry("qwen-plus",         caps("qwen-plus",         "Qwen Plus",         16384, 1000000,  true, false, false, true, 0.0008, 0.002)),
         entry("qwen-max",          caps("qwen-max",          "Qwen Max",          16384,  262144,  true, true, true, true, 0.002, 0.006)),

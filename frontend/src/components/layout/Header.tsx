@@ -27,6 +27,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
     const [availableModels, setAvailableModels] = useState<Array<{ id: string; displayName: string }>>([
         { id: 'qwen3.6-max-preview', displayName: 'Qwen 3.6 Max Preview' },
         { id: 'deepseek-v4-pro', displayName: 'DeepSeek V4 Pro' },
+        { id: 'kimi-k2.6', displayName: 'Kimi K2.6' },
     ]);
 
     useEffect(() => {

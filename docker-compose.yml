@@ -25,6 +25,7 @@ services:
       # ---- Multi-Provider LLM (Recommended) ----
       - LLM_PROVIDER_DASHSCOPE_API_KEY=${LLM_PROVIDER_DASHSCOPE_API_KEY:-}
       - LLM_PROVIDER_DEEPSEEK_API_KEY=${LLM_PROVIDER_DEEPSEEK_API_KEY:-}
+      - LLM_PROVIDER_MOONSHOT_API_KEY=${LLM_PROVIDER_MOONSHOT_API_KEY:-}
       # ---- Legacy Single-Provider (Backward Compatible) ----
       - LLM_API_KEY=${LLM_API_KEY:-}
       - LLM_BASE_URL=${LLM_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
