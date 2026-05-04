@@ -1,8 +1,8 @@
 # ZhikunCode 核心功能测试报告
 
-> **报告版本**: v7.5 | **测试日期**: 2026-05-03 | **测试范围**: 全栈功能验证（20模块/210用例/串行全链路测试）
-> **总体结果**: **204 PASS / 3 PARTIAL / 1 OBSERVE / 0 FAIL**，核心通过率 **100%**（无 FAIL），发现并修复 2 个 Bug（tree-sitter 版本兼容性 + CLI --continue 会话延续），3 个 PARTIAL 为非阻塞性功能降级
-> **v7.5 说明**: 本报告基于 20 个串行测试任务的真实测试数据生成，所有测试均使用真实 HTTP 请求、WebSocket STOMP 帧交互、Playwright E2E 截图、CLI 命令行执行、日志证据验证。v7.5 相比 v7.4 新增 F35 代码→图表自动生成（25用例）Playwright E2E 测试，测试用例总数从 185 增至 210。
+> **报告版本**: v7.6 | **测试日期**: 2026-05-04 | **测试范围**: 全栈功能验证（21模块/235用例/串行全链路测试）
+> **总体结果**: **229 PASS / 3 PARTIAL / 1 OBSERVE / 0 FAIL**，核心通过率 **100%**（无 FAIL），发现并修复 2 个 Bug（tree-sitter 版本兼容性 + CLI --continue 会话延续），3 个 PARTIAL 为非阻塞性功能降级
+> **v7.6 说明**: 本报告基于 21 个串行测试任务的真实测试数据生成，所有测试均使用真实 HTTP 请求、WebSocket STOMP 帧交互、Playwright E2E 截图、CLI 命令行执行、日志证据验证。v7.6 相比 v7.5 新增 F40 代码路径追踪可视化（25用例）Playwright E2E 测试，测试用例总数从 210 增至 235。
 
 ---
 
@@ -67,15 +67,16 @@
 | 18 | F33 变更影响链路分析 | 6 | 6 | 0 | 0 | 0 | 100% | — | ★ 首次 |
 | 19 | F25 API 契约可视化 | 6 | 6 | 0 | 0 | 0 | 100% | — | ★ 首次 |
 | 20 | F35 代码→图表自动生成 | 25 | 25 | 0 | 0 | 0 | 100% | 1 | ★ 首次 |
-| **合计** | | **210** | **204** | **3** | **1** | **0** | **97.1%** | **6** | **11模块** |
+| 21 | F40 代码路径追踪可视化 | 25 | 25 | 0 | 0 | 0 | 100% | 0 | ★ 首次 |
+| **合计** | | **235** | **229** | **3** | **1** | **0** | **97.4%** | **6** | **12模块** |
 
-> *注：OBSERVE 表示测试功能正常但未触发特定子场景（TC-PERM-03 因使用 NONE 级别工具未触发 permission_request，属设计预期行为）。3 个 PARTIAL 均为非阻塞性功能降级（python-magic 缺失、主题截图、CLI 工具白名单），无 FAIL 用例。核心功能通过率 100%。v7.5 新增 F35 代码→图表自动生成模块 25 用例全部 PASS。*
+> *注：OBSERVE 表示测试功能正常但未触发特定子场景（TC-PERM-03 因使用 NONE 级别工具未触发 permission_request，属设计预期行为）。3 个 PARTIAL 均为非阻塞性功能降级（python-magic 缺失、主题截图、CLI 工具白名单），无 FAIL 用例。核心功能通过率 100%。v7.6 新增 F40 代码路径追踪可视化模块 25 用例全部 PASS。*
 
 ### 1.3 执行摘要
 
 **关键发现：**
 
-1. **210 个测试用例零 FAIL**：20 个模块全栈覆盖，核心功能全部验证通过（v7.5 回归后 204 PASS / 3 PARTIAL）
+1. **235 个测试用例零 FAIL**：21 个模块全栈覆盖，核心功能全部验证通过（v7.6 回归后 229 PASS / 3 PARTIAL）
 2. **发现并修复 1 个 Bug**：tree-sitter 0.23.2 与 tree-sitter-languages 1.10.2 版本不兼容，降级至 0.21.3 后 Code Intel 6 个端点全部恢复
 3. **三大系统首次专项测试**：记忆系统（7用例）、技能系统（7用例）、插件系统与MCP（11用例）均为首次独立测试，全部通过
 4. **REST API 33 端点逐一验证**：覆盖认证、模型、会话CRUD、配置、权限规则、工具、技能、记忆、插件、MCP、附件、健康检查、远程控制等全部端点
@@ -86,6 +87,7 @@
 9. **可视化功能 E2E 首次专项测试**：6 大可视化模块（文件树导航、API序列图、Agent DAG、Git时间线、Mermaid渲染、工具进度增强）19 用例全部 PASS，Playwright 自动化覆盖 Sidebar 6-Tab 架构、ReactFlow DAG、Git commit 时间线、Mermaid SVG 渲染、ToolCallBlock 生命周期等核心 UI 交互
 10. **F3/F33/F25 三功能 E2E 首次专项测试**：代码复杂度分析（radon Treemap）、变更影响链路（libcst + networkx DAG）、API 契约可视化（OpenAPI 自动解析）共 18 用例全部 PASS，覆盖 Sidebar Tab 集成、API 端点验证、缓存机制（首次 952ms → 缓存后 9ms，99.1% 提升）、边界条件处理、数据源切换、错误降级等全链路
 11. **F35 代码→图表自动生成 E2E 首次专项测试**：时序图/流程图生成（Mermaid SVG）、Monaco Editor 源码编辑、导出功能（SVG 复制/PNG 下载）、错误处理与边界共 25 用例全部 PASS，测试过程中发现并修复 diagramStore.ts 中 API 返回 success:false 时组件崩溃的 P1 Bug
+12. **F40 代码路径追踪可视化 E2E 首次专项测试**：API 端点扫描、正向 BFS 追踪、ReactFlow 流图渲染、交互导航（MiniMap/LayerStatsBar/节点详情）、错误处理与边界共 25 用例全部 PASS，测试过程中发现并修复 8 张截图显示会话列表（API TC 未导航至代码路径 Tab）和 9 张截图为窄条带（element screenshot 容器宽度不足）两个截图问题
 
 **已发现并修复的 Bug：**
 
@@ -112,8 +114,8 @@
 
 | 对比项 | v6 报告 | v7 报告 | 改进 |
 |--------|---------|---------|------|
-| 测试模块数 | 13 | 20 | +7（文件历史与补充API + CLI命令行工具 + 可视化功能E2E + F3复杂度分析 + F33变更影响 + F25 API契约 + F35代码图表生成） |
-| 测试用例数 | 110 | 210 | +100 (+90.9%) |
+| 测试模块数 | 13 | 21 | +8（文件历史与补充API + CLI命令行工具 + 可视化功能E2E + F3复杂度分析 + F33变更影响 + F25 API契约 + F35代码图表生成 + F40代码路径追踪） |
+| 测试用例数 | 110 | 235 | +125 (+113.6%) |
 | REST API 端点覆盖 | 隐含测试 | 33端点逐一验证 | ★ 全新专项模块 |
 | 记忆系统测试 | 无 | 7用例专项 | ★ 首次覆盖 |
 | 技能系统测试 | 无 | 7用例专项 | ★ 首次覆盖 |
@@ -1600,6 +1602,270 @@ if (json.success === false || json.error) {
 
 ---
 
+### 2.21 F40 代码路径追踪可视化 (25/25 PASS) ★ 首次专项测试
+
+> **数据来源**: Playwright E2E 自动化测试（Chromium headless, 1440×900, 5 workers 并行）
+> **测试时间**: 2026-05-04
+> **测试脚本**: `frontend/e2e/f40-code-path.spec.ts`（~940 行，25 个测试用例）
+> **测试目标**: 代码路径追踪可视化功能端到端验证，覆盖 API 端点扫描、正向 BFS 追踪、ReactFlow 流图渲染、交互导航、错误处理
+
+#### 2.21.1 F40 代码路径入口与基础 UI (5/5 PASS)
+
+**TC-F40-01: Tab 切换与初始状态 — PASS**
+- **测试步骤**: 设置 1440×900 视口 → 导航至首页 → 点击侧边栏“代码路径” Tab → 验证“项目路径”标签、输入框、“扫描”按钮可见
+- **预期结果**: 代码路径 Tab 正常切换，组件加载后显示项目路径标签、输入框和扫描按钮
+- **实际结果**: 项目路径标签: true，输入框可见: true，扫描按钮可见: true
+- **耗时**: 7.1s
+- **截图**: ![Tab切换与初始状态](test-results/screenshots/visualization/f40-01-initial-state.png)
+- **判定**: **PASS**
+
+**TC-F40-02: 项目路径输入 — PASS**
+- **测试步骤**: 导航至代码路径 Tab → 填入项目路径 → 验证输入框双向绑定
+- **预期结果**: 输入框正确接收并保持用户输入的项目路径
+- **实际结果**: 输入值与预期完全一致
+- **耗时**: 7.3s
+- **截图**: ![项目路径输入](test-results/screenshots/visualization/f40-02-project-input.png)
+- **判定**: **PASS**
+
+**TC-F40-03: 空路径时扫描按钮行为 — PASS**
+- **测试步骤**: 清空项目路径 → 点击扫描 → 验证错误提示或禁用状态
+- **预期结果**: 空路径扫描后显示错误提示或按钮禁用
+- **实际结果**: 正确显示错误/空状态提示
+- **耗时**: 8.2s
+- **截图**: ![空路径扫描](test-results/screenshots/visualization/f40-03-empty-path.png)
+- **判定**: **PASS**
+
+**TC-F40-04: 扫描 API 端点 — PASS**
+- **测试步骤**: 填入项目路径 → 点击“扫描” → 等待扫描完成 → 验证端点列表包含 HTTP 方法和 API 路径
+- **预期结果**: 扫描完成后显示端点列表
+- **实际结果**: 端点列表正确出现，包含 GET/POST 等 HTTP 方法
+- **耗时**: 24.6s
+- **截图**: ![扫描API端点](test-results/screenshots/visualization/f40-04-scan-endpoints.png)
+- **判定**: **PASS**
+
+**TC-F40-05: 端点列表显示 — PASS**
+- **测试步骤**: 扫描端点 → 计数 `.font-mono` 元素 → 验证按 HTTP 方法分组
+- **预期结果**: 端点列表非空且按 HTTP 方法分组
+- **实际结果**: 端点数量 > 0，分组结构正确
+- **耗时**: 24.6s
+- **截图**: ![端点列表显示](test-results/screenshots/visualization/f40-05-endpoint-list.png)
+- **判定**: **PASS**
+
+#### 2.21.2 F40 API 端点扫描 (5/5 PASS)
+
+**TC-F40-06: API 端点扫描直接调用 — PASS**
+- **测试步骤**: `page.evaluate` 调用 POST `/api/code-path/endpoints` → 验证 HTTP 200 → 验证 endpoints 数组非空
+- **预期结果**: API 返回 200，endpoints 数组包含有效端点数据
+- **实际结果**: Status: 200, Endpoints count > 0
+- **耗时**: 17.8s
+- **截图**: ![API端点扫描](test-results/screenshots/visualization/f40-06-api-endpoints.png)
+- **判定**: **PASS**
+
+**TC-F40-07: 端点数量验证 — PASS**
+- **测试步骤**: API 调用获取端点列表 → 验证总数 > 0
+- **预期结果**: 端点总数大于 0
+- **实际结果**: python-service 项目所有 FastAPI 端点均被扫描
+- **耗时**: 17.4s
+- **截图**: ![端点数量验证](test-results/screenshots/visualization/f40-07-endpoint-count.png)
+- **判定**: **PASS**
+
+**TC-F40-08: 端点信息完整性 — PASS**
+- **测试步骤**: API 调用获取端点 → 逐字段验证 httpMethod/path/handlerFunction/handlerClass
+- **预期结果**: 四个必要字段均非空
+- **实际结果**: 四字段完整
+- **耗时**: 16.8s
+- **截图**: ![端点信息完整性](test-results/screenshots/visualization/f40-08-endpoint-fields.png)
+- **判定**: **PASS**
+
+**TC-F40-09: 端点搜索过滤 — PASS**
+- **测试步骤**: 扫描端点 → 输入不匹配关键字 → 验证过滤结果
+- **预期结果**: 不匹配关键字导致端点列表为空或显示“无匹配端点”
+- **实际结果**: 过滤功能正常
+- **耗时**: 7.4s
+- **截图**: ![端点搜索过滤](test-results/screenshots/visualization/f40-09-endpoint-filter.png)
+- **判定**: **PASS**
+
+**TC-F40-10: 端点列表截图验证 — PASS**
+- **测试步骤**: 扫描端点 → 截图 → 验证截图大小 > 1000 bytes
+- **预期结果**: 截图文件非空且有效
+- **实际结果**: 截图约 111KB，内容有效
+- **耗时**: 7.1s
+- **截图**: ![端点列表完整截图](test-results/screenshots/visualization/f40-10-endpoint-list-full.png)
+- **判定**: **PASS**
+
+#### 2.21.3 F40 代码路径追踪 (5/5 PASS)
+
+**TC-F40-11: 路径追踪 API 直接调用 — PASS**
+- **测试步骤**: 获取端点列表 → 调用 POST `/api/code-path/trace` → 验证返回 nodes/edges/layers
+- **预期结果**: trace API 返回 200，nodes 和 edges 均为有效数组
+- **实际结果**: nodes 数组非空, edges 数组存在, layers 分层数据完整
+- **耗时**: 4.3s
+- **截图**: ![路径追踪API调用](test-results/screenshots/visualization/f40-11-api-trace.png)
+- **判定**: **PASS**
+
+**TC-F40-12: 前端路径追踪完整流程 — PASS**
+- **测试步骤**: 扫描端点 → 点击第一个端点 → 等待追踪完成 → 验证 ReactFlow 容器可见
+- **预期结果**: 点击端点后 ReactFlow 流图正确渲染
+- **实际结果**: ReactFlow visible: true，追踪结果正确展示
+- **耗时**: 9.5s
+- **截图**: ![前端追踪完整流程](test-results/screenshots/visualization/f40-12-trace-flow.png)
+- **判定**: **PASS**
+
+**TC-F40-13: 节点数据正确性 — PASS**
+- **测试步骤**: 调用 trace API → 验证 node 对象包含 id/name/layer 字段
+- **预期结果**: 节点数据完整
+- **实际结果**: id/name/layer/className 均有效
+- **耗时**: 4.4s
+- **截图**: ![节点数据正确性](test-results/screenshots/visualization/f40-13-node-data.png)
+- **判定**: **PASS**
+
+**TC-F40-14: 边数据正确性 — PASS**
+- **测试步骤**: 调用 trace API → 验证 edge 对象包含 source/target 字段
+- **预期结果**: 边数据结构正确
+- **实际结果**: source/target/callType 字段完整
+- **耗时**: 3.8s
+- **截图**: ![边数据正确性](test-results/screenshots/visualization/f40-14-edge-data.png)
+- **判定**: **PASS**
+
+**TC-F40-15: 不同深度参数对比 — PASS**
+- **测试步骤**: 分别以 maxDepth=3 和 maxDepth=10 调用 trace → 对比节点数
+- **预期结果**: maxDepth=10 的节点数 ≥ maxDepth=3
+- **实际结果**: 深度参数控制有效
+- **耗时**: 3.5s
+- **截图**: ![深度参数对比](test-results/screenshots/visualization/f40-15-depth-comparison.png)
+- **判定**: **PASS**
+
+#### 2.21.4 F40 交互与导航 (5/5 PASS)
+
+**TC-F40-16: ReactFlow 流图渲染 — PASS**
+- **测试步骤**: 扫描端点 → 点击端点 → 验证 ReactFlow 容器和节点可见
+- **预期结果**: ReactFlow 容器和节点正常渲染
+- **实际结果**: 容器可见，节点正常渲染
+- **耗时**: 8.6s
+- **截图**: ![ReactFlow流图渲染](test-results/screenshots/visualization/f40-16-reactflow-render.png)
+- **判定**: **PASS**
+
+**TC-F40-17: 节点颜色按层级显示 — PASS**
+- **测试步骤**: 追踪完成后 → 验证文本包含 Controller/Service 等层级关键词
+- **预期结果**: 节点按层级分类，不同层级使用不同颜色
+- **实际结果**: 层级标签正确显示
+- **耗时**: 8.7s
+- **截图**: ![节点颜色按层级](test-results/screenshots/visualization/f40-17-node-colors.png)
+- **判定**: **PASS**
+
+**TC-F40-18: 节点点击详情 — PASS**
+- **测试步骤**: 追踪完成后 → 点击 ReactFlow 节点 → 验证详情面板
+- **预期结果**: 点击后显示节点详情（方法名、类名、层级）
+- **实际结果**: 详情面板正确显示
+- **耗时**: 9.1s
+- **截图**: ![节点点击详情](test-results/screenshots/visualization/f40-18-node-detail.png)
+- **判定**: **PASS**
+
+**TC-F40-19: MiniMap 存在验证 — PASS**
+- **测试步骤**: 追踪完成后 → 验证 `.react-flow__minimap` 可见
+- **预期结果**: MiniMap 组件可见
+- **实际结果**: MiniMap 组件集成正常
+- **耗时**: 8.5s
+- **截图**: ![MiniMap存在验证](test-results/screenshots/visualization/f40-19-minimap.png)
+- **判定**: **PASS**
+
+**TC-F40-20: 层级统计显示 — PASS**
+- **测试步骤**: 追踪完成后 → 验证包含 Controller:/Service: 等统计信息
+- **预期结果**: LayerStatsBar 显示各层级节点计数
+- **实际结果**: 层级统计正常渲染
+- **耗时**: 8.4s
+- **截图**: ![层级统计显示](test-results/screenshots/visualization/f40-20-layer-stats.png)
+- **判定**: **PASS**
+
+#### 2.21.5 F40 错误处理与边界 (5/5 PASS)
+
+**TC-F40-21: 无效项目路径 — PASS**
+- **测试步骤**: 填入无效路径 `/nonexistent/path/12345` → 点击扫描 → 验证错误提示
+- **预期结果**: 显示错误提示，未崩溃
+- **实际结果**: 错误边框或文本正确显示
+- **耗时**: 6.2s
+- **截图**: ![无效项目路径](test-results/screenshots/visualization/f40-21-invalid-path.png)
+- **判定**: **PASS**
+
+**TC-F40-22: 不存在的入口方法 — PASS**
+- **测试步骤**: 调用 trace API 传入不存在的入口 → 验证返回错误或空结果
+- **预期结果**: 返回错误信息或空节点
+- **实际结果**: 错误处理正确
+- **耗时**: 3.5s
+- **截图**: ![不存在的入口方法](test-results/screenshots/visualization/f40-22-nonexistent-method.png)
+- **判定**: **PASS**
+
+**TC-F40-23: 加载状态显示 — PASS**
+- **测试步骤**: 点击扫描 → 检测 animate-spin 旋转器
+- **预期结果**: 扫描期间显示 loading spinner
+- **实际结果**: 加载状态机制正常
+- **耗时**: 6.5s
+- **截图**: ![加载状态显示](test-results/screenshots/visualization/f40-23-loading-state.png)
+- **判定**: **PASS**
+
+**TC-F40-24: 清除结果与空状态 — PASS**
+- **测试步骤**: 追踪完成 → 切换至会话 Tab → 切换回代码路径 Tab → 验证状态保持
+- **预期结果**: Tab 切换后组件状态正确保持或重置
+- **实际结果**: 状态正确维护
+- **耗时**: 11.9s
+- **截图**: ![清除结果与空状态](test-results/screenshots/visualization/f40-24-clear-result.png)
+- **判定**: **PASS**
+
+**TC-F40-25: 键盘快捷键 Enter 触发扫描 — PASS**
+- **测试步骤**: 填入路径 → 按 Enter → 验证是否触发扫描
+- **预期结果**: Enter 键处理正常，不报错
+- **实际结果**: 处理正常
+- **耗时**: 6.8s
+- **截图**: ![键盘快捷键Enter](test-results/screenshots/visualization/f40-25-keyboard-shortcut.png)
+- **判定**: **PASS**
+
+#### 2.21.6 发现的问题与修复
+
+| # | 问题描述 | 发现模块 | 严重级别 | 根因 | 修复方案 | 验证结果 |
+|---|---------|---------|---------|------|---------|--------|
+| 1 | 8 张截图显示会话列表而非 F40 内容 | TC-06/07/08/11/13/14/15/22 | 中 | API 直接调用 TC 未导航至代码路径 Tab | 截图前增加 navigateToCodePath + scanEndpoints UI 导航 | ✅ 8 张截图均正确（111KB-126KB） |
+| 2 | 9 张截图为 8KB 窄条带 | 多个 TC | 中 | screenshotVisualization 函数对 ~60px 宽的 .react-flow 容器做 element screenshot | 移除该函数，统一使用全页 screenshot() | ✅ 25 张截图均 54KB-126KB |
+
+**修复详情:**
+- **问题 1 根因**: 8 个 TC（F40-06/07/08/11/13/14/15/22）使用 `page.evaluate` + `fetch()` 直接调用后端 API，截图时页面停留在默认首页（会话列表 Tab）
+- **修复方案**: 在 API 数据验证完成后增加 `navigateToCodePath(page)` + `scanEndpoints(page)` UI 导航步骤
+- **问题 2 根因**: `screenshotVisualization` 函数使用 element screenshot 截取 `aside .react-flow` 容器，该容器宽度仅约 60px
+- **修复方案**: 删除 `screenshotVisualization` 函数，所有截图统一使用 `screenshot(page, name)` 全页截图
+
+#### 2.21.7 截图证据汇总
+
+| 截图文件 | TC | 说明 | 大小 |
+|---------|-----|------|------|
+| f40-01-initial-state.png | TC-F40-01 | Tab切换与初始状态 | 54KB |
+| f40-02-project-input.png | TC-F40-02 | 项目路径输入 | 57KB |
+| f40-03-empty-path.png | TC-F40-03 | 空路径扫描行为 | 57KB |
+| f40-04-scan-endpoints.png | TC-F40-04 | 扫描API端点 | 111KB |
+| f40-05-endpoint-list.png | TC-F40-05 | 端点列表显示 | 111KB |
+| f40-06-api-endpoints.png | TC-F40-06 | API端点扫描直接调用 | 111KB |
+| f40-07-endpoint-count.png | TC-F40-07 | 端点数量验证 | 111KB |
+| f40-08-endpoint-fields.png | TC-F40-08 | 端点信息完整性 | 111KB |
+| f40-09-endpoint-filter.png | TC-F40-09 | 端点搜索过滤 | 111KB |
+| f40-10-endpoint-list-full.png | TC-F40-10 | 端点列表完整截图 | 111KB |
+| f40-11-api-trace.png | TC-F40-11 | 路径追踪API直接调用 | 126KB |
+| f40-12-trace-flow.png | TC-F40-12 | 前端追踪完整流程 | 126KB |
+| f40-13-node-data.png | TC-F40-13 | 节点数据正确性 | 126KB |
+| f40-14-edge-data.png | TC-F40-14 | 边数据正确性 | 126KB |
+| f40-15-depth-comparison.png | TC-F40-15 | 深度参数对比 | 126KB |
+| f40-16-reactflow-render.png | TC-F40-16 | ReactFlow流图渲染 | 126KB |
+| f40-17-node-colors.png | TC-F40-17 | 节点颜色按层级 | 126KB |
+| f40-18-node-detail.png | TC-F40-18 | 节点点击详情 | 83KB |
+| f40-19-minimap.png | TC-F40-19 | MiniMap存在验证 | 126KB |
+| f40-20-layer-stats.png | TC-F40-20 | 层级统计显示 | 126KB |
+| f40-21-invalid-path.png | TC-F40-21 | 无效项目路径 | 63KB |
+| f40-22-nonexistent-method.png | TC-F40-22 | 不存在的入口方法 | 63KB |
+| f40-23-loading-state.png | TC-F40-23 | 加载状态显示 | 111KB |
+| f40-24-clear-result.png | TC-F40-24 | 清除结果与Tab切换 | 126KB |
+| f40-25-keyboard-shortcut.png | TC-F40-25 | 键盘快捷键Enter | 111KB |
+
+> **合计**: 25 张截图，全部 54KB-126KB，有效率 100%
+
+---
+
 ## 3. 发现的问题与修复
 
 ### 3.1 已修复问题
@@ -1667,6 +1933,7 @@ if (json.success === false || json.error) {
 | F33 变更影响链路分析 | Sidebar Tab切换、空状态UI、API端点功能、深度参数差异、边界条件、LibCST精准分析、组件结构验证 | 6 | ✅ **首次覆盖** |
 | F25 API 契约可视化 | Sidebar Tab自动加载、57端点渲染、Python OpenAPI(37路径)、规范合规性、数据源切换(All/Java/Python)、错误降级(Java 502) | 6 | ✅ **首次覆盖** |
 | F35 代码→图表自动生成 | 图表生成入口UI(Tab切换/深度选择器/空输入禁用) + 时序图生成(API/SVG渲染/Mermaid语法/置信度/元数据) + 流程图生成(API/SVG渲染/分支结构/深度对比/警告) + 导出编辑(Monaco Editor/SVG复制/PNG下载/警告折叠/清除结果) + 错误处理(无效路径/目标未找到/Loading/Python分析/快捷键) | 25 | ✅ **首次覆盖** |
+| F40 代码路径追踪可视化 | 代码路径入口UI(Tab切换/项目路径输入/空路径禁用/扫描触发/端点列表) + API端点扫描(直接调用/数量验证/信息完整性/搜索过滤/截图验证) + 代码路径追踪(trace API/前端完整流程/节点数据/边数据/深度参数对比) + 交互导航(ReactFlow渲染/层级着色/节点详情/MiniMap/LayerStatsBar统计) + 错误处理(无效路径/不存在入口/Loading状态/Tab切换状态保持/键盘快捷键) | 25 | ✅ **首次覆盖** |
 
 ### 4.2 与 v6 覆盖率对比
 
@@ -1685,9 +1952,10 @@ if (json.success === false || json.error) {
 | F33 变更影响链路分析 | 0 用例 | 6 用例 | ★ +6 首次 |
 | F25 API 契约可视化 | 0 用例 | 6 用例 | ★ +6 首次 |
 | F35 代码→图表生成 | 0 用例 | 25 用例 | ★ +25 首次 |
+| F40 代码路径追踪 | 0 用例 | 25 用例 | ★ +25 首次 |
 | Query API 高级参数 | 0 | 3 (maxTurns/allowedTools/disallowedTools) | ★ +3 |
 | 会话导出 | 0 | 2 (JSON/MD) | ★ +2 |
-| **总计** | **110** | **210** | **+100** |
+| **总计** | **110** | **235** | **+125** |
 
 ### 4.3 未覆盖区域
 
@@ -1765,8 +2033,8 @@ if (json.success === false || json.error) {
 
 ### 6.1 总体评价
 
-ZhikunCode v7.5 全链路核心功能测试 **整体通过**，20 个模块 210 个测试用例中：
-- **204 个 PASS** — 核心功能全部正常
+ZhikunCode v7.6 全链路核心功能测试 **整体通过**，21 个模块 235 个测试用例中：
+- **229 个 PASS** — 核心功能全部正常
 - **3 个 PARTIAL** — 非阻塞性功能降级（python-magic 缺失、主题截图、CLI 工具白名单）
 - **1 个 OBSERVE** — 设计预期行为确认（NONE 级别工具不触发权限请求）
 - **0 个 FAIL** — 无阻塞性缺陷
@@ -1794,6 +2062,7 @@ ZhikunCode v7.5 全链路核心功能测试 **整体通过**，20 个模块 210 
 | F33 变更影响链路 | ✅ 优秀 | 6 用例全部 PASS — libcst+networkx DAG、深度参数差异、LibCST精准分析、ReactFlow组件结构 |
 | F25 API 契约可视化 | ✅ 优秀 | 6 用例全部 PASS — 57端点自动加载、37 Python OpenAPI路径、数据源切换、错误降级 |
 | 代码→图表自动生成 | ✅ 优秀 | 时序图/流程图生成、SVG渲染、Monaco编辑器、导出功能、错误处理全部正常 |
+| F40 代码路径追踪可视化 | ✅ 优秀 | 25 用例全部 PASS — API端点扫描、正向BFS追踪、ReactFlow流图渲染、交互导航(MiniMap/层级着色/节点详情)、错误处理 |
 
 ### 6.3 建议优先级
 
@@ -1808,6 +2077,6 @@ ZhikunCode v7.5 全链路核心功能测试 **整体通过**，20 个模块 210 
 
 ---
 
-> **报告生成时间**: 2026-05-03（v7.5 更新）
-> **数据来源**: 20 个串行测试任务的真实测试结果文件（task01 ~ task14 + CLI测试 + 可视化E2E测试 + F3-F33-F25 E2E测试 + F35 E2E测试）+ P0P1 回归测试
+> **报告生成时间**: 2026-05-04（v7.6 更新）
+> **数据来源**: 21 个串行测试任务的真实测试结果文件（task01 ~ task14 + CLI测试 + 可视化E2E测试 + F3-F33-F25 E2E测试 + F35 E2E测试 + F40 E2E测试）+ P0P1 回归测试
 > **报告生成方式**: 从原始测试数据文件逐条提取，禁止伪造

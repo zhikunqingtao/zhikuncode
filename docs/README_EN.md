@@ -360,18 +360,18 @@ The following paths require user confirmation even in bypass mode:
 
 ### 🧪 Quality Assurance
 
-Full test report: [ZhikunCode Core Functionality Test Report v7.4](ZhikunCode核心功能测试报告.md) (2026-05-02)
+Full test report: [ZhikunCode Core Functionality Test Report v7.6](ZhikunCode核心功能测试报告.md) (2026-05-04)
 
 **Test Coverage:**
-- **19 functional modules** with **185 test cases**
-- **Results**: 179 PASS / 3 PARTIAL / 1 OBSERVE / 0 FAIL — **100% core functionality pass rate**
+- **21 functional modules** with **235 test cases**
+- **Results**: 229 PASS / 3 PARTIAL / 1 OBSERVE / 0 FAIL — **100% core functionality pass rate**
 - **Automation Stack**: JUnit 5 + Vitest + Pytest + Playwright E2E
 - **Full Coverage**: 100% of planned v1.0 features verified
 
 **Detailed Test Data & Evidence:**
 - Per-module results: [docs/test-results/](docs/test-results/) (16 detailed data files)
 - Frontend E2E scripts: [frontend/e2e/frontend-e2e-full.spec.ts](frontend/e2e/frontend-e2e-full.spec.ts)
-- E2E screenshots: [docs/test-results/screenshots/](docs/test-results/screenshots/) (72 images)
+- E2E screenshots: [docs/test-results/screenshots/](docs/test-results/screenshots/) (97 images)
 
 ---
 
@@ -837,7 +837,7 @@ ZhikunCode ships with 48 built-in tools + MCP dynamic extensions, covering the f
 
 ## 📈 Visualization
 
-ZhikunCode includes 10 built-in visualization features that make data and status transparent throughout the AI coding process:
+ZhikunCode includes 11 built-in visualization features that make data and status transparent throughout the AI coding process:
 
 | Feature | Description |
 |---------|-------------|
@@ -851,6 +851,7 @@ ZhikunCode includes 10 built-in visualization features that make data and status
 | **Change Impact Analysis** | DAG visualization built on @xyflow/react showing change propagation paths. LibCST-powered precise Python call graph analysis with BFS propagation. Displays node type, confidence, and impact depth at a glance |
 | **API Contract Viewer** | Auto-merges Java + Python dual-service OpenAPI specs. Endpoints grouped by tag, HTTP methods color-coded, recursive Schema display. Supports All/Java/Python data source switching |
 | **Code-to-Diagram Auto-Generation** | Input a code file path to auto-generate Mermaid sequence diagrams / flowcharts. Python LibCST + tree-sitter multi-language parsing, BFS call-chain traversal with auto-identification of Controller/Service/Repository participants, five-dimensional confidence scoring (0-1), Monaco Editor for real-time source editing, SVG copy / PNG download export, supports 1-5 level traversal depth control |
+| **Code Path Tracing Visualization** | Interactive code call-path tracing visualization built on @xyflow/react. Python CodePathTracer performs forward BFS traversal with six-layer classification (Controller/Service/Repository/Database/External/Utility), dagre TB layout algorithm for automatic node arrangement, custom LayerNode components with layer-based coloring, MiniMap for global overview + LayerStatsBar for layer statistics, supports API endpoint scanning, parameter tracking, node click details, and maxDepth depth control via the sidebar "Code Path" tab |
 
 ---
 
