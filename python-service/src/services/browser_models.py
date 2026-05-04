@@ -15,6 +15,7 @@ class BrowserRequestBase(BaseModel):
     """所有浏览器请求的基类 — 必含 session_id"""
     session_id: str = Field(default="default", description="Browser session ID")
     timeout: Optional[int] = Field(default=None, description="Timeout in milliseconds")
+    strict_session: bool = Field(default=False, description="If true, fail when session does not exist instead of auto-creating")
 
 
 # ═══ 请求模型 ═══
@@ -26,6 +27,8 @@ class NavigateRequest(BrowserRequestBase):
 
 class ClickRequest(BrowserRequestBase):
     selector: str = Field(..., description="CSS selector for target element")
+    no_wait_after: bool = Field(default=False, description="If true, skip waiting for navigation after click (useful for AJAX pages)")
+    force: bool = Field(default=False, description="Force click, skip visibility/actionability checks")
 
 
 class TypeRequest(BrowserRequestBase):
@@ -47,7 +50,16 @@ class ExtractRequest(BrowserRequestBase):
 
 
 class WaitForRequest(BrowserRequestBase):
-    selector: str = Field(..., description="CSS selector to wait for")
+    selector: Optional[str] = Field(default=None, description="CSS selector to wait for")
+    state: Optional[str] = Field(default="visible", description="Element state: visible/hidden/attached/detached")
+    wait_until: Optional[str] = Field(
+        default=None,
+        description="Wait condition type: networkidle, load, domcontentloaded, text_change"
+    )
+    text_contains: Optional[str] = Field(
+        default=None,
+        description="Wait until the element text contains this value (requires selector)"
+    )
 
 
 class SelectOptionRequest(BrowserRequestBase):
@@ -67,6 +79,11 @@ class CookieRequest(BrowserRequestBase):
 
 class SetCookieRequest(BrowserRequestBase):
     cookie: dict[str, Any] = Field(..., description="Cookie object with name, value, domain, path")
+
+
+class JsErrorsRequest(BrowserRequestBase):
+    """获取指定会话收集的 JS 错误"""
+    pass
 
 
 class CloseSessionRequest(BaseModel):

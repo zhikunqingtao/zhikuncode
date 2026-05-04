@@ -27,6 +27,7 @@ from services.browser_models import (
     CookieRequest,
     SetCookieRequest,
     CloseSessionRequest,
+    JsErrorsRequest,
     BrowserResponse,
 )
 
@@ -65,8 +66,11 @@ async def navigate(req: NavigateRequest) -> BrowserResponse:
 async def screenshot(req: ScreenshotRequest) -> BrowserResponse:
     try:
         data = await browser_service.screenshot(
-            req.session_id, req.full_page, req.selector
+            req.session_id, req.full_page, req.selector,
+            strict_session=req.strict_session,
         )
+        if not data.get("success", True) is True and "error_code" in data:
+            return BrowserResponse(success=False, error_code=data["error_code"], error_message=data["error_message"])
         return BrowserResponse(success=True, data=data)
     except Exception as e:
         return BrowserResponse(
@@ -77,7 +81,14 @@ async def screenshot(req: ScreenshotRequest) -> BrowserResponse:
 @router.post("/click")
 async def click(req: ClickRequest) -> BrowserResponse:
     try:
-        data = await browser_service.click(req.session_id, req.selector, req.timeout)
+        data = await browser_service.click(
+            req.session_id, req.selector, req.timeout,
+            strict_session=req.strict_session,
+            no_wait_after=req.no_wait_after,
+            force=req.force,
+        )
+        if not data.get("success", True) is True and "error_code" in data:
+            return BrowserResponse(success=False, error_code=data["error_code"], error_message=data["error_message"])
         return BrowserResponse(success=True, data=data)
     except Exception as e:
         return BrowserResponse(
@@ -89,8 +100,11 @@ async def click(req: ClickRequest) -> BrowserResponse:
 async def type_text(req: TypeRequest) -> BrowserResponse:
     try:
         data = await browser_service.type_text(
-            req.session_id, req.selector, req.text, req.timeout
+            req.session_id, req.selector, req.text, req.timeout,
+            strict_session=req.strict_session,
         )
+        if not data.get("success", True) is True and "error_code" in data:
+            return BrowserResponse(success=False, error_code=data["error_code"], error_message=data["error_message"])
         return BrowserResponse(success=True, data=data)
     except Exception as e:
         return BrowserResponse(
@@ -101,7 +115,15 @@ async def type_text(req: TypeRequest) -> BrowserResponse:
 @router.post("/evaluate")
 async def evaluate(req: EvaluateRequest) -> BrowserResponse:
     try:
-        data = await browser_service.evaluate(req.session_id, req.script)
+        data = await browser_service.evaluate(
+            req.session_id, req.script,
+            strict_session=req.strict_session,
+        )
+        # evaluate 内部已做了错误捕获，检查返回结构
+        if data.get("success") is False and "error_code" in data:
+            return BrowserResponse(success=False, error_code=data["error_code"], error_message=data["error_message"])
+        if data.get("success") is False:
+            return BrowserResponse(success=False, data=data, error_code="JS_EVALUATION_ERROR", error_message=data.get("error_message", "JavaScript evaluation failed"))
         return BrowserResponse(success=True, data=data)
     except Exception as e:
         return BrowserResponse(
@@ -112,7 +134,12 @@ async def evaluate(req: EvaluateRequest) -> BrowserResponse:
 @router.post("/extract_text")
 async def extract_text(req: ExtractRequest) -> BrowserResponse:
     try:
-        data = await browser_service.extract_text(req.session_id, req.selector)
+        data = await browser_service.extract_text(
+            req.session_id, req.selector,
+            strict_session=req.strict_session,
+        )
+        if not data.get("success", True) is True and "error_code" in data:
+            return BrowserResponse(success=False, error_code=data["error_code"], error_message=data["error_message"])
         return BrowserResponse(success=True, data=data)
     except Exception as e:
         return BrowserResponse(
@@ -123,7 +150,12 @@ async def extract_text(req: ExtractRequest) -> BrowserResponse:
 @router.post("/extract_html")
 async def extract_html(req: ExtractRequest) -> BrowserResponse:
     try:
-        data = await browser_service.extract_html(req.session_id, req.selector)
+        data = await browser_service.extract_html(
+            req.session_id, req.selector,
+            strict_session=req.strict_session,
+        )
+        if not data.get("success", True) is True and "error_code" in data:
+            return BrowserResponse(success=False, error_code=data["error_code"], error_message=data["error_message"])
         return BrowserResponse(success=True, data=data)
     except Exception as e:
         return BrowserResponse(
@@ -134,9 +166,19 @@ async def extract_html(req: ExtractRequest) -> BrowserResponse:
 @router.post("/wait_for")
 async def wait_for(req: WaitForRequest) -> BrowserResponse:
     try:
-        data = await browser_service.wait_for_selector(
-            req.session_id, req.selector, req.timeout
+        data = await browser_service.wait_for(
+            req.session_id,
+            selector=req.selector,
+            state=req.state,
+            timeout=req.timeout,
+            wait_until=req.wait_until,
+            text_contains=req.text_contains,
+            strict_session=req.strict_session,
         )
+        if not data.get("success", True) is True and "error_code" in data:
+            return BrowserResponse(success=False, error_code=data["error_code"], error_message=data["error_message"])
+        if data.get("error"):
+            return BrowserResponse(success=False, error_code="INVALID_PARAMS", error_message=data["error"])
         return BrowserResponse(success=True, data=data)
     except Exception as e:
         return BrowserResponse(
@@ -148,8 +190,11 @@ async def wait_for(req: WaitForRequest) -> BrowserResponse:
 async def select_option(req: SelectOptionRequest) -> BrowserResponse:
     try:
         data = await browser_service.select_option(
-            req.session_id, req.selector, req.values
+            req.session_id, req.selector, req.values,
+            strict_session=req.strict_session,
         )
+        if not data.get("success", True) is True and "error_code" in data:
+            return BrowserResponse(success=False, error_code=data["error_code"], error_message=data["error_message"])
         return BrowserResponse(success=True, data=data)
     except Exception as e:
         return BrowserResponse(
@@ -161,8 +206,11 @@ async def select_option(req: SelectOptionRequest) -> BrowserResponse:
 async def handle_dialog(req: DialogRequest) -> BrowserResponse:
     try:
         data = await browser_service.handle_dialog(
-            req.session_id, req.accept, req.text
+            req.session_id, req.accept, req.text,
+            strict_session=req.strict_session,
         )
+        if not data.get("success", True) is True and "error_code" in data:
+            return BrowserResponse(success=False, error_code=data["error_code"], error_message=data["error_message"])
         return BrowserResponse(success=True, data=data)
     except Exception as e:
         return BrowserResponse(
@@ -173,7 +221,12 @@ async def handle_dialog(req: DialogRequest) -> BrowserResponse:
 @router.post("/get_cookies")
 async def get_cookies(req: CookieRequest) -> BrowserResponse:
     try:
-        data = await browser_service.get_cookies(req.session_id)
+        data = await browser_service.get_cookies(
+            req.session_id,
+            strict_session=req.strict_session,
+        )
+        if not data.get("success", True) is True and "error_code" in data:
+            return BrowserResponse(success=False, error_code=data["error_code"], error_message=data["error_message"])
         return BrowserResponse(success=True, data=data)
     except Exception as e:
         return BrowserResponse(
@@ -184,7 +237,12 @@ async def get_cookies(req: CookieRequest) -> BrowserResponse:
 @router.post("/set_cookie")
 async def set_cookie(req: SetCookieRequest) -> BrowserResponse:
     try:
-        data = await browser_service.set_cookie(req.session_id, req.cookie)
+        data = await browser_service.set_cookie(
+            req.session_id, req.cookie,
+            strict_session=req.strict_session,
+        )
+        if not data.get("success", True) is True and "error_code" in data:
+            return BrowserResponse(success=False, error_code=data["error_code"], error_message=data["error_message"])
         return BrowserResponse(success=True, data=data)
     except Exception as e:
         return BrowserResponse(
@@ -197,6 +255,30 @@ async def close_session(req: CloseSessionRequest) -> BrowserResponse:
     try:
         closed = await browser_service.close_session(req.session_id)
         return BrowserResponse(success=True, data={"closed": closed})
+    except Exception as e:
+        return BrowserResponse(
+            success=False, error_code=type(e).__name__, error_message=str(e)
+        )
+
+
+@router.delete("/session/{session_id}")
+async def delete_session(session_id: str) -> BrowserResponse:
+    """RESTful DELETE endpoint to explicitly close and cleanup a browser session."""
+    try:
+        closed = await browser_service.close_session(session_id)
+        return BrowserResponse(success=True, data={"closed": closed})
+    except Exception as e:
+        return BrowserResponse(
+            success=False, error_code=type(e).__name__, error_message=str(e)
+        )
+
+
+@router.post("/get_js_errors")
+async def get_js_errors(req: JsErrorsRequest) -> BrowserResponse:
+    """Return collected JS errors for a given session."""
+    try:
+        errors = await browser_service.get_js_errors(req.session_id)
+        return BrowserResponse(success=True, data={"js_errors": errors, "count": len(errors)})
     except Exception as e:
         return BrowserResponse(
             success=False, error_code=type(e).__name__, error_message=str(e)

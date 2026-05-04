@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
@@ -14,6 +16,7 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -34,13 +37,15 @@ public class PythonCapabilityAwareClient {
     private static final Duration HEAVY_READ_TIMEOUT = Duration.ofSeconds(120);
     private static final int MAX_RETRIES = 3;
     private static final Duration RETRY_BASE_DELAY = Duration.ofMillis(500);
-    private static final long REFRESH_INTERVAL_MS = 300_000; // 5 minutes
+    private static final Duration SUCCESS_CACHE_TTL = Duration.ofMinutes(5);
+    private static final Duration FAILURE_CACHE_TTL = Duration.ofSeconds(30);
 
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
     private final String baseUrl;
-    private volatile Map<String, CapabilityStatus> capabilities = Map.of();
+    private volatile Map<String, CapabilityStatus> capabilities = new ConcurrentHashMap<>();
     private volatile long lastRefreshTimestamp = 0;
+    private volatile boolean lastRefreshSuccess = false;
 
     /**
      * 能力域可用状态。
@@ -50,6 +55,9 @@ public class PythonCapabilityAwareClient {
      * @param reason    不可用原因 (available=true 时为 null)
      */
     public record CapabilityStatus(String name, boolean available, String reason) {
+        public boolean isAvailable() {
+            return available;
+        }
     }
 
     public PythonCapabilityAwareClient(
@@ -63,11 +71,26 @@ public class PythonCapabilityAwareClient {
                 .build();
     }
 
+    // ═══ 启动时主动刷新 ═══
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void onApplicationReady() {
+        CompletableFuture.runAsync(() -> {
+            try {
+                Thread.sleep(5000);
+                refreshCapabilities();
+                log.info("Python 能力清单启动刷新完成");
+            } catch (Exception e) {
+                log.warn("Python 能力清单启动刷新失败，将在下次调用时重试: {}", e.getMessage());
+            }
+        });
+    }
+
     // ═══ 能力探测 ═══
 
     /**
      * 刷新能力清单 — GET /api/health/capabilities
-     * 启动时 + 每 5 分钟自动刷新。
+     * 启动时 + 定期自动刷新。成功缓存 5 分钟，失败缓存 30 秒。
      */
     public void refreshCapabilities() {
         try {
@@ -80,29 +103,49 @@ public class PythonCapabilityAwareClient {
             if (response.statusCode() == 200) {
                 this.capabilities = parseCapabilities(response.body());
                 this.lastRefreshTimestamp = System.currentTimeMillis();
+                this.lastRefreshSuccess = true;
                 log.info("Python 能力清单已刷新: {} 个域", capabilities.size());
+            } else {
+                this.lastRefreshTimestamp = System.currentTimeMillis();
+                this.lastRefreshSuccess = false;
+                log.warn("Python 能力探测返回 HTTP {}，使用短缓存", response.statusCode());
             }
         } catch (Exception e) {
-            log.warn("Python 服务能力探测失败，保留旧缓存", e);
+            this.lastRefreshTimestamp = System.currentTimeMillis();
+            this.lastRefreshSuccess = false;
+            log.warn("Python 服务能力探测失败，使用短缓存: {}", e.getMessage());
         }
     }
 
     /**
-     * 如果距上次刷新超过 REFRESH_INTERVAL_MS，自动刷新。
+     * 如果缓存已过期，自动刷新。
+     * 成功探测使用 SUCCESS_CACHE_TTL (5 分钟)，失败探测使用 FAILURE_CACHE_TTL (30 秒)。
      */
     public void refreshIfStale() {
-        if (System.currentTimeMillis() - lastRefreshTimestamp > REFRESH_INTERVAL_MS) {
+        long elapsed = System.currentTimeMillis() - lastRefreshTimestamp;
+        Duration ttl = lastRefreshSuccess ? SUCCESS_CACHE_TTL : FAILURE_CACHE_TTL;
+        if (elapsed > ttl.toMillis()) {
             refreshCapabilities();
         }
     }
 
     /**
      * 检查某能力域是否可用。
+     * 缓存未命中时立即触发刷新后重试。
      */
     public boolean isCapabilityAvailable(String domain) {
         refreshIfStale();
         var status = capabilities.get(domain);
-        return status != null && status.available();
+        if (status != null) {
+            return status.isAvailable();
+        }
+
+        // 缓存未命中 → 立即刷新（而非返回 false）
+        refreshCapabilities();
+
+        // 刷新后再次检查
+        status = capabilities.get(domain);
+        return status != null && status.isAvailable();
     }
 
     /**
