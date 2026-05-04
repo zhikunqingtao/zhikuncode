@@ -23,7 +23,8 @@ import {
     BarChart3,
     FileText,
     ExternalLink,
-    Workflow
+    Workflow,
+    Network
 } from 'lucide-react';
 import { APISequenceDiagram } from '@/components/visualization/backend/APISequenceDiagram';
 import { FileTreePanel } from '@/components/layout/FileTreePanel';
@@ -33,6 +34,7 @@ import { CodeComplexityTreemap } from '@/components/visualization/backend/CodeCo
 import { ChangeImpactGraph } from '@/components/visualization/backend/ChangeImpactGraph';
 import { APIContractViewer } from '@/components/visualization/backend/APIContractViewer';
 import { CodeDiagramGenerator } from '@/components/visualization/backend/CodeDiagramGenerator';
+import { CodePathTracer } from '@/components/visualization/backend/CodePathTracer';
 import { useApiContractStore } from '@/store/apiContractStore';
 import { useTaskStore } from '@/store/taskStore';
 import { useMessageStore } from '@/store/messageStore';
@@ -41,7 +43,7 @@ import { useConfigStore } from '@/store/configStore';
 import { sendToServer } from '@/api/stompClient';
 import type { TaskState } from '@/types';
 
-type TabType = 'sessions' | 'tasks' | 'files' | 'sequence' | 'dag' | 'git' | 'complexity' | 'impact' | 'api-docs' | 'diagram';
+type TabType = 'sessions' | 'tasks' | 'files' | 'sequence' | 'dag' | 'git' | 'complexity' | 'impact' | 'api-docs' | 'diagram' | 'code-path';
 
 // ═══ Sidebar 宽度配置 ═══
 const MIN_WIDTH = 256;
@@ -59,7 +61,7 @@ export interface SidebarProps {
 
 export function Sidebar({ className = '', isDrawerMode = false, defaultTab }: SidebarProps) {
     const [activeTab, setActiveTab] = useState<TabType>(() => {
-        if (defaultTab && ['sessions','tasks','files','sequence','dag','git','complexity','impact','api-docs','diagram'].includes(defaultTab)) {
+        if (defaultTab && ['sessions','tasks','files','sequence','dag','git','complexity','impact','api-docs','diagram','code-path'].includes(defaultTab)) {
             return defaultTab as TabType;
         }
         return 'sessions';
@@ -133,6 +135,7 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab }: Si
         { id: 'impact', label: '影响分析', icon: GitBranch },
         { id: 'api-docs', label: 'API文档', icon: FileText },
         { id: 'diagram', label: '图表生成', icon: Workflow },
+        { id: 'code-path', label: '代码路径', icon: Network },
     ];
 
     // Drawer 模式不使用动态宽度
@@ -203,6 +206,11 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab }: Si
                 {activeTab === 'diagram' && (
                     <div className="h-full">
                         <CodeDiagramGenerator />
+                    </div>
+                )}
+                {activeTab === 'code-path' && (
+                    <div className="h-full">
+                        <CodePathTracer />
                     </div>
                 )}
             </div>

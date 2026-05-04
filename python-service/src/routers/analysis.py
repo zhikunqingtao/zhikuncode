@@ -1,4 +1,4 @@
-"""Analysis routes (F25: API Contract, F33: Change Impact, F35: Diagram Generation)."""
+"""Analysis routes (F25: API Contract, F33: Change Impact, F35: Diagram Generation, F40: Code Path Tracing)."""
 
 import asyncio
 import logging
@@ -337,3 +337,98 @@ async def analyze_change_impact(request: ChangeImpactRequest):
     except Exception as e:
         logger.error("Change impact analysis failed: %s", e, exc_info=True)
         raise HTTPException(status_code=500, detail=f"Analysis error: {str(e)}")
+
+
+# ═══════════════════════════════════════════════════════════════
+# F40: Code Path Tracing (代码路径追踪)
+# ═══════════════════════════════════════════════════════════════
+
+
+class APIEndpointRequest(BaseModel):
+    project_root: str = Field(..., description="项目根目录路径")
+    languages: Optional[List[str]] = Field(None, description="指定语言过滤")
+
+
+class CodePathRequest(BaseModel):
+    project_root: str = Field(..., description="项目根目录路径")
+    entry_file: str = Field(..., description="入口方法所在文件路径")
+    entry_function: str = Field(..., description="入口方法名")
+    max_depth: int = Field(10, ge=1, le=20, description="最大追踪深度")
+
+
+def _scan_endpoints_sync(request: APIEndpointRequest) -> dict:
+    """同步执行 API 端点扫描"""
+    from analyzers.code_path_tracer import CodePathTracer
+    tracer = CodePathTracer(project_root=request.project_root)
+    endpoints = tracer.scan_api_endpoints(languages=request.languages)
+    return {
+        "success": True,
+        "endpoints": [ep.model_dump() for ep in endpoints],
+        "total": len(endpoints),
+    }
+
+
+def _trace_code_path_sync(request: CodePathRequest) -> dict:
+    """同步执行代码路径追踪"""
+    from analyzers.code_path_tracer import CodePathTracer
+    tracer = CodePathTracer(project_root=request.project_root)
+    result = tracer.trace_code_path(
+        entry_file=request.entry_file,
+        entry_function=request.entry_function,
+        max_depth=request.max_depth,
+    )
+    return {
+        "success": True,
+        "data": result.model_dump(),
+    }
+
+
+@router.post("/api-endpoints")
+async def scan_api_endpoints(request: APIEndpointRequest):
+    """扫描项目所有 API 端点 (F40)"""
+    if not _validate_path_safe(request.project_root):
+        raise HTTPException(status_code=400, detail="Invalid project_root: path traversal detected")
+
+    if not os.path.isdir(request.project_root):
+        raise HTTPException(status_code=400, detail=f"project_root does not exist: {request.project_root}")
+
+    try:
+        result = await asyncio.wait_for(
+            asyncio.get_event_loop().run_in_executor(
+                None, _scan_endpoints_sync, request
+            ),
+            timeout=30.0,
+        )
+        return result
+    except asyncio.TimeoutError:
+        raise HTTPException(status_code=408, detail="API endpoint scan timed out after 30s")
+    except Exception as e:
+        logger.error("API endpoint scan failed: %s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Scan error: {str(e)}")
+
+
+@router.post("/code-path")
+async def trace_code_path(request: CodePathRequest):
+    """追踪指定 API 的完整代码路径 (F40)"""
+    if not _validate_path_safe(request.project_root):
+        raise HTTPException(status_code=400, detail="Invalid project_root: path traversal detected")
+
+    if not os.path.isdir(request.project_root):
+        raise HTTPException(status_code=400, detail=f"project_root does not exist: {request.project_root}")
+
+    if not _validate_path_safe(request.entry_file):
+        raise HTTPException(status_code=400, detail="Invalid entry_file: path traversal detected")
+
+    try:
+        result = await asyncio.wait_for(
+            asyncio.get_event_loop().run_in_executor(
+                None, _trace_code_path_sync, request
+            ),
+            timeout=30.0,
+        )
+        return result
+    except asyncio.TimeoutError:
+        raise HTTPException(status_code=408, detail="Code path tracing timed out after 30s")
+    except Exception as e:
+        logger.error("Code path tracing failed: %s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Trace error: {str(e)}")

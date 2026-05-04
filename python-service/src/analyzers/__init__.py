@@ -11,6 +11,14 @@ from .change_impact_analyzer import (
 from .diagram_models import DiagramMetadata, DiagramResult
 from .sequence_diagram_generator import SequenceDiagramGenerator
 from .flow_chart_generator import FlowChartGenerator
+from .code_path_tracer import (
+    CodePathTracer,
+    APIEndpointInfo,
+    PathNode,
+    PathEdge,
+    LayerInfo,
+    CodePathResult,
+)
 
 __all__ = [
     "CallGraphBuilder",
@@ -24,4 +32,10 @@ __all__ = [
     "DiagramResult",
     "SequenceDiagramGenerator",
     "FlowChartGenerator",
+    "CodePathTracer",
+    "APIEndpointInfo",
+    "PathNode",
+    "PathEdge",
+    "LayerInfo",
+    "CodePathResult",
 ]
