@@ -32,6 +32,9 @@
 
 > **部署到服务器，打开浏览器就能用，手机上也行**
 
+> 🏗️ **[查看完整系统架构图 →](https://zhikunqingtao.github.io/zhikuncode/ZhikunCode-Architecture.html)**  
+> 三端分离 · 660+ 文件 · 110,646 行代码 · 全景可视化
+
 ---
 
 ## ✨ 特性亮点

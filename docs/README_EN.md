@@ -32,6 +32,8 @@
 
 > **deploy it to a server, open a browser, and start coding. Works on your phone too.**
 
+> 🏗️ **[View Full System Architecture →](https://zhikunqingtao.github.io/zhikuncode/ZhikunCode-Architecture.html)**  
+> Three-tier Separation · 660+ Files · 110,646 Lines of Code · Full Visualization
 
 ---
 
