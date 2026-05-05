@@ -1,0 +1,2463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZhikunCode vs Claude Code — In-Depth Comparison | AI IDE Comparison</title>
+<meta name="description" content="Comprehensive feature-by-feature comparison between ZhikunCode and Claude Code. Covering architecture, security, extensibility, and developer experience.">
+<meta name="keywords" content="ZhikunCode, Claude Code, AI IDE comparison, code assistant, architecture comparison, security, extensibility">
+<meta name="author" content="ZhikunCode Team">
+<meta property="og:title" content="ZhikunCode vs Claude Code — In-Depth Comparison">
+<meta property="og:description" content="Comprehensive feature-by-feature comparison between ZhikunCode and Claude Code. Covering architecture, security, extensibility, and developer experience.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://zhikunqingtao.github.io/zhikuncode/ZhikunCode-vs-Claude-Code.html">
+<meta property="og:image" content="https://zhikunqingtao.github.io/zhikuncode/assets/architecture-preview.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ZhikunCode vs Claude Code — In-Depth Comparison">
+<meta name="twitter:description" content="Comprehensive feature-by-feature comparison between ZhikunCode and Claude Code. AI IDE architecture, security, and extensibility analysis.">
+<link rel="canonical" href="https://zhikunqingtao.github.io/zhikuncode/ZhikunCode-vs-Claude-Code.html">
+<style>
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+:root {
+  --bg-deep: #050507;
+  --bg-primary: #09090b;
+  --bg-elevated: #111114;
+  --bg-surface: #1a1a1f;
+  --bg-row-hover: #1f1f25;
+  --text-primary: #f4f4f5;
+  --text-secondary: #a1a1aa;
+  --text-muted: #52525b;
+  --cc-primary: #3b82f6;
+  --cc-light: #60a5fa;
+  --zc-primary: #10b981;
+  --zc-light: #34d399;
+  --border: rgba(255, 255, 255, 0.06);
+  --border-hover: rgba(255, 255, 255, 0.10);
+  --win-green: #22c55e;
+  --neutral: #71717a;
+}
+html { scroll-behavior: smooth; scroll-padding-top: 48px; }
+body {
+  padding-top: 40px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+.container { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+@media (max-width: 768px) { .container { padding: 0 16px; } }
+
+/* ── Section ── */
+.section { padding: 72px 0; }
+.section + .section { border-top: 1px solid var(--border); }
+.section-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+.section-subtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 28px;
+}
+
+/* ── Cards ── */
+.card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 24px;
+  transition: border-color 0.2s;
+}
+.card:hover { border-color: var(--border-hover); }
+
+/* ── Tables ── */
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th {
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.data-table td {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+  color: var(--text-secondary);
+  vertical-align: middle;
+}
+.data-table tr:hover td { background: var(--bg-row-hover); }
+.data-table .num { font-family: 'SF Mono', Menlo, monospace; font-size: 13px; }
+.data-table .win-cc { color: var(--cc-light); font-weight: 600; }
+.data-table .win-zc { color: var(--zc-light); font-weight: 600; }
+
+/* ── Mini bar ── */
+.mini-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--bg-surface);
+  position: relative;
+  overflow: hidden;
+}
+.mini-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.8s ease;
+}
+.mini-bar-fill.cc { background: linear-gradient(90deg, var(--cc-primary), var(--cc-light)); }
+.mini-bar-fill.zc { background: linear-gradient(90deg, var(--zc-primary), var(--zc-light)); }
+
+/* ── Score row ── */
+.score-row {
+  display: grid;
+  grid-template-columns: 180px 48px 48px 1fr 28px 24px;
+  align-items: center;
+  height: 40px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+  padding: 0 8px;
+  transition: background 0.15s;
+}
+.score-row:hover { background: var(--bg-row-hover); }
+.score-row .dim { color: var(--text-secondary); }
+.score-row .sc { font-family: 'SF Mono', Menlo, monospace; font-size: 13px; text-align: center; }
+.score-row .sc.cc { color: var(--cc-light); }
+.score-row .sc.zc { color: var(--zc-light); }
+.score-row .win { font-size: 11px; font-weight: 700; text-align: center; border-radius: 4px; padding: 2px 4px; }
+.win-tag-cc { background: rgba(59, 130, 246, 0.15); color: var(--cc-light); }
+.win-tag-zc { background: rgba(16, 185, 129, 0.15); color: var(--zc-light); }
+.win-tag-tie { background: rgba(113, 113, 122, 0.15); color: var(--neutral); }
+@media (max-width: 768px) {
+  .score-row { grid-template-columns: 120px 40px 40px 1fr 28px 24px; font-size: 13px; }
+}
+
+/* ── Advantage grid ── */
+.advantage-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+@media (max-width: 600px) { .advantage-grid { grid-template-columns: 1fr; } }
+.adv-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 20px;
+  border-left: 3px solid var(--zc-primary);
+  transition: border-color 0.2s, transform 0.2s;
+  overflow: hidden;
+  word-break: break-word;
+}
+.adv-card:hover { border-color: var(--border-hover); transform: translateY(-2px); }
+.adv-card.cc-card { border-left-color: var(--cc-primary); }
+.adv-card .adv-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.adv-card .adv-name { font-size: 15px; font-weight: 600; color: var(--zc-light); }
+.adv-card.cc-card .adv-name { color: var(--cc-light); }
+.adv-card .adv-score { font-family: 'SF Mono', Menlo, monospace; font-size: 13px; color: var(--text-muted); }
+.adv-card .adv-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+
+/* ── Accordion ── */
+.accordion { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.acc-item + .acc-item { border-top: 1px solid var(--border); }
+.acc-header {
+  display: flex;
+  align-items: center;
+  padding: 14px 20px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.01);
+  transition: background 0.15s;
+  gap: 12px;
+  user-select: none;
+}
+.acc-header:hover { background: var(--bg-row-hover); }
+.acc-num { font-family: 'SF Mono', Menlo, monospace; font-size: 12px; color: var(--text-muted); min-width: 28px; }
+.acc-title { flex: 1; font-size: 15px; font-weight: 600; color: var(--text-primary); }
+.acc-tag { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; }
+.acc-arrow { font-size: 12px; color: var(--text-muted); transition: transform 0.25s; }
+.acc-item.open .acc-arrow { transform: rotate(180deg); }
+.acc-body { max-height: 0; overflow: hidden; transition: max-height 0.35s ease; }
+.acc-body-inner { padding: 0 20px 16px 20px; }
+
+/* ── Header glow ── */
+.header-glow {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.07;
+  pointer-events: none;
+}
+.glow-cc { background: var(--cc-primary); top: -100px; left: 10%; }
+.glow-zc { background: var(--zc-primary); top: -50px; right: 10%; }
+
+/* ── Stat cards ── */
+.stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; }
+@media (max-width: 600px) { .stat-row { grid-template-columns: 1fr; } }
+.stat-card {
+  border-radius: 12px;
+  padding: 20px 24px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+}
+.stat-card .label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+.stat-card .label.cc { color: var(--cc-light); }
+.stat-card .label.zc { color: var(--zc-light); }
+.stat-card .stats { display: flex; gap: 24px; flex-wrap: wrap; }
+.stat-card .stat-item .val { font-size: 22px; font-weight: 700; font-family: 'SF Mono', Menlo, monospace; }
+.stat-card .stat-item .key { font-size: 12px; color: var(--text-muted); }
+.stat-card.cc-stat .val { color: var(--cc-light); }
+.stat-card.zc-stat .val { color: var(--zc-light); }
+
+/* ── Radar layout ── */
+.radar-layout { display: grid; grid-template-columns: 1fr 420px; gap: 32px; align-items: start; }
+@media (max-width: 900px) { .radar-layout { grid-template-columns: 1fr; } .radar-right { order: -1; } }
+.radar-right { display: flex; justify-content: center; }
+
+/* ── Reveal animation ── */
+.reveal { opacity: 0; transform: translateY(16px); transition: opacity 0.5s ease, transform 0.5s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ── Module rows ── */
+.mod-row {
+  display: grid;
+  grid-template-columns: 160px 1fr 100px 1fr 100px;
+  align-items: center;
+  height: 44px;
+  border-bottom: 1px solid var(--border);
+  padding: 0 12px;
+  font-size: 14px;
+  transition: background 0.15s;
+}
+.mod-row:hover { background: var(--bg-row-hover); }
+.mod-row .mod-name { color: var(--text-primary); font-weight: 500; }
+.mod-row .mod-bar { height: 6px; border-radius: 3px; }
+.mod-row .mod-val { font-family: 'SF Mono', Menlo, monospace; font-size: 13px; text-align: right; padding-right: 12px; }
+.mod-header {
+  display: grid;
+  grid-template-columns: 160px 1fr 100px 1fr 100px;
+  padding: 0 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  height: 32px;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+}
+@media (max-width: 768px) {
+  .mod-row, .mod-header { grid-template-columns: 100px 1fr 70px 1fr 70px; font-size: 12px; }
+}
+
+/* ── Tool table ── */
+.tool-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 8px;
+}
+.tool-item {
+  display: grid;
+  grid-template-columns: 1fr 50px 50px;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.01);
+  transition: background 0.15s;
+}
+.tool-item:hover { background: var(--bg-row-hover); }
+.tool-item .t-name { color: var(--text-secondary); }
+.tool-item .t-cc, .tool-item .t-zc { text-align: center; font-size: 12px; }
+
+/* ── Tech stack row ── */
+.tech-row {
+  display: grid;
+  grid-template-columns: 140px 1fr 1fr;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.tech-row > div { padding: 10px 16px; }
+.tech-row:hover > div { background: var(--bg-row-hover); }
+.tech-row .tech-label { color: var(--text-primary); font-weight: 500; }
+.tech-row .tech-cc { color: var(--cc-light); }
+.tech-row .tech-zc { color: var(--zc-light); }
+
+/* ── Footer ── */
+.footer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+@media (max-width: 600px) { .footer-grid { grid-template-columns: 1fr; } }
+.footer-list { list-style: none; padding: 0; }
+.footer-list li {
+  font-size: 14px;
+  color: var(--text-secondary);
+  padding: 6px 0;
+  padding-left: 16px;
+  position: relative;
+}
+.footer-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 12px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+.footer-list.cc-list li::before { background: var(--cc-primary); }
+.footer-list.zc-list li::before { background: var(--zc-primary); }
+.credibility {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted);
+  padding: 32px 0 0;
+  border-top: 1px solid var(--border);
+  margin-top: 32px;
+}
+
+/* ── Scenario table ── */
+.scenario-row {
+  display: grid;
+  grid-template-columns: 200px 80px 1fr;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  padding: 10px 16px;
+  font-size: 14px;
+  transition: background 0.15s;
+}
+.scenario-row:hover { background: var(--bg-row-hover); }
+.scenario-row .s-name { color: var(--text-primary); font-weight: 500; }
+.scenario-row .s-pick { font-weight: 600; font-size: 13px; }
+.scenario-row .s-reason { color: var(--text-secondary); font-size: 13px; }
+@media print {
+  body { background: white; color: #1a1a1a; }
+  .card, .stat-card, .adv-card { background: white; border-color: #e5e5e5; }
+  .data-table td, .data-table th { color: #1a1a1a; border-color: #e5e5e5; }
+  .tech-row > div { color: #1a1a1a; }
+  .score-row .dim { color: #1a1a1a; }
+  .section + .section { border-color: #e5e5e5; }
+  .header-glow { display: none; }
+  .reveal { opacity: 1 !important; transform: none !important; filter: none !important; }
+  .acc-body { max-height: none !important; overflow: visible !important; }
+  .mini-bar-fill { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .mod-bar { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .gradient-cc, .gradient-zc { -webkit-text-fill-color: initial; }
+  .section { padding: 32px 0; }
+  .footer-list li::before { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .credibility { color: #666; }
+  canvas { max-width: 300px; max-height: 300px; }
+}
+
+/* ── Focus-visible (P0-2) ── */
+.acc-header:focus-visible,
+.card:focus-visible,
+.tool-item:focus-visible {
+  outline: 2px solid var(--cc-primary);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* ── Canvas responsive (P0-3) ── */
+#radarCanvas {
+  max-width: 100%;
+  height: auto;
+}
+.card { overflow-x: auto; }
+.data-table { min-width: 500px; }
+
+/* ── Score tooltip (P1-5) ── */
+.score-tip {
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: help;
+  position: relative;
+}
+.score-tip:hover::after,
+.score-tip:focus-visible::after,
+.score-tip.active::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: auto;
+  top: 50%;
+  right: 100%;
+  left: auto;
+  transform: translateY(-50%);
+  margin-right: 8px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: normal;
+  width: 260px;
+  z-index: 100;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  line-height: 1.5;
+}
+@media (max-width: 768px) {
+  .score-tip:hover::after,
+  .score-tip:focus-visible::after,
+  .score-tip.active::after {
+    position: fixed;
+    top: auto;
+    right: 16px;
+    left: 16px;
+    bottom: 16px;
+    transform: none;
+    margin-right: 0;
+    width: auto;
+  }
+}
+.score-tip:focus-visible {
+  outline: 2px solid var(--cc-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Typography tokens (P1-4) ── */
+.eyebrow {
+  font-size: 13px;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.lead {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+}
+.subsection-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+.metric-big {
+  font-size: clamp(48px, 8vw, 72px);
+  font-weight: 800;
+  font-family: 'SF Mono', Menlo, monospace;
+}
+.metric-label {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-left: 8px;
+}
+.card-note {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.grid-4col {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  text-align: center;
+}
+
+/* ── Mobile breakpoints (P0-3) ── */
+@media (max-width: 768px) {
+  .radar-layout { grid-template-columns: 1fr; }
+  .advantage-grid { grid-template-columns: 1fr; }
+  .footer-grid { grid-template-columns: 1fr; }
+  .stat-row { grid-template-columns: 1fr; }
+  #radarCanvas { max-width: 100%; }
+  .grid-2col { grid-template-columns: 1fr; }
+  .grid-4col { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .tech-row { grid-template-columns: 100px 1fr 1fr; font-size: 12px; }
+  .scenario-row { grid-template-columns: 140px 60px 1fr; font-size: 13px; }
+}
+
+/* ── Reduced motion (P2-8) ── */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .reveal { transition: none !important; opacity: 1 !important; transform: none !important; filter: none !important; }
+  .stagger > * { transition: none !important; opacity: 1 !important; transform: none !important; filter: none !important; }
+  .acc-body { transition: none !important; }
+  .card, .adv-card, .mini-bar-fill, .mod-bar { transition: none !important; }
+  .acc-arrow { transition: none !important; }
+  .bar-fill { transition: none; }
+}
+
+/* ── Nav bar ── */
+.nav-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: rgba(13, 17, 23, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 16px;
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.nav-bar::-webkit-scrollbar { height: 0; }
+.nav-bar a {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 12px;
+  padding: 10px 14px;
+  white-space: nowrap;
+  transition: color 0.2s, border-color 0.2s;
+  border-bottom: 2px solid transparent;
+}
+.nav-bar a:hover { color: var(--text-primary); }
+.nav-bar a.active {
+  color: var(--zc-primary);
+  border-bottom-color: var(--zc-primary);
+}
+@media print { .nav-bar { display: none; } }
+
+/* ── Method bar ── */
+.method-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 0;
+  margin: 20px auto 0;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(59,130,246,0.08));
+  border: 1px solid rgba(16,185,129,0.2);
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  max-width: 800px;
+  letter-spacing: 0.3px;
+}
+.method-sep {
+  color: var(--border);
+  margin: 0 10px;
+}
+@media (max-width: 600px) {
+  .method-bar { font-size: 11px; padding: 10px 14px; }
+  .method-sep { display: none; }
+  .method-bar span { display: block; text-align: center; }
+}
+
+/* ── Bar fill animation ── */
+.bar-fill {
+  transform-origin: left;
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+</style>
+</head>
+<body>
+
+<nav class="nav-bar" id="navBar">
+  <a href="#header">总览</a>
+  <a href="#sec-dimensions">评分</a>
+  <a href="#sec-arch">架构</a>
+  <a href="#sec-advantages">优势</a>
+  <a href="#sec-modules">模块</a>
+  <a href="#sec-security">安全&LLM</a>
+  <a href="#sec-tools">工具</a>
+  <a href="#sec-scenarios">场景</a>
+  <a href="#sec-chapters">详情</a>
+  <a href="#sec-footer">总结</a>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════
+     HEADER
+     ═══════════════════════════════════════════════════════════ -->
+<header id="header" style="position:relative;overflow:hidden;padding:80px 0 48px">
+  <div class="header-glow glow-cc"></div>
+  <div class="header-glow glow-zc"></div>
+  <div class="container" style="position:relative;z-index:1">
+    <p class="eyebrow">
+      基于双方完整源码逐文件深度分析 · 2026-05-03
+    </p>
+    <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:24px;font-size:14px;color:var(--text-secondary);line-height:1.7">
+      <strong style="color:var(--text-primary)">核心结论：</strong>
+      基于双方完整源码14维度深度对比，<span style="color:var(--zc-light)">ZhikunCode</span>（下面简称<span style="color:var(--zc-light)">ZC</span>）以110K行代码————约为<span style="color:var(--cc-light)">ClaudeCode</span>（下面简称<span style="color:var(--cc-light)">CC</span>）的1/5，实现功能对等甚至超越，综合评分<span style="color:var(--zc-light);font-weight:600">8.39</span>（ZC） vs <span style="color:var(--cc-light);font-weight:600">8.07</span>（CC）。
+      <span style="color:var(--zc-light)">ZC</span>在安全体系、LLM灵活性、代码分析、可视化、企业级特性<span style="color:var(--zc-light);font-weight:600">5个维度领先</span>；
+      <span style="color:var(--cc-light)">CC</span>在部署便捷性、上下文管理、Agent Loop成熟度 <span style="color:var(--cc-light);font-weight:600">3个维度领先</span>。
+      两者定位互补：<span style="color:var(--cc-light)">CC</span>面向终端重度用户，<span style="color:var(--zc-light)">ZC</span>面向全栈团队与企业级场景。
+    </div>
+    <div class="method-bar">
+      <span>🔬 基于完整源码逐行分析</span>
+      <span class="method-sep">|</span>
+      <span>📊 CC 1,884 文件 / ZC 660 文件</span>
+      <span class="method-sep">|</span>
+      <span>⚖️ 14 维度独立评分</span>
+      <span class="method-sep">|</span>
+      <span>📏 含注释与空行 · 统计口径详见页尾</span>
+    </div>
+    <h1 style="font-size:clamp(40px,6vw,64px);font-weight:800;line-height:1.1;margin-bottom:8px">
+      <span style="color:var(--cc-light)">Claude Code</span>
+      <span style="color:var(--text-muted);font-weight:400;font-size:.6em"> vs </span>
+      <span style="background:linear-gradient(135deg,var(--zc-primary),var(--zc-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent">ZhikunCode</span>
+    </h1>
+    <p class="lead">
+      14维度 · 基于源码逐行分析 · CC <span style="color:var(--cc-light);font-weight:600">8.07</span> vs ZC <span style="color:var(--zc-light);font-weight:600">8.39</span>
+      &nbsp;|&nbsp; 对比原则：从功能实现维度对比，不以代码规模论优劣
+    </p>
+
+    <!-- Score highlight -->
+    <div style="display:flex;gap:48px;align-items:baseline;margin-bottom:24px;flex-wrap:wrap">
+      <div>
+        <span class="metric-big" style="background:linear-gradient(135deg,var(--cc-primary),var(--cc-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent">8.07</span>
+        <span class="metric-label">Claude Code 均分</span>
+      </div>
+      <div>
+        <span class="metric-big" style="background:linear-gradient(135deg,var(--zc-primary),var(--zc-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent">8.39</span>
+        <span class="metric-label">ZhikunCode 均分</span>
+      </div>
+      <div style="font-size:13px;color:var(--text-muted);line-height:1.8">
+        ZC胜出 <span style="color:var(--zc-light);font-weight:600">5</span> 维度<br>
+        CC胜出 <span style="color:var(--cc-light);font-weight:600">3</span> 维度<br>
+        平手 <span style="color:var(--neutral);font-weight:600">6</span> 维度
+      </div>
+    </div>
+
+    <!-- Code volume comparison -->
+    <div class="code-compare" style="max-width:680px; margin:28px auto 0;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+        <span style="font-size:13px; font-weight:600; color:var(--text-secondary);">代码量对比</span>
+        <span style="font-size:12px; color:var(--zc-light); font-weight:500;">⚡ 1/5 代码量实现功能对等甚至超越</span>
+      </div>
+      <!-- CC bar -->
+      <div style="margin-bottom:6px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:3px;">
+          <span style="font-size:12px; color:var(--cc-light);">Claude Code</span>
+          <span style="font-size:14px; font-weight:700; font-family:'SF Mono',monospace; color:var(--cc-light);">512,664 行</span>
+        </div>
+        <div style="height:28px; background:var(--bg-elevated); border-radius:6px; overflow:hidden; position:relative;">
+          <div class="bar-fill" style="width:100%; height:100%; background:linear-gradient(90deg, var(--cc-primary), var(--cc-light)); border-radius:6px; position:relative;">
+            <span style="position:absolute; right:8px; top:50%; transform:translateY(-50%); font-size:11px; font-weight:600; color:#fff;">1,884 文件</span>
+          </div>
+        </div>
+      </div>
+      <!-- ZC bar -->
+      <div>
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:3px;">
+          <span style="font-size:12px; color:var(--zc-light);">ZhikunCode</span>
+          <span style="font-size:14px; font-weight:700; font-family:'SF Mono',monospace; color:var(--zc-light);">110,646 行</span>
+        </div>
+        <div style="height:28px; background:var(--bg-elevated); border-radius:6px; overflow:hidden; position:relative;">
+          <div class="bar-fill" style="width:21.6%; height:100%; background:linear-gradient(90deg, var(--zc-primary), var(--zc-light)); border-radius:6px; position:relative;">
+            <span style="position:absolute; left:calc(100% + 8px); top:50%; transform:translateY(-50%); font-size:11px; font-weight:600; color:var(--zc-light); white-space:nowrap;">660 文件</span>
+          </div>
+        </div>
+      </div>
+      <p style="text-align:center; font-size:11px; color:var(--text-muted); margin-top:10px;">
+        ZhikunCode 用不到 Claude Code 1/5 的代码量，在 14 维度中 6 项超越、5 项持平
+      </p>
+    </div>
+
+    <!-- Stat cards -->
+    <div class="stat-row">
+      <div class="stat-card cc-stat">
+        <div class="label cc">Claude Code · TypeScript 100% · 终端CLI+TUI</div>
+        <div class="stats">
+          <div class="stat-item"><div class="val">512K</div><div class="key">代码行</div></div>
+          <div class="stat-item"><div class="val">1,884</div><div class="key">文件</div></div>
+          <div class="stat-item"><div class="val">40<span style="font-size:12px;color:var(--text-muted)">+2</span></div><div class="key">工具</div></div>
+          <div class="stat-item"><div class="val">86+</div><div class="key">命令</div></div>
+          <div class="stat-item"><div class="val">488</div><div class="key">前端文件</div></div>
+        </div>
+      </div>
+      <div class="stat-card zc-stat">
+        <div class="label zc">ZhikunCode · Java+TS+Python · Web IDE</div>
+        <div class="stats">
+          <div class="stat-item"><div class="val">110K</div><div class="key">代码行</div></div>
+          <div class="stat-item"><div class="val">660</div><div class="key">文件</div></div>
+          <div class="stat-item"><div class="val">47</div><div class="key">工具</div></div>
+          <div class="stat-item"><div class="val">45+</div><div class="key">命令</div></div>
+          <div class="stat-item"><div class="val">14</div><div class="key">可视化组件</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 1: 14维度评分 + 雷达图
+     ═══════════════════════════════════════════════════════════ -->
+<section class="section" id="sec-dimensions">
+<div class="container">
+  <h2 class="section-title">14 维度评分对比</h2>
+  <p class="section-subtitle">每个维度独立评估，基于功能完整性、实现深度、工程质量三项加权 · 7分=行业平均 · 9分=同类最优</p>
+  <div class="radar-layout">
+    <div class="radar-left">
+      <div id="scoreList"></div>
+      <div style="display:flex;gap:16px;margin-top:16px;font-size:12px;color:var(--text-muted)">
+        <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--cc-primary);margin-right:4px"></span>Claude Code</span>
+        <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--zc-primary);margin-right:4px"></span>ZhikunCode</span>
+      </div>
+    </div>
+    <div class="radar-right">
+      <canvas id="radarCanvas" role="img" aria-label="14维度评分雷达图：Claude Code与ZhikunCode在Agent Loop、工具生态、多Agent协作等14个维度的评分对比可视化"></canvas>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 2: 技术架构 + 技术栈矩阵
+     ═══════════════════════════════════════════════════════════ -->
+<section class="section" id="sec-arch">
+<div class="container">
+  <h2 class="section-title">技术架构与技术栈</h2>
+  <p class="section-subtitle">两者架构根本不同：CC=单进程CLI本地执行，ZC=多进程微服务C/S架构</p>
+  <div class="card" style="padding:0;overflow:hidden;margin-bottom:24px">
+    <div class="tech-row" style="background:var(--bg-surface)">
+      <div class="tech-label" style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted)">技术域</div>
+      <div class="tech-cc" style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--cc-light)">Claude Code</div>
+      <div class="tech-zc" style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--zc-light)">ZhikunCode</div>
+    </div>
+    <div class="tech-row"><div class="tech-label">运行模型</div><div class="tech-cc">单进程 CLI，本地执行</div><div class="tech-zc">多进程微服务，C/S 架构</div></div>
+    <div class="tech-row"><div class="tech-label">前端框架</div><div class="tech-cc">自建Ink兼容终端UI框架 (React for CLI)</div><div class="tech-zc">React + Vite + Zustand</div></div>
+    <div class="tech-row"><div class="tech-label">后端框架</div><div class="tech-cc">Bun (TypeScript)</div><div class="tech-zc">Spring Boot 3.4.13 + Java 21</div></div>
+    <div class="tech-row"><div class="tech-label">辅助服务</div><div class="tech-cc">无</div><div class="tech-zc">FastAPI Python 服务（代码分析）</div></div>
+    <div class="tech-row"><div class="tech-label">通信协议</div><div class="tech-cc">进程内调用 + Bridge WebSocket</div><div class="tech-zc">WebSocket (STOMP/SockJS) + REST API</div></div>
+    <div class="tech-row"><div class="tech-label">状态管理</div><div class="tech-cc">AppStateStore (570行)</div><div class="tech-zc">27个 Zustand Store (~3,278行，含索引文件)</div></div>
+    <div class="tech-row"><div class="tech-label">语言运行时</div><div class="tech-cc">Bun (TypeScript)</div><div class="tech-zc">JVM 21 + Node.js + Python 3.11</div></div>
+    <div class="tech-row"><div class="tech-label">AI SDK</div><div class="tech-cc">原生 Anthropic API</div><div class="tech-zc">自研 LLM Provider（OkHttp3 + SSE）</div></div>
+    <div class="tech-row"><div class="tech-label">测试框架</div><div class="tech-cc">Jest / Vitest</div><div class="tech-zc">JUnit 5 + Playwright</div></div>
+    <div class="tech-row"><div class="tech-label">容器化</div><div class="tech-cc">无</div><div class="tech-zc">Docker 多阶段构建</div></div>
+    <div class="tech-row"><div class="tech-label">数据库</div><div class="tech-cc">本地文件系统</div><div class="tech-zc">内嵌（Spring Boot 默认）</div></div>
+    <div class="tech-row" style="border-bottom:none"><div class="tech-label">包管理</div><div class="tech-cc">npm</div><div class="tech-zc">Maven + npm + pip</div></div>
+  </div>
+
+  <!-- SVG 1: 架构模式对比 -->
+  <div style="margin:24px 0">
+  <svg width="100%" viewBox="0 0 1100 680" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="架构模式对比：Claude Code单进程CLI vs ZhikunCode多进程微服务">
+    <defs>
+      <filter id="glowBlue1"><feGaussianBlur stdDeviation="3" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <filter id="glowGreen1"><feGaussianBlur stdDeviation="3" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <linearGradient id="bgGrad1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0d0f1a"/><stop offset="100%" stop-color="#09090b"/></linearGradient>
+    </defs>
+    <!-- Background -->
+    <rect width="1100" height="680" rx="12" fill="url(#bgGrad1)"/>
+    <rect width="1100" height="680" rx="12" fill="none" stroke="#1a1a2e" stroke-width="1"/>
+    <!-- Title -->
+    <text x="550" y="36" text-anchor="middle" fill="#f4f4f5" font-size="18" font-weight="700" font-family="system-ui,-apple-system,sans-serif">架构模式对比</text>
+    <line x1="200" y1="48" x2="900" y2="48" stroke="#1a1a2e" stroke-width="1"/>
+
+    <!-- === CC Side (Left) === -->
+    <text x="275" y="76" text-anchor="middle" fill="#3b82f6" font-size="15" font-weight="600" font-family="system-ui,sans-serif" filter="url(#glowBlue1)">Claude Code</text>
+    <text x="275" y="96" text-anchor="middle" fill="#a1a1aa" font-size="11" font-family="system-ui,sans-serif">单进程 CLI · TypeScript 100% · Bun运行时</text>
+    <!-- Monolith block -->
+    <rect x="60" y="110" width="430" height="420" rx="10" fill="#0f1220" stroke="#3b82f6" stroke-width="1.5" opacity="0.9"/>
+    <text x="275" y="134" text-anchor="middle" fill="#60a5fa" font-size="12" font-weight="600" font-family="'SF Mono',Monaco,monospace">单进程架构 · 512,685行 · 1,902文件</text>
+    <!-- Module bars (proportional) -->
+    <rect x="80" y="152" width="390" height="34" rx="6" fill="#1e3a5f" opacity="0.7"/><text x="88" y="174" fill="#60a5fa" font-size="11" font-family="'SF Mono',Monaco,monospace">utils/</text><text x="462" y="174" text-anchor="end" fill="#a1a1aa" font-size="10" font-family="'SF Mono',Monaco,monospace">180,472行</text>
+    <rect x="80" y="192" width="176" height="34" rx="6" fill="#1e3a5f" opacity="0.6"/><text x="88" y="214" fill="#60a5fa" font-size="11" font-family="'SF Mono',Monaco,monospace">components/</text><text x="248" y="214" text-anchor="end" fill="#a1a1aa" font-size="10" font-family="'SF Mono',Monaco,monospace">81,546行</text>
+    <rect x="80" y="232" width="116" height="34" rx="6" fill="#1e3a5f" opacity="0.55"/><text x="88" y="254" fill="#60a5fa" font-size="11" font-family="'SF Mono',Monaco,monospace">services/</text><text x="188" y="254" text-anchor="end" fill="#a1a1aa" font-size="10" font-family="'SF Mono',Monaco,monospace">53,680行</text>
+    <rect x="80" y="272" width="110" height="34" rx="6" fill="#1e3a5f" opacity="0.5"/><text x="88" y="294" fill="#60a5fa" font-size="11" font-family="'SF Mono',Monaco,monospace">tools/</text><text x="182" y="294" text-anchor="end" fill="#a1a1aa" font-size="10" font-family="'SF Mono',Monaco,monospace">50,828行 · 40工具</text>
+    <rect x="80" y="312" width="80" height="34" rx="6" fill="#1e3a5f" opacity="0.45"/><text x="88" y="334" fill="#60a5fa" font-size="11" font-family="'SF Mono',Monaco,monospace">commands/</text><text x="155" y="334" text-anchor="end" fill="#a1a1aa" font-size="9" font-family="'SF Mono',Monaco,monospace">26,428</text>
+    <rect x="166" y="312" width="42" height="34" rx="6" fill="#1e3a5f" opacity="0.45"/><text x="170" y="334" fill="#60a5fa" font-size="9" font-family="'SF Mono',Monaco,monospace">ink/</text><text x="206" y="334" text-anchor="end" fill="#a1a1aa" font-size="9" font-family="'SF Mono',Monaco,monospace">19,842</text>
+    <rect x="80" y="352" width="42" height="34" rx="6" fill="#1e3a5f" opacity="0.4"/><text x="88" y="374" fill="#60a5fa" font-size="9" font-family="'SF Mono',Monaco,monospace">hooks/</text><text x="120" y="374" text-anchor="end" fill="#a1a1aa" font-size="8" font-family="'SF Mono',Monaco,monospace">19,204</text>
+    <rect x="128" y="352" width="28" height="34" rx="6" fill="#1e3a5f" opacity="0.4"/><text x="132" y="374" fill="#60a5fa" font-size="9" font-family="'SF Mono',Monaco,monospace">bridge/</text><text x="167" y="374" text-anchor="end" fill="#a1a1aa" font-size="8" font-family="'SF Mono',Monaco,monospace">12,613</text>
+    <rect x="162" y="352" width="26" height="34" rx="6" fill="#1e3a5f" opacity="0.4"/><text x="166" y="374" fill="#60a5fa" font-size="9" font-family="'SF Mono',Monaco,monospace">cli/</text><text x="198" y="374" text-anchor="end" fill="#a1a1aa" font-size="8" font-family="'SF Mono',Monaco,monospace">12,353</text>
+    <!-- Execution flow -->
+    <text x="275" y="416" text-anchor="middle" fill="#52525b" font-size="11" font-family="system-ui,sans-serif">执行流程</text>
+    <rect x="120" y="426" width="80" height="30" rx="6" fill="#172554" stroke="#3b82f6" stroke-width="1"/><text x="160" y="446" text-anchor="middle" fill="#60a5fa" font-size="10" font-family="'SF Mono',Monaco,monospace">CLI入口</text>
+    <line x1="200" y1="441" x2="220" y2="441" stroke="#3b82f6" stroke-width="1" marker-end="url(#arrowB1)"/>
+    <rect x="220" y="426" width="90" height="30" rx="6" fill="#172554" stroke="#3b82f6" stroke-width="1"/><text x="265" y="446" text-anchor="middle" fill="#60a5fa" font-size="10" font-family="'SF Mono',Monaco,monospace">Agent Loop</text>
+    <line x1="310" y1="441" x2="330" y2="441" stroke="#3b82f6" stroke-width="1"/>
+    <rect x="330" y="426" width="90" height="30" rx="6" fill="#172554" stroke="#3b82f6" stroke-width="1"/><text x="375" y="446" text-anchor="middle" fill="#60a5fa" font-size="10" font-family="'SF Mono',Monaco,monospace">Tool Exec</text>
+    <text x="275" y="486" text-anchor="middle" fill="#52525b" font-size="10" font-family="system-ui,sans-serif">全部在同一Bun进程内完成</text>
+
+    <!-- === ZC Side (Right) === -->
+    <text x="825" y="76" text-anchor="middle" fill="#10b981" font-size="15" font-weight="600" font-family="system-ui,sans-serif" filter="url(#glowGreen1)">ZhikunCode</text>
+    <text x="825" y="96" text-anchor="middle" fill="#a1a1aa" font-size="11" font-family="system-ui,sans-serif">多进程微服务 · Java 71% + TS 21% + Python 8%</text>
+    <!-- Java Backend -->
+    <rect x="570" y="110" width="260" height="180" rx="10" fill="#0f2018" stroke="#10b981" stroke-width="1.5" opacity="0.9"/>
+    <text x="700" y="134" text-anchor="middle" fill="#34d399" font-size="13" font-weight="600" font-family="'SF Mono',Monaco,monospace">Java 后端 (Spring Boot 3.4)</text>
+    <text x="700" y="154" text-anchor="middle" fill="#a1a1aa" font-size="11" font-family="'SF Mono',Monaco,monospace">65,654行 · 433文件</text>
+    <text x="700" y="174" text-anchor="middle" fill="#52525b" font-size="10" font-family="system-ui,sans-serif">Port 8080</text>
+    <rect x="588" y="186" width="100" height="24" rx="4" fill="#134e2e" opacity="0.6"/><text x="638" y="203" text-anchor="middle" fill="#34d399" font-size="9" font-family="'SF Mono',Monaco,monospace">Agent引擎</text>
+    <rect x="694" y="186" width="100" height="24" rx="4" fill="#134e2e" opacity="0.6"/><text x="744" y="203" text-anchor="middle" fill="#34d399" font-size="9" font-family="'SF Mono',Monaco,monospace">工具管线</text>
+    <rect x="588" y="216" width="100" height="24" rx="4" fill="#134e2e" opacity="0.6"/><text x="638" y="233" text-anchor="middle" fill="#34d399" font-size="9" font-family="'SF Mono',Monaco,monospace">权限管线</text>
+    <rect x="694" y="216" width="100" height="24" rx="4" fill="#134e2e" opacity="0.6"/><text x="744" y="233" text-anchor="middle" fill="#34d399" font-size="9" font-family="'SF Mono',Monaco,monospace">MCP客户端</text>
+    <rect x="588" y="246" width="206" height="24" rx="4" fill="#134e2e" opacity="0.5"/><text x="691" y="263" text-anchor="middle" fill="#34d399" font-size="9" font-family="'SF Mono',Monaco,monospace">LLM Provider · WebSocket · 审计</text>
+
+    <!-- React Frontend -->
+    <rect x="850" y="110" width="200" height="120" rx="10" fill="#0f2018" stroke="#10b981" stroke-width="1.2" opacity="0.85"/>
+    <text x="950" y="134" text-anchor="middle" fill="#34d399" font-size="13" font-weight="600" font-family="'SF Mono',Monaco,monospace">React 前端</text>
+    <text x="950" y="154" text-anchor="middle" fill="#a1a1aa" font-size="11" font-family="'SF Mono',Monaco,monospace">19,543行 · 137文件</text>
+    <text x="950" y="174" text-anchor="middle" fill="#52525b" font-size="10" font-family="system-ui,sans-serif">Vite + Zustand</text>
+    <rect x="868" y="186" width="164" height="24" rx="4" fill="#134e2e" opacity="0.5"/><text x="950" y="203" text-anchor="middle" fill="#34d399" font-size="9" font-family="'SF Mono',Monaco,monospace">14可视化组件 · 25 Store</text>
+
+    <!-- Python Service -->
+    <rect x="570" y="310" width="200" height="100" rx="10" fill="#0f2018" stroke="#10b981" stroke-width="1.2" opacity="0.85"/>
+    <text x="670" y="334" text-anchor="middle" fill="#34d399" font-size="13" font-weight="600" font-family="'SF Mono',Monaco,monospace">Python 服务 (FastAPI)</text>
+    <text x="670" y="354" text-anchor="middle" fill="#a1a1aa" font-size="11" font-family="'SF Mono',Monaco,monospace">7,213行 · 32文件</text>
+    <text x="670" y="374" text-anchor="middle" fill="#52525b" font-size="10" font-family="system-ui,sans-serif">Port 8000 · 代码分析</text>
+    <rect x="588" y="382" width="164" height="20" rx="4" fill="#134e2e" opacity="0.5"/><text x="670" y="396" text-anchor="middle" fill="#34d399" font-size="9" font-family="'SF Mono',Monaco,monospace">圈复杂度 · 调用图 · 变更影响</text>
+
+    <!-- Java Test -->
+    <rect x="790" y="310" width="200" height="100" rx="10" fill="#0f2018" stroke="#10b981" stroke-width="0.8" stroke-dasharray="4 3" opacity="0.7"/>
+    <text x="890" y="334" text-anchor="middle" fill="#34d399" font-size="13" font-weight="500" font-family="'SF Mono',Monaco,monospace">Java 测试</text>
+    <text x="890" y="354" text-anchor="middle" fill="#a1a1aa" font-size="11" font-family="'SF Mono',Monaco,monospace">18,236行 · 58文件</text>
+    <text x="890" y="374" text-anchor="middle" fill="#52525b" font-size="10" font-family="system-ui,sans-serif">JUnit 5 + Playwright</text>
+
+    <!-- Arrows between ZC components -->
+    <line x1="850" y1="170" x2="830" y2="170" stroke="#10b981" stroke-width="1" stroke-dasharray="4 2"/>
+    <text x="840" y="164" text-anchor="middle" fill="#52525b" font-size="8" font-family="system-ui,sans-serif">REST+WS</text>
+    <line x1="670" y1="290" x2="670" y2="310" stroke="#10b981" stroke-width="1" stroke-dasharray="4 2"/>
+    <text x="690" y="304" fill="#52525b" font-size="8" font-family="system-ui,sans-serif">HTTP</text>
+
+    <!-- Docker label -->
+    <rect x="570" y="430" width="480" height="36" rx="8" fill="none" stroke="#10b981" stroke-width="1" stroke-dasharray="6 3" opacity="0.5"/>
+    <text x="810" y="453" text-anchor="middle" fill="#34d399" font-size="11" font-family="system-ui,sans-serif" opacity="0.7">Docker 多阶段构建 · 容器化部署</text>
+
+    <!-- === Bottom comparison bar === -->
+    <rect x="40" y="540" width="1020" height="1" fill="#1a1a2e"/>
+    <text x="550" y="570" text-anchor="middle" fill="#f4f4f5" font-size="13" font-weight="600" font-family="system-ui,sans-serif">关键数据对比</text>
+    <!-- Total lines -->
+    <rect x="80" y="585" width="280" height="50" rx="8" fill="#0f1220" stroke="#1a1a2e" stroke-width="1"/>
+    <text x="220" y="603" text-anchor="middle" fill="#52525b" font-size="10" font-family="system-ui,sans-serif">总代码量</text>
+    <text x="150" y="625" text-anchor="middle" fill="#60a5fa" font-size="14" font-weight="700" font-family="'SF Mono',Monaco,monospace">512,685行</text>
+    <text x="220" y="625" text-anchor="middle" fill="#52525b" font-size="12">vs</text>
+    <text x="290" y="625" text-anchor="middle" fill="#34d399" font-size="14" font-weight="700" font-family="'SF Mono',Monaco,monospace">110,646行</text>
+    <!-- Files -->
+    <rect x="410" y="585" width="280" height="50" rx="8" fill="#0f1220" stroke="#1a1a2e" stroke-width="1"/>
+    <text x="550" y="603" text-anchor="middle" fill="#52525b" font-size="10" font-family="system-ui,sans-serif">文件数</text>
+    <text x="480" y="625" text-anchor="middle" fill="#60a5fa" font-size="14" font-weight="700" font-family="'SF Mono',Monaco,monospace">1,902</text>
+    <text x="550" y="625" text-anchor="middle" fill="#52525b" font-size="12">vs</text>
+    <text x="620" y="625" text-anchor="middle" fill="#34d399" font-size="14" font-weight="700" font-family="'SF Mono',Monaco,monospace">660</text>
+    <!-- Languages -->
+    <rect x="740" y="585" width="280" height="50" rx="8" fill="#0f1220" stroke="#1a1a2e" stroke-width="1"/>
+    <text x="880" y="603" text-anchor="middle" fill="#52525b" font-size="10" font-family="system-ui,sans-serif">编程语言</text>
+    <text x="810" y="625" text-anchor="middle" fill="#60a5fa" font-size="14" font-weight="700" font-family="'SF Mono',Monaco,monospace">1种</text>
+    <text x="880" y="625" text-anchor="middle" fill="#52525b" font-size="12">vs</text>
+    <text x="950" y="625" text-anchor="middle" fill="#34d399" font-size="14" font-weight="700" font-family="'SF Mono',Monaco,monospace">3种</text>
+    <!-- Ratio note -->
+    <text x="550" y="665" text-anchor="middle" fill="#52525b" font-size="10" font-family="system-ui,sans-serif">ZC 用不到 CC 1/5 代码量实现功能对等 · 代码量 ≠ 质量</text>
+  </svg>
+  </div>
+
+  <!-- Communication -->
+  <h3 class="subsection-title" style="margin-bottom:12px">通信机制对比</h3>
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="tech-row" style="background:var(--bg-surface)">
+      <div class="tech-label" style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted)">通信层</div>
+      <div class="tech-cc" style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--cc-light)">Claude Code</div>
+      <div class="tech-zc" style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--zc-light)">ZhikunCode</div>
+    </div>
+    <div class="tech-row"><div class="tech-label">用户↔Agent</div><div class="tech-cc">终端 stdin/stdout</div><div class="tech-zc">WebSocket 40+消息类型</div></div>
+    <div class="tech-row"><div class="tech-label">Agent↔工具</div><div class="tech-cc">进程内同步调用</div><div class="tech-zc">ToolExecutionPipeline 异步管线</div></div>
+    <div class="tech-row"><div class="tech-label">Agent↔LLM</div><div class="tech-cc">HTTP Streaming (SSE)</div><div class="tech-zc">HTTP Streaming + 多Provider</div></div>
+    <div class="tech-row"><div class="tech-label">远程协作</div><div class="tech-cc">Bridge (31文件, 12613行) JWT鉴权</div><div class="tech-zc">WebSocket STOMP 协议</div></div>
+    <div class="tech-row" style="border-bottom:none"><div class="tech-label">MCP通信</div><div class="tech-cc">5种传输协议</div><div class="tech-zc">4种标准实现（枚举定义8种）</div></div>
+  </div>
+
+  <!-- SVG 3: 通信协议对比 -->
+  <div style="margin:24px 0">
+  <svg width="100%" viewBox="0 0 1100 700" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="通信协议对比：Claude Code Bridge架构 vs ZhikunCode五端通信">
+    <defs>
+      <filter id="glowBlue3"><feGaussianBlur stdDeviation="2.5" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <filter id="glowGreen3"><feGaussianBlur stdDeviation="2.5" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <linearGradient id="bgGrad3" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0d0f1a"/><stop offset="100%" stop-color="#09090b"/></linearGradient>
+      <marker id="arrB3" markerWidth="6" markerHeight="4" refX="6" refY="2" orient="auto"><path d="#3b82f6" fill="#3b82f6" d="M0,0 L6,2 L0,4 Z"/></marker>
+      <marker id="arrG3" markerWidth="6" markerHeight="4" refX="6" refY="2" orient="auto"><path fill="#10b981" d="M0,0 L6,2 L0,4 Z"/></marker>
+    </defs>
+    <rect width="1100" height="700" rx="12" fill="url(#bgGrad3)"/>
+    <rect width="1100" height="700" rx="12" fill="none" stroke="#1a1a2e" stroke-width="1"/>
+    <text x="550" y="36" text-anchor="middle" fill="#f4f4f5" font-size="18" font-weight="700" font-family="system-ui,-apple-system,sans-serif">通信协议对比</text>
+    <line x1="200" y1="48" x2="900" y2="48" stroke="#1a1a2e" stroke-width="1"/>
+
+    <!-- === CC Side (Left) === -->
+    <text x="260" y="76" text-anchor="middle" fill="#3b82f6" font-size="15" font-weight="600" font-family="system-ui,sans-serif" filter="url(#glowBlue3)">Claude Code</text>
+    <text x="260" y="94" text-anchor="middle" fill="#a1a1aa" font-size="11" font-family="system-ui,sans-serif">CLI进程内同步 + Bridge远程协作</text>
+
+    <!-- Local CLI Node -->
+    <rect x="40" y="115" width="160" height="70" rx="10" fill="#0f1220" stroke="#3b82f6" stroke-width="1.5"/>
+    <text x="120" y="142" text-anchor="middle" fill="#60a5fa" font-size="13" font-weight="600" font-family="'SF Mono',Monaco,monospace">本地 CLI</text>
+    <text x="120" y="162" text-anchor="middle" fill="#a1a1aa" font-size="10" font-family="'SF Mono',Monaco,monospace">stdin/stdout</text>
+    <text x="120" y="176" text-anchor="middle" fill="#52525b" font-size="9" font-family="system-ui,sans-serif">用户终端交互</text>
+
+    <!-- Bridge Node -->
+    <rect x="180" y="220" width="170" height="80" rx="10" fill="#172554" stroke="#3b82f6" stroke-width="2" filter="url(#glowBlue3)"/>
+    <text x="265" y="248" text-anchor="middle" fill="#60a5fa" font-size="14" font-weight="700" font-family="'SF Mono',Monaco,monospace">Bridge 模块</text>
+    <text x="265" y="266" text-anchor="middle" fill="#a1a1aa" font-size="10" font-family="'SF Mono',Monaco,monospace">31文件 · 12,613行</text>
+    <text x="265" y="282" text-anchor="middle" fill="#52525b" font-size="9" font-family="system-ui,sans-serif">JWT + TrustedDevice 认证</text>
+
+    <!-- Remote Node -->
+    <rect x="380" y="115" width="140" height="70" rx="10" fill="#0f1220" stroke="#3b82f6" stroke-width="1.5"/>
+    <text x="450" y="142" text-anchor="middle" fill="#60a5fa" font-size="13" font-weight="600" font-family="'SF Mono',Monaco,monospace">远程客户端</text>
+    <text x="450" y="162" text-anchor="middle" fill="#a1a1aa" font-size="10" font-family="'SF Mono',Monaco,monospace">bridgeMain.ts</text>
+    <text x="450" y="176" text-anchor="middle" fill="#52525b" font-size="9" font-family="system-ui,sans-serif">2,999行</text>
+
+    <!-- MCP Node -->
+    <rect x="60" y="340" width="140" height="60" rx="10" fill="#0f1220" stroke="#3b82f6" stroke-width="1.2"/>
+    <text x="130" y="366" text-anchor="middle" fill="#60a5fa" font-size="12" font-weight="600" font-family="'SF Mono',Monaco,monospace">MCP 服务</text>
+    <text x="130" y="384" text-anchor="middle" fill="#a1a1aa" font-size="10" font-family="'SF Mono',Monaco,monospace">12,310行</text>
+
+    <!-- LLM Node -->
+    <rect x="320" y="340" width="140" height="60" rx="10" fill="#0f1220" stroke="#3b82f6" stroke-width="1.2"/>
+    <text x="390" y="366" text-anchor="middle" fill="#60a5fa" font-size="12" font-weight="600" font-family="'SF Mono',Monaco,monospace">Anthropic LLM</text>
+    <text x="390" y="384" text-anchor="middle" fill="#a1a1aa" font-size="10" font-family="'SF Mono',Monaco,monospace">HTTP/SSE</text>
+
+    <!-- CC Arrows -->
+    <line x1="200" y1="150" x2="220" y2="220" stroke="#3b82f6" stroke-width="1.2" stroke-dasharray="4 2"/>
+    <line x1="380" y1="150" x2="340" y2="220" stroke="#3b82f6" stroke-width="1.2" stroke-dasharray="4 2"/>
+    <line x1="210" y1="300" x2="160" y2="340" stroke="#3b82f6" stroke-width="1" stroke-dasharray="4 2"/>
+    <line x1="320" y1="300" x2="360" y2="340" stroke="#3b82f6" stroke-width="1" stroke-dasharray="4 2"/>
+
+    <!-- 5 Protocols list -->
+    <text x="260" y="430" text-anchor="middle" fill="#60a5fa" font-size="12" font-weight="600" font-family="system-ui,sans-serif">5种传输协议</text>
+    <rect x="60" y="445" width="90" height="26" rx="5" fill="#172554" stroke="#3b82f6" stroke-width="0.8"/><text x="105" y="463" text-anchor="middle" fill="#60a5fa" font-size="10" font-family="'SF Mono',Monaco,monospace">Stdio</text>
+    <rect x="158" y="445" width="90" height="26" rx="5" fill="#172554" stroke="#3b82f6" stroke-width="0.8"/><text x="203" y="463" text-anchor="middle" fill="#60a5fa" font-size="10" font-family="'SF Mono',Monaco,monospace">SSE</text>
+    <rect x="256" y="445" width="110" height="26" rx="5" fill="#172554" stroke="#3b82f6" stroke-width="0.8"/><text x="311" y="463" text-anchor="middle" fill="#60a5fa" font-size="10" font-family="'SF Mono',Monaco,monospace">StreamableHTTP</text>
+    <rect x="374" y="445" width="90" height="26" rx="5" fill="#172554" stroke="#3b82f6" stroke-width="0.8"/><text x="419" y="463" text-anchor="middle" fill="#60a5fa" font-size="10" font-family="'SF Mono',Monaco,monospace">WebSocket</text>
+    <rect x="158" y="478" width="110" height="26" rx="5" fill="#172554" stroke="#3b82f6" stroke-width="0.8"/><text x="213" y="496" text-anchor="middle" fill="#60a5fa" font-size="10" font-family="'SF Mono',Monaco,monospace">InProcess</text>
+
+    <!-- Divider -->
+    <line x1="540" y1="70" x2="540" y2="600" stroke="#1a1a2e" stroke-width="1" stroke-dasharray="6 4"/>
+
+    <!-- === ZC Side (Right) === -->
+    <text x="820" y="76" text-anchor="middle" fill="#10b981" font-size="15" font-weight="600" font-family="system-ui,sans-serif" filter="url(#glowGreen3)">ZhikunCode</text>
+    <text x="820" y="94" text-anchor="middle" fill="#a1a1aa" font-size="11" font-family="system-ui,sans-serif">五端通信 · REST + WebSocket + STOMP</text>
+
+    <!-- Frontend Node -->
+    <rect x="720" y="110" width="160" height="56" rx="10" fill="#0f2018" stroke="#10b981" stroke-width="1.5"/>
+    <text x="800" y="134" text-anchor="middle" fill="#34d399" font-size="13" font-weight="600" font-family="'SF Mono',Monaco,monospace">React 前端</text>
+    <text x="800" y="152" text-anchor="middle" fill="#a1a1aa" font-size="9" font-family="'SF Mono',Monaco,monospace">dispatch.ts(437) · stompClient.ts(358)</text>
+
+    <!-- Java Backend Node (center) -->
+    <rect x="700" y="210" width="210" height="90" rx="10" fill="#134e2e" stroke="#10b981" stroke-width="2" filter="url(#glowGreen3)"/>
+    <text x="805" y="238" text-anchor="middle" fill="#34d399" font-size="14" font-weight="700" font-family="'SF Mono',Monaco,monospace">Java 后端</text>
+    <text x="805" y="256" text-anchor="middle" fill="#a1a1aa" font-size="10" font-family="'SF Mono',Monaco,monospace">WebSocketConfig(249行)</text>
+    <text x="805" y="272" text-anchor="middle" fill="#a1a1aa" font-size="10" font-family="'SF Mono',Monaco,monospace">STOMP Broker · REST API</text>
+    <text x="805" y="288" text-anchor="middle" fill="#52525b" font-size="9" font-family="system-ui,sans-serif">McpClientManager(586行)</text>
+
+    <!-- Python Service Node -->
+    <rect x="580" y="230" width="106" height="50" rx="8" fill="#0f2018" stroke="#10b981" stroke-width="1.2"/>
+    <text x="633" y="253" text-anchor="middle" fill="#34d399" font-size="11" font-weight="600" font-family="'SF Mono',Monaco,monospace">Python服务</text>
+    <text x="633" y="269" text-anchor="middle" fill="#a1a1aa" font-size="9" font-family="'SF Mono',Monaco,monospace">FastAPI · P8000</text>
+
+    <!-- LLM Node -->
+    <rect x="940" y="230" width="120" height="50" rx="8" fill="#0f2018" stroke="#10b981" stroke-width="1.2"/>
+    <text x="1000" y="253" text-anchor="middle" fill="#34d399" font-size="11" font-weight="600" font-family="'SF Mono',Monaco,monospace">LLM 模型</text>
+    <text x="1000" y="269" text-anchor="middle" fill="#a1a1aa" font-size="9" font-family="'SF Mono',Monaco,monospace">HTTP/SSE Stream</text>
+
+    <!-- MCP Server Node -->
+    <rect x="600" y="340" width="120" height="50" rx="8" fill="#0f2018" stroke="#10b981" stroke-width="1.2"/>
+    <text x="660" y="363" text-anchor="middle" fill="#34d399" font-size="11" font-weight="600" font-family="'SF Mono',Monaco,monospace">MCP Server</text>
+    <text x="660" y="379" text-anchor="middle" fill="#a1a1aa" font-size="9" font-family="'SF Mono',Monaco,monospace">4种传输</text>
+
+    <!-- Docker Node -->
+    <rect x="880" y="340" width="120" height="50" rx="8" fill="#0f2018" stroke="#10b981" stroke-width="1.2"/>
+    <text x="940" y="363" text-anchor="middle" fill="#34d399" font-size="11" font-weight="600" font-family="'SF Mono',Monaco,monospace">Docker</text>
+    <text x="940" y="379" text-anchor="middle" fill="#a1a1aa" font-size="9" font-family="'SF Mono',Monaco,monospace">Docker API</text>
+
+    <!-- ZC Arrows with labels -->
+    <!-- Frontend -> Backend -->
+    <line x1="800" y1="166" x2="800" y2="210" stroke="#10b981" stroke-width="1.5"/>
+    <rect x="810" y="176" width="100" height="18" rx="3" fill="#0f2018"/><text x="860" y="189" text-anchor="middle" fill="#34d399" font-size="8" font-family="'SF Mono',Monaco,monospace">REST + WS/STOMP</text>
+    <!-- Backend -> Python -->
+    <line x1="700" y1="255" x2="686" y2="255" stroke="#10b981" stroke-width="1" stroke-dasharray="4 2"/>
+    <text x="693" y="248" text-anchor="middle" fill="#52525b" font-size="7" font-family="'SF Mono',Monaco,monospace">Proxy</text>
+    <!-- Backend -> LLM -->
+    <line x1="910" y1="255" x2="940" y2="255" stroke="#10b981" stroke-width="1" stroke-dasharray="4 2"/>
+    <text x="925" y="248" text-anchor="middle" fill="#52525b" font-size="7" font-family="'SF Mono',Monaco,monospace">SSE</text>
+    <!-- Backend -> MCP -->
+    <line x1="740" y1="300" x2="700" y2="340" stroke="#10b981" stroke-width="1" stroke-dasharray="4 2"/>
+    <text x="705" y="318" fill="#52525b" font-size="7" font-family="'SF Mono',Monaco,monospace">Stdio/SSE/HTTP/WS</text>
+    <!-- Backend -> Docker -->
+    <line x1="870" y1="300" x2="910" y2="340" stroke="#10b981" stroke-width="1" stroke-dasharray="4 2"/>
+    <text x="910" y="318" fill="#52525b" font-size="7" font-family="'SF Mono',Monaco,monospace">Docker API</text>
+
+    <!-- 5 Links list -->
+    <text x="810" y="420" text-anchor="middle" fill="#34d399" font-size="12" font-weight="600" font-family="system-ui,sans-serif">5条通信链路</text>
+    <rect x="580" y="435" width="180" height="22" rx="4" fill="#134e2e" opacity="0.5"/><text x="670" y="451" text-anchor="middle" fill="#34d399" font-size="9" font-family="'SF Mono',Monaco,monospace">1. 前端→Java: REST+WS/STOMP</text>
+    <rect x="580" y="462" width="180" height="22" rx="4" fill="#134e2e" opacity="0.5"/><text x="670" y="478" text-anchor="middle" fill="#34d399" font-size="9" font-family="'SF Mono',Monaco,monospace">2. 前端→Python: Vite Proxy</text>
+    <rect x="770" y="435" width="180" height="22" rx="4" fill="#134e2e" opacity="0.5"/><text x="860" y="451" text-anchor="middle" fill="#34d399" font-size="9" font-family="'SF Mono',Monaco,monospace">3. Java→LLM: HTTP/SSE</text>
+    <rect x="770" y="462" width="180" height="22" rx="4" fill="#134e2e" opacity="0.5"/><text x="860" y="478" text-anchor="middle" fill="#34d399" font-size="9" font-family="'SF Mono',Monaco,monospace">4. Java→MCP: 4种传输</text>
+    <rect x="675" y="489" width="180" height="22" rx="4" fill="#134e2e" opacity="0.5"/><text x="765" y="505" text-anchor="middle" fill="#34d399" font-size="9" font-family="'SF Mono',Monaco,monospace">5. Java→Docker: Docker API</text>
+
+    <!-- === Bottom comparison bar === -->
+    <rect x="40" y="560" width="1020" height="1" fill="#1a1a2e"/>
+    <text x="550" y="588" text-anchor="middle" fill="#f4f4f5" font-size="13" font-weight="600" font-family="system-ui,sans-serif">关键数据对比</text>
+    <rect x="80" y="602" width="300" height="50" rx="8" fill="#0f1220" stroke="#1a1a2e" stroke-width="1"/>
+    <text x="230" y="620" text-anchor="middle" fill="#52525b" font-size="10" font-family="system-ui,sans-serif">通信链路数</text>
+    <text x="170" y="642" text-anchor="middle" fill="#60a5fa" font-size="14" font-weight="700" font-family="'SF Mono',Monaco,monospace">2端</text>
+    <text x="230" y="642" text-anchor="middle" fill="#52525b" font-size="12">vs</text>
+    <text x="290" y="642" text-anchor="middle" fill="#34d399" font-size="14" font-weight="700" font-family="'SF Mono',Monaco,monospace">5端</text>
+
+    <rect x="410" y="602" width="300" height="50" rx="8" fill="#0f1220" stroke="#1a1a2e" stroke-width="1"/>
+    <text x="560" y="620" text-anchor="middle" fill="#52525b" font-size="10" font-family="system-ui,sans-serif">传输协议种类</text>
+    <text x="500" y="642" text-anchor="middle" fill="#60a5fa" font-size="14" font-weight="700" font-family="'SF Mono',Monaco,monospace">5种</text>
+    <text x="560" y="642" text-anchor="middle" fill="#52525b" font-size="12">vs</text>
+    <text x="620" y="642" text-anchor="middle" fill="#34d399" font-size="14" font-weight="700" font-family="'SF Mono',Monaco,monospace">4种(枚举8)</text>
+
+    <rect x="740" y="602" width="300" height="50" rx="8" fill="#0f1220" stroke="#1a1a2e" stroke-width="1"/>
+    <text x="890" y="620" text-anchor="middle" fill="#52525b" font-size="10" font-family="system-ui,sans-serif">核心文件总行数</text>
+    <text x="830" y="642" text-anchor="middle" fill="#60a5fa" font-size="14" font-weight="700" font-family="'SF Mono',Monaco,monospace">12,613行</text>
+    <text x="890" y="642" text-anchor="middle" fill="#52525b" font-size="12">vs</text>
+    <text x="955" y="642" text-anchor="middle" fill="#34d399" font-size="14" font-weight="700" font-family="'SF Mono',Monaco,monospace">1,630行</text>
+
+    <text x="550" y="685" text-anchor="middle" fill="#52525b" font-size="10" font-family="system-ui,sans-serif">CC通信模块代码量大但聚焦CLI+Bridge · ZC链路多但每条精简</text>
+  </svg>
+  </div>
+
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 3: 优势分布
+     ═══════════════════════════════════════════════════════════ -->
+<section class="section" id="sec-advantages">
+<div class="container">
+  <h2 class="section-title">优势分布</h2>
+
+  <h3 style="font-size:16px;font-weight:600;color:var(--zc-light);margin-bottom:16px">
+    ZhikunCode 超越维度 <span style="font-size:12px;color:var(--text-muted);font-weight:400">— 6 个维度领先</span>
+  </h3>
+  <div class="advantage-grid" style="margin-bottom:40px">
+    <div class="adv-card">
+      <div class="adv-header"><span class="adv-name">安全权限体系</span><span class="adv-score">9.5 : 8</span></div>
+      <div class="adv-desc">双方均7种权限模式；ZC 18步权限管线+AST解析+Docker沙箱+审计日志四位一体，完整Bash AST解析(824行) + 路径验证</div>
+      <p style="font-size:12px;color:var(--zc-light);font-style:italic;margin-top:6px">→ 对使用者意味着：企业可获得完整的 AST 级命令审计 + 18步权限管线，满足安全合规要求</p>
+    </div>
+    <div class="adv-card">
+      <div class="adv-header"><span class="adv-name">LLM模型支持</span><span class="adv-score">9 : 7</span></div>
+      <div class="adv-desc">2个Provider实现类覆盖7种模型生态 + 本地模型 + API密钥轮转(150行)，CC仅支持Anthropic</div>
+      <p style="font-size:12px;color:var(--zc-light);font-style:italic;margin-top:6px">→ 对使用者意味着：可自由切换 7 家模型供应商 + 本地模型，不被单一厂商锁定</p>
+    </div>
+    <div class="adv-card">
+      <div class="adv-header"><span class="adv-name">MCP协议支持</span><span class="adv-score">9 : 9</span></div>
+      <div class="adv-desc">双方均支持MCP Server+Client双向; CC 5种传输协议(12,310行), ZC 4种标准实现+WebSocket+健康检查+审批服务(5,219行)</div>
+      <p style="font-size:12px;color:var(--zc-light);font-style:italic;margin-top:6px">→ 对使用者意味着：同时支持 stdio/SSE/HTTP/WebSocket 等传输协议，集成第三方工具链更灵活</p>
+    </div>
+    <div class="adv-card">
+      <div class="adv-header"><span class="adv-name">代码分析能力</span><span class="adv-score">9 : 6</span></div>
+      <div class="adv-desc">Python FastAPI服务：圈复杂度/变更影响/调用图分析 + 专业可视化组件</div>
+      <p style="font-size:12px;color:var(--zc-light);font-style:italic;margin-top:6px">→ 对使用者意味着：具备圈复杂度分析、变更影响图等深度代码洞察，超越简单的读写操作</p>
+    </div>
+    <div class="adv-card">
+      <div class="adv-header"><span class="adv-name">可视化能力</span><span class="adv-score">8 : 5</span></div>
+      <div class="adv-desc">14个可视化组件：CodeComplexityTreemap/ChangeImpactGraph/APIContractViewer/APISequenceDiagram/SchemaViewer/GitTimeline/BlameView/MermaidBlock/AgentDAGChart/AgentDAGNode/ToolProgressBar/MiniLogViewer/CodeDiagramGenerator/CodePathTracer；CC终端无图表</div>
+      <p style="font-size:12px;color:var(--zc-light);font-style:italic;margin-top:6px">→ 对使用者意味着：内置 14 个可视化组件（代码复杂度热力图、API契约视图等），分析结果可直观呈现</p>
+    </div>
+    <div class="adv-card">
+      <div class="adv-header"><span class="adv-name">企业级特性</span><span class="adv-score">8 : 7</span></div>
+      <div class="adv-desc">PluginClassLoader沙箱隔离(15文件/1468行) + 审计日志 + 敏感路径过滤</div>
+      <p style="font-size:12px;color:var(--zc-light);font-style:italic;margin-top:6px">→ 对使用者意味着：内置 Docker 沙箱、团队协作、审计日志等企业就绪能力，可直接落地到生产环境</p>
+    </div>
+  </div>
+
+  <h3 style="font-size:16px;font-weight:600;color:var(--cc-light);margin-bottom:16px">
+    Claude Code 领先维度 <span style="font-size:12px;color:var(--text-muted);font-weight:400">— 3 个维度领先</span>
+  </h3>
+  <div class="advantage-grid">
+    <div class="adv-card cc-card">
+      <div class="adv-header"><span class="adv-name">Agent Loop成熟度</span><span class="adv-score">9 : 8</span></div>
+      <div class="adv-desc">状态机+异步生成器混合模式，主循环无硬性轮次上限，Fallback模型降级+ReactiveCompact恢复+MaxTokens恢复三层机制；512K行代码积累覆盖各类边界场景</div>
+      <p style="font-size:12px;color:var(--cc-light);font-style:italic;margin-top:6px">→ 对使用者意味着：状态机+异步生成器混合架构经过大规模用户验证，循环控制更灵活，异常恢复更健壮</p>
+    </div>
+    <div class="adv-card cc-card">
+      <div class="adv-header"><span class="adv-name">上下文管理</span><span class="adv-score">9 : 8</span></div>
+      <div class="adv-desc">4层核心压缩体系（MainCompact/AutoCompact/MicroCompact/SessionMemoryCompact）+ 辅助配置文件，Reactive模式自动触发，保留最近→摘要历史策略成熟</div>
+      <p style="font-size:12px;color:var(--cc-light);font-style:italic;margin-top:6px">→ 对使用者意味着：智能压缩+成本追踪+多策略Context管理，长会话体验更流畅</p>
+    </div>
+    <div class="adv-card cc-card">
+      <div class="adv-header"><span class="adv-name">部署便捷性</span><span class="adv-score">10 : 6</span></div>
+      <div class="adv-desc">npm install -g 一条命令即装即用，零依赖；ZC需Java+Node+Python+Docker多运行时</div>
+      <p style="font-size:12px;color:var(--cc-light);font-style:italic;margin-top:6px">→ 对使用者意味着：npx一键安装即用，零配置开箱体验，个人开发者上手成本极低</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 4: 代码量模块对比
+     ═══════════════════════════════════════════════════════════ -->
+<section class="section" id="sec-modules">
+<div class="container">
+  <h2 class="section-title">核心模块代码量对比</h2>
+  <p class="section-subtitle">行数包含注释和空行 · Java天然比TS更verbose · 不以代码量论优劣 · ZC用不到CC 1/5代码量实现功能对等</p>
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="mod-header">
+      <span>模块</span><span></span><span style="text-align:right;padding-right:12px;color:var(--cc-light)">CC行数</span><span></span><span style="text-align:right;padding-right:12px;color:var(--zc-light)">ZC行数</span>
+    </div>
+    <div id="moduleRows"></div>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 4B: LLM Provider + 安全体系
+     ═══════════════════════════════════════════════════════════ -->
+<section class="section" id="sec-security">
+<div class="container">
+  <div class="grid-2col">
+    <!-- LLM Provider -->
+    <div class="card">
+      <div class="subsection-title">LLM 模型生态</div>
+      <table class="data-table" style="margin-bottom:0">
+        <thead><tr><th>Provider</th><th style="text-align:center">CC</th><th style="text-align:center">ZC</th></tr></thead>
+        <tbody>
+          <tr><td>Anthropic (Claude)</td><td style="text-align:center;color:var(--cc-light)">✅ 原生主力</td><td style="text-align:center;color:var(--zc-light)">✅</td></tr>
+          <tr><td>OpenAI (GPT)</td><td style="text-align:center;color:var(--text-muted)">—</td><td style="text-align:center;color:var(--zc-light)">✅</td></tr>
+          <tr><td>通义千问 (Qwen)</td><td style="text-align:center;color:var(--text-muted)">—</td><td style="text-align:center;color:var(--zc-light)">✅</td></tr>
+          <tr><td>DeepSeek</td><td style="text-align:center;color:var(--text-muted)">—</td><td style="text-align:center;color:var(--zc-light)">✅</td></tr>
+          <tr><td>Moonshot (kimi-k2.6, moonshot-v1-auto)</td><td style="text-align:center;color:var(--text-muted)">—</td><td style="text-align:center;color:var(--zc-light)">✅ <span style="font-size:11px;color:var(--text-muted)">(OpenAI兼容API，预置注册)</span></td></tr>
+          <tr><td>智谱GLM</td><td style="text-align:center;color:var(--text-muted)">—</td><td style="text-align:center;color:var(--zc-light)">✅</td></tr>
+          <tr><td>Ollama (本地)</td><td style="text-align:center;color:var(--text-muted)">—</td><td style="text-align:center;color:var(--zc-light)">✅</td></tr>
+        </tbody>
+      </table>
+      <div class="card-note">
+        CC: Anthropic单一模型生态，4个endpoint(直连/Bedrock/Vertex/Azure)本质同一模型多部署通道<br>
+        ZC: 2个Provider实现类(AnthropicProvider + OpenAiCompatibleProvider)覆盖7种模型生态，支持私有化本地部署
+      </div>
+    </div>
+
+    <!-- Security -->
+    <div class="card">
+      <div class="subsection-title">安全体系深度</div>
+      <table class="data-table" style="margin-bottom:0">
+        <thead><tr><th>安全维度</th><th style="text-align:center">CC</th><th style="text-align:center">ZC</th></tr></thead>
+        <tbody>
+          <tr><td>Bash解析方式</td><td style="text-align:center;color:var(--cc-light);font-size:12px">正则+模式匹配</td><td style="text-align:center;color:var(--zc-light);font-size:12px">完整AST解析<br>(BashLexer 824行+BashParserCore)</td></tr>
+          <tr><td>权限管线</td><td style="text-align:center;color:var(--cc-light);font-size:12px">规则+分类器+模式管道<br>(9,409行, 20文件)</td><td style="text-align:center;color:var(--zc-light);font-size:12px">18步管线<br>PermissionPipeline(752行)</td></tr>
+          <tr><td>沙箱隔离</td><td style="text-align:center;color:var(--cc-light);font-size:12px">Worktree+<br>OS进程限制</td><td style="text-align:center;color:var(--zc-light);font-size:12px">Docker容器(259行)<br>+PluginClassLoader</td></tr>
+          <tr><td>审计追溯</td><td style="text-align:center;font-size:12px;color:var(--text-muted)">无独立模块</td><td style="text-align:center;color:var(--zc-light);font-size:12px">SecurityAuditLogger<br>+CommandBlacklistService(377行)</td></tr>
+          <tr><td>路径保护</td><td style="text-align:center;color:var(--cc-light);font-size:12px">内置规则</td><td style="text-align:center;color:var(--zc-light);font-size:12px">PathSecurityService(433行)<br>+SensitivePathRegistry(300行)</td></tr>
+        </tbody>
+      </table>
+      <div class="card-note">
+        ZC安全独有模块: BashLexer(824行) + BashParserCore + SedValidator(204行) + HeredocExtractor(196行) + PathValidator(341行)
+      </div>
+    </div>
+  </div>
+
+  <!-- SVG 5: LLM 支持对比 -->
+  <div style="margin:24px 0">
+  <svg width="100%" viewBox="0 0 1100 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="LLM支持对比：Claude Code Anthropic纵深优化 vs ZhikunCode 7种模型广度覆盖">
+    <defs>
+      <filter id="glowBlue5"><feGaussianBlur stdDeviation="3" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <filter id="glowGreen5"><feGaussianBlur stdDeviation="3" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <linearGradient id="bgGrad5" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0d0f1a"/><stop offset="100%" stop-color="#09090b"/></linearGradient>
+    </defs>
+    <rect width="1100" height="720" rx="12" fill="url(#bgGrad5)"/>
+    <rect width="1100" height="720" rx="12" fill="none" stroke="#1a1a2e" stroke-width="1"/>
+    <!-- Title -->
+    <text x="550" y="36" text-anchor="middle" fill="#f4f4f5" font-size="18" font-weight="700" font-family="system-ui,-apple-system,sans-serif">LLM 支持对比</text>
+    <line x1="200" y1="48" x2="900" y2="48" stroke="#1a1a2e" stroke-width="1"/>
+
+    <!-- === CC Side (Left) — Anthropic 纵深优化 === -->
+    <text x="260" y="76" text-anchor="middle" fill="#3b82f6" font-size="15" font-weight="600" font-family="system-ui,sans-serif" filter="url(#glowBlue5)">Claude Code</text>
+    <text x="260" y="96" text-anchor="middle" fill="#a1a1aa" font-size="11" font-family="system-ui,sans-serif">纵深优化 · Anthropic 单一生态 · 一个模型做到极致</text>
+
+    <!-- Funnel top: Anthropic -->
+    <rect x="150" y="120" width="220" height="52" rx="10" fill="#172554" stroke="#3b82f6" stroke-width="2" filter="url(#glowBlue5)"/>
+    <text x="260" y="144" text-anchor="middle" fill="#60a5fa" font-size="15" font-weight="700" font-family="'SF Mono',Monaco,monospace">Anthropic Claude</text>
+    <text x="260" y="162" text-anchor="middle" fill="#a1a1aa" font-size="10" font-family="system-ui,sans-serif">唯一模型提供商</text>
+
+    <!-- Core engine file -->
+    <rect x="120" y="190" width="280" height="50" rx="8" fill="#0f1220" stroke="#3b82f6" stroke-width="1.2"/>
+    <text x="260" y="212" text-anchor="middle" fill="#60a5fa" font-size="12" font-weight="600" font-family="'SF Mono',Monaco,monospace">claude.ts — 3,419行</text>
+    <text x="260" y="229" text-anchor="middle" fill="#a1a1aa" font-size="10" font-family="'SF Mono',Monaco,monospace">主API引擎 · services/api/ · 20文件 · 10,477行</text>
+
+    <!-- Funnel expanding to 4 channels -->
+    <line x1="200" y1="240" x2="115" y2="270" stroke="#3b82f6" stroke-width="1" stroke-dasharray="4 2"/>
+    <line x1="240" y1="240" x2="215" y2="270" stroke="#3b82f6" stroke-width="1" stroke-dasharray="4 2"/>
+    <line x1="280" y1="240" x2="315" y2="270" stroke="#3b82f6" stroke-width="1" stroke-dasharray="4 2"/>
+    <line x1="320" y1="240" x2="415" y2="270" stroke="#3b82f6" stroke-width="1" stroke-dasharray="4 2"/>
+
+    <!-- 4 channels -->
+    <rect x="50" y="272" width="130" height="48" rx="8" fill="#0f1220" stroke="#3b82f6" stroke-width="1.2"/>
+    <text x="115" y="292" text-anchor="middle" fill="#60a5fa" font-size="11" font-weight="600" font-family="'SF Mono',Monaco,monospace">直连 API</text>
+    <text x="115" y="308" text-anchor="middle" fill="#52525b" font-size="9" font-family="system-ui,sans-serif">api.anthropic.com</text>
+
+    <rect x="190" y="272" width="120" height="48" rx="8" fill="#0f1220" stroke="#3b82f6" stroke-width="1.2"/>
+    <text x="250" y="292" text-anchor="middle" fill="#60a5fa" font-size="11" font-weight="600" font-family="'SF Mono',Monaco,monospace">AWS Bedrock</text>
+    <text x="250" y="308" text-anchor="middle" fill="#52525b" font-size="9" font-family="system-ui,sans-serif">Amazon 分发</text>
+
+    <rect x="320" y="272" width="120" height="48" rx="8" fill="#0f1220" stroke="#3b82f6" stroke-width="1.2"/>
+    <text x="380" y="292" text-anchor="middle" fill="#60a5fa" font-size="11" font-weight="600" font-family="'SF Mono',Monaco,monospace">Vertex AI</text>
+    <text x="380" y="308" text-anchor="middle" fill="#52525b" font-size="9" font-family="system-ui,sans-serif">Google Cloud</text>
+
+    <rect x="380" y="332" width="120" height="48" rx="8" fill="#0f1220" stroke="#3b82f6" stroke-width="1"/>
+    <text x="440" y="352" text-anchor="middle" fill="#60a5fa" font-size="11" font-weight="600" font-family="'SF Mono',Monaco,monospace">Azure</text>
+    <text x="440" y="368" text-anchor="middle" fill="#52525b" font-size="9" font-family="system-ui,sans-serif">Microsoft 分发</text>
+
+    <text x="260" y="345" text-anchor="middle" fill="#a1a1aa" font-size="10" font-family="system-ui,sans-serif">4个接入通道 · 本质同一模型多部署</text>
+
+    <!-- Supporting modules -->
+    <text x="260" y="405" text-anchor="middle" fill="#60a5fa" font-size="11" font-weight="600" font-family="system-ui,sans-serif">核心支撑模块</text>
+    <rect x="55" y="418" width="130" height="36" rx="6" fill="#0f1220" stroke="#3b82f6" stroke-width="0.8"/>
+    <text x="120" y="436" text-anchor="middle" fill="#a1a1aa" font-size="10" font-family="'SF Mono',Monaco,monospace">errors.ts · 1,207行</text>
+    <text x="120" y="448" text-anchor="middle" fill="#52525b" font-size="8" font-family="system-ui,sans-serif">FallbackTriggeredError</text>
+    <rect x="195" y="418" width="130" height="36" rx="6" fill="#0f1220" stroke="#3b82f6" stroke-width="0.8"/>
+    <text x="260" y="436" text-anchor="middle" fill="#a1a1aa" font-size="10" font-family="'SF Mono',Monaco,monospace">withRetry.ts · 822行</text>
+    <text x="260" y="448" text-anchor="middle" fill="#52525b" font-size="8" font-family="system-ui,sans-serif">重试策略引擎</text>
+    <rect x="335" y="418" width="130" height="36" rx="6" fill="#0f1220" stroke="#3b82f6" stroke-width="0.8"/>
+    <text x="400" y="436" text-anchor="middle" fill="#a1a1aa" font-size="10" font-family="'SF Mono',Monaco,monospace">logging.ts · 788行</text>
+    <text x="400" y="448" text-anchor="middle" fill="#52525b" font-size="8" font-family="system-ui,sans-serif">请求日志追踪</text>
+
+    <!-- CC strategy label -->
+    <rect x="140" y="475" width="240" height="32" rx="8" fill="#172554" stroke="#3b82f6" stroke-width="1.5"/>
+    <text x="260" y="496" text-anchor="middle" fill="#60a5fa" font-size="13" font-weight="700" font-family="system-ui,sans-serif">策略：纵深优化 — 一个模型做到极致</text>
+
+    <!-- Divider -->
+    <line x1="540" y1="70" x2="540" y2="630" stroke="#1a1a2e" stroke-width="1" stroke-dasharray="6 4"/>
+
+    <!-- === ZC Side (Right) — 7种模型广度覆盖 === -->
+    <text x="820" y="76" text-anchor="middle" fill="#10b981" font-size="15" font-weight="600" font-family="system-ui,sans-serif" filter="url(#glowGreen5)">ZhikunCode</text>
+    <text x="820" y="96" text-anchor="middle" fill="#a1a1aa" font-size="11" font-family="system-ui,sans-serif">广度覆盖 · 7种模型提供商 · 多模型适配不同场景</text>
+
+    <!-- Center hub: Registry -->
+    <rect x="730" y="120" width="180" height="60" rx="12" fill="#134e2e" stroke="#10b981" stroke-width="2" filter="url(#glowGreen5)"/>
+    <text x="820" y="146" text-anchor="middle" fill="#34d399" font-size="14" font-weight="700" font-family="'SF Mono',Monaco,monospace">LlmProviderRegistry</text>
+    <text x="820" y="166" text-anchor="middle" fill="#a1a1aa" font-size="10" font-family="system-ui,sans-serif">路由决策中枢</text>
+
+    <!-- Two Provider implementations -->
+    <line x1="770" y1="180" x2="690" y2="210" stroke="#10b981" stroke-width="1.2" stroke-dasharray="4 2"/>
+    <line x1="870" y1="180" x2="950" y2="210" stroke="#10b981" stroke-width="1.2" stroke-dasharray="4 2"/>
+
+    <rect x="590" y="210" width="200" height="42" rx="8" fill="#0f2018" stroke="#10b981" stroke-width="1.5"/>
+    <text x="690" y="232" text-anchor="middle" fill="#34d399" font-size="11" font-weight="600" font-family="'SF Mono',Monaco,monospace">AnthropicProvider</text>
+    <text x="690" y="246" text-anchor="middle" fill="#52525b" font-size="9" font-family="system-ui,sans-serif">原生 Anthropic 协议</text>
+
+    <rect x="850" y="210" width="200" height="42" rx="8" fill="#0f2018" stroke="#10b981" stroke-width="1.5"/>
+    <text x="950" y="232" text-anchor="middle" fill="#34d399" font-size="11" font-weight="600" font-family="'SF Mono',Monaco,monospace">OpenAiCompatibleProvider</text>
+    <text x="950" y="246" text-anchor="middle" fill="#52525b" font-size="9" font-family="system-ui,sans-serif">OpenAI 兼容协议</text>
+
+    <!-- Radiating lines to 7 providers -->
+    <line x1="690" y1="252" x2="640" y2="290" stroke="#10b981" stroke-width="1" stroke-dasharray="3 2"/>
+    <line x1="950" y1="252" x2="800" y2="290" stroke="#10b981" stroke-width="1" stroke-dasharray="3 2"/>
+    <line x1="950" y1="252" x2="900" y2="290" stroke="#10b981" stroke-width="1" stroke-dasharray="3 2"/>
+    <line x1="950" y1="252" x2="1000" y2="290" stroke="#10b981" stroke-width="1" stroke-dasharray="3 2"/>
+    <line x1="950" y1="252" x2="700" y2="290" stroke="#10b981" stroke-width="1" stroke-dasharray="3 2"/>
+    <line x1="950" y1="252" x2="1060" y2="320" stroke="#10b981" stroke-width="1" stroke-dasharray="3 2"/>
+
+    <!-- 7 provider nodes - row 1 -->
+    <rect x="580" y="290" width="120" height="42" rx="8" fill="#0f2018" stroke="#10b981" stroke-width="1.2"/>
+    <text x="640" y="310" text-anchor="middle" fill="#34d399" font-size="11" font-weight="600" font-family="'SF Mono',Monaco,monospace">Anthropic</text>
+    <text x="640" y="326" text-anchor="middle" fill="#a1a1aa" font-size="9" font-family="system-ui,sans-serif">Claude · 原生主力</text>
+
+    <rect x="710" y="290" width="100" height="42" rx="8" fill="#0f2018" stroke="#10b981" stroke-width="1.2"/>
+    <text x="760" y="310" text-anchor="middle" fill="#34d399" font-size="11" font-weight="600" font-family="'SF Mono',Monaco,monospace">OpenAI</text>
+    <text x="760" y="326" text-anchor="middle" fill="#a1a1aa" font-size="9" font-family="system-ui,sans-serif">GPT-4/4o</text>
+
+    <rect x="820" y="290" width="100" height="42" rx="8" fill="#0f2018" stroke="#10b981" stroke-width="1.2"/>
+    <text x="870" y="310" text-anchor="middle" fill="#34d399" font-size="11" font-weight="600" font-family="'SF Mono',Monaco,monospace">通义千问</text>
+    <text x="870" y="326" text-anchor="middle" fill="#a1a1aa" font-size="9" font-family="system-ui,sans-serif">Qwen · 阿里</text>
+
+    <rect x="930" y="290" width="110" height="42" rx="8" fill="#0f2018" stroke="#10b981" stroke-width="1.2"/>
+    <text x="985" y="310" text-anchor="middle" fill="#34d399" font-size="11" font-weight="600" font-family="'SF Mono',Monaco,monospace">DeepSeek</text>
+    <text x="985" y="326" text-anchor="middle" fill="#a1a1aa" font-size="9" font-family="system-ui,sans-serif">推理优化</text>
+
+    <!-- 7 provider nodes - row 2 -->
+    <rect x="610" y="342" width="110" height="42" rx="8" fill="#0f2018" stroke="#10b981" stroke-width="1.2"/>
+    <text x="665" y="362" text-anchor="middle" fill="#34d399" font-size="11" font-weight="600" font-family="'SF Mono',Monaco,monospace">Moonshot</text>
+    <text x="665" y="377" text-anchor="middle" fill="#a1a1aa" font-size="9" font-family="system-ui,sans-serif">kimi · OpenAI兼容</text>
+
+    <rect x="730" y="342" width="110" height="42" rx="8" fill="#0f2018" stroke="#10b981" stroke-width="1.2"/>
+    <text x="785" y="362" text-anchor="middle" fill="#34d399" font-size="11" font-weight="600" font-family="'SF Mono',Monaco,monospace">智谱 GLM</text>
+    <text x="785" y="377" text-anchor="middle" fill="#a1a1aa" font-size="9" font-family="system-ui,sans-serif">ChatGLM</text>
+
+    <rect x="1000" y="320" width="100" height="42" rx="8" fill="#0f2018" stroke="#10b981" stroke-width="1.2"/>
+    <text x="1050" y="340" text-anchor="middle" fill="#34d399" font-size="11" font-weight="600" font-family="'SF Mono',Monaco,monospace">Ollama</text>
+    <text x="1050" y="356" text-anchor="middle" fill="#a1a1aa" font-size="9" font-family="system-ui,sans-serif">本地模型</text>
+
+    <!-- Key features -->
+    <text x="820" y="415" text-anchor="middle" fill="#34d399" font-size="11" font-weight="600" font-family="system-ui,sans-serif">核心特性</text>
+    <rect x="600" y="428" width="160" height="36" rx="6" fill="#0f2018" stroke="#10b981" stroke-width="0.8"/>
+    <text x="680" y="446" text-anchor="middle" fill="#a1a1aa" font-size="10" font-family="'SF Mono',Monaco,monospace">API密钥轮转 · 150行</text>
+    <text x="680" y="458" text-anchor="middle" fill="#52525b" font-size="8" font-family="system-ui,sans-serif">ApiKeyRotationManager</text>
+    <rect x="770" y="428" width="150" height="36" rx="6" fill="#0f2018" stroke="#10b981" stroke-width="0.8"/>
+    <text x="845" y="446" text-anchor="middle" fill="#a1a1aa" font-size="10" font-family="'SF Mono',Monaco,monospace">HTTP/SSE Stream</text>
+    <text x="845" y="458" text-anchor="middle" fill="#52525b" font-size="8" font-family="system-ui,sans-serif">流式响应 · OkHttp3</text>
+    <rect x="930" y="428" width="120" height="36" rx="6" fill="#0f2018" stroke="#10b981" stroke-width="0.8"/>
+    <text x="990" y="446" text-anchor="middle" fill="#a1a1aa" font-size="10" font-family="'SF Mono',Monaco,monospace">私有化部署</text>
+    <text x="990" y="458" text-anchor="middle" fill="#52525b" font-size="8" font-family="system-ui,sans-serif">Ollama 本地推理</text>
+
+    <!-- ZC strategy label -->
+    <rect x="700" y="475" width="240" height="32" rx="8" fill="#134e2e" stroke="#10b981" stroke-width="1.5"/>
+    <text x="820" y="496" text-anchor="middle" fill="#34d399" font-size="13" font-weight="700" font-family="system-ui,sans-serif">策略：广度覆盖 — 多模型适配场景</text>
+
+    <!-- === Bottom Comparison Bar === -->
+    <rect x="40" y="540" width="1020" height="160" rx="10" fill="#0a0c15" stroke="#1a1a2e" stroke-width="1"/>
+    <text x="550" y="565" text-anchor="middle" fill="#f4f4f5" font-size="13" font-weight="700" font-family="system-ui,sans-serif">核心指标对比</text>
+
+    <!-- Column headers -->
+    <text x="250" y="588" text-anchor="middle" fill="#a1a1aa" font-size="10" font-weight="600" font-family="system-ui,sans-serif">指标</text>
+    <text x="480" y="588" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="600" font-family="system-ui,sans-serif">Claude Code</text>
+    <text x="730" y="588" text-anchor="middle" fill="#34d399" font-size="10" font-weight="600" font-family="system-ui,sans-serif">ZhikunCode</text>
+    <line x1="80" y1="594" x2="1020" y2="594" stroke="#1a1a2e" stroke-width="0.5"/>
+
+    <!-- Row 1 -->
+    <text x="250" y="614" text-anchor="middle" fill="#a1a1aa" font-size="11" font-family="system-ui,sans-serif">模型提供商</text>
+    <text x="480" y="614" text-anchor="middle" fill="#60a5fa" font-size="12" font-weight="600" font-family="'SF Mono',Monaco,monospace">1 (Anthropic)</text>
+    <text x="730" y="614" text-anchor="middle" fill="#34d399" font-size="12" font-weight="600" font-family="'SF Mono',Monaco,monospace">7 种提供商</text>
+
+    <!-- Row 2 -->
+    <text x="250" y="636" text-anchor="middle" fill="#a1a1aa" font-size="11" font-family="system-ui,sans-serif">接入通道</text>
+    <text x="480" y="636" text-anchor="middle" fill="#60a5fa" font-size="12" font-weight="600" font-family="'SF Mono',Monaco,monospace">4 (直连/Bedrock/Vertex/Azure)</text>
+    <text x="730" y="636" text-anchor="middle" fill="#34d399" font-size="12" font-weight="600" font-family="'SF Mono',Monaco,monospace">2 Provider + 7 实现</text>
+
+    <!-- Row 3 -->
+    <text x="250" y="658" text-anchor="middle" fill="#a1a1aa" font-size="11" font-family="system-ui,sans-serif">核心代码行数</text>
+    <text x="480" y="658" text-anchor="middle" fill="#60a5fa" font-size="12" font-weight="600" font-family="'SF Mono',Monaco,monospace">10,477行 · 20文件</text>
+    <text x="730" y="658" text-anchor="middle" fill="#34d399" font-size="12" font-weight="600" font-family="'SF Mono',Monaco,monospace">llm/ 模块</text>
+
+    <!-- Row 4 -->
+    <text x="250" y="680" text-anchor="middle" fill="#a1a1aa" font-size="11" font-family="system-ui,sans-serif">策略定位</text>
+    <text x="480" y="680" text-anchor="middle" fill="#60a5fa" font-size="12" font-weight="700" font-family="system-ui,sans-serif">纵深优化</text>
+    <text x="730" y="680" text-anchor="middle" fill="#34d399" font-size="12" font-weight="700" font-family="system-ui,sans-serif">广度覆盖</text>
+  </svg>
+  </div>
+
+  <!-- SVG 2: 安全体系对比 -->
+  <div style="margin:24px 0">
+  <svg width="100%" viewBox="0 0 1100 820" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="安全体系对比：Claude Code权限管道 vs ZhikunCode 18步管线+6层Bash纵深防御">
+    <defs>
+      <filter id="glowBlue2"><feGaussianBlur stdDeviation="2.5" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <filter id="glowGreen2"><feGaussianBlur stdDeviation="2.5" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <linearGradient id="bgGrad2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0d0f1a"/><stop offset="100%" stop-color="#09090b"/></linearGradient>
+    </defs>
+    <rect width="1100" height="820" rx="12" fill="url(#bgGrad2)"/>
+    <rect width="1100" height="820" rx="12" fill="none" stroke="#1a1a2e" stroke-width="1"/>
+    <text x="550" y="36" text-anchor="middle" fill="#f4f4f5" font-size="18" font-weight="700" font-family="system-ui,-apple-system,sans-serif">安全体系对比</text>
+    <line x1="200" y1="48" x2="900" y2="48" stroke="#1a1a2e" stroke-width="1"/>
+
+    <!-- === CC Side (Left) === -->
+    <text x="260" y="76" text-anchor="middle" fill="#3b82f6" font-size="15" font-weight="600" font-family="system-ui,sans-serif" filter="url(#glowBlue2)">Claude Code</text>
+    <text x="260" y="94" text-anchor="middle" fill="#a1a1aa" font-size="11" font-family="system-ui,sans-serif">utils/permissions/ · 24文件 · 9,409行</text>
+
+    <!-- 13-step pipeline simplified to 3 stages -->
+    <text x="260" y="120" text-anchor="middle" fill="#60a5fa" font-size="12" font-weight="600" font-family="system-ui,sans-serif">13步权限管道（三阶段）</text>
+
+    <!-- Stage 1 -->
+    <rect x="60" y="134" width="400" height="60" rx="8" fill="#0f1220" stroke="#3b82f6" stroke-width="1.2"/>
+    <text x="80" y="155" fill="#3b82f6" font-size="11" font-weight="700" font-family="system-ui,sans-serif">Stage 1: 前置规则</text>
+    <text x="80" y="173" fill="#a1a1aa" font-size="10" font-family="'SF Mono',Monaco,monospace">filesystem.ts(1,777行) · permissionSetup.ts(1,532行)</text>
+    <text x="80" y="188" fill="#52525b" font-size="9" font-family="system-ui,sans-serif">路径规则 · 写入规则 · 预设拒绝清单</text>
+
+    <!-- Arrow -->
+    <line x1="260" y1="194" x2="260" y2="210" stroke="#3b82f6" stroke-width="1.2"/>
+    <polygon points="255,210 265,210 260,218" fill="#3b82f6"/>
+
+    <!-- Stage 2 -->
+    <rect x="60" y="220" width="400" height="60" rx="8" fill="#0f1220" stroke="#3b82f6" stroke-width="1.2"/>
+    <text x="80" y="241" fill="#3b82f6" font-size="11" font-weight="700" font-family="system-ui,sans-serif">Stage 2: Mode 决策</text>
+    <text x="80" y="259" fill="#a1a1aa" font-size="10" font-family="'SF Mono',Monaco,monospace">permissions.ts(1,486行) · 7种权限模式匹配</text>
+    <text x="80" y="274" fill="#52525b" font-size="9" font-family="system-ui,sans-serif">根据当前Mode决定allow/deny/ask</text>
+
+    <!-- Arrow -->
+    <line x1="260" y1="280" x2="260" y2="296" stroke="#3b82f6" stroke-width="1.2"/>
+    <polygon points="255,296 265,296 260,304" fill="#3b82f6"/>
+
+    <!-- Stage 3 -->
+    <rect x="60" y="306" width="400" height="60" rx="8" fill="#0f1220" stroke="#3b82f6" stroke-width="1.2"/>
+    <text x="80" y="327" fill="#3b82f6" font-size="11" font-weight="700" font-family="system-ui,sans-serif">Stage 3: 分类器异步</text>
+    <text x="80" y="345" fill="#a1a1aa" font-size="10" font-family="'SF Mono',Monaco,monospace">yoloClassifier.ts(1,495行) · 异步分类+缓存</text>
+    <text x="80" y="360" fill="#52525b" font-size="9" font-family="system-ui,sans-serif">YOLO模式下自动分类放行</text>
+
+    <!-- 7 Permission Modes -->
+    <text x="260" y="396" text-anchor="middle" fill="#60a5fa" font-size="12" font-weight="600" font-family="system-ui,sans-serif">7种权限模式</text>
+    <rect x="60" y="406" width="70" height="24" rx="4" fill="#172554" stroke="#3b82f6" stroke-width="0.8"/><text x="95" y="423" text-anchor="middle" fill="#60a5fa" font-size="9" font-family="'SF Mono',Monaco,monospace">default</text>
+    <rect x="136" y="406" width="56" height="24" rx="4" fill="#172554" stroke="#3b82f6" stroke-width="0.8"/><text x="164" y="423" text-anchor="middle" fill="#60a5fa" font-size="9" font-family="'SF Mono',Monaco,monospace">plan</text>
+    <rect x="198" y="406" width="80" height="24" rx="4" fill="#172554" stroke="#3b82f6" stroke-width="0.8"/><text x="238" y="423" text-anchor="middle" fill="#60a5fa" font-size="9" font-family="'SF Mono',Monaco,monospace">acceptEdits</text>
+    <rect x="284" y="406" width="62" height="24" rx="4" fill="#172554" stroke="#3b82f6" stroke-width="0.8"/><text x="315" y="423" text-anchor="middle" fill="#60a5fa" font-size="9" font-family="'SF Mono',Monaco,monospace">bypass</text>
+    <rect x="352" y="406" width="62" height="24" rx="4" fill="#172554" stroke="#3b82f6" stroke-width="0.8"/><text x="383" y="423" text-anchor="middle" fill="#60a5fa" font-size="9" font-family="'SF Mono',Monaco,monospace">dontAsk</text>
+    <rect x="420" y="406" width="44" height="24" rx="4" fill="#172554" stroke="#3b82f6" stroke-width="0.8"/><text x="442" y="423" text-anchor="middle" fill="#60a5fa" font-size="9" font-family="'SF Mono',Monaco,monospace">auto</text>
+    <rect x="470" y="406" width="52" height="24" rx="4" fill="#172554" stroke="#3b82f6" stroke-width="0.8"/><text x="496" y="423" text-anchor="middle" fill="#60a5fa" font-size="9" font-family="'SF Mono',Monaco,monospace">bubble</text>
+
+    <!-- Security features -->
+    <text x="260" y="460" text-anchor="middle" fill="#60a5fa" font-size="11" font-weight="600" font-family="system-ui,sans-serif">安全特性</text>
+    <rect x="80" y="470" width="160" height="28" rx="5" fill="#0f1220" stroke="#3b82f6" stroke-width="0.8"/><text x="160" y="489" text-anchor="middle" fill="#a1a1aa" font-size="10" font-family="'SF Mono',Monaco,monospace">Worktree 隔离</text>
+    <rect x="260" y="470" width="160" height="28" rx="5" fill="#0f1220" stroke="#3b82f6" stroke-width="0.8"/><text x="340" y="489" text-anchor="middle" fill="#a1a1aa" font-size="10" font-family="'SF Mono',Monaco,monospace">OS 进程限制</text>
+
+    <!-- Divider -->
+    <line x1="530" y1="70" x2="530" y2="740" stroke="#1a1a2e" stroke-width="1" stroke-dasharray="6 4"/>
+
+    <!-- === ZC Side (Right) === -->
+    <text x="810" y="76" text-anchor="middle" fill="#10b981" font-size="15" font-weight="600" font-family="system-ui,sans-serif" filter="url(#glowGreen2)">ZhikunCode</text>
+    <text x="810" y="94" text-anchor="middle" fill="#a1a1aa" font-size="11" font-family="system-ui,sans-serif">permission/ · 11文件 · 2,672行</text>
+
+    <!-- 18-step pipeline simplified to 3 stages -->
+    <text x="810" y="120" text-anchor="middle" fill="#34d399" font-size="12" font-weight="600" font-family="system-ui,sans-serif">18步权限管线（三阶段）</text>
+
+    <!-- Stage 1 -->
+    <rect x="570" y="134" width="480" height="56" rx="8" fill="#0f2018" stroke="#10b981" stroke-width="1.2"/>
+    <text x="590" y="155" fill="#10b981" font-size="11" font-weight="700" font-family="system-ui,sans-serif">Stage 1: 拒绝/询问规则（11步, 1a-1k）</text>
+    <text x="590" y="173" fill="#a1a1aa" font-size="10" font-family="'SF Mono',Monaco,monospace">PermissionPipeline.java(752行)</text>
+    <text x="590" y="186" fill="#52525b" font-size="9" font-family="system-ui,sans-serif">黑名单 · 敏感路径 · 危险命令 · sed校验 · 风险评分</text>
+
+    <!-- Arrow -->
+    <line x1="810" y1="190" x2="810" y2="204" stroke="#10b981" stroke-width="1.2"/>
+    <polygon points="805,204 815,204 810,212" fill="#10b981"/>
+
+    <!-- Stage 2 -->
+    <rect x="570" y="214" width="480" height="50" rx="8" fill="#0f2018" stroke="#10b981" stroke-width="1.2"/>
+    <text x="590" y="235" fill="#10b981" font-size="11" font-weight="700" font-family="system-ui,sans-serif">Stage 2: 允许规则（5步, 1h-2b）</text>
+    <text x="590" y="253" fill="#a1a1aa" font-size="10" font-family="'SF Mono',Monaco,monospace">白名单匹配 · 安全命令 · 只读操作 · 工作区内路径</text>
+
+    <!-- Arrow -->
+    <line x1="810" y1="264" x2="810" y2="278" stroke="#10b981" stroke-width="1.2"/>
+    <polygon points="805,278 815,278 810,286" fill="#10b981"/>
+
+    <!-- Stage 3 -->
+    <rect x="570" y="288" width="480" height="50" rx="8" fill="#0f2018" stroke="#10b981" stroke-width="1.2"/>
+    <text x="590" y="309" fill="#10b981" font-size="11" font-weight="700" font-family="system-ui,sans-serif">Stage 3: 模式转换（7种）</text>
+    <text x="590" y="327" fill="#a1a1aa" font-size="10" font-family="'SF Mono',Monaco,monospace">default · plan · acceptEdits · bypass · dontAsk · auto · bubble</text>
+
+    <!-- 6-Layer Bash Defense -->
+    <text x="810" y="370" text-anchor="middle" fill="#34d399" font-size="13" font-weight="700" font-family="system-ui,sans-serif" filter="url(#glowGreen2)">Bash安全模块 — 6层纵深防御（5,091行）</text>
+
+    <!-- Layer 1 -->
+    <rect x="570" y="384" width="480" height="44" rx="6" fill="#0a1f14" stroke="#10b981" stroke-width="1.2"/>
+    <rect x="574" y="388" width="4" height="36" rx="2" fill="#10b981"/>
+    <text x="590" y="403" fill="#34d399" font-size="11" font-weight="700" font-family="'SF Mono',Monaco,monospace">L1 词法分析 Lexer</text>
+    <text x="1040" y="403" text-anchor="end" fill="#a1a1aa" font-size="10" font-family="'SF Mono',Monaco,monospace">824行</text>
+    <text x="590" y="420" fill="#52525b" font-size="9" font-family="system-ui,sans-serif">BashLexer · Token化Bash命令</text>
+
+    <!-- Layer 2 -->
+    <rect x="570" y="434" width="480" height="44" rx="6" fill="#0a1f14" stroke="#10b981" stroke-width="1"/>
+    <rect x="574" y="438" width="4" height="36" rx="2" fill="#10b981" opacity="0.85"/>
+    <text x="590" y="453" fill="#34d399" font-size="11" font-weight="700" font-family="'SF Mono',Monaco,monospace">L2 语法分析 Parser→AST</text>
+    <text x="1040" y="453" text-anchor="end" fill="#a1a1aa" font-size="10" font-family="'SF Mono',Monaco,monospace">1,117行</text>
+    <text x="590" y="470" fill="#52525b" font-size="9" font-family="system-ui,sans-serif">BashParserCore · 构建抽象语法树</text>
+
+    <!-- Layer 3 -->
+    <rect x="570" y="484" width="480" height="44" rx="6" fill="#0a1f14" stroke="#10b981" stroke-width="0.9"/>
+    <rect x="574" y="488" width="4" height="36" rx="2" fill="#10b981" opacity="0.7"/>
+    <text x="590" y="503" fill="#34d399" font-size="11" font-weight="700" font-family="'SF Mono',Monaco,monospace">L3 AST遍历+命令识别</text>
+    <text x="1040" y="503" text-anchor="end" fill="#a1a1aa" font-size="10" font-family="'SF Mono',Monaco,monospace">385行</text>
+    <text x="590" y="520" fill="#52525b" font-size="9" font-family="system-ui,sans-serif">遍历AST节点 · 提取命令+参数</text>
+
+    <!-- Layer 4 -->
+    <rect x="570" y="534" width="480" height="44" rx="6" fill="#0a1f14" stroke="#10b981" stroke-width="0.8"/>
+    <rect x="574" y="538" width="4" height="36" rx="2" fill="#10b981" opacity="0.6"/>
+    <text x="590" y="553" fill="#34d399" font-size="11" font-weight="700" font-family="'SF Mono',Monaco,monospace">L4 风险评分+危险检测</text>
+    <text x="1040" y="553" text-anchor="end" fill="#a1a1aa" font-size="10" font-family="'SF Mono',Monaco,monospace">1,876行</text>
+    <text x="590" y="570" fill="#52525b" font-size="9" font-family="system-ui,sans-serif">CommandBlacklistService(377行) · 风险评分引擎</text>
+
+    <!-- Layer 5 -->
+    <rect x="570" y="584" width="480" height="44" rx="6" fill="#0a1f14" stroke="#10b981" stroke-width="0.7"/>
+    <rect x="574" y="588" width="4" height="36" rx="2" fill="#10b981" opacity="0.5"/>
+    <text x="590" y="603" fill="#34d399" font-size="11" font-weight="700" font-family="'SF Mono',Monaco,monospace">L5 路径验证+sed校验</text>
+    <text x="1040" y="603" text-anchor="end" fill="#a1a1aa" font-size="10" font-family="'SF Mono',Monaco,monospace">664行</text>
+    <text x="590" y="620" fill="#52525b" font-size="9" font-family="system-ui,sans-serif">PathValidator(341行) · SedValidator(204行)</text>
+
+    <!-- Layer 6 -->
+    <rect x="570" y="634" width="480" height="44" rx="6" fill="#0a1f14" stroke="#10b981" stroke-width="0.6"/>
+    <rect x="574" y="638" width="4" height="36" rx="2" fill="#10b981" opacity="0.4"/>
+    <text x="590" y="653" fill="#34d399" font-size="11" font-weight="700" font-family="'SF Mono',Monaco,monospace">L6 审计追溯+结果返回</text>
+    <text x="1040" y="653" text-anchor="end" fill="#a1a1aa" font-size="10" font-family="'SF Mono',Monaco,monospace">648行</text>
+    <text x="590" y="670" fill="#52525b" font-size="9" font-family="system-ui,sans-serif">SecurityAuditLogger · 完整审计链</text>
+
+    <!-- === Center comparison metrics === -->
+    <rect x="40" y="710" width="1020" height="1" fill="#1a1a2e"/>
+    <text x="550" y="738" text-anchor="middle" fill="#f4f4f5" font-size="13" font-weight="600" font-family="system-ui,sans-serif">关键数据对比</text>
+    <rect x="50" y="752" width="240" height="50" rx="8" fill="#0f1220" stroke="#1a1a2e" stroke-width="1"/>
+    <text x="170" y="770" text-anchor="middle" fill="#52525b" font-size="10" font-family="system-ui,sans-serif">权限模块文件数</text>
+    <text x="120" y="792" text-anchor="middle" fill="#60a5fa" font-size="14" font-weight="700" font-family="'SF Mono',Monaco,monospace">23文件</text>
+    <text x="170" y="792" text-anchor="middle" fill="#52525b" font-size="12">vs</text>
+    <text x="220" y="792" text-anchor="middle" fill="#34d399" font-size="14" font-weight="700" font-family="'SF Mono',Monaco,monospace">11文件</text>
+
+    <rect x="310" y="752" width="240" height="50" rx="8" fill="#0f1220" stroke="#1a1a2e" stroke-width="1"/>
+    <text x="430" y="770" text-anchor="middle" fill="#52525b" font-size="10" font-family="system-ui,sans-serif">权限模块行数</text>
+    <text x="380" y="792" text-anchor="middle" fill="#60a5fa" font-size="14" font-weight="700" font-family="'SF Mono',Monaco,monospace">9,409行</text>
+    <text x="430" y="792" text-anchor="middle" fill="#52525b" font-size="12">vs</text>
+    <text x="480" y="792" text-anchor="middle" fill="#34d399" font-size="14" font-weight="700" font-family="'SF Mono',Monaco,monospace">2,672行</text>
+
+    <rect x="570" y="752" width="240" height="50" rx="8" fill="#0f1220" stroke="#1a1a2e" stroke-width="1"/>
+    <text x="690" y="770" text-anchor="middle" fill="#52525b" font-size="10" font-family="system-ui,sans-serif">管线步骤数</text>
+    <text x="640" y="792" text-anchor="middle" fill="#60a5fa" font-size="14" font-weight="700" font-family="'SF Mono',Monaco,monospace">13步</text>
+    <text x="690" y="792" text-anchor="middle" fill="#52525b" font-size="12">vs</text>
+    <text x="740" y="792" text-anchor="middle" fill="#34d399" font-size="14" font-weight="700" font-family="'SF Mono',Monaco,monospace">18步</text>
+
+    <rect x="830" y="752" width="220" height="50" rx="8" fill="#0f1220" stroke="#1a1a2e" stroke-width="1"/>
+    <text x="940" y="770" text-anchor="middle" fill="#52525b" font-size="10" font-family="system-ui,sans-serif">ZC独有: Bash AST防御</text>
+    <text x="940" y="792" text-anchor="middle" fill="#34d399" font-size="14" font-weight="700" font-family="'SF Mono',Monaco,monospace" filter="url(#glowGreen2)">6层 · 5,091行</text>
+
+    <text x="550" y="815" text-anchor="middle" fill="#52525b" font-size="10" font-family="system-ui,sans-serif">CC权限管道规模大 · ZC 18步管线+Bash AST解析纵深防御更深</text>
+  </svg>
+  </div>
+
+  <!-- MCP + Memory side by side -->
+  <div class="grid-2col" style="margin-top:24px">
+    <div class="card">
+      <div class="subsection-title">MCP 综合评估</div>
+      <table class="data-table" style="margin-bottom:0">
+        <thead><tr><th>维度</th><th style="text-align:center">CC</th><th style="text-align:center">ZC</th></tr></thead>
+        <tbody>
+          <tr><td>传输协议</td><td style="text-align:center;color:var(--cc-light);font-size:12px">5种<br>(Stdio/SSE/HTTP/<br>InProcess/SdkControl)</td><td style="text-align:center;color:var(--zc-light);font-size:12px">P1标准实现4种<br>(Stdio/SSE/HTTP/<br>WebSocket)，枚举定义8种</td></tr>
+          <tr><td>方向性</td><td style="text-align:center;color:var(--cc-light);font-size:12px">Client+Server双向</td><td style="text-align:center;color:var(--zc-light);font-size:12px">Client+Server双向</td></tr>
+          <tr><td>健康检查</td><td style="text-align:center;font-size:12px;color:var(--text-muted)">无</td><td style="text-align:center;color:var(--zc-light);font-size:12px">SseHealthChecker(92行)</td></tr>
+          <tr><td>审批服务</td><td style="text-align:center;font-size:12px;color:var(--text-muted)">无</td><td style="text-align:center;color:var(--zc-light);font-size:12px">McpApprovalService(143行)</td></tr>
+          <tr><td>客户端规模</td><td style="text-align:center;color:var(--cc-light);font-size:12px">client.ts(3348行)</td><td style="text-align:center;color:var(--zc-light);font-size:12px">McpClientManager(586行)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="subsection-title">记忆系统特色</div>
+      <table class="data-table" style="margin-bottom:0">
+        <thead><tr><th>特色能力</th><th style="text-align:center">CC</th><th style="text-align:center">ZC</th></tr></thead>
+        <tbody>
+          <tr><td>自动记忆整理(Dream)</td><td style="text-align:center;color:var(--cc-light)">✅</td><td style="text-align:center;color:var(--text-muted)">—</td></tr>
+          <tr><td>LLM语义检索</td><td style="text-align:center;color:var(--cc-light)">✅</td><td style="text-align:center;color:var(--text-muted)">—</td></tr>
+          <tr><td>BM25关键词检索</td><td style="text-align:center;color:var(--text-muted)">—</td><td style="text-align:center;color:var(--zc-light)">✅</td></tr>
+          <tr><td>LLM重排序优化</td><td style="text-align:center;color:var(--text-muted)">—</td><td style="text-align:center;color:var(--zc-light)">✅</td></tr>
+          <tr><td>Agent记忆快照</td><td style="text-align:center;color:var(--text-muted)">—</td><td style="text-align:center;color:var(--zc-light)">✅</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 5: 工具生态完整清单
+     ═══════════════════════════════════════════════════════════ -->
+<section class="section" id="sec-tools">
+<div class="container">
+  <h2 class="section-title">工具生态系统 · 完整对照</h2>
+  <p class="section-subtitle">CC 40 (+2 flagged) 工具 vs ZC 44工具 · 双方基本对等 · CC独有4个 · ZC独有5个</p>
+  <div id="toolGrid" class="tool-grid"></div>
+
+  <div class="grid-2col" style="margin-top:24px">
+    <div class="card">
+      <div style="font-size:13px;font-weight:600;color:var(--cc-light);margin-bottom:8px">CC 独有工具 (4个)</div>
+      <div style="font-size:13px;color:var(--text-secondary);line-height:1.8">
+        <div>TeamCreate <span style="color:var(--text-muted)">(359行)</span> — 动态创建Agent团队</div>
+        <div>TeamDelete <span style="color:var(--text-muted)">(175行)</span> — 删除Agent团队</div>
+        <div>RemoteTrigger <span style="color:var(--text-muted)">(192行)</span> — 远程触发执行</div>
+        <div>SkillTool <span style="color:var(--text-muted)">(1108行)</span> — Skill即工具调用</div>
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-size:13px;font-weight:600;color:var(--zc-light);margin-bottom:8px">ZC 独有工具 (5个)</div>
+      <div style="font-size:13px;color:var(--text-secondary);line-height:1.8">
+        <div>Monitor <span style="color:var(--text-muted)">(229行)</span> — 系统监控</div>
+        <div>TerminalCapture <span style="color:var(--text-muted)">(39行)</span> — 终端输出捕获</div>
+        <div>CtxInspect <span style="color:var(--text-muted)">(40行)</span> — 上下文检查</div>
+        <div>Git <span style="color:var(--text-muted)">(176行)</span> — Git操作封装</div>
+        <div>Snip <span style="color:var(--text-muted)">(79行)</span> — 代码片段管理</div>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
+        注：WebBrowser 和 VerifyPlanExecution 在CC代码库中也有实现，分别被 WEB_BROWSER_TOOL 和 VERIFY_PLAN_EXECUTION_TOOL feature flag保护。CC的TeamCreate/TeamDelete作为独立Tool暴露，ZC通过TeamManager内部API（createTeam/destroyTeam方法）实现等价能力。
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 6: 适用场景
+     ═══════════════════════════════════════════════════════════ -->
+<section class="section" id="sec-scenarios">
+<div class="container">
+  <h2 class="section-title">适用场景推荐</h2>
+  <p class="section-subtitle">基于功能特性和架构差异的场景化建议</p>
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="scenario-row" style="background:var(--bg-surface)">
+      <div style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted)">场景</div>
+      <div style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted)">推荐</div>
+      <div style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted)">原因</div>
+    </div>
+    <div class="scenario-row"><div class="s-name">个人开发者日常编码</div><div class="s-pick" style="color:var(--cc-light)">CC</div><div class="s-reason">轻量即装即用，终端高效</div></div>
+    <div class="scenario-row"><div class="s-name">团队协作开发</div><div class="s-pick" style="color:var(--zc-light)">ZC</div><div class="s-reason">Web界面+多Agent工作流</div></div>
+    <div class="scenario-row"><div class="s-name">企业安全合规环境</div><div class="s-pick" style="color:var(--zc-light)">ZC</div><div class="s-reason">18步权限+沙箱+审计日志</div></div>
+    <div class="scenario-row"><div class="s-name">远程服务器开发</div><div class="s-pick" style="color:var(--neutral)">均可</div><div class="s-reason">CC有Bridge，ZC天然Web</div></div>
+    <div class="scenario-row"><div class="s-name">代码审查与分析</div><div class="s-pick" style="color:var(--zc-light)">ZC</div><div class="s-reason">Python分析服务+14个可视化组件</div></div>
+    <div class="scenario-row"><div class="s-name">快速原型开发</div><div class="s-pick" style="color:var(--cc-light)">CC</div><div class="s-reason">零部署成本，即开即用</div></div>
+    <div class="scenario-row"><div class="s-name">私有化部署</div><div class="s-pick" style="color:var(--zc-light)">ZC</div><div class="s-reason">Docker完整方案+本地Ollama模型</div></div>
+    <div class="scenario-row"><div class="s-name">Windows开发环境</div><div class="s-pick" style="color:var(--cc-light)">CC</div><div class="s-reason">PowerShell深度集成(8959行)</div></div>
+    <div class="scenario-row"><div class="s-name">教学与演示</div><div class="s-pick" style="color:var(--zc-light)">ZC</div><div class="s-reason">可视化组件直观展示</div></div>
+    <div class="scenario-row"><div class="s-name">CI/CD集成</div><div class="s-pick" style="color:var(--cc-light)">CC</div><div class="s-reason">CLI原生，脚本友好</div></div>
+    <div class="scenario-row"><div class="s-name">大规模代码库</div><div class="s-pick" style="color:var(--cc-light)">CC</div><div class="s-reason">主循环无硬性轮次上限+多层成熟压缩</div></div>
+    <div class="scenario-row" style="border-bottom:none"><div class="s-name">多模型切换需求</div><div class="s-pick" style="color:var(--zc-light)">ZC</div><div class="s-reason">7+Provider+本地模型+密钥轮换</div></div>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 7: 11章逐章详情（折叠面板）
+     ═══════════════════════════════════════════════════════════ -->
+<section class="section" id="sec-chapters">
+<div class="container">
+  <h2 class="section-title">11 章逐章深度对比</h2>
+  <p class="section-subtitle">点击展开查看各章详细数据 · 基于CC 1,884文件 + ZC 660文件全量分析</p>
+  <div class="accordion" id="chapterAccordion"></div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 8: 多端支持 + 可视化组件 + 前端
+     ═══════════════════════════════════════════════════════════ -->
+<section class="section">
+<div class="container">
+  <h2 class="section-title">界面与多端支持</h2>
+  <p class="section-subtitle">CC=终端原生极致体验 · ZC=Web可视化丰富 · 两种不同设计哲学的前端呈现</p>
+
+  <div class="grid-2col" style="margin-bottom:24px">
+    <!-- Multi-platform -->
+    <div class="card">
+      <div class="subsection-title">多端支持矩阵</div>
+      <table class="data-table" style="margin-bottom:0">
+        <thead><tr><th>平台</th><th style="text-align:center">CC</th><th style="text-align:center">ZC</th></tr></thead>
+        <tbody>
+          <tr><td>macOS 终端</td><td style="text-align:center;color:var(--cc-light)">✅ 原生</td><td style="text-align:center;color:var(--text-muted)">—</td></tr>
+          <tr><td>Linux 终端</td><td style="text-align:center;color:var(--cc-light)">✅ 原生</td><td style="text-align:center;color:var(--text-muted)">—</td></tr>
+          <tr><td>Windows 终端</td><td style="text-align:center;color:var(--cc-light)">✅ PowerShell</td><td style="text-align:center;color:var(--text-muted)">—</td></tr>
+          <tr><td>Web 浏览器</td><td style="text-align:center;color:var(--text-muted)">—</td><td style="text-align:center;color:var(--zc-light)">✅ 原生</td></tr>
+          <tr><td>远程 SSH</td><td style="text-align:center;color:var(--cc-light)">✅ Bridge</td><td style="text-align:center;color:var(--zc-light)">✅ 天然</td></tr>
+          <tr><td>移动端</td><td style="text-align:center;color:var(--text-muted)">—</td><td style="text-align:center;color:var(--zc-light)">✅ 浏览器</td></tr>
+          <tr><td>Cloud IDE</td><td style="text-align:center;color:var(--cc-light)">✅ Bridge远程</td><td style="text-align:center;color:var(--zc-light)">✅ 天然Web</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Visualization components -->
+    <div class="card">
+      <div class="subsection-title">ZC 可视化组件清单 (14个)</div>
+      <div style="font-size:13px;color:var(--text-secondary);line-height:2">
+        <div style="display:flex;justify-content:space-between"><span>CodeComplexityTreemap</span><span style="color:var(--zc-light);font-family:monospace">663行</span></div>
+        <div style="display:flex;justify-content:space-between"><span>ChangeImpactGraph</span><span style="color:var(--zc-light);font-family:monospace">570行</span></div>
+        <div style="display:flex;justify-content:space-between"><span>APIContractViewer</span><span style="color:var(--zc-light);font-family:monospace">527行</span></div>
+        <div style="display:flex;justify-content:space-between"><span>APISequenceDiagram</span><span style="color:var(--zc-light);font-family:monospace">255行</span></div>
+        <div style="display:flex;justify-content:space-between"><span>SchemaViewer</span><span style="color:var(--zc-light);font-family:monospace">235行</span></div>
+        <div style="display:flex;justify-content:space-between"><span>GitTimeline</span><span style="color:var(--zc-light);font-family:monospace">369行</span></div>
+        <div style="display:flex;justify-content:space-between"><span>BlameView</span><span style="color:var(--zc-light);font-family:monospace">186行</span></div>
+        <div style="display:flex;justify-content:space-between"><span>MermaidBlock</span><span style="color:var(--zc-light);font-family:monospace">204行</span></div>
+        <div style="display:flex;justify-content:space-between"><span>AgentDAGChart</span><span style="color:var(--zc-light);font-family:monospace">383行</span></div>
+        <div style="display:flex;justify-content:space-between"><span>AgentDAGNode</span><span style="color:var(--zc-light);font-family:monospace">103行</span></div>
+        <div style="display:flex;justify-content:space-between"><span>ToolProgressBar</span><span style="color:var(--zc-light);font-family:monospace">99行</span></div>
+        <div style="display:flex;justify-content:space-between"><span>MiniLogViewer</span><span style="color:var(--zc-light);font-family:monospace">—</span></div>
+        <div style="display:flex;justify-content:space-between"><span>CodeDiagramGenerator</span><span style="color:var(--zc-light);font-family:monospace">—</span></div>
+        <div style="display:flex;justify-content:space-between"><span>CodePathTracer</span><span style="color:var(--zc-light);font-family:monospace">—</span></div>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
+        CC终端渲染无图表能力，依赖终端ANSI字符输出
+      </div>
+    </div>
+  </div>
+
+  <!-- Front-end stats -->
+  <div class="card">
+    <div class="subsection-title">前端组件与状态管理统计</div>
+    <div class="grid-4col">
+      <div>
+        <div style="font-size:24px;font-weight:700;color:var(--cc-light);font-family:monospace">488</div>
+        <div style="font-size:12px;color:var(--text-muted)">CC前端文件</div>
+      </div>
+      <div>
+        <div style="font-size:24px;font-weight:700;color:var(--zc-light);font-family:monospace">137</div>
+        <div style="font-size:12px;color:var(--text-muted)">ZC前端文件</div>
+      </div>
+      <div>
+        <div style="font-size:24px;font-weight:700;color:var(--cc-light);font-family:monospace">570</div>
+        <div style="font-size:12px;color:var(--text-muted)">CC Store行数</div>
+      </div>
+      <div>
+        <div style="font-size:24px;font-weight:700;color:var(--zc-light);font-family:monospace">~3,278</div>
+        <div style="font-size:12px;color:var(--text-muted)">ZC 27个Store（含索引文件）</div>
+      </div>
+    </div>
+    <div class="grid-2col" style="margin-top:16px;font-size:13px;color:var(--text-secondary)">
+      <div><span style="color:var(--cc-light);font-weight:600">CC:</span> 自建Ink兼容终端UI框架 React→Terminal ANSI渲染，键盘Vim模式，终端宽度自适应，389个components + 96个ink组件 + 3个screens = 107,365行</div>
+      <div><span style="color:var(--zc-light);font-weight:600">ZC:</span> React→DOM渲染，键盘+鼠标交互，浏览器响应式布局，ToolCallBlock(231行)/SystemMessage(217行)/PermissionDialog(261行)</div>
+    </div>
+  </div>
+
+  <!-- SVG 4: 前端界面对比 -->
+  <div style="margin:24px 0">
+  <svg width="100%" viewBox="0 0 1100 880" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="前端界面对比：Claude Code终端TUI vs ZhikunCode Web SPA">
+    <defs>
+      <filter id="glowBlue4"><feGaussianBlur stdDeviation="3" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <filter id="glowGreen4"><feGaussianBlur stdDeviation="3" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <linearGradient id="bgGrad4" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0d0f1a"/><stop offset="100%" stop-color="#09090b"/></linearGradient>
+    </defs>
+    <rect width="1100" height="880" rx="12" fill="url(#bgGrad4)"/>
+    <rect width="1100" height="880" rx="12" fill="none" stroke="#1a1a2e" stroke-width="1"/>
+    <!-- Title -->
+    <text x="550" y="36" text-anchor="middle" fill="#f4f4f5" font-size="18" font-weight="700" font-family="system-ui,-apple-system,sans-serif">前端界面对比</text>
+    <line x1="200" y1="48" x2="900" y2="48" stroke="#1a1a2e" stroke-width="1"/>
+
+    <!-- === CC Side (Left) — 终端 TUI === -->
+    <text x="260" y="76" text-anchor="middle" fill="#3b82f6" font-size="15" font-weight="600" font-family="system-ui,sans-serif" filter="url(#glowBlue4)">Claude Code</text>
+    <text x="260" y="96" text-anchor="middle" fill="#a1a1aa" font-size="11" font-family="system-ui,sans-serif">终端 TUI · Ink (React for CLI) · TypeScript 100%</text>
+
+    <!-- Terminal window frame -->
+    <rect x="40" y="112" width="480" height="440" rx="10" fill="#050508" stroke="#3b82f6" stroke-width="1.5"/>
+    <!-- Terminal title bar -->
+    <rect x="40" y="112" width="480" height="28" rx="10" fill="#111118"/>
+    <rect x="40" y="130" width="480" height="10" fill="#111118"/>
+    <circle cx="58" cy="126" r="5" fill="#ff5f56"/><circle cx="76" cy="126" r="5" fill="#ffbd2e"/><circle cx="94" cy="126" r="5" fill="#27c93f"/>
+    <text x="280" y="130" text-anchor="middle" fill="#52525b" font-size="10" font-family="'SF Mono',Monaco,monospace">Terminal — claude</text>
+
+    <!-- Ink framework layer -->
+    <rect x="60" y="152" width="440" height="38" rx="6" fill="#172554" stroke="#3b82f6" stroke-width="1.2" filter="url(#glowBlue4)"/>
+    <text x="280" y="170" text-anchor="middle" fill="#60a5fa" font-size="13" font-weight="700" font-family="'SF Mono',Monaco,monospace">Ink 框架引擎</text>
+    <text x="280" y="184" text-anchor="middle" fill="#a1a1aa" font-size="9" font-family="'SF Mono',Monaco,monospace">ink/ · 19,842行 · React for CLI</text>
+
+    <!-- Components layer -->
+    <rect x="60" y="198" width="440" height="44" rx="6" fill="#0f1220" stroke="#3b82f6" stroke-width="1"/>
+    <text x="280" y="216" text-anchor="middle" fill="#60a5fa" font-size="12" font-weight="600" font-family="'SF Mono',Monaco,monospace">components/</text>
+    <text x="280" y="232" text-anchor="middle" fill="#a1a1aa" font-size="10" font-family="'SF Mono',Monaco,monospace">81,546行 · 389文件 · 30个子目录</text>
+
+    <!-- Hooks layer -->
+    <rect x="60" y="250" width="215" height="36" rx="6" fill="#0f1220" stroke="#3b82f6" stroke-width="0.8"/>
+    <text x="167" y="266" text-anchor="middle" fill="#60a5fa" font-size="11" font-weight="600" font-family="'SF Mono',Monaco,monospace">hooks/</text>
+    <text x="167" y="280" text-anchor="middle" fill="#a1a1aa" font-size="9" font-family="'SF Mono',Monaco,monospace">19,204行 · 104文件</text>
+
+    <!-- Screens layer -->
+    <rect x="285" y="250" width="215" height="36" rx="6" fill="#0f1220" stroke="#3b82f6" stroke-width="0.8"/>
+    <text x="392" y="266" text-anchor="middle" fill="#60a5fa" font-size="11" font-weight="600" font-family="'SF Mono',Monaco,monospace">screens/</text>
+    <text x="392" y="280" text-anchor="middle" fill="#a1a1aa" font-size="9" font-family="'SF Mono',Monaco,monospace">5,977行</text>
+
+    <!-- Design system -->
+    <rect x="60" y="294" width="440" height="24" rx="4" fill="#0a0d1a" stroke="#3b82f6" stroke-width="0.6"/>
+    <text x="280" y="310" text-anchor="middle" fill="#52525b" font-size="10" font-family="'SF Mono',Monaco,monospace">design-system/ · 16文件 · 2,238行 · Markdown终端渲染</text>
+
+    <!-- 6 Business Domains -->
+    <text x="280" y="340" text-anchor="middle" fill="#60a5fa" font-size="11" font-weight="600" font-family="system-ui,sans-serif">6大业务域</text>
+
+    <rect x="60" y="350" width="140" height="40" rx="6" fill="#0f1220" stroke="#3b82f6" stroke-width="0.8"/>
+    <text x="130" y="366" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="600" font-family="'SF Mono',Monaco,monospace">permissions/</text>
+    <text x="130" y="382" text-anchor="middle" fill="#a1a1aa" font-size="9" font-family="'SF Mono',Monaco,monospace">51文件 · 12,155行</text>
+
+    <rect x="210" y="350" width="130" height="40" rx="6" fill="#0f1220" stroke="#3b82f6" stroke-width="0.8"/>
+    <text x="275" y="366" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="600" font-family="'SF Mono',Monaco,monospace">messages/</text>
+    <text x="275" y="382" text-anchor="middle" fill="#a1a1aa" font-size="9" font-family="'SF Mono',Monaco,monospace">41文件 · 6,016行</text>
+
+    <rect x="350" y="350" width="150" height="40" rx="6" fill="#0f1220" stroke="#3b82f6" stroke-width="0.8"/>
+    <text x="425" y="366" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="600" font-family="'SF Mono',Monaco,monospace">PromptInput/</text>
+    <text x="425" y="382" text-anchor="middle" fill="#a1a1aa" font-size="9" font-family="'SF Mono',Monaco,monospace">21文件 · 5,161行</text>
+
+    <rect x="60" y="398" width="140" height="40" rx="6" fill="#0f1220" stroke="#3b82f6" stroke-width="0.8"/>
+    <text x="130" y="414" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="600" font-family="'SF Mono',Monaco,monospace">agents/</text>
+    <text x="130" y="430" text-anchor="middle" fill="#a1a1aa" font-size="9" font-family="'SF Mono',Monaco,monospace">26文件 · 4,524行</text>
+
+    <rect x="210" y="398" width="130" height="40" rx="6" fill="#0f1220" stroke="#3b82f6" stroke-width="0.8"/>
+    <text x="275" y="414" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="600" font-family="'SF Mono',Monaco,monospace">tasks/</text>
+    <text x="275" y="430" text-anchor="middle" fill="#a1a1aa" font-size="9" font-family="'SF Mono',Monaco,monospace">12文件 · 3,938行</text>
+
+    <rect x="350" y="398" width="150" height="40" rx="6" fill="#0f1220" stroke="#3b82f6" stroke-width="0.8"/>
+    <text x="425" y="414" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="600" font-family="'SF Mono',Monaco,monospace">mcp/</text>
+    <text x="425" y="430" text-anchor="middle" fill="#a1a1aa" font-size="9" font-family="'SF Mono',Monaco,monospace">13文件 · 3,920行</text>
+
+    <!-- Terminal cursor line -->
+    <text x="68" y="468" fill="#27c93f" font-size="11" font-family="'SF Mono',Monaco,monospace">❯ claude --model sonnet</text>
+    <rect x="280" y="458" width="8" height="14" fill="#27c93f" opacity="0.8"><animate attributeName="opacity" values="0.8;0.2;0.8" dur="1.2s" repeatCount="indefinite"/></rect>
+
+    <!-- Interaction label -->
+    <text x="68" y="492" fill="#52525b" font-size="10" font-family="system-ui,sans-serif">渲染：文本流式输出 · Markdown终端渲染</text>
+    <text x="68" y="508" fill="#52525b" font-size="10" font-family="system-ui,sans-serif">交互：键盘快捷键驱动 · Vim绑定 · 无鼠标操作</text>
+
+    <!-- CC strategy label -->
+    <rect x="100" y="525" width="320" height="30" rx="8" fill="#172554" stroke="#3b82f6" stroke-width="1.5"/>
+    <text x="260" y="545" text-anchor="middle" fill="#60a5fa" font-size="12" font-weight="700" font-family="system-ui,sans-serif">终端原生 · 键盘驱动 · 488文件 · 107,365行</text>
+
+    <!-- Divider -->
+    <line x1="540" y1="70" x2="540" y2="700" stroke="#1a1a2e" stroke-width="1" stroke-dasharray="6 4"/>
+
+    <!-- === ZC Side (Right) — Web SPA === -->
+    <text x="820" y="76" text-anchor="middle" fill="#10b981" font-size="15" font-weight="600" font-family="system-ui,sans-serif" filter="url(#glowGreen4)">ZhikunCode</text>
+    <text x="820" y="96" text-anchor="middle" fill="#a1a1aa" font-size="11" font-family="system-ui,sans-serif">Web SPA · React 18.3 + Vite 5.4 + Zustand 4.5</text>
+
+    <!-- Browser window frame -->
+    <rect x="580" y="112" width="480" height="440" rx="10" fill="#050508" stroke="#10b981" stroke-width="1.5"/>
+    <!-- Browser title bar -->
+    <rect x="580" y="112" width="480" height="28" rx="10" fill="#111118"/>
+    <rect x="580" y="130" width="480" height="10" fill="#111118"/>
+    <circle cx="598" cy="126" r="5" fill="#ff5f56"/><circle cx="616" cy="126" r="5" fill="#ffbd2e"/><circle cx="634" cy="126" r="5" fill="#27c93f"/>
+    <!-- Address bar -->
+    <rect x="660" y="118" width="320" height="16" rx="4" fill="#0a0c15"/>
+    <text x="820" y="130" text-anchor="middle" fill="#52525b" font-size="9" font-family="'SF Mono',Monaco,monospace">localhost:5173/zhikuncode</text>
+
+    <!-- React framework layer -->
+    <rect x="600" y="152" width="440" height="38" rx="6" fill="#134e2e" stroke="#10b981" stroke-width="1.2" filter="url(#glowGreen4)"/>
+    <text x="820" y="170" text-anchor="middle" fill="#34d399" font-size="13" font-weight="700" font-family="'SF Mono',Monaco,monospace">React 18.3 + Vite 5.4</text>
+    <text x="820" y="184" text-anchor="middle" fill="#a1a1aa" font-size="9" font-family="'SF Mono',Monaco,monospace">19,543行 · 137文件 · Tailwind CSS 3.4</text>
+
+    <!-- Zustand state management -->
+    <rect x="600" y="198" width="440" height="44" rx="6" fill="#0f2018" stroke="#10b981" stroke-width="1"/>
+    <text x="820" y="216" text-anchor="middle" fill="#34d399" font-size="12" font-weight="600" font-family="'SF Mono',Monaco,monospace">Zustand 状态管理</text>
+    <text x="820" y="232" text-anchor="middle" fill="#a1a1aa" font-size="10" font-family="'SF Mono',Monaco,monospace">25个 Store · ~3,278行 · 5大分类</text>
+
+    <!-- Store categories -->
+    <rect x="600" y="250" width="86" height="28" rx="4" fill="#0a1510" stroke="#10b981" stroke-width="0.6"/>
+    <text x="643" y="268" text-anchor="middle" fill="#34d399" font-size="9" font-family="'SF Mono',Monaco,monospace">对话Store</text>
+    <rect x="692" y="250" width="86" height="28" rx="4" fill="#0a1510" stroke="#10b981" stroke-width="0.6"/>
+    <text x="735" y="268" text-anchor="middle" fill="#34d399" font-size="9" font-family="'SF Mono',Monaco,monospace">Agent Store</text>
+    <rect x="784" y="250" width="86" height="28" rx="4" fill="#0a1510" stroke="#10b981" stroke-width="0.6"/>
+    <text x="827" y="268" text-anchor="middle" fill="#34d399" font-size="9" font-family="'SF Mono',Monaco,monospace">编辑器Store</text>
+    <rect x="876" y="250" width="72" height="28" rx="4" fill="#0a1510" stroke="#10b981" stroke-width="0.6"/>
+    <text x="912" y="268" text-anchor="middle" fill="#34d399" font-size="9" font-family="'SF Mono',Monaco,monospace">工具Store</text>
+    <rect x="954" y="250" width="72" height="28" rx="4" fill="#0a1510" stroke="#10b981" stroke-width="0.6"/>
+    <text x="990" y="268" text-anchor="middle" fill="#34d399" font-size="9" font-family="'SF Mono',Monaco,monospace">系统Store</text>
+
+    <!-- UI Toolchain -->
+    <rect x="600" y="286" width="215" height="36" rx="6" fill="#0f2018" stroke="#10b981" stroke-width="0.8"/>
+    <text x="707" y="302" text-anchor="middle" fill="#34d399" font-size="11" font-weight="600" font-family="'SF Mono',Monaco,monospace">Monaco Editor 0.52</text>
+    <text x="707" y="316" text-anchor="middle" fill="#a1a1aa" font-size="9" font-family="system-ui,sans-serif">代码编辑器</text>
+
+    <rect x="825" y="286" width="215" height="36" rx="6" fill="#0f2018" stroke="#10b981" stroke-width="0.8"/>
+    <text x="932" y="302" text-anchor="middle" fill="#34d399" font-size="11" font-weight="600" font-family="'SF Mono',Monaco,monospace">xterm.js 5.5</text>
+    <text x="932" y="316" text-anchor="middle" fill="#a1a1aa" font-size="9" font-family="system-ui,sans-serif">终端模拟器</text>
+
+    <!-- 14 Visualization Components -->
+    <text x="820" y="345" text-anchor="middle" fill="#34d399" font-size="11" font-weight="600" font-family="system-ui,sans-serif">14个可视化组件</text>
+
+    <rect x="600" y="355" width="140" height="36" rx="6" fill="#0f2018" stroke="#10b981" stroke-width="0.8"/>
+    <text x="670" y="370" text-anchor="middle" fill="#34d399" font-size="9" font-weight="600" font-family="'SF Mono',Monaco,monospace">ComplexityTreemap</text>
+    <text x="670" y="384" text-anchor="middle" fill="#a1a1aa" font-size="8" font-family="system-ui,sans-serif">复杂度热力图 · 663行</text>
+
+    <rect x="748" y="355" width="140" height="36" rx="6" fill="#0f2018" stroke="#10b981" stroke-width="0.8"/>
+    <text x="818" y="370" text-anchor="middle" fill="#34d399" font-size="9" font-weight="600" font-family="'SF Mono',Monaco,monospace">ChangeImpactGraph</text>
+    <text x="818" y="384" text-anchor="middle" fill="#a1a1aa" font-size="8" font-family="system-ui,sans-serif">变更影响图 · 570行</text>
+
+    <rect x="896" y="355" width="140" height="36" rx="6" fill="#0f2018" stroke="#10b981" stroke-width="0.8"/>
+    <text x="966" y="370" text-anchor="middle" fill="#34d399" font-size="9" font-weight="600" font-family="'SF Mono',Monaco,monospace">APISequenceDiagram</text>
+    <text x="966" y="384" text-anchor="middle" fill="#a1a1aa" font-size="8" font-family="system-ui,sans-serif">API时序图 · 255行</text>
+
+    <rect x="600" y="398" width="110" height="36" rx="6" fill="#0f2018" stroke="#10b981" stroke-width="0.8"/>
+    <text x="655" y="413" text-anchor="middle" fill="#34d399" font-size="9" font-weight="600" font-family="'SF Mono',Monaco,monospace">GitTimeline</text>
+    <text x="655" y="427" text-anchor="middle" fill="#a1a1aa" font-size="8" font-family="system-ui,sans-serif">Git历史 · 369行</text>
+
+    <rect x="718" y="398" width="110" height="36" rx="6" fill="#0f2018" stroke="#10b981" stroke-width="0.8"/>
+    <text x="773" y="413" text-anchor="middle" fill="#34d399" font-size="9" font-weight="600" font-family="'SF Mono',Monaco,monospace">AgentDAGChart</text>
+    <text x="773" y="427" text-anchor="middle" fill="#a1a1aa" font-size="8" font-family="system-ui,sans-serif">Agent DAG · 383行</text>
+
+    <rect x="836" y="398" width="110" height="36" rx="6" fill="#0f2018" stroke="#10b981" stroke-width="0.8"/>
+    <text x="891" y="413" text-anchor="middle" fill="#34d399" font-size="9" font-weight="600" font-family="'SF Mono',Monaco,monospace">BlameView</text>
+    <text x="891" y="427" text-anchor="middle" fill="#a1a1aa" font-size="8" font-family="system-ui,sans-serif">186行</text>
+
+    <rect x="954" y="398" width="80" height="36" rx="6" fill="#0f2018" stroke="#10b981" stroke-width="0.6"/>
+    <text x="994" y="413" text-anchor="middle" fill="#34d399" font-size="9" font-family="'SF Mono',Monaco,monospace">+8 更多</text>
+    <text x="994" y="427" text-anchor="middle" fill="#52525b" font-size="8" font-family="system-ui,sans-serif">共14个</text>
+
+    <!-- Communication -->
+    <rect x="600" y="444" width="440" height="28" rx="4" fill="#0a1510" stroke="#10b981" stroke-width="0.6"/>
+    <text x="820" y="463" text-anchor="middle" fill="#a1a1aa" font-size="10" font-family="'SF Mono',Monaco,monospace">dispatch.ts(437行) + stompClient.ts(358行) · WebSocket实时通信</text>
+
+    <!-- Interaction label -->
+    <text x="608" y="496" fill="#52525b" font-size="10" font-family="system-ui,sans-serif">渲染：浏览器 DOM · Monaco 代码编辑 · 14个图表组件</text>
+    <text x="608" y="512" fill="#52525b" font-size="10" font-family="system-ui,sans-serif">交互：鼠标+键盘 · 图形化界面 · 拖拽操作</text>
+
+    <!-- ZC strategy label -->
+    <rect x="660" y="525" width="320" height="30" rx="8" fill="#134e2e" stroke="#10b981" stroke-width="1.5"/>
+    <text x="820" y="545" text-anchor="middle" fill="#34d399" font-size="12" font-weight="700" font-family="system-ui,sans-serif">Web SPA · 可视化丰富 · 137文件 · 19,543行</text>
+
+    <!-- === Bottom Comparison Bar === -->
+    <rect x="40" y="580" width="1020" height="280" rx="10" fill="#0a0c15" stroke="#1a1a2e" stroke-width="1"/>
+    <text x="550" y="605" text-anchor="middle" fill="#f4f4f5" font-size="13" font-weight="700" font-family="system-ui,sans-serif">核心指标对比</text>
+
+    <!-- Column headers -->
+    <text x="250" y="628" text-anchor="middle" fill="#a1a1aa" font-size="10" font-weight="600" font-family="system-ui,sans-serif">指标</text>
+    <text x="480" y="628" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="600" font-family="system-ui,sans-serif">Claude Code</text>
+    <text x="730" y="628" text-anchor="middle" fill="#34d399" font-size="10" font-weight="600" font-family="system-ui,sans-serif">ZhikunCode</text>
+    <line x1="80" y1="634" x2="1020" y2="634" stroke="#1a1a2e" stroke-width="0.5"/>
+
+    <!-- Row 1 -->
+    <text x="250" y="654" text-anchor="middle" fill="#a1a1aa" font-size="11" font-family="system-ui,sans-serif">前端总行数</text>
+    <text x="480" y="654" text-anchor="middle" fill="#60a5fa" font-size="12" font-weight="600" font-family="'SF Mono',Monaco,monospace">107,365行 · 488文件</text>
+    <text x="730" y="654" text-anchor="middle" fill="#34d399" font-size="12" font-weight="600" font-family="'SF Mono',Monaco,monospace">19,543行 · 137文件</text>
+
+    <!-- Row 2 -->
+    <text x="250" y="676" text-anchor="middle" fill="#a1a1aa" font-size="11" font-family="system-ui,sans-serif">组件数量</text>
+    <text x="480" y="676" text-anchor="middle" fill="#60a5fa" font-size="12" font-weight="600" font-family="'SF Mono',Monaco,monospace">389 components + 96 ink</text>
+    <text x="730" y="676" text-anchor="middle" fill="#34d399" font-size="12" font-weight="600" font-family="'SF Mono',Monaco,monospace">137文件（含14个可视化）</text>
+
+    <!-- Row 3 -->
+    <text x="250" y="698" text-anchor="middle" fill="#a1a1aa" font-size="11" font-family="system-ui,sans-serif">状态管理</text>
+    <text x="480" y="698" text-anchor="middle" fill="#60a5fa" font-size="12" font-weight="600" font-family="'SF Mono',Monaco,monospace">AppStateStore · 570行</text>
+    <text x="730" y="698" text-anchor="middle" fill="#34d399" font-size="12" font-weight="600" font-family="'SF Mono',Monaco,monospace">25个 Zustand Store · ~3,278行</text>
+
+    <!-- Row 4 -->
+    <text x="250" y="720" text-anchor="middle" fill="#a1a1aa" font-size="11" font-family="system-ui,sans-serif">可视化能力</text>
+    <text x="480" y="720" text-anchor="middle" fill="#60a5fa" font-size="12" font-weight="600" font-family="'SF Mono',Monaco,monospace">ANSI终端文本渲染</text>
+    <text x="730" y="720" text-anchor="middle" fill="#34d399" font-size="12" font-weight="600" font-family="'SF Mono',Monaco,monospace">14个专业图表组件</text>
+
+    <!-- Row 5 -->
+    <text x="250" y="742" text-anchor="middle" fill="#a1a1aa" font-size="11" font-family="system-ui,sans-serif">交互模式</text>
+    <text x="480" y="742" text-anchor="middle" fill="#60a5fa" font-size="12" font-weight="700" font-family="system-ui,sans-serif">键盘驱动 · Vim绑定</text>
+    <text x="730" y="742" text-anchor="middle" fill="#34d399" font-size="12" font-weight="700" font-family="system-ui,sans-serif">鼠标+键盘 · 拖拽操作</text>
+
+    <!-- Visual bars for code volume -->
+    <text x="250" y="775" text-anchor="middle" fill="#a1a1aa" font-size="10" font-weight="600" font-family="system-ui,sans-serif">前端代码量对比</text>
+    <rect x="350" y="765" width="350" height="12" rx="3" fill="#172554" stroke="#3b82f6" stroke-width="0.6"/>
+    <text x="710" y="775" fill="#60a5fa" font-size="9" font-family="'SF Mono',Monaco,monospace"> 107K</text>
+    <rect x="350" y="785" width="64" height="12" rx="3" fill="#134e2e" stroke="#10b981" stroke-width="0.6"/>
+    <text x="422" y="795" fill="#34d399" font-size="9" font-family="'SF Mono',Monaco,monospace"> 19.5K</text>
+    <text x="550" y="830" text-anchor="middle" fill="#52525b" font-size="10" font-family="system-ui,sans-serif">CC前端代码量约为ZC的5.5倍 — 但ZC拥有14个专业可视化组件 + 25个状态Store</text>
+    <text x="550" y="848" text-anchor="middle" fill="#52525b" font-size="10" font-family="system-ui,sans-serif">两种不同的设计哲学：终端极致体验 vs Web可视化丰富度</text>
+  </svg>
+  </div>
+
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FOOTER
+     ═══════════════════════════════════════════════════════════ -->
+<section class="section" id="sec-footer" style="padding-bottom:48px">
+<div class="container">
+  <h2 class="section-title">总结</h2>
+  <div class="footer-grid" style="margin-bottom:32px">
+    <div class="card">
+      <div style="font-size:14px;font-weight:600;color:var(--cc-light);margin-bottom:12px">Claude Code 核心优势</div>
+      <ul class="footer-list cc-list">
+        <li><strong>极致轻量部署</strong> — npm一条命令即装即用，零依赖门槛</li>
+        <li><strong>终端原生体验</strong> — Vim绑定、Ink.js TUI、终端快捷键深度优化</li>
+        <li><strong>Agent Loop深度</strong> — 1730行状态机+异步生成器混合模式，主循环无硬性轮次上限，长任务能力强</li>
+        <li><strong>Hook体系广度</strong> — 104文件(19204行)覆盖完整生命周期</li>
+        <li><strong>上下文压缩</strong> — 4层核心压缩体系（MainCompact/AutoCompact/MicroCompact/SessionMemoryCompact）+ 辅助配置文件</li>
+        <li><strong>Bridge远程</strong> — 31文件12613行实现完整远程开发，JWT鉴权</li>
+        <li><strong>PowerShell</strong> — 8959行Windows原生Shell深度集成</li>
+        <li><strong>代码积累</strong> — 512K行工程成熟度，极端场景边界覆盖</li>
+      </ul>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+        设计哲学：终端原生 · 单语言极致 · TypeScript 100% · npm一条命令 · 512K行庞大终端生态
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-size:14px;font-weight:600;color:var(--zc-light);margin-bottom:12px">ZhikunCode 核心优势</div>
+      <ul class="footer-list zc-list">
+        <li><strong>多语言架构</strong> — Java 76% + TS 18% + Python 6% 三端协作各取所长</li>
+        <li><strong>安全纵深</strong> — 18步权限管线（双方均7种模式，ZC管线更系统化）+完整Bash AST+Docker沙箱+审计日志</li>
+        <li><strong>LLM灵活性</strong> — 2个Provider实现类覆盖7种模型生态+本地Ollama+ApiKeyRotationManager</li>
+        <li><strong>代码分析</strong> — Python FastAPI服务提供调用图/复杂度/影响面分析</li>
+        <li><strong>可视化</strong> — 14个组件：TreeMap/Graph/Timeline/Mermaid/DAGChart/SequenceDiagram/CodeDiagramGenerator/CodePathTracer等</li>
+        <li><strong>多Agent工作流</strong> — 四阶段结构化流程+并发控制+策略工厂</li>
+        <li><strong>MCP双向</strong> — 既是Client又是Server，WebSocket传输独有</li>
+        <li><strong>企业级特性</strong> — PluginClassLoader沙箱+权限冒泡+审计追溯</li>
+      </ul>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+        设计哲学：多语言协作 · 全栈平台化 · 用不到CC 1/5代码量实现功能对等甚至超越
+      </div>
+    </div>
+  </div>
+
+  <!-- Final conclusion -->
+  <div class="card" style="margin-bottom:24px">
+    <div style="font-size:15px;font-weight:600;margin-bottom:12px;color:var(--text-primary)">最终结论</div>
+    <div style="font-size:14px;color:var(--text-secondary);line-height:1.8">
+      <p style="margin-bottom:8px"><strong style="color:var(--text-primary)">功能实现角度：</strong>双方在核心Agent能力（工具调用、多Agent、MCP、记忆）上已达功能对等，ZhikunCode用不到CC 1/5代码量实现同等功能覆盖，体现Java生态高抽象度和Spring Boot的工程效率。</p>
+      <p style="margin-bottom:8px"><strong style="color:var(--text-primary)">工程成熟度角度：</strong>CC拥有更深代码积累和更广的边界覆盖（104个Hook、488个前端文件），适合应对极端场景。ZC以更清晰的模块化设计（29个核心包、独立安全模块）保障未来可维护性。</p>
+      <p><strong style="color:var(--text-primary)">定位关系：</strong>两者不是竞品，而是面向不同用户画像和使用场景的互补选择。</p>
+    </div>
+  </div>
+
+  <!-- Analysis scope -->
+  <div class="card" style="margin-bottom:24px">
+    <div style="font-size:15px;font-weight:600;margin-bottom:12px;color:var(--text-primary)">分析范围与方法论</div>
+    <div class="grid-2col" style="font-size:13px;color:var(--text-secondary)">
+      <div>
+        <div style="font-weight:500;color:var(--text-primary);margin-bottom:4px">分析范围</div>
+        <div>CC: 1,884文件全量，逐目录递归分析+关键模块深读</div>
+        <div>ZC后端: 433 Java文件（main，不含test），逐包分析+类级别统计</div>
+        <div>ZC前端: 137 TS文件，组件分类+Store统计</div>
+        <div>ZC Python: 32文件，路由+服务模块分析</div>
+      </div>
+      <div>
+        <div style="font-weight:500;color:var(--text-primary);margin-bottom:4px">评分方法论</div>
+        <div>14维度基于功能完整性、实现深度、工程质量三个子项加权</div>
+        <div>每维度独立评估，不以总代码量作为评分依据</div>
+        <div>7分=行业平均水准，9分=同类最优</div>
+        <div>CC代码行含大量测试，实际核心逻辑占比约60%</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="credibility">
+    基于源码逐行分析 · 多轮交叉核查 · CC 1,884文件全量 + ZC 660文件全量分析<br>
+    <span style="font-size:11px;margin-top:4px;display:inline-block">
+      统计口径：代码行含注释空行 · 工具数=独立Tool接口实现 · 命令数=用户可触发命令单元 · 评分范围1-10 · Java天然比TS更verbose
+    </span>
+  </div>
+</div>
+</section>
+</main>
+
+<!-- ═══════════════════════════════════════════════════════════
+     JAVASCRIPT
+     ═══════════════════════════════════════════════════════════ -->
+<script>
+// ═══════ Data: 14 Dimensions ═══════
+const dimensions = [
+  { name: 'Agent Loop成熟度', cc: 9, zc: 8, note: 'CC状态机+异步生成器更灵活，ZC 8步循环更结构化' },
+  { name: '工具生态完整性', cc: 9, zc: 9, note: '双方工具数量对等(40 vs 47)，各有独有工具' },
+  { name: '多Agent协作', cc: 9, zc: 9, note: 'CC拥有完整多Agent框架(AgentTool支持Teammate/Team/Swarm/Coordinator)，ZC四阶段工作流更结构化' },
+  { name: '上下文管理', cc: 9, zc: 8, note: 'CC 4层核心压缩体系（MainCompact/AutoCompact/MicroCompact/SessionMemoryCompact）更成熟' },
+  { name: '安全权限体系', cc: 8, zc: 9.5, note: '双方均7种权限模式；ZC 18步权限管线+AST解析+Docker沙箱+审计日志四位一体' },
+  { name: 'LLM模型支持', cc: 7, zc: 9, note: 'ZC 2个Provider实现类覆盖7种模型生态+本地模型+密钥轮换' },
+  { name: 'MCP协议支持', cc: 9, zc: 9, note: '双方均支持MCP Server+Client; CC 12,310行(23文件) vs ZC 5,219行(main/源码，含测试则34文件/6,325行)' },
+  { name: '记忆系统', cc: 8, zc: 8, note: 'CC Dream自动整理+LLM语义检索 vs ZC BM25+LLM重排序' },
+  { name: '用户界面体验', cc: 8, zc: 8, note: 'CC终端极致体验 vs ZC Web可视化丰富' },
+  { name: '部署便捷性', cc: 10, zc: 6, note: 'CC npm一条命令 vs ZC需多运行时+Docker' },
+  { name: '扩展性(Hook)', cc: 9, zc: 9, note: 'CC 104文件19204行Hook覆盖广，ZC 12个事件类型+插件ClassLoader沙箱' },
+  { name: '代码分析能力', cc: 6, zc: 9, note: 'ZC Python分析服务(调用图/复杂度/影响面)' },
+  { name: '可视化能力', cc: 5, zc: 8, note: 'ZC 14个可视化组件，CC终端无图表能力' },
+  { name: '企业级特性', cc: 7, zc: 8, note: 'ZC审计日志+沙箱+权限冒泡更企业化' },
+];
+
+// ═══════ Score List (P1-6: string concat; P1-5: tooltip) ═══════
+const scoreList = document.getElementById('scoreList');
+let scoreHtml = '';
+dimensions.forEach((d, i) => {
+  const winner = d.cc > d.zc ? 'cc' : d.zc > d.cc ? 'zc' : 'tie';
+  const winLabel = winner === 'cc' ? 'CC' : winner === 'zc' ? 'ZC' : '—';
+  const pct = v => (v / 10 * 100);
+  scoreHtml += `
+    <div class="score-row reveal" data-index="${i}">
+      <span class="dim">${d.name}</span>
+      <span class="sc cc">${d.cc}</span>
+      <span class="sc zc">${d.zc}</span>
+      <div style="display:flex;gap:3px;align-items:center;padding:0 8px">
+        <div class="mini-bar" style="flex:1"><div class="mini-bar-fill cc" style="width:${pct(d.cc)}%"></div></div>
+        <div class="mini-bar" style="flex:1"><div class="mini-bar-fill zc" style="width:${pct(d.zc)}%"></div></div>
+      </div>
+      <span class="win win-tag-${winner}">${winLabel}</span>
+      <span class="score-tip" tabindex="0" role="button" aria-label="${d.name}说明" data-tip="${d.note}">ⓘ</span>
+    </div>`;
+});
+scoreList.innerHTML = scoreHtml;
+
+// ═══════ Radar Chart (P0-3: responsive; P2-7: resize) ═══════
+let highlightIndex = -1;
+function drawRadar() {
+  const canvas = document.getElementById('radarCanvas');
+  const container = canvas.parentElement;
+  const size = Math.min(400, container.clientWidth);
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = size * dpr;
+  canvas.height = size * dpr;
+  canvas.style.width = size + 'px';
+  canvas.style.height = size + 'px';
+  ctx.scale(dpr, dpr);
+
+  const cx = size / 2, cy = size / 2, maxR = size * 0.4, levels = 5;
+  const n = dimensions.length;
+  const angleStep = (Math.PI * 2) / n;
+  const startAngle = -Math.PI / 2;
+
+  // Grid rings
+  for (let l = 1; l <= levels; l++) {
+    const r = (l / levels) * maxR;
+    ctx.beginPath();
+    for (let i = 0; i <= n; i++) {
+      const a = startAngle + i * angleStep;
+      const x = cx + r * Math.cos(a);
+      const y = cy + r * Math.sin(a);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // Spokes and labels
+  dimensions.forEach((d, i) => {
+    const a = startAngle + i * angleStep;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + maxR * Math.cos(a), cy + maxR * Math.sin(a));
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    ctx.stroke();
+
+    const lx = cx + (maxR + 22) * Math.cos(a);
+    const ly = cy + (maxR + 22) * Math.sin(a);
+    ctx.fillStyle = '#71717a';
+    ctx.font = '10px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const short = d.name.length > 7 ? d.name.slice(0, 7) + '..' : d.name;
+    ctx.fillText(short, lx, ly);
+  });
+
+  // Draw polygon helper
+  function drawPoly(scores, fillColor, strokeColor) {
+    ctx.beginPath();
+    scores.forEach((s, i) => {
+      const a = startAngle + i * angleStep;
+      const r = (s / 10) * maxR;
+      const x = cx + r * Math.cos(a);
+      const y = cy + r * Math.sin(a);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    });
+    ctx.closePath();
+    ctx.fillStyle = fillColor;
+    ctx.fill();
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Dots
+    scores.forEach((s, i) => {
+      const a = startAngle + i * angleStep;
+      const r = (s / 10) * maxR;
+      ctx.beginPath();
+      ctx.arc(cx + r * Math.cos(a), cy + r * Math.sin(a), 3, 0, Math.PI * 2);
+      ctx.fillStyle = strokeColor;
+      ctx.fill();
+    });
+  }
+
+  drawPoly(dimensions.map(d => d.cc), 'rgba(59,130,246,0.12)', '#3b82f6');
+  drawPoly(dimensions.map(d => d.zc), 'rgba(16,185,129,0.12)', '#10b981');
+
+  // Highlight dimension on hover
+  if (highlightIndex >= 0) {
+    const hi = highlightIndex;
+    const a = startAngle + hi * angleStep;
+
+    // Highlight spoke
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + maxR * Math.cos(a), cy + maxR * Math.sin(a));
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Highlight CC point
+    const ccR = (dimensions[hi].cc / 10) * maxR;
+    ctx.beginPath();
+    ctx.arc(cx + ccR * Math.cos(a), cy + ccR * Math.sin(a), 6, 0, Math.PI * 2);
+    ctx.fillStyle = '#3b82f6';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(59,130,246,0.5)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Highlight ZC point
+    const zcR = (dimensions[hi].zc / 10) * maxR;
+    ctx.beginPath();
+    ctx.arc(cx + zcR * Math.cos(a), cy + zcR * Math.sin(a), 6, 0, Math.PI * 2);
+    ctx.fillStyle = '#10b981';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(16,185,129,0.5)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+}
+drawRadar();
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(drawRadar, 200);
+});
+
+// ═══════ Module Comparison (P1-6: string concat) ═══════
+const modules = [
+  { name: 'Agent Core', cc: 1730, zc: 1037 },
+  { name: 'Bash/Shell执行', cc: 12411, zc: 516 },
+  { name: '权限管线', cc: 0, zc: 752, ccLabel: '内置' },
+  { name: 'Bash安全模块', cc: 0, ccLabel: '含于BashTool', zc: 5091 },
+  { name: 'Hook系统', cc: 19204, zc: 1467 },
+  { name: '插件系统', cc: 0, zc: 1468, ccLabel: '1文件(未统计)' },
+  { name: 'MCP客户端', cc: 12310, zc: 5219 },  // ZC: main/源码30文件，含测试则34文件/6,325行
+  { name: '记忆系统', cc: 1736, zc: 1089 },
+  { name: 'Skill系统', cc: 5174, zc: 1169 },
+  { name: '前端组件', cc: 107365, zc: 19543 },
+  { name: 'LLM集成层', cc: 0, ccLabel: '未独立统计', zc: 2911 },
+  { name: 'Bridge远程', cc: 12613, zc: 0, zcLabel: '—' },
+  { name: '命令系统', cc: 755, zc: 3577 },
+  { name: '多Agent', cc: 6892, zc: 6375, zcLabel: '6,375 (27类:coordinator 3,733 + agent 2,642)' },
+];
+const modContainer = document.getElementById('moduleRows');
+const modMax = Math.max(...modules.map(m => Math.max(m.cc, m.zc)));
+let modHtml = '';
+modules.forEach(m => {
+  const ccW = (m.cc / modMax * 100).toFixed(1);
+  const zcW = (m.zc / modMax * 100).toFixed(1);
+  const ccWin = m.cc > m.zc;
+  const zcWin = m.zc > m.cc;
+  const ccDisplay = m.ccLabel || m.cc.toLocaleString();
+  const zcDisplay = m.zcLabel || m.zc.toLocaleString();
+  modHtml += `
+  <div class="mod-row reveal">
+    <span class="mod-name">${m.name}</span>
+    <div style="padding-right:8px"><div class="mod-bar" style="width:${ccW}%;background:linear-gradient(90deg,var(--cc-primary),var(--cc-light));height:6px;border-radius:3px;margin-left:auto"></div></div>
+    <span class="mod-val ${ccWin ? 'win-cc' : ''}">${ccDisplay}</span>
+    <div style="padding-right:8px"><div class="mod-bar" style="width:${zcW}%;background:linear-gradient(90deg,var(--zc-primary),var(--zc-light));height:6px;border-radius:3px"></div></div>
+    <span class="mod-val ${zcWin ? 'win-zc' : ''}">${zcDisplay}</span>
+  </div>`;
+});
+modContainer.innerHTML = modHtml;
+
+// ═══════ Tool Grid (P1-6: string concat) ═══════
+const tools = [
+  { name: 'FileRead', cc: '1602', zc: '219' },
+  { name: 'FileEdit', cc: '1812', zc: '281' },
+  { name: 'FileWrite', cc: '856', zc: '139' },
+  { name: 'NotebookEdit', cc: '587', zc: '313' },
+  { name: 'Bash', cc: '12411', zc: '516' },
+  { name: 'Grep', cc: '795', zc: '296' },
+  { name: 'Glob', cc: '267', zc: '148' },
+  { name: 'ToolSearch', cc: '593', zc: '200' },
+  { name: 'WebFetch', cc: '1131', zc: '355' },
+  { name: 'WebSearch', cc: '569', zc: '154' },
+  { name: 'AgentTool', cc: '1397', zc: '239' },
+  { name: 'SendMessage', cc: '997', zc: '189' },
+  { name: 'TaskCreate', cc: '195', zc: '277' },
+  { name: 'TaskGet', cc: '153', zc: '112' },
+  { name: 'TaskList', cc: '166', zc: '114' },
+  { name: 'TaskUpdate', cc: '484', zc: '119' },
+  { name: 'TaskStop', cc: '179', zc: '106' },
+  { name: 'TaskOutput', cc: '584', zc: '119' },
+  { name: 'TodoWrite', cc: '300', zc: '199' },
+  { name: 'EnterPlanMode', cc: '329', zc: '100' },
+  { name: 'ExitPlanMode', cc: '605', zc: '87' },
+  { name: 'MCPTool', cc: '1086', zc: '252' },
+  { name: 'AskUserQuestion', cc: '309', zc: '185' },
+  { name: 'Config', cc: '809', zc: '233' },
+  { name: 'LSP', cc: '2005', zc: '73' },
+  { name: 'Brief', cc: '610', zc: '141' },
+];
+const toolGrid = document.getElementById('toolGrid');
+let toolHtml = '';
+tools.forEach(t => {
+  toolHtml += `<div class="tool-item"><span class="t-name">${t.name}</span><span class="t-cc" style="color:var(--cc-light)">${t.cc}</span><span class="t-zc" style="color:var(--zc-light)">${t.zc}</span></div>`;
+});
+toolGrid.innerHTML = toolHtml;
+
+// ═══════ Chapter Accordion (P0-1: ARIA; P1-6: string concat) ═══════
+const chapters = [
+  { num: '01', title: '产品定位与技术架构', tag: '互补', tagClass: 'win-tag-tie', rows: [
+    ['产品形态', '终端 CLI + TUI (自建Ink兼容终端UI框架)', 'Web IDE (浏览器+后端服务)'],
+    ['核心定位', 'AI-native 终端编程助手', '全栈 AI 编程平台'],
+    ['目标用户', '终端重度用户、高级开发者', '全栈团队、企业级用户'],
+    ['主语言', 'TypeScript 100%', 'Java 76% + TS 18% + Python 6%'],
+    ['运行模型', '单进程 CLI，本地执行', '多进程微服务，C/S 架构'],
+    ['状态管理', 'AppStateStore (570行)', '27个 Zustand Store (~3,278行，含索引文件)'],
+    ['构建工具', 'Bun bundler', 'Maven + Vite + pip'],
+    ['数据库', '本地文件系统', '内嵌（Spring Boot默认）'],
+  ]},
+  { num: '02', title: '核心 AI Agent 能力', tag: 'CC↑', tagClass: 'win-tag-cc', rows: [
+    ['Agent入口', 'query.ts (1730行)', 'QueryEngine.java (1037行)'],
+    ['执行模式', '状态机+异步生成器混合模式', '8步循环引擎'],
+    ['最大轮次', 'maxTurns:200(subagent fork)，主查询循环无硬性轮次上限', '可配置(默认无硬限)'],
+    ['错误恢复', 'Fallback模型降级+ReactiveCompact恢复+MaxTokens恢复 三层机制', 'LlmErrorClassifier 分类重试'],
+    ['压缩层级', '4层核心（MainCompact/AutoCompact/MicroCompact/SessionMemoryCompact）+ 辅助配置', '5层(CompactService 1058行+ContextCascade 340行+ContextCollapseService 283行+TokenCounter 257行+TokenBudgetTracker 89行+MicroCompactService 183行)'],
+    ['协调器', 'coordinator/ (369行)', 'CoordinatorWorkflowEngine (435行)'],
+    ['SubAgent', 'AgentTool (1397行) 支持Teammate/Team/Swarm/Coordinator', 'SubAgentExecutor (918行)'],
+    ['Swarm模式', '分散实现(spawnMultiAgent.ts等)', 'SwarmService(463行)+SwarmWorkerRunner(329行)'],
+  ]},
+  { num: '03', title: '内置工具生态系统', tag: '平手 40(+2):47', tagClass: 'win-tag-tie', rows: [
+    ['工具总数', '40 (+2 flagged)', '47'],
+    ['CC独有(4个)', 'TeamCreate/TeamDelete/RemoteTrigger/SkillTool', '—'],
+    ['ZC独有(5个)', '—', 'Monitor/TerminalCapture/CtxInspect/Git/Snip'],
+    ['双方都有(flagged)', 'WebBrowser(⚠️ feature-flagged)/VerifyPlanExecution(⚠️ feature-flagged)', 'WebBrowser(296行)/VerifyPlanExecution(114行)'],
+    ['文件操作', '4个(FileRead 1602行等)', '4个(FileRead 219行等)'],
+    ['Shell执行', 'Bash 12411行 + PowerShell 8959行', 'Bash 516行'],
+    ['Agent协作', '6个工具(含TeamCreate等)', '2个工具(AgentTool+SendMessage)'],
+    ['任务管理', '7个工具', '7个工具(完全对等)'],
+    ['MCP工具', '4个(MCPTool 1086行等)', '4个(McpToolAdapter 252行等)'],
+  ]},
+  { num: '04', title: '安全与权限体系', tag: 'ZC↑', tagClass: 'win-tag-zc', rows: [
+    ['权限模式', '7种（5种外部: default/plan/bypass/dontAsk/acceptEdits + 2种内部: auto/bubble(feature-flagged)）', '7种(DEFAULT/PLAN/ACCEPT_EDITS/DONT_ASK/BYPASS_PERMISSIONS + 内部AUTO/BUBBLE)'],
+    ['管线实现', '规则+分类器+模式管道(9,409行, 20文件)', 'PermissionPipeline 18步管线(752行)'],
+    ['自动分类', '内置规则', 'AutoModeClassifier (591行)'],
+    ['Bash AST', '无', 'bash/parser 1116行 + BashLexer 824行'],
+    ['沙箱隔离', 'Worktree + OS进程限制', 'Docker容器(259行) + PluginClassLoader'],
+    ['安全总代码', '~12000行(含于BashTool)', '5,091行(独立模块)'],
+    ['审计日志', '无', 'SecurityAuditLogger + CommandBlacklistService(377行)'],
+    ['路径安全', '内置', 'PathSecurityService(433行)+SensitivePathRegistry(300行)'],
+  ]},
+  { num: '05', title: 'LLM 模型支持', tag: 'ZC↑', tagClass: 'win-tag-zc', rows: [
+    ['Provider数', '1(Anthropic, 4个endpoint部署通道)', '7(Anthropic/OpenAI/Qwen/DeepSeek/智谱GLM/Moonshot(预置注册)/Ollama)'],
+    ['本地模型', '无原生支持', '✅ Ollama Provider集成'],
+    ['密钥轮换', '无', 'ApiKeyRotationManager (150行)'],
+    ['Provider注册', '枚举 AuthType', 'LlmProviderRegistry (237行) 动态注册'],
+    ['模型注册', '内置模型列表', 'ModelRegistry (127行)'],
+    ['错误分类', 'Fallback模型降级+三层恢复', 'LlmErrorClassifier (126行)'],
+    ['思考预算', '内置控制', 'ThinkingBudgetCalculator (104行)'],
+    ['总代码量', '~2710行(含于多个模块)', '2911行(22文件)'],
+  ]},
+  { num: '06', title: '记忆与技能系统', tag: '平手', tagClass: 'win-tag-tie', rows: [
+    ['记忆实现', 'memdir/ 8文件 1736行', 'memdir/ 5文件 1089行'],
+    ['记忆分类', '4类: user/feedback/project/reference', 'MemoryCategory (48行) 可扩展分类'],
+    ['检索算法', 'LLM驱动语义选择', 'BM25关键词检索 + LLM重排序'],
+    ['自动整理', '✅ Dream 自动整理机制', '无'],
+    ['重排序', '无', 'MemoryRerankService (128行)'],
+    ['Agent记忆', '无', 'AgentMemorySnapshot (118行)'],
+    ['Skill规模', '20文件 4066行 + SkillTool 1108行', '7文件 1169行'],
+    ['Skill加载', '内置 + 用户自定义', '6级加载源 + SkillRegistry'],
+  ]},
+  { num: '07', title: 'MCP 协议支持', tag: '平手', tagClass: 'win-tag-tie', rows: [
+    ['传输协议', '5种(Stdio/SSE/HTTP/InProcess/SdkControl)', 'P1标准实现4种(Stdio/SSE/HTTP/WebSocket)，枚举定义8种'],
+    ['Server端能力', 'Client+Server双向', 'Client + Server双向'],
+    ['客户端管理', 'client.ts (3348行)', 'McpClientManager (586行)'],
+    ['OAuth认证', 'Token刷新+PKCE', 'OAuth+PKCE+AES-GCM加密(415行)'],
+    ['健康检查', '无', 'SseHealthChecker (92行)'],
+    ['审批服务', '无', 'McpApprovalService (143行)'],
+    ['Prompt适配', '无', 'McpPromptAdapter (193行)'],
+    ['总代码量', '12310行(23文件)', '5219行(30文件，main/源码；含测试则34文件/6,325行)'],
+  ]},
+  { num: '08', title: '用户界面与体验', tag: '平手', tagClass: 'win-tag-tie', rows: [
+    ['主界面', '终端 TUI (自建Ink兼容框架)', 'Web浏览器 SPA (React)'],
+    ['前端文件数', '488文件(components 389 + ink 96 + screens 3)', '137文件'],
+    ['前端代码量', '107,365行（components/ 389文件 81,546行 + ink/ 96文件 19,842行 + screens/ 3文件 5,977行）', '19,543行'],
+    ['状态管理', 'AppStateStore (570行)', '27个Zustand Store (~3,278行，含索引文件)'],
+    ['可视化', '终端渲染(无图表)', '14个可视化组件(CodeComplexityTreemap/ChangeImpactGraph/APIContractViewer/APISequenceDiagram/SchemaViewer/GitTimeline/BlameView/MermaidBlock/AgentDAGChart/AgentDAGNode/ToolProgressBar/MiniLogViewer/CodeDiagramGenerator/CodePathTracer)'],
+    ['命令总数', '86+', '45+'],
+    ['多端支持', 'macOS/Linux/Windows终端', 'Web/移动端/远程SSH'],
+    ['Git可视化', '无', 'GitTimeline(369)+BlameView(186)'],
+  ]},
+  { num: '09', title: '部署与运维', tag: 'CC↑', tagClass: 'win-tag-cc', rows: [
+    ['安装方式', 'npm install -g', 'Docker / 源码编译'],
+    ['依赖项', 'Node.js', 'Java 21 + Node.js + Python 3.11 + Docker'],
+    ['安装复杂度', '⭐(一条命令)', '⭐⭐⭐⭐(多运行时)'],
+    ['首次启动', '即时', '编译 + 启动多服务'],
+    ['容器化', '无', 'Dockerfile多阶段 + docker-compose编排'],
+    ['健康检查', '无', 'doctor命令 + SSE健康检查'],
+    ['日志审计', '无', 'SecurityAuditLogger'],
+    ['跨平台', 'macOS/Linux/Windows原生', 'Docker多架构 + 天然Web'],
+  ]},
+  { num: '10', title: 'Hook 与插件系统', tag: '平手', tagClass: 'win-tag-tie', rows: [
+    ['Hook规模', '104文件(19,204行)', '11文件(1,467行，后端5文件1,065行+前端6文件402行)'],
+    ['Hook类型', '丰富生命周期: 工具前后+消息+会话', '12个事件类型: PRE/POST_TOOL_USE、USER_PROMPT_SUBMIT、NOTIFICATION、STOP、SESSION_START/END、TASK_COMPLETED、TEAMMATE_IDLE、STOP_HOOKS、PRE/POST_COMPACT'],
+    ['执行方式', '内置执行引擎', 'HttpHookExecutor (HTTP回调)'],
+    ['插件框架', 'plugins/ (1文件, 1目录)', 'plugin/ (15文件, 1,468行)'],
+    ['隔离级别', 'OS进程级', 'ClassLoader沙箱 + 权限控制'],
+    ['插件上下文', '无', 'PluginContext 独立上下文'],
+    ['生命周期', '加载/卸载', '加载/初始化/执行/卸载'],
+    ['安全性', 'OS进程隔离', 'Java ClassLoader沙箱 + 权限控制'],
+  ]},
+  { num: '11', title: '综合评估与结论', tag: 'ZC 8.39 > CC 8.07', tagClass: 'win-tag-zc', rows: [
+    ['CC平均分', '8.07 (14维度)', '—'],
+    ['ZC平均分', '—', '8.39 (14维度)'],
+    ['CC胜出维度', 'Agent Loop / 上下文 / 部署', '3个维度'],
+    ['ZC胜出维度', '5个维度', '安全/LLM/分析/可视化/企业'],
+    ['平手维度', '6个维度', '工具生态 / 多Agent / MCP协议 / 记忆系统 / 界面体验 / 扩展性'],
+    ['CC设计哲学', '终端原生·单语言极致', 'TypeScript 100%'],
+    ['ZC设计哲学', 'Java 76%+TS 18%+Py 6%', '多语言协作·全栈平台化'],
+    ['核心结论', '面向个人开发者·终端重度用户', '面向团队·企业·多模型场景'],
+  ]},
+];
+
+const accContainer = document.getElementById('chapterAccordion');
+let accHtml = '';
+chapters.forEach(ch => {
+  const tableRows = ch.rows.map(r =>
+    `<tr><td style="color:var(--text-primary);font-weight:500;min-width:110px">${r[0]}</td><td style="color:var(--cc-light)">${r[1]}</td><td style="color:var(--zc-light)">${r[2]}</td></tr>`
+  ).join('');
+  accHtml += `
+  <div class="acc-item">
+    <div class="acc-header" onclick="toggleAcc(this)" role="button" tabindex="0" aria-expanded="false">
+      <span class="acc-num">${ch.num}</span>
+      <span class="acc-title">${ch.title}</span>
+      <span class="acc-tag ${ch.tagClass}">${ch.tag}</span>
+      <span class="acc-arrow">▼</span>
+    </div>
+    <div class="acc-body"><div class="acc-body-inner">
+      <table class="data-table">
+        <thead><tr><th style="min-width:110px">对比项</th><th style="color:var(--cc-light)">Claude Code</th><th style="color:var(--zc-light)">ZhikunCode</th></tr></thead>
+        <tbody>${tableRows}</tbody>
+      </table>
+      ${ch.num === '10' ? '<div style="font-size:12px;color:var(--text-muted);margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">注：CC的104个Hook文件（src/hooks/）主要是 <strong>React Hooks</strong>（UI侧状态管理），属于前端UI范畴；其事件生命周期钩子能力（工具前/后、消息、会话等）分散实现于其他模块。ZC的Hook系统则是独立的<strong>事件生命周期钩子</strong>（12种事件类型），两者Hook概念不同，不宜直接以文件数对比。</div>' : ''}
+    </div></div>
+  </div>`;
+});
+accContainer.innerHTML = accHtml;
+
+// ═══════ Accordion toggle (P0-1: ARIA) ═══════
+function toggleAcc(header) {
+  const item = header.parentElement;
+  item.classList.toggle('open');
+  const body = header.nextElementSibling;
+  const isOpen = item.classList.contains('open');
+  header.setAttribute('aria-expanded', isOpen);
+  body.style.maxHeight = isOpen ? body.scrollHeight + 'px' : null;
+}
+
+// ═══════ Keyboard support (P0-1) ═══════
+document.addEventListener('keydown', function(e) {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('acc-header')) {
+    e.preventDefault();
+    toggleAcc(e.target);
+  }
+});
+
+// ═══════ Reveal on scroll ═══════
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      obs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+// ═══════ Score-row hover → Radar highlight ═══════
+document.getElementById('scoreList').addEventListener('mouseover', function(e) {
+  const row = e.target.closest('.score-row');
+  if (row && row.dataset.index !== undefined) {
+    highlightIndex = parseInt(row.dataset.index);
+    drawRadar();
+  }
+});
+document.getElementById('scoreList').addEventListener('mouseout', function(e) {
+  const row = e.target.closest('.score-row');
+  if (row) {
+    highlightIndex = -1;
+    drawRadar();
+  }
+});
+
+// ═══════ Touch toggle for score-tip tooltip ═══════
+document.addEventListener('click', function(e) {
+  document.querySelectorAll('.score-tip.active').forEach(function(el) {
+    if (el !== e.target) el.classList.remove('active');
+  });
+  if (e.target.classList.contains('score-tip')) {
+    e.target.classList.toggle('active');
+  }
+});
+
+// ═══════ Nav bar scroll highlight ═══════
+(function() {
+  var navLinks = document.querySelectorAll('.nav-bar a');
+  var sections = [];
+  navLinks.forEach(function(link) {
+    var id = link.getAttribute('href').slice(1);
+    var el = document.getElementById(id);
+    if (el) sections.push({ id: id, el: el, link: link });
+  });
+  
+  function updateNav() {
+    var scrollY = window.scrollY + 60;
+    var current = sections[0];
+    for (var i = 0; i < sections.length; i++) {
+      if (sections[i].el.offsetTop <= scrollY) {
+        current = sections[i];
+      }
+    }
+    navLinks.forEach(function(l) { l.classList.remove('active'); });
+    if (current) current.link.classList.add('active');
+  }
+  
+  window.addEventListener('scroll', updateNav, { passive: true });
+  updateNav();
+})();
+</script>
+</body>
+</html>
