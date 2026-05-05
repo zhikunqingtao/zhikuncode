@@ -363,18 +363,28 @@ The following paths require user confirmation even in bypass mode:
 
 ### 🧪 Quality Assurance
 
-Full test report: [ZhikunCode Core Functionality Test Report v7.6](ZhikunCode核心功能测试报告.md) (2026-05-04)
+Full test report: [ZhikunCode Core Functionality Test Report v8.0](ZhikunCode核心功能测试报告.md) (2026-05-05)
 
 **Test Coverage:**
-- **21 functional modules** with **235 test cases**
-- **Results**: 229 PASS / 3 PARTIAL / 1 OBSERVE / 0 FAIL — **100% core functionality pass rate**
-- **Automation Stack**: JUnit 5 + Vitest + Pytest + Playwright E2E
-- **Full Coverage**: 100% of planned v1.0 features verified
+- **22 functional modules** with **326 test cases**
+- **Results**: 321 PASS / 3 PARTIAL / 1 OBSERVE / 0 FAIL — **98.5% pass rate**
+- **Automation Stack**: JUnit 5 + Vitest + Pytest + Playwright (4-layer coverage)
+- **Unit Test System (v8.0 new)**: 277 test methods / 30 test files / 12 first-time covered domains
+- **Feature Completeness**: 100% of planned v1.0 features verified
+
+**Test Framework Details:**
+
+| Framework | Layer | Coverage | Methods |
+|-----------|-------|----------|--------|
+| JUnit 5 | Backend Unit | Context/Permission/Skill/Plugin/LLM/MCP/Memory/Concurrency/SSE/Persistence/Tool | 176 |
+| Vitest | Frontend Unit | Store Lifecycle/Cross-Tab Sync/Streaming Render/Immer Immutability/Route Boundary | 35 |
+| Playwright | E2E | Permission Dialog/Command Palette/Tool Result Rendering + 7 Regression | 19 |
+| Pytest | Python Service | Token Estimation/File Processing/Browser Automation/Code Analyzers | 29 |
 
 **Detailed Test Data & Evidence:**
-- Per-module results: [docs/test-results/](docs/test-results/) (16 detailed data files)
-- Frontend E2E scripts: [frontend/e2e/frontend-e2e-full.spec.ts](frontend/e2e/frontend-e2e-full.spec.ts)
-- E2E screenshots: [docs/test-results/screenshots/](docs/test-results/screenshots/) (97 images)
+- Per-module results: [docs/test-results/](docs/test-results/)
+- Frontend E2E scripts: [frontend/e2e/](frontend/e2e/) (including tc-fe-003~005)
+- E2E screenshots: [docs/test-results/screenshots/](docs/test-results/screenshots/) (125+ images)
 
 ---
 
