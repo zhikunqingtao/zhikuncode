@@ -134,7 +134,7 @@
     }
     .demo-item { text-align: center; }
     .demo-item h3 { font-size: 1.25rem; font-weight: 700; color: #e6edf3; margin-bottom: 16px; }
-    .demo-item img { max-width: 100%; height: auto; border-radius: 12px; border: 1px solid #21262d; }
+    .demo-item img, .demo-item video { max-width: 100%; height: auto; border-radius: 12px; border: 1px solid #21262d; }
 
     /* === Features === */
     .features { background: #0d1117; }
@@ -219,6 +219,80 @@
     footer .footer-links a:hover { color: #58a6ff; }
     footer .copyright { font-size: 0.875rem; color: #484f58; }
 
+    /* === Architecture Showcase === */
+    .architecture-showcase {
+      background: linear-gradient(135deg, rgba(35, 134, 54, 0.08) 0%, rgba(88, 166, 255, 0.08) 50%, rgba(35, 134, 54, 0.04) 100%);
+      border-top: 1px solid #21262d;
+      border-bottom: 1px solid #21262d;
+      position: relative;
+      overflow: hidden;
+    }
+    .architecture-showcase::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(circle at 50% 50%, rgba(35, 134, 54, 0.06) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .arch-tech-pills {
+      display: flex; gap: 24px; justify-content: center; flex-wrap: wrap;
+      margin: 32px 0;
+    }
+    .arch-pill {
+      text-align: center; padding: 20px 32px;
+      background: rgba(22, 27, 34, 0.8); border: 1px solid #30363d;
+      border-radius: 12px; min-width: 160px;
+      transition: border-color 0.3s, transform 0.3s;
+    }
+    .arch-pill:hover { border-color: #58a6ff; transform: translateY(-2px); }
+    .arch-pill .pill-name { font-size: 1rem; font-weight: 700; color: #e6edf3; margin-bottom: 4px; }
+    .arch-pill .pill-role { font-size: 0.85rem; color: #8b949e; }
+    .btn-arch {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 16px 48px; border-radius: 10px; font-size: 1.125rem; font-weight: 700;
+      background: #238636; color: #fff; border: none; cursor: pointer;
+      box-shadow: 0 0 20px rgba(35, 134, 54, 0.4), 0 4px 16px rgba(35, 134, 54, 0.3);
+      transition: transform 0.2s, box-shadow 0.3s;
+      text-decoration: none;
+    }
+    .btn-arch:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 30px rgba(35, 134, 54, 0.6), 0 8px 24px rgba(35, 134, 54, 0.4);
+      text-decoration: none; color: #fff;
+    }
+    .arch-subtitle {
+      font-size: 1.1rem; color: #8b949e; margin-top: 12px; text-align: center;
+    }
+
+    /* === Architecture Diagrams === */
+    .arch-diagrams-container {
+      margin: 48px 0 32px;
+      text-align: left;
+    }
+    .arch-diagram {
+      margin-bottom: 48px;
+      padding: 24px;
+      background: rgba(22, 27, 34, 0.6);
+      border: 1px solid #21262d;
+      border-radius: 12px;
+      overflow-x: auto;
+    }
+    .arch-diagram-title {
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: #e6edf3;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .arch-diagram-svg {
+      display: flex;
+      justify-content: center;
+      overflow-x: auto;
+    }
+    .arch-diagram-svg svg {
+      max-width: 100%;
+      height: auto;
+    }
+
     /* === Responsive === */
     @media (max-width: 1200px) {
       .hero h1 { font-size: 2.75rem; }
@@ -234,6 +308,9 @@
       .hero-stat .stat-value { font-size: 1.5rem; }
       .features-grid { grid-template-columns: 1fr; }
       .security-grid { grid-template-columns: 1fr; }
+      .arch-tech-pills { gap: 16px; }
+      .arch-pill { min-width: 120px; padding: 16px 20px; }
+      .btn-arch { padding: 14px 32px; font-size: 1rem; }
       .section-title { font-size: 1.75rem; }
       section { padding: 48px 0; }
       .comparison th, .comparison td { padding: 10px 12px; font-size: 0.85rem; }
@@ -262,7 +339,6 @@
         <a href="#comparison">对比</a>
         <a href="#quickstart">快速开始</a>
         <a href="ZhikunCode-Architecture.html">Architecture</a>
-        <a href="ZhikunCode-vs-Claude-Code.html">Comparison</a>
         <a href="https://github.com/zhikunqingtao/zhikuncode" class="btn btn-primary" style="padding: 8px 16px; font-size: 0.875rem;">GitHub</a>
       </div>
     </div>
@@ -277,16 +353,6 @@
       <div class="cta-group">
         <a href="https://github.com/zhikunqingtao/zhikuncode" class="btn btn-primary">&#11088; Star on GitHub</a>
         <a href="#quickstart" class="btn btn-secondary">&#128640; 快速开始</a>
-      </div>
-      <div class="hero-stats">
-        <div class="hero-stat">
-          <div class="stat-value">41</div>
-          <div class="stat-label">内置工具</div>
-        </div>
-        <div class="hero-stat">
-          <div class="stat-value">8 层</div>
-          <div class="stat-label">安全架构</div>
-        </div>
       </div>
     </div>
   </section>
@@ -306,7 +372,1213 @@
           <h3>iPad 浏览器全流程操控</h3>
           <img src="assets/demo-ipad-browser.gif" alt="iPad浏览器操控演示" />
         </div>
+        <div class="demo-item">
+          <h3>📱 手机开发前后端 TODO 应用完整演示</h3>
+          <video controls playsinline preload="metadata" src="https://github.com/user-attachments/assets/bf1f1d3a-4a9b-4d91-af48-97a7d3dd7b8a"></video>
+        </div>
+        <div class="demo-item">
+          <h3>自动写代码下载小红书视频</h3>
+          <video controls playsinline preload="metadata" src="https://github.com/user-attachments/assets/4b66261b-3258-44bd-82d3-6b2b3bbd4995"></video>
+        </div>
+        <div class="demo-item">
+          <h3>📱 项目分析和命令执行演示</h3>
+          <video controls playsinline preload="metadata" src="https://github.com/user-attachments/assets/7b45c5d4-e540-4ffd-80d4-e11502477dba"></video>
+        </div>
       </div>
+    </div>
+  </section>
+
+  <!-- Architecture Showcase -->
+  <section class="architecture-showcase" id="architecture">
+    <div class="container" style="text-align: center;">
+      <h2 class="section-title">&#128208; 深入了解系统架构</h2>
+      <p class="section-subtitle">Explore the System Architecture</p>
+      <p class="arch-subtitle">三端分离 · 660+ 文件 · 110,646 行代码</p>
+      <div class="arch-tech-pills">
+        <div class="arch-pill">
+          <div class="pill-name">Java Spring Boot</div>
+          <div class="pill-role">后端引擎 / Backend Engine</div>
+        </div>
+        <div class="arch-pill">
+          <div class="pill-name">React TypeScript</div>
+          <div class="pill-role">前端交互 / Frontend UI</div>
+        </div>
+        <div class="arch-pill">
+          <div class="pill-name">Python</div>
+          <div class="pill-role">AI 服务 / AI Service</div>
+        </div>
+      </div>
+      <div class="arch-diagrams-container">
+        <div class="arch-diagram">
+          <h4 class="arch-diagram-title">三端分离架构全景插画</h4>
+          <div class="arch-diagram-svg">
+    <svg viewBox="0 0 960 580" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
+      <defs>
+        <linearGradient id="gJava" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F59E0B" stop-opacity=".18"/><stop offset="100%" stop-color="#F59E0B" stop-opacity=".04"/></linearGradient>
+        <linearGradient id="gReact" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#3B82F6" stop-opacity=".18"/><stop offset="100%" stop-color="#3B82F6" stop-opacity=".04"/></linearGradient>
+        <linearGradient id="gPy" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#84CC16" stop-opacity=".18"/><stop offset="100%" stop-color="#84CC16" stop-opacity=".04"/></linearGradient>
+        <filter id="glowJ"><feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#F59E0B" flood-opacity=".3"/></filter>
+        <filter id="glowT"><feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#3B82F6" flood-opacity=".3"/></filter>
+        <filter id="glowP"><feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#84CC16" flood-opacity=".3"/></filter>
+        <marker id="arJ" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#F59E0B"/></marker>
+        <marker id="arT" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#3B82F6"/></marker>
+        <marker id="arP" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#84CC16"/></marker>
+        <marker id="arG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#6B70A0"/></marker>
+      </defs>
+      <!-- Background subtle grid -->
+      <pattern id="gridPat" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="#252840" stroke-width=".5" opacity=".4"/></pattern>
+      <rect width="960" height="580" fill="#0B0D17"/><rect width="960" height="580" fill="url(#gridPat)"/>
+
+      <!-- ===== REACT FRONTEND BLOCK ===== -->
+      <rect x="240" y="20" width="480" height="140" rx="14" fill="url(#gReact)" stroke="#3B82F6" stroke-width="1.5" filter="url(#glowT)"/>
+      <text x="480" y="48" text-anchor="middle" fill="#3B82F6" font-size="16" font-weight="700" font-family="sans-serif">React 前端</text>
+      <text x="480" y="66" text-anchor="middle" fill="#9FA4C4" font-size="11" font-family="monospace">19,543 行 · 137 文件</text>
+      <!-- FE sub-modules -->
+      <rect x="260" y="80" width="88" height="32" rx="6" fill="#151829" stroke="#3B82F6" stroke-width=".8"/>
+      <text x="304" y="100" text-anchor="middle" fill="#9FA4C4" font-size="9" font-family="monospace">32 Store</text>
+      <rect x="358" y="80" width="88" height="32" rx="6" fill="#151829" stroke="#3B82F6" stroke-width=".8"/>
+      <text x="402" y="100" text-anchor="middle" fill="#9FA4C4" font-size="9" font-family="monospace">86 组件</text>
+      <rect x="456" y="80" width="88" height="32" rx="6" fill="#151829" stroke="#3B82F6" stroke-width=".8"/>
+      <text x="500" y="100" text-anchor="middle" fill="#9FA4C4" font-size="9" font-family="monospace">14 可视化</text>
+      <rect x="554" y="80" width="96" height="32" rx="6" fill="#151829" stroke="#3B82F6" stroke-width=".8"/>
+      <text x="602" y="100" text-anchor="middle" fill="#9FA4C4" font-size="9" font-family="monospace">dispatch 437</text>
+      <rect x="660" y="80" width="50" height="32" rx="6" fill="#151829" stroke="#3B82F6" stroke-width=".8"/>
+      <text x="685" y="100" text-anchor="middle" fill="#9FA4C4" font-size="8" font-family="monospace">358</text>
+      <!-- FE label bottom -->
+      <text x="480" y="146" text-anchor="middle" fill="#6B70A0" font-size="9" font-family="monospace">dispatch.ts 437行 · stompClient.ts 358行</text>
+
+      <!-- ===== Communication arrows ===== -->
+      <!-- FE -> Java: REST+WS -->
+      <line x1="380" y1="160" x2="280" y2="220" stroke="#3B82F6" stroke-width="2" class="anim-line" opacity=".8" marker-end="url(#arT)"/>
+      <rect x="270" y="178" width="120" height="20" rx="4" fill="#0B0D17" opacity=".9"/>
+      <text x="330" y="192" text-anchor="middle" fill="#3B82F6" font-size="9" font-family="monospace">REST + WS/STOMP</text>
+      <!-- FE -> Python: HTTP -->
+      <line x1="580" y1="160" x2="720" y2="220" stroke="#84CC16" stroke-width="2" class="anim-line" opacity=".8" marker-end="url(#arP)"/>
+      <rect x="620" y="178" width="100" height="20" rx="4" fill="#0B0D17" opacity=".9"/>
+      <text x="670" y="192" text-anchor="middle" fill="#84CC16" font-size="9" font-family="monospace">HTTP Proxy</text>
+
+      <!-- ===== JAVA BACKEND BLOCK ===== -->
+      <rect x="40" y="220" width="520" height="200" rx="14" fill="url(#gJava)" stroke="#F59E0B" stroke-width="1.5" filter="url(#glowJ)"/>
+      <text x="300" y="248" text-anchor="middle" fill="#F59E0B" font-size="16" font-weight="700" font-family="sans-serif">Java 后端</text>
+      <text x="300" y="264" text-anchor="middle" fill="#9FA4C4" font-size="11" font-family="monospace">65,654 行 · 433 文件 · Spring Boot 3.4</text>
+      <!-- Java internal layers -->
+      <rect x="60" y="278" width="115" height="40" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
+      <text x="117" y="295" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">Agent Engine</text>
+      <text x="117" y="309" text-anchor="middle" fill="#6B70A0" font-size="8">5,942行</text>
+      <rect x="185" y="278" width="115" height="40" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
+      <text x="242" y="295" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">Permission</text>
+      <text x="242" y="309" text-anchor="middle" fill="#6B70A0" font-size="8">18步 752行</text>
+      <rect x="310" y="278" width="115" height="40" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
+      <text x="367" y="295" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">Tool System</text>
+      <text x="367" y="309" text-anchor="middle" fill="#6B70A0" font-size="8">47工具 16,815行</text>
+      <rect x="435" y="278" width="115" height="40" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
+      <text x="492" y="295" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">MCP Protocol</text>
+      <text x="492" y="309" text-anchor="middle" fill="#6B70A0" font-size="8">5传输 5,219行(main)</text>
+      <!-- Row 2 -->
+      <rect x="60" y="328" width="115" height="40" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
+      <text x="117" y="345" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">LLM Provider</text>
+      <text x="117" y="359" text-anchor="middle" fill="#6B70A0" font-size="8">2,911行</text>
+      <rect x="185" y="328" width="115" height="40" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
+      <text x="242" y="345" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">Multi-Agent</text>
+      <text x="242" y="359" text-anchor="middle" fill="#6B70A0" font-size="8">29类 5,824行</text>
+      <rect x="310" y="328" width="115" height="40" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
+      <text x="367" y="345" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">Bash Security</text>
+      <text x="367" y="359" text-anchor="middle" fill="#6B70A0" font-size="8">5层AST 5,091行</text>
+      <rect x="435" y="328" width="115" height="40" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
+      <text x="492" y="345" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">Context Mgmt</text>
+      <text x="492" y="359" text-anchor="middle" fill="#6B70A0" font-size="8">5层压缩</text>
+      <!-- Internal arrows -->
+      <line x1="175" y1="298" x2="185" y2="298" stroke="#F59E0B" stroke-width="1" opacity=".4" marker-end="url(#arJ)"/>
+      <line x1="300" y1="298" x2="310" y2="298" stroke="#F59E0B" stroke-width="1" opacity=".4" marker-end="url(#arJ)"/>
+      <line x1="425" y1="298" x2="435" y2="298" stroke="#F59E0B" stroke-width="1" opacity=".4" marker-end="url(#arJ)"/>
+      <!-- Port label -->
+      <text x="300" y="408" text-anchor="middle" fill="#6B70A0" font-size="9" font-family="monospace">:8080</text>
+
+      <!-- ===== PYTHON SERVICE BLOCK ===== -->
+      <rect x="620" y="220" width="300" height="200" rx="14" fill="url(#gPy)" stroke="#84CC16" stroke-width="1.5" filter="url(#glowP)"/>
+      <text x="770" y="248" text-anchor="middle" fill="#84CC16" font-size="16" font-weight="700" font-family="sans-serif">Python 分析服务</text>
+      <text x="770" y="264" text-anchor="middle" fill="#9FA4C4" font-size="11" font-family="monospace">7,213 行 · 32 文件 · FastAPI</text>
+      <rect x="640" y="278" width="130" height="36" rx="6" fill="#151829" stroke="#84CC16" stroke-width=".8"/>
+      <text x="705" y="300" text-anchor="middle" fill="#84CC16" font-size="9" font-weight="600">Analyzers</text>
+      <rect x="780" y="278" width="130" height="36" rx="6" fill="#151829" stroke="#84CC16" stroke-width=".8"/>
+      <text x="845" y="300" text-anchor="middle" fill="#84CC16" font-size="9" font-weight="600">Services</text>
+      <rect x="640" y="324" width="130" height="36" rx="6" fill="#151829" stroke="#84CC16" stroke-width=".8"/>
+      <text x="705" y="346" text-anchor="middle" fill="#84CC16" font-size="9" font-weight="600">7 Routers</text>
+      <rect x="780" y="324" width="130" height="36" rx="6" fill="#151829" stroke="#84CC16" stroke-width=".8"/>
+      <text x="845" y="346" text-anchor="middle" fill="#84CC16" font-size="9" font-weight="600">tree-sitter</text>
+      <text x="770" y="408" text-anchor="middle" fill="#6B70A0" font-size="9" font-family="monospace">:8000</text>
+
+      <!-- ===== External Services ===== -->
+      <rect x="60" y="460" width="130" height="44" rx="8" fill="#151829" stroke="#A855F7" stroke-width="1"/>
+      <text x="125" y="487" text-anchor="middle" fill="#A855F7" font-size="11" font-weight="600">LLM APIs</text>
+      <rect x="210" y="460" width="130" height="44" rx="8" fill="#151829" stroke="#06B6D4" stroke-width="1"/>
+      <text x="275" y="487" text-anchor="middle" fill="#06B6D4" font-size="11" font-weight="600">MCP Servers</text>
+      <rect x="360" y="460" width="130" height="44" rx="8" fill="#151829" stroke="#EC4899" stroke-width="1"/>
+      <text x="425" y="487" text-anchor="middle" fill="#EC4899" font-size="11" font-weight="600">Docker 沙箱</text>
+      <rect x="510" y="460" width="130" height="44" rx="8" fill="#151829" stroke="#10B981" stroke-width="1"/>
+      <text x="575" y="487" text-anchor="middle" fill="#10B981" font-size="11" font-weight="600">文件系统</text>
+      <!-- Java -> externals -->
+      <line x1="117" y1="420" x2="125" y2="460" stroke="#A855F7" stroke-width="1.5" class="anim-line" opacity=".5" marker-end="url(#arG)"/>
+      <line x1="242" y1="420" x2="275" y2="460" stroke="#06B6D4" stroke-width="1.5" class="anim-line" opacity=".5" marker-end="url(#arG)"/>
+      <line x1="367" y1="420" x2="425" y2="460" stroke="#EC4899" stroke-width="1.5" class="anim-line" opacity=".5" marker-end="url(#arG)"/>
+      <line x1="492" y1="420" x2="575" y2="460" stroke="#10B981" stroke-width="1.5" class="anim-line" opacity=".5" marker-end="url(#arG)"/>
+
+      <!-- ===== Legend ===== -->
+      <rect x="60" y="530" width="840" height="36" rx="8" fill="#0F1221" stroke="#252840" stroke-width="1"/>
+      <circle cx="90" cy="548" r="5" fill="#F59E0B"/><text x="100" y="552" fill="#F59E0B" font-size="9">Java 65,654行</text>
+      <circle cx="220" cy="548" r="5" fill="#3B82F6"/><text x="230" y="552" fill="#3B82F6" font-size="9">React 19,543行</text>
+      <circle cx="350" cy="548" r="5" fill="#84CC16"/><text x="360" y="552" fill="#84CC16" font-size="9">Python 7,213行</text>
+      <line x1="480" y1="548" x2="510" y2="548" stroke="#3B82F6" stroke-width="2" class="anim-line"/><text x="516" y="552" fill="#6B70A0" font-size="9">通信链路</text>
+      <line x1="600" y1="548" x2="630" y2="548" stroke="#6B70A0" stroke-width="1.5" class="anim-line"/><text x="636" y="552" fill="#6B70A0" font-size="9">外部服务</text>
+    </svg>
+          </div>
+        </div>
+        <div class="arch-diagram">
+          <h4 class="arch-diagram-title">全局数据流与模块依赖全景图</h4>
+          <div class="arch-diagram-svg">
+    <svg viewBox="0 0 960 600" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+      <defs>
+        <marker id="ah" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#6B70A0"/></marker>
+        <marker id="ahJ" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#F59E0B"/></marker>
+        <marker id="ahT" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#3B82F6"/></marker>
+        <marker id="ahP" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#84CC16"/></marker>
+      </defs>
+
+      <!-- User -->
+      <rect x="400" y="10" width="160" height="36" rx="18" fill="#151829" stroke="#10B981" stroke-width="1.5"/>
+      <text x="480" y="33" text-anchor="middle" fill="#10B981" font-size="13" font-weight="700" font-family="sans-serif">User (Browser)</text>
+
+      <!-- Frontend layer -->
+      <rect x="120" y="70" width="720" height="80" rx="10" fill="none" stroke="#3B82F6" stroke-width="1" stroke-dasharray="4"/>
+      <text x="130" y="88" fill="#3B82F6" font-size="10" font-weight="600" font-family="sans-serif">REACT FRONTEND</text>
+      <!-- FE modules -->
+      <rect x="140" y="96" width="110" height="38" rx="6" fill="#0F1221" stroke="#3B82F6" stroke-width="1"/>
+      <text x="195" y="119" text-anchor="middle" fill="#9FA4C4" font-size="10" font-family="sans-serif">86 Components</text>
+      <rect x="264" y="96" width="110" height="38" rx="6" fill="#0F1221" stroke="#3B82F6" stroke-width="1"/>
+      <text x="319" y="119" text-anchor="middle" fill="#9FA4C4" font-size="10" font-family="sans-serif">32 Zustand</text>
+      <rect x="388" y="96" width="120" height="38" rx="6" fill="#0F1221" stroke="#3B82F6" stroke-width="1"/>
+      <text x="448" y="119" text-anchor="middle" fill="#9FA4C4" font-size="10" font-family="sans-serif">dispatch.ts</text>
+      <rect x="522" y="96" width="120" height="38" rx="6" fill="#0F1221" stroke="#3B82F6" stroke-width="1"/>
+      <text x="582" y="119" text-anchor="middle" fill="#9FA4C4" font-size="10" font-family="sans-serif">stompClient.ts</text>
+      <rect x="656" y="96" width="110" height="38" rx="6" fill="#0F1221" stroke="#3B82F6" stroke-width="1"/>
+      <text x="711" y="119" text-anchor="middle" fill="#9FA4C4" font-size="10" font-family="sans-serif">14 Viz</text>
+
+      <!-- User to FE -->
+      <line x1="480" y1="46" x2="480" y2="70" stroke="#10B981" stroke-width="1.5" marker-end="url(#ah)"/>
+
+      <!-- Java Backend layer -->
+      <rect x="40" y="190" width="620" height="260" rx="10" fill="none" stroke="#F59E0B" stroke-width="1" stroke-dasharray="4"/>
+      <text x="50" y="208" fill="#F59E0B" font-size="10" font-weight="600" font-family="sans-serif">JAVA BACKEND (65,654 lines)</text>
+
+      <!-- Java modules -->
+      <rect x="60" y="218" width="130" height="44" rx="6" fill="#0F1221" stroke="#F59E0B" stroke-width="1"/>
+      <text x="125" y="236" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="600">Agent Loop</text>
+      <text x="125" y="252" text-anchor="middle" fill="#6B70A0" font-size="9">engine/ 5,942行</text>
+
+      <rect x="204" y="218" width="130" height="44" rx="6" fill="#0F1221" stroke="#F59E0B" stroke-width="1"/>
+      <text x="269" y="236" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="600">Permission</text>
+      <text x="269" y="252" text-anchor="middle" fill="#6B70A0" font-size="9">18步 2,672行</text>
+
+      <rect x="348" y="218" width="130" height="44" rx="6" fill="#0F1221" stroke="#F59E0B" stroke-width="1"/>
+      <text x="413" y="236" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="600">Bash Security</text>
+      <text x="413" y="252" text-anchor="middle" fill="#6B70A0" font-size="9">5-layer AST 5,091行</text>
+
+      <rect x="492" y="218" width="150" height="44" rx="6" fill="#0F1221" stroke="#F59E0B" stroke-width="1"/>
+      <text x="567" y="236" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="600">Tool System</text>
+      <text x="567" y="252" text-anchor="middle" fill="#6B70A0" font-size="9">144文件 16,815行 47工具</text>
+
+      <rect x="60" y="278" width="130" height="44" rx="6" fill="#0F1221" stroke="#F59E0B" stroke-width="1"/>
+      <text x="125" y="296" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="600">LLM Provider</text>
+      <text x="125" y="312" text-anchor="middle" fill="#6B70A0" font-size="9">22文件 2,911行</text>
+
+      <rect x="204" y="278" width="130" height="44" rx="6" fill="#0F1221" stroke="#F59E0B" stroke-width="1"/>
+      <text x="269" y="296" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="600">MCP Protocol</text>
+      <text x="269" y="312" text-anchor="middle" fill="#6B70A0" font-size="9">30文件(main) 5,219行</text>
+
+      <rect x="348" y="278" width="130" height="44" rx="6" fill="#0F1221" stroke="#F59E0B" stroke-width="1"/>
+      <text x="413" y="296" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="600">Multi-Agent</text>
+      <text x="413" y="312" text-anchor="middle" fill="#6B70A0" font-size="9">29类 5,824行</text>
+
+      <rect x="492" y="278" width="150" height="44" rx="6" fill="#0F1221" stroke="#F59E0B" stroke-width="1"/>
+      <text x="567" y="296" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="600">Context Mgmt</text>
+      <text x="567" y="312" text-anchor="middle" fill="#6B70A0" font-size="9">5层压缩</text>
+
+      <rect x="60" y="338" width="130" height="44" rx="6" fill="#0F1221" stroke="#F59E0B" stroke-width="1"/>
+      <text x="125" y="356" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="600">Memory</text>
+      <text x="125" y="372" text-anchor="middle" fill="#6B70A0" font-size="9">1,089行 BM25+LLM</text>
+
+      <rect x="204" y="338" width="130" height="44" rx="6" fill="#0F1221" stroke="#F59E0B" stroke-width="1"/>
+      <text x="269" y="356" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="600">Skill</text>
+      <text x="269" y="372" text-anchor="middle" fill="#6B70A0" font-size="9">1,169行 6级加载</text>
+
+      <rect x="348" y="338" width="130" height="44" rx="6" fill="#0F1221" stroke="#F59E0B" stroke-width="1"/>
+      <text x="413" y="356" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="600">Security</text>
+      <text x="413" y="372" text-anchor="middle" fill="#6B70A0" font-size="9">1,248行 黑名单+审计</text>
+
+      <rect x="492" y="338" width="150" height="44" rx="6" fill="#0F1221" stroke="#F59E0B" stroke-width="1"/>
+      <text x="567" y="356" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="600">Sandbox</text>
+      <text x="567" y="372" text-anchor="middle" fill="#6B70A0" font-size="9">Docker隔离 316行</text>
+
+      <!-- Inner arrows: AgentLoop -> Permission, Tool, LLM, Context -->
+      <line x1="190" y1="240" x2="204" y2="240" stroke="#F59E0B" stroke-width="1" opacity=".5" marker-end="url(#ahJ)"/>
+      <line x1="125" y1="262" x2="125" y2="278" stroke="#F59E0B" stroke-width="1" opacity=".5" marker-end="url(#ahJ)"/>
+      <line x1="190" y1="250" x2="492" y2="240" stroke="#F59E0B" stroke-width="1" opacity=".3" marker-end="url(#ahJ)"/>
+      <line x1="160" y1="262" x2="530" y2="278" stroke="#F59E0B" stroke-width="1" opacity=".3" marker-end="url(#ahJ)"/>
+
+      <!-- Python layer -->
+      <rect x="690" y="190" width="250" height="160" rx="10" fill="none" stroke="#84CC16" stroke-width="1" stroke-dasharray="4"/>
+      <text x="700" y="208" fill="#84CC16" font-size="10" font-weight="600" font-family="sans-serif">PYTHON SERVICE (7,213 lines)</text>
+
+      <rect x="710" y="218" width="210" height="34" rx="6" fill="#0F1221" stroke="#84CC16" stroke-width="1"/>
+      <text x="815" y="240" text-anchor="middle" fill="#9FA4C4" font-size="10">Analyzers (2,872行)</text>
+
+      <rect x="710" y="262" width="210" height="34" rx="6" fill="#0F1221" stroke="#84CC16" stroke-width="1"/>
+      <text x="815" y="284" text-anchor="middle" fill="#9FA4C4" font-size="10">7 API Routers (1,526行)</text>
+
+      <rect x="710" y="306" width="210" height="34" rx="6" fill="#0F1221" stroke="#84CC16" stroke-width="1"/>
+      <text x="815" y="328" text-anchor="middle" fill="#9FA4C4" font-size="10">Services (1,725行)</text>
+
+      <!-- FE -> Java -->
+      <line x1="380" y1="150" x2="300" y2="190" stroke="#3B82F6" stroke-width="1.5" class="anim-line" marker-end="url(#ahT)"/>
+      <text x="310" y="173" fill="#3B82F6" font-size="8" font-family="monospace">REST + WS</text>
+      <!-- FE -> Python -->
+      <line x1="600" y1="150" x2="750" y2="190" stroke="#84CC16" stroke-width="1.5" class="anim-line" marker-end="url(#ahP)"/>
+      <text x="660" y="168" fill="#84CC16" font-size="8" font-family="monospace">Vite Proxy</text>
+
+      <!-- External services -->
+      <rect x="60" y="480" width="140" height="40" rx="8" fill="#151829" stroke="#A855F7" stroke-width="1"/>
+      <text x="130" y="504" text-anchor="middle" fill="#A855F7" font-size="11" font-weight="600">LLM APIs</text>
+      <rect x="230" y="480" width="140" height="40" rx="8" fill="#151829" stroke="#06B6D4" stroke-width="1"/>
+      <text x="300" y="504" text-anchor="middle" fill="#06B6D4" font-size="11" font-weight="600">MCP Servers</text>
+      <rect x="400" y="480" width="140" height="40" rx="8" fill="#151829" stroke="#EC4899" stroke-width="1"/>
+      <text x="470" y="504" text-anchor="middle" fill="#EC4899" font-size="11" font-weight="600">Docker Engine</text>
+      <rect x="570" y="480" width="140" height="40" rx="8" fill="#151829" stroke="#10B981" stroke-width="1"/>
+      <text x="640" y="504" text-anchor="middle" fill="#10B981" font-size="11" font-weight="600">File System</text>
+      <rect x="740" y="480" width="140" height="40" rx="8" fill="#151829" stroke="#3B82F6" stroke-width="1"/>
+      <text x="810" y="504" text-anchor="middle" fill="#3B82F6" font-size="11" font-weight="600">Browser (CDP)</text>
+
+      <!-- Java -> externals -->
+      <line x1="125" y1="400" x2="130" y2="480" stroke="#A855F7" stroke-width="1.5" class="anim-line" opacity=".6" marker-end="url(#ah)"/>
+      <line x1="269" y1="400" x2="300" y2="480" stroke="#06B6D4" stroke-width="1.5" class="anim-line" opacity=".6" marker-end="url(#ah)"/>
+      <line x1="567" y1="382" x2="470" y2="480" stroke="#EC4899" stroke-width="1.5" class="anim-line" opacity=".6" marker-end="url(#ah)"/>
+      <line x1="567" y1="382" x2="640" y2="480" stroke="#10B981" stroke-width="1.5" class="anim-line" opacity=".6" marker-end="url(#ah)"/>
+      <!-- Python -> Browser -->
+      <line x1="815" y1="350" x2="810" y2="480" stroke="#84CC16" stroke-width="1.5" class="anim-line" opacity=".6" marker-end="url(#ah)"/>
+
+      <!-- Legend -->
+      <rect x="60" y="545" width="880" height="40" rx="8" fill="#0F1221" stroke="#252840" stroke-width="1"/>
+      <text x="80" y="569" fill="#6B70A0" font-size="10" font-family="sans-serif">Legend:</text>
+      <line x1="130" y1="565" x2="160" y2="565" stroke="#3B82F6" stroke-width="2"/><text x="166" y="569" fill="#3B82F6" font-size="9">Frontend → Backend</text>
+      <line x1="290" y1="565" x2="320" y2="565" stroke="#84CC16" stroke-width="2"/><text x="326" y="569" fill="#84CC16" font-size="9">Frontend → Python</text>
+      <line x1="450" y1="565" x2="480" y2="565" stroke="#F59E0B" stroke-width="1" opacity=".5"/><text x="486" y="569" fill="#F59E0B" font-size="9">Internal Dependency</text>
+      <line x1="630" y1="565" x2="660" y2="565" stroke="#6B70A0" stroke-width="1.5" class="anim-line"/><text x="666" y="569" fill="#6B70A0" font-size="9">External Service Call</text>
+    </svg>
+          </div>
+        </div>
+        <div class="arch-diagram">
+          <h4 class="arch-diagram-title">多Agent协调系统架构全景</h4>
+          <div class="arch-diagram-svg">
+    <svg viewBox="0 0 1000 820" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
+      <defs>
+        <linearGradient id="gCoord" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F59E0B" stop-opacity=".2"/><stop offset="100%" stop-color="#F59E0B" stop-opacity=".04"/></linearGradient>
+        <linearGradient id="gPhase1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#A855F7" stop-opacity=".18"/><stop offset="100%" stop-color="#A855F7" stop-opacity=".04"/></linearGradient>
+        <linearGradient id="gPhase2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#10B981" stop-opacity=".18"/><stop offset="100%" stop-color="#10B981" stop-opacity=".04"/></linearGradient>
+        <linearGradient id="gPhase3" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#F59E0B" stop-opacity=".18"/><stop offset="100%" stop-color="#F59E0B" stop-opacity=".04"/></linearGradient>
+        <linearGradient id="gPhase4" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#06B6D4" stop-opacity=".18"/><stop offset="100%" stop-color="#06B6D4" stop-opacity=".04"/></linearGradient>
+        <linearGradient id="gWorker" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#3B82F6" stop-opacity=".15"/><stop offset="100%" stop-color="#3B82F6" stop-opacity=".03"/></linearGradient>
+        <filter id="glowCoord"><feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#F59E0B" flood-opacity=".35"/></filter>
+        <filter id="glowComm"><feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#10B981" flood-opacity=".3"/></filter>
+        <marker id="maCoord" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#F59E0B"/></marker>
+        <marker id="maComm" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#10B981"/></marker>
+        <marker id="maBlue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#3B82F6"/></marker>
+        <marker id="maRed" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#EF4444"/></marker>
+        <marker id="maCyan" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#06B6D4"/></marker>
+        <pattern id="gridCoord" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="#252840" stroke-width=".5" opacity=".35"/></pattern>
+      </defs>
+      <rect width="1000" height="820" fill="#0B0D17"/><rect width="1000" height="820" fill="url(#gridCoord)"/>
+
+      <!-- ===== COORDINATOR (TOP) ===== -->
+      <rect x="280" y="18" width="440" height="88" rx="12" fill="url(#gCoord)" stroke="#F59E0B" stroke-width="1.5" filter="url(#glowCoord)"/>
+      <text x="500" y="44" text-anchor="middle" fill="#F59E0B" font-size="16" font-weight="700" font-family="'SF Mono','Fira Code',monospace">Coordinator 指挥中心</text>
+      <text x="500" y="62" text-anchor="middle" fill="#a0a0b8" font-size="10" font-family="'SF Mono','Fira Code',monospace">CoordinatorService.java — 模式管理 · 仅4个工具</text>
+      <!-- 4 tools -->
+      <rect x="310" y="72" width="80" height="24" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".7"/>
+      <text x="350" y="88" text-anchor="middle" fill="#e8e8f0" font-size="8.5" font-family="'SF Mono','Fira Code',monospace">Agent</text>
+      <rect x="398" y="72" width="80" height="24" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".7"/>
+      <text x="438" y="88" text-anchor="middle" fill="#e8e8f0" font-size="8.5" font-family="'SF Mono','Fira Code',monospace">TaskStop</text>
+      <rect x="486" y="72" width="90" height="24" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".7"/>
+      <text x="531" y="88" text-anchor="middle" fill="#e8e8f0" font-size="8.5" font-family="'SF Mono','Fira Code',monospace">SendMessage</text>
+      <rect x="584" y="72" width="106" height="24" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".7"/>
+      <text x="637" y="88" text-anchor="middle" fill="#e8e8f0" font-size="8.5" font-family="'SF Mono','Fira Code',monospace">SyntheticOutput</text>
+
+      <!-- Arrows from coordinator down -->
+      <line x1="380" y1="106" x2="185" y2="152" stroke="#F59E0B" stroke-width="1.5" opacity=".6" marker-end="url(#maCoord)"/>
+      <line x1="440" y1="106" x2="410" y2="152" stroke="#F59E0B" stroke-width="1.5" opacity=".6" marker-end="url(#maCoord)"/>
+      <line x1="560" y1="106" x2="590" y2="152" stroke="#F59E0B" stroke-width="1.5" opacity=".6" marker-end="url(#maCoord)"/>
+      <line x1="620" y1="106" x2="815" y2="152" stroke="#F59E0B" stroke-width="1.5" opacity=".6" marker-end="url(#maCoord)"/>
+
+      <!-- ===== FOUR PHASES (HORIZONTAL) ===== -->
+      <!-- Phase 1: Research -->
+      <rect x="60" y="152" width="210" height="130" rx="8" fill="url(#gPhase1)" stroke="#A855F7" stroke-width="1.2"/>
+      <rect x="60" y="152" width="210" height="3" rx="1.5" fill="#A855F7"/>
+      <text x="80" y="174" fill="#A855F7" font-size="12" font-weight="700" font-family="'SF Mono','Fira Code',monospace">① Research</text>
+      <text x="80" y="190" fill="#a0a0b8" font-size="9.5" font-family="'SF Mono','Fira Code',monospace">信息收集与需求理解</text>
+      <text x="80" y="208" fill="#e8e8f0" font-size="9" font-family="'SF Mono','Fira Code',monospace">• 调研代码库结构</text>
+      <text x="80" y="223" fill="#e8e8f0" font-size="9" font-family="'SF Mono','Fira Code',monospace">• 分析需求与上下文</text>
+      <text x="80" y="238" fill="#e8e8f0" font-size="9" font-family="'SF Mono','Fira Code',monospace">• 收集相关依赖信息</text>
+      <!-- deniedTools badge -->
+      <rect x="72" y="248" width="185" height="18" rx="4" fill="rgba(239,68,68,.08)" stroke="#EF4444" stroke-width=".5"/>
+      <text x="164" y="261" text-anchor="middle" fill="#EF4444" font-size="7" font-family="'SF Mono','Fira Code',monospace">denied: Agent FileEdit FileWrite</text>
+
+      <!-- Phase 2: Synthesis -->
+      <rect x="285" y="152" width="210" height="130" rx="8" fill="url(#gPhase2)" stroke="#10B981" stroke-width="1.2"/>
+      <rect x="285" y="152" width="210" height="3" rx="1.5" fill="#10B981"/>
+      <text x="305" y="174" fill="#10B981" font-size="12" font-weight="700" font-family="'SF Mono','Fira Code',monospace">② Synthesis</text>
+      <text x="305" y="190" fill="#a0a0b8" font-size="9.5" font-family="'SF Mono','Fira Code',monospace">整合分析与方案设计</text>
+      <text x="305" y="208" fill="#e8e8f0" font-size="9" font-family="'SF Mono','Fira Code',monospace">• 整合调研成果</text>
+      <text x="305" y="223" fill="#e8e8f0" font-size="9" font-family="'SF Mono','Fira Code',monospace">• 设计技术方案</text>
+      <text x="305" y="238" fill="#e8e8f0" font-size="9" font-family="'SF Mono','Fira Code',monospace">• 制定实施计划</text>
+      <rect x="297" y="248" width="185" height="18" rx="4" fill="rgba(239,68,68,.08)" stroke="#EF4444" stroke-width=".5"/>
+      <text x="389" y="261" text-anchor="middle" fill="#EF4444" font-size="7" font-family="'SF Mono','Fira Code',monospace">denied: Agent FileEdit FileWrite</text>
+
+      <!-- Phase 3: Implementation -->
+      <rect x="510" y="152" width="210" height="130" rx="8" fill="url(#gPhase3)" stroke="#F59E0B" stroke-width="1.2"/>
+      <rect x="510" y="152" width="210" height="3" rx="1.5" fill="#F59E0B"/>
+      <text x="530" y="174" fill="#F59E0B" font-size="12" font-weight="700" font-family="'SF Mono','Fira Code',monospace">③ Implementation</text>
+      <text x="530" y="190" fill="#a0a0b8" font-size="9.5" font-family="'SF Mono','Fira Code',monospace">代码实现与集成</text>
+      <text x="530" y="208" fill="#e8e8f0" font-size="9" font-family="'SF Mono','Fira Code',monospace">• 并行代码编写</text>
+      <text x="530" y="223" fill="#e8e8f0" font-size="9" font-family="'SF Mono','Fira Code',monospace">• 多Worker协作实施</text>
+      <text x="530" y="238" fill="#e8e8f0" font-size="9" font-family="'SF Mono','Fira Code',monospace">• 模块集成与联调</text>
+      <rect x="522" y="248" width="185" height="18" rx="4" fill="rgba(16,185,129,.08)" stroke="#10B981" stroke-width=".5"/>
+      <text x="614" y="261" text-anchor="middle" fill="#10B981" font-size="7" font-family="'SF Mono','Fira Code',monospace">allowed: * (GENERAL_PURPOSE)</text>
+
+      <!-- Phase 4: Verification -->
+      <rect x="735" y="152" width="210" height="130" rx="8" fill="url(#gPhase4)" stroke="#06B6D4" stroke-width="1.2"/>
+      <rect x="735" y="152" width="210" height="3" rx="1.5" fill="#06B6D4"/>
+      <text x="755" y="174" fill="#06B6D4" font-size="12" font-weight="700" font-family="'SF Mono','Fira Code',monospace">④ Verification</text>
+      <text x="755" y="190" fill="#a0a0b8" font-size="9.5" font-family="'SF Mono','Fira Code',monospace">测试与验证</text>
+      <text x="755" y="208" fill="#e8e8f0" font-size="9" font-family="'SF Mono','Fira Code',monospace">• 运行测试套件</text>
+      <text x="755" y="223" fill="#e8e8f0" font-size="9" font-family="'SF Mono','Fira Code',monospace">• 验证功能正确性</text>
+      <text x="755" y="238" fill="#e8e8f0" font-size="9" font-family="'SF Mono','Fira Code',monospace">• 质量检查与回归</text>
+      <rect x="747" y="248" width="185" height="18" rx="4" fill="rgba(239,68,68,.08)" stroke="#EF4444" stroke-width=".5"/>
+      <text x="839" y="261" text-anchor="middle" fill="#EF4444" font-size="7" font-family="'SF Mono','Fira Code',monospace">denied: FileEdit FileWrite</text>
+
+      <!-- Phase arrows -->
+      <line x1="270" y1="217" x2="285" y2="217" stroke="rgba(255,255,255,0.15)" stroke-width="2" marker-end="url(#maComm)"/>
+      <line x1="495" y1="217" x2="510" y2="217" stroke="rgba(255,255,255,0.15)" stroke-width="2" marker-end="url(#maComm)"/>
+      <line x1="720" y1="217" x2="735" y2="217" stroke="rgba(255,255,255,0.15)" stroke-width="2" marker-end="url(#maComm)"/>
+
+      <!-- Phase transition conditions -->
+      <text x="277" y="210" text-anchor="middle" fill="#6B70A0" font-size="6.5" font-family="'SF Mono','Fira Code',monospace" transform="rotate(-90,277,210)">调研完成</text>
+      <text x="502" y="210" text-anchor="middle" fill="#6B70A0" font-size="6.5" font-family="'SF Mono','Fira Code',monospace" transform="rotate(-90,502,210)">方案确定</text>
+      <text x="727" y="210" text-anchor="middle" fill="#6B70A0" font-size="6.5" font-family="'SF Mono','Fira Code',monospace" transform="rotate(-90,727,210)">实施完成</text>
+
+      <!-- ===== WORKER POOL (BOTTOM LEFT) ===== -->
+      <rect x="60" y="320" width="440" height="175" rx="10" fill="url(#gWorker)" stroke="#3B82F6" stroke-width="1.2"/>
+      <text x="80" y="345" fill="#3B82F6" font-size="13" font-weight="700" font-family="'SF Mono','Fira Code',monospace">Worker 池 — 并行执行</text>
+      <text x="80" y="362" fill="#a0a0b8" font-size="9.5" font-family="'SF Mono','Fira Code',monospace">可用工具: ~35个（除4个内部工具外全部）</text>
+
+      <rect x="80" y="375" width="195" height="48" rx="8" fill="#151829" stroke="#3B82F6" stroke-width=".8"/>
+      <text x="177" y="395" text-anchor="middle" fill="#3B82F6" font-size="10" font-weight="600" font-family="'SF Mono','Fira Code',monospace">SwarmWorkerRunner</text>
+      <text x="177" y="411" text-anchor="middle" fill="#a0a0b8" font-size="8.5" font-family="'SF Mono','Fira Code',monospace">332行 · Worker生命周期</text>
+
+      <rect x="290" y="375" width="195" height="48" rx="8" fill="#151829" stroke="#3B82F6" stroke-width=".8"/>
+      <text x="387" y="395" text-anchor="middle" fill="#3B82F6" font-size="10" font-weight="600" font-family="'SF Mono','Fira Code',monospace">SwarmService</text>
+      <text x="387" y="411" text-anchor="middle" fill="#a0a0b8" font-size="8.5" font-family="'SF Mono','Fira Code',monospace">463行 · Worker池管理</text>
+
+      <!-- Worker instances -->
+      <rect x="80" y="435" width="90" height="32" rx="6" fill="#151829" stroke="#3B82F6" stroke-width=".6" stroke-dasharray="3"/>
+      <text x="125" y="455" text-anchor="middle" fill="#a0a0b8" font-size="8.5" font-family="'SF Mono','Fira Code',monospace">Worker #1</text>
+      <rect x="180" y="435" width="90" height="32" rx="6" fill="#151829" stroke="#3B82F6" stroke-width=".6" stroke-dasharray="3"/>
+      <text x="225" y="455" text-anchor="middle" fill="#a0a0b8" font-size="8.5" font-family="'SF Mono','Fira Code',monospace">Worker #2</text>
+      <rect x="280" y="435" width="90" height="32" rx="6" fill="#151829" stroke="#3B82F6" stroke-width=".6" stroke-dasharray="3"/>
+      <text x="325" y="455" text-anchor="middle" fill="#a0a0b8" font-size="8.5" font-family="'SF Mono','Fira Code',monospace">Worker #3</text>
+      <rect x="380" y="435" width="90" height="32" rx="6" fill="#151829" stroke="#3B82F6" stroke-width=".6" stroke-dasharray="3"/>
+      <text x="425" y="455" text-anchor="middle" fill="#a0a0b8" font-size="8.5" font-family="'SF Mono','Fira Code',monospace">Worker #N</text>
+      <!-- ellipsis dots -->
+      <circle cx="462" cy="450" r="1.5" fill="#a0a0b8"/><circle cx="470" cy="450" r="1.5" fill="#a0a0b8"/><circle cx="478" cy="450" r="1.5" fill="#a0a0b8"/>
+
+      <!-- ===== COMMUNICATION MECHANISMS (BOTTOM RIGHT) ===== -->
+      <rect x="530" y="320" width="420" height="175" rx="10" fill="rgba(16,185,129,0.05)" stroke="#10B981" stroke-width="1.2" filter="url(#glowComm)"/>
+      <text x="550" y="345" fill="#10B981" font-size="13" font-weight="700" font-family="'SF Mono','Fira Code',monospace">通信与协调机制</text>
+
+      <rect x="550" y="360" width="180" height="52" rx="8" fill="#151829" stroke="#10B981" stroke-width=".8"/>
+      <text x="640" y="377" text-anchor="middle" fill="#10B981" font-size="10" font-weight="600" font-family="'SF Mono','Fira Code',monospace">TeamMailbox 109行</text>
+      <text x="640" y="392" text-anchor="middle" fill="#a0a0b8" font-size="8" font-family="'SF Mono','Fira Code',monospace">writeToMailbox() → readMailbox()</text>
+      <text x="640" y="405" text-anchor="middle" fill="#06B6D4" font-size="7" font-family="'SF Mono','Fira Code',monospace">Worker↔Coordinator 双向消息</text>
+
+      <rect x="750" y="360" width="180" height="52" rx="8" fill="#151829" stroke="#10B981" stroke-width=".8"/>
+      <text x="840" y="377" text-anchor="middle" fill="#10B981" font-size="10" font-weight="600" font-family="'SF Mono','Fira Code',monospace">SharedTaskList</text>
+      <text x="840" y="392" text-anchor="middle" fill="#a0a0b8" font-size="8" font-family="'SF Mono','Fira Code',monospace">addTask→claimTask→complete</text>
+      <text x="840" y="405" text-anchor="middle" fill="#06B6D4" font-size="7" font-family="'SF Mono','Fira Code',monospace">跨Worker任务流转</text>
+
+      <rect x="550" y="425" width="180" height="44" rx="8" fill="#151829" stroke="#A855F7" stroke-width=".8"/>
+      <text x="640" y="444" text-anchor="middle" fill="#A855F7" font-size="10" font-weight="600" font-family="'SF Mono','Fira Code',monospace">Scratchpad</text>
+      <text x="640" y="460" text-anchor="middle" fill="#a0a0b8" font-size="8.5" font-family="'SF Mono','Fira Code',monospace">.zhikun/scratchpad/ 文件交换区</text>
+
+      <!-- Comm links: Worker pool -> Communication (bidirectional) -->
+      <line x1="500" y1="385" x2="548" y2="385" stroke="#10B981" stroke-width="1.5" stroke-dasharray="4" opacity=".6" marker-end="url(#maComm)"/>
+      <line x1="548" y1="395" x2="500" y2="395" stroke="#3B82F6" stroke-width="1.5" stroke-dasharray="4" opacity=".6" marker-end="url(#maBlue)"/>
+      <text x="524" y="380" text-anchor="middle" fill="#6B70A0" font-size="6.5" font-family="'SF Mono','Fira Code',monospace">双向</text>
+
+      <!-- ===== TASK FLOW DETAIL (NEW) ===== -->
+      <rect x="60" y="530" width="890" height="68" rx="10" fill="rgba(6,182,212,0.04)" stroke="#06B6D4" stroke-width=".8"/>
+      <text x="80" y="550" fill="#06B6D4" font-size="11" font-weight="700" font-family="'SF Mono','Fira Code',monospace">SharedTaskList 任务流转</text>
+      <text x="310" y="550" fill="#6B70A0" font-size="9" font-family="'SF Mono','Fira Code',monospace">SharedTaskList.java — addTask/claimTask/completeTask 三步流转</text>
+      <!-- Task flow steps -->
+      <rect x="80" y="560" width="120" height="28" rx="6" fill="#151829" stroke="#A855F7" stroke-width=".8"/>
+      <text x="140" y="578" text-anchor="middle" fill="#A855F7" font-size="9" font-weight="600" font-family="'SF Mono','Fira Code',monospace">PENDING</text>
+      <line x1="200" y1="574" x2="228" y2="574" stroke="#06B6D4" stroke-width="1.5" marker-end="url(#maCyan)"/>
+      <text x="214" y="568" text-anchor="middle" fill="#6B70A0" font-size="6.5" font-family="'SF Mono','Fira Code',monospace">claim</text>
+      <rect x="230" y="560" width="140" height="28" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
+      <text x="300" y="578" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600" font-family="'SF Mono','Fira Code',monospace">IN_PROGRESS</text>
+      <line x1="370" y1="574" x2="398" y2="574" stroke="#06B6D4" stroke-width="1.5" marker-end="url(#maCyan)"/>
+      <text x="384" y="568" text-anchor="middle" fill="#6B70A0" font-size="6.5" font-family="'SF Mono','Fira Code',monospace">done</text>
+      <rect x="400" y="560" width="130" height="28" rx="6" fill="#151829" stroke="#10B981" stroke-width=".8"/>
+      <text x="465" y="578" text-anchor="middle" fill="#10B981" font-size="9" font-weight="600" font-family="'SF Mono','Fira Code',monospace">COMPLETED</text>
+      <line x1="530" y1="574" x2="558" y2="574" stroke="#EF4444" stroke-width="1" stroke-dasharray="3"/>
+      <text x="544" y="568" text-anchor="middle" fill="#6B70A0" font-size="6.5" font-family="'SF Mono','Fira Code',monospace">or</text>
+      <rect x="560" y="560" width="100" height="28" rx="6" fill="#151829" stroke="#EF4444" stroke-width=".8"/>
+      <text x="610" y="578" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="600" font-family="'SF Mono','Fira Code',monospace">FAILED</text>
+      <!-- TeamMailbox flow -->
+      <rect x="700" y="545" width="230" height="48" rx="6" fill="#151829" stroke="#10B981" stroke-width=".6" stroke-dasharray="3"/>
+      <text x="815" y="563" text-anchor="middle" fill="#10B981" font-size="9" font-weight="600" font-family="'SF Mono','Fira Code',monospace">TeamMailbox 消息流</text>
+      <text x="815" y="578" text-anchor="middle" fill="#a0a0b8" font-size="8" font-family="'SF Mono','Fira Code',monospace">write → poll → read · broadcast()</text>
+      <text x="815" y="590" text-anchor="middle" fill="#6B70A0" font-size="7" font-family="'SF Mono','Fira Code',monospace">ConcurrentLinkedQueue 无锁实现</text>
+
+      <!-- ===== KEY MODULES (BOTTOM) ===== -->
+      <rect x="60" y="618" width="890" height="90" rx="10" fill="rgba(245,158,11,0.04)" stroke="#F59E0B" stroke-width=".8" stroke-dasharray="5"/>
+      <text x="80" y="643" fill="#F59E0B" font-size="11" font-weight="700" font-family="'SF Mono','Fira Code',monospace">关键模块</text>
+
+      <rect x="80" y="655" width="260" height="40" rx="8" fill="#151829" stroke="#F59E0B" stroke-width=".7"/>
+      <text x="210" y="671" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="600" font-family="'SF Mono','Fira Code',monospace">CoordinatorWorkflowEngine</text>
+      <text x="210" y="686" text-anchor="middle" fill="#a0a0b8" font-size="8.5" font-family="'SF Mono','Fira Code',monospace">436行 — 4阶段编排引擎</text>
+
+      <rect x="360" y="655" width="200" height="40" rx="8" fill="#151829" stroke="#A855F7" stroke-width=".7"/>
+      <text x="460" y="671" text-anchor="middle" fill="#A855F7" font-size="10" font-weight="600" font-family="'SF Mono','Fira Code',monospace">LeaderPermissionBridge</text>
+      <text x="460" y="686" text-anchor="middle" fill="#a0a0b8" font-size="8.5" font-family="'SF Mono','Fira Code',monospace">162行 — 权限冒泡桥接</text>
+
+      <rect x="580" y="655" width="190" height="40" rx="8" fill="#151829" stroke="#06B6D4" stroke-width=".7"/>
+      <text x="675" y="671" text-anchor="middle" fill="#06B6D4" font-size="10" font-weight="600" font-family="'SF Mono','Fira Code',monospace">ResultAggregator</text>
+      <text x="675" y="686" text-anchor="middle" fill="#a0a0b8" font-size="8.5" font-family="'SF Mono','Fira Code',monospace">结果聚合 → Coordinator</text>
+
+      <rect x="790" y="655" width="140" height="40" rx="8" fill="#151829" stroke="#3B82F6" stroke-width=".7"/>
+      <text x="860" y="671" text-anchor="middle" fill="#3B82F6" font-size="10" font-weight="600" font-family="'SF Mono','Fira Code',monospace">SubAgentExecutor</text>
+      <text x="860" y="686" text-anchor="middle" fill="#a0a0b8" font-size="8.5" font-family="'SF Mono','Fira Code',monospace">918行 · 权限冒泡</text>
+
+      <!-- ResultAggregator → Coordinator feedback arrow -->
+      <line x1="675" y1="655" x2="675" y2="640" stroke="#06B6D4" stroke-width="1" opacity=".4" stroke-dasharray="3"/>
+      <line x1="675" y1="640" x2="920" y2="640" stroke="#06B6D4" stroke-width="1" opacity=".3" stroke-dasharray="3"/>
+      <line x1="920" y1="640" x2="920" y2="62" stroke="#06B6D4" stroke-width="1" opacity=".3" stroke-dasharray="3"/>
+      <line x1="920" y1="62" x2="722" y2="62" stroke="#06B6D4" stroke-width="1.2" opacity=".5" marker-end="url(#maCyan)"/>
+      <text x="940" y="350" fill="#06B6D4" font-size="7" font-family="'SF Mono','Fira Code',monospace" transform="rotate(90,940,350)">ResultAggregator → Coordinator 结果回传</text>
+
+      <!-- ===== SUMMARY BAR ===== -->
+      <rect x="60" y="725" width="890" height="36" rx="8" fill="#0F1221" stroke="#252840" stroke-width="1"/>
+      <text x="80" y="748" fill="#F59E0B" font-size="10" font-weight="600" font-family="'SF Mono','Fira Code',monospace">coordinator/ 17文件 3,777行</text>
+      <text x="320" y="748" fill="#3B82F6" font-size="10" font-family="'SF Mono','Fira Code',monospace">29个协调类</text>
+      <text x="480" y="748" fill="#A855F7" font-size="10" font-family="'SF Mono','Fira Code',monospace">4阶段工作流</text>
+      <text x="650" y="748" fill="#10B981" font-size="10" font-family="'SF Mono','Fira Code',monospace">3通信机制</text>
+      <text x="820" y="748" fill="#06B6D4" font-size="10" font-family="'SF Mono','Fira Code',monospace">~35工具/Worker</text>
+
+      <!-- WorkflowPhase sealed interface note -->
+      <rect x="60" y="770" width="890" height="26" rx="6" fill="rgba(168,85,247,.05)" stroke="#A855F7" stroke-width=".5" stroke-dasharray="3"/>
+      <text x="500" y="788" text-anchor="middle" fill="#A855F7" font-size="8.5" font-family="'SF Mono','Fira Code',monospace">WorkflowPhase.java — sealed interface permits Research | Synthesis | Implementation | Verification · phasePrompt() + allowedTools() + phaseIndex()</text>
+    </svg>
+          </div>
+        </div>
+        <div class="arch-diagram">
+          <h4 class="arch-diagram-title">Agent Loop 8步循环引擎</h4>
+          <div class="arch-diagram-svg">
+    <svg viewBox="0 0 960 520" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
+      <defs>
+        <linearGradient id="gLoop" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F59E0B" stop-opacity=".12"/><stop offset="100%" stop-color="#F59E0B" stop-opacity=".02"/></linearGradient>
+        <filter id="glowLoop"><feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#F59E0B" flood-opacity=".2"/></filter>
+        <marker id="lAr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#F59E0B"/></marker>
+        <marker id="lArG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#10B981"/></marker>
+        <marker id="lArR" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#EF4444"/></marker>
+        <marker id="lArC" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#06B6D4"/></marker>
+      </defs>
+      <rect width="960" height="520" fill="#0B0D17"/>
+
+      <!-- Title bar -->
+      <rect x="30" y="16" width="900" height="36" rx="8" fill="#151829" stroke="#F59E0B" stroke-width="1"/>
+      <text x="480" y="39" text-anchor="middle" fill="#F59E0B" font-size="13" font-weight="700" font-family="monospace">QueryEngine.java — 1,038行 · 8步循环 · 流式工具执行</text>
+
+      <!-- Step boxes arranged in a circuit -->
+      <!-- Row 1: Steps 1-4 (left to right) -->
+      <rect x="50" y="80" width="190" height="72" rx="10" fill="#151829" stroke="#F59E0B" stroke-width="1.2" filter="url(#glowLoop)"/>
+      <circle cx="74" cy="100" r="14" fill="#F59E0B"/><text x="74" y="105" text-anchor="middle" fill="#0B0D17" font-size="11" font-weight="800">1</text>
+      <text x="145" y="100" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="700">压缩级联</text>
+      <text x="145" y="116" text-anchor="middle" fill="#6B70A0" font-size="8">ContextCascade</text>
+      <text x="145" y="132" text-anchor="middle" fill="#9FA4C4" font-size="7">AutoCompact·上下文窗口</text>
+      <line x1="240" y1="116" x2="275" y2="116" stroke="#F59E0B" stroke-width="1.5" marker-end="url(#lAr)"/>
+
+      <rect x="275" y="80" width="190" height="72" rx="10" fill="#151829" stroke="#F59E0B" stroke-width="1.2"/>
+      <circle cx="299" cy="100" r="14" fill="#F59E0B"/><text x="299" y="105" text-anchor="middle" fill="#0B0D17" font-size="11" font-weight="800">2</text>
+      <text x="370" y="100" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="700">创建流式会话</text>
+      <text x="370" y="116" text-anchor="middle" fill="#6B70A0" font-size="8">StreamingToolExecutor</text>
+      <text x="370" y="132" text-anchor="middle" fill="#9FA4C4" font-size="7">初始化工具执行上下文</text>
+      <line x1="465" y1="116" x2="500" y2="116" stroke="#F59E0B" stroke-width="1.5" marker-end="url(#lAr)"/>
+
+      <rect x="500" y="80" width="190" height="72" rx="10" fill="#151829" stroke="#A855F7" stroke-width="1.2"/>
+      <circle cx="524" cy="100" r="14" fill="#A855F7"/><text x="524" y="105" text-anchor="middle" fill="#fff" font-size="11" font-weight="800">3</text>
+      <text x="595" y="100" text-anchor="middle" fill="#A855F7" font-size="10" font-weight="700">API调用+降级</text>
+      <text x="595" y="116" text-anchor="middle" fill="#6B70A0" font-size="8">LlmProvider.streamChat</text>
+      <text x="595" y="132" text-anchor="middle" fill="#9FA4C4" font-size="7">流式执行·413恢复·降级链</text>
+      <line x1="690" y1="116" x2="725" y2="116" stroke="#F59E0B" stroke-width="1.5" marker-end="url(#lAr)"/>
+
+      <rect x="725" y="80" width="190" height="72" rx="10" fill="#151829" stroke="#F59E0B" stroke-width="1.2"/>
+      <circle cx="749" cy="100" r="14" fill="#F59E0B"/><text x="749" y="105" text-anchor="middle" fill="#0B0D17" font-size="11" font-weight="800">4</text>
+      <text x="820" y="100" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="700">收集API响应</text>
+      <text x="820" y="116" text-anchor="middle" fill="#6B70A0" font-size="8">StreamCollector</text>
+      <text x="820" y="132" text-anchor="middle" fill="#9FA4C4" font-size="7">chunk聚合·工具调用提取</text>
+
+      <!-- Vertical connector: Step4 -> Step5 -->
+      <line x1="820" y1="152" x2="820" y2="195" stroke="#F59E0B" stroke-width="1.5" marker-end="url(#lAr)"/>
+
+      <!-- Row 2: Steps 5-8 (right to left) -->
+      <rect x="725" y="195" width="190" height="72" rx="10" fill="#151829" stroke="#10B981" stroke-width="1.2"/>
+      <circle cx="891" cy="215" r="14" fill="#10B981"/><text x="891" y="220" text-anchor="middle" fill="#0B0D17" font-size="11" font-weight="800">5</text>
+      <text x="810" y="215" text-anchor="middle" fill="#10B981" font-size="10" font-weight="700">消费工具结果</text>
+      <text x="810" y="231" text-anchor="middle" fill="#6B70A0" font-size="8">并行执行·异步等待</text>
+      <text x="810" y="247" text-anchor="middle" fill="#9FA4C4" font-size="7">权限检查→并行→收集</text>
+      <line x1="725" y1="231" x2="690" y2="231" stroke="#10B981" stroke-width="1.5" marker-end="url(#lArG)"/>
+
+      <rect x="500" y="195" width="190" height="72" rx="10" fill="#151829" stroke="#06B6D4" stroke-width="1.2"/>
+      <circle cx="666" cy="215" r="14" fill="#06B6D4"/><text x="666" y="220" text-anchor="middle" fill="#0B0D17" font-size="11" font-weight="800">6</text>
+      <text x="585" y="215" text-anchor="middle" fill="#06B6D4" font-size="10" font-weight="700">继续/终止判定</text>
+      <text x="585" y="231" text-anchor="middle" fill="#6B70A0" font-size="8">end_turn·max_tokens</text>
+      <text x="585" y="247" text-anchor="middle" fill="#9FA4C4" font-size="7">StopHook自定义拦截</text>
+      <line x1="500" y1="231" x2="465" y2="231" stroke="#06B6D4" stroke-width="1.5" marker-end="url(#lArC)"/>
+
+      <rect x="275" y="195" width="190" height="72" rx="10" fill="#151829" stroke="#F59E0B" stroke-width="1.2"/>
+      <circle cx="441" cy="215" r="14" fill="#F59E0B"/><text x="441" y="220" text-anchor="middle" fill="#0B0D17" font-size="11" font-weight="800">7</text>
+      <text x="360" y="215" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="700">工具摘要注入</text>
+      <text x="360" y="231" text-anchor="middle" fill="#6B70A0" font-size="8">ToolResultSummarizer</text>
+      <text x="360" y="247" text-anchor="middle" fill="#9FA4C4" font-size="7">LLM压缩·预算控制</text>
+      <line x1="275" y1="231" x2="240" y2="231" stroke="#F59E0B" stroke-width="1.5" marker-end="url(#lAr)"/>
+
+      <rect x="50" y="195" width="190" height="72" rx="10" fill="#151829" stroke="#10B981" stroke-width="1.2"/>
+      <circle cx="216" cy="215" r="14" fill="#10B981"/><text x="216" y="220" text-anchor="middle" fill="#0B0D17" font-size="11" font-weight="800">8</text>
+      <text x="135" y="215" text-anchor="middle" fill="#10B981" font-size="10" font-weight="700">状态更新</text>
+      <text x="135" y="231" text-anchor="middle" fill="#6B70A0" font-size="8">消息历史追加</text>
+      <text x="135" y="247" text-anchor="middle" fill="#9FA4C4" font-size="7">统计更新·回到Step1</text>
+
+      <!-- Loop back arrow: Step8 -> Step1 -->
+      <path d="M 50 231 L 30 231 L 30 116 L 50 116" fill="none" stroke="#10B981" stroke-width="2" class="anim-line" marker-end="url(#lArG)"/>
+      <text x="22" y="175" fill="#10B981" font-size="9" font-weight="700" writing-mode="tb" text-anchor="middle">LOOP</text>
+
+      <!-- ===== Branch decisions below ===== -->
+      <!-- From Step 6: three branches -->
+      <rect x="130" y="310" width="700" height="180" rx="12" fill="url(#gLoop)" stroke="#F59E0B" stroke-width=".8"/>
+      <text x="480" y="334" text-anchor="middle" fill="#F59E0B" font-size="11" font-weight="700">Step 6 判定分支</text>
+
+      <!-- Branch 1: Continue Loop -->
+      <rect x="160" y="352" width="180" height="56" rx="8" fill="#151829" stroke="#10B981" stroke-width="1"/>
+      <text x="250" y="376" text-anchor="middle" fill="#10B981" font-size="10" font-weight="600">继续循环</text>
+      <text x="250" y="392" text-anchor="middle" fill="#6B70A0" font-size="8">有工具调用 → Step7 → Step1</text>
+
+      <!-- Branch 2: Return Result -->
+      <rect x="390" y="352" width="180" height="56" rx="8" fill="#151829" stroke="#3B82F6" stroke-width="1"/>
+      <text x="480" y="376" text-anchor="middle" fill="#3B82F6" font-size="10" font-weight="600">返回结果</text>
+      <text x="480" y="392" text-anchor="middle" fill="#6B70A0" font-size="8">end_turn信号 → 输出给用户</text>
+
+      <!-- Branch 3: Error Recovery -->
+      <rect x="620" y="352" width="180" height="56" rx="8" fill="#151829" stroke="#EF4444" stroke-width="1"/>
+      <text x="710" y="376" text-anchor="middle" fill="#EF4444" font-size="10" font-weight="600">错误恢复</text>
+      <text x="710" y="392" text-anchor="middle" fill="#6B70A0" font-size="8">max_tokens → 截断 → 重试</text>
+
+      <!-- Arrows from step 6 area to branches -->
+      <line x1="585" y1="267" x2="250" y2="310" stroke="#10B981" stroke-width="1" opacity=".5" stroke-dasharray="4"/>
+      <line x1="585" y1="267" x2="480" y2="310" stroke="#3B82F6" stroke-width="1" opacity=".5" stroke-dasharray="4"/>
+      <line x1="585" y1="267" x2="710" y2="310" stroke="#EF4444" stroke-width="1" opacity=".5" stroke-dasharray="4"/>
+
+      <!-- Legend -->
+      <rect x="130" y="430" width="700" height="34" rx="8" fill="#0F1221" stroke="#252840" stroke-width="1"/>
+      <circle cx="160" cy="447" r="5" fill="#F59E0B"/><text x="170" y="451" fill="#F59E0B" font-size="9">核心步骤</text>
+      <circle cx="260" cy="447" r="5" fill="#A855F7"/><text x="270" y="451" fill="#A855F7" font-size="9">LLM API调用</text>
+      <circle cx="370" cy="447" r="5" fill="#10B981"/><text x="380" y="451" fill="#10B981" font-size="9">执行/循环</text>
+      <circle cx="470" cy="447" r="5" fill="#06B6D4"/><text x="480" y="451" fill="#06B6D4" font-size="9">判定节点</text>
+      <line x1="560" y1="447" x2="590" y2="447" stroke="#10B981" stroke-width="2" class="anim-line"/><text x="596" y="451" fill="#6B70A0" font-size="9">循环路径</text>
+      <line x1="660" y1="447" x2="690" y2="447" stroke="#6B70A0" stroke-width="1" stroke-dasharray="4"/><text x="696" y="451" fill="#6B70A0" font-size="9">分支决策</text>
+    </svg>
+          </div>
+        </div>
+        <div class="arch-diagram">
+          <h4 class="arch-diagram-title">5+1 层级联上下文压缩管道</h4>
+          <div class="arch-diagram-svg">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 640" font-family="'SF Mono',SFMono-Regular,Consolas,monospace" style="width:100%;max-width:960px;display:block;margin:auto">
+      <defs>
+        <linearGradient id="ccBg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0E1025"/><stop offset="100%" stop-color="#080A12"/></linearGradient>
+        <linearGradient id="ccGlow" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F59E0B" stop-opacity=".25"/><stop offset="100%" stop-color="#F59E0B" stop-opacity="0"/></linearGradient>
+        <filter id="ccGlowF"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="ccGlowSoft"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <marker id="ccAr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#F59E0B"/></marker>
+        <marker id="ccArG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#10B981"/></marker>
+        <marker id="ccArC" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#06B6D4"/></marker>
+        <marker id="ccArR" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#EF4444"/></marker>
+        <marker id="ccArP" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#A855F7"/></marker>
+        <linearGradient id="funnelG0" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#10B981" stop-opacity=".15"/><stop offset="100%" stop-color="#10B981" stop-opacity=".05"/></linearGradient>
+        <linearGradient id="funnelG1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#06B6D4" stop-opacity=".15"/><stop offset="100%" stop-color="#06B6D4" stop-opacity=".05"/></linearGradient>
+        <linearGradient id="funnelG15" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#8B5CF6" stop-opacity=".15"/><stop offset="100%" stop-color="#8B5CF6" stop-opacity=".05"/></linearGradient>
+        <linearGradient id="funnelG2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#F59E0B" stop-opacity=".18"/><stop offset="100%" stop-color="#F59E0B" stop-opacity=".05"/></linearGradient>
+        <linearGradient id="funnelG3" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#A855F7" stop-opacity=".15"/><stop offset="100%" stop-color="#A855F7" stop-opacity=".05"/></linearGradient>
+        <linearGradient id="funnelG4" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#EF4444" stop-opacity=".18"/><stop offset="100%" stop-color="#EF4444" stop-opacity=".05"/></linearGradient>
+      </defs>
+
+      <!-- Background -->
+      <rect width="960" height="640" rx="12" fill="url(#ccBg)"/>
+
+      <!-- Title -->
+      <rect x="30" y="14" width="900" height="38" rx="8" fill="#151829" stroke="#F59E0B" stroke-width="1" filter="url(#ccGlowF)"/>
+      <text x="480" y="38" text-anchor="middle" fill="#F59E0B" font-size="13" font-weight="700">5+1 层级联上下文压缩管道 — ContextCascade.java 340行 · 统一协调器</text>
+
+      <!-- Orchestrator label (left side) -->
+      <rect x="20" y="70" width="100" height="460" rx="8" fill="#151829" stroke="#F59E0B" stroke-width=".8" stroke-dasharray="4,3"/>
+      <text x="70" y="300" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="700" writing-mode="tb">ContextCascade · 编排器</text>
+      <text x="55" y="120" text-anchor="middle" fill="#6B70A0" font-size="7">每次</text>
+      <text x="55" y="132" text-anchor="middle" fill="#6B70A0" font-size="7">API前</text>
+      <text x="55" y="144" text-anchor="middle" fill="#6B70A0" font-size="7">执行</text>
+      <rect x="35" y="150" width="50" height="1" fill="#6B70A0" opacity=".4"/>
+      <text x="55" y="168" text-anchor="middle" fill="#10B981" font-size="7" font-weight="600">L0-L2</text>
+      <text x="55" y="180" text-anchor="middle" fill="#10B981" font-size="7">低代价</text>
+
+      <rect x="35" y="380" width="50" height="1" fill="#6B70A0" opacity=".4"/>
+      <text x="55" y="400" text-anchor="middle" fill="#EF4444" font-size="7" font-weight="600">L3-L4</text>
+      <text x="55" y="412" text-anchor="middle" fill="#EF4444" font-size="7">错误</text>
+      <text x="55" y="424" text-anchor="middle" fill="#EF4444" font-size="7">恢复</text>
+
+      <!-- ===== FUNNEL LAYERS ===== -->
+
+      <!-- L0: Snip — SnipService 150行 -->
+      <polygon points="140,72 820,72 800,132 160,132" fill="url(#funnelG0)" stroke="#10B981" stroke-width="1.2"/>
+      <rect x="145" y="78" width="50" height="20" rx="4" fill="#10B981"/>
+      <text x="170" y="92" text-anchor="middle" fill="#0B0D17" font-size="10" font-weight="800">L0</text>
+      <text x="220" y="92" fill="#10B981" font-size="11" font-weight="700">Snip</text>
+      <text x="305" y="92" fill="#6B70A0" font-size="9">SnipService.java</text>
+      <text x="430" y="92" fill="#9FA4C4" font-size="8">150 行</text>
+      <text x="220" y="110" fill="#9FA4C4" font-size="8">单条工具结果超预算 → 截断中间保留首尾</text>
+      <text x="220" y="124" fill="#6B70A0" font-size="7">触发: toolResult &gt; contextWindow × 0.3 × 3.5</text>
+
+      <!-- Arrow L0→L1 -->
+      <line x1="480" y1="132" x2="480" y2="142" stroke="#10B981" stroke-width="1.5" marker-end="url(#ccArG)"/>
+
+      <!-- L1: MicroCompact — MicroCompactService 183行 -->
+      <polygon points="160,145 800,145 780,205 180,205" fill="url(#funnelG1)" stroke="#06B6D4" stroke-width="1.2"/>
+      <rect x="165" y="151" width="50" height="20" rx="4" fill="#06B6D4"/>
+      <text x="190" y="165" text-anchor="middle" fill="#0B0D17" font-size="10" font-weight="800">L1</text>
+      <text x="240" y="165" fill="#06B6D4" font-size="11" font-weight="700">MicroCompact</text>
+      <text x="365" y="165" fill="#6B70A0" font-size="9">MicroCompactService.java</text>
+      <text x="530" y="165" fill="#9FA4C4" font-size="8">183 行</text>
+      <text x="240" y="183" fill="#9FA4C4" font-size="8">旧可压缩工具结果 → 替换为 "[cleared]"</text>
+      <text x="240" y="197" fill="#6B70A0" font-size="7">触发: 每次API调用前无条件执行 · protectedTail=10</text>
+
+      <!-- Arrow L1→L1.5 -->
+      <line x1="480" y1="205" x2="480" y2="215" stroke="#06B6D4" stroke-width="1.5" marker-end="url(#ccArC)"/>
+
+      <!-- L1.5: ContextCollapse — ContextCollapseService 283行 -->
+      <polygon points="180,218 780,218 760,278 200,278" fill="url(#funnelG15)" stroke="#8B5CF6" stroke-width="1.2"/>
+      <rect x="185" y="224" width="55" height="20" rx="4" fill="#8B5CF6"/>
+      <text x="212" y="238" text-anchor="middle" fill="#fff" font-size="9" font-weight="800">L1.5</text>
+      <text x="268" y="238" fill="#8B5CF6" font-size="11" font-weight="700">ContextCollapse</text>
+      <text x="420" y="238" fill="#6B70A0" font-size="9">ContextCollapseService.java</text>
+      <text x="598" y="238" fill="#9FA4C4" font-size="8">283 行</text>
+      <text x="268" y="256" fill="#9FA4C4" font-size="8">三级渐进折叠: Full(尾10) → Summary(10-30) → Skeleton(30+)</text>
+      <text x="268" y="270" fill="#6B70A0" font-size="7">触发: 每次API调用前 · CollapseLevel sealed interface 54行</text>
+
+      <!-- Arrow L1.5→L2 -->
+      <line x1="480" y1="278" x2="480" y2="288" stroke="#8B5CF6" stroke-width="1.5" marker-end="url(#ccArP)"/>
+
+      <!-- L2: AutoCompact — CompactService 1058行 (核心层，加粗) -->
+      <polygon points="200,291 760,291 740,366 220,366" fill="url(#funnelG2)" stroke="#F59E0B" stroke-width="1.8" filter="url(#ccGlowF)"/>
+      <rect x="205" y="297" width="50" height="20" rx="4" fill="#F59E0B"/>
+      <text x="230" y="311" text-anchor="middle" fill="#0B0D17" font-size="10" font-weight="800">L2</text>
+      <text x="280" y="311" fill="#F59E0B" font-size="11" font-weight="700">AutoCompact ★</text>
+      <text x="405" y="311" fill="#6B70A0" font-size="9">CompactService.java</text>
+      <text x="540" y="311" fill="#F59E0B" font-size="9" font-weight="700">1,058 行</text>
+      <text x="280" y="329" fill="#9FA4C4" font-size="8">三区划分(冻结/压缩/保留) + 3级降级: LLM摘要 → 关键消息 → 尾截断</text>
+      <text x="280" y="343" fill="#6B70A0" font-size="7">触发: tokens &gt; effectiveWindow - 13,000 buffer</text>
+      <text x="280" y="357" fill="#6B70A0" font-size="7">阈值: 85% · 目标: 50% · 摘要上限: 4,096 tokens · 保留最近3轮</text>
+
+      <!-- Arrow L2→L3 -->
+      <line x1="480" y1="366" x2="480" y2="376" stroke="#F59E0B" stroke-width="1.5" marker-end="url(#ccAr)"/>
+      <text x="508" y="375" fill="#EF4444" font-size="7" font-weight="600">413 错误 ↓</text>
+
+      <!-- L3: CollapseDrain -->
+      <polygon points="220,379 740,379 720,434 240,434" fill="url(#funnelG3)" stroke="#A855F7" stroke-width="1.2"/>
+      <rect x="225" y="385" width="50" height="20" rx="4" fill="#A855F7"/>
+      <text x="250" y="399" text-anchor="middle" fill="#fff" font-size="10" font-weight="800">L3</text>
+      <text x="300" y="399" fill="#A855F7" font-size="11" font-weight="700">CollapseDrain</text>
+      <text x="440" y="399" fill="#6B70A0" font-size="9">CompactService.compact()</text>
+      <text x="300" y="417" fill="#9FA4C4" font-size="8">激进压缩 → contextWindow × 0.5 目标</text>
+      <text x="300" y="429" fill="#6B70A0" font-size="7">触发: API返回413 · 第一次错误恢复尝试</text>
+
+      <!-- Arrow L3→L4 -->
+      <line x1="480" y1="434" x2="480" y2="444" stroke="#A855F7" stroke-width="1.5" marker-end="url(#ccArP)"/>
+
+      <!-- L4: ReactiveCompact -->
+      <polygon points="240,447 720,447 700,507 260,507" fill="url(#funnelG4)" stroke="#EF4444" stroke-width="1.5"/>
+      <rect x="245" y="453" width="50" height="20" rx="4" fill="#EF4444"/>
+      <text x="270" y="467" text-anchor="middle" fill="#fff" font-size="10" font-weight="800">L4</text>
+      <text x="320" y="467" fill="#EF4444" font-size="11" font-weight="700">ReactiveCompact</text>
+      <text x="480" y="467" fill="#6B70A0" font-size="9">CompactService.reactiveCompact()</text>
+      <text x="320" y="485" fill="#9FA4C4" font-size="8">最后手段 — 仅保留1轮 + 极度压缩 + 防死亡螺旋</text>
+      <text x="320" y="499" fill="#6B70A0" font-size="7">触发: L3失败 · 仅允许执行一次 · 失败则完全终止</text>
+
+      <!-- ===== RIGHT SIDE: TokenCounter + TokenBudgetTracker ===== -->
+      <rect x="835" y="70" width="110" height="200" rx="8" fill="#151829" stroke="#06B6D4" stroke-width=".8"/>
+      <text x="890" y="90" text-anchor="middle" fill="#06B6D4" font-size="9" font-weight="700">TokenCounter</text>
+      <text x="890" y="105" text-anchor="middle" fill="#6B70A0" font-size="8">257 行</text>
+      <line x1="845" y1="112" x2="935" y2="112" stroke="#1E2248" stroke-width=".5"/>
+      <text x="890" y="126" text-anchor="middle" fill="#9FA4C4" font-size="7">三层精度估算</text>
+      <text x="890" y="140" text-anchor="middle" fill="#9FA4C4" font-size="7">① 字符粗估</text>
+      <text x="890" y="154" text-anchor="middle" fill="#9FA4C4" font-size="7">② 类型调整</text>
+      <text x="890" y="168" text-anchor="middle" fill="#9FA4C4" font-size="7">③ tiktoken精算</text>
+      <line x1="845" y1="175" x2="935" y2="175" stroke="#1E2248" stroke-width=".5"/>
+      <text x="890" y="190" text-anchor="middle" fill="#6B70A0" font-size="7">中文: 2.0 char/tk</text>
+      <text x="890" y="204" text-anchor="middle" fill="#6B70A0" font-size="7">JSON: 2.0 char/tk</text>
+      <text x="890" y="218" text-anchor="middle" fill="#6B70A0" font-size="7">代码: 3.5 char/tk</text>
+      <text x="890" y="232" text-anchor="middle" fill="#6B70A0" font-size="7">混合: 3.5 char/tk</text>
+      <text x="890" y="260" text-anchor="middle" fill="#06B6D4" font-size="7" font-weight="600">参与所有层级决策</text>
+
+      <!-- Connecting lines from TokenCounter to layers -->
+      <line x1="835" y1="100" x2="820" y2="100" stroke="#06B6D4" stroke-width=".6" stroke-dasharray="3,2"/>
+      <line x1="835" y1="170" x2="800" y2="170" stroke="#06B6D4" stroke-width=".6" stroke-dasharray="3,2"/>
+      <line x1="835" y1="250" x2="770" y2="250" stroke="#06B6D4" stroke-width=".6" stroke-dasharray="3,2"/>
+
+      <rect x="835" y="285" width="110" height="145" rx="8" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
+      <text x="890" y="305" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="700">TokenBudget</text>
+      <text x="890" y="318" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="700">Tracker</text>
+      <text x="890" y="333" text-anchor="middle" fill="#6B70A0" font-size="8">89 行</text>
+      <line x1="845" y1="340" x2="935" y2="340" stroke="#1E2248" stroke-width=".5"/>
+      <text x="890" y="354" text-anchor="middle" fill="#9FA4C4" font-size="7">续写预算追踪</text>
+      <text x="890" y="368" text-anchor="middle" fill="#9FA4C4" font-size="7">完成阈值: 90%</text>
+      <text x="890" y="382" text-anchor="middle" fill="#9FA4C4" font-size="7">递减检测: 500tk</text>
+      <text x="890" y="396" text-anchor="middle" fill="#9FA4C4" font-size="7">电路断路器:</text>
+      <text x="890" y="408" text-anchor="middle" fill="#9FA4C4" font-size="7">连续3次失败</text>
+      <text x="890" y="422" text-anchor="middle" fill="#F59E0B" font-size="7" font-weight="600">配合L2预算管理</text>
+
+      <line x1="835" y1="380" x2="760" y2="340" stroke="#F59E0B" stroke-width=".6" stroke-dasharray="3,2"/>
+
+      <!-- ===== Data flow annotation ===== -->
+      <text x="140" y="520" fill="#F59E0B" font-size="9" font-weight="700">数据流:</text>
+      <text x="200" y="520" fill="#9FA4C4" font-size="8">原始消息 →</text>
+      <rect x="280" y="510" width="8" height="14" rx="2" fill="#10B981"/><text x="295" y="521" fill="#10B981" font-size="8">Snip截断</text>
+      <text x="355" y="520" fill="#6B70A0" font-size="8">→</text>
+      <rect x="368" y="510" width="8" height="14" rx="2" fill="#06B6D4"/><text x="383" y="521" fill="#06B6D4" font-size="8">清除旧结果</text>
+      <text x="460" y="520" fill="#6B70A0" font-size="8">→</text>
+      <rect x="473" y="510" width="8" height="14" rx="2" fill="#8B5CF6"/><text x="488" y="521" fill="#8B5CF6" font-size="8">渐进折叠</text>
+      <text x="550" y="520" fill="#6B70A0" font-size="8">→</text>
+      <rect x="563" y="510" width="8" height="14" rx="2" fill="#F59E0B"/><text x="578" y="521" fill="#F59E0B" font-size="8">LLM摘要</text>
+      <text x="640" y="520" fill="#6B70A0" font-size="8">→</text>
+      <text x="660" y="520" fill="#9FA4C4" font-size="8">压缩后消息</text>
+
+      <!-- Error recovery path -->
+      <text x="140" y="540" fill="#EF4444" font-size="9" font-weight="700">错误恢复:</text>
+      <text x="216" y="540" fill="#9FA4C4" font-size="8">API 413 →</text>
+      <rect x="290" y="530" width="8" height="14" rx="2" fill="#A855F7"/><text x="305" y="541" fill="#A855F7" font-size="8">CollapseDrain(50%目标)</text>
+      <text x="455" y="540" fill="#6B70A0" font-size="8">→ 失败 →</text>
+      <rect x="510" y="530" width="8" height="14" rx="2" fill="#EF4444"/><text x="525" y="541" fill="#EF4444" font-size="8">ReactiveCompact(保留1轮)</text>
+      <text x="690" y="540" fill="#6B70A0" font-size="8">→ 失败 →</text>
+      <text x="750" y="540" fill="#EF4444" font-size="8" font-weight="600">终止</text>
+
+      <!-- ===== Bottom Stats Bar ===== -->
+      <rect x="30" y="565" width="900" height="60" rx="8" fill="#151829" stroke="#1E2248" stroke-width=".8"/>
+      <text x="60" y="585" fill="#F59E0B" font-size="10" font-weight="700">压缩系统统计</text>
+      <line x1="160" y1="572" x2="160" y2="618" stroke="#1E2248" stroke-width=".5"/>
+
+      <text x="180" y="585" fill="#6B70A0" font-size="8">核心文件</text>
+      <text x="180" y="600" fill="#10B981" font-size="9" font-weight="600">CompactService</text><text x="290" y="600" fill="#9FA4C4" font-size="8">1,058行</text>
+      <text x="180" y="614" fill="#06B6D4" font-size="9" font-weight="600">ContextCascade</text><text x="290" y="614" fill="#9FA4C4" font-size="8">340行</text>
+
+      <line x1="360" y1="572" x2="360" y2="618" stroke="#1E2248" stroke-width=".5"/>
+      <text x="380" y="600" fill="#8B5CF6" font-size="9" font-weight="600">CollapseService</text><text x="490" y="600" fill="#9FA4C4" font-size="8">283行</text>
+      <text x="380" y="614" fill="#06B6D4" font-size="9" font-weight="600">TokenCounter</text><text x="490" y="614" fill="#9FA4C4" font-size="8">257行</text>
+
+      <line x1="560" y1="572" x2="560" y2="618" stroke="#1E2248" stroke-width=".5"/>
+      <text x="580" y="600" fill="#06B6D4" font-size="9" font-weight="600">MicroCompact</text><text x="680" y="600" fill="#9FA4C4" font-size="8">183行</text>
+      <text x="580" y="614" fill="#10B981" font-size="9" font-weight="600">SnipService</text><text x="680" y="614" fill="#9FA4C4" font-size="8">150行</text>
+
+      <line x1="750" y1="572" x2="750" y2="618" stroke="#1E2248" stroke-width=".5"/>
+      <text x="770" y="585" fill="#6B70A0" font-size="8">辅助文件</text>
+      <text x="770" y="600" fill="#F59E0B" font-size="9" font-weight="600">BudgetTracker</text><text x="875" y="600" fill="#9FA4C4" font-size="8">89行</text>
+      <text x="770" y="614" fill="#9FA4C4" font-size="9" font-weight="600">CollapseLevel</text><text x="875" y="614" fill="#9FA4C4" font-size="8">54行</text>
+
+      <text x="480" y="585" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="700">共 11 个文件 · 2,698 行</text>
+    </svg>
+          </div>
+        </div>
+        <div class="arch-diagram">
+          <h4 class="arch-diagram-title">18步权限管线全景流程</h4>
+          <div class="arch-diagram-svg">
+    <svg viewBox="0 0 960 800" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
+      <defs>
+        <linearGradient id="gS1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#EF4444" stop-opacity=".15"/><stop offset="100%" stop-color="#EF4444" stop-opacity=".03"/></linearGradient>
+        <linearGradient id="gS2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#10B981" stop-opacity=".15"/><stop offset="100%" stop-color="#10B981" stop-opacity=".03"/></linearGradient>
+        <linearGradient id="gS3" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#A855F7" stop-opacity=".18"/><stop offset="100%" stop-color="#A855F7" stop-opacity=".03"/></linearGradient>
+        <filter id="glowR"><feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#EF4444" flood-opacity=".25"/></filter>
+        <filter id="glowGr"><feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#10B981" flood-opacity=".25"/></filter>
+        <filter id="glowPu"><feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#A855F7" flood-opacity=".25"/></filter>
+        <marker id="pArR" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#EF4444"/></marker>
+        <marker id="pArG" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#10B981"/></marker>
+        <marker id="pArP" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#A855F7"/></marker>
+        <marker id="pArO" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#F59E0B"/></marker>
+      </defs>
+      <rect width="960" height="800" fill="#0B0D17"/>
+
+      <!-- Title bar -->
+      <rect x="30" y="16" width="900" height="36" rx="8" fill="#151829" stroke="#F59E0B" stroke-width="1"/>
+      <text x="480" y="39" text-anchor="middle" fill="#F59E0B" font-size="13" font-weight="700" font-family="monospace">PermissionPipeline.java — 752行 · 18步 · 3阶段</text>
+
+      <!-- Decision tree explanation banner -->
+      <rect x="30" y="58" width="900" height="24" rx="6" fill="rgba(245,158,11,.08)" stroke="#F59E0B" stroke-width=".6" stroke-dasharray="4"/>
+      <text x="480" y="74" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">决策树结构 — 每步匹配即短路返回，不走完所有步骤 · 🔒 = bypass免疫（即使bypass=true也会拦截）</text>
+
+      <!-- ===== STAGE 1: Deny/Ask Rules (11 steps) ===== -->
+      <rect x="30" y="90" width="900" height="340" rx="12" fill="url(#gS1)" stroke="#EF4444" stroke-width="1" filter="url(#glowR)"/>
+      <text x="50" y="116" fill="#EF4444" font-size="13" font-weight="700">STAGE 1: 拒绝 / 询问规则</text>
+      <text x="280" y="116" fill="#6B70A0" font-size="10" font-family="monospace">11 步 — 安全过滤（短路决策树）</text>
+
+      <!-- Short-circuit exit nodes (right side) -->
+      <rect x="820" y="94" width="100" height="28" rx="14" fill="rgba(239,68,68,.18)" stroke="#EF4444" stroke-width="1.2"/>
+      <text x="870" y="112" text-anchor="middle" fill="#EF4444" font-size="10" font-weight="700">DENY 返回</text>
+      <rect x="820" y="126" width="100" height="28" rx="14" fill="rgba(245,158,11,.18)" stroke="#F59E0B" stroke-width="1.2"/>
+      <text x="870" y="144" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="700">ASK 返回</text>
+
+      <!-- Row 1: steps 1a-1e -->
+      <rect x="50" y="130" width="120" height="56" rx="8" fill="#151829" stroke="#EF4444" stroke-width=".8"/>
+      <text x="110" y="150" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="600">1a deny规则</text>
+      <text x="110" y="164" text-anchor="middle" fill="#6B70A0" font-size="7.5">显式拒绝→DENY</text>
+      <text x="110" y="178" text-anchor="middle" fill="#EF4444" font-size="7" opacity=".7">findDenyRule()</text>
+      <!-- Short-circuit arrow 1a → DENY -->
+      <line x1="140" y1="130" x2="140" y2="108" stroke="#EF4444" stroke-width="1" stroke-dasharray="3" opacity=".7"/>
+      <line x1="140" y1="108" x2="818" y2="108" stroke="#EF4444" stroke-width="1" stroke-dasharray="3" opacity=".5"/>
+      <line x1="170" y1="158" x2="185" y2="158" stroke="#EF4444" stroke-width="1" marker-end="url(#pArR)"/>
+
+      <rect x="185" y="130" width="120" height="56" rx="8" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
+      <text x="245" y="150" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">1b ask规则</text>
+      <text x="245" y="164" text-anchor="middle" fill="#6B70A0" font-size="7.5">需询问→ASK</text>
+      <text x="245" y="178" text-anchor="middle" fill="#F59E0B" font-size="7" opacity=".7">findAskRule()</text>
+      <!-- Short-circuit arrow 1b → ASK -->
+      <line x1="275" y1="130" x2="275" y2="140" stroke="#F59E0B" stroke-width="1" stroke-dasharray="3" opacity=".7"/>
+      <line x1="275" y1="140" x2="818" y2="140" stroke="#F59E0B" stroke-width="1" stroke-dasharray="3" opacity=".5"/>
+      <line x1="305" y1="158" x2="320" y2="158" stroke="#EF4444" stroke-width="1" marker-end="url(#pArR)"/>
+
+      <rect x="320" y="130" width="120" height="56" rx="8" fill="#151829" stroke="#EF4444" stroke-width=".8"/>
+      <text x="380" y="150" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="600">1c 工具权限</text>
+      <text x="380" y="164" text-anchor="middle" fill="#6B70A0" font-size="7.5">checkPermissions()</text>
+      <text x="380" y="178" text-anchor="middle" fill="#6B70A0" font-size="7" opacity=".7">→DENY/ASK/PASS</text>
+      <line x1="440" y1="158" x2="455" y2="158" stroke="#EF4444" stroke-width="1" marker-end="url(#pArR)"/>
+
+      <rect x="455" y="130" width="120" height="56" rx="8" fill="#151829" stroke="#EF4444" stroke-width=".8"/>
+      <text x="515" y="150" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="600">1d 工具拒绝</text>
+      <text x="515" y="164" text-anchor="middle" fill="#6B70A0" font-size="7.5">DENY→短路</text>
+      <text x="515" y="178" text-anchor="middle" fill="#EF4444" font-size="7" opacity=".7">PermBehavior.DENY</text>
+      <line x1="575" y1="158" x2="590" y2="158" stroke="#EF4444" stroke-width="1" marker-end="url(#pArR)"/>
+
+      <rect x="590" y="130" width="120" height="56" rx="8" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
+      <text x="650" y="150" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">1e 用户交互</text>
+      <text x="650" y="164" text-anchor="middle" fill="#6B70A0" font-size="7.5">requiresInteraction</text>
+      <text x="650" y="178" text-anchor="middle" fill="#F59E0B" font-size="7" opacity=".7">→ASK短路</text>
+
+      <!-- Row 2: steps 1f, 1f-pre, 1f-w, 1f-b (bypass immune group) -->
+      <line x1="650" y1="186" x2="650" y2="196" stroke="#EF4444" stroke-width="1" opacity=".5"/>
+      <line x1="650" y1="196" x2="90" y2="196" stroke="#EF4444" stroke-width="1" opacity=".3" stroke-dasharray="4"/>
+      <line x1="90" y1="196" x2="90" y2="202" stroke="#EF4444" stroke-width="1" opacity=".5"/>
+
+      <rect x="50" y="202" width="138" height="56" rx="8" fill="#151829" stroke="#F59E0B" stroke-width="1.2"/>
+      <text x="119" y="218" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">🔒 1f 内容级ask</text>
+      <text x="119" y="232" text-anchor="middle" fill="#F59E0B" font-size="7" font-weight="600">bypass 免疫</text>
+      <text x="119" y="248" text-anchor="middle" fill="#6B70A0" font-size="6.5">裸shell+危险模式</text>
+      <line x1="188" y1="230" x2="203" y2="230" stroke="#F59E0B" stroke-width="1" marker-end="url(#pArO)"/>
+
+      <rect x="203" y="202" width="138" height="56" rx="8" fill="#151829" stroke="#F59E0B" stroke-width="1.2"/>
+      <text x="272" y="218" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">🔒 1f-pre 命令黑名单</text>
+      <text x="272" y="232" text-anchor="middle" fill="#F59E0B" font-size="7" font-weight="600">bypass 免疫</text>
+      <text x="272" y="248" text-anchor="middle" fill="#6B70A0" font-size="6.5">ABSOLUTE_DENY/ASK</text>
+      <line x1="341" y1="230" x2="356" y2="230" stroke="#F59E0B" stroke-width="1" marker-end="url(#pArO)"/>
+
+      <rect x="356" y="202" width="138" height="56" rx="8" fill="#151829" stroke="#EF4444" stroke-width=".8"/>
+      <text x="425" y="218" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="600">1f-w 危险文件写入</text>
+      <text x="425" y="232" text-anchor="middle" fill="#6B70A0" font-size="7.5">.env/密钥→DENY/ASK</text>
+      <text x="425" y="248" text-anchor="middle" fill="#6B70A0" font-size="6.5">PathSecurityService</text>
+      <line x1="494" y1="230" x2="509" y2="230" stroke="#EF4444" stroke-width="1" marker-end="url(#pArR)"/>
+
+      <rect x="509" y="202" width="138" height="56" rx="8" fill="#151829" stroke="#EF4444" stroke-width=".8"/>
+      <text x="578" y="218" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="600">1f-b 危险Bash</text>
+      <text x="578" y="232" text-anchor="middle" fill="#6B70A0" font-size="7.5">rm -rf/export→ASK</text>
+      <text x="578" y="248" text-anchor="middle" fill="#6B70A0" font-size="6.5">env变量篡改检测</text>
+
+      <!-- Row 3: steps 1g, 1h, 1i, 1j, 1k -->
+      <line x1="578" y1="258" x2="578" y2="268" stroke="#EF4444" stroke-width="1" opacity=".5"/>
+      <line x1="578" y1="268" x2="90" y2="268" stroke="#EF4444" stroke-width="1" opacity=".3" stroke-dasharray="4"/>
+      <line x1="90" y1="268" x2="90" y2="274" stroke="#EF4444" stroke-width="1" opacity=".5"/>
+
+      <rect x="50" y="274" width="135" height="56" rx="8" fill="#151829" stroke="#F59E0B" stroke-width="1.2"/>
+      <text x="117" y="290" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">🔒 1g 安全检查</text>
+      <text x="117" y="304" text-anchor="middle" fill="#F59E0B" font-size="7" font-weight="600">bypass 免疫</text>
+      <text x="117" y="320" text-anchor="middle" fill="#6B70A0" font-size="6.5">.git/.zhikun/.env/.ssh</text>
+      <line x1="185" y1="302" x2="200" y2="302" stroke="#EF4444" stroke-width="1" marker-end="url(#pArR)"/>
+
+      <rect x="200" y="274" width="135" height="56" rx="8" fill="#151829" stroke="#10B981" stroke-width=".8"/>
+      <text x="267" y="290" text-anchor="middle" fill="#10B981" font-size="9" font-weight="600">1h Hook规则注入</text>
+      <text x="267" y="304" text-anchor="middle" fill="#6B70A0" font-size="7.5">PreToolUse Hook</text>
+      <text x="267" y="320" text-anchor="middle" fill="#6B70A0" font-size="6.5">proceed=false→ASK</text>
+      <line x1="335" y1="302" x2="350" y2="302" stroke="#10B981" stroke-width="1" marker-end="url(#pArG)"/>
+
+      <rect x="350" y="274" width="135" height="56" rx="8" fill="#151829" stroke="#06B6D4" stroke-width=".8"/>
+      <text x="417" y="290" text-anchor="middle" fill="#06B6D4" font-size="9" font-weight="600">1i Classifier注入</text>
+      <text x="417" y="304" text-anchor="middle" fill="#6B70A0" font-size="7.5">仅auto模式</text>
+      <text x="417" y="320" text-anchor="middle" fill="#6B70A0" font-size="6.5">高风险命令→ASK</text>
+      <line x1="485" y1="302" x2="500" y2="302" stroke="#06B6D4" stroke-width="1" marker-end="url(#pArR)"/>
+
+      <rect x="500" y="274" width="135" height="56" rx="8" fill="#151829" stroke="#10B981" stroke-width=".8"/>
+      <text x="567" y="290" text-anchor="middle" fill="#10B981" font-size="9" font-weight="600">1j Sandbox覆盖</text>
+      <text x="567" y="304" text-anchor="middle" fill="#6B70A0" font-size="7.5">Docker放宽权限</text>
+      <text x="567" y="320" text-anchor="middle" fill="#6B70A0" font-size="6.5">沙箱内→ALLOW</text>
+      <line x1="635" y1="302" x2="650" y2="302" stroke="#10B981" stroke-width="1" marker-end="url(#pArG)"/>
+
+      <rect x="650" y="274" width="135" height="56" rx="8" fill="#151829" stroke="#F59E0B" stroke-width="1.2"/>
+      <text x="717" y="290" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">🔒 1k 敏感文件</text>
+      <text x="717" y="304" text-anchor="middle" fill="#F59E0B" font-size="7" font-weight="600">bypass 免疫</text>
+      <text x="717" y="320" text-anchor="middle" fill="#6B70A0" font-size="6.5">/etc/passwd ~/.ssh</text>
+
+      <!-- Result badges for Stage 1 -->
+      <rect x="50" y="345" width="110" height="28" rx="14" fill="rgba(239,68,68,.12)" stroke="#EF4444" stroke-width=".8"/>
+      <text x="105" y="363" text-anchor="middle" fill="#EF4444" font-size="10" font-weight="700">→ DENY</text>
+      <rect x="175" y="345" width="110" height="28" rx="14" fill="rgba(245,158,11,.12)" stroke="#F59E0B" stroke-width=".8"/>
+      <text x="230" y="363" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="700">→ ASK</text>
+      <rect x="300" y="345" width="170" height="28" rx="14" fill="rgba(16,185,129,.08)" stroke="#10B981" stroke-width=".8"/>
+      <text x="385" y="363" text-anchor="middle" fill="#10B981" font-size="10">全部通过 → Stage2</text>
+      <!-- bypass immune legend -->
+      <rect x="500" y="345" width="270" height="28" rx="14" fill="rgba(245,158,11,.06)" stroke="#F59E0B" stroke-width=".6" stroke-dasharray="3"/>
+      <text x="635" y="363" text-anchor="middle" fill="#F59E0B" font-size="8">🔒 1f · 1f-pre · 1g · 1k = 4步 bypass免疫，无法绕过</text>
+
+      <!-- Stage transition arrow with condition -->
+      <line x1="480" y1="410" x2="480" y2="435" stroke="#6B70A0" stroke-width="2" class="anim-line"/>
+      <polygon points="475 433,485 433,480 443" fill="#6B70A0"/>
+      <rect x="380" y="415" width="200" height="18" rx="9" fill="rgba(16,185,129,.1)" stroke="#10B981" stroke-width=".6"/>
+      <text x="480" y="428" text-anchor="middle" fill="#10B981" font-size="8" font-weight="600">仅当 Stage1 全部通过</text>
+
+      <!-- ===== STAGE 2: Allow Rules (2 steps) ===== -->
+      <rect x="30" y="445" width="900" height="110" rx="12" fill="url(#gS2)" stroke="#10B981" stroke-width="1" filter="url(#glowGr)"/>
+      <text x="50" y="471" fill="#10B981" font-size="13" font-weight="700">STAGE 2: 允许规则</text>
+      <text x="200" y="471" fill="#6B70A0" font-size="10" font-family="monospace">2 步 — 授权放行</text>
+
+      <rect x="50" y="485" width="200" height="48" rx="8" fill="#151829" stroke="#10B981" stroke-width=".8"/>
+      <text x="150" y="505" text-anchor="middle" fill="#10B981" font-size="9" font-weight="600">2a bypass模式</text>
+      <text x="150" y="521" text-anchor="middle" fill="#6B70A0" font-size="8">BYPASS/PLAN+bypass → ALLOW</text>
+      <line x1="250" y1="509" x2="275" y2="509" stroke="#10B981" stroke-width="1" marker-end="url(#pArG)"/>
+
+      <rect x="275" y="485" width="200" height="48" rx="8" fill="#151829" stroke="#10B981" stroke-width=".8"/>
+      <text x="375" y="505" text-anchor="middle" fill="#10B981" font-size="9" font-weight="600">2b alwaysAllow</text>
+      <text x="375" y="521" text-anchor="middle" fill="#6B70A0" font-size="8">持久化允许列表 → ALLOW</text>
+
+      <!-- Result badge -->
+      <rect x="520" y="485" width="140" height="24" rx="12" fill="rgba(16,185,129,.12)" stroke="#10B981" stroke-width=".8"/>
+      <text x="590" y="501" text-anchor="middle" fill="#10B981" font-size="9" font-weight="700">匹配 → ALLOW</text>
+      <rect x="680" y="485" width="170" height="24" rx="12" fill="rgba(168,85,247,.1)" stroke="#A855F7" stroke-width=".8"/>
+      <text x="765" y="501" text-anchor="middle" fill="#A855F7" font-size="9">未匹配 → passthrough</text>
+
+      <!-- Stage transition arrow -->
+      <line x1="480" y1="555" x2="480" y2="580" stroke="#6B70A0" stroke-width="2" class="anim-line"/>
+      <polygon points="475 578,485 578,480 588" fill="#6B70A0"/>
+
+      <!-- ===== STAGE 3: Mode Conversion (1 step) ===== -->
+      <rect x="30" y="590" width="900" height="180" rx="12" fill="url(#gS3)" stroke="#A855F7" stroke-width="1" filter="url(#glowPu)"/>
+      <text x="50" y="616" fill="#A855F7" font-size="13" font-weight="700">STAGE 3: 模式转换</text>
+      <text x="215" y="616" fill="#6B70A0" font-size="10" font-family="monospace">passthrough → ask → 7 模式分支</text>
+
+      <rect x="50" y="632" width="160" height="44" rx="8" fill="#151829" stroke="#A855F7" stroke-width="1"/>
+      <text x="130" y="650" text-anchor="middle" fill="#A855F7" font-size="10" font-weight="600">passthrough → ask</text>
+      <text x="130" y="664" text-anchor="middle" fill="#6B70A0" font-size="7.5">只读NONE → ALLOW</text>
+      <line x1="210" y1="654" x2="248" y2="654" stroke="#A855F7" stroke-width="1.5" marker-end="url(#pArP)"/>
+
+      <!-- 7 Mode boxes -->
+      <rect x="248" y="630" width="82" height="48" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
+      <text x="289" y="649" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">DEFAULT</text>
+      <text x="289" y="666" text-anchor="middle" fill="#6B70A0" font-size="6.5">用户确认</text>
+      <rect x="338" y="630" width="82" height="48" rx="6" fill="#151829" stroke="#3B82F6" stroke-width=".8"/>
+      <text x="379" y="649" text-anchor="middle" fill="#3B82F6" font-size="9" font-weight="600">PLAN</text>
+      <text x="379" y="666" text-anchor="middle" fill="#6B70A0" font-size="6.5">只读放行</text>
+      <rect x="428" y="630" width="82" height="48" rx="6" fill="#151829" stroke="#10B981" stroke-width=".8"/>
+      <text x="469" y="649" text-anchor="middle" fill="#10B981" font-size="8" font-weight="600">ACCEPT_EDITS</text>
+      <text x="469" y="666" text-anchor="middle" fill="#6B70A0" font-size="6.5">编辑放行</text>
+      <rect x="518" y="630" width="82" height="48" rx="6" fill="#151829" stroke="#06B6D4" stroke-width=".8"/>
+      <text x="559" y="649" text-anchor="middle" fill="#06B6D4" font-size="8" font-weight="600">DONT_ASK</text>
+      <text x="559" y="666" text-anchor="middle" fill="#6B70A0" font-size="6.5">写→DENY</text>
+      <rect x="608" y="630" width="72" height="48" rx="6" fill="#151829" stroke="#EF4444" stroke-width=".8"/>
+      <text x="644" y="649" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="600">BYPASS</text>
+      <text x="644" y="666" text-anchor="middle" fill="#6B70A0" font-size="6.5">全部放行</text>
+      <rect x="688" y="630" width="82" height="48" rx="6" fill="#151829" stroke="#A855F7" stroke-width=".8"/>
+      <text x="729" y="649" text-anchor="middle" fill="#A855F7" font-size="9" font-weight="600">AUTO</text>
+      <text x="729" y="666" text-anchor="middle" fill="#6B70A0" font-size="6.5">LLM两阶段</text>
+      <rect x="778" y="630" width="82" height="48" rx="6" fill="#151829" stroke="#6B70A0" stroke-width=".8"/>
+      <text x="819" y="649" text-anchor="middle" fill="#6B70A0" font-size="9" font-weight="600">BUBBLE</text>
+      <text x="819" y="666" text-anchor="middle" fill="#6B70A0" font-size="6.5">冒泡父Agent</text>
+
+      <!-- AUTO mode detail -->
+      <rect x="638" y="690" width="220" height="36" rx="8" fill="rgba(168,85,247,.08)" stroke="#A855F7" stroke-width=".6" stroke-dasharray="3"/>
+      <text x="748" y="705" text-anchor="middle" fill="#A855F7" font-size="8">AUTO: killswitch检查 → LLM分类</text>
+      <text x="748" y="718" text-anchor="middle" fill="#6B70A0" font-size="7">classify() → ALLOW / ASK(降级)</text>
+
+      <!-- Final decision -->
+      <rect x="280" y="740" width="400" height="40" rx="20" fill="#151829" stroke="#10B981" stroke-width="1.5"/>
+      <text x="480" y="764" text-anchor="middle" fill="#10B981" font-size="12" font-weight="700">最终决策: ALLOW / DENY / ASK / BUBBLE</text>
+    </svg>
+          </div>
+        </div>
+        <div class="arch-diagram">
+          <h4 class="arch-diagram-title">Bash 安全模块 AST 解析流水线</h4>
+          <div class="arch-diagram-svg">
+    <svg viewBox="0 0 960 580" xmlns="http://www.w3.org/2000/svg" style="width:100%;min-width:750px">
+      <defs>
+        <linearGradient id="gBashL1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#3B82F6" stop-opacity=".22"/><stop offset="100%" stop-color="#3B82F6" stop-opacity=".06"/></linearGradient>
+        <linearGradient id="gBashL2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#A855F7" stop-opacity=".22"/><stop offset="100%" stop-color="#A855F7" stop-opacity=".06"/></linearGradient>
+        <linearGradient id="gBashL3" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#F59E0B" stop-opacity=".22"/><stop offset="100%" stop-color="#F59E0B" stop-opacity=".06"/></linearGradient>
+        <linearGradient id="gBashL4" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#EF4444" stop-opacity=".22"/><stop offset="100%" stop-color="#EF4444" stop-opacity=".06"/></linearGradient>
+        <linearGradient id="gBashL5" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#06B6D4" stop-opacity=".22"/><stop offset="100%" stop-color="#06B6D4" stop-opacity=".06"/></linearGradient>
+        <linearGradient id="gBashL6" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#10B981" stop-opacity=".22"/><stop offset="100%" stop-color="#10B981" stop-opacity=".06"/></linearGradient>
+      </defs>
+      <rect width="960" height="580" rx="12" fill="#0B0D17"/>
+      <rect x="1" y="1" width="958" height="578" rx="11" fill="none" stroke="#252840" stroke-width="1"/>
+
+      <!-- 标题 -->
+      <text x="340" y="32" fill="#e8e8f0" font-size="13" font-weight="700" font-family="'SF Mono','Fira Code',monospace">Bash Command Input</text>
+      <text x="340" y="46" fill="#6B70A0" font-size="9" font-family="'SF Mono','Fira Code',monospace">BashTool.java 515行 → 入口</text>
+
+      <!-- 入口箭头 -->
+      <line x1="380" y1="52" x2="380" y2="68" stroke="#3B82F6" stroke-width="2" stroke-dasharray="4,3"/>
+      <polygon points="375,66 380,74 385,66" fill="#3B82F6"/>
+
+      <!-- L1: 词法分析 -->
+      <rect x="80" y="76" width="600" height="68" rx="8" fill="url(#gBashL1)" stroke="#3B82F6" stroke-width="1.2"/>
+      <text x="100" y="96" fill="#3B82F6" font-size="12" font-weight="700" font-family="'SF Mono','Fira Code',monospace">L1 词法分析 Lexer</text>
+      <rect x="100" y="104" width="160" height="28" rx="6" fill="#151829" stroke="#3B82F6" stroke-width=".8"/>
+      <text x="180" y="122" text-anchor="middle" fill="#e8e8f0" font-size="9" font-family="'SF Mono','Fira Code',monospace">BashLexer.java</text>
+      <text x="270" y="122" fill="#6B70A0" font-size="8" font-family="'SF Mono','Fira Code',monospace">824行</text>
+      <rect x="310" y="104" width="140" height="28" rx="6" fill="#151829" stroke="#3B82F6" stroke-width=".8"/>
+      <text x="380" y="122" text-anchor="middle" fill="#e8e8f0" font-size="9" font-family="'SF Mono','Fira Code',monospace">BashToken.java</text>
+      <text x="460" y="122" fill="#6B70A0" font-size="8" font-family="'SF Mono','Fira Code',monospace">47行</text>
+      <rect x="500" y="104" width="160" height="28" rx="6" fill="#151829" stroke="#3B82F6" stroke-width=".8"/>
+      <text x="580" y="122" text-anchor="middle" fill="#e8e8f0" font-size="9" font-family="'SF Mono','Fira Code',monospace">BashTokenType.java</text>
+      <text x="668" y="122" fill="#6B70A0" font-size="8" font-family="'SF Mono','Fira Code',monospace">82行</text>
+
+      <!-- 箭头 L1→L2 -->
+      <line x1="380" y1="144" x2="380" y2="158" stroke="#A855F7" stroke-width="2" stroke-dasharray="4,3"/>
+      <polygon points="375,156 380,164 385,156" fill="#A855F7"/>
+
+      <!-- L2: 语法分析 -->
+      <rect x="80" y="166" width="600" height="68" rx="8" fill="url(#gBashL2)" stroke="#A855F7" stroke-width="1.2"/>
+      <text x="100" y="186" fill="#A855F7" font-size="12" font-weight="700" font-family="'SF Mono','Fira Code',monospace">L2 语法分析 Parser → AST</text>
+      <rect x="100" y="194" width="200" height="28" rx="6" fill="#151829" stroke="#A855F7" stroke-width=".8"/>
+      <text x="200" y="212" text-anchor="middle" fill="#e8e8f0" font-size="9" font-family="'SF Mono','Fira Code',monospace">BashParserCore.java</text>
+      <text x="310" y="212" fill="#6B70A0" font-size="8" font-family="'SF Mono','Fira Code',monospace">1,116行</text>
+      <rect x="380" y="194" width="160" height="28" rx="6" fill="#151829" stroke="#A855F7" stroke-width=".8"/>
+      <text x="460" y="212" text-anchor="middle" fill="#e8e8f0" font-size="9" font-family="'SF Mono','Fira Code',monospace">BashParser.java</text>
+      <text x="548" y="212" fill="#6B70A0" font-size="8" font-family="'SF Mono','Fira Code',monospace">51行</text>
+      <text x="600" y="212" fill="#9FA4C4" font-size="8" font-family="'SF Mono','Fira Code',monospace">递归下降解析</text>
+
+      <!-- 箭头 L2→L3 -->
+      <line x1="380" y1="234" x2="380" y2="248" stroke="#F59E0B" stroke-width="2" stroke-dasharray="4,3"/>
+      <polygon points="375,246 380,254 385,246" fill="#F59E0B"/>
+
+      <!-- L3: AST遍历 -->
+      <rect x="80" y="256" width="600" height="68" rx="8" fill="url(#gBashL3)" stroke="#F59E0B" stroke-width="1.2"/>
+      <text x="100" y="276" fill="#F59E0B" font-size="12" font-weight="700" font-family="'SF Mono','Fira Code',monospace">L3 AST遍历 — 节点分析 + 命令识别</text>
+      <rect x="100" y="284" width="180" height="28" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
+      <text x="190" y="302" text-anchor="middle" fill="#e8e8f0" font-size="9" font-family="'SF Mono','Fira Code',monospace">BashAstNode.java</text>
+      <text x="290" y="302" fill="#6B70A0" font-size="8" font-family="'SF Mono','Fira Code',monospace">189行</text>
+      <rect x="340" y="284" width="220" height="28" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
+      <text x="450" y="302" text-anchor="middle" fill="#e8e8f0" font-size="9" font-family="'SF Mono','Fira Code',monospace">ParseForSecurityResult.java</text>
+      <text x="568" y="302" fill="#6B70A0" font-size="8" font-family="'SF Mono','Fira Code',monospace">46行</text>
+      <text x="620" y="302" fill="#9FA4C4" font-size="8" font-family="'SF Mono','Fira Code',monospace">HeredocExtractor 196行</text>
+
+      <!-- 箭头 L3→L4 -->
+      <line x1="380" y1="324" x2="380" y2="338" stroke="#EF4444" stroke-width="2" stroke-dasharray="4,3"/>
+      <polygon points="375,336 380,344 385,336" fill="#EF4444"/>
+
+      <!-- L4: 风险评分 -->
+      <rect x="80" y="346" width="600" height="68" rx="8" fill="url(#gBashL4)" stroke="#EF4444" stroke-width="1.2"/>
+      <text x="100" y="366" fill="#EF4444" font-size="12" font-weight="700" font-family="'SF Mono','Fira Code',monospace">L4 风险评分 — 危险命令检测</text>
+      <rect x="100" y="374" width="240" height="28" rx="6" fill="#151829" stroke="#EF4444" stroke-width=".8"/>
+      <text x="220" y="392" text-anchor="middle" fill="#e8e8f0" font-size="9" font-family="'SF Mono','Fira Code',monospace">BashSecurityAnalyzer.java</text>
+      <text x="348" y="392" fill="#6B70A0" font-size="8" font-family="'SF Mono','Fira Code',monospace">771行</text>
+      <rect x="400" y="374" width="260" height="28" rx="6" fill="#151829" stroke="#EF4444" stroke-width=".8"/>
+      <text x="530" y="392" text-anchor="middle" fill="#e8e8f0" font-size="9" font-family="'SF Mono','Fira Code',monospace">BashCommandClassifier.java</text>
+      <text x="668" y="392" fill="#6B70A0" font-size="8" font-family="'SF Mono','Fira Code',monospace">1,105行</text>
+
+      <!-- 箭头 L4→L5 -->
+      <line x1="380" y1="414" x2="380" y2="428" stroke="#06B6D4" stroke-width="2" stroke-dasharray="4,3"/>
+      <polygon points="375,426 380,434 385,426" fill="#06B6D4"/>
+
+      <!-- L5: 路径验证 + sed校验 -->
+      <rect x="80" y="436" width="600" height="48" rx="8" fill="url(#gBashL5)" stroke="#06B6D4" stroke-width="1.2"/>
+      <text x="100" y="456" fill="#06B6D4" font-size="12" font-weight="700" font-family="'SF Mono','Fira Code',monospace">L5 路径验证 + 命令校验</text>
+      <text x="340" y="468" fill="#e8e8f0" font-size="9" font-family="'SF Mono','Fira Code',monospace">PathValidator 341行</text>
+      <text x="500" y="468" fill="#e8e8f0" font-size="9" font-family="'SF Mono','Fira Code',monospace">SedValidator 204行</text>
+      <text x="640" y="468" fill="#e8e8f0" font-size="9" font-family="'SF Mono','Fira Code',monospace">ShellStateManager 119行</text>
+
+      <!-- 箭头 L5→L6 -->
+      <line x1="380" y1="484" x2="380" y2="498" stroke="#10B981" stroke-width="2" stroke-dasharray="4,3"/>
+      <polygon points="375,496 380,504 385,496" fill="#10B981"/>
+
+      <!-- L6: 沙箱隔离 -->
+      <rect x="80" y="506" width="600" height="48" rx="8" fill="url(#gBashL6)" stroke="#10B981" stroke-width="1.2"/>
+      <text x="100" y="526" fill="#10B981" font-size="12" font-weight="700" font-family="'SF Mono','Fira Code',monospace">L6 沙箱隔离执行</text>
+      <text x="340" y="538" fill="#e8e8f0" font-size="9" font-family="'SF Mono','Fira Code',monospace">SandboxManager 259行</text>
+      <text x="500" y="538" fill="#e8e8f0" font-size="9" font-family="'SF Mono','Fira Code',monospace">SandboxConfig 57行</text>
+      <text x="640" y="538" fill="#9FA4C4" font-size="8" font-family="'SF Mono','Fira Code',monospace">Docker容器隔离</text>
+
+      <!-- 右侧面板: 危险命令示例 -->
+      <rect x="720" y="76" width="220" height="220" rx="8" fill="#151829" stroke="#EF4444" stroke-width=".8"/>
+      <text x="830" y="96" text-anchor="middle" fill="#EF4444" font-size="10" font-weight="700" font-family="'SF Mono','Fira Code',monospace">危险命令示例</text>
+      <text x="735" y="116" fill="#EF4444" font-size="9" font-family="'SF Mono','Fira Code',monospace">rm -rf /</text>
+      <text x="735" y="134" fill="#EF4444" font-size="9" font-family="'SF Mono','Fira Code',monospace">chmod 777 /etc/passwd</text>
+      <text x="735" y="152" fill="#F59E0B" font-size="9" font-family="'SF Mono','Fira Code',monospace">curl | bash</text>
+      <text x="735" y="170" fill="#F59E0B" font-size="9" font-family="'SF Mono','Fira Code',monospace">dd if=/dev/zero of=/dev/sda</text>
+      <text x="735" y="188" fill="#F59E0B" font-size="9" font-family="'SF Mono','Fira Code',monospace">export PATH=""</text>
+      <text x="735" y="210" fill="#6B70A0" font-size="9" font-family="'SF Mono','Fira Code',monospace">mkfs.ext4 /dev/sda</text>
+      <text x="735" y="228" fill="#6B70A0" font-size="9" font-family="'SF Mono','Fira Code',monospace">:(){ :|:& };:</text>
+      <text x="830" y="252" text-anchor="middle" fill="#6B70A0" font-size="8" font-family="'SF Mono','Fira Code',monospace">→ DENY / ASK</text>
+
+      <!-- 右侧面板: 风险等级 -->
+      <rect x="720" y="310" width="220" height="150" rx="8" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
+      <text x="830" y="330" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="700" font-family="'SF Mono','Fira Code',monospace">安全分析结果</text>
+      <circle cx="740" cy="352" r="5" fill="#10B981"/><text x="752" y="356" fill="#10B981" font-size="9" font-family="'SF Mono','Fira Code',monospace">Simple → ALLOW</text>
+      <circle cx="740" cy="375" r="5" fill="#F59E0B"/><text x="752" y="379" fill="#F59E0B" font-size="9" font-family="'SF Mono','Fira Code',monospace">TooComplex → ASK</text>
+      <circle cx="740" cy="398" r="5" fill="#EF4444"/><text x="752" y="402" fill="#EF4444" font-size="9" font-family="'SF Mono','Fira Code',monospace">ParseUnavailable → DENY</text>
+      <!-- CWE risk indicators -->
+      <line x1="730" y1="412" x2="930" y2="412" stroke="#252840" stroke-width=".5"/>
+      <text x="830" y="426" text-anchor="middle" fill="#6B70A0" font-size="8" font-weight="600" font-family="'SF Mono','Fira Code',monospace">覆盖 CWE 风险指标</text>
+      <text x="735" y="440" fill="#EF4444" font-size="7.5" font-family="'SF Mono','Fira Code',monospace">CWE-78 命令注入  CWE-94 代码执行</text>
+      <text x="735" y="453" fill="#F59E0B" font-size="7.5" font-family="'SF Mono','Fira Code',monospace">CWE-22 路径穿越  CWE-73 文件劫持</text>
+
+      <!-- 沙箱决策分支 (新增) -->
+      <rect x="720" y="476" width="220" height="86" rx="8" fill="#151829" stroke="#10B981" stroke-width=".8"/>
+      <text x="830" y="496" text-anchor="middle" fill="#10B981" font-size="10" font-weight="700" font-family="'SF Mono','Fira Code',monospace">沙箱决策分支</text>
+      <rect x="730" y="504" width="65" height="20" rx="4" fill="rgba(16,185,129,.12)" stroke="#10B981" stroke-width=".6"/>
+      <text x="762" y="518" text-anchor="middle" fill="#10B981" font-size="7" font-family="'SF Mono','Fira Code',monospace">低风险</text>
+      <text x="762" y="532" fill="#6B70A0" font-size="6.5" font-family="'SF Mono','Fira Code',monospace">直接执行</text>
+      <rect x="805" y="504" width="65" height="20" rx="4" fill="rgba(245,158,11,.12)" stroke="#F59E0B" stroke-width=".6"/>
+      <text x="837" y="518" text-anchor="middle" fill="#F59E0B" font-size="7" font-family="'SF Mono','Fira Code',monospace">中风险</text>
+      <text x="837" y="532" fill="#6B70A0" font-size="6.5" font-family="'SF Mono','Fira Code',monospace">用户确认</text>
+      <rect x="880" y="504" width="52" height="20" rx="4" fill="rgba(239,68,68,.12)" stroke="#EF4444" stroke-width=".6"/>
+      <text x="906" y="518" text-anchor="middle" fill="#EF4444" font-size="7" font-family="'SF Mono','Fira Code',monospace">高风险</text>
+      <text x="906" y="532" fill="#6B70A0" font-size="6.5" font-family="'SF Mono','Fira Code',monospace">Sandbox</text>
+      <text x="830" y="554" text-anchor="middle" fill="#6B70A0" font-size="7" font-family="'SF Mono','Fira Code',monospace">SandboxManager 259行 · Docker隔离</text>
+
+      <!-- 底部统计条 -->
+      <rect x="80" y="560" width="620" height="14" rx="4" fill="#151829"/>
+      <text x="390" y="571" text-anchor="middle" fill="#6B70A0" font-size="9" font-family="'SF Mono','Fira Code',monospace">tool/bash/ 13文件 · 5,091行  |  sandbox/ 2文件 · 316行  |  security/ 5文件 · 1,248行  |  总计 20文件 · 6,655行</text>
+    </svg>
+          </div>
+        </div>
+      </div>
+      <a href="ZhikunCode-Architecture.html" class="btn-arch">
+        &#128279; 查看完整系统架构图 / View Full Architecture &rarr;
+      </a>
     </div>
   </section>
 
@@ -434,8 +1706,6 @@
         <a href="https://github.com/zhikunqingtao/zhikuncode">GitHub</a>
         <a href="https://github.com/zhikunqingtao/zhikuncode/blob/main/LICENSE">MIT License</a>
         <a href="ZhikunCode-Architecture.html">Architecture</a>
-        <a href="ZhikunCode-vs-Claude-Code.html">ZhikunCode vs Claude Code</a>
-        <a href="Claude-Code-Architecture.html">Claude Code Architecture</a>
         <a href="https://github.com/zhikunqingtao/zhikuncode/issues">提交 Issue</a>
         <a href="https://github.com/zhikunqingtao/zhikuncode/blob/main/CONTRIBUTING.md">参与贡献</a>
       </div>
