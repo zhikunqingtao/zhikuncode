@@ -59,6 +59,8 @@ public class QueryEngine {
     private final ToolResultSummarizer toolResultSummarizer;
     private final ContextCascade contextCascade;
     private final CompactMetrics compactMetrics;
+    @org.springframework.lang.Nullable
+    private final IncrementalCollapseManager incrementalCollapseManager;
 
     /** 单条工具结果最大占上下文窗口的 30% */
     private static final double TOOL_RESULT_BUDGET_RATIO = 0.3;
@@ -89,7 +91,8 @@ public class QueryEngine {
                        FileHistoryService fileHistoryService,
                        ToolResultSummarizer toolResultSummarizer,
                        ContextCascade contextCascade,
-                       CompactMetrics compactMetrics) {
+                       CompactMetrics compactMetrics,
+                       @org.springframework.lang.Nullable IncrementalCollapseManager incrementalCollapseManager) {
         this.providerRegistry = providerRegistry;
         this.compactService = compactService;
         this.apiRetryService = apiRetryService;
@@ -109,6 +112,7 @@ public class QueryEngine {
         this.toolResultSummarizer = toolResultSummarizer;
         this.contextCascade = contextCascade;
         this.compactMetrics = compactMetrics;
+        this.incrementalCollapseManager = incrementalCollapseManager;
     }
 
     /**
@@ -213,6 +217,17 @@ public class QueryEngine {
             log.info("[DIAG] Turn {} 开始: messageCount={}, model={}", turn, state.getMessages().size(), currentModel[0]);
             handler.onTurnStart(turn);
 
+            // ===== Step 0.5: Incremental collapse check =====
+            String loopSessionId = state.getToolUseContext() != null
+                    ? state.getToolUseContext().sessionId() : null;
+            if (incrementalCollapseManager != null && loopSessionId != null) {
+                log.debug("Incremental collapse check: sessionId={}, cumulativeContribution=1", loopSessionId);
+                if (incrementalCollapseManager.shouldCollapse(loopSessionId, 1)) {
+                    log.debug("Incremental collapse triggered at cumulative turn (request contribution: 1)");
+                    state.setIncrementalCollapseNeeded(true);
+                }
+            }
+
             // ===== Step 1: 压缩级联（统一入口）=====
             ContextCascade.AutoCompactTrackingState trackingState = state.isAutoCompactEnabled()
                     ? state.toAutoCompactTrackingState()
@@ -284,6 +299,7 @@ public class QueryEngine {
 
                     // 扣留错误，不立即释放给消费者
                     state.addWithheldError(e);
+                    state.setPromptTooLongWithheld(true);
                     int recoveryAttempt = state.getWithheldErrors().size();
                     handler.onRecovery(RecoveryEvent.of413(recoveryAttempt, "collapse drain"));
 
@@ -293,6 +309,7 @@ public class QueryEngine {
                         if (drained > 0) {
                             state.setLastTransitionReason("collapse_drain_retry");
                             state.clearWithheldErrors();
+                            state.setPromptTooLongWithheld(false);
                             continue;
                         }
                     }
@@ -302,7 +319,19 @@ public class QueryEngine {
                     if (tryReactiveCompact(config, state, handler)) {
                         state.setLastTransitionReason("reactive_compact_retry");
                         state.clearWithheldErrors();
+                        state.setPromptTooLongWithheld(false);
                         continue;
+                    }
+
+                    // Phase 3: 媒体文件恢复
+                    if (isMediaRelatedError(e)) {
+                        handler.onRecovery(RecoveryEvent.ofMedia(recoveryAttempt, "strip media"));
+                        if (tryStripMediaBlocks(state, handler)) {
+                            state.setLastTransitionReason("media_strip_retry");
+                            state.clearWithheldErrors();
+                            state.setPromptTooLongWithheld(false);
+                            continue;
+                        }
                     }
 
                     // 恢复耗尽，释放扣留错误给消费者
@@ -311,6 +340,8 @@ public class QueryEngine {
                         handler.onError(withheld);
                     }
                     state.clearWithheldErrors();
+                    state.setPromptTooLongWithheld(false);
+                    break;  // 413恢复耗尽，终止循环防止异常继续流向Fallback处理
                 }
                 // FIX-03: Fallback 模型降级
                 if (e instanceof LlmApiException llmEx && llmEx.isFallbackTrigger()
@@ -822,6 +853,65 @@ public class QueryEngine {
             }
         }
         state.setMessages(cleaned);
+    }
+
+    // ==================== 媒体恢复辅助方法 ====================
+
+    /**
+     * 判断LLM错误是否与媒体内容（图片/PDF/文件）相关
+     */
+    private boolean isMediaRelatedError(LlmApiException e) {
+        if (e.getMessage() == null) return false;
+        String msg = e.getMessage().toLowerCase();
+        return (msg.contains("image") && (msg.contains("invalid") || msg.contains("too_large")))
+                || msg.contains("file_too_large") || msg.contains("invalid_image")
+                || msg.contains("could not process image")
+                || msg.contains("media_type_not_supported");
+    }
+
+    /**
+     * 从消息历史中移除媒体块（图片/文件附件），保留文本内容
+     */
+    private boolean tryStripMediaBlocks(QueryLoopState state, QueryMessageHandler handler) {
+        List<Message> messages = state.getMessages();
+        boolean stripped = false;
+        int originalBlockCount = 0;
+        int filteredBlockCount = 0;
+
+        List<Message> cleaned = new ArrayList<>(messages.size());
+        for (Message msg : messages) {
+            if (msg instanceof Message.UserMessage userMsg && userMsg.content() != null) {
+                List<ContentBlock> filteredBlocks = userMsg.content().stream()
+                        .filter(block -> !(block instanceof ContentBlock.ImageBlock))
+                        .toList();
+
+                if (filteredBlocks.size() < userMsg.content().size()) {
+                    stripped = true;
+                    originalBlockCount += userMsg.content().size();
+                    filteredBlockCount += filteredBlocks.size();
+                    if (filteredBlocks.isEmpty()) {
+                        filteredBlocks = List.of(new ContentBlock.TextBlock(
+                                "[Media content was present but removed to reduce context size. " +
+                                "The original content included image(s) that exceeded size limits.]"));
+                    }
+                    cleaned.add(new Message.UserMessage(
+                            userMsg.uuid(), userMsg.timestamp(), filteredBlocks,
+                            userMsg.toolUseResult(), userMsg.sourceToolAssistantUUID()));
+                } else {
+                    cleaned.add(msg);
+                }
+            } else {
+                cleaned.add(msg);
+            }
+        }
+
+        if (stripped) {
+            state.setMessages(cleaned);
+            handler.onCompactEvent("media_strip", originalBlockCount, filteredBlockCount);
+            log.info("Stripped media blocks from message history for recovery: {} blocks → {} blocks",
+                    originalBlockCount, filteredBlockCount);
+        }
+        return stripped;
     }
 
     // ==================== 辅助方法 ====================

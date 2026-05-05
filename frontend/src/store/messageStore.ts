@@ -7,7 +7,7 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { subscribeWithSelector } from 'zustand/middleware';
-import type { Message, ToolResult, ToolCallState, Usage } from '@/types';
+import type { Message, ToolResult, ToolCallState, Usage, TokenWarningPayload } from '@/types';
 import { streamingStore, flushStreamingBuffer } from '@/hooks/useStreamingText';
 import { generateUUID } from '@/utils/uuid';
 
@@ -26,6 +26,7 @@ export interface MessageStoreState {
     thinkingContent: string;
     activeToolCalls: Map<string, ToolCallState>;
     tokenBudgetState: TokenBudgetState | null;
+    tokenWarning: TokenWarningPayload | null;
 
     // Actions
     addMessage: (msg: Message) => void;
@@ -39,6 +40,8 @@ export interface MessageStoreState {
     rewindToMessage: (messageId: string) => void;
     setTokenBudgetState: (state: TokenBudgetState | null) => void;
     clearTokenBudgetState: () => void;
+    setTokenWarning: (warning: TokenWarningPayload | null) => void;
+    clearTokenWarning: () => void;
 }
 
 export const useMessageStore = create<MessageStoreState>()(
@@ -49,6 +52,7 @@ export const useMessageStore = create<MessageStoreState>()(
         thinkingContent: '',
         activeToolCalls: new Map(),
         tokenBudgetState: null,
+        tokenWarning: null,
 
         addMessage: (msg) => set(d => { d.messages.push(msg); }),
         appendStreamDelta: (delta) => set(d => {
@@ -139,12 +143,14 @@ export const useMessageStore = create<MessageStoreState>()(
             d.streamingContent = '';
             d.thinkingContent = '';
         }),
-        clearMessages: () => set(d => { d.messages = []; d.activeToolCalls.clear(); d.tokenBudgetState = null; }),
+        clearMessages: () => set(d => { d.messages = []; d.activeToolCalls.clear(); d.tokenBudgetState = null; d.tokenWarning = null; }),
         rewindToMessage: (messageId) => set(d => {
             const idx = d.messages.findIndex(m => m.uuid === messageId);
             if (idx >= 0) d.messages.splice(idx + 1);
         }),
         setTokenBudgetState: (state) => set(d => { d.tokenBudgetState = state; }),
         clearTokenBudgetState: () => set(d => { d.tokenBudgetState = null; }),
+        setTokenWarning: (warning) => set((draft) => { draft.tokenWarning = warning; }),
+        clearTokenWarning: () => set((draft) => { draft.tokenWarning = null; }),
     })))
 );

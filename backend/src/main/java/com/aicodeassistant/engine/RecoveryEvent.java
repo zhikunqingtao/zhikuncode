@@ -26,4 +26,10 @@ public record RecoveryEvent(
         return new RecoveryEvent("max_output_recovery", attempt,
                 "Attempting recovery from max_output_tokens (attempt " + attempt + ")");
     }
+
+    /** media 错误恢复事件 */
+    public static RecoveryEvent ofMedia(int attempt, String detail) {
+        return new RecoveryEvent("media_recovery", attempt,
+                "Attempting recovery from media error (attempt " + attempt + "): " + detail);
+    }
 }

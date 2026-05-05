@@ -419,6 +419,26 @@ public class WebSocketController implements PermissionNotifier {
         push(sessionId, "session_list_updated", Map.of());
     }
 
+    // ───── #28: tokenWarningStore ─────
+
+    /**
+     * Token 告警推送 — 向前端通知当前token使用率告警级别。
+     *
+     * @param sessionId 会话ID
+     * @param level 告警级别（normal/warning/critical/trigger_compact）
+     * @param currentTokens 当前使用token数
+     * @param effectiveWindow 有效窗口大小
+     * @param usagePercent 使用百分比（0-100）
+     */
+    public void pushTokenWarning(String sessionId, String level,
+                                  int currentTokens, int effectiveWindow, double usagePercent) {
+        push(sessionId, "token_warning",
+                Map.of("currentTokens", currentTokens,
+                       "maxTokens", effectiveWindow,
+                       "usagePercent", usagePercent,
+                       "warningLevel", level));
+    }
+
     // ══════════════════════════════════════════════════════════════
     // Client → Server: 全部 10 种 @MessageMapping Handler
     // ══════════════════════════════════════════════════════════════

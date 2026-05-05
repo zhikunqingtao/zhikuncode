@@ -74,6 +74,9 @@ llm:
 # 子代理模型别名映射
 # 模型层级别名 → 实际部署模型（可通过环境变量 AGENT_MODEL_<ALIAS> 覆盖）
 agent:
+  loop:
+    prompt-too-long-withhold: true
+    media-recovery: true
   model-aliases:
     light: qwen-plus
     standard: qwen3.6-plus
@@ -190,6 +193,13 @@ app:
       - qwen-turbo
     # 降级时是否自动剥离 thinking blocks
     strip-thinking-on-downgrade: true
+
+context:
+  cascade:
+    incremental-collapse:
+      enabled: true
+      segment-turns: 10
+      session-timeout-minutes: 30
 
 # Admin 配置
 admin:

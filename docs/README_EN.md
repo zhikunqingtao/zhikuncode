@@ -46,6 +46,7 @@
 | 🔒 | **Defense-in-Depth Security** | 8-layer Bash sandbox + 14-step permission pipeline + 289 security tests. Every command must pass security checks before execution |
 | 🇨🇳 | **Native Chinese LLM Support** | Qwen / DeepSeek / Moonshot work out of the box with direct connections from mainland China — no VPN required |
 | 🐳 | **One-Command Docker Deployment** | `docker compose up -d` — one command to start. Data stays local, fully private |
+| ⚡ | **Intelligent Context Management** | Five-layer compression cascade + incremental collapse (auto-compress every 10 turns) + 413 three-phase recovery (aggressive compression → reactive compact → media stripping) + three-level token alerts for seamless ultra-long conversations |
 
 ---
 
@@ -303,6 +304,29 @@ In production, all three services are packaged in a single Docker container:
 └──────────────────────────────────────────────────┘
 ```
 
+### Agent Loop Query Cycle
+
+ZhikunCode's core execution engine QueryEngine drives Agent decision-making and tool execution through an 8-step loop:
+
+```
+Compression Cascade → Streaming Session Creation → API Call (with downgrade protection) → Response Collection → Tool Result Consumption → Continue/Terminate Decision → Tool Summary Injection → State Update
+```
+
+**Key Subsystems:**
+
+| Component | Responsibility | Configuration |
+|-----------|---------------|---------------|
+| IncrementalCollapseManager | Triggers incremental context collapse every 10 turns | `context.cascade.incremental-collapse.enabled` |
+| ContextCascade | Five-layer compression cascade (Snip→MicroCompact→AutoCompact→CollapseDrain→ReactiveCompact) | `context.cascade.*` |
+| MicroCompactService | Clears old tool result content to reduce context size | `features.flags.CACHED_MICROCOMPACT` |
+| ModelTierService | Model downgrade chain management with 30-min cooldown auto-recovery | `app.model.tier-chain` |
+| TokenAlertEvaluator | Three-level token usage alerts (70% warning / 90% critical / trigger compaction) | — |
+
+**413 Three-Phase Recovery**: When the API returns 413 (Payload Too Large), automatic three-phase recovery is triggered:
+1. **Phase 1** — Aggressive Compression (Context Collapse Drain)
+2. **Phase 2** — Reactive Compact
+3. **Phase 3** — Media File Stripping (Media Recovery)
+
 ---
 
 ## 🔒 Security Architecture
@@ -387,6 +411,36 @@ Full test report: [ZhikunCode Core Functionality Test Report v8.0](ZhikunCode核
 - Per-module results: [docs/test-results/](docs/test-results/)
 - Frontend E2E scripts: [frontend/e2e/](frontend/e2e/) (including tc-fe-003~005)
 - E2E screenshots: [docs/test-results/screenshots/](docs/test-results/screenshots/) (125+ images)
+
+<details>
+<summary>📋 22 Test Modules Breakdown (click to expand)</summary>
+
+| # | Module | Cases | Pass Rate | Notes |
+|---|--------|-------|-----------|-------|
+| 1 | Environment Setup & Service Startup | 7 | 100% | — |
+| 2 | REST API Core Functions | 33 | 100% | Per-endpoint verification |
+| 3 | WebSocket STOMP Communication | 8 | 100% | — |
+| 4 | Agent Loop Core Cycle | 9 | 100% | — |
+| 5 | Tool System & Security | 10 | 100% | — |
+| 6 | Permission Governance | 6 | 83% | 1 OBSERVE |
+| 7 | System Prompt & LLM Integration | 7 | 100% | — |
+| 8 | Memory System | 7 | 100% | ★ First coverage |
+| 9 | Skill System | 7 | 100% | ★ First coverage |
+| 10 | Plugin System & MCP | 11 | 100% | ★ First coverage |
+| 11 | Multi-Agent Collaboration | 6 | 100% | — |
+| 12 | Python Service | 15 | 93% | 1 BUG fixed |
+| 13 | Frontend E2E & UI | 7 | 86% | 1 PARTIAL |
+| 14 | File History & API | 11 | 100% | ★ First coverage |
+| 15 | CLI Tool (aica) | 11 | 91% | 2 BUGs fixed |
+| 16 | Visualization E2E | 19 | 100% | ★ First coverage |
+| 17 | F3 Code Complexity Analysis | 6 | 100% | ★ New in v1.0 |
+| 18 | F33 Change Impact Analysis | 6 | 100% | ★ New in v1.0 |
+| 19 | F25 API Contract Visualization | 6 | 100% | ★ New in v1.0 |
+| 20 | F35 Code→Diagram Generation | 25 | 100% | ★ New in v1.0 |
+| 21 | F40 Code Path Tracing | 25 | 100% | ★ New in v1.0 |
+| 22 | Unit Test Suite v8.0 | 84 | 100% | 277 methods / 30 files |
+
+</details>
 
 ---
 
@@ -918,6 +972,16 @@ Environment variables are managed via the `.env` file. Copy `.env.example` and m
 | `LLM_PROVIDER_DASHSCOPE_MODELS` | — | qwen3.6-max-preview,qwen3.6-plus | DashScope available models (comma-separated) |
 | `LLM_PROVIDER_DEEPSEEK_MODELS` | — | deepseek-v4-pro,deepseek-v4-flash | DeepSeek available models (comma-separated) |
 | `LLM_PROVIDER_MOONSHOT_MODELS` | — | kimi-k2.6,moonshot-v1-auto | Moonshot available models (comma-separated) |
+
+**Context Management Configuration (application.yml):**
+
+| Configuration | Default | Description |
+|--------------|---------|-------------|
+| `context.cascade.incremental-collapse.enabled` | true | Enable incremental collapse |
+| `context.cascade.incremental-collapse.segment-turns` | 10 | Collapse trigger interval (turns) |
+| `context.cascade.incremental-collapse.session-timeout-minutes` | 30 | Session timeout |
+| `features.flags.CACHED_MICROCOMPACT` | true | Enable micro-compact service |
+| `features.flags.TOKEN_BUDGET` | false | Token budget control (disabled by default; enable when needed) |
 
 ### Docker Resource Limits
 

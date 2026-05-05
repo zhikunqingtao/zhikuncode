@@ -701,6 +701,11 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <text x="595" y="100" text-anchor="middle" fill="#A855F7" font-size="10" font-weight="700">API调用+降级</text>
       <text x="595" y="116" text-anchor="middle" fill="#6B70A0" font-size="8">LlmProvider.streamChat</text>
       <text x="595" y="132" text-anchor="middle" fill="#9FA4C4" font-size="7">流式执行·413恢复·降级链</text>
+      <!-- ModelTierService annotation -->
+      <rect x="505" y="155" width="180" height="33" rx="6" fill="#0F1221" stroke="#A855F7" stroke-width=".8" stroke-dasharray="3,2"/>
+      <text x="595" y="169" text-anchor="middle" fill="#A855F7" font-size="7" font-weight="600">ModelTierService · 156行</text>
+      <text x="595" y="181" text-anchor="middle" fill="#6B70A0" font-size="6">N级降级链 · 冷却管理 · 健康探测</text>
+      <line x1="595" y1="152" x2="595" y2="155" stroke="#A855F7" stroke-width=".8"/>
       <line x1="690" y1="116" x2="725" y2="116" stroke="#F59E0B" stroke-width="1.5" marker-end="url(#lAr)"/>
 
       <rect x="725" y="80" width="190" height="72" rx="10" fill="#151829" stroke="#F59E0B" stroke-width="1.2"/>
@@ -2035,7 +2040,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
   <!-- 5+1层级联上下文压缩管道 SVG 插画 -->
   <div style="background:#080A12;border-radius:14px;padding:18px 10px 10px;margin-top:18px;overflow-x:auto">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 640" font-family="'SF Mono',SFMono-Regular,Consolas,monospace" style="width:100%;max-width:960px;display:block;margin:auto">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 660" font-family="'SF Mono',SFMono-Regular,Consolas,monospace" style="width:100%;max-width:960px;display:block;margin:auto">
       <defs>
         <linearGradient id="ccBg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0E1025"/><stop offset="100%" stop-color="#080A12"/></linearGradient>
         <linearGradient id="ccGlow" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F59E0B" stop-opacity=".25"/><stop offset="100%" stop-color="#F59E0B" stop-opacity="0"/></linearGradient>
@@ -2055,7 +2060,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       </defs>
 
       <!-- Background -->
-      <rect width="960" height="640" rx="12" fill="url(#ccBg)"/>
+      <rect width="960" height="660" rx="12" fill="url(#ccBg)"/>
 
       <!-- Title -->
       <rect x="30" y="14" width="900" height="38" rx="8" fill="#151829" stroke="#F59E0B" stroke-width="1" filter="url(#ccGlowF)"/>
@@ -2113,6 +2118,12 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <text x="598" y="238" fill="#9FA4C4" font-size="8">283 行</text>
       <text x="268" y="256" fill="#9FA4C4" font-size="8">三级渐进折叠: Full(尾10) → Summary(10-30) → Skeleton(30+)</text>
       <text x="268" y="270" fill="#6B70A0" font-size="7">触发: 每次API调用前 · CollapseLevel sealed interface 54行</text>
+
+      <!-- IncrementalCollapseManager alongside L1.5 -->
+      <rect x="560" y="248" width="185" height="28" rx="5" fill="#151829" stroke="#8B5CF6" stroke-width=".7" stroke-dasharray="3,2"/>
+      <text x="652" y="259" text-anchor="middle" fill="#8B5CF6" font-size="7" font-weight="600">IncrementalCollapseManager</text>
+      <text x="652" y="270" text-anchor="middle" fill="#6B70A0" font-size="6">175行 · 增量折叠 · 每10轮触发</text>
+      <line x1="555" y1="258" x2="560" y2="258" stroke="#8B5CF6" stroke-width=".8" stroke-dasharray="2,2"/>
 
       <!-- Arrow L1.5→L2 -->
       <line x1="480" y1="278" x2="480" y2="288" stroke="#8B5CF6" stroke-width="1.5" marker-end="url(#ccArP)"/>
@@ -2188,6 +2199,21 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
       <line x1="835" y1="380" x2="760" y2="340" stroke="#F59E0B" stroke-width=".6" stroke-dasharray="3,2"/>
 
+      <!-- ===== TokenAlertEvaluator ===== -->
+      <line x1="890" y1="430" x2="890" y2="442" stroke="#EF4444" stroke-width="1" stroke-dasharray="3,2"/>
+      <rect x="835" y="442" width="110" height="120" rx="8" fill="#151829" stroke="#EF4444" stroke-width=".8"/>
+      <text x="890" y="462" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="700">TokenAlert</text>
+      <text x="890" y="475" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="700">Evaluator</text>
+      <text x="890" y="490" text-anchor="middle" fill="#6B70A0" font-size="8">59 行</text>
+      <line x1="845" y1="496" x2="935" y2="496" stroke="#1E2248" stroke-width=".5"/>
+      <text x="890" y="510" text-anchor="middle" fill="#9FA4C4" font-size="7">告警评估器(4级递进)</text>
+      <text x="890" y="524" text-anchor="middle" fill="#10B981" font-size="7">NORMAL &lt;70%</text>
+      <text x="890" y="536" text-anchor="middle" fill="#F59E0B" font-size="7">WARNING 70-90%</text>
+      <text x="890" y="548" text-anchor="middle" fill="#EF4444" font-size="7">CRITICAL &gt;90%</text>
+      <text x="890" y="560" text-anchor="middle" fill="#EF4444" font-size="7" font-weight="600">TRIGGER ≥100%</text>
+      <!-- Connecting line to funnel layers -->
+      <line x1="835" y1="500" x2="720" y2="467" stroke="#EF4444" stroke-width=".6" stroke-dasharray="3,2"/>
+
       <!-- ===== Data flow annotation ===== -->
       <text x="140" y="520" fill="#F59E0B" font-size="9" font-weight="700">数据流:</text>
       <text x="200" y="520" fill="#9FA4C4" font-size="8">原始消息 →</text>
@@ -2211,7 +2237,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <text x="750" y="540" fill="#EF4444" font-size="8" font-weight="600">终止</text>
 
       <!-- ===== Bottom Stats Bar ===== -->
-      <rect x="30" y="565" width="900" height="60" rx="8" fill="#151829" stroke="#1E2248" stroke-width=".8"/>
+      <rect x="30" y="565" width="900" height="76" rx="8" fill="#151829" stroke="#1E2248" stroke-width=".8"/>
       <text x="60" y="585" fill="#F59E0B" font-size="10" font-weight="700">压缩系统统计</text>
       <line x1="160" y1="572" x2="160" y2="618" stroke="#1E2248" stroke-width=".5"/>
 
@@ -2231,9 +2257,58 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <text x="770" y="585" fill="#6B70A0" font-size="8">辅助文件</text>
       <text x="770" y="600" fill="#F59E0B" font-size="9" font-weight="600">BudgetTracker</text><text x="875" y="600" fill="#9FA4C4" font-size="8">89行</text>
       <text x="770" y="614" fill="#9FA4C4" font-size="9" font-weight="600">CollapseLevel</text><text x="875" y="614" fill="#9FA4C4" font-size="8">54行</text>
+      <text x="380" y="628" fill="#EF4444" font-size="9" font-weight="600">AlertEvaluator</text><text x="490" y="628" fill="#9FA4C4" font-size="8">59行</text>
+      <text x="580" y="628" fill="#8B5CF6" font-size="9" font-weight="600">IncrCollapseManager</text><text x="710" y="628" fill="#9FA4C4" font-size="8">175行</text>
 
-      <text x="480" y="585" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="700">共 11 个文件 · 2,698 行</text>
+      <text x="480" y="585" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="700">共 13 个文件 · 2,932 行</text>
     </svg>
+  </div>
+</div>
+
+<!-- ============ SECTION 10b: TOKEN BUDGET & MODEL STRATEGY ============ -->
+<div class="section" id="s10b">
+  <div class="section-head">
+    <span class="section-num java">10b</span>
+    <h2>Token 预算与模型策略</h2>
+  </div>
+
+  <div class="card java-accent">
+    <div class="card-title" onclick="toggleDetail(this)"><span class="toggle">▶</span> TokenAlertEvaluator <span class="tag java">告警评估 · 59行</span></div>
+    <div class="card-detail">
+      <div class="tree">
+        <div class="tree-item"><span class="tn">类型</span><span class="tv">工具类（无 @Service 注解）</span></div>
+        <div class="tree-item"><span class="tn">核心方法</span><span class="tv">evaluate() — 4级递进告警</span></div>
+        <div class="tree-item"><span class="tn">Level.NORMAL</span><span class="tv">&lt; 70% 有效窗口 — 正常</span></div>
+        <div class="tree-item"><span class="tn">Level.WARNING</span><span class="tv">70%-90% — 预警</span></div>
+        <div class="tree-item"><span class="tn">Level.CRITICAL</span><span class="tv">&gt; 90% — 告警</span></div>
+        <div class="tree-item"><span class="tn">Level.TRIGGER_COMPACT</span><span class="tv">&gt;= 100% — 触发紧急压缩</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card java-accent">
+    <div class="card-title" onclick="toggleDetail(this)"><span class="toggle">▶</span> IncrementalCollapseManager <span class="tag java">增量折叠 · 175行</span></div>
+    <div class="card-detail">
+      <div class="tree">
+        <div class="tree-item"><span class="tn">注解</span><span class="tv">@Service @ConditionalOnProperty(name="context.cascade.incremental-collapse.enabled")</span></div>
+        <div class="tree-item"><span class="tn">shouldCollapse()</span><span class="tv">累计 turnCount，每10轮触发折叠</span></div>
+        <div class="tree-item"><span class="tn">recordCollapse()</span><span class="tv">记录折叠段元数据</span></div>
+        <div class="tree-item"><span class="tn">状态管理</span><span class="tv">会话级 ConcurrentHashMap · 30分钟超时自动清理</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card java-accent">
+    <div class="card-title" onclick="toggleDetail(this)"><span class="toggle">▶</span> ModelTierService <span class="tag java">模型降级 · 156行</span></div>
+    <div class="card-detail">
+      <div class="tree">
+        <div class="tree-item"><span class="tn">注解</span><span class="tv">@Service</span></div>
+        <div class="tree-item"><span class="tn">resolveModel()</span><span class="tv">选择最佳可用层级</span></div>
+        <div class="tree-item"><span class="tn">triggerCooldown()</span><span class="tv">API容量错误 → 冷却管理</span></div>
+        <div class="tree-item"><span class="tn">reportSuccess()</span><span class="tv">健康探测恢复（3次成功阈值）</span></div>
+        <div class="tree-item"><span class="tn">冷却策略</span><span class="tv">30分钟默认 · retry-after感知 · 短期重试豁免</span></div>
+      </div>
+    </div>
   </div>
 </div>
 

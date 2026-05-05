@@ -31,6 +31,14 @@ public class QueryLoopState {
     /** 扣留的错误 — 413/max_output_tokens 等可恢复错误在恢复尝试期间扣留，不立即释放给消费者 */
     private List<LlmApiException> withheldErrors = new ArrayList<>();
 
+    /** 413错误扣留状态 — true表示正在恢复中，不向消费者暴露错误 */
+    @com.fasterxml.jackson.annotation.JsonProperty("promptTooLongWithheld")
+    private boolean promptTooLongWithheld = false;
+
+    /** 增量折叠标记，标识当前轮次是否需要增量折叠 */
+    @com.fasterxml.jackson.annotation.JsonProperty("incrementalCollapseNeeded")
+    private boolean incrementalCollapseNeeded = false;
+
     public QueryLoopState(List<Message> messages, ToolUseContext toolUseContext) {
         this.messages = new ArrayList<>(messages);
         this.toolUseContext = toolUseContext;
@@ -109,6 +117,12 @@ public class QueryLoopState {
 
     public String getLastTransitionReason() { return lastTransitionReason; }
     public void setLastTransitionReason(String reason) { this.lastTransitionReason = reason; }
+
+    public boolean isPromptTooLongWithheld() { return promptTooLongWithheld; }
+    public void setPromptTooLongWithheld(boolean withheld) { this.promptTooLongWithheld = withheld; }
+
+    public boolean isIncrementalCollapseNeeded() { return incrementalCollapseNeeded; }
+    public void setIncrementalCollapseNeeded(boolean needed) { this.incrementalCollapseNeeded = needed; }
 
     // ==================== Withheld Errors ====================
 

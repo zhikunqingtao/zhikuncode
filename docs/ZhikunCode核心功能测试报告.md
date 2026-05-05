@@ -1869,7 +1869,7 @@ if (json.success === false || json.error) {
 
 ---
 
-### 2.22 单元测试体系建立 (84 TC + 15 补充验证, 277 方法) ★ v8.0 首次系统化覆盖
+### 2.22 单元测试体系补充 v8.0 (84/84 PASS) ★ 首次专项测试
 
 > **说明**: 84 个核心用例来自《ZhikunCode功能测试覆盖率提升指南》v3.0，另含 7 个E2E回归测试 + 8 个REST/WebSocket补充验证，合计 99 个测试场景。通过率矩阵仅计入 84 个独立新增用例（回归测试已在 2.13 计入，集成测试已在 2.2/2.3 计入）。
 
@@ -1882,67 +1882,346 @@ if (json.success === false || json.error) {
 > **执行者**: Jimmy | **测试框架**: JUnit 5 + Mockito
 > **测试文件**: 5 个 Java 测试类
 
-| 序号 | TC编号 | 测试名称 | 结果 | 备注 |
-|------|--------|---------|------|------|
-| 1 | TC-CTX-001 | 自动压缩触发验证 (4方法) | ✅ PASS | 压缩触发阈值、压缩比率、消息完整性 |
-| 2 | TC-CTX-002 | 消息裁剪边界验证 (2方法) | ✅ PASS | 空消息/单条/超长 |
-| 3 | TC-CTX-003 | 压缩前后语义一致性 (2方法) | ✅ PASS | 系统提示和用户最新消息保留 |
-| 4 | TC-CTX-004 | Token 计数精度验证 (10方法) | ✅ PASS | 中/英/混合/代码多场景 |
-| 5 | TC-CTX-005 | 多会话上下文隔离 (2方法) | ✅ PASS | 各会话互不干扰 |
-| 6 | TC-PERM-002 | 两阶段分类与降级 (8方法) | ✅ PASS | 快速路径+LLM降级 |
-| 7 | TC-PERM-004 | HookService 8种事件 (22方法) | ✅ PASS | 8种生命周期事件触发 |
-| 8 | TC-SKILL-001 | 6级优先级加载 (3方法) | ✅ PASS | BUNDLED→DYNAMIC优先级 |
-| 9 | TC-SKILL-002 | 内置技能执行 (3方法) | ✅ PASS | commit/review/test |
-| 10 | TC-SKILL-003 | 热重载 (2方法) | ✅ PASS | 文件修改后立即生效 |
-| 11 | TC-SKILL-004 | Markdown 解析 (4方法) | ✅ PASS | frontmatter+body |
-| 12 | TC-SKILL-005 | 参数替换 (7方法) | ✅ PASS | {{param}}替换+默认值 |
-| 13 | TC-PLG-001 | SPI 插件发现 (3方法) | ✅ PASS | Java SPI 机制 |
-| 14 | TC-PLG-002 | ClassLoader 沙箱 (6方法) | ✅ PASS | 插件间类隔离 |
-| 15 | TC-PLG-003 | 四桥接与超时 (5方法) | ✅ PASS | Tool/Prompt/Memory/Event桥接 |
-| 16 | TC-PLG-004 | 热重载与并发安全 (4方法) | ✅ PASS | 线程安全验证 |
+##### 上下文管理 (TC-CTX-001 ~ TC-CTX-005, 5 用例, 20 方法)
 
-**适配说明**: `SystemMessageType.SYSTEM_PROMPT` 实际为 `INFO`；`ContentBlock.ToolUseBlock` 构造函数接受 `JsonNode`（非 Map）；`Message.UserMessage` 为 5 参数构造函数。
+**测试文件**: `backend/src/test/java/com/aicodeassistant/engine/ContextManagementTest.java`
+
+**TC-CTX-001: 自动压缩触发验证 — PASS (4 方法)**
+- **测试步骤**: 构造超过 Token 预算的消息序列，验证自动压缩触发
+- **预期结果**: Token 超限时自动触发压缩，压缩后 Token 数降低
+- **实际结果**: 4 个测试方法全部 PASS，压缩触发阈值、压缩比率、压缩后消息完整性均验证通过
+- **判定**: PASS
+
+**TC-CTX-002: 消息裁剪边界验证 — PASS (2 方法)**
+- **测试步骤**: 测试空消息列表、单条消息、超长单条消息的裁剪行为
+- **预期结果**: 边界条件正确处理，不丢失关键信息
+- **实际结果**: 2 个测试方法全部 PASS
+- **判定**: PASS
+
+**TC-CTX-003: 压缩前后语义一致性验证 — PASS (2 方法)**
+- **测试步骤**: 对比压缩前后的关键语义信息保留情况
+- **预期结果**: 系统提示和用户最新消息保留，中间消息被摘要替代
+- **实际结果**: 2 个测试方法全部 PASS
+- **判定**: PASS
+
+**TC-CTX-004: Token 计数精度验证 — PASS (10 方法)**
+- **测试步骤**: 对不同长度和语言（中/英/混合/代码）的文本进行 Token 计数
+- **预期结果**: Token 计数在合理误差范围内
+- **实际结果**: 10 个测试方法全部 PASS，涵盖空字符串、ASCII、Unicode、长文本等场景
+- **判定**: PASS
+
+**TC-CTX-005: 多会话上下文隔离验证 — PASS (2 方法)**
+- **测试步骤**: 创建多个会话，验证上下文互不干扰
+- **预期结果**: 各会话上下文完全隔离
+- **实际结果**: 2 个测试方法全部 PASS
+- **判定**: PASS
+
+##### 权限系统深度 (TC-PERM-002-UNIT, TC-PERM-004-UNIT, 2 用例, 30 方法)
+
+> **注**: 本节 TC-PERM-002-UNIT / TC-PERM-004-UNIT 为深化单元测试版本（30方法），与 section 2.6 中基于 E2E 的 TC-PERM-002/004 互补但不重复。
+
+**TC-PERM-002-UNIT: 两阶段分类与降级 — PASS (8 方法)**
+- **测试文件**: `backend/src/test/java/com/aicodeassistant/permission/AutoModeClassifierDeepTest.java`
+- **测试步骤**: 验证 AutoModeClassifier 的两阶段分类逻辑（快速路径 + LLM 降级）
+- **预期结果**: 安全工具快速通过，危险工具需 LLM 分类，LLM 不可用时降级为拒绝
+- **实际结果**: 8 个测试方法全部 PASS
+- **判定**: PASS
+
+**TC-PERM-004-UNIT: HookService 8 种事件 — PASS (22 方法)**
+- **测试文件**: `backend/src/test/java/com/aicodeassistant/permission/HookServiceEventTest.java`
+- **测试步骤**: 验证 HookService 对 8 种生命周期事件（会话创建/销毁、工具执行前/后、权限请求/响应、消息发送/接收）的触发
+- **预期结果**: 每种事件正确触发对应的 Hook
+- **实际结果**: 22 个测试方法全部 PASS
+- **判定**: PASS
+
+##### 技能系统 (TC-SKILL-001 ~ TC-SKILL-005, 5 用例, 19 方法)
+
+**测试文件**: `backend/src/test/java/com/aicodeassistant/skill/SkillSystemTest.java`
+
+**TC-SKILL-001: 6 级优先级加载 — PASS (3 方法)**
+- **测试步骤**: 验证技能按 BUNDLED → PROJECT → USER → TEAM → REMOTE → DYNAMIC 优先级加载
+- **预期结果**: 高优先级技能覆盖低优先级同名技能
+- **实际结果**: 3 个测试方法全部 PASS
+- **判定**: PASS
+
+**TC-SKILL-002: 内置技能执行 — PASS (3 方法)**
+- **测试步骤**: 执行 commit/review/test 等内置技能
+- **预期结果**: 技能正确解析并生成 System Prompt
+- **实际结果**: 3 个测试方法全部 PASS
+- **判定**: PASS
+
+**TC-SKILL-003: 热重载 — PASS (2 方法)**
+- **测试步骤**: 修改技能文件后触发重载，验证更新生效
+- **预期结果**: 重载后新技能内容立即生效
+- **实际结果**: 2 个测试方法全部 PASS
+- **判定**: PASS
+
+**TC-SKILL-004: Markdown 解析 — PASS (4 方法)**
+- **测试步骤**: 解析技能 Markdown 文件中的 frontmatter 和 body
+- **预期结果**: 正确提取 name、description、arguments 等字段
+- **实际结果**: 4 个测试方法全部 PASS
+- **判定**: PASS
+
+**TC-SKILL-005: 参数替换 — PASS (7 方法)**
+- **测试步骤**: 验证技能模板中 `{{param}}` 的参数替换逻辑
+- **预期结果**: 参数正确替换，缺失参数使用默认值
+- **实际结果**: 7 个测试方法全部 PASS
+- **判定**: PASS
+
+##### 插件系统 (TC-PLG-001 ~ TC-PLG-004, 4 用例, 18 方法)
+
+**测试文件**: `backend/src/test/java/com/aicodeassistant/plugin/PluginSystemTest.java`
+
+**TC-PLG-001: SPI 插件发现 — PASS (3 方法)**
+- **测试步骤**: 验证通过 Java SPI 机制发现和加载插件
+- **预期结果**: 正确发现并实例化所有 SPI 注册插件
+- **实际结果**: 3 个测试方法全部 PASS
+- **判定**: PASS
+
+**TC-PLG-002: ClassLoader 沙箱 — PASS (6 方法)**
+- **测试步骤**: 验证插件 ClassLoader 隔离，防止插件间类泄露
+- **预期结果**: 各插件在独立 ClassLoader 中运行
+- **实际结果**: 6 个测试方法全部 PASS
+- **判定**: PASS
+
+**TC-PLG-003: 四桥接与超时 — PASS (5 方法)**
+- **测试步骤**: 验证插件的四类桥接接口（ToolBridge/PromptBridge/MemoryBridge/EventBridge）及超时保护
+- **预期结果**: 桥接调用正常，超时后插件被终止
+- **实际结果**: 5 个测试方法全部 PASS
+- **判定**: PASS
+
+**TC-PLG-004: 热重载与并发安全 — PASS (4 方法)**
+- **测试步骤**: 并发环境下触发插件热重载，验证线程安全
+- **预期结果**: 重载期间不影响正在执行的插件调用
+- **实际结果**: 4 个测试方法全部 PASS
+- **判定**: PASS
+
+**批次1 适配说明**: `SystemMessageType.SYSTEM_PROMPT` 实际为 `INFO`；`ContentBlock.ToolUseBlock` 构造函数接受 `JsonNode`（非 Map）；`Message.UserMessage` 为 5 参数构造函数。
 
 #### 2.22.2 后端 JUnit 批次2 — LLM/MCP/记忆/并发/SSE/DB/工具 (31 TC, 91 方法)
 
 > **执行者**: Bill | **测试框架**: JUnit 5 + Mockito + 嵌入式 SQLite
 > **测试文件**: 10 个 Java 测试类
 
-| 序号 | TC编号 | 测试名称 | 结果 | 备注 |
-|------|--------|---------|------|------|
-| 1 | TC-LLM-002 | 四级回退验证 | ✅ PASS | 主模型→备选1→备选2→降级 |
-| 2 | TC-LLM-003 | 错误分类与重试 | ✅ PASS | RateLimit/Timeout/Auth/Server |
-| 3 | TC-LLM-004 | SystemPromptBuilder 模板渲染 | ✅ PASS | 变量替换+条件渲染 |
-| 4 | TC-MCP-002 | McpToolAdapter 工具转换 | ✅ PASS | inputSchema/description/name映射 |
-| 5 | TC-MCP-004 | McpCapabilityRegistry 持久化 | ✅ PASS | JSON持久化+重载一致 |
-| 6 | TC-MEM-001 | 个人记忆 CRUD | ✅ PASS | 创建→查询→更新→删除 |
-| 7 | TC-MEM-002 | BM25 搜索质量 | ✅ PASS | 关键词搜索排序验证 |
-| 8 | TC-MEM-003 | LLM 重排与 BM25 降级 | ✅ PASS | LLM不可用时自动降级 |
-| 9 | TC-MEM-004 | 自动压缩与过期 | ✅ PASS | 超期记忆自动归档 |
-| 10 | TC-MEM-005 | 团队记忆类别支持 | ✅ PASS | 类别分类+权限隔离 |
-| 11 | TC-CONC-001 | 并发限制 | ✅ PASS | 超限请求排队/拒绝 |
-| 12 | TC-CONC-002 | 队列管理 | ✅ PASS | 等待队列正常 |
-| 13 | TC-CONC-003 | 超时取消 | ✅ PASS | 超时后正确取消 |
-| 14 | TC-CONC-004 | 优先级调度 | ✅ PASS | 高优先级优先执行 |
-| 15 | TC-CONC-005 | 死锁检测 | ✅ PASS | 死锁检测机制正常 |
-| 16 | TC-AGENT-002 | AgentConcurrencyController | ✅ PASS | 并发控制器验证 |
-| 17 | TC-SSE-001 | SseEmitter 生命周期 | ✅ PASS | 创建→发送→完成/超时 |
-| 18 | TC-SSE-002 | 多客户端并发订阅 | ✅ PASS | 并发订阅正常 |
-| 19 | TC-SSE-003 | 断线重连 | ✅ PASS | 断线后重连成功 |
-| 20 | TC-SSE-004 | 事件格式 | ✅ PASS | SSE事件格式正确 |
-| 21 | TC-SSE-005 | 超时关闭 | ✅ PASS | 超时正确关闭连接 |
-| 22 | TC-DB-001 | 会话/消息/配置 CRUD | ✅ PASS | 纯 JDBC+SQLite |
-| 23 | TC-DB-002 | 事务回滚 | ✅ PASS | 回滚完整 |
-| 24 | TC-DB-003 | 并发写入 | ✅ PASS | 不丢数据 |
-| 25 | TC-DB-004 | 数据迁移 | ✅ PASS | 迁移脚本正常 |
-| 26 | TC-DB-005 | 边界条件 | ✅ PASS | 空表/大数据量 |
-| 27 | TC-TOOL-DEEP-001 | 工具注册/发现 | ✅ PASS | 全链路注册 |
-| 28 | TC-TOOL-DEEP-002 | inputSchema 验证 | ✅ PASS | Schema校验正确 |
-| 29 | TC-TOOL-DEEP-003 | 工具执行管道(14步权限) | ✅ PASS | 各步骤按序执行 |
-| 30 | TC-TOOL-DEEP-004 | 工具结果序列化 | ✅ PASS | 序列化正确 |
-| 31 | TC-TOOL-DEEP-005 | 工具启用/禁用 | ✅ PASS | 状态切换正常 |
+##### LLM 回退链 (TC-LLM-002 ~ TC-LLM-004, 3 用例)
 
-**适配说明**: `ToolResult` 为 record 类型，使用 `content()` 而非 `getContent()`；TC-DB 系列使用纯 JDBC + 嵌入式 SQLite 避免 Spring 容器依赖；TC-SSE 使用 SseEmitter 生命周期验证模式。
+**TC-LLM-002: 四级回退验证 — PASS**
+- **测试文件**: `backend/src/test/java/com/aicodeassistant/llm/LlmFallbackChainTest.java`
+- **测试步骤**: 主模型失败 → 备选模型1 → 备选模型2 → 最终降级
+- **预期结果**: 按配置顺序逐级回退，最终降级返回友好错误
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-LLM-003: 错误分类与重试验证 — PASS**
+- **测试文件**: `backend/src/test/java/com/aicodeassistant/llm/LlmFallbackChainTest.java`
+- **测试步骤**: 对 RateLimit/Timeout/AuthError/ServerError 分别验证重试策略
+- **预期结果**: RateLimit 重试带退避，AuthError 不重试直接回退，Timeout 重试1次
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-LLM-004: SystemPromptBuilder 模板渲染 — PASS**
+- **测试文件**: `backend/src/test/java/com/aicodeassistant/llm/LlmIntegrationTest.java`
+- **测试步骤**: 验证 System Prompt 模板中变量替换和条件渲染
+- **预期结果**: 工具列表、技能信息、权限模式正确注入
+- **实际结果**: PASS
+- **判定**: PASS
+
+##### MCP 扩展 (TC-MCP-002, TC-MCP-004, 2 用例)
+
+**TC-MCP-002: McpToolAdapter 工具转换 — PASS**
+- **测试文件**: `backend/src/test/java/com/aicodeassistant/mcp/McpExtensionTest.java`
+- **测试步骤**: 验证 MCP 工具描述到内部 Tool 接口的适配转换
+- **预期结果**: inputSchema、description、name 正确映射
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-MCP-004: McpCapabilityRegistry 持久化 — PASS**
+- **测试文件**: `backend/src/test/java/com/aicodeassistant/mcp/McpExtensionTest.java`
+- **测试步骤**: 启用/禁用 MCP 能力后重启，验证状态持久化
+- **预期结果**: JSON 文件持久化配置，重载后状态一致
+- **实际结果**: PASS
+- **判定**: PASS
+
+##### 记忆系统深度 (TC-MEM-001-UNIT ~ TC-MEM-005-UNIT, 5 用例)
+
+> **注**: 本节 TC-MEM-001-UNIT ~ TC-MEM-005-UNIT 为深化单元测试版本，与 section 2.8 中基于 REST API 的 TC-MEM-* E2E 测试互补但不重复。
+
+**测试文件**: `backend/src/test/java/com/aicodeassistant/memdir/MemorySystemTest.java` + `Bm25SearchQualityTest.java`
+
+**TC-MEM-001-UNIT: 个人记忆 CRUD — PASS**
+- **测试步骤**: 创建→查询→更新→删除个人记忆条目
+- **预期结果**: 全链路 CRUD 操作正确
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-MEM-002-UNIT: BM25 搜索质量 — PASS**
+- **测试步骤**: 插入多条记忆后用关键词搜索，验证 BM25 排序质量
+- **预期结果**: 相关记忆排名靠前，无关记忆被过滤
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-MEM-003-UNIT: LLM 重排与 BM25 降级 — PASS**
+- **测试步骤**: 模拟 LLM 重排不可用场景，验证降级到 BM25
+- **预期结果**: LLM 重排失败时自动降级，搜索结果不中断
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-MEM-004-UNIT: 自动压缩与过期 — PASS**
+- **测试步骤**: 验证记忆条目的自动压缩和过期清理机制
+- **预期结果**: 超期记忆被自动归档或清理
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-MEM-005-UNIT: 团队记忆类别支持 — PASS**
+- **测试步骤**: 验证团队级别记忆的类别分类和权限隔离
+- **预期结果**: 团队记忆按类别存储，权限正确隔离
+- **实际结果**: PASS
+- **判定**: PASS
+
+##### 并发控制 (TC-CONC-001 ~ TC-CONC-005, TC-AGENT-002, 6 用例)
+
+**测试文件**: `backend/src/test/java/com/aicodeassistant/agent/ConcurrencyControlTest.java` + `AgentConcurrencyControllerTest.java`
+
+**TC-CONC-001: 并发限制 — PASS**
+- **测试步骤**: 验证 AgentConcurrencyController 的并发限制机制
+- **预期结果**: 超限请求被排队或拒绝
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-CONC-002: 队列管理 — PASS**
+- **测试步骤**: 验证等待队列的进出队和容量控制
+- **预期结果**: 队列正常工作，容量满时拒绝新请求
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-CONC-003: 超时取消 — PASS**
+- **测试步骤**: 验证超时后任务正确取消和资源释放
+- **预期结果**: 超时后正确取消，不泄漏资源
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-CONC-004: 优先级调度 — PASS**
+- **测试步骤**: 验证高优先级任务优先从队列中取出执行
+- **预期结果**: 高优先级任务优先执行
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-CONC-005: 死锁检测 — PASS**
+- **测试步骤**: 构造潜在死锁场景，验证死锁检测和解除机制
+- **预期结果**: 死锁检测机制正常工作
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-AGENT-002: AgentConcurrencyController 并发限制 — PASS**
+- **测试文件**: `backend/src/test/java/com/aicodeassistant/tool/agent/AgentConcurrencyControllerTest.java`
+- **测试步骤**: 同时发起超过并发限制的请求，验证拒绝或排队行为
+- **预期结果**: 超限请求被拒绝或进入等待队列
+- **实际结果**: PASS
+- **判定**: PASS
+
+##### SSE 流式传输 (TC-SSE-001 ~ TC-SSE-005, 5 用例)
+
+**测试文件**: `backend/src/test/java/com/aicodeassistant/sse/SseStreamingTest.java`
+
+**TC-SSE-001: SseEmitter 生命周期 — PASS**
+- **测试步骤**: 验证 SseEmitter 创建→发送→完成/超时/错误的完整生命周期
+- **预期结果**: 生命周期各阶段正确转换
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-SSE-002: 多客户端并发订阅 — PASS**
+- **测试步骤**: 多个客户端同时订阅 SSE 事件流
+- **预期结果**: 各客户端独立接收事件，互不干扰
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-SSE-003: 断线重连 — PASS**
+- **测试步骤**: 模拟客户端断线后重新连接
+- **预期结果**: 断线后重连成功，事件流恢复
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-SSE-004: 事件格式验证 — PASS**
+- **测试步骤**: 验证 SSE 事件的 data/event/id/retry 字段格式
+- **预期结果**: SSE 事件格式符合规范
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-SSE-005: 超时关闭 — PASS**
+- **测试步骤**: 验证超时后 SseEmitter 正确关闭并释放资源
+- **预期结果**: 超时后正确关闭连接
+- **实际结果**: PASS
+- **判定**: PASS
+
+##### 数据库持久化 (TC-DB-001 ~ TC-DB-005, 5 用例)
+
+**测试文件**: `backend/src/test/java/com/aicodeassistant/persistence/DatabasePersistenceTest.java`
+
+**TC-DB-001: 会话/消息/配置 CRUD — PASS**
+- **测试步骤**: 使用纯 JDBC + 嵌入式 SQLite 验证会话、消息、配置的完整 CRUD
+- **预期结果**: CRUD 操作正确，数据一致
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-DB-002: 事务回滚 — PASS**
+- **测试步骤**: 在事务中执行多步操作后触发回滚
+- **预期结果**: 回滚后所有操作撤销，数据恢复原状
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-DB-003: 并发写入 — PASS**
+- **测试步骤**: 多线程同时写入数据库
+- **预期结果**: 并发写入不丢数据，无死锁
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-DB-004: 数据迁移 — PASS**
+- **测试步骤**: 执行数据库迁移脚本，验证表结构和数据完整性
+- **预期结果**: 迁移脚本正常执行，数据完整
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-DB-005: 边界条件 — PASS**
+- **测试步骤**: 测试空表查询、大数据量插入、特殊字符存储
+- **预期结果**: 边界条件正确处理
+- **实际结果**: PASS
+- **判定**: PASS
+
+##### 工具系统深度 (TC-TOOL-DEEP-001 ~ TC-TOOL-DEEP-005, 5 用例)
+
+**测试文件**: `backend/src/test/java/com/aicodeassistant/tool/ToolSystemDeepTest.java`
+
+**TC-TOOL-DEEP-001: 工具注册/发现 — PASS**
+- **测试步骤**: 验证工具注册和发现的全链路
+- **预期结果**: 工具正确注册并可被发现
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-TOOL-DEEP-002: inputSchema 验证 — PASS**
+- **测试步骤**: 对工具的 inputSchema 进行 JSON Schema 校验
+- **预期结果**: Schema 校验正确，非法输入被拒绝
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-TOOL-DEEP-003: 工具执行管道 (14步权限检查) — PASS**
+- **测试步骤**: 验证工具执行管道的 14 步权限检查流程
+- **预期结果**: 各步骤按序执行，权限检查完整
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-TOOL-DEEP-004: 工具结果序列化 — PASS**
+- **测试步骤**: 验证工具执行结果的 JSON 序列化/反序列化
+- **预期结果**: 序列化正确，字段完整
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-TOOL-DEEP-005: 工具启用/禁用 — PASS**
+- **测试步骤**: 验证工具启用/禁用状态切换及其对执行的影响
+- **预期结果**: 禁用后工具不可执行，启用后恢复
+- **实际结果**: PASS
+- **判定**: PASS
+
+**批次2 适配说明**: `ToolResult` 为 record 类型，使用 `content()` 而非 `getContent()`；TC-DB 系列使用纯 JDBC + 嵌入式 SQLite 避免 Spring 容器依赖；TC-SSE 使用 SseEmitter 生命周期验证模式。
 
 #### 2.22.3 前端 Vitest 单元测试 (18 TC, 35 方法)
 
@@ -1970,7 +2249,135 @@ if (json.success === false || json.error) {
 | 17 | TC-ROUTE-003 | 懒加载边界 | ✅ PASS | 懒加载正常 |
 | 18 | TC-ROUTE-004 | 错误边界捕获 | ✅ PASS | 错误边界正确 |
 
-**适配说明**: `respondPermission` 接收 `PermissionDecision` 对象而非简单 boolean；`notificationStore` 使用 `addNotification({key, level, message})` 接口；`configStore` persist key 为 `ai-coder-config`。
+##### 跨 Tab 状态同步 (TC-FE-006, 4 tests)
+
+**测试文件**: `frontend/src/store/__tests__/broadcastSync.test.ts`
+
+**TC-FE-006: 跨 Tab 状态同步 — PASS (4 tests)**
+- **测试步骤**: 模拟 BroadcastChannel 在多 Tab 间同步 Store 状态
+- **预期结果**: 一个 Tab 的状态变更通过 BroadcastChannel 同步到其他 Tab
+- **实际结果**: 4 个 it 全部 PASS
+- **判定**: PASS
+
+##### 流式文本 RAF 优化 (TC-FE-007, 7 tests)
+
+**测试文件**: `frontend/src/hooks/__tests__/useStreamingText.test.ts`
+
+**TC-FE-007: 流式文本 RAF 优化 — PASS (7 tests)**
+- **测试步骤**: 验证 useStreamingText Hook 的 requestAnimationFrame 批量更新、防抖、取消、边界处理
+- **预期结果**: 流式文本渲染使用 RAF 优化，避免频繁 re-render
+- **实际结果**: 7 个 it 全部 PASS
+- **判定**: PASS
+
+##### Store 生命周期 (TC-STORE-001 ~ TC-STORE-008, 8 用例, 16 tests)
+
+**测试文件**: `frontend/src/__tests__/stores/storeLifecycle.test.ts`
+
+**TC-STORE-001: messageStore 消息流生命周期 — PASS**
+- **测试步骤**: 验证消息 Store 的初始化→消息添加→状态变更→清理
+- **预期结果**: 生命周期完整，状态正确
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-STORE-002: sessionStore 会话生命周期 — PASS**
+- **测试步骤**: 验证会话 Store 的创建→切换→删除完整流程
+- **预期结果**: 会话状态管理正确
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-STORE-003: permissionStore 权限审批流程 — PASS**
+- **测试步骤**: 验证权限请求→用户审批→状态更新流程
+- **预期结果**: 权限审批流程正确，使用 PermissionDecision 对象
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-STORE-004: costStore Token 费用累计 — PASS**
+- **测试步骤**: 验证 Token 费用累加、重置、多模型分别计算
+- **预期结果**: 费用累计正确
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-STORE-005: taskStore 任务状态管理 — PASS**
+- **测试步骤**: 验证任务创建→状态转换→完成/取消
+- **预期结果**: 任务状态机正确
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-STORE-006: configStore 持久化与恢复 — PASS**
+- **测试步骤**: 验证配置保存到 localStorage 及页面刷新后恢复
+- **预期结果**: persist key `ai-coder-config` 正确持久化和恢复
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-STORE-007: bridgeStore WebSocket 连接 — PASS**
+- **测试步骤**: 验证 WebSocket 连接状态管理（连接/断开/重连）
+- **预期结果**: 连接状态正确转换
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-STORE-008: notificationStore 通知队列 — PASS**
+- **测试步骤**: 验证通知添加、队列管理、自动清理
+- **预期结果**: 使用 `addNotification({key, level, message})` 接口正确添加通知
+- **实际结果**: PASS
+- **判定**: PASS
+
+##### Immer 不可变性 (TC-IMMER-001 ~ TC-IMMER-004, 4 tests)
+
+**测试文件**: `frontend/src/__tests__/stores/immerImmutability.test.ts`
+
+**TC-IMMER-001: 状态更新不可变性 — PASS**
+- **测试步骤**: 验证状态更新后产生新引用
+- **预期结果**: 每次状态更新产生新引用，原始对象不变
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-IMMER-002: 原始对象不被修改 — PASS**
+- **测试步骤**: 在 Zustand+Immer 中修改状态后检查原始对象
+- **预期结果**: 原始对象保持不变
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-IMMER-003: 深层嵌套不可变 — PASS**
+- **测试步骤**: 修改深层嵌套对象，验证不可变性传递到深层
+- **预期结果**: 深层对象同样保持不可变
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-IMMER-004: 数组操作不可变 — PASS**
+- **测试步骤**: 验证数组 push/splice 操作的不可变性
+- **预期结果**: 数组操作产生新数组引用
+- **实际结果**: PASS
+- **判定**: PASS
+
+##### 路由边界 (TC-ROUTE-001 ~ TC-ROUTE-004, 4 tests)
+
+**测试文件**: `frontend/src/__tests__/stores/routeBoundary.test.ts`
+
+**TC-ROUTE-001: 路由切换状态保持 — PASS**
+- **测试步骤**: 路由切换后验证必要状态保持
+- **预期结果**: 切换路由后状态不丢失
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-ROUTE-002: 路由切换状态重置 — PASS**
+- **测试步骤**: 验证需要重置的状态在路由切换时正确清除
+- **预期结果**: 临时状态正确重置
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-ROUTE-003: 懒加载边界 — PASS**
+- **测试步骤**: 验证路由懒加载组件的加载状态和错误处理
+- **预期结果**: 懒加载正常工作，加载失败显示错误
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-ROUTE-004: 错误边界捕获 — PASS**
+- **测试步骤**: 验证路由组件报错时错误边界的捕获行为
+- **预期结果**: 错误边界正确捕获，不崩溃全局
+- **实际结果**: PASS
+- **判定**: PASS
+
+**前端适配说明**: `respondPermission` 接收 `PermissionDecision` 对象而非简单 boolean；`notificationStore` 使用 `addNotification({key, level, message})` 接口；`configStore` persist key 为 `ai-coder-config`。
 
 #### 2.22.4 前端 Playwright E2E (10 TC, 19 子测试)
 
@@ -1992,7 +2399,95 @@ if (json.success === false || json.error) {
 | 11 | TC-FE-005c | 折叠/展开交互 | ✅ PASS | 20.7s |
 | 12 | TC-FE-005d | 代码块语法高亮 | ✅ PASS | 20.8s |
 
-**回归测试 (7/7 PASS)**:
+##### 权限弹窗 (TC-FE-003, 4 子测试)
+
+**测试文件**: `frontend/e2e/tc-fe-003-permission.spec.ts`
+
+**TC-FE-003a: 权限弹窗元素与风险等级 — PASS**
+- **测试步骤**: 触发工具调用 → 权限弹窗弹出 → 验证风险等级显示
+- **预期结果**: 权限弹窗正确显示风险等级标识
+- **实际结果**: PASS (5.6s)
+- **判定**: PASS
+
+**TC-FE-003b: 拒绝权限后恢复输入 — PASS**
+- **测试步骤**: 点击拒绝按钮 → 验证输入框恢复可用状态
+- **预期结果**: 拒绝权限后输入框恢复正常
+- **实际结果**: PASS (4.6s)
+- **判定**: PASS
+
+**TC-FE-003c: 允许权限后继续执行 — PASS**
+- **测试步骤**: 点击允许按钮 → 验证工具继续执行
+- **预期结果**: 允许后工具正常执行
+- **实际结果**: PASS (4.5s)
+- **判定**: PASS
+
+**TC-FE-003d: Remember/scope 选择器 — PASS**
+- **测试步骤**: 验证“记住选择”和 scope 选择器的功能
+- **预期结果**: 记住选项和 scope 选择正常工作
+- **实际结果**: PASS (4.7s)
+- **判定**: PASS
+
+##### 命令面板 (TC-FE-004, 4 子测试)
+
+**测试文件**: `frontend/e2e/tc-fe-004-command-palette.spec.ts`
+
+**TC-FE-004a: / 触发命令面板 — PASS**
+- **测试步骤**: 在输入框输入 `/` 触发命令面板
+- **预期结果**: 命令面板正确弹出，显示命令列表
+- **实际结果**: PASS (6.3s)
+- **判定**: PASS
+
+**TC-FE-004b: Escape 关闭面板 — PASS**
+- **测试步骤**: 打开命令面板后按 Escape
+- **预期结果**: 面板正确关闭
+- **实际结果**: PASS (7.4s)
+- **判定**: PASS
+
+**TC-FE-004c: Ctrl+K 全局面板 — PASS**
+- **测试步骤**: 使用 Ctrl+K 快捷键全局打开命令面板
+- **预期结果**: 全局命令面板正确打开
+- **实际结果**: PASS (6.9s)
+- **判定**: PASS
+
+**TC-FE-004d: 选择命令后关闭 — PASS**
+- **测试步骤**: 从命令列表中选择一个命令
+- **预期结果**: 选择后面板自动关闭
+- **实际结果**: PASS (8.3s)
+- **判定**: PASS
+
+##### 工具调用结果 (TC-FE-005, 4 子测试)
+
+**测试文件**: `frontend/e2e/tc-fe-005-tool-result.spec.ts`
+
+**TC-FE-005a: 工具调用结果渲染 — PASS**
+- **测试步骤**: 发送触发工具调用的消息 → 验证结果渲染
+- **预期结果**: 工具调用结果正确渲染在消息流中
+- **实际结果**: PASS (20.9s)
+- **判定**: PASS
+
+**TC-FE-005b: 加载状态展示 — PASS**
+- **测试步骤**: 工具执行期间验证加载状态 UI
+- **预期结果**: 显示加载状态动画
+- **实际结果**: PASS (23.7s)
+- **判定**: PASS
+
+**TC-FE-005c: 折叠/展开交互 — PASS**
+- **测试步骤**: 验证工具结果卡片的折叠/展开交互
+- **预期结果**: 折叠后隐藏详情，展开后显示完整内容
+- **实际结果**: PASS (20.7s)
+- **判定**: PASS
+
+**TC-FE-005d: 代码块语法高亮 — PASS**
+- **测试步骤**: 验证工具返回的代码块语法高亮效果
+- **预期结果**: 代码块正确识别语言并应用语法高亮
+- **实际结果**: PASS (20.8s)
+- **判定**: PASS
+
+**注**: 权限测试使用 graceful degradation 模式（LLM 未在 30s 内触发工具调用时走降级路径）
+
+**截图证据**: `tc-fe-003a-*.png` ~ `tc-fe-005d-*.png`，共 28 张截图存证
+
+##### 回归测试 (7/7 PASS)
 
 | TC | 名称 | 结果 |
 |----|------|------|
@@ -2004,7 +2499,7 @@ if (json.success === false || json.error) {
 | TC-FE-06 | 响应式布局 | ✅ PASS |
 | TC-FE-07 | 快捷键 | ✅ PASS |
 
-**截图证据**: `tc-fe-003a-*.png` ~ `tc-fe-005d-*.png`，共 28 张截图存证
+> 全部回归通过，新测试未引入任何回归问题。
 
 #### 2.22.5 Python pytest (6 TC, 29 方法)
 
@@ -2020,7 +2515,50 @@ if (json.success === false || json.error) {
 | 5 | TC-PY-ANALYZER-003 | 空结果处理 (1 test) | ✅ PASS | 空项目/不存在路径 |
 | 6 | TC-PY-ANALYZER-004 | Python 文件调用图 (1 test) | ✅ PASS | 函数调用关系识别 |
 
-**适配说明**: 动态路由手动挂载到 app；SSE 端点使用 `wait_for` 超时机制；Pydantic 模型字段名修正；响应时间阈值放宽。
+**TC-PY-001: Token 估算端点 — PASS (4 tests)**
+- **测试文件**: `python-service/tests/test_token_estimation.py`
+- **测试步骤**: 对空字符串、英文、中文、混合文本调用 Token 估算 API
+- **预期结果**: 返回合理的 token 数量，误差在 10% 以内
+- **实际结果**: 4 个测试全部 PASS
+- **判定**: PASS
+
+**TC-PY-003: 文件处理端点 — PASS (6 tests)**
+- **测试文件**: `python-service/tests/test_file_processing.py`
+- **测试步骤**: 验证文件上传、类型检测、内容提取、大小限制、格式转换、错误处理
+- **预期结果**: 各端点正确响应，错误条件返回合适 HTTP 状态码
+- **实际结果**: 6 个测试全部 PASS
+- **判定**: PASS
+
+**TC-PY-005: 浏览器自动化 15 端点 — PASS (16 tests)**
+- **测试文件**: `python-service/tests/test_browser_automation.py`
+- **测试步骤**: 验证 Playwright 浏览器自动化的 15 个 API 端点（启动/导航/截图/点击/输入/等待/脚本执行等）
+- **预期结果**: 各端点返回正确响应结构
+- **实际结果**: 16 个测试全部 PASS
+- **适配说明**: 动态路由手动挂载，SSE 端点用 wait_for 超时，响应阈值放宽
+- **判定**: PASS
+
+**TC-PY-ANALYZER-001: BFS 影响传播准确性 — PASS (1 test)**
+- **测试文件**: `python-service/tests/test_analyzer_bfs.py`
+- **测试步骤**: 构造依赖图，从入口节点执行 BFS，验证影响传播路径
+- **预期结果**: BFS 遍历顺序正确，影响范围完整
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-PY-ANALYZER-003: 空结果处理 — PASS (1 test)**
+- **测试文件**: `python-service/tests/test_analyzer_empty.py`
+- **测试步骤**: 对空项目/不存在路径执行分析
+- **预期结果**: 返回空结果而非错误
+- **实际结果**: PASS
+- **判定**: PASS
+
+**TC-PY-ANALYZER-004: Python 文件调用图构建 — PASS (1 test)**
+- **测试文件**: `python-service/tests/test_analyzer_callgraph.py`
+- **测试步骤**: 解析 Python 文件构建函数调用图
+- **预期结果**: 调用关系正确识别
+- **实际结果**: PASS
+- **判定**: PASS
+
+**Python 适配说明**: 动态路由手动挂载到 app；SSE 端点使用 `wait_for` 超时机制；Pydantic 模型字段名修正以匹配实际 API；响应时间阈值放宽以适应 CI 环境。
 
 #### 2.22.6 REST API + WebSocket STOMP (18 集成测试)
 
@@ -2047,7 +2585,55 @@ if (json.success === false || json.error) {
 | 17 | WebSocket 用户中断 | ✅ PASS | 1811ms |
 | 18 | WebSocket 断连恢复 | ✅ PASS | 5323ms |
 
-**额外验证**: 健康检查 `GET /api/health` → UP；模型列表 6 个；工具列表 44 个；会话列表 17 个活跃会话。
+##### 记忆系统 CRUD (4 tests)
+
+- **创建**: `POST /api/memories` → HTTP 201, 返回 memoryId
+- **查询**: `GET /api/memories?query=keyword` → 返回匹配记忆列表
+- **更新**: `PUT /api/memories` → 批量 upsert 语义，返回更新数量
+- **删除**: `DELETE /api/memories/{id}` → HTTP 204
+- **判定**: PASS — 全链路 CRUD 验证通过
+
+##### 技能 API (2 tests)
+
+- **列表**: `GET /api/skills` → 返回 7 个技能
+- **404**: `GET /api/skills/nonexistent` → HTTP 404, `SKILL_NOT_FOUND`
+- **判定**: PASS
+
+##### 插件 API (2 tests)
+
+- **列表**: `GET /api/plugins` → 1 个 hello 内置插件
+- **重载**: `POST /api/plugins/reload` → reload 后插件列表一致
+- **判定**: PASS
+
+##### MCP API (2 tests)
+
+- **列表**: `GET /api/mcp/capabilities` → 3 个能力
+- **启禁用**: `PATCH /api/mcp/capabilities/{id}` → 启用/禁用切换正常
+- **判定**: PASS
+
+##### WebSocket STOMP (8/8 PASS)
+
+| # | 场景 | 耗时 | 结果 |
+|---|------|------|------|
+| 1 | SockJS 端点验证 | 11ms | PASS |
+| 2 | STOMP 协议握手 | 309ms | PASS |
+| 3 | 心跳保活 | 1813ms | PASS |
+| 4 | 会话绑定 | 816ms | PASS |
+| 5 | 聊天完整流 | 7540ms | PASS |
+| 6 | 权限模式切换 | 1812ms | PASS |
+| 7 | 用户中断 | 1811ms | PASS |
+| 8 | 断连恢复 | 5323ms | PASS |
+
+- **测试步骤**: 依次验证 SockJS 连接 → STOMP 握手 → 心跳 → 会话绑定 → 完整聊天流 → 权限切换 → 中断 → 断连恢复
+- **判定**: PASS — 8 个 WebSocket 场景全部通过
+
+##### 额外 REST API 验证
+
+- **健康检查**: `GET /api/health` → `status: UP`
+- **模型列表**: `GET /api/models` → 6 个模型，默认 `qwen3.6-max-preview`
+- **工具列表**: `GET /api/tools` → 44 个工具
+- **会话列表**: `GET /api/sessions` → 17 个活跃会话
+- **判定**: PASS
 
 ---
 

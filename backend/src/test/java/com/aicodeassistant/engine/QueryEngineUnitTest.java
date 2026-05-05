@@ -68,7 +68,7 @@ class QueryEngineUnitTest {
                 objectMapper, streamingToolExecutor, messageNormalizer, hookService,
                 snipService, microCompactService, modelRegistry,
                 thinkingBudgetCalculator, modelTierService, fileHistoryService,
-                toolResultSummarizer, contextCascade, compactMetrics);
+                toolResultSummarizer, contextCascade, compactMetrics, null);
         handler = new TestHandler();
 
         // 默认 Snip/MicroCompact mock: 直接返回原消息列表

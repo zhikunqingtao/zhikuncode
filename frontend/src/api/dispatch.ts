@@ -6,7 +6,7 @@
  * 跨 Store 消息通过私有 handle* 方法协调。
  */
 
-import type { Message, ServerMessage, Usage, PermissionRequest, PermissionMode } from '@/types';
+import type { Message, ServerMessage, Usage, PermissionRequest, PermissionMode, TokenWarningPayload } from '@/types';
 import { useMessageStore } from '@/store/messageStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { usePermissionStore } from '@/store/permissionStore';
@@ -187,6 +187,7 @@ const handlers: Record<string, (data: any) => void> = {
             message: `Token \u4f7f\u7528\u7387 ${d.usagePercent}% (${d.currentTokens}/${d.maxTokens})`,
             timeout: 5000,
         });
+        useMessageStore.getState().setTokenWarning(d as TokenWarningPayload);
     },
     'interrupt_ack':      (d: { reason: string }) => {
         useSessionStore.getState().setStatus('idle');
