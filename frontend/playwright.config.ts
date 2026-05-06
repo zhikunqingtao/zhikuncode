@@ -10,6 +10,9 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
+  /* 默认超时 60s，可视化/分析类测试需要更长 */
+  timeout: 60_000,
+  expect: { timeout: 15_000 },
   reporter: [
     ['html', { open: 'never' }],
     ['list'],
@@ -18,6 +21,9 @@ export default defineConfig({
     baseURL: 'http://localhost:5173',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    /* 单个 action 超时 30s */
+    actionTimeout: 30_000,
+    navigationTimeout: 30_000,
   },
   projects: [
     {

@@ -1,0 +1,55 @@
+{
+  "version": "v9.0",
+  "lastUpdated": "2026-05-06",
+  "baseUrls": {
+    "backend": "http://localhost:8080",
+    "python": "http://localhost:8000",
+    "frontend": "http://localhost:5173"
+  },
+  "healthEndpoints": {
+    "backend": "http://localhost:8080/api/health",
+    "python": "http://localhost:8000/health",
+    "frontend": "http://localhost:5173"
+  },
+  "timeouts": {
+    "api": 30000,
+    "websocket": 60000,
+    "llm": 180000,
+    "playwright": 300000,
+    "unitTest": 600000
+  },
+  "modules": [
+    { "id": 1, "name": "环境准备与健康检查", "cases": 7, "type": "health", "script": null },
+    { "id": 2, "name": "REST API 基础功能", "cases": 33, "type": "api", "script": "module02-rest-api-test.mjs" },
+    { "id": 3, "name": "WebSocket STOMP 通信", "cases": 8, "type": "websocket", "script": "module03-websocket-test.mjs" },
+    { "id": 4, "name": "Agent Loop 核心循环", "cases": 9, "type": "api", "script": "module04-06-agent-tool-permission-test.mjs" },
+    { "id": 5, "name": "工具系统与安全", "cases": 10, "type": "api", "script": "module04-06-agent-tool-permission-test.mjs" },
+    { "id": 6, "name": "权限治理与安全", "cases": 6, "type": "api", "script": "module04-06-agent-tool-permission-test.mjs" },
+    { "id": 7, "name": "System Prompt 与 LLM", "cases": 7, "type": "api", "script": "module07-10-llm-memory-skill-plugin-test.mjs" },
+    { "id": 8, "name": "记忆系统", "cases": 7, "type": "api", "script": "module07-10-llm-memory-skill-plugin-test.mjs" },
+    { "id": 9, "name": "技能系统", "cases": 7, "type": "api", "script": "module07-10-llm-memory-skill-plugin-test.mjs" },
+    { "id": 10, "name": "插件系统与 MCP", "cases": 11, "type": "api", "script": "module07-10-llm-memory-skill-plugin-test.mjs" },
+    { "id": 11, "name": "多 Agent 协作", "cases": 6, "type": "api", "script": "module11-multi-agent-test.mjs" },
+    { "id": 12, "name": "Python 服务", "cases": 15, "type": "api", "script": "module12-python-service-test.mjs" },
+    { "id": 13, "name": "前端 E2E 与 UI", "cases": 7, "type": "playwright", "script": "frontend/e2e/*.spec.ts" },
+    { "id": 14, "name": "文件历史与补充 API", "cases": 11, "type": "api", "script": "module14-file-extra-test.mjs" },
+    { "id": 15, "name": "CLI 命令行工具 (aica)", "cases": 11, "type": "cli", "script": "module15-cli-test.mjs" },
+    { "id": 16, "name": "可视化功能 E2E", "cases": 19, "type": "api", "script": "module16-visualization-test.mjs" },
+    { "id": 17, "name": "F3 代码复杂度分析", "cases": 6, "type": "api", "script": "module17-21-advanced-vis-test.mjs" },
+    { "id": 18, "name": "F33 变更影响链路分析", "cases": 6, "type": "api", "script": "module17-21-advanced-vis-test.mjs" },
+    { "id": 19, "name": "F25 API 契约可视化", "cases": 6, "type": "api", "script": "module17-21-advanced-vis-test.mjs" },
+    { "id": 20, "name": "F35 代码→图表自动生成", "cases": 25, "type": "api", "script": "module17-21-advanced-vis-test.mjs" },
+    { "id": 21, "name": "F40 代码路径追踪可视化", "cases": 25, "type": "api", "script": "module17-21-advanced-vis-test.mjs" },
+    { "id": 22, "name": "单元测试体系", "cases": 84, "type": "unit", "script": "module22-unit-tests.sh" }
+  ],
+  "totalCases": 326,
+  "ci": {
+    "nodeVersion": ">=22.0.0",
+    "javaVersion": "21",
+    "pythonVersion": "3.11",
+    "requiredServices": ["backend", "python", "frontend"],
+    "parallelModules": false,
+    "retryOnFailure": true,
+    "maxRetries": 2
+  }
+}

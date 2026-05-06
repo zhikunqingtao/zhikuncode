@@ -2,6 +2,9 @@ import { test, expect, Page } from '@playwright/test';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+// 这些测试依赖前端页面完整加载(networkidle)和文件树渲染，默认30s不足
+test.describe.configure({ timeout: 120_000 });
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const SCREENSHOT_DIR = path.resolve(__dirname, '../../docs/test-results/screenshots/visualization');
@@ -18,10 +21,10 @@ async function setupDesktopPage(page: Page) {
   await page.waitForTimeout(2000);
 }
 
-// Helper: click sidebar tab by label text
+// Helper: click sidebar tab by title attribute
 async function clickSidebarTab(page: Page, label: string) {
-  // Tab buttons are inside aside > div.flex > button, each contains a span with the label
-  const tabButton = page.locator('aside button').filter({ hasText: label }).first();
+  // Tab buttons only show icons, identified by title attribute
+  const tabButton = page.locator(`aside button[title="${label}"]`).first();
   await tabButton.click();
   await page.waitForTimeout(1000);
 }

@@ -3,6 +3,9 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 
+// 这些测试依赖 Python 服务代码分析，响应时间较长
+test.describe.configure({ timeout: 300_000 });
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const SCREENSHOT_DIR = path.resolve(__dirname, '../../docs/test-results/screenshots/visualization');
@@ -27,8 +30,8 @@ async function setupPage(page: Page) {
 }
 
 async function clickSidebarTab(page: Page, label: string) {
-  // Sidebar Tab 按钮在 aside 内，以 span 文本匹配
-  const tabButton = page.locator('aside button').filter({ hasText: label }).first();
+  // Sidebar Tab 按钮仅显示图标，通过 title 属性标识
+  const tabButton = page.locator(`aside button[title="${label}"]`).first();
   await expect(tabButton).toBeVisible({ timeout: 10000 });
   await tabButton.click();
   await page.waitForTimeout(1500);
@@ -236,7 +239,7 @@ test.describe('F3 代码复杂度分析', () => {
     await clickSidebarTab(page, '复杂度');
 
     // 验证 Tab 按钮有高亮
-    const activeTab = page.locator('aside button').filter({ hasText: '复杂度' }).first();
+    const activeTab = page.locator('aside button[title="复杂度"]').first();
     await expect(activeTab).toBeVisible();
 
     // 验证空状态组件存在 (BarChart3 icon + 文字)

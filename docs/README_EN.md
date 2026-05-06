@@ -389,13 +389,13 @@ The following paths require user confirmation even in bypass mode:
 
 ### 🧪 Quality Assurance
 
-Full test report: [ZhikunCode Core Functionality Test Report v8.0](ZhikunCode核心功能测试报告.md) (2026-05-05)
+Full test report: [ZhikunCode Core Functionality Test Report v9.1](ZhikunCode核心功能测试报告.md) (2026-05-06)
 
 **Test Coverage:**
 - **22 functional modules** with **326 test cases**
-- **Results**: 321 PASS / 3 PARTIAL / 1 OBSERVE / 0 FAIL — **98.5% pass rate**
+- **Results**: 321 PASS / 4 PARTIAL / 1 OBSERVE / 0 FAIL — **98.5% pass rate**
 - **Automation Stack**: JUnit 5 + Vitest + Pytest + Playwright (4-layer coverage)
-- **Unit Test System (v8.0 new)**: 277 test methods / 30 test files / 12 first-time covered domains
+- **Unit Test System (v9.1 new)**: 277 test methods / 30 test files / 12 first-time covered domains
 - **Feature Completeness**: 100% of planned v1.0 features verified
 
 **Test Framework Details:**
@@ -438,7 +438,7 @@ Full test report: [ZhikunCode Core Functionality Test Report v8.0](ZhikunCode核
 | 19 | F25 API Contract Visualization | 6 | 100% | ★ New in v1.0 |
 | 20 | F35 Code→Diagram Generation | 25 | 100% | ★ New in v1.0 |
 | 21 | F40 Code Path Tracing | 25 | 100% | ★ New in v1.0 |
-| 22 | Unit Test Suite v8.0 | 84 | 100% | 277 methods / 30 files |
+| 22 | Unit Test Suite v9.1 | 84 | 100% | 277 methods / 30 files |
 
 </details>
 
