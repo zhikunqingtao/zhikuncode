@@ -25,6 +25,7 @@
     <a href="https://github.com/zhikunqingtao/zhikuncode/stargazers"><img src="https://img.shields.io/github/stars/zhikunqingtao/zhikuncode?style=social" alt="GitHub Stars" /></a>
     <a href="https://github.com/zhikunqingtao/zhikuncode"><img src="https://img.shields.io/github/last-commit/zhikunqingtao/zhikuncode" alt="Last Commit" /></a>
     <a href="https://github.com/zhikunqingtao/zhikuncode"><img src="https://img.shields.io/github/languages/code-size/zhikunqingtao/zhikuncode" alt="Code Size" /></a>
+    <a href="https://github.com/zhikunqingtao/zhikuncode/actions/workflows/ci.yml"><img src="https://github.com/zhikunqingtao/zhikuncode/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
   </p>
 </div>
 
@@ -389,6 +390,9 @@ The following paths require user confirmation even in bypass mode:
 ### 🧪 Quality Assurance
 
 Full test report: [ZhikunCode Core Functionality Test Report v9.1](ZhikunCode核心功能测试报告.md) (2026-05-06)
+
+**Continuous Integration:**
+- **GitHub Actions Pipeline**: Automatically runs backend compilation, frontend build, Python tests, and Docker image verification on every push
 
 **Test Coverage:**
 - **22 functional modules** with **326 test cases**

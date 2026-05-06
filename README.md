@@ -25,6 +25,7 @@
     <a href="https://github.com/zhikunqingtao/zhikuncode/stargazers"><img src="https://img.shields.io/github/stars/zhikunqingtao/zhikuncode?style=social" alt="GitHub Stars" /></a>
     <a href="https://github.com/zhikunqingtao/zhikuncode"><img src="https://img.shields.io/github/last-commit/zhikunqingtao/zhikuncode" alt="Last Commit" /></a>
     <a href="https://github.com/zhikunqingtao/zhikuncode"><img src="https://img.shields.io/github/languages/code-size/zhikunqingtao/zhikuncode" alt="Code Size" /></a>
+    <a href="https://github.com/zhikunqingtao/zhikuncode/actions/workflows/ci.yml"><img src="https://github.com/zhikunqingtao/zhikuncode/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
   </p>
 </div>
 
@@ -389,6 +390,9 @@ ZhikunCode 核心执行引擎 QueryEngine 通过 8 步循环驱动 Agent 决策�
 ### 🧪 质量验证
 
 完整功能测试报告见 [ZhikunCode 核心功能测试报告 v9.1](docs/ZhikunCode核心功能测试报告.md)（2026-05-06）
+
+**持续集成：**
+- **GitHub Actions 自动化流水线**：每次提交自动执行后端编译验证、前端构建、Python 测试及 Docker 镜像构建
 
 **测试覆盖：**
 - **22 个功能模块**完整测试，**326 个测试用例**
