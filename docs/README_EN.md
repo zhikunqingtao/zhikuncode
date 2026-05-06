@@ -320,7 +320,6 @@ Compression Cascade → Streaming Session Creation → API Call (with downgrade 
 | ContextCascade | Five-layer compression cascade (Snip→MicroCompact→AutoCompact→CollapseDrain→ReactiveCompact) | `context.cascade.*` |
 | MicroCompactService | Clears old tool result content to reduce context size | `features.flags.CACHED_MICROCOMPACT` |
 | ModelTierService | Model downgrade chain management with 30-min cooldown auto-recovery | `app.model.tier-chain` |
-| TokenAlertEvaluator | Three-level token usage alerts (70% warning / 90% critical / trigger compaction) | — |
 
 **413 Three-Phase Recovery**: When the API returns 413 (Payload Too Large), automatic three-phase recovery is triggered:
 1. **Phase 1** — Aggressive Compression (Context Collapse Drain)

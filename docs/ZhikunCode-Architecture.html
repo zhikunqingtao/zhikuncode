@@ -2199,20 +2199,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
       <line x1="835" y1="380" x2="760" y2="340" stroke="#F59E0B" stroke-width=".6" stroke-dasharray="3,2"/>
 
-      <!-- ===== TokenAlertEvaluator ===== -->
-      <line x1="890" y1="430" x2="890" y2="442" stroke="#EF4444" stroke-width="1" stroke-dasharray="3,2"/>
-      <rect x="835" y="442" width="110" height="120" rx="8" fill="#151829" stroke="#EF4444" stroke-width=".8"/>
-      <text x="890" y="462" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="700">TokenAlert</text>
-      <text x="890" y="475" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="700">Evaluator</text>
-      <text x="890" y="490" text-anchor="middle" fill="#6B70A0" font-size="8">59 行</text>
-      <line x1="845" y1="496" x2="935" y2="496" stroke="#1E2248" stroke-width=".5"/>
-      <text x="890" y="510" text-anchor="middle" fill="#9FA4C4" font-size="7">告警评估器(4级递进)</text>
-      <text x="890" y="524" text-anchor="middle" fill="#10B981" font-size="7">NORMAL &lt;70%</text>
-      <text x="890" y="536" text-anchor="middle" fill="#F59E0B" font-size="7">WARNING 70-90%</text>
-      <text x="890" y="548" text-anchor="middle" fill="#EF4444" font-size="7">CRITICAL &gt;90%</text>
-      <text x="890" y="560" text-anchor="middle" fill="#EF4444" font-size="7" font-weight="600">TRIGGER ≥100%</text>
-      <!-- Connecting line to funnel layers -->
-      <line x1="835" y1="500" x2="720" y2="467" stroke="#EF4444" stroke-width=".6" stroke-dasharray="3,2"/>
+      <!-- TokenAlertEvaluator removed -->
 
       <!-- ===== Data flow annotation ===== -->
       <text x="140" y="520" fill="#F59E0B" font-size="9" font-weight="700">数据流:</text>
@@ -2257,7 +2244,6 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <text x="770" y="585" fill="#6B70A0" font-size="8">辅助文件</text>
       <text x="770" y="600" fill="#F59E0B" font-size="9" font-weight="600">BudgetTracker</text><text x="875" y="600" fill="#9FA4C4" font-size="8">89行</text>
       <text x="770" y="614" fill="#9FA4C4" font-size="9" font-weight="600">CollapseLevel</text><text x="875" y="614" fill="#9FA4C4" font-size="8">54行</text>
-      <text x="380" y="628" fill="#EF4444" font-size="9" font-weight="600">AlertEvaluator</text><text x="490" y="628" fill="#9FA4C4" font-size="8">59行</text>
       <text x="580" y="628" fill="#8B5CF6" font-size="9" font-weight="600">IncrCollapseManager</text><text x="710" y="628" fill="#9FA4C4" font-size="8">175行</text>
 
       <text x="480" y="585" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="700">共 13 个文件 · 2,932 行</text>
@@ -2270,20 +2256,6 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
   <div class="section-head">
     <span class="section-num java">10b</span>
     <h2>Token 预算与模型策略</h2>
-  </div>
-
-  <div class="card java-accent">
-    <div class="card-title" onclick="toggleDetail(this)"><span class="toggle">▶</span> TokenAlertEvaluator <span class="tag java">告警评估 · 59行</span></div>
-    <div class="card-detail">
-      <div class="tree">
-        <div class="tree-item"><span class="tn">类型</span><span class="tv">工具类（无 @Service 注解）</span></div>
-        <div class="tree-item"><span class="tn">核心方法</span><span class="tv">evaluate() — 4级递进告警</span></div>
-        <div class="tree-item"><span class="tn">Level.NORMAL</span><span class="tv">&lt; 70% 有效窗口 — 正常</span></div>
-        <div class="tree-item"><span class="tn">Level.WARNING</span><span class="tv">70%-90% — 预警</span></div>
-        <div class="tree-item"><span class="tn">Level.CRITICAL</span><span class="tv">&gt; 90% — 告警</span></div>
-        <div class="tree-item"><span class="tn">Level.TRIGGER_COMPACT</span><span class="tv">&gt;= 100% — 触发紧急压缩</span></div>
-      </div>
-    </div>
   </div>
 
   <div class="card java-accent">
