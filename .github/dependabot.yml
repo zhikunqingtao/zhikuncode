@@ -1,0 +1,95 @@
+# =============================================================================
+# Dependabot 依赖更新配置
+# 自动检测三端依赖的安全漏洞和版本更新，创建 PR 提醒维护者
+# =============================================================================
+version: 2
+
+updates:
+  # =========================================================================
+  # GitHub Actions — 保持 workflow 中 action 版本最新
+  # =========================================================================
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "ci"
+    commit-message:
+      prefix: "ci"
+
+  # =========================================================================
+  # Frontend — npm 依赖更新
+  # =========================================================================
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "frontend"
+    commit-message:
+      prefix: "deps(frontend)"
+    # 限制每周最多 5 个 PR，避免 PR 洪泛
+    open-pull-requests-limit: 5
+    # 安全更新不受限制
+    groups:
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # =========================================================================
+  # Backend — Maven 依赖更新
+  # =========================================================================
+  - package-ecosystem: "maven"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "backend"
+    commit-message:
+      prefix: "deps(backend)"
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # =========================================================================
+  # Python Service — pip 依赖更新
+  # =========================================================================
+  - package-ecosystem: "pip"
+    directory: "/python-service"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "python"
+    commit-message:
+      prefix: "deps(python)"
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # =========================================================================
+  # Docker — 基础镜像版本更新
+  # =========================================================================
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "deps(docker)"
