@@ -29,8 +29,10 @@ public class SensitiveDataFilter {
     private static final String REDACTED = "***REDACTED***";
 
     private static final List<Pattern> PATTERNS = List.of(
-            // OpenAI API Key
-            Pattern.compile("(sk-[a-zA-Z0-9]{20,})"),
+            // OpenAI API Key: 新格式 sk-proj-xxx (含下划线和连字符)
+            Pattern.compile("(sk-proj-[a-zA-Z0-9_-]{20,})"),
+            // OpenAI API Key: 通用格式 sk-xxx (字母数字+下划线+连字符, 20+字符)
+            Pattern.compile("(sk-[a-zA-Z0-9_-]{20,})"),
             // AWS Access Key ID
             Pattern.compile("(AKIA[0-9A-Z]{16})"),
             // GitHub Personal Access Token
