@@ -22,6 +22,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         // 移除旧的 theme class
         root.classList.remove('light', 'dark', 'glass');
         
+        // Force reflow to ensure CSS variables are recalculated immediately
+        void root.offsetHeight;
+        
         // 根据模式设置
         if (theme.mode === 'glass') {
             // 液态玻璃模式: 添加 glass class，基于浅色方案

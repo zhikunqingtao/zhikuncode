@@ -77,7 +77,14 @@ export const useConfigStore = create<ConfigStoreState>()(
                             if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
                             const config = await resp.json();
                             set(d => {
-                                if (config.theme) d.theme = config.theme;
+                                if (config.theme) {
+                                    // Normalize v1 string format to v2 object format
+                                    if (typeof config.theme === 'string') {
+                                        d.theme = { ...d.theme, mode: config.theme };
+                                    } else {
+                                        d.theme = config.theme;
+                                    }
+                                }
                                 if (config.locale) d.locale = config.locale;
                                 if (config.autoCompact) d.autoCompact = config.autoCompact;
                                 if (config.verbose !== undefined) d.verbose = config.verbose;
@@ -99,7 +106,14 @@ export const useConfigStore = create<ConfigStoreState>()(
                         try {
                             const config = JSON.parse(cached);
                             set(d => {
-                                if (config.theme) d.theme = config.theme;
+                                if (config.theme) {
+                                    // Normalize v1 string format to v2 object format
+                                    if (typeof config.theme === 'string') {
+                                        d.theme = { ...d.theme, mode: config.theme };
+                                    } else {
+                                        d.theme = config.theme;
+                                    }
+                                }
                                 if (config.locale) d.locale = config.locale;
                                 if (config.autoCompact) d.autoCompact = config.autoCompact;
                                 if (config.verbose !== undefined) d.verbose = config.verbose;
