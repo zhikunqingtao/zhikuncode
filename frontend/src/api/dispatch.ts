@@ -325,6 +325,17 @@ const handlers: Record<string, (data: any) => void> = {
         if (d.steps) store.setSteps(d.steps);
         if (d.currentStepId) store.setCurrentStep(d.currentStepId);
     },
+
+    // === messageStore: 差异化升级 v1.5 §4.5 C — 结构化输出自动可视化 (1 种) ===
+    'visualization': (d: { uuid?: string; ts?: number; viewType: string; props?: Record<string, unknown> }) => {
+        useMessageStore.getState().addMessage({
+            type: 'visualization',
+            uuid: d.uuid ?? generateUUID(),
+            timestamp: d.ts ?? Date.now(),
+            viewType: d.viewType,
+            props: d.props ?? {},
+        } as Message);
+    },
 };
 
 // ==================== 跨 Store 私有方法 ====================

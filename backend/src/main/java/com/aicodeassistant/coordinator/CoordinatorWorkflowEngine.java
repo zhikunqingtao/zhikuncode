@@ -69,16 +69,19 @@ public class CoordinatorWorkflowEngine {
     private final SwarmService swarmService;
     private final CoordinatorService coordinatorService;
     private final WebSocketController webSocketController;
+    private final CoordinatorEventBus eventBus;
 
     /** 活跃工作流 (sessionId → CoordinatorWorkflow) */
     private final ConcurrentHashMap<String, CoordinatorWorkflow> activeWorkflows = new ConcurrentHashMap<>();
 
     public CoordinatorWorkflowEngine(SwarmService swarmService,
                                       @Lazy CoordinatorService coordinatorService,
-                                      @Lazy WebSocketController webSocketController) {
+                                      @Lazy WebSocketController webSocketController,
+                                      CoordinatorEventBus eventBus) {
         this.swarmService = swarmService;
         this.coordinatorService = coordinatorService;
         this.webSocketController = webSocketController;
+        this.eventBus = eventBus;
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -106,6 +109,9 @@ public class CoordinatorWorkflowEngine {
 
         // 推送初始阶段更新到前端
         pushPhaseUpdate(sessionId, workflow, research);
+
+        // B 升级项：初始阶段进入事件（null → Research）推送到 /queue/coordinator/{sessionId}
+        eventBus.publishPhaseTransition(sessionId, workflowId, null, research.name());
 
         return workflow;
     }
@@ -138,6 +144,11 @@ public class CoordinatorWorkflowEngine {
                 previous != null ? previous.name() : "N/A",
                 next != null ? next.name() : "COMPLETED",
                 sessionId);
+
+        // B 升级项：阶段推进事件 — 调用方 safeSend 失败兜底，不改本方法异常语义
+        eventBus.publishPhaseTransition(sessionId, workflow.getWorkflowId(),
+                previous != null ? previous.name() : null,
+                next != null ? next.name() : null);
 
         return next;
     }

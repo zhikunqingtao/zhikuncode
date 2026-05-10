@@ -40,6 +40,7 @@ import { useTaskStore } from '@/store/taskStore';
 import { useMessageStore } from '@/store/messageStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { useConfigStore } from '@/store/configStore';
+import { useAppUiStore } from '@/store/appUiStore';
 import { sendToServer } from '@/api/stompClient';
 import type { TaskState } from '@/types';
 
@@ -67,6 +68,19 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab }: Si
         return 'sessions';
     });
     const { tasks, clearTasks } = useTaskStore();
+
+    // ── Auto-Routing 跳转接收端（v1.5 升级项 C Beta） ──
+    // VisualizationMessage 点击“查看”时写入 pendingVisualizationTab，本处消费后置空。
+    const pendingVisualizationTab = useAppUiStore((s) => s.pendingVisualizationTab);
+    const requestVisualizationTab = useAppUiStore((s) => s.requestVisualizationTab);
+    useEffect(() => {
+        if (!pendingVisualizationTab) return;
+        const valid = ['sessions','tasks','files','sequence','dag','git','complexity','impact','api-docs','diagram','code-path'] as const;
+        if ((valid as readonly string[]).includes(pendingVisualizationTab)) {
+            setActiveTab(pendingVisualizationTab as TabType);
+        }
+        requestVisualizationTab(null);
+    }, [pendingVisualizationTab, requestVisualizationTab]);
 
     // ── 可拖拽宽度 ──
     // 动态最大宽度：不超过 800px 且不超过视口 70%

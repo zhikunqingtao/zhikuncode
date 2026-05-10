@@ -42,7 +42,11 @@ public class CommandRegistry {
             // 新增安全命令
             "doctor", "allowed-tools",
             "mcp-servers", "mcp-tools", "mcp-resources",
-            "symbols", "explain"
+            "symbols", "explain",
+            // 差异化升级方案 v1.5 §4.7 C 显式命令 — 纯本地 WebSocket 推送，无副作用
+            "visualize",
+            // 差异化升级方案 v1.5 升级项 A MVP — 浏览器语义快照 (内存缓存，不落库)
+            "browser-snapshot"
     );
 
     /** 动态命令源 — 支持 MCP/插件等运行时注册命令 */

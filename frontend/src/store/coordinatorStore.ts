@@ -12,6 +12,7 @@ import type {
     AgentTask,
     DelegationWarning,
     AgentSpawnPayload,
+    CoordinatorEventEnvelope,
 } from '@/types';
 import { generateUUID } from '@/utils/uuid';
 
@@ -35,6 +36,9 @@ export interface CoordinatorStoreState {
 
     /** 工作流面板可见性 */
     panelVisible: boolean;
+
+    /** 方案 B：Coordinator 实时事件流（保持最近 200 条） */
+    coordinatorEvents: CoordinatorEventEnvelope[];
 
     // ═══ Actions ═══
 
@@ -62,6 +66,12 @@ export interface CoordinatorStoreState {
     /** 设置面板可见性 */
     setPanelVisible: (visible: boolean) => void;
 
+    /** 方案 B：追加 CoordinatorEventBus 推送的实时事件 */
+    appendCoordinatorEvent: (envelope: CoordinatorEventEnvelope) => void;
+
+    /** 方案 B：清除 Coordinator 事件历史 */
+    clearCoordinatorEvents: () => void;
+
     /** 清除所有数据 */
     clearAll: () => void;
 }
@@ -72,6 +82,7 @@ export const useCoordinatorStore = create<CoordinatorStoreState>()(
         agentTasks: [],
         delegationWarnings: [],
         panelVisible: false,
+        coordinatorEvents: [],
 
         updateWorkflowPhase: (data) => set((state) => {
             const isComplete = data.status === 'COMPLETED' || data.status === 'FAILED' || data.status === 'CANCELLED';
@@ -193,11 +204,24 @@ export const useCoordinatorStore = create<CoordinatorStoreState>()(
             state.panelVisible = visible;
         }),
 
+        appendCoordinatorEvent: (envelope) => set((state) => {
+            state.coordinatorEvents.push(envelope);
+            // 环形缓冲：保持最近 200 条
+            if (state.coordinatorEvents.length > 200) {
+                state.coordinatorEvents = state.coordinatorEvents.slice(-200);
+            }
+        }),
+
+        clearCoordinatorEvents: () => set((state) => {
+            state.coordinatorEvents = [];
+        }),
+
         clearAll: () => set((state) => {
             state.activeWorkflow = null;
             state.agentTasks = [];
             state.delegationWarnings = [];
             state.panelVisible = false;
+            state.coordinatorEvents = [];
         }),
     }))
 );

@@ -50,6 +50,7 @@ public class SwarmService {
     private final SwarmWorkerRunner workerRunner;
     private final LeaderPermissionBridge permissionBridge;
     private final WebSocketController webSocketController;
+    private final CoordinatorEventBus eventBus;
 
     /**
      * 活跃 Swarm 实例缓存 — 使用 Caffeine 带 TTL 防止内存泄漏。
@@ -77,13 +78,15 @@ public class SwarmService {
                         TeamMailbox teamMailbox,
                         SwarmWorkerRunner workerRunner,
                         LeaderPermissionBridge permissionBridge,
-                        @Lazy WebSocketController webSocketController) {
+                        @Lazy WebSocketController webSocketController,
+                        CoordinatorEventBus eventBus) {
         this.featureFlags = featureFlags;
         this.teamManager = teamManager;
         this.teamMailbox = teamMailbox;
         this.workerRunner = workerRunner;
         this.permissionBridge = permissionBridge;
         this.webSocketController = webSocketController;
+        this.eventBus = eventBus;
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -221,6 +224,9 @@ public class SwarmService {
     public void sendToWorker(String swarmId, String workerId, String message) {
         ensureSwarmEnabled();
         teamMailbox.writeToMailbox(workerId, swarmId + "-leader", message);
+        // B 升级项：邮箱单发事件埋点 — 调用侧取 sessionId，domain 类零侵入
+        String sessionId = swarmSessionMap.get(swarmId);
+        eventBus.publishMailboxWrite(sessionId, swarmId, swarmId + "-leader", workerId, message);
     }
 
     /**
@@ -229,6 +235,9 @@ public class SwarmService {
     public void broadcastToWorkers(String swarmId, String message) {
         ensureSwarmEnabled();
         teamMailbox.broadcast(swarmId, swarmId + "-leader", message);
+        // B 升级项：邮箱广播事件埋点
+        String sessionId = swarmSessionMap.get(swarmId);
+        eventBus.publishMailboxBroadcast(sessionId, swarmId, swarmId, swarmId + "-leader", message);
     }
 
     // ═══════════════════════════════════════════════════════════════

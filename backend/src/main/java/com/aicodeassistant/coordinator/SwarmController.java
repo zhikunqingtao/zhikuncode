@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.Path;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * Swarm API 端点 — Agent Swarms 多代理协作。
@@ -20,6 +21,9 @@ public class SwarmController {
     private final SwarmService swarmService;
     private final FeatureFlagService featureFlags;
     private final LeaderPermissionBridge permissionBridge;
+
+    /** teamName 白名单：字母/数字/下划线/中划线，长度 1-64；禁止路径分隔符与 .. 防止 scratchpad 路径穿越。 */
+    private static final Pattern TEAM_NAME_PATTERN = Pattern.compile("^[A-Za-z0-9_-]{1,64}$");
 
     public SwarmController(SwarmService swarmService,
                             FeatureFlagService featureFlags,
@@ -42,6 +46,12 @@ public class SwarmController {
         }
 
         String teamName = (String) request.getOrDefault("teamName", "swarm-team-" + UUID.randomUUID().toString().substring(0, 6));
+        if (teamName == null || !TEAM_NAME_PATTERN.matcher(teamName).matches()) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Invalid teamName",
+                    "reason", "teamName must match ^[A-Za-z0-9_-]{1,64}$ (path traversal prevention)"
+            ));
+        }
         int maxWorkers = request.containsKey("maxWorkers")
                 ? ((Number) request.get("maxWorkers")).intValue()
                 : SwarmConfig.DEFAULT_MAX_WORKERS;
