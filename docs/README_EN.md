@@ -44,10 +44,11 @@
 |---|---|---|
 | 🌐 | **Full Browser-Based Control** | Deploy once, then manage everything from any device's browser — permission approvals, plan discussions, task management. Works on mobile. No client installation needed |
 | 🤖 | **Multi-Agent Collaboration** | Three collaboration modes: Team (fixed roles) / Swarm (dynamic negotiation) / SubAgent (parent-child delegation). Complex tasks are automatically distributed |
-| 🔒 | **Defense-in-Depth Security** | 8-layer Bash sandbox + 14-step permission pipeline + 289 security tests. Every command must pass security checks before execution |
+| 🔒 | **Defense-in-Depth Security** | 8-layer Bash sandbox + 14-step permission pipeline + 308 security test coverage (including 19 new CWE-22 depth-defense unit tests in v9.3). Every command must pass security checks before execution |
 | 🇨🇳 | **Native Chinese LLM Support** | Qwen / DeepSeek / Moonshot work out of the box with direct connections from mainland China — no VPN required |
 | 🐳 | **One-Command Docker Deployment** | `docker compose up -d` — one command to start. Data stays local, fully private |
 | ⚡ | **Intelligent Context Management** | Five-layer compression cascade + incremental collapse (auto-compress every 10 turns) + 413 three-phase recovery (aggressive compression → reactive compact → media stripping) + three-level token alerts for seamless ultra-long conversations |
+| 🖼️ | **Browser Semantic Snapshot** | `/snap` command captures full web page state (DOM structure + interactive elements), extracts structured JSON for Agent parsing and replay verification |
 
 ---
 
@@ -247,7 +248,7 @@ Starting from the latest version, the following MCP services hosted on `dashscop
 |-----------------|:---:|:---:|:---:|:---:|
 | Command Sandbox | 8-layer checks | ❌ User approval | ❌ User approval | ✅ gVisor/Firecracker |
 | Permission Pipeline | 14-step pipeline | ❌ | Simple confirm | Permission system |
-| Security Tests | 289 items | Not disclosed | Not disclosed | Not disclosed |
+| Security Tests | 308 items | Not disclosed | Not disclosed | Not disclosed |
 | Sensitive Path Block | ✅ | ❌ | ❌ | ❌ |
 | Dangerous Cmd Block | ✅ | ❌ | ❌ | ✅ Partial |
 | Env Var Whitelist | ✅ | ❌ | ❌ | ❌ |
@@ -383,37 +384,61 @@ The following paths require user confirmation even in bypass mode:
 
 ### Security Testing
 
-- **289 security tests** covering all security paths
+- **308 security tests** covering all security paths
 - Includes command injection, path traversal, permission bypass, and other attack scenarios
+- **New defense-in-depth in v9.3**:
+  - **CWE-22 Path Traversal**: `CoordinatorService.getScratchpadDir` sessionId allowlist (11 unit tests) + `SwarmController.createSwarm` teamName allowlist (8 unit tests). Even if upstream URI interception is bypassed, the allowlist remains the final on-disk line of defense
+  - **Cross-User Access Isolation (P2-A)**: `BrowserReplayController` two-layer gate — sessionId format validation returns 400 + principal ownership validation returns 403, with MVP anonymous-session compatibility
+
+  **v9.3 Security Defense Summary:**
+
+  | Defense Layer | Location | Protection Mechanism | Unit Tests |
+  |--------------|----------|---------------------|------------|
+  | P1-2 | `CoordinatorService.getScratchpadDir` | sessionId allowlist `^[A-Za-z0-9_-]{1,128}$` | 11 |
+  | E1 | `SwarmController.createSwarm` | teamName allowlist `^[A-Za-z0-9_-]{1,64}$` | 8 |
+  | P2-A | `BrowserReplayController` | sessionId format validation (400) + principal ownership validation (403) | — |
+
 - The full security test suite runs on every code change
 
 ### 🧪 Quality Assurance
 
-Full test report: [ZhikunCode Core Functionality Test Report v9.1](ZhikunCode核心功能测试报告.md) (2026-05-06)
+Full test report: [ZhikunCode v9.3 End-to-End Test Report](test-results/v9.3/ZhikunCode全链路测试报告.md) (2026-05-09)
 
 **Continuous Integration:**
 - **GitHub Actions Pipeline**: Automatically runs backend compilation, frontend build, Python tests, and Docker image verification on every push
 
-**Test Coverage:**
-- **22 functional modules** with **326 test cases**
-- **Results**: 323 PASS / 3 PARTIAL / 0 OBSERVE / 0 FAIL — **99.1% pass rate**
-- **Automation Stack**: JUnit 5 + Vitest + Pytest + Playwright (4-layer coverage)
-- **Unit Test System (v9.1 new)**: 277 test methods / 30 test files / 12 first-time covered domains
+**Test Coverage (v9.3):**
+- **Total**: 1625 cases + 490 performance probes + 7 security probes = **2122**
+- **Backend Unit/Integration Tests**: 1500 PASS / 48 skipped, coverage Inst 42.17% / Branch 30.44%
+- **Python pytest**: 47 PASS, coverage 25.66%
+- **Frontend vitest**: 78 PASS / 16 skipped (94 total)
+- **22-Module REST/WS/LLM/Session Smoke**: 45/45 PASS (42 REST + 1 WS STOMP + 1 LLM live inference + 1 Session persistence)
+- **E2E Differentiated Pipelines**: Task 6 Multi-Agent Collaboration (CoordinatorEventBus) · Task 7 Visualization Auto-Routing (`/visualize` mermaid/json/text) · Task 8 Browser Semantic Snapshot MVP (`/snap`) — all end-to-end PASS
 - **Feature Completeness**: 100% of planned v1.0 features verified
 
 **Test Framework Details:**
 
-| Framework | Layer | Coverage | Methods |
-|-----------|-------|----------|--------|
-| JUnit 5 | Backend Unit | Context/Permission/Skill/Plugin/LLM/MCP/Memory/Concurrency/SSE/Persistence/Tool | 176 |
-| Vitest | Frontend Unit | Store Lifecycle/Cross-Tab Sync/Streaming Render/Immer Immutability/Route Boundary | 35 |
-| Playwright | E2E | Permission Dialog/Command Palette/Tool Result Rendering + 7 Regression | 19 |
-| Pytest | Python Service | Token Estimation/File Processing/Browser Automation/Code Analyzers | 29 |
+| Framework | Layer | Coverage | Count |
+|-----------|-------|----------|-------|
+| JUnit 5 + Mockito | Backend Unit/Integration | Context/Permission/Skill/Plugin/LLM/MCP/Memory/Concurrency/SSE/Persistence/Tool/Coordinator/Swarm etc. | 1500 PASS |
+| Vitest | Frontend Unit | Store Lifecycle/Cross-Tab Sync/Streaming Render/Immer Immutability/Route Boundary | 78 PASS |
+| Playwright + Node scripts | E2E | Coordinator WS subscription / Three visualization viewTypes / Browser snapshot MVP | Task 6/7/8 all green |
+| Pytest | Python Service | Token Estimation/File Processing/Browser Automation/Semantic Snapshot/Code Analyzers | 47 PASS |
+
+**Performance Baseline (v9.3, 490 real request samples):**
+
+| Metric | p50 | p95 | p99 |
+|--------|-----|-----|-----|
+| REST API (14 endpoints mixed) | 1.5ms | 2.3ms | 4.3ms |
+| WS STOMP Handshake | 2.22ms | 4.58ms | 6.22ms |
+| Browser Semantic Snapshot (warm) | 9.23ms | 12.20ms | 12.26ms |
+| Swarm Creation | 2.39ms | 4.90ms | 12.40ms |
 
 **Detailed Test Data & Evidence:**
-- Per-module results: [docs/test-results/](docs/test-results/)
-- Frontend E2E scripts: [frontend/e2e/](frontend/e2e/) (including tc-fe-003~005)
-- E2E screenshots: [docs/test-results/screenshots/](docs/test-results/screenshots/) (125+ images)
+- Full v9.3 report: [docs/test-results/v9.3/](test-results/v9.3/)
+- Per-module results: [docs/test-results/](test-results/)
+- Frontend E2E scripts: [frontend/e2e/](../frontend/e2e/)
+- E2E screenshots: [docs/test-results/screenshots/](test-results/screenshots/) (42 items)
 
 <details>
 <summary>📋 22 Test Modules Breakdown (click to expand)</summary>
@@ -441,7 +466,7 @@ Full test report: [ZhikunCode Core Functionality Test Report v9.1](ZhikunCode核
 | 19 | F25 API Contract Visualization | 6 | 100% | ★ New in v1.0 |
 | 20 | F35 Code→Diagram Generation | 25 | 100% | ★ New in v1.0 |
 | 21 | F40 Code Path Tracing | 25 | 100% | ★ New in v1.0 |
-| 22 | Unit Test Suite v9.1 | 84 | 100% | 277 methods / 30 files |
+| 22 | Unit Test Suite (v9.3 expanded) | 1500+ | 100% | Expanded to 1500 PASS / 48 skipped in v9.3, including 19 CWE-22 depth-defense unit tests |
 
 </details>
 
@@ -725,6 +750,8 @@ Type `/` or press `Ctrl+K` in the Web UI to open the command palette with fuzzy 
 | **Cost** | `/cost` `/usage` | Token usage, cost statistics |
 | **MCP** | `/mcp-servers` `/mcp-tools` | MCP service management |
 | **Deep Analysis** | `/ultrareview` | AI deep review (architecture + security + performance + concurrency) |
+| **Browser** | `/snap` | Semantic snapshot — capture current page DOM structure and interactive elements, generate JSON-format snapshot |
+| **Visualization** | `/visualize mermaid\|json\|text` | Auto-routing push — stream-rendered Mermaid diagrams, JSON data, or plain-text visualization results |
 
 > On mistyped commands, the system automatically suggests similar commands using Levenshtein distance matching.
 
@@ -924,6 +951,8 @@ ZhikunCode includes 11 built-in visualization features that make data and status
 | **API Contract Viewer** | Auto-merges Java + Python dual-service OpenAPI specs. Endpoints grouped by tag, HTTP methods color-coded, recursive Schema display. Supports All/Java/Python data source switching |
 | **Code-to-Diagram Auto-Generation** | Input a code file path to auto-generate Mermaid sequence diagrams / flowcharts. Python LibCST + tree-sitter multi-language parsing, BFS call-chain traversal with auto-identification of Controller/Service/Repository participants, five-dimensional confidence scoring (0-1), Monaco Editor for real-time source editing, SVG copy / PNG download export, supports 1-5 level traversal depth control |
 | **Code Path Tracing Visualization** | Interactive code call-path tracing visualization built on @xyflow/react. Python CodePathTracer performs forward BFS traversal with six-layer classification (Controller/Service/Repository/Database/External/Utility), dagre TB layout algorithm for automatic node arrangement, custom LayerNode components with layer-based coloring, MiniMap for global overview + LayerStatsBar for layer statistics, supports API endpoint scanning, parameter tracking, node click details, and maxDepth depth control via the sidebar "Code Path" tab |
+
+> **New in v9.3**: The `/visualize` command auto-pushes three formats (mermaid / json / text) via VisualizationAutoRouter, with WS STOMP `/app/command` end-to-end latency p50 < 3ms.
 
 ---
 
