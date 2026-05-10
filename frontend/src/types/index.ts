@@ -18,7 +18,11 @@ export type Message =
     | { type: 'grouped_tool_use'; uuid: string; timestamp: number;
         toolCalls: Array<{ toolUseId: string; toolName: string; status: string }> }
     | { type: 'collapsed_read_search'; uuid: string; timestamp: number;
-        operations: Array<{ type: string; path?: string; query?: string }> };
+        operations: Array<{ type: string; path?: string; query?: string }> }
+    // 差异化升级 v1.5 §4.5 C: visualization 作为 Message union 独立分支（非 ContentBlock）
+    // v1.4 BLK-R4-1 校准：ContentBlock 是封闭 union，无法增加分支
+    | { type: 'visualization'; uuid: string; timestamp: number;
+        viewType: string; props: Record<string, unknown> };
 
 export type ContentBlock =
     | { type: 'text'; text: string }
@@ -440,6 +444,22 @@ export interface WorkflowState {
     currentPhaseIndex: number;
     phases: WorkflowPhaseState[];
     startTime: number;
+}
+
+// ==================== Coordinator 实时事件流 — 方案 B（55） ====================
+// 后端 CoordinatorEventBus 推送到独立 topic /user/queue/coordinator/{sessionId}，
+// 包络格式：{ type: 'coordinator_event', ts, uuid, sessionId, workflowId, eventType, payload }
+
+export type CoordinatorEventType = 'phase_transition' | 'mailbox_write' | 'mailbox_broadcast';
+
+export interface CoordinatorEventEnvelope {
+    type: 'coordinator_event';
+    ts: number;
+    uuid: string;
+    sessionId: string;
+    workflowId: string;
+    eventType: CoordinatorEventType;
+    payload: Record<string, unknown>;
 }
 
 export interface DelegationWarning {

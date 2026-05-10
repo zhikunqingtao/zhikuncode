@@ -201,6 +201,13 @@ context:
       segment-turns: 10
       session-timeout-minutes: 30
 
+# v1.5 差异化升级项 C — 自动路由 Beta（默认关闭）
+# 开启后 QueryEngine 每轮在 onTurnStart 之后调用 VisualizationAutoRouter
+# 三道闸门（开关 / 关键词 + 工具执行 / SHA256 缓存）通过后，调 fast-model 分类器决策视图。
+visualization:
+  auto-routing:
+    enabled: false
+
 # Admin 配置
 admin:
   # Admin 密码 — 从环境变量读取，默认空（未配置则 admin 功能禁用）

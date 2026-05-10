@@ -29,9 +29,10 @@ import {
 } from 'lucide-react';
 import { useCoordinatorStore } from '@/store/coordinatorStore';
 import { useSwarmStore } from '@/store/swarmStore';
+import { useStompSubscription } from '@/hooks/useStompSubscription';
 import { computeDAGLayout } from '@/utils/dag-layout';
 import { AgentDAGNode, type AgentDAGNodeData } from './AgentDAGNode';
-import type { AgentTask, SwarmInfo, WorkerInfo } from '@/types';
+import type { AgentTask, SwarmInfo, WorkerInfo, CoordinatorEventEnvelope } from '@/types';
 
 const nodeTypes = { agentNode: AgentDAGNode };
 
@@ -237,7 +238,7 @@ function NodeDetailPanel({
 }
 
 /** 内部 DAG 组件（需要在 ReactFlowProvider 内部） */
-function AgentDAGChartInner() {
+function AgentDAGChartInner({ liveSessionId }: { liveSessionId?: string }) {
   const [direction, setDirection] = useState<'TB' | 'LR'>('TB');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedNode, setSelectedNode] = useState<AgentDAGNodeData | null>(null);
@@ -246,7 +247,25 @@ function AgentDAGChartInner() {
 
   const agentTasks = useCoordinatorStore((s) => s.agentTasks);
   const activeWorkflow = useCoordinatorStore((s) => s.activeWorkflow);
+  const appendCoordinatorEvent = useCoordinatorStore((s) => s.appendCoordinatorEvent);
   const swarms = useSwarmStore((s) => s.swarms);
+
+  // 方案 B：订阅后端 CoordinatorEventBus 推送的实时事件
+  // 仅在 liveSessionId 存在时建立订阅，组件卸载时自动清理。
+  const coordinatorTopic = liveSessionId
+    ? `/user/queue/coordinator/${liveSessionId}`
+    : null;
+  useStompSubscription(coordinatorTopic, (msg) => {
+    try {
+      const envelope = JSON.parse(msg.body) as CoordinatorEventEnvelope;
+      if (envelope && envelope.type === 'coordinator_event') {
+        appendCoordinatorEvent(envelope);
+      }
+    } catch (err) {
+      // 解析异常静默降级 — 后端 safeSend 端已有兜底，前端此处仅 debug
+      console.debug('[AgentDAGChart] coordinator event parse failed:', err);
+    }
+  });
 
   const currentPhaseIndex = activeWorkflow?.currentPhaseIndex ?? -1;
 
@@ -372,11 +391,19 @@ function AgentDAGChartInner() {
 }
 
 /** 对外导出的 DAG 组件（包裹 ReactFlowProvider） */
-export function AgentDAGChart() {
+export interface AgentDAGChartProps {
+  /**
+   * 方案 B：可选会话 ID — 存在时订阅 /user/queue/coordinator/{sessionId}
+   * 接收后端 CoordinatorEventBus 实时事件流。
+   */
+  liveSessionId?: string;
+}
+
+export function AgentDAGChart({ liveSessionId }: AgentDAGChartProps = {}) {
   return (
     <div className="w-full h-full">
       <ReactFlowProvider>
-        <AgentDAGChartInner />
+        <AgentDAGChartInner liveSessionId={liveSessionId} />
       </ReactFlowProvider>
     </div>
   );

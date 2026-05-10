@@ -56,12 +56,16 @@ export interface ComplexityState {
   languageFilter: string | null;
   riskLevelFilter: string[] | null;     // e.g., ['C', 'D', 'E']
 
+  /** Auto-Routing 写入的预填提示（v1.5 升级项 C Beta） */
+  lastHint: Record<string, unknown> | null;
+
   // Actions
   fetchComplexity: (projectRoot: string, targetPath?: string, languages?: string[]) => Promise<void>;
   drillDown: (node: ComplexityNode) => void;
   drillUp: (index?: number) => void;    // 面包屑导航，index 可跳到指定层
   setLanguageFilter: (language: string | null) => void;
   setRiskLevelFilter: (levels: string[] | null) => void;
+  applyVisualizationHint: (props: Record<string, unknown>) => void;
   reset: () => void;
 }
 
@@ -78,6 +82,7 @@ export const useComplexityStore = create<ComplexityState>()(
 
     languageFilter: null,
     riskLevelFilter: null,
+    lastHint: null,
 
     fetchComplexity: async (projectRoot, targetPath, languages) => {
       set(d => { d.isLoading = true; d.error = null; });
@@ -140,6 +145,10 @@ export const useComplexityStore = create<ComplexityState>()(
       set(d => { d.riskLevelFilter = levels; });
     },
 
+    applyVisualizationHint: (props) => {
+      set(d => { d.lastHint = props ?? null; });
+    },
+
     reset: () => {
       set(d => {
         d.complexityTree = null;
@@ -151,6 +160,7 @@ export const useComplexityStore = create<ComplexityState>()(
         d.currentNode = null;
         d.languageFilter = null;
         d.riskLevelFilter = null;
+        d.lastHint = null;
       });
     },
   })))

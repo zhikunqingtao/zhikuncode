@@ -59,9 +59,12 @@ export interface ChangeImpactState {
   error: string | null;
   selectedNode: ChangeImpactNode | null;
   elapsedMs: number | null;
+  /** Auto-Routing 写入的预填提示（v1.5 升级项 C Beta） */
+  lastHint: Record<string, unknown> | null;
 
   fetchChangeImpact: (filePath: string, changedLines: number[], projectRoot: string, depth?: number) => Promise<void>;
   setSelectedNode: (node: ChangeImpactNode | null) => void;
+  applyVisualizationHint: (props: Record<string, unknown>) => void;
   reset: () => void;
 }
 
@@ -72,6 +75,7 @@ export const useChangeImpactStore = create<ChangeImpactState>()(
     error: null,
     selectedNode: null,
     elapsedMs: null,
+    lastHint: null,
 
     fetchChangeImpact: async (filePath, changedLines, projectRoot, depth = 3) => {
       set(d => { d.isLoading = true; d.error = null; });
@@ -104,12 +108,15 @@ export const useChangeImpactStore = create<ChangeImpactState>()(
 
     setSelectedNode: (node) => set(d => { d.selectedNode = node; }),
 
+    applyVisualizationHint: (props) => set(d => { d.lastHint = props ?? null; }),
+
     reset: () => set(d => {
       d.impactData = null;
       d.isLoading = false;
       d.error = null;
       d.selectedNode = null;
       d.elapsedMs = null;
+      d.lastHint = null;
     }),
   })))
 );

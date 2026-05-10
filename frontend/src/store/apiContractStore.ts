@@ -90,11 +90,14 @@ export interface ApiContractState {
     isLoading: boolean;
     error: string | null;
     warnings: string[];
+    /** Auto-Routing 写入的预填提示（v1.5 升级项 C Beta） */
+    lastHint: Record<string, unknown> | null;
 
     fetchOpenApiSpec: (source?: DataSource) => Promise<void>;
     setSource: (source: DataSource) => void;
     setSelectedEndpoint: (endpoint: { path: string; method: string } | null) => void;
     setSearchQuery: (query: string) => void;
+    applyVisualizationHint: (props: Record<string, unknown>) => void;
     reset: () => void;
 }
 
@@ -113,6 +116,7 @@ export const useApiContractStore = create<ApiContractState>()(
         isLoading: false,
         error: null,
         warnings: [],
+        lastHint: null,
 
         fetchOpenApiSpec: async (source) => {
             const targetSource = source ?? 'merged';
@@ -156,6 +160,8 @@ export const useApiContractStore = create<ApiContractState>()(
 
         setSearchQuery: (query) => set(d => { d.searchQuery = query; }),
 
+        applyVisualizationHint: (props) => set(d => { d.lastHint = props ?? null; }),
+
         reset: () => set(d => {
             d.openApiSpec = null;
             d.source = 'merged';
@@ -164,6 +170,7 @@ export const useApiContractStore = create<ApiContractState>()(
             d.isLoading = false;
             d.error = null;
             d.warnings = [];
+            d.lastHint = null;
         }),
     })))
 );

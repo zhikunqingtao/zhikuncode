@@ -1,0 +1,14 @@
+{
+  "_comment": "Task 3-5 LLM Hint 样本：api-sequence-diagram 正常命中场景",
+  "_reference": "docs/Task3-5差异化升级功能测试方案.md §11.2, TC-T4-CL-03/05/19",
+  "viewType": "api-sequence-diagram",
+  "params": {
+    "endpoints": [
+      {"method": "GET", "path": "/api/sessions", "order": 1},
+      {"method": "POST", "path": "/api/sessions/{id}/messages", "order": 2},
+      {"method": "GET", "path": "/api/sessions/{id}/events", "order": 3}
+    ],
+    "title": "Session Lifecycle"
+  },
+  "confidence": 0.87
+}

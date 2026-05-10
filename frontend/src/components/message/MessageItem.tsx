@@ -11,6 +11,7 @@ import type { Message, ToolCallState } from '@/types';
 import UserMessage from './UserMessage';
 import AssistantMessage from './AssistantMessage';
 import SystemMessage from './SystemMessage';
+import VisualizationMessage from './VisualizationMessage';
 import { Paperclip, Layers, FolderSearch } from 'lucide-react';
 
 interface MessageItemProps {
@@ -87,6 +88,8 @@ function renderMessage(
             return <GroupedToolUseMessage message={message} />;
         case 'collapsed_read_search':
             return <CollapsedReadSearchMessage message={message} />;
+        case 'visualization':
+            return <VisualizationMessage message={message} />;
         default:
             return null;
     }

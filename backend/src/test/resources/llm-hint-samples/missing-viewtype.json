@@ -1,0 +1,5 @@
+{
+  "_comment": "Task 3-5 LLM Hint 样本：viewType 缺失（TC-T4-CL-21）",
+  "params": {"foo": "bar"},
+  "confidence": 0.5
+}

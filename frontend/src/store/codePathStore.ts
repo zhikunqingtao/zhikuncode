@@ -61,6 +61,8 @@ export interface CodePathState {
   endpointsLoading: boolean;
   error: string | null;
   projectRoot: string;
+  /** Auto-Routing 写入的预填提示（v1.5 升级项 C Beta） */
+  lastHint: Record<string, unknown> | null;
 
   // Actions
   setProjectRoot: (root: string) => void;
@@ -68,6 +70,7 @@ export interface CodePathState {
   traceCodePath: (entryFile: string, entryFunction: string, maxDepth?: number) => Promise<void>;
   setSelectedEndpoint: (endpoint: ApiEndpointItem | null) => void;
   setSelectedNode: (node: PathNode | null) => void;
+  applyVisualizationHint: (props: Record<string, unknown>) => void;
   reset: () => void;
 }
 
@@ -81,6 +84,7 @@ export const useCodePathStore = create<CodePathState>()(
     endpointsLoading: false,
     error: null,
     projectRoot: '',
+    lastHint: null,
 
     setProjectRoot: (root) => set(d => { d.projectRoot = root; }),
 
@@ -133,12 +137,14 @@ export const useCodePathStore = create<CodePathState>()(
 
     setSelectedEndpoint: (endpoint) => set(d => { d.selectedEndpoint = endpoint; }),
     setSelectedNode: (node) => set(d => { d.selectedNode = node; }),
+    applyVisualizationHint: (props) => set(d => { d.lastHint = props ?? null; }),
     reset: () => set(d => {
       d.pathResult = null;
       d.selectedEndpoint = null;
       d.selectedNode = null;
       d.error = null;
       d.loading = false;
+      d.lastHint = null;
     }),
   }))
 );

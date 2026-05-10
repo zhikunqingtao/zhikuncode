@@ -61,6 +61,8 @@ public class QueryEngine {
     private final CompactMetrics compactMetrics;
     @org.springframework.lang.Nullable
     private final IncrementalCollapseManager incrementalCollapseManager;
+    @org.springframework.lang.Nullable
+    private final VisualizationAutoRouter visualizationAutoRouter;
 
     /** 单条工具结果最大占上下文窗口的 30% */
     private static final double TOOL_RESULT_BUDGET_RATIO = 0.3;
@@ -92,7 +94,8 @@ public class QueryEngine {
                        ToolResultSummarizer toolResultSummarizer,
                        ContextCascade contextCascade,
                        CompactMetrics compactMetrics,
-                       @org.springframework.lang.Nullable IncrementalCollapseManager incrementalCollapseManager) {
+                       @org.springframework.lang.Nullable IncrementalCollapseManager incrementalCollapseManager,
+                       @org.springframework.lang.Nullable VisualizationAutoRouter visualizationAutoRouter) {
         this.providerRegistry = providerRegistry;
         this.compactService = compactService;
         this.apiRetryService = apiRetryService;
@@ -113,6 +116,7 @@ public class QueryEngine {
         this.contextCascade = contextCascade;
         this.compactMetrics = compactMetrics;
         this.incrementalCollapseManager = incrementalCollapseManager;
+        this.visualizationAutoRouter = visualizationAutoRouter;
     }
 
     /**
@@ -220,6 +224,11 @@ public class QueryEngine {
             // ===== Step 0.5: Incremental collapse check =====
             String loopSessionId = state.getToolUseContext() != null
                     ? state.getToolUseContext().sessionId() : null;
+            // ===== Step 0.6: Visualization Auto-Router (v1.5 升级项 C Beta) =====
+            // 默认关闭下适配器内部直接 return，零开销；命中时独立消息推送，不改变循环语义。
+            if (visualizationAutoRouter != null) {
+                visualizationAutoRouter.maybeRoute(loopSessionId, state);
+            }
             if (incrementalCollapseManager != null && loopSessionId != null) {
                 log.debug("Incremental collapse check: sessionId={}, cumulativeContribution=1", loopSessionId);
                 if (incrementalCollapseManager.shouldCollapse(loopSessionId, 1)) {
