@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<!--
+  Task 3-5 测试 Fixture：语义快照基础页
+  引用：docs/Task3-5差异化升级功能测试方案.md §11.2, TC-T5-PY-01..10, TC-T5-PY-20/21
+  覆盖点：role 推断、rawName 5 级优先级、password 脱敏、ARIA landmark
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ZhikunCode Snapshot Fixture — Basic</title>
+</head>
+<body>
+  <!-- TC-T5-PY-21: [role] 显式属性优先 -->
+  <div role="button" tabindex="0" id="div-as-button">Click Me as Div</div>
+  <a href="#" role="menuitem">Menu Item Link</a>
+
+  <!-- TC-T5-PY-21: typeRole/tagRole 映射 -->
+  <input type="search" placeholder="Search query">
+  <input type="number" aria-label="Quantity">
+  <textarea name="description" placeholder="Enter description"></textarea>
+  <select name="country">
+    <option value="us">United States</option>
+    <option value="cn">China</option>
+  </select>
+
+  <!-- TC-T5-PY-20: rawName 5 级优先级 -->
+  <button aria-label="Primary Action">Fallback TextContent</button>
+  <input type="text" placeholder="Your name">
+  <input type="text" title="Email input">
+  <button>Only TextContent</button>
+  <input type="text" name="fallback-name">
+
+  <!-- TC-T5-SEC-01: password 脱敏验证 -->
+  <input type="password" value="secret123" name="pw">
+
+  <!-- ARIA landmarks -->
+  <main>
+    <h1>Main Heading</h1>
+    <nav aria-label="Primary">
+      <a href="/home">Home</a>
+      <a href="/docs">Docs</a>
+    </nav>
+    <article>
+      <h2>Article Title</h2>
+      <p>Lorem ipsum dolor sit amet.</p>
+    </article>
+  </main>
+</body>
+</html>

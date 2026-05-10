@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<!--
+  Task 3-5 测试 Fixture：大页面（节点数接近 10000）
+  引用：docs/Task3-5差异化升级功能测试方案.md §11.13, TC-T5-EX-03
+  说明：离线环境替代 https://html.spec.whatwg.org/
+  生成方式（开发者手动跑一次即可）：
+    python3 python-service/tests/fixtures/snapshot_pages/_generate_large_page.py
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Large Page Fixture</title>
+</head>
+<body>
+  <!-- 本文件为占位骨架。真正的 10k 节点页由生成脚本一次性产出。 -->
+  <!-- 生成脚本逻辑：循环 1000 轮输出 <div><button>Row N</button><input/><a/></div> 约 1w 节点 -->
+  <p>Run <code>_generate_large_page.py</code> to populate this fixture.</p>
+</body>
+</html>

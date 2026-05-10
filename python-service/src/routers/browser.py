@@ -30,6 +30,7 @@ from services.browser_models import (
     JsErrorsRequest,
     BrowserResponse,
 )
+from services.browser_models import SemanticSnapshotRequest
 
 logger = logging.getLogger(__name__)
 
@@ -279,6 +280,35 @@ async def get_js_errors(req: JsErrorsRequest) -> BrowserResponse:
     try:
         errors = await browser_service.get_js_errors(req.session_id)
         return BrowserResponse(success=True, data={"js_errors": errors, "count": len(errors)})
+    except Exception as e:
+        return BrowserResponse(
+            success=False, error_code=type(e).__name__, error_message=str(e)
+        )
+
+
+@router.post("/snapshot-semantic")
+async def snapshot_semantic(req: SemanticSnapshotRequest) -> BrowserResponse:
+    """语义快照 — ZhikunCode v1.5 升级项 A MVP。
+
+    基于 Playwright accessibility.snapshot() 返回页面的语义 DOM 树，
+    仅包含可交互与有语义的节点 (role/name/value)，相比原始 HTML 体积小 10-100 倍。
+    可选同步返回缩略图用于前端 Replay 时间线渲染。
+    """
+    try:
+        data = await browser_service.snapshot_semantic(
+            req.session_id,
+            selector=req.selector,
+            interesting_only=req.interesting_only,
+            include_screenshot=req.include_screenshot,
+            strict_session=req.strict_session,
+        )
+        if data.get("success") is False and "error_code" in data:
+            return BrowserResponse(
+                success=False,
+                error_code=data["error_code"],
+                error_message=data["error_message"],
+            )
+        return BrowserResponse(success=True, data=data)
     except Exception as e:
         return BrowserResponse(
             success=False, error_code=type(e).__name__, error_message=str(e)

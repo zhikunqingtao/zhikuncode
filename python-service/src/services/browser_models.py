@@ -86,6 +86,25 @@ class JsErrorsRequest(BrowserRequestBase):
     pass
 
 
+class SemanticSnapshotRequest(BrowserRequestBase):
+    """语义快照请求 — 基于 Playwright accessibility.snapshot() 产出可交互元素树
+
+    对齐 ZhikunCode 差异化升级方案 v1.5 升级项 A MVP。
+    """
+    selector: Optional[str] = Field(
+        default=None,
+        description="Optional CSS selector to snapshot subtree; defaults to whole page",
+    )
+    interesting_only: bool = Field(
+        default=True,
+        description="If true, only return nodes deemed interesting by Playwright",
+    )
+    include_screenshot: bool = Field(
+        default=False,
+        description="If true, also return a base64 PNG screenshot of the page",
+    )
+
+
 class CloseSessionRequest(BaseModel):
     session_id: str = Field(..., description="Session ID to close")
 

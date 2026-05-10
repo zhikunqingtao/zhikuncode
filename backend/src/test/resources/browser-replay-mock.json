@@ -1,0 +1,15 @@
+{
+  "_comment": "Task 3-5 BrowserSnapshotResponse Mock（TC-T5-JV-01..07）",
+  "_reference": "docs/Task3-5差异化升级功能测试方案.md §11.2",
+  "sessionId": "mock-sess-001",
+  "snapshotId": "snap-20260509-001",
+  "capturedAt": "2026-05-09T12:00:00Z",
+  "url": "https://example.com/",
+  "title": "Example Domain",
+  "ariaYaml": "- generic [ref=e1]:\n  - heading \"Example Domain\" [level=1] [ref=e2]\n  - paragraph [ref=e3]: This domain is for use in illustrative examples.\n  - link \"More information...\" [ref=e4]\n",
+  "interactive": [
+    {"ref": "e4", "role": "link", "name": "More information...", "attrs": {"href": "https://www.iana.org/domains/example"}}
+  ],
+  "nodeCount": 42,
+  "screenshotBase64": null
+}

@@ -34,6 +34,64 @@ from playwright.async_api import (
 logger = logging.getLogger(__name__)
 
 
+# 语义快照作用域内用于提取交互元素的 DOM 查询脚本。
+# 说明：Playwright 1.49+ 移除了 page.accessibility，只保留 locator.aria_snapshot()。
+# 为兼顾 "交互元素清单" 的结构化需求，这里用 evaluate 在浏览器端收集。
+_INTERACTIVE_QUERY_SCRIPT = """
+(args) => {
+  const { scope, limit } = args;
+  const root = scope ? document.querySelector(scope) : document.body;
+  if (!root) return { nodeCount: 0, interactive: [] };
+  const selectors = [
+    'button', 'a[href]', 'input:not([type=hidden])', 'select', 'textarea',
+    '[role=button]', '[role=link]', '[role=textbox]', '[role=combobox]',
+    '[role=checkbox]', '[role=radio]', '[role=switch]', '[role=tab]',
+    '[role=menuitem]', '[role=option]', '[role=searchbox]', '[role=slider]',
+    '[role=spinbutton]'
+  ].join(',');
+  const tagRole = { BUTTON: 'button', A: 'link', INPUT: 'textbox',
+                    SELECT: 'combobox', TEXTAREA: 'textbox' };
+  const typeRole = { checkbox: 'checkbox', radio: 'radio',
+                     range: 'slider', search: 'searchbox',
+                     number: 'spinbutton' };
+  const out = [];
+  const nodes = root.querySelectorAll(selectors);
+  for (let i = 0; i < nodes.length && out.length < limit; i++) {
+    const el = nodes[i];
+    let role = el.getAttribute('role');
+    if (!role) {
+      if (el.tagName === 'INPUT') {
+        role = typeRole[(el.getAttribute('type') || '').toLowerCase()] || 'textbox';
+      } else {
+        role = tagRole[el.tagName] || el.tagName.toLowerCase();
+      }
+    }
+    const rawName = (
+      el.getAttribute('aria-label') ||
+      el.getAttribute('placeholder') ||
+      el.getAttribute('title') ||
+      (el.textContent || '').trim() ||
+      el.getAttribute('name') ||
+      ''
+    );
+    const entry = { role: String(role).toLowerCase(), name: String(rawName).slice(0, 200) };
+    const val = (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement ||
+                 el instanceof HTMLSelectElement) ? el.value : null;
+    if (val !== null && val !== undefined && val !== '') {
+      entry.value = String(val).slice(0, 200);
+    }
+    if (el.disabled === true || el.getAttribute('aria-disabled') === 'true') {
+      entry.disabled = true;
+    }
+    out.push(entry);
+  }
+  // 节点总数（作用域内所有元素） — 给前端/LLM 做粗粒度页面规模指示
+  const nodeCount = root.querySelectorAll('*').length + 1;
+  return { nodeCount, interactive: out };
+}
+"""
+
+
 class BrowserSession:
     """单个浏览器会话 — 对应一个独立的 BrowserContext"""
 
@@ -616,6 +674,89 @@ class BrowserService:
     async def get_js_errors(self, session_id: str) -> list:
         """返回指定会话收集到的所有 JS 错误"""
         return self._js_errors.get(session_id, [])
+
+    # ═══ 语义快照 (ZhikunCode v1.5 升级项 A MVP) ═══
+
+    async def snapshot_semantic(
+        self,
+        session_id: str,
+        selector: Optional[str] = None,
+        interesting_only: bool = True,
+        include_screenshot: bool = False,
+        strict_session: bool = False,
+    ) -> dict:
+        """产出页面语义快照 — Playwright 1.49+ API。
+
+        组合两种来源：
+        - ``locator.aria_snapshot()`` 产出 ARIA YAML 文本（只含有语义的节点）
+        - ``page.evaluate`` 执行 DOM 查询提取结构化交互元素清单。
+
+        相比原始 HTML 体积小 10-100 倍；交互清单供 LLM 直接做决策。
+
+        错误语义：
+        - ``strict_session=True`` 且会话不存在时返回 guard dict
+        - ``selector`` 指向元素不存在时抛 ``ValueError``
+        - aria_snapshot 运行时错误并非致命，tree 为空但交互清单仍会返回
+        """
+        if strict_session:
+            guard = await self._strict_session_guard(session_id)
+            if guard:
+                return guard
+        session = await self.get_or_create_session(session_id)
+        page = session.page
+
+        scope = selector if selector and selector.strip() else None
+        # 先校验 selector 有效且有匹配
+        if scope:
+            try:
+                element = await page.query_selector(scope)
+            except PlaywrightError as e:
+                raise ValueError(f"Invalid selector: {selector}") from e
+            if not element:
+                raise ValueError(f"Element not found: {selector}")
+
+        # ARIA YAML 文本 — 对应 locator
+        locator = page.locator(scope) if scope else page.locator("body")
+        aria_yaml = ""
+        try:
+            aria_yaml = await locator.first.aria_snapshot()
+        except PlaywrightError as e:
+            logger.warning(f"aria_snapshot failed: {e}")
+
+        # 交互元素提取 + 节点总数
+        try:
+            stats = await page.evaluate(
+                _INTERACTIVE_QUERY_SCRIPT,
+                {"scope": scope, "limit": 200},
+            )
+        except PlaywrightError as e:
+            logger.warning(f"interactive query failed: {e}")
+            stats = {"nodeCount": 0, "interactive": []}
+
+        node_count = int(stats.get("nodeCount") or 0) if isinstance(stats, dict) else 0
+        interactive = stats.get("interactive") or [] if isinstance(stats, dict) else []
+        if not isinstance(interactive, list):
+            interactive = []
+
+        result: dict = {
+            "url": page.url,
+            "title": await page.title(),
+            "timestamp": datetime.now().isoformat(),
+            "selector": selector,
+            "interesting_only": interesting_only,
+            "node_count": node_count,
+            "interactive": interactive,
+            "tree": {"aria": aria_yaml},
+        }
+        if include_screenshot:
+            try:
+                raw = await page.screenshot(full_page=False, type="png")
+                result["screenshot_base64"] = base64.b64encode(raw).decode()
+                result["screenshot_size"] = len(raw)
+            except Exception as e:
+                logger.debug(f"snapshot_semantic screenshot skipped: {e}")
+                result["screenshot_base64"] = None
+        return result
 
     # ═══ JS 错误收集内部方法 ═══
 
