@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
 /**
  * @see CoordinatorWorkflowEngine 四阶段工作流编排引擎
@@ -219,11 +220,28 @@ public class CoordinatorService {
     // ============ Scratchpad ============
 
     /**
+     * sessionId 白名单：字母/数字/下划线/中划线，长度 1–128。
+     * <p>与 {@code SwarmController.TEAM_NAME_PATTERN} 策略对齐：
+     * 禁止 {@code ../}、路径分隔符、空白等用于构造路径穿越的字符。
+     * 深度防御：即使未来新端点允许 JSON 注入 {@code sessionId}（绕过 Tomcat URI 拦截），
+     * 本处白名单仍然决定最终落盘目录安全。
+     */
+    private static final Pattern SAFE_SESSION_ID_PATTERN = Pattern.compile("^[A-Za-z0-9_-]{1,128}$");
+
+    /**
      * 获取会话的 scratchpad 目录（Worker 间共享文件交换区）。
      * 自动创建，位于 .zhikun/scratchpad/{sessionId}/
+     * <p><b>安全（CWE-22）</b>：{@code sessionId} 必须匹配
+     * {@link #SAFE_SESSION_ID_PATTERN}，否则回退到 {@code "default"}，
+     * 防止 {@code ../} 等路径穿越将目录创建到 workspace 以外。
      */
     public Path getScratchpadDir(String sessionId) {
-        String safeSessionId = sessionId != null ? sessionId : "default";
+        String safeSessionId = (sessionId != null && SAFE_SESSION_ID_PATTERN.matcher(sessionId).matches())
+                ? sessionId
+                : "default";
+        if (sessionId != null && !safeSessionId.equals(sessionId)) {
+            log.warn("getScratchpadDir: rejected unsafe sessionId (path traversal prevention), falling back to 'default'");
+        }
         Path dir = Path.of(System.getProperty("user.dir"), ".zhikun", "scratchpad", safeSessionId);
         try {
             Files.createDirectories(dir);
