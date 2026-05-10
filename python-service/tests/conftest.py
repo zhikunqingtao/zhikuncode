@@ -9,6 +9,12 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 from main import app
 
+# 注册子目录 fixture 模块 — pytest 默认不会自动发现 tests/fixtures/*.py 中的 @pytest.fixture，
+# 需通过 pytest_plugins 显式挂载到顶层 conftest，保证测试用例可直接参数注入。
+pytest_plugins = [
+    "tests.fixtures.coordinator_multi_agent",
+]
+
 @pytest_asyncio.fixture
 async def client():
     """异步 HTTP 测试客户端 fixture"""

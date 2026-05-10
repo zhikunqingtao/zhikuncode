@@ -47,6 +47,11 @@ analysis = [
 full = [
     "zhikuncode-python-service[cli,code-intel,file-processing,code-quality,analysis]",
 ]
+test = [
+    "pytest>=8.0.0",
+    "pytest-cov>=5.0.0",
+    "pytest-asyncio>=0.23.0",
+]
 
 [project.scripts]
 aica = "cli.main:app"
@@ -59,3 +64,22 @@ Issues = "https://github.com/zhikuncode/zhikuncode/issues"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["src*", "cli*"]
+
+[tool.pytest.ini_options]
+# Task 3-5 差异化升级测试覆盖率配置（§11.4）
+# 用法：pytest --cov=src --cov-fail-under=70 --cov-report=html:../docs/test-results/coverage/python-html
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.coverage.run]
+source = ["src"]
+branch = true
+
+[tool.coverage.report]
+fail_under = 70
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]

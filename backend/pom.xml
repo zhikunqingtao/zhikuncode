@@ -41,6 +41,13 @@
     <properties>
         <java.version>21</java.version>
         <!-- Spring Security 版本由 Spring Boot 3.4.x 管理（自动匹配 6.4.x） -->
+        <!--
+            Surefire argLine 默认空值：
+            无 -Pcoverage 时 jacoco 不注入 agent，@{argLine} 属性未被替换，此处空串兜底避免字面量
+            "@{argLine}" 传给 JVM 导致 "Error: could not open '{argLine}'" VM 崩溃。
+            激活 -Pcoverage 时 jacoco-maven-plugin:prepare-agent 会用 -javaagent 参数覆盖此值。
+        -->
+        <argLine></argLine>
     </properties>
 
     <dependencies>
@@ -267,11 +274,85 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <!-- 启用 JDK 动态 agent 加载（Mockito ByteBuddy 在 JDK 21 下必需） -->
-                    <argLine>-Djdk.attach.allowAttachSelf=true -XX:+EnableDynamicAgentLoading</argLine>
+                    <argLine>@{argLine} -Djdk.attach.allowAttachSelf=true -XX:+EnableDynamicAgentLoading</argLine>
                     <!-- 输出重定向：保持测试日志完整性 -->
                     <redirectTestOutputToFile>false</redirectTestOutputToFile>
                 </configuration>
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <!-- Task 3-5 差异化升级测试覆盖率 profile（§11.4） -->
+        <!-- 用法：./mvnw -q verify -Pcoverage，报告 target/site/jacoco/index.html，阈值 70% -->
+        <profile>
+            <id>coverage</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <version>0.8.12</version>
+                        <executions>
+                            <execution>
+                                <id>prepare-agent</id>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                </goals>
+                                <configuration>
+                                    <!--
+                                        排除 Mockito inline mock 会 retransform 的类。
+                                        JDK 21 下 JaCoCo agent 先插桩，Mockito ByteBuddy 再次 retransform
+                                        会触发 "attempted to change the class NestHost, NestMembers, Record,
+                                        or PermittedSubclasses attribute" UnsupportedOperationException，
+                                        特别是含嵌套 record / 被多处 @Mock 的服务类。
+                                        此几个类交由其专属单测盖盖率统计，总体影响可控。
+                                    -->
+                                    <excludes>
+                                        <exclude>com/aicodeassistant/permission/PermissionPipeline*</exclude>
+                                        <exclude>com/aicodeassistant/tool/agent/SubAgentExecutor*</exclude>
+                                        <exclude>com/aicodeassistant/engine/CompactService*</exclude>
+                                        <exclude>com/aicodeassistant/engine/ElicitationService*</exclude>
+                                    </excludes>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>report</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>report</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>check</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>check</goal>
+                                </goals>
+                                <configuration>
+                                    <rules>
+                                        <rule>
+                                            <element>BUNDLE</element>
+                                            <limits>
+                                                <limit>
+                                                    <counter>INSTRUCTION</counter>
+                                                    <value>COVEREDRATIO</value>
+                                                    <minimum>0.70</minimum>
+                                                </limit>
+                                            </limits>
+                                        </rule>
+                                    </rules>
+                                    <!-- 允许本地不达标时不失败，CI 设 -DcoverageFailOnViolation=true -->
+                                    <haltOnFailure>${coverageFailOnViolation}</haltOnFailure>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+            <properties>
+                <coverageFailOnViolation>false</coverageFailOnViolation>
+            </properties>
+        </profile>
+    </profiles>
 </project>

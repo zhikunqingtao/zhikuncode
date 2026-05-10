@@ -6,6 +6,7 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './e2e',
+  outputDir: '../docs/test-results/screenshots/visualization/_failures',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -14,13 +15,15 @@ export default defineConfig({
   timeout: 60_000,
   expect: { timeout: 15_000 },
   reporter: [
-    ['html', { open: 'never' }],
     ['list'],
+    ['html', { outputFolder: '../docs/test-results/playwright-report', open: 'never' }],
+    ['junit', { outputFile: '../docs/test-results/playwright-junit.xml' }],
   ],
   use: {
     baseURL: 'http://localhost:5173',
-    trace: 'on-first-retry',
+    trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
     /* 单个 action 超时 30s */
     actionTimeout: 30_000,
     navigationTimeout: 30_000,

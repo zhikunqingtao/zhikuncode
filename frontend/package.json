@@ -20,6 +20,7 @@
     "lint": "eslint src --ext .ts,.tsx",
     "test": "vitest",
     "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui"
   },
@@ -46,9 +47,9 @@
     "react-dom": "^18.3.1",
     "react-markdown": "^9.0.1",
     "react-router-dom": "^6.28.0",
-    "recharts": "^2.15.0",
     "react-syntax-highlighter": "^15.6.1",
     "react-virtuoso": "^4.12.3",
+    "recharts": "^2.15.0",
     "sockjs-client": "^1.6.1",
     "tailwind-merge": "^2.6.1",
     "zustand": "^4.5.7"
@@ -65,6 +66,7 @@
     "@types/sockjs-client": "^1.5.4",
     "@typescript-eslint/eslint-plugin": "^8.15.0",
     "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/coverage-v8": "^2.1.9",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.15.0",
     "jsdom": "^29.0.2",

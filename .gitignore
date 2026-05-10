@@ -74,3 +74,21 @@ zhikun.local.md
 docs/local/
 docs/.DS_Store
 docs/assets/e2e-tests/node_modules
+
+# === 测试产物：自动生成，可复跑，不入库 ===
+# JaCoCo / lcov / coverage HTML 报告（每次 mvn test / vitest 都会重建，体积大）
+docs/test-results/**/coverage/
+# 测试过程原始日志（瞬态；关键证据另归档到 security/ 或 md 正文）
+docs/test-results/**/logs/
+# 运行时截图（运行时产出，可重现；如需长期保留请显式 git add -f）
+docs/test-results/**/screenshots/
+
+# Playwright / 前端 E2E 临时产物
+frontend/test-results/
+frontend/playwright-report/
+
+# Python 字节码缓存（全局；原规则只覆盖顶级 python-service/__pycache__/）
+**/__pycache__/
+
+# 安全测试原始日志（summary.md 入库即可，.log 属瞬态证据）
+docs/test-results/**/security/*.log
