@@ -49,6 +49,7 @@
 | 🐳 | **One-Command Docker Deployment** | `docker compose up -d` — one command to start. Data stays local, fully private |
 | ⚡ | **Intelligent Context Management** | Five-layer compression cascade + incremental collapse (auto-compress every 10 turns) + 413 three-phase recovery (aggressive compression → reactive compact → media stripping) + three-level token alerts for seamless ultra-long conversations |
 | 🖼️ | **Browser Semantic Snapshot** | `/snap` command captures full web page state (DOM structure + interactive elements), extracts structured JSON for Agent parsing and replay verification |
+| 📊 | **Real-Time Activity Tracking & Approval** | Activity Panel records full AI tool execution lifecycle, L1/L2/L3 three-layer display, Signal smart tagging (auto_approve/review_recommended/needs_review), one-click batch approval, SQLite backend persistence, session restoration support |
 
 ---
 
@@ -238,6 +239,8 @@ Starting from the latest version, the following MCP services hosted on `dashscop
 | Extensible Skill System | ✅ Markdown-driven + 6-level sources | ❌ | ❌ | ✅ Rules | ✅ Hooks | ❌ |
 | Plugin System | ✅ Java SPI plugins + sandbox isolation + hot reload | ❌ | ❌ | ✅ Plugins | ✅ Skills/Hooks | ✅ Plugins |
 | Cross-Session Memory | ✅ 3-layer memory + BM25 search | ❌ | ❌ | ✅ Rules | ✅ Memory | ❌ |
+| Activity Tracking & Approval | ✅ L1/L2/L3 Three-layer | ❌ | ❌ | ❌ | ✅ Permission Mgmt | ❌ |
+| Activity Persistence | ✅ SQLite + STOMP | ❌ | ❌ | ❌ | ⚠️ Memory-level | ❌ |
 | No Client Install | ✅ | ❌ | ❌ | ⚠️ | ✅ | ❌ |
 
 > ¹ **Full Browser Control**: After deployment, any device's browser (including mobile) can fully control the entire coding workflow — permission approval, plan negotiation, task management. This is different from Cline/Cursor's "AI controlling a browser for automated testing".
@@ -408,12 +411,13 @@ Full test report: [ZhikunCode v9.3 End-to-End Test Report](test-results/v9.3/Zhi
 - **GitHub Actions Pipeline**: Automatically runs backend compilation, frontend build, Python tests, and Docker image verification on every push
 
 **Test Coverage (v9.3):**
-- **Total**: 1625 cases + 490 performance probes + 7 security probes = **2122**
-- **Backend Unit/Integration Tests**: 1500 PASS / 48 skipped, coverage Inst 42.17% / Branch 30.44%
+- **Total**: 1653 cases + 490 performance probes + 7 security probes = **2150** (including 28 APOS Phase 1 E2E cases)
+- **Backend Unit/Integration Tests**: 1500 PASS / 0 failure / 0 error / 48 skipped, coverage Inst 42.17% / Branch 30.44%
 - **Python pytest**: 47 PASS, coverage 25.66%
 - **Frontend vitest**: 78 PASS / 16 skipped (94 total)
-- **22-Module REST/WS/LLM/Session Smoke**: 45/45 PASS (42 REST + 1 WS STOMP + 1 LLM live inference + 1 Session persistence)
+- **30-Module REST/WS/LLM/Session Smoke**: 45/45 PASS (42 REST + 1 WS STOMP + 1 LLM live inference + 1 Session persistence)
 - **E2E Differentiated Pipelines**: Task 6 Multi-Agent Collaboration (CoordinatorEventBus) · Task 7 Visualization Auto-Routing (`/visualize` mermaid/json/text) · Task 8 Browser Semantic Snapshot MVP (`/snap`) — all end-to-end PASS
+- **APOS Phase 1 E2E**: 9 modules, 28 cases (Activity UI / Data Flow / Three-layer Display / Signal Marking / Feature Flag / Backend API / Responsive / Persistence) 100% PASS, with 4 bug fix regressions
 - **Feature Completeness**: 100% of planned v1.0 features verified
 
 **Test Framework Details:**
@@ -422,7 +426,7 @@ Full test report: [ZhikunCode v9.3 End-to-End Test Report](test-results/v9.3/Zhi
 |-----------|-------|----------|-------|
 | JUnit 5 + Mockito | Backend Unit/Integration | Context/Permission/Skill/Plugin/LLM/MCP/Memory/Concurrency/SSE/Persistence/Tool/Coordinator/Swarm etc. | 1500 PASS |
 | Vitest | Frontend Unit | Store Lifecycle/Cross-Tab Sync/Streaming Render/Immer Immutability/Route Boundary | 78 PASS |
-| Playwright + Node scripts | E2E | Coordinator WS subscription / Three visualization viewTypes / Browser snapshot MVP | Task 6/7/8 all green |
+| Playwright + Node scripts | E2E | Coordinator WS subscription / Three visualization viewTypes / Browser snapshot MVP / APOS Phase 1 full-stack | Task 6/7/8/APOS all green |
 | Pytest | Python Service | Token Estimation/File Processing/Browser Automation/Semantic Snapshot/Code Analyzers | 47 PASS |
 
 **Performance Baseline (v9.3, 490 real request samples):**
@@ -441,7 +445,7 @@ Full test report: [ZhikunCode v9.3 End-to-End Test Report](test-results/v9.3/Zhi
 - E2E screenshots: [docs/test-results/screenshots/](test-results/screenshots/) (42 items)
 
 <details>
-<summary>📋 22 Test Modules Breakdown (click to expand)</summary>
+<summary>📋 30 Test Modules Breakdown (click to expand)</summary>
 
 | # | Module | Cases | Pass Rate | Notes |
 |---|--------|-------|-----------|-------|
@@ -467,6 +471,14 @@ Full test report: [ZhikunCode v9.3 End-to-End Test Report](test-results/v9.3/Zhi
 | 20 | F35 Code→Diagram Generation | 25 | 100% | ★ New in v1.0 |
 | 21 | F40 Code Path Tracing | 25 | 100% | ★ New in v1.0 |
 | 22 | Unit Test Suite (v9.3 expanded) | 1500+ | 100% | Expanded to 1500 PASS / 48 skipped in v9.3, including 19 CWE-22 depth-defense unit tests |
+| 23 | APOS Basic UI | 4 | 100% | ★ First coverage |
+| 24 | APOS Data Flow | 4 | 100% | ★ First coverage |
+| 25 | APOS Three-layer Display | 4 | 100% | ★ First coverage |
+| 26 | APOS Signal & Filter | 2 | 100% | ★ First coverage |
+| 27 | APOS Feature Flag | 2 | 100% | ★ First coverage |
+| 28 | APOS Backend API | 1 | 100% | ★ First coverage |
+| 29 | APOS Responsive + Health | 3 | 100% | ★ First coverage |
+| 30 | APOS Activity Persistence | 8 | 100% | ★ First coverage + 4 Bug fixes |
 
 </details>
 
@@ -951,6 +963,7 @@ ZhikunCode includes 11 built-in visualization features that make data and status
 | **API Contract Viewer** | Auto-merges Java + Python dual-service OpenAPI specs. Endpoints grouped by tag, HTTP methods color-coded, recursive Schema display. Supports All/Java/Python data source switching |
 | **Code-to-Diagram Auto-Generation** | Input a code file path to auto-generate Mermaid sequence diagrams / flowcharts. Python LibCST + tree-sitter multi-language parsing, BFS call-chain traversal with auto-identification of Controller/Service/Repository participants, five-dimensional confidence scoring (0-1), Monaco Editor for real-time source editing, SVG copy / PNG download export, supports 1-5 level traversal depth control |
 | **Code Path Tracing Visualization** | Interactive code call-path tracing visualization built on @xyflow/react. Python CodePathTracer performs forward BFS traversal with six-layer classification (Controller/Service/Repository/Database/External/Utility), dagre TB layout algorithm for automatic node arrangement, custom LayerNode components with layer-based coloring, MiniMap for global overview + LayerStatsBar for layer statistics, supports API endpoint scanning, parameter tracking, node click details, and maxDepth depth control via the sidebar "Code Path" tab |
+| **Activity Panel** | Three-layer card display (L1 Compact → L2 Expanded → L3 Portal), real-time tool execution status, Signal risk markers, approval decision tracking |
 
 > **New in v9.3**: The `/visualize` command auto-pushes three formats (mermaid / json / text) via VisualizationAutoRouter, with WS STOMP `/app/command` end-to-end latency p50 < 3ms.
 
