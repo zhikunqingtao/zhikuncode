@@ -20,7 +20,7 @@ import type { ServerMessage } from '@/types';
  * 合法消息类型白名单 — 从 dispatch.ts handlers 和 ServerMessage 类型推断
  */
 const VALID_MESSAGE_TYPES: ReadonlySet<string> = new Set([
-    'stream_delta', 'thinking_delta', 'tool_use_start', 'tool_use_progress', 'tool_result',
+    'stream_delta', 'thinking_delta', 'tool_use_start', 'tool_use_input', 'tool_use_progress', 'tool_result',
     'error', 'compact_complete', 'message_complete', 'compact_start', 'rate_limit',
     'permission_request', 'cost_update', 'task_update', 'agent_spawn', 'agent_update',
     'agent_complete', 'elicitation', 'prompt_suggestion', 'speculation_result',
@@ -32,6 +32,9 @@ const VALID_MESSAGE_TYPES: ReadonlySet<string> = new Set([
     'session_list_updated',
     // 差异化升级 v1.5 §4.5 C: 结构化输出自动可视化消息
     'visualization',
+    // APOS: 验证结果 + 验证进度推送
+    'verification_result',
+    'verify_progress',
 ]);
 
 /**

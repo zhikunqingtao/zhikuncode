@@ -24,7 +24,8 @@ import {
     FileText,
     ExternalLink,
     Workflow,
-    Network
+    Network,
+    Activity
 } from 'lucide-react';
 import { APISequenceDiagram } from '@/components/visualization/backend/APISequenceDiagram';
 import { FileTreePanel } from '@/components/layout/FileTreePanel';
@@ -41,10 +42,14 @@ import { useMessageStore } from '@/store/messageStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { useConfigStore } from '@/store/configStore';
 import { useAppUiStore } from '@/store/appUiStore';
+import { useFeatureFlagStore } from '@/store/featureFlagStore';
+import { ActivityStream } from '@/components/apos/ActivityStream';
+import { FeatureFlagPanel } from '@/components/apos/FeatureFlagPanel';
+import { SessionFileExplorer } from '@/components/apos/SessionFileExplorer';
 import { sendToServer } from '@/api/stompClient';
 import type { TaskState } from '@/types';
 
-type TabType = 'sessions' | 'tasks' | 'files' | 'sequence' | 'dag' | 'git' | 'complexity' | 'impact' | 'api-docs' | 'diagram' | 'code-path';
+type TabType = 'sessions' | 'tasks' | 'files' | 'sequence' | 'dag' | 'git' | 'complexity' | 'impact' | 'api-docs' | 'diagram' | 'code-path' | 'apos';
 
 // ═══ Sidebar 宽度配置 ═══
 const MIN_WIDTH = 256;
@@ -62,7 +67,7 @@ export interface SidebarProps {
 
 export function Sidebar({ className = '', isDrawerMode = false, defaultTab }: SidebarProps) {
     const [activeTab, setActiveTab] = useState<TabType>(() => {
-        if (defaultTab && ['sessions','tasks','files','sequence','dag','git','complexity','impact','api-docs','diagram','code-path'].includes(defaultTab)) {
+        if (defaultTab && ['sessions','tasks','files','sequence','dag','git','complexity','impact','api-docs','diagram','code-path','apos'].includes(defaultTab)) {
             return defaultTab as TabType;
         }
         return 'sessions';
@@ -75,7 +80,7 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab }: Si
     const requestVisualizationTab = useAppUiStore((s) => s.requestVisualizationTab);
     useEffect(() => {
         if (!pendingVisualizationTab) return;
-        const valid = ['sessions','tasks','files','sequence','dag','git','complexity','impact','api-docs','diagram','code-path'] as const;
+        const valid = ['sessions','tasks','files','sequence','dag','git','complexity','impact','api-docs','diagram','code-path','apos'] as const;
         if ((valid as readonly string[]).includes(pendingVisualizationTab)) {
             setActiveTab(pendingVisualizationTab as TabType);
         }
@@ -138,6 +143,8 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab }: Si
         window.open(url, 'zhikun-sidebar', 'width=600,height=800,menubar=no,toolbar=no');
     }, [activeTab]);
 
+    const aposEnabled = useFeatureFlagStore((s) => s.flags.APOS_ACTIVITY_STREAM);
+
     const tabs: { id: TabType; label: string; icon: typeof MessageSquare }[] = [
         { id: 'sessions', label: '会话', icon: MessageSquare },
         { id: 'tasks', label: '任务', icon: CheckCircle2 },
@@ -150,6 +157,7 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab }: Si
         { id: 'api-docs', label: 'API文档', icon: FileText },
         { id: 'diagram', label: '图表生成', icon: Workflow },
         { id: 'code-path', label: '代码路径', icon: Network },
+        ...(aposEnabled ? [{ id: 'apos' as TabType, label: 'Activity', icon: Activity }] : []),
     ];
 
     // Drawer 模式不使用动态宽度
@@ -225,6 +233,13 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab }: Si
                 {activeTab === 'code-path' && (
                     <div className="h-full">
                         <CodePathTracer />
+                    </div>
+                )}
+                {activeTab === 'apos' && (
+                    <div className="flex flex-col h-full">
+                        <SessionFileExplorer />
+                        <ActivityStream />
+                        <FeatureFlagPanel />
                     </div>
                 )}
             </div>
@@ -324,6 +339,7 @@ function SessionList() {
             useMessageStore.getState().clearMessages();
             // 恢复会话
             useSessionStore.getState().resumeSession(sessionId);
+            // App.tsx 的 sessionStore.subscribe 会自动同步 activityStore.currentSessionId
             // 绑定 WebSocket session
             sendToServer('/app/bind-session', { sessionId });
         } catch (e) {
@@ -339,6 +355,7 @@ function SessionList() {
             await useSessionStore.getState().createSession('.', defaultModel);
             const newSessionId = useSessionStore.getState().sessionId;
             if (newSessionId) {
+                // App.tsx 的 sessionStore.subscribe 会自动同步 activityStore.currentSessionId
                 sendToServer('/app/bind-session', { sessionId: newSessionId });
             }
             fetchSessions();

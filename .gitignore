@@ -26,6 +26,10 @@ python-service/htmlcov/
 python-service/.coverage
 *.pyc
 *.pyo
+*.egg-info/
+
+# === Build artifacts ===
+*.tsbuildinfo
 
 # === IDE ===
 .idea/

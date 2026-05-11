@@ -38,6 +38,7 @@
     "clsx": "^2.1.1",
     "dagre": "^0.8.5",
     "dompurify": "^3.4.0",
+    "framer-motion": "^12.38.0",
     "immer": "^10.2.0",
     "lucide-react": "^0.460.0",
     "mermaid": "^11.14.0",

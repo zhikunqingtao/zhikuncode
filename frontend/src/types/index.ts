@@ -46,6 +46,7 @@ export interface Usage {
 export interface StreamDeltaPayload { type: 'stream_delta'; delta: string; messageId: string }
 export interface ThinkingDeltaPayload { type: 'thinking_delta'; delta: string; messageId: string }
 export interface ToolUseStartPayload { type: 'tool_use_start'; toolUseId: string; toolName: string; input: Record<string, unknown> }
+export interface ToolUseInputPayload { type: 'tool_use_input'; toolUseId: string; toolName: string; input: Record<string, unknown>; ts?: number }
 export interface ToolUseProgressPayload { type: 'tool_use_progress'; toolUseId: string; progress: string }
 export interface ToolResultPayload { type: 'tool_result'; toolUseId: string; content: string; isError: boolean }
 export interface CompactStartPayload { type: 'compact_start'; sessionId: string }
@@ -122,6 +123,7 @@ export type ServerMessage =
     | StreamDeltaPayload
     | ThinkingDeltaPayload
     | ToolUseStartPayload
+    | ToolUseInputPayload
     | ToolUseProgressPayload
     | ToolResultPayload
     | CompactStartPayload

@@ -452,6 +452,11 @@ public class QueryEngine {
 
             // ===== Step 5: 消费工具结果（流式并行执行已在 StreamCollector 中启动）=====
             if (!toolUseBlocks.isEmpty()) {
+                // 为每个 ToolUseBlock 发送完整 input 到前端（触发 tool_use_input 消息）
+                for (ContentBlock.ToolUseBlock block : toolUseBlocks) {
+                    handler.onToolUseComplete(block.id(), block);
+                }
+
                 List<Message> toolResults = consumeToolResults(session, handler, aborted);
                 state.addMessages(toolResults);
 

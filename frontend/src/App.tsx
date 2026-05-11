@@ -11,6 +11,8 @@ import { waitForSessionRestore, isSessionBound, markSessionBound } from '@/api/d
 import { SkillDetailModal } from '@/components/skills/SkillDetailModal';
 import type { SubmitEvent, Message, Command } from '@/types';
 import { generateUUID } from '@/utils/uuid';
+import { useAPOSInitialization } from '@/hooks/useAPOSInitialization';
+import { useActivityStore } from '@/store/activityStore';
 
 interface SkillItem {
   name: string;
@@ -22,6 +24,33 @@ function App() {
   const { messages, addMessage } = useMessageStore();
   const { createSession, status } = useSessionStore();
   const { loadConfig } = useConfigStore();
+
+  // APOS 数据流转链路初始化
+  useAPOSInitialization();
+
+  // 同步 sessionId 到 activityStore
+  useEffect(() => {
+    const unsubscribe = useSessionStore.subscribe(
+      (state) => state.sessionId,
+      (sessionId, prevSessionId) => {
+        if (sessionId) {
+          // 仅当会话真正切换时清理 UI 状态（不清空 activities）
+          if (prevSessionId && prevSessionId !== sessionId) {
+            useActivityStore.getState().clearForNewSession();
+          }
+          useActivityStore.getState().setCurrentSessionId(sessionId);
+        } else {
+          useActivityStore.getState().clearAll();
+        }
+      }
+    );
+    // 初始化时如果已有 sessionId，立即同步（不清空 activities，防止与 handleSessionRestore 竞态）
+    const currentId = useSessionStore.getState().sessionId;
+    if (currentId) {
+      useActivityStore.getState().setCurrentSessionId(currentId);
+    }
+    return () => { unsubscribe(); };
+  }, []);
 
   // 技能列表
   const [skills, setSkills] = useState<SkillItem[]>([]);

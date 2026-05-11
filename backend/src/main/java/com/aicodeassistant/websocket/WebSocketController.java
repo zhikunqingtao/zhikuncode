@@ -1,7 +1,9 @@
 package com.aicodeassistant.websocket;
 
 import com.aicodeassistant.context.ProjectContextService;
+import com.aicodeassistant.service.ActivityRepository;
 import com.aicodeassistant.service.CostTrackerService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.aicodeassistant.engine.AbortReason;
 import com.aicodeassistant.engine.ElicitationService;
 import com.aicodeassistant.engine.QueryConfig;
@@ -86,6 +88,8 @@ public class WebSocketController implements PermissionNotifier {
     private final PermissionModeManager permissionModeManager;    // P1-03 权限模式
     private final com.aicodeassistant.coordinator.LeaderPermissionBridge leaderPermissionBridge;  // Swarm 权限冒泡
     private final CostTrackerService costTrackerService;                                          // F2 费用追踪
+    private final ActivityRepository activityRepository;                                            // Activity 持久化
+    private final ObjectMapper objectMapper;                                                        // JSON 序列化
 
     /** 会话级查询运行守卫 — 防止同一会话并发执行多个 QueryEngine */
     private final ConcurrentHashMap<String, AtomicBoolean> sessionQueryRunning = new ConcurrentHashMap<>();
@@ -109,7 +113,9 @@ public class WebSocketController implements PermissionNotifier {
                                 ProjectContextService projectContextService,
                                 PermissionModeManager permissionModeManager,
                                 @org.springframework.context.annotation.Lazy com.aicodeassistant.coordinator.LeaderPermissionBridge leaderPermissionBridge,
-                                CostTrackerService costTrackerService) {
+                                CostTrackerService costTrackerService,
+                                ActivityRepository activityRepository,
+                                ObjectMapper objectMapper) {
         this.messaging = messaging;
         this.wsSessionManager = wsSessionManager;
         this.queryEngine = queryEngine;
@@ -127,6 +133,8 @@ public class WebSocketController implements PermissionNotifier {
         this.permissionModeManager = permissionModeManager;
         this.leaderPermissionBridge = leaderPermissionBridge;
         this.costTrackerService = costTrackerService;
+        this.activityRepository = activityRepository;
+        this.objectMapper = objectMapper;
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -680,7 +688,9 @@ public class WebSocketController implements PermissionNotifier {
 
         @Override
         public void onToolUseComplete(String toolUseId, ContentBlock.ToolUseBlock toolUse) {
-            // 工具执行完成，已在 onToolResult 中处理
+            // 发送完整的工具 input 到前端（此时 input 已完全接收）
+            push(sessionId, "tool_use_input",
+                    Map.of("toolUseId", toolUseId, "toolName", toolUse.name(), "input", toolUse.input()));
         }
 
         @Override
@@ -1093,7 +1103,7 @@ public class WebSocketController implements PermissionNotifier {
                 log.warn("Failed to restore session model: sessionId={}", sessionId, e);
             }
 
-            // ── 新增: 推送 session_restored ──
+            // ── 新增: 推送 session_restored（含 activities）──
             try {
                 Optional<SessionData> dataOpt = sessionManager.loadSession(sessionId);
                 if (dataOpt.isPresent()) {
@@ -1104,12 +1114,20 @@ public class WebSocketController implements PermissionNotifier {
                         "permissionMode", "DEFAULT",
                         "status", data.status() != null ? data.status() : "idle"
                     );
-                    push(sessionId, "session_restored", Map.of(
-                        "messages", convertMessagesForWs(data.messages()),
-                        "metadata", metadata
-                    ));
-                    log.info("Pushed session_restored: sessionId={}, messages={}",
-                        sessionId, data.messages().size());
+
+                    // 查询 activities
+                    List<Map<String, Object>> activityRows = activityRepository.findBySessionId(sessionId);
+                    List<Map<String, Object>> activities = activityRows.stream()
+                        .map(this::convertActivityRowForWs)
+                        .toList();
+
+                    Map<String, Object> restoredPayload = new HashMap<>();
+                    restoredPayload.put("messages", convertMessagesForWs(data.messages()));
+                    restoredPayload.put("metadata", metadata);
+                    restoredPayload.put("activities", activities);
+                    push(sessionId, "session_restored", restoredPayload);
+                    log.info("Pushed session_restored: sessionId={}, messages={}, activities={}",
+                        sessionId, data.messages().size(), activities.size());
                 }
             } catch (Exception e) {
                 log.warn("Failed to push session_restored for {}: {}", sessionId, e.getMessage());
@@ -1139,6 +1157,90 @@ public class WebSocketController implements PermissionNotifier {
         log.warn("resolveSessionId: no mapping for principal={}, creating fallback binding", principalName);
         wsSessionManager.bindSession(principalName, principalName);
         return principalName;
+    }
+
+    // ───── Activity STOMP 端点 ─────
+
+    /**
+     * Activity 保存 → /app/activity-save
+     */
+    @MessageMapping("/activity-save")
+    public void handleActivitySave(@Payload Map<String, Object> payload, Principal principal) {
+        String sessionId = resolveSessionId(principal);
+        try {
+            String id = (String) payload.get("id");
+            String operationType = (String) payload.get("operationType");
+            String summary = (String) payload.get("summary");
+            String status = (String) payload.get("status");
+            long timestamp = ((Number) payload.get("timestamp")).longValue();
+            Integer duration = payload.get("duration") != null ? ((Number) payload.get("duration")).intValue() : null;
+            int fileCount = payload.get("fileCount") != null ? ((Number) payload.get("fileCount")).intValue() : 0;
+            String decision = (String) payload.get("decision");
+
+            String toolResultJson = payload.get("toolResult") != null ? objectMapper.writeValueAsString(payload.get("toolResult")) : null;
+            String changedFilesJson = payload.get("changedFiles") != null ? objectMapper.writeValueAsString(payload.get("changedFiles")) : null;
+            String insightJson = payload.get("insight") != null ? objectMapper.writeValueAsString(payload.get("insight")) : null;
+
+            activityRepository.upsert(id, sessionId, operationType, summary, status, timestamp, duration, fileCount, decision, toolResultJson, changedFilesJson, insightJson);
+            log.debug("Activity saved: id={}, sessionId={}, type={}", id, sessionId, operationType);
+        } catch (Exception e) {
+            log.warn("Failed to save activity: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Activity 更新 → /app/activity-update
+     */
+    @MessageMapping("/activity-update")
+    public void handleActivityUpdate(@Payload Map<String, Object> payload, Principal principal) {
+        try {
+            String id = (String) payload.get("id");
+            if (payload.containsKey("decision")) {
+                activityRepository.updateDecision(id, (String) payload.get("decision"));
+            }
+            if (payload.containsKey("insight")) {
+                String insightJson = objectMapper.writeValueAsString(payload.get("insight"));
+                activityRepository.updateInsight(id, insightJson);
+            }
+            log.debug("Activity updated: id={}", id);
+        } catch (Exception e) {
+            log.warn("Failed to update activity: {}", e.getMessage());
+        }
+    }
+
+    // ───── Activity 辅助方法 ─────
+
+    /**
+     * 将数据库 Activity 行转换为前端兼容的 JSON 格式。
+     */
+    private Map<String, Object> convertActivityRowForWs(Map<String, Object> row) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("id", row.get("id"));
+        result.put("sessionId", row.get("session_id"));
+        result.put("operationType", row.get("operation_type"));
+        result.put("summary", row.get("summary"));
+        result.put("status", row.get("status"));
+        result.put("timestamp", row.get("timestamp"));
+        result.put("duration", row.get("duration"));
+        result.put("fileCount", row.get("file_count"));
+        result.put("decision", row.get("decision"));
+
+        // JSON 字段需要反序列化为对象
+        parseAndPut(result, "toolResult", (String) row.get("tool_result_json"));
+        parseAndPut(result, "changedFiles", (String) row.get("changed_files_json"));
+        parseAndPut(result, "insight", (String) row.get("insight_json"));
+
+        return result;
+    }
+
+    private void parseAndPut(Map<String, Object> target, String key, String json) {
+        if (json != null && !json.isEmpty()) {
+            try {
+                target.put(key, objectMapper.readValue(json, Object.class));
+            } catch (Exception e) {
+                log.warn("Failed to parse {} JSON: {}", key, e.getMessage());
+            }
+        }
     }
 
     // ───── WS 消息序列化辅助方法 ─────

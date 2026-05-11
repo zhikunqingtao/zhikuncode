@@ -33,6 +33,7 @@ export interface MessageStoreState {
     appendStreamDelta: (delta: string) => void;
     appendThinkingDelta: (delta: string) => void;
     startToolCall: (toolUseId: string, toolName: string, input: unknown) => void;
+    updateToolCallInput: (toolUseId: string, input: unknown) => void;
     updateToolCallProgress: (toolUseId: string, progress: string) => void;
     completeToolCall: (toolUseId: string, result: ToolResult) => void;
     finalizeStream: (usage: Usage) => void;
@@ -100,6 +101,12 @@ export const useMessageStore = create<MessageStoreState>()(
             d.activeToolCalls.set(id, {
                 toolName: name, input, status: 'running', startTime: Date.now(),
             });
+        }),
+        updateToolCallInput: (id, input) => set(d => {
+            const tc = d.activeToolCalls.get(id);
+            if (tc) {
+                tc.input = input;
+            }
         }),
         updateToolCallProgress: (id, progress) => set(d => {
             const tc = d.activeToolCalls.get(id);

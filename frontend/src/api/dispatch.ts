@@ -7,7 +7,9 @@
  */
 
 import type { Message, ServerMessage, Usage, PermissionRequest, PermissionMode, TokenWarningPayload } from '@/types';
+import type { ActivityData } from '@/types/apos';
 import { useMessageStore } from '@/store/messageStore';
+import { useActivityStore } from '@/store/activityStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { usePermissionStore } from '@/store/permissionStore';
 import { useCostStore } from '@/store/costStore';
@@ -20,6 +22,8 @@ import { useMcpStore } from '@/store/mcpStore';
 import { useSwarmStore } from '@/store/swarmStore';
 import { usePlanStore, type PlanStep } from '@/store/planStore';
 import { useCoordinatorStore } from '@/store/coordinatorStore';
+import { useInsightStore } from '@/store/insightStore';
+import { mapRunChecksResponseToRiskAssessment } from '@/utils/aposAdapters';
 import { appendStreamDelta } from '@/hooks/useStreamingText';
 import { generateUUID } from '@/utils/uuid';
 
@@ -109,8 +113,19 @@ const handlers: Record<string, (data: any) => void> = {
     },
     'thinking_delta':     (d) => useMessageStore.getState().appendThinkingDelta(d.delta),
     'tool_use_start':     (d) => useMessageStore.getState().startToolCall(d.toolUseId, d.toolName, d.input),
+    'tool_use_input':     (d) => {
+        console.log('[APOS-DEBUG] tool_use_input received:', {
+            toolUseId: d.toolUseId,
+            toolName: d.toolName,
+            inputType: typeof d.input,
+            inputKeys: d.input && typeof d.input === 'object' ? Object.keys(d.input) : [],
+            inputSample: JSON.stringify(d.input)?.substring(0, 300),
+            timestamp: Date.now(),
+        });
+        useMessageStore.getState().updateToolCallInput(d.toolUseId, d.input);
+    },
     'tool_use_progress':  (d) => useMessageStore.getState().updateToolCallProgress(d.toolUseId, d.progress),
-    'tool_result':        (d) => useMessageStore.getState().completeToolCall(d.toolUseId, d.result),
+    'tool_result':        (d) => useMessageStore.getState().completeToolCall(d.toolUseId, d.result ?? { content: d.content ?? '', isError: d.isError ?? false }),
 
     // === messageStore + sessionStore (2 种) ===
     'error':              (d) => handleError(d),
@@ -336,6 +351,25 @@ const handlers: Record<string, (data: any) => void> = {
             props: d.props ?? {},
         } as Message);
     },
+
+    // === APOS: 验证结果 + 验证进度 (2 种) ===
+    'verification_result': (d: any) => {
+        try {
+            const { operationId, result } = d;
+            if (!operationId || !result) {
+                console.warn('[APOS] verification_result missing fields:', d);
+                return;
+            }
+            const assessment = mapRunChecksResponseToRiskAssessment(result);
+            useInsightStore.getState().addAssessment(operationId, assessment);
+        } catch (err) {
+            console.error('[APOS] Failed to process verification_result:', err);
+        }
+    },
+    'verify_progress': (d: any) => {
+        // Optional: update progress UI
+        console.debug('[APOS] verify_progress:', d.operationId, d.check, d.progress);
+    },
 };
 
 // ==================== 跨 Store 私有方法 ====================
@@ -411,6 +445,7 @@ function handleCompactComplete(data: {
  */
 function handleSessionRestore(data: {
     messages: Message[];
+    activities?: ActivityData[];
     metadata: {
         sessionId: string;
         model: string;
@@ -444,6 +479,21 @@ function handleSessionRestore(data: {
     // 5. 更新连接状态
     useBridgeStore.getState().updateBridgeStatus({ status: 'connected', url: '' });
 
-    // 6. 通知 waitForSessionRestore 等待者
+    // 6. 恢复 Activity 数据（从后端持久化存储）
+    if (data.activities && data.activities.length > 0) {
+        const activityStore = useActivityStore.getState();
+        activityStore.clearAll();
+        data.activities.forEach(a => {
+            // 防御性规范化：确保 changedFiles 始终为数组（后端可能为 null）
+            const normalized = {
+                ...a,
+                changedFiles: Array.isArray(a.changedFiles) ? a.changedFiles : [],
+                sessionId: a.sessionId ?? data.metadata.sessionId,
+            };
+            activityStore.addActivity(normalized);
+        });
+    }
+
+    // 7. 通知 waitForSessionRestore 等待者
     sessionRestoredCallback?.();
 }
