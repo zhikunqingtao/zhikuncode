@@ -23,6 +23,8 @@ import { useSwarmStore } from '@/store/swarmStore';
 import { usePlanStore, type PlanStep } from '@/store/planStore';
 import { useCoordinatorStore } from '@/store/coordinatorStore';
 import { useInsightStore } from '@/store/insightStore';
+import { useAnomalyStore } from '@/store/anomalyStore';
+import { anomalyEngine } from '@/services/AnomalyDetectionEngine';
 import { mapRunChecksResponseToRiskAssessment } from '@/utils/aposAdapters';
 import { appendStreamDelta } from '@/hooks/useStreamingText';
 import { generateUUID } from '@/utils/uuid';
@@ -140,6 +142,12 @@ const handlers: Record<string, (data: any) => void> = {
 
     // === permissionStore + sessionStore (1 种) ===
     'permission_request': (d) => handlePermissionRequest(d),
+
+    // === activityStore: 权限拒绝后清除 changedFiles (1 种) ===
+    'tool_permission_denied': (d: { toolUseId: string; toolName: string }) => {
+        useActivityStore.getState().markToolUseDenied(d.toolUseId);
+        console.log('[APOS] tool_permission_denied: cleared changedFiles for', d.toolUseId, d.toolName);
+    },
 
     // === costStore (1 种) ===
     'cost_update':        (d) => useCostStore.getState().updateCost(d),
@@ -293,6 +301,29 @@ const handlers: Record<string, (data: any) => void> = {
     },
     'worker_progress':     (d: import('@/types').WorkerProgressPayload) => {
         useSwarmStore.getState().updateWorkerProgress(d);
+
+        // Phase 2: 异常检测触发 — 如果 payload 中包含结构化 ToolCallRecord[]
+        if (d.recentToolCalls && Array.isArray(d.recentToolCalls) && d.recentToolCalls.length > 0) {
+            const firstItem = d.recentToolCalls[0];
+            if (typeof firstItem === 'object' && firstItem !== null && 'toolName' in firstItem) {
+                // 查找 Worker 信息
+                const swarms = useSwarmStore.getState().swarms;
+                let worker: import('@/types').WorkerInfo | undefined;
+                for (const [, swarm] of swarms) {
+                    if (swarm.workers[d.workerId]) {
+                        worker = swarm.workers[d.workerId];
+                        break;
+                    }
+                }
+                if (worker) {
+                    const anomalies = anomalyEngine.evaluate(worker, d.recentToolCalls as unknown as import('@/types/apos').ToolCallRecord[]);
+                    anomalies.forEach(a => {
+                        a.swarmId = d.swarmId || '';
+                        useAnomalyStore.getState().addAnomaly(a);
+                    });
+                }
+            }
+        }
     },
     'permission_bubble':   (d: import('@/types').PermissionBubblePayload) => {
         useSwarmStore.getState().addPermissionBubble(d);

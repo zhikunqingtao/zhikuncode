@@ -22,7 +22,7 @@ import type { ServerMessage } from '@/types';
 const VALID_MESSAGE_TYPES: ReadonlySet<string> = new Set([
     'stream_delta', 'thinking_delta', 'tool_use_start', 'tool_use_input', 'tool_use_progress', 'tool_result',
     'error', 'compact_complete', 'message_complete', 'compact_start', 'rate_limit',
-    'permission_request', 'cost_update', 'task_update', 'agent_spawn', 'agent_update',
+    'permission_request', 'tool_permission_denied', 'cost_update', 'task_update', 'agent_spawn', 'agent_update',
     'agent_complete', 'elicitation', 'prompt_suggestion', 'speculation_result',
     'bridge_status', 'notification', 'teammate_message', 'mcp_tool_update',
     'mcp_health_status', 'session_restored', 'pong', 'compact_event', 'token_warning',
@@ -35,6 +35,8 @@ const VALID_MESSAGE_TYPES: ReadonlySet<string> = new Set([
     // APOS: 验证结果 + 验证进度推送
     'verification_result',
     'verify_progress',
+    // APOS: 工具权限拒绝通知
+    'tool_permission_denied',
 ]);
 
 /**

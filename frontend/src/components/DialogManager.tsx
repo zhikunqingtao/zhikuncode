@@ -10,6 +10,7 @@
 import React from 'react';
 import { useDialogStore } from '@/store/dialogStore';
 import { usePermissionStore } from '@/store/permissionStore';
+import { useActivityStore } from '@/store/activityStore';
 import { useAppUiStore } from '@/store/appUiStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { sendToServer, sendPermissionResponse } from '@/api/stompClient';
@@ -36,6 +37,12 @@ export const DialogManager: React.FC = () => {
         clearPendingPermission();
         // 3. 恢复会话状态
         useSessionStore.getState().setStatus('streaming');
+        // 4. 标记 Activity 决策：批准/拒绝
+        if (decision.decision === 'allow') {
+            useActivityStore.getState().markToolUseApproved(decision.toolUseId);
+        } else {
+            useActivityStore.getState().markToolUseDenied(decision.toolUseId);
+        }
     }, [respondPermission, clearPendingPermission]);
 
     // Handle elicitation submit — send response to backend via WebSocket
