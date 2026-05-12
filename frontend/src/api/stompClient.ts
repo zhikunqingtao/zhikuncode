@@ -35,8 +35,6 @@ const VALID_MESSAGE_TYPES: ReadonlySet<string> = new Set([
     // APOS: 验证结果 + 验证进度推送
     'verification_result',
     'verify_progress',
-    // APOS: 工具权限拒绝通知
-    'tool_permission_denied',
 ]);
 
 /**

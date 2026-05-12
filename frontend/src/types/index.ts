@@ -126,6 +126,12 @@ export interface PermissionBubblePayload {
     reason: string;
 }
 
+export interface ToolPermissionDeniedPayload {
+    type: 'tool_permission_denied';
+    toolUseId: string;
+    toolName: string;
+}
+
 export type ServerMessage =
     | StreamDeltaPayload
     | ThinkingDeltaPayload
@@ -163,6 +169,7 @@ export type ServerMessage =
     | SwarmStateUpdatePayload
     | WorkerProgressPayload
     | PermissionBubblePayload
+    | ToolPermissionDeniedPayload
     | WorkflowPhaseUpdatePayload;
 
 // ==================== 工具相关类型 ====================

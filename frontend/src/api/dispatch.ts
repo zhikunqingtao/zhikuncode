@@ -6,7 +6,7 @@
  * 跨 Store 消息通过私有 handle* 方法协调。
  */
 
-import type { Message, ServerMessage, Usage, PermissionRequest, PermissionMode, TokenWarningPayload } from '@/types';
+import type { Message, ServerMessage, Usage, PermissionRequest, PermissionMode, TokenWarningPayload, ToolPermissionDeniedPayload } from '@/types';
 import type { ActivityData } from '@/types/apos';
 import { useMessageStore } from '@/store/messageStore';
 import { useActivityStore } from '@/store/activityStore';
@@ -144,7 +144,7 @@ const handlers: Record<string, (data: any) => void> = {
     'permission_request': (d) => handlePermissionRequest(d),
 
     // === activityStore: 权限拒绝后清除 changedFiles (1 种) ===
-    'tool_permission_denied': (d: { toolUseId: string; toolName: string }) => {
+    'tool_permission_denied': (d: ToolPermissionDeniedPayload) => {
         useActivityStore.getState().markToolUseDenied(d.toolUseId);
         console.log('[APOS] tool_permission_denied: cleared changedFiles for', d.toolUseId, d.toolName);
     },
