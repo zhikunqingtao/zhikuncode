@@ -411,13 +411,14 @@ Full test report: [ZhikunCode v9.3 End-to-End Test Report](test-results/v9.3/Zhi
 - **GitHub Actions Pipeline**: Automatically runs backend compilation, frontend build, Python tests, and Docker image verification on every push
 
 **Test Coverage (v9.3):**
-- **Total**: 1653 cases + 490 performance probes + 7 security probes = **2150** (including 28 APOS Phase 1 E2E cases)
+- **Total**: 1703 cases + 490 performance probes + 7 security probes = **2200** (including 28 APOS Phase 1 E2E cases + 50 APOS Phase 2 E2E cases)
 - **Backend Unit/Integration Tests**: 1500 PASS / 0 failure / 0 error / 48 skipped, coverage Inst 42.17% / Branch 30.44%
 - **Python pytest**: 47 PASS, coverage 25.66%
 - **Frontend vitest**: 78 PASS / 16 skipped (94 total)
-- **30-Module REST/WS/LLM/Session Smoke**: 45/45 PASS (42 REST + 1 WS STOMP + 1 LLM live inference + 1 Session persistence)
+- **35-Module REST/WS/LLM/Session Smoke**: 45/45 PASS (42 REST + 1 WS STOMP + 1 LLM live inference + 1 Session persistence)
 - **E2E Differentiated Pipelines**: Task 6 Multi-Agent Collaboration (CoordinatorEventBus) · Task 7 Visualization Auto-Routing (`/visualize` mermaid/json/text) · Task 8 Browser Semantic Snapshot MVP (`/snap`) — all end-to-end PASS
 - **APOS Phase 1 E2E**: 9 modules, 28 cases (Activity UI / Data Flow / Three-layer Display / Signal Marking / Feature Flag / Backend API / Responsive / Persistence) 100% PASS, with 4 bug fix regressions
+- **APOS Phase 2 E2E**: 5 modules, 50 cases (Change Impact Panorama / Pipeline View & DAG / Anomaly Detection & Alert / Mobile Responsive / Phase 2 Integration) 48 PASS / 2 SKIP, pass rate 96%
 - **Feature Completeness**: 100% of planned v1.0 features verified
 
 **Test Framework Details:**
@@ -426,7 +427,7 @@ Full test report: [ZhikunCode v9.3 End-to-End Test Report](test-results/v9.3/Zhi
 |-----------|-------|----------|-------|
 | JUnit 5 + Mockito | Backend Unit/Integration | Context/Permission/Skill/Plugin/LLM/MCP/Memory/Concurrency/SSE/Persistence/Tool/Coordinator/Swarm etc. | 1500 PASS |
 | Vitest | Frontend Unit | Store Lifecycle/Cross-Tab Sync/Streaming Render/Immer Immutability/Route Boundary | 78 PASS |
-| Playwright + Node scripts | E2E | Coordinator WS subscription / Three visualization viewTypes / Browser snapshot MVP / APOS Phase 1 full-stack | Task 6/7/8/APOS all green |
+| Playwright + Node scripts | E2E | Coordinator WS subscription / Three visualization viewTypes / Browser snapshot MVP / APOS Phase 1 full-stack / APOS Phase 2 full-stack | Task 6/7/8/APOS all green |
 | Pytest | Python Service | Token Estimation/File Processing/Browser Automation/Semantic Snapshot/Code Analyzers | 47 PASS |
 
 **Performance Baseline (v9.3, 490 real request samples):**
@@ -445,7 +446,7 @@ Full test report: [ZhikunCode v9.3 End-to-End Test Report](test-results/v9.3/Zhi
 - E2E screenshots: [docs/test-results/screenshots/](test-results/screenshots/) (42 items)
 
 <details>
-<summary>📋 30 Test Modules Breakdown (click to expand)</summary>
+<summary>📋 35 Test Modules Breakdown (click to expand)</summary>
 
 | # | Module | Cases | Pass Rate | Notes |
 |---|--------|-------|-----------|-------|
@@ -479,6 +480,11 @@ Full test report: [ZhikunCode v9.3 End-to-End Test Report](test-results/v9.3/Zhi
 | 28 | APOS Backend API | 1 | 100% | ★ First coverage |
 | 29 | APOS Responsive + Health | 3 | 100% | ★ First coverage |
 | 30 | APOS Activity Persistence | 8 | 100% | ★ First coverage + 4 Bug fixes |
+| 31 | APOS Change Impact Panorama | 10 | 100% | ★ Phase 2 new |
+| 32 | APOS Pipeline View & DAG | 10 | 100% | ★ Phase 2 new |
+| 33 | APOS Anomaly Detection & Alert | 10 | 100% | ★ Phase 2 new, 2 SKIP |
+| 34 | APOS Mobile Responsive | 10 | 100% | ★ Phase 2 new |
+| 35 | APOS Phase 2 Integration | 10 | 100% | ★ Phase 2 new |
 
 </details>
 
