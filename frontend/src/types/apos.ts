@@ -1,74 +1,83 @@
-// ==================== 基础类型 ====================
+/**
+ * APOS 类型定义
+ * Phase 1: Activity, Insight, FeatureFlags, Verification
+ * Phase 2: ChangeImpactPanel、异常检测、Pipeline、协作图、推送通知
+ */
+
+// ══════════════════════════════════════════════════════════════
+// Phase 1: 核心类型
+// ══════════════════════════════════════════════════════════════
+
+// === 操作类型 ===
 
 export type OperationType =
-  | 'file_edit' | 'file_create' | 'command_execute' | 'test_run'
-  | 'git_commit' | 'refactor' | 'dependency' | 'config_change'
-  | 'delete' | 'unknown';
-
-export type VerificationStatus = 'all_pass' | 'has_warning' | 'has_error' | 'pending' | 'skipped' | 'failed';
-
-export type Signal = 'auto_approve' | 'review_recommended' | 'manual_required' | 'blocked';
+  | 'file_edit'
+  | 'file_create'
+  | 'command_execute'
+  | 'test_run'
+  | 'git_commit'
+  | 'refactor'
+  | 'dependency'
+  | 'config_change'
+  | 'delete'
+  | 'unknown';
 
 export type RiskLevel = 'safe' | 'review' | 'warning' | 'danger';
 
-// ==================== Activity 数据结构 ====================
+export type VerificationStatus = 'all_pass' | 'has_error' | 'has_warning' | 'pending' | 'skipped' | 'failed';
+
+// === 文件变更 ===
 
 export interface FileChange {
   filePath: string;
   additions: number;
   deletions: number;
+  changeType: 'added' | 'modified' | 'deleted';
   diffContent?: string;
-  changeType?: 'added' | 'modified' | 'deleted';
-  riskScore?: number;
 }
 
-export interface RiskFactor {
-  dimension: string;
-  score: number; // 0-100
-  reason: string;
-}
-
-export interface AISuggestion {
-  type: 'info' | 'warning' | 'fix';
-  message: string;
-  filePath?: string;
-  line?: number;
-}
+// === Activity ===
 
 export interface ActivityData {
   id: string;
   sessionId?: string;
   operationType: OperationType;
   summary: string;
-  status: 'completed' | 'awaiting_review' | 'error';
-  timestamp: number;
-  duration?: number;
-  fileCount?: number;
+  toolName?: string;
   changedFiles: FileChange[];
-  originalContent?: string;
-  modifiedContent?: string;
-  decision?: 'approved' | 'rejected';
-  /** 工具执行结果（命令输出等） */
+  fileCount?: number;
+  duration?: number;
   toolResult?: {
     content: string;
     isError: boolean;
     metadata?: Record<string, unknown>;
   };
+  originalContent?: string;
+  modifiedContent?: string;
   insight?: {
     signal: Signal;
     riskLevel: RiskLevel;
     summary: string;
-    factors: RiskFactor[];
-    suggestions: AISuggestion[];
-    verificationStatus: VerificationStatus;
+    factors: string[];
+    suggestions: string[];
+    verificationStatus: VerificationStatus | string;
   };
+  decision?: 'approved' | 'rejected';
+  status: string;
+  timestamp: number;
 }
 
-// ==================== 三层验证体系 ====================
+export interface ActivityFilter {
+  signal?: Signal[];
+  operationType?: OperationType;
+  search?: string;
+}
+
+// === Risk Assessment (Insight) ===
 
 export interface RiskAssessment {
   deterministic: {
-    typeCheck: { passed: boolean; errorCount: number; details: string };
+    typeCheck: { passed: boolean; errorCount: number; details?: string };
     lint: { passed: boolean; errorCount: number; warningCount: number };
     tests: { passed: boolean; passedCount: number; failedCount: number; coveragePercent?: number };
   };
@@ -84,144 +93,11 @@ export interface RiskAssessment {
   reason: string;
 }
 
-// ==================== AI 自审（Phase 2） ====================
-
-export interface AIInsight {
-  dimension: 'return_type' | 'dependency' | 'concurrency' | 'security' | 'coverage' | 'architecture';
-  severity: 'info' | 'warning' | 'error';
-  finding: string;
-  suggestion: string;
-  aiConfidence: 'high' | 'medium' | 'low';
-}
-
 export interface SelfReviewResult {
   operationId: string;
-  overallAssessment: string;
-  insights: AIInsight[];
-  model: string;
-  disclaimer: string;
-  processingTimeMs: number;
-}
-
-// ==================== API 请求/响应 ====================
-
-export interface RunChecksRequest {
-  sessionId: string;
-  operationId: string;
-  checks: ('typescript' | 'eslint' | 'test_match' | 'build')[];
-  filePaths: string[];
-  timeout?: number;
-}
-
-export interface RunChecksResponse {
-  operationId: string;
-  status: 'all_pass' | 'has_warning' | 'has_error';
-  results: {
-    check: 'typescript' | 'eslint' | 'test_match' | 'build' | 'timeout' | 'error';
-    passed: boolean;
-    errors?: { file: string; line: number; column: number; message: string; rule?: string }[];
-    warnings?: { file: string; line: number; column: number; message: string; rule?: string }[];
-    duration: number;
-  }[];
-  totalDuration: number;
-  timestamp: string;
-}
-
-export interface SelfReviewRequest {
-  sessionId: string;
-  operationId: string;
-  operationType: OperationType;
-  context: {
-    filePath?: string;
-    diff?: string;
-    command?: string;
-    exitCode?: number;
-    recentMessages: { role: 'user' | 'assistant'; content: string }[];
-    projectStructure?: string[];
-    testFramework?: string;
-  };
-  model?: string;
-}
-
-// ==================== Signal 配置 ====================
-
-export interface SignalConfig {
-  label: string;
-  color: string;
-  iconName: string; // lucide icon name
-}
-
-export const SIGNAL_CONFIG: Record<Signal, SignalConfig> = {
-  auto_approve:       { label: '可批准', color: 'bg-emerald-500', iconName: 'CheckCircle' },
-  review_recommended: { label: '建议审查', color: 'bg-amber-500', iconName: 'AlertTriangle' },
-  manual_required:    { label: '需审查', color: 'bg-orange-500', iconName: 'Eye' },
-  blocked:            { label: '已阻断', color: 'bg-red-600', iconName: 'XCircle' },
-};
-
-// ==================== Feature Flag ====================
-
-export interface APOSFeatureFlags {
-  APOS_ACTIVITY_STREAM: boolean;
-  APOS_AI_INSIGHT: boolean;
-  APOS_BATCH_REVIEW: boolean;
-  APOS_RISK_HEATMAP: boolean;
-}
-
-export const APOS_FLAG_DEFAULTS: APOSFeatureFlags = {
-  APOS_ACTIVITY_STREAM: false,
-  APOS_AI_INSIGHT: false,
-  APOS_BATCH_REVIEW: false,
-  APOS_RISK_HEATMAP: false,
-};
-
-export const APOS_FLAG_DEPENDENCIES: Record<string, string[]> = {
-  APOS_AI_INSIGHT: ['APOS_ACTIVITY_STREAM'],
-  APOS_BATCH_REVIEW: ['APOS_ACTIVITY_STREAM'],
-  APOS_RISK_HEATMAP: ['APOS_AI_INSIGHT'],
-};
-
-// ==================== Activity 生命周期 ====================
-
-export interface ActivityRetentionConfig {
-  maxCount: number;
-  cleanupStrategy: 'fifo_with_protection';
-  cleanupBatchSize: number;
-  protectedSignals: Signal[];
-  autoArchiveAfterMs: number;
-}
-
-export const DEFAULT_RETENTION_CONFIG: ActivityRetentionConfig = {
-  maxCount: 200,
-  cleanupStrategy: 'fifo_with_protection',
-  cleanupBatchSize: 50,
-  protectedSignals: ['blocked', 'manual_required'],
-  autoArchiveAfterMs: 1_800_000, // 30 minutes
-};
-
-// ==================== 验证工具配置 ====================
-
-export const VERIFICATION_CONFIG = {
-  mode: 'incremental' as const,
-  timeout: 10_000,
-  tools: {
-    typescript: { command: 'npx tsc --noEmit --incremental', scope: 'changed_files_and_imports' },
-    eslint: { command: 'npx eslint', scope: 'changed_files_only' },
-    vitest: { command: 'npx vitest run --reporter=json', scope: 'matching_test_files', bail: true },
-  },
-};
-
-// ==================== Store 状态接口 ====================
-
-export type ActivityFilter = {
-  signal?: Signal[];
-  operationType?: OperationType[];
-  status?: ('completed' | 'awaiting_review' | 'error')[];
-};
-
-export interface BatchApprovalStrategy {
-  autoApproveOnGreen: boolean;
-  requireConfirmOnYellow: boolean;
-  blockOnRed: boolean;
+  passed: boolean;
+  issues: string[];
+  suggestions: string[];
 }
 
 export interface InsightSummary {
@@ -230,71 +106,268 @@ export interface InsightSummary {
   lastUpdated: number;
 }
 
-// ==================== WebSocket 消息类型 ====================
+export interface BatchApprovalStrategy {
+  autoApproveOnGreen: boolean;
+  requireConfirmOnYellow: boolean;
+  blockOnRed: boolean;
+}
 
-export interface VerificationResultMessage {
-  type: 'verification_result';
+export interface AISuggestion {
+  id: string;
+  message: string;
+  type: 'optimization' | 'warning' | 'best_practice';
+  operationId?: string;
+}
+
+// === Verification API ===
+
+export interface RunChecksRequest {
   sessionId: string;
   operationId: string;
-  result: RunChecksResponse;
-  timestamp: string;
+  checks: string[];
+  filePaths: string[];
+  timeout: number;
 }
 
-export interface VerifyProgressMessage {
-  type: 'verify_progress';
-  sessionId: string;
-  operationId: string;
-  check: string;
-  progress: number;
-  timestamp: string;
+export interface RunChecksResponse {
+  status: 'all_pass' | 'has_warning' | 'has_error';
+  results: Array<{
+    check: string;
+    passed: boolean;
+    errors?: Array<{ file: string; line: number; message: string }>;
+    warnings?: Array<{ file: string; line?: number; message?: string }>;
+  }>;
 }
 
-// ==================== 服务接口 ====================
+// === Feature Flags ===
 
-export interface InsightServiceInterface {
-  requestSelfReview(req: SelfReviewRequest): Promise<SelfReviewResult>;
-  runChecks(req: RunChecksRequest): Promise<RunChecksResponse>;
+export interface APOSFeatureFlags {
+  APOS_ACTIVITY_STREAM: boolean;
+  APOS_AI_INSIGHT: boolean;
+  APOS_BATCH_REVIEW: boolean;
+  APOS_RISK_HEATMAP: boolean;
+  APOS_CHANGE_IMPACT: boolean;
+  APOS_AGENT_PIPELINE: boolean;
+  APOS_ANOMALY_ALERT: boolean;
+  APOS_MOBILE_STATUS: boolean;
 }
 
-// ==================== 按钮禁用统一判定 ====================
+export const APOS_FLAG_DEFAULTS: APOSFeatureFlags = {
+  APOS_ACTIVITY_STREAM: true,
+  APOS_AI_INSIGHT: true,
+  APOS_BATCH_REVIEW: true,
+  APOS_RISK_HEATMAP: false,
+  APOS_CHANGE_IMPACT: true,
+  APOS_AGENT_PIPELINE: true,
+  APOS_ANOMALY_ALERT: true,
+  APOS_MOBILE_STATUS: true,
+};
 
-/** 需要确定性验证的操作类型（排除 command_execute / test_run / unknown） */
+export const APOS_FLAG_DEPENDENCIES: Record<string, string[]> = {
+  APOS_ACTIVITY_STREAM: [],
+  APOS_AI_INSIGHT: ['APOS_ACTIVITY_STREAM'],
+  APOS_BATCH_REVIEW: ['APOS_ACTIVITY_STREAM'],
+  APOS_RISK_HEATMAP: ['APOS_AI_INSIGHT'],
+  APOS_CHANGE_IMPACT: ['APOS_ACTIVITY_STREAM'],
+  APOS_AGENT_PIPELINE: ['APOS_ACTIVITY_STREAM'],
+  APOS_ANOMALY_ALERT: ['APOS_AGENT_PIPELINE'],
+  APOS_MOBILE_STATUS: ['APOS_ACTIVITY_STREAM'],
+};
+
+// === Signal Config ===
+
+export const SIGNAL_CONFIG: Record<Signal, { color: string; label: string }> = {
+  auto_approve: { color: 'bg-green-500', label: '自动通过' },
+  review_recommended: { color: 'bg-yellow-500', label: '建议审查' },
+  manual_required: { color: 'bg-orange-500', label: '需人工' },
+  blocked: { color: 'bg-red-500', label: '阻塞' },
+};
+
+// === Retention Config ===
+
+export interface RetentionConfig {
+  maxCount: number;
+  protectedSignals: Signal[];
+  autoArchiveAfterMs: number;
+}
+
+export const DEFAULT_RETENTION_CONFIG: RetentionConfig = {
+  maxCount: 100,
+  protectedSignals: ['blocked', 'manual_required'],
+  autoArchiveAfterMs: 24 * 60 * 60 * 1000, // 24h
+};
+
+// === Needs Verification Ops ===
+
 export const NEEDS_VERIFICATION_OPS: OperationType[] = [
-  'file_edit', 'file_create', 'delete', 'git_commit',
-  'refactor', 'dependency', 'config_change',
+  'file_edit', 'file_create', 'command_execute', 'git_commit',
+  'refactor', 'dependency', 'config_change', 'delete',
 ];
 
+// === Insight Service Interface ===
+
+export interface InsightServiceInterface {
+  analyze(activity: ActivityData): Promise<RiskAssessment>;
+  selfReview(activity: ActivityData): Promise<SelfReviewResult>;
+}
+
+// === Utility Functions ===
+
 /**
- * 统一按钮禁用三重判定规则（L2 / L3 / Mobile 共用）
- *
- * 禁用条件（任一为真则禁用）：
- * 1. 无数据 —
- *    - 命令执行类：无 toolResult
- *    - 文件操作类：无 changedFiles 且无 toolResult
- * 2. 验证未完成 — insight 不存在或 verificationStatus === 'pending'
- * 3. 已做决定 — decision 已设置（外层通常已分支，此处做兜底）
- *
- * @param activity     当前 Activity
- * @param hasResult    是否有执行结果（L3 可传入含 messageStore 降级的 resultData）
+ * 三重禁用判定：按钮是否应该被禁用
+ * 1. 无 changedFiles 数据
+ * 2. 验证状态为 pending
+ * 3. 已有 decision
+ * @param _hasResult - 可选，是否已有 toolResult（L3 场景使用）
  */
-export function computeButtonDisabled(
-  activity: ActivityData,
-  hasResult?: boolean,
-): boolean {
-  const effectiveHasResult = hasResult ?? !!activity.toolResult;
-
-  // 3. 已做决定
+export function computeButtonDisabled(activity: ActivityData, _hasResult?: boolean): boolean {
   if (activity.decision !== undefined) return true;
-
-  // 2. 验证未完成
-  if (!activity.insight || activity.insight.verificationStatus === 'pending') return true;
-
-  // 1. 无数据
-  if (activity.operationType === 'command_execute') {
-    if (!effectiveHasResult) return true;
-  } else {
-    if (activity.changedFiles.length === 0 && !effectiveHasResult) return true;
-  }
-
+  if (activity.changedFiles.length === 0 && activity.insight?.verificationStatus === 'pending') return true;
+  if (activity.insight?.verificationStatus === 'pending') return true;
   return false;
+}
+
+// ══════════════════════════════════════════════════════════════
+// Phase 2: 扩展类型
+// ══════════════════════════════════════════════════════════════
+
+// === 2.1 ChangeImpactPanel ===
+
+export interface AggregatedFileChange {
+    filePath: string;
+    changeType: 'added' | 'modified' | 'deleted';
+    totalAdditions: number;
+    totalDeletions: number;
+    riskLevel: 'safe' | 'review' | 'warning' | 'danger';
+    riskReason?: string;
+    testCoverageGap: boolean;
+    touchCount: number;
+    indirectImpacts: IndirectImpact[];
+}
+
+export interface IndirectImpact {
+    filePath: string;
+    reason: string;
+    severity: 'low' | 'medium' | 'high';
+}
+
+export interface RiskSummary {
+    totalFiles: number;
+    highRiskCount: number;
+    testCoverageGapCount: number;
+    indirectImpactCount: number;
+}
+
+// === 2.6 异常检测 ===
+
+export interface ToolCallRecord {
+    toolName: string;
+    paramsHash: string;
+    status: 'success' | 'error' | 'timeout';
+    timestamp: number;
+    errorDetail?: string;
+    durationMs?: number;
+}
+
+export interface AnomalyEvent {
+    id: string;
+    swarmId: string;
+    workerId: string;
+    workerName: string;
+    ruleId: 'loop_detection' | 'stall_detection' | 'error_cascade';
+    severity: 'error' | 'critical';
+    message: string;
+    detectedAt: number;
+    resolvedAt: number | null;
+    resolution: 'abort' | 'replan' | 'dismiss' | 'auto_resolved' | null;
+}
+
+// === 2.4 协作关系图 ===
+
+export interface MailboxWriteEvent {
+    from: string;
+    to: string;
+    messageSize: number;
+    contentType: 'task_spec' | 'code_diff' | 'review_result' | 'test_report';
+    timestamp: number;
+}
+
+export interface CollaborationEdge {
+    id: string;
+    source: string;
+    target: string;
+    type: 'explicit_dependency' | 'mailbox_communication' | 'time_inferred';
+    dataSize?: number;
+    contentType?: string;
+    lastActivityTime: number;
+    messageCount: number;
+}
+
+// === 后端验证 API ===
+
+export type Signal = 'auto_approve' | 'review_recommended' | 'manual_required' | 'blocked';
+
+export interface HeuristicAnalysis {
+    affectedApiCount: number;
+    indirectImpactCount: number;
+    potentialImpactCount: number;
+    hasHighConfidenceImpact: boolean;
+    truncated: boolean;
+    filesAffected: string[];
+}
+
+export interface CheckDetail {
+    status: 'pass' | 'fail' | 'skipped';
+    errorCount: number;
+    warningCount: number;
+    issues: CheckIssue[];
+}
+
+export interface CheckIssue {
+    line: number;
+    column: number;
+    rule: string;
+    severity: string;
+    message: string;
+    code?: string;
+}
+
+export interface TestCheckDetail {
+    status: 'pass' | 'fail' | 'skipped' | 'no_tests';
+    passedCount: number;
+    failedCount: number;
+    coveragePercent?: number;
+    failures: TestFailure[];
+}
+
+export interface TestFailure {
+    testName: string;
+    message: string;
+}
+
+export interface FileCheckResult {
+    filePath: string;
+    typescript: CheckDetail;
+    eslint: CheckDetail;
+    vitest: TestCheckDetail;
+}
+
+export interface VerifyCheckResponse {
+    results: FileCheckResult[];
+    heuristic: HeuristicAnalysis;
+    signal: Signal;
+    signalReason: string;
+    overallStatus: 'pass' | 'partial' | 'fail';
+    duration: number;
+    timestamp: string;
+}
+
+// === 2.9 推送通知 ===
+
+export interface MobilePushConfig {
+    triggers: Record<string, { title: string; vibrate: boolean }>;
+    aggregation: {
+        windowMs: number;
+        template: string;
+    };
 }

@@ -108,6 +108,13 @@ export interface WorkerProgressPayload {
     toolCallCount: number;
     tokenConsumed: number;
     recentToolCalls: string[];
+    // Phase 2 新增
+    progressPercent: number | null;
+    totalSteps: number | null;
+    completedSteps: number | null;
+    errorMessage: string | null;
+    currentStepDescription: string | null;
+    terminationReason: 'completed' | 'error' | 'aborted' | null;
 }
 
 export interface PermissionBubblePayload {
@@ -480,6 +487,9 @@ export interface AgentTask {
     progress?: string;
     result?: string;
     startTime: number;
+    // Phase 2 新增
+    parentTaskId?: string;
+    dependencies?: string[];
 }
 
 // ==================== Swarm 状态类型 ====================
@@ -502,6 +512,13 @@ export interface WorkerInfo {
     toolCallCount: number;
     tokenConsumed: number;
     recentToolCalls: string[];
+    // Phase 2 新增
+    progressPercent: number | null;
+    totalSteps: number | null;
+    completedSteps: number | null;
+    errorMessage: string | null;
+    currentStepDescription: string | null;
+    terminationReason: 'completed' | 'error' | 'aborted' | null;
 }
 
 export interface PermissionBubbleRequest {
