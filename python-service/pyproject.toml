@@ -25,7 +25,7 @@ cli = [
     "rich>=13.0.0",
 ]
 code-intel = [
-    "tree-sitter>=0.21.0,<0.22.0",
+    "tree-sitter>=0.21.0,<0.26.0",
     "tree-sitter-languages>=1.10.0,<2.0.0",
     "rope>=1.13.0",
     "jedi>=0.19.0",
