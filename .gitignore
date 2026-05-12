@@ -90,6 +90,8 @@ docs/test-results/**/screenshots/
 # Playwright / 前端 E2E 临时产物
 frontend/test-results/
 frontend/playwright-report/
+docs/test-results/playwright-report/
+docs/test-results/playwright-junit.xml
 
 # Python 字节码缓存（全局；原规则只覆盖顶级 python-service/__pycache__/）
 **/__pycache__/
