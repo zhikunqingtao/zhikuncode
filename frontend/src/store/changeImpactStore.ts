@@ -6,6 +6,7 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { subscribeWithSelector } from 'zustand/middleware';
+import type { AggregatedFileChange, RiskSummary } from '@/types/apos';
 
 // ── 类型定义（基于 Python API 响应） ──
 
@@ -119,4 +120,88 @@ export const useChangeImpactStore = create<ChangeImpactState>()(
       d.lastHint = null;
     }),
   })))
+);
+
+// ══════════════════════════════════════════════════════════════
+// Phase 2: 聚合变更影响 Store — 会话级文件变更聚合与风险评估
+// ══════════════════════════════════════════════════════════════
+
+interface ChangeImpactAggStoreState {
+    aggregatedChanges: AggregatedFileChange[];
+    riskSummary: RiskSummary;
+    selectedFilePath: string | null;
+
+    aggregateSessionChanges: (activities: Array<{ changedFiles?: Array<{ path: string; additions: number; deletions: number; changeType: string }> }>) => void;
+    selectFile: (filePath: string | null) => void;
+    clearAll: () => void;
+}
+
+const RISK_ORDER: Record<string, number> = { danger: 0, warning: 1, review: 2, safe: 3 };
+
+export const useChangeImpactAggStore = create<ChangeImpactAggStoreState>()(
+    immer((set) => ({
+        aggregatedChanges: [],
+        riskSummary: { totalFiles: 0, highRiskCount: 0, testCoverageGapCount: 0, indirectImpactCount: 0 },
+        selectedFilePath: null,
+
+        aggregateSessionChanges: (activities) => set(state => {
+            const fileMap = new Map<string, AggregatedFileChange>();
+
+            for (const activity of activities) {
+                if (!activity.changedFiles) continue;
+                for (const file of activity.changedFiles) {
+                    const existing = fileMap.get(file.path);
+                    if (existing) {
+                        existing.totalAdditions += file.additions;
+                        existing.totalDeletions += file.deletions;
+                        existing.touchCount += 1;
+                    } else {
+                        fileMap.set(file.path, {
+                            filePath: file.path,
+                            changeType: (file.changeType as AggregatedFileChange['changeType']) || 'modified',
+                            totalAdditions: file.additions,
+                            totalDeletions: file.deletions,
+                            riskLevel: 'safe',
+                            testCoverageGap: false,
+                            touchCount: 1,
+                            indirectImpacts: [],
+                        });
+                    }
+                }
+            }
+
+            // 计算 riskLevel
+            for (const [, file] of fileMap) {
+                if (file.touchCount >= 3 || file.indirectImpacts.some(i => i.severity === 'high')) {
+                    file.riskLevel = 'danger';
+                } else if (file.touchCount >= 2 || file.indirectImpacts.length > 0) {
+                    file.riskLevel = 'warning';
+                } else if (file.totalAdditions + file.totalDeletions > 50) {
+                    file.riskLevel = 'review';
+                } else {
+                    file.riskLevel = 'safe';
+                }
+            }
+
+            // 按 riskLevel 降序排列
+            const sorted = Array.from(fileMap.values()).sort(
+                (a, b) => (RISK_ORDER[a.riskLevel] ?? 99) - (RISK_ORDER[b.riskLevel] ?? 99)
+            );
+
+            state.aggregatedChanges = sorted;
+            state.riskSummary = {
+                totalFiles: sorted.length,
+                highRiskCount: sorted.filter(f => f.riskLevel === 'danger' || f.riskLevel === 'warning').length,
+                testCoverageGapCount: sorted.filter(f => f.testCoverageGap).length,
+                indirectImpactCount: sorted.reduce((sum, f) => sum + f.indirectImpacts.length, 0),
+            };
+        }),
+
+        selectFile: (filePath) => set(state => { state.selectedFilePath = filePath; }),
+        clearAll: () => set(state => {
+            state.aggregatedChanges = [];
+            state.riskSummary = { totalFiles: 0, highRiskCount: 0, testCoverageGapCount: 0, indirectImpactCount: 0 };
+            state.selectedFilePath = null;
+        }),
+    }))
 );

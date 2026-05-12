@@ -7,6 +7,8 @@ import { updateActivityDecision } from '@/api/activityApi';
 
 interface ActivityStoreState {
   activities: Map<string, ActivityData>;
+  deniedToolUseIds: Set<string>;
+  approvedToolUseIds: Set<string>;
   currentSessionId: string | null;
   expandedId: string | null;
   l3ActivityId: string | null;
@@ -21,6 +23,10 @@ interface ActivityStoreState {
   attachInsight: (activityId: string, insight: ActivityData['insight']) => void;
   approveActivity: (id: string) => void;
   rejectActivity: (id: string) => void;
+  markToolUseDenied: (toolUseId: string) => void;
+  isToolUseDenied: (toolUseId: string) => boolean;
+  markToolUseApproved: (toolUseId: string) => void;
+  isToolUseApproved: (toolUseId: string) => boolean;
   setExpandedId: (id: string | null) => void;
   setL3ActivityId: (id: string | null) => void;
   setFilter: (filter: ActivityFilter) => void;
@@ -34,8 +40,10 @@ interface ActivityStoreState {
 }
 
 export const useActivityStore = create<ActivityStoreState>()(
-  subscribeWithSelector(immer((set) => ({
+  subscribeWithSelector(immer((set, get) => ({
     activities: new Map(),
+    deniedToolUseIds: new Set(),
+    approvedToolUseIds: new Set(),
     currentSessionId: null,
     expandedId: null,
     l3ActivityId: null,
@@ -103,6 +111,30 @@ export const useActivityStore = create<ActivityStoreState>()(
       });
       updateActivityDecision(id, 'rejected');
     },
+    markToolUseDenied: (toolUseId) => set(d => {
+      d.deniedToolUseIds.add(toolUseId);
+      // 如果 Activity 已存在，立即清除 changedFiles 并标记为拒绝
+      const existing = d.activities.get(toolUseId);
+      if (existing) {
+        existing.changedFiles = [];
+        existing.fileCount = 0;
+        existing.decision = 'rejected';
+      }
+    }),
+    isToolUseDenied: (toolUseId) => {
+      return get().deniedToolUseIds.has(toolUseId);
+    },
+    markToolUseApproved: (toolUseId) => set(d => {
+      d.approvedToolUseIds.add(toolUseId);
+      // 如果 Activity 已存在且 decision 未设置，立即标记为 approved
+      const existing = d.activities.get(toolUseId);
+      if (existing && existing.decision === undefined) {
+        existing.decision = 'approved';
+      }
+    }),
+    isToolUseApproved: (toolUseId) => {
+      return get().approvedToolUseIds.has(toolUseId);
+    },
     setExpandedId: (id) => set(d => { d.expandedId = id; }),
     setL3ActivityId: (id) => set(d => { d.l3ActivityId = id; }),
     setFilter: (filter) => set(d => { d.filter = filter; }),
@@ -142,6 +174,8 @@ export const useActivityStore = create<ActivityStoreState>()(
     }),
     clearAll: () => set(d => {
       d.activities.clear();
+      d.deniedToolUseIds.clear();
+      d.approvedToolUseIds.clear();
       d.selectedIds.clear();
       d.expandedId = null;
       d.l3ActivityId = null;

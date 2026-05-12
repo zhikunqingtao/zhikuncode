@@ -14,6 +14,7 @@ import type {
     AgentSpawnPayload,
     CoordinatorEventEnvelope,
 } from '@/types';
+import type { MailboxWriteEvent } from '@/types/apos';
 import { generateUUID } from '@/utils/uuid';
 
 /** 四个阶段的默认定义 */
@@ -39,6 +40,9 @@ export interface CoordinatorStoreState {
 
     /** 方案 B：Coordinator 实时事件流（保持最近 200 条） */
     coordinatorEvents: CoordinatorEventEnvelope[];
+
+    /** Mailbox 通信事件列表 */
+    mailboxEvents: MailboxWriteEvent[];
 
     // ═══ Actions ═══
 
@@ -72,6 +76,9 @@ export interface CoordinatorStoreState {
     /** 方案 B：清除 Coordinator 事件历史 */
     clearCoordinatorEvents: () => void;
 
+    /** 添加 Mailbox 通信事件 */
+    addMailboxEvent: (event: MailboxWriteEvent) => void;
+
     /** 清除所有数据 */
     clearAll: () => void;
 }
@@ -83,6 +90,7 @@ export const useCoordinatorStore = create<CoordinatorStoreState>()(
         delegationWarnings: [],
         panelVisible: false,
         coordinatorEvents: [],
+        mailboxEvents: [],
 
         updateWorkflowPhase: (data) => set((state) => {
             const isComplete = data.status === 'COMPLETED' || data.status === 'FAILED' || data.status === 'CANCELLED';
@@ -216,12 +224,21 @@ export const useCoordinatorStore = create<CoordinatorStoreState>()(
             state.coordinatorEvents = [];
         }),
 
+        addMailboxEvent: (event) => set((state) => {
+            state.mailboxEvents.push(event);
+            // 保持最多 100 条
+            if (state.mailboxEvents.length > 100) {
+                state.mailboxEvents = state.mailboxEvents.slice(-100);
+            }
+        }),
+
         clearAll: () => set((state) => {
             state.activeWorkflow = null;
             state.agentTasks = [];
             state.delegationWarnings = [];
             state.panelVisible = false;
             state.coordinatorEvents = [];
+            state.mailboxEvents = [];
         }),
     }))
 );

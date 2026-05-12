@@ -84,6 +84,12 @@ export const useSwarmStore = create<SwarmStoreState>()(
                         toolCallCount: ws.toolCallCount,
                         tokenConsumed: ws.tokenConsumed,
                         recentToolCalls: [],
+                        progressPercent: null,
+                        totalSteps: null,
+                        completedSteps: null,
+                        errorMessage: null,
+                        currentStepDescription: null,
+                        terminationReason: null,
                     };
                 });
             }
@@ -129,6 +135,12 @@ export const useSwarmStore = create<SwarmStoreState>()(
                     toolCallCount: data.toolCallCount,
                     tokenConsumed: data.tokenConsumed,
                     recentToolCalls: data.recentToolCalls || [],
+                    progressPercent: data.progressPercent ?? null,
+                    totalSteps: data.totalSteps ?? null,
+                    completedSteps: data.completedSteps ?? null,
+                    errorMessage: data.errorMessage ?? null,
+                    currentStepDescription: data.currentStepDescription ?? null,
+                    terminationReason: data.terminationReason ?? null,
                 };
             }
 

@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { subscribeWithSelector } from 'zustand/middleware';
-import type { RiskAssessment, SelfReviewResult, Signal, InsightSummary, BatchApprovalStrategy, AISuggestion } from '@/types/apos';
+import type { RiskAssessment, SelfReviewResult, Signal, InsightSummary, BatchApprovalStrategy, AISuggestion, VerifyCheckResponse } from '@/types/apos';
+import { notificationService } from '@/services/NotificationService';
 
 interface InsightStoreState {
   assessments: Map<string, RiskAssessment>;
@@ -11,6 +12,13 @@ interface InsightStoreState {
   approvalStrategy: BatchApprovalStrategy;
   globalSuggestions: AISuggestion[];
 
+  // Phase 2: 验证进度追踪
+  isVerifying: boolean;
+  verifyProgress: Map<string, 'running' | 'completed' | 'failed'>;
+  lastVerifyResult: VerifyCheckResponse | null;
+  verifySignal: Signal | null;
+  verifySignalReason: string;
+
   addAssessment: (operationId: string, assessment: RiskAssessment) => void;
   updateAssessment: (operationId: string, partial: Partial<RiskAssessment>) => void;
   addSelfReview: (operationId: string, review: SelfReviewResult) => void;
@@ -19,6 +27,13 @@ interface InsightStoreState {
   dismissSuggestion: (index: number) => void;
   setAutoApproveEnabled: (enabled: boolean) => void;
   updateApprovalStrategy: (strategy: Partial<BatchApprovalStrategy>) => void;
+
+  // Phase 2: 验证进度 actions
+  startVerification: (filePaths: string[]) => void;
+  handleVerifyProgress: (data: { filePath: string; status: string }) => void;
+  handleVerificationResult: (data: VerifyCheckResponse) => void;
+  resetVerification: () => void;
+
   clearAll: () => void;
 }
 
@@ -56,6 +71,13 @@ export const useInsightStore = create<InsightStoreState>()(
     approvalStrategy: { autoApproveOnGreen: false, requireConfirmOnYellow: true, blockOnRed: true },
     globalSuggestions: [],
 
+    // Phase 2: 验证进度初始状态
+    isVerifying: false,
+    verifyProgress: new Map(),
+    lastVerifyResult: null,
+    verifySignal: null,
+    verifySignalReason: '',
+
     addAssessment: (operationId, assessment) => set(d => {
       d.assessments.set(operationId, assessment);
       // Auto-update session summary
@@ -77,11 +99,53 @@ export const useInsightStore = create<InsightStoreState>()(
     dismissSuggestion: (index) => set(d => { d.globalSuggestions.splice(index, 1); }),
     setAutoApproveEnabled: (enabled) => set(d => { d.autoApproveEnabled = enabled; }),
     updateApprovalStrategy: (strategy) => set(d => { Object.assign(d.approvalStrategy, strategy); }),
+
+    // Phase 2: 验证进度 actions
+    startVerification: (filePaths) => set(d => {
+      d.isVerifying = true;
+      d.verifyProgress = new Map(filePaths.map(f => [f, 'running']));
+      d.lastVerifyResult = null;
+      d.verifySignal = null;
+      d.verifySignalReason = '';
+    }),
+    handleVerifyProgress: (data) => set(d => {
+      d.verifyProgress.set(data.filePath, data.status as 'running' | 'completed' | 'failed');
+    }),
+    handleVerificationResult: (data) => {
+      set(d => {
+        d.isVerifying = false;
+        d.lastVerifyResult = data;
+        d.verifySignal = data.signal;
+        d.verifySignalReason = data.signalReason;
+      });
+
+      // 推送通知：blocked/manual_required 信号触发
+      if (data.signal === 'blocked' || data.signal === 'manual_required') {
+        notificationService.send(
+          `[验证] ${data.signal === 'blocked' ? '阻塞' : '需人工审查'}`,
+          { body: data.signalReason, tag: 'verify-signal' }
+        );
+      }
+    },
+    resetVerification: () => set(d => {
+      d.isVerifying = false;
+      d.verifyProgress = new Map();
+      d.lastVerifyResult = null;
+      d.verifySignal = null;
+      d.verifySignalReason = '';
+    }),
+
     clearAll: () => set(d => {
       d.assessments.clear();
       d.selfReviews.clear();
       d.globalSuggestions = [];
       d.sessionSummary = { totalOperations: 0, signalCounts: { auto_approve: 0, review_recommended: 0, manual_required: 0, blocked: 0 }, lastUpdated: Date.now() };
+      // Phase 2: reset verification state
+      d.isVerifying = false;
+      d.verifyProgress = new Map();
+      d.lastVerifyResult = null;
+      d.verifySignal = null;
+      d.verifySignalReason = '';
     }),
   })))
 );
