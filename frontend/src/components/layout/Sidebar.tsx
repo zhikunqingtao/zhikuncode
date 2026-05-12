@@ -236,10 +236,12 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab }: Si
                     </div>
                 )}
                 {activeTab === 'apos' && (
-                    <div className="flex flex-col h-full">
+                    <div className="grid grid-rows-[auto_1fr_auto] h-full overflow-hidden">
                         <SessionFileExplorer />
                         <ActivityStream />
-                        <FeatureFlagPanel />
+                        <div className="max-h-[180px] overflow-y-auto flex-shrink-0">
+                            <FeatureFlagPanel />
+                        </div>
                     </div>
                 )}
             </div>

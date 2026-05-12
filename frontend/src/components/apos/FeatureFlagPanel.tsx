@@ -16,6 +16,10 @@ const FLAG_DESCRIPTIONS: Record<keyof APOSFeatureFlags, string> = {
   APOS_AI_INSIGHT: 'AI 自审洞察分析（需先启用活动流）',
   APOS_BATCH_REVIEW: '批量审查操作支持（需先启用活动流）',
   APOS_RISK_HEATMAP: '风险热力图可视化（需先启用 AI 洞察）',
+  APOS_CHANGE_IMPACT: '变更影响全景面板（需先启用活动流）',
+  APOS_AGENT_PIPELINE: 'Agent Pipeline 多 Worker 可视化（需先启用活动流）',
+  APOS_ANOMALY_ALERT: '异常告警面板（需先启用 Agent Pipeline）',
+  APOS_MOBILE_STATUS: '移动端底部状态栏（需先启用活动流）',
 };
 
 /** Flag 显示名称 */
@@ -24,6 +28,10 @@ const FLAG_LABELS: Record<keyof APOSFeatureFlags, string> = {
   APOS_AI_INSIGHT: 'AI Insight',
   APOS_BATCH_REVIEW: 'Batch Review',
   APOS_RISK_HEATMAP: 'Risk Heatmap',
+  APOS_CHANGE_IMPACT: 'Change Impact',
+  APOS_AGENT_PIPELINE: 'Agent Pipeline',
+  APOS_ANOMALY_ALERT: 'Anomaly Alert',
+  APOS_MOBILE_STATUS: 'Mobile Status',
 };
 
 export function FeatureFlagPanel() {

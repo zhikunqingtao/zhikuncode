@@ -33,20 +33,52 @@ import { useStompSubscription } from '@/hooks/useStompSubscription';
 import { computeDAGLayout } from '@/utils/dag-layout';
 import { AgentDAGNode, type AgentDAGNodeData } from './AgentDAGNode';
 import type { AgentTask, SwarmInfo, WorkerInfo, CoordinatorEventEnvelope } from '@/types';
+import type { CollaborationEdge, MailboxWriteEvent } from '@/types/apos';
 
 const nodeTypes = { agentNode: AgentDAGNode };
 
-/** 将 AgentTask + Swarm Workers 转换为 React Flow 的 nodes/edges */
+/** 边样式映射 */
+const EDGE_STYLES: Record<CollaborationEdge['type'], { stroke: string; strokeDasharray?: string }> = {
+  explicit_dependency: { stroke: '#3B82F6' },
+  mailbox_communication: { stroke: '#10B981' },
+  time_inferred: { stroke: '#9CA3AF', strokeDasharray: '5,5' },
+};
+
+/** 简单网格布局（dagre 失败时的回退方案） */
+function fallbackGridLayout(
+  rawNodes: Array<{ id: string; width: number; height: number }>
+): Map<string, { x: number; y: number }> {
+  const cols = Math.ceil(Math.sqrt(rawNodes.length));
+  const posMap = new Map<string, { x: number; y: number }>();
+  rawNodes.forEach((n, i) => {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    posMap.set(n.id, { x: col * 280 + 140, y: row * 140 + 70 });
+  });
+  return posMap;
+}
+
+/** 协作边中间结构 */
+interface RawCollaborationEdge {
+  source: string;
+  target: string;
+  type: CollaborationEdge['type'];
+  dataSize?: number;
+  contentType?: string;
+}
+
+/** 将 AgentTask + Swarm Workers + MailboxEvents 转换为 React Flow 的 nodes/edges */
 function buildGraph(
   agentTasks: AgentTask[],
   swarms: Map<string, SwarmInfo>,
   _activeWorkflowPhaseIndex: number,
-  direction: 'TB' | 'LR'
+  direction: 'TB' | 'LR',
+  mailboxEvents: MailboxWriteEvent[] = []
 ): { nodes: Node[]; edges: Edge[] } {
   if (agentTasks.length === 0) return { nodes: [], edges: [] };
 
   const rawNodes: Array<{ id: string; width: number; height: number; data: AgentDAGNodeData }> = [];
-  const rawEdges: Array<{ source: string; target: string }> = [];
+  const collabEdges: RawCollaborationEdge[] = [];
 
   // 按 startTime 排序任务
   const sortedTasks = [...agentTasks].sort((a, b) => a.startTime - b.startTime);
@@ -116,37 +148,101 @@ function buildGraph(
         t.agentType.toLowerCase().includes('swarm')
       );
       if (parentTask) {
-        rawEdges.push({ source: parentTask.taskId, target: workerId });
+        collabEdges.push({ source: parentTask.taskId, target: workerId, type: 'explicit_dependency' });
       }
     });
   });
 
-  // 建立 phase 间的串行边
+  // 记录已有边连接的节点对（用于策略 3 判断）
+  const connectedPairs = new Set<string>();
+
+  // ═══ 策略 1：显式依赖边（explicit_dependency）═══
+  // 从 agentTasks 中读取 parentTaskId，有 parentTaskId 的任务创建 parent → child 边
+  const taskIdSet = new Set(sortedTasks.map((t) => t.taskId));
+  sortedTasks.forEach((task) => {
+    if (task.parentTaskId && taskIdSet.has(task.parentTaskId)) {
+      const pairKey = `${task.parentTaskId}->${task.taskId}`;
+      collabEdges.push({ source: task.parentTaskId, target: task.taskId, type: 'explicit_dependency' });
+      connectedPairs.add(pairKey);
+    }
+    // 也处理 dependencies 数组
+    if (task.dependencies) {
+      task.dependencies.forEach((depId) => {
+        if (taskIdSet.has(depId)) {
+          const pairKey = `${depId}->${task.taskId}`;
+          if (!connectedPairs.has(pairKey)) {
+            collabEdges.push({ source: depId, target: task.taskId, type: 'explicit_dependency' });
+            connectedPairs.add(pairKey);
+          }
+        }
+      });
+    }
+  });
+
+  // ═══ 策略 2：Mailbox 通信边（mailbox_communication）═══
+  // 根据 agentName 匹配 taskId
+  const agentNameToTaskId = new Map<string, string>();
+  sortedTasks.forEach((task) => {
+    agentNameToTaskId.set(task.agentName, task.taskId);
+  });
+
+  mailboxEvents.forEach((evt) => {
+    const sourceId = agentNameToTaskId.get(evt.from);
+    const targetId = agentNameToTaskId.get(evt.to);
+    if (sourceId && targetId && sourceId !== targetId) {
+      const pairKey = `${sourceId}->${targetId}`;
+      if (!connectedPairs.has(pairKey)) {
+        collabEdges.push({
+          source: sourceId,
+          target: targetId,
+          type: 'mailbox_communication',
+          dataSize: evt.messageSize,
+          contentType: evt.contentType,
+        });
+        connectedPairs.add(pairKey);
+      }
+    }
+  });
+
+  // ═══ 策略 3：时间窗口推断边（time_inferred）═══
+  // 仅在策略 1 和 2 都无边的节点之间使用
+  // 基于 phase 间的顺序关系推断
   for (let i = 1; i < phases.length; i++) {
     const prevPhase = phases[i - 1];
     const currPhase = phases[i];
-    // 前一 phase 的所有任务 → 当前 phase 的第一个任务
     prevPhase.forEach((prevTask) => {
-      rawEdges.push({ source: prevTask.taskId, target: currPhase[0].taskId });
+      currPhase.forEach((currTask) => {
+        const pairKey = `${prevTask.taskId}->${currTask.taskId}`;
+        if (!connectedPairs.has(pairKey)) {
+          collabEdges.push({ source: prevTask.taskId, target: currTask.taskId, type: 'time_inferred' });
+          connectedPairs.add(pairKey);
+        }
+      });
     });
-    // 同一 phase 内如果有多个任务，第一个任务连到后续任务
-    if (currPhase.length > 1) {
-      for (let j = 1; j < currPhase.length; j++) {
-        rawEdges.push({ source: currPhase[0].taskId, target: currPhase[j].taskId });
-      }
-    }
   }
 
-  // 使用 dagre 计算布局
-  const layout = computeDAGLayout(
-    rawNodes.map((n) => ({ id: n.id, width: n.width, height: n.height })),
-    rawEdges,
-    direction
-  );
+  // 使用 dagre 计算布局（带容错回退）
+  const rawEdgesForLayout = collabEdges.map((e) => ({ source: e.source, target: e.target }));
+  let posMap: Map<string, { x: number; y: number }>;
 
-  const posMap = new Map(layout.nodes.map((n) => [n.id, { x: n.x, y: n.y }]));
+  try {
+    const layout = computeDAGLayout(
+      rawNodes.map((n) => ({ id: n.id, width: n.width, height: n.height })),
+      rawEdgesForLayout,
+      direction
+    );
+    posMap = new Map(layout.nodes.map((n) => [n.id, { x: n.x, y: n.y }]));
+  } catch {
+    // dagre 布局失败时回退为简单网格布局
+    posMap = fallbackGridLayout(rawNodes);
+  }
 
-  const nodes: Node[] = rawNodes.map((n) => {
+  // 节点 > 20 时自动折叠为摘要视图（仅保留前 20 个节点）
+  const isSummaryView = rawNodes.length > 20;
+  const displayNodes = isSummaryView ? rawNodes.slice(0, 20) : rawNodes;
+  const displayNodeIds = new Set(displayNodes.map((n) => n.id));
+
+  const nodes: Node[] = displayNodes.map((n) => {
     const pos = posMap.get(n.id) || { x: 0, y: 0 };
     return {
       id: n.id,
@@ -156,20 +252,44 @@ function buildGraph(
     };
   });
 
-  const edges: Edge[] = rawEdges.map((e, idx) => {
-    const sourceTask = agentTasks.find((t) => t.taskId === e.source);
-    const isActive = sourceTask?.status === 'running';
-    return {
-      id: `e-${e.source}-${e.target}-${idx}`,
-      source: e.source,
-      target: e.target,
-      animated: isActive,
-      style: {
-        stroke: isActive ? '#3b82f6' : '#9ca3af',
-        strokeWidth: isActive ? 2 : 1.5,
-      },
-    };
-  });
+  // 如果是摘要视图，添加一个提示节点
+  if (isSummaryView) {
+    const lastPos = posMap.get(displayNodes[displayNodes.length - 1]?.id) || { x: 0, y: 0 };
+    nodes.push({
+      id: '__summary_indicator__',
+      type: 'agentNode',
+      position: { x: lastPos.x + 100, y: lastPos.y + 120 },
+      data: {
+        agentName: `+${rawNodes.length - 20} more`,
+        agentType: 'summary',
+        description: `共 ${rawNodes.length} 个节点，已折叠显示`,
+        status: 'pending',
+      } as AgentDAGNodeData,
+    });
+  }
+
+  const edges: Edge[] = collabEdges
+    .filter((e) => displayNodeIds.has(e.source) && displayNodeIds.has(e.target))
+    .map((e, idx) => {
+      const style = EDGE_STYLES[e.type];
+      const sourceTask = agentTasks.find((t) => t.taskId === e.source);
+      const isActive = sourceTask?.status === 'running';
+      return {
+        id: `e-${e.source}-${e.target}-${e.type}-${idx}`,
+        source: e.source,
+        target: e.target,
+        animated: isActive && e.type !== 'time_inferred',
+        style: {
+          stroke: style.stroke,
+          strokeWidth: e.type === 'time_inferred' ? 1 : 1.5,
+          strokeDasharray: style.strokeDasharray,
+        },
+        label: e.type === 'mailbox_communication' && e.dataSize
+          ? `${e.dataSize}B`
+          : undefined,
+        markerEnd: { type: 'arrowclosed' as const, color: style.stroke },
+      };
+    });
 
   return { nodes, edges };
 }
@@ -248,6 +368,7 @@ function AgentDAGChartInner({ liveSessionId }: { liveSessionId?: string }) {
   const agentTasks = useCoordinatorStore((s) => s.agentTasks);
   const activeWorkflow = useCoordinatorStore((s) => s.activeWorkflow);
   const appendCoordinatorEvent = useCoordinatorStore((s) => s.appendCoordinatorEvent);
+  const mailboxEvents = useCoordinatorStore((s) => s.mailboxEvents);
   const swarms = useSwarmStore((s) => s.swarms);
 
   // 方案 B：订阅后端 CoordinatorEventBus 推送的实时事件
@@ -270,8 +391,8 @@ function AgentDAGChartInner({ liveSessionId }: { liveSessionId?: string }) {
   const currentPhaseIndex = activeWorkflow?.currentPhaseIndex ?? -1;
 
   const graphData = useMemo(
-    () => buildGraph(agentTasks, swarms, currentPhaseIndex, direction),
-    [agentTasks, swarms, currentPhaseIndex, direction]
+    () => buildGraph(agentTasks, swarms, currentPhaseIndex, direction, mailboxEvents),
+    [agentTasks, swarms, currentPhaseIndex, direction, mailboxEvents]
   );
 
   const [nodes, setNodes, onNodesChange] = useNodesState(graphData.nodes);

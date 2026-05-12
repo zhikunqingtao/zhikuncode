@@ -343,7 +343,7 @@ export function ActivityCardL3({
                 <ToolSection
                   title={`TypeScript — ${assessment.deterministic.typeCheck.passed ? '通过' : `${assessment.deterministic.typeCheck.errorCount} 错误`}`}
                   passed={assessment.deterministic.typeCheck.passed}
-                  details={assessment.deterministic.typeCheck.details}
+                  details={assessment.deterministic.typeCheck.details ?? ''}
                 />
                 <ToolSection
                   title={`ESLint — ${assessment.deterministic.lint.passed ? '通过' : `${assessment.deterministic.lint.errorCount} 错误, ${assessment.deterministic.lint.warningCount} 警告`}`}

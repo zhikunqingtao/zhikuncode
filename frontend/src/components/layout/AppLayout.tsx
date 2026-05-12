@@ -12,6 +12,8 @@ import { Sidebar } from './Sidebar';
 import { StatusBar } from './StatusBar';
 import { Drawer } from './Drawer';
 import { useWebSocket } from '@/hooks/useWebSocket';
+import { useFeatureFlagStore } from '@/store/featureFlagStore';
+import { MobileStatusBar } from '@/components/apos/MobileStatusBar';
 
 interface AppLayoutProps {
     children: React.ReactNode;
@@ -20,6 +22,9 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
+
+    const aposEnabled = useFeatureFlagStore((s) => s.flags.APOS_ACTIVITY_STREAM);
+    const mobileStatusEnabled = useFeatureFlagStore((s) => s.flags.APOS_MOBILE_STATUS);
 
     // 检测是否为独立 Sidebar 模式（新窗口打开）
     const isDetachedSidebar = useMemo(() => {
@@ -127,6 +132,11 @@ export function AppLayout({ children }: AppLayoutProps) {
                     <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
                     连接断开，正在重连...
                 </div>
+            )}
+
+            {/* Phase 2: Mobile Status Bar */}
+            {isMobile && aposEnabled && mobileStatusEnabled && (
+                <MobileStatusBar />
             )}
         </div>
     );

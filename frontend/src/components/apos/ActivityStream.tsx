@@ -4,12 +4,16 @@ import { Inbox } from 'lucide-react';
 import { useActivityStore } from '@store/activityStore';
 import { useInsightStore } from '@store/insightStore';
 import { useSessionStore } from '@/store/sessionStore';
+import { useFeatureFlagStore } from '@/store/featureFlagStore';
 import type { ActivityData, Signal } from '@/types/apos';
 import { ActivityCardL1 } from './ActivityCardL1';
 import { ActivityCardL2 } from './ActivityCardL2';
 import { ActivityCardL3 } from './ActivityCardL3';
 import { BatchOperationBar } from './BatchOperationBar';
 import { RiskHeatmap } from './RiskHeatmap';
+import { ChangeImpactPanel } from './ChangeImpactPanel';
+import { AgentPipelineView } from './AgentPipelineView';
+import { AnomalyAlertPanel } from './AnomalyAlertPanel';
 
 const SIGNAL_FILTERS: { label: string; value: Signal | 'all' }[] = [
   { label: '全部', value: 'all' },
@@ -36,10 +40,18 @@ export function ActivityStream() {
 
   const assessments = useInsightStore((s) => s.assessments);
 
+  // Phase 2 Feature Flags
+  const changeImpactEnabled = useFeatureFlagStore((s) => s.flags.APOS_CHANGE_IMPACT);
+  const agentPipelineEnabled = useFeatureFlagStore((s) => s.flags.APOS_AGENT_PIPELINE);
+  const anomalyAlertEnabled = useFeatureFlagStore((s) => s.flags.APOS_ANOMALY_ALERT);
+
   // Convert map to sorted array, apply filter (session-scoped)
   const sortedActivities = useMemo(() => {
     const arr = Array.from(activities.values())
-      .filter(a => a.sessionId === currentSessionId);
+      .filter(a => {
+        if (currentSessionId && a.sessionId !== currentSessionId) return false;
+        return true;
+      });
     const filtered = arr.filter((a) => {
       if (filter.signal && filter.signal.length > 0) {
         if (!a.insight?.signal || !filter.signal.includes(a.insight.signal)) return false;
@@ -100,7 +112,34 @@ export function ActivityStream() {
   );
 
   return (
-    <div className="flex flex-col h-full bg-[var(--bg-primary)]">
+    <div className="flex flex-col min-h-0 overflow-hidden bg-[var(--bg-primary)]">
+      {/* Phase 2: Change Impact Panel */}
+      {changeImpactEnabled && (
+        <div className="border-b border-[var(--border)] flex-shrink-0 max-h-[120px] overflow-y-auto">
+          <details className="group">
+            <summary className="px-3 py-2 text-xs font-medium text-[var(--text-secondary)] cursor-pointer hover:bg-[var(--bg-hover)] select-none flex items-center gap-1">
+              <span className="transition-transform group-open:rotate-90">▶</span>
+              变更影响全景
+            </summary>
+            <ChangeImpactPanel />
+          </details>
+        </div>
+      )}
+
+      {/* Phase 2: Agent Pipeline + Anomaly Alert */}
+      {agentPipelineEnabled && (
+        <div className="border-b border-[var(--border)] flex-shrink-0">
+          <details className="group">
+            <summary className="px-3 py-2 text-xs font-medium text-[var(--text-secondary)] cursor-pointer hover:bg-[var(--bg-hover)] select-none flex items-center gap-1">
+              <span className="transition-transform group-open:rotate-90">▶</span>
+              Agent Pipeline
+            </summary>
+            <AgentPipelineView />
+            {anomalyAlertEnabled && <AnomalyAlertPanel />}
+          </details>
+        </div>
+      )}
+
       {/* Filter Bar */}
       <div className="flex items-center gap-1 px-3 py-2 border-b border-[var(--border)] flex-shrink-0">
         {SIGNAL_FILTERS.map((f) => (

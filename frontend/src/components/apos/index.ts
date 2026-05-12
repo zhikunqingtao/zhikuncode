@@ -9,3 +9,13 @@ export { BatchOperationBar } from './BatchOperationBar';
 export { FeatureFlagPanel } from './FeatureFlagPanel';
 export { RiskHeatmap } from './RiskHeatmap';
 export { SessionFileExplorer } from './SessionFileExplorer';
+
+// Phase 2 新增
+export { ChangeImpactPanel } from './ChangeImpactPanel';
+export { FileChangeItem } from './FileChangeItem';
+export { AgentPipelineView } from './AgentPipelineView';
+export { PipelineNode } from './PipelineNode';
+export { AnomalyAlertPanel } from './AnomalyAlertPanel';
+export { MobileStatusBar } from './MobileStatusBar';
+export { MobilePipelineSummary } from './MobilePipelineSummary';
+export { MobileImpactList } from './MobileImpactList';

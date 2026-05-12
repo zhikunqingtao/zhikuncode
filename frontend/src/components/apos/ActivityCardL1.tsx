@@ -45,6 +45,7 @@ export function ActivityCardL1({
 
   return (
     <div
+      data-testid="activity-card-l1"
       onClick={onClick}
       className={`h-[52px] flex items-center gap-3 px-3 cursor-pointer border-b border-[var(--border)] transition-colors
         ${isExpanded ? 'bg-[var(--bg-hover)]' : 'hover:bg-[var(--bg-hover)]'}
