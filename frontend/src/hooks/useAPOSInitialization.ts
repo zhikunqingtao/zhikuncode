@@ -513,12 +513,32 @@ export function useAPOSInitialization(): void {
             const summary = generateActivitySummary(toolCall.toolName, toolCall.input, operationType);
 
             // 从 input 中提取文件变更信息
-            const changedFiles = extractChangedFiles(toolCall.toolName, toolCall.input);
+            // 权限被拒绝的工具不应显示 changedFiles（文件实际未被修改）
+            const isDenied = useActivityStore.getState().isToolUseDenied(toolUseId);
+            const isApproved = useActivityStore.getState().isToolUseApproved(toolUseId);
+            const changedFiles = isDenied ? [] : extractChangedFiles(toolCall.toolName, toolCall.input);
 
             // 根据操作类型决定初始 verificationStatus
             // 需要验证的操作（文件编辑/创建/删除等）→ 'pending'，显示 spinner
             // 不需要验证的操作（command_execute/test_run/unknown）→ 'skipped'，不显示 spinner
             const needsVerification = NEEDS_VERIFICATION_OPS.includes(operationType);
+
+            // 决定初始 decision:
+            // - 已被用户批准（在 PermissionDialog 中点击“允许”）→ 'approved'
+            // - 工具成功执行且未被拒绝，属于写入操作 → 'approved'（成功执行意味着已被批准）
+            // - 其他情况 → undefined（由 UI 根据 signal 显示“已自动放行”）
+            let initialDecision: 'approved' | 'rejected' | undefined;
+            if (isDenied) {
+              initialDecision = 'rejected';
+            } else if (isApproved) {
+              initialDecision = 'approved';
+            } else if (
+              toolCall.status === 'completed' &&
+              WRITE_OPS.includes(operationType)
+            ) {
+              // 写入操作成功完成，必然已被批准（用户批准或系统自动放行）
+              initialDecision = 'approved';
+            }
 
             const activity: ActivityData = {
               id: toolUseId,
@@ -530,6 +550,7 @@ export function useAPOSInitialization(): void {
               duration: toolCall.duration,
               fileCount: changedFiles.length,
               changedFiles,
+              decision: initialDecision,
               ...(toolCall.result && {
                 toolResult: {
                   content: toolCall.result.content,
@@ -666,7 +687,11 @@ export function useAPOSInitialization(): void {
             existing.changedFiles.length === 0 &&
             (hasValidInput || hasStringInput)
           ) {
-            // 回溯更新
+            // 权限被拒绝的工具跳过回填（文件实际未被修改）
+            if (useActivityStore.getState().isToolUseDenied(toolUseId)) {
+              return;
+            }
+            // 回填更新
             const operationType = inferOperationType(toolCall.toolName, toolCall.input);
             const summary = generateActivitySummary(toolCall.toolName, toolCall.input, operationType);
             const changedFiles = extractChangedFiles(toolCall.toolName, toolCall.input);
