@@ -162,6 +162,11 @@ public class ToolExecutionPipeline {
 
                 if (decision.isDenied()) {
                     log.info("Tool {} permission denied: {}", toolName, decision.reason());
+                    // 通知前端清除已显示的 changedFiles
+                    if (effectivePusher != null && context.sessionId() != null) {
+                        String denyToolUseId = context.toolUseId() != null ? context.toolUseId() : toolName;
+                        effectivePusher.sendToolPermissionDenied(context.sessionId(), denyToolUseId, toolName);
+                    }
                     return ToolExecutionResult.of(ToolResult.error("Permission denied: " + decision.reason()));
                 }
 
@@ -202,6 +207,8 @@ public class ToolExecutionPipeline {
 
                     if (!userDecision.isAllowed()) {
                         log.info("Tool {} permission denied by user", toolName);
+                        // 通知前端清除已显示的 changedFiles
+                        effectivePusher.sendToolPermissionDenied(context.sessionId(), toolUseId, toolName);
                         return ToolExecutionResult.of(ToolResult.error("Permission denied by user"));
                     }
 
@@ -316,6 +323,19 @@ public class ToolExecutionPipeline {
 
             if (!result.isAllowed()) {
                 log.info("Parent agent denied permission for tool={}", tool.getName());
+                // 通知前端（父会话）清除已显示的 changedFiles
+                if (wsPusher != null) {
+                    String targetSessionId = context.parentSessionId() != null
+                            ? context.parentSessionId()
+                            : context.sessionId();
+                    if (targetSessionId != null) {
+                        String denyToolUseId = context.toolUseId() != null
+                                ? context.toolUseId()
+                                : tool.getName();
+                        wsPusher.sendToolPermissionDenied(
+                                targetSessionId, denyToolUseId, tool.getName());
+                    }
+                }
                 return ToolExecutionResult.of(ToolResult.error("Permission denied by parent agent"));
             }
 

@@ -39,4 +39,15 @@ public interface PermissionNotifier {
         // 默认实现：退回到普通权限请求
         sendPermissionRequest(parentSessionId, toolUseId, toolName, input, riskLevel, reason);
     }
+
+    /**
+     * 通知前端工具权限被拒绝，前端应清除已显示的 changedFiles。
+     *
+     * @param sessionId  会话 ID
+     * @param toolUseId  工具调用 ID
+     * @param toolName   工具名称
+     */
+    default void sendToolPermissionDenied(String sessionId, String toolUseId, String toolName) {
+        // 默认空实现 — WebSocketController 覆写
+    }
 }

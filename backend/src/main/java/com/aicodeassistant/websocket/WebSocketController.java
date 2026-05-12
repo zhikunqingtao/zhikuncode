@@ -248,6 +248,13 @@ public class WebSocketController implements PermissionNotifier {
                         "source", "subagent", "childSessionId", childSessionId));
     }
 
+    /** #6c 工具权限被拒绝通知 — 前端应清除对应 changedFiles */
+    @Override
+    public void sendToolPermissionDenied(String sessionId, String toolUseId, String toolName) {
+        push(sessionId, "tool_permission_denied",
+                Map.of("toolUseId", toolUseId, "toolName", toolName));
+    }
+
     // ───── #7: messageStore + sessionStore ─────
 
     /** #7 助手回合完成 */

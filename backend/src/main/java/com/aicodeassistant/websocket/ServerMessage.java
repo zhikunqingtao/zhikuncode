@@ -204,7 +204,14 @@ public final class ServerMessage {
             String currentTask,
             int toolCallCount,
             long tokenConsumed,
-            List<String> recentToolCalls  // 最近 5 个
+            List<String> recentToolCalls,  // 最近 5 个
+            // Phase 2 新增
+            Integer progressPercent,
+            Integer totalSteps,
+            Integer completedSteps,
+            String errorMessage,
+            String currentStepDescription,
+            String terminationReason    // "completed" | "error" | "aborted"
     ) {}
 
     /** #40 permission_bubble — Worker 权限冒泡请求 */
