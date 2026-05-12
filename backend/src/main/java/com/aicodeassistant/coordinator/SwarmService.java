@@ -464,7 +464,8 @@ public class SwarmService {
                             ws.currentTask(),
                             ws.toolCallCount(),
                             ws.tokenConsumed(),
-                            ws.recentToolCalls()));
+                            ws.recentToolCalls(),
+                            null, null, null, null, null, null));
         } catch (Exception e) {
             log.debug("Failed to push worker progress: {}", e.getMessage());
         }

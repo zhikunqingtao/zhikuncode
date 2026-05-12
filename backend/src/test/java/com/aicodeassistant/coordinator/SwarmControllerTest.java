@@ -1,6 +1,7 @@
 package com.aicodeassistant.coordinator;
 
 import com.aicodeassistant.config.FeatureFlagService;
+import com.aicodeassistant.service.AnomalyEventRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,6 +23,7 @@ class SwarmControllerTest {
     private SwarmService swarmService;
     private FeatureFlagService featureFlags;
     private LeaderPermissionBridge permissionBridge;
+    private AnomalyEventRepository anomalyEventRepository;
     private SwarmController controller;
 
     @BeforeEach
@@ -29,10 +31,11 @@ class SwarmControllerTest {
         swarmService = mock(SwarmService.class);
         featureFlags = mock(FeatureFlagService.class);
         permissionBridge = mock(LeaderPermissionBridge.class);
+        anomalyEventRepository = mock(AnomalyEventRepository.class);
         when(featureFlags.isEnabled("ENABLE_AGENT_SWARMS")).thenReturn(true);
         when(swarmService.createSwarm(any(), any()))
                 .thenAnswer(inv -> new SwarmState("swarm-test", ((SwarmConfig) inv.getArgument(0)).teamName()));
-        controller = new SwarmController(swarmService, featureFlags, permissionBridge);
+        controller = new SwarmController(swarmService, featureFlags, permissionBridge, anomalyEventRepository);
     }
 
     @Test
