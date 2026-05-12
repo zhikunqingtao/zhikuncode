@@ -457,11 +457,11 @@ Full test report: [ZhikunCode v9.3 End-to-End Test Report](test-results/v9.3/Zhi
 | 5 | Tool System & Security | 10 | 100% | — |
 | 6 | Permission Governance | 6 | 100% | — |
 | 7 | System Prompt & LLM Integration | 7 | 100% | — |
-| 8 | Memory System | 7 | 100% | ★ First coverage |
+| 8 | Memory System | 7 | 86% | ★ First coverage |
 | 9 | Skill System | 7 | 100% | ★ First coverage |
 | 10 | Plugin System & MCP | 11 | 100% | ★ First coverage |
 | 11 | Multi-Agent Collaboration | 6 | 100% | — |
-| 12 | Python Service | 15 | 93% | 1 BUG fixed |
+| 12 | Python Service | 15 | 100% | 1 BUG fixed |
 | 13 | Frontend E2E & UI | 7 | 86% | 1 PARTIAL |
 | 14 | File History & API | 11 | 100% | ★ First coverage |
 | 15 | CLI Tool (aica) | 11 | 91% | 2 BUGs fixed |
@@ -471,7 +471,7 @@ Full test report: [ZhikunCode v9.3 End-to-End Test Report](test-results/v9.3/Zhi
 | 19 | F25 API Contract Visualization | 6 | 100% | ★ New in v1.0 |
 | 20 | F35 Code→Diagram Generation | 25 | 100% | ★ New in v1.0 |
 | 21 | F40 Code Path Tracing | 25 | 100% | ★ New in v1.0 |
-| 22 | Unit Test Suite (v9.3 expanded) | 1500+ | 100% | Expanded to 1500 PASS / 48 skipped in v9.3, including 19 CWE-22 depth-defense unit tests |
+| 22 | Unit Test Suite (v9.3 expanded) | 84 | 100% | E2E module-level test cases (backend JUnit 1500+ counted separately) |
 | 23 | APOS Basic UI | 4 | 100% | ★ First coverage |
 | 24 | APOS Data Flow | 4 | 100% | ★ First coverage |
 | 25 | APOS Three-layer Display | 4 | 100% | ★ First coverage |
@@ -480,11 +480,11 @@ Full test report: [ZhikunCode v9.3 End-to-End Test Report](test-results/v9.3/Zhi
 | 28 | APOS Backend API | 1 | 100% | ★ First coverage |
 | 29 | APOS Responsive + Health | 3 | 100% | ★ First coverage |
 | 30 | APOS Activity Persistence | 8 | 100% | ★ First coverage + 4 Bug fixes |
-| 31 | APOS Change Impact Panorama | 10 | 100% | ★ Phase 2 new |
-| 32 | APOS Pipeline View & DAG | 10 | 100% | ★ Phase 2 new |
+| 31 | APOS Change Impact Panorama | 6 | 100% | ★ Phase 2 new |
+| 32 | APOS Pipeline View & DAG | 12 | 92% | ★ Phase 2 new |
 | 33 | APOS Anomaly Detection & Alert | 10 | 100% | ★ Phase 2 new, 2 SKIP |
-| 34 | APOS Mobile Responsive | 10 | 100% | ★ Phase 2 new |
-| 35 | APOS Phase 2 Integration | 10 | 100% | ★ Phase 2 new |
+| 34 | APOS Mobile Responsive | 9 | 89% | ★ Phase 2 new |
+| 35 | APOS Phase 2 Integration | 13 | 100% | ★ Phase 2 new |
 
 </details>
 
