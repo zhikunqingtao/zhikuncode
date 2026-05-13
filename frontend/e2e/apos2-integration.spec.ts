@@ -182,7 +182,7 @@ test.describe('APOS Phase 2 - Integration Tests (TC-APOS2-047~050)', () => {
       const resp = await fetch(`/api/swarm/${swarmId}/worker/${workerId}/abort`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason: 'user_abort', triggeredBy: 'anomaly_alert' }),
+        body: JSON.stringify({ reason: 'user_abort', triggeredBy: 'anomaly_alert', sessionId: 'test-session-id' }),
       });
       const data = await resp.json();
       // 调用 resolveAnomaly 将异常从 active 移到 resolved
@@ -201,6 +201,7 @@ test.describe('APOS Phase 2 - Integration Tests (TC-APOS2-047~050)', () => {
     expect(interceptedRequest!.url).toContain(`/api/swarm/${SWARM_ID}/worker/${WORKER_ID}/abort`);
     expect(interceptedRequest!.body.reason).toBe('user_abort');
     expect(interceptedRequest!.body.triggeredBy).toBe('anomaly_alert');
+    expect(interceptedRequest!.body.sessionId).toBeDefined();
   
     // Step 7: 验证 anomalyStore 状态更新 — anomaly 已从 active 移到 resolved
     await page.waitForTimeout(300);

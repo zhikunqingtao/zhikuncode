@@ -5,6 +5,7 @@
 
 import React, { useCallback, useState } from 'react';
 import { useAnomalyStore } from '@/store/anomalyStore';
+import { useSessionStore } from '@/store/sessionStore';
 import type { AnomalyEvent } from '@/types/apos';
 
 /** 根据 ruleId 返回对应图标 */
@@ -52,10 +53,11 @@ export const AnomalyAlertPanel: React.FC = () => {
     const handleAbort = useCallback(async (anomaly: AnomalyEvent) => {
         setAbortingIds((prev) => new Set(prev).add(anomaly.id));
         try {
+            const sessionId = useSessionStore.getState().sessionId || 'default';
             await fetch(`/api/swarm/${anomaly.swarmId}/worker/${anomaly.workerId}/abort`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ reason: 'user_abort', triggeredBy: 'anomaly_alert' }),
+                body: JSON.stringify({ reason: 'user_abort', triggeredBy: 'anomaly_alert', sessionId }),
             });
             resolveAnomaly(anomaly.id, 'abort');
         } catch (err) {

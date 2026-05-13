@@ -20,6 +20,8 @@ public class AnomalyEventRepository {
 
     private static final Logger log = LoggerFactory.getLogger(AnomalyEventRepository.class);
 
+    private static final int MAX_CONTEXT_SNAPSHOT_SIZE = 100 * 1024; // 100KB
+
     private final JdbcTemplate jdbcTemplate;
 
     public AnomalyEventRepository(@Qualifier("projectJdbcTemplate") JdbcTemplate jdbcTemplate) {
@@ -40,13 +42,21 @@ public class AnomalyEventRepository {
      */
     public void save(String id, String swarmId, String workerId, String ruleId,
                      String severity, String message, long detectedAt, String contextSnapshot) {
+        // 截断过大的 context_snapshot，防止 SQLite 表膨胀
+        String truncatedSnapshot = contextSnapshot;
+        if (contextSnapshot != null && contextSnapshot.length() > MAX_CONTEXT_SNAPSHOT_SIZE) {
+            truncatedSnapshot = contextSnapshot.substring(0, MAX_CONTEXT_SNAPSHOT_SIZE)
+                    + "\n... [truncated at 100KB, original size: " + contextSnapshot.length() + "]";
+            log.warn("Truncated context_snapshot for event {}: {} -> {} bytes", id, contextSnapshot.length(), MAX_CONTEXT_SNAPSHOT_SIZE);
+        }
+
         jdbcTemplate.update(
                 """
                 INSERT OR REPLACE INTO anomaly_events (id, swarm_id, worker_id, rule_id,
                     severity, message, detected_at, context_snapshot)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                id, swarmId, workerId, ruleId, severity, message, detectedAt, contextSnapshot
+                id, swarmId, workerId, ruleId, severity, message, detectedAt, truncatedSnapshot
         );
         log.debug("Saved anomaly event: id={}, ruleId={}, worker={}", id, ruleId, workerId);
     }
@@ -109,5 +119,28 @@ public class AnomalyEventRepository {
             result.put((String) row.get("severity"), row.get("cnt"));
         }
         return result;
+    }
+
+    /**
+     * 删除指定时间之前已解决的异常事件。
+     * @param cutoffMs 截止时间（epoch millis）
+     * @return 删除的行数
+     */
+    public int deleteResolvedBefore(long cutoffMs) {
+        return jdbcTemplate.update(
+                "DELETE FROM anomaly_events WHERE resolved_at IS NOT NULL AND resolved_at < ?",
+                cutoffMs
+        );
+    }
+
+    /**
+     * 查询异常事件总数。
+     */
+    public int countAll() {
+        Integer count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM anomaly_events",
+                Integer.class
+        );
+        return count != null ? count : 0;
     }
 }

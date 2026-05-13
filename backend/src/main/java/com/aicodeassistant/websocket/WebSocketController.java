@@ -1122,19 +1122,27 @@ public class WebSocketController implements PermissionNotifier {
                         "status", data.status() != null ? data.status() : "idle"
                     );
 
-                    // 查询 activities
+                    // 查询 activities（限制最近 50 条，避免 STOMP 帧超限）
                     List<Map<String, Object>> activityRows = activityRepository.findBySessionId(sessionId);
-                    List<Map<String, Object>> activities = activityRows.stream()
+                    int totalActivityCount = activityRows.size();
+                    boolean hasMore = totalActivityCount > 50;
+                    List<Map<String, Object>> recentRows = hasMore
+                        ? activityRows.subList(totalActivityCount - 50, totalActivityCount)
+                        : activityRows;
+                    List<Map<String, Object>> activities = recentRows.stream()
                         .map(this::convertActivityRowForWs)
+                        .map(this::truncateActivityPayload)
                         .toList();
 
                     Map<String, Object> restoredPayload = new HashMap<>();
                     restoredPayload.put("messages", convertMessagesForWs(data.messages()));
                     restoredPayload.put("metadata", metadata);
                     restoredPayload.put("activities", activities);
+                    restoredPayload.put("totalActivityCount", totalActivityCount);
+                    restoredPayload.put("hasMore", hasMore);
                     push(sessionId, "session_restored", restoredPayload);
-                    log.info("Pushed session_restored: sessionId={}, messages={}, activities={}",
-                        sessionId, data.messages().size(), activities.size());
+                    log.info("Pushed session_restored: sessionId={}, messages={}, activities={}, total={}, hasMore={}",
+                        sessionId, data.messages().size(), activities.size(), totalActivityCount, hasMore);
                 }
             } catch (Exception e) {
                 log.warn("Failed to push session_restored for {}: {}", sessionId, e.getMessage());
@@ -1168,6 +1176,9 @@ public class WebSocketController implements PermissionNotifier {
 
     // ───── Activity STOMP 端点 ─────
 
+    private static final int MAX_ACTIVITY_JSON_SIZE = 10 * 1024; // 10KB per JSON field
+    private static final int MAX_ACTIVITY_ID_LENGTH = 128;
+
     /**
      * Activity 保存 → /app/activity-save
      */
@@ -1176,10 +1187,16 @@ public class WebSocketController implements PermissionNotifier {
         String sessionId = resolveSessionId(principal);
         try {
             String id = (String) payload.get("id");
+            // 输入验证：id 非空 + 长度限制
+            if (id == null || id.isBlank() || id.length() > MAX_ACTIVITY_ID_LENGTH) {
+                log.warn("Activity save rejected: invalid id (null/blank/too long), sessionId={}", sessionId);
+                return;
+            }
+
             String operationType = (String) payload.get("operationType");
             String summary = (String) payload.get("summary");
             String status = (String) payload.get("status");
-            long timestamp = ((Number) payload.get("timestamp")).longValue();
+            long timestamp = payload.get("timestamp") != null ? ((Number) payload.get("timestamp")).longValue() : System.currentTimeMillis();
             Integer duration = payload.get("duration") != null ? ((Number) payload.get("duration")).intValue() : null;
             int fileCount = payload.get("fileCount") != null ? ((Number) payload.get("fileCount")).intValue() : 0;
             String decision = (String) payload.get("decision");
@@ -1187,6 +1204,14 @@ public class WebSocketController implements PermissionNotifier {
             String toolResultJson = payload.get("toolResult") != null ? objectMapper.writeValueAsString(payload.get("toolResult")) : null;
             String changedFilesJson = payload.get("changedFiles") != null ? objectMapper.writeValueAsString(payload.get("changedFiles")) : null;
             String insightJson = payload.get("insight") != null ? objectMapper.writeValueAsString(payload.get("insight")) : null;
+
+            // 大小限制检查
+            if ((toolResultJson != null && toolResultJson.length() > MAX_ACTIVITY_JSON_SIZE) ||
+                (changedFilesJson != null && changedFilesJson.length() > MAX_ACTIVITY_JSON_SIZE) ||
+                (insightJson != null && insightJson.length() > MAX_ACTIVITY_JSON_SIZE)) {
+                log.warn("Activity save rejected: JSON field exceeds {}B limit, id={}", MAX_ACTIVITY_JSON_SIZE, id);
+                return;
+            }
 
             activityRepository.upsert(id, sessionId, operationType, summary, status, timestamp, duration, fileCount, decision, toolResultJson, changedFilesJson, insightJson);
             log.debug("Activity saved: id={}, sessionId={}, type={}", id, sessionId, operationType);
@@ -1248,6 +1273,26 @@ public class WebSocketController implements PermissionNotifier {
                 log.warn("Failed to parse {} JSON: {}", key, e.getMessage());
             }
         }
+    }
+
+    /**
+     * 截断 Activity payload 中的大型 JSON 字段，防止 STOMP 帧超限。
+     */
+    private Map<String, Object> truncateActivityPayload(Map<String, Object> activity) {
+        // toolResult 超过 1KB 时截断
+        Object toolResult = activity.get("toolResult");
+        if (toolResult != null) {
+            try {
+                String json = objectMapper.writeValueAsString(toolResult);
+                if (json.length() > 1024) {
+                    activity.put("toolResult", Map.of("truncated", true, "size", json.length()));
+                }
+            } catch (Exception e) {
+                // 序列化失败时移除该字段
+                activity.put("toolResult", Map.of("truncated", true, "size", -1));
+            }
+        }
+        return activity;
     }
 
     // ───── WS 消息序列化辅助方法 ─────

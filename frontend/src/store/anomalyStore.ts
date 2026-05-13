@@ -31,8 +31,16 @@ export const useAnomalyStore = create<AnomalyStoreState>()(
             if (get().isInCooldown(anomaly.workerId, anomaly.ruleId)) return;
 
             set(state => {
+                // 批量清理过期的 cooldown 条目（每次添加异常时顺带执行）
+                const now = Date.now();
+                const expiredKeys: string[] = [];
+                state.cooldownMap.forEach((timestamp, k) => {
+                    if (now - timestamp >= 30_000) expiredKeys.push(k);
+                });
+                expiredKeys.forEach(k => state.cooldownMap.delete(k));
+
                 state.activeAnomalies.push(anomaly);
-                state.cooldownMap.set(key, Date.now());
+                state.cooldownMap.set(key, now);
             });
 
             // 推送通知：仅 critical/error 级别触发
@@ -70,7 +78,12 @@ export const useAnomalyStore = create<AnomalyStoreState>()(
             const key = `${workerId}:${ruleId}`;
             const lastTime = get().cooldownMap.get(key);
             if (!lastTime) return false;
-            return (Date.now() - lastTime) < 30_000;  // 30s 固定冷却
+            if ((Date.now() - lastTime) >= 30_000) {
+                // 过期条目主动删除，防止无界增长
+                set(state => { state.cooldownMap.delete(key); });
+                return false;
+            }
+            return true;
         },
 
         clearResolved: () => set(state => { state.resolvedHistory = []; }),

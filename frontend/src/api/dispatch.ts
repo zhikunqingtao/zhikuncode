@@ -302,26 +302,30 @@ const handlers: Record<string, (data: any) => void> = {
     'worker_progress':     (d: import('@/types').WorkerProgressPayload) => {
         useSwarmStore.getState().updateWorkerProgress(d);
 
-        // Phase 2: 异常检测触发 — 如果 payload 中包含结构化 ToolCallRecord[]
+        // Phase 2: 异常检测触发 — 独立 try-catch 保护，不影响主流程
         if (d.recentToolCalls && Array.isArray(d.recentToolCalls) && d.recentToolCalls.length > 0) {
-            const firstItem = d.recentToolCalls[0];
-            if (typeof firstItem === 'object' && firstItem !== null && 'toolName' in firstItem) {
-                // 查找 Worker 信息
-                const swarms = useSwarmStore.getState().swarms;
-                let worker: import('@/types').WorkerInfo | undefined;
-                for (const [, swarm] of swarms) {
-                    if (swarm.workers[d.workerId]) {
-                        worker = swarm.workers[d.workerId];
-                        break;
+            try {
+                const firstItem = d.recentToolCalls[0];
+                if (typeof firstItem === 'object' && firstItem !== null && 'toolName' in firstItem) {
+                    const swarms = useSwarmStore.getState().swarms;
+                    let worker: import('@/types').WorkerInfo | undefined;
+                    for (const [, swarm] of swarms) {
+                        if (swarm.workers[d.workerId]) {
+                            worker = swarm.workers[d.workerId];
+                            break;
+                        }
+                    }
+                    if (worker) {
+                        const anomalies = anomalyEngine.evaluate(worker, d.recentToolCalls as unknown as import('@/types/apos').ToolCallRecord[]);
+                        anomalies.forEach(a => {
+                            a.swarmId = d.swarmId || '';
+                            useAnomalyStore.getState().addAnomaly(a);
+                        });
                     }
                 }
-                if (worker) {
-                    const anomalies = anomalyEngine.evaluate(worker, d.recentToolCalls as unknown as import('@/types/apos').ToolCallRecord[]);
-                    anomalies.forEach(a => {
-                        a.swarmId = d.swarmId || '';
-                        useAnomalyStore.getState().addAnomaly(a);
-                    });
-                }
+            } catch (err) {
+                console.error('[dispatch] worker_progress anomaly detection failed:', err);
+                // 异常检测失败不影响 Worker 进度更新（updateWorkerProgress 已在上方执行）
             }
         }
     },
@@ -386,6 +390,22 @@ const handlers: Record<string, (data: any) => void> = {
     // === APOS: 验证结果 + 验证进度 (2 种) ===
     'verification_result': (d: any) => {
         try {
+            // Phase 2 路径：payload 直接包含 signal 字段（由 VerifyCheckService.pushVerificationResult 推送）
+            if ('signal' in d && 'overallStatus' in d) {
+                const response: import('@/types/apos').VerifyCheckResponse = {
+                    results: d.results ?? [],
+                    heuristic: d.heuristic ?? { affectedApiCount: 0, indirectImpactCount: 0, potentialImpactCount: 0, hasHighConfidenceImpact: false, truncated: false, filesAffected: [] },
+                    signal: d.signal,
+                    signalReason: d.signalReason ?? '',
+                    overallStatus: d.overallStatus,
+                    duration: d.duration ?? 0,
+                    timestamp: d.timestamp ?? new Date().toISOString(),
+                };
+                useInsightStore.getState().handleVerificationResult(response);
+                return;
+            }
+
+            // Phase 1 兼容路径：payload 包含 operationId + result（旧版 legacy-checks 推送）
             const { operationId, result } = d;
             if (!operationId || !result) {
                 console.warn('[APOS] verification_result missing fields:', d);
@@ -477,6 +497,8 @@ function handleCompactComplete(data: {
 function handleSessionRestore(data: {
     messages: Message[];
     activities?: ActivityData[];
+    totalActivityCount?: number;
+    hasMore?: boolean;
     metadata: {
         sessionId: string;
         model: string;
@@ -510,7 +532,7 @@ function handleSessionRestore(data: {
     // 5. 更新连接状态
     useBridgeStore.getState().updateBridgeStatus({ status: 'connected', url: '' });
 
-    // 6. 恢复 Activity 数据（从后端持久化存储）
+    // 6. 恢复 Activity 数据（从后端持久化存储，最多 50 条最近记录）
     if (data.activities && data.activities.length > 0) {
         const activityStore = useActivityStore.getState();
         activityStore.clearAll();
@@ -523,6 +545,11 @@ function handleSessionRestore(data: {
             };
             activityStore.addActivity(normalized);
         });
+
+        // Phase 2: hasMore 标志处理 — 通知 activityStore 有更多历史数据可按需加载
+        if (data.hasMore && data.totalActivityCount) {
+            activityStore.setHasMoreHistory(true, data.totalActivityCount);
+        }
     }
 
     // 7. 通知 waitForSessionRestore 等待者

@@ -33,12 +33,14 @@ public class WorkerStateTracker {
      * @param record   工具调用记录
      */
     public void recordToolCall(String workerId, ToolCallRecord record) {
-        recentToolCalls.computeIfAbsent(workerId, k -> new ArrayDeque<>(MAX_RECENT_TOOL_CALLS));
-        Deque<ToolCallRecord> queue = recentToolCalls.get(workerId);
-        synchronized (queue) {
-            if (queue.size() >= MAX_RECENT_TOOL_CALLS) queue.pollFirst();
-            queue.addLast(record);
-        }
+        recentToolCalls.compute(workerId, (k, existing) -> {
+            Deque<ToolCallRecord> queue = (existing != null) ? existing : new ArrayDeque<>(MAX_RECENT_TOOL_CALLS);
+            synchronized (queue) {
+                if (queue.size() >= MAX_RECENT_TOOL_CALLS) queue.pollFirst();
+                queue.addLast(record);
+            }
+            return queue;
+        });
     }
 
     /**
@@ -62,14 +64,35 @@ public class WorkerStateTracker {
      * @param workerId Worker 唯一标识
      */
     public void clearWorker(String workerId) {
-        recentToolCalls.remove(workerId);
+        recentToolCalls.compute(workerId, (k, existing) -> {
+            if (existing != null) {
+                synchronized (existing) {
+                    existing.clear();
+                }
+            }
+            return null; // 返回 null 等价于 remove
+        });
     }
 
     /**
      * 清除所有追踪数据（Swarm 强制关闭时使用）。
      */
     public void clearAll() {
-        recentToolCalls.clear();
+        // ConcurrentHashMap.clear() 不持有 bin 锁，与 compute() 存在竞态：
+        // 若 compute() lambda 正在执行（持有 bin 锁），clear() 可将该 slot 置 null，
+        // 但 compute() 完成后会将结果重新写入 table，导致 entry "复活"。
+        // 改为逐 key compute(null) 确保与并发 recordToolCall 的 compute() 互斥。
+        Set<String> keys = Set.copyOf(recentToolCalls.keySet());
+        for (String key : keys) {
+            recentToolCalls.compute(key, (k, existing) -> {
+                if (existing != null) {
+                    synchronized (existing) {
+                        existing.clear();
+                    }
+                }
+                return null;
+            });
+        }
     }
 
     /**

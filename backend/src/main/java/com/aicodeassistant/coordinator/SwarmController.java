@@ -4,10 +4,14 @@ import com.aicodeassistant.config.FeatureFlagService;
 import com.aicodeassistant.model.dto.AbortRequest;
 import com.aicodeassistant.model.dto.AbortResponse;
 import com.aicodeassistant.service.AnomalyEventRepository;
+import com.aicodeassistant.websocket.WebSocketSessionManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.Path;
+import java.security.Principal;
 import java.time.Instant;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -22,10 +26,13 @@ import java.util.regex.Pattern;
 @RequestMapping("/api/swarm")
 public class SwarmController {
 
+    private static final Logger log = LoggerFactory.getLogger(SwarmController.class);
+
     private final SwarmService swarmService;
     private final FeatureFlagService featureFlags;
     private final LeaderPermissionBridge permissionBridge;
     private final AnomalyEventRepository anomalyEventRepository;
+    private final WebSocketSessionManager webSocketSessionManager;
 
     /** teamName 白名单：字母/数字/下划线/中划线，长度 1-64；禁止路径分隔符与 .. 防止 scratchpad 路径穿越。 */
     private static final Pattern TEAM_NAME_PATTERN = Pattern.compile("^[A-Za-z0-9_-]{1,64}$");
@@ -33,11 +40,13 @@ public class SwarmController {
     public SwarmController(SwarmService swarmService,
                             FeatureFlagService featureFlags,
                             LeaderPermissionBridge permissionBridge,
-                            AnomalyEventRepository anomalyEventRepository) {
+                            AnomalyEventRepository anomalyEventRepository,
+                            WebSocketSessionManager webSocketSessionManager) {
         this.swarmService = swarmService;
         this.featureFlags = featureFlags;
         this.permissionBridge = permissionBridge;
         this.anomalyEventRepository = anomalyEventRepository;
+        this.webSocketSessionManager = webSocketSessionManager;
     }
 
     /**
@@ -173,7 +182,8 @@ public class SwarmController {
     public ResponseEntity<?> abortWorker(
             @PathVariable String swarmId,
             @PathVariable String workerId,
-            @RequestBody AbortRequest request) {
+            @RequestBody AbortRequest request,
+            Principal principal) {
         if (!featureFlags.isEnabled("ENABLE_AGENT_SWARMS")) {
             return ResponseEntity.status(403)
                     .body(Map.of("error", "Agent Swarms feature is disabled"));
@@ -189,18 +199,78 @@ public class SwarmController {
             return ResponseEntity.notFound().build();
         }
 
-        // 2. 向 worker 发送中止信号（设置状态为 TERMINATED）
+        // 2. 三层防御身份验证：仅 Swarm 创建者可 abort Worker
+        String ownerSessionId = swarmService.getSessionIdForSwarm(swarmId);
+        if (ownerSessionId != null) {
+            boolean verified = false;
+            String verifyPath = "none";
+
+            // 第1层：请求体 sessionId 验证（主路径，同维度UUID比较）
+            String reqSessionId = request.sessionId();
+            if (reqSessionId != null && !reqSessionId.isBlank()) {
+                if (ownerSessionId.equals(reqSessionId)) {
+                    verified = true;
+                    verifyPath = "layer1-request-body";
+                } else {
+                    log.warn("Abort denied [layer1]: sessionId mismatch for swarm={}", swarmId);
+                    log.debug("Abort denied detail [layer1]: reqSessionId=...{}, ownerSessionId=...{} for swarm={}",
+                            reqSessionId != null && reqSessionId.length() > 6 ? reqSessionId.substring(reqSessionId.length() - 6) : reqSessionId,
+                            ownerSessionId != null && ownerSessionId.length() > 6 ? ownerSessionId.substring(ownerSessionId.length() - 6) : ownerSessionId,
+                            swarmId);
+                    return ResponseEntity.status(403)
+                            .body(Map.of("error", "Unauthorized: only the swarm owner can abort workers"));
+                }
+            }
+
+            // 第2层：Principal 交叉验证（多用户增强）
+            if (principal != null) {
+                String principalName = principal.getName();
+                String mappedSessionId = webSocketSessionManager.getSessionForPrincipal(principalName);
+                if (mappedSessionId != null) {
+                    if (ownerSessionId.equals(mappedSessionId)) {
+                        verified = true;
+                        verifyPath = verified ? verifyPath + "+layer2-principal" : "layer2-principal";
+                    } else {
+                        log.warn("Abort denied [layer2]: principal session binding mismatch for principal={}, swarm={}",
+                                principalName, swarmId);
+                        log.debug("Abort denied detail [layer2]: mappedSessionId=...{}, ownerSessionId=...{} for principal={}, swarm={}",
+                                mappedSessionId != null && mappedSessionId.length() > 6 ? mappedSessionId.substring(mappedSessionId.length() - 6) : mappedSessionId,
+                                ownerSessionId != null && ownerSessionId.length() > 6 ? ownerSessionId.substring(ownerSessionId.length() - 6) : ownerSessionId,
+                                principalName, swarmId);
+                        return ResponseEntity.status(403)
+                                .body(Map.of("error", "Unauthorized: only the swarm owner can abort workers"));
+                    }
+                } else {
+                    // 映射不存在（极端情况），仅依赖第1层验证
+                    log.debug("Layer2 skip: no session mapping for principal={}, relying on layer1", principalName);
+                }
+            }
+
+            // 第3层：安全兜底 — 如果 ownerSessionId 非 null 但请求体没有 sessionId 且 Principal 也是 null → 拒绝
+            if (!verified) {
+                log.warn("Abort denied [layer3-fallback]: no sessionId in request body and principal is null for swarm={}", swarmId);
+                return ResponseEntity.status(403)
+                        .body(Map.of("error", "Unauthorized: unable to verify ownership (no credentials provided)"));
+            }
+
+            log.info("Abort authorized: swarm={}, worker={}, verifyPath={}", swarmId, workerId, verifyPath);
+        } else {
+            // ownerSessionId 为 null 意味着 swarm 未绑定创建者（兼容旧数据），允许通过
+            log.debug("Abort allowed: swarm={} has no owner session binding", swarmId);
+        }
+
+        // 3. 向 worker 发送中止信号（设置状态为 TERMINATED）
         state.markWorkerTerminated(workerId);
 
-        // 3. 持久化异常事件到 anomaly_events 表
+        // 4. 持久化异常事件到 anomaly_events 表
         String eventId = "anomaly-" + UUID.randomUUID().toString().substring(0, 8);
         anomalyEventRepository.save(
                 eventId, swarmId, workerId, "worker_abort", "high",
-                "Worker aborted: " + (request.reason() != null ? request.reason() : "no reason"),
+                "Worker aborted by " + (principal != null ? principal.getName() : "unknown") + ": " + (request.reason() != null ? request.reason() : "no reason"),
                 Instant.now().toEpochMilli(), null
         );
 
-        // 4. 推送 worker_progress 更新（via SwarmService internal push）
+        // 5. 推送 worker_progress 更新
         // The state change will be picked up by next state push cycle
 
         return ResponseEntity.ok(new AbortResponse(

@@ -256,6 +256,17 @@ public class SwarmService {
     }
 
     /**
+     * 获取 Swarm 对应的父会话 ID，用于会话所有权验证。
+     * 确保只有 Swarm 创建者可执行 abort 等敏感操作。
+     *
+     * @param swarmId Swarm 唯一标识
+     * @return 关联的 sessionId；若 Swarm 不存在或已清理则返回 null
+     */
+    public String getSessionIdForSwarm(String swarmId) {
+        return swarmSessionMap.get(swarmId);
+    }
+
+    /**
      * 列出所有活跃 Swarm。
      */
     public Map<String, SwarmState> listActiveSwarms() {

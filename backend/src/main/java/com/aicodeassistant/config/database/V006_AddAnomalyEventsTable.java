@@ -47,6 +47,11 @@ public class V006_AddAnomalyEventsTable implements Migration {
                 "CREATE INDEX IF NOT EXISTS idx_anomaly_swarm ON anomaly_events(swarm_id)");
         projectJdbcTemplate.execute(
                 "CREATE INDEX IF NOT EXISTS idx_anomaly_worker ON anomaly_events(worker_id, detected_at)");
+        // Phase 2: 清理任务和查询优化索引
+        projectJdbcTemplate.execute(
+                "CREATE INDEX IF NOT EXISTS idx_anomaly_events_timestamp ON anomaly_events(detected_at)");
+        projectJdbcTemplate.execute(
+                "CREATE INDEX IF NOT EXISTS idx_anomaly_events_resolved ON anomaly_events(resolved_at)");
 
         log.info("V006: anomaly_events table created.");
     }

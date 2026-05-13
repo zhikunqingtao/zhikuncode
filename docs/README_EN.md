@@ -411,14 +411,15 @@ Full test report: [ZhikunCode v9.3 End-to-End Test Report](test-results/v9.3/Zhi
 - **GitHub Actions Pipeline**: Automatically runs backend compilation, frontend build, Python tests, and Docker image verification on every push
 
 **Test Coverage (v9.3):**
-- **Total**: 1703 cases + 490 performance probes + 7 security probes = **2200** (including 28 APOS Phase 1 E2E cases + 50 APOS Phase 2 E2E cases)
+- **Total**: 1703 cases + 490 performance probes + 7 security probes = **2200** (including APOS E2E comprehensive 123 cases: 62 Phase 1 + 50 Phase 2 + 11 risk fixes)
 - **Backend Unit/Integration Tests**: 1500 PASS / 0 failure / 0 error / 48 skipped, coverage Inst 42.17% / Branch 30.44%
 - **Python pytest**: 47 PASS, coverage 25.66%
 - **Frontend vitest**: 78 PASS / 16 skipped (94 total)
 - **35-Module REST/WS/LLM/Session Smoke**: 45/45 PASS (42 REST + 1 WS STOMP + 1 LLM live inference + 1 Session persistence)
 - **E2E Differentiated Pipelines**: Task 6 Multi-Agent Collaboration (CoordinatorEventBus) · Task 7 Visualization Auto-Routing (`/visualize` mermaid/json/text) · Task 8 Browser Semantic Snapshot MVP (`/snap`) — all end-to-end PASS
-- **APOS Phase 1 E2E**: 9 modules, 28 cases (Activity UI / Data Flow / Three-layer Display / Signal Marking / Feature Flag / Backend API / Responsive / Persistence) 100% PASS, with 4 bug fix regressions
+- **APOS Phase 1 E2E**: 62 cases (9 modules, including 28 core features + 34 supporting paths) 100% PASS, covering Activity UI / Data Flow / Three-layer Display / Signal Marking / Feature Flag / Backend API / Responsive / Persistence, with 4 bug fix regressions
 - **APOS Phase 2 E2E**: 5 modules, 50 cases (Change Impact Panorama / Pipeline View & DAG / Anomaly Detection & Alert / Mobile Responsive / Phase 2 Integration) 48 PASS / 2 SKIP, pass rate 96%
+- **APOS Risk Fix Verification**: 11 cases 100% PASS (tool invocation / batch operations / concurrency race conditions / API fallback)
 - **Feature Completeness**: 100% of planned v1.0 features verified
 
 **Test Framework Details:**

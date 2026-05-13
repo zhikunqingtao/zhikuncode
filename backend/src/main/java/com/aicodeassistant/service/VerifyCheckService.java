@@ -460,14 +460,16 @@ public class VerifyCheckService {
     private record ProcessResult(int exitCode, String output, boolean timedOut) {}
 
     private ProcessResult executeProcess(String workDir, int timeoutMs, String... command) {
+        Process process = null;
         try {
-            ProcessBuilder pb = new ProcessBuilder(command);
-            pb.directory(new File(workDir));
-            pb.redirectErrorStream(true);
-            Process process = pb.start();
+            process = new ProcessBuilder(command)
+                    .directory(new File(workDir))
+                    .redirectErrorStream(true)
+                    .start();
 
             StringBuilder output = new StringBuilder();
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(process.getInputStream()))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     output.append(line).append("\n");
@@ -477,11 +479,17 @@ public class VerifyCheckService {
             boolean completed = process.waitFor(timeoutMs, TimeUnit.MILLISECONDS);
             if (!completed) {
                 process.destroyForcibly();
+                process.waitFor(5, TimeUnit.SECONDS); // 确保进程真正退出
                 return new ProcessResult(-1, output.toString(), true);
             }
             return new ProcessResult(process.exitValue(), output.toString(), false);
         } catch (Exception e) {
             return new ProcessResult(-1, e.getMessage(), false);
+        } finally {
+            // 确保 Process 资源释放：destroyForcibly() 关闭所有 pipe FD (stdin/stdout/stderr)
+            if (process != null) {
+                process.destroyForcibly();
+            }
         }
     }
 

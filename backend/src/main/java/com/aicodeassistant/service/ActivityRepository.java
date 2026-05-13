@@ -77,6 +77,32 @@ public class ActivityRepository {
     }
 
     /**
+     * 按会话 ID 分页查询 Activity（按 timestamp DESC，最新的在前）。
+     *
+     * @param sessionId 会话 ID
+     * @param offset    跳过条数
+     * @param limit     返回条数上限
+     * @return Activity 列表（按 timestamp DESC 排序）
+     */
+    public List<Map<String, Object>> findBySessionIdPaged(String sessionId, int offset, int limit) {
+        return jdbcTemplate.queryForList(
+                "SELECT * FROM activities WHERE session_id = ? ORDER BY timestamp DESC LIMIT ? OFFSET ?",
+                sessionId, limit, offset
+        );
+    }
+
+    /**
+     * 查询指定会话的 Activity 总数。
+     */
+    public int countBySessionId(String sessionId) {
+        Integer count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM activities WHERE session_id = ?",
+                Integer.class, sessionId
+        );
+        return count != null ? count : 0;
+    }
+
+    /**
      * 删除指定会话的所有 Activity。
      */
     public void deleteBySessionId(String sessionId) {

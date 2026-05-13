@@ -416,27 +416,45 @@ async function triggerVerification(activity: ActivityData): Promise<void> {
       return;
     }
 
-    const result: RunChecksResponse = await response.json();
-    const signal = computeSignalFromVerification(result);
+    const rawResult = await response.json();
+
+    // Phase 2 响应判别：包含 signal 字段则为 VerifyCheckResponse
+    let signal: Signal;
+    let verificationStatus: string;
+    let summary: string;
+
+    if ('signal' in rawResult && 'overallStatus' in rawResult) {
+      // Phase 2: VerifyCheckResponse
+      signal = rawResult.signal as Signal;
+      verificationStatus = rawResult.overallStatus === 'pass' ? 'all_pass'
+        : rawResult.overallStatus === 'fail' ? 'has_error' : 'has_warning';
+      summary = rawResult.signalReason || (rawResult.overallStatus === 'pass' ? '验证通过' : '验证发现问题');
+    } else {
+      // Phase 1 fallback: RunChecksResponse
+      const result = rawResult as RunChecksResponse;
+      signal = computeSignalFromVerification(result);
+      verificationStatus = result.status;
+      summary = result.status === 'all_pass' ? '验证通过' : '验证发现问题';
+    }
 
     useActivityStore.getState().updateActivity(activity.id, {
       insight: {
         signal,
         riskLevel: signalToRiskLevel(signal),
-        summary: result.status === 'all_pass' ? '验证通过' : '验证发现问题',
+        summary,
         factors: [],
         suggestions: [],
-        verificationStatus: result.status,
+        verificationStatus,
       },
     });
     // 同步 insight 到后端
     updateActivityInsight(activity.id, {
       signal,
       riskLevel: signalToRiskLevel(signal),
-      summary: result.status === 'all_pass' ? '验证通过' : '验证发现问题',
+      summary,
       factors: [],
       suggestions: [],
-      verificationStatus: result.status,
+      verificationStatus,
     });
 
     // 自动审批：signal 为 auto_approve 且 feature flag 开启时，自动写入决策

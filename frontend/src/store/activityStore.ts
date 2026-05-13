@@ -4,6 +4,7 @@ import { subscribeWithSelector } from 'zustand/middleware';
 import type { ActivityData, ActivityFilter, Signal } from '@/types/apos';
 import { DEFAULT_RETENTION_CONFIG } from '@/types/apos';
 import { updateActivityDecision } from '@/api/activityApi';
+import { useSessionStore } from '@/store/sessionStore';
 
 interface ActivityStoreState {
   activities: Map<string, ActivityData>;
@@ -15,6 +16,8 @@ interface ActivityStoreState {
   filter: ActivityFilter;
   selectedIds: Set<string>;
   batchMode: boolean;
+  hasMoreHistory: boolean;
+  totalActivityCount: number;
 
   setCurrentSessionId: (sessionId: string) => void;
   clearForNewSession: () => void;
@@ -35,6 +38,8 @@ interface ActivityStoreState {
   selectAllSafe: () => void; // only auto_approve + review_recommended
   clearSelection: () => void;
   setBatchMode: (enabled: boolean) => void;
+  setHasMoreHistory: (hasMore: boolean, total?: number) => void;
+  loadMoreActivities: () => Promise<void>;
   performRetention: () => void;
   clearAll: () => void;
 }
@@ -50,6 +55,8 @@ export const useActivityStore = create<ActivityStoreState>()(
     filter: {},
     selectedIds: new Set(),
     batchMode: false,
+    hasMoreHistory: false,
+    totalActivityCount: 0,
 
     setCurrentSessionId: (sessionId) => set(d => {
       d.currentSessionId = sessionId;
@@ -72,7 +79,17 @@ export const useActivityStore = create<ActivityStoreState>()(
         // 保留已有决策，避免 HMR/remount 时决策被清空
         d.activities.set(activity.id, { ...activity, decision: existing.decision });
       } else {
-        d.activities.set(activity.id, activity);
+        // 兖底检查：如果该 toolUseId 已被标记为 denied，强制清空 changedFiles 并标记 rejected
+        if (d.deniedToolUseIds.has(activity.id)) {
+          d.activities.set(activity.id, {
+            ...activity,
+            changedFiles: [],
+            fileCount: 0,
+            decision: 'rejected',
+          });
+        } else {
+          d.activities.set(activity.id, activity);
+        }
       }
     }),
     updateActivity: (id, partial) => set(d => {
@@ -157,18 +174,65 @@ export const useActivityStore = create<ActivityStoreState>()(
       d.batchMode = enabled;
       if (!enabled) d.selectedIds.clear();
     }),
+    setHasMoreHistory: (hasMore, total) => set(d => {
+      d.hasMoreHistory = hasMore;
+      if (total !== undefined) d.totalActivityCount = total;
+    }),
+
+    /**
+     * 按需加载更早的 Activity 历史（当 hasMore=true 时由 UI 触发）
+     * 通过 REST API 分页获取，避免 WebSocket 大帧
+     */
+    loadMoreActivities: async () => {
+      const sessionId = useSessionStore.getState().sessionId;
+      if (!sessionId) return;
+      try {
+        const resp = await fetch(`/api/sessions/${sessionId}/activities?offset=${get().activities.size}&limit=50`);
+        if (!resp.ok) return;
+        const { activities: older, hasMore } = await resp.json();
+        set(d => {
+          older.forEach((a: ActivityData) => {
+            if (!d.activities.has(a.id)) {
+              d.activities.set(a.id, {
+                ...a,
+                changedFiles: Array.isArray(a.changedFiles) ? a.changedFiles : [],
+              });
+            }
+          });
+          d.hasMoreHistory = hasMore;
+        });
+      } catch (err) {
+        console.error('[ActivityStore] loadMoreActivities failed:', err);
+      }
+    },
     performRetention: () => set(d => {
       const config = DEFAULT_RETENTION_CONFIG;
       const entries = Array.from(d.activities.entries());
       if (entries.length <= config.maxCount) return;
 
       const now = Date.now();
-      const protectedEntries = entries.filter(([_, a]) =>
-        config.protectedSignals.includes(a.insight?.signal as Signal) ||
-        (a.status !== 'completed' || now - a.timestamp < config.autoArchiveAfterMs)
-      );
-      const unprotectedEntries = entries.filter(([_, a]) => !protectedEntries.find(([id]) => id === a.id));
-      const kept = unprotectedEntries.slice(-(config.maxCount - protectedEntries.length));
+      // 保护条件：signal 为 blocked/manual_required 且 (未完成或24h内)
+      const protectedIds = new Set<string>();
+      const protectedEntries: [string, ActivityData][] = [];
+      const maxProtected = Math.floor(config.maxCount * 0.5); // 保护条目上限：最多占 50%
+
+      // 按 timestamp DESC 排序后再遍历，确保较新/更重要的条目优先被保护
+      const sortedEntries = [...entries].sort((a, b) => b[1].timestamp - a[1].timestamp);
+
+      for (const [id, a] of sortedEntries) {
+        if (protectedIds.size >= maxProtected) break;
+        const hasProtectedSignal = config.protectedSignals.includes(a.insight?.signal as Signal);
+        const isActiveOrRecent = a.status !== 'completed' || (now - a.timestamp) < config.autoArchiveAfterMs;
+        if (hasProtectedSignal && isActiveOrRecent) {
+          protectedIds.add(id);
+          protectedEntries.push([id, a]);
+        }
+      }
+
+      // 非保护条目：使用 Set 查找 O(1)
+      const unprotectedEntries = entries.filter(([id]) => !protectedIds.has(id));
+      const keepCount = Math.max(0, config.maxCount - protectedEntries.length);
+      const kept = unprotectedEntries.slice(-keepCount);
 
       d.activities = new Map([...protectedEntries, ...kept].sort((a, b) => a[1].timestamp - b[1].timestamp));
     }),
