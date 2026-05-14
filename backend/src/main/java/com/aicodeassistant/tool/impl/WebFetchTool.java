@@ -79,26 +79,56 @@ public class WebFetchTool implements Tool {
     @Override
     public String prompt() {
         return """
-                - Fetches content from a specified URL and processes it using an AI model
-                - Takes a URL and a prompt as input
-                - Fetches the URL content, converts HTML to markdown
-                - Processes the content with the prompt using a small, fast model
-                - Returns the model's response about the content
-                - Use this tool when you need to retrieve and analyze web content
+                ## 核心能力（一句话）
+                获取技术文档、文章等纯文本网页的内容，将 HTML 转为 Markdown 格式。
                 
-                Usage notes:
-                  - IMPORTANT: If an MCP-provided web fetch tool is available, prefer using \
-                that tool instead of this one, as it may have fewer restrictions.
-                  - The URL must be a fully-formed valid URL
-                  - HTTP URLs will be automatically upgraded to HTTPS
-                  - The prompt should describe what information you want to extract from the page
-                  - This tool is read-only and does not modify any files
-                  - Results may be summarized if the content is very large
-                  - Includes a self-cleaning 15-minute cache for faster responses
-                  - When a URL redirects to a different host, the tool will inform you and \
-                provide the redirect URL. You should then make a new request with the redirect URL.
-                  - For GitHub URLs, prefer using the gh CLI via Bash instead \
-                (e.g., gh pr view, gh issue view, gh api).
+                ## ⚠️ 严格限制（前置，必读）
+                **此工具仅限于以下场景使用：**
+                  ✓ 技术文档（Python/Java/React 官方文档）
+                  ✓ 技术博客和教程文章
+                  ✓ API 参考文档
+                  ✓ 开发者社区文章（Stack Overflow）
+                
+                **此工具不能处理（绝对禁止使用）：**
+                  ✗ 任何文件下载（视频、PDF、图片、压缩包）
+                  ✗ 需要 JavaScript 渲染的动态网站（如小红书、抖音、微博、Instagram、TikTok 等社交/视频平台）
+                  ✗ 视频/音频平台内容（如 YouTube、Bilibili、优酷等）— 需要用 yt-dlp
+                  ✗ 需要用户登录的页面
+                  ✗ JavaScript 动态渲染的单页应用（SPA）
+                  ✗ 电商网站爬取
+                  ✗ API 调用（应使用 curl/requests）
+                
+                ## 工具选择决策树（按优先级）
+                IF 用户要求涉及 "下载/抓取/爬" + 目标是(视频/文件/图片/PDF/二进制内容 OR 社交媒体/视频平台)
+                  → 必须使用 Bash (curl/wget/yt-dlp) 或 Python (requests/Playwright)
+                  → 禁止使用 WebFetch
+                
+                ELSE IF 用户要求涉及 "下载/抓取" + 目标是(文本内容/文档/文章/博客)
+                  → 可以使用 WebFetch（这属于读取文本内容，WebFetch 的正常功能）
+                
+                ELSE IF 用户要求涉及需要 JavaScript 渲染的动态网站（如小红书、抖音、微博、YouTube、Bilibili、Instagram、TikTok 等社交/视频平台）
+                  → 必须使用 Python Playwright 或 Bash yt-dlp
+                  → 禁止使用 WebFetch（这些需要 JavaScript 渲染）
+                
+                ELSE IF 用户要求涉及"阅读/查看/理解"且来源是"技术文档/博客/文章/API参考"
+                  → 使用 WebFetch，这是最佳使用场景
+                
+                ELSE
+                  → 不确定时，可以询问用户具体需求是什么（下载/阅读/实时数据），再选择合适工具
+                
+                ## 技术原因（为什么这些场景不适合）
+                  1. 不能执行 JavaScript → 无法渲染动态网站（小红书、抖音等）
+                  2. 返回 Markdown 文本 → 无法获取二进制文件（视频、PDF、图片）
+                  3. 单次请求 → 无法爬取多个页面或分页内容
+                  4. 无认证能力 → 受保护的页面（需登录）无法访问
+                
+                ## 使用参数
+                  - URL 必须是完整格式的有效 URL
+                  - HTTP 自动升级为 HTTPS
+                  - 包含 15 分钟自清理缓存
+                  - 超时：30秒，最大内容：100K 字符
+                  - IMPORTANT: 如果 MCP 提供了 web fetch 工具，优先使用 MCP 工具
+                  - 对于 GitHub URL，优先使用 gh CLI（如 gh pr view, gh issue view）
                 """;
     }
 
@@ -121,7 +151,7 @@ public class WebFetchTool implements Tool {
 
     @Override
     public PermissionRequirement getPermissionRequirement() {
-        return PermissionRequirement.CONDITIONAL;
+        return PermissionRequirement.NONE;
     }
 
     @Override

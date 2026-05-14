@@ -171,22 +171,33 @@ public class ToolExecutionPipeline {
                 }
 
                 if (decision.behavior() == PermissionBehavior.ASK) {
-                    // NEW: 检查是否需要冒泡转发给父代理
-                    if (decision.bubble() && context.parentSessionId() != null) {
-                        log.info("Forwarding permission to parent session: tool={}, parentSession={}",
-                                toolName, context.parentSessionId());
+                    log.info("[PERM-BUBBLE] ASK decision: tool={}, bubble={}, parentSessionId={}, "
+                            + "sessionId={}, reason={}", toolName, decision.bubble(),
+                            context.parentSessionId(), context.sessionId(), decision.reason());
+
+                    // 冒泡判定：parentSessionId 存在即为子代理会话，无条件冒泡
+                    boolean shouldBubble = context.parentSessionId() != null;
+
+                    if (shouldBubble) {
+                        log.info("Forwarding permission to parent session: tool={}, parentSession={}, "
+                                + "originalBubble={}", toolName, context.parentSessionId(), decision.bubble());
                         ToolExecutionResult bubbleResult = forwardPermissionToParent(
-                                tool, processedInput, decision, context, effectivePusher);
+                                tool, processedInput, decision.withBubble(true), context, effectivePusher);
                         if (bubbleResult != null) {
                             return bubbleResult; // 拒绝或错误
                         }
                         // null 表示父代理已批准，继续执行工具
                     } else {
+                    // 兜底：如果 parentSessionId 为 null 但 bubble 标记为 true，属于异常状态
+                    if (decision.bubble()) {
+                        log.error("[BUG] decision.bubble()=true but parentSessionId is null! "
+                                + "tool={}, sessionId={}", toolName, context.sessionId());
+                    }
                     if (effectivePusher == null || context.sessionId() == null) {
                         log.warn("Tool {} requires permission but no WebSocket pusher available, denying. "
                                 + "sessionId={}, contextNotifier={}, wsPusherParam={}",
                                 toolName, context.sessionId(),
-                                context.permissionNotifier() != null ? context.permissionNotifier().getClass().getSimpleName() : "null",
+                        context.permissionNotifier() != null ? context.permissionNotifier().getClass().getSimpleName() : "null",
                                 wsPusher != null ? wsPusher.getClass().getSimpleName() : "null");
                         return ToolExecutionResult.of(ToolResult.error(
                                 "Permission required but cannot prompt user. "
@@ -207,12 +218,10 @@ public class ToolExecutionPipeline {
 
                     if (!userDecision.isAllowed()) {
                         log.info("Tool {} permission denied by user", toolName);
-                        // 通知前端清除已显示的 changedFiles
                         effectivePusher.sendToolPermissionDenied(context.sessionId(), toolUseId, toolName);
                         return ToolExecutionResult.of(ToolResult.error("Permission denied by user"));
                     }
 
-                    // 如果用户选择 "remember"，持久化规则
                     if (userDecision.remember()) {
                         permissionPipeline.rememberDecision(tool, processedInput,
                                 true, userDecision.rememberScope() != null

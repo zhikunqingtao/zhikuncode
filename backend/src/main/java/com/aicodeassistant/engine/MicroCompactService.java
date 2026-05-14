@@ -27,8 +27,8 @@ public class MicroCompactService {
 
     /** 可微压缩的工具集合  */
     static final Set<String> COMPACTABLE_TOOLS = Set.of(
-            "FileReadTool", "BashTool", "GrepTool", "GlobTool",
-            "WebSearchTool", "WebFetchTool", "FileEditTool", "FileWriteTool"
+            "Read", "Bash", "Grep", "Glob",
+            "WebSearch", "WebFetch", "Edit", "Write"
     );
 
     private final TokenCounter tokenCounter;
