@@ -1,9 +1,12 @@
 package com.aicodeassistant.tool.agent;
 
+import com.aicodeassistant.config.AgentTimeoutConfig;
 import com.aicodeassistant.config.FeatureFlagService;
 import com.aicodeassistant.coordinator.CoordinatorService;
 import com.aicodeassistant.coordinator.TaskNotificationFormatter;
 import com.aicodeassistant.coordinator.TeamManager;
+import com.aicodeassistant.engine.AbortContext;
+import com.aicodeassistant.engine.AbortReason;
 import com.aicodeassistant.engine.QueryConfig;
 import com.aicodeassistant.engine.QueryEngine;
 import com.aicodeassistant.engine.QueryLoopState;
@@ -31,7 +34,10 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -59,12 +65,16 @@ public class SubAgentExecutor {
     private final TeamManager teamManager;
     private final LlmProviderRegistry providerRegistry;  // ★ 新增: 模型别名解析 ★
     private final PermissionModeManager permissionModeManager;  // ★ 新增: Worker 权限冒泡 ★
+    private final AgentTimeoutConfig timeoutConfig;  // ★ 修复2: 超时配置 Bean ★
 
     /** 子代理结果最大字符数 */
     static final int MAX_RESULT_SIZE_CHARS = 100_000;
 
     /** 单个子代理超时 */
     private static final Duration PER_AGENT_TIMEOUT = Duration.ofMinutes(5);
+
+    /** 专用虚拟线程 Executor — 避免 ForkJoinPool.commonPool() 线程饥饿 */
+    private static final ExecutorService AGENT_EXECUTOR = Executors.newVirtualThreadPerTaskExecutor();
 
     public SubAgentExecutor(AgentConcurrencyController concurrencyController,
                             QueryEngine queryEngine,
@@ -77,7 +87,8 @@ public class SubAgentExecutor {
                             SessionManager sessionManager,
                             TeamManager teamManager,
                             LlmProviderRegistry providerRegistry,
-                            PermissionModeManager permissionModeManager) {
+                            PermissionModeManager permissionModeManager,
+                            AgentTimeoutConfig timeoutConfig) {
         this.concurrencyController = concurrencyController;
         this.queryEngine = queryEngine;
         this.toolRegistry = toolRegistry;
@@ -90,6 +101,7 @@ public class SubAgentExecutor {
         this.teamManager = teamManager;
         this.providerRegistry = providerRegistry;
         this.permissionModeManager = permissionModeManager;
+        this.timeoutConfig = timeoutConfig;
     }
 
     /**
@@ -178,38 +190,81 @@ public class SubAgentExecutor {
                     new ArrayList<>(List.of(buildUserMessage(request.prompt()))),
                     subContext);
 
-            // 8. 执行查询循环 (带超时)
+            // 8. 执行查询循环 (带超时 + 统一资源清理)
             SubAgentMessageHandler handler = new SubAgentMessageHandler();
+            Duration timeout = resolveAgentTimeout(request);
+            log.info("Sub-agent {} starting with timeout {}s (type={})",
+                    request.agentId(), timeout.toSeconds(), request.agentType());
 
             CompletableFuture<QueryEngine.QueryResult> future = CompletableFuture.supplyAsync(
-                    () -> queryEngine.execute(config, state, handler));
+                    () -> queryEngine.execute(config, state, handler),
+                    AGENT_EXECUTOR);
 
             QueryEngine.QueryResult result;
             try {
-                result = future.get(PER_AGENT_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS);
+                // ★ 动态计算实际超时（基础超时 + 权限等待时间）
+                long effectiveTimeoutMs = timeout.toMillis() + parentContext.permissionWaitMs();
+                result = future.get(effectiveTimeoutMs, TimeUnit.MILLISECONDS);
             } catch (TimeoutException e) {
-                future.cancel(true);
-                log.warn("Sub-agent {} timed out after {}s", request.agentId(), PER_AGENT_TIMEOUT.toSeconds());
-                return new AgentResult("completed",
-                        "Agent timed out after " + PER_AGENT_TIMEOUT.toSeconds() + " seconds",
-                        request.prompt(), null);
-            }
-
-            // 9. Worktree 清理
-            if (request.isolation() == IsolationMode.WORKTREE) {
-                boolean hasChanges = worktreeManager.hasChanges(workDir);
-                if (hasChanges) {
-                    worktreeManager.mergeBack(workDir);
+                // ★ 超时处理：优雅终止 + graceful shutdown 窗口
+                log.warn("Sub-agent {} timed out after {}s, attempting graceful shutdown",
+                        request.agentId(), timeout.toSeconds());
+                AbortContext abortCtx = queryEngine.getAbortContext(childSessionId);
+                if (abortCtx != null) {
+                    abortCtx.abort(AbortReason.TIMEOUT);
                 }
-                worktreeManager.removeWorktree(workDir);
+
+                // 给 QueryEngine 一个优雅关闭窗口
+                try {
+                    result = future.get(
+                            timeoutConfig.getGracefulShutdownSeconds() * 1000L, TimeUnit.MILLISECONDS);
+                    log.info("Sub-agent {} completed gracefully after timeout signal", request.agentId());
+                } catch (TimeoutException | ExecutionException | java.util.concurrent.CancellationException e2) {
+                    future.cancel(true);
+                    log.error("Sub-agent {} did not respond to graceful shutdown, forcefully cancelled",
+                            request.agentId());
+                    return new AgentResult("completed",
+                            "Agent timed out after " + timeout.toSeconds() + " seconds "
+                            + "and did not respond to graceful shutdown",
+                            request.prompt(), null);
+                }
+            } catch (ExecutionException e) {
+                log.error("Sub-agent {} execution failed with exception", request.agentId(), e.getCause());
+                return new AgentResult("completed",
+                        "Agent execution failed: " + (e.getCause() != null ? e.getCause().getMessage() : e.getMessage()),
+                        request.prompt(), null);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return new AgentResult("completed", "Agent interrupted", request.prompt(), null);
+            } finally {
+                // ★ 修复6: 统一资源清理 — 所有退出路径都经过这里
+                // Worktree 清理
+                if (request.isolation() == IsolationMode.WORKTREE && workDir != null) {
+                    try {
+                        if (worktreeManager.hasChanges(workDir)) {
+                            worktreeManager.mergeBack(workDir);
+                        }
+                        worktreeManager.removeWorktree(workDir);
+                    } catch (Exception cleanupEx) {
+                        log.warn("Worktree cleanup failed for agent {}: {}",
+                                request.agentId(), cleanupEx.getMessage());
+                    }
+                }
+
+                // FileStateCache 清理与合并
+                try {
+                    FileStateCache childFinalCache = sessionManager.getFileStateCache(childSessionId);
+                    if (childFinalCache != null) {
+                        parentCache.merge(childFinalCache);
+                    }
+                    sessionManager.removeFileStateCache(childSessionId);
+                } catch (Exception cleanupEx) {
+                    log.warn("FileStateCache cleanup failed for agent {}: {}",
+                            request.agentId(), cleanupEx.getMessage());
+                }
             }
 
-            // 10. 截取结果
-            // ★ FileStateCache merge: 子代理文件状态合并回父代理
-            FileStateCache childFinalCache = sessionManager.getFileStateCache(childSessionId);
-            parentCache.merge(childFinalCache);
-            sessionManager.removeFileStateCache(childSessionId);
-
+            // 9. 截取结果
             String answer = extractFinalAnswer(result);
             if (answer.length() > MAX_RESULT_SIZE_CHARS) {
                 answer = answer.substring(0, MAX_RESULT_SIZE_CHARS) + "\n...[truncated]";
@@ -240,15 +295,20 @@ public class SubAgentExecutor {
      * 异步执行子代理 — run_in_background=true 时使用。
      */
     public AgentResult executeAsync(AgentRequest request, ToolUseContext parentContext) {
-        String outputFile = "/tmp/agent-" + request.agentId() + "-output.txt";
+        String outputFile = Path.of(System.getProperty("java.io.tmpdir"), "agent-" + request.agentId() + "-output.txt").toString();
 
         Thread.ofVirtual().name("zhiku-agent-" + request.agentId()).start(() -> {
             try {
                 AgentResult result = executeSync(request, parentContext);
                 Files.writeString(Path.of(outputFile), result.result() != null ? result.result() : "");
                 backgroundTracker.markCompleted(request.agentId(), result);
-            } catch (Exception e) {
-                backgroundTracker.markFailed(request.agentId(), e.getMessage());
+            } catch (Throwable t) {
+                log.error("Background agent {} terminated with {}: {}",
+                        request.agentId(), t.getClass().getSimpleName(), t.getMessage(), t);
+                backgroundTracker.markFailed(request.agentId(),
+                        t.getClass().getSimpleName() + ": " + t.getMessage());
+            } finally {
+                cleanupAgentResources(request.agentId(), request);
             }
         });
 
@@ -256,6 +316,59 @@ public class SubAgentExecutor {
                 request.prompt(), outputFile);
 
         return new AgentResult("async_launched", null, request.prompt(), outputFile);
+    }
+
+    // ═══ 代理资源清理 ═══
+
+    /**
+     * 清理代理相关资源（无论成功/失败/异常）。
+     * 用于异步模式虚拟线程的 finally 块。
+     */
+    private void cleanupAgentResources(String agentId, AgentRequest request) {
+        try {
+            // 1. 清理 AbortContext
+            String childSessionId = "subagent-" + agentId;
+            if (queryEngine != null) {
+                queryEngine.removeAbortContext(childSessionId);
+            }
+
+            // 2. 清理 FileStateCache（如果超时/异常路径跳过了）
+            sessionManager.removeFileStateCache(childSessionId);
+
+            // 3. 输出文件生命周期由 BackgroundAgentTracker.cleanup() 定时任务统一管理，
+            //    不在此处删除，避免与 QueryEngine.formatAgentResults() 读取产生竞态。
+        } catch (Exception cleanupEx) {
+            log.warn("Resource cleanup failed for agent {}: {}",
+                    agentId, cleanupEx.getMessage());
+        }
+    }
+
+    // ═══ 超时计算 ═══
+
+    /**
+     * 根据代理类型和任务上下文计算超时时间。
+     * <p>
+     * 策略：
+     * <ul>
+     *   <li>编码类代理（coding, frontend-dev, backend-dev）：2x 基础超时</li>
+     *   <li>验证类代理（verify, qa, verification）：3x 基础超时（可能需要编译+测试）</li>
+     *   <li>其他代理：1x 基础超时</li>
+     * </ul>
+     * 所有结果受 {@code agent.timeout.max-seconds} 上限约束。
+     */
+    private Duration resolveAgentTimeout(AgentRequest request) {
+        int baseSeconds = timeoutConfig.getDefaultSeconds();
+        int maxSeconds = timeoutConfig.getMaxSeconds();
+
+        String agentType = request.agentType() != null ? request.agentType().toLowerCase() : "general-purpose";
+        int calculated = switch (agentType) {
+            case "coding", "frontend-dev", "backend-dev" -> baseSeconds * 2;
+            case "verify", "qa", "verification" -> baseSeconds * 3;
+            case "explore", "researcher" -> baseSeconds;
+            default -> baseSeconds;
+        };
+
+        return Duration.ofSeconds(Math.min(calculated, maxSeconds));
     }
 
     // ═══ Worker 权限模式解析 ═══
@@ -489,7 +602,8 @@ public class SubAgentExecutor {
             // 6. 执行查询循环
             SubAgentMessageHandler handler = new SubAgentMessageHandler();
             CompletableFuture<QueryEngine.QueryResult> future = CompletableFuture.supplyAsync(
-                    () -> queryEngine.execute(config, state, handler));
+                    () -> queryEngine.execute(config, state, handler),
+                    AGENT_EXECUTOR);
 
             QueryEngine.QueryResult result;
             try {

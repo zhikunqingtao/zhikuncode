@@ -15,6 +15,7 @@ import type {
     PermissionBubblePayload,
 } from '@/types';
 import { generateUUID } from '@/utils/uuid';
+import { send, isConnected } from '@/api/stompClient';
 
 export interface SwarmStoreState {
     /** 活跃 Swarm 实例 (swarmId → SwarmInfo) */
@@ -46,6 +47,12 @@ export interface SwarmStoreState {
     /** 移除已处理的权限请求 */
     removePermissionBubble: (requestId: string) => void;
 
+    /** 解决单个权限请求（通过 WebSocket 发送决策） */
+    resolvePermission: (requestId: string, decision: 'ALLOW' | 'DENY') => void;
+
+    /** 批量解决所有权限请求 */
+    resolveAll: (decision: 'ALLOW' | 'DENY') => void;
+
     /** 添加日志条目 */
     addLogEntry: (entry: Omit<SwarmLogEntry, 'id' | 'timestamp'>) => void;
 
@@ -66,7 +73,7 @@ export interface SwarmStoreState {
 }
 
 export const useSwarmStore = create<SwarmStoreState>()(
-    immer((set) => ({
+    immer((set, get) => ({
         swarms: new Map(),
         pendingPermissions: [],
         logs: [],
@@ -196,6 +203,53 @@ export const useSwarmStore = create<SwarmStoreState>()(
                 (p) => p.requestId !== requestId
             );
         }),
+
+        resolvePermission: (requestId, decision) => {
+            const approved = decision === 'ALLOW';
+
+            // 尝试 WebSocket 发送，不可用时降级到 REST API
+            if (isConnected()) {
+                send('/app/permission-bubble', { requestId, approved });
+            } else {
+                fetch(`/api/swarm/permission/${requestId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ approved }),
+                }).catch((err) => {
+                    console.error('[PERM] REST fallback failed:', err);
+                });
+            }
+
+            // 从本地状态移除已处理的请求
+            set((state) => {
+                state.pendingPermissions = state.pendingPermissions.filter(
+                    (p) => p.requestId !== requestId
+                );
+            });
+        },
+
+        resolveAll: (decision) => {
+            const { pendingPermissions } = get();
+            const approved = decision === 'ALLOW';
+            const connected = isConnected();
+
+            for (const perm of pendingPermissions) {
+                if (connected) {
+                    send('/app/permission-bubble', { requestId: perm.requestId, approved });
+                } else {
+                    fetch(`/api/swarm/permission/${perm.requestId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ approved }),
+                    }).catch((err) => {
+                        console.error('[PERM] REST fallback failed:', err);
+                    });
+                }
+            }
+            set((state) => {
+                state.pendingPermissions = [];
+            });
+        },
 
         addLogEntry: (entry) => set((state) => {
             state.logs.push({

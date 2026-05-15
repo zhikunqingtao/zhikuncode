@@ -866,7 +866,7 @@ Research → Synthesis → Implementation → Verification
 - Worker 数量动态调整，无需预声明
 - 每个 Worker 一个 Virtual Thread，30 分钟超时保护
 - Worker 工具集通过 allowList/denyList 精确控制
-- 权限冒泡到 UI（`LeaderPermissionBridge`），60 秒超时自动拒绝防止死锁
+- 权限冒泡到 UI（`LeaderPermissionBridge`），支持并发堆叠展示多个权限请求，每个请求独立 60 秒倒计时，支持单个或批量批准/拒绝操作，超时自动拒绝防止死锁
 - 实时状态通过 STOMP WebSocket 推送到前端
 - 活跃 Swarm 使用 Caffeine 缓存管理，4 小时 TTL 自动清理异常实例
 
@@ -880,7 +880,7 @@ Research → Synthesis → Implementation → Verification
 | **WORKTREE** | 创建独立 Git Worktree，完成后自动合并或丢弃 | 需要隔离的实验性变更 |
 | **Fork** | 继承父会话完整消息历史，复用 LLM KV cache | 需要完整上下文的延续任务 |
 
-- 支持后台异步执行（`BackgroundAgentTracker`），通过 WebSocket 推送启动/完成/失败事件
+- 支持后台异步执行（`BackgroundAgentTracker`），通过 WebSocket 实时推送启动/完成/失败事件，用户可实时监控代理执行进度
 - 单个 Agent 5 分钟超时，结果最大 100,000 字符截断保护
 
 ### 三层并发安全

@@ -92,7 +92,8 @@ class QueryFlowIntegrationTest {
                 streamingToolExecutor, messageNormalizer, hookService,
                 snipService, microCompactService, null, null, modelTierService, mock(FileHistoryService.class), mock(ToolResultSummarizer.class),
                 contextCascade, mock(CompactMetrics.class),
-                null, null  // incrementalCollapseManager, visualizationAutoRouter (both @Nullable)
+                null, null,  // incrementalCollapseManager, visualizationAutoRouter (both @Nullable)
+                null, mock(FeatureFlagService.class)  // backgroundAgentTracker (@Nullable), featureFlagService
         );
 
         handler = new RecordingHandler();

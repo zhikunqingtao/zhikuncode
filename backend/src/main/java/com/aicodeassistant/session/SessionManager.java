@@ -1,9 +1,13 @@
 package com.aicodeassistant.session;
 
 import com.aicodeassistant.config.database.SqliteConfig;
+import com.aicodeassistant.engine.AbortContext;
+import com.aicodeassistant.engine.AbortReason;
+import com.aicodeassistant.engine.QueryEngine;
 import com.aicodeassistant.hook.HookService;
 import com.aicodeassistant.model.*;
 import com.aicodeassistant.state.AppStateStore;
+import com.aicodeassistant.tool.agent.BackgroundAgentTracker;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,6 +20,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.Path;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,6 +51,8 @@ public class SessionManager {
     private final AppStateStore appStateStore;
     private final HookService hookService;
     private final SessionSnapshotService snapshotService;
+    private final BackgroundAgentTracker backgroundAgentTracker;
+    private final QueryEngine queryEngine;
 
     // ★ FileStateCache — 会话级文件状态缓存 (§11.5.9)
     private final ConcurrentHashMap<String, FileStateCache> fileStateCaches = new ConcurrentHashMap<>();
@@ -63,13 +70,17 @@ public class SessionManager {
                           SqliteConfig sqliteConfig,
                           AppStateStore appStateStore,
                           HookService hookService,
-                          SessionSnapshotService snapshotService) {
+                          SessionSnapshotService snapshotService,
+                          BackgroundAgentTracker backgroundAgentTracker,
+                          @org.springframework.context.annotation.Lazy QueryEngine queryEngine) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
         this.sqliteConfig = sqliteConfig;
         this.appStateStore = appStateStore;
         this.hookService = hookService;
         this.snapshotService = snapshotService;
+        this.backgroundAgentTracker = backgroundAgentTracker;
+        this.queryEngine = queryEngine;
     }
 
     // ───── RowMapper ─────
@@ -317,6 +328,25 @@ public class SessionManager {
      * 删除会话（级联删除消息、文件快照、任务）。
      */
     public void deleteSession(String sessionId) {
+        // ★ 新增：检查活跃后台代理
+        List<String> activeAgents = backgroundAgentTracker.getActiveAgentIds(sessionId);
+        if (!activeAgents.isEmpty()) {
+            log.warn("Session {} has {} active background agents, aborting them before delete",
+                    sessionId, activeAgents.size());
+            // 向所有活跃代理发送 abort 信号
+            for (String agentId : activeAgents) {
+                String childSessionId = "subagent-" + agentId;
+                if (queryEngine != null) {
+                    AbortContext ctx = queryEngine.getAbortContext(childSessionId);
+                    if (ctx != null) {
+                        ctx.abort(AbortReason.SESSION_DISCONNECTED);
+                    }
+                }
+            }
+            // 给代理最多 5 秒优雅关闭
+            backgroundAgentTracker.awaitAllAgents(sessionId, Duration.ofSeconds(5), null);
+        }
+
         // 触发 SESSION_END 钩子 (在删除前，以便钩子可访问会话数据)
         try {
             hookService.executeSessionEnd(sessionId, Map.of("reason", "deleted"));
@@ -326,6 +356,8 @@ public class SessionManager {
 
         jdbcTemplate.update("DELETE FROM sessions WHERE id = ?", sessionId);
         removeFileStateCache(sessionId);
+        // 清理 BackgroundAgentTracker 中该会话的记录
+        backgroundAgentTracker.removeSession(sessionId);
         log.info("Session deleted: {}", sessionId);
     }
 

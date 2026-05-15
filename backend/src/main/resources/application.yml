@@ -74,6 +74,11 @@ llm:
 # 子代理模型别名映射
 # 模型层级别名 → 实际部署模型（可通过环境变量 AGENT_MODEL_<ALIAS> 覆盖）
 agent:
+  timeout:
+    default-seconds: 600
+    max-seconds: 1800
+    graceful-shutdown-seconds: 30
+    max-wait-minutes: 15
   loop:
     prompt-too-long-withhold: true
     media-recovery: true
@@ -107,6 +112,9 @@ features:
     WEB_BROWSER_TOOL: true        # B3: WebBrowserTool 门控，测试启用
     GIT_ENHANCED_TOOL: ${GIT_ENHANCED_TOOL:true}   # B4: GitTool 门控，默认开启（只读工具）
     RESOURCE_MONITOR: ${RESOURCE_MONITOR:false}    # B5: MonitorTool 门控，默认关闭
+    # ── C 组：后台代理生命周期修复 ──
+    BACKGROUND_AGENT_WAIT: false     # C1: 后台代理等待功能总开关（灰度用）
+    AGENT_ABORT_CASCADE: true        # C2: abort 级联到子代理（安全性修复，默认开）
 
 # MCP 配置
 mcp:

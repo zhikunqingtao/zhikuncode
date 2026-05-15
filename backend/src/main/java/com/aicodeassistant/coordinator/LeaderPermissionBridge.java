@@ -101,12 +101,57 @@ public class LeaderPermissionBridge {
     }
 
     /**
+     * 同步版本的权限请求 — 阻塞等待用户决策，并记录等待时间。
+     * <p>
+     * 调用方可通过返回的 PermissionResult 获取实际等待时间，
+     * 用于超时补加计算（权限等待时间不计入代理执行超时）。
+     *
+     * @param workerId    Worker 标识
+     * @param sessionId   父会话 ID
+     * @param toolName    工具名称
+     * @param riskLevel   风险等级
+     * @param reason      原因描述
+     * @return PermissionResult 包含决策和等待时间
+     */
+    public PermissionResult requestPermissionSync(
+            String workerId,
+            String sessionId,
+            String toolName,
+            String riskLevel,
+            String reason) {
+
+        long startWaitNanos = System.nanoTime();
+        try {
+            CompletableFuture<BubbleDecision> future = requestPermission(
+                    workerId, sessionId, toolName, riskLevel, reason);
+            BubbleDecision decision = future.join();  // 在虚拟线程中阻塞等待
+            long waitMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startWaitNanos);
+            log.debug("Permission wait recorded: {}ms for worker {}, decision={}",
+                    waitMs, workerId, decision);
+            return new PermissionResult(decision, waitMs);
+        } catch (Exception e) {
+            long waitMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startWaitNanos);
+            log.warn("Permission request failed for worker {}: {}, waitMs={}",
+                    workerId, e.getMessage(), waitMs);
+            return new PermissionResult(BubbleDecision.DENY, waitMs);
+        }
+    }
+
+    // TODO: 后续集成点 — 在 SwarmWorkerRunner/PermissionGate 中调用 requestPermissionSync()
+    //  并通过 context.addPermissionWait(result.waitMs()) 累加到 ToolUseContext
+    //  使 SubAgentExecutor.executeSync() 的超时计算可以补加权限等待时间
+
+    /**
      * 前端用户决策回调 — 由 WebSocketController 调用。
      *
      * @param requestId 权限请求 ID
      * @param approved  用户是否批准
      */
     public void resolvePermission(String requestId, boolean approved) {
+        if (requestId == null || requestId.trim().isEmpty()) {
+            log.warn("Invalid permission requestId: null or empty");
+            return;
+        }
         CompletableFuture<BubbleDecision> future = pendingRequests.remove(requestId);
         if (future != null && !future.isDone()) {
             BubbleDecision decision = approved ? BubbleDecision.ALLOW : BubbleDecision.DENY;
@@ -159,4 +204,7 @@ public class LeaderPermissionBridge {
         /** 拒绝 */
         DENY
     }
+
+    /** 权限请求结果 — 包含决策和等待时间 */
+    public record PermissionResult(BubbleDecision decision, long waitMs) {}
 }

@@ -1,6 +1,11 @@
 package com.aicodeassistant.engine;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 中断上下文。
@@ -14,17 +19,43 @@ import java.util.concurrent.CompletableFuture;
  */
 public class AbortContext {
 
+    private static final Logger log = LoggerFactory.getLogger(AbortContext.class);
+
     private volatile boolean aborted = false;
     private volatile AbortReason reason;
     private final CompletableFuture<AbortReason> abortFuture = new CompletableFuture<>();
+    private final List<Runnable> abortCallbacks = new CopyOnWriteArrayList<>();
 
     /**
      * 触发中断 — volatile 写保证 happens-before。
      */
     public void abort(AbortReason r) {
+        if (this.aborted) return;  // 幂等
         this.reason = r;
         this.aborted = true;
         abortFuture.complete(r);
+
+        // 执行所有注册的中断回调
+        for (Runnable callback : abortCallbacks) {
+            try {
+                callback.run();
+            } catch (Exception e) {
+                log.warn("Abort callback failed for reason={}, continuing: {}",
+                        r, e.getMessage(), e);
+            }
+        }
+    }
+
+    /**
+     * 注册 abort 回调，用于中断正在进行的 HTTP 请求等。
+     * 如果已经 aborted，立即执行回调。
+     */
+    public void onAbortDo(Runnable callback) {
+        if (aborted) {
+            callback.run();  // 已经 aborted，立即执行
+        } else {
+            abortCallbacks.add(callback);
+        }
     }
 
     public boolean isAborted() {

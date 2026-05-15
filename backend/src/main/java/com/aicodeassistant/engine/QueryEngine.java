@@ -5,15 +5,21 @@ import com.aicodeassistant.hook.HookRegistry;
 import com.aicodeassistant.hook.HookService;
 import com.aicodeassistant.llm.*;
 import com.aicodeassistant.model.*;
+import com.aicodeassistant.config.FeatureFlagService;
 import com.aicodeassistant.permission.PermissionPipeline;
 import com.aicodeassistant.permission.PermissionRuleRepository;
 import com.aicodeassistant.tool.*;
+import com.aicodeassistant.tool.agent.BackgroundAgentTracker;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -63,6 +69,9 @@ public class QueryEngine {
     private final IncrementalCollapseManager incrementalCollapseManager;
     @org.springframework.lang.Nullable
     private final VisualizationAutoRouter visualizationAutoRouter;
+    @org.springframework.lang.Nullable
+    private final BackgroundAgentTracker backgroundAgentTracker;
+    private final FeatureFlagService featureFlagService;
 
     /** 单条工具结果最大占上下文窗口的 30% */
     private static final double TOOL_RESULT_BUDGET_RATIO = 0.3;
@@ -95,7 +104,9 @@ public class QueryEngine {
                        ContextCascade contextCascade,
                        CompactMetrics compactMetrics,
                        @org.springframework.lang.Nullable IncrementalCollapseManager incrementalCollapseManager,
-                       @org.springframework.lang.Nullable VisualizationAutoRouter visualizationAutoRouter) {
+                       @org.springframework.lang.Nullable VisualizationAutoRouter visualizationAutoRouter,
+                       @org.springframework.lang.Nullable BackgroundAgentTracker backgroundAgentTracker,
+                       FeatureFlagService featureFlagService) {
         this.providerRegistry = providerRegistry;
         this.compactService = compactService;
         this.apiRetryService = apiRetryService;
@@ -117,6 +128,8 @@ public class QueryEngine {
         this.compactMetrics = compactMetrics;
         this.incrementalCollapseManager = incrementalCollapseManager;
         this.visualizationAutoRouter = visualizationAutoRouter;
+        this.backgroundAgentTracker = backgroundAgentTracker;
+        this.featureFlagService = featureFlagService;
     }
 
     /**
@@ -148,6 +161,13 @@ public class QueryEngine {
      */
     public void removeAbortContext(String sessionId) {
         abortContexts.remove(sessionId);
+    }
+
+    /**
+     * 获取会话的 AbortContext（只读，不创建）。
+     */
+    public AbortContext getAbortContext(String sessionId) {
+        return abortContexts.get(sessionId);
     }
 
     /**
@@ -546,6 +566,47 @@ public class QueryEngine {
                         state.setHasAttemptedReactiveCompact(false);
                         handler.onTurnEnd(turn, "token_budget_continuation");
                         continue;
+                    }
+                }
+
+                // ★ 新增：检查后台代理是否仍在运行
+                if (backgroundAgentTracker != null
+                        && featureFlagService.isEnabled("BACKGROUND_AGENT_WAIT")) {
+                    String bgSessionId = state.getToolUseContext().sessionId();
+                    List<String> activeAgentIds = backgroundAgentTracker.getActiveAgentIds(bgSessionId);
+
+                    if (!activeAgentIds.isEmpty()) {
+                        handler.onTurnEnd(turn, "waiting_for_background_agents");
+
+                        // 等待所有后台代理完成（带超时和 abort 信号）
+                        Duration waitTimeout = Duration.ofMinutes(15);
+                        AbortContext abortCtx = abortContexts.get(bgSessionId);
+
+                        boolean allDone = backgroundAgentTracker.awaitAllAgents(
+                                bgSessionId, waitTimeout, abortCtx);
+
+                        if (allDone) {
+                            // 收集结果并注入上下文
+                            List<BackgroundAgentTracker.AgentStatus> completed =
+                                    backgroundAgentTracker.listActive(bgSessionId);
+                            // listActive 返回 running 的，此时应已全部完成，获取全部记录
+                            List<BackgroundAgentTracker.AgentStatus> allAgents =
+                                    activeAgentIds.stream()
+                                            .map(backgroundAgentTracker::getStatus)
+                                            .filter(java.util.Objects::nonNull)
+                                            .toList();
+                            String resultSummary = formatAgentResults(allAgents);
+
+                            // 注入为 user message 让 LLM 整合结果
+                            Message.UserMessage agentResultMsg = new Message.UserMessage(
+                                    UUID.randomUUID().toString(), Instant.now(),
+                                    List.of(new ContentBlock.TextBlock(
+                                            "[System] Background agents completed:\n" + resultSummary)),
+                                    null, null);
+                            state.addMessage(agentResultMsg);
+                            continue;  // 继续循环让 LLM 整合结果
+                        }
+                        // 超时或被 abort，正常退出
                     }
                 }
 
@@ -1122,6 +1183,35 @@ public class QueryEngine {
                     stopReason != null ? stopReason : "end_turn",
                     usage != null ? usage : Usage.zero());
         }
+    }
+
+    // ==================== 后台代理结果格式化 ====================
+
+    /**
+     * 格式化后台代理的执行结果，用于注入 LLM 上下文。
+     */
+    private String formatAgentResults(List<BackgroundAgentTracker.AgentStatus> agents) {
+        StringBuilder sb = new StringBuilder();
+        for (var agent : agents) {
+            sb.append("### Agent: ").append(agent.agentId()).append("\n");
+            sb.append("Status: ").append(agent.status()).append("\n");
+            if ("completed".equals(agent.status()) && agent.outputFile() != null) {
+                try {
+                    String output = Files.readString(Path.of(agent.outputFile()));
+                    // 截断过长输出（保护 token 预算）
+                    if (output.length() > 4000) {
+                        output = output.substring(0, 4000) + "\n... [truncated]";
+                    }
+                    sb.append("Output:\n").append(output).append("\n");
+                } catch (IOException e) {
+                    sb.append("Output: [file read failed: ").append(e.getMessage()).append("]\n");
+                }
+            } else if (agent.error() != null) {
+                sb.append("Error: ").append(agent.error()).append("\n");
+            }
+            sb.append("\n");
+        }
+        return sb.toString();
     }
 
     // ==================== 查询结果 ====================

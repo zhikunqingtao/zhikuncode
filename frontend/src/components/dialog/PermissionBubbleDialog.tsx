@@ -1,11 +1,17 @@
 /**
- * PermissionBubbleDialog — Worker 权限冒泡对话框
- * 显示 Worker 请求的权限详情，提供批准/拒绝按钮
- * 60s 超时自动拒绝
+ * PermissionBubbleDialog — Worker 权限冒泡对话框（堆叠式并发展示）
+ * 同时显示所有待处理的权限请求，每个独立倒计时
+ * 支持单个批准/拒绝 + 全部批准/全部拒绝批量操作
+ * 60s 超时自动拒绝对应请求
  */
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useSwarmStore } from '@/store/swarmStore';
+
+interface PermissionItemState {
+    countdown: number;
+    intervalId: ReturnType<typeof setInterval> | null;
+}
 
 const riskColors: Record<string, { border: string; badge: string; text: string }> = {
     low: { border: 'border-green-300 dark:border-green-700', badge: 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300', text: '低风险' },
@@ -14,136 +20,200 @@ const riskColors: Record<string, { border: string; badge: string; text: string }
 };
 
 export const PermissionBubbleDialog: React.FC = () => {
-    const { pendingPermissions, removePermissionBubble } = useSwarmStore();
-    const [countdown, setCountdown] = useState(60);
+    const { pendingPermissions, resolvePermission, resolveAll } = useSwarmStore();
+    const [itemStates, setItemStates] = useState<Record<string, PermissionItemState>>({});
+    const itemStatesRef = useRef<Record<string, PermissionItemState>>({});
 
-    const currentRequest = pendingPermissions[0];
-
-    // Countdown timer
+    // 保持 ref 与 state 同步，供 interval 回调内使用
     useEffect(() => {
-        if (!currentRequest) {
-            setCountdown(60);
-            return;
+        itemStatesRef.current = itemStates;
+    }, [itemStates]);
+
+    // 为每个新请求创建独立倒计时；清理已移除的请求
+    useEffect(() => {
+        const currentIds = new Set(pendingPermissions.map((r) => r.requestId));
+        const prevStates = itemStatesRef.current;
+
+        // 为新增的请求初始化倒计时
+        const newStates: Record<string, PermissionItemState> = {};
+        let changed = false;
+
+        for (const req of pendingPermissions) {
+            if (prevStates[req.requestId]) {
+                // 保留现有状态
+                newStates[req.requestId] = prevStates[req.requestId];
+            } else {
+                // 新请求：启动独立倒计时
+                const intervalId = setInterval(() => {
+                    setItemStates((prev) => {
+                        const state = prev[req.requestId];
+                        if (!state) return prev;
+
+                        if (state.countdown <= 1) {
+                            // 超时自动拒绝
+                            resolvePermission(req.requestId, 'DENY');
+                            clearInterval(state.intervalId!);
+                            const updated = { ...prev };
+                            delete updated[req.requestId];
+                            return updated;
+                        }
+                        return {
+                            ...prev,
+                            [req.requestId]: {
+                                ...state,
+                                countdown: state.countdown - 1,
+                            },
+                        };
+                    });
+                }, 1000);
+                newStates[req.requestId] = { countdown: 60, intervalId };
+                changed = true;
+            }
         }
 
-        setCountdown(60);
-        const interval = setInterval(() => {
-            setCountdown((prev) => {
-                if (prev <= 1) {
-                    // Auto-deny on timeout
-                    handleDecision(false);
-                    return 60;
+        // 清理已处理/移除的请求
+        for (const id of Object.keys(prevStates)) {
+            if (!currentIds.has(id)) {
+                if (prevStates[id].intervalId) {
+                    clearInterval(prevStates[id].intervalId!);
                 }
-                return prev - 1;
-            });
-        }, 1000);
-
-        return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentRequest?.requestId]);
-
-    const handleDecision = useCallback(async (approved: boolean) => {
-        if (!currentRequest) return;
-
-        try {
-            await fetch(`/api/swarm/permission/${currentRequest.requestId}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ approved }),
-            });
-        } catch (e) {
-            console.error('Failed to send permission decision:', e);
+                changed = true;
+            }
         }
 
-        removePermissionBubble(currentRequest.requestId);
-    }, [currentRequest, removePermissionBubble]);
+        if (changed || Object.keys(newStates).length !== Object.keys(prevStates).length) {
+            setItemStates(newStates);
+        }
 
-    if (!currentRequest) return null;
+        // 组件卸载时清理所有定时器
+        return () => {
+            for (const state of Object.values(newStates)) {
+                if (state.intervalId) clearInterval(state.intervalId);
+            }
+        };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pendingPermissions]);
 
-    const risk = riskColors[currentRequest.riskLevel] ?? riskColors.medium;
+    const handleDecision = (requestId: string, approved: boolean) => {
+        // 清理对应的倒计时
+        const state = itemStates[requestId];
+        if (state?.intervalId) {
+            clearInterval(state.intervalId);
+        }
+        setItemStates((prev) => {
+            const updated = { ...prev };
+            delete updated[requestId];
+            return updated;
+        });
+        resolvePermission(requestId, approved ? 'ALLOW' : 'DENY');
+    };
+
+    const handleBatchDecision = (approved: boolean) => {
+        // 清理所有倒计时
+        for (const state of Object.values(itemStates)) {
+            if (state.intervalId) clearInterval(state.intervalId);
+        }
+        setItemStates({});
+        resolveAll(approved ? 'ALLOW' : 'DENY');
+    };
+
+    if (pendingPermissions.length === 0) return null;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-            <div className={`w-full max-w-md mx-4 bg-white dark:bg-zinc-900 rounded-xl shadow-2xl border-2 ${risk.border} overflow-hidden`}>
+            <div className="w-full max-w-md mx-4 max-h-[70vh] flex flex-col bg-white dark:bg-zinc-900 rounded-xl shadow-2xl border border-zinc-200 dark:border-zinc-700 overflow-hidden">
                 {/* Header */}
-                <div className="px-5 py-3 bg-zinc-50 dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700">
+                <div className="px-5 py-3 bg-zinc-50 dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700 flex-shrink-0">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <svg className="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
                             </svg>
                             <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
-                                Worker 权限请求
+                                权限请求 ({pendingPermissions.length})
                             </h3>
                         </div>
-                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${risk.badge}`}>
-                            {risk.text}
-                        </span>
+                        {pendingPermissions.length > 1 && (
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => handleBatchDecision(true)}
+                                    className="text-xs px-2.5 py-1 rounded-md bg-green-600 text-white hover:bg-green-700 transition-colors"
+                                >
+                                    全部批准
+                                </button>
+                                <button
+                                    onClick={() => handleBatchDecision(false)}
+                                    className="text-xs px-2.5 py-1 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors"
+                                >
+                                    全部拒绝
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
 
-                {/* Body */}
-                <div className="px-5 py-4 space-y-3">
-                    {/* Worker Badge */}
-                    <div className="flex items-center gap-2">
-                        <span className="text-[10px] uppercase tracking-wider text-zinc-400">Worker</span>
-                        <span className="text-xs font-mono bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded text-zinc-700 dark:text-zinc-300">
-                            {currentRequest.workerId}
-                        </span>
-                    </div>
+                {/* Permission request list — stacked */}
+                <div className="overflow-y-auto flex-1 divide-y divide-zinc-100 dark:divide-zinc-800">
+                    {pendingPermissions.map((req) => {
+                        const state = itemStates[req.requestId];
+                        const countdown = state?.countdown ?? 60;
+                        const risk = riskColors[req.riskLevel] ?? riskColors.medium;
 
-                    {/* Tool Name */}
-                    <div className="flex items-center gap-2">
-                        <span className="text-[10px] uppercase tracking-wider text-zinc-400">工具</span>
-                        <span className="text-sm font-mono font-medium text-zinc-800 dark:text-zinc-200">
-                            {currentRequest.toolName}
-                        </span>
-                    </div>
+                        return (
+                            <div key={req.requestId} className={`px-5 py-4 border-l-4 ${risk.border}`}>
+                                {/* Worker + Risk badge */}
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-xs font-mono bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded text-zinc-600 dark:text-zinc-400">
+                                        {req.workerId}
+                                    </span>
+                                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${risk.badge}`}>
+                                        {risk.text}
+                                    </span>
+                                </div>
 
-                    {/* Reason */}
-                    <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-lg p-3">
-                        <div className="text-[10px] uppercase tracking-wider text-zinc-400 mb-1">原因</div>
-                        <div className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed">
-                            {currentRequest.reason}
-                        </div>
-                    </div>
+                                {/* Tool Name */}
+                                <div className="flex items-center gap-2 mb-1.5">
+                                    <span className="text-[10px] uppercase tracking-wider text-zinc-400">工具</span>
+                                    <span className="text-sm font-mono font-medium text-zinc-800 dark:text-zinc-200">
+                                        {req.toolName}
+                                    </span>
+                                </div>
 
-                    {/* Countdown */}
-                    <div className="flex items-center justify-center gap-2">
-                        <div className="h-1 flex-1 bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden">
-                            <div
-                                className="h-full bg-amber-500 dark:bg-amber-400 rounded-full transition-all duration-1000"
-                                style={{ width: `${(countdown / 60) * 100}%` }}
-                            />
-                        </div>
-                        <span className="text-xs text-zinc-400 tabular-nums w-8 text-right">{countdown}s</span>
-                    </div>
+                                {/* Reason */}
+                                <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-3 leading-relaxed">
+                                    {req.reason}
+                                </p>
+
+                                {/* Countdown bar + actions */}
+                                <div className="flex items-center gap-3">
+                                    <div className="flex-1 flex items-center gap-2">
+                                        <div className="h-1 flex-1 bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full bg-amber-500 dark:bg-amber-400 rounded-full transition-all duration-1000"
+                                                style={{ width: `${(countdown / 60) * 100}%` }}
+                                            />
+                                        </div>
+                                        <span className="text-xs text-zinc-400 tabular-nums w-7 text-right">{countdown}s</span>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => handleDecision(req.requestId, false)}
+                                            className="text-xs px-3 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+                                        >
+                                            拒绝
+                                        </button>
+                                        <button
+                                            onClick={() => handleDecision(req.requestId, true)}
+                                            className="text-xs px-3 py-1.5 rounded-md bg-green-600 text-white hover:bg-green-700 transition-colors"
+                                        >
+                                            批准
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
-
-                {/* Actions */}
-                <div className="px-5 py-3 bg-zinc-50 dark:bg-zinc-800 border-t border-zinc-200 dark:border-zinc-700 flex justify-end gap-2">
-                    <button
-                        onClick={() => handleDecision(false)}
-                        className="px-4 py-2 text-sm rounded-lg border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors min-w-[88px] min-h-[44px]"
-                    >
-                        拒绝
-                    </button>
-                    <button
-                        onClick={() => handleDecision(true)}
-                        className="px-4 py-2 text-sm rounded-lg bg-green-600 hover:bg-green-700 text-white transition-colors min-w-[88px] min-h-[44px]"
-                    >
-                        批准
-                    </button>
-                </div>
-
-                {/* Queue indicator */}
-                {pendingPermissions.length > 1 && (
-                    <div className="px-5 py-1.5 bg-zinc-100 dark:bg-zinc-800/80 text-center">
-                        <span className="text-[10px] text-zinc-400">
-                            还有 {pendingPermissions.length - 1} 个权限请求等待处理
-                        </span>
-                    </div>
-                )}
             </div>
         </div>
     );

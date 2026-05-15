@@ -866,7 +866,7 @@ Phases follow strict sequential order (no skipping). Each phase records timestam
 - Worker count adjusts dynamically, no pre-declaration needed
 - One Virtual Thread per Worker, 30-minute timeout protection
 - Worker toolsets precisely controlled via allowList/denyList
-- Permissions bubble up to UI (`LeaderPermissionBridge`), 60-second timeout auto-denies to prevent deadlocks
+- Permissions bubble up to UI (`LeaderPermissionBridge`) with stacked display for concurrent permission requests, each with an independent 60-second countdown timer, supporting individual or batch approve/deny — auto-denies on timeout to prevent deadlocks
 - Real-time status pushed via STOMP WebSocket
 - Active Swarms managed by Caffeine cache, 4-hour TTL auto-evicts stale instances
 
@@ -880,7 +880,7 @@ The main Agent delegates subtasks to independent child Agents, with three isolat
 | **WORKTREE** | Creates independent Git Worktree, auto-merges or discards on completion | Experimental changes needing isolation |
 | **Fork** | Inherits parent session’s full message history, reuses LLM KV cache | Continuation tasks needing full context |
 
-- Supports background async execution (`BackgroundAgentTracker`), pushing start/complete/fail events via WebSocket
+- Supports background async execution (`BackgroundAgentTracker`), real-time pushing start/complete/fail events via WebSocket for live monitoring of agent execution progress
 - Per-agent 5-minute timeout, results capped at 100,000 characters
 
 ### Three-Layer Concurrency Safety
