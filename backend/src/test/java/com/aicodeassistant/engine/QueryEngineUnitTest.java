@@ -2,6 +2,8 @@ package com.aicodeassistant.engine;
 
 import com.aicodeassistant.config.FeatureFlagService;
 import com.aicodeassistant.engine.ContextCascade;
+import com.aicodeassistant.engine.scheduling.ToolPriorityScheduler;
+import com.aicodeassistant.engine.strategy.DefaultTerminationStrategy;
 import com.aicodeassistant.history.FileHistoryService;
 import com.aicodeassistant.hook.HookRegistry;
 import com.aicodeassistant.hook.HookService;
@@ -72,7 +74,8 @@ class QueryEngineUnitTest {
                 thinkingBudgetCalculator, modelTierService, fileHistoryService,
                 toolResultSummarizer, contextCascade, compactMetrics,
                 null, null,  // incrementalCollapseManager, visualizationAutoRouter (both @Nullable)
-                null, featureFlagService);  // backgroundAgentTracker (@Nullable), featureFlagService
+                null, featureFlagService,  // backgroundAgentTracker (@Nullable), featureFlagService
+                new DefaultTerminationStrategy(), new ToolPriorityScheduler());
         handler = new TestHandler();
 
         // 默认 Snip/MicroCompact mock: 直接返回原消息列表

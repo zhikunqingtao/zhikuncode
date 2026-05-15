@@ -69,7 +69,7 @@ class MicroCompactServiceTest {
             // Given: 3 条消息，protectedTailSize = 5
             List<Message> messages = List.of(
                     new Message.SystemMessage("s1", Instant.now(), "system prompt", null),
-                    assistantWithTool("a1", "tu-1", "BashTool"),
+                    assistantWithTool("a1", "tu-1", "Bash"),
                     userWithToolResult("u1", "bash output content", "a1")
             );
 
@@ -89,12 +89,12 @@ class MicroCompactServiceTest {
 
             List<Message> messages = new ArrayList<>();
             // 旧消息（保护区外）
-            messages.add(assistantWithTool("a1", "tu-1", "BashTool"));
+            messages.add(assistantWithTool("a1", "tu-1", "Bash"));
             messages.add(userWithToolResult("u1", "old bash output that should be cleared", "a1"));
-            messages.add(assistantWithTool("a2", "tu-2", "FileReadTool"));
+            messages.add(assistantWithTool("a2", "tu-2", "Read"));
             messages.add(userWithToolResult("u2", "old file read output", "a2"));
             // 新消息（保护区内，protectedTailSize=2）
-            messages.add(assistantWithTool("a3", "tu-3", "BashTool"));
+            messages.add(assistantWithTool("a3", "tu-3", "Bash"));
             messages.add(userWithToolResult("u3", "recent bash output should be kept", "a3"));
 
             // When: protectedTailSize=2, 最后 2 条在保护区
@@ -135,7 +135,7 @@ class MicroCompactServiceTest {
         void shouldNotReCompactAlreadyClearedMessages() {
             // Given: 已清除的消息
             List<Message> messages = new ArrayList<>();
-            messages.add(assistantWithTool("a1", "tu-1", "BashTool"));
+            messages.add(assistantWithTool("a1", "tu-1", "Bash"));
             messages.add(new Message.UserMessage("u1", Instant.now(),
                     List.of(), "[Old tool result content cleared]", "a1"));
             // 填充消息

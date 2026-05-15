@@ -1,5 +1,6 @@
 package com.aicodeassistant.engine;
 
+import com.aicodeassistant.llm.ModelCapabilityRegistry;
 import com.aicodeassistant.llm.ModelRegistry;
 import com.aicodeassistant.model.Message;
 import org.slf4j.Logger;
@@ -33,8 +34,8 @@ public class ContextCascade {
 
     // ============ 阈值常量 ============
 
-    /** Buffer-based 自动压缩缓冲 token 数 */
-    private static final int AUTOCOMPACT_BUFFER_TOKENS = 13_000;
+    /** Buffer-based 自动压缩缓冲 token 数（默认值，当 ModelCapabilityRegistry 不可用时使用） */
+    private static final int AUTOCOMPACT_BUFFER_TOKENS_DEFAULT = 13_000;
 
     /** 最大连续自动压缩失败次数（电路断路器） */
     private static final int MAX_CONSECUTIVE_FAILURES = 3;
@@ -51,19 +52,22 @@ public class ContextCascade {
     private final CompactService compactService;
     private final TokenCounter tokenCounter;
     private final ModelRegistry modelRegistry;
+    private final ModelCapabilityRegistry modelCapabilityRegistry;
 
     public ContextCascade(SnipService snipService,
                           MicroCompactService microCompactService,
                           ContextCollapseService contextCollapseService,
                           CompactService compactService,
                           TokenCounter tokenCounter,
-                          ModelRegistry modelRegistry) {
+                          ModelRegistry modelRegistry,
+                          ModelCapabilityRegistry modelCapabilityRegistry) {
         this.snipService = snipService;
         this.microCompactService = microCompactService;
         this.contextCollapseService = contextCollapseService;
         this.compactService = compactService;
         this.tokenCounter = tokenCounter;
         this.modelRegistry = modelRegistry;
+        this.modelCapabilityRegistry = modelCapabilityRegistry;
     }
 
     // ============ 级联状态 ============
@@ -156,7 +160,11 @@ public class ContextCascade {
         int contextWindow = modelRegistry.getContextWindowForModel(model);
         int reservedForSummary = contextWindow / 4;
         int effectiveWindow = contextWindow - reservedForSummary;
-        int autoCompactThreshold = effectiveWindow - AUTOCOMPACT_BUFFER_TOKENS;
+        // 动态获取 buffer tokens：优先从 ModelCapabilityRegistry 获取，回退到默认值
+        int bufferTokens = modelCapabilityRegistry.isRegistered(model)
+                ? modelCapabilityRegistry.getBufferTokens(model)
+                : AUTOCOMPACT_BUFFER_TOKENS_DEFAULT;
+        int autoCompactThreshold = effectiveWindow - bufferTokens;
 
         int currentTokens = tokenCounter.estimateTokens(messages);
 

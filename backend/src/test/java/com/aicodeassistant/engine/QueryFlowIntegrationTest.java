@@ -1,13 +1,17 @@
 package com.aicodeassistant.engine;
 
 import com.aicodeassistant.config.FeatureFlagService;
+import com.aicodeassistant.config.ModelCapabilityConfig;
 import com.aicodeassistant.engine.ContextCascade;
+import com.aicodeassistant.engine.scheduling.ToolPriorityScheduler;
+import com.aicodeassistant.engine.strategy.DefaultTerminationStrategy;
 import com.aicodeassistant.history.FileHistoryService;
 import com.aicodeassistant.hook.HookRegistry;
 import com.aicodeassistant.hook.HookService;
 import com.aicodeassistant.llm.*;
 import com.aicodeassistant.model.*;
 import com.aicodeassistant.permission.AutoModeClassifier;
+import com.aicodeassistant.permission.PermissionModeManager;
 import com.aicodeassistant.permission.PermissionPipeline;
 import com.aicodeassistant.permission.PermissionRuleMatcher;
 import com.aicodeassistant.permission.PermissionRuleRepository;
@@ -19,6 +23,7 @@ import com.aicodeassistant.security.PathSecurityService;
 import com.aicodeassistant.security.SensitiveDataFilter;
 import com.aicodeassistant.tool.*;
 import com.aicodeassistant.tool.bash.BashCommandClassifier;
+import com.aicodeassistant.tool.recovery.ToolRecoveryFramework;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -53,6 +58,7 @@ class QueryFlowIntegrationTest {
     private QueryEngine queryEngine;
     private ObjectMapper objectMapper;
     private RecordingHandler handler;
+    private ApiCircuitBreaker circuitBreaker;
 
     @BeforeEach
     void setUp() {
@@ -67,14 +73,21 @@ class QueryFlowIntegrationTest {
                 mock(PathSecurityService.class), mock(BashCommandClassifier.class),
                 mock(FeatureFlagService.class), mock(CommandBlacklistService.class));
 
-        TokenCounter tokenCounter = new TokenCounter();
+        ModelCapabilityConfig capCfg = new ModelCapabilityConfig();
+        ModelCapabilityRegistry capRegistry = new ModelCapabilityRegistry(capCfg);
+        capRegistry.init();
+        TokenCounter tokenCounter = new TokenCounter(capRegistry);
         CompactService compactService = new CompactService(tokenCounter, providerRegistry, null, null);
         ModelTierService modelTierService = new ModelTierService();
-        ApiRetryService apiRetryService = new ApiRetryService(modelTierService);
+        ModelAwareRetryPolicy retryPolicy = new ModelAwareRetryPolicy();
+        circuitBreaker = new ApiCircuitBreaker();
+        circuitBreaker.reset();
+        ApiRetryService apiRetryService = new ApiRetryService(modelTierService, retryPolicy, circuitBreaker);
         HookService hookService = new HookService(new HookRegistry(), null);
         SensitiveDataFilter sensitiveDataFilter = new SensitiveDataFilter();
+        ToolRecoveryFramework recoveryFramework = new ToolRecoveryFramework(List.of());
         StreamingToolExecutor streamingToolExecutor = new StreamingToolExecutor(
-                new ToolExecutionPipeline(hookService, objectMapper, permissionPipeline, ruleRepo, sensitiveDataFilter, null), new SimpleMeterRegistry());
+                new ToolExecutionPipeline(hookService, objectMapper, permissionPipeline, ruleRepo, sensitiveDataFilter, new PermissionModeManager(), recoveryFramework), new SimpleMeterRegistry());
         MessageNormalizer messageNormalizer = new MessageNormalizer();
         SnipService snipService = new SnipService();
         MicroCompactService microCompactService = new MicroCompactService(tokenCounter);
@@ -93,7 +106,8 @@ class QueryFlowIntegrationTest {
                 snipService, microCompactService, null, null, modelTierService, mock(FileHistoryService.class), mock(ToolResultSummarizer.class),
                 contextCascade, mock(CompactMetrics.class),
                 null, null,  // incrementalCollapseManager, visualizationAutoRouter (both @Nullable)
-                null, mock(FeatureFlagService.class)  // backgroundAgentTracker (@Nullable), featureFlagService
+                null, mock(FeatureFlagService.class),  // backgroundAgentTracker (@Nullable), featureFlagService
+                new DefaultTerminationStrategy(), new ToolPriorityScheduler()
         );
 
         handler = new RecordingHandler();
@@ -192,7 +206,7 @@ class QueryFlowIntegrationTest {
     void llmApiException_shouldHandleGracefully() {
         // 注册 Mock Provider: 抛出异常
         providerRegistry.register(new MockLlmProvider(callback -> {
-            throw new LlmApiException("API timeout", false, 504);
+            throw new LlmApiException("API timeout", false, 408);
         }));
 
         QueryConfig config = buildConfig();

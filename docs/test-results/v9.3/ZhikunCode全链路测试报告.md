@@ -3514,3 +3514,49 @@ docs/test-results/
 > **数据来源**: v9.2 全量 326 用例真实测试结果 + v9.3 新增 10 Task 真实执行数据 + APOS E2E V2 综合报告（123用例 = 62 Phase 1 + 50 Phase 2 + 11 风险修复）+ 单元测试体系全量执行
 > **报告生成方式**: 从原始测试数据文件逐条提取，禁止伪造
 > **总体判定**: **PASS（含 1 个真实漏洞修复 + 4 个 APOS P1 Bug 修复 + 1 个 APOS P2 Bug 修复）**
+
+---
+
+## AI Coding 能力优化升级 — 测试执行报告
+
+> **执行日期**: 2026-05-15  
+> **执行环境**: macOS, Java 21.0.10, JUnit 5 + AssertJ + Mockito 5.x (单元测试) / WebSocket + curl (集成测试)  
+> **详细报告**: [AI-Coding优化测试执行报告.md](./AI-Coding优化测试执行报告.md)
+
+### 执行概览
+
+| 类别 | 总数 | 通过 | 失败 | 跳过 | 通过率 |
+|------|------|------|------|------|--------|
+| 单元测试 | 68 | 68 | 0 | 0 | 100% |
+| 集成测试 | 26 | 26 | 0 | 0 | 100% |
+| Level 3 自纠错 | 30 | — | — | 30 | N/A（未实现） |
+| **总计** | **124** | **94** | **0** | **30** | **100%（排除 L3）** |
+
+### 单元测试覆盖（68/68 PASS）
+
+14 个新增测试类，5 大模块：
+
+| 模块 | 测试类 | 用例数 | 核心验证点 |
+|------|--------|--------|-----------|
+| BashTool 增强 | BashErrorClassifierTest / BashOutputProcessorTest / ProcessTreeManagerTest | 18 | 退出码分类、输出截断、进程树管理 |
+| FileEdit 原子写入 | FileVersionTrackerTest / AtomicFileWriterTest | 12 | SHA-256 冲突检测、LRU 驱逐、原子写入回滚 |
+| 模型感知自适应 | ModelCapabilityRegistryTest / ApiCircuitBreakerTest / ModelAwareRetryPolicyTest | 18 | 能力参数、熔断器状态机、指数退避+Jitter |
+| 错误恢复框架 | ToolRecoveryFrameworkTest / BashRecoveryPolicyTest / PromptTooLongRecoveryTest | 8 | 策略链匹配、413 渐进恢复 |
+| Agent Loop 终止 | DefaultTerminationStrategyTest / ToolCallTrackerTest / ToolPrioritySchedulerTest | 12 | 6 级优先评估、工具调用追踪、4 层优先级 |
+
+### 集成测试覆盖（26/26 PASS）
+
+| 类别 | 用例数 | 验证范围 |
+|------|--------|----------|
+| System Prompt 与 LLM | 4 | 模型列表、能力字段、错误处理、Token 跟踪 |
+| Agent Loop 核心循环 | 9 | 问答循环、多轮对话、SSE 流式、工具调用链、终止策略 |
+| 工具系统与安全 | 7 | Write/Edit 操作、Bash 安全、危险命令拦截、路径保护 |
+| LSP callHierarchy | 6 | prepareCallHierarchy、incomingCalls、异常降级 |
+
+### Level 3 自纠错循环（SKIP）
+
+`SelfCorrectionLoop.java` 源码文件不存在，该模块为设计阶段产物尚未编码实现。32 条用例（TC-SC-001~032）全部跳过，待后续实现后启用。
+
+### 结论
+
+AI Coding 能力优化全部已实现模块（Level 1 + Level 2）测试通过率 **100%**，质量达标。

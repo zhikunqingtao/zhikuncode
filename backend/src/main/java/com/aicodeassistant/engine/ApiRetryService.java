@@ -1,10 +1,13 @@
 package com.aicodeassistant.engine;
 
+import com.aicodeassistant.llm.ApiCircuitBreaker;
 import com.aicodeassistant.llm.LlmApiException;
+import com.aicodeassistant.llm.ModelAwareRetryPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -30,9 +33,15 @@ public class ApiRetryService {
 
     // ==================== 依赖注入 ====================
     private final ModelTierService modelTierService;
+    private final ModelAwareRetryPolicy modelAwareRetryPolicy;
+    private final ApiCircuitBreaker circuitBreaker;
 
-    public ApiRetryService(ModelTierService modelTierService) {
+    public ApiRetryService(ModelTierService modelTierService,
+                           ModelAwareRetryPolicy modelAwareRetryPolicy,
+                           ApiCircuitBreaker circuitBreaker) {
         this.modelTierService = modelTierService;
+        this.modelAwareRetryPolicy = modelAwareRetryPolicy;
+        this.circuitBreaker = circuitBreaker;
     }
 
     // ==================== 529 源分类 ====================
@@ -68,12 +77,23 @@ public class ApiRetryService {
         int retries529 = 0;
 
         while (true) {
+            // ★ 熔断器检查 — 如果处于 OPEN 状态则快速失败
+            if (!circuitBreaker.allowRequest()) {
+                throw new LlmApiException(
+                        "Circuit breaker is OPEN — API calls temporarily blocked. "
+                                + "Please wait for recovery.",
+                        true, 503);
+            }
+
             try {
                 T result = operation.get();
-                // ★ 成功 → 报告给 ModelTierService
+                // ★ 成功 → 报告给 ModelTierService 和熔断器
                 modelTierService.reportSuccess(currentModel);
+                circuitBreaker.recordSuccess();
                 return result;
             } catch (LlmApiException e) {
+                // ★ 失败 → 记录到熔断器
+                circuitBreaker.recordFailure();
                 attempt++;
 
                 // 1. 检查是否为 529 错误 (容量超限)
@@ -101,8 +121,8 @@ public class ApiRetryService {
                     throw e;
                 }
 
-                // 4. 计算延迟并等待
-                long delay = calculateDelay(attempt, e);
+                // 4. 计算延迟并等待（优先使用模型感知策略）
+                long delay = calculateDelayWithModelAwareness(attempt, e, currentModel);
                 log.warn("API 调用失败 (attempt {}/{}), {} 后重试: {}",
                         attempt, DEFAULT_MAX_RETRIES, delay + "ms", e.getMessage());
 
@@ -137,7 +157,27 @@ public class ApiRetryService {
     }
 
     /**
-     * 计算重试延迟 — 指数退避 + 随机抖动。
+     * 计算重试延迟 — 模型感知指数退避 + 25% jitter。
+     * <p>
+     * 优先级：
+     * 1. 服务端 retry-after（如果模型配置要求遵循）
+     * 2. 模型感知延迟计算
+     * 3. 回退到默认指数退避
+     */
+    private long calculateDelayWithModelAwareness(int attempt, LlmApiException e, String modelId) {
+        // 优先使用服务端 retry-after（如果模型配置要求遵循）
+        if (e.getRetryAfterMs() > 0
+                && modelAwareRetryPolicy.shouldRespectRetryAfter(modelId, e.getRetryAfterMs())) {
+            return Math.min(e.getRetryAfterMs(), MAX_DELAY_MS);
+        }
+
+        // 使用模型感知策略计算延迟
+        Duration delay = modelAwareRetryPolicy.calculateDelay(modelId, attempt - 1);
+        return Math.min(delay.toMillis(), MAX_DELAY_MS);
+    }
+
+    /**
+     * 计算重试延迟 — 指数退避 + 随机抖动（保留向后兼容）。
      */
     private long calculateDelay(int attempt, LlmApiException e) {
         // 优先使用服务端 retry-after
@@ -150,5 +190,12 @@ public class ApiRetryService {
         long delay = Math.min(baseDelay, MAX_DELAY_MS);
         double jitter = 0.5 + Math.random() * 0.5;
         return (long) (delay * jitter);
+    }
+
+    /**
+     * 获取熔断器当前状态（用于监控）。
+     */
+    public ApiCircuitBreaker.State getCircuitBreakerState() {
+        return circuitBreaker.getState();
     }
 }

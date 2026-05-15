@@ -1,5 +1,12 @@
 package com.aicodeassistant.engine;
 
+import com.aicodeassistant.engine.scheduling.ToolPriorityScheduler;
+import com.aicodeassistant.engine.strategy.DefaultTerminationStrategy;
+import com.aicodeassistant.engine.strategy.TerminationDecision;
+import com.aicodeassistant.engine.strategy.TerminationStrategy;
+import com.aicodeassistant.engine.strategy.TerminationStrategy.LoopContext;
+import com.aicodeassistant.engine.strategy.TerminationStrategy.ToolCallRecord;
+import com.aicodeassistant.engine.tracking.ToolCallTracker;
 import com.aicodeassistant.history.FileHistoryService;
 import com.aicodeassistant.hook.HookRegistry;
 import com.aicodeassistant.hook.HookService;
@@ -72,6 +79,8 @@ public class QueryEngine {
     @org.springframework.lang.Nullable
     private final BackgroundAgentTracker backgroundAgentTracker;
     private final FeatureFlagService featureFlagService;
+    private final TerminationStrategy terminationStrategy;
+    private final ToolPriorityScheduler toolPriorityScheduler;
 
     /** 单条工具结果最大占上下文窗口的 30% */
     private static final double TOOL_RESULT_BUDGET_RATIO = 0.3;
@@ -106,7 +115,9 @@ public class QueryEngine {
                        @org.springframework.lang.Nullable IncrementalCollapseManager incrementalCollapseManager,
                        @org.springframework.lang.Nullable VisualizationAutoRouter visualizationAutoRouter,
                        @org.springframework.lang.Nullable BackgroundAgentTracker backgroundAgentTracker,
-                       FeatureFlagService featureFlagService) {
+                       FeatureFlagService featureFlagService,
+                       TerminationStrategy terminationStrategy,
+                       ToolPriorityScheduler toolPriorityScheduler) {
         this.providerRegistry = providerRegistry;
         this.compactService = compactService;
         this.apiRetryService = apiRetryService;
@@ -130,6 +141,8 @@ public class QueryEngine {
         this.visualizationAutoRouter = visualizationAutoRouter;
         this.backgroundAgentTracker = backgroundAgentTracker;
         this.featureFlagService = featureFlagService;
+        this.terminationStrategy = terminationStrategy;
+        this.toolPriorityScheduler = toolPriorityScheduler;
     }
 
     /**
@@ -231,6 +244,9 @@ public class QueryEngine {
         String[] currentModel = { config.model() };
         TokenBudgetTracker tokenBudgetTracker = config.tokenBudget() != null
                 ? new TokenBudgetTracker() : null;
+
+        // 创建局部工具调用追踪器（每次 queryLoop 独立实例，避免跨会话状态污染）
+        ToolCallTracker tracker = new ToolCallTracker();
 
         log.info("[DIAG] queryLoop 进入: model={}, messageCount={}, maxTurns={}, aborted={}",
                 config.model(), state.getMessages().size(), config.maxTurns(), aborted.get());
@@ -477,8 +493,34 @@ public class QueryEngine {
                     handler.onToolUseComplete(block.id(), block);
                 }
 
+                // ★ 工具优先级调度：按优先级排序工具调用（用于日志/监控，实际执行已在流式中启动）
+                List<ContentBlock.ToolUseBlock> sortedBlocks = toolPriorityScheduler.sortByPriority(
+                        toolUseBlocks, ContentBlock.ToolUseBlock::name);
+                if (!sortedBlocks.equals(toolUseBlocks)) {
+                    log.debug("Tool priority reorder detected: original={}, sorted={}",
+                            toolUseBlocks.stream().map(ContentBlock.ToolUseBlock::name).toList(),
+                            sortedBlocks.stream().map(ContentBlock.ToolUseBlock::name).toList());
+                }
+
                 List<Message> toolResults = consumeToolResults(session, handler, aborted);
                 state.addMessages(toolResults);
+
+                // ★ 工具调用追踪：记录每次工具执行结果
+                for (Message toolResultMsg : toolResults) {
+                    if (toolResultMsg instanceof Message.UserMessage um && um.content() != null) {
+                        for (ContentBlock block : um.content()) {
+                            if (block instanceof ContentBlock.ToolResultBlock trb) {
+                                // 找到对应的 toolUseBlock 以获取工具名
+                                String toolName = toolUseBlocks.stream()
+                                        .filter(tb -> tb.id().equals(trb.toolUseId()))
+                                        .map(ContentBlock.ToolUseBlock::name)
+                                        .findFirst().orElse("unknown");
+                                tracker.record(toolName, !trb.isError(),
+                                        trb.isError() ? trb.content() : null);
+                            }
+                        }
+                    }
+                }
 
                 // ★ 新增：获取工具执行后更新的 context（contextModifier 传播）
                 ToolUseContext updatedContext = session.getCurrentContext();
@@ -492,12 +534,69 @@ public class QueryEngine {
                 fileHistoryService.commitTransaction(txSessionId);
             }
 
-            // ===== Step 6: 继续/终止判定 =====
+            // ===== Step 6: 继续/终止判定（策略模式）=====
             String stopReason = assistantMessage.stopReason();
 
-            // 6a: end_turn 且无工具调用 → 执行 stopHooks 后终止
-            // 防御性检查: 同时接受 Anthropic 的 "end_turn" 和 OpenAI 的 "stop"
-            if (("end_turn".equals(stopReason) || "stop".equals(stopReason)) && toolUseBlocks.isEmpty()) {
+            // 构建 LoopContext 供终止策略评估
+            long tokenBudgetValue = config.tokenBudget() != null ? config.tokenBudget() : 0L;
+            LoopContext loopContext = new LoopContext(
+                    turn,
+                    config.maxTurns(),
+                    tracker.getConsecutiveErrors(),
+                    toolUseBlocks.size(),
+                    !toolUseBlocks.isEmpty(),
+                    stopReason,
+                    totalUsage.totalTokens(),
+                    tokenBudgetValue,
+                    tracker.getRecentRecords(5)
+            );
+
+            TerminationDecision decision = terminationStrategy.evaluate(loopContext);
+            log.debug("TerminationStrategy decision: {} (turn={}, errors={}, stopReason={})",
+                    decision, turn, tracker.getConsecutiveErrors(), stopReason);
+
+            // 6a: 策略决定终止（成功/预算/错误）
+            if (decision == TerminationDecision.TERMINATE_BUDGET) {
+                log.warn("终止: Token 预算耗尽 (used={}, budget={})",
+                        totalUsage.totalTokens(), tokenBudgetValue);
+                handler.onTurnEnd(turn, "token_budget_exhausted");
+                break;
+            }
+
+            if (decision == TerminationDecision.TERMINATE_ERROR) {
+                log.warn("终止: 达到有效最大轮次 (turn={}, maxTurns={}, errors={})",
+                        turn, config.maxTurns(), tracker.getConsecutiveErrors());
+                handler.onTurnEnd(turn, "max_turns");
+                break;
+            }
+
+            if (decision == TerminationDecision.REQUEST_USER_INPUT) {
+                log.warn("请求用户输入: 最近 5 次工具调用全部失败");
+                handler.onSystemMessage(new Message.SystemMessage(
+                        UUID.randomUUID().toString(), Instant.now(),
+                        "Multiple consecutive tool failures detected. Waiting for user guidance.",
+                        SystemMessageType.WARNING));
+                handler.onTurnEnd(turn, "request_user_input");
+                break;
+            }
+
+            if (decision == TerminationDecision.SWITCH_STRATEGY) {
+                log.warn("切换恢复策略: 连续错误达到阈值 (errors={})",
+                        tracker.getConsecutiveErrors());
+                // 注入恢复提示给 LLM
+                Message.UserMessage recoveryHint = new Message.UserMessage(
+                        UUID.randomUUID().toString(), Instant.now(),
+                        List.of(new ContentBlock.TextBlock(
+                                "[System] Multiple consecutive errors detected. " +
+                                "Please try a different approach or simplify your current task.")),
+                        null, null);
+                state.addMessage(recoveryHint);
+                handler.onTurnEnd(turn, "switch_strategy");
+                continue;
+            }
+
+            // 6b: TERMINATE_SUCCESS — 执行 stopHooks 后终止
+            if (decision == TerminationDecision.TERMINATE_SUCCESS) {
                 // 
                 boolean isApiError = "api_error".equals(assistantMessage.stopReason())
                         || (assistantMessage.content() != null
@@ -548,10 +647,10 @@ public class QueryEngine {
                     String agentId = state.getToolUseContext() != null
                             && state.getToolUseContext().nestingDepth() > 0
                             ? "subagent-" + state.getToolUseContext().nestingDepth() : null;
-                    TokenBudgetTracker.Decision decision = tokenBudgetTracker.check(
+                    TokenBudgetTracker.Decision budgetDecision = tokenBudgetTracker.check(
                             agentId, config.tokenBudget(), globalTurnTokens);
 
-                    if (decision instanceof TokenBudgetTracker.ContinueDecision cont) {
+                    if (budgetDecision instanceof TokenBudgetTracker.ContinueDecision cont) {
                         log.info("Token budget continuation #{}: {}%",
                                 cont.continuationCount(), cont.pct());
                         Message.UserMessage nudgeMsg = new Message.UserMessage(
@@ -646,9 +745,9 @@ public class QueryEngine {
                 break;
             }
 
-            // 6d: 超过 maxTurns
+            // 6d: 超过 maxTurns（安全网，策略已通过 TERMINATE_ERROR 处理动态 maxTurns）
             if (turn >= config.maxTurns()) {
-                log.warn("达到最大循环轮次: {}", config.maxTurns());
+                log.warn("安全网触发: 达到硬性最大循环轮次: {}", config.maxTurns());
                 handler.onTurnEnd(turn, "max_turns");
                 break;
             }

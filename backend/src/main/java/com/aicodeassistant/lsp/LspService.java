@@ -1,9 +1,12 @@
 package com.aicodeassistant.lsp;
 
+import com.aicodeassistant.lsp.model.CallLocation;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * LspService — 语言服务器协议服务（Stub 实现）。
@@ -37,5 +40,37 @@ public class LspService {
 
     public String getHoverInfo(String filePath, int line, int column) {
         return "LSP service not yet implemented — hover info unavailable";
+    }
+
+    // ===== Call Hierarchy 协议方法 (LSP 3.16+) =====
+
+    /**
+     * textDocument/prepareCallHierarchy — 准备调用层级。
+     * <p>
+     * 返回指定位置的 CallHierarchyItem 列表，用于后续 incoming/outgoing 查询。
+     */
+    public Optional<Map<String, Object>> prepareCallHierarchy(String filePath, int line, int column) {
+        return Optional.empty();
+    }
+
+    /**
+     * callHierarchy/incomingCalls — 获取调用当前符号的所有调用者。
+     */
+    public List<CallLocation> getIncomingCalls(String filePath, int line, int column) {
+        return Collections.emptyList();
+    }
+
+    /**
+     * callHierarchy/outgoingCalls — 获取当前符号调用的所有目标。
+     */
+    public List<CallLocation> getOutgoingCalls(String filePath, int line, int column) {
+        return Collections.emptyList();
+    }
+
+    /**
+     * textDocument/implementation — 获取接口/抽象类的实现位置。
+     */
+    public List<CallLocation> getImplementations(String filePath, int line, int column) {
+        return Collections.emptyList();
     }
 }

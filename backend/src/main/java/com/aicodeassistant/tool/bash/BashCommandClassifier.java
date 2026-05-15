@@ -1102,4 +1102,60 @@ public class BashCommandClassifier {
         Matcher m = FIRST_TOKEN_PATTERN.matcher(s);
         return m.find() ? m.group(1) : "";
     }
+
+    // ══════════════════════════════════════════════════════════════
+    // [第四层] UI 展示分类 — 与安全分类正交，仅用于日志/UI 标签
+    // 不影响 AST→正则→路径验证 三层安全架构
+    // ══════════════════════════════════════════════════════════════
+
+    private static final Set<String> UI_SEARCH_COMMANDS = Set.of(
+            "grep", "find", "rg", "ag", "ack", "locate", "whereis", "which", "fd", "fdfind");
+
+    private static final Set<String> UI_READ_COMMANDS = Set.of(
+            "cat", "head", "tail", "less", "more", "wc", "stat", "file",
+            "strings", "jq", "awk", "cut", "sort", "uniq", "tr",
+            "ls", "tree", "du", "df", "diff", "hexdump", "od", "nl",
+            "readlink", "realpath", "basename", "dirname");
+
+    private static final Set<String> UI_MODIFICATION_COMMANDS = Set.of(
+            "rm", "rmdir", "mkdir", "touch", "mv", "cp", "chmod", "chown",
+            "ln", "tee", "install", "dd", "mkfs", "truncate", "shred");
+
+    private static final Set<String> UI_SYSTEM_INFO_COMMANDS = Set.of(
+            "uname", "pwd", "whoami", "env", "printenv", "hostname",
+            "id", "uptime", "free", "nproc", "locale", "groups",
+            "date", "cal", "getconf", "ulimit", "umask");
+
+    /**
+     * UI 展示分类 — 独立于安全分类，仅用于日志和 UI 标签。
+     * <p>
+     * 简单的命令前缀匹配，解析命令第一个 token 并匹配到已知命令集合。
+     * 不影响安全决策，独立于 AST→正则→路径验证 三层架构。
+     *
+     * @param command 完整命令字符串
+     * @return UI 分类枚举
+     */
+    public CommandCategory classifyForUI(String command) {
+        if (command == null || command.isBlank()) {
+            return CommandCategory.UNKNOWN;
+        }
+        String firstToken = extractFirstToken(command.trim());
+        if (firstToken.isEmpty()) {
+            return CommandCategory.UNKNOWN;
+        }
+
+        if (UI_SEARCH_COMMANDS.contains(firstToken)) {
+            return CommandCategory.SEARCH;
+        }
+        if (UI_READ_COMMANDS.contains(firstToken)) {
+            return CommandCategory.READ_ONLY;
+        }
+        if (UI_MODIFICATION_COMMANDS.contains(firstToken)) {
+            return CommandCategory.MODIFICATION;
+        }
+        if (UI_SYSTEM_INFO_COMMANDS.contains(firstToken)) {
+            return CommandCategory.SYSTEM_INFO;
+        }
+        return CommandCategory.UNKNOWN;
+    }
 }

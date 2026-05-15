@@ -1,5 +1,6 @@
 package com.aicodeassistant.engine;
 
+import com.aicodeassistant.llm.ModelCapabilityRegistry;
 import com.aicodeassistant.model.ContentBlock;
 import com.aicodeassistant.model.Message;
 import org.slf4j.Logger;
@@ -37,6 +38,12 @@ public class TokenCounter {
     /** 中文内容每 token 字符数 */
     private static final double CHINESE_CHARS_PER_TOKEN = 2.0;
 
+    private final ModelCapabilityRegistry modelCapabilityRegistry;
+
+    public TokenCounter(ModelCapabilityRegistry modelCapabilityRegistry) {
+        this.modelCapabilityRegistry = modelCapabilityRegistry;
+    }
+
     // ===== 公开 API =====
 
     /**
@@ -54,6 +61,27 @@ public class TokenCounter {
     }
 
     /**
+     * 模型感知的消息列表 Token 估算。
+     * <p>
+     * 根据模型的 tokenCharRatio 进行修正。
+     *
+     * @param messages 消息列表
+     * @param modelId  模型标识
+     * @return 估算 Token 数
+     */
+    public int estimateTokens(List<Message> messages, String modelId) {
+        if (messages == null || messages.isEmpty()) return 0;
+        if (modelId == null || modelId.isBlank()) return estimateTokens(messages);
+
+        double modelRatio = modelCapabilityRegistry.getTokenCharRatio(modelId);
+        int totalChars = 0;
+        for (Message msg : messages) {
+            totalChars += estimateMessageChars(msg);
+        }
+        return (int) (totalChars / modelRatio) + messages.size() * 4;
+    }
+
+    /**
      * 估算单条文本的 token 数（自动检测内容类型）。
      * <p>
      * 向后兼容: 原有调用点无需修改，内部已升级为自动检测逻辑。
@@ -61,6 +89,34 @@ public class TokenCounter {
     public int estimateTokens(String text) {
         if (text == null || text.isEmpty()) return 0;
         return (int) (text.length() / detectCharsPerToken(text));
+    }
+
+    /**
+     * 模型感知的单文本 Token 估算。
+     * <p>
+     * 使用模型特定的 tokenCharRatio，并应用中文修正。
+     *
+     * @param text    文本内容
+     * @param modelId 模型标识
+     * @return 估算 Token 数
+     */
+    public int estimateTokensForModel(String text, String modelId) {
+        if (text == null || text.isEmpty()) return 0;
+        if (modelId == null || modelId.isBlank()) return estimateTokens(text);
+
+        double ratio = modelCapabilityRegistry.getTokenCharRatio(modelId);
+
+        // 中文内容修正
+        long chineseChars = text.codePoints()
+                .filter(cp -> Character.UnicodeScript.of(cp) == Character.UnicodeScript.HAN)
+                .count();
+        double chineseRatio = (double) chineseChars / text.length();
+        if (chineseRatio > 0.3) {
+            double adjustedRatio = ratio * (1.0 - chineseRatio * 0.3);
+            return (int) (text.length() / adjustedRatio);
+        }
+
+        return (int) (text.length() / ratio);
     }
 
     /**

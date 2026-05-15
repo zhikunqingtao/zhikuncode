@@ -203,7 +203,7 @@ class LSPGoldenTest {
         void setUp() {
             manager = new LSPServerManager();
             manager.registerAndStart(LSPServerConfig.typescript());
-            tool = new LSPTool(manager);
+            tool = new LSPTool(manager, new LspCallHierarchyService(manager));
         }
 
         @Test

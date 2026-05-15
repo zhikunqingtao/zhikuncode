@@ -3,6 +3,8 @@ package com.aicodeassistant.tool.impl;
 import com.aicodeassistant.history.FileHistoryService;
 import com.aicodeassistant.session.SessionManager;
 import com.aicodeassistant.tool.*;
+import com.aicodeassistant.tool.impl.AtomicFileWriter.WriteResult;
+import com.aicodeassistant.tool.impl.FileVersionTracker.ConflictCheckResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -28,10 +30,15 @@ public class FileWriteTool implements Tool {
 
     private final FileHistoryService fileHistoryService;
     private final SessionManager sessionManager;
+    private final FileVersionTracker fileVersionTracker;
+    private final AtomicFileWriter atomicFileWriter;
 
-    public FileWriteTool(FileHistoryService fileHistoryService, SessionManager sessionManager) {
+    public FileWriteTool(FileHistoryService fileHistoryService, SessionManager sessionManager,
+                         FileVersionTracker fileVersionTracker, AtomicFileWriter atomicFileWriter) {
         this.fileHistoryService = fileHistoryService;
         this.sessionManager = sessionManager;
+        this.fileVersionTracker = fileVersionTracker;
+        this.atomicFileWriter = atomicFileWriter;
     }
 
     @Override
@@ -112,8 +119,30 @@ public class FileWriteTool implements Tool {
 
             String originalContent = !isCreate ? Files.readString(path, StandardCharsets.UTF_8) : null;
 
-            // 3. 写入文件
-            Files.writeString(path, content, StandardCharsets.UTF_8);
+            // ★ SHA-256 冲突检测 (Conflict-Abort 策略) — 仅对已存在文件
+            if (!isCreate && originalContent != null) {
+                // 记录读取时的 hash
+                fileVersionTracker.recordRead(filePath);
+                String expectedHash = fileVersionTracker.computeHash(originalContent);
+
+                ConflictCheckResult conflictResult = fileVersionTracker.checkBeforeWrite(filePath, expectedHash);
+                if (conflictResult.hasConflict()) {
+                    log.warn("Conflict-Abort: file {} modified since last read (expected={}, current={})",
+                            filePath, conflictResult.expectedHash(), conflictResult.currentHash());
+                    return ToolResult.error(
+                            "文件自上次读取后已被修改，请重新读取文件后再编辑。\n"
+                            + "Expected hash: " + conflictResult.expectedHash() + "\n"
+                            + "Current hash: " + conflictResult.currentHash()
+                            + (conflictResult.lastEditor() != null
+                                    ? "\nLast editor: " + conflictResult.lastEditor() : ""));
+                }
+            }
+
+            // 3. 原子写入（替代 Files.writeString）
+            WriteResult writeResult = atomicFileWriter.atomicWrite(path, content, context.sessionId());
+            if (!writeResult.success()) {
+                return ToolResult.error("原子写入失败: " + writeResult.error());
+            }
 
             // 4. 构建结果
             String type = isCreate ? "create" : "update";

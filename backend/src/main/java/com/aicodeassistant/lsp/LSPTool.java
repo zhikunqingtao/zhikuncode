@@ -1,5 +1,6 @@
 package com.aicodeassistant.lsp;
 
+import com.aicodeassistant.lsp.model.CallLocation;
 import com.aicodeassistant.tool.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * LSPTool — 语言服务器协议集成，提供代码智能。
@@ -62,9 +64,11 @@ public class LSPTool implements Tool {
     );
 
     private final LSPServerManager serverManager;
+    private final LspCallHierarchyService callHierarchyService;
 
-    public LSPTool(LSPServerManager serverManager) {
+    public LSPTool(LSPServerManager serverManager, LspCallHierarchyService callHierarchyService) {
         this.serverManager = serverManager;
+        this.callHierarchyService = callHierarchyService;
     }
 
     @Override
@@ -254,26 +258,42 @@ public class LSPTool implements Tool {
 
     private ToolResult handleCallHierarchy(String operation, String filePath,
                                             ToolInput input, LSPServerInstance server) {
-        // Call Hierarchy 两步流程:
+        // Call Hierarchy 两步流程 (via LspCallHierarchyService with fallback):
         // Step 1: prepareCallHierarchy → CallHierarchyItem[]
         // Step 2: incomingCalls/outgoingCalls → CallHierarchyCall[]
+        // 降级: 如果 LSP server 不支持 callHierarchy, 回退到 textDocument/references
         int line = input.getInt("line", -1);
         int character = input.getInt("character", -1);
         if (line < 1 || character < 1) {
             return ToolResult.error("'line' and 'character' are required for " + operation);
         }
 
-        String method = OPERATION_TO_METHOD.get(operation);
-        Map<String, Object> params = new HashMap<>();
-        params.put("textDocument", Map.of("uri", "file://" + filePath));
-        params.put("position", Map.of("line", line - 1, "character", character - 1));
-
         try {
-            Map<String, Object> result = server.sendRequest(method, params);
-            return ToolResult.success(formatResult(operation, result));
+            List<CallLocation> results;
+            if ("incomingCalls".equals(operation)) {
+                results = callHierarchyService.getIncomingCalls(filePath, line, character);
+            } else {
+                results = callHierarchyService.getOutgoingCalls(filePath, line, character);
+            }
+
+            if (results.isEmpty()) {
+                return ToolResult.success("No " + operation + " found for position " + filePath + ":" + line + ":" + character);
+            }
+
+            return ToolResult.success(formatCallLocations(operation, results));
         } catch (Exception e) {
             return ToolResult.error("LSP " + operation + " failed: " + e.getMessage());
         }
+    }
+
+    private String formatCallLocations(String operation, List<CallLocation> locations) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("LSP ").append(operation).append(" — ").append(locations.size()).append(" result(s):\n");
+        for (int i = 0; i < locations.size(); i++) {
+            CallLocation loc = locations.get(i);
+            sb.append(String.format("  %d. %s\n", i + 1, loc.toDisplayString()));
+        }
+        return sb.toString();
     }
 
     private String formatResult(String operation, Map<String, Object> result) {

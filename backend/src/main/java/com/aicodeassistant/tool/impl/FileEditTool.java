@@ -7,6 +7,8 @@ import com.aicodeassistant.security.PathSecurityService.PathCheckResult;
 import com.aicodeassistant.service.FileStateCache;
 import com.aicodeassistant.session.SessionManager;
 import com.aicodeassistant.tool.*;
+import com.aicodeassistant.tool.impl.AtomicFileWriter.WriteResult;
+import com.aicodeassistant.tool.impl.FileVersionTracker.ConflictCheckResult;
 import com.github.difflib.DiffUtils;
 import com.github.difflib.UnifiedDiffUtils;
 import com.github.difflib.patch.Patch;
@@ -41,13 +43,18 @@ public class FileEditTool implements Tool {
     private final PathSecurityService pathSecurity;
     private final SessionManager sessionManager;
     private final KeyFileTracker keyFileTracker;
+    private final FileVersionTracker fileVersionTracker;
+    private final AtomicFileWriter atomicFileWriter;
 
     public FileEditTool(FileHistoryService fileHistoryService, PathSecurityService pathSecurity,
-                        SessionManager sessionManager, KeyFileTracker keyFileTracker) {
+                        SessionManager sessionManager, KeyFileTracker keyFileTracker,
+                        FileVersionTracker fileVersionTracker, AtomicFileWriter atomicFileWriter) {
         this.fileHistoryService = fileHistoryService;
         this.pathSecurity = pathSecurity;
         this.sessionManager = sessionManager;
         this.keyFileTracker = keyFileTracker;
+        this.fileVersionTracker = fileVersionTracker;
+        this.atomicFileWriter = atomicFileWriter;
     }
 
     @Override
@@ -171,6 +178,10 @@ public class FileEditTool implements Tool {
 
             String fileContent = Files.readString(path, StandardCharsets.UTF_8);
 
+            // ★ FileVersionTracker — 记录读取时的文件 hash
+            fileVersionTracker.recordRead(filePath);
+            String expectedHash = fileVersionTracker.computeHash(fileContent);
+
             // ── 新增: 编辑前保存快照 ──
             fileHistoryService.trackEdit(filePath, context.sessionId(), context.toolUseId(), "edit");
 
@@ -200,10 +211,26 @@ public class FileEditTool implements Tool {
                     Pattern.quote(actualOldString),
                     Matcher.quoteReplacement(newString));
 
-            // 7. 写入文件
-            Files.writeString(path, newContent, StandardCharsets.UTF_8);
+            // 7. SHA-256 冲突检测 (Conflict-Abort 策略)
+            ConflictCheckResult conflictResult = fileVersionTracker.checkBeforeWrite(filePath, expectedHash);
+            if (conflictResult.hasConflict()) {
+                log.warn("Conflict-Abort: file {} modified since last read (expected={}, current={})",
+                        filePath, conflictResult.expectedHash(), conflictResult.currentHash());
+                return ToolResult.error(
+                        "文件自上次读取后已被修改，请重新读取文件后再编辑。\n"
+                        + "Expected hash: " + conflictResult.expectedHash() + "\n"
+                        + "Current hash: " + conflictResult.currentHash()
+                        + (conflictResult.lastEditor() != null
+                                ? "\nLast editor: " + conflictResult.lastEditor() : ""));
+            }
 
-            // 8. 生成 unified diff
+            // 8. 原子写入（替代 Files.writeString）
+            WriteResult writeResult = atomicFileWriter.atomicWrite(path, newContent, context.sessionId());
+            if (!writeResult.success()) {
+                return ToolResult.error("原子写入失败: " + writeResult.error());
+            }
+
+            // 9. 生成 unified diff
             List<String> originalLines = Arrays.asList(fileContent.split("\n", -1));
             List<String> newLines = Arrays.asList(newContent.split("\n", -1));
             Patch<String> patch = DiffUtils.diff(originalLines, newLines);

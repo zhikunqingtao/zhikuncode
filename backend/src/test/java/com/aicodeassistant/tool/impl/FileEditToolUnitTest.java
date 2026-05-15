@@ -80,8 +80,10 @@ class FileEditToolUnitTest {
         // Mock FileHistoryService — trackEdit 默认无操作（仅 FileEditTool 需要）
         doNothing().when(fileHistoryService).trackEdit(anyString(), anyString(), any(), anyString());
 
-        // 使用 mock 依赖构造工具实例（完整 4 参数构造函数）
-        fileEditTool = new FileEditTool(fileHistoryService, pathSecurityService, sessionManager, keyFileTracker);
+        // 使用 mock 依赖构造工具实例（完整 6 参数构造函数）
+        FileVersionTracker fileVersionTracker = new FileVersionTracker();
+        AtomicFileWriter atomicFileWriter = new AtomicFileWriter(fileVersionTracker);
+        fileEditTool = new FileEditTool(fileHistoryService, pathSecurityService, sessionManager, keyFileTracker, fileVersionTracker, atomicFileWriter);
         context = ToolUseContext.of(tempDir.toString(), "test-session");
     }
 

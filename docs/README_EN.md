@@ -44,7 +44,7 @@
 |---|---|---|
 | 🌐 | **Full Browser-Based Control** | Deploy once, then manage everything from any device's browser — permission approvals, plan discussions, task management. Works on mobile. No client installation needed |
 | 🤖 | **Multi-Agent Collaboration** | Three collaboration modes: Team (fixed roles) / Swarm (dynamic negotiation) / SubAgent (parent-child delegation). Complex tasks are automatically distributed |
-| 🔒 | **Defense-in-Depth Security** | 8-layer Bash sandbox + 14-step permission pipeline + 308 security test coverage (including 19 new CWE-22 depth-defense unit tests in v9.3). Every command must pass security checks before execution |
+| 🔒 | **Defense-in-Depth Security** | 8-layer Bash sandbox (error classification + output truncation + process tree mgmt) + 14-step permission pipeline + 308 security test coverage (including 19 new CWE-22 depth-defense unit tests in v9.3). Every command must pass security checks before execution |
 | 🇨🇳 | **Native Chinese LLM Support** | Qwen / DeepSeek / Moonshot work out of the box with direct connections from mainland China — no VPN required |
 | 🐳 | **One-Command Docker Deployment** | `docker compose up -d` — one command to start. Data stays local, fully private |
 | ⚡ | **Intelligent Context Management** | Five-layer compression cascade + incremental collapse (auto-compress every 10 turns) + 413 three-phase recovery (aggressive compression → reactive compact → media stripping) + three-level token alerts for seamless ultra-long conversations |
@@ -314,7 +314,7 @@ In production, all three services are packaged in a single Docker container:
 ZhikunCode's core execution engine QueryEngine drives Agent decision-making and tool execution through an 8-step loop:
 
 ```
-Compression Cascade → Streaming Session Creation → API Call (with downgrade protection) → Response Collection → Tool Result Consumption → Continue/Terminate Decision → Tool Summary Injection → State Update
+Compression Cascade → Streaming Session Creation → API Call (with circuit breaker + adaptive retry + downgrade protection) → Response Collection → Tool Result Consumption (4-layer priority scheduling) → 6-dimension termination evaluation → Tool Summary Injection → State Update
 ```
 
 **Key Subsystems:**
@@ -411,8 +411,8 @@ Full test report: [ZhikunCode v9.3 End-to-End Test Report](test-results/v9.3/Zhi
 - **GitHub Actions Pipeline**: Automatically runs backend compilation, frontend build, Python tests, and Docker image verification on every push
 
 **Test Coverage (v9.3):**
-- **Total**: 1703 cases + 490 performance probes + 7 security probes = **2200** (including APOS E2E comprehensive 123 cases: 62 Phase 1 + 50 Phase 2 + 11 risk fixes)
-- **Backend Unit/Integration Tests**: 1500 PASS / 0 failure / 0 error / 48 skipped, coverage Inst 42.17% / Branch 30.44%
+- **Total**: 1797 cases + 490 performance probes + 7 security probes = **2294** (including APOS E2E comprehensive 123 cases: 62 Phase 1 + 50 Phase 2 + 11 risk fixes)
+- **Backend Unit/Integration Tests**: 1640 PASS / 0 failure / 0 error / 48 skipped, coverage Inst 42.17% / Branch 30.44%
 - **Python pytest**: 47 PASS, coverage 25.66%
 - **Frontend vitest**: 78 PASS / 16 skipped (94 total)
 - **35-Module REST/WS/LLM/Session Smoke**: 45/45 PASS (42 REST + 1 WS STOMP + 1 LLM live inference + 1 Session persistence)
@@ -420,13 +420,14 @@ Full test report: [ZhikunCode v9.3 End-to-End Test Report](test-results/v9.3/Zhi
 - **APOS Phase 1 E2E**: 62 cases (9 modules, including 28 core features + 34 supporting paths) 100% PASS, covering Activity UI / Data Flow / Three-layer Display / Signal Marking / Feature Flag / Backend API / Responsive / Persistence, with 4 bug fix regressions
 - **APOS Phase 2 E2E**: 5 modules, 50 cases (Change Impact Panorama / Pipeline View & DAG / Anomaly Detection & Alert / Mobile Responsive / Phase 2 Integration) 48 PASS / 2 SKIP, pass rate 96%
 - **APOS Risk Fix Verification**: 11 cases 100% PASS (tool invocation / batch operations / concurrency race conditions / API fallback)
+- **AI Coding Optimization**: 94 tests (68 unit + 26 integration) 100% PASS
 - **Feature Completeness**: 100% of planned v1.0 features verified
 
 **Test Framework Details:**
 
 | Framework | Layer | Coverage | Count |
 |-----------|-------|----------|-------|
-| JUnit 5 + Mockito | Backend Unit/Integration | Context/Permission/Skill/Plugin/LLM/MCP/Memory/Concurrency/SSE/Persistence/Tool/Coordinator/Swarm etc. | 1500 PASS |
+| JUnit 5 + Mockito | Backend Unit/Integration | Context/Permission/Skill/Plugin/LLM/MCP/Memory/Concurrency/SSE/Persistence/Tool/Coordinator/Swarm etc. | 1640 PASS |
 | Vitest | Frontend Unit | Store Lifecycle/Cross-Tab Sync/Streaming Render/Immer Immutability/Route Boundary | 78 PASS |
 | Playwright + Node scripts | E2E | Coordinator WS subscription / Three visualization viewTypes / Browser snapshot MVP / APOS Phase 1 full-stack / APOS Phase 2 full-stack | Task 6/7/8/APOS all green |
 | Pytest | Python Service | Token Estimation/File Processing/Browser Automation/Semantic Snapshot/Code Analyzers | 47 PASS |
@@ -937,8 +938,8 @@ ZhikunCode ships with 48 built-in tools + MCP dynamic extensions, covering the f
 
 | Category | Tools | Description |
 |----------|-------|-------------|
-| **File Operations** | FileRead, FileWrite, FileEdit, NotebookEdit | Read, write, and edit files, including Jupyter Notebook support |
-| **Code Search** | GrepTool, GlobTool, ToolSearch, LspTool, SnipTool | Regex search, file glob matching, tool search, LSP language service, code snippets |
+| **File Operations** | FileRead, FileWrite, FileEdit, NotebookEdit | Read, write, and edit files (atomic writes + SHA-256 conflict detection), including Jupyter Notebook support |
+| **Code Search** | GrepTool, GlobTool, ToolSearch, LspTool, SnipTool | Regex search, file glob matching, tool search, LSP language service (call hierarchy analysis), code snippets |
 | **Command Execution** | BashTool, PowerShellTool, REPLTool | Shell sandbox execution, Windows PowerShell, interactive REPL sessions |
 | **Git Operations** | GitTool, Worktree | Git command execution, Worktree management |
 | **Web Tools** | WebSearch, WebFetch, WebBrowser | Web search, page fetching, browser automation |

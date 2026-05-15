@@ -221,6 +221,44 @@ admin:
   # Admin 密码 — 从环境变量读取，默认空（未配置则 admin 功能禁用）
   password: ${ADMIN_PASSWORD:}
 
+# 模型能力参数配置（模型感知自适应）
+model:
+  capabilities:
+    claude-sonnet-4-20250514:
+      contextWindow: 200000
+      tokenCharRatio: 3.5
+      outputMaxTokens: 64000
+      supportsCache: true
+      supportsToolUse: true
+      supportsVision: true
+      supportsStreaming: true
+    qwen-max:
+      contextWindow: 128000
+      tokenCharRatio: 2.5
+      outputMaxTokens: 8192
+      supportsToolUse: true
+    qwen-plus:
+      contextWindow: 128000
+      tokenCharRatio: 2.5
+      outputMaxTokens: 8192
+    deepseek-chat:
+      contextWindow: 64000
+      tokenCharRatio: 2.8
+      outputMaxTokens: 8192
+    qwen3.6-max-preview:
+      contextWindow: 131072
+      tokenCharRatio: 2.5
+      outputMaxTokens: 8192
+      supportsToolUse: true
+    qwen3.6-plus:
+      contextWindow: 131072
+      tokenCharRatio: 2.5
+      outputMaxTokens: 8192
+    deepseek-coder:
+      contextWindow: 65536
+      tokenCharRatio: 2.8
+      outputMaxTokens: 8192
+
 # Spring Actuator 监控
 management:
   endpoints:

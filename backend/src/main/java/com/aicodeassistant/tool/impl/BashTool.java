@@ -3,7 +3,10 @@ package com.aicodeassistant.tool.impl;
 import com.aicodeassistant.model.PermissionBehavior;
 import com.aicodeassistant.tool.*;
 import com.aicodeassistant.tool.bash.BashCommandClassifier;
+import com.aicodeassistant.tool.bash.BashOutputProcessor;
 import com.aicodeassistant.tool.bash.BashSecurityAnalyzer;
+import com.aicodeassistant.tool.bash.CommandCategory;
+import com.aicodeassistant.tool.bash.ProcessTreeManager;
 import com.aicodeassistant.tool.bash.ShellStateManager;
 import com.aicodeassistant.tool.bash.ast.BashAstNode.SimpleCommandNode;
 import com.aicodeassistant.tool.bash.ast.ParseForSecurityResult;
@@ -15,6 +18,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -37,8 +41,23 @@ public class BashTool implements Tool {
     private static final Logger log = LoggerFactory.getLogger(BashTool.class);
 
     private static final int MAX_OUTPUT_CHARS = 30_000;
-    private static final int DEFAULT_TIMEOUT_MS = 120_000;
-    private static final int MAX_TIMEOUT_MS = 600_000;
+    private static final long DEFAULT_TIMEOUT_MS = safeParseTimeout(
+            System.getenv().getOrDefault("BASH_DEFAULT_TIMEOUT_MS", "120000"), 120_000L);
+    private static final long MAX_TIMEOUT_MS = safeParseTimeout(
+            System.getenv().getOrDefault("BASH_MAX_TIMEOUT_MS", "600000"), 600_000L);
+
+    /**
+     * 安全解析超时环境变量 — 避免 NumberFormatException 导致类加载失败。
+     */
+    private static long safeParseTimeout(String value, long defaultValue) {
+        try {
+            return Long.parseLong(value);
+        } catch (NumberFormatException e) {
+            LoggerFactory.getLogger(BashTool.class)
+                    .warn("Invalid timeout value '{}', using default {}ms", value, defaultValue);
+            return defaultValue;
+        }
+    }
 
     // 高危破坏性命令 — 经 AST 包装命令剥离后检查 argv[0]
     private static final Set<String> DESTRUCTIVE_COMMANDS = Set.of(
@@ -62,13 +81,19 @@ public class BashTool implements Tool {
     private final BashSecurityAnalyzer securityAnalyzer;
     private final BashCommandClassifier commandClassifier;
     private final ShellStateManager shellStateManager;
+    private final BashOutputProcessor outputProcessor;
+    private final ProcessTreeManager processTreeManager;
 
     public BashTool(BashSecurityAnalyzer securityAnalyzer,
                     BashCommandClassifier commandClassifier,
-                    ShellStateManager shellStateManager) {
+                    ShellStateManager shellStateManager,
+                    BashOutputProcessor outputProcessor,
+                    ProcessTreeManager processTreeManager) {
         this.securityAnalyzer = securityAnalyzer;
         this.commandClassifier = commandClassifier;
         this.shellStateManager = shellStateManager;
+        this.outputProcessor = outputProcessor;
+        this.processTreeManager = processTreeManager;
     }
 
     @Override
@@ -416,7 +441,7 @@ public class BashTool implements Tool {
             return ToolResult.error(rejection);
         }
 
-        int timeout = Math.min(input.getInt("timeout", DEFAULT_TIMEOUT_MS), MAX_TIMEOUT_MS);
+        long timeout = Math.min((long) input.getInt("timeout", (int) DEFAULT_TIMEOUT_MS), MAX_TIMEOUT_MS);
         boolean isBackground = input.getBoolean("is_background", false);
         String sessionId = context.sessionId();
 
@@ -446,6 +471,10 @@ public class BashTool implements Tool {
                         pid, pid));
             }
 
+            // UI 分类日志（第四层，独立于安全分类）
+            CommandCategory uiCategory = commandClassifier.classifyForUI(command);
+            log.debug("Executing command [category={}]: {}", uiCategory.getDisplayLabel(), command);
+
             // 2. 构建进程
             ProcessBuilder pb = new ProcessBuilder("bash", "-c", wrappedCommand);
             pb.directory(new File(workingDir));
@@ -470,24 +499,25 @@ public class BashTool implements Tool {
                 }
 
                 // 4. 等待进程完成 (含超时)
-                // 梯度终止: SIGTERM → 等 2s → SIGKILL
+                // 梯度终止: 进程树 SIGTERM → 等 2s → SIGKILL
                 boolean completed = process.waitFor(timeout, TimeUnit.MILLISECONDS);
                 if (!completed) {
-                    process.destroy(); // SIGTERM
-                    if (!process.waitFor(2, TimeUnit.SECONDS)) {
-                        process.destroyForcibly(); // SIGKILL
-                    }
+                    processTreeManager.destroyProcessTree(process, Duration.ofSeconds(2));
                     return ToolResult.error("Command timed out after " + timeout + "ms");
                 }
 
                 int exitCode = process.exitValue();
-                String stdout = output.toString();
+                String rawStdout = output.toString();
 
                 // 5. 更新 Shell 状态
                 shellStateManager.updateStateFromSnapshot(sessionId);
 
-                // 6. 构建结果
-                if (exitCode != 0) {
+                // 6. 智能截断输出
+                boolean hasError = exitCode != 0;
+                String stdout = outputProcessor.processOutput(rawStdout, hasError);
+
+                // 7. 构建结果
+                if (hasError) {
                     return ToolResult.error("Exit code: " + exitCode + "\n" + stdout);
                 }
 

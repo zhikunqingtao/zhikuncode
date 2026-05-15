@@ -8,6 +8,9 @@ import com.aicodeassistant.permission.PermissionNotifier;
 import com.aicodeassistant.permission.PermissionPipeline;
 import com.aicodeassistant.permission.PermissionRuleRepository;
 import com.aicodeassistant.security.SensitiveDataFilter;
+import com.aicodeassistant.tool.recovery.ToolRecoveryFramework;
+import com.aicodeassistant.tool.recovery.ToolRecoveryFramework.RecoveryContext;
+import com.aicodeassistant.tool.recovery.ToolRecoveryFramework.RecoveryDecision;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.schema.JsonSchema;
@@ -18,7 +21,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -48,18 +53,21 @@ public class ToolExecutionPipeline {
     private final PermissionRuleRepository permissionRuleRepository;
     private final SensitiveDataFilter sensitiveDataFilter;
     private final PermissionModeManager permissionModeManager;
+    private final ToolRecoveryFramework recoveryFramework;
 
     public ToolExecutionPipeline(HookService hookService, ObjectMapper objectMapper,
                                   PermissionPipeline permissionPipeline,
                                   PermissionRuleRepository permissionRuleRepository,
                                   SensitiveDataFilter sensitiveDataFilter,
-                                  PermissionModeManager permissionModeManager) {
+                                  PermissionModeManager permissionModeManager,
+                                  ToolRecoveryFramework recoveryFramework) {
         this.hookService = hookService;
         this.objectMapper = objectMapper;
         this.permissionPipeline = permissionPipeline;
         this.permissionRuleRepository = permissionRuleRepository;
         this.sensitiveDataFilter = sensitiveDataFilter;
         this.permissionModeManager = permissionModeManager;
+        this.recoveryFramework = recoveryFramework;
     }
 
     /**
@@ -286,8 +294,82 @@ public class ToolExecutionPipeline {
         } catch (Exception e) {
             long durationMs = System.currentTimeMillis() - startTime;
             log.error("Tool {} execution failed after {}ms: {}", toolName, durationMs, e.getMessage(), e);
-            return ToolExecutionResult.of(ToolResult.error("Tool execution error: " + e.getMessage()));
+
+            // ★ 尝试恢复—通过 ToolRecoveryFramework
+            ToolResult failedResult = ToolResult.error("Tool execution error: " + e.getMessage());
+            Optional<RecoveryDecision> recovery = attemptToolRecovery(
+                    toolName, input, failedResult, durationMs, e.getMessage());
+
+            if (recovery.isPresent()) {
+                RecoveryDecision decision = recovery.get();
+                return buildRecoveryResult(decision, failedResult);
+            }
+
+            return ToolExecutionResult.of(failedResult);
         }
+    }
+
+    /**
+     * 尝试工具执行失败后的恢复。
+     */
+    private Optional<RecoveryDecision> attemptToolRecovery(
+            String toolName, ToolInput input, ToolResult failedResult,
+            long durationMs, String errorMessage) {
+        try {
+            // 构建恢复上下文
+            int exitCode = extractExitCode(failedResult);
+            RecoveryContext context = new RecoveryContext(
+                    toolName,
+                    input.getRawData(),
+                    failedResult,
+                    1, // 当前管线层面是第一次尝试
+                    Duration.ofMillis(durationMs),
+                    errorMessage,
+                    exitCode
+            );
+            return recoveryFramework.attemptRecovery(context);
+        } catch (Exception ex) {
+            log.error("Recovery framework error for tool {}: {}", toolName, ex.getMessage(), ex);
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * 根据恢复决策构建返回结果。
+     */
+    private ToolExecutionResult buildRecoveryResult(RecoveryDecision decision, ToolResult originalResult) {
+        String hint = decision.hintForLlm() != null ? decision.hintForLlm() : "";
+
+        return switch (decision.action()) {
+            case REPORT_TO_LLM -> ToolExecutionResult.of(
+                    ToolResult.error(originalResult.content() + "\n\n[Recovery Hint] " + hint));
+            case RETRY_SAME -> ToolExecutionResult.of(
+                    ToolResult.error(originalResult.content() + "\n\n[Recovery] Will retry: " + hint));
+            case ESCALATE_TO_USER -> ToolExecutionResult.of(
+                    ToolResult.error("[Requires User Intervention] " + hint));
+            case ABORT_WITH_SUMMARY -> ToolExecutionResult.of(
+                    ToolResult.error("[Aborted] " + hint));
+            case TRY_ALTERNATIVE -> ToolExecutionResult.of(
+                    ToolResult.error(originalResult.content()
+                            + "\n\n[Recovery] Try alternative tool: " + decision.alternativeToolName()
+                            + ". " + hint));
+            case SIMPLIFY_TASK -> ToolExecutionResult.of(
+                    ToolResult.error(originalResult.content()
+                            + "\n\n[Recovery] Task too complex, please simplify: " + hint));
+        };
+    }
+
+    /**
+     * 从 ToolResult 中提取退出码（Bash 工具会在 metadata 中设置）。
+     */
+    private int extractExitCode(ToolResult result) {
+        if (result.metadata() != null && result.metadata().containsKey("exitCode")) {
+            Object exitCode = result.metadata().get("exitCode");
+            if (exitCode instanceof Number) {
+                return ((Number) exitCode).intValue();
+            }
+        }
+        return -1; // 非 Bash 工具返回 -1
     }
 
     /**
