@@ -3,8 +3,11 @@ package com.aicodeassistant.engine;
 import com.aicodeassistant.llm.ModelCapabilityRegistry;
 import com.aicodeassistant.model.ContentBlock;
 import com.aicodeassistant.model.Message;
+import com.aicodeassistant.config.FeatureFlagService;
+import com.aicodeassistant.engine.tokenizer.TokenizerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -39,9 +42,15 @@ public class TokenCounter {
     private static final double CHINESE_CHARS_PER_TOKEN = 2.0;
 
     private final ModelCapabilityRegistry modelCapabilityRegistry;
+    private final TokenizerService tokenizerService;
+    private final FeatureFlagService featureFlagService;
 
-    public TokenCounter(ModelCapabilityRegistry modelCapabilityRegistry) {
+    public TokenCounter(ModelCapabilityRegistry modelCapabilityRegistry,
+                        @Autowired(required = false) TokenizerService tokenizerService,
+                        FeatureFlagService featureFlagService) {
         this.modelCapabilityRegistry = modelCapabilityRegistry;
+        this.tokenizerService = tokenizerService;
+        this.featureFlagService = featureFlagService;
     }
 
     // ===== 公开 API =====
@@ -85,9 +94,20 @@ public class TokenCounter {
      * 估算单条文本的 token 数（自动检测内容类型）。
      * <p>
      * 向后兼容: 原有调用点无需修改，内部已升级为自动检测逻辑。
+     * 当 PRECISE_TOKENIZER 特性开启且 Python 服务可用时，优先使用精确计数。
      */
     public int estimateTokens(String text) {
         if (text == null || text.isEmpty()) return 0;
+
+        // 精确 tokenizer 优先（Feature Flag 控制）
+        if (tokenizerService != null && featureFlagService.isEnabled("PRECISE_TOKENIZER")) {
+            int exact = tokenizerService.countExact(text, "default");
+            if (exact >= 0) {
+                return exact;
+            }
+            // fallback 到字符估算
+        }
+
         return (int) (text.length() / detectCharsPerToken(text));
     }
 

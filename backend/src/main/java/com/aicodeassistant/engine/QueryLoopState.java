@@ -28,6 +28,10 @@ public class QueryLoopState {
     private boolean stopHookActive = false;
     private String lastTransitionReason = null;
 
+    // === SelfCorrectionLoop 状态字段 ===
+    private int correctionAttempts = 0;
+    private String previousToolOutput = null;
+
     /** 扣留的错误 — 413/max_output_tokens 等可恢复错误在恢复尝试期间扣留，不立即释放给消费者 */
     private List<LlmApiException> withheldErrors = new ArrayList<>();
 
@@ -117,6 +121,13 @@ public class QueryLoopState {
 
     public String getLastTransitionReason() { return lastTransitionReason; }
     public void setLastTransitionReason(String reason) { this.lastTransitionReason = reason; }
+
+    // === SelfCorrectionLoop 状态方法 ===
+    public int getCorrectionAttempts() { return correctionAttempts; }
+    public void incrementCorrectionAttempts() { this.correctionAttempts++; }
+    public void resetCorrectionAttempts() { this.correctionAttempts = 0; }
+    public String getPreviousToolOutput() { return previousToolOutput; }
+    public void setPreviousToolOutput(String output) { this.previousToolOutput = output; }
 
     public boolean isPromptTooLongWithheld() { return promptTooLongWithheld; }
     public void setPromptTooLongWithheld(boolean withheld) { this.promptTooLongWithheld = withheld; }

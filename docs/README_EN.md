@@ -47,7 +47,7 @@
 | 🔒 | **Defense-in-Depth Security** | 8-layer Bash sandbox (error classification + output truncation + process tree mgmt) + 14-step permission pipeline + 308 security test coverage (including 19 new CWE-22 depth-defense unit tests in v9.3). Every command must pass security checks before execution |
 | 🇨🇳 | **Native Chinese LLM Support** | Qwen / DeepSeek / Moonshot work out of the box with direct connections from mainland China — no VPN required |
 | 🐳 | **One-Command Docker Deployment** | `docker compose up -d` — one command to start. Data stays local, fully private |
-| ⚡ | **Intelligent Context Management** | Five-layer compression cascade + incremental collapse (auto-compress every 10 turns) + 413 three-phase recovery (aggressive compression → reactive compact → media stripping) + three-level token alerts for seamless ultra-long conversations |
+| ⚡ | **Intelligent Context Management** | Five-layer compression cascade + incremental collapse (auto-compress every 10 turns) + 413 three-phase recovery (aggressive compression → reactive compact → media stripping) + Precise Token Counting (tiktoken multi-model support) + Self-Correction Loop (auto-diagnose compile/test failures, max 3 retries) + three-level token alerts for seamless ultra-long conversations |
 | 🖼️ | **Browser Semantic Snapshot** | `/snap` command captures full web page state (DOM structure + interactive elements), extracts structured JSON for Agent parsing and replay verification |
 | 📊 | **Real-Time Activity Tracking & Approval** | Activity Panel records full AI tool execution lifecycle, L1/L2/L3 three-layer display, Signal smart tagging (auto_approve/review_recommended/needs_review), one-click batch approval, SQLite backend persistence, session restoration support |
 
@@ -405,29 +405,29 @@ The following paths require user confirmation even in bypass mode:
 
 ### 🧪 Quality Assurance
 
-Full test report: [ZhikunCode v9.3 End-to-End Test Report](test-results/v9.3/ZhikunCode全链路测试报告.md) (2026-05-09)
+Full test report: [ZhikunCode v9.4 End-to-End Test Report](test-results/v9.3/ZhikunCode全链路测试报告.md) (2026-05-16)
 
 **Continuous Integration:**
 - **GitHub Actions Pipeline**: Automatically runs backend compilation, frontend build, Python tests, and Docker image verification on every push
 
-**Test Coverage (v9.3):**
-- **Total**: 1797 cases + 490 performance probes + 7 security probes = **2294** (including APOS E2E comprehensive 123 cases: 62 Phase 1 + 50 Phase 2 + 11 risk fixes)
-- **Backend Unit/Integration Tests**: 1640 PASS / 0 failure / 0 error / 48 skipped, coverage Inst 42.17% / Branch 30.44%
+**Test Coverage (v9.4):**
+- **Total**: 1948 cases + 490 performance probes + 7 security probes = **2445** (including APOS E2E comprehensive 123 cases: 62 Phase 1 + 50 Phase 2 + 11 risk fixes)
+- **Backend Unit/Integration Tests**: 1500 PASS / 0 failure / 0 error / 48 skipped (including AI Coding Enhancement 238 unit tests), coverage Inst 42.17% / Branch 30.44%
 - **Python pytest**: 47 PASS, coverage 25.66%
 - **Frontend vitest**: 78 PASS / 16 skipped (94 total)
-- **35-Module REST/WS/LLM/Session Smoke**: 45/45 PASS (42 REST + 1 WS STOMP + 1 LLM live inference + 1 Session persistence)
+- **36-Module REST/WS/LLM/Session Smoke**: 45/45 PASS (42 REST + 1 WS STOMP + 1 LLM live inference + 1 Session persistence)
 - **E2E Differentiated Pipelines**: Task 6 Multi-Agent Collaboration (CoordinatorEventBus) · Task 7 Visualization Auto-Routing (`/visualize` mermaid/json/text) · Task 8 Browser Semantic Snapshot MVP (`/snap`) — all end-to-end PASS
 - **APOS Phase 1 E2E**: 62 cases (9 modules, including 28 core features + 34 supporting paths) 100% PASS, covering Activity UI / Data Flow / Three-layer Display / Signal Marking / Feature Flag / Backend API / Responsive / Persistence, with 4 bug fix regressions
 - **APOS Phase 2 E2E**: 5 modules, 50 cases (Change Impact Panorama / Pipeline View & DAG / Anomaly Detection & Alert / Mobile Responsive / Phase 2 Integration) 48 PASS / 2 SKIP, pass rate 96%
 - **APOS Risk Fix Verification**: 11 cases 100% PASS (tool invocation / batch operations / concurrency race conditions / API fallback)
-- **AI Coding Optimization**: 94 tests (68 unit + 26 integration) 100% PASS
+- **AI Coding Enhancement**: 6 modules (SelfCorrectionLoop / Precise Tokenizer / Skill Budget & Security / BashTool Dynamic Timeout / GitDiffTracker / SearchStrategyRouter) 33 cases + 238 unit tests + 7 integration tests + Feature Flag bi-directional verification, 100% PASS
 - **Feature Completeness**: 100% of planned v1.0 features verified
 
 **Test Framework Details:**
 
 | Framework | Layer | Coverage | Count |
 |-----------|-------|----------|-------|
-| JUnit 5 + Mockito | Backend Unit/Integration | Context/Permission/Skill/Plugin/LLM/MCP/Memory/Concurrency/SSE/Persistence/Tool/Coordinator/Swarm etc. | 1640 PASS |
+| JUnit 5 + Mockito | Backend Unit/Integration | Context/Permission/Skill/Plugin/LLM/MCP/Memory/Concurrency/SSE/Persistence/Tool/Coordinator/Swarm/AI Coding Enhancement etc. | 1500 PASS |
 | Vitest | Frontend Unit | Store Lifecycle/Cross-Tab Sync/Streaming Render/Immer Immutability/Route Boundary | 78 PASS |
 | Playwright + Node scripts | E2E | Coordinator WS subscription / Three visualization viewTypes / Browser snapshot MVP / APOS Phase 1 full-stack / APOS Phase 2 full-stack | Task 6/7/8/APOS all green |
 | Pytest | Python Service | Token Estimation/File Processing/Browser Automation/Semantic Snapshot/Code Analyzers | 47 PASS |
@@ -448,7 +448,7 @@ Full test report: [ZhikunCode v9.3 End-to-End Test Report](test-results/v9.3/Zhi
 - E2E screenshots: [docs/test-results/screenshots/](test-results/screenshots/) (42 items)
 
 <details>
-<summary>📋 35 Test Modules Breakdown (click to expand)</summary>
+<summary>📋 36 Test Modules Breakdown (click to expand)</summary>
 
 | # | Module | Cases | Pass Rate | Notes |
 |---|--------|-------|-----------|-------|
@@ -487,6 +487,7 @@ Full test report: [ZhikunCode v9.3 End-to-End Test Report](test-results/v9.3/Zhi
 | 33 | APOS Anomaly Detection & Alert | 10 | 100% | ★ Phase 2 new, 2 SKIP |
 | 34 | APOS Mobile Responsive | 9 | 89% | ★ Phase 2 new |
 | 35 | APOS Phase 2 Integration | 13 | 100% | ★ Phase 2 new |
+| 36 | AI Coding Enhancements | 33 | 100% | ★ v9.4 new (6 sub-modules + 238 units + Feature Flag verification) |
 
 </details>
 
@@ -557,6 +558,12 @@ Invoke with: `/translate language=python` or `/translate python`
 | `model` | string | Specify model (`inherit` uses parent model) |
 
 > Skills support hot reload — changes take effect immediately after saving, no service restart needed. Powered by Java NIO WatchService with 500ms debounce.
+
+**Security & Budget Controls:**
+- **Token Budget**: Single Skill ≤5000 tokens / Session total ≤25000 tokens, preventing resource abuse
+- **Tool Whitelist**: Skills can only invoke tools declared in frontmatter `allowed_tools`
+- **Injection Protection**: Shell injection triple-vector interception (`$()` / backticks / pipes), parameter length limit 2000 chars
+- **Fork Depth Control**: Fork-mode Skill nesting depth ≤3 levels, preventing infinite recursion
 
 ---
 
@@ -939,8 +946,8 @@ ZhikunCode ships with 48 built-in tools + MCP dynamic extensions, covering the f
 | Category | Tools | Description |
 |----------|-------|-------------|
 | **File Operations** | FileRead, FileWrite, FileEdit, NotebookEdit | Read, write, and edit files (atomic writes + SHA-256 conflict detection), including Jupyter Notebook support |
-| **Code Search** | GrepTool, GlobTool, ToolSearch, LspTool, SnipTool | Regex search, file glob matching, tool search, LSP language service (call hierarchy analysis), code snippets |
-| **Command Execution** | BashTool, PowerShellTool, REPLTool | Shell sandbox execution, Windows PowerShell, interactive REPL sessions |
+| **Code Search** | GrepTool, GlobTool, ToolSearch, LspTool, SnipTool | Regex search, file glob matching, tool search, LSP language service (call hierarchy analysis), code snippets, intelligent layered search (scope-aware 4-layer priority routing) |
+| **Command Execution** | BashTool, PowerShellTool, REPLTool | Shell sandbox execution (dynamic timeout classification + exponential backoff recovery), Windows PowerShell, interactive REPL sessions |
 | **Git Operations** | GitTool, Worktree | Git command execution, Worktree management |
 | **Web Tools** | WebSearch, WebFetch, WebBrowser | Web search, page fetching, browser automation |
 | **Agent Collaboration** | AgentTool | Create and manage sub-Agents |
@@ -1035,6 +1042,10 @@ Environment variables are managed via the `.env` file. Copy `.env.example` and m
 | `context.cascade.incremental-collapse.session-timeout-minutes` | 30 | Session timeout |
 | `features.flags.CACHED_MICROCOMPACT` | true | Enable micro-compact service |
 | `features.flags.TOKEN_BUDGET` | false | Token budget control (disabled by default; enable when needed) |
+| `features.flags.SELF_CORRECTION_LOOP` | false | Auto-diagnose and fix execution failures (compile errors/test failures, max 3 retries) |
+| `features.flags.PRECISE_TOKENIZER` | false | Precise token counting (Python tiktoken, replaces character estimation) |
+| `features.flags.GIT_DIFF_TRACKER` | false | Git change tracking and edit history aggregation |
+| `features.flags.SEARCH_STRATEGY_ROUTER` | false | Scope-aware layered search strategy routing |
 
 ### Docker Resource Limits
 

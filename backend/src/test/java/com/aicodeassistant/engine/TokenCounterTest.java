@@ -31,7 +31,7 @@ class TokenCounterTest {
         ModelCapabilityConfig capCfg = new ModelCapabilityConfig();
         ModelCapabilityRegistry capRegistry = new ModelCapabilityRegistry(capCfg);
         capRegistry.init();
-        counter = new TokenCounter(capRegistry);
+        counter = new TokenCounter(capRegistry, null, null);
     }
 
     // ═══════════════════════════════════════════════════════════════

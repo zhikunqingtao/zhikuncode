@@ -29,7 +29,7 @@ class CompactServiceUnitTest {
         ModelCapabilityConfig capCfg = new ModelCapabilityConfig();
         ModelCapabilityRegistry capRegistry = new ModelCapabilityRegistry(capCfg);
         capRegistry.init();
-        tokenCounter = new TokenCounter(capRegistry);
+        tokenCounter = new TokenCounter(capRegistry, null, null);
         compactService = new CompactService(tokenCounter, new LlmProviderRegistry(List.of(), null), null, null);
     }
 

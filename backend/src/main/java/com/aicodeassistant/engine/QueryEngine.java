@@ -1,5 +1,7 @@
 package com.aicodeassistant.engine;
 
+import com.aicodeassistant.engine.correction.CorrectionInstruction;
+import com.aicodeassistant.engine.correction.SelfCorrectionLoop;
 import com.aicodeassistant.engine.scheduling.ToolPriorityScheduler;
 import com.aicodeassistant.engine.strategy.DefaultTerminationStrategy;
 import com.aicodeassistant.engine.strategy.TerminationDecision;
@@ -81,6 +83,7 @@ public class QueryEngine {
     private final FeatureFlagService featureFlagService;
     private final TerminationStrategy terminationStrategy;
     private final ToolPriorityScheduler toolPriorityScheduler;
+    private final SelfCorrectionLoop selfCorrectionLoop;
 
     /** 单条工具结果最大占上下文窗口的 30% */
     private static final double TOOL_RESULT_BUDGET_RATIO = 0.3;
@@ -117,7 +120,8 @@ public class QueryEngine {
                        @org.springframework.lang.Nullable BackgroundAgentTracker backgroundAgentTracker,
                        FeatureFlagService featureFlagService,
                        TerminationStrategy terminationStrategy,
-                       ToolPriorityScheduler toolPriorityScheduler) {
+                       ToolPriorityScheduler toolPriorityScheduler,
+                       SelfCorrectionLoop selfCorrectionLoop) {
         this.providerRegistry = providerRegistry;
         this.compactService = compactService;
         this.apiRetryService = apiRetryService;
@@ -143,6 +147,7 @@ public class QueryEngine {
         this.featureFlagService = featureFlagService;
         this.terminationStrategy = terminationStrategy;
         this.toolPriorityScheduler = toolPriorityScheduler;
+        this.selfCorrectionLoop = selfCorrectionLoop;
     }
 
     /**
@@ -526,6 +531,56 @@ public class QueryEngine {
                 ToolUseContext updatedContext = session.getCurrentContext();
                 if (updatedContext != null) {
                     state.setToolUseContext(updatedContext);
+                }
+            }
+
+            // ═══════════════════════════════════════════════════════════════
+            // Step 5.5: Self-Correction Detection (自纠错检测)
+            // ═══════════════════════════════════════════════════════════════
+            if (featureFlagService.isEnabled("SELF_CORRECTION_LOOP")) {
+                List<Message> currentMessages = state.getMessages();
+                // 从列表末尾向前搜索最近的AssistantMessage
+                Message.AssistantMessage assistantMsg = null;
+                for (int i = currentMessages.size() - 1; i >= 0; i--) {
+                    if (currentMessages.get(i) instanceof Message.AssistantMessage am) {
+                        assistantMsg = am;
+                        break;
+                    }
+                }
+                if (assistantMsg != null) {
+                    for (ContentBlock block : assistantMsg.content()) {
+                        if (block instanceof ContentBlock.ToolUseBlock toolUse
+                                && "Bash".equals(toolUse.name())) {
+                            // 在toolResultMessage中查找对应的ToolResultBlock
+                            String toolOutput = findToolResultContent(toolUse.id(), currentMessages);
+                            if (toolOutput != null && !toolOutput.isEmpty()) {
+                                // shouldAbort检查：修复是否引入新错误
+                                if (state.getPreviousToolOutput() != null
+                                        && selfCorrectionLoop.shouldAbort(toolOutput, state.getPreviousToolOutput())) {
+                                    log.info("[SELF-CORRECTION] Aborting: fix introduced new errors");
+                                    state.resetCorrectionAttempts();
+                                    state.setPreviousToolOutput(null);
+                                    break;
+                                }
+                                // 检测错误并生成修复指令
+                                Optional<CorrectionInstruction> correction =
+                                    selfCorrectionLoop.detectAndPrepareCorrection(
+                                        toolOutput, state.getCorrectionAttempts());
+                                if (correction.isPresent()) {
+                                    log.info("[SELF-CORRECTION] Injecting correction attempt #{}",
+                                        state.getCorrectionAttempts() + 1);
+                                    state.addMessage(new Message.UserMessage(
+                                        UUID.randomUUID().toString(),
+                                        Instant.now(),
+                                        List.of(new ContentBlock.TextBlock(correction.get().instruction())),
+                                        null, null));
+                                    state.incrementCorrectionAttempts();
+                                    state.setPreviousToolOutput(toolOutput);
+                                    break; // 只处理第一个Bash错误
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
@@ -1089,6 +1144,25 @@ public class QueryEngine {
     }
 
     // ==================== 辅助方法 ====================
+
+    /**
+     * 从消息历史中查找指定toolUseId对应的工具结果内容
+     */
+    private String findToolResultContent(String toolUseId, List<Message> messages) {
+        // 从后向前查找包含对应ToolResultBlock的UserMessage
+        for (int i = messages.size() - 1; i >= 0; i--) {
+            Message msg = messages.get(i);
+            if (msg instanceof Message.UserMessage userMsg && userMsg.content() != null) {
+                for (ContentBlock block : userMsg.content()) {
+                    if (block instanceof ContentBlock.ToolResultBlock trb
+                            && toolUseId.equals(trb.toolUseId())) {
+                        return trb.content();
+                    }
+                }
+            }
+        }
+        return null;
+    }
 
     private List<ContentBlock.ToolUseBlock> extractToolUseBlocks(Message.AssistantMessage message) {
         if (message.content() == null) return List.of();

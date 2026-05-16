@@ -67,6 +67,7 @@ async def lifespan(app: FastAPI):
 
 # 始终加载的路由 (不依赖能力域)
 from routers.token_estimator import router as token_router
+from routers.tokenizer import router as tokenizer_router
 
 app = FastAPI(
     title="AI Code Assistant - Python Service",
@@ -76,6 +77,7 @@ app = FastAPI(
 
 # 注册始终可用的 Token 估算路由
 app.include_router(token_router, prefix="/api/v1/tokens", tags=["Token Estimation"])
+app.include_router(tokenizer_router, prefix="/api/tokenizer", tags=["Tokenizer"])
 
 # ───── CORS ─────
 allowed_origins = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:8080").split(",")

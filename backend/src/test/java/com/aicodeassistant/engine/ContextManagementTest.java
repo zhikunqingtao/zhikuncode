@@ -44,7 +44,7 @@ class ContextManagementTest {
             ModelCapabilityConfig capCfg = new ModelCapabilityConfig();
             ModelCapabilityRegistry capRegistry = new ModelCapabilityRegistry(capCfg);
             capRegistry.init();
-            tokenCounter = new TokenCounter(capRegistry);
+            tokenCounter = new TokenCounter(capRegistry, null, null);
             compactService = new CompactService(tokenCounter, null, null, null);
         }
 
@@ -117,7 +117,7 @@ class ContextManagementTest {
             ModelCapabilityConfig capCfg = new ModelCapabilityConfig();
             ModelCapabilityRegistry capRegistry = new ModelCapabilityRegistry(capCfg);
             capRegistry.init();
-            tokenCounter = new TokenCounter(capRegistry);
+            tokenCounter = new TokenCounter(capRegistry, null, null);
             compactService = new CompactService(tokenCounter, null, null, null);
         }
 
@@ -203,7 +203,7 @@ class ContextManagementTest {
             ModelCapabilityConfig capCfg = new ModelCapabilityConfig();
             ModelCapabilityRegistry capRegistry = new ModelCapabilityRegistry(capCfg);
             capRegistry.init();
-            tokenCounter = new TokenCounter(capRegistry);
+            tokenCounter = new TokenCounter(capRegistry, null, null);
             compactService = new CompactService(tokenCounter, providerRegistry, null, null);
         }
 
@@ -277,7 +277,7 @@ class ContextManagementTest {
             ModelCapabilityConfig capCfg = new ModelCapabilityConfig();
             ModelCapabilityRegistry capRegistry = new ModelCapabilityRegistry(capCfg);
             capRegistry.init();
-            tokenCounter = new TokenCounter(capRegistry);
+            tokenCounter = new TokenCounter(capRegistry, null, null);
         }
 
         @Test
@@ -385,7 +385,7 @@ class ContextManagementTest {
             ModelCapabilityConfig capCfg = new ModelCapabilityConfig();
             ModelCapabilityRegistry capRegistry = new ModelCapabilityRegistry(capCfg);
             capRegistry.init();
-            tokenCounter = new TokenCounter(capRegistry);
+            tokenCounter = new TokenCounter(capRegistry, null, null);
             compactService = new CompactService(tokenCounter, null, null, null);
         }
 

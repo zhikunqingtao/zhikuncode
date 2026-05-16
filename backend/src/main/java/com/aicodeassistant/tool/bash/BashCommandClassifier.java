@@ -1104,6 +1104,80 @@ public class BashCommandClassifier {
     }
 
     // ══════════════════════════════════════════════════════════════
+    // [第五层] 动态超时分类 — 基于命令内容推荐合适的超时时间
+    // 比 classifyForUI() 更细粒度，区分编译/测试/安装等长时间操作
+    // ══════════════════════════════════════════════════════════════
+
+    /**
+     * 分类命令以推荐合适的超时时间。
+     * 比 classifyForUI() 更细粒度，区分编译/测试/安装等长时间操作。
+     *
+     * @param command 完整命令字符串
+     * @return 命令分类（含推荐超时时间）
+     */
+    public CommandCategory classifyForTimeout(String command) {
+        if (command == null || command.isBlank()) return CommandCategory.UNKNOWN;
+        String trimmed = command.trim().toLowerCase();
+
+        // 编译命令 — 300s
+        if (isCompilationCommand(trimmed)) return CommandCategory.COMPILATION;
+        // 测试命令 — 600s
+        if (isTestCommand(trimmed)) return CommandCategory.TEST_EXECUTION;
+        // 包安装命令 — 300s
+        if (isPackageInstallCommand(trimmed)) return CommandCategory.PACKAGE_INSTALL;
+        // Git操作 — 60s
+        if (isGitCommand(trimmed)) return CommandCategory.GIT_OPERATION;
+        // 服务启动 — 120s
+        if (isServerStartCommand(trimmed)) return CommandCategory.SERVER_START;
+
+        // 退回到UI分类（READ_ONLY/SEARCH/MODIFICATION/SYSTEM_INFO/UNKNOWN）
+        return classifyForUI(command);
+    }
+
+    private boolean isCompilationCommand(String cmd) {
+        return cmd.startsWith("mvn compile") || cmd.startsWith("mvn package")
+            || cmd.startsWith("./mvnw compile") || cmd.startsWith("./mvnw package")
+            || cmd.startsWith("mvn clean") || cmd.startsWith("./mvnw clean")
+            || cmd.startsWith("npm run build") || cmd.startsWith("npx tsc")
+            || cmd.startsWith("cargo build") || cmd.startsWith("go build")
+            || cmd.startsWith("gcc ") || cmd.startsWith("g++ ")
+            || cmd.startsWith("javac ") || cmd.startsWith("make")
+            || cmd.startsWith("gradle build") || cmd.startsWith("./gradlew build")
+            || cmd.startsWith("gradle compile") || cmd.startsWith("./gradlew compile");
+    }
+
+    private boolean isTestCommand(String cmd) {
+        return cmd.startsWith("mvn test") || cmd.startsWith("./mvnw test")
+            || cmd.startsWith("mvn verify") || cmd.startsWith("./mvnw verify")
+            || cmd.startsWith("npm test") || cmd.startsWith("npx jest")
+            || cmd.startsWith("npx vitest") || cmd.startsWith("npx playwright")
+            || cmd.startsWith("pytest") || cmd.startsWith("python -m pytest")
+            || cmd.startsWith("cargo test") || cmd.startsWith("go test")
+            || cmd.startsWith("gradle test") || cmd.startsWith("./gradlew test");
+    }
+
+    private boolean isPackageInstallCommand(String cmd) {
+        return cmd.startsWith("npm install") || cmd.startsWith("npm ci")
+            || cmd.startsWith("yarn install") || cmd.startsWith("pnpm install")
+            || cmd.startsWith("pip install") || cmd.startsWith("pip3 install")
+            || cmd.startsWith("mvn dependency") || cmd.startsWith("./mvnw dependency")
+            || cmd.startsWith("cargo fetch") || cmd.startsWith("go mod download")
+            || cmd.startsWith("bundle install") || cmd.startsWith("composer install");
+    }
+
+    private boolean isGitCommand(String cmd) {
+        return cmd.startsWith("git ");
+    }
+
+    private boolean isServerStartCommand(String cmd) {
+        return cmd.startsWith("npm start") || cmd.startsWith("npm run dev")
+            || cmd.startsWith("npm run serve")
+            || cmd.startsWith("java -jar") || cmd.startsWith("python -m uvicorn")
+            || cmd.startsWith("python manage.py runserver")
+            || cmd.startsWith("./mvnw spring-boot:run");
+    }
+
+    // ══════════════════════════════════════════════════════════════
     // [第四层] UI 展示分类 — 与安全分类正交，仅用于日志/UI 标签
     // 不影响 AST→正则→路径验证 三层安全架构
     // ══════════════════════════════════════════════════════════════

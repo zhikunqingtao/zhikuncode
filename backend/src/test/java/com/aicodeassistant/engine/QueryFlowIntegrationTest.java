@@ -76,7 +76,7 @@ class QueryFlowIntegrationTest {
         ModelCapabilityConfig capCfg = new ModelCapabilityConfig();
         ModelCapabilityRegistry capRegistry = new ModelCapabilityRegistry(capCfg);
         capRegistry.init();
-        TokenCounter tokenCounter = new TokenCounter(capRegistry);
+        TokenCounter tokenCounter = new TokenCounter(capRegistry, null, null);
         CompactService compactService = new CompactService(tokenCounter, providerRegistry, null, null);
         ModelTierService modelTierService = new ModelTierService();
         ModelAwareRetryPolicy retryPolicy = new ModelAwareRetryPolicy();
@@ -107,7 +107,7 @@ class QueryFlowIntegrationTest {
                 contextCascade, mock(CompactMetrics.class),
                 null, null,  // incrementalCollapseManager, visualizationAutoRouter (both @Nullable)
                 null, mock(FeatureFlagService.class),  // backgroundAgentTracker (@Nullable), featureFlagService
-                new DefaultTerminationStrategy(), new ToolPriorityScheduler()
+                new DefaultTerminationStrategy(), new ToolPriorityScheduler(), null  // selfCorrectionLoop (@Nullable)
         );
 
         handler = new RecordingHandler();

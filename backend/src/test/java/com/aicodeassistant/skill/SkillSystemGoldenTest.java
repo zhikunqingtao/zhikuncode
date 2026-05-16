@@ -1,15 +1,19 @@
 package com.aicodeassistant.skill;
 
+import com.aicodeassistant.engine.TokenCounter;
 import com.aicodeassistant.tool.ToolInput;
 import com.aicodeassistant.tool.ToolResult;
 import com.aicodeassistant.tool.ToolUseContext;
 import org.junit.jupiter.api.*;
+import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 /**
  * Skill 系统黄金测试 — 
@@ -24,7 +28,11 @@ class SkillSystemGoldenTest {
     @BeforeEach
     void setUp() {
         registry = new SkillRegistry();
-        executor = new SkillExecutor(registry);
+        SkillToolValidator validator = new SkillToolValidator();
+        SkillTokenBudget tokenBudget = new SkillTokenBudget();
+        TokenCounter tokenCounter = Mockito.mock(TokenCounter.class);
+        when(tokenCounter.estimateTokens(anyString())).thenReturn(100);
+        executor = new SkillExecutor(registry, validator, tokenBudget, tokenCounter);
         skillTool = new SkillTool(executor, registry);
         defaultContext = ToolUseContext.of("/tmp/workspace", "test-session");
     }

@@ -441,7 +441,21 @@ public class BashTool implements Tool {
             return ToolResult.error(rejection);
         }
 
-        long timeout = Math.min((long) input.getInt("timeout", (int) DEFAULT_TIMEOUT_MS), MAX_TIMEOUT_MS);
+        // 动态超时策略：LLM显式指定timeout时尊重其选择，否则基于命令类型推荐
+        long timeout;
+        if (input.has("timeout")) {
+            // LLM显式指定了timeout，尊重其选择（受MAX_TIMEOUT_MS上限约束）
+            timeout = Math.min((long) input.getInt("timeout", (int) DEFAULT_TIMEOUT_MS), MAX_TIMEOUT_MS);
+        } else {
+            // LLM未指定timeout，使用基于命令类型的动态推荐
+            CommandCategory timeoutCategory = commandClassifier.classifyForTimeout(command);
+            long recommended = timeoutCategory.getRecommendedTimeoutMs();
+            timeout = Math.min(recommended, MAX_TIMEOUT_MS);
+            if (recommended != DEFAULT_TIMEOUT_MS) {
+                log.debug("Dynamic timeout applied: {} → {}ms (category: {})",
+                    command.substring(0, Math.min(50, command.length())), recommended, timeoutCategory);
+            }
+        }
         boolean isBackground = input.getBoolean("is_background", false);
         String sessionId = context.sessionId();
 

@@ -9,6 +9,7 @@ import com.aicodeassistant.permission.PermissionPipeline;
 import com.aicodeassistant.permission.PermissionRuleRepository;
 import com.aicodeassistant.security.SensitiveDataFilter;
 import com.aicodeassistant.tool.recovery.ToolRecoveryFramework;
+import com.aicodeassistant.tool.recovery.ToolRecoveryFramework.RecoveryAction;
 import com.aicodeassistant.tool.recovery.ToolRecoveryFramework.RecoveryContext;
 import com.aicodeassistant.tool.recovery.ToolRecoveryFramework.RecoveryDecision;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -81,7 +82,7 @@ public class ToolExecutionPipeline {
      */
     public ToolExecutionResult execute(Tool tool, ToolInput input, ToolUseContext context,
                                PermissionNotifier wsPusher) {
-        return doExecute(tool, input, context, wsPusher);
+        return doExecute(tool, input, context, wsPusher, 1);
     }
 
     /**
@@ -93,11 +94,14 @@ public class ToolExecutionPipeline {
      * @return 工具执行结果
      */
     public ToolExecutionResult execute(Tool tool, ToolInput input, ToolUseContext context) {
-        return doExecute(tool, input, context, null);
+        return doExecute(tool, input, context, null, 1);
     }
 
+    /** 最大自动重试次数 */
+    private static final int MAX_RETRY_ATTEMPTS = 3;
+
     private ToolExecutionResult doExecute(Tool tool, ToolInput input, ToolUseContext context,
-                                  PermissionNotifier wsPusher) {
+                                  PermissionNotifier wsPusher, int attemptCount) {
         // 回退: 若调用方未传 wsPusher，从 context 中获取
         PermissionNotifier effectivePusher = wsPusher != null
                 ? wsPusher : context.permissionNotifier();
@@ -271,6 +275,15 @@ public class ToolExecutionPipeline {
             log.info("Tool {} completed in {}ms (error={})",
                     toolName, durationMs, result.isError());
 
+            // ── 阶段 5c: 错误结果恢复（仅 Bash 工具）──
+            if (result.isError() && "Bash".equals(toolName)) {
+                ToolExecutionResult recoveryResult = attemptBashErrorRecovery(
+                        tool, input, context, wsPusher, result, attemptCount, durationMs);
+                if (recoveryResult != null) {
+                    return recoveryResult;
+                }
+            }
+
             // 结果大小检查
             if (result.content() != null && result.content().length() > tool.getMaxResultSizeChars()) {
                 String truncated = result.content().substring(0, tool.getMaxResultSizeChars())
@@ -360,16 +373,114 @@ public class ToolExecutionPipeline {
     }
 
     /**
-     * 从 ToolResult 中提取退出码（Bash 工具会在 metadata 中设置）。
+     * 从 ToolResult 中提取退出码。
+     * <p>
+     * 优先从 metadata 中获取（成功路径下 BashTool 会设置）；
+     * 降级从错误内容中解析（"Exit code: N" 格式）；
+     * 超时场景返回 137。
      */
     private int extractExitCode(ToolResult result) {
+        // 1. 优先从 metadata 获取
         if (result.metadata() != null && result.metadata().containsKey("exitCode")) {
             Object exitCode = result.metadata().get("exitCode");
             if (exitCode instanceof Number) {
                 return ((Number) exitCode).intValue();
             }
         }
-        return -1; // 非 Bash 工具返回 -1
+        // 2. 从错误消息中解析
+        return extractExitCodeFromContent(result.content());
+    }
+
+    /**
+     * 从错误内容文本中解析退出码。
+     * <p>
+     * BashTool 错误格式：
+     * - 超时："Command timed out after 120000ms"
+     * - 执行失败："Exit code: 1\n..."
+     */
+    private int extractExitCodeFromContent(String content) {
+        if (content == null || content.isEmpty()) return -1;
+        // 超时 → 等价于 SIGKILL (137)
+        if (content.startsWith("Command timed out")) return 137;
+        // "Exit code: N" 格式
+        if (content.startsWith("Exit code: ")) {
+            try {
+                int end = content.indexOf('\n');
+                String codeStr = content.substring("Exit code: ".length(),
+                        end > 0 ? end : content.length()).trim();
+                return Integer.parseInt(codeStr);
+            } catch (NumberFormatException e) {
+                log.debug("Failed to parse exit code from content: {}", content.substring(0, Math.min(50, content.length())));
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * 针对 Bash 工具错误结果尝试恢复。
+     *
+     * @return 若决策为 RETRY_SAME 且未达上限则递归重试并返回结果；
+     *         若为其他决策则返回带 hint 的错误结果；
+     *         若无策略匹配则返回 null（让原流程继续）。
+     */
+    private ToolExecutionResult attemptBashErrorRecovery(
+            Tool tool, ToolInput input, ToolUseContext context,
+            PermissionNotifier wsPusher, ToolResult errorResult,
+            int attemptCount, long durationMs) {
+        try {
+            int exitCode = extractExitCode(errorResult);
+            RecoveryContext recoveryContext = new RecoveryContext(
+                    tool.getName(),
+                    input.getRawData(),
+                    errorResult,
+                    attemptCount,
+                    Duration.ofMillis(durationMs),
+                    errorResult.content(),
+                    exitCode
+            );
+            Optional<RecoveryDecision> recovery = recoveryFramework.attemptRecovery(recoveryContext);
+            if (recovery.isEmpty()) {
+                return null; // 无策略匹配，走原流程
+            }
+
+            RecoveryDecision decision = recovery.get();
+
+            // RETRY_SAME：自动重试（带指数退避延迟）
+            if (decision.action() == RecoveryAction.RETRY_SAME && attemptCount < MAX_RETRY_ATTEMPTS) {
+                long delayMs = calculateRetryDelay(attemptCount);
+                log.info("[Recovery] Bash tool retry #{} after {}ms delay (exitCode={}, hint={})",
+                        attemptCount + 1, delayMs, exitCode, decision.hintForLlm());
+                try {
+                    Thread.sleep(delayMs);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    return ToolExecutionResult.of(errorResult);
+                }
+                return doExecute(tool, input, context, wsPusher, attemptCount + 1);
+            }
+
+            // 非重试决策或已达上限 → 附加 hint 信息返回给 LLM
+            return enrichErrorWithHint(errorResult, decision);
+        } catch (Exception ex) {
+            log.error("[Recovery] Bash error recovery failed: {}", ex.getMessage(), ex);
+            return null; // 恢复框架本身出错，走原流程
+        }
+    }
+
+    /**
+     * 将恢复决策的 hint 附加到错误结果中返回。
+     */
+    private ToolExecutionResult enrichErrorWithHint(ToolResult errorResult, RecoveryDecision decision) {
+        String hint = decision.hintForLlm() != null ? decision.hintForLlm() : "";
+        String enrichedContent = errorResult.content() + "\n\n[Recovery Hint] " + hint;
+        return ToolExecutionResult.of(new ToolResult(enrichedContent, true, errorResult.metadata()));
+    }
+
+    /**
+     * 计算重试延迟（指数退避）：1s, 2s, 4s...
+     */
+    private long calculateRetryDelay(int attemptCount) {
+        return 1000L * (1L << (attemptCount - 1));
     }
 
     /**

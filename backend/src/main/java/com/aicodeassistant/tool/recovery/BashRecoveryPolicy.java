@@ -1,5 +1,8 @@
 package com.aicodeassistant.tool.recovery;
 
+import com.aicodeassistant.tool.bash.BashErrorClassifier;
+import com.aicodeassistant.tool.bash.BashErrorClassifier.ErrorClassification;
+import com.aicodeassistant.tool.bash.BashErrorClassifier.ErrorType;
 import com.aicodeassistant.tool.recovery.ToolRecoveryFramework.RecoveryContext;
 import com.aicodeassistant.tool.recovery.ToolRecoveryFramework.RecoveryDecision;
 import org.slf4j.Logger;
@@ -7,10 +10,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
- * Bash 工具恢复策略 — 基于退出码和 stderr 内容决定恢复动作。
+ * Bash 工具恢复策略 — 基于 BashErrorClassifier 的分类结果决定恢复动作。
  * <p>
- * 与 {@link com.aicodeassistant.tool.bash.BashErrorClassifier} 协作，
- * 将分类结果映射为恢复决策。
+ * 将 {@link BashErrorClassifier} 的错误分类映射为具体的恢复决策。
  */
 @Component
 public class BashRecoveryPolicy implements ToolRecoveryPolicy {
@@ -19,6 +21,12 @@ public class BashRecoveryPolicy implements ToolRecoveryPolicy {
 
     /** 最大尝试次数 — 超过此值直接上报用户 */
     private static final int MAX_ATTEMPTS = 3;
+
+    private final BashErrorClassifier errorClassifier;
+
+    public BashRecoveryPolicy(BashErrorClassifier errorClassifier) {
+        this.errorClassifier = errorClassifier;
+    }
 
     @Override
     public boolean canHandle(RecoveryContext context) {
@@ -35,76 +43,33 @@ public class BashRecoveryPolicy implements ToolRecoveryPolicy {
                             + " times. Manual intervention required.");
         }
 
-        int exitCode = context.exitCode();
-        String errorMsg = context.errorMessage() != null ? context.errorMessage().toLowerCase() : "";
+        // 使用 BashErrorClassifier 进行分类
+        String command = extractCommand(context);
+        ErrorClassification classification = errorClassifier.classify(
+                context.exitCode(), context.errorMessage(), command);
 
-        // 退出码 127 → 命令不存在 → 报告给 LLM 建议替代命令
-        if (exitCode == 127) {
-            return RecoveryDecision.reportToLlm(
-                    "Command not found (exit code 127). "
-                            + "Please try an alternative command or verify the command is installed. "
-                            + "Common alternatives: python→python3, pip→pip3, node→check nvm.");
-        }
+        log.debug("Bash recovery classification: type={}, category={}, command={}",
+                classification.type(), classification.category(), command);
 
-        // 退出码 126 → 权限不足 → 报告给 LLM 建议 chmod
-        if (exitCode == 126) {
-            return RecoveryDecision.reportToLlm(
-                    "Permission denied - file is not executable (exit code 126). "
-                            + "Consider using 'chmod +x <file>' to make it executable, "
-                            + "or run with an appropriate interpreter (e.g., 'bash script.sh').");
-        }
-
-        // 网络错误 → 重试（带延迟）
-        if (isNetworkError(errorMsg)) {
-            log.info("Bash recovery: network error detected, suggesting retry");
-            return RecoveryDecision.retrySame(
-                    "Network connectivity issue detected (connection refused/timeout). "
-                            + "Retrying after a short delay.");
-        }
-
-        // 编译错误 → 报告给 LLM 格式化错误信息
-        if (isCompilationError(errorMsg)) {
-            return RecoveryDecision.reportToLlm(
-                    "Compilation error detected. Please review and fix the source code errors:\n"
-                            + context.errorMessage());
-        }
-
-        // 测试失败 → 报告给 LLM 格式化失败测试列表
-        if (isTestFailure(errorMsg)) {
-            return RecoveryDecision.reportToLlm(
-                    "Test execution failed. Please review the failing tests and fix the issues:\n"
-                            + context.errorMessage());
-        }
-
-        // 默认：报告给 LLM
-        return RecoveryDecision.reportToLlm(
-                "Bash command failed with exit code " + exitCode + ". "
-                        + "Error: " + context.errorMessage());
+        // 将错误分类映射为恢复决策
+        return switch (classification.type()) {
+            case RETRYABLE -> RecoveryDecision.retrySame(classification.suggestion());
+            case NON_RETRYABLE -> RecoveryDecision.reportToLlm(classification.suggestion());
+            case NEEDS_HUMAN -> RecoveryDecision.escalateToUser(classification.suggestion());
+            case TIMEOUT -> RecoveryDecision.reportToLlm(
+                    "Command timed out. " + classification.suggestion());
+        };
     }
 
-    private boolean isNetworkError(String errorMsg) {
-        return errorMsg.contains("connection refused")
-                || errorMsg.contains("connection timed out")
-                || errorMsg.contains("timeout")
-                || errorMsg.contains("econnreset")
-                || errorMsg.contains("econnrefused")
-                || errorMsg.contains("network is unreachable")
-                || errorMsg.contains("temporary failure in name resolution");
-    }
-
-    private boolean isCompilationError(String errorMsg) {
-        return errorMsg.matches("(?s).*\\.java:\\d+: error:.*")
-                || errorMsg.matches("(?s).*\\.[chm]:\\d+:\\d+: error:.*")
-                || errorMsg.matches("(?s).*\\.tsx?\\(\\d+,\\d+\\): error ts.*")
-                || errorMsg.contains("error[e");
-    }
-
-    private boolean isTestFailure(String errorMsg) {
-        return errorMsg.contains("test failed")
-                || errorMsg.contains("tests failed")
-                || errorMsg.contains("build failure")
-                || errorMsg.contains("test failures")
-                || errorMsg.contains("assertion failed")
-                || errorMsg.contains("assertionerror");
+    /**
+     * 从恢复上下文中提取原始命令。
+     */
+    private String extractCommand(RecoveryContext context) {
+        Object input = context.originalInput();
+        if (input instanceof java.util.Map<?, ?> map) {
+            Object cmd = map.get("command");
+            if (cmd instanceof String s) return s;
+        }
+        return "";
     }
 }

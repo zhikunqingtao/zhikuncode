@@ -115,6 +115,14 @@ features:
     # ── C 组：后台代理生命周期修复 ──
     BACKGROUND_AGENT_WAIT: false     # C1: 后台代理等待功能总开关（灰度用）
     AGENT_ABORT_CASCADE: true        # C2: abort 级联到子代理（安全性修复，默认开）
+    # ── D 组：自纠错循环 ──
+    SELF_CORRECTION_LOOP: false     # D1: SelfCorrectionLoop 总开关（默认关闭，灰度用）
+    # ── E 组：精确 Tokenizer ──
+    PRECISE_TOKENIZER: false          # E1: 精确 Token 计数（通过 Python tiktoken），默认关闭
+    # ── F 组：变更追踪 ──
+    GIT_DIFF_TRACKER: false            # E1: GitDiffTracker 统一聚合接口（灰度用）
+    # ── F 组：搜索策略 ──
+    SEARCH_STRATEGY_ROUTER: false        # F1: 作用域感知搜索策略路由（灰度用）
 
 # MCP 配置
 mcp:

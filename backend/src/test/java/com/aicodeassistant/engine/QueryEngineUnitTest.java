@@ -75,7 +75,7 @@ class QueryEngineUnitTest {
                 toolResultSummarizer, contextCascade, compactMetrics,
                 null, null,  // incrementalCollapseManager, visualizationAutoRouter (both @Nullable)
                 null, featureFlagService,  // backgroundAgentTracker (@Nullable), featureFlagService
-                new DefaultTerminationStrategy(), new ToolPriorityScheduler());
+                new DefaultTerminationStrategy(), new ToolPriorityScheduler(), null);  // selfCorrectionLoop (@Nullable)
         handler = new TestHandler();
 
         // 默认 Snip/MicroCompact mock: 直接返回原消息列表
