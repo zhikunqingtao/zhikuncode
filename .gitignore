@@ -73,6 +73,7 @@ zhikun.local.md
 
 # 运行时 PID 文件
 .service-pids
+.service-pids 2
 
 # Internal docs (not for public)
 docs/local/
@@ -98,3 +99,13 @@ docs/test-results/playwright-junit.xml
 
 # 安全测试原始日志（summary.md 入库即可，.log 属瞬态证据）
 docs/test-results/**/security/*.log
+
+# swe-results数据
+swe-results
+backend/swe-results
+*.zhikuncode_eval.json
+swe-bench-lite*.json
+test_shallow/
+logs/run_evaluation/
+*-verification*.png
+*-screenshot.png

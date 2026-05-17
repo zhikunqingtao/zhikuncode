@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.*;
@@ -148,8 +149,9 @@ public class QueryController {
                 historyMessages.addAll(session.messages())
             );
         }
+        String effectiveWorkDir = resolveWorkingDirectory(request.workingDirectory());
         ToolUseContext toolCtx = ToolUseContext.of(
-                System.getProperty("user.dir"), sessionId);
+                effectiveWorkDir, sessionId);
         QueryLoopState state = new QueryLoopState(historyMessages, toolCtx);
         // 添加用户消息
         state.addMessage(new Message.UserMessage(
@@ -256,8 +258,9 @@ public class QueryController {
                         historyMessages.addAll(session.messages())
                     );
                 }
+                String effectiveWorkDir = resolveWorkingDirectory(request.workingDirectory());
                 ToolUseContext toolCtx = ToolUseContext.of(
-                        System.getProperty("user.dir"), sessionId);
+                        effectiveWorkDir, sessionId);
                 QueryLoopState state = new QueryLoopState(historyMessages, toolCtx);
                 state.addMessage(new Message.UserMessage(
                         UUID.randomUUID().toString(), Instant.now(),
@@ -360,8 +363,9 @@ public class QueryController {
 
         // 3. 初始化状态 — 加载历史消息
         // REST API 无交互式权限确认能力，设置 null notifier + BYPASS 模式双保险
+        String effectiveWorkDir = resolveWorkingDirectory(request.workingDirectory());
         ToolUseContext toolCtx = ToolUseContext.of(
-                System.getProperty("user.dir"), request.sessionId())
+                effectiveWorkDir, request.sessionId())
                 .withPermissionNotifier(null);  // 明确标注: REST无pusher
         log.debug("REST API conversation: permissionMode=BYPASS, notifier=null (by design)");
         QueryLoopState state = new QueryLoopState(new ArrayList<>(session.messages()), toolCtx);
@@ -416,6 +420,17 @@ public class QueryController {
     }
 
     // ═══ 私有方法 ═══
+
+    private String resolveWorkingDirectory(String requestWorkDir) {
+        String raw = requestWorkDir != null ? requestWorkDir : System.getProperty("user.dir");
+        try {
+            // Canonicalize to resolve symlinks (e.g. /tmp -> /private/tmp on macOS)
+            return Path.of(raw).toRealPath().toString();
+        } catch (IOException e) {
+            log.warn("Cannot resolve working directory '{}', using as-is", raw);
+            return raw;
+        }
+    }
 
     private String resolveSessionId(QueryRequest request) {
         if (request.sessionId() != null) {
