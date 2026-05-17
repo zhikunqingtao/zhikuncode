@@ -117,10 +117,10 @@ class BridgeSystemGoldenTest {
         @Test
         @DisplayName("1.9 sessionUpdate 消息 — 会话状态变更")
         void sessionUpdateMessage() {
-            BridgeMessage msg = BridgeMessage.sessionUpdate("running", "opus", 5000);
+            BridgeMessage msg = BridgeMessage.sessionUpdate("running", "premium", 5000);
             assertEquals("bridge_session_update", msg.type());
             assertEquals("running", msg.payload().get("status"));
-            assertEquals("opus", msg.payload().get("model"));
+            assertEquals("premium", msg.payload().get("model"));
         }
 
         @Test

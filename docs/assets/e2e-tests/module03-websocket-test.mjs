@@ -458,7 +458,7 @@ console.log('='.repeat(70));
     stompSend(conn.ws, '/app/bind-session', {}, JSON.stringify({ sessionId: sid }));
     await sleep(1000);
 
-    const permBody = JSON.stringify({ mode: 'BYPASS_PERMISSIONS' });
+    const permBody = JSON.stringify({ mode: 'SKIP_ALL_PROMPTS' });
     console.log(`  [${ts()}] SEND /app/permission-mode body=${permBody}`);
     stompSend(conn.ws, '/app/permission-mode', {}, permBody);
 

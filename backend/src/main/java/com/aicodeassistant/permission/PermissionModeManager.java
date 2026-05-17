@@ -107,7 +107,7 @@ public class PermissionModeManager {
     public boolean shouldSkipPermission(String sessionId, String toolName, Map<String, Object> input) {
         PermissionMode mode = getMode(sessionId);
         return switch (mode) {
-            case BYPASS_PERMISSIONS -> true;
+            case SKIP_ALL_PROMPTS -> true;
             case DONT_ASK -> false;  // DONT_ASK = 不弹窗但自动拒绝，不能跳过权限检查
             case ACCEPT_EDITS -> isEditTool(toolName);
             case AUTO -> {
@@ -137,7 +137,7 @@ public class PermissionModeManager {
             case PLAN -> !isReadOnly;
             case ACCEPT_EDITS -> !isEditTool(toolName);
             case DONT_ASK -> false;           // 不弹窗（自动拒绝写操作）
-            case BYPASS_PERMISSIONS -> false;  // 不弹窗（自动允许）
+            case SKIP_ALL_PROMPTS -> false;  // 不弹窗（自动允许）
             case AUTO -> false;               // LLM 自动判定
             case BUBBLE -> true;              // 冒泡到父代理确认
         };

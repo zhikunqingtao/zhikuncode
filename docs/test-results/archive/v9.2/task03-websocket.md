@@ -71,7 +71,7 @@ user-name: anon-22664f81
 
 ### TC-WS-05: 聊天消息完整流
 **准备**: POST /api/sessions → 创建会话 `f82f9657-4280-4d99-8576-781e4057f831`
-**发送**: /app/chat `{"text":"请直接回复：1+1等于2。不需要使用任何工具。","permissionMode":"BYPASS_PERMISSIONS"}`
+**发送**: /app/chat `{"text":"请直接回复：1+1等于2。不需要使用任何工具。","permissionMode":"SKIP_ALL_PROMPTS"}`
 **接收消息序列** (共 13 条):
 ```
 MSG[0]:  type=thinking_delta, delta="用户"
@@ -102,12 +102,12 @@ MSG[12]: type=message_complete, stopReason=end_turn
 **判定**: PASS
 
 ### TC-WS-06: 权限模式切换
-**发送**: /app/permission-mode `{"mode":"BYPASS_PERMISSIONS"}`
+**发送**: /app/permission-mode `{"mode":"SKIP_ALL_PROMPTS"}`
 **接收**:
 ```json
-{"type":"permission_mode_changed","ts":1777180894800,"mode":"BYPASS_PERMISSIONS"}
+{"type":"permission_mode_changed","ts":1777180894800,"mode":"SKIP_ALL_PROMPTS"}
 ```
-**验证**: 收到 permission_mode_changed，mode=BYPASS_PERMISSIONS ✓
+**验证**: 收到 permission_mode_changed，mode=SKIP_ALL_PROMPTS ✓
 **判定**: PASS
 
 ### TC-WS-07: 中断功能

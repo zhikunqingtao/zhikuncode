@@ -153,8 +153,8 @@ async function bindAndSubscribe(conn) {
   await sleep(500);
   stompSend(conn.ws, '/app/bind-session', {}, JSON.stringify({ sessionId: conn.appSessionId }));
   await sleep(1000);
-  // Set BYPASS_PERMISSIONS mode to avoid blocking on permission requests
-  stompSend(conn.ws, '/app/permission-mode', {}, JSON.stringify({ mode: 'BYPASS_PERMISSIONS' }));
+  // Set SKIP_ALL_PROMPTS mode to avoid blocking on permission requests
+  stompSend(conn.ws, '/app/permission-mode', {}, JSON.stringify({ mode: 'SKIP_ALL_PROMPTS' }));
   await sleep(500);
 }
 

@@ -472,15 +472,15 @@
 - **判定**: PASS
 
 **TC-WS-05: 聊天消息完整流 — PASS (6715ms)**
-- **发送**: `/app/chat {"text":"请直接回复：1+1等于2。不需要使用任何工具。","permissionMode":"BYPASS_PERMISSIONS"}`
+- **发送**: `/app/chat {"text":"请直接回复：1+1等于2。不需要使用任何工具。","permissionMode":"SKIP_ALL_PROMPTS"}`
 - **接收**: 13条消息 — thinking_delta(9) → stream_delta(2) → cost_update(1) → message_complete(1)
 - **组合文本**: `1+1等于2。`
 - **Token**: inputTokens=26409, outputTokens=38
 - **判定**: PASS — 完整消息序列验证通过
 
 **TC-WS-06: 权限模式切换 — PASS (1824ms)**
-- **发送**: `/app/permission-mode {"mode":"BYPASS_PERMISSIONS"}`
-- **接收**: `{"type":"permission_mode_changed","mode":"BYPASS_PERMISSIONS"}`
+- **发送**: `/app/permission-mode {"mode":"SKIP_ALL_PROMPTS"}`
+- **接收**: `{"type":"permission_mode_changed","mode":"SKIP_ALL_PROMPTS"}`
 - **判定**: PASS
 
 **TC-WS-07: 中断功能 — PASS (1828ms)**
@@ -500,7 +500,7 @@
 > **测试时间**: 2026-04-26 13:24 ~ 13:27 CST
 
 **TC-AL-01: 基本问答循环 — PASS (9.44s)**
-- **入参**: `{"prompt":"1+1等于多少？请直接回答数字","permissionMode":"BYPASS_PERMISSIONS"}`
+- **入参**: `{"prompt":"1+1等于多少？请直接回答数字","permissionMode":"SKIP_ALL_PROMPTS"}`
 - **出参**: result="2", stopReason=end_turn, inputTokens=26397, outputTokens=209
 - **判定**: PASS
 
@@ -626,8 +626,8 @@
 - **步骤**: 查空列表 → 创建 allow 规则(HTTP 201) → 创建 deny 规则(HTTP 201) → 验证2条 → 删除(HTTP 204×2) → 验证为空
 - **判定**: PASS
 
-**TC-PERM-02: BYPASS_PERMISSIONS 模式验证 — PASS**
-- **入参**: `echo permission-bypass-test` (BYPASS_PERMISSIONS 模式)
+**TC-PERM-02: SKIP_ALL_PROMPTS 模式验证 — PASS**
+- **入参**: `echo permission-bypass-test` (SKIP_ALL_PROMPTS 模式)
 - **出参**: Bash 工具直接执行，输出 "permission-bypass-test"，无权限请求中断
 - **判定**: PASS
 
@@ -642,9 +642,9 @@
 - **判定**: PASS
 
 **TC-PERM-05: 敏感路径保护验证 — PASS**
-- **测试**: 即使在 BYPASS_PERMISSIONS 模式下读取 .env
+- **测试**: 即使在 SKIP_ALL_PROMPTS 模式下读取 .env
 - **结果**: 项目边界保护拦截 — "Access denied: path outside project boundary"
-- **关键**: 安全沙箱不可绕过，即使 BYPASS 模式
+- **关键**: 安全沙箱不可绕过，即使 SKIP_ALL_PROMPTS 模式
 - **判定**: PASS
 
 **TC-PERM-06: 工具级权限分层 — PASS**

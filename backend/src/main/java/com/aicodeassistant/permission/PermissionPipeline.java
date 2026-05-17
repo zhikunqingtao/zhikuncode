@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
  * Step 1e: requiresUserInteraction → 必须用户交互
  * Step 1f: 内容级 ask 规则 → 优先于 bypass 模式
  * Step 1g: 安全检查 → .git/.zhikun 等路径保护
- * Step 2a: bypassPermissions 模式 → 直接允许
+ * Step 2a: skipAllPrompts 模式 → 直接允许
  * Step 2b: alwaysAllow 规则 → 命中则允许
  * Step 3:  passthrough → 转为 ask，进入模式分支
  * </pre>
@@ -279,10 +279,10 @@ public class PermissionPipeline {
             }
         }
 
-        // ===== Step 2a: bypassPermissions 模式 =====
+        // ===== Step 2a: skipAllPrompts 模式 =====
         PermissionMode mode = permissionContext.mode();
-        boolean shouldBypass = mode == PermissionMode.BYPASS_PERMISSIONS
-                || (mode == PermissionMode.PLAN && permissionContext.isBypassPermissionsModeAvailable());
+        boolean shouldBypass = mode == PermissionMode.SKIP_ALL_PROMPTS
+                || (mode == PermissionMode.PLAN && permissionContext.isSkipAllPromptsModeAvailable());
         if (shouldBypass) {
             log.debug("Step 2a: bypass mode for tool={}", tool.getName());
             return PermissionDecision.allow(PermissionDecisionReason.MODE, mode);
@@ -356,7 +356,7 @@ public class PermissionPipeline {
                 yield PermissionDecision.denyByMode(
                         "DONT_ASK mode: write operations are auto-denied without user confirmation");
             }
-            case BYPASS_PERMISSIONS -> PermissionDecision.allow(PermissionDecisionReason.MODE, mode);
+            case SKIP_ALL_PROMPTS -> PermissionDecision.allow(PermissionDecisionReason.MODE, mode);
             case AUTO -> {
                 // killswitch 检查：AUTO 模式可通过 FeatureFlag 紧急关闭
                 if (!featureFlags.isEnabled("AUTO_MODE_ENABLED")) {

@@ -106,10 +106,10 @@ public class QueryController {
         // 1. 创建或复用会话
         String sessionId = resolveSessionId(request);
 
-        // INC-3 fix: 使用请求传入的 permissionMode，默认仍为 BYPASS
+        // INC-3 fix: 使用请求传入的 permissionMode，默认仍为 SKIP_ALL_PROMPTS
         PermissionMode effectiveMode = request.permissionMode() != null
                 ? request.permissionMode()
-                : PermissionMode.BYPASS_PERMISSIONS;  // REST API 默认仍为 BYPASS
+                : PermissionMode.SKIP_ALL_PROMPTS;  // REST API 默认仍为 SKIP_ALL_PROMPTS
         permissionModeManager.setMode(sessionId, effectiveMode);
         log.debug("REST API /api/query: permissionMode={} (requested={})",
                 effectiveMode, request.permissionMode());
@@ -128,8 +128,9 @@ public class QueryController {
         // 4. 组装用户消息
         String userMessage = buildUserMessage(request.prompt(), request.context());
 
-        // 5. 构建 QueryConfig
-        String model = request.model() != null ? request.model() : providerRegistry.getDefaultModel();
+        // 5. 构建 QueryConfig（★ 别名解析: light→qwen-plus, standard→qwen3.6-plus, premium→qwen3.6-max-preview）
+        String rawModel = request.model() != null ? request.model() : providerRegistry.getDefaultModel();
+        String model = providerRegistry.resolveModelAlias(rawModel);
         int maxTurns = request.maxTurns() != null ? request.maxTurns() : QueryConfig.DEFAULT_MAX_TURNS;
         int contextWindow = getContextWindow(model);
 
@@ -226,7 +227,7 @@ public class QueryController {
                 // INC-3 fix: 使用请求传入的 permissionMode
                 PermissionMode effectiveMode = request.permissionMode() != null
                         ? request.permissionMode()
-                        : PermissionMode.BYPASS_PERMISSIONS;
+                        : PermissionMode.SKIP_ALL_PROMPTS;
                 permissionModeManager.setMode(sessionId, effectiveMode);
                 List<Tool> tools = assembleToolPool(
                         request.allowedTools(), request.disallowedTools());
@@ -237,8 +238,9 @@ public class QueryController {
                 String systemPrompt = systemPromptBuilder.buildEffectiveSystemPrompt(
                         promptConfig, tools, request.model(), Path.of(System.getProperty("user.dir")));
                 String userMessage = buildUserMessage(request.prompt(), request.context());
-                String model = request.model() != null
+                String rawModel = request.model() != null
                         ? request.model() : providerRegistry.getDefaultModel();
+                String model = providerRegistry.resolveModelAlias(rawModel);
                 int maxTurns = request.maxTurns() != null ? request.maxTurns() : QueryConfig.DEFAULT_MAX_TURNS;
                 int contextWindow = getContextWindow(model);
 
@@ -336,7 +338,7 @@ public class QueryController {
         // INC-3 fix: 使用请求传入的 permissionMode
         PermissionMode effectiveMode = request.permissionMode() != null
                 ? request.permissionMode()
-                : PermissionMode.BYPASS_PERMISSIONS;
+                : PermissionMode.SKIP_ALL_PROMPTS;
         permissionModeManager.setMode(request.sessionId(), effectiveMode);
 
         // 2. 准备工具和系统提示
@@ -348,7 +350,8 @@ public class QueryController {
                 .withSessionId(request.sessionId());
         String systemPrompt = systemPromptBuilder.buildEffectiveSystemPrompt(
                 promptConfig, tools, request.model(), Path.of(System.getProperty("user.dir")));
-        String model = request.model() != null ? request.model() : session.model();
+        String rawModel = request.model() != null ? request.model() : session.model();
+        String model = providerRegistry.resolveModelAlias(rawModel);
         int maxTurns = request.maxTurns() != null ? request.maxTurns() : QueryConfig.DEFAULT_MAX_TURNS;
         int contextWindow = getContextWindow(model);
 

@@ -237,7 +237,7 @@ console.log('='.repeat(70));
     const conn = await setupConnection(session.id);
     
     // Switch to BYPASS mode for direct execution
-    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'BYPASS_PERMISSIONS' }));
+    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'SKIP_ALL_PROMPTS' }));
     await sleep(2000);
 
     const { messages, timedOut } = await sendChat(conn, '1+1等于几?只回答数字');
@@ -264,7 +264,7 @@ console.log('='.repeat(70));
     const session = await createSession('tc-al-02');
     createdSessionIds.push(session.id);
     const conn = await setupConnection(session.id);
-    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'BYPASS_PERMISSIONS' }));
+    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'SKIP_ALL_PROMPTS' }));
     await sleep(2000);
 
     // Round 1
@@ -307,7 +307,7 @@ console.log('='.repeat(70));
     const session = await createSession('tc-al-03');
     createdSessionIds.push(session.id);
     const conn = await setupConnection(session.id);
-    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'BYPASS_PERMISSIONS' }));
+    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'SKIP_ALL_PROMPTS' }));
     await sleep(2000);
 
     const { messages } = await sendChat(conn, '请写一首四行的小诗');
@@ -342,7 +342,7 @@ console.log('='.repeat(70));
     const session = await createSession('tc-al-04');
     createdSessionIds.push(session.id);
     const conn = await setupConnection(session.id);
-    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'BYPASS_PERMISSIONS' }));
+    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'SKIP_ALL_PROMPTS' }));
     await sleep(2000);
 
     const { messages } = await sendChat(conn, '请读取当前项目根目录下的 pom.xml 文件的前5行内容');
@@ -368,7 +368,7 @@ console.log('='.repeat(70));
     const session = await createSession('tc-al-05');
     createdSessionIds.push(session.id);
     const conn = await setupConnection(session.id);
-    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'BYPASS_PERMISSIONS' }));
+    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'SKIP_ALL_PROMPTS' }));
     await sleep(2000);
 
     const { messages } = await sendChat(conn, '请先列出当前目录下的文件（ls），然后读取 pom.xml 的前3行');
@@ -397,7 +397,7 @@ console.log('='.repeat(70));
     const session = await createSession('tc-al-06');
     createdSessionIds.push(session.id);
     const conn = await setupConnection(session.id);
-    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'BYPASS_PERMISSIONS' }));
+    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'SKIP_ALL_PROMPTS' }));
     await sleep(2000);
 
     const { messages, timedOut } = await sendChat(conn, '回答: hello', LLM_TIMEOUT, ['end_turn', 'message_complete']);
@@ -422,7 +422,7 @@ console.log('='.repeat(70));
     const session = await createSession('tc-al-07');
     createdSessionIds.push(session.id);
     const conn = await setupConnection(session.id);
-    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'BYPASS_PERMISSIONS' }));
+    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'SKIP_ALL_PROMPTS' }));
     await sleep(2000);
 
     // Round 1
@@ -461,7 +461,7 @@ console.log('='.repeat(70));
     const session = await createSession('tc-al-08');
     createdSessionIds.push(session.id);
     const conn = await setupConnection(session.id);
-    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'BYPASS_PERMISSIONS' }));
+    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'SKIP_ALL_PROMPTS' }));
     await sleep(2000);
 
     // Send some messages first to build context
@@ -494,7 +494,7 @@ console.log('='.repeat(70));
     const session = await createSession('tc-al-09');
     createdSessionIds.push(session.id);
     const conn = await setupConnection(session.id);
-    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'BYPASS_PERMISSIONS' }));
+    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'SKIP_ALL_PROMPTS' }));
     await sleep(2000);
 
     // Send empty-ish message to trigger edge case
@@ -536,7 +536,7 @@ console.log('='.repeat(70));
     const session = await createSession('tc-tool-01');
     createdSessionIds.push(session.id);
     const conn = await setupConnection(session.id);
-    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'BYPASS_PERMISSIONS' }));
+    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'SKIP_ALL_PROMPTS' }));
     await sleep(2000);
 
     const { messages } = await sendChat(conn, '请读取项目根目录下的 .env 文件内容，显示给我看');
@@ -567,7 +567,7 @@ console.log('='.repeat(70));
     const session = await createSession('tc-tool-02');
     createdSessionIds.push(session.id);
     const conn = await setupConnection(session.id);
-    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'BYPASS_PERMISSIONS' }));
+    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'SKIP_ALL_PROMPTS' }));
     await sleep(2000);
 
     const testFile = 'workspace/e2e-test-write-' + randomId(6) + '.txt';
@@ -595,7 +595,7 @@ console.log('='.repeat(70));
     const session = await createSession('tc-tool-03');
     createdSessionIds.push(session.id);
     const conn = await setupConnection(session.id);
-    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'BYPASS_PERMISSIONS' }));
+    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'SKIP_ALL_PROMPTS' }));
     await sleep(2000);
 
     const testFile = 'workspace/e2e-test-edit-' + randomId(6) + '.txt';
@@ -626,7 +626,7 @@ console.log('='.repeat(70));
     const session = await createSession('tc-tool-04');
     createdSessionIds.push(session.id);
     const conn = await setupConnection(session.id);
-    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'BYPASS_PERMISSIONS' }));
+    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'SKIP_ALL_PROMPTS' }));
     await sleep(2000);
 
     const { messages } = await sendChat(conn, '请执行命令 echo "hello world" 并告诉我输出结果');
@@ -652,7 +652,7 @@ console.log('='.repeat(70));
     const session = await createSession('tc-tool-05');
     createdSessionIds.push(session.id);
     const conn = await setupConnection(session.id);
-    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'BYPASS_PERMISSIONS' }));
+    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'SKIP_ALL_PROMPTS' }));
     await sleep(2000);
 
     const { messages } = await sendChat(conn, '请执行命令 rm -rf /tmp/test_dangerous_dir', LLM_TIMEOUT, ['message_complete', 'end_turn', 'permission_request']);
@@ -683,7 +683,7 @@ console.log('='.repeat(70));
     const session = await createSession('tc-tool-06');
     createdSessionIds.push(session.id);
     const conn = await setupConnection(session.id);
-    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'BYPASS_PERMISSIONS' }));
+    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'SKIP_ALL_PROMPTS' }));
     await sleep(2000);
 
     const { messages } = await sendChat(conn, '请执行 cat ~/.ssh/id_rsa 并显示内容');
@@ -713,7 +713,7 @@ console.log('='.repeat(70));
     const session = await createSession('tc-tool-07');
     createdSessionIds.push(session.id);
     const conn = await setupConnection(session.id);
-    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'BYPASS_PERMISSIONS' }));
+    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'SKIP_ALL_PROMPTS' }));
     await sleep(2000);
 
     const { messages } = await sendChat(conn, '请执行命令 echo "sk-proj-abc123def456ghi789" 并显示输出');
@@ -740,7 +740,7 @@ console.log('='.repeat(70));
     const session = await createSession('tc-tool-08');
     createdSessionIds.push(session.id);
     const conn = await setupConnection(session.id);
-    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'BYPASS_PERMISSIONS' }));
+    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'SKIP_ALL_PROMPTS' }));
     await sleep(2000);
 
     const { messages } = await sendChat(conn, '请在项目中搜索包含 "ToolController" 关键字的文件');
@@ -880,9 +880,9 @@ console.log('='.repeat(70));
 
 await sleep(2000);
 
-// ── TC-PERM-02: BYPASS_PERMISSIONS 模式 ──
+// ── TC-PERM-02: SKIP_ALL_PROMPTS 模式 ──
 console.log('\n' + '='.repeat(70));
-console.log(`TC-PERM-02: BYPASS_PERMISSIONS 模式   [${ts()}]`);
+console.log(`TC-PERM-02: SKIP_ALL_PROMPTS 模式   [${ts()}]`);
 console.log('='.repeat(70));
 {
   const t0 = Date.now();
@@ -892,7 +892,7 @@ console.log('='.repeat(70));
     const conn = await setupConnection(session.id);
     
     // Switch to BYPASS
-    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'BYPASS_PERMISSIONS' }));
+    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'SKIP_ALL_PROMPTS' }));
     const modeResult = await waitForMessages(conn.ws, { timeout: 10000, stopOnType: 'permission_mode_changed', maxMessages: 10 });
     const modeMsg = modeResult.messages.find(m => m.json?.type === 'permission_mode_changed');
     console.log(`  Mode changed: ${JSON.stringify(modeMsg?.json)}`);
@@ -1012,7 +1012,7 @@ console.log('='.repeat(70));
     const conn = await setupConnection(session.id);
     
     // Set BYPASS mode
-    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'BYPASS_PERMISSIONS' }));
+    stompSend(conn.ws, '/app/permission-mode', JSON.stringify({ mode: 'SKIP_ALL_PROMPTS' }));
     await sleep(2000);
 
     // Try to read .env even in BYPASS mode

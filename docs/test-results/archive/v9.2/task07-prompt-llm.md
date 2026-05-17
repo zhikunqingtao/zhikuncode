@@ -106,14 +106,14 @@
 ### TC-SP-03: System Prompt 影响行为
 **请求1（无 systemPrompt）**:
 ```json
-{"prompt":"你是谁？","permissionMode":"BYPASS_PERMISSIONS","workingDirectory":"/Users/guoqingtao/Desktop/dev/code/zhikuncode"}
+{"prompt":"你是谁？","permissionMode":"SKIP_ALL_PROMPTS","workingDirectory":"/Users/guoqingtao/Desktop/dev/code/zhikuncode"}
 ```
 **响应1 result**:
 > 我是 ZhikunCode 的 AI 编码助手。我可以帮助你编写、修改、调试代码，搜索代码库，运行测试，以及处理各种软件开发任务。有什么我可以帮你的吗？
 
 **请求2（有 systemPrompt）**:
 ```json
-{"prompt":"你是谁？","systemPrompt":"你是一个名叫小明的数学老师，所有回答都要以小明老师说：开头","permissionMode":"BYPASS_PERMISSIONS","workingDirectory":"/Users/guoqingtao/Desktop/dev/code/zhikuncode"}
+{"prompt":"你是谁？","systemPrompt":"你是一个名叫小明的数学老师，所有回答都要以小明老师说：开头","permissionMode":"SKIP_ALL_PROMPTS","workingDirectory":"/Users/guoqingtao/Desktop/dev/code/zhikuncode"}
 ```
 **响应2 result**:
 > 小明老师说：我是小明，一名数学老师。如果你有任何数学问题、需要讲解知识点，或者想一起探讨解题思路，随时告诉我，我很乐意为你答疑解惑！
@@ -129,7 +129,7 @@
 ### TC-SP-04: appendSystemPrompt 追加系统提示
 **请求**:
 ```json
-{"prompt":"请告诉我今天星期几","appendSystemPrompt":"所有回答必须用英文回复，不要使用中文","permissionMode":"BYPASS_PERMISSIONS","workingDirectory":"/Users/guoqingtao/Desktop/dev/code/zhikuncode"}
+{"prompt":"请告诉我今天星期几","appendSystemPrompt":"所有回答必须用英文回复，不要使用中文","permissionMode":"SKIP_ALL_PROMPTS","workingDirectory":"/Users/guoqingtao/Desktop/dev/code/zhikuncode"}
 ```
 **响应 result**:
 > Today is **Sunday**.
@@ -145,7 +145,7 @@
 ### TC-SP-05: LLM 流式响应完整性
 **请求**: `POST /api/query/stream`
 ```json
-{"prompt":"请列出5种常见的编程语言，每种一行","permissionMode":"BYPASS_PERMISSIONS","workingDirectory":"/Users/guoqingtao/Desktop/dev/code/zhikuncode"}
+{"prompt":"请列出5种常见的编程语言，每种一行","permissionMode":"SKIP_ALL_PROMPTS","workingDirectory":"/Users/guoqingtao/Desktop/dev/code/zhikuncode"}
 ```
 **SSE 事件序列**:
 ```
@@ -170,7 +170,7 @@ event:message_complete  → {"sessionId":"...","usage":{...},"stopReason":"end_t
 ### TC-SP-06: LLM 错误处理 — 无效模型
 **请求**:
 ```json
-{"prompt":"test","model":"completely-invalid-model-name-xyz","permissionMode":"BYPASS_PERMISSIONS","workingDirectory":"/Users/guoqingtao/Desktop/dev/code/zhikuncode"}
+{"prompt":"test","model":"completely-invalid-model-name-xyz","permissionMode":"SKIP_ALL_PROMPTS","workingDirectory":"/Users/guoqingtao/Desktop/dev/code/zhikuncode"}
 ```
 **响应**:
 ```json
@@ -197,7 +197,7 @@ event:message_complete  → {"sessionId":"...","usage":{...},"stopReason":"end_t
 ### TC-SP-07: Token 用量跟踪准确性
 **短问题请求**:
 ```json
-{"prompt":"说一个字：好","permissionMode":"BYPASS_PERMISSIONS","workingDirectory":"/Users/guoqingtao/Desktop/dev/code/zhikuncode"}
+{"prompt":"说一个字：好","permissionMode":"SKIP_ALL_PROMPTS","workingDirectory":"/Users/guoqingtao/Desktop/dev/code/zhikuncode"}
 ```
 **短问题响应**:
 - result: "好"
@@ -205,7 +205,7 @@ event:message_complete  → {"sessionId":"...","usage":{...},"stopReason":"end_t
 
 **长问题请求**:
 ```json
-{"prompt":"请详细解释什么是面向对象编程的四大特性（封装、继承、多态、抽象），每个特性用100字左右描述，并给出一个Java代码示例","permissionMode":"BYPASS_PERMISSIONS","workingDirectory":"/Users/guoqingtao/Desktop/dev/code/zhikuncode"}
+{"prompt":"请详细解释什么是面向对象编程的四大特性（封装、继承、多态、抽象），每个特性用100字左右描述，并给出一个Java代码示例","permissionMode":"SKIP_ALL_PROMPTS","workingDirectory":"/Users/guoqingtao/Desktop/dev/code/zhikuncode"}
 ```
 **长问题响应**:
 - result: 包含四大特性详细说明及完整 Java 代码示例（约 700+ tokens 输出）

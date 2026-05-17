@@ -37,11 +37,7 @@ public class LlmProviderRegistry {
             // 新别名（推荐）
             Map.entry("light", "qwen-plus"),
             Map.entry("standard", "qwen3.6-plus"),
-            Map.entry("premium", "qwen3.6-max-preview"),
-            // 旧别名（兼容1个版本后移除）
-            Map.entry("haiku", "qwen-plus"),
-            Map.entry("sonnet", "qwen3.6-plus"),
-            Map.entry("opus", "qwen3.6-max-preview")
+            Map.entry("premium", "qwen3.6-max-preview")
     );
 
     /**
@@ -145,9 +141,9 @@ public class LlmProviderRegistry {
      * 解析模型别名为实际模型名称。
      * <p>
      * 别名映射规则（四级回退）：
-     * 1. 环境变量 AGENT_MODEL_<ALIAS> (如 AGENT_MODEL_HAIKU=qwen-plus)
+     * 1. 环境变量 AGENT_MODEL_<ALIAS> (如 AGENT_MODEL_LIGHT=qwen-plus)
      * 2. application.yml 配置 agent.model-aliases.<alias>
-     * 3. 内置映射表（haiku→轻量模型, sonnet→默认模型, opus→旗舰模型）
+     * 3. 内置映射表（light→轻量模型, standard→默认模型, premium→旗舰模型）
      * 4. 直接使用别名作为模型名（透传）
      */
     public String resolveModelAlias(String modelNameOrAlias) {

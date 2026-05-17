@@ -41,14 +41,6 @@ class LlmFallbackChainTest {
             "standard 应映射到 qwen3.6-plus");
         assertEquals("qwen3.6-max-preview", registry.resolveModelAlias("premium"),
             "premium 应映射到 qwen3.6-max-preview");
-
-        // 验证旧别名兼容
-        assertEquals("qwen-plus", registry.resolveModelAlias("haiku"),
-            "旧别名 haiku 应映射到 qwen-plus");
-        assertEquals("qwen3.6-plus", registry.resolveModelAlias("sonnet"),
-            "旧别名 sonnet 应映射到 qwen3.6-plus");
-        assertEquals("qwen3.6-max-preview", registry.resolveModelAlias("opus"),
-            "旧别名 opus 应映射到 qwen3.6-max-preview");
     }
 
     @Test

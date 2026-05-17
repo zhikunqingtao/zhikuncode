@@ -58,7 +58,7 @@ class OutputFormat(str, Enum):
 
 class PermissionMode(str, Enum):
     dont_ask = "dont_ask"
-    bypass = "bypass"
+    skip_all_prompts = "skip_all_prompts"
     default = "default"
 
 
@@ -172,9 +172,9 @@ def main(
         raise typer.Exit(code=2)
 
     # 4. 解析权限模式
-    perm = "BYPASS" if no_permissions else permission_mode.value.upper()
+    perm = "SKIP_ALL_PROMPTS" if no_permissions else permission_mode.value.upper()
     if no_permissions and not quiet:
-        console.print("[yellow]WARNING: All permissions bypassed[/yellow]")
+        console.print("[yellow]WARNING: All prompts skipped[/yellow]")
 
     # 5. 解析会话
     cache = SessionCache()

@@ -10,10 +10,10 @@ import java.util.Set;
  * <p>
  * <ul>
  *   <li>{@link GeneralPurposeAgent} — 通用Agent，完整工具集，默认模型</li>
- *   <li>{@link ExploreAgent} — 探索Agent，禁止编辑工具，偏好轻量模型（haiku）</li>
+ *   <li>{@link ExploreAgent} — 探索Agent，禁止编辑工具，偏好轻量模型（light）</li>
  *   <li>{@link VerificationAgent} — 验证Agent，禁止编辑工具，继承父级模型</li>
  *   <li>{@link PlanAgent} — 规划Agent，禁止编辑工具，省略 PROJECT.md</li>
- *   <li>{@link GuideAgent} — 引导Agent，仅只读工具，偏好轻量模型（haiku）</li>
+ *   <li>{@link GuideAgent} — 引导Agent，仅只读工具，偏好轻量模型（light）</li>
  * </ul>
  *
  * @see SubAgentExecutor.AgentDefinition
@@ -43,7 +43,7 @@ public sealed interface BuiltInAgentDefinition permits
 
     /**
      * 模型别名覆盖；null 表示继承父级模型。
-     * 值为 application.yml 中 agent.model-aliases 的键（如 "haiku"、"sonnet"、"opus"）。
+     * 值为 application.yml 中 agent.model-aliases 的键（如 "light"、"standard"、"premium"）。
      */
     String modelOverride();
 
@@ -84,7 +84,7 @@ public sealed interface BuiltInAgentDefinition permits
         @Override public int maxTurns() { return 30; }
         @Override public Set<String> allowedTools() { return null; }
         @Override public Set<String> deniedTools() { return DENIED; }
-        @Override public String modelOverride() { return "haiku"; }
+        @Override public String modelOverride() { return "light"; }
                 @Override public boolean omitProjectPrompt() { return true; }
         @Override public String systemPromptTemplate() { return SubAgentExecutor.EXPLORE_AGENT_PROMPT; }
 
@@ -144,7 +144,7 @@ public sealed interface BuiltInAgentDefinition permits
         @Override public int maxTurns() { return 30; }
         @Override public Set<String> allowedTools() { return ALLOWED; }
         @Override public Set<String> deniedTools() { return null; }
-        @Override public String modelOverride() { return "haiku"; }
+        @Override public String modelOverride() { return "light"; }
         @Override public boolean omitProjectPrompt() { return false; }
         @Override public String systemPromptTemplate() { return SubAgentExecutor.GUIDE_AGENT_PROMPT; }
 

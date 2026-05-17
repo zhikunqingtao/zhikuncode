@@ -162,7 +162,7 @@
 ```json
 {
   "prompt": "请使用网络搜索工具搜索：ZhikunCode GitHub",
-  "permissionMode": "BYPASS_PERMISSIONS",
+  "permissionMode": "SKIP_ALL_PROMPTS",
   "workingDirectory": "/Users/guoqingtao/Desktop/dev/code/zhikuncode"
 }
 ```

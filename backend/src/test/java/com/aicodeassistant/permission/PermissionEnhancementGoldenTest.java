@@ -80,7 +80,7 @@ class PermissionEnhancementGoldenTest {
             assertNotNull(PermissionMode.PLAN);
             assertNotNull(PermissionMode.ACCEPT_EDITS);
             assertNotNull(PermissionMode.DONT_ASK);
-            assertNotNull(PermissionMode.BYPASS_PERMISSIONS);
+            assertNotNull(PermissionMode.SKIP_ALL_PROMPTS);
             assertNotNull(PermissionMode.AUTO);
             assertNotNull(PermissionMode.BUBBLE);
         }

@@ -23,7 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * 3. 结果 > HARD_LIMIT → 硬截断（只保留头尾）
  * <p>
  * LLM 智能摘要（P-AG-01）：
- * - 当工具输出超过阈值时，优先使用轻量级模型（haiku）生成结构化摘要
+ * - 当工具输出超过阈值时，优先使用轻量级模型（light）生成结构化摘要
  * - 摘要为 git-commit 风格单行描述
  * - 失败时静默降级为截断策略
  * <p>

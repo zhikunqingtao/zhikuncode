@@ -13,7 +13,7 @@
 | # | 测试用例 | 结果 | 耗时 |
 |---|---------|------|------|
 | TC-PERM-01 | 权限规则 CRUD 完整生命周期 | **PASS** | ~5s |
-| TC-PERM-02 | BYPASS_PERMISSIONS 模式验证 | **PASS** | ~15s |
+| TC-PERM-02 | SKIP_ALL_PROMPTS 模式验证 | **PASS** | ~15s |
 | TC-PERM-03 | DEFAULT 模式权限请求 (WebSocket) | **OBSERVE** | ~17s |
 | TC-PERM-04 | 权限规则 scope 区分 (global vs session) | **PASS** | ~3s |
 | TC-PERM-05 | 敏感路径保护验证 | **PASS** | ~15s |
@@ -47,13 +47,13 @@
 
 ---
 
-### TC-PERM-02: BYPASS_PERMISSIONS 模式验证
+### TC-PERM-02: SKIP_ALL_PROMPTS 模式验证
 
 **请求:**
 ```json
 {
   "prompt": "请使用Bash工具执行 echo permission-bypass-test",
-  "permissionMode": "BYPASS_PERMISSIONS",
+  "permissionMode": "SKIP_ALL_PROMPTS",
   "workingDirectory": "/Users/guoqingtao/Desktop/dev/code/zhikuncode"
 }
 ```
@@ -131,7 +131,7 @@
 
 ### TC-PERM-05: 敏感路径保护验证
 
-**请求:** 使用 BYPASS_PERMISSIONS 模式读取 `.env` 文件
+**请求:** 使用 SKIP_ALL_PROMPTS 模式读取 `.env` 文件
 
 **响应:**
 ```json
@@ -155,7 +155,7 @@ path '...' is outside project boundary.
 - ✅ 系统拦截了 .env 文件访问
 - ✅ 保护机制：**项目边界限制** — 工作目录为 backend 子目录，.env 在项目根目录，超出允许范围
 - ✅ Read 工具返回 `isError: true`，未泄露 .env 内容
-- ✅ 即使在 BYPASS_PERMISSIONS 模式下，项目边界保护仍然生效（安全沙箱不可绕过）
+- ✅ 即使在 SKIP_ALL_PROMPTS 模式下，项目边界保护仍然生效（安全沙箱不可绕过）
 
 **结论:** PASS — 敏感路径得到有效保护。
 
@@ -210,7 +210,7 @@ path '...' is outside project boundary.
 ZhikunCode 权限治理系统功能完善，核心能力验证通过：
 
 1. **权限规则 CRUD** ✅ — 创建/读取/删除全流程正常，scope 过滤准确
-2. **权限模式** ✅ — BYPASS_PERMISSIONS 模式工具直接执行不受阻断
+2. **权限模式** ✅ — SKIP_ALL_PROMPTS 模式工具直接执行不受阻断
 3. **工具级权限分层** ✅ — 三级权限（NONE/CONDITIONAL/ALWAYS_ASK）设计合理
 4. **项目边界保护** ✅ — 即使 BYPASS 模式也无法绕过安全沙箱
 5. **敏感路径保护** ✅ — .env 文件被项目边界限制有效拦截

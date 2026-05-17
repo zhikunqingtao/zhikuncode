@@ -34,7 +34,7 @@ public class PermissionsCommand implements Command {
         StringBuilder sb = new StringBuilder();
         sb.append("Permission Settings:\n\n");
         sb.append("  Mode: ").append(permissions.permissionMode()).append("\n");
-        sb.append("  Bypass: ").append(permissions.isBypassPermissions()).append("\n\n");
+        sb.append("  Bypass: ").append(permissions.isSkipAllPrompts()).append("\n\n");
 
         // Allow rules
         sb.append("  Always Allow Rules:\n");

@@ -29,7 +29,7 @@
 
 ### TC-AL-01: 基本问答循环
 **请求**: `POST /api/query`
-**入参**: `{"prompt":"1+1等于多少？请直接回答数字","permissionMode":"BYPASS_PERMISSIONS","workingDirectory":"..."}`
+**入参**: `{"prompt":"1+1等于多少？请直接回答数字","permissionMode":"SKIP_ALL_PROMPTS","workingDirectory":"..."}`
 **响应状态码**: 200
 **响应体**:
 ```json
@@ -55,7 +55,7 @@
 
 #### 第1轮：记住数字42
 **请求**: `POST /api/query`
-**入参**: `{"prompt":"请记住数字 42","permissionMode":"BYPASS_PERMISSIONS","workingDirectory":"..."}`
+**入参**: `{"prompt":"请记住数字 42","permissionMode":"SKIP_ALL_PROMPTS","workingDirectory":"..."}`
 **响应状态码**: 200
 **响应体**:
 ```json
@@ -107,7 +107,7 @@
 
 ### TC-AL-03: SSE 流式输出
 **请求**: `POST /api/query/stream`
-**入参**: `{"prompt":"请用三句话介绍Python编程语言","permissionMode":"BYPASS_PERMISSIONS","workingDirectory":"..."}`
+**入参**: `{"prompt":"请用三句话介绍Python编程语言","permissionMode":"SKIP_ALL_PROMPTS","workingDirectory":"..."}`
 **响应**: SSE事件流
 
 **收到的SSE事件类型**:
@@ -276,7 +276,7 @@ QueryEngine 完成: turns=6, stopReason=end_turn, totalTokens=163017
 
 #### 测试2：空 prompt
 **请求**: `POST /api/query`
-**入参**: `{"prompt":"","permissionMode":"BYPASS_PERMISSIONS",...}`
+**入参**: `{"prompt":"","permissionMode":"SKIP_ALL_PROMPTS",...}`
 **响应状态码**: 200
 **响应体**:
 ```json

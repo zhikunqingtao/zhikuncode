@@ -419,7 +419,7 @@ public class SubAgentExecutor {
         } else if (agentDef.defaultModel() != null) {
             rawModel = agentDef.defaultModel();
         } else {
-            rawModel = "sonnet";
+            rawModel = "standard";
         }
         // ★ 通过别名解析机制映射到实际模型 ★
         String resolved = providerRegistry.resolveModelAlias(rawModel);

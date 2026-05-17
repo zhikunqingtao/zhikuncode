@@ -504,9 +504,10 @@ public class WebSocketController implements PermissionNotifier {
         List<Tool> tools = toolRegistry.getEnabledTools();
         List<Map<String, Object>> toolDefs = toolRegistry.getToolDefinitions();
 
-        // 2. 会话模型 → 全局默认
-        String model = sessionModels.getOrDefault(sessionId, providerRegistry.getDefaultModel());
-        log.info("executeQuery: sessionId={}, model={}", sessionId, model);
+        // 2. 会话模型 → 全局默认（★ 别名解析）
+        String rawModel = sessionModels.getOrDefault(sessionId, providerRegistry.getDefaultModel());
+        String model = providerRegistry.resolveModelAlias(rawModel);
+        log.info("executeQuery: sessionId={}, model={} (raw={})", sessionId, model, rawModel);
 
         executeQueryInternal(sessionId, userText, tools, toolDefs, model);
     }
@@ -538,9 +539,10 @@ public class WebSocketController implements PermissionNotifier {
             toolDefs = toolRegistry.getToolDefinitions();
         }
 
-        // 模型覆盖优先 → 会话模型 → 全局默认
-        String model = modelOverride != null ? modelOverride
+        // 模型覆盖优先 → 会话模型 → 全局默认（★ 别名解析）
+        String rawModel = modelOverride != null ? modelOverride
                 : sessionModels.getOrDefault(sessionId, providerRegistry.getDefaultModel());
+        String model = providerRegistry.resolveModelAlias(rawModel);
 
         executeQueryInternal(sessionId, promptText, tools, toolDefs, model);
     }

@@ -29,7 +29,7 @@ public class ConfigTool implements Tool {
     /** 支持的配置项及默认值 */
     private static final Map<String, Object> DEFAULTS = Map.of(
             "theme", "system",
-            "model", "sonnet",
+            "model", "standard",
             "maxTokens", 8192,
             "autoCompact", true,
             "verboseLogging", false,
@@ -40,7 +40,7 @@ public class ConfigTool implements Tool {
     /** 配置项可选值（null 表示无限制） */
     private static final Map<String, List<String>> OPTIONS = Map.of(
             "theme", List.of("system", "light", "dark"),
-            "model", List.of("sonnet", "opus", "haiku"),
+            "model", List.of("light", "standard", "premium"),
             "language", List.of("auto", "en", "zh", "ja", "ko", "fr", "de", "es")
     );
 
@@ -91,7 +91,7 @@ public class ConfigTool implements Tool {
                 
                 ## Configurable settings
                 - theme: "system", "light", "dark" - UI theme
-                - model: "sonnet", "opus", "haiku" - Override the default model
+                - model: "light", "standard", "premium" - Override the default model
                 - maxTokens: integer - Maximum response tokens
                 - autoCompact: true/false - Enable auto-compaction
                 - verboseLogging: true/false - Enable verbose logging
@@ -101,7 +101,7 @@ public class ConfigTool implements Tool {
                 ## Examples
                 - Get theme: { "setting": "theme" }
                 - Set dark theme: { "setting": "theme", "value": "dark" }
-                - Change model: { "setting": "model", "value": "opus" }
+                - Change model: { "setting": "model", "value": "premium" }
                 """;
     }
 

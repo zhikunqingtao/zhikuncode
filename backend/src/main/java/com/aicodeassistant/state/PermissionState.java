@@ -15,7 +15,7 @@ public record PermissionState(
         Map<String, List<PermissionRule>> alwaysAllowRules,
         Map<String, List<PermissionRule>> alwaysDenyRules,
         DenialTrackingState denialTracking,
-        boolean isBypassPermissions
+        boolean isSkipAllPrompts
 ) {
     /**
      * 拒绝追踪状态 — 电路断路器模式。
@@ -37,18 +37,18 @@ public record PermissionState(
     }
 
     public PermissionState withPermissionMode(PermissionMode mode) {
-        return new PermissionState(mode, alwaysAllowRules, alwaysDenyRules, denialTracking, isBypassPermissions);
+        return new PermissionState(mode, alwaysAllowRules, alwaysDenyRules, denialTracking, isSkipAllPrompts);
     }
 
     public PermissionState withAlwaysAllowRules(Map<String, List<PermissionRule>> rules) {
-        return new PermissionState(permissionMode, rules, alwaysDenyRules, denialTracking, isBypassPermissions);
+        return new PermissionState(permissionMode, rules, alwaysDenyRules, denialTracking, isSkipAllPrompts);
     }
 
     public PermissionState withAlwaysDenyRules(Map<String, List<PermissionRule>> rules) {
-        return new PermissionState(permissionMode, alwaysAllowRules, rules, denialTracking, isBypassPermissions);
+        return new PermissionState(permissionMode, alwaysAllowRules, rules, denialTracking, isSkipAllPrompts);
     }
 
     public PermissionState withDenialTracking(DenialTrackingState tracking) {
-        return new PermissionState(permissionMode, alwaysAllowRules, alwaysDenyRules, tracking, isBypassPermissions);
+        return new PermissionState(permissionMode, alwaysAllowRules, alwaysDenyRules, tracking, isSkipAllPrompts);
     }
 }

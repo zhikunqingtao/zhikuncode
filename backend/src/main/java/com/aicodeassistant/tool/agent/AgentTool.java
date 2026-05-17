@@ -20,7 +20,7 @@ import java.util.*;
  *   <li>{@code prompt} (必需) - 子代理任务描述</li>
  *   <li>{@code description} (可选) - 3-5 词任务简述</li>
  *   <li>{@code subagent_type} (可选) - 代理类型: explore/verification/plan/general-purpose/guide</li>
- *   <li>{@code model} (可选) - 模型覆盖: sonnet/opus/haiku</li>
+ *   <li>{@code model} (可选) - 模型覆盖: light/standard/premium</li>
  *   <li>{@code run_in_background} (可选) - 后台运行标志</li>
  *   <li>{@code isolation} (可选) - 隔离模式: none/worktree</li>
  * </ul>
@@ -133,7 +133,7 @@ public class AgentTool implements Tool {
                                 "type", "string",
                                 "enum", getAvailableModelAliases(),
                                 "description", "Model override for the sub-agent. "
-                                        + "Use aliases (haiku/sonnet/opus) or actual model names."),
+                                        + "Use aliases (light/standard/premium) or actual model names."),
                         "run_in_background", Map.of(
                                 "type", "boolean",
                                 "description", "Run the agent in the background"),

@@ -35,7 +35,7 @@ llm:
       api-key: ${LLM_PROVIDER_DASHSCOPE_API_KEY:}
       base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
       default-model: qwen3.6-max-preview
-      models: ${LLM_PROVIDER_DASHSCOPE_MODELS:qwen3.6-max-preview,qwen3.6-plus}
+      models: ${LLM_PROVIDER_DASHSCOPE_MODELS:qwen3.6-max-preview,qwen3.6-plus,qwen-plus}
     deepseek:
       api-key: ${LLM_PROVIDER_DEEPSEEK_API_KEY:}
       base-url: https://api.deepseek.com/v1
@@ -105,7 +105,7 @@ features:
     TOKEN_BUDGET: false          # A1: 默认关闭，用户指定 token 目标时手动开启
     SCRATCHPAD: true              # A3: 必须默认开启，否则已有功能回退
     CACHED_MICROCOMPACT: true     # A4: FRC 总开关
-    FRC_SUPPORTED_MODELS: "haiku,sonnet"  # A4: FRC 支持的模型模式
+    FRC_SUPPORTED_MODELS: "light,standard"  # A4: FRC 支持的模型模式
     FRC_KEEP_RECENT: 3            # A4: FRC 保留最近 N 条工具结果
     # ── B 组：P2 实验性工具 ──
     AGENT_TRIGGERS: false         # B2: CronTool 门控，默认关闭

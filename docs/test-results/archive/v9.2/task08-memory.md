@@ -197,7 +197,7 @@ Last line: 这是第249行测试内容，用于验证记忆系统的内容长度
 POST /api/query
 Body: {
   "prompt": "请记住以下信息并保存为记忆：我最喜欢的编程语言是Python，标题请使用TEST-前缀。这是测试用的记忆，请直接调用update_memory工具创建。",
-  "permissionMode": "BYPASS_PERMISSIONS",
+  "permissionMode": "SKIP_ALL_PROMPTS",
   "workingDirectory": "/Users/guoqingtao/Desktop/dev/code/zhikuncode",
   "maxTurns": 5,
   "timeoutSeconds": 120
