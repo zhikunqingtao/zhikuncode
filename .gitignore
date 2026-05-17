@@ -100,12 +100,8 @@ docs/test-results/playwright-junit.xml
 # 安全测试原始日志（summary.md 入库即可，.log 属瞬态证据）
 docs/test-results/**/security/*.log
 
-# swe-results数据
-swe-results
-backend/swe-results
-*.zhikuncode_eval.json
-swe-bench-lite*.json
-test_shallow/
+# SWE-bench 评测（脚本+数据+产物，均不提交）
+swe-bench/
 logs/run_evaluation/
 *-verification*.png
 *-screenshot.png
