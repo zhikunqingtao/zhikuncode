@@ -600,6 +600,22 @@ public class SystemPromptBuilder {
              - 例如：读取 3 个不相关的文件 → 并行调用 FileRead 3 次。但读取文件\
             以查找符号，然后搜索其引用 → 顺序调用。
                 
+            ## MCP 工具
+             - MCP (Model Context Protocol) 工具扩展你的能力。当 MCP 服务器连接时，\
+            其工具会与内置工具一起显示。当内置工具无法覆盖所需功能时使用 MCP 工具。
+             - MCP 工具名称以服务器名为前缀（例如 `mcp__servername__toolname`）
+                
+            ## 错误处理
+             - 如果工具调用失败，在重试前仔细读取错误信息。常见问题：
+               - 文件未找到：使用 GlobTool 或 list_dir 验证路径
+               - 权限被拒绝：检查操作是否需要用户审批
+               - 超时：将操作分解为更小的步骤
+             - 不要使用相同参数重试失败的工具调用超过一次
+            """;
+
+    // ── 代理工具指导（仅在 Agent 工具启用时包含） ──
+    private static final String AGENT_TOOLS_GUIDANCE = """
+                
             ## 代理工具
              - 当任务涉及多个独立子任务或需要专业知识时，考虑使用 Agent 工具\
             生成工作代理。代理适用于：
@@ -626,18 +642,6 @@ public class SystemPromptBuilder {
             创建具有专业类型的传统子代理。子代理对于并行化独立查询或保护\
             主上下文窗口免受过多结果影响很有价值。不需要时不要过度使用。\
             避免重复子代理已经在做的工作。
-                
-            ## MCP 工具
-             - MCP (Model Context Protocol) 工具扩展你的能力。当 MCP 服务器连接时，\
-            其工具会与内置工具一起显示。当内置工具无法覆盖所需功能时使用 MCP 工具。
-             - MCP 工具名称以服务器名为前缀（例如 `mcp__servername__toolname`）
-                
-            ## 错误处理
-             - 如果工具调用失败，在重试前仔细读取错误信息。常见问题：
-               - 文件未找到：使用 GlobTool 或 list_dir 验证路径
-               - 权限被拒绝：检查操作是否需要用户审批
-               - 超时：将操作分解为更小的步骤
-             - 不要使用相同参数重试失败的工具调用超过一次
             """;
 
     // ── USING_TOOLS 条件子段落 ──
@@ -688,6 +692,11 @@ public class SystemPromptBuilder {
      */
     private String getUsingToolsSection(Set<String> enabledTools) {
         StringBuilder sb = new StringBuilder(USING_TOOLS_BASE);
+
+        // 代理工具指导 — 仅当 Agent 工具在启用列表中时才包含
+        if (enabledTools.contains("Agent")) {
+            sb.append(AGENT_TOOLS_GUIDANCE);
+        }
 
         // REPL 模式检查
         if (featureFlags.isEnabled("REPL_MODE")) {

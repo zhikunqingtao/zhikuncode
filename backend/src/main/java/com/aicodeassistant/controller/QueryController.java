@@ -136,7 +136,7 @@ public class QueryController {
 
         QueryConfig config = QueryConfig.withDefaults(
                 model, systemPrompt, tools,
-                toolRegistry.getToolDefinitions(),
+                tools.stream().map(Tool::toToolDefinition).toList(),
                 QueryConfig.DEFAULT_MAX_TOKENS,
                 contextWindow,
                 new ThinkingConfig.Disabled(),
@@ -246,7 +246,7 @@ public class QueryController {
 
                 QueryConfig config = QueryConfig.withDefaults(
                         model, systemPrompt, tools,
-                        toolRegistry.getToolDefinitions(),
+                        tools.stream().map(Tool::toToolDefinition).toList(),
                         QueryConfig.DEFAULT_MAX_TOKENS,
                         contextWindow,
                         new ThinkingConfig.Disabled(),
@@ -357,7 +357,7 @@ public class QueryController {
 
         QueryConfig config = QueryConfig.withDefaults(
                 model, systemPrompt, tools,
-                toolRegistry.getToolDefinitions(),
+                tools.stream().map(Tool::toToolDefinition).toList(),
                 QueryConfig.DEFAULT_MAX_TOKENS,
                 contextWindow,
                 new ThinkingConfig.Disabled(),

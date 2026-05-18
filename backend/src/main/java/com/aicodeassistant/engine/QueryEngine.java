@@ -1325,11 +1325,16 @@ public class QueryEngine {
                         session.addTool(tool, toolInput, currentToolId, toolUseContext);
                         log.info("[DIAG-TOOL] addTool submitted: toolId={}, toolName={}", currentToolId, currentToolName);
                     } else {
-                        // 工具未找到 — 直接标记 COMPLETED + error
+                        // 工具未找到 — 直接标记 COMPLETED + error，附带可用工具列表引导恢复
                         log.warn("Tool not found in streaming phase: {}", currentToolName);
+                        String availableToolNames = (tools != null)
+                                ? tools.stream().map(Tool::getName).collect(Collectors.joining(", "))
+                                : "Read, Edit, Write, Bash, Grep, Glob";
                         session.addErrorResult(currentToolId,
-                                "<tool_use_error>Error: No such tool available: "
-                                + currentToolName + "</tool_use_error>");
+                                "<tool_use_error>Error: Tool '" + currentToolName + "' does not exist in this environment. "
+                                + "You ONLY have access to these tools: [" + availableToolNames + "]. "
+                                + "Do NOT attempt to use '" + currentToolName + "' again. "
+                                + "Continue solving the problem using ONLY the available tools listed above.</tool_use_error>");
                     }
                 }
 
