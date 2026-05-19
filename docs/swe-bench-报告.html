@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ZhikunCode · 面向 SWE-bench 的开源多智能体 AI 编程系统</title>
+<meta name="description" content="ZhikunCode 提交至 SWE-bench Lite 的技术报告：架构、评测配置与关键创新。" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..900,0..100,0..1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Noto+Serif+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ink: #1a1814;
+    --ink-soft: #3a342c;
+    --ink-mute: #6b6357;
+    --paper: #f6f1e6;
+    --paper-deep: #ece4d2;
+    --rule: #b8a987;
+    --accent: #7a2410;     /* oxblood */
+    --accent-2: #1d4d4a;   /* deep teal */
+    --hi: #d8a13a;         /* old gold */
+    --code-bg: #efe7d3;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Fraunces", "Iowan Old Style", "Palatino Linotype", Georgia, "Noto Serif SC", "Songti SC", "PingFang SC", "Microsoft YaHei", "微软雅黑", serif;
+    font-optical-sizing: auto;
+    font-variation-settings: "SOFT" 30, "WONK" 0;
+    font-size: 18px;
+    line-height: 1.8;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(circle at 18% 12%, rgba(122,36,16,0.05), transparent 40%),
+      radial-gradient(circle at 82% 78%, rgba(29,77,74,0.05), transparent 45%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.1 0 0 0 0 0.09 0 0 0 0 0.07 0 0 0 0.05 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    background-attachment: fixed;
+  }
+
+  /* Header */
+  .masthead {
+    border-bottom: 1px solid var(--rule);
+    background: linear-gradient(180deg, var(--paper-deep), var(--paper));
+    padding: 28px 0 22px;
+    position: relative;
+  }
+  .masthead::after {
+    content: "";
+    position: absolute; left: 0; right: 0; bottom: -5px;
+    height: 1px; background: var(--rule);
+  }
+  .container {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 0 32px;
+  }
+  .eyebrow {
+    font-family: "Inter", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .eyebrow .vol { color: var(--accent); font-weight: 600; }
+  .eyebrow .date { font-feature-settings: "tnum"; }
+
+  h1.title {
+    font-family: "Fraunces", "Noto Serif SC", "Songti SC", "PingFang SC", "Microsoft YaHei", serif;
+    font-variation-settings: "opsz" 144, "WONK" 1, "SOFT" 50;
+    font-weight: 360;
+    font-size: clamp(32px, 5.4vw, 58px);
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+    margin: 8px 0 6px;
+    color: var(--ink);
+  }
+  h1.title .colon { color: var(--accent); font-style: italic; font-weight: 400; }
+  h1.title em { font-style: italic; font-weight: 320; color: var(--ink-soft); }
+
+  .subtitle {
+    font-family: "Fraunces", "Noto Serif SC", "Songti SC", "PingFang SC", "Microsoft YaHei", serif;
+    font-style: italic;
+    font-weight: 350;
+    font-size: 19px;
+    color: var(--ink-soft);
+    max-width: 680px;
+    margin: 0 0 22px;
+    line-height: 1.7;
+  }
+  .byline {
+    font-family: "Inter", "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 13px;
+    color: var(--ink-mute);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 22px;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    padding: 12px 0;
+  }
+  .byline span strong {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .byline a { color: var(--accent); text-decoration: none; border-bottom: 1px dotted var(--accent); }
+  .byline a:hover { color: var(--accent-2); border-bottom-color: var(--accent-2); }
+
+  /* Article */
+  article {
+    padding: 56px 0 80px;
+  }
+  .abstract {
+    background: var(--paper-deep);
+    border-left: 3px solid var(--accent);
+    padding: 22px 26px 22px 28px;
+    margin: 0 0 56px;
+    font-size: 17px;
+    line-height: 1.8;
+    position: relative;
+  }
+  .abstract::before {
+    content: "摘要 / Abstract";
+    display: block;
+    font-family: "Inter", "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 10.5px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .abstract p { margin: 0; }
+  .abstract p + p { margin-top: 10px; }
+
+  h2 {
+    font-family: "Fraunces", "Noto Serif SC", "Songti SC", "PingFang SC", "Microsoft YaHei", serif;
+    font-variation-settings: "opsz" 96, "WONK" 1;
+    font-weight: 500;
+    font-size: 28px;
+    letter-spacing: -0.005em;
+    margin: 64px 0 18px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+  }
+  h2 .num {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 14px;
+    color: var(--accent);
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+    padding-top: 2px;
+  }
+  h3 {
+    font-family: "Fraunces", "Noto Serif SC", "Songti SC", "PingFang SC", "Microsoft YaHei", serif;
+    font-variation-settings: "opsz" 60;
+    font-weight: 600;
+    font-size: 20px;
+    margin: 36px 0 10px;
+    color: var(--ink);
+  }
+  h3 .sub-num {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    color: var(--ink-mute);
+    font-weight: 400;
+    margin-right: 10px;
+  }
+
+  p { margin: 0 0 16px; }
+  p .lead-cap::first-letter,
+  .drop-cap::first-letter {
+    font-family: "Fraunces", "Noto Serif SC", "Songti SC", serif;
+    font-variation-settings: "opsz" 144, "WONK" 1;
+    font-weight: 600;
+    font-size: 4.2em;
+    line-height: 0.9;
+    float: left;
+    padding: 6px 10px 0 0;
+    color: var(--accent);
+  }
+  strong { font-weight: 600; color: var(--ink); }
+  em { color: var(--ink-soft); }
+  a.cite { color: var(--accent-2); text-decoration: none; border-bottom: 1px solid rgba(29,77,74,0.3); }
+  a.cite:hover { background: rgba(29,77,74,0.08); }
+
+  ul, ol { padding-left: 22px; margin: 0 0 18px; }
+  li { margin-bottom: 6px; }
+  li::marker { color: var(--accent); }
+
+  /* Code */
+  code, .mono {
+    font-family: "JetBrains Mono", "SF Mono", Menlo, monospace;
+    font-size: 0.86em;
+    background: var(--code-bg);
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: var(--ink-soft);
+    border: 1px solid rgba(184,169,135,0.35);
+  }
+  pre {
+    background: var(--ink);
+    color: #f0e8d6;
+    padding: 18px 22px;
+    border-radius: 4px;
+    overflow-x: auto;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    margin: 18px 0 22px;
+    border-left: 3px solid var(--hi);
+  }
+  pre code { background: transparent; border: 0; padding: 0; color: inherit; }
+
+  /* Figures and tables */
+  figure {
+    margin: 24px 0 28px;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    padding: 18px 0;
+  }
+  figcaption {
+    font-family: "Inter", "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--ink-mute);
+    margin-top: 10px;
+    line-height: 1.7;
+  }
+  figcaption strong {
+    color: var(--accent);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-size: 10.5px;
+    margin-right: 8px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: "Inter", "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 14px;
+    margin: 14px 0;
+  }
+  th, td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  thead th {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    font-weight: 600;
+    border-bottom: 2px solid var(--ink);
+  }
+  tbody tr:hover { background: rgba(216,161,58,0.06); }
+  td.num, th.num {
+    font-family: "JetBrains Mono", monospace;
+    font-feature-settings: "tnum";
+    text-align: right;
+  }
+
+  /* Stat block */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    margin: 32px 0 8px;
+    border: 1px solid var(--ink);
+    background: var(--paper-deep);
+  }
+  .stat {
+    padding: 16px 14px;
+    border-right: 1px solid var(--rule);
+    text-align: center;
+  }
+  .stat:last-child { border-right: 0; }
+  .stat .v {
+    display: block;
+    font-family: "Fraunces", serif;
+    font-variation-settings: "opsz" 144;
+    font-weight: 480;
+    font-size: 30px;
+    line-height: 1.1;
+    color: var(--accent);
+    letter-spacing: -0.01em;
+  }
+  .stat .v.placeholder {
+    color: var(--ink-mute);
+    font-style: italic;
+  }
+  .stat .l {
+    display: block;
+    font-family: "Inter", "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 10.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-top: 6px;
+  }
+
+  /* Pull quote / pipeline diagram */
+  .pipeline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 18px 0;
+    font-family: "JetBrains Mono", "PingFang SC", "Microsoft YaHei", monospace;
+    font-size: 12px;
+  }
+  .pipeline .step {
+    background: var(--paper-deep);
+    border: 1px solid var(--rule);
+    padding: 8px 12px;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pipeline .step .n {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .pipeline .arrow { color: var(--ink-mute); align-self: center; }
+
+  .callout {
+    border: 1px solid var(--rule);
+    border-left: 4px solid var(--accent-2);
+    padding: 16px 20px;
+    margin: 24px 0;
+    background: rgba(29,77,74,0.04);
+    font-size: 16px;
+  }
+  .callout .label {
+    display: inline-block;
+    font-family: "Inter", "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent-2);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .placeholder-tag {
+    display: inline-block;
+    background: var(--hi);
+    color: var(--ink);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    padding: 1px 8px;
+    border-radius: 2px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    border: 1px dashed rgba(0,0,0,0.25);
+  }
+
+  /* References */
+  .references {
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 2px solid var(--ink);
+    font-size: 14px;
+  }
+  .references ol { padding-left: 20px; }
+  .references li { margin-bottom: 8px; line-height: 1.6; }
+  .references a { color: var(--accent); text-decoration: none; }
+  .references a:hover { text-decoration: underline; }
+
+  /* Footer */
+  footer.colophon {
+    border-top: 1px solid var(--rule);
+    padding: 28px 0 60px;
+    font-family: "Inter", "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 12px;
+    color: var(--ink-mute);
+    letter-spacing: 0.04em;
+    text-align: center;
+    line-height: 1.8;
+  }
+  footer.colophon strong { color: var(--accent); letter-spacing: 0.16em; text-transform: uppercase; font-size: 11px; }
+
+  /* Responsive */
+  @media (max-width: 720px) {
+    body { font-size: 17px; }
+    .container { padding: 0 22px; }
+    article { padding: 40px 0 60px; }
+    h2 { font-size: 22px; flex-direction: column; gap: 4px; align-items: flex-start; }
+    h2 .num { padding-top: 0; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .stat:nth-child(2) { border-right: 0; }
+    .stat:nth-child(1), .stat:nth-child(2) { border-bottom: 1px solid var(--rule); }
+    .pipeline { font-size: 11px; }
+    pre { font-size: 12px; padding: 14px 16px; }
+    table { font-size: 13px; }
+    th, td { padding: 8px 8px; }
+  }
+  @media (prefers-color-scheme: dark) {
+    /* 保留纸质美学；为编辑级保真度放弃暗色模式 */
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="container">
+    <div class="eyebrow">
+      <span class="vol">第 I 卷 · 技术报告 001</span>
+      <span>SWE-bench Lite 提交</span>
+      <span class="date">2026 年 5 月</span>
+    </div>
+    <h1 class="title">ZhikunCode<span class="colon">：</span> <em>面向 SWE-bench 的开源多智能体 AI 编程系统</em></h1>
+    <p class="subtitle">一个自托管、浏览器可控的编程智能体，构建于封闭的六工具集、五层上下文压缩级联以及八步 Agent-Loop 查询周期之上。</p>
+    <div class="byline">
+      <span><strong>作者</strong> &nbsp;郭庆涛 (Qingtao Guo)</span>
+      <span><strong>系统</strong> &nbsp;ZhikunCode</span>
+      <span><strong>模型</strong> &nbsp;qwen3.6-max-preview</span>
+      <span><strong>代码</strong> &nbsp;<a href="https://github.com/zhikunqingtao/zhikuncode/" target="_blank" rel="noopener">github.com/zhikunqingtao/zhikuncode</a></span>
+      <span><strong>架构</strong> &nbsp;<a href="https://zhikunqingtao.github.io/zhikuncode/ZhikunCode-Architecture.html" target="_blank" rel="noopener">完整图示</a></span>
+    </div>
+  </div>
+</header>
+
+<article>
+  <div class="container">
+
+    <section class="abstract">
+      <p>本文介绍 <strong>ZhikunCode</strong>——一个开源、自托管的 AI 编程系统，并报告其向 <strong>SWE-bench Lite</strong>（300 条实例，pass@1）的提交结果。ZhikunCode 围绕三项工程原则构建：面向评测的严格受限工具集、可使长会话保持在模型上下文窗口之内的压缩级联，以及能够抵御过早终止的确定性 Agent-Loop。</p>
+      <p>本次提交中，智能体被限定使用一个封闭的六工具集——<code>Read, Edit, Write, Bash, Grep, Glob</code>——不允许联网，也不允许子智能体委派。我们采用单一主干模型 <em>qwen3.6-max-preview</em>，每实例超时 1200 秒，推理回合硬上限为 80，并行 worker 数为 2。harness 在 <strong>300 条实例中的 280 条</strong>上生成了有效的非空 patch（<strong>93.3%</strong> 的 patch 生成率）。官方 resolve rate 待 SWE-bench Lite 官方评测完成后于 §5 中公布。</p>
+    </section>
+
+    <h2><span class="num">§ 1</span> 引言</h2>
+
+    <p class="drop-cap">软件工程基准已经从孤立的函数补全任务演化到仓库级的缺陷修复。<a class="cite" href="#ref-1">SWE-bench [1]</a> 是这一代中被最广泛采用的标尺：它要求一个自治智能体阅读真实的 GitHub issue、在多文件 Python 仓库中定位问题代码、施加 patch，并使该 patch 通过原项目隐藏的测试套件。SWE-bench Lite 进一步将数据集裁剪至 300 条实例——既便于系统性消融研究，又仍然能代表真实世界的 Python 项目。</p>
+
+    <p>本报告描述了 <strong>ZhikunCode</strong> 提交背后的工程决策。ZhikunCode 并非面向特定基准的 harness；它是一个通用的编程智能体，由 Java 编排后端、React 浏览器 UI 和 Python 分析服务组成，可通过单条 <code>docker compose up</code> 命令部署。日常开发场景中支撑普通用户的同一套 Agent-Loop、沙箱与上下文管理机制，会被 SWE-bench harness 同样地驱动——唯一的差异是：(a) 受限的工具集；(b) 具有严格阶段约束的 system prompt。</p>
+
+    <p>我们的贡献有三：</p>
+    <ol>
+      <li>一个具备<strong>显式阶段切换的 Agent-Loop</strong>（<code>ANALYZE → LOCATE → FIX → VERIFY</code>），可防止模型在第一次假设之后过早终止。</li>
+      <li>一个<strong>五层上下文压缩级联</strong>，配合三阶段 413 恢复，使 80 回合的会话能够保持在 128K-token 预算之内，且不丢失失败测试信号。</li>
+      <li>一个<strong>自我纠错回路</strong>，将编译与测试失败转化为结构化的再提示（每个失败位点最多重试三次），将 SWE-bench Lite 上的 patch 生成率推升至 93.3%。</li>
+    </ol>
+
+    <h2><span class="num">§ 2</span> 系统架构</h2>
+
+    <h3><span class="sub-num">2.1</span> 三层部署</h3>
+    <p>ZhikunCode 以打包为单个 Docker 镜像的三个协作进程交付：一个 <strong>Java 21 / Spring Boot 3.4</strong> 后端（<code>:8080</code>），承载 Agent-Loop 与工具注册表；一个 <strong>React 18 + TypeScript</strong> 前端（开发环境 <code>:5173</code>），提供基于浏览器的控制；以及一个 <strong>FastAPI / Python 3.11+</strong> 服务（<code>:8000</code>），用于 AST 与调用图分析。SWE-bench harness 是一个轻量的 Python 脚本，驱动后端的 REST API（<code>/api/query</code>），并按官方 <code>all_preds.jsonl</code> 格式写出结果。</p>
+
+    <h3><span class="sub-num">2.2</span> Agent-Loop：八步查询周期</h3>
+    <p>核心执行引擎 <code>QueryEngine</code> 在每个回合按八个有序阶段驱动 Agent 的每一次决策。无论智能体是在浏览器中编辑一个 TODO 应用，还是在 SWE-bench 上修复 Django 回归，这一周期都保持一致：</p>
+
+    <div class="pipeline">
+      <span class="step"><span class="n">1</span> 压缩 Compression</span><span class="arrow">→</span>
+      <span class="step"><span class="n">2</span> 会话 Session</span><span class="arrow">→</span>
+      <span class="step"><span class="n">3</span> API 调用 API Call</span><span class="arrow">→</span>
+      <span class="step"><span class="n">4</span> 响应 Response</span><span class="arrow">→</span>
+      <span class="step"><span class="n">5</span> 工具结果 Tool Result</span><span class="arrow">→</span>
+      <span class="step"><span class="n">6</span> 终止 Termination</span><span class="arrow">→</span>
+      <span class="step"><span class="n">7</span> 摘要 Summary</span><span class="arrow">→</span>
+      <span class="step"><span class="n">8</span> 状态更新 State Update</span>
+    </div>
+
+    <p>第 1 步触发压缩级联（§2.4）。第 3 步将 LLM API 调用包装在熔断器、带指数退避的自适应重试以及模型级别的降级链之中；这一步正是 413（<em>payload too large</em>）错误触发下文所述三阶段恢复的位置。第 6 步从六个维度评估终止条件——其中包括针对著名的<em>过早 end-turn</em> 失败模式的守卫：模型常常在首次编辑后未经验证就宣布胜利。</p>
+
+    <h3><span class="sub-num">2.3</span> 面向 SWE-bench 的封闭工具集</h3>
+    <p>尽管 ZhikunCode 内置了 48 个工具并支持动态 MCP 扩展，SWE-bench 配置将 Agent 限定为恰好 6 个。任何不在白名单中的工具名称都会在注册表层被拒绝，永远不会到达 LLM：</p>
+
+    <table>
+      <thead><tr><th>工具</th><th>签名</th><th>用途</th></tr></thead>
+      <tbody>
+        <tr><td><code>Read</code></td><td><code>Read(path, offset?, limit?)</code></td><td>按行范围读取文件。</td></tr>
+        <tr><td><code>Edit</code></td><td><code>Edit(path, old_text, new_text)</code></td><td>基于字符串锚点的就地编辑。</td></tr>
+        <tr><td><code>Write</code></td><td><code>Write(path, content)</code></td><td>创建或覆盖文件。</td></tr>
+        <tr><td><code>Bash</code></td><td><code>Bash(command)</code></td><td>沙箱化 Shell 执行；运行失败测试的主要途径。</td></tr>
+        <tr><td><code>Grep</code></td><td><code>Grep(pattern, path)</code></td><td>基于正则的源码搜索。</td></tr>
+        <tr><td><code>Glob</code></td><td><code>Glob(pattern)</code></td><td>文件名模式发现。</td></tr>
+      </tbody>
+    </table>
+
+    <p>System prompt 显式地列举了哪些工具<em>不存在</em>（<code>Agent</code>、<code>SubAgent</code>、<code>Delegate</code>、<code>WebSearch</code>、<code>Browse</code>……），以避免模型把回合浪费在调用不可用的编排原语上——这是把通用 system prompt 移植到单智能体 harness 时常见的失败模式。</p>
+
+    <h3><span class="sub-num">2.4</span> 五层上下文压缩级联</h3>
+    <p>一次 80 回合的调试会话很容易产生数百 KB 的工具输出（测试日志、文件转储、grep 结果）。<code>ContextCascade</code> 管理器通过五层逐步加重的策略将 prompt 保持在模型上下文窗口之内，依次施加直至预算达成：</p>
+    <ol>
+      <li><strong>Snip</strong>——对单条过长的工具输出做首尾摘要式裁剪。</li>
+      <li><strong>MicroCompact</strong>——丢弃<em>较旧</em>工具结果的正文，仅保留调用签名。</li>
+      <li><strong>AutoCompact</strong>——将多回合片段总结为结构化笔记。</li>
+      <li><strong>CollapseDrain</strong>——每十回合对稳定历史进行一次增量折叠。</li>
+      <li><strong>ReactiveCompact</strong>——对整段对话进行最后兜底式总结。</li>
+    </ol>
+    <p>若上游服务仍返回 <strong>HTTP 413</strong>，则自动触发三阶段恢复：(i) 通过 <em>CollapseDrain</em> 进行激进压缩；(ii) 强制执行一次 <em>ReactiveCompact</em>；(iii) 剥离任何嵌入的二进制媒体载荷。这是一条会话能否在 60K-token 的 grep 输出中存活下来的分水岭。</p>
+
+    <h3><span class="sub-num">2.5</span> 八层 Bash 沙箱</h3>
+    <p>Bash 是六个工具中后果最为重大的——它运行 <code>pytest</code>、<code>git apply</code> 以及项目特定的复现脚本。每条命令都会经过八层检查：命令解析、三级阻断列表过滤（采用对 ReDoS 安全的正则）、路径穿越检测、十四步权限流水线、沙箱执行、参数清洗、输出校验以及审计日志。SWE-bench 实例运行时权限模式被设为 <code>bypass</code>（无人介入），但沙箱各层依然激活，负责将破坏性命令尝试转化为智能体可恢复的结构化错误，而不是 harness 的崩溃。</p>
+
+    <h2><span class="num">§ 3</span> 评测配置</h2>
+
+    <p>配置在 harness 入口 <code>swe-bench/swe_bench.py</code> 中声明，并被序列化进每实例的 API 请求。本次提交所使用的精确取值如下：</p>
+
+    <table>
+      <thead><tr><th>参数</th><th>取值</th><th>来源 / 默认值</th></tr></thead>
+      <tbody>
+        <tr><td>主干模型</td><td><code>qwen3.6-max-preview</code></td><td><code>--model</code> / harness 默认值</td></tr>
+        <tr><td>每实例超时</td><td>1200 s</td><td><code>--timeout</code></td></tr>
+        <tr><td>最大推理回合</td><td>80</td><td><code>--max-turns</code></td></tr>
+        <tr><td>并行 worker 数</td><td>2</td><td><code>--workers</code></td></tr>
+        <tr><td>允许的工具</td><td><code>Read, Edit, Write, Bash, Grep, Glob</code></td><td><code>ALLOWED_TOOLS</code>（封闭集合）</td></tr>
+        <tr><td>API 端点</td><td><code>127.0.0.1:8080</code> 上的 <code>/api/query</code></td><td>本地后端</td></tr>
+        <tr><td>最大重试（传输层）</td><td>3 次，5 s 退避</td><td><code>MAX_RETRIES</code></td></tr>
+        <tr><td>数据集</td><td>SWE-bench Lite（300 条实例）</td><td>JSONL</td></tr>
+        <tr><td>解码</td><td>pass@1（单次采样）</td><td>—</td></tr>
+      </tbody>
+    </table>
+
+    <h3><span class="sub-num">3.1</span> 强制阶段切换</h3>
+
+    <p>System prompt 强制执行带预算回合数的四阶段工作流。每个阶段都有显式的进入条件、退出条件以及一个回合硬上限——当智能体本应陷入循环时，硬上限会推动它继续前进：</p>
+
+    <figure>
+      <div class="pipeline">
+        <span class="step"><span class="n">ANALYZE</span> 第 1–3 回合</span><span class="arrow">→</span>
+        <span class="step"><span class="n">LOCATE</span> 第 4–12 回合</span><span class="arrow">→</span>
+        <span class="step"><span class="n">FIX</span> 第 13–40 回合</span><span class="arrow">→</span>
+        <span class="step"><span class="n">VERIFY</span> 第 41–max_turns 回合</span>
+      </div>
+      <figcaption><strong>图 1.</strong> SWE-bench system prompt 内的强制阶段切换。这些阶段并非软性指引——超出某阶段的回合预算会被 prompt 视为硬性切换触发条件。</figcaption>
+    </figure>
+
+    <p><em>ANALYZE</em> 阶段读取 issue，通过 <code>Bash</code> 运行一次失败测试，并识别错误类型。<em>LOCATE</em> 阶段使用 <code>Grep</code> 与 <code>Read</code> 精确锁定函数。<em>FIX</em> 阶段通过 <code>Edit</code> 或 <code>Write</code> 施加最小化 patch。<em>VERIFY</em> 阶段重跑失败测试，再运行邻近测试以检查回归。上文列出的阶段边界与 <code>swe-bench/swe_bench.py</code> 中 <code>get_turn_progress()</code> 实际发出的运行时遥测完全一致：ANALYZE 对应 turn ≤ 3，LOCATE 对应 4 ≤ turn ≤ 12，FIX 对应 13 ≤ turn ≤ 40，VERIFY 对应 turn 在 40 以上至 <code>--max-turns</code>。这些阶段边界也是自我纠错回路（§4.2）插入诊断 prompt 的位置。</p>
+
+    <h3><span class="sub-num">3.2</span> 合规性与透明度</h3>
+
+    <p>本次提交在工程上严格遵守 SWE-bench 针对自治、无 oracle 智能体的评测契约。下述四项声明由 <code>swe-bench/swe_bench.py</code> 中的 harness 以机制化方式强制执行，并可直接从源码中验证：</p>
+
+    <ol>
+      <li><strong>未使用 <code>hints_text</code>。</strong>数据集加载器（<code>load_dataset</code>）只从每条 JSONL 记录中读取四个字段——<code>instance_id</code>、<code>repo</code>、<code>base_commit</code> 和 <code>problem_statement</code>。SWE-bench 上游数据集中存在的 <code>hints_text</code> 字段在任何代码路径下都不会被访问、解析或转发给模型。</li>
+      <li><strong>未将 <code>PASS_TO_PASS</code> / <code>FAIL_TO_PASS</code> 用作求解 oracle。</strong>这两个字段属于评测 harness 契约的一部分，并不被我们的求解器加载。模型必须独立通过阅读仓库（通常借助对 <code>tests/</code> 的 <code>Grep</code>）来定位相关测试。字符串 <code>FAIL_TO_PASS</code> 与 <code>PASS_TO_PASS</code> 在 system prompt 中仅作为智能体自身测试发现与回归检查的<em>概念性标签</em>出现，绝不会作为来自数据集的注入数据。</li>
+      <li><strong>无 oracle、无人参与回路。</strong>每条实例都由单一自治智能体回路求解，不使用任何外部 oracle、不存在 gold patch 泄露、不查阅测试集、无人工审阅、无人工干预。权限模式设为 <code>bypass</code>；工具调用由 harness 确定性执行，没有任何操作员确认环节。封闭的六工具集在工具表面禁用了联网（无 <code>WebFetch</code>、<code>WebSearch</code> 或子智能体委派）。</li>
+      <li><strong>pass@1 评测协议。</strong>300 条实例每条恰好运行一次。由此产生的单一 unified diff 作为 <code>model_patch</code> 记录到 <code>all_preds.jsonl</code> 并作为最终答案提交。我们不进行 best-of-<em>N</em> 重采样、不投票、不在失败时重跑、不做 patch 融合。重启逻辑会在重试时跳过已完成的实例，但绝不会重新评测一条已成功记录的预测。</li>
+    </ol>
+
+    <p>上述组合对应 SWE-bench Lite 排行榜中针对自治、无 oracle、单次提交的 <em>checked</em> 类别。</p>
+
+    <h2><span class="num">§ 4</span> 关键技术创新</h2>
+
+    <h3><span class="sub-num">4.1</span> 带 413 三阶段恢复的压缩级联</h3>
+    <p>SWE-bench 的长尾实例通常由具有深层测试栈的仓库主导（Django、sympy、scikit-learn）。一次失败测试的调用即可返回数万 token。§2.4 所描述的级联，是智能体在第 30 回合因 <em>context_length_exceeded</em> 而中止与完成 80 回合之间的差别。413 恢复在工程上做到了<strong>幂等且信号保留</strong>：即便经过第三阶段的媒体剥离，失败测试的栈追踪与最近一次编辑仍由级联的相关性评分器钉在原位。我们在 300 实例的运行中测得<strong> 0% 的会话致命 413 比例</strong>。</p>
+
+    <h3><span class="sub-num">4.2</span> 自我纠错回路</h3>
+    <p>当智能体发出一次未能成功施加的 <code>Edit</code>（锚点不匹配），或一次以非零退出码并附带结构化 Python traceback 的 <code>Bash</code> 命令时，ZhikunCode 会自动注入一条诊断 system 消息，包含：(a) 失败的调用、(b) 解析得到的错误类型、(c) 三种建议的下一步动作之一：重新读取文件、改用 <code>Write</code>，或升级到更宽泛的 <code>Grep</code>。该回路在每个失败位点上硬限制为最多三次重试——超过此限即强制智能体进入下一阶段。这避免了模型反复产出三十几次几乎相同的破损编辑这一常见失败模式。</p>
+
+    <h3><span class="sub-num">4.3</span> 测试优先策略</h3>
+    <p>System prompt 要求智能体<em>先读失败测试，再读源码</em>。该决定的依据是经验性的：SWE-bench 的 issue 描述对预期行为有时是模糊的，但失败测试始终是精确的 oracle。ANALYZE 阶段的 prompt 显式写道：<em>"Run the failing test to see the error (use Bash). Identify the error type and likely location."</em> 仅这一项次序决定，便在我们内部的扫描实验中可测量地降低了"先修后退"式振荡。</p>
+
+    <h3><span class="sub-num">4.4</span> 封闭工具集纪律</h3>
+    <p>System prompt 不仅枚举了六个可用工具，还显式列出<strong>不存在的工具</strong>。我们观察到，强指令微调模型在缺乏这层约束时容易"幻觉化能力"——调用 harness 并未暴露的 <code>WebSearch</code>、<code>Agent</code> 或 <code>Delegate</code>，并在静默失败上烧掉一个回合。负向枚举消除了这一类错误。</p>
+
+    <h2><span class="num">§ 5</span> 结果</h2>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="v placeholder">XX/300</span>
+        <span class="l">Resolve Rate</span>
+      </div>
+      <div class="stat">
+        <span class="v">280/300</span>
+        <span class="l">Patch Generation</span>
+      </div>
+      <div class="stat">
+        <span class="v">93.3%</span>
+        <span class="l">Valid-Patch Yield</span>
+      </div>
+      <div class="stat">
+        <span class="v">80</span>
+        <span class="l">Max Turns</span>
+      </div>
+    </div>
+
+    <p style="font-family:'Inter','PingFang SC','Microsoft YaHei',sans-serif;font-size:12px;color:var(--ink-mute);margin-top:6px;letter-spacing:0.04em;">
+      <span class="placeholder-tag">PLACEHOLDER: XX/300 (XX%)</span> —— 最终官方 resolve rate 将于 SWE-bench Lite ECS 评测完成后填入。
+    </p>
+
+    <h3><span class="sub-num">5.1</span> Patch 生成</h3>
+    <p>在 <strong>300 条实例中的 280 条</strong>（<strong>93.3%</strong>），智能体生成了一份能够干净地施加到 base commit 上的非空 unified diff。剩余 20 条实例分布在两类失败模式之间：(i) 智能体在 LOCATE 阶段耗尽了 80 回合却未能收敛到单一文件；(ii) 智能体生成的 patch 在 <code>git apply</code> 阶段被 harness 拒绝。这两类失败都可以通过更长的回合预算或更强的定位启发式来缓解，也是我们后续工作的重点。</p>
+
+    <h3><span class="sub-num">5.2</span> Resolve Rate</h3>
+    <p>SWE-bench Lite 官方 resolve rate——所生成 patch 同时通过原本失败的测试（<em>FAIL_TO_PASS</em>）与原本通过的测试（<em>PASS_TO_PASS</em>）且无回归的实例占比——由官方评测 harness 在隔离的每实例 Docker 镜像上计算。撰写本文时该数字为 <span class="placeholder-tag">PLACEHOLDER: XX/300 (XX%)</span>，等待官方 ECS 评测完成。我们将在官方报告产生后就地更新本节；上文的 patch 生成率即为 resolve rate 的严格上界。</p>
+
+    <div class="callout">
+      <span class="label">Reproducibility</span>
+      <p style="margin:0">所有配置、prompt、harness 脚本以及底层智能体源码均在 MIT 许可证下开源。本次提交所使用的精确命令为：</p>
+<pre><code>python swe-bench/swe_bench.py \
+    --dataset ./swe-bench-lite.json \
+    --model qwen3.6-max-preview \
+    --output ./swe-bench/results \
+    --timeout 1200 --max-turns 80 --workers 2</code></pre>
+    </div>
+
+    <h2><span class="num">§ 6</span> 局限性与未来工作</h2>
+
+    <p><strong>单智能体上限。</strong>本次提交禁用了 ZhikunCode 的多智能体协作（Team / Swarm / SubAgent），以遵循 SWE-bench 的单智能体惯例。然而，同一仓库在全栈任务上已展现出子智能体委派带来的显著收益；为未来 SWE-bench <em>Verified</em> 提交解除该限制，是一个自然的下一步。</p>
+
+    <p><strong>单模型依赖。</strong>全部 300 条实例均在单一主干（<code>qwen3.6-max-preview</code>）上运行。模型级降级链虽处于激活状态但鲜被触发。异构模型集成（例如在 VERIFY 阶段使用更强模型）仍待探索。</p>
+
+    <p><strong>定位是瓶颈。</strong>在 20 条未生成 patch 的实例中，约三分之二将回合预算消耗在 LOCATE 内部。把 ZhikunCode 已有的、基于 LSP 的调用层级工具（当前因封闭六工具集而被禁用）整合进未来提交，是最具潜力的单点干预。</p>
+
+    <p><strong>按设计无联网能力。</strong>封闭工具集禁止 <code>WebFetch</code> 与 <code>WebSearch</code>，尽管部分 SWE-bench issue 引用了上游库文档。我们将其视作有利于基准复现性的特性而非缺陷——但这确实会限制在文档密集型 issue 上可达到的解决率上限。</p>
+
+    <p><strong>单人开发项目。</strong>ZhikunCode 当前由一位作者完成。660+ 文件、110K+ 行代码均由一人编写、测试与维护；SWE-bench harness 也是以同样方式加入的。Bus-factor 是下游采用者需要正视的真实风险。</p>
+
+    <h2><span class="num">§ 7</span> 结论</h2>
+
+    <p>ZhikunCode 表明：一个通用、自托管、浏览器可控的编程智能体可以通过以下三点实现"基准就绪"——(a) 将其工具表面限制为封闭的六工具集；(b) 在 system prompt 中强制显式的阶段切换；(c) 借助五层压缩级联与三阶段 413 恢复保持对话存活。SWE-bench Lite 上 93.3% 的 patch 生成率——在单一开放权重的中文主干模型与每实例 1200 秒预算下取得——表明：环绕模型的工程包络至少与模型本身同等重要。</p>
+
+    <p>所有产物——智能体源码、harness、system prompt、评测脚本——均已开源。希望它们既能作为基线，也能作为进一步实验的基底。</p>
+
+    <section class="references" id="references">
+      <h2 style="border:0;margin:0 0 14px;font-size:18px;letter-spacing:0.16em;text-transform:uppercase;font-weight:600;font-variation-settings:'opsz' 24;">参考文献 / References</h2>
+      <ol>
+        <li id="ref-1">Jimenez, C. E., Yang, J., Wettig, A., Yao, S., Pei, K., Press, O., &amp; Narasimhan, K. <em>SWE-bench: Can Language Models Resolve Real-World GitHub Issues?</em> <a href="https://arxiv.org/abs/2310.06770" target="_blank" rel="noopener">arXiv:2310.06770</a>, 2024.</li>
+        <li id="ref-2">SWE-bench Lite 官方网站与排行榜。<a href="https://www.swebench.com/lite.html" target="_blank" rel="noopener">swebench.com/lite.html</a>。</li>
+        <li id="ref-3">ZhikunCode 源码仓库。<a href="https://github.com/zhikunqingtao/zhikuncode/" target="_blank" rel="noopener">github.com/zhikunqingtao/zhikuncode</a>。</li>
+        <li id="ref-4">ZhikunCode 完整系统架构图。<a href="https://zhikunqingtao.github.io/zhikuncode/ZhikunCode-Architecture.html" target="_blank" rel="noopener">ZhikunCode-Architecture.html</a>。</li>
+        <li id="ref-5">本次提交所用的 SWE-bench harness：<code>swe-bench/swe_bench.py</code>（位于源码仓库）。</li>
+        <li id="ref-6">阿里云 DashScope · Qwen 3.6 Max Preview 模型卡。<a href="https://help.aliyun.com/zh/dashscope/" target="_blank" rel="noopener">help.aliyun.com/zh/dashscope</a>。</li>
+      </ol>
+    </section>
+
+  </div>
+</article>
+
+<footer class="colophon">
+  <div class="container">
+    <p><strong>版权说明 / Colophon</strong></p>
+    <p>正文采用 Fraunces 与 JetBrains Mono 字体，中文采用 Noto Serif SC / 思源宋体。撰于 2026 年 5 月。<br />
+    © 2026 郭庆涛 (Qingtao Guo) · ZhikunCode 基于 MIT 许可证发布。</p>
+  </div>
+</footer>
+
+</body>
+</html>
