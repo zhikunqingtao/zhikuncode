@@ -234,30 +234,23 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         ObjectNode streamOptions = root.putObject("stream_options");
         streamOptions.put("include_usage", true);
 
-        // DeepSeek 思考模式参数
-        // DeepSeek V4 系列默认启用思考模式，必须始终发送 thinking 参数以保持一致性
-        if (isDeepSeekModel(model)) {
+        // DeepSeek V4 思考模式参数
+        // DeepSeek V4 系列（deepseek-v4-pro / deepseek-v4-flash）默认启用思考模式，
+        // 必须始终发送 thinking 参数以保持一致性
+        // 项目策略：V4 系列一律使用 max 推理强度（不在乎成本与耗时，追求最强推理）。
+        // 老 deepseek-chat / deepseek-reasoner 不在此分支，避免安全推送未验证的 max 档位。
+        if (isDeepSeekV4Model(model)) {
             ObjectNode thinking = root.putObject("thinking");
             thinking.put("type", "enabled");
-            // 根据 ThinkingConfig 选择 reasoning_effort
-            if (thinkingConfig != null && thinkingConfig.requiresThinkingSupport()) {
-                int budget = switch (thinkingConfig) {
-                    case ThinkingConfig.Adaptive a -> a.computedBudget() != null ? a.computedBudget() : ThinkingConfig.DEFAULT_BUDGET_TOKENS;
-                    case ThinkingConfig.Enabled e -> e.budgetTokens() != null ? e.budgetTokens() : ThinkingConfig.DEFAULT_BUDGET_TOKENS;
-                    default -> ThinkingConfig.DEFAULT_BUDGET_TOKENS;
-                };
-                root.put("reasoning_effort", budget >= 30000 ? "max" : "high");
-            } else {
-                root.put("reasoning_effort", "high");
-            }
+            root.put("reasoning_effort", "max");
         }
 
         return root;
     }
 
-    /** 判断是否为 DeepSeek 系列模型 */
-    private static boolean isDeepSeekModel(String model) {
-        return model != null && model.startsWith("deepseek-");
+    /** 判断是否为 DeepSeek V4 系列模型（仅 v4-pro / v4-flash 需要 thinking + max） */
+    private static boolean isDeepSeekV4Model(String model) {
+        return model != null && model.startsWith("deepseek-v4-");
     }
 
     /**
