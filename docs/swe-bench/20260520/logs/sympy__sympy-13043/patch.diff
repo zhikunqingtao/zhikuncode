@@ -1,0 +1,30 @@
+diff --git a/sympy/integrals/intpoly.py b/sympy/integrals/intpoly.py
+index fc72bd2..110f175 100644
+--- a/sympy/integrals/intpoly.py
++++ b/sympy/integrals/intpoly.py
+@@ -556,7 +556,7 @@ def decompose(expr, separate=False):
+     >>> decompose(x**2 + x*y + x + y + x**3*y**2 + y**5)
+     {1: x + y, 2: x**2 + x*y, 5: x**3*y**2 + y**5}
+     >>> decompose(x**2 + x*y + x + y + x**3*y**2 + y**5, True)
+-    [x, y, x**2, y**5, x*y, x**3*y**2]
++    [x, y, x**2, x*y, x**3*y**2, y**5]
+     """
+     expr = S(expr)
+     poly_dict = {}
+@@ -569,6 +569,7 @@ def decompose(expr, separate=False):
+             degrees = [(sum(degree_list(monom, *symbols)), monom)
+                        for monom in expr.args]
+             if separate:
++                degrees.sort(key=lambda d: (d[0], str(d[1])))
+                 return [monom[1] for monom in degrees]
+             else:
+                 for monom in degrees:
+@@ -593,7 +594,7 @@ def decompose(expr, separate=False):
+         poly_dict[0] = expr
+ 
+     if separate:
+-        return list(poly_dict.values())
++        return [poly_dict[k] for k in sorted(poly_dict.keys())]
+     return poly_dict
+ 
+ 

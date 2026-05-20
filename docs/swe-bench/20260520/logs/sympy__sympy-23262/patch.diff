@@ -1,0 +1,20 @@
+diff --git a/sympy/utilities/lambdify.py b/sympy/utilities/lambdify.py
+index da67263..b0d501e 100644
+--- a/sympy/utilities/lambdify.py
++++ b/sympy/utilities/lambdify.py
+@@ -957,11 +957,14 @@ def _recursive_to_string(doprint, arg):
+     elif iterable(arg):
+         if isinstance(arg, list):
+             left, right = "[]"
++            trailing_comma = ""
+         elif isinstance(arg, tuple):
+             left, right = "()"
++            # Single-element tuples need a trailing comma to be valid Python
++            trailing_comma = "," if len(arg) == 1 else ""
+         else:
+             raise NotImplementedError("unhandled type: %s, %s" % (type(arg), arg))
+-        return left +', '.join(_recursive_to_string(doprint, e) for e in arg) + right
++        return left +', '.join(_recursive_to_string(doprint, e) for e in arg) + trailing_comma + right
+     elif isinstance(arg, str):
+         return arg
+     else:

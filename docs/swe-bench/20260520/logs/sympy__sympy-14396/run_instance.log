@@ -1,0 +1,95 @@
+2026-05-20 01:19:26,423 - INFO - Environment image sweb.env.py.x86_64.c795f4b88616b8462021ed:latest found for sympy__sympy-14396
+Building instance image sweb.eval.x86_64.sympy__sympy-14396:latest for sympy__sympy-14396
+2026-05-20 01:20:49,818 - INFO - Creating container for sympy__sympy-14396...
+2026-05-20 01:20:49,838 - INFO - Container for sympy__sympy-14396 created: 876eb7a56f13b8d1ad25c0c610e4e2887e7fe6c5590b7a40e1029c4cd010a615
+2026-05-20 01:20:49,931 - INFO - Container for sympy__sympy-14396 started: 876eb7a56f13b8d1ad25c0c610e4e2887e7fe6c5590b7a40e1029c4cd010a615
+2026-05-20 01:20:49,931 - INFO - Intermediate patch for sympy__sympy-14396 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-14396/patch.diff, now applying to container...
+2026-05-20 01:20:49,975 - INFO - >>>>> Applied Patch:
+Checking patch sympy/polys/polyoptions.py...
+Applied patch sympy/polys/polyoptions.py cleanly.
+
+2026-05-20 01:20:50,177 - INFO - Git diff before:
+diff --git a/sympy/polys/polyoptions.py b/sympy/polys/polyoptions.py
+index 6e504a305..8e03ef404 100644
+--- a/sympy/polys/polyoptions.py
++++ b/sympy/polys/polyoptions.py
+@@ -405,8 +405,8 @@ class Domain(with_metaclass(OptionType, Option)):
+     _re_realfield = re.compile(r"^(R|RR)(_(\d+))?$")
+     _re_complexfield = re.compile(r"^(C|CC)(_(\d+))?$")
+     _re_finitefield = re.compile(r"^(FF|GF)\((\d+)\)$")
+-    _re_polynomial = re.compile(r"^(Z|ZZ|Q|QQ)\[(.+)\]$")
+-    _re_fraction = re.compile(r"^(Z|ZZ|Q|QQ)\((.+)\)$")
++    _re_polynomial = re.compile(r"^(Z|ZZ|Q|QQ|R|RR|C|CC)\[(.+)\]$")
++    _re_fraction = re.compile(r"^(Z|ZZ|Q|QQ|R|RR|C|CC)\((.+)\)$")
+     _re_algebraic = re.compile(r"^(Q|QQ)\<(.+)\>$")
+ 
+     @classmethod
+@@ -459,6 +459,10 @@ def preprocess(cls, domain):
+ 
+                 if ground in ['Z', 'ZZ']:
+                     return sympy.polys.domains.ZZ.poly_ring(*gens)
++                elif ground in ['R', 'RR']:
++                    return sympy.polys.domains.RR.poly_ring(*gens)
++                elif ground in ['C', 'CC']:
++                    return sympy.polys.domains.CC.poly_ring(*gens)
+                 else:
+                     return sympy.polys.domains.QQ.poly_ring(*gens)
+ 
+@@ -471,6 +475,10 @@ def preprocess(cls, domain):
+ 
+                 if ground in ['Z', 'ZZ']:
+                     return sympy.polys.domains.ZZ.frac_field(*gens)
++                elif ground in ['R', 'RR']:
++                    return sympy.polys.domains.RR.frac_field(*gens)
++                elif ground in ['C', 'CC']:
++                    return sympy.polys.domains.CC.frac_field(*gens)
+                 else:
+                     return sympy.polys.domains.QQ.frac_field(*gens)
+2026-05-20 01:20:50,177 - INFO - Eval script for sympy__sympy-14396 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-14396/eval.sh; copying to container...
+2026-05-20 01:20:52,880 - INFO - Test runtime: 2.68 seconds
+2026-05-20 01:20:52,880 - INFO - Test output for sympy__sympy-14396 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-14396/test_output.txt
+2026-05-20 01:20:52,906 - INFO - Git diff after:
+diff --git a/sympy/polys/polyoptions.py b/sympy/polys/polyoptions.py
+index 6e504a305..8e03ef404 100644
+--- a/sympy/polys/polyoptions.py
++++ b/sympy/polys/polyoptions.py
+@@ -405,8 +405,8 @@ class Domain(with_metaclass(OptionType, Option)):
+     _re_realfield = re.compile(r"^(R|RR)(_(\d+))?$")
+     _re_complexfield = re.compile(r"^(C|CC)(_(\d+))?$")
+     _re_finitefield = re.compile(r"^(FF|GF)\((\d+)\)$")
+-    _re_polynomial = re.compile(r"^(Z|ZZ|Q|QQ)\[(.+)\]$")
+-    _re_fraction = re.compile(r"^(Z|ZZ|Q|QQ)\((.+)\)$")
++    _re_polynomial = re.compile(r"^(Z|ZZ|Q|QQ|R|RR|C|CC)\[(.+)\]$")
++    _re_fraction = re.compile(r"^(Z|ZZ|Q|QQ|R|RR|C|CC)\((.+)\)$")
+     _re_algebraic = re.compile(r"^(Q|QQ)\<(.+)\>$")
+ 
+     @classmethod
+@@ -459,6 +459,10 @@ def preprocess(cls, domain):
+ 
+                 if ground in ['Z', 'ZZ']:
+                     return sympy.polys.domains.ZZ.poly_ring(*gens)
++                elif ground in ['R', 'RR']:
++                    return sympy.polys.domains.RR.poly_ring(*gens)
++                elif ground in ['C', 'CC']:
++                    return sympy.polys.domains.CC.poly_ring(*gens)
+                 else:
+                     return sympy.polys.domains.QQ.poly_ring(*gens)
+ 
+@@ -471,6 +475,10 @@ def preprocess(cls, domain):
+ 
+                 if ground in ['Z', 'ZZ']:
+                     return sympy.polys.domains.ZZ.frac_field(*gens)
++                elif ground in ['R', 'RR']:
++                    return sympy.polys.domains.RR.frac_field(*gens)
++                elif ground in ['C', 'CC']:
++                    return sympy.polys.domains.CC.frac_field(*gens)
+                 else:
+                     return sympy.polys.domains.QQ.frac_field(*gens)
+2026-05-20 01:20:52,906 - INFO - Grading answer for sympy__sympy-14396...
+2026-05-20 01:20:52,906 - INFO - report: {'sympy__sympy-14396': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_Domain_preprocess'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_Options_clone', 'test_Expand_preprocess', 'test_Expand_postprocess', 'test_Gens_preprocess', 'test_Gens_postprocess', 'test_Wrt_preprocess', 'test_Wrt_postprocess', 'test_Sort_preprocess', 'test_Sort_postprocess', 'test_Order_preprocess', 'test_Order_postprocess', 'test_Field_preprocess', 'test_Field_postprocess', 'test_Greedy_preprocess', 'test_Greedy_postprocess', 'test_Domain_postprocess', 'test_Split_preprocess', 'test_Split_postprocess', 'test_Gaussian_preprocess', 'test_Gaussian_postprocess', 'test_Extension_preprocess', 'test_Extension_postprocess', 'test_Modulus_preprocess', 'test_Modulus_postprocess', 'test_Symmetric_preprocess', 'test_Symmetric_postprocess', 'test_Strict_preprocess', 'test_Strict_postprocess', 'test_Auto_preprocess', 'test_Auto_postprocess', 'test_Frac_preprocess', 'test_Frac_postprocess', 'test_Formal_preprocess', 'test_Formal_postprocess', 'test_Polys_preprocess', 'test_Polys_postprocess', 'test_Include_preprocess', 'test_Include_postprocess', 'test_All_preprocess', 'test_All_postprocess', 'test_Gen_postprocess', 'test_Symbols_preprocess', 'test_Symbols_postprocess', 'test_Method_preprocess'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-14396: resolved: True
+2026-05-20 01:20:52,906 - INFO - Attempting to stop container sweb.eval.sympy__sympy-14396.zhikuncode_eval_300_FINAL...
+2026-05-20 01:21:08,227 - INFO - Attempting to remove container sweb.eval.sympy__sympy-14396.zhikuncode_eval_300_FINAL...
+2026-05-20 01:21:08,239 - INFO - Container sweb.eval.sympy__sympy-14396.zhikuncode_eval_300_FINAL removed.
+2026-05-20 01:21:08,239 - INFO - Attempting to remove image sweb.eval.x86_64.sympy__sympy-14396:latest...
+2026-05-20 01:21:08,290 - INFO - Image sweb.eval.x86_64.sympy__sympy-14396:latest removed.

@@ -1,0 +1,77 @@
+2026-05-19 22:43:27,171 - INFO - Environment image sweb.env.py.x86_64.2baaea72acc974f6c02079:latest found for django__django-10924
+Building instance image sweb.eval.x86_64.django__django-10924:latest for django__django-10924
+2026-05-19 22:53:43,965 - INFO - Creating container for django__django-10924...
+2026-05-19 22:53:43,988 - INFO - Container for django__django-10924 created: f1298d5c54fc45bf735c64f245de2a19493c3e4a699328e3dd421f5589044d40
+2026-05-19 22:53:44,163 - INFO - Container for django__django-10924 started: f1298d5c54fc45bf735c64f245de2a19493c3e4a699328e3dd421f5589044d40
+2026-05-19 22:53:44,163 - INFO - Intermediate patch for django__django-10924 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-10924/patch.diff, now applying to container...
+2026-05-19 22:53:44,260 - INFO - >>>>> Applied Patch:
+Checking patch django/db/models/fields/__init__.py...
+Checking patch django/forms/fields.py...
+Applied patch django/db/models/fields/__init__.py cleanly.
+Applied patch django/forms/fields.py cleanly.
+
+2026-05-19 22:53:44,865 - INFO - Git diff before:
+diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py
+index 0c64748ccd..4d7eb11151 100644
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -1709,7 +1709,7 @@ class FilePathField(Field):
+ 
+     def formfield(self, **kwargs):
+         return super().formfield(**{
+-            'path': self.path,
++            'path': self.path() if callable(self.path) else self.path,
+             'match': self.match,
+             'recursive': self.recursive,
+             'form_class': forms.FilePathField,
+diff --git a/django/forms/fields.py b/django/forms/fields.py
+index a977256525..e48f253f33 100644
+--- a/django/forms/fields.py
++++ b/django/forms/fields.py
+@@ -1078,7 +1078,8 @@ class MultiValueField(Field):
+ class FilePathField(ChoiceField):
+     def __init__(self, path, *, match=None, recursive=False, allow_files=True,
+                  allow_folders=False, **kwargs):
+-        self.path, self.match, self.recursive = path, match, recursive
++        self.path = path() if callable(path) else path
++        self.match, self.recursive = match, recursive
+         self.allow_files, self.allow_folders = allow_files, allow_folders
+         super().__init__(choices=(), **kwargs)
+2026-05-19 22:53:44,865 - INFO - Eval script for django__django-10924 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-10924/eval.sh; copying to container...
+2026-05-19 22:53:49,963 - INFO - Test runtime: 5.05 seconds
+2026-05-19 22:53:49,963 - INFO - Test output for django__django-10924 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-10924/test_output.txt
+2026-05-19 22:53:50,051 - INFO - Git diff after:
+diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py
+index 0c64748ccd..4d7eb11151 100644
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -1709,7 +1709,7 @@ class FilePathField(Field):
+ 
+     def formfield(self, **kwargs):
+         return super().formfield(**{
+-            'path': self.path,
++            'path': self.path() if callable(self.path) else self.path,
+             'match': self.match,
+             'recursive': self.recursive,
+             'form_class': forms.FilePathField,
+diff --git a/django/forms/fields.py b/django/forms/fields.py
+index a977256525..e48f253f33 100644
+--- a/django/forms/fields.py
++++ b/django/forms/fields.py
+@@ -1078,7 +1078,8 @@ class MultiValueField(Field):
+ class FilePathField(ChoiceField):
+     def __init__(self, path, *, match=None, recursive=False, allow_files=True,
+                  allow_folders=False, **kwargs):
+-        self.path, self.match, self.recursive = path, match, recursive
++        self.path = path() if callable(path) else path
++        self.match, self.recursive = match, recursive
+         self.allow_files, self.allow_folders = allow_files, allow_folders
+         super().__init__(choices=(), **kwargs)
+2026-05-19 22:53:50,051 - INFO - Grading answer for django__django-10924...
+2026-05-19 22:53:50,052 - INFO - report: {'django__django-10924': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_callable_path (model_fields.test_filepathfield.FilePathFieldTests)'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_path (model_fields.test_filepathfield.FilePathFieldTests)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-10924: resolved: True
+2026-05-19 22:53:50,052 - INFO - Attempting to stop container sweb.eval.django__django-10924.zhikuncode_eval_300_FINAL...
+2026-05-19 22:54:05,540 - INFO - Attempting to remove container sweb.eval.django__django-10924.zhikuncode_eval_300_FINAL...
+2026-05-19 22:54:05,554 - INFO - Container sweb.eval.django__django-10924.zhikuncode_eval_300_FINAL removed.
+2026-05-19 22:54:05,554 - INFO - Attempting to remove image sweb.eval.x86_64.django__django-10924:latest...
+2026-05-19 22:54:05,684 - INFO - Image sweb.eval.x86_64.django__django-10924:latest removed.

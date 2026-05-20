@@ -1,0 +1,61 @@
+{
+    "sympy__sympy-20212": {
+        "patch_is_None": false,
+        "patch_exists": true,
+        "patch_successfully_applied": true,
+        "resolved": true,
+        "tests_status": {
+            "FAIL_TO_PASS": {
+                "success": [
+                    "test_zero"
+                ],
+                "failure": []
+            },
+            "PASS_TO_PASS": {
+                "success": [
+                    "test_rational",
+                    "test_large_rational",
+                    "test_negative_real",
+                    "test_expand",
+                    "test_issue_3449",
+                    "test_issue_3866",
+                    "test_negative_one",
+                    "test_issue_4362",
+                    "test_Pow_Expr_args",
+                    "test_Pow_signs",
+                    "test_power_with_noncommutative_mul_as_base",
+                    "test_power_rewrite_exp",
+                    "test_pow_as_base_exp",
+                    "test_nseries",
+                    "test_issue_6100_12942_4473",
+                    "test_issue_6208",
+                    "test_issue_6990",
+                    "test_issue_6068",
+                    "test_issue_6782",
+                    "test_issue_6653",
+                    "test_issue_6429",
+                    "test_issue_7638",
+                    "test_issue_8582",
+                    "test_issue_8650",
+                    "test_issue_13914",
+                    "test_better_sqrt",
+                    "test_issue_2993",
+                    "test_issue_17450",
+                    "test_issue_18190",
+                    "test_issue_14815",
+                    "test_issue_18509",
+                    "test_issue_18762"
+                ],
+                "failure": []
+            },
+            "FAIL_TO_FAIL": {
+                "success": [],
+                "failure": []
+            },
+            "PASS_TO_FAIL": {
+                "success": [],
+                "failure": []
+            }
+        }
+    }
+}

@@ -1,0 +1,16 @@
+diff --git a/requests/models.py b/requests/models.py
+index d845637..404b4bf 100644
+--- a/requests/models.py
++++ b/requests/models.py
+@@ -463,7 +463,10 @@ class Request(object):
+     def register_hook(self, event, hook):
+         """Properly register a hook."""
+ 
+-        self.hooks[event].append(hook)
++        if isinstance(hook, list):
++            self.hooks[event].extend(hook)
++        else:
++            self.hooks[event].append(hook)
+ 
+     def deregister_hook(self, event, hook):
+         """Deregister a previously registered hook.

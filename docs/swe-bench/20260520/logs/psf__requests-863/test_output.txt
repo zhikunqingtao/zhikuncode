@@ -1,0 +1,643 @@
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z '' ']'
++++ export CONDA_SHLVL=0
++++ CONDA_SHLVL=0
++++ '[' -n '' ']'
++++++ dirname /opt/miniconda3/bin/conda
+++++ dirname /opt/miniconda3/bin
++++ PATH=/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export PATH
++++ '[' -z '' ']'
++++ PS1=
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1=
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval 'PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=1
++++ CONDA_SHLVL=1
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=2
+++ CONDA_SHLVL=2
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_1=/opt/miniconda3
+++ CONDA_PREFIX_1=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ cd /testbed
++ git config --global --add safe.directory /testbed
++ cd /testbed
++ git status
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   requests/models.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	build/
+
+no changes added to commit (use "git add" and/or "git commit -a")
++ git show
+commit 70ecd0ab4a401d3c37cfbcb7719d32e3eab79a8b
+Author: SWE-bench <setup@swebench.config>
+Date:   Tue May 19 16:30:29 2026 +0000
+
+    SWE-bench
++ git -c core.fileMode=false diff a0df2cbb10419037d11d04352b3175405ab52941
+diff --git a/requests/models.py b/requests/models.py
+index d845637..404b4bf 100644
+--- a/requests/models.py
++++ b/requests/models.py
+@@ -463,7 +463,10 @@ class Request(object):
+     def register_hook(self, event, hook):
+         """Properly register a hook."""
+ 
+-        self.hooks[event].append(hook)
++        if isinstance(hook, list):
++            self.hooks[event].extend(hook)
++        else:
++            self.hooks[event].append(hook)
+ 
+     def deregister_hook(self, event, hook):
+         """Deregister a previously registered hook.
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z x ']'
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1='(testbed) '
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval 'PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=3
++++ CONDA_SHLVL=3
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=4
+++ CONDA_SHLVL=4
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_3=/opt/miniconda3
+++ CONDA_PREFIX_3=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ python -m pip install .
+Looking in indexes: https://mirrors.aliyun.com/pypi/simple/
+Processing ./.
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Building wheels for collected packages: requests
+  Building wheel for requests (pyproject.toml): started
+  Building wheel for requests (pyproject.toml): finished with status 'done'
+  Created wheel for requests: filename=requests-0.14.0-py3-none-any.whl size=364985 sha256=dc9c262ad87090add6543884db88435d80003e2d901829cfc958a1ebfa9fd8a4
+  Stored in directory: /tmp/pip-ephem-wheel-cache-n8jqk307/wheels/7d/66/67/70d1ee2124ccf21d601c352e25cdca10f611f7c8b3f9ffb9e4
+Successfully built requests
+Installing collected packages: requests
+  Attempting uninstall: requests
+    Found existing installation: requests 0.14.0
+    Uninstalling requests-0.14.0:
+      Successfully uninstalled requests-0.14.0
+Successfully installed requests-0.14.0
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
++ git checkout a0df2cbb10419037d11d04352b3175405ab52941 tests/test_requests.py
+Updated 0 paths from a840744
++ git apply -v -
+Checking patch tests/test_requests.py...
+Applied patch tests/test_requests.py cleanly.
++ : '>>>>> Start Test Output'
++ pytest -rA tests/test_requests.py
+============================= test session starts ==============================
+platform linux -- Python 3.9.25, pytest-8.4.2, pluggy-1.5.0
+rootdir: /testbed
+collected 76 items
+
+tests/test_requests.py ..FF............................................. [ 64%]
+.......FF.....F.F..........                                              [100%]
+
+=================================== FAILURES ===================================
+______________ RequestsTestSuite.test_DIGESTAUTH_HTTP_200_OK_GET _______________
+
+self = <test_requests.RequestsTestSuite testMethod=test_DIGESTAUTH_HTTP_200_OK_GET>
+
+    def test_DIGESTAUTH_HTTP_200_OK_GET(self):
+    
+        for service in SERVICES:
+    
+            auth = HTTPDigestAuth('user', 'pass')
+            url = service('digest-auth', 'auth', 'user', 'pass')
+    
+>           r = get(url, auth=auth)
+
+tests/test_requests.py:280: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/api.py:65: in get
+    return request('get', url, **kwargs)
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/safe_mode.py:39: in wrapped
+    return function(method, url, **kwargs)
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/api.py:51: in request
+    return session.request(method=method, url=url, **kwargs)
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/sessions.py:241: in request
+    r.send(prefetch=prefetch)
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/models.py:646: in send
+    self._build_response(r)
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/models.py:230: in _build_response
+    r = build(resp)
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/models.py:207: in build
+    extract_cookies_to_jar(self.cookies, self, resp)
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/cookies.py:103: in extract_cookies_to_jar
+    jar.extract_cookies(res, req)
+/opt/miniconda3/envs/testbed/lib/python3.9/http/cookiejar.py:1683: in extract_cookies
+    if self._policy.set_ok(cookie, request):
+/opt/miniconda3/envs/testbed/lib/python3.9/http/cookiejar.py:956: in set_ok
+    if not fn(cookie, request):
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <http.cookiejar.DefaultCookiePolicy object at 0x7f9a59f75340>
+cookie = Cookie(version=0, name='stale_after', value='never', port=None, port_specified=False, domain='httpbin.org', domain_spe... path_specified=True, secure=False, expires=None, discard=True, comment=None, comment_url=None, rest={}, rfc2109=False)
+request = <requests.cookies.MockRequest object at 0x7f9a59f75310>
+
+    def set_ok_verifiability(self, cookie, request):
+>       if request.unverifiable and is_third_party(request):
+E       AttributeError: 'MockRequest' object has no attribute 'unverifiable'
+
+/opt/miniconda3/envs/testbed/lib/python3.9/http/cookiejar.py:977: AttributeError
+_____________ RequestsTestSuite.test_DIGESTAUTH_WRONG_HTTP_401_GET _____________
+
+self = <test_requests.RequestsTestSuite testMethod=test_DIGESTAUTH_WRONG_HTTP_401_GET>
+
+    def test_DIGESTAUTH_WRONG_HTTP_401_GET(self):
+    
+        for service in SERVICES:
+    
+            auth = HTTPDigestAuth('user', 'wrongpass')
+            url = service('digest-auth', 'auth', 'user', 'pass')
+    
+>           r = get(url, auth=auth)
+
+tests/test_requests.py:302: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/api.py:65: in get
+    return request('get', url, **kwargs)
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/safe_mode.py:39: in wrapped
+    return function(method, url, **kwargs)
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/api.py:51: in request
+    return session.request(method=method, url=url, **kwargs)
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/sessions.py:241: in request
+    r.send(prefetch=prefetch)
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/models.py:646: in send
+    self._build_response(r)
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/models.py:230: in _build_response
+    r = build(resp)
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/models.py:207: in build
+    extract_cookies_to_jar(self.cookies, self, resp)
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/cookies.py:103: in extract_cookies_to_jar
+    jar.extract_cookies(res, req)
+/opt/miniconda3/envs/testbed/lib/python3.9/http/cookiejar.py:1683: in extract_cookies
+    if self._policy.set_ok(cookie, request):
+/opt/miniconda3/envs/testbed/lib/python3.9/http/cookiejar.py:956: in set_ok
+    if not fn(cookie, request):
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <http.cookiejar.DefaultCookiePolicy object at 0x7f9a59d68700>
+cookie = Cookie(version=0, name='stale_after', value='never', port=None, port_specified=False, domain='httpbin.org', domain_spe... path_specified=True, secure=False, expires=None, discard=True, comment=None, comment_url=None, rest={}, rfc2109=False)
+request = <requests.cookies.MockRequest object at 0x7f9a59d68070>
+
+    def set_ok_verifiability(self, cookie, request):
+>       if request.unverifiable and is_third_party(request):
+E       AttributeError: 'MockRequest' object has no attribute 'unverifiable'
+
+/opt/miniconda3/envs/testbed/lib/python3.9/http/cookiejar.py:977: AttributeError
+______ RequestsTestSuite.test_session_cookies_with_return_response_false _______
+
+self = <test_requests.RequestsTestSuite testMethod=test_session_cookies_with_return_response_false>
+
+    def test_session_cookies_with_return_response_false(self):
+        s = requests.session()
+        # return_response=False as it does requests.async.get
+        rq = get(httpbin('cookies', 'set', 'k', 'v'), return_response=False,
+                 allow_redirects=True, session=s)
+>       rq.send(prefetch=True)
+
+tests/test_requests.py:853: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/models.py:646: in send
+    self._build_response(r)
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/models.py:230: in _build_response
+    r = build(resp)
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/models.py:207: in build
+    extract_cookies_to_jar(self.cookies, self, resp)
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/cookies.py:103: in extract_cookies_to_jar
+    jar.extract_cookies(res, req)
+/opt/miniconda3/envs/testbed/lib/python3.9/http/cookiejar.py:1683: in extract_cookies
+    if self._policy.set_ok(cookie, request):
+/opt/miniconda3/envs/testbed/lib/python3.9/http/cookiejar.py:956: in set_ok
+    if not fn(cookie, request):
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <http.cookiejar.DefaultCookiePolicy object at 0x7f9a59c42580>
+cookie = Cookie(version=0, name='k', value='v', port=None, port_specified=False, domain='httpbin.org', domain_specified=False, ... path_specified=True, secure=False, expires=None, discard=True, comment=None, comment_url=None, rest={}, rfc2109=False)
+request = <requests.cookies.MockRequest object at 0x7f9a59c42940>
+
+    def set_ok_verifiability(self, cookie, request):
+>       if request.unverifiable and is_third_party(request):
+E       AttributeError: 'MockRequest' object has no attribute 'unverifiable'
+
+/opt/miniconda3/envs/testbed/lib/python3.9/http/cookiejar.py:977: AttributeError
+______________ RequestsTestSuite.test_session_persistent_cookies _______________
+
+self = <test_requests.RequestsTestSuite testMethod=test_session_persistent_cookies>
+
+    def test_session_persistent_cookies(self):
+    
+        s = requests.session()
+    
+        # Internally dispatched cookies are sent.
+        _c = {'kenneth': 'reitz', 'bessie': 'monke'}
+>       r = get(httpbin('cookies'), cookies=_c, session=s)
+
+tests/test_requests.py:787: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/api.py:65: in get
+    return request('get', url, **kwargs)
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/safe_mode.py:39: in wrapped
+    return function(method, url, **kwargs)
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/api.py:51: in request
+    return session.request(method=method, url=url, **kwargs)
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/sessions.py:241: in request
+    r.send(prefetch=prefetch)
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/models.py:606: in send
+    cookie_header = get_cookie_header(self.cookies, self)
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/cookies.py:109: in get_cookie_header
+    jar.add_cookie_header(r)
+/opt/miniconda3/envs/testbed/lib/python3.9/http/cookiejar.py:1365: in add_cookie_header
+    cookies = self._cookies_for_request(request)
+/opt/miniconda3/envs/testbed/lib/python3.9/http/cookiejar.py:1291: in _cookies_for_request
+    cookies.extend(self._cookies_for_domain(domain, request))
+/opt/miniconda3/envs/testbed/lib/python3.9/http/cookiejar.py:1280: in _cookies_for_domain
+    if not self._policy.return_ok(cookie, request):
+/opt/miniconda3/envs/testbed/lib/python3.9/http/cookiejar.py:1102: in return_ok
+    if not fn(cookie, request):
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <http.cookiejar.DefaultCookiePolicy object at 0x7f9a59fd0c40>
+cookie = Cookie(version=0, name='kenneth', value='reitz', port=None, port_specified=False, domain='', domain_specified=False, d...True, secure=False, expires=None, discard=True, comment=None, comment_url=None, rest={'HttpOnly': None}, rfc2109=False)
+request = <requests.cookies.MockRequest object at 0x7f9a5aa4aa00>
+
+    def return_ok_verifiability(self, cookie, request):
+>       if request.unverifiable and is_third_party(request):
+E       AttributeError: 'MockRequest' object has no attribute 'unverifiable'
+
+/opt/miniconda3/envs/testbed/lib/python3.9/http/cookiejar.py:1116: AttributeError
+_________________ RequestsTestSuite.test_str_data_content_type _________________
+
+self = <test_requests.RequestsTestSuite testMethod=test_str_data_content_type>
+
+    def test_str_data_content_type(self):
+        data = 'test string data'
+        r = post(httpbin('post'), data=data)
+        t = json.loads(r.text)
+>       self.assertEqual(t.get('headers').get('Content-Type'), '')
+E       AssertionError: None != ''
+
+tests/test_requests.py:1090: AssertionError
+______________ RequestsTestSuite.test_unpickled_session_requests _______________
+
+self = <test_requests.RequestsTestSuite testMethod=test_unpickled_session_requests>
+
+    def test_unpickled_session_requests(self):
+        s = requests.session()
+>       r = get(httpbin('cookies', 'set', 'k', 'v'), allow_redirects=True, session=s)
+
+tests/test_requests.py:877: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/api.py:65: in get
+    return request('get', url, **kwargs)
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/safe_mode.py:39: in wrapped
+    return function(method, url, **kwargs)
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/api.py:51: in request
+    return session.request(method=method, url=url, **kwargs)
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/sessions.py:241: in request
+    r.send(prefetch=prefetch)
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/models.py:646: in send
+    self._build_response(r)
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/models.py:230: in _build_response
+    r = build(resp)
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/models.py:207: in build
+    extract_cookies_to_jar(self.cookies, self, resp)
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/cookies.py:103: in extract_cookies_to_jar
+    jar.extract_cookies(res, req)
+/opt/miniconda3/envs/testbed/lib/python3.9/http/cookiejar.py:1683: in extract_cookies
+    if self._policy.set_ok(cookie, request):
+/opt/miniconda3/envs/testbed/lib/python3.9/http/cookiejar.py:956: in set_ok
+    if not fn(cookie, request):
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <http.cookiejar.DefaultCookiePolicy object at 0x7f9a59e51640>
+cookie = Cookie(version=0, name='k', value='v', port=None, port_specified=False, domain='httpbin.org', domain_specified=False, ... path_specified=True, secure=False, expires=None, discard=True, comment=None, comment_url=None, rest={}, rfc2109=False)
+request = <requests.cookies.MockRequest object at 0x7f9a5b31faf0>
+
+    def set_ok_verifiability(self, cookie, request):
+>       if request.unverifiable and is_third_party(request):
+E       AttributeError: 'MockRequest' object has no attribute 'unverifiable'
+
+/opt/miniconda3/envs/testbed/lib/python3.9/http/cookiejar.py:977: AttributeError
+=============================== warnings summary ===============================
+../opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/packages/urllib3/_collections.py:7
+  /opt/miniconda3/envs/testbed/lib/python3.9/site-packages/requests/packages/urllib3/_collections.py:7: DeprecationWarning: Using or importing the ABCs from 'collections' instead of from 'collections.abc' is deprecated since Python 3.3, and in 3.10 it will stop working
+    from collections import MutableMapping
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED tests/test_requests.py::RequestsTestSuite::test_BASICAUTH_HTTP_200_OK_GET
+PASSED tests/test_requests.py::RequestsTestSuite::test_BASICAUTH_TUPLE_HTTP_200_OK_GET
+PASSED tests/test_requests.py::RequestsTestSuite::test_GET_no_redirect
+PASSED tests/test_requests.py::RequestsTestSuite::test_HEAD_no_redirect
+PASSED tests/test_requests.py::RequestsTestSuite::test_HTTP_200_OK_GET
+PASSED tests/test_requests.py::RequestsTestSuite::test_HTTP_200_OK_GET_WITH_MIXED_PARAMS
+PASSED tests/test_requests.py::RequestsTestSuite::test_HTTP_200_OK_GET_WITH_PARAMS
+PASSED tests/test_requests.py::RequestsTestSuite::test_HTTP_200_OK_HEAD
+PASSED tests/test_requests.py::RequestsTestSuite::test_HTTP_200_OK_PUT
+PASSED tests/test_requests.py::RequestsTestSuite::test_HTTP_302_ALLOW_REDIRECT_GET
+PASSED tests/test_requests.py::RequestsTestSuite::test_HTTP_302_GET
+PASSED tests/test_requests.py::RequestsTestSuite::test_POSTBIN_GET_POST_FILES
+PASSED tests/test_requests.py::RequestsTestSuite::test_POSTBIN_GET_POST_FILES_STRINGS
+PASSED tests/test_requests.py::RequestsTestSuite::test_POSTBIN_GET_POST_FILES_WITH_HEADERS
+PASSED tests/test_requests.py::RequestsTestSuite::test_POSTBIN_GET_POST_FILES_WITH_PARAMS
+PASSED tests/test_requests.py::RequestsTestSuite::test_accept_objects_with_string_representations_as_urls
+PASSED tests/test_requests.py::RequestsTestSuite::test_allow_list_of_hooks_to_register_hook
+PASSED tests/test_requests.py::RequestsTestSuite::test_bytes_files
+PASSED tests/test_requests.py::RequestsTestSuite::test_cached_response
+PASSED tests/test_requests.py::RequestsTestSuite::test_can_have_none_in_header_values
+PASSED tests/test_requests.py::RequestsTestSuite::test_connection_error
+PASSED tests/test_requests.py::RequestsTestSuite::test_connection_error_with_safe_mode
+PASSED tests/test_requests.py::RequestsTestSuite::test_connection_keepalive_and_close
+PASSED tests/test_requests.py::RequestsTestSuite::test_danger_mode_redirects
+PASSED tests/test_requests.py::RequestsTestSuite::test_decompress_gzip
+PASSED tests/test_requests.py::RequestsTestSuite::test_default_status_raising
+PASSED tests/test_requests.py::RequestsTestSuite::test_empty_response
+PASSED tests/test_requests.py::RequestsTestSuite::test_entry_points
+PASSED tests/test_requests.py::RequestsTestSuite::test_file_post_data
+PASSED tests/test_requests.py::RequestsTestSuite::test_head_content
+PASSED tests/test_requests.py::RequestsTestSuite::test_httpauth_recursion
+PASSED tests/test_requests.py::RequestsTestSuite::test_invalid_url
+PASSED tests/test_requests.py::RequestsTestSuite::test_invalid_urls_throw_requests_exception
+PASSED tests/test_requests.py::RequestsTestSuite::test_iter_lines
+PASSED tests/test_requests.py::RequestsTestSuite::test_max_redirects
+PASSED tests/test_requests.py::RequestsTestSuite::test_multiple_hooks
+PASSED tests/test_requests.py::RequestsTestSuite::test_none_vals_in_data_are_deleted
+PASSED tests/test_requests.py::RequestsTestSuite::test_nonurlencoded_post_data
+PASSED tests/test_requests.py::RequestsTestSuite::test_nonurlencoded_postdata
+PASSED tests/test_requests.py::RequestsTestSuite::test_nonzero_evaluation
+PASSED tests/test_requests.py::RequestsTestSuite::test_params_accepts_kv_list
+PASSED tests/test_requests.py::RequestsTestSuite::test_params_are_added_before_fragment
+PASSED tests/test_requests.py::RequestsTestSuite::test_path_is_not_double_encoded
+PASSED tests/test_requests.py::RequestsTestSuite::test_permissive_iter_content
+PASSED tests/test_requests.py::RequestsTestSuite::test_post_fields_with_multiple_values_and_files
+PASSED tests/test_requests.py::RequestsTestSuite::test_post_fields_with_multiple_values_and_files_as_tuples
+PASSED tests/test_requests.py::RequestsTestSuite::test_prefetch_redirect_bug
+PASSED tests/test_requests.py::RequestsTestSuite::test_prefetch_return_response_interaction
+PASSED tests/test_requests.py::RequestsTestSuite::test_redirect_history
+PASSED tests/test_requests.py::RequestsTestSuite::test_relative_redirect_history
+PASSED tests/test_requests.py::RequestsTestSuite::test_request_ok_set
+PASSED tests/test_requests.py::RequestsTestSuite::test_response_has_unicode_url
+PASSED tests/test_requests.py::RequestsTestSuite::test_response_sent
+PASSED tests/test_requests.py::RequestsTestSuite::test_session_HTTP_200_OK_GET
+PASSED tests/test_requests.py::RequestsTestSuite::test_session_persistent_headers
+PASSED tests/test_requests.py::RequestsTestSuite::test_session_persistent_params
+PASSED tests/test_requests.py::RequestsTestSuite::test_session_pickling
+PASSED tests/test_requests.py::RequestsTestSuite::test_single_hook
+PASSED tests/test_requests.py::RequestsTestSuite::test_status_raising
+PASSED tests/test_requests.py::RequestsTestSuite::test_unicode_get
+PASSED tests/test_requests.py::RequestsTestSuite::test_upload_binary_data
+PASSED tests/test_requests.py::RequestsTestSuite::test_urlencoded_get_query_multivalued_param
+PASSED tests/test_requests.py::RequestsTestSuite::test_urlencoded_post_data
+PASSED tests/test_requests.py::RequestsTestSuite::test_urlencoded_post_query_and_data
+PASSED tests/test_requests.py::RequestsTestSuite::test_urlencoded_post_query_multivalued_and_data
+PASSED tests/test_requests.py::RequestsTestSuite::test_urlencoded_post_querystring
+PASSED tests/test_requests.py::RequestsTestSuite::test_urlencoded_post_querystring_multivalued
+PASSED tests/test_requests.py::RequestsTestSuite::test_useful_exception_for_invalid_port
+PASSED tests/test_requests.py::RequestsTestSuite::test_useful_exception_for_invalid_scheme
+PASSED tests/test_requests.py::RequestsTestSuite::test_user_agent_transfers
+FAILED tests/test_requests.py::RequestsTestSuite::test_DIGESTAUTH_HTTP_200_OK_GET
+FAILED tests/test_requests.py::RequestsTestSuite::test_DIGESTAUTH_WRONG_HTTP_401_GET
+FAILED tests/test_requests.py::RequestsTestSuite::test_session_cookies_with_return_response_false
+FAILED tests/test_requests.py::RequestsTestSuite::test_session_persistent_cookies
+FAILED tests/test_requests.py::RequestsTestSuite::test_str_data_content_type
+FAILED tests/test_requests.py::RequestsTestSuite::test_unpickled_session_requests
+============== 6 failed, 70 passed, 1 warning in 95.56s (0:01:35) ==============
++ : '>>>>> End Test Output'
++ git checkout a0df2cbb10419037d11d04352b3175405ab52941 tests/test_requests.py
+Updated 1 path from a840744

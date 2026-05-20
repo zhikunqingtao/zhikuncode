@@ -1,0 +1,14 @@
+diff --git a/django/db/models/base.py b/django/db/models/base.py
+index 7bb3fa4..4487f77 100644
+--- a/django/db/models/base.py
++++ b/django/db/models/base.py
+@@ -1866,6 +1866,9 @@ class Model(metaclass=ModelBase):
+     @classmethod
+     def _check_constraints(cls, databases):
+         errors = []
++        for constraint in cls._meta.constraints:
++            if isinstance(constraint, UniqueConstraint):
++                errors.extend(cls._check_local_fields(constraint.fields, 'constraints'))
+         for db in databases:
+             if not router.allow_migrate_model(db, cls):
+                 continue

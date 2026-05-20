@@ -1,0 +1,74 @@
+{
+    "scikit-learn__scikit-learn-25500": {
+        "patch_is_None": false,
+        "patch_exists": true,
+        "patch_successfully_applied": true,
+        "resolved": false,
+        "tests_status": {
+            "FAIL_TO_PASS": {
+                "success": [],
+                "failure": [
+                    "sklearn/tests/test_isotonic.py::test_isotonic_regression_output_predict"
+                ]
+            },
+            "PASS_TO_PASS": {
+                "success": [],
+                "failure": [
+                    "sklearn/tests/test_isotonic.py::test_permutation_invariance",
+                    "sklearn/tests/test_isotonic.py::test_check_increasing_small_number_of_samples",
+                    "sklearn/tests/test_isotonic.py::test_check_increasing_up",
+                    "sklearn/tests/test_isotonic.py::test_check_increasing_up_extreme",
+                    "sklearn/tests/test_isotonic.py::test_check_increasing_down",
+                    "sklearn/tests/test_isotonic.py::test_check_increasing_down_extreme",
+                    "sklearn/tests/test_isotonic.py::test_check_ci_warn",
+                    "sklearn/tests/test_isotonic.py::test_isotonic_regression",
+                    "sklearn/tests/test_isotonic.py::test_isotonic_regression_ties_min",
+                    "sklearn/tests/test_isotonic.py::test_isotonic_regression_ties_max",
+                    "sklearn/tests/test_isotonic.py::test_isotonic_regression_ties_secondary_",
+                    "sklearn/tests/test_isotonic.py::test_isotonic_regression_with_ties_in_differently_sized_groups",
+                    "sklearn/tests/test_isotonic.py::test_isotonic_regression_reversed",
+                    "sklearn/tests/test_isotonic.py::test_isotonic_regression_auto_decreasing",
+                    "sklearn/tests/test_isotonic.py::test_isotonic_regression_auto_increasing",
+                    "sklearn/tests/test_isotonic.py::test_assert_raises_exceptions",
+                    "sklearn/tests/test_isotonic.py::test_isotonic_sample_weight_parameter_default_value",
+                    "sklearn/tests/test_isotonic.py::test_isotonic_min_max_boundaries",
+                    "sklearn/tests/test_isotonic.py::test_isotonic_sample_weight",
+                    "sklearn/tests/test_isotonic.py::test_isotonic_regression_oob_raise",
+                    "sklearn/tests/test_isotonic.py::test_isotonic_regression_oob_clip",
+                    "sklearn/tests/test_isotonic.py::test_isotonic_regression_oob_nan",
+                    "sklearn/tests/test_isotonic.py::test_isotonic_regression_pickle",
+                    "sklearn/tests/test_isotonic.py::test_isotonic_duplicate_min_entry",
+                    "sklearn/tests/test_isotonic.py::test_isotonic_ymin_ymax",
+                    "sklearn/tests/test_isotonic.py::test_isotonic_zero_weight_loop",
+                    "sklearn/tests/test_isotonic.py::test_fast_predict",
+                    "sklearn/tests/test_isotonic.py::test_isotonic_copy_before_fit",
+                    "sklearn/tests/test_isotonic.py::test_isotonic_dtype",
+                    "sklearn/tests/test_isotonic.py::test_isotonic_mismatched_dtype[int32]",
+                    "sklearn/tests/test_isotonic.py::test_isotonic_mismatched_dtype[int64]",
+                    "sklearn/tests/test_isotonic.py::test_isotonic_mismatched_dtype[float32]",
+                    "sklearn/tests/test_isotonic.py::test_isotonic_mismatched_dtype[float64]",
+                    "sklearn/tests/test_isotonic.py::test_make_unique_dtype",
+                    "sklearn/tests/test_isotonic.py::test_make_unique_tolerance[float64]",
+                    "sklearn/tests/test_isotonic.py::test_make_unique_tolerance[float32]",
+                    "sklearn/tests/test_isotonic.py::test_isotonic_make_unique_tolerance",
+                    "sklearn/tests/test_isotonic.py::test_isotonic_non_regression_inf_slope",
+                    "sklearn/tests/test_isotonic.py::test_isotonic_thresholds[True]",
+                    "sklearn/tests/test_isotonic.py::test_isotonic_thresholds[False]",
+                    "sklearn/tests/test_isotonic.py::test_input_shape_validation",
+                    "sklearn/tests/test_isotonic.py::test_isotonic_2darray_more_than_1_feature",
+                    "sklearn/tests/test_isotonic.py::test_isotonic_regression_sample_weight_not_overwritten",
+                    "sklearn/tests/test_isotonic.py::test_get_feature_names_out[1d]",
+                    "sklearn/tests/test_isotonic.py::test_get_feature_names_out[2d]"
+                ]
+            },
+            "FAIL_TO_FAIL": {
+                "success": [],
+                "failure": []
+            },
+            "PASS_TO_FAIL": {
+                "success": [],
+                "failure": []
+            }
+        }
+    }
+}

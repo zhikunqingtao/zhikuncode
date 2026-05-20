@@ -1,0 +1,23 @@
+diff --git a/sympy/printing/pycode.py b/sympy/printing/pycode.py
+index 6ec7bd8..08f93ca 100644
+--- a/sympy/printing/pycode.py
++++ b/sympy/printing/pycode.py
+@@ -670,6 +670,18 @@ def _print_CodegenArrayPermuteDims(self, expr):
+     def _print_CodegenArrayElementwiseAdd(self, expr):
+         return self._expand_fold_binary_op('numpy.add', expr.args)
+ 
++    def _print_Identity(self, expr):
++        return "{0}({1})".format(self._module_format('numpy.eye'),
++                                 self._print(expr.shape[0]))
++
++    def _print_ZeroMatrix(self, expr):
++        return "{0}({1})".format(self._module_format('numpy.zeros'),
++                                 self._print(expr.shape))
++
++    def _print_OneMatrix(self, expr):
++        return "{0}({1})".format(self._module_format('numpy.ones'),
++                                 self._print(expr.shape))
++
+ 
+ for k in NumPyPrinter._kf:
+     setattr(NumPyPrinter, '_print_%s' % k, _print_known_func)

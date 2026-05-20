@@ -1,0 +1,67 @@
+2026-05-19 22:43:27,130 - INFO - Environment image sweb.env.py.x86_64.428468730904ff6b4232aa:latest found for astropy__astropy-14365
+Building instance image sweb.eval.x86_64.astropy__astropy-14365:latest for astropy__astropy-14365
+2026-05-19 22:51:55,841 - INFO - Creating container for astropy__astropy-14365...
+2026-05-19 22:51:55,861 - INFO - Container for astropy__astropy-14365 created: 729da3c68b9c7da22f4bdad73e6276673df964fd844e965681d303f19cb68480
+2026-05-19 22:51:55,958 - INFO - Container for astropy__astropy-14365 started: 729da3c68b9c7da22f4bdad73e6276673df964fd844e965681d303f19cb68480
+2026-05-19 22:51:55,958 - INFO - Intermediate patch for astropy__astropy-14365 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/astropy__astropy-14365/patch.diff, now applying to container...
+2026-05-19 22:51:56,004 - INFO - >>>>> Applied Patch:
+Checking patch astropy/io/ascii/qdp.py...
+Applied patch astropy/io/ascii/qdp.py cleanly.
+
+2026-05-19 22:51:56,266 - INFO - Git diff before:
+diff --git a/astropy/io/ascii/qdp.py b/astropy/io/ascii/qdp.py
+index 83a4f004a..b9251236a 100644
+--- a/astropy/io/ascii/qdp.py
++++ b/astropy/io/ascii/qdp.py
+@@ -34,6 +34,8 @@ def _line_type(line, delimiter=None):
+     --------
+     >>> _line_type("READ SERR 3")
+     'command'
++    >>> _line_type("read serr 3")
++    'command'
+     >>> _line_type(" \\n    !some gibberish")
+     'comment'
+     >>> _line_type("   ")
+@@ -60,7 +62,7 @@ def _line_type(line, delimiter=None):
+     ValueError: Unrecognized QDP line...
+     """
+     _decimal_re = r"[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?"
+-    _command_re = r"READ [TS]ERR(\s+[0-9]+)+"
++    _command_re = r"[Rr][Ee][Aa][Dd] [TtSs][Ee][Rr][Rr](\s+[0-9]+)+"
+ 
+     sep = delimiter
+     if delimiter is None:
+2026-05-19 22:51:56,266 - INFO - Eval script for astropy__astropy-14365 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/astropy__astropy-14365/eval.sh; copying to container...
+2026-05-19 22:52:26,679 - INFO - Test runtime: 30.39 seconds
+2026-05-19 22:52:26,679 - INFO - Test output for astropy__astropy-14365 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/astropy__astropy-14365/test_output.txt
+2026-05-19 22:52:26,705 - INFO - Git diff after:
+diff --git a/astropy/io/ascii/qdp.py b/astropy/io/ascii/qdp.py
+index 83a4f004a..b9251236a 100644
+--- a/astropy/io/ascii/qdp.py
++++ b/astropy/io/ascii/qdp.py
+@@ -34,6 +34,8 @@ def _line_type(line, delimiter=None):
+     --------
+     >>> _line_type("READ SERR 3")
+     'command'
++    >>> _line_type("read serr 3")
++    'command'
+     >>> _line_type(" \\n    !some gibberish")
+     'comment'
+     >>> _line_type("   ")
+@@ -60,7 +62,7 @@ def _line_type(line, delimiter=None):
+     ValueError: Unrecognized QDP line...
+     """
+     _decimal_re = r"[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?"
+-    _command_re = r"READ [TS]ERR(\s+[0-9]+)+"
++    _command_re = r"[Rr][Ee][Aa][Dd] [TtSs][Ee][Rr][Rr](\s+[0-9]+)+"
+ 
+     sep = delimiter
+     if delimiter is None:
+2026-05-19 22:52:26,705 - INFO - Grading answer for astropy__astropy-14365...
+2026-05-19 22:52:26,707 - INFO - report: {'astropy__astropy-14365': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['astropy/io/ascii/tests/test_qdp.py::test_roundtrip[True]']}, 'PASS_TO_PASS': {'success': ['astropy/io/ascii/tests/test_qdp.py::test_get_tables_from_qdp_file', 'astropy/io/ascii/tests/test_qdp.py::test_roundtrip[False]', 'astropy/io/ascii/tests/test_qdp.py::test_read_example', 'astropy/io/ascii/tests/test_qdp.py::test_roundtrip_example', 'astropy/io/ascii/tests/test_qdp.py::test_roundtrip_example_comma', 'astropy/io/ascii/tests/test_qdp.py::test_read_write_simple', 'astropy/io/ascii/tests/test_qdp.py::test_read_write_simple_specify_name', 'astropy/io/ascii/tests/test_qdp.py::test_get_lines_from_qdp'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for astropy__astropy-14365: resolved: False
+2026-05-19 22:52:26,707 - INFO - Attempting to stop container sweb.eval.astropy__astropy-14365.zhikuncode_eval_300_FINAL...
+2026-05-19 22:52:41,993 - INFO - Attempting to remove container sweb.eval.astropy__astropy-14365.zhikuncode_eval_300_FINAL...
+2026-05-19 22:52:42,004 - INFO - Container sweb.eval.astropy__astropy-14365.zhikuncode_eval_300_FINAL removed.
+2026-05-19 22:52:42,004 - INFO - Attempting to remove image sweb.eval.x86_64.astropy__astropy-14365:latest...
+2026-05-19 22:52:42,040 - INFO - Image sweb.eval.x86_64.astropy__astropy-14365:latest removed.

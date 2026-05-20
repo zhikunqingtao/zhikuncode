@@ -1,0 +1,22 @@
+diff --git a/sphinx/ext/autodoc/__init__.py b/sphinx/ext/autodoc/__init__.py
+index d85d796..3d9273e 100644
+--- a/sphinx/ext/autodoc/__init__.py
++++ b/sphinx/ext/autodoc/__init__.py
+@@ -1074,7 +1074,7 @@ class ModuleDocumenter(Documenter):
+     def get_object_members(self, want_all: bool) -> Tuple[bool, ObjectMembers]:
+         members = self.get_module_members()
+         if want_all:
+-            if not self.__all__:
++            if self.__all__ is None:
+                 # for implicit module members, check __module__ to avoid
+                 # documenting imported objects
+                 return True, list(members.values())
+@@ -1099,7 +1099,7 @@ class ModuleDocumenter(Documenter):
+ 
+     def sort_members(self, documenters: List[Tuple["Documenter", bool]],
+                      order: str) -> List[Tuple["Documenter", bool]]:
+-        if order == 'bysource' and self.__all__:
++        if order == 'bysource' and self.__all__ is not None:
+             # Sort alphabetically first (for members not listed on the __all__)
+             documenters.sort(key=lambda e: e[0].name)
+ 

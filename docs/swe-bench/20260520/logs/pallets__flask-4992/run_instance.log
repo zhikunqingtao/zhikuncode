@@ -1,0 +1,115 @@
+2026-05-20 00:26:45,194 - INFO - Environment image sweb.env.py.x86_64.34a2704c943706976d0871:latest found for pallets__flask-4992
+Building instance image sweb.eval.x86_64.pallets__flask-4992:latest for pallets__flask-4992
+2026-05-20 00:26:52,056 - INFO - Creating container for pallets__flask-4992...
+2026-05-20 00:26:52,074 - INFO - Container for pallets__flask-4992 created: 4c0dc8b8b1d2e820d438cdee5045ef70bb109ace819faed56fda7ec8e0e2a58c
+2026-05-20 00:26:52,150 - INFO - Container for pallets__flask-4992 started: 4c0dc8b8b1d2e820d438cdee5045ef70bb109ace819faed56fda7ec8e0e2a58c
+2026-05-20 00:26:52,151 - INFO - Intermediate patch for pallets__flask-4992 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/pallets__flask-4992/patch.diff, now applying to container...
+2026-05-20 00:26:52,195 - INFO - >>>>> Applied Patch:
+Checking patch src/flask/config.py...
+Applied patch src/flask/config.py cleanly.
+
+2026-05-20 00:26:52,233 - INFO - Git diff before:
+diff --git a/src/flask/config.py b/src/flask/config.py
+index d4fc310f..98d5629b 100644
+--- a/src/flask/config.py
++++ b/src/flask/config.py
+@@ -234,6 +234,7 @@ class Config(dict):
+         filename: str,
+         load: t.Callable[[t.IO[t.Any]], t.Mapping],
+         silent: bool = False,
++        text: bool = True,
+     ) -> bool:
+         """Update the values in the config from a file that is loaded
+         using the ``load`` parameter. The loaded data is passed to the
+@@ -244,8 +245,8 @@ class Config(dict):
+             import json
+             app.config.from_file("config.json", load=json.load)
+ 
+-            import toml
+-            app.config.from_file("config.toml", load=toml.load)
++            import tomllib
++            app.config.from_file("config.toml", load=tomllib.load, text=False)
+ 
+         :param filename: The path to the data file. This can be an
+             absolute path or relative to the config root path.
+@@ -254,14 +255,21 @@ class Config(dict):
+         :type load: ``Callable[[Reader], Mapping]`` where ``Reader``
+             implements a ``read`` method.
+         :param silent: Ignore the file if it doesn't exist.
++        :param text: Open the file in text mode (``True``, default) or
++            binary mode (``False``). Set to ``False`` when using loaders
++            that require binary mode, such as ``tomllib.load``.
+         :return: ``True`` if the file was loaded successfully.
+ 
+         .. versionadded:: 2.0
++
++        .. versionchanged:: 2.3
++            Added the ``text`` parameter to support binary mode loaders
++            like ``tomllib``.
+         """
+         filename = os.path.join(self.root_path, filename)
+ 
+         try:
+-            with open(filename) as f:
++            with open(filename, "r" if text else "rb") as f:
+                 obj = load(f)
+         except OSError as e:
+             if silent and e.errno in (errno.ENOENT, errno.EISDIR):
+2026-05-20 00:26:52,233 - INFO - Eval script for pallets__flask-4992 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/pallets__flask-4992/eval.sh; copying to container...
+2026-05-20 00:26:54,289 - INFO - Test runtime: 2.03 seconds
+2026-05-20 00:26:54,289 - INFO - Test output for pallets__flask-4992 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/pallets__flask-4992/test_output.txt
+2026-05-20 00:26:54,312 - INFO - Git diff after:
+diff --git a/src/flask/config.py b/src/flask/config.py
+index d4fc310f..98d5629b 100644
+--- a/src/flask/config.py
++++ b/src/flask/config.py
+@@ -234,6 +234,7 @@ class Config(dict):
+         filename: str,
+         load: t.Callable[[t.IO[t.Any]], t.Mapping],
+         silent: bool = False,
++        text: bool = True,
+     ) -> bool:
+         """Update the values in the config from a file that is loaded
+         using the ``load`` parameter. The loaded data is passed to the
+@@ -244,8 +245,8 @@ class Config(dict):
+             import json
+             app.config.from_file("config.json", load=json.load)
+ 
+-            import toml
+-            app.config.from_file("config.toml", load=toml.load)
++            import tomllib
++            app.config.from_file("config.toml", load=tomllib.load, text=False)
+ 
+         :param filename: The path to the data file. This can be an
+             absolute path or relative to the config root path.
+@@ -254,14 +255,21 @@ class Config(dict):
+         :type load: ``Callable[[Reader], Mapping]`` where ``Reader``
+             implements a ``read`` method.
+         :param silent: Ignore the file if it doesn't exist.
++        :param text: Open the file in text mode (``True``, default) or
++            binary mode (``False``). Set to ``False`` when using loaders
++            that require binary mode, such as ``tomllib.load``.
+         :return: ``True`` if the file was loaded successfully.
+ 
+         .. versionadded:: 2.0
++
++        .. versionchanged:: 2.3
++            Added the ``text`` parameter to support binary mode loaders
++            like ``tomllib``.
+         """
+         filename = os.path.join(self.root_path, filename)
+ 
+         try:
+-            with open(filename) as f:
++            with open(filename, "r" if text else "rb") as f:
+                 obj = load(f)
+         except OSError as e:
+             if silent and e.errno in (errno.ENOENT, errno.EISDIR):
+2026-05-20 00:26:54,312 - INFO - Grading answer for pallets__flask-4992...
+2026-05-20 00:26:54,312 - INFO - report: {'pallets__flask-4992': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['tests/test_config.py::test_config_from_file_toml'], 'failure': []}, 'PASS_TO_PASS': {'success': ['tests/test_config.py::test_config_from_pyfile', 'tests/test_config.py::test_config_from_object', 'tests/test_config.py::test_config_from_file_json', 'tests/test_config.py::test_from_prefixed_env', 'tests/test_config.py::test_from_prefixed_env_custom_prefix', 'tests/test_config.py::test_from_prefixed_env_nested', 'tests/test_config.py::test_config_from_mapping', 'tests/test_config.py::test_config_from_class', 'tests/test_config.py::test_config_from_envvar', 'tests/test_config.py::test_config_from_envvar_missing', 'tests/test_config.py::test_config_missing', 'tests/test_config.py::test_config_missing_file', 'tests/test_config.py::test_custom_config_class', 'tests/test_config.py::test_session_lifetime', 'tests/test_config.py::test_get_namespace', 'tests/test_config.py::test_from_pyfile_weird_encoding[utf-8]', 'tests/test_config.py::test_from_pyfile_weird_encoding[iso-8859-15]', 'tests/test_config.py::test_from_pyfile_weird_encoding[latin-1]'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for pallets__flask-4992: resolved: True
+2026-05-20 00:26:54,312 - INFO - Attempting to stop container sweb.eval.pallets__flask-4992.zhikuncode_eval_300_FINAL...
+2026-05-20 00:27:09,696 - INFO - Attempting to remove container sweb.eval.pallets__flask-4992.zhikuncode_eval_300_FINAL...
+2026-05-20 00:27:09,705 - INFO - Container sweb.eval.pallets__flask-4992.zhikuncode_eval_300_FINAL removed.
+2026-05-20 00:27:09,705 - INFO - Attempting to remove image sweb.eval.x86_64.pallets__flask-4992:latest...
+2026-05-20 00:27:09,715 - INFO - Image sweb.eval.x86_64.pallets__flask-4992:latest removed.

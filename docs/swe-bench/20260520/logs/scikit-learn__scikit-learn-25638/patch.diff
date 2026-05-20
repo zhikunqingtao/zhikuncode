@@ -1,0 +1,109 @@
+diff --git a/sklearn/utils/multiclass.py b/sklearn/utils/multiclass.py
+index 5eaef2f..7039604 100644
+--- a/sklearn/utils/multiclass.py
++++ b/sklearn/utils/multiclass.py
+@@ -106,6 +106,9 @@ def unique_labels(*ys):
+     if not _unique_labels:
+         raise ValueError("Unknown label type: %s" % repr(ys))
+ 
++    # Convert pandas nullable dtypes to numpy-compatible dtypes
++    ys = [_convert_pandas_nullable_dtype(y) for y in ys]
++
+     if is_array_api:
+         # array_api does not allow for mixed dtypes
+         unique_ys = xp.concat([_unique_labels(y) for y in ys])
+@@ -119,6 +122,50 @@ def unique_labels(*ys):
+     return xp.asarray(sorted(ys_labels))
+ 
+ 
++def _is_pandas_nullable_dtype(y):
++    """Check if y is a pandas object with nullable extension dtype.
++
++    Pandas nullable dtypes (Int64, Float64, boolean, string, etc.) convert
++    to object dtype when converted to numpy arrays if they contain NA values.
++    This function detects such cases so we can handle them appropriately.
++    """
++    if not hasattr(y, "dtype"):
++        return False
++
++    try:
++        from pandas.api.types import is_extension_array_dtype
++
++        return is_extension_array_dtype(y.dtype)
++    except ImportError:
++        return False
++
++
++def _convert_pandas_nullable_dtype(y):
++    """Convert pandas nullable extension dtypes to numpy-compatible dtypes.
++
++    Pandas nullable dtypes (Int64, Float64, boolean) need special handling
++    because they convert to object dtype when containing NA values.
++    """
++    if not _is_pandas_nullable_dtype(y):
++        return y
++
++    try:
++        from pandas.api.types import is_integer_dtype, is_float_dtype, is_bool_dtype
++    except ImportError:
++        return y
++
++    # Convert nullable dtypes to their numpy equivalents
++    # NA values will be converted to np.nan for numeric types
++    if is_integer_dtype(y.dtype) or is_float_dtype(y.dtype):
++        return y.to_numpy(dtype=float, na_value=np.nan)
++    elif is_bool_dtype(y.dtype):
++        # For boolean with NA, convert to object array but replace pd.NA with np.nan
++        # so that type inference can still work
++        return y.to_numpy(dtype=object, na_value=np.nan)
++
++    return y
++
++
+ def _is_integral_float(y):
+     return y.dtype.kind == "f" and np.all(y.astype(int) == y)
+ 
+@@ -298,6 +345,10 @@ def type_of_target(y, input_name=""):
+     if is_multilabel(y):
+         return "multilabel-indicator"
+ 
++    # Handle pandas nullable extension dtypes (Int64, Float64, boolean)
++    # These convert to object dtype when containing NA values
++    y = _convert_pandas_nullable_dtype(y)
++
+     # DeprecationWarning will be replaced by ValueError, see NEP 34
+     # https://numpy.org/neps/nep-0034-infer-dtype-is-object.html
+     # We therefore catch both deprecation (NumPy < 1.24) warning and
+@@ -342,7 +393,14 @@ def type_of_target(y, input_name=""):
+         return "unknown"
+     if not issparse(y) and y.dtype == object and not isinstance(y.flat[0], str):
+         # [obj_1] and not ["label_1"]
+-        return "unknown"
++        # Check if it's a boolean array with NaN from pandas nullable boolean dtype
++        # In that case, all non-NaN elements should be bool
++        is_nullable_boolean = all(
++            isinstance(val, (bool, np.bool_)) or (isinstance(val, float) and np.isnan(val))
++            for val in y.flat
++        )
++        if not is_nullable_boolean:
++            return "unknown"
+ 
+     # Check if multioutput
+     if y.ndim == 2 and y.shape[1] > 1:
+@@ -354,7 +412,15 @@ def type_of_target(y, input_name=""):
+     if y.dtype.kind == "f":
+         # [.1, .2, 3] or [[.1, .2, 3]] or [[1., .2]] and not [1., 2., 3.]
+         data = y.data if issparse(y) else y
+-        if xp.any(data != data.astype(int)):
++        # Handle NaN values from pandas nullable dtypes - they compare as not equal
++        # to their integer cast, so we need to mask them out
++        if issparse(y):
++            is_not_nan = ~xp.isnan(data)
++            has_non_integer_float = xp.any(data[is_not_nan] != data[is_not_nan].astype(int))
++        else:
++            is_not_nan = ~xp.isnan(data)
++            has_non_integer_float = xp.any(data[is_not_nan] != data[is_not_nan].astype(int))
++        if has_non_integer_float:
+             _assert_all_finite(data, input_name=input_name)
+             return "continuous" + suffix
+ 

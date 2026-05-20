@@ -1,0 +1,49 @@
+2026-05-20 01:31:21,146 - INFO - Environment image sweb.env.py.x86_64.c795f4b88616b8462021ed:latest found for sympy__sympy-22005
+Building instance image sweb.eval.x86_64.sympy__sympy-22005:latest for sympy__sympy-22005
+2026-05-20 01:34:05,336 - INFO - Creating container for sympy__sympy-22005...
+2026-05-20 01:34:05,362 - INFO - Container for sympy__sympy-22005 created: 4957b36938881e815e467e0e2b21bcd65674c87e724070822541f4404fc9af0f
+2026-05-20 01:34:05,515 - INFO - Container for sympy__sympy-22005 started: 4957b36938881e815e467e0e2b21bcd65674c87e724070822541f4404fc9af0f
+2026-05-20 01:34:05,515 - INFO - Intermediate patch for sympy__sympy-22005 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-22005/patch.diff, now applying to container...
+2026-05-20 01:34:05,597 - INFO - >>>>> Applied Patch:
+Checking patch sympy/solvers/polysys.py...
+Applied patch sympy/solvers/polysys.py cleanly.
+
+2026-05-20 01:34:06,000 - INFO - Git diff before:
+diff --git a/sympy/solvers/polysys.py b/sympy/solvers/polysys.py
+index b9809fd4e9..3df3f4709c 100644
+--- a/sympy/solvers/polysys.py
++++ b/sympy/solvers/polysys.py
+@@ -240,7 +240,7 @@ def _solve_reduced_system(system, gens, entry=False):
+ 
+         univariate = list(filter(_is_univariate, basis))
+ 
+-        if len(univariate) == 1:
++        if len(univariate) == 1 and len(basis) >= len(gens):
+             f = univariate.pop()
+         else:
+             raise NotImplementedError(filldedent('''
+2026-05-20 01:34:06,000 - INFO - Eval script for sympy__sympy-22005 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-22005/eval.sh; copying to container...
+2026-05-20 01:34:14,928 - INFO - Test runtime: 8.88 seconds
+2026-05-20 01:34:14,928 - INFO - Test output for sympy__sympy-22005 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-22005/test_output.txt
+2026-05-20 01:34:14,962 - INFO - Git diff after:
+diff --git a/sympy/solvers/polysys.py b/sympy/solvers/polysys.py
+index b9809fd4e9..3df3f4709c 100644
+--- a/sympy/solvers/polysys.py
++++ b/sympy/solvers/polysys.py
+@@ -240,7 +240,7 @@ def _solve_reduced_system(system, gens, entry=False):
+ 
+         univariate = list(filter(_is_univariate, basis))
+ 
+-        if len(univariate) == 1:
++        if len(univariate) == 1 and len(basis) >= len(gens):
+             f = univariate.pop()
+         else:
+             raise NotImplementedError(filldedent('''
+2026-05-20 01:34:14,962 - INFO - Grading answer for sympy__sympy-22005...
+2026-05-20 01:34:14,962 - INFO - report: {'sympy__sympy-22005': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_solve_poly_system'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_solve_biquadratic', 'test_solve_triangulated'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-22005: resolved: True
+2026-05-20 01:34:14,962 - INFO - Attempting to stop container sweb.eval.sympy__sympy-22005.zhikuncode_eval_300_FINAL...
+2026-05-20 01:34:30,369 - INFO - Attempting to remove container sweb.eval.sympy__sympy-22005.zhikuncode_eval_300_FINAL...
+2026-05-20 01:34:30,384 - INFO - Container sweb.eval.sympy__sympy-22005.zhikuncode_eval_300_FINAL removed.
+2026-05-20 01:34:30,384 - INFO - Attempting to remove image sweb.eval.x86_64.sympy__sympy-22005:latest...
+2026-05-20 01:34:30,434 - INFO - Image sweb.eval.x86_64.sympy__sympy-22005:latest removed.

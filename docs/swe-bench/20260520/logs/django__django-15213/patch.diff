@@ -1,0 +1,13 @@
+diff --git a/django/db/models/sql/where.py b/django/db/models/sql/where.py
+index 50ff13b..c565802 100644
+--- a/django/db/models/sql/where.py
++++ b/django/db/models/sql/where.py
+@@ -94,7 +94,7 @@ class WhereNode(tree.Node):
+             # counts.
+             if empty_needed == 0:
+                 if self.negated:
+-                    return '', []
++                    return '1', []
+                 else:
+                     raise EmptyResultSet
+             if full_needed == 0:

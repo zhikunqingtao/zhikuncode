@@ -1,0 +1,73 @@
+{
+    "scikit-learn__scikit-learn-11040": {
+        "patch_is_None": false,
+        "patch_exists": true,
+        "patch_successfully_applied": true,
+        "resolved": false,
+        "tests_status": {
+            "FAIL_TO_PASS": {
+                "success": [],
+                "failure": [
+                    "sklearn/neighbors/tests/test_neighbors.py::test_n_neighbors_datatype"
+                ]
+            },
+            "PASS_TO_PASS": {
+                "success": [
+                    "sklearn/neighbors/tests/test_neighbors.py::test_unsupervised_kneighbors",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_unsupervised_inputs",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_precomputed",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_precomputed_cross_validation",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_unsupervised_radius_neighbors",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_kneighbors_classifier",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_kneighbors_classifier_float_labels",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_kneighbors_classifier_predict_proba",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_radius_neighbors_classifier",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_radius_neighbors_classifier_when_no_neighbors",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_radius_neighbors_classifier_outlier_labeling",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_radius_neighbors_classifier_zero_distance",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_neighbors_regressors_zero_distance",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_radius_neighbors_boundary_handling",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_RadiusNeighborsClassifier_multioutput",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_kneighbors_classifier_sparse",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_KNeighborsClassifier_multioutput",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_kneighbors_regressor",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_KNeighborsRegressor_multioutput_uniform_weight",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_kneighbors_regressor_multioutput",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_radius_neighbors_regressor",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_RadiusNeighborsRegressor_multioutput_with_uniform_weight",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_RadiusNeighborsRegressor_multioutput",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_kneighbors_regressor_sparse",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_neighbors_iris",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_neighbors_digits",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_kneighbors_graph",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_kneighbors_graph_sparse",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_radius_neighbors_graph",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_radius_neighbors_graph_sparse",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_neighbors_badargs",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_neighbors_metrics",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_callable_metric",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_valid_brute_metric_for_auto_algorithm",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_metric_params_interface",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_predict_sparse_ball_kd_tree",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_non_euclidean_kneighbors",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_k_and_radius_neighbors_train_is_not_query",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_k_and_radius_neighbors_X_None",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_k_and_radius_neighbors_duplicates",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_include_self_neighbors_graph",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_dtype_convert",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_sparse_metric_callable",
+                    "sklearn/neighbors/tests/test_neighbors.py::test_pairwise_boolean_distance"
+                ],
+                "failure": []
+            },
+            "FAIL_TO_FAIL": {
+                "success": [],
+                "failure": []
+            },
+            "PASS_TO_FAIL": {
+                "success": [],
+                "failure": []
+            }
+        }
+    }
+}

@@ -1,0 +1,81 @@
+2026-05-20 01:28:10,153 - INFO - Environment image sweb.env.py.x86_64.c795f4b88616b8462021ed:latest found for sympy__sympy-20049
+Building instance image sweb.eval.x86_64.sympy__sympy-20049:latest for sympy__sympy-20049
+2026-05-20 01:29:39,992 - INFO - Creating container for sympy__sympy-20049...
+2026-05-20 01:29:40,015 - INFO - Container for sympy__sympy-20049 created: 68ec9ca16e7b99ae434e42210be764c0b61830a7f71f12c6af90e5a624178378
+2026-05-20 01:29:40,273 - INFO - Container for sympy__sympy-20049 started: 68ec9ca16e7b99ae434e42210be764c0b61830a7f71f12c6af90e5a624178378
+2026-05-20 01:29:40,273 - INFO - Intermediate patch for sympy__sympy-20049 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-20049/patch.diff, now applying to container...
+2026-05-20 01:29:40,366 - INFO - >>>>> Applied Patch:
+Checking patch sympy/physics/vector/point.py...
+Applied patch sympy/physics/vector/point.py cleanly.
+
+2026-05-20 01:29:40,755 - INFO - Git diff before:
+diff --git a/sympy/physics/vector/point.py b/sympy/physics/vector/point.py
+index d4e3cfcc90..8e50b9a3a2 100644
+--- a/sympy/physics/vector/point.py
++++ b/sympy/physics/vector/point.py
+@@ -517,11 +517,20 @@ def vel(self, frame):
+ 
+         """
+ 
++        from sympy.physics.vector.functions import dynamicsymbols
+         _check_frame(frame)
+-        if not (frame in self._vel_dict):
+-            raise ValueError('Velocity of point ' + self.name + ' has not been'
+-                             ' defined in ReferenceFrame ' + frame.name)
+-        return self._vel_dict[frame]
++        if frame in self._vel_dict:
++            return self._vel_dict[frame]
++        # Attempt to compute the velocity from the position of a point that
++        # has its velocity defined in the specified frame.
++        for point in self._pos_dict:
++            if frame in point._vel_dict:
++                vel = point._vel_dict[frame]
++                pos = self.pos_from(point)
++                self.set_vel(frame, vel + pos.dt(frame))
++                return self._vel_dict[frame]
++        raise ValueError('Velocity of point ' + self.name + ' has not been'
++                         ' defined in ReferenceFrame ' + frame.name)
+ 
+     def partial_velocity(self, frame, *gen_speeds):
+         """Returns the partial velocities of the linear velocity vector of this
+2026-05-20 01:29:40,755 - INFO - Eval script for sympy__sympy-20049 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-20049/eval.sh; copying to container...
+2026-05-20 01:29:44,042 - INFO - Test runtime: 3.26 seconds
+2026-05-20 01:29:44,042 - INFO - Test output for sympy__sympy-20049 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-20049/test_output.txt
+2026-05-20 01:29:44,073 - INFO - Git diff after:
+diff --git a/sympy/physics/vector/point.py b/sympy/physics/vector/point.py
+index d4e3cfcc90..8e50b9a3a2 100644
+--- a/sympy/physics/vector/point.py
++++ b/sympy/physics/vector/point.py
+@@ -517,11 +517,20 @@ def vel(self, frame):
+ 
+         """
+ 
++        from sympy.physics.vector.functions import dynamicsymbols
+         _check_frame(frame)
+-        if not (frame in self._vel_dict):
+-            raise ValueError('Velocity of point ' + self.name + ' has not been'
+-                             ' defined in ReferenceFrame ' + frame.name)
+-        return self._vel_dict[frame]
++        if frame in self._vel_dict:
++            return self._vel_dict[frame]
++        # Attempt to compute the velocity from the position of a point that
++        # has its velocity defined in the specified frame.
++        for point in self._pos_dict:
++            if frame in point._vel_dict:
++                vel = point._vel_dict[frame]
++                pos = self.pos_from(point)
++                self.set_vel(frame, vel + pos.dt(frame))
++                return self._vel_dict[frame]
++        raise ValueError('Velocity of point ' + self.name + ' has not been'
++                         ' defined in ReferenceFrame ' + frame.name)
+ 
+     def partial_velocity(self, frame, *gen_speeds):
+         """Returns the partial velocities of the linear velocity vector of this
+2026-05-20 01:29:44,073 - INFO - Grading answer for sympy__sympy-20049...
+2026-05-20 01:29:44,074 - INFO - report: {'sympy__sympy-20049': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_auto_point_vel', 'test_auto_vel_dont_overwrite'], 'failure': ['test_auto_point_vel_multiple_point_path', 'test_auto_point_vel_shortest_path']}, 'PASS_TO_PASS': {'success': ['test_point_v1pt_theorys', 'test_point_a1pt_theorys', 'test_point_v2pt_theorys', 'test_point_a2pt_theorys', 'test_point_funcs', 'test_point_pos', 'test_point_partial_velocity', 'test_point_vel', 'test_auto_point_vel_if_tree_has_vel_but_inappropriate_pos_vector'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-20049: resolved: False
+2026-05-20 01:29:44,074 - INFO - Attempting to stop container sweb.eval.sympy__sympy-20049.zhikuncode_eval_300_FINAL...
+2026-05-20 01:29:59,413 - INFO - Attempting to remove container sweb.eval.sympy__sympy-20049.zhikuncode_eval_300_FINAL...
+2026-05-20 01:29:59,429 - INFO - Container sweb.eval.sympy__sympy-20049.zhikuncode_eval_300_FINAL removed.
+2026-05-20 01:29:59,429 - INFO - Attempting to remove image sweb.eval.x86_64.sympy__sympy-20049:latest...
+2026-05-20 01:29:59,486 - INFO - Image sweb.eval.x86_64.sympy__sympy-20049:latest removed.

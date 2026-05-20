@@ -1,0 +1,63 @@
+2026-05-20 01:16:28,484 - INFO - Environment image sweb.env.py.x86_64.c795f4b88616b8462021ed:latest found for sympy__sympy-13647
+Building instance image sweb.eval.x86_64.sympy__sympy-13647:latest for sympy__sympy-13647
+2026-05-20 01:18:41,406 - INFO - Creating container for sympy__sympy-13647...
+2026-05-20 01:18:41,433 - INFO - Container for sympy__sympy-13647 created: afb57ea9ed11b342a673f33049b9848a3633bac24a9c7b3e0bb125de707a521c
+2026-05-20 01:18:41,632 - INFO - Container for sympy__sympy-13647 started: afb57ea9ed11b342a673f33049b9848a3633bac24a9c7b3e0bb125de707a521c
+2026-05-20 01:18:41,632 - INFO - Intermediate patch for sympy__sympy-13647 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-13647/patch.diff, now applying to container...
+2026-05-20 01:18:41,770 - INFO - >>>>> Applied Patch:
+Checking patch sympy/matrices/common.py...
+Applied patch sympy/matrices/common.py cleanly.
+
+2026-05-20 01:18:42,068 - INFO - Git diff before:
+diff --git a/sympy/matrices/common.py b/sympy/matrices/common.py
+index 056d9bc49..6f52e412d 100644
+--- a/sympy/matrices/common.py
++++ b/sympy/matrices/common.py
+@@ -79,14 +79,12 @@ def entry(i, j):
+         return self._new(self.rows, self.cols - 1, entry)
+ 
+     def _eval_col_insert(self, pos, other):
+-        cols = self.cols
+-
+         def entry(i, j):
+             if j < pos:
+                 return self[i, j]
+             elif pos <= j < pos + other.cols:
+                 return other[i, j - pos]
+-            return self[i, j - pos - other.cols]
++            return self[i, j - other.cols]
+ 
+         return self._new(self.rows, self.cols + other.cols,
+                          lambda i, j: entry(i, j))
+2026-05-20 01:18:42,068 - INFO - Eval script for sympy__sympy-13647 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-13647/eval.sh; copying to container...
+2026-05-20 01:18:52,315 - INFO - Test runtime: 10.18 seconds
+2026-05-20 01:18:52,315 - INFO - Test output for sympy__sympy-13647 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-13647/test_output.txt
+2026-05-20 01:18:52,403 - INFO - Git diff after:
+diff --git a/sympy/matrices/common.py b/sympy/matrices/common.py
+index 056d9bc49..6f52e412d 100644
+--- a/sympy/matrices/common.py
++++ b/sympy/matrices/common.py
+@@ -79,14 +79,12 @@ def entry(i, j):
+         return self._new(self.rows, self.cols - 1, entry)
+ 
+     def _eval_col_insert(self, pos, other):
+-        cols = self.cols
+-
+         def entry(i, j):
+             if j < pos:
+                 return self[i, j]
+             elif pos <= j < pos + other.cols:
+                 return other[i, j - pos]
+-            return self[i, j - pos - other.cols]
++            return self[i, j - other.cols]
+ 
+         return self._new(self.rows, self.cols + other.cols,
+                          lambda i, j: entry(i, j))
+2026-05-20 01:18:52,403 - INFO - Grading answer for sympy__sympy-13647...
+2026-05-20 01:18:52,405 - INFO - report: {'sympy__sympy-13647': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_col_insert'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test__MinimalMatrix', 'test_vec', 'test_tolist', 'test_row_col_del', 'test_get_diag_blocks1', 'test_get_diag_blocks2', 'test_shape', 'test_reshape', 'test_row_col', 'test_row_join', 'test_col_join', 'test_row_insert', 'test_extract', 'test_hstack', 'test_vstack', 'test_atoms', 'test_free_symbols', 'test_has', 'test_is_anti_symmetric', 'test_diagonal_symmetrical', 'test_is_hermitian', 'test_is_Identity', 'test_is_symbolic', 'test_is_upper', 'test_is_lower', 'test_is_square', 'test_is_symmetric', 'test_is_hessenberg', 'test_is_zero', 'test_values', 'test_applyfunc', 'test_adjoint', 'test_as_real_imag', 'test_conjugate', 'test_doit', 'test_evalf', 'test_expand', 'test_replace', 'test_replace_map', 'test_simplify', 'test_subs', 'test_trace', 'test_xreplace', 'test_permute', 'test_abs', 'test_add', 'test_multiplication', 'test_power', 'test_neg', 'test_sub', 'test_div', 'test_det', 'test_adjugate', 'test_cofactor_and_minors', 'test_charpoly', 'test_row_op', 'test_col_op', 'test_is_echelon', 'test_echelon_form', 'test_rref', 'test_eye', 'test_ones', 'test_zeros', 'test_diag', 'test_jordan_block', 'test_columnspace', 'test_rowspace', 'test_nullspace', 'test_eigenvals', 'test_eigenvects', 'test_left_eigenvects', 'test_diagonalize', 'test_is_diagonalizable', 'test_jordan_form', 'test_singular_values', 'test_integrate'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-13647: resolved: True
+2026-05-20 01:18:52,405 - INFO - Attempting to stop container sweb.eval.sympy__sympy-13647.zhikuncode_eval_300_FINAL...
+2026-05-20 01:19:07,892 - INFO - Attempting to remove container sweb.eval.sympy__sympy-13647.zhikuncode_eval_300_FINAL...
+2026-05-20 01:19:07,904 - INFO - Container sweb.eval.sympy__sympy-13647.zhikuncode_eval_300_FINAL removed.
+2026-05-20 01:19:07,904 - INFO - Attempting to remove image sweb.eval.x86_64.sympy__sympy-13647:latest...
+2026-05-20 01:19:07,953 - INFO - Image sweb.eval.x86_64.sympy__sympy-13647:latest removed.

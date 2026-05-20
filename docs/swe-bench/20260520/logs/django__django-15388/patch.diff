@@ -1,0 +1,43 @@
+diff --git a/django/template/autoreload.py b/django/template/autoreload.py
+index cf1b20b..870067b 100644
+--- a/django/template/autoreload.py
++++ b/django/template/autoreload.py
+@@ -19,16 +19,32 @@ def get_template_directories():
+         if not isinstance(backend, DjangoTemplates):
+             continue
+ 
+-        items.update(cwd / to_path(dir) for dir in backend.engine.dirs)
++        for dir_ in backend.engine.dirs:
++            dir_ = cwd / to_path(dir_)
++            try:
++                dir_ = dir_.resolve()
++            except (OSError, RuntimeError):
++                pass
++            # Avoid watching the cwd or its parents, as watching such broad
++            # directories can overwhelm the file watcher and break auto-reload.
++            if dir_ == cwd or dir_ in cwd.parents:
++                continue
++            items.add(dir_)
+ 
+         for loader in backend.engine.template_loaders:
+             if not hasattr(loader, 'get_dirs'):
+                 continue
+-            items.update(
+-                cwd / to_path(directory)
+-                for directory in loader.get_dirs()
+-                if not is_django_path(directory)
+-            )
++            for directory in loader.get_dirs():
++                if is_django_path(directory):
++                    continue
++                directory = cwd / to_path(directory)
++                try:
++                    directory = directory.resolve()
++                except (OSError, RuntimeError):
++                    pass
++                if directory == cwd or directory in cwd.parents:
++                    continue
++                items.add(directory)
+     return items
+ 
+ 

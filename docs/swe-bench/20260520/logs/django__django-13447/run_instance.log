@@ -1,0 +1,65 @@
+2026-05-19 23:19:36,019 - INFO - Environment image sweb.env.py.x86_64.297af196949a2a635bce66:latest found for django__django-13447
+Building instance image sweb.eval.x86_64.django__django-13447:latest for django__django-13447
+2026-05-19 23:24:24,182 - INFO - Creating container for django__django-13447...
+2026-05-19 23:24:24,209 - INFO - Container for django__django-13447 created: b48c6cb34ac58bb13ebb9050840991f72467ef80bd5d4b1b05d5b75814477506
+2026-05-19 23:24:24,618 - INFO - Container for django__django-13447 started: b48c6cb34ac58bb13ebb9050840991f72467ef80bd5d4b1b05d5b75814477506
+2026-05-19 23:24:24,618 - INFO - Intermediate patch for django__django-13447 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-13447/patch.diff, now applying to container...
+2026-05-19 23:24:24,866 - INFO - >>>>> Applied Patch:
+Checking patch django/contrib/admin/sites.py...
+Applied patch django/contrib/admin/sites.py cleanly.
+
+2026-05-19 23:24:25,622 - INFO - Git diff before:
+diff --git a/django/contrib/admin/sites.py b/django/contrib/admin/sites.py
+index 837dabfea8..a48a730e16 100644
+--- a/django/contrib/admin/sites.py
++++ b/django/contrib/admin/sites.py
+@@ -430,7 +430,7 @@ class AdminSite:
+                     return HttpResponsePermanentRedirect(path)
+         raise Http404
+ 
+-    def _build_app_dict(self, request, label=None):
++    def build_app_dict(self, request, label=None):
+         """
+         Build the app dictionary. The optional `label` parameter filters models
+         of a specific app.
+@@ -463,6 +463,7 @@ class AdminSite:
+             model_dict = {
+                 'name': capfirst(model._meta.verbose_name_plural),
+                 'object_name': model._meta.object_name,
++                'model': model,
+                 'perms': perms,
+                 'admin_url': None,
+                 'add_url': None,
+2026-05-19 23:24:25,622 - INFO - Eval script for django__django-13447 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-13447/eval.sh; copying to container...
+2026-05-19 23:24:31,583 - INFO - Test runtime: 5.87 seconds
+2026-05-19 23:24:31,584 - INFO - Test output for django__django-13447 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-13447/test_output.txt
+2026-05-19 23:24:31,709 - INFO - Git diff after:
+diff --git a/django/contrib/admin/sites.py b/django/contrib/admin/sites.py
+index 837dabfea8..a48a730e16 100644
+--- a/django/contrib/admin/sites.py
++++ b/django/contrib/admin/sites.py
+@@ -430,7 +430,7 @@ class AdminSite:
+                     return HttpResponsePermanentRedirect(path)
+         raise Http404
+ 
+-    def _build_app_dict(self, request, label=None):
++    def build_app_dict(self, request, label=None):
+         """
+         Build the app dictionary. The optional `label` parameter filters models
+         of a specific app.
+@@ -463,6 +463,7 @@ class AdminSite:
+             model_dict = {
+                 'name': capfirst(model._meta.verbose_name_plural),
+                 'object_name': model._meta.object_name,
++                'model': model,
+                 'perms': perms,
+                 'admin_url': None,
+                 'add_url': None,
+2026-05-19 23:24:31,709 - INFO - Grading answer for django__django-13447...
+2026-05-19 23:24:31,710 - INFO - report: {'django__django-13447': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_available_apps (admin_views.test_adminsite.SiteEachContextTest)']}, 'PASS_TO_PASS': {'success': ['test_add_action (admin_views.test_adminsite.SiteActionsTests)', 'test_disable_action (admin_views.test_adminsite.SiteActionsTests)', "AdminSite.get_action() returns an action even if it's disabled."], 'failure': ['test_each_context (admin_views.test_adminsite.SiteEachContextTest)', 'test_each_context_site_url_with_script_name (admin_views.test_adminsite.SiteEachContextTest)']}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-13447: resolved: False
+2026-05-19 23:24:31,710 - INFO - Attempting to stop container sweb.eval.django__django-13447.zhikuncode_eval_300_FINAL...
+2026-05-19 23:24:47,153 - INFO - Attempting to remove container sweb.eval.django__django-13447.zhikuncode_eval_300_FINAL...
+2026-05-19 23:24:47,169 - INFO - Container sweb.eval.django__django-13447.zhikuncode_eval_300_FINAL removed.
+2026-05-19 23:24:47,169 - INFO - Attempting to remove image sweb.eval.x86_64.django__django-13447:latest...
+2026-05-19 23:24:47,316 - INFO - Image sweb.eval.x86_64.django__django-13447:latest removed.

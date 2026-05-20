@@ -1,0 +1,73 @@
+{
+    "sympy__sympy-14396": {
+        "patch_is_None": false,
+        "patch_exists": true,
+        "patch_successfully_applied": true,
+        "resolved": true,
+        "tests_status": {
+            "FAIL_TO_PASS": {
+                "success": [
+                    "test_Domain_preprocess"
+                ],
+                "failure": []
+            },
+            "PASS_TO_PASS": {
+                "success": [
+                    "test_Options_clone",
+                    "test_Expand_preprocess",
+                    "test_Expand_postprocess",
+                    "test_Gens_preprocess",
+                    "test_Gens_postprocess",
+                    "test_Wrt_preprocess",
+                    "test_Wrt_postprocess",
+                    "test_Sort_preprocess",
+                    "test_Sort_postprocess",
+                    "test_Order_preprocess",
+                    "test_Order_postprocess",
+                    "test_Field_preprocess",
+                    "test_Field_postprocess",
+                    "test_Greedy_preprocess",
+                    "test_Greedy_postprocess",
+                    "test_Domain_postprocess",
+                    "test_Split_preprocess",
+                    "test_Split_postprocess",
+                    "test_Gaussian_preprocess",
+                    "test_Gaussian_postprocess",
+                    "test_Extension_preprocess",
+                    "test_Extension_postprocess",
+                    "test_Modulus_preprocess",
+                    "test_Modulus_postprocess",
+                    "test_Symmetric_preprocess",
+                    "test_Symmetric_postprocess",
+                    "test_Strict_preprocess",
+                    "test_Strict_postprocess",
+                    "test_Auto_preprocess",
+                    "test_Auto_postprocess",
+                    "test_Frac_preprocess",
+                    "test_Frac_postprocess",
+                    "test_Formal_preprocess",
+                    "test_Formal_postprocess",
+                    "test_Polys_preprocess",
+                    "test_Polys_postprocess",
+                    "test_Include_preprocess",
+                    "test_Include_postprocess",
+                    "test_All_preprocess",
+                    "test_All_postprocess",
+                    "test_Gen_postprocess",
+                    "test_Symbols_preprocess",
+                    "test_Symbols_postprocess",
+                    "test_Method_preprocess"
+                ],
+                "failure": []
+            },
+            "FAIL_TO_FAIL": {
+                "success": [],
+                "failure": []
+            },
+            "PASS_TO_FAIL": {
+                "success": [],
+                "failure": []
+            }
+        }
+    }
+}

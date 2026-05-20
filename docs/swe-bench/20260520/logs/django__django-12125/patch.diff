@@ -1,0 +1,45 @@
+diff --git a/django/db/migrations/serializer.py b/django/db/migrations/serializer.py
+index 7d22695..9abe509 100644
+--- a/django/db/migrations/serializer.py
++++ b/django/db/migrations/serializer.py
+@@ -9,6 +9,8 @@ import re
+ import types
+ import uuid
+ 
++from importlib import import_module
++
+ from django.conf import SettingsReference
+ from django.db import models
+ from django.db.migrations.operations.base import Operation
+@@ -95,6 +97,19 @@ class DeconstructableSerializer(BaseSerializer):
+             imports = {"from django.db import models"}
+             name = "models.%s" % name
+         else:
++            # Try to find the actual importable module by progressively
++            # trimming the path. This handles inner classes like Outer.Inner
++            # where the path is "module.Outer.Inner" but only "module" is
++            # importable.
++            parts = module.split(".")
++            for i in range(len(parts), 0, -1):
++                candidate = ".".join(parts[:i])
++                try:
++                    import_module(candidate)
++                    module = candidate
++                    break
++                except ImportError:
++                    continue
+             imports = {"import %s" % module}
+             name = path
+         return name, imports
+@@ -267,9 +282,9 @@ class TypeSerializer(BaseSerializer):
+         if hasattr(self.value, "__module__"):
+             module = self.value.__module__
+             if module == builtins.__name__:
+-                return self.value.__name__, set()
++                return self.value.__qualname__, set()
+             else:
+-                return "%s.%s" % (module, self.value.__name__), {"import %s" % module}
++                return "%s.%s" % (module, self.value.__qualname__), {"import %s" % module}
+ 
+ 
+ class UUIDSerializer(BaseSerializer):

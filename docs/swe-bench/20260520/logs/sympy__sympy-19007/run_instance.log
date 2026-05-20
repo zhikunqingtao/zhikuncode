@@ -1,0 +1,151 @@
+2026-05-20 01:27:19,050 - INFO - Environment image sweb.env.py.x86_64.c795f4b88616b8462021ed:latest found for sympy__sympy-19007
+Building instance image sweb.eval.x86_64.sympy__sympy-19007:latest for sympy__sympy-19007
+2026-05-20 01:29:23,920 - INFO - Creating container for sympy__sympy-19007...
+2026-05-20 01:29:23,943 - INFO - Container for sympy__sympy-19007 created: 04759bbf51d53a578160cd50e6208ab1bdbbf1db16ad22d05233ceb229e17d4d
+2026-05-20 01:29:24,182 - INFO - Container for sympy__sympy-19007 started: 04759bbf51d53a578160cd50e6208ab1bdbbf1db16ad22d05233ceb229e17d4d
+2026-05-20 01:29:24,182 - INFO - Intermediate patch for sympy__sympy-19007 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-19007/patch.diff, now applying to container...
+2026-05-20 01:29:24,308 - INFO - >>>>> Applied Patch:
+Checking patch sympy/matrices/expressions/blockmatrix.py...
+Applied patch sympy/matrices/expressions/blockmatrix.py cleanly.
+
+2026-05-20 01:29:24,724 - INFO - Git diff before:
+diff --git a/sympy/matrices/expressions/blockmatrix.py b/sympy/matrices/expressions/blockmatrix.py
+index b821c42845..3d4f62823d 100644
+--- a/sympy/matrices/expressions/blockmatrix.py
++++ b/sympy/matrices/expressions/blockmatrix.py
+@@ -233,19 +233,55 @@ def transpose(self):
+         return self._eval_transpose()
+ 
+     def _entry(self, i, j, **kwargs):
++        from sympy.matrices.expressions.matexpr import MatrixElement
++        from sympy.matrices.expressions.slice import MatrixSlice
+         # Find row entry
+         for row_block, numrows in enumerate(self.rowblocksizes):
+-            if (i < numrows) != False:
++            if (i < numrows) == True:
+                 break
+-            else:
++            elif (i < numrows) == False:
+                 i -= numrows
+-        for col_block, numcols in enumerate(self.colblocksizes):
+-            if (j < numcols) != False:
++            elif row_block == self.blockshape[0] - 1:
++                # Last block - assume index is valid
+                 break
+             else:
++                # Cannot determine which block the index falls into.
++                # However, if all blocks are slices of the same parent matrix,
++                # we can safely resolve to the parent's entry.
++                if self._all_blocks_from_same_parent():
++                    break
++                return MatrixElement(self, i, j)
++        for col_block, numcols in enumerate(self.colblocksizes):
++            if (j < numcols) == True:
++                break
++            elif (j < numcols) == False:
+                 j -= numcols
++            elif col_block == self.blockshape[1] - 1:
++                # Last block - assume index is valid
++                break
++            else:
++                # Cannot determine which block the index falls into.
++                # However, if all blocks are slices of the same parent matrix,
++                # we can safely resolve to the parent's entry.
++                if self._all_blocks_from_same_parent():
++                    break
++                return MatrixElement(self, i, j)
+         return self.blocks[row_block, col_block][i, j]
+ 
++    def _all_blocks_from_same_parent(self):
++        """Check if all blocks are slices of the same parent matrix."""
++        from sympy.matrices.expressions.slice import MatrixSlice
++        parent = None
++        for block in self.blocks:
++            if isinstance(block, MatrixSlice):
++                if parent is None:
++                    parent = block.parent
++                elif block.parent != parent:
++                    return False
++            else:
++                return False
++        return parent is not None
++
+     @property
+     def is_Identity(self):
+         if self.blockshape[0] != self.blockshape[1]:
+2026-05-20 01:29:24,725 - INFO - Eval script for sympy__sympy-19007 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-19007/eval.sh; copying to container...
+2026-05-20 01:29:29,585 - INFO - Test runtime: 4.76 seconds
+2026-05-20 01:29:29,585 - INFO - Test output for sympy__sympy-19007 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-19007/test_output.txt
+2026-05-20 01:29:29,627 - INFO - Git diff after:
+diff --git a/sympy/matrices/expressions/blockmatrix.py b/sympy/matrices/expressions/blockmatrix.py
+index b821c42845..3d4f62823d 100644
+--- a/sympy/matrices/expressions/blockmatrix.py
++++ b/sympy/matrices/expressions/blockmatrix.py
+@@ -233,19 +233,55 @@ def transpose(self):
+         return self._eval_transpose()
+ 
+     def _entry(self, i, j, **kwargs):
++        from sympy.matrices.expressions.matexpr import MatrixElement
++        from sympy.matrices.expressions.slice import MatrixSlice
+         # Find row entry
+         for row_block, numrows in enumerate(self.rowblocksizes):
+-            if (i < numrows) != False:
++            if (i < numrows) == True:
+                 break
+-            else:
++            elif (i < numrows) == False:
+                 i -= numrows
+-        for col_block, numcols in enumerate(self.colblocksizes):
+-            if (j < numcols) != False:
++            elif row_block == self.blockshape[0] - 1:
++                # Last block - assume index is valid
+                 break
+             else:
++                # Cannot determine which block the index falls into.
++                # However, if all blocks are slices of the same parent matrix,
++                # we can safely resolve to the parent's entry.
++                if self._all_blocks_from_same_parent():
++                    break
++                return MatrixElement(self, i, j)
++        for col_block, numcols in enumerate(self.colblocksizes):
++            if (j < numcols) == True:
++                break
++            elif (j < numcols) == False:
+                 j -= numcols
++            elif col_block == self.blockshape[1] - 1:
++                # Last block - assume index is valid
++                break
++            else:
++                # Cannot determine which block the index falls into.
++                # However, if all blocks are slices of the same parent matrix,
++                # we can safely resolve to the parent's entry.
++                if self._all_blocks_from_same_parent():
++                    break
++                return MatrixElement(self, i, j)
+         return self.blocks[row_block, col_block][i, j]
+ 
++    def _all_blocks_from_same_parent(self):
++        """Check if all blocks are slices of the same parent matrix."""
++        from sympy.matrices.expressions.slice import MatrixSlice
++        parent = None
++        for block in self.blocks:
++            if isinstance(block, MatrixSlice):
++                if parent is None:
++                    parent = block.parent
++                elif block.parent != parent:
++                    return False
++            else:
++                return False
++        return parent is not None
++
+     @property
+     def is_Identity(self):
+         if self.blockshape[0] != self.blockshape[1]:
+2026-05-20 01:29:29,627 - INFO - Grading answer for sympy__sympy-19007...
+2026-05-20 01:29:29,627 - INFO - report: {'sympy__sympy-19007': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_block_index_symbolic', 'test_block_index_symbolic_nonzero'], 'failure': ['test_block_index_large']}, 'PASS_TO_PASS': {'success': ['test_bc_matmul', 'test_bc_matadd', 'test_bc_transpose', 'test_bc_dist_diag', 'test_block_plus_ident', 'test_BlockMatrix', 'test_block_collapse_explicit_matrices', 'test_issue_17624', 'test_issue_18618', 'test_BlockMatrix_trace', 'test_BlockMatrix_Determinant', 'test_squareBlockMatrix', 'test_BlockDiagMatrix', 'test_blockcut', 'test_reblock_2x2', 'test_deblock', 'test_symbolic_indexing', 'test_add_index', 'test_mul_index', 'test_pow_index', 'test_transpose_index', 'test_Identity_index', 'test_block_index', 'test_slicing', 'test_errors', 'test_matrix_expression_to_indices'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-19007: resolved: False
+2026-05-20 01:29:29,627 - INFO - Attempting to stop container sweb.eval.sympy__sympy-19007.zhikuncode_eval_300_FINAL...
+2026-05-20 01:29:45,010 - INFO - Attempting to remove container sweb.eval.sympy__sympy-19007.zhikuncode_eval_300_FINAL...
+2026-05-20 01:29:45,022 - INFO - Container sweb.eval.sympy__sympy-19007.zhikuncode_eval_300_FINAL removed.
+2026-05-20 01:29:45,022 - INFO - Attempting to remove image sweb.eval.x86_64.sympy__sympy-19007:latest...
+2026-05-20 01:29:45,058 - INFO - Image sweb.eval.x86_64.sympy__sympy-19007:latest removed.

@@ -1,0 +1,131 @@
+2026-05-20 01:29:56,832 - INFO - Environment image sweb.env.py.x86_64.c795f4b88616b8462021ed:latest found for sympy__sympy-21055
+Building instance image sweb.eval.x86_64.sympy__sympy-21055:latest for sympy__sympy-21055
+2026-05-20 01:32:17,546 - INFO - Creating container for sympy__sympy-21055...
+2026-05-20 01:32:17,569 - INFO - Container for sympy__sympy-21055 created: e896f5453ad713e4832afae027716e270ab2963dc396884710e80afa29ea70a4
+2026-05-20 01:32:17,868 - INFO - Container for sympy__sympy-21055 started: e896f5453ad713e4832afae027716e270ab2963dc396884710e80afa29ea70a4
+2026-05-20 01:32:17,869 - INFO - Intermediate patch for sympy__sympy-21055 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-21055/patch.diff, now applying to container...
+2026-05-20 01:32:18,073 - INFO - >>>>> Applied Patch:
+Checking patch sympy/assumptions/refine.py...
+Applied patch sympy/assumptions/refine.py cleanly.
+
+2026-05-20 01:32:18,535 - INFO - Git diff before:
+diff --git a/sympy/assumptions/refine.py b/sympy/assumptions/refine.py
+index e1f97190c0..b980715f18 100644
+--- a/sympy/assumptions/refine.py
++++ b/sympy/assumptions/refine.py
+@@ -350,6 +350,42 @@ def refine_sign(expr, assumptions):
+     return expr
+ 
+ 
++def refine_arg(expr, assumptions):
++    """
++    Handler for the arg function.
++
++    Examples
++    ========
++
++    >>> from sympy import Q, arg
++    >>> from sympy.assumptions.refine import refine_arg
++    >>> from sympy.abc import x
++    >>> refine_arg(arg(x), Q.positive(x))
++    0
++    >>> refine_arg(arg(x), Q.negative(x))
++    pi
++    >>> refine_arg(arg(x), Q.zero(x))
++    nan
++
++    """
++    from sympy import arg
++    from sympy.core.logic import fuzzy_not
++    arg_ = expr.args[0]
++    if ask(Q.zero(arg_), assumptions):
++        return S.NaN
++    if ask(Q.positive(arg_), assumptions):
++        return S.Zero
++    if ask(Q.negative(arg_), assumptions):
++        return S.Pi
++    if ask(Q.imaginary(arg_), assumptions):
++        im_part = arg_ / S.ImaginaryUnit
++        if ask(Q.positive(im_part), assumptions):
++            return S.Pi / 2
++        if ask(Q.negative(im_part), assumptions):
++            return -S.Pi / 2
++    return expr
++
++
+ def refine_matrixelement(expr, assumptions):
+     """
+     Handler for symmetric part.
+@@ -380,5 +416,6 @@ def refine_matrixelement(expr, assumptions):
+     're': refine_re,
+     'im': refine_im,
+     'sign': refine_sign,
++    'arg': refine_arg,
+     'MatrixElement': refine_matrixelement
+ }  # type: Dict[str, Callable[[Expr, Boolean], Expr]]
+2026-05-20 01:32:18,536 - INFO - Eval script for sympy__sympy-21055 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-21055/eval.sh; copying to container...
+2026-05-20 01:32:26,755 - INFO - Test runtime: 8.11 seconds
+2026-05-20 01:32:26,755 - INFO - Test output for sympy__sympy-21055 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-21055/test_output.txt
+2026-05-20 01:32:26,885 - INFO - Git diff after:
+diff --git a/sympy/assumptions/refine.py b/sympy/assumptions/refine.py
+index e1f97190c0..b980715f18 100644
+--- a/sympy/assumptions/refine.py
++++ b/sympy/assumptions/refine.py
+@@ -350,6 +350,42 @@ def refine_sign(expr, assumptions):
+     return expr
+ 
+ 
++def refine_arg(expr, assumptions):
++    """
++    Handler for the arg function.
++
++    Examples
++    ========
++
++    >>> from sympy import Q, arg
++    >>> from sympy.assumptions.refine import refine_arg
++    >>> from sympy.abc import x
++    >>> refine_arg(arg(x), Q.positive(x))
++    0
++    >>> refine_arg(arg(x), Q.negative(x))
++    pi
++    >>> refine_arg(arg(x), Q.zero(x))
++    nan
++
++    """
++    from sympy import arg
++    from sympy.core.logic import fuzzy_not
++    arg_ = expr.args[0]
++    if ask(Q.zero(arg_), assumptions):
++        return S.NaN
++    if ask(Q.positive(arg_), assumptions):
++        return S.Zero
++    if ask(Q.negative(arg_), assumptions):
++        return S.Pi
++    if ask(Q.imaginary(arg_), assumptions):
++        im_part = arg_ / S.ImaginaryUnit
++        if ask(Q.positive(im_part), assumptions):
++            return S.Pi / 2
++        if ask(Q.negative(im_part), assumptions):
++            return -S.Pi / 2
++    return expr
++
++
+ def refine_matrixelement(expr, assumptions):
+     """
+     Handler for symmetric part.
+@@ -380,5 +416,6 @@ def refine_matrixelement(expr, assumptions):
+     're': refine_re,
+     'im': refine_im,
+     'sign': refine_sign,
++    'arg': refine_arg,
+     'MatrixElement': refine_matrixelement
+ }  # type: Dict[str, Callable[[Expr, Boolean], Expr]]
+2026-05-20 01:32:26,885 - INFO - Grading answer for sympy__sympy-21055...
+2026-05-20 01:32:26,885 - INFO - report: {'sympy__sympy-21055': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_arg'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_Abs', 'test_pow1', 'test_pow2', 'test_exp', 'test_Piecewise', 'test_atan2', 'test_re', 'test_im', 'test_complex', 'test_sign', 'test_func_args', 'test_eval_refine', 'test_refine_issue_12724'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-21055: resolved: True
+2026-05-20 01:32:26,885 - INFO - Attempting to stop container sweb.eval.sympy__sympy-21055.zhikuncode_eval_300_FINAL...
+2026-05-20 01:32:42,547 - INFO - Attempting to remove container sweb.eval.sympy__sympy-21055.zhikuncode_eval_300_FINAL...
+2026-05-20 01:32:42,562 - INFO - Container sweb.eval.sympy__sympy-21055.zhikuncode_eval_300_FINAL removed.
+2026-05-20 01:32:42,562 - INFO - Attempting to remove image sweb.eval.x86_64.sympy__sympy-21055:latest...
+2026-05-20 01:32:42,663 - INFO - Image sweb.eval.x86_64.sympy__sympy-21055:latest removed.

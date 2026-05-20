@@ -1,0 +1,77 @@
+2026-05-19 23:43:59,995 - INFO - Environment image sweb.env.py.x86_64.a33dddf55cdff5d8e23374:latest found for django__django-15819
+Building instance image sweb.eval.x86_64.django__django-15819:latest for django__django-15819
+2026-05-19 23:46:36,765 - INFO - Creating container for django__django-15819...
+2026-05-19 23:46:36,786 - INFO - Container for django__django-15819 created: 7320d1bbb3a5ded9dad3245811fc99c45d49b0e812aaa116d5c42d99a275112a
+2026-05-19 23:46:37,185 - INFO - Container for django__django-15819 started: 7320d1bbb3a5ded9dad3245811fc99c45d49b0e812aaa116d5c42d99a275112a
+2026-05-19 23:46:37,185 - INFO - Intermediate patch for django__django-15819 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-15819/patch.diff, now applying to container...
+2026-05-19 23:46:37,463 - INFO - >>>>> Applied Patch:
+Checking patch django/core/management/commands/inspectdb.py...
+Applied patch django/core/management/commands/inspectdb.py cleanly.
+
+2026-05-19 23:46:38,244 - INFO - Git diff before:
+diff --git a/django/core/management/commands/inspectdb.py b/django/core/management/commands/inspectdb.py
+index f33bcbdccf..edb4733d9d 100644
+--- a/django/core/management/commands/inspectdb.py
++++ b/django/core/management/commands/inspectdb.py
+@@ -133,6 +133,11 @@ class Command(BaseCommand):
+                 known_models.append(table2model(table_name))
+                 used_column_names = []  # Holds column names used in the table so far
+                 column_to_field_name = {}  # Maps column names to names of model fields
++                # Count how many times each related table is referenced to determine
++                # if related_name is needed to avoid reverse accessor clashes.
++                related_tables = [
++                    ref_db_table for ref_db_column, ref_db_table in relations.values()
++                ]
+                 for row in table_description:
+                     comment_notes = (
+                         []
+@@ -182,6 +187,10 @@ class Command(BaseCommand):
+                             if ref_db_table == table_name
+                             else table2model(ref_db_table)
+                         )
++                        # Add related_name if the related table is referenced more
++                        # than once to avoid reverse accessor clashes.
++                        if related_tables.count(ref_db_table) > 1:
++                            extra_params["related_name"] = att_name
+                         if rel_to in known_models:
+                             field_type = "%s(%s" % (rel_type, rel_to)
+                         else:
+2026-05-19 23:46:38,244 - INFO - Eval script for django__django-15819 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-15819/eval.sh; copying to container...
+2026-05-19 23:46:43,608 - INFO - Test runtime: 5.24 seconds
+2026-05-19 23:46:43,608 - INFO - Test output for django__django-15819 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-15819/test_output.txt
+2026-05-19 23:46:43,744 - INFO - Git diff after:
+diff --git a/django/core/management/commands/inspectdb.py b/django/core/management/commands/inspectdb.py
+index f33bcbdccf..edb4733d9d 100644
+--- a/django/core/management/commands/inspectdb.py
++++ b/django/core/management/commands/inspectdb.py
+@@ -133,6 +133,11 @@ class Command(BaseCommand):
+                 known_models.append(table2model(table_name))
+                 used_column_names = []  # Holds column names used in the table so far
+                 column_to_field_name = {}  # Maps column names to names of model fields
++                # Count how many times each related table is referenced to determine
++                # if related_name is needed to avoid reverse accessor clashes.
++                related_tables = [
++                    ref_db_table for ref_db_column, ref_db_table in relations.values()
++                ]
+                 for row in table_description:
+                     comment_notes = (
+                         []
+@@ -182,6 +187,10 @@ class Command(BaseCommand):
+                             if ref_db_table == table_name
+                             else table2model(ref_db_table)
+                         )
++                        # Add related_name if the related table is referenced more
++                        # than once to avoid reverse accessor clashes.
++                        if related_tables.count(ref_db_table) > 1:
++                            extra_params["related_name"] = att_name
+                         if rel_to in known_models:
+                             field_type = "%s(%s" % (rel_type, rel_to)
+                         else:
+2026-05-19 23:46:43,744 - INFO - Grading answer for django__django-15819...
+2026-05-19 23:46:43,746 - INFO - report: {'django__django-15819': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_same_relations (inspectdb.tests.InspectDBTestCase)']}, 'PASS_TO_PASS': {'success': ['test_composite_primary_key (inspectdb.tests.InspectDBTransactionalTests)', 'inspectdb --include-views creates models for database views.', 'test_char_field_db_collation (inspectdb.tests.InspectDBTestCase)', 'Introspection of columns with a custom field (#21090)', 'Introspection of column names consist/start with digits (#16536/#17676)', 'Test introspection of various Django field types', 'test_foreign_key_to_field (inspectdb.tests.InspectDBTestCase)', 'Introspection errors should not crash the command, and the error should', 'test_json_field (inspectdb.tests.InspectDBTestCase)', 'By default the command generates models with `Meta.managed = False`.', 'Introspection of column names containing special characters,', 'test_stealth_table_name_filter_option (inspectdb.tests.InspectDBTestCase)', 'Introspection of table names containing special characters,', 'inspectdb can inspect a subset of tables by passing the table names as', 'test_table_with_func_unique_constraint (inspectdb.tests.InspectDBTestCase)', 'test_text_field_db_collation (inspectdb.tests.InspectDBTestCase)', 'test_unique_together_meta (inspectdb.tests.InspectDBTestCase)'], 'failure': ['test_attribute_name_not_python_keyword (inspectdb.tests.InspectDBTestCase)']}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-15819: resolved: False
+2026-05-19 23:46:43,746 - INFO - Attempting to stop container sweb.eval.django__django-15819.zhikuncode_eval_300_FINAL...
+2026-05-19 23:46:59,534 - INFO - Attempting to remove container sweb.eval.django__django-15819.zhikuncode_eval_300_FINAL...
+2026-05-19 23:46:59,552 - INFO - Container sweb.eval.django__django-15819.zhikuncode_eval_300_FINAL removed.
+2026-05-19 23:46:59,552 - INFO - Attempting to remove image sweb.eval.x86_64.django__django-15819:latest...
+2026-05-19 23:46:59,653 - INFO - Image sweb.eval.x86_64.django__django-15819:latest removed.

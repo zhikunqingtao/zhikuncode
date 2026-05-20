@@ -1,0 +1,49 @@
+2026-05-19 23:10:25,413 - INFO - Environment image sweb.env.py.x86_64.e83e37f52c09532c62acfb:latest found for django__django-12983
+Building instance image sweb.eval.x86_64.django__django-12983:latest for django__django-12983
+2026-05-19 23:19:16,770 - INFO - Creating container for django__django-12983...
+2026-05-19 23:19:16,790 - INFO - Container for django__django-12983 created: ab677bba78f5cf0462d7219bf1bbfb30ff057e57f93ecef1e41853b32d34b2b8
+2026-05-19 23:19:16,878 - INFO - Container for django__django-12983 started: ab677bba78f5cf0462d7219bf1bbfb30ff057e57f93ecef1e41853b32d34b2b8
+2026-05-19 23:19:16,878 - INFO - Intermediate patch for django__django-12983 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-12983/patch.diff, now applying to container...
+2026-05-19 23:19:16,925 - INFO - >>>>> Applied Patch:
+Checking patch django/utils/text.py...
+Applied patch django/utils/text.py cleanly.
+
+2026-05-19 23:19:17,368 - INFO - Git diff before:
+diff --git a/django/utils/text.py b/django/utils/text.py
+index fb5f6298c4..3ba4bbb3f4 100644
+--- a/django/utils/text.py
++++ b/django/utils/text.py
+@@ -403,7 +403,7 @@ def slugify(value, allow_unicode=False):
+     else:
+         value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore').decode('ascii')
+     value = re.sub(r'[^\w\s-]', '', value.lower()).strip()
+-    return re.sub(r'[-\s]+', '-', value)
++    return re.sub(r'[-\s]+', '-', value).strip('-_')
+ 
+ 
+ def camel_case_to_spaces(value):
+2026-05-19 23:19:17,368 - INFO - Eval script for django__django-12983 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-12983/eval.sh; copying to container...
+2026-05-19 23:19:20,512 - INFO - Test runtime: 3.12 seconds
+2026-05-19 23:19:20,512 - INFO - Test output for django__django-12983 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-12983/test_output.txt
+2026-05-19 23:19:20,551 - INFO - Git diff after:
+diff --git a/django/utils/text.py b/django/utils/text.py
+index fb5f6298c4..3ba4bbb3f4 100644
+--- a/django/utils/text.py
++++ b/django/utils/text.py
+@@ -403,7 +403,7 @@ def slugify(value, allow_unicode=False):
+     else:
+         value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore').decode('ascii')
+     value = re.sub(r'[^\w\s-]', '', value.lower()).strip()
+-    return re.sub(r'[-\s]+', '-', value)
++    return re.sub(r'[-\s]+', '-', value).strip('-_')
+ 
+ 
+ def camel_case_to_spaces(value):
+2026-05-19 23:19:20,551 - INFO - Grading answer for django__django-12983...
+2026-05-19 23:19:20,551 - INFO - report: {'django__django-12983': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_slugify (utils_tests.test_text.TestUtilsText)'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_compress_sequence (utils_tests.test_text.TestUtilsText)', 'test_format_lazy (utils_tests.test_text.TestUtilsText)', 'test_get_text_list (utils_tests.test_text.TestUtilsText)', 'test_get_valid_filename (utils_tests.test_text.TestUtilsText)', 'test_normalize_newlines (utils_tests.test_text.TestUtilsText)', 'test_phone2numeric (utils_tests.test_text.TestUtilsText)', 'test_smart_split (utils_tests.test_text.TestUtilsText)', 'test_truncate_chars (utils_tests.test_text.TestUtilsText)', 'test_truncate_chars_html (utils_tests.test_text.TestUtilsText)', 'test_truncate_html_words (utils_tests.test_text.TestUtilsText)', 'test_truncate_words (utils_tests.test_text.TestUtilsText)', 'test_unescape_entities (utils_tests.test_text.TestUtilsText)', 'test_unescape_entities_deprecated (utils_tests.test_text.TestUtilsText)', 'test_unescape_string_literal (utils_tests.test_text.TestUtilsText)', 'test_wrap (utils_tests.test_text.TestUtilsText)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-12983: resolved: True
+2026-05-19 23:19:20,551 - INFO - Attempting to stop container sweb.eval.django__django-12983.zhikuncode_eval_300_FINAL...
+2026-05-19 23:19:35,919 - INFO - Attempting to remove container sweb.eval.django__django-12983.zhikuncode_eval_300_FINAL...
+2026-05-19 23:19:35,929 - INFO - Container sweb.eval.django__django-12983.zhikuncode_eval_300_FINAL removed.
+2026-05-19 23:19:35,929 - INFO - Attempting to remove image sweb.eval.x86_64.django__django-12983:latest...
+2026-05-19 23:19:36,017 - INFO - Image sweb.eval.x86_64.django__django-12983:latest removed.

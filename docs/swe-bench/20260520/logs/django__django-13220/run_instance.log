@@ -1,0 +1,133 @@
+2026-05-19 23:15:40,510 - INFO - Environment image sweb.env.py.x86_64.e83e37f52c09532c62acfb:latest found for django__django-13220
+Building instance image sweb.eval.x86_64.django__django-13220:latest for django__django-13220
+2026-05-19 23:16:58,989 - INFO - Creating container for django__django-13220...
+2026-05-19 23:16:59,008 - INFO - Container for django__django-13220 created: 83600f84e3be81ec1e18df4f65e972719e6fc67db03cd1cd4b4a280d3d9fead7
+2026-05-19 23:16:59,107 - INFO - Container for django__django-13220 started: 83600f84e3be81ec1e18df4f65e972719e6fc67db03cd1cd4b4a280d3d9fead7
+2026-05-19 23:16:59,107 - INFO - Intermediate patch for django__django-13220 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-13220/patch.diff, now applying to container...
+2026-05-19 23:16:59,152 - INFO - >>>>> Applied Patch:
+Checking patch django/core/exceptions.py...
+Applied patch django/core/exceptions.py cleanly.
+
+2026-05-19 23:16:59,594 - INFO - Git diff before:
+diff --git a/django/core/exceptions.py b/django/core/exceptions.py
+index dc084b8692..88491c2e7a 100644
+--- a/django/core/exceptions.py
++++ b/django/core/exceptions.py
+@@ -182,6 +182,50 @@ class ValidationError(Exception):
+     def __repr__(self):
+         return 'ValidationError(%s)' % self
+ 
++    def __eq__(self, other):
++        if not isinstance(other, ValidationError):
++            return NotImplemented
++        if hasattr(self, 'error_dict') != hasattr(other, 'error_dict'):
++            return False
++        if hasattr(self, 'error_dict'):
++            if self.error_dict.keys() != other.error_dict.keys():
++                return False
++            return all(
++                sorted(self.error_dict[f], key=self._error_key) ==
++                sorted(other.error_dict[f], key=self._error_key)
++                for f in self.error_dict
++            )
++        # For single errors (error_list == [self]), compare attributes directly
++        if self.error_list == [self] and other.error_list == [other]:
++            return self._error_key(self) == self._error_key(other)
++        return (
++            sorted(self.error_list, key=self._error_key) ==
++            sorted(other.error_list, key=self._error_key)
++        )
++
++    def _error_key(self, error):
++        """
++        Return a comparable key for sorting ValidationError instances.
++        Includes message, code, and params for complete comparison.
++        """
++        params = error.params
++        if isinstance(params, dict):
++            params = tuple(sorted(params.items()))
++        elif isinstance(params, (list, tuple)):
++            params = tuple(params)
++        return (error.message, error.code, params)
++
++    def __hash__(self):
++        if hasattr(self, 'error_dict'):
++            return hash(tuple(sorted(
++                (f, tuple(sorted(self._error_key(e) for e in errors)))
++                for f, errors in self.error_dict.items()
++            )))
++        # For single errors, hash based on attributes directly
++        if self.error_list == [self]:
++            return hash(self._error_key(self))
++        return hash(tuple(sorted(self._error_key(e) for e in self.error_list)))
++
+ 
+ class EmptyResultSet(Exception):
+     """A database query predicate is impossible."""
+2026-05-19 23:16:59,595 - INFO - Eval script for django__django-13220 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-13220/eval.sh; copying to container...
+2026-05-19 23:17:02,723 - INFO - Test runtime: 3.10 seconds
+2026-05-19 23:17:02,724 - INFO - Test output for django__django-13220 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-13220/test_output.txt
+2026-05-19 23:17:02,761 - INFO - Git diff after:
+diff --git a/django/core/exceptions.py b/django/core/exceptions.py
+index dc084b8692..88491c2e7a 100644
+--- a/django/core/exceptions.py
++++ b/django/core/exceptions.py
+@@ -182,6 +182,50 @@ class ValidationError(Exception):
+     def __repr__(self):
+         return 'ValidationError(%s)' % self
+ 
++    def __eq__(self, other):
++        if not isinstance(other, ValidationError):
++            return NotImplemented
++        if hasattr(self, 'error_dict') != hasattr(other, 'error_dict'):
++            return False
++        if hasattr(self, 'error_dict'):
++            if self.error_dict.keys() != other.error_dict.keys():
++                return False
++            return all(
++                sorted(self.error_dict[f], key=self._error_key) ==
++                sorted(other.error_dict[f], key=self._error_key)
++                for f in self.error_dict
++            )
++        # For single errors (error_list == [self]), compare attributes directly
++        if self.error_list == [self] and other.error_list == [other]:
++            return self._error_key(self) == self._error_key(other)
++        return (
++            sorted(self.error_list, key=self._error_key) ==
++            sorted(other.error_list, key=self._error_key)
++        )
++
++    def _error_key(self, error):
++        """
++        Return a comparable key for sorting ValidationError instances.
++        Includes message, code, and params for complete comparison.
++        """
++        params = error.params
++        if isinstance(params, dict):
++            params = tuple(sorted(params.items()))
++        elif isinstance(params, (list, tuple)):
++            params = tuple(params)
++        return (error.message, error.code, params)
++
++    def __hash__(self):
++        if hasattr(self, 'error_dict'):
++            return hash(tuple(sorted(
++                (f, tuple(sorted(self._error_key(e) for e in errors)))
++                for f, errors in self.error_dict.items()
++            )))
++        # For single errors, hash based on attributes directly
++        if self.error_list == [self]:
++            return hash(self._error_key(self))
++        return hash(tuple(sorted(self._error_key(e) for e in self.error_list)))
++
+ 
+ class EmptyResultSet(Exception):
+     """A database query predicate is impossible."""
+2026-05-19 23:17:02,762 - INFO - Grading answer for django__django-13220...
+2026-05-19 23:17:02,762 - INFO - report: {'django__django-13220': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_eq_nested (test_exceptions.test_validation_error.TestValidationError)', 'test_hash_nested (test_exceptions.test_validation_error.TestValidationError)'], 'failure': ['test_eq (test_exceptions.test_validation_error.TestValidationError)', 'test_hash (test_exceptions.test_validation_error.TestValidationError)']}, 'PASS_TO_PASS': {'success': ['test_messages_concatenates_error_dict_values (test_exceptions.test_validation_error.TestValidationError)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-13220: resolved: False
+2026-05-19 23:17:02,762 - INFO - Attempting to stop container sweb.eval.django__django-13220.zhikuncode_eval_300_FINAL...
+2026-05-19 23:17:18,059 - INFO - Attempting to remove container sweb.eval.django__django-13220.zhikuncode_eval_300_FINAL...
+2026-05-19 23:17:18,070 - INFO - Container sweb.eval.django__django-13220.zhikuncode_eval_300_FINAL removed.
+2026-05-19 23:17:18,070 - INFO - Attempting to remove image sweb.eval.x86_64.django__django-13220:latest...
+2026-05-19 23:17:18,157 - INFO - Image sweb.eval.x86_64.django__django-13220:latest removed.

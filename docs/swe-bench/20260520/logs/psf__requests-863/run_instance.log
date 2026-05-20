@@ -1,0 +1,55 @@
+2026-05-20 00:30:22,436 - INFO - Environment image sweb.env.py.x86_64.1f92e6d7cef88badc4f744:latest found for psf__requests-863
+Building instance image sweb.eval.x86_64.psf__requests-863:latest for psf__requests-863
+2026-05-20 00:30:29,973 - INFO - Creating container for psf__requests-863...
+2026-05-20 00:30:29,992 - INFO - Container for psf__requests-863 created: b79b1e4065a1cae10445c86adf4a08a5136d83c0a09775c964d2b20c43d06cd7
+2026-05-20 00:30:30,086 - INFO - Container for psf__requests-863 started: b79b1e4065a1cae10445c86adf4a08a5136d83c0a09775c964d2b20c43d06cd7
+2026-05-20 00:30:30,086 - INFO - Intermediate patch for psf__requests-863 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-863/patch.diff, now applying to container...
+2026-05-20 00:30:30,130 - INFO - >>>>> Applied Patch:
+Checking patch requests/models.py...
+Applied patch requests/models.py cleanly.
+
+2026-05-20 00:30:30,165 - INFO - Git diff before:
+diff --git a/requests/models.py b/requests/models.py
+index d845637..404b4bf 100644
+--- a/requests/models.py
++++ b/requests/models.py
+@@ -463,7 +463,10 @@ class Request(object):
+     def register_hook(self, event, hook):
+         """Properly register a hook."""
+ 
+-        self.hooks[event].append(hook)
++        if isinstance(hook, list):
++            self.hooks[event].extend(hook)
++        else:
++            self.hooks[event].append(hook)
+ 
+     def deregister_hook(self, event, hook):
+         """Deregister a previously registered hook.
+2026-05-20 00:30:30,165 - INFO - Eval script for psf__requests-863 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-863/eval.sh; copying to container...
+2026-05-20 00:32:07,482 - INFO - Test runtime: 97.29 seconds
+2026-05-20 00:32:07,482 - INFO - Test output for psf__requests-863 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-863/test_output.txt
+2026-05-20 00:32:07,506 - INFO - Git diff after:
+diff --git a/requests/models.py b/requests/models.py
+index d845637..404b4bf 100644
+--- a/requests/models.py
++++ b/requests/models.py
+@@ -463,7 +463,10 @@ class Request(object):
+     def register_hook(self, event, hook):
+         """Properly register a hook."""
+ 
+-        self.hooks[event].append(hook)
++        if isinstance(hook, list):
++            self.hooks[event].extend(hook)
++        else:
++            self.hooks[event].append(hook)
+ 
+     def deregister_hook(self, event, hook):
+         """Deregister a previously registered hook.
+2026-05-20 00:32:07,506 - INFO - Grading answer for psf__requests-863...
+2026-05-20 00:32:07,508 - INFO - report: {'psf__requests-863': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['tests/test_requests.py::RequestsTestSuite::test_POSTBIN_GET_POST_FILES_WITH_HEADERS', 'tests/test_requests.py::RequestsTestSuite::test_nonurlencoded_postdata', 'tests/test_requests.py::RequestsTestSuite::test_prefetch_redirect_bug', 'tests/test_requests.py::RequestsTestSuite::test_urlencoded_post_data'], 'failure': []}, 'PASS_TO_PASS': {'success': ['tests/test_requests.py::RequestsTestSuite::test_BASICAUTH_HTTP_200_OK_GET', 'tests/test_requests.py::RequestsTestSuite::test_BASICAUTH_TUPLE_HTTP_200_OK_GET', 'tests/test_requests.py::RequestsTestSuite::test_GET_no_redirect', 'tests/test_requests.py::RequestsTestSuite::test_HEAD_no_redirect', 'tests/test_requests.py::RequestsTestSuite::test_HTTP_200_OK_GET', 'tests/test_requests.py::RequestsTestSuite::test_HTTP_200_OK_GET_WITH_MIXED_PARAMS', 'tests/test_requests.py::RequestsTestSuite::test_HTTP_200_OK_GET_WITH_PARAMS', 'tests/test_requests.py::RequestsTestSuite::test_HTTP_200_OK_HEAD', 'tests/test_requests.py::RequestsTestSuite::test_HTTP_200_OK_PUT', 'tests/test_requests.py::RequestsTestSuite::test_HTTP_302_ALLOW_REDIRECT_GET', 'tests/test_requests.py::RequestsTestSuite::test_HTTP_302_GET', 'tests/test_requests.py::RequestsTestSuite::test_POSTBIN_GET_POST_FILES', 'tests/test_requests.py::RequestsTestSuite::test_POSTBIN_GET_POST_FILES_WITH_PARAMS', 'tests/test_requests.py::RequestsTestSuite::test_accept_objects_with_string_representations_as_urls', 'tests/test_requests.py::RequestsTestSuite::test_bytes_files', 'tests/test_requests.py::RequestsTestSuite::test_cached_response', 'tests/test_requests.py::RequestsTestSuite::test_can_have_none_in_header_values', 'tests/test_requests.py::RequestsTestSuite::test_connection_error', 'tests/test_requests.py::RequestsTestSuite::test_connection_error_with_safe_mode', 'tests/test_requests.py::RequestsTestSuite::test_connection_keepalive_and_close', 'tests/test_requests.py::RequestsTestSuite::test_danger_mode_redirects', 'tests/test_requests.py::RequestsTestSuite::test_decompress_gzip', 'tests/test_requests.py::RequestsTestSuite::test_default_status_raising', 'tests/test_requests.py::RequestsTestSuite::test_empty_response', 'tests/test_requests.py::RequestsTestSuite::test_entry_points', 'tests/test_requests.py::RequestsTestSuite::test_file_post_data', 'tests/test_requests.py::RequestsTestSuite::test_head_content', 'tests/test_requests.py::RequestsTestSuite::test_httpauth_recursion', 'tests/test_requests.py::RequestsTestSuite::test_invalid_url', 'tests/test_requests.py::RequestsTestSuite::test_invalid_urls_throw_requests_exception', 'tests/test_requests.py::RequestsTestSuite::test_iter_lines', 'tests/test_requests.py::RequestsTestSuite::test_max_redirects', 'tests/test_requests.py::RequestsTestSuite::test_multiple_hooks', 'tests/test_requests.py::RequestsTestSuite::test_nonurlencoded_post_data', 'tests/test_requests.py::RequestsTestSuite::test_nonzero_evaluation', 'tests/test_requests.py::RequestsTestSuite::test_params_accepts_kv_list', 'tests/test_requests.py::RequestsTestSuite::test_params_are_added_before_fragment', 'tests/test_requests.py::RequestsTestSuite::test_path_is_not_double_encoded', 'tests/test_requests.py::RequestsTestSuite::test_post_fields_with_multiple_values_and_files', 'tests/test_requests.py::RequestsTestSuite::test_post_fields_with_multiple_values_and_files_as_tuples', 'tests/test_requests.py::RequestsTestSuite::test_prefetch_return_response_interaction', 'tests/test_requests.py::RequestsTestSuite::test_redirect_history', 'tests/test_requests.py::RequestsTestSuite::test_relative_redirect_history', 'tests/test_requests.py::RequestsTestSuite::test_request_ok_set', 'tests/test_requests.py::RequestsTestSuite::test_response_has_unicode_url', 'tests/test_requests.py::RequestsTestSuite::test_response_sent', 'tests/test_requests.py::RequestsTestSuite::test_session_HTTP_200_OK_GET', 'tests/test_requests.py::RequestsTestSuite::test_session_persistent_headers', 'tests/test_requests.py::RequestsTestSuite::test_session_pickling', 'tests/test_requests.py::RequestsTestSuite::test_status_raising', 'tests/test_requests.py::RequestsTestSuite::test_unicode_get', 'tests/test_requests.py::RequestsTestSuite::test_upload_binary_data', 'tests/test_requests.py::RequestsTestSuite::test_urlencoded_get_query_multivalued_param', 'tests/test_requests.py::RequestsTestSuite::test_urlencoded_post_query_and_data', 'tests/test_requests.py::RequestsTestSuite::test_urlencoded_post_query_multivalued_and_data', 'tests/test_requests.py::RequestsTestSuite::test_urlencoded_post_querystring', 'tests/test_requests.py::RequestsTestSuite::test_urlencoded_post_querystring_multivalued', 'tests/test_requests.py::RequestsTestSuite::test_useful_exception_for_invalid_port', 'tests/test_requests.py::RequestsTestSuite::test_useful_exception_for_invalid_scheme', 'tests/test_requests.py::RequestsTestSuite::test_user_agent_transfers'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for psf__requests-863: resolved: True
+2026-05-20 00:32:07,508 - INFO - Attempting to stop container sweb.eval.psf__requests-863.zhikuncode_eval_300_FINAL...
+2026-05-20 00:32:24,498 - INFO - Attempting to remove container sweb.eval.psf__requests-863.zhikuncode_eval_300_FINAL...
+2026-05-20 00:32:24,510 - INFO - Container sweb.eval.psf__requests-863.zhikuncode_eval_300_FINAL removed.
+2026-05-20 00:32:24,510 - INFO - Attempting to remove image sweb.eval.x86_64.psf__requests-863:latest...
+2026-05-20 00:32:24,531 - INFO - Image sweb.eval.x86_64.psf__requests-863:latest removed.

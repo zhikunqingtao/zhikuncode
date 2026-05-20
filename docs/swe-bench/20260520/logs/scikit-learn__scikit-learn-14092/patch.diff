@@ -1,0 +1,29 @@
+diff --git a/sklearn/utils/validation.py b/sklearn/utils/validation.py
+index 8747844..e427627 100644
+--- a/sklearn/utils/validation.py
++++ b/sklearn/utils/validation.py
+@@ -972,9 +972,21 @@ def check_scalar(x, name, target_type, min_val=None, max_val=None):
+         If the parameter's value violates the given bounds.
+     """
+ 
+-    if not isinstance(x, target_type):
+-        raise TypeError('`{}` must be an instance of {}, not {}.'
+-                        .format(name, target_type, type(x)))
++    if isinstance(target_type, tuple):
++        target_type_tuple = tuple(numbers.Integral if t is int
++                                  else numbers.Real if t is float else t
++                                  for t in target_type)
++        if not isinstance(x, target_type_tuple):
++            raise TypeError('`{}` must be an instance of {}, not {}.'
++                            .format(name, target_type, type(x)))
++    else:
++        if target_type is int:
++            target_type = numbers.Integral
++        elif target_type is float:
++            target_type = numbers.Real
++        if not isinstance(x, target_type):
++            raise TypeError('`{}` must be an instance of {}, not {}.'
++                            .format(name, target_type, type(x)))
+ 
+     if min_val is not None and x < min_val:
+         raise ValueError('`{}`= {}, must be >= {}.'.format(name, x, min_val))

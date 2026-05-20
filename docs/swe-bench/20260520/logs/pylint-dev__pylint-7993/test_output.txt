@@ -1,0 +1,453 @@
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z '' ']'
++++ export CONDA_SHLVL=0
++++ CONDA_SHLVL=0
++++ '[' -n '' ']'
++++++ dirname /opt/miniconda3/bin/conda
+++++ dirname /opt/miniconda3/bin
++++ PATH=/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export PATH
++++ '[' -z '' ']'
++++ PS1=
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1=
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval 'PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=1
++++ CONDA_SHLVL=1
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=2
+++ CONDA_SHLVL=2
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_1=/opt/miniconda3
+++ CONDA_PREFIX_1=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ cd /testbed
++ git config --global --add safe.directory /testbed
++ cd /testbed
++ git status
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   pylint/reporters/text.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
++ git show
+commit e90702074e68e20dc8e5df5013ee3ecf22139c3e
+Author: Jacob Walls <jacobtylerwalls@gmail.com>
+Date:   Mon Dec 26 13:16:46 2022 -0500
+
+    Fix `use-sequence-for-iteration` when unpacking a set with `*` (#7975) (#7988)
+    
+    Co-authored-by: Dani Alcala <112832187+clavedeluna@users.noreply.github.com>
+
+diff --git a/doc/whatsnew/fragments/5788.false_positive b/doc/whatsnew/fragments/5788.false_positive
+new file mode 100644
+index 000000000..65fc29fe4
+--- /dev/null
++++ b/doc/whatsnew/fragments/5788.false_positive
+@@ -0,0 +1,3 @@
++Fix ``use-sequence-for-iteration`` when unpacking a set with ``*``.
++
++Closes #5788
+diff --git a/pylint/checkers/refactoring/recommendation_checker.py b/pylint/checkers/refactoring/recommendation_checker.py
+index 7873dc25e..e1634fd8c 100644
+--- a/pylint/checkers/refactoring/recommendation_checker.py
++++ b/pylint/checkers/refactoring/recommendation_checker.py
+@@ -9,6 +9,7 @@ from astroid import nodes
+ 
+ from pylint import checkers
+ from pylint.checkers import utils
++from pylint.interfaces import HIGH
+ 
+ 
+ class RecommendationChecker(checkers.BaseChecker):
+@@ -326,9 +327,16 @@ class RecommendationChecker(checkers.BaseChecker):
+     def _check_use_sequence_for_iteration(
+         self, node: nodes.For | nodes.Comprehension
+     ) -> None:
+-        """Check if code iterates over an in-place defined set."""
+-        if isinstance(node.iter, nodes.Set):
+-            self.add_message("use-sequence-for-iteration", node=node.iter)
++        """Check if code iterates over an in-place defined set.
++
++        Sets using `*` are not considered in-place.
++        """
++        if isinstance(node.iter, nodes.Set) and not any(
++            utils.has_starred_node_recursive(node)
++        ):
++            self.add_message(
++                "use-sequence-for-iteration", node=node.iter, confidence=HIGH
++            )
+ 
+     @utils.only_required_for_messages("consider-using-f-string")
+     def visit_const(self, node: nodes.Const) -> None:
+diff --git a/pylint/checkers/utils.py b/pylint/checkers/utils.py
+index 90339ad50..da7667f46 100644
+--- a/pylint/checkers/utils.py
++++ b/pylint/checkers/utils.py
+@@ -1961,6 +1961,20 @@ def find_assigned_names_recursive(
+             yield from find_assigned_names_recursive(elt)
+ 
+ 
++def has_starred_node_recursive(
++    node: nodes.For | nodes.Comprehension | nodes.Set,
++) -> Iterator[bool]:
++    """Yield ``True`` if a Starred node is found recursively."""
++    if isinstance(node, nodes.Starred):
++        yield True
++    elif isinstance(node, nodes.Set):
++        for elt in node.elts:
++            yield from has_starred_node_recursive(elt)
++    elif isinstance(node, (nodes.For, nodes.Comprehension)):
++        for elt in node.iter.elts:
++            yield from has_starred_node_recursive(elt)
++
++
+ def is_hashable(node: nodes.NodeNG) -> bool:
+     """Return whether any inferred value of `node` is hashable.
+ 
+diff --git a/tests/functional/ext/code_style/cs_consider_using_tuple.py b/tests/functional/ext/code_style/cs_consider_using_tuple.py
+index d24396079..57178c34e 100644
+--- a/tests/functional/ext/code_style/cs_consider_using_tuple.py
++++ b/tests/functional/ext/code_style/cs_consider_using_tuple.py
+@@ -28,4 +28,4 @@ for x in [2, *var]:  # [consider-using-tuple]
+ 
+ # Don't emit warning for sets as this is handled by builtin checker
+ (x for x in {1, 2, 3})  # [use-sequence-for-iteration]
+-[x for x in {*var, 2}]  # [use-sequence-for-iteration]
++[x for x in {*var, 2}]
+diff --git a/tests/functional/ext/code_style/cs_consider_using_tuple.txt b/tests/functional/ext/code_style/cs_consider_using_tuple.txt
+index cd8ffb1e7..565f5f778 100644
+--- a/tests/functional/ext/code_style/cs_consider_using_tuple.txt
++++ b/tests/functional/ext/code_style/cs_consider_using_tuple.txt
+@@ -4,5 +4,4 @@ consider-using-tuple:18:12:18:21::Consider using an in-place tuple instead of li
+ consider-using-tuple:21:9:21:15::Consider using an in-place tuple instead of list:UNDEFINED
+ consider-using-tuple:23:9:23:18::Consider using an in-place tuple instead of list:UNDEFINED
+ consider-using-tuple:26:12:26:21::Consider using an in-place tuple instead of list:UNDEFINED
+-use-sequence-for-iteration:30:12:30:21::Use a sequence type when iterating over values:UNDEFINED
+-use-sequence-for-iteration:31:12:31:21::Use a sequence type when iterating over values:UNDEFINED
++use-sequence-for-iteration:30:12:30:21::Use a sequence type when iterating over values:HIGH
+diff --git a/tests/functional/u/use/use_sequence_for_iteration.py b/tests/functional/u/use/use_sequence_for_iteration.py
+index 2dd1feb18..264e6e7b9 100644
+--- a/tests/functional/u/use/use_sequence_for_iteration.py
++++ b/tests/functional/u/use/use_sequence_for_iteration.py
+@@ -13,4 +13,16 @@ for x in {1, 2, 3}:  # [use-sequence-for-iteration]
+ [x for x in var]
+ [x for x in {1, 2, 3}]  # [use-sequence-for-iteration]
+ 
+-[x for x in {*var, 4}]  # [use-sequence-for-iteration]
++[x for x in {*var, 4}]
++
++def deduplicate(list_in):
++    for thing in {*list_in}:
++        print(thing)
++
++def deduplicate_two_lists(input1, input2):
++    for thing in {*input1, *input2}:
++        print(thing)
++
++def deduplicate_nested_sets(input1, input2, input3, input4):
++    for thing in {{*input1, *input2}, {*input3, *input4}}:
++        print(thing)
+diff --git a/tests/functional/u/use/use_sequence_for_iteration.txt b/tests/functional/u/use/use_sequence_for_iteration.txt
+index beb23a4df..3787b7a0e 100644
+--- a/tests/functional/u/use/use_sequence_for_iteration.txt
++++ b/tests/functional/u/use/use_sequence_for_iteration.txt
+@@ -1,4 +1,3 @@
+-use-sequence-for-iteration:7:9:7:18::Use a sequence type when iterating over values:UNDEFINED
+-use-sequence-for-iteration:11:12:11:21::Use a sequence type when iterating over values:UNDEFINED
+-use-sequence-for-iteration:14:12:14:21::Use a sequence type when iterating over values:UNDEFINED
+-use-sequence-for-iteration:16:12:16:21::Use a sequence type when iterating over values:UNDEFINED
++use-sequence-for-iteration:7:9:7:18::Use a sequence type when iterating over values:HIGH
++use-sequence-for-iteration:11:12:11:21::Use a sequence type when iterating over values:HIGH
++use-sequence-for-iteration:14:12:14:21::Use a sequence type when iterating over values:HIGH
++ git -c core.fileMode=false diff e90702074e68e20dc8e5df5013ee3ecf22139c3e
+diff --git a/pylint/reporters/text.py b/pylint/reporters/text.py
+index 29bd46798..54ce471b7 100644
+--- a/pylint/reporters/text.py
++++ b/pylint/reporters/text.py
+@@ -175,14 +175,21 @@ class TextReporter(BaseReporter):
+         self._template = template
+ 
+         # Check to see if all parameters in the template are attributes of the Message
+-        arguments = re.findall(r"\{(.+?)(:.*)?\}", template)
+-        for argument in arguments:
+-            if argument[0] not in MESSAGE_FIELDS:
++        # Match {{, }}, and {field} patterns. Only process {field} patterns (group 2 is set)
++        # to correctly handle escaped braces
++        for match in re.finditer(r"(\{\{|\}\}|\{([^{}]+?)(:.*)?\})", template):
++            # Skip escaped braces {{ and }} - they're matched by group 1 only
++            if match.group(2) is None:
++                continue
++            argument = match.group(2)
++            if argument not in MESSAGE_FIELDS:
+                 warnings.warn(
+-                    f"Don't recognize the argument '{argument[0]}' in the --msg-template. "
++                    f"Don't recognize the argument '{argument}' in the --msg-template. "
+                     "Are you sure it is supported on the current version of pylint?"
+                 )
+-                template = re.sub(r"\{" + argument[0] + r"(:.*?)?\}", "", template)
++                template = re.sub(
++                    r"\{" + re.escape(argument) + r"(:[^}]*)?\}", "", template
++                )
+         self._fixed_template = template
+ 
+     def write_message(self, msg: Message) -> None:
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z x ']'
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1='(testbed) '
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval 'PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=3
++++ CONDA_SHLVL=3
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=4
+++ CONDA_SHLVL=4
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_3=/opt/miniconda3
+++ CONDA_PREFIX_3=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ python -m pip install -e .
+Looking in indexes: https://mirrors.aliyun.com/pypi/simple/
+Obtaining file:///testbed
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Checking if build backend supports build_editable: started
+  Checking if build backend supports build_editable: finished with status 'done'
+ERROR: Project file:///testbed uses a build backend that is missing the 'build_editable' hook, so it cannot be installed in editable mode. Consider using a build backend that supports PEP 660.
++ git checkout e90702074e68e20dc8e5df5013ee3ecf22139c3e tests/reporters/unittest_reporting.py
+Updated 0 paths from 69d06e887
++ git apply -v -
+Checking patch tests/reporters/unittest_reporting.py...
+Applied patch tests/reporters/unittest_reporting.py cleanly.
++ : '>>>>> Start Test Output'
++ pytest -rA tests/reporters/unittest_reporting.py
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/_pytest/config/__init__.py:331: PluggyTeardownRaisedWarning: A plugin raised an exception during an old-style hookwrapper teardown.
+Plugin: helpconfig, Hook: pytest_cmdline_parse
+ConftestImportFailure: ModuleNotFoundError: No module named 'pylint' (from /testbed/tests/conftest.py)
+For more information see https://pluggy.readthedocs.io/en/stable/api_reference.html#pluggy.PluggyTeardownRaisedWarning
+  config = pluginmanager.hook.pytest_cmdline_parse(
+ImportError while loading conftest '/testbed/tests/conftest.py'.
+tests/conftest.py:14: in <module>
+    from pylint import checkers
+E   ModuleNotFoundError: No module named 'pylint'
++ : '>>>>> End Test Output'
++ git checkout e90702074e68e20dc8e5df5013ee3ecf22139c3e tests/reporters/unittest_reporting.py
+Updated 1 path from 69d06e887

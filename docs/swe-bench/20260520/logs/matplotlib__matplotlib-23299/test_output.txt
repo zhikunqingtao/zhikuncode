@@ -1,0 +1,754 @@
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z '' ']'
++++ export CONDA_SHLVL=0
++++ CONDA_SHLVL=0
++++ '[' -n '' ']'
++++++ dirname /opt/miniconda3/bin/conda
+++++ dirname /opt/miniconda3/bin
++++ PATH=/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export PATH
++++ '[' -z '' ']'
++++ PS1=
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1=
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval 'PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=1
++++ CONDA_SHLVL=1
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\''
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libglib_activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libxml2-split_activate.sh"'
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\''
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libglib_activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libxml2-split_activate.sh"'
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=2
+++ CONDA_SHLVL=2
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_1=/opt/miniconda3
+++ CONDA_PREFIX_1=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/libglib_activate.sh
++++ export GSETTINGS_SCHEMA_DIR_CONDA_BACKUP=
++++ GSETTINGS_SCHEMA_DIR_CONDA_BACKUP=
++++ export GSETTINGS_SCHEMA_DIR=/opt/miniconda3/envs/testbed/share/glib-2.0/schemas
++++ GSETTINGS_SCHEMA_DIR=/opt/miniconda3/envs/testbed/share/glib-2.0/schemas
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/libxml2-split_activate.sh
++++ test -n ''
++++ xml_catalog_files_libxml2=
++++ XML_CATALOG_FILES=
++++ conda_catalog_files=
++++ ifs_libxml2=' 	
+'
++++ IFS=' '
++++ rem=/opt/miniconda3/envs/testbed
++++ for pre in ${rem}
++++ test '' = /opt/miniconda3/envs/testbed
++++ conda_catalog_files=/opt/miniconda3/envs/testbed
++++ rem=
++++ IFS=' 	
+'
++++ conda_catalog_files='file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog'
++++ export 'XML_CATALOG_FILES=file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog'
++++ XML_CATALOG_FILES='file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog'
++++ unset conda_catalog_files ifs_libxml2 rem
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ cd /testbed
++ git config --global --add safe.directory /testbed
++ cd /testbed
++ git status
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   lib/matplotlib/__init__.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
++ git show
+commit aa12ae36211b9baed44f1ff7d3c5373b9a3153da
+Author: SWE-bench <setup@swebench.config>
+Date:   Tue May 19 16:17:12 2026 +0000
+
+    SWE-bench
++ git -c core.fileMode=false diff 3eadeacc06c9f2ddcdac6ae39819faa9fbee9e39
+diff --git a/lib/matplotlib/__init__.py b/lib/matplotlib/__init__.py
+index c268a56724..6c2cf4044b 100644
+--- a/lib/matplotlib/__init__.py
++++ b/lib/matplotlib/__init__.py
+@@ -1096,6 +1096,15 @@ def rc_context(rc=None, fname=None):
+         yield
+     finally:
+         dict.update(rcParams, orig)  # Revert to the original rcs.
++        # If the backend was auto-resolved while in the context, don't
++        # revert it back to the sentinel (which would trigger a new
++        # backend switch and close all figures on the next get_backend()).
++        if (dict.__getitem__(rcParams, 'backend')
++                is rcsetup._auto_backend_sentinel
++                and rcParamsOrig.get('backend')
++                is not rcsetup._auto_backend_sentinel):
++            dict.__setitem__(rcParams, 'backend',
++                             rcParamsOrig['backend'])
+ 
+ 
+ def use(backend, *, force=True):
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z x ']'
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1='(testbed) '
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='. "/opt/miniconda3/envs/testbed/etc/conda/deactivate.d/libglib_deactivate.sh"
+PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval '. "/opt/miniconda3/envs/testbed/etc/conda/deactivate.d/libglib_deactivate.sh"
+PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ . /opt/miniconda3/envs/testbed/etc/conda/deactivate.d/libglib_deactivate.sh
+++++ export GSETTINGS_SCHEMA_DIR=
+++++ GSETTINGS_SCHEMA_DIR=
+++++ unset GSETTINGS_SCHEMA_DIR_CONDA_BACKUP
+++++ '[' -z ']'
+++++ unset GSETTINGS_SCHEMA_DIR
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=3
++++ CONDA_SHLVL=3
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\''
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libglib_activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libxml2-split_activate.sh"'
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\''
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libglib_activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libxml2-split_activate.sh"'
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=4
+++ CONDA_SHLVL=4
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_3=/opt/miniconda3
+++ CONDA_PREFIX_3=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/libglib_activate.sh
++++ export GSETTINGS_SCHEMA_DIR_CONDA_BACKUP=
++++ GSETTINGS_SCHEMA_DIR_CONDA_BACKUP=
++++ export GSETTINGS_SCHEMA_DIR=/opt/miniconda3/envs/testbed/share/glib-2.0/schemas
++++ GSETTINGS_SCHEMA_DIR=/opt/miniconda3/envs/testbed/share/glib-2.0/schemas
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/libxml2-split_activate.sh
++++ test -n 'file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog'
++++ xml_catalog_files_libxml2='file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog'
++++ XML_CATALOG_FILES='file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog '
++++ conda_catalog_files=
++++ ifs_libxml2=' 	
+'
++++ IFS=' '
++++ rem=/opt/miniconda3/envs/testbed
++++ for pre in ${rem}
++++ test '' = /opt/miniconda3/envs/testbed
++++ conda_catalog_files=/opt/miniconda3/envs/testbed
++++ rem=
++++ IFS=' 	
+'
++++ conda_catalog_files='file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog'
++++ export 'XML_CATALOG_FILES=file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog'
++++ XML_CATALOG_FILES='file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog'
++++ unset conda_catalog_files ifs_libxml2 rem
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ python -m pip install -e .
+Looking in indexes: https://mirrors.aliyun.com/pypi/simple/
+Obtaining file:///testbed
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Checking if build backend supports build_editable: started
+  Checking if build backend supports build_editable: finished with status 'done'
+  Getting requirements to build editable: started
+  Getting requirements to build editable: finished with status 'done'
+  Installing backend dependencies: started
+  Installing backend dependencies: finished with status 'done'
+  Preparing editable metadata (pyproject.toml): started
+  Preparing editable metadata (pyproject.toml): finished with status 'done'
+Requirement already satisfied: contourpy>=1.0.1 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev2574+gaa12ae362.d20260519) (1.1.0)
+Requirement already satisfied: cycler>=0.10 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev2574+gaa12ae362.d20260519) (0.11.0)
+Requirement already satisfied: fonttools>=4.22.0 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev2574+gaa12ae362.d20260519) (4.42.1)
+Requirement already satisfied: kiwisolver>=1.0.1 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev2574+gaa12ae362.d20260519) (1.4.5)
+Requirement already satisfied: numpy>=1.19 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev2574+gaa12ae362.d20260519) (1.25.2)
+Requirement already satisfied: packaging>=20.0 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev2574+gaa12ae362.d20260519) (23.1)
+Requirement already satisfied: pillow>=6.2.0 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev2574+gaa12ae362.d20260519) (10.0.0)
+Requirement already satisfied: pyparsing>=2.2.1 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev2574+gaa12ae362.d20260519) (3.0.9)
+Requirement already satisfied: python-dateutil>=2.7 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev2574+gaa12ae362.d20260519) (2.8.2)
+Requirement already satisfied: setuptools_scm>=4 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev2574+gaa12ae362.d20260519) (7.1.0)
+Requirement already satisfied: six>=1.5 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from python-dateutil>=2.7->matplotlib==3.6.0.dev2574+gaa12ae362.d20260519) (1.16.0)
+Requirement already satisfied: setuptools in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from setuptools_scm>=4->matplotlib==3.6.0.dev2574+gaa12ae362.d20260519) (68.1.2)
+Requirement already satisfied: typing-extensions in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from setuptools_scm>=4->matplotlib==3.6.0.dev2574+gaa12ae362.d20260519) (4.7.1)
+Building wheels for collected packages: matplotlib
+  Building editable for matplotlib (pyproject.toml): started
+  Building editable for matplotlib (pyproject.toml): finished with status 'done'
+  Created wheel for matplotlib: filename=matplotlib-3.6.0.dev2574+gaa12ae362.d20260519-0.editable-cp311-cp311-linux_x86_64.whl size=24211 sha256=b1455057e9e24c8c4010d2475c53c3853a9482f4d02c1eee4a4e94a93ced621f
+  Stored in directory: /tmp/pip-ephem-wheel-cache-o2ckf1k_/wheels/49/5f/4f/01b7d31ea6ddac9643da788242d33e5fd3467d95d17b032c6b
+Successfully built matplotlib
+Installing collected packages: matplotlib
+  Attempting uninstall: matplotlib
+    Found existing installation: matplotlib 3.6.0.dev2573+g3eadeacc0
+    Uninstalling matplotlib-3.6.0.dev2573+g3eadeacc0:
+      Successfully uninstalled matplotlib-3.6.0.dev2573+g3eadeacc0
+Successfully installed matplotlib-3.6.0.dev2574+gaa12ae362.d20260519
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
++ git checkout 3eadeacc06c9f2ddcdac6ae39819faa9fbee9e39 lib/matplotlib/tests/test_rcparams.py
+Updated 0 paths from 3a8a4fa386
++ git apply -v -
+Checking patch lib/matplotlib/tests/test_rcparams.py...
+Applied patch lib/matplotlib/tests/test_rcparams.py cleanly.
++ : '>>>>> Start Test Output'
++ pytest -rA lib/matplotlib/tests/test_rcparams.py
+============================= test session starts ==============================
+platform linux -- Python 3.11.15, pytest-9.0.3, pluggy-1.6.0
+rootdir: /testbed
+configfile: pytest.ini
+plugins: timeout-2.4.0, rerunfailures-16.2, cov-7.1.0, xdist-3.8.0
+collected 208 items
+
+lib/matplotlib/tests/test_rcparams.py ..FF.............................. [ 16%]
+........................................................................ [ 50%]
+........................................................................ [ 85%]
+.........................F..s.                                           [100%]
+
+=================================== FAILURES ===================================
+_____________________________ test_rcparams_update _____________________________
+
+    def test_rcparams_update():
+        rc = mpl.RcParams({'figure.figsize': (3.5, 42)})
+        bad_dict = {'figure.figsize': (3.5, 42, 1)}
+        # make sure validation happens on input
+        with pytest.raises(ValueError), \
+             pytest.warns(UserWarning, match="validate"):
+>           rc.update(bad_dict)
+
+lib/matplotlib/tests/test_rcparams.py:111: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+<frozen _collections_abc>:949: in update
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = RcParams({'figure.figsize': [3.5, 42.0]}), key = 'figure.figsize'
+val = (3.5, 42, 1)
+
+    def __setitem__(self, key, val):
+        try:
+            if key in _deprecated_map:
+                version, alt_key, alt_val, inverse_alt = _deprecated_map[key]
+                _api.warn_deprecated(
+                    version, name=key, obj_type="rcparam", alternative=alt_key)
+                key = alt_key
+                val = alt_val(val)
+            elif key in _deprecated_remain_as_none and val is not None:
+                version, = _deprecated_remain_as_none[key]
+                _api.warn_deprecated(version, name=key, obj_type="rcparam")
+            elif key in _deprecated_ignore_map:
+                version, alt_key = _deprecated_ignore_map[key]
+                _api.warn_deprecated(
+                    version, name=key, obj_type="rcparam", alternative=alt_key)
+                return
+            elif key == 'backend':
+                if val is rcsetup._auto_backend_sentinel:
+                    if 'backend' in self:
+                        return
+            try:
+                cval = self.validate[key](val)
+            except ValueError as ve:
+>               raise ValueError(f"Key {key}: {ve}") from None
+E               ValueError: Key figure.figsize: Expected 2 values, but there are 3 values in (3.5, 42, 1)
+
+lib/matplotlib/__init__.py:651: ValueError
+
+During handling of the above exception, another exception occurred:
+
+    def test_rcparams_update():
+        rc = mpl.RcParams({'figure.figsize': (3.5, 42)})
+        bad_dict = {'figure.figsize': (3.5, 42, 1)}
+        # make sure validation happens on input
+>       with pytest.raises(ValueError), \
+             pytest.warns(UserWarning, match="validate"):
+E            Failed: DID NOT WARN. No warnings of type (<class 'UserWarning'>,) were emitted.
+E             Emitted warnings: [].
+
+lib/matplotlib/tests/test_rcparams.py:109: Failed
+______________________________ test_rcparams_init ______________________________
+
+    def test_rcparams_init():
+        with pytest.raises(ValueError), \
+             pytest.warns(UserWarning, match="validate"):
+>           mpl.RcParams({'figure.figsize': (3.5, 42, 1)})
+
+lib/matplotlib/tests/test_rcparams.py:117: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+lib/matplotlib/__init__.py:626: in __init__
+    self.update(*args, **kwargs)
+<frozen _collections_abc>:949: in update
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = RcParams({}), key = 'figure.figsize', val = (3.5, 42, 1)
+
+    def __setitem__(self, key, val):
+        try:
+            if key in _deprecated_map:
+                version, alt_key, alt_val, inverse_alt = _deprecated_map[key]
+                _api.warn_deprecated(
+                    version, name=key, obj_type="rcparam", alternative=alt_key)
+                key = alt_key
+                val = alt_val(val)
+            elif key in _deprecated_remain_as_none and val is not None:
+                version, = _deprecated_remain_as_none[key]
+                _api.warn_deprecated(version, name=key, obj_type="rcparam")
+            elif key in _deprecated_ignore_map:
+                version, alt_key = _deprecated_ignore_map[key]
+                _api.warn_deprecated(
+                    version, name=key, obj_type="rcparam", alternative=alt_key)
+                return
+            elif key == 'backend':
+                if val is rcsetup._auto_backend_sentinel:
+                    if 'backend' in self:
+                        return
+            try:
+                cval = self.validate[key](val)
+            except ValueError as ve:
+>               raise ValueError(f"Key {key}: {ve}") from None
+E               ValueError: Key figure.figsize: Expected 2 values, but there are 3 values in (3.5, 42, 1)
+
+lib/matplotlib/__init__.py:651: ValueError
+
+During handling of the above exception, another exception occurred:
+
+    def test_rcparams_init():
+>       with pytest.raises(ValueError), \
+             pytest.warns(UserWarning, match="validate"):
+E            Failed: DID NOT WARN. No warnings of type (<class 'UserWarning'>,) were emitted.
+E             Emitted warnings: [].
+
+lib/matplotlib/tests/test_rcparams.py:115: Failed
+_______________________ test_no_backend_reset_rccontext ________________________
+
+    def test_no_backend_reset_rccontext():
+        assert mpl.rcParams['backend'] != 'module://aardvark'
+        with mpl.rc_context():
+            mpl.rcParams['backend'] = 'module://aardvark'
+>       assert mpl.rcParams['backend'] == 'module://aardvark'
+E       AssertionError: assert 'agg' == 'module://aardvark'
+E         
+E         - module://aardvark
+E         + agg
+
+lib/matplotlib/tests/test_rcparams.py:503: AssertionError
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED lib/matplotlib/tests/test_rcparams.py::test_rcparams
+PASSED lib/matplotlib/tests/test_rcparams.py::test_RcParams_class
+PASSED lib/matplotlib/tests/test_rcparams.py::test_Bug_2543
+PASSED lib/matplotlib/tests/test_rcparams.py::test_legend_colors[same facecolor]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_legend_colors[inherited facecolor]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_legend_colors[different facecolor0]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_legend_colors[same edgecolor]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_legend_colors[inherited edgecolor]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_legend_colors[different facecolor1]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_mfc_rcparams
+PASSED lib/matplotlib/tests/test_rcparams.py::test_mec_rcparams
+PASSED lib/matplotlib/tests/test_rcparams.py::test_axes_titlecolor_rcparams
+PASSED lib/matplotlib/tests/test_rcparams.py::test_Issue_1713
+PASSED lib/matplotlib/tests/test_rcparams.py::test_animation_frame_formats
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_bool-t-True]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_bool-y-True]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_bool-yes-True]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_bool-on-True]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_bool-true-True]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_bool-1-True0]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_bool-1-True1]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_bool-True-True]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_bool-f-False]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_bool-n-False]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_bool-no-False]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_bool-off-False]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_bool-false-False]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_bool-0-False0]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_bool-0-False1]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_bool-False-False]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_strlist--target16]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_strlist-a,b-target17]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_strlist-aardvark-target18]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_strlist-aardvark, -target19]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_strlist-aardvark, ,-target20]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_strlist-arg21-target21]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_strlist-arg22-target22]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_strlist-arg23-target23]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_strlist-arg24-target24]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_intlist-1, 2-target25]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_intlist-arg26-target26]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_intlist-arg27-target27]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_intlist-arg28-target28]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_intlist-arg29-target29]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_floatlist-1.5, 2.5-target30]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_floatlist-arg31-target31]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_floatlist-arg32-target32]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_floatlist-arg33-target33]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_floatlist-arg34-target34]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_cycler-cycler("color", "rgb")-target35]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_cycler-arg36-target36]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_cycler-(cycler("color", ["r", "g", "b"]) +\n                          cycler("mew", [2, 3, 5]))-target37]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_cycler-cycler(c='rgb', lw=[1, 2, 3])-target38]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_cycler-cycler('c', 'rgb') * cycler('linestyle', ['-', '--'])-target39]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_cycler-arg40-target40]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_cycler-arg41-target41]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_hatch---|---|]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_hatch-\\oO-\\oO]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_hatch-/+*/.x-/+*/.x]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_hatch--]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_colorlist-r,g,b-target46]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_colorlist-arg47-target47]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_colorlist-r, ,-target48]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_colorlist-arg49-target49]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_colorlist-arg50-target50]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_colorlist-arg51-target51]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_color-None-none]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_color-none-none]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_color-AABBCC-#AABBCC]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_color-AABBCC00-#AABBCC00]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_color-tab:blue-tab:blue]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_color-C12-C12]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_color-(0, 1, 0)-target58]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_color-arg59-target59]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_color-(0, 1, 0, 1)-target60]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_color-arg61-target61]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[_validate_color_or_linecolor-linecolor-linecolor]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[_validate_color_or_linecolor-markerfacecolor-markerfacecolor]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[_validate_color_or_linecolor-mfc-markerfacecolor]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[_validate_color_or_linecolor-markeredgecolor-markeredgecolor]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[_validate_color_or_linecolor-mec-markeredgecolor]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_hist_bins-auto-auto]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_hist_bins-fd-fd]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_hist_bins-10-10]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_hist_bins-1, 2, 3-target70]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_hist_bins-arg71-target71]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_hist_bins-arg72-target72]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_markevery-None-None]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_markevery-1-1]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_markevery-0.1-0.1]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_markevery-arg76-target76]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_markevery-arg77-target77]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_markevery-arg78-target78]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_markevery-arg79-target79]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[validate_markevery-arg80-target80]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[_validate_linestyle----]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[_validate_linestyle-solid-solid]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[_validate_linestyle------]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[_validate_linestyle-dashed-dashed]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[_validate_linestyle--.--.]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[_validate_linestyle-dashdot-dashdot]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[_validate_linestyle-:-:]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[_validate_linestyle-dotted-dotted]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[_validate_linestyle--]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[_validate_linestyle- - ]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[_validate_linestyle-None-none]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[_validate_linestyle-none-none]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[_validate_linestyle-DoTtEd-dotted]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[_validate_linestyle-1, 3-target94]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[_validate_linestyle-arg95-target95]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[_validate_linestyle-arg96-target96]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[_validate_linestyle-arg97-target97]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_valid[_validate_linestyle-arg98-target98]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_bool-aardvark-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_bool-2-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_bool--1-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_bool-arg3-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_strlist-arg4-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_strlist-1-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_strlist-arg6-MatplotlibDeprecationWarning]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_strlist-arg7-MatplotlibDeprecationWarning]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_intlist-aardvark-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_intlist-arg9-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_intlist-arg10-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_floatlist-aardvark-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_floatlist-arg12-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_floatlist-arg13-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_floatlist-arg14-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_floatlist-None-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_cycler-4-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_cycler-cycler("bleh, [])-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_cycler-Cycler("linewidth", [1, 2, 3])-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_cycler-cycler('c', [j.__class__(j) for j in ['r', 'b']])-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_cycler-cycler('c', [j. __class__(j) for j in ['r', 'b']])-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_cycler-cycler('c', [j.\t__class__(j) for j in ['r', 'b']])-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_cycler-cycler('c', [j.\x0c__class__(j) for j in ['r', 'b']])-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_cycler-cycler('c', [j.__class__(j).lower() for j in ['r', 'b']])-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_cycler-1 + 2-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_cycler-os.system("echo Gotcha")-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_cycler-import os-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_cycler-def badjuju(a): return a; badjuju(cycler("color", "rgb"))-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_cycler-cycler("waka", [1, 2, 3])-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_cycler-cycler(c=[1, 2, 3])-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_cycler-cycler(lw=['a', 'b', 'c'])-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_cycler-arg31-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_cycler-arg32-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_hatch---_-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_hatch-8-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_hatch-X-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_colorlist-fish-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_color-tab:veryblue-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_color-(0, 1)-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_color-(0, 1, 0, 1, 0)-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_color-(0, 1, none)-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_color-(0, 1, "0.5")-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[_validate_color_or_linecolor-line-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[_validate_color_or_linecolor-marker-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_hist_bins-aardvark-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_markevery-arg45-TypeError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_markevery-arg46-TypeError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_markevery-arg47-TypeError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_markevery-arg48-TypeError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_markevery-arg49-TypeError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_markevery-arg50-TypeError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_markevery-arg51-TypeError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_markevery-arg52-TypeError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_markevery-arg53-TypeError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_markevery-abc-TypeError0]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_markevery-arg55-TypeError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_markevery-arg56-TypeError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_markevery-arg57-TypeError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_markevery-arg58-TypeError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_markevery-abc-TypeError1]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_markevery-a-TypeError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[validate_markevery-arg61-TypeError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[_validate_linestyle-aardvark-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[_validate_linestyle-dotted-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[_validate_linestyle-\xff\xfed\x00o\x00t\x00t\x00e\x00d\x00-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[_validate_linestyle-arg65-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[_validate_linestyle-1.23-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[_validate_linestyle-arg67-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[_validate_linestyle-arg68-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[_validate_linestyle-arg69-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validator_invalid[_validate_linestyle-arg70-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validate_fontweight[bold-bold]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validate_fontweight[BOLD-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validate_fontweight[100-100_0]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validate_fontweight[100-100_1]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validate_fontweight[weight4-100]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validate_fontweight[20.6-20]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validate_fontweight[20.6-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validate_fontweight[weight7-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validate_fontstretch[expanded-expanded]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validate_fontstretch[EXPANDED-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validate_fontstretch[100-100_0]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validate_fontstretch[100-100_1]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validate_fontstretch[stretch4-100]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validate_fontstretch[20.6-20]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validate_fontstretch[20.6-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_validate_fontstretch[stretch7-ValueError]
+PASSED lib/matplotlib/tests/test_rcparams.py::test_keymaps
+PASSED lib/matplotlib/tests/test_rcparams.py::test_rcparams_reset_after_fail
+PASSED lib/matplotlib/tests/test_rcparams.py::test_backend_fallback_headless
+PASSED lib/matplotlib/tests/test_rcparams.py::test_deprecation
+SKIPPED [1] lib/matplotlib/tests/test_rcparams.py:534: headless
+FAILED lib/matplotlib/tests/test_rcparams.py::test_rcparams_update - Failed: ...
+FAILED lib/matplotlib/tests/test_rcparams.py::test_rcparams_init - Failed: DI...
+FAILED lib/matplotlib/tests/test_rcparams.py::test_no_backend_reset_rccontext
+=================== 3 failed, 204 passed, 1 skipped in 3.68s ===================
++ : '>>>>> End Test Output'
++ git checkout 3eadeacc06c9f2ddcdac6ae39819faa9fbee9e39 lib/matplotlib/tests/test_rcparams.py
+Updated 1 path from 3a8a4fa386

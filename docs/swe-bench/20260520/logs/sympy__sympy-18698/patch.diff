@@ -1,0 +1,80 @@
+diff --git a/sympy/polys/polytools.py b/sympy/polys/polytools.py
+index c9e77a9..049cbed 100644
+--- a/sympy/polys/polytools.py
++++ b/sympy/polys/polytools.py
+@@ -5890,6 +5890,57 @@ def key(obj):
+     return sorted(factors, key=key)
+ 
+ 
++def _combine_factors(factors, method):
++    """Combine factors with the same multiplicity for sqf. """
++    if method != 'sqf' or not factors:
++        return factors
++    # Group factors by multiplicity and multiply those with same multiplicity
++    groups = {}
++    for f, k in factors:
++        if k in groups:
++            groups[k].append(f)
++        else:
++            groups[k] = [f]
++    result = []
++    for k in sorted(groups.keys()):
++        polys = groups[k]
++        if len(polys) == 1:
++            result.append((polys[0], k))
++        else:
++            # Multiply all factors with the same multiplicity
++            product = polys[0]
++            for p in polys[1:]:
++                product = product.mul(p)
++            result.append((product, k))
++    return result
++
++
++def _combine_expr_factors(factors, method):
++    """Combine expression/Poly factors with the same multiplicity for sqf. """
++    from sympy.core.function import expand
++    if method != 'sqf' or not factors:
++        return factors
++    # Group factors by multiplicity and multiply those with same multiplicity
++    groups = {}
++    for f, k in factors:
++        if k in groups:
++            groups[k].append(f)
++        else:
++            groups[k] = [f]
++    result = []
++    for k in sorted(groups.keys()):
++        items = groups[k]
++        if len(items) == 1:
++            result.append((items[0], k))
++        else:
++            # Multiply all factors with the same multiplicity and expand
++            # to get a single polynomial (e.g., (x-2)*(x-3) -> x**2 - 5*x + 6)
++            exprs = [f.as_expr() if hasattr(f, 'as_expr') else f for f in items]
++            product = expand(Mul(*exprs))
++            result.append((product, k))
++    return result
++
++
+ def _factors_product(factors):
+     """Multiply a list of ``(expr, exp)`` pairs. """
+     return Mul(*[f.as_expr()**k for f, k in factors])
+@@ -5959,6 +6010,7 @@ def _symbolic_factor(expr, opt, method):
+         if hasattr(expr,'_eval_factor'):
+             return expr._eval_factor()
+         coeff, factors = _symbolic_factor_list(together(expr, fraction=opt['fraction']), opt, method)
++        factors = _combine_expr_factors(factors, method)
+         return _keep_coeff(coeff, _factors_product(factors))
+     elif hasattr(expr, 'args'):
+         return expr.func(*[_symbolic_factor(arg, opt, method) for arg in expr.args])
+@@ -5998,6 +6050,9 @@ def _generic_factor_list(expr, gens, args, method):
+         fp = _sorted_factors(fp, method)
+         fq = _sorted_factors(fq, method)
+ 
++        fp = _combine_factors(fp, method)
++        fq = _combine_factors(fq, method)
++
+         if not opt.polys:
+             fp = [(f.as_expr(), k) for f, k in fp]
+             fq = [(f.as_expr(), k) for f, k in fq]

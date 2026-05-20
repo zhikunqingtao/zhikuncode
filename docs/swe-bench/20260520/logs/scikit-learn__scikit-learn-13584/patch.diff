@@ -1,0 +1,32 @@
+diff --git a/sklearn/utils/_pprint.py b/sklearn/utils/_pprint.py
+index b8686db..eec3c5a 100644
+--- a/sklearn/utils/_pprint.py
++++ b/sklearn/utils/_pprint.py
+@@ -95,8 +95,25 @@ def _changed_params(estimator):
+     init_params = signature(init_func).parameters
+     init_params = {name: param.default for name, param in init_params.items()}
+     for k, v in params.items():
+-        if (v != init_params[k] and
+-                not (is_scalar_nan(init_params[k]) and is_scalar_nan(v))):
++        if v is init_params[k]:
++            # Identical objects (e.g., same default reference)
++            continue
++        value = init_params[k]
++        try:
++            changed = (v != value)
++            # Handle numpy arrays and other array-like comparison results
++            if hasattr(changed, '__iter__') and not isinstance(changed, str):
++                # Use .size for numpy arrays to avoid deprecation warning,
++                # fall back to len() for other iterables
++                size = getattr(changed, 'size', None)
++                if size is not None:
++                    changed = size == 0 or changed.any()
++                else:
++                    changed = len(changed) == 0 or changed.any()
++        except (ValueError, TypeError):
++            # Comparison failed (e.g., comparing different types)
++            changed = True
++        if changed and not (is_scalar_nan(value) and is_scalar_nan(v)):
+             filtered_params[k] = v
+     return filtered_params
+ 

@@ -1,0 +1,83 @@
+2026-05-19 23:39:35,116 - INFO - Environment image sweb.env.py.x86_64.a33dddf55cdff5d8e23374:latest found for django__django-15789
+Building instance image sweb.eval.x86_64.django__django-15789:latest for django__django-15789
+2026-05-19 23:44:52,918 - INFO - Creating container for django__django-15789...
+2026-05-19 23:44:52,939 - INFO - Container for django__django-15789 created: 4ac05c229405ea1ef55b347565e675d440fdd665a11bdec2c400a39e1ad31567
+2026-05-19 23:44:53,366 - INFO - Container for django__django-15789 started: 4ac05c229405ea1ef55b347565e675d440fdd665a11bdec2c400a39e1ad31567
+2026-05-19 23:44:53,366 - INFO - Intermediate patch for django__django-15789 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-15789/patch.diff, now applying to container...
+2026-05-19 23:44:53,806 - INFO - >>>>> Applied Patch:
+Checking patch django/utils/html.py...
+Applied patch django/utils/html.py cleanly.
+
+2026-05-19 23:44:54,645 - INFO - Git diff before:
+diff --git a/django/utils/html.py b/django/utils/html.py
+index d0bc97be80..b8edf912bd 100644
+--- a/django/utils/html.py
++++ b/django/utils/html.py
+@@ -6,6 +6,7 @@ import re
+ from html.parser import HTMLParser
+ from urllib.parse import parse_qsl, quote, unquote, urlencode, urlsplit, urlunsplit
+ 
++from django.core.serializers.json import DjangoJSONEncoder
+ from django.utils.encoding import punycode
+ from django.utils.functional import Promise, keep_lazy, keep_lazy_text
+ from django.utils.http import RFC3986_GENDELIMS, RFC3986_SUBDELIMS
+@@ -59,15 +60,13 @@ _json_script_escapes = {
+ }
+ 
+ 
+-def json_script(value, element_id=None):
++def json_script(value, element_id=None, encoder=DjangoJSONEncoder):
+     """
+     Escape all the HTML/XML special characters with their unicode escapes, so
+     value is safe to be output anywhere except for inside a tag attribute. Wrap
+     the escaped JSON in a script tag.
+     """
+-    from django.core.serializers.json import DjangoJSONEncoder
+-
+-    json_str = json.dumps(value, cls=DjangoJSONEncoder).translate(_json_script_escapes)
++    json_str = json.dumps(value, cls=encoder).translate(_json_script_escapes)
+     if element_id:
+         template = '<script id="{}" type="application/json">{}</script>'
+         args = (element_id, mark_safe(json_str))
+2026-05-19 23:44:54,645 - INFO - Eval script for django__django-15789 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-15789/eval.sh; copying to container...
+2026-05-19 23:44:59,444 - INFO - Test runtime: 4.68 seconds
+2026-05-19 23:44:59,444 - INFO - Test output for django__django-15789 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-15789/test_output.txt
+2026-05-19 23:44:59,571 - INFO - Git diff after:
+diff --git a/django/utils/html.py b/django/utils/html.py
+index d0bc97be80..b8edf912bd 100644
+--- a/django/utils/html.py
++++ b/django/utils/html.py
+@@ -6,6 +6,7 @@ import re
+ from html.parser import HTMLParser
+ from urllib.parse import parse_qsl, quote, unquote, urlencode, urlsplit, urlunsplit
+ 
++from django.core.serializers.json import DjangoJSONEncoder
+ from django.utils.encoding import punycode
+ from django.utils.functional import Promise, keep_lazy, keep_lazy_text
+ from django.utils.http import RFC3986_GENDELIMS, RFC3986_SUBDELIMS
+@@ -59,15 +60,13 @@ _json_script_escapes = {
+ }
+ 
+ 
+-def json_script(value, element_id=None):
++def json_script(value, element_id=None, encoder=DjangoJSONEncoder):
+     """
+     Escape all the HTML/XML special characters with their unicode escapes, so
+     value is safe to be output anywhere except for inside a tag attribute. Wrap
+     the escaped JSON in a script tag.
+     """
+-    from django.core.serializers.json import DjangoJSONEncoder
+-
+-    json_str = json.dumps(value, cls=DjangoJSONEncoder).translate(_json_script_escapes)
++    json_str = json.dumps(value, cls=encoder).translate(_json_script_escapes)
+     if element_id:
+         template = '<script id="{}" type="application/json">{}</script>'
+         args = (element_id, mark_safe(json_str))
+2026-05-19 23:44:59,571 - INFO - Grading answer for django__django-15789...
+2026-05-19 23:44:59,573 - INFO - report: {'django__django-15789': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_json_script_custom_encoder (utils_tests.test_html.TestUtilsHtml)']}, 'PASS_TO_PASS': {'success': [], 'failure': ['test_conditional_escape (utils_tests.test_html.TestUtilsHtml)', 'test_escape (utils_tests.test_html.TestUtilsHtml)', 'test_escapejs (utils_tests.test_html.TestUtilsHtml)', 'test_format_html (utils_tests.test_html.TestUtilsHtml)', 'test_html_safe (utils_tests.test_html.TestUtilsHtml)', 'test_html_safe_defines_html_error (utils_tests.test_html.TestUtilsHtml)', 'test_html_safe_doesnt_define_str (utils_tests.test_html.TestUtilsHtml)', 'test_html_safe_subclass (utils_tests.test_html.TestUtilsHtml)', 'test_json_script (utils_tests.test_html.TestUtilsHtml)', 'test_json_script_without_id (utils_tests.test_html.TestUtilsHtml)', 'test_linebreaks (utils_tests.test_html.TestUtilsHtml)', 'test_smart_urlquote (utils_tests.test_html.TestUtilsHtml)', 'test_strip_spaces_between_tags (utils_tests.test_html.TestUtilsHtml)', 'test_strip_tags (utils_tests.test_html.TestUtilsHtml)', 'test_strip_tags_files (utils_tests.test_html.TestUtilsHtml)', 'test_urlize (utils_tests.test_html.TestUtilsHtml)', 'test_urlize_unchanged_inputs (utils_tests.test_html.TestUtilsHtml)']}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-15789: resolved: False
+2026-05-19 23:44:59,574 - INFO - Attempting to stop container sweb.eval.django__django-15789.zhikuncode_eval_300_FINAL...
+2026-05-19 23:45:15,186 - INFO - Attempting to remove container sweb.eval.django__django-15789.zhikuncode_eval_300_FINAL...
+2026-05-19 23:45:15,194 - INFO - Container sweb.eval.django__django-15789.zhikuncode_eval_300_FINAL removed.
+2026-05-19 23:45:15,194 - INFO - Attempting to remove image sweb.eval.x86_64.django__django-15789:latest...
+2026-05-19 23:45:15,329 - INFO - Image sweb.eval.x86_64.django__django-15789:latest removed.

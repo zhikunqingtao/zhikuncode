@@ -1,0 +1,23 @@
+diff --git a/sympy/core/mul.py b/sympy/core/mul.py
+index 46f310b..1af4229 100644
+--- a/sympy/core/mul.py
++++ b/sympy/core/mul.py
+@@ -1274,7 +1274,17 @@ def _eval_is_integer(self):
+         n, d = fraction(self, exact=True)
+         if is_rational:
+             if d is S.One:
+-                return True
++                # For unevaluated Muls, fraction may return the whole
++                # expression as numerator with denominator 1, so we
++                # need to verify n is actually an integer.
++                if n.is_integer:
++                    return True
++                if n.is_integer is False:
++                    return False
++                # n.is_integer is None - check if all factors are integers
++                # to handle cases like 2*k where k is an integer symbol
++                if all(a.is_integer for a in self.args):
++                    return True
+         if d.is_even:
+             if d.is_prime:  # literal or symbolic 2
+                 return n.is_even

@@ -1,0 +1,85 @@
+2026-05-20 00:33:39,044 - INFO - Environment image sweb.env.py.x86_64.b70be1b28e254d81bab6a9:latest found for pylint-dev__pylint-7993
+Building instance image sweb.eval.x86_64.pylint-dev__pylint-7993:latest for pylint-dev__pylint-7993
+2026-05-20 00:34:54,222 - INFO - Creating container for pylint-dev__pylint-7993...
+2026-05-20 00:34:54,240 - INFO - Container for pylint-dev__pylint-7993 created: f47ed49b1a13dc74886fb73456a6d38ad5dad428048c8321eb7f50416305cf0a
+2026-05-20 00:34:54,336 - INFO - Container for pylint-dev__pylint-7993 started: f47ed49b1a13dc74886fb73456a6d38ad5dad428048c8321eb7f50416305cf0a
+2026-05-20 00:34:54,336 - INFO - Intermediate patch for pylint-dev__pylint-7993 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/pylint-dev__pylint-7993/patch.diff, now applying to container...
+2026-05-20 00:34:54,380 - INFO - >>>>> Applied Patch:
+Checking patch pylint/reporters/text.py...
+Applied patch pylint/reporters/text.py cleanly.
+
+2026-05-20 00:34:54,512 - INFO - Git diff before:
+diff --git a/pylint/reporters/text.py b/pylint/reporters/text.py
+index 29bd46798..54ce471b7 100644
+--- a/pylint/reporters/text.py
++++ b/pylint/reporters/text.py
+@@ -175,14 +175,21 @@ class TextReporter(BaseReporter):
+         self._template = template
+ 
+         # Check to see if all parameters in the template are attributes of the Message
+-        arguments = re.findall(r"\{(.+?)(:.*)?\}", template)
+-        for argument in arguments:
+-            if argument[0] not in MESSAGE_FIELDS:
++        # Match {{, }}, and {field} patterns. Only process {field} patterns (group 2 is set)
++        # to correctly handle escaped braces
++        for match in re.finditer(r"(\{\{|\}\}|\{([^{}]+?)(:.*)?\})", template):
++            # Skip escaped braces {{ and }} - they're matched by group 1 only
++            if match.group(2) is None:
++                continue
++            argument = match.group(2)
++            if argument not in MESSAGE_FIELDS:
+                 warnings.warn(
+-                    f"Don't recognize the argument '{argument[0]}' in the --msg-template. "
++                    f"Don't recognize the argument '{argument}' in the --msg-template. "
+                     "Are you sure it is supported on the current version of pylint?"
+                 )
+-                template = re.sub(r"\{" + argument[0] + r"(:.*?)?\}", "", template)
++                template = re.sub(
++                    r"\{" + re.escape(argument) + r"(:[^}]*)?\}", "", template
++                )
+         self._fixed_template = template
+ 
+     def write_message(self, msg: Message) -> None:
+2026-05-20 00:34:54,512 - INFO - Eval script for pylint-dev__pylint-7993 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/pylint-dev__pylint-7993/eval.sh; copying to container...
+2026-05-20 00:34:56,376 - INFO - Test runtime: 1.84 seconds
+2026-05-20 00:34:56,376 - INFO - Test output for pylint-dev__pylint-7993 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/pylint-dev__pylint-7993/test_output.txt
+2026-05-20 00:34:56,408 - INFO - Git diff after:
+diff --git a/pylint/reporters/text.py b/pylint/reporters/text.py
+index 29bd46798..54ce471b7 100644
+--- a/pylint/reporters/text.py
++++ b/pylint/reporters/text.py
+@@ -175,14 +175,21 @@ class TextReporter(BaseReporter):
+         self._template = template
+ 
+         # Check to see if all parameters in the template are attributes of the Message
+-        arguments = re.findall(r"\{(.+?)(:.*)?\}", template)
+-        for argument in arguments:
+-            if argument[0] not in MESSAGE_FIELDS:
++        # Match {{, }}, and {field} patterns. Only process {field} patterns (group 2 is set)
++        # to correctly handle escaped braces
++        for match in re.finditer(r"(\{\{|\}\}|\{([^{}]+?)(:.*)?\})", template):
++            # Skip escaped braces {{ and }} - they're matched by group 1 only
++            if match.group(2) is None:
++                continue
++            argument = match.group(2)
++            if argument not in MESSAGE_FIELDS:
+                 warnings.warn(
+-                    f"Don't recognize the argument '{argument[0]}' in the --msg-template. "
++                    f"Don't recognize the argument '{argument}' in the --msg-template. "
+                     "Are you sure it is supported on the current version of pylint?"
+                 )
+-                template = re.sub(r"\{" + argument[0] + r"(:.*?)?\}", "", template)
++                template = re.sub(
++                    r"\{" + re.escape(argument) + r"(:[^}]*)?\}", "", template
++                )
+         self._fixed_template = template
+ 
+     def write_message(self, msg: Message) -> None:
+2026-05-20 00:34:56,409 - INFO - Grading answer for pylint-dev__pylint-7993...
+2026-05-20 00:34:56,410 - INFO - report: {'pylint-dev__pylint-7993': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['tests/reporters/unittest_reporting.py::test_template_option_with_header']}, 'PASS_TO_PASS': {'success': [], 'failure': ['tests/reporters/unittest_reporting.py::test_template_option', 'tests/reporters/unittest_reporting.py::test_template_option_default', 'tests/reporters/unittest_reporting.py::test_template_option_end_line', 'tests/reporters/unittest_reporting.py::test_template_option_non_existing', 'tests/reporters/unittest_reporting.py::test_deprecation_set_output', 'tests/reporters/unittest_reporting.py::test_parseable_output_deprecated', 'tests/reporters/unittest_reporting.py::test_parseable_output_regression', 'tests/reporters/unittest_reporting.py::test_multi_format_output', 'tests/reporters/unittest_reporting.py::test_multi_reporter_independant_messages', 'tests/reporters/unittest_reporting.py::test_display_results_is_renamed']}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for pylint-dev__pylint-7993: resolved: False
+2026-05-20 00:34:56,410 - INFO - Attempting to stop container sweb.eval.pylint-dev__pylint-7993.zhikuncode_eval_300_FINAL...
+2026-05-20 00:35:21,062 - INFO - Attempting to remove container sweb.eval.pylint-dev__pylint-7993.zhikuncode_eval_300_FINAL...
+2026-05-20 00:35:21,257 - INFO - Container sweb.eval.pylint-dev__pylint-7993.zhikuncode_eval_300_FINAL removed.
+2026-05-20 00:35:21,257 - INFO - Attempting to remove image sweb.eval.x86_64.pylint-dev__pylint-7993:latest...
+2026-05-20 00:35:24,350 - INFO - Image sweb.eval.x86_64.pylint-dev__pylint-7993:latest removed.

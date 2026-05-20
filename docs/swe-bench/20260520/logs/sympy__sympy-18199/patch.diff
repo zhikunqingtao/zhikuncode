@@ -1,0 +1,13 @@
+diff --git a/sympy/ntheory/residue_ntheory.py b/sympy/ntheory/residue_ntheory.py
+index 9a3052d..ce1a17f 100644
+--- a/sympy/ntheory/residue_ntheory.py
++++ b/sympy/ntheory/residue_ntheory.py
+@@ -770,6 +770,8 @@ def nthroot_mod(a, n, p, all_roots=False):
+     a, n, p = as_int(a), as_int(n), as_int(p)
+     if n == 2:
+         return sqrt_mod(a, p, all_roots)
++    if a % p == 0:
++        return [0] if all_roots else 0
+     # see Hackman "Elementary Number Theory" (2009), page 76
+     if not is_nthpow_residue(a, n, p):
+         return None

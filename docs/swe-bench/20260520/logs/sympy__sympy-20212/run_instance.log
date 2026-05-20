@@ -1,0 +1,55 @@
+2026-05-20 01:28:51,619 - INFO - Environment image sweb.env.py.x86_64.c795f4b88616b8462021ed:latest found for sympy__sympy-20212
+Building instance image sweb.eval.x86_64.sympy__sympy-20212:latest for sympy__sympy-20212
+2026-05-20 01:30:45,537 - INFO - Creating container for sympy__sympy-20212...
+2026-05-20 01:30:45,566 - INFO - Container for sympy__sympy-20212 created: 55c42154b5944a059f0122f1428f71fc8eedeb34f4e14ba08f7c7d03a1c4a718
+2026-05-20 01:30:45,843 - INFO - Container for sympy__sympy-20212 started: 55c42154b5944a059f0122f1428f71fc8eedeb34f4e14ba08f7c7d03a1c4a718
+2026-05-20 01:30:45,843 - INFO - Intermediate patch for sympy__sympy-20212 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-20212/patch.diff, now applying to container...
+2026-05-20 01:30:45,938 - INFO - >>>>> Applied Patch:
+Checking patch sympy/core/numbers.py...
+Applied patch sympy/core/numbers.py cleanly.
+
+2026-05-20 01:30:46,338 - INFO - Git diff before:
+diff --git a/sympy/core/numbers.py b/sympy/core/numbers.py
+index 2c50002de3..98f7c61f71 100644
+--- a/sympy/core/numbers.py
++++ b/sympy/core/numbers.py
+@@ -2623,9 +2623,9 @@ def __neg__():
+         return S.Zero
+ 
+     def _eval_power(self, expt):
+-        if expt.is_positive:
++        if expt.is_extended_positive:
+             return self
+-        if expt.is_negative:
++        if expt.is_extended_negative:
+             return S.ComplexInfinity
+         if expt.is_extended_real is False:
+             return S.NaN
+2026-05-20 01:30:46,338 - INFO - Eval script for sympy__sympy-20212 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-20212/eval.sh; copying to container...
+2026-05-20 01:31:05,074 - INFO - Test runtime: 18.70 seconds
+2026-05-20 01:31:05,075 - INFO - Test output for sympy__sympy-20212 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-20212/test_output.txt
+2026-05-20 01:31:05,102 - INFO - Git diff after:
+diff --git a/sympy/core/numbers.py b/sympy/core/numbers.py
+index 2c50002de3..98f7c61f71 100644
+--- a/sympy/core/numbers.py
++++ b/sympy/core/numbers.py
+@@ -2623,9 +2623,9 @@ def __neg__():
+         return S.Zero
+ 
+     def _eval_power(self, expt):
+-        if expt.is_positive:
++        if expt.is_extended_positive:
+             return self
+-        if expt.is_negative:
++        if expt.is_extended_negative:
+             return S.ComplexInfinity
+         if expt.is_extended_real is False:
+             return S.NaN
+2026-05-20 01:31:05,102 - INFO - Grading answer for sympy__sympy-20212...
+2026-05-20 01:31:05,102 - INFO - report: {'sympy__sympy-20212': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_zero'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_rational', 'test_large_rational', 'test_negative_real', 'test_expand', 'test_issue_3449', 'test_issue_3866', 'test_negative_one', 'test_issue_4362', 'test_Pow_Expr_args', 'test_Pow_signs', 'test_power_with_noncommutative_mul_as_base', 'test_power_rewrite_exp', 'test_pow_as_base_exp', 'test_nseries', 'test_issue_6100_12942_4473', 'test_issue_6208', 'test_issue_6990', 'test_issue_6068', 'test_issue_6782', 'test_issue_6653', 'test_issue_6429', 'test_issue_7638', 'test_issue_8582', 'test_issue_8650', 'test_issue_13914', 'test_better_sqrt', 'test_issue_2993', 'test_issue_17450', 'test_issue_18190', 'test_issue_14815', 'test_issue_18509', 'test_issue_18762'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-20212: resolved: True
+2026-05-20 01:31:05,102 - INFO - Attempting to stop container sweb.eval.sympy__sympy-20212.zhikuncode_eval_300_FINAL...
+2026-05-20 01:31:20,529 - INFO - Attempting to remove container sweb.eval.sympy__sympy-20212.zhikuncode_eval_300_FINAL...
+2026-05-20 01:31:20,539 - INFO - Container sweb.eval.sympy__sympy-20212.zhikuncode_eval_300_FINAL removed.
+2026-05-20 01:31:20,539 - INFO - Attempting to remove image sweb.eval.x86_64.sympy__sympy-20212:latest...
+2026-05-20 01:31:20,571 - INFO - Image sweb.eval.x86_64.sympy__sympy-20212:latest removed.

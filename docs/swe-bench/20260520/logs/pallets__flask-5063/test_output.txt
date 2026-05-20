@@ -1,0 +1,537 @@
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z '' ']'
++++ export CONDA_SHLVL=0
++++ CONDA_SHLVL=0
++++ '[' -n '' ']'
++++++ dirname /opt/miniconda3/bin/conda
+++++ dirname /opt/miniconda3/bin
++++ PATH=/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export PATH
++++ '[' -z '' ']'
++++ PS1=
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1=
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval 'PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=1
++++ CONDA_SHLVL=1
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=2
+++ CONDA_SHLVL=2
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_1=/opt/miniconda3
+++ CONDA_PREFIX_1=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ cd /testbed
++ git config --global --add safe.directory /testbed
++ cd /testbed
++ git status
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   src/flask/cli.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
++ git show
+commit c1b7564566805c96c5501373794c2c6c5749851c
+Author: SWE-bench <setup@swebench.config>
+Date:   Tue May 19 16:27:16 2026 +0000
+
+    SWE-bench
++ git -c core.fileMode=false diff 182ce3dd15dfa3537391c3efaf9c3ff407d134d4
+diff --git a/src/flask/cli.py b/src/flask/cli.py
+index 37a15ff2..70aaaf19 100644
+--- a/src/flask/cli.py
++++ b/src/flask/cli.py
+@@ -989,7 +989,7 @@ def shell_command() -> None:
+ @click.option(
+     "--sort",
+     "-s",
+-    type=click.Choice(("endpoint", "methods", "rule", "match")),
++    type=click.Choice(("endpoint", "methods", "rule", "match", "domain")),
+     default="endpoint",
+     help=(
+         'Method to sort routes by. "match" is the order that Flask will match '
+@@ -1012,26 +1012,41 @@ def routes_command(sort: str, all_methods: bool) -> None:
+         rules = sorted(rules, key=attrgetter(sort))
+     elif sort == "methods":
+         rules = sorted(rules, key=lambda rule: sorted(rule.methods))  # type: ignore
++    elif sort == "domain":
++        rules = sorted(rules, key=lambda rule: rule.subdomain or "")
+ 
+     rule_methods = [
+         ", ".join(sorted(rule.methods - ignored_methods))  # type: ignore
+         for rule in rules
+     ]
+ 
+-    headers = ("Endpoint", "Methods", "Rule")
++    # Build domain strings from subdomain and SERVER_NAME
++    server_name = current_app.config.get("SERVER_NAME")
++    rule_domains = []
++    for rule in rules:
++        if rule.subdomain:
++            if server_name:
++                rule_domains.append(f"{rule.subdomain}.{server_name}")
++            else:
++                rule_domains.append(rule.subdomain)
++        else:
++            rule_domains.append(server_name or "")
++
++    headers = ("Domain", "Endpoint", "Methods", "Rule")
+     widths = (
++        max(len(domain) for domain in rule_domains),
+         max(len(rule.endpoint) for rule in rules),
+         max(len(methods) for methods in rule_methods),
+         max(len(rule.rule) for rule in rules),
+     )
+     widths = [max(len(h), w) for h, w in zip(headers, widths)]
+-    row = "{{0:<{0}}}  {{1:<{1}}}  {{2:<{2}}}".format(*widths)
++    row = "{{0:<{0}}}  {{1:<{1}}}  {{2:<{2}}}  {{3:<{3}}}".format(*widths)
+ 
+     click.echo(row.format(*headers).strip())
+     click.echo(row.format(*("-" * width for width in widths)))
+ 
+-    for rule, methods in zip(rules, rule_methods):
+-        click.echo(row.format(rule.endpoint, methods, rule.rule).rstrip())
++    for domain, rule, methods in zip(rule_domains, rules, rule_methods):
++        click.echo(row.format(domain, rule.endpoint, methods, rule.rule).rstrip())
+ 
+ 
+ cli = FlaskGroup(
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z x ']'
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1='(testbed) '
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval 'PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=3
++++ CONDA_SHLVL=3
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=4
+++ CONDA_SHLVL=4
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_3=/opt/miniconda3
+++ CONDA_PREFIX_3=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ python -m pip install -e .
+Looking in indexes: https://mirrors.aliyun.com/pypi/simple/
+Obtaining file:///testbed
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Checking if build backend supports build_editable: started
+  Checking if build backend supports build_editable: finished with status 'done'
+  Getting requirements to build editable: started
+  Getting requirements to build editable: finished with status 'done'
+  Preparing editable metadata (pyproject.toml): started
+  Preparing editable metadata (pyproject.toml): finished with status 'done'
+Requirement already satisfied: Werkzeug>=2.2.2 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from Flask==2.3.0.dev0) (2.3.7)
+Requirement already satisfied: Jinja2>=3.0 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from Flask==2.3.0.dev0) (3.1.2)
+Requirement already satisfied: itsdangerous>=2.0 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from Flask==2.3.0.dev0) (2.1.2)
+Requirement already satisfied: click>=8.0 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from Flask==2.3.0.dev0) (8.1.3)
+Requirement already satisfied: blinker>=1.6.2 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from Flask==2.3.0.dev0) (1.9.0)
+Requirement already satisfied: MarkupSafe>=2.0 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from Jinja2>=3.0->Flask==2.3.0.dev0) (2.1.1)
+Building wheels for collected packages: Flask
+  Building editable for Flask (pyproject.toml): started
+  Building editable for Flask (pyproject.toml): finished with status 'done'
+  Created wheel for Flask: filename=flask-2.3.0.dev0-0.editable-py3-none-any.whl size=3975 sha256=7db9d87adb60fcf9f7e65a362c5114b6f84f1551cbab70da84ccbf317d1cf9c2
+  Stored in directory: /tmp/pip-ephem-wheel-cache-8f9_3oi3/wheels/49/5f/4f/01b7d31ea6ddac9643da788242d33e5fd3467d95d17b032c6b
+Successfully built Flask
+Installing collected packages: Flask
+  Attempting uninstall: Flask
+    Found existing installation: Flask 2.3.0.dev0
+    Uninstalling Flask-2.3.0.dev0:
+      Successfully uninstalled Flask-2.3.0.dev0
+Successfully installed Flask-2.3.0.dev0
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
++ git checkout 182ce3dd15dfa3537391c3efaf9c3ff407d134d4 tests/test_cli.py
+Updated 0 paths from 6010802c
++ git apply -v -
+Checking patch tests/test_cli.py...
+Applied patch tests/test_cli.py cleanly.
++ : '>>>>> Start Test Output'
++ pytest -rA tests/test_cli.py
+============================= test session starts ==============================
+platform linux -- Python 3.11.15, pytest-7.3.0, pluggy-1.0.0
+rootdir: /testbed
+configfile: pyproject.toml
+collected 57 items
+
+tests/test_cli.py .........................................FF..FF....... [ 94%]
+...                                                                      [100%]
+
+=================================== FAILURES ===================================
+____________________________ TestRoutes.test_simple ____________________________
+
+self = <test_cli.TestRoutes object at 0x7ffaf6c64410>
+invoke = functools.partial(<bound method CliRunner.invoke of <click.testing.CliRunner object at 0x7ffaf6d60a50>>, <FlaskGroup None>)
+
+    def test_simple(self, invoke):
+        result = invoke(["routes"])
+        assert result.exit_code == 0
+>       self.expect_order(["aaa_post", "static", "yyy_get_post"], result.output)
+
+tests/test_cli.py:458: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <test_cli.TestRoutes object at 0x7ffaf6c64410>
+order = ['aaa_post', 'static', 'yyy_get_post']
+output = 'Domain  Endpoint      Methods    Rule\n------  ------------  ---------  -------------------------\n        aaa_post  ...        static        GET        /static/<path:filename>\n        yyy_get_post  GET, POST  /get_post/<int:x>/<int:y>\n'
+
+    def expect_order(self, order, output):
+        # skip the header and match the start of each row
+        for expect, line in zip(order, output.splitlines()[2:]):
+            # do this instead of startswith for nicer pytest output
+>           assert line[: len(expect)] == expect
+E           AssertionError: assert '        ' == 'aaa_post'
+E             Strings contain only whitespace, escaping them using repr()
+E             - 'aaa_post'
+E             + '        '
+
+tests/test_cli.py:453: AssertionError
+_____________________________ TestRoutes.test_sort _____________________________
+
+self = <test_cli.TestRoutes object at 0x7ffaf6c51590>, app = <Flask 'test_cli'>
+invoke = functools.partial(<bound method CliRunner.invoke of <click.testing.CliRunner object at 0x7ffaf6d3d190>>, <FlaskGroup None>)
+
+    def test_sort(self, app, invoke):
+        default_output = invoke(["routes"]).output
+        endpoint_output = invoke(["routes", "-s", "endpoint"]).output
+        assert default_output == endpoint_output
+>       self.expect_order(
+            ["static", "yyy_get_post", "aaa_post"],
+            invoke(["routes", "-s", "methods"]).output,
+        )
+
+tests/test_cli.py:464: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <test_cli.TestRoutes object at 0x7ffaf6c51590>
+order = ['static', 'yyy_get_post', 'aaa_post']
+output = 'Domain  Endpoint      Methods    Rule\n------  ------------  ---------  -------------------------\n        static    ...th:filename>\n        yyy_get_post  GET, POST  /get_post/<int:x>/<int:y>\n        aaa_post      POST       /zzz_post\n'
+
+    def expect_order(self, order, output):
+        # skip the header and match the start of each row
+        for expect, line in zip(order, output.splitlines()[2:]):
+            # do this instead of startswith for nicer pytest output
+>           assert line[: len(expect)] == expect
+E           AssertionError: assert '      ' == 'static'
+E             Strings contain only whitespace, escaping them using repr()
+E             - 'static'
+E             + '      '
+
+tests/test_cli.py:453: AssertionError
+__________________________ TestRoutes.test_subdomain ___________________________
+
+self = <test_cli.TestRoutes object at 0x7ffaf6c05750>
+runner = <click.testing.CliRunner object at 0x7ffaf6d21c90>
+
+    def test_subdomain(self, runner):
+        app = Flask(__name__, static_folder=None)
+        app.add_url_rule("/a", subdomain="a", endpoint="a")
+        app.add_url_rule("/b", subdomain="b", endpoint="b")
+        cli = FlaskGroup(create_app=lambda: app)
+        result = runner.invoke(cli, ["routes"])
+        assert result.exit_code == 0
+>       assert "Subdomain" in result.output
+E       AssertionError: assert 'Subdomain' in 'Domain  Endpoint  Methods  Rule\n------  --------  -------  ----\na       a         GET      /a\nb       b         GET      /b\n'
+E        +  where 'Domain  Endpoint  Methods  Rule\n------  --------  -------  ----\na       a         GET      /a\nb       b         GET      /b\n' = <Result okay>.output
+
+tests/test_cli.py:495: AssertionError
+_____________________________ TestRoutes.test_host _____________________________
+
+self = <test_cli.TestRoutes object at 0x7ffaf6c06150>
+runner = <click.testing.CliRunner object at 0x7ffaf6ebd090>
+
+    def test_host(self, runner):
+        app = Flask(__name__, static_folder=None, host_matching=True)
+        app.add_url_rule("/a", host="a", endpoint="a")
+        app.add_url_rule("/b", host="b", endpoint="b")
+        cli = FlaskGroup(create_app=lambda: app)
+        result = runner.invoke(cli, ["routes"])
+        assert result.exit_code == 0
+>       assert "Host" in result.output
+E       AssertionError: assert 'Host' in 'Domain  Endpoint  Methods  Rule\n------  --------  -------  ----\n        a         GET      /a\n        b         GET      /b\n'
+E        +  where 'Domain  Endpoint  Methods  Rule\n------  --------  -------  ----\n        a         GET      /a\n        b         GET      /b\n' = <Result okay>.output
+
+tests/test_cli.py:504: AssertionError
+==================================== PASSES ====================================
+_____________________________ test_dotenv_optional _____________________________
+----------------------------- Captured stderr call -----------------------------
+ * Tip: There are .env or .flaskenv files present. Do "pip install python-dotenv" to use them.
+=========================== short test summary info ============================
+PASSED tests/test_cli.py::test_cli_name
+PASSED tests/test_cli.py::test_find_best_app
+PASSED tests/test_cli.py::test_prepare_import[test-path0-test]
+PASSED tests/test_cli.py::test_prepare_import[test.py-path1-test]
+PASSED tests/test_cli.py::test_prepare_import[a/test-path2-test]
+PASSED tests/test_cli.py::test_prepare_import[test/__init__.py-path3-test]
+PASSED tests/test_cli.py::test_prepare_import[test/__init__-path4-test]
+PASSED tests/test_cli.py::test_prepare_import[value5-path5-cliapp.inner1]
+PASSED tests/test_cli.py::test_prepare_import[value6-path6-cliapp.inner1.inner2]
+PASSED tests/test_cli.py::test_prepare_import[test.a.b-path7-test.a.b]
+PASSED tests/test_cli.py::test_prepare_import[value8-path8-cliapp.app]
+PASSED tests/test_cli.py::test_prepare_import[value9-path9-cliapp.message.txt]
+PASSED tests/test_cli.py::test_locate_app[cliapp.app-None-testapp]
+PASSED tests/test_cli.py::test_locate_app[cliapp.app-testapp-testapp]
+PASSED tests/test_cli.py::test_locate_app[cliapp.factory-None-app]
+PASSED tests/test_cli.py::test_locate_app[cliapp.factory-create_app-app]
+PASSED tests/test_cli.py::test_locate_app[cliapp.factory-create_app()-app]
+PASSED tests/test_cli.py::test_locate_app[cliapp.factory-create_app2("foo", "bar")-app2_foo_bar]
+PASSED tests/test_cli.py::test_locate_app[cliapp.factory-create_app2("foo", "bar", )-app2_foo_bar]
+PASSED tests/test_cli.py::test_locate_app[cliapp.factory- create_app () -app]
+PASSED tests/test_cli.py::test_locate_app_raises[notanapp.py-None]
+PASSED tests/test_cli.py::test_locate_app_raises[cliapp/app-None]
+PASSED tests/test_cli.py::test_locate_app_raises[cliapp.app-notanapp]
+PASSED tests/test_cli.py::test_locate_app_raises[cliapp.factory-create_app2("foo")]
+PASSED tests/test_cli.py::test_locate_app_raises[cliapp.factory-create_app(]
+PASSED tests/test_cli.py::test_locate_app_raises[cliapp.factory-no_app]
+PASSED tests/test_cli.py::test_locate_app_raises[cliapp.importerrorapp-None]
+PASSED tests/test_cli.py::test_locate_app_raises[cliapp.message.txt-None]
+PASSED tests/test_cli.py::test_locate_app_suppress_raise
+PASSED tests/test_cli.py::test_get_version
+PASSED tests/test_cli.py::test_scriptinfo
+PASSED tests/test_cli.py::test_app_cli_has_app_context
+PASSED tests/test_cli.py::test_with_appcontext
+PASSED tests/test_cli.py::test_appgroup_app_context
+PASSED tests/test_cli.py::test_flaskgroup_app_context
+PASSED tests/test_cli.py::test_flaskgroup_debug[True]
+PASSED tests/test_cli.py::test_flaskgroup_debug[False]
+PASSED tests/test_cli.py::test_flaskgroup_nested
+PASSED tests/test_cli.py::test_no_command_echo_loading_error
+PASSED tests/test_cli.py::test_help_echo_loading_error
+PASSED tests/test_cli.py::test_help_echo_exception
+PASSED tests/test_cli.py::TestRoutes::test_all_methods
+PASSED tests/test_cli.py::TestRoutes::test_no_routes
+PASSED tests/test_cli.py::test_load_dotenv
+PASSED tests/test_cli.py::test_dotenv_path
+PASSED tests/test_cli.py::test_dotenv_optional
+PASSED tests/test_cli.py::test_disable_dotenv_from_env
+PASSED tests/test_cli.py::test_run_cert_path
+PASSED tests/test_cli.py::test_run_cert_adhoc
+PASSED tests/test_cli.py::test_run_cert_import
+PASSED tests/test_cli.py::test_run_cert_no_ssl
+PASSED tests/test_cli.py::test_cli_blueprints
+PASSED tests/test_cli.py::test_cli_empty
+FAILED tests/test_cli.py::TestRoutes::test_simple - AssertionError: assert ' ...
+FAILED tests/test_cli.py::TestRoutes::test_sort - AssertionError: assert '   ...
+FAILED tests/test_cli.py::TestRoutes::test_subdomain - AssertionError: assert...
+FAILED tests/test_cli.py::TestRoutes::test_host - AssertionError: assert 'Hos...
+========================= 4 failed, 53 passed in 0.18s =========================
++ : '>>>>> End Test Output'
++ git checkout 182ce3dd15dfa3537391c3efaf9c3ff407d134d4 tests/test_cli.py
+Updated 1 path from 6010802c

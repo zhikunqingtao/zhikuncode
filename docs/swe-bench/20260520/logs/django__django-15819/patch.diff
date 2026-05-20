@@ -1,0 +1,27 @@
+diff --git a/django/core/management/commands/inspectdb.py b/django/core/management/commands/inspectdb.py
+index f33bcbd..edb4733 100644
+--- a/django/core/management/commands/inspectdb.py
++++ b/django/core/management/commands/inspectdb.py
+@@ -133,6 +133,11 @@ class Command(BaseCommand):
+                 known_models.append(table2model(table_name))
+                 used_column_names = []  # Holds column names used in the table so far
+                 column_to_field_name = {}  # Maps column names to names of model fields
++                # Count how many times each related table is referenced to determine
++                # if related_name is needed to avoid reverse accessor clashes.
++                related_tables = [
++                    ref_db_table for ref_db_column, ref_db_table in relations.values()
++                ]
+                 for row in table_description:
+                     comment_notes = (
+                         []
+@@ -182,6 +187,10 @@ class Command(BaseCommand):
+                             if ref_db_table == table_name
+                             else table2model(ref_db_table)
+                         )
++                        # Add related_name if the related table is referenced more
++                        # than once to avoid reverse accessor clashes.
++                        if related_tables.count(ref_db_table) > 1:
++                            extra_params["related_name"] = att_name
+                         if rel_to in known_models:
+                             field_type = "%s(%s" % (rel_type, rel_to)
+                         else:

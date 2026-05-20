@@ -1,0 +1,109 @@
+2026-05-20 00:35:24,611 - INFO - Environment image sweb.env.py.x86_64.5d1fda9d55d65d8a4e5bdb:latest found for pytest-dev__pytest-7373
+Building instance image sweb.eval.x86_64.pytest-dev__pytest-7373:latest for pytest-dev__pytest-7373
+2026-05-20 00:35:53,854 - INFO - Creating container for pytest-dev__pytest-7373...
+2026-05-20 00:35:53,872 - INFO - Container for pytest-dev__pytest-7373 created: fceeba4275af555e034d7b64a22a32ae8751e851cb5c4305e73909b10bfde9be
+2026-05-20 00:35:53,971 - INFO - Container for pytest-dev__pytest-7373 started: fceeba4275af555e034d7b64a22a32ae8751e851cb5c4305e73909b10bfde9be
+2026-05-20 00:35:53,972 - INFO - Intermediate patch for pytest-dev__pytest-7373 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/pytest-dev__pytest-7373/patch.diff, now applying to container...
+2026-05-20 00:35:54,017 - INFO - >>>>> Applied Patch:
+Checking patch src/_pytest/mark/evaluate.py...
+Applied patch src/_pytest/mark/evaluate.py cleanly.
+
+2026-05-20 00:35:54,070 - INFO - Git diff before:
+diff --git a/src/_pytest/mark/evaluate.py b/src/_pytest/mark/evaluate.py
+index 759191668..501cc8816 100644
+--- a/src/_pytest/mark/evaluate.py
++++ b/src/_pytest/mark/evaluate.py
+@@ -10,25 +10,7 @@ from typing import Optional
+ from ..outcomes import fail
+ from ..outcomes import TEST_OUTCOME
+ from .structures import Mark
+-from _pytest.config import Config
+ from _pytest.nodes import Item
+-from _pytest.store import StoreKey
+-
+-
+-evalcache_key = StoreKey[Dict[str, Any]]()
+-
+-
+-def cached_eval(config: Config, expr: str, d: Dict[str, object]) -> Any:
+-    default = {}  # type: Dict[str, object]
+-    evalcache = config._store.setdefault(evalcache_key, default)
+-    try:
+-        return evalcache[expr]
+-    except KeyError:
+-        import _pytest._code
+-
+-        exprcode = _pytest._code.compile(expr, mode="eval")
+-        evalcache[expr] = x = eval(exprcode, d)
+-        return x
+ 
+ 
+ class MarkEvaluator:
+@@ -97,8 +79,11 @@ class MarkEvaluator:
+                 for expr in args:
+                     self.expr = expr
+                     if isinstance(expr, str):
++                        import _pytest._code
++
+                         d = self._getglobals()
+-                        result = cached_eval(self.item.config, expr, d)
++                        exprcode = _pytest._code.compile(expr, mode="eval")
++                        result = eval(exprcode, d)
+                     else:
+                         if "reason" not in mark.kwargs:
+                             # XXX better be checked at collection time
+2026-05-20 00:35:54,070 - INFO - Eval script for pytest-dev__pytest-7373 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/pytest-dev__pytest-7373/eval.sh; copying to container...
+2026-05-20 00:35:58,186 - INFO - Test runtime: 4.09 seconds
+2026-05-20 00:35:58,187 - INFO - Test output for pytest-dev__pytest-7373 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/pytest-dev__pytest-7373/test_output.txt
+2026-05-20 00:35:58,211 - INFO - Git diff after:
+diff --git a/src/_pytest/mark/evaluate.py b/src/_pytest/mark/evaluate.py
+index 759191668..501cc8816 100644
+--- a/src/_pytest/mark/evaluate.py
++++ b/src/_pytest/mark/evaluate.py
+@@ -10,25 +10,7 @@ from typing import Optional
+ from ..outcomes import fail
+ from ..outcomes import TEST_OUTCOME
+ from .structures import Mark
+-from _pytest.config import Config
+ from _pytest.nodes import Item
+-from _pytest.store import StoreKey
+-
+-
+-evalcache_key = StoreKey[Dict[str, Any]]()
+-
+-
+-def cached_eval(config: Config, expr: str, d: Dict[str, object]) -> Any:
+-    default = {}  # type: Dict[str, object]
+-    evalcache = config._store.setdefault(evalcache_key, default)
+-    try:
+-        return evalcache[expr]
+-    except KeyError:
+-        import _pytest._code
+-
+-        exprcode = _pytest._code.compile(expr, mode="eval")
+-        evalcache[expr] = x = eval(exprcode, d)
+-        return x
+ 
+ 
+ class MarkEvaluator:
+@@ -97,8 +79,11 @@ class MarkEvaluator:
+                 for expr in args:
+                     self.expr = expr
+                     if isinstance(expr, str):
++                        import _pytest._code
++
+                         d = self._getglobals()
+-                        result = cached_eval(self.item.config, expr, d)
++                        exprcode = _pytest._code.compile(expr, mode="eval")
++                        result = eval(exprcode, d)
+                     else:
+                         if "reason" not in mark.kwargs:
+                             # XXX better be checked at collection time
+2026-05-20 00:35:58,212 - INFO - Grading answer for pytest-dev__pytest-7373...
+2026-05-20 00:35:58,213 - INFO - report: {'pytest-dev__pytest-7373': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['testing/test_mark.py::TestFunctional::test_reevaluate_dynamic_expr'], 'failure': []}, 'PASS_TO_PASS': {'success': ['testing/test_mark.py::TestMark::test_pytest_exists_in_namespace_all[py.test-mark]', 'testing/test_mark.py::TestMark::test_pytest_exists_in_namespace_all[py.test-param]', 'testing/test_mark.py::TestMark::test_pytest_exists_in_namespace_all[pytest-mark]', 'testing/test_mark.py::TestMark::test_pytest_exists_in_namespace_all[pytest-param]', 'testing/test_mark.py::TestMark::test_pytest_mark_notcallable', 'testing/test_mark.py::TestMark::test_mark_with_param', 'testing/test_mark.py::TestMark::test_pytest_mark_name_starts_with_underscore', 'testing/test_mark.py::TestMarkDecorator::test__eq__[lhs0-rhs0-True]', 'testing/test_mark.py::TestMarkDecorator::test__eq__[lhs1-rhs1-False]', 'testing/test_mark.py::TestMarkDecorator::test__eq__[lhs2-bar-False]', 'testing/test_mark.py::TestMarkDecorator::test__eq__[foo-rhs3-False]', 'testing/test_mark.py::TestMarkDecorator::test_aliases', 'testing/test_mark.py::test_addmarker_order', 'testing/test_mark.py::test_pytest_param_id_requires_string', 'testing/test_mark.py::test_pytest_param_id_allows_none_or_string[None]', 'testing/test_mark.py::test_pytest_param_id_allows_none_or_string[hello', 'testing/test_mark.py::test_marked_class_run_twice', 'testing/test_mark.py::test_ini_markers', 'testing/test_mark.py::test_markers_option', 'testing/test_mark.py::test_ini_markers_whitespace', 'testing/test_mark.py::test_marker_without_description', 'testing/test_mark.py::test_markers_option_with_plugin_in_current_dir', 'testing/test_mark.py::test_mark_on_pseudo_function', 'testing/test_mark.py::test_strict_prohibits_unregistered_markers[--strict-markers]', 'testing/test_mark.py::test_strict_prohibits_unregistered_markers[--strict]', 'testing/test_mark.py::test_mark_option[xyz-expected_passed0]', 'testing/test_mark.py::test_mark_option[(((', 'testing/test_mark.py::test_mark_option[not', 'testing/test_mark.py::test_mark_option[xyz', 'testing/test_mark.py::test_mark_option[xyz2-expected_passed4]', 'testing/test_mark.py::test_mark_option_custom[interface-expected_passed0]', 'testing/test_mark.py::test_mark_option_custom[not', 'testing/test_mark.py::test_keyword_option_custom[interface-expected_passed0]', 'testing/test_mark.py::test_keyword_option_custom[not', 'testing/test_mark.py::test_keyword_option_custom[pass-expected_passed2]', 'testing/test_mark.py::test_keyword_option_custom[1', 'testing/test_mark.py::test_keyword_option_considers_mark', 'testing/test_mark.py::test_keyword_option_parametrize[None-expected_passed0]', 'testing/test_mark.py::test_keyword_option_parametrize[[1.3]-expected_passed1]', 'testing/test_mark.py::test_keyword_option_parametrize[2-3-expected_passed2]', 'testing/test_mark.py::test_parametrize_with_module', 'testing/test_mark.py::test_keyword_option_wrong_arguments[foo', 'testing/test_mark.py::test_keyword_option_wrong_arguments[(foo-at', 'testing/test_mark.py::test_keyword_option_wrong_arguments[or', 'testing/test_mark.py::test_keyword_option_wrong_arguments[not', 'testing/test_mark.py::test_parametrized_collected_from_command_line', 'testing/test_mark.py::test_parametrized_collect_with_wrong_args', 'testing/test_mark.py::test_parametrized_with_kwargs', 'testing/test_mark.py::test_parametrize_iterator', 'testing/test_mark.py::TestFunctional::test_merging_markers_deep', 'testing/test_mark.py::TestFunctional::test_mark_decorator_subclass_does_not_propagate_to_base', 'testing/test_mark.py::TestFunctional::test_mark_should_not_pass_to_siebling_class', 'testing/test_mark.py::TestFunctional::test_mark_decorator_baseclasses_merged', 'testing/test_mark.py::TestFunctional::test_mark_closest', 'testing/test_mark.py::TestFunctional::test_mark_with_wrong_marker', 'testing/test_mark.py::TestFunctional::test_mark_dynamically_in_funcarg', 'testing/test_mark.py::TestFunctional::test_no_marker_match_on_unmarked_names', 'testing/test_mark.py::TestFunctional::test_keywords_at_node_level', 'testing/test_mark.py::TestFunctional::test_keyword_added_for_session', 'testing/test_mark.py::TestFunctional::test_mark_from_parameters', 'testing/test_mark.py::TestKeywordSelection::test_select_simple', 'testing/test_mark.py::TestKeywordSelection::test_select_extra_keywords[xxx]', 'testing/test_mark.py::TestKeywordSelection::test_select_extra_keywords[xxx', 'testing/test_mark.py::TestKeywordSelection::test_select_extra_keywords[TestClass]', 'testing/test_mark.py::TestKeywordSelection::test_select_extra_keywords[TestClass', 'testing/test_mark.py::TestKeywordSelection::test_select_starton', 'testing/test_mark.py::TestKeywordSelection::test_keyword_extra', 'testing/test_mark.py::TestKeywordSelection::test_no_magic_values[__]', 'testing/test_mark.py::TestKeywordSelection::test_no_magic_values[+]', 'testing/test_mark.py::TestKeywordSelection::test_no_magic_values[..]', 'testing/test_mark.py::TestKeywordSelection::test_no_match_directories_outside_the_suite', 'testing/test_mark.py::test_parameterset_for_parametrize_marks[None]', 'testing/test_mark.py::test_parameterset_for_parametrize_marks[]', 'testing/test_mark.py::test_parameterset_for_parametrize_marks[skip]', 'testing/test_mark.py::test_parameterset_for_parametrize_marks[xfail]', 'testing/test_mark.py::test_parameterset_for_fail_at_collect', 'testing/test_mark.py::test_parameterset_for_parametrize_bad_markname', 'testing/test_mark.py::test_mark_expressions_no_smear', 'testing/test_mark.py::test_markers_from_parametrize', 'testing/test_mark.py::test_marker_expr_eval_failure_handling[NOT', 'testing/test_mark.py::test_marker_expr_eval_failure_handling[bogus/]'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for pytest-dev__pytest-7373: resolved: True
+2026-05-20 00:35:58,213 - INFO - Attempting to stop container sweb.eval.pytest-dev__pytest-7373.zhikuncode_eval_300_FINAL...
+2026-05-20 00:36:13,513 - INFO - Attempting to remove container sweb.eval.pytest-dev__pytest-7373.zhikuncode_eval_300_FINAL...
+2026-05-20 00:36:13,528 - INFO - Container sweb.eval.pytest-dev__pytest-7373.zhikuncode_eval_300_FINAL removed.
+2026-05-20 00:36:13,528 - INFO - Attempting to remove image sweb.eval.x86_64.pytest-dev__pytest-7373:latest...
+2026-05-20 00:36:13,545 - INFO - Image sweb.eval.x86_64.pytest-dev__pytest-7373:latest removed.

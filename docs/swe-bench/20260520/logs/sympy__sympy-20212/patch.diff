@@ -1,0 +1,16 @@
+diff --git a/sympy/core/numbers.py b/sympy/core/numbers.py
+index 2c50002..98f7c61 100644
+--- a/sympy/core/numbers.py
++++ b/sympy/core/numbers.py
+@@ -2623,9 +2623,9 @@ def __neg__():
+         return S.Zero
+ 
+     def _eval_power(self, expt):
+-        if expt.is_positive:
++        if expt.is_extended_positive:
+             return self
+-        if expt.is_negative:
++        if expt.is_extended_negative:
+             return S.ComplexInfinity
+         if expt.is_extended_real is False:
+             return S.NaN

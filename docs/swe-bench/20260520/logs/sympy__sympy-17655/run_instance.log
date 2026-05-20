@@ -1,0 +1,117 @@
+2026-05-20 01:23:37,059 - INFO - Environment image sweb.env.py.x86_64.c795f4b88616b8462021ed:latest found for sympy__sympy-17655
+Building instance image sweb.eval.x86_64.sympy__sympy-17655:latest for sympy__sympy-17655
+2026-05-20 01:26:19,065 - INFO - Creating container for sympy__sympy-17655...
+2026-05-20 01:26:19,091 - INFO - Container for sympy__sympy-17655 created: b88bd80447236c2d41000d25d45541b01c9a177cf0bf09507438915755ea1c05
+2026-05-20 01:26:19,376 - INFO - Container for sympy__sympy-17655 started: b88bd80447236c2d41000d25d45541b01c9a177cf0bf09507438915755ea1c05
+2026-05-20 01:26:19,376 - INFO - Intermediate patch for sympy__sympy-17655 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-17655/patch.diff, now applying to container...
+2026-05-20 01:26:19,603 - INFO - >>>>> Applied Patch:
+Checking patch sympy/geometry/point.py...
+Applied patch sympy/geometry/point.py cleanly.
+
+2026-05-20 01:26:19,998 - INFO - Git diff before:
+diff --git a/sympy/geometry/point.py b/sympy/geometry/point.py
+index 7c978c47be..2e57a30a69 100644
+--- a/sympy/geometry/point.py
++++ b/sympy/geometry/point.py
+@@ -213,6 +213,18 @@ def __add__(self, other):
+         sympy.geometry.point.Point.translate
+ 
+         """
++        from sympy.core.mul import Mul
++        if isinstance(other, Mul):
++            # Handle expressions like 2.0*Point2D(1,1) which arise when
++            # a SymPy scalar is multiplied by a Point (e.g., sympify(2.0)*point)
++            # SymPy's __mul__ creates a Mul expression instead of calling
++            # Point.__rmul__, so we need to evaluate it here.
++            args = other.args
++            points = [a for a in args if isinstance(a, Point)]
++            if len(points) == 1:
++                scalars = [a for a in args if not isinstance(a, Point)]
++                scalar = Mul(*scalars) if scalars else S.One
++                other = points[0] * scalar
+         try:
+             s, o = Point._normalize_dimension(self, Point(other, evaluate=False))
+         except TypeError:
+@@ -286,6 +298,15 @@ def __neg__(self):
+     def __sub__(self, other):
+         """Subtract two points, or subtract a factor from this point's
+         coordinates."""
++        from sympy.core.mul import Mul
++        if isinstance(other, Mul):
++            # Handle expressions like 2.0*Point2D(1,1)
++            args = other.args
++            points = [a for a in args if isinstance(a, Point)]
++            if len(points) == 1:
++                scalars = [a for a in args if not isinstance(a, Point)]
++                scalar = Mul(*scalars) if scalars else S.One
++                other = points[0] * scalar
+         return self + [-x for x in other]
+ 
+     @classmethod
+@@ -853,6 +874,7 @@ def unit(self):
+     n = evalf
+ 
+     __truediv__ = __div__
++    __rmul__ = __mul__
+ 
+ class Point2D(Point):
+     """A point in a 2-dimensional Euclidean space.
+2026-05-20 01:26:19,999 - INFO - Eval script for sympy__sympy-17655 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-17655/eval.sh; copying to container...
+2026-05-20 01:26:36,611 - INFO - Test runtime: 16.53 seconds
+2026-05-20 01:26:36,611 - INFO - Test output for sympy__sympy-17655 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-17655/test_output.txt
+2026-05-20 01:26:36,670 - INFO - Git diff after:
+diff --git a/sympy/geometry/point.py b/sympy/geometry/point.py
+index 7c978c47be..2e57a30a69 100644
+--- a/sympy/geometry/point.py
++++ b/sympy/geometry/point.py
+@@ -213,6 +213,18 @@ def __add__(self, other):
+         sympy.geometry.point.Point.translate
+ 
+         """
++        from sympy.core.mul import Mul
++        if isinstance(other, Mul):
++            # Handle expressions like 2.0*Point2D(1,1) which arise when
++            # a SymPy scalar is multiplied by a Point (e.g., sympify(2.0)*point)
++            # SymPy's __mul__ creates a Mul expression instead of calling
++            # Point.__rmul__, so we need to evaluate it here.
++            args = other.args
++            points = [a for a in args if isinstance(a, Point)]
++            if len(points) == 1:
++                scalars = [a for a in args if not isinstance(a, Point)]
++                scalar = Mul(*scalars) if scalars else S.One
++                other = points[0] * scalar
+         try:
+             s, o = Point._normalize_dimension(self, Point(other, evaluate=False))
+         except TypeError:
+@@ -286,6 +298,15 @@ def __neg__(self):
+     def __sub__(self, other):
+         """Subtract two points, or subtract a factor from this point's
+         coordinates."""
++        from sympy.core.mul import Mul
++        if isinstance(other, Mul):
++            # Handle expressions like 2.0*Point2D(1,1)
++            args = other.args
++            points = [a for a in args if isinstance(a, Point)]
++            if len(points) == 1:
++                scalars = [a for a in args if not isinstance(a, Point)]
++                scalar = Mul(*scalars) if scalars else S.One
++                other = points[0] * scalar
+         return self + [-x for x in other]
+ 
+     @classmethod
+@@ -853,6 +874,7 @@ def unit(self):
+     n = evalf
+ 
+     __truediv__ = __div__
++    __rmul__ = __mul__
+ 
+ class Point2D(Point):
+     """A point in a 2-dimensional Euclidean space.
+2026-05-20 01:26:36,670 - INFO - Grading answer for sympy__sympy-17655...
+2026-05-20 01:26:36,670 - INFO - report: {'sympy__sympy-17655': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_point', 'test_point3D'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_Point2D', 'test_issue_9214', 'test_issue_11617', 'test_transform', 'test_concyclic_doctest_bug', 'test_arguments', 'test_unit', 'test_dot', 'test__normalize_dimension'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-17655: resolved: True
+2026-05-20 01:26:36,671 - INFO - Attempting to stop container sweb.eval.sympy__sympy-17655.zhikuncode_eval_300_FINAL...
+2026-05-20 01:26:51,949 - INFO - Attempting to remove container sweb.eval.sympy__sympy-17655.zhikuncode_eval_300_FINAL...
+2026-05-20 01:26:51,962 - INFO - Container sweb.eval.sympy__sympy-17655.zhikuncode_eval_300_FINAL removed.
+2026-05-20 01:26:51,962 - INFO - Attempting to remove image sweb.eval.x86_64.sympy__sympy-17655:latest...
+2026-05-20 01:26:52,002 - INFO - Image sweb.eval.x86_64.sympy__sympy-17655:latest removed.

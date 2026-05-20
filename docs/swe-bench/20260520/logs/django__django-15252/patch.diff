@@ -1,0 +1,54 @@
+diff --git a/django/db/migrations/recorder.py b/django/db/migrations/recorder.py
+index 1a37c6b..36cd0c4 100644
+--- a/django/db/migrations/recorder.py
++++ b/django/db/migrations/recorder.py
+@@ -1,5 +1,5 @@
+ from django.apps.registry import Apps
+-from django.db import DatabaseError, models
++from django.db import DatabaseError, models, router
+ from django.utils.functional import classproperty
+ from django.utils.timezone import now
+ 
+@@ -46,10 +46,6 @@ class MigrationRecorder:
+     def __init__(self, connection):
+         self.connection = connection
+ 
+-    @property
+-    def migration_qs(self):
+-        return self.Migration.objects.using(self.connection.alias)
+-
+     def has_table(self):
+         """Return True if the django_migrations table exists."""
+         with self.connection.cursor() as cursor:
+@@ -62,6 +58,13 @@ class MigrationRecorder:
+         # in the codebase.
+         if self.has_table():
+             return
++        # Check if the router allows migrations on this database
++        if not router.allow_migrate(self.connection.alias, 'migrations'):
++            raise MigrationSchemaMissing(
++                "Unable to create the django_migrations table: "
++                "the database router denied migration on database '%s'."
++                % self.connection.alias
++            )
+         # Make the table
+         try:
+             with self.connection.schema_editor() as editor:
+@@ -69,11 +72,17 @@ class MigrationRecorder:
+         except DatabaseError as exc:
+             raise MigrationSchemaMissing("Unable to create the django_migrations table (%s)" % exc)
+ 
++    @property
++    def migration_qs(self):
++        return self.Migration.objects.using(self.connection.alias)
++
+     def applied_migrations(self):
+         """
+         Return a dict mapping (app_name, migration_name) to Migration instances
+         for all applied migrations.
+         """
++        if not router.allow_migrate(self.connection.alias, 'migrations'):
++            return {}
+         if self.has_table():
+             return {(migration.app, migration.name): migration for migration in self.migration_qs}
+         else:

@@ -1,0 +1,51 @@
+{
+    "sympy__sympy-15346": {
+        "patch_is_None": false,
+        "patch_exists": true,
+        "patch_successfully_applied": true,
+        "resolved": true,
+        "tests_status": {
+            "FAIL_TO_PASS": {
+                "success": [
+                    "test_issue_15129_trigsimp_methods"
+                ],
+                "failure": []
+            },
+            "PASS_TO_PASS": {
+                "success": [
+                    "test_trigsimp1",
+                    "test_trigsimp1a",
+                    "test_trigsimp2",
+                    "test_issue_4373",
+                    "test_trigsimp3",
+                    "test_issue_4661",
+                    "test_issue_4494",
+                    "test_issue_5948",
+                    "test_issue_4775",
+                    "test_issue_4280",
+                    "test_issue_3210",
+                    "test_trigsimp_issues",
+                    "test_trigsimp_issue_2515",
+                    "test_trigsimp_issue_3826",
+                    "test_trigsimp_issue_4032",
+                    "test_trigsimp_issue_7761",
+                    "test_trigsimp_noncommutative",
+                    "test_hyperbolic_simp",
+                    "test_trigsimp_groebner",
+                    "test_issue_2827_trigsimp_methods",
+                    "test_exptrigsimp",
+                    "test_powsimp_on_numbers"
+                ],
+                "failure": []
+            },
+            "FAIL_TO_FAIL": {
+                "success": [],
+                "failure": []
+            },
+            "PASS_TO_FAIL": {
+                "success": [],
+                "failure": []
+            }
+        }
+    }
+}

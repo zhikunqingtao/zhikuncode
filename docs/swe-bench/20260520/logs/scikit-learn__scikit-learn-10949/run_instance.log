@@ -1,0 +1,55 @@
+2026-05-20 00:39:31,798 - INFO - Environment image sweb.env.py.x86_64.aa92880033da20ca313928:latest found for scikit-learn__scikit-learn-10949
+Building instance image sweb.eval.x86_64.scikit-learn__scikit-learn-10949:latest for scikit-learn__scikit-learn-10949
+2026-05-20 00:42:40,912 - INFO - Creating container for scikit-learn__scikit-learn-10949...
+2026-05-20 00:42:40,931 - INFO - Container for scikit-learn__scikit-learn-10949 created: a6f6da09208b7d247beeb633a52b7e3b2cf206bf8d87d91dd7950c751e27c686
+2026-05-20 00:42:41,033 - INFO - Container for scikit-learn__scikit-learn-10949 started: a6f6da09208b7d247beeb633a52b7e3b2cf206bf8d87d91dd7950c751e27c686
+2026-05-20 00:42:41,033 - INFO - Intermediate patch for scikit-learn__scikit-learn-10949 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/scikit-learn__scikit-learn-10949/patch.diff, now applying to container...
+2026-05-20 00:42:41,077 - INFO - >>>>> Applied Patch:
+Checking patch sklearn/utils/validation.py...
+Applied patch sklearn/utils/validation.py cleanly.
+
+2026-05-20 00:42:41,211 - INFO - Git diff before:
+diff --git a/sklearn/utils/validation.py b/sklearn/utils/validation.py
+index fe1f7236e..315e911c3 100644
+--- a/sklearn/utils/validation.py
++++ b/sklearn/utils/validation.py
+@@ -521,6 +521,11 @@ def check_array(array, accept_sparse=False, accept_large_sparse=True,
+         # and we need to catch and raise exception for such cases.
+         _ensure_no_complex_data(array)
+ 
++        # For data structures that don't have a proper dtype attribute (like
++        # pandas DataFrames), capture the dtype after conversion to ndarray
++        if dtype_orig is None and hasattr(array_orig, 'dtypes'):
++            dtype_orig = array.dtype
++
+         if ensure_2d:
+             # If input is scalar raise error
+             if array.ndim == 0:
+2026-05-20 00:42:41,211 - INFO - Eval script for scikit-learn__scikit-learn-10949 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/scikit-learn__scikit-learn-10949/eval.sh; copying to container...
+2026-05-20 00:42:44,229 - INFO - Test runtime: 3.00 seconds
+2026-05-20 00:42:44,229 - INFO - Test output for scikit-learn__scikit-learn-10949 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/scikit-learn__scikit-learn-10949/test_output.txt
+2026-05-20 00:42:44,254 - INFO - Git diff after:
+diff --git a/sklearn/utils/validation.py b/sklearn/utils/validation.py
+index fe1f7236e..315e911c3 100644
+--- a/sklearn/utils/validation.py
++++ b/sklearn/utils/validation.py
+@@ -521,6 +521,11 @@ def check_array(array, accept_sparse=False, accept_large_sparse=True,
+         # and we need to catch and raise exception for such cases.
+         _ensure_no_complex_data(array)
+ 
++        # For data structures that don't have a proper dtype attribute (like
++        # pandas DataFrames), capture the dtype after conversion to ndarray
++        if dtype_orig is None and hasattr(array_orig, 'dtypes'):
++            dtype_orig = array.dtype
++
+         if ensure_2d:
+             # If input is scalar raise error
+             if array.ndim == 0:
+2026-05-20 00:42:44,254 - INFO - Grading answer for scikit-learn__scikit-learn-10949...
+2026-05-20 00:42:44,256 - INFO - report: {'scikit-learn__scikit-learn-10949': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['sklearn/utils/tests/test_validation.py::test_check_dataframe_warns_on_dtype']}, 'PASS_TO_PASS': {'success': ['sklearn/utils/tests/test_validation.py::test_as_float_array', 'sklearn/utils/tests/test_validation.py::test_as_float_array_nan[X0]', 'sklearn/utils/tests/test_validation.py::test_as_float_array_nan[X1]', 'sklearn/utils/tests/test_validation.py::test_np_matrix', 'sklearn/utils/tests/test_validation.py::test_memmap', 'sklearn/utils/tests/test_validation.py::test_ordering', 'sklearn/utils/tests/test_validation.py::test_check_array_force_all_finite_valid[asarray-inf-False]', 'sklearn/utils/tests/test_validation.py::test_check_array_force_all_finite_valid[asarray-nan-allow-nan]', 'sklearn/utils/tests/test_validation.py::test_check_array_force_all_finite_valid[asarray-nan-False]', 'sklearn/utils/tests/test_validation.py::test_check_array_force_all_finite_valid[csr_matrix-inf-False]', 'sklearn/utils/tests/test_validation.py::test_check_array_force_all_finite_valid[csr_matrix-nan-allow-nan]', 'sklearn/utils/tests/test_validation.py::test_check_array_force_all_finite_valid[csr_matrix-nan-False]', 'sklearn/utils/tests/test_validation.py::test_check_array', 'sklearn/utils/tests/test_validation.py::test_check_array_pandas_dtype_object_conversion', 'sklearn/utils/tests/test_validation.py::test_check_array_on_mock_dataframe', 'sklearn/utils/tests/test_validation.py::test_check_array_dtype_stability', 'sklearn/utils/tests/test_validation.py::test_check_array_dtype_warning', 'sklearn/utils/tests/test_validation.py::test_check_array_accept_sparse_type_exception', 'sklearn/utils/tests/test_validation.py::test_check_array_accept_sparse_no_exception', 'sklearn/utils/tests/test_validation.py::test_check_array_accept_large_sparse_no_exception[csr]', 'sklearn/utils/tests/test_validation.py::test_check_array_accept_large_sparse_no_exception[csc]', 'sklearn/utils/tests/test_validation.py::test_check_array_accept_large_sparse_no_exception[coo]', 'sklearn/utils/tests/test_validation.py::test_check_array_accept_large_sparse_no_exception[bsr]', 'sklearn/utils/tests/test_validation.py::test_check_array_accept_large_sparse_raise_exception[csr]', 'sklearn/utils/tests/test_validation.py::test_check_array_accept_large_sparse_raise_exception[csc]', 'sklearn/utils/tests/test_validation.py::test_check_array_accept_large_sparse_raise_exception[coo]', 'sklearn/utils/tests/test_validation.py::test_check_array_accept_large_sparse_raise_exception[bsr]', 'sklearn/utils/tests/test_validation.py::test_check_array_large_indices_non_supported_scipy_version[csr]', 'sklearn/utils/tests/test_validation.py::test_check_array_large_indices_non_supported_scipy_version[csc]', 'sklearn/utils/tests/test_validation.py::test_check_array_large_indices_non_supported_scipy_version[coo]', 'sklearn/utils/tests/test_validation.py::test_check_array_large_indices_non_supported_scipy_version[bsr]', 'sklearn/utils/tests/test_validation.py::test_check_array_min_samples_and_features_messages', 'sklearn/utils/tests/test_validation.py::test_check_array_complex_data_error', 'sklearn/utils/tests/test_validation.py::test_has_fit_parameter', 'sklearn/utils/tests/test_validation.py::test_check_symmetric', 'sklearn/utils/tests/test_validation.py::test_check_is_fitted', 'sklearn/utils/tests/test_validation.py::test_check_consistent_length', 'sklearn/utils/tests/test_validation.py::test_check_dataframe_fit_attribute', 'sklearn/utils/tests/test_validation.py::test_suppress_validation', 'sklearn/utils/tests/test_validation.py::test_check_memory', 'sklearn/utils/tests/test_validation.py::test_check_array_memmap[True]', 'sklearn/utils/tests/test_validation.py::test_check_array_memmap[False]'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for scikit-learn__scikit-learn-10949: resolved: False
+2026-05-20 00:42:44,256 - INFO - Attempting to stop container sweb.eval.scikit-learn__scikit-learn-10949.zhikuncode_eval_300_FINAL...
+2026-05-20 00:42:59,541 - INFO - Attempting to remove container sweb.eval.scikit-learn__scikit-learn-10949.zhikuncode_eval_300_FINAL...
+2026-05-20 00:42:59,548 - INFO - Container sweb.eval.scikit-learn__scikit-learn-10949.zhikuncode_eval_300_FINAL removed.
+2026-05-20 00:42:59,548 - INFO - Attempting to remove image sweb.eval.x86_64.scikit-learn__scikit-learn-10949:latest...
+2026-05-20 00:42:59,583 - INFO - Image sweb.eval.x86_64.scikit-learn__scikit-learn-10949:latest removed.

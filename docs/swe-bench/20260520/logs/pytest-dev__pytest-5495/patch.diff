@@ -1,0 +1,48 @@
+diff --git a/src/_pytest/assertion/util.py b/src/_pytest/assertion/util.py
+index 762e576..8ecc625 100644
+--- a/src/_pytest/assertion/util.py
++++ b/src/_pytest/assertion/util.py
+@@ -257,22 +257,38 @@ def _compare_eq_sequence(left, right, verbose=0):
+     explanation = []
+     len_left = len(left)
+     len_right = len(right)
++    # When comparing bytes/bytearray, indexing returns an int (ordinal).
++    # Wrap it back in bytes() for a more readable representation.
++    is_bytes = isinstance(left, (bytes, bytearray)) and isinstance(
++        right, (bytes, bytearray)
++    )
+     for i in range(min(len_left, len_right)):
+         if left[i] != right[i]:
+-            explanation += [
+-                "At index {} diff: {!r} != {!r}".format(i, left[i], right[i])
+-            ]
++            if is_bytes:
++                explanation += [
++                    "At index {} diff: {!r} != {!r}".format(
++                        i, bytes([left[i]]), bytes([right[i]])
++                    )
++                ]
++            else:
++                explanation += [
++                    "At index {} diff: {!r} != {!r}".format(i, left[i], right[i])
++                ]
+             break
+     len_diff = len_left - len_right
+ 
+     if len_diff:
+         if len_diff > 0:
+             dir_with_more = "Left"
+-            extra = saferepr(left[len_right])
++            extra = left[len_right]
+         else:
+             len_diff = 0 - len_diff
+             dir_with_more = "Right"
+-            extra = saferepr(right[len_left])
++            extra = right[len_left]
++
++        if is_bytes:
++            extra = bytes([extra])
++        extra = saferepr(extra)
+ 
+         if len_diff == 1:
+             explanation += [

@@ -1,0 +1,83 @@
+2026-05-19 23:55:47,798 - INFO - Environment image sweb.env.py.x86_64.31244378a92e3bcce809ac:latest found for matplotlib__matplotlib-23913
+Building instance image sweb.eval.x86_64.matplotlib__matplotlib-23913:latest for matplotlib__matplotlib-23913
+2026-05-20 00:11:25,222 - INFO - Creating container for matplotlib__matplotlib-23913...
+2026-05-20 00:11:25,240 - INFO - Container for matplotlib__matplotlib-23913 created: de5ca8bd575edcf31b97d9e03051e5e27fef50fec30c09b2e6d611b80e2f59cc
+2026-05-20 00:11:25,354 - INFO - Container for matplotlib__matplotlib-23913 started: de5ca8bd575edcf31b97d9e03051e5e27fef50fec30c09b2e6d611b80e2f59cc
+2026-05-20 00:11:25,354 - INFO - Intermediate patch for matplotlib__matplotlib-23913 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/matplotlib__matplotlib-23913/patch.diff, now applying to container...
+2026-05-20 00:11:25,398 - INFO - >>>>> Applied Patch:
+Checking patch lib/matplotlib/legend.py...
+Applied patch lib/matplotlib/legend.py cleanly.
+
+2026-05-20 00:11:26,201 - INFO - Git diff before:
+diff --git a/lib/matplotlib/legend.py b/lib/matplotlib/legend.py
+index 9e5b903d59..54cf5b74c2 100644
+--- a/lib/matplotlib/legend.py
++++ b/lib/matplotlib/legend.py
+@@ -286,6 +286,9 @@ handler_map : dict or None
+     The custom dictionary mapping instances or types to a legend
+     handler. This *handler_map* updates the default handler map
+     found at `matplotlib.legend.Legend.get_legend_handler_map`.
++
++draggable : bool, default: False
++    Whether the legend can be dragged with the mouse.
+ """)
+ 
+ 
+@@ -341,6 +344,7 @@ class Legend(Artist):
+         handler_map=None,
+         title_fontproperties=None,  # properties for the legend title
+         alignment="center",       # control the alignment within the legend box
++        draggable=False,          # enable draggable support
+         *,
+         ncol=1  # synonym for ncols (backward compatibility)
+     ):
+@@ -538,6 +542,8 @@ class Legend(Artist):
+ 
+         self.set_title(title, prop=title_prop_fp)
+         self._draggable = None
++        if draggable:
++            self.set_draggable(True)
+ 
+         # set the text color
+2026-05-20 00:11:26,201 - INFO - Eval script for matplotlib__matplotlib-23913 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/matplotlib__matplotlib-23913/eval.sh; copying to container...
+2026-05-20 00:12:09,917 - INFO - Test runtime: 43.69 seconds
+2026-05-20 00:12:09,918 - INFO - Test output for matplotlib__matplotlib-23913 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/matplotlib__matplotlib-23913/test_output.txt
+2026-05-20 00:12:09,950 - INFO - Git diff after:
+diff --git a/lib/matplotlib/legend.py b/lib/matplotlib/legend.py
+index 9e5b903d59..54cf5b74c2 100644
+--- a/lib/matplotlib/legend.py
++++ b/lib/matplotlib/legend.py
+@@ -286,6 +286,9 @@ handler_map : dict or None
+     The custom dictionary mapping instances or types to a legend
+     handler. This *handler_map* updates the default handler map
+     found at `matplotlib.legend.Legend.get_legend_handler_map`.
++
++draggable : bool, default: False
++    Whether the legend can be dragged with the mouse.
+ """)
+ 
+ 
+@@ -341,6 +344,7 @@ class Legend(Artist):
+         handler_map=None,
+         title_fontproperties=None,  # properties for the legend title
+         alignment="center",       # control the alignment within the legend box
++        draggable=False,          # enable draggable support
+         *,
+         ncol=1  # synonym for ncols (backward compatibility)
+     ):
+@@ -538,6 +542,8 @@ class Legend(Artist):
+ 
+         self.set_title(title, prop=title_prop_fp)
+         self._draggable = None
++        if draggable:
++            self.set_draggable(True)
+ 
+         # set the text color
+2026-05-20 00:12:09,950 - INFO - Grading answer for matplotlib__matplotlib-23913...
+2026-05-20 00:12:09,950 - INFO - report: {'matplotlib__matplotlib-23913': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['lib/matplotlib/tests/test_legend.py::test_legend_draggable[True]', 'lib/matplotlib/tests/test_legend.py::test_legend_draggable[False]'], 'failure': []}, 'PASS_TO_PASS': {'success': ['lib/matplotlib/tests/test_legend.py::test_legend_ordereddict', 'lib/matplotlib/tests/test_legend.py::test_legend_auto1[png]', 'lib/matplotlib/tests/test_legend.py::test_legend_auto1[pdf]', 'lib/matplotlib/tests/test_legend.py::test_legend_auto2[png]', 'lib/matplotlib/tests/test_legend.py::test_legend_auto2[pdf]', 'lib/matplotlib/tests/test_legend.py::test_legend_auto3[png]', 'lib/matplotlib/tests/test_legend.py::test_legend_auto3[pdf]', 'lib/matplotlib/tests/test_legend.py::test_various_labels[png]', 'lib/matplotlib/tests/test_legend.py::test_various_labels[pdf]', 'lib/matplotlib/tests/test_legend.py::test_legend_label_with_leading_underscore', 'lib/matplotlib/tests/test_legend.py::test_labels_first[png]', 'lib/matplotlib/tests/test_legend.py::test_multiple_keys[png]', 'lib/matplotlib/tests/test_legend.py::test_alpha_rgba[png]', 'lib/matplotlib/tests/test_legend.py::test_alpha_rcparam[png]', 'lib/matplotlib/tests/test_legend.py::test_fancy[png]', 'lib/matplotlib/tests/test_legend.py::test_fancy[pdf]', 'lib/matplotlib/tests/test_legend.py::test_framealpha[png]', 'lib/matplotlib/tests/test_legend.py::test_framealpha[pdf]', 'lib/matplotlib/tests/test_legend.py::test_rc[png]', 'lib/matplotlib/tests/test_legend.py::test_rc[pdf]', 'lib/matplotlib/tests/test_legend.py::test_legend_expand[png]', 'lib/matplotlib/tests/test_legend.py::test_legend_expand[pdf]', 'lib/matplotlib/tests/test_legend.py::test_hatching[png]', 'lib/matplotlib/tests/test_legend.py::test_hatching[pdf]', 'lib/matplotlib/tests/test_legend.py::test_legend_remove', 'lib/matplotlib/tests/test_legend.py::TestLegendFunction::test_legend_no_args', 'lib/matplotlib/tests/test_legend.py::TestLegendFunction::test_legend_positional_handles_labels', 'lib/matplotlib/tests/test_legend.py::TestLegendFunction::test_legend_positional_handles_only', 'lib/matplotlib/tests/test_legend.py::TestLegendFunction::test_legend_positional_labels_only', 'lib/matplotlib/tests/test_legend.py::TestLegendFunction::test_legend_three_args', 'lib/matplotlib/tests/test_legend.py::TestLegendFunction::test_legend_handler_map', 'lib/matplotlib/tests/test_legend.py::TestLegendFunction::test_legend_kwargs_handles_only', 'lib/matplotlib/tests/test_legend.py::TestLegendFunction::test_legend_kwargs_labels_only', 'lib/matplotlib/tests/test_legend.py::TestLegendFunction::test_legend_kwargs_handles_labels', 'lib/matplotlib/tests/test_legend.py::TestLegendFunction::test_warn_mixed_args_and_kwargs', 'lib/matplotlib/tests/test_legend.py::TestLegendFunction::test_parasite', 'lib/matplotlib/tests/test_legend.py::TestLegendFigureFunction::test_legend_handle_label', 'lib/matplotlib/tests/test_legend.py::TestLegendFigureFunction::test_legend_no_args', 'lib/matplotlib/tests/test_legend.py::TestLegendFigureFunction::test_legend_label_arg', 'lib/matplotlib/tests/test_legend.py::TestLegendFigureFunction::test_legend_label_three_args', 'lib/matplotlib/tests/test_legend.py::TestLegendFigureFunction::test_legend_label_three_args_pluskw', 'lib/matplotlib/tests/test_legend.py::TestLegendFigureFunction::test_legend_kw_args', 'lib/matplotlib/tests/test_legend.py::TestLegendFigureFunction::test_warn_args_kwargs', 'lib/matplotlib/tests/test_legend.py::test_legend_stackplot[png]', 'lib/matplotlib/tests/test_legend.py::test_cross_figure_patch_legend', 'lib/matplotlib/tests/test_legend.py::test_nanscatter', 'lib/matplotlib/tests/test_legend.py::test_legend_repeatcheckok', 'lib/matplotlib/tests/test_legend.py::test_not_covering_scatter[png]', 'lib/matplotlib/tests/test_legend.py::test_not_covering_scatter_transform[png]', 'lib/matplotlib/tests/test_legend.py::test_linecollection_scaled_dashes', 'lib/matplotlib/tests/test_legend.py::test_handler_numpoints', 'lib/matplotlib/tests/test_legend.py::test_text_nohandler_warning', 'lib/matplotlib/tests/test_legend.py::test_empty_bar_chart_with_legend', 'lib/matplotlib/tests/test_legend.py::test_shadow_framealpha', 'lib/matplotlib/tests/test_legend.py::test_legend_title_empty', 'lib/matplotlib/tests/test_legend.py::test_legend_proper_window_extent', 'lib/matplotlib/tests/test_legend.py::test_window_extent_cached_renderer', 'lib/matplotlib/tests/test_legend.py::test_legend_title_fontprop_fontsize', 'lib/matplotlib/tests/test_legend.py::test_legend_alignment[center]', 'lib/matplotlib/tests/test_legend.py::test_legend_alignment[left]', 'lib/matplotlib/tests/test_legend.py::test_legend_alignment[right]', 'lib/matplotlib/tests/test_legend.py::test_legend_set_alignment[center]', 'lib/matplotlib/tests/test_legend.py::test_legend_set_alignment[left]', 'lib/matplotlib/tests/test_legend.py::test_legend_set_alignment[right]', 'lib/matplotlib/tests/test_legend.py::test_legend_labelcolor_single[red]', 'lib/matplotlib/tests/test_legend.py::test_legend_labelcolor_single[none]', 'lib/matplotlib/tests/test_legend.py::test_legend_labelcolor_single[color2]', 'lib/matplotlib/tests/test_legend.py::test_legend_labelcolor_list', 'lib/matplotlib/tests/test_legend.py::test_legend_labelcolor_linecolor', 'lib/matplotlib/tests/test_legend.py::test_legend_labelcolor_markeredgecolor', 'lib/matplotlib/tests/test_legend.py::test_legend_labelcolor_markerfacecolor', 'lib/matplotlib/tests/test_legend.py::test_legend_labelcolor_rcparam_single[red]', 'lib/matplotlib/tests/test_legend.py::test_legend_labelcolor_rcparam_single[none]', 'lib/matplotlib/tests/test_legend.py::test_legend_labelcolor_rcparam_single[color2]', 'lib/matplotlib/tests/test_legend.py::test_legend_labelcolor_rcparam_linecolor', 'lib/matplotlib/tests/test_legend.py::test_legend_labelcolor_rcparam_markeredgecolor', 'lib/matplotlib/tests/test_legend.py::test_legend_labelcolor_rcparam_markeredgecolor_short', 'lib/matplotlib/tests/test_legend.py::test_legend_labelcolor_rcparam_markerfacecolor', 'lib/matplotlib/tests/test_legend.py::test_legend_labelcolor_rcparam_markerfacecolor_short', 'lib/matplotlib/tests/test_legend.py::test_get_set_draggable', 'lib/matplotlib/tests/test_legend.py::test_alpha_handles', 'lib/matplotlib/tests/test_legend.py::test_warn_big_data_best_loc', 'lib/matplotlib/tests/test_legend.py::test_no_warn_big_data_when_loc_specified', 'lib/matplotlib/tests/test_legend.py::test_plot_multiple_input_multiple_label[label_array0]', 'lib/matplotlib/tests/test_legend.py::test_plot_multiple_input_multiple_label[label_array1]', 'lib/matplotlib/tests/test_legend.py::test_plot_multiple_input_multiple_label[label_array2]', 'lib/matplotlib/tests/test_legend.py::test_plot_multiple_input_single_label[one]', 'lib/matplotlib/tests/test_legend.py::test_plot_multiple_input_single_label[1]', 'lib/matplotlib/tests/test_legend.py::test_plot_multiple_input_single_label[int]', 'lib/matplotlib/tests/test_legend.py::test_plot_single_input_multiple_label[label_array0]', 'lib/matplotlib/tests/test_legend.py::test_plot_single_input_multiple_label[label_array1]', 'lib/matplotlib/tests/test_legend.py::test_plot_single_input_multiple_label[label_array2]', 'lib/matplotlib/tests/test_legend.py::test_plot_multiple_label_incorrect_length_exception', 'lib/matplotlib/tests/test_legend.py::test_legend_face_edgecolor', 'lib/matplotlib/tests/test_legend.py::test_legend_text_axes', 'lib/matplotlib/tests/test_legend.py::test_handlerline2d', 'lib/matplotlib/tests/test_legend.py::test_subfigure_legend', 'lib/matplotlib/tests/test_legend.py::test_setting_alpha_keeps_polycollection_color', 'lib/matplotlib/tests/test_legend.py::test_legend_markers_from_line2d', 'lib/matplotlib/tests/test_legend.py::test_ncol_ncols[png]', 'lib/matplotlib/tests/test_legend.py::test_ncol_ncols[pdf]'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for matplotlib__matplotlib-23913: resolved: True
+2026-05-20 00:12:09,950 - INFO - Attempting to stop container sweb.eval.matplotlib__matplotlib-23913.zhikuncode_eval_300_FINAL...
+2026-05-20 00:12:25,220 - INFO - Attempting to remove container sweb.eval.matplotlib__matplotlib-23913.zhikuncode_eval_300_FINAL...
+2026-05-20 00:12:25,231 - INFO - Container sweb.eval.matplotlib__matplotlib-23913.zhikuncode_eval_300_FINAL removed.
+2026-05-20 00:12:25,231 - INFO - Attempting to remove image sweb.eval.x86_64.matplotlib__matplotlib-23913:latest...
+2026-05-20 00:12:25,846 - INFO - Image sweb.eval.x86_64.matplotlib__matplotlib-23913:latest removed.

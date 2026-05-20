@@ -1,0 +1,57 @@
+2026-05-20 00:51:24,610 - INFO - Environment image sweb.env.py.x86_64.aa92880033da20ca313928:latest found for scikit-learn__scikit-learn-15535
+Building instance image sweb.eval.x86_64.scikit-learn__scikit-learn-15535:latest for scikit-learn__scikit-learn-15535
+2026-05-20 01:01:29,318 - INFO - Creating container for scikit-learn__scikit-learn-15535...
+2026-05-20 01:01:29,336 - INFO - Container for scikit-learn__scikit-learn-15535 created: 2c6f2a1de711ec40241a3185a8bdcd8611612769d8c82aefde6aea7c56398393
+2026-05-20 01:01:29,422 - INFO - Container for scikit-learn__scikit-learn-15535 started: 2c6f2a1de711ec40241a3185a8bdcd8611612769d8c82aefde6aea7c56398393
+2026-05-20 01:01:29,423 - INFO - Intermediate patch for scikit-learn__scikit-learn-15535 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/scikit-learn__scikit-learn-15535/patch.diff, now applying to container...
+2026-05-20 01:01:29,469 - INFO - >>>>> Applied Patch:
+Checking patch sklearn/metrics/cluster/_supervised.py...
+Applied patch sklearn/metrics/cluster/_supervised.py cleanly.
+
+2026-05-20 01:01:29,620 - INFO - Git diff before:
+diff --git a/sklearn/metrics/cluster/_supervised.py b/sklearn/metrics/cluster/_supervised.py
+index 4bddae35c..869237f56 100644
+--- a/sklearn/metrics/cluster/_supervised.py
++++ b/sklearn/metrics/cluster/_supervised.py
+@@ -43,10 +43,10 @@ def check_clusterings(labels_true, labels_pred):
+         The predicted labels.
+     """
+     labels_true = check_array(
+-        labels_true, ensure_2d=False, ensure_min_samples=0
++        labels_true, ensure_2d=False, ensure_min_samples=0, dtype=None
+     )
+     labels_pred = check_array(
+-        labels_pred, ensure_2d=False, ensure_min_samples=0
++        labels_pred, ensure_2d=False, ensure_min_samples=0, dtype=None
+     )
+ 
+     # input checks
+2026-05-20 01:01:29,621 - INFO - Eval script for scikit-learn__scikit-learn-15535 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/scikit-learn__scikit-learn-15535/eval.sh; copying to container...
+2026-05-20 01:01:31,792 - INFO - Test runtime: 2.15 seconds
+2026-05-20 01:01:31,792 - INFO - Test output for scikit-learn__scikit-learn-15535 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/scikit-learn__scikit-learn-15535/test_output.txt
+2026-05-20 01:01:31,817 - INFO - Git diff after:
+diff --git a/sklearn/metrics/cluster/_supervised.py b/sklearn/metrics/cluster/_supervised.py
+index 4bddae35c..869237f56 100644
+--- a/sklearn/metrics/cluster/_supervised.py
++++ b/sklearn/metrics/cluster/_supervised.py
+@@ -43,10 +43,10 @@ def check_clusterings(labels_true, labels_pred):
+         The predicted labels.
+     """
+     labels_true = check_array(
+-        labels_true, ensure_2d=False, ensure_min_samples=0
++        labels_true, ensure_2d=False, ensure_min_samples=0, dtype=None
+     )
+     labels_pred = check_array(
+-        labels_pred, ensure_2d=False, ensure_min_samples=0
++        labels_pred, ensure_2d=False, ensure_min_samples=0, dtype=None
+     )
+ 
+     # input checks
+2026-05-20 01:01:31,817 - INFO - Grading answer for scikit-learn__scikit-learn-15535...
+2026-05-20 01:01:31,817 - INFO - report: {'scikit-learn__scikit-learn-15535': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['sklearn/metrics/cluster/tests/test_common.py::test_format_invariance[adjusted_mutual_info_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_format_invariance[adjusted_rand_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_format_invariance[completeness_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_format_invariance[homogeneity_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_format_invariance[mutual_info_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_format_invariance[normalized_mutual_info_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_format_invariance[v_measure_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_format_invariance[fowlkes_mallows_score]'], 'failure': []}, 'PASS_TO_PASS': {'success': ['sklearn/metrics/cluster/tests/test_common.py::test_symmetric_non_symmetric_union', 'sklearn/metrics/cluster/tests/test_common.py::test_symmetry[adjusted_rand_score-y10-y20]', 'sklearn/metrics/cluster/tests/test_common.py::test_symmetry[v_measure_score-y11-y21]', 'sklearn/metrics/cluster/tests/test_common.py::test_symmetry[mutual_info_score-y12-y22]', 'sklearn/metrics/cluster/tests/test_common.py::test_symmetry[adjusted_mutual_info_score-y13-y23]', 'sklearn/metrics/cluster/tests/test_common.py::test_symmetry[normalized_mutual_info_score-y14-y24]', 'sklearn/metrics/cluster/tests/test_common.py::test_symmetry[fowlkes_mallows_score-y15-y25]', 'sklearn/metrics/cluster/tests/test_common.py::test_non_symmetry[homogeneity_score-y10-y20]', 'sklearn/metrics/cluster/tests/test_common.py::test_non_symmetry[completeness_score-y11-y21]', 'sklearn/metrics/cluster/tests/test_common.py::test_normalized_output[adjusted_rand_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_normalized_output[homogeneity_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_normalized_output[completeness_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_normalized_output[v_measure_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_normalized_output[adjusted_mutual_info_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_normalized_output[fowlkes_mallows_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_normalized_output[normalized_mutual_info_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_permute_labels[adjusted_mutual_info_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_permute_labels[adjusted_rand_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_permute_labels[completeness_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_permute_labels[homogeneity_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_permute_labels[mutual_info_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_permute_labels[normalized_mutual_info_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_permute_labels[v_measure_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_permute_labels[fowlkes_mallows_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_permute_labels[silhouette_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_permute_labels[silhouette_manhattan]', 'sklearn/metrics/cluster/tests/test_common.py::test_permute_labels[calinski_harabasz_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_permute_labels[davies_bouldin_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_format_invariance[silhouette_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_format_invariance[silhouette_manhattan]', 'sklearn/metrics/cluster/tests/test_common.py::test_format_invariance[calinski_harabasz_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_format_invariance[davies_bouldin_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_single_sample[adjusted_mutual_info_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_single_sample[adjusted_rand_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_single_sample[completeness_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_single_sample[homogeneity_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_single_sample[mutual_info_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_single_sample[normalized_mutual_info_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_single_sample[v_measure_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_single_sample[fowlkes_mallows_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_inf_nan_input[adjusted_mutual_info_score-adjusted_mutual_info_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_inf_nan_input[adjusted_rand_score-adjusted_rand_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_inf_nan_input[completeness_score-completeness_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_inf_nan_input[homogeneity_score-homogeneity_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_inf_nan_input[mutual_info_score-mutual_info_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_inf_nan_input[normalized_mutual_info_score-normalized_mutual_info_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_inf_nan_input[v_measure_score-v_measure_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_inf_nan_input[fowlkes_mallows_score-fowlkes_mallows_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_inf_nan_input[silhouette_score-silhouette_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_inf_nan_input[silhouette_manhattan-metric_func9]', 'sklearn/metrics/cluster/tests/test_common.py::test_inf_nan_input[calinski_harabasz_score-calinski_harabasz_score]', 'sklearn/metrics/cluster/tests/test_common.py::test_inf_nan_input[davies_bouldin_score-davies_bouldin_score]'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for scikit-learn__scikit-learn-15535: resolved: True
+2026-05-20 01:01:31,817 - INFO - Attempting to stop container sweb.eval.scikit-learn__scikit-learn-15535.zhikuncode_eval_300_FINAL...
+2026-05-20 01:01:47,552 - INFO - Attempting to remove container sweb.eval.scikit-learn__scikit-learn-15535.zhikuncode_eval_300_FINAL...
+2026-05-20 01:01:47,559 - INFO - Container sweb.eval.scikit-learn__scikit-learn-15535.zhikuncode_eval_300_FINAL removed.
+2026-05-20 01:01:47,559 - INFO - Attempting to remove image sweb.eval.x86_64.scikit-learn__scikit-learn-15535:latest...
+2026-05-20 01:01:47,606 - INFO - Image sweb.eval.x86_64.scikit-learn__scikit-learn-15535:latest removed.

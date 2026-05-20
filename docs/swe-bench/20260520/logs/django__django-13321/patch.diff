@@ -1,0 +1,26 @@
+diff --git a/django/contrib/sessions/backends/base.py b/django/contrib/sessions/backends/base.py
+index 187e14b..6eb8e93 100644
+--- a/django/contrib/sessions/backends/base.py
++++ b/django/contrib/sessions/backends/base.py
+@@ -132,8 +132,8 @@ class SessionBase:
+ 
+     def _legacy_decode(self, session_data):
+         # RemovedInDjango40Warning: pre-Django 3.1 format will be invalid.
+-        encoded_data = base64.b64decode(session_data.encode('ascii'))
+         try:
++            encoded_data = base64.b64decode(session_data.encode('ascii'))
+             # could produce ValueError if there is no ':'
+             hash, serialized = encoded_data.split(b':', 1)
+             expected_hash = self._hash(serialized)
+@@ -142,8 +142,9 @@ class SessionBase:
+             else:
+                 return self.serializer().loads(serialized)
+         except Exception as e:
+-            # ValueError, SuspiciousOperation, unpickling exceptions. If any of
+-            # these happen, just return an empty dictionary (an empty session).
++            # ValueError, binascii.Error, SuspiciousOperation, unpickling
++            # exceptions. If any of these happen, just return an empty
++            # dictionary (an empty session).
+             if isinstance(e, SuspiciousOperation):
+                 logger = logging.getLogger('django.security.%s' % e.__class__.__name__)
+                 logger.warning(str(e))

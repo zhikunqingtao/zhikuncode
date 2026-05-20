@@ -1,0 +1,45 @@
+diff --git a/django/db/migrations/autodetector.py b/django/db/migrations/autodetector.py
+index 5f41053..0fcfca9 100644
+--- a/django/db/migrations/autodetector.py
++++ b/django/db/migrations/autodetector.py
+@@ -1020,12 +1020,12 @@ class MigrationAutodetector:
+         ):
+             self._generate_added_field(app_label, model_name, field_name)
+ 
+-    def _generate_added_field(self, app_label, model_name, field_name):
++    def _generate_added_field(self, app_label, model_name, field_name, dependencies=None):
+         field = self.to_state.models[app_label, model_name].get_field(field_name)
+         # Fields that are foreignkeys/m2ms depend on stuff
+-        dependencies = []
++        deps = list(dependencies) if dependencies else []
+         if field.remote_field and field.remote_field.model:
+-            dependencies.extend(
++            deps.extend(
+                 self._get_dependencies_for_foreign_key(
+                     app_label,
+                     model_name,
+@@ -1067,7 +1067,7 @@ class MigrationAutodetector:
+                 field=field,
+                 preserve_default=preserve_default,
+             ),
+-            dependencies=dependencies,
++            dependencies=deps,
+         )
+ 
+     def generate_removed_fields(self):
+@@ -1210,7 +1210,14 @@ class MigrationAutodetector:
+                 else:
+                     # We cannot alter between m2m and concrete fields
+                     self._generate_removed_field(app_label, model_name, field_name)
+-                    self._generate_added_field(app_label, model_name, field_name)
++                    # The new field must be added after the old field is removed
++                    # to prevent the optimizer from combining them incorrectly.
++                    self._generate_added_field(
++                        app_label,
++                        model_name,
++                        field_name,
++                        dependencies=[(app_label, model_name, field_name, False)],
++                    )
+ 
+     def create_altered_indexes(self):
+         option_name = operations.AddIndex.option_name

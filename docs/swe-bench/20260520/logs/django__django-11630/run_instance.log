@@ -1,0 +1,49 @@
+2026-05-19 22:58:10,490 - INFO - Environment image sweb.env.py.x86_64.2baaea72acc974f6c02079:latest found for django__django-11630
+Building instance image sweb.eval.x86_64.django__django-11630:latest for django__django-11630
+2026-05-19 23:01:16,791 - INFO - Creating container for django__django-11630...
+2026-05-19 23:01:16,812 - INFO - Container for django__django-11630 created: 00ff9a1544aeb5cc249e2682a3c1ae3f644a50720ddb06598da288708febcd70
+2026-05-19 23:01:17,138 - INFO - Container for django__django-11630 started: 00ff9a1544aeb5cc249e2682a3c1ae3f644a50720ddb06598da288708febcd70
+2026-05-19 23:01:17,138 - INFO - Intermediate patch for django__django-11630 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-11630/patch.diff, now applying to container...
+2026-05-19 23:01:17,406 - INFO - >>>>> Applied Patch:
+Checking patch django/core/checks/model_checks.py...
+Applied patch django/core/checks/model_checks.py cleanly.
+
+2026-05-19 23:01:18,151 - INFO - Git diff before:
+diff --git a/django/core/checks/model_checks.py b/django/core/checks/model_checks.py
+index 5c2266ca1d..4f08199bf9 100644
+--- a/django/core/checks/model_checks.py
++++ b/django/core/checks/model_checks.py
+@@ -19,7 +19,7 @@ def check_all_models(app_configs=None, **kwargs):
+         models = chain.from_iterable(app_config.get_models() for app_config in app_configs)
+     for model in models:
+         if model._meta.managed and not model._meta.proxy:
+-            db_table_models[model._meta.db_table].append(model._meta.label)
++            db_table_models[(model._meta.db_table, model._meta.app_label)].append(model._meta.label)
+         if not inspect.ismethod(model.check):
+             errors.append(
+                 Error(
+2026-05-19 23:01:18,152 - INFO - Eval script for django__django-11630 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-11630/eval.sh; copying to container...
+2026-05-19 23:01:24,604 - INFO - Test runtime: 6.32 seconds
+2026-05-19 23:01:24,604 - INFO - Test output for django__django-11630 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-11630/test_output.txt
+2026-05-19 23:01:24,740 - INFO - Git diff after:
+diff --git a/django/core/checks/model_checks.py b/django/core/checks/model_checks.py
+index 5c2266ca1d..4f08199bf9 100644
+--- a/django/core/checks/model_checks.py
++++ b/django/core/checks/model_checks.py
+@@ -19,7 +19,7 @@ def check_all_models(app_configs=None, **kwargs):
+         models = chain.from_iterable(app_config.get_models() for app_config in app_configs)
+     for model in models:
+         if model._meta.managed and not model._meta.proxy:
+-            db_table_models[model._meta.db_table].append(model._meta.label)
++            db_table_models[(model._meta.db_table, model._meta.app_label)].append(model._meta.label)
+         if not inspect.ismethod(model.check):
+             errors.append(
+                 Error(
+2026-05-19 23:01:24,740 - INFO - Grading answer for django__django-11630...
+2026-05-19 23:01:24,741 - INFO - report: {'django__django-11630': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_collision_across_apps_database_routers_installed (check_framework.test_model_checks.DuplicateDBTableTests)', 'test_collision_in_same_app_database_routers_installed (check_framework.test_model_checks.DuplicateDBTableTests)']}, 'PASS_TO_PASS': {'success': ['test_collision_abstract_model (check_framework.test_model_checks.IndexNameTests)', 'test_collision_across_apps (check_framework.test_model_checks.IndexNameTests)', 'test_collision_in_different_models (check_framework.test_model_checks.IndexNameTests)', 'test_collision_in_same_model (check_framework.test_model_checks.IndexNameTests)', 'test_no_collision_abstract_model_interpolation (check_framework.test_model_checks.IndexNameTests)', 'test_no_collision_across_apps_interpolation (check_framework.test_model_checks.IndexNameTests)', 'test_collision_abstract_model (check_framework.test_model_checks.ConstraintNameTests)', 'test_collision_across_apps (check_framework.test_model_checks.ConstraintNameTests)', 'test_collision_in_different_models (check_framework.test_model_checks.ConstraintNameTests)', 'test_collision_in_same_model (check_framework.test_model_checks.ConstraintNameTests)', 'test_no_collision_abstract_model_interpolation (check_framework.test_model_checks.ConstraintNameTests)', 'test_no_collision_across_apps_interpolation (check_framework.test_model_checks.ConstraintNameTests)', 'test_no_collision_for_proxy_models (check_framework.test_model_checks.DuplicateDBTableTests)', 'test_no_collision_for_unmanaged_models (check_framework.test_model_checks.DuplicateDBTableTests)'], 'failure': ['test_collision_across_apps (check_framework.test_model_checks.DuplicateDBTableTests)', 'test_collision_in_same_app (check_framework.test_model_checks.DuplicateDBTableTests)']}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-11630: resolved: False
+2026-05-19 23:01:24,742 - INFO - Attempting to stop container sweb.eval.django__django-11630.zhikuncode_eval_300_FINAL...
+2026-05-19 23:01:40,129 - INFO - Attempting to remove container sweb.eval.django__django-11630.zhikuncode_eval_300_FINAL...
+2026-05-19 23:01:40,144 - INFO - Container sweb.eval.django__django-11630.zhikuncode_eval_300_FINAL removed.
+2026-05-19 23:01:40,144 - INFO - Attempting to remove image sweb.eval.x86_64.django__django-11630:latest...
+2026-05-19 23:01:40,280 - INFO - Image sweb.eval.x86_64.django__django-11630:latest removed.

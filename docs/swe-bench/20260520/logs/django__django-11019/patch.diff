@@ -1,0 +1,45 @@
+diff --git a/django/forms/widgets.py b/django/forms/widgets.py
+index 02aa32b..5c8f7a1 100644
+--- a/django/forms/widgets.py
++++ b/django/forms/widgets.py
+@@ -128,6 +128,12 @@ class Media:
+         # Start with a copy of list_1.
+         combined_list = list(list_1)
+         last_insert_index = len(list_1)
++        # Keep track of elements from list_2 that aren't in list_1.
++        # They'll be inserted before the next "anchor" element (one that exists
++        # in both lists) or appended at the end if no anchor is found.
++        # This avoids creating artificial ordering constraints between
++        # independent elements when merging three or more media objects.
++        pending = []
+         # Walk list_2 in reverse, inserting each element into combined_list if
+         # it doesn't already exist.
+         for path in reversed(list_2):
+@@ -135,8 +141,9 @@ class Media:
+                 # Does path already exist in the list?
+                 index = combined_list.index(path)
+             except ValueError:
+-                # Add path to combined_list since it doesn't exist.
+-                combined_list.insert(last_insert_index, path)
++                # path doesn't exist yet; defer insertion until we find an
++                # anchor or reach the end.
++                pending.append(path)
+             else:
+                 if index > last_insert_index:
+                     warnings.warn(
+@@ -144,9 +151,15 @@ class Media:
+                         '%s\n%s' % (combined_list[last_insert_index], combined_list[index]),
+                         MediaOrderConflictWarning,
+                     )
++                # Insert pending elements before this anchor.
++                for pending_path in reversed(pending):
++                    combined_list.insert(index, pending_path)
++                pending = []
+                 # path already exists in the list. Update last_insert_index so
+                 # that the following elements are inserted in front of this one.
+                 last_insert_index = index
++        # Append any remaining pending elements at the end.
++        combined_list.extend(reversed(pending))
+         return combined_list
+ 
+     def __add__(self, other):

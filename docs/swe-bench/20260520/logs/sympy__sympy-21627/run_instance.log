@@ -1,0 +1,59 @@
+2026-05-20 01:31:04,344 - INFO - Environment image sweb.env.py.x86_64.c795f4b88616b8462021ed:latest found for sympy__sympy-21627
+Building instance image sweb.eval.x86_64.sympy__sympy-21627:latest for sympy__sympy-21627
+2026-05-20 01:34:03,507 - INFO - Creating container for sympy__sympy-21627...
+2026-05-20 01:34:03,606 - INFO - Container for sympy__sympy-21627 created: 7d16a2ad1c39bfa4fe1d0f68c72d141fadf815ef02280024717d370baf37b520
+2026-05-20 01:34:03,778 - INFO - Container for sympy__sympy-21627 started: 7d16a2ad1c39bfa4fe1d0f68c72d141fadf815ef02280024717d370baf37b520
+2026-05-20 01:34:03,778 - INFO - Intermediate patch for sympy__sympy-21627 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-21627/patch.diff, now applying to container...
+2026-05-20 01:34:03,897 - INFO - >>>>> Applied Patch:
+Checking patch sympy/functions/elementary/hyperbolic.py...
+Applied patch sympy/functions/elementary/hyperbolic.py cleanly.
+
+2026-05-20 01:34:04,278 - INFO - Git diff before:
+diff --git a/sympy/functions/elementary/hyperbolic.py b/sympy/functions/elementary/hyperbolic.py
+index 892e19cabb..4174c98350 100644
+--- a/sympy/functions/elementary/hyperbolic.py
++++ b/sympy/functions/elementary/hyperbolic.py
+@@ -495,6 +495,13 @@ def _eval_is_nonnegative(self):
+                 ])
+             ])
+ 
++    def _eval_is_zero(self):
++        arg = self.args[0]
++        if arg.is_real:
++            return False
++        if arg.is_zero:
++            return False
++
+     def _eval_is_finite(self):
+         arg = self.args[0]
+         return arg.is_finite
+2026-05-20 01:34:04,278 - INFO - Eval script for sympy__sympy-21627 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-21627/eval.sh; copying to container...
+2026-05-20 01:34:17,958 - INFO - Test runtime: 13.62 seconds
+2026-05-20 01:34:17,958 - INFO - Test output for sympy__sympy-21627 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-21627/test_output.txt
+2026-05-20 01:34:18,024 - INFO - Git diff after:
+diff --git a/sympy/functions/elementary/hyperbolic.py b/sympy/functions/elementary/hyperbolic.py
+index 892e19cabb..4174c98350 100644
+--- a/sympy/functions/elementary/hyperbolic.py
++++ b/sympy/functions/elementary/hyperbolic.py
+@@ -495,6 +495,13 @@ def _eval_is_nonnegative(self):
+                 ])
+             ])
+ 
++    def _eval_is_zero(self):
++        arg = self.args[0]
++        if arg.is_real:
++            return False
++        if arg.is_zero:
++            return False
++
+     def _eval_is_finite(self):
+         arg = self.args[0]
+         return arg.is_finite
+2026-05-20 01:34:18,024 - INFO - Grading answer for sympy__sympy-21627...
+2026-05-20 01:34:18,029 - INFO - report: {'sympy__sympy-21627': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_Abs']}, 'PASS_TO_PASS': {'success': ['test_re', 'test_im', 'test_sign', 'test_as_real_imag', 'test_Abs_rewrite', 'test_Abs_real', 'test_Abs_properties', 'test_abs', 'test_arg', 'test_arg_rewrite', 'test_adjoint', 'test_conjugate', 'test_conjugate_transpose', 'test_transpose', 'test_polarify', 'test_unpolarify', 'test_issue_4035', 'test_issue_3206', 'test_issue_4754_derivative_conjugate', 'test_derivatives_issue_4757', 'test_issue_11413', 'test_periodic_argument', 'test_principal_branch', 'test_issue_14216', 'test_issue_14238', 'test_zero_assumptions'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-21627: resolved: False
+2026-05-20 01:34:18,029 - INFO - Attempting to stop container sweb.eval.sympy__sympy-21627.zhikuncode_eval_300_FINAL...
+2026-05-20 01:34:33,430 - INFO - Attempting to remove container sweb.eval.sympy__sympy-21627.zhikuncode_eval_300_FINAL...
+2026-05-20 01:34:33,445 - INFO - Container sweb.eval.sympy__sympy-21627.zhikuncode_eval_300_FINAL removed.
+2026-05-20 01:34:33,445 - INFO - Attempting to remove image sweb.eval.x86_64.sympy__sympy-21627:latest...
+2026-05-20 01:34:33,498 - INFO - Image sweb.eval.x86_64.sympy__sympy-21627:latest removed.

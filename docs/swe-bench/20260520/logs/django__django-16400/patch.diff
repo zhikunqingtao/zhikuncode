@@ -1,0 +1,56 @@
+diff --git a/django/contrib/contenttypes/models.py b/django/contrib/contenttypes/models.py
+index 759a53c..1658a9f 100644
+--- a/django/contrib/contenttypes/models.py
++++ b/django/contrib/contenttypes/models.py
+@@ -19,7 +19,7 @@ class ContentTypeManager(models.Manager):
+         try:
+             ct = self._cache[self.db][(app_label, model)]
+         except KeyError:
+-            ct = self.get(app_label=app_label, model=model)
++            ct = self.using(self.db).get(app_label=app_label, model=model)
+             self._add_to_cache(self.db, ct)
+         return ct
+ 
+@@ -49,11 +49,13 @@ class ContentTypeManager(models.Manager):
+         try:
+             # Start with get() and not get_or_create() in order to use
+             # the db_for_read (see #20401).
+-            ct = self.get(app_label=opts.app_label, model=opts.model_name)
++            ct = self.using(self.db).get(
++                app_label=opts.app_label, model=opts.model_name
++            )
+         except self.model.DoesNotExist:
+             # Not found in the database; we proceed to create it. This time
+             # use get_or_create to take care of any race conditions.
+-            ct, created = self.get_or_create(
++            ct, created = self.using(self.db).get_or_create(
+                 app_label=opts.app_label,
+                 model=opts.model_name,
+             )
+@@ -87,7 +89,7 @@ class ContentTypeManager(models.Manager):
+                 ),
+                 _connector=Q.OR,
+             )
+-            cts = self.filter(condition)
++            cts = self.using(self.db).filter(condition)
+             for ct in cts:
+                 opts_models = needed_opts.pop(
+                     ct._meta.apps.get_model(ct.app_label, ct.model)._meta, []
+@@ -97,7 +99,7 @@ class ContentTypeManager(models.Manager):
+                 self._add_to_cache(self.db, ct)
+         # Create content types that weren't in the cache or DB.
+         for opts, opts_models in needed_opts.items():
+-            ct = self.create(
++            ct = self.using(self.db).create(
+                 app_label=opts.app_label,
+                 model=opts.model_name,
+             )
+@@ -116,7 +118,7 @@ class ContentTypeManager(models.Manager):
+         except KeyError:
+             # This could raise a DoesNotExist; that's correct behavior and will
+             # make sure that only correct ctypes get stored in the cache dict.
+-            ct = self.get(pk=id)
++            ct = self.using(self.db).get(pk=id)
+             self._add_to_cache(self.db, ct)
+         return ct
+ 

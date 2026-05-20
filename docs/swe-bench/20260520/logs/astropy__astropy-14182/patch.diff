@@ -1,0 +1,30 @@
+diff --git a/astropy/io/ascii/rst.py b/astropy/io/ascii/rst.py
+index abdeba8..12a1c0d 100644
+--- a/astropy/io/ascii/rst.py
++++ b/astropy/io/ascii/rst.py
+@@ -57,10 +57,22 @@ class RST(FixedWidth):
+     data_class = SimpleRSTData
+     header_class = SimpleRSTHeader
+ 
+-    def __init__(self):
+-        super().__init__(delimiter_pad=None, bookend=False)
++    def __init__(self, header_rows=None):
++        super().__init__(delimiter_pad=None, bookend=False, header_rows=header_rows)
+ 
+     def write(self, lines):
+         lines = super().write(lines)
+-        lines = [lines[1]] + lines + [lines[1]]
++        # The position line (e.g., "====") is always at index len(header_rows)
++        # in the output from FixedWidthData.write()
++        header_rows = getattr(self.data, "header_rows", ["name"])
++        position_line_index = len(header_rows)
++        position_line = lines[position_line_index]
++        # RST format: position_line, header_rows, position_line, data_rows, position_line
++        lines = (
++            [position_line]
++            + lines[:position_line_index]
++            + [position_line]
++            + lines[position_line_index + 1 :]
++            + [position_line]
++        )
+         return lines

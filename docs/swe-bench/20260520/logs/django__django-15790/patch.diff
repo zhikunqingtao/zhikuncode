@@ -1,0 +1,13 @@
+diff --git a/django/core/checks/templates.py b/django/core/checks/templates.py
+index 5214276..6a26a8e 100644
+--- a/django/core/checks/templates.py
++++ b/django/core/checks/templates.py
+@@ -61,7 +61,7 @@ def check_for_template_tags_with_the_same_name(app_configs, **kwargs):
+         libraries[module_name].append(module_path)
+ 
+     for library_name, items in libraries.items():
+-        if len(items) > 1:
++        if len(set(items)) > 1:
+             errors.append(
+                 Error(
+                     E003.msg.format(

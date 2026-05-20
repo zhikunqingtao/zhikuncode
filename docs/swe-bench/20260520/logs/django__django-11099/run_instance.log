@@ -1,0 +1,49 @@
+2026-05-19 22:53:25,676 - INFO - Environment image sweb.env.py.x86_64.2baaea72acc974f6c02079:latest found for django__django-11099
+Building instance image sweb.eval.x86_64.django__django-11099:latest for django__django-11099
+2026-05-19 22:55:48,902 - INFO - Creating container for django__django-11099...
+2026-05-19 22:55:48,922 - INFO - Container for django__django-11099 created: 90e19fd111350bba719cd88fbad317599170bc8c0f19c6c7344d3e171dddf5a0
+2026-05-19 22:55:49,002 - INFO - Container for django__django-11099 started: 90e19fd111350bba719cd88fbad317599170bc8c0f19c6c7344d3e171dddf5a0
+2026-05-19 22:55:49,003 - INFO - Intermediate patch for django__django-11099 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-11099/patch.diff, now applying to container...
+2026-05-19 22:55:49,047 - INFO - >>>>> Applied Patch:
+Checking patch django/contrib/auth/validators.py...
+Applied patch django/contrib/auth/validators.py cleanly.
+
+2026-05-19 22:55:49,482 - INFO - Git diff before:
+diff --git a/django/contrib/auth/validators.py b/django/contrib/auth/validators.py
+index b4878cfd45..1f59a32ca1 100644
+--- a/django/contrib/auth/validators.py
++++ b/django/contrib/auth/validators.py
+@@ -17,7 +17,7 @@ class ASCIIUsernameValidator(validators.RegexValidator):
+ 
+ @deconstructible
+ class UnicodeUsernameValidator(validators.RegexValidator):
+-    regex = r'^[\w.@+-]+$'
++    regex = r'\A[\w.@+-]+\Z'
+     message = _(
+         'Enter a valid username. This value may contain only letters, '
+         'numbers, and @/./+/-/_ characters.'
+2026-05-19 22:55:49,482 - INFO - Eval script for django__django-11099 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-11099/eval.sh; copying to container...
+2026-05-19 22:55:52,686 - INFO - Test runtime: 3.18 seconds
+2026-05-19 22:55:52,687 - INFO - Test output for django__django-11099 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-11099/test_output.txt
+2026-05-19 22:55:52,724 - INFO - Git diff after:
+diff --git a/django/contrib/auth/validators.py b/django/contrib/auth/validators.py
+index b4878cfd45..1f59a32ca1 100644
+--- a/django/contrib/auth/validators.py
++++ b/django/contrib/auth/validators.py
+@@ -17,7 +17,7 @@ class ASCIIUsernameValidator(validators.RegexValidator):
+ 
+ @deconstructible
+ class UnicodeUsernameValidator(validators.RegexValidator):
+-    regex = r'^[\w.@+-]+$'
++    regex = r'\A[\w.@+-]+\Z'
+     message = _(
+         'Enter a valid username. This value may contain only letters, '
+         'numbers, and @/./+/-/_ characters.'
+2026-05-19 22:55:52,724 - INFO - Grading answer for django__django-11099...
+2026-05-19 22:55:52,725 - INFO - report: {'django__django-11099': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_help_text (auth_tests.test_validators.UserAttributeSimilarityValidatorTest)'], 'failure': ['test_ascii_validator (auth_tests.test_validators.UsernameValidatorsTests)', 'test_unicode_validator (auth_tests.test_validators.UsernameValidatorsTests)']}, 'PASS_TO_PASS': {'success': ['test_help_text (auth_tests.test_validators.MinimumLengthValidatorTest)', 'test_validate (auth_tests.test_validators.MinimumLengthValidatorTest)', 'test_help_text (auth_tests.test_validators.NumericPasswordValidatorTest)', 'test_validate (auth_tests.test_validators.NumericPasswordValidatorTest)', 'test_validate (auth_tests.test_validators.UserAttributeSimilarityValidatorTest)', 'test_validate_property (auth_tests.test_validators.UserAttributeSimilarityValidatorTest)', 'test_empty_password_validator_help_text_html (auth_tests.test_validators.PasswordValidationTest)', 'test_get_default_password_validators (auth_tests.test_validators.PasswordValidationTest)', 'test_get_password_validators_custom (auth_tests.test_validators.PasswordValidationTest)', 'test_password_changed (auth_tests.test_validators.PasswordValidationTest)', 'test_password_changed_with_custom_validator (auth_tests.test_validators.PasswordValidationTest)', 'test_password_validators_help_text_html (auth_tests.test_validators.PasswordValidationTest)', 'test_password_validators_help_text_html_escaping (auth_tests.test_validators.PasswordValidationTest)', 'test_password_validators_help_texts (auth_tests.test_validators.PasswordValidationTest)', 'test_validate_password (auth_tests.test_validators.PasswordValidationTest)', 'test_help_text (auth_tests.test_validators.CommonPasswordValidatorTest)', 'test_validate (auth_tests.test_validators.CommonPasswordValidatorTest)', 'test_validate_custom_list (auth_tests.test_validators.CommonPasswordValidatorTest)', 'test_validate_django_supplied_file (auth_tests.test_validators.CommonPasswordValidatorTest)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-11099: resolved: False
+2026-05-19 22:55:52,725 - INFO - Attempting to stop container sweb.eval.django__django-11099.zhikuncode_eval_300_FINAL...
+2026-05-19 22:56:08,062 - INFO - Attempting to remove container sweb.eval.django__django-11099.zhikuncode_eval_300_FINAL...
+2026-05-19 22:56:08,073 - INFO - Container sweb.eval.django__django-11099.zhikuncode_eval_300_FINAL removed.
+2026-05-19 22:56:08,073 - INFO - Attempting to remove image sweb.eval.x86_64.django__django-11099:latest...
+2026-05-19 22:56:08,159 - INFO - Image sweb.eval.x86_64.django__django-11099:latest removed.

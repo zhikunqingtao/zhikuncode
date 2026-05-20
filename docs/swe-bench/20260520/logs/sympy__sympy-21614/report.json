@@ -1,0 +1,35 @@
+{
+    "sympy__sympy-21614": {
+        "patch_is_None": false,
+        "patch_exists": true,
+        "patch_successfully_applied": true,
+        "resolved": true,
+        "tests_status": {
+            "FAIL_TO_PASS": {
+                "success": [
+                    "test_Derivative_kind"
+                ],
+                "failure": []
+            },
+            "PASS_TO_PASS": {
+                "success": [
+                    "test_NumberKind",
+                    "test_Add_kind",
+                    "test_mul_kind",
+                    "test_Symbol_kind",
+                    "test_Integral_kind",
+                    "test_Matrix_kind"
+                ],
+                "failure": []
+            },
+            "FAIL_TO_FAIL": {
+                "success": [],
+                "failure": []
+            },
+            "PASS_TO_FAIL": {
+                "success": [],
+                "failure": []
+            }
+        }
+    }
+}

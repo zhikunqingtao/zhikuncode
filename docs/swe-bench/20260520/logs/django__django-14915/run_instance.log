@@ -1,0 +1,51 @@
+2026-05-19 23:33:23,069 - INFO - Environment image sweb.env.py.x86_64.934a137824256b612e9dc5:latest found for django__django-14915
+Building instance image sweb.eval.x86_64.django__django-14915:latest for django__django-14915
+2026-05-19 23:36:39,132 - INFO - Creating container for django__django-14915...
+2026-05-19 23:36:39,154 - INFO - Container for django__django-14915 created: 488df23ba5a99a83850b424ece0a124b41a714f525fa149f058ac8302b65e15a
+2026-05-19 23:36:39,617 - INFO - Container for django__django-14915 started: 488df23ba5a99a83850b424ece0a124b41a714f525fa149f058ac8302b65e15a
+2026-05-19 23:36:39,618 - INFO - Intermediate patch for django__django-14915 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-14915/patch.diff, now applying to container...
+2026-05-19 23:36:39,844 - INFO - >>>>> Applied Patch:
+Checking patch django/forms/models.py...
+Applied patch django/forms/models.py cleanly.
+
+2026-05-19 23:36:40,667 - INFO - Git diff before:
+diff --git a/django/forms/models.py b/django/forms/models.py
+index 5dcf923c12..bc7e6959e7 100644
+--- a/django/forms/models.py
++++ b/django/forms/models.py
+@@ -1171,6 +1171,9 @@ class ModelChoiceIteratorValue:
+             other = other.value
+         return self.value == other
+ 
++    def __hash__(self):
++        return hash(self.value)
++
+ 
+ class ModelChoiceIterator:
+     def __init__(self, field):
+2026-05-19 23:36:40,668 - INFO - Eval script for django__django-14915 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-14915/eval.sh; copying to container...
+2026-05-19 23:36:46,132 - INFO - Test runtime: 5.37 seconds
+2026-05-19 23:36:46,132 - INFO - Test output for django__django-14915 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-14915/test_output.txt
+2026-05-19 23:36:46,293 - INFO - Git diff after:
+diff --git a/django/forms/models.py b/django/forms/models.py
+index 5dcf923c12..bc7e6959e7 100644
+--- a/django/forms/models.py
++++ b/django/forms/models.py
+@@ -1171,6 +1171,9 @@ class ModelChoiceIteratorValue:
+             other = other.value
+         return self.value == other
+ 
++    def __hash__(self):
++        return hash(self.value)
++
+ 
+ class ModelChoiceIterator:
+     def __init__(self, field):
+2026-05-19 23:36:46,293 - INFO - Grading answer for django__django-14915...
+2026-05-19 23:36:46,294 - INFO - report: {'django__django-14915': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_choice_value_hash (model_forms.test_modelchoicefield.ModelChoiceFieldTests)'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_basics (model_forms.test_modelchoicefield.ModelChoiceFieldTests)', 'test_choice_iterator_passes_model_to_widget (model_forms.test_modelchoicefield.ModelChoiceFieldTests)', 'test_choices (model_forms.test_modelchoicefield.ModelChoiceFieldTests)', 'test_choices_bool (model_forms.test_modelchoicefield.ModelChoiceFieldTests)', 'test_choices_bool_empty_label (model_forms.test_modelchoicefield.ModelChoiceFieldTests)', 'test_choices_freshness (model_forms.test_modelchoicefield.ModelChoiceFieldTests)', 'test_choices_not_fetched_when_not_rendering (model_forms.test_modelchoicefield.ModelChoiceFieldTests)', 'test_choices_radio_blank (model_forms.test_modelchoicefield.ModelChoiceFieldTests)', 'test_clean_model_instance (model_forms.test_modelchoicefield.ModelChoiceFieldTests)', 'test_clean_to_field_name (model_forms.test_modelchoicefield.ModelChoiceFieldTests)', 'test_custom_choice_iterator_passes_model_to_widget (model_forms.test_modelchoicefield.ModelChoiceFieldTests)', 'test_deepcopies_widget (model_forms.test_modelchoicefield.ModelChoiceFieldTests)', 'test_disabled_modelchoicefield (model_forms.test_modelchoicefield.ModelChoiceFieldTests)', 'test_disabled_modelchoicefield_has_changed (model_forms.test_modelchoicefield.ModelChoiceFieldTests)', 'test_disabled_modelchoicefield_initial_model_instance (model_forms.test_modelchoicefield.ModelChoiceFieldTests)', 'test_disabled_modelmultiplechoicefield_has_changed (model_forms.test_modelchoicefield.ModelChoiceFieldTests)', 'test_disabled_multiplemodelchoicefield (model_forms.test_modelchoicefield.ModelChoiceFieldTests)', "ModelChoiceField with RadioSelect widget doesn't produce unnecessary", "Widgets that render multiple subwidgets shouldn't make more than one", 'Iterator defaults to ModelChoiceIterator and can be overridden with', 'test_queryset_manager (model_forms.test_modelchoicefield.ModelChoiceFieldTests)', 'test_queryset_none (model_forms.test_modelchoicefield.ModelChoiceFieldTests)', 'test_result_cache_not_shared (model_forms.test_modelchoicefield.ModelChoiceFieldTests)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-14915: resolved: True
+2026-05-19 23:36:46,294 - INFO - Attempting to stop container sweb.eval.django__django-14915.zhikuncode_eval_300_FINAL...
+2026-05-19 23:37:01,743 - INFO - Attempting to remove container sweb.eval.django__django-14915.zhikuncode_eval_300_FINAL...
+2026-05-19 23:37:01,761 - INFO - Container sweb.eval.django__django-14915.zhikuncode_eval_300_FINAL removed.
+2026-05-19 23:37:01,761 - INFO - Attempting to remove image sweb.eval.x86_64.django__django-14915:latest...
+2026-05-19 23:37:01,907 - INFO - Image sweb.eval.x86_64.django__django-14915:latest removed.

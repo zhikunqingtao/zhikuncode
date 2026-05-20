@@ -1,0 +1,1840 @@
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z '' ']'
++++ export CONDA_SHLVL=0
++++ CONDA_SHLVL=0
++++ '[' -n '' ']'
++++++ dirname /opt/miniconda3/bin/conda
+++++ dirname /opt/miniconda3/bin
++++ PATH=/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export PATH
++++ '[' -z '' ']'
++++ PS1=
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1=
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval 'PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=1
++++ CONDA_SHLVL=1
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=2
+++ CONDA_SHLVL=2
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_1=/opt/miniconda3
+++ CONDA_PREFIX_1=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ cd /testbed
++ git config --global --add safe.directory /testbed
++ cd /testbed
++ git status
+On branch master
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   sympy/functions/elementary/hyperbolic.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
++ git show
++ git -c core.fileMode=false diff 126f80578140e752ad5135aac77b8ff887eede3e
+commit c40bf91f83dba9fa3fd1d245efff01fbe8c2e85b
+Author: SWE-bench <setup@swebench.config>
+Date:   Tue May 19 17:34:01 2026 +0000
+
+    SWE-bench
+diff --git a/sympy/functions/elementary/hyperbolic.py b/sympy/functions/elementary/hyperbolic.py
+index 892e19cabb..4174c98350 100644
+--- a/sympy/functions/elementary/hyperbolic.py
++++ b/sympy/functions/elementary/hyperbolic.py
+@@ -495,6 +495,13 @@ def _eval_is_nonnegative(self):
+                 ])
+             ])
+ 
++    def _eval_is_zero(self):
++        arg = self.args[0]
++        if arg.is_real:
++            return False
++        if arg.is_zero:
++            return False
++
+     def _eval_is_finite(self):
+         arg = self.args[0]
+         return arg.is_finite
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z x ']'
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1='(testbed) '
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval 'PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=3
++++ CONDA_SHLVL=3
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=4
+++ CONDA_SHLVL=4
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_3=/opt/miniconda3
+++ CONDA_PREFIX_3=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ python -m pip install -e .
+Looking in indexes: https://mirrors.aliyun.com/pypi/simple/
+Obtaining file:///testbed
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Checking if build backend supports build_editable: started
+  Checking if build backend supports build_editable: finished with status 'done'
+  Getting requirements to build editable: started
+  Getting requirements to build editable: finished with status 'done'
+  Preparing editable metadata (pyproject.toml): started
+  Preparing editable metadata (pyproject.toml): finished with status 'done'
+Requirement already satisfied: mpmath>=0.19 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from sympy==1.9.dev0) (1.3.0)
+Building wheels for collected packages: sympy
+  Building editable for sympy (pyproject.toml): started
+  Building editable for sympy (pyproject.toml): finished with status 'done'
+  Created wheel for sympy: filename=sympy-1.9.dev0-0.editable-py3-none-any.whl size=27926 sha256=fe79c1afdb19a44d6450162b1ba4e282caffe1f87d78e93d07202fb4f3e6e96f
+  Stored in directory: /tmp/pip-ephem-wheel-cache-ajeyrmuz/wheels/7d/66/67/70d1ee2124ccf21d601c352e25cdca10f611f7c8b3f9ffb9e4
+Successfully built sympy
+Installing collected packages: sympy
+  Attempting uninstall: sympy
+    Found existing installation: sympy 1.9.dev0
+    Uninstalling sympy-1.9.dev0:
+      Successfully uninstalled sympy-1.9.dev0
+Successfully installed sympy-1.9.dev0
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
++ git checkout 126f80578140e752ad5135aac77b8ff887eede3e sympy/functions/elementary/tests/test_complexes.py
+Updated 0 paths from cbf892f55b
++ git apply -v -
+Checking patch sympy/functions/elementary/tests/test_complexes.py...
+Applied patch sympy/functions/elementary/tests/test_complexes.py cleanly.
++ : '>>>>> Start Test Output'
++ PYTHONWARNINGS=ignore::UserWarning,ignore::SyntaxWarning
++ bin/test -C --verbose sympy/functions/elementary/tests/test_complexes.py
+============================= test process starts ==============================
+executable:         /opt/miniconda3/envs/testbed/bin/python  (3.9.25-final-0) [CPython]
+architecture:       64-bit
+cache:              no
+ground types:       python 
+numpy:              None
+random seed:        45564075
+hash randomization: on (PYTHONHASHSEED=3845224137)
+
+sympy/functions/elementary/tests/test_complexes.py[31] 
+test_re ok
+test_im ok
+test_sign ok
+test_as_real_imag ok
+test_sign_issue_3068 f
+test_Abs E
+test_Abs_rewrite ok
+test_Abs_real ok
+test_Abs_properties ok
+test_abs ok
+test_arg ok
+test_arg_rewrite ok
+test_adjoint ok
+test_conjugate ok
+test_conjugate_transpose ok
+test_transpose ok
+test_polarify ok
+test_unpolarify ok
+test_issue_4035 ok
+test_issue_3206 ok
+test_issue_4754_derivative_conjugate ok
+test_derivatives_issue_4757 ok
+test_issue_11413 ok
+test_periodic_argument ok
+test_principal_branch_fail f
+test_principal_branch ok
+test_issue_6167_6151 f
+test_issue_14216 ok
+test_issue_14238 ok
+test_zero_assumptions ok
+test_issue_15893 ok                                                       [FAIL]
+
+
+________________________________________________________________________________
+_________ sympy/functions/elementary/tests/test_complexes.py:test_Abs __________
+Traceback (most recent call last):
+  File "/testbed/sympy/core/assumptions.py", line 462, in getit
+    return self._assumptions[fact]
+KeyError: 'zero'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/testbed/sympy/core/assumptions.py", line 462, in getit
+    return self._assumptions[fact]
+KeyError: 'zero'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/testbed/sympy/core/assumptions.py", line 462, in getit
+    return self._assumptions[fact]
+KeyError: 'finite'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/testbed/sympy/core/assumptions.py", line 462, in getit
+    return self._assumptions[fact]
+KeyError: 'extended_negative'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/testbed/sympy/core/assumptions.py", line 462, in getit
+    return self._assumptions[fact]
+KeyError: 'extended_real'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/testbed/sympy/core/assumptions.py", line 462, in getit
+    return self._assumptions[fact]
+KeyError: 'integer'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/testbed/sympy/core/assumptions.py", line 462, in getit
+    return self._assumptions[fact]
+KeyError: 'extended_positive'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/testbed/sympy/core/assumptions.py", line 462, in getit
+    return self._assumptions[fact]
+KeyError: 'extended_negative'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/testbed/sympy/functions/elementary/tests/test_complexes.py", line 468, in test_Abs
+    assert unchanged(Abs, S("im(acos(-i + acosh(-g + i)))"))
+  File "/testbed/sympy/core/expr.py", line 4024, in unchanged
+    f = func(*args)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 621, in eval
+    return sqrt(expand_mul(arg*conj))
+  File "/testbed/sympy/functions/elementary/miscellaneous.py", line 152, in sqrt
+    return Pow(arg, S.Half, evaluate=evaluate)
+  File "/testbed/sympy/core/power.py", line 336, in __new__
+    obj = b._eval_power(e)
+  File "/testbed/sympy/core/power.py", line 418, in _eval_power
+    b = abs(b)
+  File "/testbed/sympy/core/expr.py", line 200, in __abs__
+    return Abs(self)
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/complexes.py", line 542, in eval
+    arg = signsimp(arg, evaluate=False)
+  File "/testbed/sympy/simplify/simplify.py", line 401, in signsimp
+    e = sub_post(sub_pre(expr))
+  File "/testbed/sympy/simplify/cse_opts.py", line 37, in sub_pre
+    e = e.xreplace(negs)
+  File "/testbed/sympy/core/basic.py", line 1143, in xreplace
+    value, _ = self._xreplace(rule)
+  File "/testbed/sympy/core/basic.py", line 1158, in _xreplace
+    a_xr = _xreplace(rule)
+  File "/testbed/sympy/core/basic.py", line 1158, in _xreplace
+    a_xr = _xreplace(rule)
+  File "/testbed/sympy/core/basic.py", line 1158, in _xreplace
+    a_xr = _xreplace(rule)
+  [Previous line repeated 2 more times]
+  File "/testbed/sympy/core/basic.py", line 1165, in _xreplace
+    return self.func(*args), True
+  File "/testbed/sympy/core/function.py", line 473, in __new__
+    result = super().__new__(cls, *args, **options)
+  File "/testbed/sympy/core/function.py", line 285, in __new__
+    evaluated = cls.eval(*args)
+  File "/testbed/sympy/functions/elementary/hyperbolic.py", line 1309, in eval
+    if arg.is_zero:
+  File "/testbed/sympy/core/assumptions.py", line 466, in getit
+    return _ask(fact, self)
+  File "/testbed/sympy/core/assumptions.py", line 509, in _ask
+    a = evaluate(obj)
+  File "/testbed/sympy/core/mul.py", line 1319, in _eval_is_zero
+    z = a.is_zero
+  File "/testbed/sympy/core/assumptions.py", line 466, in getit
+    return _ask(fact, self)
+  File "/testbed/sympy/core/assumptions.py", line 521, in _ask
+    _ask(pk, obj)
+  File "/testbed/sympy/core/assumptions.py", line 521, in _ask
+    _ask(pk, obj)
+  File "/testbed/sympy/core/assumptions.py", line 521, in _ask
+    _ask(pk, obj)
+  [Previous line repeated 7 more times]
+  File "/testbed/sympy/core/assumptions.py", line 509, in _ask
+    a = evaluate(obj)
+  File "/testbed/sympy/core/expr.py", line 846, in _eval_is_positive
+    finite = self.is_finite
+  File "/testbed/sympy/core/assumptions.py", line 466, in getit
+    return _ask(fact, self)
+  File "/testbed/sympy/core/assumptions.py", line 521, in _ask
+    _ask(pk, obj)
+  File "/testbed/sympy/core/assumptions.py", line 509, in _ask
+    a = evaluate(obj)
+  File "/testbed/sympy/core/expr.py", line 859, in _eval_is_negative
+    extended_negative = self.is_extended_negative
+  File "/testbed/sympy/core/assumptions.py", line 466, in getit
+    return _ask(fact, self)
+  File "/testbed/sympy/core/assumptions.py", line 521, in _ask
+    _ask(pk, obj)
+  File "/testbed/sympy/core/assumptions.py", line 521, in _ask
+    _ask(pk, obj)
+  File "/testbed/sympy/core/assumptions.py", line 509, in _ask
+    a = evaluate(obj)
+  File "/testbed/sympy/core/add.py", line 669, in _eval_is_imaginary
+    elif (S.ImaginaryUnit*a).is_extended_real:
+  File "/testbed/sympy/core/assumptions.py", line 466, in getit
+    return _ask(fact, self)
+  File "/testbed/sympy/core/assumptions.py", line 521, in _ask
+    _ask(pk, obj)
+  File "/testbed/sympy/core/assumptions.py", line 509, in _ask
+    a = evaluate(obj)
+  File "/testbed/sympy/core/mul.py", line 1548, in _eval_is_odd
+    is_integer = self.is_integer
+  File "/testbed/sympy/core/assumptions.py", line 466, in getit
+    return _ask(fact, self)
+  File "/testbed/sympy/core/assumptions.py", line 521, in _ask
+    _ask(pk, obj)
+  File "/testbed/sympy/core/assumptions.py", line 521, in _ask
+    _ask(pk, obj)
+  File "/testbed/sympy/core/assumptions.py", line 521, in _ask
+    _ask(pk, obj)
+  [Previous line repeated 3 more times]
+  File "/testbed/sympy/core/assumptions.py", line 509, in _ask
+    a = evaluate(obj)
+  File "/testbed/sympy/core/expr.py", line 849, in _eval_is_positive
+    extended_positive = self.is_extended_positive
+  File "/testbed/sympy/core/assumptions.py", line 466, in getit
+    return _ask(fact, self)
+  File "/testbed/sympy/core/assumptions.py", line 521, in _ask
+    _ask(pk, obj)
+  File "/testbed/sympy/core/assumptions.py", line 509, in _ask
+    a = evaluate(obj)
+  File "/testbed/sympy/core/expr.py", line 859, in _eval_is_negative
+    extended_negative = self.is_extended_negative
+  File "/testbed/sympy/core/assumptions.py", line 466, in getit
+    return _ask(fact, self)
+  File "/testbed/sympy/core/assumptions.py", line 509, in _ask
+    a = evaluate(obj)
+  File "/testbed/sympy/core/mul.py", line 1545, in _eval_is_extended_negative
+    return self._eval_pos_neg(-1)
+  File "/testbed/sympy/core/mul.py", line 1512, in _eval_pos_neg
+    if t.is_extended_positive:
+  File "/testbed/sympy/core/assumptions.py", line 462, in getit
+    return self._assumptions[fact]
+RecursionError: maximum recursion depth exceeded while calling a Python object
+
+= tests finished: 27 passed, 3 expected to fail, 1 exceptions, in 8.33 seconds =
+DO *NOT* COMMIT!
++ : '>>>>> End Test Output'
++ git checkout 126f80578140e752ad5135aac77b8ff887eede3e sympy/functions/elementary/tests/test_complexes.py
+Updated 1 path from cbf892f55b

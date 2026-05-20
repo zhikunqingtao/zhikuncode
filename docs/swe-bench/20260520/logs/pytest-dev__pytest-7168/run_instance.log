@@ -1,0 +1,59 @@
+2026-05-20 00:35:24,608 - INFO - Environment image sweb.env.py.x86_64.5d1fda9d55d65d8a4e5bdb:latest found for pytest-dev__pytest-7168
+Building instance image sweb.eval.x86_64.pytest-dev__pytest-7168:latest for pytest-dev__pytest-7168
+2026-05-20 00:35:50,522 - INFO - Creating container for pytest-dev__pytest-7168...
+2026-05-20 00:35:50,542 - INFO - Container for pytest-dev__pytest-7168 created: 0444b94ac8ca126ea8f4034243b03ad97739652bb560117f2308086685c686b4
+2026-05-20 00:35:50,650 - INFO - Container for pytest-dev__pytest-7168 started: 0444b94ac8ca126ea8f4034243b03ad97739652bb560117f2308086685c686b4
+2026-05-20 00:35:50,651 - INFO - Intermediate patch for pytest-dev__pytest-7168 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/pytest-dev__pytest-7168/patch.diff, now applying to container...
+2026-05-20 00:35:50,695 - INFO - >>>>> Applied Patch:
+Checking patch src/_pytest/_io/saferepr.py...
+Applied patch src/_pytest/_io/saferepr.py cleanly.
+
+2026-05-20 00:35:50,751 - INFO - Git diff before:
+diff --git a/src/_pytest/_io/saferepr.py b/src/_pytest/_io/saferepr.py
+index 23af4d0bb..184a32696 100644
+--- a/src/_pytest/_io/saferepr.py
++++ b/src/_pytest/_io/saferepr.py
+@@ -19,8 +19,14 @@ def _format_repr_exception(exc: BaseException, obj: Any) -> str:
+         raise
+     except BaseException as exc:
+         exc_info = "unpresentable exception ({})".format(_try_repr_or_str(exc))
++    try:
++        class_name = type(obj).__name__
++    except (KeyboardInterrupt, SystemExit):
++        raise
++    except BaseException:
++        class_name = "<unknown>"
+     return "<[{} raised in repr()] {} object at 0x{:x}>".format(
+-        exc_info, obj.__class__.__name__, id(obj)
++        exc_info, class_name, id(obj)
+     )
+2026-05-20 00:35:50,751 - INFO - Eval script for pytest-dev__pytest-7168 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/pytest-dev__pytest-7168/eval.sh; copying to container...
+2026-05-20 00:35:53,607 - INFO - Test runtime: 2.83 seconds
+2026-05-20 00:35:53,607 - INFO - Test output for pytest-dev__pytest-7168 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/pytest-dev__pytest-7168/test_output.txt
+2026-05-20 00:35:53,630 - INFO - Git diff after:
+diff --git a/src/_pytest/_io/saferepr.py b/src/_pytest/_io/saferepr.py
+index 23af4d0bb..184a32696 100644
+--- a/src/_pytest/_io/saferepr.py
++++ b/src/_pytest/_io/saferepr.py
+@@ -19,8 +19,14 @@ def _format_repr_exception(exc: BaseException, obj: Any) -> str:
+         raise
+     except BaseException as exc:
+         exc_info = "unpresentable exception ({})".format(_try_repr_or_str(exc))
++    try:
++        class_name = type(obj).__name__
++    except (KeyboardInterrupt, SystemExit):
++        raise
++    except BaseException:
++        class_name = "<unknown>"
+     return "<[{} raised in repr()] {} object at 0x{:x}>".format(
+-        exc_info, obj.__class__.__name__, id(obj)
++        exc_info, class_name, id(obj)
+     )
+2026-05-20 00:35:53,630 - INFO - Grading answer for pytest-dev__pytest-7168...
+2026-05-20 00:35:53,630 - INFO - report: {'pytest-dev__pytest-7168': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['testing/io/test_saferepr.py::test_simple_repr', 'testing/io/test_saferepr.py::test_maxsize', 'testing/io/test_saferepr.py::test_maxsize_error_on_instance', 'testing/io/test_saferepr.py::test_exceptions', 'testing/io/test_saferepr.py::test_baseexception', 'testing/io/test_saferepr.py::test_buggy_builtin_repr', 'testing/io/test_saferepr.py::test_big_repr', 'testing/io/test_saferepr.py::test_repr_on_newstyle', 'testing/io/test_saferepr.py::test_unicode', 'testing/io/test_saferepr.py::test_pformat_dispatch', 'testing/io/test_saferepr.py::test_broken_getattribute'], 'failure': []}, 'PASS_TO_PASS': {'success': [], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for pytest-dev__pytest-7168: resolved: True
+2026-05-20 00:35:53,631 - INFO - Attempting to stop container sweb.eval.pytest-dev__pytest-7168.zhikuncode_eval_300_FINAL...
+2026-05-20 00:36:09,006 - INFO - Attempting to remove container sweb.eval.pytest-dev__pytest-7168.zhikuncode_eval_300_FINAL...
+2026-05-20 00:36:09,012 - INFO - Container sweb.eval.pytest-dev__pytest-7168.zhikuncode_eval_300_FINAL removed.
+2026-05-20 00:36:09,012 - INFO - Attempting to remove image sweb.eval.x86_64.pytest-dev__pytest-7168:latest...
+2026-05-20 00:36:09,118 - INFO - Image sweb.eval.x86_64.pytest-dev__pytest-7168:latest removed.

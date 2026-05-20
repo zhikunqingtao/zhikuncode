@@ -1,0 +1,33 @@
+diff --git a/sympy/sets/sets.py b/sympy/sets/sets.py
+index 03cf57a..7f3ed59 100644
+--- a/sympy/sets/sets.py
++++ b/sympy/sets/sets.py
+@@ -1262,13 +1262,14 @@ def __new__(cls, *args, **kwargs):
+         # flatten inputs to merge intersections and iterables
+         args = _sympify(args)
+ 
++        # Remove duplicates and order for canonical processing
++        args = list(ordered(set(args), Set._infimum_key))
++
+         # Reduce sets using known rules
+         if evaluate:
+             args = list(cls._new_args_filter(args))
+             return simplify_intersection(args)
+ 
+-        args = list(ordered(args, Set._infimum_key))
+-
+         obj = Basic.__new__(cls, *args)
+         obj._argset = frozenset(args)
+         return obj
+@@ -1365,6 +1366,11 @@ def _handle_finite_sets(args):
+                         other.append(
+                             v - FiniteSet(
+                             *contained, evaluate=False))
++                    elif any(x.has(Symbol) for x in v):
++                        # v has symbolic elements not in s, so non-symbolic
++                        # elements of s may or may not be in v; preserve
++                        # the constraint by adding v to other
++                        other.append(v)
+                     else:
+                         pass  # for coverage
+ 

@@ -1,0 +1,39 @@
+diff --git a/sympy/geometry/util.py b/sympy/geometry/util.py
+index d32adc3..55fe269 100644
+--- a/sympy/geometry/util.py
++++ b/sympy/geometry/util.py
+@@ -15,6 +15,8 @@
+ from sympy import Function, Symbol, solve
+ from sympy.core.compatibility import (
+     is_sequence, range, string_types, ordered)
++from sympy.core.function import AppliedUndef
++from sympy.core.relational import Relational
+ from sympy.core.containers import OrderedSet
+ from .point import Point, Point2D
+ 
+@@ -565,17 +567,23 @@ def idiff(eq, y, x, n=1):
+     sympy.core.function.diff: explicitly differentiates wrt symbols
+ 
+     """
++    if isinstance(eq, Relational):
++        eq = eq.lhs - eq.rhs
++
+     if is_sequence(y):
+         dep = set(y)
+         y = y[0]
+-    elif isinstance(y, Symbol):
++    elif isinstance(y, (Symbol, AppliedUndef)):
+         dep = {y}
+     else:
+         raise ValueError("expecting x-dependent symbol(s) but got: %s" % y)
+ 
+     f = dict([(s, Function(
+         s.name)(x)) for s in eq.free_symbols if s != x and s in dep])
+-    dydx = Function(y.name)(x).diff(x)
++    if isinstance(y, AppliedUndef):
++        dydx = y.diff(x)
++    else:
++        dydx = Function(y.name)(x).diff(x)
+     eq = eq.subs(f)
+     derivs = {}
+     for i in range(n):

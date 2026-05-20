@@ -1,0 +1,47 @@
+2026-05-19 23:48:58,732 - INFO - Environment image sweb.env.py.x86_64.c70909fdac4897d1c685df:latest found for django__django-16527
+Building instance image sweb.eval.x86_64.django__django-16527:latest for django__django-16527
+2026-05-19 23:52:51,673 - INFO - Creating container for django__django-16527...
+2026-05-19 23:52:51,717 - INFO - Container for django__django-16527 created: 145e537eda695e3707fe1259b33c0ec88673cfe41d6350d14e43c7eb2bb55556
+2026-05-19 23:52:52,075 - INFO - Container for django__django-16527 started: 145e537eda695e3707fe1259b33c0ec88673cfe41d6350d14e43c7eb2bb55556
+2026-05-19 23:52:52,075 - INFO - Intermediate patch for django__django-16527 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-16527/patch.diff, now applying to container...
+2026-05-19 23:52:52,317 - INFO - >>>>> Applied Patch:
+Checking patch django/contrib/admin/templatetags/admin_modify.py...
+Applied patch django/contrib/admin/templatetags/admin_modify.py cleanly.
+
+2026-05-19 23:52:53,063 - INFO - Git diff before:
+diff --git a/django/contrib/admin/templatetags/admin_modify.py b/django/contrib/admin/templatetags/admin_modify.py
+index 9df4b7aadb..5b742af46a 100644
+--- a/django/contrib/admin/templatetags/admin_modify.py
++++ b/django/contrib/admin/templatetags/admin_modify.py
+@@ -100,6 +100,7 @@ def submit_row(context):
+                 and context.get("show_delete", True)
+             ),
+             "show_save_as_new": not is_popup
++            and has_add_permission
+             and has_change_permission
+             and change
+             and save_as,
+2026-05-19 23:52:53,064 - INFO - Eval script for django__django-16527 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-16527/eval.sh; copying to container...
+2026-05-19 23:52:58,345 - INFO - Test runtime: 5.18 seconds
+2026-05-19 23:52:58,346 - INFO - Test output for django__django-16527 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-16527/test_output.txt
+2026-05-19 23:52:58,463 - INFO - Git diff after:
+diff --git a/django/contrib/admin/templatetags/admin_modify.py b/django/contrib/admin/templatetags/admin_modify.py
+index 9df4b7aadb..5b742af46a 100644
+--- a/django/contrib/admin/templatetags/admin_modify.py
++++ b/django/contrib/admin/templatetags/admin_modify.py
+@@ -100,6 +100,7 @@ def submit_row(context):
+                 and context.get("show_delete", True)
+             ),
+             "show_save_as_new": not is_popup
++            and has_add_permission
+             and has_change_permission
+             and change
+             and save_as,
+2026-05-19 23:52:58,464 - INFO - Grading answer for django__django-16527...
+2026-05-19 23:52:58,465 - INFO - report: {'django__django-16527': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_submit_row_save_as_new_add_permission_required (admin_views.test_templatetags.AdminTemplateTagsTest.test_submit_row_save_as_new_add_permission_required)'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_choice_links (admin_views.test_templatetags.DateHierarchyTests.test_choice_links)', 'test_choice_links_datetime (admin_views.test_templatetags.DateHierarchyTests.test_choice_links_datetime)', 'admin_modify template tags follow the standard search pattern', 'admin_list template tags follow the standard search pattern', 'test_override_show_save_and_add_another (admin_views.test_templatetags.AdminTemplateTagsTest.test_override_show_save_and_add_another)', 'submit_row template tag should pass whole context.'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-16527: resolved: True
+2026-05-19 23:52:58,465 - INFO - Attempting to stop container sweb.eval.django__django-16527.zhikuncode_eval_300_FINAL...
+2026-05-19 23:53:14,034 - INFO - Attempting to remove container sweb.eval.django__django-16527.zhikuncode_eval_300_FINAL...
+2026-05-19 23:53:14,052 - INFO - Container sweb.eval.django__django-16527.zhikuncode_eval_300_FINAL removed.
+2026-05-19 23:53:14,052 - INFO - Attempting to remove image sweb.eval.x86_64.django__django-16527:latest...
+2026-05-19 23:53:14,194 - INFO - Image sweb.eval.x86_64.django__django-16527:latest removed.

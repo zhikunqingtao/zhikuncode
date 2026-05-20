@@ -1,0 +1,73 @@
+2026-05-19 22:43:27,134 - INFO - Environment image sweb.env.py.x86_64.c70974ae7654c7a2c98577:latest found for astropy__astropy-7746
+Building instance image sweb.eval.x86_64.astropy__astropy-7746:latest for astropy__astropy-7746
+2026-05-19 22:52:46,551 - INFO - Creating container for astropy__astropy-7746...
+2026-05-19 22:52:46,570 - INFO - Container for astropy__astropy-7746 created: 87fd1a1adcda1f6aa2c5ef39e588ff4869960d351df6c961ad1d935641e9b48f
+2026-05-19 22:52:46,658 - INFO - Container for astropy__astropy-7746 started: 87fd1a1adcda1f6aa2c5ef39e588ff4869960d351df6c961ad1d935641e9b48f
+2026-05-19 22:52:46,658 - INFO - Intermediate patch for astropy__astropy-7746 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/astropy__astropy-7746/patch.diff, now applying to container...
+2026-05-19 22:52:46,703 - INFO - >>>>> Applied Patch:
+Checking patch astropy/wcs/wcs.py...
+Applied patch astropy/wcs/wcs.py cleanly.
+
+2026-05-19 22:52:46,954 - INFO - Git diff before:
+diff --git a/astropy/wcs/wcs.py b/astropy/wcs/wcs.py
+index d3a06f2b3..e07400d50 100644
+--- a/astropy/wcs/wcs.py
++++ b/astropy/wcs/wcs.py
+@@ -1218,6 +1218,10 @@ reduce these to 2 dimensions using the naxis kwarg.
+                 raise ValueError(
+                     "Coordinate arrays are not broadcastable to each other")
+ 
++            # Handle empty input arrays
++            if axes[0].size == 0:
++                return [np.array([]) for i in range(self.naxis)]
++
+             xy = np.hstack([x.reshape((x.size, 1)) for x in axes])
+ 
+             if ra_dec_order and sky == 'input':
+@@ -1235,6 +1239,9 @@ reduce these to 2 dimensions using the naxis kwarg.
+                 raise ValueError(
+                     "When providing two arguments, the array must be "
+                     "of shape (N, {0})".format(self.naxis))
++            # Handle empty input arrays
++            if xy.size == 0:
++                return np.empty((0, self.naxis))
+             if ra_dec_order and sky == 'input':
+                 xy = self._denormalize_sky(xy)
+             result = func(xy, origin)
+2026-05-19 22:52:46,954 - INFO - Eval script for astropy__astropy-7746 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/astropy__astropy-7746/eval.sh; copying to container...
+2026-05-19 22:52:50,312 - INFO - Test runtime: 3.34 seconds
+2026-05-19 22:52:50,312 - INFO - Test output for astropy__astropy-7746 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/astropy__astropy-7746/test_output.txt
+2026-05-19 22:52:50,340 - INFO - Git diff after:
+diff --git a/astropy/wcs/wcs.py b/astropy/wcs/wcs.py
+index d3a06f2b3..e07400d50 100644
+--- a/astropy/wcs/wcs.py
++++ b/astropy/wcs/wcs.py
+@@ -1218,6 +1218,10 @@ reduce these to 2 dimensions using the naxis kwarg.
+                 raise ValueError(
+                     "Coordinate arrays are not broadcastable to each other")
+ 
++            # Handle empty input arrays
++            if axes[0].size == 0:
++                return [np.array([]) for i in range(self.naxis)]
++
+             xy = np.hstack([x.reshape((x.size, 1)) for x in axes])
+ 
+             if ra_dec_order and sky == 'input':
+@@ -1235,6 +1239,9 @@ reduce these to 2 dimensions using the naxis kwarg.
+                 raise ValueError(
+                     "When providing two arguments, the array must be "
+                     "of shape (N, {0})".format(self.naxis))
++            # Handle empty input arrays
++            if xy.size == 0:
++                return np.empty((0, self.naxis))
+             if ra_dec_order and sky == 'input':
+                 xy = self._denormalize_sky(xy)
+             result = func(xy, origin)
+2026-05-19 22:52:50,340 - INFO - Grading answer for astropy__astropy-7746...
+2026-05-19 22:52:50,341 - INFO - report: {'astropy__astropy-7746': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['astropy/wcs/tests/test_wcs.py::test_zero_size_input']}, 'PASS_TO_PASS': {'success': ['astropy/wcs/tests/test_wcs.py::TestMaps::test_consistency', 'astropy/wcs/tests/test_wcs.py::TestMaps::test_maps', 'astropy/wcs/tests/test_wcs.py::TestSpectra::test_consistency', 'astropy/wcs/tests/test_wcs.py::TestSpectra::test_spectra', 'astropy/wcs/tests/test_wcs.py::test_fixes', 'astropy/wcs/tests/test_wcs.py::test_outside_sky', 'astropy/wcs/tests/test_wcs.py::test_pix2world', 'astropy/wcs/tests/test_wcs.py::test_load_fits_path', 'astropy/wcs/tests/test_wcs.py::test_dict_init', 'astropy/wcs/tests/test_wcs.py::test_extra_kwarg', 'astropy/wcs/tests/test_wcs.py::test_3d_shapes', 'astropy/wcs/tests/test_wcs.py::test_preserve_shape', 'astropy/wcs/tests/test_wcs.py::test_broadcasting', 'astropy/wcs/tests/test_wcs.py::test_shape_mismatch', 'astropy/wcs/tests/test_wcs.py::test_invalid_shape', 'astropy/wcs/tests/test_wcs.py::test_warning_about_defunct_keywords', 'astropy/wcs/tests/test_wcs.py::test_warning_about_defunct_keywords_exception', 'astropy/wcs/tests/test_wcs.py::test_to_header_string', 'astropy/wcs/tests/test_wcs.py::test_to_fits', 'astropy/wcs/tests/test_wcs.py::test_to_header_warning', 'astropy/wcs/tests/test_wcs.py::test_no_comments_in_header', 'astropy/wcs/tests/test_wcs.py::test_find_all_wcs_crash', 'astropy/wcs/tests/test_wcs.py::test_validate', 'astropy/wcs/tests/test_wcs.py::test_validate_with_2_wcses', 'astropy/wcs/tests/test_wcs.py::test_crpix_maps_to_crval', 'astropy/wcs/tests/test_wcs.py::test_all_world2pix', 'astropy/wcs/tests/test_wcs.py::test_scamp_sip_distortion_parameters', 'astropy/wcs/tests/test_wcs.py::test_fixes2', 'astropy/wcs/tests/test_wcs.py::test_unit_normalization', 'astropy/wcs/tests/test_wcs.py::test_footprint_to_file', 'astropy/wcs/tests/test_wcs.py::test_validate_faulty_wcs', 'astropy/wcs/tests/test_wcs.py::test_error_message', 'astropy/wcs/tests/test_wcs.py::test_out_of_bounds', 'astropy/wcs/tests/test_wcs.py::test_calc_footprint_1', 'astropy/wcs/tests/test_wcs.py::test_calc_footprint_2', 'astropy/wcs/tests/test_wcs.py::test_calc_footprint_3', 'astropy/wcs/tests/test_wcs.py::test_sip', 'astropy/wcs/tests/test_wcs.py::test_printwcs', 'astropy/wcs/tests/test_wcs.py::test_invalid_spherical', 'astropy/wcs/tests/test_wcs.py::test_no_iteration', 'astropy/wcs/tests/test_wcs.py::test_sip_tpv_agreement', 'astropy/wcs/tests/test_wcs.py::test_tpv_copy', 'astropy/wcs/tests/test_wcs.py::test_hst_wcs', 'astropy/wcs/tests/test_wcs.py::test_list_naxis', 'astropy/wcs/tests/test_wcs.py::test_sip_broken', 'astropy/wcs/tests/test_wcs.py::test_no_truncate_crval', 'astropy/wcs/tests/test_wcs.py::test_no_truncate_crval_try2', 'astropy/wcs/tests/test_wcs.py::test_no_truncate_crval_p17', 'astropy/wcs/tests/test_wcs.py::test_no_truncate_using_compare', 'astropy/wcs/tests/test_wcs.py::test_passing_ImageHDU', 'astropy/wcs/tests/test_wcs.py::test_inconsistent_sip', 'astropy/wcs/tests/test_wcs.py::test_bounds_check', 'astropy/wcs/tests/test_wcs.py::test_naxis', 'astropy/wcs/tests/test_wcs.py::test_sip_with_altkey', 'astropy/wcs/tests/test_wcs.py::test_to_fits_1', 'astropy/wcs/tests/test_wcs.py::test_keyedsip'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for astropy__astropy-7746: resolved: False
+2026-05-19 22:52:50,341 - INFO - Attempting to stop container sweb.eval.astropy__astropy-7746.zhikuncode_eval_300_FINAL...
+2026-05-19 22:53:05,710 - INFO - Attempting to remove container sweb.eval.astropy__astropy-7746.zhikuncode_eval_300_FINAL...
+2026-05-19 22:53:05,719 - INFO - Container sweb.eval.astropy__astropy-7746.zhikuncode_eval_300_FINAL removed.
+2026-05-19 22:53:05,719 - INFO - Attempting to remove image sweb.eval.x86_64.astropy__astropy-7746:latest...
+2026-05-19 22:53:05,781 - INFO - Image sweb.eval.x86_64.astropy__astropy-7746:latest removed.

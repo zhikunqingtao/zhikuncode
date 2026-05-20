@@ -1,0 +1,47 @@
+diff --git a/sympy/geometry/point.py b/sympy/geometry/point.py
+index 7c978c4..2e57a30 100644
+--- a/sympy/geometry/point.py
++++ b/sympy/geometry/point.py
+@@ -213,6 +213,18 @@ def __add__(self, other):
+         sympy.geometry.point.Point.translate
+ 
+         """
++        from sympy.core.mul import Mul
++        if isinstance(other, Mul):
++            # Handle expressions like 2.0*Point2D(1,1) which arise when
++            # a SymPy scalar is multiplied by a Point (e.g., sympify(2.0)*point)
++            # SymPy's __mul__ creates a Mul expression instead of calling
++            # Point.__rmul__, so we need to evaluate it here.
++            args = other.args
++            points = [a for a in args if isinstance(a, Point)]
++            if len(points) == 1:
++                scalars = [a for a in args if not isinstance(a, Point)]
++                scalar = Mul(*scalars) if scalars else S.One
++                other = points[0] * scalar
+         try:
+             s, o = Point._normalize_dimension(self, Point(other, evaluate=False))
+         except TypeError:
+@@ -286,6 +298,15 @@ def __neg__(self):
+     def __sub__(self, other):
+         """Subtract two points, or subtract a factor from this point's
+         coordinates."""
++        from sympy.core.mul import Mul
++        if isinstance(other, Mul):
++            # Handle expressions like 2.0*Point2D(1,1)
++            args = other.args
++            points = [a for a in args if isinstance(a, Point)]
++            if len(points) == 1:
++                scalars = [a for a in args if not isinstance(a, Point)]
++                scalar = Mul(*scalars) if scalars else S.One
++                other = points[0] * scalar
+         return self + [-x for x in other]
+ 
+     @classmethod
+@@ -853,6 +874,7 @@ def unit(self):
+     n = evalf
+ 
+     __truediv__ = __div__
++    __rmul__ = __mul__
+ 
+ class Point2D(Point):
+     """A point in a 2-dimensional Euclidean space.

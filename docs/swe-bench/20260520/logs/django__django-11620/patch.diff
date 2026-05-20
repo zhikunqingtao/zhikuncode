@@ -1,0 +1,26 @@
+diff --git a/django/views/debug.py b/django/views/debug.py
+index cb3e8c7..83f10cd 100644
+--- a/django/views/debug.py
++++ b/django/views/debug.py
+@@ -463,10 +463,11 @@ def technical_404_response(request, exception):
+     except (IndexError, TypeError, KeyError):
+         error_url = request.path_info[1:]  # Trim leading slash
+ 
++    tried = None
+     try:
+         tried = exception.args[0]['tried']
+     except (IndexError, TypeError, KeyError):
+-        tried = []
++        pass
+     else:
+         if (not tried or (                  # empty URLconf
+             request.path == '/' and
+@@ -483,7 +484,7 @@ def technical_404_response(request, exception):
+     caller = ''
+     try:
+         resolver_match = resolve(request.path)
+-    except Resolver404:
++    except (Http404, Resolver404):
+         pass
+     else:
+         obj = resolver_match.func

@@ -1,0 +1,45 @@
+diff --git a/sympy/printing/pretty/pretty.py b/sympy/printing/pretty/pretty.py
+index 6646118..e9880c8 100644
+--- a/sympy/printing/pretty/pretty.py
++++ b/sympy/printing/pretty/pretty.py
+@@ -1144,22 +1144,24 @@ def _print_BasisDependent(self, expr):
+             if '\n' in partstr:
+                 tempstr = partstr
+                 tempstr = tempstr.replace(vectstrs[i], '')
+-                if '\N{right parenthesis extension}' in tempstr:   # If scalar is a fraction
+-                    for paren in range(len(tempstr)):
+-                        flag[i] = 1
+-                        if tempstr[paren] == '\N{right parenthesis extension}':
+-                            tempstr = tempstr[:paren] + '\N{right parenthesis extension}'\
+-                                         + ' '  + vectstrs[i] + tempstr[paren + 1:]
+-                            break
+-                elif '\N{RIGHT PARENTHESIS LOWER HOOK}' in tempstr:
+-                    flag[i] = 1
+-                    tempstr = tempstr.replace('\N{RIGHT PARENTHESIS LOWER HOOK}',
+-                                        '\N{RIGHT PARENTHESIS LOWER HOOK}'
+-                                        + ' ' + vectstrs[i])
+-                else:
+-                    tempstr = tempstr.replace('\N{RIGHT PARENTHESIS UPPER HOOK}',
+-                                        '\N{RIGHT PARENTHESIS UPPER HOOK}'
+-                                        + ' ' + vectstrs[i])
++                # Find the last occurrence of any right parenthesis character
++                # (extension, lower hook, or upper hook) to place the unit vector
++                # on the bottom line of the parenthesized expression
++                paren_chars = ('\N{right parenthesis extension}',
++                               '\N{RIGHT PARENTHESIS LOWER HOOK}',
++                               '\N{RIGHT PARENTHESIS UPPER HOOK}')
++                last_paren = -1
++                for idx in range(len(tempstr) - 1, -1, -1):
++                    if tempstr[idx] in paren_chars:
++                        last_paren = idx
++                        break
++                if last_paren >= 0:
++                    paren_char = tempstr[last_paren]
++                    tempstr = tempstr[:last_paren] + paren_char \
++                                 + ' ' + vectstrs[i] + tempstr[last_paren + 1:]
++                    # flag[i] should point to the line containing the unit vector
++                    # Count newlines before last_paren to find which line it's on
++                    flag[i] = tempstr[:last_paren].count('\n')
+                 o1[i] = tempstr
+ 
+         o1 = [x.split('\n') for x in o1]

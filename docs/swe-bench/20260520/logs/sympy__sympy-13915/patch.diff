@@ -1,0 +1,16 @@
+diff --git a/sympy/core/mul.py b/sympy/core/mul.py
+index 4f01eee..50a62b7 100644
+--- a/sympy/core/mul.py
++++ b/sympy/core/mul.py
+@@ -423,6 +423,11 @@ def _gather(c_powers):
+             changed = False
+             for b, e in c_powers:
+                 if e.is_zero:
++                    # If exponents canceled to zero but base contains zoo or nan,
++                    # the result is undefined (nan). This handles cases like
++                    # (zoo+x)**(-1) * (zoo+x)**(1) which should not simplify to 1.
++                    if b.has(S.ComplexInfinity, S.NaN):
++                        return [S.NaN], [], None
+                     continue
+                 if e is S.One:
+                     if b.is_Number:

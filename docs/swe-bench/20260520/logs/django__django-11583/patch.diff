@@ -1,0 +1,26 @@
+diff --git a/django/utils/autoreload.py b/django/utils/autoreload.py
+index 25c3b44..520327b 100644
+--- a/django/utils/autoreload.py
++++ b/django/utils/autoreload.py
+@@ -139,9 +139,10 @@ def iter_modules_and_files(modules, extra_files):
+         path = Path(filename)
+         try:
+             resolved_path = path.resolve(strict=True).absolute()
+-        except FileNotFoundError:
++        except (FileNotFoundError, ValueError):
+             # The module could have been removed, don't fail loudly if this
+-            # is the case.
++            # is the case. ValueError is raised when the path contains a null
++            # byte (e.g., from a network mount).
+             continue
+         results.add(resolved_path)
+     return frozenset(results)
+@@ -187,7 +188,7 @@ def sys_path_directories():
+         path = Path(path)
+         try:
+             resolved_path = path.resolve(strict=True).absolute()
+-        except FileNotFoundError:
++        except (FileNotFoundError, ValueError):
+             continue
+         # If the path is a file (like a zip file), watch the parent directory.
+         if resolved_path.is_file():

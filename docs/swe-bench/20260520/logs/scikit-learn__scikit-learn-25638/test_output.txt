@@ -1,0 +1,622 @@
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z '' ']'
++++ export CONDA_SHLVL=0
++++ CONDA_SHLVL=0
++++ '[' -n '' ']'
++++++ dirname /opt/miniconda3/bin/conda
+++++ dirname /opt/miniconda3/bin
++++ PATH=/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export PATH
++++ '[' -z '' ']'
++++ PS1=
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1=
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval 'PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=1
++++ CONDA_SHLVL=1
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\''
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libglib_activate.sh"'
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\''
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libglib_activate.sh"'
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=2
+++ CONDA_SHLVL=2
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_1=/opt/miniconda3
+++ CONDA_PREFIX_1=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/activate.sh
++++ export __EGL_VENDOR_LIBRARY_DIRS=/opt/miniconda3/envs/testbed/share/glvnd/egl_vendor.d
++++ __EGL_VENDOR_LIBRARY_DIRS=/opt/miniconda3/envs/testbed/share/glvnd/egl_vendor.d
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/libglib_activate.sh
++++ export GSETTINGS_SCHEMA_DIR_CONDA_BACKUP=
++++ GSETTINGS_SCHEMA_DIR_CONDA_BACKUP=
++++ export GSETTINGS_SCHEMA_DIR=/opt/miniconda3/envs/testbed/share/glib-2.0/schemas
++++ GSETTINGS_SCHEMA_DIR=/opt/miniconda3/envs/testbed/share/glib-2.0/schemas
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ cd /testbed
++ git config --global --add safe.directory /testbed
++ cd /testbed
++ git status
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   sklearn/utils/multiclass.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
++ git show
+commit 6adb209acd63825affc884abcd85381f148fb1b0
+Author: Omar Salman <omar.salman@arbisoft.com>
+Date:   Thu Feb 23 22:52:19 2023 +0500
+
+    FIX renormalization of y_pred inside log_loss (#25299)
+    
+    * Remove renormalization of y_pred inside log_loss
+    
+    * Deprecate eps parameter in log_loss
+
+diff --git a/doc/whats_new/v1.3.rst b/doc/whats_new/v1.3.rst
+index 3e5e5083d..e7cd4c1a0 100644
+--- a/doc/whats_new/v1.3.rst
++++ b/doc/whats_new/v1.3.rst
+@@ -165,6 +165,13 @@ Changelog
+ - |Fix| :func:`metric.manhattan_distances` now supports readonly sparse datasets.
+   :pr:`25432` by :user:`Julien Jerphanion <jjerphan>`.
+ 
++- |Fix| :func:`log_loss` raises a warning if the values of the parameter `y_pred` are
++  not normalized, instead of actually normalizing them in the metric. Starting from
++  1.5 this will raise an error. :pr:`25299` by :user:`Omar Salman <OmarManzoor`.
++
++- |API| The `eps` parameter of the :func:`log_loss` has been deprecated and will be
++  removed in 1.5. :pr:`25299` by :user:`Omar Salman <OmarManzoor>`.
++
+ :mod:`sklearn.naive_bayes`
+ ..........................
+ 
+diff --git a/sklearn/metrics/_classification.py b/sklearn/metrics/_classification.py
+index bd8011a5b..0602ec77a 100644
+--- a/sklearn/metrics/_classification.py
++++ b/sklearn/metrics/_classification.py
+@@ -2622,6 +2622,9 @@ def log_loss(
+            The default value changed from `1e-15` to `"auto"` that is
+            equivalent to `np.finfo(y_pred.dtype).eps`.
+ 
++        .. deprecated:: 1.3
++           `eps` is deprecated in 1.3 and will be removed in 1.5.
++
+     normalize : bool, default=True
+         If true, return the mean loss per sample.
+         Otherwise, return the sum of the per-sample losses.
+@@ -2660,7 +2663,16 @@ def log_loss(
+     y_pred = check_array(
+         y_pred, ensure_2d=False, dtype=[np.float64, np.float32, np.float16]
+     )
+-    eps = np.finfo(y_pred.dtype).eps if eps == "auto" else eps
++    if eps == "auto":
++        eps = np.finfo(y_pred.dtype).eps
++    else:
++        # TODO: Remove user defined eps in 1.5
++        warnings.warn(
++            "Setting the eps parameter is deprecated and will "
++            "be removed in 1.5. Instead eps will always have"
++            "a default value of `np.finfo(y_pred.dtype).eps`.",
++            FutureWarning,
++        )
+ 
+     check_consistent_length(y_pred, y_true, sample_weight)
+     lb = LabelBinarizer()
+@@ -2723,6 +2735,12 @@ def log_loss(
+ 
+     # Renormalize
+     y_pred_sum = y_pred.sum(axis=1)
++    if not np.isclose(y_pred_sum, 1, rtol=1e-15, atol=5 * eps).all():
++        warnings.warn(
++            "The y_pred values do not sum to one. Starting from 1.5 this"
++            "will result in an error.",
++            UserWarning,
++        )
+     y_pred = y_pred / y_pred_sum[:, np.newaxis]
+     loss = -xlogy(transformed_labels, y_pred).sum(axis=1)
+ 
+diff --git a/sklearn/metrics/tests/test_classification.py b/sklearn/metrics/tests/test_classification.py
+index 704b79add..222f44555 100644
+--- a/sklearn/metrics/tests/test_classification.py
++++ b/sklearn/metrics/tests/test_classification.py
+@@ -2477,19 +2477,29 @@ def test_log_loss():
+     loss = log_loss(y_true, y_pred, normalize=False)
+     assert_almost_equal(loss, 0.6904911 * 6, decimal=6)
+ 
++    user_warning_msg = "y_pred values do not sum to one"
+     # check eps and handling of absolute zero and one probabilities
+     y_pred = np.asarray(y_pred) > 0.5
+-    loss = log_loss(y_true, y_pred, normalize=True, eps=0.1)
+-    assert_almost_equal(loss, log_loss(y_true, np.clip(y_pred, 0.1, 0.9)))
++    with pytest.warns(FutureWarning):
++        loss = log_loss(y_true, y_pred, normalize=True, eps=0.1)
++    with pytest.warns(UserWarning, match=user_warning_msg):
++        assert_almost_equal(loss, log_loss(y_true, np.clip(y_pred, 0.1, 0.9)))
+ 
+     # binary case: check correct boundary values for eps = 0
+-    assert log_loss([0, 1], [0, 1], eps=0) == 0
+-    assert log_loss([0, 1], [0, 0], eps=0) == np.inf
+-    assert log_loss([0, 1], [1, 1], eps=0) == np.inf
++    with pytest.warns(FutureWarning):
++        assert log_loss([0, 1], [0, 1], eps=0) == 0
++    with pytest.warns(FutureWarning):
++        assert log_loss([0, 1], [0, 0], eps=0) == np.inf
++    with pytest.warns(FutureWarning):
++        assert log_loss([0, 1], [1, 1], eps=0) == np.inf
+ 
+     # multiclass case: check correct boundary values for eps = 0
+-    assert log_loss([0, 1, 2], [[1, 0, 0], [0, 1, 0], [0, 0, 1]], eps=0) == 0
+-    assert log_loss([0, 1, 2], [[0, 0.5, 0.5], [0, 1, 0], [0, 0, 1]], eps=0) == np.inf
++    with pytest.warns(FutureWarning):
++        assert log_loss([0, 1, 2], [[1, 0, 0], [0, 1, 0], [0, 0, 1]], eps=0) == 0
++    with pytest.warns(FutureWarning):
++        assert (
++            log_loss([0, 1, 2], [[0, 0.5, 0.5], [0, 1, 0], [0, 0, 1]], eps=0) == np.inf
++        )
+ 
+     # raise error if number of classes are not equal.
+     y_true = [1, 0, 2]
+@@ -2500,7 +2510,8 @@ def test_log_loss():
+     # case when y_true is a string array object
+     y_true = ["ham", "spam", "spam", "ham"]
+     y_pred = [[0.2, 0.7], [0.6, 0.5], [0.4, 0.1], [0.7, 0.2]]
+-    loss = log_loss(y_true, y_pred)
++    with pytest.warns(UserWarning, match=user_warning_msg):
++        loss = log_loss(y_true, y_pred)
+     assert_almost_equal(loss, 1.0383217, decimal=6)
+ 
+     # test labels option
+@@ -2528,7 +2539,8 @@ def test_log_loss():
+     # ensure labels work when len(np.unique(y_true)) != y_pred.shape[1]
+     y_true = [1, 2, 2]
+     y_score2 = [[0.2, 0.7, 0.3], [0.6, 0.5, 0.3], [0.3, 0.9, 0.1]]
+-    loss = log_loss(y_true, y_score2, labels=[1, 2, 3])
++    with pytest.warns(UserWarning, match=user_warning_msg):
++        loss = log_loss(y_true, y_score2, labels=[1, 2, 3])
+     assert_almost_equal(loss, 1.0630345, decimal=6)
+ 
+ 
+@@ -2568,7 +2580,8 @@ def test_log_loss_pandas_input():
+     for TrueInputType, PredInputType in types:
+         # y_pred dataframe, y_true series
+         y_true, y_pred = TrueInputType(y_tr), PredInputType(y_pr)
+-        loss = log_loss(y_true, y_pred)
++        with pytest.warns(UserWarning, match="y_pred values do not sum to one"):
++            loss = log_loss(y_true, y_pred)
+         assert_almost_equal(loss, 1.0383217, decimal=6)
+ 
+ 
++ git -c core.fileMode=false diff 6adb209acd63825affc884abcd85381f148fb1b0
+diff --git a/sklearn/utils/multiclass.py b/sklearn/utils/multiclass.py
+index 5eaef2fde..703960418 100644
+--- a/sklearn/utils/multiclass.py
++++ b/sklearn/utils/multiclass.py
+@@ -106,6 +106,9 @@ def unique_labels(*ys):
+     if not _unique_labels:
+         raise ValueError("Unknown label type: %s" % repr(ys))
+ 
++    # Convert pandas nullable dtypes to numpy-compatible dtypes
++    ys = [_convert_pandas_nullable_dtype(y) for y in ys]
++
+     if is_array_api:
+         # array_api does not allow for mixed dtypes
+         unique_ys = xp.concat([_unique_labels(y) for y in ys])
+@@ -119,6 +122,50 @@ def unique_labels(*ys):
+     return xp.asarray(sorted(ys_labels))
+ 
+ 
++def _is_pandas_nullable_dtype(y):
++    """Check if y is a pandas object with nullable extension dtype.
++
++    Pandas nullable dtypes (Int64, Float64, boolean, string, etc.) convert
++    to object dtype when converted to numpy arrays if they contain NA values.
++    This function detects such cases so we can handle them appropriately.
++    """
++    if not hasattr(y, "dtype"):
++        return False
++
++    try:
++        from pandas.api.types import is_extension_array_dtype
++
++        return is_extension_array_dtype(y.dtype)
++    except ImportError:
++        return False
++
++
++def _convert_pandas_nullable_dtype(y):
++    """Convert pandas nullable extension dtypes to numpy-compatible dtypes.
++
++    Pandas nullable dtypes (Int64, Float64, boolean) need special handling
++    because they convert to object dtype when containing NA values.
++    """
++    if not _is_pandas_nullable_dtype(y):
++        return y
++
++    try:
++        from pandas.api.types import is_integer_dtype, is_float_dtype, is_bool_dtype
++    except ImportError:
++        return y
++
++    # Convert nullable dtypes to their numpy equivalents
++    # NA values will be converted to np.nan for numeric types
++    if is_integer_dtype(y.dtype) or is_float_dtype(y.dtype):
++        return y.to_numpy(dtype=float, na_value=np.nan)
++    elif is_bool_dtype(y.dtype):
++        # For boolean with NA, convert to object array but replace pd.NA with np.nan
++        # so that type inference can still work
++        return y.to_numpy(dtype=object, na_value=np.nan)
++
++    return y
++
++
+ def _is_integral_float(y):
+     return y.dtype.kind == "f" and np.all(y.astype(int) == y)
+ 
+@@ -298,6 +345,10 @@ def type_of_target(y, input_name=""):
+     if is_multilabel(y):
+         return "multilabel-indicator"
+ 
++    # Handle pandas nullable extension dtypes (Int64, Float64, boolean)
++    # These convert to object dtype when containing NA values
++    y = _convert_pandas_nullable_dtype(y)
++
+     # DeprecationWarning will be replaced by ValueError, see NEP 34
+     # https://numpy.org/neps/nep-0034-infer-dtype-is-object.html
+     # We therefore catch both deprecation (NumPy < 1.24) warning and
+@@ -342,7 +393,14 @@ def type_of_target(y, input_name=""):
+         return "unknown"
+     if not issparse(y) and y.dtype == object and not isinstance(y.flat[0], str):
+         # [obj_1] and not ["label_1"]
+-        return "unknown"
++        # Check if it's a boolean array with NaN from pandas nullable boolean dtype
++        # In that case, all non-NaN elements should be bool
++        is_nullable_boolean = all(
++            isinstance(val, (bool, np.bool_)) or (isinstance(val, float) and np.isnan(val))
++            for val in y.flat
++        )
++        if not is_nullable_boolean:
++            return "unknown"
+ 
+     # Check if multioutput
+     if y.ndim == 2 and y.shape[1] > 1:
+@@ -354,7 +412,15 @@ def type_of_target(y, input_name=""):
+     if y.dtype.kind == "f":
+         # [.1, .2, 3] or [[.1, .2, 3]] or [[1., .2]] and not [1., 2., 3.]
+         data = y.data if issparse(y) else y
+-        if xp.any(data != data.astype(int)):
++        # Handle NaN values from pandas nullable dtypes - they compare as not equal
++        # to their integer cast, so we need to mask them out
++        if issparse(y):
++            is_not_nan = ~xp.isnan(data)
++            has_non_integer_float = xp.any(data[is_not_nan] != data[is_not_nan].astype(int))
++        else:
++            is_not_nan = ~xp.isnan(data)
++            has_non_integer_float = xp.any(data[is_not_nan] != data[is_not_nan].astype(int))
++        if has_non_integer_float:
+             _assert_all_finite(data, input_name=input_name)
+             return "continuous" + suffix
+ 
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z x ']'
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1='(testbed) '
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='. "/opt/miniconda3/envs/testbed/etc/conda/deactivate.d/libglib_deactivate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/deactivate.d/deactivate.sh"
+PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval '. "/opt/miniconda3/envs/testbed/etc/conda/deactivate.d/libglib_deactivate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/deactivate.d/deactivate.sh"
+PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ . /opt/miniconda3/envs/testbed/etc/conda/deactivate.d/libglib_deactivate.sh
+++++ export GSETTINGS_SCHEMA_DIR=
+++++ GSETTINGS_SCHEMA_DIR=
+++++ unset GSETTINGS_SCHEMA_DIR_CONDA_BACKUP
+++++ '[' -z ']'
+++++ unset GSETTINGS_SCHEMA_DIR
++++ . /opt/miniconda3/envs/testbed/etc/conda/deactivate.d/deactivate.sh
+++++ unset __EGL_VENDOR_LIBRARY_DIRS
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=3
++++ CONDA_SHLVL=3
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\''
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libglib_activate.sh"'
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\''
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libglib_activate.sh"'
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=4
+++ CONDA_SHLVL=4
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_3=/opt/miniconda3
+++ CONDA_PREFIX_3=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/activate.sh
++++ export __EGL_VENDOR_LIBRARY_DIRS=/opt/miniconda3/envs/testbed/share/glvnd/egl_vendor.d
++++ __EGL_VENDOR_LIBRARY_DIRS=/opt/miniconda3/envs/testbed/share/glvnd/egl_vendor.d
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/libglib_activate.sh
++++ export GSETTINGS_SCHEMA_DIR_CONDA_BACKUP=
++++ GSETTINGS_SCHEMA_DIR_CONDA_BACKUP=
++++ export GSETTINGS_SCHEMA_DIR=/opt/miniconda3/envs/testbed/share/glib-2.0/schemas
++++ GSETTINGS_SCHEMA_DIR=/opt/miniconda3/envs/testbed/share/glib-2.0/schemas
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ python -m pip install -v --no-use-pep517 --no-build-isolation -e .
+
+[optparse.groups]Usage:[/]   
+  /opt/miniconda3/envs/testbed/bin/python -m pip install \[options] <requirement specifier> \[package-index-options] ...
+  /opt/miniconda3/envs/testbed/bin/python -m pip install \[options] -r <requirements file> \[package-index-options] ...
+  /opt/miniconda3/envs/testbed/bin/python -m pip install \[options] [-e] <vcs project url> ...
+  /opt/miniconda3/envs/testbed/bin/python -m pip install \[options] [-e] <local project path> ...
+  /opt/miniconda3/envs/testbed/bin/python -m pip install \[options] <archive url/path> ...
+
+no such option: --no-use-pep517
++ git checkout 6adb209acd63825affc884abcd85381f148fb1b0 sklearn/metrics/tests/test_classification.py sklearn/preprocessing/tests/test_label.py sklearn/utils/tests/test_multiclass.py
+Updated 0 paths from ce7e16a53
++ git apply -v -
+Checking patch sklearn/metrics/tests/test_classification.py...
+Checking patch sklearn/preprocessing/tests/test_label.py...
+Checking patch sklearn/utils/tests/test_multiclass.py...
+Applied patch sklearn/metrics/tests/test_classification.py cleanly.
+Applied patch sklearn/preprocessing/tests/test_label.py cleanly.
+Applied patch sklearn/utils/tests/test_multiclass.py cleanly.
++ : '>>>>> Start Test Output'
++ pytest -rA sklearn/metrics/tests/test_classification.py sklearn/preprocessing/tests/test_label.py sklearn/utils/tests/test_multiclass.py
+Traceback (most recent call last):
+  File "/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/_pytest/config/__init__.py", line 860, in import_plugin
+    __import__(importspec)
+ModuleNotFoundError: No module named 'sklearn'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/opt/miniconda3/envs/testbed/bin/pytest", line 11, in <module>
+    sys.exit(console_main())
+  File "/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/_pytest/config/__init__.py", line 201, in console_main
+    code = main()
+  File "/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/_pytest/config/__init__.py", line 156, in main
+    config = _prepareconfig(args, plugins)
+  File "/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/_pytest/config/__init__.py", line 342, in _prepareconfig
+    config = pluginmanager.hook.pytest_cmdline_parse(
+  File "/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pluggy/_hooks.py", line 513, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pluggy/_callers.py", line 139, in _multicall
+    raise exception.with_traceback(exception.__traceback__)
+  File "/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pluggy/_callers.py", line 122, in _multicall
+    teardown.throw(exception)  # type: ignore[union-attr]
+  File "/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/_pytest/helpconfig.py", line 112, in pytest_cmdline_parse
+    config = yield
+  File "/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pluggy/_callers.py", line 103, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/_pytest/config/__init__.py", line 1146, in pytest_cmdline_parse
+    self.parse(args)
+  File "/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/_pytest/config/__init__.py", line 1527, in parse
+    self._preparse(args, addopts=addopts)
+  File "/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/_pytest/config/__init__.py", line 1405, in _preparse
+    self.pluginmanager.consider_preparse(args, exclude_only=False)
+  File "/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/_pytest/config/__init__.py", line 789, in consider_preparse
+    self.consider_pluginarg(parg)
+  File "/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/_pytest/config/__init__.py", line 812, in consider_pluginarg
+    self.import_plugin(arg, consider_entry_points=True)
+  File "/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/_pytest/config/__init__.py", line 862, in import_plugin
+    raise ImportError(
+  File "/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/_pytest/config/__init__.py", line 860, in import_plugin
+    __import__(importspec)
+ImportError: Error importing plugin "sklearn.tests.random_seed": No module named 'sklearn'
++ : '>>>>> End Test Output'
++ git checkout 6adb209acd63825affc884abcd85381f148fb1b0 sklearn/metrics/tests/test_classification.py sklearn/preprocessing/tests/test_label.py sklearn/utils/tests/test_multiclass.py
+Updated 3 paths from ce7e16a53

@@ -1,0 +1,24 @@
+diff --git a/lib/matplotlib/axis.py b/lib/matplotlib/axis.py
+index e6e7e29..0b1b161 100644
+--- a/lib/matplotlib/axis.py
++++ b/lib/matplotlib/axis.py
+@@ -1230,6 +1230,10 @@ class Axis(martist.Artist):
+         v0, v1 = self.limit_range_for_scale(v0, v1)
+         v0, v1 = sorted([v0, v1], reverse=bool(reverse))
+ 
++        old0, old1 = self.get_view_interval()
++        if (v0, v1) == (old0, old1):
++            return v0, v1
++
+         self.set_view_interval(v0, v1, ignore=True)
+         # Mark viewlims as no longer stale without triggering an autoscale.
+         for ax in self._get_shared_axes():
+@@ -1243,7 +1247,7 @@ class Axis(martist.Artist):
+             for other in self._get_shared_axes():
+                 if other is not self.axes:
+                     other._axis_map[name]._set_lim(
+-                        v0, v1, emit=False, auto=auto)
++                        v0, v1, emit=True, auto=auto)
+                     if other.figure != self.figure:
+                         other.figure.canvas.draw_idle()
+ 

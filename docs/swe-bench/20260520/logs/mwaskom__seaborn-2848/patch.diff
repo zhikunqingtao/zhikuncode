@@ -1,0 +1,20 @@
+diff --git a/seaborn/_oldcore.py b/seaborn/_oldcore.py
+index c9218c1..d4cd152 100644
+--- a/seaborn/_oldcore.py
++++ b/seaborn/_oldcore.py
+@@ -153,11 +153,10 @@ class HueMapping(SemanticMapping):
+             # (e.g. in the context of making a continuous legend)
+             try:
+                 normed = self.norm(key)
+-            except TypeError as err:
+-                if np.isnan(key):
+-                    value = (0, 0, 0, 0)
+-                else:
+-                    raise err
++            except TypeError:
++                # key is not numeric (e.g., a categorical value not in hue_order,
++                # or a NaN value). Return transparent color to skip this point.
++                value = (0, 0, 0, 0)
+             else:
+                 if np.ma.is_masked(normed):
+                     normed = np.nan

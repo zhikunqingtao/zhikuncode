@@ -1,0 +1,212 @@
+diff --git a/src/_pytest/python.py b/src/_pytest/python.py
+index 3773578..6f705f1 100644
+--- a/src/_pytest/python.py
++++ b/src/_pytest/python.py
+@@ -1258,11 +1258,12 @@ def _show_fixtures_per_test(config, session):
+         argname = fixture_def.argname
+         if verbose <= 0 and argname.startswith("_"):
+             return
++        scope = fixture_def.scope or "function"
+         if verbose > 0:
+             bestrel = get_best_relpath(fixture_def.func)
+-            funcargspec = "{} -- {}".format(argname, bestrel)
++            funcargspec = "{} -- {} [{} scope]".format(argname, bestrel, scope)
+         else:
+-            funcargspec = argname
++            funcargspec = "{} [{} scope]".format(argname, scope)
+         tw.line(funcargspec, green=True)
+         fixture_doc = fixture_def.func.__doc__
+         if fixture_doc:
+@@ -1343,9 +1344,13 @@ def _showfixtures_main(config, session):
+         if verbose <= 0 and argname[0] == "_":
+             continue
+         if verbose > 0:
+-            funcargspec = "%s -- %s" % (argname, bestrel)
++            funcargspec = "%s -- %s [%s scope]" % (
++                argname,
++                bestrel,
++                fixturedef.scope or "function",
++            )
+         else:
+-            funcargspec = argname
++            funcargspec = "%s [%s scope]" % (argname, fixturedef.scope or "function")
+         tw.line(funcargspec, green=True)
+         loc = getlocation(fixturedef.func, curdir)
+         doc = fixturedef.func.__doc__ or ""
+diff --git a/testing/python/fixtures.py b/testing/python/fixtures.py
+index 48f8028..084d218 100644
+--- a/testing/python/fixtures.py
++++ b/testing/python/fixtures.py
+@@ -3043,6 +3043,35 @@ class TestShowFixtures(object):
+         result = testdir.runpytest("--fixtures", "-v")
+         result.stdout.fnmatch_lines(["*tmpdir*--*tmpdir.py*", "*temporary directory*"])
+ 
++    def test_show_fixtures_with_scopes(self, testdir):
++        """Test that fixture scopes are displayed with --fixtures."""
++        p = testdir.makepyfile(
++            '''
++            import pytest
++            @pytest.fixture
++            def func_fix():
++                """function scoped fixture"""
++            @pytest.fixture(scope="class")
++            def class_fix():
++                """class scoped fixture"""
++            @pytest.fixture(scope="module")
++            def mod_fix():
++                """module scoped fixture"""
++            @pytest.fixture(scope="session")
++            def sess_fix():
++                """session scoped fixture"""
++        '''
++        )
++        result = testdir.runpytest("--fixtures", p)
++        result.stdout.fnmatch_lines(
++            [
++                "*func_fix [function scope]*",
++                "*class_fix [class scope]*",
++                "*mod_fix [module scope]*",
++                "*sess_fix [session scope]*",
++            ]
++        )
++
+     def test_show_fixtures_testmodule(self, testdir):
+         p = testdir.makepyfile(
+             '''
+@@ -3058,7 +3087,7 @@ class TestShowFixtures(object):
+         result = testdir.runpytest("--fixtures", p)
+         result.stdout.fnmatch_lines(
+             """
+-            *tmpdir
++            *tmpdir*
+             *fixtures defined from*
+             *arg1*
+             *hello world*
+@@ -3120,10 +3149,10 @@ class TestShowFixtures(object):
+             textwrap.dedent(
+                 """\
+                 * fixtures defined from test_show_fixtures_trimmed_doc *
+-                arg2
++                arg2*
+                     line1
+                     line2
+-                arg1
++                arg1*
+                     line1
+                     line2
+                 """
+@@ -3149,7 +3178,7 @@ class TestShowFixtures(object):
+             textwrap.dedent(
+                 """\
+                 * fixtures defined from test_show_fixtures_indented_doc *
+-                fixture1
++                fixture1*
+                     line1
+                         indented line
+                 """
+@@ -3175,7 +3204,7 @@ class TestShowFixtures(object):
+             textwrap.dedent(
+                 """\
+                 * fixtures defined from test_show_fixtures_indented_doc_first_line_unindented *
+-                fixture1
++                fixture1*
+                     line1
+                     line2
+                         indented line
+@@ -3203,7 +3232,7 @@ class TestShowFixtures(object):
+             textwrap.dedent(
+                 """\
+                 * fixtures defined from test_show_fixtures_indented_in_class *
+-                fixture1
++                fixture1*
+                     line1
+                     line2
+                         indented line
+@@ -3245,11 +3274,11 @@ class TestShowFixtures(object):
+         result.stdout.fnmatch_lines(
+             """
+             * fixtures defined from test_a *
+-            fix_a
++            fix_a*
+                 Fixture A
+ 
+             * fixtures defined from test_b *
+-            fix_b
++            fix_b*
+                 Fixture B
+         """
+         )
+@@ -3285,11 +3314,11 @@ class TestShowFixtures(object):
+         result.stdout.fnmatch_lines(
+             """
+             * fixtures defined from conftest *
+-            arg1
++            arg1*
+                 Hello World in conftest.py
+ 
+             * fixtures defined from test_show_fixtures_with_same_name *
+-            arg1
++            arg1*
+                 Hi from test module
+         """
+         )
+diff --git a/testing/python/show_fixtures_per_test.py b/testing/python/show_fixtures_per_test.py
+index e14344d..0674028 100644
+--- a/testing/python/show_fixtures_per_test.py
++++ b/testing/python/show_fixtures_per_test.py
+@@ -29,7 +29,7 @@ def test_fixtures_in_module(testdir):
+         [
+             "*fixtures used by test_arg1*",
+             "*(test_fixtures_in_module.py:9)*",
+-            "arg1",
++            "arg1*",
+             "    arg1 docstring",
+         ]
+     )
+@@ -68,15 +68,15 @@ def test_fixtures_in_conftest(testdir):
+         [
+             "*fixtures used by test_arg2*",
+             "*(test_fixtures_in_conftest.py:2)*",
+-            "arg2",
++            "arg2*",
+             "    arg2 docstring",
+             "*fixtures used by test_arg3*",
+             "*(test_fixtures_in_conftest.py:4)*",
+-            "arg1",
++            "arg1*",
+             "    arg1 docstring",
+-            "arg2",
++            "arg2*",
+             "    arg2 docstring",
+-            "arg3",
++            "arg3*",
+             "    arg3",
+             "    docstring",
+         ]
+@@ -112,9 +112,9 @@ def test_should_show_fixtures_used_by_test(testdir):
+         [
+             "*fixtures used by test_args*",
+             "*(test_should_show_fixtures_used_by_test.py:6)*",
+-            "arg1",
++            "arg1*",
+             "    arg1 from testmodule",
+-            "arg2",
++            "arg2*",
+             "    arg2 from conftest",
+         ]
+     )
+@@ -149,11 +149,11 @@ def test_verbose_include_private_fixtures_and_loc(testdir):
+         [
+             "*fixtures used by test_args*",
+             "*(test_verbose_include_private_fixtures_and_loc.py:6)*",
+-            "_arg1 -- conftest.py:3",
++            "_arg1 -- conftest.py:3*",
+             "    _arg1 from conftest",
+-            "arg2 -- conftest.py:6",
++            "arg2 -- conftest.py:6*",
+             "    arg2 from conftest",
+-            "arg3 -- test_verbose_include_private_fixtures_and_loc.py:3",
++            "arg3 -- test_verbose_include_private_fixtures_and_loc.py:3*",
+             "    arg3 from testmodule",
+         ]
+     )

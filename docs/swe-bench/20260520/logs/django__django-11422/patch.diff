@@ -1,0 +1,13 @@
+diff --git a/django/utils/autoreload.py b/django/utils/autoreload.py
+index 7ca0d68..80ba23a 100644
+--- a/django/utils/autoreload.py
++++ b/django/utils/autoreload.py
+@@ -103,7 +103,7 @@ def iter_all_python_module_files():
+     # aren't loaded on the fly.
+     keys = sorted(sys.modules)
+     modules = tuple(m for m in map(sys.modules.__getitem__, keys) if not isinstance(m, weakref.ProxyTypes))
+-    return iter_modules_and_files(modules, frozenset(_error_files))
++    return iter_modules_and_files(modules, frozenset((*_error_files, sys.argv[0])))
+ 
+ 
+ @functools.lru_cache(maxsize=1)

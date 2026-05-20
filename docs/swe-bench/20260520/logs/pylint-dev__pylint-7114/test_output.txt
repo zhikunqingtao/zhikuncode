@@ -1,0 +1,499 @@
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z '' ']'
++++ export CONDA_SHLVL=0
++++ CONDA_SHLVL=0
++++ '[' -n '' ']'
++++++ dirname /opt/miniconda3/bin/conda
+++++ dirname /opt/miniconda3/bin
++++ PATH=/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export PATH
++++ '[' -z '' ']'
++++ PS1=
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1=
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval 'PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=1
++++ CONDA_SHLVL=1
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=2
+++ CONDA_SHLVL=2
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_1=/opt/miniconda3
+++ CONDA_PREFIX_1=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ cd /testbed
++ git config --global --add safe.directory /testbed
++ cd /testbed
++ git status
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   pylint/lint/expand_modules.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
++ git show
+commit 397c1703e8ae6349d33f7b99f45b2ccaf581e666
+Author: Daniël van Noord <13665637+DanielNoord@users.noreply.github.com>
+Date:   Sun Jul 31 22:23:57 2022 +0200
+
+    Don't emit ``super-init-not-called`` for abstract ``__init__`` methods (#7227)
+
+diff --git a/doc/whatsnew/fragments/3975.false_positive b/doc/whatsnew/fragments/3975.false_positive
+new file mode 100644
+index 00000000..f6c7f1f9
+--- /dev/null
++++ b/doc/whatsnew/fragments/3975.false_positive
+@@ -0,0 +1,3 @@
++Don't report ``super-init-not-called`` for abstract ``__init__`` methods.
++
++Closes #3975
+diff --git a/pylint/checkers/classes/class_checker.py b/pylint/checkers/classes/class_checker.py
+index c345f41b..fb329c6e 100644
+--- a/pylint/checkers/classes/class_checker.py
++++ b/pylint/checkers/classes/class_checker.py
+@@ -2034,7 +2034,7 @@ a metaclass class method.",
+                         # Record that the class' init has been called
+                         parents_with_called_inits.add(node_frame_class(method))
+                     except KeyError:
+-                        if klass not in to_call:
++                        if klass not in klass_node.ancestors(recurs=False):
+                             self.add_message(
+                                 "non-parent-init-called", node=expr, args=klass.name
+                             )
+@@ -2061,9 +2061,6 @@ a metaclass class method.",
+ 
+             if decorated_with(node, ["typing.overload"]):
+                 continue
+-            cls = node_frame_class(method)
+-            if klass.name == "object" or (cls and cls.name == "object"):
+-                continue
+             self.add_message(
+                 "super-init-not-called",
+                 args=klass.name,
+@@ -2196,7 +2193,10 @@ def _ancestors_to_call(
+     to_call: dict[nodes.ClassDef, bases.UnboundMethod] = {}
+     for base_node in klass_node.ancestors(recurs=False):
+         try:
+-            to_call[base_node] = next(base_node.igetattr(method))
++            init_node: bases.UnboundMethod = next(base_node.igetattr(method))
++            if init_node.is_abstract():
++                continue
++            to_call[base_node] = init_node
+         except astroid.InferenceError:
+             continue
+     return to_call
+diff --git a/tests/functional/i/init_not_called.py b/tests/functional/i/init_not_called.py
+index a95efadf..ac4baac6 100644
+--- a/tests/functional/i/init_not_called.py
++++ b/tests/functional/i/init_not_called.py
+@@ -59,9 +59,9 @@ class NewStyleC(object):
+ 
+ 
+ class AssignedInit(NewStyleC):
+-    """No init called."""
++    """No init called, but abstract so that is fine."""
+ 
+-    def __init__(self):  # [super-init-not-called]
++    def __init__(self):
+         self.arg = 0
+ 
+ 
+diff --git a/tests/functional/i/init_not_called.txt b/tests/functional/i/init_not_called.txt
+index 9015d1e2..b944b558 100644
+--- a/tests/functional/i/init_not_called.txt
++++ b/tests/functional/i/init_not_called.txt
+@@ -1,2 +1 @@
+ super-init-not-called:32:4:32:16:ZZZZ.__init__:__init__ method from base class 'BBBB' is not called:INFERENCE
+-super-init-not-called:64:4:64:16:AssignedInit.__init__:__init__ method from base class 'NewStyleC' is not called:INFERENCE
+diff --git a/tests/functional/n/non/non_init_parent_called.py b/tests/functional/n/non/non_init_parent_called.py
+index 7ad3f193..0721703b 100644
+--- a/tests/functional/n/non/non_init_parent_called.py
++++ b/tests/functional/n/non/non_init_parent_called.py
+@@ -46,6 +46,6 @@ class Super2(dict):
+     """ Using the same idiom as Super, but without calling
+     the __init__ method.
+     """
+-    def __init__(self):  # [super-init-not-called]
++    def __init__(self):
+         base = super()
+         base.__woohoo__()  # [no-member]
+diff --git a/tests/functional/n/non/non_init_parent_called.txt b/tests/functional/n/non/non_init_parent_called.txt
+index 06de9a24..0d9e227c 100644
+--- a/tests/functional/n/non/non_init_parent_called.txt
++++ b/tests/functional/n/non/non_init_parent_called.txt
+@@ -2,5 +2,4 @@ import-error:7:0:7:18::Unable to import 'nonexistant':UNDEFINED
+ non-parent-init-called:15:8:15:26:AAAA.__init__:__init__ method from a non direct base class 'BBBBMixin' is called:UNDEFINED
+ no-member:23:50:23:77:CCC:Module 'functional.n.non.non_init_parent_called' has no 'BBBB' member:INFERENCE
+ no-member:28:8:28:35:CCC.__init__:Module 'functional.n.non.non_init_parent_called' has no 'BBBB' member:INFERENCE
+-super-init-not-called:49:4:49:16:Super2.__init__:__init__ method from base class 'dict' is not called:INFERENCE
+ no-member:51:8:51:23:Super2.__init__:Super of 'Super2' has no '__woohoo__' member:INFERENCE
+diff --git a/tests/functional/s/super/super_init_not_called.py b/tests/functional/s/super/super_init_not_called.py
+index 90a884b0..f0bfe032 100644
+--- a/tests/functional/s/super/super_init_not_called.py
++++ b/tests/functional/s/super/super_init_not_called.py
+@@ -1,6 +1,7 @@
+ """Tests for super-init-not-called."""
+ # pylint: disable=too-few-public-methods, missing-class-docstring
+ 
++import abc
+ import ctypes
+ 
+ 
+@@ -53,5 +54,45 @@ class ChildThree(ParentWithoutInit):
+ # Regression test as reported in
+ # https://github.com/PyCQA/pylint/issues/6027
+ class MyUnion(ctypes.Union):
+-    def __init__(self):  # [super-init-not-called]
++    def __init__(self):
+         pass
++
++
++# Should not be called on abstract __init__ methods
++# https://github.com/PyCQA/pylint/issues/3975
++class Base:
++    def __init__(self, param: int, param_two: str) -> None:
++        raise NotImplementedError()
++
++
++class Derived(Base):
++    def __init__(self, param: int, param_two: str) -> None:
++        self.param = param + 1
++        self.param_two = param_two[::-1]
++
++
++class AbstractBase(abc.ABC):
++    def __init__(self, param: int) -> None:
++        self.param = param + 1
++
++    def abstract_method(self) -> str:
++        """This needs to be implemented."""
++        raise NotImplementedError()
++
++
++class DerivedFromAbstract(AbstractBase):
++    def __init__(self, param: int) -> None:  # [super-init-not-called]
++        print("Called")
++
++    def abstract_method(self) -> str:
++        return "Implemented"
++
++
++class DerivedFrom(UnknownParent):  # [undefined-variable]
++    def __init__(self) -> None:
++        print("Called")
++
++
++class DerivedFromUnknownGrandparent(DerivedFrom):
++    def __init__(self) -> None:
++        DerivedFrom.__init__(self)
+diff --git a/tests/functional/s/super/super_init_not_called.rc b/tests/functional/s/super/super_init_not_called.rc
+new file mode 100644
+index 00000000..b8621ee5
+--- /dev/null
++++ b/tests/functional/s/super/super_init_not_called.rc
+@@ -0,0 +1,4 @@
++[testoptions]
++# ctypes has a different implementation in PyPy and does have an inferable
++# __init__ method for ctypes.Union.
++except_implementations=PyPy
+diff --git a/tests/functional/s/super/super_init_not_called.txt b/tests/functional/s/super/super_init_not_called.txt
+index aafaa202..002db0d7 100644
+--- a/tests/functional/s/super/super_init_not_called.txt
++++ b/tests/functional/s/super/super_init_not_called.txt
+@@ -1,3 +1,4 @@
+-undefined-variable:18:23:18:40:UninferableChild:Undefined variable 'UninferableParent':UNDEFINED
+-super-init-not-called:49:4:49:16:ChildThree.__init__:__init__ method from base class 'ParentWithoutInit' is not called:INFERENCE
+-super-init-not-called:56:4:56:16:MyUnion.__init__:__init__ method from base class 'Union' is not called:INFERENCE
++undefined-variable:19:23:19:40:UninferableChild:Undefined variable 'UninferableParent':UNDEFINED
++super-init-not-called:50:4:50:16:ChildThree.__init__:__init__ method from base class 'ParentWithoutInit' is not called:INFERENCE
++super-init-not-called:84:4:84:16:DerivedFromAbstract.__init__:__init__ method from base class 'AbstractBase' is not called:INFERENCE
++undefined-variable:91:18:91:31:DerivedFrom:Undefined variable 'UnknownParent':UNDEFINED
++ git -c core.fileMode=false diff 397c1703e8ae6349d33f7b99f45b2ccaf581e666
+diff --git a/pylint/lint/expand_modules.py b/pylint/lint/expand_modules.py
+index 289e1afc..d24a9b72 100644
+--- a/pylint/lint/expand_modules.py
++++ b/pylint/lint/expand_modules.py
+@@ -24,14 +24,20 @@ def _modpath_from_file(filename: str, is_namespace: bool, path: list[str]) -> li
+ 
+ 
+ def get_python_path(filepath: str) -> str:
+-    """TODO This get the python path with the (bad) assumption that there is always
+-    an __init__.py.
++    """Get the python path for a file or directory.
+ 
+-    This is not true since python 3.3 and is causing problem.
++    For directories without __init__.py (namespace packages), we need to
++    return the parent directory so Python can find the package correctly.
++    Otherwise, if the directory contains a file with the same name (e.g.,
++    a/a.py), Python would incorrectly resolve the module to that file.
+     """
+     dirname = os.path.realpath(os.path.expanduser(filepath))
+     if not os.path.isdir(dirname):
+         dirname = os.path.dirname(dirname)
++    else:
++        # For directories, start from the parent so namespace packages
++        # are resolved correctly
++        dirname = os.path.dirname(dirname)
+     while True:
+         if not os.path.exists(os.path.join(dirname, "__init__.py")):
+             return dirname
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z x ']'
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1='(testbed) '
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval 'PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=3
++++ CONDA_SHLVL=3
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=4
+++ CONDA_SHLVL=4
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_3=/opt/miniconda3
+++ CONDA_PREFIX_3=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ python -m pip install -e .
+Looking in indexes: https://mirrors.aliyun.com/pypi/simple/
+Obtaining file:///testbed
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Checking if build backend supports build_editable: started
+  Checking if build backend supports build_editable: finished with status 'done'
+ERROR: Project file:///testbed uses a build backend that is missing the 'build_editable' hook, so it cannot be installed in editable mode. Consider using a build backend that supports PEP 660.
++ git checkout 397c1703e8ae6349d33f7b99f45b2ccaf581e666 tests/checkers/unittest_imports.py tests/lint/unittest_lint.py
+Updated 0 paths from f8cd513a
++ git apply -v -
+Checking patch tests/checkers/unittest_imports.py...
+Checking patch tests/lint/unittest_lint.py...
+Applied patch tests/checkers/unittest_imports.py cleanly.
+Applied patch tests/lint/unittest_lint.py cleanly.
++ : '>>>>> Start Test Output'
++ pytest -rA tests/checkers/unittest_imports.py tests/lint/unittest_lint.py
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/_pytest/config/__init__.py:331: PluggyTeardownRaisedWarning: A plugin raised an exception during an old-style hookwrapper teardown.
+Plugin: helpconfig, Hook: pytest_cmdline_parse
+ConftestImportFailure: ModuleNotFoundError: No module named 'pylint' (from /testbed/tests/conftest.py)
+For more information see https://pluggy.readthedocs.io/en/stable/api_reference.html#pluggy.PluggyTeardownRaisedWarning
+  config = pluginmanager.hook.pytest_cmdline_parse(
+ImportError while loading conftest '/testbed/tests/conftest.py'.
+tests/conftest.py:14: in <module>
+    from pylint import checkers
+E   ModuleNotFoundError: No module named 'pylint'
++ : '>>>>> End Test Output'
++ git checkout 397c1703e8ae6349d33f7b99f45b2ccaf581e666 tests/checkers/unittest_imports.py tests/lint/unittest_lint.py
+Updated 2 paths from f8cd513a

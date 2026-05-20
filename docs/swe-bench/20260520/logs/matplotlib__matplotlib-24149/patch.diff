@@ -1,0 +1,18 @@
+diff --git a/lib/matplotlib/cbook/__init__.py b/lib/matplotlib/cbook/__init__.py
+index 34c6ddb..02724d6 100644
+--- a/lib/matplotlib/cbook/__init__.py
++++ b/lib/matplotlib/cbook/__init__.py
+@@ -1746,7 +1746,12 @@ def _safe_first_finite(obj, *, skip_nonfinite=True):
+         raise RuntimeError("matplotlib does not "
+                            "support generators as input")
+     else:
+-        return next(val for val in obj if safe_isfinite(val))
++        for val in obj:
++            if safe_isfinite(val):
++                return val
++        # If no finite value is found, return the first element
++        # to maintain backwards compatibility with all-NaN data.
++        return obj[0]
+ 
+ 
+ def sanitize_sequence(data):

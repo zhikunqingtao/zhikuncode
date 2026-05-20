@@ -1,0 +1,67 @@
+2026-05-20 01:31:20,573 - INFO - Environment image sweb.env.py.x86_64.c795f4b88616b8462021ed:latest found for sympy__sympy-21847
+Building instance image sweb.eval.x86_64.sympy__sympy-21847:latest for sympy__sympy-21847
+2026-05-20 01:34:04,027 - INFO - Creating container for sympy__sympy-21847...
+2026-05-20 01:34:04,050 - INFO - Container for sympy__sympy-21847 created: d25056ad590edf4a3ecbba9c24509d4e5bdd70b7b3fb79ad69c4847453336129
+2026-05-20 01:34:04,244 - INFO - Container for sympy__sympy-21847 started: d25056ad590edf4a3ecbba9c24509d4e5bdd70b7b3fb79ad69c4847453336129
+2026-05-20 01:34:04,244 - INFO - Intermediate patch for sympy__sympy-21847 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-21847/patch.diff, now applying to container...
+2026-05-20 01:34:04,351 - INFO - >>>>> Applied Patch:
+Checking patch sympy/polys/monomials.py...
+Applied patch sympy/polys/monomials.py cleanly.
+
+2026-05-20 01:34:04,732 - INFO - Git diff before:
+diff --git a/sympy/polys/monomials.py b/sympy/polys/monomials.py
+index 0e84403307..d2cd3451e5 100644
+--- a/sympy/polys/monomials.py
++++ b/sympy/polys/monomials.py
+@@ -127,7 +127,7 @@ def itermonomials(variables, max_degrees, min_degrees=None):
+                 for variable in item:
+                     if variable != 1:
+                         powers[variable] += 1
+-                if max(powers.values()) >= min_degree:
++                if sum(powers.values()) >= min_degree:
+                     monomials_list_comm.append(Mul(*item))
+             yield from set(monomials_list_comm)
+         else:
+@@ -139,7 +139,7 @@ def itermonomials(variables, max_degrees, min_degrees=None):
+                 for variable in item:
+                     if variable != 1:
+                         powers[variable] += 1
+-                if max(powers.values()) >= min_degree:
++                if sum(powers.values()) >= min_degree:
+                     monomials_list_non_comm.append(Mul(*item))
+             yield from set(monomials_list_non_comm)
+     else:
+2026-05-20 01:34:04,732 - INFO - Eval script for sympy__sympy-21847 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-21847/eval.sh; copying to container...
+2026-05-20 01:34:10,166 - INFO - Test runtime: 5.39 seconds
+2026-05-20 01:34:10,167 - INFO - Test output for sympy__sympy-21847 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-21847/test_output.txt
+2026-05-20 01:34:10,211 - INFO - Git diff after:
+diff --git a/sympy/polys/monomials.py b/sympy/polys/monomials.py
+index 0e84403307..d2cd3451e5 100644
+--- a/sympy/polys/monomials.py
++++ b/sympy/polys/monomials.py
+@@ -127,7 +127,7 @@ def itermonomials(variables, max_degrees, min_degrees=None):
+                 for variable in item:
+                     if variable != 1:
+                         powers[variable] += 1
+-                if max(powers.values()) >= min_degree:
++                if sum(powers.values()) >= min_degree:
+                     monomials_list_comm.append(Mul(*item))
+             yield from set(monomials_list_comm)
+         else:
+@@ -139,7 +139,7 @@ def itermonomials(variables, max_degrees, min_degrees=None):
+                 for variable in item:
+                     if variable != 1:
+                         powers[variable] += 1
+-                if max(powers.values()) >= min_degree:
++                if sum(powers.values()) >= min_degree:
+                     monomials_list_non_comm.append(Mul(*item))
+             yield from set(monomials_list_non_comm)
+     else:
+2026-05-20 01:34:10,211 - INFO - Grading answer for sympy__sympy-21847...
+2026-05-20 01:34:10,211 - INFO - report: {'sympy__sympy-21847': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_monomials'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_monomial_count', 'test_monomial_mul', 'test_monomial_div', 'test_monomial_gcd', 'test_monomial_lcm', 'test_monomial_max', 'test_monomial_pow', 'test_monomial_min', 'test_monomial_divides'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-21847: resolved: True
+2026-05-20 01:34:10,211 - INFO - Attempting to stop container sweb.eval.sympy__sympy-21847.zhikuncode_eval_300_FINAL...
+2026-05-20 01:34:25,630 - INFO - Attempting to remove container sweb.eval.sympy__sympy-21847.zhikuncode_eval_300_FINAL...
+2026-05-20 01:34:25,647 - INFO - Container sweb.eval.sympy__sympy-21847.zhikuncode_eval_300_FINAL removed.
+2026-05-20 01:34:25,647 - INFO - Attempting to remove image sweb.eval.x86_64.sympy__sympy-21847:latest...
+2026-05-20 01:34:25,696 - INFO - Image sweb.eval.x86_64.sympy__sympy-21847:latest removed.

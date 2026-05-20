@@ -1,0 +1,828 @@
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z '' ']'
++++ export CONDA_SHLVL=0
++++ CONDA_SHLVL=0
++++ '[' -n '' ']'
++++++ dirname /opt/miniconda3/bin/conda
+++++ dirname /opt/miniconda3/bin
++++ PATH=/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export PATH
++++ '[' -z '' ']'
++++ PS1=
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1=
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval 'PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=1
++++ CONDA_SHLVL=1
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=2
+++ CONDA_SHLVL=2
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_1=/opt/miniconda3
+++ CONDA_PREFIX_1=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ cd /testbed
++ git config --global --add safe.directory /testbed
++ cd /testbed
++ git status
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   sklearn/utils/validation.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
++ git show
+commit 34fe1222568a291c034a69c582302ca4b0a3ed82
+Author: SWE-bench <setup@swebench.config>
+Date:   Tue May 19 16:42:39 2026 +0000
+
+    SWE-bench
++ git -c core.fileMode=false diff 3b5abf76597ce6aff76192869f92647c1b5259e7
+diff --git a/sklearn/utils/validation.py b/sklearn/utils/validation.py
+index fe1f7236e..315e911c3 100644
+--- a/sklearn/utils/validation.py
++++ b/sklearn/utils/validation.py
+@@ -521,6 +521,11 @@ def check_array(array, accept_sparse=False, accept_large_sparse=True,
+         # and we need to catch and raise exception for such cases.
+         _ensure_no_complex_data(array)
+ 
++        # For data structures that don't have a proper dtype attribute (like
++        # pandas DataFrames), capture the dtype after conversion to ndarray
++        if dtype_orig is None and hasattr(array_orig, 'dtypes'):
++            dtype_orig = array.dtype
++
+         if ensure_2d:
+             # If input is scalar raise error
+             if array.ndim == 0:
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z x ']'
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1='(testbed) '
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval 'PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=3
++++ CONDA_SHLVL=3
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=4
+++ CONDA_SHLVL=4
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_3=/opt/miniconda3
+++ CONDA_PREFIX_3=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ python -m pip install -v --no-use-pep517 --no-build-isolation -e .
+Using pip 21.2.2 from /opt/miniconda3/envs/testbed/lib/python3.6/site-packages/pip (python 3.6)
+Looking in indexes: https://mirrors.aliyun.com/pypi/simple/
+Obtaining file:///testbed
+    Running command python setup.py egg_info
+    running egg_info
+    creating /tmp/pip-pip-egg-info-5iiflkgo/scikit_learn.egg-info
+    writing /tmp/pip-pip-egg-info-5iiflkgo/scikit_learn.egg-info/PKG-INFO
+    writing dependency_links to /tmp/pip-pip-egg-info-5iiflkgo/scikit_learn.egg-info/dependency_links.txt
+    writing requirements to /tmp/pip-pip-egg-info-5iiflkgo/scikit_learn.egg-info/requires.txt
+    writing top-level names to /tmp/pip-pip-egg-info-5iiflkgo/scikit_learn.egg-info/top_level.txt
+    writing manifest file '/tmp/pip-pip-egg-info-5iiflkgo/scikit_learn.egg-info/SOURCES.txt'
+    reading manifest file '/tmp/pip-pip-egg-info-5iiflkgo/scikit_learn.egg-info/SOURCES.txt'
+    reading manifest template 'MANIFEST.in'
+    adding license file 'COPYING'
+    adding license file 'AUTHORS.rst'
+    writing manifest file '/tmp/pip-pip-egg-info-5iiflkgo/scikit_learn.egg-info/SOURCES.txt'
+    Partial import of sklearn during the build process.
+Requirement already satisfied: numpy>=1.8.2 in /opt/miniconda3/envs/testbed/lib/python3.6/site-packages (from scikit-learn==0.20.dev0) (1.19.2)
+Requirement already satisfied: scipy>=0.13.3 in /opt/miniconda3/envs/testbed/lib/python3.6/site-packages (from scikit-learn==0.20.dev0) (1.5.2)
+Installing collected packages: scikit-learn
+  Attempting uninstall: scikit-learn
+    Found existing installation: scikit-learn 0.20.dev0
+    Uninstalling scikit-learn-0.20.dev0:
+      Removing file or directory /opt/miniconda3/envs/testbed/lib/python3.6/site-packages/scikit-learn.egg-link
+      Removing pth entries from /opt/miniconda3/envs/testbed/lib/python3.6/site-packages/easy-install.pth:
+      Removing entry: /testbed
+      Successfully uninstalled scikit-learn-0.20.dev0
+  Running setup.py develop for scikit-learn
+    Running command /opt/miniconda3/envs/testbed/bin/python -c 'import io, os, sys, setuptools, tokenize; sys.argv[0] = '"'"'/testbed/setup.py'"'"'; __file__='"'"'/testbed/setup.py'"'"';f = getattr(tokenize, '"'"'open'"'"', open)(__file__) if os.path.exists(__file__) else io.StringIO('"'"'from setuptools import setup; setup()'"'"');code = f.read().replace('"'"'\r\n'"'"', '"'"'\n'"'"');f.close();exec(compile(code, __file__, '"'"'exec'"'"'))' develop --no-deps
+    blas_opt_info:
+    blas_mkl_info:
+    customize UnixCCompiler
+      libraries mkl_rt not found in ['/opt/miniconda3/envs/testbed/lib', '/usr/local/lib', '/usr/lib64', '/usr/lib', '/usr/lib/x86_64-linux-gnu']
+      NOT AVAILABLE
+
+    blis_info:
+      libraries blis not found in ['/opt/miniconda3/envs/testbed/lib', '/usr/local/lib', '/usr/lib64', '/usr/lib', '/usr/lib/x86_64-linux-gnu']
+      NOT AVAILABLE
+
+    openblas_info:
+    C compiler: gcc -pthread -B /opt/miniconda3/envs/testbed/compiler_compat -Wl,--sysroot=/ -Wsign-compare -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes -fPIC
+
+    creating /tmp/tmp1lq4hlxb/tmp
+    creating /tmp/tmp1lq4hlxb/tmp/tmp1lq4hlxb
+    compile options: '-c'
+    gcc: /tmp/tmp1lq4hlxb/source.c
+    gcc -pthread -B /opt/miniconda3/envs/testbed/compiler_compat -Wl,--sysroot=/ /tmp/tmp1lq4hlxb/tmp/tmp1lq4hlxb/source.o -L/opt/miniconda3/envs/testbed/lib -lopenblas -o /tmp/tmp1lq4hlxb/a.out
+      FOUND:
+        libraries = ['openblas', 'openblas']
+        library_dirs = ['/opt/miniconda3/envs/testbed/lib']
+        language = c
+        define_macros = [('HAVE_CBLAS', None)]
+
+      FOUND:
+        libraries = ['openblas', 'openblas']
+        library_dirs = ['/opt/miniconda3/envs/testbed/lib']
+        language = c
+        define_macros = [('HAVE_CBLAS', None)]
+
+    running develop
+    running build_scripts
+    running egg_info
+    running build_src
+    build_src
+    building library "libsvm-skl" sources
+    building extension "sklearn.__check_build._check_build" sources
+    building extension "sklearn.cluster._dbscan_inner" sources
+    building extension "sklearn.cluster._hierarchical" sources
+    building extension "sklearn.cluster._k_means_elkan" sources
+    building extension "sklearn.cluster._k_means" sources
+    building extension "sklearn.datasets._svmlight_format" sources
+    building extension "sklearn.decomposition._online_lda" sources
+    building extension "sklearn.decomposition.cdnmf_fast" sources
+    building extension "sklearn.ensemble._gradient_boosting" sources
+    building extension "sklearn.feature_extraction._hashing" sources
+    building extension "sklearn.manifold._utils" sources
+    building extension "sklearn.manifold._barnes_hut_tsne" sources
+    building extension "sklearn.metrics.cluster.expected_mutual_info_fast" sources
+    building extension "sklearn.metrics.pairwise_fast" sources
+    building extension "sklearn.neighbors.ball_tree" sources
+    building extension "sklearn.neighbors.kd_tree" sources
+    building extension "sklearn.neighbors.dist_metrics" sources
+    building extension "sklearn.neighbors.typedefs" sources
+    building extension "sklearn.neighbors.quad_tree" sources
+    building extension "sklearn.tree._tree" sources
+    building extension "sklearn.tree._splitter" sources
+    building extension "sklearn.tree._criterion" sources
+    building extension "sklearn.tree._utils" sources
+    building extension "sklearn.svm.libsvm" sources
+    building extension "sklearn.svm.liblinear" sources
+    building extension "sklearn.svm.libsvm_sparse" sources
+    building extension "sklearn._isotonic" sources
+    building extension "sklearn.linear_model.cd_fast" sources
+    building extension "sklearn.linear_model.sgd_fast" sources
+    building extension "sklearn.linear_model.sag_fast" sources
+    building extension "sklearn.utils.sparsefuncs_fast" sources
+    building extension "sklearn.utils.arrayfuncs" sources
+    building extension "sklearn.utils.murmurhash" sources
+    building extension "sklearn.utils.lgamma" sources
+    building extension "sklearn.utils.graph_shortest_path" sources
+    building extension "sklearn.utils.fast_dict" sources
+    building extension "sklearn.utils.seq_dataset" sources
+    building extension "sklearn.utils.weight_vector" sources
+    building extension "sklearn.utils._random" sources
+    building extension "sklearn.utils._logistic_sigmoid" sources
+    building data_files sources
+    build_src: building npy-pkg config files
+    writing scikit_learn.egg-info/PKG-INFO
+    writing dependency_links to scikit_learn.egg-info/dependency_links.txt
+    writing requirements to scikit_learn.egg-info/requires.txt
+    writing top-level names to scikit_learn.egg-info/top_level.txt
+    reading manifest file 'scikit_learn.egg-info/SOURCES.txt'
+    reading manifest template 'MANIFEST.in'
+    adding license file 'COPYING'
+    adding license file 'AUTHORS.rst'
+    writing manifest file 'scikit_learn.egg-info/SOURCES.txt'
+    running build_ext
+    customize UnixCCompiler
+    customize UnixCCompiler using build_clib
+    customize UnixCCompiler
+    customize UnixCCompiler using build_ext
+    resetting extension 'sklearn.svm.liblinear' language from 'c' to 'c++'.
+    customize UnixCCompiler
+    customize UnixCCompiler using build_ext
+    Creating /opt/miniconda3/envs/testbed/lib/python3.6/site-packages/scikit-learn.egg-link (link to .)
+    Adding scikit-learn 0.20.dev0 to easy-install.pth file
+
+    Installed /testbed
+    Partial import of sklearn during the build process.
+Successfully installed scikit-learn-0.20.dev0
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
++ git checkout 3b5abf76597ce6aff76192869f92647c1b5259e7 sklearn/utils/tests/test_validation.py
+Updated 0 paths from 0684f0f52
++ git apply -v -
+Checking patch sklearn/utils/tests/test_validation.py...
+Applied patch sklearn/utils/tests/test_validation.py cleanly.
++ : '>>>>> Start Test Output'
++ pytest -rA sklearn/utils/tests/test_validation.py
+============================= test session starts ==============================
+platform linux -- Python 3.6.13, pytest-6.2.4, py-1.11.0, pluggy-0.13.1
+rootdir: /testbed, configfile: setup.cfg
+collected 53 items
+
+sklearn/utils/tests/test_validation.py ............FFFFFFFFFF........... [ 62%]
+................F...                                                     [100%]
+
+=================================== FAILURES ===================================
+_ test_check_array_force_all_finiteinvalid[asarray-inf-True-Input contains NaN, infinity] _
+
+value = inf, force_all_finite = True, match_msg = 'Input contains NaN, infinity'
+retype = <function asarray at 0x7fbb5a19f268>
+
+    @pytest.mark.parametrize(
+        "value, force_all_finite, match_msg",
+        [(np.inf, True, 'Input contains NaN, infinity'),
+         (np.inf, 'allow-nan', 'Input contains infinity'),
+         (np.nan, True, 'Input contains NaN, infinity'),
+         (np.nan, 'allow-inf', 'force_all_finite should be a bool or "allow-nan"'),
+         (np.nan, 1, 'force_all_finite should be a bool or "allow-nan"')]
+    )
+    @pytest.mark.parametrize(
+        "retype",
+        [np.asarray, sp.csr_matrix]
+    )
+    def test_check_array_force_all_finiteinvalid(value, force_all_finite,
+                                                 match_msg, retype):
+        X = retype(np.arange(4).reshape(2, 2).astype(np.float))
+        X[0, 0] = value
+>       with pytest.raises(ValueError, message=match_msg):
+E       TypeError: Unexpected keyword arguments passed to pytest.raises: message
+E       Use context-manager form instead?
+
+sklearn/utils/tests/test_validation.py:185: TypeError
+_ test_check_array_force_all_finiteinvalid[asarray-inf-allow-nan-Input contains infinity] _
+
+value = inf, force_all_finite = 'allow-nan'
+match_msg = 'Input contains infinity'
+retype = <function asarray at 0x7fbb5a19f268>
+
+    @pytest.mark.parametrize(
+        "value, force_all_finite, match_msg",
+        [(np.inf, True, 'Input contains NaN, infinity'),
+         (np.inf, 'allow-nan', 'Input contains infinity'),
+         (np.nan, True, 'Input contains NaN, infinity'),
+         (np.nan, 'allow-inf', 'force_all_finite should be a bool or "allow-nan"'),
+         (np.nan, 1, 'force_all_finite should be a bool or "allow-nan"')]
+    )
+    @pytest.mark.parametrize(
+        "retype",
+        [np.asarray, sp.csr_matrix]
+    )
+    def test_check_array_force_all_finiteinvalid(value, force_all_finite,
+                                                 match_msg, retype):
+        X = retype(np.arange(4).reshape(2, 2).astype(np.float))
+        X[0, 0] = value
+>       with pytest.raises(ValueError, message=match_msg):
+E       TypeError: Unexpected keyword arguments passed to pytest.raises: message
+E       Use context-manager form instead?
+
+sklearn/utils/tests/test_validation.py:185: TypeError
+_ test_check_array_force_all_finiteinvalid[asarray-nan-True-Input contains NaN, infinity] _
+
+value = nan, force_all_finite = True, match_msg = 'Input contains NaN, infinity'
+retype = <function asarray at 0x7fbb5a19f268>
+
+    @pytest.mark.parametrize(
+        "value, force_all_finite, match_msg",
+        [(np.inf, True, 'Input contains NaN, infinity'),
+         (np.inf, 'allow-nan', 'Input contains infinity'),
+         (np.nan, True, 'Input contains NaN, infinity'),
+         (np.nan, 'allow-inf', 'force_all_finite should be a bool or "allow-nan"'),
+         (np.nan, 1, 'force_all_finite should be a bool or "allow-nan"')]
+    )
+    @pytest.mark.parametrize(
+        "retype",
+        [np.asarray, sp.csr_matrix]
+    )
+    def test_check_array_force_all_finiteinvalid(value, force_all_finite,
+                                                 match_msg, retype):
+        X = retype(np.arange(4).reshape(2, 2).astype(np.float))
+        X[0, 0] = value
+>       with pytest.raises(ValueError, message=match_msg):
+E       TypeError: Unexpected keyword arguments passed to pytest.raises: message
+E       Use context-manager form instead?
+
+sklearn/utils/tests/test_validation.py:185: TypeError
+_ test_check_array_force_all_finiteinvalid[asarray-nan-allow-inf-force_all_finite should be a bool or "allow-nan"] _
+
+value = nan, force_all_finite = 'allow-inf'
+match_msg = 'force_all_finite should be a bool or "allow-nan"'
+retype = <function asarray at 0x7fbb5a19f268>
+
+    @pytest.mark.parametrize(
+        "value, force_all_finite, match_msg",
+        [(np.inf, True, 'Input contains NaN, infinity'),
+         (np.inf, 'allow-nan', 'Input contains infinity'),
+         (np.nan, True, 'Input contains NaN, infinity'),
+         (np.nan, 'allow-inf', 'force_all_finite should be a bool or "allow-nan"'),
+         (np.nan, 1, 'force_all_finite should be a bool or "allow-nan"')]
+    )
+    @pytest.mark.parametrize(
+        "retype",
+        [np.asarray, sp.csr_matrix]
+    )
+    def test_check_array_force_all_finiteinvalid(value, force_all_finite,
+                                                 match_msg, retype):
+        X = retype(np.arange(4).reshape(2, 2).astype(np.float))
+        X[0, 0] = value
+>       with pytest.raises(ValueError, message=match_msg):
+E       TypeError: Unexpected keyword arguments passed to pytest.raises: message
+E       Use context-manager form instead?
+
+sklearn/utils/tests/test_validation.py:185: TypeError
+_ test_check_array_force_all_finiteinvalid[asarray-nan-1-force_all_finite should be a bool or "allow-nan"] _
+
+value = nan, force_all_finite = 1
+match_msg = 'force_all_finite should be a bool or "allow-nan"'
+retype = <function asarray at 0x7fbb5a19f268>
+
+    @pytest.mark.parametrize(
+        "value, force_all_finite, match_msg",
+        [(np.inf, True, 'Input contains NaN, infinity'),
+         (np.inf, 'allow-nan', 'Input contains infinity'),
+         (np.nan, True, 'Input contains NaN, infinity'),
+         (np.nan, 'allow-inf', 'force_all_finite should be a bool or "allow-nan"'),
+         (np.nan, 1, 'force_all_finite should be a bool or "allow-nan"')]
+    )
+    @pytest.mark.parametrize(
+        "retype",
+        [np.asarray, sp.csr_matrix]
+    )
+    def test_check_array_force_all_finiteinvalid(value, force_all_finite,
+                                                 match_msg, retype):
+        X = retype(np.arange(4).reshape(2, 2).astype(np.float))
+        X[0, 0] = value
+>       with pytest.raises(ValueError, message=match_msg):
+E       TypeError: Unexpected keyword arguments passed to pytest.raises: message
+E       Use context-manager form instead?
+
+sklearn/utils/tests/test_validation.py:185: TypeError
+_ test_check_array_force_all_finiteinvalid[csr_matrix-inf-True-Input contains NaN, infinity] _
+
+value = inf, force_all_finite = True, match_msg = 'Input contains NaN, infinity'
+retype = <class 'scipy.sparse.csr.csr_matrix'>
+
+    @pytest.mark.parametrize(
+        "value, force_all_finite, match_msg",
+        [(np.inf, True, 'Input contains NaN, infinity'),
+         (np.inf, 'allow-nan', 'Input contains infinity'),
+         (np.nan, True, 'Input contains NaN, infinity'),
+         (np.nan, 'allow-inf', 'force_all_finite should be a bool or "allow-nan"'),
+         (np.nan, 1, 'force_all_finite should be a bool or "allow-nan"')]
+    )
+    @pytest.mark.parametrize(
+        "retype",
+        [np.asarray, sp.csr_matrix]
+    )
+    def test_check_array_force_all_finiteinvalid(value, force_all_finite,
+                                                 match_msg, retype):
+        X = retype(np.arange(4).reshape(2, 2).astype(np.float))
+        X[0, 0] = value
+>       with pytest.raises(ValueError, message=match_msg):
+E       TypeError: Unexpected keyword arguments passed to pytest.raises: message
+E       Use context-manager form instead?
+
+sklearn/utils/tests/test_validation.py:185: TypeError
+_ test_check_array_force_all_finiteinvalid[csr_matrix-inf-allow-nan-Input contains infinity] _
+
+value = inf, force_all_finite = 'allow-nan'
+match_msg = 'Input contains infinity'
+retype = <class 'scipy.sparse.csr.csr_matrix'>
+
+    @pytest.mark.parametrize(
+        "value, force_all_finite, match_msg",
+        [(np.inf, True, 'Input contains NaN, infinity'),
+         (np.inf, 'allow-nan', 'Input contains infinity'),
+         (np.nan, True, 'Input contains NaN, infinity'),
+         (np.nan, 'allow-inf', 'force_all_finite should be a bool or "allow-nan"'),
+         (np.nan, 1, 'force_all_finite should be a bool or "allow-nan"')]
+    )
+    @pytest.mark.parametrize(
+        "retype",
+        [np.asarray, sp.csr_matrix]
+    )
+    def test_check_array_force_all_finiteinvalid(value, force_all_finite,
+                                                 match_msg, retype):
+        X = retype(np.arange(4).reshape(2, 2).astype(np.float))
+        X[0, 0] = value
+>       with pytest.raises(ValueError, message=match_msg):
+E       TypeError: Unexpected keyword arguments passed to pytest.raises: message
+E       Use context-manager form instead?
+
+sklearn/utils/tests/test_validation.py:185: TypeError
+_ test_check_array_force_all_finiteinvalid[csr_matrix-nan-True-Input contains NaN, infinity] _
+
+value = nan, force_all_finite = True, match_msg = 'Input contains NaN, infinity'
+retype = <class 'scipy.sparse.csr.csr_matrix'>
+
+    @pytest.mark.parametrize(
+        "value, force_all_finite, match_msg",
+        [(np.inf, True, 'Input contains NaN, infinity'),
+         (np.inf, 'allow-nan', 'Input contains infinity'),
+         (np.nan, True, 'Input contains NaN, infinity'),
+         (np.nan, 'allow-inf', 'force_all_finite should be a bool or "allow-nan"'),
+         (np.nan, 1, 'force_all_finite should be a bool or "allow-nan"')]
+    )
+    @pytest.mark.parametrize(
+        "retype",
+        [np.asarray, sp.csr_matrix]
+    )
+    def test_check_array_force_all_finiteinvalid(value, force_all_finite,
+                                                 match_msg, retype):
+        X = retype(np.arange(4).reshape(2, 2).astype(np.float))
+        X[0, 0] = value
+>       with pytest.raises(ValueError, message=match_msg):
+E       TypeError: Unexpected keyword arguments passed to pytest.raises: message
+E       Use context-manager form instead?
+
+sklearn/utils/tests/test_validation.py:185: TypeError
+_ test_check_array_force_all_finiteinvalid[csr_matrix-nan-allow-inf-force_all_finite should be a bool or "allow-nan"] _
+
+value = nan, force_all_finite = 'allow-inf'
+match_msg = 'force_all_finite should be a bool or "allow-nan"'
+retype = <class 'scipy.sparse.csr.csr_matrix'>
+
+    @pytest.mark.parametrize(
+        "value, force_all_finite, match_msg",
+        [(np.inf, True, 'Input contains NaN, infinity'),
+         (np.inf, 'allow-nan', 'Input contains infinity'),
+         (np.nan, True, 'Input contains NaN, infinity'),
+         (np.nan, 'allow-inf', 'force_all_finite should be a bool or "allow-nan"'),
+         (np.nan, 1, 'force_all_finite should be a bool or "allow-nan"')]
+    )
+    @pytest.mark.parametrize(
+        "retype",
+        [np.asarray, sp.csr_matrix]
+    )
+    def test_check_array_force_all_finiteinvalid(value, force_all_finite,
+                                                 match_msg, retype):
+        X = retype(np.arange(4).reshape(2, 2).astype(np.float))
+        X[0, 0] = value
+>       with pytest.raises(ValueError, message=match_msg):
+E       TypeError: Unexpected keyword arguments passed to pytest.raises: message
+E       Use context-manager form instead?
+
+sklearn/utils/tests/test_validation.py:185: TypeError
+_ test_check_array_force_all_finiteinvalid[csr_matrix-nan-1-force_all_finite should be a bool or "allow-nan"] _
+
+value = nan, force_all_finite = 1
+match_msg = 'force_all_finite should be a bool or "allow-nan"'
+retype = <class 'scipy.sparse.csr.csr_matrix'>
+
+    @pytest.mark.parametrize(
+        "value, force_all_finite, match_msg",
+        [(np.inf, True, 'Input contains NaN, infinity'),
+         (np.inf, 'allow-nan', 'Input contains infinity'),
+         (np.nan, True, 'Input contains NaN, infinity'),
+         (np.nan, 'allow-inf', 'force_all_finite should be a bool or "allow-nan"'),
+         (np.nan, 1, 'force_all_finite should be a bool or "allow-nan"')]
+    )
+    @pytest.mark.parametrize(
+        "retype",
+        [np.asarray, sp.csr_matrix]
+    )
+    def test_check_array_force_all_finiteinvalid(value, force_all_finite,
+                                                 match_msg, retype):
+        X = retype(np.arange(4).reshape(2, 2).astype(np.float))
+        X[0, 0] = value
+>       with pytest.raises(ValueError, message=match_msg):
+E       TypeError: Unexpected keyword arguments passed to pytest.raises: message
+E       Use context-manager form instead?
+
+sklearn/utils/tests/test_validation.py:185: TypeError
+_____________________ test_check_dataframe_warns_on_dtype ______________________
+
+    def test_check_dataframe_warns_on_dtype():
+        # Check that warn_on_dtype also works for DataFrames.
+        # https://github.com/scikit-learn/scikit-learn/issues/10948
+        pd = importorskip("pandas")
+    
+        df = pd.DataFrame([[1, 2, 3], [4, 5, 6]], dtype=object)
+        assert_warns_message(DataConversionWarning,
+                             "Data with input dtype object were all converted to "
+                             "float64.",
+>                            check_array, df, dtype=np.float64, warn_on_dtype=True)
+
+sklearn/utils/tests/test_validation.py:726: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+warning_class = <class 'sklearn.exceptions.DataConversionWarning'>
+message = 'Data with input dtype object were all converted to float64.'
+func = <function check_array at 0x7fbb587a5d90>
+args = (   0  1  2
+0  1  2  3
+1  4  5  6,)
+kw = {'dtype': <class 'numpy.float64'>, 'warn_on_dtype': True}, w = []
+result = array([[1., 2., 3.],
+       [4., 5., 6.]])
+
+    def assert_warns_message(warning_class, message, func, *args, **kw):
+        # very important to avoid uncontrolled state propagation
+        """Test that a certain warning occurs and with a certain message.
+    
+        Parameters
+        ----------
+        warning_class : the warning class
+            The class to test for, e.g. UserWarning.
+    
+        message : str | callable
+            The message or a substring of the message to test for. If callable,
+            it takes a string as the argument and will trigger an AssertionError
+            if the callable returns `False`.
+    
+        func : callable
+            Callable object to trigger warnings.
+    
+        *args : the positional arguments to `func`.
+    
+        **kw : the keyword arguments to `func`.
+    
+        Returns
+        -------
+        result : the return value of `func`
+    
+        """
+        clean_warning_registry()
+        with warnings.catch_warnings(record=True) as w:
+            # Cause all warnings to always be triggered.
+            warnings.simplefilter("always")
+            if hasattr(np, 'VisibleDeprecationWarning'):
+                # Let's not catch the numpy internal DeprecationWarnings
+                warnings.simplefilter('ignore', np.VisibleDeprecationWarning)
+            # Trigger a warning.
+            result = func(*args, **kw)
+            # Verify some things
+            if not len(w) > 0:
+                raise AssertionError("No warning raised when calling %s"
+>                                    % func.__name__)
+E               AssertionError: No warning raised when calling check_array
+
+sklearn/utils/testing.py:201: AssertionError
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED sklearn/utils/tests/test_validation.py::test_as_float_array
+PASSED sklearn/utils/tests/test_validation.py::test_as_float_array_nan[X0]
+PASSED sklearn/utils/tests/test_validation.py::test_as_float_array_nan[X1]
+PASSED sklearn/utils/tests/test_validation.py::test_np_matrix
+PASSED sklearn/utils/tests/test_validation.py::test_memmap
+PASSED sklearn/utils/tests/test_validation.py::test_ordering
+PASSED sklearn/utils/tests/test_validation.py::test_check_array_force_all_finite_valid[asarray-inf-False]
+PASSED sklearn/utils/tests/test_validation.py::test_check_array_force_all_finite_valid[asarray-nan-allow-nan]
+PASSED sklearn/utils/tests/test_validation.py::test_check_array_force_all_finite_valid[asarray-nan-False]
+PASSED sklearn/utils/tests/test_validation.py::test_check_array_force_all_finite_valid[csr_matrix-inf-False]
+PASSED sklearn/utils/tests/test_validation.py::test_check_array_force_all_finite_valid[csr_matrix-nan-allow-nan]
+PASSED sklearn/utils/tests/test_validation.py::test_check_array_force_all_finite_valid[csr_matrix-nan-False]
+PASSED sklearn/utils/tests/test_validation.py::test_check_array
+PASSED sklearn/utils/tests/test_validation.py::test_check_array_pandas_dtype_object_conversion
+PASSED sklearn/utils/tests/test_validation.py::test_check_array_on_mock_dataframe
+PASSED sklearn/utils/tests/test_validation.py::test_check_array_dtype_stability
+PASSED sklearn/utils/tests/test_validation.py::test_check_array_dtype_warning
+PASSED sklearn/utils/tests/test_validation.py::test_check_array_accept_sparse_type_exception
+PASSED sklearn/utils/tests/test_validation.py::test_check_array_accept_sparse_no_exception
+PASSED sklearn/utils/tests/test_validation.py::test_check_array_accept_large_sparse_no_exception[csr]
+PASSED sklearn/utils/tests/test_validation.py::test_check_array_accept_large_sparse_no_exception[csc]
+PASSED sklearn/utils/tests/test_validation.py::test_check_array_accept_large_sparse_no_exception[coo]
+PASSED sklearn/utils/tests/test_validation.py::test_check_array_accept_large_sparse_no_exception[bsr]
+PASSED sklearn/utils/tests/test_validation.py::test_check_array_accept_large_sparse_raise_exception[csr]
+PASSED sklearn/utils/tests/test_validation.py::test_check_array_accept_large_sparse_raise_exception[csc]
+PASSED sklearn/utils/tests/test_validation.py::test_check_array_accept_large_sparse_raise_exception[coo]
+PASSED sklearn/utils/tests/test_validation.py::test_check_array_accept_large_sparse_raise_exception[bsr]
+PASSED sklearn/utils/tests/test_validation.py::test_check_array_large_indices_non_supported_scipy_version[csr]
+PASSED sklearn/utils/tests/test_validation.py::test_check_array_large_indices_non_supported_scipy_version[csc]
+PASSED sklearn/utils/tests/test_validation.py::test_check_array_large_indices_non_supported_scipy_version[coo]
+PASSED sklearn/utils/tests/test_validation.py::test_check_array_large_indices_non_supported_scipy_version[bsr]
+PASSED sklearn/utils/tests/test_validation.py::test_check_array_min_samples_and_features_messages
+PASSED sklearn/utils/tests/test_validation.py::test_check_array_complex_data_error
+PASSED sklearn/utils/tests/test_validation.py::test_has_fit_parameter
+PASSED sklearn/utils/tests/test_validation.py::test_check_symmetric
+PASSED sklearn/utils/tests/test_validation.py::test_check_is_fitted
+PASSED sklearn/utils/tests/test_validation.py::test_check_consistent_length
+PASSED sklearn/utils/tests/test_validation.py::test_check_dataframe_fit_attribute
+PASSED sklearn/utils/tests/test_validation.py::test_suppress_validation
+PASSED sklearn/utils/tests/test_validation.py::test_check_memory
+PASSED sklearn/utils/tests/test_validation.py::test_check_array_memmap[True]
+PASSED sklearn/utils/tests/test_validation.py::test_check_array_memmap[False]
+FAILED sklearn/utils/tests/test_validation.py::test_check_array_force_all_finiteinvalid[asarray-inf-True-Input contains NaN, infinity]
+FAILED sklearn/utils/tests/test_validation.py::test_check_array_force_all_finiteinvalid[asarray-inf-allow-nan-Input contains infinity]
+FAILED sklearn/utils/tests/test_validation.py::test_check_array_force_all_finiteinvalid[asarray-nan-True-Input contains NaN, infinity]
+FAILED sklearn/utils/tests/test_validation.py::test_check_array_force_all_finiteinvalid[asarray-nan-allow-inf-force_all_finite should be a bool or "allow-nan"]
+FAILED sklearn/utils/tests/test_validation.py::test_check_array_force_all_finiteinvalid[asarray-nan-1-force_all_finite should be a bool or "allow-nan"]
+FAILED sklearn/utils/tests/test_validation.py::test_check_array_force_all_finiteinvalid[csr_matrix-inf-True-Input contains NaN, infinity]
+FAILED sklearn/utils/tests/test_validation.py::test_check_array_force_all_finiteinvalid[csr_matrix-inf-allow-nan-Input contains infinity]
+FAILED sklearn/utils/tests/test_validation.py::test_check_array_force_all_finiteinvalid[csr_matrix-nan-True-Input contains NaN, infinity]
+FAILED sklearn/utils/tests/test_validation.py::test_check_array_force_all_finiteinvalid[csr_matrix-nan-allow-inf-force_all_finite should be a bool or "allow-nan"]
+FAILED sklearn/utils/tests/test_validation.py::test_check_array_force_all_finiteinvalid[csr_matrix-nan-1-force_all_finite should be a bool or "allow-nan"]
+FAILED sklearn/utils/tests/test_validation.py::test_check_dataframe_warns_on_dtype
+================== 11 failed, 42 passed, 15 warnings in 1.45s ==================
++ : '>>>>> End Test Output'
++ git checkout 3b5abf76597ce6aff76192869f92647c1b5259e7 sklearn/utils/tests/test_validation.py
+Updated 1 path from 0684f0f52

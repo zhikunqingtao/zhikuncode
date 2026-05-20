@@ -1,0 +1,69 @@
+2026-05-19 23:00:53,202 - INFO - Environment image sweb.env.py.x86_64.a18371b03f944585b4f08c:latest found for django__django-11848
+Building instance image sweb.eval.x86_64.django__django-11848:latest for django__django-11848
+2026-05-19 23:06:07,346 - INFO - Creating container for django__django-11848...
+2026-05-19 23:06:07,370 - INFO - Container for django__django-11848 created: 55765e59e10fe4deaf9c8f25137e0507dd10a8bb7d2f7e679027de8b41f84661
+2026-05-19 23:06:07,561 - INFO - Container for django__django-11848 started: 55765e59e10fe4deaf9c8f25137e0507dd10a8bb7d2f7e679027de8b41f84661
+2026-05-19 23:06:07,561 - INFO - Intermediate patch for django__django-11848 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-11848/patch.diff, now applying to container...
+2026-05-19 23:06:07,652 - INFO - >>>>> Applied Patch:
+Checking patch django/utils/http.py...
+Applied patch django/utils/http.py cleanly.
+
+2026-05-19 23:06:08,279 - INFO - Git diff before:
+diff --git a/django/utils/http.py b/django/utils/http.py
+index 572cfb4347..077bc7e734 100644
+--- a/django/utils/http.py
++++ b/django/utils/http.py
+@@ -176,10 +176,14 @@ def parse_http_date(date):
+     try:
+         year = int(m.group('year'))
+         if year < 100:
+-            if year < 70:
+-                year += 2000
+-            else:
+-                year += 1900
++            # RFC 7231: interpret a two-digit year that appears to be more
++            # than 50 years in the future as the most recent year in the past
++            # with the same last two digits.
++            current_year = datetime.datetime.utcnow().year
++            century = current_year // 100 * 100
++            year = century + year
++            if year > current_year + 50:
++                year -= 100
+         month = MONTHS.index(m.group('mon').lower()) + 1
+         day = int(m.group('day'))
+         hour = int(m.group('hour'))
+2026-05-19 23:06:08,279 - INFO - Eval script for django__django-11848 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-11848/eval.sh; copying to container...
+2026-05-19 23:06:13,330 - INFO - Test runtime: 4.96 seconds
+2026-05-19 23:06:13,330 - INFO - Test output for django__django-11848 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-11848/test_output.txt
+2026-05-19 23:06:13,482 - INFO - Git diff after:
+diff --git a/django/utils/http.py b/django/utils/http.py
+index 572cfb4347..077bc7e734 100644
+--- a/django/utils/http.py
++++ b/django/utils/http.py
+@@ -176,10 +176,14 @@ def parse_http_date(date):
+     try:
+         year = int(m.group('year'))
+         if year < 100:
+-            if year < 70:
+-                year += 2000
+-            else:
+-                year += 1900
++            # RFC 7231: interpret a two-digit year that appears to be more
++            # than 50 years in the future as the most recent year in the past
++            # with the same last two digits.
++            current_year = datetime.datetime.utcnow().year
++            century = current_year // 100 * 100
++            year = century + year
++            if year > current_year + 50:
++                year -= 100
+         month = MONTHS.index(m.group('mon').lower()) + 1
+         day = int(m.group('day'))
+         hour = int(m.group('hour'))
+2026-05-19 23:06:13,483 - INFO - Grading answer for django__django-11848...
+2026-05-19 23:06:13,483 - INFO - report: {'django__django-11848': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_parsing_rfc850 (utils_tests.test_http.HttpDateProcessingTests)', 'test_parsing_year_less_than_70 (utils_tests.test_http.HttpDateProcessingTests)'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_input_too_large (utils_tests.test_http.Base36IntTests)', 'test_invalid_literal (utils_tests.test_http.Base36IntTests)', 'test_negative_input (utils_tests.test_http.Base36IntTests)', 'test_roundtrip (utils_tests.test_http.Base36IntTests)', 'test_to_base36_errors (utils_tests.test_http.Base36IntTests)', 'test_to_int_errors (utils_tests.test_http.Base36IntTests)', 'test_values (utils_tests.test_http.Base36IntTests)', 'test (utils_tests.test_http.EscapeLeadingSlashesTests)', 'test_quote (utils_tests.test_http.URLQuoteTests)', 'test_quote_plus (utils_tests.test_http.URLQuoteTests)', 'test_unquote (utils_tests.test_http.URLQuoteTests)', 'test_unquote_plus (utils_tests.test_http.URLQuoteTests)', 'test_parsing (utils_tests.test_http.ETagProcessingTests)', 'test_quoting (utils_tests.test_http.ETagProcessingTests)', 'test_allowed_hosts_str (utils_tests.test_http.IsSafeURLTests)', 'test_bad_urls (utils_tests.test_http.IsSafeURLTests)', 'test_basic_auth (utils_tests.test_http.IsSafeURLTests)', 'test_good_urls (utils_tests.test_http.IsSafeURLTests)', 'test_is_safe_url_deprecated (utils_tests.test_http.IsSafeURLTests)', 'test_no_allowed_hosts (utils_tests.test_http.IsSafeURLTests)', 'test_secure_param_https_urls (utils_tests.test_http.IsSafeURLTests)', 'test_secure_param_non_https_urls (utils_tests.test_http.IsSafeURLTests)', 'test_bad (utils_tests.test_http.IsSameDomainTests)', 'test_good (utils_tests.test_http.IsSameDomainTests)', 'test_roundtrip (utils_tests.test_http.URLSafeBase64Tests)', 'test_http_date (utils_tests.test_http.HttpDateProcessingTests)', 'test_parsing_asctime (utils_tests.test_http.HttpDateProcessingTests)', 'test_parsing_rfc1123 (utils_tests.test_http.HttpDateProcessingTests)', 'test_custom_iterable_not_doseq (utils_tests.test_http.URLEncodeTests)', 'test_dict (utils_tests.test_http.URLEncodeTests)', 'test_dict_containing_empty_sequence_doseq (utils_tests.test_http.URLEncodeTests)', 'test_dict_containing_sequence_doseq (utils_tests.test_http.URLEncodeTests)', 'test_dict_containing_sequence_not_doseq (utils_tests.test_http.URLEncodeTests)', 'test_dict_containing_tuple_not_doseq (utils_tests.test_http.URLEncodeTests)', 'test_dict_with_bytearray (utils_tests.test_http.URLEncodeTests)', 'test_dict_with_bytes_values (utils_tests.test_http.URLEncodeTests)', 'test_dict_with_sequence_of_bytes (utils_tests.test_http.URLEncodeTests)', 'test_generator (utils_tests.test_http.URLEncodeTests)', 'test_multivaluedict (utils_tests.test_http.URLEncodeTests)', 'test_none (utils_tests.test_http.URLEncodeTests)', 'test_none_in_generator (utils_tests.test_http.URLEncodeTests)', 'test_none_in_sequence (utils_tests.test_http.URLEncodeTests)', 'test_tuples (utils_tests.test_http.URLEncodeTests)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-11848: resolved: True
+2026-05-19 23:06:13,483 - INFO - Attempting to stop container sweb.eval.django__django-11848.zhikuncode_eval_300_FINAL...
+2026-05-19 23:06:28,903 - INFO - Attempting to remove container sweb.eval.django__django-11848.zhikuncode_eval_300_FINAL...
+2026-05-19 23:06:28,917 - INFO - Container sweb.eval.django__django-11848.zhikuncode_eval_300_FINAL removed.
+2026-05-19 23:06:28,917 - INFO - Attempting to remove image sweb.eval.x86_64.django__django-11848:latest...
+2026-05-19 23:06:29,035 - INFO - Image sweb.eval.x86_64.django__django-11848:latest removed.

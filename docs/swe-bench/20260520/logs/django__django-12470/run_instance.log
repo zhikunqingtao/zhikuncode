@@ -1,0 +1,49 @@
+2026-05-19 23:06:29,037 - INFO - Environment image sweb.env.py.x86_64.a18371b03f944585b4f08c:latest found for django__django-12470
+Building instance image sweb.eval.x86_64.django__django-12470:latest for django__django-12470
+2026-05-19 23:10:05,908 - INFO - Creating container for django__django-12470...
+2026-05-19 23:10:05,927 - INFO - Container for django__django-12470 created: f3fa5f0d19d60e63eff2987797dbca561c65fb14690e914a8e24058c3ee8d7e9
+2026-05-19 23:10:06,026 - INFO - Container for django__django-12470 started: f3fa5f0d19d60e63eff2987797dbca561c65fb14690e914a8e24058c3ee8d7e9
+2026-05-19 23:10:06,026 - INFO - Intermediate patch for django__django-12470 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-12470/patch.diff, now applying to container...
+2026-05-19 23:10:06,071 - INFO - >>>>> Applied Patch:
+Checking patch django/db/models/sql/compiler.py...
+Applied patch django/db/models/sql/compiler.py cleanly.
+
+2026-05-19 23:10:06,524 - INFO - Git diff before:
+diff --git a/django/db/models/sql/compiler.py b/django/db/models/sql/compiler.py
+index 92213a4e67..a8e3ad8e97 100644
+--- a/django/db/models/sql/compiler.py
++++ b/django/db/models/sql/compiler.py
+@@ -727,7 +727,7 @@ class SQLCompiler:
+                     results.append((item, False))
+                     continue
+                 results.extend(self.find_ordering_name(item, opts, alias,
+-                                                       order, already_seen))
++                                                       'ASC', already_seen))
+             return results
+         targets, alias, _ = self.query.trim_joins(targets, joins, path)
+         return [(OrderBy(transform_function(t, alias), descending=descending), False) for t in targets]
+2026-05-19 23:10:06,524 - INFO - Eval script for django__django-12470 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-12470/eval.sh; copying to container...
+2026-05-19 23:10:09,828 - INFO - Test runtime: 3.28 seconds
+2026-05-19 23:10:09,829 - INFO - Test output for django__django-12470 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-12470/test_output.txt
+2026-05-19 23:10:09,866 - INFO - Git diff after:
+diff --git a/django/db/models/sql/compiler.py b/django/db/models/sql/compiler.py
+index 92213a4e67..a8e3ad8e97 100644
+--- a/django/db/models/sql/compiler.py
++++ b/django/db/models/sql/compiler.py
+@@ -727,7 +727,7 @@ class SQLCompiler:
+                     results.append((item, False))
+                     continue
+                 results.extend(self.find_ordering_name(item, opts, alias,
+-                                                       order, already_seen))
++                                                       'ASC', already_seen))
+             return results
+         targets, alias, _ = self.query.trim_joins(targets, joins, path)
+         return [(OrderBy(transform_function(t, alias), descending=descending), False) for t in targets]
+2026-05-19 23:10:09,866 - INFO - Grading answer for django__django-12470...
+2026-05-19 23:10:09,866 - INFO - report: {'django__django-12470': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_inherited_ordering_pk_desc (model_inheritance.tests.ModelInheritanceTests)']}, 'PASS_TO_PASS': {'success': ['test_abstract_fk_related_name (model_inheritance.tests.InheritanceSameModelNameTests)', 'test_unique (model_inheritance.tests.InheritanceUniqueTests)', 'test_unique_together (model_inheritance.tests.InheritanceUniqueTests)', 'test_abstract (model_inheritance.tests.ModelInheritanceTests)', 'test_abstract_parent_link (model_inheritance.tests.ModelInheritanceTests)', 'Creating a child with non-abstract parents only issues INSERTs.', 'test_custompk_m2m (model_inheritance.tests.ModelInheritanceTests)', 'test_eq (model_inheritance.tests.ModelInheritanceTests)', 'test_init_subclass (model_inheritance.tests.ModelInheritanceTests)', 'test_meta_fields_and_ordering (model_inheritance.tests.ModelInheritanceTests)', 'test_mixin_init (model_inheritance.tests.ModelInheritanceTests)', 'test_model_with_distinct_accessors (model_inheritance.tests.ModelInheritanceTests)', 'test_model_with_distinct_related_query_name (model_inheritance.tests.ModelInheritanceTests)', 'test_reverse_relation_for_different_hierarchy_tree (model_inheritance.tests.ModelInheritanceTests)', 'test_set_name (model_inheritance.tests.ModelInheritanceTests)', 'test_update_parent_filtering (model_inheritance.tests.ModelInheritanceTests)', 'test_exclude_inherited_on_null (model_inheritance.tests.ModelInheritanceDataTests)', 'test_filter_inherited_model (model_inheritance.tests.ModelInheritanceDataTests)', 'test_filter_inherited_on_null (model_inheritance.tests.ModelInheritanceDataTests)', 'test_filter_on_parent_returns_object_of_parent_type (model_inheritance.tests.ModelInheritanceDataTests)', 'test_inherited_does_not_exist_exception (model_inheritance.tests.ModelInheritanceDataTests)', 'test_inherited_multiple_objects_returned_exception (model_inheritance.tests.ModelInheritanceDataTests)', 'test_parent_cache_reuse (model_inheritance.tests.ModelInheritanceDataTests)', 'test_parent_child_one_to_one_link (model_inheritance.tests.ModelInheritanceDataTests)', 'test_parent_child_one_to_one_link_on_nonrelated_objects (model_inheritance.tests.ModelInheritanceDataTests)', 'test_parent_fields_available_for_filtering_in_child_model (model_inheritance.tests.ModelInheritanceDataTests)', 'test_related_objects_for_inherited_models (model_inheritance.tests.ModelInheritanceDataTests)', 'test_select_related_defer (model_inheritance.tests.ModelInheritanceDataTests)', 'test_select_related_works_on_parent_model_fields (model_inheritance.tests.ModelInheritanceDataTests)', 'test_update_inherited_model (model_inheritance.tests.ModelInheritanceDataTests)', 'test_update_query_counts (model_inheritance.tests.ModelInheritanceDataTests)', 'test_update_works_on_parent_and_child_models_at_once (model_inheritance.tests.ModelInheritanceDataTests)', 'test_values_works_on_parent_model_fields (model_inheritance.tests.ModelInheritanceDataTests)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-12470: resolved: False
+2026-05-19 23:10:09,866 - INFO - Attempting to stop container sweb.eval.django__django-12470.zhikuncode_eval_300_FINAL...
+2026-05-19 23:10:25,236 - INFO - Attempting to remove container sweb.eval.django__django-12470.zhikuncode_eval_300_FINAL...
+2026-05-19 23:10:25,322 - INFO - Container sweb.eval.django__django-12470.zhikuncode_eval_300_FINAL removed.
+2026-05-19 23:10:25,322 - INFO - Attempting to remove image sweb.eval.x86_64.django__django-12470:latest...
+2026-05-19 23:10:25,411 - INFO - Image sweb.eval.x86_64.django__django-12470:latest removed.

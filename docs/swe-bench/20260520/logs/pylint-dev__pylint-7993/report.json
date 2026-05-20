@@ -1,0 +1,39 @@
+{
+    "pylint-dev__pylint-7993": {
+        "patch_is_None": false,
+        "patch_exists": true,
+        "patch_successfully_applied": true,
+        "resolved": false,
+        "tests_status": {
+            "FAIL_TO_PASS": {
+                "success": [],
+                "failure": [
+                    "tests/reporters/unittest_reporting.py::test_template_option_with_header"
+                ]
+            },
+            "PASS_TO_PASS": {
+                "success": [],
+                "failure": [
+                    "tests/reporters/unittest_reporting.py::test_template_option",
+                    "tests/reporters/unittest_reporting.py::test_template_option_default",
+                    "tests/reporters/unittest_reporting.py::test_template_option_end_line",
+                    "tests/reporters/unittest_reporting.py::test_template_option_non_existing",
+                    "tests/reporters/unittest_reporting.py::test_deprecation_set_output",
+                    "tests/reporters/unittest_reporting.py::test_parseable_output_deprecated",
+                    "tests/reporters/unittest_reporting.py::test_parseable_output_regression",
+                    "tests/reporters/unittest_reporting.py::test_multi_format_output",
+                    "tests/reporters/unittest_reporting.py::test_multi_reporter_independant_messages",
+                    "tests/reporters/unittest_reporting.py::test_display_results_is_renamed"
+                ]
+            },
+            "FAIL_TO_FAIL": {
+                "success": [],
+                "failure": []
+            },
+            "PASS_TO_FAIL": {
+                "success": [],
+                "failure": []
+            }
+        }
+    }
+}

@@ -1,0 +1,99 @@
+diff --git a/sklearn/compose/_column_transformer.py b/sklearn/compose/_column_transformer.py
+index a261451..67c324c 100644
+--- a/sklearn/compose/_column_transformer.py
++++ b/sklearn/compose/_column_transformer.py
+@@ -655,14 +655,22 @@ class ColumnTransformer(TransformerMixin, _BaseComposition):
+         Return value (transformers and/or transformed X data) depends
+         on the passed function.
+         ``fitted=True`` ensures the fitted transformers are used.
++
++        Returns
++        -------
++        result : list
++            Results from Parallel execution.
++        transformer_names : list of str
++            Names of transformers that produced the results, in the same order.
+         """
+         transformers = list(
+             self._iter(
+                 fitted=fitted, replace_strings=True, column_as_strings=column_as_strings
+             )
+         )
++        transformer_names = [name for name, _, _, _ in transformers]
+         try:
+-            return Parallel(n_jobs=self.n_jobs)(
++            result = Parallel(n_jobs=self.n_jobs)(
+                 delayed(func)(
+                     transformer=clone(trans) if not fitted else trans,
+                     X=_safe_indexing(X, column, axis=1),
+@@ -673,6 +681,7 @@ class ColumnTransformer(TransformerMixin, _BaseComposition):
+                 )
+                 for idx, (name, trans, column, weight) in enumerate(transformers, 1)
+             )
++            return result, transformer_names
+         except ValueError as e:
+             if "Expected 2D array, got 1D array instead" in str(e):
+                 raise ValueError(_ERR_MSG_1DCOLUMN) from e
+@@ -733,7 +742,7 @@ class ColumnTransformer(TransformerMixin, _BaseComposition):
+         self._validate_column_callables(X)
+         self._validate_remainder(X)
+ 
+-        result = self._fit_transform(X, y, _fit_transform_one)
++        result, transformer_names = self._fit_transform(X, y, _fit_transform_one)
+ 
+         if not result:
+             self._update_fitted_transformers([])
+@@ -757,7 +766,7 @@ class ColumnTransformer(TransformerMixin, _BaseComposition):
+         self._validate_output(Xs)
+         self._record_output_indices(Xs)
+ 
+-        return self._hstack(list(Xs))
++        return self._hstack(list(Xs), transformer_names)
+ 
+     def transform(self, X):
+         """Transform X separately by each transformer, concatenate results.
+@@ -806,7 +815,7 @@ class ColumnTransformer(TransformerMixin, _BaseComposition):
+             # check that n_features_in_ is consistent
+             self._check_n_features(X, reset=False)
+ 
+-        Xs = self._fit_transform(
++        Xs, transformer_names = self._fit_transform(
+             X,
+             None,
+             _transform_one,
+@@ -819,9 +828,9 @@ class ColumnTransformer(TransformerMixin, _BaseComposition):
+             # All transformers are None
+             return np.zeros((X.shape[0], 0))
+ 
+-        return self._hstack(list(Xs))
++        return self._hstack(list(Xs), transformer_names)
+ 
+-    def _hstack(self, Xs):
++    def _hstack(self, Xs, transformer_names=None):
+         """Stacks Xs horizontally.
+ 
+         This allows subclasses to control the stacking behavior, while reusing
+@@ -830,6 +839,9 @@ class ColumnTransformer(TransformerMixin, _BaseComposition):
+         Parameters
+         ----------
+         Xs : list of {array-like, sparse matrix, dataframe}
++        transformer_names : list of str, default=None
++            Names of transformers that produced the outputs in Xs, in the same
++            order. If None, transformer names are extracted from fitted transformers.
+         """
+         if self.sparse_output_:
+             try:
+@@ -862,9 +874,10 @@ class ColumnTransformer(TransformerMixin, _BaseComposition):
+                 if not self.verbose_feature_names_out:
+                     return output
+ 
+-                transformer_names = [
+-                    t[0] for t in self._iter(fitted=True, replace_strings=True)
+-                ]
++                if transformer_names is None:
++                    transformer_names = [
++                        t[0] for t in self._iter(fitted=True, replace_strings=True)
++                    ]
+                 feature_names_outs = [X.columns for X in Xs]
+                 names_out = self._add_prefix_for_feature_names_out(
+                     list(zip(transformer_names, feature_names_outs))

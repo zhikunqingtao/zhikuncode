@@ -1,0 +1,13 @@
+diff --git a/lib/matplotlib/widgets.py b/lib/matplotlib/widgets.py
+index da5b40a..1cf025b 100644
+--- a/lib/matplotlib/widgets.py
++++ b/lib/matplotlib/widgets.py
+@@ -898,6 +898,8 @@ class RangeSlider(SliderBase):
+         val[0] = self._min_in_bounds(val[0])
+         val[1] = self._max_in_bounds(val[1])
+         xy = self.poly.xy
++        if len(xy) == 4:
++            xy = np.resize(xy, (5, 2))
+         if self.orientation == "vertical":
+             xy[0] = .25, val[0]
+             xy[1] = .25, val[1]

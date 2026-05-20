@@ -1,0 +1,277 @@
+2026-05-20 01:27:29,674 - INFO - Environment image sweb.env.py.x86_64.c795f4b88616b8462021ed:latest found for sympy__sympy-19254
+Building instance image sweb.eval.x86_64.sympy__sympy-19254:latest for sympy__sympy-19254
+2026-05-20 01:29:19,233 - INFO - Creating container for sympy__sympy-19254...
+2026-05-20 01:29:19,256 - INFO - Container for sympy__sympy-19254 created: 16fa0a1c32480d8a6c938e460528bd462ab08467d9d13961008044895187ccc6
+2026-05-20 01:29:19,452 - INFO - Container for sympy__sympy-19254 started: 16fa0a1c32480d8a6c938e460528bd462ab08467d9d13961008044895187ccc6
+2026-05-20 01:29:19,453 - INFO - Intermediate patch for sympy__sympy-19254 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-19254/patch.diff, now applying to container...
+2026-05-20 01:29:19,565 - INFO - >>>>> Applied Patch:
+Checking patch sympy/polys/compatibility.py...
+Checking patch sympy/polys/factortools.py...
+Applied patch sympy/polys/compatibility.py cleanly.
+Applied patch sympy/polys/factortools.py cleanly.
+
+2026-05-20 01:29:19,972 - INFO - Git diff before:
+diff --git a/sympy/polys/compatibility.py b/sympy/polys/compatibility.py
+index 217a481b46..37e983b5ba 100644
+--- a/sympy/polys/compatibility.py
++++ b/sympy/polys/compatibility.py
+@@ -158,6 +158,8 @@
+ from sympy.polys.factortools import dmp_trial_division
+ from sympy.polys.factortools import dup_zz_mignotte_bound
+ from sympy.polys.factortools import dmp_zz_mignotte_bound
++from sympy.polys.factortools import dup_zz_knuth_cohen_bound
++from sympy.polys.factortools import dmp_zz_knuth_cohen_bound
+ from sympy.polys.factortools import dup_zz_hensel_step
+ from sympy.polys.factortools import dup_zz_hensel_lift
+ from sympy.polys.factortools import dup_zz_zassenhaus
+@@ -733,6 +735,11 @@ def dup_zz_mignotte_bound(self, f):
+     def dmp_zz_mignotte_bound(self, f):
+         return dmp_zz_mignotte_bound(self.to_dense(f), self.ngens-1, self.domain)
+ 
++    def dup_zz_knuth_cohen_bound(self, f):
++        return dup_zz_knuth_cohen_bound(self.to_dense(f), self.domain)
++    def dmp_zz_knuth_cohen_bound(self, f):
++        return dmp_zz_knuth_cohen_bound(self.to_dense(f), self.ngens-1, self.domain)
++
+     def dup_zz_hensel_step(self, m, f, g, h, s, t):
+         D = self.to_dense
+         G, H, S, T = dup_zz_hensel_step(m, D(f), D(g), D(h), D(s), D(t), self.domain)
+diff --git a/sympy/polys/factortools.py b/sympy/polys/factortools.py
+index 93298f47e6..863902a4bd 100644
+--- a/sympy/polys/factortools.py
++++ b/sympy/polys/factortools.py
+@@ -141,6 +141,87 @@ def dmp_zz_mignotte_bound(f, u, K):
+     return K.sqrt(K(n + 1))*2**n*a*b
+ 
+ 
++def dup_zz_knuth_cohen_bound(f, K):
++    """
++    Knuth-Cohen bound for univariate polynomials in `K[x]`.
++
++    For a polynomial f of degree n, any factor g of degree m <= n-1
++    has coefficients bounded by::
++
++        |b_i| <= binomial(n-1, floor((n-1)/2)) * ||f||_2
++
++    where ||f||_2 = sqrt(sum(a_i^2)) is the 2-norm.
++
++    This bound is typically tighter than the Mignotte bound.
++
++    References
++    ==========
++
++    .. [1] Knuth, "The Art of Computer Programming, Vol. 2"
++    .. [2] Cohen, "A Course in Computational Algebraic Number Theory"
++
++    """
++    from sympy.functions.combinatorial.factorials import binomial
++
++    n = dup_degree(f)
++
++    if n <= 0:
++        return dup_max_norm(f, K)
++
++    # Compute the 2-norm squared: sum of squares of coefficients
++    norm_sq = int(sum(c**2 for c in f))
++
++    # Ceiling of sqrt for a valid upper bound
++    # ceil(sqrt(n)) = isqrt(n-1) + 1 for n >= 1
++    from math import isqrt
++    norm_ceil = isqrt(norm_sq - 1) + 1 if norm_sq > 0 else 0
++
++    # Maximum binomial coefficient for factors of degree <= n-1
++    # is binomial(n-1, floor((n-1)/2))
++    max_binom = int(binomial(n - 1, (n - 1) // 2))
++
++    return K(norm_ceil * max_binom)
++
++
++def dmp_zz_knuth_cohen_bound(f, u, K):
++    """
++    Knuth-Cohen bound for multivariate polynomials in `K[X]`.
++
++    Uses the total degree to compute the bound, analogous to the
++    univariate case.
++
++    References
++    ==========
++
++    .. [1] Knuth, "The Art of Computer Programming, Vol. 2"
++    .. [2] Cohen, "A Course in Computational Algebraic Number Theory"
++
++    """
++    from sympy.functions.combinatorial.factorials import binomial
++    from math import isqrt
++
++    n = sum(dmp_degree_list(f, u))
++
++    if n <= 0:
++        return dmp_max_norm(f, u, K)
++
++    # Compute the 2-norm squared recursively
++    def _dmp_norm_sq(g, v):
++        if not v:
++            return int(sum(c**2 for c in g))
++        return int(sum(_dmp_norm_sq(c, v - 1) for c in g))
++
++    norm_sq = _dmp_norm_sq(f, u)
++
++    # Ceiling of sqrt for a valid upper bound
++    norm_ceil = isqrt(norm_sq - 1) + 1 if norm_sq > 0 else 0
++
++    # Maximum binomial coefficient for factors of degree <= n-1
++    max_binom = int(binomial(n - 1, (n - 1) // 2))
++
++    return K(norm_ceil * max_binom)
++
++
+ def dup_zz_hensel_step(m, f, g, h, s, t, K):
+     """
+     One step in Hensel lifting in `Z[x]`.
+@@ -933,7 +1014,7 @@ def dmp_zz_wang(f, u, K, mod=None, seed=None):
+ 
+     ct, T = dmp_zz_factor(dmp_LC(f, K), u - 1, K)
+ 
+-    b = dmp_zz_mignotte_bound(f, u, K)
++    b = dmp_zz_knuth_cohen_bound(f, u, K)
+     p = K(nextprime(b))
+ 
+     if mod is None:
+2026-05-20 01:29:19,972 - INFO - Eval script for sympy__sympy-19254 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-19254/eval.sh; copying to container...
+2026-05-20 01:29:25,008 - INFO - Test runtime: 4.99 seconds
+2026-05-20 01:29:25,008 - INFO - Test output for sympy__sympy-19254 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-19254/test_output.txt
+2026-05-20 01:29:25,062 - INFO - Git diff after:
+diff --git a/sympy/polys/compatibility.py b/sympy/polys/compatibility.py
+index 217a481b46..37e983b5ba 100644
+--- a/sympy/polys/compatibility.py
++++ b/sympy/polys/compatibility.py
+@@ -158,6 +158,8 @@
+ from sympy.polys.factortools import dmp_trial_division
+ from sympy.polys.factortools import dup_zz_mignotte_bound
+ from sympy.polys.factortools import dmp_zz_mignotte_bound
++from sympy.polys.factortools import dup_zz_knuth_cohen_bound
++from sympy.polys.factortools import dmp_zz_knuth_cohen_bound
+ from sympy.polys.factortools import dup_zz_hensel_step
+ from sympy.polys.factortools import dup_zz_hensel_lift
+ from sympy.polys.factortools import dup_zz_zassenhaus
+@@ -733,6 +735,11 @@ def dup_zz_mignotte_bound(self, f):
+     def dmp_zz_mignotte_bound(self, f):
+         return dmp_zz_mignotte_bound(self.to_dense(f), self.ngens-1, self.domain)
+ 
++    def dup_zz_knuth_cohen_bound(self, f):
++        return dup_zz_knuth_cohen_bound(self.to_dense(f), self.domain)
++    def dmp_zz_knuth_cohen_bound(self, f):
++        return dmp_zz_knuth_cohen_bound(self.to_dense(f), self.ngens-1, self.domain)
++
+     def dup_zz_hensel_step(self, m, f, g, h, s, t):
+         D = self.to_dense
+         G, H, S, T = dup_zz_hensel_step(m, D(f), D(g), D(h), D(s), D(t), self.domain)
+diff --git a/sympy/polys/factortools.py b/sympy/polys/factortools.py
+index 93298f47e6..863902a4bd 100644
+--- a/sympy/polys/factortools.py
++++ b/sympy/polys/factortools.py
+@@ -141,6 +141,87 @@ def dmp_zz_mignotte_bound(f, u, K):
+     return K.sqrt(K(n + 1))*2**n*a*b
+ 
+ 
++def dup_zz_knuth_cohen_bound(f, K):
++    """
++    Knuth-Cohen bound for univariate polynomials in `K[x]`.
++
++    For a polynomial f of degree n, any factor g of degree m <= n-1
++    has coefficients bounded by::
++
++        |b_i| <= binomial(n-1, floor((n-1)/2)) * ||f||_2
++
++    where ||f||_2 = sqrt(sum(a_i^2)) is the 2-norm.
++
++    This bound is typically tighter than the Mignotte bound.
++
++    References
++    ==========
++
++    .. [1] Knuth, "The Art of Computer Programming, Vol. 2"
++    .. [2] Cohen, "A Course in Computational Algebraic Number Theory"
++
++    """
++    from sympy.functions.combinatorial.factorials import binomial
++
++    n = dup_degree(f)
++
++    if n <= 0:
++        return dup_max_norm(f, K)
++
++    # Compute the 2-norm squared: sum of squares of coefficients
++    norm_sq = int(sum(c**2 for c in f))
++
++    # Ceiling of sqrt for a valid upper bound
++    # ceil(sqrt(n)) = isqrt(n-1) + 1 for n >= 1
++    from math import isqrt
++    norm_ceil = isqrt(norm_sq - 1) + 1 if norm_sq > 0 else 0
++
++    # Maximum binomial coefficient for factors of degree <= n-1
++    # is binomial(n-1, floor((n-1)/2))
++    max_binom = int(binomial(n - 1, (n - 1) // 2))
++
++    return K(norm_ceil * max_binom)
++
++
++def dmp_zz_knuth_cohen_bound(f, u, K):
++    """
++    Knuth-Cohen bound for multivariate polynomials in `K[X]`.
++
++    Uses the total degree to compute the bound, analogous to the
++    univariate case.
++
++    References
++    ==========
++
++    .. [1] Knuth, "The Art of Computer Programming, Vol. 2"
++    .. [2] Cohen, "A Course in Computational Algebraic Number Theory"
++
++    """
++    from sympy.functions.combinatorial.factorials import binomial
++    from math import isqrt
++
++    n = sum(dmp_degree_list(f, u))
++
++    if n <= 0:
++        return dmp_max_norm(f, u, K)
++
++    # Compute the 2-norm squared recursively
++    def _dmp_norm_sq(g, v):
++        if not v:
++            return int(sum(c**2 for c in g))
++        return int(sum(_dmp_norm_sq(c, v - 1) for c in g))
++
++    norm_sq = _dmp_norm_sq(f, u)
++
++    # Ceiling of sqrt for a valid upper bound
++    norm_ceil = isqrt(norm_sq - 1) + 1 if norm_sq > 0 else 0
++
++    # Maximum binomial coefficient for factors of degree <= n-1
++    max_binom = int(binomial(n - 1, (n - 1) // 2))
++
++    return K(norm_ceil * max_binom)
++
++
+ def dup_zz_hensel_step(m, f, g, h, s, t, K):
+     """
+     One step in Hensel lifting in `Z[x]`.
+@@ -933,7 +1014,7 @@ def dmp_zz_wang(f, u, K, mod=None, seed=None):
+ 
+     ct, T = dmp_zz_factor(dmp_LC(f, K), u - 1, K)
+ 
+-    b = dmp_zz_mignotte_bound(f, u, K)
++    b = dmp_zz_knuth_cohen_bound(f, u, K)
+     p = K(nextprime(b))
+ 
+     if mod is None:
+2026-05-20 01:29:25,062 - INFO - Grading answer for sympy__sympy-19254...
+2026-05-20 01:29:25,062 - INFO - report: {'sympy__sympy-19254': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_dup_zz_mignotte_bound']}, 'PASS_TO_PASS': {'success': ['test_dup_trial_division', 'test_dmp_trial_division', 'test_dmp_zz_mignotte_bound', 'test_dup_zz_hensel_step', 'test_dup_zz_hensel_lift', 'test_dup_zz_irreducible_p', 'test_dup_cyclotomic_p', 'test_dup_zz_cyclotomic_poly', 'test_dup_zz_cyclotomic_factor', 'test_dup_zz_factor', 'test_dmp_zz_wang', 'test_issue_6355', 'test_dmp_zz_factor', 'test_dup_ext_factor', 'test_dmp_ext_factor', 'test_dup_factor_list', 'test_dmp_factor_list', 'test_dup_irreducible_p'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-19254: resolved: False
+2026-05-20 01:29:25,062 - INFO - Attempting to stop container sweb.eval.sympy__sympy-19254.zhikuncode_eval_300_FINAL...
+2026-05-20 01:29:40,420 - INFO - Attempting to remove container sweb.eval.sympy__sympy-19254.zhikuncode_eval_300_FINAL...
+2026-05-20 01:29:40,435 - INFO - Container sweb.eval.sympy__sympy-19254.zhikuncode_eval_300_FINAL removed.
+2026-05-20 01:29:40,435 - INFO - Attempting to remove image sweb.eval.x86_64.sympy__sympy-19254:latest...
+2026-05-20 01:29:40,495 - INFO - Image sweb.eval.x86_64.sympy__sympy-19254:latest removed.

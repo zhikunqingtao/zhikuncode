@@ -1,0 +1,62 @@
+{
+    "pydata__xarray-5131": {
+        "patch_is_None": false,
+        "patch_exists": true,
+        "patch_successfully_applied": true,
+        "resolved": true,
+        "tests_status": {
+            "FAIL_TO_PASS": {
+                "success": [
+                    "xarray/tests/test_groupby.py::test_groupby_repr[obj0-x]",
+                    "xarray/tests/test_groupby.py::test_groupby_repr[obj0-y]",
+                    "xarray/tests/test_groupby.py::test_groupby_repr[obj0-z]",
+                    "xarray/tests/test_groupby.py::test_groupby_repr[obj0-month]",
+                    "xarray/tests/test_groupby.py::test_groupby_repr[obj1-x]",
+                    "xarray/tests/test_groupby.py::test_groupby_repr[obj1-y]",
+                    "xarray/tests/test_groupby.py::test_groupby_repr[obj1-z]",
+                    "xarray/tests/test_groupby.py::test_groupby_repr[obj1-month]",
+                    "xarray/tests/test_groupby.py::test_groupby_repr_datetime[obj0]",
+                    "xarray/tests/test_groupby.py::test_groupby_repr_datetime[obj1]"
+                ],
+                "failure": []
+            },
+            "PASS_TO_PASS": {
+                "success": [
+                    "xarray/tests/test_groupby.py::test_consolidate_slices",
+                    "xarray/tests/test_groupby.py::test_groupby_dims_property",
+                    "xarray/tests/test_groupby.py::test_multi_index_groupby_map",
+                    "xarray/tests/test_groupby.py::test_multi_index_groupby_sum",
+                    "xarray/tests/test_groupby.py::test_groupby_da_datetime",
+                    "xarray/tests/test_groupby.py::test_groupby_duplicate_coordinate_labels",
+                    "xarray/tests/test_groupby.py::test_groupby_input_mutation",
+                    "xarray/tests/test_groupby.py::test_groupby_map_shrink_groups[obj0]",
+                    "xarray/tests/test_groupby.py::test_groupby_map_shrink_groups[obj1]",
+                    "xarray/tests/test_groupby.py::test_groupby_map_change_group_size[obj0]",
+                    "xarray/tests/test_groupby.py::test_groupby_map_change_group_size[obj1]",
+                    "xarray/tests/test_groupby.py::test_da_groupby_map_func_args",
+                    "xarray/tests/test_groupby.py::test_ds_groupby_map_func_args",
+                    "xarray/tests/test_groupby.py::test_da_groupby_empty",
+                    "xarray/tests/test_groupby.py::test_da_groupby_quantile",
+                    "xarray/tests/test_groupby.py::test_ds_groupby_quantile",
+                    "xarray/tests/test_groupby.py::test_da_groupby_assign_coords",
+                    "xarray/tests/test_groupby.py::test_groupby_drops_nans",
+                    "xarray/tests/test_groupby.py::test_groupby_grouping_errors",
+                    "xarray/tests/test_groupby.py::test_groupby_reduce_dimension_error",
+                    "xarray/tests/test_groupby.py::test_groupby_multiple_string_args",
+                    "xarray/tests/test_groupby.py::test_groupby_bins_timeseries",
+                    "xarray/tests/test_groupby.py::test_groupby_none_group_name",
+                    "xarray/tests/test_groupby.py::test_groupby_getitem"
+                ],
+                "failure": []
+            },
+            "FAIL_TO_FAIL": {
+                "success": [],
+                "failure": []
+            },
+            "PASS_TO_FAIL": {
+                "success": [],
+                "failure": []
+            }
+        }
+    }
+}

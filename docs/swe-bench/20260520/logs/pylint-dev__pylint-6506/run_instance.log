@@ -1,0 +1,65 @@
+2026-05-20 00:32:53,195 - INFO - Environment image sweb.env.py.x86_64.042cc8c7538a70394bfed6:latest found for pylint-dev__pylint-6506
+Building instance image sweb.eval.x86_64.pylint-dev__pylint-6506:latest for pylint-dev__pylint-6506
+2026-05-20 00:33:16,716 - INFO - Creating container for pylint-dev__pylint-6506...
+2026-05-20 00:33:16,735 - INFO - Container for pylint-dev__pylint-6506 created: d72ca9110fb0334963f3d3168c0acf20f9eda63734805c6f0340d24dfd28a15d
+2026-05-20 00:33:16,828 - INFO - Container for pylint-dev__pylint-6506 started: d72ca9110fb0334963f3d3168c0acf20f9eda63734805c6f0340d24dfd28a15d
+2026-05-20 00:33:16,828 - INFO - Intermediate patch for pylint-dev__pylint-6506 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/pylint-dev__pylint-6506/patch.diff, now applying to container...
+2026-05-20 00:33:16,874 - INFO - >>>>> Applied Patch:
+Checking patch pylint/__init__.py...
+Applied patch pylint/__init__.py cleanly.
+
+2026-05-20 00:33:16,985 - INFO - Git diff before:
+diff --git a/pylint/__init__.py b/pylint/__init__.py
+index 3aa4b7f9..827c5419 100644
+--- a/pylint/__init__.py
++++ b/pylint/__init__.py
+@@ -10,6 +10,7 @@ from collections.abc import Sequence
+ from typing import NoReturn
+ 
+ from pylint.__pkginfo__ import __version__
++from pylint.config.exceptions import _UnrecognizedOptionError
+ 
+ # pylint: disable=import-outside-toplevel
+ 
+@@ -25,6 +26,8 @@ def run_pylint(argv: Sequence[str] | None = None) -> None:
+         PylintRun(argv or sys.argv[1:])
+     except KeyboardInterrupt:
+         sys.exit(1)
++    except _UnrecognizedOptionError:
++        sys.exit(32)
+ 
+ 
+ def run_epylint(argv: Sequence[str] | None = None) -> NoReturn:
+2026-05-20 00:33:16,985 - INFO - Eval script for pylint-dev__pylint-6506 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/pylint-dev__pylint-6506/eval.sh; copying to container...
+2026-05-20 00:33:21,233 - INFO - Test runtime: 4.23 seconds
+2026-05-20 00:33:21,234 - INFO - Test output for pylint-dev__pylint-6506 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/pylint-dev__pylint-6506/test_output.txt
+2026-05-20 00:33:21,262 - INFO - Git diff after:
+diff --git a/pylint/__init__.py b/pylint/__init__.py
+index 3aa4b7f9..827c5419 100644
+--- a/pylint/__init__.py
++++ b/pylint/__init__.py
+@@ -10,6 +10,7 @@ from collections.abc import Sequence
+ from typing import NoReturn
+ 
+ from pylint.__pkginfo__ import __version__
++from pylint.config.exceptions import _UnrecognizedOptionError
+ 
+ # pylint: disable=import-outside-toplevel
+ 
+@@ -25,6 +26,8 @@ def run_pylint(argv: Sequence[str] | None = None) -> None:
+         PylintRun(argv or sys.argv[1:])
+     except KeyboardInterrupt:
+         sys.exit(1)
++    except _UnrecognizedOptionError:
++        sys.exit(32)
+ 
+ 
+ def run_epylint(argv: Sequence[str] | None = None) -> NoReturn:
+2026-05-20 00:33:21,262 - INFO - Grading answer for pylint-dev__pylint-6506...
+2026-05-20 00:33:21,266 - INFO - report: {'pylint-dev__pylint-6506': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['tests/config/test_config.py::test_unknown_option_name', 'tests/config/test_config.py::test_unknown_short_option_name']}, 'PASS_TO_PASS': {'success': [], 'failure': ['tests/config/test_config.py::test_can_read_toml_env_variable', 'tests/config/test_config.py::test_unknown_message_id', 'tests/config/test_config.py::test_unknown_confidence', 'tests/config/test_config.py::test_unknown_yes_no', 'tests/config/test_config.py::test_unknown_py_version', 'tests/config/test_config.py::test_short_verbose']}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for pylint-dev__pylint-6506: resolved: False
+2026-05-20 00:33:21,266 - INFO - Attempting to stop container sweb.eval.pylint-dev__pylint-6506.zhikuncode_eval_300_FINAL...
+2026-05-20 00:33:36,497 - INFO - Attempting to remove container sweb.eval.pylint-dev__pylint-6506.zhikuncode_eval_300_FINAL...
+2026-05-20 00:33:36,503 - INFO - Container sweb.eval.pylint-dev__pylint-6506.zhikuncode_eval_300_FINAL removed.
+2026-05-20 00:33:36,503 - INFO - Attempting to remove image sweb.eval.x86_64.pylint-dev__pylint-6506:latest...
+2026-05-20 00:33:37,211 - INFO - Image sweb.eval.x86_64.pylint-dev__pylint-6506:latest removed.

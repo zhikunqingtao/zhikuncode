@@ -1,0 +1,551 @@
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z '' ']'
++++ export CONDA_SHLVL=0
++++ CONDA_SHLVL=0
++++ '[' -n '' ']'
++++++ dirname /opt/miniconda3/bin/conda
+++++ dirname /opt/miniconda3/bin
++++ PATH=/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export PATH
++++ '[' -z '' ']'
++++ PS1=
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1=
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval 'PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=1
++++ CONDA_SHLVL=1
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=2
+++ CONDA_SHLVL=2
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_1=/opt/miniconda3
+++ CONDA_PREFIX_1=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ cd /testbed
++ git config --global --add safe.directory /testbed
++ cd /testbed
++ git status
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   astropy/io/fits/fitsrec.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
++ git show
+commit 2f8c8638eab27c2c888a18de15be2285721a5734
+Author: SWE-bench <setup@swebench.config>
+Date:   Tue May 19 14:55:36 2026 +0000
+
+    SWE-bench
++ git -c core.fileMode=false diff c76af9ed6bb89bfba45b9f5bc1e635188278e2fa
+diff --git a/astropy/io/fits/fitsrec.py b/astropy/io/fits/fitsrec.py
+index 574b4073b..cb79142dc 100644
+--- a/astropy/io/fits/fitsrec.py
++++ b/astropy/io/fits/fitsrec.py
+@@ -1261,7 +1261,7 @@ class FITS_rec(np.recarray):
+ 
+         # Replace exponent separator in floating point numbers
+         if 'D' in format:
+-            output_field.replace(encode_ascii('E'), encode_ascii('D'))
++            output_field = output_field.replace(encode_ascii('E'), encode_ascii('D'))
+ 
+ 
+ def _get_recarray_field(array, key):
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z x ']'
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1='(testbed) '
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval 'PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=3
++++ CONDA_SHLVL=3
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=4
+++ CONDA_SHLVL=4
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_3=/opt/miniconda3
+++ CONDA_PREFIX_3=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ python -m pip install -e '.[test]' --verbose
+Using pip 21.2.2 from /opt/miniconda3/envs/testbed/lib/python3.6/site-packages/pip (python 3.6)
+Looking in indexes: https://mirrors.aliyun.com/pypi/simple/
+Obtaining file:///testbed
+    Running command python setup.py egg_info
+    running egg_info
+    creating /tmp/pip-pip-egg-info-q46rk__t/astropy.egg-info
+    writing /tmp/pip-pip-egg-info-q46rk__t/astropy.egg-info/PKG-INFO
+    writing dependency_links to /tmp/pip-pip-egg-info-q46rk__t/astropy.egg-info/dependency_links.txt
+    writing entry points to /tmp/pip-pip-egg-info-q46rk__t/astropy.egg-info/entry_points.txt
+    writing requirements to /tmp/pip-pip-egg-info-q46rk__t/astropy.egg-info/requires.txt
+    writing top-level names to /tmp/pip-pip-egg-info-q46rk__t/astropy.egg-info/top_level.txt
+    writing manifest file '/tmp/pip-pip-egg-info-q46rk__t/astropy.egg-info/SOURCES.txt'
+    reading manifest file '/tmp/pip-pip-egg-info-q46rk__t/astropy.egg-info/SOURCES.txt'
+    reading manifest template 'MANIFEST.in'
+    warning: no files found matching 'astropy/utils/misc/data/.hidden_file.txt'
+    warning: no files found matching '*' under directory 'scripts'
+    warning: no files found matching '*' under directory 'astropy/sphinx/themes'
+    no previously-included directories found matching 'docs/_build'
+    no previously-included directories found matching 'build'
+    warning: no files found matching '*.pyx' under directory 'astropy_helpers/astropy_helpers'
+    warning: no files found matching '*.h' under directory 'astropy_helpers/astropy_helpers'
+    no previously-included directories found matching 'astropy_helpers/build'
+    warning: no previously-included files matching '*.o' found anywhere in distribution
+    writing manifest file '/tmp/pip-pip-egg-info-q46rk__t/astropy.egg-info/SOURCES.txt'
+Requirement already satisfied: numpy>=1.10.0 in /opt/miniconda3/envs/testbed/lib/python3.6/site-packages (from astropy==3.0.dev20980) (1.16.0)
+Requirement already satisfied: pytest-astropy in /opt/miniconda3/envs/testbed/lib/python3.6/site-packages (from astropy==3.0.dev20980) (0.2.1)
+Requirement already satisfied: pytest>=3.1.0 in /opt/miniconda3/envs/testbed/lib/python3.6/site-packages (from pytest-astropy->astropy==3.0.dev20980) (3.3.1)
+Requirement already satisfied: pytest-openfiles>=0.2.0 in /opt/miniconda3/envs/testbed/lib/python3.6/site-packages (from pytest-astropy->astropy==3.0.dev20980) (0.2.0)
+Requirement already satisfied: pytest-arraydiff in /opt/miniconda3/envs/testbed/lib/python3.6/site-packages (from pytest-astropy->astropy==3.0.dev20980) (0.1)
+Requirement already satisfied: pytest-doctestplus>=0.1.2 in /opt/miniconda3/envs/testbed/lib/python3.6/site-packages (from pytest-astropy->astropy==3.0.dev20980) (0.1.2)
+Requirement already satisfied: pytest-remotedata>=0.2.0 in /opt/miniconda3/envs/testbed/lib/python3.6/site-packages (from pytest-astropy->astropy==3.0.dev20980) (0.2.0)
+Requirement already satisfied: setuptools in /opt/miniconda3/envs/testbed/lib/python3.6/site-packages (from pytest>=3.1.0->pytest-astropy->astropy==3.0.dev20980) (38.2.4)
+Requirement already satisfied: pluggy<0.7,>=0.5 in /opt/miniconda3/envs/testbed/lib/python3.6/site-packages (from pytest>=3.1.0->pytest-astropy->astropy==3.0.dev20980) (0.6.0)
+Requirement already satisfied: attrs>=17.2.0 in /opt/miniconda3/envs/testbed/lib/python3.6/site-packages (from pytest>=3.1.0->pytest-astropy->astropy==3.0.dev20980) (17.3.0)
+Requirement already satisfied: six>=1.10.0 in /opt/miniconda3/envs/testbed/lib/python3.6/site-packages (from pytest>=3.1.0->pytest-astropy->astropy==3.0.dev20980) (1.17.0)
+Requirement already satisfied: py>=1.5.0 in /opt/miniconda3/envs/testbed/lib/python3.6/site-packages (from pytest>=3.1.0->pytest-astropy->astropy==3.0.dev20980) (1.11.0)
+Requirement already satisfied: psutil in /opt/miniconda3/envs/testbed/lib/python3.6/site-packages (from pytest-openfiles>=0.2.0->pytest-astropy->astropy==3.0.dev20980) (5.4.2)
+Installing collected packages: astropy
+  Attempting uninstall: astropy
+    Found existing installation: astropy 3.0.dev20979
+    Uninstalling astropy-3.0.dev20979:
+      Removing file or directory /opt/miniconda3/envs/testbed/bin/fits2bitmap
+      Removing file or directory /opt/miniconda3/envs/testbed/bin/fitscheck
+      Removing file or directory /opt/miniconda3/envs/testbed/bin/fitsdiff
+      Removing file or directory /opt/miniconda3/envs/testbed/bin/fitsheader
+      Removing file or directory /opt/miniconda3/envs/testbed/bin/fitsinfo
+      Removing file or directory /opt/miniconda3/envs/testbed/bin/samp_hub
+      Removing file or directory /opt/miniconda3/envs/testbed/bin/showtable
+      Removing file or directory /opt/miniconda3/envs/testbed/bin/volint
+      Removing file or directory /opt/miniconda3/envs/testbed/bin/wcslint
+      Removing file or directory /opt/miniconda3/envs/testbed/lib/python3.6/site-packages/astropy.egg-link
+      Removing pth entries from /opt/miniconda3/envs/testbed/lib/python3.6/site-packages/easy-install.pth:
+      Removing entry: /testbed
+      Successfully uninstalled astropy-3.0.dev20979
+  Running setup.py develop for astropy
+    Running command /opt/miniconda3/envs/testbed/bin/python -c 'import io, os, sys, setuptools, tokenize; sys.argv[0] = '"'"'/testbed/setup.py'"'"'; __file__='"'"'/testbed/setup.py'"'"';f = getattr(tokenize, '"'"'open'"'"', open)(__file__) if os.path.exists(__file__) else io.StringIO('"'"'from setuptools import setup; setup()'"'"');code = f.read().replace('"'"'\r\n'"'"', '"'"'\n'"'"');f.close();exec(compile(code, __file__, '"'"'exec'"'"'))' develop --no-deps
+    running develop
+    running egg_info
+    writing astropy.egg-info/PKG-INFO
+    writing dependency_links to astropy.egg-info/dependency_links.txt
+    writing entry points to astropy.egg-info/entry_points.txt
+    writing requirements to astropy.egg-info/requires.txt
+    writing top-level names to astropy.egg-info/top_level.txt
+    reading manifest file 'astropy.egg-info/SOURCES.txt'
+    reading manifest template 'MANIFEST.in'
+    warning: no files found matching 'astropy/utils/misc/data/.hidden_file.txt'
+    warning: no files found matching '*' under directory 'scripts'
+    warning: no files found matching '*' under directory 'astropy/sphinx/themes'
+    no previously-included directories found matching 'docs/_build'
+    no previously-included directories found matching 'build'
+    warning: no files found matching '*.pyx' under directory 'astropy_helpers/astropy_helpers'
+    warning: no files found matching '*.h' under directory 'astropy_helpers/astropy_helpers'
+    no previously-included directories found matching 'astropy_helpers/build'
+    warning: no previously-included files matching '*.o' found anywhere in distribution
+    writing manifest file 'astropy.egg-info/SOURCES.txt'
+    running build_ext
+    running pre_hook from astropy._erfa.setup_package for build_ext command
+    running pre_hook from astropy.modeling.setup_package for build_ext command
+    building 'astropy._compiler' extension
+    gcc -pthread -B /opt/miniconda3/envs/testbed/compiler_compat -Wl,--sysroot=/ -Wsign-compare -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes -fPIC -I/opt/miniconda3/envs/testbed/include/python3.6m -c astropy/_compiler.c -o build/temp.linux-x86_64-3.6/astropy/_compiler.o
+    gcc -pthread -shared -B /opt/miniconda3/envs/testbed/compiler_compat -L/opt/miniconda3/envs/testbed/lib -Wl,-rpath=/opt/miniconda3/envs/testbed/lib -Wl,--no-as-needed -Wl,--sysroot=/ build/temp.linux-x86_64-3.6/astropy/_compiler.o -o /testbed/astropy/_compiler.cpython-36m-x86_64-linux-gnu.so
+    skipping 'astropy/table/_np_utils.c' Cython extension (up-to-date)
+    skipping 'astropy/table/_column_mixins.c' Cython extension (up-to-date)
+    skipping 'astropy/io/ascii/cparser.c' Cython extension (up-to-date)
+    skipping 'astropy/cosmology/scalar_inv_efuncs.c' Cython extension (up-to-date)
+    skipping 'astropy/convolution/boundary_fill.c' Cython extension (up-to-date)
+    skipping 'astropy/convolution/boundary_wrap.c' Cython extension (up-to-date)
+    skipping 'astropy/convolution/boundary_none.c' Cython extension (up-to-date)
+    skipping 'astropy/convolution/boundary_extend.c' Cython extension (up-to-date)
+    skipping 'astropy/stats/lombscargle/implementations/cython_impl.c' Cython extension (up-to-date)
+    Creating /opt/miniconda3/envs/testbed/lib/python3.6/site-packages/astropy.egg-link (link to .)
+    Adding astropy 3.0.dev20980 to easy-install.pth file
+    Installing fits2bitmap script to /opt/miniconda3/envs/testbed/bin
+    Installing fitscheck script to /opt/miniconda3/envs/testbed/bin
+    Installing fitsdiff script to /opt/miniconda3/envs/testbed/bin
+    Installing fitsheader script to /opt/miniconda3/envs/testbed/bin
+    Installing fitsinfo script to /opt/miniconda3/envs/testbed/bin
+    Installing samp_hub script to /opt/miniconda3/envs/testbed/bin
+    Installing showtable script to /opt/miniconda3/envs/testbed/bin
+    Installing volint script to /opt/miniconda3/envs/testbed/bin
+    Installing wcslint script to /opt/miniconda3/envs/testbed/bin
+
+    Installed /testbed
+Successfully installed astropy-3.0.dev20980
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
++ git checkout c76af9ed6bb89bfba45b9f5bc1e635188278e2fa astropy/io/fits/tests/test_checksum.py astropy/io/fits/tests/test_table.py
+Updated 0 paths from 7d1c65ae8
++ git apply -v -
+Checking patch astropy/io/fits/tests/test_checksum.py...
+Checking patch astropy/io/fits/tests/test_table.py...
+Applied patch astropy/io/fits/tests/test_checksum.py cleanly.
+Applied patch astropy/io/fits/tests/test_table.py cleanly.
++ : '>>>>> Start Test Output'
++ pytest -rA -vv -o console_output_style=classic --tb=no astropy/io/fits/tests/test_checksum.py astropy/io/fits/tests/test_table.py
+Internet access disabled
+============================= test session starts ==============================
+platform linux -- Python 3.6.13, pytest-3.3.1, py-1.11.0, pluggy-0.6.0 -- /opt/miniconda3/envs/testbed/bin/python
+cachedir: .
+
+Running tests with Astropy version 3.0.dev20980.
+Running tests in astropy/io/fits/tests/test_checksum.py astropy/io/fits/tests/test_table.py.
+
+Date: 2026-05-19T14:55:40
+
+Platform: Linux-5.15.0-177-generic-x86_64-with-debian-bookworm-sid
+
+Executable: /opt/miniconda3/envs/testbed/bin/python
+
+Full Python Version: 
+3.6.13 |Anaconda, Inc.| (default, Jun  4 2021, 14:25:59) 
+[GCC 7.5.0]
+
+encodings: sys: utf-8, locale: ANSI_X3.4-1968, filesystem: ascii
+byteorder: little
+float info: dig: 15, mant_dig: 15
+
+Numpy: 1.16.0
+Scipy: not available
+Matplotlib: not available
+h5py: not available
+Pandas: not available
+Cython: 0.27.3
+Using Astropy options: remote_data: none.
+
+rootdir: /testbed, inifile: setup.cfg
+plugins: xdist-1.20.1, remotedata-0.2.0, openfiles-0.2.0, mock-1.6.3, forked-0.2, filter-subpackage-0.1, doctestplus-0.1.2, cov-2.5.1, astropy-header-0.1, arraydiff-0.1, hypothesis-3.44.2
+collecting ... collected 107 items
+
+astropy/io/fits/tests/test_checksum.py::TestChecksumFunctions::test_sample_file PASSED
+astropy/io/fits/tests/test_checksum.py::TestChecksumFunctions::test_image_create PASSED
+astropy/io/fits/tests/test_checksum.py::TestChecksumFunctions::test_scaled_data PASSED
+astropy/io/fits/tests/test_checksum.py::TestChecksumFunctions::test_scaled_data_auto_rescale PASSED
+astropy/io/fits/tests/test_checksum.py::TestChecksumFunctions::test_uint16_data PASSED
+astropy/io/fits/tests/test_checksum.py::TestChecksumFunctions::test_groups_hdu_data PASSED
+astropy/io/fits/tests/test_checksum.py::TestChecksumFunctions::test_binary_table_data PASSED
+astropy/io/fits/tests/test_checksum.py::TestChecksumFunctions::test_variable_length_table_data PASSED
+astropy/io/fits/tests/test_checksum.py::TestChecksumFunctions::test_ascii_table_data FAILED
+astropy/io/fits/tests/test_checksum.py::TestChecksumFunctions::test_compressed_image_data PASSED
+astropy/io/fits/tests/test_checksum.py::TestChecksumFunctions::test_compressed_image_data_int16 PASSED
+astropy/io/fits/tests/test_checksum.py::TestChecksumFunctions::test_compressed_image_data_float32 PASSED
+astropy/io/fits/tests/test_checksum.py::TestChecksumFunctions::test_open_with_no_keywords PASSED
+astropy/io/fits/tests/test_checksum.py::TestChecksumFunctions::test_append PASSED
+astropy/io/fits/tests/test_checksum.py::TestChecksumFunctions::test_writeto_convenience PASSED
+astropy/io/fits/tests/test_checksum.py::TestChecksumFunctions::test_hdu_writeto PASSED
+astropy/io/fits/tests/test_checksum.py::TestChecksumFunctions::test_hdu_writeto_existing PASSED
+astropy/io/fits/tests/test_checksum.py::TestChecksumFunctions::test_datasum_only PASSED
+astropy/io/fits/tests/test_checksum.py::TestChecksumFunctions::test_open_update_mode_preserve_checksum PASSED
+astropy/io/fits/tests/test_checksum.py::TestChecksumFunctions::test_open_update_mode_update_checksum PASSED
+astropy/io/fits/tests/test_checksum.py::TestChecksumFunctions::test_overwrite_invalid PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_constructor_copies_header PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_open PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_binary_table PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_ascii_table FAILED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_endianness PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_column_endianness PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_recarray_to_bintablehdu PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_numpy_ndarray_to_bintablehdu PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_numpy_ndarray_to_bintablehdu_with_unicode PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_new_table_from_recarray PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_new_fitsrec PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_appending_a_column PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_adding_a_column PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_merge_tables PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_modify_column_attributes PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_mask_array PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_slice_a_row PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_fits_record_len PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_add_data_by_rows PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_assign_multiple_rows_to_table PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_verify_data_references PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_new_table_with_ndarray PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_new_table_with_fits_rec PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_bin_table_hdu_constructor PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_constructor_name_arg PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_constructor_ver_arg PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_unicode_colname PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_bin_table_with_logical_array PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_fits_rec_column_access PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_table_with_zero_width_column PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_string_column_padding PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_multi_dimensional_columns PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_bin_table_init_from_string_array_column PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_columns_with_truncating_tdim PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_string_array_round_trip PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_new_table_with_nd_column PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_mismatched_tform_and_tdim PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_tdim_of_size_one PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_slicing PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_array_slicing PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_array_broadcasting PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_array_slicing_readonly PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_dump_load_round_trip PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_dump_load_array_colums PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_load_guess_format PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_attribute_field_shadowing PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_table_from_bool_fields PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_table_from_bool_fields2 PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_bool_column_update PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_missing_tnull PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_blank_field_zero PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_column_array_type_mismatch PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_table_none PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_unncessary_table_load PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_table_from_columns_of_other_table PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_bintable_to_asciitable PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_pickle PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_zero_length_table PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_dim_column_byte_order_mismatch PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_fits_rec_from_existing PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_update_string_column_inplace PASSED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_reference_leak SKIPPED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_reference_leak2 SKIPPED
+astropy/io/fits/tests/test_table.py::TestTableFunctions::test_dump_clobber_vs_overwrite PASSED
+astropy/io/fits/tests/test_table.py::TestVLATables::test_variable_length_columns PASSED
+astropy/io/fits/tests/test_table.py::TestVLATables::test_extend_variable_length_array PASSED
+astropy/io/fits/tests/test_table.py::TestVLATables::test_variable_length_table_format_pd_from_object_array PASSED
+astropy/io/fits/tests/test_table.py::TestVLATables::test_variable_length_table_format_pd_from_list PASSED
+astropy/io/fits/tests/test_table.py::TestVLATables::test_variable_length_table_format_pa_from_object_array PASSED
+astropy/io/fits/tests/test_table.py::TestVLATables::test_variable_length_table_format_pa_from_list PASSED
+astropy/io/fits/tests/test_table.py::TestVLATables::test_getdata_vla PASSED
+astropy/io/fits/tests/test_table.py::TestVLATables::test_copy_vla PASSED
+astropy/io/fits/tests/test_table.py::TestColumnFunctions::test_column_format_interpretation PASSED
+astropy/io/fits/tests/test_table.py::TestColumnFunctions::test_zero_precision_float_column PASSED
+astropy/io/fits/tests/test_table.py::TestColumnFunctions::test_column_array_type_mismatch PASSED
+astropy/io/fits/tests/test_table.py::TestColumnFunctions::test_new_coldefs_with_invalid_seqence PASSED
+astropy/io/fits/tests/test_table.py::TestColumnFunctions::test_pickle PASSED
+astropy/io/fits/tests/test_table.py::TestColumnFunctions::test_column_lookup_by_name PASSED
+astropy/io/fits/tests/test_table.py::TestColumnFunctions::test_column_attribute_change_after_removal PASSED
+astropy/io/fits/tests/test_table.py::TestColumnFunctions::test_x_column_deepcopy PASSED
+astropy/io/fits/tests/test_table.py::TestColumnFunctions::test_p_column_deepcopy PASSED
+astropy/io/fits/tests/test_table.py::TestColumnFunctions::test_column_verify_keywords PASSED
+astropy/io/fits/tests/test_table.py::TestColumnFunctions::test_column_verify_start PASSED
+astropy/io/fits/tests/test_table.py::test_regression_5383 PASSED
+astropy/io/fits/tests/test_table.py::test_table_to_hdu PASSED
+astropy/io/fits/tests/test_table.py::test_regression_scalar_indexing PASSED
+
+=============================== warnings summary ===============================
+None
+  Module already imported so cannot be rewritten: astropy.tests.plugins.display
+
+-- Docs: http://doc.pytest.org/en/latest/warnings.html
+========= 2 failed, 103 passed, 2 skipped, 1 warnings in 1.53 seconds ==========
+sys:1: ResourceWarning: unclosed file <_io.FileIO name='/testbed/astropy/io/fits/tests/data/ascii.fits' mode='rb' closefd=True>
++ : '>>>>> End Test Output'
++ git checkout c76af9ed6bb89bfba45b9f5bc1e635188278e2fa astropy/io/fits/tests/test_checksum.py astropy/io/fits/tests/test_table.py
+Updated 2 paths from 7d1c65ae8

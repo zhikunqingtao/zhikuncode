@@ -1,0 +1,19 @@
+diff --git a/src/_pytest/_code/source.py b/src/_pytest/_code/source.py
+index 6f54057..631cca6 100644
+--- a/src/_pytest/_code/source.py
++++ b/src/_pytest/_code/source.py
+@@ -150,6 +150,14 @@ def get_statement_startend2(lineno: int, node: ast.AST) -> Tuple[int, Optional[i
+     for x in ast.walk(node):
+         if isinstance(x, (ast.stmt, ast.ExceptHandler)):
+             values.append(x.lineno - 1)
++            # Include the first decorator's line number for decorated functions/classes.
++            # In Python 3.8+, the lineno of FunctionDef/ClassDef points to the
++            # `def`/`class` line, not the first decorator, so we need to include
++            # the decorator line explicitly to avoid including decorators in the
++            # statement range of the preceding statement. See #9359.
++            if isinstance(x, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
++                if x.decorator_list:
++                    values.append(x.decorator_list[0].lineno - 1)
+             for name in ("finalbody", "orelse"):
+                 val: Optional[List[ast.stmt]] = getattr(x, name, None)
+                 if val:

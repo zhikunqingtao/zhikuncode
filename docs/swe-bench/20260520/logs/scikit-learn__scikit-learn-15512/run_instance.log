@@ -1,0 +1,187 @@
+2026-05-20 00:51:20,491 - INFO - Environment image sweb.env.py.x86_64.aa92880033da20ca313928:latest found for scikit-learn__scikit-learn-15512
+Building instance image sweb.eval.x86_64.scikit-learn__scikit-learn-15512:latest for scikit-learn__scikit-learn-15512
+2026-05-20 01:01:25,630 - INFO - Creating container for scikit-learn__scikit-learn-15512...
+2026-05-20 01:01:25,656 - INFO - Container for scikit-learn__scikit-learn-15512 created: 5e1501e2af943c364e552d8decdd8d49bc7777c3aa5e51ee2950c19b4fa51d6e
+2026-05-20 01:01:25,747 - INFO - Container for scikit-learn__scikit-learn-15512 started: 5e1501e2af943c364e552d8decdd8d49bc7777c3aa5e51ee2950c19b4fa51d6e
+2026-05-20 01:01:25,747 - INFO - Intermediate patch for scikit-learn__scikit-learn-15512 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/scikit-learn__scikit-learn-15512/patch.diff, now applying to container...
+2026-05-20 01:01:25,796 - INFO - >>>>> Applied Patch:
+Checking patch sklearn/cluster/_affinity_propagation.py...
+Applied patch sklearn/cluster/_affinity_propagation.py cleanly.
+
+2026-05-20 01:01:25,948 - INFO - Git diff before:
+diff --git a/sklearn/cluster/_affinity_propagation.py b/sklearn/cluster/_affinity_propagation.py
+index 4806afee9..6071d83a6 100644
+--- a/sklearn/cluster/_affinity_propagation.py
++++ b/sklearn/cluster/_affinity_propagation.py
+@@ -152,6 +152,7 @@ def affinity_propagation(S, preference=None, convergence_iter=15, max_iter=200,
+ 
+     ind = np.arange(n_samples)
+ 
++    converged = False
+     for it in range(max_iter):
+         # tmp = A + S; compute responsibilities
+         np.add(A, S, tmp)
+@@ -193,37 +194,48 @@ def affinity_propagation(S, preference=None, convergence_iter=15, max_iter=200,
+             se = np.sum(e, axis=1)
+             unconverged = (np.sum((se == convergence_iter) + (se == 0))
+                            != n_samples)
+-            if (not unconverged and (K > 0)) or (it == max_iter):
++            if not unconverged and (K > 0):
++                converged = True
+                 if verbose:
+                     print("Converged after %d iterations." % it)
+                 break
++            if it == max_iter - 1:
++                if verbose:
++                    warnings.warn("Did not converge after %d iterations." % it)
++                break
+     else:
+         if verbose:
+             print("Did not converge")
+ 
+-    I = np.flatnonzero(E)
+-    K = I.size  # Identify exemplars
+-
+-    if K > 0:
+-        c = np.argmax(S[:, I], axis=1)
+-        c[I] = np.arange(K)  # Identify clusters
+-        # Refine the final set of exemplars and clusters and return results
+-        for k in range(K):
+-            ii = np.where(c == k)[0]
+-            j = np.argmax(np.sum(S[ii[:, np.newaxis], ii], axis=0))
+-            I[k] = ii[j]
+-
+-        c = np.argmax(S[:, I], axis=1)
+-        c[I] = np.arange(K)
+-        labels = I[c]
+-        # Reduce labels to a sorted, gapless, list
+-        cluster_centers_indices = np.unique(labels)
+-        labels = np.searchsorted(cluster_centers_indices, labels)
+-    else:
++    if not converged:
+         warnings.warn("Affinity propagation did not converge, this model "
+                       "will not have any cluster centers.", ConvergenceWarning)
+         labels = np.array([-1] * n_samples)
+-        cluster_centers_indices = []
++        cluster_centers_indices = np.array([], dtype=int)
++    else:
++        I = np.flatnonzero(E)
++        K = I.size  # Identify exemplars
++
++        if K > 0:
++            c = np.argmax(S[:, I], axis=1)
++            c[I] = np.arange(K)  # Identify clusters
++            # Refine the final set of exemplars and clusters and return results
++            for k in range(K):
++                ii = np.where(c == k)[0]
++                j = np.argmax(np.sum(S[ii[:, np.newaxis], ii], axis=0))
++                I[k] = ii[j]
++
++            c = np.argmax(S[:, I], axis=1)
++            c[I] = np.arange(K)
++            labels = I[c]
++            # Reduce labels to a sorted, gapless, list
++            cluster_centers_indices = np.unique(labels)
++            labels = np.searchsorted(cluster_centers_indices, labels)
++        else:
++            warnings.warn("Affinity propagation did not converge, this model "
++                          "will not have any cluster centers.", ConvergenceWarning)
++            labels = np.array([-1] * n_samples)
++            cluster_centers_indices = np.array([], dtype=int)
+ 
+     if return_n_iter:
+         return cluster_centers_indices, labels, it + 1
+2026-05-20 01:01:25,949 - INFO - Eval script for scikit-learn__scikit-learn-15512 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/scikit-learn__scikit-learn-15512/eval.sh; copying to container...
+2026-05-20 01:01:28,180 - INFO - Test runtime: 2.21 seconds
+2026-05-20 01:01:28,180 - INFO - Test output for scikit-learn__scikit-learn-15512 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/scikit-learn__scikit-learn-15512/test_output.txt
+2026-05-20 01:01:28,207 - INFO - Git diff after:
+diff --git a/sklearn/cluster/_affinity_propagation.py b/sklearn/cluster/_affinity_propagation.py
+index 4806afee9..6071d83a6 100644
+--- a/sklearn/cluster/_affinity_propagation.py
++++ b/sklearn/cluster/_affinity_propagation.py
+@@ -152,6 +152,7 @@ def affinity_propagation(S, preference=None, convergence_iter=15, max_iter=200,
+ 
+     ind = np.arange(n_samples)
+ 
++    converged = False
+     for it in range(max_iter):
+         # tmp = A + S; compute responsibilities
+         np.add(A, S, tmp)
+@@ -193,37 +194,48 @@ def affinity_propagation(S, preference=None, convergence_iter=15, max_iter=200,
+             se = np.sum(e, axis=1)
+             unconverged = (np.sum((se == convergence_iter) + (se == 0))
+                            != n_samples)
+-            if (not unconverged and (K > 0)) or (it == max_iter):
++            if not unconverged and (K > 0):
++                converged = True
+                 if verbose:
+                     print("Converged after %d iterations." % it)
+                 break
++            if it == max_iter - 1:
++                if verbose:
++                    warnings.warn("Did not converge after %d iterations." % it)
++                break
+     else:
+         if verbose:
+             print("Did not converge")
+ 
+-    I = np.flatnonzero(E)
+-    K = I.size  # Identify exemplars
+-
+-    if K > 0:
+-        c = np.argmax(S[:, I], axis=1)
+-        c[I] = np.arange(K)  # Identify clusters
+-        # Refine the final set of exemplars and clusters and return results
+-        for k in range(K):
+-            ii = np.where(c == k)[0]
+-            j = np.argmax(np.sum(S[ii[:, np.newaxis], ii], axis=0))
+-            I[k] = ii[j]
+-
+-        c = np.argmax(S[:, I], axis=1)
+-        c[I] = np.arange(K)
+-        labels = I[c]
+-        # Reduce labels to a sorted, gapless, list
+-        cluster_centers_indices = np.unique(labels)
+-        labels = np.searchsorted(cluster_centers_indices, labels)
+-    else:
++    if not converged:
+         warnings.warn("Affinity propagation did not converge, this model "
+                       "will not have any cluster centers.", ConvergenceWarning)
+         labels = np.array([-1] * n_samples)
+-        cluster_centers_indices = []
++        cluster_centers_indices = np.array([], dtype=int)
++    else:
++        I = np.flatnonzero(E)
++        K = I.size  # Identify exemplars
++
++        if K > 0:
++            c = np.argmax(S[:, I], axis=1)
++            c[I] = np.arange(K)  # Identify clusters
++            # Refine the final set of exemplars and clusters and return results
++            for k in range(K):
++                ii = np.where(c == k)[0]
++                j = np.argmax(np.sum(S[ii[:, np.newaxis], ii], axis=0))
++                I[k] = ii[j]
++
++            c = np.argmax(S[:, I], axis=1)
++            c[I] = np.arange(K)
++            labels = I[c]
++            # Reduce labels to a sorted, gapless, list
++            cluster_centers_indices = np.unique(labels)
++            labels = np.searchsorted(cluster_centers_indices, labels)
++        else:
++            warnings.warn("Affinity propagation did not converge, this model "
++                          "will not have any cluster centers.", ConvergenceWarning)
++            labels = np.array([-1] * n_samples)
++            cluster_centers_indices = np.array([], dtype=int)
+ 
+     if return_n_iter:
+         return cluster_centers_indices, labels, it + 1
+2026-05-20 01:01:28,207 - INFO - Grading answer for scikit-learn__scikit-learn-15512...
+2026-05-20 01:01:28,207 - INFO - report: {'scikit-learn__scikit-learn-15512': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['sklearn/cluster/tests/test_affinity_propagation.py::test_affinity_propagation_non_convergence_regressiontest'], 'failure': []}, 'PASS_TO_PASS': {'success': ['sklearn/cluster/tests/test_affinity_propagation.py::test_affinity_propagation', 'sklearn/cluster/tests/test_affinity_propagation.py::test_affinity_propagation_predict', 'sklearn/cluster/tests/test_affinity_propagation.py::test_affinity_propagation_predict_error', 'sklearn/cluster/tests/test_affinity_propagation.py::test_affinity_propagation_fit_non_convergence', 'sklearn/cluster/tests/test_affinity_propagation.py::test_affinity_propagation_equal_mutual_similarities', 'sklearn/cluster/tests/test_affinity_propagation.py::test_affinity_propagation_predict_non_convergence', 'sklearn/cluster/tests/test_affinity_propagation.py::test_equal_similarities_and_preferences', 'sklearn/cluster/tests/test_affinity_propagation.py::test_affinity_propagation_convergence_warning_dense_sparse[centers0]', 'sklearn/cluster/tests/test_affinity_propagation.py::test_affinity_propagation_convergence_warning_dense_sparse[centers1]'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for scikit-learn__scikit-learn-15512: resolved: True
+2026-05-20 01:01:28,207 - INFO - Attempting to stop container sweb.eval.scikit-learn__scikit-learn-15512.zhikuncode_eval_300_FINAL...
+2026-05-20 01:01:43,453 - INFO - Attempting to remove container sweb.eval.scikit-learn__scikit-learn-15512.zhikuncode_eval_300_FINAL...
+2026-05-20 01:01:43,460 - INFO - Container sweb.eval.scikit-learn__scikit-learn-15512.zhikuncode_eval_300_FINAL removed.
+2026-05-20 01:01:43,461 - INFO - Attempting to remove image sweb.eval.x86_64.scikit-learn__scikit-learn-15512:latest...
+2026-05-20 01:01:43,508 - INFO - Image sweb.eval.x86_64.scikit-learn__scikit-learn-15512:latest removed.

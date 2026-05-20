@@ -1,0 +1,22 @@
+diff --git a/sympy/polys/domains/polynomialring.py b/sympy/polys/domains/polynomialring.py
+index 6e60b5e..d15a97a 100644
+--- a/sympy/polys/domains/polynomialring.py
++++ b/sympy/polys/domains/polynomialring.py
+@@ -107,7 +107,16 @@ def from_FractionField(K1, a, K0):
+         denom = K0.denom(a)
+ 
+         if denom.is_ground:
+-            return K1.from_PolynomialRing(K0.numer(a)/denom, K0.field.ring.to_domain())
++            numer = K0.numer(a)
++            # Get the ground domain and the scalar value of denom
++            domain = K0.field.ring.domain
++            d = denom.LC  # denom is ground, so LC is the scalar value
++            # Check if d divides all coefficients of numer
++            for c in numer.coeffs():
++                if domain.rem(c, d) != domain.zero:
++                    return None
++            # All coefficients divisible by d, perform the division
++            return K1.from_PolynomialRing(numer/denom, K0.field.ring.to_domain())
+         else:
+             return None
+ 

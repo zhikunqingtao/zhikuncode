@@ -1,0 +1,33 @@
+diff --git a/sympy/matrices/expressions/blockmatrix.py b/sympy/matrices/expressions/blockmatrix.py
+index 95302a0..745a8be 100644
+--- a/sympy/matrices/expressions/blockmatrix.py
++++ b/sympy/matrices/expressions/blockmatrix.py
+@@ -164,7 +164,27 @@ def structurally_equal(self, other):
+     def _blockmul(self, other):
+         if (isinstance(other, BlockMatrix) and
+                 self.colblocksizes == other.rowblocksizes):
+-            return BlockMatrix(self.blocks*other.blocks)
++            # Compute the block multiplication
++            result_blocks = self.blocks * other.blocks
++            # Fix: When Add is used to sum ZeroMatrix products, it returns
++            # scalar Zero instead of ZeroMatrix. We need to convert scalar
++            # zeros back to ZeroMatrix with appropriate dimensions.
++            from sympy import S
++            new_blocks = []
++            for i in range(result_blocks.rows):
++                row = []
++                for j in range(result_blocks.cols):
++                    block = result_blocks[i, j]
++                    # If the block is scalar zero, convert to ZeroMatrix
++                    if block is S.Zero:
++                        # Get dimensions from self's row and other's column
++                        rows = self.blocks[i, 0].rows
++                        cols = other.blocks[0, j].cols
++                        row.append(ZeroMatrix(rows, cols))
++                    else:
++                        row.append(block)
++                new_blocks.append(row)
++            return BlockMatrix(new_blocks)
+ 
+         return self * other
+ 

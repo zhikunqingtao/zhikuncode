@@ -1,0 +1,24 @@
+diff --git a/lib/matplotlib/figure.py b/lib/matplotlib/figure.py
+index 5bbb786..47a0de4 100644
+--- a/lib/matplotlib/figure.py
++++ b/lib/matplotlib/figure.py
+@@ -2417,15 +2417,16 @@ class Figure(FigureBase):
+                     "cannot be used together. Please use 'layout' only.")
+             self.set_layout_engine(layout=layout)
+         elif tight_layout is not None:
+-            if constrained_layout is not None:
++            if constrained_layout:
+                 _api.warn_external(
+                     "The Figure parameters 'tight_layout' and "
+                     "'constrained_layout' cannot be used together. Please use "
+                     "'layout' parameter")
+-            self.set_layout_engine(layout='tight')
++            if tight_layout:
++                self.set_layout_engine(layout='tight')
+             if isinstance(tight_layout, dict):
+                 self.get_layout_engine().set(**tight_layout)
+-        elif constrained_layout is not None:
++        elif constrained_layout:
+             self.set_layout_engine(layout='constrained')
+             if isinstance(constrained_layout, dict):
+                 self.get_layout_engine().set(**constrained_layout)

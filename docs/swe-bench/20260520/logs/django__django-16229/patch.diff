@@ -1,0 +1,13 @@
+diff --git a/django/forms/boundfield.py b/django/forms/boundfield.py
+index 9f2ae59..d25b3fc 100644
+--- a/django/forms/boundfield.py
++++ b/django/forms/boundfield.py
+@@ -98,7 +98,7 @@ class BoundField:
+             )
+         return widget.render(
+             name=self.html_initial_name if only_initial else self.html_name,
+-            value=self.value(),
++            value=self.field.prepare_value(self.initial) if only_initial else self.value(),
+             attrs=attrs,
+             renderer=self.form.renderer,
+         )

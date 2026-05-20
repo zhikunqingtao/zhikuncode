@@ -1,0 +1,85 @@
+{
+    "pallets__flask-5063": {
+        "patch_is_None": false,
+        "patch_exists": true,
+        "patch_successfully_applied": true,
+        "resolved": false,
+        "tests_status": {
+            "FAIL_TO_PASS": {
+                "success": [],
+                "failure": [
+                    "tests/test_cli.py::TestRoutes::test_subdomain",
+                    "tests/test_cli.py::TestRoutes::test_host"
+                ]
+            },
+            "PASS_TO_PASS": {
+                "success": [
+                    "tests/test_cli.py::test_cli_name",
+                    "tests/test_cli.py::test_find_best_app",
+                    "tests/test_cli.py::test_prepare_import[test-path0-test]",
+                    "tests/test_cli.py::test_prepare_import[test.py-path1-test]",
+                    "tests/test_cli.py::test_prepare_import[a/test-path2-test]",
+                    "tests/test_cli.py::test_prepare_import[test/__init__.py-path3-test]",
+                    "tests/test_cli.py::test_prepare_import[test/__init__-path4-test]",
+                    "tests/test_cli.py::test_prepare_import[value5-path5-cliapp.inner1]",
+                    "tests/test_cli.py::test_prepare_import[value6-path6-cliapp.inner1.inner2]",
+                    "tests/test_cli.py::test_prepare_import[test.a.b-path7-test.a.b]",
+                    "tests/test_cli.py::test_prepare_import[value8-path8-cliapp.app]",
+                    "tests/test_cli.py::test_prepare_import[value9-path9-cliapp.message.txt]",
+                    "tests/test_cli.py::test_locate_app[cliapp.app-None-testapp]",
+                    "tests/test_cli.py::test_locate_app[cliapp.app-testapp-testapp]",
+                    "tests/test_cli.py::test_locate_app[cliapp.factory-None-app]",
+                    "tests/test_cli.py::test_locate_app[cliapp.factory-create_app-app]",
+                    "tests/test_cli.py::test_locate_app[cliapp.factory-create_app()-app]",
+                    "tests/test_cli.py::test_locate_app[cliapp.factory-create_app2(\"foo\",",
+                    "tests/test_cli.py::test_locate_app[cliapp.factory-",
+                    "tests/test_cli.py::test_locate_app_raises[notanapp.py-None]",
+                    "tests/test_cli.py::test_locate_app_raises[cliapp/app-None]",
+                    "tests/test_cli.py::test_locate_app_raises[cliapp.app-notanapp]",
+                    "tests/test_cli.py::test_locate_app_raises[cliapp.factory-create_app2(\"foo\")]",
+                    "tests/test_cli.py::test_locate_app_raises[cliapp.factory-create_app(]",
+                    "tests/test_cli.py::test_locate_app_raises[cliapp.factory-no_app]",
+                    "tests/test_cli.py::test_locate_app_raises[cliapp.importerrorapp-None]",
+                    "tests/test_cli.py::test_locate_app_raises[cliapp.message.txt-None]",
+                    "tests/test_cli.py::test_locate_app_suppress_raise",
+                    "tests/test_cli.py::test_get_version",
+                    "tests/test_cli.py::test_scriptinfo",
+                    "tests/test_cli.py::test_app_cli_has_app_context",
+                    "tests/test_cli.py::test_with_appcontext",
+                    "tests/test_cli.py::test_appgroup_app_context",
+                    "tests/test_cli.py::test_flaskgroup_app_context",
+                    "tests/test_cli.py::test_flaskgroup_debug[True]",
+                    "tests/test_cli.py::test_flaskgroup_debug[False]",
+                    "tests/test_cli.py::test_flaskgroup_nested",
+                    "tests/test_cli.py::test_no_command_echo_loading_error",
+                    "tests/test_cli.py::test_help_echo_loading_error",
+                    "tests/test_cli.py::test_help_echo_exception",
+                    "tests/test_cli.py::TestRoutes::test_all_methods",
+                    "tests/test_cli.py::TestRoutes::test_no_routes",
+                    "tests/test_cli.py::test_load_dotenv",
+                    "tests/test_cli.py::test_dotenv_path",
+                    "tests/test_cli.py::test_dotenv_optional",
+                    "tests/test_cli.py::test_disable_dotenv_from_env",
+                    "tests/test_cli.py::test_run_cert_path",
+                    "tests/test_cli.py::test_run_cert_adhoc",
+                    "tests/test_cli.py::test_run_cert_import",
+                    "tests/test_cli.py::test_run_cert_no_ssl",
+                    "tests/test_cli.py::test_cli_blueprints",
+                    "tests/test_cli.py::test_cli_empty"
+                ],
+                "failure": [
+                    "tests/test_cli.py::TestRoutes::test_simple",
+                    "tests/test_cli.py::TestRoutes::test_sort"
+                ]
+            },
+            "FAIL_TO_FAIL": {
+                "success": [],
+                "failure": []
+            },
+            "PASS_TO_FAIL": {
+                "success": [],
+                "failure": []
+            }
+        }
+    }
+}

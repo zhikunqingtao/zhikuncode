@@ -1,0 +1,91 @@
+2026-05-19 23:24:58,770 - INFO - Environment image sweb.env.py.x86_64.297af196949a2a635bce66:latest found for django__django-13925
+Building instance image sweb.eval.x86_64.django__django-13925:latest for django__django-13925
+2026-05-19 23:29:28,840 - INFO - Creating container for django__django-13925...
+2026-05-19 23:29:28,862 - INFO - Container for django__django-13925 created: 2b05675bf8037591001cf4e4802c821c4bbdf8cae8ad5383d1022ed401e5d526
+2026-05-19 23:29:29,250 - INFO - Container for django__django-13925 started: 2b05675bf8037591001cf4e4802c821c4bbdf8cae8ad5383d1022ed401e5d526
+2026-05-19 23:29:29,250 - INFO - Intermediate patch for django__django-13925 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-13925/patch.diff, now applying to container...
+2026-05-19 23:29:29,458 - INFO - >>>>> Applied Patch:
+Checking patch django/db/models/base.py...
+Applied patch django/db/models/base.py cleanly.
+
+2026-05-19 23:29:30,254 - INFO - Git diff before:
+diff --git a/django/db/models/base.py b/django/db/models/base.py
+index 4038859cfa..7bdbc6483a 100644
+--- a/django/db/models/base.py
++++ b/django/db/models/base.py
+@@ -1300,7 +1300,8 @@ class Model(metaclass=ModelBase):
+         if (
+             cls._meta.pk.auto_created and
+             not settings.is_overridden('DEFAULT_AUTO_FIELD') and
+-            not cls._meta.app_config._is_default_auto_field_overridden
++            not cls._meta.app_config._is_default_auto_field_overridden and
++            not cls._is_pk_implicitly_inherited()
+         ):
+             return [
+                 checks.Warning(
+@@ -1319,6 +1320,19 @@ class Model(metaclass=ModelBase):
+             ]
+         return []
+ 
++    @classmethod
++    def _is_pk_implicitly_inherited(cls):
++        """
++        Check if the model's pk is implicitly inherited from a parent model
++        that explicitly defined a primary key.
++        """
++        if not cls._meta.parents:
++            return False
++        parent = next(iter(cls._meta.parents))
++        if parent._meta.pk.auto_created:
++            return parent._is_pk_implicitly_inherited()
++        return True
++
+     @classmethod
+     def _check_swappable(cls):
+         """Check if the swapped model exists."""
+2026-05-19 23:29:30,255 - INFO - Eval script for django__django-13925 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-13925/eval.sh; copying to container...
+2026-05-19 23:29:33,479 - INFO - Test runtime: 3.15 seconds
+2026-05-19 23:29:33,479 - INFO - Test output for django__django-13925 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-13925/test_output.txt
+2026-05-19 23:29:33,622 - INFO - Git diff after:
+diff --git a/django/db/models/base.py b/django/db/models/base.py
+index 4038859cfa..7bdbc6483a 100644
+--- a/django/db/models/base.py
++++ b/django/db/models/base.py
+@@ -1300,7 +1300,8 @@ class Model(metaclass=ModelBase):
+         if (
+             cls._meta.pk.auto_created and
+             not settings.is_overridden('DEFAULT_AUTO_FIELD') and
+-            not cls._meta.app_config._is_default_auto_field_overridden
++            not cls._meta.app_config._is_default_auto_field_overridden and
++            not cls._is_pk_implicitly_inherited()
+         ):
+             return [
+                 checks.Warning(
+@@ -1319,6 +1320,19 @@ class Model(metaclass=ModelBase):
+             ]
+         return []
+ 
++    @classmethod
++    def _is_pk_implicitly_inherited(cls):
++        """
++        Check if the model's pk is implicitly inherited from a parent model
++        that explicitly defined a primary key.
++        """
++        if not cls._meta.parents:
++            return False
++        parent = next(iter(cls._meta.parents))
++        if parent._meta.pk.auto_created:
++            return parent._is_pk_implicitly_inherited()
++        return True
++
+     @classmethod
+     def _check_swappable(cls):
+         """Check if the swapped model exists."""
+2026-05-19 23:29:33,622 - INFO - Grading answer for django__django-13925...
+2026-05-19 23:29:33,623 - INFO - report: {'django__django-13925': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_explicit_inherited_pk (check_framework.test_model_checks.ModelDefaultAutoFieldTests)'], 'failure': ['test_auto_created_inherited_pk (check_framework.test_model_checks.ModelDefaultAutoFieldTests)']}, 'PASS_TO_PASS': {'success': ['test_app_default_auto_field (check_framework.test_model_checks.ModelDefaultAutoFieldTests)', 'test_auto_created_inherited_parent_link (check_framework.test_model_checks.ModelDefaultAutoFieldTests)', 'test_auto_created_pk (check_framework.test_model_checks.ModelDefaultAutoFieldTests)', 'test_default_auto_field_setting (check_framework.test_model_checks.ModelDefaultAutoFieldTests)', 'test_explicit_inherited_parent_link (check_framework.test_model_checks.ModelDefaultAutoFieldTests)', 'test_explicit_pk (check_framework.test_model_checks.ModelDefaultAutoFieldTests)', 'test_collision_abstract_model (check_framework.test_model_checks.IndexNameTests)', 'test_collision_across_apps (check_framework.test_model_checks.IndexNameTests)', 'test_collision_in_different_models (check_framework.test_model_checks.IndexNameTests)', 'test_collision_in_same_model (check_framework.test_model_checks.IndexNameTests)', 'test_no_collision_abstract_model_interpolation (check_framework.test_model_checks.IndexNameTests)', 'test_no_collision_across_apps_interpolation (check_framework.test_model_checks.IndexNameTests)', 'test_collision_abstract_model (check_framework.test_model_checks.ConstraintNameTests)', 'test_collision_across_apps (check_framework.test_model_checks.ConstraintNameTests)', 'test_collision_in_different_models (check_framework.test_model_checks.ConstraintNameTests)', 'test_collision_in_same_model (check_framework.test_model_checks.ConstraintNameTests)', 'test_no_collision_abstract_model_interpolation (check_framework.test_model_checks.ConstraintNameTests)', 'test_no_collision_across_apps_interpolation (check_framework.test_model_checks.ConstraintNameTests)', 'test_collision_across_apps (check_framework.test_model_checks.DuplicateDBTableTests)', 'test_collision_across_apps_database_routers_installed (check_framework.test_model_checks.DuplicateDBTableTests)', 'test_collision_in_same_app (check_framework.test_model_checks.DuplicateDBTableTests)', 'test_collision_in_same_app_database_routers_installed (check_framework.test_model_checks.DuplicateDBTableTests)', 'test_no_collision_for_proxy_models (check_framework.test_model_checks.DuplicateDBTableTests)', 'test_no_collision_for_unmanaged_models (check_framework.test_model_checks.DuplicateDBTableTests)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-13925: resolved: False
+2026-05-19 23:29:33,623 - INFO - Attempting to stop container sweb.eval.django__django-13925.zhikuncode_eval_300_FINAL...
+2026-05-19 23:29:49,073 - INFO - Attempting to remove container sweb.eval.django__django-13925.zhikuncode_eval_300_FINAL...
+2026-05-19 23:29:49,085 - INFO - Container sweb.eval.django__django-13925.zhikuncode_eval_300_FINAL removed.
+2026-05-19 23:29:49,085 - INFO - Attempting to remove image sweb.eval.x86_64.django__django-13925:latest...
+2026-05-19 23:29:49,220 - INFO - Image sweb.eval.x86_64.django__django-13925:latest removed.

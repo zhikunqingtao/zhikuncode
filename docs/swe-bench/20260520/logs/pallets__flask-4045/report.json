@@ -1,0 +1,81 @@
+{
+    "pallets__flask-4045": {
+        "patch_is_None": false,
+        "patch_exists": true,
+        "patch_successfully_applied": true,
+        "resolved": false,
+        "tests_status": {
+            "FAIL_TO_PASS": {
+                "success": [
+                    "tests/test_blueprints.py::test_dotted_name_not_allowed"
+                ],
+                "failure": [
+                    "tests/test_blueprints.py::test_route_decorator_custom_endpoint_with_dots"
+                ]
+            },
+            "PASS_TO_PASS": {
+                "success": [
+                    "tests/test_basic.py::test_method_route_no_methods",
+                    "tests/test_basic.py::test_disallow_string_for_allowed_methods",
+                    "tests/test_basic.py::test_error_handler_unknown_code",
+                    "tests/test_basic.py::test_request_locals",
+                    "tests/test_basic.py::test_exception_propagation",
+                    "tests/test_basic.py::test_werkzeug_passthrough_errors[None-True-True-True]",
+                    "tests/test_basic.py::test_werkzeug_passthrough_errors[None-True-True-False]",
+                    "tests/test_basic.py::test_werkzeug_passthrough_errors[None-True-False-True]",
+                    "tests/test_basic.py::test_werkzeug_passthrough_errors[None-True-False-False]",
+                    "tests/test_basic.py::test_werkzeug_passthrough_errors[None-False-True-True]",
+                    "tests/test_basic.py::test_werkzeug_passthrough_errors[None-False-True-False]",
+                    "tests/test_basic.py::test_werkzeug_passthrough_errors[None-False-False-True]",
+                    "tests/test_basic.py::test_werkzeug_passthrough_errors[None-False-False-False]",
+                    "tests/test_basic.py::test_werkzeug_passthrough_errors[True-True-True-True]",
+                    "tests/test_basic.py::test_werkzeug_passthrough_errors[True-True-True-False]",
+                    "tests/test_basic.py::test_werkzeug_passthrough_errors[True-True-False-True]",
+                    "tests/test_basic.py::test_werkzeug_passthrough_errors[True-True-False-False]",
+                    "tests/test_basic.py::test_werkzeug_passthrough_errors[True-False-True-True]",
+                    "tests/test_basic.py::test_werkzeug_passthrough_errors[True-False-True-False]",
+                    "tests/test_basic.py::test_werkzeug_passthrough_errors[True-False-False-True]",
+                    "tests/test_basic.py::test_werkzeug_passthrough_errors[True-False-False-False]",
+                    "tests/test_basic.py::test_werkzeug_passthrough_errors[False-True-True-True]",
+                    "tests/test_basic.py::test_werkzeug_passthrough_errors[False-True-True-False]",
+                    "tests/test_basic.py::test_werkzeug_passthrough_errors[False-True-False-True]",
+                    "tests/test_basic.py::test_werkzeug_passthrough_errors[False-True-False-False]",
+                    "tests/test_basic.py::test_werkzeug_passthrough_errors[False-False-True-True]",
+                    "tests/test_basic.py::test_werkzeug_passthrough_errors[False-False-True-False]",
+                    "tests/test_basic.py::test_werkzeug_passthrough_errors[False-False-False-True]",
+                    "tests/test_basic.py::test_werkzeug_passthrough_errors[False-False-False-False]",
+                    "tests/test_basic.py::test_get_method_on_g",
+                    "tests/test_basic.py::test_g_iteration_protocol",
+                    "tests/test_basic.py::test_run_defaults",
+                    "tests/test_basic.py::test_run_server_port",
+                    "tests/test_basic.py::test_run_from_config[None-None-pocoo.org:8080-pocoo.org-8080]",
+                    "tests/test_basic.py::test_run_from_config[localhost-None-pocoo.org:8080-localhost-8080]",
+                    "tests/test_basic.py::test_run_from_config[None-80-pocoo.org:8080-pocoo.org-80]",
+                    "tests/test_basic.py::test_run_from_config[localhost-80-pocoo.org:8080-localhost-80]",
+                    "tests/test_basic.py::test_run_from_config[localhost-0-localhost:8080-localhost-0]",
+                    "tests/test_basic.py::test_run_from_config[None-None-localhost:8080-localhost-8080]",
+                    "tests/test_basic.py::test_run_from_config[None-None-localhost:0-localhost-0]",
+                    "tests/test_basic.py::test_app_freed_on_zero_refcount",
+                    "tests/test_blueprints.py::test_template_filter",
+                    "tests/test_blueprints.py::test_add_template_filter",
+                    "tests/test_blueprints.py::test_template_filter_with_name",
+                    "tests/test_blueprints.py::test_add_template_filter_with_name",
+                    "tests/test_blueprints.py::test_template_test",
+                    "tests/test_blueprints.py::test_add_template_test",
+                    "tests/test_blueprints.py::test_template_test_with_name",
+                    "tests/test_blueprints.py::test_add_template_test_with_name",
+                    "tests/test_blueprints.py::test_template_global"
+                ],
+                "failure": []
+            },
+            "FAIL_TO_FAIL": {
+                "success": [],
+                "failure": []
+            },
+            "PASS_TO_FAIL": {
+                "success": [],
+                "failure": []
+            }
+        }
+    }
+}

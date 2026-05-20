@@ -1,0 +1,26 @@
+diff --git a/sphinx/builders/manpage.py b/sphinx/builders/manpage.py
+index 4166dec..50c2797 100644
+--- a/sphinx/builders/manpage.py
++++ b/sphinx/builders/manpage.py
+@@ -24,7 +24,7 @@ from sphinx.util import logging
+ from sphinx.util import progress_message
+ from sphinx.util.console import darkgreen  # type: ignore
+ from sphinx.util.nodes import inline_all_toctrees
+-from sphinx.util.osutil import make_filename_from_project
++from sphinx.util.osutil import ensuredir, make_filename_from_project
+ from sphinx.writers.manpage import ManualPageWriter, ManualPageTranslator
+ 
+ 
+@@ -81,9 +81,11 @@ class ManualPageBuilder(Builder):
+             docsettings.section = section
+ 
+             targetname = '%s.%s' % (name, section)
++            targetdir = path.join(self.outdir, 'man%s' % section)
++            ensuredir(targetdir)
+             logger.info(darkgreen(targetname) + ' { ', nonl=True)
+             destination = FileOutput(
+-                destination_path=path.join(self.outdir, targetname),
++                destination_path=path.join(targetdir, targetname),
+                 encoding='utf-8')
+ 
+             tree = self.env.get_doctree(docname)

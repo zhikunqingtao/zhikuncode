@@ -1,0 +1,15 @@
+diff --git a/sympy/core/function.py b/sympy/core/function.py
+index 69df976..5865fce 100644
+--- a/sympy/core/function.py
++++ b/sympy/core/function.py
+@@ -1670,6 +1670,10 @@ def eval(x):
+     def expr(self):
+         return self._args[0]
+ 
++    @property
++    def kind(self):
++        return self.expr.kind
++
+     @property
+     def _wrt_variables(self):
+         # return the variables of differentiation without

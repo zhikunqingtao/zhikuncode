@@ -1,0 +1,69 @@
+2026-05-20 01:23:29,506 - INFO - Environment image sweb.env.py.x86_64.c795f4b88616b8462021ed:latest found for sympy__sympy-17022
+Building instance image sweb.eval.x86_64.sympy__sympy-17022:latest for sympy__sympy-17022
+2026-05-20 01:26:28,188 - INFO - Creating container for sympy__sympy-17022...
+2026-05-20 01:26:28,212 - INFO - Container for sympy__sympy-17022 created: c7f9229eb0b7ec749809309a7d81b6bfb7ad5063d883b4a3ad7161e60bcd436a
+2026-05-20 01:26:28,448 - INFO - Container for sympy__sympy-17022 started: c7f9229eb0b7ec749809309a7d81b6bfb7ad5063d883b4a3ad7161e60bcd436a
+2026-05-20 01:26:28,448 - INFO - Intermediate patch for sympy__sympy-17022 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-17022/patch.diff, now applying to container...
+2026-05-20 01:26:28,551 - INFO - >>>>> Applied Patch:
+Checking patch sympy/printing/pycode.py...
+Applied patch sympy/printing/pycode.py cleanly.
+
+2026-05-20 01:26:28,917 - INFO - Git diff before:
+diff --git a/sympy/printing/pycode.py b/sympy/printing/pycode.py
+index 6ec7bd891..08f93ca48 100644
+--- a/sympy/printing/pycode.py
++++ b/sympy/printing/pycode.py
+@@ -670,6 +670,18 @@ def _print_CodegenArrayPermuteDims(self, expr):
+     def _print_CodegenArrayElementwiseAdd(self, expr):
+         return self._expand_fold_binary_op('numpy.add', expr.args)
+ 
++    def _print_Identity(self, expr):
++        return "{0}({1})".format(self._module_format('numpy.eye'),
++                                 self._print(expr.shape[0]))
++
++    def _print_ZeroMatrix(self, expr):
++        return "{0}({1})".format(self._module_format('numpy.zeros'),
++                                 self._print(expr.shape))
++
++    def _print_OneMatrix(self, expr):
++        return "{0}({1})".format(self._module_format('numpy.ones'),
++                                 self._print(expr.shape))
++
+ 
+ for k in NumPyPrinter._kf:
+     setattr(NumPyPrinter, '_print_%s' % k, _print_known_func)
+2026-05-20 01:26:28,917 - INFO - Eval script for sympy__sympy-17022 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-17022/eval.sh; copying to container...
+2026-05-20 01:26:33,449 - INFO - Test runtime: 4.45 seconds
+2026-05-20 01:26:33,449 - INFO - Test output for sympy__sympy-17022 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-17022/test_output.txt
+2026-05-20 01:26:33,509 - INFO - Git diff after:
+diff --git a/sympy/printing/pycode.py b/sympy/printing/pycode.py
+index 6ec7bd891..08f93ca48 100644
+--- a/sympy/printing/pycode.py
++++ b/sympy/printing/pycode.py
+@@ -670,6 +670,18 @@ def _print_CodegenArrayPermuteDims(self, expr):
+     def _print_CodegenArrayElementwiseAdd(self, expr):
+         return self._expand_fold_binary_op('numpy.add', expr.args)
+ 
++    def _print_Identity(self, expr):
++        return "{0}({1})".format(self._module_format('numpy.eye'),
++                                 self._print(expr.shape[0]))
++
++    def _print_ZeroMatrix(self, expr):
++        return "{0}({1})".format(self._module_format('numpy.zeros'),
++                                 self._print(expr.shape))
++
++    def _print_OneMatrix(self, expr):
++        return "{0}({1})".format(self._module_format('numpy.ones'),
++                                 self._print(expr.shape))
++
+ 
+ for k in NumPyPrinter._kf:
+     setattr(NumPyPrinter, '_print_%s' % k, _print_known_func)
+2026-05-20 01:26:33,509 - INFO - Grading answer for sympy__sympy-17022...
+2026-05-20 01:26:33,509 - INFO - report: {'sympy__sympy-17022': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_NumPyPrinter'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_numpy_piecewise_regression', 'test_PythonCodePrinter', 'test_MpmathPrinter', 'test_SciPyPrinter', 'test_pycode_reserved_words', 'test_printmethod', 'test_codegen_ast_nodes', 'test_issue_14283'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-17022: resolved: True
+2026-05-20 01:26:33,509 - INFO - Attempting to stop container sweb.eval.sympy__sympy-17022.zhikuncode_eval_300_FINAL...
+2026-05-20 01:26:48,970 - INFO - Attempting to remove container sweb.eval.sympy__sympy-17022.zhikuncode_eval_300_FINAL...
+2026-05-20 01:26:48,983 - INFO - Container sweb.eval.sympy__sympy-17022.zhikuncode_eval_300_FINAL removed.
+2026-05-20 01:26:48,983 - INFO - Attempting to remove image sweb.eval.x86_64.sympy__sympy-17022:latest...
+2026-05-20 01:26:49,032 - INFO - Image sweb.eval.x86_64.sympy__sympy-17022:latest removed.

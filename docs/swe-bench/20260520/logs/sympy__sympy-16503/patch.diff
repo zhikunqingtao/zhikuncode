@@ -1,0 +1,24 @@
+diff --git a/sympy/printing/pretty/pretty.py b/sympy/printing/pretty/pretty.py
+index 7a3de33..3d1fee9 100644
+--- a/sympy/printing/pretty/pretty.py
++++ b/sympy/printing/pretty/pretty.py
+@@ -586,6 +586,10 @@ def adjust(s, wid=None, how='<^>'):
+ 
+         H = prettyF.height() + 2
+ 
++        # Save original function dimensions for final baseline calculation
++        func_height = prettyF.height()
++        func_baseline = prettyF.baseline
++
+         # \sum \sum \sum ...
+         first = True
+         max_upper = 0
+@@ -629,7 +633,7 @@ def adjust(s, wid=None, how='<^>'):
+             # put the present prettyF to the right
+             prettyF = prettyForm(*prettySign.right(prettyF))
+ 
+-        prettyF.baseline = max_upper + sign_height//2
++        prettyF.baseline = max_upper + (sign_height - func_height)//2 + func_baseline
+         prettyF.binding = prettyForm.MUL
+         return prettyF
+ 

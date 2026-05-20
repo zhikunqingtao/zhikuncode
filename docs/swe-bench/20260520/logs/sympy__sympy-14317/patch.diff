@@ -1,0 +1,54 @@
+diff --git a/sympy/printing/latex.py b/sympy/printing/latex.py
+index 737e16c..818196f 100644
+--- a/sympy/printing/latex.py
++++ b/sympy/printing/latex.py
+@@ -1854,11 +1854,46 @@ def _print_PolynomialRingBase(self, expr):
+ 
+     def _print_Poly(self, poly):
+         cls = poly.__class__.__name__
+-        expr = self._print(poly.as_expr())
+-        gens = list(map(self._print, poly.gens))
++
++        # Build the expression term by term in the correct order (highest to lowest degree)
++        terms = []
++
++        for monom, coeff in poly.terms():
++            # Construct the term expression: coeff * x1^e1 * x2^e2 * ...
++            # This ensures proper LaTeX rendering (e.g., x/y instead of (1/y)*x)
++            term_expr = coeff
++            for i, exp in enumerate(monom):
++                if exp > 0:
++                    term_expr = term_expr * poly.gens[i]**exp
++
++            # Determine sign and get the term LaTeX
++            if _coeff_isneg(coeff):
++                terms.append(('-', self._print(-term_expr if not coeff.is_Add else term_expr)))
++            else:
++                terms.append(('+', self._print(term_expr)))
++
++        # Build the final expression string
++        if not terms:
++            expr = '0'
++        else:
++            # First term
++            sign, term_str = terms[0]
++            if sign == '-':
++                expr = '- ' + term_str
++            else:
++                expr = term_str
++
++            # Remaining terms
++            for sign, term_str in terms[1:]:
++                if sign == '-':
++                    expr += ' - ' + term_str
++                else:
++                    expr += ' + ' + term_str
++
++        gens_str = list(map(self._print, poly.gens))
+         domain = "domain=%s" % self._print(poly.get_domain())
+ 
+-        args = ", ".join([expr] + gens + [domain])
++        args = ", ".join([expr] + gens_str + [domain])
+         if cls in accepted_latex_functions:
+             tex = r"\%s {\left (%s \right )}" % (cls, args)
+         else:

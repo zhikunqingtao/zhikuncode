@@ -1,0 +1,50 @@
+{
+    "django__django-16229": {
+        "patch_is_None": false,
+        "patch_exists": true,
+        "patch_successfully_applied": true,
+        "resolved": true,
+        "tests_status": {
+            "FAIL_TO_PASS": {
+                "success": [
+                    "test_callable_default_hidden_widget_value_not_overridden (forms_tests.tests.tests.ModelFormCallableModelDefault)"
+                ],
+                "failure": []
+            },
+            "PASS_TO_PASS": {
+                "success": [
+                    "Test for issue 10405",
+                    "If a model's ManyToManyField has blank=True and is saved with no data,",
+                    "test_m2m_field_exclusion (forms_tests.tests.tests.ManyToManyExclusionTestCase)",
+                    "test_empty_field_char (forms_tests.tests.tests.Jinja2EmptyLabelTestCase)",
+                    "test_empty_field_char_none (forms_tests.tests.tests.Jinja2EmptyLabelTestCase)",
+                    "test_empty_field_integer (forms_tests.tests.tests.Jinja2EmptyLabelTestCase)",
+                    "test_get_display_value_on_none (forms_tests.tests.tests.Jinja2EmptyLabelTestCase)",
+                    "test_html_rendering_of_prepopulated_models (forms_tests.tests.tests.Jinja2EmptyLabelTestCase)",
+                    "test_save_empty_label_forms (forms_tests.tests.tests.Jinja2EmptyLabelTestCase)",
+                    "test_boundary_conditions (forms_tests.tests.tests.FormsModelTestCase)",
+                    "test_formfield_initial (forms_tests.tests.tests.FormsModelTestCase)",
+                    "test_unicode_filename (forms_tests.tests.tests.FormsModelTestCase)",
+                    "test_empty_field_char (forms_tests.tests.tests.EmptyLabelTestCase)",
+                    "test_empty_field_char_none (forms_tests.tests.tests.EmptyLabelTestCase)",
+                    "test_empty_field_integer (forms_tests.tests.tests.EmptyLabelTestCase)",
+                    "test_get_display_value_on_none (forms_tests.tests.tests.EmptyLabelTestCase)",
+                    "test_html_rendering_of_prepopulated_models (forms_tests.tests.tests.EmptyLabelTestCase)",
+                    "test_save_empty_label_forms (forms_tests.tests.tests.EmptyLabelTestCase)",
+                    "The initial value for a callable default returning a queryset is the",
+                    "Initial instances for model fields may also be instances (refs #7287)",
+                    "If a model's ForeignKey has blank=False and a default, no empty option"
+                ],
+                "failure": []
+            },
+            "FAIL_TO_FAIL": {
+                "success": [],
+                "failure": []
+            },
+            "PASS_TO_FAIL": {
+                "success": [],
+                "failure": []
+            }
+        }
+    }
+}

@@ -1,0 +1,49 @@
+2026-05-19 23:30:46,958 - INFO - Environment image sweb.env.py.x86_64.297af196949a2a635bce66:latest found for django__django-14667
+Building instance image sweb.eval.x86_64.django__django-14667:latest for django__django-14667
+2026-05-19 23:33:57,665 - INFO - Creating container for django__django-14667...
+2026-05-19 23:33:57,687 - INFO - Container for django__django-14667 created: 4813c7ab8d09a228852f0e3431d49e7e6c67fa9cbc5db4616699c8aa784918ab
+2026-05-19 23:33:57,966 - INFO - Container for django__django-14667 started: 4813c7ab8d09a228852f0e3431d49e7e6c67fa9cbc5db4616699c8aa784918ab
+2026-05-19 23:33:57,966 - INFO - Intermediate patch for django__django-14667 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-14667/patch.diff, now applying to container...
+2026-05-19 23:33:58,241 - INFO - >>>>> Applied Patch:
+Checking patch django/db/models/sql/query.py...
+Applied patch django/db/models/sql/query.py cleanly.
+
+2026-05-19 23:33:58,979 - INFO - Git diff before:
+diff --git a/django/db/models/sql/query.py b/django/db/models/sql/query.py
+index 8837881579..2d1d966316 100644
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -678,7 +678,7 @@ class Query(BaseExpression):
+         "target", and the model and list of fields being added for that model.
+         """
+         field_names, defer = self.deferred_loading
+-        if not field_names:
++        if defer and not field_names:
+             return
+         orig_opts = self.get_meta()
+         seen = {}
+2026-05-19 23:33:58,979 - INFO - Eval script for django__django-14667 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-14667/eval.sh; copying to container...
+2026-05-19 23:34:04,641 - INFO - Test runtime: 5.58 seconds
+2026-05-19 23:34:04,641 - INFO - Test output for django__django-14667 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-14667/test_output.txt
+2026-05-19 23:34:04,836 - INFO - Git diff after:
+diff --git a/django/db/models/sql/query.py b/django/db/models/sql/query.py
+index 8837881579..2d1d966316 100644
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -678,7 +678,7 @@ class Query(BaseExpression):
+         "target", and the model and list of fields being added for that model.
+         """
+         field_names, defer = self.deferred_loading
+-        if not field_names:
++        if defer and not field_names:
+             return
+         orig_opts = self.get_meta()
+         seen = {}
+2026-05-19 23:34:04,836 - INFO - Grading answer for django__django-14667...
+2026-05-19 23:34:04,837 - INFO - report: {'django__django-14667': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_defer_only_chaining (defer.tests.DeferTests)']}, 'PASS_TO_PASS': {'success': ['test_custom_refresh_on_deferred_loading (defer.tests.TestDefer2)', 'When an inherited model is fetched from the DB, its PK is also fetched.', 'Ensure select_related together with only on a proxy model behaves', 'test_eq (defer.tests.TestDefer2)', 'test_refresh_not_loading_deferred_fields (defer.tests.TestDefer2)', 'test_defer_baseclass_when_subclass_has_added_field (defer.tests.BigChildDeferTests)', 'test_defer_subclass (defer.tests.BigChildDeferTests)', 'test_defer_subclass_both (defer.tests.BigChildDeferTests)', 'test_only_baseclass_when_subclass_has_added_field (defer.tests.BigChildDeferTests)', 'test_only_subclass (defer.tests.BigChildDeferTests)', 'test_defer (defer.tests.DeferTests)', 'test_defer_baseclass_when_subclass_has_no_added_fields (defer.tests.DeferTests)', 'test_defer_extra (defer.tests.DeferTests)', 'test_defer_foreign_keys_are_deferred_and_not_traversed (defer.tests.DeferTests)', 'test_defer_none_to_clear_deferred_set (defer.tests.DeferTests)', 'test_defer_of_overridden_scalar (defer.tests.DeferTests)', 'test_defer_on_an_already_deferred_field (defer.tests.DeferTests)', 'test_defer_select_related_raises_invalid_query (defer.tests.DeferTests)', 'test_defer_values_does_not_defer (defer.tests.DeferTests)', 'test_defer_with_select_related (defer.tests.DeferTests)', 'test_get (defer.tests.DeferTests)', 'test_only (defer.tests.DeferTests)', 'test_only_baseclass_when_subclass_has_no_added_fields (defer.tests.DeferTests)', 'test_only_none_raises_error (defer.tests.DeferTests)', 'test_only_select_related_raises_invalid_query (defer.tests.DeferTests)', 'test_only_values_does_not_defer (defer.tests.DeferTests)', 'test_only_with_select_related (defer.tests.DeferTests)', 'test_saving_object_with_deferred_field (defer.tests.DeferTests)'], 'failure': ['test_defer_only_clear (defer.tests.DeferTests)']}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-14667: resolved: False
+2026-05-19 23:34:04,837 - INFO - Attempting to stop container sweb.eval.django__django-14667.zhikuncode_eval_300_FINAL...
+2026-05-19 23:34:20,517 - INFO - Attempting to remove container sweb.eval.django__django-14667.zhikuncode_eval_300_FINAL...
+2026-05-19 23:34:20,529 - INFO - Container sweb.eval.django__django-14667.zhikuncode_eval_300_FINAL removed.
+2026-05-19 23:34:20,529 - INFO - Attempting to remove image sweb.eval.x86_64.django__django-14667:latest...
+2026-05-19 23:34:20,672 - INFO - Image sweb.eval.x86_64.django__django-14667:latest removed.

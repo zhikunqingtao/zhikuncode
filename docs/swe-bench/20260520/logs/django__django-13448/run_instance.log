@@ -1,0 +1,49 @@
+2026-05-19 23:19:49,797 - INFO - Environment image sweb.env.py.x86_64.e83e37f52c09532c62acfb:latest found for django__django-13448
+Building instance image sweb.eval.x86_64.django__django-13448:latest for django__django-13448
+2026-05-19 23:24:34,817 - INFO - Creating container for django__django-13448...
+2026-05-19 23:24:34,841 - INFO - Container for django__django-13448 created: 4cd5ec3d931e7a65bcc628468421f36679e9afc9d70b92a52c88b1087420c81d
+2026-05-19 23:24:35,235 - INFO - Container for django__django-13448 started: 4cd5ec3d931e7a65bcc628468421f36679e9afc9d70b92a52c88b1087420c81d
+2026-05-19 23:24:35,236 - INFO - Intermediate patch for django__django-13448 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-13448/patch.diff, now applying to container...
+2026-05-19 23:24:35,482 - INFO - >>>>> Applied Patch:
+Checking patch django/db/backends/base/creation.py...
+Applied patch django/db/backends/base/creation.py cleanly.
+
+2026-05-19 23:24:36,223 - INFO - Git diff before:
+diff --git a/django/db/backends/base/creation.py b/django/db/backends/base/creation.py
+index 503f7f56fd..093bb59943 100644
+--- a/django/db/backends/base/creation.py
++++ b/django/db/backends/base/creation.py
+@@ -74,7 +74,7 @@ class BaseDatabaseCreation:
+         # and store it on the connection. This slightly horrific process is so people
+         # who are testing on databases without transactions or who are using
+         # a TransactionTestCase still get a clean database on every test run.
+-        if serialize:
++        if serialize and self.connection.settings_dict['TEST']['MIGRATE']:
+             self.connection._test_serialized_contents = self.serialize_db_to_string()
+ 
+         call_command('createcachetable', database=self.connection.alias)
+2026-05-19 23:24:36,223 - INFO - Eval script for django__django-13448 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-13448/eval.sh; copying to container...
+2026-05-19 23:24:42,818 - INFO - Test runtime: 6.47 seconds
+2026-05-19 23:24:42,818 - INFO - Test output for django__django-13448 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-13448/test_output.txt
+2026-05-19 23:24:42,936 - INFO - Git diff after:
+diff --git a/django/db/backends/base/creation.py b/django/db/backends/base/creation.py
+index 503f7f56fd..093bb59943 100644
+--- a/django/db/backends/base/creation.py
++++ b/django/db/backends/base/creation.py
+@@ -74,7 +74,7 @@ class BaseDatabaseCreation:
+         # and store it on the connection. This slightly horrific process is so people
+         # who are testing on databases without transactions or who are using
+         # a TransactionTestCase still get a clean database on every test run.
+-        if serialize:
++        if serialize and self.connection.settings_dict['TEST']['MIGRATE']:
+             self.connection._test_serialized_contents = self.serialize_db_to_string()
+ 
+         call_command('createcachetable', database=self.connection.alias)
+2026-05-19 23:24:42,936 - INFO - Grading answer for django__django-13448...
+2026-05-19 23:24:42,937 - INFO - report: {'django__django-13448': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_migrate_test_setting_false (backends.base.test_creation.TestDbCreationTests)']}, 'PASS_TO_PASS': {'success': ['test_custom_test_name (backends.base.test_creation.TestDbSignatureTests)', 'test_custom_test_name_with_test_prefix (backends.base.test_creation.TestDbSignatureTests)', 'test_default_name (backends.base.test_creation.TestDbSignatureTests)', 'test_migrate_test_setting_true (backends.base.test_creation.TestDbCreationTests)', 'test_circular_reference (backends.base.test_creation.TestDeserializeDbFromString)', 'test_circular_reference_with_natural_key (backends.base.test_creation.TestDeserializeDbFromString)', 'test_self_reference (backends.base.test_creation.TestDeserializeDbFromString)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-13448: resolved: False
+2026-05-19 23:24:42,937 - INFO - Attempting to stop container sweb.eval.django__django-13448.zhikuncode_eval_300_FINAL...
+2026-05-19 23:24:58,623 - INFO - Attempting to remove container sweb.eval.django__django-13448.zhikuncode_eval_300_FINAL...
+2026-05-19 23:24:58,637 - INFO - Container sweb.eval.django__django-13448.zhikuncode_eval_300_FINAL removed.
+2026-05-19 23:24:58,637 - INFO - Attempting to remove image sweb.eval.x86_64.django__django-13448:latest...
+2026-05-19 23:24:58,767 - INFO - Image sweb.eval.x86_64.django__django-13448:latest removed.

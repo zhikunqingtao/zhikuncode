@@ -1,0 +1,20 @@
+diff --git a/lib/matplotlib/colorbar.py b/lib/matplotlib/colorbar.py
+index 966eb07..3ed430e 100644
+--- a/lib/matplotlib/colorbar.py
++++ b/lib/matplotlib/colorbar.py
+@@ -1102,7 +1102,14 @@ class Colorbar:
+ 
+         # transform from 0-1 to vmin-vmax:
+         if not self.norm.scaled():
+-            self.norm.vmin = 0
++            # Use default values that are valid for the norm's transform.
++            # For norms like LogNorm that require positive values (i.e., their
++            # transform of 0 is not finite), use 1 instead of 0.
++            if (getattr(self.norm, '_trf', None) is not None
++                    and not np.isfinite(self.norm._trf.transform(0))):
++                self.norm.vmin = 1
++            else:
++                self.norm.vmin = 0
+             self.norm.vmax = 1
+         self.norm.vmin, self.norm.vmax = mtransforms.nonsingular(
+             self.norm.vmin, self.norm.vmax, expander=0.1)

@@ -1,0 +1,85 @@
+2026-05-19 23:24:47,319 - INFO - Environment image sweb.env.py.x86_64.e83e37f52c09532c62acfb:latest found for django__django-13768
+Building instance image sweb.eval.x86_64.django__django-13768:latest for django__django-13768
+2026-05-19 23:27:13,382 - INFO - Creating container for django__django-13768...
+2026-05-19 23:27:13,405 - INFO - Container for django__django-13768 created: e46c495c62c8f36c357eb9536e93fe146361cea272c85a4bff594efc11c0a6b4
+2026-05-19 23:27:13,675 - INFO - Container for django__django-13768 started: e46c495c62c8f36c357eb9536e93fe146361cea272c85a4bff594efc11c0a6b4
+2026-05-19 23:27:13,675 - INFO - Intermediate patch for django__django-13768 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-13768/patch.diff, now applying to container...
+2026-05-19 23:27:13,860 - INFO - >>>>> Applied Patch:
+Checking patch django/dispatch/dispatcher.py...
+Applied patch django/dispatch/dispatcher.py cleanly.
+
+2026-05-19 23:27:14,601 - INFO - Git diff before:
+diff --git a/django/dispatch/dispatcher.py b/django/dispatch/dispatcher.py
+index b7d9d26389..60a6d23414 100644
+--- a/django/dispatch/dispatcher.py
++++ b/django/dispatch/dispatcher.py
+@@ -1,3 +1,5 @@
++import logging
++import logging
+ import threading
+ import warnings
+ import weakref
+@@ -6,6 +8,9 @@ from django.utils.deprecation import RemovedInDjango40Warning
+ from django.utils.inspect import func_accepts_kwargs
+ 
+ 
++logger = logging.getLogger('django.dispatch')
++
++
+ def _make_id(target):
+     if hasattr(target, '__func__'):
+         return (id(target.__self__), id(target.__func__))
+@@ -208,6 +213,10 @@ class Signal:
+             try:
+                 response = receiver(signal=self, sender=sender, **named)
+             except Exception as err:
++                logger.exception(
++                    'Error calling %s in Signal.send_robust()',
++                    receiver.__qualname__,
++                )
+                 responses.append((receiver, err))
+             else:
+                 responses.append((receiver, response))
+2026-05-19 23:27:14,601 - INFO - Eval script for django__django-13768 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-13768/eval.sh; copying to container...
+2026-05-19 23:27:20,010 - INFO - Test runtime: 5.33 seconds
+2026-05-19 23:27:20,011 - INFO - Test output for django__django-13768 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-13768/test_output.txt
+2026-05-19 23:27:20,193 - INFO - Git diff after:
+diff --git a/django/dispatch/dispatcher.py b/django/dispatch/dispatcher.py
+index b7d9d26389..60a6d23414 100644
+--- a/django/dispatch/dispatcher.py
++++ b/django/dispatch/dispatcher.py
+@@ -1,3 +1,5 @@
++import logging
++import logging
+ import threading
+ import warnings
+ import weakref
+@@ -6,6 +8,9 @@ from django.utils.deprecation import RemovedInDjango40Warning
+ from django.utils.inspect import func_accepts_kwargs
+ 
+ 
++logger = logging.getLogger('django.dispatch')
++
++
+ def _make_id(target):
+     if hasattr(target, '__func__'):
+         return (id(target.__self__), id(target.__func__))
+@@ -208,6 +213,10 @@ class Signal:
+             try:
+                 response = receiver(signal=self, sender=sender, **named)
+             except Exception as err:
++                logger.exception(
++                    'Error calling %s in Signal.send_robust()',
++                    receiver.__qualname__,
++                )
+                 responses.append((receiver, err))
+             else:
+                 responses.append((receiver, response))
+2026-05-19 23:27:20,193 - INFO - Grading answer for django__django-13768...
+2026-05-19 23:27:20,194 - INFO - report: {'django__django-13768': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_send_robust_fail (dispatch.tests.DispatcherTests)']}, 'PASS_TO_PASS': {'success': ['test_receiver_signal_list (dispatch.tests.ReceiverTestCase)', 'test_receiver_single_signal (dispatch.tests.ReceiverTestCase)', 'test_cached_garbaged_collected (dispatch.tests.DispatcherTests)', 'test_cannot_connect_no_kwargs (dispatch.tests.DispatcherTests)', 'test_cannot_connect_non_callable (dispatch.tests.DispatcherTests)', 'test_disconnection (dispatch.tests.DispatcherTests)', 'test_garbage_collected (dispatch.tests.DispatcherTests)', 'test_has_listeners (dispatch.tests.DispatcherTests)', 'test_multiple_registration (dispatch.tests.DispatcherTests)', 'test_send (dispatch.tests.DispatcherTests)', 'test_send_connected_no_sender (dispatch.tests.DispatcherTests)', 'test_send_different_no_sender (dispatch.tests.DispatcherTests)', 'test_send_no_receivers (dispatch.tests.DispatcherTests)', 'test_send_robust_ignored_sender (dispatch.tests.DispatcherTests)', 'test_send_robust_no_receivers (dispatch.tests.DispatcherTests)', 'test_send_robust_success (dispatch.tests.DispatcherTests)', 'test_uid_registration (dispatch.tests.DispatcherTests)', 'test_values_returned_by_disconnection (dispatch.tests.DispatcherTests)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-13768: resolved: False
+2026-05-19 23:27:20,194 - INFO - Attempting to stop container sweb.eval.django__django-13768.zhikuncode_eval_300_FINAL...
+2026-05-19 23:27:35,722 - INFO - Attempting to remove container sweb.eval.django__django-13768.zhikuncode_eval_300_FINAL...
+2026-05-19 23:27:35,735 - INFO - Container sweb.eval.django__django-13768.zhikuncode_eval_300_FINAL removed.
+2026-05-19 23:27:35,735 - INFO - Attempting to remove image sweb.eval.x86_64.django__django-13768:latest...
+2026-05-19 23:27:35,864 - INFO - Image sweb.eval.x86_64.django__django-13768:latest removed.

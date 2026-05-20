@@ -1,0 +1,335 @@
+2026-05-20 00:34:24,339 - INFO - Environment image sweb.env.py.x86_64.71498c7426dbf05599642f:latest found for pytest-dev__pytest-5221
+Building instance image sweb.eval.x86_64.pytest-dev__pytest-5221:latest for pytest-dev__pytest-5221
+2026-05-20 00:34:51,116 - INFO - Creating container for pytest-dev__pytest-5221...
+2026-05-20 00:34:51,135 - INFO - Container for pytest-dev__pytest-5221 created: 24a4759fd386b81a847421bd051d003116aa74e7db0e3fde20612e8d48afbff7
+2026-05-20 00:34:51,234 - INFO - Container for pytest-dev__pytest-5221 started: 24a4759fd386b81a847421bd051d003116aa74e7db0e3fde20612e8d48afbff7
+2026-05-20 00:34:51,234 - INFO - Intermediate patch for pytest-dev__pytest-5221 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/pytest-dev__pytest-5221/patch.diff, now applying to container...
+2026-05-20 00:34:51,279 - INFO - >>>>> Applied Patch:
+Checking patch src/_pytest/python.py...
+Checking patch testing/python/fixtures.py...
+Checking patch testing/python/show_fixtures_per_test.py...
+Applied patch src/_pytest/python.py cleanly.
+Applied patch testing/python/fixtures.py cleanly.
+Applied patch testing/python/show_fixtures_per_test.py cleanly.
+
+2026-05-20 00:34:51,330 - INFO - Git diff before:
+diff --git a/src/_pytest/python.py b/src/_pytest/python.py
+index 37735784..6f705f17 100644
+--- a/src/_pytest/python.py
++++ b/src/_pytest/python.py
+@@ -1258,11 +1258,12 @@ def _show_fixtures_per_test(config, session):
+         argname = fixture_def.argname
+         if verbose <= 0 and argname.startswith("_"):
+             return
++        scope = fixture_def.scope or "function"
+         if verbose > 0:
+             bestrel = get_best_relpath(fixture_def.func)
+-            funcargspec = "{} -- {}".format(argname, bestrel)
++            funcargspec = "{} -- {} [{} scope]".format(argname, bestrel, scope)
+         else:
+-            funcargspec = argname
++            funcargspec = "{} [{} scope]".format(argname, scope)
+         tw.line(funcargspec, green=True)
+         fixture_doc = fixture_def.func.__doc__
+         if fixture_doc:
+@@ -1343,9 +1344,13 @@ def _showfixtures_main(config, session):
+         if verbose <= 0 and argname[0] == "_":
+             continue
+         if verbose > 0:
+-            funcargspec = "%s -- %s" % (argname, bestrel)
++            funcargspec = "%s -- %s [%s scope]" % (
++                argname,
++                bestrel,
++                fixturedef.scope or "function",
++            )
+         else:
+-            funcargspec = argname
++            funcargspec = "%s [%s scope]" % (argname, fixturedef.scope or "function")
+         tw.line(funcargspec, green=True)
+         loc = getlocation(fixturedef.func, curdir)
+         doc = fixturedef.func.__doc__ or ""
+diff --git a/testing/python/fixtures.py b/testing/python/fixtures.py
+index 48f8028e..084d2180 100644
+--- a/testing/python/fixtures.py
++++ b/testing/python/fixtures.py
+@@ -3043,6 +3043,35 @@ class TestShowFixtures(object):
+         result = testdir.runpytest("--fixtures", "-v")
+         result.stdout.fnmatch_lines(["*tmpdir*--*tmpdir.py*", "*temporary directory*"])
+ 
++    def test_show_fixtures_with_scopes(self, testdir):
++        """Test that fixture scopes are displayed with --fixtures."""
++        p = testdir.makepyfile(
++            '''
++            import pytest
++            @pytest.fixture
++            def func_fix():
++                """function scoped fixture"""
++            @pytest.fixture(scope="class")
++            def class_fix():
++                """class scoped fixture"""
++            @pytest.fixture(scope="module")
++            def mod_fix():
++                """module scoped fixture"""
++            @pytest.fixture(scope="session")
++            def sess_fix():
++                """session scoped fixture"""
++        '''
++        )
++        result = testdir.runpytest("--fixtures", p)
++        result.stdout.fnmatch_lines(
++            [
++                "*func_fix [function scope]*",
++                "*class_fix [class scope]*",
++                "*mod_fix [module scope]*",
++                "*sess_fix [session scope]*",
++            ]
++        )
++
+     def test_show_fixtures_testmodule(self, testdir):
+         p = testdir.makepyfile(
+             '''
+@@ -3058,7 +3087,7 @@ class TestShowFixtures(object):
+         result = testdir.runpytest("--fixtures", p)
+         result.stdout.fnmatch_lines(
+             """
+-            *tmpdir
++            *tmpdir*
+             *fixtures defined from*
+             *arg1*
+             *hello world*
+@@ -3120,10 +3149,10 @@ class TestShowFixtures(object):
+             textwrap.dedent(
+                 """\
+                 * fixtures defined from test_show_fixtures_trimmed_doc *
+-                arg2
++                arg2*
+                     line1
+                     line2
+-                arg1
++                arg1*
+                     line1
+                     line2
+                 """
+@@ -3149,7 +3178,7 @@ class TestShowFixtures(object):
+             textwrap.dedent(
+                 """\
+                 * fixtures defined from test_show_fixtures_indented_doc *
+-                fixture1
++                fixture1*
+                     line1
+                         indented line
+                 """
+@@ -3175,7 +3204,7 @@ class TestShowFixtures(object):
+             textwrap.dedent(
+                 """\
+                 * fixtures defined from test_show_fixtures_indented_doc_first_line_unindented *
+-                fixture1
++                fixture1*
+                     line1
+                     line2
+                         indented line
+@@ -3203,7 +3232,7 @@ class TestShowFixtures(object):
+             textwrap.dedent(
+                 """\
+                 * fixtures defined from test_show_fixtures_indented_in_class *
+-                fixture1
++                fixture1*
+                     line1
+                     line2
+                         indented line
+@@ -3245,11 +3274,11 @@ class TestShowFixtures(object):
+         result.stdout.fnmatch_lines(
+             """
+             * fixtures defined from test_a *
+-            fix_a
++            fix_a*
+                 Fixture A
+ 
+             * fixtures defined from test_b *
+-            fix_b
++            fix_b*
+                 Fixture B
+         """
+         )
+@@ -3285,11 +3314,11 @@ class TestShowFixtures(object):
+         result.stdout.fnmatch_lines(
+             """
+             * fixtures defined from conftest *
+-            arg1
++            arg1*
+                 Hello World in conftest.py
+ 
+             * fixtures defined from test_show_fixtures_with_same_name *
+-            arg1
++            arg1*
+                 Hi from test module
+         """
+         )
+diff --git a/testing/python/show_fixtures_per_test.py b/testing/python/show_fixtures_per_test.py
+index e14344d4..0674028e 100644
+--- a/testing/python/show_fixtures_per_test.py
++++ b/testing/python/show_fixtures_per_test.py
+@@ -29,7 +29,7 @@ def test_fixtures_in_module(testdir):
+         [
+             "*fixtures used by test_arg1*",
+             "*(test_fixtures_in_module.py:9)*",
+-            "arg1",
++            "arg1*",
+             "    arg1 docstring",
+         ]
+     )
+@@ -68,15 +68,15 @@ def test_fixtures_in_conftest(testdir):
+         [
+             "*fixtures used by test_arg2*",
+             "*(test_fixtures_in_conftest.py:2)*",
+-            "arg2",
++            "arg2*",
+             "    arg2 docstring",
+             "*fixtures used by test_arg3*",
+             "*(test_fixtures_in_conftest.py:4)*",
+-            "arg1",
++            "arg1*",
+             "    arg1 docstring",
+-            "arg2",
++            "arg2*",
+             "    arg2 docstring",
+-            "arg3",
++            "arg3*",
+             "    arg3",
+             "    docstring",
+         ]
+@@ -112,9 +112,9 @@ def test_should_show_fixtures_used_by_test(testdir):
+         [
+             "*fixtures used by test_args*",
+             "*(test_should_show_fixtures_used_by_test.py:6)*",
+-            "arg1",
++            "arg1*",
+             "    arg1 from testmodule",
+-            "arg2",
++            "arg2*",
+             "    arg2 from conftest",
+         ]
+     )
+@@ -149,11 +149,11 @@ def test_verbose_include_private_fixtures_and_loc(testdir):
+         [
+             "*fixtures used by test_args*",
+             "*(test_verbose_include_private_fixtures_and_loc.py:6)*",
+-            "_arg1 -- conftest.py:3",
++            "_arg1 -- conftest.py:3*",
+             "    _arg1 from conftest",
+-            "arg2 -- conftest.py:6",
++            "arg2 -- conftest.py:6*",
+             "    arg2 from conftest",
+-            "arg3 -- test_verbose_include_private_fixtures_and_loc.py:3",
++            "arg3 -- test_verbose_include_private_fixtures_and_loc.py:3*",
+             "    arg3 from testmodule",
+         ]
+     )
+2026-05-20 00:34:51,330 - INFO - Eval script for pytest-dev__pytest-5221 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/pytest-dev__pytest-5221/eval.sh; copying to container...
+2026-05-20 00:34:58,860 - INFO - Test runtime: 7.51 seconds
+2026-05-20 00:34:58,860 - INFO - Test output for pytest-dev__pytest-5221 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/pytest-dev__pytest-5221/test_output.txt
+2026-05-20 00:34:58,885 - INFO - Git diff after:
+diff --git a/src/_pytest/python.py b/src/_pytest/python.py
+index 37735784..6f705f17 100644
+--- a/src/_pytest/python.py
++++ b/src/_pytest/python.py
+@@ -1258,11 +1258,12 @@ def _show_fixtures_per_test(config, session):
+         argname = fixture_def.argname
+         if verbose <= 0 and argname.startswith("_"):
+             return
++        scope = fixture_def.scope or "function"
+         if verbose > 0:
+             bestrel = get_best_relpath(fixture_def.func)
+-            funcargspec = "{} -- {}".format(argname, bestrel)
++            funcargspec = "{} -- {} [{} scope]".format(argname, bestrel, scope)
+         else:
+-            funcargspec = argname
++            funcargspec = "{} [{} scope]".format(argname, scope)
+         tw.line(funcargspec, green=True)
+         fixture_doc = fixture_def.func.__doc__
+         if fixture_doc:
+@@ -1343,9 +1344,13 @@ def _showfixtures_main(config, session):
+         if verbose <= 0 and argname[0] == "_":
+             continue
+         if verbose > 0:
+-            funcargspec = "%s -- %s" % (argname, bestrel)
++            funcargspec = "%s -- %s [%s scope]" % (
++                argname,
++                bestrel,
++                fixturedef.scope or "function",
++            )
+         else:
+-            funcargspec = argname
++            funcargspec = "%s [%s scope]" % (argname, fixturedef.scope or "function")
+         tw.line(funcargspec, green=True)
+         loc = getlocation(fixturedef.func, curdir)
+         doc = fixturedef.func.__doc__ or ""
+diff --git a/testing/python/show_fixtures_per_test.py b/testing/python/show_fixtures_per_test.py
+index e14344d4..0674028e 100644
+--- a/testing/python/show_fixtures_per_test.py
++++ b/testing/python/show_fixtures_per_test.py
+@@ -29,7 +29,7 @@ def test_fixtures_in_module(testdir):
+         [
+             "*fixtures used by test_arg1*",
+             "*(test_fixtures_in_module.py:9)*",
+-            "arg1",
++            "arg1*",
+             "    arg1 docstring",
+         ]
+     )
+@@ -68,15 +68,15 @@ def test_fixtures_in_conftest(testdir):
+         [
+             "*fixtures used by test_arg2*",
+             "*(test_fixtures_in_conftest.py:2)*",
+-            "arg2",
++            "arg2*",
+             "    arg2 docstring",
+             "*fixtures used by test_arg3*",
+             "*(test_fixtures_in_conftest.py:4)*",
+-            "arg1",
++            "arg1*",
+             "    arg1 docstring",
+-            "arg2",
++            "arg2*",
+             "    arg2 docstring",
+-            "arg3",
++            "arg3*",
+             "    arg3",
+             "    docstring",
+         ]
+@@ -112,9 +112,9 @@ def test_should_show_fixtures_used_by_test(testdir):
+         [
+             "*fixtures used by test_args*",
+             "*(test_should_show_fixtures_used_by_test.py:6)*",
+-            "arg1",
++            "arg1*",
+             "    arg1 from testmodule",
+-            "arg2",
++            "arg2*",
+             "    arg2 from conftest",
+         ]
+     )
+@@ -149,11 +149,11 @@ def test_verbose_include_private_fixtures_and_loc(testdir):
+         [
+             "*fixtures used by test_args*",
+             "*(test_verbose_include_private_fixtures_and_loc.py:6)*",
+-            "_arg1 -- conftest.py:3",
++            "_arg1 -- conftest.py:3*",
+             "    _arg1 from conftest",
+-            "arg2 -- conftest.py:6",
++            "arg2 -- conftest.py:6*",
+             "    arg2 from conftest",
+-            "arg3 -- test_verbose_include_private_fixtures_and_loc.py:3",
++            "arg3 -- test_verbose_include_private_fixtures_and_loc.py:3*",
+             "    arg3 from testmodule",
+         ]
+     )
+2026-05-20 00:34:58,885 - INFO - Git diff changed after running eval script
+2026-05-20 00:34:58,885 - INFO - Grading answer for pytest-dev__pytest-5221...
+2026-05-20 00:34:58,893 - INFO - report: {'pytest-dev__pytest-5221': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['testing/python/fixtures.py::TestShowFixtures::test_show_fixtures', 'testing/python/fixtures.py::TestShowFixtures::test_show_fixtures_verbose']}, 'PASS_TO_PASS': {'success': ['testing/python/fixtures.py::test_getfuncargnames', 'testing/python/fixtures.py::TestFillFixtures::test_fillfuncargs_exposed', 'testing/python/fixtures.py::TestShowFixtures::test_fixture_disallow_twice', 'testing/python/fixtures.py::test_call_fixture_function_error', 'testing/python/fixtures.py::TestFillFixtures::test_funcarg_lookupfails', 'testing/python/fixtures.py::TestFillFixtures::test_detect_recursive_dependency_error', 'testing/python/fixtures.py::TestFillFixtures::test_funcarg_basic', 'testing/python/fixtures.py::TestFillFixtures::test_funcarg_lookup_modulelevel', 'testing/python/fixtures.py::TestFillFixtures::test_funcarg_lookup_classlevel', 'testing/python/fixtures.py::TestFillFixtures::test_conftest_funcargs_only_available_in_subdir', 'testing/python/fixtures.py::TestFillFixtures::test_extend_fixture_module_class', 'testing/python/fixtures.py::TestFillFixtures::test_extend_fixture_conftest_module', 'testing/python/fixtures.py::TestFillFixtures::test_extend_fixture_conftest_conftest', 'testing/python/fixtures.py::TestFillFixtures::test_extend_fixture_conftest_plugin', 'testing/python/fixtures.py::TestFillFixtures::test_extend_fixture_plugin_plugin', 'testing/python/fixtures.py::TestFillFixtures::test_override_parametrized_fixture_conftest_module', 'testing/python/fixtures.py::TestFillFixtures::test_override_parametrized_fixture_conftest_conftest', 'testing/python/fixtures.py::TestFillFixtures::test_override_non_parametrized_fixture_conftest_module', 'testing/python/fixtures.py::TestFillFixtures::test_override_non_parametrized_fixture_conftest_conftest', 'testing/python/fixtures.py::TestFillFixtures::test_override_autouse_fixture_with_parametrized_fixture_conftest_conftest', 'testing/python/fixtures.py::TestFillFixtures::test_autouse_fixture_plugin', 'testing/python/fixtures.py::TestFillFixtures::test_funcarg_lookup_error', 'testing/python/fixtures.py::TestFillFixtures::test_fixture_excinfo_leak', 'testing/python/fixtures.py::TestRequestBasic::test_request_attributes', 'testing/python/fixtures.py::TestRequestBasic::test_request_attributes_method', 'testing/python/fixtures.py::TestRequestBasic::test_request_contains_funcarg_arg2fixturedefs', 'testing/python/fixtures.py::TestRequestBasic::test_request_garbage', 'testing/python/fixtures.py::TestRequestBasic::test_getfixturevalue_recursive', 'testing/python/fixtures.py::TestRequestBasic::test_getfixturevalue_teardown', 'testing/python/fixtures.py::TestRequestBasic::test_getfixturevalue[getfixturevalue]', 'testing/python/fixtures.py::TestRequestBasic::test_getfixturevalue[getfuncargvalue]', 'testing/python/fixtures.py::TestRequestBasic::test_request_addfinalizer', 'testing/python/fixtures.py::TestRequestBasic::test_request_addfinalizer_failing_setup', 'testing/python/fixtures.py::TestRequestBasic::test_request_addfinalizer_failing_setup_module', 'testing/python/fixtures.py::TestRequestBasic::test_request_addfinalizer_partial_setup_failure', 'testing/python/fixtures.py::TestRequestBasic::test_request_subrequest_addfinalizer_exceptions', 'testing/python/fixtures.py::TestRequestBasic::test_request_getmodulepath', 'testing/python/fixtures.py::TestRequestBasic::test_request_fixturenames', 'testing/python/fixtures.py::TestRequestBasic::test_request_fixturenames_dynamic_fixture', 'testing/python/fixtures.py::TestRequestBasic::test_funcargnames_compatattr', 'testing/python/fixtures.py::TestRequestBasic::test_setupdecorator_and_xunit', 'testing/python/fixtures.py::TestRequestBasic::test_fixtures_sub_subdir_normalize_sep', 'testing/python/fixtures.py::TestRequestBasic::test_show_fixtures_color_yes', 'testing/python/fixtures.py::TestRequestBasic::test_newstyle_with_request', 'testing/python/fixtures.py::TestRequestBasic::test_setupcontext_no_param', 'testing/python/fixtures.py::TestRequestMarking::test_applymarker', 'testing/python/fixtures.py::TestRequestMarking::test_accesskeywords', 'testing/python/fixtures.py::TestRequestMarking::test_accessmarker_dynamic', 'testing/python/fixtures.py::TestFixtureUsages::test_noargfixturedec', 'testing/python/fixtures.py::TestFixtureUsages::test_receives_funcargs', 'testing/python/fixtures.py::TestFixtureUsages::test_receives_funcargs_scope_mismatch', 'testing/python/fixtures.py::TestFixtureUsages::test_receives_funcargs_scope_mismatch_issue660', 'testing/python/fixtures.py::TestFixtureUsages::test_invalid_scope', 'testing/python/fixtures.py::TestFixtureUsages::test_funcarg_parametrized_and_used_twice', 'testing/python/fixtures.py::TestFixtureUsages::test_factory_uses_unknown_funcarg_as_dependency_error', 'testing/python/fixtures.py::TestFixtureUsages::test_factory_setup_as_classes_fails', 'testing/python/fixtures.py::TestFixtureUsages::test_request_can_be_overridden', 'testing/python/fixtures.py::TestFixtureUsages::test_usefixtures_marker', 'testing/python/fixtures.py::TestFixtureUsages::test_usefixtures_ini', 'testing/python/fixtures.py::TestFixtureUsages::test_usefixtures_seen_in_showmarkers', 'testing/python/fixtures.py::TestFixtureUsages::test_request_instance_issue203', 'testing/python/fixtures.py::TestFixtureUsages::test_fixture_parametrized_with_iterator', 'testing/python/fixtures.py::TestFixtureUsages::test_setup_functions_as_fixtures', 'testing/python/fixtures.py::TestFixtureManagerParseFactories::test_parsefactories_evil_objects_issue214', 'testing/python/fixtures.py::TestFixtureManagerParseFactories::test_parsefactories_conftest', 'testing/python/fixtures.py::TestFixtureManagerParseFactories::test_parsefactories_conftest_and_module_and_class', 'testing/python/fixtures.py::TestFixtureManagerParseFactories::test_parsefactories_relative_node_ids', 'testing/python/fixtures.py::TestFixtureManagerParseFactories::test_package_xunit_fixture', 'testing/python/fixtures.py::TestFixtureManagerParseFactories::test_package_fixture_complex', 'testing/python/fixtures.py::TestFixtureManagerParseFactories::test_collect_custom_items', 'testing/python/fixtures.py::TestAutouseDiscovery::test_parsefactories_conftest', 'testing/python/fixtures.py::TestAutouseDiscovery::test_two_classes_separated_autouse', 'testing/python/fixtures.py::TestAutouseDiscovery::test_setup_at_classlevel', 'testing/python/fixtures.py::TestAutouseDiscovery::test_callables_nocode', 'testing/python/fixtures.py::TestAutouseDiscovery::test_autouse_in_conftests', 'testing/python/fixtures.py::TestAutouseDiscovery::test_autouse_in_module_and_two_classes', 'testing/python/fixtures.py::TestAutouseManagement::test_autouse_conftest_mid_directory', 'testing/python/fixtures.py::TestAutouseManagement::test_funcarg_and_setup', 'testing/python/fixtures.py::TestAutouseManagement::test_uses_parametrized_resource', 'testing/python/fixtures.py::TestAutouseManagement::test_session_parametrized_function', 'testing/python/fixtures.py::TestAutouseManagement::test_class_function_parametrization_finalization', 'testing/python/fixtures.py::TestAutouseManagement::test_scope_ordering', 'testing/python/fixtures.py::TestAutouseManagement::test_parametrization_setup_teardown_ordering', 'testing/python/fixtures.py::TestAutouseManagement::test_ordering_autouse_before_explicit', 'testing/python/fixtures.py::TestAutouseManagement::test_ordering_dependencies_torndown_first[p10-p00]', 'testing/python/fixtures.py::TestAutouseManagement::test_ordering_dependencies_torndown_first[p10-p01]', 'testing/python/fixtures.py::TestAutouseManagement::test_ordering_dependencies_torndown_first[p11-p00]', 'testing/python/fixtures.py::TestAutouseManagement::test_ordering_dependencies_torndown_first[p11-p01]', 'testing/python/fixtures.py::TestFixtureMarker::test_parametrize', 'testing/python/fixtures.py::TestFixtureMarker::test_multiple_parametrization_issue_736', "testing/python/fixtures.py::TestFixtureMarker::test_override_parametrized_fixture_issue_979['fixt,", "testing/python/fixtures.py::TestFixtureMarker::test_override_parametrized_fixture_issue_979['fixt,val']", "testing/python/fixtures.py::TestFixtureMarker::test_override_parametrized_fixture_issue_979[['fixt',", "testing/python/fixtures.py::TestFixtureMarker::test_override_parametrized_fixture_issue_979[('fixt',", 'testing/python/fixtures.py::TestFixtureMarker::test_scope_session', 'testing/python/fixtures.py::TestFixtureMarker::test_scope_session_exc', 'testing/python/fixtures.py::TestFixtureMarker::test_scope_session_exc_two_fix', 'testing/python/fixtures.py::TestFixtureMarker::test_scope_exc', 'testing/python/fixtures.py::TestFixtureMarker::test_scope_module_uses_session', 'testing/python/fixtures.py::TestFixtureMarker::test_scope_module_and_finalizer', 'testing/python/fixtures.py::TestFixtureMarker::test_scope_mismatch_various', 'testing/python/fixtures.py::TestFixtureMarker::test_register_only_with_mark', 'testing/python/fixtures.py::TestFixtureMarker::test_parametrize_and_scope', 'testing/python/fixtures.py::TestFixtureMarker::test_scope_mismatch', 'testing/python/fixtures.py::TestFixtureMarker::test_parametrize_separated_order', 'testing/python/fixtures.py::TestFixtureMarker::test_module_parametrized_ordering', 'testing/python/fixtures.py::TestFixtureMarker::test_dynamic_parametrized_ordering', 'testing/python/fixtures.py::TestFixtureMarker::test_class_ordering', 'testing/python/fixtures.py::TestFixtureMarker::test_parametrize_separated_order_higher_scope_first', 'testing/python/fixtures.py::TestFixtureMarker::test_parametrized_fixture_teardown_order', 'testing/python/fixtures.py::TestFixtureMarker::test_fixture_finalizer', 'testing/python/fixtures.py::TestFixtureMarker::test_class_scope_with_normal_tests', 'testing/python/fixtures.py::TestFixtureMarker::test_request_is_clean', 'testing/python/fixtures.py::TestFixtureMarker::test_parametrize_separated_lifecycle', 'testing/python/fixtures.py::TestFixtureMarker::test_parametrize_function_scoped_finalizers_called', 'testing/python/fixtures.py::TestFixtureMarker::test_finalizer_order_on_parametrization[session]', 'testing/python/fixtures.py::TestFixtureMarker::test_finalizer_order_on_parametrization[function]', 'testing/python/fixtures.py::TestFixtureMarker::test_finalizer_order_on_parametrization[module]', 'testing/python/fixtures.py::TestFixtureMarker::test_class_scope_parametrization_ordering', 'testing/python/fixtures.py::TestFixtureMarker::test_parametrize_setup_function', 'testing/python/fixtures.py::TestFixtureMarker::test_fixture_marked_function_not_collected_as_test', 'testing/python/fixtures.py::TestFixtureMarker::test_params_and_ids', 'testing/python/fixtures.py::TestFixtureMarker::test_params_and_ids_yieldfixture', 'testing/python/fixtures.py::TestFixtureMarker::test_deterministic_fixture_collection', 'testing/python/fixtures.py::TestRequestScopeAccess::test_setup[session--fspath', 'testing/python/fixtures.py::TestRequestScopeAccess::test_setup[module-module', 'testing/python/fixtures.py::TestRequestScopeAccess::test_setup[class-module', 'testing/python/fixtures.py::TestRequestScopeAccess::test_setup[function-module', 'testing/python/fixtures.py::TestRequestScopeAccess::test_funcarg[session--fspath', 'testing/python/fixtures.py::TestRequestScopeAccess::test_funcarg[module-module', 'testing/python/fixtures.py::TestRequestScopeAccess::test_funcarg[class-module', 'testing/python/fixtures.py::TestRequestScopeAccess::test_funcarg[function-module', 'testing/python/fixtures.py::TestErrors::test_subfactory_missing_funcarg', 'testing/python/fixtures.py::TestErrors::test_issue498_fixture_finalizer_failing', 'testing/python/fixtures.py::TestErrors::test_setupfunc_missing_funcarg', 'testing/python/fixtures.py::TestShowFixtures::test_funcarg_compat', 'testing/python/fixtures.py::TestShowFixtures::test_show_fixtures_conftest[True]', 'testing/python/fixtures.py::TestShowFixtures::test_show_fixtures_conftest[False]', 'testing/python/fixtures.py::TestContextManagerFixtureFuncs::test_simple[fixture]', 'testing/python/fixtures.py::TestContextManagerFixtureFuncs::test_simple[yield_fixture]', 'testing/python/fixtures.py::TestContextManagerFixtureFuncs::test_scoped[fixture]', 'testing/python/fixtures.py::TestContextManagerFixtureFuncs::test_scoped[yield_fixture]', 'testing/python/fixtures.py::TestContextManagerFixtureFuncs::test_setup_exception[fixture]', 'testing/python/fixtures.py::TestContextManagerFixtureFuncs::test_setup_exception[yield_fixture]', 'testing/python/fixtures.py::TestContextManagerFixtureFuncs::test_teardown_exception[fixture]', 'testing/python/fixtures.py::TestContextManagerFixtureFuncs::test_teardown_exception[yield_fixture]', 'testing/python/fixtures.py::TestContextManagerFixtureFuncs::test_yields_more_than_one[fixture]', 'testing/python/fixtures.py::TestContextManagerFixtureFuncs::test_yields_more_than_one[yield_fixture]', 'testing/python/fixtures.py::TestContextManagerFixtureFuncs::test_custom_name[fixture]', 'testing/python/fixtures.py::TestContextManagerFixtureFuncs::test_custom_name[yield_fixture]', 'testing/python/fixtures.py::TestParameterizedSubRequest::test_call_from_fixture', 'testing/python/fixtures.py::TestParameterizedSubRequest::test_call_from_test', 'testing/python/fixtures.py::TestParameterizedSubRequest::test_external_fixture', 'testing/python/fixtures.py::TestParameterizedSubRequest::test_non_relative_path', 'testing/python/fixtures.py::test_pytest_fixture_setup_and_post_finalizer_hook', 'testing/python/fixtures.py::TestScopeOrdering::test_func_closure_module_auto[mark]', 'testing/python/fixtures.py::TestScopeOrdering::test_func_closure_module_auto[autouse]', 'testing/python/fixtures.py::TestScopeOrdering::test_func_closure_with_native_fixtures', 'testing/python/fixtures.py::TestScopeOrdering::test_func_closure_module', 'testing/python/fixtures.py::TestScopeOrdering::test_func_closure_scopes_reordered', 'testing/python/fixtures.py::TestScopeOrdering::test_func_closure_same_scope_closer_root_first', 'testing/python/fixtures.py::TestScopeOrdering::test_func_closure_all_scopes_complex', 'testing/python/fixtures.py::TestScopeOrdering::test_multiple_packages'], 'failure': ['testing/python/fixtures.py::TestShowFixtures::test_show_fixtures_testmodule', 'testing/python/fixtures.py::TestShowFixtures::test_show_fixtures_trimmed_doc', 'testing/python/fixtures.py::TestShowFixtures::test_show_fixtures_indented_doc', 'testing/python/fixtures.py::TestShowFixtures::test_show_fixtures_indented_doc_first_line_unindented', 'testing/python/fixtures.py::TestShowFixtures::test_show_fixtures_indented_in_class', 'testing/python/fixtures.py::TestShowFixtures::test_show_fixtures_different_files', 'testing/python/fixtures.py::TestShowFixtures::test_show_fixtures_with_same_name']}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for pytest-dev__pytest-5221: resolved: False
+2026-05-20 00:34:58,893 - INFO - Attempting to stop container sweb.eval.pytest-dev__pytest-5221.zhikuncode_eval_300_FINAL...
+2026-05-20 00:35:24,294 - INFO - Attempting to remove container sweb.eval.pytest-dev__pytest-5221.zhikuncode_eval_300_FINAL...
+2026-05-20 00:35:24,348 - INFO - Container sweb.eval.pytest-dev__pytest-5221.zhikuncode_eval_300_FINAL removed.
+2026-05-20 00:35:24,348 - INFO - Attempting to remove image sweb.eval.x86_64.pytest-dev__pytest-5221:latest...
+2026-05-20 00:35:24,584 - INFO - Image sweb.eval.x86_64.pytest-dev__pytest-5221:latest removed.

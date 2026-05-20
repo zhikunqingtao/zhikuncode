@@ -1,0 +1,553 @@
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z '' ']'
++++ export CONDA_SHLVL=0
++++ CONDA_SHLVL=0
++++ '[' -n '' ']'
++++++ dirname /opt/miniconda3/bin/conda
+++++ dirname /opt/miniconda3/bin
++++ PATH=/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export PATH
++++ '[' -z '' ']'
++++ PS1=
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1=
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval 'PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=1
++++ CONDA_SHLVL=1
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\''
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libglib_activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libxml2-split_activate.sh"'
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\''
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libglib_activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libxml2-split_activate.sh"'
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=2
+++ CONDA_SHLVL=2
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_1=/opt/miniconda3
+++ CONDA_PREFIX_1=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/libglib_activate.sh
++++ export GSETTINGS_SCHEMA_DIR_CONDA_BACKUP=
++++ GSETTINGS_SCHEMA_DIR_CONDA_BACKUP=
++++ export GSETTINGS_SCHEMA_DIR=/opt/miniconda3/envs/testbed/share/glib-2.0/schemas
++++ GSETTINGS_SCHEMA_DIR=/opt/miniconda3/envs/testbed/share/glib-2.0/schemas
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/libxml2-split_activate.sh
++++ test -n ''
++++ xml_catalog_files_libxml2=
++++ XML_CATALOG_FILES=
++++ conda_catalog_files=
++++ ifs_libxml2=' 	
+'
++++ IFS=' '
++++ rem=/opt/miniconda3/envs/testbed
++++ for pre in ${rem}
++++ test '' = /opt/miniconda3/envs/testbed
++++ conda_catalog_files=/opt/miniconda3/envs/testbed
++++ rem=
++++ IFS=' 	
+'
++++ conda_catalog_files='file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog'
++++ export 'XML_CATALOG_FILES=file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog'
++++ XML_CATALOG_FILES='file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog'
++++ unset conda_catalog_files ifs_libxml2 rem
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ cd /testbed
++ git config --global --add safe.directory /testbed
++ cd /testbed
++ git status
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   lib/mpl_toolkits/mplot3d/art3d.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
++ git show
+commit 221718886bb1f7abc12aa52495543fd792e8ecb1
+Author: SWE-bench <setup@swebench.config>
+Date:   Tue May 19 16:08:11 2026 +0000
+
+    SWE-bench
++ git -c core.fileMode=false diff 29a86636a9c45ab5ac4d80ac76eaee497f460dce
+diff --git a/lib/mpl_toolkits/mplot3d/art3d.py b/lib/mpl_toolkits/mplot3d/art3d.py
+index 8fe6e7a9c1..aa4dd62536 100644
+--- a/lib/mpl_toolkits/mplot3d/art3d.py
++++ b/lib/mpl_toolkits/mplot3d/art3d.py
+@@ -867,10 +867,10 @@ class Poly3DCollection(PolyCollection):
+         self.stale = True
+ 
+     def get_facecolor(self):
+-        return self._facecolors2d
++        return getattr(self, '_facecolors2d', self._facecolor3d)
+ 
+     def get_edgecolor(self):
+-        return self._edgecolors2d
++        return getattr(self, '_edgecolors2d', self._edgecolor3d)
+ 
+ 
+ def poly_collection_2d_to_3d(col, zs=0, zdir='z'):
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z x ']'
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1='(testbed) '
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='. "/opt/miniconda3/envs/testbed/etc/conda/deactivate.d/libglib_deactivate.sh"
+PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval '. "/opt/miniconda3/envs/testbed/etc/conda/deactivate.d/libglib_deactivate.sh"
+PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ . /opt/miniconda3/envs/testbed/etc/conda/deactivate.d/libglib_deactivate.sh
+++++ export GSETTINGS_SCHEMA_DIR=
+++++ GSETTINGS_SCHEMA_DIR=
+++++ unset GSETTINGS_SCHEMA_DIR_CONDA_BACKUP
+++++ '[' -z ']'
+++++ unset GSETTINGS_SCHEMA_DIR
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=3
++++ CONDA_SHLVL=3
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\''
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libglib_activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libxml2-split_activate.sh"'
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\''
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libglib_activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libxml2-split_activate.sh"'
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=4
+++ CONDA_SHLVL=4
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_3=/opt/miniconda3
+++ CONDA_PREFIX_3=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/libglib_activate.sh
++++ export GSETTINGS_SCHEMA_DIR_CONDA_BACKUP=
++++ GSETTINGS_SCHEMA_DIR_CONDA_BACKUP=
++++ export GSETTINGS_SCHEMA_DIR=/opt/miniconda3/envs/testbed/share/glib-2.0/schemas
++++ GSETTINGS_SCHEMA_DIR=/opt/miniconda3/envs/testbed/share/glib-2.0/schemas
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/libxml2-split_activate.sh
++++ test -n 'file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog'
++++ xml_catalog_files_libxml2='file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog'
++++ XML_CATALOG_FILES='file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog '
++++ conda_catalog_files=
++++ ifs_libxml2=' 	
+'
++++ IFS=' '
++++ rem=/opt/miniconda3/envs/testbed
++++ for pre in ${rem}
++++ test '' = /opt/miniconda3/envs/testbed
++++ conda_catalog_files=/opt/miniconda3/envs/testbed
++++ rem=
++++ IFS=' 	
+'
++++ conda_catalog_files='file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog'
++++ export 'XML_CATALOG_FILES=file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog'
++++ XML_CATALOG_FILES='file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog'
++++ unset conda_catalog_files ifs_libxml2 rem
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ python -m pip install -e .
+Looking in indexes: https://mirrors.aliyun.com/pypi/simple/
+Obtaining file:///testbed
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Checking if build backend supports build_editable: started
+  Checking if build backend supports build_editable: finished with status 'done'
+  Getting requirements to build editable: started
+  Getting requirements to build editable: finished with status 'done'
+  Installing backend dependencies: started
+  Installing backend dependencies: finished with status 'done'
+  Preparing editable metadata (pyproject.toml): started
+  Preparing editable metadata (pyproject.toml): finished with status 'done'
+Requirement already satisfied: contourpy>=1.0.1 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev2841+g221718886.d20260519) (1.1.0)
+Requirement already satisfied: cycler>=0.10 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev2841+g221718886.d20260519) (0.11.0)
+Requirement already satisfied: fonttools>=4.22.0 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev2841+g221718886.d20260519) (4.42.1)
+Requirement already satisfied: kiwisolver>=1.0.1 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev2841+g221718886.d20260519) (1.4.5)
+Requirement already satisfied: numpy>=1.19 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev2841+g221718886.d20260519) (1.25.2)
+Requirement already satisfied: packaging>=20.0 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev2841+g221718886.d20260519) (23.1)
+Requirement already satisfied: pillow>=6.2.0 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev2841+g221718886.d20260519) (10.0.0)
+Requirement already satisfied: pyparsing>=2.2.1 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev2841+g221718886.d20260519) (3.0.9)
+Requirement already satisfied: python-dateutil>=2.7 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev2841+g221718886.d20260519) (2.8.2)
+Requirement already satisfied: setuptools_scm>=4 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev2841+g221718886.d20260519) (7.1.0)
+Requirement already satisfied: six>=1.5 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from python-dateutil>=2.7->matplotlib==3.6.0.dev2841+g221718886.d20260519) (1.16.0)
+Requirement already satisfied: setuptools in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from setuptools_scm>=4->matplotlib==3.6.0.dev2841+g221718886.d20260519) (68.1.2)
+Requirement already satisfied: typing-extensions in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from setuptools_scm>=4->matplotlib==3.6.0.dev2841+g221718886.d20260519) (4.7.1)
+Building wheels for collected packages: matplotlib
+  Building editable for matplotlib (pyproject.toml): started
+  Building editable for matplotlib (pyproject.toml): finished with status 'done'
+  Created wheel for matplotlib: filename=matplotlib-3.6.0.dev2841+g221718886.d20260519-0.editable-cp311-cp311-linux_x86_64.whl size=24214 sha256=47ff1d46f99a521f49ccfdeb1dae28a6ac07bc33815471ea460260f4dfa31551
+  Stored in directory: /tmp/pip-ephem-wheel-cache-v33s41jd/wheels/49/5f/4f/01b7d31ea6ddac9643da788242d33e5fd3467d95d17b032c6b
+Successfully built matplotlib
+Installing collected packages: matplotlib
+  Attempting uninstall: matplotlib
+    Found existing installation: matplotlib 3.6.0.dev2840+g29a86636a
+    Uninstalling matplotlib-3.6.0.dev2840+g29a86636a:
+      Successfully uninstalled matplotlib-3.6.0.dev2840+g29a86636a
+Successfully installed matplotlib-3.6.0.dev2841+g221718886.d20260519
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
++ git checkout 29a86636a9c45ab5ac4d80ac76eaee497f460dce lib/mpl_toolkits/tests/test_mplot3d.py
+Updated 0 paths from 89321a1bd6
++ git apply -v -
+Checking patch lib/mpl_toolkits/tests/test_mplot3d.py...
+Applied patch lib/mpl_toolkits/tests/test_mplot3d.py cleanly.
++ : '>>>>> Start Test Output'
++ pytest -rA lib/mpl_toolkits/tests/test_mplot3d.py
+============================= test session starts ==============================
+platform linux -- Python 3.11.15, pytest-9.0.3, pluggy-1.6.0
+rootdir: /testbed
+configfile: pytest.ini
+plugins: timeout-2.4.0, rerunfailures-16.2, cov-7.1.0, xdist-3.8.0
+collected 138 items
+
+lib/mpl_toolkits/tests/test_mplot3d.py ................................. [ 23%]
+........................................................................ [ 76%]
+.................................                                        [100%]
+
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_invisible_axes[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_aspects[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_axes3d_repr
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_bar3d[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_bar3d_colors
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_bar3d_shaded[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_bar3d_notshaded[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_bar3d_lightsource
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_contour3d[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_contour3d_extend3d[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_contourf3d[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_contourf3d_fill[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_contourf3d_extend[png-both-levels0]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_contourf3d_extend[png-min-levels1]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_contourf3d_extend[png-max-levels2]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_tricontour[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_contour3d_1d_input
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_lines3d[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_plot_scalar[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_mixedsubplots[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_tight_layout_text[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_scatter3d[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_scatter3d_color[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_scatter3d_linewidth[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_scatter3d_linewidth_modification[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_scatter3d_modification[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_scatter3d_sorting[png-True]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_scatter3d_sorting[png-False]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_marker_draw_order_data_reversed[png--50]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_marker_draw_order_data_reversed[png-130]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_marker_draw_order_view_rotated[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_plot_3d_from_2d[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_surface3d[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_surface3d_shaded[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_surface3d_masked[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_surface3d_masked_strides[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_text3d[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_text3d_modification[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_trisurf3d[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_trisurf3d_shaded[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_wireframe3d[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_wireframe3dzerocstride[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_wireframe3dzerorstride[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_wireframe3dzerostrideraises
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_mixedsamplesraises
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_quiver3d[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_quiver3d_empty[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_quiver3d_masked[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_patch_modification
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_patch_collection_modification[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_poly3dcollection_verts_validation
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_poly3dcollection_closed[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_poly_collection_2d_to_3d_empty
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_poly3dcollection_alpha[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_add_collection3d_zs_array[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_add_collection3d_zs_scalar[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_axes3d_labelpad[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_axes3d_cla[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_axes3d_rotated[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_plotsurface_1d_raises
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_proj_transform
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_proj_axes_cube[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_proj_axes_cube_ortho[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_rot
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_world
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_lines_dists[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_lines_dists_nowarning
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_autoscale
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_unautoscale[True-x]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_unautoscale[True-y]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_unautoscale[True-z]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_unautoscale[False-x]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_unautoscale[False-y]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_unautoscale[False-z]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_unautoscale[None-x]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_unautoscale[None-y]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_unautoscale[None-z]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_axes3d_focal_length_checks
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_axes3d_focal_length[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_axes3d_ortho[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_axes3d_isometric[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_invalid_axes_limits[set_xlim3d-left-inf]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_invalid_axes_limits[set_xlim3d-left-nan]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_invalid_axes_limits[set_xlim3d-right-inf]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_invalid_axes_limits[set_xlim3d-right-nan]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_invalid_axes_limits[set_ylim3d-bottom-inf]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_invalid_axes_limits[set_ylim3d-bottom-nan]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_invalid_axes_limits[set_ylim3d-top-inf]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_invalid_axes_limits[set_ylim3d-top-nan]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_invalid_axes_limits[set_zlim3d-bottom-inf]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_invalid_axes_limits[set_zlim3d-bottom-nan]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_invalid_axes_limits[set_zlim3d-top-inf]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_invalid_axes_limits[set_zlim3d-top-nan]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::TestVoxels::test_simple[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::TestVoxels::test_edge_style[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::TestVoxels::test_named_colors[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::TestVoxels::test_rgb_data[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::TestVoxels::test_alpha[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::TestVoxels::test_xyz[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::TestVoxels::test_calling_conventions
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_line3d_set_get_data_3d
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_inverted[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_inverted_cla
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_ax3d_tickcolour
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_ticklabel_format[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_quiver3D_smoke[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_minor_ticks[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_errorbar3d_errorevery[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_errorbar3d[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_stem3d[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_equal_box_aspect[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_colorbar_pos
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_shared_axes_retick
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_pan
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_scalarmap_update[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_subfigure_simple
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_computed_zorder[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_format_coord
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_get_axis_position
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_margins
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_margins_errors[ValueError-args0-kwargs0-margin must be greater than -0\\.5]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_margins_errors[ValueError-args1-kwargs1-margin must be greater than -0\\.5]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_margins_errors[ValueError-args2-kwargs2-margin must be greater than -0\\.5]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_margins_errors[ValueError-args3-kwargs3-margin must be greater than -0\\.5]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_margins_errors[ValueError-args4-kwargs4-margin must be greater than -0\\.5]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_margins_errors[ValueError-args5-kwargs5-margin must be greater than -0\\.5]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_margins_errors[TypeError-args6-kwargs6-Cannot pass both positional and keyword]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_margins_errors[TypeError-args7-kwargs7-Cannot pass both positional and keyword]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_margins_errors[TypeError-args8-kwargs8-Cannot pass both positional and keyword]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_margins_errors[TypeError-args9-kwargs9-Must pass a single positional argument for]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_text_3d[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_pathpatch_3d[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_scatter_spiral[png]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_Poly3DCollection_get_facecolor
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_Poly3DCollection_get_edgecolor
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_view_init_vertical_axis[z-proj_expected0-axis_lines_expected0-tickdirs_expected0]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_view_init_vertical_axis[y-proj_expected1-axis_lines_expected1-tickdirs_expected1]
+PASSED lib/mpl_toolkits/tests/test_mplot3d.py::test_view_init_vertical_axis[x-proj_expected2-axis_lines_expected2-tickdirs_expected2]
+============================= 138 passed in 10.90s =============================
++ : '>>>>> End Test Output'
++ git checkout 29a86636a9c45ab5ac4d80ac76eaee497f460dce lib/mpl_toolkits/tests/test_mplot3d.py
+Updated 1 path from 89321a1bd6

@@ -1,0 +1,21 @@
+diff --git a/sympy/printing/pretty/pretty.py b/sympy/printing/pretty/pretty.py
+index df7452e..38babd6 100644
+--- a/sympy/printing/pretty/pretty.py
++++ b/sympy/printing/pretty/pretty.py
+@@ -1903,6 +1903,7 @@ def _print_Mul(self, product):
+ 
+     # A helper function for _print_Pow to print x**(1/n)
+     def _print_nth_root(self, base, expt):
++        from sympy.simplify.simplify import fraction
+         bpretty = self._print(base)
+ 
+         # In very simple cases, use a single-char root sign
+@@ -1921,7 +1922,7 @@ def _print_nth_root(self, base, expt):
+             if exp == '2':
+                 exp = ''
+         else:
+-            exp = str(expt.args[0])
++            exp = str(fraction(expt)[1])
+         exp = exp.ljust(2)
+         if len(exp) > 2:
+             rootsign = ' '*(len(exp) - 2) + rootsign

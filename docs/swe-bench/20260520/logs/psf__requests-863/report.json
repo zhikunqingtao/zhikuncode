@@ -1,0 +1,92 @@
+{
+    "psf__requests-863": {
+        "patch_is_None": false,
+        "patch_exists": true,
+        "patch_successfully_applied": true,
+        "resolved": true,
+        "tests_status": {
+            "FAIL_TO_PASS": {
+                "success": [
+                    "tests/test_requests.py::RequestsTestSuite::test_POSTBIN_GET_POST_FILES_WITH_HEADERS",
+                    "tests/test_requests.py::RequestsTestSuite::test_nonurlencoded_postdata",
+                    "tests/test_requests.py::RequestsTestSuite::test_prefetch_redirect_bug",
+                    "tests/test_requests.py::RequestsTestSuite::test_urlencoded_post_data"
+                ],
+                "failure": []
+            },
+            "PASS_TO_PASS": {
+                "success": [
+                    "tests/test_requests.py::RequestsTestSuite::test_BASICAUTH_HTTP_200_OK_GET",
+                    "tests/test_requests.py::RequestsTestSuite::test_BASICAUTH_TUPLE_HTTP_200_OK_GET",
+                    "tests/test_requests.py::RequestsTestSuite::test_GET_no_redirect",
+                    "tests/test_requests.py::RequestsTestSuite::test_HEAD_no_redirect",
+                    "tests/test_requests.py::RequestsTestSuite::test_HTTP_200_OK_GET",
+                    "tests/test_requests.py::RequestsTestSuite::test_HTTP_200_OK_GET_WITH_MIXED_PARAMS",
+                    "tests/test_requests.py::RequestsTestSuite::test_HTTP_200_OK_GET_WITH_PARAMS",
+                    "tests/test_requests.py::RequestsTestSuite::test_HTTP_200_OK_HEAD",
+                    "tests/test_requests.py::RequestsTestSuite::test_HTTP_200_OK_PUT",
+                    "tests/test_requests.py::RequestsTestSuite::test_HTTP_302_ALLOW_REDIRECT_GET",
+                    "tests/test_requests.py::RequestsTestSuite::test_HTTP_302_GET",
+                    "tests/test_requests.py::RequestsTestSuite::test_POSTBIN_GET_POST_FILES",
+                    "tests/test_requests.py::RequestsTestSuite::test_POSTBIN_GET_POST_FILES_WITH_PARAMS",
+                    "tests/test_requests.py::RequestsTestSuite::test_accept_objects_with_string_representations_as_urls",
+                    "tests/test_requests.py::RequestsTestSuite::test_bytes_files",
+                    "tests/test_requests.py::RequestsTestSuite::test_cached_response",
+                    "tests/test_requests.py::RequestsTestSuite::test_can_have_none_in_header_values",
+                    "tests/test_requests.py::RequestsTestSuite::test_connection_error",
+                    "tests/test_requests.py::RequestsTestSuite::test_connection_error_with_safe_mode",
+                    "tests/test_requests.py::RequestsTestSuite::test_connection_keepalive_and_close",
+                    "tests/test_requests.py::RequestsTestSuite::test_danger_mode_redirects",
+                    "tests/test_requests.py::RequestsTestSuite::test_decompress_gzip",
+                    "tests/test_requests.py::RequestsTestSuite::test_default_status_raising",
+                    "tests/test_requests.py::RequestsTestSuite::test_empty_response",
+                    "tests/test_requests.py::RequestsTestSuite::test_entry_points",
+                    "tests/test_requests.py::RequestsTestSuite::test_file_post_data",
+                    "tests/test_requests.py::RequestsTestSuite::test_head_content",
+                    "tests/test_requests.py::RequestsTestSuite::test_httpauth_recursion",
+                    "tests/test_requests.py::RequestsTestSuite::test_invalid_url",
+                    "tests/test_requests.py::RequestsTestSuite::test_invalid_urls_throw_requests_exception",
+                    "tests/test_requests.py::RequestsTestSuite::test_iter_lines",
+                    "tests/test_requests.py::RequestsTestSuite::test_max_redirects",
+                    "tests/test_requests.py::RequestsTestSuite::test_multiple_hooks",
+                    "tests/test_requests.py::RequestsTestSuite::test_nonurlencoded_post_data",
+                    "tests/test_requests.py::RequestsTestSuite::test_nonzero_evaluation",
+                    "tests/test_requests.py::RequestsTestSuite::test_params_accepts_kv_list",
+                    "tests/test_requests.py::RequestsTestSuite::test_params_are_added_before_fragment",
+                    "tests/test_requests.py::RequestsTestSuite::test_path_is_not_double_encoded",
+                    "tests/test_requests.py::RequestsTestSuite::test_post_fields_with_multiple_values_and_files",
+                    "tests/test_requests.py::RequestsTestSuite::test_post_fields_with_multiple_values_and_files_as_tuples",
+                    "tests/test_requests.py::RequestsTestSuite::test_prefetch_return_response_interaction",
+                    "tests/test_requests.py::RequestsTestSuite::test_redirect_history",
+                    "tests/test_requests.py::RequestsTestSuite::test_relative_redirect_history",
+                    "tests/test_requests.py::RequestsTestSuite::test_request_ok_set",
+                    "tests/test_requests.py::RequestsTestSuite::test_response_has_unicode_url",
+                    "tests/test_requests.py::RequestsTestSuite::test_response_sent",
+                    "tests/test_requests.py::RequestsTestSuite::test_session_HTTP_200_OK_GET",
+                    "tests/test_requests.py::RequestsTestSuite::test_session_persistent_headers",
+                    "tests/test_requests.py::RequestsTestSuite::test_session_pickling",
+                    "tests/test_requests.py::RequestsTestSuite::test_status_raising",
+                    "tests/test_requests.py::RequestsTestSuite::test_unicode_get",
+                    "tests/test_requests.py::RequestsTestSuite::test_upload_binary_data",
+                    "tests/test_requests.py::RequestsTestSuite::test_urlencoded_get_query_multivalued_param",
+                    "tests/test_requests.py::RequestsTestSuite::test_urlencoded_post_query_and_data",
+                    "tests/test_requests.py::RequestsTestSuite::test_urlencoded_post_query_multivalued_and_data",
+                    "tests/test_requests.py::RequestsTestSuite::test_urlencoded_post_querystring",
+                    "tests/test_requests.py::RequestsTestSuite::test_urlencoded_post_querystring_multivalued",
+                    "tests/test_requests.py::RequestsTestSuite::test_useful_exception_for_invalid_port",
+                    "tests/test_requests.py::RequestsTestSuite::test_useful_exception_for_invalid_scheme",
+                    "tests/test_requests.py::RequestsTestSuite::test_user_agent_transfers"
+                ],
+                "failure": []
+            },
+            "FAIL_TO_FAIL": {
+                "success": [],
+                "failure": []
+            },
+            "PASS_TO_FAIL": {
+                "success": [],
+                "failure": []
+            }
+        }
+    }
+}

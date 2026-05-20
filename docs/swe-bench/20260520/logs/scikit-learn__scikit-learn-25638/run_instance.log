@@ -1,0 +1,239 @@
+2026-05-20 00:57:39,342 - INFO - Environment image sweb.env.py.x86_64.3a59860bcd0dab8bbfb2ff:latest found for scikit-learn__scikit-learn-25638
+Building instance image sweb.eval.x86_64.scikit-learn__scikit-learn-25638:latest for scikit-learn__scikit-learn-25638
+2026-05-20 00:59:59,996 - INFO - Creating container for scikit-learn__scikit-learn-25638...
+2026-05-20 01:00:00,082 - INFO - Container for scikit-learn__scikit-learn-25638 created: 4092706ca6a3aafc28a4828b11d2060971da890c370ea951203857aee3821e88
+2026-05-20 01:00:00,208 - INFO - Container for scikit-learn__scikit-learn-25638 started: 4092706ca6a3aafc28a4828b11d2060971da890c370ea951203857aee3821e88
+2026-05-20 01:00:00,208 - INFO - Intermediate patch for scikit-learn__scikit-learn-25638 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/scikit-learn__scikit-learn-25638/patch.diff, now applying to container...
+2026-05-20 01:00:00,256 - INFO - >>>>> Applied Patch:
+Checking patch sklearn/utils/multiclass.py...
+Applied patch sklearn/utils/multiclass.py cleanly.
+
+2026-05-20 01:00:00,450 - INFO - Git diff before:
+diff --git a/sklearn/utils/multiclass.py b/sklearn/utils/multiclass.py
+index 5eaef2fde..703960418 100644
+--- a/sklearn/utils/multiclass.py
++++ b/sklearn/utils/multiclass.py
+@@ -106,6 +106,9 @@ def unique_labels(*ys):
+     if not _unique_labels:
+         raise ValueError("Unknown label type: %s" % repr(ys))
+ 
++    # Convert pandas nullable dtypes to numpy-compatible dtypes
++    ys = [_convert_pandas_nullable_dtype(y) for y in ys]
++
+     if is_array_api:
+         # array_api does not allow for mixed dtypes
+         unique_ys = xp.concat([_unique_labels(y) for y in ys])
+@@ -119,6 +122,50 @@ def unique_labels(*ys):
+     return xp.asarray(sorted(ys_labels))
+ 
+ 
++def _is_pandas_nullable_dtype(y):
++    """Check if y is a pandas object with nullable extension dtype.
++
++    Pandas nullable dtypes (Int64, Float64, boolean, string, etc.) convert
++    to object dtype when converted to numpy arrays if they contain NA values.
++    This function detects such cases so we can handle them appropriately.
++    """
++    if not hasattr(y, "dtype"):
++        return False
++
++    try:
++        from pandas.api.types import is_extension_array_dtype
++
++        return is_extension_array_dtype(y.dtype)
++    except ImportError:
++        return False
++
++
++def _convert_pandas_nullable_dtype(y):
++    """Convert pandas nullable extension dtypes to numpy-compatible dtypes.
++
++    Pandas nullable dtypes (Int64, Float64, boolean) need special handling
++    because they convert to object dtype when containing NA values.
++    """
++    if not _is_pandas_nullable_dtype(y):
++        return y
++
++    try:
++        from pandas.api.types import is_integer_dtype, is_float_dtype, is_bool_dtype
++    except ImportError:
++        return y
++
++    # Convert nullable dtypes to their numpy equivalents
++    # NA values will be converted to np.nan for numeric types
++    if is_integer_dtype(y.dtype) or is_float_dtype(y.dtype):
++        return y.to_numpy(dtype=float, na_value=np.nan)
++    elif is_bool_dtype(y.dtype):
++        # For boolean with NA, convert to object array but replace pd.NA with np.nan
++        # so that type inference can still work
++        return y.to_numpy(dtype=object, na_value=np.nan)
++
++    return y
++
++
+ def _is_integral_float(y):
+     return y.dtype.kind == "f" and np.all(y.astype(int) == y)
+ 
+@@ -298,6 +345,10 @@ def type_of_target(y, input_name=""):
+     if is_multilabel(y):
+         return "multilabel-indicator"
+ 
++    # Handle pandas nullable extension dtypes (Int64, Float64, boolean)
++    # These convert to object dtype when containing NA values
++    y = _convert_pandas_nullable_dtype(y)
++
+     # DeprecationWarning will be replaced by ValueError, see NEP 34
+     # https://numpy.org/neps/nep-0034-infer-dtype-is-object.html
+     # We therefore catch both deprecation (NumPy < 1.24) warning and
+@@ -342,7 +393,14 @@ def type_of_target(y, input_name=""):
+         return "unknown"
+     if not issparse(y) and y.dtype == object and not isinstance(y.flat[0], str):
+         # [obj_1] and not ["label_1"]
+-        return "unknown"
++        # Check if it's a boolean array with NaN from pandas nullable boolean dtype
++        # In that case, all non-NaN elements should be bool
++        is_nullable_boolean = all(
++            isinstance(val, (bool, np.bool_)) or (isinstance(val, float) and np.isnan(val))
++            for val in y.flat
++        )
++        if not is_nullable_boolean:
++            return "unknown"
+ 
+     # Check if multioutput
+     if y.ndim == 2 and y.shape[1] > 1:
+@@ -354,7 +412,15 @@ def type_of_target(y, input_name=""):
+     if y.dtype.kind == "f":
+         # [.1, .2, 3] or [[.1, .2, 3]] or [[1., .2]] and not [1., 2., 3.]
+         data = y.data if issparse(y) else y
+-        if xp.any(data != data.astype(int)):
++        # Handle NaN values from pandas nullable dtypes - they compare as not equal
++        # to their integer cast, so we need to mask them out
++        if issparse(y):
++            is_not_nan = ~xp.isnan(data)
++            has_non_integer_float = xp.any(data[is_not_nan] != data[is_not_nan].astype(int))
++        else:
++            is_not_nan = ~xp.isnan(data)
++            has_non_integer_float = xp.any(data[is_not_nan] != data[is_not_nan].astype(int))
++        if has_non_integer_float:
+             _assert_all_finite(data, input_name=input_name)
+             return "continuous" + suffix
+2026-05-20 01:00:00,450 - INFO - Eval script for scikit-learn__scikit-learn-25638 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/scikit-learn__scikit-learn-25638/eval.sh; copying to container...
+2026-05-20 01:00:01,188 - INFO - Test runtime: 0.71 seconds
+2026-05-20 01:00:01,188 - INFO - Test output for scikit-learn__scikit-learn-25638 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/scikit-learn__scikit-learn-25638/test_output.txt
+2026-05-20 01:00:01,215 - INFO - Git diff after:
+diff --git a/sklearn/utils/multiclass.py b/sklearn/utils/multiclass.py
+index 5eaef2fde..703960418 100644
+--- a/sklearn/utils/multiclass.py
++++ b/sklearn/utils/multiclass.py
+@@ -106,6 +106,9 @@ def unique_labels(*ys):
+     if not _unique_labels:
+         raise ValueError("Unknown label type: %s" % repr(ys))
+ 
++    # Convert pandas nullable dtypes to numpy-compatible dtypes
++    ys = [_convert_pandas_nullable_dtype(y) for y in ys]
++
+     if is_array_api:
+         # array_api does not allow for mixed dtypes
+         unique_ys = xp.concat([_unique_labels(y) for y in ys])
+@@ -119,6 +122,50 @@ def unique_labels(*ys):
+     return xp.asarray(sorted(ys_labels))
+ 
+ 
++def _is_pandas_nullable_dtype(y):
++    """Check if y is a pandas object with nullable extension dtype.
++
++    Pandas nullable dtypes (Int64, Float64, boolean, string, etc.) convert
++    to object dtype when converted to numpy arrays if they contain NA values.
++    This function detects such cases so we can handle them appropriately.
++    """
++    if not hasattr(y, "dtype"):
++        return False
++
++    try:
++        from pandas.api.types import is_extension_array_dtype
++
++        return is_extension_array_dtype(y.dtype)
++    except ImportError:
++        return False
++
++
++def _convert_pandas_nullable_dtype(y):
++    """Convert pandas nullable extension dtypes to numpy-compatible dtypes.
++
++    Pandas nullable dtypes (Int64, Float64, boolean) need special handling
++    because they convert to object dtype when containing NA values.
++    """
++    if not _is_pandas_nullable_dtype(y):
++        return y
++
++    try:
++        from pandas.api.types import is_integer_dtype, is_float_dtype, is_bool_dtype
++    except ImportError:
++        return y
++
++    # Convert nullable dtypes to their numpy equivalents
++    # NA values will be converted to np.nan for numeric types
++    if is_integer_dtype(y.dtype) or is_float_dtype(y.dtype):
++        return y.to_numpy(dtype=float, na_value=np.nan)
++    elif is_bool_dtype(y.dtype):
++        # For boolean with NA, convert to object array but replace pd.NA with np.nan
++        # so that type inference can still work
++        return y.to_numpy(dtype=object, na_value=np.nan)
++
++    return y
++
++
+ def _is_integral_float(y):
+     return y.dtype.kind == "f" and np.all(y.astype(int) == y)
+ 
+@@ -298,6 +345,10 @@ def type_of_target(y, input_name=""):
+     if is_multilabel(y):
+         return "multilabel-indicator"
+ 
++    # Handle pandas nullable extension dtypes (Int64, Float64, boolean)
++    # These convert to object dtype when containing NA values
++    y = _convert_pandas_nullable_dtype(y)
++
+     # DeprecationWarning will be replaced by ValueError, see NEP 34
+     # https://numpy.org/neps/nep-0034-infer-dtype-is-object.html
+     # We therefore catch both deprecation (NumPy < 1.24) warning and
+@@ -342,7 +393,14 @@ def type_of_target(y, input_name=""):
+         return "unknown"
+     if not issparse(y) and y.dtype == object and not isinstance(y.flat[0], str):
+         # [obj_1] and not ["label_1"]
+-        return "unknown"
++        # Check if it's a boolean array with NaN from pandas nullable boolean dtype
++        # In that case, all non-NaN elements should be bool
++        is_nullable_boolean = all(
++            isinstance(val, (bool, np.bool_)) or (isinstance(val, float) and np.isnan(val))
++            for val in y.flat
++        )
++        if not is_nullable_boolean:
++            return "unknown"
+ 
+     # Check if multioutput
+     if y.ndim == 2 and y.shape[1] > 1:
+@@ -354,7 +412,15 @@ def type_of_target(y, input_name=""):
+     if y.dtype.kind == "f":
+         # [.1, .2, 3] or [[.1, .2, 3]] or [[1., .2]] and not [1., 2., 3.]
+         data = y.data if issparse(y) else y
+-        if xp.any(data != data.astype(int)):
++        # Handle NaN values from pandas nullable dtypes - they compare as not equal
++        # to their integer cast, so we need to mask them out
++        if issparse(y):
++            is_not_nan = ~xp.isnan(data)
++            has_non_integer_float = xp.any(data[is_not_nan] != data[is_not_nan].astype(int))
++        else:
++            is_not_nan = ~xp.isnan(data)
++            has_non_integer_float = xp.any(data[is_not_nan] != data[is_not_nan].astype(int))
++        if has_non_integer_float:
+             _assert_all_finite(data, input_name=input_name)
+             return "continuous" + suffix
+2026-05-20 01:00:01,215 - INFO - Grading answer for scikit-learn__scikit-learn-25638...
+2026-05-20 01:00:01,221 - INFO - report: {'scikit-learn__scikit-learn-25638': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['sklearn/metrics/tests/test_classification.py::test_confusion_matrix_pandas_nullable[Int64]', 'sklearn/metrics/tests/test_classification.py::test_confusion_matrix_pandas_nullable[Float64]', 'sklearn/metrics/tests/test_classification.py::test_confusion_matrix_pandas_nullable[boolean]', 'sklearn/preprocessing/tests/test_label.py::test_label_binarizer_pandas_nullable[Int64]', 'sklearn/preprocessing/tests/test_label.py::test_label_binarizer_pandas_nullable[Float64]', 'sklearn/preprocessing/tests/test_label.py::test_label_binarizer_pandas_nullable[boolean]', 'sklearn/utils/tests/test_multiclass.py::test_type_of_target_pandas_nullable', 'sklearn/utils/tests/test_multiclass.py::test_unique_labels_pandas_nullable[Int64]', 'sklearn/utils/tests/test_multiclass.py::test_unique_labels_pandas_nullable[Float64]', 'sklearn/utils/tests/test_multiclass.py::test_unique_labels_pandas_nullable[boolean]']}, 'PASS_TO_PASS': {'success': [], 'failure': ['sklearn/metrics/tests/test_classification.py::test_classification_report_dictionary_output', 'sklearn/metrics/tests/test_classification.py::test_classification_report_output_dict_empty_input', 'sklearn/metrics/tests/test_classification.py::test_classification_report_zero_division_warning[warn]', 'sklearn/metrics/tests/test_classification.py::test_classification_report_zero_division_warning[0]', 'sklearn/metrics/tests/test_classification.py::test_classification_report_zero_division_warning[1]', 'sklearn/metrics/tests/test_classification.py::test_multilabel_accuracy_score_subset_accuracy', 'sklearn/metrics/tests/test_classification.py::test_precision_recall_f1_score_binary', 'sklearn/metrics/tests/test_classification.py::test_precision_recall_f_binary_single_class', 'sklearn/metrics/tests/test_classification.py::test_precision_recall_f_extra_labels', 'sklearn/metrics/tests/test_classification.py::test_precision_recall_f_ignored_labels', 'sklearn/metrics/tests/test_classification.py::test_average_precision_score_score_non_binary_class', 'sklearn/metrics/tests/test_classification.py::test_average_precision_score_duplicate_values', 'sklearn/metrics/tests/test_classification.py::test_average_precision_score_tied_values', 'sklearn/metrics/tests/test_classification.py::test_precision_recall_fscore_support_errors', 'sklearn/metrics/tests/test_classification.py::test_precision_recall_f_unused_pos_label', 'sklearn/metrics/tests/test_classification.py::test_confusion_matrix_binary', 'sklearn/metrics/tests/test_classification.py::test_multilabel_confusion_matrix_binary', 'sklearn/metrics/tests/test_classification.py::test_multilabel_confusion_matrix_multiclass', 'sklearn/metrics/tests/test_classification.py::test_multilabel_confusion_matrix_multilabel', 'sklearn/metrics/tests/test_classification.py::test_multilabel_confusion_matrix_errors', 'sklearn/metrics/tests/test_classification.py::test_confusion_matrix_normalize[true-f-0.333333333]', 'sklearn/metrics/tests/test_classification.py::test_confusion_matrix_normalize[pred-f-0.333333333]', 'sklearn/metrics/tests/test_classification.py::test_confusion_matrix_normalize[all-f-0.1111111111]', 'sklearn/metrics/tests/test_classification.py::test_confusion_matrix_normalize[None-i-2]', 'sklearn/metrics/tests/test_classification.py::test_confusion_matrix_normalize_single_class', 'sklearn/metrics/tests/test_classification.py::test_likelihood_ratios_warnings[params0-samples', 'sklearn/metrics/tests/test_classification.py::test_likelihood_ratios_warnings[params1-positive_likelihood_ratio', 'sklearn/metrics/tests/test_classification.py::test_likelihood_ratios_warnings[params2-no', 'sklearn/metrics/tests/test_classification.py::test_likelihood_ratios_warnings[params3-negative_likelihood_ratio', 'sklearn/metrics/tests/test_classification.py::test_likelihood_ratios_warnings[params4-no', 'sklearn/metrics/tests/test_classification.py::test_likelihood_ratios_errors[params0-class_likelihood_ratios', 'sklearn/metrics/tests/test_classification.py::test_likelihood_ratios', 'sklearn/metrics/tests/test_classification.py::test_cohen_kappa', 'sklearn/metrics/tests/test_classification.py::test_matthews_corrcoef_nan', 'sklearn/metrics/tests/test_classification.py::test_matthews_corrcoef_against_numpy_corrcoef', 'sklearn/metrics/tests/test_classification.py::test_matthews_corrcoef_against_jurman', 'sklearn/metrics/tests/test_classification.py::test_matthews_corrcoef', 'sklearn/metrics/tests/test_classification.py::test_matthews_corrcoef_multiclass', 'sklearn/metrics/tests/test_classification.py::test_matthews_corrcoef_overflow[100]', 'sklearn/metrics/tests/test_classification.py::test_matthews_corrcoef_overflow[10000]', 'sklearn/metrics/tests/test_classification.py::test_precision_recall_f1_score_multiclass', 'sklearn/metrics/tests/test_classification.py::test_precision_refcall_f1_score_multilabel_unordered_labels[samples]', 'sklearn/metrics/tests/test_classification.py::test_precision_refcall_f1_score_multilabel_unordered_labels[micro]', 'sklearn/metrics/tests/test_classification.py::test_precision_refcall_f1_score_multilabel_unordered_labels[macro]', 'sklearn/metrics/tests/test_classification.py::test_precision_refcall_f1_score_multilabel_unordered_labels[weighted]', 'sklearn/metrics/tests/test_classification.py::test_precision_refcall_f1_score_multilabel_unordered_labels[None]', 'sklearn/metrics/tests/test_classification.py::test_precision_recall_f1_score_binary_averaged', 'sklearn/metrics/tests/test_classification.py::test_zero_precision_recall', 'sklearn/metrics/tests/test_classification.py::test_confusion_matrix_multiclass_subset_labels', 'sklearn/metrics/tests/test_classification.py::test_confusion_matrix_error[empty', 'sklearn/metrics/tests/test_classification.py::test_confusion_matrix_error[unknown', 'sklearn/metrics/tests/test_classification.py::test_confusion_matrix_on_zero_length_input[None]', 'sklearn/metrics/tests/test_classification.py::test_confusion_matrix_on_zero_length_input[binary]', 'sklearn/metrics/tests/test_classification.py::test_confusion_matrix_on_zero_length_input[multiclass]', 'sklearn/metrics/tests/test_classification.py::test_confusion_matrix_dtype', 'sklearn/metrics/tests/test_classification.py::test_classification_report_multiclass', 'sklearn/metrics/tests/test_classification.py::test_classification_report_multiclass_balanced', 'sklearn/metrics/tests/test_classification.py::test_classification_report_multiclass_with_label_detection', 'sklearn/metrics/tests/test_classification.py::test_classification_report_multiclass_with_digits', 'sklearn/metrics/tests/test_classification.py::test_classification_report_multiclass_with_string_label', 'sklearn/metrics/tests/test_classification.py::test_classification_report_multiclass_with_unicode_label', 'sklearn/metrics/tests/test_classification.py::test_classification_report_multiclass_with_long_string_label', 'sklearn/metrics/tests/test_classification.py::test_classification_report_labels_target_names_unequal_length', 'sklearn/metrics/tests/test_classification.py::test_classification_report_no_labels_target_names_unequal_length', 'sklearn/metrics/tests/test_classification.py::test_multilabel_classification_report', 'sklearn/metrics/tests/test_classification.py::test_multilabel_zero_one_loss_subset', 'sklearn/metrics/tests/test_classification.py::test_multilabel_hamming_loss', 'sklearn/metrics/tests/test_classification.py::test_jaccard_score_validation', 'sklearn/metrics/tests/test_classification.py::test_multilabel_jaccard_score', 'sklearn/metrics/tests/test_classification.py::test_multiclass_jaccard_score', 'sklearn/metrics/tests/test_classification.py::test_average_binary_jaccard_score', 'sklearn/metrics/tests/test_classification.py::test_jaccard_score_zero_division_warning', 'sklearn/metrics/tests/test_classification.py::test_jaccard_score_zero_division_set_value[0-0]', 'sklearn/metrics/tests/test_classification.py::test_jaccard_score_zero_division_set_value[1-0.5]', 'sklearn/metrics/tests/test_classification.py::test_precision_recall_f1_score_multilabel_1', 'sklearn/metrics/tests/test_classification.py::test_precision_recall_f1_score_multilabel_2', 'sklearn/metrics/tests/test_classification.py::test_precision_recall_f1_score_with_an_empty_prediction[warn]', 'sklearn/metrics/tests/test_classification.py::test_precision_recall_f1_score_with_an_empty_prediction[0]', 'sklearn/metrics/tests/test_classification.py::test_precision_recall_f1_score_with_an_empty_prediction[1]', 'sklearn/metrics/tests/test_classification.py::test_precision_recall_f1_no_labels[0-macro-1]', 'sklearn/metrics/tests/test_classification.py::test_precision_recall_f1_no_labels[0-micro-1]', 'sklearn/metrics/tests/test_classification.py::test_precision_recall_f1_no_labels[0-weighted-1]', 'sklearn/metrics/tests/test_classification.py::test_precision_recall_f1_no_labels[0-samples-1]', 'sklearn/metrics/tests/test_classification.py::test_precision_recall_f1_no_labels[1-macro-1]', 'sklearn/metrics/tests/test_classification.py::test_precision_recall_f1_no_labels[1-micro-1]', 'sklearn/metrics/tests/test_classification.py::test_precision_recall_f1_no_labels[1-weighted-1]', 'sklearn/metrics/tests/test_classification.py::test_precision_recall_f1_no_labels[1-samples-1]', 'sklearn/metrics/tests/test_classification.py::test_precision_recall_f1_no_labels_check_warnings[macro]', 'sklearn/metrics/tests/test_classification.py::test_precision_recall_f1_no_labels_check_warnings[micro]', 'sklearn/metrics/tests/test_classification.py::test_precision_recall_f1_no_labels_check_warnings[weighted]', 'sklearn/metrics/tests/test_classification.py::test_precision_recall_f1_no_labels_check_warnings[samples]', 'sklearn/metrics/tests/test_classification.py::test_precision_recall_f1_no_labels_average_none[0]', 'sklearn/metrics/tests/test_classification.py::test_precision_recall_f1_no_labels_average_none[1]', 'sklearn/metrics/tests/test_classification.py::test_precision_recall_f1_no_labels_average_none_warn', 'sklearn/metrics/tests/test_classification.py::test_prf_warnings', 'sklearn/metrics/tests/test_classification.py::test_prf_no_warnings_if_zero_division_set[0]', 'sklearn/metrics/tests/test_classification.py::test_prf_no_warnings_if_zero_division_set[1]', 'sklearn/metrics/tests/test_classification.py::test_recall_warnings[warn]', 'sklearn/metrics/tests/test_classification.py::test_recall_warnings[0]', 'sklearn/metrics/tests/test_classification.py::test_recall_warnings[1]', 'sklearn/metrics/tests/test_classification.py::test_precision_warnings[warn]', 'sklearn/metrics/tests/test_classification.py::test_precision_warnings[0]', 'sklearn/metrics/tests/test_classification.py::test_precision_warnings[1]', 'sklearn/metrics/tests/test_classification.py::test_fscore_warnings[warn]', 'sklearn/metrics/tests/test_classification.py::test_fscore_warnings[0]', 'sklearn/metrics/tests/test_classification.py::test_fscore_warnings[1]', 'sklearn/metrics/tests/test_classification.py::test_prf_average_binary_data_non_binary', 'sklearn/metrics/tests/test_classification.py::test__check_targets', 'sklearn/metrics/tests/test_classification.py::test__check_targets_multiclass_with_both_y_true_and_y_pred_binary', 'sklearn/metrics/tests/test_classification.py::test_hinge_loss_binary', 'sklearn/metrics/tests/test_classification.py::test_hinge_loss_multiclass', 'sklearn/metrics/tests/test_classification.py::test_hinge_loss_multiclass_missing_labels_with_labels_none', 'sklearn/metrics/tests/test_classification.py::test_hinge_loss_multiclass_no_consistent_pred_decision_shape', 'sklearn/metrics/tests/test_classification.py::test_hinge_loss_multiclass_with_missing_labels', 'sklearn/metrics/tests/test_classification.py::test_hinge_loss_multiclass_missing_labels_only_two_unq_in_y_true', 'sklearn/metrics/tests/test_classification.py::test_hinge_loss_multiclass_invariance_lists', 'sklearn/metrics/tests/test_classification.py::test_log_loss', 'sklearn/metrics/tests/test_classification.py::test_log_loss_eps_auto[float64]', 'sklearn/metrics/tests/test_classification.py::test_log_loss_eps_auto_float16', 'sklearn/metrics/tests/test_classification.py::test_log_loss_pandas_input', 'sklearn/metrics/tests/test_classification.py::test_brier_score_loss', 'sklearn/metrics/tests/test_classification.py::test_balanced_accuracy_score_unseen', 'sklearn/metrics/tests/test_classification.py::test_balanced_accuracy_score[y_true0-y_pred0]', 'sklearn/metrics/tests/test_classification.py::test_balanced_accuracy_score[y_true1-y_pred1]', 'sklearn/metrics/tests/test_classification.py::test_balanced_accuracy_score[y_true2-y_pred2]', 'sklearn/metrics/tests/test_classification.py::test_classification_metric_pos_label_types[classes0-jaccard_score]', 'sklearn/metrics/tests/test_classification.py::test_classification_metric_pos_label_types[classes0-f1_score]', 'sklearn/metrics/tests/test_classification.py::test_classification_metric_pos_label_types[classes0-metric2]', 'sklearn/metrics/tests/test_classification.py::test_classification_metric_pos_label_types[classes0-precision_recall_fscore_support]', 'sklearn/metrics/tests/test_classification.py::test_classification_metric_pos_label_types[classes0-precision_score]', 'sklearn/metrics/tests/test_classification.py::test_classification_metric_pos_label_types[classes0-recall_score]', 'sklearn/metrics/tests/test_classification.py::test_classification_metric_pos_label_types[classes0-brier_score_loss]', 'sklearn/metrics/tests/test_classification.py::test_classification_metric_pos_label_types[classes1-jaccard_score]', 'sklearn/metrics/tests/test_classification.py::test_classification_metric_pos_label_types[classes1-f1_score]', 'sklearn/metrics/tests/test_classification.py::test_classification_metric_pos_label_types[classes1-metric2]', 'sklearn/metrics/tests/test_classification.py::test_classification_metric_pos_label_types[classes1-precision_recall_fscore_support]', 'sklearn/metrics/tests/test_classification.py::test_classification_metric_pos_label_types[classes1-precision_score]', 'sklearn/metrics/tests/test_classification.py::test_classification_metric_pos_label_types[classes1-recall_score]', 'sklearn/metrics/tests/test_classification.py::test_classification_metric_pos_label_types[classes1-brier_score_loss]', 'sklearn/metrics/tests/test_classification.py::test_classification_metric_pos_label_types[classes2-jaccard_score]', 'sklearn/metrics/tests/test_classification.py::test_classification_metric_pos_label_types[classes2-f1_score]', 'sklearn/metrics/tests/test_classification.py::test_classification_metric_pos_label_types[classes2-metric2]', 'sklearn/metrics/tests/test_classification.py::test_classification_metric_pos_label_types[classes2-precision_recall_fscore_support]', 'sklearn/metrics/tests/test_classification.py::test_classification_metric_pos_label_types[classes2-precision_score]', 'sklearn/metrics/tests/test_classification.py::test_classification_metric_pos_label_types[classes2-recall_score]', 'sklearn/metrics/tests/test_classification.py::test_classification_metric_pos_label_types[classes2-brier_score_loss]', 'sklearn/metrics/tests/test_classification.py::test_classification_metric_pos_label_types[classes3-jaccard_score]', 'sklearn/metrics/tests/test_classification.py::test_classification_metric_pos_label_types[classes3-f1_score]', 'sklearn/metrics/tests/test_classification.py::test_classification_metric_pos_label_types[classes3-metric2]', 'sklearn/metrics/tests/test_classification.py::test_classification_metric_pos_label_types[classes3-precision_recall_fscore_support]', 'sklearn/metrics/tests/test_classification.py::test_classification_metric_pos_label_types[classes3-precision_score]', 'sklearn/metrics/tests/test_classification.py::test_classification_metric_pos_label_types[classes3-recall_score]', 'sklearn/metrics/tests/test_classification.py::test_classification_metric_pos_label_types[classes3-brier_score_loss]', 'sklearn/preprocessing/tests/test_label.py::test_label_binarizer', 'sklearn/preprocessing/tests/test_label.py::test_label_binarizer_unseen_labels', 'sklearn/preprocessing/tests/test_label.py::test_label_binarizer_set_label_encoding', 'sklearn/preprocessing/tests/test_label.py::test_label_binarizer_errors', 'sklearn/preprocessing/tests/test_label.py::test_label_encoder[int64]', 'sklearn/preprocessing/tests/test_label.py::test_label_encoder[object]', 'sklearn/preprocessing/tests/test_label.py::test_label_encoder[str]', 'sklearn/preprocessing/tests/test_label.py::test_label_encoder_negative_ints', 'sklearn/preprocessing/tests/test_label.py::test_label_encoder_str_bad_shape[str]', 'sklearn/preprocessing/tests/test_label.py::test_label_encoder_str_bad_shape[object]', 'sklearn/preprocessing/tests/test_label.py::test_label_encoder_errors', 'sklearn/preprocessing/tests/test_label.py::test_label_encoder_empty_array[int64]', 'sklearn/preprocessing/tests/test_label.py::test_label_encoder_empty_array[object]', 'sklearn/preprocessing/tests/test_label.py::test_label_encoder_empty_array[str]', 'sklearn/preprocessing/tests/test_label.py::test_sparse_output_multilabel_binarizer', 'sklearn/preprocessing/tests/test_label.py::test_multilabel_binarizer', 'sklearn/preprocessing/tests/test_label.py::test_multilabel_binarizer_empty_sample', 'sklearn/preprocessing/tests/test_label.py::test_multilabel_binarizer_unknown_class', 'sklearn/preprocessing/tests/test_label.py::test_multilabel_binarizer_given_classes', 'sklearn/preprocessing/tests/test_label.py::test_multilabel_binarizer_multiple_calls', 'sklearn/preprocessing/tests/test_label.py::test_multilabel_binarizer_same_length_sequence', 'sklearn/preprocessing/tests/test_label.py::test_multilabel_binarizer_non_integer_labels', 'sklearn/preprocessing/tests/test_label.py::test_multilabel_binarizer_non_unique', 'sklearn/preprocessing/tests/test_label.py::test_multilabel_binarizer_inverse_validation', 'sklearn/preprocessing/tests/test_label.py::test_label_binarize_with_class_order', 'sklearn/preprocessing/tests/test_label.py::test_label_binarize_binary', 'sklearn/preprocessing/tests/test_label.py::test_label_binarize_multiclass', 'sklearn/preprocessing/tests/test_label.py::test_label_binarize_multilabel', 'sklearn/preprocessing/tests/test_label.py::test_invalid_input_label_binarize', 'sklearn/preprocessing/tests/test_label.py::test_inverse_binarize_multiclass', 'sklearn/preprocessing/tests/test_label.py::test_nan_label_encoder', 'sklearn/utils/tests/test_multiclass.py::test_unique_labels', 'sklearn/utils/tests/test_multiclass.py::test_unique_labels_non_specific', 'sklearn/utils/tests/test_multiclass.py::test_unique_labels_mixed_types', 'sklearn/utils/tests/test_multiclass.py::test_is_multilabel', 'sklearn/utils/tests/test_multiclass.py::test_check_classification_targets', 'sklearn/utils/tests/test_multiclass.py::test_type_of_target', 'sklearn/utils/tests/test_multiclass.py::test_type_of_target_pandas_sparse', 'sklearn/utils/tests/test_multiclass.py::test_class_distribution', 'sklearn/utils/tests/test_multiclass.py::test_safe_split_with_precomputed_kernel', 'sklearn/utils/tests/test_multiclass.py::test_ovr_decision_function']}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for scikit-learn__scikit-learn-25638: resolved: False
+2026-05-20 01:00:01,221 - INFO - Attempting to stop container sweb.eval.scikit-learn__scikit-learn-25638.zhikuncode_eval_300_FINAL...
+2026-05-20 01:00:17,034 - INFO - Attempting to remove container sweb.eval.scikit-learn__scikit-learn-25638.zhikuncode_eval_300_FINAL...
+2026-05-20 01:00:17,040 - INFO - Container sweb.eval.scikit-learn__scikit-learn-25638.zhikuncode_eval_300_FINAL removed.
+2026-05-20 01:00:17,040 - INFO - Attempting to remove image sweb.eval.x86_64.scikit-learn__scikit-learn-25638:latest...
+2026-05-20 01:00:17,076 - INFO - Image sweb.eval.x86_64.scikit-learn__scikit-learn-25638:latest removed.

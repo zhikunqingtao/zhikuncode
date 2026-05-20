@@ -1,0 +1,54 @@
+diff --git a/sympy/assumptions/refine.py b/sympy/assumptions/refine.py
+index e1f9719..b980715 100644
+--- a/sympy/assumptions/refine.py
++++ b/sympy/assumptions/refine.py
+@@ -350,6 +350,42 @@ def refine_sign(expr, assumptions):
+     return expr
+ 
+ 
++def refine_arg(expr, assumptions):
++    """
++    Handler for the arg function.
++
++    Examples
++    ========
++
++    >>> from sympy import Q, arg
++    >>> from sympy.assumptions.refine import refine_arg
++    >>> from sympy.abc import x
++    >>> refine_arg(arg(x), Q.positive(x))
++    0
++    >>> refine_arg(arg(x), Q.negative(x))
++    pi
++    >>> refine_arg(arg(x), Q.zero(x))
++    nan
++
++    """
++    from sympy import arg
++    from sympy.core.logic import fuzzy_not
++    arg_ = expr.args[0]
++    if ask(Q.zero(arg_), assumptions):
++        return S.NaN
++    if ask(Q.positive(arg_), assumptions):
++        return S.Zero
++    if ask(Q.negative(arg_), assumptions):
++        return S.Pi
++    if ask(Q.imaginary(arg_), assumptions):
++        im_part = arg_ / S.ImaginaryUnit
++        if ask(Q.positive(im_part), assumptions):
++            return S.Pi / 2
++        if ask(Q.negative(im_part), assumptions):
++            return -S.Pi / 2
++    return expr
++
++
+ def refine_matrixelement(expr, assumptions):
+     """
+     Handler for symmetric part.
+@@ -380,5 +416,6 @@ def refine_matrixelement(expr, assumptions):
+     're': refine_re,
+     'im': refine_im,
+     'sign': refine_sign,
++    'arg': refine_arg,
+     'MatrixElement': refine_matrixelement
+ }  # type: Dict[str, Callable[[Expr, Boolean], Expr]]

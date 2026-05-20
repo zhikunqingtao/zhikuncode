@@ -1,0 +1,113 @@
+2026-05-20 01:33:25,218 - INFO - Environment image sweb.env.py.x86_64.c795f4b88616b8462021ed:latest found for sympy__sympy-23191
+Building instance image sweb.eval.x86_64.sympy__sympy-23191:latest for sympy__sympy-23191
+2026-05-20 01:35:03,770 - INFO - Creating container for sympy__sympy-23191...
+2026-05-20 01:35:03,798 - INFO - Container for sympy__sympy-23191 created: 0b083d1cd8b4c6955cf42d9d6e184c8792ce4c3d374b0adac1f048ce65fef188
+2026-05-20 01:35:04,002 - INFO - Container for sympy__sympy-23191 started: 0b083d1cd8b4c6955cf42d9d6e184c8792ce4c3d374b0adac1f048ce65fef188
+2026-05-20 01:35:04,002 - INFO - Intermediate patch for sympy__sympy-23191 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-23191/patch.diff, now applying to container...
+2026-05-20 01:35:04,079 - INFO - >>>>> Applied Patch:
+Checking patch sympy/printing/pretty/pretty.py...
+Applied patch sympy/printing/pretty/pretty.py cleanly.
+
+2026-05-20 01:35:04,478 - INFO - Git diff before:
+diff --git a/sympy/printing/pretty/pretty.py b/sympy/printing/pretty/pretty.py
+index 66461181d0..e9880c8ae6 100644
+--- a/sympy/printing/pretty/pretty.py
++++ b/sympy/printing/pretty/pretty.py
+@@ -1144,22 +1144,24 @@ def _print_BasisDependent(self, expr):
+             if '\n' in partstr:
+                 tempstr = partstr
+                 tempstr = tempstr.replace(vectstrs[i], '')
+-                if '\N{right parenthesis extension}' in tempstr:   # If scalar is a fraction
+-                    for paren in range(len(tempstr)):
+-                        flag[i] = 1
+-                        if tempstr[paren] == '\N{right parenthesis extension}':
+-                            tempstr = tempstr[:paren] + '\N{right parenthesis extension}'\
+-                                         + ' '  + vectstrs[i] + tempstr[paren + 1:]
+-                            break
+-                elif '\N{RIGHT PARENTHESIS LOWER HOOK}' in tempstr:
+-                    flag[i] = 1
+-                    tempstr = tempstr.replace('\N{RIGHT PARENTHESIS LOWER HOOK}',
+-                                        '\N{RIGHT PARENTHESIS LOWER HOOK}'
+-                                        + ' ' + vectstrs[i])
+-                else:
+-                    tempstr = tempstr.replace('\N{RIGHT PARENTHESIS UPPER HOOK}',
+-                                        '\N{RIGHT PARENTHESIS UPPER HOOK}'
+-                                        + ' ' + vectstrs[i])
++                # Find the last occurrence of any right parenthesis character
++                # (extension, lower hook, or upper hook) to place the unit vector
++                # on the bottom line of the parenthesized expression
++                paren_chars = ('\N{right parenthesis extension}',
++                               '\N{RIGHT PARENTHESIS LOWER HOOK}',
++                               '\N{RIGHT PARENTHESIS UPPER HOOK}')
++                last_paren = -1
++                for idx in range(len(tempstr) - 1, -1, -1):
++                    if tempstr[idx] in paren_chars:
++                        last_paren = idx
++                        break
++                if last_paren >= 0:
++                    paren_char = tempstr[last_paren]
++                    tempstr = tempstr[:last_paren] + paren_char \
++                                 + ' ' + vectstrs[i] + tempstr[last_paren + 1:]
++                    # flag[i] should point to the line containing the unit vector
++                    # Count newlines before last_paren to find which line it's on
++                    flag[i] = tempstr[:last_paren].count('\n')
+                 o1[i] = tempstr
+ 
+         o1 = [x.split('\n') for x in o1]
+2026-05-20 01:35:04,478 - INFO - Eval script for sympy__sympy-23191 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-23191/eval.sh; copying to container...
+2026-05-20 01:35:08,242 - INFO - Test runtime: 3.71 seconds
+2026-05-20 01:35:08,242 - INFO - Test output for sympy__sympy-23191 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-23191/test_output.txt
+2026-05-20 01:35:08,269 - INFO - Git diff after:
+diff --git a/sympy/printing/pretty/pretty.py b/sympy/printing/pretty/pretty.py
+index 66461181d0..e9880c8ae6 100644
+--- a/sympy/printing/pretty/pretty.py
++++ b/sympy/printing/pretty/pretty.py
+@@ -1144,22 +1144,24 @@ def _print_BasisDependent(self, expr):
+             if '\n' in partstr:
+                 tempstr = partstr
+                 tempstr = tempstr.replace(vectstrs[i], '')
+-                if '\N{right parenthesis extension}' in tempstr:   # If scalar is a fraction
+-                    for paren in range(len(tempstr)):
+-                        flag[i] = 1
+-                        if tempstr[paren] == '\N{right parenthesis extension}':
+-                            tempstr = tempstr[:paren] + '\N{right parenthesis extension}'\
+-                                         + ' '  + vectstrs[i] + tempstr[paren + 1:]
+-                            break
+-                elif '\N{RIGHT PARENTHESIS LOWER HOOK}' in tempstr:
+-                    flag[i] = 1
+-                    tempstr = tempstr.replace('\N{RIGHT PARENTHESIS LOWER HOOK}',
+-                                        '\N{RIGHT PARENTHESIS LOWER HOOK}'
+-                                        + ' ' + vectstrs[i])
+-                else:
+-                    tempstr = tempstr.replace('\N{RIGHT PARENTHESIS UPPER HOOK}',
+-                                        '\N{RIGHT PARENTHESIS UPPER HOOK}'
+-                                        + ' ' + vectstrs[i])
++                # Find the last occurrence of any right parenthesis character
++                # (extension, lower hook, or upper hook) to place the unit vector
++                # on the bottom line of the parenthesized expression
++                paren_chars = ('\N{right parenthesis extension}',
++                               '\N{RIGHT PARENTHESIS LOWER HOOK}',
++                               '\N{RIGHT PARENTHESIS UPPER HOOK}')
++                last_paren = -1
++                for idx in range(len(tempstr) - 1, -1, -1):
++                    if tempstr[idx] in paren_chars:
++                        last_paren = idx
++                        break
++                if last_paren >= 0:
++                    paren_char = tempstr[last_paren]
++                    tempstr = tempstr[:last_paren] + paren_char \
++                                 + ' ' + vectstrs[i] + tempstr[last_paren + 1:]
++                    # flag[i] should point to the line containing the unit vector
++                    # Count newlines before last_paren to find which line it's on
++                    flag[i] = tempstr[:last_paren].count('\n')
+                 o1[i] = tempstr
+ 
+         o1 = [x.split('\n') for x in o1]
+2026-05-20 01:35:08,269 - INFO - Grading answer for sympy__sympy-23191...
+2026-05-20 01:35:08,269 - INFO - report: {'sympy__sympy-23191': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_issue_23058']}, 'PASS_TO_PASS': {'success': ['test_str_printing', 'test_latex_printing'], 'failure': ['test_pretty_print_unicode_v']}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-23191: resolved: False
+2026-05-20 01:35:08,269 - INFO - Attempting to stop container sweb.eval.sympy__sympy-23191.zhikuncode_eval_300_FINAL...
+2026-05-20 01:35:23,674 - INFO - Attempting to remove container sweb.eval.sympy__sympy-23191.zhikuncode_eval_300_FINAL...
+2026-05-20 01:35:23,688 - INFO - Container sweb.eval.sympy__sympy-23191.zhikuncode_eval_300_FINAL removed.
+2026-05-20 01:35:23,688 - INFO - Attempting to remove image sweb.eval.x86_64.sympy__sympy-23191:latest...
+2026-05-20 01:35:23,736 - INFO - Image sweb.eval.x86_64.sympy__sympy-23191:latest removed.

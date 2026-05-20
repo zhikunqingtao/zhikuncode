@@ -1,0 +1,61 @@
+diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py
+index 9ce46e3..f0ded64 100644
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -955,6 +955,7 @@ class CharField(Field):
+         return [
+             *super().check(**kwargs),
+             *self._check_max_length_attribute(**kwargs),
++            *self._check_choices_max_length(**kwargs),
+         ]
+ 
+     def _check_max_length_attribute(self, **kwargs):
+@@ -978,6 +979,48 @@ class CharField(Field):
+         else:
+             return []
+ 
++    def _check_choices_max_length(self, **kwargs):
++        if (
++            not self.choices
++            or self.max_length is None
++            or not isinstance(self.max_length, int)
++            or isinstance(self.max_length, bool)
++            or self.max_length <= 0
++        ):
++            return []
++
++        def is_value(value):
++            return isinstance(value, (str, Promise)) or not is_iterable(value)
++
++        def get_choice_values(choices):
++            values = []
++            for choice in choices:
++                try:
++                    group_name, group_choices = choice
++                except (TypeError, ValueError):
++                    # Not a pair, skip (handled by _check_choices)
++                    continue
++                # Check if it's a grouped choice or a simple (value, display) pair
++                if is_value(group_name) and is_value(group_choices):
++                    # It's a (value, display) pair
++                    values.append(group_name)
++                elif is_iterable(group_choices):
++                    # It's a grouped choice - recurse
++                    values.extend(get_choice_values(group_choices))
++            return values
++
++        for value in get_choice_values(self.choices):
++            if len(str(value)) > self.max_length:
++                return [
++                    checks.Error(
++                        "'max_length' is too small to fit the longest value "
++                        "in 'choices' (%d characters)." % len(str(value)),
++                        obj=self,
++                        id='fields.E122',
++                    )
++                ]
++        return []
++
+     def cast_db_type(self, connection):
+         if self.max_length is None:
+             return connection.ops.cast_char_field_without_max_length

@@ -1,0 +1,15 @@
+diff --git a/django/db/models/query_utils.py b/django/db/models/query_utils.py
+index c957ffa..603493a 100644
+--- a/django/db/models/query_utils.py
++++ b/django/db/models/query_utils.py
+@@ -41,7 +41,9 @@ class Q(tree.Node):
+ 
+     def _combine(self, other, conn):
+         if not isinstance(other, Q):
+-            raise TypeError(other)
++            if getattr(other, 'conditional', False) is False:
++                raise TypeError(other)
++            other = Q(other)
+ 
+         # If the other Q() is empty, ignore it and just use `self`.
+         if not other:

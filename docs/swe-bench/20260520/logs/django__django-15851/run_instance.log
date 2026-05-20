@@ -1,0 +1,53 @@
+2026-05-19 23:44:55,442 - INFO - Environment image sweb.env.py.x86_64.a33dddf55cdff5d8e23374:latest found for django__django-15851
+Building instance image sweb.eval.x86_64.django__django-15851:latest for django__django-15851
+2026-05-19 23:47:01,363 - INFO - Creating container for django__django-15851...
+2026-05-19 23:47:01,383 - INFO - Container for django__django-15851 created: 2492b259f7271907e94b6f41a6e3d6ab66fb93adb63dc3dbedd611bca4da11ee
+2026-05-19 23:47:01,546 - INFO - Container for django__django-15851 started: 2492b259f7271907e94b6f41a6e3d6ab66fb93adb63dc3dbedd611bca4da11ee
+2026-05-19 23:47:01,546 - INFO - Intermediate patch for django__django-15851 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-15851/patch.diff, now applying to container...
+2026-05-19 23:47:01,611 - INFO - >>>>> Applied Patch:
+Checking patch django/db/backends/postgresql/client.py...
+Applied patch django/db/backends/postgresql/client.py cleanly.
+
+2026-05-19 23:47:02,239 - INFO - Git diff before:
+diff --git a/django/db/backends/postgresql/client.py b/django/db/backends/postgresql/client.py
+index 4c9bd63546..3b5ddafaca 100644
+--- a/django/db/backends/postgresql/client.py
++++ b/django/db/backends/postgresql/client.py
+@@ -32,9 +32,9 @@ class DatabaseClient(BaseDatabaseClient):
+             args += ["-h", host]
+         if port:
+             args += ["-p", str(port)]
++        args.extend(parameters)
+         if dbname:
+             args += [dbname]
+-        args.extend(parameters)
+ 
+         env = {}
+         if passwd:
+2026-05-19 23:47:02,239 - INFO - Eval script for django__django-15851 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-15851/eval.sh; copying to container...
+2026-05-19 23:47:06,894 - INFO - Test runtime: 4.61 seconds
+2026-05-19 23:47:06,895 - INFO - Test output for django__django-15851 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-15851/test_output.txt
+2026-05-19 23:47:06,946 - INFO - Git diff after:
+diff --git a/django/db/backends/postgresql/client.py b/django/db/backends/postgresql/client.py
+index 4c9bd63546..3b5ddafaca 100644
+--- a/django/db/backends/postgresql/client.py
++++ b/django/db/backends/postgresql/client.py
+@@ -32,9 +32,9 @@ class DatabaseClient(BaseDatabaseClient):
+             args += ["-h", host]
+         if port:
+             args += ["-p", str(port)]
++        args.extend(parameters)
+         if dbname:
+             args += [dbname]
+-        args.extend(parameters)
+ 
+         env = {}
+         if passwd:
+2026-05-19 23:47:06,946 - INFO - Grading answer for django__django-15851...
+2026-05-19 23:47:06,947 - INFO - report: {'django__django-15851': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_parameters (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_accent (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_basic (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_column (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_crash_password_does_not_leak (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_nopass (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_passfile (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_service (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_ssl_certificate (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-15851: resolved: True
+2026-05-19 23:47:06,947 - INFO - Attempting to stop container sweb.eval.django__django-15851.zhikuncode_eval_300_FINAL...
+2026-05-19 23:47:22,444 - INFO - Attempting to remove container sweb.eval.django__django-15851.zhikuncode_eval_300_FINAL...
+2026-05-19 23:47:22,456 - INFO - Container sweb.eval.django__django-15851.zhikuncode_eval_300_FINAL removed.
+2026-05-19 23:47:22,457 - INFO - Attempting to remove image sweb.eval.x86_64.django__django-15851:latest...
+2026-05-19 23:47:22,593 - INFO - Image sweb.eval.x86_64.django__django-15851:latest removed.

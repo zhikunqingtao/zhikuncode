@@ -1,0 +1,638 @@
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z '' ']'
++++ export CONDA_SHLVL=0
++++ CONDA_SHLVL=0
++++ '[' -n '' ']'
++++++ dirname /opt/miniconda3/bin/conda
+++++ dirname /opt/miniconda3/bin
++++ PATH=/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export PATH
++++ '[' -z '' ']'
++++ PS1=
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1=
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval 'PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=1
++++ CONDA_SHLVL=1
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\''
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libglib_activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libxml2-split_activate.sh"'
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\''
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libglib_activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libxml2-split_activate.sh"'
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=2
+++ CONDA_SHLVL=2
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_1=/opt/miniconda3
+++ CONDA_PREFIX_1=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/libglib_activate.sh
++++ export GSETTINGS_SCHEMA_DIR_CONDA_BACKUP=
++++ GSETTINGS_SCHEMA_DIR_CONDA_BACKUP=
++++ export GSETTINGS_SCHEMA_DIR=/opt/miniconda3/envs/testbed/share/glib-2.0/schemas
++++ GSETTINGS_SCHEMA_DIR=/opt/miniconda3/envs/testbed/share/glib-2.0/schemas
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/libxml2-split_activate.sh
++++ test -n ''
++++ xml_catalog_files_libxml2=
++++ XML_CATALOG_FILES=
++++ conda_catalog_files=
++++ ifs_libxml2=' 	
+'
++++ IFS=' '
++++ rem=/opt/miniconda3/envs/testbed
++++ for pre in ${rem}
++++ test '' = /opt/miniconda3/envs/testbed
++++ conda_catalog_files=/opt/miniconda3/envs/testbed
++++ rem=
++++ IFS=' 	
+'
++++ conda_catalog_files='file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog'
++++ export 'XML_CATALOG_FILES=file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog'
++++ XML_CATALOG_FILES='file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog'
++++ unset conda_catalog_files ifs_libxml2 rem
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ cd /testbed
++ git config --global --add safe.directory /testbed
++ cd /testbed
++ git status
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   lib/matplotlib/widgets.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
++ git show
+commit b289ae6a5f0154dfbff249d96ed9e8f2a334520b
+Author: SWE-bench <setup@swebench.config>
+Date:   Tue May 19 16:05:55 2026 +0000
+
+    SWE-bench
++ git -c core.fileMode=false diff f670fe78795b18eb1118707721852209cd77ad51
+diff --git a/lib/matplotlib/widgets.py b/lib/matplotlib/widgets.py
+index da5b40a5ef..1cf025b0ff 100644
+--- a/lib/matplotlib/widgets.py
++++ b/lib/matplotlib/widgets.py
+@@ -898,6 +898,8 @@ class RangeSlider(SliderBase):
+         val[0] = self._min_in_bounds(val[0])
+         val[1] = self._max_in_bounds(val[1])
+         xy = self.poly.xy
++        if len(xy) == 4:
++            xy = np.resize(xy, (5, 2))
+         if self.orientation == "vertical":
+             xy[0] = .25, val[0]
+             xy[1] = .25, val[1]
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z x ']'
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1='(testbed) '
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='. "/opt/miniconda3/envs/testbed/etc/conda/deactivate.d/libglib_deactivate.sh"
+PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval '. "/opt/miniconda3/envs/testbed/etc/conda/deactivate.d/libglib_deactivate.sh"
+PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ . /opt/miniconda3/envs/testbed/etc/conda/deactivate.d/libglib_deactivate.sh
+++++ export GSETTINGS_SCHEMA_DIR=
+++++ GSETTINGS_SCHEMA_DIR=
+++++ unset GSETTINGS_SCHEMA_DIR_CONDA_BACKUP
+++++ '[' -z ']'
+++++ unset GSETTINGS_SCHEMA_DIR
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=3
++++ CONDA_SHLVL=3
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\''
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libglib_activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libxml2-split_activate.sh"'
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\''
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libglib_activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libxml2-split_activate.sh"'
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=4
+++ CONDA_SHLVL=4
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_3=/opt/miniconda3
+++ CONDA_PREFIX_3=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/libglib_activate.sh
++++ export GSETTINGS_SCHEMA_DIR_CONDA_BACKUP=
++++ GSETTINGS_SCHEMA_DIR_CONDA_BACKUP=
++++ export GSETTINGS_SCHEMA_DIR=/opt/miniconda3/envs/testbed/share/glib-2.0/schemas
++++ GSETTINGS_SCHEMA_DIR=/opt/miniconda3/envs/testbed/share/glib-2.0/schemas
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/libxml2-split_activate.sh
++++ test -n 'file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog'
++++ xml_catalog_files_libxml2='file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog'
++++ XML_CATALOG_FILES='file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog '
++++ conda_catalog_files=
++++ ifs_libxml2=' 	
+'
++++ IFS=' '
++++ rem=/opt/miniconda3/envs/testbed
++++ for pre in ${rem}
++++ test '' = /opt/miniconda3/envs/testbed
++++ conda_catalog_files=/opt/miniconda3/envs/testbed
++++ rem=
++++ IFS=' 	
+'
++++ conda_catalog_files='file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog'
++++ export 'XML_CATALOG_FILES=file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog'
++++ XML_CATALOG_FILES='file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog'
++++ unset conda_catalog_files ifs_libxml2 rem
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ python -m pip install -e .
+Looking in indexes: https://mirrors.aliyun.com/pypi/simple/
+Obtaining file:///testbed
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Checking if build backend supports build_editable: started
+  Checking if build backend supports build_editable: finished with status 'done'
+  Getting requirements to build editable: started
+  Getting requirements to build editable: finished with status 'done'
+  Installing backend dependencies: started
+  Installing backend dependencies: finished with status 'done'
+  Preparing editable metadata (pyproject.toml): started
+  Preparing editable metadata (pyproject.toml): finished with status 'done'
+Requirement already satisfied: cycler>=0.10 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev1927+gb289ae6a5.d20260519) (0.11.0)
+Requirement already satisfied: fonttools>=4.22.0 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev1927+gb289ae6a5.d20260519) (4.42.1)
+Requirement already satisfied: kiwisolver>=1.0.1 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev1927+gb289ae6a5.d20260519) (1.4.5)
+Requirement already satisfied: numpy>=1.19 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev1927+gb289ae6a5.d20260519) (1.25.2)
+Requirement already satisfied: packaging>=20.0 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev1927+gb289ae6a5.d20260519) (23.1)
+Requirement already satisfied: pillow>=6.2.0 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev1927+gb289ae6a5.d20260519) (10.0.0)
+Requirement already satisfied: pyparsing<3.0.0,>=2.2.1 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev1927+gb289ae6a5.d20260519) (2.4.7)
+Requirement already satisfied: python-dateutil>=2.7 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev1927+gb289ae6a5.d20260519) (2.8.2)
+Requirement already satisfied: setuptools_scm>=4 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from matplotlib==3.6.0.dev1927+gb289ae6a5.d20260519) (7.1.0)
+Requirement already satisfied: six>=1.5 in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from python-dateutil>=2.7->matplotlib==3.6.0.dev1927+gb289ae6a5.d20260519) (1.16.0)
+Requirement already satisfied: setuptools in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from setuptools_scm>=4->matplotlib==3.6.0.dev1927+gb289ae6a5.d20260519) (68.1.2)
+Requirement already satisfied: typing-extensions in /opt/miniconda3/envs/testbed/lib/python3.11/site-packages (from setuptools_scm>=4->matplotlib==3.6.0.dev1927+gb289ae6a5.d20260519) (4.7.1)
+Building wheels for collected packages: matplotlib
+  Building editable for matplotlib (pyproject.toml): started
+  Building editable for matplotlib (pyproject.toml): finished with status 'done'
+  Created wheel for matplotlib: filename=matplotlib-3.6.0.dev1927+gb289ae6a5.d20260519-0.editable-cp311-cp311-linux_x86_64.whl size=24209 sha256=5d02218b85a46638ecc5a9a4dc6492c669a32c98ecee572d6f0baca545ec6fd4
+  Stored in directory: /tmp/pip-ephem-wheel-cache-m8th5z89/wheels/49/5f/4f/01b7d31ea6ddac9643da788242d33e5fd3467d95d17b032c6b
+Successfully built matplotlib
+Installing collected packages: matplotlib
+  Attempting uninstall: matplotlib
+    Found existing installation: matplotlib 3.6.0.dev1926+gf670fe787
+    Uninstalling matplotlib-3.6.0.dev1926+gf670fe787:
+      Successfully uninstalled matplotlib-3.6.0.dev1926+gf670fe787
+Successfully installed matplotlib-3.6.0.dev1927+gb289ae6a5.d20260519
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
++ git checkout f670fe78795b18eb1118707721852209cd77ad51 lib/matplotlib/tests/test_widgets.py
+Updated 0 paths from 3f1b40c516
++ git apply -v -
+Checking patch lib/matplotlib/tests/test_widgets.py...
+Applied patch lib/matplotlib/tests/test_widgets.py cleanly.
++ : '>>>>> Start Test Output'
++ pytest -rA lib/matplotlib/tests/test_widgets.py
+============================= test session starts ==============================
+platform linux -- Python 3.11.15, pytest-9.0.3, pluggy-1.6.0
+rootdir: /testbed
+configfile: pytest.ini
+plugins: timeout-2.4.0, rerunfailures-16.2, cov-7.1.0, xdist-3.8.0
+collected 96 items
+
+lib/matplotlib/tests/test_widgets.py F.................................. [ 36%]
+......................s.............FF......s................            [100%]
+
+=================================== FAILURES ===================================
+___________________________ test_rectangle_selector ____________________________
+
+    def test_rectangle_selector():
+        check_rectangle()
+    
+>       with pytest.warns(
+            MatplotlibDeprecationWarning,
+                match="Support for drawtype='line' is deprecated"):
+E               matplotlib._api.deprecation.MatplotlibDeprecationWarning: 
+E               The 'drawtype' parameter of __init__() was deprecated in Matplotlib 3.5 and will be removed two minor releases later. If any parameter follows 'drawtype', they should be passed as keyword, not positionally.
+
+lib/matplotlib/tests/test_widgets.py:51: MatplotlibDeprecationWarning
+________________________ test_range_slider[horizontal] _________________________
+
+orientation = 'horizontal'
+
+    @pytest.mark.parametrize("orientation", ["horizontal", "vertical"])
+    def test_range_slider(orientation):
+        if orientation == "vertical":
+            idx = [1, 0, 3, 2]
+        else:
+            idx = [0, 1, 2, 3]
+    
+        fig, ax = plt.subplots()
+    
+        slider = widgets.RangeSlider(
+            ax=ax, label="", valmin=0.0, valmax=1.0, orientation=orientation,
+            valinit=[0.1, 0.34]
+        )
+        box = slider.poly.get_extents().transformed(ax.transAxes.inverted())
+        assert_allclose(box.get_points().flatten()[idx], [0.1, 0.25, 0.34, 0.75])
+    
+        # Check initial value is set correctly
+        assert_allclose(slider.val, (0.1, 0.34))
+    
+        def handle_positions(slider):
+            if orientation == "vertical":
+                return [h.get_ydata()[0] for h in slider._handles]
+            else:
+                return [h.get_xdata()[0] for h in slider._handles]
+    
+        slider.set_val((0.2, 0.6))
+        assert_allclose(slider.val, (0.2, 0.6))
+>       assert_allclose(handle_positions(slider), (0.2, 0.6))
+
+lib/matplotlib/tests/test_widgets.py:1116: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+args = (<function assert_allclose.<locals>.compare at 0x7fcfc8772fc0>, array([0.1 , 0.34]), array([0.2, 0.6]))
+kwds = {'equal_nan': True, 'err_msg': '', 'header': 'Not equal to tolerance rtol=1e-07, atol=0', 'verbose': True}
+
+    @wraps(func)
+    def inner(*args, **kwds):
+        with self._recreate_cm():
+>           return func(*args, **kwds)
+                   ^^^^^^^^^^^^^^^^^^^
+E           AssertionError: 
+E           Not equal to tolerance rtol=1e-07, atol=0
+E           
+E           Mismatched elements: 2 / 2 (100%)
+E           Max absolute difference: 0.26
+E           Max relative difference: 0.5
+E            x: array([0.1 , 0.34])
+E            y: array([0.2, 0.6])
+
+/opt/miniconda3/envs/testbed/lib/python3.11/contextlib.py:81: AssertionError
+_________________________ test_range_slider[vertical] __________________________
+
+orientation = 'vertical'
+
+    @pytest.mark.parametrize("orientation", ["horizontal", "vertical"])
+    def test_range_slider(orientation):
+        if orientation == "vertical":
+            idx = [1, 0, 3, 2]
+        else:
+            idx = [0, 1, 2, 3]
+    
+        fig, ax = plt.subplots()
+    
+        slider = widgets.RangeSlider(
+            ax=ax, label="", valmin=0.0, valmax=1.0, orientation=orientation,
+            valinit=[0.1, 0.34]
+        )
+        box = slider.poly.get_extents().transformed(ax.transAxes.inverted())
+        assert_allclose(box.get_points().flatten()[idx], [0.1, 0.25, 0.34, 0.75])
+    
+        # Check initial value is set correctly
+        assert_allclose(slider.val, (0.1, 0.34))
+    
+        def handle_positions(slider):
+            if orientation == "vertical":
+                return [h.get_ydata()[0] for h in slider._handles]
+            else:
+                return [h.get_xdata()[0] for h in slider._handles]
+    
+        slider.set_val((0.2, 0.6))
+        assert_allclose(slider.val, (0.2, 0.6))
+>       assert_allclose(handle_positions(slider), (0.2, 0.6))
+
+lib/matplotlib/tests/test_widgets.py:1116: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+args = (<function assert_allclose.<locals>.compare at 0x7fcfc88391c0>, array([0.1 , 0.34]), array([0.2, 0.6]))
+kwds = {'equal_nan': True, 'err_msg': '', 'header': 'Not equal to tolerance rtol=1e-07, atol=0', 'verbose': True}
+
+    @wraps(func)
+    def inner(*args, **kwds):
+        with self._recreate_cm():
+>           return func(*args, **kwds)
+                   ^^^^^^^^^^^^^^^^^^^
+E           AssertionError: 
+E           Not equal to tolerance rtol=1e-07, atol=0
+E           
+E           Mismatched elements: 2 / 2 (100%)
+E           Max absolute difference: 0.26
+E           Max relative difference: 0.5
+E            x: array([0.1 , 0.34])
+E            y: array([0.2, 0.6])
+
+/opt/miniconda3/envs/testbed/lib/python3.11/contextlib.py:81: AssertionError
+=============================== warnings summary ===============================
+../opt/miniconda3/envs/testbed/lib/python3.11/site-packages/pyparsing.py:108
+  /opt/miniconda3/envs/testbed/lib/python3.11/site-packages/pyparsing.py:108: DeprecationWarning: module 'sre_constants' is deprecated
+    import sre_constants
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+==================================== PASSES ====================================
+_____________________ test_span_selector_bound[horizontal] _____________________
+----------------------------- Captured stdout call -----------------------------
+10.5 11.0
+______________________ test_span_selector_bound[vertical] ______________________
+----------------------------- Captured stdout call -----------------------------
+11.5 13.0
+=========================== short test summary info ============================
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_minspan[0-10-0-10-data]
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_minspan[0-10-0-10-pixels]
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_minspan[0-10-1-10.5-data]
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_minspan[0-10-1-10.5-pixels]
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_minspan[0-10-1-11-data]
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_minspan[0-10-1-11-pixels]
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_minspan[1-10.5-0-10-data]
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_minspan[1-10.5-0-10-pixels]
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_minspan[1-10.5-1-10.5-data]
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_minspan[1-10.5-1-10.5-pixels]
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_minspan[1-10.5-1-11-data]
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_minspan[1-10.5-1-11-pixels]
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_minspan[1-11-0-10-data]
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_minspan[1-11-0-10-pixels]
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_minspan[1-11-1-10.5-data]
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_minspan[1-11-1-10.5-pixels]
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_minspan[1-11-1-11-data]
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_minspan[1-11-1-11-pixels]
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_drag[True-new_center0]
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_drag[False-new_center1]
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_selector_set_props_handle_props
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_resize
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_add_state
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_resize_center[True]
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_resize_center[False]
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_resize_square[True]
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_resize_square[False]
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_resize_square_center
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_rotate[RectangleSelector]
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_rotate[EllipseSelector]
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectange_add_remove_set
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_resize_square_center_aspect[False]
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_resize_square_center_aspect[True]
+PASSED lib/matplotlib/tests/test_widgets.py::test_ellipse
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_handles
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_selector_onselect[True]
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_selector_onselect[False]
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_selector_ignore_outside[True]
+PASSED lib/matplotlib/tests/test_widgets.py::test_rectangle_selector_ignore_outside[False]
+PASSED lib/matplotlib/tests/test_widgets.py::test_span_selector
+PASSED lib/matplotlib/tests/test_widgets.py::test_span_selector_onselect[True]
+PASSED lib/matplotlib/tests/test_widgets.py::test_span_selector_onselect[False]
+PASSED lib/matplotlib/tests/test_widgets.py::test_span_selector_ignore_outside[True]
+PASSED lib/matplotlib/tests/test_widgets.py::test_span_selector_ignore_outside[False]
+PASSED lib/matplotlib/tests/test_widgets.py::test_span_selector_drag[True]
+PASSED lib/matplotlib/tests/test_widgets.py::test_span_selector_drag[False]
+PASSED lib/matplotlib/tests/test_widgets.py::test_span_selector_direction
+PASSED lib/matplotlib/tests/test_widgets.py::test_span_selector_set_props_handle_props
+PASSED lib/matplotlib/tests/test_widgets.py::test_selector_clear[span]
+PASSED lib/matplotlib/tests/test_widgets.py::test_selector_clear[rectangle]
+PASSED lib/matplotlib/tests/test_widgets.py::test_selector_clear_method[span]
+PASSED lib/matplotlib/tests/test_widgets.py::test_selector_clear_method[rectangle]
+PASSED lib/matplotlib/tests/test_widgets.py::test_span_selector_add_state
+PASSED lib/matplotlib/tests/test_widgets.py::test_tool_line_handle
+PASSED lib/matplotlib/tests/test_widgets.py::test_span_selector_bound[horizontal]
+PASSED lib/matplotlib/tests/test_widgets.py::test_span_selector_bound[vertical]
+PASSED lib/matplotlib/tests/test_widgets.py::test_lasso_selector
+PASSED lib/matplotlib/tests/test_widgets.py::test_CheckButtons
+PASSED lib/matplotlib/tests/test_widgets.py::test_TextBox[none]
+PASSED lib/matplotlib/tests/test_widgets.py::test_TextBox[toolbar2]
+PASSED lib/matplotlib/tests/test_widgets.py::test_TextBox[toolmanager]
+PASSED lib/matplotlib/tests/test_widgets.py::test_check_radio_buttons_image[png]
+PASSED lib/matplotlib/tests/test_widgets.py::test_check_bunch_of_radio_buttons[png]
+PASSED lib/matplotlib/tests/test_widgets.py::test_slider_slidermin_slidermax_invalid
+PASSED lib/matplotlib/tests/test_widgets.py::test_slider_slidermin_slidermax
+PASSED lib/matplotlib/tests/test_widgets.py::test_slider_valmin_valmax
+PASSED lib/matplotlib/tests/test_widgets.py::test_slider_valstep_snapping
+PASSED lib/matplotlib/tests/test_widgets.py::test_slider_horizontal_vertical
+PASSED lib/matplotlib/tests/test_widgets.py::test_slider_reset
+PASSED lib/matplotlib/tests/test_widgets.py::test_polygon_selector[False]
+PASSED lib/matplotlib/tests/test_widgets.py::test_polygon_selector[True]
+PASSED lib/matplotlib/tests/test_widgets.py::test_polygon_selector_set_props_handle_props[False]
+PASSED lib/matplotlib/tests/test_widgets.py::test_polygon_selector_set_props_handle_props[True]
+PASSED lib/matplotlib/tests/test_widgets.py::test_rect_visibility[png]
+PASSED lib/matplotlib/tests/test_widgets.py::test_rect_visibility[pdf]
+PASSED lib/matplotlib/tests/test_widgets.py::test_polygon_selector_remove[False-1]
+PASSED lib/matplotlib/tests/test_widgets.py::test_polygon_selector_remove[False-2]
+PASSED lib/matplotlib/tests/test_widgets.py::test_polygon_selector_remove[False-3]
+PASSED lib/matplotlib/tests/test_widgets.py::test_polygon_selector_remove[True-1]
+PASSED lib/matplotlib/tests/test_widgets.py::test_polygon_selector_remove[True-2]
+PASSED lib/matplotlib/tests/test_widgets.py::test_polygon_selector_remove[True-3]
+PASSED lib/matplotlib/tests/test_widgets.py::test_polygon_selector_remove_first_point[False]
+PASSED lib/matplotlib/tests/test_widgets.py::test_polygon_selector_remove_first_point[True]
+PASSED lib/matplotlib/tests/test_widgets.py::test_polygon_selector_redraw[False]
+PASSED lib/matplotlib/tests/test_widgets.py::test_polygon_selector_redraw[True]
+PASSED lib/matplotlib/tests/test_widgets.py::test_polygon_selector_verts_setter[png-False]
+PASSED lib/matplotlib/tests/test_widgets.py::test_polygon_selector_verts_setter[png-True]
+PASSED lib/matplotlib/tests/test_widgets.py::test_polygon_selector_box
+PASSED lib/matplotlib/tests/test_widgets.py::test_MultiCursor[True-True]
+PASSED lib/matplotlib/tests/test_widgets.py::test_MultiCursor[True-False]
+PASSED lib/matplotlib/tests/test_widgets.py::test_MultiCursor[False-True]
+SKIPPED [1] lib/matplotlib/tests/test_widgets.py:870: Failed to switch to backend QtAgg (Cannot load backend 'QtAgg' which requires the 'qt' interactive framework, as 'headless' is currently running).
+SKIPPED [1] lib/matplotlib/testing/compare.py:262: Don't know how to convert .svg files to png
+FAILED lib/matplotlib/tests/test_widgets.py::test_rectangle_selector - matplo...
+FAILED lib/matplotlib/tests/test_widgets.py::test_range_slider[horizontal] - ...
+FAILED lib/matplotlib/tests/test_widgets.py::test_range_slider[vertical] - As...
+============= 3 failed, 91 passed, 2 skipped, 1 warning in 10.90s ==============
++ : '>>>>> End Test Output'
++ git checkout f670fe78795b18eb1118707721852209cd77ad51 lib/matplotlib/tests/test_widgets.py
+Updated 1 path from 3f1b40c516

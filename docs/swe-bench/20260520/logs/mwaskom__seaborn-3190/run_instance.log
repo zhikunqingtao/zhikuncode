@@ -1,0 +1,109 @@
+2026-05-20 00:21:56,757 - INFO - Environment image sweb.env.py.x86_64.a0efca7a0fe6719dbf65c2:latest found for mwaskom__seaborn-3190
+Building instance image sweb.eval.x86_64.mwaskom__seaborn-3190:latest for mwaskom__seaborn-3190
+2026-05-20 00:23:36,648 - INFO - Creating container for mwaskom__seaborn-3190...
+2026-05-20 00:23:36,669 - INFO - Container for mwaskom__seaborn-3190 created: c3e7a00bc95ca6d31afd0d4bc752a2e5e01144fbc45ccbc4e640911dc4e0edbe
+2026-05-20 00:23:36,779 - INFO - Container for mwaskom__seaborn-3190 started: c3e7a00bc95ca6d31afd0d4bc752a2e5e01144fbc45ccbc4e640911dc4e0edbe
+2026-05-20 00:23:36,779 - INFO - Intermediate patch for mwaskom__seaborn-3190 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/mwaskom__seaborn-3190/patch.diff, now applying to container...
+2026-05-20 00:23:36,824 - INFO - >>>>> Applied Patch:
+Checking patch seaborn/_core/scales.py...
+Applied patch seaborn/_core/scales.py cleanly.
+
+2026-05-20 00:23:36,882 - INFO - Git diff before:
+diff --git a/seaborn/_core/scales.py b/seaborn/_core/scales.py
+index 6c9ecbc9..c53e2bee 100644
+--- a/seaborn/_core/scales.py
++++ b/seaborn/_core/scales.py
+@@ -329,6 +329,30 @@ class ContinuousBase(Scale):
+         if new._label_params is None:
+             new = new.label()
+ 
++        # Convert boolean data to numeric to support arithmetic operations
++        # Handle both pure bool dtype and object dtype with boolean values + NaN
++        if data.dtype == bool:
++            data = data.astype(int)
++            convert_bool = lambda x: x.astype(int) if x.dtype == bool else x
++        elif data.dtype == object:
++            # Check if object array contains boolean values
++            non_null = data.dropna()
++            if len(non_null) > 0 and all(isinstance(v, (bool, np.bool_)) for v in non_null):
++                data = data.copy()
++                data[~data.isna()] = data.dropna().astype(int)
++                data = data.astype(float)
++                def convert_bool(x):
++                    if x.dtype == object:
++                        out = x.copy()
++                        mask = ~out.isna()
++                        out[mask] = out[mask].astype(int)
++                        return out.astype(float)
++                    return x
++            else:
++                convert_bool = None
++        else:
++            convert_bool = None
++
+         forward, inverse = new._get_transform()
+ 
+         mpl_scale = new._get_scale(str(data.name), forward, inverse)
+@@ -357,6 +381,7 @@ class ContinuousBase(Scale):
+             normalize = vmin = vmax = None
+ 
+         new._pipeline = [
++            convert_bool,
+             axis.convert_units,
+             forward,
+             normalize,
+2026-05-20 00:23:36,882 - INFO - Eval script for mwaskom__seaborn-3190 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/mwaskom__seaborn-3190/eval.sh; copying to container...
+2026-05-20 00:23:39,718 - INFO - Test runtime: 2.81 seconds
+2026-05-20 00:23:39,718 - INFO - Test output for mwaskom__seaborn-3190 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/mwaskom__seaborn-3190/test_output.txt
+2026-05-20 00:23:39,742 - INFO - Git diff after:
+diff --git a/seaborn/_core/scales.py b/seaborn/_core/scales.py
+index 6c9ecbc9..c53e2bee 100644
+--- a/seaborn/_core/scales.py
++++ b/seaborn/_core/scales.py
+@@ -329,6 +329,30 @@ class ContinuousBase(Scale):
+         if new._label_params is None:
+             new = new.label()
+ 
++        # Convert boolean data to numeric to support arithmetic operations
++        # Handle both pure bool dtype and object dtype with boolean values + NaN
++        if data.dtype == bool:
++            data = data.astype(int)
++            convert_bool = lambda x: x.astype(int) if x.dtype == bool else x
++        elif data.dtype == object:
++            # Check if object array contains boolean values
++            non_null = data.dropna()
++            if len(non_null) > 0 and all(isinstance(v, (bool, np.bool_)) for v in non_null):
++                data = data.copy()
++                data[~data.isna()] = data.dropna().astype(int)
++                data = data.astype(float)
++                def convert_bool(x):
++                    if x.dtype == object:
++                        out = x.copy()
++                        mask = ~out.isna()
++                        out[mask] = out[mask].astype(int)
++                        return out.astype(float)
++                    return x
++            else:
++                convert_bool = None
++        else:
++            convert_bool = None
++
+         forward, inverse = new._get_transform()
+ 
+         mpl_scale = new._get_scale(str(data.name), forward, inverse)
+@@ -357,6 +381,7 @@ class ContinuousBase(Scale):
+             normalize = vmin = vmax = None
+ 
+         new._pipeline = [
++            convert_bool,
+             axis.convert_units,
+             forward,
+             normalize,
+2026-05-20 00:23:39,742 - INFO - Grading answer for mwaskom__seaborn-3190...
+2026-05-20 00:23:39,742 - INFO - report: {'mwaskom__seaborn-3190': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['tests/_core/test_scales.py::TestContinuous::test_interval_with_bools'], 'failure': []}, 'PASS_TO_PASS': {'success': ['tests/_core/test_scales.py::TestContinuous::test_coordinate_defaults', 'tests/_core/test_scales.py::TestContinuous::test_coordinate_transform', 'tests/_core/test_scales.py::TestContinuous::test_coordinate_transform_with_parameter', 'tests/_core/test_scales.py::TestContinuous::test_coordinate_transform_error', 'tests/_core/test_scales.py::TestContinuous::test_interval_defaults', 'tests/_core/test_scales.py::TestContinuous::test_interval_with_range', 'tests/_core/test_scales.py::TestContinuous::test_interval_with_norm', 'tests/_core/test_scales.py::TestContinuous::test_interval_with_range_norm_and_transform', 'tests/_core/test_scales.py::TestContinuous::test_color_defaults', 'tests/_core/test_scales.py::TestContinuous::test_color_named_values', 'tests/_core/test_scales.py::TestContinuous::test_color_tuple_values', 'tests/_core/test_scales.py::TestContinuous::test_color_callable_values', 'tests/_core/test_scales.py::TestContinuous::test_color_with_norm', 'tests/_core/test_scales.py::TestContinuous::test_color_with_transform', 'tests/_core/test_scales.py::TestContinuous::test_tick_locator', 'tests/_core/test_scales.py::TestContinuous::test_tick_locator_input_check', 'tests/_core/test_scales.py::TestContinuous::test_tick_upto', 'tests/_core/test_scales.py::TestContinuous::test_tick_every', 'tests/_core/test_scales.py::TestContinuous::test_tick_every_between', 'tests/_core/test_scales.py::TestContinuous::test_tick_at', 'tests/_core/test_scales.py::TestContinuous::test_tick_count', 'tests/_core/test_scales.py::TestContinuous::test_tick_count_between', 'tests/_core/test_scales.py::TestContinuous::test_tick_minor', 'tests/_core/test_scales.py::TestContinuous::test_log_tick_default', 'tests/_core/test_scales.py::TestContinuous::test_log_tick_upto', 'tests/_core/test_scales.py::TestContinuous::test_log_tick_count', 'tests/_core/test_scales.py::TestContinuous::test_log_tick_format_disabled', 'tests/_core/test_scales.py::TestContinuous::test_log_tick_every', 'tests/_core/test_scales.py::TestContinuous::test_symlog_tick_default', 'tests/_core/test_scales.py::TestContinuous::test_label_formatter', 'tests/_core/test_scales.py::TestContinuous::test_label_like_pattern', 'tests/_core/test_scales.py::TestContinuous::test_label_like_string', 'tests/_core/test_scales.py::TestContinuous::test_label_like_function', 'tests/_core/test_scales.py::TestContinuous::test_label_base', 'tests/_core/test_scales.py::TestContinuous::test_label_unit', 'tests/_core/test_scales.py::TestContinuous::test_label_unit_with_sep', 'tests/_core/test_scales.py::TestContinuous::test_label_empty_unit', 'tests/_core/test_scales.py::TestContinuous::test_label_base_from_transform', 'tests/_core/test_scales.py::TestContinuous::test_label_type_checks', 'tests/_core/test_scales.py::TestNominal::test_coordinate_defaults', 'tests/_core/test_scales.py::TestNominal::test_coordinate_with_order', 'tests/_core/test_scales.py::TestNominal::test_coordinate_with_subset_order', 'tests/_core/test_scales.py::TestNominal::test_coordinate_axis', 'tests/_core/test_scales.py::TestNominal::test_coordinate_axis_with_order', 'tests/_core/test_scales.py::TestNominal::test_coordinate_axis_with_subset_order', 'tests/_core/test_scales.py::TestNominal::test_coordinate_axis_with_category_dtype', 'tests/_core/test_scales.py::TestNominal::test_coordinate_numeric_data', 'tests/_core/test_scales.py::TestNominal::test_coordinate_numeric_data_with_order', 'tests/_core/test_scales.py::TestNominal::test_color_defaults', 'tests/_core/test_scales.py::TestNominal::test_color_named_palette', 'tests/_core/test_scales.py::TestNominal::test_color_list_palette', 'tests/_core/test_scales.py::TestNominal::test_color_dict_palette', 'tests/_core/test_scales.py::TestNominal::test_color_numeric_data', 'tests/_core/test_scales.py::TestNominal::test_color_numeric_with_order_subset', 'tests/_core/test_scales.py::TestNominal::test_color_alpha_in_palette', 'tests/_core/test_scales.py::TestNominal::test_color_unknown_palette', 'tests/_core/test_scales.py::TestNominal::test_object_defaults', 'tests/_core/test_scales.py::TestNominal::test_object_list', 'tests/_core/test_scales.py::TestNominal::test_object_dict', 'tests/_core/test_scales.py::TestNominal::test_object_order', 'tests/_core/test_scales.py::TestNominal::test_object_order_subset', 'tests/_core/test_scales.py::TestNominal::test_objects_that_are_weird', 'tests/_core/test_scales.py::TestNominal::test_alpha_default', 'tests/_core/test_scales.py::TestNominal::test_fill', 'tests/_core/test_scales.py::TestNominal::test_fill_dict', 'tests/_core/test_scales.py::TestNominal::test_fill_nunique_warning', 'tests/_core/test_scales.py::TestNominal::test_interval_defaults', 'tests/_core/test_scales.py::TestNominal::test_interval_tuple', 'tests/_core/test_scales.py::TestNominal::test_interval_tuple_numeric', 'tests/_core/test_scales.py::TestNominal::test_interval_list', 'tests/_core/test_scales.py::TestNominal::test_interval_dict', 'tests/_core/test_scales.py::TestNominal::test_interval_with_transform', 'tests/_core/test_scales.py::TestNominal::test_empty_data', 'tests/_core/test_scales.py::TestTemporal::test_coordinate_defaults', 'tests/_core/test_scales.py::TestTemporal::test_interval_defaults', 'tests/_core/test_scales.py::TestTemporal::test_interval_with_range', 'tests/_core/test_scales.py::TestTemporal::test_interval_with_norm', 'tests/_core/test_scales.py::TestTemporal::test_color_defaults', 'tests/_core/test_scales.py::TestTemporal::test_color_named_values', 'tests/_core/test_scales.py::TestTemporal::test_coordinate_axis', 'tests/_core/test_scales.py::TestTemporal::test_tick_locator', 'tests/_core/test_scales.py::TestTemporal::test_tick_upto', 'tests/_core/test_scales.py::TestTemporal::test_label_formatter', 'tests/_core/test_scales.py::TestTemporal::test_label_concise'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for mwaskom__seaborn-3190: resolved: True
+2026-05-20 00:23:39,742 - INFO - Attempting to stop container sweb.eval.mwaskom__seaborn-3190.zhikuncode_eval_300_FINAL...
+2026-05-20 00:23:55,117 - INFO - Attempting to remove container sweb.eval.mwaskom__seaborn-3190.zhikuncode_eval_300_FINAL...
+2026-05-20 00:23:55,123 - INFO - Container sweb.eval.mwaskom__seaborn-3190.zhikuncode_eval_300_FINAL removed.
+2026-05-20 00:23:55,123 - INFO - Attempting to remove image sweb.eval.x86_64.mwaskom__seaborn-3190:latest...
+2026-05-20 00:23:55,177 - INFO - Image sweb.eval.x86_64.mwaskom__seaborn-3190:latest removed.

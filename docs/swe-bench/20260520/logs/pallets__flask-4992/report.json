@@ -1,0 +1,47 @@
+{
+    "pallets__flask-4992": {
+        "patch_is_None": false,
+        "patch_exists": true,
+        "patch_successfully_applied": true,
+        "resolved": true,
+        "tests_status": {
+            "FAIL_TO_PASS": {
+                "success": [
+                    "tests/test_config.py::test_config_from_file_toml"
+                ],
+                "failure": []
+            },
+            "PASS_TO_PASS": {
+                "success": [
+                    "tests/test_config.py::test_config_from_pyfile",
+                    "tests/test_config.py::test_config_from_object",
+                    "tests/test_config.py::test_config_from_file_json",
+                    "tests/test_config.py::test_from_prefixed_env",
+                    "tests/test_config.py::test_from_prefixed_env_custom_prefix",
+                    "tests/test_config.py::test_from_prefixed_env_nested",
+                    "tests/test_config.py::test_config_from_mapping",
+                    "tests/test_config.py::test_config_from_class",
+                    "tests/test_config.py::test_config_from_envvar",
+                    "tests/test_config.py::test_config_from_envvar_missing",
+                    "tests/test_config.py::test_config_missing",
+                    "tests/test_config.py::test_config_missing_file",
+                    "tests/test_config.py::test_custom_config_class",
+                    "tests/test_config.py::test_session_lifetime",
+                    "tests/test_config.py::test_get_namespace",
+                    "tests/test_config.py::test_from_pyfile_weird_encoding[utf-8]",
+                    "tests/test_config.py::test_from_pyfile_weird_encoding[iso-8859-15]",
+                    "tests/test_config.py::test_from_pyfile_weird_encoding[latin-1]"
+                ],
+                "failure": []
+            },
+            "FAIL_TO_FAIL": {
+                "success": [],
+                "failure": []
+            },
+            "PASS_TO_FAIL": {
+                "success": [],
+                "failure": []
+            }
+        }
+    }
+}

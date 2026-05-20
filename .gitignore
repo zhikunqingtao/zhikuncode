@@ -103,5 +103,8 @@ docs/test-results/**/security/*.log
 # SWE-bench 评测（脚本+数据+产物，均不提交）
 swe-bench/
 logs/run_evaluation/
+# SWE-bench 公开评测资产例外（已通过官方 harness 验证，可发布）
+!docs/swe-bench/
+!docs/swe-bench/**
 *-verification*.png
 *-screenshot.png

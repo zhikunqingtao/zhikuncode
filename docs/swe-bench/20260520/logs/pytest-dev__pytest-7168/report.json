@@ -1,0 +1,38 @@
+{
+    "pytest-dev__pytest-7168": {
+        "patch_is_None": false,
+        "patch_exists": true,
+        "patch_successfully_applied": true,
+        "resolved": true,
+        "tests_status": {
+            "FAIL_TO_PASS": {
+                "success": [
+                    "testing/io/test_saferepr.py::test_simple_repr",
+                    "testing/io/test_saferepr.py::test_maxsize",
+                    "testing/io/test_saferepr.py::test_maxsize_error_on_instance",
+                    "testing/io/test_saferepr.py::test_exceptions",
+                    "testing/io/test_saferepr.py::test_baseexception",
+                    "testing/io/test_saferepr.py::test_buggy_builtin_repr",
+                    "testing/io/test_saferepr.py::test_big_repr",
+                    "testing/io/test_saferepr.py::test_repr_on_newstyle",
+                    "testing/io/test_saferepr.py::test_unicode",
+                    "testing/io/test_saferepr.py::test_pformat_dispatch",
+                    "testing/io/test_saferepr.py::test_broken_getattribute"
+                ],
+                "failure": []
+            },
+            "PASS_TO_PASS": {
+                "success": [],
+                "failure": []
+            },
+            "FAIL_TO_FAIL": {
+                "success": [],
+                "failure": []
+            },
+            "PASS_TO_FAIL": {
+                "success": [],
+                "failure": []
+            }
+        }
+    }
+}

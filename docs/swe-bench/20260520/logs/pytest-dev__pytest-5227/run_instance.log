@@ -1,0 +1,45 @@
+2026-05-20 00:34:58,979 - INFO - Environment image sweb.env.py.x86_64.71498c7426dbf05599642f:latest found for pytest-dev__pytest-5227
+Building instance image sweb.eval.x86_64.pytest-dev__pytest-5227:latest for pytest-dev__pytest-5227
+2026-05-20 00:35:24,860 - INFO - Creating container for pytest-dev__pytest-5227...
+2026-05-20 00:35:25,037 - INFO - Container for pytest-dev__pytest-5227 created: a54881b74aa824aede96c7e1bc14b0511903e54d97585060384ce51b7d4ef0a1
+2026-05-20 00:35:25,759 - INFO - Container for pytest-dev__pytest-5227 started: a54881b74aa824aede96c7e1bc14b0511903e54d97585060384ce51b7d4ef0a1
+2026-05-20 00:35:25,759 - INFO - Intermediate patch for pytest-dev__pytest-5227 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/pytest-dev__pytest-5227/patch.diff, now applying to container...
+2026-05-20 00:35:25,806 - INFO - >>>>> Applied Patch:
+Checking patch src/_pytest/logging.py...
+Applied patch src/_pytest/logging.py cleanly.
+
+2026-05-20 00:35:25,858 - INFO - Git diff before:
+diff --git a/src/_pytest/logging.py b/src/_pytest/logging.py
+index 757cb279..08670d2b 100644
+--- a/src/_pytest/logging.py
++++ b/src/_pytest/logging.py
+@@ -15,7 +15,7 @@ from _pytest.compat import dummy_context_manager
+ from _pytest.config import create_terminal_writer
+ from _pytest.pathlib import Path
+ 
+-DEFAULT_LOG_FORMAT = "%(filename)-25s %(lineno)4d %(levelname)-8s %(message)s"
++DEFAULT_LOG_FORMAT = "%(levelname)-8s %(name)s:%(filename)s:%(lineno)d %(message)s"
+ DEFAULT_LOG_DATE_FORMAT = "%H:%M:%S"
+2026-05-20 00:35:25,858 - INFO - Eval script for pytest-dev__pytest-5227 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/pytest-dev__pytest-5227/eval.sh; copying to container...
+2026-05-20 00:35:29,347 - INFO - Test runtime: 3.47 seconds
+2026-05-20 00:35:29,347 - INFO - Test output for pytest-dev__pytest-5227 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/pytest-dev__pytest-5227/test_output.txt
+2026-05-20 00:35:29,373 - INFO - Git diff after:
+diff --git a/src/_pytest/logging.py b/src/_pytest/logging.py
+index 757cb279..08670d2b 100644
+--- a/src/_pytest/logging.py
++++ b/src/_pytest/logging.py
+@@ -15,7 +15,7 @@ from _pytest.compat import dummy_context_manager
+ from _pytest.config import create_terminal_writer
+ from _pytest.pathlib import Path
+ 
+-DEFAULT_LOG_FORMAT = "%(filename)-25s %(lineno)4d %(levelname)-8s %(message)s"
++DEFAULT_LOG_FORMAT = "%(levelname)-8s %(name)s:%(filename)s:%(lineno)d %(message)s"
+ DEFAULT_LOG_DATE_FORMAT = "%H:%M:%S"
+2026-05-20 00:35:29,373 - INFO - Grading answer for pytest-dev__pytest-5227...
+2026-05-20 00:35:29,374 - INFO - report: {'pytest-dev__pytest-5227': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['testing/logging/test_reporting.py::test_log_cli_enabled_disabled[True]', 'testing/logging/test_reporting.py::test_log_cli_default_level', 'testing/logging/test_reporting.py::test_sections_single_new_line_after_test_outcome'], 'failure': []}, 'PASS_TO_PASS': {'success': ['[100%]', '[', '[100%]------------------------------', 'testing/logging/test_reporting.py::test_live_logging_suspends_capture[True]', 'testing/logging/test_reporting.py::test_live_logging_suspends_capture[False]', 'testing/logging/test_reporting.py::test_nothing_logged', 'testing/logging/test_reporting.py::test_messages_logged', 'testing/logging/test_reporting.py::test_root_logger_affected', 'testing/logging/test_reporting.py::test_log_cli_level_log_level_interaction', 'testing/logging/test_reporting.py::test_setup_logging', 'testing/logging/test_reporting.py::test_teardown_logging', 'testing/logging/test_reporting.py::test_disable_log_capturing', 'testing/logging/test_reporting.py::test_disable_log_capturing_ini', 'testing/logging/test_reporting.py::test_log_cli_enabled_disabled[False]', 'testing/logging/test_reporting.py::test_log_cli_default_level_multiple_tests', 'testing/logging/test_reporting.py::test_log_cli_default_level_sections', 'testing/logging/test_reporting.py::test_live_logs_unknown_sections', 'testing/logging/test_reporting.py::test_log_cli_level', 'testing/logging/test_reporting.py::test_log_cli_ini_level', 'testing/logging/test_reporting.py::test_log_cli_auto_enable[]', 'testing/logging/test_reporting.py::test_log_cli_auto_enable[--log-level=WARNING]', 'testing/logging/test_reporting.py::test_log_cli_auto_enable[--log-file-level=WARNING]', 'testing/logging/test_reporting.py::test_log_cli_auto_enable[--log-cli-level=WARNING]', 'testing/logging/test_reporting.py::test_log_file_cli', 'testing/logging/test_reporting.py::test_log_file_cli_level', 'testing/logging/test_reporting.py::test_log_level_not_changed_by_default', 'testing/logging/test_reporting.py::test_log_file_ini', 'testing/logging/test_reporting.py::test_log_file_ini_level', 'testing/logging/test_reporting.py::test_log_file_unicode', 'testing/logging/test_reporting.py::test_collection_live_logging', 'testing/logging/test_reporting.py::test_collection_logging_to_file', 'testing/logging/test_reporting.py::test_log_in_hooks', 'testing/logging/test_reporting.py::test_log_in_runtest_logreport', 'testing/logging/test_reporting.py::test_log_set_path'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for pytest-dev__pytest-5227: resolved: True
+2026-05-20 00:35:29,374 - INFO - Attempting to stop container sweb.eval.pytest-dev__pytest-5227.zhikuncode_eval_300_FINAL...
+2026-05-20 00:35:44,780 - INFO - Attempting to remove container sweb.eval.pytest-dev__pytest-5227.zhikuncode_eval_300_FINAL...
+2026-05-20 00:35:44,792 - INFO - Container sweb.eval.pytest-dev__pytest-5227.zhikuncode_eval_300_FINAL removed.
+2026-05-20 00:35:44,792 - INFO - Attempting to remove image sweb.eval.x86_64.pytest-dev__pytest-5227:latest...
+2026-05-20 00:35:44,809 - INFO - Image sweb.eval.x86_64.pytest-dev__pytest-5227:latest removed.

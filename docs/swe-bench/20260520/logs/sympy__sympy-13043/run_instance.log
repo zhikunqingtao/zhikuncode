@@ -1,0 +1,79 @@
+2026-05-20 01:15:25,955 - INFO - Environment image sweb.env.py.x86_64.c795f4b88616b8462021ed:latest found for sympy__sympy-13043
+Building instance image sweb.eval.x86_64.sympy__sympy-13043:latest for sympy__sympy-13043
+2026-05-20 01:17:00,887 - INFO - Creating container for sympy__sympy-13043...
+2026-05-20 01:17:00,906 - INFO - Container for sympy__sympy-13043 created: 92803daf90d990ffba53405be6a472cfed0b6556b67b647d3d5903bc405140aa
+2026-05-20 01:17:00,994 - INFO - Container for sympy__sympy-13043 started: 92803daf90d990ffba53405be6a472cfed0b6556b67b647d3d5903bc405140aa
+2026-05-20 01:17:00,994 - INFO - Intermediate patch for sympy__sympy-13043 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-13043/patch.diff, now applying to container...
+2026-05-20 01:17:01,039 - INFO - >>>>> Applied Patch:
+Checking patch sympy/integrals/intpoly.py...
+Applied patch sympy/integrals/intpoly.py cleanly.
+
+2026-05-20 01:17:01,213 - INFO - Git diff before:
+diff --git a/sympy/integrals/intpoly.py b/sympy/integrals/intpoly.py
+index fc72bd206..110f1754a 100644
+--- a/sympy/integrals/intpoly.py
++++ b/sympy/integrals/intpoly.py
+@@ -556,7 +556,7 @@ def decompose(expr, separate=False):
+     >>> decompose(x**2 + x*y + x + y + x**3*y**2 + y**5)
+     {1: x + y, 2: x**2 + x*y, 5: x**3*y**2 + y**5}
+     >>> decompose(x**2 + x*y + x + y + x**3*y**2 + y**5, True)
+-    [x, y, x**2, y**5, x*y, x**3*y**2]
++    [x, y, x**2, x*y, x**3*y**2, y**5]
+     """
+     expr = S(expr)
+     poly_dict = {}
+@@ -569,6 +569,7 @@ def decompose(expr, separate=False):
+             degrees = [(sum(degree_list(monom, *symbols)), monom)
+                        for monom in expr.args]
+             if separate:
++                degrees.sort(key=lambda d: (d[0], str(d[1])))
+                 return [monom[1] for monom in degrees]
+             else:
+                 for monom in degrees:
+@@ -593,7 +594,7 @@ def decompose(expr, separate=False):
+         poly_dict[0] = expr
+ 
+     if separate:
+-        return list(poly_dict.values())
++        return [poly_dict[k] for k in sorted(poly_dict.keys())]
+     return poly_dict
+2026-05-20 01:17:01,213 - INFO - Eval script for sympy__sympy-13043 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-13043/eval.sh; copying to container...
+2026-05-20 01:17:05,029 - INFO - Test runtime: 3.79 seconds
+2026-05-20 01:17:05,029 - INFO - Test output for sympy__sympy-13043 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-13043/test_output.txt
+2026-05-20 01:17:05,057 - INFO - Git diff after:
+diff --git a/sympy/integrals/intpoly.py b/sympy/integrals/intpoly.py
+index fc72bd206..110f1754a 100644
+--- a/sympy/integrals/intpoly.py
++++ b/sympy/integrals/intpoly.py
+@@ -556,7 +556,7 @@ def decompose(expr, separate=False):
+     >>> decompose(x**2 + x*y + x + y + x**3*y**2 + y**5)
+     {1: x + y, 2: x**2 + x*y, 5: x**3*y**2 + y**5}
+     >>> decompose(x**2 + x*y + x + y + x**3*y**2 + y**5, True)
+-    [x, y, x**2, y**5, x*y, x**3*y**2]
++    [x, y, x**2, x*y, x**3*y**2, y**5]
+     """
+     expr = S(expr)
+     poly_dict = {}
+@@ -569,6 +569,7 @@ def decompose(expr, separate=False):
+             degrees = [(sum(degree_list(monom, *symbols)), monom)
+                        for monom in expr.args]
+             if separate:
++                degrees.sort(key=lambda d: (d[0], str(d[1])))
+                 return [monom[1] for monom in degrees]
+             else:
+                 for monom in degrees:
+@@ -593,7 +594,7 @@ def decompose(expr, separate=False):
+         poly_dict[0] = expr
+ 
+     if separate:
+-        return list(poly_dict.values())
++        return [poly_dict[k] for k in sorted(poly_dict.keys())]
+     return poly_dict
+2026-05-20 01:17:05,057 - INFO - Grading answer for sympy__sympy-13043...
+2026-05-20 01:17:05,062 - INFO - report: {'sympy__sympy-13043': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_decompose']}, 'PASS_TO_PASS': {'success': ['test_best_origin'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-13043: resolved: False
+2026-05-20 01:17:05,062 - INFO - Attempting to stop container sweb.eval.sympy__sympy-13043.zhikuncode_eval_300_FINAL...
+2026-05-20 01:17:20,392 - INFO - Attempting to remove container sweb.eval.sympy__sympy-13043.zhikuncode_eval_300_FINAL...
+2026-05-20 01:17:20,401 - INFO - Container sweb.eval.sympy__sympy-13043.zhikuncode_eval_300_FINAL removed.
+2026-05-20 01:17:20,401 - INFO - Attempting to remove image sweb.eval.x86_64.sympy__sympy-13043:latest...
+2026-05-20 01:17:20,550 - INFO - Image sweb.eval.x86_64.sympy__sympy-13043:latest removed.

@@ -1,0 +1,30 @@
+diff --git a/pylint/checkers/misc.py b/pylint/checkers/misc.py
+index 69149e6..340c62a 100644
+--- a/pylint/checkers/misc.py
++++ b/pylint/checkers/misc.py
+@@ -119,11 +119,22 @@ class EncodingChecker(BaseChecker):
+     def open(self):
+         super().open()
+ 
+-        notes = "|".join(re.escape(note) for note in self.config.notes)
++        # Separate notes into those that end with a word character and those that don't.
++        # Notes ending with word characters need \b to avoid partial matches (e.g.,
++        # TODO matching TODAY). Notes ending with non-word characters (like punctuation)
++        # cannot use \b since it requires a word character boundary.
++        notes = []
++        for note in self.config.notes:
++            if note and note[-1].isalnum() or note and note[-1] == "_":
++                notes.append(re.escape(note) + r"\b")
++            else:
++                notes.append(re.escape(note))
++        notes_pattern = "|".join(notes)
++
+         if self.config.notes_rgx:
+-            regex_string = rf"#\s*({notes}|{self.config.notes_rgx})\b"
++            regex_string = rf"#\s*({notes_pattern}|{self.config.notes_rgx})\b"
+         else:
+-            regex_string = rf"#\s*({notes})\b"
++            regex_string = rf"#\s*({notes_pattern})"
+ 
+         self._fixme_pattern = re.compile(regex_string, re.I)
+ 

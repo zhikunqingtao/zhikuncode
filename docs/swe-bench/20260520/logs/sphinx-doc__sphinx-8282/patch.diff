@@ -1,0 +1,34 @@
+diff --git a/sphinx/ext/autodoc/__init__.py b/sphinx/ext/autodoc/__init__.py
+index 978fd5d..cd34369 100644
+--- a/sphinx/ext/autodoc/__init__.py
++++ b/sphinx/ext/autodoc/__init__.py
+@@ -1261,6 +1261,9 @@ class FunctionDocumenter(DocstringSignatureMixin, ModuleLevelDocumenter):  # typ
+                     documenter.objpath = [None]
+                     sigs.append(documenter.format_signature())
+         if overloaded:
++            if self.env.config.autodoc_typehints in ('none', 'description'):
++                kwargs.setdefault('show_annotation', False)
++
+             __globals__ = safe_getattr(self.object, '__globals__', {})
+             for overload in self.analyzer.overloads.get('.'.join(self.objpath)):
+                 overload = evaluate_signature(overload, __globals__,
+@@ -1476,6 +1479,9 @@ class ClassDocumenter(DocstringSignatureMixin, ModuleLevelDocumenter):  # type:
+         overloads = self.get_overloaded_signatures()
+         if overloads:
+             # Use signatures for overloaded methods instead of the implementation method.
++            if self.env.config.autodoc_typehints in ('none', 'description'):
++                kwargs.setdefault('show_annotation', False)
++
+             method = safe_getattr(self._signature_class, self._signature_method_name, None)
+             __globals__ = safe_getattr(method, '__globals__', {})
+             for overload in overloads:
+@@ -1905,6 +1911,9 @@ class MethodDocumenter(DocstringSignatureMixin, ClassLevelDocumenter):  # type:
+                     documenter.objpath = [None]
+                     sigs.append(documenter.format_signature())
+         if overloaded:
++            if self.env.config.autodoc_typehints in ('none', 'description'):
++                kwargs.setdefault('show_annotation', False)
++
+             __globals__ = safe_getattr(self.object, '__globals__', {})
+             for overload in self.analyzer.overloads.get('.'.join(self.objpath)):
+                 overload = evaluate_signature(overload, __globals__,

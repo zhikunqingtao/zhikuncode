@@ -1,0 +1,13 @@
+diff --git a/sphinx/environment/adapters/indexentries.py b/sphinx/environment/adapters/indexentries.py
+index 5af2139..8df5250 100644
+--- a/sphinx/environment/adapters/indexentries.py
++++ b/sphinx/environment/adapters/indexentries.py
+@@ -110,6 +110,8 @@ class IndexEntries:
+                 lckey = lckey[1:]
+             if lckey[0:1].isalpha() or lckey.startswith('_'):
+                 lckey = chr(127) + lckey
++            else:
++                lckey = chr(0) + lckey
+             # ensure a determinstic order *within* letters by also sorting on
+             # the entry itself
+             return (lckey, entry[0])

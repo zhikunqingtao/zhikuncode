@@ -1,0 +1,1745 @@
+2026-05-20 00:29:13,415 - INFO - Environment image sweb.env.py.x86_64.1f92e6d7cef88badc4f744:latest found for psf__requests-2317
+Building instance image sweb.eval.x86_64.psf__requests-2317:latest for psf__requests-2317
+2026-05-20 00:29:34,837 - INFO - Creating container for psf__requests-2317...
+2026-05-20 00:29:34,896 - INFO - Container for psf__requests-2317 created: 9bd87a929d5819583bd7a613256f4143bf5aaef748598f82e3d74d9c98a30b3e
+2026-05-20 00:29:35,023 - INFO - Container for psf__requests-2317 started: 9bd87a929d5819583bd7a613256f4143bf5aaef748598f82e3d74d9c98a30b3e
+2026-05-20 00:29:35,023 - INFO - Intermediate patch for psf__requests-2317 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/patch.diff, now applying to container...
+2026-05-20 00:29:35,070 - INFO - >>>>> Applied Patch:
+Checking patch requests/models.py...
+Checking patch requests/sessions.py...
+Applied patch requests/models.py cleanly.
+Applied patch requests/sessions.py cleanly.
+
+2026-05-20 00:29:35,107 - INFO - Git diff before:
+diff --git a/requests/models.py b/requests/models.py
+index 3f6a4f9..12e4025 100644
+--- a/requests/models.py
++++ b/requests/models.py
+@@ -327,9 +327,14 @@ class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
+ 
+     def prepare_method(self, method):
+         """Prepares the given HTTP method."""
+-        self.method = method
+-        if self.method is not None:
+-            self.method = self.method.upper()
++        if method is not None:
++            if isinstance(method, bytes):
++                method = method.decode('utf-8')
++            else:
++                method = builtin_str(method)
++            self.method = method.upper()
++        else:
++            self.method = None
+ 
+     def prepare_url(self, url, params):
+         """Prepares the given HTTP URL."""
+diff --git a/requests/sessions.py b/requests/sessions.py
+index d701ff2..64d469c 100644
+--- a/requests/sessions.py
++++ b/requests/sessions.py
+@@ -425,7 +425,12 @@ class Session(SessionRedirectMixin):
+             If Tuple, ('cert', 'key') pair.
+         """
+ 
+-        method = builtin_str(method)
++        # In case method is bytes (Python 3), decode it to avoid
++        # str(b'GET') producing "b'GET'" instead of "GET"
++        if isinstance(method, bytes):
++            method = method.decode('utf-8')
++        else:
++            method = builtin_str(method)
+ 
+         # Create the Request.
+         req = Request(
+2026-05-20 00:29:35,107 - INFO - Eval script for psf__requests-2317 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/eval.sh; copying to container...
+2026-05-20 00:44:35,154 - INFO - Test runtime: 900.02 seconds
+2026-05-20 00:44:35,154 - INFO - Test output for psf__requests-2317 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/test_output.txt
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: <exception str() failed>
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,167 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,168 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,169 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,170 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,170 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,170 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,170 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,170 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,170 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,170 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,170 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,170 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,170 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,170 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,170 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,170 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,170 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,170 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,181 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: <exception str() failed>
+
+2026-05-20 00:44:35,181 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,181 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,181 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,181 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,181 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,181 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,181 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,181 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,181 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,182 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,183 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Traceback (most recent call last):
+  File "/data/swe-bench/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: psf__requests-2317: Test timed out after 900 seconds.
+Check (logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/psf__requests-2317/run_instance.log) for more information.
+
+2026-05-20 00:44:35,184 - INFO - Attempting to stop container sweb.eval.psf__requests-2317.zhikuncode_eval_300_FINAL...
+2026-05-20 00:44:50,481 - INFO - Attempting to remove container sweb.eval.psf__requests-2317.zhikuncode_eval_300_FINAL...
+2026-05-20 00:44:50,489 - INFO - Container sweb.eval.psf__requests-2317.zhikuncode_eval_300_FINAL removed.
+2026-05-20 00:44:50,489 - INFO - Attempting to remove image sweb.eval.x86_64.psf__requests-2317:latest...
+2026-05-20 00:44:50,502 - INFO - Image sweb.eval.x86_64.psf__requests-2317:latest removed.

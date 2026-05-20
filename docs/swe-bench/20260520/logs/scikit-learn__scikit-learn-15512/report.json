@@ -1,0 +1,38 @@
+{
+    "scikit-learn__scikit-learn-15512": {
+        "patch_is_None": false,
+        "patch_exists": true,
+        "patch_successfully_applied": true,
+        "resolved": true,
+        "tests_status": {
+            "FAIL_TO_PASS": {
+                "success": [
+                    "sklearn/cluster/tests/test_affinity_propagation.py::test_affinity_propagation_non_convergence_regressiontest"
+                ],
+                "failure": []
+            },
+            "PASS_TO_PASS": {
+                "success": [
+                    "sklearn/cluster/tests/test_affinity_propagation.py::test_affinity_propagation",
+                    "sklearn/cluster/tests/test_affinity_propagation.py::test_affinity_propagation_predict",
+                    "sklearn/cluster/tests/test_affinity_propagation.py::test_affinity_propagation_predict_error",
+                    "sklearn/cluster/tests/test_affinity_propagation.py::test_affinity_propagation_fit_non_convergence",
+                    "sklearn/cluster/tests/test_affinity_propagation.py::test_affinity_propagation_equal_mutual_similarities",
+                    "sklearn/cluster/tests/test_affinity_propagation.py::test_affinity_propagation_predict_non_convergence",
+                    "sklearn/cluster/tests/test_affinity_propagation.py::test_equal_similarities_and_preferences",
+                    "sklearn/cluster/tests/test_affinity_propagation.py::test_affinity_propagation_convergence_warning_dense_sparse[centers0]",
+                    "sklearn/cluster/tests/test_affinity_propagation.py::test_affinity_propagation_convergence_warning_dense_sparse[centers1]"
+                ],
+                "failure": []
+            },
+            "FAIL_TO_FAIL": {
+                "success": [],
+                "failure": []
+            },
+            "PASS_TO_FAIL": {
+                "success": [],
+                "failure": []
+            }
+        }
+    }
+}

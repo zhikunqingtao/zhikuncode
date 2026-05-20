@@ -1,0 +1,65 @@
+2026-05-20 01:19:56,468 - INFO - Environment image sweb.env.py.x86_64.c795f4b88616b8462021ed:latest found for sympy__sympy-15011
+Building instance image sweb.eval.x86_64.sympy__sympy-15011:latest for sympy__sympy-15011
+2026-05-20 01:22:11,527 - INFO - Creating container for sympy__sympy-15011...
+2026-05-20 01:22:11,550 - INFO - Container for sympy__sympy-15011 created: 7a82c98934ddf89a75ba3aff90fe5a71d0a7b3881757e9ee62922d7a978fecb0
+2026-05-20 01:22:11,765 - INFO - Container for sympy__sympy-15011 started: 7a82c98934ddf89a75ba3aff90fe5a71d0a7b3881757e9ee62922d7a978fecb0
+2026-05-20 01:22:11,765 - INFO - Intermediate patch for sympy__sympy-15011 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-15011/patch.diff, now applying to container...
+2026-05-20 01:22:11,875 - INFO - >>>>> Applied Patch:
+Checking patch sympy/utilities/lambdify.py...
+Applied patch sympy/utilities/lambdify.py cleanly.
+
+2026-05-20 01:22:12,215 - INFO - Git diff before:
+diff --git a/sympy/utilities/lambdify.py b/sympy/utilities/lambdify.py
+index f71bea25f..9220591a1 100644
+--- a/sympy/utilities/lambdify.py
++++ b/sympy/utilities/lambdify.py
+@@ -738,8 +738,16 @@ def _preprocess(self, args, expr):
+                 dummy = Dummy()
+                 argstrs.append(self._argrepr(dummy))
+                 expr = self._subexpr(expr, {arg: dummy})
++            elif isinstance(arg, string_types):
++                argstrs.append(arg)
+             else:
+-                argstrs.append(str(arg))
++                argrep = str(arg)
++                if dummify or not self._is_safe_ident(argrep):
++                    dummy = Dummy()
++                    argstrs.append(self._argrepr(dummy))
++                    expr = self._subexpr(expr, {arg: dummy})
++                else:
++                    argstrs.append(argrep)
+ 
+         return argstrs, expr
+2026-05-20 01:22:12,216 - INFO - Eval script for sympy__sympy-15011 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-15011/eval.sh; copying to container...
+2026-05-20 01:22:18,065 - INFO - Test runtime: 5.79 seconds
+2026-05-20 01:22:18,065 - INFO - Test output for sympy__sympy-15011 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-15011/test_output.txt
+2026-05-20 01:22:18,155 - INFO - Git diff after:
+diff --git a/sympy/utilities/lambdify.py b/sympy/utilities/lambdify.py
+index f71bea25f..9220591a1 100644
+--- a/sympy/utilities/lambdify.py
++++ b/sympy/utilities/lambdify.py
+@@ -738,8 +738,16 @@ def _preprocess(self, args, expr):
+                 dummy = Dummy()
+                 argstrs.append(self._argrepr(dummy))
+                 expr = self._subexpr(expr, {arg: dummy})
++            elif isinstance(arg, string_types):
++                argstrs.append(arg)
+             else:
+-                argstrs.append(str(arg))
++                argrep = str(arg)
++                if dummify or not self._is_safe_ident(argrep):
++                    dummy = Dummy()
++                    argstrs.append(self._argrepr(dummy))
++                    expr = self._subexpr(expr, {arg: dummy})
++                else:
++                    argstrs.append(argrep)
+ 
+         return argstrs, expr
+2026-05-20 01:22:18,155 - INFO - Grading answer for sympy__sympy-15011...
+2026-05-20 01:22:18,156 - INFO - report: {'sympy__sympy-15011': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_curly_matrix_symbol'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_no_args', 'test_single_arg', 'test_list_args', 'test_nested_args', 'test_str_args', 'test_own_namespace_1', 'test_own_namespace_2', 'test_own_module', 'test_bad_args', 'test_atoms', 'test_sympy_lambda', 'test_math_lambda', 'test_mpmath_lambda', 'test_number_precision', 'test_mpmath_precision', 'test_math_transl', 'test_mpmath_transl', 'test_exponentiation', 'test_sqrt', 'test_trig', 'test_vector_simple', 'test_vector_discontinuous', 'test_trig_symbolic', 'test_trig_float', 'test_docs', 'test_math', 'test_sin', 'test_matrix', 'test_issue9474', 'test_integral', 'test_sym_single_arg', 'test_sym_list_args', 'test_sym_integral', 'test_namespace_order', 'test_namespace_type', 'test_imps', 'test_imps_errors', 'test_imps_wrong_args', 'test_lambdify_imps', 'test_python_keywords', 'test_lambdify_docstring', 'test_special_printers', 'test_true_false', 'test_issue_2790', 'test_issue_12092', 'test_ITE', 'test_Min_Max', 'test_issue_12173', 'test_sinc_mpmath', 'test_lambdify_dummy_arg', 'test_lambdify_mixed_symbol_dummy_args', 'test_lambdify_inspect'], 'failure': ['test_dummification']}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-15011: resolved: False
+2026-05-20 01:22:18,156 - INFO - Attempting to stop container sweb.eval.sympy__sympy-15011.zhikuncode_eval_300_FINAL...
+2026-05-20 01:22:33,584 - INFO - Attempting to remove container sweb.eval.sympy__sympy-15011.zhikuncode_eval_300_FINAL...
+2026-05-20 01:22:33,597 - INFO - Container sweb.eval.sympy__sympy-15011.zhikuncode_eval_300_FINAL removed.
+2026-05-20 01:22:33,597 - INFO - Attempting to remove image sweb.eval.x86_64.sympy__sympy-15011:latest...
+2026-05-20 01:22:33,643 - INFO - Image sweb.eval.x86_64.sympy__sympy-15011:latest removed.

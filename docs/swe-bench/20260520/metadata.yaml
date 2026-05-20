@@ -1,0 +1,19 @@
+info:
+  name: ZhikunCode
+  site: https://github.com/zhikunqingtao/zhikuncode
+  report: https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html
+  authors:
+    - Qingtao Guo
+assets:
+  logs: s3://swe-bench-submissions/lite/20260520_zhikuncode/logs
+  trajs: s3://swe-bench-submissions/lite/20260520_zhikuncode/trajs
+tags:
+  checked: false
+  model:
+    - qwen-3.6-max-preview
+  org:
+    - ZhikunCode
+  os_model: true
+  os_system: true
+  system:
+    attempts: 1

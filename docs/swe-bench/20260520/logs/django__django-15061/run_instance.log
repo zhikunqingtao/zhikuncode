@@ -1,0 +1,55 @@
+2026-05-19 23:34:31,356 - INFO - Environment image sweb.env.py.x86_64.934a137824256b612e9dc5:latest found for django__django-15061
+Building instance image sweb.eval.x86_64.django__django-15061:latest for django__django-15061
+2026-05-19 23:37:30,113 - INFO - Creating container for django__django-15061...
+2026-05-19 23:37:30,142 - INFO - Container for django__django-15061 created: ea4eee886db16091d3cf1a8c8c14f38017aee3aaf3810a37ee7550092ab29f5a
+2026-05-19 23:37:30,466 - INFO - Container for django__django-15061 started: ea4eee886db16091d3cf1a8c8c14f38017aee3aaf3810a37ee7550092ab29f5a
+2026-05-19 23:37:30,466 - INFO - Intermediate patch for django__django-15061 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-15061/patch.diff, now applying to container...
+2026-05-19 23:37:30,746 - INFO - >>>>> Applied Patch:
+Checking patch django/forms/widgets.py...
+Applied patch django/forms/widgets.py cleanly.
+
+2026-05-19 23:37:31,568 - INFO - Git diff before:
+diff --git a/django/forms/widgets.py b/django/forms/widgets.py
+index 00c19e2c55..7307f3b15b 100644
+--- a/django/forms/widgets.py
++++ b/django/forms/widgets.py
+@@ -848,11 +848,6 @@ class MultiWidget(Widget):
+         context['widget']['subwidgets'] = subwidgets
+         return context
+ 
+-    def id_for_label(self, id_):
+-        if id_:
+-            id_ += '_0'
+-        return id_
+-
+     def value_from_datadict(self, data, files, name):
+         return [
+             widget.value_from_datadict(data, files, name + widget_name)
+2026-05-19 23:37:31,568 - INFO - Eval script for django__django-15061 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-15061/eval.sh; copying to container...
+2026-05-19 23:37:37,086 - INFO - Test runtime: 5.39 seconds
+2026-05-19 23:37:37,086 - INFO - Test output for django__django-15061 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-15061/test_output.txt
+2026-05-19 23:37:37,217 - INFO - Git diff after:
+diff --git a/django/forms/widgets.py b/django/forms/widgets.py
+index 00c19e2c55..7307f3b15b 100644
+--- a/django/forms/widgets.py
++++ b/django/forms/widgets.py
+@@ -848,11 +848,6 @@ class MultiWidget(Widget):
+         context['widget']['subwidgets'] = subwidgets
+         return context
+ 
+-    def id_for_label(self, id_):
+-        if id_:
+-            id_ += '_0'
+-        return id_
+-
+     def value_from_datadict(self, data, files, name):
+         return [
+             widget.value_from_datadict(data, files, name + widget_name)
+2026-05-19 23:37:37,218 - INFO - Grading answer for django__django-15061...
+2026-05-19 23:37:37,220 - INFO - report: {'django__django-15061': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_form_as_table (forms_tests.field_tests.test_multivaluefield.MultiValueFieldTest)', 'test_form_as_table_data (forms_tests.field_tests.test_multivaluefield.MultiValueFieldTest)', 'test_form_as_table (forms_tests.field_tests.test_splitdatetimefield.SplitDateTimeFieldTest)']}, 'PASS_TO_PASS': {'success': ['test_bad_choice (forms_tests.field_tests.test_multivaluefield.MultiValueFieldTest)', 'test_clean (forms_tests.field_tests.test_multivaluefield.MultiValueFieldTest)', 'test_clean_disabled_multivalue (forms_tests.field_tests.test_multivaluefield.MultiValueFieldTest)', 'test_disabled_has_changed (forms_tests.field_tests.test_multivaluefield.MultiValueFieldTest)', 'test_form_cleaned_data (forms_tests.field_tests.test_multivaluefield.MultiValueFieldTest)', "Test when the first widget's data has changed.", "Test when the last widget's data has changed. This ensures that it is", 'test_has_changed_no_initial (forms_tests.field_tests.test_multivaluefield.MultiValueFieldTest)', 'test_has_changed_same (forms_tests.field_tests.test_multivaluefield.MultiValueFieldTest)', 'If insufficient data is provided, None is substituted.', 'test_render_required_attributes (forms_tests.field_tests.test_multivaluefield.MultiValueFieldTest)', 'test_splitdatetimefield_1 (forms_tests.field_tests.test_splitdatetimefield.SplitDateTimeFieldTest)', 'test_splitdatetimefield_2 (forms_tests.field_tests.test_splitdatetimefield.SplitDateTimeFieldTest)', 'test_splitdatetimefield_changed (forms_tests.field_tests.test_splitdatetimefield.SplitDateTimeFieldTest)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-15061: resolved: False
+2026-05-19 23:37:37,220 - INFO - Attempting to stop container sweb.eval.django__django-15061.zhikuncode_eval_300_FINAL...
+2026-05-19 23:37:52,748 - INFO - Attempting to remove container sweb.eval.django__django-15061.zhikuncode_eval_300_FINAL...
+2026-05-19 23:37:52,761 - INFO - Container sweb.eval.django__django-15061.zhikuncode_eval_300_FINAL removed.
+2026-05-19 23:37:52,761 - INFO - Attempting to remove image sweb.eval.x86_64.django__django-15061:latest...
+2026-05-19 23:37:52,909 - INFO - Image sweb.eval.x86_64.django__django-15061:latest removed.

@@ -1,0 +1,36 @@
+diff --git a/django/db/models/expressions.py b/django/db/models/expressions.py
+index 84960d7..6cc39e9 100644
+--- a/django/db/models/expressions.py
++++ b/django/db/models/expressions.py
+@@ -820,6 +820,11 @@ class Ref(Expression):
+         return connection.ops.quote_name(self.refs), []
+ 
+     def get_group_by_cols(self, alias=None):
++        # For Subquery sources, return the source itself to avoid ambiguous
++        # column references in GROUP BY (the alias might conflict with column
++        # names in joined tables).
++        if isinstance(self.source, Subquery):
++            return [self.source]
+         return [self]
+ 
+ 
+diff --git a/django/db/models/sql/compiler.py b/django/db/models/sql/compiler.py
+index 63ca817..69a3845 100644
+--- a/django/db/models/sql/compiler.py
++++ b/django/db/models/sql/compiler.py
+@@ -112,6 +112,15 @@ class SQLCompiler:
+         ref_sources = {
+             expr.source for expr in expressions if isinstance(expr, Ref)
+         }
++        # For Ref expressions, use get_group_by_cols() to get the actual
++        # columns to group by. This is important for Subquery sources where
++        # using just the alias can be ambiguous with column names in joined
++        # tables.
++        expressions = [
++            col
++            for expr in expressions
++            for col in expr.get_group_by_cols()
++        ]
+         for expr, _, _ in select:
+             # Skip members of the select clause that are already included
+             # by reference.

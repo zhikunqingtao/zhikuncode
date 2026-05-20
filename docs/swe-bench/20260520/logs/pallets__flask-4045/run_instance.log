@@ -1,0 +1,51 @@
+2026-05-20 00:26:00,520 - INFO - Environment image sweb.env.py.x86_64.d13cdf3c18bec0743c2ba2:latest found for pallets__flask-4045
+Building instance image sweb.eval.x86_64.pallets__flask-4045:latest for pallets__flask-4045
+2026-05-20 00:26:23,065 - INFO - Creating container for pallets__flask-4045...
+2026-05-20 00:26:23,091 - INFO - Container for pallets__flask-4045 created: ae9ed9e355519efc0981011230f80113d0b0d48198af9da72630d612f08dacb4
+2026-05-20 00:26:23,204 - INFO - Container for pallets__flask-4045 started: ae9ed9e355519efc0981011230f80113d0b0d48198af9da72630d612f08dacb4
+2026-05-20 00:26:23,204 - INFO - Intermediate patch for pallets__flask-4045 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/pallets__flask-4045/patch.diff, now applying to container...
+2026-05-20 00:26:23,251 - INFO - >>>>> Applied Patch:
+Checking patch src/flask/blueprints.py...
+Applied patch src/flask/blueprints.py cleanly.
+
+2026-05-20 00:26:23,291 - INFO - Git diff before:
+diff --git a/src/flask/blueprints.py b/src/flask/blueprints.py
+index 5fb84d86..cce12d97 100644
+--- a/src/flask/blueprints.py
++++ b/src/flask/blueprints.py
+@@ -181,6 +181,9 @@ class Blueprint(Scaffold):
+         root_path: t.Optional[str] = None,
+         cli_group: t.Optional[str] = _sentinel,  # type: ignore
+     ):
++        if "." in name:
++            raise ValueError("Blueprint names should not contain dots")
++
+         super().__init__(
+             import_name=import_name,
+             static_folder=static_folder,
+2026-05-20 00:26:23,291 - INFO - Eval script for pallets__flask-4045 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/pallets__flask-4045/eval.sh; copying to container...
+2026-05-20 00:26:29,831 - INFO - Test runtime: 6.52 seconds
+2026-05-20 00:26:29,832 - INFO - Test output for pallets__flask-4045 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/pallets__flask-4045/test_output.txt
+2026-05-20 00:26:29,856 - INFO - Git diff after:
+diff --git a/src/flask/blueprints.py b/src/flask/blueprints.py
+index 5fb84d86..cce12d97 100644
+--- a/src/flask/blueprints.py
++++ b/src/flask/blueprints.py
+@@ -181,6 +181,9 @@ class Blueprint(Scaffold):
+         root_path: t.Optional[str] = None,
+         cli_group: t.Optional[str] = _sentinel,  # type: ignore
+     ):
++        if "." in name:
++            raise ValueError("Blueprint names should not contain dots")
++
+         super().__init__(
+             import_name=import_name,
+             static_folder=static_folder,
+2026-05-20 00:26:29,856 - INFO - Grading answer for pallets__flask-4045...
+2026-05-20 00:26:29,869 - INFO - report: {'pallets__flask-4045': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': ['tests/test_blueprints.py::test_dotted_name_not_allowed'], 'failure': ['tests/test_blueprints.py::test_route_decorator_custom_endpoint_with_dots']}, 'PASS_TO_PASS': {'success': ['tests/test_basic.py::test_method_route_no_methods', 'tests/test_basic.py::test_disallow_string_for_allowed_methods', 'tests/test_basic.py::test_error_handler_unknown_code', 'tests/test_basic.py::test_request_locals', 'tests/test_basic.py::test_exception_propagation', 'tests/test_basic.py::test_werkzeug_passthrough_errors[None-True-True-True]', 'tests/test_basic.py::test_werkzeug_passthrough_errors[None-True-True-False]', 'tests/test_basic.py::test_werkzeug_passthrough_errors[None-True-False-True]', 'tests/test_basic.py::test_werkzeug_passthrough_errors[None-True-False-False]', 'tests/test_basic.py::test_werkzeug_passthrough_errors[None-False-True-True]', 'tests/test_basic.py::test_werkzeug_passthrough_errors[None-False-True-False]', 'tests/test_basic.py::test_werkzeug_passthrough_errors[None-False-False-True]', 'tests/test_basic.py::test_werkzeug_passthrough_errors[None-False-False-False]', 'tests/test_basic.py::test_werkzeug_passthrough_errors[True-True-True-True]', 'tests/test_basic.py::test_werkzeug_passthrough_errors[True-True-True-False]', 'tests/test_basic.py::test_werkzeug_passthrough_errors[True-True-False-True]', 'tests/test_basic.py::test_werkzeug_passthrough_errors[True-True-False-False]', 'tests/test_basic.py::test_werkzeug_passthrough_errors[True-False-True-True]', 'tests/test_basic.py::test_werkzeug_passthrough_errors[True-False-True-False]', 'tests/test_basic.py::test_werkzeug_passthrough_errors[True-False-False-True]', 'tests/test_basic.py::test_werkzeug_passthrough_errors[True-False-False-False]', 'tests/test_basic.py::test_werkzeug_passthrough_errors[False-True-True-True]', 'tests/test_basic.py::test_werkzeug_passthrough_errors[False-True-True-False]', 'tests/test_basic.py::test_werkzeug_passthrough_errors[False-True-False-True]', 'tests/test_basic.py::test_werkzeug_passthrough_errors[False-True-False-False]', 'tests/test_basic.py::test_werkzeug_passthrough_errors[False-False-True-True]', 'tests/test_basic.py::test_werkzeug_passthrough_errors[False-False-True-False]', 'tests/test_basic.py::test_werkzeug_passthrough_errors[False-False-False-True]', 'tests/test_basic.py::test_werkzeug_passthrough_errors[False-False-False-False]', 'tests/test_basic.py::test_get_method_on_g', 'tests/test_basic.py::test_g_iteration_protocol', 'tests/test_basic.py::test_run_defaults', 'tests/test_basic.py::test_run_server_port', 'tests/test_basic.py::test_run_from_config[None-None-pocoo.org:8080-pocoo.org-8080]', 'tests/test_basic.py::test_run_from_config[localhost-None-pocoo.org:8080-localhost-8080]', 'tests/test_basic.py::test_run_from_config[None-80-pocoo.org:8080-pocoo.org-80]', 'tests/test_basic.py::test_run_from_config[localhost-80-pocoo.org:8080-localhost-80]', 'tests/test_basic.py::test_run_from_config[localhost-0-localhost:8080-localhost-0]', 'tests/test_basic.py::test_run_from_config[None-None-localhost:8080-localhost-8080]', 'tests/test_basic.py::test_run_from_config[None-None-localhost:0-localhost-0]', 'tests/test_basic.py::test_app_freed_on_zero_refcount', 'tests/test_blueprints.py::test_template_filter', 'tests/test_blueprints.py::test_add_template_filter', 'tests/test_blueprints.py::test_template_filter_with_name', 'tests/test_blueprints.py::test_add_template_filter_with_name', 'tests/test_blueprints.py::test_template_test', 'tests/test_blueprints.py::test_add_template_test', 'tests/test_blueprints.py::test_template_test_with_name', 'tests/test_blueprints.py::test_add_template_test_with_name', 'tests/test_blueprints.py::test_template_global'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for pallets__flask-4045: resolved: False
+2026-05-20 00:26:29,869 - INFO - Attempting to stop container sweb.eval.pallets__flask-4045.zhikuncode_eval_300_FINAL...
+2026-05-20 00:26:45,174 - INFO - Attempting to remove container sweb.eval.pallets__flask-4045.zhikuncode_eval_300_FINAL...
+2026-05-20 00:26:45,181 - INFO - Container sweb.eval.pallets__flask-4045.zhikuncode_eval_300_FINAL removed.
+2026-05-20 00:26:45,181 - INFO - Attempting to remove image sweb.eval.x86_64.pallets__flask-4045:latest...
+2026-05-20 00:26:45,192 - INFO - Image sweb.eval.x86_64.pallets__flask-4045:latest removed.

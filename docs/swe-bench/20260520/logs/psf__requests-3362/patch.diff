@@ -1,0 +1,15 @@
+diff --git a/requests/utils.py b/requests/utils.py
+index 8d17b6b..99f8655 100644
+--- a/requests/utils.py
++++ b/requests/utils.py
+@@ -360,9 +360,7 @@ def stream_decode_response_unicode(iterator, r):
+     """Stream decodes a iterator."""
+ 
+     if r.encoding is None:
+-        for item in iterator:
+-            yield item
+-        return
++        r.encoding = r.apparent_encoding
+ 
+     decoder = codecs.getincrementaldecoder(r.encoding)(errors='replace')
+     for chunk in iterator:

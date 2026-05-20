@@ -1,0 +1,64 @@
+diff --git a/sympy/matrices/expressions/blockmatrix.py b/sympy/matrices/expressions/blockmatrix.py
+index b821c42..3d4f628 100644
+--- a/sympy/matrices/expressions/blockmatrix.py
++++ b/sympy/matrices/expressions/blockmatrix.py
+@@ -233,19 +233,55 @@ def transpose(self):
+         return self._eval_transpose()
+ 
+     def _entry(self, i, j, **kwargs):
++        from sympy.matrices.expressions.matexpr import MatrixElement
++        from sympy.matrices.expressions.slice import MatrixSlice
+         # Find row entry
+         for row_block, numrows in enumerate(self.rowblocksizes):
+-            if (i < numrows) != False:
++            if (i < numrows) == True:
+                 break
+-            else:
++            elif (i < numrows) == False:
+                 i -= numrows
+-        for col_block, numcols in enumerate(self.colblocksizes):
+-            if (j < numcols) != False:
++            elif row_block == self.blockshape[0] - 1:
++                # Last block - assume index is valid
+                 break
+             else:
++                # Cannot determine which block the index falls into.
++                # However, if all blocks are slices of the same parent matrix,
++                # we can safely resolve to the parent's entry.
++                if self._all_blocks_from_same_parent():
++                    break
++                return MatrixElement(self, i, j)
++        for col_block, numcols in enumerate(self.colblocksizes):
++            if (j < numcols) == True:
++                break
++            elif (j < numcols) == False:
+                 j -= numcols
++            elif col_block == self.blockshape[1] - 1:
++                # Last block - assume index is valid
++                break
++            else:
++                # Cannot determine which block the index falls into.
++                # However, if all blocks are slices of the same parent matrix,
++                # we can safely resolve to the parent's entry.
++                if self._all_blocks_from_same_parent():
++                    break
++                return MatrixElement(self, i, j)
+         return self.blocks[row_block, col_block][i, j]
+ 
++    def _all_blocks_from_same_parent(self):
++        """Check if all blocks are slices of the same parent matrix."""
++        from sympy.matrices.expressions.slice import MatrixSlice
++        parent = None
++        for block in self.blocks:
++            if isinstance(block, MatrixSlice):
++                if parent is None:
++                    parent = block.parent
++                elif block.parent != parent:
++                    return False
++            else:
++                return False
++        return parent is not None
++
+     @property
+     def is_Identity(self):
+         if self.blockshape[0] != self.blockshape[1]:

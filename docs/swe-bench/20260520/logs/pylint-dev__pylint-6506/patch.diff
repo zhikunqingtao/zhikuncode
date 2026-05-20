@@ -1,0 +1,21 @@
+diff --git a/pylint/__init__.py b/pylint/__init__.py
+index 3aa4b7f..827c541 100644
+--- a/pylint/__init__.py
++++ b/pylint/__init__.py
+@@ -10,6 +10,7 @@ from collections.abc import Sequence
+ from typing import NoReturn
+ 
+ from pylint.__pkginfo__ import __version__
++from pylint.config.exceptions import _UnrecognizedOptionError
+ 
+ # pylint: disable=import-outside-toplevel
+ 
+@@ -25,6 +26,8 @@ def run_pylint(argv: Sequence[str] | None = None) -> None:
+         PylintRun(argv or sys.argv[1:])
+     except KeyboardInterrupt:
+         sys.exit(1)
++    except _UnrecognizedOptionError:
++        sys.exit(32)
+ 
+ 
+ def run_epylint(argv: Sequence[str] | None = None) -> NoReturn:

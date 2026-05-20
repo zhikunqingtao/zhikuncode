@@ -1,0 +1,34 @@
+diff --git a/django/db/models/base.py b/django/db/models/base.py
+index 4038859..7bdbc64 100644
+--- a/django/db/models/base.py
++++ b/django/db/models/base.py
+@@ -1300,7 +1300,8 @@ class Model(metaclass=ModelBase):
+         if (
+             cls._meta.pk.auto_created and
+             not settings.is_overridden('DEFAULT_AUTO_FIELD') and
+-            not cls._meta.app_config._is_default_auto_field_overridden
++            not cls._meta.app_config._is_default_auto_field_overridden and
++            not cls._is_pk_implicitly_inherited()
+         ):
+             return [
+                 checks.Warning(
+@@ -1319,6 +1320,19 @@ class Model(metaclass=ModelBase):
+             ]
+         return []
+ 
++    @classmethod
++    def _is_pk_implicitly_inherited(cls):
++        """
++        Check if the model's pk is implicitly inherited from a parent model
++        that explicitly defined a primary key.
++        """
++        if not cls._meta.parents:
++            return False
++        parent = next(iter(cls._meta.parents))
++        if parent._meta.pk.auto_created:
++            return parent._is_pk_implicitly_inherited()
++        return True
++
+     @classmethod
+     def _check_swappable(cls):
+         """Check if the swapped model exists."""

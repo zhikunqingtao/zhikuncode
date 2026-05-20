@@ -1,0 +1,2004 @@
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z '' ']'
++++ export CONDA_SHLVL=0
++++ CONDA_SHLVL=0
++++ '[' -n '' ']'
++++++ dirname /opt/miniconda3/bin/conda
+++++ dirname /opt/miniconda3/bin
++++ PATH=/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export PATH
++++ '[' -z '' ']'
++++ PS1=
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1=
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval 'PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=1
++++ CONDA_SHLVL=1
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\''
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/esmf-activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/esmpy-activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/gdal-activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/geotiff-activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libarrow_activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libxml2_activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/proj4-activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/udunits2-activate.sh"'
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\''
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/esmf-activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/esmpy-activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/gdal-activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/geotiff-activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libarrow_activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libxml2_activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/proj4-activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/udunits2-activate.sh"'
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=2
+++ CONDA_SHLVL=2
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_1=/opt/miniconda3
+++ CONDA_PREFIX_1=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/esmf-activate.sh
++++ '[' -n '' ']'
++++ '[' -f /opt/miniconda3/envs/testbed/lib/esmf.mk ']'
++++ export ESMFMKFILE=/opt/miniconda3/envs/testbed/lib/esmf.mk
++++ ESMFMKFILE=/opt/miniconda3/envs/testbed/lib/esmf.mk
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/esmpy-activate.sh
++++ '[' -n /opt/miniconda3/envs/testbed/lib/esmf.mk ']'
++++ export _CONDA_SET_ESMFMKFILE=/opt/miniconda3/envs/testbed/lib/esmf.mk
++++ _CONDA_SET_ESMFMKFILE=/opt/miniconda3/envs/testbed/lib/esmf.mk
++++ '[' -f /opt/miniconda3/envs/testbed/lib/esmf.mk ']'
++++ export ESMFMKFILE=/opt/miniconda3/envs/testbed/lib/esmf.mk
++++ ESMFMKFILE=/opt/miniconda3/envs/testbed/lib/esmf.mk
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/gdal-activate.sh
++++ '[' -n '' ']'
++++ '[' -n '' ']'
++++ '[' -d /opt/miniconda3/envs/testbed/share/gdal ']'
++++ export GDAL_DATA=/opt/miniconda3/envs/testbed/share/gdal
++++ GDAL_DATA=/opt/miniconda3/envs/testbed/share/gdal
++++ export GDAL_DRIVER_PATH=/opt/miniconda3/envs/testbed/lib/gdalplugins
++++ GDAL_DRIVER_PATH=/opt/miniconda3/envs/testbed/lib/gdalplugins
++++ '[' '!' -d /opt/miniconda3/envs/testbed/lib/gdalplugins ']'
++++ export CPL_ZIP_ENCODING=UTF-8
++++ CPL_ZIP_ENCODING=UTF-8
++++ '[' -n '5.1.16(1)-release' ']'
++++ '[' -f /opt/miniconda3/envs/testbed/share/bash-completion/completions/gdalinfo ']'
++++ source /opt/miniconda3/envs/testbed/share/bash-completion/completions/gdalinfo
+++++ function_exists _get_comp_words_by_ref
+++++ declare -f -F _get_comp_words_by_ref
+++++ return 1
+++++ return 0
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/geotiff-activate.sh
++++ '[' -n '' ']'
++++ '[' -d /opt/miniconda3/envs/testbed/share/epsg_csv ']'
++++ '[' -d /opt/miniconda3/envs/testbed/Library/share/epsg_csv ']'
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/libarrow_activate.sh
++++ '[' -n '' ']'
++++ _la_log 'Beginning libarrow activation.'
++++ '[' '' = 1 ']'
++++ _la_gdb_prefix=/opt/miniconda3/envs/testbed/share/gdb/auto-load
++++ '[' '!' -w /opt/miniconda3/envs/testbed/share/gdb/auto-load ']'
++++ _la_placeholder=replace_this_section_with_absolute_slashed_path_to_CONDA_PREFIX
++++ _la_symlink_dir=/opt/miniconda3/envs/testbed/share/gdb/auto-load//opt/miniconda3/envs/testbed/lib
++++ _la_orig_install_dir=/opt/miniconda3/envs/testbed/share/gdb/auto-load/replace_this_section_with_absolute_slashed_path_to_CONDA_PREFIX/lib
++++ _la_log '          _la_gdb_prefix: /opt/miniconda3/envs/testbed/share/gdb/auto-load'
++++ '[' '' = 1 ']'
++++ _la_log '         _la_placeholder: replace_this_section_with_absolute_slashed_path_to_CONDA_PREFIX'
++++ '[' '' = 1 ']'
++++ _la_log '         _la_symlink_dir: /opt/miniconda3/envs/testbed/share/gdb/auto-load//opt/miniconda3/envs/testbed/lib'
++++ '[' '' = 1 ']'
++++ _la_log '    _la_orig_install_dir: /opt/miniconda3/envs/testbed/share/gdb/auto-load/replace_this_section_with_absolute_slashed_path_to_CONDA_PREFIX/lib'
++++ '[' '' = 1 ']'
++++ _la_log '  content of that folder:'
++++ '[' '' = 1 ']'
+++++ ls -al /opt/miniconda3/envs/testbed/share/gdb/auto-load/replace_this_section_with_absolute_slashed_path_to_CONDA_PREFIX/lib
+++++ sed 's/^/      /'
++++ _la_log '      total 12
+      drwxr-xr-x 2 root root 4096 May 18 10:34 .
+      drwxr-xr-x 3 root root 4096 May 18 10:34 ..
+      -rw-r--r-- 1 root root  971 May 18 10:34 libarrow.so.2100.0.0-gdb.py'
++++ '[' '' = 1 ']'
++++ for _la_target in "$_la_orig_install_dir/"*.py
++++ '[' '!' -e /opt/miniconda3/envs/testbed/share/gdb/auto-load/replace_this_section_with_absolute_slashed_path_to_CONDA_PREFIX/lib/libarrow.so.2100.0.0-gdb.py ']'
+++++ basename /opt/miniconda3/envs/testbed/share/gdb/auto-load/replace_this_section_with_absolute_slashed_path_to_CONDA_PREFIX/lib/libarrow.so.2100.0.0-gdb.py
++++ _la_symlink=/opt/miniconda3/envs/testbed/share/gdb/auto-load//opt/miniconda3/envs/testbed/lib/libarrow.so.2100.0.0-gdb.py
++++ _la_log '   _la_target: /opt/miniconda3/envs/testbed/share/gdb/auto-load/replace_this_section_with_absolute_slashed_path_to_CONDA_PREFIX/lib/libarrow.so.2100.0.0-gdb.py'
++++ '[' '' = 1 ']'
++++ _la_log '  _la_symlink: /opt/miniconda3/envs/testbed/share/gdb/auto-load//opt/miniconda3/envs/testbed/lib/libarrow.so.2100.0.0-gdb.py'
++++ '[' '' = 1 ']'
++++ '[' -L /opt/miniconda3/envs/testbed/share/gdb/auto-load//opt/miniconda3/envs/testbed/lib/libarrow.so.2100.0.0-gdb.py ']'
+++++ readlink /opt/miniconda3/envs/testbed/share/gdb/auto-load//opt/miniconda3/envs/testbed/lib/libarrow.so.2100.0.0-gdb.py
++++ '[' /opt/miniconda3/envs/testbed/share/gdb/auto-load/replace_this_section_with_absolute_slashed_path_to_CONDA_PREFIX/lib/libarrow.so.2100.0.0-gdb.py = /opt/miniconda3/envs/testbed/share/gdb/auto-load/replace_this_section_with_absolute_slashed_path_to_CONDA_PREFIX/lib/libarrow.so.2100.0.0-gdb.py ']'
++++ _la_log 'symlink $_la_symlink already exists and points to $_la_target, skipping.'
++++ '[' '' = 1 ']'
++++ continue
++++ _la_log 'Libarrow activation complete.'
++++ '[' '' = 1 ']'
++++ unset _la_gdb_prefix
++++ unset _la_log
++++ unset _la_orig_install_dir
++++ unset _la_placeholder
++++ unset _la_symlink
++++ unset _la_symlink_dir
++++ unset _la_target
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/libxml2_activate.sh
++++ test -n ''
++++ xml_catalog_files_libxml2=
++++ XML_CATALOG_FILES=
++++ conda_catalog_files=
++++ ifs_libxml2=' 	
+'
++++ IFS=' '
++++ rem=/opt/miniconda3/envs/testbed
++++ for pre in ${rem}
++++ test '' = /opt/miniconda3/envs/testbed
++++ conda_catalog_files=/opt/miniconda3/envs/testbed
++++ rem=
++++ IFS=' 	
+'
++++ conda_catalog_files='file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog'
++++ export 'XML_CATALOG_FILES=file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog'
++++ XML_CATALOG_FILES='file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog'
++++ unset conda_catalog_files ifs_libxml2 rem
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/proj4-activate.sh
++++ '[' -n '' ']'
++++ '[' -d /opt/miniconda3/envs/testbed/share/proj ']'
++++ export PROJ_DATA=/opt/miniconda3/envs/testbed/share/proj
++++ PROJ_DATA=/opt/miniconda3/envs/testbed/share/proj
++++ '[' -f /opt/miniconda3/envs/testbed/share/proj/copyright_and_licenses.csv ']'
++++ export PROJ_NETWORK=ON
++++ PROJ_NETWORK=ON
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/udunits2-activate.sh
++++ '[' -n '' ']'
++++ '[' -d /opt/miniconda3/envs/testbed/share/udunits ']'
++++ export UDUNITS2_XML_PATH=/opt/miniconda3/envs/testbed/share/udunits/udunits2.xml
++++ UDUNITS2_XML_PATH=/opt/miniconda3/envs/testbed/share/udunits/udunits2.xml
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ cd /testbed
++ git config --global --add safe.directory /testbed
++ cd /testbed
++ git status
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   xarray/core/concat.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
++ git show
+commit b584a69c1d9e79fd8418ad0e8c8d03039ccdac6a
+Author: SWE-bench <setup@swebench.config>
+Date:   Tue May 19 16:30:56 2026 +0000
+
+    SWE-bench
++ git -c core.fileMode=false diff 863e49066ca4d61c9adfe62aca3bf21b90e1af8c
+diff --git a/xarray/core/concat.py b/xarray/core/concat.py
+index ecae2566..ca4cad75 100644
+--- a/xarray/core/concat.py
++++ b/xarray/core/concat.py
+@@ -78,11 +78,14 @@ def concat(
+     fill_value : scalar, optional
+         Value to use for newly missing values
+     join : {'outer', 'inner', 'left', 'right', 'exact'}, optional
+-        String indicating how to combine differing indexes
++        String indicating how to combine differing indexes and variables
+         (excluding dim) in objects
+ 
+-        - 'outer': use the union of object indexes
+-        - 'inner': use the intersection of object indexes
++        - 'outer': use the union of object indexes, and include all data
++          variables from all datasets. Variables missing from some datasets
++          will be filled with ``fill_value``.
++        - 'inner': use the intersection of object indexes, and only include
++          data variables that are present in all datasets.
+         - 'left': use indexes from the first object with each dimension
+         - 'right': use indexes from the last object with each dimension
+         - 'exact': instead of aligning, raise `ValueError` when indexes to be
+@@ -314,18 +317,42 @@ def _dataset_concat(
+         for ds in datasets:
+             absent_merge_vars = variables_to_merge - set(ds.variables)
+             if absent_merge_vars:
+-                raise ValueError(
+-                    "variables %r are present in some datasets but not others. "
+-                    % absent_merge_vars
+-                )
++                # Separate absent coordinates from absent data variables
++                absent_coords = absent_merge_vars & coord_names
++                absent_data_vars = absent_merge_vars & data_names
+ 
+-            for var in variables_to_merge:
+-                to_merge[var].append(ds.variables[var])
++                # Coordinates must always be present in all datasets
++                if absent_coords:
++                    raise ValueError(
++                        "variables %r are present in some datasets but not others. "
++                        % absent_coords
++                    )
+ 
+-        for var in variables_to_merge:
+-            result_vars[var] = unique_variable(
+-                var, to_merge[var], compat=compat, equals=equals.get(var, None)
+-            )
++                # For data variables, apply join logic
++                if absent_data_vars:
++                    if join == "inner":
++                        # Remove data variables not present in all datasets
++                        variables_to_merge -= absent_data_vars
++                        for var in absent_data_vars:
++                            to_merge.pop(var, None)
++                    elif join != "outer":
++                        raise ValueError(
++                            "variables %r are present in some datasets but not others. "
++                            % absent_data_vars
++                        )
++                    # For join='outer', skip the missing data variables for this dataset
++
++            for var in variables_to_merge:
++                if var in ds.variables:
++                    to_merge[var].append(ds.variables[var])
++
++        for var in list(variables_to_merge):
++            # Only merge variables that are present in all datasets (for inner)
++            # or have at least one value (for outer)
++            if to_merge[var]:
++                result_vars[var] = unique_variable(
++                    var, to_merge[var], compat=compat, equals=equals.get(var, None)
++                )
+     else:
+         result_vars = {}
+     result_vars.update(dim_coords)
+@@ -361,11 +388,104 @@ def _dataset_concat(
+             try:
+                 vars = ensure_common_dims([ds.variables[k] for ds in datasets])
+             except KeyError:
+-                raise ValueError("%r is not present in all datasets." % k)
++                # Check if this is a coordinate - coordinates must always be present
++                if k in coord_names:
++                    raise ValueError(
++                        "Variables %r are coordinates in some datasets but not others."
++                        % {k}
++                    )
++                if join == "inner":
++                    # Skip data variables not present in all datasets
++                    continue
++                elif join == "outer":
++                    # Collect data variables, filling missing with NaN
++                    vars = []
++                    for i, ds in enumerate(datasets):
++                        if k in ds.variables:
++                            vars.append(ds.variables[k])
++                        else:
++                            # Create a NaN-filled variable with appropriate shape
++                            # Get dims from a dataset that has this variable
++                            for ref_ds in datasets:
++                                if k in ref_ds.variables:
++                                    ref_var = ref_ds.variables[k]
++                                    break
++                            # Build dims: include concat dim if it's in the ref var
++                            var_dims = list(ref_var.dims)
++                            if dim not in var_dims:
++                                var_dims = [dim] + var_dims
++                            # Build shape: use concat_dim_lengths[i] for the concat dim
++                            var_shape = []
++                            for d in var_dims:
++                                if d == dim:
++                                    var_shape.append(concat_dim_lengths[i])
++                                else:
++                                    var_shape.append(dims_sizes.get(d, 1))
++                            # Use fill_value for missing data
++                            if fill_value is dtypes.NA:
++                                dtype, fv = dtypes.maybe_promote(ref_var.dtype)
++                            else:
++                                dtype = ref_var.dtype
++                                fv = fill_value
++                            import numpy as np
++                            missing_var = Variable(
++                                tuple(var_dims),
++                                np.full(tuple(var_shape), fv, dtype=dtype),
++                            )
++                            vars.append(missing_var)
++                    vars = ensure_common_dims(vars)
++                else:
++                    raise ValueError("%r is not present in all datasets." % k)
+             combined = concat_vars(vars, dim, positions)
+             assert isinstance(combined, Variable)
+             result_vars[k] = combined
+ 
++    # For join='outer', also include data variables from other datasets not in the first
++    if join == "outer":
++        for ds in datasets[1:]:
++            for k in ds.variables:
++                if k in concat_over and k not in result_vars:
++                    # Skip coordinates - they must be in all datasets
++                    if k in coord_names:
++                        continue
++                    # This data variable is only in some datasets, not the first
++                    vars = []
++                    for i, ref_ds in enumerate(datasets):
++                        if k in ref_ds.variables:
++                            vars.append(ref_ds.variables[k])
++                        else:
++                            # Create a NaN-filled variable
++                            for other_ds in datasets:
++                                if k in other_ds.variables:
++                                    ref_var = other_ds.variables[k]
++                                    break
++                            # Build dims
++                            var_dims = list(ref_var.dims)
++                            if dim not in var_dims:
++                                var_dims = [dim] + var_dims
++                            # Build shape
++                            var_shape = []
++                            for d in var_dims:
++                                if d == dim:
++                                    var_shape.append(concat_dim_lengths[i])
++                                else:
++                                    var_shape.append(dims_sizes.get(d, 1))
++                            if fill_value is dtypes.NA:
++                                dtype, fv = dtypes.maybe_promote(ref_var.dtype)
++                            else:
++                                dtype = ref_var.dtype
++                                fv = fill_value
++                            import numpy as np
++                            missing_var = Variable(
++                                tuple(var_dims),
++                                np.full(tuple(var_shape), fv, dtype=dtype),
++                            )
++                            vars.append(missing_var)
++                    vars = ensure_common_dims(vars)
++                    combined = concat_vars(vars, dim, positions)
++                    assert isinstance(combined, Variable)
++                    result_vars[k] = combined
++
+     result = Dataset(result_vars, attrs=result_attrs)
+     absent_coord_names = coord_names - set(result.variables)
+     if absent_coord_names:
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z x ']'
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1='(testbed) '
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='. "/opt/miniconda3/envs/testbed/etc/conda/deactivate.d/udunits2-deactivate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/deactivate.d/proj4-deactivate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/deactivate.d/libxml2_deactivate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/deactivate.d/geotiff-deactivate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/deactivate.d/gdal-deactivate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/deactivate.d/esmpy-deactivate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/deactivate.d/esmf-deactivate.sh"
+PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval '. "/opt/miniconda3/envs/testbed/etc/conda/deactivate.d/udunits2-deactivate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/deactivate.d/proj4-deactivate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/deactivate.d/libxml2_deactivate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/deactivate.d/geotiff-deactivate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/deactivate.d/gdal-deactivate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/deactivate.d/esmpy-deactivate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/deactivate.d/esmf-deactivate.sh"
+PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ . /opt/miniconda3/envs/testbed/etc/conda/deactivate.d/udunits2-deactivate.sh
+++++ unset UDUNITS2_XML_PATH
+++++ '[' -n '' ']'
++++ . /opt/miniconda3/envs/testbed/etc/conda/deactivate.d/proj4-deactivate.sh
+++++ unset PROJ_DATA
+++++ unset PROJ_NETWORK
+++++ '[' -n '' ']'
++++ . /opt/miniconda3/envs/testbed/etc/conda/deactivate.d/libxml2_deactivate.sh
+++++ test -n ''
+++++ unset XML_CATALOG_FILES
+++++ unset xml_catalog_files_libxml2
++++ . /opt/miniconda3/envs/testbed/etc/conda/deactivate.d/geotiff-deactivate.sh
+++++ unset GEOTIFF_CSV
+++++ '[' -n '' ']'
++++ . /opt/miniconda3/envs/testbed/etc/conda/deactivate.d/gdal-deactivate.sh
+++++ unset GDAL_DATA
+++++ '[' -n '' ']'
+++++ unset GDAL_DRIVER_PATH
+++++ '[' -n '' ']'
+++++ unset CPL_ZIP_ENCODING
++++ . /opt/miniconda3/envs/testbed/etc/conda/deactivate.d/esmpy-deactivate.sh
+++++ unset ESMFMKFILE
+++++ '[' -n /opt/miniconda3/envs/testbed/lib/esmf.mk ']'
+++++ export ESMFMKFILE=/opt/miniconda3/envs/testbed/lib/esmf.mk
+++++ ESMFMKFILE=/opt/miniconda3/envs/testbed/lib/esmf.mk
+++++ unset _CONDA_SET_ESMFMKFILE
++++ . /opt/miniconda3/envs/testbed/etc/conda/deactivate.d/esmf-deactivate.sh
+++++ unset ESMFMKFILE
+++++ '[' -n '' ']'
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=3
++++ CONDA_SHLVL=3
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\''
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/esmf-activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/esmpy-activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/gdal-activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/geotiff-activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libarrow_activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libxml2_activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/proj4-activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/udunits2-activate.sh"'
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\''
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/esmf-activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/esmpy-activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/gdal-activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/geotiff-activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libarrow_activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libxml2_activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/proj4-activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/udunits2-activate.sh"'
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=4
+++ CONDA_SHLVL=4
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_3=/opt/miniconda3
+++ CONDA_PREFIX_3=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/esmf-activate.sh
++++ '[' -n '' ']'
++++ '[' -f /opt/miniconda3/envs/testbed/lib/esmf.mk ']'
++++ export ESMFMKFILE=/opt/miniconda3/envs/testbed/lib/esmf.mk
++++ ESMFMKFILE=/opt/miniconda3/envs/testbed/lib/esmf.mk
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/esmpy-activate.sh
++++ '[' -n /opt/miniconda3/envs/testbed/lib/esmf.mk ']'
++++ export _CONDA_SET_ESMFMKFILE=/opt/miniconda3/envs/testbed/lib/esmf.mk
++++ _CONDA_SET_ESMFMKFILE=/opt/miniconda3/envs/testbed/lib/esmf.mk
++++ '[' -f /opt/miniconda3/envs/testbed/lib/esmf.mk ']'
++++ export ESMFMKFILE=/opt/miniconda3/envs/testbed/lib/esmf.mk
++++ ESMFMKFILE=/opt/miniconda3/envs/testbed/lib/esmf.mk
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/gdal-activate.sh
++++ '[' -n '' ']'
++++ '[' -n '' ']'
++++ '[' -d /opt/miniconda3/envs/testbed/share/gdal ']'
++++ export GDAL_DATA=/opt/miniconda3/envs/testbed/share/gdal
++++ GDAL_DATA=/opt/miniconda3/envs/testbed/share/gdal
++++ export GDAL_DRIVER_PATH=/opt/miniconda3/envs/testbed/lib/gdalplugins
++++ GDAL_DRIVER_PATH=/opt/miniconda3/envs/testbed/lib/gdalplugins
++++ '[' '!' -d /opt/miniconda3/envs/testbed/lib/gdalplugins ']'
++++ export CPL_ZIP_ENCODING=UTF-8
++++ CPL_ZIP_ENCODING=UTF-8
++++ '[' -n '5.1.16(1)-release' ']'
++++ '[' -f /opt/miniconda3/envs/testbed/share/bash-completion/completions/gdalinfo ']'
++++ source /opt/miniconda3/envs/testbed/share/bash-completion/completions/gdalinfo
+++++ function_exists _get_comp_words_by_ref
+++++ declare -f -F _get_comp_words_by_ref
+++++ return 1
+++++ return 0
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/geotiff-activate.sh
++++ '[' -n '' ']'
++++ '[' -d /opt/miniconda3/envs/testbed/share/epsg_csv ']'
++++ '[' -d /opt/miniconda3/envs/testbed/Library/share/epsg_csv ']'
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/libarrow_activate.sh
++++ '[' -n '' ']'
++++ _la_log 'Beginning libarrow activation.'
++++ '[' '' = 1 ']'
++++ _la_gdb_prefix=/opt/miniconda3/envs/testbed/share/gdb/auto-load
++++ '[' '!' -w /opt/miniconda3/envs/testbed/share/gdb/auto-load ']'
++++ _la_placeholder=replace_this_section_with_absolute_slashed_path_to_CONDA_PREFIX
++++ _la_symlink_dir=/opt/miniconda3/envs/testbed/share/gdb/auto-load//opt/miniconda3/envs/testbed/lib
++++ _la_orig_install_dir=/opt/miniconda3/envs/testbed/share/gdb/auto-load/replace_this_section_with_absolute_slashed_path_to_CONDA_PREFIX/lib
++++ _la_log '          _la_gdb_prefix: /opt/miniconda3/envs/testbed/share/gdb/auto-load'
++++ '[' '' = 1 ']'
++++ _la_log '         _la_placeholder: replace_this_section_with_absolute_slashed_path_to_CONDA_PREFIX'
++++ '[' '' = 1 ']'
++++ _la_log '         _la_symlink_dir: /opt/miniconda3/envs/testbed/share/gdb/auto-load//opt/miniconda3/envs/testbed/lib'
++++ '[' '' = 1 ']'
++++ _la_log '    _la_orig_install_dir: /opt/miniconda3/envs/testbed/share/gdb/auto-load/replace_this_section_with_absolute_slashed_path_to_CONDA_PREFIX/lib'
++++ '[' '' = 1 ']'
++++ _la_log '  content of that folder:'
++++ '[' '' = 1 ']'
+++++ ls -al /opt/miniconda3/envs/testbed/share/gdb/auto-load/replace_this_section_with_absolute_slashed_path_to_CONDA_PREFIX/lib
+++++ sed 's/^/      /'
++++ _la_log '      total 12
+      drwxr-xr-x 2 root root 4096 May 18 10:34 .
+      drwxr-xr-x 3 root root 4096 May 18 10:34 ..
+      -rw-r--r-- 1 root root  971 May 18 10:34 libarrow.so.2100.0.0-gdb.py'
++++ '[' '' = 1 ']'
++++ for _la_target in "$_la_orig_install_dir/"*.py
++++ '[' '!' -e /opt/miniconda3/envs/testbed/share/gdb/auto-load/replace_this_section_with_absolute_slashed_path_to_CONDA_PREFIX/lib/libarrow.so.2100.0.0-gdb.py ']'
+++++ basename /opt/miniconda3/envs/testbed/share/gdb/auto-load/replace_this_section_with_absolute_slashed_path_to_CONDA_PREFIX/lib/libarrow.so.2100.0.0-gdb.py
++++ _la_symlink=/opt/miniconda3/envs/testbed/share/gdb/auto-load//opt/miniconda3/envs/testbed/lib/libarrow.so.2100.0.0-gdb.py
++++ _la_log '   _la_target: /opt/miniconda3/envs/testbed/share/gdb/auto-load/replace_this_section_with_absolute_slashed_path_to_CONDA_PREFIX/lib/libarrow.so.2100.0.0-gdb.py'
++++ '[' '' = 1 ']'
++++ _la_log '  _la_symlink: /opt/miniconda3/envs/testbed/share/gdb/auto-load//opt/miniconda3/envs/testbed/lib/libarrow.so.2100.0.0-gdb.py'
++++ '[' '' = 1 ']'
++++ '[' -L /opt/miniconda3/envs/testbed/share/gdb/auto-load//opt/miniconda3/envs/testbed/lib/libarrow.so.2100.0.0-gdb.py ']'
+++++ readlink /opt/miniconda3/envs/testbed/share/gdb/auto-load//opt/miniconda3/envs/testbed/lib/libarrow.so.2100.0.0-gdb.py
++++ '[' /opt/miniconda3/envs/testbed/share/gdb/auto-load/replace_this_section_with_absolute_slashed_path_to_CONDA_PREFIX/lib/libarrow.so.2100.0.0-gdb.py = /opt/miniconda3/envs/testbed/share/gdb/auto-load/replace_this_section_with_absolute_slashed_path_to_CONDA_PREFIX/lib/libarrow.so.2100.0.0-gdb.py ']'
++++ _la_log 'symlink $_la_symlink already exists and points to $_la_target, skipping.'
++++ '[' '' = 1 ']'
++++ continue
++++ _la_log 'Libarrow activation complete.'
++++ '[' '' = 1 ']'
++++ unset _la_gdb_prefix
++++ unset _la_log
++++ unset _la_orig_install_dir
++++ unset _la_placeholder
++++ unset _la_symlink
++++ unset _la_symlink_dir
++++ unset _la_target
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/libxml2_activate.sh
++++ test -n ''
++++ xml_catalog_files_libxml2=
++++ XML_CATALOG_FILES=
++++ conda_catalog_files=
++++ ifs_libxml2=' 	
+'
++++ IFS=' '
++++ rem=/opt/miniconda3/envs/testbed
++++ for pre in ${rem}
++++ test '' = /opt/miniconda3/envs/testbed
++++ conda_catalog_files=/opt/miniconda3/envs/testbed
++++ rem=
++++ IFS=' 	
+'
++++ conda_catalog_files='file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog'
++++ export 'XML_CATALOG_FILES=file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog'
++++ XML_CATALOG_FILES='file:///opt/miniconda3/envs/testbed/etc/xml/catalog file:///etc/xml/catalog'
++++ unset conda_catalog_files ifs_libxml2 rem
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/proj4-activate.sh
++++ '[' -n '' ']'
++++ '[' -d /opt/miniconda3/envs/testbed/share/proj ']'
++++ export PROJ_DATA=/opt/miniconda3/envs/testbed/share/proj
++++ PROJ_DATA=/opt/miniconda3/envs/testbed/share/proj
++++ '[' -f /opt/miniconda3/envs/testbed/share/proj/copyright_and_licenses.csv ']'
++++ export PROJ_NETWORK=ON
++++ PROJ_NETWORK=ON
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/udunits2-activate.sh
++++ '[' -n '' ']'
++++ '[' -d /opt/miniconda3/envs/testbed/share/udunits ']'
++++ export UDUNITS2_XML_PATH=/opt/miniconda3/envs/testbed/share/udunits/udunits2.xml
++++ UDUNITS2_XML_PATH=/opt/miniconda3/envs/testbed/share/udunits/udunits2.xml
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ python -m pip install -e .
+Looking in indexes: https://mirrors.aliyun.com/pypi/simple/
+Obtaining file:///testbed
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Checking if build backend supports build_editable: started
+  Checking if build backend supports build_editable: finished with status 'done'
+  Getting requirements to build editable: started
+  Getting requirements to build editable: finished with status 'done'
+  Preparing editable metadata (pyproject.toml): started
+  Preparing editable metadata (pyproject.toml): finished with status 'done'
+Requirement already satisfied: numpy>=1.14 in /opt/miniconda3/envs/testbed/lib/python3.10/site-packages (from xarray==0.13.0+34.gb584a69c.dirty) (1.23.0)
+Requirement already satisfied: pandas>=0.24 in /opt/miniconda3/envs/testbed/lib/python3.10/site-packages (from xarray==0.13.0+34.gb584a69c.dirty) (1.5.3)
+Requirement already satisfied: python-dateutil>=2.8.1 in /opt/miniconda3/envs/testbed/lib/python3.10/site-packages (from pandas>=0.24->xarray==0.13.0+34.gb584a69c.dirty) (2.8.2)
+Requirement already satisfied: pytz>=2020.1 in /opt/miniconda3/envs/testbed/lib/python3.10/site-packages (from pandas>=0.24->xarray==0.13.0+34.gb584a69c.dirty) (2023.3)
+Requirement already satisfied: six>=1.5 in /opt/miniconda3/envs/testbed/lib/python3.10/site-packages (from python-dateutil>=2.8.1->pandas>=0.24->xarray==0.13.0+34.gb584a69c.dirty) (1.16.0)
+Building wheels for collected packages: xarray
+  Building editable for xarray (pyproject.toml): started
+  Building editable for xarray (pyproject.toml): finished with status 'done'
+  Created wheel for xarray: filename=xarray-0.13.0+34.gb584a69c.dirty-0.editable-py3-none-any.whl size=8606 sha256=d3c78e483e3b18b049e1bc7288d842448af1b61b5b1f1d85294f9f9c07e85994
+  Stored in directory: /tmp/pip-ephem-wheel-cache-alvmnnci/wheels/0d/a6/cb/465a7b303d624cc531250fa27c75d038ddc29430bdb6ba7c9f
+Successfully built xarray
+Installing collected packages: xarray
+  Attempting uninstall: xarray
+    Found existing installation: xarray 0.13.0+33.g863e4906
+    Uninstalling xarray-0.13.0+33.g863e4906:
+      Successfully uninstalled xarray-0.13.0+33.g863e4906
+Successfully installed xarray-0.13.0+34.gb584a69c.dirty
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
++ git checkout 863e49066ca4d61c9adfe62aca3bf21b90e1af8c xarray/tests/test_combine.py xarray/tests/test_concat.py
+Updated 0 paths from 5831e739
++ git apply -v -
+Checking patch xarray/tests/test_combine.py...
+Checking patch xarray/tests/test_concat.py...
+Applied patch xarray/tests/test_combine.py cleanly.
+Applied patch xarray/tests/test_concat.py cleanly.
++ : '>>>>> Start Test Output'
++ pytest -rA xarray/tests/test_combine.py xarray/tests/test_concat.py
+============================= test session starts ==============================
+platform linux -- Python 3.10.20, pytest-7.4.0, pluggy-1.6.0
+rootdir: /testbed
+configfile: setup.cfg
+plugins: cov-7.1.0, xdist-3.8.0, hypothesis-6.152.7, env-1.6.0
+collected 113 items
+
+xarray/tests/test_combine.py .......................................x... [ 38%]
+......................F.F.........                                       [ 68%]
+xarray/tests/test_concat.py F....F..............................         [100%]
+
+=================================== FAILURES ===================================
+___________________ TestAutoCombineOldAPI.test_auto_combine ____________________
+
+datasets = (<xarray.Dataset>
+Dimensions:  (x: 1, y: 1)
+Coordinates:
+  * x        (x) int64 0
+  * y        (y) int64 0
+Data variables:
+    *empty*, <xarray.Dataset>
+Dimensions:  (x: 1)
+Coordinates:
+  * x        (x) int64 0
+Data variables:
+    *empty*)
+dim = 'y', data_vars = 'all', coords = 'different', compat = 'no_conflicts'
+positions = None, fill_value = <NA>, join = 'outer'
+
+    def _dataset_concat(
+        datasets,
+        dim,
+        data_vars,
+        coords,
+        compat,
+        positions,
+        fill_value=dtypes.NA,
+        join="outer",
+    ):
+        """
+        Concatenate a sequence of datasets along a new or existing dimension
+        """
+        from .dataset import Dataset
+    
+        dim, coord = _calc_concat_dim_coord(dim)
+        # Make sure we're working on a copy (we'll be loading variables)
+        datasets = [ds.copy() for ds in datasets]
+        datasets = align(
+            *datasets, join=join, copy=False, exclude=[dim], fill_value=fill_value
+        )
+    
+        dim_coords, dims_sizes, coord_names, data_names = _parse_datasets(datasets)
+        dim_names = set(dim_coords)
+        unlabeled_dims = dim_names - coord_names
+    
+        both_data_and_coords = coord_names & data_names
+        if both_data_and_coords:
+            raise ValueError(
+                "%r is a coordinate in some datasets but not others." % both_data_and_coords
+            )
+        # we don't want the concat dimension in the result dataset yet
+        dim_coords.pop(dim, None)
+        dims_sizes.pop(dim, None)
+    
+        # case where concat dimension is a coordinate or data_var but not a dimension
+        if (dim in coord_names or dim in data_names) and dim not in dim_names:
+            datasets = [ds.expand_dims(dim) for ds in datasets]
+    
+        # determine which variables to concatentate
+        concat_over, equals, concat_dim_lengths = _calc_concat_over(
+            datasets, dim, dim_names, data_vars, coords, compat
+        )
+    
+        # determine which variables to merge, and then merge them according to compat
+        variables_to_merge = (coord_names | data_names) - concat_over - dim_names
+    
+        result_vars = {}
+        if variables_to_merge:
+            to_merge = {var: [] for var in variables_to_merge}
+    
+            for ds in datasets:
+                absent_merge_vars = variables_to_merge - set(ds.variables)
+                if absent_merge_vars:
+                    # Separate absent coordinates from absent data variables
+                    absent_coords = absent_merge_vars & coord_names
+                    absent_data_vars = absent_merge_vars & data_names
+    
+                    # Coordinates must always be present in all datasets
+                    if absent_coords:
+                        raise ValueError(
+                            "variables %r are present in some datasets but not others. "
+                            % absent_coords
+                        )
+    
+                    # For data variables, apply join logic
+                    if absent_data_vars:
+                        if join == "inner":
+                            # Remove data variables not present in all datasets
+                            variables_to_merge -= absent_data_vars
+                            for var in absent_data_vars:
+                                to_merge.pop(var, None)
+                        elif join != "outer":
+                            raise ValueError(
+                                "variables %r are present in some datasets but not others. "
+                                % absent_data_vars
+                            )
+                        # For join='outer', skip the missing data variables for this dataset
+    
+                for var in variables_to_merge:
+                    if var in ds.variables:
+                        to_merge[var].append(ds.variables[var])
+    
+            for var in list(variables_to_merge):
+                # Only merge variables that are present in all datasets (for inner)
+                # or have at least one value (for outer)
+                if to_merge[var]:
+                    result_vars[var] = unique_variable(
+                        var, to_merge[var], compat=compat, equals=equals.get(var, None)
+                    )
+        else:
+            result_vars = {}
+        result_vars.update(dim_coords)
+    
+        # assign attrs and encoding from first dataset
+        result_attrs = datasets[0].attrs
+        result_encoding = datasets[0].encoding
+    
+        # check that global attributes are fixed across all datasets if necessary
+        for ds in datasets[1:]:
+            if compat == "identical" and not utils.dict_equiv(ds.attrs, result_attrs):
+                raise ValueError("Dataset global attributes not equal.")
+    
+        # we've already verified everything is consistent; now, calculate
+        # shared dimension sizes so we can expand the necessary variables
+        def ensure_common_dims(vars):
+            # ensure each variable with the given name shares the same
+            # dimensions and the same shape for all of them except along the
+            # concat dimension
+            common_dims = tuple(pd.unique([d for v in vars for d in v.dims]))
+            if dim not in common_dims:
+                common_dims = (dim,) + common_dims
+            for var, dim_len in zip(vars, concat_dim_lengths):
+                if var.dims != common_dims:
+                    common_shape = tuple(dims_sizes.get(d, dim_len) for d in common_dims)
+                    var = var.set_dims(common_dims, common_shape)
+                yield var
+    
+        # stack up each variable to fill-out the dataset (in order)
+        # n.b. this loop preserves variable order, needed for groupby.
+        for k in datasets[0].variables:
+            if k in concat_over:
+                try:
+>                   vars = ensure_common_dims([ds.variables[k] for ds in datasets])
+
+xarray/core/concat.py:389: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+xarray/core/concat.py:389: in <listcomp>
+    vars = ensure_common_dims([ds.variables[k] for ds in datasets])
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = Frozen({'x': <xarray.IndexVariable 'x' (x: 1)>
+array([0])}), key = 'y'
+
+    def __getitem__(self, key: K) -> V:
+>       return self.mapping[key]
+E       KeyError: 'y'
+
+xarray/core/utils.py:384: KeyError
+
+During handling of the above exception, another exception occurred:
+
+self = <xarray.tests.test_combine.TestAutoCombineOldAPI object at 0x7f61db83df90>
+
+    def test_auto_combine(self):
+        objs = [Dataset({"x": [0]}), Dataset({"x": [1]})]
+        actual = auto_combine(objs)
+        expected = Dataset({"x": [0, 1]})
+        assert_identical(expected, actual)
+    
+        actual = auto_combine([actual])
+        assert_identical(expected, actual)
+    
+        objs = [Dataset({"x": [0, 1]}), Dataset({"x": [2]})]
+        actual = auto_combine(objs)
+        expected = Dataset({"x": [0, 1, 2]})
+        assert_identical(expected, actual)
+    
+        # ensure auto_combine handles non-sorted variables
+        objs = [
+            Dataset({"x": ("a", [0]), "y": ("a", [0])}),
+            Dataset({"y": ("a", [1]), "x": ("a", [1])}),
+        ]
+        actual = auto_combine(objs)
+        expected = Dataset({"x": ("a", [0, 1]), "y": ("a", [0, 1])})
+        assert_identical(expected, actual)
+    
+        objs = [Dataset({"x": [0], "y": [0]}), Dataset({"y": [1], "x": [1]})]
+        with raises_regex(ValueError, "too many .* dimensions"):
+            auto_combine(objs)
+    
+        objs = [Dataset({"x": 0}), Dataset({"x": 1})]
+        with raises_regex(ValueError, "cannot infer dimension"):
+            auto_combine(objs)
+    
+        objs = [Dataset({"x": [0], "y": [0]}), Dataset({"x": [0]})]
+        with raises_regex(ValueError, "'y' is not present in all datasets"):
+>           auto_combine(objs)
+
+xarray/tests/test_combine.py:759: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+xarray/core/combine.py:846: in auto_combine
+    return _old_auto_combine(
+xarray/core/combine.py:907: in _old_auto_combine
+    concatenated = [
+xarray/core/combine.py:908: in <listcomp>
+    _auto_concat(
+xarray/core/combine.py:958: in _auto_concat
+    return concat(
+xarray/core/concat.py:134: in concat
+    return f(objs, dim, data_vars, coords, compat, positions, fill_value, join)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+datasets = (<xarray.Dataset>
+Dimensions:  (x: 1, y: 1)
+Coordinates:
+  * x        (x) int64 0
+  * y        (y) int64 0
+Data variables:
+    *empty*, <xarray.Dataset>
+Dimensions:  (x: 1)
+Coordinates:
+  * x        (x) int64 0
+Data variables:
+    *empty*)
+dim = 'y', data_vars = 'all', coords = 'different', compat = 'no_conflicts'
+positions = None, fill_value = <NA>, join = 'outer'
+
+    def _dataset_concat(
+        datasets,
+        dim,
+        data_vars,
+        coords,
+        compat,
+        positions,
+        fill_value=dtypes.NA,
+        join="outer",
+    ):
+        """
+        Concatenate a sequence of datasets along a new or existing dimension
+        """
+        from .dataset import Dataset
+    
+        dim, coord = _calc_concat_dim_coord(dim)
+        # Make sure we're working on a copy (we'll be loading variables)
+        datasets = [ds.copy() for ds in datasets]
+        datasets = align(
+            *datasets, join=join, copy=False, exclude=[dim], fill_value=fill_value
+        )
+    
+        dim_coords, dims_sizes, coord_names, data_names = _parse_datasets(datasets)
+        dim_names = set(dim_coords)
+        unlabeled_dims = dim_names - coord_names
+    
+        both_data_and_coords = coord_names & data_names
+        if both_data_and_coords:
+            raise ValueError(
+                "%r is a coordinate in some datasets but not others." % both_data_and_coords
+            )
+        # we don't want the concat dimension in the result dataset yet
+        dim_coords.pop(dim, None)
+        dims_sizes.pop(dim, None)
+    
+        # case where concat dimension is a coordinate or data_var but not a dimension
+        if (dim in coord_names or dim in data_names) and dim not in dim_names:
+            datasets = [ds.expand_dims(dim) for ds in datasets]
+    
+        # determine which variables to concatentate
+        concat_over, equals, concat_dim_lengths = _calc_concat_over(
+            datasets, dim, dim_names, data_vars, coords, compat
+        )
+    
+        # determine which variables to merge, and then merge them according to compat
+        variables_to_merge = (coord_names | data_names) - concat_over - dim_names
+    
+        result_vars = {}
+        if variables_to_merge:
+            to_merge = {var: [] for var in variables_to_merge}
+    
+            for ds in datasets:
+                absent_merge_vars = variables_to_merge - set(ds.variables)
+                if absent_merge_vars:
+                    # Separate absent coordinates from absent data variables
+                    absent_coords = absent_merge_vars & coord_names
+                    absent_data_vars = absent_merge_vars & data_names
+    
+                    # Coordinates must always be present in all datasets
+                    if absent_coords:
+                        raise ValueError(
+                            "variables %r are present in some datasets but not others. "
+                            % absent_coords
+                        )
+    
+                    # For data variables, apply join logic
+                    if absent_data_vars:
+                        if join == "inner":
+                            # Remove data variables not present in all datasets
+                            variables_to_merge -= absent_data_vars
+                            for var in absent_data_vars:
+                                to_merge.pop(var, None)
+                        elif join != "outer":
+                            raise ValueError(
+                                "variables %r are present in some datasets but not others. "
+                                % absent_data_vars
+                            )
+                        # For join='outer', skip the missing data variables for this dataset
+    
+                for var in variables_to_merge:
+                    if var in ds.variables:
+                        to_merge[var].append(ds.variables[var])
+    
+            for var in list(variables_to_merge):
+                # Only merge variables that are present in all datasets (for inner)
+                # or have at least one value (for outer)
+                if to_merge[var]:
+                    result_vars[var] = unique_variable(
+                        var, to_merge[var], compat=compat, equals=equals.get(var, None)
+                    )
+        else:
+            result_vars = {}
+        result_vars.update(dim_coords)
+    
+        # assign attrs and encoding from first dataset
+        result_attrs = datasets[0].attrs
+        result_encoding = datasets[0].encoding
+    
+        # check that global attributes are fixed across all datasets if necessary
+        for ds in datasets[1:]:
+            if compat == "identical" and not utils.dict_equiv(ds.attrs, result_attrs):
+                raise ValueError("Dataset global attributes not equal.")
+    
+        # we've already verified everything is consistent; now, calculate
+        # shared dimension sizes so we can expand the necessary variables
+        def ensure_common_dims(vars):
+            # ensure each variable with the given name shares the same
+            # dimensions and the same shape for all of them except along the
+            # concat dimension
+            common_dims = tuple(pd.unique([d for v in vars for d in v.dims]))
+            if dim not in common_dims:
+                common_dims = (dim,) + common_dims
+            for var, dim_len in zip(vars, concat_dim_lengths):
+                if var.dims != common_dims:
+                    common_shape = tuple(dims_sizes.get(d, dim_len) for d in common_dims)
+                    var = var.set_dims(common_dims, common_shape)
+                yield var
+    
+        # stack up each variable to fill-out the dataset (in order)
+        # n.b. this loop preserves variable order, needed for groupby.
+        for k in datasets[0].variables:
+            if k in concat_over:
+                try:
+                    vars = ensure_common_dims([ds.variables[k] for ds in datasets])
+                except KeyError:
+                    # Check if this is a coordinate - coordinates must always be present
+                    if k in coord_names:
+>                       raise ValueError(
+                            "Variables %r are coordinates in some datasets but not others."
+                            % {k}
+                        )
+E                       ValueError: Variables {'y'} are coordinates in some datasets but not others.
+
+xarray/core/concat.py:393: ValueError
+
+During handling of the above exception, another exception occurred:
+
+self = <xarray.tests.test_combine.TestAutoCombineOldAPI object at 0x7f61db83df90>
+
+    def test_auto_combine(self):
+        objs = [Dataset({"x": [0]}), Dataset({"x": [1]})]
+        actual = auto_combine(objs)
+        expected = Dataset({"x": [0, 1]})
+        assert_identical(expected, actual)
+    
+        actual = auto_combine([actual])
+        assert_identical(expected, actual)
+    
+        objs = [Dataset({"x": [0, 1]}), Dataset({"x": [2]})]
+        actual = auto_combine(objs)
+        expected = Dataset({"x": [0, 1, 2]})
+        assert_identical(expected, actual)
+    
+        # ensure auto_combine handles non-sorted variables
+        objs = [
+            Dataset({"x": ("a", [0]), "y": ("a", [0])}),
+            Dataset({"y": ("a", [1]), "x": ("a", [1])}),
+        ]
+        actual = auto_combine(objs)
+        expected = Dataset({"x": ("a", [0, 1]), "y": ("a", [0, 1])})
+        assert_identical(expected, actual)
+    
+        objs = [Dataset({"x": [0], "y": [0]}), Dataset({"y": [1], "x": [1]})]
+        with raises_regex(ValueError, "too many .* dimensions"):
+            auto_combine(objs)
+    
+        objs = [Dataset({"x": 0}), Dataset({"x": 1})]
+        with raises_regex(ValueError, "cannot infer dimension"):
+            auto_combine(objs)
+    
+        objs = [Dataset({"x": [0], "y": [0]}), Dataset({"x": [0]})]
+>       with raises_regex(ValueError, "'y' is not present in all datasets"):
+
+xarray/tests/test_combine.py:758: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <contextlib._GeneratorContextManager object at 0x7f61dad74c10>
+typ = <class 'ValueError'>
+value = ValueError("Variables {'y'} are coordinates in some datasets but not others.")
+traceback = <traceback object at 0x7f61da937480>
+
+    def __exit__(self, typ, value, traceback):
+        if typ is None:
+            try:
+                next(self.gen)
+            except StopIteration:
+                return False
+            else:
+                raise RuntimeError("generator didn't stop")
+        else:
+            if value is None:
+                # Need to force instantiation so we can reliably
+                # tell if we get the same exception back
+                value = typ()
+            try:
+>               self.gen.throw(typ, value, traceback)
+E               AssertionError: exception ValueError("Variables {'y'} are coordinates in some datasets but not others.") did not match pattern "'y' is not present in all datasets"
+
+/opt/miniconda3/envs/testbed/lib/python3.10/contextlib.py:153: AssertionError
+__________ TestAutoCombineOldAPI.test_auto_combine_with_new_variables __________
+
+self = <xarray.tests.test_combine.TestAutoCombineOldAPI object at 0x7f61db83e230>
+
+    def test_auto_combine_with_new_variables(self):
+        datasets = [Dataset({"x": 0}, {"y": 0}), Dataset({"x": 1}, {"y": 1, "z": 1})]
+>       actual = auto_combine(datasets, "y")
+
+xarray/tests/test_combine.py:787: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+xarray/core/combine.py:846: in auto_combine
+    return _old_auto_combine(
+xarray/core/combine.py:907: in _old_auto_combine
+    concatenated = [
+xarray/core/combine.py:908: in <listcomp>
+    _auto_concat(
+xarray/core/combine.py:958: in _auto_concat
+    return concat(
+xarray/core/concat.py:134: in concat
+    return f(objs, dim, data_vars, coords, compat, positions, fill_value, join)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+datasets = [<xarray.Dataset>
+Dimensions:  (y: 1)
+Coordinates:
+  * y        (y) int64 0
+Data variables:
+    x        (y) int64 0, ...imensions:  (y: 1)
+Coordinates:
+  * y        (y) int64 1
+    z        int64 1
+Data variables:
+    x        (y) int64 1]
+dim = 'y', data_vars = 'all', coords = 'different', compat = 'no_conflicts'
+positions = None, fill_value = <NA>, join = 'outer'
+
+    def _dataset_concat(
+        datasets,
+        dim,
+        data_vars,
+        coords,
+        compat,
+        positions,
+        fill_value=dtypes.NA,
+        join="outer",
+    ):
+        """
+        Concatenate a sequence of datasets along a new or existing dimension
+        """
+        from .dataset import Dataset
+    
+        dim, coord = _calc_concat_dim_coord(dim)
+        # Make sure we're working on a copy (we'll be loading variables)
+        datasets = [ds.copy() for ds in datasets]
+        datasets = align(
+            *datasets, join=join, copy=False, exclude=[dim], fill_value=fill_value
+        )
+    
+        dim_coords, dims_sizes, coord_names, data_names = _parse_datasets(datasets)
+        dim_names = set(dim_coords)
+        unlabeled_dims = dim_names - coord_names
+    
+        both_data_and_coords = coord_names & data_names
+        if both_data_and_coords:
+            raise ValueError(
+                "%r is a coordinate in some datasets but not others." % both_data_and_coords
+            )
+        # we don't want the concat dimension in the result dataset yet
+        dim_coords.pop(dim, None)
+        dims_sizes.pop(dim, None)
+    
+        # case where concat dimension is a coordinate or data_var but not a dimension
+        if (dim in coord_names or dim in data_names) and dim not in dim_names:
+            datasets = [ds.expand_dims(dim) for ds in datasets]
+    
+        # determine which variables to concatentate
+        concat_over, equals, concat_dim_lengths = _calc_concat_over(
+            datasets, dim, dim_names, data_vars, coords, compat
+        )
+    
+        # determine which variables to merge, and then merge them according to compat
+        variables_to_merge = (coord_names | data_names) - concat_over - dim_names
+    
+        result_vars = {}
+        if variables_to_merge:
+            to_merge = {var: [] for var in variables_to_merge}
+    
+            for ds in datasets:
+                absent_merge_vars = variables_to_merge - set(ds.variables)
+                if absent_merge_vars:
+                    # Separate absent coordinates from absent data variables
+                    absent_coords = absent_merge_vars & coord_names
+                    absent_data_vars = absent_merge_vars & data_names
+    
+                    # Coordinates must always be present in all datasets
+                    if absent_coords:
+>                       raise ValueError(
+                            "variables %r are present in some datasets but not others. "
+                            % absent_coords
+                        )
+E                       ValueError: variables {'z'} are present in some datasets but not others.
+
+xarray/core/concat.py:326: ValueError
+______________________________ test_concat_compat ______________________________
+
+datasets = (<xarray.Dataset>
+Dimensions:  (q: 1, x: 2, y: 2, z: 2)
+Coordinates:
+  * y        (y) int64 0 1
+  * x        (x) int64...1 -2
+Data variables:
+    has_x_y  (y, x) float64 1.0 2.0 nan nan
+    has_x    (x) int64 1 2
+    no_x_y   (z) int64 1 2)
+dim = 'q', data_vars = 'all', coords = 'different', compat = 'equals'
+positions = None, fill_value = <NA>, join = 'outer'
+
+    def _dataset_concat(
+        datasets,
+        dim,
+        data_vars,
+        coords,
+        compat,
+        positions,
+        fill_value=dtypes.NA,
+        join="outer",
+    ):
+        """
+        Concatenate a sequence of datasets along a new or existing dimension
+        """
+        from .dataset import Dataset
+    
+        dim, coord = _calc_concat_dim_coord(dim)
+        # Make sure we're working on a copy (we'll be loading variables)
+        datasets = [ds.copy() for ds in datasets]
+        datasets = align(
+            *datasets, join=join, copy=False, exclude=[dim], fill_value=fill_value
+        )
+    
+        dim_coords, dims_sizes, coord_names, data_names = _parse_datasets(datasets)
+        dim_names = set(dim_coords)
+        unlabeled_dims = dim_names - coord_names
+    
+        both_data_and_coords = coord_names & data_names
+        if both_data_and_coords:
+            raise ValueError(
+                "%r is a coordinate in some datasets but not others." % both_data_and_coords
+            )
+        # we don't want the concat dimension in the result dataset yet
+        dim_coords.pop(dim, None)
+        dims_sizes.pop(dim, None)
+    
+        # case where concat dimension is a coordinate or data_var but not a dimension
+        if (dim in coord_names or dim in data_names) and dim not in dim_names:
+            datasets = [ds.expand_dims(dim) for ds in datasets]
+    
+        # determine which variables to concatentate
+        concat_over, equals, concat_dim_lengths = _calc_concat_over(
+            datasets, dim, dim_names, data_vars, coords, compat
+        )
+    
+        # determine which variables to merge, and then merge them according to compat
+        variables_to_merge = (coord_names | data_names) - concat_over - dim_names
+    
+        result_vars = {}
+        if variables_to_merge:
+            to_merge = {var: [] for var in variables_to_merge}
+    
+            for ds in datasets:
+                absent_merge_vars = variables_to_merge - set(ds.variables)
+                if absent_merge_vars:
+                    # Separate absent coordinates from absent data variables
+                    absent_coords = absent_merge_vars & coord_names
+                    absent_data_vars = absent_merge_vars & data_names
+    
+                    # Coordinates must always be present in all datasets
+                    if absent_coords:
+                        raise ValueError(
+                            "variables %r are present in some datasets but not others. "
+                            % absent_coords
+                        )
+    
+                    # For data variables, apply join logic
+                    if absent_data_vars:
+                        if join == "inner":
+                            # Remove data variables not present in all datasets
+                            variables_to_merge -= absent_data_vars
+                            for var in absent_data_vars:
+                                to_merge.pop(var, None)
+                        elif join != "outer":
+                            raise ValueError(
+                                "variables %r are present in some datasets but not others. "
+                                % absent_data_vars
+                            )
+                        # For join='outer', skip the missing data variables for this dataset
+    
+                for var in variables_to_merge:
+                    if var in ds.variables:
+                        to_merge[var].append(ds.variables[var])
+    
+            for var in list(variables_to_merge):
+                # Only merge variables that are present in all datasets (for inner)
+                # or have at least one value (for outer)
+                if to_merge[var]:
+                    result_vars[var] = unique_variable(
+                        var, to_merge[var], compat=compat, equals=equals.get(var, None)
+                    )
+        else:
+            result_vars = {}
+        result_vars.update(dim_coords)
+    
+        # assign attrs and encoding from first dataset
+        result_attrs = datasets[0].attrs
+        result_encoding = datasets[0].encoding
+    
+        # check that global attributes are fixed across all datasets if necessary
+        for ds in datasets[1:]:
+            if compat == "identical" and not utils.dict_equiv(ds.attrs, result_attrs):
+                raise ValueError("Dataset global attributes not equal.")
+    
+        # we've already verified everything is consistent; now, calculate
+        # shared dimension sizes so we can expand the necessary variables
+        def ensure_common_dims(vars):
+            # ensure each variable with the given name shares the same
+            # dimensions and the same shape for all of them except along the
+            # concat dimension
+            common_dims = tuple(pd.unique([d for v in vars for d in v.dims]))
+            if dim not in common_dims:
+                common_dims = (dim,) + common_dims
+            for var, dim_len in zip(vars, concat_dim_lengths):
+                if var.dims != common_dims:
+                    common_shape = tuple(dims_sizes.get(d, dim_len) for d in common_dims)
+                    var = var.set_dims(common_dims, common_shape)
+                yield var
+    
+        # stack up each variable to fill-out the dataset (in order)
+        # n.b. this loop preserves variable order, needed for groupby.
+        for k in datasets[0].variables:
+            if k in concat_over:
+                try:
+>                   vars = ensure_common_dims([ds.variables[k] for ds in datasets])
+
+xarray/core/concat.py:389: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+xarray/core/concat.py:389: in <listcomp>
+    vars = ensure_common_dims([ds.variables[k] for ds in datasets])
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = Frozen({'y': <xarray.IndexVariable 'y' (y: 2)>
+array([0, 1]), 'has_x_y': <xarray.Variable (y: 2, x: 2)>
+array([[ 1.,  ...[1, 2]), 'x': <xarray.IndexVariable 'x' (x: 2)>
+array([0, 1]), 'z': <xarray.IndexVariable 'z' (z: 2)>
+array([-1, -2])})
+key = 'q'
+
+    def __getitem__(self, key: K) -> V:
+>       return self.mapping[key]
+E       KeyError: 'q'
+
+xarray/core/utils.py:384: KeyError
+
+During handling of the above exception, another exception occurred:
+
+    def test_concat_compat():
+        ds1 = Dataset(
+            {
+                "has_x_y": (("y", "x"), [[1, 2]]),
+                "has_x": ("x", [1, 2]),
+                "no_x_y": ("z", [1, 2]),
+            },
+            coords={"x": [0, 1], "y": [0], "z": [-1, -2]},
+        )
+        ds2 = Dataset(
+            {
+                "has_x_y": (("y", "x"), [[3, 4]]),
+                "has_x": ("x", [1, 2]),
+                "no_x_y": (("q", "z"), [[1, 2]]),
+            },
+            coords={"x": [0, 1], "y": [1], "z": [-1, -2], "q": [0]},
+        )
+    
+        result = concat([ds1, ds2], dim="y", data_vars="minimal", compat="broadcast_equals")
+        assert_equal(ds2.no_x_y, result.no_x_y.transpose())
+    
+        for var in ["has_x", "no_x_y"]:
+            assert "y" not in result[var]
+    
+        with raises_regex(ValueError, "coordinates in some datasets but not others"):
+            concat([ds1, ds2], dim="q")
+        with raises_regex(ValueError, "'q' is not present in all datasets"):
+>           concat([ds2, ds1], dim="q")
+
+xarray/tests/test_concat.py:48: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+xarray/core/concat.py:134: in concat
+    return f(objs, dim, data_vars, coords, compat, positions, fill_value, join)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+datasets = (<xarray.Dataset>
+Dimensions:  (q: 1, x: 2, y: 2, z: 2)
+Coordinates:
+  * y        (y) int64 0 1
+  * x        (x) int64...1 -2
+Data variables:
+    has_x_y  (y, x) float64 1.0 2.0 nan nan
+    has_x    (x) int64 1 2
+    no_x_y   (z) int64 1 2)
+dim = 'q', data_vars = 'all', coords = 'different', compat = 'equals'
+positions = None, fill_value = <NA>, join = 'outer'
+
+    def _dataset_concat(
+        datasets,
+        dim,
+        data_vars,
+        coords,
+        compat,
+        positions,
+        fill_value=dtypes.NA,
+        join="outer",
+    ):
+        """
+        Concatenate a sequence of datasets along a new or existing dimension
+        """
+        from .dataset import Dataset
+    
+        dim, coord = _calc_concat_dim_coord(dim)
+        # Make sure we're working on a copy (we'll be loading variables)
+        datasets = [ds.copy() for ds in datasets]
+        datasets = align(
+            *datasets, join=join, copy=False, exclude=[dim], fill_value=fill_value
+        )
+    
+        dim_coords, dims_sizes, coord_names, data_names = _parse_datasets(datasets)
+        dim_names = set(dim_coords)
+        unlabeled_dims = dim_names - coord_names
+    
+        both_data_and_coords = coord_names & data_names
+        if both_data_and_coords:
+            raise ValueError(
+                "%r is a coordinate in some datasets but not others." % both_data_and_coords
+            )
+        # we don't want the concat dimension in the result dataset yet
+        dim_coords.pop(dim, None)
+        dims_sizes.pop(dim, None)
+    
+        # case where concat dimension is a coordinate or data_var but not a dimension
+        if (dim in coord_names or dim in data_names) and dim not in dim_names:
+            datasets = [ds.expand_dims(dim) for ds in datasets]
+    
+        # determine which variables to concatentate
+        concat_over, equals, concat_dim_lengths = _calc_concat_over(
+            datasets, dim, dim_names, data_vars, coords, compat
+        )
+    
+        # determine which variables to merge, and then merge them according to compat
+        variables_to_merge = (coord_names | data_names) - concat_over - dim_names
+    
+        result_vars = {}
+        if variables_to_merge:
+            to_merge = {var: [] for var in variables_to_merge}
+    
+            for ds in datasets:
+                absent_merge_vars = variables_to_merge - set(ds.variables)
+                if absent_merge_vars:
+                    # Separate absent coordinates from absent data variables
+                    absent_coords = absent_merge_vars & coord_names
+                    absent_data_vars = absent_merge_vars & data_names
+    
+                    # Coordinates must always be present in all datasets
+                    if absent_coords:
+                        raise ValueError(
+                            "variables %r are present in some datasets but not others. "
+                            % absent_coords
+                        )
+    
+                    # For data variables, apply join logic
+                    if absent_data_vars:
+                        if join == "inner":
+                            # Remove data variables not present in all datasets
+                            variables_to_merge -= absent_data_vars
+                            for var in absent_data_vars:
+                                to_merge.pop(var, None)
+                        elif join != "outer":
+                            raise ValueError(
+                                "variables %r are present in some datasets but not others. "
+                                % absent_data_vars
+                            )
+                        # For join='outer', skip the missing data variables for this dataset
+    
+                for var in variables_to_merge:
+                    if var in ds.variables:
+                        to_merge[var].append(ds.variables[var])
+    
+            for var in list(variables_to_merge):
+                # Only merge variables that are present in all datasets (for inner)
+                # or have at least one value (for outer)
+                if to_merge[var]:
+                    result_vars[var] = unique_variable(
+                        var, to_merge[var], compat=compat, equals=equals.get(var, None)
+                    )
+        else:
+            result_vars = {}
+        result_vars.update(dim_coords)
+    
+        # assign attrs and encoding from first dataset
+        result_attrs = datasets[0].attrs
+        result_encoding = datasets[0].encoding
+    
+        # check that global attributes are fixed across all datasets if necessary
+        for ds in datasets[1:]:
+            if compat == "identical" and not utils.dict_equiv(ds.attrs, result_attrs):
+                raise ValueError("Dataset global attributes not equal.")
+    
+        # we've already verified everything is consistent; now, calculate
+        # shared dimension sizes so we can expand the necessary variables
+        def ensure_common_dims(vars):
+            # ensure each variable with the given name shares the same
+            # dimensions and the same shape for all of them except along the
+            # concat dimension
+            common_dims = tuple(pd.unique([d for v in vars for d in v.dims]))
+            if dim not in common_dims:
+                common_dims = (dim,) + common_dims
+            for var, dim_len in zip(vars, concat_dim_lengths):
+                if var.dims != common_dims:
+                    common_shape = tuple(dims_sizes.get(d, dim_len) for d in common_dims)
+                    var = var.set_dims(common_dims, common_shape)
+                yield var
+    
+        # stack up each variable to fill-out the dataset (in order)
+        # n.b. this loop preserves variable order, needed for groupby.
+        for k in datasets[0].variables:
+            if k in concat_over:
+                try:
+                    vars = ensure_common_dims([ds.variables[k] for ds in datasets])
+                except KeyError:
+                    # Check if this is a coordinate - coordinates must always be present
+                    if k in coord_names:
+>                       raise ValueError(
+                            "Variables %r are coordinates in some datasets but not others."
+                            % {k}
+                        )
+E                       ValueError: Variables {'q'} are coordinates in some datasets but not others.
+
+xarray/core/concat.py:393: ValueError
+
+During handling of the above exception, another exception occurred:
+
+    def test_concat_compat():
+        ds1 = Dataset(
+            {
+                "has_x_y": (("y", "x"), [[1, 2]]),
+                "has_x": ("x", [1, 2]),
+                "no_x_y": ("z", [1, 2]),
+            },
+            coords={"x": [0, 1], "y": [0], "z": [-1, -2]},
+        )
+        ds2 = Dataset(
+            {
+                "has_x_y": (("y", "x"), [[3, 4]]),
+                "has_x": ("x", [1, 2]),
+                "no_x_y": (("q", "z"), [[1, 2]]),
+            },
+            coords={"x": [0, 1], "y": [1], "z": [-1, -2], "q": [0]},
+        )
+    
+        result = concat([ds1, ds2], dim="y", data_vars="minimal", compat="broadcast_equals")
+        assert_equal(ds2.no_x_y, result.no_x_y.transpose())
+    
+        for var in ["has_x", "no_x_y"]:
+            assert "y" not in result[var]
+    
+        with raises_regex(ValueError, "coordinates in some datasets but not others"):
+            concat([ds1, ds2], dim="q")
+>       with raises_regex(ValueError, "'q' is not present in all datasets"):
+
+xarray/tests/test_concat.py:47: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <contextlib._GeneratorContextManager object at 0x7f61dbac7250>
+typ = <class 'ValueError'>
+value = ValueError("Variables {'q'} are coordinates in some datasets but not others.")
+traceback = <traceback object at 0x7f61db87e580>
+
+    def __exit__(self, typ, value, traceback):
+        if typ is None:
+            try:
+                next(self.gen)
+            except StopIteration:
+                return False
+            else:
+                raise RuntimeError("generator didn't stop")
+        else:
+            if value is None:
+                # Need to force instantiation so we can reliably
+                # tell if we get the same exception back
+                value = typ()
+            try:
+>               self.gen.throw(typ, value, traceback)
+E               AssertionError: exception ValueError("Variables {'q'} are coordinates in some datasets but not others.") did not match pattern "'q' is not present in all datasets"
+
+/opt/miniconda3/envs/testbed/lib/python3.10/contextlib.py:153: AssertionError
+____ TestConcatDataset.test_concat_merge_variables_present_in_some_datasets ____
+
+self = <xarray.tests.test_concat.TestConcatDataset object at 0x7f61da7535e0>
+data = <xarray.Dataset>
+Dimensions:  (dim1: 8, dim2: 9, time: 20)
+Coordinates:
+  * time     (time) datetime64[ns] 2000-01-01 ...0.3848 1.139 ... -2.268 -0.4704 -0.6404
+    var2     (dim1, dim2) float64 0.805 -0.9934 1.151 ... 1.362 -0.4669 -0.1116
+
+    def test_concat_merge_variables_present_in_some_datasets(self, data):
+        # coordinates present in some datasets but not others
+        ds1 = Dataset(data_vars={"a": ("y", [0.1])}, coords={"x": 0.1})
+        ds2 = Dataset(data_vars={"a": ("y", [0.2])}, coords={"z": 0.2})
+>       actual = concat([ds1, ds2], dim="y", coords="minimal")
+
+xarray/tests/test_concat.py:75: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+xarray/core/concat.py:134: in concat
+    return f(objs, dim, data_vars, coords, compat, positions, fill_value, join)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+datasets = (<xarray.Dataset>
+Dimensions:  (y: 1)
+Coordinates:
+    x        float64 0.1
+Dimensions without coordinates: y
+Data var...)
+Coordinates:
+    z        float64 0.2
+Dimensions without coordinates: y
+Data variables:
+    a        (y) float64 0.2)
+dim = 'y', data_vars = 'all', coords = 'minimal', compat = 'equals'
+positions = None, fill_value = <NA>, join = 'outer'
+
+    def _dataset_concat(
+        datasets,
+        dim,
+        data_vars,
+        coords,
+        compat,
+        positions,
+        fill_value=dtypes.NA,
+        join="outer",
+    ):
+        """
+        Concatenate a sequence of datasets along a new or existing dimension
+        """
+        from .dataset import Dataset
+    
+        dim, coord = _calc_concat_dim_coord(dim)
+        # Make sure we're working on a copy (we'll be loading variables)
+        datasets = [ds.copy() for ds in datasets]
+        datasets = align(
+            *datasets, join=join, copy=False, exclude=[dim], fill_value=fill_value
+        )
+    
+        dim_coords, dims_sizes, coord_names, data_names = _parse_datasets(datasets)
+        dim_names = set(dim_coords)
+        unlabeled_dims = dim_names - coord_names
+    
+        both_data_and_coords = coord_names & data_names
+        if both_data_and_coords:
+            raise ValueError(
+                "%r is a coordinate in some datasets but not others." % both_data_and_coords
+            )
+        # we don't want the concat dimension in the result dataset yet
+        dim_coords.pop(dim, None)
+        dims_sizes.pop(dim, None)
+    
+        # case where concat dimension is a coordinate or data_var but not a dimension
+        if (dim in coord_names or dim in data_names) and dim not in dim_names:
+            datasets = [ds.expand_dims(dim) for ds in datasets]
+    
+        # determine which variables to concatentate
+        concat_over, equals, concat_dim_lengths = _calc_concat_over(
+            datasets, dim, dim_names, data_vars, coords, compat
+        )
+    
+        # determine which variables to merge, and then merge them according to compat
+        variables_to_merge = (coord_names | data_names) - concat_over - dim_names
+    
+        result_vars = {}
+        if variables_to_merge:
+            to_merge = {var: [] for var in variables_to_merge}
+    
+            for ds in datasets:
+                absent_merge_vars = variables_to_merge - set(ds.variables)
+                if absent_merge_vars:
+                    # Separate absent coordinates from absent data variables
+                    absent_coords = absent_merge_vars & coord_names
+                    absent_data_vars = absent_merge_vars & data_names
+    
+                    # Coordinates must always be present in all datasets
+                    if absent_coords:
+>                       raise ValueError(
+                            "variables %r are present in some datasets but not others. "
+                            % absent_coords
+                        )
+E                       ValueError: variables {'z'} are present in some datasets but not others.
+
+xarray/core/concat.py:326: ValueError
+=============================== warnings summary ===============================
+xarray/core/pdcompat.py:45
+  /testbed/xarray/core/pdcompat.py:45: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    if LooseVersion(pd.__version__) < "0.25.0":
+
+../opt/miniconda3/envs/testbed/lib/python3.10/site-packages/setuptools/_distutils/version.py:345
+  /opt/miniconda3/envs/testbed/lib/python3.10/site-packages/setuptools/_distutils/version.py:345: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    other = LooseVersion(other)
+
+xarray/plot/plot.py:291
+  /testbed/xarray/plot/plot.py:291: SyntaxWarning: "is" with a literal. Did you mean "=="?
+    if args is ():
+
+xarray/core/dask_array_compat.py:7
+xarray/core/dask_array_compat.py:7
+  /testbed/xarray/core/dask_array_compat.py:7: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    if LooseVersion(dask_version) >= LooseVersion("2.0.0"):
+
+xarray/tests/test_combine.py: 16 warnings
+xarray/tests/test_concat.py: 11 warnings
+  /testbed/xarray/core/alignment.py:300: FutureWarning: Index.__or__ operating as a set operation is deprecated, in the future this will be a logical operation matching Series.__or__.  Use index.union(other) instead.
+    index = joiner(matching_indexes)
+
+xarray/tests/test_combine.py::TestNestedCombine::test_combine_nested_join[inner-expected1]
+xarray/tests/test_combine.py::TestCombineAuto::test_combine_coords_join[inner-expected1]
+xarray/tests/test_concat.py::TestConcatDataset::test_concat_join_kwarg
+xarray/tests/test_concat.py::TestConcatDataArray::test_concat_join_kwarg
+  /testbed/xarray/core/alignment.py:300: FutureWarning: Index.__and__ operating as a set operation is deprecated, in the future this will be a logical operation matching Series.__and__.  Use index.intersection(other) instead.
+    index = joiner(matching_indexes)
+
+xarray/tests/test_combine.py: 11 warnings
+xarray/tests/test_concat.py: 117 warnings
+  /testbed/xarray/core/formatting.py:142: DeprecationWarning: `np.float` is a deprecated alias for the builtin `float`. To silence this warning, use `float` by itself. Doing this will not modify any behavior and is safe. If you specifically wanted the numpy scalar type, use `np.float64` here.
+  Deprecated in NumPy 1.20; for more details and guidance: https://numpy.org/devdocs/release/1.20.0-notes.html#deprecations
+    elif isinstance(x, (float, np.float)):
+
+xarray/tests/test_concat.py::test_concat_compat
+  /testbed/xarray/core/dataarray.py:680: FutureWarning: elementwise comparison failed; returning scalar instead, but in the future will perform elementwise comparison
+    return key in self.data
+
+xarray/tests/test_concat.py::TestConcatDataset::test_concat_simple[dim2-different]
+xarray/tests/test_concat.py::TestConcatDataset::test_concat_simple[dim2-minimal]
+xarray/tests/test_concat.py::TestConcatDataset::test_concat_2
+xarray/tests/test_concat.py::TestConcatDataset::test_concat_coords_kwarg[dim2-different]
+xarray/tests/test_concat.py::TestConcatDataset::test_concat_coords_kwarg[dim2-minimal]
+xarray/tests/test_concat.py::TestConcatDataset::test_concat_coords_kwarg[dim2-all]
+xarray/tests/test_concat.py::TestConcatDataArray::test_concat
+  /testbed/xarray/core/groupby.py:194: FutureWarning: is_monotonic is deprecated and will be removed in a future version. Use is_monotonic_increasing instead.
+    return index.is_unique and index.is_monotonic
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED xarray/tests/test_combine.py::TestTileIDsFromNestedList::test_1d
+PASSED xarray/tests/test_combine.py::TestTileIDsFromNestedList::test_2d
+PASSED xarray/tests/test_combine.py::TestTileIDsFromNestedList::test_3d
+PASSED xarray/tests/test_combine.py::TestTileIDsFromNestedList::test_single_dataset
+PASSED xarray/tests/test_combine.py::TestTileIDsFromNestedList::test_redundant_nesting
+PASSED xarray/tests/test_combine.py::TestTileIDsFromNestedList::test_ignore_empty_list
+PASSED xarray/tests/test_combine.py::TestTileIDsFromNestedList::test_uneven_depth_input
+PASSED xarray/tests/test_combine.py::TestTileIDsFromNestedList::test_uneven_length_input
+PASSED xarray/tests/test_combine.py::TestTileIDsFromNestedList::test_infer_from_datasets
+PASSED xarray/tests/test_combine.py::TestTileIDsFromCoords::test_1d
+PASSED xarray/tests/test_combine.py::TestTileIDsFromCoords::test_2d
+PASSED xarray/tests/test_combine.py::TestTileIDsFromCoords::test_no_dimension_coords
+PASSED xarray/tests/test_combine.py::TestTileIDsFromCoords::test_coord_not_monotonic
+PASSED xarray/tests/test_combine.py::TestTileIDsFromCoords::test_coord_monotonically_decreasing
+PASSED xarray/tests/test_combine.py::TestTileIDsFromCoords::test_no_concatenation_needed
+PASSED xarray/tests/test_combine.py::TestTileIDsFromCoords::test_2d_plus_bystander_dim
+PASSED xarray/tests/test_combine.py::TestTileIDsFromCoords::test_string_coords
+PASSED xarray/tests/test_combine.py::TestTileIDsFromCoords::test_lexicographic_sort_string_coords
+PASSED xarray/tests/test_combine.py::TestTileIDsFromCoords::test_datetime_coords
+PASSED xarray/tests/test_combine.py::TestNewTileIDs::test_new_tile_id[old_id0-new_id0]
+PASSED xarray/tests/test_combine.py::TestNewTileIDs::test_new_tile_id[old_id1-new_id1]
+PASSED xarray/tests/test_combine.py::TestNewTileIDs::test_new_tile_id[old_id2-new_id2]
+PASSED xarray/tests/test_combine.py::TestNewTileIDs::test_new_tile_id[old_id3-new_id3]
+PASSED xarray/tests/test_combine.py::TestNewTileIDs::test_new_tile_id[old_id4-new_id4]
+PASSED xarray/tests/test_combine.py::TestNewTileIDs::test_get_new_tile_ids
+PASSED xarray/tests/test_combine.py::TestCombineND::test_concat_once[dim1]
+PASSED xarray/tests/test_combine.py::TestCombineND::test_concat_once[new_dim]
+PASSED xarray/tests/test_combine.py::TestCombineND::test_concat_only_first_dim
+PASSED xarray/tests/test_combine.py::TestCombineND::test_concat_twice[dim1]
+PASSED xarray/tests/test_combine.py::TestCombineND::test_concat_twice[new_dim]
+PASSED xarray/tests/test_combine.py::TestCheckShapeTileIDs::test_check_depths
+PASSED xarray/tests/test_combine.py::TestCheckShapeTileIDs::test_check_lengths
+PASSED xarray/tests/test_combine.py::TestNestedCombine::test_nested_concat
+PASSED xarray/tests/test_combine.py::TestNestedCombine::test_combine_nested_join[outer-expected0]
+PASSED xarray/tests/test_combine.py::TestNestedCombine::test_combine_nested_join[inner-expected1]
+PASSED xarray/tests/test_combine.py::TestNestedCombine::test_combine_nested_join[left-expected2]
+PASSED xarray/tests/test_combine.py::TestNestedCombine::test_combine_nested_join[right-expected3]
+PASSED xarray/tests/test_combine.py::TestNestedCombine::test_combine_nested_join_exact
+PASSED xarray/tests/test_combine.py::TestNestedCombine::test_empty_input
+PASSED xarray/tests/test_combine.py::TestNestedCombine::test_nested_concat_along_new_dim
+PASSED xarray/tests/test_combine.py::TestNestedCombine::test_nested_merge
+PASSED xarray/tests/test_combine.py::TestNestedCombine::test_concat_multiple_dims
+PASSED xarray/tests/test_combine.py::TestNestedCombine::test_concat_name_symmetry
+PASSED xarray/tests/test_combine.py::TestNestedCombine::test_concat_one_dim_merge_another
+PASSED xarray/tests/test_combine.py::TestNestedCombine::test_auto_combine_2d
+PASSED xarray/tests/test_combine.py::TestNestedCombine::test_combine_nested_missing_data_new_dim
+PASSED xarray/tests/test_combine.py::TestNestedCombine::test_invalid_hypercube_input
+PASSED xarray/tests/test_combine.py::TestNestedCombine::test_merge_one_dim_concat_another
+PASSED xarray/tests/test_combine.py::TestNestedCombine::test_combine_concat_over_redundant_nesting
+PASSED xarray/tests/test_combine.py::TestNestedCombine::test_combine_nested_fill_value[fill_value0]
+PASSED xarray/tests/test_combine.py::TestNestedCombine::test_combine_nested_fill_value[2]
+PASSED xarray/tests/test_combine.py::TestNestedCombine::test_combine_nested_fill_value[2.0]
+PASSED xarray/tests/test_combine.py::TestCombineAuto::test_combine_by_coords
+PASSED xarray/tests/test_combine.py::TestCombineAuto::test_combine_coords_join[outer-expected0]
+PASSED xarray/tests/test_combine.py::TestCombineAuto::test_combine_coords_join[inner-expected1]
+PASSED xarray/tests/test_combine.py::TestCombineAuto::test_combine_coords_join[left-expected2]
+PASSED xarray/tests/test_combine.py::TestCombineAuto::test_combine_coords_join[right-expected3]
+PASSED xarray/tests/test_combine.py::TestCombineAuto::test_combine_coords_join_exact
+PASSED xarray/tests/test_combine.py::TestCombineAuto::test_infer_order_from_coords
+PASSED xarray/tests/test_combine.py::TestCombineAuto::test_combine_leaving_bystander_dimensions
+PASSED xarray/tests/test_combine.py::TestCombineAuto::test_combine_by_coords_previously_failed
+PASSED xarray/tests/test_combine.py::TestCombineAuto::test_combine_by_coords_still_fails
+PASSED xarray/tests/test_combine.py::TestCombineAuto::test_combine_by_coords_no_concat
+PASSED xarray/tests/test_combine.py::TestCombineAuto::test_check_for_impossible_ordering
+PASSED xarray/tests/test_combine.py::TestAutoCombineOldAPI::test_auto_combine_previously_failed
+PASSED xarray/tests/test_combine.py::TestAutoCombineOldAPI::test_auto_combine_no_concat
+PASSED xarray/tests/test_combine.py::TestAutoCombineOldAPI::test_auto_combine_order_by_appearance_not_coords
+PASSED xarray/tests/test_combine.py::TestAutoCombineOldAPI::test_auto_combine_fill_value[fill_value0]
+PASSED xarray/tests/test_combine.py::TestAutoCombineOldAPI::test_auto_combine_fill_value[2]
+PASSED xarray/tests/test_combine.py::TestAutoCombineOldAPI::test_auto_combine_fill_value[2.0]
+PASSED xarray/tests/test_combine.py::TestAutoCombineDeprecation::test_auto_combine_with_concat_dim
+PASSED xarray/tests/test_combine.py::TestAutoCombineDeprecation::test_auto_combine_with_merge_and_concat
+PASSED xarray/tests/test_combine.py::TestAutoCombineDeprecation::test_auto_combine_with_coords
+PASSED xarray/tests/test_combine.py::TestAutoCombineDeprecation::test_auto_combine_without_coords
+PASSED xarray/tests/test_concat.py::TestConcatDataset::test_concat_simple[dim1-different]
+PASSED xarray/tests/test_concat.py::TestConcatDataset::test_concat_simple[dim1-minimal]
+PASSED xarray/tests/test_concat.py::TestConcatDataset::test_concat_simple[dim2-different]
+PASSED xarray/tests/test_concat.py::TestConcatDataset::test_concat_simple[dim2-minimal]
+PASSED xarray/tests/test_concat.py::TestConcatDataset::test_concat_2
+PASSED xarray/tests/test_concat.py::TestConcatDataset::test_concat_coords_kwarg[dim1-different]
+PASSED xarray/tests/test_concat.py::TestConcatDataset::test_concat_coords_kwarg[dim1-minimal]
+PASSED xarray/tests/test_concat.py::TestConcatDataset::test_concat_coords_kwarg[dim1-all]
+PASSED xarray/tests/test_concat.py::TestConcatDataset::test_concat_coords_kwarg[dim2-different]
+PASSED xarray/tests/test_concat.py::TestConcatDataset::test_concat_coords_kwarg[dim2-minimal]
+PASSED xarray/tests/test_concat.py::TestConcatDataset::test_concat_coords_kwarg[dim2-all]
+PASSED xarray/tests/test_concat.py::TestConcatDataset::test_concat
+PASSED xarray/tests/test_concat.py::TestConcatDataset::test_concat_dim_precedence
+PASSED xarray/tests/test_concat.py::TestConcatDataset::test_concat_data_vars
+PASSED xarray/tests/test_concat.py::TestConcatDataset::test_concat_coords
+PASSED xarray/tests/test_concat.py::TestConcatDataset::test_concat_constant_index
+PASSED xarray/tests/test_concat.py::TestConcatDataset::test_concat_size0
+PASSED xarray/tests/test_concat.py::TestConcatDataset::test_concat_autoalign
+PASSED xarray/tests/test_concat.py::TestConcatDataset::test_concat_errors
+PASSED xarray/tests/test_concat.py::TestConcatDataset::test_concat_join_kwarg
+PASSED xarray/tests/test_concat.py::TestConcatDataset::test_concat_promote_shape
+PASSED xarray/tests/test_concat.py::TestConcatDataset::test_concat_do_not_promote
+PASSED xarray/tests/test_concat.py::TestConcatDataset::test_concat_dim_is_variable
+PASSED xarray/tests/test_concat.py::TestConcatDataset::test_concat_multiindex
+PASSED xarray/tests/test_concat.py::TestConcatDataset::test_concat_fill_value[fill_value0]
+PASSED xarray/tests/test_concat.py::TestConcatDataset::test_concat_fill_value[2]
+PASSED xarray/tests/test_concat.py::TestConcatDataset::test_concat_fill_value[2.0]
+PASSED xarray/tests/test_concat.py::TestConcatDataArray::test_concat
+PASSED xarray/tests/test_concat.py::TestConcatDataArray::test_concat_encoding
+PASSED xarray/tests/test_concat.py::TestConcatDataArray::test_concat_lazy
+PASSED xarray/tests/test_concat.py::TestConcatDataArray::test_concat_fill_value[fill_value0]
+PASSED xarray/tests/test_concat.py::TestConcatDataArray::test_concat_fill_value[2]
+PASSED xarray/tests/test_concat.py::TestConcatDataArray::test_concat_fill_value[2.0]
+PASSED xarray/tests/test_concat.py::TestConcatDataArray::test_concat_join_kwarg
+XFAIL xarray/tests/test_combine.py::TestNestedCombine::test_nested_concat_too_many_dims_at_once
+FAILED xarray/tests/test_combine.py::TestAutoCombineOldAPI::test_auto_combine
+FAILED xarray/tests/test_combine.py::TestAutoCombineOldAPI::test_auto_combine_with_new_variables
+FAILED xarray/tests/test_concat.py::test_concat_compat - AssertionError: exce...
+FAILED xarray/tests/test_concat.py::TestConcatDataset::test_concat_merge_variables_present_in_some_datasets
+============ 4 failed, 108 passed, 1 xfailed, 172 warnings in 5.79s ============
++ : '>>>>> End Test Output'
++ git checkout 863e49066ca4d61c9adfe62aca3bf21b90e1af8c xarray/tests/test_combine.py xarray/tests/test_concat.py
+Updated 2 paths from 5831e739

@@ -1,0 +1,18 @@
+diff --git a/django/db/backends/sqlite3/creation.py b/django/db/backends/sqlite3/creation.py
+index d97052f..065e8b1 100644
+--- a/django/db/backends/sqlite3/creation.py
++++ b/django/db/backends/sqlite3/creation.py
+@@ -92,10 +92,9 @@ class DatabaseCreation(BaseDatabaseCreation):
+ 
+         This takes into account the special cases of ":memory:" and "" for
+         SQLite since the databases will be distinct despite having the same
+-        TEST NAME. See https://www.sqlite.org/inmemorydb.html
++        NAME. See https://www.sqlite.org/inmemorydb.html
+         """
+         test_database_name = self._get_test_db_name()
+-        sig = [self.connection.settings_dict['NAME']]
+         if self.is_in_memory_db(test_database_name):
+-            sig.append(self.connection.alias)
+-        return tuple(sig)
++            return (test_database_name, self.connection.alias)
++        return (test_database_name,)

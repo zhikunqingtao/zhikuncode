@@ -1,0 +1,17 @@
+diff --git a/django/core/checks/translation.py b/django/core/checks/translation.py
+index 138ed07..f164493 100644
+--- a/django/core/checks/translation.py
++++ b/django/core/checks/translation.py
+@@ -57,5 +57,12 @@ def check_language_settings_consistent(app_configs, **kwargs):
+     """Error if language settings are not consistent with each other."""
+     available_tags = {i for i, _ in settings.LANGUAGES} | {'en-us'}
+     if settings.LANGUAGE_CODE not in available_tags:
++        # If the LANGUAGE_CODE is a sublanguage (e.g., 'de-at'), check if the
++        # base language (e.g., 'de') is available. Django falls back to the
++        # base language when a sublanguage is not available.
++        if '-' in settings.LANGUAGE_CODE:
++            base_language = settings.LANGUAGE_CODE.split('-')[0]
++            if base_language in available_tags:
++                return []
+         return [E004]
+     return []

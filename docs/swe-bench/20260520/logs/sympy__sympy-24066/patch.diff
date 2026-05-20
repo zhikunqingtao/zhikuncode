@@ -1,0 +1,16 @@
+diff --git a/sympy/physics/units/unitsystem.py b/sympy/physics/units/unitsystem.py
+index 3daf84c..3ea0c90 100644
+--- a/sympy/physics/units/unitsystem.py
++++ b/sympy/physics/units/unitsystem.py
+@@ -192,6 +192,11 @@ def _collect_factor_and_dimension(self, expr):
+         elif isinstance(expr, Function):
+             fds = [self._collect_factor_and_dimension(
+                 arg) for arg in expr.args]
++            # If all arguments are dimensionless, the result is dimensionless
++            # Use is_dimensionless() to properly detect dimensions like
++            # time/(capacitance*impedance) which are dimensionless but != Dimension(1)
++            if all(self.get_dimension_system().is_dimensionless(d[1]) for d in fds):
++                return (expr.func(*(f[0] for f in fds)), Dimension(1))
+             return (expr.func(*(f[0] for f in fds)),
+                     *(d[1] for d in fds))
+         elif isinstance(expr, Dimension):

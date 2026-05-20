@@ -1,0 +1,47 @@
+2026-05-20 01:08:36,811 - INFO - Environment image sweb.env.py.x86_64.764c21123474adcba1e003:latest found for sphinx-doc__sphinx-8721
+Building instance image sweb.eval.x86_64.sphinx-doc__sphinx-8721:latest for sphinx-doc__sphinx-8721
+2026-05-20 01:15:07,049 - INFO - Creating container for sphinx-doc__sphinx-8721...
+2026-05-20 01:15:07,073 - INFO - Container for sphinx-doc__sphinx-8721 created: 25b1130cb9971fab5f7e3dd9c2455124484a24e3f4c28c5e0ff04f3ce925250e
+2026-05-20 01:15:07,171 - INFO - Container for sphinx-doc__sphinx-8721 started: 25b1130cb9971fab5f7e3dd9c2455124484a24e3f4c28c5e0ff04f3ce925250e
+2026-05-20 01:15:07,172 - INFO - Intermediate patch for sphinx-doc__sphinx-8721 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sphinx-doc__sphinx-8721/patch.diff, now applying to container...
+2026-05-20 01:15:07,217 - INFO - >>>>> Applied Patch:
+Checking patch sphinx/ext/viewcode.py...
+Applied patch sphinx/ext/viewcode.py cleanly.
+
+2026-05-20 01:15:07,367 - INFO - Git diff before:
+diff --git a/sphinx/ext/viewcode.py b/sphinx/ext/viewcode.py
+index a7d52a91c..0021bd9e0 100644
+--- a/sphinx/ext/viewcode.py
++++ b/sphinx/ext/viewcode.py
+@@ -182,6 +182,8 @@ def collect_pages(app: Sphinx) -> Generator[Tuple[str, Dict[str, Any], str], Non
+     env = app.builder.env
+     if not hasattr(env, '_viewcode_modules'):
+         return
++    if app.builder.name.startswith('epub') and not env.config.viewcode_enable_epub:
++        return
+     highlighter = app.builder.highlighter  # type: ignore
+     urito = app.builder.get_relative_uri
+2026-05-20 01:15:07,367 - INFO - Eval script for sphinx-doc__sphinx-8721 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sphinx-doc__sphinx-8721/eval.sh; copying to container...
+2026-05-20 01:15:10,438 - INFO - Test runtime: 3.05 seconds
+2026-05-20 01:15:10,438 - INFO - Test output for sphinx-doc__sphinx-8721 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sphinx-doc__sphinx-8721/test_output.txt
+2026-05-20 01:15:10,463 - INFO - Git diff after:
+diff --git a/sphinx/ext/viewcode.py b/sphinx/ext/viewcode.py
+index a7d52a91c..0021bd9e0 100644
+--- a/sphinx/ext/viewcode.py
++++ b/sphinx/ext/viewcode.py
+@@ -182,6 +182,8 @@ def collect_pages(app: Sphinx) -> Generator[Tuple[str, Dict[str, Any], str], Non
+     env = app.builder.env
+     if not hasattr(env, '_viewcode_modules'):
+         return
++    if app.builder.name.startswith('epub') and not env.config.viewcode_enable_epub:
++        return
+     highlighter = app.builder.highlighter  # type: ignore
+     urito = app.builder.get_relative_uri
+2026-05-20 01:15:10,463 - INFO - Grading answer for sphinx-doc__sphinx-8721...
+2026-05-20 01:15:10,469 - INFO - report: {'sphinx-doc__sphinx-8721': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['tests/test_ext_viewcode.py::test_viewcode_epub_default']}, 'PASS_TO_PASS': {'success': [], 'failure': ['tests/test_ext_viewcode.py::test_viewcode_epub_enabled', 'tests/test_ext_viewcode.py::test_linkcode', 'tests/test_ext_viewcode.py::test_local_source_files']}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sphinx-doc__sphinx-8721: resolved: False
+2026-05-20 01:15:10,469 - INFO - Attempting to stop container sweb.eval.sphinx-doc__sphinx-8721.zhikuncode_eval_300_FINAL...
+2026-05-20 01:15:25,820 - INFO - Attempting to remove container sweb.eval.sphinx-doc__sphinx-8721.zhikuncode_eval_300_FINAL...
+2026-05-20 01:15:25,831 - INFO - Container sweb.eval.sphinx-doc__sphinx-8721.zhikuncode_eval_300_FINAL removed.
+2026-05-20 01:15:25,831 - INFO - Attempting to remove image sweb.eval.x86_64.sphinx-doc__sphinx-8721:latest...
+2026-05-20 01:15:25,952 - INFO - Image sweb.eval.x86_64.sphinx-doc__sphinx-8721:latest removed.

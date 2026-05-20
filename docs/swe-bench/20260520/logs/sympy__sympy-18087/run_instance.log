@@ -1,0 +1,57 @@
+2026-05-20 01:24:33,400 - INFO - Environment image sweb.env.py.x86_64.c795f4b88616b8462021ed:latest found for sympy__sympy-18087
+Building instance image sweb.eval.x86_64.sympy__sympy-18087:latest for sympy__sympy-18087
+2026-05-20 01:26:42,877 - INFO - Creating container for sympy__sympy-18087...
+2026-05-20 01:26:42,899 - INFO - Container for sympy__sympy-18087 created: 5862647ee50b4269940325ea8f0a86a120c49bb43acca9805157c2a74465e0a1
+2026-05-20 01:26:43,043 - INFO - Container for sympy__sympy-18087 started: 5862647ee50b4269940325ea8f0a86a120c49bb43acca9805157c2a74465e0a1
+2026-05-20 01:26:43,044 - INFO - Intermediate patch for sympy__sympy-18087 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-18087/patch.diff, now applying to container...
+2026-05-20 01:26:43,123 - INFO - >>>>> Applied Patch:
+Checking patch sympy/core/exprtools.py...
+Applied patch sympy/core/exprtools.py cleanly.
+
+2026-05-20 01:26:43,462 - INFO - Git diff before:
+diff --git a/sympy/core/exprtools.py b/sympy/core/exprtools.py
+index 57fad70407..e21e0696d2 100644
+--- a/sympy/core/exprtools.py
++++ b/sympy/core/exprtools.py
+@@ -452,6 +452,12 @@ def as_expr(self):  # Factors
+                 if isinstance(exp, int):
+                     e = _keep_coeff(Integer(exp), e)
+                 elif isinstance(exp, Rational):
++                    # Avoid combining exponents when base is not positive
++                    # and exp is not an integer, since (b**e)**exp != b**(e*exp)
++                    # for complex b. For example, (sin(x)**2)**(1/2) != sin(x).
++                    if exp.q != 1 and not b.is_positive:
++                        args.append(factor**exp)
++                        continue
+                     e = _keep_coeff(exp, e)
+                 else:
+                     e *= exp
+2026-05-20 01:26:43,463 - INFO - Eval script for sympy__sympy-18087 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-18087/eval.sh; copying to container...
+2026-05-20 01:27:03,683 - INFO - Test runtime: 20.18 seconds
+2026-05-20 01:27:03,683 - INFO - Test output for sympy__sympy-18087 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-18087/test_output.txt
+2026-05-20 01:27:03,717 - INFO - Git diff after:
+diff --git a/sympy/core/exprtools.py b/sympy/core/exprtools.py
+index 57fad70407..e21e0696d2 100644
+--- a/sympy/core/exprtools.py
++++ b/sympy/core/exprtools.py
+@@ -452,6 +452,12 @@ def as_expr(self):  # Factors
+                 if isinstance(exp, int):
+                     e = _keep_coeff(Integer(exp), e)
+                 elif isinstance(exp, Rational):
++                    # Avoid combining exponents when base is not positive
++                    # and exp is not an integer, since (b**e)**exp != b**(e*exp)
++                    # for complex b. For example, (sin(x)**2)**(1/2) != sin(x).
++                    if exp.q != 1 and not b.is_positive:
++                        args.append(factor**exp)
++                        continue
+                     e = _keep_coeff(exp, e)
+                 else:
+                     e *= exp
+2026-05-20 01:27:03,717 - INFO - Grading answer for sympy__sympy-18087...
+2026-05-20 01:27:03,717 - INFO - report: {'sympy__sympy-18087': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_Factors', 'test_fu'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_decompose_power', 'test_Term', 'test_gcd_terms', 'test_factor_terms', 'test_xreplace', 'test_factor_nc', 'test_issue_6360', 'test_issue_7903', 'test_issue_8263', 'test_monotonic_sign', 'test_TR1', 'test_TR2', 'test_TR2i', 'test_TR3', 'test__TR56', 'test_TR5', 'test_TR6', 'test_TR7', 'test_TR8', 'test_TR9', 'test_TR10', 'test_TR10i', 'test_TR11', 'test_TR12', 'test_TR13', 'test_L', 'test_objective', 'test_process_common_addends', 'test_trig_split', 'test_TRmorrie', 'test_TRpower', 'test_hyper_as_trig', 'test_TR12i', 'test_TR14', 'test_TR15_16_17'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-18087: resolved: True
+2026-05-20 01:27:03,717 - INFO - Attempting to stop container sweb.eval.sympy__sympy-18087.zhikuncode_eval_300_FINAL...
+2026-05-20 01:27:19,007 - INFO - Attempting to remove container sweb.eval.sympy__sympy-18087.zhikuncode_eval_300_FINAL...
+2026-05-20 01:27:19,017 - INFO - Container sweb.eval.sympy__sympy-18087.zhikuncode_eval_300_FINAL removed.
+2026-05-20 01:27:19,017 - INFO - Attempting to remove image sweb.eval.x86_64.sympy__sympy-18087:latest...
+2026-05-20 01:27:19,048 - INFO - Image sweb.eval.x86_64.sympy__sympy-18087:latest removed.

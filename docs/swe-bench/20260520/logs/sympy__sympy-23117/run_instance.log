@@ -1,0 +1,55 @@
+2026-05-20 01:33:10,469 - INFO - Environment image sweb.env.py.x86_64.c795f4b88616b8462021ed:latest found for sympy__sympy-23117
+Building instance image sweb.eval.x86_64.sympy__sympy-23117:latest for sympy__sympy-23117
+2026-05-20 01:34:32,249 - INFO - Creating container for sympy__sympy-23117...
+2026-05-20 01:34:32,276 - INFO - Container for sympy__sympy-23117 created: 5b9fe0508927797c9fc08d3510d044ab5179440e7e97418bec4f5102c621723a
+2026-05-20 01:34:32,486 - INFO - Container for sympy__sympy-23117 started: 5b9fe0508927797c9fc08d3510d044ab5179440e7e97418bec4f5102c621723a
+2026-05-20 01:34:32,487 - INFO - Intermediate patch for sympy__sympy-23117 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-23117/patch.diff, now applying to container...
+2026-05-20 01:34:32,672 - INFO - >>>>> Applied Patch:
+Checking patch sympy/tensor/array/ndim_array.py...
+Applied patch sympy/tensor/array/ndim_array.py cleanly.
+
+2026-05-20 01:34:33,086 - INFO - Git diff before:
+diff --git a/sympy/tensor/array/ndim_array.py b/sympy/tensor/array/ndim_array.py
+index 6490a655a4..8b26d4db92 100644
+--- a/sympy/tensor/array/ndim_array.py
++++ b/sympy/tensor/array/ndim_array.py
+@@ -195,7 +195,10 @@ def f(pointer):
+                 return [pointer], ()
+ 
+             result = []
+-            elems, shapes = zip(*[f(i) for i in pointer])
++            listpointer = [f(i) for i in pointer]
++            if not listpointer:
++                return [], (0,)
++            elems, shapes = zip(*listpointer)
+             if len(set(shapes)) != 1:
+                 raise ValueError("could not determine shape unambiguously")
+             for i in elems:
+2026-05-20 01:34:33,086 - INFO - Eval script for sympy__sympy-23117 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-23117/eval.sh; copying to container...
+2026-05-20 01:34:38,559 - INFO - Test runtime: 5.39 seconds
+2026-05-20 01:34:38,559 - INFO - Test output for sympy__sympy-23117 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-23117/test_output.txt
+2026-05-20 01:34:38,653 - INFO - Git diff after:
+diff --git a/sympy/tensor/array/ndim_array.py b/sympy/tensor/array/ndim_array.py
+index 6490a655a4..8b26d4db92 100644
+--- a/sympy/tensor/array/ndim_array.py
++++ b/sympy/tensor/array/ndim_array.py
+@@ -195,7 +195,10 @@ def f(pointer):
+                 return [pointer], ()
+ 
+             result = []
+-            elems, shapes = zip(*[f(i) for i in pointer])
++            listpointer = [f(i) for i in pointer]
++            if not listpointer:
++                return [], (0,)
++            elems, shapes = zip(*listpointer)
+             if len(set(shapes)) != 1:
+                 raise ValueError("could not determine shape unambiguously")
+             for i in elems:
+2026-05-20 01:34:38,653 - INFO - Grading answer for sympy__sympy-23117...
+2026-05-20 01:34:38,654 - INFO - report: {'sympy__sympy-23117': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_issue_17851'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_array_negative_indices', 'test_issue_18361', 'test_issue_20222'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-23117: resolved: True
+2026-05-20 01:34:38,654 - INFO - Attempting to stop container sweb.eval.sympy__sympy-23117.zhikuncode_eval_300_FINAL...
+2026-05-20 01:34:54,060 - INFO - Attempting to remove container sweb.eval.sympy__sympy-23117.zhikuncode_eval_300_FINAL...
+2026-05-20 01:34:54,074 - INFO - Container sweb.eval.sympy__sympy-23117.zhikuncode_eval_300_FINAL removed.
+2026-05-20 01:34:54,075 - INFO - Attempting to remove image sweb.eval.x86_64.sympy__sympy-23117:latest...
+2026-05-20 01:34:54,139 - INFO - Image sweb.eval.x86_64.sympy__sympy-23117:latest removed.

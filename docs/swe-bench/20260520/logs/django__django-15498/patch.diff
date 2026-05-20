@@ -1,0 +1,13 @@
+diff --git a/django/views/static.py b/django/views/static.py
+index 1c558a5..214415c 100644
+--- a/django/views/static.py
++++ b/django/views/static.py
+@@ -126,7 +126,7 @@ def was_modified_since(header=None, mtime=0, size=0):
+       This is the size of the item we're talking about.
+     """
+     try:
+-        if header is None:
++        if not header:
+             raise ValueError
+         matches = re.match(r"^([^;]+)(; length=([0-9]+))?$", header, re.IGNORECASE)
+         header_mtime = parse_http_date(matches[1])

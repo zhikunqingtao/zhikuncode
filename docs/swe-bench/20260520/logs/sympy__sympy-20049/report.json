@@ -1,0 +1,42 @@
+{
+    "sympy__sympy-20049": {
+        "patch_is_None": false,
+        "patch_exists": true,
+        "patch_successfully_applied": true,
+        "resolved": false,
+        "tests_status": {
+            "FAIL_TO_PASS": {
+                "success": [
+                    "test_auto_point_vel",
+                    "test_auto_vel_dont_overwrite"
+                ],
+                "failure": [
+                    "test_auto_point_vel_multiple_point_path",
+                    "test_auto_point_vel_shortest_path"
+                ]
+            },
+            "PASS_TO_PASS": {
+                "success": [
+                    "test_point_v1pt_theorys",
+                    "test_point_a1pt_theorys",
+                    "test_point_v2pt_theorys",
+                    "test_point_a2pt_theorys",
+                    "test_point_funcs",
+                    "test_point_pos",
+                    "test_point_partial_velocity",
+                    "test_point_vel",
+                    "test_auto_point_vel_if_tree_has_vel_but_inappropriate_pos_vector"
+                ],
+                "failure": []
+            },
+            "FAIL_TO_FAIL": {
+                "success": [],
+                "failure": []
+            },
+            "PASS_TO_FAIL": {
+                "success": [],
+                "failure": []
+            }
+        }
+    }
+}

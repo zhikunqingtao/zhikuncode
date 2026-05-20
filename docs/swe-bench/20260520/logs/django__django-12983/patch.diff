@@ -1,0 +1,13 @@
+diff --git a/django/utils/text.py b/django/utils/text.py
+index fb5f629..3ba4bbb 100644
+--- a/django/utils/text.py
++++ b/django/utils/text.py
+@@ -403,7 +403,7 @@ def slugify(value, allow_unicode=False):
+     else:
+         value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore').decode('ascii')
+     value = re.sub(r'[^\w\s-]', '', value.lower()).strip()
+-    return re.sub(r'[-\s]+', '-', value)
++    return re.sub(r'[-\s]+', '-', value).strip('-_')
+ 
+ 
+ def camel_case_to_spaces(value):

@@ -1,0 +1,16 @@
+diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py
+index 1a55d3d..5d4235c 100644
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -764,7 +764,10 @@ class Field(RegisterLookupMixin):
+             if not getattr(cls, self.attname, None):
+                 setattr(cls, self.attname, self.descriptor_class(self))
+         if self.choices is not None:
+-            if not hasattr(cls, 'get_%s_display' % self.name):
++            # Don't override a user-defined get_FOO_display method, but do
++            # override an inherited one (e.g. from a parent model with the
++            # same field name but different choices).
++            if 'get_%s_display' % self.name not in cls.__dict__:
+                 setattr(
+                     cls,
+                     'get_%s_display' % self.name,

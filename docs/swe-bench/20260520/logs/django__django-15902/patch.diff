@@ -1,0 +1,12 @@
+diff --git a/django/forms/formsets.py b/django/forms/formsets.py
+index 3adbc69..2dd13e1 100644
+--- a/django/forms/formsets.py
++++ b/django/forms/formsets.py
+@@ -32,6 +32,7 @@ class ManagementForm(Form):
+     as well.
+     """
+ 
++    template_name = "django/forms/table.html"
+     TOTAL_FORMS = IntegerField(widget=HiddenInput)
+     INITIAL_FORMS = IntegerField(widget=HiddenInput)
+     # MIN_NUM_FORM_COUNT and MAX_NUM_FORM_COUNT are output with the rest of the

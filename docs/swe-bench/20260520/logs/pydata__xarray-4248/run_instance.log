@@ -1,0 +1,197 @@
+2026-05-20 00:31:54,594 - INFO - Environment image sweb.env.py.x86_64.502d8fc6ebccd881244091:latest found for pydata__xarray-4248
+Building instance image sweb.eval.x86_64.pydata__xarray-4248:latest for pydata__xarray-4248
+2026-05-20 00:32:11,529 - INFO - Creating container for pydata__xarray-4248...
+2026-05-20 00:32:11,549 - INFO - Container for pydata__xarray-4248 created: d7d3a001c51f00fd8eafbf725dfa33bc92ff18be3c911e662f5289b368a49b1b
+2026-05-20 00:32:11,643 - INFO - Container for pydata__xarray-4248 started: d7d3a001c51f00fd8eafbf725dfa33bc92ff18be3c911e662f5289b368a49b1b
+2026-05-20 00:32:11,644 - INFO - Intermediate patch for pydata__xarray-4248 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/pydata__xarray-4248/patch.diff, now applying to container...
+2026-05-20 00:32:11,689 - INFO - >>>>> Applied Patch:
+Checking patch xarray/core/formatting.py...
+Checking patch xarray/core/formatting_html.py...
+Applied patch xarray/core/formatting.py cleanly.
+Applied patch xarray/core/formatting_html.py cleanly.
+
+2026-05-20 00:32:11,745 - INFO - Git diff before:
+diff --git a/xarray/core/formatting.py b/xarray/core/formatting.py
+index 28eaae5f..dd84c5dc 100644
+--- a/xarray/core/formatting.py
++++ b/xarray/core/formatting.py
+@@ -278,7 +278,13 @@ def summarize_variable(
+             raise TypeError(f"`max_width` value of `{max_width}` is not a valid int")
+         else:
+             max_width = max_width_options
+-    first_col = pretty_print(f"  {marker} {name} ", col_width)
++    # Include units in the variable name if present
++    units = var.attrs.get("units", None)
++    if units is not None:
++        name_str = f"{name} ({units})"
++    else:
++        name_str = str(name)
++    first_col = pretty_print(f"  {marker} {name_str} ", col_width)
+     if var.dims:
+         dims_str = "({}) ".format(", ".join(map(str, var.dims)))
+     else:
+@@ -292,7 +298,12 @@ def summarize_variable(
+ 
+ 
+ def _summarize_coord_multiindex(coord, col_width, marker):
+-    first_col = pretty_print(f"  {marker} {coord.name} ", col_width)
++    units = coord.attrs.get("units", None)
++    if units is not None:
++        name_str = f"{coord.name} ({units})"
++    else:
++        name_str = coord.name
++    first_col = pretty_print(f"  {marker} {name_str} ", col_width)
+     return "{}({}) MultiIndex".format(first_col, str(coord.dims[0]))
+ 
+ 
+@@ -347,12 +358,23 @@ def _get_col_items(mapping):
+ 
+     col_items = []
+     for k, v in mapping.items():
+-        col_items.append(k)
+         var = getattr(v, "variable", v)
++        # Include units in the name for column width calculation
++        units = var.attrs.get("units", None)
++        if units is not None:
++            col_items.append(f"{k} ({units})")
++        else:
++            col_items.append(k)
+         if isinstance(var, IndexVariable):
+             level_names = var.to_index_variable().level_names
+             if level_names is not None:
+-                col_items += list(level_names)
++                for lname in level_names:
++                    level_var = var.to_index_variable().get_level_variable(lname)
++                    level_units = level_var.attrs.get("units", None)
++                    if level_units is not None:
++                        col_items.append(f"{lname} ({level_units})")
++                    else:
++                        col_items.append(lname)
+     return col_items
+ 
+ 
+diff --git a/xarray/core/formatting_html.py b/xarray/core/formatting_html.py
+index 5521b33e..87046973 100644
+--- a/xarray/core/formatting_html.py
++++ b/xarray/core/formatting_html.py
+@@ -102,7 +102,12 @@ def summarize_variable(name, var, is_index=False, dtype=None, preview=None):
+ 
+     cssclass_idx = " class='xr-has-index'" if is_index else ""
+     dims_str = f"({', '.join(escape(dim) for dim in var.dims)})"
+-    name = escape(str(name))
++    # Include units in the variable name if present
++    units = var.attrs.get("units", None)
++    if units is not None:
++        name_str = f"{escape(str(name))} <span class='xr-var-units'>({escape(str(units))})</span>"
++    else:
++        name_str = escape(str(name))
+     dtype = dtype or escape(str(var.dtype))
+ 
+     # "unique" ids required to expand/collapse subsections
+@@ -118,7 +123,7 @@ def summarize_variable(name, var, is_index=False, dtype=None, preview=None):
+     data_icon = _icon("icon-database")
+ 
+     return (
+-        f"<div class='xr-var-name'><span{cssclass_idx}>{name}</span></div>"
++        f"<div class='xr-var-name'><span{cssclass_idx}>{name_str}</span></div>"
+         f"<div class='xr-var-dims'>{dims_str}</div>"
+         f"<div class='xr-var-dtype'>{dtype}</div>"
+         f"<div class='xr-var-preview xr-preview'>{preview}</div>"
+2026-05-20 00:32:11,745 - INFO - Eval script for pydata__xarray-4248 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/pydata__xarray-4248/eval.sh; copying to container...
+2026-05-20 00:32:17,843 - INFO - Test runtime: 6.08 seconds
+2026-05-20 00:32:17,843 - INFO - Test output for pydata__xarray-4248 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/pydata__xarray-4248/test_output.txt
+2026-05-20 00:32:17,868 - INFO - Git diff after:
+diff --git a/xarray/core/formatting.py b/xarray/core/formatting.py
+index 28eaae5f..dd84c5dc 100644
+--- a/xarray/core/formatting.py
++++ b/xarray/core/formatting.py
+@@ -278,7 +278,13 @@ def summarize_variable(
+             raise TypeError(f"`max_width` value of `{max_width}` is not a valid int")
+         else:
+             max_width = max_width_options
+-    first_col = pretty_print(f"  {marker} {name} ", col_width)
++    # Include units in the variable name if present
++    units = var.attrs.get("units", None)
++    if units is not None:
++        name_str = f"{name} ({units})"
++    else:
++        name_str = str(name)
++    first_col = pretty_print(f"  {marker} {name_str} ", col_width)
+     if var.dims:
+         dims_str = "({}) ".format(", ".join(map(str, var.dims)))
+     else:
+@@ -292,7 +298,12 @@ def summarize_variable(
+ 
+ 
+ def _summarize_coord_multiindex(coord, col_width, marker):
+-    first_col = pretty_print(f"  {marker} {coord.name} ", col_width)
++    units = coord.attrs.get("units", None)
++    if units is not None:
++        name_str = f"{coord.name} ({units})"
++    else:
++        name_str = coord.name
++    first_col = pretty_print(f"  {marker} {name_str} ", col_width)
+     return "{}({}) MultiIndex".format(first_col, str(coord.dims[0]))
+ 
+ 
+@@ -347,12 +358,23 @@ def _get_col_items(mapping):
+ 
+     col_items = []
+     for k, v in mapping.items():
+-        col_items.append(k)
+         var = getattr(v, "variable", v)
++        # Include units in the name for column width calculation
++        units = var.attrs.get("units", None)
++        if units is not None:
++            col_items.append(f"{k} ({units})")
++        else:
++            col_items.append(k)
+         if isinstance(var, IndexVariable):
+             level_names = var.to_index_variable().level_names
+             if level_names is not None:
+-                col_items += list(level_names)
++                for lname in level_names:
++                    level_var = var.to_index_variable().get_level_variable(lname)
++                    level_units = level_var.attrs.get("units", None)
++                    if level_units is not None:
++                        col_items.append(f"{lname} ({level_units})")
++                    else:
++                        col_items.append(lname)
+     return col_items
+ 
+ 
+diff --git a/xarray/core/formatting_html.py b/xarray/core/formatting_html.py
+index 5521b33e..87046973 100644
+--- a/xarray/core/formatting_html.py
++++ b/xarray/core/formatting_html.py
+@@ -102,7 +102,12 @@ def summarize_variable(name, var, is_index=False, dtype=None, preview=None):
+ 
+     cssclass_idx = " class='xr-has-index'" if is_index else ""
+     dims_str = f"({', '.join(escape(dim) for dim in var.dims)})"
+-    name = escape(str(name))
++    # Include units in the variable name if present
++    units = var.attrs.get("units", None)
++    if units is not None:
++        name_str = f"{escape(str(name))} <span class='xr-var-units'>({escape(str(units))})</span>"
++    else:
++        name_str = escape(str(name))
+     dtype = dtype or escape(str(var.dtype))
+ 
+     # "unique" ids required to expand/collapse subsections
+@@ -118,7 +123,7 @@ def summarize_variable(name, var, is_index=False, dtype=None, preview=None):
+     data_icon = _icon("icon-database")
+ 
+     return (
+-        f"<div class='xr-var-name'><span{cssclass_idx}>{name}</span></div>"
++        f"<div class='xr-var-name'><span{cssclass_idx}>{name_str}</span></div>"
+         f"<div class='xr-var-dims'>{dims_str}</div>"
+         f"<div class='xr-var-dtype'>{dtype}</div>"
+         f"<div class='xr-var-preview xr-preview'>{preview}</div>"
+2026-05-20 00:32:17,868 - INFO - Grading answer for pydata__xarray-4248...
+2026-05-20 00:32:17,868 - INFO - report: {'pydata__xarray-4248': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['xarray/tests/test_formatting.py::test_inline_variable_array_repr_custom_repr']}, 'PASS_TO_PASS': {'success': ['xarray/tests/test_formatting.py::TestFormatting::test_get_indexer_at_least_n_items', 'xarray/tests/test_formatting.py::TestFormatting::test_first_n_items', 'xarray/tests/test_formatting.py::TestFormatting::test_last_n_items', 'xarray/tests/test_formatting.py::TestFormatting::test_last_item', 'xarray/tests/test_formatting.py::TestFormatting::test_format_item', 'xarray/tests/test_formatting.py::TestFormatting::test_format_items', 'xarray/tests/test_formatting.py::TestFormatting::test_format_array_flat', 'xarray/tests/test_formatting.py::TestFormatting::test_pretty_print', 'xarray/tests/test_formatting.py::TestFormatting::test_maybe_truncate', 'xarray/tests/test_formatting.py::TestFormatting::test_format_timestamp_out_of_bounds', 'xarray/tests/test_formatting.py::TestFormatting::test_attribute_repr', 'xarray/tests/test_formatting.py::TestFormatting::test_diff_array_repr', 'xarray/tests/test_formatting.py::TestFormatting::test_diff_attrs_repr_with_array', 'xarray/tests/test_formatting.py::TestFormatting::test_diff_dataset_repr', 'xarray/tests/test_formatting.py::TestFormatting::test_array_repr', 'xarray/tests/test_formatting.py::test_set_numpy_options', 'xarray/tests/test_formatting.py::test_short_numpy_repr', 'xarray/tests/test_formatting.py::test_large_array_repr_length'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for pydata__xarray-4248: resolved: False
+2026-05-20 00:32:17,868 - INFO - Attempting to stop container sweb.eval.pydata__xarray-4248.zhikuncode_eval_300_FINAL...
+2026-05-20 00:32:35,675 - INFO - Attempting to remove container sweb.eval.pydata__xarray-4248.zhikuncode_eval_300_FINAL...
+2026-05-20 00:32:35,686 - INFO - Container sweb.eval.pydata__xarray-4248.zhikuncode_eval_300_FINAL removed.
+2026-05-20 00:32:35,686 - INFO - Attempting to remove image sweb.eval.x86_64.pydata__xarray-4248:latest...
+2026-05-20 00:32:35,700 - INFO - Image sweb.eval.x86_64.pydata__xarray-4248:latest removed.

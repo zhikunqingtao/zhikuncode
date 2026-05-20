@@ -1,0 +1,651 @@
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z '' ']'
++++ export CONDA_SHLVL=0
++++ CONDA_SHLVL=0
++++ '[' -n '' ']'
++++++ dirname /opt/miniconda3/bin/conda
+++++ dirname /opt/miniconda3/bin
++++ PATH=/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export PATH
++++ '[' -z '' ']'
++++ PS1=
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1=
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval 'PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=1
++++ CONDA_SHLVL=1
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=2
+++ CONDA_SHLVL=2
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_1=/opt/miniconda3
+++ CONDA_PREFIX_1=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ cd /testbed
++ git config --global --add safe.directory /testbed
++ cd /testbed
++ git status
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   sklearn/neighbors/base.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
++ git show
+commit 6ffc37fa73eba42e633642eb88bfb0320a664c73
+Author: SWE-bench <setup@swebench.config>
+Date:   Tue May 19 16:43:33 2026 +0000
+
+    SWE-bench
++ git -c core.fileMode=false diff 96a02f3934952d486589dddd3f00b40d5a5ab5f2
+diff --git a/sklearn/neighbors/base.py b/sklearn/neighbors/base.py
+index 3e5e729c2..f0d397224 100644
+--- a/sklearn/neighbors/base.py
++++ b/sklearn/neighbors/base.py
+@@ -6,6 +6,7 @@
+ #          Multi-output support by Arnaud Joly <a.joly@ulg.ac.be>
+ #
+ # License: BSD 3 clause (C) INRIA, University of Amsterdam
++import numbers
+ import warnings
+ from abc import ABCMeta, abstractmethod
+ 
+@@ -253,6 +254,11 @@ class NeighborsBase(six.with_metaclass(ABCMeta, BaseEstimator)):
+                              % self.algorithm)
+ 
+         if self.n_neighbors is not None:
++            if not isinstance(self.n_neighbors, (numbers.Integral, np.integer)):
++                raise ValueError(
++                    "n_neighbors does not take %s value, "
++                    "enter integer value" %
++                    type(self.n_neighbors))
+             if self.n_neighbors <= 0:
+                 raise ValueError(
+                     "Expected n_neighbors > 0. Got %d" %
+@@ -327,6 +333,11 @@ class KNeighborsMixin(object):
+ 
+         if n_neighbors is None:
+             n_neighbors = self.n_neighbors
++        elif not isinstance(n_neighbors, (numbers.Integral, np.integer)):
++            raise ValueError(
++                "n_neighbors does not take %s value, "
++                "enter integer value" %
++                type(n_neighbors))
+ 
+         if X is not None:
+             query_is_train = False
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z x ']'
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1='(testbed) '
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval 'PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=3
++++ CONDA_SHLVL=3
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=4
+++ CONDA_SHLVL=4
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_3=/opt/miniconda3
+++ CONDA_PREFIX_3=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ python -m pip install -v --no-use-pep517 --no-build-isolation -e .
+Using pip 21.2.2 from /opt/miniconda3/envs/testbed/lib/python3.6/site-packages/pip (python 3.6)
+Looking in indexes: https://mirrors.aliyun.com/pypi/simple/
+Obtaining file:///testbed
+    Running command python setup.py egg_info
+    running egg_info
+    creating /tmp/pip-pip-egg-info-4iyzmc6n/scikit_learn.egg-info
+    writing /tmp/pip-pip-egg-info-4iyzmc6n/scikit_learn.egg-info/PKG-INFO
+    writing dependency_links to /tmp/pip-pip-egg-info-4iyzmc6n/scikit_learn.egg-info/dependency_links.txt
+    writing requirements to /tmp/pip-pip-egg-info-4iyzmc6n/scikit_learn.egg-info/requires.txt
+    writing top-level names to /tmp/pip-pip-egg-info-4iyzmc6n/scikit_learn.egg-info/top_level.txt
+    writing manifest file '/tmp/pip-pip-egg-info-4iyzmc6n/scikit_learn.egg-info/SOURCES.txt'
+    reading manifest file '/tmp/pip-pip-egg-info-4iyzmc6n/scikit_learn.egg-info/SOURCES.txt'
+    reading manifest template 'MANIFEST.in'
+    adding license file 'COPYING'
+    adding license file 'AUTHORS.rst'
+    writing manifest file '/tmp/pip-pip-egg-info-4iyzmc6n/scikit_learn.egg-info/SOURCES.txt'
+    Partial import of sklearn during the build process.
+Requirement already satisfied: numpy>=1.8.2 in /opt/miniconda3/envs/testbed/lib/python3.6/site-packages (from scikit-learn==0.20.dev0) (1.19.2)
+Requirement already satisfied: scipy>=0.13.3 in /opt/miniconda3/envs/testbed/lib/python3.6/site-packages (from scikit-learn==0.20.dev0) (1.5.2)
+Installing collected packages: scikit-learn
+  Attempting uninstall: scikit-learn
+    Found existing installation: scikit-learn 0.20.dev0
+    Uninstalling scikit-learn-0.20.dev0:
+      Removing file or directory /opt/miniconda3/envs/testbed/lib/python3.6/site-packages/scikit-learn.egg-link
+      Removing pth entries from /opt/miniconda3/envs/testbed/lib/python3.6/site-packages/easy-install.pth:
+      Removing entry: /testbed
+      Successfully uninstalled scikit-learn-0.20.dev0
+  Running setup.py develop for scikit-learn
+    Running command /opt/miniconda3/envs/testbed/bin/python -c 'import io, os, sys, setuptools, tokenize; sys.argv[0] = '"'"'/testbed/setup.py'"'"'; __file__='"'"'/testbed/setup.py'"'"';f = getattr(tokenize, '"'"'open'"'"', open)(__file__) if os.path.exists(__file__) else io.StringIO('"'"'from setuptools import setup; setup()'"'"');code = f.read().replace('"'"'\r\n'"'"', '"'"'\n'"'"');f.close();exec(compile(code, __file__, '"'"'exec'"'"'))' develop --no-deps
+    blas_opt_info:
+    blas_mkl_info:
+    customize UnixCCompiler
+      libraries mkl_rt not found in ['/opt/miniconda3/envs/testbed/lib', '/usr/local/lib', '/usr/lib64', '/usr/lib', '/usr/lib/x86_64-linux-gnu']
+      NOT AVAILABLE
+
+    blis_info:
+      libraries blis not found in ['/opt/miniconda3/envs/testbed/lib', '/usr/local/lib', '/usr/lib64', '/usr/lib', '/usr/lib/x86_64-linux-gnu']
+      NOT AVAILABLE
+
+    openblas_info:
+    C compiler: gcc -pthread -B /opt/miniconda3/envs/testbed/compiler_compat -Wl,--sysroot=/ -Wsign-compare -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes -fPIC
+
+    creating /tmp/tmp1btuyd43/tmp
+    creating /tmp/tmp1btuyd43/tmp/tmp1btuyd43
+    compile options: '-c'
+    gcc: /tmp/tmp1btuyd43/source.c
+    gcc -pthread -B /opt/miniconda3/envs/testbed/compiler_compat -Wl,--sysroot=/ /tmp/tmp1btuyd43/tmp/tmp1btuyd43/source.o -L/opt/miniconda3/envs/testbed/lib -lopenblas -o /tmp/tmp1btuyd43/a.out
+      FOUND:
+        libraries = ['openblas', 'openblas']
+        library_dirs = ['/opt/miniconda3/envs/testbed/lib']
+        language = c
+        define_macros = [('HAVE_CBLAS', None)]
+
+      FOUND:
+        libraries = ['openblas', 'openblas']
+        library_dirs = ['/opt/miniconda3/envs/testbed/lib']
+        language = c
+        define_macros = [('HAVE_CBLAS', None)]
+
+    running develop
+    running build_scripts
+    running egg_info
+    running build_src
+    build_src
+    building library "libsvm-skl" sources
+    building extension "sklearn.__check_build._check_build" sources
+    building extension "sklearn.cluster._dbscan_inner" sources
+    building extension "sklearn.cluster._hierarchical" sources
+    building extension "sklearn.cluster._k_means_elkan" sources
+    building extension "sklearn.cluster._k_means" sources
+    building extension "sklearn.datasets._svmlight_format" sources
+    building extension "sklearn.decomposition._online_lda" sources
+    building extension "sklearn.decomposition.cdnmf_fast" sources
+    building extension "sklearn.ensemble._gradient_boosting" sources
+    building extension "sklearn.feature_extraction._hashing" sources
+    building extension "sklearn.manifold._utils" sources
+    building extension "sklearn.manifold._barnes_hut_tsne" sources
+    building extension "sklearn.metrics.cluster.expected_mutual_info_fast" sources
+    building extension "sklearn.metrics.pairwise_fast" sources
+    building extension "sklearn.neighbors.ball_tree" sources
+    building extension "sklearn.neighbors.kd_tree" sources
+    building extension "sklearn.neighbors.dist_metrics" sources
+    building extension "sklearn.neighbors.typedefs" sources
+    building extension "sklearn.neighbors.quad_tree" sources
+    building extension "sklearn.tree._tree" sources
+    building extension "sklearn.tree._splitter" sources
+    building extension "sklearn.tree._criterion" sources
+    building extension "sklearn.tree._utils" sources
+    building extension "sklearn.svm.libsvm" sources
+    building extension "sklearn.svm.liblinear" sources
+    building extension "sklearn.svm.libsvm_sparse" sources
+    building extension "sklearn._isotonic" sources
+    building extension "sklearn.linear_model.cd_fast" sources
+    building extension "sklearn.linear_model.sgd_fast" sources
+    building extension "sklearn.linear_model.sag_fast" sources
+    building extension "sklearn.utils.sparsefuncs_fast" sources
+    building extension "sklearn.utils.arrayfuncs" sources
+    building extension "sklearn.utils.murmurhash" sources
+    building extension "sklearn.utils.lgamma" sources
+    building extension "sklearn.utils.graph_shortest_path" sources
+    building extension "sklearn.utils.fast_dict" sources
+    building extension "sklearn.utils.seq_dataset" sources
+    building extension "sklearn.utils.weight_vector" sources
+    building extension "sklearn.utils._random" sources
+    building extension "sklearn.utils._logistic_sigmoid" sources
+    building data_files sources
+    build_src: building npy-pkg config files
+    writing scikit_learn.egg-info/PKG-INFO
+    writing dependency_links to scikit_learn.egg-info/dependency_links.txt
+    writing requirements to scikit_learn.egg-info/requires.txt
+    writing top-level names to scikit_learn.egg-info/top_level.txt
+    reading manifest file 'scikit_learn.egg-info/SOURCES.txt'
+    reading manifest template 'MANIFEST.in'
+    adding license file 'COPYING'
+    adding license file 'AUTHORS.rst'
+    writing manifest file 'scikit_learn.egg-info/SOURCES.txt'
+    running build_ext
+    customize UnixCCompiler
+    customize UnixCCompiler using build_clib
+    customize UnixCCompiler
+    customize UnixCCompiler using build_ext
+    resetting extension 'sklearn.svm.liblinear' language from 'c' to 'c++'.
+    customize UnixCCompiler
+    customize UnixCCompiler using build_ext
+    Creating /opt/miniconda3/envs/testbed/lib/python3.6/site-packages/scikit-learn.egg-link (link to .)
+    Adding scikit-learn 0.20.dev0 to easy-install.pth file
+
+    Installed /testbed
+    Partial import of sklearn during the build process.
+Successfully installed scikit-learn-0.20.dev0
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
++ git checkout 96a02f3934952d486589dddd3f00b40d5a5ab5f2 sklearn/neighbors/tests/test_neighbors.py
+Updated 0 paths from afb2903b4
++ git apply -v -
+Checking patch sklearn/neighbors/tests/test_neighbors.py...
+Applied patch sklearn/neighbors/tests/test_neighbors.py cleanly.
++ : '>>>>> Start Test Output'
++ pytest -rA sklearn/neighbors/tests/test_neighbors.py
+============================= test session starts ==============================
+platform linux -- Python 3.6.13, pytest-6.2.4, py-1.11.0, pluggy-0.13.1
+rootdir: /testbed, configfile: setup.cfg
+collected 47 items
+
+sklearn/neighbors/tests/test_neighbors.py ..F........................... [ 63%]
+............xx...                                                        [100%]
+
+=================================== FAILURES ===================================
+__________________________ test_n_neighbors_datatype ___________________________
+
+    def test_n_neighbors_datatype():
+        # Test to check whether n_neighbors is integer
+        X = [[1, 1], [1, 1], [1, 1]]
+        expected_msg = "n_neighbors does not take .*float.* " \
+                       "value, enter integer value"
+        msg = "Expected n_neighbors > 0. Got -3"
+    
+        neighbors_ = neighbors.NearestNeighbors(n_neighbors=3.)
+>       assert_raises_regex(TypeError, expected_msg, neighbors_.fit, X)
+
+sklearn/neighbors/tests/test_neighbors.py:120: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+sklearn/utils/_unittest_backport.py:224: in assertRaisesRegex
+    return context.handle('assertRaisesRegex', args, kwargs)
+sklearn/utils/_unittest_backport.py:113: in handle
+    callable_obj(*args, **kwargs)
+sklearn/neighbors/base.py:820: in fit
+    return self._fit(X)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = NearestNeighbors(algorithm='auto', leaf_size=30, metric='minkowski',
+         metric_params=None, n_jobs=1, n_neighbors=3.0, p=2, radius=1.0)
+X = array([[1, 1],
+       [1, 1],
+       [1, 1]])
+
+    def _fit(self, X):
+        self._check_algorithm_metric()
+        if self.metric_params is None:
+            self.effective_metric_params_ = {}
+        else:
+            self.effective_metric_params_ = self.metric_params.copy()
+    
+        effective_p = self.effective_metric_params_.get('p', self.p)
+        if self.metric in ['wminkowski', 'minkowski']:
+            self.effective_metric_params_['p'] = effective_p
+    
+        self.effective_metric_ = self.metric
+        # For minkowski distance, use more efficient methods where available
+        if self.metric == 'minkowski':
+            p = self.effective_metric_params_.pop('p', 2)
+            if p < 1:
+                raise ValueError("p must be greater than one "
+                                 "for minkowski metric")
+            elif p == 1:
+                self.effective_metric_ = 'manhattan'
+            elif p == 2:
+                self.effective_metric_ = 'euclidean'
+            elif p == np.inf:
+                self.effective_metric_ = 'chebyshev'
+            else:
+                self.effective_metric_params_['p'] = p
+    
+        if isinstance(X, NeighborsBase):
+            self._fit_X = X._fit_X
+            self._tree = X._tree
+            self._fit_method = X._fit_method
+            return self
+    
+        elif isinstance(X, BallTree):
+            self._fit_X = X.data
+            self._tree = X
+            self._fit_method = 'ball_tree'
+            return self
+    
+        elif isinstance(X, KDTree):
+            self._fit_X = X.data
+            self._tree = X
+            self._fit_method = 'kd_tree'
+            return self
+    
+        X = check_array(X, accept_sparse='csr')
+    
+        n_samples = X.shape[0]
+        if n_samples == 0:
+            raise ValueError("n_samples must be greater than 0")
+    
+        if issparse(X):
+            if self.algorithm not in ('auto', 'brute'):
+                warnings.warn("cannot use tree with sparse input: "
+                              "using brute force")
+            if self.effective_metric_ not in VALID_METRICS_SPARSE['brute'] \
+                    and not callable(self.effective_metric_):
+    
+                raise ValueError("metric '%s' not valid for sparse input"
+                                 % self.effective_metric_)
+            self._fit_X = X.copy()
+            self._tree = None
+            self._fit_method = 'brute'
+            return self
+    
+        self._fit_method = self.algorithm
+        self._fit_X = X
+    
+        if self._fit_method == 'auto':
+            # A tree approach is better for small number of neighbors,
+            # and KDTree is generally faster when available
+            if ((self.n_neighbors is None or
+                 self.n_neighbors < self._fit_X.shape[0] // 2) and
+                    self.metric != 'precomputed'):
+                if self.effective_metric_ in VALID_METRICS['kd_tree']:
+                    self._fit_method = 'kd_tree'
+                elif (callable(self.effective_metric_) or
+                        self.effective_metric_ in VALID_METRICS['ball_tree']):
+                    self._fit_method = 'ball_tree'
+                else:
+                    self._fit_method = 'brute'
+            else:
+                self._fit_method = 'brute'
+    
+        if self._fit_method == 'ball_tree':
+            self._tree = BallTree(X, self.leaf_size,
+                                  metric=self.effective_metric_,
+                                  **self.effective_metric_params_)
+        elif self._fit_method == 'kd_tree':
+            self._tree = KDTree(X, self.leaf_size,
+                                metric=self.effective_metric_,
+                                **self.effective_metric_params_)
+        elif self._fit_method == 'brute':
+            self._tree = None
+        else:
+            raise ValueError("algorithm = '%s' not recognized"
+                             % self.algorithm)
+    
+        if self.n_neighbors is not None:
+            if not isinstance(self.n_neighbors, (numbers.Integral, np.integer)):
+                raise ValueError(
+                    "n_neighbors does not take %s value, "
+                    "enter integer value" %
+>                   type(self.n_neighbors))
+E               ValueError: n_neighbors does not take <class 'float'> value, enter integer value
+
+sklearn/neighbors/base.py:261: ValueError
+==================================== PASSES ====================================
+_______________________________ test_precomputed _______________________________
+----------------------------- Captured stdout call -----------------------------
+<class 'sklearn.neighbors.classification.KNeighborsClassifier'>
+<class 'sklearn.neighbors.classification.RadiusNeighborsClassifier'>
+<class 'sklearn.neighbors.regression.KNeighborsRegressor'>
+<class 'sklearn.neighbors.regression.RadiusNeighborsRegressor'>
+=========================== short test summary info ============================
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_unsupervised_kneighbors
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_unsupervised_inputs
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_precomputed
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_precomputed_cross_validation
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_unsupervised_radius_neighbors
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_kneighbors_classifier
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_kneighbors_classifier_float_labels
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_kneighbors_classifier_predict_proba
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_radius_neighbors_classifier
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_radius_neighbors_classifier_when_no_neighbors
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_radius_neighbors_classifier_outlier_labeling
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_radius_neighbors_classifier_zero_distance
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_neighbors_regressors_zero_distance
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_radius_neighbors_boundary_handling
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_RadiusNeighborsClassifier_multioutput
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_kneighbors_classifier_sparse
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_KNeighborsClassifier_multioutput
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_kneighbors_regressor
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_KNeighborsRegressor_multioutput_uniform_weight
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_kneighbors_regressor_multioutput
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_radius_neighbors_regressor
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_RadiusNeighborsRegressor_multioutput_with_uniform_weight
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_RadiusNeighborsRegressor_multioutput
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_kneighbors_regressor_sparse
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_neighbors_iris
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_neighbors_digits
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_kneighbors_graph
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_kneighbors_graph_sparse
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_radius_neighbors_graph
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_radius_neighbors_graph_sparse
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_neighbors_badargs
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_neighbors_metrics
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_callable_metric
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_valid_brute_metric_for_auto_algorithm
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_metric_params_interface
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_predict_sparse_ball_kd_tree
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_non_euclidean_kneighbors
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_k_and_radius_neighbors_train_is_not_query
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_k_and_radius_neighbors_X_None
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_k_and_radius_neighbors_duplicates
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_include_self_neighbors_graph
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_dtype_convert
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_sparse_metric_callable
+PASSED sklearn/neighbors/tests/test_neighbors.py::test_pairwise_boolean_distance
+XFAIL sklearn/neighbors/tests/test_neighbors.py::test_same_knn_parallel
+  reason: [NOTRUN] yield tests were removed in pytest 4.0 - test_same_knn_parallel will be ignored
+XFAIL sklearn/neighbors/tests/test_neighbors.py::test_same_radius_neighbors_parallel
+  reason: [NOTRUN] yield tests were removed in pytest 4.0 - test_same_radius_neighbors_parallel will be ignored
+FAILED sklearn/neighbors/tests/test_neighbors.py::test_n_neighbors_datatype
+============= 1 failed, 44 passed, 2 xfailed, 3 warnings in 1.01s ==============
++ : '>>>>> End Test Output'
++ git checkout 96a02f3934952d486589dddd3f00b40d5a5ab5f2 sklearn/neighbors/tests/test_neighbors.py
+Updated 1 path from afb2903b4

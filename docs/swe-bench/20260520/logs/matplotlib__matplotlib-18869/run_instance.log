@@ -1,0 +1,143 @@
+2026-05-19 23:53:14,197 - INFO - Environment image sweb.env.py.x86_64.6b007979cf533f0f3016e8:latest found for matplotlib__matplotlib-18869
+Building instance image sweb.eval.x86_64.matplotlib__matplotlib-18869:latest for matplotlib__matplotlib-18869
+2026-05-20 00:04:41,109 - INFO - Creating container for matplotlib__matplotlib-18869...
+2026-05-20 00:04:41,128 - INFO - Container for matplotlib__matplotlib-18869 created: 22ee71536e22a342efe222bc0e38ec6c63b670af789f223bd6ca00734b94b1eb
+2026-05-20 00:04:41,226 - INFO - Container for matplotlib__matplotlib-18869 started: 22ee71536e22a342efe222bc0e38ec6c63b670af789f223bd6ca00734b94b1eb
+2026-05-20 00:04:41,226 - INFO - Intermediate patch for matplotlib__matplotlib-18869 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/matplotlib__matplotlib-18869/patch.diff, now applying to container...
+2026-05-20 00:04:41,270 - INFO - >>>>> Applied Patch:
+Checking patch lib/matplotlib/__init__.py...
+Applied patch lib/matplotlib/__init__.py cleanly.
+
+2026-05-20 00:04:42,036 - INFO - Git diff before:
+diff --git a/lib/matplotlib/__init__.py b/lib/matplotlib/__init__.py
+index b657a35cf..0b608bf04 100644
+--- a/lib/matplotlib/__init__.py
++++ b/lib/matplotlib/__init__.py
+@@ -130,6 +130,46 @@ __bibtex__ = r"""@Article{Hunter:2007,
+ }"""
+ 
+ 
++_version_info = namedtuple(
++    "VersionInfo", ["major", "minor", "micro", "releaselevel", "serial"])
++
++
++def _parse_to_version_info(version_str):
++    """
++    Parse a version string to a VersionInfo namedtuple.
++
++    Parameters
++    ----------
++    version_str : str
++        A version string, e.g., "3.5.0", "3.5.1.dev1", "3.5.0rc1".
++
++    Returns
++    -------
++    VersionInfo
++        A namedtuple with fields: major, minor, micro, releaselevel, serial.
++    """
++    v = parse_version(version_str)
++    # Extract major, minor, micro from the release tuple
++    release = v.release
++    major = release[0] if len(release) > 0 else 0
++    minor = release[1] if len(release) > 1 else 0
++    micro = release[2] if len(release) > 2 else 0
++
++    # Determine releaselevel and serial from pre/dev/post
++    if v.is_devrelease:
++        releaselevel = "dev"
++        serial = v.dev or 0
++    elif v.is_prerelease:
++        # pre-release can be alpha, beta, or rc
++        releaselevel = v.pre[0] if v.pre else "alpha"
++        serial = v.pre[1] if v.pre else 0
++    else:
++        releaselevel = "final"
++        serial = 0
++
++    return _version_info(major, minor, micro, releaselevel, serial)
++
++
+ def __getattr__(name):
+     if name == "__version__":
+         import setuptools_scm
+@@ -148,6 +188,10 @@ def __getattr__(name):
+         else:  # Get the version from the _version.py setuptools_scm file.
+             __version__ = _version.version
+         return __version__
++    if name == "version_info":
++        global version_info  # cache it.
++        version_info = _parse_to_version_info(__version__)
++        return version_info
+     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+2026-05-20 00:04:42,036 - INFO - Eval script for matplotlib__matplotlib-18869 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/matplotlib__matplotlib-18869/eval.sh; copying to container...
+2026-05-20 00:04:49,715 - INFO - Test runtime: 7.66 seconds
+2026-05-20 00:04:49,716 - INFO - Test output for matplotlib__matplotlib-18869 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/matplotlib__matplotlib-18869/test_output.txt
+2026-05-20 00:04:49,748 - INFO - Git diff after:
+diff --git a/lib/matplotlib/__init__.py b/lib/matplotlib/__init__.py
+index b657a35cf..0b608bf04 100644
+--- a/lib/matplotlib/__init__.py
++++ b/lib/matplotlib/__init__.py
+@@ -130,6 +130,46 @@ __bibtex__ = r"""@Article{Hunter:2007,
+ }"""
+ 
+ 
++_version_info = namedtuple(
++    "VersionInfo", ["major", "minor", "micro", "releaselevel", "serial"])
++
++
++def _parse_to_version_info(version_str):
++    """
++    Parse a version string to a VersionInfo namedtuple.
++
++    Parameters
++    ----------
++    version_str : str
++        A version string, e.g., "3.5.0", "3.5.1.dev1", "3.5.0rc1".
++
++    Returns
++    -------
++    VersionInfo
++        A namedtuple with fields: major, minor, micro, releaselevel, serial.
++    """
++    v = parse_version(version_str)
++    # Extract major, minor, micro from the release tuple
++    release = v.release
++    major = release[0] if len(release) > 0 else 0
++    minor = release[1] if len(release) > 1 else 0
++    micro = release[2] if len(release) > 2 else 0
++
++    # Determine releaselevel and serial from pre/dev/post
++    if v.is_devrelease:
++        releaselevel = "dev"
++        serial = v.dev or 0
++    elif v.is_prerelease:
++        # pre-release can be alpha, beta, or rc
++        releaselevel = v.pre[0] if v.pre else "alpha"
++        serial = v.pre[1] if v.pre else 0
++    else:
++        releaselevel = "final"
++        serial = 0
++
++    return _version_info(major, minor, micro, releaselevel, serial)
++
++
+ def __getattr__(name):
+     if name == "__version__":
+         import setuptools_scm
+@@ -148,6 +188,10 @@ def __getattr__(name):
+         else:  # Get the version from the _version.py setuptools_scm file.
+             __version__ = _version.version
+         return __version__
++    if name == "version_info":
++        global version_info  # cache it.
++        version_info = _parse_to_version_info(__version__)
++        return version_info
+     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+2026-05-20 00:04:49,748 - INFO - Grading answer for matplotlib__matplotlib-18869...
+2026-05-20 00:04:49,748 - INFO - report: {'matplotlib__matplotlib-18869': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': ['lib/matplotlib/tests/test_matplotlib.py::test_parse_to_version_info[3.5.0-version_tuple0]'], 'failure': ['lib/matplotlib/tests/test_matplotlib.py::test_parse_to_version_info[3.5.0rc2-version_tuple1]', 'lib/matplotlib/tests/test_matplotlib.py::test_parse_to_version_info[3.5.0.dev820+g6768ef8c4c-version_tuple2]', 'lib/matplotlib/tests/test_matplotlib.py::test_parse_to_version_info[3.5.0.post820+g6768ef8c4c-version_tuple3]']}, 'PASS_TO_PASS': {'success': ['lib/matplotlib/tests/test_matplotlib.py::test_importable_with_no_home', 'lib/matplotlib/tests/test_matplotlib.py::test_use_doc_standard_backends', 'lib/matplotlib/tests/test_matplotlib.py::test_importable_with__OO'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for matplotlib__matplotlib-18869: resolved: False
+2026-05-20 00:04:49,748 - INFO - Attempting to stop container sweb.eval.matplotlib__matplotlib-18869.zhikuncode_eval_300_FINAL...
+2026-05-20 00:05:05,095 - INFO - Attempting to remove container sweb.eval.matplotlib__matplotlib-18869.zhikuncode_eval_300_FINAL...
+2026-05-20 00:05:05,106 - INFO - Container sweb.eval.matplotlib__matplotlib-18869.zhikuncode_eval_300_FINAL removed.
+2026-05-20 00:05:05,106 - INFO - Attempting to remove image sweb.eval.x86_64.matplotlib__matplotlib-18869:latest...
+2026-05-20 00:05:05,704 - INFO - Image sweb.eval.x86_64.matplotlib__matplotlib-18869:latest removed.

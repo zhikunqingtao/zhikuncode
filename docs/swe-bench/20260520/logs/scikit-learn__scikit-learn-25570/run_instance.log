@@ -1,0 +1,221 @@
+2026-05-20 00:52:58,792 - INFO - Environment image sweb.env.py.x86_64.3a59860bcd0dab8bbfb2ff:latest found for scikit-learn__scikit-learn-25570
+Building instance image sweb.eval.x86_64.scikit-learn__scikit-learn-25570:latest for scikit-learn__scikit-learn-25570
+2026-05-20 00:58:26,064 - INFO - Creating container for scikit-learn__scikit-learn-25570...
+2026-05-20 00:58:26,087 - INFO - Container for scikit-learn__scikit-learn-25570 created: 2d6ba23c1a6a0fddb69ea0e19ab8a1b96c86222e2cdde574dbc114ebd2186557
+2026-05-20 00:58:26,206 - INFO - Container for scikit-learn__scikit-learn-25570 started: 2d6ba23c1a6a0fddb69ea0e19ab8a1b96c86222e2cdde574dbc114ebd2186557
+2026-05-20 00:58:26,206 - INFO - Intermediate patch for scikit-learn__scikit-learn-25570 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/scikit-learn__scikit-learn-25570/patch.diff, now applying to container...
+2026-05-20 00:58:26,269 - INFO - >>>>> Applied Patch:
+Checking patch sklearn/compose/_column_transformer.py...
+Applied patch sklearn/compose/_column_transformer.py cleanly.
+
+2026-05-20 00:58:26,520 - INFO - Git diff before:
+diff --git a/sklearn/compose/_column_transformer.py b/sklearn/compose/_column_transformer.py
+index a26145117..67c324c8d 100644
+--- a/sklearn/compose/_column_transformer.py
++++ b/sklearn/compose/_column_transformer.py
+@@ -655,14 +655,22 @@ class ColumnTransformer(TransformerMixin, _BaseComposition):
+         Return value (transformers and/or transformed X data) depends
+         on the passed function.
+         ``fitted=True`` ensures the fitted transformers are used.
++
++        Returns
++        -------
++        result : list
++            Results from Parallel execution.
++        transformer_names : list of str
++            Names of transformers that produced the results, in the same order.
+         """
+         transformers = list(
+             self._iter(
+                 fitted=fitted, replace_strings=True, column_as_strings=column_as_strings
+             )
+         )
++        transformer_names = [name for name, _, _, _ in transformers]
+         try:
+-            return Parallel(n_jobs=self.n_jobs)(
++            result = Parallel(n_jobs=self.n_jobs)(
+                 delayed(func)(
+                     transformer=clone(trans) if not fitted else trans,
+                     X=_safe_indexing(X, column, axis=1),
+@@ -673,6 +681,7 @@ class ColumnTransformer(TransformerMixin, _BaseComposition):
+                 )
+                 for idx, (name, trans, column, weight) in enumerate(transformers, 1)
+             )
++            return result, transformer_names
+         except ValueError as e:
+             if "Expected 2D array, got 1D array instead" in str(e):
+                 raise ValueError(_ERR_MSG_1DCOLUMN) from e
+@@ -733,7 +742,7 @@ class ColumnTransformer(TransformerMixin, _BaseComposition):
+         self._validate_column_callables(X)
+         self._validate_remainder(X)
+ 
+-        result = self._fit_transform(X, y, _fit_transform_one)
++        result, transformer_names = self._fit_transform(X, y, _fit_transform_one)
+ 
+         if not result:
+             self._update_fitted_transformers([])
+@@ -757,7 +766,7 @@ class ColumnTransformer(TransformerMixin, _BaseComposition):
+         self._validate_output(Xs)
+         self._record_output_indices(Xs)
+ 
+-        return self._hstack(list(Xs))
++        return self._hstack(list(Xs), transformer_names)
+ 
+     def transform(self, X):
+         """Transform X separately by each transformer, concatenate results.
+@@ -806,7 +815,7 @@ class ColumnTransformer(TransformerMixin, _BaseComposition):
+             # check that n_features_in_ is consistent
+             self._check_n_features(X, reset=False)
+ 
+-        Xs = self._fit_transform(
++        Xs, transformer_names = self._fit_transform(
+             X,
+             None,
+             _transform_one,
+@@ -819,9 +828,9 @@ class ColumnTransformer(TransformerMixin, _BaseComposition):
+             # All transformers are None
+             return np.zeros((X.shape[0], 0))
+ 
+-        return self._hstack(list(Xs))
++        return self._hstack(list(Xs), transformer_names)
+ 
+-    def _hstack(self, Xs):
++    def _hstack(self, Xs, transformer_names=None):
+         """Stacks Xs horizontally.
+ 
+         This allows subclasses to control the stacking behavior, while reusing
+@@ -830,6 +839,9 @@ class ColumnTransformer(TransformerMixin, _BaseComposition):
+         Parameters
+         ----------
+         Xs : list of {array-like, sparse matrix, dataframe}
++        transformer_names : list of str, default=None
++            Names of transformers that produced the outputs in Xs, in the same
++            order. If None, transformer names are extracted from fitted transformers.
+         """
+         if self.sparse_output_:
+             try:
+@@ -862,9 +874,10 @@ class ColumnTransformer(TransformerMixin, _BaseComposition):
+                 if not self.verbose_feature_names_out:
+                     return output
+ 
+-                transformer_names = [
+-                    t[0] for t in self._iter(fitted=True, replace_strings=True)
+-                ]
++                if transformer_names is None:
++                    transformer_names = [
++                        t[0] for t in self._iter(fitted=True, replace_strings=True)
++                    ]
+                 feature_names_outs = [X.columns for X in Xs]
+                 names_out = self._add_prefix_for_feature_names_out(
+                     list(zip(transformer_names, feature_names_outs))
+2026-05-20 00:58:26,520 - INFO - Eval script for scikit-learn__scikit-learn-25570 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/scikit-learn__scikit-learn-25570/eval.sh; copying to container...
+2026-05-20 00:58:27,293 - INFO - Test runtime: 0.74 seconds
+2026-05-20 00:58:27,293 - INFO - Test output for scikit-learn__scikit-learn-25570 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/scikit-learn__scikit-learn-25570/test_output.txt
+2026-05-20 00:58:27,326 - INFO - Git diff after:
+diff --git a/sklearn/compose/_column_transformer.py b/sklearn/compose/_column_transformer.py
+index a26145117..67c324c8d 100644
+--- a/sklearn/compose/_column_transformer.py
++++ b/sklearn/compose/_column_transformer.py
+@@ -655,14 +655,22 @@ class ColumnTransformer(TransformerMixin, _BaseComposition):
+         Return value (transformers and/or transformed X data) depends
+         on the passed function.
+         ``fitted=True`` ensures the fitted transformers are used.
++
++        Returns
++        -------
++        result : list
++            Results from Parallel execution.
++        transformer_names : list of str
++            Names of transformers that produced the results, in the same order.
+         """
+         transformers = list(
+             self._iter(
+                 fitted=fitted, replace_strings=True, column_as_strings=column_as_strings
+             )
+         )
++        transformer_names = [name for name, _, _, _ in transformers]
+         try:
+-            return Parallel(n_jobs=self.n_jobs)(
++            result = Parallel(n_jobs=self.n_jobs)(
+                 delayed(func)(
+                     transformer=clone(trans) if not fitted else trans,
+                     X=_safe_indexing(X, column, axis=1),
+@@ -673,6 +681,7 @@ class ColumnTransformer(TransformerMixin, _BaseComposition):
+                 )
+                 for idx, (name, trans, column, weight) in enumerate(transformers, 1)
+             )
++            return result, transformer_names
+         except ValueError as e:
+             if "Expected 2D array, got 1D array instead" in str(e):
+                 raise ValueError(_ERR_MSG_1DCOLUMN) from e
+@@ -733,7 +742,7 @@ class ColumnTransformer(TransformerMixin, _BaseComposition):
+         self._validate_column_callables(X)
+         self._validate_remainder(X)
+ 
+-        result = self._fit_transform(X, y, _fit_transform_one)
++        result, transformer_names = self._fit_transform(X, y, _fit_transform_one)
+ 
+         if not result:
+             self._update_fitted_transformers([])
+@@ -757,7 +766,7 @@ class ColumnTransformer(TransformerMixin, _BaseComposition):
+         self._validate_output(Xs)
+         self._record_output_indices(Xs)
+ 
+-        return self._hstack(list(Xs))
++        return self._hstack(list(Xs), transformer_names)
+ 
+     def transform(self, X):
+         """Transform X separately by each transformer, concatenate results.
+@@ -806,7 +815,7 @@ class ColumnTransformer(TransformerMixin, _BaseComposition):
+             # check that n_features_in_ is consistent
+             self._check_n_features(X, reset=False)
+ 
+-        Xs = self._fit_transform(
++        Xs, transformer_names = self._fit_transform(
+             X,
+             None,
+             _transform_one,
+@@ -819,9 +828,9 @@ class ColumnTransformer(TransformerMixin, _BaseComposition):
+             # All transformers are None
+             return np.zeros((X.shape[0], 0))
+ 
+-        return self._hstack(list(Xs))
++        return self._hstack(list(Xs), transformer_names)
+ 
+-    def _hstack(self, Xs):
++    def _hstack(self, Xs, transformer_names=None):
+         """Stacks Xs horizontally.
+ 
+         This allows subclasses to control the stacking behavior, while reusing
+@@ -830,6 +839,9 @@ class ColumnTransformer(TransformerMixin, _BaseComposition):
+         Parameters
+         ----------
+         Xs : list of {array-like, sparse matrix, dataframe}
++        transformer_names : list of str, default=None
++            Names of transformers that produced the outputs in Xs, in the same
++            order. If None, transformer names are extracted from fitted transformers.
+         """
+         if self.sparse_output_:
+             try:
+@@ -862,9 +874,10 @@ class ColumnTransformer(TransformerMixin, _BaseComposition):
+                 if not self.verbose_feature_names_out:
+                     return output
+ 
+-                transformer_names = [
+-                    t[0] for t in self._iter(fitted=True, replace_strings=True)
+-                ]
++                if transformer_names is None:
++                    transformer_names = [
++                        t[0] for t in self._iter(fitted=True, replace_strings=True)
++                    ]
+                 feature_names_outs = [X.columns for X in Xs]
+                 names_out = self._add_prefix_for_feature_names_out(
+                     list(zip(transformer_names, feature_names_outs))
+2026-05-20 00:58:27,326 - INFO - Grading answer for scikit-learn__scikit-learn-25570...
+2026-05-20 00:58:27,331 - INFO - report: {'scikit-learn__scikit-learn-25570': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['sklearn/compose/tests/test_column_transformer.py::test_empty_selection_pandas_output[list]', 'sklearn/compose/tests/test_column_transformer.py::test_empty_selection_pandas_output[bool]', 'sklearn/compose/tests/test_column_transformer.py::test_empty_selection_pandas_output[bool_int]']}, 'PASS_TO_PASS': {'success': [], 'failure': ['sklearn/compose/tests/test_column_transformer.py::test_column_transformer', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_tuple_transformers_parameter', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_dataframe', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_empty_columns[False-list-pandas]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_empty_columns[False-list-numpy]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_empty_columns[False-bool-pandas]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_empty_columns[False-bool-numpy]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_empty_columns[False-bool_int-pandas]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_empty_columns[False-bool_int-numpy]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_empty_columns[True-list-pandas]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_empty_columns[True-list-numpy]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_empty_columns[True-bool-pandas]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_empty_columns[True-bool-numpy]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_empty_columns[True-bool_int-pandas]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_empty_columns[True-bool_int-numpy]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_output_indices', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_output_indices_df', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_sparse_array', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_list', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_sparse_stacking', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_mixed_cols_sparse', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_sparse_threshold', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_error_msg_1D', 'sklearn/compose/tests/test_column_transformer.py::test_2D_transformer_output', 'sklearn/compose/tests/test_column_transformer.py::test_2D_transformer_output_pandas', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_invalid_columns[drop]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_invalid_columns[passthrough]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_invalid_transformer', 'sklearn/compose/tests/test_column_transformer.py::test_make_column_transformer', 'sklearn/compose/tests/test_column_transformer.py::test_make_column_transformer_pandas', 'sklearn/compose/tests/test_column_transformer.py::test_make_column_transformer_kwargs', 'sklearn/compose/tests/test_column_transformer.py::test_make_column_transformer_remainder_transformer', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_get_set_params', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_named_estimators', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_cloning', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_get_feature_names', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_special_strings', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_remainder', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_remainder_numpy[key0]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_remainder_numpy[key1]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_remainder_numpy[key2]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_remainder_numpy[key3]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_remainder_pandas[key0]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_remainder_pandas[key1]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_remainder_pandas[key2]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_remainder_pandas[key3]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_remainder_pandas[pd-index]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_remainder_pandas[key5]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_remainder_pandas[key6]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_remainder_pandas[key7]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_remainder_pandas[key8]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_remainder_transformer[key0]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_remainder_transformer[key1]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_remainder_transformer[key2]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_remainder_transformer[key3]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_no_remaining_remainder_transformer', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_drops_all_remainder_transformer', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_sparse_remainder_transformer', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_drop_all_sparse_remainder_transformer', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_get_set_params_with_remainder', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_no_estimators', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_verbose[fit-est0-\\\\[ColumnTransformer\\\\].*\\\\(1', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_verbose[fit-est1-\\\\[ColumnTransformer\\\\].*\\\\(1', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_verbose[fit-est2-\\\\[ColumnTransformer\\\\].*\\\\(1', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_verbose[fit-est3-\\\\[ColumnTransformer\\\\].*\\\\(1', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_verbose[fit-est4-\\\\[ColumnTransformer\\\\].*\\\\(1', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_verbose[fit-est5-\\\\[ColumnTransformer\\\\].*\\\\(1', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_verbose[fit-est6-\\\\[ColumnTransformer\\\\].*\\\\(1', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_verbose[fit_transform-est0-\\\\[ColumnTransformer\\\\].*\\\\(1', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_verbose[fit_transform-est1-\\\\[ColumnTransformer\\\\].*\\\\(1', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_verbose[fit_transform-est2-\\\\[ColumnTransformer\\\\].*\\\\(1', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_verbose[fit_transform-est3-\\\\[ColumnTransformer\\\\].*\\\\(1', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_verbose[fit_transform-est4-\\\\[ColumnTransformer\\\\].*\\\\(1', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_verbose[fit_transform-est5-\\\\[ColumnTransformer\\\\].*\\\\(1', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_verbose[fit_transform-est6-\\\\[ColumnTransformer\\\\].*\\\\(1', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_no_estimators_set_params', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_callable_specifier', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_callable_specifier_dataframe', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_negative_column_indexes', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_mask_indexing[asarray]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_mask_indexing[csr_matrix]', 'sklearn/compose/tests/test_column_transformer.py::test_n_features_in', 'sklearn/compose/tests/test_column_transformer.py::test_make_column_selector_with_select_dtypes[cols0-None-number-None]', 'sklearn/compose/tests/test_column_transformer.py::test_make_column_selector_with_select_dtypes[cols1-None-None-object]', 'sklearn/compose/tests/test_column_transformer.py::test_make_column_selector_with_select_dtypes[cols2-None-include2-None]', 'sklearn/compose/tests/test_column_transformer.py::test_make_column_selector_with_select_dtypes[cols3-None-include3-None]', 'sklearn/compose/tests/test_column_transformer.py::test_make_column_selector_with_select_dtypes[cols4-None-object-None]', 'sklearn/compose/tests/test_column_transformer.py::test_make_column_selector_with_select_dtypes[cols5-None-float-None]', 'sklearn/compose/tests/test_column_transformer.py::test_make_column_selector_with_select_dtypes[cols6-at$-include6-None]', 'sklearn/compose/tests/test_column_transformer.py::test_make_column_selector_with_select_dtypes[cols7-None-include7-None]', 'sklearn/compose/tests/test_column_transformer.py::test_make_column_selector_with_select_dtypes[cols8-^col_int-include8-None]', 'sklearn/compose/tests/test_column_transformer.py::test_make_column_selector_with_select_dtypes[cols9-float|str-None-None]', 'sklearn/compose/tests/test_column_transformer.py::test_make_column_selector_with_select_dtypes[cols10-^col_s-None-exclude10]', 'sklearn/compose/tests/test_column_transformer.py::test_make_column_selector_with_select_dtypes[cols11-str$-float-None]', 'sklearn/compose/tests/test_column_transformer.py::test_make_column_selector_with_select_dtypes[cols12-None-include12-None]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_with_make_column_selector', 'sklearn/compose/tests/test_column_transformer.py::test_make_column_selector_error', 'sklearn/compose/tests/test_column_transformer.py::test_make_column_selector_pickle', 'sklearn/compose/tests/test_column_transformer.py::test_feature_names_empty_columns[list]', 'sklearn/compose/tests/test_column_transformer.py::test_feature_names_empty_columns[array]', 'sklearn/compose/tests/test_column_transformer.py::test_feature_names_empty_columns[callable]', 'sklearn/compose/tests/test_column_transformer.py::test_feature_names_out_pandas[selector0]', 'sklearn/compose/tests/test_column_transformer.py::test_feature_names_out_pandas[<lambda>0]', 'sklearn/compose/tests/test_column_transformer.py::test_feature_names_out_pandas[selector2]', 'sklearn/compose/tests/test_column_transformer.py::test_feature_names_out_pandas[<lambda>1]', 'sklearn/compose/tests/test_column_transformer.py::test_feature_names_out_pandas[selector4]', 'sklearn/compose/tests/test_column_transformer.py::test_feature_names_out_pandas[<lambda>2]', 'sklearn/compose/tests/test_column_transformer.py::test_feature_names_out_non_pandas[selector0]', 'sklearn/compose/tests/test_column_transformer.py::test_feature_names_out_non_pandas[<lambda>0]', 'sklearn/compose/tests/test_column_transformer.py::test_feature_names_out_non_pandas[selector2]', 'sklearn/compose/tests/test_column_transformer.py::test_feature_names_out_non_pandas[<lambda>1]', 'sklearn/compose/tests/test_column_transformer.py::test_sk_visual_block_remainder[passthrough]', 'sklearn/compose/tests/test_column_transformer.py::test_sk_visual_block_remainder[remainder1]', 'sklearn/compose/tests/test_column_transformer.py::test_sk_visual_block_remainder_drop', 'sklearn/compose/tests/test_column_transformer.py::test_sk_visual_block_remainder_fitted_pandas[passthrough]', 'sklearn/compose/tests/test_column_transformer.py::test_sk_visual_block_remainder_fitted_pandas[remainder1]', 'sklearn/compose/tests/test_column_transformer.py::test_sk_visual_block_remainder_fitted_numpy[passthrough]', 'sklearn/compose/tests/test_column_transformer.py::test_sk_visual_block_remainder_fitted_numpy[remainder1]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_reordered_column_names_remainder[remainder0-first]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_reordered_column_names_remainder[remainder0-second]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_reordered_column_names_remainder[remainder0-0]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_reordered_column_names_remainder[remainder0-1]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_reordered_column_names_remainder[passthrough-first]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_reordered_column_names_remainder[passthrough-second]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_reordered_column_names_remainder[passthrough-0]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_reordered_column_names_remainder[passthrough-1]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_reordered_column_names_remainder[drop-first]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_reordered_column_names_remainder[drop-second]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_reordered_column_names_remainder[drop-0]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_reordered_column_names_remainder[drop-1]', 'sklearn/compose/tests/test_column_transformer.py::test_feature_name_validation_missing_columns_drop_passthough', 'sklearn/compose/tests/test_column_transformer.py::test_feature_names_in_', 'sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_true[transformers0-passthrough-expected_names0]', 'sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_true[transformers1-drop-expected_names1]', 'sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_true[transformers2-passthrough-expected_names2]', 'sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_true[transformers3-passthrough-expected_names3]', 'sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_true[transformers4-drop-expected_names4]', 'sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_true[transformers5-passthrough-expected_names5]', 'sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_true[transformers6-drop-expected_names6]', 'sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_true[transformers7-drop-expected_names7]', 'sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_true[transformers8-passthrough-expected_names8]', 'sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_true[transformers9-passthrough-expected_names9]', 'sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_true[transformers10-drop-expected_names10]', 'sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_true[transformers11-passthrough-expected_names11]', 'sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_true[transformers12-passthrough-expected_names12]', 'sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_false[transformers0-passthrough-expected_names0]', 'sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_false[transformers1-drop-expected_names1]', 'sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_false[transformers2-passthrough-expected_names2]', 'sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_false[transformers3-passthrough-expected_names3]', 'sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_false[transformers4-drop-expected_names4]', 'sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_false[transformers5-passthrough-expected_names5]', 'sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_false[transformers6-drop-expected_names6]', 'sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_false[transformers7-passthrough-expected_names7]', 'sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_false[transformers8-passthrough-expected_names8]', 'sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_false[transformers9-drop-expected_names9]', 'sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_false[transformers10-passthrough-expected_names10]', 'sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_false[transformers11-passthrough-expected_names11]', 'sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_false[transformers12-drop-expected_names12]', 'sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_false[transformers13-drop-expected_names13]', "sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_false_errors[transformers0-drop-['b']]", "sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_false_errors[transformers1-drop-['c']]", "sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_false_errors[transformers2-passthrough-['a']]", "sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_false_errors[transformers3-passthrough-['a']]", "sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_false_errors[transformers4-drop-['b',", "sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_false_errors[transformers5-passthrough-['a']]", "sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_false_errors[transformers6-passthrough-['a',", "sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_false_errors[transformers7-passthrough-['pca0',", "sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_false_errors[transformers8-passthrough-['a',", "sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_false_errors[transformers9-passthrough-['a',", "sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_false_errors[transformers10-passthrough-['a',", "sklearn/compose/tests/test_column_transformer.py::test_verbose_feature_names_out_false_errors[transformers11-passthrough-['a',", 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_set_output[drop-True]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_set_output[drop-False]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_set_output[passthrough-True]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transformer_set_output[passthrough-False]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transform_set_output_mixed[True-drop]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transform_set_output_mixed[True-passthrough]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transform_set_output_mixed[False-drop]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transform_set_output_mixed[False-passthrough]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transform_set_output_after_fitting[drop]', 'sklearn/compose/tests/test_column_transformer.py::test_column_transform_set_output_after_fitting[passthrough]', 'sklearn/compose/tests/test_column_transformer.py::test_transformers_with_pandas_out_but_not_feature_names_out[trans_10-expected_verbose_names0-expected_non_verbose_names0]', 'sklearn/compose/tests/test_column_transformer.py::test_transformers_with_pandas_out_but_not_feature_names_out[drop-expected_verbose_names1-expected_non_verbose_names1]', 'sklearn/compose/tests/test_column_transformer.py::test_transformers_with_pandas_out_but_not_feature_names_out[passthrough-expected_verbose_names2-expected_non_verbose_names2]']}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for scikit-learn__scikit-learn-25570: resolved: False
+2026-05-20 00:58:27,332 - INFO - Attempting to stop container sweb.eval.scikit-learn__scikit-learn-25570.zhikuncode_eval_300_FINAL...
+2026-05-20 00:58:42,683 - INFO - Attempting to remove container sweb.eval.scikit-learn__scikit-learn-25570.zhikuncode_eval_300_FINAL...
+2026-05-20 00:58:42,690 - INFO - Container sweb.eval.scikit-learn__scikit-learn-25570.zhikuncode_eval_300_FINAL removed.
+2026-05-20 00:58:42,690 - INFO - Attempting to remove image sweb.eval.x86_64.scikit-learn__scikit-learn-25570:latest...
+2026-05-20 00:58:42,727 - INFO - Image sweb.eval.x86_64.scikit-learn__scikit-learn-25570:latest removed.

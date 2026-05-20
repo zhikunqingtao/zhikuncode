@@ -1,0 +1,257 @@
+2026-05-20 00:33:37,213 - INFO - Environment image sweb.env.py.x86_64.b70be1b28e254d81bab6a9:latest found for pylint-dev__pylint-7228
+Building instance image sweb.eval.x86_64.pylint-dev__pylint-7228:latest for pylint-dev__pylint-7228
+2026-05-20 00:34:56,690 - INFO - Creating container for pylint-dev__pylint-7228...
+2026-05-20 00:34:56,712 - INFO - Container for pylint-dev__pylint-7228 created: 203a00da24d2af84bb1297d6c3f302f3e18cb30e6edef7fb0c5b297e9554d082
+2026-05-20 00:34:56,819 - INFO - Container for pylint-dev__pylint-7228 started: 203a00da24d2af84bb1297d6c3f302f3e18cb30e6edef7fb0c5b297e9554d082
+2026-05-20 00:34:56,819 - INFO - Intermediate patch for pylint-dev__pylint-7228 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/pylint-dev__pylint-7228/patch.diff, now applying to container...
+2026-05-20 00:34:56,865 - INFO - >>>>> Applied Patch:
+Checking patch pylint/config/argument.py...
+Checking patch pylint/config/option.py...
+Applied patch pylint/config/argument.py cleanly.
+Applied patch pylint/config/option.py cleanly.
+
+2026-05-20 00:34:56,999 - INFO - Git diff before:
+diff --git a/pylint/config/argument.py b/pylint/config/argument.py
+index 3c295151..127be1e2 100644
+--- a/pylint/config/argument.py
++++ b/pylint/config/argument.py
+@@ -13,6 +13,7 @@ import argparse
+ import os
+ import pathlib
+ import re
++import sre_constants
+ import sys
+ from collections.abc import Callable
+ from typing import Any, Pattern, Sequence, Tuple, Union
+@@ -99,11 +100,34 @@ def _py_version_transformer(value: str) -> tuple[int, ...]:
+     return version
+ 
+ 
++def _compile_regex(pattern: str) -> Pattern[str]:
++    """Compile a regex pattern, falling back to the regex library for Unicode property escapes.
++
++    Python's standard re module doesn't support Unicode property escapes like \\p{Han}.
++    If the pattern contains such escapes and re.compile fails, we try the regex library.
++    """
++    try:
++        return re.compile(pattern)
++    except sre_constants.error as e:
++        if "\\p" in pattern:
++            try:
++                import regex  # pylint: disable=import-outside-toplevel
++
++                return regex.compile(pattern)
++            except ImportError as exc:
++                raise argparse.ArgumentTypeError(
++                    f"Pattern '{pattern}' contains Unicode property escapes (\\p{{...}}) "
++                    f"which are not supported by Python's standard re module. "
++                    f"Please install the 'regex' package: pip install regex"
++                ) from exc
++        raise e
++
++
+ def _regexp_csv_transfomer(value: str) -> Sequence[Pattern[str]]:
+     """Transforms a comma separated list of regular expressions."""
+     patterns: list[Pattern[str]] = []
+     for pattern in _csv_transformer(value):
+-        patterns.append(re.compile(pattern))
++        patterns.append(_compile_regex(pattern))
+     return patterns
+ 
+ 
+@@ -130,7 +154,7 @@ _TYPE_TRANSFORMERS: dict[str, Callable[[str], _ArgumentTypes]] = {
+     "non_empty_string": _non_empty_string_transformer,
+     "path": _path_transformer,
+     "py_version": _py_version_transformer,
+-    "regexp": re.compile,
++    "regexp": _compile_regex,
+     "regexp_csv": _regexp_csv_transfomer,
+     "regexp_paths_csv": _regexp_paths_csv_transfomer,
+     "string": pylint_utils._unquote,
+diff --git a/pylint/config/option.py b/pylint/config/option.py
+index 5043fe76..4ec37fc3 100644
+--- a/pylint/config/option.py
++++ b/pylint/config/option.py
+@@ -8,12 +8,36 @@ import copy
+ import optparse  # pylint: disable=deprecated-module
+ import pathlib
+ import re
++import sre_constants
+ import warnings
+ from re import Pattern
+ 
+ from pylint import utils
+ 
+ 
++def _compile_regex(pattern: str) -> Pattern[str]:
++    """Compile a regex pattern, falling back to the regex library for Unicode property escapes.
++
++    Python's standard re module doesn't support Unicode property escapes like \\p{Han}.
++    If the pattern contains such escapes and re.compile fails, we try the regex library.
++    """
++    try:
++        return re.compile(pattern)
++    except sre_constants.error as e:
++        if "\\p" in pattern:
++            try:
++                import regex  # pylint: disable=import-outside-toplevel
++
++                return regex.compile(pattern)
++            except ImportError as exc:
++                raise optparse.OptionValueError(
++                    f"Pattern '{pattern}' contains Unicode property escapes (\\p{{...}}) "
++                    f"which are not supported by Python's standard re module. "
++                    f"Please install the 'regex' package: pip install regex"
++                ) from exc
++        raise e
++
++
+ # pylint: disable=unused-argument
+ def _csv_validator(_, name, value):
+     return utils._check_csv(value)
+@@ -23,7 +47,7 @@ def _csv_validator(_, name, value):
+ def _regexp_validator(_, name, value):
+     if hasattr(value, "pattern"):
+         return value
+-    return re.compile(value)
++    return _compile_regex(value)
+ 
+ 
+ # pylint: disable=unused-argument
+@@ -103,7 +127,7 @@ VALIDATORS = {
+     "string": utils._unquote,
+     "int": int,
+     "float": float,
+-    "regexp": lambda pattern: re.compile(pattern or ""),
++    "regexp": lambda pattern: _compile_regex(pattern or ""),
+     "regexp_csv": _regexp_csv_validator,
+     "regexp_paths_csv": _regexp_paths_csv_validator,
+     "csv": _csv_validator,
+2026-05-20 00:34:57,000 - INFO - Eval script for pylint-dev__pylint-7228 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/pylint-dev__pylint-7228/eval.sh; copying to container...
+2026-05-20 00:34:58,753 - INFO - Test runtime: 1.73 seconds
+2026-05-20 00:34:58,753 - INFO - Test output for pylint-dev__pylint-7228 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/pylint-dev__pylint-7228/test_output.txt
+2026-05-20 00:34:58,783 - INFO - Git diff after:
+diff --git a/pylint/config/argument.py b/pylint/config/argument.py
+index 3c295151..127be1e2 100644
+--- a/pylint/config/argument.py
++++ b/pylint/config/argument.py
+@@ -13,6 +13,7 @@ import argparse
+ import os
+ import pathlib
+ import re
++import sre_constants
+ import sys
+ from collections.abc import Callable
+ from typing import Any, Pattern, Sequence, Tuple, Union
+@@ -99,11 +100,34 @@ def _py_version_transformer(value: str) -> tuple[int, ...]:
+     return version
+ 
+ 
++def _compile_regex(pattern: str) -> Pattern[str]:
++    """Compile a regex pattern, falling back to the regex library for Unicode property escapes.
++
++    Python's standard re module doesn't support Unicode property escapes like \\p{Han}.
++    If the pattern contains such escapes and re.compile fails, we try the regex library.
++    """
++    try:
++        return re.compile(pattern)
++    except sre_constants.error as e:
++        if "\\p" in pattern:
++            try:
++                import regex  # pylint: disable=import-outside-toplevel
++
++                return regex.compile(pattern)
++            except ImportError as exc:
++                raise argparse.ArgumentTypeError(
++                    f"Pattern '{pattern}' contains Unicode property escapes (\\p{{...}}) "
++                    f"which are not supported by Python's standard re module. "
++                    f"Please install the 'regex' package: pip install regex"
++                ) from exc
++        raise e
++
++
+ def _regexp_csv_transfomer(value: str) -> Sequence[Pattern[str]]:
+     """Transforms a comma separated list of regular expressions."""
+     patterns: list[Pattern[str]] = []
+     for pattern in _csv_transformer(value):
+-        patterns.append(re.compile(pattern))
++        patterns.append(_compile_regex(pattern))
+     return patterns
+ 
+ 
+@@ -130,7 +154,7 @@ _TYPE_TRANSFORMERS: dict[str, Callable[[str], _ArgumentTypes]] = {
+     "non_empty_string": _non_empty_string_transformer,
+     "path": _path_transformer,
+     "py_version": _py_version_transformer,
+-    "regexp": re.compile,
++    "regexp": _compile_regex,
+     "regexp_csv": _regexp_csv_transfomer,
+     "regexp_paths_csv": _regexp_paths_csv_transfomer,
+     "string": pylint_utils._unquote,
+diff --git a/pylint/config/option.py b/pylint/config/option.py
+index 5043fe76..4ec37fc3 100644
+--- a/pylint/config/option.py
++++ b/pylint/config/option.py
+@@ -8,12 +8,36 @@ import copy
+ import optparse  # pylint: disable=deprecated-module
+ import pathlib
+ import re
++import sre_constants
+ import warnings
+ from re import Pattern
+ 
+ from pylint import utils
+ 
+ 
++def _compile_regex(pattern: str) -> Pattern[str]:
++    """Compile a regex pattern, falling back to the regex library for Unicode property escapes.
++
++    Python's standard re module doesn't support Unicode property escapes like \\p{Han}.
++    If the pattern contains such escapes and re.compile fails, we try the regex library.
++    """
++    try:
++        return re.compile(pattern)
++    except sre_constants.error as e:
++        if "\\p" in pattern:
++            try:
++                import regex  # pylint: disable=import-outside-toplevel
++
++                return regex.compile(pattern)
++            except ImportError as exc:
++                raise optparse.OptionValueError(
++                    f"Pattern '{pattern}' contains Unicode property escapes (\\p{{...}}) "
++                    f"which are not supported by Python's standard re module. "
++                    f"Please install the 'regex' package: pip install regex"
++                ) from exc
++        raise e
++
++
+ # pylint: disable=unused-argument
+ def _csv_validator(_, name, value):
+     return utils._check_csv(value)
+@@ -23,7 +47,7 @@ def _csv_validator(_, name, value):
+ def _regexp_validator(_, name, value):
+     if hasattr(value, "pattern"):
+         return value
+-    return re.compile(value)
++    return _compile_regex(value)
+ 
+ 
+ # pylint: disable=unused-argument
+@@ -103,7 +127,7 @@ VALIDATORS = {
+     "string": utils._unquote,
+     "int": int,
+     "float": float,
+-    "regexp": lambda pattern: re.compile(pattern or ""),
++    "regexp": lambda pattern: _compile_regex(pattern or ""),
+     "regexp_csv": _regexp_csv_validator,
+     "regexp_paths_csv": _regexp_paths_csv_validator,
+     "csv": _csv_validator,
+2026-05-20 00:34:58,783 - INFO - Grading answer for pylint-dev__pylint-7228...
+2026-05-20 00:34:58,784 - INFO - report: {'pylint-dev__pylint-7228': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['tests/config/test_config.py::test_regex_error', 'tests/config/test_config.py::test_csv_regex_error']}, 'PASS_TO_PASS': {'success': [], 'failure': ['tests/config/test_config.py::test_can_read_toml_env_variable', 'tests/config/test_config.py::test_unknown_message_id', 'tests/config/test_config.py::test_unknown_option_name', 'tests/config/test_config.py::test_unknown_short_option_name', 'tests/config/test_config.py::test_unknown_confidence', 'tests/config/test_config.py::test_empty_confidence', 'tests/config/test_config.py::test_unknown_yes_no', 'tests/config/test_config.py::test_unknown_py_version', 'tests/config/test_config.py::test_short_verbose', 'tests/config/test_config.py::test_argument_separator']}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for pylint-dev__pylint-7228: resolved: False
+2026-05-20 00:34:58,784 - INFO - Attempting to stop container sweb.eval.pylint-dev__pylint-7228.zhikuncode_eval_300_FINAL...
+2026-05-20 00:35:24,295 - INFO - Attempting to remove container sweb.eval.pylint-dev__pylint-7228.zhikuncode_eval_300_FINAL...
+2026-05-20 00:35:24,348 - INFO - Container sweb.eval.pylint-dev__pylint-7228.zhikuncode_eval_300_FINAL removed.
+2026-05-20 00:35:24,349 - INFO - Attempting to remove image sweb.eval.x86_64.pylint-dev__pylint-7228:latest...
+2026-05-20 00:35:24,584 - INFO - Image sweb.eval.x86_64.pylint-dev__pylint-7228:latest removed.

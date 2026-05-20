@@ -1,0 +1,75 @@
+2026-05-20 00:50:31,370 - INFO - Environment image sweb.env.py.x86_64.aa92880033da20ca313928:latest found for scikit-learn__scikit-learn-14894
+Building instance image sweb.eval.x86_64.scikit-learn__scikit-learn-14894:latest for scikit-learn__scikit-learn-14894
+2026-05-20 01:01:32,379 - INFO - Creating container for scikit-learn__scikit-learn-14894...
+2026-05-20 01:01:32,397 - INFO - Container for scikit-learn__scikit-learn-14894 created: 13e37394adce466822f891b9839f1a78341d180798ff90f8ee97e6da64353f98
+2026-05-20 01:01:32,486 - INFO - Container for scikit-learn__scikit-learn-14894 started: 13e37394adce466822f891b9839f1a78341d180798ff90f8ee97e6da64353f98
+2026-05-20 01:01:32,487 - INFO - Intermediate patch for scikit-learn__scikit-learn-14894 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/scikit-learn__scikit-learn-14894/patch.diff, now applying to container...
+2026-05-20 01:01:32,531 - INFO - >>>>> Applied Patch:
+Checking patch sklearn/svm/base.py...
+Applied patch sklearn/svm/base.py cleanly.
+
+2026-05-20 01:01:32,681 - INFO - Git diff before:
+diff --git a/sklearn/svm/base.py b/sklearn/svm/base.py
+index 64cebe837..e59affefb 100644
+--- a/sklearn/svm/base.py
++++ b/sklearn/svm/base.py
+@@ -286,12 +286,15 @@ class BaseLibSVM(BaseEstimator, metaclass=ABCMeta):
+             n_class = 1
+         n_SV = self.support_vectors_.shape[0]
+ 
+-        dual_coef_indices = np.tile(np.arange(n_SV), n_class)
+-        dual_coef_indptr = np.arange(0, dual_coef_indices.size + 1,
+-                                     dual_coef_indices.size / n_class)
+-        self.dual_coef_ = sp.csr_matrix(
+-            (dual_coef_data, dual_coef_indices, dual_coef_indptr),
+-            (n_class, n_SV))
++        if n_SV == 0:
++            self.dual_coef_ = sp.csr_matrix((n_class, 0))
++        else:
++            dual_coef_indices = np.tile(np.arange(n_SV), n_class)
++            dual_coef_indptr = np.arange(0, dual_coef_indices.size + 1,
++                                         dual_coef_indices.size / n_class)
++            self.dual_coef_ = sp.csr_matrix(
++                (dual_coef_data, dual_coef_indices, dual_coef_indptr),
++                (n_class, n_SV))
+ 
+     def predict(self, X):
+         """Perform regression on samples in X.
+2026-05-20 01:01:32,681 - INFO - Eval script for scikit-learn__scikit-learn-14894 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/scikit-learn__scikit-learn-14894/eval.sh; copying to container...
+2026-05-20 01:01:37,038 - INFO - Test runtime: 4.33 seconds
+2026-05-20 01:01:37,038 - INFO - Test output for scikit-learn__scikit-learn-14894 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/scikit-learn__scikit-learn-14894/test_output.txt
+2026-05-20 01:01:37,063 - INFO - Git diff after:
+diff --git a/sklearn/svm/base.py b/sklearn/svm/base.py
+index 64cebe837..e59affefb 100644
+--- a/sklearn/svm/base.py
++++ b/sklearn/svm/base.py
+@@ -286,12 +286,15 @@ class BaseLibSVM(BaseEstimator, metaclass=ABCMeta):
+             n_class = 1
+         n_SV = self.support_vectors_.shape[0]
+ 
+-        dual_coef_indices = np.tile(np.arange(n_SV), n_class)
+-        dual_coef_indptr = np.arange(0, dual_coef_indices.size + 1,
+-                                     dual_coef_indices.size / n_class)
+-        self.dual_coef_ = sp.csr_matrix(
+-            (dual_coef_data, dual_coef_indices, dual_coef_indptr),
+-            (n_class, n_SV))
++        if n_SV == 0:
++            self.dual_coef_ = sp.csr_matrix((n_class, 0))
++        else:
++            dual_coef_indices = np.tile(np.arange(n_SV), n_class)
++            dual_coef_indptr = np.arange(0, dual_coef_indices.size + 1,
++                                         dual_coef_indices.size / n_class)
++            self.dual_coef_ = sp.csr_matrix(
++                (dual_coef_data, dual_coef_indices, dual_coef_indptr),
++                (n_class, n_SV))
+ 
+     def predict(self, X):
+         """Perform regression on samples in X.
+2026-05-20 01:01:37,063 - INFO - Grading answer for scikit-learn__scikit-learn-14894...
+2026-05-20 01:01:37,064 - INFO - report: {'scikit-learn__scikit-learn-14894': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['sklearn/svm/tests/test_svm.py::test_sparse_fit_support_vectors_empty'], 'failure': []}, 'PASS_TO_PASS': {'success': ['sklearn/svm/tests/test_svm.py::test_libsvm_parameters', 'sklearn/svm/tests/test_svm.py::test_libsvm_iris', 'sklearn/svm/tests/test_svm.py::test_precomputed', 'sklearn/svm/tests/test_svm.py::test_svr', 'sklearn/svm/tests/test_svm.py::test_linearsvr', 'sklearn/svm/tests/test_svm.py::test_linearsvr_fit_sampleweight', 'sklearn/svm/tests/test_svm.py::test_svr_errors', 'sklearn/svm/tests/test_svm.py::test_oneclass', 'sklearn/svm/tests/test_svm.py::test_oneclass_decision_function', 'sklearn/svm/tests/test_svm.py::test_oneclass_score_samples', 'sklearn/svm/tests/test_svm.py::test_tweak_params', 'sklearn/svm/tests/test_svm.py::test_probability', 'sklearn/svm/tests/test_svm.py::test_decision_function', 'sklearn/svm/tests/test_svm.py::test_decision_function_shape', 'sklearn/svm/tests/test_svm.py::test_svr_predict', 'sklearn/svm/tests/test_svm.py::test_weight', 'sklearn/svm/tests/test_svm.py::test_svm_classifier_sided_sample_weight[estimator0]', 'sklearn/svm/tests/test_svm.py::test_svm_classifier_sided_sample_weight[estimator1]', 'sklearn/svm/tests/test_svm.py::test_svm_regressor_sided_sample_weight[estimator0]', 'sklearn/svm/tests/test_svm.py::test_svm_regressor_sided_sample_weight[estimator1]', 'sklearn/svm/tests/test_svm.py::test_svm_equivalence_sample_weight_C', 'sklearn/svm/tests/test_svm.py::test_negative_sample_weights_mask_all_samples[weights-are-zero-SVC]', 'sklearn/svm/tests/test_svm.py::test_negative_sample_weights_mask_all_samples[weights-are-zero-NuSVC]', 'sklearn/svm/tests/test_svm.py::test_negative_sample_weights_mask_all_samples[weights-are-zero-SVR]', 'sklearn/svm/tests/test_svm.py::test_negative_sample_weights_mask_all_samples[weights-are-zero-NuSVR]', 'sklearn/svm/tests/test_svm.py::test_negative_sample_weights_mask_all_samples[weights-are-zero-OneClassSVM]', 'sklearn/svm/tests/test_svm.py::test_negative_sample_weights_mask_all_samples[weights-are-negative-SVC]', 'sklearn/svm/tests/test_svm.py::test_negative_sample_weights_mask_all_samples[weights-are-negative-NuSVC]', 'sklearn/svm/tests/test_svm.py::test_negative_sample_weights_mask_all_samples[weights-are-negative-SVR]', 'sklearn/svm/tests/test_svm.py::test_negative_sample_weights_mask_all_samples[weights-are-negative-NuSVR]', 'sklearn/svm/tests/test_svm.py::test_negative_sample_weights_mask_all_samples[weights-are-negative-OneClassSVM]', 'sklearn/svm/tests/test_svm.py::test_negative_weights_svc_leave_just_one_label[mask-label-1-SVC]', 'sklearn/svm/tests/test_svm.py::test_negative_weights_svc_leave_just_one_label[mask-label-1-NuSVC]', 'sklearn/svm/tests/test_svm.py::test_negative_weights_svc_leave_just_one_label[mask-label-2-SVC]', 'sklearn/svm/tests/test_svm.py::test_negative_weights_svc_leave_just_one_label[mask-label-2-NuSVC]', 'sklearn/svm/tests/test_svm.py::test_negative_weights_svc_leave_two_labels[partial-mask-label-1-SVC]', 'sklearn/svm/tests/test_svm.py::test_negative_weights_svc_leave_two_labels[partial-mask-label-1-NuSVC]', 'sklearn/svm/tests/test_svm.py::test_negative_weights_svc_leave_two_labels[partial-mask-label-2-SVC]', 'sklearn/svm/tests/test_svm.py::test_negative_weights_svc_leave_two_labels[partial-mask-label-2-NuSVC]', 'sklearn/svm/tests/test_svm.py::test_negative_weight_equal_coeffs[partial-mask-label-1-SVC]', 'sklearn/svm/tests/test_svm.py::test_negative_weight_equal_coeffs[partial-mask-label-1-NuSVC]', 'sklearn/svm/tests/test_svm.py::test_negative_weight_equal_coeffs[partial-mask-label-1-NuSVR]', 'sklearn/svm/tests/test_svm.py::test_negative_weight_equal_coeffs[partial-mask-label-2-SVC]', 'sklearn/svm/tests/test_svm.py::test_negative_weight_equal_coeffs[partial-mask-label-2-NuSVC]', 'sklearn/svm/tests/test_svm.py::test_negative_weight_equal_coeffs[partial-mask-label-2-NuSVR]', 'sklearn/svm/tests/test_svm.py::test_auto_weight', 'sklearn/svm/tests/test_svm.py::test_bad_input', 'sklearn/svm/tests/test_svm.py::test_svm_gamma_error[SVC-data0]', 'sklearn/svm/tests/test_svm.py::test_svm_gamma_error[NuSVC-data1]', 'sklearn/svm/tests/test_svm.py::test_svm_gamma_error[SVR-data2]', 'sklearn/svm/tests/test_svm.py::test_svm_gamma_error[NuSVR-data3]', 'sklearn/svm/tests/test_svm.py::test_svm_gamma_error[OneClassSVM-data4]', 'sklearn/svm/tests/test_svm.py::test_unicode_kernel', 'sklearn/svm/tests/test_svm.py::test_sparse_precomputed', 'sklearn/svm/tests/test_svm.py::test_linearsvc_parameters', 'sklearn/svm/tests/test_svm.py::test_linearsvx_loss_penalty_deprecations', 'sklearn/svm/tests/test_svm.py::test_linear_svx_uppercase_loss_penality_raises_error', 'sklearn/svm/tests/test_svm.py::test_linearsvc', 'sklearn/svm/tests/test_svm.py::test_linearsvc_crammer_singer', 'sklearn/svm/tests/test_svm.py::test_linearsvc_fit_sampleweight', 'sklearn/svm/tests/test_svm.py::test_crammer_singer_binary', 'sklearn/svm/tests/test_svm.py::test_linearsvc_iris', 'sklearn/svm/tests/test_svm.py::test_dense_liblinear_intercept_handling', 'sklearn/svm/tests/test_svm.py::test_liblinear_set_coef', 'sklearn/svm/tests/test_svm.py::test_immutable_coef_property', 'sklearn/svm/tests/test_svm.py::test_linearsvc_verbose', 'sklearn/svm/tests/test_svm.py::test_svc_clone_with_callable_kernel', 'sklearn/svm/tests/test_svm.py::test_svc_bad_kernel', 'sklearn/svm/tests/test_svm.py::test_timeout', 'sklearn/svm/tests/test_svm.py::test_unfitted', 'sklearn/svm/tests/test_svm.py::test_consistent_proba', 'sklearn/svm/tests/test_svm.py::test_linear_svm_convergence_warnings', 'sklearn/svm/tests/test_svm.py::test_svr_coef_sign', 'sklearn/svm/tests/test_svm.py::test_linear_svc_intercept_scaling', 'sklearn/svm/tests/test_svm.py::test_lsvc_intercept_scaling_zero', 'sklearn/svm/tests/test_svm.py::test_hasattr_predict_proba', 'sklearn/svm/tests/test_svm.py::test_decision_function_shape_two_class', 'sklearn/svm/tests/test_svm.py::test_ovr_decision_function', 'sklearn/svm/tests/test_svm.py::test_svc_invalid_break_ties_param[SVC]', 'sklearn/svm/tests/test_svm.py::test_svc_invalid_break_ties_param[NuSVC]', 'sklearn/svm/tests/test_svm.py::test_svc_ovr_tie_breaking[SVC]', 'sklearn/svm/tests/test_svm.py::test_svc_ovr_tie_breaking[NuSVC]', 'sklearn/svm/tests/test_svm.py::test_gamma_auto', 'sklearn/svm/tests/test_svm.py::test_gamma_scale', 'sklearn/svm/tests/test_svm.py::test_n_support_oneclass_svr'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for scikit-learn__scikit-learn-14894: resolved: True
+2026-05-20 01:01:37,064 - INFO - Attempting to stop container sweb.eval.scikit-learn__scikit-learn-14894.zhikuncode_eval_300_FINAL...
+2026-05-20 01:01:52,309 - INFO - Attempting to remove container sweb.eval.scikit-learn__scikit-learn-14894.zhikuncode_eval_300_FINAL...
+2026-05-20 01:01:52,316 - INFO - Container sweb.eval.scikit-learn__scikit-learn-14894.zhikuncode_eval_300_FINAL removed.
+2026-05-20 01:01:52,316 - INFO - Attempting to remove image sweb.eval.x86_64.scikit-learn__scikit-learn-14894:latest...
+2026-05-20 01:01:52,363 - INFO - Image sweb.eval.x86_64.scikit-learn__scikit-learn-14894:latest removed.

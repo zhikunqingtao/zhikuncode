@@ -1,0 +1,60 @@
+diff --git a/sympy/utilities/codegen.py b/sympy/utilities/codegen.py
+index f0befb2..aacaab3 100644
+--- a/sympy/utilities/codegen.py
++++ b/sympy/utilities/codegen.py
+@@ -739,7 +739,12 @@ def routine(self, name, expr, argument_sequence=None, global_vars=None):
+                 try:
+                     new_args.append(name_arg_dict[symbol])
+                 except KeyError:
+-                    new_args.append(InputArgument(symbol))
++                    # Check if symbol is a MatrixSymbol and set dimensions
++                    if isinstance(symbol, MatrixSymbol):
++                        dims = [(S.Zero, dim - 1) for dim in symbol.shape]
++                        new_args.append(InputArgument(symbol, dimensions=dims))
++                    else:
++                        new_args.append(InputArgument(symbol))
+             arg_list = new_args
+ 
+         return Routine(name, arg_list, return_val, local_vars, global_vars)
+@@ -1402,7 +1407,12 @@ def routine(self, name, expr, argument_sequence, global_vars):
+                 try:
+                     new_args.append(name_arg_dict[symbol])
+                 except KeyError:
+-                    new_args.append(InputArgument(symbol))
++                    # Check if symbol is a MatrixSymbol and set dimensions
++                    if isinstance(symbol, MatrixSymbol):
++                        dims = [(S.Zero, dim - 1) for dim in symbol.shape]
++                        new_args.append(InputArgument(symbol, dimensions=dims))
++                    else:
++                        new_args.append(InputArgument(symbol))
+             arg_list = new_args
+ 
+         return Routine(name, arg_list, return_vals, local_vars, global_vars)
+@@ -1610,7 +1620,12 @@ def routine(self, name, expr, argument_sequence, global_vars):
+                 try:
+                     new_args.append(name_arg_dict[symbol])
+                 except KeyError:
+-                    new_args.append(InputArgument(symbol))
++                    # Check if symbol is a MatrixSymbol and set dimensions
++                    if isinstance(symbol, MatrixSymbol):
++                        dims = [(S.Zero, dim - 1) for dim in symbol.shape]
++                        new_args.append(InputArgument(symbol, dimensions=dims))
++                    else:
++                        new_args.append(InputArgument(symbol))
+             arg_list = new_args
+ 
+         return Routine(name, arg_list, return_vals, local_vars, global_vars)
+@@ -1841,7 +1856,12 @@ def routine(self, name, expr, argument_sequence, global_vars):
+                 try:
+                     new_args.append(name_arg_dict[symbol])
+                 except KeyError:
+-                    new_args.append(InputArgument(symbol))
++                    # Check if symbol is a MatrixSymbol and set dimensions
++                    if isinstance(symbol, MatrixSymbol):
++                        dims = [(S.Zero, dim - 1) for dim in symbol.shape]
++                        new_args.append(InputArgument(symbol, dimensions=dims))
++                    else:
++                        new_args.append(InputArgument(symbol))
+             arg_list = new_args
+ 
+         return Routine(name, arg_list, return_vals, local_vars, global_vars)

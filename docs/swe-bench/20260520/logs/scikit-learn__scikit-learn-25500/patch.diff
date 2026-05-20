@@ -1,0 +1,16 @@
+diff --git a/sklearn/calibration.py b/sklearn/calibration.py
+index 2c4a336..9cf39a0 100644
+--- a/sklearn/calibration.py
++++ b/sklearn/calibration.py
+@@ -760,7 +760,10 @@ class _CalibratedClassifier:
+                 # When binary, `predictions` consists only of predictions for
+                 # clf.classes_[1] but `pos_class_indices` = 0
+                 class_idx += 1
+-            proba[:, class_idx] = calibrator.predict(this_pred)
++            # Calibrators may return a 2d array or a dataframe (e.g. if
++            # global output config is set to "pandas"). We need to flatten
++            # the output to a 1d array for assignment to proba[:, class_idx].
++            proba[:, class_idx] = np.asarray(calibrator.predict(this_pred)).ravel()
+ 
+         # Normalize the probabilities
+         if n_classes == 2:

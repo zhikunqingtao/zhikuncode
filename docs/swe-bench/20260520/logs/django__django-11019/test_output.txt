@@ -1,0 +1,2140 @@
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z '' ']'
++++ export CONDA_SHLVL=0
++++ CONDA_SHLVL=0
++++ '[' -n '' ']'
++++++ dirname /opt/miniconda3/bin/conda
+++++ dirname /opt/miniconda3/bin
++++ PATH=/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export PATH
++++ '[' -z '' ']'
++++ PS1=
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1=
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval 'PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=1
++++ CONDA_SHLVL=1
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=2
+++ CONDA_SHLVL=2
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_1=/opt/miniconda3
+++ CONDA_PREFIX_1=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ cd /testbed
++ sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen
++ locale-gen
+Generating locales (this might take a while)...
+  en_US.UTF-8... done
+Generation complete.
++ export LANG=en_US.UTF-8
++ LANG=en_US.UTF-8
++ export LANGUAGE=en_US:en
++ LANGUAGE=en_US:en
++ export LC_ALL=en_US.UTF-8
++ LC_ALL=en_US.UTF-8
++ git config --global --add safe.directory /testbed
++ cd /testbed
++ git status
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   django/forms/widgets.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
++ git show
++ git -c core.fileMode=false diff 93e892bb645b16ebaf287beb5fe7f3ffe8d10408
+commit b890b58518a34183598a879fc1262edf70a29aca
+Author: SWE-bench <setup@swebench.config>
+Date:   Tue May 19 14:54:50 2026 +0000
+
+    SWE-bench
+diff --git a/django/forms/widgets.py b/django/forms/widgets.py
+index 02aa32b207..5c8f7a1edc 100644
+--- a/django/forms/widgets.py
++++ b/django/forms/widgets.py
+@@ -128,6 +128,12 @@ class Media:
+         # Start with a copy of list_1.
+         combined_list = list(list_1)
+         last_insert_index = len(list_1)
++        # Keep track of elements from list_2 that aren't in list_1.
++        # They'll be inserted before the next "anchor" element (one that exists
++        # in both lists) or appended at the end if no anchor is found.
++        # This avoids creating artificial ordering constraints between
++        # independent elements when merging three or more media objects.
++        pending = []
+         # Walk list_2 in reverse, inserting each element into combined_list if
+         # it doesn't already exist.
+         for path in reversed(list_2):
+@@ -135,8 +141,9 @@ class Media:
+                 # Does path already exist in the list?
+                 index = combined_list.index(path)
+             except ValueError:
+-                # Add path to combined_list since it doesn't exist.
+-                combined_list.insert(last_insert_index, path)
++                # path doesn't exist yet; defer insertion until we find an
++                # anchor or reach the end.
++                pending.append(path)
+             else:
+                 if index > last_insert_index:
+                     warnings.warn(
+@@ -144,9 +151,15 @@ class Media:
+                         '%s\n%s' % (combined_list[last_insert_index], combined_list[index]),
+                         MediaOrderConflictWarning,
+                     )
++                # Insert pending elements before this anchor.
++                for pending_path in reversed(pending):
++                    combined_list.insert(index, pending_path)
++                pending = []
+                 # path already exists in the list. Update last_insert_index so
+                 # that the following elements are inserted in front of this one.
+                 last_insert_index = index
++        # Append any remaining pending elements at the end.
++        combined_list.extend(reversed(pending))
+         return combined_list
+ 
+     def __add__(self, other):
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z x ']'
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1='(testbed) '
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval 'PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=3
++++ CONDA_SHLVL=3
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=4
+++ CONDA_SHLVL=4
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_3=/opt/miniconda3
+++ CONDA_PREFIX_3=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ python -m pip install -e .
+Looking in indexes: https://mirrors.aliyun.com/pypi/simple/
+Obtaining file:///testbed
+Requirement already satisfied: pytz in /opt/miniconda3/envs/testbed/lib/python3.6/site-packages (from Django==3.0.dev20260519145450) (2026.2)
+Requirement already satisfied: sqlparse in /opt/miniconda3/envs/testbed/lib/python3.6/site-packages (from Django==3.0.dev20260519145450) (0.4.4)
+Installing collected packages: Django
+  Attempting uninstall: Django
+    Found existing installation: Django 3.0.dev20190227211710
+    Uninstalling Django-3.0.dev20190227211710:
+      Successfully uninstalled Django-3.0.dev20190227211710
+  Running setup.py develop for Django
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+Successfully installed Django-3.0.dev20260519145450
++ git checkout 93e892bb645b16ebaf287beb5fe7f3ffe8d10408 tests/admin_inlines/tests.py tests/admin_widgets/test_autocomplete_widget.py tests/forms_tests/tests/test_media.py
+Updated 0 paths from f50e576e6b
++ git apply -v -
+Checking patch tests/admin_inlines/tests.py...
+Checking patch tests/admin_widgets/test_autocomplete_widget.py...
+Checking patch tests/forms_tests/tests/test_media.py...
+Applied patch tests/admin_inlines/tests.py cleanly.
+Applied patch tests/admin_widgets/test_autocomplete_widget.py cleanly.
+Applied patch tests/forms_tests/tests/test_media.py cleanly.
++ : '>>>>> Start Test Output'
++ ./tests/runtests.py --verbosity 2 --settings=test_sqlite --parallel 1 admin_inlines.tests admin_widgets.test_autocomplete_widget forms_tests.tests.test_media
+Creating test database for alias 'default' ('file:memorydb_default?mode=memory&cache=shared')...
+test_callable_lookup (admin_inlines.tests.TestInline)
+Admin inline should invoke local callable when its name is listed in readonly_fields ... ok
+test_can_delete (admin_inlines.tests.TestInline) ... ok
+test_create_inlines_on_inherited_model (admin_inlines.tests.TestInline) ... ok
+test_custom_form_tabular_inline_label (admin_inlines.tests.TestInline) ... ok
+test_custom_form_tabular_inline_overridden_label (admin_inlines.tests.TestInline) ... ok
+test_custom_get_extra_form (admin_inlines.tests.TestInline) ... ok
+test_custom_min_num (admin_inlines.tests.TestInline) ... ok
+test_custom_pk_shortcut (admin_inlines.tests.TestInline) ... ERROR
+test_help_text (admin_inlines.tests.TestInline) ... ERROR
+test_inline_editable_pk (admin_inlines.tests.TestInline) ... ERROR
+test_inline_hidden_field_no_column (admin_inlines.tests.TestInline)
+#18263 -- Make sure hidden fields don't get a column in tabular inlines ... ok
+test_inline_nonauto_noneditable_inherited_pk (admin_inlines.tests.TestInline) ... ERROR
+test_inline_nonauto_noneditable_pk (admin_inlines.tests.TestInline) ... ERROR
+test_inline_primary (admin_inlines.tests.TestInline) ... ok
+test_inlines_show_change_link_registered (admin_inlines.tests.TestInline)
+Inlines `show_change_link` for registered models when enabled. ... ERROR
+test_inlines_show_change_link_unregistered (admin_inlines.tests.TestInline)
+Inlines `show_change_link` disabled for unregistered models. ... ERROR
+test_localize_pk_shortcut (admin_inlines.tests.TestInline) ... ok
+test_many_to_many_inlines (admin_inlines.tests.TestInline)
+Autogenerated many-to-many inlines are displayed correctly (#13407) ... ERROR
+test_min_num (admin_inlines.tests.TestInline) ... ok
+test_no_parent_callable_lookup (admin_inlines.tests.TestInline)
+Admin inline `readonly_field` shouldn't invoke parent ModelAdmin callable ... ok
+test_non_related_name_inline (admin_inlines.tests.TestInline) ... ERROR
+test_noneditable_inline_has_field_inputs (admin_inlines.tests.TestInline)
+Inlines without change permission shows field inputs on add form. ... ok
+test_readonly_stacked_inline_label (admin_inlines.tests.TestInline)
+Bug #13174. ... ok
+test_stacked_inline_edit_form_contains_has_original_class (admin_inlines.tests.TestInline) ... ok
+test_tabular_inline_column_css_class (admin_inlines.tests.TestInline) ... ok
+test_tabular_inline_show_change_link_false_registered (admin_inlines.tests.TestInline)
+Inlines `show_change_link` disabled by default. ... ok
+test_tabular_model_form_meta_readonly_field (admin_inlines.tests.TestInline) ... ok
+test_tabular_non_field_errors (admin_inlines.tests.TestInline) ... ok
+test_immutable_content_type (admin_inlines.tests.TestInlineAdminForm)
+Regression for #9362 ... ok
+test_all_inline_media (admin_inlines.tests.TestInlineMedia) ... ERROR
+test_inline_media_only_base (admin_inlines.tests.TestInlineMedia) ... ok
+test_inline_media_only_inline (admin_inlines.tests.TestInlineMedia) ... FAIL
+test_inline_add_fk_add_perm (admin_inlines.tests.TestInlinePermissions) ... ERROR
+test_inline_add_fk_noperm (admin_inlines.tests.TestInlinePermissions) ... ok
+test_inline_add_m2m_add_perm (admin_inlines.tests.TestInlinePermissions) ... ok
+test_inline_add_m2m_noperm (admin_inlines.tests.TestInlinePermissions) ... ok
+test_inline_change_fk_add_change_perm (admin_inlines.tests.TestInlinePermissions) ... ERROR
+test_inline_change_fk_add_perm (admin_inlines.tests.TestInlinePermissions) ... ERROR
+test_inline_change_fk_all_perms (admin_inlines.tests.TestInlinePermissions) ... ERROR
+test_inline_change_fk_change_del_perm (admin_inlines.tests.TestInlinePermissions) ... ERROR
+test_inline_change_fk_change_perm (admin_inlines.tests.TestInlinePermissions) ... ERROR
+test_inline_change_fk_noperm (admin_inlines.tests.TestInlinePermissions) ... ok
+test_inline_change_m2m_add_perm (admin_inlines.tests.TestInlinePermissions) ... ok
+test_inline_change_m2m_change_perm (admin_inlines.tests.TestInlinePermissions) ... ok
+test_inline_change_m2m_noperm (admin_inlines.tests.TestInlinePermissions) ... ok
+test_deleting_inline_with_protected_delete_does_not_validate (admin_inlines.tests.TestInlineProtectedOnDelete) ... ok
+test_build_attrs (admin_widgets.test_autocomplete_widget.AutocompleteMixinTests) ... ok
+test_build_attrs_no_custom_class (admin_widgets.test_autocomplete_widget.AutocompleteMixinTests) ... ok
+test_build_attrs_not_required_field (admin_widgets.test_autocomplete_widget.AutocompleteMixinTests) ... ok
+test_build_attrs_required_field (admin_widgets.test_autocomplete_widget.AutocompleteMixinTests) ... ok
+test_get_url (admin_widgets.test_autocomplete_widget.AutocompleteMixinTests) ... ok
+test_media (admin_widgets.test_autocomplete_widget.AutocompleteMixinTests) ... test_render_options (admin_widgets.test_autocomplete_widget.AutocompleteMixinTests) ... ok
+test_render_options_not_required_field (admin_widgets.test_autocomplete_widget.AutocompleteMixinTests)
+Empty option isn't present if the field isn't required. ... ok
+test_render_options_required_field (admin_widgets.test_autocomplete_widget.AutocompleteMixinTests)
+Empty option is present if the field isn't required. ... ok
+test_add_inlines (admin_inlines.tests.SeleniumTests) ... skipped 'No browsers specified.'
+test_add_stackeds (admin_inlines.tests.SeleniumTests) ... skipped 'No browsers specified.'
+test_alternating_rows (admin_inlines.tests.SeleniumTests) ... skipped 'No browsers specified.'
+test_collapsed_inlines (admin_inlines.tests.SeleniumTests) ... skipped 'No browsers specified.'
+test_delete_inlines (admin_inlines.tests.SeleniumTests) ... skipped 'No browsers specified.'
+test_delete_stackeds (admin_inlines.tests.SeleniumTests) ... skipped 'No browsers specified.'
+test_combine_media (forms_tests.tests.test_media.FormsMediaTestCase) ... ERROR
+test_construction (forms_tests.tests.test_media.FormsMediaTestCase) ... FAIL
+test_form_media (forms_tests.tests.test_media.FormsMediaTestCase) ... FAIL
+test_html_safe (forms_tests.tests.test_media.FormsMediaTestCase) ... ok
+test_media_deduplication (forms_tests.tests.test_media.FormsMediaTestCase) ... FAIL
+test_media_dsl (forms_tests.tests.test_media.FormsMediaTestCase) ... ok
+test_media_inheritance (forms_tests.tests.test_media.FormsMediaTestCase) ... FAIL
+test_media_inheritance_extends (forms_tests.tests.test_media.FormsMediaTestCase) ... FAIL
+test_media_inheritance_from_property (forms_tests.tests.test_media.FormsMediaTestCase) ... ok
+test_media_inheritance_single_type (forms_tests.tests.test_media.FormsMediaTestCase) ... FAIL
+test_media_property (forms_tests.tests.test_media.FormsMediaTestCase) ... ok
+test_media_property_parent_references (forms_tests.tests.test_media.FormsMediaTestCase) ... FAIL
+test_merge (forms_tests.tests.test_media.FormsMediaTestCase) ... test_merge_css_three_way (forms_tests.tests.test_media.FormsMediaTestCase) ... ERROR
+test_merge_js_three_way (forms_tests.tests.test_media.FormsMediaTestCase) ... ERROR
+test_merge_js_three_way2 (forms_tests.tests.test_media.FormsMediaTestCase) ... FAIL
+test_merge_warning (forms_tests.tests.test_media.FormsMediaTestCase) ... FAIL
+test_multi_media (forms_tests.tests.test_media.FormsMediaTestCase) ... ok
+test_multi_widget (forms_tests.tests.test_media.FormsMediaTestCase) ... ERROR
+
+======================================================================
+ERROR: test_custom_pk_shortcut (admin_inlines.tests.TestInline)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/admin_inlines/tests.py", line 269, in test_custom_pk_shortcut
+    response = self.client.get(reverse('admin:admin_inlines_parentmodelwithcustompk_change', args=('foo',)))
+  File "/testbed/django/test/client.py", line 538, in get
+    response = super().get(path, data=data, secure=secure, **extra)
+  File "/testbed/django/test/client.py", line 347, in get
+    **extra,
+  File "/testbed/django/test/client.py", line 422, in generic
+    return self.request(**r)
+  File "/testbed/django/test/client.py", line 506, in request
+    raise exc_value
+  File "/testbed/django/core/handlers/exception.py", line 34, in inner
+    response = get_response(request)
+  File "/testbed/django/core/handlers/base.py", line 145, in _get_response
+    response = self.process_exception_by_middleware(e, request)
+  File "/testbed/django/core/handlers/base.py", line 143, in _get_response
+    response = response.render()
+  File "/testbed/django/template/response.py", line 106, in render
+    self.content = self.rendered_content
+  File "/testbed/django/template/response.py", line 83, in rendered_content
+    content = template.render(context, self._request)
+  File "/testbed/django/template/backends/django.py", line 61, in render
+    return self.template.render(context)
+  File "/testbed/django/template/base.py", line 171, in render
+    return self._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 150, in render
+    return compiled_parent._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 150, in render
+    return compiled_parent._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 62, in render
+    result = block.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/base.py", line 993, in render
+    return render_value_in_context(output, context)
+  File "/testbed/django/template/base.py", line 972, in render_value_in_context
+    value = str(value)
+  File "/testbed/django/utils/html.py", line 388, in <lambda>
+    klass.__str__ = lambda self: mark_safe(klass_str(self))
+  File "/testbed/django/forms/widgets.py", line 58, in __str__
+    return self.render()
+  File "/testbed/django/forms/widgets.py", line 80, in render
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 80, in <genexpr>
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 87, in render_js
+    ) for path in self._js
+  File "/testbed/django/forms/widgets.py", line 76, in _js
+    js = self.merge(js, obj)
+  File "/testbed/django/forms/widgets.py", line 152, in merge
+    MediaOrderConflictWarning,
+django.forms.widgets.MediaOrderConflictWarning: Detected duplicate Media files in an opposite order:
+admin/js/inlines.min.js
+admin/js/jquery.init.js
+
+======================================================================
+ERROR: test_help_text (admin_inlines.tests.TestInline)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/admin_inlines/tests.py", line 172, in test_help_text
+    response = self.client.get(reverse('admin:admin_inlines_holder4_add'))
+  File "/testbed/django/test/client.py", line 538, in get
+    response = super().get(path, data=data, secure=secure, **extra)
+  File "/testbed/django/test/client.py", line 347, in get
+    **extra,
+  File "/testbed/django/test/client.py", line 422, in generic
+    return self.request(**r)
+  File "/testbed/django/test/client.py", line 506, in request
+    raise exc_value
+  File "/testbed/django/core/handlers/exception.py", line 34, in inner
+    response = get_response(request)
+  File "/testbed/django/core/handlers/base.py", line 145, in _get_response
+    response = self.process_exception_by_middleware(e, request)
+  File "/testbed/django/core/handlers/base.py", line 143, in _get_response
+    response = response.render()
+  File "/testbed/django/template/response.py", line 106, in render
+    self.content = self.rendered_content
+  File "/testbed/django/template/response.py", line 83, in rendered_content
+    content = template.render(context, self._request)
+  File "/testbed/django/template/backends/django.py", line 61, in render
+    return self.template.render(context)
+  File "/testbed/django/template/base.py", line 171, in render
+    return self._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 150, in render
+    return compiled_parent._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 150, in render
+    return compiled_parent._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 62, in render
+    result = block.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/base.py", line 993, in render
+    return render_value_in_context(output, context)
+  File "/testbed/django/template/base.py", line 972, in render_value_in_context
+    value = str(value)
+  File "/testbed/django/utils/html.py", line 388, in <lambda>
+    klass.__str__ = lambda self: mark_safe(klass_str(self))
+  File "/testbed/django/forms/widgets.py", line 58, in __str__
+    return self.render()
+  File "/testbed/django/forms/widgets.py", line 80, in render
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 80, in <genexpr>
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 87, in render_js
+    ) for path in self._js
+  File "/testbed/django/forms/widgets.py", line 76, in _js
+    js = self.merge(js, obj)
+  File "/testbed/django/forms/widgets.py", line 152, in merge
+    MediaOrderConflictWarning,
+django.forms.widgets.MediaOrderConflictWarning: Detected duplicate Media files in an opposite order:
+admin/js/inlines.min.js
+admin/js/jquery.init.js
+
+======================================================================
+ERROR: test_inline_editable_pk (admin_inlines.tests.TestInline)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/admin_inlines/tests.py", line 404, in test_inline_editable_pk
+    response = self.client.get(reverse('admin:admin_inlines_author_add'))
+  File "/testbed/django/test/client.py", line 538, in get
+    response = super().get(path, data=data, secure=secure, **extra)
+  File "/testbed/django/test/client.py", line 347, in get
+    **extra,
+  File "/testbed/django/test/client.py", line 422, in generic
+    return self.request(**r)
+  File "/testbed/django/test/client.py", line 506, in request
+    raise exc_value
+  File "/testbed/django/core/handlers/exception.py", line 34, in inner
+    response = get_response(request)
+  File "/testbed/django/core/handlers/base.py", line 145, in _get_response
+    response = self.process_exception_by_middleware(e, request)
+  File "/testbed/django/core/handlers/base.py", line 143, in _get_response
+    response = response.render()
+  File "/testbed/django/template/response.py", line 106, in render
+    self.content = self.rendered_content
+  File "/testbed/django/template/response.py", line 83, in rendered_content
+    content = template.render(context, self._request)
+  File "/testbed/django/template/backends/django.py", line 61, in render
+    return self.template.render(context)
+  File "/testbed/django/template/base.py", line 171, in render
+    return self._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 150, in render
+    return compiled_parent._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 150, in render
+    return compiled_parent._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 62, in render
+    result = block.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/base.py", line 993, in render
+    return render_value_in_context(output, context)
+  File "/testbed/django/template/base.py", line 972, in render_value_in_context
+    value = str(value)
+  File "/testbed/django/utils/html.py", line 388, in <lambda>
+    klass.__str__ = lambda self: mark_safe(klass_str(self))
+  File "/testbed/django/forms/widgets.py", line 58, in __str__
+    return self.render()
+  File "/testbed/django/forms/widgets.py", line 80, in render
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 80, in <genexpr>
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 87, in render_js
+    ) for path in self._js
+  File "/testbed/django/forms/widgets.py", line 76, in _js
+    js = self.merge(js, obj)
+  File "/testbed/django/forms/widgets.py", line 152, in merge
+    MediaOrderConflictWarning,
+django.forms.widgets.MediaOrderConflictWarning: Detected duplicate Media files in an opposite order:
+admin/js/collapse.min.js
+admin/js/jquery.init.js
+
+======================================================================
+ERROR: test_inline_nonauto_noneditable_inherited_pk (admin_inlines.tests.TestInline)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/admin_inlines/tests.py", line 389, in test_inline_nonauto_noneditable_inherited_pk
+    response = self.client.get(reverse('admin:admin_inlines_author_add'))
+  File "/testbed/django/test/client.py", line 538, in get
+    response = super().get(path, data=data, secure=secure, **extra)
+  File "/testbed/django/test/client.py", line 347, in get
+    **extra,
+  File "/testbed/django/test/client.py", line 422, in generic
+    return self.request(**r)
+  File "/testbed/django/test/client.py", line 506, in request
+    raise exc_value
+  File "/testbed/django/core/handlers/exception.py", line 34, in inner
+    response = get_response(request)
+  File "/testbed/django/core/handlers/base.py", line 145, in _get_response
+    response = self.process_exception_by_middleware(e, request)
+  File "/testbed/django/core/handlers/base.py", line 143, in _get_response
+    response = response.render()
+  File "/testbed/django/template/response.py", line 106, in render
+    self.content = self.rendered_content
+  File "/testbed/django/template/response.py", line 83, in rendered_content
+    content = template.render(context, self._request)
+  File "/testbed/django/template/backends/django.py", line 61, in render
+    return self.template.render(context)
+  File "/testbed/django/template/base.py", line 171, in render
+    return self._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 150, in render
+    return compiled_parent._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 150, in render
+    return compiled_parent._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 62, in render
+    result = block.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/base.py", line 993, in render
+    return render_value_in_context(output, context)
+  File "/testbed/django/template/base.py", line 972, in render_value_in_context
+    value = str(value)
+  File "/testbed/django/utils/html.py", line 388, in <lambda>
+    klass.__str__ = lambda self: mark_safe(klass_str(self))
+  File "/testbed/django/forms/widgets.py", line 58, in __str__
+    return self.render()
+  File "/testbed/django/forms/widgets.py", line 80, in render
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 80, in <genexpr>
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 87, in render_js
+    ) for path in self._js
+  File "/testbed/django/forms/widgets.py", line 76, in _js
+    js = self.merge(js, obj)
+  File "/testbed/django/forms/widgets.py", line 152, in merge
+    MediaOrderConflictWarning,
+django.forms.widgets.MediaOrderConflictWarning: Detected duplicate Media files in an opposite order:
+admin/js/collapse.min.js
+admin/js/jquery.init.js
+
+======================================================================
+ERROR: test_inline_nonauto_noneditable_pk (admin_inlines.tests.TestInline)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/admin_inlines/tests.py", line 374, in test_inline_nonauto_noneditable_pk
+    response = self.client.get(reverse('admin:admin_inlines_author_add'))
+  File "/testbed/django/test/client.py", line 538, in get
+    response = super().get(path, data=data, secure=secure, **extra)
+  File "/testbed/django/test/client.py", line 347, in get
+    **extra,
+  File "/testbed/django/test/client.py", line 422, in generic
+    return self.request(**r)
+  File "/testbed/django/test/client.py", line 506, in request
+    raise exc_value
+  File "/testbed/django/core/handlers/exception.py", line 34, in inner
+    response = get_response(request)
+  File "/testbed/django/core/handlers/base.py", line 145, in _get_response
+    response = self.process_exception_by_middleware(e, request)
+  File "/testbed/django/core/handlers/base.py", line 143, in _get_response
+    response = response.render()
+  File "/testbed/django/template/response.py", line 106, in render
+    self.content = self.rendered_content
+  File "/testbed/django/template/response.py", line 83, in rendered_content
+    content = template.render(context, self._request)
+  File "/testbed/django/template/backends/django.py", line 61, in render
+    return self.template.render(context)
+  File "/testbed/django/template/base.py", line 171, in render
+    return self._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 150, in render
+    return compiled_parent._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 150, in render
+    return compiled_parent._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 62, in render
+    result = block.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/base.py", line 993, in render
+    return render_value_in_context(output, context)
+  File "/testbed/django/template/base.py", line 972, in render_value_in_context
+    value = str(value)
+  File "/testbed/django/utils/html.py", line 388, in <lambda>
+    klass.__str__ = lambda self: mark_safe(klass_str(self))
+  File "/testbed/django/forms/widgets.py", line 58, in __str__
+    return self.render()
+  File "/testbed/django/forms/widgets.py", line 80, in render
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 80, in <genexpr>
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 87, in render_js
+    ) for path in self._js
+  File "/testbed/django/forms/widgets.py", line 76, in _js
+    js = self.merge(js, obj)
+  File "/testbed/django/forms/widgets.py", line 152, in merge
+    MediaOrderConflictWarning,
+django.forms.widgets.MediaOrderConflictWarning: Detected duplicate Media files in an opposite order:
+admin/js/collapse.min.js
+admin/js/jquery.init.js
+
+======================================================================
+ERROR: test_inlines_show_change_link_registered (admin_inlines.tests.TestInline)
+Inlines `show_change_link` for registered models when enabled.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/admin_inlines/tests.py", line 442, in test_inlines_show_change_link_registered
+    response = self.client.get(reverse('admin:admin_inlines_holder4_change', args=(holder.pk,)))
+  File "/testbed/django/test/client.py", line 538, in get
+    response = super().get(path, data=data, secure=secure, **extra)
+  File "/testbed/django/test/client.py", line 347, in get
+    **extra,
+  File "/testbed/django/test/client.py", line 422, in generic
+    return self.request(**r)
+  File "/testbed/django/test/client.py", line 506, in request
+    raise exc_value
+  File "/testbed/django/core/handlers/exception.py", line 34, in inner
+    response = get_response(request)
+  File "/testbed/django/core/handlers/base.py", line 145, in _get_response
+    response = self.process_exception_by_middleware(e, request)
+  File "/testbed/django/core/handlers/base.py", line 143, in _get_response
+    response = response.render()
+  File "/testbed/django/template/response.py", line 106, in render
+    self.content = self.rendered_content
+  File "/testbed/django/template/response.py", line 83, in rendered_content
+    content = template.render(context, self._request)
+  File "/testbed/django/template/backends/django.py", line 61, in render
+    return self.template.render(context)
+  File "/testbed/django/template/base.py", line 171, in render
+    return self._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 150, in render
+    return compiled_parent._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 150, in render
+    return compiled_parent._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 62, in render
+    result = block.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/base.py", line 993, in render
+    return render_value_in_context(output, context)
+  File "/testbed/django/template/base.py", line 972, in render_value_in_context
+    value = str(value)
+  File "/testbed/django/utils/html.py", line 388, in <lambda>
+    klass.__str__ = lambda self: mark_safe(klass_str(self))
+  File "/testbed/django/forms/widgets.py", line 58, in __str__
+    return self.render()
+  File "/testbed/django/forms/widgets.py", line 80, in render
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 80, in <genexpr>
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 87, in render_js
+    ) for path in self._js
+  File "/testbed/django/forms/widgets.py", line 76, in _js
+    js = self.merge(js, obj)
+  File "/testbed/django/forms/widgets.py", line 152, in merge
+    MediaOrderConflictWarning,
+django.forms.widgets.MediaOrderConflictWarning: Detected duplicate Media files in an opposite order:
+admin/js/inlines.min.js
+admin/js/jquery.init.js
+
+======================================================================
+ERROR: test_inlines_show_change_link_unregistered (admin_inlines.tests.TestInline)
+Inlines `show_change_link` disabled for unregistered models.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/admin_inlines/tests.py", line 453, in test_inlines_show_change_link_unregistered
+    response = self.client.get(reverse('admin:admin_inlines_parentmodelwithcustompk_change', args=('foo',)))
+  File "/testbed/django/test/client.py", line 538, in get
+    response = super().get(path, data=data, secure=secure, **extra)
+  File "/testbed/django/test/client.py", line 347, in get
+    **extra,
+  File "/testbed/django/test/client.py", line 422, in generic
+    return self.request(**r)
+  File "/testbed/django/test/client.py", line 506, in request
+    raise exc_value
+  File "/testbed/django/core/handlers/exception.py", line 34, in inner
+    response = get_response(request)
+  File "/testbed/django/core/handlers/base.py", line 145, in _get_response
+    response = self.process_exception_by_middleware(e, request)
+  File "/testbed/django/core/handlers/base.py", line 143, in _get_response
+    response = response.render()
+  File "/testbed/django/template/response.py", line 106, in render
+    self.content = self.rendered_content
+  File "/testbed/django/template/response.py", line 83, in rendered_content
+    content = template.render(context, self._request)
+  File "/testbed/django/template/backends/django.py", line 61, in render
+    return self.template.render(context)
+  File "/testbed/django/template/base.py", line 171, in render
+    return self._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 150, in render
+    return compiled_parent._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 150, in render
+    return compiled_parent._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 62, in render
+    result = block.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/base.py", line 993, in render
+    return render_value_in_context(output, context)
+  File "/testbed/django/template/base.py", line 972, in render_value_in_context
+    value = str(value)
+  File "/testbed/django/utils/html.py", line 388, in <lambda>
+    klass.__str__ = lambda self: mark_safe(klass_str(self))
+  File "/testbed/django/forms/widgets.py", line 58, in __str__
+    return self.render()
+  File "/testbed/django/forms/widgets.py", line 80, in render
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 80, in <genexpr>
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 87, in render_js
+    ) for path in self._js
+  File "/testbed/django/forms/widgets.py", line 76, in _js
+    js = self.merge(js, obj)
+  File "/testbed/django/forms/widgets.py", line 152, in merge
+    MediaOrderConflictWarning,
+django.forms.widgets.MediaOrderConflictWarning: Detected duplicate Media files in an opposite order:
+admin/js/inlines.min.js
+admin/js/jquery.init.js
+
+======================================================================
+ERROR: test_many_to_many_inlines (admin_inlines.tests.TestInline)
+Autogenerated many-to-many inlines are displayed correctly (#13407)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/admin_inlines/tests.py", line 64, in test_many_to_many_inlines
+    response = self.client.get(reverse('admin:admin_inlines_author_add'))
+  File "/testbed/django/test/client.py", line 538, in get
+    response = super().get(path, data=data, secure=secure, **extra)
+  File "/testbed/django/test/client.py", line 347, in get
+    **extra,
+  File "/testbed/django/test/client.py", line 422, in generic
+    return self.request(**r)
+  File "/testbed/django/test/client.py", line 506, in request
+    raise exc_value
+  File "/testbed/django/core/handlers/exception.py", line 34, in inner
+    response = get_response(request)
+  File "/testbed/django/core/handlers/base.py", line 145, in _get_response
+    response = self.process_exception_by_middleware(e, request)
+  File "/testbed/django/core/handlers/base.py", line 143, in _get_response
+    response = response.render()
+  File "/testbed/django/template/response.py", line 106, in render
+    self.content = self.rendered_content
+  File "/testbed/django/template/response.py", line 83, in rendered_content
+    content = template.render(context, self._request)
+  File "/testbed/django/template/backends/django.py", line 61, in render
+    return self.template.render(context)
+  File "/testbed/django/template/base.py", line 171, in render
+    return self._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 150, in render
+    return compiled_parent._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 150, in render
+    return compiled_parent._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 62, in render
+    result = block.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/base.py", line 993, in render
+    return render_value_in_context(output, context)
+  File "/testbed/django/template/base.py", line 972, in render_value_in_context
+    value = str(value)
+  File "/testbed/django/utils/html.py", line 388, in <lambda>
+    klass.__str__ = lambda self: mark_safe(klass_str(self))
+  File "/testbed/django/forms/widgets.py", line 58, in __str__
+    return self.render()
+  File "/testbed/django/forms/widgets.py", line 80, in render
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 80, in <genexpr>
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 87, in render_js
+    ) for path in self._js
+  File "/testbed/django/forms/widgets.py", line 76, in _js
+    js = self.merge(js, obj)
+  File "/testbed/django/forms/widgets.py", line 152, in merge
+    MediaOrderConflictWarning,
+django.forms.widgets.MediaOrderConflictWarning: Detected duplicate Media files in an opposite order:
+admin/js/collapse.min.js
+admin/js/jquery.init.js
+
+======================================================================
+ERROR: test_non_related_name_inline (admin_inlines.tests.TestInline)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/admin_inlines/tests.py", line 225, in test_non_related_name_inline
+    response = self.client.get(reverse('admin:admin_inlines_capofamiglia_add'))
+  File "/testbed/django/test/client.py", line 538, in get
+    response = super().get(path, data=data, secure=secure, **extra)
+  File "/testbed/django/test/client.py", line 347, in get
+    **extra,
+  File "/testbed/django/test/client.py", line 422, in generic
+    return self.request(**r)
+  File "/testbed/django/test/client.py", line 506, in request
+    raise exc_value
+  File "/testbed/django/core/handlers/exception.py", line 34, in inner
+    response = get_response(request)
+  File "/testbed/django/core/handlers/base.py", line 145, in _get_response
+    response = self.process_exception_by_middleware(e, request)
+  File "/testbed/django/core/handlers/base.py", line 143, in _get_response
+    response = response.render()
+  File "/testbed/django/template/response.py", line 106, in render
+    self.content = self.rendered_content
+  File "/testbed/django/template/response.py", line 83, in rendered_content
+    content = template.render(context, self._request)
+  File "/testbed/django/template/backends/django.py", line 61, in render
+    return self.template.render(context)
+  File "/testbed/django/template/base.py", line 171, in render
+    return self._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 150, in render
+    return compiled_parent._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 150, in render
+    return compiled_parent._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 62, in render
+    result = block.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/base.py", line 993, in render
+    return render_value_in_context(output, context)
+  File "/testbed/django/template/base.py", line 972, in render_value_in_context
+    value = str(value)
+  File "/testbed/django/utils/html.py", line 388, in <lambda>
+    klass.__str__ = lambda self: mark_safe(klass_str(self))
+  File "/testbed/django/forms/widgets.py", line 58, in __str__
+    return self.render()
+  File "/testbed/django/forms/widgets.py", line 80, in render
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 80, in <genexpr>
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 87, in render_js
+    ) for path in self._js
+  File "/testbed/django/forms/widgets.py", line 76, in _js
+    js = self.merge(js, obj)
+  File "/testbed/django/forms/widgets.py", line 152, in merge
+    MediaOrderConflictWarning,
+django.forms.widgets.MediaOrderConflictWarning: Detected duplicate Media files in an opposite order:
+admin/js/inlines.min.js
+admin/js/jquery.init.js
+
+======================================================================
+ERROR: test_all_inline_media (admin_inlines.tests.TestInlineMedia)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/admin_inlines/tests.py", line 513, in test_all_inline_media
+    response = self.client.get(change_url)
+  File "/testbed/django/test/client.py", line 538, in get
+    response = super().get(path, data=data, secure=secure, **extra)
+  File "/testbed/django/test/client.py", line 347, in get
+    **extra,
+  File "/testbed/django/test/client.py", line 422, in generic
+    return self.request(**r)
+  File "/testbed/django/test/client.py", line 506, in request
+    raise exc_value
+  File "/testbed/django/core/handlers/exception.py", line 34, in inner
+    response = get_response(request)
+  File "/testbed/django/core/handlers/base.py", line 145, in _get_response
+    response = self.process_exception_by_middleware(e, request)
+  File "/testbed/django/core/handlers/base.py", line 143, in _get_response
+    response = response.render()
+  File "/testbed/django/template/response.py", line 106, in render
+    self.content = self.rendered_content
+  File "/testbed/django/template/response.py", line 83, in rendered_content
+    content = template.render(context, self._request)
+  File "/testbed/django/template/backends/django.py", line 61, in render
+    return self.template.render(context)
+  File "/testbed/django/template/base.py", line 171, in render
+    return self._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 150, in render
+    return compiled_parent._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 150, in render
+    return compiled_parent._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 62, in render
+    result = block.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/base.py", line 993, in render
+    return render_value_in_context(output, context)
+  File "/testbed/django/template/base.py", line 972, in render_value_in_context
+    value = str(value)
+  File "/testbed/django/utils/html.py", line 388, in <lambda>
+    klass.__str__ = lambda self: mark_safe(klass_str(self))
+  File "/testbed/django/forms/widgets.py", line 58, in __str__
+    return self.render()
+  File "/testbed/django/forms/widgets.py", line 80, in render
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 80, in <genexpr>
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 87, in render_js
+    ) for path in self._js
+  File "/testbed/django/forms/widgets.py", line 76, in _js
+    js = self.merge(js, obj)
+  File "/testbed/django/forms/widgets.py", line 152, in merge
+    MediaOrderConflictWarning,
+django.forms.widgets.MediaOrderConflictWarning: Detected duplicate Media files in an opposite order:
+admin/js/inlines.min.js
+admin/js/jquery.init.js
+
+======================================================================
+ERROR: test_inline_add_fk_add_perm (admin_inlines.tests.TestInlinePermissions)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/admin_inlines/tests.py", line 651, in test_inline_add_fk_add_perm
+    response = self.client.get(reverse('admin:admin_inlines_holder2_add'))
+  File "/testbed/django/test/client.py", line 538, in get
+    response = super().get(path, data=data, secure=secure, **extra)
+  File "/testbed/django/test/client.py", line 347, in get
+    **extra,
+  File "/testbed/django/test/client.py", line 422, in generic
+    return self.request(**r)
+  File "/testbed/django/test/client.py", line 506, in request
+    raise exc_value
+  File "/testbed/django/core/handlers/exception.py", line 34, in inner
+    response = get_response(request)
+  File "/testbed/django/core/handlers/base.py", line 145, in _get_response
+    response = self.process_exception_by_middleware(e, request)
+  File "/testbed/django/core/handlers/base.py", line 143, in _get_response
+    response = response.render()
+  File "/testbed/django/template/response.py", line 106, in render
+    self.content = self.rendered_content
+  File "/testbed/django/template/response.py", line 83, in rendered_content
+    content = template.render(context, self._request)
+  File "/testbed/django/template/backends/django.py", line 61, in render
+    return self.template.render(context)
+  File "/testbed/django/template/base.py", line 171, in render
+    return self._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 150, in render
+    return compiled_parent._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 150, in render
+    return compiled_parent._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 62, in render
+    result = block.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/base.py", line 993, in render
+    return render_value_in_context(output, context)
+  File "/testbed/django/template/base.py", line 972, in render_value_in_context
+    value = str(value)
+  File "/testbed/django/utils/html.py", line 388, in <lambda>
+    klass.__str__ = lambda self: mark_safe(klass_str(self))
+  File "/testbed/django/forms/widgets.py", line 58, in __str__
+    return self.render()
+  File "/testbed/django/forms/widgets.py", line 80, in render
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 80, in <genexpr>
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 87, in render_js
+    ) for path in self._js
+  File "/testbed/django/forms/widgets.py", line 76, in _js
+    js = self.merge(js, obj)
+  File "/testbed/django/forms/widgets.py", line 152, in merge
+    MediaOrderConflictWarning,
+django.forms.widgets.MediaOrderConflictWarning: Detected duplicate Media files in an opposite order:
+admin/js/inlines.min.js
+admin/js/jquery.init.js
+
+======================================================================
+ERROR: test_inline_change_fk_add_change_perm (admin_inlines.tests.TestInlinePermissions)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/admin_inlines/tests.py", line 741, in test_inline_change_fk_add_change_perm
+    response = self.client.get(self.holder_change_url)
+  File "/testbed/django/test/client.py", line 538, in get
+    response = super().get(path, data=data, secure=secure, **extra)
+  File "/testbed/django/test/client.py", line 347, in get
+    **extra,
+  File "/testbed/django/test/client.py", line 422, in generic
+    return self.request(**r)
+  File "/testbed/django/test/client.py", line 506, in request
+    raise exc_value
+  File "/testbed/django/core/handlers/exception.py", line 34, in inner
+    response = get_response(request)
+  File "/testbed/django/core/handlers/base.py", line 145, in _get_response
+    response = self.process_exception_by_middleware(e, request)
+  File "/testbed/django/core/handlers/base.py", line 143, in _get_response
+    response = response.render()
+  File "/testbed/django/template/response.py", line 106, in render
+    self.content = self.rendered_content
+  File "/testbed/django/template/response.py", line 83, in rendered_content
+    content = template.render(context, self._request)
+  File "/testbed/django/template/backends/django.py", line 61, in render
+    return self.template.render(context)
+  File "/testbed/django/template/base.py", line 171, in render
+    return self._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 150, in render
+    return compiled_parent._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 150, in render
+    return compiled_parent._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 62, in render
+    result = block.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/base.py", line 993, in render
+    return render_value_in_context(output, context)
+  File "/testbed/django/template/base.py", line 972, in render_value_in_context
+    value = str(value)
+  File "/testbed/django/utils/html.py", line 388, in <lambda>
+    klass.__str__ = lambda self: mark_safe(klass_str(self))
+  File "/testbed/django/forms/widgets.py", line 58, in __str__
+    return self.render()
+  File "/testbed/django/forms/widgets.py", line 80, in render
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 80, in <genexpr>
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 87, in render_js
+    ) for path in self._js
+  File "/testbed/django/forms/widgets.py", line 76, in _js
+    js = self.merge(js, obj)
+  File "/testbed/django/forms/widgets.py", line 152, in merge
+    MediaOrderConflictWarning,
+django.forms.widgets.MediaOrderConflictWarning: Detected duplicate Media files in an opposite order:
+admin/js/inlines.min.js
+admin/js/jquery.init.js
+
+======================================================================
+ERROR: test_inline_change_fk_add_perm (admin_inlines.tests.TestInlinePermissions)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/admin_inlines/tests.py", line 688, in test_inline_change_fk_add_perm
+    response = self.client.get(self.holder_change_url)
+  File "/testbed/django/test/client.py", line 538, in get
+    response = super().get(path, data=data, secure=secure, **extra)
+  File "/testbed/django/test/client.py", line 347, in get
+    **extra,
+  File "/testbed/django/test/client.py", line 422, in generic
+    return self.request(**r)
+  File "/testbed/django/test/client.py", line 506, in request
+    raise exc_value
+  File "/testbed/django/core/handlers/exception.py", line 34, in inner
+    response = get_response(request)
+  File "/testbed/django/core/handlers/base.py", line 145, in _get_response
+    response = self.process_exception_by_middleware(e, request)
+  File "/testbed/django/core/handlers/base.py", line 143, in _get_response
+    response = response.render()
+  File "/testbed/django/template/response.py", line 106, in render
+    self.content = self.rendered_content
+  File "/testbed/django/template/response.py", line 83, in rendered_content
+    content = template.render(context, self._request)
+  File "/testbed/django/template/backends/django.py", line 61, in render
+    return self.template.render(context)
+  File "/testbed/django/template/base.py", line 171, in render
+    return self._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 150, in render
+    return compiled_parent._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 150, in render
+    return compiled_parent._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 62, in render
+    result = block.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/base.py", line 993, in render
+    return render_value_in_context(output, context)
+  File "/testbed/django/template/base.py", line 972, in render_value_in_context
+    value = str(value)
+  File "/testbed/django/utils/html.py", line 388, in <lambda>
+    klass.__str__ = lambda self: mark_safe(klass_str(self))
+  File "/testbed/django/forms/widgets.py", line 58, in __str__
+    return self.render()
+  File "/testbed/django/forms/widgets.py", line 80, in render
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 80, in <genexpr>
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 87, in render_js
+    ) for path in self._js
+  File "/testbed/django/forms/widgets.py", line 76, in _js
+    js = self.merge(js, obj)
+  File "/testbed/django/forms/widgets.py", line 152, in merge
+    MediaOrderConflictWarning,
+django.forms.widgets.MediaOrderConflictWarning: Detected duplicate Media files in an opposite order:
+admin/js/inlines.min.js
+admin/js/jquery.init.js
+
+======================================================================
+ERROR: test_inline_change_fk_all_perms (admin_inlines.tests.TestInlinePermissions)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/admin_inlines/tests.py", line 783, in test_inline_change_fk_all_perms
+    response = self.client.get(self.holder_change_url)
+  File "/testbed/django/test/client.py", line 538, in get
+    response = super().get(path, data=data, secure=secure, **extra)
+  File "/testbed/django/test/client.py", line 347, in get
+    **extra,
+  File "/testbed/django/test/client.py", line 422, in generic
+    return self.request(**r)
+  File "/testbed/django/test/client.py", line 506, in request
+    raise exc_value
+  File "/testbed/django/core/handlers/exception.py", line 34, in inner
+    response = get_response(request)
+  File "/testbed/django/core/handlers/base.py", line 145, in _get_response
+    response = self.process_exception_by_middleware(e, request)
+  File "/testbed/django/core/handlers/base.py", line 143, in _get_response
+    response = response.render()
+  File "/testbed/django/template/response.py", line 106, in render
+    self.content = self.rendered_content
+  File "/testbed/django/template/response.py", line 83, in rendered_content
+    content = template.render(context, self._request)
+  File "/testbed/django/template/backends/django.py", line 61, in render
+    return self.template.render(context)
+  File "/testbed/django/template/base.py", line 171, in render
+    return self._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 150, in render
+    return compiled_parent._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 150, in render
+    return compiled_parent._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 62, in render
+    result = block.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/base.py", line 993, in render
+    return render_value_in_context(output, context)
+  File "/testbed/django/template/base.py", line 972, in render_value_in_context
+    value = str(value)
+  File "/testbed/django/utils/html.py", line 388, in <lambda>
+    klass.__str__ = lambda self: mark_safe(klass_str(self))
+  File "/testbed/django/forms/widgets.py", line 58, in __str__
+    return self.render()
+  File "/testbed/django/forms/widgets.py", line 80, in render
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 80, in <genexpr>
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 87, in render_js
+    ) for path in self._js
+  File "/testbed/django/forms/widgets.py", line 76, in _js
+    js = self.merge(js, obj)
+  File "/testbed/django/forms/widgets.py", line 152, in merge
+    MediaOrderConflictWarning,
+django.forms.widgets.MediaOrderConflictWarning: Detected duplicate Media files in an opposite order:
+admin/js/inlines.min.js
+admin/js/jquery.init.js
+
+======================================================================
+ERROR: test_inline_change_fk_change_del_perm (admin_inlines.tests.TestInlinePermissions)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/admin_inlines/tests.py", line 760, in test_inline_change_fk_change_del_perm
+    response = self.client.get(self.holder_change_url)
+  File "/testbed/django/test/client.py", line 538, in get
+    response = super().get(path, data=data, secure=secure, **extra)
+  File "/testbed/django/test/client.py", line 347, in get
+    **extra,
+  File "/testbed/django/test/client.py", line 422, in generic
+    return self.request(**r)
+  File "/testbed/django/test/client.py", line 506, in request
+    raise exc_value
+  File "/testbed/django/core/handlers/exception.py", line 34, in inner
+    response = get_response(request)
+  File "/testbed/django/core/handlers/base.py", line 145, in _get_response
+    response = self.process_exception_by_middleware(e, request)
+  File "/testbed/django/core/handlers/base.py", line 143, in _get_response
+    response = response.render()
+  File "/testbed/django/template/response.py", line 106, in render
+    self.content = self.rendered_content
+  File "/testbed/django/template/response.py", line 83, in rendered_content
+    content = template.render(context, self._request)
+  File "/testbed/django/template/backends/django.py", line 61, in render
+    return self.template.render(context)
+  File "/testbed/django/template/base.py", line 171, in render
+    return self._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 150, in render
+    return compiled_parent._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 150, in render
+    return compiled_parent._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 62, in render
+    result = block.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/base.py", line 993, in render
+    return render_value_in_context(output, context)
+  File "/testbed/django/template/base.py", line 972, in render_value_in_context
+    value = str(value)
+  File "/testbed/django/utils/html.py", line 388, in <lambda>
+    klass.__str__ = lambda self: mark_safe(klass_str(self))
+  File "/testbed/django/forms/widgets.py", line 58, in __str__
+    return self.render()
+  File "/testbed/django/forms/widgets.py", line 80, in render
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 80, in <genexpr>
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 87, in render_js
+    ) for path in self._js
+  File "/testbed/django/forms/widgets.py", line 76, in _js
+    js = self.merge(js, obj)
+  File "/testbed/django/forms/widgets.py", line 152, in merge
+    MediaOrderConflictWarning,
+django.forms.widgets.MediaOrderConflictWarning: Detected duplicate Media files in an opposite order:
+admin/js/inlines.min.js
+admin/js/jquery.init.js
+
+======================================================================
+ERROR: test_inline_change_fk_change_perm (admin_inlines.tests.TestInlinePermissions)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/admin_inlines/tests.py", line 708, in test_inline_change_fk_change_perm
+    response = self.client.get(self.holder_change_url)
+  File "/testbed/django/test/client.py", line 538, in get
+    response = super().get(path, data=data, secure=secure, **extra)
+  File "/testbed/django/test/client.py", line 347, in get
+    **extra,
+  File "/testbed/django/test/client.py", line 422, in generic
+    return self.request(**r)
+  File "/testbed/django/test/client.py", line 506, in request
+    raise exc_value
+  File "/testbed/django/core/handlers/exception.py", line 34, in inner
+    response = get_response(request)
+  File "/testbed/django/core/handlers/base.py", line 145, in _get_response
+    response = self.process_exception_by_middleware(e, request)
+  File "/testbed/django/core/handlers/base.py", line 143, in _get_response
+    response = response.render()
+  File "/testbed/django/template/response.py", line 106, in render
+    self.content = self.rendered_content
+  File "/testbed/django/template/response.py", line 83, in rendered_content
+    content = template.render(context, self._request)
+  File "/testbed/django/template/backends/django.py", line 61, in render
+    return self.template.render(context)
+  File "/testbed/django/template/base.py", line 171, in render
+    return self._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 150, in render
+    return compiled_parent._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 150, in render
+    return compiled_parent._render(context)
+  File "/testbed/django/test/utils.py", line 95, in instrumented_test_render
+    return self.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/loader_tags.py", line 62, in render
+    result = block.nodelist.render(context)
+  File "/testbed/django/template/base.py", line 937, in render
+    bit = node.render_annotated(context)
+  File "/testbed/django/template/base.py", line 904, in render_annotated
+    return self.render(context)
+  File "/testbed/django/template/base.py", line 993, in render
+    return render_value_in_context(output, context)
+  File "/testbed/django/template/base.py", line 972, in render_value_in_context
+    value = str(value)
+  File "/testbed/django/utils/html.py", line 388, in <lambda>
+    klass.__str__ = lambda self: mark_safe(klass_str(self))
+  File "/testbed/django/forms/widgets.py", line 58, in __str__
+    return self.render()
+  File "/testbed/django/forms/widgets.py", line 80, in render
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 80, in <genexpr>
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 87, in render_js
+    ) for path in self._js
+  File "/testbed/django/forms/widgets.py", line 76, in _js
+    js = self.merge(js, obj)
+  File "/testbed/django/forms/widgets.py", line 152, in merge
+    MediaOrderConflictWarning,
+django.forms.widgets.MediaOrderConflictWarning: Detected duplicate Media files in an opposite order:
+admin/js/inlines.min.js
+admin/js/jquery.init.js
+
+======================================================================
+ERROR: test_combine_media (forms_tests.tests.test_media.FormsMediaTestCase)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/forms_tests/tests/test_media.py", line 122, in test_combine_media
+    str(w1.media + w2.media + w3.media),
+  File "/testbed/django/utils/html.py", line 388, in <lambda>
+    klass.__str__ = lambda self: mark_safe(klass_str(self))
+  File "/testbed/django/forms/widgets.py", line 58, in __str__
+    return self.render()
+  File "/testbed/django/forms/widgets.py", line 80, in render
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 80, in <genexpr>
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 87, in render_js
+    ) for path in self._js
+  File "/testbed/django/forms/widgets.py", line 76, in _js
+    js = self.merge(js, obj)
+  File "/testbed/django/forms/widgets.py", line 152, in merge
+    MediaOrderConflictWarning,
+django.forms.widgets.MediaOrderConflictWarning: Detected duplicate Media files in an opposite order:
+/path/to/js4
+/path/to/js1
+
+======================================================================
+ERROR: test_merge (forms_tests.tests.test_media.FormsMediaTestCase) (lists=[[1, 2], [1, 3], [2, 3], [5, 7], [5, 6], [6, 7, 9], [8, 9]])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/forms_tests/tests/test_media.py", line 553, in test_merge
+    self.assertEqual(Media.merge(*lists), expected)
+TypeError: merge() takes 2 positional arguments but 7 were given
+
+======================================================================
+ERROR: test_merge (forms_tests.tests.test_media.FormsMediaTestCase) (lists=())
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/forms_tests/tests/test_media.py", line 553, in test_merge
+    self.assertEqual(Media.merge(*lists), expected)
+TypeError: merge() missing 2 required positional arguments: 'list_1' and 'list_2'
+
+======================================================================
+ERROR: test_merge (forms_tests.tests.test_media.FormsMediaTestCase) (lists=([1, 2],))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/forms_tests/tests/test_media.py", line 553, in test_merge
+    self.assertEqual(Media.merge(*lists), expected)
+TypeError: merge() missing 1 required positional argument: 'list_2'
+
+======================================================================
+ERROR: test_merge_css_three_way (forms_tests.tests.test_media.FormsMediaTestCase)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/forms_tests/tests/test_media.py", line 590, in test_merge_css_three_way
+    self.assertEqual(merged._css, {'screen': ['a.css', 'b.css', 'c.css'], 'all': ['d.css', 'e.css']})
+  File "/testbed/django/forms/widgets.py", line 67, in _css
+    for medium in css.keys() | obj.keys()
+  File "/testbed/django/forms/widgets.py", line 67, in <dictcomp>
+    for medium in css.keys() | obj.keys()
+  File "/testbed/django/forms/widgets.py", line 152, in merge
+    MediaOrderConflictWarning,
+django.forms.widgets.MediaOrderConflictWarning: Detected duplicate Media files in an opposite order:
+c.css
+a.css
+
+======================================================================
+ERROR: test_merge_js_three_way (forms_tests.tests.test_media.FormsMediaTestCase)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/forms_tests/tests/test_media.py", line 568, in test_merge_js_three_way
+    self.assertEqual(merged._js, ['text-editor.js', 'text-editor-extras.js', 'color-picker.js'])
+  File "/testbed/django/forms/widgets.py", line 76, in _js
+    js = self.merge(js, obj)
+  File "/testbed/django/forms/widgets.py", line 152, in merge
+    MediaOrderConflictWarning,
+django.forms.widgets.MediaOrderConflictWarning: Detected duplicate Media files in an opposite order:
+color-picker.js
+text-editor.js
+
+======================================================================
+ERROR: test_multi_widget (forms_tests.tests.test_media.FormsMediaTestCase)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/forms_tests/tests/test_media.py", line 428, in test_multi_widget
+    str(mymulti.media),
+  File "/testbed/django/utils/html.py", line 388, in <lambda>
+    klass.__str__ = lambda self: mark_safe(klass_str(self))
+  File "/testbed/django/forms/widgets.py", line 58, in __str__
+    return self.render()
+  File "/testbed/django/forms/widgets.py", line 80, in render
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 80, in <genexpr>
+    return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+  File "/testbed/django/forms/widgets.py", line 87, in render_js
+    ) for path in self._js
+  File "/testbed/django/forms/widgets.py", line 76, in _js
+    js = self.merge(js, obj)
+  File "/testbed/django/forms/widgets.py", line 152, in merge
+    MediaOrderConflictWarning,
+django.forms.widgets.MediaOrderConflictWarning: Detected duplicate Media files in an opposite order:
+/path/to/js4
+/path/to/js1
+
+======================================================================
+FAIL: test_inline_media_only_inline (admin_inlines.tests.TestInlineMedia)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/admin_inlines/tests.py", line 503, in test_inline_media_only_inline
+    'admin/js/inlines.min.js',
+AssertionError: Lists differ: ['adm[32 chars]s', 'admin/js/jquery.init.js', 'admin/js/inlin[58 chars].js'] != ['adm[32 chars]s', 'my_awesome_inline_scripts.js', 'custom_nu[58 chars].js']
+
+First differing element 1:
+'admin/js/jquery.init.js'
+'my_awesome_inline_scripts.js'
+
+  ['admin/js/vendor/jquery/jquery.min.js',
++  'my_awesome_inline_scripts.js',
++  'custom_number.js',
+   'admin/js/jquery.init.js',
+-  'admin/js/inlines.min.js',
+?                           ^
+
++  'admin/js/inlines.min.js']
+?                           ^
+
+-  'my_awesome_inline_scripts.js',
+-  'custom_number.js']
+
+======================================================================
+FAIL: test_media (admin_widgets.test_autocomplete_widget.AutocompleteMixinTests) (lang='de')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/admin_widgets/test_autocomplete_widget.py", line 142, in test_media
+    self.assertEqual(AutocompleteSelect(rel, admin.site).media._js, list(expected_files))
+AssertionError: ('admin/js/vendor/jquery/jquery.min.js', [134 chars].js') != ['admin/js/vendor/jquery/jquery.min.js', [134 chars].js']
+
+======================================================================
+FAIL: test_media (admin_widgets.test_autocomplete_widget.AutocompleteMixinTests) (lang='00')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/admin_widgets/test_autocomplete_widget.py", line 142, in test_media
+    self.assertEqual(AutocompleteSelect(rel, admin.site).media._js, list(expected_files))
+AssertionError: ('admin/js/vendor/jquery/jquery.min.js', [96 chars].js') != ['admin/js/vendor/jquery/jquery.min.js', [96 chars].js']
+
+======================================================================
+FAIL: test_media (admin_widgets.test_autocomplete_widget.AutocompleteMixinTests) (lang='sr-cyrl')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/admin_widgets/test_autocomplete_widget.py", line 142, in test_media
+    self.assertEqual(AutocompleteSelect(rel, admin.site).media._js, list(expected_files))
+AssertionError: ('admin/js/vendor/jquery/jquery.min.js', [139 chars].js') != ['admin/js/vendor/jquery/jquery.min.js', [139 chars].js']
+
+======================================================================
+FAIL: test_media (admin_widgets.test_autocomplete_widget.AutocompleteMixinTests) (lang='zh-hans')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/admin_widgets/test_autocomplete_widget.py", line 142, in test_media
+    self.assertEqual(AutocompleteSelect(rel, admin.site).media._js, list(expected_files))
+AssertionError: ('admin/js/vendor/jquery/jquery.min.js', [137 chars].js') != ['admin/js/vendor/jquery/jquery.min.js', [137 chars].js']
+
+======================================================================
+FAIL: test_media (admin_widgets.test_autocomplete_widget.AutocompleteMixinTests) (lang='zh-hant')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/admin_widgets/test_autocomplete_widget.py", line 142, in test_media
+    self.assertEqual(AutocompleteSelect(rel, admin.site).media._js, list(expected_files))
+AssertionError: ('admin/js/vendor/jquery/jquery.min.js', [137 chars].js') != ['admin/js/vendor/jquery/jquery.min.js', [137 chars].js']
+
+======================================================================
+FAIL: test_construction (forms_tests.tests.test_media.FormsMediaTestCase)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/forms_tests/tests/test_media.py", line 28, in test_construction
+    "Media(css={'all': ['path/to/css1', '/path/to/css2']}, "
+AssertionError: "Media(css={'all': ('path/to/css1', '/path/to/css2')}, js=('[89 chars]3'))" != "Media(css={'all': ['path/to/css1', '/path/to/css2']}, js=['[89 chars]3'])"
+- Media(css={'all': ('path/to/css1', '/path/to/css2')}, js=('/path/to/js1', 'http://media.other.com/path/to/js2', 'https://secure.other.com/path/to/js3'))
+?                   ^                               ^      ^                                                                                            ^
++ Media(css={'all': ['path/to/css1', '/path/to/css2']}, js=['/path/to/js1', 'http://media.other.com/path/to/js2', 'https://secure.other.com/path/to/js3'])
+?                   ^                               ^      ^                                                                                            ^
+
+
+======================================================================
+FAIL: test_form_media (forms_tests.tests.test_media.FormsMediaTestCase)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/forms_tests/tests/test_media.py", line 477, in test_form_media
+    <script type="text/javascript" src="https://secure.other.com/path/to/js3"></script>"""
+AssertionError: '<lin[120 chars]o/css3" type="text/css" media="all" rel="style[367 chars]ipt>' != '<lin[120 chars]o/css2" type="text/css" media="all" rel="style[367 chars]ipt>'
+
+======================================================================
+FAIL: test_media_deduplication (forms_tests.tests.test_media.FormsMediaTestCase)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/forms_tests/tests/test_media.py", line 163, in test_media_deduplication
+    <script type="text/javascript" src="/path/to/js1"></script>""")
+AssertionError: '<lin[66 chars]">\n<link href="/path/to/css1" type="text/css"[148 chars]ipt>' != '<lin[66 chars]">\n<script type="text/javascript" src="/path/[13 chars]ipt>'
+
+======================================================================
+FAIL: test_media_inheritance (forms_tests.tests.test_media.FormsMediaTestCase)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/forms_tests/tests/test_media.py", line 262, in test_media_inheritance
+    <script type="text/javascript" src="https://secure.other.com/path/to/js3"></script>"""
+AssertionError: '<link href="http://media.example.com/static/path/to/c[484 chars]ipt>' != '<link href="/path/to/css3" type="text/css" media="all[484 chars]ipt>'
+
+======================================================================
+FAIL: test_media_inheritance_extends (forms_tests.tests.test_media.FormsMediaTestCase)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/forms_tests/tests/test_media.py", line 337, in test_media_inheritance_extends
+    <script type="text/javascript" src="https://secure.other.com/path/to/js3"></script>"""
+AssertionError: '<link href="http://media.example.com/static/path/to/c[484 chars]ipt>' != '<link href="/path/to/css3" type="text/css" media="all[484 chars]ipt>'
+
+======================================================================
+FAIL: test_media_inheritance_single_type (forms_tests.tests.test_media.FormsMediaTestCase)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/forms_tests/tests/test_media.py", line 364, in test_media_inheritance_single_type
+    <script type="text/javascript" src="/path/to/js4"></script>"""
+AssertionError: '<link href="http://media.example.com/static/path/to/c[316 chars]ipt>' != '<link href="/path/to/css3" type="text/css" media="all[316 chars]ipt>'
+
+======================================================================
+FAIL: test_media_property_parent_references (forms_tests.tests.test_media.FormsMediaTestCase)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/forms_tests/tests/test_media.py", line 216, in test_media_property_parent_references
+    <script type="text/javascript" src="https://secure.other.com/path/to/js3"></script>"""
+AssertionError: '<lin[109 chars]ef="/path/to/css2" type="text/css" media="all"[373 chars]ipt>' != '<lin[109 chars]ef="/other/path" type="text/css" media="all" r[373 chars]ipt>'
+
+======================================================================
+FAIL: test_merge (forms_tests.tests.test_media.FormsMediaTestCase) (lists=([1, 2], [3, 4]))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/forms_tests/tests/test_media.py", line 553, in test_merge
+    self.assertEqual(Media.merge(*lists), expected)
+AssertionError: Lists differ: [1, 2, 3, 4] != [1, 3, 2, 4]
+
+First differing element 1:
+2
+3
+
+- [1, 2, 3, 4]
+?        ---
+
++ [1, 3, 2, 4]
+?     +++
+
+
+======================================================================
+FAIL: test_merge (forms_tests.tests.test_media.FormsMediaTestCase) (lists=([1, 2], [2, 3]))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/forms_tests/tests/test_media.py", line 553, in test_merge
+    self.assertEqual(Media.merge(*lists), expected)
+AssertionError: Lists differ: [1, 3, 2] != [1, 2, 3]
+
+First differing element 1:
+3
+2
+
+- [1, 3, 2]
++ [1, 2, 3]
+
+======================================================================
+FAIL: test_merge (forms_tests.tests.test_media.FormsMediaTestCase) (lists=([2, 3], [1, 2]))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/forms_tests/tests/test_media.py", line 553, in test_merge
+    self.assertEqual(Media.merge(*lists), expected)
+AssertionError: Lists differ: [2, 3, 1] != [1, 2, 3]
+
+First differing element 0:
+2
+1
+
+- [2, 3, 1]
++ [1, 2, 3]
+
+======================================================================
+FAIL: test_merge (forms_tests.tests.test_media.FormsMediaTestCase) (lists=([1, 3], [2, 3]))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/forms_tests/tests/test_media.py", line 553, in test_merge
+    self.assertEqual(Media.merge(*lists), expected)
+AssertionError: Lists differ: [1, 3, 2] != [1, 2, 3]
+
+First differing element 1:
+3
+2
+
+- [1, 3, 2]
++ [1, 2, 3]
+
+======================================================================Testing against Django installed in '/testbed/django'
+Importing application forms_tests
+Importing application admin_widgets
+Importing application admin_inlines
+Skipping setup of unused database(s): other.
+Operations to perform:
+  Synchronize unmigrated apps: admin_inlines, admin_widgets, auth, contenttypes, forms_tests, messages, sessions, staticfiles
+  Apply all migrations: admin, sites
+Synchronizing apps without migrations:
+  Creating tables...
+    Creating table django_content_type
+    Creating table auth_permission
+    Creating table auth_group
+    Creating table auth_user
+    Creating table django_session
+    Creating table forms_tests_boundarymodel
+    Creating table forms_tests_defaults
+    Creating table forms_tests_choicemodel
+    Creating table forms_tests_choiceoptionmodel
+    Creating table forms_tests_choicefieldmodel
+    Creating table forms_tests_optionalmultichoicemodel
+    Creating table forms_tests_filemodel
+    Creating table forms_tests_article
+    Creating table admin_widgets_member
+    Creating table admin_widgets_band
+    Creating table admin_widgets_album
+    Creating table admin_widgets_inventory
+    Creating table admin_widgets_event
+    Creating table admin_widgets_car
+    Creating table admin_widgets_cartire
+    Creating table admin_widgets_honeycomb
+    Creating table admin_widgets_bee
+    Creating table admin_widgets_individual
+    Creating table admin_widgets_company
+    Creating table admin_widgets_advisor
+    Creating table admin_widgets_student
+    Creating table admin_widgets_school
+    Creating table admin_widgets_profile
+    Creating table admin_inlines_parent
+    Creating table admin_inlines_teacher
+    Creating table admin_inlines_child
+    Creating table admin_inlines_book
+    Creating table admin_inlines_author
+    Creating table admin_inlines_nonautopkbook
+    Creating table admin_inlines_nonautopkbookchild
+    Creating table admin_inlines_editablepkbook
+    Creating table admin_inlines_holder
+    Creating table admin_inlines_inner
+    Creating table admin_inlines_holder2
+    Creating table admin_inlines_inner2
+    Creating table admin_inlines_holder3
+    Creating table admin_inlines_inner3
+    Creating table admin_inlines_holder4
+    Creating table admin_inlines_inner4stacked
+    Creating table admin_inlines_inner4tabular
+    Creating table admin_inlines_person
+    Creating table admin_inlines_outfititem
+    Creating table admin_inlines_fashionista
+    Creating table admin_inlines_shoppingweakness
+    Creating table admin_inlines_titlecollection
+    Creating table admin_inlines_title
+    Creating table admin_inlines_poll
+    Creating table admin_inlines_question
+    Creating table admin_inlines_novel
+    Creating table admin_inlines_chapter
+    Creating table admin_inlines_footnote
+    Creating table admin_inlines_capofamiglia
+    Creating table admin_inlines_consigliere
+    Creating table admin_inlines_sottocapo
+    Creating table admin_inlines_readonlyinline
+    Creating table admin_inlines_parentmodelwithcustompk
+    Creating table admin_inlines_childmodel1
+    Creating table admin_inlines_childmodel2
+    Creating table admin_inlines_binarytree
+    Creating table admin_inlines_lifeform
+    Creating table admin_inlines_extraterrestrial
+    Creating table admin_inlines_sighting
+    Creating table admin_inlines_someparentmodel
+    Creating table admin_inlines_somechildmodel
+    Creating table admin_inlines_profilecollection
+    Creating table admin_inlines_profile
+    Running deferred SQL...
+Running migrations:
+  Applying admin.0001_initial... OK
+  Applying admin.0002_logentry_remove_auto_add... OK
+  Applying admin.0003_logentry_add_action_flag_choices... OK
+  Applying sites.0001_initial... OK
+  Applying sites.0002_alter_domain_unique... OK
+System check identified no issues (0 silenced).
+
+FAIL: test_merge (forms_tests.tests.test_media.FormsMediaTestCase) (lists=([1, 2], [1, 3]))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/forms_tests/tests/test_media.py", line 553, in test_merge
+    self.assertEqual(Media.merge(*lists), expected)
+AssertionError: Lists differ: [3, 1, 2] != [1, 2, 3]
+
+First differing element 0:
+3
+1
+
+- [3, 1, 2]
++ [1, 2, 3]
+
+======================================================================
+FAIL: test_merge (forms_tests.tests.test_media.FormsMediaTestCase) (lists=([1, 2], [3, 2]))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/forms_tests/tests/test_media.py", line 553, in test_merge
+    self.assertEqual(Media.merge(*lists), expected)
+AssertionError: Lists differ: [1, 2, 3] != [1, 3, 2]
+
+First differing element 1:
+2
+3
+
+- [1, 2, 3]
++ [1, 3, 2]
+
+======================================================================
+FAIL: test_merge_js_three_way2 (forms_tests.tests.test_media.FormsMediaTestCase)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/forms_tests/tests/test_media.py", line 578, in test_merge_js_three_way2
+    self.assertEqual(merged._js, ['a', 'b', 'c', 'f', 'g', 'h', 'k'])
+AssertionError: Lists differ: ['b', 'a', 'c', 'h', 'f', 'g', 'k'] != ['a', 'b', 'c', 'f', 'g', 'h', 'k']
+
+First differing element 0:
+'b'
+'a'
+
+- ['b', 'a', 'c', 'h', 'f', 'g', 'k']
++ ['a', 'b', 'c', 'f', 'g', 'h', 'k']
+
+======================================================================
+FAIL: test_merge_warning (forms_tests.tests.test_media.FormsMediaTestCase)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/testbed/tests/forms_tests/tests/test_media.py", line 558, in test_merge_warning
+    self.assertEqual(Media.merge([1, 2], [2, 1]), [1, 2])
+  File "/opt/miniconda3/envs/testbed/lib/python3.6/contextlib.py", line 88, in __exit__
+    next(self.gen)
+  File "/testbed/django/test/testcases.py", line 676, in _assert_raises_or_warns_cm
+    self.assertIn(expected_message, str(getattr(cm, cm_attr)))
+AssertionError: 'Detected duplicate Media files in an opposite order: [1, 2], [2, 1]' not found in 'Detected duplicate Media files in an opposite order:\n1\n2'
+
+----------------------------------------------------------------------
+Ran 80 tests in 1.388s
+
+FAILED (failures=21, errors=23, skipped=6)
+Destroying test database for alias 'default' ('file:memorydb_default?mode=memory&cache=shared')...
++ : '>>>>> End Test Output'
++ git checkout 93e892bb645b16ebaf287beb5fe7f3ffe8d10408 tests/admin_inlines/tests.py tests/admin_widgets/test_autocomplete_widget.py tests/forms_tests/tests/test_media.py
+Updated 3 paths from f50e576e6b

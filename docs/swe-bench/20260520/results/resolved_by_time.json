@@ -1,0 +1,46 @@
+{
+  "2012": {
+    "resolved": 1,
+    "total": 1
+  },
+  "2014": {
+    "resolved": 1,
+    "total": 3
+  },
+  "2015": {
+    "resolved": 0,
+    "total": 1
+  },
+  "2016": {
+    "resolved": 1,
+    "total": 4
+  },
+  "2017": {
+    "resolved": 7,
+    "total": 16
+  },
+  "2018": {
+    "resolved": 8,
+    "total": 21
+  },
+  "2019": {
+    "resolved": 30,
+    "total": 59
+  },
+  "2020": {
+    "resolved": 31,
+    "total": 66
+  },
+  "2021": {
+    "resolved": 23,
+    "total": 42
+  },
+  "2022": {
+    "resolved": 26,
+    "total": 57
+  },
+  "2023": {
+    "resolved": 11,
+    "total": 30
+  }
+}

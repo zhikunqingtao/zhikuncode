@@ -1,0 +1,81 @@
+2026-05-20 00:32:36,786 - INFO - Environment image sweb.env.py.x86_64.c3d5426e71acc908b5e9f9:latest found for pylint-dev__pylint-5859
+Building instance image sweb.eval.x86_64.pylint-dev__pylint-5859:latest for pylint-dev__pylint-5859
+2026-05-20 00:33:16,348 - INFO - Creating container for pylint-dev__pylint-5859...
+2026-05-20 00:33:16,370 - INFO - Container for pylint-dev__pylint-5859 created: 868d2f0c16e9f0fe190ef4ed02aed6ea5e98dc50ac44db39bd1c640cee6592ee
+2026-05-20 00:33:16,468 - INFO - Container for pylint-dev__pylint-5859 started: 868d2f0c16e9f0fe190ef4ed02aed6ea5e98dc50ac44db39bd1c640cee6592ee
+2026-05-20 00:33:16,468 - INFO - Intermediate patch for pylint-dev__pylint-5859 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/pylint-dev__pylint-5859/patch.diff, now applying to container...
+2026-05-20 00:33:16,516 - INFO - >>>>> Applied Patch:
+Checking patch pylint/checkers/misc.py...
+Applied patch pylint/checkers/misc.py cleanly.
+
+2026-05-20 00:33:16,615 - INFO - Git diff before:
+diff --git a/pylint/checkers/misc.py b/pylint/checkers/misc.py
+index 69149e61..340c62a4 100644
+--- a/pylint/checkers/misc.py
++++ b/pylint/checkers/misc.py
+@@ -119,11 +119,22 @@ class EncodingChecker(BaseChecker):
+     def open(self):
+         super().open()
+ 
+-        notes = "|".join(re.escape(note) for note in self.config.notes)
++        # Separate notes into those that end with a word character and those that don't.
++        # Notes ending with word characters need \b to avoid partial matches (e.g.,
++        # TODO matching TODAY). Notes ending with non-word characters (like punctuation)
++        # cannot use \b since it requires a word character boundary.
++        notes = []
++        for note in self.config.notes:
++            if note and note[-1].isalnum() or note and note[-1] == "_":
++                notes.append(re.escape(note) + r"\b")
++            else:
++                notes.append(re.escape(note))
++        notes_pattern = "|".join(notes)
++
+         if self.config.notes_rgx:
+-            regex_string = rf"#\s*({notes}|{self.config.notes_rgx})\b"
++            regex_string = rf"#\s*({notes_pattern}|{self.config.notes_rgx})\b"
+         else:
+-            regex_string = rf"#\s*({notes})\b"
++            regex_string = rf"#\s*({notes_pattern})"
+ 
+         self._fixme_pattern = re.compile(regex_string, re.I)
+2026-05-20 00:33:16,615 - INFO - Eval script for pylint-dev__pylint-5859 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/pylint-dev__pylint-5859/eval.sh; copying to container...
+2026-05-20 00:33:20,366 - INFO - Test runtime: 3.73 seconds
+2026-05-20 00:33:20,366 - INFO - Test output for pylint-dev__pylint-5859 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/pylint-dev__pylint-5859/test_output.txt
+2026-05-20 00:33:20,393 - INFO - Git diff after:
+diff --git a/pylint/checkers/misc.py b/pylint/checkers/misc.py
+index 69149e61..340c62a4 100644
+--- a/pylint/checkers/misc.py
++++ b/pylint/checkers/misc.py
+@@ -119,11 +119,22 @@ class EncodingChecker(BaseChecker):
+     def open(self):
+         super().open()
+ 
+-        notes = "|".join(re.escape(note) for note in self.config.notes)
++        # Separate notes into those that end with a word character and those that don't.
++        # Notes ending with word characters need \b to avoid partial matches (e.g.,
++        # TODO matching TODAY). Notes ending with non-word characters (like punctuation)
++        # cannot use \b since it requires a word character boundary.
++        notes = []
++        for note in self.config.notes:
++            if note and note[-1].isalnum() or note and note[-1] == "_":
++                notes.append(re.escape(note) + r"\b")
++            else:
++                notes.append(re.escape(note))
++        notes_pattern = "|".join(notes)
++
+         if self.config.notes_rgx:
+-            regex_string = rf"#\s*({notes}|{self.config.notes_rgx})\b"
++            regex_string = rf"#\s*({notes_pattern}|{self.config.notes_rgx})\b"
+         else:
+-            regex_string = rf"#\s*({notes})\b"
++            regex_string = rf"#\s*({notes_pattern})"
+ 
+         self._fixme_pattern = re.compile(regex_string, re.I)
+2026-05-20 00:33:20,394 - INFO - Grading answer for pylint-dev__pylint-5859...
+2026-05-20 00:33:20,394 - INFO - report: {'pylint-dev__pylint-5859': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['tests/checkers/unittest_misc.py::TestFixme::test_non_alphanumeric_codetag'], 'failure': []}, 'PASS_TO_PASS': {'success': ['tests/checkers/unittest_misc.py::TestFixme::test_fixme_with_message', 'tests/checkers/unittest_misc.py::TestFixme::test_todo_without_message', 'tests/checkers/unittest_misc.py::TestFixme::test_xxx_without_space', 'tests/checkers/unittest_misc.py::TestFixme::test_xxx_middle', 'tests/checkers/unittest_misc.py::TestFixme::test_without_space_fixme', 'tests/checkers/unittest_misc.py::TestFixme::test_absent_codetag', 'tests/checkers/unittest_misc.py::TestFixme::test_other_present_codetag', 'tests/checkers/unittest_misc.py::TestFixme::test_issue_2321_should_not_trigger', 'tests/checkers/unittest_misc.py::TestFixme::test_issue_2321_should_trigger', 'tests/checkers/unittest_misc.py::TestFixme::test_dont_trigger_on_todoist'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for pylint-dev__pylint-5859: resolved: True
+2026-05-20 00:33:20,394 - INFO - Attempting to stop container sweb.eval.pylint-dev__pylint-5859.zhikuncode_eval_300_FINAL...
+2026-05-20 00:33:35,711 - INFO - Attempting to remove container sweb.eval.pylint-dev__pylint-5859.zhikuncode_eval_300_FINAL...
+2026-05-20 00:33:35,718 - INFO - Container sweb.eval.pylint-dev__pylint-5859.zhikuncode_eval_300_FINAL removed.
+2026-05-20 00:33:35,718 - INFO - Attempting to remove image sweb.eval.x86_64.pylint-dev__pylint-5859:latest...
+2026-05-20 00:33:35,746 - INFO - Image sweb.eval.x86_64.pylint-dev__pylint-5859:latest removed.

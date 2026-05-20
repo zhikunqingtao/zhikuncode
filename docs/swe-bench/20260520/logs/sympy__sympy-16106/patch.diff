@@ -1,0 +1,54 @@
+diff --git a/sympy/printing/mathml.py b/sympy/printing/mathml.py
+index 1aa0ee0..999dc9d 100644
+--- a/sympy/printing/mathml.py
++++ b/sympy/printing/mathml.py
+@@ -443,6 +443,17 @@ def _print_Function(self, e):
+             x.appendChild(self._print(arg))
+         return x
+ 
++    def _print_IndexedBase(self, e):
++        return self._print(e.label)
++
++    def _print_Indexed(self, e):
++        x = self.dom.createElement('apply')
++        x.appendChild(self.dom.createElement('selector'))
++        x.appendChild(self._print(e.base))
++        for index in e.indices:
++            x.appendChild(self._print(index))
++        return x
++
+     def _print_Basic(self, e):
+         x = self.dom.createElement(self.mathml_tag(e))
+         for arg in e.args:
+@@ -1006,6 +1017,31 @@ def _print_polylog(self, expr, exp=None):
+         mrow.appendChild(brac)
+         return mrow
+ 
++    def _print_IndexedBase(self, e):
++        return self._print(e.label)
++
++    def _print_Indexed(self, e):
++        mrow = self.dom.createElement('mrow')
++        base = self._print(e.base)
++        if len(e.indices) == 1:
++            msub = self.dom.createElement('msub')
++            msub.appendChild(base)
++            msub.appendChild(self._print(e.indices[0]))
++            mrow.appendChild(msub)
++        else:
++            msub = self.dom.createElement('msub')
++            msub.appendChild(base)
++            indices_row = self.dom.createElement('mrow')
++            for i, index in enumerate(e.indices):
++                if i > 0:
++                    comma = self.dom.createElement('mo')
++                    comma.appendChild(self.dom.createTextNode(','))
++                    indices_row.appendChild(comma)
++                indices_row.appendChild(self._print(index))
++            msub.appendChild(indices_row)
++            mrow.appendChild(msub)
++        return mrow
++
+     def _print_Basic(self, e):
+         mrow = self.dom.createElement('mrow')
+         mi = self.dom.createElement('mi')

@@ -1,0 +1,126 @@
+diff --git a/sympy/polys/compatibility.py b/sympy/polys/compatibility.py
+index 217a481..37e983b 100644
+--- a/sympy/polys/compatibility.py
++++ b/sympy/polys/compatibility.py
+@@ -158,6 +158,8 @@
+ from sympy.polys.factortools import dmp_trial_division
+ from sympy.polys.factortools import dup_zz_mignotte_bound
+ from sympy.polys.factortools import dmp_zz_mignotte_bound
++from sympy.polys.factortools import dup_zz_knuth_cohen_bound
++from sympy.polys.factortools import dmp_zz_knuth_cohen_bound
+ from sympy.polys.factortools import dup_zz_hensel_step
+ from sympy.polys.factortools import dup_zz_hensel_lift
+ from sympy.polys.factortools import dup_zz_zassenhaus
+@@ -733,6 +735,11 @@ def dup_zz_mignotte_bound(self, f):
+     def dmp_zz_mignotte_bound(self, f):
+         return dmp_zz_mignotte_bound(self.to_dense(f), self.ngens-1, self.domain)
+ 
++    def dup_zz_knuth_cohen_bound(self, f):
++        return dup_zz_knuth_cohen_bound(self.to_dense(f), self.domain)
++    def dmp_zz_knuth_cohen_bound(self, f):
++        return dmp_zz_knuth_cohen_bound(self.to_dense(f), self.ngens-1, self.domain)
++
+     def dup_zz_hensel_step(self, m, f, g, h, s, t):
+         D = self.to_dense
+         G, H, S, T = dup_zz_hensel_step(m, D(f), D(g), D(h), D(s), D(t), self.domain)
+diff --git a/sympy/polys/factortools.py b/sympy/polys/factortools.py
+index 93298f4..863902a 100644
+--- a/sympy/polys/factortools.py
++++ b/sympy/polys/factortools.py
+@@ -141,6 +141,87 @@ def dmp_zz_mignotte_bound(f, u, K):
+     return K.sqrt(K(n + 1))*2**n*a*b
+ 
+ 
++def dup_zz_knuth_cohen_bound(f, K):
++    """
++    Knuth-Cohen bound for univariate polynomials in `K[x]`.
++
++    For a polynomial f of degree n, any factor g of degree m <= n-1
++    has coefficients bounded by::
++
++        |b_i| <= binomial(n-1, floor((n-1)/2)) * ||f||_2
++
++    where ||f||_2 = sqrt(sum(a_i^2)) is the 2-norm.
++
++    This bound is typically tighter than the Mignotte bound.
++
++    References
++    ==========
++
++    .. [1] Knuth, "The Art of Computer Programming, Vol. 2"
++    .. [2] Cohen, "A Course in Computational Algebraic Number Theory"
++
++    """
++    from sympy.functions.combinatorial.factorials import binomial
++
++    n = dup_degree(f)
++
++    if n <= 0:
++        return dup_max_norm(f, K)
++
++    # Compute the 2-norm squared: sum of squares of coefficients
++    norm_sq = int(sum(c**2 for c in f))
++
++    # Ceiling of sqrt for a valid upper bound
++    # ceil(sqrt(n)) = isqrt(n-1) + 1 for n >= 1
++    from math import isqrt
++    norm_ceil = isqrt(norm_sq - 1) + 1 if norm_sq > 0 else 0
++
++    # Maximum binomial coefficient for factors of degree <= n-1
++    # is binomial(n-1, floor((n-1)/2))
++    max_binom = int(binomial(n - 1, (n - 1) // 2))
++
++    return K(norm_ceil * max_binom)
++
++
++def dmp_zz_knuth_cohen_bound(f, u, K):
++    """
++    Knuth-Cohen bound for multivariate polynomials in `K[X]`.
++
++    Uses the total degree to compute the bound, analogous to the
++    univariate case.
++
++    References
++    ==========
++
++    .. [1] Knuth, "The Art of Computer Programming, Vol. 2"
++    .. [2] Cohen, "A Course in Computational Algebraic Number Theory"
++
++    """
++    from sympy.functions.combinatorial.factorials import binomial
++    from math import isqrt
++
++    n = sum(dmp_degree_list(f, u))
++
++    if n <= 0:
++        return dmp_max_norm(f, u, K)
++
++    # Compute the 2-norm squared recursively
++    def _dmp_norm_sq(g, v):
++        if not v:
++            return int(sum(c**2 for c in g))
++        return int(sum(_dmp_norm_sq(c, v - 1) for c in g))
++
++    norm_sq = _dmp_norm_sq(f, u)
++
++    # Ceiling of sqrt for a valid upper bound
++    norm_ceil = isqrt(norm_sq - 1) + 1 if norm_sq > 0 else 0
++
++    # Maximum binomial coefficient for factors of degree <= n-1
++    max_binom = int(binomial(n - 1, (n - 1) // 2))
++
++    return K(norm_ceil * max_binom)
++
++
+ def dup_zz_hensel_step(m, f, g, h, s, t, K):
+     """
+     One step in Hensel lifting in `Z[x]`.
+@@ -933,7 +1014,7 @@ def dmp_zz_wang(f, u, K, mod=None, seed=None):
+ 
+     ct, T = dmp_zz_factor(dmp_LC(f, K), u - 1, K)
+ 
+-    b = dmp_zz_mignotte_bound(f, u, K)
++    b = dmp_zz_knuth_cohen_bound(f, u, K)
+     p = K(nextprime(b))
+ 
+     if mod is None:

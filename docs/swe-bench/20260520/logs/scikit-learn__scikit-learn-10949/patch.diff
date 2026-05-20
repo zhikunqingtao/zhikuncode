@@ -1,0 +1,16 @@
+diff --git a/sklearn/utils/validation.py b/sklearn/utils/validation.py
+index fe1f723..315e911 100644
+--- a/sklearn/utils/validation.py
++++ b/sklearn/utils/validation.py
+@@ -521,6 +521,11 @@ def check_array(array, accept_sparse=False, accept_large_sparse=True,
+         # and we need to catch and raise exception for such cases.
+         _ensure_no_complex_data(array)
+ 
++        # For data structures that don't have a proper dtype attribute (like
++        # pandas DataFrames), capture the dtype after conversion to ndarray
++        if dtype_orig is None and hasattr(array_orig, 'dtypes'):
++            dtype_orig = array.dtype
++
+         if ensure_2d:
+             # If input is scalar raise error
+             if array.ndim == 0:

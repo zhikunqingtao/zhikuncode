@@ -1,0 +1,28 @@
+diff --git a/django/db/migrations/serializer.py b/django/db/migrations/serializer.py
+index 38da1e6..77b825e 100644
+--- a/django/db/migrations/serializer.py
++++ b/django/db/migrations/serializer.py
+@@ -125,10 +125,19 @@ class EnumSerializer(BaseSerializer):
+     def serialize(self):
+         enum_class = self.value.__class__
+         module = enum_class.__module__
+-        return (
+-            "%s.%s[%r]" % (module, enum_class.__qualname__, self.value.name),
+-            {"import %s" % module},
+-        )
++        name = self.value.name
++        if name is not None:
++            # Simple enum value with a single name.
++            return (
++                "%s.%s[%r]" % (module, enum_class.__qualname__, name),
++                {"import %s" % module},
++            )
++        # Handle combined enum flags (e.g., re.IGNORECASE | re.UNICODE) by
++        # decomposing the value into its constituent flags and joining with |.
++        items = []
++        for flag in enum._decompose(enum_class, self.value)[0]:
++            items.append("%s.%s[%r]" % (module, enum_class.__qualname__, flag.name))
++        return " | ".join(items), {"import %s" % module}
+ 
+ 
+ class FloatSerializer(BaseSimpleSerializer):

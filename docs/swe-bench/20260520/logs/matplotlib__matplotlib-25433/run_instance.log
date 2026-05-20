@@ -1,0 +1,99 @@
+2026-05-20 00:16:54,303 - INFO - Environment image sweb.env.py.x86_64.efa6065ed5bf204410fd53:latest found for matplotlib__matplotlib-25433
+Building instance image sweb.eval.x86_64.matplotlib__matplotlib-25433:latest for matplotlib__matplotlib-25433
+2026-05-20 00:29:35,918 - INFO - Creating container for matplotlib__matplotlib-25433...
+2026-05-20 00:29:35,942 - INFO - Container for matplotlib__matplotlib-25433 created: 9bbed8c4a2998ee6f0f042d8ef597f9f867d99d0474235ae5fc087ed59a5bf52
+2026-05-20 00:29:36,059 - INFO - Container for matplotlib__matplotlib-25433 started: 9bbed8c4a2998ee6f0f042d8ef597f9f867d99d0474235ae5fc087ed59a5bf52
+2026-05-20 00:29:36,060 - INFO - Intermediate patch for matplotlib__matplotlib-25433 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/matplotlib__matplotlib-25433/patch.diff, now applying to container...
+2026-05-20 00:29:36,106 - INFO - >>>>> Applied Patch:
+Checking patch lib/matplotlib/widgets.py...
+Applied patch lib/matplotlib/widgets.py cleanly.
+
+2026-05-20 00:29:36,932 - INFO - Git diff before:
+diff --git a/lib/matplotlib/widgets.py b/lib/matplotlib/widgets.py
+index ebe5da43e2..b465b0f45d 100644
+--- a/lib/matplotlib/widgets.py
++++ b/lib/matplotlib/widgets.py
+@@ -583,7 +583,16 @@ class Slider(SliderBase):
+             self.ax.figure.canvas.draw_idle()
+         self.val = val
+         if self.eventson:
++            # Save the canvas before processing callbacks, since callbacks
++            # may modify the figure (e.g. clf()) which could destroy self.ax.
++            canvas = self.ax.figure.canvas
+             self._observers.process('changed', val)
++            # Release the mouse grab if this axes still holds it and the axes
++            # is no longer part of the figure (e.g. callback called clf()).
++            # This prevents stale mouse_grabber references that would block
++            # new widgets from receiving mouse events.
++            if canvas.mouse_grabber is self.ax and self.ax not in canvas.figure.axes:
++                canvas.release_mouse(self.ax)
+ 
+     def on_changed(self, func):
+         """
+@@ -966,7 +975,16 @@ class RangeSlider(SliderBase):
+             self.ax.figure.canvas.draw_idle()
+         self.val = (vmin, vmax)
+         if self.eventson:
++            # Save the canvas before processing callbacks, since callbacks
++            # may modify the figure (e.g. clf()) which could destroy self.ax.
++            canvas = self.ax.figure.canvas
+             self._observers.process("changed", (vmin, vmax))
++            # Release the mouse grab if this axes still holds it and the axes
++            # is no longer part of the figure (e.g. callback called clf()).
++            # This prevents stale mouse_grabber references that would block
++            # new widgets from receiving mouse events.
++            if canvas.mouse_grabber is self.ax and self.ax not in canvas.figure.axes:
++                canvas.release_mouse(self.ax)
+ 
+     def on_changed(self, func):
+         """
+2026-05-20 00:29:36,932 - INFO - Eval script for matplotlib__matplotlib-25433 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/matplotlib__matplotlib-25433/eval.sh; copying to container...
+2026-05-20 00:30:27,262 - INFO - Test runtime: 50.31 seconds
+2026-05-20 00:30:27,262 - INFO - Test output for matplotlib__matplotlib-25433 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/matplotlib__matplotlib-25433/test_output.txt
+2026-05-20 00:30:27,294 - INFO - Git diff after:
+diff --git a/lib/matplotlib/widgets.py b/lib/matplotlib/widgets.py
+index ebe5da43e2..b465b0f45d 100644
+--- a/lib/matplotlib/widgets.py
++++ b/lib/matplotlib/widgets.py
+@@ -583,7 +583,16 @@ class Slider(SliderBase):
+             self.ax.figure.canvas.draw_idle()
+         self.val = val
+         if self.eventson:
++            # Save the canvas before processing callbacks, since callbacks
++            # may modify the figure (e.g. clf()) which could destroy self.ax.
++            canvas = self.ax.figure.canvas
+             self._observers.process('changed', val)
++            # Release the mouse grab if this axes still holds it and the axes
++            # is no longer part of the figure (e.g. callback called clf()).
++            # This prevents stale mouse_grabber references that would block
++            # new widgets from receiving mouse events.
++            if canvas.mouse_grabber is self.ax and self.ax not in canvas.figure.axes:
++                canvas.release_mouse(self.ax)
+ 
+     def on_changed(self, func):
+         """
+@@ -966,7 +975,16 @@ class RangeSlider(SliderBase):
+             self.ax.figure.canvas.draw_idle()
+         self.val = (vmin, vmax)
+         if self.eventson:
++            # Save the canvas before processing callbacks, since callbacks
++            # may modify the figure (e.g. clf()) which could destroy self.ax.
++            canvas = self.ax.figure.canvas
+             self._observers.process("changed", (vmin, vmax))
++            # Release the mouse grab if this axes still holds it and the axes
++            # is no longer part of the figure (e.g. callback called clf()).
++            # This prevents stale mouse_grabber references that would block
++            # new widgets from receiving mouse events.
++            if canvas.mouse_grabber is self.ax and self.ax not in canvas.figure.axes:
++                canvas.release_mouse(self.ax)
+ 
+     def on_changed(self, func):
+         """
+2026-05-20 00:30:27,294 - INFO - Grading answer for matplotlib__matplotlib-25433...
+2026-05-20 00:30:27,295 - INFO - report: {'matplotlib__matplotlib-25433': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['lib/matplotlib/tests/test_backend_bases.py::test_grab_clear']}, 'PASS_TO_PASS': {'success': ['lib/matplotlib/tests/test_backend_bases.py::test_uses_per_path', 'lib/matplotlib/tests/test_backend_bases.py::test_canvas_ctor', 'lib/matplotlib/tests/test_backend_bases.py::test_get_default_filename', 'lib/matplotlib/tests/test_backend_bases.py::test_canvas_change', 'lib/matplotlib/tests/test_backend_bases.py::test_non_gui_warning', 'lib/matplotlib/tests/test_backend_bases.py::test_location_event_position[42-24]', 'lib/matplotlib/tests/test_backend_bases.py::test_location_event_position[None-42]', 'lib/matplotlib/tests/test_backend_bases.py::test_location_event_position[None-None]', 'lib/matplotlib/tests/test_backend_bases.py::test_location_event_position[200-100.01]', 'lib/matplotlib/tests/test_backend_bases.py::test_location_event_position[205.75-2.0]', 'lib/matplotlib/tests/test_backend_bases.py::test_pick', 'lib/matplotlib/tests/test_backend_bases.py::test_interactive_zoom', 'lib/matplotlib/tests/test_backend_bases.py::test_widgetlock_zoompan', 'lib/matplotlib/tests/test_backend_bases.py::test_interactive_colorbar[zoom-1-expected0-vertical-imshow]', 'lib/matplotlib/tests/test_backend_bases.py::test_interactive_colorbar[zoom-1-expected0-vertical-contourf]', 'lib/matplotlib/tests/test_backend_bases.py::test_interactive_colorbar[zoom-1-expected0-horizontal-imshow]', 'lib/matplotlib/tests/test_backend_bases.py::test_interactive_colorbar[zoom-1-expected0-horizontal-contourf]', 'lib/matplotlib/tests/test_backend_bases.py::test_interactive_colorbar[zoom-3-expected1-vertical-imshow]', 'lib/matplotlib/tests/test_backend_bases.py::test_interactive_colorbar[zoom-3-expected1-vertical-contourf]', 'lib/matplotlib/tests/test_backend_bases.py::test_interactive_colorbar[zoom-3-expected1-horizontal-imshow]', 'lib/matplotlib/tests/test_backend_bases.py::test_interactive_colorbar[zoom-3-expected1-horizontal-contourf]', 'lib/matplotlib/tests/test_backend_bases.py::test_interactive_colorbar[pan-1-expected2-vertical-imshow]', 'lib/matplotlib/tests/test_backend_bases.py::test_interactive_colorbar[pan-1-expected2-vertical-contourf]', 'lib/matplotlib/tests/test_backend_bases.py::test_interactive_colorbar[pan-1-expected2-horizontal-imshow]', 'lib/matplotlib/tests/test_backend_bases.py::test_interactive_colorbar[pan-1-expected2-horizontal-contourf]', 'lib/matplotlib/tests/test_backend_bases.py::test_interactive_colorbar[pan-3-expected3-vertical-imshow]', 'lib/matplotlib/tests/test_backend_bases.py::test_interactive_colorbar[pan-3-expected3-vertical-contourf]', 'lib/matplotlib/tests/test_backend_bases.py::test_interactive_colorbar[pan-3-expected3-horizontal-imshow]', 'lib/matplotlib/tests/test_backend_bases.py::test_interactive_colorbar[pan-3-expected3-horizontal-contourf]', 'lib/matplotlib/tests/test_backend_bases.py::test_toolbar_zoompan', 'lib/matplotlib/tests/test_backend_bases.py::test_draw[svg]', 'lib/matplotlib/tests/test_backend_bases.py::test_draw[ps]', 'lib/matplotlib/tests/test_backend_bases.py::test_draw[pdf]', 'lib/matplotlib/tests/test_backend_bases.py::test_draw[pgf]', 'lib/matplotlib/tests/test_backend_bases.py::test_interactive_pan[None-mouseend0-expectedxlim0-expectedylim0]', 'lib/matplotlib/tests/test_backend_bases.py::test_interactive_pan[None-mouseend1-expectedxlim1-expectedylim1]', 'lib/matplotlib/tests/test_backend_bases.py::test_interactive_pan[None-mouseend2-expectedxlim2-expectedylim2]', 'lib/matplotlib/tests/test_backend_bases.py::test_interactive_pan[None-mouseend3-expectedxlim3-expectedylim3]', 'lib/matplotlib/tests/test_backend_bases.py::test_interactive_pan[None-mouseend4-expectedxlim4-expectedylim4]', 'lib/matplotlib/tests/test_backend_bases.py::test_interactive_pan[None-mouseend5-expectedxlim5-expectedylim5]', 'lib/matplotlib/tests/test_backend_bases.py::test_interactive_pan[None-mouseend6-expectedxlim6-expectedylim6]', 'lib/matplotlib/tests/test_backend_bases.py::test_interactive_pan[None-mouseend7-expectedxlim7-expectedylim7]', 'lib/matplotlib/tests/test_backend_bases.py::test_interactive_pan[shift-mouseend8-expectedxlim8-expectedylim8]', 'lib/matplotlib/tests/test_backend_bases.py::test_interactive_pan[shift-mouseend9-expectedxlim9-expectedylim9]', 'lib/matplotlib/tests/test_backend_bases.py::test_interactive_pan[shift-mouseend10-expectedxlim10-expectedylim10]', 'lib/matplotlib/tests/test_backend_bases.py::test_interactive_pan[shift-mouseend11-expectedxlim11-expectedylim11]', 'lib/matplotlib/tests/test_backend_bases.py::test_interactive_pan[shift-mouseend12-expectedxlim12-expectedylim12]', 'lib/matplotlib/tests/test_backend_bases.py::test_interactive_pan[shift-mouseend13-expectedxlim13-expectedylim13]', 'lib/matplotlib/tests/test_backend_bases.py::test_interactive_pan[x-mouseend14-expectedxlim14-expectedylim14]', 'lib/matplotlib/tests/test_backend_bases.py::test_interactive_pan[y-mouseend15-expectedxlim15-expectedylim15]', 'lib/matplotlib/tests/test_backend_bases.py::test_interactive_pan[control-mouseend16-expectedxlim16-expectedylim16]', 'lib/matplotlib/tests/test_backend_bases.py::test_interactive_pan[control-mouseend17-expectedxlim17-expectedylim17]', 'lib/matplotlib/tests/test_backend_bases.py::test_toolmanager_remove', 'lib/matplotlib/tests/test_backend_bases.py::test_toolmanager_get_tool', 'lib/matplotlib/tests/test_backend_bases.py::test_toolmanager_update_keymap'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for matplotlib__matplotlib-25433: resolved: False
+2026-05-20 00:30:27,295 - INFO - Attempting to stop container sweb.eval.matplotlib__matplotlib-25433.zhikuncode_eval_300_FINAL...
+2026-05-20 00:30:42,608 - INFO - Attempting to remove container sweb.eval.matplotlib__matplotlib-25433.zhikuncode_eval_300_FINAL...
+2026-05-20 00:30:42,618 - INFO - Container sweb.eval.matplotlib__matplotlib-25433.zhikuncode_eval_300_FINAL removed.
+2026-05-20 00:30:42,618 - INFO - Attempting to remove image sweb.eval.x86_64.matplotlib__matplotlib-25433:latest...
+2026-05-20 00:30:43,220 - INFO - Image sweb.eval.x86_64.matplotlib__matplotlib-25433:latest removed.

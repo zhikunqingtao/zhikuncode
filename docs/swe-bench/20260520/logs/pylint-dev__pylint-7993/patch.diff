@@ -1,0 +1,31 @@
+diff --git a/pylint/reporters/text.py b/pylint/reporters/text.py
+index 29bd467..54ce471 100644
+--- a/pylint/reporters/text.py
++++ b/pylint/reporters/text.py
+@@ -175,14 +175,21 @@ class TextReporter(BaseReporter):
+         self._template = template
+ 
+         # Check to see if all parameters in the template are attributes of the Message
+-        arguments = re.findall(r"\{(.+?)(:.*)?\}", template)
+-        for argument in arguments:
+-            if argument[0] not in MESSAGE_FIELDS:
++        # Match {{, }}, and {field} patterns. Only process {field} patterns (group 2 is set)
++        # to correctly handle escaped braces
++        for match in re.finditer(r"(\{\{|\}\}|\{([^{}]+?)(:.*)?\})", template):
++            # Skip escaped braces {{ and }} - they're matched by group 1 only
++            if match.group(2) is None:
++                continue
++            argument = match.group(2)
++            if argument not in MESSAGE_FIELDS:
+                 warnings.warn(
+-                    f"Don't recognize the argument '{argument[0]}' in the --msg-template. "
++                    f"Don't recognize the argument '{argument}' in the --msg-template. "
+                     "Are you sure it is supported on the current version of pylint?"
+                 )
+-                template = re.sub(r"\{" + argument[0] + r"(:.*?)?\}", "", template)
++                template = re.sub(
++                    r"\{" + re.escape(argument) + r"(:[^}]*)?\}", "", template
++                )
+         self._fixed_template = template
+ 
+     def write_message(self, msg: Message) -> None:

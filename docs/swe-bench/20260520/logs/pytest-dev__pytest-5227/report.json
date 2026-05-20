@@ -1,0 +1,65 @@
+{
+    "pytest-dev__pytest-5227": {
+        "patch_is_None": false,
+        "patch_exists": true,
+        "patch_successfully_applied": true,
+        "resolved": true,
+        "tests_status": {
+            "FAIL_TO_PASS": {
+                "success": [
+                    "testing/logging/test_reporting.py::test_log_cli_enabled_disabled[True]",
+                    "testing/logging/test_reporting.py::test_log_cli_default_level",
+                    "testing/logging/test_reporting.py::test_sections_single_new_line_after_test_outcome"
+                ],
+                "failure": []
+            },
+            "PASS_TO_PASS": {
+                "success": [
+                    "[100%]",
+                    "[",
+                    "[100%]------------------------------",
+                    "testing/logging/test_reporting.py::test_live_logging_suspends_capture[True]",
+                    "testing/logging/test_reporting.py::test_live_logging_suspends_capture[False]",
+                    "testing/logging/test_reporting.py::test_nothing_logged",
+                    "testing/logging/test_reporting.py::test_messages_logged",
+                    "testing/logging/test_reporting.py::test_root_logger_affected",
+                    "testing/logging/test_reporting.py::test_log_cli_level_log_level_interaction",
+                    "testing/logging/test_reporting.py::test_setup_logging",
+                    "testing/logging/test_reporting.py::test_teardown_logging",
+                    "testing/logging/test_reporting.py::test_disable_log_capturing",
+                    "testing/logging/test_reporting.py::test_disable_log_capturing_ini",
+                    "testing/logging/test_reporting.py::test_log_cli_enabled_disabled[False]",
+                    "testing/logging/test_reporting.py::test_log_cli_default_level_multiple_tests",
+                    "testing/logging/test_reporting.py::test_log_cli_default_level_sections",
+                    "testing/logging/test_reporting.py::test_live_logs_unknown_sections",
+                    "testing/logging/test_reporting.py::test_log_cli_level",
+                    "testing/logging/test_reporting.py::test_log_cli_ini_level",
+                    "testing/logging/test_reporting.py::test_log_cli_auto_enable[]",
+                    "testing/logging/test_reporting.py::test_log_cli_auto_enable[--log-level=WARNING]",
+                    "testing/logging/test_reporting.py::test_log_cli_auto_enable[--log-file-level=WARNING]",
+                    "testing/logging/test_reporting.py::test_log_cli_auto_enable[--log-cli-level=WARNING]",
+                    "testing/logging/test_reporting.py::test_log_file_cli",
+                    "testing/logging/test_reporting.py::test_log_file_cli_level",
+                    "testing/logging/test_reporting.py::test_log_level_not_changed_by_default",
+                    "testing/logging/test_reporting.py::test_log_file_ini",
+                    "testing/logging/test_reporting.py::test_log_file_ini_level",
+                    "testing/logging/test_reporting.py::test_log_file_unicode",
+                    "testing/logging/test_reporting.py::test_collection_live_logging",
+                    "testing/logging/test_reporting.py::test_collection_logging_to_file",
+                    "testing/logging/test_reporting.py::test_log_in_hooks",
+                    "testing/logging/test_reporting.py::test_log_in_runtest_logreport",
+                    "testing/logging/test_reporting.py::test_log_set_path"
+                ],
+                "failure": []
+            },
+            "FAIL_TO_FAIL": {
+                "success": [],
+                "failure": []
+            },
+            "PASS_TO_FAIL": {
+                "success": [],
+                "failure": []
+            }
+        }
+    }
+}

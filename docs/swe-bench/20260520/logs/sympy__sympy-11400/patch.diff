@@ -1,0 +1,16 @@
+diff --git a/sympy/printing/ccode.py b/sympy/printing/ccode.py
+index 30a07a7..8a30456 100644
+--- a/sympy/printing/ccode.py
++++ b/sympy/printing/ccode.py
+@@ -251,6 +251,11 @@ def _print_For(self, expr):
+     def _print_sign(self, func):
+         return '((({0}) > 0) - (({0}) < 0))'.format(self._print(func.args[0]))
+ 
++    def _print_sinc(self, expr):
++        x = expr.args[0]
++        x_printed = self._print(x)
++        return '((%s) != 0 ? (sin(%s)/(%s)) : 1)' % (x_printed, x_printed, x_printed)
++
+     def indent_code(self, code):
+         """Accepts a string of code or a list of code lines"""
+ 

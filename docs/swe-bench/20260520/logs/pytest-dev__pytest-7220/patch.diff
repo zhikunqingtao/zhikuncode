@@ -1,0 +1,52 @@
+diff --git a/src/_pytest/_code/code.py b/src/_pytest/_code/code.py
+index 7b17d76..3c077bf 100644
+--- a/src/_pytest/_code/code.py
++++ b/src/_pytest/_code/code.py
+@@ -575,6 +575,7 @@ class ExceptionInfo(Generic[_E]):
+         funcargs: bool = False,
+         truncate_locals: bool = True,
+         chain: bool = True,
++        astartdir = None,
+     ) -> Union["ReprExceptionInfo", "ExceptionChainRepr"]:
+         """
+         Return str()able representation of this exception info.
+@@ -622,6 +623,7 @@ class ExceptionInfo(Generic[_E]):
+             funcargs=funcargs,
+             truncate_locals=truncate_locals,
+             chain=chain,
++            astartdir=astartdir,
+         )
+         return fmt.repr_excinfo(self)
+ 
+@@ -656,6 +658,7 @@ class FormattedExcinfo:
+     truncate_locals = attr.ib(type=bool, default=True)
+     chain = attr.ib(type=bool, default=True)
+     astcache = attr.ib(default=attr.Factory(dict), init=False, repr=False)
++    astartdir = attr.ib(default=None)
+ 
+     def _getindent(self, source: "Source") -> int:
+         # figure out indent for given source
+@@ -791,7 +794,10 @@ class FormattedExcinfo:
+     def _makepath(self, path):
+         if not self.abspath:
+             try:
+-                np = py.path.local().bestrelpath(path)
++                if self.astartdir is not None:
++                    np = self.astartdir.bestrelpath(path)
++                else:
++                    np = py.path.local().bestrelpath(path)
+             except OSError:
+                 return path
+             if len(np) < len(str(path)):
+diff --git a/src/_pytest/nodes.py b/src/_pytest/nodes.py
+index 4a79bc8..20f4490 100644
+--- a/src/_pytest/nodes.py
++++ b/src/_pytest/nodes.py
+@@ -374,6 +374,7 @@ class Node(metaclass=NodeMeta):
+             style=style,
+             tbfilter=False,  # pruned already, or in --fulltrace mode.
+             truncate_locals=truncate_locals,
++            astartdir=self.config.invocation_dir,
+         )
+ 
+     def repr_failure(

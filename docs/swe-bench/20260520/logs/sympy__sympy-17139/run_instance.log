@@ -1,0 +1,49 @@
+2026-05-20 01:23:32,159 - INFO - Environment image sweb.env.py.x86_64.c795f4b88616b8462021ed:latest found for sympy__sympy-17139
+Building instance image sweb.eval.x86_64.sympy__sympy-17139:latest for sympy__sympy-17139
+2026-05-20 01:24:37,650 - INFO - Creating container for sympy__sympy-17139...
+2026-05-20 01:24:37,670 - INFO - Container for sympy__sympy-17139 created: 618b35bcad7e33dbb0a176f8142d3d64a4cb57ab2d701c05a81ecf76e6e0faab
+2026-05-20 01:24:37,767 - INFO - Container for sympy__sympy-17139 started: 618b35bcad7e33dbb0a176f8142d3d64a4cb57ab2d701c05a81ecf76e6e0faab
+2026-05-20 01:24:37,767 - INFO - Intermediate patch for sympy__sympy-17139 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-17139/patch.diff, now applying to container...
+2026-05-20 01:24:37,811 - INFO - >>>>> Applied Patch:
+Checking patch sympy/simplify/fu.py...
+Applied patch sympy/simplify/fu.py cleanly.
+
+2026-05-20 01:24:38,040 - INFO - Git diff before:
+diff --git a/sympy/simplify/fu.py b/sympy/simplify/fu.py
+index ad1130ef9..8eaa99052 100644
+--- a/sympy/simplify/fu.py
++++ b/sympy/simplify/fu.py
+@@ -501,6 +501,8 @@ def _f(rv):
+         if not (rv.is_Pow and rv.base.func == f):
+             return rv
+ 
++        if rv.exp.is_real is False:
++            return rv
+         if (rv.exp < 0) == True:
+             return rv
+         if (rv.exp > max) == True:
+2026-05-20 01:24:38,041 - INFO - Eval script for sympy__sympy-17139 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-17139/eval.sh; copying to container...
+2026-05-20 01:26:15,493 - INFO - Test runtime: 97.43 seconds
+2026-05-20 01:26:15,494 - INFO - Test output for sympy__sympy-17139 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-17139/test_output.txt
+2026-05-20 01:26:15,596 - INFO - Git diff after:
+diff --git a/sympy/simplify/fu.py b/sympy/simplify/fu.py
+index ad1130ef9..8eaa99052 100644
+--- a/sympy/simplify/fu.py
++++ b/sympy/simplify/fu.py
+@@ -501,6 +501,8 @@ def _f(rv):
+         if not (rv.is_Pow and rv.base.func == f):
+             return rv
+ 
++        if rv.exp.is_real is False:
++            return rv
+         if (rv.exp < 0) == True:
+             return rv
+         if (rv.exp > max) == True:
+2026-05-20 01:26:15,596 - INFO - Grading answer for sympy__sympy-17139...
+2026-05-20 01:26:15,597 - INFO - report: {'sympy__sympy-17139': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test__TR56', 'test_issue_17137'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_TR1', 'test_TR2', 'test_TR2i', 'test_TR3', 'test_TR5', 'test_TR6', 'test_TR7', 'test_TR8', 'test_TR9', 'test_TR10', 'test_TR10i', 'test_TR11', 'test_TR12', 'test_TR13', 'test_L', 'test_fu', 'test_objective', 'test_process_common_addends', 'test_trig_split', 'test_TRmorrie', 'test_TRpower', 'test_hyper_as_trig', 'test_TR12i', 'test_TR14', 'test_TR15_16_17', 'test_issue_7263', 'test_simplify_expr', 'test_issue_3557', 'test_simplify_other', 'test_simplify_complex', 'test_simplify_ratio', 'test_simplify_measure', 'test_simplify_rational', 'test_simplify_issue_1308', 'test_issue_5652', 'test_simplify_fail1', 'test_nthroot', 'test_nthroot1', 'test_separatevars', 'test_separatevars_advanced_factor', 'test_hypersimp', 'test_nsimplify', 'test_issue_9448', 'test_extract_minus_sign', 'test_diff', 'test_logcombine_1', 'test_logcombine_complex_coeff', 'test_issue_5950', 'test_posify', 'test_issue_4194', 'test_as_content_primitive', 'test_signsimp', 'test_besselsimp', 'test_Piecewise', 'test_polymorphism', 'test_issue_from_PR1599', 'test_issue_6811', 'test_issue_6920', 'test_issue_7001', 'test_inequality_no_auto_simplify', 'test_issue_9398', 'test_issue_9324_simplify', 'test_issue_13474', 'test_simplify_function_inverse', 'test_clear_coefficients', 'test_nc_simplify', 'test_issue_15965'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-17139: resolved: True
+2026-05-20 01:26:15,597 - INFO - Attempting to stop container sweb.eval.sympy__sympy-17139.zhikuncode_eval_300_FINAL...
+2026-05-20 01:26:30,993 - INFO - Attempting to remove container sweb.eval.sympy__sympy-17139.zhikuncode_eval_300_FINAL...
+2026-05-20 01:26:31,020 - INFO - Container sweb.eval.sympy__sympy-17139.zhikuncode_eval_300_FINAL removed.
+2026-05-20 01:26:31,020 - INFO - Attempting to remove image sweb.eval.x86_64.sympy__sympy-17139:latest...
+2026-05-20 01:26:31,320 - INFO - Image sweb.eval.x86_64.sympy__sympy-17139:latest removed.

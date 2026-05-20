@@ -1,0 +1,18 @@
+diff --git a/sympy/functions/elementary/hyperbolic.py b/sympy/functions/elementary/hyperbolic.py
+index 892e19c..4174c98 100644
+--- a/sympy/functions/elementary/hyperbolic.py
++++ b/sympy/functions/elementary/hyperbolic.py
+@@ -495,6 +495,13 @@ def _eval_is_nonnegative(self):
+                 ])
+             ])
+ 
++    def _eval_is_zero(self):
++        arg = self.args[0]
++        if arg.is_real:
++            return False
++        if arg.is_zero:
++            return False
++
+     def _eval_is_finite(self):
+         arg = self.args[0]
+         return arg.is_finite

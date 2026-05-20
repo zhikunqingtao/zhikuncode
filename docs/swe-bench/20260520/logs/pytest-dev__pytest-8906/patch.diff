@@ -1,0 +1,73 @@
+diff --git a/src/_pytest/outcomes.py b/src/_pytest/outcomes.py
+index 2addf55..dd3d15a 100644
+--- a/src/_pytest/outcomes.py
++++ b/src/_pytest/outcomes.py
+@@ -144,6 +144,34 @@ def skip(msg: str = "", *, allow_module_level: bool = False) -> "NoReturn":
+     raise Skipped(msg=msg, allow_module_level=allow_module_level)
+ 
+ 
++def skip_module(msg: str = "") -> "NoReturn":
++    """Skip the current test module with the given message.
++
++    This function should be called at module level during collection.
++    It is a convenience function equivalent to::
++
++        pytest.skip(msg, allow_module_level=True)
++
++    This is useful when the module cannot be imported or executed at all
++    (e.g., due to syntax incompatibility with the current Python version).
++
++    :param str msg:
++        The message to show the user as reason for the skip.
++
++    Example::
++
++        import sys
++        import pytest
++
++        if sys.version_info < (3, 8):
++            pytest.skip_module("Requires Python 3.8+")
++
++        # Code that uses Python 3.8+ syntax follows...
++    """
++    __tracebackhide__ = True
++    raise Skipped(msg=msg, allow_module_level=True)
++
++
+ @_with_exception(Failed)
+ def fail(msg: str = "", pytrace: bool = True) -> "NoReturn":
+     """Explicitly fail an executing test with the given message.
+diff --git a/src/_pytest/python.py b/src/_pytest/python.py
+index 79dfb73..0787c46 100644
+--- a/src/_pytest/python.py
++++ b/src/_pytest/python.py
+@@ -611,7 +611,8 @@ class Module(nodes.File, PyCollector):
+                 "Using pytest.skip outside of a test is not allowed. "
+                 "To decorate a test function, use the @pytest.mark.skip "
+                 "or @pytest.mark.skipif decorators instead, and to skip a "
+-                "module use `pytestmark = pytest.mark.{skip,skipif}."
++                "module use `pytestmark = pytest.mark.{skip,skipif}` or "
++                "`pytest.skip(reason, allow_module_level=True)`."
+             ) from e
+         self.config.pluginmanager.consider_module(mod)
+         return mod
+diff --git a/src/pytest/__init__.py b/src/pytest/__init__.py
+index 3694f0f..45ce9e7 100644
+--- a/src/pytest/__init__.py
++++ b/src/pytest/__init__.py
+@@ -40,6 +40,7 @@ from _pytest.outcomes import exit
+ from _pytest.outcomes import fail
+ from _pytest.outcomes import importorskip
+ from _pytest.outcomes import skip
++from _pytest.outcomes import skip_module
+ from _pytest.outcomes import xfail
+ from _pytest.pytester import Pytester
+ from _pytest.pytester import Testdir
+@@ -131,6 +132,7 @@ __all__ = [
+     "Session",
+     "set_trace",
+     "skip",
++    "skip_module",
+     "version_tuple",
+     "TempPathFactory",
+     "Testdir",

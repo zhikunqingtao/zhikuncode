@@ -1,0 +1,40 @@
+diff --git a/requests/models.py b/requests/models.py
+index 3f6a4f9..12e4025 100644
+--- a/requests/models.py
++++ b/requests/models.py
+@@ -327,9 +327,14 @@ class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
+ 
+     def prepare_method(self, method):
+         """Prepares the given HTTP method."""
+-        self.method = method
+-        if self.method is not None:
+-            self.method = self.method.upper()
++        if method is not None:
++            if isinstance(method, bytes):
++                method = method.decode('utf-8')
++            else:
++                method = builtin_str(method)
++            self.method = method.upper()
++        else:
++            self.method = None
+ 
+     def prepare_url(self, url, params):
+         """Prepares the given HTTP URL."""
+diff --git a/requests/sessions.py b/requests/sessions.py
+index d701ff2..64d469c 100644
+--- a/requests/sessions.py
++++ b/requests/sessions.py
+@@ -425,7 +425,12 @@ class Session(SessionRedirectMixin):
+             If Tuple, ('cert', 'key') pair.
+         """
+ 
+-        method = builtin_str(method)
++        # In case method is bytes (Python 3), decode it to avoid
++        # str(b'GET') producing "b'GET'" instead of "GET"
++        if isinstance(method, bytes):
++            method = method.decode('utf-8')
++        else:
++            method = builtin_str(method)
+ 
+         # Create the Request.
+         req = Request(

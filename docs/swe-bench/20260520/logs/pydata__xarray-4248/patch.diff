@@ -1,0 +1,86 @@
+diff --git a/xarray/core/formatting.py b/xarray/core/formatting.py
+index 28eaae5..dd84c5d 100644
+--- a/xarray/core/formatting.py
++++ b/xarray/core/formatting.py
+@@ -278,7 +278,13 @@ def summarize_variable(
+             raise TypeError(f"`max_width` value of `{max_width}` is not a valid int")
+         else:
+             max_width = max_width_options
+-    first_col = pretty_print(f"  {marker} {name} ", col_width)
++    # Include units in the variable name if present
++    units = var.attrs.get("units", None)
++    if units is not None:
++        name_str = f"{name} ({units})"
++    else:
++        name_str = str(name)
++    first_col = pretty_print(f"  {marker} {name_str} ", col_width)
+     if var.dims:
+         dims_str = "({}) ".format(", ".join(map(str, var.dims)))
+     else:
+@@ -292,7 +298,12 @@ def summarize_variable(
+ 
+ 
+ def _summarize_coord_multiindex(coord, col_width, marker):
+-    first_col = pretty_print(f"  {marker} {coord.name} ", col_width)
++    units = coord.attrs.get("units", None)
++    if units is not None:
++        name_str = f"{coord.name} ({units})"
++    else:
++        name_str = coord.name
++    first_col = pretty_print(f"  {marker} {name_str} ", col_width)
+     return "{}({}) MultiIndex".format(first_col, str(coord.dims[0]))
+ 
+ 
+@@ -347,12 +358,23 @@ def _get_col_items(mapping):
+ 
+     col_items = []
+     for k, v in mapping.items():
+-        col_items.append(k)
+         var = getattr(v, "variable", v)
++        # Include units in the name for column width calculation
++        units = var.attrs.get("units", None)
++        if units is not None:
++            col_items.append(f"{k} ({units})")
++        else:
++            col_items.append(k)
+         if isinstance(var, IndexVariable):
+             level_names = var.to_index_variable().level_names
+             if level_names is not None:
+-                col_items += list(level_names)
++                for lname in level_names:
++                    level_var = var.to_index_variable().get_level_variable(lname)
++                    level_units = level_var.attrs.get("units", None)
++                    if level_units is not None:
++                        col_items.append(f"{lname} ({level_units})")
++                    else:
++                        col_items.append(lname)
+     return col_items
+ 
+ 
+diff --git a/xarray/core/formatting_html.py b/xarray/core/formatting_html.py
+index 5521b33..8704697 100644
+--- a/xarray/core/formatting_html.py
++++ b/xarray/core/formatting_html.py
+@@ -102,7 +102,12 @@ def summarize_variable(name, var, is_index=False, dtype=None, preview=None):
+ 
+     cssclass_idx = " class='xr-has-index'" if is_index else ""
+     dims_str = f"({', '.join(escape(dim) for dim in var.dims)})"
+-    name = escape(str(name))
++    # Include units in the variable name if present
++    units = var.attrs.get("units", None)
++    if units is not None:
++        name_str = f"{escape(str(name))} <span class='xr-var-units'>({escape(str(units))})</span>"
++    else:
++        name_str = escape(str(name))
+     dtype = dtype or escape(str(var.dtype))
+ 
+     # "unique" ids required to expand/collapse subsections
+@@ -118,7 +123,7 @@ def summarize_variable(name, var, is_index=False, dtype=None, preview=None):
+     data_icon = _icon("icon-database")
+ 
+     return (
+-        f"<div class='xr-var-name'><span{cssclass_idx}>{name}</span></div>"
++        f"<div class='xr-var-name'><span{cssclass_idx}>{name_str}</span></div>"
+         f"<div class='xr-var-dims'>{dims_str}</div>"
+         f"<div class='xr-var-dtype'>{dtype}</div>"
+         f"<div class='xr-var-preview xr-preview'>{preview}</div>"

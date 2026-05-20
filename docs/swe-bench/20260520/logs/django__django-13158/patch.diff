@@ -1,0 +1,19 @@
+diff --git a/django/db/models/sql/query.py b/django/db/models/sql/query.py
+index c913267..930c268 100644
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -1777,6 +1777,14 @@ class Query(BaseExpression):
+ 
+     def set_empty(self):
+         self.where.add(NothingNode(), AND)
++        if self.combined_queries:
++            # Clone combined queries to avoid modifying the originals, then
++            # set each to empty so is_empty() returns True for all parts.
++            self.combined_queries = tuple(
++                query.clone() for query in self.combined_queries
++            )
++            for query in self.combined_queries:
++                query.set_empty()
+ 
+     def is_empty(self):
+         return any(isinstance(c, NothingNode) for c in self.where.children)

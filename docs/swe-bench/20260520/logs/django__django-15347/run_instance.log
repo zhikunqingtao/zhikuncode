@@ -1,0 +1,49 @@
+2026-05-19 23:36:59,437 - INFO - Environment image sweb.env.py.x86_64.934a137824256b612e9dc5:latest found for django__django-15347
+Building instance image sweb.eval.x86_64.django__django-15347:latest for django__django-15347
+2026-05-19 23:39:21,967 - INFO - Creating container for django__django-15347...
+2026-05-19 23:39:21,985 - INFO - Container for django__django-15347 created: 2a733a93d2693a6bf93bd8e19fe99b730c9773e9f78f0437e4874d47b38591db
+2026-05-19 23:39:22,094 - INFO - Container for django__django-15347 started: 2a733a93d2693a6bf93bd8e19fe99b730c9773e9f78f0437e4874d47b38591db
+2026-05-19 23:39:22,094 - INFO - Intermediate patch for django__django-15347 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-15347/patch.diff, now applying to container...
+2026-05-19 23:39:22,138 - INFO - >>>>> Applied Patch:
+Checking patch django/contrib/messages/storage/cookie.py...
+Applied patch django/contrib/messages/storage/cookie.py cleanly.
+
+2026-05-19 23:39:22,602 - INFO - Git diff before:
+diff --git a/django/contrib/messages/storage/cookie.py b/django/contrib/messages/storage/cookie.py
+index 1d390c71dd..e48d4edb08 100644
+--- a/django/contrib/messages/storage/cookie.py
++++ b/django/contrib/messages/storage/cookie.py
+@@ -19,7 +19,7 @@ class MessageEncoder(json.JSONEncoder):
+             # Using 0/1 here instead of False/True to produce more compact json
+             is_safedata = 1 if isinstance(obj.message, SafeData) else 0
+             message = [self.message_key, is_safedata, obj.level, obj.message]
+-            if obj.extra_tags:
++            if obj.extra_tags is not None:
+                 message.append(obj.extra_tags)
+             return message
+         return super().default(obj)
+2026-05-19 23:39:22,602 - INFO - Eval script for django__django-15347 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-15347/eval.sh; copying to container...
+2026-05-19 23:39:26,063 - INFO - Test runtime: 3.44 seconds
+2026-05-19 23:39:26,063 - INFO - Test output for django__django-15347 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-15347/test_output.txt
+2026-05-19 23:39:26,102 - INFO - Git diff after:
+diff --git a/django/contrib/messages/storage/cookie.py b/django/contrib/messages/storage/cookie.py
+index 1d390c71dd..e48d4edb08 100644
+--- a/django/contrib/messages/storage/cookie.py
++++ b/django/contrib/messages/storage/cookie.py
+@@ -19,7 +19,7 @@ class MessageEncoder(json.JSONEncoder):
+             # Using 0/1 here instead of False/True to produce more compact json
+             is_safedata = 1 if isinstance(obj.message, SafeData) else 0
+             message = [self.message_key, is_safedata, obj.level, obj.message]
+-            if obj.extra_tags:
++            if obj.extra_tags is not None:
+                 message.append(obj.extra_tags)
+             return message
+         return super().default(obj)
+2026-05-19 23:39:26,102 - INFO - Grading answer for django__django-15347...
+2026-05-19 23:39:26,102 - INFO - report: {'django__django-15347': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ["A message's extra_tags attribute is correctly preserved when retrieved"], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_add (messages_tests.test_cookie.CookieTests)', 'test_add_lazy_translation (messages_tests.test_cookie.CookieTests)', 'test_add_update (messages_tests.test_cookie.CookieTests)', 'test_context_processor_message_levels (messages_tests.test_cookie.CookieTests)', 'CookieStorage honors SESSION_COOKIE_DOMAIN, SESSION_COOKIE_SECURE, and', 'test_custom_tags (messages_tests.test_cookie.CookieTests)', 'test_default_level (messages_tests.test_cookie.CookieTests)', 'test_existing_add (messages_tests.test_cookie.CookieTests)', 'test_existing_add_read_update (messages_tests.test_cookie.CookieTests)', "Reading the existing storage doesn't cause the data to be lost.", 'test_existing_read_add_update (messages_tests.test_cookie.CookieTests)', 'With the message middleware enabled, messages are properly stored and', 'test_get (messages_tests.test_cookie.CookieTests)', 'test_get_bad_cookie (messages_tests.test_cookie.CookieTests)', 'test_high_level (messages_tests.test_cookie.CookieTests)', 'A complex nested data structure containing Message', 'test_level_tag (messages_tests.test_cookie.CookieTests)', 'test_low_level (messages_tests.test_cookie.CookieTests)', 'If the data exceeds what is allowed in a cookie, older messages are', 'test_message_rfc6265 (messages_tests.test_cookie.CookieTests)', 'When the middleware is disabled, an exception is raised when one', 'When the middleware is disabled, an exception is not raised', 'Messages persist properly when multiple POSTs are made before a GET.', 'test_no_update (messages_tests.test_cookie.CookieTests)', 'test_repr (messages_tests.test_cookie.CookieTests)', 'A message containing SafeData is keeping its safe status when', 'test_settings_level (messages_tests.test_cookie.CookieTests)', 'test_tags (messages_tests.test_cookie.CookieTests)', 'test_with_template_response (messages_tests.test_cookie.CookieTests)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-15347: resolved: True
+2026-05-19 23:39:26,102 - INFO - Attempting to stop container sweb.eval.django__django-15347.zhikuncode_eval_300_FINAL...
+2026-05-19 23:39:41,407 - INFO - Attempting to remove container sweb.eval.django__django-15347.zhikuncode_eval_300_FINAL...
+2026-05-19 23:39:41,417 - INFO - Container sweb.eval.django__django-15347.zhikuncode_eval_300_FINAL removed.
+2026-05-19 23:39:41,417 - INFO - Attempting to remove image sweb.eval.x86_64.django__django-15347:latest...
+2026-05-19 23:39:41,509 - INFO - Image sweb.eval.x86_64.django__django-15347:latest removed.

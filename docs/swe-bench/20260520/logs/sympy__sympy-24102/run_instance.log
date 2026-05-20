@@ -1,0 +1,49 @@
+2026-05-20 01:34:25,699 - INFO - Environment image sweb.env.py.x86_64.c795f4b88616b8462021ed:latest found for sympy__sympy-24102
+Building instance image sweb.eval.x86_64.sympy__sympy-24102:latest for sympy__sympy-24102
+2026-05-20 01:36:19,930 - INFO - Creating container for sympy__sympy-24102...
+2026-05-20 01:36:19,951 - INFO - Container for sympy__sympy-24102 created: 6d7087a2815c077eeeaa9a3fb54e5875b4eb87acc6cec8f7b72c9e029d7f527a
+2026-05-20 01:36:20,119 - INFO - Container for sympy__sympy-24102 started: 6d7087a2815c077eeeaa9a3fb54e5875b4eb87acc6cec8f7b72c9e029d7f527a
+2026-05-20 01:36:20,119 - INFO - Intermediate patch for sympy__sympy-24102 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-24102/patch.diff, now applying to container...
+2026-05-20 01:36:20,215 - INFO - >>>>> Applied Patch:
+Checking patch sympy/parsing/mathematica.py...
+Applied patch sympy/parsing/mathematica.py cleanly.
+
+2026-05-20 01:36:20,615 - INFO - Git diff before:
+diff --git a/sympy/parsing/mathematica.py b/sympy/parsing/mathematica.py
+index 7ea14ce33a..3d6c983e09 100644
+--- a/sympy/parsing/mathematica.py
++++ b/sympy/parsing/mathematica.py
+@@ -586,7 +586,7 @@ def parse(self, s):
+         "##": lambda: ["SlotSequence", "1"],
+     }
+ 
+-    _literal = r"[A-Za-z][A-Za-z0-9]*"
++    _literal = r"[^\W\d_][^\W_]*"
+     _number = r"(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)"
+ 
+     _enclosure_open = ["(", "[", "[[", "{"]
+2026-05-20 01:36:20,615 - INFO - Eval script for sympy__sympy-24102 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-24102/eval.sh; copying to container...
+2026-05-20 01:36:24,703 - INFO - Test runtime: 4.04 seconds
+2026-05-20 01:36:24,703 - INFO - Test output for sympy__sympy-24102 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-24102/test_output.txt
+2026-05-20 01:36:24,732 - INFO - Git diff after:
+diff --git a/sympy/parsing/mathematica.py b/sympy/parsing/mathematica.py
+index 7ea14ce33a..3d6c983e09 100644
+--- a/sympy/parsing/mathematica.py
++++ b/sympy/parsing/mathematica.py
+@@ -586,7 +586,7 @@ def parse(self, s):
+         "##": lambda: ["SlotSequence", "1"],
+     }
+ 
+-    _literal = r"[A-Za-z][A-Za-z0-9]*"
++    _literal = r"[^\W\d_][^\W_]*"
+     _number = r"(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)"
+ 
+     _enclosure_open = ["(", "[", "[[", "{"]
+2026-05-20 01:36:24,732 - INFO - Grading answer for sympy__sympy-24102...
+2026-05-20 01:36:24,732 - INFO - report: {'sympy__sympy-24102': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_parser_mathematica_tokenizer'], 'failure': ['test_mathematica']}, 'PASS_TO_PASS': {'success': [], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-24102: resolved: False
+2026-05-20 01:36:24,732 - INFO - Attempting to stop container sweb.eval.sympy__sympy-24102.zhikuncode_eval_300_FINAL...
+2026-05-20 01:36:40,003 - INFO - Attempting to remove container sweb.eval.sympy__sympy-24102.zhikuncode_eval_300_FINAL...
+2026-05-20 01:36:40,013 - INFO - Container sweb.eval.sympy__sympy-24102.zhikuncode_eval_300_FINAL removed.
+2026-05-20 01:36:40,013 - INFO - Attempting to remove image sweb.eval.x86_64.sympy__sympy-24102:latest...
+2026-05-20 01:36:40,048 - INFO - Image sweb.eval.x86_64.sympy__sympy-24102:latest removed.

@@ -1,0 +1,82 @@
+diff --git a/sphinx/ext/autodoc/__init__.py b/sphinx/ext/autodoc/__init__.py
+index 62631f7..657dc13 100644
+--- a/sphinx/ext/autodoc/__init__.py
++++ b/sphinx/ext/autodoc/__init__.py
+@@ -109,12 +109,15 @@ def exclude_members_option(arg: Any) -> Union[object, Set[str]]:
+     return {x.strip() for x in arg.split(',') if x.strip()}
+ 
+ 
+-def inherited_members_option(arg: Any) -> Union[object, Set[str]]:
+-    """Used to convert the :members: option to auto directives."""
++def inherited_members_option(arg: Any) -> Set[str]:
++    """Used to convert the :inherited-members: option to auto directives."""
+     if arg in (None, True):
+-        return 'object'
++        return {'object'}
++    elif arg == 'None':
++        # Special case: "None" means don't exclude any class (show all inherited members)
++        return set()
+     else:
+-        return arg
++        return {x.strip() for x in arg.split(',') if x.strip()}
+ 
+ 
+ def member_order_option(arg: Any) -> Optional[str]:
+@@ -658,7 +661,7 @@ class Documenter:
+                     logger.warning(__('missing attribute %s in object %s') %
+                                    (name, self.fullname), type='autodoc')
+             return False, selected
+-        elif self.options.inherited_members:
++        elif self.options.inherited_members is not None:
+             return False, [(m.name, m.value) for m in members.values()]
+         else:
+             return False, [(m.name, m.value) for m in members.values()
+@@ -682,15 +685,23 @@ class Documenter:
+         def is_filtered_inherited_member(name: str, obj: Any) -> bool:
+             if inspect.isclass(self.object):
+                 for cls in self.object.__mro__:
+-                    if cls.__name__ == self.options.inherited_members and cls != self.object:
+-                        # given member is a member of specified *super class*
+-                        return True
+-                    elif name in cls.__dict__:
+-                        return False
++                    if name in cls.__dict__:
++                        # Found the class that defines this member
++                        # Filter only if it's defined in an excluded class
++                        # and not in the class being documented
++                        if cls == self.object:
++                            return False
++                        return cls.__name__ in self.options.inherited_members
+                     elif name in self.get_attr(cls, '__annotations__', {}):
+-                        return False
++                        # Found the class that defines this annotation
++                        if cls == self.object:
++                            return False
++                        return cls.__name__ in self.options.inherited_members
+                     elif isinstance(obj, ObjectMember) and obj.class_ is cls:
+-                        return False
++                        # Found the class that defines this member (ObjectMember)
++                        if cls == self.object:
++                            return False
++                        return cls.__name__ in self.options.inherited_members
+ 
+             return False
+ 
+@@ -829,7 +840,7 @@ class Documenter:
+             self.env.temp_data['autodoc:class'] = self.objpath[0]
+ 
+         want_all = (all_members or
+-                    self.options.inherited_members or
++                    self.options.inherited_members is not None or
+                     self.options.members is ALL)
+         # find out which members are documentable
+         members_check_module, members = self.get_object_members(want_all)
+@@ -1709,7 +1720,7 @@ class ClassDocumenter(DocstringSignatureMixin, ModuleLevelDocumenter):  # type:
+                     logger.warning(__('missing attribute %s in object %s') %
+                                    (name, self.fullname), type='autodoc')
+             return False, selected
+-        elif self.options.inherited_members:
++        elif self.options.inherited_members is not None:
+             return False, list(members.values())
+         else:
+             return False, [m for m in members.values() if m.class_ == self.object]

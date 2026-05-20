@@ -1,0 +1,59 @@
+2026-05-19 23:32:14,528 - INFO - Environment image sweb.env.py.x86_64.934a137824256b612e9dc5:latest found for django__django-14787
+Building instance image sweb.eval.x86_64.django__django-14787:latest for django__django-14787
+2026-05-19 23:35:31,993 - INFO - Creating container for django__django-14787...
+2026-05-19 23:35:32,015 - INFO - Container for django__django-14787 created: 944e5be813141046fd5ef93f7154d29e9bbcca8667670740b13d5b8bfeb70ccf
+2026-05-19 23:35:32,422 - INFO - Container for django__django-14787 started: 944e5be813141046fd5ef93f7154d29e9bbcca8667670740b13d5b8bfeb70ccf
+2026-05-19 23:35:32,422 - INFO - Intermediate patch for django__django-14787 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-14787/patch.diff, now applying to container...
+2026-05-19 23:35:32,690 - INFO - >>>>> Applied Patch:
+Checking patch django/utils/decorators.py...
+Applied patch django/utils/decorators.py cleanly.
+
+2026-05-19 23:35:33,470 - INFO - Git diff before:
+diff --git a/django/utils/decorators.py b/django/utils/decorators.py
+index 5c9a5d01c7..86566c77a1 100644
+--- a/django/utils/decorators.py
++++ b/django/utils/decorators.py
+@@ -35,9 +35,12 @@ def _multi_decorate(decorators, method):
+     def _wrapper(self, *args, **kwargs):
+         # bound_method has the signature that 'decorator' expects i.e. no
+         # 'self' argument, but it's a closure over self so it can call
+-        # 'func'. Also, wrap method.__get__() in a function because new
++        # 'func'. Also, wrap method.__get__() in a partial because new
+         # attributes can't be set on bound method objects, only on functions.
+         bound_method = partial(method.__get__(self, type(self)))
++        # Preserve wrapper assignments (e.g., functools.wraps) by copying
++        # attributes from the bound method to the partial object.
++        update_wrapper(bound_method, method)
+         for dec in decorators:
+             bound_method = dec(bound_method)
+         return bound_method(*args, **kwargs)
+2026-05-19 23:35:33,471 - INFO - Eval script for django__django-14787 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-14787/eval.sh; copying to container...
+2026-05-19 23:35:38,666 - INFO - Test runtime: 5.07 seconds
+2026-05-19 23:35:38,666 - INFO - Test output for django__django-14787 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-14787/test_output.txt
+2026-05-19 23:35:38,849 - INFO - Git diff after:
+diff --git a/django/utils/decorators.py b/django/utils/decorators.py
+index 5c9a5d01c7..86566c77a1 100644
+--- a/django/utils/decorators.py
++++ b/django/utils/decorators.py
+@@ -35,9 +35,12 @@ def _multi_decorate(decorators, method):
+     def _wrapper(self, *args, **kwargs):
+         # bound_method has the signature that 'decorator' expects i.e. no
+         # 'self' argument, but it's a closure over self so it can call
+-        # 'func'. Also, wrap method.__get__() in a function because new
++        # 'func'. Also, wrap method.__get__() in a partial because new
+         # attributes can't be set on bound method objects, only on functions.
+         bound_method = partial(method.__get__(self, type(self)))
++        # Preserve wrapper assignments (e.g., functools.wraps) by copying
++        # attributes from the bound method to the partial object.
++        update_wrapper(bound_method, method)
+         for dec in decorators:
+             bound_method = dec(bound_method)
+         return bound_method(*args, **kwargs)
+2026-05-19 23:35:38,849 - INFO - Grading answer for django__django-14787...
+2026-05-19 23:35:38,850 - INFO - report: {'django__django-14787': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['@method_decorator preserves wrapper assignments.'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_cache_control_decorator_http_request (decorators.tests.CacheControlDecoratorTest)', 'Ensures @xframe_options_deny properly sets the X-Frame-Options header.', 'Ensures @xframe_options_exempt properly instructs the', 'Ensures @xframe_options_sameorigin properly sets the X-Frame-Options', 'Built-in decorators set certain attributes of the wrapped function.', 'test_cache_page (decorators.tests.DecoratorsTest)', 'Test for the require_safe decorator.', 'The user_passes_test decorator can be applied multiple times (#9474).', 'test_never_cache_decorator (decorators.tests.NeverCacheDecoratorTest)', 'test_never_cache_decorator_http_request (decorators.tests.NeverCacheDecoratorTest)', 'test_argumented (decorators.tests.MethodDecoratorTests)', 'test_bad_iterable (decorators.tests.MethodDecoratorTests)', '@method_decorator can be used to decorate a class and its methods.', 'test_descriptors (decorators.tests.MethodDecoratorTests)', '@method_decorator on a nonexistent method raises an error.', '@method_decorator on a non-callable attribute raises an error.', 'A decorator that sets a new attribute on the method.', 'test_preserve_attributes (decorators.tests.MethodDecoratorTests)', 'test_preserve_signature (decorators.tests.MethodDecoratorTests)', '@method_decorator can accept a tuple of decorators.'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-14787: resolved: True
+2026-05-19 23:35:38,850 - INFO - Attempting to stop container sweb.eval.django__django-14787.zhikuncode_eval_300_FINAL...
+2026-05-19 23:35:54,451 - INFO - Attempting to remove container sweb.eval.django__django-14787.zhikuncode_eval_300_FINAL...
+2026-05-19 23:35:54,464 - INFO - Container sweb.eval.django__django-14787.zhikuncode_eval_300_FINAL removed.
+2026-05-19 23:35:54,464 - INFO - Attempting to remove image sweb.eval.x86_64.django__django-14787:latest...
+2026-05-19 23:35:54,616 - INFO - Image sweb.eval.x86_64.django__django-14787:latest removed.

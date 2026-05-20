@@ -1,0 +1,93 @@
+2026-05-20 00:51:18,403 - INFO - Environment image sweb.env.py.x86_64.aa92880033da20ca313928:latest found for scikit-learn__scikit-learn-14983
+Building instance image sweb.eval.x86_64.scikit-learn__scikit-learn-14983:latest for scikit-learn__scikit-learn-14983
+2026-05-20 01:00:39,876 - INFO - Creating container for scikit-learn__scikit-learn-14983...
+2026-05-20 01:00:39,903 - INFO - Container for scikit-learn__scikit-learn-14983 created: b322becb70f3b1d8e660cb7f2301f8e0960a27cd11e6a57229e1122f0f6067ff
+2026-05-20 01:00:40,148 - INFO - Container for scikit-learn__scikit-learn-14983 started: b322becb70f3b1d8e660cb7f2301f8e0960a27cd11e6a57229e1122f0f6067ff
+2026-05-20 01:00:40,148 - INFO - Intermediate patch for scikit-learn__scikit-learn-14983 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/scikit-learn__scikit-learn-14983/patch.diff, now applying to container...
+2026-05-20 01:00:40,350 - INFO - >>>>> Applied Patch:
+Checking patch sklearn/model_selection/_split.py...
+Applied patch sklearn/model_selection/_split.py cleanly.
+
+2026-05-20 01:00:40,670 - INFO - Git diff before:
+diff --git a/sklearn/model_selection/_split.py b/sklearn/model_selection/_split.py
+index c49a3ce6a..1e0100231 100644
+--- a/sklearn/model_selection/_split.py
++++ b/sklearn/model_selection/_split.py
+@@ -1063,7 +1063,7 @@ class LeavePGroupsOut(BaseCrossValidator):
+         return super().split(X, y, groups)
+ 
+ 
+-class _RepeatedSplits(metaclass=ABCMeta):
++class _RepeatedSplits(BaseCrossValidator, metaclass=ABCMeta):
+     """Repeated splits for an arbitrary randomized CV splitter.
+ 
+     Repeats splits for cross-validators n times with different randomization
+@@ -1216,6 +1216,10 @@ class RepeatedKFold(_RepeatedSplits):
+         super().__init__(
+             KFold, n_repeats, random_state, n_splits=n_splits)
+ 
++    @property
++    def n_splits(self):
++        return self.cvargs['n_splits']
++
+ 
+ class RepeatedStratifiedKFold(_RepeatedSplits):
+     """Repeated Stratified K-Fold cross validator.
+@@ -1269,6 +1273,10 @@ class RepeatedStratifiedKFold(_RepeatedSplits):
+         super().__init__(
+             StratifiedKFold, n_repeats, random_state, n_splits=n_splits)
+ 
++    @property
++    def n_splits(self):
++        return self.cvargs['n_splits']
++
+ 
+ class BaseShuffleSplit(metaclass=ABCMeta):
+     """Base class for ShuffleSplit and StratifiedShuffleSplit"""
+2026-05-20 01:00:40,670 - INFO - Eval script for scikit-learn__scikit-learn-14983 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/scikit-learn__scikit-learn-14983/eval.sh; copying to container...
+2026-05-20 01:00:44,926 - INFO - Test runtime: 4.19 seconds
+2026-05-20 01:00:44,926 - INFO - Test output for scikit-learn__scikit-learn-14983 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/scikit-learn__scikit-learn-14983/test_output.txt
+2026-05-20 01:00:45,038 - INFO - Git diff after:
+diff --git a/sklearn/model_selection/_split.py b/sklearn/model_selection/_split.py
+index c49a3ce6a..1e0100231 100644
+--- a/sklearn/model_selection/_split.py
++++ b/sklearn/model_selection/_split.py
+@@ -1063,7 +1063,7 @@ class LeavePGroupsOut(BaseCrossValidator):
+         return super().split(X, y, groups)
+ 
+ 
+-class _RepeatedSplits(metaclass=ABCMeta):
++class _RepeatedSplits(BaseCrossValidator, metaclass=ABCMeta):
+     """Repeated splits for an arbitrary randomized CV splitter.
+ 
+     Repeats splits for cross-validators n times with different randomization
+@@ -1216,6 +1216,10 @@ class RepeatedKFold(_RepeatedSplits):
+         super().__init__(
+             KFold, n_repeats, random_state, n_splits=n_splits)
+ 
++    @property
++    def n_splits(self):
++        return self.cvargs['n_splits']
++
+ 
+ class RepeatedStratifiedKFold(_RepeatedSplits):
+     """Repeated Stratified K-Fold cross validator.
+@@ -1269,6 +1273,10 @@ class RepeatedStratifiedKFold(_RepeatedSplits):
+         super().__init__(
+             StratifiedKFold, n_repeats, random_state, n_splits=n_splits)
+ 
++    @property
++    def n_splits(self):
++        return self.cvargs['n_splits']
++
+ 
+ class BaseShuffleSplit(metaclass=ABCMeta):
+     """Base class for ShuffleSplit and StratifiedShuffleSplit"""
+2026-05-20 01:00:45,038 - INFO - Grading answer for scikit-learn__scikit-learn-14983...
+2026-05-20 01:00:45,039 - INFO - report: {'scikit-learn__scikit-learn-14983': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['sklearn/model_selection/tests/test_split.py::test_repeated_cv_repr[RepeatedKFold]', 'sklearn/model_selection/tests/test_split.py::test_repeated_cv_repr[RepeatedStratifiedKFold]'], 'failure': []}, 'PASS_TO_PASS': {'success': ['sklearn/model_selection/tests/test_split.py::test_cross_validator_with_default_params', 'sklearn/model_selection/tests/test_split.py::test_2d_y', 'sklearn/model_selection/tests/test_split.py::test_kfold_valueerrors', 'sklearn/model_selection/tests/test_split.py::test_kfold_indices', 'sklearn/model_selection/tests/test_split.py::test_kfold_no_shuffle', 'sklearn/model_selection/tests/test_split.py::test_stratified_kfold_no_shuffle', 'sklearn/model_selection/tests/test_split.py::test_stratified_kfold_ratios[4-False]', 'sklearn/model_selection/tests/test_split.py::test_stratified_kfold_ratios[4-True]', 'sklearn/model_selection/tests/test_split.py::test_stratified_kfold_ratios[5-False]', 'sklearn/model_selection/tests/test_split.py::test_stratified_kfold_ratios[5-True]', 'sklearn/model_selection/tests/test_split.py::test_stratified_kfold_ratios[6-False]', 'sklearn/model_selection/tests/test_split.py::test_stratified_kfold_ratios[6-True]', 'sklearn/model_selection/tests/test_split.py::test_stratified_kfold_ratios[7-False]', 'sklearn/model_selection/tests/test_split.py::test_stratified_kfold_ratios[7-True]', 'sklearn/model_selection/tests/test_split.py::test_stratified_kfold_ratios[8-False]', 'sklearn/model_selection/tests/test_split.py::test_stratified_kfold_ratios[8-True]', 'sklearn/model_selection/tests/test_split.py::test_stratified_kfold_ratios[9-False]', 'sklearn/model_selection/tests/test_split.py::test_stratified_kfold_ratios[9-True]', 'sklearn/model_selection/tests/test_split.py::test_stratified_kfold_ratios[10-False]', 'sklearn/model_selection/tests/test_split.py::test_stratified_kfold_ratios[10-True]', 'sklearn/model_selection/tests/test_split.py::test_stratified_kfold_label_invariance[4-False]', 'sklearn/model_selection/tests/test_split.py::test_stratified_kfold_label_invariance[4-True]', 'sklearn/model_selection/tests/test_split.py::test_stratified_kfold_label_invariance[6-False]', 'sklearn/model_selection/tests/test_split.py::test_stratified_kfold_label_invariance[6-True]', 'sklearn/model_selection/tests/test_split.py::test_stratified_kfold_label_invariance[7-False]', 'sklearn/model_selection/tests/test_split.py::test_stratified_kfold_label_invariance[7-True]', 'sklearn/model_selection/tests/test_split.py::test_kfold_balance', 'sklearn/model_selection/tests/test_split.py::test_stratifiedkfold_balance', 'sklearn/model_selection/tests/test_split.py::test_shuffle_kfold', 'sklearn/model_selection/tests/test_split.py::test_shuffle_kfold_stratifiedkfold_reproducibility', 'sklearn/model_selection/tests/test_split.py::test_shuffle_stratifiedkfold', 'sklearn/model_selection/tests/test_split.py::test_kfold_can_detect_dependent_samples_on_digits', 'sklearn/model_selection/tests/test_split.py::test_shuffle_split', 'sklearn/model_selection/tests/test_split.py::test_shuffle_split_default_test_size[None-9-1-ShuffleSplit]', 'sklearn/model_selection/tests/test_split.py::test_shuffle_split_default_test_size[None-9-1-StratifiedShuffleSplit]', 'sklearn/model_selection/tests/test_split.py::test_shuffle_split_default_test_size[8-8-2-ShuffleSplit]', 'sklearn/model_selection/tests/test_split.py::test_shuffle_split_default_test_size[8-8-2-StratifiedShuffleSplit]', 'sklearn/model_selection/tests/test_split.py::test_shuffle_split_default_test_size[0.8-8-2-ShuffleSplit]', 'sklearn/model_selection/tests/test_split.py::test_shuffle_split_default_test_size[0.8-8-2-StratifiedShuffleSplit]', 'sklearn/model_selection/tests/test_split.py::test_group_shuffle_split_default_test_size[None-8-2]', 'sklearn/model_selection/tests/test_split.py::test_group_shuffle_split_default_test_size[7-7-3]', 'sklearn/model_selection/tests/test_split.py::test_group_shuffle_split_default_test_size[0.7-7-3]', 'sklearn/model_selection/tests/test_split.py::test_stratified_shuffle_split_init', 'sklearn/model_selection/tests/test_split.py::test_stratified_shuffle_split_respects_test_size', 'sklearn/model_selection/tests/test_split.py::test_stratified_shuffle_split_iter', 'sklearn/model_selection/tests/test_split.py::test_stratified_shuffle_split_even', 'sklearn/model_selection/tests/test_split.py::test_stratified_shuffle_split_overlap_train_test_bug', 'sklearn/model_selection/tests/test_split.py::test_stratified_shuffle_split_multilabel', 'sklearn/model_selection/tests/test_split.py::test_stratified_shuffle_split_multilabel_many_labels', 'sklearn/model_selection/tests/test_split.py::test_predefinedsplit_with_kfold_split', 'sklearn/model_selection/tests/test_split.py::test_group_shuffle_split', 'sklearn/model_selection/tests/test_split.py::test_leave_one_p_group_out', 'sklearn/model_selection/tests/test_split.py::test_leave_group_out_changing_groups', 'sklearn/model_selection/tests/test_split.py::test_leave_one_p_group_out_error_on_fewer_number_of_groups', 'sklearn/model_selection/tests/test_split.py::test_repeated_cv_value_errors', 'sklearn/model_selection/tests/test_split.py::test_repeated_kfold_determinstic_split', 'sklearn/model_selection/tests/test_split.py::test_get_n_splits_for_repeated_kfold', 'sklearn/model_selection/tests/test_split.py::test_get_n_splits_for_repeated_stratified_kfold', 'sklearn/model_selection/tests/test_split.py::test_repeated_stratified_kfold_determinstic_split', 'sklearn/model_selection/tests/test_split.py::test_train_test_split_errors', 'sklearn/model_selection/tests/test_split.py::test_train_test_split_invalid_sizes1[1.2-0.8]', 'sklearn/model_selection/tests/test_split.py::test_train_test_split_invalid_sizes1[1.0-0.8]', 'sklearn/model_selection/tests/test_split.py::test_train_test_split_invalid_sizes1[0.0-0.8]', 'sklearn/model_selection/tests/test_split.py::test_train_test_split_invalid_sizes1[-0.2-0.8]', 'sklearn/model_selection/tests/test_split.py::test_train_test_split_invalid_sizes1[0.8-1.2]', 'sklearn/model_selection/tests/test_split.py::test_train_test_split_invalid_sizes1[0.8-1.0]', 'sklearn/model_selection/tests/test_split.py::test_train_test_split_invalid_sizes1[0.8-0.0]', 'sklearn/model_selection/tests/test_split.py::test_train_test_split_invalid_sizes1[0.8--0.2]', 'sklearn/model_selection/tests/test_split.py::test_train_test_split_invalid_sizes2[-10-0.8]', 'sklearn/model_selection/tests/test_split.py::test_train_test_split_invalid_sizes2[0-0.8]', 'sklearn/model_selection/tests/test_split.py::test_train_test_split_invalid_sizes2[11-0.8]', 'sklearn/model_selection/tests/test_split.py::test_train_test_split_invalid_sizes2[0.8--10]', 'sklearn/model_selection/tests/test_split.py::test_train_test_split_invalid_sizes2[0.8-0]', 'sklearn/model_selection/tests/test_split.py::test_train_test_split_invalid_sizes2[0.8-11]', 'sklearn/model_selection/tests/test_split.py::test_train_test_split_default_test_size[None-7-3]', 'sklearn/model_selection/tests/test_split.py::test_train_test_split_default_test_size[8-8-2]', 'sklearn/model_selection/tests/test_split.py::test_train_test_split_default_test_size[0.8-8-2]', 'sklearn/model_selection/tests/test_split.py::test_train_test_split', 'sklearn/model_selection/tests/test_split.py::test_train_test_split_pandas', 'sklearn/model_selection/tests/test_split.py::test_train_test_split_sparse', 'sklearn/model_selection/tests/test_split.py::test_train_test_split_mock_pandas', 'sklearn/model_selection/tests/test_split.py::test_train_test_split_list_input', 'sklearn/model_selection/tests/test_split.py::test_shufflesplit_errors[2.0-None]', 'sklearn/model_selection/tests/test_split.py::test_shufflesplit_errors[1.0-None]', 'sklearn/model_selection/tests/test_split.py::test_shufflesplit_errors[0.1-0.95]', 'sklearn/model_selection/tests/test_split.py::test_shufflesplit_errors[None-train_size3]', 'sklearn/model_selection/tests/test_split.py::test_shufflesplit_errors[11-None]', 'sklearn/model_selection/tests/test_split.py::test_shufflesplit_errors[10-None]', 'sklearn/model_selection/tests/test_split.py::test_shufflesplit_errors[8-3]', 'sklearn/model_selection/tests/test_split.py::test_shufflesplit_reproducible', 'sklearn/model_selection/tests/test_split.py::test_stratifiedshufflesplit_list_input', 'sklearn/model_selection/tests/test_split.py::test_train_test_split_allow_nans', 'sklearn/model_selection/tests/test_split.py::test_check_cv', 'sklearn/model_selection/tests/test_split.py::test_cv_iterable_wrapper', 'sklearn/model_selection/tests/test_split.py::test_group_kfold', 'sklearn/model_selection/tests/test_split.py::test_time_series_cv', 'sklearn/model_selection/tests/test_split.py::test_time_series_max_train_size', 'sklearn/model_selection/tests/test_split.py::test_nested_cv', 'sklearn/model_selection/tests/test_split.py::test_build_repr', 'sklearn/model_selection/tests/test_split.py::test_shuffle_split_empty_trainset[ShuffleSplit]', 'sklearn/model_selection/tests/test_split.py::test_shuffle_split_empty_trainset[GroupShuffleSplit]', 'sklearn/model_selection/tests/test_split.py::test_shuffle_split_empty_trainset[StratifiedShuffleSplit]', 'sklearn/model_selection/tests/test_split.py::test_train_test_split_empty_trainset', 'sklearn/model_selection/tests/test_split.py::test_leave_one_out_empty_trainset', 'sklearn/model_selection/tests/test_split.py::test_leave_p_out_empty_trainset'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for scikit-learn__scikit-learn-14983: resolved: True
+2026-05-20 01:00:45,040 - INFO - Attempting to stop container sweb.eval.scikit-learn__scikit-learn-14983.zhikuncode_eval_300_FINAL...
+2026-05-20 01:01:00,351 - INFO - Attempting to remove container sweb.eval.scikit-learn__scikit-learn-14983.zhikuncode_eval_300_FINAL...
+2026-05-20 01:01:00,359 - INFO - Container sweb.eval.scikit-learn__scikit-learn-14983.zhikuncode_eval_300_FINAL removed.
+2026-05-20 01:01:00,359 - INFO - Attempting to remove image sweb.eval.x86_64.scikit-learn__scikit-learn-14983:latest...
+2026-05-20 01:01:00,407 - INFO - Image sweb.eval.x86_64.scikit-learn__scikit-learn-14983:latest removed.

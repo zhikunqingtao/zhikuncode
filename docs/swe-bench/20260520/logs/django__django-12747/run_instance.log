@@ -1,0 +1,47 @@
+2026-05-19 23:09:13,409 - INFO - Environment image sweb.env.py.x86_64.a18371b03f944585b4f08c:latest found for django__django-12747
+Building instance image sweb.eval.x86_64.django__django-12747:latest for django__django-12747
+2026-05-19 23:14:38,978 - INFO - Creating container for django__django-12747...
+2026-05-19 23:14:38,999 - INFO - Container for django__django-12747 created: e28ee7aa299c9c5cbdbd844d54bc2d09ae721db263ad6bc3f6e6cebeaf9cdfae
+2026-05-19 23:14:39,174 - INFO - Container for django__django-12747 started: e28ee7aa299c9c5cbdbd844d54bc2d09ae721db263ad6bc3f6e6cebeaf9cdfae
+2026-05-19 23:14:39,174 - INFO - Intermediate patch for django__django-12747 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-12747/patch.diff, now applying to container...
+2026-05-19 23:14:39,277 - INFO - >>>>> Applied Patch:
+Checking patch django/db/models/deletion.py...
+Applied patch django/db/models/deletion.py cleanly.
+
+2026-05-19 23:14:39,909 - INFO - Git diff before:
+diff --git a/django/db/models/deletion.py b/django/db/models/deletion.py
+index 16dff6a1cd..86d4ff6d62 100644
+--- a/django/db/models/deletion.py
++++ b/django/db/models/deletion.py
+@@ -442,4 +442,6 @@ class Collector:
+         for model, instances in self.data.items():
+             for instance in instances:
+                 setattr(instance, model._meta.pk.attname, None)
+-        return sum(deleted_counter.values()), dict(deleted_counter)
++        return sum(deleted_counter.values()), {
++            model: count for model, count in deleted_counter.items() if count
++        }
+2026-05-19 23:14:39,909 - INFO - Eval script for django__django-12747 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-12747/eval.sh; copying to container...
+2026-05-19 23:14:45,570 - INFO - Test runtime: 5.61 seconds
+2026-05-19 23:14:45,570 - INFO - Test output for django__django-12747 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-12747/test_output.txt
+2026-05-19 23:14:45,653 - INFO - Git diff after:
+diff --git a/django/db/models/deletion.py b/django/db/models/deletion.py
+index 16dff6a1cd..86d4ff6d62 100644
+--- a/django/db/models/deletion.py
++++ b/django/db/models/deletion.py
+@@ -442,4 +442,6 @@ class Collector:
+         for model, instances in self.data.items():
+             for instance in instances:
+                 setattr(instance, model._meta.pk.attname, None)
+-        return sum(deleted_counter.values()), dict(deleted_counter)
++        return sum(deleted_counter.values()), {
++            model: count for model, count in deleted_counter.items() if count
++        }
+2026-05-19 23:14:45,653 - INFO - Grading answer for django__django-12747...
+2026-05-19 23:14:45,654 - INFO - report: {'django__django-12747': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_fast_delete_empty_no_update_can_self_select (delete.tests.FastDeleteTests)', 'test_model_delete_returns_num_rows (delete.tests.DeletionTests)', 'test_queryset_delete_returns_num_rows (delete.tests.DeletionTests)'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_fast_delete_combined_relationships (delete.tests.FastDeleteTests)', 'test_fast_delete_fk (delete.tests.FastDeleteTests)', 'test_fast_delete_inheritance (delete.tests.FastDeleteTests)', 'test_fast_delete_instance_set_pk_none (delete.tests.FastDeleteTests)', 'test_fast_delete_joined_qs (delete.tests.FastDeleteTests)', 'test_fast_delete_large_batch (delete.tests.FastDeleteTests)', 'test_fast_delete_m2m (delete.tests.FastDeleteTests)', 'test_fast_delete_qs (delete.tests.FastDeleteTests)', 'test_fast_delete_revm2m (delete.tests.FastDeleteTests)', 'test_auto (delete.tests.OnDeleteTests)', 'test_auto_nullable (delete.tests.OnDeleteTests)', 'test_cascade (delete.tests.OnDeleteTests)', 'test_cascade_from_child (delete.tests.OnDeleteTests)', 'test_cascade_from_parent (delete.tests.OnDeleteTests)', 'test_cascade_nullable (delete.tests.OnDeleteTests)', 'test_do_nothing (delete.tests.OnDeleteTests)', 'test_do_nothing_qscount (delete.tests.OnDeleteTests)', 'test_inheritance_cascade_down (delete.tests.OnDeleteTests)', 'test_inheritance_cascade_up (delete.tests.OnDeleteTests)', 'test_non_callable (delete.tests.OnDeleteTests)', 'test_o2o_setnull (delete.tests.OnDeleteTests)', 'test_protect (delete.tests.OnDeleteTests)', 'test_protect_multiple (delete.tests.OnDeleteTests)', 'test_protect_path (delete.tests.OnDeleteTests)', 'test_restrict (delete.tests.OnDeleteTests)', 'test_restrict_gfk_no_fast_delete (delete.tests.OnDeleteTests)', 'test_restrict_multiple (delete.tests.OnDeleteTests)', 'test_restrict_path_cascade_direct (delete.tests.OnDeleteTests)', 'test_restrict_path_cascade_indirect (delete.tests.OnDeleteTests)', 'test_restrict_path_cascade_indirect_diamond (delete.tests.OnDeleteTests)', 'test_setdefault (delete.tests.OnDeleteTests)', 'test_setdefault_none (delete.tests.OnDeleteTests)', 'test_setnull (delete.tests.OnDeleteTests)', 'test_setnull_from_child (delete.tests.OnDeleteTests)', 'test_setnull_from_parent (delete.tests.OnDeleteTests)', 'test_setvalue (delete.tests.OnDeleteTests)', 'test_bulk (delete.tests.DeletionTests)', 'test_can_defer_constraint_checks (delete.tests.DeletionTests)', 'test_delete_with_keeping_parents (delete.tests.DeletionTests)', 'test_delete_with_keeping_parents_relationships (delete.tests.DeletionTests)', 'test_deletion_order (delete.tests.DeletionTests)', 'test_hidden_related (delete.tests.DeletionTests)', 'test_instance_update (delete.tests.DeletionTests)', 'test_large_delete (delete.tests.DeletionTests)', 'test_large_delete_related (delete.tests.DeletionTests)', 'test_m2m (delete.tests.DeletionTests)', 'test_only_referenced_fields_selected (delete.tests.DeletionTests)', 'test_proxied_model_duplicate_queries (delete.tests.DeletionTests)', 'test_relational_post_delete_signals_happen_before_parent_object (delete.tests.DeletionTests)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-12747: resolved: True
+2026-05-19 23:14:45,654 - INFO - Attempting to stop container sweb.eval.django__django-12747.zhikuncode_eval_300_FINAL...
+2026-05-19 23:15:01,028 - INFO - Attempting to remove container sweb.eval.django__django-12747.zhikuncode_eval_300_FINAL...
+2026-05-19 23:15:01,039 - INFO - Container sweb.eval.django__django-12747.zhikuncode_eval_300_FINAL removed.
+2026-05-19 23:15:01,039 - INFO - Attempting to remove image sweb.eval.x86_64.django__django-12747:latest...
+2026-05-19 23:15:01,126 - INFO - Image sweb.eval.x86_64.django__django-12747:latest removed.

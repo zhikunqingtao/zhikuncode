@@ -1,0 +1,67 @@
+2026-05-20 01:15:25,823 - INFO - Environment image sweb.env.py.x86_64.c795f4b88616b8462021ed:latest found for sympy__sympy-13031
+Building instance image sweb.eval.x86_64.sympy__sympy-13031:latest for sympy__sympy-13031
+2026-05-20 01:16:56,950 - INFO - Creating container for sympy__sympy-13031...
+2026-05-20 01:16:56,970 - INFO - Container for sympy__sympy-13031 created: fa3a67056bf11b703af3fd131ce4e91f798dd7882bda65ee4b49c9be22fc4132
+2026-05-20 01:16:57,043 - INFO - Container for sympy__sympy-13031 started: fa3a67056bf11b703af3fd131ce4e91f798dd7882bda65ee4b49c9be22fc4132
+2026-05-20 01:16:57,043 - INFO - Intermediate patch for sympy__sympy-13031 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-13031/patch.diff, now applying to container...
+2026-05-20 01:16:57,088 - INFO - >>>>> Applied Patch:
+Checking patch sympy/matrices/common.py...
+Applied patch sympy/matrices/common.py cleanly.
+
+2026-05-20 01:16:57,262 - INFO - Git diff before:
+diff --git a/sympy/matrices/common.py b/sympy/matrices/common.py
+index 7ef51bc84..3a85c3925 100644
+--- a/sympy/matrices/common.py
++++ b/sympy/matrices/common.py
+@@ -242,6 +242,8 @@ def col_join(self, other):
+         # A null matrix can always be stacked (see  #10770)
+         if self.rows == 0 and self.cols != other.cols:
+             return self._new(0, other.cols, []).col_join(other)
++        if other.rows == 0 and other.cols != self.cols:
++            return self.col_join(self._new(0, self.cols, []))
+ 
+         if self.cols != other.cols:
+             raise ShapeError(
+@@ -478,6 +480,8 @@ def row_join(self, other):
+         # A null matrix can always be stacked (see  #10770)
+         if self.cols == 0 and self.rows != other.rows:
+             return self._new(other.rows, 0, []).row_join(other)
++        if other.cols == 0 and other.rows != self.rows:
++            return self.row_join(self._new(self.rows, 0, []))
+ 
+         if self.rows != other.rows:
+             raise ShapeError(
+2026-05-20 01:16:57,262 - INFO - Eval script for sympy__sympy-13031 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-13031/eval.sh; copying to container...
+2026-05-20 01:17:00,755 - INFO - Test runtime: 3.47 seconds
+2026-05-20 01:17:00,755 - INFO - Test output for sympy__sympy-13031 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-13031/test_output.txt
+2026-05-20 01:17:00,780 - INFO - Git diff after:
+diff --git a/sympy/matrices/common.py b/sympy/matrices/common.py
+index 7ef51bc84..3a85c3925 100644
+--- a/sympy/matrices/common.py
++++ b/sympy/matrices/common.py
+@@ -242,6 +242,8 @@ def col_join(self, other):
+         # A null matrix can always be stacked (see  #10770)
+         if self.rows == 0 and self.cols != other.cols:
+             return self._new(0, other.cols, []).col_join(other)
++        if other.rows == 0 and other.cols != self.cols:
++            return self.col_join(self._new(0, self.cols, []))
+ 
+         if self.cols != other.cols:
+             raise ShapeError(
+@@ -478,6 +480,8 @@ def row_join(self, other):
+         # A null matrix can always be stacked (see  #10770)
+         if self.cols == 0 and self.rows != other.rows:
+             return self._new(other.rows, 0, []).row_join(other)
++        if other.cols == 0 and other.rows != self.rows:
++            return self.row_join(self._new(self.rows, 0, []))
+ 
+         if self.rows != other.rows:
+             raise ShapeError(
+2026-05-20 01:17:00,780 - INFO - Grading answer for sympy__sympy-13031...
+2026-05-20 01:17:00,780 - INFO - report: {'sympy__sympy-13031': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_sparse_matrix']}, 'PASS_TO_PASS': {'success': ['test_transpose', 'test_trace', 'test_CL_RL', 'test_add', 'test_errors', 'test_len', 'test_sparse_zeros_sparse_eye', 'test_copyin', 'test_sparse_solve'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-13031: resolved: False
+2026-05-20 01:17:00,780 - INFO - Attempting to stop container sweb.eval.sympy__sympy-13031.zhikuncode_eval_300_FINAL...
+2026-05-20 01:17:16,391 - INFO - Attempting to remove container sweb.eval.sympy__sympy-13031.zhikuncode_eval_300_FINAL...
+2026-05-20 01:17:16,400 - INFO - Container sweb.eval.sympy__sympy-13031.zhikuncode_eval_300_FINAL removed.
+2026-05-20 01:17:16,400 - INFO - Attempting to remove image sweb.eval.x86_64.sympy__sympy-13031:latest...
+2026-05-20 01:17:16,426 - INFO - Image sweb.eval.x86_64.sympy__sympy-13031:latest removed.

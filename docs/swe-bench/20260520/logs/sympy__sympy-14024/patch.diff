@@ -1,0 +1,19 @@
+diff --git a/sympy/simplify/powsimp.py b/sympy/simplify/powsimp.py
+index a7fd30e..742d461 100644
+--- a/sympy/simplify/powsimp.py
++++ b/sympy/simplify/powsimp.py
+@@ -429,10 +429,10 @@ def update(b):
+                             bi)  # polar can be treated like non-negative
+                     else:
+                         unk.append(bi)
+-                if len(unk) == 1 and not neg or len(neg) == 1 and not unk:
+-                    # a single neg or a single unk can join the rest
+-                    nonneg.extend(unk + neg)
+-                    unk = neg = []
++                if len(unk) == 1 and not neg:
++                    # a single unk can join the rest
++                    nonneg.extend(unk)
++                    unk = []
+                 elif neg:
+                     # their negative signs cancel in groups of 2*q if we know
+                     # that e = p/q else we have to treat them as unknown

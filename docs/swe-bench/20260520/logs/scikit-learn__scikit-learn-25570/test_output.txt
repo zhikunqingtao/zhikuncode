@@ -1,0 +1,676 @@
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z '' ']'
++++ export CONDA_SHLVL=0
++++ CONDA_SHLVL=0
++++ '[' -n '' ']'
++++++ dirname /opt/miniconda3/bin/conda
+++++ dirname /opt/miniconda3/bin
++++ PATH=/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export PATH
++++ '[' -z '' ']'
++++ PS1=
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1=
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval 'PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=1
++++ CONDA_SHLVL=1
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\''
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libglib_activate.sh"'
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\''
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libglib_activate.sh"'
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=2
+++ CONDA_SHLVL=2
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_1=/opt/miniconda3
+++ CONDA_PREFIX_1=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/activate.sh
++++ export __EGL_VENDOR_LIBRARY_DIRS=/opt/miniconda3/envs/testbed/share/glvnd/egl_vendor.d
++++ __EGL_VENDOR_LIBRARY_DIRS=/opt/miniconda3/envs/testbed/share/glvnd/egl_vendor.d
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/libglib_activate.sh
++++ export GSETTINGS_SCHEMA_DIR_CONDA_BACKUP=
++++ GSETTINGS_SCHEMA_DIR_CONDA_BACKUP=
++++ export GSETTINGS_SCHEMA_DIR=/opt/miniconda3/envs/testbed/share/glib-2.0/schemas
++++ GSETTINGS_SCHEMA_DIR=/opt/miniconda3/envs/testbed/share/glib-2.0/schemas
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ cd /testbed
++ git config --global --add safe.directory /testbed
++ cd /testbed
++ git status
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   sklearn/compose/_column_transformer.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
++ git show
+commit cd25abee0ad0ac95225d4a9be8948eff69f49690
+Author: Guillaume Lemaitre <g.lemaitre58@gmail.com>
+Date:   Wed Feb 8 18:31:22 2023 +0100
+
+    MAINT ensure that pos_label support all possible types (#25317)
+
+diff --git a/sklearn/metrics/_classification.py b/sklearn/metrics/_classification.py
+index c90ea6f86..7d482395a 100644
+--- a/sklearn/metrics/_classification.py
++++ b/sklearn/metrics/_classification.py
+@@ -732,7 +732,7 @@ def jaccard_score(
+         labels are column indices. By default, all labels in ``y_true`` and
+         ``y_pred`` are used in sorted order.
+ 
+-    pos_label : str or int, default=1
++    pos_label : int, float, bool or str, default=1
+         The class to report if ``average='binary'`` and the data is binary.
+         If the data are multiclass or multilabel, this will be ignored;
+         setting ``labels=[pos_label]`` and ``average != 'binary'`` will report
+@@ -1083,7 +1083,7 @@ def f1_score(
+         .. versionchanged:: 0.17
+            Parameter `labels` improved for multiclass problem.
+ 
+-    pos_label : str or int, default=1
++    pos_label : int, float, bool or str, default=1
+         The class to report if ``average='binary'`` and the data is binary.
+         If the data are multiclass or multilabel, this will be ignored;
+         setting ``labels=[pos_label]`` and ``average != 'binary'`` will report
+@@ -1231,7 +1231,7 @@ def fbeta_score(
+         .. versionchanged:: 0.17
+            Parameter `labels` improved for multiclass problem.
+ 
+-    pos_label : str or int, default=1
++    pos_label : int, float, bool or str, default=1
+         The class to report if ``average='binary'`` and the data is binary.
+         If the data are multiclass or multilabel, this will be ignored;
+         setting ``labels=[pos_label]`` and ``average != 'binary'`` will report
+@@ -1491,7 +1491,7 @@ def precision_recall_fscore_support(
+         labels are column indices. By default, all labels in ``y_true`` and
+         ``y_pred`` are used in sorted order.
+ 
+-    pos_label : str or int, default=1
++    pos_label : int, float, bool or str, default=1
+         The class to report if ``average='binary'`` and the data is binary.
+         If the data are multiclass or multilabel, this will be ignored;
+         setting ``labels=[pos_label]`` and ``average != 'binary'`` will report
+@@ -1893,7 +1893,7 @@ def precision_score(
+         .. versionchanged:: 0.17
+            Parameter `labels` improved for multiclass problem.
+ 
+-    pos_label : str or int, default=1
++    pos_label : int, float, bool or str, default=1
+         The class to report if ``average='binary'`` and the data is binary.
+         If the data are multiclass or multilabel, this will be ignored;
+         setting ``labels=[pos_label]`` and ``average != 'binary'`` will report
+@@ -2034,7 +2034,7 @@ def recall_score(
+         .. versionchanged:: 0.17
+            Parameter `labels` improved for multiclass problem.
+ 
+-    pos_label : str or int, default=1
++    pos_label : int, float, bool or str, default=1
+         The class to report if ``average='binary'`` and the data is binary.
+         If the data are multiclass or multilabel, this will be ignored;
+         setting ``labels=[pos_label]`` and ``average != 'binary'`` will report
+@@ -2878,7 +2878,7 @@ def brier_score_loss(y_true, y_prob, *, sample_weight=None, pos_label=None):
+     sample_weight : array-like of shape (n_samples,), default=None
+         Sample weights.
+ 
+-    pos_label : int or str, default=None
++    pos_label : int, float, bool or str, default=None
+         Label of the positive class. `pos_label` will be inferred in the
+         following manner:
+ 
+diff --git a/sklearn/metrics/_ranking.py b/sklearn/metrics/_ranking.py
+index 6712d9f67..297e83173 100644
+--- a/sklearn/metrics/_ranking.py
++++ b/sklearn/metrics/_ranking.py
+@@ -21,7 +21,7 @@ the lower the better.
+ 
+ import warnings
+ from functools import partial
+-from numbers import Real, Integral
++from numbers import Real
+ 
+ import numpy as np
+ from scipy.sparse import csr_matrix, issparse
+@@ -252,7 +252,7 @@ def average_precision_score(
+     {
+         "y_true": ["array-like"],
+         "y_score": ["array-like"],
+-        "pos_label": [Integral, str, None],
++        "pos_label": [Real, str, "boolean", None],
+         "sample_weight": ["array-like", None],
+     }
+ )
+@@ -278,7 +278,7 @@ def det_curve(y_true, y_score, pos_label=None, sample_weight=None):
+         class, confidence values, or non-thresholded measure of decisions
+         (as returned by "decision_function" on some classifiers).
+ 
+-    pos_label : int or str, default=None
++    pos_label : int, float, bool or str, default=None
+         The label of the positive class.
+         When ``pos_label=None``, if `y_true` is in {-1, 1} or {0, 1},
+         ``pos_label`` is set to 1, otherwise an error will be raised.
+@@ -848,7 +848,7 @@ def precision_recall_curve(y_true, probas_pred, *, pos_label=None, sample_weight
+         class, or non-thresholded measure of decisions (as returned by
+         `decision_function` on some classifiers).
+ 
+-    pos_label : int or str, default=None
++    pos_label : int, float, bool or str, default=None
+         The label of the positive class.
+         When ``pos_label=None``, if y_true is in {-1, 1} or {0, 1},
+         ``pos_label`` is set to 1, otherwise an error will be raised.
+diff --git a/sklearn/metrics/tests/test_classification.py b/sklearn/metrics/tests/test_classification.py
+index 8c9e194aa..704b79add 100644
+--- a/sklearn/metrics/tests/test_classification.py
++++ b/sklearn/metrics/tests/test_classification.py
+@@ -103,7 +103,6 @@ def make_prediction(dataset=None, binary=False):
+ 
+ 
+ def test_classification_report_dictionary_output():
+-
+     # Test performance report with dictionary output
+     iris = datasets.load_iris()
+     y_true, y_pred, _ = make_prediction(dataset=iris, binary=False)
+@@ -1874,7 +1873,6 @@ def test_prf_warnings():
+     # average of per-label scores
+     f, w = precision_recall_fscore_support, UndefinedMetricWarning
+     for average in [None, "weighted", "macro"]:
+-
+         msg = (
+             "Precision and F-score are ill-defined and "
+             "being set to 0.0 in labels with no predicted samples."
+@@ -1974,7 +1972,6 @@ def test_prf_no_warnings_if_zero_division_set(zero_division):
+     # average of per-label scores
+     f = precision_recall_fscore_support
+     for average in [None, "weighted", "macro"]:
+-
+         assert_no_warnings(
+             f, [0, 1, 2], [1, 1, 2], average=average, zero_division=zero_division
+         )
+@@ -2635,3 +2632,36 @@ def test_balanced_accuracy_score(y_true, y_pred):
+     adjusted = balanced_accuracy_score(y_true, y_pred, adjusted=True)
+     chance = balanced_accuracy_score(y_true, np.full_like(y_true, y_true[0]))
+     assert adjusted == (balanced - chance) / (1 - chance)
++
++
++@pytest.mark.parametrize(
++    "metric",
++    [
++        jaccard_score,
++        f1_score,
++        partial(fbeta_score, beta=0.5),
++        precision_recall_fscore_support,
++        precision_score,
++        recall_score,
++        brier_score_loss,
++    ],
++)
++@pytest.mark.parametrize(
++    "classes", [(False, True), (0, 1), (0.0, 1.0), ("zero", "one")]
++)
++def test_classification_metric_pos_label_types(metric, classes):
++    """Check that the metric works with different types of `pos_label`.
++
++    We can expect `pos_label` to be a bool, an integer, a float, a string.
++    No error should be raised for those types.
++    """
++    rng = np.random.RandomState(42)
++    n_samples, pos_label = 10, classes[-1]
++    y_true = rng.choice(classes, size=n_samples, replace=True)
++    if metric is brier_score_loss:
++        # brier score loss requires probabilities
++        y_pred = rng.uniform(size=n_samples)
++    else:
++        y_pred = y_true.copy()
++    result = metric(y_true, y_pred, pos_label=pos_label)
++    assert not np.any(np.isnan(result))
+diff --git a/sklearn/metrics/tests/test_ranking.py b/sklearn/metrics/tests/test_ranking.py
+index 827c145ed..62ba79e3c 100644
+--- a/sklearn/metrics/tests/test_ranking.py
++++ b/sklearn/metrics/tests/test_ranking.py
+@@ -2115,3 +2115,29 @@ def test_label_ranking_avg_precision_score_should_allow_csr_matrix_for_y_true_in
+     y_score = np.array([[0.5, 0.9, 0.6], [0, 0, 1]])
+     result = label_ranking_average_precision_score(y_true, y_score)
+     assert result == pytest.approx(2 / 3)
++
++
++@pytest.mark.parametrize(
++    "metric", [average_precision_score, det_curve, precision_recall_curve, roc_curve]
++)
++@pytest.mark.parametrize(
++    "classes", [(False, True), (0, 1), (0.0, 1.0), ("zero", "one")]
++)
++def test_ranking_metric_pos_label_types(metric, classes):
++    """Check that the metric works with different types of `pos_label`.
++
++    We can expect `pos_label` to be a bool, an integer, a float, a string.
++    No error should be raised for those types.
++    """
++    rng = np.random.RandomState(42)
++    n_samples, pos_label = 10, classes[-1]
++    y_true = rng.choice(classes, size=n_samples, replace=True)
++    y_proba = rng.rand(n_samples)
++    result = metric(y_true, y_proba, pos_label=pos_label)
++    if isinstance(result, float):
++        assert not np.isnan(result)
++    else:
++        metric_1, metric_2, thresholds = result
++        assert not np.isnan(metric_1).any()
++        assert not np.isnan(metric_2).any()
++        assert not np.isnan(thresholds).any()
++ git -c core.fileMode=false diff cd25abee0ad0ac95225d4a9be8948eff69f49690
+diff --git a/sklearn/compose/_column_transformer.py b/sklearn/compose/_column_transformer.py
+index a26145117..67c324c8d 100644
+--- a/sklearn/compose/_column_transformer.py
++++ b/sklearn/compose/_column_transformer.py
+@@ -655,14 +655,22 @@ class ColumnTransformer(TransformerMixin, _BaseComposition):
+         Return value (transformers and/or transformed X data) depends
+         on the passed function.
+         ``fitted=True`` ensures the fitted transformers are used.
++
++        Returns
++        -------
++        result : list
++            Results from Parallel execution.
++        transformer_names : list of str
++            Names of transformers that produced the results, in the same order.
+         """
+         transformers = list(
+             self._iter(
+                 fitted=fitted, replace_strings=True, column_as_strings=column_as_strings
+             )
+         )
++        transformer_names = [name for name, _, _, _ in transformers]
+         try:
+-            return Parallel(n_jobs=self.n_jobs)(
++            result = Parallel(n_jobs=self.n_jobs)(
+                 delayed(func)(
+                     transformer=clone(trans) if not fitted else trans,
+                     X=_safe_indexing(X, column, axis=1),
+@@ -673,6 +681,7 @@ class ColumnTransformer(TransformerMixin, _BaseComposition):
+                 )
+                 for idx, (name, trans, column, weight) in enumerate(transformers, 1)
+             )
++            return result, transformer_names
+         except ValueError as e:
+             if "Expected 2D array, got 1D array instead" in str(e):
+                 raise ValueError(_ERR_MSG_1DCOLUMN) from e
+@@ -733,7 +742,7 @@ class ColumnTransformer(TransformerMixin, _BaseComposition):
+         self._validate_column_callables(X)
+         self._validate_remainder(X)
+ 
+-        result = self._fit_transform(X, y, _fit_transform_one)
++        result, transformer_names = self._fit_transform(X, y, _fit_transform_one)
+ 
+         if not result:
+             self._update_fitted_transformers([])
+@@ -757,7 +766,7 @@ class ColumnTransformer(TransformerMixin, _BaseComposition):
+         self._validate_output(Xs)
+         self._record_output_indices(Xs)
+ 
+-        return self._hstack(list(Xs))
++        return self._hstack(list(Xs), transformer_names)
+ 
+     def transform(self, X):
+         """Transform X separately by each transformer, concatenate results.
+@@ -806,7 +815,7 @@ class ColumnTransformer(TransformerMixin, _BaseComposition):
+             # check that n_features_in_ is consistent
+             self._check_n_features(X, reset=False)
+ 
+-        Xs = self._fit_transform(
++        Xs, transformer_names = self._fit_transform(
+             X,
+             None,
+             _transform_one,
+@@ -819,9 +828,9 @@ class ColumnTransformer(TransformerMixin, _BaseComposition):
+             # All transformers are None
+             return np.zeros((X.shape[0], 0))
+ 
+-        return self._hstack(list(Xs))
++        return self._hstack(list(Xs), transformer_names)
+ 
+-    def _hstack(self, Xs):
++    def _hstack(self, Xs, transformer_names=None):
+         """Stacks Xs horizontally.
+ 
+         This allows subclasses to control the stacking behavior, while reusing
+@@ -830,6 +839,9 @@ class ColumnTransformer(TransformerMixin, _BaseComposition):
+         Parameters
+         ----------
+         Xs : list of {array-like, sparse matrix, dataframe}
++        transformer_names : list of str, default=None
++            Names of transformers that produced the outputs in Xs, in the same
++            order. If None, transformer names are extracted from fitted transformers.
+         """
+         if self.sparse_output_:
+             try:
+@@ -862,9 +874,10 @@ class ColumnTransformer(TransformerMixin, _BaseComposition):
+                 if not self.verbose_feature_names_out:
+                     return output
+ 
+-                transformer_names = [
+-                    t[0] for t in self._iter(fitted=True, replace_strings=True)
+-                ]
++                if transformer_names is None:
++                    transformer_names = [
++                        t[0] for t in self._iter(fitted=True, replace_strings=True)
++                    ]
+                 feature_names_outs = [X.columns for X in Xs]
+                 names_out = self._add_prefix_for_feature_names_out(
+                     list(zip(transformer_names, feature_names_outs))
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z x ']'
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1='(testbed) '
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='. "/opt/miniconda3/envs/testbed/etc/conda/deactivate.d/libglib_deactivate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/deactivate.d/deactivate.sh"
+PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval '. "/opt/miniconda3/envs/testbed/etc/conda/deactivate.d/libglib_deactivate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/deactivate.d/deactivate.sh"
+PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ . /opt/miniconda3/envs/testbed/etc/conda/deactivate.d/libglib_deactivate.sh
+++++ export GSETTINGS_SCHEMA_DIR=
+++++ GSETTINGS_SCHEMA_DIR=
+++++ unset GSETTINGS_SCHEMA_DIR_CONDA_BACKUP
+++++ '[' -z ']'
+++++ unset GSETTINGS_SCHEMA_DIR
++++ . /opt/miniconda3/envs/testbed/etc/conda/deactivate.d/deactivate.sh
+++++ unset __EGL_VENDOR_LIBRARY_DIRS
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=3
++++ CONDA_SHLVL=3
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\''
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libglib_activate.sh"'
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\''
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/activate.sh"
+. "/opt/miniconda3/envs/testbed/etc/conda/activate.d/libglib_activate.sh"'
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=4
+++ CONDA_SHLVL=4
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_3=/opt/miniconda3
+++ CONDA_PREFIX_3=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/activate.sh
++++ export __EGL_VENDOR_LIBRARY_DIRS=/opt/miniconda3/envs/testbed/share/glvnd/egl_vendor.d
++++ __EGL_VENDOR_LIBRARY_DIRS=/opt/miniconda3/envs/testbed/share/glvnd/egl_vendor.d
+++ . /opt/miniconda3/envs/testbed/etc/conda/activate.d/libglib_activate.sh
++++ export GSETTINGS_SCHEMA_DIR_CONDA_BACKUP=
++++ GSETTINGS_SCHEMA_DIR_CONDA_BACKUP=
++++ export GSETTINGS_SCHEMA_DIR=/opt/miniconda3/envs/testbed/share/glib-2.0/schemas
++++ GSETTINGS_SCHEMA_DIR=/opt/miniconda3/envs/testbed/share/glib-2.0/schemas
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ python -m pip install -v --no-use-pep517 --no-build-isolation -e .
+
+[optparse.groups]Usage:[/]   
+  /opt/miniconda3/envs/testbed/bin/python -m pip install \[options] <requirement specifier> \[package-index-options] ...
+  /opt/miniconda3/envs/testbed/bin/python -m pip install \[options] -r <requirements file> \[package-index-options] ...
+  /opt/miniconda3/envs/testbed/bin/python -m pip install \[options] [-e] <vcs project url> ...
+  /opt/miniconda3/envs/testbed/bin/python -m pip install \[options] [-e] <local project path> ...
+  /opt/miniconda3/envs/testbed/bin/python -m pip install \[options] <archive url/path> ...
+
+no such option: --no-use-pep517
++ git checkout cd25abee0ad0ac95225d4a9be8948eff69f49690 sklearn/compose/tests/test_column_transformer.py
+Updated 0 paths from 6c27f81fa
++ git apply -v -
+Checking patch sklearn/compose/tests/test_column_transformer.py...
+Applied patch sklearn/compose/tests/test_column_transformer.py cleanly.
++ : '>>>>> Start Test Output'
++ pytest -rA sklearn/compose/tests/test_column_transformer.py
+Traceback (most recent call last):
+  File "/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/_pytest/config/__init__.py", line 860, in import_plugin
+    __import__(importspec)
+ModuleNotFoundError: No module named 'sklearn'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/opt/miniconda3/envs/testbed/bin/pytest", line 11, in <module>
+    sys.exit(console_main())
+  File "/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/_pytest/config/__init__.py", line 201, in console_main
+    code = main()
+  File "/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/_pytest/config/__init__.py", line 156, in main
+    config = _prepareconfig(args, plugins)
+  File "/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/_pytest/config/__init__.py", line 342, in _prepareconfig
+    config = pluginmanager.hook.pytest_cmdline_parse(
+  File "/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pluggy/_hooks.py", line 513, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pluggy/_callers.py", line 139, in _multicall
+    raise exception.with_traceback(exception.__traceback__)
+  File "/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pluggy/_callers.py", line 122, in _multicall
+    teardown.throw(exception)  # type: ignore[union-attr]
+  File "/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/_pytest/helpconfig.py", line 112, in pytest_cmdline_parse
+    config = yield
+  File "/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pluggy/_callers.py", line 103, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/_pytest/config/__init__.py", line 1146, in pytest_cmdline_parse
+    self.parse(args)
+  File "/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/_pytest/config/__init__.py", line 1527, in parse
+    self._preparse(args, addopts=addopts)
+  File "/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/_pytest/config/__init__.py", line 1405, in _preparse
+    self.pluginmanager.consider_preparse(args, exclude_only=False)
+  File "/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/_pytest/config/__init__.py", line 789, in consider_preparse
+    self.consider_pluginarg(parg)
+  File "/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/_pytest/config/__init__.py", line 812, in consider_pluginarg
+    self.import_plugin(arg, consider_entry_points=True)
+  File "/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/_pytest/config/__init__.py", line 862, in import_plugin
+    raise ImportError(
+  File "/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/_pytest/config/__init__.py", line 860, in import_plugin
+    __import__(importspec)
+ImportError: Error importing plugin "sklearn.tests.random_seed": No module named 'sklearn'
++ : '>>>>> End Test Output'
++ git checkout cd25abee0ad0ac95225d4a9be8948eff69f49690 sklearn/compose/tests/test_column_transformer.py
+Updated 1 path from 6c27f81fa

@@ -1,0 +1,187 @@
+2026-05-20 01:00:17,077 - INFO - Environment image sweb.env.py.x86_64.764c21123474adcba1e003:latest found for sphinx-doc__sphinx-10325
+Building instance image sweb.eval.x86_64.sphinx-doc__sphinx-10325:latest for sphinx-doc__sphinx-10325
+2026-05-20 01:01:19,163 - INFO - Creating container for sphinx-doc__sphinx-10325...
+2026-05-20 01:01:19,185 - INFO - Container for sphinx-doc__sphinx-10325 created: 006890670fe992e5b123bd377daa5c61dda44112c2d50da29a3b2a10eeee53bb
+2026-05-20 01:01:19,276 - INFO - Container for sphinx-doc__sphinx-10325 started: 006890670fe992e5b123bd377daa5c61dda44112c2d50da29a3b2a10eeee53bb
+2026-05-20 01:01:19,276 - INFO - Intermediate patch for sphinx-doc__sphinx-10325 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sphinx-doc__sphinx-10325/patch.diff, now applying to container...
+2026-05-20 01:01:19,322 - INFO - >>>>> Applied Patch:
+Checking patch sphinx/ext/autodoc/__init__.py...
+Applied patch sphinx/ext/autodoc/__init__.py cleanly.
+
+2026-05-20 01:01:19,487 - INFO - Git diff before:
+diff --git a/sphinx/ext/autodoc/__init__.py b/sphinx/ext/autodoc/__init__.py
+index 62631f7ff..657dc1388 100644
+--- a/sphinx/ext/autodoc/__init__.py
++++ b/sphinx/ext/autodoc/__init__.py
+@@ -109,12 +109,15 @@ def exclude_members_option(arg: Any) -> Union[object, Set[str]]:
+     return {x.strip() for x in arg.split(',') if x.strip()}
+ 
+ 
+-def inherited_members_option(arg: Any) -> Union[object, Set[str]]:
+-    """Used to convert the :members: option to auto directives."""
++def inherited_members_option(arg: Any) -> Set[str]:
++    """Used to convert the :inherited-members: option to auto directives."""
+     if arg in (None, True):
+-        return 'object'
++        return {'object'}
++    elif arg == 'None':
++        # Special case: "None" means don't exclude any class (show all inherited members)
++        return set()
+     else:
+-        return arg
++        return {x.strip() for x in arg.split(',') if x.strip()}
+ 
+ 
+ def member_order_option(arg: Any) -> Optional[str]:
+@@ -658,7 +661,7 @@ class Documenter:
+                     logger.warning(__('missing attribute %s in object %s') %
+                                    (name, self.fullname), type='autodoc')
+             return False, selected
+-        elif self.options.inherited_members:
++        elif self.options.inherited_members is not None:
+             return False, [(m.name, m.value) for m in members.values()]
+         else:
+             return False, [(m.name, m.value) for m in members.values()
+@@ -682,15 +685,23 @@ class Documenter:
+         def is_filtered_inherited_member(name: str, obj: Any) -> bool:
+             if inspect.isclass(self.object):
+                 for cls in self.object.__mro__:
+-                    if cls.__name__ == self.options.inherited_members and cls != self.object:
+-                        # given member is a member of specified *super class*
+-                        return True
+-                    elif name in cls.__dict__:
+-                        return False
++                    if name in cls.__dict__:
++                        # Found the class that defines this member
++                        # Filter only if it's defined in an excluded class
++                        # and not in the class being documented
++                        if cls == self.object:
++                            return False
++                        return cls.__name__ in self.options.inherited_members
+                     elif name in self.get_attr(cls, '__annotations__', {}):
+-                        return False
++                        # Found the class that defines this annotation
++                        if cls == self.object:
++                            return False
++                        return cls.__name__ in self.options.inherited_members
+                     elif isinstance(obj, ObjectMember) and obj.class_ is cls:
+-                        return False
++                        # Found the class that defines this member (ObjectMember)
++                        if cls == self.object:
++                            return False
++                        return cls.__name__ in self.options.inherited_members
+ 
+             return False
+ 
+@@ -829,7 +840,7 @@ class Documenter:
+             self.env.temp_data['autodoc:class'] = self.objpath[0]
+ 
+         want_all = (all_members or
+-                    self.options.inherited_members or
++                    self.options.inherited_members is not None or
+                     self.options.members is ALL)
+         # find out which members are documentable
+         members_check_module, members = self.get_object_members(want_all)
+@@ -1709,7 +1720,7 @@ class ClassDocumenter(DocstringSignatureMixin, ModuleLevelDocumenter):  # type:
+                     logger.warning(__('missing attribute %s in object %s') %
+                                    (name, self.fullname), type='autodoc')
+             return False, selected
+-        elif self.options.inherited_members:
++        elif self.options.inherited_members is not None:
+             return False, list(members.values())
+         else:
+             return False, [m for m in members.values() if m.class_ == self.object]
+2026-05-20 01:01:19,487 - INFO - Eval script for sphinx-doc__sphinx-10325 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sphinx-doc__sphinx-10325/eval.sh; copying to container...
+2026-05-20 01:01:22,815 - INFO - Test runtime: 3.30 seconds
+2026-05-20 01:01:22,816 - INFO - Test output for sphinx-doc__sphinx-10325 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sphinx-doc__sphinx-10325/test_output.txt
+2026-05-20 01:01:22,842 - INFO - Git diff after:
+diff --git a/sphinx/ext/autodoc/__init__.py b/sphinx/ext/autodoc/__init__.py
+index 62631f7ff..657dc1388 100644
+--- a/sphinx/ext/autodoc/__init__.py
++++ b/sphinx/ext/autodoc/__init__.py
+@@ -109,12 +109,15 @@ def exclude_members_option(arg: Any) -> Union[object, Set[str]]:
+     return {x.strip() for x in arg.split(',') if x.strip()}
+ 
+ 
+-def inherited_members_option(arg: Any) -> Union[object, Set[str]]:
+-    """Used to convert the :members: option to auto directives."""
++def inherited_members_option(arg: Any) -> Set[str]:
++    """Used to convert the :inherited-members: option to auto directives."""
+     if arg in (None, True):
+-        return 'object'
++        return {'object'}
++    elif arg == 'None':
++        # Special case: "None" means don't exclude any class (show all inherited members)
++        return set()
+     else:
+-        return arg
++        return {x.strip() for x in arg.split(',') if x.strip()}
+ 
+ 
+ def member_order_option(arg: Any) -> Optional[str]:
+@@ -658,7 +661,7 @@ class Documenter:
+                     logger.warning(__('missing attribute %s in object %s') %
+                                    (name, self.fullname), type='autodoc')
+             return False, selected
+-        elif self.options.inherited_members:
++        elif self.options.inherited_members is not None:
+             return False, [(m.name, m.value) for m in members.values()]
+         else:
+             return False, [(m.name, m.value) for m in members.values()
+@@ -682,15 +685,23 @@ class Documenter:
+         def is_filtered_inherited_member(name: str, obj: Any) -> bool:
+             if inspect.isclass(self.object):
+                 for cls in self.object.__mro__:
+-                    if cls.__name__ == self.options.inherited_members and cls != self.object:
+-                        # given member is a member of specified *super class*
+-                        return True
+-                    elif name in cls.__dict__:
+-                        return False
++                    if name in cls.__dict__:
++                        # Found the class that defines this member
++                        # Filter only if it's defined in an excluded class
++                        # and not in the class being documented
++                        if cls == self.object:
++                            return False
++                        return cls.__name__ in self.options.inherited_members
+                     elif name in self.get_attr(cls, '__annotations__', {}):
+-                        return False
++                        # Found the class that defines this annotation
++                        if cls == self.object:
++                            return False
++                        return cls.__name__ in self.options.inherited_members
+                     elif isinstance(obj, ObjectMember) and obj.class_ is cls:
+-                        return False
++                        # Found the class that defines this member (ObjectMember)
++                        if cls == self.object:
++                            return False
++                        return cls.__name__ in self.options.inherited_members
+ 
+             return False
+ 
+@@ -829,7 +840,7 @@ class Documenter:
+             self.env.temp_data['autodoc:class'] = self.objpath[0]
+ 
+         want_all = (all_members or
+-                    self.options.inherited_members or
++                    self.options.inherited_members is not None or
+                     self.options.members is ALL)
+         # find out which members are documentable
+         members_check_module, members = self.get_object_members(want_all)
+@@ -1709,7 +1720,7 @@ class ClassDocumenter(DocstringSignatureMixin, ModuleLevelDocumenter):  # type:
+                     logger.warning(__('missing attribute %s in object %s') %
+                                    (name, self.fullname), type='autodoc')
+             return False, selected
+-        elif self.options.inherited_members:
++        elif self.options.inherited_members is not None:
+             return False, list(members.values())
+         else:
+             return False, [m for m in members.values() if m.class_ == self.object]
+2026-05-20 01:01:22,843 - INFO - Grading answer for sphinx-doc__sphinx-10325...
+2026-05-20 01:01:22,843 - INFO - report: {'sphinx-doc__sphinx-10325': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['tests/test_ext_autodoc_automodule.py::test_automodule_inherited_members'], 'failure': []}, 'PASS_TO_PASS': {'success': ['tests/test_ext_autodoc_automodule.py::test_empty_all', 'tests/test_ext_autodoc_automodule.py::test_automodule', 'tests/test_ext_autodoc_automodule.py::test_automodule_undoc_members', 'tests/test_ext_autodoc_automodule.py::test_automodule_special_members', 'tests/test_ext_autodoc_automodule.py::test_subclass_of_mocked_object'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sphinx-doc__sphinx-10325: resolved: True
+2026-05-20 01:01:22,843 - INFO - Attempting to stop container sweb.eval.sphinx-doc__sphinx-10325.zhikuncode_eval_300_FINAL...
+2026-05-20 01:01:38,098 - INFO - Attempting to remove container sweb.eval.sphinx-doc__sphinx-10325.zhikuncode_eval_300_FINAL...
+2026-05-20 01:01:38,106 - INFO - Container sweb.eval.sphinx-doc__sphinx-10325.zhikuncode_eval_300_FINAL removed.
+2026-05-20 01:01:38,106 - INFO - Attempting to remove image sweb.eval.x86_64.sphinx-doc__sphinx-10325:latest...
+2026-05-20 01:01:38,178 - INFO - Image sweb.eval.x86_64.sphinx-doc__sphinx-10325:latest removed.

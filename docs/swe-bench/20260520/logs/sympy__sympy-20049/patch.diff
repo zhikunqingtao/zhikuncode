@@ -1,0 +1,29 @@
+diff --git a/sympy/physics/vector/point.py b/sympy/physics/vector/point.py
+index d4e3cfc..8e50b9a 100644
+--- a/sympy/physics/vector/point.py
++++ b/sympy/physics/vector/point.py
+@@ -517,11 +517,20 @@ def vel(self, frame):
+ 
+         """
+ 
++        from sympy.physics.vector.functions import dynamicsymbols
+         _check_frame(frame)
+-        if not (frame in self._vel_dict):
+-            raise ValueError('Velocity of point ' + self.name + ' has not been'
+-                             ' defined in ReferenceFrame ' + frame.name)
+-        return self._vel_dict[frame]
++        if frame in self._vel_dict:
++            return self._vel_dict[frame]
++        # Attempt to compute the velocity from the position of a point that
++        # has its velocity defined in the specified frame.
++        for point in self._pos_dict:
++            if frame in point._vel_dict:
++                vel = point._vel_dict[frame]
++                pos = self.pos_from(point)
++                self.set_vel(frame, vel + pos.dt(frame))
++                return self._vel_dict[frame]
++        raise ValueError('Velocity of point ' + self.name + ' has not been'
++                         ' defined in ReferenceFrame ' + frame.name)
+ 
+     def partial_velocity(self, frame, *gen_speeds):
+         """Returns the partial velocities of the linear velocity vector of this

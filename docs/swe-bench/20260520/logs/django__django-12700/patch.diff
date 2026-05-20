@@ -1,0 +1,13 @@
+diff --git a/django/views/debug.py b/django/views/debug.py
+index e6b7d4d..dcd3b2b 100644
+--- a/django/views/debug.py
++++ b/django/views/debug.py
+@@ -90,6 +90,8 @@ class SafeExceptionReporterFilter:
+                 cleansed = self.cleansed_substitute
+             elif isinstance(value, dict):
+                 cleansed = {k: self.cleanse_setting(k, v) for k, v in value.items()}
++            elif isinstance(value, (list, tuple, set, frozenset)):
++                cleansed = type(value)(self.cleanse_setting('', v) for v in value)
+             else:
+                 cleansed = value
+         except TypeError:

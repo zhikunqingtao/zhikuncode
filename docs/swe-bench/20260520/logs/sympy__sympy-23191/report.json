@@ -1,0 +1,33 @@
+{
+    "sympy__sympy-23191": {
+        "patch_is_None": false,
+        "patch_exists": true,
+        "patch_successfully_applied": true,
+        "resolved": false,
+        "tests_status": {
+            "FAIL_TO_PASS": {
+                "success": [],
+                "failure": [
+                    "test_issue_23058"
+                ]
+            },
+            "PASS_TO_PASS": {
+                "success": [
+                    "test_str_printing",
+                    "test_latex_printing"
+                ],
+                "failure": [
+                    "test_pretty_print_unicode_v"
+                ]
+            },
+            "FAIL_TO_FAIL": {
+                "success": [],
+                "failure": []
+            },
+            "PASS_TO_FAIL": {
+                "success": [],
+                "failure": []
+            }
+        }
+    }
+}

@@ -1,0 +1,87 @@
+2026-05-20 01:23:37,050 - INFO - Environment image sweb.env.py.x86_64.c795f4b88616b8462021ed:latest found for sympy__sympy-17630
+Building instance image sweb.eval.x86_64.sympy__sympy-17630:latest for sympy__sympy-17630
+2026-05-20 01:25:58,855 - INFO - Creating container for sympy__sympy-17630...
+2026-05-20 01:25:58,878 - INFO - Container for sympy__sympy-17630 created: bc85f2c167d29e18d29faab739418ba239c7192b099439dc233b7dd41b9ccfff
+2026-05-20 01:25:59,210 - INFO - Container for sympy__sympy-17630 started: bc85f2c167d29e18d29faab739418ba239c7192b099439dc233b7dd41b9ccfff
+2026-05-20 01:25:59,210 - INFO - Intermediate patch for sympy__sympy-17630 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-17630/patch.diff, now applying to container...
+2026-05-20 01:25:59,480 - INFO - >>>>> Applied Patch:
+Checking patch sympy/matrices/expressions/blockmatrix.py...
+Applied patch sympy/matrices/expressions/blockmatrix.py cleanly.
+
+2026-05-20 01:25:59,960 - INFO - Git diff before:
+diff --git a/sympy/matrices/expressions/blockmatrix.py b/sympy/matrices/expressions/blockmatrix.py
+index 95302a05ca..745a8be486 100644
+--- a/sympy/matrices/expressions/blockmatrix.py
++++ b/sympy/matrices/expressions/blockmatrix.py
+@@ -164,7 +164,27 @@ def structurally_equal(self, other):
+     def _blockmul(self, other):
+         if (isinstance(other, BlockMatrix) and
+                 self.colblocksizes == other.rowblocksizes):
+-            return BlockMatrix(self.blocks*other.blocks)
++            # Compute the block multiplication
++            result_blocks = self.blocks * other.blocks
++            # Fix: When Add is used to sum ZeroMatrix products, it returns
++            # scalar Zero instead of ZeroMatrix. We need to convert scalar
++            # zeros back to ZeroMatrix with appropriate dimensions.
++            from sympy import S
++            new_blocks = []
++            for i in range(result_blocks.rows):
++                row = []
++                for j in range(result_blocks.cols):
++                    block = result_blocks[i, j]
++                    # If the block is scalar zero, convert to ZeroMatrix
++                    if block is S.Zero:
++                        # Get dimensions from self's row and other's column
++                        rows = self.blocks[i, 0].rows
++                        cols = other.blocks[0, j].cols
++                        row.append(ZeroMatrix(rows, cols))
++                    else:
++                        row.append(block)
++                new_blocks.append(row)
++            return BlockMatrix(new_blocks)
+ 
+         return self * other
+2026-05-20 01:25:59,960 - INFO - Eval script for sympy__sympy-17630 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-17630/eval.sh; copying to container...
+2026-05-20 01:26:05,249 - INFO - Test runtime: 5.16 seconds
+2026-05-20 01:26:05,249 - INFO - Test output for sympy__sympy-17630 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/sympy__sympy-17630/test_output.txt
+2026-05-20 01:26:05,374 - INFO - Git diff after:
+diff --git a/sympy/matrices/expressions/blockmatrix.py b/sympy/matrices/expressions/blockmatrix.py
+index 95302a05ca..745a8be486 100644
+--- a/sympy/matrices/expressions/blockmatrix.py
++++ b/sympy/matrices/expressions/blockmatrix.py
+@@ -164,7 +164,27 @@ def structurally_equal(self, other):
+     def _blockmul(self, other):
+         if (isinstance(other, BlockMatrix) and
+                 self.colblocksizes == other.rowblocksizes):
+-            return BlockMatrix(self.blocks*other.blocks)
++            # Compute the block multiplication
++            result_blocks = self.blocks * other.blocks
++            # Fix: When Add is used to sum ZeroMatrix products, it returns
++            # scalar Zero instead of ZeroMatrix. We need to convert scalar
++            # zeros back to ZeroMatrix with appropriate dimensions.
++            from sympy import S
++            new_blocks = []
++            for i in range(result_blocks.rows):
++                row = []
++                for j in range(result_blocks.cols):
++                    block = result_blocks[i, j]
++                    # If the block is scalar zero, convert to ZeroMatrix
++                    if block is S.Zero:
++                        # Get dimensions from self's row and other's column
++                        rows = self.blocks[i, 0].rows
++                        cols = other.blocks[0, j].cols
++                        row.append(ZeroMatrix(rows, cols))
++                    else:
++                        row.append(block)
++                new_blocks.append(row)
++            return BlockMatrix(new_blocks)
+ 
+         return self * other
+2026-05-20 01:26:05,374 - INFO - Grading answer for sympy__sympy-17630...
+2026-05-20 01:26:05,374 - INFO - report: {'sympy__sympy-17630': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_issue_17624'], 'failure': ['test_zero_matrix_add']}, 'PASS_TO_PASS': {'success': ['test_bc_matmul', 'test_bc_matadd', 'test_bc_transpose', 'test_bc_dist_diag', 'test_block_plus_ident', 'test_BlockMatrix', 'test_block_collapse_explicit_matrices', 'test_BlockMatrix_trace', 'test_BlockMatrix_Determinant', 'test_squareBlockMatrix', 'test_BlockDiagMatrix', 'test_blockcut', 'test_reblock_2x2', 'test_deblock', 'test_sort_key', 'test_matadd_sympify', 'test_matadd_of_matrices', 'test_doit_args', 'test_generic_identity'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-17630: resolved: False
+2026-05-20 01:26:05,374 - INFO - Attempting to stop container sweb.eval.sympy__sympy-17630.zhikuncode_eval_300_FINAL...
+2026-05-20 01:26:20,852 - INFO - Attempting to remove container sweb.eval.sympy__sympy-17630.zhikuncode_eval_300_FINAL...
+2026-05-20 01:26:20,865 - INFO - Container sweb.eval.sympy__sympy-17630.zhikuncode_eval_300_FINAL removed.
+2026-05-20 01:26:20,865 - INFO - Attempting to remove image sweb.eval.x86_64.sympy__sympy-17630:latest...
+2026-05-20 01:26:20,909 - INFO - Image sweb.eval.x86_64.sympy__sympy-17630:latest removed.

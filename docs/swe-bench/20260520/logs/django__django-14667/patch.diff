@@ -1,0 +1,13 @@
+diff --git a/django/db/models/sql/query.py b/django/db/models/sql/query.py
+index 8837881..2d1d966 100644
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -678,7 +678,7 @@ class Query(BaseExpression):
+         "target", and the model and list of fields being added for that model.
+         """
+         field_names, defer = self.deferred_loading
+-        if not field_names:
++        if defer and not field_names:
+             return
+         orig_opts = self.get_meta()
+         seen = {}

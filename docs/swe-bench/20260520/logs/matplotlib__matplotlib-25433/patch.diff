@@ -1,0 +1,38 @@
+diff --git a/lib/matplotlib/widgets.py b/lib/matplotlib/widgets.py
+index ebe5da4..b465b0f 100644
+--- a/lib/matplotlib/widgets.py
++++ b/lib/matplotlib/widgets.py
+@@ -583,7 +583,16 @@ class Slider(SliderBase):
+             self.ax.figure.canvas.draw_idle()
+         self.val = val
+         if self.eventson:
++            # Save the canvas before processing callbacks, since callbacks
++            # may modify the figure (e.g. clf()) which could destroy self.ax.
++            canvas = self.ax.figure.canvas
+             self._observers.process('changed', val)
++            # Release the mouse grab if this axes still holds it and the axes
++            # is no longer part of the figure (e.g. callback called clf()).
++            # This prevents stale mouse_grabber references that would block
++            # new widgets from receiving mouse events.
++            if canvas.mouse_grabber is self.ax and self.ax not in canvas.figure.axes:
++                canvas.release_mouse(self.ax)
+ 
+     def on_changed(self, func):
+         """
+@@ -966,7 +975,16 @@ class RangeSlider(SliderBase):
+             self.ax.figure.canvas.draw_idle()
+         self.val = (vmin, vmax)
+         if self.eventson:
++            # Save the canvas before processing callbacks, since callbacks
++            # may modify the figure (e.g. clf()) which could destroy self.ax.
++            canvas = self.ax.figure.canvas
+             self._observers.process("changed", (vmin, vmax))
++            # Release the mouse grab if this axes still holds it and the axes
++            # is no longer part of the figure (e.g. callback called clf()).
++            # This prevents stale mouse_grabber references that would block
++            # new widgets from receiving mouse events.
++            if canvas.mouse_grabber is self.ax and self.ax not in canvas.figure.axes:
++                canvas.release_mouse(self.ax)
+ 
+     def on_changed(self, func):
+         """

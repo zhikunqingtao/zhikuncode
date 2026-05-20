@@ -1,0 +1,43 @@
+diff --git a/seaborn/_core/scales.py b/seaborn/_core/scales.py
+index 6c9ecbc..c53e2be 100644
+--- a/seaborn/_core/scales.py
++++ b/seaborn/_core/scales.py
+@@ -329,6 +329,30 @@ class ContinuousBase(Scale):
+         if new._label_params is None:
+             new = new.label()
+ 
++        # Convert boolean data to numeric to support arithmetic operations
++        # Handle both pure bool dtype and object dtype with boolean values + NaN
++        if data.dtype == bool:
++            data = data.astype(int)
++            convert_bool = lambda x: x.astype(int) if x.dtype == bool else x
++        elif data.dtype == object:
++            # Check if object array contains boolean values
++            non_null = data.dropna()
++            if len(non_null) > 0 and all(isinstance(v, (bool, np.bool_)) for v in non_null):
++                data = data.copy()
++                data[~data.isna()] = data.dropna().astype(int)
++                data = data.astype(float)
++                def convert_bool(x):
++                    if x.dtype == object:
++                        out = x.copy()
++                        mask = ~out.isna()
++                        out[mask] = out[mask].astype(int)
++                        return out.astype(float)
++                    return x
++            else:
++                convert_bool = None
++        else:
++            convert_bool = None
++
+         forward, inverse = new._get_transform()
+ 
+         mpl_scale = new._get_scale(str(data.name), forward, inverse)
+@@ -357,6 +381,7 @@ class ContinuousBase(Scale):
+             normalize = vmin = vmax = None
+ 
+         new._pipeline = [
++            convert_bool,
+             axis.convert_units,
+             forward,
+             normalize,

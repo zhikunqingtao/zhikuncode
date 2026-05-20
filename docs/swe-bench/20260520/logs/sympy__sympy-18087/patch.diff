@@ -1,0 +1,17 @@
+diff --git a/sympy/core/exprtools.py b/sympy/core/exprtools.py
+index 57fad70..e21e069 100644
+--- a/sympy/core/exprtools.py
++++ b/sympy/core/exprtools.py
+@@ -452,6 +452,12 @@ def as_expr(self):  # Factors
+                 if isinstance(exp, int):
+                     e = _keep_coeff(Integer(exp), e)
+                 elif isinstance(exp, Rational):
++                    # Avoid combining exponents when base is not positive
++                    # and exp is not an integer, since (b**e)**exp != b**(e*exp)
++                    # for complex b. For example, (sin(x)**2)**(1/2) != sin(x).
++                    if exp.q != 1 and not b.is_positive:
++                        args.append(factor**exp)
++                        continue
+                     e = _keep_coeff(exp, e)
+                 else:
+                     e *= exp

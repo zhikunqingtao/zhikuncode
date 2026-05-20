@@ -1,0 +1,31 @@
+diff --git a/django/contrib/auth/migrations/0011_update_proxy_permissions.py b/django/contrib/auth/migrations/0011_update_proxy_permissions.py
+index 0e66649..a04cece 100644
+--- a/django/contrib/auth/migrations/0011_update_proxy_permissions.py
++++ b/django/contrib/auth/migrations/0011_update_proxy_permissions.py
+@@ -24,10 +24,24 @@ def update_proxy_model_permissions(apps, schema_editor, reverse=False):
+         proxy_content_type = ContentType.objects.get_for_model(Model, for_concrete_model=False)
+         old_content_type = proxy_content_type if reverse else concrete_content_type
+         new_content_type = concrete_content_type if reverse else proxy_content_type
+-        Permission.objects.filter(
++        # Find all permissions that need to be updated (those with the old content_type)
++        perms_to_update = Permission.objects.filter(
+             permissions_query,
+             content_type=old_content_type,
+-        ).update(content_type=new_content_type)
++        )
++        for perm in perms_to_update:
++            # Check if a permission with the same codename already exists for the new content_type.
++            # This can happen if a model was originally concrete and then recreated as a proxy model.
++            if Permission.objects.filter(
++                codename=perm.codename,
++                content_type=new_content_type,
++            ).exists():
++                # The permission already exists with the new content_type, so delete the old one.
++                perm.delete()
++            else:
++                # Safe to update the content_type
++                perm.content_type = new_content_type
++                perm.save()
+ 
+ 
+ def revert_proxy_model_permissions(apps, schema_editor):

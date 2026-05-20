@@ -1,0 +1,31 @@
+{
+    "sympy__sympy-24909": {
+        "patch_is_None": false,
+        "patch_exists": true,
+        "patch_successfully_applied": true,
+        "resolved": false,
+        "tests_status": {
+            "FAIL_TO_PASS": {
+                "success": [],
+                "failure": [
+                    "test_prefix_operations"
+                ]
+            },
+            "PASS_TO_PASS": {
+                "success": [
+                    "test_prefix_unit",
+                    "test_bases"
+                ],
+                "failure": []
+            },
+            "FAIL_TO_FAIL": {
+                "success": [],
+                "failure": []
+            },
+            "PASS_TO_FAIL": {
+                "success": [],
+                "failure": []
+            }
+        }
+    }
+}

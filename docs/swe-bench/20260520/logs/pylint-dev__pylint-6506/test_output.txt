@@ -1,0 +1,3239 @@
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z '' ']'
++++ export CONDA_SHLVL=0
++++ CONDA_SHLVL=0
++++ '[' -n '' ']'
++++++ dirname /opt/miniconda3/bin/conda
+++++ dirname /opt/miniconda3/bin
++++ PATH=/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export PATH
++++ '[' -z '' ']'
++++ PS1=
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1=
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval 'PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=1
++++ CONDA_SHLVL=1
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=2
+++ CONDA_SHLVL=2
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_1=/opt/miniconda3
+++ CONDA_PREFIX_1=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ cd /testbed
++ git config --global --add safe.directory /testbed
++ cd /testbed
++ git status
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   pylint/__init__.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
++ git show
+commit b7a4f8e08c1f6a072f466dfe31b0713599edf20d
+Author: SWE-bench <setup@swebench.config>
+Date:   Tue May 19 16:33:15 2026 +0000
+
+    SWE-bench
++ git -c core.fileMode=false diff 0a4204fd7555cfedd43f43017c94d24ef48244a5
+diff --git a/pylint/__init__.py b/pylint/__init__.py
+index 3aa4b7f9..827c5419 100644
+--- a/pylint/__init__.py
++++ b/pylint/__init__.py
+@@ -10,6 +10,7 @@ from collections.abc import Sequence
+ from typing import NoReturn
+ 
+ from pylint.__pkginfo__ import __version__
++from pylint.config.exceptions import _UnrecognizedOptionError
+ 
+ # pylint: disable=import-outside-toplevel
+ 
+@@ -25,6 +26,8 @@ def run_pylint(argv: Sequence[str] | None = None) -> None:
+         PylintRun(argv or sys.argv[1:])
+     except KeyboardInterrupt:
+         sys.exit(1)
++    except _UnrecognizedOptionError:
++        sys.exit(32)
+ 
+ 
+ def run_epylint(argv: Sequence[str] | None = None) -> NoReturn:
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z x ']'
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1='(testbed) '
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval 'PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=3
++++ CONDA_SHLVL=3
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=4
+++ CONDA_SHLVL=4
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_3=/opt/miniconda3
+++ CONDA_PREFIX_3=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ python -m pip install -e .
+Looking in indexes: https://mirrors.aliyun.com/pypi/simple/
+Obtaining file:///testbed
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Checking if build backend supports build_editable: started
+  Checking if build backend supports build_editable: finished with status 'done'
+  Getting requirements to build editable: started
+  Getting requirements to build editable: finished with status 'done'
+  Preparing editable metadata (pyproject.toml): started
+  Preparing editable metadata (pyproject.toml): finished with status 'done'
+Requirement already satisfied: dill>=0.2 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from pylint==2.14.0.dev0) (0.4.1)
+Requirement already satisfied: platformdirs>=2.2.0 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from pylint==2.14.0.dev0) (4.4.0)
+Requirement already satisfied: astroid<=2.12.0-dev0,>=2.11.4 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from pylint==2.14.0.dev0) (2.11.6)
+Requirement already satisfied: isort<6,>=4.2.5 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from pylint==2.14.0.dev0) (5.10.1)
+Requirement already satisfied: mccabe<0.8,>=0.6 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from pylint==2.14.0.dev0) (0.6.1)
+Requirement already satisfied: tomli>=1.1.0 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from pylint==2.14.0.dev0) (2.4.1)
+Requirement already satisfied: tomlkit>=0.10.1 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from pylint==2.14.0.dev0) (0.15.0)
+Requirement already satisfied: typing-extensions>=3.10.0 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from pylint==2.14.0.dev0) (4.15.0)
+Requirement already satisfied: lazy-object-proxy>=1.4.0 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from astroid<=2.12.0-dev0,>=2.11.4->pylint==2.14.0.dev0) (1.12.0)
+Requirement already satisfied: wrapt<2,>=1.11 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from astroid<=2.12.0-dev0,>=2.11.4->pylint==2.14.0.dev0) (1.17.3)
+Requirement already satisfied: setuptools>=20.0 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from astroid<=2.12.0-dev0,>=2.11.4->pylint==2.14.0.dev0) (80.9.0)
+Building wheels for collected packages: pylint
+  Building editable for pylint (pyproject.toml): started
+  Building editable for pylint (pyproject.toml): finished with status 'done'
+  Created wheel for pylint: filename=pylint-2.14.0.dev0-0.editable-py3-none-any.whl size=24784 sha256=b2fa2b5674212b869b86d73e8da3f58e314fbb76a7cf58b536cb920058c3a6a7
+  Stored in directory: /tmp/pip-ephem-wheel-cache-arc0xhmb/wheels/7d/66/67/70d1ee2124ccf21d601c352e25cdca10f611f7c8b3f9ffb9e4
+Successfully built pylint
+Installing collected packages: pylint
+  Attempting uninstall: pylint
+    Found existing installation: pylint 2.14.0.dev0
+    Uninstalling pylint-2.14.0.dev0:
+      Successfully uninstalled pylint-2.14.0.dev0
+Successfully installed pylint-2.14.0.dev0
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
++ git checkout 0a4204fd7555cfedd43f43017c94d24ef48244a5 tests/config/test_config.py
+Updated 0 paths from 8cc4d926
++ git apply -v -
+Checking patch tests/config/test_config.py...
+Applied patch tests/config/test_config.py cleanly.
++ : '>>>>> Start Test Output'
++ pytest -rA tests/config/test_config.py
+============================= test session starts ==============================
+platform linux -- Python 3.9.25, pytest-7.4.4, pluggy-1.6.0
+benchmark: 3.4.1 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: /testbed
+configfile: setup.cfg
+plugins: benchmark-3.4.1, profiling-1.8.1, timeout-2.4.0, xdist-2.5.0, forked-1.6.0, cov-3.0.0
+collected 8 items
+
+tests/config/test_config.py FFFFFFFF                                     [100%]
+
+=================================== FAILURES ===================================
+_______________________ test_can_read_toml_env_variable ________________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-0/test_can_read_toml_env_variabl0')
+file_to_lint_path = '/testbed/tests/config/file_to_lint.py'
+
+    def test_can_read_toml_env_variable(tmp_path: Path, file_to_lint_path: str) -> None:
+        """We can read and open a properly formatted toml file."""
+        config_file = tmp_path / "pyproject.toml"
+        config_file.write_text(
+            """
+    [tool.pylint."messages control"]
+    disable = "logging-not-lazy,logging-format-interpolation"
+    jobs = "10"
+    reports = "yes"
+    """
+        )
+        env_var = "tmp_path_env"
+        os.environ[env_var] = str(config_file)
+>       mock_exit, _, runner = run_using_a_configuration_file(
+            f"${env_var}", file_to_lint_path
+        )
+
+tests/config/test_config.py:51: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pylint/testutils/configuration_test.py:160: in run_using_a_configuration_file
+    runner = Run(args)
+pylint/lint/run.py:133: in __init__
+    linter.enable("c-extension-no-member")
+pylint/lint/pylinter.py:1531: in enable
+    self._set_msg_status(
+pylint/lint/pylinter.py:1455: in _set_msg_status
+    message_definitions = self._get_messages_to_set(msgid, enable, ignore_unknown)
+pylint/lint/pylinter.py:1438: in _get_messages_to_set
+    message_definitions = self.msgs_store.get_message_definitions(msgid)
+pylint/message/message_definition_store.py:68: in get_message_definitions
+    for m in self.message_id_store.get_active_msgids(msgid_or_symbol)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = MessageIdStore: [
+  - E0001 (syntax-error)
+  - E0011 (unrecognized-inline-option)
+  - E0012 (bad-option-value)
+  - E00...(suppressed-message)
+  - I0021 (useless-suppression)
+  - I0022 (deprecated-pragma)
+  - I0014 (deprecated-disable-all)
+]
+msgid_or_symbol = 'c-extension-no-member'
+
+    def get_active_msgids(self, msgid_or_symbol: str) -> list[str]:
+        """Return msgids but the input can be a symbol.
+    
+        self.__active_msgids is used to implement a primitive cache for this function.
+        """
+        try:
+            return self.__active_msgids[msgid_or_symbol]
+        except KeyError:
+            pass
+    
+        # If we don't have a cached value yet we compute it
+        msgid: str | None
+        if msgid_or_symbol[1:].isdigit():
+            # Only msgid can have a digit as second letter
+            msgid = msgid_or_symbol.upper()
+            symbol = self.__msgid_to_symbol.get(msgid)
+        else:
+            msgid = self.__symbol_to_msgid.get(msgid_or_symbol)
+            symbol = msgid_or_symbol
+        if not msgid or not symbol:
+            error_msg = f"No such message id or symbol '{msgid_or_symbol}'."
+>           raise UnknownMessageError(error_msg)
+E           pylint.exceptions.UnknownMessageError: No such message id or symbol 'c-extension-no-member'.
+
+pylint/message/message_id_store.py:132: UnknownMessageError
+----------------------------- Captured stderr call -----------------------------
+Problem importing module typecheck.py: Unable to find module for /testbed/pylint/checkers/typecheck.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module threading_checker.py: Unable to find module for /testbed/pylint/checkers/threading_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module newstyle.py: Unable to find module for /testbed/pylint/checkers/newstyle.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module spelling.py: Unable to find module for /testbed/pylint/checkers/spelling.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module format.py: Unable to find module for /testbed/pylint/checkers/format.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module misc.py: Unable to find module for /testbed/pylint/checkers/misc.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module variables.py: Unable to find module for /testbed/pylint/checkers/variables.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module similar.py: Unable to find module for /testbed/pylint/checkers/similar.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module unicode.py: Unable to find module for /testbed/pylint/checkers/unicode.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module design_analysis.py: Unable to find module for /testbed/pylint/checkers/design_analysis.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module logging.py: Unable to find module for /testbed/pylint/checkers/logging.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module ellipsis_checker.py: Unable to find module for /testbed/pylint/checkers/ellipsis_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module base: Unable to find module for /testbed/pylint/checkers/base in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module stdlib.py: Unable to find module for /testbed/pylint/checkers/stdlib.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module deprecated.py: Unable to find module for /testbed/pylint/checkers/deprecated.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module refactoring: Unable to find module for /testbed/pylint/checkers/refactoring in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module utils.py: Unable to find module for /testbed/pylint/checkers/utils.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module non_ascii_names.py: Unable to find module for /testbed/pylint/checkers/non_ascii_names.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module classes: Unable to find module for /testbed/pylint/checkers/classes in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module exceptions.py: Unable to find module for /testbed/pylint/checkers/exceptions.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module imports.py: Unable to find module for /testbed/pylint/checkers/imports.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module unsupported_version.py: Unable to find module for /testbed/pylint/checkers/unsupported_version.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module raw_metrics.py: Unable to find module for /testbed/pylint/checkers/raw_metrics.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module modified_iterating_checker.py: Unable to find module for /testbed/pylint/checkers/modified_iterating_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module strings.py: Unable to find module for /testbed/pylint/checkers/strings.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module mapreduce_checker.py: Unable to find module for /testbed/pylint/checkers/mapreduce_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module async.py: Unable to find module for /testbed/pylint/checkers/async.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module dunder_methods.py: Unable to find module for /testbed/pylint/checkers/dunder_methods.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module base_checker.py: Unable to find module for /testbed/pylint/checkers/base_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module lambda_expressions.py: Unable to find module for /testbed/pylint/checkers/lambda_expressions.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module text.py: Unable to find module for /testbed/pylint/reporters/text.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module collecting_reporter.py: Unable to find module for /testbed/pylint/reporters/collecting_reporter.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module multi_reporter.py: Unable to find module for /testbed/pylint/reporters/multi_reporter.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module reports_handler_mix_in.py: Unable to find module for /testbed/pylint/reporters/reports_handler_mix_in.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module json_reporter.py: Unable to find module for /testbed/pylint/reporters/json_reporter.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module base_reporter.py: Unable to find module for /testbed/pylint/reporters/base_reporter.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module ureports: Unable to find module for /testbed/pylint/reporters/ureports in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+___________________________ test_unknown_message_id ____________________________
+
+capsys = <_pytest.capture.CaptureFixture object at 0x7fe56766af70>
+
+    def test_unknown_message_id(capsys: CaptureFixture) -> None:
+        """Check that we correctly raise a message on an unknown id."""
+>       Run([str(EMPTY_MODULE), "--disable=12345"], exit=False)
+
+tests/config/test_config.py:60: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pylint/testutils/_run.py:45: in __init__
+    super().__init__(args, reporter, exit, do_exit)
+pylint/lint/run.py:133: in __init__
+    linter.enable("c-extension-no-member")
+pylint/lint/pylinter.py:1531: in enable
+    self._set_msg_status(
+pylint/lint/pylinter.py:1455: in _set_msg_status
+    message_definitions = self._get_messages_to_set(msgid, enable, ignore_unknown)
+pylint/lint/pylinter.py:1438: in _get_messages_to_set
+    message_definitions = self.msgs_store.get_message_definitions(msgid)
+pylint/message/message_definition_store.py:68: in get_message_definitions
+    for m in self.message_id_store.get_active_msgids(msgid_or_symbol)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = MessageIdStore: [
+  - E0001 (syntax-error)
+  - E0011 (unrecognized-inline-option)
+  - E0012 (bad-option-value)
+  - E00...(suppressed-message)
+  - I0021 (useless-suppression)
+  - I0022 (deprecated-pragma)
+  - I0014 (deprecated-disable-all)
+]
+msgid_or_symbol = 'c-extension-no-member'
+
+    def get_active_msgids(self, msgid_or_symbol: str) -> list[str]:
+        """Return msgids but the input can be a symbol.
+    
+        self.__active_msgids is used to implement a primitive cache for this function.
+        """
+        try:
+            return self.__active_msgids[msgid_or_symbol]
+        except KeyError:
+            pass
+    
+        # If we don't have a cached value yet we compute it
+        msgid: str | None
+        if msgid_or_symbol[1:].isdigit():
+            # Only msgid can have a digit as second letter
+            msgid = msgid_or_symbol.upper()
+            symbol = self.__msgid_to_symbol.get(msgid)
+        else:
+            msgid = self.__symbol_to_msgid.get(msgid_or_symbol)
+            symbol = msgid_or_symbol
+        if not msgid or not symbol:
+            error_msg = f"No such message id or symbol '{msgid_or_symbol}'."
+>           raise UnknownMessageError(error_msg)
+E           pylint.exceptions.UnknownMessageError: No such message id or symbol 'c-extension-no-member'.
+
+pylint/message/message_id_store.py:132: UnknownMessageError
+----------------------------- Captured stderr call -----------------------------
+Problem importing module typecheck.py: Unable to find module for /testbed/pylint/checkers/typecheck.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module threading_checker.py: Unable to find module for /testbed/pylint/checkers/threading_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module newstyle.py: Unable to find module for /testbed/pylint/checkers/newstyle.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module spelling.py: Unable to find module for /testbed/pylint/checkers/spelling.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module format.py: Unable to find module for /testbed/pylint/checkers/format.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module misc.py: Unable to find module for /testbed/pylint/checkers/misc.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module variables.py: Unable to find module for /testbed/pylint/checkers/variables.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module similar.py: Unable to find module for /testbed/pylint/checkers/similar.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module unicode.py: Unable to find module for /testbed/pylint/checkers/unicode.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module design_analysis.py: Unable to find module for /testbed/pylint/checkers/design_analysis.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module logging.py: Unable to find module for /testbed/pylint/checkers/logging.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module ellipsis_checker.py: Unable to find module for /testbed/pylint/checkers/ellipsis_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module base: Unable to find module for /testbed/pylint/checkers/base in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module stdlib.py: Unable to find module for /testbed/pylint/checkers/stdlib.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module deprecated.py: Unable to find module for /testbed/pylint/checkers/deprecated.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module refactoring: Unable to find module for /testbed/pylint/checkers/refactoring in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module utils.py: Unable to find module for /testbed/pylint/checkers/utils.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module non_ascii_names.py: Unable to find module for /testbed/pylint/checkers/non_ascii_names.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module classes: Unable to find module for /testbed/pylint/checkers/classes in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module exceptions.py: Unable to find module for /testbed/pylint/checkers/exceptions.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module imports.py: Unable to find module for /testbed/pylint/checkers/imports.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module unsupported_version.py: Unable to find module for /testbed/pylint/checkers/unsupported_version.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module raw_metrics.py: Unable to find module for /testbed/pylint/checkers/raw_metrics.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module modified_iterating_checker.py: Unable to find module for /testbed/pylint/checkers/modified_iterating_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module strings.py: Unable to find module for /testbed/pylint/checkers/strings.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module mapreduce_checker.py: Unable to find module for /testbed/pylint/checkers/mapreduce_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module async.py: Unable to find module for /testbed/pylint/checkers/async.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module dunder_methods.py: Unable to find module for /testbed/pylint/checkers/dunder_methods.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module base_checker.py: Unable to find module for /testbed/pylint/checkers/base_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module lambda_expressions.py: Unable to find module for /testbed/pylint/checkers/lambda_expressions.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module text.py: Unable to find module for /testbed/pylint/reporters/text.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module collecting_reporter.py: Unable to find module for /testbed/pylint/reporters/collecting_reporter.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module multi_reporter.py: Unable to find module for /testbed/pylint/reporters/multi_reporter.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module reports_handler_mix_in.py: Unable to find module for /testbed/pylint/reporters/reports_handler_mix_in.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module json_reporter.py: Unable to find module for /testbed/pylint/reporters/json_reporter.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module base_reporter.py: Unable to find module for /testbed/pylint/reporters/base_reporter.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module ureports: Unable to find module for /testbed/pylint/reporters/ureports in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+___________________________ test_unknown_option_name ___________________________
+
+capsys = <_pytest.capture.CaptureFixture object at 0x7fe567797b80>
+
+    def test_unknown_option_name(capsys: CaptureFixture) -> None:
+        """Check that we correctly raise a message on an unknown option."""
+        with pytest.raises(SystemExit):
+>           Run([str(EMPTY_MODULE), "--unknown-option=yes"], exit=False)
+
+tests/config/test_config.py:68: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pylint/testutils/_run.py:45: in __init__
+    super().__init__(args, reporter, exit, do_exit)
+pylint/lint/run.py:133: in __init__
+    linter.enable("c-extension-no-member")
+pylint/lint/pylinter.py:1531: in enable
+    self._set_msg_status(
+pylint/lint/pylinter.py:1455: in _set_msg_status
+    message_definitions = self._get_messages_to_set(msgid, enable, ignore_unknown)
+pylint/lint/pylinter.py:1438: in _get_messages_to_set
+    message_definitions = self.msgs_store.get_message_definitions(msgid)
+pylint/message/message_definition_store.py:68: in get_message_definitions
+    for m in self.message_id_store.get_active_msgids(msgid_or_symbol)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = MessageIdStore: [
+  - E0001 (syntax-error)
+  - E0011 (unrecognized-inline-option)
+  - E0012 (bad-option-value)
+  - E00...(suppressed-message)
+  - I0021 (useless-suppression)
+  - I0022 (deprecated-pragma)
+  - I0014 (deprecated-disable-all)
+]
+msgid_or_symbol = 'c-extension-no-member'
+
+    def get_active_msgids(self, msgid_or_symbol: str) -> list[str]:
+        """Return msgids but the input can be a symbol.
+    
+        self.__active_msgids is used to implement a primitive cache for this function.
+        """
+        try:
+            return self.__active_msgids[msgid_or_symbol]
+        except KeyError:
+            pass
+    
+        # If we don't have a cached value yet we compute it
+        msgid: str | None
+        if msgid_or_symbol[1:].isdigit():
+            # Only msgid can have a digit as second letter
+            msgid = msgid_or_symbol.upper()
+            symbol = self.__msgid_to_symbol.get(msgid)
+        else:
+            msgid = self.__symbol_to_msgid.get(msgid_or_symbol)
+            symbol = msgid_or_symbol
+        if not msgid or not symbol:
+            error_msg = f"No such message id or symbol '{msgid_or_symbol}'."
+>           raise UnknownMessageError(error_msg)
+E           pylint.exceptions.UnknownMessageError: No such message id or symbol 'c-extension-no-member'.
+
+pylint/message/message_id_store.py:132: UnknownMessageError
+----------------------------- Captured stderr call -----------------------------
+Problem importing module typecheck.py: Unable to find module for /testbed/pylint/checkers/typecheck.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module threading_checker.py: Unable to find module for /testbed/pylint/checkers/threading_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module newstyle.py: Unable to find module for /testbed/pylint/checkers/newstyle.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module spelling.py: Unable to find module for /testbed/pylint/checkers/spelling.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module format.py: Unable to find module for /testbed/pylint/checkers/format.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module misc.py: Unable to find module for /testbed/pylint/checkers/misc.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module variables.py: Unable to find module for /testbed/pylint/checkers/variables.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module similar.py: Unable to find module for /testbed/pylint/checkers/similar.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module unicode.py: Unable to find module for /testbed/pylint/checkers/unicode.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module design_analysis.py: Unable to find module for /testbed/pylint/checkers/design_analysis.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module logging.py: Unable to find module for /testbed/pylint/checkers/logging.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module ellipsis_checker.py: Unable to find module for /testbed/pylint/checkers/ellipsis_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module base: Unable to find module for /testbed/pylint/checkers/base in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module stdlib.py: Unable to find module for /testbed/pylint/checkers/stdlib.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module deprecated.py: Unable to find module for /testbed/pylint/checkers/deprecated.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module refactoring: Unable to find module for /testbed/pylint/checkers/refactoring in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module utils.py: Unable to find module for /testbed/pylint/checkers/utils.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module non_ascii_names.py: Unable to find module for /testbed/pylint/checkers/non_ascii_names.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module classes: Unable to find module for /testbed/pylint/checkers/classes in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module exceptions.py: Unable to find module for /testbed/pylint/checkers/exceptions.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module imports.py: Unable to find module for /testbed/pylint/checkers/imports.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module unsupported_version.py: Unable to find module for /testbed/pylint/checkers/unsupported_version.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module raw_metrics.py: Unable to find module for /testbed/pylint/checkers/raw_metrics.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module modified_iterating_checker.py: Unable to find module for /testbed/pylint/checkers/modified_iterating_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module strings.py: Unable to find module for /testbed/pylint/checkers/strings.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module mapreduce_checker.py: Unable to find module for /testbed/pylint/checkers/mapreduce_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module async.py: Unable to find module for /testbed/pylint/checkers/async.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module dunder_methods.py: Unable to find module for /testbed/pylint/checkers/dunder_methods.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module base_checker.py: Unable to find module for /testbed/pylint/checkers/base_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module lambda_expressions.py: Unable to find module for /testbed/pylint/checkers/lambda_expressions.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module text.py: Unable to find module for /testbed/pylint/reporters/text.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module collecting_reporter.py: Unable to find module for /testbed/pylint/reporters/collecting_reporter.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module multi_reporter.py: Unable to find module for /testbed/pylint/reporters/multi_reporter.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module reports_handler_mix_in.py: Unable to find module for /testbed/pylint/reporters/reports_handler_mix_in.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module json_reporter.py: Unable to find module for /testbed/pylint/reporters/json_reporter.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module base_reporter.py: Unable to find module for /testbed/pylint/reporters/base_reporter.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module ureports: Unable to find module for /testbed/pylint/reporters/ureports in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+________________________ test_unknown_short_option_name ________________________
+
+capsys = <_pytest.capture.CaptureFixture object at 0x7fe56779b670>
+
+    def test_unknown_short_option_name(capsys: CaptureFixture) -> None:
+        """Check that we correctly raise a message on an unknown short option."""
+        with pytest.raises(SystemExit):
+>           Run([str(EMPTY_MODULE), "-Q"], exit=False)
+
+tests/config/test_config.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pylint/testutils/_run.py:45: in __init__
+    super().__init__(args, reporter, exit, do_exit)
+pylint/lint/run.py:133: in __init__
+    linter.enable("c-extension-no-member")
+pylint/lint/pylinter.py:1531: in enable
+    self._set_msg_status(
+pylint/lint/pylinter.py:1455: in _set_msg_status
+    message_definitions = self._get_messages_to_set(msgid, enable, ignore_unknown)
+pylint/lint/pylinter.py:1438: in _get_messages_to_set
+    message_definitions = self.msgs_store.get_message_definitions(msgid)
+pylint/message/message_definition_store.py:68: in get_message_definitions
+    for m in self.message_id_store.get_active_msgids(msgid_or_symbol)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = MessageIdStore: [
+  - E0001 (syntax-error)
+  - E0011 (unrecognized-inline-option)
+  - E0012 (bad-option-value)
+  - E00...(suppressed-message)
+  - I0021 (useless-suppression)
+  - I0022 (deprecated-pragma)
+  - I0014 (deprecated-disable-all)
+]
+msgid_or_symbol = 'c-extension-no-member'
+
+    def get_active_msgids(self, msgid_or_symbol: str) -> list[str]:
+        """Return msgids but the input can be a symbol.
+    
+        self.__active_msgids is used to implement a primitive cache for this function.
+        """
+        try:
+            return self.__active_msgids[msgid_or_symbol]
+        except KeyError:
+            pass
+    
+        # If we don't have a cached value yet we compute it
+        msgid: str | None
+        if msgid_or_symbol[1:].isdigit():
+            # Only msgid can have a digit as second letter
+            msgid = msgid_or_symbol.upper()
+            symbol = self.__msgid_to_symbol.get(msgid)
+        else:
+            msgid = self.__symbol_to_msgid.get(msgid_or_symbol)
+            symbol = msgid_or_symbol
+        if not msgid or not symbol:
+            error_msg = f"No such message id or symbol '{msgid_or_symbol}'."
+>           raise UnknownMessageError(error_msg)
+E           pylint.exceptions.UnknownMessageError: No such message id or symbol 'c-extension-no-member'.
+
+pylint/message/message_id_store.py:132: UnknownMessageError
+----------------------------- Captured stderr call -----------------------------
+Problem importing module typecheck.py: Unable to find module for /testbed/pylint/checkers/typecheck.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module threading_checker.py: Unable to find module for /testbed/pylint/checkers/threading_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module newstyle.py: Unable to find module for /testbed/pylint/checkers/newstyle.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module spelling.py: Unable to find module for /testbed/pylint/checkers/spelling.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module format.py: Unable to find module for /testbed/pylint/checkers/format.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module misc.py: Unable to find module for /testbed/pylint/checkers/misc.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module variables.py: Unable to find module for /testbed/pylint/checkers/variables.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module similar.py: Unable to find module for /testbed/pylint/checkers/similar.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module unicode.py: Unable to find module for /testbed/pylint/checkers/unicode.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module design_analysis.py: Unable to find module for /testbed/pylint/checkers/design_analysis.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module logging.py: Unable to find module for /testbed/pylint/checkers/logging.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module ellipsis_checker.py: Unable to find module for /testbed/pylint/checkers/ellipsis_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module base: Unable to find module for /testbed/pylint/checkers/base in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module stdlib.py: Unable to find module for /testbed/pylint/checkers/stdlib.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module deprecated.py: Unable to find module for /testbed/pylint/checkers/deprecated.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module refactoring: Unable to find module for /testbed/pylint/checkers/refactoring in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module utils.py: Unable to find module for /testbed/pylint/checkers/utils.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module non_ascii_names.py: Unable to find module for /testbed/pylint/checkers/non_ascii_names.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module classes: Unable to find module for /testbed/pylint/checkers/classes in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module exceptions.py: Unable to find module for /testbed/pylint/checkers/exceptions.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module imports.py: Unable to find module for /testbed/pylint/checkers/imports.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module unsupported_version.py: Unable to find module for /testbed/pylint/checkers/unsupported_version.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module raw_metrics.py: Unable to find module for /testbed/pylint/checkers/raw_metrics.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module modified_iterating_checker.py: Unable to find module for /testbed/pylint/checkers/modified_iterating_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module strings.py: Unable to find module for /testbed/pylint/checkers/strings.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module mapreduce_checker.py: Unable to find module for /testbed/pylint/checkers/mapreduce_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module async.py: Unable to find module for /testbed/pylint/checkers/async.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module dunder_methods.py: Unable to find module for /testbed/pylint/checkers/dunder_methods.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module base_checker.py: Unable to find module for /testbed/pylint/checkers/base_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module lambda_expressions.py: Unable to find module for /testbed/pylint/checkers/lambda_expressions.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module text.py: Unable to find module for /testbed/pylint/reporters/text.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module collecting_reporter.py: Unable to find module for /testbed/pylint/reporters/collecting_reporter.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module multi_reporter.py: Unable to find module for /testbed/pylint/reporters/multi_reporter.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module reports_handler_mix_in.py: Unable to find module for /testbed/pylint/reporters/reports_handler_mix_in.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module json_reporter.py: Unable to find module for /testbed/pylint/reporters/json_reporter.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module base_reporter.py: Unable to find module for /testbed/pylint/reporters/base_reporter.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module ureports: Unable to find module for /testbed/pylint/reporters/ureports in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+___________________________ test_unknown_confidence ____________________________
+
+capsys = <_pytest.capture.CaptureFixture object at 0x7fe567797a90>
+
+    def test_unknown_confidence(capsys: CaptureFixture) -> None:
+        """Check that we correctly error an unknown confidence value."""
+        with pytest.raises(SystemExit):
+>           Run([str(EMPTY_MODULE), "--confidence=UNKNOWN_CONFIG"], exit=False)
+
+tests/config/test_config.py:86: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pylint/testutils/_run.py:45: in __init__
+    super().__init__(args, reporter, exit, do_exit)
+pylint/lint/run.py:133: in __init__
+    linter.enable("c-extension-no-member")
+pylint/lint/pylinter.py:1531: in enable
+    self._set_msg_status(
+pylint/lint/pylinter.py:1455: in _set_msg_status
+    message_definitions = self._get_messages_to_set(msgid, enable, ignore_unknown)
+pylint/lint/pylinter.py:1438: in _get_messages_to_set
+    message_definitions = self.msgs_store.get_message_definitions(msgid)
+pylint/message/message_definition_store.py:68: in get_message_definitions
+    for m in self.message_id_store.get_active_msgids(msgid_or_symbol)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = MessageIdStore: [
+  - E0001 (syntax-error)
+  - E0011 (unrecognized-inline-option)
+  - E0012 (bad-option-value)
+  - E00...(suppressed-message)
+  - I0021 (useless-suppression)
+  - I0022 (deprecated-pragma)
+  - I0014 (deprecated-disable-all)
+]
+msgid_or_symbol = 'c-extension-no-member'
+
+    def get_active_msgids(self, msgid_or_symbol: str) -> list[str]:
+        """Return msgids but the input can be a symbol.
+    
+        self.__active_msgids is used to implement a primitive cache for this function.
+        """
+        try:
+            return self.__active_msgids[msgid_or_symbol]
+        except KeyError:
+            pass
+    
+        # If we don't have a cached value yet we compute it
+        msgid: str | None
+        if msgid_or_symbol[1:].isdigit():
+            # Only msgid can have a digit as second letter
+            msgid = msgid_or_symbol.upper()
+            symbol = self.__msgid_to_symbol.get(msgid)
+        else:
+            msgid = self.__symbol_to_msgid.get(msgid_or_symbol)
+            symbol = msgid_or_symbol
+        if not msgid or not symbol:
+            error_msg = f"No such message id or symbol '{msgid_or_symbol}'."
+>           raise UnknownMessageError(error_msg)
+E           pylint.exceptions.UnknownMessageError: No such message id or symbol 'c-extension-no-member'.
+
+pylint/message/message_id_store.py:132: UnknownMessageError
+----------------------------- Captured stderr call -----------------------------
+Problem importing module typecheck.py: Unable to find module for /testbed/pylint/checkers/typecheck.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module threading_checker.py: Unable to find module for /testbed/pylint/checkers/threading_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module newstyle.py: Unable to find module for /testbed/pylint/checkers/newstyle.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module spelling.py: Unable to find module for /testbed/pylint/checkers/spelling.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module format.py: Unable to find module for /testbed/pylint/checkers/format.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module misc.py: Unable to find module for /testbed/pylint/checkers/misc.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module variables.py: Unable to find module for /testbed/pylint/checkers/variables.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module similar.py: Unable to find module for /testbed/pylint/checkers/similar.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module unicode.py: Unable to find module for /testbed/pylint/checkers/unicode.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module design_analysis.py: Unable to find module for /testbed/pylint/checkers/design_analysis.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module logging.py: Unable to find module for /testbed/pylint/checkers/logging.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module ellipsis_checker.py: Unable to find module for /testbed/pylint/checkers/ellipsis_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module base: Unable to find module for /testbed/pylint/checkers/base in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module stdlib.py: Unable to find module for /testbed/pylint/checkers/stdlib.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module deprecated.py: Unable to find module for /testbed/pylint/checkers/deprecated.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module refactoring: Unable to find module for /testbed/pylint/checkers/refactoring in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module utils.py: Unable to find module for /testbed/pylint/checkers/utils.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module non_ascii_names.py: Unable to find module for /testbed/pylint/checkers/non_ascii_names.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module classes: Unable to find module for /testbed/pylint/checkers/classes in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module exceptions.py: Unable to find module for /testbed/pylint/checkers/exceptions.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module imports.py: Unable to find module for /testbed/pylint/checkers/imports.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module unsupported_version.py: Unable to find module for /testbed/pylint/checkers/unsupported_version.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module raw_metrics.py: Unable to find module for /testbed/pylint/checkers/raw_metrics.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module modified_iterating_checker.py: Unable to find module for /testbed/pylint/checkers/modified_iterating_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module strings.py: Unable to find module for /testbed/pylint/checkers/strings.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module mapreduce_checker.py: Unable to find module for /testbed/pylint/checkers/mapreduce_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module async.py: Unable to find module for /testbed/pylint/checkers/async.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module dunder_methods.py: Unable to find module for /testbed/pylint/checkers/dunder_methods.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module base_checker.py: Unable to find module for /testbed/pylint/checkers/base_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module lambda_expressions.py: Unable to find module for /testbed/pylint/checkers/lambda_expressions.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module text.py: Unable to find module for /testbed/pylint/reporters/text.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module collecting_reporter.py: Unable to find module for /testbed/pylint/reporters/collecting_reporter.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module multi_reporter.py: Unable to find module for /testbed/pylint/reporters/multi_reporter.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module reports_handler_mix_in.py: Unable to find module for /testbed/pylint/reporters/reports_handler_mix_in.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module json_reporter.py: Unable to find module for /testbed/pylint/reporters/json_reporter.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module base_reporter.py: Unable to find module for /testbed/pylint/reporters/base_reporter.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module ureports: Unable to find module for /testbed/pylint/reporters/ureports in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+_____________________________ test_unknown_yes_no ______________________________
+
+capsys = <_pytest.capture.CaptureFixture object at 0x7fe567523ee0>
+
+    def test_unknown_yes_no(capsys: CaptureFixture) -> None:
+        """Check that we correctly error on an unknown yes/no value."""
+        with pytest.raises(SystemExit):
+>           Run([str(EMPTY_MODULE), "--reports=maybe"], exit=False)
+
+tests/config/test_config.py:94: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pylint/testutils/_run.py:45: in __init__
+    super().__init__(args, reporter, exit, do_exit)
+pylint/lint/run.py:133: in __init__
+    linter.enable("c-extension-no-member")
+pylint/lint/pylinter.py:1531: in enable
+    self._set_msg_status(
+pylint/lint/pylinter.py:1455: in _set_msg_status
+    message_definitions = self._get_messages_to_set(msgid, enable, ignore_unknown)
+pylint/lint/pylinter.py:1438: in _get_messages_to_set
+    message_definitions = self.msgs_store.get_message_definitions(msgid)
+pylint/message/message_definition_store.py:68: in get_message_definitions
+    for m in self.message_id_store.get_active_msgids(msgid_or_symbol)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = MessageIdStore: [
+  - E0001 (syntax-error)
+  - E0011 (unrecognized-inline-option)
+  - E0012 (bad-option-value)
+  - E00...(suppressed-message)
+  - I0021 (useless-suppression)
+  - I0022 (deprecated-pragma)
+  - I0014 (deprecated-disable-all)
+]
+msgid_or_symbol = 'c-extension-no-member'
+
+    def get_active_msgids(self, msgid_or_symbol: str) -> list[str]:
+        """Return msgids but the input can be a symbol.
+    
+        self.__active_msgids is used to implement a primitive cache for this function.
+        """
+        try:
+            return self.__active_msgids[msgid_or_symbol]
+        except KeyError:
+            pass
+    
+        # If we don't have a cached value yet we compute it
+        msgid: str | None
+        if msgid_or_symbol[1:].isdigit():
+            # Only msgid can have a digit as second letter
+            msgid = msgid_or_symbol.upper()
+            symbol = self.__msgid_to_symbol.get(msgid)
+        else:
+            msgid = self.__symbol_to_msgid.get(msgid_or_symbol)
+            symbol = msgid_or_symbol
+        if not msgid or not symbol:
+            error_msg = f"No such message id or symbol '{msgid_or_symbol}'."
+>           raise UnknownMessageError(error_msg)
+E           pylint.exceptions.UnknownMessageError: No such message id or symbol 'c-extension-no-member'.
+
+pylint/message/message_id_store.py:132: UnknownMessageError
+----------------------------- Captured stderr call -----------------------------
+Problem importing module typecheck.py: Unable to find module for /testbed/pylint/checkers/typecheck.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module threading_checker.py: Unable to find module for /testbed/pylint/checkers/threading_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module newstyle.py: Unable to find module for /testbed/pylint/checkers/newstyle.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module spelling.py: Unable to find module for /testbed/pylint/checkers/spelling.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module format.py: Unable to find module for /testbed/pylint/checkers/format.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module misc.py: Unable to find module for /testbed/pylint/checkers/misc.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module variables.py: Unable to find module for /testbed/pylint/checkers/variables.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module similar.py: Unable to find module for /testbed/pylint/checkers/similar.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module unicode.py: Unable to find module for /testbed/pylint/checkers/unicode.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module design_analysis.py: Unable to find module for /testbed/pylint/checkers/design_analysis.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module logging.py: Unable to find module for /testbed/pylint/checkers/logging.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module ellipsis_checker.py: Unable to find module for /testbed/pylint/checkers/ellipsis_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module base: Unable to find module for /testbed/pylint/checkers/base in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module stdlib.py: Unable to find module for /testbed/pylint/checkers/stdlib.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module deprecated.py: Unable to find module for /testbed/pylint/checkers/deprecated.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module refactoring: Unable to find module for /testbed/pylint/checkers/refactoring in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module utils.py: Unable to find module for /testbed/pylint/checkers/utils.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module non_ascii_names.py: Unable to find module for /testbed/pylint/checkers/non_ascii_names.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module classes: Unable to find module for /testbed/pylint/checkers/classes in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module exceptions.py: Unable to find module for /testbed/pylint/checkers/exceptions.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module imports.py: Unable to find module for /testbed/pylint/checkers/imports.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module unsupported_version.py: Unable to find module for /testbed/pylint/checkers/unsupported_version.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module raw_metrics.py: Unable to find module for /testbed/pylint/checkers/raw_metrics.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module modified_iterating_checker.py: Unable to find module for /testbed/pylint/checkers/modified_iterating_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module strings.py: Unable to find module for /testbed/pylint/checkers/strings.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module mapreduce_checker.py: Unable to find module for /testbed/pylint/checkers/mapreduce_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module async.py: Unable to find module for /testbed/pylint/checkers/async.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module dunder_methods.py: Unable to find module for /testbed/pylint/checkers/dunder_methods.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module base_checker.py: Unable to find module for /testbed/pylint/checkers/base_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module lambda_expressions.py: Unable to find module for /testbed/pylint/checkers/lambda_expressions.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module text.py: Unable to find module for /testbed/pylint/reporters/text.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module collecting_reporter.py: Unable to find module for /testbed/pylint/reporters/collecting_reporter.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module multi_reporter.py: Unable to find module for /testbed/pylint/reporters/multi_reporter.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module reports_handler_mix_in.py: Unable to find module for /testbed/pylint/reporters/reports_handler_mix_in.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module json_reporter.py: Unable to find module for /testbed/pylint/reporters/json_reporter.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module base_reporter.py: Unable to find module for /testbed/pylint/reporters/base_reporter.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module ureports: Unable to find module for /testbed/pylint/reporters/ureports in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+___________________________ test_unknown_py_version ____________________________
+
+capsys = <_pytest.capture.CaptureFixture object at 0x7fe567682ee0>
+
+    def test_unknown_py_version(capsys: CaptureFixture) -> None:
+        """Check that we correctly error on an unknown python-version."""
+        with pytest.raises(SystemExit):
+>           Run([str(EMPTY_MODULE), "--py-version=the-newest"], exit=False)
+
+tests/config/test_config.py:102: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pylint/testutils/_run.py:45: in __init__
+    super().__init__(args, reporter, exit, do_exit)
+pylint/lint/run.py:133: in __init__
+    linter.enable("c-extension-no-member")
+pylint/lint/pylinter.py:1531: in enable
+    self._set_msg_status(
+pylint/lint/pylinter.py:1455: in _set_msg_status
+    message_definitions = self._get_messages_to_set(msgid, enable, ignore_unknown)
+pylint/lint/pylinter.py:1438: in _get_messages_to_set
+    message_definitions = self.msgs_store.get_message_definitions(msgid)
+pylint/message/message_definition_store.py:68: in get_message_definitions
+    for m in self.message_id_store.get_active_msgids(msgid_or_symbol)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = MessageIdStore: [
+  - E0001 (syntax-error)
+  - E0011 (unrecognized-inline-option)
+  - E0012 (bad-option-value)
+  - E00...(suppressed-message)
+  - I0021 (useless-suppression)
+  - I0022 (deprecated-pragma)
+  - I0014 (deprecated-disable-all)
+]
+msgid_or_symbol = 'c-extension-no-member'
+
+    def get_active_msgids(self, msgid_or_symbol: str) -> list[str]:
+        """Return msgids but the input can be a symbol.
+    
+        self.__active_msgids is used to implement a primitive cache for this function.
+        """
+        try:
+            return self.__active_msgids[msgid_or_symbol]
+        except KeyError:
+            pass
+    
+        # If we don't have a cached value yet we compute it
+        msgid: str | None
+        if msgid_or_symbol[1:].isdigit():
+            # Only msgid can have a digit as second letter
+            msgid = msgid_or_symbol.upper()
+            symbol = self.__msgid_to_symbol.get(msgid)
+        else:
+            msgid = self.__symbol_to_msgid.get(msgid_or_symbol)
+            symbol = msgid_or_symbol
+        if not msgid or not symbol:
+            error_msg = f"No such message id or symbol '{msgid_or_symbol}'."
+>           raise UnknownMessageError(error_msg)
+E           pylint.exceptions.UnknownMessageError: No such message id or symbol 'c-extension-no-member'.
+
+pylint/message/message_id_store.py:132: UnknownMessageError
+----------------------------- Captured stderr call -----------------------------
+Problem importing module typecheck.py: Unable to find module for /testbed/pylint/checkers/typecheck.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module threading_checker.py: Unable to find module for /testbed/pylint/checkers/threading_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module newstyle.py: Unable to find module for /testbed/pylint/checkers/newstyle.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module spelling.py: Unable to find module for /testbed/pylint/checkers/spelling.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module format.py: Unable to find module for /testbed/pylint/checkers/format.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module misc.py: Unable to find module for /testbed/pylint/checkers/misc.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module variables.py: Unable to find module for /testbed/pylint/checkers/variables.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module similar.py: Unable to find module for /testbed/pylint/checkers/similar.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module unicode.py: Unable to find module for /testbed/pylint/checkers/unicode.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module design_analysis.py: Unable to find module for /testbed/pylint/checkers/design_analysis.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module logging.py: Unable to find module for /testbed/pylint/checkers/logging.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module ellipsis_checker.py: Unable to find module for /testbed/pylint/checkers/ellipsis_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module base: Unable to find module for /testbed/pylint/checkers/base in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module stdlib.py: Unable to find module for /testbed/pylint/checkers/stdlib.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module deprecated.py: Unable to find module for /testbed/pylint/checkers/deprecated.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module refactoring: Unable to find module for /testbed/pylint/checkers/refactoring in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module utils.py: Unable to find module for /testbed/pylint/checkers/utils.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module non_ascii_names.py: Unable to find module for /testbed/pylint/checkers/non_ascii_names.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module classes: Unable to find module for /testbed/pylint/checkers/classes in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module exceptions.py: Unable to find module for /testbed/pylint/checkers/exceptions.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module imports.py: Unable to find module for /testbed/pylint/checkers/imports.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module unsupported_version.py: Unable to find module for /testbed/pylint/checkers/unsupported_version.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module raw_metrics.py: Unable to find module for /testbed/pylint/checkers/raw_metrics.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module modified_iterating_checker.py: Unable to find module for /testbed/pylint/checkers/modified_iterating_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module strings.py: Unable to find module for /testbed/pylint/checkers/strings.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module mapreduce_checker.py: Unable to find module for /testbed/pylint/checkers/mapreduce_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module async.py: Unable to find module for /testbed/pylint/checkers/async.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module dunder_methods.py: Unable to find module for /testbed/pylint/checkers/dunder_methods.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module base_checker.py: Unable to find module for /testbed/pylint/checkers/base_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module lambda_expressions.py: Unable to find module for /testbed/pylint/checkers/lambda_expressions.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module text.py: Unable to find module for /testbed/pylint/reporters/text.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module collecting_reporter.py: Unable to find module for /testbed/pylint/reporters/collecting_reporter.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module multi_reporter.py: Unable to find module for /testbed/pylint/reporters/multi_reporter.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module reports_handler_mix_in.py: Unable to find module for /testbed/pylint/reporters/reports_handler_mix_in.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module json_reporter.py: Unable to find module for /testbed/pylint/reporters/json_reporter.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module base_reporter.py: Unable to find module for /testbed/pylint/reporters/base_reporter.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module ureports: Unable to find module for /testbed/pylint/reporters/ureports in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+______________________________ test_short_verbose ______________________________
+
+capsys = <_pytest.capture.CaptureFixture object at 0x7fe567523970>
+
+    def test_short_verbose(capsys: CaptureFixture) -> None:
+        """Check that we correctly handle the -v flag."""
+>       Run([str(EMPTY_MODULE), "-v"], exit=False)
+
+tests/config/test_config.py:109: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pylint/testutils/_run.py:45: in __init__
+    super().__init__(args, reporter, exit, do_exit)
+pylint/lint/run.py:133: in __init__
+    linter.enable("c-extension-no-member")
+pylint/lint/pylinter.py:1531: in enable
+    self._set_msg_status(
+pylint/lint/pylinter.py:1455: in _set_msg_status
+    message_definitions = self._get_messages_to_set(msgid, enable, ignore_unknown)
+pylint/lint/pylinter.py:1438: in _get_messages_to_set
+    message_definitions = self.msgs_store.get_message_definitions(msgid)
+pylint/message/message_definition_store.py:68: in get_message_definitions
+    for m in self.message_id_store.get_active_msgids(msgid_or_symbol)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = MessageIdStore: [
+  - E0001 (syntax-error)
+  - E0011 (unrecognized-inline-option)
+  - E0012 (bad-option-value)
+  - E00...(suppressed-message)
+  - I0021 (useless-suppression)
+  - I0022 (deprecated-pragma)
+  - I0014 (deprecated-disable-all)
+]
+msgid_or_symbol = 'c-extension-no-member'
+
+    def get_active_msgids(self, msgid_or_symbol: str) -> list[str]:
+        """Return msgids but the input can be a symbol.
+    
+        self.__active_msgids is used to implement a primitive cache for this function.
+        """
+        try:
+            return self.__active_msgids[msgid_or_symbol]
+        except KeyError:
+            pass
+    
+        # If we don't have a cached value yet we compute it
+        msgid: str | None
+        if msgid_or_symbol[1:].isdigit():
+            # Only msgid can have a digit as second letter
+            msgid = msgid_or_symbol.upper()
+            symbol = self.__msgid_to_symbol.get(msgid)
+        else:
+            msgid = self.__symbol_to_msgid.get(msgid_or_symbol)
+            symbol = msgid_or_symbol
+        if not msgid or not symbol:
+            error_msg = f"No such message id or symbol '{msgid_or_symbol}'."
+>           raise UnknownMessageError(error_msg)
+E           pylint.exceptions.UnknownMessageError: No such message id or symbol 'c-extension-no-member'.
+
+pylint/message/message_id_store.py:132: UnknownMessageError
+----------------------------- Captured stderr call -----------------------------
+Problem importing module typecheck.py: Unable to find module for /testbed/pylint/checkers/typecheck.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module threading_checker.py: Unable to find module for /testbed/pylint/checkers/threading_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module newstyle.py: Unable to find module for /testbed/pylint/checkers/newstyle.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module spelling.py: Unable to find module for /testbed/pylint/checkers/spelling.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module format.py: Unable to find module for /testbed/pylint/checkers/format.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module misc.py: Unable to find module for /testbed/pylint/checkers/misc.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module variables.py: Unable to find module for /testbed/pylint/checkers/variables.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module similar.py: Unable to find module for /testbed/pylint/checkers/similar.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module unicode.py: Unable to find module for /testbed/pylint/checkers/unicode.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module design_analysis.py: Unable to find module for /testbed/pylint/checkers/design_analysis.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module logging.py: Unable to find module for /testbed/pylint/checkers/logging.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module ellipsis_checker.py: Unable to find module for /testbed/pylint/checkers/ellipsis_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module base: Unable to find module for /testbed/pylint/checkers/base in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module stdlib.py: Unable to find module for /testbed/pylint/checkers/stdlib.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module deprecated.py: Unable to find module for /testbed/pylint/checkers/deprecated.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module refactoring: Unable to find module for /testbed/pylint/checkers/refactoring in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module utils.py: Unable to find module for /testbed/pylint/checkers/utils.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module non_ascii_names.py: Unable to find module for /testbed/pylint/checkers/non_ascii_names.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module classes: Unable to find module for /testbed/pylint/checkers/classes in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module exceptions.py: Unable to find module for /testbed/pylint/checkers/exceptions.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module imports.py: Unable to find module for /testbed/pylint/checkers/imports.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module unsupported_version.py: Unable to find module for /testbed/pylint/checkers/unsupported_version.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module raw_metrics.py: Unable to find module for /testbed/pylint/checkers/raw_metrics.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module modified_iterating_checker.py: Unable to find module for /testbed/pylint/checkers/modified_iterating_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module strings.py: Unable to find module for /testbed/pylint/checkers/strings.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module mapreduce_checker.py: Unable to find module for /testbed/pylint/checkers/mapreduce_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module async.py: Unable to find module for /testbed/pylint/checkers/async.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module dunder_methods.py: Unable to find module for /testbed/pylint/checkers/dunder_methods.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module base_checker.py: Unable to find module for /testbed/pylint/checkers/base_checker.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module lambda_expressions.py: Unable to find module for /testbed/pylint/checkers/lambda_expressions.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module text.py: Unable to find module for /testbed/pylint/reporters/text.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module collecting_reporter.py: Unable to find module for /testbed/pylint/reporters/collecting_reporter.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module multi_reporter.py: Unable to find module for /testbed/pylint/reporters/multi_reporter.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module reports_handler_mix_in.py: Unable to find module for /testbed/pylint/reporters/reports_handler_mix_in.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module json_reporter.py: Unable to find module for /testbed/pylint/reporters/json_reporter.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module base_reporter.py: Unable to find module for /testbed/pylint/reporters/base_reporter.py in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+Problem importing module ureports: Unable to find module for /testbed/pylint/reporters/ureports in /testbed/tests/config, 
+/testbed/tests, 
+/opt/miniconda3/envs/testbed/bin, 
+/opt/miniconda3/envs/testbed/lib/python39.zip, 
+/opt/miniconda3/envs/testbed/lib/python3.9, 
+/opt/miniconda3/envs/testbed/lib/python3.9/lib-dynload, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages, 
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/setuptools/_vendor
+=============================== warnings summary ===============================
+../opt/miniconda3/envs/testbed/lib/python3.9/site-packages/astroid/interpreter/_import/util.py:6
+  /opt/miniconda3/envs/testbed/lib/python3.9/site-packages/astroid/interpreter/_import/util.py:6: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+    import pkg_resources
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/config/test_config.py::test_can_read_toml_env_variable - pylint....
+FAILED tests/config/test_config.py::test_unknown_message_id - pylint.exceptio...
+FAILED tests/config/test_config.py::test_unknown_option_name - pylint.excepti...
+FAILED tests/config/test_config.py::test_unknown_short_option_name - pylint.e...
+FAILED tests/config/test_config.py::test_unknown_confidence - pylint.exceptio...
+FAILED tests/config/test_config.py::test_unknown_yes_no - pylint.exceptions.U...
+FAILED tests/config/test_config.py::test_unknown_py_version - pylint.exceptio...
+FAILED tests/config/test_config.py::test_short_verbose - pylint.exceptions.Un...
+========================= 8 failed, 1 warning in 0.36s =========================
++ : '>>>>> End Test Output'
++ git checkout 0a4204fd7555cfedd43f43017c94d24ef48244a5 tests/config/test_config.py
+Updated 1 path from 8cc4d926

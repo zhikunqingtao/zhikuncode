@@ -1,0 +1,55 @@
+2026-05-19 23:05:56,724 - INFO - Environment image sweb.env.py.x86_64.a18371b03f944585b4f08c:latest found for django__django-12284
+Building instance image sweb.eval.x86_64.django__django-12284:latest for django__django-12284
+2026-05-19 23:10:05,801 - INFO - Creating container for django__django-12284...
+2026-05-19 23:10:05,824 - INFO - Container for django__django-12284 created: 8c89bc35188f39e4e427fdc996371d3a5676745055bf4bd188a822f805763057
+2026-05-19 23:10:05,925 - INFO - Container for django__django-12284 started: 8c89bc35188f39e4e427fdc996371d3a5676745055bf4bd188a822f805763057
+2026-05-19 23:10:05,925 - INFO - Intermediate patch for django__django-12284 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-12284/patch.diff, now applying to container...
+2026-05-19 23:10:05,971 - INFO - >>>>> Applied Patch:
+Checking patch django/db/models/fields/__init__.py...
+Applied patch django/db/models/fields/__init__.py cleanly.
+
+2026-05-19 23:10:06,434 - INFO - Git diff before:
+diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py
+index 1a55d3d417..5d4235c40a 100644
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -764,7 +764,10 @@ class Field(RegisterLookupMixin):
+             if not getattr(cls, self.attname, None):
+                 setattr(cls, self.attname, self.descriptor_class(self))
+         if self.choices is not None:
+-            if not hasattr(cls, 'get_%s_display' % self.name):
++            # Don't override a user-defined get_FOO_display method, but do
++            # override an inherited one (e.g. from a parent model with the
++            # same field name but different choices).
++            if 'get_%s_display' % self.name not in cls.__dict__:
+                 setattr(
+                     cls,
+                     'get_%s_display' % self.name,
+2026-05-19 23:10:06,434 - INFO - Eval script for django__django-12284 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-12284/eval.sh; copying to container...
+2026-05-19 23:10:09,774 - INFO - Test runtime: 3.32 seconds
+2026-05-19 23:10:09,775 - INFO - Test output for django__django-12284 written to logs/run_evaluation/zhikuncode_eval_300_FINAL/zhikuncode/django__django-12284/test_output.txt
+2026-05-19 23:10:09,814 - INFO - Git diff after:
+diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py
+index 1a55d3d417..5d4235c40a 100644
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -764,7 +764,10 @@ class Field(RegisterLookupMixin):
+             if not getattr(cls, self.attname, None):
+                 setattr(cls, self.attname, self.descriptor_class(self))
+         if self.choices is not None:
+-            if not hasattr(cls, 'get_%s_display' % self.name):
++            # Don't override a user-defined get_FOO_display method, but do
++            # override an inherited one (e.g. from a parent model with the
++            # same field name but different choices).
++            if 'get_%s_display' % self.name not in cls.__dict__:
+                 setattr(
+                     cls,
+                     'get_%s_display' % self.name,
+2026-05-19 23:10:09,814 - INFO - Grading answer for django__django-12284...
+2026-05-19 23:10:09,815 - INFO - report: {'django__django-12284': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_overriding_inherited_FIELD_display (model_fields.tests.GetFieldDisplayTests)'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_blank_in_choices (model_fields.tests.GetChoicesTests)', 'test_blank_in_grouped_choices (model_fields.tests.GetChoicesTests)', 'test_empty_choices (model_fields.tests.GetChoicesTests)', 'test_lazy_strings_not_evaluated (model_fields.tests.GetChoicesTests)', 'test_choices_and_field_display (model_fields.tests.GetFieldDisplayTests)', 'test_empty_iterator_choices (model_fields.tests.GetFieldDisplayTests)', 'A translated display value is coerced to str.', 'test_iterator_choices (model_fields.tests.GetFieldDisplayTests)', 'test_overriding_FIELD_display (model_fields.tests.GetFieldDisplayTests)', 'test_check (model_fields.tests.ChoicesTests)', 'test_choices (model_fields.tests.ChoicesTests)', 'test_flatchoices (model_fields.tests.ChoicesTests)', 'test_formfield (model_fields.tests.ChoicesTests)', 'test_invalid_choice (model_fields.tests.ChoicesTests)', 'test_get_choices (model_fields.tests.GetChoicesLimitChoicesToTests)', 'test_get_choices_reverse_related_field (model_fields.tests.GetChoicesLimitChoicesToTests)', 'Can supply a custom choices form class to Field.formfield()', 'deconstruct() uses __qualname__ for nested class support.', 'Field instances can be pickled.', 'test_field_name (model_fields.tests.BasicFieldTests)', 'Fields are ordered based on their creation.', 'test_field_repr (model_fields.tests.BasicFieldTests)', '__repr__() uses __qualname__ for nested class support.', 'test_field_str (model_fields.tests.BasicFieldTests)', 'test_field_verbose_name (model_fields.tests.BasicFieldTests)', 'Field.formfield() sets disabled for fields with choices.', 'test_show_hidden_initial (model_fields.tests.BasicFieldTests)', 'test_get_choices (model_fields.tests.GetChoicesOrderingTests)', 'test_get_choices_default_ordering (model_fields.tests.GetChoicesOrderingTests)', 'test_get_choices_reverse_related_field (model_fields.tests.GetChoicesOrderingTests)', 'test_get_choices_reverse_related_field_default_ordering (model_fields.tests.GetChoicesOrderingTests)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-12284: resolved: True
+2026-05-19 23:10:09,815 - INFO - Attempting to stop container sweb.eval.django__django-12284.zhikuncode_eval_300_FINAL...
+2026-05-19 23:10:25,181 - INFO - Attempting to remove container sweb.eval.django__django-12284.zhikuncode_eval_300_FINAL...
+2026-05-19 23:10:25,192 - INFO - Container sweb.eval.django__django-12284.zhikuncode_eval_300_FINAL removed.
+2026-05-19 23:10:25,192 - INFO - Attempting to remove image sweb.eval.x86_64.django__django-12284:latest...
+2026-05-19 23:10:25,329 - INFO - Image sweb.eval.x86_64.django__django-12284:latest removed.

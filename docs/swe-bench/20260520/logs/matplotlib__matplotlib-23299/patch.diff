@@ -1,0 +1,20 @@
+diff --git a/lib/matplotlib/__init__.py b/lib/matplotlib/__init__.py
+index c268a56..6c2cf40 100644
+--- a/lib/matplotlib/__init__.py
++++ b/lib/matplotlib/__init__.py
+@@ -1096,6 +1096,15 @@ def rc_context(rc=None, fname=None):
+         yield
+     finally:
+         dict.update(rcParams, orig)  # Revert to the original rcs.
++        # If the backend was auto-resolved while in the context, don't
++        # revert it back to the sentinel (which would trigger a new
++        # backend switch and close all figures on the next get_backend()).
++        if (dict.__getitem__(rcParams, 'backend')
++                is rcsetup._auto_backend_sentinel
++                and rcParamsOrig.get('backend')
++                is not rcsetup._auto_backend_sentinel):
++            dict.__setitem__(rcParams, 'backend',
++                             rcParamsOrig['backend'])
+ 
+ 
+ def use(backend, *, force=True):

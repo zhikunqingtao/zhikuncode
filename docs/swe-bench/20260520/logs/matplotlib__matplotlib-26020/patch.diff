@@ -1,0 +1,22 @@
+diff --git a/lib/mpl_toolkits/axes_grid1/axes_grid.py b/lib/mpl_toolkits/axes_grid1/axes_grid.py
+index 2b1b1d3..7daf104 100644
+--- a/lib/mpl_toolkits/axes_grid1/axes_grid.py
++++ b/lib/mpl_toolkits/axes_grid1/axes_grid.py
+@@ -13,8 +13,15 @@ from .mpl_axes import Axes
+ def _tick_only(ax, bottom_on, left_on):
+     bottom_off = not bottom_on
+     left_off = not left_on
+-    ax.axis["bottom"].toggle(ticklabels=bottom_off, label=bottom_off)
+-    ax.axis["left"].toggle(ticklabels=left_off, label=left_off)
++    # mpl_axes.Axes has a dict-like axis attribute, but standard Axes
++    # (and subclasses like cartopy GeoAxes) have axis as a method.
++    # Handle both cases.
++    if hasattr(ax, '_axislines'):
++        ax.axis["bottom"].toggle(ticklabels=bottom_off, label=bottom_off)
++        ax.axis["left"].toggle(ticklabels=left_off, label=left_off)
++    else:
++        ax.tick_params(bottom=bottom_on, labelbottom=bottom_on,
++                       left=left_on, labelleft=left_on)
+ 
+ 
+ class CbarAxesBase:
