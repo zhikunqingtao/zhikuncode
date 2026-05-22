@@ -87,7 +87,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
                         httpProperties.pool().keepAliveSeconds(),
                         java.util.concurrent.TimeUnit.SECONDS))
                 .connectTimeout(Duration.ofSeconds(httpProperties.connectTimeoutSeconds()))
-                .readTimeout(Duration.ofMinutes(5)) // SSE 5分钟读超时（防止连接泄漏）
+                .readTimeout(Duration.ofMinutes(10)) // SSE 10分钟读超时（防止连接泄漏）
                 .writeTimeout(Duration.ofSeconds(httpProperties.writeTimeoutSeconds()))
                 .retryOnConnectionFailure(httpProperties.retryOnFailure())
                 .build();
