@@ -36,7 +36,7 @@
 > **deploy it to a server, open a browser, and start coding. Works on your phone too.**
 
 > 🏗️ **[View Full System Architecture →](https://zhikunqingtao.github.io/zhikuncode/ZhikunCode-Architecture.html)**  
-> Three-tier Separation · 660+ Files · 110,646 Lines of Code · Full Visualization
+> Three-tier Separation · 837 Files · 109,548 Lines of Code (137,169 lines including tests) · Full Visualization
 
 > 🏆 **[SWE-bench Lite Technical Report →](https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html)**  
 > Submission namespace `20260520_zhikuncode` · Official harness Resolve **139 / 300 (46.3%)** · Patch generation 280 / 300 (93.3%)

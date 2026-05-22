@@ -36,7 +36,7 @@
 > **部署到服务器，打开浏览器就能用，手机上也行**
 
 > 🏗️ **[查看完整系统架构图 →](https://zhikunqingtao.github.io/zhikuncode/ZhikunCode-Architecture.html)**  
-> 三端分离 · 660+ 文件 · 110,646 行代码 · 全景可视化
+> 三端分离 · 837 文件 · 109,548 行代码（含测试 137,169 行）· 全景可视化
 
 > 🏆 **[SWE-bench Lite 技术报告 →](https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html)**  
 > 提交命名空间 `20260520_zhikuncode` · 官方 harness 评测 Resolve **139 / 300 (46.3%)** · Patch 生成率 280 / 300 (93.3%)
