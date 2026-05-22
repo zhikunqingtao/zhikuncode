@@ -10,6 +10,7 @@
     <a href="#-quick-start">Quick Start</a> ·
     <a href="#-key-features">Key Features</a> ·
     <a href="#-demo">Demo</a> ·
+    <a href="#-swe-bench-lite-evaluation">SWE-bench</a> ·
     <a href="#-cli-tools">CLI Tools</a> ·
     <a href="#-skill-system">Skill System</a> ·
     <a href="#-plugin-system">Plugin System</a> ·
@@ -26,6 +27,7 @@
     <a href="https://github.com/zhikunqingtao/zhikuncode"><img src="https://img.shields.io/github/last-commit/zhikunqingtao/zhikuncode" alt="Last Commit" /></a>
     <a href="https://github.com/zhikunqingtao/zhikuncode"><img src="https://img.shields.io/github/languages/code-size/zhikunqingtao/zhikuncode" alt="Code Size" /></a>
     <a href="https://github.com/zhikunqingtao/zhikuncode/actions/workflows/ci.yml"><img src="https://github.com/zhikunqingtao/zhikuncode/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+    <a href="https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html"><img src="https://img.shields.io/badge/SWE--bench%20Lite-46.3%25%20(139%2F300)-7a2410?logo=python&logoColor=white" alt="SWE-bench Lite 46.3% (139/300)" /></a>
   </p>
 </div>
 
@@ -35,6 +37,9 @@
 
 > 🏗️ **[View Full System Architecture →](https://zhikunqingtao.github.io/zhikuncode/ZhikunCode-Architecture.html)**  
 > Three-tier Separation · 660+ Files · 110,646 Lines of Code · Full Visualization
+
+> 🏆 **[SWE-bench Lite Technical Report →](https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html)**  
+> Submission namespace `20260520_zhikuncode` · Official harness Resolve **139 / 300 (46.3%)** · Patch generation 280 / 300 (93.3%)
 
 ---
 
@@ -50,6 +55,7 @@
 | ⚡ | **Intelligent Context Management** | Five-layer compression cascade + incremental collapse (auto-compress every 10 turns) + 413 three-phase recovery (aggressive compression → reactive compact → media stripping) + Precise Token Counting (tiktoken multi-model support) + Self-Correction Loop (auto-diagnose compile/test failures, max 3 retries) + three-level token alerts for seamless ultra-long conversations |
 | 🖼️ | **Browser Semantic Snapshot** | `/snap` command captures full web page state (DOM structure + interactive elements), extracts structured JSON for Agent parsing and replay verification |
 | 📊 | **Real-Time Activity Tracking & Approval** | Activity Panel records full AI tool execution lifecycle, L1/L2/L3 three-layer display, Signal smart tagging (auto_approve/review_recommended/needs_review), one-click batch approval, SQLite backend persistence, session restoration support |
+| 🏆 | **SWE-bench Lite Submission** | Single backbone `qwen-3.6-max-preview` + closed six-tool set (Read/Edit/Write/Bash/Grep/Glob); no internet, no sub-agent. Official harness reports **Resolve 46.3% (139/300)** and Patch generation **93.3% (280/300)**. [Technical Report →](https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html) |
 
 ---
 
@@ -218,6 +224,52 @@ Starting from the latest version, the following MCP services hosted on `dashscop
 2. Uncomment the `zhipu-websearch` block in [`backend/src/main/resources/application.yml`](../backend/src/main/resources/application.yml).
 3. Flip `enabled` to `true` for the entries you need in [`configuration/mcp/mcp_capability_registry.json`](../configuration/mcp/mcp_capability_registry.json).
 4. Run `./stop.sh && ./start.sh` to fully restart all three tiers so the changes take effect.
+
+---
+
+## 🏆 SWE-bench Lite Evaluation
+
+ZhikunCode has completed an end-to-end SWE-bench Lite evaluation (300 instances, pass@1) under the official harness, achieving an **official Resolve Rate of 46.3% (139/300)**. All artifacts (`all_preds.jsonl`, `results.json`, `metadata.yaml`, trajectories) are open-source under [`docs/swe-bench/20260520/`](swe-bench/20260520/) for third-party reproduction.
+
+### Key Metrics
+
+| Metric | Value | Source |
+|---|---|---|
+| Resolved Instances | **139 / 300 (46.3%)** | `docs/swe-bench/20260520/results/results.json` `resolved=139` |
+| Patch Generation Rate | **280 / 300 (93.3%)** | `all_preds.jsonl` (20 empty patches) |
+| Backbone Model | `qwen-3.6-max-preview` | `docs/swe-bench/20260520/metadata.yaml` |
+| Closed Tool Set | Read / Edit / Write / Bash / Grep / Glob | [`swe-bench/swe_bench.py`](../swe-bench/swe_bench.py) `ALLOWED_TOOLS` |
+| Per-instance Budget | 60 turns / 900 seconds | [`swe_bench.py`](../swe-bench/swe_bench.py) `solve_instance(max_turns=60, timeout=900)` |
+| Parallel Workers | 1 | `--workers` default |
+| Network / Sub-agent | Both disabled | Explicit in system prompt |
+| Submission Namespace | `20260520_zhikuncode` | `metadata.yaml` |
+
+### Per-Repository Breakdown (from `results/resolved_by_repo.json`)
+
+| Repository | Resolved / Total | Resolve Rate |
+|---|---|---|
+| mwaskom/seaborn | 3 / 4 | **75.0%** |
+| django/django | 69 / 114 | **60.5%** |
+| psf/requests | 3 / 6 | 50.0% |
+| sympy/sympy | 38 / 77 | 49.4% |
+| pytest-dev/pytest | 7 / 17 | 41.2% |
+| pydata/xarray | 2 / 5 | 40.0% |
+| astropy/astropy | 2 / 6 | 33.3% |
+| pallets/flask | 1 / 3 | 33.3% |
+| scikit-learn/scikit-learn | 6 / 23 | 26.1% |
+| sphinx-doc/sphinx | 3 / 16 | 18.8% |
+| matplotlib/matplotlib | 4 / 23 | 17.4% |
+| pylint-dev/pylint | 1 / 6 | 16.7% |
+| **Total** | **139 / 300** | **46.3%** |
+
+### Engineering Highlights (every claim is source-traceable)
+
+- **Agent-Loop with explicit four phases** ANALYZE→LOCATE→FIX→VERIFY, hard-enforced by the system prompt ([swe_bench.py](../swe-bench/swe_bench.py))
+- **Five-layer context compression cascade** Snip / MicroCompact / AutoCompact / CollapseDrain / ReactiveCompact ([ContextCascade.java](../backend/src/main/java/com/aicodeassistant/engine/ContextCascade.java))
+- **Two-phase 413 recovery** CollapseDrain → ReactiveCompact, keeping 60-turn sessions inside the context window
+- **Self-correction loop** turning compile/test failures into structured re-prompting, hard-capped at 3 attempts ([SelfCorrectionLoop.java](../backend/src/main/java/com/aicodeassistant/engine/correction/SelfCorrectionLoop.java) `MAX_ATTEMPTS = 3`)
+
+📄 Full methodology and reproduction command in the technical report: <https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html>
 
 ---
 

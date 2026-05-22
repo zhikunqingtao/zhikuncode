@@ -10,6 +10,7 @@
     <a href="#-快速开始">快速开始</a> ·
     <a href="#-特性亮点">核心特性</a> ·
     <a href="#-demo">在线演示</a> ·
+    <a href="#-swe-bench-lite-评测">SWE-bench 评测</a> ·
     <a href="#-cli-工具">CLI 工具</a> ·
     <a href="#-skill技能系统">skill技能系统</a> ·
     <a href="#-插件系统">插件系统</a> ·
@@ -26,6 +27,7 @@
     <a href="https://github.com/zhikunqingtao/zhikuncode"><img src="https://img.shields.io/github/last-commit/zhikunqingtao/zhikuncode" alt="Last Commit" /></a>
     <a href="https://github.com/zhikunqingtao/zhikuncode"><img src="https://img.shields.io/github/languages/code-size/zhikunqingtao/zhikuncode" alt="Code Size" /></a>
     <a href="https://github.com/zhikunqingtao/zhikuncode/actions/workflows/ci.yml"><img src="https://github.com/zhikunqingtao/zhikuncode/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+    <a href="https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html"><img src="https://img.shields.io/badge/SWE--bench%20Lite-46.3%25%20(139%2F300)-7a2410?logo=python&logoColor=white" alt="SWE-bench Lite 46.3% (139/300)" /></a>
   </p>
 </div>
 
@@ -35,6 +37,9 @@
 
 > 🏗️ **[查看完整系统架构图 →](https://zhikunqingtao.github.io/zhikuncode/ZhikunCode-Architecture.html)**  
 > 三端分离 · 660+ 文件 · 110,646 行代码 · 全景可视化
+
+> 🏆 **[SWE-bench Lite 技术报告 →](https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html)**  
+> 提交命名空间 `20260520_zhikuncode` · 官方 harness 评测 Resolve **139 / 300 (46.3%)** · Patch 生成率 280 / 300 (93.3%)
 
 ---
 
@@ -50,6 +55,7 @@
 | ⚡ | **智能上下文管理** | 五层压缩级联 + 增量折叠（每10轮自动压缩）+ 413三阶段恢复（激进压缩→反应式压缩→媒体剥离）+ 精确 Token 计数（tiktoken 多模型支持）+ 自纠错循环（编译/测试失败自动诊断修复，最多3次）+ Token三级告警，无缝应对超长对话 |
 | 🖼️ | **浏览器语义快照** | `/snap` 命令智能捕获网页完整状态（DOM 结构 + 交互元素），支持富交互页面语义提取，生成结构化 JSON 供 Agent 解析和回放验证 |
 | 📊 | **实时活动追踪与审批** | Activity Panel 实时记录 AI 工具执行全流程，L1/L2/L3 三层展示体系，Signal 智能标记（auto_approve/review_recommended/needs_review），一键批量审批决策，SQLite 后端持久化，支持会话恢复 |
+| 🏆 | **SWE-bench Lite 实测** | 单模型 `qwen-3.6-max-preview` + 6 工具闭集（Read/Edit/Write/Bash/Grep/Glob），无网络、无 sub-agent；官方 harness 评测 **Resolve 46.3% (139/300)**、Patch 生成率 **93.3% (280/300)**，[技术报告 →](https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html) |
 
 ---
 
@@ -218,6 +224,52 @@ LLM_PROVIDER_MOONSHOT_API_KEY=your-moonshot-key
 2. 在 [`backend/src/main/resources/application.yml`](backend/src/main/resources/application.yml) 中取消 `zhipu-websearch` 配置块的注释。
 3. 在 [`configuration/mcp/mcp_capability_registry.json`](configuration/mcp/mcp_capability_registry.json) 中把需要的条目 `enabled` 改为 `true`。
 4. 通过 `./stop.sh && ./start.sh` 完整重启三端使配置生效。
+
+---
+
+## 🏆 SWE-bench Lite 评测
+
+ZhikunCode 已完成 SWE-bench Lite（300 实例，pass@1）官方 harness 评测，**Resolve Rate 46.3% (139/300)**。所有评测产物（`all_preds.jsonl`、`results.json`、`metadata.yaml`、轨迹）已开源在 [`docs/swe-bench/20260520/`](docs/swe-bench/20260520/)，可第三方复现。
+
+### 关键指标
+
+| 指标 | 数值 | 出处 |
+|---|---|---|
+| Resolved Instances | **139 / 300 (46.3%)** | `docs/swe-bench/20260520/results/results.json` `resolved=139` |
+| Patch 生成率 | **280 / 300 (93.3%)** | `all_preds.jsonl`（其中 20 条空 patch） |
+| 主干模型 | `qwen-3.6-max-preview` | `docs/swe-bench/20260520/metadata.yaml` |
+| 工具闭集 | Read / Edit / Write / Bash / Grep / Glob | [`swe-bench/swe_bench.py`](swe-bench/swe_bench.py) `ALLOWED_TOOLS` |
+| 单实例预算 | 60 轮 / 900 秒 | [`swe_bench.py`](swe-bench/swe_bench.py) `solve_instance(max_turns=60, timeout=900)` |
+| 并发 worker | 1 | `--workers` 默认值 |
+| 网络 / Sub-agent | 均禁用 | 系统提示显式声明 |
+| 提交命名空间 | `20260520_zhikuncode` | `metadata.yaml` |
+
+### 仓库级表现（`results/resolved_by_repo.json`）
+
+| Repository | Resolved / Total | Resolve Rate |
+|---|---|---|
+| mwaskom/seaborn | 3 / 4 | **75.0%** |
+| django/django | 69 / 114 | **60.5%** |
+| psf/requests | 3 / 6 | 50.0% |
+| sympy/sympy | 38 / 77 | 49.4% |
+| pytest-dev/pytest | 7 / 17 | 41.2% |
+| pydata/xarray | 2 / 5 | 40.0% |
+| astropy/astropy | 2 / 6 | 33.3% |
+| pallets/flask | 1 / 3 | 33.3% |
+| scikit-learn/scikit-learn | 6 / 23 | 26.1% |
+| sphinx-doc/sphinx | 3 / 16 | 18.8% |
+| matplotlib/matplotlib | 4 / 23 | 17.4% |
+| pylint-dev/pylint | 1 / 6 | 16.7% |
+| **Total** | **139 / 300** | **46.3%** |
+
+### 工程亮点（每一项均可在源码定位）
+
+- **Agent-Loop 显式四相位** ANALYZE→LOCATE→FIX→VERIFY，相位边界由系统提示硬约束（[swe_bench.py](swe-bench/swe_bench.py)）
+- **五层上下文压缩级联** Snip / MicroCompact / AutoCompact / CollapseDrain / ReactiveCompact（[ContextCascade.java](backend/src/main/java/com/aicodeassistant/engine/ContextCascade.java)）
+- **413 两阶段恢复** CollapseDrain → ReactiveCompact，保障 60 轮会话收敛于上下文窗口内
+- **自纠错循环** 编译/测试失败结构化再提示，硬上限 3 次（[SelfCorrectionLoop.java](backend/src/main/java/com/aicodeassistant/engine/correction/SelfCorrectionLoop.java) `MAX_ATTEMPTS = 3`）
+
+📄 完整方法学与可复现命令见技术报告：<https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html>
 
 ---
 
