@@ -73,9 +73,9 @@ export function SettingsPanel() {
 
 /** 模型选择下拉框 */
 function ModelPicker() {
-  const [model, setModel] = useState('qwen3.6-max-preview');
+  const [model, setModel] = useState('qwen3.7-max');
   const models = [
-    { id: 'qwen3.6-max-preview', name: 'Qwen 3.6 Max Preview', description: '最强推理' },
+    { id: 'qwen3.7-max', name: 'Qwen 3.7 Max', description: '最强推理' },
     { id: 'qwen3.6-plus', name: 'Qwen 3.6 Plus', description: '均衡性能' },
     { id: 'qwen-max', name: 'Qwen Max', description: '最强推理' },
     { id: 'qwen-turbo', name: 'Qwen Turbo', description: '最快响应' },

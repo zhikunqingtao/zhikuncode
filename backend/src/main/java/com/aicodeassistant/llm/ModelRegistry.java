@@ -38,7 +38,7 @@ public class ModelRegistry {
         entry("qwen-turbo",        caps("qwen-turbo",        "Qwen Turbo",         8192, 1000000,  true, false, false, true, 0.0003, 0.0006)),
         entry("qwen-plus",         caps("qwen-plus",         "Qwen Plus",         16384, 1000000,  true, false, false, true, 0.0008, 0.002)),
         entry("qwen-max",          caps("qwen-max",          "Qwen Max",          16384,  262144,  true, true, true, true, 0.002, 0.006)),
-        entry("qwen3.6-max-preview", caps("qwen3.6-max-preview", "Qwen 3.6 Max Preview", 16384, 262144, true, true, false, true, 0.009, 0.054)),
+        entry("qwen3.7-max", caps("qwen3.7-max", "Qwen 3.7 Max", 16384, 262144, true, true, false, true, 0.009, 0.054)),
         entry("qwen3.6-plus",      caps("qwen3.6-plus",      "Qwen 3.6 Plus",      8192, 1000000,  true, false, true, true, 0.0008, 0.002)),
         entry("glm-4",             caps("glm-4",             "GLM-4",              8192, 128000,  true, false, true, true, 0.001, 0.001)),
         // Ollama 本地

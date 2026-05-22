@@ -94,7 +94,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
                                 bg-[var(--bg-secondary)] text-[var(--text-primary)]
                                 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
-                            <option value="qwen3.6-max-preview">Qwen 3.6 Max Preview</option>
+                            <option value="qwen3.7-max">Qwen 3.7 Max</option>
                             <option value="qwen3.6-plus">Qwen 3.6 Plus</option>
                             <option value="qwen-max">Qwen Max</option>
                             <option value="qwen-turbo">Qwen Turbo</option>

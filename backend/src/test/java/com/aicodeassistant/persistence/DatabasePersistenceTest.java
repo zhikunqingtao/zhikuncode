@@ -74,7 +74,7 @@ class DatabasePersistenceTest {
                 try (PreparedStatement ps = conn.prepareStatement(
                         "INSERT INTO sessions (id, model, working_dir, created_at, updated_at) VALUES (?,?,?,?,?)")) {
                     ps.setString(1, id);
-                    ps.setString(2, "qwen3.6-max-preview");
+                    ps.setString(2, "qwen3.7-max");
                     ps.setString(3, "/tmp/test");
                     ps.setString(4, now);
                     ps.setString(5, now);
@@ -86,7 +86,7 @@ class DatabasePersistenceTest {
                     ps.setString(1, id);
                     ResultSet rs = ps.executeQuery();
                     assertTrue(rs.next(), "应能查到已创建的会话");
-                    assertEquals("qwen3.6-max-preview", rs.getString("model"));
+                    assertEquals("qwen3.7-max", rs.getString("model"));
                 }
 
                 // 并发创建10个会话

@@ -353,7 +353,7 @@ function SessionList() {
     const handleNewSession = useCallback(async () => {
         try {
             useMessageStore.getState().clearMessages();
-            const defaultModel = useConfigStore.getState().defaultModel ?? 'qwen3.6-max-preview';
+            const defaultModel = useConfigStore.getState().defaultModel ?? 'qwen3.7-max';
             await useSessionStore.getState().createSession('.', defaultModel);
             const newSessionId = useSessionStore.getState().sessionId;
             if (newSessionId) {

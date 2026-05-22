@@ -29,7 +29,7 @@ public class LlmProviderRegistry {
     @Value("${classifier.model:}")
     private String classifierModel;
 
-    @Value("${app.model.default:qwen3.6-max-preview}")
+    @Value("${app.model.default:qwen3.7-max}")
     private String configuredDefaultModel;
 
     /** 内置别名映射（模型层级别名 → 实际部署模型） */
@@ -37,7 +37,7 @@ public class LlmProviderRegistry {
             // 新别名（推荐）
             Map.entry("light", "qwen-plus"),
             Map.entry("standard", "qwen3.6-plus"),
-            Map.entry("premium", "qwen3.6-max-preview")
+            Map.entry("premium", "qwen3.7-max")
     );
 
     /**
@@ -110,7 +110,7 @@ public class LlmProviderRegistry {
         return providers.values().stream()
                 .findFirst()
                 .map(LlmProvider::getDefaultModel)
-                .orElse("qwen3.6-max-preview");
+                .orElse("qwen3.7-max");
     }
 
     /** 获取快速模型 — 用于分类器/摘要 */

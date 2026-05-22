@@ -26,10 +26,10 @@ class LlmFallbackChainTest {
     @DisplayName("内置别名映射应包含 light/standard/premium 三级")
     void builtinAliasesShouldContainAllLevels() {
         LlmProvider provider = mock(LlmProvider.class);
-        when(provider.getDefaultModel()).thenReturn("qwen3.6-max-preview");
+        when(provider.getDefaultModel()).thenReturn("qwen3.7-max");
         when(provider.getFastModel()).thenReturn("qwen-plus");
         when(provider.getProviderName()).thenReturn("test-provider");
-        when(provider.getSupportedModels()).thenReturn(List.of("qwen-plus", "qwen3.6-plus", "qwen3.6-max-preview"));
+        when(provider.getSupportedModels()).thenReturn(List.of("qwen-plus", "qwen3.6-plus", "qwen3.7-max"));
 
         LlmProviderRegistry registry = new LlmProviderRegistry(
             List.of(provider), mockEnv);
@@ -39,8 +39,8 @@ class LlmFallbackChainTest {
             "light 应映射到 qwen-plus");
         assertEquals("qwen3.6-plus", registry.resolveModelAlias("standard"),
             "standard 应映射到 qwen3.6-plus");
-        assertEquals("qwen3.6-max-preview", registry.resolveModelAlias("premium"),
-            "premium 应映射到 qwen3.6-max-preview");
+        assertEquals("qwen3.7-max", registry.resolveModelAlias("premium"),
+            "premium 应映射到 qwen3.7-max");
     }
 
     @Test
@@ -67,9 +67,9 @@ class LlmFallbackChainTest {
     @DisplayName("默认模型兜底策略验证")
     void defaultModelFallbackStrategy() {
         LlmProvider provider = mock(LlmProvider.class);
-        when(provider.getDefaultModel()).thenReturn("qwen3.6-max-preview");
+        when(provider.getDefaultModel()).thenReturn("qwen3.7-max");
         when(provider.getProviderName()).thenReturn("test-provider");
-        when(provider.getSupportedModels()).thenReturn(List.of("qwen3.6-max-preview"));
+        when(provider.getSupportedModels()).thenReturn(List.of("qwen3.7-max"));
 
         LlmProviderRegistry registry = new LlmProviderRegistry(
             List.of(provider), mockEnv);
@@ -84,9 +84,9 @@ class LlmFallbackChainTest {
     void lightweightModelFallsBackToDefault() {
         LlmProvider provider = mock(LlmProvider.class);
         when(provider.getFastModel()).thenReturn(null);
-        when(provider.getDefaultModel()).thenReturn("qwen3.6-max-preview");
+        when(provider.getDefaultModel()).thenReturn("qwen3.7-max");
         when(provider.getProviderName()).thenReturn("test-provider");
-        when(provider.getSupportedModels()).thenReturn(List.of("qwen3.6-max-preview"));
+        when(provider.getSupportedModels()).thenReturn(List.of("qwen3.7-max"));
 
         LlmProviderRegistry registry = new LlmProviderRegistry(
             List.of(provider), mockEnv);
@@ -99,10 +99,10 @@ class LlmFallbackChainTest {
     @DisplayName("回退层级不超过 4 级")
     void fallbackChainMaxFourLevels() {
         LlmProvider provider = mock(LlmProvider.class);
-        when(provider.getDefaultModel()).thenReturn("qwen3.6-max-preview");
+        when(provider.getDefaultModel()).thenReturn("qwen3.7-max");
         when(provider.getFastModel()).thenReturn("qwen-plus");
         when(provider.getProviderName()).thenReturn("test-provider");
-        when(provider.getSupportedModels()).thenReturn(List.of("qwen-plus", "qwen3.6-max-preview"));
+        when(provider.getSupportedModels()).thenReturn(List.of("qwen-plus", "qwen3.7-max"));
 
         LlmProviderRegistry registry = new LlmProviderRegistry(
             List.of(provider), mockEnv);

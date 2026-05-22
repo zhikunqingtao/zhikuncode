@@ -34,8 +34,8 @@ llm:
     dashscope:
       api-key: ${LLM_PROVIDER_DASHSCOPE_API_KEY:}
       base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
-      default-model: qwen3.6-max-preview
-      models: ${LLM_PROVIDER_DASHSCOPE_MODELS:qwen3.6-max-preview,qwen3.6-plus,qwen-plus}
+      default-model: qwen3.7-max
+      models: ${LLM_PROVIDER_DASHSCOPE_MODELS:qwen3.7-max,qwen3.6-plus,qwen-plus}
     deepseek:
       api-key: ${LLM_PROVIDER_DEEPSEEK_API_KEY:}
       base-url: https://api.deepseek.com/v1
@@ -60,9 +60,9 @@ llm:
     #   Azure OpenAI: https://{resource}.openai.azure.com/openai/deployments/{deployment}/v1
     base-url: ${LLM_BASE_URL:https://dashscope.aliyuncs.com/compatible-mode/v1}
     # 默认模型（各提供商模型名不同，请配合 base-url 设置）
-    default-model: ${LLM_DEFAULT_MODEL:qwen3.6-max-preview}
+    default-model: ${LLM_DEFAULT_MODEL:qwen3.7-max}
     # 支持的模型列表（逗号分隔）
-    models: ${LLM_MODELS:qwen3.6-max-preview,qwen3.6-plus,qwen-max,qwen-plus,qwen-turbo,qwen-coder-plus}
+    models: ${LLM_MODELS:qwen3.7-max,qwen3.6-plus,qwen-max,qwen-plus,qwen-turbo,qwen-coder-plus}
   http:
     pool:
       max-idle-connections: 5
@@ -85,7 +85,7 @@ agent:
   model-aliases:
     light: qwen-plus
     standard: qwen3.6-plus
-    premium: qwen3.6-max-preview
+    premium: qwen3.7-max
 
 # 分类器模型配置（留空则按四级回退: env → 此配置 → lightweight → default）
 classifier:
@@ -200,10 +200,10 @@ app:
     session-timeout-hours: 24
   model:
     # 默认模型（千问示例）
-    default: qwen3.6-max-preview
+    default: qwen3.7-max
     # 降级链 — 按性能从高到低
     tier-chain:
-      - qwen3.6-max-preview
+      - qwen3.7-max
       - qwen3.6-plus
       - qwen-plus
       - qwen-turbo
@@ -253,7 +253,7 @@ model:
       contextWindow: 64000
       tokenCharRatio: 2.8
       outputMaxTokens: 8192
-    qwen3.6-max-preview:
+    qwen3.7-max:
       contextWindow: 131072
       tokenCharRatio: 2.5
       outputMaxTokens: 8192

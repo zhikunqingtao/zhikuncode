@@ -25,7 +25,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
 
     // 动态加载可用模型列表
     const [availableModels, setAvailableModels] = useState<Array<{ id: string; displayName: string }>>([
-        { id: 'qwen3.6-max-preview', displayName: 'Qwen 3.6 Max Preview' },
+        { id: 'qwen3.7-max', displayName: 'Qwen 3.7 Max' },
         { id: 'deepseek-v4-pro', displayName: 'DeepSeek V4 Pro' },
         { id: 'kimi-k2.6', displayName: 'Kimi K2.6' },
     ]);

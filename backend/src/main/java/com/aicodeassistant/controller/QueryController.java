@@ -128,7 +128,7 @@ public class QueryController {
         // 4. 组装用户消息
         String userMessage = buildUserMessage(request.prompt(), request.context());
 
-        // 5. 构建 QueryConfig（★ 别名解析: light→qwen-plus, standard→qwen3.6-plus, premium→qwen3.6-max-preview）
+        // 5. 构建 QueryConfig（★ 别名解析: light→qwen-plus, standard→qwen3.6-plus, premium→qwen3.7-max）
         String rawModel = request.model() != null ? request.model() : providerRegistry.getDefaultModel();
         String model = providerRegistry.resolveModelAlias(rawModel);
         int maxTurns = request.maxTurns() != null ? request.maxTurns() : QueryConfig.DEFAULT_MAX_TURNS;

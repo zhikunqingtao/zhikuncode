@@ -39,7 +39,7 @@ public class ConfigService {
     private volatile UserConfig cachedUserConfig;
     private volatile ProjectConfig cachedProjectConfig;
 
-    @Value("${app.model.default:qwen3.6-max-preview}")
+    @Value("${app.model.default:qwen3.7-max}")
     private String defaultModelName;
 
     public ConfigService(@Qualifier("globalJdbcTemplate") JdbcTemplate globalJdbcTemplate,

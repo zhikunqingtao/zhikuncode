@@ -31,7 +31,7 @@ public class ModelDegradationChain {
             "qwen-plus", List.of("deepseek-chat", "qwen-max"),
             "deepseek-coder", List.of("deepseek-chat", "qwen-plus"),
             "deepseek-chat", List.of("qwen-plus", "qwen-max"),
-            "qwen3.6-max-preview", List.of("qwen3.6-plus", "qwen-max"),
+            "qwen3.7-max", List.of("qwen3.6-plus", "qwen-max"),
             "qwen3.6-plus", List.of("qwen-plus", "qwen-max")
     );
 
