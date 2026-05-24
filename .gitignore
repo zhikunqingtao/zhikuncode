@@ -106,5 +106,6 @@ logs/run_evaluation/
 # SWE-bench 公开评测资产例外（已通过官方 harness 验证，可发布）
 !docs/swe-bench/
 !docs/swe-bench/**
+docs/swe-bench/.DS_Store
 *-verification*.png
 *-screenshot.png
