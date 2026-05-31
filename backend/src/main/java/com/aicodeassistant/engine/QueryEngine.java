@@ -563,9 +563,10 @@ public class QueryEngine {
                                     break;
                                 }
                                 // 检测错误并生成修复指令
+                                String repoName = extractRepoNameFromContext(state);
                                 Optional<CorrectionInstruction> correction =
                                     selfCorrectionLoop.detectAndPrepareCorrection(
-                                        toolOutput, state.getCorrectionAttempts());
+                                        toolOutput, state.getCorrectionAttempts(), repoName);
                                 if (correction.isPresent()) {
                                     log.info("[SELF-CORRECTION] Injecting correction attempt #{}",
                                         state.getCorrectionAttempts() + 1);
@@ -1162,6 +1163,30 @@ public class QueryEngine {
             }
         }
         return null;
+    }
+
+    /**
+     * 从 ToolUseContext.workingDirectory 推导 SWE-bench 仓库名。
+     * 约定：路径末尾目录名形如 "owner__repo" 时转为 "owner/repo"，
+     * 否则返回 "unknown"（自动回落到 MAX_ATTEMPTS_DEFAULT=3）。
+     */
+    private String extractRepoNameFromContext(QueryLoopState state) {
+        if (state == null || state.getToolUseContext() == null) {
+            return "unknown";
+        }
+        String wd = state.getToolUseContext().workingDirectory();
+        if (wd == null || wd.isBlank()) {
+            return "unknown";
+        }
+        String trimmed = wd.endsWith("/") || wd.endsWith("\\")
+                ? wd.substring(0, wd.length() - 1) : wd;
+        int idx = Math.max(trimmed.lastIndexOf('/'), trimmed.lastIndexOf('\\'));
+        String last = idx >= 0 ? trimmed.substring(idx + 1) : trimmed;
+        int sep = last.indexOf("__");
+        if (sep <= 0 || sep >= last.length() - 2) {
+            return "unknown";
+        }
+        return last.substring(0, sep) + "/" + last.substring(sep + 2);
     }
 
     private List<ContentBlock.ToolUseBlock> extractToolUseBlocks(Message.AssistantMessage message) {

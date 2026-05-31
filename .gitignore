@@ -109,3 +109,5 @@ logs/run_evaluation/
 docs/swe-bench/.DS_Store
 *-verification*.png
 *-screenshot.png
+# SWE-bench experiments (official repo clone, not project source)
+experiments/

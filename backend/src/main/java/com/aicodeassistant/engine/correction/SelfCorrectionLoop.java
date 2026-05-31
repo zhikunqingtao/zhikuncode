@@ -27,8 +27,18 @@ import java.util.stream.Collectors;
 @Slf4j
 public class SelfCorrectionLoop {
 
-    /** 最大修复尝试次数 */
-    private static final int MAX_ATTEMPTS = 3;
+    /** 最大修复尝试次数（默认值，非 SWE-bench 上下文时使用） */
+    private static final int MAX_ATTEMPTS_DEFAULT = 3;
+
+    /**
+     * SWE-bench 上下文下的通用最大修复尝试次数（D1 方案）。
+     * <p>
+     * 当检测到 workingDirectory 为 SWE-bench 标准路径（含 owner__repo 模式）时，
+     * 使用此折中值代替默认的 {@link #MAX_ATTEMPTS_DEFAULT}。
+     * 取 7 作为平衡值：配合 E4+ 方案（POST_EDIT_VERIFICATION 统一验证循环），
+     * 预留 2 轮给验证失败后的修正迭代（原 5 轮初始修复 + 2 轮验证修正）。
+     */
+    private static final int MAX_ATTEMPTS_SWE_BENCH = 7;
 
     /** 修复指令最大 token 数 */
     private static final int MAX_INSTRUCTION_TOKENS = 800;
@@ -56,10 +66,9 @@ public class SelfCorrectionLoop {
     }
 
     /**
-     * 主入口：检测工具输出中的错误并生成修复指令。
+     * 主入口（向后兼容）：检测工具输出中的错误并生成修复指令。
      * <p>
-     * 优先级: 编译错误 > 测试失败。若同时存在编译错误和测试失败，
-     * 仅处理编译错误（编译错误修复后测试失败可能自动消除）。
+     * 内部委托至 3 参数版本，{@code repoName} 传 null（自动回落到默认上限）。
      *
      * @param toolOutput      Bash 工具的输出（stdout + stderr）
      * @param currentAttempts 当前已尝试的修复次数（从 0 开始）
@@ -67,11 +76,31 @@ public class SelfCorrectionLoop {
      */
     public Optional<CorrectionInstruction> detectAndPrepareCorrection(
             String toolOutput, int currentAttempts) {
+        return detectAndPrepareCorrection(toolOutput, currentAttempts, null);
+    }
 
-        // 1. 超限检查
-        if (currentAttempts >= MAX_ATTEMPTS) {
-            log.info("Self-correction attempt limit reached ({}/{}), stopping",
-                    currentAttempts, MAX_ATTEMPTS);
+    /**
+     * 主入口（仓库感知）：检测工具输出中的错误并生成修复指令。
+     * <p>
+     * 优先级: 编译错误 > 测试失败。若同时存在编译错误和测试失败，
+     * 仅处理编译错误（编译错误修复后测试失败可能自动消除）。
+     * <p>
+     * D1 方案：根据 {@code repoName} 动态解析 MAX_ATTEMPTS，识别为 SWE-bench
+     * 上下文时使用 {@link #MAX_ATTEMPTS_SWE_BENCH}，否则使用 {@link #MAX_ATTEMPTS_DEFAULT}。
+     *
+     * @param toolOutput      Bash 工具的输出（stdout + stderr）
+     * @param currentAttempts 当前已尝试的修复次数（从 0 开始）
+     * @param repoName        SWE-bench 仓库名（如 "django/django"），可为 null
+     * @return 修复指令，或 empty（无可修复错误 / 已超限）
+     */
+    public Optional<CorrectionInstruction> detectAndPrepareCorrection(
+            String toolOutput, int currentAttempts, String repoName) {
+
+        // 1. 超限检查（仓库感知）
+        int maxAttempts = resolveMaxAttempts(repoName);
+        if (currentAttempts >= maxAttempts) {
+            log.info("Self-correction attempt limit reached ({}/{}), stopping [repo={}]",
+                    currentAttempts, maxAttempts, repoName != null ? repoName : "unknown");
             return Optional.empty();
         }
 
@@ -88,7 +117,7 @@ public class SelfCorrectionLoop {
         if (compileErrors.isPresent()) {
             List<CorrectionInstruction.ParsedError> errors = compileErrors.get();
             log.info("Detected {} compile error(s), generating correction (attempt {}/{})",
-                    errors.size(), attemptNumber, MAX_ATTEMPTS);
+                    errors.size(), attemptNumber, maxAttempts);
 
             String instruction = generateCompileInstruction(errors);
             instruction = truncateToTokenLimit(instruction, MAX_INSTRUCTION_TOKENS);
@@ -107,7 +136,7 @@ public class SelfCorrectionLoop {
         if (testFailures.isPresent()) {
             List<CorrectionInstruction.ParsedTestFailure> failures = testFailures.get();
             log.info("Detected {} test failure(s), generating correction (attempt {}/{})",
-                    failures.size(), attemptNumber, MAX_ATTEMPTS);
+                    failures.size(), attemptNumber, maxAttempts);
 
             String instruction = generateTestInstruction(failures);
             instruction = truncateToTokenLimit(instruction, MAX_INSTRUCTION_TOKENS);
@@ -126,6 +155,23 @@ public class SelfCorrectionLoop {
         // 4. 无可修复错误
         log.debug("No compile errors or test failures detected in tool output");
         return Optional.empty();
+    }
+
+    /**
+     * 解析最大修复尝试次数。
+     * <p>
+     * 当 repoName 为有效的 SWE-bench 仓库标识（非 null、非空白、非 "unknown"）时，
+     * 使用通用的 SWE-bench 上限 {@link #MAX_ATTEMPTS_SWE_BENCH}；
+     * 否则回落到 {@link #MAX_ATTEMPTS_DEFAULT}。
+     *
+     * @param repoName 推导出的仓库名（如 "django/django"），可为 null
+     * @return 实际使用的最大修复尝试次数
+     */
+    private int resolveMaxAttempts(String repoName) {
+        if (repoName == null || repoName.isBlank() || "unknown".equals(repoName)) {
+            return MAX_ATTEMPTS_DEFAULT;
+        }
+        return MAX_ATTEMPTS_SWE_BENCH;
     }
 
     /**

@@ -52,8 +52,19 @@ public class TestFailureParser {
         Pattern.compile("Received: (.+)");
 
     // ===== pytest 模式 =====
-    /** pytest 失败: FAILED path/to/file.py::test_name - reason */
+    /**
+     * pytest 失败（主正则）: ^FAILED path/to/file.py::test_name[param-1] - reason
+     * 使用 ^...$ + MULTILINE 锚定整行，避免参数化测试 [param] 中的 :: 触发错位匹配（方案 D2）。
+     * group(1) 捕获完整 "file::test" 部分，需通过 parsePytestLine 二次拆分。
+     */
     private static final Pattern PYTEST_FAILED_PATTERN =
+        Pattern.compile("^FAILED (.+?) - ", Pattern.MULTILINE);
+
+    /**
+     * pytest 失败（兼容 fallback 正则，方案 D2 §9 风险回滚项）：
+     * 当主正则因换行符差异等环境因素未命中时，退回到原始双 group 正则。
+     */
+    private static final Pattern PYTEST_FAILED_PATTERN_FALLBACK =
         Pattern.compile("FAILED (.+?)::(.+?) -");
 
     /** pytest 断言: AssertionError: message */
@@ -191,41 +202,84 @@ public class TestFailureParser {
     }
 
     /**
-     * 解析 pytest 测试失败
+     * 解析 pytest 测试失败（方案 D2）。
+     * 主正则使用 ^FAILED ... -  + MULTILINE 锚定整行，再由 {@link #parsePytestLine} 二次拆分 file/test。
+     * 若主正则未命中（例如换行符差异），自动回退到原正则（双正则 OR 匹配）。
      */
     private void parsePytestFailures(String output, List<CorrectionInstruction.ParsedTestFailure> failures) {
+        int beforeSize = failures.size();
+
         Matcher failedMatcher = PYTEST_FAILED_PATTERN.matcher(output);
         while (failedMatcher.find() && failures.size() < MAX_FAILURES) {
-            String fileName = failedMatcher.group(1);
-            String testName = failedMatcher.group(2);
-            String expected = null;
-            String actual = null;
-            String assertionMessage = null;
+            TestFailure parsed = parsePytestLine(failedMatcher.group(1));
+            addPytestFailure(output, parsed.file, parsed.test, failures);
+        }
 
-            // 在整个输出中查找该测试的断言信息
-            String[] lines = output.split("\n");
-            for (String line : lines) {
-                Matcher assertEqMatcher = PYTEST_ASSERT_EQ_PATTERN.matcher(line);
-                if (assertEqMatcher.find()) {
-                    expected = assertEqMatcher.group(2).trim();
-                    actual = assertEqMatcher.group(1).trim();
-                    break;
-                }
-                Matcher assertionMatcher = PYTEST_ASSERTION_PATTERN.matcher(line);
-                if (assertionMatcher.find()) {
-                    assertionMessage = assertionMatcher.group(1).trim();
-                }
+        // Fallback：主正则无任何新增匹配时，退回到原正则避免漏匹配（§9 风险回滚项）
+        if (failures.size() == beforeSize) {
+            Matcher fallbackMatcher = PYTEST_FAILED_PATTERN_FALLBACK.matcher(output);
+            while (fallbackMatcher.find() && failures.size() < MAX_FAILURES) {
+                addPytestFailure(output, fallbackMatcher.group(1), fallbackMatcher.group(2), failures);
             }
+        }
+    }
 
-            String stackInfo = assertionMessage != null ? assertionMessage : "";
-            failures.add(new CorrectionInstruction.ParsedTestFailure(
-                fileName + "::" + testName,
-                expected,
-                actual,
-                stackInfo,
-                "pytest"
-            ));
-            log.debug("pytest failure: {}::{} - expected={}, actual={}", fileName, testName, expected, actual);
+    /**
+     * 二次拆分主正则捕获的 "file::test" 字符串。
+     * 使用 indexOf("::") 定位首个分隔符，将参数化测试名 [param-1] 中的 :: 留在 test 部分。
+     *
+     * @param matched 主正则 group(1) 捕获的完整字符串，例如 "tests/test_a.py::test_x[param-1]"
+     * @return 拆分后的 file 与 test
+     */
+    private TestFailure parsePytestLine(String matched) {
+        int idx = matched.indexOf("::");
+        String file = idx > 0 ? matched.substring(0, idx) : matched;
+        String test = idx > 0 ? matched.substring(idx + 2) : "";
+        return new TestFailure(file, test);
+    }
+
+    /**
+     * 在输出中查找该 pytest 失败对应的断言信息，并追加到 failures。
+     */
+    private void addPytestFailure(String output, String fileName, String testName,
+                                  List<CorrectionInstruction.ParsedTestFailure> failures) {
+        String expected = null;
+        String actual = null;
+        String assertionMessage = null;
+
+        String[] lines = output.split("\n");
+        for (String line : lines) {
+            Matcher assertEqMatcher = PYTEST_ASSERT_EQ_PATTERN.matcher(line);
+            if (assertEqMatcher.find()) {
+                expected = assertEqMatcher.group(2).trim();
+                actual = assertEqMatcher.group(1).trim();
+                break;
+            }
+            Matcher assertionMatcher = PYTEST_ASSERTION_PATTERN.matcher(line);
+            if (assertionMatcher.find()) {
+                assertionMessage = assertionMatcher.group(1).trim();
+            }
+        }
+
+        String stackInfo = assertionMessage != null ? assertionMessage : "";
+        failures.add(new CorrectionInstruction.ParsedTestFailure(
+            fileName + "::" + testName,
+            expected,
+            actual,
+            stackInfo,
+            "pytest"
+        ));
+        log.debug("pytest failure: {}::{} - expected={}, actual={}", fileName, testName, expected, actual);
+    }
+
+    /** 仅用于 pytest 主正则二次拆分的 file/test 容器。 */
+    private static final class TestFailure {
+        final String file;
+        final String test;
+
+        TestFailure(String file, String test) {
+            this.file = file;
+            this.test = test;
         }
     }
 }

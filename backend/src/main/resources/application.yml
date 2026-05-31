@@ -116,7 +116,7 @@ features:
     BACKGROUND_AGENT_WAIT: false     # C1: 后台代理等待功能总开关（灰度用）
     AGENT_ABORT_CASCADE: true        # C2: abort 级联到子代理（安全性修复，默认开）
     # ── D 组：自纠错循环 ──
-    SELF_CORRECTION_LOOP: false     # D1: SelfCorrectionLoop 总开关（默认关闭，灰度用）
+    SELF_CORRECTION_LOOP: ${SELF_CORRECTION_LOOP:false}  # D1: SelfCorrectionLoop 总开关（默认关闭，SWE-bench评测时通过环境变量启用）
     # ── E 组：精确 Tokenizer ──
     PRECISE_TOKENIZER: false          # E1: 精确 Token 计数（通过 Python tiktoken），默认关闭
     # ── F 组：变更追踪 ──
