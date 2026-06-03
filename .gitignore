@@ -60,6 +60,7 @@ Thumbs.db
 backend/.ai-code-assistant/
 backend/.agentskills/
 backend/.scratchpad/
+backend/workspace/
 log/
 access-token
 *.pem
@@ -107,6 +108,8 @@ logs/run_evaluation/
 !docs/swe-bench/
 !docs/swe-bench/**
 docs/swe-bench/.DS_Store
+docs/swe-bench/20260531/
+docs/swe-bench/20260602/
 *-verification*.png
 *-screenshot.png
 # SWE-bench experiments (official repo clone, not project source)

@@ -116,11 +116,15 @@ returns an error, immediately switch to one of the 6 tools above — never retry
 - ✅ EXIT CONDITION: Target test passes
 
 ## ⚠️ ANTI-PATTERNS TO AVOID:
+0. NEVER touch tests/, test_*.py, *_test.py, or any conftest.py — these are
+   auto-stripped from the final patch; touching them is wasted work.
 1. DO NOT keep reading files indefinitely without making changes
 2. DO NOT end your turn if you haven't made any code edit yet (unless you're in ANALYZE/LOCATE phase)
 3. DO NOT give up after a tool error - try alternative approaches
 4. DO NOT use more than 12 turns for exploration without starting to write code
 5. If you're unsure about the perfect fix, write your BEST ATTEMPT - an imperfect fix is better than no fix
+6. If the same Bash/Grep returned identical output twice, switch strategy.
+   Repeating the failed query is sunk cost.
 
 ## Tool Failure Recovery
 - If a tool returns an error, do NOT give up. Try an alternative approach.
@@ -141,6 +145,18 @@ returns an error, immediately switch to one of the 6 tools above — never retry
 - This gives you a concrete "target behavior" to code toward
 - If no test keyword is obvious, search broadly:
   Bash(command="grep -r 'def test' {repo_path}/tests/ --include='*.py' | grep -i 'relevant_keyword' | head -10")
+
+**Three-Anchor Extraction** (strongly recommended before moving to LOCATE):
+1. Run the failing test to capture the full traceback:
+   Bash(command="cd {repo_path} && python -m pytest tests/ -k '<keyword_from_issue>' -xvs 2>&1 | tail -80")
+2. Extract THREE anchors from the output:
+   a) ERROR_TYPE: The Python exception class (e.g., AttributeError, TypeError, ValueError)
+   b) SOURCE_FILE: The first non-pytest .py file path from the traceback + line number
+   c) FUNCTION_NAME: The function/method name where the exception was raised
+3. Proceed to LOCATE after all three anchors are identified.
+   If test cannot be found/run, derive best-guess anchors from the issue description.
+⚠️ ANTI-PATTERN: Jumping directly to Grep/Glob without running the test first
+   wastes turns and leads to wrong-file edits (the #1 cause of all-fail).
 
 ### Step 2: LOCATE (Selective Reading + Fallback Ladder)
 - Use Grep/Glob to find relevant source files
@@ -164,6 +180,62 @@ returns an error, immediately switch to one of the 6 tools above — never retry
   handles analogous cases. Your fix MUST mirror existing patterns:
   Bash(command="grep -rn 'similar_keyword' {repo_path}/ --include='*.py' | head -10")
   If you find existing code that handles a similar case, replicate its approach exactly.
+
+**Pattern Mirroring Workflow** (use when fix is non-obvious):
+  a) Grep for the SYMPTOM (error type / function name) across the repo
+  b) Find a similar resolved case (e.g. another except branch handling same exc)
+  c) Mirror the exact structure: same indent, same idiom, same return type
+
+### Step 2.8: PRE-EDIT BASELINE (recommended before any Edit on high-caller functions)
+
+Before making any code change, establish a test baseline for the affected module:
+
+1. Identify the most relevant test directory:
+   Bash(command="find {repo_path} -path '*tests*' -name 'test_*.py' -newer {repo_path}/setup.py | head -5")
+   OR use the same directory as the failing test.
+
+2. Run a quick baseline (BEFORE any Edit):
+   Bash(command="cd {repo_path} && python -m pytest <relevant_test_dir> -x --tb=no -q 2>&1 | tail -5")
+
+3. Record the numbers: e.g., "42 passed, 3 failed, 1 error"
+
+4. AFTER completing your fix, re-run the SAME command.
+
+5. Compare:
+   - If passed_after < passed_before: You introduced regression!
+     Make your fix MORE LOCAL: prefer adding a branch over modifying existing logic.
+     Use "if <new_condition>: ... else: <original_behavior>" pattern.
+   - If passed_after >= passed_before: Safe to proceed.
+
+This step costs 1 turn but saves 10+ turns of debugging regressions.
+
+### ERROR_TYPE_SPECIFIC_STRATEGIES (select based on ERROR_TYPE from Step 1)
+
+If ERROR_TYPE == "AttributeError":
+  -> Priority: "def __init__" in SOURCE_FILE (instance attribute setup)
+  -> Secondary: "@property" or "@<attr>.setter" definitions
+  -> Tertiary: "self.<attr>" assignment sites across the class hierarchy
+  -> Common fix: Add missing attribute in __init__, or fix property accessor
+
+If ERROR_TYPE == "TypeError":
+  -> Priority: Read function signature of the failing call (count parameters)
+  -> Check: "def <func_name>(" — compare expected vs actual arg count
+  -> Common fix: Add/remove parameter, add type coercion, fix default value
+
+If ERROR_TYPE == "ValueError":
+  -> Priority: Search for "raise ValueError" near SOURCE_FILE:LINE
+  -> Check: Input validation logic at function entry point
+  -> Common fix: Widen accepted range, add missing case to if/elif chain
+
+If ERROR_TYPE == "AssertionError":
+  -> Priority: Read the exact assertion in test to understand expected output
+  -> Compare: What does current code produce vs what the test expects?
+  -> Common fix: Fix return value, fix string format, fix comparison logic
+
+If ERROR_TYPE == "ImportError" or "ModuleNotFoundError":
+  -> Priority: Bash(command="python -c 'import <module>' 2>&1")
+  -> Check: Missing install or wrong import path?
+  -> Common fix: Fix import path, add __init__.py, or fix circular import
 
 ### Step 3: FIX (Minimal Change Priority)
 - PRIORITY ORDER for fix approaches:
@@ -720,8 +792,12 @@ def extract_patch(repo_path: str, base_commit: str) -> str:
         # Only diff Python source files, exclude test files
         # This ensures clean patches suitable for SWE-bench submission
         result = subprocess.run(
-            ["git", "diff", "--cached", "HEAD", "--",
-             "*.py", ":!tests/", ":!test_*", ":!**/tests/", ":!**/test_*"],
+            ["git", "diff", f"{base_commit}..HEAD", "--",
+             "*.py",
+             ":!tests/", ":!**/tests/",
+             ":!test_*", ":!**/test_*",
+             ":!*_test.py", ":!**/*_test.py",
+             ":!conftest.py", ":!**/conftest.py"],
             cwd=repo_path,
             capture_output=True,
             text=True,
@@ -758,7 +834,21 @@ def extract_patch(repo_path: str, base_commit: str) -> str:
             if not skip_block:
                 final_lines.append(line)
 
-        return "\n".join(final_lines)
+        patch = "\n".join(final_lines)
+
+        # Audit: compare raw (unfiltered) diff with filtered result
+        raw_result = subprocess.run(
+            ["git", "diff", f"{base_commit}..HEAD", "--", "*.py"],
+            cwd=repo_path, capture_output=True, text=True, timeout=30
+        )
+        raw = raw_result.stdout
+        if raw and not patch:
+            logger.warning(f"  [audit] All {len(raw.splitlines())} diff lines were"
+                           f" stripped by exclude rules — agent may have edited only test files.")
+        elif raw and patch and abs(len(raw) - len(patch)) > 100:
+            logger.info(f"  [audit] Stripped {len(raw)-len(patch)} chars of test-related diff")
+
+        return patch
     except subprocess.TimeoutExpired:
         logger.warning("  git diff timed out")
         return ""
@@ -927,6 +1017,53 @@ def solve_instance(
             pass
 
 
+def generate_locate_strategies(repo: str) -> str:
+    """Generate repo-specific LOCATE strategies based on repository name.
+    
+    # SWE-BENCH ONLY - DO NOT MERGE TO GENERAL_SYSTEM_PROMPT
+    """
+    base = """
+## Additional LOCATE Strategies (use when grep returns too many results):
+
+### Strategy A: Traceback-driven navigation
+- Read the FULL traceback from test failure
+- Navigate directly to the file:line mentioned in the LAST frame
+- Read 50 lines of context around that location
+
+### Strategy B: Import chain tracing
+- Bash(command="python3 -c \\"import {module}; print({module}.__file__)\\"")
+- Find the actual source file for the failing module
+
+### Strategy C: Test-to-source reverse mapping
+- Read the failing test file to understand what it imports
+- Follow import statements to find the source under test
+"""
+    repo_lower = repo.split("/")[-1].lower() if "/" in repo else repo.lower()
+
+    if repo_lower.startswith("django"):
+        return base + """
+### Django-specific:
+- Errors often trace to middleware, views, or model managers
+- Check django/db/models/ and django/core/ for ORM-related issues
+- Bash(command="grep -rn 'class.*Manager' django/ --include='*.py' | grep -i '<keyword>'")
+"""
+    elif repo_lower.startswith("sympy"):
+        return base + """
+### SymPy-specific:
+- Errors often involve symbolic computation dispatch
+- Check sympy/core/ for expression evaluation issues
+- SymPy uses extensive __new__/__init__ patterns - check class constructors
+"""
+    elif repo_lower.startswith("matplotlib"):
+        return base + """
+### Matplotlib-specific:
+- Errors often trace to figure/axes state management
+- Check lib/matplotlib/axes/ for plotting-related issues
+- Bash(command="grep -rn 'def.*<func_name>' lib/matplotlib/ --include='*.py' | grep -v test")
+"""
+    return base
+
+
 def solve_instance_multiphase(
     instance: Instance,
     api_url: str,
@@ -964,9 +1101,11 @@ def solve_instance_multiphase(
         system_prompt = SWE_BENCH_SYSTEM_PROMPT.replace("{repo_path}", repo_path)
 
         # 3. Build full problem statement with reminder to edit
+        locate_strategies = generate_locate_strategies(instance.repo)
         full_prompt = (
             f"Fix the following issue in the repository at {repo_path}:\n\n"
             f"{instance.problem_statement}\n\n"
+            f"{locate_strategies}\n\n"
             f"Remember: You MUST make code changes using Edit or Write tools. "
             f"Reading and analyzing is not enough - you must actually fix the code."
         )

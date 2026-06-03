@@ -39,6 +39,11 @@ public class PermissionRuleRepository {
     private final Map<String, List<PermissionRule>> sessionAllowRules = new ConcurrentHashMap<>();
     private final Map<String, List<PermissionRule>> sessionDenyRules = new ConcurrentHashMap<>();
 
+    /** 项目级 Allow 规则（按 workspace 路径隔离）：projectKey -> toolName -> rules */
+    private final Map<String, Map<String, List<PermissionRule>>> projectAllowRules = new ConcurrentHashMap<>();
+    /** 项目级 Deny 规则（按 workspace 路径隔离）：projectKey -> toolName -> rules */
+    private final Map<String, Map<String, List<PermissionRule>>> projectDenyRules = new ConcurrentHashMap<>();
+
     /** 规则 ID → 规则对象的反向映射，支持按 ID 查找和删除 */
     private final Map<String, PermissionRule> ruleById = new ConcurrentHashMap<>();
 
@@ -76,6 +81,28 @@ public class PermissionRuleRepository {
         }
         log.info("Added deny rule: tool={}, content={}, source={}", 
                 key, rule.ruleValue().ruleContent(), rule.source());
+    }
+
+    /** 添加项目级 Allow 规则 */
+    public void addAllowRuleForProject(String projectKey, PermissionRule rule) {
+        String toolName = rule.ruleValue().toolName();
+        projectAllowRules
+                .computeIfAbsent(projectKey, k -> new ConcurrentHashMap<>())
+                .computeIfAbsent(toolName, k -> new ArrayList<>())
+                .add(rule);
+        log.info("Added project-level allow rule: project={}, tool={}, source={}",
+                projectKey, toolName, rule.source());
+    }
+
+    /** 添加项目级 Deny 规则 */
+    public void addDenyRuleForProject(String projectKey, PermissionRule rule) {
+        String toolName = rule.ruleValue().toolName();
+        projectDenyRules
+                .computeIfAbsent(projectKey, k -> new ConcurrentHashMap<>())
+                .computeIfAbsent(toolName, k -> new ArrayList<>())
+                .add(rule);
+        log.info("Added project-level deny rule: project={}, tool={}, source={}",
+                projectKey, toolName, rule.source());
     }
 
     /**
@@ -157,6 +184,25 @@ public class PermissionRuleRepository {
         return base;
     }
 
+    /** 获取合并了项目级规则的 Allow 规则集：session + project + global */
+    public Map<String, List<PermissionRule>> getAllowRulesWithProject(String projectKey) {
+        Map<String, List<PermissionRule>> base = mergeRuleMaps(allowRules, sessionAllowRules);
+        if (projectKey != null && projectAllowRules.containsKey(projectKey)) {
+            base = mergeRuleMaps(base, projectAllowRules.get(projectKey));
+        }
+        base = mergeExternalRules(base, PermissionBehavior.ALLOW);
+        return base;
+    }
+
+    /** 获取合并了项目级规则的 Deny 规则集：session + project + global */
+    public Map<String, List<PermissionRule>> getDenyRulesWithProject(String projectKey) {
+        Map<String, List<PermissionRule>> base = mergeRuleMaps(denyRules, sessionDenyRules);
+        if (projectKey != null && projectDenyRules.containsKey(projectKey)) {
+            base = mergeRuleMaps(base, projectDenyRules.get(projectKey));
+        }
+        return base;
+    }
+
     /**
      * 获取所有 ask 规则（合并 企业策略 + 插件）。
      */
@@ -191,6 +237,13 @@ public class PermissionRuleRepository {
         sessionAllowRules.clear();
         sessionDenyRules.clear();
         log.info("Cleared all session-level permission rules");
+    }
+
+    /** 清理指定项目的所有规则（项目切换/关闭时调用） */
+    public void clearProjectRules(String projectKey) {
+        projectAllowRules.remove(projectKey);
+        projectDenyRules.remove(projectKey);
+        log.info("Cleared project-level rules for project={}", projectKey);
     }
 
     /**

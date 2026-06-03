@@ -235,9 +235,10 @@ public class ToolExecutionPipeline {
                     }
 
                     if (userDecision.remember()) {
+                        String projectKey = context != null ? context.workingDirectory() : null;
                         permissionPipeline.rememberDecision(tool, processedInput,
                                 true, userDecision.rememberScope() != null
-                                        ? userDecision.rememberScope() : RuleScope.SESSION);
+                                        ? userDecision.rememberScope() : RuleScope.SESSION, projectKey);
                     }
                     } // end else (non-bubble path)
                 }
@@ -543,9 +544,10 @@ public class ToolExecutionPipeline {
 
             // 记忆规则
             if (result.remember()) {
+                String projectKey = context != null ? context.workingDirectory() : null;
                 permissionPipeline.rememberDecision(tool, processedInput,
                         true, result.rememberScope() != null
-                                ? result.rememberScope() : RuleScope.SESSION);
+                                ? result.rememberScope() : RuleScope.SESSION, projectKey);
             }
 
             return null; // null 表示继续执行工具

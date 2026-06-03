@@ -68,6 +68,26 @@ public class PermissionPipeline {
             "eval"  // eval 几乎总是危险的
     );
 
+    /** 破坏性命令前缀——命中即判定为 High Risk */
+    private static final Set<String> DESTRUCTIVE_COMMAND_PREFIXES = Set.of(
+            "rm ", "rm -",
+            "rmdir ",
+            "dd ",
+            "mkfs",
+            "chmod -R 777",
+            "chown -R",
+            "> /", ">> /",
+            "truncate ",
+            "shred ",
+            "kill -9",
+            "killall ",
+            "git push --force",
+            "git push -f",
+            "git reset --hard",
+            "docker rm ",
+            "docker system prune"
+    );
+
     /** 内容级危险模式 (即使 bypass 也强制 ask) */
     private static final List<Pattern> CONTENT_LEVEL_ASK_PATTERNS = List.of(
             Pattern.compile("rm\\s+(?:-[rRf]+\\s+){0,5}(/|~|\\$HOME)"),
@@ -288,8 +308,12 @@ public class PermissionPipeline {
             return PermissionDecision.allow(PermissionDecisionReason.MODE, mode);
         }
 
-        // ===== Step 2b: alwaysAllow 规则 =====
-        PermissionRule allowRule = ruleMatcher.findAllowRule(permissionContext, tool);
+        // ===== Step 2b: alwaysAllow 规则 + V4 硬门控 =====
+        String step2bCommand = BASH_TOOL_NAMES.contains(tool.getName())
+                ? input.getOptionalString("command").orElse("")
+                : "";
+        String step2bRiskLevel = assessCommandRiskLevel(step2bCommand);
+        PermissionRule allowRule = ruleMatcher.findAllowRule(permissionContext, tool, input, step2bRiskLevel);
         if (allowRule != null) {
             log.debug("Step 2b: allow rule matched for tool={}", tool.getName());
             return PermissionDecision.allow(allowRule);
@@ -403,18 +427,17 @@ public class PermissionPipeline {
      * @param scope    记忆作用域
      */
     public void rememberDecision(Tool tool, ToolInput input,
-                                  boolean allowed, RuleScope scope) {
-        PermissionRuleSource source = scope == RuleScope.SESSION
-                ? PermissionRuleSource.USER_SESSION
-                : PermissionRuleSource.USER_GLOBAL;
+                                  boolean allowed, RuleScope scope, String projectKey) {
+        PermissionRuleSource source = switch (scope) {
+            case SESSION -> PermissionRuleSource.USER_SESSION;
+            case PROJECT -> PermissionRuleSource.USER_PROJECT;  // 复用已有别名
+            case GLOBAL  -> PermissionRuleSource.USER_GLOBAL;
+        };
 
         String toolName = tool.getName();
+        // ★ V4: 不再存储具体命令内容，统一工具级信任
+        // 安全由 assessCommandRiskLevel() + 硬门控保证
         String ruleContent = null;
-
-        // BashTool: 记住具体命令
-        if (BASH_TOOL_NAMES.contains(toolName)) {
-            ruleContent = input.getOptionalString("command").orElse(null);
-        }
 
         PermissionRuleValue value = ruleContent != null
                 ? new PermissionRuleValue(toolName, ruleContent)
@@ -425,13 +448,21 @@ public class PermissionPipeline {
                 value);
 
         if (allowed) {
-            ruleRepository.addAllowRule(rule);
+            if (source == PermissionRuleSource.USER_PROJECT && projectKey != null) {
+                ruleRepository.addAllowRuleForProject(projectKey, rule);
+            } else {
+                ruleRepository.addAllowRule(rule);
+            }
         } else {
-            ruleRepository.addDenyRule(rule);
+            if (source == PermissionRuleSource.USER_PROJECT && projectKey != null) {
+                ruleRepository.addDenyRuleForProject(projectKey, rule);
+            } else {
+                ruleRepository.addDenyRule(rule);
+            }
         }
 
-        log.info("Remembered permission decision: tool={}, allowed={}, scope={}, content={}",
-                toolName, allowed, scope, ruleContent);
+        log.info("Remembered permission decision: tool={}, allowed={}, scope={}, projectKey={}, content={}",
+                toolName, allowed, scope, projectKey, ruleContent);
     }
 
     // ==================== 异步权限请求 ====================
@@ -459,14 +490,7 @@ public class PermissionPipeline {
 
         // 通过 WebSocket 推送权限请求到前端
         String commandStr = String.valueOf(input.getOrDefault("command", ""));
-        String riskLevel;
-        if (BARE_SHELL_PREFIXES.stream().anyMatch(commandStr::startsWith)) {
-            riskLevel = "high";
-        } else if ("Bash".equals(toolName)) {
-            riskLevel = bashCommandClassifier.isReadOnlyCommand(commandStr) ? "low" : "medium";
-        } else {
-            riskLevel = "medium";
-        }
+        String riskLevel = assessCommandRiskLevel(commandStr);
 
         // 记录转发来源信息（当 sessionId 与 wsPusher 的目标会话不同时，说明是子代理冒泡转发）
         log.info("Permission request: toolUseId={}, toolName={}, targetSession={}",
@@ -719,6 +743,41 @@ public class PermissionPipeline {
             }
         }
         return false;
+    }
+
+    /**
+     * V4: 复合命令风险分级——对命令按管道/链式/分号分割，任一段命中 High Risk 前缀则整体判定为 High Risk。
+     * 这是硬门控的安全基础。
+     */
+    private String assessCommandRiskLevel(String commandStr) {
+        if (commandStr == null || commandStr.isBlank()) {
+            return "low";
+        }
+
+        // 按 |, &&, ||, ; 分割为独立命令段
+        String[] segments = commandStr.split("\\s*\\|\\|\\s*|\\s*&&\\s*|\\s*[|;]\\s*");
+
+        for (String segment : segments) {
+            String trimmed = segment.trim();
+            if (trimmed.isEmpty()) continue;
+
+            // 检查 shell 包装器/权限提升前缀
+            if (BARE_SHELL_PREFIXES.stream().anyMatch(p -> trimmed.startsWith(p + " ") || trimmed.equals(p))) {
+                return "high";
+            }
+            // 检查破坏性命令前缀
+            if (DESTRUCTIVE_COMMAND_PREFIXES.stream().anyMatch(trimmed::startsWith)) {
+                return "high";
+            }
+        }
+
+        // 额外检查：find -exec/-delete 等参数级危险
+        if (commandStr.contains("-exec") || commandStr.contains("-delete")) {
+            return "high";
+        }
+
+        // 所有段都不高危，按原有逻辑判断只读/非只读
+        return bashCommandClassifier.isReadOnlyCommand(commandStr) ? "low" : "medium";
     }
 
     /**

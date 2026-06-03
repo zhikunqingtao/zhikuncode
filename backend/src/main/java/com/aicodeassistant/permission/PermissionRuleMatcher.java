@@ -61,6 +61,23 @@ public class PermissionRuleMatcher {
         return findMatchingRule(context.alwaysAllowRules(), tool, input);
     }
 
+    /**
+     * V4 硬门控：High Risk 命令永远不自动放行，无论 Remember 状态如何。
+     */
+    public PermissionRule findAllowRule(PermissionContext context, Tool tool, String riskLevel) {
+        if ("high".equals(riskLevel)) {
+            return null;
+        }
+        return findMatchingRule(context.alwaysAllowRules(), tool, null);
+    }
+
+    public PermissionRule findAllowRule(PermissionContext context, Tool tool, ToolInput input, String riskLevel) {
+        if ("high".equals(riskLevel)) {
+            return null;
+        }
+        return findMatchingRule(context.alwaysAllowRules(), tool, input);
+    }
+
     // ==================== 核心匹配 ====================
 
     /**
