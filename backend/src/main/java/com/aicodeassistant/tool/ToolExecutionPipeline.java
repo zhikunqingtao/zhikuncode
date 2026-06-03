@@ -165,8 +165,9 @@ public class ToolExecutionPipeline {
             if (permReq != PermissionRequirement.NONE) {
                 // 构建权限上下文 — 从 PermissionModeManager 获取会话级模式
                 PermissionMode sessionMode = permissionModeManager.getMode(context.sessionId());
+                String projectKey = context != null ? context.workingDirectory() : null;
                 PermissionContext permContext = permissionRuleRepository.buildContext(
-                        sessionMode, false, false);
+                        sessionMode, false, false, projectKey);
                 PermissionDecision decision = permissionPipeline.checkPermission(
                         tool, processedInput, context, permContext);
                 log.info("[DIAG-PERM] Stage 4 decision: tool={}, behavior={}, reason={}",
@@ -230,15 +231,24 @@ public class ToolExecutionPipeline {
 
                     if (!userDecision.isAllowed()) {
                         log.info("Tool {} permission denied by user", toolName);
+                        // ★ V4: Deny + Remember 也需要记住拒绝决策
+                        if (userDecision.remember()) {
+                            String denyProjectKey = context != null ? context.workingDirectory() : null;
+                            permissionPipeline.rememberDecision(
+                                    tool, processedInput,
+                                    false,  // denied
+                                    userDecision.rememberScope() != null ? userDecision.rememberScope() : RuleScope.SESSION,
+                                    denyProjectKey);
+                        }
                         effectivePusher.sendToolPermissionDenied(context.sessionId(), toolUseId, toolName);
                         return ToolExecutionResult.of(ToolResult.error("Permission denied by user"));
                     }
 
                     if (userDecision.remember()) {
-                        String projectKey = context != null ? context.workingDirectory() : null;
+                        String allowProjectKey = context != null ? context.workingDirectory() : null;
                         permissionPipeline.rememberDecision(tool, processedInput,
                                 true, userDecision.rememberScope() != null
-                                        ? userDecision.rememberScope() : RuleScope.SESSION, projectKey);
+                                        ? userDecision.rememberScope() : RuleScope.SESSION, allowProjectKey);
                     }
                     } // end else (non-bubble path)
                 }
@@ -526,6 +536,15 @@ public class ToolExecutionPipeline {
 
             if (!result.isAllowed()) {
                 log.info("Parent agent denied permission for tool={}", tool.getName());
+                // ★ V4: Deny + Remember 也需要记住拒绝决策
+                if (result.remember()) {
+                    String denyProjectKey = context != null ? context.workingDirectory() : null;
+                    permissionPipeline.rememberDecision(
+                            tool, processedInput,
+                            false,  // denied
+                            result.rememberScope() != null ? result.rememberScope() : RuleScope.SESSION,
+                            denyProjectKey);
+                }
                 // 通知前端（父会话）清除已显示的 changedFiles
                 if (wsPusher != null) {
                     String targetSessionId = context.parentSessionId() != null
@@ -544,10 +563,10 @@ public class ToolExecutionPipeline {
 
             // 记忆规则
             if (result.remember()) {
-                String projectKey = context != null ? context.workingDirectory() : null;
+                String bubbleProjectKey = context != null ? context.workingDirectory() : null;
                 permissionPipeline.rememberDecision(tool, processedInput,
                         true, result.rememberScope() != null
-                                ? result.rememberScope() : RuleScope.SESSION, projectKey);
+                                ? result.rememberScope() : RuleScope.SESSION, bubbleProjectKey);
             }
 
             return null; // null 表示继续执行工具

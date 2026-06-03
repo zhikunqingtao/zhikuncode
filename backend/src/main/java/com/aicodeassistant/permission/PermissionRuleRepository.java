@@ -200,6 +200,7 @@ public class PermissionRuleRepository {
         if (projectKey != null && projectDenyRules.containsKey(projectKey)) {
             base = mergeRuleMaps(base, projectDenyRules.get(projectKey));
         }
+        base = mergeExternalRules(base, PermissionBehavior.DENY);
         return base;
     }
 
@@ -271,6 +272,31 @@ public class PermissionRuleRepository {
                 Set.of(),
                 getAllowRules(),
                 getDenyRules(),
+                getAskRules(),
+                isBypassAvailable,
+                isAutoAvailable
+        );
+    }
+
+    /**
+     * V4: 构建包含项目级规则的权限上下文
+     */
+    public PermissionContext buildContext(PermissionMode mode,
+                                          boolean isBypassAvailable,
+                                          boolean isAutoAvailable,
+                                          String projectKey) {
+        Map<String, List<PermissionRule>> effectiveAllowRules = projectKey != null
+                ? getAllowRulesWithProject(projectKey)
+                : getAllowRules();
+        Map<String, List<PermissionRule>> effectiveDenyRules = projectKey != null
+                ? getDenyRulesWithProject(projectKey)
+                : getDenyRules();
+
+        return new PermissionContext(
+                mode,
+                Set.of(),
+                effectiveAllowRules,
+                effectiveDenyRules,
                 getAskRules(),
                 isBypassAvailable,
                 isAutoAvailable

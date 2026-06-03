@@ -434,6 +434,12 @@ public class PermissionPipeline {
             case GLOBAL  -> PermissionRuleSource.USER_GLOBAL;
         };
 
+        // ★ V4: projectKey 为空时降级为 SESSION，防止 PROJECT 规则泄漏为 GLOBAL
+        if (source == PermissionRuleSource.USER_PROJECT && projectKey == null) {
+            log.warn("PROJECT scope remember requested but projectKey is null; falling back to SESSION scope");
+            source = PermissionRuleSource.USER_SESSION;
+        }
+
         String toolName = tool.getName();
         // ★ V4: 不再存储具体命令内容，统一工具级信任
         // 安全由 assessCommandRiskLevel() + 硬门控保证
