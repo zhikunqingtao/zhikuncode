@@ -1,6 +1,9 @@
 package com.aicodeassistant.tool.impl;
 
 import com.aicodeassistant.model.PermissionBehavior;
+import com.aicodeassistant.sandbox.SandboxManager;
+import com.aicodeassistant.sandbox.SandboxManager.SandboxResult;
+import com.aicodeassistant.security.CommandBlacklistService;
 import com.aicodeassistant.tool.*;
 import com.aicodeassistant.tool.bash.BashCommandClassifier;
 import com.aicodeassistant.tool.bash.BashOutputProcessor;
@@ -83,17 +86,23 @@ public class BashTool implements Tool {
     private final ShellStateManager shellStateManager;
     private final BashOutputProcessor outputProcessor;
     private final ProcessTreeManager processTreeManager;
+    private final SandboxManager sandboxManager;
+    private final CommandBlacklistService commandBlacklistService;
 
     public BashTool(BashSecurityAnalyzer securityAnalyzer,
                     BashCommandClassifier commandClassifier,
                     ShellStateManager shellStateManager,
                     BashOutputProcessor outputProcessor,
-                    ProcessTreeManager processTreeManager) {
+                    ProcessTreeManager processTreeManager,
+                    SandboxManager sandboxManager,
+                    CommandBlacklistService commandBlacklistService) {
         this.securityAnalyzer = securityAnalyzer;
         this.commandClassifier = commandClassifier;
         this.shellStateManager = shellStateManager;
         this.outputProcessor = outputProcessor;
         this.processTreeManager = processTreeManager;
+        this.sandboxManager = sandboxManager;
+        this.commandBlacklistService = commandBlacklistService;
     }
 
     @Override
@@ -489,6 +498,11 @@ public class BashTool implements Tool {
             CommandCategory uiCategory = commandClassifier.classifyForUI(command);
             log.debug("Executing command [category={}]: {}", uiCategory.getDisplayLabel(), command);
 
+            // === 沙箱路由判断：高危命令进容器执行 ===
+            if (sandboxManager.isSandboxingEnabled() && sandboxManager.shouldUseSandbox(command)) {
+                return executeSandboxed(command, workingDir, timeout);
+            }
+
             // 2. 构建进程
             ProcessBuilder pb = new ProcessBuilder("bash", "-c", wrappedCommand);
             pb.directory(new File(workingDir));
@@ -555,5 +569,22 @@ public class BashTool implements Tool {
             Thread.currentThread().interrupt();
             return ToolResult.error("Command execution interrupted");
         }
+    }
+
+    /**
+     * 在沙箱容器中执行命令（用于高危命令隔离）。
+     */
+    private ToolResult executeSandboxed(String command, String workingDir, long timeoutMs) {
+        SandboxResult result = sandboxManager.execute(command, Path.of(workingDir), Map.of());
+        if (result.timedOut()) {
+            return ToolResult.error("Sandboxed command timed out after "
+                    + sandboxManager.getTimeoutSeconds() + "s");
+        }
+        if (result.exitCode() != 0) {
+            return ToolResult.error("Exit code: " + result.exitCode() + "\n" + result.output());
+        }
+        return ToolResult.success(result.output())
+                .withMetadata("sandboxed", true)
+                .withMetadata("exitCode", result.exitCode());
     }
 }

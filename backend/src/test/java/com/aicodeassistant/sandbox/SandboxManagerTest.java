@@ -24,7 +24,7 @@ class SandboxManagerTest {
     @BeforeEach
     void setUp() {
         config = new SandboxConfig();
-        manager = new SandboxManager(config);
+        manager = new SandboxManager(config, null);
         objectMapper = new ObjectMapper();
     }
 

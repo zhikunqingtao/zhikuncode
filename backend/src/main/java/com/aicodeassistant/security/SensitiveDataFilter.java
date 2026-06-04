@@ -43,14 +43,19 @@ public class SensitiveDataFilter {
             Pattern.compile("(sk-ant-[a-zA-Z0-9_-]{20,})"),
             // Slack Token
             Pattern.compile("(xox[bpsar]-[a-zA-Z0-9-]{10,})"),
-            // Generic key=value secrets
-            Pattern.compile("(?i)(api[_-]?key|secret|password|token|auth|credential)\\s*[=:]\\s*['\"]?([^\\s'\"]{8,})"),
+            // Generic key=value secrets — 字段名改为非捕获组，让密钥成为 group(1)
+            Pattern.compile("(?i)(?:api[_-]?key|secret|password|token|auth|credential)\\s*[=:]\\s*['\"]?([^\\s'\"]{8,})"),
             // JWT Token
             Pattern.compile("(eyJ[a-zA-Z0-9_-]{10,}\\.[a-zA-Z0-9_-]{10,}\\.[a-zA-Z0-9_-]{10,})"),
             // PEM Private Key header
             Pattern.compile("-----BEGIN (RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----"),
-            // Connection strings with passwords
-            Pattern.compile("(?i)(mongodb|postgres|mysql|redis)://[^:]+:([^@]{4,})@")
+            // Connection strings with passwords — 协议名改为非捕获组，让密码成为 group(1)
+            Pattern.compile("(?i)(?:mongodb|postgres|mysql|redis)://[^:]+:([^@]{4,})@"),
+            Pattern.compile("(hf_[a-zA-Z0-9]{20,})"),              // HuggingFace Token
+            Pattern.compile("(AIza[a-zA-Z0-9_\\-]{35})"),           // GCP API Key
+            Pattern.compile("(sk_live_[a-zA-Z0-9]{24,})"),          // Stripe Secret Key
+            Pattern.compile("(vercel_[a-zA-Z0-9_]{24,})"),          // Vercel Token
+            Pattern.compile("(sbp_[a-zA-Z0-9]{40,})")              // Supabase Service Key
     );
 
     /**
@@ -63,7 +68,15 @@ public class SensitiveDataFilter {
         if (content == null) return null;
         String result = content;
         for (Pattern p : PATTERNS) {
-            result = p.matcher(result).replaceAll(REDACTED);
+            result = p.matcher(result).replaceAll(matchResult -> {
+                String token = matchResult.group(1);
+                if (token == null) return REDACTED;
+                int underscoreIdx = token.indexOf('_');
+                String prefix = underscoreIdx > 0 && underscoreIdx < 8
+                    ? token.substring(0, underscoreIdx + 1)
+                    : token.substring(0, Math.min(4, token.length()));
+                return prefix + "***REDACTED-" + token.length() + "***";
+            });
         }
         return result;
     }

@@ -173,6 +173,15 @@ public class ToolSearchTool implements Tool {
             sb.append("\n");
         }
 
+        // 激活搜索到的 deferred 工具（使其在下一轮 LLM 调用时出现在 tool definitions 中）
+        List<String> deferredNames = matchedTools.stream()
+            .filter(Tool::shouldDefer)
+            .map(Tool::getName)
+            .toList();
+        if (!deferredNames.isEmpty()) {
+            toolRegistry.activate(context.sessionId(), deferredNames);
+        }
+
         return ToolResult.success(sb.toString());
     }
 

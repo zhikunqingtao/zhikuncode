@@ -33,6 +33,9 @@ public class ToolRegistry {
             .expireAfterWrite(Duration.ofMinutes(5))
             .build();
 
+    /** 会话级工具激活状态：sessionId -> 已激活的工具名集合 */
+    private final ConcurrentHashMap<String, Set<String>> activatedTools = new ConcurrentHashMap<>();
+
     /**
      * 构造函数 — 通过 Spring 自动注入所有 Tool 实现。
      */
@@ -249,5 +252,34 @@ public class ToolRegistry {
         return getEnabledTools().stream()
                 .filter(t -> !SUB_AGENT_DENIED_TOOLS.contains(t.getName()))
                 .toList();
+    }
+
+    /**
+     * 获取会话活跃工具定义（过滤 deferred 未激活工具）。
+     * 排序规则：内建(alwaysLoad) -> 内建(activated) -> MCP(activated)
+     */
+    public List<Map<String, Object>> getActiveToolDefinitions(String sessionId) {
+        Set<String> activated = activatedTools.getOrDefault(sessionId, Set.of());
+        return getEnabledToolsSorted().stream()
+            .filter(t -> t.alwaysLoad() || !t.shouldDefer() || activated.contains(t.getName()))
+            .map(Tool::toToolDefinition)
+            .toList();
+    }
+
+    /**
+     * 激活指定工具（由 ToolSearchTool 命中后调用）。
+     */
+    public void activate(String sessionId, List<String> toolNames) {
+        activatedTools.computeIfAbsent(sessionId, k -> ConcurrentHashMap.newKeySet())
+            .addAll(toolNames);
+        sortedToolCache.invalidateAll();  // 修正：key格式为sessionId::hash，无法按sessionId精确失效
+    }
+
+    /**
+     * 清理会话激活状态（session 结束时调用）。
+     */
+    public void clearActivations(String sessionId) {
+        activatedTools.remove(sessionId);
+        sortedToolCache.invalidateAll();  // 修正：同上
     }
 }

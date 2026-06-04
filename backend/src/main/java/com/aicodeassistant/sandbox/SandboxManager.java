@@ -1,5 +1,6 @@
 package com.aicodeassistant.sandbox;
 
+import com.aicodeassistant.security.CommandBlacklistService;
 import com.aicodeassistant.tool.ToolInput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,11 +31,13 @@ public class SandboxManager {
     private static final Logger log = LoggerFactory.getLogger(SandboxManager.class);
 
     private final SandboxConfig config;
+    private final CommandBlacklistService commandBlacklistService;
     private volatile Boolean dockerAvailable = null;
     private volatile boolean dockerUnavailableWarned = false;
 
-    public SandboxManager(SandboxConfig config) {
+    public SandboxManager(SandboxConfig config, CommandBlacklistService commandBlacklistService) {
         this.config = config;
+        this.commandBlacklistService = commandBlacklistService;
     }
 
     /**
@@ -98,17 +101,6 @@ public class SandboxManager {
             return false;
         }
 
-        // 破坏性命令列表
-        String[] destructiveCommands = {
-                "rm", "rmdir", "mv", "chmod", "chown", "mkfs",
-                "dd", "format", "fdisk", "parted"
-        };
-
-        // 网络命令列表
-        String[] networkCommands = {
-                "curl", "wget", "nc", "ncat", "telnet"
-        };
-
         String cmdLower = command.toLowerCase().trim();
         String firstToken = cmdLower.split("\\s+")[0];
 
@@ -120,6 +112,51 @@ public class SandboxManager {
             }
         }
 
+        return isDestructiveOrNetwork(firstToken);
+    }
+
+    /**
+     * 字符串重载：供 BashTool 直接使用裸命令字符串判断是否需要沙箱。
+     * 除了原有的 destructive/network 检测外，还将 HIGH_RISK_ASK 级别命令路由到沙箱。
+     */
+    public boolean shouldUseSandbox(String command) {
+        if (!isSandboxingEnabled()) return false;
+        if (command == null || command.isBlank()) return false;
+
+        // 原有逻辑：destructive + network 命令
+        String cmdLower = command.toLowerCase().trim();
+        String firstToken = cmdLower.split("\\s+")[0];
+        if (firstToken.equals("sudo") && cmdLower.length() > 5) {
+            String[] parts = cmdLower.substring(5).trim().split("\\s+");
+            if (parts.length > 0) {
+                firstToken = parts[0];
+            }
+        }
+        if (isDestructiveOrNetwork(firstToken)) return true;
+
+        // 新增：HIGH_RISK_ASK 级别命令也进沙箱
+        if (commandBlacklistService != null) {
+            CommandBlacklistService.BlockResult blockResult = commandBlacklistService.checkCommand(command);
+            return blockResult.level() == CommandBlacklistService.BlockLevel.HIGH_RISK_ASK;
+        }
+        return false;
+    }
+
+    /**
+     * 判断首 token 是否为破坏性或网络命令。
+     */
+    private boolean isDestructiveOrNetwork(String firstToken) {
+        // 破坏性命令列表
+        String[] destructiveCommands = {
+                "rm", "rmdir", "mv", "chmod", "chown", "mkfs",
+                "dd", "format", "fdisk", "parted"
+        };
+
+        // 网络命令列表
+        String[] networkCommands = {
+                "curl", "wget", "nc", "ncat", "telnet"
+        };
+
         for (String dc : destructiveCommands) {
             if (firstToken.equals(dc) || firstToken.endsWith("/" + dc)) {
                 return true;
@@ -130,7 +167,6 @@ public class SandboxManager {
                 return true;
             }
         }
-
         return false;
     }
 
@@ -242,6 +278,13 @@ public class SandboxManager {
      */
     public void resetDockerAvailability() {
         dockerAvailable = null;
+    }
+
+    /**
+     * 暴露超时配置（供外部如 BashTool 构建错误消息用）。
+     */
+    public int getTimeoutSeconds() {
+        return config.getTimeoutSeconds();
     }
 
     /**
