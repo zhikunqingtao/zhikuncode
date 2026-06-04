@@ -8,7 +8,7 @@ predictions in the official all_preds.jsonl format.
 Usage:
     python swe-bench/swe_bench.py \
         --dataset ./swe-bench-lite.json \
-        --model qwen3.6-max-preview \
+        --model qwen3.7-max \
         --output ./swe-bench/results \
         --limit 5 --workers 1
 """
@@ -17,6 +17,7 @@ import argparse
 import json
 import logging
 import os
+import random
 import shutil
 import subprocess
 import sys
@@ -34,9 +35,9 @@ import requests
 # ---------------------------------------------------------------------------
 
 DEFAULT_API_URL = "http://127.0.0.1:8080"
-DEFAULT_MODEL = "qwen3.6-max-preview"
-DEFAULT_TIMEOUT = 600
-DEFAULT_MAX_TURNS = 50
+DEFAULT_MODEL = "qwen3.7-max"
+DEFAULT_TIMEOUT = 2000             # 原 600 → 2000，配合 E4+ 验证循环
+DEFAULT_MAX_TURNS = 100            # 原 50 → 100，配合 T3 轮次提升
 DEFAULT_WORKERS = 1
 HEALTH_CHECK_ENDPOINT = "/api/health/ready"
 QUERY_ENDPOINT = "/api/query"
@@ -44,6 +45,11 @@ CONVERSATION_ENDPOINT = "/api/query/conversation"
 ALLOWED_TOOLS = ["Read", "Edit", "Write", "Bash", "Grep", "Glob"]
 MAX_RETRIES = 3
 RETRY_DELAY = 5  # seconds
+
+# Clone retry settings (network resilience for unstable VPN/proxy)
+CLONE_MAX_RETRIES = 3
+CLONE_RETRY_MIN_DELAY = 60   # seconds
+CLONE_RETRY_MAX_DELAY = 120  # seconds
 
 SWE_BENCH_SYSTEM_PROMPT = """\
 You are an autonomous software engineer tasked with fixing a bug in a Python repository.
@@ -66,10 +72,14 @@ consume your turn budget with zero benefit.
 - **Grep**: Search file contents by regex. Grep(pattern="<regex>", path="<dir_or_file>")
 - **Glob**: Find files by glob pattern. Glob(pattern="<glob>")
 
-⚠️ CRITICAL: The following tools DO NOT EXIST in this environment:
-- Agent, SubAgent, Delegate, Fork, Spawn, Search, Browse, WebSearch
-If you attempt to call any non-existent tool, it will fail. Do NOT waste turns on unavailable tools.
-You have ONLY these 6 tools: Read, Edit, Write, Bash, Grep, Glob. Use them directly.
+⚠️ CRITICAL: The following tools DO NOT EXIST — never call them:
+Agent, SubAgent, Delegate, TodoWrite, TaskCreate, Task, TaskUpdate,
+TodoRead, Search, Browser, WebFetch, Ask, AskUser, Spawn, Fork,
+Browse, WebSearch.
+If you attempt to call any non-existent tool, you waste turns and risk producing an empty patch.
+Any task you might consider delegating — planning, todo-tracking, sub-tasking, asking questions —
+do it YOURSELF using only the 6 tools above (Read, Edit, Write, Bash, Grep, Glob).
+Do NOT maintain todo lists via tools; reason internally and act with the 6 tools.
 
 WHY only these 6: This is a single-agent evaluation harness with no orchestration layer
 and no tool registry. You must solve the problem entirely by yourself. If a tool call
@@ -86,6 +96,20 @@ returns an error, immediately switch to one of the 6 tools above — never retry
 - Do NOT attempt web searches, API calls, or external tool usage.
 - Everything you need is in the repository at {repo_path}.
 
+### Patch Extraction Constraints (READ TWICE)
+- B2 — Test files are FILTERED OUT by extract_patch(). Any path matching
+  `tests/`, `**/tests/`, `test_*.py`, or `*_test.py` will be dropped.
+  You MAY Read them; you MUST NOT Edit/Write them. Editing tests =
+  wasted turns + potential loss of the real fix.
+- B1 — Write to a path that does NOT already exist = creating a new file.
+  Such hunks become "new file mode" diffs and almost always score resolved=0.
+  Your ONLY legal action is Edit/Write on EXISTING source files inside the
+  repo. If you think a helper is needed, place the logic INLINE inside the
+  existing target function instead.
+- B4 — Patches with refactor noise (renamed vars, reordered imports,
+  reflowed whitespace) often fail `git apply`. Touch ONLY the lines required
+  by the bug fix.
+
 ## MANDATORY Phase Transitions (You MUST follow this)
 
 ### Phase ANALYZE (Turns 1-3): Understand the problem
@@ -94,6 +118,15 @@ returns an error, immediately switch to one of the 6 tools above — never retry
 - Identify the error type and likely location
 - ✅ EXIT CONDITION: "I understand what's failing and approximately where"
 - ⚠️ DO NOT spend more than 3 turns here. Move to LOCATE.
+
+[MANDATORY ANALYZE STEPS — Do NOT skip]
+1. Locate and Read the failing test file FIRST.
+2. Output a "Test Expectation Summary" in 2-3 sentences:
+   - What inputs are exercised?
+   - What output/assertion is expected?
+3. Trace from the assertion backward to the source code under test.
+4. Only after steps 1-3 may you proceed to LOCATE phase.
+Skipping any of the above will be considered an iteration violation.
 
 ### Phase LOCATE (Turns 4-12): Find the exact code to fix
 - Use Grep/Read to find the relevant source file
@@ -116,15 +149,13 @@ returns an error, immediately switch to one of the 6 tools above — never retry
 - ✅ EXIT CONDITION: Target test passes
 
 ## ⚠️ ANTI-PATTERNS TO AVOID:
-0. NEVER touch tests/, test_*.py, *_test.py, or any conftest.py — these are
+0. NEVER touch tests/, test_*.py, or *_test.py — these are
    auto-stripped from the final patch; touching them is wasted work.
 1. DO NOT keep reading files indefinitely without making changes
 2. DO NOT end your turn if you haven't made any code edit yet (unless you're in ANALYZE/LOCATE phase)
 3. DO NOT give up after a tool error - try alternative approaches
 4. DO NOT use more than 12 turns for exploration without starting to write code
 5. If you're unsure about the perfect fix, write your BEST ATTEMPT - an imperfect fix is better than no fix
-6. If the same Bash/Grep returned identical output twice, switch strategy.
-   Repeating the failed query is sunk cost.
 
 ## Tool Failure Recovery
 - If a tool returns an error, do NOT give up. Try an alternative approach.
@@ -133,6 +164,8 @@ returns an error, immediately switch to one of the 6 tools above — never retry
 - Access denied? → Check if you're using the correct working directory path
 - After 2 failed attempts on same approach → switch strategy entirely
 - NEVER end your turn just because one tool call failed
+- **Tool-does-not-exist error** → IMMEDIATELY substitute with Bash or Edit to accomplish your goal. Do NOT retry the same non-existent tool name with different arguments.
+- **2 consecutive tool errors of any kind** → drop all other tools and use ONLY Bash to complete the remaining work (Bash can replicate Read via `cat`, Grep via `grep`, Glob via `find`).
 
 ## Workflow (MUST follow in order)
 
@@ -146,17 +179,9 @@ returns an error, immediately switch to one of the 6 tools above — never retry
 - If no test keyword is obvious, search broadly:
   Bash(command="grep -r 'def test' {repo_path}/tests/ --include='*.py' | grep -i 'relevant_keyword' | head -10")
 
-**Three-Anchor Extraction** (strongly recommended before moving to LOCATE):
-1. Run the failing test to capture the full traceback:
+### Step 1.5: Run the Failing Test
+Run the failing test to get a traceback — note the exception type, source file, and function name:
    Bash(command="cd {repo_path} && python -m pytest tests/ -k '<keyword_from_issue>' -xvs 2>&1 | tail -80")
-2. Extract THREE anchors from the output:
-   a) ERROR_TYPE: The Python exception class (e.g., AttributeError, TypeError, ValueError)
-   b) SOURCE_FILE: The first non-pytest .py file path from the traceback + line number
-   c) FUNCTION_NAME: The function/method name where the exception was raised
-3. Proceed to LOCATE after all three anchors are identified.
-   If test cannot be found/run, derive best-guess anchors from the issue description.
-⚠️ ANTI-PATTERN: Jumping directly to Grep/Glob without running the test first
-   wastes turns and leads to wrong-file edits (the #1 cause of all-fail).
 
 ### Step 2: LOCATE (Selective Reading + Fallback Ladder)
 - Use Grep/Glob to find relevant source files
@@ -186,58 +211,11 @@ returns an error, immediately switch to one of the 6 tools above — never retry
   b) Find a similar resolved case (e.g. another except branch handling same exc)
   c) Mirror the exact structure: same indent, same idiom, same return type
 
-### Step 2.8: PRE-EDIT BASELINE (recommended before any Edit on high-caller functions)
-
-Before making any code change, establish a test baseline for the affected module:
-
-1. Identify the most relevant test directory:
-   Bash(command="find {repo_path} -path '*tests*' -name 'test_*.py' -newer {repo_path}/setup.py | head -5")
-   OR use the same directory as the failing test.
-
-2. Run a quick baseline (BEFORE any Edit):
-   Bash(command="cd {repo_path} && python -m pytest <relevant_test_dir> -x --tb=no -q 2>&1 | tail -5")
-
-3. Record the numbers: e.g., "42 passed, 3 failed, 1 error"
-
-4. AFTER completing your fix, re-run the SAME command.
-
-5. Compare:
-   - If passed_after < passed_before: You introduced regression!
-     Make your fix MORE LOCAL: prefer adding a branch over modifying existing logic.
-     Use "if <new_condition>: ... else: <original_behavior>" pattern.
-   - If passed_after >= passed_before: Safe to proceed.
-
-This step costs 1 turn but saves 10+ turns of debugging regressions.
-
-### ERROR_TYPE_SPECIFIC_STRATEGIES (select based on ERROR_TYPE from Step 1)
-
-If ERROR_TYPE == "AttributeError":
-  -> Priority: "def __init__" in SOURCE_FILE (instance attribute setup)
-  -> Secondary: "@property" or "@<attr>.setter" definitions
-  -> Tertiary: "self.<attr>" assignment sites across the class hierarchy
-  -> Common fix: Add missing attribute in __init__, or fix property accessor
-
-If ERROR_TYPE == "TypeError":
-  -> Priority: Read function signature of the failing call (count parameters)
-  -> Check: "def <func_name>(" — compare expected vs actual arg count
-  -> Common fix: Add/remove parameter, add type coercion, fix default value
-
-If ERROR_TYPE == "ValueError":
-  -> Priority: Search for "raise ValueError" near SOURCE_FILE:LINE
-  -> Check: Input validation logic at function entry point
-  -> Common fix: Widen accepted range, add missing case to if/elif chain
-
-If ERROR_TYPE == "AssertionError":
-  -> Priority: Read the exact assertion in test to understand expected output
-  -> Compare: What does current code produce vs what the test expects?
-  -> Common fix: Fix return value, fix string format, fix comparison logic
-
-If ERROR_TYPE == "ImportError" or "ModuleNotFoundError":
-  -> Priority: Bash(command="python -c 'import <module>' 2>&1")
-  -> Check: Missing install or wrong import path?
-  -> Common fix: Fix import path, add __init__.py, or fix circular import
-
 ### Step 3: FIX (Minimal Change Priority)
+- PRE-EDIT CHECKLIST — Before EVERY Edit/Write call, answer all 3:
+  Q1: Is the target path a test file (tests/, test_*, _test.py)? → if YES, abort.
+  Q2: Does the target path already exist in the repo? → if NO, abort (no new files).
+  Q3: Does this change alter runtime behavior, or is it cosmetic (rename/reorder/whitespace)? → if cosmetic, abort.
 - PRIORITY ORDER for fix approaches:
   1. Change a SINGLE condition/value (1 line) — BEST
   2. Add a SINGLE check/branch (2-5 lines) — GOOD
@@ -287,7 +265,40 @@ Before running tests, verify your fix by answering these 6 questions:
    If it expects a list, don't return a generator. If it checks `.message`, ensure
    your exception has that attribute set correctly.
 
+8. **Deterministic Output Rule**: If your fix involves returning a list, set, dict, or any collection:
+   - ❌ NEVER: return list(set(...)) or dict.keys() directly → non-deterministic order
+   - ✓ ALWAYS: return sorted(...) with an explicit, stable sort key
+   - ✓ VERIFY: run the test 2x mentally — would the output be identical both times?
+   Python-specific traps:
+   - set() iteration order is NOT guaranteed
+   - dict() preserves insertion order (Python 3.7+) but only if construction order is fixed
+   - **kwargs order depends on caller, not callee
+   When test assertions compare sequences (assertEqual, ==), ORDER MATTERS.
+
 If ANY answer reveals a problem, revise your fix BEFORE proceeding to Step 4.
+
+### Step 3.6: POST-EDIT TEST VERIFICATION (MANDATORY — do NOT skip)
+
+⚠️ BEFORE proceeding to final VERIFY, you MUST execute these two validation steps:
+
+**Step A — Target Test Verification:**
+Run the specific failing test(s) mentioned in the issue description:
+```bash
+pytest -xvs <target_test_file>::<test_function> 2>&1 | head -50
+```
+- If the target test still FAILS → return to FIX phase and revise your approach.
+- If you cannot identify the exact test, run: `pytest -x <most_relevant_test_file> 2>&1 | head -80`
+
+**Step B — Regression Check:**
+Run the test suite for the modified package/module:
+```bash
+pytest <modified_package_dir>/tests/ --timeout=60 -q 2>&1 | tail -30
+```
+- If NEW failures appear that did not exist before your change → revert the problematic part or find a less invasive fix.
+- If the module has too many tests (>200), narrow to: `pytest <modified_file_dir>/ -q --timeout=60 2>&1 | tail -20`
+
+🚨 Only after BOTH steps pass may you proceed to Step 4 (VERIFY).
+🚨 If either step fails, return to FIX phase. This costs one retry attempt from your budget.
 
 ### Step 4: VERIFY (MANDATORY — NEVER skip — costs 0 extra effort)
 
@@ -316,11 +327,31 @@ If ANY answer reveals a problem, revise your fix BEFORE proceeding to Step 4.
 
 4. **Iteration Rules**:
    - Max 5 fix-verify cycles for LOGIC errors
+   - MANDATORY: each retry must use a DIFFERENT approach — do NOT repeat the same fix verbatim
+   - After 3 failed attempts on the SAME error → consider a fundamentally different strategy
+     (different file, different function, different algorithmic approach)
+   - DO NOT: keep tweaking the same line hoping for a different result
    - Max 1 retry for ENVIRONMENT errors (if pip install doesn't fix it, move on)
    - ZERO retries for TIMEOUT (submit immediately)
 
 5. **Run PASS_TO_PASS tests** (prevent regression, only after FAIL_TO_PASS passes):
    Bash(command="cd {repo_path} && python -m pytest tests/path/ -x --timeout=60 2>&1 | tail -30")
+
+## Self-Reflection on VERIFY Failure
+
+When tests fail after your fix, pause and reflect:
+
+R1. **Root Cause Re-assessment**: Did I fix the symptom or the actual root cause?
+    - Re-read the issue description and failing test assertions
+    - Use `grep -rn "function_name"` to find all callers of the modified function
+
+R2. **Side Effect Check**: Could my change break existing behavior?
+    - Check if the modified function is called from other modules
+    - Verify default parameter values haven't changed semantics
+
+R3. **Test Expectation Alignment**: Am I satisfying what the test actually asserts?
+    - Read the exact assertion (assertEqual, assertRaises, etc.)
+    - Ensure return type, value, and exception type match exactly
 
 ITERATION BUDGET: Max 5 fix-verify cycles total. If fix #5 still fails, submit your best attempt.
 
@@ -330,7 +361,7 @@ ITERATION BUDGET: Max 5 fix-verify cycles total. If fix #5 still fails, submit y
 3. If unsure about a fix, read more code first
 4. Always verify your fix compiles/runs before finishing
 5. When done, simply stop — do not announce completion
-6. NEVER modify test files or conftest.py
+6. NEVER modify test files (tests/, test_*.py, *_test.py)
 7. NEVER add print/debug statements in final code
 8. Prefer Edit over Write for targeted changes
 9. Before editing, always run: Grep for assert/raise/if related to the same concept
@@ -368,8 +399,9 @@ Glob is a file-finding tool. Fallback:
 
 ### Tool does not exist?
 - ONLY use: Read, Edit, Write, Bash, Grep, Glob
-- If you tried another tool, IMMEDIATELY switch to one of the 6 above
+- If you tried another tool, IMMEDIATELY switch to one of the 6 above — do NOT retry the non-existent tool
 - Bash is the universal fallback (cat, find, sed, grep, head, tail, etc.)
+- After 2 consecutive tool-does-not-exist errors, use ONLY Bash for the rest of the session
 
 ### Stuck in a loop?
 - If the same approach failed twice, try a DIFFERENT strategy
@@ -393,6 +425,14 @@ If you feel stuck after searching:
 - Ask: "Can I write ANY fix, even imperfect?" → A reasonable attempt beats no attempt.
   Write your best fix now. An imperfect patch that addresses the right location is
   more valuable than an empty submission.
+
+## TOOL REMINDER (Critical)
+You have EXACTLY 6 tools: Read, Edit, Write, Bash, Grep, Glob.
+NO other tools exist. If a tool call returns "tool_does_not_exist",
+do NOT retry it — immediately use Bash or Edit to accomplish your goal instead.
+Never call: Agent, TodoWrite, TaskCreate, Task, TaskUpdate, TodoRead, SubAgent,
+Delegate, Search, Browser, WebFetch, Ask, AskUser, Spawn, Fork, or any unlisted tool.
+There is no planner, no sub-agent, no orchestrator — only YOU and these 6 tools.
 
 ## 🚨 FINAL WARNING — DO NOT EXPLORE ENDLESSLY
 Your #1 failure mode is spending all turns reading/searching and NEVER writing a fix.
@@ -425,7 +465,23 @@ You MUST run tests to verify your changes. A text-only response without Bash exe
    Bash(command="cd {repo_path} && python -m pytest <test_dir> -x --timeout=60 2>&1 | tail -30")
 
 MANDATORY: Execute at least one Bash command to run tests.
-Budget: up to 20 tool calls."""
+Budget: up to 20 tool calls.
+
+## Self-Reflection on VERIFY Failure
+
+When tests fail after your fix, pause and reflect:
+
+R1. **Root Cause Re-assessment**: Did I fix the symptom or the actual root cause?
+    - Re-read the issue description and failing test assertions
+    - Use `grep -rn "function_name"` to find all callers of the modified function
+
+R2. **Side Effect Check**: Could my change break existing behavior?
+    - Check if the modified function is called from other modules
+    - Verify default parameter values haven't changed semantics
+
+R3. **Test Expectation Alignment**: Am I satisfying what the test actually asserts?
+    - Read the exact assertion (assertEqual, assertRaises, etc.)
+    - Ensure return type, value, and exception type match exactly"""
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -625,43 +681,110 @@ def load_dataset(dataset_path: str, limit: int = 0) -> List[Instance]:
 # ---------------------------------------------------------------------------
 
 
+def _is_network_error(error: Exception) -> bool:
+    """Determine if a subprocess error is likely caused by network issues."""
+    network_indicators = [
+        "Connection timed out",
+        "Connection reset by peer",
+        "Could not resolve host",
+        "Failed to connect",
+        "unable to access",
+        "GnuTLS recv error",
+        "SSL connection",
+        "The TLS connection was non-properly terminated",
+        "Connection refused",
+        "Network is unreachable",
+        "No route to host",
+        "Operation timed out",
+        "fetch-pack: unexpected disconnect",
+        "early EOF",
+        "the remote end hung up unexpectedly",
+    ]
+    if isinstance(error, subprocess.TimeoutExpired):
+        return True
+    if isinstance(error, subprocess.CalledProcessError):
+        stderr = error.stderr or ""
+        stdout = error.stdout or ""
+        combined = stderr + stdout
+        return any(indicator.lower() in combined.lower() for indicator in network_indicators)
+    return False
+
+
 def clone_and_checkout(repo: str, base_commit: str, work_dir: str) -> Optional[str]:
-    """Shallow-fetch a single commit from GitHub. Fast even for huge repos."""
+    """Shallow-fetch a single commit from GitHub. Fast even for huge repos.
+
+    Includes automatic retry with randomized backoff (60-120s) for network-related
+    failures. Non-network errors (e.g., invalid commit hash) fail immediately
+    without retry.
+    """
     repo_url = f"https://github.com/{repo}.git"  # HTTPS — no SSH key needed
     repo_name = repo.replace("/", "__")
     repo_path = os.path.join(work_dir, repo_name)
 
-    try:
-        # 1) git init
-        os.makedirs(repo_path, exist_ok=True)
-        subprocess.run(["git", "init", "-q"], cwd=repo_path,
-                        check=True, capture_output=True, text=True, timeout=30)
+    for attempt in range(1, CLONE_MAX_RETRIES + 1):
+        try:
+            # Clean up from previous failed attempt
+            if attempt > 1 and os.path.exists(repo_path):
+                shutil.rmtree(repo_path, ignore_errors=True)
 
-        # 2) git remote add
-        subprocess.run(["git", "remote", "add", "origin", repo_url], cwd=repo_path,
-                        check=True, capture_output=True, text=True, timeout=10)
+            # 1) git init
+            os.makedirs(repo_path, exist_ok=True)
+            subprocess.run(["git", "init", "-q"], cwd=repo_path,
+                            check=True, capture_output=True, text=True, timeout=30)
 
-        # 3) shallow fetch the exact commit
-        logger.info(f"Shallow-fetching {repo} @ {base_commit[:8]} ...")
-        subprocess.run(
-            ["git", "fetch", "--quiet", "--depth=1", "origin", base_commit],
-            cwd=repo_path, check=True, capture_output=True, text=True, timeout=300,
-        )
+            # 2) git remote add
+            subprocess.run(["git", "remote", "add", "origin", repo_url], cwd=repo_path,
+                            check=True, capture_output=True, text=True, timeout=10)
 
-        # 4) checkout FETCH_HEAD
-        logger.info(f"Checking out {base_commit[:8]} ...")
-        subprocess.run(
-            ["git", "checkout", "-q", "FETCH_HEAD"],
-            cwd=repo_path, check=True, capture_output=True, text=True, timeout=120,
-        )
+            # 3) shallow fetch the exact commit
+            logger.info(f"Shallow-fetching {repo} @ {base_commit[:8]} ... (attempt {attempt}/{CLONE_MAX_RETRIES})")
+            subprocess.run(
+                ["git", "fetch", "--quiet", "--depth=1", "origin", base_commit],
+                cwd=repo_path, check=True, capture_output=True, text=True, timeout=300,
+            )
 
-        return repo_path
-    except subprocess.TimeoutExpired:
-        logger.error(f"Clone/checkout timed out for {repo}")
-        return None
-    except subprocess.CalledProcessError as e:
-        logger.error(f"Clone/checkout failed for {repo}: {e.stderr}")
-        return None
+            # 4) checkout FETCH_HEAD
+            logger.info(f"Checking out {base_commit[:8]} ...")
+            subprocess.run(
+                ["git", "checkout", "-q", "FETCH_HEAD"],
+                cwd=repo_path, check=True, capture_output=True, text=True, timeout=120,
+            )
+
+            if attempt > 1:
+                logger.info(f"Clone succeeded on attempt {attempt} for {repo}")
+            return repo_path
+
+        except (subprocess.TimeoutExpired, subprocess.CalledProcessError) as e:
+            # Determine if this is a network error worth retrying
+            if not _is_network_error(e):
+                # Non-network error: fail immediately without retry
+                if isinstance(e, subprocess.CalledProcessError):
+                    logger.error(f"Clone/checkout failed for {repo} (non-network error): {e.stderr}")
+                else:
+                    logger.error(f"Clone/checkout failed for {repo} (non-network timeout)")
+                return None
+
+            # Network error: log and potentially retry
+            if isinstance(e, subprocess.TimeoutExpired):
+                error_reason = "network timeout"
+            else:
+                error_reason = (e.stderr or "unknown network error").strip().split('\n')[-1]
+
+            if attempt < CLONE_MAX_RETRIES:
+                wait_seconds = random.randint(CLONE_RETRY_MIN_DELAY, CLONE_RETRY_MAX_DELAY)
+                logger.warning(
+                    f"Clone failed for {repo} (attempt {attempt}/{CLONE_MAX_RETRIES}): {error_reason}. "
+                    f"Retrying in {wait_seconds}s..."
+                )
+                time.sleep(wait_seconds)
+            else:
+                logger.error(
+                    f"Clone permanently failed for {repo} after {CLONE_MAX_RETRIES} attempts. "
+                    f"Last error: {error_reason}"
+                )
+                return None
+
+    return None  # Should not reach here, but safety fallback
 
 
 # ---------------------------------------------------------------------------
@@ -766,16 +889,115 @@ def call_agent(
 
 
 # ---------------------------------------------------------------------------
+# Repository structure pre-injection (C2)
+# ---------------------------------------------------------------------------
+
+
+def build_repo_tree(repo_path: str, max_bytes: int = 1024) -> str:
+    """Build a compact repository directory tree for prompt injection (C2).
+
+    - depth <= 3, files only (-type f), paths relative to repo_path.
+    - Excludes tests/ / __pycache__/ / .git/ / docs/ / node_modules/.
+    - Truncates at max_bytes on a per-line boundary to avoid UTF-8 splitting.
+    - On timeout / error / empty output returns "" so the caller can skip injection.
+    """
+    try:
+        result = subprocess.run(
+            ["find", repo_path, "-maxdepth", "3", "-type", "f",
+             "-not", "-path", "*/tests/*",
+             "-not", "-path", "*/__pycache__/*",
+             "-not", "-path", "*/.git/*",
+             "-not", "-path", "*/docs/*",
+             "-not", "-path", "*/node_modules/*"],
+            capture_output=True, text=True, timeout=10,
+        )
+        if result.returncode != 0 or not result.stdout.strip():
+            return ""
+        lines = [line.replace(repo_path + "/", "")
+                 for line in result.stdout.strip().split("\n")]
+        lines.sort()
+        tree_text = "\n".join(lines)
+        # Safe truncation on line boundary to avoid UTF-8 half-character
+        if len(tree_text.encode("utf-8")) > max_bytes:
+            truncated_lines = []
+            current_size = 0
+            for line in lines:
+                line_size = len((line + "\n").encode("utf-8"))
+                if current_size + line_size > max_bytes:
+                    break
+                truncated_lines.append(line)
+                current_size += line_size
+            tree_text = "\n".join(truncated_lines) + "\n... (truncated)"
+        return tree_text
+    except (subprocess.TimeoutExpired, OSError):
+        return ""
+
+
+# ---------------------------------------------------------------------------
+# Repo-specific LOCATE strategies
+# ---------------------------------------------------------------------------
+
+
+def generate_locate_strategies(repo: str) -> str:
+    """Generate repo-specific LOCATE strategies based on repository name.
+    
+    # SWE-BENCH ONLY - DO NOT MERGE TO GENERAL_SYSTEM_PROMPT
+    """
+    base = """
+## Additional LOCATE Strategies (use when grep returns too many results):
+
+### Strategy A: Traceback-driven navigation
+- Read the FULL traceback from test failure
+- Navigate directly to the file:line mentioned in the LAST frame
+- Read 50 lines of context around that location
+
+### Strategy B: Import chain tracing
+- Bash(command="python3 -c \\'import {module}; print({module}.__file__)\\'")
+- Find the actual source file for the failing module
+
+### Strategy C: Test-to-source reverse mapping
+- Read the failing test file to understand what it imports
+- Follow import statements to find the source under test
+"""
+    repo_lower = repo.split("/")[-1].lower() if "/" in repo else repo.lower()
+
+    if repo_lower.startswith("django"):
+        return base + """
+### Django-specific:
+- Errors often trace to middleware, views, or model managers
+- Check django/db/models/ and django/core/ for ORM-related issues
+- Bash(command="grep -rn 'class.*Manager' django/ --include='*.py' | grep -i '<keyword>'")
+"""
+    elif repo_lower.startswith("sympy"):
+        return base + """
+### SymPy-specific:
+- Errors often involve symbolic computation dispatch
+- Check sympy/core/ for expression evaluation issues
+- SymPy uses extensive __new__/__init__ patterns - check class constructors
+"""
+    elif repo_lower.startswith("matplotlib"):
+        return base + """
+### Matplotlib-specific:
+- Errors often trace to figure/axes state management
+- Check lib/matplotlib/axes/ for plotting-related issues
+- Bash(command="grep -rn 'def.*<func_name>' lib/matplotlib/ --include='*.py' | grep -v test")
+"""
+    return base
+
+
+# ---------------------------------------------------------------------------
 # Patch extraction
 # ---------------------------------------------------------------------------
 
 
 def extract_patch(repo_path: str, base_commit: str) -> str:
-    """Extract git diff of all changes in the working tree (staged + unstaged).
-    For shallow clones we compare against HEAD (which IS the base commit).
+    """Extract git diff between base_commit and current HEAD.
+    Captures all changes regardless of whether the model executed git commit:
+    - Uncommitted edits are staged and committed locally before diffing.
+    - Committed changes are captured directly via base_commit..HEAD diff.
     Filters out .backup files (created by Edit tool) and test files."""
     try:
-        # Stage everything so we capture new files too
+        # Stage everything so we capture new files too (handles uncommitted changes)
         subprocess.run(
             ["git", "add", "-A"],
             cwd=repo_path, capture_output=True, text=True, timeout=30,
@@ -789,15 +1011,23 @@ def extract_patch(repo_path: str, base_commit: str) -> str:
             cwd=repo_path, capture_output=True, text=True, timeout=30,
         )
 
-        # Only diff Python source files, exclude test files
-        # This ensures clean patches suitable for SWE-bench submission
+        # Commit any remaining staged changes so they appear in HEAD
+        # This ensures extract_patch works regardless of whether the model
+        # already committed or not
+        subprocess.run(
+            ["git", "commit", "--allow-empty", "-m", "extract_patch: stage uncommitted changes"],
+            cwd=repo_path, capture_output=True, text=True, timeout=30,
+        )
+
+        # Diff between base_commit and current HEAD
+        # This correctly captures ALL changes regardless of model's git behavior:
+        # - Model only edited files (no git add/commit) → captured via our git add + commit above
+        # - Model did git add but no commit → captured via our commit above
+        # - Model did git commit → directly captured by base_commit..HEAD diff
         result = subprocess.run(
-            ["git", "diff", f"{base_commit}..HEAD", "--",
-             "*.py",
-             ":!tests/", ":!**/tests/",
-             ":!test_*", ":!**/test_*",
-             ":!*_test.py", ":!**/*_test.py",
-             ":!conftest.py", ":!**/conftest.py"],
+            ["git", "diff", base_commit, "HEAD", "--",
+             "*.py", ":!tests/", ":!test_*", ":!**/tests/", ":!**/test_*",
+             ":!*_test.py", ":!**/*_test.py"],
             cwd=repo_path,
             capture_output=True,
             text=True,
@@ -834,19 +1064,49 @@ def extract_patch(repo_path: str, base_commit: str) -> str:
             if not skip_block:
                 final_lines.append(line)
 
+        # [Enhancement C] B2 second-line defense: strip any hunk whose target
+        # path matches a broader test-file regex than the git pathspec covers.
+        import re as _re
+        _TEST_PATH_RE = _re.compile(
+            r"(^|/)(tests?|spec)([_/]|$)|(^|/)(test|spec)_[^/]+\.py$"
+            r"|(^|/)[^/]+_test\.py$"
+        )
+        kept_lines = []
+        skip_hunk = False
+        dropped_test_paths = []
+        for line in final_lines:
+            if line.startswith("diff --git "):
+                parts = line.split(" ")
+                target = parts[3][2:] if len(parts) >= 4 else ""
+                if _TEST_PATH_RE.search(target):
+                    skip_hunk = True
+                    dropped_test_paths.append(target)
+                    continue
+                skip_hunk = False
+            if not skip_hunk:
+                kept_lines.append(line)
+        final_lines = kept_lines
+        if dropped_test_paths:
+            logger.warning(
+                f"  [B2-VIOLATION] Stripped test-file hunks: {dropped_test_paths}"
+            )
+
         patch = "\n".join(final_lines)
 
         # Audit: compare raw (unfiltered) diff with filtered result
-        raw_result = subprocess.run(
-            ["git", "diff", f"{base_commit}..HEAD", "--", "*.py"],
-            cwd=repo_path, capture_output=True, text=True, timeout=30
-        )
-        raw = raw_result.stdout
-        if raw and not patch:
-            logger.warning(f"  [audit] All {len(raw.splitlines())} diff lines were"
-                           f" stripped by exclude rules — agent may have edited only test files.")
-        elif raw and patch and abs(len(raw) - len(patch)) > 100:
-            logger.info(f"  [audit] Stripped {len(raw)-len(patch)} chars of test-related diff")
+        try:
+            raw_result = subprocess.run(
+                ["git", "diff", base_commit, "HEAD", "--", "*.py"],
+                cwd=repo_path, capture_output=True, text=True, timeout=30
+            )
+            raw = raw_result.stdout
+            if raw and not patch:
+                logger.warning(f"  [audit] All {len(raw.splitlines())} diff lines were"
+                               f" stripped by exclude rules \u2014 agent may have edited only test files.")
+            elif raw and patch and abs(len(raw) - len(patch)) > 100:
+                logger.info(f"  [audit] Stripped {len(raw)-len(patch)} chars of test-related diff")
+        except Exception:
+            pass  # audit is best-effort, never block patch return
 
         return patch
     except subprocess.TimeoutExpired:
@@ -1017,53 +1277,6 @@ def solve_instance(
             pass
 
 
-def generate_locate_strategies(repo: str) -> str:
-    """Generate repo-specific LOCATE strategies based on repository name.
-    
-    # SWE-BENCH ONLY - DO NOT MERGE TO GENERAL_SYSTEM_PROMPT
-    """
-    base = """
-## Additional LOCATE Strategies (use when grep returns too many results):
-
-### Strategy A: Traceback-driven navigation
-- Read the FULL traceback from test failure
-- Navigate directly to the file:line mentioned in the LAST frame
-- Read 50 lines of context around that location
-
-### Strategy B: Import chain tracing
-- Bash(command="python3 -c \\"import {module}; print({module}.__file__)\\"")
-- Find the actual source file for the failing module
-
-### Strategy C: Test-to-source reverse mapping
-- Read the failing test file to understand what it imports
-- Follow import statements to find the source under test
-"""
-    repo_lower = repo.split("/")[-1].lower() if "/" in repo else repo.lower()
-
-    if repo_lower.startswith("django"):
-        return base + """
-### Django-specific:
-- Errors often trace to middleware, views, or model managers
-- Check django/db/models/ and django/core/ for ORM-related issues
-- Bash(command="grep -rn 'class.*Manager' django/ --include='*.py' | grep -i '<keyword>'")
-"""
-    elif repo_lower.startswith("sympy"):
-        return base + """
-### SymPy-specific:
-- Errors often involve symbolic computation dispatch
-- Check sympy/core/ for expression evaluation issues
-- SymPy uses extensive __new__/__init__ patterns - check class constructors
-"""
-    elif repo_lower.startswith("matplotlib"):
-        return base + """
-### Matplotlib-specific:
-- Errors often trace to figure/axes state management
-- Check lib/matplotlib/axes/ for plotting-related issues
-- Bash(command="grep -rn 'def.*<func_name>' lib/matplotlib/ --include='*.py' | grep -v test")
-"""
-    return base
-
-
 def solve_instance_multiphase(
     instance: Instance,
     api_url: str,
@@ -1097,28 +1310,43 @@ def solve_instance_multiphase(
             save_trajectory(output_dir / "trajs", instance.instance_id, None)
             return None
 
+        # 1.5 [C2] Build repo tree (base_commit snapshot) for prompt injection
+        repo_tree = build_repo_tree(repo_path)
+        if repo_tree:
+            repo_context = (
+                "\n\n## Repository Structure (depth≤3, excluding tests/docs)\n"
+                f"```\n{repo_tree}\n```\n"
+            )
+            logger.info(f"  [{instance.instance_id}] Injected repo tree: "
+                        f"{len(repo_tree.encode('utf-8'))} bytes")
+        else:
+            repo_context = ""
+
         # 2. Build system prompt with repo_path substituted
         system_prompt = SWE_BENCH_SYSTEM_PROMPT.replace("{repo_path}", repo_path)
 
-        # 3. Build full problem statement with reminder to edit
+        # 2.5 [E3] Generate repo-specific LOCATE strategies
         locate_strategies = generate_locate_strategies(instance.repo)
+
+        # 3. Build full problem statement with repo tree + locate strategies + reminder to edit
         full_prompt = (
             f"Fix the following issue in the repository at {repo_path}:\n\n"
-            f"{instance.problem_statement}\n\n"
-            f"{locate_strategies}\n\n"
+            f"{instance.problem_statement}"
+            f"{repo_context}"
+            f"\n\n{locate_strategies}\n\n"
             f"Remember: You MUST make code changes using Edit or Write tools. "
             f"Reading and analyzing is not enough - you must actually fix the code."
         )
 
-        # 4. Single API call — 60 turns, 900s
-        logger.info(f"  [{instance.instance_id}] Calling agent (60 turns, 900s timeout)")
+        # 4. Single API call — 100 turns, 2000s
+        logger.info(f"  [{instance.instance_id}] Calling agent (100 turns, 2000s timeout)")
         response = call_agent(
             api_url=api_url,
             problem_statement=full_prompt,
             working_directory=repo_path,
             model=model,
-            max_turns=60,
-            timeout=900,
+            max_turns=100,
+            timeout=2000,
             system_prompt=system_prompt,
         )
 
@@ -1149,7 +1377,47 @@ def solve_instance_multiphase(
         logger.info(f"  [{instance.instance_id}] Final patch: {patch_lines} lines")
 
         if not patch.strip():
-            logger.warning(f"  [{instance.instance_id}] \u26a0\ufe0f EMPTY PATCH - instance will score 0")
+            # [C9] Last-chance recovery: detect tracked-but-unstaged changes
+            try:
+                recover = subprocess.run(
+                    ["git", "diff", "HEAD", "--name-only", "--diff-filter=M",
+                     "--", "*.py"],
+                    capture_output=True, text=True, timeout=5,
+                    cwd=repo_path,
+                )
+                unstaged_files = [
+                    f for f in recover.stdout.strip().split("\n")
+                    if f and not f.startswith("tests/") and not f.startswith("test_")
+                ]
+                if unstaged_files:
+                    recover_patch = subprocess.run(
+                        ["git", "diff", "HEAD", "--", *unstaged_files],
+                        capture_output=True, text=True, timeout=10,
+                        cwd=repo_path,
+                    )
+                    if recover_patch.stdout.strip():
+                        patch = recover_patch.stdout.strip()
+                        patch_lines = len(patch.split("\n"))
+                        logger.info(
+                            f"  [{instance.instance_id}] [C9] Recovered patch from "
+                            f"unstaged changes: {len(unstaged_files)} files, "
+                            f"{patch_lines} lines"
+                        )
+                    else:
+                        logger.warning(
+                            f"  [{instance.instance_id}] [EMPTY PATCH] "
+                            f"No recoverable changes for {instance.instance_id}"
+                        )
+                else:
+                    logger.warning(
+                        f"  [{instance.instance_id}] [EMPTY PATCH] "
+                        f"No modified non-test .py files for {instance.instance_id}"
+                    )
+            except (subprocess.TimeoutExpired, OSError) as e:
+                logger.warning(
+                    f"  [{instance.instance_id}] [EMPTY PATCH] "
+                    f"Recovery failed: {e}"
+                )
 
         return Prediction(
             instance_id=instance.instance_id,
