@@ -95,13 +95,13 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
                                 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="qwen3.7-max">Qwen 3.7 Max</option>
-                            <option value="qwen3.6-plus">Qwen 3.6 Plus</option>
-                            <option value="qwen-max">Qwen Max</option>
-                            <option value="qwen-turbo">Qwen Turbo</option>
-                            <option value="gpt-4">GPT-4</option>
-                            <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                            <option value="qwen3.7-plus">Qwen 3.7 Plus</option>
                             <option value="deepseek-v4-pro">DeepSeek V4 Pro</option>
                             <option value="deepseek-v4-flash">DeepSeek V4 Flash</option>
+                            <option value="kimi-k2.6">Kimi K2.6</option>
+                            <option value="moonshot-v1-128k">Moonshot V1 128K</option>
+                            <option value="glm-5.1">GLM-5.1</option>
+                            <option value="MiniMax-M3">MiniMax M3</option>
                         </select>
 
                         {/* Effort Slider */}

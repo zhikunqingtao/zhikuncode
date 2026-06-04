@@ -107,14 +107,14 @@ class SystemPromptBuilderTest {
         when(gitService.getGitStatus(any(Path.class))).thenReturn("feature-branch (+2~3)");
 
         List<Tool> tools = List.of();
-        String model = "qwen3.6-plus";
+        String model = "qwen3.7-plus";
 
         // When
         String prompt = builder.buildDefaultSystemPrompt(tools, model);
 
         // Then - computeEnvInfo 使用 "# Environment" 格式
         assertTrue(prompt.contains("# 环境"));
-        assertTrue(prompt.contains("qwen3.6-plus"));
+        assertTrue(prompt.contains("qwen3.7-plus"));
         assertTrue(prompt.contains("平台："));
         assertTrue(prompt.contains("Shell："));
     }

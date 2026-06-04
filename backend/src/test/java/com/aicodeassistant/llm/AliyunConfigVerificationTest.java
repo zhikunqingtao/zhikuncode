@@ -54,9 +54,9 @@ class AliyunConfigVerificationTest {
         // 千问主力模型已从 Provider 迁移至 ModelRegistry.BUILTIN_MODELS
         // Provider.getModelCapabilities() 应抛出 IllegalArgumentException
         OpenAiCompatibleProvider provider = createProvider(
-                List.of("qwen3.6-plus", "qwen-max", "qwen-plus", "qwen-turbo"));
+                List.of("qwen3.7-plus", "qwen-max", "qwen-plus", "qwen-turbo"));
 
-        for (String model : List.of("qwen3.6-plus", "qwen-max", "qwen-plus", "qwen-turbo")) {
+        for (String model : List.of("qwen3.7-plus", "qwen-max", "qwen-plus", "qwen-turbo")) {
             assertThrows(IllegalArgumentException.class,
                     () -> provider.getModelCapabilities(model),
                     model + " should not be in Provider MODEL_CAPABILITIES");
@@ -66,11 +66,11 @@ class AliyunConfigVerificationTest {
     @Test
     void testProviderConfiguration() {
         OpenAiCompatibleProvider provider = createProvider(
-                List.of("qwen3.6-plus"));
+                List.of("qwen3.7-plus"));
 
         assertEquals("test-provider", provider.getProviderName());
-        assertEquals("qwen3.6-plus", provider.getDefaultModel());
-        assertTrue(provider.getSupportedModels().contains("qwen3.6-plus"));
+        assertEquals("qwen3.7-plus", provider.getDefaultModel());
+        assertTrue(provider.getSupportedModels().contains("qwen3.7-plus"));
     }
 
     @Test
@@ -78,18 +78,18 @@ class AliyunConfigVerificationTest {
         // 验证 ModelRegistry.BUILTIN_MODELS 中千问模型 contextWindow 已更新为官方最新值
         // 由于 ModelRegistry 需要 LlmProviderRegistry，这里通过构造 mock 的 registry 来测试
         OpenAiCompatibleProvider provider = createProvider(
-                List.of("qwen3.6-plus", "qwen-max", "qwen-plus", "qwen-turbo"));
+                List.of("qwen3.7-plus", "qwen3.7-max", "qwen-turbo"));
         LlmProviderRegistry providerRegistry = new LlmProviderRegistry(List.of(provider), null);
         ModelRegistry modelRegistry = new ModelRegistry(providerRegistry);
 
         // 千问模型应通过 Level 2 抛异常 → fallback 到 Level 3 BUILTIN_MODELS
-        assertEquals(262144, modelRegistry.getCapabilities("qwen-max").contextWindow(),
-                "qwen-max contextWindow should be 262144 (official)");
-        assertEquals(1000000, modelRegistry.getCapabilities("qwen-plus").contextWindow(),
-                "qwen-plus contextWindow should be 1000000 (official)");
+        assertEquals(262144, modelRegistry.getCapabilities("qwen3.7-max").contextWindow(),
+                "qwen3.7-max contextWindow should be 262144 (official)");
+        assertEquals(1000000, modelRegistry.getCapabilities("qwen3.7-plus").contextWindow(),
+                "qwen3.7-plus contextWindow should be 1000000 (official)");
         assertEquals(1000000, modelRegistry.getCapabilities("qwen-turbo").contextWindow(),
                 "qwen-turbo contextWindow should be 1000000 (official)");
-        assertEquals(1000000, modelRegistry.getCapabilities("qwen3.6-plus").contextWindow(),
-                "qwen3.6-plus contextWindow should be 1000000 (official)");
+        assertEquals(1000000, modelRegistry.getCapabilities("qwen3.7-plus").contextWindow(),
+                "qwen3.7-plus contextWindow should be 1000000 (official)");
     }
 }

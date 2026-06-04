@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * 模型性能层级管理 — 冷却/降级/恢复策略。
  * <p>
  * 模型无关设计 — 不绑定任何特定 Provider：
- * - 千问: qwen-max → qwen-plus → qwen-turbo
+ * - 千问: qwen3.7-max → qwen3.7-plus → qwen-turbo
  * - Anthropic: premium → standard → light
  * - OpenAI: gpt-4o → gpt-4o-mini
  * <p>

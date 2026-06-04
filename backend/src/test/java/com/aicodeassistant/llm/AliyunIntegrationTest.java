@@ -41,34 +41,34 @@ class AliyunIntegrationTest {
                 new ApiKeyRotationManager(ALIYUN_API_KEY),
                 ALIYUN_API_KEY,
                 "https://dashscope.aliyuncs.com/compatible-mode/v1",
-                "qwen3.6-plus",
-                List.of("qwen3.6-plus", "qwen-max", "qwen-plus", "qwen-turbo")
+                "qwen3.7-plus",
+                List.of("qwen3.7-plus", "qwen-max", "qwen-plus", "qwen-turbo")
         );
     }
 
     @Test
     void testProviderConfiguration() {
         assertEquals("dashscope-test", provider.getProviderName());
-        assertEquals("qwen3.6-plus", provider.getDefaultModel());
-        assertTrue(provider.getSupportedModels().contains("qwen3.6-plus"));
+        assertEquals("qwen3.7-plus", provider.getDefaultModel());
+        assertTrue(provider.getSupportedModels().contains("qwen3.7-plus"));
         assertTrue(provider.getSupportedModels().contains("qwen-max"));
     }
 
     @Test
     void testModelCapabilities() {
-        // qwen3.6-plus 已迁移至 ModelRegistry.BUILTIN_MODELS，
+        // qwen3.7-plus 已迁移至 ModelRegistry.BUILTIN_MODELS，
         // OpenAiCompatibleProvider.getModelCapabilities 不再直接包含它，
         // 验证抛出预期的 IllegalArgumentException
         assertThrows(IllegalArgumentException.class,
-                () -> provider.getModelCapabilities("qwen3.6-plus"),
-                "qwen3.6-plus should not be in provider MODEL_CAPABILITIES");
+                () -> provider.getModelCapabilities("qwen3.7-plus"),
+                "qwen3.7-plus should not be in provider MODEL_CAPABILITIES");
     }
 
     @Test
     @EnabledIfEnvironmentVariable(named = "ALIYUN_API_KEY", matches = ".+")
     void testSimpleChatCompletion() throws InterruptedException {
         // ==================== 入参 ====================
-        String model = "qwen3.6-plus";
+        String model = "qwen3.7-plus";
         String systemPrompt = "你是一个有帮助的AI助手";
         List<Map<String, Object>> messages = List.of(
                 Map.of("role", "user", "content", "你好，请用一句话介绍自己")
@@ -145,7 +145,7 @@ class AliyunIntegrationTest {
         assertNotNull(response, "Response should not be null");
         assertFalse(response.isEmpty(), "Response should not be empty");
 
-        System.out.println("✅ 阿里云百炼 qwen3.6-plus 真实 API 调用成功!");
+        System.out.println("✅ 阿里云百炼 qwen3.7-plus 真实 API 调用成功!");
     }
 
     @Test
@@ -176,7 +176,7 @@ class AliyunIntegrationTest {
 
         // When
         provider.streamChat(
-                "qwen3.6-plus",
+                "qwen3.7-plus",
                 messages,
                 "你可以使用工具来帮助用户",
                 List.of(searchTool),
@@ -215,7 +215,7 @@ class AliyunIntegrationTest {
         // qwen 模型已迁移至 ModelRegistry.BUILTIN_MODELS，
         // OpenAiCompatibleProvider 仅保留 OpenAI/DeepSeek/qwen-coder-plus 模型。
         // 验证 provider 的 supportedModels 列表配置正确
-        List<String> configuredModels = List.of("qwen3.6-plus", "qwen-max", "qwen-plus", "qwen-turbo");
+        List<String> configuredModels = List.of("qwen3.7-plus", "qwen-max", "qwen-plus", "qwen-turbo");
         for (String model : configuredModels) {
             assertTrue(provider.getSupportedModels().contains(model),
                     "Provider should list " + model + " in supported models");

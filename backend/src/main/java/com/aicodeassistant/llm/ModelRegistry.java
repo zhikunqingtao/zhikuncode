@@ -20,27 +20,24 @@ public class ModelRegistry {
     // 内置模型映射表
     private static final Map<String, ModelCapabilities> BUILTIN_MODELS = Map.ofEntries(
         // OpenAI
-        entry("gpt-4o",            caps("gpt-4o",            "GPT-4o",            16384, 128000,  true, false, true, true, 0.005, 0.015)),
-        entry("gpt-4o-mini",       caps("gpt-4o-mini",       "GPT-4o Mini",       16384, 128000,  true, false, true, true, 0.00015, 0.0006)),
-        entry("gpt-4-turbo",       caps("gpt-4-turbo",       "GPT-4 Turbo",        4096, 128000,  true, false, true, true, 0.01, 0.03)),
+        entry("gpt-5.5",           caps("gpt-5.5",           "GPT-5.5",          128000, 1050000, true, true, true, true, 0.005, 0.03)),
+        entry("gpt-5.4-mini",      caps("gpt-5.4-mini",      "GPT-5.4 Mini",     128000, 400000,  true, true, true, true, 0.00075, 0.0045)),
         // Anthropic
-        entry("claude-sonnet-4-5", caps("claude-sonnet-4-5", "Claude Sonnet 4.5", 16384, 200000,  true, true, true, true, 0.003, 0.015)),
-        entry("claude-opus-4",     caps("claude-opus-4",     "Claude Opus 4",     16384, 200000,  true, true, true, true, 0.015, 0.075)),
-        entry("claude-3-5-haiku",  caps("claude-3-5-haiku",  "Claude 3.5 Haiku",   8192, 200000,  true, false, true, true, 0.0008, 0.004)),
+        entry("claude-sonnet-4-6", caps("claude-sonnet-4-6", "Claude Sonnet 4.6",  16384, 200000, true, true, true, true, 0.003, 0.015)),
+        entry("claude-opus-4-8",          caps("claude-opus-4-8",          "Claude Opus 4.8",  16384, 200000, true, true, true, true, 0.015, 0.075)),
+        entry("claude-haiku-4-5", caps("claude-haiku-4-5", "Claude Haiku 4.5", 8192, 200000, true, false, true, true, 0.0008, 0.004)),
         // 国产大模型
-        entry("deepseek-chat",     caps("deepseek-chat",     "DeepSeek Chat",      8192,  64000,  true, true, false, true, 0.00027, 0.0011)),
-        entry("deepseek-reasoner", caps("deepseek-reasoner", "DeepSeek Reasoner",  8192,  64000,  true, true, false, false, 0.00055, 0.0022)),
         entry("deepseek-v4-pro",   caps("deepseek-v4-pro",   "DeepSeek V4 Pro",  384000, 1000000, true, true, false, true, 0.001, 0.004)),
         entry("deepseek-v4-flash", caps("deepseek-v4-flash", "DeepSeek V4 Flash", 384000, 1000000, true, true, false, true, 0.0005, 0.002)),
         // Moonshot
         entry("kimi-k2.6",          caps("kimi-k2.6",          "Kimi K2.6",         16384, 256000,  true, true, true, true, 0.002, 0.012)),
-        entry("moonshot-v1-auto",   caps("moonshot-v1-auto",   "Moonshot V1 Auto",   8192, 128000,  true, false, false, true, 0.001, 0.002)),
+        entry("moonshot-v1-128k",  caps("moonshot-v1-128k",  "Moonshot V1 128K",   8192, 128000,  true, false, false, true, 0.001, 0.002)),
         entry("qwen-turbo",        caps("qwen-turbo",        "Qwen Turbo",         8192, 1000000,  true, false, false, true, 0.0003, 0.0006)),
-        entry("qwen-plus",         caps("qwen-plus",         "Qwen Plus",         16384, 1000000,  true, false, false, true, 0.0008, 0.002)),
-        entry("qwen-max",          caps("qwen-max",          "Qwen Max",          16384,  262144,  true, true, true, true, 0.002, 0.006)),
         entry("qwen3.7-max", caps("qwen3.7-max", "Qwen 3.7 Max", 16384, 262144, true, true, false, true, 0.009, 0.054)),
-        entry("qwen3.6-plus",      caps("qwen3.6-plus",      "Qwen 3.6 Plus",      8192, 1000000,  true, false, true, true, 0.0008, 0.002)),
-        entry("glm-4",             caps("glm-4",             "GLM-4",              8192, 128000,  true, false, true, true, 0.001, 0.001)),
+        entry("qwen3.7-plus",      caps("qwen3.7-plus",      "Qwen 3.7 Plus",      8192, 1000000,  true, false, true, true, 0.0008, 0.002)),
+        entry("glm-5.1",           caps("glm-5.1",           "GLM-5.1",            8192, 128000,  true, false, true, true, 0.001, 0.001)),
+        // MiniMax
+        entry("MiniMax-M3",       caps("MiniMax-M3",       "MiniMax M3",        16384, 1000000, true, true, false, true, 0.001, 0.004)),
         // Ollama 本地
         entry("ollama/*",          caps("ollama/*",          "Ollama Local",       4096,   8192,  true, false, false, false, 0.0, 0.0))
     );

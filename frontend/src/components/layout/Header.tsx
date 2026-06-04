@@ -26,8 +26,13 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
     // 动态加载可用模型列表
     const [availableModels, setAvailableModels] = useState<Array<{ id: string; displayName: string }>>([
         { id: 'qwen3.7-max', displayName: 'Qwen 3.7 Max' },
+        { id: 'qwen3.7-plus', displayName: 'Qwen 3.7 Plus' },
         { id: 'deepseek-v4-pro', displayName: 'DeepSeek V4 Pro' },
+        { id: 'deepseek-v4-flash', displayName: 'DeepSeek V4 Flash' },
         { id: 'kimi-k2.6', displayName: 'Kimi K2.6' },
+        { id: 'moonshot-v1-128k', displayName: 'Moonshot V1 128K' },
+        { id: 'glm-5.1', displayName: 'GLM-5.1' },
+        { id: 'MiniMax-M3', displayName: 'MiniMax M3' },
     ]);
 
     useEffect(() => {

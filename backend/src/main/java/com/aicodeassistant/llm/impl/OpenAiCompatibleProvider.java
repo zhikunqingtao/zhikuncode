@@ -51,16 +51,10 @@ public class OpenAiCompatibleProvider implements LlmProvider {
 
     /** 内置模型能力映射表*/
     private static final Map<String, ModelCapabilities> MODEL_CAPABILITIES = Map.ofEntries(
-            // OpenAI 模型
-            Map.entry("gpt-4o", new ModelCapabilities("gpt-4o", "GPT-4o", 16384, 128000, true, false, true, true, 0.005, 0.015)),
-            Map.entry("gpt-4o-mini", new ModelCapabilities("gpt-4o-mini", "GPT-4o Mini", 16384, 128000, true, false, true, true, 0.00015, 0.0006)),
-            Map.entry("gpt-4-turbo", new ModelCapabilities("gpt-4-turbo", "GPT-4 Turbo", 4096, 128000, true, false, true, true, 0.01, 0.03)),
             // DeepSeek 模型
-            Map.entry("deepseek-chat", new ModelCapabilities("deepseek-chat", "DeepSeek Chat", 8192, 64000, true, true, false, true, 0.00027, 0.0011)),
-            Map.entry("deepseek-reasoner", new ModelCapabilities("deepseek-reasoner", "DeepSeek Reasoner", 8192, 64000, true, true, false, false, 0.00055, 0.0022)),
             Map.entry("deepseek-v4-pro", new ModelCapabilities("deepseek-v4-pro", "DeepSeek V4 Pro", 384000, 1000000, true, true, false, true, 0.001, 0.004)),
             Map.entry("deepseek-v4-flash", new ModelCapabilities("deepseek-v4-flash", "DeepSeek V4 Flash", 384000, 1000000, true, true, false, true, 0.0005, 0.002)),
-            // 阿里云百炼 - 通义千问模型（qwen-max/plus/turbo/3.6-plus 已迁移至 ModelRegistry.BUILTIN_MODELS）
+            // 阿里云百炼 - 通义千问模型（qwen3.7-max/qwen3.7-plus/qwen-turbo 已迁移至 ModelRegistry.BUILTIN_MODELS）
             Map.entry("qwen-coder-plus", new ModelCapabilities("qwen-coder-plus", "通义千问 Coder Plus", 8192, 131072, true, false, false, true, 0.0007, 0.002))
     );
 
@@ -107,7 +101,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
     @Override
     public String getFastModel() {
         // 优先使用轻量级模型用于摘要/分类等低延迟场景
-        for (String candidate : List.of("qwen-turbo", "qwen-plus", "gpt-4o-mini")) {
+        for (String candidate : List.of("qwen-turbo", "qwen3.7-plus")) {
             if (supportedModels.contains(candidate)) {
                 return candidate;
             }
@@ -238,7 +232,6 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         // DeepSeek V4 系列（deepseek-v4-pro / deepseek-v4-flash）默认启用思考模式，
         // 必须始终发送 thinking 参数以保持一致性
         // 项目策略：V4 系列一律使用 max 推理强度（不在乎成本与耗时，追求最强推理）。
-        // 老 deepseek-chat / deepseek-reasoner 不在此分支，避免安全推送未验证的 max 档位。
         if (isDeepSeekV4Model(model)) {
             ObjectNode thinking = root.putObject("thinking");
             thinking.put("type", "enabled");

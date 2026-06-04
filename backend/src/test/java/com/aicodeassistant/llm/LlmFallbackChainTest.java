@@ -29,16 +29,16 @@ class LlmFallbackChainTest {
         when(provider.getDefaultModel()).thenReturn("qwen3.7-max");
         when(provider.getFastModel()).thenReturn("qwen-plus");
         when(provider.getProviderName()).thenReturn("test-provider");
-        when(provider.getSupportedModels()).thenReturn(List.of("qwen-plus", "qwen3.6-plus", "qwen3.7-max"));
+        when(provider.getSupportedModels()).thenReturn(List.of("qwen-plus", "qwen3.7-plus", "qwen3.7-max"));
 
         LlmProviderRegistry registry = new LlmProviderRegistry(
             List.of(provider), mockEnv);
 
         // 验证新别名映射
-        assertEquals("qwen-plus", registry.resolveModelAlias("light"),
-            "light 应映射到 qwen-plus");
-        assertEquals("qwen3.6-plus", registry.resolveModelAlias("standard"),
-            "standard 应映射到 qwen3.6-plus");
+        assertEquals("qwen3.7-plus", registry.resolveModelAlias("light"),
+            "light 应映射到 qwen3.7-plus");
+        assertEquals("qwen3.7-plus", registry.resolveModelAlias("standard"),
+            "standard 应映射到 qwen3.7-plus");
         assertEquals("qwen3.7-max", registry.resolveModelAlias("premium"),
             "premium 应映射到 qwen3.7-max");
     }
@@ -55,7 +55,7 @@ class LlmFallbackChainTest {
 
         // Level 3 回退：无 env、无 config → 使用内置别名
         String resolved = registry.resolveModelAlias("light");
-        assertEquals("qwen-plus", resolved, "应通过内置别名解析");
+        assertEquals("qwen3.7-plus", resolved, "应通过内置别名解析");
 
         // Level 4 回退：未知别名直接返回
         String unknown = registry.resolveModelAlias("my-custom-model");

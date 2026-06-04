@@ -52,17 +52,14 @@ public class ModelCapabilityRegistry {
 
     /** 硬编码预定义模型配置 */
     private static final Map<String, ModelCapability> BUILTIN_CAPABILITIES = Map.of(
-            "claude-sonnet-4-20250514", new ModelCapability(
-                    "claude-sonnet-4-20250514", 200_000, 64_000, 3.5,
+            "claude-sonnet-4-6", new ModelCapability(
+                    "claude-sonnet-4-6", 200_000, 64_000, 3.5,
                     true, true, true, true, 60, 1_000_000),
-            "qwen-max", new ModelCapability(
-                    "qwen-max", 128_000, 8_192, 2.5,
+            "qwen3.7-max", new ModelCapability(
+                    "qwen3.7-max", 131_072, 8_192, 2.5,
                     true, false, true, false, 60, 1_000_000),
-            "qwen-plus", new ModelCapability(
-                    "qwen-plus", 128_000, 8_192, 2.5,
-                    true, false, true, false, 60, 1_000_000),
-            "deepseek-chat", new ModelCapability(
-                    "deepseek-chat", 64_000, 8_192, 2.8,
+            "qwen3.7-plus", new ModelCapability(
+                    "qwen3.7-plus", 131_072, 8_192, 2.5,
                     true, false, true, false, 60, 1_000_000)
     );
 

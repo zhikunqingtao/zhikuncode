@@ -1083,7 +1083,7 @@ Environment variables are managed via the `.env` file. Copy `.env.example` and m
 | `ZHIKUN_COORDINATOR_MODE` | — | 0 | Feature flag, enable coordinator mode (0=off, 1=on) |
 | `LLM_PROVIDER_DASHSCOPE_MODELS` | — | qwen3.7-max,qwen3.6-plus | DashScope available models (comma-separated) |
 | `LLM_PROVIDER_DEEPSEEK_MODELS` | — | deepseek-v4-pro,deepseek-v4-flash | DeepSeek available models (comma-separated) |
-| `LLM_PROVIDER_MOONSHOT_MODELS` | — | kimi-k2.6,moonshot-v1-auto | Moonshot available models (comma-separated) |
+| `LLM_PROVIDER_MOONSHOT_MODELS` | — | kimi-k2.6,moonshot-v1-128k | Moonshot available models (comma-separated) |
 
 **Context Management Configuration (application.yml):**
 

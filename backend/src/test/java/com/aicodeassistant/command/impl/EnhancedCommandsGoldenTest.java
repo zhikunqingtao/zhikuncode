@@ -89,7 +89,7 @@ class EnhancedCommandsGoldenTest {
         );
 
         registry = new CommandRegistry(commands);
-        defaultContext = CommandContext.of("test-session", "/tmp/workspace", "qwen3.6-plus",
+        defaultContext = CommandContext.of("test-session", "/tmp/workspace", "qwen3.7-plus",
                 AppState.defaultState());
     }
 
@@ -102,7 +102,7 @@ class EnhancedCommandsGoldenTest {
         when(mockSession.messages()).thenReturn(Collections.emptyList());
         when(mockSession.totalUsage()).thenReturn(Usage.zero());
         when(mockSession.workingDir()).thenReturn("/tmp/workspace");
-        when(mockSession.model()).thenReturn("qwen3.6-plus");
+        when(mockSession.model()).thenReturn("qwen3.7-plus");
         when(mockSessionManager.loadSession(anyString())).thenReturn(Optional.of(mockSession));
         return new StatusCommand(mockSessionManager);
     }
@@ -227,7 +227,7 @@ class EnhancedCommandsGoldenTest {
         void contextShowsInfo() {
             Command cmd = registry.getCommand("context");
             CommandResult result = cmd.execute("", defaultContext);
-            assertTrue(result.value().contains("qwen3.6-plus"));
+            assertTrue(result.value().contains("qwen3.7-plus"));
             assertTrue(result.value().contains("test-session"));
         }
 
@@ -427,7 +427,7 @@ class EnhancedCommandsGoldenTest {
             CommandResult result = cmd.execute("", defaultContext);
             assertTrue(result.value().contains("系统状态"));
             assertTrue(result.value().contains("会话 ID: test-session"));
-            assertTrue(result.value().contains("当前模型: qwen3.6-plus"));
+            assertTrue(result.value().contains("当前模型: qwen3.7-plus"));
         }
 
         @Test

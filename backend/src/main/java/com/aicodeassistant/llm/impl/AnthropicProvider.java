@@ -45,8 +45,8 @@ public class AnthropicProvider implements LlmProvider {
     private final ConcurrentHashMap<String, Call> activeCalls = new ConcurrentHashMap<>();
 
     private static final Map<String, ModelCapabilities> MODEL_CAPABILITIES = Map.ofEntries(
-            Map.entry("claude-sonnet-4-20250514", new ModelCapabilities(
-                    "claude-sonnet-4-20250514", "Claude Sonnet 4", 16384, 200000,
+            Map.entry("claude-sonnet-4-6", new ModelCapabilities(
+                    "claude-sonnet-4-6", "Claude Sonnet 4.6", 16384, 200000,
                     true, true, true, true, 0.003, 0.015)),
             Map.entry("claude-3-7-sonnet-20250219", new ModelCapabilities(
                     "claude-3-7-sonnet-20250219", "Claude 3.7 Sonnet", 16384, 200000,
@@ -54,12 +54,12 @@ public class AnthropicProvider implements LlmProvider {
             Map.entry("claude-3-5-sonnet-20241022", new ModelCapabilities(
                     "claude-3-5-sonnet-20241022", "Claude 3.5 Sonnet", 8192, 200000,
                     true, false, true, true, 0.003, 0.015)),
-            Map.entry("claude-3-5-haiku-20241022", new ModelCapabilities(
-                    "claude-3-5-haiku-20241022", "Claude 3.5 Haiku", 8192, 200000,
+            Map.entry("claude-haiku-4-5", new ModelCapabilities(
+                    "claude-haiku-4-5", "Claude Haiku 4.5", 8192, 200000,
                     true, false, false, true, 0.001, 0.005)),
-            Map.entry("claude-3-opus-20240229", new ModelCapabilities(
-                    "claude-3-opus-20240229", "Claude 3 Opus", 4096, 200000,
-                    true, false, true, true, 0.015, 0.075))
+            Map.entry("claude-opus-4-8", new ModelCapabilities(
+                    "claude-opus-4-8", "Claude Opus 4.8", 16384, 200000,
+                    true, true, true, true, 0.015, 0.075))
     );
 
     public AnthropicProvider(
@@ -67,8 +67,8 @@ public class AnthropicProvider implements LlmProvider {
             LlmHttpProperties httpProperties,
             @Value("${llm.anthropic.api-key:}") String apiKey,
             @Value("${llm.anthropic.base-url:https://api.anthropic.com}") String baseUrl,
-            @Value("${llm.anthropic.default-model:claude-sonnet-4-20250514}") String defaultModel,
-            @Value("${llm.anthropic.models:claude-sonnet-4-20250514,claude-3-7-sonnet-20250219,claude-3-5-sonnet-20241022}") List<String> supportedModels) {
+            @Value("${llm.anthropic.default-model:claude-sonnet-4-6}") String defaultModel,
+            @Value("${llm.anthropic.models:claude-sonnet-4-6,claude-3-7-sonnet-20250219,claude-3-5-sonnet-20241022}") List<String> supportedModels) {
         this.objectMapper = objectMapper;
         this.apiKey = apiKey;
         this.baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
@@ -101,7 +101,7 @@ public class AnthropicProvider implements LlmProvider {
     public String getDefaultModel() { return defaultModel; }
 
     @Override
-    public String getFastModel() { return "claude-3-5-haiku-20241022"; }
+    public String getFastModel() { return "claude-haiku-4-5"; }
 
     @Override
     public ModelCapabilities getModelCapabilities(String model) {

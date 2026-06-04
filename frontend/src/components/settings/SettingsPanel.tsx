@@ -76,11 +76,13 @@ function ModelPicker() {
   const [model, setModel] = useState('qwen3.7-max');
   const models = [
     { id: 'qwen3.7-max', name: 'Qwen 3.7 Max', description: '最强推理' },
-    { id: 'qwen3.6-plus', name: 'Qwen 3.6 Plus', description: '均衡性能' },
-    { id: 'qwen-max', name: 'Qwen Max', description: '最强推理' },
-    { id: 'qwen-turbo', name: 'Qwen Turbo', description: '最快响应' },
-    { id: 'deepseek-v4-pro', name: 'DeepSeek V4 Pro', description: '最强推理' },
+    { id: 'qwen3.7-plus', name: 'Qwen 3.7 Plus', description: '均衡性能' },
+    { id: 'deepseek-v4-pro', name: 'DeepSeek V4 Pro', description: '深度推理' },
     { id: 'deepseek-v4-flash', name: 'DeepSeek V4 Flash', description: '快速响应' },
+    { id: 'kimi-k2.6', name: 'Kimi K2.6', description: '长文本理解' },
+    { id: 'moonshot-v1-128k', name: 'Moonshot V1 128K', description: '128K上下文' },
+    { id: 'glm-5.1', name: 'GLM-5.1', description: '智谱最新' },
+    { id: 'MiniMax-M3', name: 'MiniMax M3', description: '百万上下文' },
   ];
 
   return (

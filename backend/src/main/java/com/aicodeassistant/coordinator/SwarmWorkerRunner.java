@@ -143,7 +143,7 @@ public class SwarmWorkerRunner {
                         : parentContext.workingDirectory());
 
         // 3. 构建 QueryConfig（复用现有引擎签名）
-        String model = config.workerModel() != null ? config.workerModel() : "qwen-plus";
+        String model = config.workerModel() != null ? config.workerModel() : "qwen3.7-plus";
         String systemPrompt = buildWorkerSystemPrompt(taskPrompt, config);
 
         QueryConfig workerConfig = QueryConfig.withDefaults(

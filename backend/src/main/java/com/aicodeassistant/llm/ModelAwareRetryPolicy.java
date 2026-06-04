@@ -62,7 +62,7 @@ public class ModelAwareRetryPolicy {
     /**
      * 获取模型的重试配置 — 模糊匹配模型 ID 前缀。
      *
-     * @param modelId 模型标识（如 "claude-3-opus", "qwen-max", "deepseek-chat"）
+     * @param modelId 模型标识（如 "claude-sonnet-4-6", "qwen3.7-max", "deepseek-v4-pro"）
      * @return 匹配的重试配置
      */
     public RetryConfig getRetryConfig(String modelId) {

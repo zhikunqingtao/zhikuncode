@@ -17,7 +17,7 @@ import java.util.Map;
  *       api-key: ${LLM_PROVIDER_DASHSCOPE_API_KEY:}
  *       base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
  *       default-model: qwen3.7-max
- *       models: qwen3.7-max,qwen3.6-plus
+ *       models: qwen3.7-max,qwen3.7-plus
  *     deepseek:
  *       api-key: ${LLM_PROVIDER_DEEPSEEK_API_KEY:}
  *       base-url: https://api.deepseek.com/v1

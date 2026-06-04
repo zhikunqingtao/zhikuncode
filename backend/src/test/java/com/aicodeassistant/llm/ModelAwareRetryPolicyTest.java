@@ -104,7 +104,7 @@ class ModelAwareRetryPolicyTest {
     @DisplayName("TC-MODEL-016: Claude 模型最大重试 5 次")
     void tc016_claudeModelMaxRetries() {
         // 模糊匹配: modelId 包含 "claude"
-        ModelAwareRetryPolicy.RetryConfig config = policy.getRetryConfig("claude-sonnet-4-20250514");
+        ModelAwareRetryPolicy.RetryConfig config = policy.getRetryConfig("claude-sonnet-4-6");
 
         assertThat(config).isNotNull();
         assertThat(config.maxRetries()).isEqualTo(5);
