@@ -34,7 +34,7 @@ public class WebBrowserTool implements Tool {
             "navigate", "screenshot", "click", "type", "evaluate",
             "extract_text", "extract_html", "wait_for", "select_option",
             "handle_dialog", "get_cookies", "set_cookie", "close_session",
-            "get_js_errors");
+            "get_js_errors", "snapshot-semantic");
     private static final Set<String> SAFE_PROTOCOLS = Set.of("http://", "https://");
     private static final int MAX_SCRIPT_LENGTH = 10000;
     private static final int MAX_TIMEOUT_MS = 120000;
