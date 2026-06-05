@@ -140,8 +140,14 @@ public class EvidenceStore {
 
     /**
      * 读取 Blob 内容。
+     * <p>
+     * 入参防御：合法的 SHA-256 哈希为 64 个十六进制字符；非法输入直接返回空，
+     * 避免 {@link #blobPath(String)} 的 substring 越界，防止 API 层 HTTP 500。
      */
     public Optional<byte[]> readBlob(String sha256) {
+        if (sha256 == null || sha256.length() != 64) {
+            return Optional.empty();
+        }
         Path blobPath = blobPath(sha256);
         if (!Files.exists(blobPath)) return Optional.empty();
         try {

@@ -25,6 +25,7 @@ import { useCoordinatorStore } from '@/store/coordinatorStore';
 import { useInsightStore } from '@/store/insightStore';
 import { useAnomalyStore } from '@/store/anomalyStore';
 import { useJourneyVerifyStore } from '@/store/journeyVerifyStore';
+import { useEvidenceStore } from '@/store/evidenceStore';
 import { anomalyEngine } from '@/services/AnomalyDetectionEngine';
 import { mapRunChecksResponseToRiskAssessment } from '@/utils/aposAdapters';
 import { appendStreamDelta } from '@/hooks/useStreamingText';
@@ -441,6 +442,24 @@ const handlers: Record<string, (data: any) => void> = {
         }
         // 旧路径：APOS 文件级进度（operationId + check + progress）
         console.debug('[APOS] verify_progress:', d.operationId, d.check, d.progress);
+    },
+
+    // === RV-4: 证据包待审批通知（推送至移动端审批面板） ===
+    'verify_attention': (d: any) => {
+        if (!d?.bundleId) {
+            console.warn('[RV-4] verify_attention missing bundleId:', d);
+            return;
+        }
+        useEvidenceStore.getState().addAttention({
+            type: 'verify_attention',
+            sessionId: d.sessionId ?? '',
+            bundleId: d.bundleId,
+            verdict: d.verdict ?? 'inconclusive',
+            claim: d.claim ?? '',
+            summary: d.summary ?? '',
+            requiresApproval: d.requiresApproval !== false,
+            timestamp: d.timestamp ?? new Date().toISOString(),
+        });
     },
 };
 

@@ -1,6 +1,7 @@
 package com.aicodeassistant.verify;
 
 import com.aicodeassistant.config.FeatureFlagService;
+import com.aicodeassistant.notify.NotificationService;
 import com.aicodeassistant.service.ActivityRepository;
 import com.aicodeassistant.service.PythonCapabilityAwareClient;
 import com.aicodeassistant.tool.verify.VerifyJourneyTool;
@@ -29,6 +30,7 @@ class VerifyJourneyToolTest {
     private FeatureFlagService featureFlags;
     private ActivityRepository activityRepository;
     private ObjectMapper objectMapper;
+    private NotificationService notificationService;
 
     private VerifyJourneyTool tool;
 
@@ -43,6 +45,7 @@ class VerifyJourneyToolTest {
         featureFlags = mock(FeatureFlagService.class);
         activityRepository = mock(ActivityRepository.class);
         objectMapper = new ObjectMapper();
+        notificationService = mock(NotificationService.class);
 
         tool = new VerifyJourneyTool(
                 pythonClient,
@@ -53,7 +56,8 @@ class VerifyJourneyToolTest {
                 messagingTemplate,
                 featureFlags,
                 activityRepository,
-                objectMapper
+                objectMapper,
+                notificationService
         );
     }
 

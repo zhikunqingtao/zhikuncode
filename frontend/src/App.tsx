@@ -10,6 +10,7 @@ import { useConfigStore } from '@/store/configStore';
 import { sendToServer, isWsConnected, sendSlashCommand } from '@/api/stompClient';
 import { waitForSessionRestore, isSessionBound, markSessionBound } from '@/api/dispatch';
 import { SkillDetailModal } from '@/components/skills/SkillDetailModal';
+import { MobileApprovalSheet } from '@/components/verify/MobileApprovalSheet';
 import type { SubmitEvent, Message, Command } from '@/types';
 import { generateUUID } from '@/utils/uuid';
 import { useAPOSInitialization } from '@/hooks/useAPOSInitialization';
@@ -241,6 +242,9 @@ function App() {
           onExecute={executeSkill}
         />
       )}
+
+      {/* RV-4 Mobile Approval Sheet — 验证注意通知浮层 */}
+      <MobileApprovalSheet />
 
       {/* Global Dialogs */}
       <DialogManager />

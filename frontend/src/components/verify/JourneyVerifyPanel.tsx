@@ -5,9 +5,10 @@
  * 仅在状态非 idle 时渲染。
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useJourneyVerifyStore } from '@/store/journeyVerifyStore';
 import type { JourneyVerifyStatus } from '@/store/journeyVerifyStore';
+import { EvidenceBundleView } from '@/components/verify/EvidenceBundleView';
 
 export const JourneyVerifyPanel: React.FC = () => {
     const status = useJourneyVerifyStore((s) => s.status);
@@ -15,6 +16,8 @@ export const JourneyVerifyPanel: React.FC = () => {
     const verdict = useJourneyVerifyStore((s) => s.verdict);
     const errorMessage = useJourneyVerifyStore((s) => s.errorMessage);
     const bundleId = useJourneyVerifyStore((s) => s.bundleId);
+
+    const [showEvidence, setShowEvidence] = useState(false);
 
     if (status === 'idle') return null;
 
@@ -43,10 +46,18 @@ export const JourneyVerifyPanel: React.FC = () => {
                 </div>
             )}
 
-            {bundleId && status === 'passed' && (
-                <div className="mt-2 text-xs text-green-600">
-                    Evidence: {bundleId}
-                </div>
+            {bundleId && (status === 'passed' || status === 'failed') && (
+                <>
+                    <button
+                        type="button"
+                        onClick={() => setShowEvidence((v) => !v)}
+                        className="mt-2 text-xs text-blue-600 hover:text-blue-800 hover:underline cursor-pointer flex items-center gap-1"
+                    >
+                        <span>{showEvidence ? '▼' : '▶'}</span>
+                        <span>Evidence: {bundleId.slice(0, 12)}…</span>
+                    </button>
+                    {showEvidence && <EvidenceBundleView bundleId={bundleId} />}
+                </>
             )}
         </div>
     );

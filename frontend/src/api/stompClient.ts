@@ -35,6 +35,8 @@ const VALID_MESSAGE_TYPES: ReadonlySet<string> = new Set([
     // APOS: 验证结果 + 验证进度推送
     'verification_result',
     'verify_progress',
+    // RV-4: 证据包待审批通知（统一在 /user/queue/messages 通道分发）
+    'verify_attention',
 ]);
 
 /**

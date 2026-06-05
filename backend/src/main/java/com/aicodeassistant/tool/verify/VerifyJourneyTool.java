@@ -1,6 +1,8 @@
 package com.aicodeassistant.tool.verify;
 
 import com.aicodeassistant.config.FeatureFlagService;
+import com.aicodeassistant.notify.NotificationService;
+import com.aicodeassistant.notify.NotificationService.VerifyAttentionPayload;
 import com.aicodeassistant.service.ActivityRepository;
 import com.aicodeassistant.service.PythonCapabilityAwareClient;
 import com.aicodeassistant.tool.PermissionRequirement;
@@ -31,6 +33,7 @@ import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -62,6 +65,7 @@ public class VerifyJourneyTool implements Tool {
     private final FeatureFlagService featureFlags;
     private final ActivityRepository activityRepository;
     private final ObjectMapper objectMapper;
+    private final NotificationService notificationService;
 
     public VerifyJourneyTool(PythonCapabilityAwareClient pythonClient,
                              DevServerLauncher devServerLauncher,
@@ -71,7 +75,8 @@ public class VerifyJourneyTool implements Tool {
                              SimpMessagingTemplate messagingTemplate,
                              FeatureFlagService featureFlags,
                              ActivityRepository activityRepository,
-                             ObjectMapper objectMapper) {
+                             ObjectMapper objectMapper,
+                             NotificationService notificationService) {
         this.pythonClient = pythonClient;
         this.devServerLauncher = devServerLauncher;
         this.verifierFactory = verifierFactory;
@@ -81,6 +86,7 @@ public class VerifyJourneyTool implements Tool {
         this.featureFlags = featureFlags;
         this.activityRepository = activityRepository;
         this.objectMapper = objectMapper;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -322,6 +328,22 @@ public class VerifyJourneyTool implements Tool {
             String msg = result.errorMessage() != null ? result.errorMessage() : "Runtime verification failed";
             recordActivity(sessionId, result.verdict(), saved.bundleId(), "failed",
                     "Runtime verification failed", msg);
+            // RV-4: failed 时主动推送 verify_attention 通知
+            try {
+                VerifyAttentionPayload attention = new VerifyAttentionPayload(
+                        "verify_attention",
+                        sessionId,
+                        saved.bundleId(),
+                        result.verdict(),
+                        saved.claim(),
+                        msg,
+                        true,
+                        Instant.now().toString()
+                );
+                notificationService.sendVerifyAttention(sessionId, attention);
+            } catch (Exception e) {
+                log.warn("Failed to send verify_attention notification: {}", e.getMessage());
+            }
             return ToolResult.error(msg + " (evidence bundle: " + saved.bundleId() + ")");
         }
     }
