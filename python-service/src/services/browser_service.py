@@ -133,7 +133,7 @@ class BrowserService:
 
         # 配置（可通过环境变量覆盖）
         self.browser_type = os.getenv("BROWSER_TYPE", "chromium")
-        self.browser_channel = os.getenv("BROWSER_CHANNEL", "chrome")  # 使用系统 Chrome，避免下载 Playwright 自带浏览器
+        self.browser_channel = os.getenv("BROWSER_CHANNEL", "") or None  # 空/未设置 → 用 Playwright 自带 chromium；设为 "chrome" → 用系统 Chrome
         self.headless = os.getenv("BROWSER_HEADLESS", "true").lower() == "true"
         self.idle_timeout = timedelta(
             minutes=int(os.getenv("BROWSER_IDLE_TIMEOUT_MIN", "5"))
@@ -757,6 +757,59 @@ class BrowserService:
                 logger.debug(f"snapshot_semantic screenshot skipped: {e}")
                 result["screenshot_base64"] = None
         return result
+
+    # ═══ Journey 专用会话创建 ═══
+
+    async def _create_context_for_journey(self, session_id: str, record_opts: dict, viewport: dict):
+        """为 journey 创建带录制能力的新 context（必须在 new_context 时传入 record 参数）"""
+        import tempfile
+
+        context_kwargs = {
+            "viewport": viewport,
+            "ignore_https_errors": True,
+        }
+
+        # 录制选项必须在 new_context 时传入
+        if record_opts.get("video"):
+            video_dir = tempfile.mkdtemp(prefix="rv-video-")
+            context_kwargs["record_video_dir"] = video_dir
+            context_kwargs["record_video_size"] = viewport
+
+        if record_opts.get("har"):
+            har_dir = tempfile.mkdtemp(prefix="rv-har-")
+            har_path = os.path.join(har_dir, f"{session_id}.har")
+            context_kwargs["record_har_path"] = har_path
+
+        # 在锁外创建 context（与 get_or_create_session 慢路径同模式）
+        context = await self._browser.new_context(**context_kwargs)
+
+        # 注入反 webdriver 检测
+        await context.add_init_script("""
+            Object.defineProperty(navigator, 'webdriver', { get: () => false });
+        """)
+
+        page = await context.new_page()
+        page.set_default_timeout(self.default_timeout)
+
+        # 注入 JS 错误收集
+        js_errors: list[str] = []
+        page.on("pageerror", lambda error: js_errors.append(str(error)))
+
+        # trace
+        if record_opts.get("trace"):
+            await context.tracing.start(screenshots=True, snapshots=True)
+
+        # 构造 session 并挂载额外属性
+        session = BrowserSession(context=context, page=page, created_at=datetime.now())
+        session._js_errors = js_errors  # type: ignore[attr-defined]
+        session._record_opts = record_opts  # type: ignore[attr-defined]
+        session._context_kwargs = context_kwargs  # type: ignore[attr-defined]
+
+        async with self._lock:
+            self._sessions[session_id] = session
+
+        logger.info(f"Journey session created: {session_id}")
+        return session
 
     # ═══ JS 错误收集内部方法 ═══
 

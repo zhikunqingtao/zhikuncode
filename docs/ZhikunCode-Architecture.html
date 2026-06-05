@@ -219,6 +219,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
     <a class="nav-item" href="#s9"><div class="ni" style="background:rgba(245,158,11,.15);color:#F59E0B">09</div><span>工具系统</span></a>
     <a class="nav-item" href="#svg-plc"><div class="ni" style="background:rgba(123,97,255,.15);color:#7B61FF">▸</div><span>插件生命周期</span></a>
     <a class="nav-item" href="#s9b"><div class="ni" style="background:rgba(239,68,68,.15);color:#EF4444">9b</div><span>CLI 斜杠命令系统</span></a>
+    <a class="nav-item" href="#s9c"><div class="ni" style="background:rgba(245,158,11,.15);color:#F59E0B">9c</div><span>运行时验证</span></a>
 
     <div class="nav-section-label">上下文与记忆</div>
     <a class="nav-item" href="#s10"><div class="ni" style="background:rgba(245,158,11,.15);color:#F59E0B">10</div><span>上下文管理</span></a>
@@ -4241,6 +4242,324 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
         </div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ============ SECTION 9c: RUNTIME VERIFICATION ============ -->
+<!-- Runtime Verification 架构 SVG — 基于 VerifyJourneyTool.java, VerifierFactory.java, BrowserVerifier.java, HttpApiVerifier.java, python-service/src/routers/http_api.py -->
+<div class="section" id="s9c">
+  <div class="section-head">
+    <span class="section-num java">09c</span>
+    <h2>运行时验证 — 双模 Verifier 多态分发</h2>
+    <span class="meta">VerifyJourneyTool · VerifierFactory · Browser/HTTP API · Evidence + STOMP</span>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;font-size:.78rem">
+    <span class="tag java">Java Verifier 接口</span>
+    <span class="tag green">Python httpx 异步</span>
+    <span class="tag cyan">能力域感知</span>
+    <span class="tag purple">8 Action 策略字典</span>
+    <span class="tag red">MAX_STEPS=500</span>
+    <span style="color:var(--text3);margin-left:auto">Browser 120s · HTTP API 60s · Evidence + STOMP verify_progress</span>
+  </div>
+
+  <div class="card" style="background:#080A12;border-radius:14px;padding:18px 10px 10px;margin-top:18px;overflow-x:auto">
+    <div style="padding:16px 20px 8px;font-size:.85rem;font-weight:700;color:var(--java);letter-spacing:.02em">▸ 运行时验证多态分发机制 — VerifierFactory 双模选择</div>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" style="width:100%;max-width:960px;display:block;margin:auto;font-family:'JetBrains Mono',monospace">
+      <defs>
+        <pattern id="vfGrid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="#252840" stroke-width=".5" opacity=".35"/></pattern>
+        <marker id="vfArrowJava" viewBox="0 0 8 6" refX="7" refY="3" markerWidth="7" markerHeight="7" orient="auto"><polygon points="0 0,8 3,0 6" fill="#F59E0B"/></marker>
+        <marker id="vfArrowGreen" viewBox="0 0 8 6" refX="7" refY="3" markerWidth="7" markerHeight="7" orient="auto"><polygon points="0 0,8 3,0 6" fill="#10B981"/></marker>
+        <marker id="vfArrowCyan" viewBox="0 0 8 6" refX="7" refY="3" markerWidth="7" markerHeight="7" orient="auto"><polygon points="0 0,8 3,0 6" fill="#06B6D4"/></marker>
+        <filter id="vfGlow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#F59E0B" flood-opacity=".25"/></filter>
+      </defs>
+      <rect width="960" height="560" fill="#0B0D17"/>
+      <rect width="960" height="560" fill="url(#vfGrid)"/>
+
+      <!-- Title strip -->
+      <text x="24" y="30" fill="#6B70A0" font-size="9">// VerifyJourneyTool.call() → VerifierFactory.selectVerifier() → Browser | HTTP API</text>
+
+      <!-- L1: VerifyJourneyTool.call() -->
+      <rect x="330" y="50" width="300" height="56" rx="8" fill="rgba(245,158,11,.06)" stroke="#F59E0B" stroke-width="1.4" filter="url(#vfGlow)"/>
+      <text x="480" y="72" text-anchor="middle" fill="#e8e8f0" font-size="13" font-weight="700">VerifyJourneyTool.call()</text>
+      <text x="480" y="90" text-anchor="middle" fill="#9FA4C4" font-size="9.5">Tool 入口 · @ALWAYS_ASK · isOpenWorld=true</text>
+      <text x="480" y="102" text-anchor="middle" fill="#6B70A0" font-size="8.5">backend/tool/verify/VerifyJourneyTool.java</text>
+
+      <!-- arrow down -->
+      <line x1="480" y1="108" x2="480" y2="138" stroke="#F59E0B" stroke-width="1.4" marker-end="url(#vfArrowJava)"/>
+      <text x="498" y="128" fill="#9FA4C4" font-size="8.5">parse verification_mode</text>
+
+      <!-- L2: VerifierFactory -->
+      <rect x="310" y="144" width="340" height="60" rx="8" fill="#0F1221" stroke="#F59E0B" stroke-width="1.2"/>
+      <text x="480" y="166" text-anchor="middle" fill="#F59E0B" font-size="12" font-weight="700">VerifierFactory.selectVerifier(req, mode)</text>
+      <text x="480" y="183" text-anchor="middle" fill="#9FA4C4" font-size="9">enum: "browser" | "http_api" | "auto"</text>
+      <text x="480" y="196" text-anchor="middle" fill="#6B70A0" font-size="8.5">@Qualifier("browserVerifier") + @Qualifier("httpApiVerifier")</text>
+
+      <!-- 3-way split lines -->
+      <line x1="380" y1="204" x2="190" y2="246" stroke="#F59E0B" stroke-width="1.2" marker-end="url(#vfArrowJava)"/>
+      <line x1="480" y1="204" x2="480" y2="246" stroke="#A855F7" stroke-width="1.2" stroke-dasharray="3 3" marker-end="url(#vfArrowCyan)"/>
+      <line x1="580" y1="204" x2="770" y2="246" stroke="#F59E0B" stroke-width="1.2" marker-end="url(#vfArrowJava)"/>
+      <text x="260" y="222" fill="#F59E0B" font-size="9" font-weight="600">"browser"</text>
+      <text x="450" y="222" fill="#A855F7" font-size="9" font-weight="600">"auto"</text>
+      <text x="680" y="222" fill="#F59E0B" font-size="9" font-weight="600">"http_api"</text>
+
+      <!-- Auto detection diamond -->
+      <polygon points="480,250 560,288 480,326 400,288" fill="rgba(168,85,247,.08)" stroke="#A855F7" stroke-width="1.2"/>
+      <text x="480" y="284" text-anchor="middle" fill="#e8e8f0" font-size="9.5" font-weight="700">steps.anyMatch</text>
+      <text x="480" y="297" text-anchor="middle" fill="#9FA4C4" font-size="8.5">action.startsWith</text>
+      <text x="480" y="310" text-anchor="middle" fill="#A855F7" font-size="9" font-weight="600">("http_")</text>
+
+      <!-- Auto → branches -->
+      <line x1="402" y1="288" x2="330" y2="288" stroke="#A855F7" stroke-width="1" stroke-dasharray="3 3" marker-end="url(#vfArrowCyan)"/>
+      <text x="340" y="282" fill="#9FA4C4" font-size="8.5">false</text>
+      <line x1="558" y1="288" x2="630" y2="288" stroke="#A855F7" stroke-width="1" stroke-dasharray="3 3" marker-end="url(#vfArrowCyan)"/>
+      <text x="588" y="282" fill="#9FA4C4" font-size="8.5">true</text>
+
+      <!-- LEFT: BrowserVerifier -->
+      <rect x="40" y="246" width="290" height="212" rx="8" fill="rgba(245,158,11,.06)" stroke="#F59E0B" stroke-width="1.2"/>
+      <text x="185" y="268" text-anchor="middle" fill="#F59E0B" font-size="12" font-weight="700">BrowserVerifier</text>
+      <text x="185" y="281" text-anchor="middle" fill="#6B70A0" font-size="8">verify/BrowserVerifier.java</text>
+
+      <line x1="56" y1="294" x2="314" y2="294" stroke="#252840" stroke-width=".8"/>
+
+      <text x="56" y="312" fill="#9FA4C4" font-size="9" font-weight="600">▸ capability</text>
+      <text x="170" y="312" fill="#06B6D4" font-size="9">isCapabilityAvailable</text>
+      <text x="170" y="324" fill="#e8e8f0" font-size="9" font-weight="700">("BROWSER_AUTOMATION")</text>
+
+      <text x="56" y="346" fill="#9FA4C4" font-size="9" font-weight="600">▸ endpoint</text>
+      <text x="170" y="346" fill="#10B981" font-size="9" font-weight="700">/api/browser/journey/run</text>
+
+      <text x="56" y="370" fill="#9FA4C4" font-size="9" font-weight="600">▸ requires</text>
+      <text x="170" y="370" fill="#e8e8f0" font-size="9">PreviewStackDetector</text>
+      <text x="170" y="382" fill="#e8e8f0" font-size="9">+ DevServerLauncher.start()</text>
+
+      <text x="56" y="406" fill="#9FA4C4" font-size="9" font-weight="600">▸ timeout</text>
+      <text x="170" y="406" fill="#EC4899" font-size="9" font-weight="700">JOURNEY_TIMEOUT = 120s</text>
+
+      <text x="56" y="430" fill="#9FA4C4" font-size="9" font-weight="600">▸ body</text>
+      <text x="170" y="430" fill="#6B70A0" font-size="8.5">session_id="rv-"+sid · viewport</text>
+      <text x="170" y="442" fill="#6B70A0" font-size="8.5">record={video,har,trace}</text>
+
+      <!-- RIGHT: HttpApiVerifier -->
+      <rect x="630" y="246" width="290" height="212" rx="8" fill="rgba(245,158,11,.06)" stroke="#F59E0B" stroke-width="1.2"/>
+      <text x="775" y="268" text-anchor="middle" fill="#F59E0B" font-size="12" font-weight="700">HttpApiVerifier</text>
+      <text x="775" y="281" text-anchor="middle" fill="#6B70A0" font-size="8">verify/HttpApiVerifier.java</text>
+
+      <line x1="646" y1="294" x2="904" y2="294" stroke="#252840" stroke-width=".8"/>
+
+      <text x="646" y="312" fill="#9FA4C4" font-size="9" font-weight="600">▸ capability</text>
+      <text x="760" y="312" fill="#06B6D4" font-size="9">isCapabilityAvailable</text>
+      <text x="760" y="324" fill="#e8e8f0" font-size="9" font-weight="700">("HTTP_API")</text>
+
+      <text x="646" y="346" fill="#9FA4C4" font-size="9" font-weight="600">▸ endpoint</text>
+      <text x="760" y="346" fill="#10B981" font-size="9" font-weight="700">/api/http/journey/run</text>
+
+      <text x="646" y="370" fill="#9FA4C4" font-size="9" font-weight="600">▸ requires</text>
+      <text x="760" y="370" fill="#e8e8f0" font-size="9">— no DevServer —</text>
+      <text x="760" y="382" fill="#6B70A0" font-size="8.5">直连 base_url，跳过 stack 探测</text>
+
+      <text x="646" y="406" fill="#9FA4C4" font-size="9" font-weight="600">▸ timeout</text>
+      <text x="760" y="406" fill="#EC4899" font-size="9" font-weight="700">HTTP_JOURNEY_TIMEOUT = 60s</text>
+
+      <text x="646" y="430" fill="#9FA4C4" font-size="9" font-weight="600">▸ body</text>
+      <text x="760" y="430" fill="#6B70A0" font-size="8.5">session_id · base_url · steps</text>
+      <text x="760" y="442" fill="#6B70A0" font-size="8.5">record=Map.of() (无录制)</text>
+
+      <!-- merge to bottom shared -->
+      <line x1="185" y1="458" x2="380" y2="492" stroke="#10B981" stroke-width="1.2" marker-end="url(#vfArrowGreen)"/>
+      <line x1="775" y1="458" x2="580" y2="492" stroke="#10B981" stroke-width="1.2" marker-end="url(#vfArrowGreen)"/>
+
+      <!-- Bottom shared row -->
+      <rect x="60" y="492" width="840" height="50" rx="8" fill="#0F1221" stroke="#10B981" stroke-width="1"/>
+      <text x="80" y="512" fill="#10B981" font-size="10" font-weight="700">JourneyResult</text>
+      <text x="80" y="525" fill="#6B70A0" font-size="8">verdict / errorMessage</text>
+
+      <text x="230" y="512" fill="#10B981" font-size="10" font-weight="700">→ handleVerificationResult()</text>
+      <text x="230" y="525" fill="#6B70A0" font-size="8">verified · failed · unavailable</text>
+
+      <text x="470" y="512" fill="#10B981" font-size="10" font-weight="700">→ EvidenceStore.save()</text>
+      <text x="470" y="525" fill="#6B70A0" font-size="8">EvidenceBundle (kind=journey)</text>
+
+      <text x="680" y="512" fill="#06B6D4" font-size="10" font-weight="700">→ STOMP /queue/messages</text>
+      <text x="680" y="525" fill="#6B70A0" font-size="8">verify_progress · verification_result</text>
+    </svg>
+  </div>
+
+  <div class="card" style="background:#080A12;border-radius:14px;padding:18px 10px 10px;margin-top:18px;overflow-x:auto">
+    <div style="padding:16px 20px 8px;font-size:.85rem;font-weight:700;color:var(--java);letter-spacing:.02em">▸ HTTP API 验证执行管道 — 8 Action 策略字典分发</div>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 620" style="width:100%;max-width:960px;display:block;margin:auto;font-family:'JetBrains Mono',monospace">
+      <defs>
+        <pattern id="haGrid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="#252840" stroke-width=".5" opacity=".35"/></pattern>
+        <marker id="haArrJ" viewBox="0 0 8 6" refX="7" refY="3" markerWidth="7" markerHeight="7" orient="auto"><polygon points="0 0,8 3,0 6" fill="#F59E0B"/></marker>
+        <marker id="haArrP" viewBox="0 0 8 6" refX="7" refY="3" markerWidth="7" markerHeight="7" orient="auto"><polygon points="0 0,8 3,0 6" fill="#84CC16"/></marker>
+        <marker id="haArrC" viewBox="0 0 8 6" refX="7" refY="3" markerWidth="7" markerHeight="7" orient="auto"><polygon points="0 0,8 3,0 6" fill="#06B6D4"/></marker>
+        <marker id="haArrR" viewBox="0 0 8 6" refX="7" refY="3" markerWidth="7" markerHeight="7" orient="auto"><polygon points="0 0,8 3,0 6" fill="#EF4444"/></marker>
+        <filter id="haGlow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#84CC16" flood-opacity=".25"/></filter>
+      </defs>
+      <rect width="960" height="620" fill="#0B0D17"/>
+      <rect width="960" height="620" fill="url(#haGrid)"/>
+
+      <!-- Header -->
+      <text x="24" y="28" fill="#6B70A0" font-size="9">// HttpApiVerifier (Java) → callIfAvailable → http_journey_run (Python) → HTTP_ACTION_HANDLERS</text>
+
+      <!-- ===== Java layer ===== -->
+      <rect x="24" y="42" width="610" height="96" rx="8" fill="rgba(245,158,11,.06)" stroke="#F59E0B" stroke-width="1.2"/>
+      <text x="40" y="60" fill="#F59E0B" font-size="10" font-weight="700">JAVA · backend/verify/</text>
+
+      <rect x="40" y="70" width="260" height="56" rx="6" fill="#0F1221" stroke="#F59E0B" stroke-width="1"/>
+      <text x="170" y="90" text-anchor="middle" fill="#e8e8f0" font-size="11" font-weight="700">HttpApiVerifier.verify()</text>
+      <text x="170" y="104" text-anchor="middle" fill="#9FA4C4" font-size="8.5">guard: isCapabilityAvailable("HTTP_API")</text>
+      <text x="170" y="117" text-anchor="middle" fill="#6B70A0" font-size="8">body = {session_id, base_url, steps}</text>
+
+      <line x1="300" y1="98" x2="330" y2="98" stroke="#F59E0B" stroke-width="1.2" marker-end="url(#haArrJ)"/>
+
+      <rect x="330" y="70" width="294" height="56" rx="6" fill="#0F1221" stroke="#F59E0B" stroke-width="1" filter="url(#haGlow)"/>
+      <text x="477" y="90" text-anchor="middle" fill="#e8e8f0" font-size="11" font-weight="700">PythonCapabilityAwareClient</text>
+      <text x="477" y="104" text-anchor="middle" fill="#06B6D4" font-size="9" font-weight="600">.callIfAvailable("HTTP_API", endpoint, body, 60s)</text>
+      <text x="477" y="117" text-anchor="middle" fill="#6B70A0" font-size="8">→ Optional&lt;JourneyResponse&gt;</text>
+
+      <!-- Right side: Target API -->
+      <rect x="680" y="42" width="256" height="96" rx="8" fill="rgba(59,130,246,.06)" stroke="#3B82F6" stroke-width="1.2" stroke-dasharray="5 3"/>
+      <text x="808" y="62" text-anchor="middle" fill="#3B82F6" font-size="11" font-weight="700">目标 API 服务器</text>
+      <text x="808" y="80" text-anchor="middle" fill="#9FA4C4" font-size="9">request.base_url</text>
+      <text x="808" y="96" text-anchor="middle" fill="#6B70A0" font-size="8">e.g. http://127.0.0.1:8080</text>
+      <text x="808" y="114" text-anchor="middle" fill="#6B70A0" font-size="8">业务后端 / 第三方 REST</text>
+
+      <!-- Java → Python border arrow -->
+      <line x1="477" y1="126" x2="477" y2="160" stroke="#F59E0B" stroke-width="1.4" marker-end="url(#haArrJ)"/>
+      <text x="492" y="148" fill="#9FA4C4" font-size="8.5">POST /api/http/journey/run</text>
+
+      <!-- ===== Python layer ===== -->
+      <rect x="24" y="166" width="610" height="310" rx="8" fill="rgba(132,204,22,.06)" stroke="#84CC16" stroke-width="1.2"/>
+      <text x="40" y="184" fill="#84CC16" font-size="10" font-weight="700">PYTHON · python-service/src/routers/http_api.py</text>
+
+      <!-- Entry -->
+      <rect x="40" y="194" width="360" height="42" rx="6" fill="#151829" stroke="#84CC16" stroke-width="1"/>
+      <text x="220" y="212" text-anchor="middle" fill="#e8e8f0" font-size="11" font-weight="700">@router.post("/journey/run")</text>
+      <text x="220" y="226" text-anchor="middle" fill="#84CC16" font-size="9.5">async def http_journey_run(request: JourneyRunRequest)</text>
+
+      <!-- Guards -->
+      <rect x="410" y="194" width="214" height="42" rx="6" fill="#151829" stroke="#EF4444" stroke-width="1"/>
+      <text x="517" y="210" text-anchor="middle" fill="#EF4444" font-size="9.5" font-weight="700">边界防护</text>
+      <text x="517" y="222" text-anchor="middle" fill="#e8e8f0" font-size="8.5">MAX_STEPS = 500</text>
+      <text x="517" y="232" text-anchor="middle" fill="#e8e8f0" font-size="8.5">MAX_CONTEXT_SIZE_BYTES = 50MB</text>
+
+      <!-- httpx pool -->
+      <rect x="40" y="248" width="584" height="36" rx="6" fill="#0F1221" stroke="#06B6D4" stroke-width="1"/>
+      <text x="56" y="270" fill="#06B6D4" font-size="10" font-weight="700">连接池</text>
+      <text x="118" y="270" fill="#e8e8f0" font-size="10">async with httpx.AsyncClient(follow_redirects=True) as client:</text>
+
+      <!-- Loop block -->
+      <rect x="40" y="294" width="584" height="170" rx="6" fill="#0F1221" stroke="#A855F7" stroke-width="1" stroke-dasharray="4 2"/>
+      <text x="56" y="314" fill="#A855F7" font-size="10" font-weight="700">▸ for i, step in enumerate(request.steps):</text>
+
+      <!-- Step 1: resolve -->
+      <rect x="56" y="326" width="260" height="44" rx="5" fill="#151829" stroke="#84CC16" stroke-width=".8"/>
+      <text x="186" y="343" text-anchor="middle" fill="#84CC16" font-size="10" font-weight="700">_resolve_variables(step, context_vars)</text>
+      <text x="186" y="358" text-anchor="middle" fill="#9FA4C4" font-size="8.5">${var_name} → context_vars[name]</text>
+
+      <line x1="316" y1="348" x2="346" y2="348" stroke="#84CC16" stroke-width="1.2" marker-end="url(#haArrP)"/>
+
+      <!-- Step 2: dispatch -->
+      <rect x="346" y="326" width="262" height="44" rx="5" fill="#151829" stroke="#84CC16" stroke-width=".8"/>
+      <text x="477" y="343" text-anchor="middle" fill="#84CC16" font-size="10" font-weight="700">_execute_http_step(...)</text>
+      <text x="477" y="358" text-anchor="middle" fill="#9FA4C4" font-size="8.5">handler = HTTP_ACTION_HANDLERS.get(action)</text>
+
+      <!-- httpx call out -->
+      <line x1="477" y1="370" x2="477" y2="394" stroke="#06B6D4" stroke-width="1.2" marker-end="url(#haArrC)"/>
+      <text x="492" y="384" fill="#06B6D4" font-size="8.5">client.request()</text>
+
+      <rect x="346" y="398" width="262" height="30" rx="5" fill="#0B0D17" stroke="#06B6D4" stroke-width=".8"/>
+      <text x="477" y="417" text-anchor="middle" fill="#06B6D4" font-size="9">httpx → 目标 API → response</text>
+
+      <!-- last_response feedback -->
+      <line x1="56" y1="413" x2="56" y2="380" stroke="#9FA4C4" stroke-width=".8" stroke-dasharray="2 2"/>
+      <line x1="56" y1="413" x2="346" y2="413" stroke="#9FA4C4" stroke-width=".8" stroke-dasharray="2 2"/>
+      <text x="66" y="398" fill="#6B70A0" font-size="8">last_response · context_vars 反馈下一步</text>
+
+      <!-- Iter result row -->
+      <rect x="56" y="434" width="552" height="22" rx="4" fill="#080A12" stroke="#252840" stroke-width=".6"/>
+      <text x="332" y="450" text-anchor="middle" fill="#9FA4C4" font-size="8.5">step_results.append(StepResultModel)  ·  failed → break (首步失败即停)</text>
+
+      <!-- right: dashed connector to API box (top) -->
+      <line x1="608" y1="413" x2="680" y2="100" stroke="#06B6D4" stroke-width="1" stroke-dasharray="3 3" marker-end="url(#haArrC)"/>
+
+      <!-- ===== HTTP_ACTION_HANDLERS strategy dict on right ===== -->
+      <rect x="680" y="166" width="256" height="310" rx="8" fill="#0F1221" stroke="#84CC16" stroke-width="1.2"/>
+      <text x="808" y="186" text-anchor="middle" fill="#84CC16" font-size="11" font-weight="700">HTTP_ACTION_HANDLERS</text>
+      <text x="808" y="199" text-anchor="middle" fill="#6B70A0" font-size="8">dict[str, Callable] · 8 handlers</text>
+      <line x1="696" y1="206" x2="920" y2="206" stroke="#252840" stroke-width=".8"/>
+
+      <!-- 4 HTTP verbs -->
+      <text x="696" y="222" fill="#10B981" font-size="9" font-weight="700">http_get</text>
+      <text x="790" y="222" fill="#9FA4C4" font-size="9">→ client.get(url, headers, params)</text>
+      <text x="696" y="238" fill="#10B981" font-size="9" font-weight="700">http_post</text>
+      <text x="790" y="238" fill="#9FA4C4" font-size="9">→ client.post(url, json/content)</text>
+      <text x="696" y="254" fill="#10B981" font-size="9" font-weight="700">http_put</text>
+      <text x="790" y="254" fill="#9FA4C4" font-size="9">→ client.put(url, json, headers)</text>
+      <text x="696" y="270" fill="#10B981" font-size="9" font-weight="700">http_delete</text>
+      <text x="790" y="270" fill="#9FA4C4" font-size="9">→ client.delete(url, headers)</text>
+
+      <line x1="696" y1="282" x2="920" y2="282" stroke="#252840" stroke-width=".6" stroke-dasharray="2 2"/>
+      <text x="808" y="296" text-anchor="middle" fill="#6B70A0" font-size="8">— assertions —</text>
+
+      <!-- 3 assertions -->
+      <text x="696" y="314" fill="#EC4899" font-size="9" font-weight="700">assert_status</text>
+      <text x="808" y="314" fill="#9FA4C4" font-size="9">last_response.status_code</text>
+      <text x="808" y="326" fill="#6B70A0" font-size="8.5">== expected_code</text>
+
+      <text x="696" y="346" fill="#EC4899" font-size="9" font-weight="700">assert_json</text>
+      <text x="808" y="346" fill="#9FA4C4" font-size="9">jsonpath_parse(path)</text>
+      <text x="808" y="358" fill="#6B70A0" font-size="8.5">.find(body) == expected</text>
+
+      <text x="696" y="378" fill="#EC4899" font-size="9" font-weight="700">assert_header</text>
+      <text x="808" y="378" fill="#9FA4C4" font-size="9">expected_substring in</text>
+      <text x="808" y="390" fill="#6B70A0" font-size="8.5">last_response.headers[name]</text>
+
+      <line x1="696" y1="402" x2="920" y2="402" stroke="#252840" stroke-width=".6" stroke-dasharray="2 2"/>
+      <text x="808" y="416" text-anchor="middle" fill="#6B70A0" font-size="8">— state —</text>
+
+      <!-- set_variable -->
+      <text x="696" y="434" fill="#A855F7" font-size="9" font-weight="700">set_variable</text>
+      <text x="808" y="434" fill="#9FA4C4" font-size="9">context_vars[name] =</text>
+      <text x="808" y="446" fill="#6B70A0" font-size="8.5">jsonpath_parse(path).find(body)[0]</text>
+
+      <text x="808" y="466" text-anchor="middle" fill="#6B70A0" font-size="8">→ 跨 step 共享变量</text>
+
+      <!-- Connection from dispatch to handlers box -->
+      <line x1="608" y1="348" x2="680" y2="320" stroke="#84CC16" stroke-width="1" stroke-dasharray="3 3" marker-end="url(#haArrP)"/>
+      <text x="616" y="340" fill="#84CC16" font-size="8">dispatch</text>
+
+      <!-- ===== Bottom result row ===== -->
+      <rect x="24" y="494" width="912" height="108" rx="8" fill="#0F1221" stroke="#10B981" stroke-width="1.2"/>
+      <text x="40" y="512" fill="#10B981" font-size="10" font-weight="700">RESULT · 结果回传</text>
+
+      <!-- StepResultModel -->
+      <rect x="40" y="522" width="284" height="66" rx="5" fill="#151829" stroke="#10B981" stroke-width=".8"/>
+      <text x="182" y="540" text-anchor="middle" fill="#e8e8f0" font-size="10" font-weight="700">StepResultModel</text>
+      <text x="182" y="555" text-anchor="middle" fill="#9FA4C4" font-size="8.5">index · action · ok</text>
+      <text x="182" y="568" text-anchor="middle" fill="#9FA4C4" font-size="8.5">duration_ms · error</text>
+      <text x="182" y="581" text-anchor="middle" fill="#6B70A0" font-size="8">screenshot_base64=None (HTTP)</text>
+
+      <!-- JourneyRunResponse -->
+      <rect x="338" y="522" width="284" height="66" rx="5" fill="#151829" stroke="#10B981" stroke-width=".8"/>
+      <text x="480" y="540" text-anchor="middle" fill="#e8e8f0" font-size="10" font-weight="700">JourneyRunResponse</text>
+      <text x="480" y="555" text-anchor="middle" fill="#9FA4C4" font-size="8.5">passed · step_results</text>
+      <text x="480" y="568" text-anchor="middle" fill="#9FA4C4" font-size="8.5">session_id · final_url</text>
+      <text x="480" y="581" text-anchor="middle" fill="#6B70A0" font-size="8">→ Java JourneyResult.from(r)</text>
+
+      <!-- Exceptions -->
+      <rect x="636" y="522" width="300" height="66" rx="5" fill="#151829" stroke="#EF4444" stroke-width=".8"/>
+      <text x="786" y="540" text-anchor="middle" fill="#EF4444" font-size="10" font-weight="700">异常分类（httpx）</text>
+      <text x="786" y="555" text-anchor="middle" fill="#9FA4C4" font-size="8.5">ConnectError · TimeoutException</text>
+      <text x="786" y="568" text-anchor="middle" fill="#9FA4C4" font-size="8.5">HTTPError</text>
+      <text x="786" y="581" text-anchor="middle" fill="#6B70A0" font-size="8">→ ok=False · 计入 step.error</text>
+
+      <!-- arrows from python to result row -->
+      <line x1="180" y1="464" x2="180" y2="494" stroke="#10B981" stroke-width="1.2" marker-end="url(#haArrP)"/>
+      <line x1="480" y1="464" x2="480" y2="494" stroke="#10B981" stroke-width="1.2" marker-end="url(#haArrP)"/>
+      <line x1="786" y1="476" x2="786" y2="494" stroke="#EF4444" stroke-width="1.2" marker-end="url(#haArrR)"/>
+    </svg>
   </div>
 </div>
 

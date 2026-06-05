@@ -5,13 +5,14 @@
 P0/P1 仅启用 CODE_INTEL + FILE_PROCESSING 两个核心域。
 """
 
+import asyncio
 import importlib
 import importlib.metadata
 import logging
 import shutil
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import Dict
+from typing import Callable, Coroutine, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +32,7 @@ class CapabilityDomain(Enum):
     BROWSER_AUTOMATION = auto()  # P2 — 浏览器自动化: playwright
     CODE_QUALITY = auto()     # P0 — 代码质量分析: radon + pygount (F3)
     ANALYSIS = auto()         # P0 — 分析服务: httpx + libcst + networkx (F25/F33/F35)
+    HTTP_API = auto()              # P2 — HTTP API 验证: httpx + jsonpath-ng
 
 
 @dataclass
@@ -41,6 +43,7 @@ class CapabilityInfo:
     min_versions: dict[str, str] = field(default_factory=dict)
     system_binaries: list[str] = field(default_factory=list)
     smoke_test: str = ""
+    async_smoke_test: Optional[Callable[[], Coroutine]] = field(default=None, repr=False)
     router_module: str = ""
     is_available: bool = False
     unavailable_reason: str = ""
@@ -75,6 +78,7 @@ CAPABILITY_REGISTRY: Dict[CapabilityDomain, CapabilityInfo] = {
         required_packages=["playwright"],
         min_versions={"playwright": "1.40.0"},
         system_binaries=[],  # Playwright 自带浏览器二进制
+        async_smoke_test=None,  # 启动时由 register_browser_smoke_test() 设置
         router_module="routers.browser",
     ),
     CapabilityDomain.CODE_QUALITY: CapabilityInfo(
@@ -91,6 +95,13 @@ CAPABILITY_REGISTRY: Dict[CapabilityDomain, CapabilityInfo] = {
         min_versions={"libcst": "1.1.0", "networkx": "3.2"},
         smoke_test="import networkx; import libcst",
         router_module="routers.analysis",
+    ),
+    CapabilityDomain.HTTP_API: CapabilityInfo(
+        domain=CapabilityDomain.HTTP_API,
+        name="HTTP API Verification",
+        required_packages=["httpx", "jsonpath_ng"],
+        min_versions={"httpx": "0.24.0", "jsonpath-ng": "1.6.0"},
+        router_module="routers.http_api",
     ),
 }
 
@@ -147,3 +158,47 @@ def discover_capabilities() -> Dict[CapabilityDomain, CapabilityInfo]:
             logger.warning(f"✗ 能力域 [{info.name}] 不可用: {info.unavailable_reason}")
     logger.info(f"能力探测完成: {available_count}/{len(CAPABILITY_REGISTRY)} 个能力域可用")
     return CAPABILITY_REGISTRY
+
+
+# ═══ 浏览器冒烟测试 ═══
+
+async def browser_smoke_test():
+    """实际启动 chromium 验证浏览器可用性"""
+    from playwright.async_api import async_playwright
+
+    pw = await async_playwright().start()
+    try:
+        browser = await pw.chromium.launch(headless=True)  # 不设 channel，用 Playwright 自带
+        ctx = await browser.new_context()
+        page = await ctx.new_page()
+        await page.goto("about:blank")
+        await browser.close()
+    finally:
+        await pw.stop()
+
+
+def register_browser_smoke_test():
+    """将 browser_smoke_test 注册到 BROWSER_AUTOMATION 能力域"""
+    info = CAPABILITY_REGISTRY.get(CapabilityDomain.BROWSER_AUTOMATION)
+    if info:
+        info.async_smoke_test = browser_smoke_test
+
+
+# 模块加载时自动注册
+register_browser_smoke_test()
+
+
+async def run_async_smoke_tests():
+    """执行所有能力域的异步冒烟测试（启动时调用一次，缓存结果）"""
+    for domain, info in CAPABILITY_REGISTRY.items():
+        if not info.is_available:
+            continue  # 已标记不可用，跳过
+        if info.async_smoke_test is None:
+            continue
+        try:
+            await info.async_smoke_test()
+            logger.info(f"✓ 冒烟测试通过 [{info.name}]")
+        except Exception as e:
+            info.is_available = False
+            info.unavailable_reason = f"冒烟测试失败: {e}"
+            logger.warning(f"✗ 冒烟测试失败 [{info.name}]: {e}")

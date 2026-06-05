@@ -24,6 +24,7 @@ import { usePlanStore, type PlanStep } from '@/store/planStore';
 import { useCoordinatorStore } from '@/store/coordinatorStore';
 import { useInsightStore } from '@/store/insightStore';
 import { useAnomalyStore } from '@/store/anomalyStore';
+import { useJourneyVerifyStore } from '@/store/journeyVerifyStore';
 import { anomalyEngine } from '@/services/AnomalyDetectionEngine';
 import { mapRunChecksResponseToRiskAssessment } from '@/utils/aposAdapters';
 import { appendStreamDelta } from '@/hooks/useStreamingText';
@@ -387,9 +388,19 @@ const handlers: Record<string, (data: any) => void> = {
         } as Message);
     },
 
-    // === APOS: 验证结果 + 验证进度 (2 种) ===
+    // === APOS / Runtime Verification: 验证结果 + 验证进度 (2 种) ===
     'verification_result': (d: any) => {
         try {
+            // PR-C.6 路径：运行时验证（Runtime Verification）— payload 含 verdict/bundleId
+            if ('verdict' in d) {
+                useJourneyVerifyStore.getState().setResult(
+                    d.verdict,
+                    d.bundleId ?? '',
+                    d.errorMessage ?? '',
+                );
+                return;
+            }
+
             // Phase 2 路径：payload 直接包含 signal 字段（由 VerifyCheckService.pushVerificationResult 推送）
             if ('signal' in d && 'overallStatus' in d) {
                 const response: import('@/types/apos').VerifyCheckResponse = {
@@ -418,7 +429,17 @@ const handlers: Record<string, (data: any) => void> = {
         }
     },
     'verify_progress': (d: any) => {
-        // Optional: update progress UI
+        // PR-C.6 路径：运行时验证步骤进度（含 stepIndex/action/ok/durationMs）
+        if (typeof d?.stepIndex === 'number' && typeof d?.action === 'string') {
+            useJourneyVerifyStore.getState().addStepProgress({
+                stepIndex: d.stepIndex,
+                action: d.action,
+                ok: !!d.ok,
+                durationMs: typeof d.durationMs === 'number' ? d.durationMs : 0,
+            });
+            return;
+        }
+        // 旧路径：APOS 文件级进度（operationId + check + progress）
         console.debug('[APOS] verify_progress:', d.operationId, d.check, d.progress);
     },
 };

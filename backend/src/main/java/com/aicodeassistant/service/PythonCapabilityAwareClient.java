@@ -218,6 +218,62 @@ public class PythonCapabilityAwareClient {
     }
 
     /**
+     * 带重试的 HTTP POST 调用（指数退避），使用自定义超时。
+     * 用于需要更长超时的场景（如 journey/run 端点）。
+     */
+    public <T> Optional<T> callWithRetry(String endpoint, Object body,
+                                         Class<T> resultType, Duration timeout) {
+        for (int attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+            try {
+                String jsonBody = objectMapper.writeValueAsString(body);
+                log.debug("POST {} body({}chars): {}", endpoint, jsonBody.length(),
+                        jsonBody.length() > 500 ? jsonBody.substring(0, 500) + "..." : jsonBody);
+                var request = HttpRequest.newBuilder()
+                        .uri(URI.create(baseUrl + endpoint))
+                        .timeout(timeout)
+                        .header("Content-Type", "application/json")
+                        .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                        .build();
+                var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                    T result = objectMapper.readValue(response.body(), resultType);
+                    return Optional.ofNullable(result);
+                }
+                log.warn("Python 调用 {} 返回 HTTP {}: {}", endpoint,
+                        response.statusCode(), response.body());
+            } catch (Exception e) {
+                if (attempt < MAX_RETRIES) {
+                    long delayMs = RETRY_BASE_DELAY.toMillis() * (1L << attempt);
+                    log.debug("Python 调用 {} 失败 (尝试 {}/{}), {}ms 后重试...",
+                            endpoint, attempt + 1, MAX_RETRIES, delayMs);
+                    try {
+                        Thread.sleep(delayMs);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
+                } else {
+                    log.error("Python 调用 {} 最终失败 ({} 次重试耗尽)", endpoint, MAX_RETRIES, e);
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * 安全调用（带自定义超时） — 能力不可用时返回 Optional.empty()。
+     * 用于需要更长超时的场景（如 UserJourneyVerifier 调用 journey/run）。
+     */
+    public <T> Optional<T> callIfAvailable(String domain, String endpoint,
+                                           Object body, Class<T> resultType, Duration timeout) {
+        if (!isCapabilityAvailable(domain)) {
+            log.debug("Python 能力域 [{}] 不可用，跳过调用 {}", domain, endpoint);
+            return Optional.empty();
+        }
+        return callWithRetry(endpoint, body, resultType, timeout);
+    }
+
+    /**
      * 直接 POST 调用（不检查能力域）。
      */
     public <T> Optional<T> post(String endpoint, Object body, Class<T> resultType) {

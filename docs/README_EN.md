@@ -55,6 +55,7 @@
 | ⚡ | **Intelligent Context Management** | Five-layer compression cascade + incremental collapse (auto-compress every 10 turns) + 413 three-phase recovery (aggressive compression → reactive compact → media stripping) + Precise Token Counting (tiktoken multi-model support) + Self-Correction Loop (auto-diagnose compile/test failures, max 3 retries) + three-level token alerts for seamless ultra-long conversations |
 | 🖼️ | **Browser Semantic Snapshot** | `/snap` command captures full web page state (DOM structure + interactive elements), extracts structured JSON for Agent parsing and replay verification |
 | 📊 | **Real-Time Activity Tracking & Approval** | Activity Panel records full AI tool execution lifecycle, L1/L2/L3 three-layer display, Signal smart tagging (auto_approve/review_recommended/needs_review), one-click batch approval, SQLite backend persistence, session restoration support |
+| 🧪 | **Runtime Verification Framework** | VerifierFactory tri-modal dispatch (browser/http_api/auto) + 8 HTTP action handlers + JSONPath assertions + evidence chain SQLite storage + Feature Flag dual-gating + frontend real-time progress panel |
 | 🏆 | **SWE-bench Lite Submission** | Single backbone `qwen-3.6-max-preview` + closed six-tool set (Read/Edit/Write/Bash/Grep/Glob); no internet, no sub-agent. Official harness reports **Resolve 46.3% (139/300)** and Patch generation **93.3% (280/300)**. [Technical Report →](https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html) |
 
 ---
@@ -170,6 +171,8 @@ cd frontend && npm install && npm run dev
 ```
 
 </details>
+
+> **RV-1 Runtime Verification Dependencies**: `jsonpath-ng` (JSONPath assertion engine), `httpx` (async HTTP client), already included in `python-service/requirements.txt`.
 
 ### Supported LLM Providers
 
@@ -1009,6 +1012,7 @@ ZhikunCode ships with 48 built-in tools + MCP dynamic extensions, covering the f
 | **Plan Mode** | EnterPlanMode, ExitPlanMode, VerifyPlan | Plan-then-execute workflow |
 | **Configuration** | ConfigTool, SendMessage, SyntheticOutput | Config management, message sending, synthetic output |
 | **Monitoring** | MonitorTool, CtxInspect, TerminalCapture | System monitoring, context inspection, terminal output capture |
+| **Verification** | VerifyJourneyTool, BrowserVerifier, HttpApiVerifier | Runtime verification toolset — end-to-end browser testing, HTTP API assertion chains, hybrid-mode auto-switching |
 | **MCP Extensions** | MCP tool adapters | Connect to external MCP services (dynamically registered) |
 
 ---
@@ -1030,6 +1034,7 @@ ZhikunCode includes 11 built-in visualization features that make data and status
 | **API Contract Viewer** | Auto-merges Java + Python dual-service OpenAPI specs. Endpoints grouped by tag, HTTP methods color-coded, recursive Schema display. Supports All/Java/Python data source switching |
 | **Code-to-Diagram Auto-Generation** | Input a code file path to auto-generate Mermaid sequence diagrams / flowcharts. Python LibCST + tree-sitter multi-language parsing, BFS call-chain traversal with auto-identification of Controller/Service/Repository participants, five-dimensional confidence scoring (0-1), Monaco Editor for real-time source editing, SVG copy / PNG download export, supports 1-5 level traversal depth control |
 | **Code Path Tracing Visualization** | Interactive code call-path tracing visualization built on @xyflow/react. Python CodePathTracer performs forward BFS traversal with six-layer classification (Controller/Service/Repository/Database/External/Utility), dagre TB layout algorithm for automatic node arrangement, custom LayerNode components with layer-based coloring, MiniMap for global overview + LayerStatsBar for layer statistics, supports API endpoint scanning, parameter tracking, node click details, and maxDepth depth control via the sidebar "Code Path" tab |
+| **Runtime Verification Progress Panel** | JourneyVerifyPanel — real-time display of verification step execution status (waiting/executing/passed/failed), STOMP push progress, evidence chain association |
 | **Activity Panel** | Three-layer card display (L1 Compact → L2 Expanded → L3 Portal), real-time tool execution status, Signal risk markers, approval decision tracking |
 
 > **New in v9.3**: The `/visualize` command auto-pushes three formats (mermaid / json / text) via VisualizationAutoRouter, with WS STOMP `/app/command` end-to-end latency p50 < 3ms.
@@ -1098,6 +1103,7 @@ Environment variables are managed via the `.env` file. Copy `.env.example` and m
 | `features.flags.PRECISE_TOKENIZER` | false | Precise token counting (Python tiktoken, replaces character estimation) |
 | `features.flags.GIT_DIFF_TRACKER` | false | Git change tracking and edit history aggregation |
 | `features.flags.SEARCH_STRATEGY_ROUTER` | false | Scope-aware layered search strategy routing |
+| `RUNTIME_VERIFICATION` | true | Enable runtime verification framework (displays verification progress panel on frontend, requires BROWSER_AUTOMATION or HTTP_API capability domain) |
 
 ### Docker Resource Limits
 

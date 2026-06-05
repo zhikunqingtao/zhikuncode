@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, useMemo } from 'react';
 import { AppLayout } from '@/components/layout';
 import { MessageList } from '@/components/message';
+import { JourneyVerifyPanel } from '@/components/verify/JourneyVerifyPanel';
 import { PromptInput } from '@/components/input';
 import { DialogManager } from '@/components/DialogManager';
 import { useMessageStore } from '@/store/messageStore';
@@ -212,6 +213,9 @@ function App() {
               <MessageList />
             )}
           </div>
+
+          {/* RV-1 Runtime Verification 进度面板 — status='idle' 时返回 null，不占空间 */}
+          <JourneyVerifyPanel />
 
           {/* Input */}
           <div className="border-t border-[var(--border)] p-4 bg-[var(--bg-secondary)]">

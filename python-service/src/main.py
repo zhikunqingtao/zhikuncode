@@ -14,6 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from capabilities import (
     discover_capabilities,
+    run_async_smoke_tests,
     CapabilityDomain,
     CAPABILITY_REGISTRY,
 )
@@ -28,7 +29,13 @@ ROUTER_PREFIX_MAP = {
     "routers.browser": ("/api/browser", ["Browser Automation"]),
     "routers.code_quality": ("/api/code-quality", ["Code Quality"]),
     "routers.analysis": ("/api/analysis", ["Analysis"]),
+    "routers.http_api": ("/api/http", ["HTTP API Verification"]),
 }
+
+# 附加路由：依赖同一能力域但独立路由模块（随主路由一起加载）
+BROWSER_EXTRA_ROUTERS = [
+    ("routers.journey", "/api/browser", ["Browser Automation"]),
+]
 
 
 # ───── 生命周期管理 ─────
@@ -37,6 +44,12 @@ async def lifespan(app: FastAPI):
     """应用生命周期: 启动时探测能力域并注册路由，关闭时清理资源"""
     logger.info("Python Service 启动中...")
     capabilities = discover_capabilities()
+
+    # 执行异步冒烟测试（如浏览器可用性检测）— 失败不影响服务启动
+    try:
+        await run_async_smoke_tests()
+    except Exception as e:
+        logger.error(f"冒烟测试执行异常: {e}")
 
     # 动态注册可用能力域的路由
     browser_lifecycle = None
@@ -51,6 +64,14 @@ async def lifespan(app: FastAPI):
                 if info.router_module == "routers.browser" and hasattr(module, "startup_browser"):
                     await module.startup_browser()
                     browser_lifecycle = module
+                    # 注册 BROWSER_AUTOMATION 域的附加路由
+                    for extra_mod, extra_prefix, extra_tags in BROWSER_EXTRA_ROUTERS:
+                        try:
+                            extra = importlib.import_module(extra_mod)
+                            app.include_router(extra.router, prefix=extra_prefix, tags=extra_tags)
+                            logger.info(f"附加路由已注册: {extra_prefix} [{extra_mod}]")
+                        except Exception as ex:
+                            logger.error(f"加载附加路由失败 [{extra_mod}]: {ex}")
             except Exception as e:
                 logger.error(f"加载路由失败 [{info.name}]: {e}")
 

@@ -1,12 +1,12 @@
 # ZhikunCode v9.3 全链路测试报告（完整版）
 
-> **报告版本**: v9.4 | **测试日期**: 2026-05-16 | **测试范围**: 全栈功能验证（36模块/437用例/串行全链路测试+单元测试体系）+ 性能定量采样 + 安全专章 + APOS E2E 全功能专项（123用例 = 62 Phase 1 + 50 Phase 2 + 11 风险修复）+ AI Coding 功能增强专项（33用例/238单元测试/7集成测试）
+> **报告版本**: v9.5 | **测试日期**: 2026-06-05 | **测试范围**: 全栈功能验证（43模块/492用例/串行全链路测试+单元测试体系）+ 性能定量采样 + 安全专章 + APOS E2E 全功能专项（123用例 = 62 Phase 1 + 50 Phase 2 + 11 风险修复）+ AI Coding 功能增强专项（33用例/238单元测试/7集成测试）+ RV-1 运行时验证专项（10模块/55用例/29 Java单元 + 18 Python单元 + 8 E2E集成）
 > **口径**：**真实调用 LLM / 真实三端启动 / 不 mock 不打桩 / 每项探针 TSV/日志可追溯**
 > **执行模式**：A2 务实增量 + B1 全开真调 LLM
 
-> **术语澄清**：437 = 36 模块集成测试用例（§3 通过率矩阵）；1948 = 含单元测试的全量功能测试；2445 = 总指标（1948 功能 + 490 性能探针 + 7 安全探针）
+> **术语澄清**：492 = 43 模块集成测试用例（§3 通过率矩阵）；2003 = 含单元测试的全量功能测试；2500 = 总指标（2003 功能 + 490 性能探针 + 7 安全探针）
 
-> **总体结果**: **PASS（含修复）** — 2445 总测试用例（1948 功能 + 490 性能探针 + 7 安全探针），核心通过率 100%
+> **总体结果**: **PASS（含修复）** — 2500 总测试用例（2003 功能 + 490 性能探针 + 7 安全探针），核心通过率 100%
 
 ---
 
@@ -14,7 +14,7 @@
 
 | 维度 | 结果 |
 |---|---|
-| **总测试用例** | **1948 + 490 性能探针 + 7 安全探针 = 2445** |
+| **总测试用例** | **2003 + 490 性能探针 + 7 安全探针 = 2500** |
 | 后端单元/集成测试 | 1500 PASS / 0 failure / 0 error / 48 占位 skipped（`@Test` 总数 1548） |
 | Python 单元测试 | 47 PASS，覆盖率 25.66% |
 | 前端 vitest | 78 PASS / 0 fail / 16 skipped（94 total） |
@@ -22,6 +22,7 @@
 | APOS E2E 全功能专项 | **123 用例**（62 Phase 1 + 50 Phase 2 + 11 风险修复），121 PASS / 0 FAIL / 2 SKIP，通过率 100%（排除不可自动化） |
 | WS STOMP + LLM 真推理 + Session 持久化 | 3/3 PASS |
 | AI Coding 功能增强（6模块/33用例/238单元+7集成） | 245 PASS / 0 FAIL，100% 通过率 |
+| RV-1 运行时验证（10模块/55用例/29单元+18单元+8集成） | 55 PASS / 0 FAIL，100% 通过率 |
 | 多 Agent 协作 E2E（Coordinator + WS 订阅 + 3 种可视化） | 全链路 PASS |
 | 浏览器语义快照 MVP | example.com / httpbin 富交互页双跑 PASS |
 | 性能专章 | REST/WS/快照/Swarm 5 指标 p95 全部优于 v9.2 门槛 1-2 个数量级 |
@@ -29,6 +30,7 @@
 | **总体判定** | **PASS（含修复）** |
 
 **里程碑变化（对比 v9.2）**
+- **v9.5 新增 RV-1 运行时验证专项**：双模 Verifier 多态分发（VerifierFactory/BrowserVerifier/HttpApiVerifier）+ HTTP API 验证管道（8 action handler + 变量替换 + 边界防护）+ EvidenceStore 证据链 + Feature Flag 双重门控，10 模块 55 用例（29 Java 单元 + 18 Python 单元 + 8 E2E 集成），100% 通过率
 - **v9.4 新增 AI Coding 功能增强专项**：6 大模块（SelfCorrectionLoop/BashTool动态超时/Skill安全预算/Token精确计数/Git变更追踪/搜索策略路由）33 用例 + 238 单元测试 + 7 集成测试 + 4 Feature Flag 验证，全量通过
 - 新增 Task 3/4/5 差异化升级单测：CoordinatorEventBus / VisualizationIntentClassifier / BrowserSnapshot 三条链路完整证据
 - 新增性能定量采样：p50/p95/p99 尾延迟数据入库（v9.2 仅定性）
@@ -57,6 +59,7 @@
 | 11.1 | APOS Phase 1 详细 | [APOS-Phase1-E2E全量测试报告.md](../apos-phase1/APOS-Phase1-E2E全量测试报告.md) | [screenshots/](../apos-phase1/screenshots/) |
 | 11.2 | APOS Phase 2 详细 | [APOS-Phase2-E2E测试报告.md](../APOS-Phase2-E2E测试报告.md) | [screenshots/apos-phase2/](../screenshots/apos-phase2/) |
 | 12 | AI Coding 功能增强专项 | [aicoding测试用例测试报告.md](../aicoding测试用例测试报告.md) | — |
+| 13 | RV-1 运行时验证专项 | [RV1-Runtime-Verification-测试报告.md](RV1-Runtime-Verification-测试报告.md) | — |
 
 **共性脚本**：[scripts/](scripts/) 下 11 个可复跑工具（shell + node + python）。
 **归档**：v9.2 14 份 task 文档 + 4 份 E2E 专项 → [archive/v9.2/](archive/v9.2/)。
@@ -141,9 +144,16 @@
 | 34 | APOS P2 移动端响应式 | 9 | 8 | 1 | 0 | 0 | 89% | — | ★ 首次 |
 | 35 | APOS P2 集成与回归 | 13 | 13 | 0 | 0 | 0 | 100% | — | ★ 首次 |
 | 36 | AI Coding 功能增强 | 33 | 33 | 0 | 0 | 0 | 100% | 1 | ★ 首次 |
-| **合计** | | **437** | **432** | **5** | **0** | **0** | **98.9%** | **12** | **27模块** |
+| 37 | RV-1 VerifierFactory 多态分发 | 8 | 8 | 0 | 0 | 0 | 100% | 0 | ★ 首次 |
+| 38 | RV-1 HttpApiVerifier | 5 | 5 | 0 | 0 | 0 | 100% | 0 | ★ 首次 |
+| 39 | RV-1 BrowserVerifier | 5 | 5 | 0 | 0 | 0 | 100% | 0 | ★ 首次 |
+| 40 | RV-1 EvidenceStore 证据链 | 6 | 6 | 0 | 0 | 0 | 100% | 0 | ★ 首次 |
+| 41 | RV-1 VerifyJourneyTool | 5 | 5 | 0 | 0 | 0 | 100% | 0 | ★ 首次 |
+| 42 | RV-1 Python HTTP API 路由 | 18 | 18 | 0 | 0 | 0 | 100% | 0 | ★ 首次 |
+| 43 | RV-1 E2E 集成验证 | 8 | 8 | 0 | 0 | 0 | 100% | 0 | ★ 首次 |
+| **合计** | | **492** | **487** | **5** | **0** | **0** | **99.0%** | **12** | **34模块** |
 
-> *注：5 个 PARTIAL 均为非阻塞性功能降级（TC-MEM-07 记忆持久化、TC-FE-06 主题截图、TC-CLI-09 工具白名单、TC-APOS2-013 DAG 边颜色需视觉回归工具、TC-APOS2-036 拖拽需真实触摸设备），无 FAIL 用例。核心功能通过率 100%。v9.4 新增 AI Coding 功能增强专项（33 用例全通过 + 238 单元测试 + 7 集成测试 + 4 Feature Flag 验证）、安全专章（2 条 CWE-22 修复 + 19 单测）+ 性能专章（490 探针）+ 浏览器快照 MVP + 差异化升级单测 + APOS Phase 1 E2E（28用例100%PASS）+ APOS Phase 2 E2E（50用例48PASS/2SKIP），已计入总用例 2445。*
+> *注：5 个 PARTIAL 均为非阻塞性功能降级（TC-MEM-07 记忆持久化、TC-FE-06 主题截图、TC-CLI-09 工具白名单、TC-APOS2-013 DAG 边颜色需视觉回归工具、TC-APOS2-036 拖拽需真实触摸设备），无 FAIL 用例。核心功能通过率 100%。v9.4 新增 AI Coding 功能增强专项（33 用例全通过 + 238 单元测试 + 7 集成测试 + 4 Feature Flag 验证）、安全专章（2 条 CWE-22 修复 + 19 单测）+ 性能专章（490 探针）+ 浏览器快照 MVP + 差异化升级单测 + APOS Phase 1 E2E（28用例100%PASS）+ APOS Phase 2 E2E（50用例48PASS/2SKIP），v9.5 新增 RV-1 运行时验证专项（55 用例 100% 通过），已计入总用例 2500。*
 
 ---
 
@@ -186,6 +196,14 @@
 27. **AI Coding 发现并修复 1 个 Bug**：TestFailureParser JUnit 断言解析顺序错误（P2），已修复并回归验证通过
 28. **AI Coding 并发安全验证**：SkillTokenBudget 10 线程并发测试通过，ConcurrentHashMap + AtomicLong 保证线程安全
 29. **AI Coding 容错降级全覆盖**：Python 服务不可用→字符估算、Git 失败→编辑记录、超限→上报用户，所有降级链路均验证通过
+
+**v9.5 新增关键发现：**
+
+30. **RV-1 运行时验证专项测试**：10 模块（VerifierFactory/HttpApiVerifier/BrowserVerifier/EvidenceStore/VerifyJourneyTool/Python HTTP API 路由/HTTP 动词 handler/断言 handler/变量系统/E2E 集成）55 个测试用例（29 Java 单元 + 18 Python 单元 + 8 E2E 集成），全量通过
+31. **RV-1 双模 Verifier 多态分发验证**：VerifierFactory 三向选择（browser/http_api/auto）+ 自动检测 http_ 前缀 + null/空 steps 边界，8 用例全部 PASS
+32. **RV-1 HTTP API 验证管道端到端验证**：8 个 action handler（http_get/post/put/delete + assert_status/json/header + set_variable）+ 变量替换 ${var_name} + MAX_STEPS=500 边界 + 首步失败即停，在真实运行服务上验证通过
+33. **RV-1 Feature Flag 双重门控验证**：RUNTIME_VERIFICATION=true + BROWSER_AUTOMATION/HTTP_API 能力域 OR 逻辑，确认 VerifyJourney Tool 已注册（启动日志显示 46 tools）
+34. **RV-1 证据链持久化验证**：EvidenceStore SQLite 写入 + 级联 items + Blob SHA-256 + findById/findBySession 查询，6 用例全部 PASS
 
 **已发现并修复的 Bug：**
 
@@ -2833,6 +2851,170 @@ if (json.success === false || json.error) {
 
 ---
 
+### 5.25 RV-1 运行时验证专项 (55/55 PASS) ★ 首次专项测试
+
+> **数据来源**: [RV1-Runtime-Verification-测试报告.md](RV1-Runtime-Verification-测试报告.md)
+> **测试日期**: 2026-06-05
+> **测试框架**: JUnit 5 + Mockito（Java）、pytest + pytest-asyncio（Python）、Python httpx + asyncio（E2E）
+> **测试口径**: Java/Python 单元测试 + 真实三端启动 E2E 集成验证（Backend :8080 / Python :8000 / Frontend :5173，无 mock / 无打桩）
+> **Feature Flag**: `RUNTIME_VERIFICATION=true`，VerifyJourney Tool 已注册（启动日志输出 `46 tools registered`）
+> **能力域**: 7/7 available（HTTP_API / BROWSER_AUTOMATION / CODE_INTEL / GIT_ENHANCED / FILE_PROCESSING / CODE_QUALITY / ANALYSIS）
+
+#### 5.25.1 VerifierFactory 多态分发 (8/8 PASS，耗时 0.044s)
+
+> RV-1 双域验证架构的核心入口，按 `mode` 字段路由到 BrowserVerifier / HttpApiVerifier。
+
+| TC 编号 | 场景 | 操作 | 验证 | 判定 |
+|---------|------|------|------|------|
+| TC-RV-VF-01 | mode=browser 路由 | 构造 `mode="browser"` 的 VerifyRequest，调用 `factory.create(req)` | 返回实例为 `BrowserVerifier`，未触发 HttpApiVerifier 构造 | PASS |
+| TC-RV-VF-02 | mode=http_api 路由 | 构造 `mode="http_api"` | 返回实例为 `HttpApiVerifier` | PASS |
+| TC-RV-VF-03 | mode=auto + 仅 BROWSER 可用 | mock 能力域仅 BROWSER_AUTOMATION available | auto 降级为 BrowserVerifier | PASS |
+| TC-RV-VF-04 | mode=auto + 仅 HTTP_API 可用 | mock 能力域仅 HTTP_API available | auto 降级为 HttpApiVerifier | PASS |
+| TC-RV-VF-05 | mode=auto + 两域均可用 | 两域同时 available | 按优先级返回 BrowserVerifier（视觉证据优先） | PASS |
+| TC-RV-VF-06 | mode=null 守卫 | `req.mode = null` | 抛出 `IllegalArgumentException`，错误信息含 mode 字段 | PASS |
+| TC-RV-VF-07 | mode 为空字符串 | `req.mode = ""` | 抛出 `IllegalArgumentException` | PASS |
+| TC-RV-VF-08 | mode 非法取值 | `req.mode = "mixed"`（不在白名单） | 抛出 `IllegalArgumentException`，提示合法值集合 | PASS |
+
+#### 5.25.2 HttpApiVerifier (5/5 PASS，耗时 0.018s)
+
+> 调用 Python `/api/runtime/journey/http` 执行 DSL 步骤，并将结果汇聚回 EvidenceStore。
+
+| TC 编号 | 场景 | 操作 | 验证 | 判定 |
+|---------|------|------|------|------|
+| TC-RV-HA-01 | HTTP_API 不可用拒绝 | mock 能力探测返回 HTTP_API=unavailable，调用 `verify()` | 返回 `passed=false`，`error` 含 "HTTP_API capability unavailable"，未发出真实 HTTP 调用 | PASS |
+| TC-RV-HA-02 | 正常 verify 路径 | mock PythonServiceClient 返回 `passed=true`、step_results 长度=3 | VerifyResult 字段完整（passed / steps / duration） | PASS |
+| TC-RV-HA-03 | 空响应处理 | mock 返回空 body | 不抛 NPE，返回结构化失败结果，error 字段说明原因 | PASS |
+| TC-RV-HA-04 | 入参校验 | 缺失 base_url 字段 | 抛出参数校验异常，错误信息含字段名 | PASS |
+| TC-RV-HA-05 | STOMP 推送验证 | 调用 verify 后断言 SimpMessagingTemplate 至少调用一次 | `/topic/runtime-verification/{sessionId}` 有事件推送，载荷含 verifyId | PASS |
+
+#### 5.25.3 BrowserVerifier (5/5 PASS，耗时 0.009s)
+
+> 通过 Python BROWSER_AUTOMATION 能力域执行浏览器步骤，对 rv- 前缀变量做隔离处理。
+
+| TC 编号 | 场景 | 操作 | 验证 | 判定 |
+|---------|------|------|------|------|
+| TC-RV-BV-01 | BROWSER 不可用拒绝 | mock BROWSER_AUTOMATION=unavailable | passed=false，error 提示能力不可用，未触发 Playwright 启动 | PASS |
+| TC-RV-BV-02 | 正常 verify 路径 | mock Python 返回 passed=true，含截图与 DOM 摘要 | VerifyResult.steps 包含 screenshot blob 引用 | PASS |
+| TC-RV-BV-03 | 空响应不崩溃 | mock Python 返回空 step_results | 优雅返回 passed=false 而非抛出 | PASS |
+| TC-RV-BV-04 | rv- 前缀变量隔离 | 输入变量含 `rv-token` 名称 | 转发至 Python 时按内部命名规范处理，不与业务变量冲突 | PASS |
+| TC-RV-BV-05 | 120s 超时配置 | 检查内部 HTTP 客户端超时阈值 | 超时上限为 120 秒，与 Playwright 最坏耗时匹配 | PASS |
+
+#### 5.25.4 EvidenceStore 证据链 (6/6 PASS，耗时 1.254s)
+
+> 验证证据持久化：verify 主记录 + items 级联 + blob SHA-256 入库 + 反查链路。
+
+| TC 编号 | 场景 | 操作 | 验证 | 判定 |
+|---------|------|------|------|------|
+| TC-RV-ES-01 | save 主记录写入 | 构造 VerifyResult 调用 `evidenceStore.save()` | 主表行数 +1，主键非空 | PASS |
+| TC-RV-ES-02 | 级联保存 items | VerifyResult 含 3 个 step item，调用 save | items 子表 +3 行，外键回指主记录 | PASS |
+| TC-RV-ES-03 | findById 命中 | save 后用主键反查 | 返回完整聚合（含 items 与 blobs） | PASS |
+| TC-RV-ES-04 | findById 不存在 | 用伪造 ID 查询 | 返回 Optional.empty，不抛异常 | PASS |
+| TC-RV-ES-05 | saveBlob SHA-256 | 写入 byte[] payload | hash 字段为 SHA-256，与 `MessageDigest.getInstance("SHA-256")` 期望值一致 | PASS |
+| TC-RV-ES-06 | findBySession 列表反查 | 同一 sessionId 写入多条后调用 `findBySession` | 返回列表按时间倒序，长度与写入次数一致 | PASS |
+
+#### 5.25.5 VerifyJourneyTool (5/5 PASS，耗时 0.162s)
+
+> 工具入口的 Feature Flag 与能力域联合门控。
+
+| TC 编号 | 场景 | 操作 | 验证 | 判定 |
+|---------|------|------|------|------|
+| TC-RV-VT-01 | Feature Flag 关闭拒绝 | mock `RUNTIME_VERIFICATION=false` | 工具返回结构化拒绝，error 含 "feature disabled"，未调用 VerifierFactory | PASS |
+| TC-RV-VT-02 | BROWSER 可用正常分发 | Flag=true + BROWSER 域 available | 命中 BrowserVerifier，passed=true | PASS |
+| TC-RV-VT-03 | 仅 HTTP_API 可用降级 | Flag=true + 仅 HTTP_API available | 自动降级到 HttpApiVerifier，结果链路完整 | PASS |
+| TC-RV-VT-04 | 两域不可用拒绝 | Flag=true 但 HTTP_API 与 BROWSER 均 unavailable | passed=false，error 提示无可用 verifier | PASS |
+| TC-RV-VT-05 | getName 稳定标识 | 调用 `tool.getName()` | 返回 `VerifyJourney`（与工具池注册键一致） | PASS |
+
+#### 5.25.6 Python HTTP 动词 Action Handler (6/6 PASS)
+
+> Python 端 HTTP API 步骤执行器 —— 覆盖 GET/POST/PUT/DELETE 与常见网络异常。
+
+| TC 编号 | 场景 | 操作 | 验证 | 判定 |
+|---------|------|------|------|------|
+| TC-RV-PY-01 | GET 200 正常返回 | `{action:"http_get", url:"/health"}`，mock httpx 返回 200 | step_result.ok=true，response 含 status=200 与 body | PASS |
+| TC-RV-PY-02 | GET ConnectError 降级 | mock httpx 抛 `httpx.ConnectError` | step_result.ok=false，error 含 "ConnectError"，不抛栈到上层 | PASS |
+| TC-RV-PY-03 | GET TimeoutException | mock 抛 `httpx.TimeoutException` | step_result.ok=false，error 标记超时 | PASS |
+| TC-RV-PY-04 | POST JSON body | `{action:"http_post", url:"/api/x", json:{"a":1}}` | 透传 JSON body，Content-Type 自动 `application/json` | PASS |
+| TC-RV-PY-05 | PUT 动词 | `{action:"http_put", url:"/api/x"}` | httpx 调用 method=PUT，响应回填 step_result | PASS |
+| TC-RV-PY-06 | DELETE 动词 | `{action:"http_delete", url:"/api/x"}` | method=DELETE，幂等语义保持 | PASS |
+
+#### 5.25.7 Python 断言 Action Handler (6/6 PASS)
+
+> 覆盖 status / json (JSONPath) / header 三类断言的命中与不命中分支。
+
+| TC 编号 | 场景 | 操作 | 验证 | 判定 |
+|---------|------|------|------|------|
+| TC-RV-PY-07 | assert_status 命中 | 上一步 status=200，断言 `expected_code=200` | ok=true | PASS |
+| TC-RV-PY-08 | assert_status 不命中 | status=200，断言 `expected_code=404` | ok=false，error 显式给出 actual vs expected | PASS |
+| TC-RV-PY-09 | assert_json JSONPath 命中 | response.body=`{"status":"ok"}`，断言 `path=$.status, expected=ok` | ok=true，jsonpath-ng 解析正确 | PASS |
+| TC-RV-PY-10 | assert_json JSONPath 不存在 | 断言 `$.missing` 字段 | ok=false，error 提示路径未命中 | PASS |
+| TC-RV-PY-11 | assert_header 命中 | response.headers 含 `Content-Type: application/json`，断言相同键值 | ok=true（大小写不敏感） | PASS |
+| TC-RV-PY-12 | assert_header 不命中 | 断言不存在的 header | ok=false，error 标识缺失键 | PASS |
+
+#### 5.25.8 Python 变量系统与边界防护 (6/6 PASS)
+
+> 覆盖变量提取、占位符替换、跨步骤传递，及 MAX_STEPS / fail-fast / 未知 action 三类边界防护。
+
+| TC 编号 | 场景 | 操作 | 验证 | 判定 |
+|---------|------|------|------|------|
+| TC-RV-PY-13 | set_variable 从响应提取 | response.body=`{"token":"abc"}`，`set_variable from_response_path=$.token name=tk` | 上下文变量表 `tk=abc`，ok=true | PASS |
+| TC-RV-PY-14 | _resolve_variables URL 替换 | 上下文 `tk=abc`，下一步 url=`/api/{tk}` | 实际请求 URL 为 `/api/abc` | PASS |
+| TC-RV-PY-15 | 跨步骤变量传递 | 步骤 1 set_variable → 步骤 2 在 url / json body / headers 中引用 | 三处占位符均被正确替换 | PASS |
+| TC-RV-PY-16 | MAX_STEPS=500 上限 | 提交 501 步任务 | 引擎拒绝执行，返回结构化错误（passed=false），error 显式给出阈值 | PASS |
+| TC-RV-PY-17 | 首步失败即停 | 第 1 步 http_get 抛 ConnectError | step_results 长度=1，余下步骤被跳过 | PASS |
+| TC-RV-PY-18 | 未知 action 拒绝 | `action="http_patch_unknown"` | step_result.ok=false，error 提示未知 action | PASS |
+
+#### 5.25.9 E2E 集成验证 (8/8 PASS)
+
+> 直连运行中的真实 Python 服务（:8000）与 Backend 健康端点（:8080），无 mock / 无打桩。DSL 以 Python 端实现为准：`url`、`expected_code`、`from_response_path`。
+
+| TC 编号 | 场景 | 请求 DSL | 响应 | 判定 |
+|---------|------|--------|------|------|
+| TC-RV-E2E-01 | http_get 基线 | `{base_url:"http://localhost:8000", steps:[{action:"http_get", url:"/api/health"}]}` | passed=true，step_results[0].ok=true，duration=5ms | PASS |
+| TC-RV-E2E-02 | assert_status 200 | http_get /api/health → assert_status expected_code=200 | 2 步均 ok=true，passed=true | PASS |
+| TC-RV-E2E-03 | assert_json JSONPath | http_get /api/health → assert_json `path=$.status, expected=ok` | JSONPath `$.status` 命中 `ok`，passed=true | PASS |
+| TC-RV-E2E-04 | set_variable 跨步骤 | http_get → set_variable svc=$.service → assert_json $.service expected=`{svc}` | 3 步均 ok=true，`svc` 提取并被占位符替换 | PASS |
+| TC-RV-E2E-05 | 断言失败 | 实际 status=200，断言 expected_code=404 | passed=false，error 说明 `actual=200, expected=404` | PASS |
+| TC-RV-E2E-06 | 首步失败即停 | base_url=http://localhost:9999（不可达）+ 后续 2 步 | step_results 长度=1，passed=false，后两步未执行 | PASS |
+| TC-RV-E2E-07 | 跨服务调用 Backend | `base_url=http://localhost:8080` → http_get /api/health | passed=true，duration=17ms，body 含 `status=UP` | PASS |
+| TC-RV-E2E-08 | MAX_STEPS 边界 | 提交 501 个 http_get 步骤 | HTTP 200 + passed=false + error 显式说明上限被触发（业务态错误） | PASS |
+
+#### 5.25.10 Feature Flag 与能力域验证
+
+| 项 | 配置/状态 | 验证方式 | 判定 |
+|------|----------|----------|------|
+| RUNTIME_VERIFICATION | true | Backend 启动日志 `46 tools registered`，包含 VerifyJourney | PASS |
+| HTTP_API 能力域 | available | `GET /api/health/capabilities` | PASS |
+| BROWSER_AUTOMATION | available | `GET /api/health/capabilities` | PASS |
+| CODE_INTEL / GIT_ENHANCED / FILE_PROCESSING / CODE_QUALITY / ANALYSIS | available | `GET /api/health/capabilities` | PASS |
+
+- 7/7 能力域 available，与 RV-1 双域验证（HTTP_API + BROWSER_AUTOMATION）所需依赖完全匹配。
+- TC-RV-VT-01 在 Flag 关闭态下走拒绝分支，开启态下进入正常分发链路，门控联动正确。
+
+#### 5.25.11 实现-计划契约差异（已对齐）
+
+> 本轮测试期间未出现阻塞缺陷；以下 3 项为实现-计划间的契约差异，已按真实实现对齐用例。
+
+| 维度 | 初始计划 | 实际实现 | 处置 |
+|------|---------|---------|------|
+| HTTP 路径字段 | `path` | `url` | 用例已统一为 `url` |
+| 状态码断言 | `expected` | `expected_code` | 用例已统一 |
+| 变量提取来源 | `json_path` | `from_response_path` | 用例已统一 |
+
+- 能力探测端点以 `/api/health/capabilities` 为准（早期文档中 `/api/capabilities` 已废弃）。
+- 501 步任务返回 HTTP 200 + `passed=false`，符合“工具结果即业务结果”的统一契约。
+
+#### 5.25.12 量化结论与质量评估
+
+| 质量维度 | 评级 | 说明 |
+|---------|------|------|
+| **架构闭环** | ⭐⭐⭐⭐⭐ | VerifierFactory（多态分发）→ HttpApiVerifier / BrowserVerifier（双域执行）→ EvidenceStore（持久化 + SHA-256）→ STOMP 推送四环节全绿 |
+| **边界防护** | ⭐⭐⭐⭐⭐ | MAX_STEPS / 首步失败即停 / 未知 action / Flag 关闭 / 能力域不可用 / null空串非法 mode 六类路径均显式覆盖 |
+| **真实可信** | ⭐⭐⭐⭐⭐ | E2E 全部直连运行中真实服务（:8080 + :8000），无 mock / 无 fixture |
+| **门控正确** | ⭐⭐⭐⭐⭐ | RUNTIME_VERIFICATION=true 时 VerifyJourney Tool 注册（46 tools）；7/7 能力域 available |
+| **总体判定** | **PASS** | 55/55 用例 100% 通过，0 阻塞缺陷；Java 3.420s + Python 0.15s + E2E < 1s ≈5s 全量验证 |
+
+---
+
 ## 6 性能专章
 
 > 时间：2026-05-09 · 环境：macOS 26.4.1 · 后端 8080 / Python 8000 / 前端 5173
@@ -3706,10 +3888,10 @@ docs/test-results/
 
 ---
 
-> **报告生成时间**: 2026-05-16（v9.4 完整版 + AI Coding 功能增强专项整合）
-> **数据来源**: v9.2 全量 326 用例真实测试结果 + v9.3 新增 10 Task 真实执行数据 + APOS E2E V2 综合报告（123用例）+ AI Coding 功能增强测试报告（33用例 + 238单测 + 7集成）+ 单元测试体系全量执行
+> **报告生成时间**: 2026-06-05（v9.5 完整版 + AI Coding 功能增强专项整合 + RV-1 运行时验证专项整合）
+> **数据来源**: v9.2 全量 326 用例真实测试结果 + v9.3 新增 10 Task 真实执行数据 + APOS E2E V2 综合报告（123用例）+ AI Coding 功能增强测试报告（33用例 + 238单测 + 7集成）+ RV-1 运行时验证测试报告（55用例 = 29 Java单元 + 18 Python单元 + 8 E2E集成）+ 单元测试体系全量执行
 > **报告生成方式**: 从原始测试数据文件逐条提取，禁止伪造
-> **总体判定**: **PASS（含 1 个真实漏洞修复 + 4 个 APOS P1 Bug 修复 + 1 个 APOS P2 Bug 修复 + 1 个 AI Coding P2 Bug 修复）**
+> **总体判定**: **PASS（含 1 个真实漏洞修复 + 4 个 APOS P1 Bug 修复 + 1 个 APOS P2 Bug 修复 + 1 个 AI Coding P2 Bug 修复；RV-1 专项 0 阻塞缺陷）**
 
 ---
 
