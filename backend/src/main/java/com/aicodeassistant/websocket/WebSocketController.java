@@ -600,6 +600,27 @@ public class WebSocketController implements PermissionNotifier {
         }
 
         QueryLoopState state = new QueryLoopState(new ArrayList<>(historyMessages), toolUseContext);
+
+        // 注册消息增量持久化 listener：每条新消息进入 state 的瞬间即落库
+        state.addMessageListener(msg -> {
+            try {
+                switch (msg) {
+                    case Message.UserMessage user -> sessionManager.addMessageWithId(
+                            user.uuid(), sessionId, "user", user.content(), null, 0, 0);
+                    case Message.AssistantMessage assistant -> sessionManager.addMessageWithId(
+                            assistant.uuid(), sessionId, "assistant", assistant.content(),
+                            assistant.stopReason(),
+                            assistant.usage() != null ? assistant.usage().inputTokens() : 0,
+                            assistant.usage() != null ? assistant.usage().outputTokens() : 0);
+                    case Message.SystemMessage system -> sessionManager.addMessageWithId(
+                            system.uuid(), sessionId, "system", system.content(), null, 0, 0);
+                }
+            } catch (Exception e) {
+                log.error("消息增量持久化失败, sessionId={}, msgId={}", sessionId, msg.uuid(), e);
+                // 不抛出 —— 持久化失败不应中断 LLM 流；L615-L638 兜底可恢复
+            }
+        });
+
         state.addMessage(new Message.UserMessage(
                 UUID.randomUUID().toString(), Instant.now(),
                 List.of(new ContentBlock.TextBlock(userText)),
@@ -612,29 +633,40 @@ public class WebSocketController implements PermissionNotifier {
         try {
             result = queryEngine.execute(config, state, handler);
 
-            // 6. ★ 持久化消息到数据库（与 QueryController 对齐）
+            // 6. ★ 幂等兜底：execute 正常返回后再补写一次，INSERT OR IGNORE 自动去重（与 listener 使用相同 UUID）
             try {
-                // 只持久化本次查询新增的消息（跳过历史消息）
                 List<Message> allMessages = result.messages();
                 int newStartIndex = historyMessages.size();
                 List<Message> newMessages = allMessages.subList(
                         Math.min(newStartIndex, allMessages.size()), allMessages.size());
+                int fallbackCount = 0;
                 for (Message msg : newMessages) {
                     switch (msg) {
-                        case Message.UserMessage user -> sessionManager.addMessage(
-                                sessionId, "user", user.content(), null, 0, 0);
-                        case Message.AssistantMessage assistant -> sessionManager.addMessage(
-                                sessionId, "assistant", assistant.content(),
-                                assistant.stopReason(),
-                                assistant.usage() != null ? assistant.usage().inputTokens() : 0,
-                                assistant.usage() != null ? assistant.usage().outputTokens() : 0);
-                        case Message.SystemMessage system -> sessionManager.addMessage(
-                                sessionId, "system", system.content(), null, 0, 0);
+                        case Message.UserMessage user -> {
+                            sessionManager.addMessageWithId(
+                                    user.uuid(), sessionId, "user", user.content(), null, 0, 0);
+                            fallbackCount++;
+                        }
+                        case Message.AssistantMessage assistant -> {
+                            sessionManager.addMessageWithId(
+                                    assistant.uuid(), sessionId, "assistant", assistant.content(),
+                                    assistant.stopReason(),
+                                    assistant.usage() != null ? assistant.usage().inputTokens() : 0,
+                                    assistant.usage() != null ? assistant.usage().outputTokens() : 0);
+                            fallbackCount++;
+                        }
+                        case Message.SystemMessage system -> {
+                            sessionManager.addMessageWithId(
+                                    system.uuid(), sessionId, "system", system.content(), null, 0, 0);
+                            fallbackCount++;
+                        }
                     }
                 }
-                log.debug("WS 已持久化 {} 条新消息到会话 {}", newMessages.size(), sessionId);
+                if (fallbackCount > 0) {
+                    log.info("WS 兜底补写 {} 条消息（INSERT OR IGNORE 去重）, sessionId={}", fallbackCount, sessionId);
+                }
             } catch (Exception e) {
-                log.error("WS 消息持久化失败, sessionId={}", sessionId, e);
+                log.error("WS 兜底持久化失败, sessionId={}", sessionId, e);
             }
 
             // 7. 发送完成消息

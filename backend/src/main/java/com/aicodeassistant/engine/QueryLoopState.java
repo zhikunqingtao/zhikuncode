@@ -8,6 +8,7 @@ import com.aicodeassistant.tool.ToolUseContext;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * 查询循环状态 — 跨迭代共享的可变状态。
@@ -17,6 +18,7 @@ import java.util.List;
 public class QueryLoopState {
 
     private List<Message> messages;
+    private final List<Consumer<Message>> messageListeners = new ArrayList<>();
     private ToolUseContext toolUseContext;
     private boolean autoCompactEnabled = true;
     private int autoCompactFailures = 0;
@@ -69,10 +71,22 @@ public class QueryLoopState {
 
     public void addMessage(Message message) {
         this.messages.add(message);
+        for (Consumer<Message> listener : messageListeners) {
+            listener.accept(message);
+        }
     }
 
     public void addMessages(List<Message> messages) {
         this.messages.addAll(messages);
+        for (Message msg : messages) {
+            for (Consumer<Message> listener : messageListeners) {
+                listener.accept(msg);
+            }
+        }
+    }
+
+    public void addMessageListener(Consumer<Message> listener) {
+        this.messageListeners.add(listener);
     }
 
     public void setToolUseContext(ToolUseContext context) {

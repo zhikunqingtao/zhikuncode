@@ -267,6 +267,33 @@ public class SessionManager {
         return msgId;
     }
 
+    /**
+     * 幂等消息写入：使用外部传入的 messageId 作为主键，INSERT OR IGNORE 保证幂等。
+     * 当主键冲突时静默跳过（已由 listener 或其他路径写入），不抛出异常。
+     */
+    public void addMessageWithId(String messageId, String sessionId, String role,
+                                 Object content, String stopReason,
+                                 int inputTokens, int outputTokens) {
+        String contentJson = toJsonString(content);
+        String now = Instant.now().toString();
+        int rows = jdbcTemplate.update(
+                """
+                INSERT OR IGNORE INTO messages (id, session_id, role, content_json, stop_reason,
+                    input_tokens, output_tokens, created_at, seq_num)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?,
+                    (SELECT COALESCE(MAX(seq_num), 0) + 1 FROM messages WHERE session_id = ?))
+                """,
+                messageId, sessionId, role, contentJson, stopReason,
+                inputTokens, outputTokens, now, sessionId
+        );
+        // 仅在真正插入新消息时更新会话时间戳（INSERT OR IGNORE 被忽略时 rows=0）
+        if (rows > 0) {
+            jdbcTemplate.update(
+                    "UPDATE sessions SET updated_at = ? WHERE id = ?", now, sessionId
+            );
+        }
+    }
+
     // ───── 列表查询 ─────
 
     /**
