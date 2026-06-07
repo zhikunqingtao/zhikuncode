@@ -42,6 +42,17 @@ public class EvidenceStore {
     }
 
     /**
+     * 测试专用构造函数 — 允许显式注入 blobRoot 路径，避免测试依赖 System.getProperty("user.dir")。
+     */
+    EvidenceStore(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper,
+                  SensitiveDataFilter sensitiveDataFilter, Path blobRoot) {
+        this.jdbcTemplate = jdbcTemplate;
+        this.objectMapper = objectMapper;
+        this.sensitiveDataFilter = sensitiveDataFilter;
+        this.blobRoot = blobRoot;
+    }
+
+    /**
      * 保存证据包及其关联条目。
      */
     public EvidenceBundle save(EvidenceBundle bundle) {

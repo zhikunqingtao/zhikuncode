@@ -60,6 +60,7 @@
 | 11.2 | APOS Phase 2 详细 | [APOS-Phase2-E2E测试报告.md](../APOS-Phase2-E2E测试报告.md) | [screenshots/apos-phase2/](../screenshots/apos-phase2/) |
 | 12 | AI Coding 功能增强专项 | [aicoding测试用例测试报告.md](../aicoding测试用例测试报告.md) | — |
 | 13 | RV-1 运行时验证专项 | [RV1-Runtime-Verification-测试报告.md](RV1-Runtime-Verification-测试报告.md) | — |
+| 13.1 | RV-1 & B3 边缘测试补充 | [RV1-B3-边缘测试报告.md](RV1-B3-边缘测试报告.md) | 32/32 PASS |
 
 **共性脚本**：[scripts/](scripts/) 下 11 个可复跑工具（shell + node + python）。
 **归档**：v9.2 14 份 task 文档 + 4 份 E2E 专项 → [archive/v9.2/](archive/v9.2/)。
@@ -151,7 +152,9 @@
 | 41 | RV-1 VerifyJourneyTool | 5 | 5 | 0 | 0 | 0 | 100% | 0 | ★ 首次 |
 | 42 | RV-1 Python HTTP API 路由 | 18 | 18 | 0 | 0 | 0 | 100% | 0 | ★ 首次 |
 | 43 | RV-1 E2E 集成验证 | 8 | 8 | 0 | 0 | 0 | 100% | 0 | ★ 首次 |
-| **合计** | | **492** | **487** | **5** | **0** | **0** | **99.0%** | **12** | **34模块** |
+| 44 | VerifyJourneyTool 边缘（RV-1） | 17 | 17 | 0 | 0 | 0 | 100% | 0 | ★ 首次 |
+| 45 | EvidenceStore 边缘（B3） | 15 | 15 | 0 | 0 | 0 | 100% | 0 | ★ 首次 |
+| **合计** | | **524** | **519** | **5** | **0** | **0** | **99.0%** | **12** | **34模块** |
 
 > *注：5 个 PARTIAL 均为非阻塞性功能降级（TC-MEM-07 记忆持久化、TC-FE-06 主题截图、TC-CLI-09 工具白名单、TC-APOS2-013 DAG 边颜色需视觉回归工具、TC-APOS2-036 拖拽需真实触摸设备），无 FAIL 用例。核心功能通过率 100%。v9.4 新增 AI Coding 功能增强专项（33 用例全通过 + 238 单元测试 + 7 集成测试 + 4 Feature Flag 验证）、安全专章（2 条 CWE-22 修复 + 19 单测）+ 性能专章（490 探针）+ 浏览器快照 MVP + 差异化升级单测 + APOS Phase 1 E2E（28用例100%PASS）+ APOS Phase 2 E2E（50用例48PASS/2SKIP），v9.5 新增 RV-1 运行时验证专项（55 用例 100% 通过），已计入总用例 2500。*
 
@@ -204,6 +207,7 @@
 32. **RV-1 HTTP API 验证管道端到端验证**：8 个 action handler（http_get/post/put/delete + assert_status/json/header + set_variable）+ 变量替换 ${var_name} + MAX_STEPS=500 边界 + 首步失败即停，在真实运行服务上验证通过
 33. **RV-1 Feature Flag 双重门控验证**：RUNTIME_VERIFICATION=true + BROWSER_AUTOMATION/HTTP_API 能力域 OR 逻辑，确认 VerifyJourney Tool 已注册（启动日志显示 46 tools）
 34. **RV-1 证据链持久化验证**：EvidenceStore SQLite 写入 + 级联 items + Blob SHA-256 + findById/findBySession 查询，6 用例全部 PASS
+35. **RV-1 边缘场景补充验证**：VerifyJourney 异常处理（17 边缘用例）+ EvidenceStore 容错并发（15 边缘用例）32/32 全部 PASS，覆盖输入校验、DevServer异常、能力降级、技术栈检测异常、验证执行容错、并发安全六大维度
 
 **已发现并修复的 Bug：**
 
@@ -3012,6 +3016,64 @@ if (json.success === false || json.error) {
 | **真实可信** | ⭐⭐⭐⭐⭐ | E2E 全部直连运行中真实服务（:8080 + :8000），无 mock / 无 fixture |
 | **门控正确** | ⭐⭐⭐⭐⭐ | RUNTIME_VERIFICATION=true 时 VerifyJourney Tool 注册（46 tools）；7/7 能力域 available |
 | **总体判定** | **PASS** | 55/55 用例 100% 通过，0 阻塞缺陷；Java 3.420s + Python 0.15s + E2E < 1s ≈5s 全量验证 |
+
+#### 5.25.13 边缘测试补充验证 (32/32 PASS)
+
+> **数据来源**: [RV1-B3-边缘测试报告.md](RV1-B3-边缘测试报告.md)
+> **执行口径**: `./mvnw test -pl . -Dtest="VerifyJourneyEdgeCaseTest,EvidenceStoreEdgeCaseTest"`
+> **执行日期**: 2026-06-07 | **总体结果**: 32/32 PASS | **Maven 总耗时**: 12.731 s
+
+##### 5.25.13.1 VerifyJourneyTool 边缘场景 (17/17 PASS)
+
+**用例源文件**: `backend/src/test/java/com/aicodeassistant/verify/VerifyJourneyEdgeCaseTest.java`
+**测试集耗时**: 1.302 s
+
+| 场景类别 | 用例编号 | 覆盖要点 | 判定 |
+|---------|---------|---------|------|
+| 输入校验 | TC-VT-EC-01～03 | 空数组 → error；缺字段 → error；1000步透传 → 不截断 | PASS |
+| DevServer 异常 | TC-VT-EC-04～07 | 命令不存在、npm超时、轮询超时(120s)、端口占用(EADDRINUSE) | PASS |
+| 能力降级 | TC-VT-EC-16～17 | BROWSER_AUTOMATION/HTTP_API 不可用 → success 降级，不阻塞主任务 | PASS |
+| 技术栈检测 | TC-VT-EC-08～09 | 无 package.json → unknown 跳过；非法 JSON → IOException 吞掉 | PASS |
+| 验证执行容错 | TC-VT-EC-10～12 | Python 不可达、非法 JSON 等价失败、超时不阻塞工具层 | PASS |
+| 清理与推送容错 | TC-VT-EC-13～15 | EvidenceStore.save 异常兜底、STOMP 异常吞掉、finally stop 异常隔离 | PASS |
+
+**关键验证结论**：
+- 异常场景零漏洞：17 个异常路径逐一覆盖，所有异常均被妥善处理
+- 能力不可用时返回 `ToolResult.success()`（非 error），content 明确标注降级原因，不阻塞 Agent 主任务
+- finally 清理阶段异常被 `log.warn` 隔离，不影响主返回值（TC-VT-EC-15）
+- 失败路径仍保存证据 + 推送 verify_attention 通知（TC-VT-EC-10）
+
+##### 5.25.13.2 EvidenceStore 边缘场景 (15/15 PASS)
+
+**用例源文件**: `backend/src/test/java/com/aicodeassistant/verify/EvidenceStoreEdgeCaseTest.java`
+**测试集耗时**: 1.446 s
+**隔离策略**: JUnit5 @TempDir + 可注入 blobRoot 构造函数（消除 System.setProperty("user.dir") 全局状态依赖）
+
+| 场景类别 | 用例编号 | 覆盖要点 | 判定 |
+|---------|---------|---------|------|
+| Blob 写入 | TC-EC-01～03 | 10MB+ 大文件 SHA-256 一致；10线程并发幂等；FS 目录创建失败 | PASS |
+| Blob 读取防御 | TC-EC-04～09 | 长度校验(62/65)；路径穿越拦截；外部删除降级；空串/null 防御 | PASS |
+| 去重机制 | TC-EC-10～11 | mtime 不变验证去重命中；SHA-256 前缀碰撞分片正确 | PASS |
+| 数据库操作 | TC-EC-12～14 | findById 不存在跳过 items 查询；findBySession 空列表；循环引用序列化降级 | PASS |
+| 并发安全 | TC-EC-15 | 10 线程并发写入不同 bundle 全部成功 | PASS |
+
+**关键验证结论**：
+- 内容寻址完整性：10MB+ 大文件写入后逐字节回读一致（TC-EC-01）
+- 并发安全无数据竞态：10 线程并发写入同一 SHA-256 文件不损坏（TC-EC-02）
+- 路径穿越防御有效：64 字节严格长度校验 + blobRoot 子树约束（TC-EC-06）
+- 序列化容错：循环引用 meta 被 catch 降级为 null，不抛异常到调用方（TC-EC-14）
+
+##### 5.25.13.3 与主流程测试的关联
+
+| 边缘测试 | 关联主流程用例 | 关系说明 |
+|---------|-------------|---------|
+| TC-VT-EC-16/17 能力降级 | §5.25.5 TC-RV-VT-04 两域不可用 | 边缘测试单独验证各域降级；主流程验证组合拒绝 |
+| TC-EC-12/13 查询空结果 | §5.25.4 TC-RV-ES-03/04 findById | 边缘测试验证查询优化（跳过 items 表）；主流程验证命中/未命中 |
+| TC-VT-EC-13 save 异常 | §5.25.4 TC-RV-ES-01 save 主路径 | 边缘测试验证 save 抛异常时工具层兜底；主流程验证正常写入 |
+
+##### 5.25.13.4 完整报告链接
+
+边缘测试的 32 条用例完整详情（含入参/预期/实际/耗时）请参见：[RV1-B3-边缘测试报告.md](RV1-B3-边缘测试报告.md)
 
 ---
 
