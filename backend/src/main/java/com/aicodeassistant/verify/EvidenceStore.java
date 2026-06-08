@@ -32,6 +32,7 @@ public class EvidenceStore {
     private final SensitiveDataFilter sensitiveDataFilter;
     private final Path blobRoot;
 
+    @org.springframework.beans.factory.annotation.Autowired
     public EvidenceStore(@Qualifier("projectJdbcTemplate") JdbcTemplate jdbcTemplate,
                          ObjectMapper objectMapper,
                          SensitiveDataFilter sensitiveDataFilter) {

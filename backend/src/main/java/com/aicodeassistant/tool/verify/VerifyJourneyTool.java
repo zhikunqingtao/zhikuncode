@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -55,6 +56,7 @@ public class VerifyJourneyTool implements Tool {
     private static final String FEATURE_FLAG = "RUNTIME_VERIFICATION";
     private static final Duration DEV_SERVER_TIMEOUT = Duration.ofSeconds(120);
     private static final Duration CLOSE_SESSION_TIMEOUT = Duration.ofSeconds(5);
+    private static final Duration FAILURE_SNAPSHOT_TIMEOUT = Duration.ofSeconds(2);
 
     private final PythonCapabilityAwareClient pythonClient;
     private final DevServerLauncher devServerLauncher;
@@ -315,6 +317,8 @@ public class VerifyJourneyTool implements Tool {
 
         // 三路返回
         if ("verified".equals(result.verdict())) {
+            log.info("[RV-METRICS] verify_journey_passed session={} steps={} timestamp={}",
+                    sessionId, stepCount, Instant.now().toString());
             recordActivity(sessionId, result.verdict(), saved.bundleId(), "success",
                     "Runtime verification passed: " + stepCount + " steps", null);
             return ToolResult.success("✓ Runtime verification PASSED. All " + stepCount
@@ -325,10 +329,26 @@ public class VerifyJourneyTool implements Tool {
             return ToolResult.success("Runtime verification unavailable: " + result.errorMessage()
                     + ". This does not block your task.");
         } else {
-            String msg = result.errorMessage() != null ? result.errorMessage() : "Runtime verification failed";
+            String baseMsg = result.errorMessage() != null
+                    ? result.errorMessage()
+                    : "Runtime verification failed";
+
+            // RV-5：在 finally 块销毁会话之前，直接调用 /api/browser/snapshot-semantic
+            String enrichedMsg = enrichWithFailureSnapshot(baseMsg, sessionId);
+
+            // RV-METRICS: 结构化失败日志，便于 grep 统计失败率与错误分类
+            StepResult failedStep = findFailedStep(result.stepResults());
+            int failedIdx = failedStep != null ? failedStep.index() : -1;
+            String failedAction = failedStep != null ? failedStep.action() : "unknown";
+            int passedSteps = countPassedSteps(result.stepResults());
+            String errorCategory = categorizeError(baseMsg, failedStep);
+            String truncatedError = baseMsg.length() > 200 ? baseMsg.substring(0, 200) : baseMsg;
+            log.info("[RV-METRICS] verify_journey_failed session={} step={}/{} action={} category={} passed={} timestamp={} error={}",
+                    sessionId, failedIdx, stepCount, failedAction, errorCategory, passedSteps,
+                    Instant.now().toString(), truncatedError);
             recordActivity(sessionId, result.verdict(), saved.bundleId(), "failed",
-                    "Runtime verification failed", msg);
-            // RV-4: failed 时主动推送 verify_attention 通知
+                    "Runtime verification failed", enrichedMsg);
+            // RV-4: failed 时主动推送 verify_attention 通知（payload 使用 enrichedMsg）
             try {
                 VerifyAttentionPayload attention = new VerifyAttentionPayload(
                         "verify_attention",
@@ -336,7 +356,7 @@ public class VerifyJourneyTool implements Tool {
                         saved.bundleId(),
                         result.verdict(),
                         saved.claim(),
-                        msg,
+                        enrichedMsg,
                         true,
                         Instant.now().toString()
                 );
@@ -344,7 +364,7 @@ public class VerifyJourneyTool implements Tool {
             } catch (Exception e) {
                 log.warn("Failed to send verify_attention notification: {}", e.getMessage());
             }
-            return ToolResult.error(msg + " (evidence bundle: " + saved.bundleId() + ")");
+            return ToolResult.error(enrichedMsg + " (evidence bundle: " + saved.bundleId() + ")");
         }
     }
 
@@ -372,6 +392,51 @@ public class VerifyJourneyTool implements Tool {
             items.add(new EvidenceItem(null, type, summary, null, meta));
         }
         return items;
+    }
+
+    private static StepResult findFailedStep(List<StepResult> steps) {
+        if (steps == null) {
+            return null;
+        }
+        for (StepResult s : steps) {
+            if (!s.ok()) {
+                return s;
+            }
+        }
+        return null;
+    }
+
+    private static int countPassedSteps(List<StepResult> steps) {
+        if (steps == null) {
+            return 0;
+        }
+        int count = 0;
+        for (StepResult s : steps) {
+            if (s.ok()) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private static String categorizeError(String msg, StepResult failedStep) {
+        if (failedStep != null && failedStep.consoleErrors() != null && !failedStep.consoleErrors().isEmpty()) {
+            return "CONSOLE_ERROR";
+        }
+        if (msg == null) {
+            return "OTHER";
+        }
+        String lower = msg.toLowerCase();
+        if (lower.contains("not found") || lower.contains("no element")) {
+            return "SELECTOR_NOT_FOUND";
+        }
+        if (lower.contains("timeout")) {
+            return "TIMEOUT";
+        }
+        if (lower.contains("navigation") || lower.contains("err_connection")) {
+            return "NAVIGATION_FAILED";
+        }
+        return "OTHER";
     }
 
     /**
@@ -412,5 +477,107 @@ public class VerifyJourneyTool implements Tool {
         } catch (Exception e) {
             log.warn("Failed to record verify_journey activity: {}", e.getMessage());
         }
+    }
+
+    /**
+     * RV-5：在验证失败时调用 /api/browser/snapshot-semantic 拉取语义快照，
+     * 将摘要追加到错误消息末尾。
+     *
+     * <p>必须在 finally 块销毁会话之前调用。任何异常 / 超时 / 字段缺失均静默降级，
+     * 返回原始 baseMsg，不影响主流程。</p>
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private String enrichWithFailureSnapshot(String baseMsg, String sessionId) {
+        try {
+            Optional<Map> resp = pythonClient.callIfAvailable(
+                    CAPABILITY,
+                    "/api/browser/snapshot-semantic",
+                    Map.of(
+                            "session_id", "rv-" + sessionId,
+                            "interesting_only", true,
+                            "include_screenshot", false
+                    ),
+                    Map.class,
+                    FAILURE_SNAPSHOT_TIMEOUT
+            );
+            if (resp.isEmpty()) {
+                return baseMsg;
+            }
+            Object data = resp.get().get("data");
+            if (!(data instanceof Map<?, ?> snapData) || snapData.isEmpty()) {
+                return baseMsg;
+            }
+            String summary = formatSnapshotSummary((Map<String, Object>) snapData);
+            if (summary == null || summary.isBlank()) {
+                return baseMsg;
+            }
+            return baseMsg + "\n\n" + summary;
+        } catch (Exception e) {
+            log.debug("[RV-5] Failure snapshot unavailable: {}", e.getMessage());
+            return baseMsg;
+        }
+    }
+
+    /**
+     * RV-5：将语义快照摘要为 LLM 友好的文本块。
+     * 输入结构：{url, title, node_count, interactive[], tree:{aria}}
+     */
+    private String formatSnapshotSummary(Map<String, Object> snapshot) {
+        if (snapshot == null || snapshot.isEmpty()) {
+            return null;
+        }
+        StringBuilder sb = new StringBuilder("=== Page Snapshot at Failure ===\n");
+
+        Object url = snapshot.get("url");
+        if (url != null) sb.append("URL: ").append(url).append('\n');
+
+        Object title = snapshot.get("title");
+        if (title != null) sb.append("Title: ").append(title).append('\n');
+
+        Object nodeCount = snapshot.get("node_count");
+        Object interactive = snapshot.get("interactive");
+        int interactiveSize = (interactive instanceof List<?> il) ? il.size() : 0;
+        sb.append("Nodes: ").append(nodeCount != null ? nodeCount : "?")
+          .append(", Interactive: ").append(interactiveSize).append('\n');
+
+        // ARIA tree 前 15 行
+        Object tree = snapshot.get("tree");
+        if (tree instanceof Map<?, ?> tm) {
+            Object aria = tm.get("aria");
+            if (aria instanceof String s && !s.isBlank()) {
+                sb.append("\n[ARIA Tree (top 15 lines)]\n");
+                String[] lines = s.split("\\R");
+                int limit = Math.min(15, lines.length);
+                for (int i = 0; i < limit; i++) sb.append(lines[i]).append('\n');
+                if (lines.length > limit) sb.append("... (+").append(lines.length - limit).append(" lines)\n");
+            }
+        }
+
+        // 交互元素清单 前 15 个
+        if (interactive instanceof List<?> il && !il.isEmpty()) {
+            sb.append("\n[Interactive Elements (top 15)]\n");
+            int limit = Math.min(15, il.size());
+            for (int i = 0; i < limit; i++) {
+                Object item = il.get(i);
+                if (item instanceof Map<?, ?> m) {
+                    Object role = m.get("role");
+                    Object name = m.get("name");
+                    Object selector = m.get("selector");
+                    sb.append("- role=").append(role)
+                      .append(" name=").append(truncateField(name, 40))
+                      .append(" selector=").append(truncateField(selector, 60))
+                      .append('\n');
+                }
+            }
+            if (il.size() > limit) sb.append("... (+").append(il.size() - limit).append(" more)\n");
+        }
+        sb.append("================================");
+        return sb.toString();
+    }
+
+    private static String truncateField(Object o, int max) {
+        if (o == null) return "null";
+        String s = o.toString();
+        return s.length() <= max ? s : s.substring(0, max) + "…";
     }
 }
