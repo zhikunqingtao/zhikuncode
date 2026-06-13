@@ -192,6 +192,15 @@ LLM_PROVIDER_DEEPSEEK_API_KEY=your-deepseek-key
 
 # Moonshot (Kimi)
 LLM_PROVIDER_MOONSHOT_API_KEY=your-moonshot-key
+
+# Zhipu (GLM)
+LLM_PROVIDER_ZHIPU_API_KEY=your-zhipu-api-key-here
+
+# MiniMax
+LLM_PROVIDER_MINIMAX_API_KEY=your-minimax-api-key-here
+
+# ZenMux (Anthropic Claude: claude-opus-4.8 / claude-fable-5, 1M context)
+LLM_PROVIDER_ZENMUX_API_KEY=your-zenmux-api-key-here
 ```
 
 **Option B: Single-Provider Configuration (Backward Compatible)**
@@ -203,6 +212,9 @@ If no multi-Provider keys are configured, the system automatically falls back to
 | **Qwen / DashScope** | `https://dashscope.aliyuncs.com/compatible-mode/v1` | qwen3.7-max | **Default**, direct connection in China |
 | **DeepSeek** | `https://api.deepseek.com/v1` | deepseek-v4-pro | Direct connection in China |
 | **Moonshot (Kimi)** | `https://api.moonshot.cn/v1` | kimi-k2.6 | Direct connection in China |
+| **Zhipu (GLM)** | `https://open.bigmodel.cn/api/paas/v4/chat/completions` | glm-5.1 | China direct access |
+| **MiniMax** | `https://api.minimax.chat/v1` | MiniMax-M3 | 1M context window |
+| **ZenMux (Anthropic Claude)** | `https://zenmux.ai/api/v1` | anthropic/claude-opus-4.8, anthropic/claude-fable-5 | 1M context · Anthropic flagship |
 | **OpenAI** | `https://api.openai.com/v1` | gpt-4o | Requires international network access |
 | **Local Ollama** | `http://localhost:11434/v1` | qwen2.5:latest | Fully offline |
 

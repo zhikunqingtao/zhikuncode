@@ -192,6 +192,15 @@ LLM_PROVIDER_DEEPSEEK_API_KEY=your-deepseek-key
 
 # Moonshot (Kimi)
 LLM_PROVIDER_MOONSHOT_API_KEY=your-moonshot-key
+
+# Zhipu (智谱 GLM)
+LLM_PROVIDER_ZHIPU_API_KEY=your-zhipu-api-key-here
+
+# MiniMax
+LLM_PROVIDER_MINIMAX_API_KEY=your-minimax-api-key-here
+
+# ZenMux (Anthropic Claude: claude-opus-4.8 / claude-fable-5, 1M 上下文)
+LLM_PROVIDER_ZENMUX_API_KEY=your-zenmux-api-key-here
 ```
 
 **方式二：单 Provider 配置（向后兼容）**
@@ -203,6 +212,9 @@ LLM_PROVIDER_MOONSHOT_API_KEY=your-moonshot-key
 | **千问/DashScope** | `https://dashscope.aliyuncs.com/compatible-mode/v1` | qwen3.7-max | **默认**，国内直连 |
 | **DeepSeek** | `https://api.deepseek.com/v1` | deepseek-v4-pro | 国内直连 |
 | **Moonshot（Kimi）** | `https://api.moonshot.cn/v1` | kimi-k2.6 | 国内直连 |
+| **Zhipu（智谱 GLM）** | `https://open.bigmodel.cn/api/paas/v4/chat/completions` | glm-5.1 | 国内直连 |
+| **MiniMax** | `https://api.minimax.chat/v1` | MiniMax-M3 | 百万上下文 |
+| **ZenMux（Anthropic Claude）** | `https://zenmux.ai/api/v1` | anthropic/claude-opus-4.8, anthropic/claude-fable-5 | 1M 上下文 · Anthropic 旗舰 |
 | **OpenAI** | `https://api.openai.com/v1` | gpt-4o | 需要外网访问 |
 | **本地 Ollama** | `http://localhost:11434/v1` | qwen2.5:latest | 完全离线 |
 
