@@ -5,12 +5,14 @@
  * 包含: Logo, SessionTitle, ModelSelector, CostIndicator, SettingsButton
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect } from 'react';
 import { Settings, Plus, Menu, Bot, DollarSign, Sun, Moon, Sparkles } from 'lucide-react';
 import { useSessionStore } from '@/store/sessionStore';
 import { useCostStore } from '@/store/costStore';
 import { useDialogStore } from '@/store/dialogStore';
 import { useConfigStore } from '@/store/configStore';
+import { useModelStore } from '@/store/modelStore';
+import { sendSetModel } from '@/api/stompClient';
 
 interface HeaderProps {
     onMenuClick?: () => void;
@@ -23,41 +25,20 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
     const { openDialog } = useDialogStore();
     const { theme, setTheme } = useConfigStore();
 
-    // 动态加载可用模型列表
-    const [availableModels, setAvailableModels] = useState<Array<{ id: string; displayName: string }>>([
-        { id: 'qwen3.7-max', displayName: 'Qwen 3.7 Max' },
-        { id: 'qwen3.7-plus', displayName: 'Qwen 3.7 Plus' },
-        { id: 'deepseek-v4-pro', displayName: 'DeepSeek V4 Pro' },
-        { id: 'deepseek-v4-flash', displayName: 'DeepSeek V4 Flash' },
-        { id: 'kimi-k2.6', displayName: 'Kimi K2.6' },
-        { id: 'moonshot-v1-128k', displayName: 'Moonshot V1 128K' },
-        { id: 'glm-5.1', displayName: 'GLM-5.1' },
-        { id: 'MiniMax-M3', displayName: 'MiniMax M3' },
-    ]);
+    // 动态加载可用模型列表（统一从 modelStore 缓存读取，附带 supportsImages / maxImages 能力）
+    const { models: availableModels, defaultModel, loaded, fetchModels } = useModelStore();
 
     useEffect(() => {
-        fetch('/api/models')
-            .then(res => {
-                if (!res.ok) {
-                    console.error(`Failed to fetch models: ${res.status}`);
-                    return null;
-                }
-                return res.json();
-            })
-            .then(data => {
-                if (data && data.models && data.models.length > 0) {
-                    setAvailableModels(data.models.map((m: any) => ({
-                        id: m.id,
-                        displayName: m.displayName || m.id,
-                    })));
-                    // 如果当前未选择模型，设为后端默认模型
-                    if (!model && data.defaultModel) {
-                        setModel(data.defaultModel);
-                    }
-                }
-            })
-            .catch(err => console.warn('Failed to fetch models:', err));
-    }, []);
+        if (loaded) return;
+        void fetchModels();
+    }, [loaded, fetchModels]);
+
+    useEffect(() => {
+        // 模型列表加载完成且当前未选模型时，使用后端默认模型
+        if (loaded && !model && defaultModel) {
+            setModel(defaultModel);
+        }
+    }, [loaded, defaultModel, model, setModel]);
 
     // 判断当前是否为深色模式（含 system 跟随）
     const isDark = theme.mode === 'dark' || 
@@ -120,6 +101,8 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                         setModel(newModel);
                         // 同步更新 configStore 默认模型并持久化到后端数据库
                         useConfigStore.getState().saveConfig({ defaultModel: newModel });
+                        // 通知后端切换当前会话模型，避免必须新开聊天才能生效
+                        sendSetModel(newModel);
                     }}
                     className="px-3 py-1.5 text-sm rounded-lg border border-[var(--border)] 
                         bg-[var(--bg-primary)] text-[var(--text-primary)]

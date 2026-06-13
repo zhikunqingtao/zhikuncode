@@ -13,6 +13,7 @@ public record ModelCapabilities(
         boolean supportsStreaming,
         boolean supportsThinking,
         boolean supportsImages,
+        int maxImages,
         boolean supportsToolUse,
         double costPer1kInput,
         double costPer1kOutput
@@ -22,7 +23,7 @@ public record ModelCapabilities(
     public static final ModelCapabilities DEFAULT = new ModelCapabilities(
             "unknown", "Unknown Model",
             4096, 8192,
-            true, false, false, false,
+            true, false, false, 0, false,
             0.0, 0.0
     );
 }

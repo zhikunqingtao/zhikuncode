@@ -47,19 +47,19 @@ public class AnthropicProvider implements LlmProvider {
     private static final Map<String, ModelCapabilities> MODEL_CAPABILITIES = Map.ofEntries(
             Map.entry("claude-sonnet-4-6", new ModelCapabilities(
                     "claude-sonnet-4-6", "Claude Sonnet 4.6", 16384, 200000,
-                    true, true, true, true, 0.003, 0.015)),
+                    true, true, true, 10, true, 0.003, 0.015)),
             Map.entry("claude-3-7-sonnet-20250219", new ModelCapabilities(
                     "claude-3-7-sonnet-20250219", "Claude 3.7 Sonnet", 16384, 200000,
-                    true, true, true, true, 0.003, 0.015)),
+                    true, true, true, 10, true, 0.003, 0.015)),
             Map.entry("claude-3-5-sonnet-20241022", new ModelCapabilities(
                     "claude-3-5-sonnet-20241022", "Claude 3.5 Sonnet", 8192, 200000,
-                    true, false, true, true, 0.003, 0.015)),
+                    true, false, true, 10, true, 0.003, 0.015)),
             Map.entry("claude-haiku-4-5", new ModelCapabilities(
                     "claude-haiku-4-5", "Claude Haiku 4.5", 8192, 200000,
-                    true, false, false, true, 0.001, 0.005)),
+                    true, false, false, 0, true, 0.001, 0.005)),
             Map.entry("claude-opus-4-8", new ModelCapabilities(
                     "claude-opus-4-8", "Claude Opus 4.8", 16384, 200000,
-                    true, true, true, true, 0.015, 0.075))
+                    true, true, true, 10, true, 0.015, 0.075))
     );
 
     public AnthropicProvider(
@@ -107,7 +107,7 @@ public class AnthropicProvider implements LlmProvider {
     public ModelCapabilities getModelCapabilities(String model) {
         return MODEL_CAPABILITIES.getOrDefault(model,
                 new ModelCapabilities(model, model, 8192, 200000,
-                        true, false, true, true, 0.003, 0.015));
+                        true, false, true, 10, true, 0.003, 0.015));
     }
 
     @Override

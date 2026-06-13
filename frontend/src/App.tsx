@@ -138,17 +138,35 @@ function App() {
     }
 
     // 4. ★ 在 bind/restore 完成后再添加用户消息到 store（确保不被 clearMessages 清除）
+    const contentBlocks: any[] = [];
+    if (event.text) {
+      contentBlocks.push({ type: 'text', text: event.text });
+    }
+    if (event.attachments && event.attachments.length > 0) {
+      for (const att of event.attachments) {
+        if (att.type === 'image' && att.base64Data) {
+          contentBlocks.push({
+            type: 'image',
+            mediaType: att.mediaType || 'image/png',
+            base64Data: att.base64Data,
+          });
+        }
+      }
+    }
+    if (contentBlocks.length === 0) {
+      contentBlocks.push({ type: 'text', text: '' });
+    }
     addMessage({
       uuid: generateUUID(),
       type: 'user',
-      content: [{ type: 'text', text: event.text }],
+      content: contentBlocks,
       timestamp: Date.now(),
     });
 
     // 5. 通过 STOMP 发送用户消息到后端
     sendToServer('/app/chat', {
       text: event.text,
-      attachments: [],
+      attachments: event.attachments || [],
       references: [],
     });
   }, [addMessage, createSession]);

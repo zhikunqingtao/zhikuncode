@@ -20,29 +20,34 @@ public class ModelRegistry {
     // 内置模型映射表
     private static final Map<String, ModelCapabilities> BUILTIN_MODELS = Map.ofEntries(
         // OpenAI
-        entry("gpt-5.5",           caps("gpt-5.5",           "GPT-5.5",          128000, 1050000, true, true, true, true, 0.005, 0.03)),
-        entry("gpt-5.4-mini",      caps("gpt-5.4-mini",      "GPT-5.4 Mini",     128000, 400000,  true, true, true, true, 0.00075, 0.0045)),
+        entry("gpt-5.5",           caps("gpt-5.5",           "GPT-5.5",          128000, 1050000, true, true, true, 10, true, 0.005, 0.03)),
+        entry("gpt-5.4-mini",      caps("gpt-5.4-mini",      "GPT-5.4 Mini",     128000, 400000,  true, true, true, 10, true, 0.00075, 0.0045)),
         // Anthropic
-        entry("claude-sonnet-4-6", caps("claude-sonnet-4-6", "Claude Sonnet 4.6",  16384, 200000, true, true, true, true, 0.003, 0.015)),
-        entry("claude-opus-4-8",          caps("claude-opus-4-8",          "Claude Opus 4.8",  16384, 200000, true, true, true, true, 0.015, 0.075)),
-        entry("claude-haiku-4-5", caps("claude-haiku-4-5", "Claude Haiku 4.5", 8192, 200000, true, false, true, true, 0.0008, 0.004)),
+        entry("claude-sonnet-4-6", caps("claude-sonnet-4-6", "Claude Sonnet 4.6",  16384, 200000, true, true, true, 10, true, 0.003, 0.015)),
+        entry("claude-opus-4-8",          caps("claude-opus-4-8",          "Claude Opus 4.8",  16384, 200000, true, true, true, 10, true, 0.015, 0.075)),
+        entry("claude-haiku-4-5", caps("claude-haiku-4-5", "Claude Haiku 4.5", 8192, 200000, true, false, true, 10, true, 0.0008, 0.004)),
          // Anthropic via ZenMux (anthropic/ 前缀 = zenmux 中转，1M ctx · 128K 最大输出，我们保守设 64K)
-        entry("anthropic/claude-opus-4.8", caps("anthropic/claude-opus-4.8", "Claude Opus 4.8", 64000, 1000000, true, false, true, true, 0.005, 0.025)),
-        entry("anthropic/claude-fable-5", caps("anthropic/claude-fable-5", "Claude Fable 5", 64000, 1000000, true, false, true, true, 0.010, 0.050)),
+        entry("anthropic/claude-opus-4.8", caps("anthropic/claude-opus-4.8", "Claude Opus 4.8", 64000, 1000000, true, false, true, 5, true, 0.005, 0.025)),
+        entry("anthropic/claude-fable-5", caps("anthropic/claude-fable-5", "Claude Fable 5", 64000, 1000000, true, false, true, 5, true, 0.010, 0.050)),
+        // OpenAI via ZenMux (openai/ 前缀 = zenmux 中转)
+        entry("openai/gpt-5.5-pro",   caps("openai/gpt-5.5-pro",   "OpenAI GPT-5.5 Pro",   128000, 1050000, true,  false, true, 4, true, 0.030, 0.180)),
+        // Google via ZenMux (google/ 前缀 = zenmux 中转)
+        entry("google/gemini-3.5-flash",   caps("google/gemini-3.5-flash",   "Google Gemini 3.5 Flash",   65530, 1050000, false, false, true, 4, true, 0.0015, 0.009)),
         // 国产大模型
-        entry("deepseek-v4-pro",   caps("deepseek-v4-pro",   "DeepSeek V4 Pro",  384000, 1000000, true, true, false, true, 0.001, 0.004)),
-        entry("deepseek-v4-flash", caps("deepseek-v4-flash", "DeepSeek V4 Flash", 384000, 1000000, true, true, false, true, 0.0005, 0.002)),
+        entry("deepseek-v4-pro",   caps("deepseek-v4-pro",   "DeepSeek V4 Pro",  384000, 1000000, true, true, false, 0, true, 0.001, 0.004)),
+        entry("deepseek-v4-flash", caps("deepseek-v4-flash", "DeepSeek V4 Flash", 384000, 1000000, true, true, false, 0, true, 0.0005, 0.002)),
         // Moonshot
-        entry("kimi-k2.6",          caps("kimi-k2.6",          "Kimi K2.6",         16384, 256000,  true, true, true, true, 0.002, 0.012)),
-        entry("moonshot-v1-128k",  caps("moonshot-v1-128k",  "Moonshot V1 128K",   8192, 128000,  true, false, false, true, 0.001, 0.002)),
-        entry("qwen-turbo",        caps("qwen-turbo",        "Qwen Turbo",         8192, 1000000,  true, false, false, true, 0.0003, 0.0006)),
-        entry("qwen3.7-max", caps("qwen3.7-max", "Qwen 3.7 Max", 65536, 1000000, true, true, false, true, 0.009, 0.054)),
-        entry("qwen3.7-plus",      caps("qwen3.7-plus",      "Qwen 3.7 Plus",      8192, 1000000,  true, true, true, true, 0.0008, 0.002)),
-        entry("glm-5.1",           caps("glm-5.1",           "GLM-5.1",            8192, 128000,  true, false, true, true, 0.001, 0.001)),
+        entry("kimi-k2.6",          caps("kimi-k2.6",          "Kimi K2.6",         16384, 256000,  true, true, true, 8, true, 0.002, 0.012)),
+        entry("kimi-k2.7-code",     caps("kimi-k2.7-code",     "Kimi K2.7 Code",    16384, 256000,  true, true, true, 8, true, 0.002, 0.012)),
+        entry("moonshot-v1-128k",  caps("moonshot-v1-128k",  "Moonshot V1 128K",   8192, 128000,  true, false, false, 0, true, 0.001, 0.002)),
+        entry("qwen-turbo",        caps("qwen-turbo",        "Qwen Turbo",         8192, 1000000,  true, false, false, 0, true, 0.0003, 0.0006)),
+        entry("qwen3.7-max", caps("qwen3.7-max", "Qwen 3.7 Max", 65536, 1000000, true, true, false, 0, true, 0.009, 0.054)),
+        entry("qwen3.7-plus",      caps("qwen3.7-plus",      "Qwen 3.7 Plus",      8192, 1000000,  true, true, true, 4, true, 0.0008, 0.002)),
+        entry("glm-5.1",           caps("glm-5.1",           "GLM-5.1",            8192, 128000,  true, false, true, 4, true, 0.001, 0.001)),
         // MiniMax
-        entry("MiniMax-M3",       caps("MiniMax-M3",       "MiniMax M3",        16384, 1000000, true, true, false, true, 0.001, 0.004)),
+        entry("MiniMax-M3",       caps("MiniMax-M3",       "MiniMax M3",        16384, 1000000, true, true, true, 4, true, 0.001, 0.004)),
         // Ollama 本地
-        entry("ollama/*",          caps("ollama/*",          "Ollama Local",       4096,   8192,  true, false, false, false, 0.0, 0.0))
+        entry("ollama/*",          caps("ollama/*",          "Ollama Local",       4096,   8192,  true, false, false, 0, false, 0.0, 0.0))
     );
 
     public ModelRegistry(LlmProviderRegistry providerRegistry) {
@@ -121,7 +126,7 @@ public class ModelRegistry {
     }
 
     private static ModelCapabilities caps(String id, String name, int maxOut, int ctx,
-            boolean stream, boolean think, boolean img, boolean tool, double in$, double out$) {
-        return new ModelCapabilities(id, name, maxOut, ctx, stream, think, img, tool, in$, out$);
+            boolean stream, boolean think, boolean img, int maxImages, boolean tool, double in$, double out$) {
+        return new ModelCapabilities(id, name, maxOut, ctx, stream, think, img, maxImages, tool, in$, out$);
     }
 }

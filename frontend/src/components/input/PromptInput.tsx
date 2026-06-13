@@ -11,15 +11,40 @@
  * 6. IME 保护: isComposing 状态下忽略快捷键 (CJK 输入法)
  */
 
-import React, { useState, useRef, useCallback, useEffect, type KeyboardEvent } from 'react';
-import { Send, Square } from 'lucide-react';
+import React, { useState, useRef, useCallback, useEffect, useMemo, type KeyboardEvent } from 'react';
+import { Send, Square, X } from 'lucide-react';
 import type { Command, LocalAttachment, SubmitEvent, Message, Attachment } from '@/types';
 import { useSessionStore } from '@/store/sessionStore';
+import { useNotificationStore } from '@/store/notificationStore';
+import { useModelStore } from '@/store/modelStore';
 import { sendToServer } from '@/api/stompClient';
 import CommandPalette from './CommandPalette';
 import FileUpload from './FileUpload';
 import { FileAutoComplete } from './FileAutoComplete';
 import { generateUUID } from '@/utils/uuid';
+
+/** 单张图片附件大小上限：5MB */
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+
+/** 不依赖后端能力的安全默认值（能力未加载时允许上传以保证可用性） */
+const FALLBACK_MAX_IMAGES = 4;
+
+/**
+ * 将 File 读取为纯 base64 字符串（去除 data:mime;base64, 前缀）。
+ * 后端 Attachment.base64Data 期望接收不含前缀的 base64。
+ */
+function readFileAsBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const result = reader.result as string;
+            const commaIdx = result.indexOf(',');
+            resolve(commaIdx >= 0 ? result.slice(commaIdx + 1) : result);
+        };
+        reader.onerror = () => reject(reader.error ?? new Error('FileReader failed'));
+        reader.readAsDataURL(file);
+    });
+}
 
 interface PromptInputProps {
     onSubmit: (event: SubmitEvent) => void;
@@ -49,6 +74,22 @@ const PromptInput: React.FC<PromptInputProps> = ({
     const [historyIndex, setHistoryIndex] = useState(-1);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const historyRef = useRef<string[]>([]);
+
+    // 当前选中模型及其能力（supportsImages / maxImages）
+    const currentModelId = useSessionStore(s => s.model);
+    const modelInfo = useModelStore(s => (currentModelId ? s.models.find(m => m.id === currentModelId) ?? null : null));
+    const modelsLoaded = useModelStore(s => s.loaded);
+
+    // 能力未加载时采取保守默认值：允许上传但限制在 FALLBACK_MAX_IMAGES
+    const supportsImages = modelInfo ? modelInfo.supportsImages : true;
+    const maxImages = modelInfo
+        ? (modelInfo.supportsImages ? Math.max(0, modelInfo.maxImages) : 0)
+        : FALLBACK_MAX_IMAGES;
+
+    const imageCount = useMemo(
+        () => attachments.filter(a => a.type.startsWith('image/')).length,
+        [attachments]
+    );
 
     // Auto-resize textarea height
     useEffect(() => {
@@ -132,7 +173,7 @@ const PromptInput: React.FC<PromptInputProps> = ({
 
     const handleSubmit = useCallback(() => {
         const trimmed = input.trim();
-        if (!trimmed) return;
+        if (!trimmed && attachments.length === 0) return;
 
         // Slash command detection
         if (trimmed.startsWith('/')) {
@@ -152,8 +193,8 @@ const PromptInput: React.FC<PromptInputProps> = ({
         const submitAttachments: Attachment[] = attachments.map(a => ({
             type: a.type.startsWith('image/') ? 'image' as const : 'file' as const,
             name: a.name,
-            content: '', // Content loaded via FileReader in real impl
-            mimeType: a.type,
+            base64Data: a.base64Content ?? '',
+            mediaType: a.type,
         }));
         onSubmit({
             text: trimmed,
@@ -161,30 +202,184 @@ const PromptInput: React.FC<PromptInputProps> = ({
             references: new Map(),
             isFastMode: false,
         });
+        // 释放所有预览 URL，防止内存泄漏
+        attachments.forEach(a => {
+            if (a.previewUrl) URL.revokeObjectURL(a.previewUrl);
+        });
         setInput('');
         setAttachments([]);
     }, [input, attachments, onSubmit, onSlashCommand]);
 
+    const handleFiles = useCallback(async (files: File[]) => {
+        const accepted: LocalAttachment[] = [];
+        const notify = useNotificationStore.getState().addNotification;
+        // 使用独立计数器避免同一批多张图片同时越限
+        let currentImageCount = imageCount;
+
+        // 仅接受图片类型文件；非图片文件统一过滤并提示一次
+        const nonImages = files.filter(f => !f.type.startsWith('image/'));
+        const imageFiles = files.filter(f => f.type.startsWith('image/'));
+        if (nonImages.length > 0) {
+            notify({
+                key: `attach-nonimage-ignored-${generateUUID()}`,
+                level: 'warning',
+                message: `仅支持上传图片文件，已忽略 ${nonImages.length} 个非图片文件`,
+            });
+        }
+
+        for (const f of imageFiles) {
+            const isImage = f.type.startsWith('image/');
+
+            // 不支持图片的模型：静默丢弃图片文件，仅提示一次
+            if (isImage && !supportsImages) {
+                notify({
+                    key: `attach-model-noimg-${generateUUID()}`,
+                    level: 'warning',
+                    message: '当前模型不支持图片输入，已跳过图片附件',
+                });
+                continue;
+            }
+
+            // 超出 maxImages 限制：静默丢弃剩余图片，仅提示一次
+            if (isImage && currentImageCount >= maxImages) {
+                notify({
+                    key: `attach-img-limit-${generateUUID()}`,
+                    level: 'warning',
+                    message: `已达当前模型图片上限 (${currentImageCount}/${maxImages})`,
+                });
+                continue;
+            }
+
+            // 图片单独校验大小上限
+            if (isImage && f.size > MAX_IMAGE_SIZE) {
+                notify({
+                    key: `attach-too-large-${generateUUID()}`,
+                    level: 'warning',
+                    message: `图片 “${f.name}” 超出 5MB 上限，已跳过`,
+                });
+                continue;
+            }
+
+            const base: LocalAttachment = {
+                id: generateUUID(),
+                name: f.name,
+                size: f.size,
+                type: f.type,
+                file: f,
+            };
+
+            if (isImage) {
+                try {
+                    base.base64Content = await readFileAsBase64(f);
+                    base.previewUrl = URL.createObjectURL(f);
+                    currentImageCount += 1;
+                } catch (err) {
+                    notify({
+                        key: `attach-read-fail-${generateUUID()}`,
+                        level: 'error',
+                        message: `读取图片 “${f.name}” 失败：${(err as Error).message}`,
+                    });
+                    continue;
+                }
+            }
+
+            accepted.push(base);
+        }
+
+        if (accepted.length > 0) {
+            setAttachments(prev => [...prev, ...accepted]);
+        }
+    }, [imageCount, supportsImages, maxImages]);
+
     // Drag & drop file upload
     const handleDrop = useCallback((e: React.DragEvent) => {
         e.preventDefault();
-        handleFiles(Array.from(e.dataTransfer.files));
-    }, []);
-
-    const handleFiles = useCallback((files: File[]) => {
-        const newAttachments: LocalAttachment[] = files.map(f => ({
-            id: generateUUID(),
-            name: f.name,
-            size: f.size,
-            type: f.type,
-            file: f,
-        }));
-        setAttachments(prev => [...prev, ...newAttachments]);
-    }, []);
+        const dropped = Array.from(e.dataTransfer.files);
+        // 仅接受图片文件；非图片文件直接过滤掉
+        const imagesOnly = dropped.filter(f => f.type.startsWith('image/'));
+        const nonImageCount = dropped.length - imagesOnly.length;
+        if (nonImageCount > 0) {
+            useNotificationStore.getState().addNotification({
+                key: `drop-nonimage-ignored-${generateUUID()}`,
+                level: 'warning',
+                message: `仅支持上传图片文件，已忽略 ${nonImageCount} 个非图片文件`,
+            });
+        }
+        // 不支持图片的模型：拖拽区静默过滤掉图片文件
+        const filtered = supportsImages ? imagesOnly : [];
+        if (filtered.length === 0 && imagesOnly.length > 0 && !supportsImages) {
+            useNotificationStore.getState().addNotification({
+                key: `drop-imgs-ignored-${generateUUID()}`,
+                level: 'warning',
+                message: '当前模型不支持图片输入，拖入的图片已被忽略',
+            });
+            return;
+        }
+        if (filtered.length === 0) return;
+        void handleFiles(filtered);
+    }, [handleFiles, supportsImages]);
 
     const removeAttachment = useCallback((id: string) => {
-        setAttachments(prev => prev.filter(a => a.id !== id));
+        setAttachments(prev => {
+            const target = prev.find(a => a.id === id);
+            if (target?.previewUrl) {
+                URL.revokeObjectURL(target.previewUrl);
+            }
+            return prev.filter(a => a.id !== id);
+        });
     }, []);
+
+    // 用 ref 追踪最新 attachments，确保卸载时能释放所有预览 URL
+    const attachmentsRef = useRef(attachments);
+    attachmentsRef.current = attachments;
+
+    // 组件卸载时释放所有预览 URL，防止内存泄露
+    useEffect(() => {
+        return () => {
+            attachmentsRef.current.forEach(a => {
+                if (a.previewUrl) URL.revokeObjectURL(a.previewUrl);
+            });
+        };
+    }, []);
+
+    // 模型切换后根据新模型能力清理/裁剪已选图片附件。
+    // 为避免首屏同步清理，仅在能力加载完成后生效。
+    useEffect(() => {
+        if (!modelsLoaded || !modelInfo) return;
+        setAttachments(prev => {
+            const images = prev.filter(a => a.type.startsWith('image/'));
+            const others = prev.filter(a => !a.type.startsWith('image/'));
+            if (images.length === 0) return prev;
+
+            const notify = useNotificationStore.getState().addNotification;
+
+            if (!modelInfo.supportsImages) {
+                images.forEach(a => { if (a.previewUrl) URL.revokeObjectURL(a.previewUrl); });
+                notify({
+                    key: `model-switch-clear-imgs-${generateUUID()}`,
+                    level: 'info',
+                    message: `已切换到不支持图片的模型，已移除 ${images.length} 张图片附件`,
+                });
+                return others;
+            }
+
+            const limit = Math.max(0, modelInfo.maxImages);
+            if (images.length > limit) {
+                const kept = images.slice(0, limit);
+                const removed = images.slice(limit);
+                removed.forEach(a => { if (a.previewUrl) URL.revokeObjectURL(a.previewUrl); });
+                notify({
+                    key: `model-switch-trim-imgs-${generateUUID()}`,
+                    level: 'info',
+                    message: `新模型图片上限为 ${limit}，已裁剪多余的 ${removed.length} 张`,
+                });
+                return [...kept, ...others];
+            }
+            return prev;
+        });
+        // 仅当模型 ID 变化时重新评估，避免 attachments 变化触发重复裁剪
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentModelId, modelsLoaded]);
 
     return (
         <div
@@ -240,26 +435,70 @@ const PromptInput: React.FC<PromptInputProps> = ({
 
             {/* Attachment preview bar */}
             {attachments.length > 0 && (
-                <div className="flex gap-2 mb-2 flex-wrap">
-                    {attachments.map(a => (
-                        <span
-                            key={a.id}
-                            className="flex items-center gap-1 px-2 py-1 bg-gray-800 rounded text-xs text-gray-300
-                                       border border-gray-700"
-                        >
-                            📎 {a.name}
-                            <span className="text-gray-500">
-                                ({formatFileSize(a.size)})
-                            </span>
-                            <button
-                                onClick={() => removeAttachment(a.id)}
-                                className="ml-1 text-gray-500 hover:text-gray-300"
-                                type="button"
+                <div className="mb-2">
+                    {/* 图片计数 badge：仅在能力已加载且存在图片附件时展示 */}
+                    {imageCount > 0 && supportsImages && maxImages > 0 && (
+                        <div className="flex items-center gap-1 mb-1.5">
+                            <span
+                                className={`text-xs px-1.5 py-0.5 rounded border
+                                    ${imageCount >= maxImages
+                                        ? 'text-amber-300 border-amber-700 bg-amber-900/30'
+                                        : 'text-gray-400 border-gray-700 bg-gray-800/60'}`}
+                                title={imageCount >= maxImages ? '已达当前模型图片上限' : undefined}
                             >
-                                ×
-                            </button>
-                        </span>
+                                {imageCount}/{maxImages} 张图片
+                            </span>
+                        </div>
+                    )}
+                    <div className="flex gap-2 flex-wrap">
+                    {attachments.map(a => (
+                        a.previewUrl ? (
+                            // 图片缩略图预览 (60x60)
+                            <div
+                                key={a.id}
+                                className="relative group rounded border border-gray-700 overflow-hidden
+                                           bg-gray-800"
+                                style={{ width: 60, height: 60 }}
+                                title={`${a.name} (${formatFileSize(a.size)})`}
+                            >
+                                <img
+                                    src={a.previewUrl}
+                                    alt={a.name}
+                                    className="w-full h-full object-cover"
+                                />
+                                <button
+                                    onClick={() => removeAttachment(a.id)}
+                                    type="button"
+                                    aria-label={`移除 ${a.name}`}
+                                    className="absolute top-0.5 right-0.5 p-0.5 rounded-full
+                                               bg-black/70 text-gray-200 hover:bg-black hover:text-white
+                                               opacity-80 group-hover:opacity-100 transition-opacity"
+                                >
+                                    <X size={12} />
+                                </button>
+                            </div>
+                        ) : (
+                            <span
+                                key={a.id}
+                                className="flex items-center gap-1 px-2 py-1 bg-gray-800 rounded text-xs text-gray-300
+                                           border border-gray-700"
+                            >
+                                📎 {a.name}
+                                <span className="text-gray-500">
+                                    ({formatFileSize(a.size)})
+                                </span>
+                                <button
+                                    onClick={() => removeAttachment(a.id)}
+                                    className="ml-1 text-gray-500 hover:text-gray-300"
+                                    type="button"
+                                    aria-label={`移除 ${a.name}`}
+                                >
+                                    ×
+                                </button>
+                            </span>
+                        )
                     ))}
+                    </div>
                 </div>
             )}
 
@@ -305,10 +544,21 @@ const PromptInput: React.FC<PromptInputProps> = ({
                 />
 
                 {/* Toolbar */}
-                <FileUpload onFiles={handleFiles} />
+                <FileUpload
+                    onFiles={handleFiles}
+                    accept="image/*"
+                    disabled={!supportsImages && modelsLoaded}
+                    title={
+                        !supportsImages && modelsLoaded
+                            ? '当前模型不支持图片输入'
+                            : (modelsLoaded && maxImages > 0
+                                ? `上传附件（图片上限 ${maxImages} 张）`
+                                : '上传附件')
+                    }
+                />
                 <button
                     onClick={isLoading ? onInterrupt : handleSubmit}
-                    disabled={disabled || (!isLoading && !input.trim())}
+                    disabled={disabled || (!isLoading && !input.trim() && attachments.length === 0)}
                     className={`shrink-0 p-2.5 rounded-lg text-white transition-colors
                         ${isLoading
                             ? 'bg-red-500 hover:bg-red-600'

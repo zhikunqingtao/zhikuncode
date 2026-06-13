@@ -52,10 +52,10 @@ public class OpenAiCompatibleProvider implements LlmProvider {
     /** 内置模型能力映射表*/
     private static final Map<String, ModelCapabilities> MODEL_CAPABILITIES = Map.ofEntries(
             // DeepSeek 模型
-            Map.entry("deepseek-v4-pro", new ModelCapabilities("deepseek-v4-pro", "DeepSeek V4 Pro", 384000, 1000000, true, true, false, true, 0.001, 0.004)),
-            Map.entry("deepseek-v4-flash", new ModelCapabilities("deepseek-v4-flash", "DeepSeek V4 Flash", 384000, 1000000, true, true, false, true, 0.0005, 0.002)),
+            Map.entry("deepseek-v4-pro", new ModelCapabilities("deepseek-v4-pro", "DeepSeek V4 Pro", 384000, 1000000, true, true, false, 0, true, 0.001, 0.004)),
+            Map.entry("deepseek-v4-flash", new ModelCapabilities("deepseek-v4-flash", "DeepSeek V4 Flash", 384000, 1000000, true, true, false, 0, true, 0.0005, 0.002)),
             // 阿里云百炼 - 通义千问模型（qwen3.7-max/qwen3.7-plus/qwen-turbo 已迁移至 ModelRegistry.BUILTIN_MODELS）
-            Map.entry("qwen-coder-plus", new ModelCapabilities("qwen-coder-plus", "通义千问 Coder Plus", 8192, 131072, true, false, false, true, 0.0007, 0.002))
+            Map.entry("qwen-coder-plus", new ModelCapabilities("qwen-coder-plus", "通义千问 Coder Plus", 8192, 131072, true, false, false, 0, true, 0.0007, 0.002))
     );
 
     public OpenAiCompatibleProvider(
@@ -374,6 +374,9 @@ public class OpenAiCompatibleProvider implements LlmProvider {
                 }
 
                 // 普通 assistant/user 消息: 提取文本内容为字符串
+                // user 消息若包含 image 块，则改用 OpenAI 多模态 content 数组格式
+                boolean hasImage = "user".equals(role) && blocks.stream().anyMatch(b ->
+                        b instanceof Map<?,?> m && "image".equals(m.get("type")));
                 StringBuilder textContent = new StringBuilder();
                 StringBuilder thinkingContent = new StringBuilder();
                 for (Object block : blocks) {
@@ -394,7 +397,32 @@ public class OpenAiCompatibleProvider implements LlmProvider {
                 }
                 ObjectNode msgNode = messagesArray.addObject();
                 msgNode.put("role", role != null ? role : "user");
-                msgNode.put("content", textContent.toString());
+                if (hasImage) {
+                    // OpenAI 多模态: content 为数组，包含 text 与 image_url 项
+                    ArrayNode contentArray = msgNode.putArray("content");
+                    if (!textContent.isEmpty()) {
+                        ObjectNode textPart = contentArray.addObject();
+                        textPart.put("type", "text");
+                        textPart.put("text", textContent.toString());
+                    }
+                    for (Object block : blocks) {
+                        if (block instanceof Map<?,?> b && "image".equals(b.get("type"))) {
+                            // 内部 Anthropic 格式: {type:"image", source:{type:"base64", media_type, data}}
+                            Object srcObj = b.get("source");
+                            if (!(srcObj instanceof Map<?,?> src)) continue;
+                            Object mediaType = src.get("media_type");
+                            Object data = src.get("data");
+                            if (mediaType == null || data == null) continue;
+                            ObjectNode imgPart = contentArray.addObject();
+                            imgPart.put("type", "image_url");
+                            ObjectNode imgUrl = imgPart.putObject("image_url");
+                            // OpenAI 兼容 data URI: data:{mediaType};base64,{base64Data}
+                            imgUrl.put("url", "data:" + mediaType + ";base64," + data);
+                        }
+                    }
+                } else {
+                    msgNode.put("content", textContent.toString());
+                }
                 // DeepSeek: reasoning_content 必须回传
                 if ("assistant".equals(role) && !thinkingContent.isEmpty()) {
                     msgNode.put("reasoning_content", thinkingContent.toString());

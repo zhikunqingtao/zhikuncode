@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
+import org.springframework.web.socket.server.standard.ServletServerContainerFactoryBean;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.messaging.MessageChannel;
@@ -51,6 +52,19 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         this.securityFilter = securityFilter;
     }
 
+    /**
+     * 配置底层 Servlet 容器的 WebSocket 缓冲区大小。
+     * SockJS 使用 WebSocket 传输时，Tomcat 默认 maxTextMessageBufferSize=8KB，
+     * 无法承载 base64 图片数据（1-5MB），必须在容器级别提升。
+     */
+    @Bean
+    public ServletServerContainerFactoryBean createWebSocketContainer() {
+        ServletServerContainerFactoryBean container = new ServletServerContainerFactoryBean();
+        container.setMaxTextMessageBufferSize(10 * 1024 * 1024);   // 10MB
+        container.setMaxBinaryMessageBufferSize(10 * 1024 * 1024); // 10MB
+        return container;
+    }
+
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         // 客户端订阅前缀: /topic (广播) + /queue (用户专属)
@@ -87,8 +101,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureWebSocketTransport(
             org.springframework.web.socket.config.annotation.WebSocketTransportRegistration registration) {
-        registration.setMessageSizeLimit(128 * 1024);   // 128KB 消息大小
-        registration.setSendBufferSizeLimit(1024 * 1024); // 1MB 发送缓冲
+        registration.setMessageSizeLimit(10 * 1024 * 1024);   // 10MB 消息大小（支持图片base64传输）
+        registration.setSendBufferSizeLimit(10 * 1024 * 1024); // 10MB 发送缓冲
         registration.setSendTimeLimit(30 * 1000);         // 30s 发送超时
     }
 

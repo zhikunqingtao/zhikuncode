@@ -3,6 +3,8 @@
  *
  * SPEC: §8.2.6a.11 FileUpload
  * 隐藏 input[file] + 按钮触发，支持多文件选择。
+ *
+ * Task #22: 新增 disabled / title prop，支持按模型能力禁用图片上传。
  */
 
 import React, { useRef, useCallback } from 'react';
@@ -12,12 +14,18 @@ interface FileUploadProps {
     onFiles: (files: File[]) => void;
     accept?: string;
     multiple?: boolean;
+    /** 禁用上传按钮（如当前模型不支持图片输入） */
+    disabled?: boolean;
+    /** 自定义按钮 tooltip（disabled 状态下建议说明禁用原因） */
+    title?: string;
 }
 
 const FileUpload: React.FC<FileUploadProps> = ({
     onFiles,
-    accept,
+    accept = 'image/*',
     multiple = true,
+    disabled = false,
+    title,
 }) => {
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -37,13 +45,21 @@ const FileUpload: React.FC<FileUploadProps> = ({
                 accept={accept}
                 className="hidden"
                 onChange={handleChange}
+                disabled={disabled}
             />
             <button
-                onClick={() => inputRef.current?.click()}
-                className="shrink-0 p-2 rounded-lg text-gray-400 hover:text-gray-200 hover:bg-gray-800
-                           transition-colors"
-                title="Attach file"
+                onClick={() => {
+                    if (disabled) return;
+                    inputRef.current?.click();
+                }}
+                disabled={disabled}
+                className={`shrink-0 p-2 rounded-lg transition-colors
+                    ${disabled
+                        ? 'text-gray-600 cursor-not-allowed opacity-50'
+                        : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'}`}
+                title={title ?? 'Attach file'}
                 type="button"
+                aria-disabled={disabled}
             >
                 <Paperclip size={18} />
             </button>

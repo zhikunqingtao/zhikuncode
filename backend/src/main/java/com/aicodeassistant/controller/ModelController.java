@@ -51,6 +51,7 @@ public class ModelController {
                             mc.supportsStreaming(),
                             mc.supportsThinking(),
                             mc.supportsImages(),
+                            mc.maxImages(),
                             mc.supportsToolUse(),
                             mc.costPer1kInput(),
                             mc.costPer1kOutput());
@@ -66,6 +67,6 @@ public class ModelController {
             String id, String displayName,
             int maxOutputTokens, int contextWindow,
             boolean supportsStreaming, boolean supportsThinking,
-            boolean supportsImages, boolean supportsToolUse,
+            boolean supportsImages, int maxImages, boolean supportsToolUse,
             double costPer1kInput, double costPer1kOutput) {}
 }

@@ -99,11 +99,14 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
                             <option value="deepseek-v4-pro">DeepSeek V4 Pro</option>
                             <option value="deepseek-v4-flash">DeepSeek V4 Flash</option>
                             <option value="kimi-k2.6">Kimi K2.6</option>
+                            <option value="kimi-k2.7-code">Kimi K2.7 Code</option>
                             <option value="moonshot-v1-128k">Moonshot V1 128K</option>
                             <option value="glm-5.1">GLM-5.1</option>
                             <option value="MiniMax-M3">MiniMax M3</option>
                             <option value="anthropic/claude-opus-4.8">Claude Opus 4.8 (zenmux)</option>
                             <option value="anthropic/claude-fable-5">Claude Fable 5 (zenmux)</option>
+                            <option value="openai/gpt-5.5-pro">OpenAI GPT-5.5 Pro</option>
+                            <option value="google/gemini-3.5-flash">Google Gemini 3.5 Flash</option>
                         </select>
 
                         {/* Effort Slider */}

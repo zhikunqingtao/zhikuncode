@@ -91,9 +91,9 @@ export const useMessageStore = create<MessageStoreState>()(
                 const content = (msg as any).content;
                 const thinkingBlock = content.find((b: any) => b.type === 'thinking' && !b.completed);
                 if (thinkingBlock) {
-                    thinkingBlock.text = d.thinkingContent;
+                    thinkingBlock.thinking = d.thinkingContent;
                 } else {
-                    content.unshift({ type: 'thinking', text: d.thinkingContent, completed: false });
+                    content.unshift({ type: 'thinking', thinking: d.thinkingContent, completed: false });
                 }
             }
         }),
@@ -137,7 +137,7 @@ export const useMessageStore = create<MessageStoreState>()(
                     const content: any[] = [];
                     // 保留 thinking block (标记为 completed)
                     if (d.thinkingContent) {
-                        content.push({ type: 'thinking' as const, text: d.thinkingContent, completed: true });
+                        content.push({ type: 'thinking' as const, thinking: d.thinkingContent, completed: true });
                     }
                     // 文本内容
                     if (combinedContent) {

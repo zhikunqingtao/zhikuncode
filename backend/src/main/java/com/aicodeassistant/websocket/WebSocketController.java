@@ -478,10 +478,36 @@ public class WebSocketController implements PermissionNotifier {
             return;
         }
 
+        // 提取图片附件 → ContentBlock.ImageBlock
+        List<ContentBlock.ImageBlock> imageBlocks = new ArrayList<>();
+        if (msg.attachments() != null) {
+            for (ClientMessage.UserMessagePayload.Attachment att : msg.attachments()) {
+                if (att != null && "image".equals(att.type()) && att.base64Data() != null && !att.base64Data().isEmpty()) {
+                    imageBlocks.add(new ContentBlock.ImageBlock(
+                            att.mediaType() != null ? att.mediaType() : "image/png",
+                            att.base64Data()));
+                }
+            }
+        }
+        if (!imageBlocks.isEmpty()) {
+            log.info("WS user_message attached {} image(s): sessionId={}", imageBlocks.size(), sessionId);
+        }
+
+        // ★ 图片附件校验：模型能力 + 单张大小硬上限
+        if (!imageBlocks.isEmpty()) {
+            String validationError = validateImageAttachments(sessionId, imageBlocks);
+            if (validationError != null) {
+                sendError(sessionId, "image_validation_failed", validationError, false);
+                running.set(false);
+                return;
+            }
+        }
+
         // 在 Virtual Thread 中执行 QueryEngine
+        final List<ContentBlock.ImageBlock> imagesForQuery = imageBlocks;
         Thread.ofVirtual().name("zhiku-ws-query-" + sessionId).start(() -> {
             try {
-                executeQuery(sessionId, msg.text());
+                executeQuery(sessionId, msg.text(), imagesForQuery);
             } catch (Exception e) {
                 log.error("QueryEngine 执行异常: sessionId={}", sessionId, e);
                 sendError(sessionId, "query_error", e.getMessage() != null ? e.getMessage() : "Unknown error", true);
@@ -493,9 +519,17 @@ public class WebSocketController implements PermissionNotifier {
     }
 
     /**
-     * 执行普通用户查询。使用全量工具和会话默认模型。
+     * 执行普通用户查询（无图片附件）。使用全量工具和会话默认模型。
      */
     private void executeQuery(String sessionId, String userText) {
+        executeQuery(sessionId, userText, List.of());
+    }
+
+    /**
+     * 执行普通用户查询。支持图片附件（多模态）。使用全量工具和会话默认模型。
+     */
+    private void executeQuery(String sessionId, String userText,
+                              List<ContentBlock.ImageBlock> images) {
         // 0. 异步预加载项目上下文
         Path workingDir = Path.of(System.getProperty("user.dir"));
         projectContextService.ensureContext(workingDir);
@@ -507,9 +541,10 @@ public class WebSocketController implements PermissionNotifier {
         // 2. 会话模型 → 全局默认（★ 别名解析）
         String rawModel = sessionModels.getOrDefault(sessionId, providerRegistry.getDefaultModel());
         String model = providerRegistry.resolveModelAlias(rawModel);
-        log.info("executeQuery: sessionId={}, model={} (raw={})", sessionId, model, rawModel);
+        log.info("executeQuery: sessionId={}, model={} (raw={}), images={}",
+                sessionId, model, rawModel, images != null ? images.size() : 0);
 
-        executeQueryInternal(sessionId, userText, tools, toolDefs, model);
+        executeQueryInternal(sessionId, userText, images, tools, toolDefs, model);
     }
 
     /**
@@ -544,7 +579,7 @@ public class WebSocketController implements PermissionNotifier {
                 : sessionModels.getOrDefault(sessionId, providerRegistry.getDefaultModel());
         String model = providerRegistry.resolveModelAlias(rawModel);
 
-        executeQueryInternal(sessionId, promptText, tools, toolDefs, model);
+        executeQueryInternal(sessionId, promptText, List.of(), tools, toolDefs, model);
     }
 
     /**
@@ -558,6 +593,7 @@ public class WebSocketController implements PermissionNotifier {
      * @param model     模型标识
      */
     private void executeQueryInternal(String sessionId, String userText,
+                                      List<ContentBlock.ImageBlock> images,
                                       List<Tool> tools, List<Map<String, Object>> toolDefs,
                                       String model) {
         Path workingDir = Path.of(System.getProperty("user.dir"));
@@ -621,9 +657,15 @@ public class WebSocketController implements PermissionNotifier {
             }
         });
 
+        // 组装用户消息 content：TextBlock + 所有 ImageBlock（多模态）
+        List<ContentBlock> userContent = new ArrayList<>();
+        userContent.add(new ContentBlock.TextBlock(userText != null ? userText : ""));
+        if (images != null) {
+            userContent.addAll(images);
+        }
         state.addMessage(new Message.UserMessage(
                 UUID.randomUUID().toString(), Instant.now(),
-                List.of(new ContentBlock.TextBlock(userText)),
+                userContent,
                 null, null));
 
         // 5. 执行查询，通过 WsMessageHandler 流式推送
@@ -700,6 +742,51 @@ public class WebSocketController implements PermissionNotifier {
 
     private int getContextWindow(String model) {
         return modelRegistry.getContextWindowForModel(model);
+    }
+
+    /** 单张图片 base64 解码后的大小硬上限（10MB） */
+    private static final long MAX_IMAGE_BYTES = 10L * 1024 * 1024;
+
+    /**
+     * 校验图片附件：
+     * 1. 当前模型必须支持图片输入（supportsImages）
+     * 2. 图片数量不超过模型 maxImages
+     * 3. 单张图片解码后大小不超过 10MB
+     *
+     * @return 错误消息（校验失败）；null（校验通过）
+     */
+    private String validateImageAttachments(String sessionId, List<ContentBlock.ImageBlock> images) {
+        // 解析当前会话使用的模型（与 executeQuery 一致）
+        String rawModel = sessionModels.getOrDefault(sessionId, providerRegistry.getDefaultModel());
+        String model = providerRegistry.resolveModelAlias(rawModel);
+
+        ModelCapabilities caps;
+        try {
+            caps = modelRegistry.getCapabilities(model);
+        } catch (Exception e) {
+            log.warn("Failed to load capabilities for model {}, falling back to DEFAULT: {}", model, e.getMessage());
+            caps = ModelCapabilities.DEFAULT;
+        }
+
+        if (!caps.supportsImages()) {
+            return "当前模型不支持图片输入，请切换支持图片的模型";
+        }
+        if (images.size() > caps.maxImages()) {
+            return "图片数量超出限制：当前模型最多支持 " + caps.maxImages() + " 张图片，本次提交了 " + images.size() + " 张";
+        }
+
+        // 单张大小硬上限：base64 解码后约为字符串长度 * 3/4
+        for (int i = 0; i < images.size(); i++) {
+            ContentBlock.ImageBlock img = images.get(i);
+            String b64 = img.base64Data();
+            if (b64 == null) continue;
+            long approxBytes = (long) b64.length() * 3L / 4L;
+            if (approxBytes > MAX_IMAGE_BYTES) {
+                return "第 " + (i + 1) + " 张图片大小超出限制（约 "
+                        + (approxBytes / (1024 * 1024)) + "MB），单张图片不得超过 10MB";
+            }
+        }
+        return null;
     }
 
     /**

@@ -336,8 +336,10 @@ export interface BridgeConfig {
 export interface Attachment {
     type: 'file' | 'image' | 'url';
     name: string;
-    content: string;
-    mimeType?: string;
+    base64Data: string;
+    mediaType?: string;
+    path?: string;
+    url?: string;
 }
 
 // ==================== 权限相关 ====================
@@ -419,6 +421,10 @@ export interface LocalAttachment {
     size: number;
     type: string;
     file: File;
+    /** 图片附件的纯 base64 内容（不含 data:URL 前缀），由 FileReader 异步生成 */
+    base64Content?: string;
+    /** 图片附件的本地预览 URL（URL.createObjectURL 创建，需在移除时 revoke） */
+    previewUrl?: string;
 }
 
 // ==================== 输入路由目标 ====================

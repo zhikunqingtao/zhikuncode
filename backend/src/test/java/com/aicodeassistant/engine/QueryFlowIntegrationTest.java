@@ -286,7 +286,7 @@ class QueryFlowIntegrationTest {
         @Override public String getDefaultModel() { return "mock-model"; }
         @Override public ModelCapabilities getModelCapabilities(String model) {
             return new ModelCapabilities(model, "mock", 8192, 200000,
-                    true, true, true, true, 0.0, 0.0);
+                    true, true, true, 10, true, 0.0, 0.0);
         }
 
         @Override

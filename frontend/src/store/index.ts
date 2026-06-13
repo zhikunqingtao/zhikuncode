@@ -18,3 +18,4 @@ export { useBridgeStore, type BridgeStoreState } from './bridgeStore';
 export { useNotificationStore, type NotificationStoreState } from './notificationStore';
 export { useInboxStore, type InboxStoreState } from './inboxStore';
 export { useCodeInsightStore, type CodeInsightState } from './codeInsightStore';
+export { useModelStore, type ModelStoreState, type ModelInfo } from './modelStore';

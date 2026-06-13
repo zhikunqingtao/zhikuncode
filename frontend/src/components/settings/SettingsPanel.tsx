@@ -80,11 +80,14 @@ function ModelPicker() {
     { id: 'deepseek-v4-pro', name: 'DeepSeek V4 Pro', description: '深度推理' },
     { id: 'deepseek-v4-flash', name: 'DeepSeek V4 Flash', description: '快速响应' },
     { id: 'kimi-k2.6', name: 'Kimi K2.6', description: '长文本理解' },
+    { id: 'kimi-k2.7-code', name: 'Kimi K2.7 Code', description: '长文本理解' },
     { id: 'moonshot-v1-128k', name: 'Moonshot V1 128K', description: '128K上下文' },
     { id: 'glm-5.1', name: 'GLM-5.1', description: '智谱最新' },
     { id: 'MiniMax-M3', name: 'MiniMax M3', description: '百万上下文' },
     { id: 'anthropic/claude-opus-4.8', name: 'claude-opus-4.8', description: '1M上下文 · 编程旗舰' },
     { id: 'anthropic/claude-fable-5', name: 'claude-fable-5', description: '1M上下文 · Mythos级' },
+    { id: 'openai/gpt-5.5-pro', name: 'OpenAI GPT-5.5 Pro', description: 'OpenAI 旗舰模型' },
+    { id: 'google/gemini-3.5-flash', name: 'Google Gemini 3.5 Flash', description: 'Google 快速响应' },
   ];
 
   return (
