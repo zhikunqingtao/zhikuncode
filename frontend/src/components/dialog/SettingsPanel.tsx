@@ -102,6 +102,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
                             <option value="moonshot-v1-128k">Moonshot V1 128K</option>
                             <option value="glm-5.1">GLM-5.1</option>
                             <option value="MiniMax-M3">MiniMax M3</option>
+                            <option value="anthropic/claude-opus-4.8">Claude Opus 4.8 (zenmux)</option>
+                            <option value="anthropic/claude-fable-5">Claude Fable 5 (zenmux)</option>
                         </select>
 
                         {/* Effort Slider */}

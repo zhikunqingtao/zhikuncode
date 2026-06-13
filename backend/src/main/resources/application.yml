@@ -56,6 +56,11 @@ llm:
       base-url: https://api.minimax.chat/v1
       default-model: MiniMax-M3
       models: ${LLM_PROVIDER_MINIMAX_MODELS:MiniMax-M3}
+    zenmux:
+      api-key: ${LLM_PROVIDER_ZENMUX_API_KEY:}
+      base-url: https://zenmux.ai/api/v1
+      default-model: anthropic/claude-opus-4.8
+      models: ${LLM_PROVIDER_ZENMUX_MODELS:anthropic/claude-opus-4.8,anthropic/claude-fable-5}
   # ===== 单 Provider 配置（向后兼容）=====
   # 如果 llm.providers 为空，回退到此配置
   openai:
@@ -264,6 +269,22 @@ model:
       contextWindow: 65536
       tokenCharRatio: 2.8
       outputMaxTokens: 8192
+    anthropic/claude-opus-4.8:
+      contextWindow: 1000000
+      tokenCharRatio: 3.5
+      outputMaxTokens: 64000
+      supportsCache: true
+      supportsToolUse: true
+      supportsVision: true
+      supportsStreaming: true
+    anthropic/claude-fable-5:
+      contextWindow: 1000000
+      tokenCharRatio: 3.5
+      outputMaxTokens: 64000
+      supportsCache: true
+      supportsToolUse: true
+      supportsVision: true
+      supportsStreaming: true
 
 # Spring Actuator 监控
 management:

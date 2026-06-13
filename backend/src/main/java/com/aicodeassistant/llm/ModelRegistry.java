@@ -26,6 +26,9 @@ public class ModelRegistry {
         entry("claude-sonnet-4-6", caps("claude-sonnet-4-6", "Claude Sonnet 4.6",  16384, 200000, true, true, true, true, 0.003, 0.015)),
         entry("claude-opus-4-8",          caps("claude-opus-4-8",          "Claude Opus 4.8",  16384, 200000, true, true, true, true, 0.015, 0.075)),
         entry("claude-haiku-4-5", caps("claude-haiku-4-5", "Claude Haiku 4.5", 8192, 200000, true, false, true, true, 0.0008, 0.004)),
+         // Anthropic via ZenMux (anthropic/ 前缀 = zenmux 中转，1M ctx · 128K 最大输出，我们保守设 64K)
+        entry("anthropic/claude-opus-4.8", caps("anthropic/claude-opus-4.8", "Claude Opus 4.8", 64000, 1000000, true, false, true, true, 0.005, 0.025)),
+        entry("anthropic/claude-fable-5", caps("anthropic/claude-fable-5", "Claude Fable 5", 64000, 1000000, true, false, true, true, 0.010, 0.050)),
         // 国产大模型
         entry("deepseek-v4-pro",   caps("deepseek-v4-pro",   "DeepSeek V4 Pro",  384000, 1000000, true, true, false, true, 0.001, 0.004)),
         entry("deepseek-v4-flash", caps("deepseek-v4-flash", "DeepSeek V4 Flash", 384000, 1000000, true, true, false, true, 0.0005, 0.002)),

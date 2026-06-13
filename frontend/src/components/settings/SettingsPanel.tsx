@@ -83,6 +83,8 @@ function ModelPicker() {
     { id: 'moonshot-v1-128k', name: 'Moonshot V1 128K', description: '128K上下文' },
     { id: 'glm-5.1', name: 'GLM-5.1', description: '智谱最新' },
     { id: 'MiniMax-M3', name: 'MiniMax M3', description: '百万上下文' },
+    { id: 'anthropic/claude-opus-4.8', name: 'claude-opus-4.8', description: '1M上下文 · 编程旗舰' },
+    { id: 'anthropic/claude-fable-5', name: 'claude-fable-5', description: '1M上下文 · Mythos级' },
   ];
 
   return (
