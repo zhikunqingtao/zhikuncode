@@ -33,8 +33,8 @@ public class ModelRegistry {
         entry("kimi-k2.6",          caps("kimi-k2.6",          "Kimi K2.6",         16384, 256000,  true, true, true, true, 0.002, 0.012)),
         entry("moonshot-v1-128k",  caps("moonshot-v1-128k",  "Moonshot V1 128K",   8192, 128000,  true, false, false, true, 0.001, 0.002)),
         entry("qwen-turbo",        caps("qwen-turbo",        "Qwen Turbo",         8192, 1000000,  true, false, false, true, 0.0003, 0.0006)),
-        entry("qwen3.7-max", caps("qwen3.7-max", "Qwen 3.7 Max", 16384, 262144, true, true, false, true, 0.009, 0.054)),
-        entry("qwen3.7-plus",      caps("qwen3.7-plus",      "Qwen 3.7 Plus",      8192, 1000000,  true, false, true, true, 0.0008, 0.002)),
+        entry("qwen3.7-max", caps("qwen3.7-max", "Qwen 3.7 Max", 65536, 1000000, true, true, false, true, 0.009, 0.054)),
+        entry("qwen3.7-plus",      caps("qwen3.7-plus",      "Qwen 3.7 Plus",      8192, 1000000,  true, true, true, true, 0.0008, 0.002)),
         entry("glm-5.1",           caps("glm-5.1",           "GLM-5.1",            8192, 128000,  true, false, true, true, 0.001, 0.001)),
         // MiniMax
         entry("MiniMax-M3",       caps("MiniMax-M3",       "MiniMax M3",        16384, 1000000, true, true, false, true, 0.001, 0.004)),

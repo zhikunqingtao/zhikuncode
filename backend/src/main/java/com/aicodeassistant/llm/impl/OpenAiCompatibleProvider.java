@@ -118,6 +118,24 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         throw new IllegalArgumentException("Model not in provider capabilities: " + model);
     }
 
+    /**
+     * 思考能力快捷判定 — 覆盖 LlmProvider 默认实现以避免对 MODEL_CAPABILITIES 之外的模型
+     * （例如 qwen3.7-max / qwen3.7-plus，已迁移到 ModelRegistry.BUILTIN_MODELS）
+     * 触发 getModelCapabilities() 的 IllegalArgumentException。
+     * <p>
+     * 此处复用 Provider 已有的模型族判定函数（{@link #isDeepSeekV4Model} /
+     * {@link #isQwenThinkingModel}），与请求构建阶段的 thinking 参数下发逻辑保持一致；
+     * 同时 getModelCapabilities() 的抛异常契约保持不变，ModelRegistry 的 Level 2→Level 3
+     * fallback 链路不受影响。
+     */
+    @Override
+    public boolean supportsThinking(String model) {
+        if (model == null) return false;
+        ModelCapabilities caps = MODEL_CAPABILITIES.get(model);
+        if (caps != null) return caps.supportsThinking();
+        return isDeepSeekV4Model(model) || isQwenThinkingModel(model);
+    }
+
     // ═══════════════════════════════════════════
     // 核心流式调用
     // ═══════════════════════════════════════════
@@ -236,6 +254,8 @@ public class OpenAiCompatibleProvider implements LlmProvider {
             ObjectNode thinking = root.putObject("thinking");
             thinking.put("type", "enabled");
             root.put("reasoning_effort", "max");
+        } else if (isQwenThinkingModel(model) && thinkingConfig.requiresThinkingSupport()) {
+            root.put("enable_thinking", true);
         }
 
         return root;
@@ -244,6 +264,11 @@ public class OpenAiCompatibleProvider implements LlmProvider {
     /** 判断是否为 DeepSeek V4 系列模型（仅 v4-pro / v4-flash 需要 thinking + max） */
     private static boolean isDeepSeekV4Model(String model) {
         return model != null && model.startsWith("deepseek-v4-");
+    }
+
+    /** 判断是否为支持思考模式的 Qwen 模型 */
+    private static boolean isQwenThinkingModel(String model) {
+        return model != null && (model.startsWith("qwen3.7-") || model.startsWith("qwen3.6-"));
     }
 
     /**

@@ -104,7 +104,7 @@ classifier:
 # 特性标志
 features:
   flags:
-    THINKING_MODE: false
+    THINKING_MODE: true
     TOOL_SEARCH: false
     SANDBOX_DEFAULT_ON: false
     CLASSIFIER_V2: false
@@ -251,12 +251,12 @@ model:
       supportsVision: true
       supportsStreaming: true
     qwen3.7-max:
-      contextWindow: 131072
+      contextWindow: 1000000
       tokenCharRatio: 2.5
-      outputMaxTokens: 8192
+      outputMaxTokens: 65536
       supportsToolUse: true
     qwen3.7-plus:
-      contextWindow: 131072
+      contextWindow: 1000000
       tokenCharRatio: 2.5
       outputMaxTokens: 8192
       supportsToolUse: true

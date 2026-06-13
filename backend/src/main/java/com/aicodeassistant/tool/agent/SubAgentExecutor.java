@@ -158,7 +158,7 @@ public class SubAgentExecutor {
             QueryConfig config = QueryConfig.withDefaults(
                     model, systemPrompt, tools, toolDefs,
                     QueryConfig.DEFAULT_MAX_TOKENS, 200000,
-                    new ThinkingConfig.Disabled(),
+                    new ThinkingConfig.Adaptive(),
                     agentDef.maxTurns(),  // 默认 30
                     "subagent-" + request.agentId()
             );
@@ -573,7 +573,7 @@ public class SubAgentExecutor {
             QueryConfig config = QueryConfig.withDefaults(
                     model, systemPrompt, tools, toolDefs,
                     QueryConfig.DEFAULT_MAX_TOKENS, 200000,
-                    new ThinkingConfig.Disabled(),
+                    new ThinkingConfig.Adaptive(),
                     agentDef.maxTurns(),
                     "fork-" + request.agentId()
             );

@@ -83,7 +83,7 @@ public class AgentResumeService {
         QueryConfig config = QueryConfig.withDefaults(
             model, systemPrompt, tools, toolDefs,
             QueryConfig.DEFAULT_MAX_TOKENS, 200000,
-            new ThinkingConfig.Disabled(),
+            new ThinkingConfig.Adaptive(),
             30,
             "resumed-agent-" + agentId
         );

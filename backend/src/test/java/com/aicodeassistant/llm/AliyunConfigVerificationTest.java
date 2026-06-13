@@ -83,8 +83,8 @@ class AliyunConfigVerificationTest {
         ModelRegistry modelRegistry = new ModelRegistry(providerRegistry);
 
         // 千问模型应通过 Level 2 抛异常 → fallback 到 Level 3 BUILTIN_MODELS
-        assertEquals(262144, modelRegistry.getCapabilities("qwen3.7-max").contextWindow(),
-                "qwen3.7-max contextWindow should be 262144 (official)");
+        assertEquals(1000000, modelRegistry.getCapabilities("qwen3.7-max").contextWindow(),
+                "qwen3.7-max contextWindow should be 1000000 (official)");
         assertEquals(1000000, modelRegistry.getCapabilities("qwen3.7-plus").contextWindow(),
                 "qwen3.7-plus contextWindow should be 1000000 (official)");
         assertEquals(1000000, modelRegistry.getCapabilities("qwen-turbo").contextWindow(),

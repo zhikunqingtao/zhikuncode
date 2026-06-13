@@ -25,12 +25,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * FileEditTool — 对文件进行部分修改（字符串替换）。
  * <p>
  * 使用 java-diff-utils 生成 unified diff。
- * 支持 3 策略 fuzzy matching: 精确匹配 → 引号归一化 → 空白归一化。
+ * 支持 5 策略 fuzzy matching: 精确匹配 → 引号归一化 → 行尾空白归一化 → 换行符归一化 → Tab/空格归一化。
  *
  */
 @Component
@@ -185,12 +186,12 @@ public class FileEditTool implements Tool {
             // ── 新增: 编辑前保存快照 ──
             fileHistoryService.trackEdit(filePath, context.sessionId(), context.toolUseId(), "edit");
 
-            // 4. 查找 old_string (3 策略 fuzzy matching)
+            // 4. 查找 old_string (5 策略 fuzzy matching)
             String actualOldString = findActualString(fileContent, oldString);
             if (actualOldString == null) {
                 return ToolResult.error(
                         "No match found for the specified old_string in " + filePath + ".\n"
-                                + "Attempted strategies: exact → quote-normalization\n"
+                                + "Attempted strategies: exact → quote-normalization → trailing-whitespace → newline-normalization → tab/space-normalization\n"
                                 + "Suggestions:\n"
                                 + "  1. Use Read tool to re-read the file and verify the content\n"
                                 + "  2. Ensure old_string matches exactly (including whitespace/indentation)\n"
@@ -255,9 +256,12 @@ public class FileEditTool implements Tool {
     }
 
     /**
-     * 3 策略 fuzzy matching:
+     * 5 策略 fuzzy matching:
      * 1. 精确匹配
-     * 2. 引号归一化 (smart quotes → ASCII quotes)
+     * 2. 引号归一化 (smart quotes -> ASCII quotes)
+     * 3. 行尾空白归一化
+     * 4. 换行符归一化 (\r\n -> \n)
+     * 5. Tab/空格归一化 (tab <-> 4 spaces)
      */
     private String findActualString(String fileContent, String searchString) {
         // Strategy 1: 精确匹配
@@ -284,7 +288,59 @@ public class FileEditTool implements Tool {
             }
         }
 
+        // Strategy 3: 行尾空白归一化
+        String trimmedSearch = trimTrailingWhitespace(searchString);
+        if (!trimmedSearch.equals(searchString)) {
+            String[] fileLines = fileContent.split("\n", -1);
+            String[] searchLines = trimmedSearch.split("\n", -1);
+            int searchLineCount = searchLines.length;
+
+            for (int i = 0; i <= fileLines.length - searchLineCount; i++) {
+                boolean match = true;
+                for (int j = 0; j < searchLineCount; j++) {
+                    if (!fileLines[i + j].replaceAll("\\s+$", "").equals(searchLines[j])) {
+                        match = false;
+                        break;
+                    }
+                }
+                if (match) {
+                    StringBuilder sb = new StringBuilder();
+                    for (int j = 0; j < searchLineCount; j++) {
+                        if (j > 0) sb.append("\n");
+                        sb.append(fileLines[i + j]);
+                    }
+                    String candidate = sb.toString();
+                    if (fileContent.contains(candidate)) {
+                        return candidate;
+                    }
+                }
+            }
+        }
+
+        // Strategy 4: 换行符归一化 (\r\n -> \n)
+        String lfSearch = searchString.replace("\r\n", "\n");
+        if (!lfSearch.equals(searchString) && fileContent.contains(lfSearch)) {
+            return lfSearch;
+        }
+
+        // Strategy 5: Tab/空格归一化 (tab <-> 4 spaces)
+        String spacifiedSearch = searchString.replace("\t", "    ");
+        if (!spacifiedSearch.equals(searchString) && fileContent.contains(spacifiedSearch)) {
+            return spacifiedSearch;
+        }
+        String tabbedSearch = searchString.replace("    ", "\t");
+        if (!tabbedSearch.equals(searchString) && fileContent.contains(tabbedSearch)) {
+            return tabbedSearch;
+        }
+
         return null;
+    }
+
+    /** 行尾空白归一化 — 去除每行末尾的空白字符 */
+    private static String trimTrailingWhitespace(String text) {
+        return Arrays.stream(text.split("\n", -1))
+                .map(line -> line.replaceAll("\\s+$", ""))
+                .collect(Collectors.joining("\n"));
     }
 
     /** 引号归一化 — 弯引号 → ASCII 引号 */

@@ -153,7 +153,7 @@ public class SwarmWorkerRunner {
                 toolDefs,
                 QueryConfig.DEFAULT_MAX_TOKENS,
                 200_000,
-                new ThinkingConfig.Disabled(),
+                new ThinkingConfig.Adaptive(),
                 30,  // maxTurns for worker
                 "swarm_worker"
         );

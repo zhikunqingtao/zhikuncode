@@ -139,7 +139,7 @@ public class QueryController {
                 tools.stream().map(Tool::toToolDefinition).toList(),
                 QueryConfig.DEFAULT_MAX_TOKENS,
                 contextWindow,
-                new ThinkingConfig.Disabled(),
+                new ThinkingConfig.Adaptive(),
                 maxTurns, "rest-api"
         );
 
@@ -249,7 +249,7 @@ public class QueryController {
                         tools.stream().map(Tool::toToolDefinition).toList(),
                         QueryConfig.DEFAULT_MAX_TOKENS,
                         contextWindow,
-                        new ThinkingConfig.Disabled(),
+                        new ThinkingConfig.Adaptive(),
                         maxTurns, "rest-api-stream"
                 );
 
@@ -360,7 +360,7 @@ public class QueryController {
                 tools.stream().map(Tool::toToolDefinition).toList(),
                 QueryConfig.DEFAULT_MAX_TOKENS,
                 contextWindow,
-                new ThinkingConfig.Disabled(),
+                new ThinkingConfig.Adaptive(),
                 maxTurns, "rest-api-conversation"
         );
 

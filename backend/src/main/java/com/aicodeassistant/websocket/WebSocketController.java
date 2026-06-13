@@ -574,7 +574,7 @@ public class WebSocketController implements PermissionNotifier {
                 model, systemPrompt, tools, toolDefs,
                 QueryConfig.DEFAULT_MAX_TOKENS,
                 contextWindow,
-                new ThinkingConfig.Disabled(),
+                new ThinkingConfig.Adaptive(),
                 QueryConfig.DEFAULT_MAX_TURNS, "websocket"
         );
 
