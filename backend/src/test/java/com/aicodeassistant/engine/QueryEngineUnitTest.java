@@ -1,5 +1,6 @@
 package com.aicodeassistant.engine;
 
+import com.aicodeassistant.config.AgentTimeoutConfig;
 import com.aicodeassistant.config.FeatureFlagService;
 import com.aicodeassistant.engine.ContextCascade;
 import com.aicodeassistant.engine.scheduling.ToolPriorityScheduler;
@@ -75,7 +76,7 @@ class QueryEngineUnitTest {
                 toolResultSummarizer, contextCascade, compactMetrics,
                 null, null,  // incrementalCollapseManager, visualizationAutoRouter (both @Nullable)
                 null, featureFlagService,  // backgroundAgentTracker (@Nullable), featureFlagService
-                new DefaultTerminationStrategy(), new ToolPriorityScheduler(), null);  // selfCorrectionLoop (@Nullable)
+                new DefaultTerminationStrategy(), new ToolPriorityScheduler(), null, new AgentTimeoutConfig());  // selfCorrectionLoop, agentTimeoutConfig
         handler = new TestHandler();
 
         // 默认 Snip/MicroCompact mock: 直接返回原消息列表

@@ -1,5 +1,6 @@
 package com.aicodeassistant.engine;
 
+import com.aicodeassistant.config.AgentTimeoutConfig;
 import com.aicodeassistant.config.FeatureFlagService;
 import com.aicodeassistant.config.ModelCapabilityConfig;
 import com.aicodeassistant.engine.ContextCascade;
@@ -107,7 +108,8 @@ class QueryFlowIntegrationTest {
                 contextCascade, mock(CompactMetrics.class),
                 null, null,  // incrementalCollapseManager, visualizationAutoRouter (both @Nullable)
                 null, mock(FeatureFlagService.class),  // backgroundAgentTracker (@Nullable), featureFlagService
-                new DefaultTerminationStrategy(), new ToolPriorityScheduler(), null  // selfCorrectionLoop (@Nullable)
+                new DefaultTerminationStrategy(), new ToolPriorityScheduler(), null,  // selfCorrectionLoop (@Nullable)
+                new AgentTimeoutConfig()
         );
 
         handler = new RecordingHandler();

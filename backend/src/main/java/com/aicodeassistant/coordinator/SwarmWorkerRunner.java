@@ -4,6 +4,7 @@ import com.aicodeassistant.engine.QueryConfig;
 import com.aicodeassistant.engine.QueryEngine;
 import com.aicodeassistant.engine.QueryLoopState;
 import com.aicodeassistant.engine.QueryMessageHandler;
+import com.aicodeassistant.llm.ModelRegistry;
 import com.aicodeassistant.llm.ThinkingConfig;
 import com.aicodeassistant.model.ContentBlock;
 import com.aicodeassistant.model.Message;
@@ -49,6 +50,7 @@ public class SwarmWorkerRunner {
     private final QueryEngine queryEngine;
     private final ToolRegistry toolRegistry;
     private final LeaderPermissionBridge permissionBridge;
+    private final ModelRegistry modelRegistry;
 
     /** Virtual Thread Executor — 每个 Worker 一个虚拟线程 */
     private final ExecutorService workerExecutor = Executors.newThreadPerTaskExecutor(
@@ -56,10 +58,12 @@ public class SwarmWorkerRunner {
 
     public SwarmWorkerRunner(@Lazy QueryEngine queryEngine,
                               @Lazy ToolRegistry toolRegistry,
-                              LeaderPermissionBridge permissionBridge) {
+                              LeaderPermissionBridge permissionBridge,
+                              ModelRegistry modelRegistry) {
         this.queryEngine = queryEngine;
         this.toolRegistry = toolRegistry;
         this.permissionBridge = permissionBridge;
+        this.modelRegistry = modelRegistry;
     }
 
     /**
@@ -151,7 +155,7 @@ public class SwarmWorkerRunner {
                 systemPrompt,
                 filteredTools,
                 toolDefs,
-                QueryConfig.DEFAULT_MAX_TOKENS,
+                QueryConfig.getRecommendedMaxTokens(modelRegistry, model),
                 200_000,
                 new ThinkingConfig.Adaptive(),
                 30,  // maxTurns for worker

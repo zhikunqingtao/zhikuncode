@@ -21,6 +21,9 @@ public class AbortContext {
 
     private static final Logger log = LoggerFactory.getLogger(AbortContext.class);
 
+    private final long createdAt = System.currentTimeMillis();
+    private static final long DEFAULT_EXPIRY_MS = 3600_000L; // 1 hour
+
     private volatile boolean aborted = false;
     private volatile AbortReason reason;
     private final CompletableFuture<AbortReason> abortFuture = new CompletableFuture<>();
@@ -81,5 +84,17 @@ public class AbortContext {
      */
     public CompletableFuture<AbortReason> onAbort() {
         return abortFuture;
+    }
+
+    /**
+     * 判断此 AbortContext 是否已过期（超过 1 小时）。
+     * 用于定期清理泄漏的 AbortContext。
+     */
+    public boolean isExpired() {
+        return System.currentTimeMillis() - createdAt > DEFAULT_EXPIRY_MS;
+    }
+
+    public long getCreatedAt() {
+        return createdAt;
     }
 }

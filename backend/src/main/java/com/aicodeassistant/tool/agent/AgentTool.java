@@ -196,6 +196,10 @@ public class AgentTool implements Tool {
                         "Prompt: " + prompt);
             } else {
                 result = subAgentExecutor.executeSync(request, context);
+                // 超时路径：返回 error ToolResult，避免 LLM 误认为子代理成功完成
+                if (result.isTimeout()) {
+                    return ToolResult.error(result.result());
+                }
                 // 同步模式: 返回执行结果
                 return ToolResult.success(result.result() != null
                         ? result.result()
@@ -208,6 +212,16 @@ public class AgentTool implements Tool {
             log.error("AgentTool execution failed: {}", agentId, e);
             return ToolResult.error("Agent execution failed: " + e.getMessage());
         }
+    }
+
+    @Override
+    public boolean isHighRisk() {
+        return true;
+    }
+
+    @Override
+    public long getMaxExecutionTimeMs() {
+        return 1_800_000L; // 30 minutes for sub-agents
     }
 
     @Override

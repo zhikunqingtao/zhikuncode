@@ -20,56 +20,57 @@ public record ToolUseContext(
         String parentSessionId,
         String agentHierarchy,
         long permissionWaitMs,
-        com.aicodeassistant.permission.PermissionNotifier permissionNotifier
+        com.aicodeassistant.permission.PermissionNotifier permissionNotifier,
+        String parentModel
 ) {
 
     /** 兼容旧构造 — 无 nestingDepth/currentTaskId 时默认 0/null */
     public ToolUseContext(String workingDirectory, String sessionId, String toolUseId,
                           Consumer<String> onProgress, List<String> additionalDirs,
                           boolean userModified) {
-        this(workingDirectory, sessionId, toolUseId, onProgress, additionalDirs, userModified, 0, null, null, null, 0L, null);
+        this(workingDirectory, sessionId, toolUseId, onProgress, additionalDirs, userModified, 0, null, null, null, 0L, null, null);
     }
 
     /** 兼容旧构造 — 无 currentTaskId 时默认 null */
     public ToolUseContext(String workingDirectory, String sessionId, String toolUseId,
                           Consumer<String> onProgress, List<String> additionalDirs,
                           boolean userModified, int nestingDepth) {
-        this(workingDirectory, sessionId, toolUseId, onProgress, additionalDirs, userModified, nestingDepth, null, null, null, 0L, null);
+        this(workingDirectory, sessionId, toolUseId, onProgress, additionalDirs, userModified, nestingDepth, null, null, null, 0L, null, null);
     }
 
     /** 简化构造 — 最小必要参数 */
     public static ToolUseContext of(String workingDirectory, String sessionId) {
-        return new ToolUseContext(workingDirectory, sessionId, null, null, List.of(), false, 0, null, null, null, 0L, null);
+        return new ToolUseContext(workingDirectory, sessionId, null, null, List.of(), false, 0, null, null, null, 0L, null, null);
     }
 
     /** 带 toolUseId */
     public ToolUseContext withToolUseId(String toolUseId) {
-        return new ToolUseContext(workingDirectory, sessionId, toolUseId, onProgress, additionalDirs, userModified, nestingDepth, currentTaskId, parentSessionId, agentHierarchy, permissionWaitMs, permissionNotifier);
+        return new ToolUseContext(workingDirectory, sessionId, toolUseId, onProgress, additionalDirs, userModified, nestingDepth, currentTaskId, parentSessionId, agentHierarchy, permissionWaitMs, permissionNotifier, parentModel);
     }
 
     /** 带 nestingDepth — 子代理递增使用 */
     public ToolUseContext withNestingDepth(int nestingDepth) {
-        return new ToolUseContext(workingDirectory, sessionId, toolUseId, onProgress, additionalDirs, userModified, nestingDepth, currentTaskId, parentSessionId, agentHierarchy, permissionWaitMs, permissionNotifier);
+        return new ToolUseContext(workingDirectory, sessionId, toolUseId, onProgress, additionalDirs, userModified, nestingDepth, currentTaskId, parentSessionId, agentHierarchy, permissionWaitMs, permissionNotifier, parentModel);
     }
 
     /** 带 currentTaskId — 子任务上下文使用 */
     public ToolUseContext withCurrentTaskId(String currentTaskId) {
-        return new ToolUseContext(workingDirectory, sessionId, toolUseId, onProgress, additionalDirs, userModified, nestingDepth, currentTaskId, parentSessionId, agentHierarchy, permissionWaitMs, permissionNotifier);
+        return new ToolUseContext(workingDirectory, sessionId, toolUseId, onProgress, additionalDirs, userModified, nestingDepth, currentTaskId, parentSessionId, agentHierarchy, permissionWaitMs, permissionNotifier, parentModel);
     }
 
     /** 带 workingDirectory — contextModifier 场景使用 */
     public ToolUseContext withWorkingDirectory(String workingDirectory) {
-        return new ToolUseContext(workingDirectory, sessionId, toolUseId, onProgress, additionalDirs, userModified, nestingDepth, currentTaskId, parentSessionId, agentHierarchy, permissionWaitMs, permissionNotifier);
+        return new ToolUseContext(workingDirectory, sessionId, toolUseId, onProgress, additionalDirs, userModified, nestingDepth, currentTaskId, parentSessionId, agentHierarchy, permissionWaitMs, permissionNotifier, parentModel);
     }
 
     /** 带 parentSessionId — 子代理权限冒泡使用 */
     public ToolUseContext withParentSessionId(String parentSessionId) {
-        return new ToolUseContext(workingDirectory, sessionId, toolUseId, onProgress, additionalDirs, userModified, nestingDepth, currentTaskId, parentSessionId, agentHierarchy, permissionWaitMs, permissionNotifier);
+        return new ToolUseContext(workingDirectory, sessionId, toolUseId, onProgress, additionalDirs, userModified, nestingDepth, currentTaskId, parentSessionId, agentHierarchy, permissionWaitMs, permissionNotifier, parentModel);
     }
 
     /** 带 agentHierarchy — 子代理层级标识 */
     public ToolUseContext withAgentHierarchy(String agentHierarchy) {
-        return new ToolUseContext(workingDirectory, sessionId, toolUseId, onProgress, additionalDirs, userModified, nestingDepth, currentTaskId, parentSessionId, agentHierarchy, permissionWaitMs, permissionNotifier);
+        return new ToolUseContext(workingDirectory, sessionId, toolUseId, onProgress, additionalDirs, userModified, nestingDepth, currentTaskId, parentSessionId, agentHierarchy, permissionWaitMs, permissionNotifier, parentModel);
     }
 
     /** 带 permissionNotifier — WebSocket/REST 查询入口设置 */
@@ -77,14 +78,21 @@ public record ToolUseContext(
             com.aicodeassistant.permission.PermissionNotifier permissionNotifier) {
         return new ToolUseContext(workingDirectory, sessionId, toolUseId, onProgress,
                 additionalDirs, userModified, nestingDepth, currentTaskId,
-                parentSessionId, agentHierarchy, permissionWaitMs, permissionNotifier);
+                parentSessionId, agentHierarchy, permissionWaitMs, permissionNotifier, parentModel);
     }
 
     /** 带 permissionWaitMs — 设置权限等待累计时间 */
     public ToolUseContext withPermissionWaitMs(long ms) {
         return new ToolUseContext(workingDirectory, sessionId, toolUseId, onProgress,
                 additionalDirs, userModified, nestingDepth, currentTaskId,
-                parentSessionId, agentHierarchy, ms, permissionNotifier);
+                parentSessionId, agentHierarchy, ms, permissionNotifier, parentModel);
+    }
+
+    /** 带 parentModel — 子代理继承父会话模型 */
+    public ToolUseContext withParentModel(String parentModel) {
+        return new ToolUseContext(workingDirectory, sessionId, toolUseId, onProgress,
+                additionalDirs, userModified, nestingDepth, currentTaskId,
+                parentSessionId, agentHierarchy, permissionWaitMs, permissionNotifier, parentModel);
     }
 
     /** 累加权限等待时间 — 每次权限请求完成后调用 */

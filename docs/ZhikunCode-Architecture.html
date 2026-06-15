@@ -5168,6 +5168,241 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <text x="610" y="381" fill="#6B70A0" font-size="7">compactionTokens · targetSummaryTokens</text>
     </svg>
   </div>
+
+  <!-- Agent Loop 任务执行全链路 — Session 7675c534 时序图 -->
+  <h3 style="color:#F59E0B;margin:32px 0 12px;font-size:1.15rem">▎Agent Loop 任务执行全链路 — Session 7675c534 实例</h3>
+  <div style="background:#080A12;border-radius:14px;padding:18px 10px 10px;overflow-x:auto">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 900" style="width:100%;max-width:960px;display:block;margin:auto;font-family:'JetBrains Mono',monospace">
+      <defs>
+        <pattern id="exec_grid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#252840" stroke-width=".5" opacity=".4"/></pattern>
+        <linearGradient id="exec_bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0E1025"/><stop offset="100%" stop-color="#080A12"/></linearGradient>
+        <linearGradient id="exec_blue" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#3B82F6" stop-opacity=".18"/><stop offset="100%" stop-color="#3B82F6" stop-opacity=".04"/></linearGradient>
+        <linearGradient id="exec_amber" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#F59E0B" stop-opacity=".18"/><stop offset="100%" stop-color="#F59E0B" stop-opacity=".04"/></linearGradient>
+        <linearGradient id="exec_purple" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#A855F7" stop-opacity=".18"/><stop offset="100%" stop-color="#A855F7" stop-opacity=".04"/></linearGradient>
+        <linearGradient id="exec_green" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#10B981" stop-opacity=".18"/><stop offset="100%" stop-color="#10B981" stop-opacity=".04"/></linearGradient>
+        <linearGradient id="exec_cyan" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#06B6D4" stop-opacity=".18"/><stop offset="100%" stop-color="#06B6D4" stop-opacity=".04"/></linearGradient>
+        <filter id="exec_glow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#F59E0B" flood-opacity=".3"/></filter>
+        <marker id="exec_arBlue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#3B82F6"/></marker>
+        <marker id="exec_arAmber" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#F59E0B"/></marker>
+        <marker id="exec_arPurple" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#A855F7"/></marker>
+        <marker id="exec_arGreen" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#10B981"/></marker>
+        <marker id="exec_arCyan" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#06B6D4"/></marker>
+      </defs>
+
+      <!-- Background -->
+      <rect width="960" height="900" rx="12" fill="url(#exec_bg)"/>
+      <rect width="960" height="900" rx="12" fill="url(#exec_grid)"/>
+
+      <!-- Title -->
+      <rect x="30" y="14" width="900" height="40" rx="10" fill="#151829" stroke="#F59E0B" stroke-width="1.2" filter="url(#exec_glow)"/>
+      <text x="480" y="32" text-anchor="middle" fill="#F59E0B" font-size="13" font-weight="700">Agent Loop 任务执行全链路时序图 — Session 7675c534</text>
+      <text x="480" y="47" text-anchor="middle" fill="#6B70A0" font-size="10">12:27:54 → 12:37:03 · 1 次工具调用 · Write 86,063B → 文件 72,416B · totalTokens=96,464</text>
+
+      <!-- ===== Lane Headers ===== -->
+      <!-- Lane 1: User/Frontend -->
+      <rect x="30" y="70" width="130" height="50" rx="12" fill="url(#exec_blue)" stroke="#3B82F6" stroke-width="1.5"/>
+      <text x="95" y="92" text-anchor="middle" fill="#3B82F6" font-size="13" font-weight="700">用户 / 前端</text>
+      <text x="95" y="108" text-anchor="middle" fill="#6B70A0" font-size="9">WebSocket Client</text>
+
+      <!-- Lane 2: QueryEngine -->
+      <rect x="170" y="70" width="150" height="50" rx="12" fill="url(#exec_amber)" stroke="#F59E0B" stroke-width="1.5"/>
+      <text x="245" y="92" text-anchor="middle" fill="#F59E0B" font-size="13" font-weight="700">QueryEngine</text>
+      <text x="245" y="108" text-anchor="middle" fill="#6B70A0" font-size="9">Agent Loop 控制器</text>
+
+      <!-- Lane 3: LLM Provider -->
+      <rect x="330" y="70" width="150" height="50" rx="12" fill="url(#exec_purple)" stroke="#A855F7" stroke-width="1.5"/>
+      <text x="405" y="92" text-anchor="middle" fill="#A855F7" font-size="13" font-weight="700">LLM Provider</text>
+      <text x="405" y="108" text-anchor="middle" fill="#6B70A0" font-size="9">DashScope / qwen3.6-max</text>
+
+      <!-- Lane 4: ToolExecutionPipeline -->
+      <rect x="490" y="70" width="170" height="50" rx="12" fill="url(#exec_green)" stroke="#10B981" stroke-width="1.5"/>
+      <text x="575" y="92" text-anchor="middle" fill="#10B981" font-size="13" font-weight="700">ToolExecutionPipeline</text>
+      <text x="575" y="108" text-anchor="middle" fill="#6B70A0" font-size="9">7 阶段权限管线</text>
+
+      <!-- Lane 5: FileSystem -->
+      <rect x="670" y="70" width="110" height="50" rx="12" fill="url(#exec_cyan)" stroke="#06B6D4" stroke-width="1.5"/>
+      <text x="725" y="92" text-anchor="middle" fill="#06B6D4" font-size="13" font-weight="700">FileSystem</text>
+      <text x="725" y="108" text-anchor="middle" fill="#6B70A0" font-size="9">AtomicFileWriter</text>
+
+      <!-- ===== Lifelines (dashed) ===== -->
+      <line x1="95" y1="125" x2="95" y2="720" stroke="#3B82F6" stroke-width="1" stroke-dasharray="4,4" opacity=".5"/>
+      <line x1="245" y1="125" x2="245" y2="720" stroke="#F59E0B" stroke-width="1" stroke-dasharray="4,4" opacity=".5"/>
+      <line x1="405" y1="125" x2="405" y2="720" stroke="#A855F7" stroke-width="1" stroke-dasharray="4,4" opacity=".5"/>
+      <line x1="575" y1="125" x2="575" y2="720" stroke="#10B981" stroke-width="1" stroke-dasharray="4,4" opacity=".5"/>
+      <line x1="725" y1="125" x2="725" y2="720" stroke="#06B6D4" stroke-width="1" stroke-dasharray="4,4" opacity=".5"/>
+
+      <!-- Time gutter -->
+      <text x="34" y="148" fill="#6B70A0" font-size="9" font-weight="600">T</text>
+
+      <!-- ===== Step 1: User → QueryEngine — 12:27:54 ===== -->
+      <text x="34" y="165" fill="#6B70A0" font-size="8">12:27:54</text>
+      <line x1="95" y1="165" x2="238" y2="165" stroke="#3B82F6" stroke-width="2" opacity=".85" marker-end="url(#exec_arBlue)"/>
+      <rect x="100" y="152" width="138" height="12" rx="3" fill="#0F1221" opacity=".9"/>
+      <text x="169" y="161" text-anchor="middle" fill="#9FA4C4" font-size="9">① 用户请求 messageCount=1</text>
+      <text x="169" y="177" text-anchor="middle" fill="#6B70A0" font-size="8">maxTurns=200</text>
+
+      <!-- ===== Step 2: QE → LLM — streamChat ===== -->
+      <text x="34" y="200" fill="#6B70A0" font-size="8">12:27:54</text>
+      <line x1="245" y1="200" x2="398" y2="200" stroke="#F59E0B" stroke-width="2" opacity=".85" marker-end="url(#exec_arAmber)"/>
+      <text x="322" y="196" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">② streamChat()</text>
+      <text x="322" y="212" text-anchor="middle" fill="#6B70A0" font-size="8">effectiveMaxTokens=65536</text>
+
+      <!-- ===== Step 3: LLM → QE — HTTP 200 ===== -->
+      <text x="34" y="235" fill="#6B70A0" font-size="8">12:27:55</text>
+      <line x1="405" y1="235" x2="252" y2="235" stroke="#A855F7" stroke-width="2" opacity=".85" marker-end="url(#exec_arPurple)"/>
+      <text x="322" y="231" text-anchor="middle" fill="#A855F7" font-size="9" font-weight="600">③ HTTP 200 · 流开始</text>
+      <text x="322" y="247" text-anchor="middle" fill="#6B70A0" font-size="8">SSE chunk_open</text>
+
+      <!-- ===== Step 4: ToolInputDelta 流式积累（长条） ===== -->
+      <rect x="395" y="265" width="20" height="100" rx="4" fill="url(#exec_purple)" stroke="#A855F7" stroke-width="1.5"/>
+      <text x="395" y="281" text-anchor="end" fill="#A855F7" font-size="9" font-weight="600">④ tool_use_start</text>
+      <text x="395" y="294" text-anchor="end" fill="#6B70A0" font-size="8">12:28:01 · Write</text>
+      <text x="395" y="316" text-anchor="end" fill="#9FA4C4" font-size="9">ToolInputDelta 流式积累</text>
+      <text x="395" y="329" text-anchor="end" fill="#6B70A0" font-size="8">86,063 字节 · 8m44s</text>
+      <text x="395" y="342" text-anchor="end" fill="#A855F7" font-size="8" font-weight="600">≈ 164 B/s 流速</text>
+      <text x="420" y="360" fill="#6B70A0" font-size="8" font-style="italic">…积累中…</text>
+
+      <!-- ===== Step 5: BlockStop 12:36:45 ===== -->
+      <text x="34" y="390" fill="#6B70A0" font-size="8">12:36:45</text>
+      <line x1="405" y1="390" x2="252" y2="390" stroke="#A855F7" stroke-width="2" opacity=".85" marker-end="url(#exec_arPurple)"/>
+      <text x="322" y="386" text-anchor="middle" fill="#A855F7" font-size="9" font-weight="600">⑤ BlockStop 事件</text>
+      <text x="322" y="402" text-anchor="middle" fill="#6B70A0" font-size="8">flushToolBlock 触发</text>
+
+      <!-- ===== Step 6: QE → Pipeline — flushToolBlock ===== -->
+      <text x="34" y="425" fill="#6B70A0" font-size="8">12:36:45</text>
+      <line x1="245" y1="425" x2="568" y2="425" stroke="#F59E0B" stroke-width="2" opacity=".85" marker-end="url(#exec_arAmber)"/>
+      <text x="406" y="421" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">⑥ flushToolBlock(Write, inputLen=86063)</text>
+
+      <!-- ===== Step 7: Pipeline self — Schema Validation ===== -->
+      <path d="M575 445 C 615 445, 615 465, 575 465" fill="none" stroke="#10B981" stroke-width="2" opacity=".85" marker-end="url(#exec_arGreen)"/>
+      <text x="622" y="450" fill="#10B981" font-size="9" font-weight="600">⑦ Stage 1: Schema Validation ✓</text>
+      <text x="622" y="464" fill="#6B70A0" font-size="8">deny → ask → checkPermissions</text>
+      <text x="622" y="476" fill="#6B70A0" font-size="8">→ contentLevel → safety → sandbox</text>
+
+      <!-- ===== Step 8: Pipeline → User — permission_request ===== -->
+      <text x="34" y="500" fill="#6B70A0" font-size="8">12:36:46</text>
+      <line x1="575" y1="500" x2="102" y2="500" stroke="#10B981" stroke-width="2" opacity=".85" marker-end="url(#exec_arGreen)"/>
+      <text x="338" y="496" text-anchor="middle" fill="#10B981" font-size="9" font-weight="600">⑧ permission_request → ASK</text>
+      <text x="338" y="512" text-anchor="middle" fill="#6B70A0" font-size="8">前端弹出授权确认</text>
+
+      <!-- ===== Step 9: User → Pipeline — allow（10s 后） ===== -->
+      <text x="34" y="535" fill="#6B70A0" font-size="8">12:36:56</text>
+      <line x1="95" y1="535" x2="568" y2="535" stroke="#3B82F6" stroke-width="2" opacity=".85" marker-end="url(#exec_arBlue)"/>
+      <text x="338" y="531" text-anchor="middle" fill="#3B82F6" font-size="9" font-weight="600">⑨ allow （等待 10s）</text>
+
+      <!-- ===== Step 10: Pipeline → FS — AtomicFileWriter ===== -->
+      <text x="34" y="570" fill="#6B70A0" font-size="8">12:36:56</text>
+      <line x1="575" y1="570" x2="718" y2="570" stroke="#10B981" stroke-width="2" opacity=".85" marker-end="url(#exec_arGreen)"/>
+      <text x="650" y="566" text-anchor="middle" fill="#10B981" font-size="9" font-weight="600">⑩ Stage 5: call</text>
+      <text x="650" y="581" text-anchor="middle" fill="#6B70A0" font-size="8">AtomicFileWriter 72,416B</text>
+
+      <!-- ===== Step 11: FS → Pipeline — write success ===== -->
+      <line x1="725" y1="600" x2="582" y2="600" stroke="#06B6D4" stroke-width="2" opacity=".85" marker-end="url(#exec_arCyan)"/>
+      <text x="650" y="596" text-anchor="middle" fill="#06B6D4" font-size="9" font-weight="600">⑪ write success · 26ms</text>
+
+      <!-- ===== Step 12: Pipeline → QE — ToolResult ===== -->
+      <text x="34" y="630" fill="#6B70A0" font-size="8">12:36:56</text>
+      <line x1="575" y1="630" x2="252" y2="630" stroke="#10B981" stroke-width="2" opacity=".85" marker-end="url(#exec_arGreen)"/>
+      <text x="406" y="626" text-anchor="middle" fill="#10B981" font-size="9" font-weight="600">⑫ ToolResult(error=false) · 11,520ms</text>
+
+      <!-- ===== Step 13: QE → LLM — Turn 2 ===== -->
+      <line x1="245" y1="660" x2="398" y2="660" stroke="#F59E0B" stroke-width="2" opacity=".85" marker-end="url(#exec_arAmber)"/>
+      <text x="322" y="656" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">⑬ Turn 2 · streamChat（携带工具结果）</text>
+
+      <!-- ===== Step 14: LLM → QE — end_turn ===== -->
+      <text x="34" y="690" fill="#6B70A0" font-size="8">12:37:03</text>
+      <line x1="405" y1="690" x2="252" y2="690" stroke="#A855F7" stroke-width="2" opacity=".85" marker-end="url(#exec_arPurple)"/>
+      <text x="322" y="686" text-anchor="middle" fill="#A855F7" font-size="9" font-weight="600">⑭ end_turn · TERMINATE_SUCCESS</text>
+
+      <!-- ===== Step 15: QE → User — message_complete ===== -->
+      <line x1="245" y1="716" x2="102" y2="716" stroke="#F59E0B" stroke-width="2" opacity=".85" marker-end="url(#exec_arAmber)"/>
+      <text x="169" y="712" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">⑮ message_complete</text>
+
+      <!-- ===== Right Annotation Panel: Performance Metrics ===== -->
+      <rect x="790" y="140" width="150" height="330" rx="14" fill="#151829" stroke="#F59E0B" stroke-width="1.5"/>
+      <text x="865" y="162" text-anchor="middle" fill="#F59E0B" font-size="11" font-weight="700">性能指标</text>
+      <line x1="800" y1="170" x2="930" y2="170" stroke="#1E2248" stroke-width=".8"/>
+
+      <text x="800" y="190" fill="#A855F7" font-size="9" font-weight="600">流式积累</text>
+      <text x="930" y="190" text-anchor="end" fill="#9FA4C4" font-size="9">8m44s</text>
+      <text x="800" y="203" fill="#6B70A0" font-size="8">86KB @ 164 B/s</text>
+
+      <line x1="800" y1="215" x2="930" y2="215" stroke="#1E2248" stroke-width=".5"/>
+
+      <text x="800" y="232" fill="#3B82F6" font-size="9" font-weight="600">权限等待</text>
+      <text x="930" y="232" text-anchor="end" fill="#9FA4C4" font-size="9">10s</text>
+      <text x="800" y="245" fill="#6B70A0" font-size="8">用户授权 allow</text>
+
+      <line x1="800" y1="257" x2="930" y2="257" stroke="#1E2248" stroke-width=".5"/>
+
+      <text x="800" y="274" fill="#06B6D4" font-size="9" font-weight="600">文件写入</text>
+      <text x="930" y="274" text-anchor="end" fill="#9FA4C4" font-size="9">26ms</text>
+      <text x="800" y="287" fill="#6B70A0" font-size="8">72,416 字节落盘</text>
+
+      <line x1="800" y1="299" x2="930" y2="299" stroke="#1E2248" stroke-width=".5"/>
+
+      <text x="800" y="316" fill="#10B981" font-size="9" font-weight="600">Pipeline 总时</text>
+      <text x="930" y="316" text-anchor="end" fill="#9FA4C4" font-size="9">11.5s</text>
+      <text x="800" y="329" fill="#6B70A0" font-size="8">含权限等待 10s</text>
+
+      <line x1="800" y1="341" x2="930" y2="341" stroke="#1E2248" stroke-width=".5"/>
+
+      <text x="800" y="358" fill="#F59E0B" font-size="9" font-weight="600">总 Token</text>
+      <text x="930" y="358" text-anchor="end" fill="#9FA4C4" font-size="9">96,464</text>
+      <text x="800" y="371" fill="#6B70A0" font-size="8">2 Turn 累计</text>
+
+      <line x1="800" y1="383" x2="930" y2="383" stroke="#1E2248" stroke-width=".5"/>
+
+      <text x="800" y="400" fill="#EF4444" font-size="9" font-weight="600">端到端</text>
+      <text x="930" y="400" text-anchor="end" fill="#9FA4C4" font-size="9">9m09s</text>
+      <text x="800" y="413" fill="#6B70A0" font-size="8">12:27:54 → 12:37:03</text>
+
+      <line x1="800" y1="425" x2="930" y2="425" stroke="#1E2248" stroke-width=".5"/>
+
+      <text x="800" y="442" fill="#9FA4C4" font-size="8" font-weight="600">瓶颈分析</text>
+      <text x="800" y="456" fill="#A855F7" font-size="7.5">▸ LLM 流式生成 95.4%</text>
+
+      <!-- ===== Bottom: Stage Pipeline 7 Steps ===== -->
+      <rect x="30" y="760" width="900" height="110" rx="10" fill="#151829" stroke="#10B981" stroke-width="1"/>
+      <text x="480" y="781" text-anchor="middle" fill="#10B981" font-size="12" font-weight="700">ToolExecutionPipeline · 7 阶段权限管线（基于本会话实际命中）</text>
+      <line x1="50" y1="790" x2="910" y2="790" stroke="#1E2248" stroke-width=".8"/>
+
+      <rect x="50" y="805" width="110" height="50" rx="8" fill="#0F1221" stroke="#10B981" stroke-width="1"/>
+      <text x="105" y="822" text-anchor="middle" fill="#10B981" font-size="9" font-weight="700">Stage 1</text>
+      <text x="105" y="835" text-anchor="middle" fill="#9FA4C4" font-size="8">validation</text>
+      <text x="105" y="848" text-anchor="middle" fill="#6B70A0" font-size="7">Schema ✓</text>
+
+      <rect x="170" y="805" width="110" height="50" rx="8" fill="#0F1221" stroke="#10B981" stroke-width="1"/>
+      <text x="225" y="822" text-anchor="middle" fill="#10B981" font-size="9" font-weight="700">Stage 2</text>
+      <text x="225" y="835" text-anchor="middle" fill="#9FA4C4" font-size="8">deny</text>
+      <text x="225" y="848" text-anchor="middle" fill="#6B70A0" font-size="7">未命中黑名单</text>
+
+      <rect x="290" y="805" width="110" height="50" rx="8" fill="#0F1221" stroke="#F59E0B" stroke-width="1.5"/>
+      <text x="345" y="822" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="700">Stage 3</text>
+      <text x="345" y="835" text-anchor="middle" fill="#9FA4C4" font-size="8">ask</text>
+      <text x="345" y="848" text-anchor="middle" fill="#F59E0B" font-size="7" font-weight="600">★ ASK 用户</text>
+
+      <rect x="410" y="805" width="110" height="50" rx="8" fill="#0F1221" stroke="#10B981" stroke-width="1"/>
+      <text x="465" y="822" text-anchor="middle" fill="#10B981" font-size="9" font-weight="700">Stage 4a-c</text>
+      <text x="465" y="835" text-anchor="middle" fill="#9FA4C4" font-size="8">contentLevel</text>
+      <text x="465" y="848" text-anchor="middle" fill="#6B70A0" font-size="7">safety / sandbox</text>
+
+      <rect x="530" y="805" width="110" height="50" rx="8" fill="#0F1221" stroke="#10B981" stroke-width="1"/>
+      <text x="585" y="822" text-anchor="middle" fill="#10B981" font-size="9" font-weight="700">Stage 5</text>
+      <text x="585" y="835" text-anchor="middle" fill="#9FA4C4" font-size="8">call</text>
+      <text x="585" y="848" text-anchor="middle" fill="#06B6D4" font-size="7" font-weight="600">★ AtomicFileWriter</text>
+
+      <rect x="650" y="805" width="110" height="50" rx="8" fill="#0F1221" stroke="#10B981" stroke-width="1"/>
+      <text x="705" y="822" text-anchor="middle" fill="#10B981" font-size="9" font-weight="700">Stage 6</text>
+      <text x="705" y="835" text-anchor="middle" fill="#9FA4C4" font-size="8">modeTransform</text>
+      <text x="705" y="848" text-anchor="middle" fill="#6B70A0" font-size="7">结果加工</text>
+
+      <rect x="770" y="805" width="140" height="50" rx="8" fill="#0F1221" stroke="#10B981" stroke-width="1"/>
+      <text x="840" y="822" text-anchor="middle" fill="#10B981" font-size="9" font-weight="700">Stage 7</text>
+      <text x="840" y="835" text-anchor="middle" fill="#9FA4C4" font-size="8">checkPermissions</text>
+      <text x="840" y="848" text-anchor="middle" fill="#6B70A0" font-size="7">汇总 → ToolResult</text>
+    </svg>
+  </div>
 </div>
 
 <!-- ============ SECTION 11: AUX SYSTEMS ============ -->

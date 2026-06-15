@@ -1,5 +1,6 @@
 package com.aicodeassistant.engine;
 
+import com.aicodeassistant.config.AgentTimeoutConfig;
 import com.aicodeassistant.engine.correction.CorrectionInstruction;
 import com.aicodeassistant.engine.correction.SelfCorrectionLoop;
 import com.aicodeassistant.engine.scheduling.ToolPriorityScheduler;
@@ -32,8 +33,15 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 
 /**
  * QueryEngine — 查询引擎核心循环。
@@ -84,6 +92,7 @@ public class QueryEngine {
     private final TerminationStrategy terminationStrategy;
     private final ToolPriorityScheduler toolPriorityScheduler;
     private final SelfCorrectionLoop selfCorrectionLoop;
+    private final AgentTimeoutConfig agentTimeoutConfig;
 
     /** 单条工具结果最大占上下文窗口的 30% */
     private static final double TOOL_RESULT_BUDGET_RATIO = 0.3;
@@ -95,6 +104,14 @@ public class QueryEngine {
 
     /** 会话级中断上下文 — sessionId → AbortContext */
     private final ConcurrentHashMap<String, AbortContext> abortContexts = new ConcurrentHashMap<>();
+
+    private final ScheduledExecutorService cleanupScheduler =
+            Executors.newSingleThreadScheduledExecutor(r -> {
+                Thread t = new Thread(r, "abort-context-cleanup");
+                t.setDaemon(true);
+                return t;
+            });
+    private ScheduledFuture<?> cleanupTask;
 
     public QueryEngine(LlmProviderRegistry providerRegistry,
                        CompactService compactService,
@@ -121,7 +138,8 @@ public class QueryEngine {
                        FeatureFlagService featureFlagService,
                        TerminationStrategy terminationStrategy,
                        ToolPriorityScheduler toolPriorityScheduler,
-                       SelfCorrectionLoop selfCorrectionLoop) {
+                       SelfCorrectionLoop selfCorrectionLoop,
+                       AgentTimeoutConfig agentTimeoutConfig) {
         this.providerRegistry = providerRegistry;
         this.compactService = compactService;
         this.apiRetryService = apiRetryService;
@@ -148,6 +166,26 @@ public class QueryEngine {
         this.terminationStrategy = terminationStrategy;
         this.toolPriorityScheduler = toolPriorityScheduler;
         this.selfCorrectionLoop = selfCorrectionLoop;
+        this.agentTimeoutConfig = agentTimeoutConfig;
+    }
+
+    @PostConstruct
+    void scheduleAbortContextCleanup() {
+        cleanupTask = cleanupScheduler.scheduleAtFixedRate(() -> {
+            int before = abortContexts.size();
+            abortContexts.entrySet().removeIf(e -> e.getValue().isExpired());
+            int removed = before - abortContexts.size();
+            if (removed > 0) {
+                log.info("AbortContext cleanup: removed {} expired entries, remaining {}",
+                        removed, abortContexts.size());
+            }
+        }, 30, 30, TimeUnit.MINUTES);
+    }
+
+    @PreDestroy
+    void shutdownCleanupScheduler() {
+        if (cleanupTask != null) cleanupTask.cancel(false);
+        cleanupScheduler.shutdown();
     }
 
     /**
@@ -163,7 +201,8 @@ public class QueryEngine {
             ctx.abort(reason);
             log.info("QueryEngine abort: sessionId={}, reason={}", sessionId, reason);
         } else {
-            log.warn("No active AbortContext for sessionId={}", sessionId);
+            // 连接断开时查询未启动/已结束属于正常场景，降为 debug 避免日志噪声
+            log.debug("No active AbortContext for sessionId={}", sessionId);
         }
     }
 
@@ -247,6 +286,10 @@ public class QueryEngine {
                             QueryMessageHandler handler, AtomicBoolean aborted) {
         Usage totalUsage = Usage.zero();
         String[] currentModel = { config.model() };
+        // ★ 注入 parentModel 到 ToolUseContext，供子代理继承父会话模型
+        if (state.getToolUseContext() != null) {
+            state.setToolUseContext(state.getToolUseContext().withParentModel(currentModel[0]));
+        }
         TokenBudgetTracker tokenBudgetTracker = config.tokenBudget() != null
                 ? new TokenBudgetTracker() : null;
 
@@ -507,7 +550,7 @@ public class QueryEngine {
                             sortedBlocks.stream().map(ContentBlock.ToolUseBlock::name).toList());
                 }
 
-                List<Message> toolResults = consumeToolResults(session, handler, aborted);
+                List<Message> toolResults = consumeToolResults(session, handler, aborted, toolUseBlocks);
                 state.addMessages(toolResults);
 
                 // ★ 工具调用追踪：记录每次工具执行结果
@@ -531,6 +574,34 @@ public class QueryEngine {
                 ToolUseContext updatedContext = session.getCurrentContext();
                 if (updatedContext != null) {
                     state.setToolUseContext(updatedContext);
+                }
+
+                // ★ P2: 工具参数错误纠错 — 当工具执行结果是必填字段缺失或参数损坏时，
+                // 注入纠错指令引导 LLM 重新生成完整的工具调用。
+                for (Message toolResultMsg : toolResults) {
+                    if (toolResultMsg instanceof Message.UserMessage um && um.content() != null) {
+                        for (ContentBlock block : um.content()) {
+                            if (block instanceof ContentBlock.ToolResultBlock trb
+                                    && trb.isError() && trb.content() != null
+                                    && (trb.content().contains("Required field") || trb.content().contains("required parameter"))) {
+                                String failedToolName = toolUseBlocks.stream()
+                                        .filter(tb -> tb.id().equals(trb.toolUseId()))
+                                        .map(ContentBlock.ToolUseBlock::name)
+                                        .findFirst().orElse("unknown");
+                                String correctionPrompt = "Your " + failedToolName + " tool call failed because parameters were incomplete or corrupted. "
+                                        + "Error: " + trb.content() + ". "
+                                        + "Please carefully regenerate the complete tool call with ALL required fields properly filled.";
+                                state.addMessage(new Message.UserMessage(
+                                        UUID.randomUUID().toString(),
+                                        Instant.now(),
+                                        List.of(new ContentBlock.TextBlock(correctionPrompt)),
+                                        null, null));
+                                log.info("[DIAG-TOOL] Injected parameter-correction prompt for tool '{}', toolId={}",
+                                        failedToolName, trb.toolUseId());
+                                break; // 只处理第一个参数错误
+                            }
+                        }
+                    }
                 }
             }
 
@@ -734,7 +805,8 @@ public class QueryEngine {
                         handler.onTurnEnd(turn, "waiting_for_background_agents");
 
                         // 等待所有后台代理完成（带超时和 abort 信号）
-                        Duration waitTimeout = Duration.ofMinutes(15);
+                        Duration waitTimeout = Duration.ofMinutes(
+                                agentTimeoutConfig.getMaxWaitMinutes());
                         AbortContext abortCtx = abortContexts.get(bgSessionId);
 
                         boolean allDone = backgroundAgentTracker.awaitAllAgents(
@@ -977,14 +1049,28 @@ public class QueryEngine {
     private List<Message> consumeToolResults(
             StreamingToolExecutor.ExecutionSession session,
             QueryMessageHandler handler,
-            AtomicBoolean aborted) {
+            AtomicBoolean aborted,
+            List<ContentBlock.ToolUseBlock> toolUseBlocks) {
         List<Message> results = new ArrayList<>();
 
-        // ★ 安全网: 工具结果消费最大等待时间 (10分钟)
-        final long TOOL_CONSUME_TIMEOUT_MS = 10 * 60 * 1000L;
+        // ★ Watchdog：基于 session 中最长工具声明超时的 watchdogMultiplier 倍
+        // 正常情况下不应触发，仅作灾难检测
+        // tool-consume-max-wait-minutes>0 时使用固定覆盖值（调试用），否则使用动态计算
+        long maxDurationMs = session.getMaxExpectedDurationMs();
+        double multiplier = agentTimeoutConfig.getWatchdogMultiplier();
+        long dynamicWatchdogMs = (long)(maxDurationMs * multiplier);
+        // 溢出保护：硬上界 2 小时，防止极端场景下 Watchdog 失效
+        if (dynamicWatchdogMs <= 0 || dynamicWatchdogMs > TimeUnit.HOURS.toMillis(2)) {
+            log.warn("Watchdog timeout clamped: calculated={}ms (maxDuration={}ms, multiplier={}), clamping to 2h",
+                    dynamicWatchdogMs, maxDurationMs, multiplier);
+            dynamicWatchdogMs = TimeUnit.HOURS.toMillis(2);
+        }
+        long fixedOverrideMs = agentTimeoutConfig.getToolConsumeMaxWaitMinutes() > 0
+                ? TimeUnit.MINUTES.toMillis(agentTimeoutConfig.getToolConsumeMaxWaitMinutes())
+                : -1L;
+        final long watchdogMs = fixedOverrideMs > 0 ? fixedOverrideMs : dynamicWatchdogMs;
         long startTime = System.currentTimeMillis();
 
-        // 轮询等待所有工具完成
         while (!session.isAllCompleted()) {
             // 检查 abort 信号
             if (aborted.get()) {
@@ -992,10 +1078,12 @@ public class QueryEngine {
                 break;
             }
 
-            // ★ 超时保护: 防止工具执行卡死导致无限等待
-            if (System.currentTimeMillis() - startTime > TOOL_CONSUME_TIMEOUT_MS) {
-                log.error("consumeToolResults timed out after {}ms, discarding remaining tools",
-                        TOOL_CONSUME_TIMEOUT_MS);
+            // Watchdog 检查（应永远不触发）
+            if (System.currentTimeMillis() - startTime > watchdogMs) {
+                log.error("WATCHDOG FIRED: tool executor contract violated after {}ms. "
+                                + "Pending tools: {}",
+                        watchdogMs, session.getPendingToolIds());
+                session.notifyWatchdogFired();
                 session.discard();
                 break;
             }
@@ -1003,18 +1091,14 @@ public class QueryEngine {
             List<StreamingToolExecutor.TrackedTool> yielded = session.yieldCompleted();
             for (StreamingToolExecutor.TrackedTool tt : yielded) {
                 ContentBlock.ToolResultBlock resultBlock = new ContentBlock.ToolResultBlock(
-                        tt.getToolUseId(),
-                        tt.getResult().content(),
-                        tt.getResult().isError());
+                        tt.getToolUseId(), tt.getResult().content(), tt.getResult().isError());
                 handler.onToolResult(tt.getToolUseId(), resultBlock);
                 results.add(buildToolResultMessage(resultBlock));
             }
 
             if (!session.isAllCompleted()) {
-                try { Thread.sleep(50); } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    break;
-                }
+                // ★ 条件等待，替代固定 50ms 轮询
+                session.awaitAnyCompletion(200, TimeUnit.MILLISECONDS);
             }
         }
 
@@ -1024,6 +1108,29 @@ public class QueryEngine {
                     tt.getToolUseId(), tt.getResult().content(), tt.getResult().isError());
             handler.onToolResult(tt.getToolUseId(), resultBlock);
             results.add(buildToolResultMessage(resultBlock));
+        }
+
+        // ★★★ 三层保护第三层：兜底补全 —— 确保每个 tool_use 都有 tool_result
+        Set<String> collectedIds = results.stream()
+                .filter(m -> m instanceof Message.UserMessage)
+                .flatMap(m -> ((Message.UserMessage) m).content().stream())
+                .filter(b -> b instanceof ContentBlock.ToolResultBlock)
+                .map(b -> ((ContentBlock.ToolResultBlock) b).toolUseId())
+                .collect(Collectors.toSet());
+
+        for (ContentBlock.ToolUseBlock block : toolUseBlocks) {
+            if (!collectedIds.contains(block.id())) {
+                log.warn("Generating synthetic error for orphaned tool_use: id={}, name={}",
+                        block.id(), block.name());
+                session.notifySyntheticError();
+                ContentBlock.ToolResultBlock synthetic = new ContentBlock.ToolResultBlock(
+                        block.id(),
+                        "<tool_use_error>Tool execution did not complete: "
+                                + "executor contract violated or watchdog timeout</tool_use_error>",
+                        true);
+                handler.onToolResult(block.id(), synthetic);
+                results.add(buildToolResultMessage(synthetic));
+            }
         }
 
         return results;
@@ -1259,8 +1366,9 @@ public class QueryEngine {
                     handler.onThinkingDelta(delta.thinking());
                 }
                 case LlmStreamEvent.ToolUseStart start -> {
-                    // 结束之前的文本块
+                    // 结束之前的文本块，并 flush 上一个未完成的 tool block（多工具场景）
                     flushTextBlock();
+                    flushToolBlock();
                     currentToolId = start.id();
                     currentToolName = start.name();
                     currentToolInput.setLength(0);
@@ -1274,9 +1382,11 @@ public class QueryEngine {
                     this.usage = delta.usage();
                     this.stopReason = delta.stopReason();
                     log.info("[DIAG-TOOL] MessageDelta: stopReason={}, currentToolId={}", delta.stopReason(), currentToolId);
-                    // 结束所有待处理的块
+                    // ★ 修复：不在 MessageDelta 中触发 flushToolBlock()。
+                    // Qwen 等 OpenAI 兼容模型可能在最后一批 ToolInputDelta 到达前
+                    // 先发送 finish_reason，导致工具参数被截断。
+                    // 工具块的 flush 由 BlockStop（Anthropic）或 onComplete（兜底）负责。
                     flushTextBlock();
-                    flushToolBlock();
                 }
                 case LlmStreamEvent.Error error -> {
                     handler.onError(new LlmApiException(error.message(), error.retryable()));
@@ -1323,17 +1433,26 @@ public class QueryEngine {
 
         private void flushToolBlock() {
             if (currentToolId != null) {
-                log.info("[DIAG-TOOL] flushToolBlock: toolId={}, toolName={}, inputLen={}",
-                        currentToolId, currentToolName, currentToolInput.length());
+                String inputStr = currentToolInput.toString();
+                log.info("[DIAG-TOOL] flushToolBlock: toolId={}, toolName={}, inputLen={}, rawInput='{}'",
+                        currentToolId, currentToolName, inputStr.length(),
+                        inputStr.length() <= 200 ? inputStr : inputStr.substring(0, 200) + "...[truncated]");
                 JsonNode inputNode;
                 try {
-                    String inputStr = currentToolInput.toString();
                     inputNode = inputStr.isEmpty()
                             ? objectMapper.createObjectNode()
                             : objectMapper.readTree(inputStr);
                 } catch (Exception e) {
-                    log.warn("[DIAG-TOOL] flushToolBlock JSON parse error: toolId={}, error={}", currentToolId, e.getMessage());
-                    inputNode = objectMapper.createObjectNode();
+                    // ★ P1: 先尝试 JSON 自动补全，再降级到空对象
+                    JsonNode recovered = tryRecoverJson(inputStr, e);
+                    if (recovered != null) {
+                        log.info("[DIAG-TOOL] JSON auto-recovered for tool '{}', toolId={}", currentToolName, currentToolId);
+                        inputNode = recovered;
+                    } else {
+                        log.warn("[DIAG-TOOL] flushToolBlock JSON parse error: toolId={}, inputLen={}, error={}",
+                                currentToolId, inputStr.length(), e.getMessage());
+                        inputNode = objectMapper.createObjectNode();
+                    }
                 }
                 ContentBlock.ToolUseBlock toolBlock = new ContentBlock.ToolUseBlock(
                         currentToolId, currentToolName, inputNode);
@@ -1367,6 +1486,36 @@ public class QueryEngine {
                 currentToolName = null;
                 currentToolInput.setLength(0);
             }
+        }
+
+        /**
+         * 尝试修复截断的 JSON：补全引号/括号。
+         * 在 flushToolBlock 解析失败时作为降级策略，避免空对象丢失工具参数。
+         */
+        private JsonNode tryRecoverJson(String input, Exception originalError) {
+            String trimmed = input.trim();
+            if (trimmed.isEmpty()) return null;
+
+            // 策略1：如果错误是 "expecting closing quote"，尝试补引号+括号
+            String errMsg = originalError.getMessage();
+            if (errMsg != null && (errMsg.contains("closing") || errMsg.contains("quote") || errMsg.contains("Unexpected end"))) {
+                String[] suffixes = {"\"}", "\"}}"  , "\"}}}" };
+                for (String suffix : suffixes) {
+                    try {
+                        return objectMapper.readTree(trimmed + suffix);
+                    } catch (Exception ignored) {}
+                }
+            }
+
+            // 策略2：逐步补全括号
+            String[] closers = {"}", "}}", "}}}", "]}", "]}}"};
+            for (String closer : closers) {
+                try {
+                    return objectMapper.readTree(trimmed + closer);
+                } catch (Exception ignored) {}
+            }
+
+            return null;
         }
 
         private Tool findToolByName(String name) {

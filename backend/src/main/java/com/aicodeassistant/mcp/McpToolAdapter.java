@@ -71,6 +71,11 @@ public class McpToolAdapter implements Tool {
     }
 
     @Override
+    public long getMaxExecutionTimeMs() {
+        return 300_000L; // 5 minutes for external MCP server calls
+    }
+
+    @Override
     public String getDescription() {
         if (enhancedDescription != null && !enhancedDescription.isEmpty()) {
             return enhancedDescription;

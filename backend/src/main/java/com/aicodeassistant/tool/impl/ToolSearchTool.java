@@ -38,6 +38,11 @@ public class ToolSearchTool implements Tool {
     }
 
     @Override
+    public long getMaxExecutionTimeMs() {
+        return 180_000L; // 3 minutes for tool index search
+    }
+
+    @Override
     public String getDescription() {
         return "Search for available tools by keyword. Use this to discover tools " +
                 "that are not loaded by default. Provide a search query to find " +

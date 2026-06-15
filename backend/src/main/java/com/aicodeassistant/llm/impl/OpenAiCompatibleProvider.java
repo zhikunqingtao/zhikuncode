@@ -625,6 +625,13 @@ public class OpenAiCompatibleProvider implements LlmProvider {
 
             // 流结束原因 — 接受有 usage 或有 finish_reason 的 chunk
             if (finishReason != null) {
+                // ★ 修复：当流结束时，先为所有累积的 tool call 发送 BlockStop 事件，
+                // 确保 QueryEngine 在收到 MessageDelta 之前已 flush 完所有工具块。
+                // 这解决了 Qwen 等模型将 finish_reason 和最后一批 arguments
+                // 放在同一 chunk 时的时序问题。
+                for (Map.Entry<Integer, ToolCallAccumulator> entry : accumulators.entrySet()) {
+                    callback.onEvent(new LlmStreamEvent.BlockStop(entry.getKey()));
+                }
                 Usage usage = chunk.has("usage")
                         ? parseUsage(chunk.get("usage"))
                         : Usage.zero();

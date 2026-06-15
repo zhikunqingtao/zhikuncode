@@ -37,7 +37,7 @@ public class WebBrowserTool implements Tool {
             "get_js_errors", "snapshot-semantic");
     private static final Set<String> SAFE_PROTOCOLS = Set.of("http://", "https://");
     private static final int MAX_SCRIPT_LENGTH = 10000;
-    private static final int MAX_TIMEOUT_MS = 120000;
+    private static final int MAX_TIMEOUT_MS = 600_000; // 与 getMaxExecutionTimeMs() 对齐：10分钟
 
     public WebBrowserTool(PythonCapabilityAwareClient pythonClient,
                           FeatureFlagService featureFlags,
@@ -49,6 +49,11 @@ public class WebBrowserTool implements Tool {
 
     @Override
     public String getName() { return "WebBrowser"; }
+
+    @Override
+    public long getMaxExecutionTimeMs() {
+        return 600_000L; // 10 minutes for browser automation sessions
+    }
 
     @Override
     public String getDescription() {
@@ -131,7 +136,7 @@ public class WebBrowserTool implements Tool {
                                 "description", "If true, fail when session does not exist instead of auto-creating (default: false)")),
                         Map.entry("timeout", Map.of(
                                 "type", "integer",
-                                "description", "Timeout in milliseconds (default: 30000, max: 120000)")),
+                                "description", "Timeout in milliseconds (default: 30000, max: " + MAX_TIMEOUT_MS + ")")),
                         Map.entry("accept", Map.of(
                                 "type", "boolean",
                                 "description", "Whether to accept a dialog")),

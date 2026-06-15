@@ -45,6 +45,11 @@ public class GitTool implements Tool {
     public String getName() { return "Git"; }
 
     @Override
+    public long getMaxExecutionTimeMs() {
+        return 300_000L; // 5 minutes for git operations (clone/fetch/push)
+    }
+
+    @Override
     public String getDescription() {
         return "Git enhanced analysis tool for semantic diff, structured commit log, "
              + "and line-by-line blame. Provides richer output than raw git commands.";

@@ -106,6 +106,16 @@ public class BashTool implements Tool {
     }
 
     @Override
+    public boolean isHighRisk() {
+        return true;
+    }
+
+    @Override
+    public long getMaxExecutionTimeMs() {
+        return 600_000L; // 10 minutes for bash commands
+    }
+
+    @Override
     public String getName() {
         return "Bash";
     }

@@ -46,6 +46,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
+import org.springframework.web.socket.messaging.SessionConnectedEvent;
 import org.springframework.stereotype.Controller;
 
 import java.nio.file.Path;
@@ -608,7 +609,7 @@ public class WebSocketController implements PermissionNotifier {
         int contextWindow = getContextWindow(model);
         QueryConfig config = QueryConfig.withDefaults(
                 model, systemPrompt, tools, toolDefs,
-                QueryConfig.DEFAULT_MAX_TOKENS,
+                QueryConfig.getRecommendedMaxTokens(modelRegistry, model),
                 contextWindow,
                 new ThinkingConfig.Adaptive(),
                 QueryConfig.DEFAULT_MAX_TURNS, "websocket"
@@ -949,9 +950,28 @@ public class WebSocketController implements PermissionNotifier {
         // 从 session attributes 中获取 app sessionId
         Map<String, Object> attrs = accessor.getSessionAttributes();
         String appSessionId = attrs != null ? (String) attrs.get("sessionId") : null;
-        if (appSessionId != null) {
+        if (appSessionId != null && !"default".equals(appSessionId)) {
             log.info("WebSocket disconnect detected, aborting QueryEngine: sessionId={}", appSessionId);
             queryEngine.abort(appSessionId, AbortReason.SESSION_DISCONNECTED);
+            // 中止后清理 AbortContext，避免内存泄漏
+            queryEngine.removeAbortContext(appSessionId);
+        }
+    }
+
+    /**
+     * WebSocket 连接建立监听 — 预注册 AbortContext。
+     * <p>
+     * 避免连接断开时查询尚未启动/已结束场景下 abort() 找不到 AbortContext
+     * 产生频繁 WARN 日志。sessionId 为 null 或 "default" 跳过。
+     */
+    @EventListener
+    public void handleWebSocketConnected(SessionConnectedEvent event) {
+        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
+        Map<String, Object> attrs = accessor.getSessionAttributes();
+        String appSessionId = attrs != null ? (String) attrs.get("sessionId") : null;
+        if (appSessionId != null && !"default".equals(appSessionId)) {
+            queryEngine.getOrCreateAbortContext(appSessionId);
+            log.debug("AbortContext pre-registered on WS connect: sessionId={}", appSessionId);
         }
     }
 

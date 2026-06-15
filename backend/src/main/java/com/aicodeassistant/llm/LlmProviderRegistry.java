@@ -34,9 +34,9 @@ public class LlmProviderRegistry {
 
     /** 内置别名映射（模型层级别名 → 实际部署模型） */
     private static final Map<String, String> BUILTIN_ALIASES = Map.ofEntries(
-            // 新别名（推荐）
-            Map.entry("light", "qwen3.7-plus"),
-            Map.entry("standard", "qwen3.7-plus"),
+            // 统一指向最强模型，取消自动降级
+            Map.entry("light", "qwen3.7-max"),
+            Map.entry("standard", "qwen3.7-max"),
             Map.entry("premium", "qwen3.7-max")
     );
 

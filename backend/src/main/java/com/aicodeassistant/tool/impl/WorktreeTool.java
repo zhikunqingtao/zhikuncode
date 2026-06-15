@@ -37,6 +37,11 @@ public class WorktreeTool implements Tool {
     public String getName() { return "Worktree"; }
 
     @Override
+    public long getMaxExecutionTimeMs() {
+        return 300_000L; // 5 minutes for worktree creation/checkout
+    }
+
+    @Override
     public String getDescription() {
         return "Manage Git worktrees for parallel branch development. "
              + "Supports add, list, and remove operations.";

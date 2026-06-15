@@ -1,6 +1,7 @@
 package com.aicodeassistant.tool.agent;
 
 import com.aicodeassistant.engine.*;
+import com.aicodeassistant.llm.ModelRegistry;
 import com.aicodeassistant.llm.ThinkingConfig;
 import com.aicodeassistant.model.ContentBlock;
 import com.aicodeassistant.model.Message;
@@ -34,16 +35,19 @@ public class AgentResumeService {
     private final QueryEngine queryEngine;
     private final ToolRegistry toolRegistry;
     private final EffectiveSystemPromptBuilder systemPromptBuilder;
+    private final ModelRegistry modelRegistry;
 
     public AgentResumeService(
             AgentMemorySnapshot memorySnapshot,
             QueryEngine queryEngine,
             ToolRegistry toolRegistry,
-            EffectiveSystemPromptBuilder systemPromptBuilder) {
+            EffectiveSystemPromptBuilder systemPromptBuilder,
+            ModelRegistry modelRegistry) {
         this.memorySnapshot = memorySnapshot;
         this.queryEngine = queryEngine;
         this.toolRegistry = toolRegistry;
         this.systemPromptBuilder = systemPromptBuilder;
+        this.modelRegistry = modelRegistry;
     }
 
     public QueryEngine.QueryResult resume(String agentId, String additionalContext)
@@ -82,7 +86,7 @@ public class AgentResumeService {
 
         QueryConfig config = QueryConfig.withDefaults(
             model, systemPrompt, tools, toolDefs,
-            QueryConfig.DEFAULT_MAX_TOKENS, 200000,
+            QueryConfig.getRecommendedMaxTokens(modelRegistry, model), 200000,
             new ThinkingConfig.Adaptive(),
             30,
             "resumed-agent-" + agentId

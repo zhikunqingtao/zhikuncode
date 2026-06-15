@@ -15,8 +15,11 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 /**
  * 流式工具执行器 — 管理工具的并发执行和有序结果返回。
@@ -40,6 +43,9 @@ public class StreamingToolExecutor {
     private final AtomicInteger activeVirtualThreads = new AtomicInteger(0);
     private final Counter toolExecutionTotal;
     private final Counter toolExecutionErrors;
+    private final Counter cascadeAbortCounter;
+    private final Counter watchdogFiredCounter;
+    private final Counter syntheticErrorCounter;
 
     public StreamingToolExecutor(ToolExecutionPipeline pipeline, MeterRegistry meterRegistry) {
         this.pipeline = pipeline;
@@ -56,6 +62,16 @@ public class StreamingToolExecutor {
                 .register(meterRegistry);
         this.toolExecutionErrors = Counter.builder("zhiku.tool.executions.errors")
                 .description("Total tool execution errors")
+                .register(meterRegistry);
+
+        this.cascadeAbortCounter = Counter.builder("zhiku.tool.cascade_aborts")
+                .description("Count of selective error cascade triggered by high-risk tools")
+                .register(meterRegistry);
+        this.watchdogFiredCounter = Counter.builder("zhiku.tool.watchdog_fired")
+                .description("Count of watchdog timeout fires (should be zero in normal operation)")
+                .register(meterRegistry);
+        this.syntheticErrorCounter = Counter.builder("zhiku.tool.synthetic_errors")
+                .description("Count of synthetic error tool_results generated for orphaned tool_use blocks")
                 .register(meterRegistry);
     }
 
@@ -114,6 +130,12 @@ public class StreamingToolExecutor {
         // ★ 新增：会话级当前上下文，支持 CAS 更新（contextModifier 传播）
         private final AtomicReference<ToolUseContext> currentContext;
 
+        // ★ 条件变量，替代固定 50ms 轮询
+        private final Object completionLock = new Object();
+
+        // ★ 各工具声明的最大执行时间（毫秒），默认 10 分钟
+        private final AtomicLong maxExpectedDurationMs = new AtomicLong(600_000L);
+
         // ★ 有参构造器，接收初始 context
         public ExecutionSession(ToolUseContext initialContext) {
             this.currentContext = new AtomicReference<>(initialContext);
@@ -128,6 +150,12 @@ public class StreamingToolExecutor {
             queue.add(tt);
             log.info("[DIAG-TOOL] addTool: toolUseId={}, toolName={}, queueSize={}, trackedSize={}",
                     toolUseId, tool.getName(), queue.size(), tracked.size());
+
+            // ★ 使用工具声明的预期执行时间（替代硬编码）
+            if (tool != null) {
+                registerExpectedDuration(tool.getMaxExecutionTimeMs());
+            }
+
             processQueue();
         }
 
@@ -171,6 +199,10 @@ public class StreamingToolExecutor {
                             next.updatedContext = execResult.updatedContext();
                         }
                         next.state = ToolState.COMPLETED;
+                        notifyCompletion(); // 通知消费者有工具完成
+
+                        // ★ 选择性错误级联：仅高危工具的错误触发 sibling abort
+                        checkAndCascadeError(next);
 
                         // ★ 新增：applyContextModifier 传播（在 state 更新之后）
                         if (next.updatedContext != null && !next.tool.isConcurrencySafe(next.input)) {
@@ -185,6 +217,11 @@ public class StreamingToolExecutor {
                         next.result = ToolResult.error(
                                 "<tool_use_error>Execution error: " + e.getMessage() + "</tool_use_error>");
                         next.state = ToolState.COMPLETED;
+                        notifyCompletion(); // 通知消费者有工具完成
+
+                        // ★ 选择性错误级联：异常路径同样适用
+                        checkAndCascadeError(next);
+
                         toolExecutionTotal.increment();
                         toolExecutionErrors.increment();
                     } finally {
@@ -281,6 +318,88 @@ public class StreamingToolExecutor {
          */
         public ToolUseContext getCurrentContext() {
             return currentContext.get();
+        }
+
+        /** 等待任意工具完成（条件等待，替代 Thread.sleep） */
+        public void awaitAnyCompletion(long timeout, TimeUnit unit) {
+            synchronized (completionLock) {
+                try {
+                    completionLock.wait(unit.toMillis(timeout));
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
+
+        /** 工具完成时通知等待线程 */
+        private void notifyCompletion() {
+            synchronized (completionLock) {
+                completionLock.notifyAll();
+            }
+        }
+
+        /**
+         * 选择性错误级联检查 — 仅高危工具（bash/call_agent）的错误才触发 sibling abort。
+         * <p>
+         * 设计原则：
+         * <ul>
+         *   <li>读取类工具（grep/read/glob/list_dir）的错误属常态，不级联</li>
+         *   <li>其他工具的错误默认不级联，避免误伤</li>
+         *   <li>仅 bash 与 call_agent 等会产生外部副作用/调度子任务的高危工具，错误后
+         *       discard sibling tools，防止后续工具基于失败前提继续执行</li>
+         * </ul>
+         */
+        private void checkAndCascadeError(TrackedTool next) {
+            ToolResult result = next.result;
+            if (result == null || !result.isError() || next.tool == null) return;
+
+            // ★ 输入验证错误不触发级联 — LLM 格式输出错误不等于工具执行失败
+            String content = result.content();
+            if (content != null && content.contains("Input validation")) {
+                log.debug("[TOOL-CASCADE] Skipping cascade for input validation error in tool '{}': {}",
+                        next.tool.getName(), content.substring(0, Math.min(100, content.length())));
+                return;
+            }
+
+            boolean shouldCascade = next.tool.isHighRisk();
+            if (!shouldCascade || sessionDiscarded) return;
+
+            String toolName = next.tool.getName();
+            String snippet = content != null
+                    ? content.substring(0, Math.min(200, content.length()))
+                    : "null";
+            log.warn("[TOOL-CASCADE] High-risk tool '{}' (id={}) errored, discarding sibling tools. Error: {}",
+                    toolName, next.toolUseId, snippet);
+            sessionDiscarded = true;
+            cascadeAbortCounter.increment();
+        }
+
+        /** 注册工具预期执行时间 */
+        public void registerExpectedDuration(long durationMs) {
+            maxExpectedDurationMs.updateAndGet(current -> Math.max(current, durationMs));
+        }
+
+        /** 获取 session 中最长工具的预期执行时间 */
+        public long getMaxExpectedDurationMs() {
+            return maxExpectedDurationMs.get();
+        }
+
+        /** 获取所有未完成工具的 ID 列表（诊断用） */
+        public List<String> getPendingToolIds() {
+            return tracked.stream()
+                    .filter(t -> t.state != ToolState.COMPLETED && t.state != ToolState.YIELDED)
+                    .map(TrackedTool::getToolUseId)
+                    .collect(Collectors.toList());
+        }
+
+        /** 通知 Watchdog 触发（度量统计） */
+        public void notifyWatchdogFired() {
+            watchdogFiredCounter.increment();
+        }
+
+        /** 通知生成了 synthetic error（度量统计） */
+        public void notifySyntheticError() {
+            syntheticErrorCounter.increment();
         }
     }
 }

@@ -97,6 +97,11 @@ public class VerifyJourneyTool implements Tool {
     }
 
     @Override
+    public long getMaxExecutionTimeMs() {
+        return 600_000L; // 10 minutes for full journey verification (dev server + browser)
+    }
+
+    @Override
     public String getDescription() {
         return "Run a user journey verification against the running application. "
              + "Starts dev server, executes steps DSL, collects evidence (screenshots + console + video). "

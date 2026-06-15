@@ -94,12 +94,14 @@ agent:
     max-seconds: 1800
     graceful-shutdown-seconds: 30
     max-wait-minutes: 15
+    watchdog-multiplier: 2.0
+    tool-consume-max-wait-minutes: 0
   loop:
     prompt-too-long-withhold: true
     media-recovery: true
   model-aliases:
-    light: qwen3.7-plus
-    standard: qwen3.7-plus
+    light: qwen3.7-max
+    standard: qwen3.7-max
     premium: qwen3.7-max
 
 # 分类器模型配置（留空则按四级回退: env → 此配置 → lightweight → default）

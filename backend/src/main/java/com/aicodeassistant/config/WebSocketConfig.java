@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.Message;
 import org.springframework.web.socket.server.standard.ServletServerContainerFactoryBean;
 import org.springframework.scheduling.TaskScheduler;
@@ -58,6 +59,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
      * 无法承载 base64 图片数据（1-5MB），必须在容器级别提升。
      */
     @Bean
+    @Profile("!test")
     public ServletServerContainerFactoryBean createWebSocketContainer() {
         ServletServerContainerFactoryBean container = new ServletServerContainerFactoryBean();
         container.setMaxTextMessageBufferSize(10 * 1024 * 1024);   // 10MB

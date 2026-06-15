@@ -12,6 +12,7 @@ import com.aicodeassistant.engine.QueryEngine;
 import com.aicodeassistant.engine.QueryLoopState;
 import com.aicodeassistant.engine.QueryMessageHandler;
 import com.aicodeassistant.llm.LlmProviderRegistry;
+import com.aicodeassistant.llm.ModelRegistry;
 import com.aicodeassistant.model.PermissionMode;
 import com.aicodeassistant.permission.PermissionModeManager;
 import com.aicodeassistant.llm.ThinkingConfig;
@@ -66,6 +67,7 @@ public class SubAgentExecutor {
     private final LlmProviderRegistry providerRegistry;  // ★ 新增: 模型别名解析 ★
     private final PermissionModeManager permissionModeManager;  // ★ 新增: Worker 权限冒泡 ★
     private final AgentTimeoutConfig timeoutConfig;  // ★ 修复2: 超时配置 Bean ★
+    private final ModelRegistry modelRegistry;  // ★ 新增: 查询模型 maxOutputTokens ★
 
     /** 子代理结果最大字符数 */
     static final int MAX_RESULT_SIZE_CHARS = 100_000;
@@ -88,7 +90,8 @@ public class SubAgentExecutor {
                             TeamManager teamManager,
                             LlmProviderRegistry providerRegistry,
                             PermissionModeManager permissionModeManager,
-                            AgentTimeoutConfig timeoutConfig) {
+                            AgentTimeoutConfig timeoutConfig,
+                            ModelRegistry modelRegistry) {
         this.concurrencyController = concurrencyController;
         this.queryEngine = queryEngine;
         this.toolRegistry = toolRegistry;
@@ -102,6 +105,7 @@ public class SubAgentExecutor {
         this.providerRegistry = providerRegistry;
         this.permissionModeManager = permissionModeManager;
         this.timeoutConfig = timeoutConfig;
+        this.modelRegistry = modelRegistry;
     }
 
     /**
@@ -120,7 +124,7 @@ public class SubAgentExecutor {
             List<AgentResult> results = teamManager.dispatchTasks(
                     request.teamName(), tasks, parentContext);
             return results.isEmpty()
-                    ? new AgentResult("completed", "No results from team dispatch", request.prompt(), null)
+                    ? new AgentResult(AgentResult.STATUS_COMPLETED, "No results from team dispatch", request.prompt(), null)
                     : results.get(0);
         }
 
@@ -138,8 +142,8 @@ public class SubAgentExecutor {
             // 1. 解析代理定义
             AgentDefinition agentDef = resolveAgentDefinition(request.agentType());
 
-            // 2. 解析模型: 参数 → 代理定义 → 默认
-            String model = resolveModel(request.model(), agentDef);
+            // 2. 解析模型: 参数 → 父会话继承 → 兆底
+            String model = resolveModel(request.model(), agentDef, parentContext.parentModel());
 
             // 3. 组装工具集（过滤禁用工具）
             List<Tool> tools = assembleToolPool(agentDef, parentContext);
@@ -157,7 +161,7 @@ public class SubAgentExecutor {
                     .map(Tool::toToolDefinition).toList();
             QueryConfig config = QueryConfig.withDefaults(
                     model, systemPrompt, tools, toolDefs,
-                    QueryConfig.DEFAULT_MAX_TOKENS, 200000,
+                    QueryConfig.getRecommendedMaxTokens(modelRegistry, model), 200000,
                     new ThinkingConfig.Adaptive(),
                     agentDef.maxTurns(),  // 默认 30
                     "subagent-" + request.agentId()
@@ -223,19 +227,28 @@ public class SubAgentExecutor {
                     future.cancel(true);
                     log.error("Sub-agent {} did not respond to graceful shutdown, forcefully cancelled",
                             request.agentId());
-                    return new AgentResult("completed",
-                            "Agent timed out after " + timeout.toSeconds() + " seconds "
-                            + "and did not respond to graceful shutdown",
-                            request.prompt(), null);
+                    // 结构化的超时错误信息，使用 tool_use_error 标签便于 LLM 理解
+                    String timeoutMsg = String.format(
+                            "<tool_use_error>Sub-agent '%s' (type=%s) timed out after %d seconds. "
+                                    + "Task: %.200s</tool_use_error>",
+                            request.agentId(),
+                            request.agentType(),
+                            timeout.toSeconds(),
+                            request.prompt());
+                    return new AgentResult(
+                            AgentResult.STATUS_TIMEOUT,  // 明确的状态标识（区别于 "completed"）
+                            timeoutMsg,                  // 结构化错误消息
+                            request.prompt(),
+                            null);
                 }
             } catch (ExecutionException e) {
                 log.error("Sub-agent {} execution failed with exception", request.agentId(), e.getCause());
-                return new AgentResult("completed",
+                return new AgentResult(AgentResult.STATUS_COMPLETED,
                         "Agent execution failed: " + (e.getCause() != null ? e.getCause().getMessage() : e.getMessage()),
                         request.prompt(), null);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                return new AgentResult("completed", "Agent interrupted", request.prompt(), null);
+                return new AgentResult(AgentResult.STATUS_COMPLETED, "Agent interrupted", request.prompt(), null);
             } finally {
                 // ★ 修复6: 统一资源清理 — 所有退出路径都经过这里
                 // Worktree 清理
@@ -276,16 +289,16 @@ public class SubAgentExecutor {
                 long durationMs = Duration.between(startTime, Instant.now()).toMillis();
                 answer = taskNotificationFormatter.formatNotification(
                         request.agentId(),
-                        new AgentResult("completed", answer, request.prompt(), null),
+                        new AgentResult(AgentResult.STATUS_COMPLETED, answer, request.prompt(), null),
                         durationMs);
             }
 
-            return new AgentResult("completed", answer, request.prompt(), null);
+            return new AgentResult(AgentResult.STATUS_COMPLETED, answer, request.prompt(), null);
         } catch (AgentLimitExceededException e) {
             throw e;  // 让调用方处理
         } catch (Exception e) {
             log.error("Sub-agent execution failed: {}", request.agentId(), e);
-            return new AgentResult("completed",
+            return new AgentResult(AgentResult.STATUS_COMPLETED,
                     "Agent execution failed: " + e.getMessage(),
                     request.prompt(), null);
         }
@@ -315,7 +328,7 @@ public class SubAgentExecutor {
         backgroundTracker.register(request.agentId(), parentContext.sessionId(),
                 request.prompt(), outputFile);
 
-        return new AgentResult("async_launched", null, request.prompt(), outputFile);
+        return new AgentResult(AgentResult.STATUS_ASYNC_LAUNCHED, null, request.prompt(), outputFile);
     }
 
     // ═══ 代理资源清理 ═══
@@ -412,18 +425,23 @@ public class SubAgentExecutor {
         };
     }
 
-    private String resolveModel(String requestModel, AgentDefinition agentDef) {
-        String rawModel;
+    private String resolveModel(String requestModel, AgentDefinition agentDef, String parentModel) {
+        // 优先级 1：用户在 AgentTool 调用时显式指定
         if (requestModel != null && !requestModel.isBlank()) {
-            rawModel = requestModel;
-        } else if (agentDef.defaultModel() != null) {
-            rawModel = agentDef.defaultModel();
-        } else {
-            rawModel = "standard";
+            String resolved = providerRegistry.resolveModelAlias(requestModel);
+            log.info("resolveModel: explicit request '{}' → '{}'", requestModel, resolved);
+            return resolved;
         }
-        // ★ 通过别名解析机制映射到实际模型 ★
-        String resolved = providerRegistry.resolveModelAlias(rawModel);
-        log.debug("resolveModel: raw='{}' → resolved='{}'", rawModel, resolved);
+
+        // 优先级 2：继承父会话模型（核心变更）
+        if (parentModel != null && !parentModel.isBlank()) {
+            log.info("resolveModel: inheriting parent model '{}'", parentModel);
+            return parentModel;  // 直接使用，无需别名解析（已是真实模型 ID）
+        }
+
+        // 优先级 3：兆底使用 premium 别名（最强模型）
+        String resolved = providerRegistry.resolveModelAlias("premium");
+        log.info("resolveModel: fallback to premium → '{}'", resolved);
         return resolved;
     }
 
@@ -519,11 +537,22 @@ public class SubAgentExecutor {
 
     /** 子代理执行结果 */
     public record AgentResult(
-            String status,     // "completed" | "async_launched"
+            String status,     // "completed" | "timeout" | "async_launched"
             String result,
             String prompt,
             String outputFile  // 异步模式下的输出文件路径
-    ) {}
+    ) {
+        /** Agent 正常完成 */
+        public static final String STATUS_COMPLETED = "completed";
+        /** Agent 超时 */
+        public static final String STATUS_TIMEOUT = "timeout";
+        /** Agent 异步已启动 */
+        public static final String STATUS_ASYNC_LAUNCHED = "async_launched";
+
+        public boolean isTimeout() {
+            return STATUS_TIMEOUT.equals(status);
+        }
+    }
 
     /** 隔离模式 */
     public enum IsolationMode { NONE, WORKTREE, REMOTE }
@@ -560,7 +589,7 @@ public class SubAgentExecutor {
 
             // 3. 解析代理定义和工具集
             AgentDefinition agentDef = resolveAgentDefinition(request.agentType());
-            String model = resolveModel(request.model(), agentDef);
+            String model = resolveModel(request.model(), agentDef, parentContext.parentModel());
             List<Tool> tools = assembleToolPool(agentDef, parentContext);
 
             // 4. 构建 QueryConfig — 启用 cache_control 提示
@@ -572,7 +601,7 @@ public class SubAgentExecutor {
 
             QueryConfig config = QueryConfig.withDefaults(
                     model, systemPrompt, tools, toolDefs,
-                    QueryConfig.DEFAULT_MAX_TOKENS, 200000,
+                    QueryConfig.getRecommendedMaxTokens(modelRegistry, model), 200000,
                     new ThinkingConfig.Adaptive(),
                     agentDef.maxTurns(),
                     "fork-" + request.agentId()
@@ -611,7 +640,7 @@ public class SubAgentExecutor {
             } catch (TimeoutException e) {
                 future.cancel(true);
                 log.warn("Fork agent {} timed out", request.agentId());
-                return new AgentResult("completed",
+                return new AgentResult(AgentResult.STATUS_COMPLETED,
                         "Fork agent timed out after " + PER_AGENT_TIMEOUT.toSeconds() + " seconds",
                         request.prompt(), null);
             }
@@ -630,13 +659,13 @@ public class SubAgentExecutor {
             long durationMs = Duration.between(startTime, Instant.now()).toMillis();
             log.info("Fork agent {} completed in {}ms", request.agentId(), durationMs);
 
-            return new AgentResult("completed", answer, request.prompt(), null);
+            return new AgentResult(AgentResult.STATUS_COMPLETED, answer, request.prompt(), null);
 
         } catch (AgentLimitExceededException e) {
             throw e;
         } catch (Exception e) {
             log.error("Fork agent execution failed: {}", request.agentId(), e);
-            return new AgentResult("completed",
+            return new AgentResult(AgentResult.STATUS_COMPLETED,
                     "Fork agent execution failed: " + e.getMessage(),
                     request.prompt(), null);
         }
@@ -967,7 +996,7 @@ public class SubAgentExecutor {
             boolean omitProjectPrompt, String systemPromptTemplate
     ) {
         static final AgentDefinition EXPLORE = new AgentDefinition(
-                "Explore", 30, "light", null,
+                "Explore", 30, null, null,
                 Set.of("Agent", "ExitPlanMode", "FileEdit", "FileWrite", "NotebookEdit"),
                 true, EXPLORE_AGENT_PROMPT);
         static final AgentDefinition VERIFICATION = new AgentDefinition(
@@ -982,7 +1011,7 @@ public class SubAgentExecutor {
                 "GeneralPurpose", 30, null, Set.of("*"), null,
                 false, GENERAL_PURPOSE_AGENT_PROMPT);
         static final AgentDefinition GUIDE = new AgentDefinition(
-                "Guide", 30, "light",
+                "Guide", 30, null,
                 Set.of("Glob", "Grep", "FileRead", "WebFetch", "WebSearch"), null,
                 false, GUIDE_AGENT_PROMPT);
     }

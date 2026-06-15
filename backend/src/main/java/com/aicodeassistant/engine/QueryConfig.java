@@ -1,5 +1,6 @@
 package com.aicodeassistant.engine;
 
+import com.aicodeassistant.llm.ModelRegistry;
 import com.aicodeassistant.llm.ThinkingConfig;
 import com.aicodeassistant.tool.Tool;
 
@@ -48,6 +49,29 @@ public record QueryConfig(
 
     /** 最大输出恢复次数 */
     public static final int MAX_OUTPUT_TOKENS_RECOVERY_LIMIT = 3;
+
+    /**
+     * 根据模型返回推荐的 max_tokens 值。
+     * <p>
+     * 直接读取 {@link ModelRegistry} 中该模型的真实 maxOutputTokens 配置，
+     * 并在 {@link #ESCALATED_MAX_TOKENS} 上限内做安全裁剪，避免对超大输出能力
+     * 模型（如 deepseek-v4-pro=384k）一次性请求超过链路实际承载量。
+     *
+     * @param registry 模型注册表（必填，禁止 null；调用方应从 Spring 容器注入）
+     * @param model    模型 ID
+     * @return 推荐 max_tokens；找不到能力或参数缺失时回退到 {@link #DEFAULT_MAX_TOKENS}
+     */
+    public static int getRecommendedMaxTokens(ModelRegistry registry, String model) {
+        if (registry == null || model == null || model.isBlank()) {
+            return DEFAULT_MAX_TOKENS;
+        }
+        int maxOutput = registry.getMaxOutputTokensForModel(model);
+        if (maxOutput <= 0) {
+            return DEFAULT_MAX_TOKENS;
+        }
+        // 安全裁剪：不超过 ESCALATED_MAX_TOKENS（65536），避免链路超载
+        return Math.min(maxOutput, ESCALATED_MAX_TOKENS);
+    }
 
     /**
      * 向后兼容工厂方法 — 无 fallbackModel 和 tokenBudget。

@@ -72,6 +72,11 @@ public class WebFetchTool implements Tool {
     }
 
     @Override
+    public long getMaxExecutionTimeMs() {
+        return 300_000L; // 5 minutes for network fetch + LLM summarization
+    }
+
+    @Override
     public String getDescription() {
         return "Fetch the content of a URL and convert HTML to Markdown for easy reading.";
     }

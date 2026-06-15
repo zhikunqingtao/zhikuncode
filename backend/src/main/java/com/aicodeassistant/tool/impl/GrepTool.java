@@ -54,6 +54,11 @@ public class GrepTool implements Tool {
     }
 
     @Override
+    public long getMaxExecutionTimeMs() {
+        return 180_000L; // 3 minutes for large-scale ripgrep scans
+    }
+
+    @Override
     public String getDescription() {
         return "Search file contents using regular expressions. Powered by ripgrep (rg). "
                 + "Supports file type filtering, context lines, and multiple output modes.";

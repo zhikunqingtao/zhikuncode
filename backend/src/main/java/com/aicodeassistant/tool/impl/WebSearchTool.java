@@ -37,6 +37,11 @@ public class WebSearchTool implements Tool {
     }
 
     @Override
+    public long getMaxExecutionTimeMs() {
+        return 300_000L; // 5 minutes for web search providers
+    }
+
+    @Override
     public String getDescription() {
         return "Perform a web search to find relevant information on the internet.";
     }

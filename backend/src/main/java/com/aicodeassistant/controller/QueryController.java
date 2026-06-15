@@ -137,7 +137,7 @@ public class QueryController {
         QueryConfig config = QueryConfig.withDefaults(
                 model, systemPrompt, tools,
                 tools.stream().map(Tool::toToolDefinition).toList(),
-                QueryConfig.DEFAULT_MAX_TOKENS,
+                QueryConfig.getRecommendedMaxTokens(modelRegistry, model),
                 contextWindow,
                 new ThinkingConfig.Adaptive(),
                 maxTurns, "rest-api"
@@ -247,7 +247,7 @@ public class QueryController {
                 QueryConfig config = QueryConfig.withDefaults(
                         model, systemPrompt, tools,
                         tools.stream().map(Tool::toToolDefinition).toList(),
-                        QueryConfig.DEFAULT_MAX_TOKENS,
+                        QueryConfig.getRecommendedMaxTokens(modelRegistry, model),
                         contextWindow,
                         new ThinkingConfig.Adaptive(),
                         maxTurns, "rest-api-stream"
@@ -358,7 +358,7 @@ public class QueryController {
         QueryConfig config = QueryConfig.withDefaults(
                 model, systemPrompt, tools,
                 tools.stream().map(Tool::toToolDefinition).toList(),
-                QueryConfig.DEFAULT_MAX_TOKENS,
+                QueryConfig.getRecommendedMaxTokens(modelRegistry, model),
                 contextWindow,
                 new ThinkingConfig.Adaptive(),
                 maxTurns, "rest-api-conversation"

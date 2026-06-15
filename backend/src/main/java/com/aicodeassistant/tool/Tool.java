@@ -76,6 +76,15 @@ public interface Tool {
 
     // ==================== 并发安全性 ====================
 
+    /**
+     * 工具预期最大执行时间（毫秒）。
+     * 用于 Watchdog 动态计算基准值。
+     * 默认 120 秒（2分钟），高耗时工具应覆写此方法。
+     */
+    default long getMaxExecutionTimeMs() {
+        return 120_000L; // 2 minutes default
+    }
+
     /** 是否可与其他工具并发执行 */
     default boolean isConcurrencySafe(ToolInput input) {
         return isReadOnly(input);
@@ -118,6 +127,15 @@ public interface Tool {
     default String toAutoClassifierInput(ToolInput input) { return null; }
 
     // ==================== 安全性标记 ====================
+
+    /**
+     * 标识工具是否为高风险工具。
+     * 高风险工具执行出错时会触发 sibling 工具级联中止。
+     * 默认为 false，bash 和 call_agent 等工具应覆写为 true。
+     */
+    default boolean isHighRisk() {
+        return false;
+    }
 
     /** 是否为破坏性操作 */
     default boolean isDestructive(ToolInput input) { return false; }
