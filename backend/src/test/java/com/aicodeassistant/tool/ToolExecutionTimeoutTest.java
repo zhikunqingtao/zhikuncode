@@ -227,7 +227,8 @@ class ToolExecutionTimeoutTest {
                 mock(com.aicodeassistant.tool.bash.BashOutputProcessor.class),
                 mock(com.aicodeassistant.tool.bash.ProcessTreeManager.class),
                 mock(com.aicodeassistant.sandbox.SandboxManager.class),
-                mock(com.aicodeassistant.security.CommandBlacklistService.class));
+                mock(com.aicodeassistant.security.CommandBlacklistService.class),
+                mock(com.aicodeassistant.tool.bash.BashErrorClassifier.class));
         assertThat(bashTool.isHighRisk()).as("BashTool 必须为高危").isTrue();
         assertThat(bashTool.getMaxExecutionTimeMs()).as("BashTool 应声明 10 分钟").isEqualTo(600_000L);
 

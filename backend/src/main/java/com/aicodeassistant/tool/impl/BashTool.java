@@ -6,6 +6,8 @@ import com.aicodeassistant.sandbox.SandboxManager.SandboxResult;
 import com.aicodeassistant.security.CommandBlacklistService;
 import com.aicodeassistant.tool.*;
 import com.aicodeassistant.tool.bash.BashCommandClassifier;
+import com.aicodeassistant.tool.bash.BashErrorClassifier;
+import com.aicodeassistant.tool.bash.BashErrorClassifier.ErrorClassification;
 import com.aicodeassistant.tool.bash.BashOutputProcessor;
 import com.aicodeassistant.tool.bash.BashSecurityAnalyzer;
 import com.aicodeassistant.tool.bash.CommandCategory;
@@ -88,6 +90,7 @@ public class BashTool implements Tool {
     private final ProcessTreeManager processTreeManager;
     private final SandboxManager sandboxManager;
     private final CommandBlacklistService commandBlacklistService;
+    private final BashErrorClassifier errorClassifier;
 
     public BashTool(BashSecurityAnalyzer securityAnalyzer,
                     BashCommandClassifier commandClassifier,
@@ -95,7 +98,8 @@ public class BashTool implements Tool {
                     BashOutputProcessor outputProcessor,
                     ProcessTreeManager processTreeManager,
                     SandboxManager sandboxManager,
-                    CommandBlacklistService commandBlacklistService) {
+                    CommandBlacklistService commandBlacklistService,
+                    BashErrorClassifier errorClassifier) {
         this.securityAnalyzer = securityAnalyzer;
         this.commandClassifier = commandClassifier;
         this.shellStateManager = shellStateManager;
@@ -103,6 +107,29 @@ public class BashTool implements Tool {
         this.processTreeManager = processTreeManager;
         this.sandboxManager = sandboxManager;
         this.commandBlacklistService = commandBlacklistService;
+        this.errorClassifier = errorClassifier;
+    }
+
+    /**
+     * 调用 BashErrorClassifier 对错误进行分类，并将结果注入 ToolResult.metadata。
+     * <p>
+     * 此方法独立于 {@link com.aicodeassistant.tool.recovery.BashRecoveryPolicy}，
+     * 分类器是无状态的纯函数，重复调用不冲突。
+     *
+     * @param errorMessage 错误消息（作为 ToolResult.error 内容）
+     * @param exitCode 进程退出码（超时场景可用 137 表示）
+     * @param outputForClassification 用于分类分析的输出（合并 stdout+stderr）
+     * @param command 原始命令
+     */
+    private ToolResult buildErrorWithClassification(String errorMessage,
+                                                    int exitCode,
+                                                    String outputForClassification,
+                                                    String command) {
+        ErrorClassification classification = errorClassifier.classify(
+                exitCode, outputForClassification, command);
+        return ToolResult.error(errorMessage)
+                .withMetadata("failure_category", classification.type().name())
+                .withMetadata("failure_suggestion", classification.suggestion());
     }
 
     @Override
@@ -457,7 +484,9 @@ public class BashTool implements Tool {
         String rejection = validateCommandSafety(command);
         if (rejection != null) {
             log.warn("Command blocked by safety validation: {} — reason: {}", command, rejection);
-            return ToolResult.error(rejection);
+            return ToolResult.error(rejection)
+                    .withMetadata("failure_category", BashErrorClassifier.ErrorType.NEEDS_HUMAN.name())
+                    .withMetadata("failure_suggestion", rejection);
         }
 
         // 动态超时策略：LLM显式指定timeout时尊重其选择，否则基于命令类型推荐
@@ -541,7 +570,9 @@ public class BashTool implements Tool {
                 boolean completed = process.waitFor(timeout, TimeUnit.MILLISECONDS);
                 if (!completed) {
                     processTreeManager.destroyProcessTree(process, Duration.ofSeconds(2));
-                    return ToolResult.error("Command timed out after " + timeout + "ms");
+                    String timeoutMsg = "Command timed out after " + timeout + "ms";
+                    // 超时使用退出码 137 (SIGKILL) 触发 TIMEOUT 分类
+                    return buildErrorWithClassification(timeoutMsg, 137, timeoutMsg, command);
                 }
 
                 int exitCode = process.exitValue();
@@ -556,7 +587,9 @@ public class BashTool implements Tool {
 
                 // 7. 构建结果
                 if (hasError) {
-                    return ToolResult.error("Exit code: " + exitCode + "\n" + stdout);
+                    String errorBody = "Exit code: " + exitCode + "\n" + stdout;
+                    // rawStdout 提供完整原始输出（含 stderr 因 redirectErrorStream），用于关键字匹配
+                    return buildErrorWithClassification(errorBody, exitCode, rawStdout, command);
                 }
 
                 return ToolResult.success(stdout)
@@ -574,10 +607,12 @@ public class BashTool implements Tool {
 
         } catch (IOException e) {
             log.error("Failed to execute command: {}", command, e);
-            return ToolResult.error("Failed to execute command: " + e.getMessage());
+            String errMsg = "Failed to execute command: " + e.getMessage();
+            // 进程启动失败 → exitCode=-1，由分类器基于 stderr 关键字判断（默认 NON_RETRYABLE）
+            return buildErrorWithClassification(errMsg, -1, e.getMessage() == null ? "" : e.getMessage(), command);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            return ToolResult.error("Command execution interrupted");
+            return buildErrorWithClassification("Command execution interrupted", -1, "interrupted", command);
         }
     }
 
@@ -587,11 +622,13 @@ public class BashTool implements Tool {
     private ToolResult executeSandboxed(String command, String workingDir, long timeoutMs) {
         SandboxResult result = sandboxManager.execute(command, Path.of(workingDir), Map.of());
         if (result.timedOut()) {
-            return ToolResult.error("Sandboxed command timed out after "
-                    + sandboxManager.getTimeoutSeconds() + "s");
+            String timeoutMsg = "Sandboxed command timed out after "
+                    + sandboxManager.getTimeoutSeconds() + "s";
+            return buildErrorWithClassification(timeoutMsg, 137, timeoutMsg, command);
         }
         if (result.exitCode() != 0) {
-            return ToolResult.error("Exit code: " + result.exitCode() + "\n" + result.output());
+            String errorBody = "Exit code: " + result.exitCode() + "\n" + result.output();
+            return buildErrorWithClassification(errorBody, result.exitCode(), result.output(), command);
         }
         return ToolResult.success(result.output())
                 .withMetadata("sandboxed", true)
