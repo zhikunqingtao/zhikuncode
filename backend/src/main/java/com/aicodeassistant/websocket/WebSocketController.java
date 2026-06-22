@@ -24,6 +24,7 @@ import com.aicodeassistant.llm.LlmProviderRegistry;
 import com.aicodeassistant.llm.ModelCapabilities;
 import com.aicodeassistant.llm.ModelRegistry;
 import com.aicodeassistant.llm.ThinkingConfig;
+import com.aicodeassistant.llm.VisionModelRouter;
 import com.aicodeassistant.model.PermissionBehavior;
 import com.aicodeassistant.model.PermissionDecision;
 import com.aicodeassistant.model.RuleScope;
@@ -79,6 +80,7 @@ public class WebSocketController implements PermissionNotifier {
     private final LlmProviderRegistry providerRegistry;
     private final EffectiveSystemPromptBuilder systemPromptBuilder;
     private final ModelRegistry modelRegistry;            // P0-1 新增
+    private final VisionModelRouter visionModelRouter;   // 视觉模型路由
     private final SessionManager sessionManager;           // P1-0 新增
     private final ElicitationService elicitationService;   // P1-5 新增
     private final PermissionPipeline permissionPipeline;    // P0 权限闭环
@@ -116,7 +118,8 @@ public class WebSocketController implements PermissionNotifier {
                                 @org.springframework.context.annotation.Lazy com.aicodeassistant.coordinator.LeaderPermissionBridge leaderPermissionBridge,
                                 CostTrackerService costTrackerService,
                                 ActivityRepository activityRepository,
-                                ObjectMapper objectMapper) {
+                                ObjectMapper objectMapper,
+                                VisionModelRouter visionModelRouter) {
         this.messaging = messaging;
         this.wsSessionManager = wsSessionManager;
         this.queryEngine = queryEngine;
@@ -136,6 +139,7 @@ public class WebSocketController implements PermissionNotifier {
         this.costTrackerService = costTrackerService;
         this.activityRepository = activityRepository;
         this.objectMapper = objectMapper;
+        this.visionModelRouter = visionModelRouter;
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -494,21 +498,34 @@ public class WebSocketController implements PermissionNotifier {
             log.info("WS user_message attached {} image(s): sessionId={}", imageBlocks.size(), sessionId);
         }
 
-        // ★ 图片附件校验：模型能力 + 单张大小硬上限
+        // ★ 图片附件校验：模型能力 + 单张大小硬上限 + 视觉模型自动路由
+        String routedModelOverride = null;
         if (!imageBlocks.isEmpty()) {
-            String validationError = validateImageAttachments(sessionId, imageBlocks);
-            if (validationError != null) {
-                sendError(sessionId, "image_validation_failed", validationError, false);
+            ImageValidationResult validationResult = validateImageAttachments(sessionId, imageBlocks);
+            if (!validationResult.valid()) {
+                sendError(sessionId, "image_validation_failed", validationResult.errorMessage(), false);
                 running.set(false);
                 return;
+            }
+            if (validationResult.routedModel() != null) {
+                routedModelOverride = validationResult.routedModel();
+                String originalModel = sessionModels.getOrDefault(sessionId, providerRegistry.getDefaultModel());
+                ModelCapabilities routedCaps = modelRegistry.getCapabilities(routedModelOverride);
+                push(sessionId, "model_routed", Map.of(
+                        "originalModel", originalModel,
+                        "routedModel", routedModelOverride,
+                        "routedModelName", routedCaps.displayName(),
+                        "reason", "当前模型不支持图片，已自动切换到 " + routedCaps.displayName()
+                ));
             }
         }
 
         // 在 Virtual Thread 中执行 QueryEngine
         final List<ContentBlock.ImageBlock> imagesForQuery = imageBlocks;
+        final String modelOverride = routedModelOverride;
         Thread.ofVirtual().name("zhiku-ws-query-" + sessionId).start(() -> {
             try {
-                executeQuery(sessionId, msg.text(), imagesForQuery);
+                executeQuery(sessionId, msg.text(), imagesForQuery, modelOverride);
             } catch (Exception e) {
                 log.error("QueryEngine 执行异常: sessionId={}", sessionId, e);
                 sendError(sessionId, "query_error", e.getMessage() != null ? e.getMessage() : "Unknown error", true);
@@ -523,7 +540,7 @@ public class WebSocketController implements PermissionNotifier {
      * 执行普通用户查询（无图片附件）。使用全量工具和会话默认模型。
      */
     private void executeQuery(String sessionId, String userText) {
-        executeQuery(sessionId, userText, List.of());
+        executeQuery(sessionId, userText, List.of(), null);
     }
 
     /**
@@ -531,6 +548,17 @@ public class WebSocketController implements PermissionNotifier {
      */
     private void executeQuery(String sessionId, String userText,
                               List<ContentBlock.ImageBlock> images) {
+        executeQuery(sessionId, userText, images, null);
+    }
+
+    /**
+     * 执行普通用户查询。支持图片附件（多模态）+ 模型覆盖（视觉路由用途）。
+     *
+     * @param modelOverride 模型覆盖（null=使用会话默认模型；非 null=本次请求使用指定模型，例如视觉路由后的目标模型）
+     */
+    private void executeQuery(String sessionId, String userText,
+                              List<ContentBlock.ImageBlock> images,
+                              String modelOverride) {
         // 0. 异步预加载项目上下文
         Path workingDir = Path.of(System.getProperty("user.dir"));
         projectContextService.ensureContext(workingDir);
@@ -539,11 +567,12 @@ public class WebSocketController implements PermissionNotifier {
         List<Tool> tools = toolRegistry.getEnabledTools();
         List<Map<String, Object>> toolDefs = toolRegistry.getToolDefinitions();
 
-        // 2. 会话模型 → 全局默认（★ 别名解析）
-        String rawModel = sessionModels.getOrDefault(sessionId, providerRegistry.getDefaultModel());
+        // 2. 模型覆盖优先 → 会话模型 → 全局默认（★ 别名解析）
+        String rawModel = modelOverride != null ? modelOverride
+                : sessionModels.getOrDefault(sessionId, providerRegistry.getDefaultModel());
         String model = providerRegistry.resolveModelAlias(rawModel);
-        log.info("executeQuery: sessionId={}, model={} (raw={}), images={}",
-                sessionId, model, rawModel, images != null ? images.size() : 0);
+        log.info("executeQuery: sessionId={}, model={} (raw={}, override={}), images={}",
+                sessionId, model, rawModel, modelOverride, images != null ? images.size() : 0);
 
         executeQueryInternal(sessionId, userText, images, tools, toolDefs, model);
     }
@@ -749,14 +778,32 @@ public class WebSocketController implements PermissionNotifier {
     private static final long MAX_IMAGE_BYTES = 10L * 1024 * 1024;
 
     /**
+     * 图片校验结果。
+     * <ul>
+     *   <li>{@code valid=true, routedModel=null}：校验通过，使用会话默认模型</li>
+     *   <li>{@code valid=true, routedModel!=null}：校验通过，本次请求需路由到指定视觉模型</li>
+     *   <li>{@code valid=false}：校验失败，{@code errorMessage} 为提示信息</li>
+     * </ul>
+     */
+    private record ImageValidationResult(
+            boolean valid,
+            String errorMessage,
+            String routedModel
+    ) {
+        static ImageValidationResult ok() { return new ImageValidationResult(true, null, null); }
+        static ImageValidationResult routed(String model) { return new ImageValidationResult(true, null, model); }
+        static ImageValidationResult error(String msg) { return new ImageValidationResult(false, msg, null); }
+    }
+
+    /**
      * 校验图片附件：
-     * 1. 当前模型必须支持图片输入（supportsImages）
-     * 2. 图片数量不超过模型 maxImages
+     * 1. 当前模型不支持图片时尝试路由到视觉模型（同 Provider 优先 → 全局兜底）
+     * 2. 图片数量不超过（路由后）模型 maxImages
      * 3. 单张图片解码后大小不超过 10MB
      *
-     * @return 错误消息（校验失败）；null（校验通过）
+     * @return 校验结果（包含错误信息或路由目标模型）
      */
-    private String validateImageAttachments(String sessionId, List<ContentBlock.ImageBlock> images) {
+    private ImageValidationResult validateImageAttachments(String sessionId, List<ContentBlock.ImageBlock> images) {
         // 解析当前会话使用的模型（与 executeQuery 一致）
         String rawModel = sessionModels.getOrDefault(sessionId, providerRegistry.getDefaultModel());
         String model = providerRegistry.resolveModelAlias(rawModel);
@@ -769,11 +816,20 @@ public class WebSocketController implements PermissionNotifier {
             caps = ModelCapabilities.DEFAULT;
         }
 
+        // 核心变化：不再直接报错，尝试路由到视觉模型
+        String effectiveModel = model;
         if (!caps.supportsImages()) {
-            return "当前模型不支持图片输入，请切换支持图片的模型";
+            String visionModel = visionModelRouter.resolveVisionModel(model);
+            if (visionModel == null) {
+                return ImageValidationResult.error("当前模型不支持图片输入且无可用视觉模型");
+            }
+            effectiveModel = visionModel;
+            caps = modelRegistry.getCapabilities(effectiveModel);
         }
+
+        // 使用路由后的模型能力进行数量校验
         if (images.size() > caps.maxImages()) {
-            return "图片数量超出限制：当前模型最多支持 " + caps.maxImages() + " 张图片，本次提交了 " + images.size() + " 张";
+            return ImageValidationResult.error("图片数量超出限制：当前模型最多支持 " + caps.maxImages() + " 张图片，本次提交了 " + images.size() + " 张");
         }
 
         // 单张大小硬上限：base64 解码后约为字符串长度 * 3/4
@@ -783,11 +839,15 @@ public class WebSocketController implements PermissionNotifier {
             if (b64 == null) continue;
             long approxBytes = (long) b64.length() * 3L / 4L;
             if (approxBytes > MAX_IMAGE_BYTES) {
-                return "第 " + (i + 1) + " 张图片大小超出限制（约 "
-                        + (approxBytes / (1024 * 1024)) + "MB），单张图片不得超过 10MB";
+                return ImageValidationResult.error("第 " + (i + 1) + " 张图片大小超出限制（约 "
+                        + (approxBytes / (1024 * 1024)) + "MB），单张图片不得超过 10MB");
             }
         }
-        return null;
+
+        if (!effectiveModel.equals(model)) {
+            return ImageValidationResult.routed(effectiveModel);
+        }
+        return ImageValidationResult.ok();
     }
 
     /**

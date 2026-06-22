@@ -243,6 +243,18 @@ const handlers: Record<string, (data: any) => void> = {
     'model_changed':            (d: { model: string }) => {
         useSessionStore.getState().setModel(d.model);
     },
+    // === 智能模型路由通知（图片自动路由到视觉模型）===
+    // 后端在用户当前模型不支持图片时自动切换到视觉模型，并推送本事件用于 UI 提示。
+    'model_routed':             (d: { originalModel: string; routedModel: string; routedModelName: string; reason: string }) => {
+        const message = d.reason
+            || `图片已自动路由到 ${d.routedModelName} 处理（原模型 ${d.originalModel} 不支持图片）`;
+        useNotificationStore.getState().addNotification({
+            key: `model-routed-${d.routedModel}`,
+            level: 'info',
+            message,
+            timeout: 6000,
+        });
+    },
     'permission_mode_changed':  (d: { mode: string }) => {
         // ★ 大小写安全：后端 PermissionMode 枚举为大写（如 "AUTO"），前端类型为小写（如 'auto'）
         const normalizedMode = d.mode.toLowerCase() as PermissionMode;

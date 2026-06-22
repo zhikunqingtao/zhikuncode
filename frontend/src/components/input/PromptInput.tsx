@@ -16,7 +16,6 @@ import { Send, Square, X } from 'lucide-react';
 import type { Command, LocalAttachment, SubmitEvent, Message, Attachment } from '@/types';
 import { useSessionStore } from '@/store/sessionStore';
 import { useNotificationStore } from '@/store/notificationStore';
-import { useModelStore } from '@/store/modelStore';
 import { sendToServer } from '@/api/stompClient';
 import CommandPalette from './CommandPalette';
 import FileUpload from './FileUpload';
@@ -26,8 +25,14 @@ import { generateUUID } from '@/utils/uuid';
 /** 单张图片附件大小上限：5MB */
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
-/** 不依赖后端能力的安全默认值（能力未加载时允许上传以保证可用性） */
-const FALLBACK_MAX_IMAGES = 4;
+/**
+ * 通用的前端图片数量上限（参考值，仅用于防御性约束）。
+ *
+ * 后端已实现智能视觉路由：当用户选择不支持图片的模型（如 glm-5.2）时，
+ * 会自动路由到同厂商视觉模型，因此前端不再基于 modelInfo.supportsImages 前置禁用按钮。
+ * 实际可处理的图片数量由路由后的视觉模型决定，前端仅保留一个合理上限。
+ */
+const FRONTEND_MAX_IMAGES = 20;
 
 /**
  * 将 File 读取为纯 base64 字符串（去除 data:mime;base64, 前缀）。
@@ -75,16 +80,9 @@ const PromptInput: React.FC<PromptInputProps> = ({
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const historyRef = useRef<string[]>([]);
 
-    // 当前选中模型及其能力（supportsImages / maxImages）
-    const currentModelId = useSessionStore(s => s.model);
-    const modelInfo = useModelStore(s => (currentModelId ? s.models.find(m => m.id === currentModelId) ?? null : null));
-    const modelsLoaded = useModelStore(s => s.loaded);
-
-    // 能力未加载时采取保守默认值：允许上传但限制在 FALLBACK_MAX_IMAGES
-    const supportsImages = modelInfo ? modelInfo.supportsImages : true;
-    const maxImages = modelInfo
-        ? (modelInfo.supportsImages ? Math.max(0, modelInfo.maxImages) : 0)
-        : FALLBACK_MAX_IMAGES;
+    // 图片上传按钮始终可用：后端的智能视觉路由会处理模型适配，
+    // 前端不再基于 supportsImages 进行前置禁用，仅保留通用数量上限。
+    const maxImages = FRONTEND_MAX_IMAGES;
 
     const imageCount = useMemo(
         () => attachments.filter(a => a.type.startsWith('image/')).length,
@@ -230,22 +228,12 @@ const PromptInput: React.FC<PromptInputProps> = ({
         for (const f of imageFiles) {
             const isImage = f.type.startsWith('image/');
 
-            // 不支持图片的模型：静默丢弃图片文件，仅提示一次
-            if (isImage && !supportsImages) {
-                notify({
-                    key: `attach-model-noimg-${generateUUID()}`,
-                    level: 'warning',
-                    message: '当前模型不支持图片输入，已跳过图片附件',
-                });
-                continue;
-            }
-
-            // 超出 maxImages 限制：静默丢弃剩余图片，仅提示一次
+            // 超出通用图片数量上限：静默丢弃剩余图片，仅提示一次
             if (isImage && currentImageCount >= maxImages) {
                 notify({
                     key: `attach-img-limit-${generateUUID()}`,
                     level: 'warning',
-                    message: `已达当前模型图片上限 (${currentImageCount}/${maxImages})`,
+                    message: `已达图片数量上限 (${currentImageCount}/${maxImages})`,
                 });
                 continue;
             }
@@ -289,7 +277,7 @@ const PromptInput: React.FC<PromptInputProps> = ({
         if (accepted.length > 0) {
             setAttachments(prev => [...prev, ...accepted]);
         }
-    }, [imageCount, supportsImages, maxImages]);
+    }, [imageCount, maxImages]);
 
     // Drag & drop file upload
     const handleDrop = useCallback((e: React.DragEvent) => {
@@ -305,19 +293,9 @@ const PromptInput: React.FC<PromptInputProps> = ({
                 message: `仅支持上传图片文件，已忽略 ${nonImageCount} 个非图片文件`,
             });
         }
-        // 不支持图片的模型：拖拽区静默过滤掉图片文件
-        const filtered = supportsImages ? imagesOnly : [];
-        if (filtered.length === 0 && imagesOnly.length > 0 && !supportsImages) {
-            useNotificationStore.getState().addNotification({
-                key: `drop-imgs-ignored-${generateUUID()}`,
-                level: 'warning',
-                message: '当前模型不支持图片输入，拖入的图片已被忽略',
-            });
-            return;
-        }
-        if (filtered.length === 0) return;
-        void handleFiles(filtered);
-    }, [handleFiles, supportsImages]);
+        if (imagesOnly.length === 0) return;
+        void handleFiles(imagesOnly);
+    }, [handleFiles]);
 
     const removeAttachment = useCallback((id: string) => {
         setAttachments(prev => {
@@ -342,44 +320,9 @@ const PromptInput: React.FC<PromptInputProps> = ({
         };
     }, []);
 
-    // 模型切换后根据新模型能力清理/裁剪已选图片附件。
-    // 为避免首屏同步清理，仅在能力加载完成后生效。
-    useEffect(() => {
-        if (!modelsLoaded || !modelInfo) return;
-        setAttachments(prev => {
-            const images = prev.filter(a => a.type.startsWith('image/'));
-            const others = prev.filter(a => !a.type.startsWith('image/'));
-            if (images.length === 0) return prev;
-
-            const notify = useNotificationStore.getState().addNotification;
-
-            if (!modelInfo.supportsImages) {
-                images.forEach(a => { if (a.previewUrl) URL.revokeObjectURL(a.previewUrl); });
-                notify({
-                    key: `model-switch-clear-imgs-${generateUUID()}`,
-                    level: 'info',
-                    message: `已切换到不支持图片的模型，已移除 ${images.length} 张图片附件`,
-                });
-                return others;
-            }
-
-            const limit = Math.max(0, modelInfo.maxImages);
-            if (images.length > limit) {
-                const kept = images.slice(0, limit);
-                const removed = images.slice(limit);
-                removed.forEach(a => { if (a.previewUrl) URL.revokeObjectURL(a.previewUrl); });
-                notify({
-                    key: `model-switch-trim-imgs-${generateUUID()}`,
-                    level: 'info',
-                    message: `新模型图片上限为 ${limit}，已裁剪多余的 ${removed.length} 张`,
-                });
-                return [...kept, ...others];
-            }
-            return prev;
-        });
-        // 仅当模型 ID 变化时重新评估，避免 attachments 变化触发重复裁剪
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentModelId, modelsLoaded]);
+    // 注：模型切换不再清理已选图片附件。
+    // 后端的智能视觉路由会在请求时自动选择同厂商视觉模型处理图片，
+    // 因此即便切换到 supportsImages=false 的模型也无需移除图片。
 
     return (
         <div
@@ -437,7 +380,7 @@ const PromptInput: React.FC<PromptInputProps> = ({
             {attachments.length > 0 && (
                 <div className="mb-2">
                     {/* 图片计数 badge：仅在能力已加载且存在图片附件时展示 */}
-                    {imageCount > 0 && supportsImages && maxImages > 0 && (
+                    {imageCount > 0 && maxImages > 0 && (
                         <div className="flex items-center gap-1 mb-1.5">
                             <span
                                 className={`text-xs px-1.5 py-0.5 rounded border
@@ -547,14 +490,7 @@ const PromptInput: React.FC<PromptInputProps> = ({
                 <FileUpload
                     onFiles={handleFiles}
                     accept="image/*"
-                    disabled={!supportsImages && modelsLoaded}
-                    title={
-                        !supportsImages && modelsLoaded
-                            ? '当前模型不支持图片输入'
-                            : (modelsLoaded && maxImages > 0
-                                ? `上传附件（图片上限 ${maxImages} 张）`
-                                : '上传附件')
-                    }
+                    title={`上传图片（不支持图片的模型将由视觉模型自动处理，上限 ${maxImages} 张）`}
                 />
                 <button
                     onClick={isLoading ? onInterrupt : handleSubmit}

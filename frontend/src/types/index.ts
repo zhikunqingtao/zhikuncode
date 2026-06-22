@@ -81,6 +81,13 @@ export interface CompactEventPayload { type: 'compact_event'; phase: string; usa
 export interface TokenWarningPayload { type: 'token_warning'; currentTokens: number; maxTokens: number; usagePercent: number; warningLevel: string }
 export interface InterruptAckPayload { type: 'interrupt_ack'; reason: string }
 export interface ModelChangedPayload { type: 'model_changed'; model: string }
+export interface ModelRoutedPayload {
+    type: 'model_routed';
+    originalModel: string;
+    routedModel: string;
+    routedModelName: string;
+    reason: string;
+}
 export interface PermissionModeChangedPayload { type: 'permission_mode_changed'; mode: string }
 export interface CommandResultPayload { type: 'command_result'; command: string; resultType: 'text' | 'jsx' | 'prompt'; output?: string; data?: Record<string, unknown> }
 export interface RewindCompletePayload { type: 'rewind_complete'; messageId: string; files: string[] }
@@ -172,6 +179,7 @@ export type ServerMessage =
     | TokenWarningPayload
     | InterruptAckPayload
     | ModelChangedPayload
+    | ModelRoutedPayload
     | PermissionModeChangedPayload
     | CommandResultPayload
     | RewindCompletePayload

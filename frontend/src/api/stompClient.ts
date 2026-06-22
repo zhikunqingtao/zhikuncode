@@ -27,7 +27,7 @@ const VALID_MESSAGE_TYPES: ReadonlySet<string> = new Set([
     'bridge_status', 'notification', 'teammate_message', 'mcp_tool_update',
     'mcp_tool_progress',
     'mcp_health_status', 'session_restored', 'pong', 'compact_event', 'token_warning',
-    'interrupt_ack', 'model_changed', 'permission_mode_changed', 'command_result',
+    'interrupt_ack', 'model_changed', 'model_routed', 'permission_mode_changed', 'command_result',
     'rewind_complete', 'token_budget_nudge', 'plan_update',
     'swarm_state_update', 'worker_progress', 'permission_bubble', 'workflow_phase_update',
     'session_list_updated',
