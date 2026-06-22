@@ -1,11 +1,18 @@
 package com.aicodeassistant.mcp;
 
+import com.aicodeassistant.engine.AbortContext;
+import com.aicodeassistant.engine.QueryEngine;
 import com.aicodeassistant.mcp.McpServerConnection.McpToolDefinition;
+import com.aicodeassistant.mcp.progress.McpProgressTracker;
+import com.aicodeassistant.mcp.roots.McpRootsProvider;
+import com.aicodeassistant.mcp.roots.WorkspaceChangedEvent;
+import com.aicodeassistant.mcp.schema.SchemaCompressor;
 import com.aicodeassistant.tool.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -56,6 +63,10 @@ public class McpClientManager implements SmartLifecycle {
     private final Environment environment;
     private final SimpMessagingTemplate messaging;
     private final WebSocketSessionManager wsSessionManager;
+    private final SchemaCompressor schemaCompressor;
+    private final McpRootsProvider rootsProvider;
+    private final McpProgressTracker progressTracker;
+    private final QueryEngine queryEngine; // 用于 M4 AbortContext 查找（@Lazy 避免循环依赖）
     private final Map<String, McpServerConnection> connections = new ConcurrentHashMap<>();
     private volatile boolean running = false;
 
@@ -79,7 +90,11 @@ public class McpClientManager implements SmartLifecycle {
                             @Lazy McpCapabilityRegistryService registryService,
                             Environment environment,
                             SimpMessagingTemplate messaging,
-                            WebSocketSessionManager wsSessionManager) {
+                            WebSocketSessionManager wsSessionManager,
+                            SchemaCompressor schemaCompressor,
+                            McpRootsProvider rootsProvider,
+                            McpProgressTracker progressTracker,
+                            @Lazy QueryEngine queryEngine) {
         this.mcpConfiguration = mcpConfiguration;
         this.configurationResolver = configurationResolver;
         this.toolRegistry = toolRegistry;
@@ -88,6 +103,21 @@ public class McpClientManager implements SmartLifecycle {
         this.environment = environment;
         this.messaging = messaging;
         this.wsSessionManager = wsSessionManager;
+        this.schemaCompressor = schemaCompressor;
+        this.rootsProvider = rootsProvider;
+        this.progressTracker = progressTracker;
+        this.queryEngine = queryEngine;
+    }
+
+    /** M4 AbortContext 查找函数 — 供 McpToolAdapter 注册取消回调。 */
+    private java.util.function.Function<String, AbortContext> abortContextLookup() {
+        return sessionId -> {
+            try {
+                return queryEngine != null ? queryEngine.getAbortContext(sessionId) : null;
+            } catch (Exception e) {
+                return null;
+            }
+        };
     }
 
     // ===== SmartLifecycle =====
@@ -95,6 +125,7 @@ public class McpClientManager implements SmartLifecycle {
     @Override
     public void start() {
         log.info("McpClientManager starting — initializing MCP connections");
+        initializeDefaultRoots();
         initializeAll();
         running = true;
     }
@@ -183,12 +214,16 @@ public class McpClientManager implements SmartLifecycle {
         if (!approvalService.isTrusted(config)) {
             log.info("MCP server not trusted, pending approval: {}", config.name());
             McpServerConnection conn = new McpServerConnection(config);
+            conn.setRootsProvider(rootsProvider);
+            conn.setProgressTracker(progressTracker);
             conn.setStatus(McpConnectionStatus.NEEDS_AUTH);
             connections.put(config.name(), conn);
             return conn;
         }
 
         McpServerConnection conn = new McpServerConnection(config);
+        conn.setRootsProvider(rootsProvider);
+        conn.setProgressTracker(progressTracker);
         try {
             conn.connect();
             connections.put(config.name(), conn);
@@ -319,7 +354,8 @@ public class McpClientManager implements SmartLifecycle {
                             "mcp__" + connection.getName() + "__" + mcpTool.name(),
                             mcpTool.description(), mcpTool.inputSchema(),
                             connection, mcpTool.name(),
-                            enhancedDesc, customTimeout);
+                            enhancedDesc, customTimeout, schemaCompressor,
+                            progressTracker, abortContextLookup());
                 })
                 .toList();
     }
@@ -376,6 +412,47 @@ public class McpClientManager implements SmartLifecycle {
         connections.clear();
     }
 
+    // ===== M3 Roots 安全边界 =====
+
+    /**
+     * 启动时初始化默认 roots — 使用 {@code user.dir} 作为当前工作区。
+     * 后续可通过 {@link WorkspaceChangedEvent} 动态更新。
+     */
+    private void initializeDefaultRoots() {
+        try {
+            String workspacePath = System.getProperty("user.dir");
+            if (workspacePath == null || workspacePath.isBlank()) {
+                log.warn("user.dir not available — MCP roots left empty");
+                return;
+            }
+            String projectName = java.nio.file.Path.of(workspacePath).getFileName() != null
+                    ? java.nio.file.Path.of(workspacePath).getFileName().toString()
+                    : "workspace";
+            rootsProvider.updateRoots(workspacePath, projectName);
+            log.info("MCP roots initialized: workspace='{}' name='{}'", workspacePath, projectName);
+        } catch (Exception e) {
+            log.warn("Failed to initialize default MCP roots: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * 监听工程切换事件 — 更新 roots 并通知所有已连接的 MCP 服务器。
+     */
+    @EventListener
+    public void onWorkspaceChanged(WorkspaceChangedEvent event) {
+        rootsProvider.updateRoots(event.getWorkspacePath(), event.getProjectName());
+        log.info("Workspace changed — roots updated: workspace='{}' name='{}'",
+                event.getWorkspacePath(), event.getProjectName());
+        for (McpServerConnection connection : getConnectedServers()) {
+            try {
+                connection.sendNotification("notifications/roots/list_changed", null);
+            } catch (Exception e) {
+                log.warn("Failed to notify MCP server '{}' of roots change: {}",
+                        connection.getName(), e.getMessage());
+            }
+        }
+    }
+
     // ===== 工具动态注册与权限控制 =====
 
     /**
@@ -404,7 +481,8 @@ public class McpClientManager implements SmartLifecycle {
                     "mcp__" + conn.getName() + "__" + mcpTool.name(),
                     mcpTool.description(), mcpTool.inputSchema(),
                     conn, mcpTool.name(),
-                    enhancedDesc, customTimeout);
+                    enhancedDesc, customTimeout, schemaCompressor,
+                    progressTracker, abortContextLookup());
             toolRegistry.registerDynamic(adapter);
         }
 

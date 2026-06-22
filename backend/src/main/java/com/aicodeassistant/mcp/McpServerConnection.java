@@ -1,5 +1,8 @@
 package com.aicodeassistant.mcp;
 
+import com.aicodeassistant.mcp.progress.McpProgressTracker;
+import com.aicodeassistant.mcp.roots.McpRootsProvider;
+import com.aicodeassistant.mcp.roots.RootDescriptor;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -43,12 +46,28 @@ public class McpServerConnection {
     /** 统一传输实例 — 替代原来的 process/stdinWriter/stdoutReader/httpTransport/wsTransport */
     private volatile McpTransport transport;
 
+    /** M3 Roots 提供者 — 响应服务器 roots/list 反向请求。可为 null（后兼容、未注入时返回空列表）。 */
+    private volatile McpRootsProvider rootsProvider;
+
+    /** M4 进度追踪器 — 接收 notifications/progress 通知后转发到前端。可为 null（未注入时静默忽略）。 */
+    private volatile McpProgressTracker progressTracker;
+
     public McpServerConnection(McpServerConfig config) {
         this.config = config;
         this.status = McpConnectionStatus.PENDING;
         this.tools = List.of();
         this.resources = List.of();
         this.reconnectAttempts = 0;
+    }
+
+    /** 注入 McpRootsProvider — 由 McpClientManager 在创建连接后调用。 */
+    public void setRootsProvider(McpRootsProvider rootsProvider) {
+        this.rootsProvider = rootsProvider;
+    }
+
+    /** 注入 McpProgressTracker — 由 McpClientManager 在创建连接后调用。M4 长操作支持。 */
+    public void setProgressTracker(McpProgressTracker progressTracker) {
+        this.progressTracker = progressTracker;
     }
 
     /**
@@ -81,6 +100,9 @@ public class McpServerConnection {
             // ★ MCP 协议握手: initialize → initialized 通知 → tools/list
             performProtocolHandshake();
 
+            // ★ M3/M4: 注册通知/反向请求分发器（roots/list、notifications/progress 等）
+            transport.setNotificationHandler(this::dispatchNotification);
+
         } catch (Exception e) {
             log.debug("Failed to connect MCP server '{}': {}", config.name(), e.getMessage());
             this.status = McpConnectionStatus.FAILED;
@@ -109,6 +131,7 @@ public class McpServerConnection {
             capabilities.put("tools", Map.of());
             capabilities.put("prompts", Map.of());
             capabilities.put("resources", Map.of());
+            capabilities.put("roots", Map.of("listChanged", true));  // M3 Roots 安全边界
             initParams.put("capabilities", capabilities);
 
             JsonNode initResult = transport.sendRequest("initialize", initParams, DEFAULT_REQUEST_TIMEOUT_MS);
@@ -226,14 +249,54 @@ public class McpServerConnection {
      */
     public JsonNode callTool(String toolName, Map<String, Object> arguments, long timeoutMs)
             throws McpProtocolException {
+        return callTool(toolName, arguments, timeoutMs, null);
+    }
+
+    /**
+     * 工具调用 — 支持注入 progressToken（M4 长操作支持）。
+     * 当 progressToken 非空时，将其放入请求 params 的 {@code _meta} 字段，
+     * MCP 服务器据此发送 {@code notifications/progress} 通知。
+     */
+    public JsonNode callTool(String toolName, Map<String, Object> arguments, long timeoutMs,
+                              String progressToken) throws McpProtocolException {
         if (status != McpConnectionStatus.CONNECTED || transport == null) {
             throw new McpProtocolException(new JsonRpcError(
                     JsonRpcError.SERVER_NOT_INITIALIZED,
                     "Server '" + config.name() + "' not connected (status: " + status + ")"));
         }
-        return transport.sendRequest("tools/call",
-                Map.of("name", toolName, "arguments", arguments),
+        Map<String, Object> params = new LinkedHashMap<>();
+        params.put("name", toolName);
+        params.put("arguments", arguments != null ? arguments : Map.of());
+        if (progressToken != null && !progressToken.isEmpty()) {
+            Map<String, Object> meta = new LinkedHashMap<>();
+            meta.put("progressToken", progressToken);
+            params.put("_meta", meta);
+        }
+        return transport.sendRequest("tools/call", params,
                 timeoutMs > 0 ? timeoutMs : DEFAULT_REQUEST_TIMEOUT_MS);
+    }
+
+    /**
+     * 向 MCP 服务器发送 {@code notifications/cancelled} 取消通知（M4）。
+     * <p>
+     * MCP 规范要求 requestId 为原 tools/call 的 JSON-RPC 请求 id；
+     * 本实现以 progressToken 作为关联键传递，便于服务器侧识别 inflight 请求。
+     *
+     * @param requestId 关联键（推荐使用 progressToken）
+     * @param reason    取消原因（如 user_cancelled / timeout）
+     */
+    public void sendCancelNotification(String requestId, String reason) {
+        Map<String, Object> params = new LinkedHashMap<>();
+        params.put("requestId", requestId);
+        params.put("reason", reason != null ? reason : "user_cancelled");
+        try {
+            sendNotification("notifications/cancelled", params);
+            log.info("MCP cancel notification sent for request={} on '{}' (reason={})",
+                    requestId, config.name(), reason);
+        } catch (Exception e) {
+            log.warn("Failed to send cancel notification for request {} on '{}': {}",
+                    requestId, config.name(), e.getMessage());
+        }
     }
 
     /**
@@ -430,6 +493,68 @@ public class McpServerConnection {
     public void notifyToolsChanged() {
         if (toolsChangedCallback != null) {
             toolsChangedCallback.run();
+        }
+    }
+
+    // ===== M3/M4: 通知/反向请求分发 =====
+
+    /**
+     * 分发 MCP 服务器发送的通知/反向请求
+     * M3: roots/list 反向请求
+     * M4: notifications/progress 进度通知
+     */
+    private void dispatchNotification(JsonNode notification) {
+        String method = notification.path("method").asText("");
+        switch (method) {
+            case "notifications/progress" -> handleProgress(notification);
+            case "roots/list" -> handleRootsList(notification);
+            default -> log.debug("Unhandled MCP notification: {}", method);
+        }
+    }
+
+    /**
+     * 处理 notifications/progress 通知 — M4 实现：转发到 {@link McpProgressTracker}。
+     * 未注入 tracker 时静默忽略（向后兼容）。
+     */
+    private void handleProgress(JsonNode notification) {
+        if (progressTracker != null) {
+            progressTracker.handleProgressNotification(notification);
+        } else {
+            log.debug("MCP progress notification dropped (no tracker bound): {}", notification);
+        }
+    }
+
+    /**
+     * 响应 roots/list 反向请求 — 向 MCP 服务器返回当前声明的文件系统边界。
+     */
+    private void handleRootsList(JsonNode notification) {
+        // roots/list 是服务器 -> 客户端反向请求，需要回复
+        JsonNode idNode = notification.path("id");
+        if (idNode.isMissingNode() || idNode.isNull()) {
+            log.debug("Received roots/list without id, ignoring (treated as notification)");
+            return;
+        }
+        if (transport == null) {
+            log.warn("Cannot respond to roots/list — transport unavailable for '{}'", config.name());
+            return;
+        }
+
+        List<RootDescriptor> roots = rootsProvider != null
+                ? rootsProvider.getCurrentRoots()
+                : List.of();
+        List<Map<String, String>> rootsList = roots.stream()
+                .map(r -> Map.of("uri", r.uri(), "name", r.name()))
+                .toList();
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("roots", rootsList);
+
+        try {
+            // id 原样回写（JsonNode 会被 Jackson 正确序列化为对应类型）
+            transport.sendResponse(idNode, result);
+            log.debug("Responded to roots/list for '{}' with {} root(s)", config.name(), rootsList.size());
+        } catch (Exception e) {
+            log.error("Failed to respond to roots/list for '{}': {}", config.name(), e.getMessage());
         }
     }
 

@@ -245,6 +245,30 @@ public class McpStreamableHttpTransport implements McpTransport {
     }
 
     /**
+     * 发送 JSON-RPC 响应 — 回复服务器发起的反向请求（如 roots/list）。
+     */
+    @Override
+    public void sendResponse(Object id, Object result) {
+        try {
+            JsonRpcMessage.Response response = JsonRpcMessage.Response.success(id, result);
+            String json = objectMapper.writeValueAsString(response);
+            Request.Builder builder = new Request.Builder()
+                    .url(baseUrl)
+                    .post(RequestBody.create(json, JSON_MEDIA));
+            if (sessionId != null) {
+                builder.header("Mcp-Session-Id", sessionId);
+            }
+            try (Response httpResp = httpClient.newCall(builder.build()).execute()) {
+                if (!httpResp.isSuccessful()) {
+                    log.warn("HTTP response (id={}) failed: HTTP {}", id, httpResp.code());
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to send HTTP response (id={}): {}", id, e.getMessage());
+        }
+    }
+
+    /**
      * 发送 JSON-RPC 通知 — 无需等待响应。
      */
     public void sendNotification(String method, Object params) {

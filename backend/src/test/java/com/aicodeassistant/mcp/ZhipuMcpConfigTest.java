@@ -124,7 +124,7 @@ class ZhipuMcpConfigTest {
         McpApprovalService approval = mock(McpApprovalService.class);
         when(approval.isTrusted(any())).thenReturn(true);
         ToolRegistry toolRegistry = mock(ToolRegistry.class);
-        McpClientManager clientManager = new McpClientManager(configuration, null, toolRegistry, approval, null, null, null, null);
+        McpClientManager clientManager = new McpClientManager(configuration, null, toolRegistry, approval, null, null, null, null, null, null, null, null);
 
         // When - 添加服务器
         McpServerConfig config = McpServerConfig.sse("zhipu-websearch", MCP_SSE_URL);

@@ -129,6 +129,24 @@ public class McpWebSocketTransport implements McpTransport {
     }
 
     /**
+     * 发送 JSON-RPC 响应 — 回复服务器发起的反向请求（如 roots/list）。
+     */
+    @Override
+    public void sendResponse(Object id, Object result) {
+        if (!connected.get()) {
+            log.warn("Cannot send WebSocket response — transport not connected");
+            return;
+        }
+        try {
+            JsonRpcMessage.Response response = JsonRpcMessage.Response.success(id, result);
+            String json = objectMapper.writeValueAsString(response);
+            wsClient.send(json);
+        } catch (Exception e) {
+            log.warn("Failed to send WebSocket response (id={}): {}", id, e.getMessage());
+        }
+    }
+
+    /**
      * 发送 JSON-RPC 通知 — 无需等待响应。
      */
     public void sendNotification(String method, Object params) {
@@ -196,6 +214,9 @@ public class McpWebSocketTransport implements McpTransport {
                         } else {
                             future.complete(node.has("result") ? node.get("result") : null);
                         }
+                    } else if (node.has("method") && notificationHandler != null) {
+                        // 反向请求：交给上层处理（roots/list 等）
+                        notificationHandler.accept(node);
                     } else {
                         log.debug("Received response for unknown request id: {}", id);
                     }

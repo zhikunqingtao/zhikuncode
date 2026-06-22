@@ -1006,6 +1006,12 @@ Register new MCP tools in `configuration/mcp/mcp_capability_registry.json`:
 }
 ```
 
+### MCP Protocol Enhancements
+
+- **MCP Roots Security Boundary**: Declares workspace filesystem roots to prevent MCP servers from accessing unauthorized paths
+- **MCP Progress Tracking**: Real-time progress display for long-running MCP tool operations with cancellation support
+- **MCP Schema Compression**: Automatically compresses large tool parameter schemas to reduce LLM context usage
+
 ---
 
 ## 🛠️ Built-in Tools

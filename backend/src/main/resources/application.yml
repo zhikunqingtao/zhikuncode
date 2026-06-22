@@ -212,6 +212,13 @@ app:
     channel-permissions-enabled: true
     health-check-interval-ms: 30000
     max-reconnect-attempts: 5
+    # Schema 压缩：减少 MCP 工具 inputSchema 在 LLM 上下文中的占用
+    schema-compression:
+      enabled: true
+      threshold-bytes: 2048
+    # M4 长操作进度推送配置
+    progress:
+      broadcast-topic: /topic/mcp/progress
   bridge:
     enabled: true
     max-sessions: 5

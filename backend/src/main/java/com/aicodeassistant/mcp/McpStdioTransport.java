@@ -112,6 +112,22 @@ public class McpStdioTransport implements McpTransport {
     }
 
     @Override
+    public void sendResponse(Object id, Object result) {
+        if (!connected.get() || stdinWriter == null) {
+            log.warn("Cannot send STDIO response — transport not connected");
+            return;
+        }
+        try {
+            JsonRpcMessage.Response response = JsonRpcMessage.Response.success(id, result);
+            String json = objectMapper.writeValueAsString(response);
+            stdinWriter.write((json + "\n").getBytes(StandardCharsets.UTF_8));
+            stdinWriter.flush();
+        } catch (IOException e) {
+            log.warn("Failed to send STDIO response (id={}): {}", id, e.getMessage());
+        }
+    }
+
+    @Override
     public boolean isConnected() {
         return connected.get() && process != null && process.isAlive();
     }

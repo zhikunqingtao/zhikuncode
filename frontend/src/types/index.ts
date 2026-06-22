@@ -64,6 +64,15 @@ export interface BridgeStatusPayload { type: 'bridge_status'; status: string; ur
 export interface NotificationPayload { type: 'notification'; key: string; level: 'info' | 'success' | 'warning' | 'error'; message: string; priority?: NotificationPriority; timeout?: number }
 export interface TeammateMessagePayload { type: 'teammate_message'; fromId: string; content: string }
 export interface McpToolUpdatePayload { type: 'mcp_tool_update'; serverId: string; tools: McpTool[] }
+export interface McpToolProgressPayload {
+    type: 'mcp_tool_progress';
+    progressToken: string;
+    serverName: string;
+    toolName: string;
+    progress: number;
+    total: number;
+    message: string;
+}
 export interface SessionRestoredPayload { type: 'session_restored'; messages: Message[]; metadata: { sessionId: string; model: string; status: string }; totalCount?: number; hasMore?: boolean; compactSummary?: string | null; oldestLoadedUuid?: string }
 export interface MessageCompletePayload { type: 'message_complete'; messageId: string; usage: Usage; stopReason: string }
 export interface PongPayload { type: 'pong'; timestamp: number }
@@ -154,6 +163,7 @@ export type ServerMessage =
     | NotificationPayload
     | TeammateMessagePayload
     | McpToolUpdatePayload
+    | McpToolProgressPayload
     | SessionRestoredPayload
     | MessageCompletePayload
     | PongPayload

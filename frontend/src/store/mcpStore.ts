@@ -18,10 +18,35 @@ export interface McpHealthState {
     timestamp: number;         // 事件时间戳
 }
 
+/** M4 MCP 工具调用 inflight 进度 */
+export interface McpInflightCall {
+    progressToken: string;
+    serverName: string;
+    toolName: string;
+    progress: number;
+    total: number;
+    message: string;
+    updatedAt: number;
+}
+
+/** M4 后端推送的 mcp_tool_progress 负载 */
+export interface McpToolProgressPayload {
+    type: 'mcp_tool_progress';
+    progressToken: string;
+    serverName: string;
+    toolName: string;
+    progress: number;
+    total: number;
+    message: string;
+    ts?: number;
+}
+
 export interface McpStoreState {
     mcpTools: Map<string, McpTool[]>;
     /** MCP 服务器健康状态映射 (serverName → McpHealthState) */
     mcpHealthStates: Map<string, McpHealthState>;
+    /** M4 当前正在执行的 MCP 工具调用 (progressToken → McpInflightCall) */
+    inflightMcpCalls: Map<string, McpInflightCall>;
     /** MCP 资源列表，按服务器分组 */
     resources: Map<string, McpResource[]>;
     /** 当前选中的资源 */
@@ -42,6 +67,12 @@ export interface McpStoreState {
     clearServerTools: (serverId: string) => void;
     /** 更新 MCP 服务器健康状态 */
     updateHealthStatus: (data: McpHealthState) => void;
+    /** M4 更新工具调用进度（收到 mcp_tool_progress 时调用） */
+    updateMcpProgress: (data: McpToolProgressPayload) => void;
+    /** M4 移除 inflight 进度（工具调用结束后调用） */
+    removeMcpProgress: (progressToken: string) => void;
+    /** M4 取消正在执行的 MCP 工具调用 — 发送中断信号到后端 */
+    cancelMcpCall: (progressToken: string) => void;
     /** 从后端获取所有 MCP 资源 */
     fetchResources: (server?: string) => Promise<void>;
     /** 读取指定资源内容 */
@@ -62,6 +93,7 @@ export const useMcpStore = create<McpStoreState>()(
     subscribeWithSelector(immer((set, _get) => ({
         mcpTools: new Map(),
         mcpHealthStates: new Map(),
+        inflightMcpCalls: new Map(),
         resources: new Map(),
         selectedResource: null,
         resourceContent: null,
@@ -81,6 +113,34 @@ export const useMcpStore = create<McpStoreState>()(
         updateHealthStatus: (data) => set(d => {
             d.mcpHealthStates.set(data.serverName, data);
         }),
+        updateMcpProgress: (data) => set(d => {
+            if (!data.progressToken) return;
+            d.inflightMcpCalls.set(data.progressToken, {
+                progressToken: data.progressToken,
+                serverName: data.serverName,
+                toolName: data.toolName,
+                progress: data.progress ?? 0,
+                total: data.total ?? 0,
+                message: data.message ?? '',
+                updatedAt: Date.now(),
+            });
+        }),
+        removeMcpProgress: (progressToken) => set(d => {
+            d.inflightMcpCalls.delete(progressToken);
+        }),
+        cancelMcpCall: (progressToken) => {
+            // 中断请求 — 复用全局中断通道（后端 AbortContext 会触发
+            // notifications/cancelled 发送到 MCP 服务器）。
+            void import('@/api/stompClient').then(({ sendInterrupt }) => {
+                try {
+                    sendInterrupt();
+                } catch (e) {
+                    console.warn('[McpStore] cancelMcpCall failed:', e);
+                }
+            });
+            // 乐观清除本地状态
+            set(d => { d.inflightMcpCalls.delete(progressToken); });
+        },
         selectResource: (resource) => set(d => {
             d.selectedResource = resource;
             d.resourceContent = null;

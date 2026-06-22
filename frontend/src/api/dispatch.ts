@@ -188,6 +188,19 @@ const handlers: Record<string, (data: any) => void> = {
         });
     },
 
+    // === mcpStore: M4 工具调用进度 (1 种) ===
+    'mcp_tool_progress':  (d: { progressToken: string; serverName: string; toolName: string; progress: number; total: number; message: string }) => {
+        useMcpStore.getState().updateMcpProgress({
+            type: 'mcp_tool_progress',
+            progressToken: d.progressToken,
+            serverName: d.serverName,
+            toolName: d.toolName,
+            progress: d.progress ?? 0,
+            total: d.total ?? 0,
+            message: d.message ?? '',
+        });
+    },
+
     // === 断线重连 (1 种) ===
     'session_restored':   (d) => handleSessionRestore(d),
 

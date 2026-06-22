@@ -1,5 +1,8 @@
 package com.aicodeassistant.mcp;
 
+import com.aicodeassistant.engine.AbortContext;
+import com.aicodeassistant.mcp.progress.McpProgressTracker;
+import com.aicodeassistant.mcp.schema.SchemaCompressor;
 import com.aicodeassistant.tool.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.benmanes.caffeine.cache.Cache;
@@ -8,7 +11,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 /**
  * MCP 工具适配器 — 将 MCP 服务器暴露的工具包装为内部 Tool 接口。
@@ -40,29 +45,67 @@ public class McpToolAdapter implements Tool {
 
     private final String name;
     private final String description;
-    private final Map<String, Object> inputSchema;
+    private final Map<String, Object> fullInputSchema;     // 原始 schema
+    private final Map<String, Object> compressedInputSchema; // 压缩后 schema（用于 LLM 上下文）
     private final McpServerConnection connection;
     private final String originalToolName;
     private final String enhancedDescription;  // 注册表中文描述
     private final long timeoutMs;              // 注册表超时配置
 
-    /** 原有构造函数 — 保持向后兼容 */
+    /** M4 进度追踪器 — 可为 null（未注入时跳过 progressToken 注入）。 */
+    private final McpProgressTracker progressTracker;
+
+    /** M4 AbortContext 查找函数 — sessionId → AbortContext，可为 null。 */
+    private final Function<String, AbortContext> abortContextLookup;
+
+    /** 原有构造函数 — 保持向后兼容（不做 schema 压缩） */
     public McpToolAdapter(String name, String description, Map<String, Object> inputSchema,
                           McpServerConnection connection, String originalToolName) {
-        this(name, description, inputSchema, connection, originalToolName, null, 0);
+        this(name, description, inputSchema, connection, originalToolName, null, 0, null, null, null);
     }
 
-    /** 增强构造函数 — 支持描述覆盖和超时覆盖 */
+    /** 增强构造函数 — 支持描述覆盖和超时覆盖（不做 schema 压缩） */
     public McpToolAdapter(String name, String description, Map<String, Object> inputSchema,
                           McpServerConnection connection, String originalToolName,
                           String enhancedDescription, long timeoutMs) {
+        this(name, description, inputSchema, connection, originalToolName,
+                enhancedDescription, timeoutMs, null, null, null);
+    }
+
+    /**
+     * M5 构造函数 — 支持 inputSchema 压缩（无 M4 进度接入）。
+     * <p>
+     * 保留以兼容现有 wrapMcpTools 调用点。
+     */
+    public McpToolAdapter(String name, String description, Map<String, Object> inputSchema,
+                          McpServerConnection connection, String originalToolName,
+                          String enhancedDescription, long timeoutMs,
+                          SchemaCompressor schemaCompressor) {
+        this(name, description, inputSchema, connection, originalToolName,
+                enhancedDescription, timeoutMs, schemaCompressor, null, null);
+    }
+
+    /**
+     * 完整构造函数 — 支持 schema 压缩 + M4 长操作支持（progress / abort）。
+     */
+    public McpToolAdapter(String name, String description, Map<String, Object> inputSchema,
+                          McpServerConnection connection, String originalToolName,
+                          String enhancedDescription, long timeoutMs,
+                          SchemaCompressor schemaCompressor,
+                          McpProgressTracker progressTracker,
+                          Function<String, AbortContext> abortContextLookup) {
         this.name = name;
         this.description = description;
-        this.inputSchema = inputSchema;
+        this.fullInputSchema = inputSchema;
+        this.compressedInputSchema = (schemaCompressor != null && inputSchema != null)
+                ? schemaCompressor.compress(inputSchema)
+                : inputSchema;
         this.connection = connection;
         this.originalToolName = originalToolName;
         this.enhancedDescription = enhancedDescription;
         this.timeoutMs = timeoutMs;
+        this.progressTracker = progressTracker;
+        this.abortContextLookup = abortContextLookup;
     }
 
     @Override
@@ -85,7 +128,14 @@ public class McpToolAdapter implements Tool {
 
     @Override
     public Map<String, Object> getInputSchema() {
-        return inputSchema != null ? inputSchema : Map.of("type", "object");
+        return compressedInputSchema != null ? compressedInputSchema : Map.of("type", "object");
+    }
+
+    /**
+     * 返回原始（未压缩）schema — 供需要完整描述/示例时按需加载。
+     */
+    public Map<String, Object> getFullSchema() {
+        return fullInputSchema != null ? fullInputSchema : Map.of("type", "object");
     }
 
     @Override
@@ -137,9 +187,31 @@ public class McpToolAdapter implements Tool {
             }
         }
 
+        // M4: 生成 progressToken 并注册追踪 + abort 回调
+        String progressToken = UUID.randomUUID().toString();
+        String sessionId = context != null ? context.sessionId() : null;
+        boolean tracked = false;
+        if (progressTracker != null && sessionId != null) {
+            progressTracker.registerProgress(progressToken, sessionId,
+                    connection.getName(), originalToolName);
+            tracked = true;
+        }
+        if (abortContextLookup != null && sessionId != null) {
+            try {
+                AbortContext abortCtx = abortContextLookup.apply(sessionId);
+                if (abortCtx != null) {
+                    abortCtx.onAbortDo(() ->
+                            connection.sendCancelNotification(progressToken, "user_cancelled"));
+                }
+            } catch (Exception e) {
+                log.debug("AbortContext lookup failed for session {}: {}", sessionId, e.getMessage());
+            }
+        }
+
         try {
-            // 传输无关 — SSE/HTTP/WS/STDIO 全部走同一路径
-            JsonNode result = connection.callTool(originalToolName, input.getRawData(), timeoutMs);
+            // 传输无关 — SSE/HTTP/WS/STDIO 全部走同一路径，携带 progressToken。
+            JsonNode result = connection.callTool(originalToolName, input.getRawData(),
+                    timeoutMs, progressToken);
 
             // 解析 MCP 标准 content 数组
             String content = extractContent(result);
@@ -169,6 +241,11 @@ public class McpToolAdapter implements Tool {
         } catch (Exception e) {
             log.error("MCP tool call failed: {} on {}", originalToolName, connection.getName(), e);
             return fallbackToCacheOrError(cacheKey, "MCP tool call failed: " + e.getMessage());
+        } finally {
+            // M4: 资源清理 — 无论成功/失败/超时都需 unregister
+            if (tracked) {
+                progressTracker.unregisterProgress(progressToken);
+            }
         }
     }
 

@@ -1006,6 +1006,12 @@ ZhikunCode 实现了标准的 [MCP（Model Context Protocol）](https://modelcon
 }
 ```
 
+### MCP 协议能力增强
+
+- **MCP Roots 安全边界**：声明工作区文件系统根，防止 MCP 服务器越界访问
+- **MCP 长操作进度追踪**：实时显示 MCP 工具执行进度，支持用户取消
+- **MCP Schema 智能压缩**：自动压缩大型工具参数描述，减少 LLM 上下文占用
+
 ---
 
 ## 🛠️ 内置工具集

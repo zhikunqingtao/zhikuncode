@@ -187,6 +187,34 @@ public class McpSseTransport implements McpTransport {
     }
 
     /**
+     * 发送 JSON-RPC 响应 — 回复服务器发起的反向请求（如 roots/list）。
+     */
+    @Override
+    public void sendResponse(Object id, Object result) {
+        if (!connected.get()) {
+            log.warn("Cannot send SSE response — transport not connected");
+            return;
+        }
+        try {
+            JsonRpcMessage.Response response = JsonRpcMessage.Response.success(id, result);
+            String json = objectMapper.writeValueAsString(response);
+            String targetUrl = sessionEndpoint != null ? sessionEndpoint : postUrl;
+            RequestBody body = RequestBody.create(json, MediaType.parse("application/json"));
+            Request request = new Request.Builder()
+                    .url(targetUrl)
+                    .post(body)
+                    .build();
+            try (Response httpResp = httpClient.newCall(request).execute()) {
+                if (!httpResp.isSuccessful()) {
+                    log.warn("SSE response (id={}) failed: HTTP {}", id, httpResp.code());
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to send SSE response (id={}): {}", id, e.getMessage());
+        }
+    }
+
+    /**
      * 发送 JSON-RPC 通知 — 无需等待响应。
      */
     public void sendNotification(String method, Object params) {
@@ -274,6 +302,9 @@ public class McpSseTransport implements McpTransport {
                     } else {
                         future.complete(node.has("result") ? node.get("result") : null);
                     }
+                } else if (node.has("method") && notificationHandler != null) {
+                    // 带 id 但未匹配 pendingRequests 且包含 method → server→client 反向请求（如 roots/list）
+                    notificationHandler.accept(node);
                 } else {
                     log.trace("Received response for unknown request id: {} (may be server keepalive)", id);
                 }

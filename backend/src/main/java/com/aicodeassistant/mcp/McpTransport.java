@@ -39,6 +39,14 @@ public interface McpTransport extends AutoCloseable {
     void sendNotification(String method, Object params);
 
     /**
+     * 发送 JSON-RPC 响应 — 用于回复服务器发起的反向请求（如 roots/list）。
+     *
+     * @param id     原请求 id（来自服务器请求的 id 字段，必须原样回写）
+     * @param result 响应结果对象，序列化为 JSON
+     */
+    void sendResponse(Object id, Object result);
+
+    /**
      * 健康探测 — 子类可覆盖以提供传输层特定的健康检测。
      * 默认返回连接状态。
      */
