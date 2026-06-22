@@ -49,8 +49,8 @@ llm:
     zhipu:
       api-key: ${LLM_PROVIDER_ZHIPU_API_KEY:}
       base-url: https://open.bigmodel.cn/api/paas/v4
-      default-model: glm-5.1
-      models: ${LLM_PROVIDER_ZHIPU_MODELS:glm-5.1}
+      default-model: glm-5.2
+      models: ${LLM_PROVIDER_ZHIPU_MODELS:glm-5.2,glm-5v-turbo}
     minimax:
       api-key: ${LLM_PROVIDER_MINIMAX_API_KEY:}
       base-url: https://api.minimax.chat/v1

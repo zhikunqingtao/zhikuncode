@@ -53,7 +53,7 @@
 | 🇨🇳 | **Native Chinese LLM Support** | Qwen / DeepSeek / Moonshot work out of the box with direct connections from mainland China — no VPN required |
 | 🐳 | **One-Command Docker Deployment** | `docker compose up -d` — one command to start. Data stays local, fully private |
 | ⚡ | **Intelligent Context Management** | Five-layer compression cascade + incremental collapse (auto-compress every 10 turns) + 413 three-phase recovery (aggressive compression → reactive compact → media stripping) + Precise Token Counting (tiktoken multi-model support) + Self-Correction Loop (auto-diagnose compile/test failures, max 3 retries) + three-level token alerts for seamless ultra-long conversations |
-| 📷 | **Multimodal Image Chat** | Upload images for AI analysis. Supported models: qwen3.7-plus / kimi-k2.6 / kimi-k2.7-code / glm-5.1 / MiniMax-M3 / openai/gpt-5.5-pro / google/gemini-3.5-flash (max 5MB per image, 4-8 images depending on model) |
+| 📷 | **Multimodal Image Chat** | Upload images for AI analysis. Supported models: qwen3.7-plus / kimi-k2.6 / kimi-k2.7-code / glm-5v-turbo / MiniMax-M3 / openai/gpt-5.5-pro / google/gemini-3.5-flash (max 5MB per image, image count limit varies by model) |
 | 🖼️ | **Browser Semantic Snapshot** | `/snap` command captures full web page state (DOM structure + interactive elements), extracts structured JSON for Agent parsing and replay verification |
 | 📊 | **Real-Time Activity Tracking & Approval** | Activity Panel records full AI tool execution lifecycle, L1/L2/L3 three-layer display, Signal smart tagging (auto_approve/review_recommended/needs_review), one-click batch approval, SQLite backend persistence, session restoration support |
 | 🧪 | **Runtime Verification Framework** | VerifierFactory tri-modal dispatch (browser/http_api/auto) + 8 HTTP action handlers + JSONPath assertions + evidence chain SQLite storage + Feature Flag dual-gating + frontend real-time progress panel |
@@ -213,7 +213,7 @@ If no multi-Provider keys are configured, the system automatically falls back to
 | **Qwen / DashScope** | `https://dashscope.aliyuncs.com/compatible-mode/v1` | qwen3.7-max | **Default**, direct connection in China |
 | **DeepSeek** | `https://api.deepseek.com/v1` | deepseek-v4-pro | Direct connection in China |
 | **Moonshot (Kimi)** | `https://api.moonshot.cn/v1` | kimi-k2.6 / kimi-k2.7-code | Direct connection; image support |
-| **Zhipu (GLM)** | `https://open.bigmodel.cn/api/paas/v4/chat/completions` | glm-5.1 | China direct access |
+| **Zhipu (GLM)** | `https://open.bigmodel.cn/api/paas/v4/chat/completions` | glm-5.2, glm-5v-turbo | China direct access |
 | **MiniMax** | `https://api.minimax.chat/v1` | MiniMax-M3 | 1M context window |
 | **ZenMux (Multi-Model Gateway)** | `https://zenmux.ai/api/v1` | anthropic/claude-opus-4.8 / claude-fable-5 / openai/gpt-5.5-pro / google/gemini-3.5-flash | 1M context · Image support |
 | **OpenAI** | `https://api.openai.com/v1` | gpt-4o | Requires international network access |

@@ -101,7 +101,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
                             <option value="kimi-k2.6">Kimi K2.6</option>
                             <option value="kimi-k2.7-code">Kimi K2.7 Code</option>
                             <option value="moonshot-v1-128k">Moonshot V1 128K</option>
-                            <option value="glm-5.1">GLM-5.1</option>
+                            <option value="glm-5.2">GLM-5.2</option>
+                            <option value="glm-5v-turbo">GLM-5V-Turbo</option>
                             <option value="MiniMax-M3">MiniMax M3</option>
                             <option value="anthropic/claude-opus-4.8">Claude Opus 4.8 (zenmux)</option>
                             <option value="anthropic/claude-fable-5">Claude Fable 5 (zenmux)</option>
