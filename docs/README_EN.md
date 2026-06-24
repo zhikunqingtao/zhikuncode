@@ -36,7 +36,7 @@
 > **deploy it to a server, open a browser, and start coding. Works on your phone too.**
 
 > 🏗️ **[View Full System Architecture →](https://zhikunqingtao.github.io/zhikuncode/ZhikunCode-Architecture.html)**  
-> Three-tier Separation · 837 Files · 109,548 Lines of Code (137,169 lines including tests) · Full Visualization
+> Three-tier Separation · 759 Files · 115,783 Lines of Code (147,395 lines / 893 files including tests) · Full Visualization
 
 > 🏆 **[SWE-bench Lite Technical Report →](https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html)**  
 > Submission namespace `20260520_zhikuncode` · Official harness Resolve **139 / 300 (46.3%)** · Patch generation 280 / 300 (93.3%)
@@ -52,7 +52,7 @@
 | 🔒 | **Defense-in-Depth Security** | 8-layer Bash sandbox (error classification + output truncation + process tree mgmt) + 14-step permission pipeline + 308 security test coverage (including 19 new CWE-22 depth-defense unit tests in v9.3). Every command must pass security checks before execution |
 | 🇨🇳 | **Native Chinese LLM Support** | Qwen / DeepSeek / Moonshot work out of the box with direct connections from mainland China — no VPN required |
 | 🐳 | **One-Command Docker Deployment** | `docker compose up -d` — one command to start. Data stays local, fully private |
-| ⚡ | **Intelligent Context Management** | Five-layer compression cascade + incremental collapse (auto-compress every 10 turns) + 413 three-phase recovery (aggressive compression → reactive compact → media stripping) + Precise Token Counting (tiktoken multi-model support) + Self-Correction Loop (auto-diagnose compile/test failures, max 3 retries) + three-level token alerts for seamless ultra-long conversations |
+| ⚡ | **Intelligent Context Management** | Six-layer compression cascade (Snip / MicroCompact / ContextCollapse / AutoCompact / CollapseDrain / ReactiveCompact) + incremental collapse (auto-compress every 10 turns) + 413 two-phase recovery (CollapseDrain aggressive compression → ReactiveCompact) + Precise Token Counting (tiktoken multi-model support) + Self-Correction Loop (auto-diagnose compile/test failures, max 3 retries) + three-level token alerts for seamless ultra-long conversations |
 | 📷 | **Multimodal Image Chat** | Upload images for AI analysis. Supported models: qwen3.7-plus / kimi-k2.6 / kimi-k2.7-code / glm-5v-turbo / MiniMax-M3 / openai/gpt-5.5-pro / google/gemini-3.5-flash (max 5MB per image, image count limit varies by model). **Intelligent Vision Routing**: when the selected model lacks image input support, the system auto-routes to a vision-capable model from the same provider (with global fallback) and reverts to the original model after image processing |
 | 🖼️ | **Browser Semantic Snapshot** | `/snap` command captures full web page state (DOM structure + interactive elements), extracts structured JSON for Agent parsing and replay verification |
 | 📊 | **Real-Time Activity Tracking & Approval** | Activity Panel records full AI tool execution lifecycle, L1/L2/L3 three-layer display, Signal smart tagging (auto_approve/review_recommended/needs_review), one-click batch approval, SQLite backend persistence, session restoration support |
@@ -282,7 +282,7 @@ ZhikunCode has completed an end-to-end SWE-bench Lite evaluation (300 instances,
 ### Engineering Highlights (every claim is source-traceable)
 
 - **Agent-Loop with explicit four phases** ANALYZE→LOCATE→FIX→VERIFY, hard-enforced by the system prompt ([swe_bench.py](../swe-bench/swe_bench.py))
-- **Five-layer context compression cascade** Snip / MicroCompact / AutoCompact / CollapseDrain / ReactiveCompact ([ContextCascade.java](../backend/src/main/java/com/aicodeassistant/engine/ContextCascade.java))
+- **Six-layer context compression cascade** Snip / MicroCompact / ContextCollapse / AutoCompact / CollapseDrain / ReactiveCompact ([ContextCascade.java](../backend/src/main/java/com/aicodeassistant/engine/ContextCascade.java); Level 1.5 ContextCollapse is the progressive-collapse intermediate layer per source comments)
 - **Two-phase 413 recovery** CollapseDrain → ReactiveCompact, keeping 60-turn sessions inside the context window
 - **Self-correction loop** turning compile/test failures into structured re-prompting, hard-capped at 3 attempts ([SelfCorrectionLoop.java](../backend/src/main/java/com/aicodeassistant/engine/correction/SelfCorrectionLoop.java) `MAX_ATTEMPTS = 3`)
 
@@ -355,7 +355,7 @@ ZhikunCode uses a three-tier architecture: the Java backend handles core orchest
 
 | Layer | Tech Stack | Responsibilities |
 |-------|-----------|-----------------|
-| **Backend** | Java 21, Spring Boot 3.4.x, WebSocket, SQLite | Core orchestration engine, LLM API routing, Agent management, tool execution (48 built-in tools + MCP dynamic extensions), permission pipeline, session persistence |
+| **Backend** | Java 21, Spring Boot 3.4.x, WebSocket, SQLite | Core orchestration engine, LLM API routing, Agent management, tool execution (27 built-in tools + MCP dynamic extensions), permission pipeline, session persistence |
 | **Frontend** | React 18, TypeScript 5.6, Vite 5, TailwindCSS, Monaco Editor, xterm.js, Zustand | Conversational UI, code editor, built-in terminal, file browser, settings panel, real-time streaming output, Agent collaboration visualization |
 | **Python Service** | FastAPI, Uvicorn, Python 3.11+ | Code analysis, AST parsing, MCP tool bridging |
 
@@ -391,14 +391,13 @@ Compression Cascade → Streaming Session Creation → API Call (with circuit br
 | Component | Responsibility | Configuration |
 |-----------|---------------|---------------|
 | IncrementalCollapseManager | Triggers incremental context collapse every 10 turns | `context.cascade.incremental-collapse.enabled` |
-| ContextCascade | Five-layer compression cascade (Snip→MicroCompact→AutoCompact→CollapseDrain→ReactiveCompact) | `context.cascade.*` |
+| ContextCascade | Six-layer compression cascade (Snip→MicroCompact→ContextCollapse→AutoCompact→CollapseDrain→ReactiveCompact) | `context.cascade.*` |
 | MicroCompactService | Clears old tool result content to reduce context size | `features.flags.CACHED_MICROCOMPACT` |
 | ModelTierService | Model downgrade chain management with 30-min cooldown auto-recovery | `app.model.tier-chain` |
 
-**413 Three-Phase Recovery**: When the API returns 413 (Payload Too Large), automatic three-phase recovery is triggered:
-1. **Phase 1** — Aggressive Compression (Context Collapse Drain)
-2. **Phase 2** — Reactive Compact
-3. **Phase 3** — Media File Stripping (Media Recovery)
+**413 Two-Phase Recovery**: When the API returns 413 (Payload Too Large), automatic two-phase recovery is triggered (source: [ContextCascade.java](../backend/src/main/java/com/aicodeassistant/engine/ContextCascade.java) `recoverFromPayloadTooLarge`):
+1. **Level 3** — CollapseDrain aggressive compression (contextWindow × 0.5 target)
+2. **Level 4** — ReactiveCompact (keep only 1 turn + extreme compression)
 
 ---
 
@@ -1016,7 +1015,7 @@ Register new MCP tools in `configuration/mcp/mcp_capability_registry.json`:
 
 ## 🛠️ Built-in Tools
 
-ZhikunCode ships with 48 built-in tools + MCP dynamic extensions, covering the full development lifecycle:
+ZhikunCode ships with 27 built-in tools + MCP dynamic extensions, covering the full development lifecycle:
 
 | Category | Tools | Description |
 |----------|-------|-------------|
