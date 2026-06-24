@@ -565,7 +565,7 @@ Full test report: [ZhikunCode v9.4 End-to-End Test Report](test-results/v9.3/Zhi
 
 ZhikunCode's Skill System is a **Markdown-driven extensible workflow engine**. Each skill is a `.md` file — YAML frontmatter defines metadata, Markdown body defines execution instructions.
 
-### 5 Built-in Skills
+### 13 Built-in Skills
 
 Ready to use out of the box — type `/skill-name` to invoke:
 
@@ -576,6 +576,14 @@ Ready to use out of the box — type `/skill-name` to invoke:
 | **Smart Fix** | `/fix` | Diagnoses root cause from error messages, applies minimal fix and verifies |
 | **Smart Test** | `/test` | Generates/runs tests for specified code or recent changes, covers edge cases |
 | **PR Assistant** | `/pr` | Analyzes branch diff, generates structured PR description and review notes |
+| **Debug** | `/debug` | 8-step closed-loop diagnosis (reproduce→isolate→fix→verify→regression) |
+| **Verify** | `/verify` | Java/TypeScript/Python compilation + test verification |
+| **Stuck** | `/stuck` | Three-path assessment when blocked, recommends optimal unblocking strategy |
+| **Remember** | `/remember` | Manages session-level context (decisions/constraints/preferences/notes) |
+| **Architecture** | `/software-architecture` | Clean Architecture + SOLID + design pattern evaluation |
+| **CSV Summary** | `/csv-data-summarizer` | CSV statistical analysis + charts + Markdown report |
+| **Prompt Engineering** | `/prompt-engineering` | Optimizes prompt structure, clarity and effectiveness |
+| **Test-Driven Dev** | `/test-driven-development` | TDD red→green→refactor cycle methodology guidance |
 
 ### 6-Level Loading Priority
 

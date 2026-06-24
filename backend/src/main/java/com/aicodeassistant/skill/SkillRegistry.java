@@ -53,7 +53,10 @@ public class SkillRegistry {
 
     /** 内置技能列表 */
     private static final List<String> BUILTIN_SKILL_NAMES = List.of(
-            "commit", "review", "fix", "test", "pr"
+            "commit", "review", "fix", "test", "pr",
+            "debug", "verify", "stuck", "remember",
+            "software-architecture", "csv-data-summarizer",
+            "prompt-engineering", "test-driven-development"
     );
 
     /** 文件监听 WatchService 实例 (§11.3.3) */
