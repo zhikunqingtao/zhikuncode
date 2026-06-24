@@ -565,7 +565,7 @@ Full test report: [ZhikunCode v9.4 End-to-End Test Report](test-results/v9.3/Zhi
 
 ZhikunCode's Skill System is a **Markdown-driven extensible workflow engine**. Each skill is a `.md` file — YAML frontmatter defines metadata, Markdown body defines execution instructions.
 
-### 6 Built-in Skills
+### 5 Built-in Skills
 
 Ready to use out of the box — type `/skill-name` to invoke:
 
@@ -585,14 +585,14 @@ Skills with the same name are overridden by priority chain — higher priority a
 managed > user > project > plugin > bundled > mcp
 ```
 
-| Source | Directory | Description |
-|--------|-----------|-------------|
-| **managed** | Policy-managed directory | Enterprise-distributed skills |
-| **user** | `~/.zhikun/skills/` | User global custom skills |
-| **project** | `.zhikun/skills/` | Project-level skills, distributed with the codebase |
-| **plugin** | Plugin-provided | Skills embedded in JAR plugins |
-| **bundled** | Built-in | 6 out-of-the-box skills |
-| **mcp** | MCP-built | Skills registered via MCP protocol |
+| Source | Directory | Description | Status |
+|--------|-----------|-------------|--------|
+| **managed** | Policy-managed directory | Enterprise-distributed skills | Reserved |
+| **user** | `~/.zhikun/skills/` | User global custom skills | ✅ Implemented |
+| **project** | `.zhikun/skills/` | Project-level skills, distributed with the codebase | ✅ Implemented |
+| **plugin** | Plugin-provided | Skills embedded in JAR plugins | Reserved |
+| **bundled** | Built-in | 5 out-of-the-box skills | ✅ Implemented |
+| **mcp** | MCP-built | Skills registered via MCP protocol | Reserved |
 
 ### Custom Skills
 
@@ -624,6 +624,14 @@ Invoke with: `/translate language=python` or `/translate python`
 | `allowed_tools` | list | Tool allowlist for this skill |
 | `context` | string | `inline` (default, inject into current conversation) or `fork` (create independent sub-agent) |
 | `model` | string | Specify model (`inherit` uses parent model) |
+| `version` | string | Skill version number |
+| `disable_model_invocation` | boolean | Prevent model from auto-invoking (default: false) |
+| `user_invocable` | boolean | Allow user manual invocation (default: true) |
+| `hooks` | object | Hook configuration (reserved) |
+| `effort` | string | Reasoning effort level (low/medium/high) |
+| `agent` | string | Associated agent name (only effective in fork mode) |
+| `paths` | list | File path glob patterns |
+| `shell` | string | Shell type (bash or powershell, default: bash) |
 
 > Skills support hot reload — changes take effect immediately after saving, no service restart needed. Powered by Java NIO WatchService with 500ms debounce.
 
