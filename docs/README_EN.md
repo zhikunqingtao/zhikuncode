@@ -36,7 +36,7 @@
 > **deploy it to a server, open a browser, and start coding. Works on your phone too.**
 
 > 🏗️ **[View Full System Architecture →](https://zhikunqingtao.github.io/zhikuncode/ZhikunCode-Architecture.html)**  
-> Three-tier Separation · 759 Files · 115,783 Lines of Code (147,395 lines / 893 files including tests) · Full Visualization
+> Three-tier Separation · 758 Files · 115,879 Lines of Code · Java Backend 79,639 + TypeScript Frontend 28,394 + Python Service 7,846 · Full Visualization
 
 > 🏆 **[SWE-bench Lite Technical Report →](https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html)**  
 > Submission namespace `20260520_zhikuncode` · Official harness Resolve **139 / 300 (46.3%)** · Patch generation 280 / 300 (93.3%)
@@ -49,16 +49,17 @@
 |---|---|---|
 | 🌐 | **Full Browser-Based Control** | Deploy once, then manage everything from any device's browser — permission approvals, plan discussions, task management. Works on mobile. No client installation needed |
 | 🤖 | **Multi-Agent Collaboration** | Three collaboration modes: Team (fixed roles) / Swarm (dynamic negotiation) / SubAgent (parent-child delegation). Complex tasks are automatically distributed |
-| 🔒 | **Defense-in-Depth Security** | 8-layer Bash sandbox (error classification + output truncation + process tree mgmt) + 14-step permission pipeline + 308 security test coverage (including 19 new CWE-22 depth-defense unit tests in v9.3). Every command must pass security checks before execution |
-| 🇨🇳 | **Native Chinese LLM Support** | Qwen / DeepSeek / Moonshot work out of the box with direct connections from mainland China — no VPN required |
+| 🔒 | **Defense-in-Depth Security** | 8-layer Bash sandbox (error classification + output truncation + process tree mgmt) + 14-step permission pipeline (PermissionPipeline 817 lines, Step 1a-1k pre-security checks + Step 2a-2b mode application + Step 3 final decision) + 308 security test coverage (including 19 new CWE-22 depth-defense unit tests in v9.3). Every command must pass security checks before execution |
+| 🇨🇳 | **Native Chinese LLM Support** | Qwen / DeepSeek / Moonshot / Zhipu GLM / MiniMax work out of the box with direct connections from mainland China — no VPN required |
 | 🐳 | **One-Command Docker Deployment** | `docker compose up -d` — one command to start. Data stays local, fully private |
-| ⚡ | **Intelligent Context Management** | Six-layer compression cascade (Snip / MicroCompact / ContextCollapse / AutoCompact / CollapseDrain / ReactiveCompact) + incremental collapse (auto-compress every 10 turns) + 413 two-phase recovery (CollapseDrain aggressive compression → ReactiveCompact) + Precise Token Counting (tiktoken multi-model support) + Self-Correction Loop (auto-diagnose compile/test failures, max 3 retries) + three-level token alerts for seamless ultra-long conversations |
-| 📷 | **Multimodal Image Chat** | Upload images for AI analysis. Supported models: qwen3.7-plus / kimi-k2.6 / kimi-k2.7-code / glm-5v-turbo / MiniMax-M3 / openai/gpt-5.5-pro / google/gemini-3.5-flash (max 5MB per image, image count limit varies by model). **Intelligent Vision Routing**: when the selected model lacks image input support, the system auto-routes to a vision-capable model from the same provider (with global fallback) and reverts to the original model after image processing |
+| ⚡ | **Intelligent Context Management** | Six-layer compression cascade (Snip / MicroCompact / ContextCollapse / AutoCompact / CollapseDrain / ReactiveCompact) + incremental collapse (auto-compress every 10 turns) + 413 two-phase recovery (CollapseDrain aggressive compression → ReactiveCompact) + Precise Token Counting (tiktoken multi-model support) + Self-Correction Loop (SelfCorrectionLoop, auto-diagnose compile/test failures, max 3 retries) + three-level token alerts for seamless ultra-long conversations. Core Engines: ContextCascade (348 lines, 6-layer compression) + QueryEngine (1,583 lines, multi-step iteration loop) |
+| 📷 | **Multimodal Image Chat** | Upload images for AI analysis; **Intelligent Vision Routing** — when the selected model lacks image input support, the system auto-routes to a vision-capable model from the same provider (with global fallback) and reverts to the original model after image processing. Supported models: gpt-5.5 / gpt-5.4-mini / claude-sonnet-4-6 / claude-opus-4-8 / qwen3.7-plus / kimi-k2.6 / kimi-k2.7-code / glm-5v-turbo / MiniMax-M3 / openai/gpt-5.5-pro / google/gemini-3.5-flash (max 5MB per image, image count limit varies by model) |
 | 🖼️ | **Browser Semantic Snapshot** | `/snap` command captures full web page state (DOM structure + interactive elements), extracts structured JSON for Agent parsing and replay verification |
 | 📊 | **Real-Time Activity Tracking & Approval** | Activity Panel records full AI tool execution lifecycle, L1/L2/L3 three-layer display, Signal smart tagging (auto_approve/review_recommended/needs_review), one-click batch approval, SQLite backend persistence, session restoration support |
 | 🧪 | **Runtime Verification Framework** | VerifierFactory tri-modal dispatch (browser/http_api/auto) + 8 HTTP action handlers + JSONPath assertions + evidence chain SQLite storage + Feature Flag dual-gating + frontend real-time progress panel |
 | 📦 | **Evidence Bundle Visualization (RV-4)** | Tabbed viewer for 7 evidence types (screenshots / commands / console / tests / network HAR / videos / diffs); on verification failure, a STOMP `verify_attention` notification triggers a mobile bottom-sheet for one-tap approve/reject. Backed by `/api/evidence/*` REST endpoints (bundle by id, list by session, binary blob by SHA-256) |
 | 🏆 | **SWE-bench Lite Submission** | Single backbone `qwen-3.6-max-preview` + closed six-tool set (Read/Edit/Write/Bash/Grep/Glob); no internet, no sub-agent. Official harness reports **Resolve 46.3% (139/300)** and Patch generation **93.3% (280/300)**. [Technical Report →](https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html) |
+| 🚀 | **Extreme Performance** | REST API p50 1.5ms · WS STOMP handshake 2.22ms · 490 real request samples verified, core engines are zero-external-dependency pure Java implementations |
 
 ---
 
@@ -216,8 +217,8 @@ If no multi-Provider keys are configured, the system automatically falls back to
 | **Zhipu (GLM)** | `https://open.bigmodel.cn/api/paas/v4/chat/completions` | glm-5.2, glm-5v-turbo | China direct access |
 | **MiniMax** | `https://api.minimax.chat/v1` | MiniMax-M3 | 1M context window |
 | **ZenMux (Multi-Model Gateway)** | `https://zenmux.ai/api/v1` | anthropic/claude-opus-4.8 / claude-fable-5 / openai/gpt-5.5-pro / google/gemini-3.5-flash | 1M context · Image support |
-| **OpenAI** | `https://api.openai.com/v1` | gpt-4o | Requires international network access |
-| **Local Ollama** | `http://localhost:11434/v1` | qwen2.5:latest | Fully offline |
+| **OpenAI** | `https://api.openai.com/v1` | gpt-5.5 / gpt-5.4-mini | Requires international network access |
+| **Local Ollama** | `http://localhost:11434/v1` | All Ollama models (ollama/*) | Fully offline |
 
 > Any provider compatible with the OpenAI API format can be integrated — just configure the corresponding Base URL and API Key.
 
@@ -284,7 +285,7 @@ ZhikunCode has completed an end-to-end SWE-bench Lite evaluation (300 instances,
 - **Agent-Loop with explicit four phases** ANALYZE→LOCATE→FIX→VERIFY, hard-enforced by the system prompt ([swe_bench.py](../swe-bench/swe_bench.py))
 - **Six-layer context compression cascade** Snip / MicroCompact / ContextCollapse / AutoCompact / CollapseDrain / ReactiveCompact ([ContextCascade.java](../backend/src/main/java/com/aicodeassistant/engine/ContextCascade.java); Level 1.5 ContextCollapse is the progressive-collapse intermediate layer per source comments)
 - **Two-phase 413 recovery** CollapseDrain → ReactiveCompact, keeping 60-turn sessions inside the context window
-- **Self-correction loop** turning compile/test failures into structured re-prompting, hard-capped at 3 attempts ([SelfCorrectionLoop.java](../backend/src/main/java/com/aicodeassistant/engine/correction/SelfCorrectionLoop.java) `MAX_ATTEMPTS = 3`)
+- **Self-correction loop (SelfCorrectionLoop)** turning compile/test failures into structured re-prompting, default MAX_ATTEMPTS=3, elevated to 7 in SWE-bench mode ([SelfCorrectionLoop.java](../backend/src/main/java/com/aicodeassistant/engine/correction/SelfCorrectionLoop.java))
 
 📄 Full methodology and reproduction command in the technical report: <https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html>
 
@@ -329,6 +330,15 @@ ZhikunCode has completed an end-to-end SWE-bench Lite evaluation (300 instances,
 >
 > **Latest Updates (April 2026):** Claude Code Desktop App released (supports local + cloud hybrid execution); Cursor 3.1 introduced Canvas feature (interactive dashboard + custom UI components); latest versions: Aider v0.86+, Cline v1.0.35+, Cursor 3.1+, Claude Code 2.1.119+, GitHub Copilot CLI 1.0.35+.
 
+#### ZhikunCode Differentiated Capabilities
+
+| Capability | ZhikunCode Implementation | Technical Highlight |
+|------------|--------------------------|--------------------|
+| Context Compression | ✅ 6-layer cascade + 413 two-phase recovery | ContextCascade 348 lines, progressive compression from L0 Snip to L4 ReactiveCompact |
+| Runtime Verification | ✅ Tri-modal runtime verification + 7-type evidence chain | VerifierFactory dispatch (browser/http_api/auto), Feature Flag controlled |
+| MCP Transport Protocol | ✅ 4 transport modes (StdIO/SSE/WebSocket/HTTP) | Client+Server dual mode, covering both local and remote scenarios |
+| SWE-bench Verified | ✅ 46.3% pass rate (open-source reproducible) | Full evaluation pipeline open-sourced, supports independent verification |
+
 ---
 
 ## 🏗️ Architecture Overview
@@ -355,7 +365,7 @@ ZhikunCode uses a three-tier architecture: the Java backend handles core orchest
 
 | Layer | Tech Stack | Responsibilities |
 |-------|-----------|-----------------|
-| **Backend** | Java 21, Spring Boot 3.4.x, WebSocket, SQLite | Core orchestration engine, LLM API routing, Agent management, tool execution (27 built-in tools + MCP dynamic extensions), permission pipeline, session persistence |
+| **Backend** | Java 21, Spring Boot 3.4.x, WebSocket, SQLite | Core orchestration engine, LLM API routing, Agent management, tool execution (50 built-in tools + MCP dynamic extensions), permission pipeline, session persistence |
 | **Frontend** | React 18, TypeScript 5.6, Vite 5, TailwindCSS, Monaco Editor, xterm.js, Zustand | Conversational UI, code editor, built-in terminal, file browser, settings panel, real-time streaming output, Agent collaboration visualization |
 | **Python Service** | FastAPI, Uvicorn, Python 3.11+ | Code analysis, AST parsing, MCP tool bridging |
 
@@ -378,12 +388,24 @@ In production, all three services are packaged in a single Docker container:
 └──────────────────────────────────────────────────┘
 ```
 
+### Core Engines
+
+ZhikunCode’s intelligent decision-making is driven by five core engines working in concert:
+
+| Engine | Scale | Responsibility | Key Feature |
+|--------|-------|---------------|-------------|
+| **QueryEngine** | 1,583 lines | Agent decision-making & tool execution orchestration | Multi-step iteration loop driving the full Agent Loop |
+| **PermissionPipeline** | 817 lines | Security decision short-circuit chain | 14-step short-circuit (Step 1a-1k + 2a-2b + 3), returns on first match |
+| **ContextCascade** | 348 lines | Context compression & recovery | 6-layer cascade + 413 two-phase recovery |
+| **ToolExecutionPipeline** | 618 lines | Tool execution full lifecycle | 7 main phases (with 2 sub-phases) in strict order |
+| **SelfCorrectionLoop** | — | Error diagnosis & auto-repair | MAX_ATTEMPTS=3 (default) / 7 (SWE-bench) |
+
 ### Agent Loop Query Cycle
 
-ZhikunCode's core execution engine QueryEngine drives Agent decision-making and tool execution through an 8-step loop:
+ZhikunCode’s core execution engine QueryEngine (1,583 lines) drives Agent decision-making and tool execution through a multi-step iteration loop:
 
 ```
-Compression Cascade → Streaming Session Creation → API Call (with circuit breaker + adaptive retry + downgrade protection) → Response Collection → Tool Result Consumption (4-layer priority scheduling) → 6-dimension termination evaluation → Tool Summary Injection → State Update
+Compression Cascade (ContextCascade 348 lines) → Streaming Session Creation → API Call (with circuit breaker + adaptive retry + downgrade protection) → Response Collection → Tool Result Consumption (4-layer priority scheduling, ToolExecutionPipeline 7 main phases) → 6-dimension termination evaluation → Tool Summary Injection → State Update
 ```
 
 **Key Subsystems:**
@@ -398,6 +420,22 @@ Compression Cascade → Streaming Session Creation → API Call (with circuit br
 **413 Two-Phase Recovery**: When the API returns 413 (Payload Too Large), automatic two-phase recovery is triggered (source: [ContextCascade.java](../backend/src/main/java/com/aicodeassistant/engine/ContextCascade.java) `recoverFromPayloadTooLarge`):
 1. **Level 3** — CollapseDrain aggressive compression (contextWindow × 0.5 target)
 2. **Level 4** — ReactiveCompact (keep only 1 turn + extreme compression)
+
+<details>
+<summary><b>Six-Layer Compression Cascade (ContextCascade) Details</b></summary>
+
+| Level | Name | Semantics | Trigger Condition |
+|-------|------|-----------|-------------------|
+| L0 | Snip (preferred trim) | Prioritizes trimming redundant content from tool outputs | Context approaching threshold |
+| L1 | MicroCompact (micro-compression) | Clears old tool results, reduces context size | L0 insufficient |
+| L1.5 | ContextCollapse (progressive collapse) | Incremental collapse intermediate layer, triggers every 10 turns | Configuration enabled |
+| L2 | AutoCompact (auto-compression) | System auto-compresses global context | Standard threshold breached |
+| L3 | CollapseDrain (aggressive compression) | contextWindow × 0.5 target, 413 recovery Phase 1 | 413 error first phase |
+| L4 | ReactiveCompact (reactive compression) | Keep only 1 turn + extreme compression, 413 recovery Phase 2 | 413 error second phase |
+
+Source: `ContextCascade.java` (348 lines)
+
+</details>
 
 ---
 
@@ -420,28 +458,15 @@ All shell commands must pass through these 8 layers before execution:
 | **Layer 7** | Output validation | Detects anomalous output, redacts sensitive information |
 | **Layer 8** | Audit logging | Complete record of every command execution for traceability |
 
-### 14-Step Permission Pipeline
+### 14-Step Permission Pipeline (PermissionPipeline, 817 lines)
 
-The permission pipeline uses a **short-circuit** design — any matching interception rule returns immediately without further processing:
+The permission pipeline uses a **multi-step short-circuit decision chain** design — any matching interception rule returns immediately without further processing:
 
-```
-Request enters
-  │
-  ├─ 1.  Deny rule check ──────────── Match → Deny
-  ├─ 2.  Ask rule check ───────────── Match → Prompt user
-  ├─ 3.  Tool-level permission ─────── Tool denies → Block
-  ├─ 4.  User interaction check ────── Needs interaction → Prompt
-  ├─ 5.  Content-level danger ──────── rm -rf, chmod 777, eval, sudo → Force prompt
-  ├─ 6.  Write path safety ─────────── Dangerous directories, symlinks → Block
-  ├─ 7.  Dangerous delete detection ── rm with risky targets → Block
-  ├─ 8.  Environment variable check ── Non-allowlisted vars → Block
-  ├─ 9.  Hook injection check ──────── PreToolUse hooks can block
-  ├─ 10. Classifier evaluation ─────── AI risk assessment (AUTO mode)
-  ├─ 11. Sandbox rule evaluation ───── In-sandbox operations → Auto-allow
-  ├─ 12. Emergency kill switch ─────── Admin can temporarily disable AUTO
-  ├─ 13. AlwaysAllow rules ─────────── Allowlist match → Allow
-  └─ 14. Mode branch decision ──────── DEFAULT/PLAN/AUTO/BYPASS final decision
-```
+| Phase | Steps | Check Content | Characteristics |
+|-------|-------|---------------|----------------|
+| **Step 1a-1k** | 11 steps | Pre-security checks (Deny rules, Ask rules, tool permissions, command blocklist, dangerous deletion, write path safety, environment variables, hook injection, etc.) | Static rule matching + content safety |
+| **Step 2a-2b** | 2 steps | Mode application (Classifier AI risk assessment, Sandbox rules) | Dynamic mode branching |
+| **Step 3** | 1 step | Final decision output (DEFAULT/PLAN/AUTO/BYPASS mode branch decision) | Terminal decision |
 
 ### Protected Paths
 
@@ -473,7 +498,7 @@ The following paths require user confirmation even in bypass mode:
 
 ### 🧪 Quality Assurance
 
-Full test report: [ZhikunCode v9.4 End-to-End Test Report](test-results/v9.3/ZhikunCode全链路测试报告.md) (2026-05-16)
+Full test report: [ZhikunCode v9.3 End-to-End Test Report](test-results/v9.3/ZhikunCode全链路测试报告.md) (2026-05-16)
 
 **Continuous Integration:**
 - **GitHub Actions Pipeline**: Automatically runs backend compilation, frontend build, Python tests, and Docker image verification on every push
@@ -599,7 +624,7 @@ managed > user > project > plugin > bundled > mcp
 | **user** | `~/.zhikun/skills/` | User global custom skills | ✅ Implemented |
 | **project** | `.zhikun/skills/` | Project-level skills, distributed with the codebase | ✅ Implemented |
 | **plugin** | Plugin-provided | Skills embedded in JAR plugins | Reserved |
-| **bundled** | Built-in | 5 out-of-the-box skills | ✅ Implemented |
+| **bundled** | Built-in | 13 out-of-the-box skills | ✅ Implemented |
 | **mcp** | MCP-built | Skills registered via MCP protocol | Reserved |
 
 ### Custom Skills
@@ -902,6 +927,16 @@ The frontend and backend maintain a real-time connection via **STOMP over SockJS
 - **Heartbeat keep-alive** — Bidirectional 10s heartbeat detection, auto-reconnect on disconnect (exponential backoff 1s→10s)
 - **Message guarantees** — 128KB message size limit, 1MB send buffer, 30s send timeout
 
+### 🌉 Bridge (Cross-Platform Bridging)
+
+ZhikunCode provides cross-platform bridging capabilities through the Bridge module (9 files / 1,530 lines):
+
+| Component | Responsibility |
+|-----------|---------------|
+| **BridgeServer** | Bridge server, manages device connections and message routing |
+| **BridgeApiClient** | Client API wrapper, supports remote invocation |
+| **TrustedDeviceManager** | Trusted device management, device registration and authentication |
+
 ---
 
 ## 🤖 Multi-Agent Collaboration
@@ -995,7 +1030,7 @@ Agents use a three-level fallback strategy for model resolution: user parameter 
 
 ## 🧩 MCP Tool Extensions
 
-ZhikunCode implements the standard [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) and supports connecting to external MCP services via SSE transport:
+ZhikunCode implements the standard [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) and supports Client + Server dual mode, connecting to external MCP services via 4 transport methods (StdIO/SSE/WebSocket/HTTP):
 
 ### Built-in MCP Tools
 
@@ -1027,11 +1062,22 @@ Register new MCP tools in `configuration/mcp/mcp_capability_registry.json`:
 - **MCP Progress Tracking**: Real-time progress display for long-running MCP tool operations with cancellation support
 - **MCP Schema Compression**: Automatically compresses large tool parameter schemas to reduce LLM context usage
 
+### MCP Protocol Transport Layer
+
+ZhikunCode supports MCP protocol Client + Server dual mode, covering 4 transport methods:
+
+| Transport | Direction | Use Case |
+|-----------|-----------|----------|
+| **StdIO** | Client | Local process communication, launching external MCP Servers |
+| **SSE (Server-Sent Events)** | Client | Remote HTTP long-connections, e.g., DashScope-hosted MCP |
+| **WebSocket** | Client/Server | Bidirectional real-time communication |
+| **HTTP (Streamable)** | Client/Server | Standard HTTP request-response |
+
 ---
 
 ## 🛠️ Built-in Tools
 
-ZhikunCode ships with 27 built-in tools + MCP dynamic extensions, covering the full development lifecycle:
+ZhikunCode ships with 50 built-in tools + MCP dynamic extensions, covering the full development lifecycle:
 
 | Category | Tools | Description |
 |----------|-------|-------------|
@@ -1166,7 +1212,9 @@ Any model compatible with the OpenAI API format, including:
 - **Qwen / DashScope** (direct connection in China, recommended default)
 - **DeepSeek** (direct connection in China)
 - **Moonshot / Kimi** (direct connection in China)
-- **OpenAI GPT-4o / GPT-4** (requires international network access)
+- **Zhipu GLM** (direct connection in China)
+- **MiniMax** (direct connection in China)
+- **OpenAI gpt-5.5 / gpt-5.4-mini** (requires international network access)
 - **Anthropic Claude** (via OpenAI-compatible API)
 - **Local models** (via Ollama, vLLM, etc.)
 

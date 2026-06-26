@@ -105,6 +105,12 @@
     </Appenders>
 
     <Loggers>
+        <!-- ===== MCP 心跳日志降噪 ===== -->
+        <Logger name="com.aicodeassistant.mcp.McpServerConnection" level="INFO" additivity="false">
+            <AppenderRef ref="AppFile"/>
+            <AppenderRef ref="McpRouting"/>
+        </Logger>
+
         <!-- ===== 应用日志 ===== -->
         <Logger name="com.aicodeassistant" level="DEBUG" additivity="false">
             <AppenderRef ref="Console"/>
