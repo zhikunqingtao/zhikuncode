@@ -534,6 +534,1467 @@
           </div>
         </div>
         <div class="arch-diagram">
+          <h4 class="arch-diagram-title">ZhikunCode 系统工程架构大图</h4>
+          <div class="arch-diagram-svg">
+            <style>
+              @keyframes flowParticle { from { stroke-dashoffset: 40; } to { stroke-dashoffset: 0; } }
+              @keyframes flowReverse { from { stroke-dashoffset: 0; } to { stroke-dashoffset: 40; } }
+              @keyframes breathe { 0%,100% { opacity: 0.6; } 50% { opacity: 1; } }
+              @keyframes pulseGlow { 0%,100% { filter: drop-shadow(0 0 3px currentColor); } 50% { filter: drop-shadow(0 0 12px currentColor); } }
+              @keyframes pulseFlowLine { 0% { stroke-dashoffset: 40; opacity: 0.6; } 50% { opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 0.6; } }
+              @keyframes subtlePulse { 0%,100% { opacity: 0.85; } 50% { opacity: 1; } }
+              .blueprint-container { width: 100%; max-width: 1400px; margin: 0 auto; }
+              .blueprint-container svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px rgba(0,0,0,0.45)); }
+            </style>
+            <div class="blueprint-container">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 4350" preserveAspectRatio="xMidYMin meet">
+    <defs>
+      <!-- Circuit board grid pattern -->
+      <pattern id="circuitGrid" x="0" y="0" width="50" height="50" patternUnits="userSpaceOnUse">
+        <path d="M 50 0 L 0 0 0 50" fill="none" stroke="#1a3a5c" stroke-width="0.4" opacity="0.08"/>
+        <circle cx="0" cy="0" r="1.2" fill="#1a3a5c" opacity="0.12"/>
+        <circle cx="50" cy="50" r="1.2" fill="#1a3a5c" opacity="0.12"/>
+      </pattern>
+      <!-- Gradient definitions -->
+      <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#00e5ff" stop-opacity="0.95"/>
+        <stop offset="100%" stop-color="#0091ea" stop-opacity="0.8"/>
+      </linearGradient>
+      <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#ffd740" stop-opacity="0.95"/>
+        <stop offset="100%" stop-color="#F59E0B" stop-opacity="0.8"/>
+      </linearGradient>
+      <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#A78BFA" stop-opacity="0.9"/>
+        <stop offset="100%" stop-color="#7C3AED" stop-opacity="0.75"/>
+      </linearGradient>
+      <linearGradient id="greenToRed" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#10B981"/>
+        <stop offset="50%" stop-color="#F59E0B"/>
+        <stop offset="100%" stop-color="#DC4A5C"/>
+      </linearGradient>
+      <linearGradient id="flowLine" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#00e5ff"/>
+        <stop offset="50%" stop-color="#10B981"/>
+        <stop offset="100%" stop-color="#F59E0B"/>
+      </linearGradient>
+      <!-- Card background gradient -->
+      <linearGradient id="cardBgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#131832" stop-opacity="1"/>
+        <stop offset="100%" stop-color="#0d1225" stop-opacity="1"/>
+      </linearGradient>
+      <!-- Stats bar gradient -->
+      <linearGradient id="statBarGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#0d1225"/>
+        <stop offset="50%" stop-color="#151a30"/>
+        <stop offset="100%" stop-color="#0d1225"/>
+      </linearGradient>
+      <!-- Glow filters - enhanced -->
+      <filter id="glowCyan" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="4" result="blur"/><feFlood flood-color="#00e5ff" flood-opacity="0.3" result="color"/><feComposite in="color" in2="blur" operator="in" result="colorBlur"/><feMerge><feMergeNode in="colorBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <filter id="glowGold" x="-15%" y="-15%" width="130%" height="130%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#ffd740" flood-opacity="0.25" result="color"/><feComposite in="color" in2="blur" operator="in" result="colorBlur"/><feMerge><feMergeNode in="colorBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <filter id="glowPurple" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3.5" result="blur"/><feFlood flood-color="#A78BFA" flood-opacity="0.3" result="color"/><feComposite in="color" in2="blur" operator="in" result="colorBlur"/><feMerge><feMergeNode in="colorBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <filter id="glowGreen" x="-15%" y="-15%" width="130%" height="130%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#10B981" flood-opacity="0.3" result="color"/><feComposite in="color" in2="blur" operator="in" result="colorBlur"/><feMerge><feMergeNode in="colorBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <filter id="glowRed" x="-15%" y="-15%" width="130%" height="130%"><feGaussianBlur stdDeviation="2.5" result="blur"/><feFlood flood-color="#DC4A5C" flood-opacity="0.25" result="color"/><feComposite in="color" in2="blur" operator="in" result="colorBlur"/><feMerge><feMergeNode in="colorBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <!-- Soft shadow for cards -->
+      <filter id="cardShadow" x="-5%" y="-5%" width="110%" height="115%"><feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000" flood-opacity="0.4"/></filter>
+      <!-- New gradients for added modules -->
+      <linearGradient id="aposGreenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#10B981" stop-opacity="0.9"/>
+        <stop offset="100%" stop-color="#059669" stop-opacity="0.7"/>
+      </linearGradient>
+      <linearGradient id="securityRedGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#DC4A5C" stop-opacity="0.9"/>
+        <stop offset="100%" stop-color="#B83A4B" stop-opacity="0.7"/>
+      </linearGradient>
+      <linearGradient id="bridgeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#6366F1" stop-opacity="0.9"/>
+        <stop offset="100%" stop-color="#7C3AED" stop-opacity="0.7"/>
+      </linearGradient>
+      <linearGradient id="tealPipeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.9"/>
+        <stop offset="100%" stop-color="#0891b2" stop-opacity="0.7"/>
+      </linearGradient>
+      <filter id="glowTeal" x="-15%" y="-15%" width="130%" height="130%"><feGaussianBlur stdDeviation="3" result="blur"/><feFlood flood-color="#06b6d4" flood-opacity="0.3" result="color"/><feComposite in="color" in2="blur" operator="in" result="colorBlur"/><feMerge><feMergeNode in="colorBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <!-- Arrow marker -->
+      <marker id="arrowGold" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#ffd740"/></marker>
+    </defs>
+    
+    <!-- Background -->
+    <rect width="1400" height="4350" fill="#0B0D17"/>
+    <rect width="1400" height="4350" fill="url(#circuitGrid)"/>
+    
+    <!-- ═══════════════════════ TITLE SECTION ═══════════════════════ -->
+    <g transform="translate(700, 50)">
+      <text x="0" y="42" text-anchor="middle" fill="#00e5ff" font-size="52" font-weight="800" filter="url(#glowCyan)" style="animation: breathe 4s infinite">ZhikunCode</text>
+      <text x="0" y="78" text-anchor="middle" fill="#B8D4E8" font-size="22" font-weight="600" letter-spacing="8">系统工程架构大图</text>
+      <text x="0" y="110" text-anchor="middle" fill="#8BA4B8" font-size="13">115,879行源码 · 17+模型 · 26工具 · 13技能 · Java 21 Virtual Threads · Spring Boot 3</text>
+      <line x1="-500" y1="125" x2="500" y2="125" stroke="url(#flowLine)" stroke-width="1.5" opacity="0.5"/>
+    </g>
+    
+    <!-- ═══════════════════════ LAYER 1: FRONTEND ═══════════════════════ -->
+    <g transform="translate(40, 190)">
+      <!-- Layer border -->
+      <rect x="0" y="0" width="1320" height="200" rx="10" fill="none" stroke="#00e5ff" stroke-width="1.5" opacity="0.5"/>
+      <rect x="0" y="0" width="1320" height="200" rx="10" fill="#00e5ff" opacity="0.04"/>
+      <!-- Layer label -->
+      <rect x="20" y="-12" width="280" height="24" rx="6" fill="#0B0D17"/>
+      <text x="30" y="4" fill="#00e5ff" font-size="15" font-weight="bold">FRONTEND LAYER · TypeScript 28,394行</text>
+      <text x="380" y="4" fill="#8BA4B8" font-size="11">110 React组件 · 14+ Zustand Stores · STOMP WebSocket</text>
+    
+      <!-- WebSocket STOMP -->
+      <g transform="translate(40, 35)">
+        <rect x="0" y="0" width="280" height="155" rx="4" fill="#0f2035" stroke="#00e5ff" stroke-width="0.8" opacity="0.8"/>
+        <text x="10" y="20" fill="#00e5ff" font-size="12" font-weight="bold">WebSocket STOMP 通信层</text>
+        <text x="10" y="40" fill="#8da4b0" font-size="10">↑ Client→Server: 10种上行消息</text>
+        <text x="10" y="55" fill="#8da4b0" font-size="9">query | interrupt | permission | tool_result</text>
+        <text x="10" y="68" fill="#8da4b0" font-size="9">agent_message | memory_action | config_update</text>
+        <text x="10" y="81" fill="#8da4b0" font-size="9">skill_execute | collaboration_join | collab_action</text>
+        <line x1="10" y1="88" x2="270" y2="88" stroke="#253555" stroke-width="0.5"/>
+        <text x="10" y="103" fill="#8da4b0" font-size="10">↓ Server→Client: 25种下行推送</text>
+        <text x="10" y="118" fill="#8da4b0" font-size="9">message_start/delta/stop | content_block_*</text>
+        <text x="10" y="131" fill="#8da4b0" font-size="9">tool_use/result | permission_request/response</text>
+        <text x="10" y="143" fill="#8da4b0" font-size="9">+ 15种状态/协作/错误推送</text>
+      </g>
+    
+      <!-- Monaco Editor -->
+      <g transform="translate(350, 35)">
+        <rect x="0" y="0" width="220" height="65" rx="4" fill="#0f2035" stroke="#00e5ff" stroke-width="0.8" opacity="0.8"/>
+        <text x="10" y="20" fill="#00e5ff" font-size="12" font-weight="bold">Monaco Editor</text>
+        <text x="10" y="38" fill="#8da4b0" font-size="9">代码编辑 · 语法高亮 · LSP集成</text>
+        <text x="10" y="53" fill="#8da4b0" font-size="9">深色主题 · CSS变量驱动适配</text>
+      </g>
+    
+      <!-- Permission Dialog -->
+      <g transform="translate(350, 115)">
+        <rect x="0" y="0" width="220" height="65" rx="4" fill="#0f2035" stroke="#ffab00" stroke-width="0.8" opacity="0.8"/>
+        <text x="10" y="20" fill="#ffab00" font-size="12" font-weight="bold">权限交互弹窗</text>
+        <text x="10" y="38" fill="#8da4b0" font-size="9">CompletableFuture 120秒超时</text>
+        <text x="10" y="53" fill="#8da4b0" font-size="9">命令风险分级 · Always Allow V4门控</text>
+      </g>
+    
+      <!-- Zustand Stores -->
+      <g transform="translate(600, 35)">
+        <rect x="0" y="0" width="340" height="145" rx="4" fill="#0f2035" stroke="#00e5ff" stroke-width="0.8" opacity="0.8"/>
+        <text x="10" y="20" fill="#00e5ff" font-size="12" font-weight="bold">Zustand 状态管理 (14+ Stores)</text>
+        <text x="10" y="40" fill="#4dd0e1" font-size="9">messageStore</text><text x="100" y="40" fill="#7a95a8" font-size="9">消息历史/流式</text>
+        <text x="10" y="55" fill="#4dd0e1" font-size="9">toolStore</text><text x="100" y="55" fill="#7a95a8" font-size="9">工具定义/执行状态</text>
+        <text x="10" y="70" fill="#4dd0e1" font-size="9">mcpCapabilityStore</text><text x="140" y="70" fill="#7a95a8" font-size="9">MCP能力动态注册</text>
+        <text x="10" y="85" fill="#4dd0e1" font-size="9">commandStore</text><text x="100" y="85" fill="#7a95a8" font-size="9">Slash命令</text>
+        <text x="10" y="100" fill="#4dd0e1" font-size="9">coordinatorStore</text><text x="130" y="100" fill="#7a95a8" font-size="9">Swarm协调器</text>
+        <text x="10" y="115" fill="#4dd0e1" font-size="9">fileTreeStore</text><text x="100" y="115" fill="#7a95a8" font-size="9">文件树状态</text>
+        <text x="10" y="130" fill="#4dd0e1" font-size="9">activityStore</text><text x="100" y="130" fill="#7a95a8" font-size="9">用户活动追踪</text>
+        <text x="200" y="40" fill="#4dd0e1" font-size="9">持久化: LocalStorage</text>
+        <text x="200" y="55" fill="#4dd0e1" font-size="9">跨标签同步: BroadcastChannel</text>
+        <text x="200" y="70" fill="#4dd0e1" font-size="9">TypeScript强类型</text>
+        <text x="200" y="85" fill="#4dd0e1" font-size="9">异步中间件支持</text>
+      </g>
+    
+      <!-- Streaming Render -->
+      <g transform="translate(970, 35)">
+        <rect x="0" y="0" width="310" height="145" rx="4" fill="#0f2035" stroke="#00e5ff" stroke-width="0.8" opacity="0.8"/>
+        <text x="10" y="20" fill="#00e5ff" font-size="12" font-weight="bold">实时流式渲染</text>
+        <text x="10" y="40" fill="#8da4b0" font-size="9">content_block_delta → 增量文本流</text>
+        <text x="10" y="55" fill="#8da4b0" font-size="9">Markdown实时解析+代码高亮</text>
+        <text x="10" y="70" fill="#8da4b0" font-size="9">Thinking块可折叠展示</text>
+        <line x1="10" y1="80" x2="290" y2="80" stroke="#253555" stroke-width="0.5"/>
+        <text x="10" y="95" fill="#00e5ff" font-size="11" font-weight="bold">可视化组件</text>
+        <text x="10" y="112" fill="#8da4b0" font-size="9">代码路径追踪 · 架构图渲染</text>
+        <text x="10" y="127" fill="#8da4b0" font-size="9">数据流可视化 · 多模型切换UI</text>
+      </g>
+    </g>
+    
+    <!-- Flow connection: Frontend → Backend -->
+    <g>
+      <line x1="700" y1="395" x2="700" y2="430" stroke="#00e5ff" stroke-width="3" stroke-dasharray="8,4" style="animation: pulseFlowLine 1.2s linear infinite"/>
+      <text x="720" y="418" fill="#00e5ff" font-size="10" font-weight="600">WebSocket双向流</text>
+      <polygon points="695,428 705,428 700,435" fill="#00e5ff"/>
+    </g>
+    
+    <!-- ═══════════════════════ LAYER 2: BACKEND CORE ═══════════════════════ -->
+    <g transform="translate(40, 440)">
+      <!-- Layer border -->
+      <rect x="0" y="0" width="1320" height="3375" rx="10" fill="none" stroke="#ffd740" stroke-width="1.5" opacity="0.5"/>
+      <rect x="0" y="0" width="1320" height="3375" rx="10" fill="#ffd740" opacity="0.025"/>
+      <!-- Layer label -->
+      <rect x="20" y="-12" width="560" height="24" rx="6" fill="#0B0D17"/>
+      <text x="30" y="4" fill="#ffd740" font-size="15" font-weight="bold">BACKEND CORE · Java 79,639行 · 541文件 · Spring Boot 3 · Java 21 Virtual Threads</text>
+    
+      <!-- ═══ 2A: QueryEngine ═══ -->
+      <g transform="translate(20, 25)">
+        <rect x="0" y="0" width="1280" height="350" rx="10" fill="url(#cardBgGrad)" stroke="#ffd740" stroke-width="1.4" opacity="1"/>
+        <text x="15" y="22" fill="#ffd740" font-size="14" font-weight="bold">查询引擎（QueryEngine）</text>
+        <text x="250" y="22" fill="#8da4b0" font-size="10">QueryEngine.java · 1,583行 · 8步迭代循环 · MAX_TURNS=200</text>
+    
+        <!-- 8-step cycle: top row S1-S4 -->
+        <g transform="translate(30, 42)">
+          <!-- S1 -->
+          <rect x="0" y="0" width="270" height="55" rx="3" fill="#1a237e" stroke="#ffd740" stroke-width="0.8"/>
+          <text x="8" y="16" fill="#ffd740" font-size="10" font-weight="bold">S1 压缩预检</text>
+          <text x="8" y="30" fill="#a0b4be" font-size="8">ContextCascade.executePreApiCascade()</text>
+          <text x="8" y="42" fill="#8da4b0" font-size="8">L0-L2前置压缩 · 每次API调用前执行</text>
+          <!-- Arrow S1→S2 -->
+          <line x1="275" y1="27" x2="295" y2="27" stroke="#ffd740" stroke-width="1.5" marker-end="url(#arrowGold)"/>
+    
+          <!-- S2 -->
+          <rect x="300" y="0" width="270" height="55" rx="3" fill="#1a237e" stroke="#ffd740" stroke-width="0.8"/>
+          <text x="308" y="16" fill="#ffd740" font-size="10" font-weight="bold">S2 执行器初始化</text>
+          <text x="308" y="30" fill="#a0b4be" font-size="8">StreamingToolExecutor.newSession()</text>
+          <text x="308" y="42" fill="#8da4b0" font-size="8">并发上下文 · 条件等待 · 优先级调度</text>
+          <!-- Arrow S2→S3 -->
+          <line x1="575" y1="27" x2="595" y2="27" stroke="#ffd740" stroke-width="1.5"/>
+    
+          <!-- S3 -->
+          <rect x="600" y="0" width="270" height="55" rx="3" fill="#1a237e" stroke="#ffd740" stroke-width="0.8"/>
+          <text x="608" y="16" fill="#ffd740" font-size="10" font-weight="bold">S3 LLM流式调用</text>
+          <text x="608" y="30" fill="#a0b4be" font-size="8">provider.streamChat() + apiRetryService</text>
+          <text x="608" y="42" fill="#8da4b0" font-size="8">模型降级 · Thinking配置 · 413恢复三阶段</text>
+          <!-- Arrow S3→S4 -->
+          <line x1="875" y1="27" x2="895" y2="27" stroke="#ffd740" stroke-width="1.5"/>
+    
+          <!-- S4 -->
+          <rect x="900" y="0" width="270" height="55" rx="3" fill="#1a237e" stroke="#ffd740" stroke-width="0.8"/>
+          <text x="908" y="16" fill="#ffd740" font-size="10" font-weight="bold">S4 流式响应处理</text>
+          <text x="908" y="30" fill="#a0b4be" font-size="8">StreamCollector.process()</text>
+          <text x="908" y="42" fill="#8da4b0" font-size="8">onContent · onToolUse · onMessage</text>
+        </g>
+    
+        <!-- Vertical connector S4→S5 -->
+        <line x1="1165" y1="100" x2="1165" y2="120" stroke="#ffd740" stroke-width="1.5"/>
+    
+        <!-- 8-step cycle: bottom row S8-S5 (reversed) -->
+        <g transform="translate(30, 122)">
+          <!-- S8 -->
+          <rect x="0" y="0" width="270" height="55" rx="3" fill="#1a237e" stroke="#ffd740" stroke-width="0.8"/>
+          <text x="8" y="16" fill="#ffd740" font-size="10" font-weight="bold">S8 状态持久化</text>
+          <text x="8" y="30" fill="#a0b4be" font-size="8">state.incrementTurnCount() / setMessages()</text>
+          <text x="8" y="42" fill="#8da4b0" font-size="8">轮次计数 · 错误状态 · 后台Agent追踪</text>
+    
+          <!-- S7 -->
+          <rect x="300" y="0" width="270" height="55" rx="3" fill="#1a237e" stroke="#ffd740" stroke-width="0.8"/>
+          <text x="308" y="16" fill="#ffd740" font-size="10" font-weight="bold">S7 结果摘要注入</text>
+          <text x="308" y="30" fill="#a0b4be" font-size="8">ToolResultSummarizer.summarize()</text>
+          <text x="308" y="42" fill="#8da4b0" font-size="8">BUDGET_RATIO=0.3 · FileHistoryService</text>
+    
+          <!-- S6 -->
+          <rect x="600" y="0" width="270" height="55" rx="3" fill="#1a237e" stroke="#ffd740" stroke-width="0.8"/>
+          <text x="608" y="16" fill="#ffd740" font-size="10" font-weight="bold">S6 终止判定</text>
+          <text x="608" y="30" fill="#a0b4be" font-size="8">TerminationStrategy.evaluate()</text>
+          <text x="608" y="42" fill="#8da4b0" font-size="8">轮次/错误/stopReason/token预算</text>
+    
+          <!-- S5 -->
+          <rect x="900" y="0" width="270" height="55" rx="3" fill="#1a237e" stroke="#ffd740" stroke-width="0.8"/>
+          <text x="908" y="16" fill="#ffd740" font-size="10" font-weight="bold">S5 工具执行</text>
+          <text x="908" y="30" fill="#a0b4be" font-size="8">ToolExecutionPipeline + PermissionPipeline</text>
+          <text x="908" y="42" fill="#8da4b0" font-size="8">权限决策 · 优先级调度 · 并发执行</text>
+    
+          <!-- Reverse arrows -->
+          <line x1="895" y1="27" x2="875" y2="27" stroke="#ffd740" stroke-width="1.5"/>
+          <line x1="595" y1="27" x2="575" y2="27" stroke="#ffd740" stroke-width="1.5"/>
+          <line x1="295" y1="27" x2="275" y2="27" stroke="#ffd740" stroke-width="1.5"/>
+        </g>
+    
+        <!-- Loop-back arrow S8 → S1 -->
+        <path d="M 30,190 L 10,190 L 10,70 L 30,70" fill="none" stroke="#ff8f00" stroke-width="2" stroke-dasharray="6,3" style="animation: flowReverse 2s linear infinite"/>
+        <text x="12" y="135" fill="#ff8f00" font-size="9" writing-mode="tb">循环</text>
+        <text x="50" y="195" fill="#ff8f00" font-size="8">stopReason≠end_turn &amp;&amp; hasToolCalls → 继续循环</text>
+    
+        <!-- Termination conditions box -->
+        <g transform="translate(30, 200)">
+          <rect x="0" y="0" width="1220" height="130" rx="4" fill="#0B0D17" stroke="#4B5EAA" stroke-width="0.6" stroke-dasharray="3,3"/>
+          <text x="10" y="18" fill="#8da4b0" font-size="10" font-weight="bold">循环终止条件</text>
+          <text x="10" y="36" fill="#7a95a8" font-size="9">① turn >= config.maxTurns() (DEFAULT_MAX_TURNS=200)</text>
+          <text x="10" y="51" fill="#7a95a8" font-size="9">② "end_turn".equals(stopReason) &amp;&amp; !hasToolCalls</text>
+          <text x="10" y="66" fill="#7a95a8" font-size="9">③ aborted.get() == true（外部abort()调用）</text>
+          <text x="10" y="81" fill="#7a95a8" font-size="9">④ totalTokensUsed > tokenBudget</text>
+          <text x="400" y="36" fill="#7a95a8" font-size="9">⑤ consecutiveErrors超阈值</text>
+          <text x="400" y="51" fill="#7a95a8" font-size="9">入口: QueryEngine.execute(QueryConfig, QueryLoopState, QueryMessageHandler)</text>
+          <text x="400" y="66" fill="#7a95a8" font-size="9">返回: QueryResult(messages, turnCount, tokenUsage, terminationReason)</text>
+          <text x="750" y="81" fill="#ffd740" font-size="9">模型降级解析: modelTierService.resolveModel()</text>
+          <text x="750" y="96" fill="#ffd740" font-size="9">413恢复: Phase1 CollapseDrain → Phase2 ReactiveCompact → Phase3 MediaRecovery</text>
+          <text x="750" y="111" fill="#ffd740" font-size="9">重试: apiRetryService.executeWithRetry() 指数退避</text>
+        </g>
+      </g>
+    
+      <!-- ═══ 2B: PermissionPipeline ═══ -->
+      <g transform="translate(20, 400)">
+        <rect x="0" y="0" width="1280" height="260" rx="10" fill="url(#cardBgGrad)" stroke="#F59E0B" stroke-width="1.4" opacity="1"/>
+        <text x="15" y="22" fill="#F59E0B" font-size="14" font-weight="bold">权限管道（PermissionPipeline）安全决策链</text>
+        <text x="310" y="22" fill="#8da4b0" font-size="10">PermissionPipeline.java · 817行 · 14步短路决策 · 任何一步DENY即短路返回 ⚡</text>
+    
+        <!-- Phase 1: Rules & Tool (Steps 1a-1e) -->
+        <g transform="translate(15, 38)">
+          <text x="0" y="12" fill="#F59E0B" font-size="10" font-weight="bold">Phase 1 规则层 (5步)</text>
+          <rect x="0" y="18" width="130" height="35" rx="2" fill="#1b5e20" stroke="#4caf50" stroke-width="0.6"/>
+          <text x="6" y="33" fill="#a5d6a7" font-size="9">1a Deny规则</text>
+          <text x="6" y="46" fill="#8da4b0" font-size="7">ruleMatcher.findDenyRule()</text>
+    
+          <rect x="140" y="18" width="130" height="35" rx="2" fill="#1b5e20" stroke="#66bb6a" stroke-width="0.6"/>
+          <text x="146" y="33" fill="#a5d6a7" font-size="9">1b Ask规则</text>
+          <text x="146" y="46" fill="#8da4b0" font-size="7">ruleMatcher.findAskRule()</text>
+    
+          <rect x="280" y="18" width="130" height="35" rx="2" fill="#2e7d32" stroke="#81c784" stroke-width="0.6"/>
+          <text x="286" y="33" fill="#a5d6a7" font-size="9">1c 工具权限</text>
+          <text x="286" y="46" fill="#8da4b0" font-size="7">tool.checkPermissions()</text>
+    
+          <rect x="420" y="18" width="130" height="35" rx="2" fill="#2e7d32" stroke="#81c784" stroke-width="0.6"/>
+          <text x="426" y="33" fill="#a5d6a7" font-size="9">1d 工具拒绝</text>
+          <text x="426" y="46" fill="#8da4b0" font-size="7">DENY by implementation</text>
+    
+          <rect x="560" y="18" width="140" height="35" rx="2" fill="#33691e" stroke="#aed581" stroke-width="0.6"/>
+          <text x="566" y="33" fill="#a5d6a7" font-size="9">1e 交互模式</text>
+          <text x="566" y="46" fill="#8da4b0" font-size="7">requiresUserInteraction()</text>
+    
+          <!-- Arrows between phase 1 steps -->
+          <text x="132" y="38" fill="#ffd740" font-size="10">→</text>
+          <text x="272" y="38" fill="#ffd740" font-size="10">→</text>
+          <text x="412" y="38" fill="#ffd740" font-size="10">→</text>
+          <text x="552" y="38" fill="#ffd740" font-size="10">→</text>
+        </g>
+    
+        <!-- Phase 2: Content Security (Steps 1f-1k) -->
+        <g transform="translate(15, 100)">
+          <text x="0" y="12" fill="#DC4A5C" font-size="10" font-weight="bold">Phase 2 内容安全 (5步, Bypass Immune⚡)</text>
+    
+          <rect x="0" y="18" width="145" height="35" rx="2" fill="#4e342e" stroke="#ff8a65" stroke-width="0.6"/>
+          <text x="6" y="33" fill="#ffab91" font-size="8">1f-pre 命令黑名单</text>
+          <text x="6" y="46" fill="#8da4b0" font-size="7">ABSOLUTE_DENY级</text>
+    
+          <rect x="155" y="18" width="130" height="35" rx="2" fill="#4e342e" stroke="#ff7043" stroke-width="0.6"/>
+          <text x="161" y="33" fill="#ffab91" font-size="8">1f 内容Ask</text>
+          <text x="161" y="46" fill="#8da4b0" font-size="7">rm -rf / | chmod 777</text>
+    
+          <rect x="295" y="18" width="130" height="35" rx="2" fill="#bf360c" stroke="#ff5722" stroke-width="0.6"/>
+          <text x="301" y="33" fill="#ffab91" font-size="8">1f-write 写路径</text>
+          <text x="301" y="46" fill="#8da4b0" font-size="7">.git/.ssh/.env保护</text>
+    
+          <rect x="435" y="18" width="130" height="35" rx="2" fill="#bf360c" stroke="#ff5722" stroke-width="0.6"/>
+          <text x="441" y="33" fill="#ffab91" font-size="8">1f-bash 危险删除</text>
+          <text x="441" y="46" fill="#8da4b0" font-size="7">不可逆+环境变量</text>
+    
+          <rect x="575" y="18" width="115" height="35" rx="2" fill="#b71c1c" stroke="#ef5350" stroke-width="0.6"/>
+          <text x="581" y="33" fill="#ffcdd2" font-size="8">1g 安全检查</text>
+          <text x="581" y="46" fill="#8da4b0" font-size="7">受保护路径</text>
+    
+          <!-- Arrows between phase 2 steps -->
+          <text x="147" y="38" fill="#DC4A5C" font-size="10">→</text>
+          <text x="287" y="38" fill="#DC4A5C" font-size="10">→</text>
+          <text x="427" y="38" fill="#DC4A5C" font-size="10">→</text>
+          <text x="567" y="38" fill="#DC4A5C" font-size="10">→</text>
+        </g>
+    
+        <!-- Phase 3: Final Decision (Steps 1h-1k) -->
+        <g transform="translate(15, 165)">
+          <text x="0" y="12" fill="#A78BFA" font-size="10" font-weight="bold">Phase 3 最终决策 (4步)</text>
+    
+          <rect x="0" y="18" width="120" height="35" rx="2" fill="#311b92" stroke="#9c27b0" stroke-width="0.6"/>
+          <text x="6" y="33" fill="#ce93d8" font-size="9">1h Hook注入</text>
+          <text x="6" y="46" fill="#8da4b0" font-size="7">插件级门控</text>
+    
+          <rect x="130" y="18" width="120" height="35" rx="2" fill="#311b92" stroke="#9c27b0" stroke-width="0.6"/>
+          <text x="136" y="33" fill="#ce93d8" font-size="9">1i Classifier</text>
+          <text x="136" y="46" fill="#8da4b0" font-size="7">仅AUTO模式</text>
+    
+          <rect x="260" y="18" width="120" height="35" rx="2" fill="#311b92" stroke="#7c4dff" stroke-width="0.6"/>
+          <text x="266" y="33" fill="#ce93d8" font-size="9">1j Sandbox</text>
+          <text x="266" y="46" fill="#8da4b0" font-size="7">沙箱自动放行</text>
+    
+          <rect x="390" y="18" width="120" height="35" rx="2" fill="#880e4f" stroke="#d32f2f" stroke-width="0.8"/>
+          <text x="396" y="33" fill="#ffcdd2" font-size="9">1k 敏感文件</text>
+          <text x="396" y="46" fill="#8da4b0" font-size="7">/etc/passwd等</text>
+    
+          <!-- Arrows -->
+          <text x="122" y="38" fill="#A78BFA" font-size="10">→</text>
+          <text x="252" y="38" fill="#A78BFA" font-size="10">→</text>
+          <text x="382" y="38" fill="#A78BFA" font-size="10">→</text>
+    
+          <!-- Mode branches -->
+          <g transform="translate(540, 0)">
+            <text x="0" y="12" fill="#8da4b0" font-size="9">→ 7种模式分支:</text>
+            <rect x="0" y="18" width="75" height="28" rx="2" fill="#1a237e" stroke="#7c4dff" stroke-width="0.5"/>
+            <text x="5" y="36" fill="#b39ddb" font-size="8">DEFAULT</text>
+            <rect x="80" y="18" width="65" height="28" rx="2" fill="#1a237e" stroke="#7c4dff" stroke-width="0.5"/>
+            <text x="85" y="36" fill="#b39ddb" font-size="8">PLAN</text>
+            <rect x="150" y="18" width="100" height="28" rx="2" fill="#1a237e" stroke="#7c4dff" stroke-width="0.5"/>
+            <text x="155" y="36" fill="#b39ddb" font-size="8">ACCEPT_EDITS</text>
+            <rect x="255" y="18" width="80" height="28" rx="2" fill="#1a237e" stroke="#7c4dff" stroke-width="0.5"/>
+            <text x="260" y="36" fill="#b39ddb" font-size="8">DONT_ASK</text>
+            <rect x="340" y="18" width="60" height="28" rx="2" fill="#1a237e" stroke="#7c4dff" stroke-width="0.5"/>
+            <text x="345" y="36" fill="#b39ddb" font-size="8">AUTO</text>
+            <rect x="405" y="18" width="70" height="28" rx="2" fill="#1a237e" stroke="#7c4dff" stroke-width="0.5"/>
+            <text x="410" y="36" fill="#b39ddb" font-size="8">BUBBLE</text>
+            <rect x="480" y="18" width="80" height="28" rx="2" fill="#1a237e" stroke="#7c4dff" stroke-width="0.5"/>
+            <text x="485" y="36" fill="#b39ddb" font-size="8">SKIP_ALL</text>
+          </g>
+        </g>
+    
+        <!-- Protected paths note -->
+        <text x="15" y="248" fill="#7a95a8" font-size="8">PROTECTED_PATHS: .git, .zhikun, .env, .ssh, .gnupg, .aws | BARE_SHELL_PREFIXES: sh,bash,zsh,fish,sudo,eval... | DESTRUCTIVE: rm -rf,dd,mkfs,git push --force...</text>
+      </g>
+    
+      <!-- ═══ 2C: LLM Multi-Model Router ═══ -->
+      <g transform="translate(20, 1095)">
+        <rect x="0" y="0" width="620" height="300" rx="10" fill="url(#cardBgGrad)" stroke="#ffd740" stroke-width="1.4" opacity="1"/>
+        <text x="15" y="22" fill="#ffd740" font-size="14" font-weight="bold">LLM 多模型路由</text>
+        <text x="195" y="22" fill="#8da4b0" font-size="10">LlmProviderRegistry · ModelRegistry · 17+模型</text>
+    
+        <!-- Router icon -->
+        <rect x="20" y="38" width="100" height="35" rx="3" fill="#1a237e" stroke="#ffd740" stroke-width="1"/>
+        <text x="32" y="60" fill="#ffd740" font-size="10" font-weight="bold">Router</text>
+    
+        <!-- Model groups -->
+        <g transform="translate(150, 35)">
+          <text x="0" y="12" fill="#4dd0e1" font-size="10" font-weight="bold">OpenAI</text>
+          <text x="0" y="26" fill="#8da4b0" font-size="8">gpt-5.5 (128K ctx, 1.05M out, thinking)</text>
+          <text x="0" y="38" fill="#8da4b0" font-size="8">gpt-5.4-mini (128K ctx, 400K out)</text>
+        </g>
+    
+        <g transform="translate(150, 82)">
+          <text x="0" y="12" fill="#FBBF24" font-size="10" font-weight="bold">Anthropic</text>
+          <text x="0" y="26" fill="#8da4b0" font-size="8">claude-sonnet-4-6 (16K, thinking)</text>
+          <text x="0" y="38" fill="#8da4b0" font-size="8">claude-opus-4-8 (16K, thinking)</text>
+          <text x="0" y="50" fill="#8da4b0" font-size="8">claude-haiku-4-5 (8K)</text>
+        </g>
+    
+        <g transform="translate(150, 145)">
+          <text x="0" y="12" fill="#F87171" font-size="10" font-weight="bold">国产模型</text>
+          <text x="0" y="26" fill="#8da4b0" font-size="8">deepseek-v4-pro (384K, thinking)</text>
+          <text x="0" y="38" fill="#8da4b0" font-size="8">deepseek-v4-flash (384K, thinking)</text>
+          <text x="0" y="50" fill="#8da4b0" font-size="8">qwen3.7-max (65.5K, thinking)</text>
+          <text x="0" y="62" fill="#8da4b0" font-size="8">qwen3.7-plus (8K) | kimi-k2.6 (16K)</text>
+          <text x="0" y="74" fill="#8da4b0" font-size="8">glm-5.2 (131K) | glm-5v-turbo (131K)</text>
+        </g>
+    
+        <g transform="translate(420, 35)">
+          <text x="0" y="12" fill="#34D399" font-size="10" font-weight="bold">ZenMux 聚合 (4端点)</text>
+          <text x="0" y="26" fill="#8da4b0" font-size="8">anthropic/claude-opus-4.8 (64K)</text>
+          <text x="0" y="38" fill="#8da4b0" font-size="8">anthropic/claude-fable-5 (64K)</text>
+          <text x="0" y="50" fill="#8da4b0" font-size="8">openai/gpt-5.5-pro (128K)</text>
+          <text x="0" y="62" fill="#8da4b0" font-size="8">google/gemini-3.5-flash (65.5K)</text>
+        </g>
+    
+        <g transform="translate(420, 105)">
+          <text x="0" y="12" fill="#b0bec5" font-size="10" font-weight="bold">本地模型</text>
+          <text x="0" y="26" fill="#8da4b0" font-size="8">ollama/* (4K ctx, 8K output)</text>
+        </g>
+    
+        <!-- Degradation chain -->
+        <g transform="translate(20, 250)">
+          <rect x="0" y="0" width="580" height="38" rx="3" fill="#1a1a2e" stroke="#ff8f00" stroke-width="0.6"/>
+          <text x="10" y="14" fill="#ff8f00" font-size="9" font-weight="bold">降级链</text>
+          <text x="10" y="28" fill="#8da4b0" font-size="8">30min冷却 → 3次成功恢复 | 三级回退: 用户指定模型 → Agent默认(light/standard/premium) → 全局默认(qwen3.7-max)</text>
+        </g>
+      </g>
+    
+      <!-- ═══ 2D: Tool Execution System ═══ -->
+      <g transform="translate(660, 1095)">
+        <rect x="0" y="0" width="640" height="300" rx="10" fill="url(#cardBgGrad)" stroke="#06b6d4" stroke-width="1.4" opacity="1"/>
+        <text x="15" y="22" fill="#06b6d4" font-size="14" font-weight="bold">工具执行系统</text>
+        <text x="160" y="22" fill="#8da4b0" font-size="10">26内置工具 + MCP动态工具 · 每次调用前必过PermissionPipeline</text>
+    
+        <!-- Tool grid -->
+        <g transform="translate(15, 38)">
+          <!-- File tools -->
+          <text x="0" y="12" fill="#69f0ae" font-size="9" font-weight="bold">文件(5)</text>
+          <rect x="0" y="16" width="80" height="22" rx="2" fill="#1b5e20" stroke="#4caf50" stroke-width="0.5"/>
+          <text x="5" y="31" fill="#a5d6a7" font-size="8">FileRead</text>
+          <rect x="85" y="16" width="80" height="22" rx="2" fill="#1b5e20" stroke="#4caf50" stroke-width="0.5"/>
+          <text x="90" y="31" fill="#a5d6a7" font-size="8">FileEdit</text>
+          <rect x="170" y="16" width="80" height="22" rx="2" fill="#1b5e20" stroke="#4caf50" stroke-width="0.5"/>
+          <text x="175" y="31" fill="#a5d6a7" font-size="8">FileWrite</text>
+          <rect x="255" y="16" width="90" height="22" rx="2" fill="#1b5e20" stroke="#4caf50" stroke-width="0.5"/>
+          <text x="260" y="31" fill="#a5d6a7" font-size="8">AtomicWriter</text>
+          <rect x="350" y="16" width="100" height="22" rx="2" fill="#1b5e20" stroke="#4caf50" stroke-width="0.5"/>
+          <text x="355" y="31" fill="#a5d6a7" font-size="8">VersionTracker</text>
+    
+          <!-- Bash tools -->
+          <text x="0" y="56" fill="#ffab40" font-size="9" font-weight="bold">Bash(3)</text>
+          <rect x="0" y="60" width="100" height="22" rx="2" fill="#4e342e" stroke="#ff8a65" stroke-width="0.5"/>
+          <text x="5" y="75" fill="#ffcc80" font-size="8">BashTool 31.7KB</text>
+          <rect x="105" y="60" width="110" height="22" rx="2" fill="#4e342e" stroke="#ff8a65" stroke-width="0.5"/>
+          <text x="110" y="75" fill="#ffcc80" font-size="8">TerminalCapture</text>
+          <rect x="220" y="60" width="90" height="22" rx="2" fill="#4e342e" stroke="#ff8a65" stroke-width="0.5"/>
+          <text x="225" y="75" fill="#ffcc80" font-size="8">MonitorTool</text>
+    
+          <!-- Code analysis tools -->
+          <text x="0" y="100" fill="#80d8ff" font-size="9" font-weight="bold">代码分析(4)</text>
+          <rect x="0" y="104" width="100" height="22" rx="2" fill="#0d47a1" stroke="#42a5f5" stroke-width="0.5"/>
+          <text x="5" y="119" fill="#90caf9" font-size="8">GrepTool 12.3K</text>
+          <rect x="105" y="104" width="95" height="22" rx="2" fill="#0d47a1" stroke="#42a5f5" stroke-width="0.5"/>
+          <text x="110" y="119" fill="#90caf9" font-size="8">GlobTool 5.5K</text>
+          <rect x="205" y="104" width="75" height="22" rx="2" fill="#0d47a1" stroke="#42a5f5" stroke-width="0.5"/>
+          <text x="210" y="119" fill="#90caf9" font-size="8">LspTool</text>
+          <rect x="285" y="104" width="90" height="22" rx="2" fill="#0d47a1" stroke="#42a5f5" stroke-width="0.5"/>
+          <text x="290" y="119" fill="#90caf9" font-size="8">CodeIntelTool</text>
+    
+          <!-- Git tools -->
+          <text x="0" y="144" fill="#b39ddb" font-size="9" font-weight="bold">Git(2)</text>
+          <rect x="0" y="148" width="90" height="22" rx="2" fill="#311b92" stroke="#7c4dff" stroke-width="0.5"/>
+          <text x="5" y="163" fill="#b39ddb" font-size="8">GitTool 7.7K</text>
+          <rect x="95" y="148" width="100" height="22" rx="2" fill="#311b92" stroke="#7c4dff" stroke-width="0.5"/>
+          <text x="100" y="163" fill="#b39ddb" font-size="8">WorktreeTool</text>
+    
+          <!-- Web tools -->
+          <text x="220" y="144" fill="#A78BFA" font-size="9" font-weight="bold">Web(3)</text>
+          <rect x="220" y="148" width="120" height="22" rx="2" fill="#312E81" stroke="#6366F1" stroke-width="0.5"/>
+          <text x="225" y="163" fill="#A5B4FC" font-size="8">WebBrowser 15.7K</text>
+          <rect x="345" y="148" width="110" height="22" rx="2" fill="#312E81" stroke="#6366F1" stroke-width="0.5"/>
+          <text x="350" y="163" fill="#A5B4FC" font-size="8">WebFetch 15.8K</text>
+          <rect x="460" y="148" width="100" height="22" rx="2" fill="#312E81" stroke="#6366F1" stroke-width="0.5"/>
+          <text x="465" y="163" fill="#A5B4FC" font-size="8">WebSearch</text>
+    
+          <!-- Other tools -->
+          <text x="0" y="188" fill="#bcaaa4" font-size="9" font-weight="bold">其他(9)</text>
+          <rect x="0" y="192" width="55" height="22" rx="2" fill="#263238" stroke="#8da4b0" stroke-width="0.5"/>
+          <text x="5" y="207" fill="#b0bec5" font-size="7">Snip</text>
+          <rect x="60" y="192" width="85" height="22" rx="2" fill="#263238" stroke="#8da4b0" stroke-width="0.5"/>
+          <text x="65" y="207" fill="#b0bec5" font-size="7">Visualization</text>
+          <rect x="150" y="192" width="80" height="22" rx="2" fill="#263238" stroke="#8da4b0" stroke-width="0.5"/>
+          <text x="155" y="207" fill="#b0bec5" font-size="7">VerifyPlan</text>
+          <rect x="235" y="192" width="80" height="22" rx="2" fill="#263238" stroke="#8da4b0" stroke-width="0.5"/>
+          <text x="240" y="207" fill="#b0bec5" font-size="7">EnterPlan</text>
+          <rect x="320" y="192" width="75" height="22" rx="2" fill="#263238" stroke="#8da4b0" stroke-width="0.5"/>
+          <text x="325" y="207" fill="#b0bec5" font-size="7">ExitPlan</text>
+          <rect x="400" y="192" width="80" height="22" rx="2" fill="#263238" stroke="#8da4b0" stroke-width="0.5"/>
+          <text x="405" y="207" fill="#b0bec5" font-size="7">CronCreate</text>
+          <rect x="485" y="192" width="75" height="22" rx="2" fill="#263238" stroke="#8da4b0" stroke-width="0.5"/>
+          <text x="490" y="207" fill="#b0bec5" font-size="7">CronDelete</text>
+          <rect x="0" y="218" width="70" height="22" rx="2" fill="#263238" stroke="#8da4b0" stroke-width="0.5"/>
+          <text x="5" y="233" fill="#b0bec5" font-size="7">CronList</text>
+          <rect x="75" y="218" width="85" height="22" rx="2" fill="#263238" stroke="#8da4b0" stroke-width="0.5"/>
+          <text x="80" y="233" fill="#b0bec5" font-size="7">CtxInspect</text>
+        </g>
+    
+        <!-- Tool interface note -->
+        <text x="15" y="288" fill="#7a95a8" font-size="8">Tool接口: getName() | call(ToolInput,ToolUseContext) | getPermissionRequirement() | isReadOnly() | shouldDefer() | alwaysLoad()</text>
+      </g>
+    
+      <!-- ═══ 2E: MCP Bidirectional Protocol ═══ -->
+      <g transform="translate(900, 1420)">
+        <rect x="0" y="0" width="400" height="200" rx="10" fill="url(#cardBgGrad)" stroke="#7C3AED" stroke-width="1.4" opacity="1"/>
+        <text x="15" y="22" fill="#A78BFA" font-size="14" font-weight="bold">MCP 双向协议</text>
+        <text x="175" y="22" fill="#8da4b0" font-size="10">35文件 · McpClientManager 27.3KB</text>
+    
+        <!-- Client direction -->
+        <g transform="translate(20, 40)">
+          <text x="0" y="12" fill="#A78BFA" font-size="10">→ MCP Client (工具扩展)</text>
+          <text x="0" y="28" fill="#8da4b0" font-size="9">McpServerConnection → 外部MCP服务器</text>
+          <text x="0" y="42" fill="#8da4b0" font-size="9">McpToolAdapter (13.5KB) 工具转译</text>
+          <text x="0" y="56" fill="#8da4b0" font-size="9">McpPromptAdapter (7.9KB) Prompt适配</text>
+        </g>
+    
+        <!-- Server direction -->
+        <g transform="translate(20, 105)">
+          <text x="0" y="12" fill="#A78BFA" font-size="10">← MCP Server (对外暴露)</text>
+          <text x="0" y="28" fill="#8da4b0" font-size="9">IDE/外部客户端 → ZhikunCode能力</text>
+          <text x="0" y="42" fill="#8da4b0" font-size="9">CapabilityRegistryService 能力注册</text>
+        </g>
+    
+        <!-- Transport types -->
+        <g transform="translate(20, 160)">
+          <text x="0" y="12" fill="#8da4b0" font-size="9" font-weight="bold">传输层:</text>
+          <text x="55" y="12" fill="#A5B4FC" font-size="9">StdIO | SSE | WebSocket | HTTP流</text>
+        </g>
+    
+        <!-- Built-in SSE Capabilities -->
+        <g transform="translate(220, 105)">
+          <text x="0" y="12" fill="#A78BFA" font-size="9" font-weight="bold">3 Built-in SSE:</text>
+          <text x="0" y="26" fill="#8da4b0" font-size="8">WebSearch | WebFetch | Browser</text>
+          <text x="0" y="40" fill="#8da4b0" font-size="8">Discovery: GET /api/health/capabilities</text>
+          <text x="0" y="54" fill="#8da4b0" font-size="8">Cache: 5min/30s · graceful fallback</text>
+        </g>
+      </g>
+    
+      <!-- ═══ 2F: ContextCascade 6-Layer Compression ═══ -->
+      <g transform="translate(20, 1420)">
+        <rect x="0" y="0" width="400" height="270" rx="10" fill="url(#cardBgGrad)" stroke="#06b6d4" stroke-width="1.4" opacity="1"/>
+        <text x="15" y="22" fill="#22D3EE" font-size="13" font-weight="bold">上下文级联压缩（ContextCascade）6层</text>
+        <text x="245" y="22" fill="#8da4b0" font-size="10">348行 · 漏斗式精炼</text>
+    
+        <!-- Funnel shape - wider at top, narrower at bottom -->
+        <g transform="translate(20, 38)">
+          <!-- L0 widest -->
+          <rect x="0" y="0" width="360" height="26" rx="2" fill="#004d40" stroke="#26a69a" stroke-width="0.6"/>
+          <text x="8" y="17" fill="#80cbc4" font-size="9" font-weight="bold">L0 Snip</text>
+          <text x="70" y="17" fill="#8da4b0" font-size="8">单条截断 · 保留首尾 · 每次无条件执行 · 30%预算</text>
+    
+          <!-- L1 slightly narrower -->
+          <rect x="20" y="30" width="320" height="26" rx="2" fill="#00695c" stroke="#4db6ac" stroke-width="0.6"/>
+          <text x="28" y="47" fill="#80cbc4" font-size="9" font-weight="bold">L1 MicroCompact</text>
+          <text x="120" y="47" fill="#8da4b0" font-size="8">旧结果→[cleared] · 尾部10条保护</text>
+    
+          <!-- L1.5 -->
+          <rect x="40" y="60" width="280" height="26" rx="2" fill="#00796b" stroke="#4db6ac" stroke-width="0.6"/>
+          <text x="48" y="77" fill="#80cbc4" font-size="9" font-weight="bold">L1.5 ContextCollapse</text>
+          <text x="165" y="77" fill="#8da4b0" font-size="8">激进压缩旧轮次</text>
+    
+          <!-- L2 -->
+          <rect x="60" y="90" width="240" height="26" rx="2" fill="#00897b" stroke="#80cbc4" stroke-width="0.6"/>
+          <text x="68" y="107" fill="#b2dfdb" font-size="9" font-weight="bold">L2 AutoCompact</text>
+          <text x="155" y="107" fill="#8da4b0" font-size="8">LLM摘要 · 13K buffer触发</text>
+    
+          <!-- L3 -->
+          <rect x="80" y="120" width="200" height="24" rx="2" fill="#009688" stroke="#80cbc4" stroke-width="0.8"/>
+          <text x="88" y="136" fill="#e0f2f1" font-size="9" font-weight="bold">L3 CollapseDrain</text>
+          <text x="185" y="136" fill="#8da4b0" font-size="8">413溢出回收</text>
+    
+          <!-- L4 narrowest -->
+          <rect x="100" y="150" width="160" height="24" rx="2" fill="#00897b" stroke="#80cbc4" stroke-width="0.8"/>
+          <text x="108" y="166" fill="#e0f2f1" font-size="9" font-weight="bold">L4 ReactiveCompact</text>
+          <text x="215" y="166" fill="#8da4b0" font-size="8">max×0.5兜底</text>
+        </g>
+    
+        <!-- Formula note -->
+        <text x="20" y="250" fill="#7a95a8" font-size="8">阈值 = (contextWindow - contextWindow/4) - 13000 | 连续失败3次 → 断路器熔断</text>
+      </g>
+    
+      <!-- ═══ 2G: SelfCorrectionLoop ═══ -->
+      <g transform="translate(440, 1420)">
+        <rect x="0" y="0" width="440" height="200" rx="10" fill="url(#cardBgGrad)" stroke="#F59E0B" stroke-width="1.4" opacity="1"/>
+        <text x="15" y="22" fill="#FBBF24" font-size="13" font-weight="bold">自纠错循环（SelfCorrectionLoop）</text>
+        <text x="290" y="22" fill="#8da4b0" font-size="10">396行 · 仓库感知</text>
+    
+        <!-- Loop diagram -->
+        <g transform="translate(20, 40)">
+          <!-- Entry -->
+          <rect x="0" y="0" width="130" height="40" rx="3" fill="#3B1D0B" stroke="#F59E0B" stroke-width="0.8"/>
+          <text x="8" y="17" fill="#FBBF24" font-size="9" font-weight="bold">错误检测</text>
+          <text x="8" y="32" fill="#8da4b0" font-size="8">编译优先 → 测试次之</text>
+    
+          <!-- Analysis -->
+          <rect x="150" y="0" width="120" height="40" rx="3" fill="#3B1D0B" stroke="#F59E0B" stroke-width="0.8"/>
+          <text x="158" y="17" fill="#FBBF24" font-size="9" font-weight="bold">分析错误</text>
+          <text x="158" y="32" fill="#8da4b0" font-size="8">ParsedError提取</text>
+    
+          <!-- Fix -->
+          <rect x="290" y="0" width="120" height="40" rx="3" fill="#3B1D0B" stroke="#F59E0B" stroke-width="0.8"/>
+          <text x="298" y="17" fill="#FBBF24" font-size="9" font-weight="bold">生成修复指令</text>
+          <text x="298" y="32" fill="#8da4b0" font-size="8">≤800 tokens</text>
+    
+          <!-- Arrows -->
+          <line x1="132" y1="20" x2="148" y2="20" stroke="#F59E0B" stroke-width="1.5"/>
+          <line x1="272" y1="20" x2="288" y2="20" stroke="#F59E0B" stroke-width="1.5"/>
+    
+          <!-- Loop back arrow -->
+          <path d="M 350,42 L 350,60 L 65,60 L 65,42" fill="none" stroke="#FBBF24" stroke-width="1.5" stroke-dasharray="4,3" style="animation: flowReverse 1.5s linear infinite"/>
+          <text x="170" y="72" fill="#FBBF24" font-size="8" text-anchor="middle">验证失败 → 重试</text>
+        </g>
+    
+        <!-- Exit conditions -->
+        <g transform="translate(20, 120)">
+          <text x="0" y="12" fill="#FBBF24" font-size="9" font-weight="bold">退出条件:</text>
+          <text x="0" y="28" fill="#8da4b0" font-size="8">✓ 编译/测试通过</text>
+          <text x="0" y="42" fill="#8da4b0" font-size="8">✗ MAX_ATTEMPTS: 3(默认) / 7(SWE-bench)</text>
+          <text x="0" y="56" fill="#8da4b0" font-size="8">✗ 错误恶化: 新错误数↑ / 新文件↑ / 新类型↑</text>
+          <text x="250" y="28" fill="#8da4b0" font-size="8">compileErrorParser.parse()</text>
+          <text x="250" y="42" fill="#8da4b0" font-size="8">testFailureParser.parse()</text>
+          <text x="250" y="56" fill="#8da4b0" font-size="8">MAX_STACK_TRACE_LINES = 3</text>
+        </g>
+        <text x="20" y="192" fill="#7a95a8" font-size="8">shouldAbort(): newErrorCount > prev || newFiles.notEmpty || newTypes.notEmpty</text>
+      </g>
+    
+      <!-- ═══ 2H: Hook System ═══ -->
+      <g transform="translate(20, 2225)">
+        <rect x="0" y="0" width="300" height="170" rx="10" fill="url(#cardBgGrad)" stroke="#A78BFA" stroke-width="1.4" opacity="1"/>
+        <text x="15" y="22" fill="#A78BFA" font-size="13" font-weight="bold">钩子系统（Hook System）三级</text>
+        <text x="160" y="22" fill="#8da4b0" font-size="10">HookService.java</text>
+    
+        <!-- Three hook levels -->
+        <g transform="translate(20, 40)">
+          <rect x="0" y="0" width="260" height="35" rx="3" fill="#311b92" stroke="#9c27b0" stroke-width="0.7"/>
+          <text x="10" y="15" fill="#ce93d8" font-size="10" font-weight="bold">PreToolUse</text>
+          <text x="10" y="28" fill="#8da4b0" font-size="8">工具执行前验证 · 权限Step 1h注入 · proceed/deny</text>
+    
+          <rect x="0" y="42" width="260" height="35" rx="3" fill="#311b92" stroke="#9c27b0" stroke-width="0.7"/>
+          <text x="10" y="57" fill="#ce93d8" font-size="10" font-weight="bold">PostToolUse</text>
+          <text x="10" y="70" fill="#8da4b0" font-size="8">工具执行后处理 · 日志记录 · 结果转换</text>
+    
+          <rect x="0" y="84" width="260" height="35" rx="3" fill="#311b92" stroke="#9c27b0" stroke-width="0.7"/>
+          <text x="10" y="99" fill="#ce93d8" font-size="10" font-weight="bold">OnMessage</text>
+          <text x="10" y="112" fill="#8da4b0" font-size="8">消息生成时过滤 · 增强 · 国际化处理</text>
+        </g>
+        <text x="20" y="160" fill="#7a95a8" font-size="8">registerHook(type, cb) · WatchService热重载</text>
+      </g>
+    
+      <!-- ═══ 2I: Memory System (Memdir) ═══ -->
+      <g transform="translate(340, 2225)">
+        <rect x="0" y="0" width="320" height="170" rx="10" fill="url(#cardBgGrad)" stroke="#10B981" stroke-width="1.4" opacity="1"/>
+        <text x="15" y="22" fill="#34D399" font-size="13" font-weight="bold">记忆目录（Memdir）</text>
+        <text x="175" y="22" fill="#8da4b0" font-size="10">MemdirService.java · 598行</text>
+    
+        <!-- 4 memory types -->
+        <g transform="translate(20, 40)">
+          <rect x="0" y="0" width="130" height="25" rx="2" fill="#004d40" stroke="#26a69a" stroke-width="0.5"/>
+          <text x="8" y="16" fill="#80cbc4" font-size="9">System Memory</text>
+          <rect x="140" y="0" width="130" height="25" rx="2" fill="#004d40" stroke="#26a69a" stroke-width="0.5"/>
+          <text x="148" y="16" fill="#80cbc4" font-size="9">User Memory</text>
+          <rect x="0" y="30" width="130" height="25" rx="2" fill="#004d40" stroke="#26a69a" stroke-width="0.5"/>
+          <text x="8" y="46" fill="#80cbc4" font-size="9">Project Memory</text>
+          <rect x="140" y="30" width="130" height="25" rx="2" fill="#004d40" stroke="#26a69a" stroke-width="0.5"/>
+          <text x="148" y="46" fill="#80cbc4" font-size="9">Workflow Memory</text>
+        </g>
+    
+        <!-- Retrieval -->
+        <g transform="translate(20, 105)">
+          <text x="0" y="12" fill="#4db6ac" font-size="9" font-weight="bold">双路检索:</text>
+          <text x="0" y="28" fill="#8da4b0" font-size="8">BM25向量化 + 中文分词 + LLM语义增强</text>
+          <text x="0" y="42" fill="#8da4b0" font-size="8">会话中动态添加 · 长期持久化</text>
+        </g>
+      </g>
+    
+      <!-- ═══ 2J: Skill System ═══ -->
+      <g transform="translate(680, 2225)">
+        <rect x="0" y="0" width="620" height="170" rx="10" fill="url(#cardBgGrad)" stroke="#F59E0B" stroke-width="1.4" opacity="1"/>
+        <text x="15" y="22" fill="#FBBF24" font-size="13" font-weight="bold">技能系统（Skill System）</text>
+        <text x="155" y="22" fill="#8da4b0" font-size="10">SkillRegistry.java · 415行 · 13内置技能 · 6层优先级</text>
+    
+        <!-- Priority layers -->
+        <g transform="translate(20, 38)">
+          <text x="0" y="12" fill="#ffd54f" font-size="9" font-weight="bold">加载优先级 (高→低):</text>
+          <text x="0" y="28" fill="#8da4b0" font-size="8">1.Managed(策略) → 2.User(~/.zhikun/skills/) → 3.Project(.zhikun/skills/) → 4.Plugin → 5.Bundled → 6.MCP</text>
+        </g>
+    
+        <!-- Built-in skills grid -->
+        <g transform="translate(20, 70)">
+          <text x="0" y="12" fill="#ffd54f" font-size="9" font-weight="bold">内置技能 (BUILTIN_SKILL_NAMES):</text>
+          <rect x="0" y="18" width="60" height="20" rx="2" fill="#f57f17" fill-opacity="0.2" stroke="#ffc107" stroke-width="0.5"/>
+          <text x="6" y="32" fill="#fff176" font-size="8">commit</text>
+          <rect x="65" y="18" width="60" height="20" rx="2" fill="#f57f17" fill-opacity="0.2" stroke="#ffc107" stroke-width="0.5"/>
+          <text x="71" y="32" fill="#fff176" font-size="8">review</text>
+          <rect x="130" y="18" width="45" height="20" rx="2" fill="#f57f17" fill-opacity="0.2" stroke="#ffc107" stroke-width="0.5"/>
+          <text x="136" y="32" fill="#fff176" font-size="8">fix</text>
+          <rect x="180" y="18" width="45" height="20" rx="2" fill="#f57f17" fill-opacity="0.2" stroke="#ffc107" stroke-width="0.5"/>
+          <text x="186" y="32" fill="#fff176" font-size="8">test</text>
+          <rect x="230" y="18" width="40" height="20" rx="2" fill="#f57f17" fill-opacity="0.2" stroke="#ffc107" stroke-width="0.5"/>
+          <text x="236" y="32" fill="#fff176" font-size="8">pr</text>
+          <rect x="275" y="18" width="55" height="20" rx="2" fill="#f57f17" fill-opacity="0.2" stroke="#ffc107" stroke-width="0.5"/>
+          <text x="281" y="32" fill="#fff176" font-size="8">debug</text>
+          <rect x="335" y="18" width="55" height="20" rx="2" fill="#f57f17" fill-opacity="0.2" stroke="#ffc107" stroke-width="0.5"/>
+          <text x="341" y="32" fill="#fff176" font-size="8">verify</text>
+    
+          <rect x="0" y="42" width="55" height="20" rx="2" fill="#f57f17" fill-opacity="0.2" stroke="#ffc107" stroke-width="0.5"/>
+          <text x="6" y="56" fill="#fff176" font-size="8">stuck</text>
+          <rect x="60" y="42" width="75" height="20" rx="2" fill="#f57f17" fill-opacity="0.2" stroke="#ffc107" stroke-width="0.5"/>
+          <text x="66" y="56" fill="#fff176" font-size="8">remember</text>
+          <rect x="140" y="42" width="135" height="20" rx="2" fill="#f57f17" fill-opacity="0.2" stroke="#ffc107" stroke-width="0.5"/>
+          <text x="146" y="56" fill="#fff176" font-size="8">software-architecture</text>
+          <rect x="280" y="42" width="130" height="20" rx="2" fill="#f57f17" fill-opacity="0.2" stroke="#ffc107" stroke-width="0.5"/>
+          <text x="286" y="56" fill="#fff176" font-size="8">csv-data-summarizer</text>
+    
+          <rect x="0" y="66" width="100" height="20" rx="2" fill="#f57f17" fill-opacity="0.2" stroke="#ffc107" stroke-width="0.5"/>
+          <text x="6" y="80" fill="#fff176" font-size="8">prompt-eng</text>
+          <rect x="105" y="66" width="110" height="20" rx="2" fill="#f57f17" fill-opacity="0.2" stroke="#ffc107" stroke-width="0.5"/>
+          <text x="111" y="80" fill="#fff176" font-size="8">test-driven-dev</text>
+        </g>
+    
+        <!-- Hot reload -->
+        <text x="20" y="162" fill="#7a95a8" font-size="8">WatchService热重载 · 500ms防抖 · SkillDefinition(name, desc, ...)</text>
+      </g>
+    
+      <!-- ═══ 2K: Multi-Agent Swarm ═══ -->
+      <g transform="translate(20, 2420)">
+        <rect x="0" y="0" width="400" height="145" rx="10" fill="url(#cardBgGrad)" stroke="#A78BFA" stroke-width="1.4" opacity="1"/>
+        <text x="15" y="22" fill="#A78BFA" font-size="13" font-weight="bold">多Agent协作（Multi-Agent）</text>
+        <text x="225" y="22" fill="#8da4b0" font-size="10">AgentConcurrencyController</text>
+    
+        <g transform="translate(20, 38)">
+          <rect x="0" y="0" width="150" height="35" rx="3" fill="#312E81" stroke="#A78BFA" stroke-width="0.6"/>
+          <text x="8" y="15" fill="#C4B5FD" font-size="9" font-weight="bold">Leader Agent</text>
+          <text x="8" y="28" fill="#8da4b0" font-size="8">Coordinator主控</text>
+    
+          <rect x="170" y="0" width="160" height="35" rx="3" fill="#312E81" stroke="#A78BFA" stroke-width="0.6"/>
+          <text x="178" y="15" fill="#C4B5FD" font-size="9" font-weight="bold">Sub-Agent(s)</text>
+          <text x="178" y="28" fill="#8da4b0" font-size="8">权限BUBBLE冒泡到父</text>
+    
+          <line x1="152" y1="17" x2="168" y2="17" stroke="#A78BFA" stroke-width="1.2"/>
+    
+          <text x="0" y="52" fill="#C4B5FD" font-size="8" font-weight="bold">三级Semaphore并发门控:</text>
+          <text x="0" y="65" fill="#8da4b0" font-size="8">GLOBAL = 30 (全局最大并发Agent) · L28</text>
+          <text x="0" y="78" fill="#8da4b0" font-size="8">PER_SESSION = 10 (单会话上限) · L31</text>
+          <text x="0" y="91" fill="#8da4b0" font-size="8">NESTING_DEPTH = 3 (防无限循环) · L34</text>
+          <text x="200" y="78" fill="#8da4b0" font-size="8">TIMEOUT=5min · RAII AgentSlot自动释放</text>
+        </g>
+      </g>
+    
+      <!-- ═══ 2L: Model Degradation & 413 Recovery ═══ -->
+      <g transform="translate(440, 2420)">
+        <rect x="0" y="0" width="440" height="145" rx="10" fill="url(#cardBgGrad)" stroke="#F59E0B" stroke-width="1.4" opacity="1"/>
+        <text x="15" y="22" fill="#FBBF24" font-size="14" font-weight="bold">模型降级与413恢复</text>
+        <text x="230" y="22" fill="#8da4b0" font-size="10">ModelTierService · 二阶段+媒体恢复</text>
+    
+        <g transform="translate(20, 38)">
+          <!-- 413 Recovery phases -->
+          <text x="0" y="12" fill="#FBBF24" font-size="9" font-weight="bold">413恢复策略:</text>
+          <rect x="0" y="18" width="120" height="30" rx="2" fill="#e65100" fill-opacity="0.3" stroke="#ff6d00" stroke-width="0.6"/>
+          <text x="6" y="33" fill="#ffcc80" font-size="8">Phase1</text>
+          <text x="6" y="44" fill="#8da4b0" font-size="7">CollapseDrain→0.5</text>
+    
+          <text x="123" y="36" fill="#ff6d00" font-size="10">→</text>
+    
+          <rect x="135" y="18" width="125" height="30" rx="2" fill="#e65100" fill-opacity="0.3" stroke="#ff6d00" stroke-width="0.6"/>
+          <text x="141" y="33" fill="#ffcc80" font-size="8">Phase2</text>
+          <text x="141" y="44" fill="#8da4b0" font-size="7">ReactiveCompact半</text>
+    
+          <text x="263" y="36" fill="#ff6d00" font-size="10">→</text>
+    
+          <rect x="275" y="18" width="130" height="30" rx="2" fill="#e65100" fill-opacity="0.3" stroke="#ff6d00" stroke-width="0.6"/>
+          <text x="281" y="33" fill="#ffcc80" font-size="8">Phase3</text>
+          <text x="281" y="44" fill="#8da4b0" font-size="7">MediaRecovery媒体</text>
+    
+          <!-- Degradation chain -->
+          <text x="0" y="72" fill="#FBBF24" font-size="9" font-weight="bold">降级链:</text>
+          <text x="0" y="88" fill="#8da4b0" font-size="8">模型失败 → 30min冷却(标记cold) → 冷却期满自动恢复</text>
+          <text x="0" y="102" fill="#8da4b0" font-size="8">3次连续成功 → 确认恢复 → 重置计时器</text>
+        </g>
+      </g>
+    
+      <!-- ═══ Additional: WebSocket Detail ═══ -->
+      <g transform="translate(900, 2420)">
+        <rect x="0" y="0" width="400" height="145" rx="10" fill="url(#cardBgGrad)" stroke="#06b6d4" stroke-width="1.4" opacity="1"/>
+        <text x="15" y="22" fill="#22D3EE" font-size="14" font-weight="bold">WebSocket控制器</text>
+        <text x="185" y="22" fill="#8da4b0" font-size="10">WebSocketController.java · 1,590行</text>
+    
+        <g transform="translate(20, 38)">
+          <text x="0" y="12" fill="#4dd0e1" font-size="9" font-weight="bold">权限请求异步流:</text>
+          <text x="0" y="28" fill="#8da4b0" font-size="8">CompletableFuture&lt;PermissionDecision&gt; future</text>
+          <text x="0" y="42" fill="#8da4b0" font-size="8">pendingRequests.put(toolUseId, future)</text>
+          <text x="0" y="56" fill="#8da4b0" font-size="8">assessCommandRiskLevel(cmd) → HIGH/MEDIUM/LOW</text>
+          <text x="0" y="70" fill="#8da4b0" font-size="8">future.orTimeout(120, SECONDS) → 超时自动DENY</text>
+          <line x1="0" y1="78" x2="360" y2="78" stroke="#253555" stroke-width="0.5"/>
+          <text x="0" y="92" fill="#4dd0e1" font-size="9" font-weight="bold">STOMP端点:</text>
+          <text x="0" y="105" fill="#8da4b0" font-size="8">/ws STOMP连接 · SessionRegistry会话管理 · 心跳检测</text>
+        </g>
+      </g>
+    
+      <!-- ═══ 2M: APOS Runtime Verification Ecosystem ═══ -->
+      <g transform="translate(660, 1715)">
+        <rect x="0" y="0" width="640" height="210" rx="10" fill="url(#cardBgGrad)" stroke="#10B981" stroke-width="1.8" opacity="1"/>
+        <rect x="0" y="0" width="640" height="210" rx="10" fill="#10B981" opacity="0.05"/>
+        <text x="15" y="22" fill="#10B981" font-size="12" font-weight="bold" filter="url(#glowGreen)">运行时验证（APOS）引擎</text>
+        <text x="245" y="22" fill="#8da4b0" font-size="10">verify/ 18文件 + apos/ 21文件 = 3,516行</text>
+    
+        <!-- Verifier Interface -->
+        <g transform="translate(15, 38)">
+          <text x="0" y="12" fill="#34D399" font-size="10" font-weight="bold">Verifier 接口层</text>
+          <rect x="0" y="18" width="180" height="28" rx="2" fill="#064E3B" stroke="#10B981" stroke-width="0.6"/>
+          <text x="8" y="36" fill="#6EE7B7" font-size="9">BrowserVerifier (UI行为验证)</text>
+          <rect x="190" y="18" width="185" height="28" rx="2" fill="#064E3B" stroke="#10B981" stroke-width="0.6"/>
+          <text x="198" y="36" fill="#6EE7B7" font-size="9">HttpApiVerifier (API契约验证)</text>
+          <rect x="385" y="18" width="200" height="28" rx="2" fill="#064E3B" stroke="#10B981" stroke-width="0.6"/>
+          <text x="393" y="36" fill="#6EE7B7" font-size="9">CustomVerifier (自定义验证器工厂)</text>
+        </g>
+    
+        <!-- EvidenceStore -->
+        <g transform="translate(15, 92)">
+          <text x="0" y="12" fill="#34D399" font-size="10" font-weight="bold">EvidenceStore (SHA-256 blob内容寻址去重)</text>
+          <rect x="0" y="18" width="290" height="28" rx="2" fill="#064E3B" stroke="#059669" stroke-width="0.6"/>
+          <text x="8" y="36" fill="#A7F3D0" font-size="9">4种证据类别 × 3种判决 × 7种证据类型</text>
+          <rect x="300" y="18" width="280" height="28" rx="2" fill="#064E3B" stroke="#059669" stroke-width="0.6"/>
+          <text x="308" y="36" fill="#A7F3D0" font-size="9">三态: verified / failed / unavailable</text>
+        </g>
+    
+        <!-- Real-time push & Frontend -->
+        <g transform="translate(15, 146)">
+          <rect x="0" y="0" width="290" height="28" rx="2" fill="#022C22" stroke="#10B981" stroke-width="0.5"/>
+          <text x="8" y="18" fill="#6EE7B7" font-size="9">实时推送: STOMP /topic/verify/{sessionId}</text>
+          <rect x="300" y="0" width="280" height="28" rx="2" fill="#022C22" stroke="#10B981" stroke-width="0.5"/>
+          <text x="308" y="18" fill="#6EE7B7" font-size="9">前端: 21个React APOS组件</text>
+        </g>
+    
+        <text x="15" y="200" fill="#7a95a8" font-size="8">Verifier.verify(context) → Evidence → EvidenceStore.persist() → STOMP push → React渲染</text>
+      </g>
+    
+      <!-- ═══ 2N: Enterprise Compliance & Audit ═══ -->
+      <g transform="translate(20, 1715)">
+        <rect x="0" y="0" width="620" height="210" rx="10" fill="url(#cardBgGrad)" stroke="#DC4A5C" stroke-width="1.8" opacity="1"/>
+        <rect x="0" y="0" width="620" height="210" rx="10" fill="#DC4A5C" opacity="0.05"/>
+        <text x="15" y="22" fill="#F87171" font-size="14" font-weight="bold" filter="url(#glowRed)">企业合规与审计体系</text>
+        <text x="215" y="22" fill="#8da4b0" font-size="10">security/ 5文件 · 1,644行 · 4层安全纵深</text>
+    
+        <!-- 4 Layers -->
+        <g transform="translate(15, 38)">
+          <rect x="0" y="0" width="585" height="35" rx="2" fill="#450A0A" stroke="#DC2626" stroke-width="0.7"/>
+          <text x="8" y="14" fill="#FCA5A5" font-size="9" font-weight="bold">Layer 1: CommandBlacklistService</text>
+          <text x="8" y="28" fill="#8da4b0" font-size="8">ABSOLUTE_DENY 不可绕过命令拦截 · rm -rf / sudo / dd / mkfs 等</text>
+    
+          <rect x="0" y="40" width="585" height="35" rx="2" fill="#450A0A" stroke="#B91C1C" stroke-width="0.6"/>
+          <text x="8" y="54" fill="#FCA5A5" font-size="9" font-weight="bold">Layer 2: SensitivePathRegistry</text>
+          <text x="8" y="68" fill="#8da4b0" font-size="8">PathProtectionLevel 4级: FORBIDDEN / PROTECTED / AUDIT / NORMAL</text>
+    
+          <rect x="0" y="80" width="585" height="35" rx="2" fill="#450A0A" stroke="#991B1B" stroke-width="0.6"/>
+          <text x="8" y="94" fill="#FCA5A5" font-size="9" font-weight="bold">Layer 3: SensitiveDataFilter</text>
+          <text x="8" y="108" fill="#8da4b0" font-size="8">16种脱敏模式 (API_KEY/JWT/PASSWORD/AWS_SECRET等) · 10+ regex</text>
+    
+          <rect x="0" y="120" width="585" height="35" rx="2" fill="#450A0A" stroke="#7F1D1D" stroke-width="0.6"/>
+          <text x="8" y="134" fill="#FCA5A5" font-size="9" font-weight="bold">Layer 4: SecurityAuditLogger</text>
+          <text x="8" y="148" fill="#8da4b0" font-size="8">BlockLevel 4级 · 独立日志通道: [SECURITY-BLOCK] / [SECURITY-PATH]</text>
+        </g>
+    
+        <text x="15" y="200" fill="#7a95a8" font-size="8">安全纵深: 请求→黑名单拦截→路径保护→数据脱敏→审计记录 · ABSOLUTE_DENY/HIGH_RISK_ASK/AUDIT_LOG/ALLOWED</text>
+      </g>
+    
+      <!-- ═══ 2O: Bridge Cross-End Ecosystem ═══ -->
+      <g transform="translate(20, 2590)">
+        <rect x="0" y="0" width="380" height="160" rx="10" fill="url(#cardBgGrad)" stroke="#6366F1" stroke-width="1.4" opacity="1"/>
+        <rect x="0" y="0" width="380" height="160" rx="10" fill="url(#bridgeGrad)" opacity="0.06"/>
+        <text x="15" y="22" fill="#818CF8" font-size="12" font-weight="bold">跨端桥接（Bridge）</text>
+        <text x="210" y="22" fill="#8da4b0" font-size="10">bridge/ 9文件 · 1,950行</text>
+    
+        <g transform="translate(15, 38)">
+          <rect x="0" y="0" width="345" height="28" rx="2" fill="#1E1B4B" stroke="#6366F1" stroke-width="0.6"/>
+          <text x="8" y="18" fill="#A5B4FC" font-size="9">BridgeServer (394行) — 跨端通信桥 · 设备发现</text>
+    
+          <rect x="0" y="32" width="345" height="28" rx="2" fill="#1E1B4B" stroke="#6366F1" stroke-width="0.6"/>
+          <text x="8" y="50" fill="#A5B4FC" font-size="9">BridgeApiClient (367行) — 长轮询 · 消息队列</text>
+    
+          <rect x="0" y="64" width="345" height="28" rx="2" fill="#1E1B4B" stroke="#8B5CF6" stroke-width="0.6"/>
+          <text x="8" y="82" fill="#A5B4FC" font-size="9">TrustedDeviceManager (197行) — 设备指纹认证</text>
+    
+          <rect x="0" y="96" width="170" height="28" rx="2" fill="#1E1B4B" stroke="#8B5CF6" stroke-width="0.6"/>
+          <text x="8" y="114" fill="#A5B4FC" font-size="9">BridgeJwtManager (268行)</text>
+          <rect x="180" y="96" width="165" height="28" rx="2" fill="#1E1B4B" stroke="#8B5CF6" stroke-width="0.6"/>
+          <text x="188" y="114" fill="#A5B4FC" font-size="9">TokenCostPanel (107行)</text>
+        </g>
+      </g>
+    
+      <!-- ═══ 2P: Prompt Construction Engine ═══ -->
+      <g transform="translate(420, 2590)">
+        <rect x="0" y="0" width="420" height="160" rx="10" fill="url(#cardBgGrad)" stroke="#ffd740" stroke-width="1.4" opacity="1"/>
+        <text x="15" y="22" fill="#ffd740" font-size="14" font-weight="bold">System Prompt 动态构造引擎</text>
+        <text x="295" y="22" fill="#8da4b0" font-size="10">4层合成</text>
+    
+        <g transform="translate(15, 38)">
+          <rect x="0" y="0" width="385" height="26" rx="2" fill="#1a237e" stroke="#ffd740" stroke-width="0.6"/>
+          <text x="8" y="17" fill="#FFF176" font-size="9" font-weight="bold">基础指令层</text>
+          <text x="90" y="17" fill="#8da4b0" font-size="8">角色定义 + 工具描述 (26工具Schema注入)</text>
+    
+          <rect x="0" y="30" width="385" height="26" rx="2" fill="#1a237e" stroke="#FFD54F" stroke-width="0.6"/>
+          <text x="8" y="47" fill="#FFF176" font-size="9" font-weight="bold">上下文注入层</text>
+          <text x="100" y="47" fill="#8da4b0" font-size="8">项目信息 + Memdir记忆检索 + 文件树</text>
+    
+          <rect x="0" y="60" width="385" height="26" rx="2" fill="#1a237e" stroke="#FFC107" stroke-width="0.6"/>
+          <text x="8" y="77" fill="#FFF176" font-size="9" font-weight="bold">技能加载层</text>
+          <text x="90" y="77" fill="#8da4b0" font-size="8">按6层优先级合并 · SkillRegistry动态解析</text>
+    
+          <rect x="0" y="90" width="385" height="26" rx="2" fill="#1a237e" stroke="#FFB300" stroke-width="0.6"/>
+          <text x="8" y="107" fill="#FFF176" font-size="9" font-weight="bold">约束规则层</text>
+          <text x="90" y="107" fill="#8da4b0" font-size="8">安全边界 + 输出格式 + PermissionMode约束</text>
+        </g>
+    
+        <text x="15" y="150" fill="#7a95a8" font-size="8">PromptBuilder.build() → 基础+上下文+技能+约束 → streamChat(systemPrompt, messages)</text>
+      </g>
+    
+      <!-- ═══ 2Q: Runtime Resilience ═══ -->
+      <g transform="translate(860, 2590)">
+        <rect x="0" y="0" width="440" height="160" rx="10" fill="url(#cardBgGrad)" stroke="#F59E0B" stroke-width="1.4" opacity="1"/>
+        <text x="15" y="22" fill="#FBBF24" font-size="14" font-weight="bold">运行时韧性控制面板</text>
+        <text x="235" y="22" fill="#8da4b0" font-size="10">熔断·退避·降级 三级防护</text>
+    
+        <g transform="translate(15, 38)">
+          <rect x="0" y="0" width="405" height="35" rx="2" fill="#3B1D0B" fill-opacity="0.6" stroke="#F59E0B" stroke-width="0.7"/>
+          <text x="8" y="14" fill="#FBBF24" font-size="9" font-weight="bold">ApiCircuitBreaker 三态</text>
+          <text x="8" y="28" fill="#8da4b0" font-size="8">CLOSED → OPEN → HALF_OPEN · 连续失败阈值→熔断→定时探测→恢复</text>
+    
+          <rect x="0" y="40" width="405" height="35" rx="2" fill="#3B1D0B" fill-opacity="0.6" stroke="#D97706" stroke-width="0.6"/>
+          <text x="8" y="54" fill="#FBBF24" font-size="9" font-weight="bold">ApiRetryService (指数退避 + Jitter)</text>
+          <text x="8" y="68" fill="#8da4b0" font-size="8">executeWithRetry() · baseDelay×2^attempt + random jitter · maxRetries=3</text>
+    
+          <rect x="0" y="80" width="405" height="35" rx="2" fill="#3B1D0B" fill-opacity="0.6" stroke="#D97706" stroke-width="0.6"/>
+          <text x="8" y="94" fill="#FBBF24" font-size="9" font-weight="bold">ModelTierService (冷却30min + 3次成功恢复)</text>
+          <text x="8" y="108" fill="#8da4b0" font-size="8">模型标记cold → 冷却期满 → 探测请求 → 3次连续成功 → 恢复可用</text>
+        </g>
+    
+        <text x="15" y="150" fill="#7a95a8" font-size="8">韧性链: 重试退避→熔断隔离→模型降级 · 防止级联故障 · 自动恢复</text>
+      </g>
+    
+      <!-- ═══ 2R: Observability ═══ -->
+      <g transform="translate(20, 3125)">
+        <rect x="0" y="0" width="1280" height="80" rx="10" fill="url(#cardBgGrad)" stroke="#64748B" stroke-width="1.2" opacity="1"/>
+        <rect x="0" y="0" width="1280" height="80" rx="10" fill="#64748B" opacity="0.05"/>
+        <text x="15" y="22" fill="#CBD5E1" font-size="14" font-weight="bold">可观测性体系</text>
+        <text x="155" y="22" fill="#8da4b0" font-size="10">Structured Logging · 链路追踪 · Token监控</text>
+    
+        <g transform="translate(15, 38)">
+          <rect x="0" y="0" width="300" height="28" rx="2" fill="#1E293B" stroke="#64748B" stroke-width="0.6"/>
+          <text x="8" y="18" fill="#CBD5E1" font-size="9">Structured Logging (JSON分层输出 · MDC关联)</text>
+    
+          <rect x="310" y="0" width="350" height="28" rx="2" fill="#1E293B" stroke="#64748B" stroke-width="0.6"/>
+          <text x="318" y="18" fill="#CBD5E1" font-size="9">链路追踪 (SessionId + TurnCount + toolUseId关联)</text>
+    
+          <rect x="670" y="0" width="340" height="28" rx="2" fill="#1E293B" stroke="#64748B" stroke-width="0.6"/>
+          <text x="678" y="18" fill="#CBD5E1" font-size="9">Token消耗监控 (TokenCostPanel · 实时统计 · 模型维度)</text>
+        </g>
+      </g>
+    
+      <!-- ═══ 2S: Technology Stack Summary (moved down) ═══ -->
+      <g transform="translate(20, 3230)">
+        <rect x="0" y="0" width="1280" height="95" rx="10" fill="url(#cardBgGrad)" stroke="#4B5EAA" stroke-width="1.0" opacity="0.9"/>
+        <text x="15" y="18" fill="#94A3B8" font-size="12" font-weight="bold">技术栈基座</text>
+    
+        <g transform="translate(20, 30)">
+          <rect x="0" y="0" width="140" height="22" rx="2" fill="#1a237e" stroke="#3949ab" stroke-width="0.5"/>
+          <text x="8" y="15" fill="#7986cb" font-size="9">Java 21 · Virtual Threads</text>
+    
+          <rect x="150" y="0" width="130" height="22" rx="2" fill="#1a237e" stroke="#3949ab" stroke-width="0.5"/>
+          <text x="158" y="15" fill="#7986cb" font-size="9">Spring Boot 3.x</text>
+    
+          <rect x="290" y="0" width="160" height="22" rx="2" fill="#1a237e" stroke="#3949ab" stroke-width="0.5"/>
+          <text x="298" y="15" fill="#7986cb" font-size="9">Spring WebSocket STOMP</text>
+    
+          <rect x="460" y="0" width="120" height="22" rx="2" fill="#1a237e" stroke="#3949ab" stroke-width="0.5"/>
+          <text x="468" y="15" fill="#7986cb" font-size="9">Jackson JSON</text>
+    
+          <rect x="590" y="0" width="120" height="22" rx="2" fill="#1a237e" stroke="#3949ab" stroke-width="0.5"/>
+          <text x="598" y="15" fill="#7986cb" font-size="9">SQLite 数据迁移</text>
+    
+          <rect x="720" y="0" width="110" height="22" rx="2" fill="#1a237e" stroke="#3949ab" stroke-width="0.5"/>
+          <text x="728" y="15" fill="#7986cb" font-size="9">Docker容器化</text>
+    
+          <rect x="840" y="0" width="140" height="22" rx="2" fill="#1a237e" stroke="#3949ab" stroke-width="0.5"/>
+          <text x="848" y="15" fill="#7986cb" font-size="9">Records · Sealed Types</text>
+    
+          <rect x="990" y="0" width="140" height="22" rx="2" fill="#1a237e" stroke="#3949ab" stroke-width="0.5"/>
+          <text x="998" y="15" fill="#7986cb" font-size="9">Pattern Matching</text>
+        </g>
+    
+        <g transform="translate(20, 58)">
+          <text x="0" y="12" fill="#7a95a8" font-size="8">编译特性: Records(sealed interface) · Virtual Threads(高并发) · Pattern Matching(简化逻辑) | 数据层: SQLite + FileSystem | 部署: Docker多阶段构建</text>
+        </g>
+      </g>
+    
+      <!-- ═══ 2T: ToolExecutionPipeline 9-Stage ═══ -->
+      <g transform="translate(20, 685)">
+        <rect x="0" y="0" width="1280" height="385" rx="10" fill="url(#cardBgGrad)" stroke="#06b6d4" stroke-width="1.8" opacity="1"/>
+        <rect x="0" y="0" width="1280" height="385" rx="10" fill="#06b6d4" opacity="0.05"/>
+        <text x="15" y="22" fill="#22D3EE" font-size="14" font-weight="bold" filter="url(#glowTeal)">工具执行管线（ToolExecutionPipeline）9-Stage</text>
+        <text x="380" y="22" fill="#8da4b0" font-size="10">ToolExecutionPipeline.java L112-618 · 每次工具调用必过此流水线</text>
+    
+        <!-- Pipeline stages - vertical flow -->
+        <g transform="translate(40, 42)">
+          <!-- Stage 1 -->
+          <rect x="0" y="0" width="540" height="28" rx="3" fill="#164E63" stroke="#06b6d4" stroke-width="0.8"/>
+          <text x="10" y="18" fill="#67E8F9" font-size="9" font-weight="bold">Stage 1</text>
+          <text x="70" y="18" fill="#06b6d4" font-size="9">SCHEMA_PARSE</text>
+          <text x="200" y="18" fill="#8da4b0" font-size="8">parseSchema() — JSON Schema解析工具参数定义</text>
+          <text x="480" y="18" fill="#7a95a8" font-size="8">L112</text>
+    
+          <!-- Arrow -->
+          <line x1="270" y1="29" x2="270" y2="35" stroke="#06b6d4" stroke-width="1.5"/>
+          <polygon points="266,34 274,34 270,39" fill="#06b6d4"/>
+    
+          <!-- Stage 1.5 -->
+          <rect x="0" y="40" width="540" height="28" rx="3" fill="#164E63" stroke="#06b6d4" stroke-width="0.8"/>
+          <text x="10" y="58" fill="#67E8F9" font-size="9" font-weight="bold">Stage 1.5</text>
+          <text x="80" y="58" fill="#06b6d4" font-size="9">JSON_VALIDATE</text>
+          <text x="210" y="58" fill="#8da4b0" font-size="8">jsonSchemaValidator — 输入参数格式校验</text>
+          <text x="480" y="58" fill="#7a95a8" font-size="8">L115</text>
+    
+          <!-- Arrow -->
+          <line x1="270" y1="69" x2="270" y2="75" stroke="#06b6d4" stroke-width="1.5"/>
+          <polygon points="266,74 274,74 270,79" fill="#06b6d4"/>
+    
+          <!-- Stage 2 -->
+          <rect x="0" y="80" width="540" height="28" rx="3" fill="#164E63" stroke="#06b6d4" stroke-width="0.8"/>
+          <text x="10" y="98" fill="#67E8F9" font-size="9" font-weight="bold">Stage 2</text>
+          <text x="70" y="98" fill="#06b6d4" font-size="9">TOOL_VALIDATE_INPUT</text>
+          <text x="230" y="98" fill="#8da4b0" font-size="8">tool.validateInput() — 工具自定义校验</text>
+          <text x="480" y="98" fill="#7a95a8" font-size="8">L120</text>
+    
+          <!-- Arrow -->
+          <line x1="270" y1="109" x2="270" y2="115" stroke="#06b6d4" stroke-width="1.5"/>
+          <polygon points="266,114 274,114 270,119" fill="#06b6d4"/>
+    
+          <!-- Stage 2.5 -->
+          <rect x="0" y="120" width="540" height="28" rx="3" fill="#164E63" stroke="#06b6d4" stroke-width="0.8"/>
+          <text x="10" y="138" fill="#67E8F9" font-size="9" font-weight="bold">Stage 2.5</text>
+          <text x="80" y="138" fill="#06b6d4" font-size="9">INPUT_BACKFILL</text>
+          <text x="210" y="138" fill="#8da4b0" font-size="8">backfillObservable() — 可观测参数自动填充</text>
+          <text x="480" y="138" fill="#7a95a8" font-size="8">L129</text>
+    
+          <!-- Arrow -->
+          <line x1="270" y1="149" x2="270" y2="155" stroke="#06b6d4" stroke-width="1.5"/>
+          <polygon points="266,154 274,154 270,159" fill="#06b6d4"/>
+    
+          <!-- Stage 3 -->
+          <rect x="0" y="160" width="540" height="28" rx="3" fill="#164E63" stroke="#06b6d4" stroke-width="0.8"/>
+          <text x="10" y="178" fill="#67E8F9" font-size="9" font-weight="bold">Stage 3</text>
+          <text x="70" y="178" fill="#06b6d4" font-size="9">PRE_HOOK</text>
+          <text x="170" y="178" fill="#8da4b0" font-size="8">hookService.pre() — 工具执行前置钩子</text>
+          <text x="480" y="178" fill="#7a95a8" font-size="8">L132</text>
+    
+          <!-- Arrow -->
+          <line x1="270" y1="189" x2="270" y2="195" stroke="#ff1744" stroke-width="2"/>
+          <polygon points="266,194 274,194 270,199" fill="#ff1744"/>
+    
+          <!-- Stage 4 - PERMISSION (RED - DENY point) -->
+          <rect x="0" y="200" width="540" height="28" rx="3" fill="#4A0404" stroke="#ff1744" stroke-width="1.5"/>
+          <text x="10" y="218" fill="#FF8A80" font-size="9" font-weight="bold">Stage 4 ◆</text>
+          <text x="80" y="218" fill="#ff1744" font-size="9" font-weight="bold">PERMISSION_CHECK</text>
+          <text x="240" y="218" fill="#FFCDD2" font-size="8">唯一DENY中断点 — PermissionPipeline 14步短路</text>
+          <text x="480" y="218" fill="#ff1744" font-size="8" font-weight="bold">L162</text>
+    
+          <!-- Arrow -->
+          <line x1="270" y1="229" x2="270" y2="235" stroke="#00e676" stroke-width="2"/>
+          <polygon points="266,234 274,234 270,239" fill="#00e676"/>
+    
+          <!-- Stage 5 - EXECUTE (GREEN - side effect) -->
+          <rect x="0" y="240" width="540" height="28" rx="3" fill="#1B4332" stroke="#00e676" stroke-width="1.5"/>
+          <text x="10" y="258" fill="#A7F3D0" font-size="9" font-weight="bold">Stage 5 ★</text>
+          <text x="80" y="258" fill="#00e676" font-size="9" font-weight="bold">EXECUTE</text>
+          <text x="170" y="258" fill="#D1FAE5" font-size="8">tool.call() — 唯一副作用点 (文件写入/命令执行)</text>
+          <text x="480" y="258" fill="#00e676" font-size="8" font-weight="bold">L257</text>
+    
+          <!-- Arrow -->
+          <line x1="270" y1="269" x2="270" y2="275" stroke="#06b6d4" stroke-width="1.5"/>
+          <polygon points="266,274 274,274 270,279" fill="#06b6d4"/>
+    
+          <!-- Stage 6 -->
+          <rect x="0" y="280" width="260" height="28" rx="3" fill="#164E63" stroke="#06b6d4" stroke-width="0.8"/>
+          <text x="10" y="298" fill="#67E8F9" font-size="9" font-weight="bold">Stage 6</text>
+          <text x="70" y="298" fill="#06b6d4" font-size="9">POST_HOOK</text>
+          <text x="165" y="298" fill="#8da4b0" font-size="8">hookService.post()</text>
+          <text x="235" y="298" fill="#7a95a8" font-size="7">L264</text>
+    
+          <!-- Stage 7 -->
+          <rect x="280" y="280" width="260" height="28" rx="3" fill="#164E63" stroke="#06b6d4" stroke-width="0.8"/>
+          <text x="290" y="298" fill="#67E8F9" font-size="9" font-weight="bold">Stage 7</text>
+          <text x="350" y="298" fill="#06b6d4" font-size="9">CONTEXT_MODIFIER</text>
+          <text x="480" y="298" fill="#8da4b0" font-size="8">返回Result</text>
+          <text x="515" y="298" fill="#7a95a8" font-size="7">L305</text>
+        </g>
+    
+        <!-- Legend -->
+        <g transform="translate(640, 50)">
+          <text x="0" y="12" fill="#8da4b0" font-size="9" font-weight="bold">图例:</text>
+          <rect x="0" y="18" width="12" height="12" rx="2" fill="#4A0404" stroke="#ff1744" stroke-width="1"/>
+          <text x="18" y="28" fill="#FF8A80" font-size="8">◆ DENY短路点 (任何一步DENY即返回)</text>
+          <rect x="0" y="36" width="12" height="12" rx="2" fill="#1B4332" stroke="#00e676" stroke-width="1"/>
+          <text x="18" y="46" fill="#A7F3D0" font-size="8">★ 唯一副作用执行点</text>
+          <rect x="0" y="54" width="12" height="12" rx="2" fill="#164E63" stroke="#06b6d4" stroke-width="1"/>
+          <text x="18" y="64" fill="#67E8F9" font-size="8">纯计算/校验阶段</text>
+    
+          <text x="0" y="90" fill="#8da4b0" font-size="8" font-weight="bold">流水线特性:</text>
+          <text x="0" y="106" fill="#7a95a8" font-size="8">• 单工具串行执行，多工具可并发</text>
+          <text x="0" y="120" fill="#7a95a8" font-size="8">• Stage 4 DENY 立即终止后续所有阶段</text>
+          <text x="0" y="134" fill="#7a95a8" font-size="8">• Stage 5 为唯一产生外部可观测效果的阶段</text>
+          <text x="0" y="148" fill="#7a95a8" font-size="8">• Stage 6/7 无论成功失败均执行 (finally语义)</text>
+        </g>
+    
+        <!-- Source reference -->
+        <text x="15" y="370" fill="#7a95a8" font-size="8">L112(Schema)→L115(JSON)→L120(Validate)→L129(Backfill)→L132(PreHook)→L162(Permission)→L257(Execute)→L264(PostHook)→L305(Modifier)</text>
+      </g>
+    
+      <!-- Dependency connection lines (dashed) -->
+      <!-- Tool System → ToolExecutionPipeline -->
+      <line x1="980" y1="1070" x2="980" y2="1095" stroke="#ff8f00" stroke-width="0.8" stroke-dasharray="3,3" opacity="0.5"/>
+      <text x="985" y="1088" fill="#ff8f00" font-size="7" opacity="0.6">工具执行管线</text>
+    
+      <!-- APOS → QueryEngine (验证执行结果) -->
+      <line x1="980" y1="1715" x2="980" y2="1700" stroke="#10B981" stroke-width="1" stroke-dasharray="4,3" opacity="0.6"/>
+      <line x1="980" y1="1700" x2="1290" y2="1700" stroke="#10B981" stroke-width="1" stroke-dasharray="4,3" opacity="0.6"/>
+      <line x1="1290" y1="1700" x2="1290" y2="375" stroke="#10B981" stroke-width="1" stroke-dasharray="4,3" opacity="0.4"/>
+      <text x="1100" y="1695" fill="#10B981" font-size="7" opacity="0.7">APOS→QueryEngine 验证执行结果</text>
+    
+      <!-- Security → PermissionPipeline (安全纵深) -->
+      <line x1="330" y1="1715" x2="330" y2="1700" stroke="#EF4444" stroke-width="1" stroke-dasharray="4,3" opacity="0.6"/>
+      <line x1="330" y1="1700" x2="10" y2="1700" stroke="#EF4444" stroke-width="1" stroke-dasharray="4,3" opacity="0.6"/>
+      <line x1="10" y1="1700" x2="10" y2="660" stroke="#EF4444" stroke-width="1" stroke-dasharray="4,3" opacity="0.4"/>
+      <text x="35" y="1695" fill="#EF4444" font-size="7" opacity="0.7">Security→PermissionPipeline 安全纵深</text>
+    
+      <!-- Bridge → Frontend+Backend (跨端通信) -->
+      <line x1="210" y1="2590" x2="210" y2="2575" stroke="#6366F1" stroke-width="1" stroke-dasharray="4,3" opacity="0.5"/>
+      <text x="55" y="2580" fill="#818CF8" font-size="7" opacity="0.7">Bridge ↔ 跨端桥接</text>
+    
+      <!-- ═════════════════════ ENHANCEMENT: HIGH-VALUE ADDITIONS ═════════════════════ -->
+    
+      <!-- ═══ IncrementalCollapseManager ═══ -->
+      <g transform="translate(920, 1950)">
+        <rect x="0" y="0" width="380" height="140" rx="10" fill="url(#cardBgGrad)" stroke="#06b6d4" stroke-width="1.4" opacity="1"/>
+        <text x="15" y="22" fill="#22D3EE" font-size="12" font-weight="bold">增量折叠管理器（IncrementalCollapseManager）</text>
+        <g transform="translate(15, 38)">
+          <text x="0" y="14" fill="#80cbc4" font-size="9">├── 触发条件: 每10轮自动压缩</text>
+          <text x="0" y="32" fill="#80cbc4" font-size="9">├── 配置: segment-turns=10</text>
+          <text x="0" y="50" fill="#80cbc4" font-size="9">├── 会话超时: 30min</text>
+          <text x="0" y="68" fill="#80cbc4" font-size="9">└── 与6层压缩级联联动</text>
+          <text x="0" y="90" fill="#7a95a8" font-size="8">executePreApiCascade() → 每次API调用前触发级联压缩</text>
+        </g>
+      </g>
+    
+      <!-- ═══ 8-Layer Bash Security Sandbox ═══ -->
+      <g transform="translate(20, 1950)">
+        <rect x="0" y="0" width="880" height="250" rx="10" fill="url(#cardBgGrad)" stroke="#DC4A5C" stroke-width="1.8" opacity="1"/>
+        <rect x="0" y="0" width="880" height="250" rx="10" fill="#DC4A5C" opacity="0.05"/>
+        <text x="15" y="22" fill="#F87171" font-size="13" font-weight="bold" filter="url(#glowRed)">8层Bash安全沙箱（BashSecuritySandbox）</text>
+        <text x="365" y="22" fill="#8da4b0" font-size="10">BashTool.java 31.7KB · 纵深防御架构</text>
+        <g transform="translate(15, 36)">
+          <rect x="0" y="0" width="845" height="25" rx="2" fill="#450A0A" stroke="#B91C1C" stroke-width="0.7"/>
+          <text x="8" y="16" fill="#FCA5A5" font-size="9" font-weight="bold">L1 命令解析</text>
+          <text x="120" y="16" fill="#8da4b0" font-size="8">管道(|) / 重定向(&gt;) / 子命令($()) / 命令链(&amp;&amp;) 完整识别</text>
+    
+          <rect x="0" y="28" width="845" height="25" rx="2" fill="#450A0A" stroke="#B91C1C" stroke-width="0.7"/>
+          <text x="8" y="44" fill="#FCA5A5" font-size="9" font-weight="bold">L2 黑名单过滤</text>
+          <text x="120" y="44" fill="#8da4b0" font-size="8">三级拦截: ABSOLUTE_DENY(绝对禁止) → HIGH_RISK_ASK(高危询问) → AUDIT_LOG(审计)</text>
+    
+          <rect x="0" y="56" width="845" height="25" rx="2" fill="#450A0A" stroke="#991B1B" stroke-width="0.7"/>
+          <text x="8" y="72" fill="#FCA5A5" font-size="9" font-weight="bold">L3 路径遍历检测</text>
+          <text x="140" y="72" fill="#8da4b0" font-size="8">../穿越阻断 + /dev/设备路径 + UNC路径过滤</text>
+    
+          <rect x="0" y="84" width="845" height="25" rx="2" fill="#450A0A" stroke="#7F1D1D" stroke-width="0.7"/>
+          <text x="8" y="100" fill="#FCA5A5" font-size="9" font-weight="bold">L4 权限验证</text>
+          <text x="120" y="100" fill="#8da4b0" font-size="8">→ PermissionPipeline 14步短路决策链 · 任意一步DENY即阻断</text>
+    
+          <rect x="0" y="112" width="845" height="25" rx="2" fill="#450A0A" stroke="#B91C1C" stroke-width="0.6"/>
+          <text x="8" y="128" fill="#FCA5A5" font-size="9" font-weight="bold">L5 Docker沙箱</text>
+          <text x="120" y="128" fill="#8da4b0" font-size="8">只读FS(--read-only) + 内存限制(--memory) + 网络隔离(--network=none)</text>
+    
+          <rect x="0" y="140" width="845" height="25" rx="2" fill="#450A0A" stroke="#B91C1C" stroke-width="0.6"/>
+          <text x="8" y="156" fill="#FCA5A5" font-size="9" font-weight="bold">L6 参数净化</text>
+          <text x="120" y="156" fill="#8da4b0" font-size="8">环境变量白名单(PATH/HOME/LANG) · Shell元字符转义 · 注入防护</text>
+    
+          <rect x="0" y="168" width="410" height="25" rx="2" fill="#450A0A" stroke="#991B1B" stroke-width="0.6"/>
+          <text x="8" y="184" fill="#FCA5A5" font-size="9" font-weight="bold">L7 输出校验</text>
+          <text x="100" y="184" fill="#8da4b0" font-size="8">SensitiveDataFilter 16种脱敏模式</text>
+    
+          <rect x="435" y="168" width="410" height="25" rx="2" fill="#450A0A" stroke="#7F1D1D" stroke-width="0.6"/>
+          <text x="443" y="184" fill="#FCA5A5" font-size="9" font-weight="bold">L8 审计日志</text>
+          <text x="535" y="184" fill="#8da4b0" font-size="8">SecurityAuditLogger · 完整记录 · 可追溯</text>
+        </g>
+        <text x="15" y="242" fill="#7a95a8" font-size="8">安全链: 解析→黑名单→路径遍历→权限→沙箱→净化→脱敏→审计 · 逐层收窄 · 任意层可阻断</text>
+      </g>
+    
+      <!-- ═══ Multi-Agent 三模式 ═══ -->
+      <g transform="translate(20, 2775)">
+        <rect x="0" y="0" width="640" height="130" rx="10" fill="url(#cardBgGrad)" stroke="#A78BFA" stroke-width="1.4" opacity="1"/>
+        <text x="15" y="22" fill="#A78BFA" font-size="13" font-weight="bold">多Agent三模式对比</text>
+        <text x="175" y="22" fill="#8da4b0" font-size="10">AgentOrchestrationService · 三种协作模式</text>
+        <g transform="translate(15, 36)">
+          <rect x="0" y="0" width="610" height="26" rx="2" fill="#312E81" stroke="#A78BFA" stroke-width="0.6"/>
+          <text x="8" y="10" fill="#C4B5FD" font-size="9" font-weight="bold">Team模式</text>
+          <text x="80" y="10" fill="#8da4b0" font-size="8">TeamMailbox异步通信 + SharedTaskList + InProcessBackend(Virtual Thread)</text>
+          <text x="8" y="22" fill="#7a95a8" font-size="7">Leader分派 → Worker异步执行 → Mailbox汇报 → Leader合成结果</text>
+    
+          <rect x="0" y="30" width="610" height="26" rx="2" fill="#312E81" stroke="#A78BFA" stroke-width="0.6"/>
+          <text x="8" y="40" fill="#C4B5FD" font-size="9" font-weight="bold">Swarm模式</text>
+          <text x="85" y="40" fill="#8da4b0" font-size="8">四阶段(Research→Synthesis→Implementation→Verification) + 30min超时</text>
+          <text x="8" y="52" fill="#7a95a8" font-size="7">SwarmCoordinator → 阶段流转 → Worker动态调整 → 超时熔断</text>
+    
+          <rect x="0" y="60" width="610" height="26" rx="2" fill="#312E81" stroke="#7C3AED" stroke-width="0.6"/>
+          <text x="8" y="70" fill="#C4B5FD" font-size="9" font-weight="bold">SubAgent模式</text>
+          <text x="100" y="70" fill="#8da4b0" font-size="8">三隔离级别(NONE/WORKTREE/FORK) + BackgroundAgentTracker + 5min超时</text>
+          <text x="8" y="82" fill="#7a95a8" font-size="7">父Agent → spawn(隔离级别) → 子Agent独立执行 → 权限BUBBLE冒泡</text>
+        </g>
+      </g>
+    
+      <!-- ═══ VerifierFactory 三模态 ═══ -->
+      <g transform="translate(680, 2775)">
+        <rect x="0" y="0" width="620" height="130" rx="10" fill="url(#cardBgGrad)" stroke="#10B981" stroke-width="1.4" opacity="1"/>
+        <text x="15" y="22" fill="#34D399" font-size="13" font-weight="bold">验证器工厂（VerifierFactory）三模态分发</text>
+        <g transform="translate(15, 36)">
+          <text x="0" y="14" fill="#34D399" font-size="9">├── browser: Playwright端到端测试 (截图+DOM断言+网络拦截)</text>
+          <text x="0" y="32" fill="#34D399" font-size="9">├── http_api: 8种HTTP action + JSONPath断言</text>
+          <text x="0" y="50" fill="#34D399" font-size="9">└── auto: 智能切换模式 (根据验证目标自动选择)</text>
+          <line x1="0" y1="58" x2="580" y2="58" stroke="#253555" stroke-width="0.5"/>
+          <text x="0" y="72" fill="#6EE7B7" font-size="9" font-weight="bold">证据链:</text>
+          <text x="55" y="72" fill="#8da4b0" font-size="8">SQLite存储 + 7类证据(screenshot/command/console/test/video/har/diff)</text>
+          <text x="0" y="88" fill="#6EE7B7" font-size="9" font-weight="bold">Feature Flag:</text>
+          <text x="85" y="88" fill="#8da4b0" font-size="8">RUNTIME_VERIFICATION + BROWSER_AUTOMATION</text>
+        </g>
+      </g>
+    
+      <!-- ═══ BM25搜索引擎 ═══ -->
+      <g transform="translate(20, 2930)">
+        <rect x="0" y="0" width="380" height="140" rx="10" fill="url(#cardBgGrad)" stroke="#10B981" stroke-width="1.4" opacity="1"/>
+        <text x="15" y="22" fill="#34D399" font-size="13" font-weight="bold">BM25搜索引擎（纯Java实现）</text>
+        <g transform="translate(15, 38)">
+          <text x="0" y="14" fill="#4db6ac" font-size="9">├── 中英文混合检索</text>
+          <text x="0" y="32" fill="#4db6ac" font-size="9">├── 分词: Unigram + Bigram中文分词</text>
+          <text x="0" y="50" fill="#4db6ac" font-size="9">├── 参数: k1=1.2, b=0.75</text>
+          <text x="0" y="68" fill="#4db6ac" font-size="9">├── 标题2x加权</text>
+          <text x="0" y="86" fill="#4db6ac" font-size="9">└── 可选LLM精排（Top-K后重排序）</text>
+        </g>
+      </g>
+    
+      <!-- ═══ 工具并发模型 ═══ -->
+      <g transform="translate(420, 2930)">
+        <rect x="0" y="0" width="420" height="170" rx="10" fill="url(#cardBgGrad)" stroke="#06b6d4" stroke-width="1.4" opacity="1"/>
+        <text x="15" y="22" fill="#22D3EE" font-size="13" font-weight="bold">工具并发模型（isConcurrencySafe）</text>
+        <g transform="translate(15, 38)">
+          <text x="0" y="14" fill="#67E8F9" font-size="9" font-weight="bold">并行安全 ✓ (VirtualThread并发):</text>
+          <text x="0" y="32" fill="#8da4b0" font-size="9">Read / Glob / Grep / TokenCount</text>
+          <text x="0" y="48" fill="#7a95a8" font-size="8">多工具同时执行 · 共享线程池 · 无状态操作</text>
+          <line x1="0" y1="56" x2="380" y2="56" stroke="#253555" stroke-width="0.5"/>
+          <text x="0" y="70" fill="#FF8A80" font-size="9" font-weight="bold">独占执行 ✗ (顺序队列):</text>
+          <text x="0" y="88" fill="#8da4b0" font-size="9">BashTool / FileWrite / FileEdit</text>
+          <text x="0" y="104" fill="#7a95a8" font-size="8">单工具串行 · 避免写冲突 · 有状态操作保护</text>
+        </g>
+      </g>
+    
+      <!-- ═══ 13技能清单 ═══ -->
+      <g transform="translate(860, 2930)">
+        <rect x="0" y="0" width="440" height="140" rx="10" fill="url(#cardBgGrad)" stroke="#F59E0B" stroke-width="1.4" opacity="1"/>
+        <text x="15" y="22" fill="#FBBF24" font-size="13" font-weight="bold">完整13技能清单</text>
+        <text x="155" y="22" fill="#8da4b0" font-size="10">Slash Command · 技能描述</text>
+        <g transform="translate(15, 36)">
+          <text x="0" y="14" fill="#fff176" font-size="9">/commit 智能提交</text>
+          <text x="110" y="14" fill="#fff176" font-size="9">/review 代码审查</text>
+          <text x="220" y="14" fill="#fff176" font-size="9">/fix 智能修复</text>
+          <text x="320" y="14" fill="#fff176" font-size="9">/test 智能测试</text>
+          <text x="0" y="32" fill="#fff176" font-size="9">/pr PR助手</text>
+          <text x="110" y="32" fill="#fff176" font-size="9">/debug 调试诊断</text>
+          <text x="220" y="32" fill="#fff176" font-size="9">/verify 代码验证</text>
+          <text x="320" y="32" fill="#fff176" font-size="9">/stuck 脱困诊断</text>
+          <text x="0" y="50" fill="#fff176" font-size="9">/remember 会话记忆</text>
+          <text x="0" y="68" fill="#FFC107" font-size="8">/software-architecture</text>
+          <text x="155" y="68" fill="#FFC107" font-size="8">/csv-data-summarizer</text>
+          <text x="0" y="84" fill="#FFC107" font-size="8">/prompt-engineering</text>
+          <text x="155" y="84" fill="#FFC107" font-size="8">/test-driven-development</text>
+          <text x="0" y="102" fill="#7a95a8" font-size="8">6层优先级加载 · WatchService热重载 · Markdown模板 · 参数化指令</text>
+        </g>
+      </g>
+    
+    </g>
+    
+    <!-- Flow connection: Backend → Python -->
+    <g>
+      <line x1="700" y1="3825" x2="700" y2="3855" stroke="#A78BFA" stroke-width="3" stroke-dasharray="8,4" style="animation: pulseFlowLine 1.2s linear infinite"/>
+      <text x="720" y="3845" fill="#A78BFA" font-size="10" font-weight="600">HTTP REST · Playwright</text>
+      <polygon points="695,3853 705,3853 700,3860" fill="#A78BFA"/>
+    </g>
+    
+    <!-- ═══════════════════════ LAYER 3: PYTHON SERVICE ═══════════════════════ -->
+    <g transform="translate(40, 3865)">
+      <rect x="0" y="0" width="1320" height="280" rx="10" fill="none" stroke="#A78BFA" stroke-width="1.5" opacity="0.5"/>
+      <rect x="0" y="0" width="1320" height="280" rx="10" fill="#A78BFA" opacity="0.035"/>
+      <!-- Layer label -->
+      <rect x="20" y="-12" width="340" height="24" rx="6" fill="#0B0D17"/>
+      <text x="30" y="4" fill="#A78BFA" font-size="15" font-weight="bold">PYTHON SERVICE · FastAPI 7,846行 · main.py 148L</text>
+    
+      <!-- 4-Layer Capability Detection -->
+      <g transform="translate(40, 30)">
+        <rect x="0" y="0" width="350" height="230" rx="6" fill="url(#cardBgGrad)" stroke="#A78BFA" stroke-width="0.8"/>
+        <text x="10" y="20" fill="#A78BFA" font-size="11" font-weight="bold">4-Layer Capability Detection</text>
+        <text x="245" y="20" fill="#8da4b0" font-size="8">capabilities.py 205L</text>
+    
+        <rect x="10" y="30" width="330" height="22" rx="2" fill="#311b92" stroke="#7c4dff" stroke-width="0.5"/>
+        <text x="16" y="45" fill="#b39ddb" font-size="8">L1: importlib 包导入探针</text>
+    
+        <rect x="10" y="56" width="330" height="22" rx="2" fill="#311b92" stroke="#7c4dff" stroke-width="0.5"/>
+        <text x="16" y="71" fill="#b39ddb" font-size="8">L2: packaging.Version 版本兼容性检测</text>
+    
+        <rect x="10" y="82" width="330" height="22" rx="2" fill="#311b92" stroke="#7c4dff" stroke-width="0.5"/>
+        <text x="16" y="97" fill="#b39ddb" font-size="8">L3: shutil.which 二进制探测</text>
+    
+        <rect x="10" y="108" width="330" height="22" rx="2" fill="#311b92" stroke="#7c4dff" stroke-width="0.5"/>
+        <text x="16" y="123" fill="#b39ddb" font-size="8">L4: async smoke_test 异步烟测验证</text>
+    
+        <line x1="10" y1="138" x2="340" y2="138" stroke="#7a95a8" stroke-width="0.5" stroke-dasharray="3,2"/>
+        <text x="10" y="154" fill="#8da4b0" font-size="8" font-weight="bold">测试与质量:</text>
+        <text x="10" y="170" fill="#8da4b0" font-size="8">pytest框架 · 11+测试文件 · .coverage报告</text>
+        <text x="10" y="186" fill="#8da4b0" font-size="8">FastAPI /docs 自动文档</text>
+        <text x="10" y="202" fill="#8da4b0" font-size="8">requirements.lock 锁定版本</text>
+        <text x="10" y="218" fill="#8da4b0" font-size="8">pyproject.toml 依赖管理</text>
+      </g>
+    
+      <!-- 8 Router Modules -->
+      <g transform="translate(420, 30)">
+        <rect x="0" y="0" width="420" height="230" rx="6" fill="url(#cardBgGrad)" stroke="#A78BFA" stroke-width="0.8"/>
+        <text x="10" y="20" fill="#A78BFA" font-size="11" font-weight="bold">8 Router Modules</text>
+        <text x="165" y="20" fill="#8da4b0" font-size="8">src/routers/ · 2,162 LOC</text>
+    
+        <rect x="10" y="30" width="95" height="22" rx="2" fill="#4a148c" stroke="#ce93d8" stroke-width="0.5"/>
+        <text x="16" y="45" fill="#C4B5FD" font-size="8">code_intel</text>
+        <rect x="110" y="30" width="110" height="22" rx="2" fill="#4a148c" stroke="#ce93d8" stroke-width="0.5"/>
+        <text x="116" y="45" fill="#C4B5FD" font-size="8">file_processing</text>
+        <rect x="225" y="30" width="100" height="22" rx="2" fill="#4a148c" stroke="#ce93d8" stroke-width="0.5"/>
+        <text x="231" y="45" fill="#C4B5FD" font-size="8">code_quality</text>
+        <rect x="330" y="30" width="80" height="22" rx="2" fill="#4a148c" stroke="#ce93d8" stroke-width="0.5"/>
+        <text x="336" y="45" fill="#C4B5FD" font-size="8">analysis</text>
+    
+        <rect x="10" y="56" width="100" height="22" rx="2" fill="#4a148c" stroke="#ce93d8" stroke-width="0.5"/>
+        <text x="16" y="71" fill="#C4B5FD" font-size="8">git_enhanced</text>
+        <rect x="115" y="56" width="80" height="22" rx="2" fill="#4a148c" stroke="#ce93d8" stroke-width="0.5"/>
+        <text x="121" y="71" fill="#C4B5FD" font-size="8">browser</text>
+        <rect x="200" y="56" width="80" height="22" rx="2" fill="#4a148c" stroke="#ce93d8" stroke-width="0.5"/>
+        <text x="206" y="71" fill="#C4B5FD" font-size="8">http_api</text>
+        <rect x="285" y="56" width="80" height="22" rx="2" fill="#4a148c" stroke="#ce93d8" stroke-width="0.5"/>
+        <text x="291" y="71" fill="#C4B5FD" font-size="8">journey</text>
+    
+        <line x1="10" y1="86" x2="400" y2="86" stroke="#7a95a8" stroke-width="0.5" stroke-dasharray="3,2"/>
+    
+        <!-- 7 Analyzer Services -->
+        <text x="10" y="104" fill="#A78BFA" font-size="11" font-weight="bold">7 Analyzer Services</text>
+        <text x="185" y="104" fill="#8da4b0" font-size="8">src/services/ · 1,971 LOC</text>
+    
+        <rect x="10" y="112" width="110" height="22" rx="2" fill="#1b5e20" stroke="#4caf50" stroke-width="0.5"/>
+        <text x="16" y="127" fill="#a5d6a7" font-size="8">tree_sitter 238L</text>
+        <rect x="125" y="112" width="110" height="22" rx="2" fill="#1b5e20" stroke="#4caf50" stroke-width="0.5"/>
+        <text x="131" y="127" fill="#a5d6a7" font-size="8">call_graph 583L</text>
+        <rect x="240" y="112" width="110" height="22" rx="2" fill="#1b5e20" stroke="#4caf50" stroke-width="0.5"/>
+        <text x="246" y="127" fill="#a5d6a7" font-size="8">complexity 156L</text>
+    
+        <rect x="10" y="138" width="110" height="22" rx="2" fill="#1b5e20" stroke="#4caf50" stroke-width="0.5"/>
+        <text x="16" y="153" fill="#a5d6a7" font-size="8">code_path ~400L</text>
+        <rect x="125" y="138" width="130" height="22" rx="2" fill="#1b5e20" stroke="#4caf50" stroke-width="0.5"/>
+        <text x="131" y="153" fill="#a5d6a7" font-size="8">change_impact ~450L</text>
+        <rect x="260" y="138" width="130" height="22" rx="2" fill="#1b5e20" stroke="#4caf50" stroke-width="0.5"/>
+        <text x="266" y="153" fill="#a5d6a7" font-size="8">sequence_diagram</text>
+    
+        <rect x="10" y="164" width="140" height="22" rx="2" fill="#1b5e20" stroke="#4caf50" stroke-width="0.5"/>
+        <text x="16" y="179" fill="#a5d6a7" font-size="8">flow_chart_generator</text>
+    
+        <line x1="10" y1="194" x2="400" y2="194" stroke="#7a95a8" stroke-width="0.5" stroke-dasharray="3,2"/>
+        <text x="10" y="210" fill="#8da4b0" font-size="8">浏览器自动化: Playwright引擎 · 页面截图/DOM/网络拦截</text>
+        <text x="10" y="224" fill="#8da4b0" font-size="8">CLI接口: python-service/cli/ · 数据可视化: SVG/PNG导出</text>
+      </g>
+    
+      <!-- Connection summary -->
+      <g transform="translate(870, 30)">
+        <rect x="0" y="0" width="400" height="230" rx="6" fill="url(#cardBgGrad)" stroke="#A78BFA" stroke-width="0.8"/>
+        <text x="10" y="20" fill="#A78BFA" font-size="11" font-weight="bold">服务架构</text>
+        <text x="90" y="20" fill="#8da4b0" font-size="8">FastAPI + Uvicorn</text>
+    
+        <text x="10" y="42" fill="#C4B5FD" font-size="9" font-weight="bold">启动流程:</text>
+        <text x="10" y="58" fill="#8da4b0" font-size="8">main.py:148L → 4层能力探测 → 动态注册Router</text>
+        <text x="10" y="74" fill="#8da4b0" font-size="8">能力缺失 → 跳过对应Router (graceful degradation)</text>
+    
+        <text x="10" y="98" fill="#C4B5FD" font-size="9" font-weight="bold">接口契约:</text>
+        <text x="10" y="114" fill="#8da4b0" font-size="8">Java后端 → HTTP REST → Python FastAPI</text>
+        <text x="10" y="130" fill="#8da4b0" font-size="8">WebBrowserTool → /browser/* 端点</text>
+        <text x="10" y="146" fill="#8da4b0" font-size="8">CodeIntelTool → /code-intel/* 端点</text>
+        <text x="10" y="162" fill="#8da4b0" font-size="8">VisualizationTool → /visualization/* 端点</text>
+    
+        <text x="10" y="186" fill="#C4B5FD" font-size="9" font-weight="bold">存储:</text>
+        <text x="10" y="202" fill="#8da4b0" font-size="8">workspace/screenshots/ 截图存储</text>
+        <text x="10" y="218" fill="#8da4b0" font-size="8">Temp files 临时分析产物 · 自动GC</text>
+      </g>
+    </g>
+    
+    <!-- ═══════════════════════ BOTTOM STATS BAR ═══════════════════════ -->
+    <g transform="translate(40, 4185)">
+      <rect x="0" y="0" width="1320" height="65" rx="10" fill="url(#statBarGrad)" stroke="#4B5EAA" stroke-width="1.5" opacity="1"/>
+      <rect x="0" y="0" width="1320" height="65" rx="10" fill="url(#flowLine)" opacity="0.08"/>
+    
+      <!-- Stats -->
+      <text x="660" y="26" text-anchor="middle" fill="#E2E8F0" font-size="14" font-weight="bold" letter-spacing="1.5">
+        Java 79,639行 │ TypeScript 28,394行 │ Python 7,846行 │ 总计 115,879行
+      </text>
+      <text x="660" y="50" text-anchor="middle" fill="#94A3B8" font-size="11" letter-spacing="1">
+        541 Java文件 │ 110 React组件 │ 26工具 │ 13技能 │ 17+模型 │ 14 Stores │ 35 MCP文件
+      </text>
+    </g>
+    
+    <!-- ═══════════════════════ DATA FLOW MAIN LINES ═══════════════════════ -->
+    <!-- Main vertical flow line with animation -->
+    <line x1="60" y1="190" x2="60" y2="4185" stroke="url(#flowLine)" stroke-width="1.5" stroke-dasharray="8,6" opacity="0.35" style="animation: pulseFlowLine 3s linear infinite"/>
+    <line x1="1360" y1="190" x2="1360" y2="4185" stroke="url(#flowLine)" stroke-width="1.5" stroke-dasharray="8,6" opacity="0.35" style="animation: pulseFlowLine 3s linear infinite"/>
+    
+    <!-- Footer -->
+    <text x="700" y="4275" text-anchor="middle" fill="#4B5EAA" font-size="11" font-weight="500">ZhikunCode System Architecture Blueprint · 源码实证驱动 · 所有数据100%来自代码审查</text>
+    
+    </svg>
+            </div>
+          </div>
+        </div>
+        <div class="arch-diagram">
           <h4 class="arch-diagram-title">全局数据流与模块依赖全景图</h4>
           <div class="arch-diagram-svg">
     <svg viewBox="0 0 960 600" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
