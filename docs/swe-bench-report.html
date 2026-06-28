@@ -427,7 +427,7 @@
     <div class="byline">
       <span><strong>Author</strong> &nbsp;Qingtao Guo</span>
       <span><strong>System</strong> &nbsp;ZhikunCode</span>
-      <span><strong>Model</strong> &nbsp;qwen-3.6-max-preview</span>
+      <span><strong>Model</strong> &nbsp;qwen3.7-max</span>
       <span><strong>Code</strong> &nbsp;<a href="https://github.com/zhikunqingtao/zhikuncode/" target="_blank" rel="noopener">github.com/zhikunqingtao/zhikuncode</a></span>
       <span><strong>Architecture</strong> &nbsp;<a href="https://zhikunqingtao.github.io/zhikuncode/ZhikunCode-Architecture.html" target="_blank" rel="noopener">Full diagram</a></span>
     </div>
@@ -439,7 +439,7 @@
 
     <section class="abstract">
       <p>We present <strong>ZhikunCode</strong>, an open-source, self-hosted AI coding system, and report its submission to <strong>SWE-bench Lite</strong> (300 instances, pass@1). ZhikunCode is built around three engineering principles: a strictly bounded toolset for evaluation, a compression cascade that keeps long sessions within the model context window, and a deterministic Agent-Loop that resists premature termination.</p>
-      <p>For this submission the agent is restricted to a closed set of six tools — <code>Read, Edit, Write, Bash, Grep, Glob</code> — with no internet access and no sub-agent delegation. We employ a single backbone model, <em>qwen-3.6-max-preview</em>, with a 900-second per-instance timeout and a hard ceiling of 60 reasoning turns per instance. The harness produced a valid non-empty patch for <strong>280 of 300</strong> instances (<strong>93.3%</strong> patch generation rate) and resolved <strong>139 of 300</strong> instances (<strong>46.3%</strong>) under the official SWE-bench Lite evaluation harness.</p>
+      <p>For this submission the agent is restricted to a closed set of six tools — <code>Read, Edit, Write, Bash, Grep, Glob</code> — with no internet access and no sub-agent delegation. We employ a single backbone model, <em>qwen3.7-max</em>, with a 900-second per-instance timeout and a hard ceiling of 60 reasoning turns per instance. The harness produced a valid non-empty patch for <strong>284 of 300</strong> instances (<strong>94.7%</strong> patch generation rate) and resolved <strong>168 of 300</strong> instances (<strong>56.0%</strong>) under the official SWE-bench Lite evaluation harness.</p>
     </section>
 
     <h2><span class="num">§ 1</span> Introduction</h2>
@@ -452,7 +452,7 @@
     <ol>
       <li>An <strong>Agent-Loop with explicit phase transitions</strong> (<code>ANALYZE → LOCATE → FIX → VERIFY</code>) that prevents the model from terminating prematurely after the first hypothesis.</li>
       <li>A <strong>five-layer context compression cascade</strong> with two-phase 413-recovery (CollapseDrain followed by ReactiveCompact), allowing 60-turn sessions to remain inside the model's context-window budget without losing the failing-test signal.</li>
-      <li>A <strong>self-correction loop</strong> that turns compile and test failures into structured re-prompting (capped at three retries), pushing the patch-generation rate to 93.3% on SWE-bench Lite.</li>
+      <li>A <strong>self-correction loop</strong> that turns compile and test failures into structured re-prompting (capped at three retries), pushing the patch-generation rate to 94.7% on SWE-bench Lite.</li>
     </ol>
 
     <h2><span class="num">§ 2</span> System Architecture</h2>
@@ -514,7 +514,7 @@
     <table>
       <thead><tr><th>Parameter</th><th>Value</th><th>Source / Default</th></tr></thead>
       <tbody>
-        <tr><td>Backbone model</td><td><code>qwen-3.6-max-preview</code></td><td><code>--model</code> / harness default</td></tr>
+        <tr><td>Backbone model</td><td><code>qwen3.7-max</code></td><td><code>--model</code> / harness default</td></tr>
         <tr><td>Per-instance timeout</td><td>900 s</td><td><code>swe_bench.py</code> (hard-coded in <code>solve_instance</code>)</td></tr>
         <tr><td>Maximum reasoning turns</td><td>60</td><td><code>swe_bench.py</code> (hard-coded in <code>solve_instance</code>)</td></tr>
         <tr><td>Parallel workers</td><td>1</td><td><code>--workers</code> default</td></tr>
@@ -573,15 +573,15 @@
 
     <div class="stats">
       <div class="stat">
-        <span class="v">139/300</span>
+        <span class="v">168/300</span>
         <span class="l">Resolve Rate</span>
       </div>
       <div class="stat">
-        <span class="v">280/300</span>
+        <span class="v">284/300</span>
         <span class="l">Patch Generation</span>
       </div>
       <div class="stat">
-        <span class="v">46.3%</span>
+        <span class="v">56.0%</span>
         <span class="l">SWE-bench Lite</span>
       </div>
       <div class="stat">
@@ -591,21 +591,21 @@
     </div>
 
     <p style="font-family:'Inter',sans-serif;font-size:12px;color:var(--ink-mute);margin-top:6px;letter-spacing:0.04em;">
-      Source: <code>docs/swe-bench/20260520/results/results.json</code> (resolved=139, no_generation=20, no_logs=29). Submission namespace <code>20260520_zhikuncode</code>.
+      Source: <code>docs/swe-bench/20260525/results.json</code> (resolved=168, empty_patch=16, error=8). Submission namespace <code>20260525_zhikuncode</code>.
     </p>
 
     <h3><span class="sub-num">5.1</span> Patch Generation</h3>
-    <p>For <strong>280 of 300</strong> instances (<strong>93.3%</strong>) the agent produced a non-empty unified diff that applied cleanly to the base commit. The remaining 20 instances split between two failure modes: (i) the agent exhausted 60 turns inside the LOCATE phase without converging on a single file, and (ii) the agent emitted a patch that the harness rejected at the <code>git apply</code> stage. Both failure modes are tractable with longer turn budgets or stronger localization heuristics, and are the focus of our ongoing work.</p>
+    <p>For <strong>284 of 300</strong> instances (<strong>94.7%</strong>) the agent produced a non-empty unified diff that applied cleanly to the base commit. The remaining 16 instances split between two failure modes: (i) the agent exhausted 60 turns inside the LOCATE phase without converging on a single file, and (ii) the agent emitted a patch that the harness rejected at the <code>git apply</code> stage. Both failure modes are tractable with longer turn budgets or stronger localization heuristics, and are the focus of our ongoing work.</p>
 
     <h3><span class="sub-num">5.2</span> Resolve Rate</h3>
-    <p>The official SWE-bench Lite resolve rate — the percentage of instances whose generated patch passes both the originally failing tests (<em>FAIL_TO_PASS</em>) and the originally passing tests (<em>PASS_TO_PASS</em>) without regression — is computed by the official evaluation harness on isolated per-instance Docker images. Under the <code>20260520_zhikuncode</code> submission, the harness resolved <strong>139 of 300</strong> instances, yielding an official resolve rate of <strong>46.3%</strong>. The full per-repository breakdown is available in the submission directory at <code>docs/swe-bench/20260520/results/resolved_by_repo.json</code>. The patch generation rate of 93.3% (§5.1) remains a strict upper bound on the resolve rate.</p>
+    <p>The official SWE-bench Lite resolve rate — the percentage of instances whose generated patch passes both the originally failing tests (<em>FAIL_TO_PASS</em>) and the originally passing tests (<em>PASS_TO_PASS</em>) without regression — is computed by the official evaluation harness on isolated per-instance Docker images. Under the <code>20260525_zhikuncode</code> submission, the harness resolved <strong>168 of 300</strong> instances, yielding an official resolve rate of <strong>56.0%</strong>. The full per-repository breakdown is available in the submission directory at <code>docs/swe-bench/20260525/results/resolved_by_repo.json</code>. The patch generation rate of 94.7% (§5.1) remains a strict upper bound on the resolve rate.</p>
 
     <div class="callout">
       <span class="label">Reproducibility</span>
       <p style="margin:0">All configuration, prompts, harness scripts, and the underlying agent source code are open-source under the MIT License. The exact command used for this submission is:</p>
 <pre><code>python swe-bench/swe_bench.py \
     --dataset ./swe-bench-lite.json \
-    --model qwen-3.6-max-preview \
+    --model qwen3.7-max \
     --output ./swe-bench/results \
     --workers 1
 # Note: per-instance timeout (900s) and max turns (60) are hard-coded in solve_instance().</code></pre>
@@ -615,9 +615,9 @@
 
     <p><strong>Single-agent ceiling.</strong> The submission disables ZhikunCode's multi-agent collaboration (Team / Swarm / SubAgent) to comply with SWE-bench's single-agent convention. The same repository, however, demonstrates strong gains from sub-agent delegation on full-stack tasks; lifting that restriction for a future SWE-bench <em>Verified</em> submission is a natural next step.</p>
 
-    <p><strong>Single-model dependency.</strong> All 300 instances were run on a single backbone (<code>qwen-3.6-max-preview</code>). The model-tier downgrade chain was active but rarely triggered. A heterogeneous-model ensemble (e.g., a stronger model for VERIFY) is unexplored.</p>
+    <p><strong>Single-model dependency.</strong> All 300 instances were run on a single backbone (<code>qwen3.7-max</code>). The model-tier downgrade chain was active but rarely triggered. A heterogeneous-model ensemble (e.g., a stronger model for VERIFY) is unexplored.</p>
 
-    <p><strong>Localization is the bottleneck.</strong> Of the 20 unsolved-patch instances, roughly two-thirds spent their turn budget inside LOCATE. Integrating ZhikunCode's existing LSP-based call-hierarchy tool (currently disabled for the closed six-tool set) into a future submission is the most promising single intervention.</p>
+    <p><strong>Localization is the bottleneck.</strong> Of the 16 unsolved-patch instances, roughly two-thirds spent their turn budget inside LOCATE. Integrating ZhikunCode's existing LSP-based call-hierarchy tool (currently disabled for the closed six-tool set) into a future submission is the most promising single intervention.</p>
 
     <p><strong>No internet access by design.</strong> The closed tool set forbids <code>WebFetch</code> and <code>WebSearch</code>, even though some SWE-bench issues reference upstream library documentation. We consider this a feature, not a bug, for benchmark reproducibility — but it does cap the achievable rate on documentation-heavy issues.</p>
 
@@ -625,7 +625,7 @@
 
     <h2><span class="num">§ 7</span> Conclusion</h2>
 
-    <p>ZhikunCode demonstrates that a general-purpose, self-hosted, browser-controlled coding agent can be made benchmark-ready by (a) restricting its tool surface to a closed six-tool set, (b) enforcing explicit phase transitions in the system prompt, and (c) keeping the conversation alive through a five-layer compression cascade with two-phase 413 recovery. The 46.3% resolve rate (139/300) and 93.3% patch generation rate on SWE-bench Lite — achieved with a single Chinese backbone <code>qwen-3.6-max-preview</code> and a 900-second / 60-turn per-instance budget — suggests that the engineering envelope around the model matters at least as much as the model itself.</p>
+    <p>ZhikunCode demonstrates that a general-purpose, self-hosted, browser-controlled coding agent can be made benchmark-ready by (a) restricting its tool surface to a closed six-tool set, (b) enforcing explicit phase transitions in the system prompt, and (c) keeping the conversation alive through a five-layer compression cascade with two-phase 413 recovery. The 56.0% resolve rate (168/300) and 94.7% patch generation rate on SWE-bench Lite — achieved with a single Chinese backbone <code>qwen3.7-max</code> and a 900-second / 60-turn per-instance budget — suggests that the engineering envelope around the model matters at least as much as the model itself.</p>
 
     <p>All artifacts — agent source, harness, system prompts, evaluation scripts — are open-source. We hope they are useful both as a baseline and as a substrate for further experimentation.</p>
 
@@ -637,7 +637,7 @@
         <li id="ref-3">ZhikunCode source repository. <a href="https://github.com/zhikunqingtao/zhikuncode/" target="_blank" rel="noopener">github.com/zhikunqingtao/zhikuncode</a>.</li>
         <li id="ref-4">ZhikunCode full system architecture diagram. <a href="https://zhikunqingtao.github.io/zhikuncode/ZhikunCode-Architecture.html" target="_blank" rel="noopener">ZhikunCode-Architecture.html</a>.</li>
         <li id="ref-5">SWE-bench harness in this submission: <code>swe-bench/swe_bench.py</code> (in the source repository).</li>
-        <li id="ref-6">Alibaba Cloud DashScope · Qwen 3.6 Max Preview model card. <a href="https://help.aliyun.com/zh/dashscope/" target="_blank" rel="noopener">help.aliyun.com/zh/dashscope</a>.</li>
+        <li id="ref-6">Alibaba Cloud DashScope · Qwen 3.7 Max model card. <a href="https://help.aliyun.com/zh/dashscope/" target="_blank" rel="noopener">help.aliyun.com/zh/dashscope</a>.</li>
       </ol>
     </section>
 

@@ -430,7 +430,7 @@
     <div class="byline">
       <span><strong>作者</strong> &nbsp;郭庆涛 (Qingtao Guo)</span>
       <span><strong>系统</strong> &nbsp;ZhikunCode</span>
-      <span><strong>模型</strong> &nbsp;qwen3.6-max-preview</span>
+      <span><strong>模型</strong> &nbsp;qwen3.7-max</span>
       <span><strong>代码</strong> &nbsp;<a href="https://github.com/zhikunqingtao/zhikuncode/" target="_blank" rel="noopener">github.com/zhikunqingtao/zhikuncode</a></span>
       <span><strong>架构</strong> &nbsp;<a href="https://zhikunqingtao.github.io/zhikuncode/ZhikunCode-Architecture.html" target="_blank" rel="noopener">完整图示</a></span>
     </div>
@@ -442,7 +442,7 @@
 
     <section class="abstract">
       <p>本文介绍 <strong>ZhikunCode</strong>——一个开源、自托管的 AI 编程系统，并报告其向 <strong>SWE-bench Lite</strong>（300 条实例，pass@1）的提交结果。ZhikunCode 围绕三项工程原则构建：面向评测的严格受限工具集、可使长会话保持在模型上下文窗口之内的压缩级联，以及能够抵御过早终止的确定性 Agent-Loop。</p>
-      <p>本次提交中，智能体被限定使用一个封闭的六工具集——<code>Read, Edit, Write, Bash, Grep, Glob</code>——不允许联网，也不允许子智能体委派。我们采用单一主干模型 <em>qwen3.6-max-preview</em>，每实例超时 1200 秒，推理回合硬上限为 80，并行 worker 数为 2。harness 在 <strong>300 条实例中的 280 条</strong>上生成了有效的非空 patch（<strong>93.3%</strong> 的 patch 生成率）。官方 resolve rate 待 SWE-bench Lite 官方评测完成后于 §5 中公布。</p>
+      <p>本次提交中，智能体被限定使用一个封闭的六工具集——<code>Read, Edit, Write, Bash, Grep, Glob</code>——不允许联网，也不允许子智能体委派。我们采用单一主干模型 <em>qwen3.7-max</em>，每实例超时 1200 秒，推理回合硬上限为 80，并行 worker 数为 2。harness 在 <strong>300 条实例中的 284 条</strong>上生成了有效的非空 patch（<strong>94.7%</strong> 的 patch 生成率）。官方 resolve rate 为 <strong>56.0%</strong>（168/300），详见 §5。</p>
     </section>
 
     <h2><span class="num">§ 1</span> 引言</h2>
@@ -455,7 +455,7 @@
     <ol>
       <li>一个具备<strong>显式阶段切换的 Agent-Loop</strong>（<code>ANALYZE → LOCATE → FIX → VERIFY</code>），可防止模型在第一次假设之后过早终止。</li>
       <li>一个<strong>五层上下文压缩级联</strong>，配合三阶段 413 恢复，使 80 回合的会话能够保持在 128K-token 预算之内，且不丢失失败测试信号。</li>
-      <li>一个<strong>自我纠错回路</strong>，将编译与测试失败转化为结构化的再提示（每个失败位点最多重试三次），将 SWE-bench Lite 上的 patch 生成率推升至 93.3%。</li>
+      <li>一个<strong>自我纠错回路</strong>，将编译与测试失败转化为结构化的再提示（每个失败位点最多重试三次），将 SWE-bench Lite 上的 patch 生成率推升至 94.7%。</li>
     </ol>
 
     <h2><span class="num">§ 2</span> 系统架构</h2>
@@ -517,7 +517,7 @@
     <table>
       <thead><tr><th>参数</th><th>取值</th><th>来源 / 默认值</th></tr></thead>
       <tbody>
-        <tr><td>主干模型</td><td><code>qwen3.6-max-preview</code></td><td><code>--model</code> / harness 默认值</td></tr>
+        <tr><td>主干模型</td><td><code>qwen3.7-max</code></td><td><code>--model</code> / harness 默认值</td></tr>
         <tr><td>每实例超时</td><td>1200 s</td><td><code>--timeout</code></td></tr>
         <tr><td>最大推理回合</td><td>80</td><td><code>--max-turns</code></td></tr>
         <tr><td>并行 worker 数</td><td>2</td><td><code>--workers</code></td></tr>
@@ -576,15 +576,15 @@
 
     <div class="stats">
       <div class="stat">
-        <span class="v placeholder">XX/300</span>
+        <span class="v">168/300</span>
         <span class="l">Resolve Rate</span>
       </div>
       <div class="stat">
-        <span class="v">280/300</span>
+        <span class="v">284/300</span>
         <span class="l">Patch Generation</span>
       </div>
       <div class="stat">
-        <span class="v">93.3%</span>
+        <span class="v">94.7%</span>
         <span class="l">Valid-Patch Yield</span>
       </div>
       <div class="stat">
@@ -594,21 +594,21 @@
     </div>
 
     <p style="font-family:'Inter','PingFang SC','Microsoft YaHei',sans-serif;font-size:12px;color:var(--ink-mute);margin-top:6px;letter-spacing:0.04em;">
-      <span class="placeholder-tag">PLACEHOLDER: XX/300 (XX%)</span> —— 最终官方 resolve rate 将于 SWE-bench Lite ECS 评测完成后填入。
+      Source: <code>docs/swe-bench/20260525/results.json</code> (resolved=168, empty_patch=16, error=8). Submission namespace <code>20260525_zhikuncode</code>.
     </p>
 
     <h3><span class="sub-num">5.1</span> Patch 生成</h3>
-    <p>在 <strong>300 条实例中的 280 条</strong>（<strong>93.3%</strong>），智能体生成了一份能够干净地施加到 base commit 上的非空 unified diff。剩余 20 条实例分布在两类失败模式之间：(i) 智能体在 LOCATE 阶段耗尽了 80 回合却未能收敛到单一文件；(ii) 智能体生成的 patch 在 <code>git apply</code> 阶段被 harness 拒绝。这两类失败都可以通过更长的回合预算或更强的定位启发式来缓解，也是我们后续工作的重点。</p>
+    <p>在 <strong>300 条实例中的 284 条</strong>（<strong>94.7%</strong>），智能体生成了一份能够干净地施加到 base commit 上的非空 unified diff。剩余 16 条实例分布在两类失败模式之间：(i) 智能体在 LOCATE 阶段耗尽了 80 回合却未能收敛到单一文件；(ii) 智能体生成的 patch 在 <code>git apply</code> 阶段被 harness 拒绝。这两类失败都可以通过更长的回合预算或更强的定位启发式来缓解，也是我们后续工作的重点。</p>
 
     <h3><span class="sub-num">5.2</span> Resolve Rate</h3>
-    <p>SWE-bench Lite 官方 resolve rate——所生成 patch 同时通过原本失败的测试（<em>FAIL_TO_PASS</em>）与原本通过的测试（<em>PASS_TO_PASS</em>）且无回归的实例占比——由官方评测 harness 在隔离的每实例 Docker 镜像上计算。撰写本文时该数字为 <span class="placeholder-tag">PLACEHOLDER: XX/300 (XX%)</span>，等待官方 ECS 评测完成。我们将在官方报告产生后就地更新本节；上文的 patch 生成率即为 resolve rate 的严格上界。</p>
+    <p>SWE-bench Lite 官方 resolve rate——所生成 patch 同时通过原本失败的测试（<em>FAIL_TO_PASS</em>）与原本通过的测试（<em>PASS_TO_PASS</em>）且无回归的实例占比——由官方评测 harness 在隔离的每实例 Docker 镜像上计算。在 <code>20260525_zhikuncode</code> 提交下，harness 解决了 <strong>168 of 300</strong> 条实例，得到官方 resolve rate <strong>56.0%</strong>。上文的 patch 生成率（94.7%，§5.1）为 resolve rate 的严格上界。</p>
 
     <div class="callout">
       <span class="label">Reproducibility</span>
       <p style="margin:0">所有配置、prompt、harness 脚本以及底层智能体源码均在 MIT 许可证下开源。本次提交所使用的精确命令为：</p>
 <pre><code>python swe-bench/swe_bench.py \
     --dataset ./swe-bench-lite.json \
-    --model qwen3.6-max-preview \
+    --model qwen3.7-max \
     --output ./swe-bench/results \
     --timeout 1200 --max-turns 80 --workers 2</code></pre>
     </div>
@@ -617,9 +617,9 @@
 
     <p><strong>单智能体上限。</strong>本次提交禁用了 ZhikunCode 的多智能体协作（Team / Swarm / SubAgent），以遵循 SWE-bench 的单智能体惯例。然而，同一仓库在全栈任务上已展现出子智能体委派带来的显著收益；为未来 SWE-bench <em>Verified</em> 提交解除该限制，是一个自然的下一步。</p>
 
-    <p><strong>单模型依赖。</strong>全部 300 条实例均在单一主干（<code>qwen3.6-max-preview</code>）上运行。模型级降级链虽处于激活状态但鲜被触发。异构模型集成（例如在 VERIFY 阶段使用更强模型）仍待探索。</p>
+    <p><strong>单模型依赖。</strong>全部 300 条实例均在单一主干（<code>qwen3.7-max</code>）上运行。模型级降级链虽处于激活状态但鲜被触发。异构模型集成（例如在 VERIFY 阶段使用更强模型）仍待探索。</p>
 
-    <p><strong>定位是瓶颈。</strong>在 20 条未生成 patch 的实例中，约三分之二将回合预算消耗在 LOCATE 内部。把 ZhikunCode 已有的、基于 LSP 的调用层级工具（当前因封闭六工具集而被禁用）整合进未来提交，是最具潜力的单点干预。</p>
+    <p><strong>定位是瓶颈。</strong>在 16 条未生成 patch 的实例中，约三分之二将回合预算消耗在 LOCATE 内部。把 ZhikunCode 已有的、基于 LSP 的调用层级工具（当前因封闭六工具集而被禁用）整合进未来提交，是最具潜力的单点干预。</p>
 
     <p><strong>按设计无联网能力。</strong>封闭工具集禁止 <code>WebFetch</code> 与 <code>WebSearch</code>，尽管部分 SWE-bench issue 引用了上游库文档。我们将其视作有利于基准复现性的特性而非缺陷——但这确实会限制在文档密集型 issue 上可达到的解决率上限。</p>
 
@@ -627,7 +627,7 @@
 
     <h2><span class="num">§ 7</span> 结论</h2>
 
-    <p>ZhikunCode 表明：一个通用、自托管、浏览器可控的编程智能体可以通过以下三点实现"基准就绪"——(a) 将其工具表面限制为封闭的六工具集；(b) 在 system prompt 中强制显式的阶段切换；(c) 借助五层压缩级联与三阶段 413 恢复保持对话存活。SWE-bench Lite 上 93.3% 的 patch 生成率——在单一开放权重的中文主干模型与每实例 1200 秒预算下取得——表明：环绕模型的工程包络至少与模型本身同等重要。</p>
+    <p>ZhikunCode 表明：一个通用、自托管、浏览器可控的编程智能体可以通过以下三点实现"基准就绪"——(a) 将其工具表面限制为封闭的六工具集；(b) 在 system prompt 中强制显式的阶段切换；(c) 借助五层压缩级联与三阶段 413 恢复保持对话存活。SWE-bench Lite 上 94.7% 的 patch 生成率——在单一开放权重的中文主干模型与每实例 1200 秒预算下取得——表明：环绕模型的工程包络至少与模型本身同等重要。</p>
 
     <p>所有产物——智能体源码、harness、system prompt、评测脚本——均已开源。希望它们既能作为基线，也能作为进一步实验的基底。</p>
 

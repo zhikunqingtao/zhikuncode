@@ -1,0 +1,62 @@
+{
+  "astropy__astropy": {
+    "total": 6,
+    "resolved": 4,
+    "rate": 66.7
+  },
+  "django__django": {
+    "total": 114,
+    "resolved": 82,
+    "rate": 71.9
+  },
+  "matplotlib__matplotlib": {
+    "total": 23,
+    "resolved": 8,
+    "rate": 34.8
+  },
+  "mwaskom__seaborn": {
+    "total": 4,
+    "resolved": 3,
+    "rate": 75.0
+  },
+  "pallets__flask": {
+    "total": 3,
+    "resolved": 0,
+    "rate": 0.0
+  },
+  "psf__requests": {
+    "total": 6,
+    "resolved": 2,
+    "rate": 33.3
+  },
+  "pydata__xarray": {
+    "total": 5,
+    "resolved": 2,
+    "rate": 40.0
+  },
+  "pylint-dev__pylint": {
+    "total": 6,
+    "resolved": 1,
+    "rate": 16.7
+  },
+  "pytest-dev__pytest": {
+    "total": 17,
+    "resolved": 8,
+    "rate": 47.1
+  },
+  "scikit-learn__scikit-learn": {
+    "total": 23,
+    "resolved": 12,
+    "rate": 52.2
+  },
+  "sphinx-doc__sphinx": {
+    "total": 16,
+    "resolved": 4,
+    "rate": 25.0
+  },
+  "sympy__sympy": {
+    "total": 77,
+    "resolved": 42,
+    "rate": 54.5
+  }
+}
