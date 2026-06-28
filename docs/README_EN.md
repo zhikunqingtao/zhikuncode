@@ -27,7 +27,7 @@
     <a href="https://github.com/zhikunqingtao/zhikuncode"><img src="https://img.shields.io/github/last-commit/zhikunqingtao/zhikuncode" alt="Last Commit" /></a>
     <a href="https://github.com/zhikunqingtao/zhikuncode"><img src="https://img.shields.io/github/languages/code-size/zhikunqingtao/zhikuncode" alt="Code Size" /></a>
     <a href="https://github.com/zhikunqingtao/zhikuncode/actions/workflows/ci.yml"><img src="https://github.com/zhikunqingtao/zhikuncode/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
-    <a href="https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html"><img src="https://img.shields.io/badge/SWE--bench%20Lite-46.3%25%20(139%2F300)-7a2410?logo=python&logoColor=white" alt="SWE-bench Lite 46.3% (139/300)" /></a>
+    <a href="https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html"><img src="https://img.shields.io/badge/SWE--bench%20Lite-56.0%25%20(168%2F300)-7a2410?logo=python&logoColor=white" alt="SWE-bench Lite 56.0% (168/300)" /></a>
   </p>
 </div>
 
@@ -39,7 +39,7 @@
 > Three-tier Separation · 758 Files · 115,879 Lines of Code · Java Backend 79,639 + TypeScript Frontend 28,394 + Python Service 7,846 · Full Visualization
 
 > 🏆 **[SWE-bench Lite Technical Report →](https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html)**  
-> Submission namespace `20260520_zhikuncode` · Official harness Resolve **139 / 300 (46.3%)** · Patch generation 280 / 300 (93.3%)
+> Submission namespace `20260525_zhikuncode` · Official harness Resolve **168 / 300 (56.0%)** · Patch generation 284 / 300 (94.7%)
 
 ---
 
@@ -58,7 +58,7 @@
 | 📊 | **Real-Time Activity Tracking & Approval** | Activity Panel records full AI tool execution lifecycle, L1/L2/L3 three-layer display, Signal smart tagging (auto_approve/review_recommended/needs_review), one-click batch approval, SQLite backend persistence, session restoration support |
 | 🧪 | **Runtime Verification Framework** | VerifierFactory tri-modal dispatch (browser/http_api/auto) + 8 HTTP action handlers + JSONPath assertions + evidence chain SQLite storage + Feature Flag dual-gating + frontend real-time progress panel |
 | 📦 | **Evidence Bundle Visualization (RV-4)** | Tabbed viewer for 7 evidence types (screenshots / commands / console / tests / network HAR / videos / diffs); on verification failure, a STOMP `verify_attention` notification triggers a mobile bottom-sheet for one-tap approve/reject. Backed by `/api/evidence/*` REST endpoints (bundle by id, list by session, binary blob by SHA-256) |
-| 🏆 | **SWE-bench Lite Submission** | Single backbone `qwen-3.6-max-preview` + closed six-tool set (Read/Edit/Write/Bash/Grep/Glob); no internet, no sub-agent. Official harness reports **Resolve 46.3% (139/300)** and Patch generation **93.3% (280/300)**. [Technical Report →](https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html) |
+| 🏆 | **SWE-bench Lite Submission** | Single backbone `qwen-3.6-max-preview` + closed six-tool set (Read/Edit/Write/Bash/Grep/Glob); no internet, no sub-agent. Official harness reports **Resolve 56.0% (168/300)** and Patch generation **94.7% (284/300)**. [Technical Report →](https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html) |
 | 🚀 | **Extreme Performance** | REST API p50 1.5ms · WS STOMP handshake 2.22ms · 490 real request samples verified, core engines are zero-external-dependency pure Java implementations |
 
 ---
@@ -247,20 +247,20 @@ Starting from the latest version, the following MCP services hosted on `dashscop
 
 ## 🏆 SWE-bench Lite Evaluation
 
-ZhikunCode has completed an end-to-end SWE-bench Lite evaluation (300 instances, pass@1) under the official harness, achieving an **official Resolve Rate of 46.3% (139/300)**. All artifacts (`all_preds.jsonl`, `results.json`, `metadata.yaml`, trajectories) are open-source under [`docs/swe-bench/20260520/`](swe-bench/20260520/) for third-party reproduction.
+ZhikunCode has completed an end-to-end SWE-bench Lite evaluation (300 instances, pass@1) under the official harness, achieving an **official Resolve Rate of 56.0% (168/300)**. All artifacts (`all_preds.jsonl`, `results.json`, `metadata.yaml`, trajectories) are open-source under [`docs/swe-bench/20260525/`](swe-bench/20260525/) for third-party reproduction.
 
 ### Key Metrics
 
 | Metric | Value | Source |
 |---|---|---|
-| Resolved Instances | **139 / 300 (46.3%)** | `docs/swe-bench/20260520/results/results.json` `resolved=139` |
-| Patch Generation Rate | **280 / 300 (93.3%)** | `all_preds.jsonl` (20 empty patches) |
-| Backbone Model | `qwen-3.6-max-preview` | `docs/swe-bench/20260520/metadata.yaml` |
+| Resolved Instances | **168 / 300 (56.0%)** | `docs/swe-bench/20260525/results/results.json` `resolved=168` |
+| Patch Generation Rate | **284 / 300 (94.7%)** | `all_preds.jsonl` (16 empty patches) |
+| Backbone Model | `qwen-3.6-max-preview` | `docs/swe-bench/20260525/metadata.yaml` |
 | Closed Tool Set | Read / Edit / Write / Bash / Grep / Glob | [`swe-bench/swe_bench.py`](../swe-bench/swe_bench.py) `ALLOWED_TOOLS` |
 | Per-instance Budget | 60 turns / 900 seconds | [`swe_bench.py`](../swe-bench/swe_bench.py) `solve_instance(max_turns=60, timeout=900)` |
 | Parallel Workers | 1 | `--workers` default |
 | Network / Sub-agent | Both disabled | Explicit in system prompt |
-| Submission Namespace | `20260520_zhikuncode` | `metadata.yaml` |
+| Submission Namespace | `20260525_zhikuncode` | `metadata.yaml` |
 
 ### Per-Repository Breakdown (from `results/resolved_by_repo.json`)
 
@@ -278,7 +278,7 @@ ZhikunCode has completed an end-to-end SWE-bench Lite evaluation (300 instances,
 | sphinx-doc/sphinx | 3 / 16 | 18.8% |
 | matplotlib/matplotlib | 4 / 23 | 17.4% |
 | pylint-dev/pylint | 1 / 6 | 16.7% |
-| **Total** | **139 / 300** | **46.3%** |
+| **Total** | **168 / 300** | **56.0%** |
 
 ### Engineering Highlights (every claim is source-traceable)
 
@@ -337,7 +337,7 @@ ZhikunCode has completed an end-to-end SWE-bench Lite evaluation (300 instances,
 | Context Compression | ✅ 6-layer cascade + 413 two-phase recovery | ContextCascade 348 lines, progressive compression from L0 Snip to L4 ReactiveCompact |
 | Runtime Verification | ✅ Tri-modal runtime verification + 7-type evidence chain | VerifierFactory dispatch (browser/http_api/auto), Feature Flag controlled |
 | MCP Transport Protocol | ✅ 4 transport modes (StdIO/SSE/WebSocket/HTTP) | Client+Server dual mode, covering both local and remote scenarios |
-| SWE-bench Verified | ✅ 46.3% pass rate (open-source reproducible) | Full evaluation pipeline open-sourced, supports independent verification |
+| SWE-bench Verified | ✅ 56.0% pass rate (open-source reproducible) | Full evaluation pipeline open-sourced, supports independent verification |
 
 ---
 
