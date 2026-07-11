@@ -58,7 +58,7 @@
 | 📊 | **Real-Time Activity Tracking & Approval** | Activity Panel records full AI tool execution lifecycle, L1/L2/L3 three-layer display, Signal smart tagging (auto_approve/review_recommended/needs_review), one-click batch approval, SQLite backend persistence, session restoration support |
 | 🧪 | **Runtime Verification Framework** | VerifierFactory tri-modal dispatch (browser/http_api/auto) + 8 HTTP action handlers + JSONPath assertions + evidence chain SQLite storage + Feature Flag dual-gating + frontend real-time progress panel |
 | 📦 | **Evidence Bundle Visualization (RV-4)** | Tabbed viewer for 7 evidence types (screenshots / commands / console / tests / network HAR / videos / diffs); on verification failure, a STOMP `verify_attention` notification triggers a mobile bottom-sheet for one-tap approve/reject. Backed by `/api/evidence/*` REST endpoints (bundle by id, list by session, binary blob by SHA-256) |
-| 🏆 | **SWE-bench Lite Submission** | Single backbone `qwen-3.6-max-preview` + closed six-tool set (Read/Edit/Write/Bash/Grep/Glob); no internet, no sub-agent. Official harness reports **Resolve 56.0% (168/300)** and Patch generation **94.7% (284/300)**. [Technical Report →](https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html) |
+| 🏆 | **SWE-bench Lite Submission** | Single backbone `qwen3.7-max` + closed six-tool set (Read/Edit/Write/Bash/Grep/Glob); no internet, no sub-agent. Official harness reports **Resolve 56.0% (168/300)** and Patch generation **94.7% (284/300)**. [Technical Report →](https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html) |
 | 🚀 | **Extreme Performance** | REST API p50 1.5ms · WS STOMP handshake 2.22ms · 490 real request samples verified, core engines are zero-external-dependency pure Java implementations |
 
 ---
@@ -253,9 +253,9 @@ ZhikunCode has completed an end-to-end SWE-bench Lite evaluation (300 instances,
 
 | Metric | Value | Source |
 |---|---|---|
-| Resolved Instances | **168 / 300 (56.0%)** | `docs/swe-bench/20260525/results/results.json` `resolved=168` |
+| Resolved Instances | **168 / 300 (56.0%)** | `docs/swe-bench/20260525/results.json` `resolved=168` |
 | Patch Generation Rate | **284 / 300 (94.7%)** | `all_preds.jsonl` (16 empty patches) |
-| Backbone Model | `qwen-3.6-max-preview` | `docs/swe-bench/20260525/metadata.yaml` |
+| Backbone Model | `qwen3.7-max` | `docs/swe-bench/20260525/metadata.yaml` |
 | Closed Tool Set | Read / Edit / Write / Bash / Grep / Glob | [`swe-bench/swe_bench.py`](../swe-bench/swe_bench.py) `ALLOWED_TOOLS` |
 | Per-instance Budget | 60 turns / 900 seconds | [`swe_bench.py`](../swe-bench/swe_bench.py) `solve_instance(max_turns=60, timeout=900)` |
 | Parallel Workers | 1 | `--workers` default |
@@ -267,17 +267,17 @@ ZhikunCode has completed an end-to-end SWE-bench Lite evaluation (300 instances,
 | Repository | Resolved / Total | Resolve Rate |
 |---|---|---|
 | mwaskom/seaborn | 3 / 4 | **75.0%** |
-| django/django | 69 / 114 | **60.5%** |
-| psf/requests | 3 / 6 | 50.0% |
-| sympy/sympy | 38 / 77 | 49.4% |
-| pytest-dev/pytest | 7 / 17 | 41.2% |
+| django/django | 82 / 114 | **71.9%** |
+| astropy/astropy | 4 / 6 | **66.7%** |
+| sympy/sympy | 42 / 77 | 54.5% |
+| scikit-learn/scikit-learn | 12 / 23 | 52.2% |
+| pytest-dev/pytest | 8 / 17 | 47.1% |
 | pydata/xarray | 2 / 5 | 40.0% |
-| astropy/astropy | 2 / 6 | 33.3% |
-| pallets/flask | 1 / 3 | 33.3% |
-| scikit-learn/scikit-learn | 6 / 23 | 26.1% |
-| sphinx-doc/sphinx | 3 / 16 | 18.8% |
-| matplotlib/matplotlib | 4 / 23 | 17.4% |
+| matplotlib/matplotlib | 8 / 23 | 34.8% |
+| psf/requests | 2 / 6 | 33.3% |
+| sphinx-doc/sphinx | 4 / 16 | 25.0% |
 | pylint-dev/pylint | 1 / 6 | 16.7% |
+| pallets/flask | 0 / 3 | 0.0% |
 | **Total** | **168 / 300** | **56.0%** |
 
 ### Engineering Highlights (every claim is source-traceable)
