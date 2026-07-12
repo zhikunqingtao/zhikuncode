@@ -16,7 +16,7 @@ export function StatusBar() {
     const { model, status, turnCount } = useSessionStore();
     const { permissionMode } = usePermissionStore();
     const { sessionCost, totalCost, usage } = useCostStore();
-    const { pendingPermission } = usePermissionStore();
+    const { pendingPermissions } = usePermissionStore();
     const { bridgeStatus } = useBridgeStore();
 
     const getPermissionModeLabel = (mode: string) => {
@@ -64,10 +64,10 @@ export function StatusBar() {
                     </span>
                 </div>
 
-                {pendingPermission && (
+                {pendingPermissions.length > 0 && (
                     <div className="flex items-center gap-1.5 text-yellow-500">
                         <Activity className="w-3.5 h-3.5 animate-pulse" />
-                        <span>1 个权限请求</span>
+                        <span>{pendingPermissions.length} 个权限请求</span>
                     </div>
                 )}
 

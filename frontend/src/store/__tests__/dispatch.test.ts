@@ -49,9 +49,9 @@ describe('dispatch 消息分发', () => {
             input: { command: 'rm -rf /' },
             suggestions: [],
         } as never);
-        const { pendingPermission } = usePermissionStore.getState();
-        expect(pendingPermission).toBeTruthy();
-        expect(pendingPermission?.toolName).toBe('BashTool');
+        const { pendingPermissions } = usePermissionStore.getState();
+        expect(pendingPermissions.length).toBe(1);
+        expect(pendingPermissions[0]?.toolName).toBe('BashTool');
         expect(useSessionStore.getState().status).toBe('waiting_permission');
     });
 

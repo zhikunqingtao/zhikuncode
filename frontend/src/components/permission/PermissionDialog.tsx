@@ -105,10 +105,12 @@ const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision
         return () => window.removeEventListener('keydown', handler);
     }, [decided, handleAllow, handleDeny]);
 
-    // Reset countdown and decided state when request changes (dialog reopens)
+    // Reset all internal state when request changes (dialog reopens)
     useEffect(() => {
         setDecided(false);
         setRemainingSeconds(TIMEOUT_SECONDS);
+        setRemember(false);
+        setScope('session');
     }, [request.toolUseId]);
 
     // Countdown timer — only decrements

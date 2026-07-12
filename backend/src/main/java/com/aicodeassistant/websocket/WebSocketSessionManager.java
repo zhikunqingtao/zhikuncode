@@ -13,10 +13,13 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 import java.security.Principal;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -51,6 +54,10 @@ public class WebSocketSessionManager {
 
     /** sessionId → 最后活跃时间戳（用于定时清理过期映射） */
     private final ConcurrentHashMap<String, Long> sessionLastActive = new ConcurrentHashMap<>();
+
+    // ★ 新增：未发送消息缓冲队列（关键消息不丢失）
+    private final ConcurrentHashMap<String, Queue<Map<String, Object>>> messageBuffer = new ConcurrentHashMap<>();
+    private static final int MAX_BUFFER_SIZE = 100;
 
     /** transportSessionId → 注册时间戳（用于定时清理孤儿 transport 映射） */
     private final ConcurrentHashMap<String, Long> transportLastActive = new ConcurrentHashMap<>();
@@ -197,6 +204,40 @@ public class WebSocketSessionManager {
         return Set.copyOf(sessionToPrincipal.keySet());
     }
 
+    // ───── 消息缓冲 ─────
+
+    /**
+     * 缓冲关键消息，等待重连后补发。
+     */
+    public void bufferMessage(String sessionId, String type, Map<String, Object> fields) {
+        Queue<Map<String, Object>> queue = messageBuffer.computeIfAbsent(sessionId, k -> new ConcurrentLinkedQueue<>());
+        if (queue.size() >= MAX_BUFFER_SIZE) {
+            queue.poll(); // 满时丢弃最旧消息
+            log.warn("Message buffer overflow for session {}, dropping oldest", sessionId);
+        }
+        Map<String, Object> buffered = new LinkedHashMap<>(fields);
+        buffered.put("type", type);
+        buffered.put("ts", System.currentTimeMillis());
+        queue.offer(buffered);
+    }
+
+    /**
+     * 刷新缓冲消息（重连后调用）。
+     */
+    public void flushBufferedMessages(String sessionId, java.util.function.BiConsumer<String, Map<String, Object>> pushFn) {
+        Queue<Map<String, Object>> queue = messageBuffer.remove(sessionId);
+        if (queue != null && !queue.isEmpty()) {
+            int count = 0;
+            Map<String, Object> msg;
+            while ((msg = queue.poll()) != null) {
+                String type = (String) msg.remove("type");
+                pushFn.accept(type, msg);
+                count++;
+            }
+            log.info("Flushed {} buffered messages for session {}", count, sessionId);
+        }
+    }
+
     // ───── 定时清理 ─────
 
     /**
@@ -221,6 +262,11 @@ public class WebSocketSessionManager {
                     principalToSession.compute(principal, (k, v) ->
                         (v != null && v.equals(staleSessionId)) ? null : v
                     );
+                }
+                // 清理对应的消息缓冲
+                Queue<Map<String, Object>> buf = messageBuffer.remove(staleSessionId);
+                if (buf != null && !buf.isEmpty()) {
+                    log.info("Dropping {} buffered messages for stale sessionId={}", buf.size(), staleSessionId);
                 }
                 sessionIter.remove();
                 cleaned++;

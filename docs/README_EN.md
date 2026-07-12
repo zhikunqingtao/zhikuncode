@@ -466,11 +466,11 @@ The permission pipeline uses a **multi-step short-circuit decision chain** desig
 |-------|-------|---------------|----------------|
 | **Step 1a-1k** | 11 steps | Pre-security checks (Deny rules, Ask rules, tool permissions, command blocklist, dangerous deletion, write path safety, environment variables, hook injection, etc.) | Static rule matching + content safety |
 | **Step 2a-2b** | 2 steps | Mode application (Classifier AI risk assessment, Sandbox rules) | Dynamic mode branching |
-| **Step 3** | 1 step | Final decision output (DEFAULT/PLAN/AUTO/BYPASS mode branch decision) | Terminal decision |
+| **Step 3** | 1 step | Final decision output (DEFAULT/PLAN/ACCEPT_EDITS/DONT_ASK/AUTO/SKIP_ALL_PROMPTS mode branch decision) | Terminal decision |
 
 ### Protected Paths
 
-The following paths require user confirmation even in bypass mode:
+The following paths require user confirmation even in skip_all_prompts mode:
 
 - `.git` — Git repository data
 - `.env` — Environment variables and secrets
@@ -860,7 +860,7 @@ aica --continue "fix the bug we just discussed"
 |---------|-------------|
 | Three output formats | `text` (terminal Markdown rendering) / `json` (structured) / `stream-json` (SSE streaming) |
 | Pipe support | Auto-reads stdin, seamlessly composable with shell pipes |
-| Permission modes | `--permission-mode dont_ask/bypass/default` to control security policy (CLI defaults to `dont_ask`) |
+| Permission modes | `--permission-mode dont_ask/skip_all_prompts/default` to control security policy (CLI defaults to `dont_ask`) |
 | Session management | `--continue` resumes last session, `--resume <id>` restores a specific session |
 | Model selection | `--model` to specify model, `--effort` to control reasoning depth |
 | Tool control | `--allowed-tools` / `--disallowed-tools` whitelist/blocklist |

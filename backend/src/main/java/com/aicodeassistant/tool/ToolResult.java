@@ -1,7 +1,9 @@
 package com.aicodeassistant.tool;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.UnaryOperator;
 
 /**
@@ -50,6 +52,45 @@ public record ToolResult(
         return new ToolResult(base64, false, metadata);
     }
 
+    // ==================== Typed Failure 支持 ====================
+
+    /** 带类型的失败结果 */
+    public static ToolResult failure(FailureType type, String detail) {
+        Map<String, Object> meta = new HashMap<>();
+        meta.put("failureType", type.name());
+        meta.put("retryable", type.isRetryable());
+        meta.put("category", type.getCategory());
+        return new ToolResult(
+            type.getDefaultMessage() + (detail != null ? ": " + detail : ""),
+            true,
+            Collections.unmodifiableMap(meta)
+        );
+    }
+
+    /** 带类型的失败结果（含额外元数据） */
+    public static ToolResult failure(FailureType type, String detail, Map<String, Object> extra) {
+        var meta = new HashMap<>(extra);
+        meta.put("failureType", type.name());
+        meta.put("retryable", type.isRetryable());
+        meta.put("category", type.getCategory());
+        return new ToolResult(type.getDefaultMessage() + ": " + detail, true, Collections.unmodifiableMap(meta));
+    }
+
+    /** 提取失败类型（兼容旧的 error() 调用） */
+    public Optional<FailureType> getFailureType() {
+        Object ft = metadata.get("failureType");
+        if (ft instanceof String s) {
+            try { return Optional.of(FailureType.valueOf(s)); }
+            catch (IllegalArgumentException e) { return Optional.empty(); }
+        }
+        return Optional.empty();
+    }
+
+    /** 判断此结果是否可重试 */
+    public boolean isRetryable() {
+        return getFailureType().map(FailureType::isRetryable).orElse(false);
+    }
+
     /** 链式添加元数据 — 返回新的 ToolResult */
     public ToolResult withMetadata(String key, Object value) {
         var newMetadata = new HashMap<>(this.metadata);
@@ -79,7 +120,9 @@ public record ToolResult(
     public ToolResult toSerializable() {
         if (!this.metadata.containsKey(CONTEXT_MODIFIER_KEY)) return this;
         var cleanMeta = new HashMap<>(this.metadata);
-        cleanMeta.remove(CONTEXT_MODIFIER_KEY);
+        if (cleanMeta.remove(CONTEXT_MODIFIER_KEY) != null) {
+            cleanMeta.put("hasContextModifier", true);
+        }
         return new ToolResult(this.content, this.isError, cleanMeta);
     }
 }

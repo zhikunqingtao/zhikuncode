@@ -261,8 +261,8 @@ const handlers: Record<string, (data: any) => void> = {
         // 更新权限 Store 的权限模式
         usePermissionStore.getState().setPermissionMode(normalizedMode);
         // 清除挂起的权限请求
-        if (usePermissionStore.getState().pendingPermission) {
-            usePermissionStore.getState().clearPendingPermission();
+        if (usePermissionStore.getState().pendingPermissions.length > 0) {
+            usePermissionStore.getState().clearPermissions();
         }
         // 通知用户权限模式已变更
         useNotificationStore.getState().addNotification({

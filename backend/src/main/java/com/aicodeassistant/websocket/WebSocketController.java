@@ -93,6 +93,7 @@ public class WebSocketController implements PermissionNotifier {
     private final CostTrackerService costTrackerService;                                          // F2 费用追踪
     private final ActivityRepository activityRepository;                                            // Activity 持久化
     private final ObjectMapper objectMapper;                                                        // JSON 序列化
+    private final com.aicodeassistant.permission.DurablePermissionService durablePermissionService;  // 权限持久化
 
     /** 会话级查询运行守卫 — 防止同一会话并发执行多个 QueryEngine */
     private final ConcurrentHashMap<String, AtomicBoolean> sessionQueryRunning = new ConcurrentHashMap<>();
@@ -119,7 +120,8 @@ public class WebSocketController implements PermissionNotifier {
                                 CostTrackerService costTrackerService,
                                 ActivityRepository activityRepository,
                                 ObjectMapper objectMapper,
-                                VisionModelRouter visionModelRouter) {
+                                VisionModelRouter visionModelRouter,
+                                com.aicodeassistant.permission.DurablePermissionService durablePermissionService) {
         this.messaging = messaging;
         this.wsSessionManager = wsSessionManager;
         this.queryEngine = queryEngine;
@@ -140,6 +142,7 @@ public class WebSocketController implements PermissionNotifier {
         this.activityRepository = activityRepository;
         this.objectMapper = objectMapper;
         this.visionModelRouter = visionModelRouter;
+        this.durablePermissionService = durablePermissionService;
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -182,7 +185,13 @@ public class WebSocketController implements PermissionNotifier {
     private void push(String sessionId, String type, Map<String, Object> fields) {
         String principal = wsSessionManager.getPrincipalForSession(sessionId);
         if (principal == null) {
-            log.warn("push({}) skipped: no principal for sessionId={}", type, sessionId);
+            // ★ 新增：关键消息入缓冲队列，等待重连后补发
+            if (isCriticalMessage(type)) {
+                wsSessionManager.bufferMessage(sessionId, type, fields);
+                log.warn("push({}) buffered: no principal for sessionId={}", type, sessionId);
+            } else {
+                log.warn("push({}) skipped: no principal for sessionId={}", type, sessionId);
+            }
             return;
         }
 
@@ -197,6 +206,15 @@ public class WebSocketController implements PermissionNotifier {
             log.info("push({}) to principal={}, sessionId={}", type, principal, sessionId);
         }
         messaging.convertAndSendToUser(principal, "/queue/messages", message);
+    }
+
+    private static final Set<String> CRITICAL_MESSAGE_TYPES = Set.of(
+        "permission_request", "tool_result", "message_complete",
+        "permission_mode_changed", "tool_use_start"
+    );
+
+    private boolean isCriticalMessage(String type) {
+        return CRITICAL_MESSAGE_TYPES.contains(type);
     }
 
     // ───── #1-5: messageStore ─────
@@ -958,6 +976,19 @@ public class WebSocketController implements PermissionNotifier {
         }
 
         permissionPipeline.resolvePermission(resp.toolUseId(), decision);
+
+        // ★ 同步更新 DB 持久化状态
+        try {
+            String dbDecision = (behavior == PermissionBehavior.ALLOW) ? "approved" : "denied";
+            boolean updated = durablePermissionService.resolve(resp.toolUseId(), dbDecision, "USER_WS",
+                    resp.remember(), resp.scope());
+            if (!updated) {
+                log.warn("DB permission already resolved (concurrent race): toolUseId={}", resp.toolUseId());
+            }
+        } catch (Exception e) {
+            log.warn("Failed to persist permission decision: toolUseId={}, error={}",
+                    resp.toolUseId(), e.getMessage());
+        }
     }
 
     /**
@@ -1067,16 +1098,22 @@ public class WebSocketController implements PermissionNotifier {
     /**
      * #5 切换权限模式 → /app/permission-mode
      */
+    private static final Set<String> ALLOWED_PERMISSION_MODES = Set.of(
+            "DEFAULT", "PLAN", "ACCEPT_EDITS", "DONT_ASK", "AUTO");
+
     @MessageMapping("/permission-mode")
     public void handleSetPermissionMode(@Payload ClientMessage.SetPermissionModePayload payload,
                                          Principal principal) {
         String sessionId = resolveSessionId(principal);
         log.info("WS set_permission_mode: sessionId={}, mode={}", sessionId, payload.mode());
+        if (!ALLOWED_PERMISSION_MODES.contains(payload.mode())) {
+            log.warn("Permission mode not in allowlist: {}", payload.mode());
+            return;
+        }
         try {
             com.aicodeassistant.model.PermissionMode mode =
                     com.aicodeassistant.model.PermissionMode.valueOf(payload.mode());
             permissionModeManager.setMode(sessionId, mode);
-            push(sessionId, "permission_mode_changed", Map.of("mode", payload.mode()));
         } catch (IllegalArgumentException e) {
             log.warn("Invalid permission mode: {}", payload.mode());
             push(sessionId, "error", Map.of("message", "Invalid permission mode: " + payload.mode()));
@@ -1348,6 +1385,34 @@ public class WebSocketController implements PermissionNotifier {
             } catch (Exception e) {
                 log.warn("Failed to push session_restored for {}: {}", sessionId, e.getMessage());
             }
+
+            // ★ 重连后先推送当前权限模式（前端收到后会 clearPermissions）
+            com.aicodeassistant.model.PermissionMode currentMode = permissionModeManager.getMode(sessionId);
+            if (currentMode != null) {
+                push(sessionId, "permission_mode_changed", Map.of("mode", currentMode.name()));
+            }
+
+            // ★ 再重放 pending 权限请求（此时 clearPermissions 已执行完毕）
+            try {
+                var pendingPerms = durablePermissionService.getPending(sessionId);
+                for (var perm : pendingPerms) {
+                    push(sessionId, "permission_request",
+                            Map.of("toolUseId", perm.toolUseId(),
+                                    "toolName", perm.toolName(),
+                                    "input", Map.of("command", perm.inputSummary() != null ? perm.inputSummary() : ""),
+                                    "riskLevel", perm.riskLevel(),
+                                    "reason", perm.reason() != null ? perm.reason() : ""));
+                }
+                if (!pendingPerms.isEmpty()) {
+                    log.info("Replayed {} pending permission requests for session={}",
+                            pendingPerms.size(), sessionId);
+                }
+            } catch (Exception e) {
+                log.warn("Failed to replay pending permissions for {}: {}", sessionId, e.getMessage());
+            }
+
+            // ★ 新增：刷新缓冲的未发送消息
+            wsSessionManager.flushBufferedMessages(sessionId, (type, fields) -> push(sessionId, type, fields));
         } else {
             log.warn("WS bind-session failed: principal={}, sessionId={}",
                     principal != null ? principal.getName() : "null", sessionId);

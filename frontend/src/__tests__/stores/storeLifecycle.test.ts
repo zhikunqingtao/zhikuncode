@@ -103,14 +103,14 @@ describe('TC-STORE-002: sessionStore 会话生命周期', () => {
 describe('TC-STORE-003: permissionStore 权限审批流程', () => {
     beforeEach(() => {
         usePermissionStore.setState({
-            pendingPermission: null,
+            pendingPermissions: [],
             permissionMode: 'default',
             denialTracking: { consecutiveDenials: 0, totalDenials: 0 },
         });
     });
 
     it('权限请求/审批/拒绝完整流程', () => {
-        expect(usePermissionStore.getState().pendingPermission).toBeNull();
+        expect(usePermissionStore.getState().pendingPermissions.length).toBe(0);
 
         const request: PermissionRequest = {
             toolUseId: 'perm-001',
@@ -120,12 +120,12 @@ describe('TC-STORE-003: permissionStore 权限审批流程', () => {
             reason: '写入文件 test.txt',
         };
         usePermissionStore.getState().showPermission(request);
-        expect(usePermissionStore.getState().pendingPermission).not.toBeNull();
-        expect(usePermissionStore.getState().pendingPermission!.toolName).toBe('Write');
+        expect(usePermissionStore.getState().pendingPermissions.length).toBe(1);
+        expect(usePermissionStore.getState().pendingPermissions[0].toolName).toBe('Write');
 
         const allowDecision: PermissionDecision = { toolUseId: 'perm-001', decision: 'allow' };
         usePermissionStore.getState().respondPermission(allowDecision);
-        expect(usePermissionStore.getState().pendingPermission).toBeNull();
+        expect(usePermissionStore.getState().pendingPermissions.length).toBe(0);
 
         // 拒绝场景
         usePermissionStore.getState().showPermission({
@@ -137,7 +137,7 @@ describe('TC-STORE-003: permissionStore 权限审批流程', () => {
         });
         const denyDecision: PermissionDecision = { toolUseId: 'perm-002', decision: 'deny' };
         usePermissionStore.getState().respondPermission(denyDecision);
-        expect(usePermissionStore.getState().pendingPermission).toBeNull();
+        expect(usePermissionStore.getState().pendingPermissions.length).toBe(0);
         expect(usePermissionStore.getState().denialTracking.totalDenials).toBe(1);
     });
 });

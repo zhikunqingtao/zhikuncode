@@ -20,6 +20,8 @@ import com.aicodeassistant.permission.PermissionPipeline;
 import com.aicodeassistant.permission.PermissionRuleRepository;
 import com.aicodeassistant.tool.*;
 import com.aicodeassistant.tool.agent.BackgroundAgentTracker;
+import com.aicodeassistant.run.RunEnvelope;
+import com.aicodeassistant.run.RunTracker;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -93,6 +95,7 @@ public class QueryEngine {
     private final ToolPriorityScheduler toolPriorityScheduler;
     private final SelfCorrectionLoop selfCorrectionLoop;
     private final AgentTimeoutConfig agentTimeoutConfig;
+    private final RunTracker runTracker;
 
     /** 单条工具结果最大占上下文窗口的 30% */
     private static final double TOOL_RESULT_BUDGET_RATIO = 0.3;
@@ -139,7 +142,8 @@ public class QueryEngine {
                        TerminationStrategy terminationStrategy,
                        ToolPriorityScheduler toolPriorityScheduler,
                        SelfCorrectionLoop selfCorrectionLoop,
-                       AgentTimeoutConfig agentTimeoutConfig) {
+                       AgentTimeoutConfig agentTimeoutConfig,
+                       @org.springframework.context.annotation.Lazy RunTracker runTracker) {
         this.providerRegistry = providerRegistry;
         this.compactService = compactService;
         this.apiRetryService = apiRetryService;
@@ -167,6 +171,7 @@ public class QueryEngine {
         this.toolPriorityScheduler = toolPriorityScheduler;
         this.selfCorrectionLoop = selfCorrectionLoop;
         this.agentTimeoutConfig = agentTimeoutConfig;
+        this.runTracker = runTracker;
     }
 
     @PostConstruct
@@ -256,17 +261,61 @@ public class QueryEngine {
             });
         }
 
+        // ★ RunTracker: 启动运行追踪并将 runId 传播到 ToolUseContext
+        String currentRunId = null;
+        boolean runFailureRecorded = false;
+        if (runTracker != null && sessionId != null) {
+            try {
+                RunEnvelope run = runTracker.startRun(sessionId, null, "query", config.model());
+                currentRunId = run.id();
+                if (state.getToolUseContext() != null) {
+                    state.setToolUseContext(state.getToolUseContext().withCurrentRunId(currentRunId));
+                }
+            } catch (Exception e) {
+                log.warn("Failed to start RunTracker run: {}", e.getMessage());
+            }
+        }
+
         try {
             totalUsage = queryLoop(config, state, handler, aborted);
         } catch (Exception e) {
             log.error("QueryEngine 执行异常", e);
             handler.onError(e);
+            // ★ RunTracker: 异常路径 — 标记为 FAILED
+            if (currentRunId != null && runTracker != null) {
+                try {
+                    runTracker.failRun(currentRunId, e.getMessage());
+                    runFailureRecorded = true;
+                } catch (Exception ex) {
+                    log.warn("Failed to record RunTracker failure: {}", ex.getMessage());
+                }
+            }
             return new QueryResult(state.getMessages(), totalUsage,
                     "error", e.getMessage(), state.getTurnCount());
         } finally {
             // P1-04: 确保清理 AbortContext，防止内存泄漏
             if (sessionId != null) {
                 abortContexts.remove(sessionId);
+            }
+        }
+
+        // ★ RunTracker: 根据实际结束原因选择正确的状态转换
+        if (!runFailureRecorded && currentRunId != null && runTracker != null) {
+            try {
+                if (aborted.get()) {
+                    // 用户中断或超时 — 标记为 ABORTED
+                    AbortReason abortReason = state.getAbortReason() != null
+                            ? state.getAbortReason() : AbortReason.USER_INTERRUPT;
+                    String reason = abortReason == AbortReason.TIMEOUT
+                            ? "timeout" : abortReason.name().toLowerCase();
+                    runTracker.abortRun(currentRunId, reason);
+                } else {
+                    // 正常完成 — 标记为 COMPLETED
+                    runTracker.completeRun(currentRunId, totalUsage.totalTokens(),
+                            0.0, 0, state.getTurnCount());
+                }
+            } catch (Exception e) {
+                log.warn("Failed to update RunTracker run status: {}", e.getMessage());
             }
         }
 

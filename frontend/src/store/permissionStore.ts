@@ -10,25 +10,36 @@ import { subscribeWithSelector } from 'zustand/middleware';
 import type { PermissionRequest, PermissionDecision, PermissionMode, DenialTrackingState } from '@/types';
 
 export interface PermissionStoreState {
-    pendingPermission: PermissionRequest | null;
+    pendingPermissions: PermissionRequest[];
     permissionMode: PermissionMode;
     denialTracking: DenialTrackingState;
 
     showPermission: (request: PermissionRequest) => void;
     respondPermission: (decision: PermissionDecision) => void;
     setPermissionMode: (mode: PermissionMode) => void;
-    clearPendingPermission: () => void;
+    clearPermissions: () => void;
 }
 
 export const usePermissionStore = create<PermissionStoreState>()(
     subscribeWithSelector(immer((set) => ({
-        pendingPermission: null,
+        pendingPermissions: [],
         permissionMode: 'default' as PermissionMode,
         denialTracking: { consecutiveDenials: 0, totalDenials: 0 },
 
-        showPermission: (req) => set(d => { d.pendingPermission = req; }),
+        showPermission: (req) => set(d => {
+            // 去重：如果同 toolUseId 已存在则更新，否则添加
+            const idx = d.pendingPermissions.findIndex(p => p.toolUseId === req.toolUseId);
+            if (idx >= 0) {
+                d.pendingPermissions[idx] = req;
+            } else {
+                d.pendingPermissions.push(req);
+            }
+        }),
         respondPermission: (decision) => set(d => {
-            d.pendingPermission = null;
+            // 移除队列中第一个（当前展示的）请求
+            if (d.pendingPermissions.length > 0) {
+                d.pendingPermissions.shift();
+            }
             if (decision.decision === 'deny') {
                 d.denialTracking.consecutiveDenials++;
                 d.denialTracking.totalDenials++;
@@ -37,6 +48,6 @@ export const usePermissionStore = create<PermissionStoreState>()(
             }
         }),
         setPermissionMode: (mode) => set(d => { d.permissionMode = mode; }),
-        clearPendingPermission: () => set(d => { d.pendingPermission = null; }),
+        clearPermissions: () => set(d => { d.pendingPermissions = []; }),
     })))
 );

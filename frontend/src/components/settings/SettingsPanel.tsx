@@ -3,6 +3,9 @@ import { McpCapabilityPanel } from './McpCapabilityPanel';
 import { PromptsTab } from './PromptsTab';
 import { ThemePicker } from '@/components/theme/ThemePicker';
 import { MemoryEditorPanel } from '@/components/memory/MemoryEditorPanel';
+import { usePermissionStore } from '@/store/permissionStore';
+import { sendSetPermissionMode } from '@/api/stompClient';
+import type { PermissionMode } from '@/types';
 
 /** 设置面板 Tab 类型 */
 type SettingsTab = 'model' | 'theme' | 'permission' | 'memory' | 'keybindings' | 'mcp' | 'prompts';
@@ -111,12 +114,20 @@ function ModelPicker() {
 
 /** 权限模式选择 */
 function PermissionModePicker() {
-  const [mode, setMode] = useState('normal');
-  const modes = [
-    { id: 'normal', name: 'Normal', description: 'Ask for each destructive operation' },
+  const { permissionMode, setPermissionMode } = usePermissionStore();
+  const modes: { id: PermissionMode; name: string; description: string }[] = [
+    { id: 'default', name: 'Default', description: 'Ask for each destructive operation' },
+    { id: 'plan', name: 'Plan', description: 'Read-only operations auto-allowed' },
+    { id: 'accept_edits', name: 'Accept Edits', description: 'File edits auto-allowed' },
+    { id: 'dont_ask', name: "Don't Ask", description: 'No prompts, write operations auto-denied' },
     { id: 'auto', name: 'Auto', description: 'LLM classifier decides permissions' },
-    { id: 'yolo', name: 'YOLO', description: 'Skip all permission prompts' },
   ];
+
+  const handleChange = (mode: PermissionMode) => {
+    setPermissionMode(mode);
+    // 同步到后端，后端枚举使用大写值
+    sendSetPermissionMode(mode.toUpperCase());
+  };
 
   return (
     <div className="space-y-4">
@@ -125,7 +136,7 @@ function PermissionModePicker() {
         <label
           key={m.id}
           className={`flex items-center p-3 rounded border cursor-pointer transition-colors
-            ${mode === m.id
+            ${permissionMode === m.id
               ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
               : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'
             }`}
@@ -134,8 +145,8 @@ function PermissionModePicker() {
             type="radio"
             name="permission-mode"
             value={m.id}
-            checked={mode === m.id}
-            onChange={() => setMode(m.id)}
+            checked={permissionMode === m.id}
+            onChange={() => handleChange(m.id)}
             className="mr-3"
           />
           <div>

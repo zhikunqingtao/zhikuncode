@@ -10,6 +10,7 @@ import { X, Moon, Sun, Monitor, Keyboard, Shield, Globe, Sparkles } from 'lucide
 import { useConfigStore } from '@/store/configStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { usePermissionStore } from '@/store/permissionStore';
+import { sendSetPermissionMode } from '@/api/stompClient';
 import type { ThemeConfig, PermissionMode } from '@/types';
 
 interface SettingsPanelProps {
@@ -28,6 +29,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
 
     const handlePermissionModeChange = useCallback((mode: PermissionMode) => {
         setPermissionMode(mode);
+        // 同步到后端，后端枚举使用大写值
+        sendSetPermissionMode(mode.toUpperCase());
     }, [setPermissionMode]);
 
     return (

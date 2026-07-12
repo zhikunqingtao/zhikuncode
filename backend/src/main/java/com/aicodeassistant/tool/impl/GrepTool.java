@@ -6,9 +6,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import jakarta.annotation.PreDestroy;
+
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -24,7 +33,19 @@ public class GrepTool implements Tool {
     private static final Logger log = LoggerFactory.getLogger(GrepTool.class);
     private static final int DEFAULT_HEAD_LIMIT = 250;
     private static final int MAX_RESULT_SIZE_CHARS = 20_000;
+    private static final int MAX_OUTPUT_LINES = 10_000;
     private static final int MAX_COLUMNS = 500;
+    private static final long PROCESS_TIMEOUT_MS = 120_000L; // 120秒，低于外层180s Watchdog
+    private static final long GRACEFUL_KILL_WAIT_MS = 5_000L; // 优雅终止等待
+    private static final AtomicInteger THREAD_COUNTER = new AtomicInteger(0);
+    private static final ExecutorService STREAM_READER_EXECUTOR =
+            Executors.newFixedThreadPool(
+                    Math.min(Runtime.getRuntime().availableProcessors(), 4),
+                    r -> {
+                        Thread t = new Thread(r, "grep-stream-reader-" + THREAD_COUNTER.getAndIncrement());
+                        t.setDaemon(true);
+                        return t;
+                    });
     private static final Set<String> VCS_EXCLUDE = Set.of(
             ".git", ".svn", ".hg", ".bzr", ".jj", ".sl");
 
@@ -32,6 +53,21 @@ public class GrepTool implements Tool {
 
     public GrepTool(KeyFileTracker keyFileTracker) {
         this.keyFileTracker = keyFileTracker;
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        log.debug("Shutting down GrepTool stream reader executor");
+        STREAM_READER_EXECUTOR.shutdown();
+        try {
+            if (!STREAM_READER_EXECUTOR.awaitTermination(5, TimeUnit.SECONDS)) {
+                STREAM_READER_EXECUTOR.shutdownNow();
+                log.warn("GrepTool stream reader executor did not terminate gracefully, forced shutdown");
+            }
+        } catch (InterruptedException e) {
+            STREAM_READER_EXECUTOR.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 
     /** 是否使用 ripgrep (rg)。启动时检测一次。 */
@@ -130,10 +166,9 @@ public class GrepTool implements Tool {
             if (!HAS_RIPGREP) {
                 if (input.getBoolean("multiline", false)
                         || input.getOptionalString("type").isPresent()) {
-                    return ToolResult.error(
+                    return ToolResult.failure(FailureType.COMMAND_NOT_FOUND,
                         "This search uses ripgrep-specific features (multiline/type) but rg is not installed.\n"
-                        + "Install: brew install ripgrep (macOS) | apt-get install ripgrep (Linux)\n"
-                        + "Falling back to grep which does not support these features.");
+                        + "Install: brew install ripgrep (macOS) | apt-get install ripgrep (Linux)");
                 }
                 log.info("Using grep fallback (ripgrep not available)");
             }
@@ -151,13 +186,43 @@ public class GrepTool implements Tool {
             pb.redirectErrorStream(true);
             Process process = pb.start();
 
-            String rawOutput;
-            try (var reader = new BufferedReader(
-                    new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
-                rawOutput = reader.lines().collect(Collectors.joining("\n"));
+            // 异步消费输出流（防止缓冲区满导致死锁）
+            final int maxLinesToRead = (headLimit > 0) ? (offset + headLimit + 1) : MAX_OUTPUT_LINES;
+            CompletableFuture<String> outputFuture = CompletableFuture.supplyAsync(
+                    () -> {
+                        try (var reader = new BufferedReader(
+                                new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
+                            return reader.lines()
+                                    .limit(maxLinesToRead)
+                                    .collect(Collectors.joining("\n"));
+                        } catch (IOException e) {
+                            log.warn("Error reading grep output stream: {}", e.getMessage());
+                            return "";
+                        }
+                    }, STREAM_READER_EXECUTOR);
+
+            // 等待进程完成（带超时保护）
+            boolean finished = process.waitFor(PROCESS_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+            if (!finished) {
+                // 优雅终止: 先SIGTERM
+                process.destroy();
+                // Force close process streams to unblock any pending reads
+                try { process.getInputStream().close(); } catch (IOException ignored) {}
+                try { process.getErrorStream().close(); } catch (IOException ignored) {}
+                boolean terminated = process.waitFor(GRACEFUL_KILL_WAIT_MS, TimeUnit.MILLISECONDS);
+                if (!terminated) {
+                    // 强制终止: SIGKILL
+                    process.destroyForcibly();
+                    process.waitFor(2, TimeUnit.SECONDS);
+                }
+                log.warn("Grep process timed out after {}ms for pattern '{}'", PROCESS_TIMEOUT_MS, pattern);
+                return ToolResult.error(
+                        "Search timed out after " + (PROCESS_TIMEOUT_MS / 1000) + " seconds. " +
+                        "Try narrowing the search with 'glob' or 'path' parameters.");
             }
 
-            process.waitFor();
+            // 获取输出（进程已结束，给少量时间等待流读取完成）
+            String rawOutput = outputFuture.get(5, TimeUnit.SECONDS);
 
             // 3. 应用 head_limit + offset 分页
             List<String> lines = new ArrayList<>(rawOutput.lines().toList());
@@ -197,7 +262,13 @@ public class GrepTool implements Tool {
             return ToolResult.error("Grep search failed: " + e.getMessage());
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            return ToolResult.error("Grep search interrupted");
+            return ToolResult.failure(FailureType.ABORTED, "Grep search interrupted");
+        } catch (ExecutionException e) {
+            log.error("Grep output read failed for pattern '{}': {}", pattern, e.getMessage());
+            return ToolResult.error("Grep search failed: " + e.getCause().getMessage());
+        } catch (TimeoutException e) {
+            log.warn("Grep output stream read timed out for pattern '{}'", pattern);
+            return ToolResult.error("Grep output read timed out. Try narrowing the search with 'glob' or 'path' parameters.");
         }
     }
 

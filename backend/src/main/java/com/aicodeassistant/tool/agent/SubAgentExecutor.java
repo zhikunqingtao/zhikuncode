@@ -24,6 +24,7 @@ import com.aicodeassistant.session.SessionManager;
 import com.aicodeassistant.tool.Tool;
 import com.aicodeassistant.tool.ToolRegistry;
 import com.aicodeassistant.tool.ToolUseContext;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -68,6 +69,8 @@ public class SubAgentExecutor {
     private final PermissionModeManager permissionModeManager;  // ★ 新增: Worker 权限冒泡 ★
     private final AgentTimeoutConfig timeoutConfig;  // ★ 修复2: 超时配置 Bean ★
     private final ModelRegistry modelRegistry;  // ★ 新增: 查询模型 maxOutputTokens ★
+    private final CheckpointService checkpointService;  // ★ 新增: 子代理检查点 ★
+    private final ObjectMapper objectMapper;  // ★ 新增: 检查点 JSON 序列化 ★
 
     /** 子代理结果最大字符数 */
     static final int MAX_RESULT_SIZE_CHARS = 100_000;
@@ -91,7 +94,9 @@ public class SubAgentExecutor {
                             LlmProviderRegistry providerRegistry,
                             PermissionModeManager permissionModeManager,
                             AgentTimeoutConfig timeoutConfig,
-                            ModelRegistry modelRegistry) {
+                            ModelRegistry modelRegistry,
+                            CheckpointService checkpointService,
+                            ObjectMapper objectMapper) {
         this.concurrencyController = concurrencyController;
         this.queryEngine = queryEngine;
         this.toolRegistry = toolRegistry;
@@ -106,6 +111,8 @@ public class SubAgentExecutor {
         this.permissionModeManager = permissionModeManager;
         this.timeoutConfig = timeoutConfig;
         this.modelRegistry = modelRegistry;
+        this.checkpointService = checkpointService;
+        this.objectMapper = objectMapper;
     }
 
     /**
@@ -195,7 +202,11 @@ public class SubAgentExecutor {
                     subContext);
 
             // 8. 执行查询循环 (带超时 + 统一资源清理)
-            SubAgentMessageHandler handler = new SubAgentMessageHandler();
+            String checkpointRunId = childSessionId;  // 用会话ID作为检查点的runId
+            SubAgentMessageHandler handler = new SubAgentMessageHandler(
+                    checkpointService, objectMapper, state,
+                    checkpointRunId, childSessionId, request.agentId(),
+                    workDir.toString());
             Duration timeout = resolveAgentTimeout(request);
             log.info("Sub-agent {} starting with timeout {}s (type={})",
                     request.agentId(), timeout.toSeconds(), request.agentType());
@@ -207,12 +218,29 @@ public class SubAgentExecutor {
             QueryEngine.QueryResult result;
             try {
                 // ★ 动态计算实际超时（基础超时 + 权限等待时间）
+                // NOTE: permissionWaitMs is a snapshot captured at context creation time.
+                // This is intentional — it represents the maximum additional time the parent
+                // has already waited on permissions, giving the child equivalent grace period.
+                // Real-time tracking would require shared mutable state and add complexity
+                // disproportionate to the precision benefit.
                 long effectiveTimeoutMs = timeout.toMillis() + parentContext.permissionWaitMs();
                 result = future.get(effectiveTimeoutMs, TimeUnit.MILLISECONDS);
             } catch (TimeoutException e) {
-                // ★ 超时处理：优雅终止 + graceful shutdown 窗口
+                // ★ 超时处理：紧急检查点 + 优雅终止 + graceful shutdown 窗口
                 log.warn("Sub-agent {} timed out after {}s, attempting graceful shutdown",
                         request.agentId(), timeout.toSeconds());
+
+                // Attempt emergency checkpoint save before cancellation (best-effort)
+                try {
+                    var latestCheckpoint = checkpointService.getLatest(checkpointRunId);
+                    if (latestCheckpoint.isEmpty()) {
+                        // No checkpoint exists at all - the handler may not have had a chance to save
+                        log.warn("No checkpoint available for timed-out run {}", checkpointRunId);
+                    }
+                } catch (Exception cpEx) {
+                    log.debug("Emergency checkpoint attempt failed for run {}: {}", checkpointRunId, cpEx.getMessage());
+                }
+
                 AbortContext abortCtx = queryEngine.getAbortContext(childSessionId);
                 if (abortCtx != null) {
                     abortCtx.abort(AbortReason.TIMEOUT);
@@ -227,7 +255,19 @@ public class SubAgentExecutor {
                     future.cancel(true);
                     log.error("Sub-agent {} did not respond to graceful shutdown, forcefully cancelled",
                             request.agentId());
-                    // 结构化的超时错误信息，使用 tool_use_error 标签便于 LLM 理解
+
+                    // ★ 检查点恢复: 从最新检查点提取部分结果
+                    String partialResult = recoverFromCheckpoint(checkpointRunId, request);
+
+                    if (partialResult != null) {
+                        return new AgentResult(
+                                AgentResult.STATUS_TIMEOUT,
+                                partialResult,
+                                request.prompt(),
+                                null);
+                    }
+
+                    // 无检查点可用，返回结构化的超时错误信息
                     String timeoutMsg = String.format(
                             "<tool_use_error>Sub-agent '%s' (type=%s) timed out after %d seconds. "
                                     + "Task: %.200s</tool_use_error>",
@@ -236,8 +276,8 @@ public class SubAgentExecutor {
                             timeout.toSeconds(),
                             request.prompt());
                     return new AgentResult(
-                            AgentResult.STATUS_TIMEOUT,  // 明确的状态标识（区别于 "completed"）
-                            timeoutMsg,                  // 结构化错误消息
+                            AgentResult.STATUS_TIMEOUT,
+                            timeoutMsg,
                             request.prompt(),
                             null);
                 }
@@ -402,6 +442,74 @@ public class SubAgentExecutor {
         // 权限请求必须冒泡到父会话才能推送到前端。
         log.debug("resolveWorkerPermissionMode: agentType='{}' → BUBBLE (all subagents)", agentType);
         return PermissionMode.BUBBLE;
+    }
+
+    // ═══ 检查点恢复 ═══
+
+    /**
+     * 从最新检查点恢复部分结果 — 超时时调用。
+     *
+     * @return 部分结果字符串，无检查点时返回 null
+     */
+    private String recoverFromCheckpoint(String runId, AgentRequest request) {
+        try {
+            return checkpointService.getLatest(runId).map(cp -> {
+                try {
+                    String content = extractUsefulContentFromJson(cp.messagesJson());
+                    return "[PARTIAL - Recovered from checkpoint at turn " + cp.turnCount()
+                            + ", tools=" + cp.toolCallCount() + "]\n\n" + content;
+                } catch (Exception e) {
+                    return "[PARTIAL - Checkpoint available at turn " + cp.turnCount()
+                            + " but extraction failed: " + e.getMessage() + "]";
+                }
+            }).orElse(null);
+        } catch (Exception e) {
+            log.warn("Failed to recover from checkpoint for agent {}: {}",
+                    request.agentId(), e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * 从检查点 messagesJson 中提取有用内容（最后一条 assistant 回复）。
+     */
+    private String extractUsefulContentFromJson(String messagesJson) {
+        if (messagesJson == null || messagesJson.isBlank()) {
+            log.warn("extractUsefulContentFromJson: messagesJson is null or blank");
+            return "检查点存在但消息数据为空。";
+        }
+        try {
+            var messages = objectMapper.readTree(messagesJson);
+            if (messages == null || !messages.isArray()) {
+                log.warn("extractUsefulContentFromJson: parsed result is not a JSON array");
+                return "检查点存在但消息格式非数组。";
+            }
+            // 倒序遍历，找到最后一条 assistant 消息的文本内容
+            for (int i = messages.size() - 1; i >= 0; i--) {
+                var msg = messages.get(i);
+                if (msg.has("role") && "assistant".equals(msg.get("role").asText())) {
+                    var content = msg.get("content");
+                    if (content != null && content.isArray()) {
+                        StringBuilder sb = new StringBuilder();
+                        for (var block : content) {
+                            if (block.has("type") && "text".equals(block.get("type").asText())
+                                    && block.has("text")) {
+                                sb.append(block.get("text").asText());
+                            }
+                        }
+                        if (!sb.isEmpty()) return sb.toString();
+                    } else if (content != null && content.isTextual()) {
+                        return content.asText();
+                    }
+                }
+            }
+            return "检查点存在但未找到可提取的助手回复。";
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            log.warn("extractUsefulContentFromJson: JSON parsing failed: {}", e.getMessage());
+            return "检查点解析失败: " + e.getMessage();
+        } catch (Exception e) {
+            return "检查点解析失败: " + e.getMessage();
+        }
     }
 
     // ═══ 代理层级构建 ═══
@@ -629,7 +737,10 @@ public class SubAgentExecutor {
             QueryLoopState state = new QueryLoopState(forkMessages, forkContext);
 
             // 6. 执行查询循环
-            SubAgentMessageHandler handler = new SubAgentMessageHandler();
+            SubAgentMessageHandler handler = new SubAgentMessageHandler(
+                    checkpointService, objectMapper, state,
+                    childSessionId, childSessionId, request.agentId(),
+                    parentContext.workingDirectory());
             CompletableFuture<QueryEngine.QueryResult> future = CompletableFuture.supplyAsync(
                     () -> queryEngine.execute(config, state, handler),
                     AGENT_EXECUTOR);
@@ -1016,13 +1127,40 @@ public class SubAgentExecutor {
                 false, GUIDE_AGENT_PROMPT);
     }
 
-    // ═══ 子代理消息处理器（静默收集） ═══
+    // ═══ 子代理消息处理器（静默收集 + 检查点） ═══
 
     /**
      * 子代理消息处理器 — 静默收集结果，不推送到前端。
+     * 同时跟踪轮次和工具调用，触发检查点保存。
      */
     private static class SubAgentMessageHandler implements QueryMessageHandler {
         private final List<String> textChunks = new ArrayList<>();
+
+        // 检查点相关状态
+        private final CheckpointService checkpointService;
+        private final ObjectMapper objectMapper;
+        private final QueryLoopState state;
+        private final String runId;
+        private final String sessionId;
+        private final String agentId;
+        private final String workDir;
+        private int turnCount = 0;
+        private int toolCallCount = 0;
+        private int lastCheckpointTurn = 0;
+        private int checkpointSeq = 0;
+        private long tokensConsumed = 0;
+
+        SubAgentMessageHandler(CheckpointService checkpointService, ObjectMapper objectMapper,
+                               QueryLoopState state, String runId, String sessionId,
+                               String agentId, String workDir) {
+            this.checkpointService = checkpointService;
+            this.objectMapper = objectMapper;
+            this.state = state;
+            this.runId = runId;
+            this.sessionId = sessionId;
+            this.agentId = agentId;
+            this.workDir = workDir;
+        }
 
         @Override
         public void onTextDelta(String text) {
@@ -1036,7 +1174,7 @@ public class SubAgentExecutor {
 
         @Override
         public void onToolUseComplete(String toolUseId, ContentBlock.ToolUseBlock toolUse) {
-            // 静默
+            toolCallCount++;
         }
 
         @Override
@@ -1046,12 +1184,54 @@ public class SubAgentExecutor {
 
         @Override
         public void onAssistantMessage(Message.AssistantMessage message) {
-            // 静默
+            // 累计 token 使用量
+            if (message.usage() != null) {
+                tokensConsumed += message.usage().totalTokens();
+            }
+        }
+
+        @Override
+        public void onTurnEnd(int turnNumber, String stopReason) {
+            turnCount = turnNumber;
+            // 检查是否需要存检查点
+            if (checkpointService.shouldCheckpoint(turnCount, toolCallCount, lastCheckpointTurn)) {
+                saveCheckpoint();
+            }
+        }
+
+        @Override
+        public void onUsage(Usage usage) {
+            if (usage != null) {
+                tokensConsumed += usage.totalTokens();
+            }
         }
 
         @Override
         public void onError(Throwable error) {
             log.warn("Sub-agent error: {}", error.getMessage());
+        }
+
+        /**
+         * 保存检查点 — 异步虚拟线程执行，避免阻塞查询循环。
+         */
+        private void saveCheckpoint() {
+            try {
+                String messagesJson = objectMapper.writeValueAsString(state.getMessages());
+                AgentCheckpoint cp = AgentCheckpoint.create(
+                        runId, sessionId, agentId,
+                        checkpointSeq++, messagesJson, null,
+                        toolCallCount, turnCount, tokensConsumed, workDir);
+                lastCheckpointTurn = turnCount;
+                Thread.ofVirtual().name("checkpoint-save-" + runId).start(() -> {
+                    try {
+                        checkpointService.save(cp);
+                    } catch (Exception e) {
+                        log.warn("Async checkpoint save failed for run {}: {}", runId, e.getMessage());
+                    }
+                });
+            } catch (Exception e) {
+                log.warn("Failed to prepare checkpoint for agent {}: {}", agentId, e.getMessage());
+            }
         }
 
         String getCollectedText() {

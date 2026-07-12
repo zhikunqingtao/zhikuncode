@@ -1,9 +1,9 @@
 package com.aicodeassistant.config.database;
 
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -16,7 +16,8 @@ import java.util.List;
  *
  */
 @Component
-public class MigrationRunner implements ApplicationRunner {
+@Order(Ordered.HIGHEST_PRECEDENCE)
+public class MigrationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(MigrationRunner.class);
 
@@ -31,8 +32,8 @@ public class MigrationRunner implements ApplicationRunner {
                 .toList();
     }
 
-    @Override
-    public void run(ApplicationArguments args) {
+    @PostConstruct
+    public void run() {
         log.info("Running {} database migrations...", migrations.size());
         for (Migration migration : migrations) {
             String name = migration.getClass().getSimpleName();

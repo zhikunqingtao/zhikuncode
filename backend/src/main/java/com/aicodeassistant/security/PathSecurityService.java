@@ -115,7 +115,12 @@ public class PathSecurityService {
         }
 
         // 3. 项目边界检查
-        Path projectRoot = Path.of(workingDirectory).toAbsolutePath().normalize();
+        Path projectRoot;
+        try {
+            projectRoot = Path.of(workingDirectory).toRealPath();
+        } catch (IOException e) {
+            projectRoot = Path.of(workingDirectory).toAbsolutePath().normalize();
+        }
         if (!resolved.startsWith(projectRoot)) {
             if (!isAllowedExternalPath(resolved)) {
                 return PathCheckResult.denied(

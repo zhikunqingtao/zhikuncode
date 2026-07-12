@@ -20,7 +20,8 @@ import { SettingsPanel } from '@/components/dialog/SettingsPanel';
 
 export const DialogManager: React.FC = () => {
     const { activeDialog, closeDialog } = useDialogStore();
-    const { pendingPermission, respondPermission, clearPendingPermission } = usePermissionStore();
+    const { pendingPermissions, respondPermission } = usePermissionStore();
+    const currentPermission = pendingPermissions[0] ?? null;
     const { elicitationDialog, dismissElicitationDialog } = useAppUiStore();
 
     // Handle permission decision — 更新本地状态 + 发送决策到后端
@@ -32,18 +33,19 @@ export const DialogManager: React.FC = () => {
             decision.remember,
             decision.scope
         );
-        // 2. 更新本地 store 状态
+        // 2. 更新本地 store 状态（respondPermission 会 shift 队列头部）
         respondPermission(decision);
-        clearPendingPermission();
-        // 3. 恢复会话状态
-        useSessionStore.getState().setStatus('streaming');
+        // 3. 如果队列还有剩余请求则保持 awaiting 状态，否则恢复 streaming
+        if (usePermissionStore.getState().pendingPermissions.length === 0) {
+            useSessionStore.getState().setStatus('streaming');
+        }
         // 4. 标记 Activity 决策：批准/拒绝
         if (decision.decision === 'allow') {
             useActivityStore.getState().markToolUseApproved(decision.toolUseId);
         } else {
             useActivityStore.getState().markToolUseDenied(decision.toolUseId);
         }
-    }, [respondPermission, clearPendingPermission]);
+    }, [respondPermission]);
 
     // Handle elicitation submit — send response to backend via WebSocket
     const handleElicitationSubmit = React.useCallback((requestId: string, response: string | string[]) => {
@@ -70,9 +72,10 @@ export const DialogManager: React.FC = () => {
     return (
         <>
             {/* Permission Dialog */}
-            {pendingPermission && (
+            {currentPermission && (
                 <PermissionDialog
-                    request={pendingPermission}
+                    key={currentPermission.toolUseId}
+                    request={currentPermission}
                     onDecision={handlePermissionDecision}
                 />
             )}

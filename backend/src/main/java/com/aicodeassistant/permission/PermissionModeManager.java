@@ -1,8 +1,10 @@
 package com.aicodeassistant.permission;
 
 import com.aicodeassistant.model.PermissionMode;
+import com.aicodeassistant.websocket.WebSocketController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,8 +27,14 @@ public class PermissionModeManager {
 
     private static final Logger log = LoggerFactory.getLogger(PermissionModeManager.class);
 
+    private final WebSocketController wsPusher;
+
     /** 当前会话权限模式 — sessionId → PermissionMode */
     private final ConcurrentHashMap<String, PermissionMode> sessionModes = new ConcurrentHashMap<>();
+
+    public PermissionModeManager(@Lazy WebSocketController wsPusher) {
+        this.wsPusher = wsPusher;
+    }
 
     /** 危险执行模式 — AUTO 模式下即使有 allow 规则也强制 ask */
     private static final List<Pattern> DANGEROUS_EXEC_PATTERNS = List.of(
@@ -81,6 +89,15 @@ public class PermissionModeManager {
     public void setMode(String sessionId, PermissionMode mode) {
         PermissionMode previous = sessionModes.put(sessionId, mode);
         log.info("Permission mode changed: session={}, {} → {}", sessionId, previous, mode);
+        // 推送权限模式变更到前端（仅当模式实际变化时）
+        if (previous != mode && wsPusher != null) {
+            try {
+                wsPusher.pushToUser(sessionId, "permission_mode_changed",
+                    Map.of("mode", mode.name(), "previous", String.valueOf(previous)));
+            } catch (Exception e) {
+                log.debug("Failed to push permission_mode_changed (non-fatal): {}", e.getMessage());
+            }
+        }
     }
 
     /**

@@ -7,6 +7,7 @@ import com.aicodeassistant.permission.PermissionModeManager;
 import com.aicodeassistant.permission.PermissionNotifier;
 import com.aicodeassistant.permission.PermissionPipeline;
 import com.aicodeassistant.permission.PermissionRuleRepository;
+import com.aicodeassistant.run.RunTracker;
 import com.aicodeassistant.security.SensitiveDataFilter;
 import com.aicodeassistant.tool.recovery.ToolRecoveryFramework;
 import com.aicodeassistant.tool.recovery.ToolRecoveryFramework.RecoveryAction;
@@ -20,9 +21,12 @@ import com.networknt.schema.SpecVersion;
 import com.networknt.schema.ValidationMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -55,13 +59,16 @@ public class ToolExecutionPipeline {
     private final SensitiveDataFilter sensitiveDataFilter;
     private final PermissionModeManager permissionModeManager;
     private final ToolRecoveryFramework recoveryFramework;
+    @Nullable
+    private final RunTracker runTracker;
 
     public ToolExecutionPipeline(HookService hookService, ObjectMapper objectMapper,
                                   PermissionPipeline permissionPipeline,
                                   PermissionRuleRepository permissionRuleRepository,
                                   SensitiveDataFilter sensitiveDataFilter,
                                   PermissionModeManager permissionModeManager,
-                                  ToolRecoveryFramework recoveryFramework) {
+                                  ToolRecoveryFramework recoveryFramework,
+                                  @Lazy @Nullable RunTracker runTracker) {
         this.hookService = hookService;
         this.objectMapper = objectMapper;
         this.permissionPipeline = permissionPipeline;
@@ -69,6 +76,7 @@ public class ToolExecutionPipeline {
         this.sensitiveDataFilter = sensitiveDataFilter;
         this.permissionModeManager = permissionModeManager;
         this.recoveryFramework = recoveryFramework;
+        this.runTracker = runTracker;
     }
 
     /**
@@ -226,7 +234,9 @@ public class ToolExecutionPipeline {
                     PermissionDecision userDecision = permissionPipeline.requestPermission(
                             toolUseId, toolName, inputMap,
                             decision.reason() != null ? decision.reason() : "Tool requires permission",
-                            effectivePusher, context.sessionId()
+                            effectivePusher, context.sessionId(),
+                            context.currentRunId(),
+                            null
                     ).join();
 
                     if (!userDecision.isAllowed()) {
@@ -256,7 +266,42 @@ public class ToolExecutionPipeline {
 
             // ── 阶段 5: 工具调用 ──
             log.debug("Executing tool: {} (stage 5: call)", toolName);
+
+            // ★ RunTracker: 记录 tool_call 事件
+            String currentRunId = context.currentRunId();
+            if (currentRunId != null && runTracker != null) {
+                try {
+                    Map<String, Object> toolCallPayload = new HashMap<>();
+                    toolCallPayload.put("toolName", toolName);
+                    toolCallPayload.put("toolUseId", context.toolUseId() != null ? context.toolUseId() : "");
+                    String inputFilePath = extractFilePathFromInput(processedInput);
+                    if (inputFilePath != null) {
+                        toolCallPayload.put("filePath", inputFilePath);
+                    }
+                    runTracker.recordEvent(currentRunId, "tool_call", toolCallPayload);
+                } catch (Exception e) {
+                    log.warn("Failed to record tool_call event: {}", e.getMessage());
+                }
+            }
+
             ToolResult result = tool.call(processedInput, context);
+
+            // ★ RunTracker: 记录 tool_result 事件
+            if (currentRunId != null && runTracker != null) {
+                try {
+                    Map<String, Object> toolResultPayload = new HashMap<>();
+                    toolResultPayload.put("toolName", toolName);
+                    toolResultPayload.put("toolUseId", context.toolUseId() != null ? context.toolUseId() : "");
+                    toolResultPayload.put("isError", result.isError());
+                    String resultFilePath = extractFilePathFromInput(processedInput);
+                    if (resultFilePath != null) {
+                        toolResultPayload.put("filePath", resultFilePath);
+                    }
+                    runTracker.recordEvent(currentRunId, "tool_result", toolResultPayload);
+                } catch (Exception e) {
+                    log.warn("Failed to record tool_result event: {}", e.getMessage());
+                }
+            }
 
             // ── 阶段 5b: mapToolResult — 工具自定义结果映射 ──
             result = tool.mapToolResult(result);
@@ -574,6 +619,30 @@ public class ToolExecutionPipeline {
             log.error("Failed to forward permission to parent: {}", e.getMessage(), e);
             return ToolExecutionResult.of(ToolResult.error("Permission forwarding failed: " + e.getMessage()));
         }
+    }
+
+    /**
+     * 从工具输入中提取文件路径。
+     * <p>
+     * 依次尝试从输入参数中查找 filePath、path、file_path 等字段。
+     *
+     * @param input 工具输入
+     * @return 文件路径，未找到返回 null
+     */
+    @SuppressWarnings("unchecked")
+    private String extractFilePathFromInput(ToolInput input) {
+        Object raw = input.getRawData();
+        if (!(raw instanceof Map)) {
+            return null;
+        }
+        Map<String, Object> map = (Map<String, Object>) raw;
+        for (String key : new String[]{"file_path", "filePath", "path"}) {
+            Object val = map.get(key);
+            if (val instanceof String s && !s.isBlank()) {
+                return s;
+            }
+        }
+        return null;
     }
 
     /**

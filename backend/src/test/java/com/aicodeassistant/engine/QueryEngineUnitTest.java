@@ -12,6 +12,7 @@ import com.aicodeassistant.llm.*;
 import com.aicodeassistant.model.*;
 import com.aicodeassistant.permission.PermissionPipeline;
 import com.aicodeassistant.permission.PermissionRuleRepository;
+import com.aicodeassistant.run.RunTracker;
 import com.aicodeassistant.tool.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,6 +60,7 @@ class QueryEngineUnitTest {
     @Mock ContextCascade contextCascade;
     @Mock CompactMetrics compactMetrics;
     @Mock FeatureFlagService featureFlagService;
+    @Mock RunTracker runTracker;
 
     private ObjectMapper objectMapper;
     private QueryEngine queryEngine;
@@ -76,7 +78,7 @@ class QueryEngineUnitTest {
                 toolResultSummarizer, contextCascade, compactMetrics,
                 null, null,  // incrementalCollapseManager, visualizationAutoRouter (both @Nullable)
                 null, featureFlagService,  // backgroundAgentTracker (@Nullable), featureFlagService
-                new DefaultTerminationStrategy(), new ToolPriorityScheduler(), null, new AgentTimeoutConfig());  // selfCorrectionLoop, agentTimeoutConfig
+                new DefaultTerminationStrategy(), new ToolPriorityScheduler(), null, new AgentTimeoutConfig(), runTracker);  // selfCorrectionLoop, agentTimeoutConfig, runTracker
         handler = new TestHandler();
 
         // 默认 Snip/MicroCompact mock: 直接返回原消息列表

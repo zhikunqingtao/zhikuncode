@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -36,6 +37,7 @@ class FileReadToolUnitTest {
     @Mock private PathSecurityService pathSecurityService;
     @Mock private SessionManager sessionManager;
     @Mock private KeyFileTracker keyFileTracker;
+    @Mock private EncodingDetector encodingDetector;
 
     @TempDir
     Path tempDir;
@@ -50,21 +52,36 @@ class FileReadToolUnitTest {
         // 设备文件路径返回 denied，对齐 PathSecurityService 真实行为
         when(pathSecurityService.checkReadPermission(org.mockito.ArgumentMatchers.eq("/dev/zero"), anyString()))
                 .thenReturn(PathCheckResult.denied("Cannot read device file: /dev/zero"));
-        // 注意：简化 mock，模拟真实的路径解析逻辑——绝对路径直接返回，相对路径基于 workingDirectory 解析。
+        // 注意：模拟真实的路径解析逻辑——绝对路径直接返回，相对路径基于 workingDirectory 解析，
+        // 并尝试 toRealPath() 解析符号链接（与 PathSecurityService 真实行为一致）。
         when(pathSecurityService.resolvePath(anyString(), anyString()))
                 .thenAnswer(inv -> {
                     String filePath = inv.getArgument(0);
                     String workDir = inv.getArgument(1);
                     java.nio.file.Path p = Path.of(filePath);
-                    return p.isAbsolute() ? p : Path.of(workDir).resolve(filePath);
+                    java.nio.file.Path resolved = p.isAbsolute() ? p : Path.of(workDir).resolve(filePath);
+                    resolved = resolved.toAbsolutePath().normalize();
+                    try {
+                        resolved = resolved.toRealPath();
+                    } catch (IOException e) {
+                        // file doesn't exist yet, use normalized path
+                    }
+                    return resolved;
                 });
 
         // Mock SessionManager — 返回一个真实的 FileStateCache 实例
         FileStateCache fileStateCache = new FileStateCache();
         when(sessionManager.getFileStateCache(anyString())).thenReturn(fileStateCache);
 
-        // FileReadTool 构造函数为 3 参数（PathSecurityService, SessionManager, KeyFileTracker）
-        fileReadTool = new FileReadTool(pathSecurityService, sessionManager, keyFileTracker);
+        // Mock EncodingDetector — 默认返回 UTF-8（文本文件）
+        try {
+            when(encodingDetector.detectCharset(any(Path.class))).thenReturn(StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        // FileReadTool 构造函数为 4 参数（PathSecurityService, SessionManager, KeyFileTracker, EncodingDetector）
+        fileReadTool = new FileReadTool(pathSecurityService, sessionManager, keyFileTracker, encodingDetector);
         context = ToolUseContext.of(tempDir.toString(), "test-session");
     }
 
@@ -105,7 +122,7 @@ class FileReadToolUnitTest {
         assertEquals(5, lines.length);
         assertEquals("line 10", lines[0]);
         assertEquals("line 14", lines[4]);
-        assertEquals(10, result.metadata().get("startLine"));
+        assertEquals(11, result.metadata().get("startLine"));
     }
 
     @Test

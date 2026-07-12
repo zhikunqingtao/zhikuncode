@@ -72,7 +72,7 @@ class QueryFlowIntegrationTest {
         permissionPipeline = new PermissionPipeline(ruleMatcher, ruleRepo, autoModeClassifier,
                 mock(HookService.class), mock(SandboxManager.class),
                 mock(PathSecurityService.class), mock(BashCommandClassifier.class),
-                mock(FeatureFlagService.class), mock(CommandBlacklistService.class));
+                mock(FeatureFlagService.class), mock(CommandBlacklistService.class), null);
 
         ModelCapabilityConfig capCfg = new ModelCapabilityConfig();
         ModelCapabilityRegistry capRegistry = new ModelCapabilityRegistry(capCfg);
@@ -88,7 +88,7 @@ class QueryFlowIntegrationTest {
         SensitiveDataFilter sensitiveDataFilter = new SensitiveDataFilter();
         ToolRecoveryFramework recoveryFramework = new ToolRecoveryFramework(List.of());
         StreamingToolExecutor streamingToolExecutor = new StreamingToolExecutor(
-                new ToolExecutionPipeline(hookService, objectMapper, permissionPipeline, ruleRepo, sensitiveDataFilter, new PermissionModeManager(), recoveryFramework), new SimpleMeterRegistry());
+                new ToolExecutionPipeline(hookService, objectMapper, permissionPipeline, ruleRepo, sensitiveDataFilter, new PermissionModeManager(null), recoveryFramework, null), new SimpleMeterRegistry());
         MessageNormalizer messageNormalizer = new MessageNormalizer();
         SnipService snipService = new SnipService();
         MicroCompactService microCompactService = new MicroCompactService(tokenCounter);
@@ -109,7 +109,7 @@ class QueryFlowIntegrationTest {
                 null, null,  // incrementalCollapseManager, visualizationAutoRouter (both @Nullable)
                 null, mock(FeatureFlagService.class),  // backgroundAgentTracker (@Nullable), featureFlagService
                 new DefaultTerminationStrategy(), new ToolPriorityScheduler(), null,  // selfCorrectionLoop (@Nullable)
-                new AgentTimeoutConfig()
+                new AgentTimeoutConfig(), null  // agentTimeoutConfig, runTracker
         );
 
         handler = new RecordingHandler();

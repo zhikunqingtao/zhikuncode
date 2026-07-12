@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Base64;
@@ -36,12 +36,14 @@ public class FileReadTool implements Tool {
     private final PathSecurityService pathSecurity;
     private final SessionManager sessionManager;
     private final KeyFileTracker keyFileTracker;
+    private final EncodingDetector encodingDetector;
 
     public FileReadTool(PathSecurityService pathSecurity, SessionManager sessionManager,
-                        KeyFileTracker keyFileTracker) {
+                        KeyFileTracker keyFileTracker, EncodingDetector encodingDetector) {
         this.pathSecurity = pathSecurity;
         this.sessionManager = sessionManager;
         this.keyFileTracker = keyFileTracker;
+        this.encodingDetector = encodingDetector;
     }
 
     private static final long MAX_SIZE_BYTES = 200 * 1024 * 1024; // 200MB
@@ -124,7 +126,7 @@ public class FileReadTool implements Tool {
         PathCheckResult checkResult = pathSecurity.checkReadPermission(
                 input.getString("file_path"), context.workingDirectory());
         if (!checkResult.isAllowed()) {
-            return ToolResult.error(checkResult.message());
+            return ToolResult.failure(FailureType.PATH_OUTSIDE_WORKSPACE, checkResult.message());
         }
         if (checkResult.needsConfirmation()) {
             log.warn("Reading sensitive file (allowed with warning): {}", filePath);
@@ -135,14 +137,21 @@ public class FileReadTool implements Tool {
 
             // 2. 检查文件存在
             if (!Files.exists(path)) {
-                return ToolResult.error("File does not exist: " + filePath);
+                return ToolResult.failure(FailureType.FILE_NOT_FOUND, filePath);
+            }
+
+            // 2.5 符号链接逃逸防护
+            Path realPath = path.toRealPath();
+            Path workspaceReal = Path.of(context.workingDirectory()).toRealPath();
+            if (!realPath.startsWith(workspaceReal)) {
+                return ToolResult.error("Symlink resolves outside workspace: " + realPath);
             }
 
             // 3. 检查文件大小
             long fileSize = Files.size(path);
             if (fileSize > MAX_SIZE_BYTES) {
-                return ToolResult.error("File too large (" + fileSize + " bytes). "
-                        + "Use offset and limit parameters to read in chunks.");
+                return ToolResult.failure(FailureType.INVALID_INPUT,
+                        "File too large (" + fileSize + " bytes). Use offset and limit parameters to read in chunks.");
             }
 
             // 4. 图片文件处理
@@ -154,14 +163,21 @@ public class FileReadTool implements Tool {
                 return ToolResult.image(base64, mimeType, fileSize);
             }
 
-            // 5. 文本文件处理 — 使用 BufferedReader 流式读取，避免大文件 OOM
+            // 5. 编码检测
+            Charset charset = encodingDetector.detectCharset(path);
+            if (charset == null) {
+                return ToolResult.error("File appears to be binary and cannot be read as text. "
+                        + "Binary files like compiled code, images, or archives are not supported.");
+            }
+
+            // 6. 文本文件处理 — 使用 BufferedReader 流式读取，避免大文件 OOM
             int rawStart = input.getOptionalInt("offset").orElse(0);
             int startLine = Math.max(0, rawStart);
             int limit = input.getOptionalInt("limit").orElse(0);
 
             List<String> selectedLines;
             int totalLines;
-            try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+            try (BufferedReader reader = Files.newBufferedReader(path, charset)) {
                 if (startLine > 0 || limit > 0) {
                     // 流式跳过 + 限制，不加载整个文件
                     selectedLines = reader.lines()
@@ -170,8 +186,16 @@ public class FileReadTool implements Tool {
                             .collect(Collectors.toList());
                     totalLines = -1; // 流式模式下不计算总行数
                 } else {
-                    selectedLines = reader.lines().collect(Collectors.toList());
-                    totalLines = selectedLines.size();
+                    // 无 limit 时使用默认限制防止 OOM
+                    selectedLines = reader.lines()
+                            .limit(MAX_OUTPUT_LINES + 1)
+                            .collect(Collectors.toList());
+                    if (selectedLines.size() > MAX_OUTPUT_LINES) {
+                        selectedLines = selectedLines.subList(0, MAX_OUTPUT_LINES);
+                        totalLines = -1; // 表示未知（还有更多）
+                    } else {
+                        totalLines = selectedLines.size();
+                    }
                 }
             }
 
@@ -187,11 +211,24 @@ public class FileReadTool implements Tool {
             // ★ KeyFileTracker 埋点 — 记录文件访问 ★
             keyFileTracker.trackFileReference(context.sessionId(), filePath, context.toolUseId());
 
+            // 计算分片续读元数据
+            boolean hasMore;
+            if (totalLines >= 0) {
+                hasMore = (startLine + selectedLines.size()) < totalLines;
+            } else {
+                // 流式模式下，如果读取的行数恰好等于limit，则可能还有更多
+                hasMore = limit > 0 && selectedLines.size() == limit;
+            }
+            int nextOffset = hasMore ? startLine + selectedLines.size() : -1;
+
             return ToolResult.text(content)
                     .withMetadata("filePath", filePath)
                     .withMetadata("numLines", selectedLines.size())
-                    .withMetadata("startLine", startLine)
-                    .withMetadata("totalLines", totalLines);
+                    .withMetadata("startLine", startLine + 1)
+                    .withMetadata("totalLines", totalLines)
+                    .withMetadata("encoding", charset.name())
+                    .withMetadata("hasMore", hasMore)
+                    .withMetadata("nextOffset", nextOffset);
 
         } catch (IOException e) {
             log.error("Failed to read file: {}", filePath, e);

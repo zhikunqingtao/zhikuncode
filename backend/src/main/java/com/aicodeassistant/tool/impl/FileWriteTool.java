@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -129,12 +130,14 @@ public class FileWriteTool implements Tool {
                 if (conflictResult.hasConflict()) {
                     log.warn("Conflict-Abort: file {} modified since last read (expected={}, current={})",
                             filePath, conflictResult.expectedHash(), conflictResult.currentHash());
-                    return ToolResult.error(
-                            "文件自上次读取后已被修改，请重新读取文件后再编辑。\n"
-                            + "Expected hash: " + conflictResult.expectedHash() + "\n"
-                            + "Current hash: " + conflictResult.currentHash()
-                            + (conflictResult.lastEditor() != null
-                                    ? "\nLast editor: " + conflictResult.lastEditor() : ""));
+                    Map<String, Object> conflictMeta = new HashMap<>();
+                    conflictMeta.put("expectedHash", conflictResult.expectedHash());
+                    conflictMeta.put("actualHash", conflictResult.currentHash());
+                    if (conflictResult.lastEditor() != null) {
+                        conflictMeta.put("lastEditor", conflictResult.lastEditor());
+                    }
+                    return ToolResult.failure(FailureType.CONFLICT,
+                            "文件自上次读取后已被修改，请重新读取文件后再编辑", conflictMeta);
                 }
             }
 

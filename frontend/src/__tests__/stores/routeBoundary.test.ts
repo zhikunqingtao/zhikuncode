@@ -29,7 +29,7 @@ describe('State-based routing', () => {
             usage: { inputTokens: 0, outputTokens: 0, cacheReadInputTokens: 0, cacheCreationInputTokens: 0 },
         });
         usePermissionStore.setState({
-            pendingPermission: null, permissionMode: 'default',
+            pendingPermissions: [], permissionMode: 'default',
             denialTracking: { consecutiveDenials: 0, totalDenials: 0 },
         });
         useBridgeStore.setState({

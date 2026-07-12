@@ -20,6 +20,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
 /**
@@ -111,6 +112,10 @@ public class PermissionPipeline {
     private final ConcurrentHashMap<String, CompletableFuture<PermissionDecision>> pendingRequests =
             new ConcurrentHashMap<>();
 
+    /** 并发门控标志 — 确保每个 toolUseId 的解析逻辑只执行一次 */
+    private final ConcurrentHashMap<String, AtomicBoolean> processedFlags =
+            new ConcurrentHashMap<>();
+
     private final PermissionRuleMatcher ruleMatcher;
     private final PermissionRuleRepository ruleRepository;
     private final AutoModeClassifier autoModeClassifier;
@@ -120,6 +125,7 @@ public class PermissionPipeline {
     private final BashCommandClassifier bashCommandClassifier;
     private final FeatureFlagService featureFlags;
     private final CommandBlacklistService commandBlacklistService;
+    private final DurablePermissionService durablePermissionService;
 
     public PermissionPipeline(PermissionRuleMatcher ruleMatcher,
                               PermissionRuleRepository ruleRepository,
@@ -129,7 +135,8 @@ public class PermissionPipeline {
                               PathSecurityService pathSecurityService,
                               BashCommandClassifier bashCommandClassifier,
                               FeatureFlagService featureFlags,
-                              CommandBlacklistService commandBlacklistService) {
+                              CommandBlacklistService commandBlacklistService,
+                              @org.springframework.context.annotation.Lazy DurablePermissionService durablePermissionService) {
         this.ruleMatcher = ruleMatcher;
         this.ruleRepository = ruleRepository;
         this.autoModeClassifier = autoModeClassifier;
@@ -139,6 +146,7 @@ public class PermissionPipeline {
         this.bashCommandClassifier = bashCommandClassifier;
         this.featureFlags = featureFlags;
         this.commandBlacklistService = commandBlacklistService;
+        this.durablePermissionService = durablePermissionService;
     }
 
     /**
@@ -491,8 +499,26 @@ public class PermissionPipeline {
             String toolUseId, String toolName, Map<String, Object> input,
             String reason, PermissionNotifier wsPusher, String sessionId) {
 
+        return requestPermission(toolUseId, toolName, input, reason, wsPusher, sessionId, null, null);
+    }
+
+    /**
+     * 发起异步权限请求（支持持久化参数）。
+     */
+    public CompletableFuture<PermissionDecision> requestPermission(
+            String toolUseId, String toolName, Map<String, Object> input,
+            String reason, PermissionNotifier wsPusher, String sessionId,
+            String runId, String childSessionId) {
+
         CompletableFuture<PermissionDecision> future = new CompletableFuture<>();
-        pendingRequests.put(toolUseId, future);
+        CompletableFuture<PermissionDecision> existing = pendingRequests.putIfAbsent(toolUseId, future);
+        if (existing != null) {
+            log.warn("Duplicate permission request for toolUseId={}, returning existing", toolUseId);
+            return existing;
+        }
+
+        // 注册并发门控标志
+        processedFlags.put(toolUseId, new AtomicBoolean(false));
 
         // 通过 WebSocket 推送权限请求到前端
         String commandStr = String.valueOf(input.getOrDefault("command", ""));
@@ -502,17 +528,48 @@ public class PermissionPipeline {
         log.info("Permission request: toolUseId={}, toolName={}, targetSession={}",
                 toolUseId, toolName, sessionId);
 
+        // ★ 持久化权限请求到 DB（在 WS 推送之前）
+        try {
+            String inputSummary = commandStr.length() > 500
+                    ? commandStr.substring(0, 500) + "..."
+                    : commandStr;
+            String source = childSessionId != null ? "bubble" : "direct";
+            durablePermissionService.persistRequest(
+                    runId, sessionId, toolUseId, toolName, riskLevel,
+                    reason, inputSummary, source, childSessionId);
+        } catch (Exception e) {
+            log.warn("Failed to persist permission request (non-fatal): toolUseId={}, error={}",
+                    toolUseId, e.getMessage());
+        }
+
         wsPusher.sendPermissionRequest(sessionId, toolUseId, toolName, input, riskLevel, reason);
 
-        // 120 秒超时 → 自动拒绝
-        future.orTimeout(120, TimeUnit.SECONDS)
-              .exceptionally(ex -> {
-                  pendingRequests.remove(toolUseId);
-                  log.warn("Permission request timed out: toolUseId={}", toolUseId);
-                  return PermissionDecision.denyByMode("Permission request timed out");
-              });
+        // 300 秒超时 → 自动拒绝（与 DB timeout_at 对齐）
+        CompletableFuture<PermissionDecision> wrappedFuture =
+            future.orTimeout(DurablePermissionService.TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                  .exceptionally(ex -> {
+                      AtomicBoolean flag = processedFlags.get(toolUseId);
+                      if (flag != null && flag.compareAndSet(false, true)) {
+                          pendingRequests.remove(toolUseId);
+                          log.warn("Permission request timed out: toolUseId={}", toolUseId);
+                          // 同步更新 DB 状态
+                          try {
+                              boolean dbUpdated = durablePermissionService.resolve(toolUseId, "deny", "TIMEOUT", false, null);
+                              if (!dbUpdated) {
+                                  log.debug("DB permission already resolved for timed-out request: toolUseId={}", toolUseId);
+                              }
+                          } catch (Exception e) {
+                              log.warn("Failed to resolve timed-out request in DB: {}", e.getMessage());
+                          }
+                      } else {
+                          log.debug("Timeout handler skipped for toolUseId={} (already processed by resolvePermission)", toolUseId);
+                      }
+                      // 清理标志
+                      processedFlags.remove(toolUseId);
+                      return PermissionDecision.denyByMode("Permission request timed out");
+                  });
 
-        return future;
+        return wrappedFuture;
     }
 
     /**
@@ -522,13 +579,25 @@ public class PermissionPipeline {
      * @param decision  用户的权限决策
      */
     public void resolvePermission(String toolUseId, PermissionDecision decision) {
+        AtomicBoolean flag = processedFlags.get(toolUseId);
+        if (flag == null || !flag.compareAndSet(false, true)) {
+            log.debug("resolvePermission skipped for toolUseId={} (already processed or timed out)", toolUseId);
+            return;
+        }
+
         CompletableFuture<PermissionDecision> future = pendingRequests.remove(toolUseId);
         if (future != null) {
-            future.complete(decision);
-            log.info("Permission resolved: toolUseId={}, behavior={}", toolUseId, decision.behavior());
+            boolean completed = future.complete(decision);
+            if (completed) {
+                log.info("Permission resolved: toolUseId={}, behavior={}", toolUseId, decision.behavior());
+            } else {
+                log.debug("Permission future already completed for toolUseId={} (may have timed out)", toolUseId);
+            }
         } else {
-            log.warn("No pending permission request for toolUseId={}", toolUseId);
+            log.debug("No pending request found for toolUseId={} (may have timed out)", toolUseId);
         }
+        // 清理标志
+        processedFlags.remove(toolUseId);
     }
 
     /**
@@ -539,9 +608,13 @@ public class PermissionPipeline {
      * @param future    待完成的 CompletableFuture
      */
     public void registerPendingRequest(String toolUseId, CompletableFuture<PermissionDecision> future) {
+        processedFlags.put(toolUseId, new AtomicBoolean(false));
         pendingRequests.put(toolUseId, future);
         // 超时清理: future 完成后确保从 map 中移除
-        future.whenComplete((result, ex) -> pendingRequests.remove(toolUseId));
+        future.whenComplete((result, ex) -> {
+            pendingRequests.remove(toolUseId);
+            processedFlags.remove(toolUseId);
+        });
     }
 
     /**

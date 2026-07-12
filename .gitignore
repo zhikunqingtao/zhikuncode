@@ -93,6 +93,7 @@ docs/test-results/**/screenshots/
 # Playwright / 前端 E2E 临时产物
 frontend/test-results/
 frontend/playwright-report/
+frontend/coverage/
 docs/test-results/playwright-report/
 docs/test-results/playwright-junit.xml
 
@@ -101,6 +102,9 @@ docs/test-results/playwright-junit.xml
 
 # 安全测试原始日志（summary.md 入库即可，.log 属瞬态证据）
 docs/test-results/**/security/*.log
+
+# 测试结果目录下的 Office 文档（可能含敏感个人信息）
+docs/test-results/*.pptx
 
 # SWE-bench 评测（脚本+数据+产物，均不提交）
 swe-bench/
@@ -115,3 +119,5 @@ docs/swe-bench/20260602/
 *-screenshot.png
 # SWE-bench experiments (official repo clone, not project source)
 experiments/
+
+backend/typhoon-tracker
