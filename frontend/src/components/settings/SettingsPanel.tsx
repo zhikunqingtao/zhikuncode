@@ -90,7 +90,7 @@ function ModelPicker() {
     { id: 'MiniMax-M3', name: 'MiniMax M3', description: '百万上下文' },
     { id: 'anthropic/claude-opus-4.8', name: 'claude-opus-4.8', description: '1M上下文 · 编程旗舰' },
     { id: 'anthropic/claude-fable-5', name: 'claude-fable-5', description: '1M上下文 · Mythos级' },
-    { id: 'openai/gpt-5.5-pro', name: 'OpenAI GPT-5.5 Pro', description: 'OpenAI 旗舰模型' },
+    { id: 'openai/gpt-5.6-sol', name: 'OpenAI GPT-5.6 Sol', description: 'OpenAI 旗舰模型' },
     { id: 'google/gemini-3.5-flash', name: 'Google Gemini 3.5 Flash', description: 'Google 快速响应' },
   ];
 

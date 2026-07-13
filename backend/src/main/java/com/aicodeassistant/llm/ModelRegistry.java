@@ -20,7 +20,7 @@ public class ModelRegistry {
     // 内置模型映射表
     private static final Map<String, ModelCapabilities> BUILTIN_MODELS = Map.ofEntries(
         // OpenAI
-        entry("gpt-5.5",           caps("gpt-5.5",           "GPT-5.5",          128000, 1050000, true, true, true, 10, true, 0.005, 0.03)),
+        entry("gpt-5.6-sol",       caps("gpt-5.6-sol",       "GPT-5.6-Sol",      128000, 1050000, true, true, true, 10, true, 0.005, 0.03)),
         entry("gpt-5.4-mini",      caps("gpt-5.4-mini",      "GPT-5.4 Mini",     128000, 400000,  true, true, true, 10, true, 0.00075, 0.0045)),
         // Anthropic
         entry("claude-sonnet-4-6", caps("claude-sonnet-4-6", "Claude Sonnet 4.6",  16384, 200000, true, true, true, 10, true, 0.003, 0.015)),
@@ -30,7 +30,7 @@ public class ModelRegistry {
         entry("anthropic/claude-opus-4.8", caps("anthropic/claude-opus-4.8", "Claude Opus 4.8", 64000, 1000000, true, false, true, 5, true, 0.005, 0.025)),
         entry("anthropic/claude-fable-5", caps("anthropic/claude-fable-5", "Claude Fable 5", 64000, 1000000, true, false, true, 5, true, 0.010, 0.050)),
         // OpenAI via ZenMux (openai/ 前缀 = zenmux 中转)
-        entry("openai/gpt-5.5-pro",   caps("openai/gpt-5.5-pro",   "OpenAI GPT-5.5 Pro",   128000, 1050000, true,  false, true, 4, true, 0.030, 0.180)),
+        entry("openai/gpt-5.6-sol",   caps("openai/gpt-5.6-sol",   "OpenAI GPT-5.6 Sol",   128000, 1050000, true,  false, true, 4, true, 0.030, 0.180)),
         // Google via ZenMux (google/ 前缀 = zenmux 中转)
         entry("google/gemini-3.5-flash",   caps("google/gemini-3.5-flash",   "Google Gemini 3.5 Flash",   65530, 1050000, false, false, true, 4, true, 0.0015, 0.009)),
         // 国产大模型

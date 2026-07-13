@@ -60,7 +60,7 @@ llm:
       api-key: ${LLM_PROVIDER_ZENMUX_API_KEY:}
       base-url: https://zenmux.ai/api/v1
       default-model: anthropic/claude-opus-4.8
-      models: ${LLM_PROVIDER_ZENMUX_MODELS:anthropic/claude-opus-4.8,anthropic/claude-fable-5,openai/gpt-5.5-pro,google/gemini-3.5-flash}
+      models: ${LLM_PROVIDER_ZENMUX_MODELS:anthropic/claude-opus-4.8,anthropic/claude-fable-5,openai/gpt-5.6-sol,google/gemini-3.5-flash}
   # ===== 单 Provider 配置（向后兼容）=====
   # 如果 llm.providers 为空，回退到此配置
   openai:
@@ -294,7 +294,7 @@ model:
       supportsToolUse: true
       supportsVision: true
       supportsStreaming: true
-    openai/gpt-5.5-pro:
+    openai/gpt-5.6-sol:
       contextWindow: 1050000
       tokenCharRatio: 3.5
       outputMaxTokens: 128000

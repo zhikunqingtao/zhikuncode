@@ -53,7 +53,7 @@
 | 🇨🇳 | **Native Chinese LLM Support** | Qwen / DeepSeek / Moonshot / Zhipu GLM / MiniMax work out of the box with direct connections from mainland China — no VPN required |
 | 🐳 | **One-Command Docker Deployment** | `docker compose up -d` — one command to start. Data stays local, fully private |
 | ⚡ | **Intelligent Context Management** | Six-layer compression cascade (Snip / MicroCompact / ContextCollapse / AutoCompact / CollapseDrain / ReactiveCompact) + incremental collapse (auto-compress every 10 turns) + 413 two-phase recovery (CollapseDrain aggressive compression → ReactiveCompact) + Precise Token Counting (tiktoken multi-model support) + Self-Correction Loop (SelfCorrectionLoop, auto-diagnose compile/test failures, max 3 retries) + three-level token alerts + image context governance (large image externalization → on-demand injection → budget guard three-layer protection) for seamless ultra-long conversations. Core Engines: ContextCascade (348 lines, 6-layer compression) + QueryEngine (1,583 lines, multi-step iteration loop) |
-| 📷 | **Multimodal Image Chat** | Upload images for AI analysis; **Intelligent Vision Routing** — when the selected model lacks image input support, the system auto-routes to a vision-capable model from the same provider (with global fallback) and reverts to the original model after image processing. **Image Budget Guard** — large images (>50KB) are auto-externalized to lightweight JSON references, injected on-demand before API calls; two-phase token budget guard prevents multi-image conversations from accumulating beyond limits (≤1.5MB per image, ≤2MB total, max 5 concurrent injections). Supported models: gpt-5.5 / gpt-5.4-mini / claude-sonnet-4-6 / claude-opus-4-8 / qwen3.7-plus / kimi-k2.6 / kimi-k2.7-code / glm-5v-turbo / MiniMax-M3 / openai/gpt-5.5-pro / google/gemini-3.5-flash (max 5MB per image, image count limit varies by model) |
+| 📷 | **Multimodal Image Chat** | Upload images for AI analysis; **Intelligent Vision Routing** — when the selected model lacks image input support, the system auto-routes to a vision-capable model from the same provider (with global fallback) and reverts to the original model after image processing. **Image Budget Guard** — large images (>50KB) are auto-externalized to lightweight JSON references, injected on-demand before API calls; two-phase token budget guard prevents multi-image conversations from accumulating beyond limits (≤1.5MB per image, ≤2MB total, max 5 concurrent injections). Supported models: gpt-5.6-sol / gpt-5.4-mini / claude-sonnet-4-6 / claude-opus-4-8 / qwen3.7-plus / kimi-k2.6 / kimi-k2.7-code / glm-5v-turbo / MiniMax-M3 / openai/gpt-5.6-sol / google/gemini-3.5-flash (max 5MB per image, image count limit varies by model) |
 | 🖼️ | **Browser Semantic Snapshot** | `/snap` command captures full web page state (DOM structure + interactive elements), extracts structured JSON for Agent parsing and replay verification |
 | 📊 | **Real-Time Activity Tracking & Approval** | Activity Panel records full AI tool execution lifecycle, L1/L2/L3 three-layer display, Signal smart tagging (auto_approve/review_recommended/needs_review), one-click batch approval, SQLite backend persistence, session restoration support |
 | 🧪 | **Runtime Verification Framework** | VerifierFactory tri-modal dispatch (browser/http_api/auto) + 8 HTTP action handlers + JSONPath assertions + evidence chain SQLite storage + Feature Flag dual-gating + frontend real-time progress panel |
@@ -201,7 +201,7 @@ LLM_PROVIDER_ZHIPU_API_KEY=your-zhipu-api-key-here
 # MiniMax
 LLM_PROVIDER_MINIMAX_API_KEY=your-minimax-api-key-here
 
-# ZenMux (claude-opus-4.8 / claude-fable-5 / openai/gpt-5.5-pro / google/gemini-3.5-flash, 1M context)
+# ZenMux (claude-opus-4.8 / claude-fable-5 / openai/gpt-5.6-sol / google/gemini-3.5-flash, 1M context)
 LLM_PROVIDER_ZENMUX_API_KEY=your-zenmux-api-key-here
 ```
 
@@ -216,8 +216,8 @@ If no multi-Provider keys are configured, the system automatically falls back to
 | **Moonshot (Kimi)** | `https://api.moonshot.cn/v1` | kimi-k2.6 / kimi-k2.7-code | Direct connection; image support |
 | **Zhipu (GLM)** | `https://open.bigmodel.cn/api/paas/v4/chat/completions` | glm-5.2, glm-5v-turbo | China direct access |
 | **MiniMax** | `https://api.minimax.chat/v1` | MiniMax-M3 | 1M context window |
-| **ZenMux (Multi-Model Gateway)** | `https://zenmux.ai/api/v1` | anthropic/claude-opus-4.8 / claude-fable-5 / openai/gpt-5.5-pro / google/gemini-3.5-flash | 1M context · Image support |
-| **OpenAI** | `https://api.openai.com/v1` | gpt-5.5 / gpt-5.4-mini | Requires international network access |
+| **ZenMux (Multi-Model Gateway)** | `https://zenmux.ai/api/v1` | anthropic/claude-opus-4.8 / claude-fable-5 / openai/gpt-5.6-sol / google/gemini-3.5-flash | 1M context · Image support |
+| **OpenAI** | `https://api.openai.com/v1` | gpt-5.6-sol / gpt-5.4-mini | Requires international network access |
 | **Local Ollama** | `http://localhost:11434/v1` | All Ollama models (ollama/*) | Fully offline |
 
 > Any provider compatible with the OpenAI API format can be integrated — just configure the corresponding Base URL and API Key.
@@ -1216,7 +1216,7 @@ Any model compatible with the OpenAI API format, including:
 - **Moonshot / Kimi** (direct connection in China)
 - **Zhipu GLM** (direct connection in China)
 - **MiniMax** (direct connection in China)
-- **OpenAI gpt-5.5 / gpt-5.4-mini** (requires international network access)
+- **OpenAI gpt-5.6-sol / gpt-5.4-mini** (requires international network access)
 - **Anthropic Claude** (via OpenAI-compatible API)
 - **Local models** (via Ollama, vLLM, etc.)
 
