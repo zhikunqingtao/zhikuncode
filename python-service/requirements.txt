@@ -5,19 +5,19 @@
 # ═══════════════════════════════════════════════════════════════════
 
 # ──── 基础框架 ────
-fastapi==0.115.6
-uvicorn[standard]==0.32.1
-pydantic==2.10.3
+fastapi==0.139.0
+uvicorn[standard]==0.51.0
+pydantic==2.13.4
 httpx==0.28.1
 sse-starlette==2.1.3
 
 # ──── CODE_INTEL 域 ────
 # tree-sitter 0.21.x 与 tree-sitter-languages 1.10.x 是唯一兼容组合
 # 0.22.x+ 需要独立语言包（tree-sitter-python 等），不兼容 tree-sitter-languages
-tree-sitter==0.21.3
+tree-sitter==0.26.0
 tree-sitter-languages==1.10.2
-rope==1.13.0
-jedi==0.19.2
+rope==1.14.0
+jedi==0.20.0
 
 # ──── LSP_BRIDGE 域 ────
 pygls==1.3.1
@@ -25,27 +25,27 @@ pygls==1.3.1
 # ──── FILE_PROCESSING 域 ────
 chardet==5.2.0
 python-magic==0.4.27
-watchfiles==1.0.3
+watchfiles==1.2.0
 
 # ──── BASH_ANALYSIS ────
 bashlex==0.18
 
 # ──── Git 分析 ────
-gitpython==3.1.43
+gitpython==3.1.51
 
 # ──── MCP SDK ────
-mcp==1.12.4
+mcp==1.28.1
 
 # ──── Token 估算 ────
-tiktoken==0.12.0
+tiktoken==0.13.0
 
 # ──── CLI 域 (§4.21) ────
-typer[all]==0.24.1
+typer[all]==0.26.8
 httpx-sse==0.4.3
 rich==15.0.0
 
 # ──── BROWSER_AUTOMATION 域 (B3) ────
-playwright==1.58.0  # 安装后需执行: python -m playwright install chromium
+playwright==1.61.0  # 安装后需执行: python -m playwright install chromium
 
 # ──── HTTP_API 域 ────
 jsonpath-ng>=1.6.0
