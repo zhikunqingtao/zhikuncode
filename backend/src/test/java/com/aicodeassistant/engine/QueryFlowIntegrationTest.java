@@ -38,8 +38,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -100,16 +99,29 @@ class QueryFlowIntegrationTest {
             return new ContextCascade.CascadeResult(msgs, tokens, tokens, false, 0, false, 0, false, 0, false, false, null);
         });
 
+        TokenBudgetGuard tokenBudgetGuard = mock(TokenBudgetGuard.class);
+        when(tokenBudgetGuard.enforcePhase1(any(), anyInt()))
+                .thenAnswer(inv -> new TokenBudgetGuard.GuardResult(inv.getArgument(0), false, 0, 0));
+        when(tokenBudgetGuard.enforcePhase2(any(), anyInt()))
+                .thenAnswer(inv -> new TokenBudgetGuard.FinalBudgetResult(inv.getArgument(0), Set.of(), 0, inv.getArgument(1), true, ""));
+
+        ImageRefInjector imageRefInjector = mock(ImageRefInjector.class);
+        when(imageRefInjector.injectForApiCall(any(), anyInt(), anyInt(), any(), any()))
+                .thenAnswer(inv -> new ImageRefInjector.InjectResult(inv.getArgument(0), Set.of()));
+
+        ModelRegistry modelRegistryMock = mock(ModelRegistry.class);
+        when(modelRegistryMock.getContextWindowForModel(anyString())).thenReturn(200000);
+
         queryEngine = new QueryEngine(
                 providerRegistry, compactService, apiRetryService,
                 permissionPipeline, ruleRepo, tokenCounter, objectMapper,
                 streamingToolExecutor, messageNormalizer, hookService,
-                snipService, microCompactService, null, null, modelTierService, mock(FileHistoryService.class), mock(ToolResultSummarizer.class),
+                snipService, microCompactService, modelRegistryMock, null, modelTierService, mock(FileHistoryService.class), mock(ToolResultSummarizer.class),
                 contextCascade, mock(CompactMetrics.class),
                 null, null,  // incrementalCollapseManager, visualizationAutoRouter (both @Nullable)
                 null, mock(FeatureFlagService.class),  // backgroundAgentTracker (@Nullable), featureFlagService
                 new DefaultTerminationStrategy(), new ToolPriorityScheduler(), null,  // selfCorrectionLoop (@Nullable)
-                new AgentTimeoutConfig(), null  // agentTimeoutConfig, runTracker
+                new AgentTimeoutConfig(), tokenBudgetGuard, imageRefInjector, null  // agentTimeoutConfig, tokenBudgetGuard, imageRefInjector, runTracker
         );
 
         handler = new RecordingHandler();

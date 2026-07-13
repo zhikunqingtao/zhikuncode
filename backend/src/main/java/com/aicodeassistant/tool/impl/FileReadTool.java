@@ -37,13 +37,16 @@ public class FileReadTool implements Tool {
     private final SessionManager sessionManager;
     private final KeyFileTracker keyFileTracker;
     private final EncodingDetector encodingDetector;
+    private final ImageResultExternalizer imageExternalizer;
 
     public FileReadTool(PathSecurityService pathSecurity, SessionManager sessionManager,
-                        KeyFileTracker keyFileTracker, EncodingDetector encodingDetector) {
+                        KeyFileTracker keyFileTracker, EncodingDetector encodingDetector,
+                        ImageResultExternalizer imageExternalizer) {
         this.pathSecurity = pathSecurity;
         this.sessionManager = sessionManager;
         this.keyFileTracker = keyFileTracker;
         this.encodingDetector = encodingDetector;
+        this.imageExternalizer = imageExternalizer;
     }
 
     private static final long MAX_SIZE_BYTES = 200 * 1024 * 1024; // 200MB
@@ -157,10 +160,17 @@ public class FileReadTool implements Tool {
             // 4. 图片文件处理
             String ext = getExtension(filePath).toLowerCase();
             if (IMAGE_EXTENSIONS.contains(ext)) {
-                byte[] imageBytes = Files.readAllBytes(path);
-                String base64 = Base64.getEncoder().encodeToString(imageBytes);
                 String mimeType = detectMimeType(ext);
-                return ToolResult.image(base64, mimeType, fileSize);
+                if (fileSize > ImageResultExternalizer.EXTERNALIZE_THRESHOLD) {
+                    // 大图片: 外置化，不做 Base64 编码
+                    String refText = imageExternalizer.externalize(realPath, mimeType, fileSize);
+                    return ToolResult.text(refText).withMetadata("type", "image_ref");
+                } else {
+                    // 小图片: 保持原行为
+                    byte[] bytes = Files.readAllBytes(realPath);
+                    String base64 = Base64.getEncoder().encodeToString(bytes);
+                    return ToolResult.image(base64, mimeType, fileSize);
+                }
             }
 
             // 5. 编码检测

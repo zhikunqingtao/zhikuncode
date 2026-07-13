@@ -315,6 +315,29 @@ public class OpenAiCompatibleProvider implements LlmProvider {
                             toolMsg.put("content", resultContent != null ? resultContent.toString() : "");
                         }
                     }
+                    // P0 fix: ImageRefInjector 可能在同一 user 消息中追加了 ImageBlock，
+                    // 这些图片块在 tool_result → role:tool 转换时会被 continue 跳过。
+                    // 将它们收集为一条紧随其后的 role:user 多模态消息，确保模型能看到图片。
+                    boolean hasImage = blocks.stream().anyMatch(b ->
+                            b instanceof Map<?,?> m && "image".equals(m.get("type")));
+                    if (hasImage) {
+                        ObjectNode userImgMsg = messagesArray.addObject();
+                        userImgMsg.put("role", "user");
+                        ArrayNode contentArray = userImgMsg.putArray("content");
+                        for (Object block : blocks) {
+                            if (block instanceof Map<?,?> b && "image".equals(b.get("type"))) {
+                                Object srcObj = b.get("source");
+                                if (!(srcObj instanceof Map<?,?> src)) continue;
+                                Object mediaType = src.get("media_type");
+                                Object data = src.get("data");
+                                if (mediaType == null || data == null) continue;
+                                ObjectNode imgPart = contentArray.addObject();
+                                imgPart.put("type", "image_url");
+                                ObjectNode imgUrl = imgPart.putObject("image_url");
+                                imgUrl.put("url", "data:" + mediaType + ";base64," + data);
+                            }
+                        }
+                    }
                     continue;
                 }
 

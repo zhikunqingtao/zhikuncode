@@ -45,6 +45,9 @@ public class QueryLoopState {
     @com.fasterxml.jackson.annotation.JsonProperty("incrementalCollapseNeeded")
     private boolean incrementalCollapseNeeded = false;
 
+    /** 恢复耗尽标记 — 413/本地预算守卫恢复全部失败后设置，通知 execute() 标记 run 为 FAILED */
+    private boolean recoveryExhausted = false;
+
     public QueryLoopState(List<Message> messages, ToolUseContext toolUseContext) {
         this.messages = new ArrayList<>(messages);
         this.toolUseContext = toolUseContext;
@@ -148,6 +151,9 @@ public class QueryLoopState {
 
     public boolean isIncrementalCollapseNeeded() { return incrementalCollapseNeeded; }
     public void setIncrementalCollapseNeeded(boolean needed) { this.incrementalCollapseNeeded = needed; }
+
+    public boolean isRecoveryExhausted() { return recoveryExhausted; }
+    public void setRecoveryExhausted(boolean exhausted) { this.recoveryExhausted = exhausted; }
 
     // ==================== Withheld Errors ====================
 

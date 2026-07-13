@@ -52,8 +52,8 @@
 | 🔒 | **深度安全架构** | 8 层 Bash 沙箱(错误分类+输出截断+进程树管理) + 14 步权限管道（PermissionPipeline 817行，Step 1a-1k 前置安全检查 + Step 2a-2b 模式应用 + Step 3 最终转换） + 308 项安全测试覆盖（含 v9.3 新增 19 个 CWE-22 深度防御单测），命令执行前必过安全关卡 |
 | 🇨🇳 | **国产大模型直连** | 千问 / DeepSeek / Moonshot / 智谱GLM / MiniMax 开箱即用，国内网络直连，无需科学上网 |
 | 🐳 | **Docker 一键部署** | `docker compose up -d` 一条命令启动，数据存本地，完全私有 |
-| ⚡ | **智能上下文管理** | 六层压缩级联（Snip / MicroCompact / ContextCollapse / AutoCompact / CollapseDrain / ReactiveCompact）+ 增量折叠（每10轮自动压缩）+ 413 两阶段恢复（CollapseDrain 激进压缩 → ReactiveCompact 反应式压缩）+ 精确 Token 计数（tiktoken 多模型支持）+ 自纠错循环（SelfCorrectionLoop，编译/测试失败自动诊断修复，最多3次）+ Token三级告警，无缝应对超长对话。核心引擎：ContextCascade（348行，6层压缩）+ QueryEngine（1,583行，多步迭代循环） |
-| 📷 | **多模态图片对话** | 支持图片上传输入，模型自动识别图片内容并分析；**智能视觉模型路由**——当前模型不支持图片时，自动切换至同厂商视觉模型处理，处理完成后无缝切回原模型，遵循"同厂商优先 + 全局兜底"策略。支持的模型：gpt-5.5 / gpt-5.4-mini / claude-sonnet-4-6 / claude-opus-4-8 / qwen3.7-plus / kimi-k2.6 / kimi-k2.7-code / glm-5v-turbo / MiniMax-M3 / openai/gpt-5.5-pro / google/gemini-3.5-flash（单张≤5MB，数量上限因模型而异） |
+| ⚡ | **智能上下文管理** | 六层压缩级联（Snip / MicroCompact / ContextCollapse / AutoCompact / CollapseDrain / ReactiveCompact）+ 增量折叠（每10轮自动压缩）+ 413 两阶段恢复（CollapseDrain 激进压缩 → ReactiveCompact 反应式压缩）+ 精确 Token 计数（tiktoken 多模型支持）+ 自纠错循环（SelfCorrectionLoop，编译/测试失败自动诊断修复，最多3次）+ Token三级告警 + 图片上下文治理（大图外置化 → 按需注入 → 预算守卫三层防护），无缝应对超长对话。核心引擎：ContextCascade（348行，6层压缩）+ QueryEngine（1,583行，多步迭代循环） |
+| 📷 | **多模态图片对话** | 支持图片上传输入，模型自动识别图片内容并分析；**智能视觉模型路由**——当前模型不支持图片时，自动切换至同厂商视觉模型处理，处理完成后无缝切回原模型，遵循"同厂商优先 + 全局兜底"策略。**图片预算守卫**——大图片（>50KB）自动外置化为轻量 JSON 引用，API 调用前按需注入，两阶段 Token 预算守卫确保多图对话不累积超限（单张≤1.5MB，总量≤2MB，最多 5 张并发注入）。支持的模型：gpt-5.5 / gpt-5.4-mini / claude-sonnet-4-6 / claude-opus-4-8 / qwen3.7-plus / kimi-k2.6 / kimi-k2.7-code / glm-5v-turbo / MiniMax-M3 / openai/gpt-5.5-pro / google/gemini-3.5-flash（单张≤5MB，数量上限因模型而异） |
 | 🖼️ | **浏览器语义快照** | `/snap` 命令智能捕获网页完整状态（DOM 结构 + 交互元素），支持富交互页面语义提取，生成结构化 JSON 供 Agent 解析和回放验证 |
 | 📊 | **实时活动追踪与审批** | Activity Panel 实时记录 AI 工具执行全流程，L1/L2/L3 三层展示体系，Signal 智能标记（auto_approve/review_recommended/needs_review），一键批量审批决策，SQLite 后端持久化，支持会话恢复 |
 | 🧪 | **运行时验证框架（Runtime Verification）** | VerifierFactory 三模态分发（browser/http_api/auto）+ 8 种 HTTP action handler + JSONPath 断言 + 证据链 SQLite 存储 + Feature Flag 双重门控 + 前端实时进度面板 |
@@ -397,6 +397,8 @@ ZhikunCode 的智能决策由五大核心引擎协同驱动：
 | **查询引擎（QueryEngine）** | 1,583行 | Agent 决策与工具执行编排 | 多步迭代循环，驱动完整 Agent Loop |
 | **权限管道（PermissionPipeline）** | 817行 | 安全决策短路链 | 14步短路决策（Step 1a-1k + 2a-2b + 3），命中即返回 |
 | **上下文级联（ContextCascade）** | 348行 | 上下文压缩与恢复 | 6层级联 + 413两阶段恢复 |
+| **图片注入器（ImageRefInjector）** | ~300行 | 图片引用安全注入与预算管理 | 三阶段选取（收集→最新优先→正向注入），双预算（单张1.5MB/总量2MB），6步校验，SHA-256去重 |
+| **Token预算守卫（TokenBudgetGuard）** | ~400行 | 两阶段 Token 预算控制 | Phase1 历史 Base64 预清理 + Phase2 最终 payload 三级梯度降级，防止请求超限 |
 | **工具执行管线（ToolExecutionPipeline）** | 618行 | 工具执行全生命周期 | 7主阶段（含2个子阶段）严格顺序 |
 | **自纠错循环（SelfCorrectionLoop）** | — | 错误诊断与自动修复 | MAX_ATTEMPTS=3(默认)/7(SWE-bench) |
 
@@ -1081,7 +1083,7 @@ ZhikunCode 内置 50 个工具 + MCP 动态扩展，覆盖开发全流程：
 
 | 分类 | 工具 | 说明 |
 |------|------|------|
-| **文件操作** | FileRead、FileWrite、FileEdit、NotebookEdit | 读取、写入、编辑文件（原子写入+SHA-256冲突检测），支持 Jupyter Notebook |
+| **文件操作** | FileRead、FileWrite、FileEdit、NotebookEdit | 读取、写入、编辑文件（原子写入+SHA-256冲突检测），支持 Jupyter Notebook；FileRead 支持大图片自动外置化（>50KB 转 JSON 引用，由 ImageRefInjector 按需注入） |
 | **代码搜索** | GrepTool、GlobTool、ToolSearch、LspTool、SnipTool | 正则搜索、文件匹配、工具搜索、LSP 语言服务（含调用层级分析）、代码片段、智能分层搜索（作用域感知 4 层优先级路由） |
 | **命令执行** | BashTool、PowerShellTool、REPLTool | Shell 沙箱执行（动态超时分类 + 指数退避恢复）、Windows PowerShell、交互式 REPL 会话 |
 | **Git 操作** | GitTool、Worktree | Git 命令执行、Worktree 管理 |

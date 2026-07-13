@@ -60,6 +60,8 @@ class QueryEngineUnitTest {
     @Mock ContextCascade contextCascade;
     @Mock CompactMetrics compactMetrics;
     @Mock FeatureFlagService featureFlagService;
+    @Mock TokenBudgetGuard tokenBudgetGuard;
+    @Mock ImageRefInjector imageRefInjector;
     @Mock RunTracker runTracker;
 
     private ObjectMapper objectMapper;
@@ -78,7 +80,7 @@ class QueryEngineUnitTest {
                 toolResultSummarizer, contextCascade, compactMetrics,
                 null, null,  // incrementalCollapseManager, visualizationAutoRouter (both @Nullable)
                 null, featureFlagService,  // backgroundAgentTracker (@Nullable), featureFlagService
-                new DefaultTerminationStrategy(), new ToolPriorityScheduler(), null, new AgentTimeoutConfig(), runTracker);  // selfCorrectionLoop, agentTimeoutConfig, runTracker
+                new DefaultTerminationStrategy(), new ToolPriorityScheduler(), null, new AgentTimeoutConfig(), tokenBudgetGuard, imageRefInjector, runTracker);  // selfCorrectionLoop, agentTimeoutConfig, tokenBudgetGuard, imageRefInjector, runTracker
         handler = new TestHandler();
 
         // 默认 Snip/MicroCompact mock: 直接返回原消息列表
@@ -87,6 +89,16 @@ class QueryEngineUnitTest {
                 .thenReturn(new MicroCompactService.MicroCompactResult(List.of(), 0));
         // 默认 ModelTierService mock: 返回原模型（无降级）
         lenient().when(modelTierService.resolveModel(anyString(), anyList())).thenAnswer(inv -> inv.getArgument(0));
+        // 默认 ModelRegistry mock: 返回合理的 contextWindow
+        lenient().when(modelRegistry.getContextWindowForModel(anyString())).thenReturn(200000);
+        // 默认 TokenBudgetGuard mock: 直接放行
+        lenient().when(tokenBudgetGuard.enforcePhase1(anyList(), anyInt()))
+                .thenAnswer(inv -> new TokenBudgetGuard.GuardResult(inv.getArgument(0), false, 0, 0));
+        lenient().when(tokenBudgetGuard.enforcePhase2(anyList(), anyInt()))
+                .thenAnswer(inv -> new TokenBudgetGuard.FinalBudgetResult(inv.getArgument(0), Set.of(), 0, inv.getArgument(1), true, ""));
+        // 默认 ImageRefInjector mock: 直接返回原消息
+        lenient().when(imageRefInjector.injectForApiCall(anyList(), anyInt(), anyInt(), any(), any()))
+                .thenAnswer(inv -> new ImageRefInjector.InjectResult(inv.getArgument(0), Set.of()));
         // 默认 ContextCascade mock: 直接返回原消息列表（无压缩）
         lenient().when(contextCascade.executePreApiCascade(anyList(), anyString(), any()))
                 .thenAnswer(inv -> {

@@ -121,3 +121,6 @@ docs/swe-bench/20260602/
 experiments/
 
 backend/typhoon-tracker
+
+backend/.ppt_build
+backend/.ppt_work

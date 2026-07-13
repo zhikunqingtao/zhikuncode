@@ -220,7 +220,9 @@ public class AnthropicProvider implements LlmProvider {
                 if (call.isCanceled()) {
                     callback.onComplete(); // abort
                 } else {
-                    callback.onError(e);
+                    // P0-2: 包装为 LlmApiException 保持一致性，确保能被 retry 机制捕获
+                    callback.onError(new LlmApiException(
+                            "Anthropic stream IO error: " + e.getMessage(), e, true));
                 }
             } finally {
                 activeCalls.remove(sessionId);
@@ -261,15 +263,16 @@ public class AnthropicProvider implements LlmProvider {
             if (!line.startsWith("data: ")) continue;
             String json = line.substring(6);
 
-            // Handle error event
+            // Handle error event — P0-2: 抛出异常而非 callback.onError，
+            // 确保错误能被上层 catch 捕获并传递给 callback.onError，
+            // 避免 onError + onComplete 双调用问题
             if ("error".equals(pendingEventType)) {
                 JsonNode errorEvent = objectMapper.readTree(json);
                 String errorType = errorEvent.path("error").path("type").asText("unknown");
                 String errorMsg = errorEvent.path("error").path("message").asText();
                 boolean retryable = "overloaded_error".equals(errorType)
                         || "rate_limit_error".equals(errorType);
-                callback.onError(new LlmApiException(errorMsg, retryable, 0));
-                return;
+                throw new LlmApiException(errorMsg, retryable, 0);
             }
 
             JsonNode event = objectMapper.readTree(json);

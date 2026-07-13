@@ -38,6 +38,7 @@ class FileReadToolUnitTest {
     @Mock private SessionManager sessionManager;
     @Mock private KeyFileTracker keyFileTracker;
     @Mock private EncodingDetector encodingDetector;
+    @Mock private ImageResultExternalizer imageExternalizer;
 
     @TempDir
     Path tempDir;
@@ -80,8 +81,8 @@ class FileReadToolUnitTest {
             throw new RuntimeException(e);
         }
 
-        // FileReadTool 构造函数为 4 参数（PathSecurityService, SessionManager, KeyFileTracker, EncodingDetector）
-        fileReadTool = new FileReadTool(pathSecurityService, sessionManager, keyFileTracker, encodingDetector);
+        // FileReadTool 构造函数为 5 参数（PathSecurityService, SessionManager, KeyFileTracker, EncodingDetector, ImageResultExternalizer）
+        fileReadTool = new FileReadTool(pathSecurityService, sessionManager, keyFileTracker, encodingDetector, imageExternalizer);
         context = ToolUseContext.of(tempDir.toString(), "test-session");
     }
 
