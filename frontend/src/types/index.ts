@@ -399,6 +399,7 @@ export interface DenialTrackingState {
 export interface PermissionRequest {
     interactionId?: string;
     version?: number;
+    deliveryGeneration?: number;
     toolUseId: string;
     toolName: string;
     input: Record<string, unknown>;

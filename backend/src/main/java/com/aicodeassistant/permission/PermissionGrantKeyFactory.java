@@ -22,8 +22,11 @@ public class PermissionGrantKeyFactory {
             if ("Bash".equals(toolName) || "BashTool".equals(toolName)) {
                 String command = input.getOptionalString("command").orElse(null);
                 if (command == null || command.isBlank() || "high".equalsIgnoreCase(riskClass)) return Optional.empty();
+                // Grant Key 基于 工具+动作+风险级别+工作目录，不含具体命令
+                // 这样同目录下同风险级别的命令共享一个 Grant
+                String descriptor = toolName + '\n' + "execute" + '\n' + riskClass + '\n' + canonicalCwd;
                 return Optional.of(new GrantKey(toolName, "execute", riskClass,
-                        sha256(command.getBytes(StandardCharsets.UTF_8)), null,
+                        sha256(descriptor.getBytes(StandardCharsets.UTF_8)), null,
                         canonicalCwd.toString(), false));
             }
             if (toolName.matches("File(Read|Write|Edit)(Tool)?")) {
@@ -49,6 +52,17 @@ public class PermissionGrantKeyFactory {
                         sha256(exactDescriptor.getBytes(StandardCharsets.UTF_8)),
                         sha256(workspaceDescriptor.getBytes(StandardCharsets.UTF_8)),
                         canonicalCwd.toString(), true));
+            }
+            // 网络工具（WebBrowser, WebFetch, WebSearch 等）：基于 action 类型生成 Grant Key
+            if (toolName.matches("Web(Browser|Fetch|Search)(Tool)?")) {
+                String action = input.getOptionalString("action").orElse("");
+                if (action.isBlank()) {
+                    action = "default";
+                }
+                String descriptor = toolName + '\n' + action + '\n' + riskClass;
+                return Optional.of(new GrantKey(toolName, action, riskClass,
+                        sha256(descriptor.getBytes(StandardCharsets.UTF_8)), null,
+                        canonicalCwd.toString(), false));
             }
             return Optional.empty();
         } catch (Exception e) { return Optional.empty(); }

@@ -17,8 +17,9 @@ class PermissionGrantKeyFactoryTest {
     @TempDir Path workspace;
     private final PermissionGrantKeyFactory factory = new PermissionGrantKeyFactory();
 
+    /** Bash grant is per-cwd and per-risk-class, not per-command. */
     @Test
-    void bashGrantIsExactSessionOnlyAndHighRiskFailsClosed() throws Exception {
+    void bashGrantIsPerCwdAndPerRiskClassNotPerCommand() throws Exception {
         Tool tool = mock(Tool.class);
         when(tool.getName()).thenReturn("Bash");
         ToolInput first = ToolInput.from(Map.of("command", "git status"));
@@ -26,8 +27,17 @@ class PermissionGrantKeyFactoryTest {
 
         var key = factory.create(tool, first, workspace.toString(), "low").orElseThrow();
         assertThat(key.workspaceAllowed()).isFalse();
+
+        // Same cwd + same risk class → same hash regardless of command
         assertThat(factory.create(tool, second, workspace.toString(), "low").orElseThrow().hash())
+                .isEqualTo(key.hash());
+
+        // Different canonicalCwd → different hash
+        Path otherDir = Files.createTempDirectory("other");
+        assertThat(factory.create(tool, first, otherDir.toString(), "low").orElseThrow().hash())
                 .isNotEqualTo(key.hash());
+
+        // High-risk commands fail closed (returns empty)
         assertThat(factory.create(tool, first, workspace.toString(), "high")).isEmpty();
     }
 

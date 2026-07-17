@@ -36,7 +36,7 @@ class WebSocketStompIntegrationTest {
     @BeforeEach
     void setUp() {
         messaging = mock(SimpMessagingTemplate.class);
-        sessionManager = new WebSocketSessionManager();
+        sessionManager = new WebSocketSessionManager(null);
         QueryEngine queryEngine = mock(QueryEngine.class);
         ToolRegistry toolRegistry = mock(ToolRegistry.class);
         LlmProviderRegistry providerRegistry = mock(LlmProviderRegistry.class);

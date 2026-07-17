@@ -27,6 +27,8 @@ import java.util.concurrent.Semaphore;
 @Service
 @DependsOn("migrationRunner")
 public class DurableInteractionService {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DurableInteractionService.class);
+
     public static final int DELIVERY_WINDOW_SECONDS = 30;
     public static final int ACK_WINDOW_SECONDS = 5;
     public static final int DECISION_SECONDS = 300;
@@ -149,7 +151,13 @@ public class DurableInteractionService {
     }
 
     public boolean acknowledgeReceived(String id, int deliveryGeneration, String transportId) {
-        if (deliveryGeneration < 1 || transportId == null) return false;
+        if (transportId == null) return false;
+        if (deliveryGeneration < 1) {
+            // 客户端未传或传了默认值，降级为接受任何代际（向后兼容）
+            log.warn("ACK received without valid deliveryGeneration (got {}), accepting as best-effort: interactionId={}",
+                    deliveryGeneration, id);
+            return acknowledgeWithoutGenerationCheck(id, transportId);
+        }
         Instant now = Instant.now();
         return write(() -> {
             int updated = jdbc.update("""
@@ -172,6 +180,36 @@ public class DurableInteractionService {
                     "SELECT COUNT(*) FROM interaction_requests WHERE interaction_id=? AND received_at IS NOT NULL " +
                             "AND delivery_generation=?",
                     Integer.class, id, deliveryGeneration);
+            return already != null && already == 1;
+        });
+    }
+
+    /**
+     * 降级路径：不带 delivery_generation 条件的 ACK 确认。
+     * 仅匹配 interaction_id + status='pending' + received_at IS NULL，
+     * 用于客户端未传 deliveryGeneration 时的向后兼容。
+     */
+    private boolean acknowledgeWithoutGenerationCheck(String id, String transportId) {
+        Instant now = Instant.now();
+        return write(() -> {
+            int updated = jdbc.update("""
+                UPDATE interaction_requests SET received_at=?,decision_deadline_at=?,last_transport_id=?,
+                  updated_at=? WHERE interaction_id=? AND status='pending'
+                  AND received_at IS NULL
+                  AND ((delivery_ack_deadline_at IS NOT NULL AND delivery_ack_deadline_at>=?)
+                    OR (delivery_ack_deadline_at IS NULL AND delivery_window_ends_at>=?))
+                """, now.toString(), now.plusSeconds(DECISION_SECONDS).toString(), transportId,
+                now.toString(), id, now.toString(), now.toString());
+            if (updated == 1) {
+                InteractionRequest request = findById(id);
+                runs.appendEventInCurrentWrite(request.runId(), "interaction_updated", null, Map.of(
+                        "interactionId", id, "status", "pending", "received", true,
+                        "decisionDeadlineAt", request.decisionDeadlineAt().toEpochMilli()));
+                return true;
+            }
+            Integer already = jdbc.queryForObject(
+                    "SELECT COUNT(*) FROM interaction_requests WHERE interaction_id=? AND received_at IS NOT NULL",
+                    Integer.class, id);
             return already != null && already == 1;
         });
     }

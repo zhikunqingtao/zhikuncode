@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class WebSocketSessionManagerV2Test {
-    private final WebSocketSessionManager manager = new WebSocketSessionManager();
+    private final WebSocketSessionManager manager = new WebSocketSessionManager(null);
 
     @AfterEach void close() { manager.destroy(); }
 

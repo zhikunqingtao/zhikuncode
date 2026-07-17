@@ -470,18 +470,26 @@ public class StreamingToolExecutor {
             ToolResult result = next.result;
             if (result == null || !result.isError() || next.tool == null) return;
 
-            // ★ 输入验证错误不触发级联 — LLM 格式输出错误不等于工具执行失败
-            String content = result.content();
-            if (content != null && content.contains("Input validation")) {
-                log.debug("[TOOL-CASCADE] Skipping cascade for input validation error in tool '{}': {}",
-                        next.tool.getName(), content.substring(0, Math.min(100, content.length())));
-                return;
+            // ★ FailureType 枚举判断：非系统级失败不触发级联丢弃
+            if (result.failureType() != null) {
+                switch (result.failureType()) {
+                    case PERMISSION:
+                    case VALIDATION:
+                        // 权限类/验证类是单工具级别的问题，不应级联丢弃兄弟工具
+                        log.info("[TOOL-CASCADE] Skipping cascade discard for non-systemic failure: type={}, toolUseId={}",
+                                result.failureType(), next.toolUseId);
+                        return;
+                    default:
+                        // PROCESS, NETWORK, INTERNAL, PROVIDER 等可能表示系统级问题，保留级联判断
+                        break;
+                }
             }
 
             boolean shouldCascade = next.tool.isHighRisk();
             if (!shouldCascade || sessionDiscarded) return;
 
             String toolName = next.tool.getName();
+            String content = result.content();
             String snippet = content != null
                     ? content.substring(0, Math.min(200, content.length()))
                     : "null";

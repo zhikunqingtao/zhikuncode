@@ -5,13 +5,17 @@ import jakarta.annotation.PreDestroy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.event.EventListener;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionConnectedEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 import java.security.Principal;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,6 +38,11 @@ import java.util.concurrent.TimeUnit;
 public class WebSocketSessionManager {
 
     private static final Logger log = LoggerFactory.getLogger(WebSocketSessionManager.class);
+    private final JdbcTemplate jdbc;
+
+    public WebSocketSessionManager(@Qualifier("projectJdbcTemplate") JdbcTemplate jdbc) {
+        this.jdbc = jdbc;
+    }
 
     /** 映射最大存活时间（无活跃连接时），防止 disconnect 事件丢失导致内存泄漏 */
     // Transport heartbeats and every inbound STOMP frame refresh this lease. 180s
@@ -102,6 +111,9 @@ public class WebSocketSessionManager {
 
         String principalName = user.getName();
         registerTransport(transportSessionId, principalName);
+
+        // 尝试从数据库恢复旧的会话绑定（服务重启后内存映射清空的情况）
+        tryRecoverBinding(principalName, transportSessionId);
         log.debug("WebSocket connected and awaiting bind-session: principal={}", principalName);
     }
 
@@ -145,10 +157,19 @@ public class WebSocketSessionManager {
         return getPrincipalsForSession(sessionId).stream().findFirst().orElse(null);
     }
     public Set<String> getPrincipalsForSession(String sessionId) {
-        Set<String> ids=sessionToTransports.get(sessionId);
-        if(ids==null)return Set.of();
+        return getPrincipalsForSession(sessionId, false);
+    }
+
+    /**
+     * 获取会话绑定的 principal 列表。
+     * @param includePendingBind 为 true 时，也返回已连接但未完成 bind 的 transport 的 principal（用于关键消息降级推送）
+     */
+    public Set<String> getPrincipalsForSession(String sessionId, boolean includePendingBind) {
+        Set<String> ids = sessionToTransports.get(sessionId);
+        if (ids == null) return Set.of();
         return ids.stream().map(transports::get).filter(java.util.Objects::nonNull)
-                .filter(TransportState::bindCompleted).map(TransportState::principalName)
+                .filter(t -> includePendingBind || t.bindCompleted())
+                .map(TransportState::principalName)
                 .collect(java.util.stream.Collectors.toUnmodifiableSet());
     }
     public Set<String> getTransportIdsForSession(String sessionId) {
@@ -185,6 +206,9 @@ public class WebSocketSessionManager {
         });
         sessionToTransports.computeIfAbsent(sessionId,ignored->ConcurrentHashMap.newKeySet()).add(transportId);
         sessionOfflineSince.remove(sessionId);
+
+        // 持久化绑定信息到数据库
+        persistBinding(principalName, sessionId, bindingEpoch);
         log.debug("Session transport bound: principal={}, transport={}, sessionId={}",principalName,transportId,sessionId);
     }
 
@@ -268,5 +292,50 @@ public class WebSocketSessionManager {
     private void removeSessionIndex(String sessionId,String transportId){
         Set<String> ids=sessionToTransports.get(sessionId);
         if(ids!=null){ids.remove(transportId);if(ids.isEmpty())sessionToTransports.remove(sessionId,ids);}
+    }
+
+    // ───── 持久化与恢复 ─────
+
+    /**
+     * 将当前绑定信息持久化到数据库 — 支持服务重启后恢复。
+     */
+    private void persistBinding(String principalName, String sessionId, long bindingEpoch) {
+        try {
+            jdbc.update(
+                    "INSERT OR REPLACE INTO websocket_session_binding (principal_name, app_session_id, binding_epoch, last_activity_at) VALUES (?, ?, ?, datetime('now'))",
+                    principalName, sessionId, bindingEpoch
+            );
+        } catch (Exception e) {
+            log.warn("Failed to persist WebSocket binding: principal={}, session={}", principalName, sessionId, e);
+        }
+    }
+
+    /**
+     * 服务重启后，从数据库恢复上次的会话绑定 — 避免客户端心跳在bind-session前触发SESSION_NOT_BOUND。
+     */
+    private void tryRecoverBinding(String principalName, String transportId) {
+        try {
+            List<Map<String, Object>> rows = jdbc.queryForList(
+                    "SELECT app_session_id, binding_epoch FROM websocket_session_binding WHERE principal_name = ?",
+                    principalName
+            );
+            if (!rows.isEmpty()) {
+                Map<String, Object> row = rows.get(0);
+                String recoveredSessionId = (String) row.get("app_session_id");
+                long recoveredEpoch = ((Number) row.get("binding_epoch")).longValue();
+                // 直接绑定到恢复的会话（等同于执行了一次bindSession，但epoch用恢复值+1避免STALE拒绝）
+                long now = System.nanoTime();
+                TransportState current = transports.get(transportId);
+                if (current != null && !current.bindCompleted()) {
+                    transports.put(transportId, current.bind(recoveredSessionId, now, recoveredEpoch));
+                    sessionToTransports.computeIfAbsent(recoveredSessionId, ignored -> ConcurrentHashMap.newKeySet()).add(transportId);
+                    sessionOfflineSince.remove(recoveredSessionId);
+                    log.info("Auto-recovered WebSocket binding from persistence: principal={}, session={}, epoch={}",
+                            principalName, recoveredSessionId, recoveredEpoch);
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to recover WebSocket binding: principal={}", principalName, e);
+        }
     }
 }

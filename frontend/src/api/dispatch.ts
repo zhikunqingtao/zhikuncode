@@ -47,6 +47,13 @@ let activeRecoveryId: string | null = null;
 let nextBindingEpoch = 0;
 let boundBindingEpoch = 0;
 
+/** 恢复状态下仍需立即处理的关键消息类型（时间敏感，不可延迟或丢弃） */
+const RECOVERY_BYPASS_TYPES: ReadonlySet<string> = new Set([
+    'session_restored', 'protocol_error',
+    'interaction_created', 'interaction_updated', 'interaction_terminal',
+    'permission_request', 'permission_mode_changed'
+]);
+
 /** 已绑定的会话 ID — 跟踪当前 WS 连接已绑定的 sessionId，避免重复发送 bind-session */
 let boundSessionId: string | null = null;
 
@@ -86,6 +93,7 @@ function handleInteractionCreated(interaction: InteractionView): void {
         handlePermissionRequest({
             interactionId: interaction.interactionId,
             version: interaction.version,
+            deliveryGeneration: interaction.deliveryGeneration,
             toolUseId: interaction.correlationKey,
             toolName: String(prompt.toolName ?? 'unknown'),
             input: { command: String(prompt.inputSummary ?? '') },
@@ -169,13 +177,17 @@ function finishBind(bindRequestId: string, restored: boolean, replayQueued: bool
  */
 export function dispatch(data: ServerMessage & { ts?: number }): void {
     const routed = data as ServerMessage & { ts?: number; _sessionId?: string; _bindingEpoch?: number };
-    if (activeRecoveryId && data.type !== 'session_restored' && data.type !== 'protocol_error') {
+    if (activeRecoveryId && !RECOVERY_BYPASS_TYPES.has(data.type)) {
         const pending = pendingBinds.get(activeRecoveryId);
         if (pending) {
             if (routed._sessionId && (routed._sessionId !== pending.sessionId
-                    || routed._bindingEpoch !== pending.bindingEpoch)) return;
+                    || routed._bindingEpoch !== pending.bindingEpoch)) {
+                console.warn(`[WS] Recovery filter: discarding message type=${data.type}, sessionId mismatch`);
+                return;
+            }
             if (pending.queued.length >= 5000) pending.queued.shift();
             pending.queued.push(data);
+            console.warn(`[WS] Recovery filter: queuing message type=${data.type} until session restore completes`);
             return;
         }
     }
@@ -617,7 +629,11 @@ function handlePermissionRequest(data: PermissionRequest): void {
     useSessionStore.getState().setStatus('waiting_permission');
     // ACK only after the reducer accepted the request into the visible inbox.
     void import('./stompClient').then(({ send }) =>
-        send('/app/interaction-received', { interactionId: data.interactionId, correlationKey: data.toolUseId }));
+        send('/app/interaction-received', {
+            interactionId: data.interactionId,
+            deliveryGeneration: data.deliveryGeneration,
+            correlationKey: data.toolUseId,
+        }));
 }
 
 /**

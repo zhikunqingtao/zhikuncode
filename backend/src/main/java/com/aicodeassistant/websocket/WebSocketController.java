@@ -180,10 +180,11 @@ public class WebSocketController implements PermissionNotifier {
      * @param payload   消息负载 (会被 Jackson 序列化为 JSON 字段)
      */
     public void pushToUser(String sessionId, String type, Object payload) {
-        Set<String> principals = wsSessionManager.getPrincipalsForSession(sessionId);
+        boolean isCritical = isCriticalMessage(type);
+        Set<String> principals = wsSessionManager.getPrincipalsForSession(sessionId, isCritical);
         if (principals.isEmpty()) {
             log.warn("push skipped: eventType={}, sessionId={}, runId=unknown, seq=unknown, isRecoverable={}",
-                    type,sessionId,isCriticalMessage(type));
+                    type,sessionId,isCritical);
             return;
         }
 
@@ -212,9 +213,10 @@ public class WebSocketController implements PermissionNotifier {
      * 推送 Map payload（扁平结构）。
      */
     private void push(String sessionId, String type, Map<String, Object> fields) {
-        Set<String> principals = wsSessionManager.getPrincipalsForSession(sessionId);
+        boolean isCritical = isCriticalMessage(type);
+        Set<String> principals = wsSessionManager.getPrincipalsForSession(sessionId, isCritical);
         if (principals.isEmpty()) {
-            if (isCriticalMessage(type)) {
+            if (isCritical) {
                 log.warn("push unavailable: eventType={}, sessionId={}, runId={}, seq={}, isRecoverable=true",
                         type,sessionId,fields.getOrDefault("runId","unknown"),fields.getOrDefault("seq","unknown"));
             } else {
@@ -1409,9 +1411,24 @@ public class WebSocketController implements PermissionNotifier {
      */
     @MessageMapping("/ping")
     public void handlePing(Principal principal, SimpMessageHeaderAccessor headers) {
-        String sessionId = resolveSessionId(principal);
-        wsSessionManager.refreshTransport(headers == null ? null : headers.getSessionId());
-        sendPong(sessionId);
+        String transportId = headers == null ? null : headers.getSessionId();
+        wsSessionManager.refreshTransport(transportId);
+        try {
+            String sessionId = resolveSessionId(principal);
+            sendPong(sessionId);
+        } catch (IllegalStateException e) {
+            if ("SESSION_NOT_BOUND".equals(e.getMessage())) {
+                // 心跳仍有效：刷新transport活跃时间，响应pong但标记需要绑定
+                if (principal != null) {
+                    pushToPrincipal(principal.getName(), "pong",
+                            Map.of("bindRequired", true, "serverNow", System.currentTimeMillis()));
+                }
+                log.debug("Heartbeat from unbound session, responded with bindRequired: principal={}, transport={}",
+                        principal != null ? principal.getName() : "unknown", transportId);
+            } else {
+                throw e;
+            }
+        }
     }
 
     /**

@@ -344,13 +344,27 @@ public class PermissionPipeline {
             var key = grantKeyFactory.create(tool, input, context.workingDirectory(), step2bRiskLevel);
             if (key.isPresent()) {
                 boolean child = context.parentSessionId() != null;
-                boolean grantMatch = child
-                        ? isChildExactEligible(tool, input, step2bRiskLevel)
-                          && grantStore.matchesChildExact(context.parentSessionId(), context.currentRunId(),
-                                context.sessionId(), childAgentType(context), key.get())
-                        : grantStore.matchesSession(context.currentRunId(), context.sessionId(), key.get())
-                          || grantStore.matchesWorkspace(context.currentRunId(), grantKeyFactory.workspaceHash(
-                                  key.get().canonicalCwd()), key.get());
+                boolean grantMatch;
+                if (child) {
+                    // 先尝试 child-exact 匹配（低风险只读命令的精确复用）
+                    grantMatch = isChildExactEligible(tool, input, step2bRiskLevel)
+                            && grantStore.matchesChildExact(context.parentSessionId(), context.currentRunId(),
+                                    context.sessionId(), childAgentType(context), key.get());
+                    // 回退：检查父会话的 SESSION grant（用户在 bubble 弹窗中授权的）
+                    if (!grantMatch) {
+                        grantMatch = grantStore.matchesSession(context.currentRunId(),
+                                context.parentSessionId(), key.get());
+                        if (!grantMatch && key.get().canonicalCwd() != null) {
+                            grantMatch = grantStore.matchesWorkspace(context.currentRunId(),
+                                    grantKeyFactory.workspaceHash(key.get().canonicalCwd()), key.get());
+                        }
+                    }
+                } else {
+                    grantMatch = grantStore.matchesSession(context.currentRunId(),
+                            context.sessionId(), key.get())
+                            || grantStore.matchesWorkspace(context.currentRunId(),
+                                    grantKeyFactory.workspaceHash(key.get().canonicalCwd()), key.get());
+                }
                 if (grantMatch) {
                     return PermissionDecision.allow(PermissionDecisionReason.OTHER, null);
                 }
@@ -375,7 +389,7 @@ public class PermissionPipeline {
         }
 
         log.debug("Step 3: applyModeTransformation: tool={}, behavior={}, mode={}", tool.getName(), toolBehavior, mode);
-        return applyModeTransformation(toolBehavior, mode, tool, input);
+        return applyModeTransformation(toolBehavior, mode, tool, input, step2bRiskLevel);
     }
 
     private String checkBashEnvironmentAccess(String command) {
@@ -410,7 +424,7 @@ public class PermissionPipeline {
      */
     private PermissionDecision applyModeTransformation(
             PermissionBehavior behavior, PermissionMode mode,
-            Tool tool, ToolInput input) {
+            Tool tool, ToolInput input, String riskLevel) {
 
         if (behavior != PermissionBehavior.ASK) {
             // 非 ask 行为直接返回
@@ -422,6 +436,10 @@ public class PermissionPipeline {
 
         return switch (mode) {
             case DEFAULT -> {
+                if ("low".equalsIgnoreCase(riskLevel)) {
+                    log.debug("Mode DEFAULT: auto-allowing low-risk tool={}", tool.getName());
+                    yield PermissionDecision.allow(PermissionDecisionReason.MODE, mode);
+                }
                 log.debug("Mode DEFAULT: asking user for tool={}", tool.getName());
                 yield PermissionDecision.ask(PermissionDecisionReason.MODE,
                         "Standard mode requires user confirmation for " + tool.getName());
@@ -522,13 +540,17 @@ public class PermissionPipeline {
         String command = BASH_TOOL_NAMES.contains(tool.getName())
                 ? input.getOptionalString("command").orElse("") : "";
         String risk = assessCommandRiskLevel(command);
-        if (!isChildExactEligible(tool, input, risk)) return;
         var key = grantKeyFactory.create(tool, input, context.workingDirectory(), risk);
         String interactionId = permissionInteractions.interactionId(context.currentRunId(), toolUseId);
-        if (key.isPresent() && interactionId != null) {
+        if (key.isEmpty() || interactionId == null) return;
+
+        // 低风险只读命令：保存 child-exact grant（精确复用）
+        if (isChildExactEligible(tool, input, risk)) {
             grantStore.saveChildExact(context.parentSessionId(), context.currentRunId(),
                     context.sessionId(), childAgentType(context), key.get(), interactionId);
         }
+        // 始终保存父会话 SESSION grant（用户在 bubble UI 中明确授权的）
+        grantStore.saveStandard("SESSION", context.parentSessionId(), null, key.get(), interactionId);
     }
 
     private static String childAgentType(ToolUseContext context) {

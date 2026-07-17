@@ -184,17 +184,36 @@ export function createStompClient(_sessionId: string, authToken: string): StompC
             // 注意: 不调用 markSessionBound — 保留 App.tsx handleSubmit 中
             //       bind-session → waitForSessionRestore → addMessage 的安全时序，
             //       防止 session_restored 的 clearMessages() 吞掉用户消息
+            stopApplicationPing();
             const activeSessionId = useSessionStore.getState().sessionId;
+
+            // 定义启动心跳的函数 — 确保bind完成后再开始心跳，避免SESSION_NOT_BOUND
+            const startHeartbeat = () => {
+                if (!applicationPingTimer) {
+                    applicationPingTimer = setInterval(() => {
+                        if (client.connected) send('/app/ping', {});
+                    }, 10_000);
+                }
+            };
+
             if (activeSessionId) {
+                // 等待bind-session完成后再启动心跳
                 void bindSessionAndWait(activeSessionId, payload => client.publish({
                     destination: '/app/bind-session', body: JSON.stringify(payload),
-                }));
-                console.info('[WS] Reconnect: re-bound session', activeSessionId);
+                }))
+                .then(() => {
+                    startHeartbeat();
+                    console.info('[WS] Reconnect: re-bound session', activeSessionId);
+                })
+                .catch(() => {
+                    // bind失败也启动心跳（支持容错，后端会返回bindRequired）
+                    startHeartbeat();
+                    console.warn('[WS] Reconnect: bind-session failed, heartbeat started with fallback');
+                });
+            } else {
+                // 没有活跃会话时也启动心跳
+                startHeartbeat();
             }
-            stopApplicationPing();
-            applicationPingTimer = setInterval(() => {
-                if (client.connected) send('/app/ping', {});
-            }, 10_000);
         },
 
         // STOMP 错误回调
