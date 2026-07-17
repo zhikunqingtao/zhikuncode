@@ -100,13 +100,13 @@ public class ReadMcpResourceTool implements Tool {
         // 1. 获取目标服务器连接
         var connOpt = mcpClientManager.getConnection(serverName);
         if (connOpt.isEmpty()) {
-            return ToolResult.error("MCP server not found: " + serverName);
+            return ToolResult.validationError("MCP_SERVER_NOT_FOUND", "MCP server not found: " + serverName);
         }
         McpServerConnection conn = connOpt.get();
 
         if (conn.getStatus() != McpConnectionStatus.CONNECTED) {
-            return ToolResult.error("MCP server '" + serverName
-                    + "' is not connected (status: " + conn.getStatus() + ")");
+            return ToolResult.networkError("MCP_CONNECTION_UNAVAILABLE", "MCP server '" + serverName
+                    + "' is not connected (status: " + conn.getStatus() + ")", ToolResult.Retryability.SAFE_READ_ONLY);
         }
 
         // 2. 查找资源
@@ -116,7 +116,7 @@ public class ReadMcpResourceTool implements Tool {
                     .findFirst();
 
             if (resourceOpt.isEmpty()) {
-                return ToolResult.error("Resource not found: " + uri
+                return ToolResult.validationError("MCP_RESOURCE_NOT_FOUND", "Resource not found: " + uri
                         + " on server '" + serverName + "'");
             }
 
@@ -131,12 +131,13 @@ public class ReadMcpResourceTool implements Tool {
                 }
                 return ToolResult.success(content);
             } catch (McpProtocolException e) {
-                return ToolResult.error("Failed to read resource: " + e.getMessage());
+                return ToolResult.networkError("MCP_RESOURCE_READ_FAILED",
+                        "Failed to read resource: " + e.getMessage(), ToolResult.Retryability.SAFE_READ_ONLY);
             }
 
         } catch (Exception e) {
-            return ToolResult.error("Failed to read resource '" + uri
-                    + "' from server '" + serverName + "': " + e.getMessage());
+            return ToolResult.networkError("MCP_RESOURCE_READ_FAILED", "Failed to read resource '" + uri
+                    + "' from server '" + serverName + "': " + e.getMessage(), ToolResult.Retryability.SAFE_READ_ONLY);
         }
     }
 }

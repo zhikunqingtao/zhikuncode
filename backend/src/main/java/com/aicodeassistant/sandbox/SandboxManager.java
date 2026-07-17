@@ -2,17 +2,17 @@ package com.aicodeassistant.sandbox;
 
 import com.aicodeassistant.security.CommandBlacklistService;
 import com.aicodeassistant.tool.ToolInput;
+import com.aicodeassistant.tool.process.ManagedProcessRunner;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
+import java.util.UUID;
 
 /**
  * 沙箱管理器 — Docker 容器隔离执行环境。
@@ -32,12 +32,21 @@ public class SandboxManager {
 
     private final SandboxConfig config;
     private final CommandBlacklistService commandBlacklistService;
+    private final DockerRuntimeService dockerRuntime;
     private volatile Boolean dockerAvailable = null;
     private volatile boolean dockerUnavailableWarned = false;
 
-    public SandboxManager(SandboxConfig config, CommandBlacklistService commandBlacklistService) {
+    @Autowired
+    public SandboxManager(SandboxConfig config, CommandBlacklistService commandBlacklistService,
+                          DockerRuntimeService dockerRuntime) {
         this.config = config;
         this.commandBlacklistService = commandBlacklistService;
+        this.dockerRuntime = dockerRuntime;
+    }
+
+    /** Test-only compatibility constructor. */
+    SandboxManager(SandboxConfig config, CommandBlacklistService commandBlacklistService) {
+        this(config, commandBlacklistService, null);
     }
 
     /**
@@ -66,16 +75,7 @@ public class SandboxManager {
             return dockerAvailable;
         }
 
-        try {
-            ProcessBuilder pb = new ProcessBuilder("docker", "info");
-            pb.redirectErrorStream(true);
-            Process process = pb.start();
-            boolean completed = process.waitFor(10, TimeUnit.SECONDS);
-            dockerAvailable = completed && process.exitValue() == 0;
-        } catch (Exception e) {
-            log.debug("Docker not available: {}", e.getMessage());
-            dockerAvailable = false;
-        }
+        dockerAvailable = dockerRuntime != null && dockerRuntime.isAvailable();
 
         log.info("Docker availability: {}", dockerAvailable);
         return dockerAvailable;
@@ -170,25 +170,27 @@ public class SandboxManager {
         return false;
     }
 
-    /**
-     * 构建沙箱化的 ProcessBuilder。
-     * <p>
-     * Docker 命令结构:
-     * {@code docker run --rm --read-only -m 512m --network=none
-     *        -v /path:/workspace:ro --security-opt seccomp=default
-     *        IMAGE bash -c "COMMAND"}
-     *
-     * @param command      要执行的命令
-     * @param workingDir   工作目录
-     * @param envVars      环境变量
-     * @return 配置好的 ProcessBuilder
-     */
-    public ProcessBuilder buildSandboxedProcess(String command, Path workingDir,
-                                                  Map<String, String> envVars) {
+    public SandboxInvocation prepareInvocation(String command, Path workingDir,
+                                               Map<String, String> envVars,
+                                               String runId, String toolUseId) {
+        String safeRun = sanitize(runId);
+        String safeTool = sanitize(toolUseId);
+        String containerName = "zhikun-" + safeRun + "-" + safeTool + "-"
+                + UUID.randomUUID().toString().substring(0, 8);
+        List<String> dockerCommand = buildDockerCommand(command, workingDir, envVars, containerName);
+        return new SandboxInvocation(dockerCommand, containerName,
+                deadlineNanos -> dockerRuntime != null
+                        && dockerRuntime.ensureRemoved(containerName, deadlineNanos));
+    }
+
+    private List<String> buildDockerCommand(String command, Path workingDir,
+                                            Map<String, String> envVars, String containerName) {
         List<String> dockerCmd = new ArrayList<>();
         dockerCmd.add("docker");
         dockerCmd.add("run");
         dockerCmd.add("--rm");
+        dockerCmd.add("--name");
+        dockerCmd.add(containerName);
 
         // 只读文件系统（tmpfs 挂载 /tmp 供临时写入）
         dockerCmd.add("--read-only");
@@ -209,9 +211,6 @@ public class SandboxManager {
             dockerCmd.add("--security-opt");
             dockerCmd.add("seccomp=" + config.getSeccompProfile());
         }
-
-        // 超时（通过 timeout 命令实现）
-        String timeoutWrapper = "timeout " + config.getTimeoutSeconds() + " " + command;
 
         // 工作目录挂载
         if (workingDir != null) {
@@ -234,43 +233,13 @@ public class SandboxManager {
         dockerCmd.add(config.getImage());
         dockerCmd.add("bash");
         dockerCmd.add("-c");
-        dockerCmd.add(timeoutWrapper);
-
-        ProcessBuilder pb = new ProcessBuilder(dockerCmd);
-        pb.redirectErrorStream(true);
-        return pb;
+        dockerCmd.add(command);
+        return List.copyOf(dockerCmd);
     }
 
-    /**
-     * 在沙箱中执行命令并返回输出。
-     */
-    public SandboxResult execute(String command, Path workingDir,
-                                  Map<String, String> envVars) {
-        try {
-            ProcessBuilder pb = buildSandboxedProcess(command, workingDir, envVars);
-            Process process = pb.start();
-
-            StringBuilder output = new StringBuilder();
-            try (BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(process.getInputStream()))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    output.append(line).append("\n");
-                }
-            }
-
-            boolean completed = process.waitFor(config.getTimeoutSeconds(), TimeUnit.SECONDS);
-            if (!completed) {
-                process.destroyForcibly();
-                return new SandboxResult(output.toString(), -1, true);
-            }
-
-            return new SandboxResult(output.toString(), process.exitValue(), false);
-
-        } catch (Exception e) {
-            log.error("Sandbox execution failed: {}", e.getMessage());
-            return new SandboxResult("Sandbox error: " + e.getMessage(), -1, false);
-        }
+    private static String sanitize(String value) {
+        String result = value == null ? "none" : value.toLowerCase().replaceAll("[^a-z0-9_.-]", "-");
+        return result.substring(0, Math.min(24, result.length()));
     }
 
     /**
@@ -290,13 +259,6 @@ public class SandboxManager {
     /**
      * 沙箱执行结果。
      */
-    public record SandboxResult(
-            String output,
-            int exitCode,
-            boolean timedOut
-    ) {
-        public boolean isSuccess() {
-            return exitCode == 0 && !timedOut;
-        }
-    }
+    public record SandboxInvocation(List<String> command, String containerName,
+                                    ManagedProcessRunner.TerminationHook cleanup) { }
 }

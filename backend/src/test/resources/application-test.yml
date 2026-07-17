@@ -1,0 +1,4 @@
+zhikuncode:
+  database:
+    global-path: target/test-databases/global.db
+    project-root: target/test-project

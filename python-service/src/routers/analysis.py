@@ -9,6 +9,7 @@ from typing import Any, List, Literal, Optional
 
 import httpx
 from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
@@ -291,6 +292,19 @@ class ChangeImpactRequest(BaseModel):
     depth: int = Field(3, ge=1, le=5, description="BFS 最大深度 (1|3|5)")
 
 
+class AnalysisError(BaseModel):
+    code: str
+    message: str
+    retryable: bool = False
+
+
+class ChangeImpactResponse(BaseModel):
+    success: bool
+    data: Optional[dict[str, Any]] = None
+    error: Optional[AnalysisError] = None
+    elapsed_ms: float
+
+
 _change_impact_analyzer = None
 
 
@@ -302,23 +316,33 @@ def _get_change_impact_analyzer():
     return _change_impact_analyzer
 
 
-@router.post("/change-impact")
+def _change_impact_error(status: int, code: str, message: str, start_ms: float) -> JSONResponse:
+    envelope = ChangeImpactResponse(
+        success=False,
+        error=AnalysisError(code=code, message=message, retryable=status >= 500),
+        elapsed_ms=round(time.time() * 1000 - start_ms, 1),
+    )
+    return JSONResponse(status_code=status, content=envelope.model_dump())
+
+
+@router.post("/change-impact", response_model=ChangeImpactResponse)
 async def analyze_change_impact(request: ChangeImpactRequest):
     """分析代码变更的影响链路 (F33)"""
     start_ms = time.time() * 1000
 
     # 路径安全验证
     if not _validate_path_safe(request.file_path):
-        raise HTTPException(status_code=400, detail="Invalid file_path: path traversal detected")
+        return _change_impact_error(400, "INVALID_FILE_PATH", "path traversal detected", start_ms)
     if not _validate_path_safe(request.project_root):
-        raise HTTPException(status_code=400, detail="Invalid project_root: path traversal detected")
+        return _change_impact_error(400, "INVALID_PROJECT_ROOT", "path traversal detected", start_ms)
 
     # 验证 file_path 位于 project_root 内
     if not _validate_paths_contained(request.file_path, request.project_root):
-        raise HTTPException(status_code=400, detail="Invalid file_path: must be within project_root")
+        return _change_impact_error(400, "FILE_OUTSIDE_PROJECT", "file_path must be within project_root", start_ms)
 
     if not os.path.isdir(request.project_root):
-        raise HTTPException(status_code=400, detail=f"project_root does not exist: {request.project_root}")
+        return _change_impact_error(400, "PROJECT_ROOT_NOT_FOUND",
+                                    f"project_root does not exist: {request.project_root}", start_ms)
 
     try:
         analyzer = _get_change_impact_analyzer()
@@ -329,14 +353,11 @@ async def analyze_change_impact(request: ChangeImpactRequest):
             depth=request.depth,
         )
         elapsed_ms = round(time.time() * 1000 - start_ms, 1)
-        return {
-            "success": True,
-            "data": result.model_dump(),
-            "elapsed_ms": elapsed_ms,
-        }
+        return ChangeImpactResponse(success=True, data=result.model_dump(), error=None,
+                                    elapsed_ms=elapsed_ms)
     except Exception as e:
         logger.error("Change impact analysis failed: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Analysis error: {str(e)}")
+        return _change_impact_error(500, "CHANGE_IMPACT_FAILED", str(e), start_ms)
 
 
 # ═══════════════════════════════════════════════════════════════

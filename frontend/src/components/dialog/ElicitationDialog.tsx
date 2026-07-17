@@ -22,7 +22,7 @@ interface ElicitationDialogProps {
     options?: ElicitationOption[];
     inputType?: 'select' | 'text' | 'confirm' | 'multiselect' | 'number';
     allowFreeText?: boolean;
-    timeout?: number;
+    decisionDeadlineAt?: number;
     placeholder?: string;
     validation?: {
         format?: 'email' | 'uri' | 'date';
@@ -41,7 +41,7 @@ export const ElicitationDialog: React.FC<ElicitationDialogProps> = ({
     options,
     inputType = 'select',
     allowFreeText = false,
-    timeout = 120000,
+    decisionDeadlineAt,
     placeholder,
     validation,
     onSubmit,
@@ -50,40 +50,42 @@ export const ElicitationDialog: React.FC<ElicitationDialogProps> = ({
     const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
     const [freeText, setFreeText] = useState('');
     const [error, setError] = useState<string | null>(null);
-    const [remaining, setRemaining] = useState(Math.ceil(timeout / 1000));
+    const secondsUntilDeadline = useCallback(() => decisionDeadlineAt === undefined
+        ? null
+        : Math.max(0, Math.ceil((decisionDeadlineAt - Date.now()) / 1000)), [decisionDeadlineAt]);
+    const [remaining, setRemaining] = useState<number | null>(secondsUntilDeadline);
     const dialogRef = useRef<HTMLDivElement>(null);
     const timerRef = useRef<ReturnType<typeof setInterval>>();
-    const onCancelRef = useRef(onCancel);
-    onCancelRef.current = onCancel;
 
-    // Focus trap, escape handler, and timeout countdown
+    const deadlineConfirmed = remaining !== null;
+    const expired = deadlineConfirmed && remaining <= 0;
+    const expiredRef = useRef(expired);
+    useEffect(() => { expiredRef.current = expired; }, [expired]);
+
+    // Focus trap, escape handler, and server-deadline countdown
     useEffect(() => {
         dialogRef.current?.focus();
+        setRemaining(secondsUntilDeadline());
         
         const handler = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') {
+            if (e.key === 'Escape' && !expiredRef.current) {
                 onCancel();
             }
         };
         window.addEventListener('keydown', handler);
 
-        // Timeout countdown
+        // Recompute from the absolute server deadline; the client never owns expiry.
         timerRef.current = setInterval(() => {
-            setRemaining(prev => {
-                if (prev <= 1) {
-                    clearInterval(timerRef.current);
-                    onCancelRef.current();
-                    return 0;
-                }
-                return prev - 1;
-            });
+            const next = secondsUntilDeadline();
+            setRemaining(next);
+            if (next === 0) clearInterval(timerRef.current);
         }, 1000);
 
         return () => {
             window.removeEventListener('keydown', handler);
             clearInterval(timerRef.current);
         };
-    }, [onCancel]);
+    }, [onCancel, requestId, secondsUntilDeadline]);
 
     const handleOptionToggle = useCallback((value: string) => {
         setSelectedOptions(prev => {
@@ -99,6 +101,7 @@ export const ElicitationDialog: React.FC<ElicitationDialogProps> = ({
     }, []);
 
     const handleSubmit = useCallback(() => {
+        if (expired) return;
         // Validation
         if (inputType === 'text' || (allowFreeText && (!options || options.length === 0))) {
             if (!freeText.trim()) { setError('请输入内容'); return; }
@@ -138,7 +141,7 @@ export const ElicitationDialog: React.FC<ElicitationDialogProps> = ({
         } else if (inputType === 'text' || inputType === 'number') {
             onSubmit(requestId, freeText.trim());
         }
-    }, [requestId, options, selectedOptions, freeText, allowFreeText, onSubmit, inputType, validation]);
+    }, [requestId, options, selectedOptions, freeText, allowFreeText, onSubmit, inputType, validation, expired]);
 
     const canSubmit = (inputType === 'select' || inputType === 'multiselect')
         ? selectedOptions.length > 0 
@@ -149,6 +152,7 @@ export const ElicitationDialog: React.FC<ElicitationDialogProps> = ({
         : options 
         ? selectedOptions.length > 0 
         : allowFreeText && freeText.trim().length > 0;
+    const canAct = deadlineConfirmed && !expired;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -167,10 +171,17 @@ export const ElicitationDialog: React.FC<ElicitationDialogProps> = ({
                         <h3 className="font-semibold text-[var(--text-primary)]">
                             AI 需要更多信息
                         </h3>
-                        <p className="text-xs text-[var(--text-muted)] mt-0.5">⏱ {remaining}s 后自动取消</p>
+                        <p className="text-xs text-[var(--text-muted)] mt-0.5">
+                            {!deadlineConfirmed
+                                ? '等待服务端确认投递'
+                                : expired
+                                ? '请求已到期，等待服务端确认'
+                                : `⏱ 服务端截止还剩 ${remaining}s`}
+                        </p>
                     </div>
                     <button
                         onClick={onCancel}
+                        disabled={!canAct}
                         className="p-1 rounded hover:bg-[var(--bg-hover)] text-[var(--text-muted)]"
                     >
                         <X className="w-4 h-4" />
@@ -192,6 +203,7 @@ export const ElicitationDialog: React.FC<ElicitationDialogProps> = ({
                                             ? handleOptionToggle(option.value)
                                             : handleSingleSelect(option.value)
                                     }
+                                    disabled={!canAct}
                                     className={`w-full px-4 py-3 rounded-lg border text-left transition-all
                                         ${selectedOptions.includes(option.value)
                                             ? 'border-blue-500 bg-blue-500/10'
@@ -215,12 +227,14 @@ export const ElicitationDialog: React.FC<ElicitationDialogProps> = ({
                     {inputType === 'confirm' && (
                         <div className="flex gap-3">
                             <button
-                                onClick={() => { setSelectedOptions(['yes']); onSubmit(requestId, 'yes'); }}
+                                onClick={() => { if (canAct) { setSelectedOptions(['yes']); onSubmit(requestId, 'yes'); } }}
+                                disabled={!canAct}
                                 className="flex-1 px-4 py-3 rounded-lg border border-green-500 bg-green-500/10
                                     text-[var(--text-primary)] hover:bg-green-500/20 transition-colors"
                             >是</button>
                             <button
-                                onClick={() => { setSelectedOptions(['no']); onSubmit(requestId, 'no'); }}
+                                onClick={() => { if (canAct) { setSelectedOptions(['no']); onSubmit(requestId, 'no'); } }}
+                                disabled={!canAct}
                                 className="flex-1 px-4 py-3 rounded-lg border border-red-500 bg-red-500/10
                                     text-[var(--text-primary)] hover:bg-red-500/20 transition-colors"
                             >否</button>
@@ -232,6 +246,7 @@ export const ElicitationDialog: React.FC<ElicitationDialogProps> = ({
                         <input
                             type={inputType === 'number' ? 'number' : 'text'}
                             value={freeText}
+                            disabled={!canAct}
                             onChange={(e) => { setFreeText(e.target.value); setError(null); }}
                             onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
                             placeholder={placeholder || '请输入...'}
@@ -246,6 +261,7 @@ export const ElicitationDialog: React.FC<ElicitationDialogProps> = ({
                     {allowFreeText && inputType !== 'text' && inputType !== 'number' && (!options || options.length === 0) && (
                         <textarea
                             value={freeText}
+                            disabled={!canAct}
                             onChange={(e) => { setFreeText(e.target.value); setError(null); }}
                             placeholder="请输入您的回答..."
                             className="w-full px-3 py-2 rounded-lg border border-[var(--border)]
@@ -264,6 +280,7 @@ export const ElicitationDialog: React.FC<ElicitationDialogProps> = ({
                 <div className="px-5 py-4 border-t border-[var(--border)] flex justify-end gap-2">
                     <button
                         onClick={onCancel}
+                        disabled={!canAct}
                         className="px-4 py-2 rounded-lg text-sm border border-[var(--border)]
                                     text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors"
                     >
@@ -271,9 +288,9 @@ export const ElicitationDialog: React.FC<ElicitationDialogProps> = ({
                     </button>
                     <button
                         onClick={handleSubmit}
-                        disabled={!canSubmit}
+                        disabled={!canSubmit || !canAct}
                         className={`px-4 py-2 rounded-lg text-sm text-white transition-colors
-                            ${canSubmit 
+                            ${canSubmit && canAct
                                 ? 'bg-blue-600 hover:bg-blue-700' 
                                 : 'bg-gray-400 cursor-not-allowed'
                             }`}

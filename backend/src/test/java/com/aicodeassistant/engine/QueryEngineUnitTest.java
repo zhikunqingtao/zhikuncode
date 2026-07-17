@@ -80,7 +80,7 @@ class QueryEngineUnitTest {
                 toolResultSummarizer, contextCascade, compactMetrics,
                 null, null,  // incrementalCollapseManager, visualizationAutoRouter (both @Nullable)
                 null, featureFlagService,  // backgroundAgentTracker (@Nullable), featureFlagService
-                new DefaultTerminationStrategy(), new ToolPriorityScheduler(), null, new AgentTimeoutConfig(), tokenBudgetGuard, imageRefInjector, runTracker);  // selfCorrectionLoop, agentTimeoutConfig, tokenBudgetGuard, imageRefInjector, runTracker
+                new DefaultTerminationStrategy(), new ToolPriorityScheduler(), null, new AgentTimeoutConfig(), tokenBudgetGuard, imageRefInjector, null, null);  // Run authority is covered by integration tests
         handler = new TestHandler();
 
         // 默认 Snip/MicroCompact mock: 直接返回原消息列表
@@ -91,10 +91,15 @@ class QueryEngineUnitTest {
         lenient().when(modelTierService.resolveModel(anyString(), anyList())).thenAnswer(inv -> inv.getArgument(0));
         // 默认 ModelRegistry mock: 返回合理的 contextWindow
         lenient().when(modelRegistry.getContextWindowForModel(anyString())).thenReturn(200000);
+        lenient().when(modelRegistry.getTokenCharRatio(anyString())).thenReturn(3.5);
         // 默认 TokenBudgetGuard mock: 直接放行
         lenient().when(tokenBudgetGuard.enforcePhase1(anyList(), anyInt()))
                 .thenAnswer(inv -> new TokenBudgetGuard.GuardResult(inv.getArgument(0), false, 0, 0));
+        lenient().when(tokenBudgetGuard.enforcePhase1(anyList(), anyInt(), anyDouble()))
+                .thenAnswer(inv -> new TokenBudgetGuard.GuardResult(inv.getArgument(0), false, 0, 0));
         lenient().when(tokenBudgetGuard.enforcePhase2(anyList(), anyInt()))
+                .thenAnswer(inv -> new TokenBudgetGuard.FinalBudgetResult(inv.getArgument(0), Set.of(), 0, inv.getArgument(1), true, ""));
+        lenient().when(tokenBudgetGuard.enforcePhase2(anyList(), anyInt(), anySet(), anyDouble()))
                 .thenAnswer(inv -> new TokenBudgetGuard.FinalBudgetResult(inv.getArgument(0), Set.of(), 0, inv.getArgument(1), true, ""));
         // 默认 ImageRefInjector mock: 直接返回原消息
         lenient().when(imageRefInjector.injectForApiCall(anyList(), anyInt(), anyInt(), any(), any()))
@@ -128,7 +133,7 @@ class QueryEngineUnitTest {
             when(streamingToolExecutor.newSession(any())).thenReturn(session);
 
             // 配置 apiRetryService 让它直接执行传入的 supplier
-            when(apiRetryService.executeWithRetry(any(), anyString(), anyString())).thenAnswer(invocation -> {
+            when(apiRetryService.executeWithRetry(any(), anyString(), anyString(), any())).thenAnswer(invocation -> {
                 @SuppressWarnings("unchecked")
                 var supplier = invocation.getArgument(0, Supplier.class);
                 return supplier.get();
@@ -136,7 +141,7 @@ class QueryEngineUnitTest {
 
             // 让 streamChat 模拟返回 end_turn
             doAnswer(inv -> {
-                StreamChatCallback callback = inv.getArgument(6);
+                StreamChatCallback callback = inv.getArgument(7);
                 callback.onEvent(new LlmStreamEvent.TextDelta("Hello"));
                 callback.onEvent(new LlmStreamEvent.MessageDelta(
                         new Usage(10, 5, 0, 0), "end_turn"));
@@ -144,7 +149,7 @@ class QueryEngineUnitTest {
                 return null;
             }).when(mockProvider).streamChat(
                     anyString(), anyList(), anyString(), anyList(),
-                    anyInt(), any(), any(StreamChatCallback.class));
+                    anyInt(), any(), any(LlmCallContext.class), any(StreamChatCallback.class));
 
             // stop hooks
             when(hookService.executeStopHooks(anyList(), anyString()))
@@ -158,7 +163,7 @@ class QueryEngineUnitTest {
             // 验证 streamChat 被调用
             verify(mockProvider).streamChat(
                     eq("mock-model"), anyList(), anyString(), anyList(),
-                    anyInt(), any(), any(StreamChatCallback.class));
+                    anyInt(), any(), any(LlmCallContext.class), any(StreamChatCallback.class));
             assertThat(result).isNotNull();
         }
 
@@ -172,14 +177,14 @@ class QueryEngineUnitTest {
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
             when(streamingToolExecutor.newSession(any())).thenReturn(session);
 
-            when(apiRetryService.executeWithRetry(any(), anyString(), anyString())).thenAnswer(inv -> {
+            when(apiRetryService.executeWithRetry(any(), anyString(), anyString(), any())).thenAnswer(inv -> {
                 @SuppressWarnings("unchecked")
                 var supplier = inv.getArgument(0, Supplier.class);
                 return supplier.get();
             });
 
             doAnswer(inv -> {
-                StreamChatCallback callback = inv.getArgument(6);
+                StreamChatCallback callback = inv.getArgument(7);
                 callback.onEvent(new LlmStreamEvent.TextDelta("Done"));
                 callback.onEvent(new LlmStreamEvent.MessageDelta(
                         new Usage(10, 5, 0, 0), "end_turn"));
@@ -187,7 +192,7 @@ class QueryEngineUnitTest {
                 return null;
             }).when(mockProvider).streamChat(
                     anyString(), anyList(), anyString(), anyList(),
-                    anyInt(), any(), any(StreamChatCallback.class));
+                    anyInt(), any(), any(LlmCallContext.class), any(StreamChatCallback.class));
 
             when(hookService.executeStopHooks(anyList(), anyString()))
                     .thenReturn(HookRegistry.StopHookResult.ok());
@@ -239,14 +244,14 @@ class QueryEngineUnitTest {
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
             when(streamingToolExecutor.newSession(any())).thenReturn(session);
 
-            when(apiRetryService.executeWithRetry(any(), anyString(), anyString())).thenAnswer(inv -> {
+            when(apiRetryService.executeWithRetry(any(), anyString(), anyString(), any())).thenAnswer(inv -> {
                 @SuppressWarnings("unchecked")
                 var supplier = inv.getArgument(0, Supplier.class);
                 return supplier.get();
             });
 
             doAnswer(inv -> {
-                StreamChatCallback callback = inv.getArgument(6);
+                StreamChatCallback callback = inv.getArgument(7);
                 callback.onEvent(new LlmStreamEvent.TextDelta("response " + callCount.incrementAndGet()));
                 callback.onEvent(new LlmStreamEvent.MessageDelta(
                         new Usage(10, 5, 0, 0), "end_turn"));
@@ -254,7 +259,7 @@ class QueryEngineUnitTest {
                 return null;
             }).when(mockProvider).streamChat(
                     anyString(), anyList(), anyString(), anyList(),
-                    anyInt(), any(), any(StreamChatCallback.class));
+                    anyInt(), any(), any(LlmCallContext.class), any(StreamChatCallback.class));
 
             // 第一次: blocking error; 第二次: ok
             when(hookService.executeStopHooks(anyList(), anyString()))
@@ -280,14 +285,14 @@ class QueryEngineUnitTest {
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
             lenient().when(streamingToolExecutor.newSession(any())).thenReturn(session);
 
-            lenient().when(apiRetryService.executeWithRetry(any(), anyString(), anyString())).thenAnswer(inv -> {
+            lenient().when(apiRetryService.executeWithRetry(any(), anyString(), anyString(), any())).thenAnswer(inv -> {
                 @SuppressWarnings("unchecked")
                 var supplier = inv.getArgument(0, Supplier.class);
                 return supplier.get();
             });
 
             lenient().doAnswer(inv -> {
-                StreamChatCallback callback = inv.getArgument(6);
+                StreamChatCallback callback = inv.getArgument(7);
                 callback.onEvent(new LlmStreamEvent.TextDelta("Done"));
                 callback.onEvent(new LlmStreamEvent.MessageDelta(
                         new Usage(10, 5, 0, 0), "end_turn"));
@@ -295,7 +300,7 @@ class QueryEngineUnitTest {
                 return null;
             }).when(mockProvider).streamChat(
                     anyString(), anyList(), anyString(), anyList(),
-                    anyInt(), any(), any(StreamChatCallback.class));
+                    anyInt(), any(), any(LlmCallContext.class), any(StreamChatCallback.class));
 
             lenient().when(hookService.executeStopHooks(anyList(), anyString()))
                     .thenReturn(HookRegistry.StopHookResult.preventContinuation("Stop now"));
@@ -354,7 +359,7 @@ class QueryEngineUnitTest {
             when(streamingToolExecutor.newSession(any())).thenReturn(session);
 
             // First call: throw 413, second call: succeed
-            when(apiRetryService.executeWithRetry(any(), anyString(), anyString())).thenAnswer(inv -> {
+            when(apiRetryService.executeWithRetry(any(), anyString(), anyString(), any())).thenAnswer(inv -> {
                 @SuppressWarnings("unchecked")
                 var supplier = inv.getArgument(0, Supplier.class);
                 if (callCount.incrementAndGet() == 1) {
@@ -368,7 +373,7 @@ class QueryEngineUnitTest {
                     .thenReturn(new CompactService.CompactResult(List.of(), 5000, 2000, 3, 0.4));
 
             doAnswer(inv -> {
-                StreamChatCallback callback = inv.getArgument(6);
+                StreamChatCallback callback = inv.getArgument(7);
                 callback.onEvent(new LlmStreamEvent.TextDelta("recovered"));
                 callback.onEvent(new LlmStreamEvent.MessageDelta(
                         new Usage(10, 5, 0, 0), "end_turn"));
@@ -376,7 +381,7 @@ class QueryEngineUnitTest {
                 return null;
             }).when(mockProvider).streamChat(
                     anyString(), anyList(), anyString(), anyList(),
-                    anyInt(), any(), any(StreamChatCallback.class));
+                    anyInt(), any(), any(LlmCallContext.class), any(StreamChatCallback.class));
 
             when(hookService.executeStopHooks(anyList(), anyString()))
                     .thenReturn(HookRegistry.StopHookResult.ok());
@@ -402,7 +407,7 @@ class QueryEngineUnitTest {
             when(session.isAllCompleted()).thenReturn(true);
             when(session.yieldCompleted()).thenReturn(List.of());
 
-            when(apiRetryService.executeWithRetry(any(), anyString(), anyString())).thenAnswer(inv -> {
+            when(apiRetryService.executeWithRetry(any(), anyString(), anyString(), any())).thenAnswer(inv -> {
                 @SuppressWarnings("unchecked")
                 var supplier = inv.getArgument(0, Supplier.class);
                 return supplier.get();
@@ -410,7 +415,7 @@ class QueryEngineUnitTest {
 
             // Always return tool_use to keep loop going
             doAnswer(inv -> {
-                StreamChatCallback callback = inv.getArgument(6);
+                StreamChatCallback callback = inv.getArgument(7);
                 callback.onEvent(new LlmStreamEvent.ToolUseStart("t-" + System.nanoTime(), "BashTool"));
                 callback.onEvent(new LlmStreamEvent.ToolInputDelta("t-" + System.nanoTime(), "{}"));
                 callback.onEvent(new LlmStreamEvent.MessageDelta(
@@ -419,7 +424,7 @@ class QueryEngineUnitTest {
                 return null;
             }).when(mockProvider).streamChat(
                     anyString(), anyList(), anyString(), anyList(),
-                    anyInt(), any(), any(StreamChatCallback.class));
+                    anyInt(), any(), any(LlmCallContext.class), any(StreamChatCallback.class));
 
             // maxTurns = 2
             QueryConfig config = QueryConfig.withDefaults(
@@ -447,14 +452,14 @@ class QueryEngineUnitTest {
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
             when(streamingToolExecutor.newSession(any())).thenReturn(session);
 
-            when(apiRetryService.executeWithRetry(any(), anyString(), anyString())).thenAnswer(inv -> {
+            when(apiRetryService.executeWithRetry(any(), anyString(), anyString(), any())).thenAnswer(inv -> {
                 @SuppressWarnings("unchecked")
                 var supplier = inv.getArgument(0, Supplier.class);
                 return supplier.get();
             });
 
             doAnswer(inv -> {
-                StreamChatCallback callback = inv.getArgument(6);
+                StreamChatCallback callback = inv.getArgument(7);
                 int count = callCount.incrementAndGet();
                 if (count <= 2) {
                     // First two calls: max_tokens
@@ -471,7 +476,7 @@ class QueryEngineUnitTest {
                 return null;
             }).when(mockProvider).streamChat(
                     anyString(), anyList(), anyString(), anyList(),
-                    anyInt(), any(), any(StreamChatCallback.class));
+                    anyInt(), any(), any(LlmCallContext.class), any(StreamChatCallback.class));
 
             when(hookService.executeStopHooks(anyList(), anyString()))
                     .thenReturn(HookRegistry.StopHookResult.ok());
@@ -496,14 +501,14 @@ class QueryEngineUnitTest {
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
             when(streamingToolExecutor.newSession(any())).thenReturn(session);
 
-            when(apiRetryService.executeWithRetry(any(), anyString(), anyString())).thenAnswer(inv -> {
+            when(apiRetryService.executeWithRetry(any(), anyString(), anyString(), any())).thenAnswer(inv -> {
                 @SuppressWarnings("unchecked")
                 var supplier = inv.getArgument(0, Supplier.class);
                 return supplier.get();
             });
 
             doAnswer(inv -> {
-                StreamChatCallback callback = inv.getArgument(6);
+                StreamChatCallback callback = inv.getArgument(7);
                 int count = callCount.incrementAndGet();
                 if (count == 1) {
                     callback.onEvent(new LlmStreamEvent.TextDelta("partial"));
@@ -518,7 +523,7 @@ class QueryEngineUnitTest {
                 return null;
             }).when(mockProvider).streamChat(
                     anyString(), anyList(), anyString(), anyList(),
-                    anyInt(), any(), any(StreamChatCallback.class));
+                    anyInt(), any(), any(LlmCallContext.class), any(StreamChatCallback.class));
 
             when(hookService.executeStopHooks(anyList(), anyString()))
                     .thenReturn(HookRegistry.StopHookResult.ok());
@@ -547,7 +552,7 @@ class QueryEngineUnitTest {
             when(streamingToolExecutor.newSession(any())).thenReturn(session);
 
             // First call: throw 529 overloaded (fallback trigger)
-            when(apiRetryService.executeWithRetry(any(), anyString(), anyString())).thenAnswer(inv -> {
+            when(apiRetryService.executeWithRetry(any(), anyString(), anyString(), any())).thenAnswer(inv -> {
                 @SuppressWarnings("unchecked")
                 var supplier = inv.getArgument(0, Supplier.class);
                 if (callCount.incrementAndGet() == 1) {
@@ -557,7 +562,7 @@ class QueryEngineUnitTest {
             });
 
             doAnswer(inv -> {
-                StreamChatCallback callback = inv.getArgument(6);
+                StreamChatCallback callback = inv.getArgument(7);
                 callback.onEvent(new LlmStreamEvent.TextDelta("fallback response"));
                 callback.onEvent(new LlmStreamEvent.MessageDelta(
                         new Usage(10, 5, 0, 0), "end_turn"));
@@ -565,7 +570,7 @@ class QueryEngineUnitTest {
                 return null;
             }).when(fallbackProvider).streamChat(
                     anyString(), anyList(), anyString(), anyList(),
-                    anyInt(), any(), any(StreamChatCallback.class));
+                    anyInt(), any(), any(LlmCallContext.class), any(StreamChatCallback.class));
 
             when(hookService.executeStopHooks(anyList(), anyString()))
                     .thenReturn(HookRegistry.StopHookResult.ok());
@@ -586,7 +591,7 @@ class QueryEngineUnitTest {
             // Verify fallback provider was used
             verify(fallbackProvider).streamChat(
                     eq("fallback-model"), anyList(), anyString(), anyList(),
-                    anyInt(), any(), any(StreamChatCallback.class));
+                    anyInt(), any(), any(LlmCallContext.class), any(StreamChatCallback.class));
         }
 
         @Test
@@ -601,7 +606,7 @@ class QueryEngineUnitTest {
             when(session.isAllCompleted()).thenReturn(true);
             when(session.yieldCompleted()).thenReturn(List.of());
 
-            when(apiRetryService.executeWithRetry(any(), anyString(), anyString())).thenAnswer(inv -> {
+            when(apiRetryService.executeWithRetry(any(), anyString(), anyString(), any())).thenAnswer(inv -> {
                 @SuppressWarnings("unchecked")
                 var supplier = inv.getArgument(0, Supplier.class);
                 return supplier.get();
@@ -609,7 +614,7 @@ class QueryEngineUnitTest {
 
             // Simulate: stream returns a tool_use
             doAnswer(inv -> {
-                StreamChatCallback callback = inv.getArgument(6);
+                StreamChatCallback callback = inv.getArgument(7);
                 callback.onEvent(new LlmStreamEvent.ToolUseStart("tool-1", "BashTool"));
                 callback.onEvent(new LlmStreamEvent.ToolInputDelta("tool-1", "{\"command\":\"ls\"}"));
                 callback.onEvent(new LlmStreamEvent.MessageDelta(
@@ -618,7 +623,7 @@ class QueryEngineUnitTest {
                 return null;
             }).when(mockProvider).streamChat(
                     anyString(), anyList(), anyString(), anyList(),
-                    anyInt(), any(), any(StreamChatCallback.class));
+                    anyInt(), any(), any(LlmCallContext.class), any(StreamChatCallback.class));
 
             // maxTurns = 1 — 循环一轮后因 tool_use 触发 maxTurns 检查
             QueryConfig config = QueryConfig.withDefaults(
@@ -648,14 +653,14 @@ class QueryEngineUnitTest {
             lenient().when(streamingToolExecutor.newSession(any())).thenReturn(session);
             lenient().when(session.yieldCompleted()).thenReturn(List.of());
 
-            lenient().when(apiRetryService.executeWithRetry(any(), anyString(), anyString())).thenAnswer(inv -> {
+            lenient().when(apiRetryService.executeWithRetry(any(), anyString(), anyString(), any())).thenAnswer(inv -> {
                 @SuppressWarnings("unchecked")
                 var supplier = inv.getArgument(0, Supplier.class);
                 return supplier.get();
             });
 
             lenient().doAnswer(inv -> {
-                StreamChatCallback callback = inv.getArgument(6);
+                StreamChatCallback callback = inv.getArgument(7);
                 callback.onEvent(new LlmStreamEvent.TextDelta("partial"));
                 callback.onEvent(new LlmStreamEvent.MessageDelta(
                         new Usage(10, 5, 0, 0), "end_turn"));
@@ -663,7 +668,7 @@ class QueryEngineUnitTest {
                 return null;
             }).when(mockProvider).streamChat(
                     anyString(), anyList(), anyString(), anyList(),
-                    anyInt(), any(), any(StreamChatCallback.class));
+                    anyInt(), any(), any(LlmCallContext.class), any(StreamChatCallback.class));
 
             QueryConfig config = buildConfig();
             QueryLoopState state = buildState("question");

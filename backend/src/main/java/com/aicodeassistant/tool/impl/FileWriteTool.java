@@ -105,18 +105,10 @@ public class FileWriteTool implements Tool {
         Path path = Path.of(filePath);
 
         try {
-            // 1. 自动创建中间目录
-            if (path.getParent() != null) {
-                Files.createDirectories(path.getParent());
-            }
-
-            // 2. 判断操作类型
+            String expectedOldHash = null;
+            // AtomicFileWriter performs the security check before creating any
+            // parent directory, so an unauthorized write has no filesystem side effect.
             boolean isCreate = !Files.exists(path);
-
-            // ── 新增: 编辑前保存快照 ──
-            if (!isCreate) {
-                fileHistoryService.trackEdit(filePath, context.sessionId(), context.toolUseId(), "write");
-            }
 
             String originalContent = !isCreate ? Files.readString(path, StandardCharsets.UTF_8) : null;
 
@@ -125,6 +117,7 @@ public class FileWriteTool implements Tool {
                 // 记录读取时的 hash
                 fileVersionTracker.recordRead(filePath);
                 String expectedHash = fileVersionTracker.computeHash(originalContent);
+                expectedOldHash = expectedHash;
 
                 ConflictCheckResult conflictResult = fileVersionTracker.checkBeforeWrite(filePath, expectedHash);
                 if (conflictResult.hasConflict()) {
@@ -136,31 +129,65 @@ public class FileWriteTool implements Tool {
                     if (conflictResult.lastEditor() != null) {
                         conflictMeta.put("lastEditor", conflictResult.lastEditor());
                     }
-                    return ToolResult.failure(FailureType.CONFLICT,
-                            "文件自上次读取后已被修改，请重新读取文件后再编辑", conflictMeta);
+                    return ToolResult.failed(ToolResult.ToolFailureType.VALIDATION, "FILE_CONTENT_CONFLICT",
+                            "文件自上次读取后已被修改，请重新读取文件后再编辑",
+                            ToolResult.Retryability.NEVER, ToolResult.EffectState.NOT_STARTED,
+                            null, conflictMeta);
                 }
             }
 
             // 3. 原子写入（替代 Files.writeString）
-            WriteResult writeResult = atomicFileWriter.atomicWrite(path, content, context.sessionId());
+            AtomicFileWriter.ExpectedOldState expectedState = isCreate
+                    ? AtomicFileWriter.ExpectedOldState.absent()
+                    : AtomicFileWriter.ExpectedOldState.sha256(expectedOldHash);
+            WriteResult writeResult = atomicFileWriter.write(path,
+                    content.getBytes(StandardCharsets.UTF_8), context.sessionId(),
+                    expectedState, context.workingDirectory());
             if (!writeResult.success()) {
-                return ToolResult.error("原子写入失败: " + writeResult.error());
+                return writeFailure(writeResult);
             }
 
-            // 4. 构建结果
             String type = isCreate ? "create" : "update";
+            FileHistoryService.HistoryRecordResult history;
+            String postCommitError = "";
+            try {
+                history = isCreate
+                        ? new FileHistoryService.HistoryRecordResult(false, "HISTORY_SNAPSHOT_NOT_APPLICABLE")
+                        : fileHistoryService.trackAppliedEdit(filePath, originalContent,
+                            context.sessionId(), context.toolUseId(), "write");
+                if (history == null) history = new FileHistoryService.HistoryRecordResult(false, "HISTORY_RESULT_UNAVAILABLE");
+                sessionManager.getFileStateCache(context.sessionId()).markModified(filePath);
+            } catch (RuntimeException postCommitFailure) {
+                log.warn("File write applied but post-commit bookkeeping failed for {}: {}",
+                        filePath, postCommitFailure.getMessage());
+                history = new FileHistoryService.HistoryRecordResult(false, "POST_COMMIT_BOOKKEEPING_FAILED");
+                postCommitError = "POST_COMMIT_BOOKKEEPING_FAILED";
+            }
 
-            // ★ FileStateCache 集成 — 标记已修改 (§11.5.9)
-            sessionManager.getFileStateCache(context.sessionId()).markModified(filePath);
-
-            return ToolResult.success(type + ": " + filePath)
+            return ToolResult.successWithEffect(type + ": " + filePath, ToolResult.EffectState.APPLIED)
                     .withMetadata("type", type)
-                    .withMetadata("filePath", filePath);
+                    .withMetadata("filePath", filePath)
+                    .withMetadata("sealedHash", writeResult.newHash())
+                    .withMetadata("historyRecorded", history.recorded())
+                    .withMetadata("historyErrorCode", history.errorCode() == null ? "" : history.errorCode())
+                    .withMetadata("postCommitErrorCode", postCommitError);
 
         } catch (IOException e) {
             log.error("Failed to write file: {}", filePath, e);
-            return ToolResult.error("Failed to write file: " + e.getMessage());
+            return ToolResult.internalError("FILE_WRITE_IO_FAILED",
+                    "Failed to write file: " + e.getMessage(), ToolResult.EffectState.NOT_STARTED);
         }
+    }
+
+    private static ToolResult writeFailure(WriteResult result) {
+        ToolResult.EffectState effect = switch (result.effect()) {
+            case NOT_STARTED -> ToolResult.EffectState.NOT_STARTED;
+            case APPLIED -> ToolResult.EffectState.APPLIED;
+            case UNKNOWN -> ToolResult.EffectState.UNKNOWN;
+        };
+        return ToolResult.failed(ToolResult.ToolFailureType.INTERNAL, "ATOMIC_WRITE_FAILED",
+                "原子写入失败: " + result.error(), ToolResult.Retryability.NEVER,
+                effect, null, Map.of("sealedHash", result.newHash() == null ? "" : result.newHash()));
     }
 
     private String resolvePath(String filePath, String workingDirectory) {

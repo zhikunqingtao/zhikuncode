@@ -29,6 +29,7 @@ public class WebBrowserTool implements Tool {
     private final PythonCapabilityAwareClient pythonClient;
     private final FeatureFlagService featureFlags;
     private final ObjectMapper objectMapper;
+    private final AtomicFileWriter atomicFileWriter;
     private static final String CAPABILITY = "BROWSER_AUTOMATION";
     private static final Set<String> ALLOWED_ACTIONS = Set.of(
             "navigate", "screenshot", "click", "type", "evaluate",
@@ -41,10 +42,12 @@ public class WebBrowserTool implements Tool {
 
     public WebBrowserTool(PythonCapabilityAwareClient pythonClient,
                           FeatureFlagService featureFlags,
-                          ObjectMapper objectMapper) {
+                          ObjectMapper objectMapper,
+                          AtomicFileWriter atomicFileWriter) {
         this.pythonClient = pythonClient;
         this.featureFlags = featureFlags;
         this.objectMapper = objectMapper;
+        this.atomicFileWriter = atomicFileWriter;
     }
 
     @Override
@@ -253,13 +256,13 @@ public class WebBrowserTool implements Tool {
                 CAPABILITY, "/api/browser/" + action, body, BrowserResponse.class);
 
         if (resp.isEmpty()) {
-            return ToolResult.error(
+            return ToolResult.providerError("BROWSER_AUTOMATION_UNAVAILABLE",
                     "Browser automation unavailable. Ensure playwright is installed: "
-                    + "pip install playwright && playwright install chromium");
+                    + "pip install playwright && playwright install chromium", ToolResult.Retryability.SAFE_READ_ONLY);
         }
         BrowserResponse br = resp.get();
         if (!br.success()) {
-            return ToolResult.error(br.errorCode() + ": " + br.errorMessage());
+            return ToolResult.providerError(br.errorCode(), br.errorMessage(), ToolResult.Retryability.NEVER);
         }
         // 截图特殊处理：保存为文件，只返回路径给 LLM（避免 base64 撑爆上下文）
         if ("screenshot".equals(action) && br.data() != null && br.data().containsKey("screenshot_base64")) {
@@ -267,27 +270,35 @@ public class WebBrowserTool implements Tool {
             long size = ((Number) br.data().get("size")).longValue();
             try {
                 Path screenshotDir = Path.of(context.workingDirectory(), "screenshots");
-                Files.createDirectories(screenshotDir);
                 String filename = "screenshot_" + sessionId + "_" + System.currentTimeMillis() + ".png";
                 Path filepath = screenshotDir.resolve(filename);
                 byte[] imageBytes = Base64.getDecoder().decode(b64);
-                Files.write(filepath, imageBytes);
+                AtomicFileWriter.WriteResult write = atomicFileWriter.write(filepath, imageBytes, context.sessionId(),
+                        AtomicFileWriter.ExpectedOldState.absent(), context.workingDirectory());
+                if (!write.success()) return ToolResult.failed(ToolResult.ToolFailureType.INTERNAL,
+                        "BROWSER_SCREENSHOT_WRITE_FAILED", write.error(), ToolResult.Retryability.NEVER,
+                        switch (write.effect()) {
+                            case NOT_STARTED -> ToolResult.EffectState.NOT_STARTED;
+                            case APPLIED -> ToolResult.EffectState.APPLIED;
+                            case UNKNOWN -> ToolResult.EffectState.UNKNOWN;
+                        }, null, Map.of());
                 log.info("Screenshot saved: {} ({} bytes)", filepath, imageBytes.length);
-                return ToolResult.success(
+                return ToolResult.successWithEffect(
                         "Screenshot saved to: " + filepath.toAbsolutePath()
-                        + " (size: " + imageBytes.length + " bytes)"
-                );
-            } catch (IOException e) {
-                log.warn("Failed to save screenshot to file, returning truncated info: {}", e.getMessage());
-                return ToolResult.success(
-                        "Screenshot taken (" + size + " bytes) but failed to save to file: " + e.getMessage()
-                );
+                        + " (size: " + imageBytes.length + " bytes)", ToolResult.EffectState.APPLIED)
+                        .withMetadata("sealedHash", write.newHash()).withMetadata("filePath", filepath.toString());
+            } catch (RuntimeException e) {
+                log.warn("Failed to persist screenshot: {}", e.getMessage());
+                return ToolResult.internalError("BROWSER_SCREENSHOT_PERSIST_FAILED",
+                        "Screenshot taken (" + size + " bytes) but failed to save: " + e.getMessage(),
+                        ToolResult.EffectState.NOT_STARTED);
             }
         }
         try {
             return ToolResult.success(objectMapper.writeValueAsString(br.data()));
         } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-            return ToolResult.error("Failed to serialize browser response: " + e.getMessage());
+            return ToolResult.internalError("BROWSER_RESPONSE_SERIALIZATION_FAILED",
+                    "Failed to serialize browser response: " + e.getMessage(), ToolResult.EffectState.NONE);
         }
     }
 

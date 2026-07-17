@@ -99,7 +99,7 @@ class InteractionToolGoldenTest {
         @DisplayName("1.7 ElicitationService 返回成功 — 工具返回成功")
         void elicitationSuccess() throws Exception {
             // Mock ElicitationService 返回成功响应
-            when(elicitationService.requestAndWait(anyString(), anyString(), anyList(), anyLong()))
+            when(elicitationService.requestAndWait(anyString(), nullable(String.class), anyString(), anyList(), anyLong()))
                     .thenReturn(ElicitationService.ElicitationResponse.success("opt-A"));
 
             List<Map<String, Object>> questions = List.of(makeQuestion(2));
@@ -108,7 +108,7 @@ class InteractionToolGoldenTest {
 
             assertFalse(result.isError());
             assertTrue(result.content().contains("answers"));
-            verify(elicitationService).requestAndWait(eq("s1"), anyString(), anyList(), anyLong());
+            verify(elicitationService).requestAndWait(eq("s1"), nullable(String.class), anyString(), anyList(), anyLong());
         }
 
         private Map<String, Object> makeQuestion(int numOptions) {

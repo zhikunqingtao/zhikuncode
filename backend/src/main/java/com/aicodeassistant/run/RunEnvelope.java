@@ -1,118 +1,56 @@
 package com.aicodeassistant.run;
 
 import java.time.Instant;
+import java.util.Locale;
 import java.util.UUID;
 
-/**
- * 运行信封 — 记录一次 LLM 交互的完整生命周期。
- * <p>
- * 不可变 record，状态转换通过工厂方法返回新实例。
- */
+/** Immutable authoritative Run snapshot. */
 public record RunEnvelope(
-        String id,
-        String sessionId,
-        String parentRunId,
-        RunStatus status,
-        String agentType,
-        String model,
-        String promptHash,
-        Instant startedAt,
-        Instant finishedAt,
-        String abortReason,
-        int totalTokens,
-        double totalCostUsd,
-        int toolCallCount,
-        int turnCount,
-        String errorSummary,
-        Instant createdAt,
-        Instant updatedAt
+        String id, String sessionId, String parentRunId, RunStatus status,
+        String agentType, String model, String promptHash,
+        Instant startedAt, Instant finishedAt, String abortReason,
+        int totalTokens, double totalCostUsd, int toolCallCount, int turnCount,
+        String errorSummary, Instant createdAt, Instant updatedAt,
+        long version, RunExitReason exitReason, RunExitReason requestedExitReason,
+        VerificationStatus verificationStatus, Instant terminalAt, String waitingReason
 ) {
-
-    /**
-     * 运行状态枚举。
-     */
     public enum RunStatus {
-        RUNNING, COMPLETED, TIMEOUT, ABORTED, ERROR;
-
-        /** 数据库存储值 — 小写 */
-        public String dbValue() {
-            return name().toLowerCase();
-        }
-
-        /** 从数据库值解析 */
+        QUEUED, RUNNING, WAITING_INTERACTION, CANCELLING,
+        COMPLETED, FAILED, CANCELLED, INTERRUPTED;
+        public String dbValue() { return name().toLowerCase(Locale.ROOT); }
         public static RunStatus fromDbValue(String value) {
-            return valueOf(value.toUpperCase());
+            return valueOf(value.toUpperCase(Locale.ROOT));
+        }
+        public boolean terminal() {
+            return this == COMPLETED || this == FAILED || this == CANCELLED || this == INTERRUPTED;
         }
     }
 
-    /**
-     * 启动一次新运行。
-     */
+    public enum RunExitReason {
+        MODEL_FINISHED, USER_CANCELLED, DEADLINE_EXCEEDED, INTERACTION_EXPIRED,
+        TOOL_FAILURE, PROVIDER_FAILURE, INTERACTION_CAPACITY_EXCEEDED,
+        PROCESS_TERMINATION_UNCONFIRMED, TOOL_TERMINATION_UNCONFIRMED,
+        SERVICE_RESTART, INTERNAL_ERROR;
+        public String dbValue() { return name().toLowerCase(Locale.ROOT); }
+        public static RunExitReason fromDbValue(String value) {
+            return value == null ? null : valueOf(value.toUpperCase(Locale.ROOT));
+        }
+    }
+
+    public enum VerificationStatus {
+        NOT_REQUESTED, PENDING, VERIFIED, UNVERIFIED, FAILED;
+        public String dbValue() { return name().toLowerCase(Locale.ROOT); }
+        public static VerificationStatus fromDbValue(String value) {
+            return valueOf(value.toUpperCase(Locale.ROOT));
+        }
+    }
+
     public static RunEnvelope start(String sessionId, String parentRunId, String agentType, String model) {
         Instant now = Instant.now();
-        return new RunEnvelope(
-                UUID.randomUUID().toString(),
-                sessionId,
-                parentRunId,
-                RunStatus.RUNNING,
-                agentType,
-                model,
-                null,
-                now,        // startedAt
-                null,       // finishedAt
-                null,       // abortReason
-                0, 0.0, 0, 0,
-                null,       // errorSummary
-                now,        // createdAt
-                now         // updatedAt
-        );
+        return new RunEnvelope(UUID.randomUUID().toString(), sessionId, parentRunId,
+                RunStatus.RUNNING, agentType, model, null, now, null, null,
+                0, 0.0, 0, 0, null, now, now, 0, null, null,
+                VerificationStatus.NOT_REQUESTED, null, null);
     }
 
-    /**
-     * 完成运行 — 附带统计数据。
-     */
-    public RunEnvelope complete(int totalTokens, double totalCostUsd, int toolCallCount, int turnCount) {
-        return new RunEnvelope(
-                id, sessionId, parentRunId,
-                RunStatus.COMPLETED,
-                agentType, model, promptHash,
-                startedAt, Instant.now(),
-                abortReason,
-                totalTokens, totalCostUsd, toolCallCount, turnCount,
-                errorSummary,
-                createdAt, Instant.now()
-        );
-    }
-
-    /**
-     * 运行失败。
-     */
-    public RunEnvelope fail(String errorSummary) {
-        return new RunEnvelope(
-                id, sessionId, parentRunId,
-                RunStatus.ERROR,
-                agentType, model, promptHash,
-                startedAt, Instant.now(),
-                abortReason,
-                totalTokens, totalCostUsd, toolCallCount, turnCount,
-                errorSummary,
-                createdAt, Instant.now()
-        );
-    }
-
-    /**
-     * 中止运行。
-     */
-    public RunEnvelope abort(String reason) {
-        return new RunEnvelope(
-                id, sessionId, parentRunId,
-                RunStatus.ABORTED,
-                agentType, model, promptHash,
-                startedAt, Instant.now(),
-                reason,
-                totalTokens, totalCostUsd, toolCallCount, turnCount,
-                errorSummary,
-                createdAt, Instant.now()
-        );
-    }
 }

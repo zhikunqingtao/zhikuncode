@@ -2,18 +2,10 @@ package com.aicodeassistant.artifact;
 
 import java.time.Instant;
 
-/**
- * 产物条目 — 清单中的单个文件记录。
- */
-public record ArtifactEntry(
-    String id,
-    String manifestId,
-    String filePath,
-    String operation,    // "created" | "modified" | "deleted"
-    String expectedHash,
-    String actualHash,
-    Long fileSize,
-    boolean verified,
-    String mismatchDetail,
-    Instant createdAt
-) {}
+public record ArtifactEntry(String id, String manifestId, String toolUseId, String filePath,
+                            String operation, String state, String expectedHash, String actualHash,
+                            Long fileSize, String requiredValidatorId, String validatorResultJson,
+                            String failureCode, Instant createdAt, Instant updatedAt) {
+    public boolean verified() { return "integrity_verified".equals(state) || "content_verified".equals(state); }
+    public String mismatchDetail() { return failureCode; }
+}

@@ -104,9 +104,8 @@ const PhaseStep: React.FC<PhaseStepProps> = ({ phase, isLast }) => {
 export const WorkflowPhaseIndicator: React.FC = () => {
     const workflow = useCoordinatorStore((s) => s.activeWorkflow);
 
-    if (!workflow) return null;
-
-    const statusLabel = useMemo(() => {
+    const statusLabel = (() => {
+        if (!workflow) return '';
         switch (workflow.status) {
             case 'RUNNING': return '工作流执行中';
             case 'COMPLETED': return '工作流已完成';
@@ -114,9 +113,10 @@ export const WorkflowPhaseIndicator: React.FC = () => {
             case 'CANCELLED': return '工作流已取消';
             default: return '工作流准备中';
         }
-    }, [workflow.status]);
+    })();
 
-    const statusColor = useMemo(() => {
+    const statusColor = (() => {
+        if (!workflow) return 'text-gray-500';
         switch (workflow.status) {
             case 'RUNNING': return 'text-blue-600 dark:text-blue-400';
             case 'COMPLETED': return 'text-emerald-600 dark:text-emerald-400';
@@ -124,7 +124,9 @@ export const WorkflowPhaseIndicator: React.FC = () => {
             case 'CANCELLED': return 'text-gray-500';
             default: return 'text-gray-500';
         }
-    }, [workflow.status]);
+    })();
+
+    if (!workflow) return null;
 
     return (
         <div className="px-4 py-3 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm">

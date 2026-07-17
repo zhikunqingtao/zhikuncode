@@ -66,6 +66,18 @@ public class FileSnapshotRepository {
                 messageId);
     }
 
+    /** Latest pre-edit snapshot for deterministic changed-line fallback. */
+    public Optional<FileSnapshot> findLatestBySessionAndPath(String sessionId, String filePath) {
+        return projectJdbcTemplate.query(
+                "SELECT id, session_id, message_id, file_path, content, operation, created_at " +
+                        "FROM file_snapshots WHERE session_id = ? AND file_path = ? " +
+                        "ORDER BY created_at DESC LIMIT 1",
+                (rs, rowNum) -> new FileSnapshot(rs.getString("id"), rs.getString("session_id"),
+                        rs.getString("message_id"), rs.getString("file_path"), rs.getString("content"),
+                        rs.getString("operation"), rs.getString("created_at")), sessionId, filePath)
+                .stream().findFirst();
+    }
+
     /** 文件快照记录 */
     public record FileSnapshot(String id, String sessionId, String messageId,
                                 String filePath, String content, String operation,

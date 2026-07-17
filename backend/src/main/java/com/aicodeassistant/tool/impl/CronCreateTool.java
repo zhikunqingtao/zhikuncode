@@ -153,10 +153,11 @@ public class CronCreateTool implements Tool {
 
             return ToolResult.success(objectMapper.writeValueAsString(result));
         } catch (IllegalStateException e) {
-            return ToolResult.error(e.getMessage());
+            return ToolResult.validationError("CRON_TASK_INVALID", e.getMessage());
         } catch (Exception e) {
             log.error("Failed to create cron task: {}", e.getMessage(), e);
-            return ToolResult.error("Failed to create cron task: " + e.getMessage());
+            return ToolResult.internalError("CRON_CREATE_FAILED", "Failed to create cron task: " + e.getMessage(),
+                    ToolResult.EffectState.UNKNOWN);
         }
     }
 }

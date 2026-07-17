@@ -1,8 +1,9 @@
 package com.aicodeassistant.controller;
 
 import com.aicodeassistant.engine.AbortReason;
-import com.aicodeassistant.engine.QueryEngine;
-import com.aicodeassistant.permission.PermissionPipeline;
+import com.aicodeassistant.run.RunEnvelope;
+import com.aicodeassistant.run.RunEnvelopeRepository;
+import com.aicodeassistant.run.RunTerminationCoordinator;
 import com.aicodeassistant.websocket.WebSocketController;
 import com.aicodeassistant.websocket.WebSocketSessionManager;
 import org.slf4j.Logger;
@@ -31,19 +32,19 @@ public class RemoteControlController {
     private static final Logger log = LoggerFactory.getLogger(RemoteControlController.class);
     private static final Instant START_TIME = Instant.now();
 
-    private final QueryEngine queryEngine;
     private final WebSocketSessionManager wsSessionManager;
     private final WebSocketController wsController;
-    private final PermissionPipeline permissionPipeline;
+    private final RunEnvelopeRepository runs;
+    private final RunTerminationCoordinator termination;
 
-    public RemoteControlController(QueryEngine queryEngine,
-                                   WebSocketSessionManager wsSessionManager,
+    public RemoteControlController(WebSocketSessionManager wsSessionManager,
                                    WebSocketController wsController,
-                                   PermissionPipeline permissionPipeline) {
-        this.queryEngine = queryEngine;
+                                   RunEnvelopeRepository runs,
+                                   RunTerminationCoordinator termination) {
         this.wsSessionManager = wsSessionManager;
         this.wsController = wsController;
-        this.permissionPipeline = permissionPipeline;
+        this.runs = runs;
+        this.termination = termination;
     }
 
     /**
@@ -78,7 +79,7 @@ public class RemoteControlController {
      * 执行步骤:
      * <ol>
      *   <li>遍历所有活跃 WebSocket 会话</li>
-     *   <li>对每个会话触发 {@link QueryEngine#abort} (USER_INTERRUPT)</li>
+     *   <li>对每个活动 Run 调用统一终止协调器</li>
      *   <li>通过 WebSocket 推送 interrupt_ack 到已连接前端</li>
      *   <li>取消所有挂起的权限请求</li>
      * </ol>
@@ -91,9 +92,12 @@ public class RemoteControlController {
 
         for (String sessionId : activeIds) {
             try {
-                // 1. 中断 QueryEngine 查询循环
-                queryEngine.abort(sessionId, AbortReason.USER_INTERRUPT);
-
+                // Database Run state is the cancellation authority. Wake-ups and
+                // process termination happen only after winning requestCancel.
+                for (RunEnvelope run : runs.findBySession(sessionId, 100)) {
+                    if (run.status().terminal()) continue;
+                    termination.cancelByUser(run.id(), "remote_user_cancelled");
+                }
                 // 2. 推送 interrupt_ack 到已连接前端（使其 UI 回到 idle 状态）
                 wsController.pushToUser(sessionId, "interrupt_ack",
                         Map.of("reason", AbortReason.USER_INTERRUPT.name()));
@@ -105,9 +109,6 @@ public class RemoteControlController {
                 log.warn("Failed to interrupt session {}: {}", sessionId, e.getMessage());
             }
         }
-
-        // 3. 取消所有挂起的权限请求（避免权限弹窗残留阻塞后续操作）
-        permissionPipeline.cancelAllPending();
 
         log.info("Remote interrupt completed: {} sessions interrupted", count);
 

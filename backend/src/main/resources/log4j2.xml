@@ -11,7 +11,7 @@
 
     <Properties>
         <!-- 日志目录: 优先使用环境变量 LOG_DIR，回退到项目根/log/ -->
-        <Property name="LOG_DIR">${env:LOG_DIR:-${sys:user.dir}/../log}</Property>
+        <Property name="APP_LOG_DIR">${env:LOG_DIR:-${sys:user.dir}/../log}</Property>
         <!-- 控制台日志格式: 时间 级别 [线程] 类名 - 消息 -->
         <Property name="CONSOLE_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight{%-5level} [%thread] %cyan{%logger{36}} - %msg%n</Property>
         <!-- 文件日志格式: 时间 级别 [线程] 类全名 - 消息 -->
@@ -26,15 +26,15 @@
 
         <!-- ===== 主日志文件 (滚动策略: 每天 + 10MB 切割, 保留 30 天) ===== -->
         <RollingFile name="AppFile"
-                     fileName="${LOG_DIR}/app.log"
-                     filePattern="${LOG_DIR}/app-%d{yyyy-MM-dd}-%i.log.gz">
+                     fileName="${APP_LOG_DIR}/app.log"
+                     filePattern="${APP_LOG_DIR}/app-%d{yyyy-MM-dd}-%i.log.gz">
             <PatternLayout pattern="${FILE_PATTERN}" charset="UTF-8"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
                 <SizeBasedTriggeringPolicy size="10MB"/>
             </Policies>
             <DefaultRolloverStrategy max="30">
-                <Delete basePath="${LOG_DIR}" maxDepth="1">
+                <Delete basePath="${APP_LOG_DIR}" maxDepth="1">
                     <IfFileName glob="app-*.log.gz"/>
                     <IfLastModified age="30d"/>
                 </Delete>
@@ -43,8 +43,8 @@
 
         <!-- ===== 错误日志 (仅 WARN+ERROR, 独立文件便于快速排查) ===== -->
         <RollingFile name="ErrorFile"
-                     fileName="${LOG_DIR}/error.log"
-                     filePattern="${LOG_DIR}/error-%d{yyyy-MM-dd}-%i.log.gz">
+                     fileName="${APP_LOG_DIR}/error.log"
+                     filePattern="${APP_LOG_DIR}/error-%d{yyyy-MM-dd}-%i.log.gz">
             <PatternLayout pattern="${FILE_PATTERN}" charset="UTF-8"/>
             <Filters>
                 <ThresholdFilter level="WARN" onMatch="ACCEPT" onMismatch="DENY"/>
@@ -54,7 +54,7 @@
                 <SizeBasedTriggeringPolicy size="10MB"/>
             </Policies>
             <DefaultRolloverStrategy max="30">
-                <Delete basePath="${LOG_DIR}" maxDepth="1">
+                <Delete basePath="${APP_LOG_DIR}" maxDepth="1">
                     <IfFileName glob="error-*.log.gz"/>
                     <IfLastModified age="30d"/>
                 </Delete>
@@ -63,15 +63,15 @@
 
         <!-- ===== Debug 日志 (TRACE+DEBUG 级别, getDebugWriter 缓冲写入) ===== -->
         <RollingFile name="DebugFile"
-                     fileName="${LOG_DIR}/debug/debug.log"
-                     filePattern="${LOG_DIR}/debug/debug-%d{yyyy-MM-dd}-%i.log.gz">
+                     fileName="${APP_LOG_DIR}/debug/debug.log"
+                     filePattern="${APP_LOG_DIR}/debug/debug-%d{yyyy-MM-dd}-%i.log.gz">
             <PatternLayout pattern="${FILE_PATTERN}" charset="UTF-8"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
                 <SizeBasedTriggeringPolicy size="10MB"/>
             </Policies>
             <DefaultRolloverStrategy max="7">
-                <Delete basePath="${LOG_DIR}/debug" maxDepth="1">
+                <Delete basePath="${APP_LOG_DIR}/debug" maxDepth="1">
                     <IfFileName glob="debug-*.log.gz"/>
                     <IfLastModified age="7d"/>
                 </Delete>
@@ -85,15 +85,15 @@
                 <!-- 默认路由 (无 mcpServer MDC 时不输出到此 appender) -->
                 <Route key="${ctx:mcpServer}">
                     <RollingFile name="McpFile-${ctx:mcpServer}"
-                                 fileName="${LOG_DIR}/mcp/${ctx:mcpServer}.log"
-                                 filePattern="${LOG_DIR}/mcp/${ctx:mcpServer}-%d{yyyy-MM-dd}-%i.log.gz">
+                                 fileName="${APP_LOG_DIR}/mcp/${ctx:mcpServer}.log"
+                                 filePattern="${APP_LOG_DIR}/mcp/${ctx:mcpServer}-%d{yyyy-MM-dd}-%i.log.gz">
                         <PatternLayout pattern="${FILE_PATTERN}" charset="UTF-8"/>
                         <Policies>
                             <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
                             <SizeBasedTriggeringPolicy size="5MB"/>
                         </Policies>
                         <DefaultRolloverStrategy max="10">
-                            <Delete basePath="${LOG_DIR}/mcp" maxDepth="1">
+                            <Delete basePath="${APP_LOG_DIR}/mcp" maxDepth="1">
                                 <IfFileName glob="${ctx:mcpServer}-*.log.gz"/>
                                 <IfLastModified age="14d"/>
                             </Delete>

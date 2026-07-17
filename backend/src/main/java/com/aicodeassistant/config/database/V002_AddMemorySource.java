@@ -43,6 +43,12 @@ public class V002_AddMemorySource implements Migration {
             }
         } catch (Exception e) {
             log.error("V002 migration failed: {}", e.getMessage(), e);
+            throw new IllegalStateException("V002 migration failed", e);
         }
+    }
+
+    @Override
+    public Scope scope() {
+        return Scope.GLOBAL;
     }
 }

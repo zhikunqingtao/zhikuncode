@@ -78,4 +78,9 @@ public class V001_InitGlobalSchema implements Migration {
         globalJdbcTemplate.execute(
                 "CREATE INDEX IF NOT EXISTS idx_permission_rules_scope ON permission_rules(scope, tool_name)");
     }
+
+    @Override
+    public Scope scope() {
+        return Scope.GLOBAL;
+    }
 }

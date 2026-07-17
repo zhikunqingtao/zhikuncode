@@ -76,7 +76,7 @@ public class MemoryTool implements Tool {
             case "write" -> {
                 String content = input.getString("content");
                 if (content == null || content.isBlank()) {
-                    yield ToolResult.error("Content is required for write action.");
+                    yield ToolResult.validationError("MEMORY_CONTENT_REQUIRED", "Content is required for write action.");
                 }
                 memdirService.writeMemory(content, MemdirService.MemorySource.TOOL);
                 yield ToolResult.success("Memory saved.");
@@ -84,14 +84,14 @@ public class MemoryTool implements Tool {
             case "delete" -> {
                 String pattern = input.getString("content");
                 if (pattern == null || pattern.isBlank()) {
-                    yield ToolResult.error("Content (search pattern) is required for delete action.");
+                    yield ToolResult.validationError("MEMORY_PATTERN_REQUIRED", "Content (search pattern) is required for delete action.");
                 }
                 boolean deleted = memdirService.deleteMemory(pattern);
                 yield deleted
                         ? ToolResult.success("Memory deleted.")
-                        : ToolResult.error("No matching memory found.");
+                        : ToolResult.validationError("MEMORY_NOT_FOUND", "No matching memory found.");
             }
-            default -> ToolResult.error("Unknown action: " + action);
+            default -> ToolResult.validationError("MEMORY_ACTION_INVALID", "Unknown action: " + action);
         };
     }
 

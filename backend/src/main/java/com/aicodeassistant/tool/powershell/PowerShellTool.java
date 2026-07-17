@@ -6,6 +6,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
+import com.aicodeassistant.tool.process.ManagedProcessRunner;
+import java.nio.file.Path;
+import java.time.Duration;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -30,6 +34,11 @@ public class PowerShellTool implements Tool {
 
     /** 默认超时 (毫秒) */
     static final int DEFAULT_TIMEOUT_MS = 120_000;
+    private final ManagedProcessRunner processRunner;
+
+    @Autowired
+    public PowerShellTool(ManagedProcessRunner processRunner) { this.processRunner = processRunner; }
+    public PowerShellTool() { this.processRunner = null; }
 
     @Override
     public String getName() {
@@ -141,61 +150,38 @@ public class PowerShellTool implements Tool {
         // 1. 检测可用的 PowerShell 可执行文件
         String psExe = detectPowerShellExecutable();
         if (psExe == null) {
-            return ToolResult.error(
+            return ToolResult.validationError("POWERSHELL_EXECUTABLE_NOT_FOUND",
                     "PowerShell not found. Requires pwsh (PowerShell 7+) or powershell.exe.");
         }
 
         try {
-            // 2. 构建 PowerShell 命令
-            // pwsh -NoProfile -NonInteractive -Command "..."
             String escapedCommand = command.replace("\"", "`\"");
-            ProcessBuilder pb = new ProcessBuilder(
-                    psExe, "-NoProfile", "-NonInteractive", "-Command", escapedCommand)
-                    .directory(context.workingDirectory() != null
-                            ? new java.io.File(context.workingDirectory()) : null);
-
-            // 3. 执行
-            Process process = pb.start();
-
-            // 读取 stdout
-            StringBuilder stdout = new StringBuilder();
-            try (var reader = new BufferedReader(
-                    new InputStreamReader(process.getInputStream()))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    stdout.append(line).append("\n");
-                }
-            }
-
-            // 读取 stderr
-            StringBuilder stderr = new StringBuilder();
-            try (var reader = new BufferedReader(
-                    new InputStreamReader(process.getErrorStream()))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    stderr.append(line).append("\n");
-                }
-            }
-
-            boolean finished = process.waitFor(timeout, TimeUnit.MILLISECONDS);
-            if (!finished) {
-                process.destroyForcibly();
-                return ToolResult.error("PowerShell command timed out after " + timeout + "ms");
-            }
-
-            int exitCode = process.exitValue();
-            String output = stdout.toString();
+            if (processRunner == null || context.currentRunId() == null || context.toolUseId() == null)
+                return ToolResult.failed(ToolResult.ToolFailureType.PROCESS, "PROCESS_OWNERSHIP_MISSING",
+                        "PowerShell requires managed process ownership", ToolResult.Retryability.NEVER,
+                        ToolResult.EffectState.NOT_STARTED, null, Map.of());
+            ManagedProcessRunner.Result result = processRunner.run(new ManagedProcessRunner.Request(
+                    List.of(psExe, "-NoProfile", "-NonInteractive", "-Command", escapedCommand),
+                    Path.of(context.workingDirectory()), Duration.ofMillis(timeout),
+                    context.currentRunId(), context.toolUseId()));
+            if (result.cancelled()) return ToolResult.cancelled("PROCESS_CANCELLED", "PowerShell command cancelled",
+                    ToolResult.EffectState.UNKNOWN).withMetadata("terminationConfirmed", result.terminationConfirmed());
+            if (result.timedOut()) return ToolResult.timedOut("PROCESS_DEADLINE_EXCEEDED",
+                    "PowerShell command timed out after " + timeout + "ms", 137, result.terminationConfirmed());
+            int exitCode = result.exitCode();
+            String output = result.stdout();
             Map<String, Object> metadata = new java.util.HashMap<>();
             metadata.put("exitCode", exitCode);
             metadata.put("psExecutable", psExe);
-            if (!stderr.isEmpty()) {
-                metadata.put("stderr", stderr.toString().trim());
-            }
+            if (!result.stderr().isEmpty()) metadata.put("stderr", result.stderr().trim());
+            metadata.put("stdoutTruncated", result.stdoutTruncated());
+            metadata.put("stderrTruncated", result.stderrTruncated());
 
-            return new ToolResult(output, exitCode != 0, metadata);
+            return ToolResult.process(output, exitCode, metadata);
         } catch (Exception e) {
             log.error("PowerShell execution failed: {}", e.getMessage(), e);
-            return ToolResult.error("PowerShell error: " + e.getMessage());
+            return ToolResult.internalError("POWERSHELL_EXECUTION_FAILED",
+                    "PowerShell error: " + e.getMessage(), ToolResult.EffectState.UNKNOWN);
         }
     }
 

@@ -17,7 +17,6 @@ export interface EvidenceItem {
     type: string;
     summary: string | null;
     blobSha256: string | null;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     meta: Record<string, any>;
 }
 

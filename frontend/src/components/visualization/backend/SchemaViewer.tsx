@@ -120,16 +120,6 @@ const SchemaViewer: React.FC<SchemaViewerProps> = ({
 
     const toggleExpand = useCallback(() => setExpanded(e => !e), []);
 
-    // 超过最大深度
-    if (depth > MAX_DEPTH) {
-        return (
-            <div className="flex items-center gap-1.5 py-0.5" style={{ paddingLeft: depth * 16 }}>
-                {name && <span className="font-medium text-xs text-[var(--text-primary)]">{name}</span>}
-                <span className="text-xs text-[var(--text-muted)] italic">... (max depth)</span>
-            </div>
-        );
-    }
-
     // 获取子属性（object properties 或 array items 或 composite）
     const childSchema = useMemo(() => {
         if (resolved.type === 'object' && resolved.properties) return resolved;
@@ -142,6 +132,16 @@ const SchemaViewer: React.FC<SchemaViewerProps> = ({
         if (resolved.anyOf) return mergeCompositeSchema(resolved.anyOf, allSchemas);
         return null;
     }, [resolved, allSchemas]);
+
+    // All hooks must run before this recursive-depth early return.
+    if (depth > MAX_DEPTH) {
+        return (
+            <div className="flex items-center gap-1.5 py-0.5" style={{ paddingLeft: depth * 16 }}>
+                {name && <span className="font-medium text-xs text-[var(--text-primary)]">{name}</span>}
+                <span className="text-xs text-[var(--text-muted)] italic">... (max depth)</span>
+            </div>
+        );
+    }
 
     return (
         <div>

@@ -42,6 +42,7 @@ public class AnthropicProvider implements LlmProvider {
     private final String defaultModel;
     private final List<String> supportedModels;
     private final ObjectMapper objectMapper;
+    private final FinalProviderPayloadGuard payloadGuard;
     private final ConcurrentHashMap<String, Call> activeCalls = new ConcurrentHashMap<>();
 
     private static final Map<String, ModelCapabilities> MODEL_CAPABILITIES = Map.ofEntries(
@@ -68,12 +69,14 @@ public class AnthropicProvider implements LlmProvider {
             @Value("${llm.anthropic.api-key:}") String apiKey,
             @Value("${llm.anthropic.base-url:https://api.anthropic.com}") String baseUrl,
             @Value("${llm.anthropic.default-model:claude-sonnet-4-6}") String defaultModel,
-            @Value("${llm.anthropic.models:claude-sonnet-4-6,claude-3-7-sonnet-20250219,claude-3-5-sonnet-20241022}") List<String> supportedModels) {
+            @Value("${llm.anthropic.models:claude-sonnet-4-6,claude-3-7-sonnet-20250219,claude-3-5-sonnet-20241022}") List<String> supportedModels,
+            FinalProviderPayloadGuard payloadGuard) {
         this.objectMapper = objectMapper;
         this.apiKey = apiKey;
         this.baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
         this.defaultModel = defaultModel;
         this.supportedModels = supportedModels;
+        this.payloadGuard = payloadGuard;
 
         this.httpClient = new OkHttpClient.Builder()
                 .connectionPool(new ConnectionPool(
@@ -113,18 +116,9 @@ public class AnthropicProvider implements LlmProvider {
     @Override
     public boolean supportsCaching() { return true; }
 
-    @Override
-    public void abort() {
-        activeCalls.values().forEach(Call::cancel);
-        activeCalls.clear();
-    }
-
-    /**
-     * 按 session 中断流式请求。
-     */
-    public void abortStream(String sessionId) {
-        Call call = activeCalls.remove(sessionId);
-        if (call != null) call.cancel();
+    @jakarta.annotation.PreDestroy
+    void cancelAllOnShutdown() {
+        LlmCallRegistration.cancelAll(activeCalls, Call::cancel);
     }
 
     // ==================== 流式调用 (Map 格式, 兼容旧接口) ====================
@@ -138,10 +132,12 @@ public class AnthropicProvider implements LlmProvider {
             List<Map<String, Object>> tools,
             int maxTokens,
             ThinkingConfig thinkingConfig,
+            LlmCallContext callContext,
             StreamChatCallback callback) {
 
         Map<String, Object> body = buildRequestBody(model, messages, systemPrompt, tools, maxTokens, thinkingConfig);
-        executeStreamRequest(body, "stream-" + System.nanoTime(), callback);
+        payloadGuard.validate("anthropic", model, body, maxTokens);
+        executeStreamRequest(body, callContext, callback);
     }
 
     // ==================== 请求构建 ====================
@@ -191,7 +187,7 @@ public class AnthropicProvider implements LlmProvider {
 
     // ==================== SSE 流式解析 ====================
 
-    private void executeStreamRequest(Map<String, Object> body, String sessionId,
+    private void executeStreamRequest(Map<String, Object> body, LlmCallContext callContext,
                                        StreamChatCallback callback) {
         try {
             byte[] bodyBytes = objectMapper.writeValueAsBytes(body);
@@ -204,9 +200,10 @@ public class AnthropicProvider implements LlmProvider {
                     .build();
 
             Call call = httpClient.newCall(request);
-            activeCalls.put(sessionId, call);
-
-            try (Response response = call.execute()) {
+            String requestId = callContext.requestId();
+            try (AutoCloseable ignored = LlmCallRegistration.register(activeCalls, requestId, call,
+                         callContext.cancellation(), Call::cancel);
+                 Response response = call.execute()) {
                 if (!response.isSuccessful()) {
                     String respBody = response.body() != null ? response.body().string() : "";
                     int code = response.code();
@@ -218,14 +215,13 @@ public class AnthropicProvider implements LlmProvider {
                 callback.onComplete();
             } catch (IOException e) {
                 if (call.isCanceled()) {
-                    callback.onComplete(); // abort
+                    callback.onError(new LlmApiException(
+                            "LLM_CALL_CANCELLED", e, false));
                 } else {
                     // P0-2: 包装为 LlmApiException 保持一致性，确保能被 retry 机制捕获
                     callback.onError(new LlmApiException(
                             "Anthropic stream IO error: " + e.getMessage(), e, true));
                 }
-            } finally {
-                activeCalls.remove(sessionId);
             }
         } catch (Exception e) {
             if (e instanceof LlmApiException) {

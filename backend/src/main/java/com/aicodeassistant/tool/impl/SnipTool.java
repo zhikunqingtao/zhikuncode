@@ -42,7 +42,7 @@ public class SnipTool implements Tool {
                 String symbol = input.getString("symbol");
                 int ctx = input.getInt("context_lines", 3);
                 int symLine = findSymbolLine(lines, symbol);
-                if (symLine < 0) return ToolResult.error("未找到符号: " + symbol);
+                if (symLine < 0) return ToolResult.validationError("SNIP_SYMBOL_NOT_FOUND", "未找到符号: " + symbol);
                 start = Math.max(0, symLine - ctx);
                 end = Math.min(lines.size() - 1, findSymbolEnd(lines, symLine) + ctx);
             } else {
@@ -55,7 +55,7 @@ public class SnipTool implements Tool {
             }
             return ToolResult.success(sb.toString());
         } catch (Exception e) {
-            return ToolResult.error("代码片段提取失败: " + e.getMessage());
+            return ToolResult.internalError("SNIP_EXTRACTION_FAILED", "代码片段提取失败: " + e.getMessage(), ToolResult.EffectState.NONE);
         }
     }
 

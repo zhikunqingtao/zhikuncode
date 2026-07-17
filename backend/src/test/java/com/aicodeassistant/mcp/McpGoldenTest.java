@@ -7,6 +7,7 @@ import com.aicodeassistant.tool.ToolRegistry;
 import com.aicodeassistant.tool.ToolResult;
 import com.aicodeassistant.tool.ToolUseContext;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -27,7 +28,19 @@ class McpGoldenTest {
         McpApprovalService approval = mock(McpApprovalService.class);
         when(approval.isTrusted(any())).thenReturn(true);
         ToolRegistry toolRegistry = mock(ToolRegistry.class);
-        return new McpClientManager(new McpConfiguration(), null, toolRegistry, approval, null, null, null, null, null, null, null, null);
+        McpConfigurationResolver resolver = mock(McpConfigurationResolver.class);
+        when(resolver.resolveAll()).thenReturn(List.of());
+        McpCapabilityRegistryService registry = mock(McpCapabilityRegistryService.class);
+        McpClientManager manager = new McpClientManager(
+                new McpConfiguration(), resolver, toolRegistry, approval, registry,
+                mock(org.springframework.core.env.Environment.class),
+                mock(org.springframework.messaging.simp.SimpMessagingTemplate.class),
+                mock(com.aicodeassistant.websocket.WebSocketSessionManager.class),
+                mock(com.aicodeassistant.mcp.schema.SchemaCompressor.class),
+                mock(com.aicodeassistant.mcp.roots.McpRootsProvider.class),
+                mock(com.aicodeassistant.mcp.progress.McpProgressTracker.class), null);
+        manager.start();
+        return manager;
     }
 
     // ===== 1. 配置模型测试 =====
@@ -96,7 +109,7 @@ class McpGoldenTest {
         @DisplayName("2.1 SmartLifecycle — phase 和初始状态")
         void lifecycle() {
             assertEquals(2, manager.getPhase());
-            assertFalse(manager.isRunning());
+            assertTrue(manager.isRunning());
         }
 
         @Test
@@ -172,6 +185,11 @@ class McpGoldenTest {
             var tools = manager.discoverAndWrapTools();
             assertEquals(1, tools.size());
             assertEquals("mcp__myserver__read_file", tools.get(0).getName());
+        }
+
+        @AfterEach
+        void tearDown() {
+            manager.shutdown();
         }
     }
 
@@ -296,6 +314,11 @@ class McpGoldenTest {
             tool = new ListMcpResourcesTool(manager);
         }
 
+        @AfterEach
+        void tearDown() {
+            manager.shutdown();
+        }
+
         @Test
         @DisplayName("5.1 工具名称和标记")
         void nameAndFlags() {
@@ -403,6 +426,11 @@ class McpGoldenTest {
                     ToolUseContext.of("/tmp", "s1"));
             // readResource 可能因无实际 transport 而抛异常
             assertNotNull(result);
+        }
+
+        @AfterEach
+        void tearDown() {
+            manager.shutdown();
         }
     }
 

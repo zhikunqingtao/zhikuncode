@@ -6,6 +6,7 @@ import com.aicodeassistant.model.RunChecksResponse.CheckResult;
 import com.aicodeassistant.model.RunChecksResponse.CheckIssue;
 import com.aicodeassistant.model.dto.*;
 import com.aicodeassistant.websocket.WebSocketController;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -32,14 +33,24 @@ public class VerifyCheckService {
     private static final Logger log = LoggerFactory.getLogger(VerifyCheckService.class);
     private static final int DEFAULT_TIMEOUT_MS = 60_000;
     private static final int HEURISTIC_TIMEOUT_MS = 500;
+    private final ThreadPoolExecutor heuristicExecutor =
+            new ThreadPoolExecutor(2, 2, 0L, TimeUnit.MILLISECONDS,
+                    new ArrayBlockingQueue<>(64), r -> {
+                Thread thread = new Thread(r, "verify-heuristic");
+                thread.setDaemon(true);
+                return thread;
+            }, new ThreadPoolExecutor.AbortPolicy());
 
     private final WebSocketController webSocketController;
     private final PythonCapabilityAwareClient pythonClient;
+    private final ChangedLineResolver changedLineResolver;
 
     public VerifyCheckService(@Lazy WebSocketController webSocketController,
-                              PythonCapabilityAwareClient pythonClient) {
+                              PythonCapabilityAwareClient pythonClient,
+                              ChangedLineResolver changedLineResolver) {
         this.webSocketController = webSocketController;
         this.pythonClient = pythonClient;
+        this.changedLineResolver = changedLineResolver;
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -55,9 +66,14 @@ public class VerifyCheckService {
         List<String> checks = request.checks();
 
         // 异步获取 heuristic（500ms 超时）
-        CompletableFuture<HeuristicAnalysis> heuristicFuture = CompletableFuture.supplyAsync(() ->
-            fetchHeuristic(filePaths, workspacePath)
-        );
+        CompletableFuture<HeuristicAnalysis> heuristicFuture;
+        try {
+            heuristicFuture = CompletableFuture.supplyAsync(() ->
+                    fetchHeuristic(request.sessionId(), filePaths, workspacePath), heuristicExecutor);
+        } catch (RejectedExecutionException saturated) {
+            log.warn("Heuristic analysis queue is saturated; continuing without heuristic");
+            heuristicFuture = CompletableFuture.completedFuture(HeuristicAnalysis.unavailable());
+        }
 
         // 逐文件执行检查
         List<FileCheckResult> fileResults = new ArrayList<>();
@@ -75,6 +91,7 @@ public class VerifyCheckService {
         try {
             heuristic = heuristicFuture.get(HEURISTIC_TIMEOUT_MS, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
+            heuristicFuture.cancel(true);
             log.warn("Heuristic analysis unavailable (timeout/error): {}", e.getMessage());
             heuristic = HeuristicAnalysis.unavailable();
         }
@@ -92,6 +109,17 @@ public class VerifyCheckService {
                 fileResults, heuristic, signal, signalReason,
                 overallStatus, duration, Instant.now().toString()
         );
+    }
+
+    @jakarta.annotation.PreDestroy
+    void shutdownHeuristicExecutor() {
+        heuristicExecutor.shutdownNow();
+        try {
+            if (!heuristicExecutor.awaitTermination(2, TimeUnit.SECONDS))
+                log.warn("Verify heuristic executor did not terminate within 2 seconds");
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     /**
@@ -204,21 +232,70 @@ public class VerifyCheckService {
     // Heuristic（Python 调用）
     // ═══════════════════════════════════════════════════════════════
 
-    private HeuristicAnalysis fetchHeuristic(List<String> filePaths, String workspacePath) {
+    private HeuristicAnalysis fetchHeuristic(String sessionId, List<String> filePaths, String workspacePath) {
         try {
-            Map<String, Object> requestBody = Map.of(
-                    "filePaths", filePaths,
-                    "workingDirectory", workspacePath
-            );
-            var result = pythonClient.callIfAvailable(
-                    "CODE_INTEL", "/api/analysis/change-impact",
-                    requestBody, HeuristicAnalysis.class);
-            return result.orElse(HeuristicAnalysis.unavailable());
+            int affectedApis = 0, indirect = 0, potential = 0;
+            boolean highConfidence = false, truncated = false;
+            Set<String> affectedFiles = new LinkedHashSet<>();
+            boolean any = false;
+            for (String filePath : filePaths) {
+                Optional<List<Integer>> lines = changedLineResolver.resolve(
+                        sessionId, filePath, workspacePath);
+                if (lines.isEmpty() || lines.get().isEmpty()) {
+                    log.info("CHANGE_LINES_UNAVAILABLE file={} - Python change-impact skipped", filePath);
+                    continue;
+                }
+                String absolute = java.nio.file.Path.of(filePath).isAbsolute()
+                        ? java.nio.file.Path.of(filePath).normalize().toString()
+                        : java.nio.file.Path.of(workspacePath).resolve(filePath).normalize().toString();
+                ChangeImpactRequest request = new ChangeImpactRequest(absolute, lines.get(),
+                        java.nio.file.Path.of(workspacePath).toAbsolutePath().normalize().toString(), 3);
+                Optional<ChangeImpactEnvelope> response = pythonClient.callIfAvailable(
+                        "CODE_INTEL", "/api/analysis/change-impact", request, ChangeImpactEnvelope.class);
+                if (response.isEmpty()) continue;
+                if (!response.get().success() || response.get().data() == null) {
+                    ChangeImpactError error = response.get().error();
+                    log.info("Python change-impact rejected file={} code={} retryable={}", filePath,
+                            error == null ? "UNKNOWN" : error.code(),
+                            error != null && error.retryable());
+                    continue;
+                }
+                any = true;
+                ChangeImpactData data = response.get().data();
+                ChangeImpactSummary summary = data.summary();
+                if (summary != null) {
+                    affectedApis += summary.affectedApis() == null ? 0 : summary.affectedApis().size();
+                    indirect += summary.indirectCount();
+                    potential += summary.potentialCount();
+                    highConfidence |= summary.confidenceBreakdown() != null
+                            && summary.confidenceBreakdown().getOrDefault("high", 0) > 0;
+                }
+                truncated |= data.truncated();
+                if (data.impactNodes() != null) data.impactNodes().stream()
+                        .map(ChangeImpactNode::filePath).filter(Objects::nonNull).forEach(affectedFiles::add);
+            }
+            return any ? new HeuristicAnalysis(affectedApis, indirect, potential, highConfidence,
+                    truncated, List.copyOf(affectedFiles)) : HeuristicAnalysis.unavailable();
         } catch (Exception e) {
             log.warn("Heuristic fetch failed: {}", e.getMessage());
             return HeuristicAnalysis.unavailable();
         }
     }
+
+    private record ChangeImpactRequest(@JsonProperty("file_path") String filePath,
+                                       @JsonProperty("changed_lines") List<Integer> changedLines,
+                                       @JsonProperty("project_root") String projectRoot,
+                                       int depth) {}
+    private record ChangeImpactEnvelope(boolean success, ChangeImpactData data, ChangeImpactError error,
+                                        @JsonProperty("elapsed_ms") double elapsedMs) {}
+    private record ChangeImpactError(String code, String message, boolean retryable) {}
+    private record ChangeImpactData(@JsonProperty("impact_nodes") List<ChangeImpactNode> impactNodes,
+                                    ChangeImpactSummary summary, boolean truncated) {}
+    private record ChangeImpactNode(@JsonProperty("file_path") String filePath) {}
+    private record ChangeImpactSummary(@JsonProperty("indirect_count") int indirectCount,
+                                       @JsonProperty("potential_count") int potentialCount,
+                                       @JsonProperty("affected_apis") List<String> affectedApis,
+                                       @JsonProperty("confidence_breakdown") Map<String,Integer> confidenceBreakdown) {}
 
     // ═══════════════════════════════════════════════════════════════
     // Signal 计算

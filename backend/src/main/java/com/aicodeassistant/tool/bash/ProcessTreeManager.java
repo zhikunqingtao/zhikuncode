@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
-import java.util.stream.Stream;
+import java.util.List;
 
 /**
  * ProcessTreeManager — 进程树管理器。
@@ -40,8 +40,17 @@ public class ProcessTreeManager {
         long pid = handle.pid();
 
         try {
-            // 1. 收集所有子进程（深度优先）
-            Stream<ProcessHandle> descendants = handle.descendants();
+            // ProcessHandle enumeration is best-effort on restricted hosts. The
+            // primary process still has to be terminated even when descendants()
+            // is unavailable (for example, macOS sandbox denies sysctl).
+            List<ProcessHandle> descendants;
+            try {
+                descendants = handle.descendants().toList();
+            } catch (RuntimeException unavailable) {
+                descendants = List.of();
+                log.debug("Process descendants unavailable for pid={}: {}",
+                        pid, unavailable.getMessage());
+            }
 
             // 2. 先终止所有子进程（SIGTERM）
             descendants.forEach(child -> {
@@ -68,12 +77,17 @@ public class ProcessTreeManager {
             log.debug("Grace period expired, sending SIGKILL to process tree: pid={}", pid);
 
             // 重新获取子进程（可能有新的子进程产生）
-            handle.descendants().forEach(child -> {
-                if (child.isAlive()) {
-                    log.debug("Sending SIGKILL to child process: pid={}", child.pid());
-                    child.destroyForcibly();
-                }
-            });
+            try {
+                handle.descendants().forEach(child -> {
+                    if (child.isAlive()) {
+                        log.debug("Sending SIGKILL to child process: pid={}", child.pid());
+                        child.destroyForcibly();
+                    }
+                });
+            } catch (RuntimeException unavailable) {
+                log.debug("Process descendants unavailable during force termination for pid={}: {}",
+                        pid, unavailable.getMessage());
+            }
 
             process.destroyForcibly();
 

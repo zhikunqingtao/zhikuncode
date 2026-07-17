@@ -198,7 +198,7 @@ public class AgentTool implements Tool {
                 result = subAgentExecutor.executeSync(request, context);
                 // 超时路径：返回 error ToolResult，避免 LLM 误认为子代理成功完成
                 if (result.isTimeout()) {
-                    return ToolResult.error(result.result());
+                    return ToolResult.timedOut("SUBAGENT_DEADLINE_EXCEEDED", result.result(), null, true, ToolResult.EffectState.UNKNOWN);
                 }
                 // 同步模式: 返回执行结果
                 return ToolResult.success(result.result() != null
@@ -207,10 +207,10 @@ public class AgentTool implements Tool {
             }
         } catch (AgentLimitExceededException e) {
             log.warn("Agent limit exceeded: {}", e.getMessage());
-            return ToolResult.error("Agent limit exceeded: " + e.getMessage());
+            return ToolResult.validationError("SUBAGENT_LIMIT_EXCEEDED", "Agent limit exceeded: " + e.getMessage());
         } catch (Exception e) {
             log.error("AgentTool execution failed: {}", agentId, e);
-            return ToolResult.error("Agent execution failed: " + e.getMessage());
+            return ToolResult.internalError("SUBAGENT_EXECUTION_FAILED", "Agent execution failed: " + e.getMessage(), ToolResult.EffectState.UNKNOWN);
         }
     }
 

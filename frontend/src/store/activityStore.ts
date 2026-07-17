@@ -104,7 +104,7 @@ export const useActivityStore = create<ActivityStoreState>()(
           existing.changedFiles = partial.changedFiles;
         }
         // 其他基本类型字段用 Object.assign 正常合并
-        const { insight, changedFiles, ...other } = partial;
+        const { insight: _insight, changedFiles: _changedFiles, ...other } = partial;
         if (Object.keys(other).length > 0) {
           Object.assign(existing, other);
         }

@@ -26,6 +26,7 @@ import { useInsightStore } from '@/store/insightStore';
 import { useAnomalyStore } from '@/store/anomalyStore';
 import { useJourneyVerifyStore } from '@/store/journeyVerifyStore';
 import { useEvidenceStore } from '@/store/evidenceStore';
+import { useRunStore } from '@/store/runStore';
 import { anomalyEngine } from '@/services/AnomalyDetectionEngine';
 import { mapRunChecksResponseToRiskAssessment } from '@/utils/aposAdapters';
 import { appendStreamDelta } from '@/hooks/useStreamingText';
@@ -34,11 +35,84 @@ import { generateUUID } from '@/utils/uuid';
 /** 序列号校验器 — 检测乱序/丢失消息 */
 let lastSeqTs = 0;
 
-/** session_restored 事件协调回调 — 用于 App.tsx 中的 bind-session 流程同步 */
-let sessionRestoredCallback: (() => void) | null = null;
+interface PendingBind {
+    sessionId: string;
+    bindingEpoch: number;
+    resolve: (restored: boolean) => void;
+    timer: ReturnType<typeof setTimeout>;
+    queued: Array<ServerMessage & { ts?: number }>;
+}
+const pendingBinds = new Map<string, PendingBind>();
+let activeRecoveryId: string | null = null;
+let nextBindingEpoch = 0;
+let boundBindingEpoch = 0;
 
 /** 已绑定的会话 ID — 跟踪当前 WS 连接已绑定的 sessionId，避免重复发送 bind-session */
 let boundSessionId: string | null = null;
+
+interface InteractionView {
+    protocolVersion: number;
+    interactionId: string;
+    correlationKey: string;
+    sessionId: string;
+    runId: string;
+    interactionType: 'permission' | 'elicitation' | 'plan_approval';
+    status: string;
+    prompt: Record<string, unknown>;
+    allowedDecisions: string[];
+    scopeOptions: Array<'session' | 'workspace'>;
+    response?: unknown;
+    source?: string;
+    childSessionId?: string;
+    deliveryGeneration: number;
+    decisionDeadlineAt?: string | number;
+    deliveryWindowEndsAt: string | number;
+    version: number;
+    serverNow: number;
+}
+
+function clientDeadline(deadline: string | number | undefined, serverNow?: number): number | undefined {
+    if (deadline === undefined || deadline === null) return undefined;
+    const parsed = typeof deadline === 'number' ? deadline : Date.parse(deadline);
+    if (!Number.isFinite(parsed)) return undefined;
+    return Date.now() + Math.max(0, parsed - (serverNow ?? Date.now()));
+}
+
+function handleInteractionCreated(interaction: InteractionView): void {
+    if (interaction.protocolVersion !== 2 || interaction.status !== 'pending') return;
+    const prompt = interaction.prompt ?? {};
+    const deadline = clientDeadline(interaction.decisionDeadlineAt, interaction.serverNow);
+    if (interaction.interactionType === 'permission') {
+        handlePermissionRequest({
+            interactionId: interaction.interactionId,
+            version: interaction.version,
+            toolUseId: interaction.correlationKey,
+            toolName: String(prompt.toolName ?? 'unknown'),
+            input: { command: String(prompt.inputSummary ?? '') },
+            riskLevel: prompt.riskLevel === 'low' || prompt.riskLevel === 'high'
+                ? prompt.riskLevel : 'medium',
+            reason: String(prompt.reason ?? ''),
+            source: interaction.source,
+            childSessionId: interaction.childSessionId,
+            scopeOptions: interaction.scopeOptions,
+            decisionDeadlineAt: deadline,
+        });
+    } else if (interaction.interactionType === 'elicitation') {
+        useAppUiStore.getState().showElicitationDialog({
+            interactionId: interaction.interactionId,
+            version: interaction.version,
+            requestId: interaction.interactionId,
+            question: String(prompt.question ?? ''),
+            options: prompt.options ?? [],
+            decisionDeadlineAt: deadline,
+        });
+        void import('./stompClient').then(({ send }) =>
+            send('/app/interaction-received', {
+                interactionId: interaction.interactionId,
+                deliveryGeneration: interaction.deliveryGeneration,
+            }));
+    }
+}
 
 /** 标记会话已绑定 */
 export function markSessionBound(sessionId: string): void {
@@ -53,26 +127,40 @@ export function isSessionBound(sessionId: string): boolean {
 /** 重置绑定状态 — WS 重连时调用，确保下次发消息时重新发送 bind-session */
 export function resetBoundSession(): void {
     boundSessionId = null;
+    boundBindingEpoch = 0;
 }
 
 /**
  * 等待 session_restored 事件处理完成。
  * 用于 bind-session 后确保 session_restored 已处理完毕再添加用户消息，
  * 避免 clearMessages() 清掉刚添加的用户消息。
- * @param timeoutMs 最大等待时间，默认 500ms
+ * @param timeoutMs 最大等待时间，默认 5s（包含 Run event 缺口补齐）
+ * @return true 表示已收到并处理完服务端 session_restored；false 表示绑定未确认
  */
-export function waitForSessionRestore(timeoutMs = 500): Promise<void> {
+export function bindSessionAndWait(
+    sessionId: string,
+    publish: (payload: { sessionId: string; protocolVersion: number; bindRequestId: string; bindingEpoch: number }) => void,
+    timeoutMs = 5000,
+): Promise<boolean> {
+    if (activeRecoveryId) finishBind(activeRecoveryId, false, false);
+    const bindRequestId = crypto.randomUUID();
+    const bindingEpoch = ++nextBindingEpoch;
     return new Promise(resolve => {
-        const timer = setTimeout(() => {
-            sessionRestoredCallback = null;
-            resolve();
-        }, timeoutMs);
-        sessionRestoredCallback = () => {
-            clearTimeout(timer);
-            sessionRestoredCallback = null;
-            resolve();
-        };
+        const timer = setTimeout(() => finishBind(bindRequestId, false, false), timeoutMs);
+        pendingBinds.set(bindRequestId, { sessionId, bindingEpoch, resolve, timer, queued: [] });
+        activeRecoveryId = bindRequestId;
+        publish({ sessionId, protocolVersion: 3, bindRequestId, bindingEpoch });
     });
+}
+
+function finishBind(bindRequestId: string, restored: boolean, replayQueued: boolean): void {
+    const pending = pendingBinds.get(bindRequestId);
+    if (!pending) return;
+    clearTimeout(pending.timer);
+    pendingBinds.delete(bindRequestId);
+    if (activeRecoveryId === bindRequestId) activeRecoveryId = null;
+    pending.resolve(restored);
+    if (replayQueued) pending.queued.forEach(message => dispatch(message));
 }
 
 /**
@@ -80,6 +168,21 @@ export function waitForSessionRestore(timeoutMs = 500): Promise<void> {
  * @param data 原始 JSON body (WsMessage 格式: { type, ts, ...payload })
  */
 export function dispatch(data: ServerMessage & { ts?: number }): void {
+    const routed = data as ServerMessage & { ts?: number; _sessionId?: string; _bindingEpoch?: number };
+    if (activeRecoveryId && data.type !== 'session_restored' && data.type !== 'protocol_error') {
+        const pending = pendingBinds.get(activeRecoveryId);
+        if (pending) {
+            if (routed._sessionId && (routed._sessionId !== pending.sessionId
+                    || routed._bindingEpoch !== pending.bindingEpoch)) return;
+            if (pending.queued.length >= 5000) pending.queued.shift();
+            pending.queued.push(data);
+            return;
+        }
+    }
+    if (!activeRecoveryId && routed._sessionId && boundSessionId
+            && (routed._sessionId !== boundSessionId || routed._bindingEpoch !== boundBindingEpoch)) {
+        return;
+    }
     // 序列号/时间戳校验
     if (data.ts) {
         if (data.ts < lastSeqTs) {
@@ -90,7 +193,6 @@ export function dispatch(data: ServerMessage & { ts?: number }): void {
 
     const handler = handlers[data.type];
     if (handler) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         handler(data as any);
     } else {
         console.warn(`[WS] Unknown message type: ${data.type}`);
@@ -104,8 +206,18 @@ export function resetSequence(): void {
 
 // ==================== 事件分发表 — 覆盖全部 25 种消息 ====================
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const handlers: Record<string, (data: any) => void> = {
+    'protocol_error': (d: { code: string; supportedVersion: number; bindRequestId?: string; bindingEpoch?: number }) => {
+        if (d.bindRequestId) finishBind(d.bindRequestId, false, false);
+        useNotificationStore.getState().addNotification({
+            key: 'protocol-error', level: 'error',
+            message: d.code === 'UPGRADE_REQUIRED'
+                ? `客户端协议版本不兼容（服务端需要 v${d.supportedVersion}），请刷新页面`
+                : '实时连接协议错误',
+            timeout: 0,
+        });
+    },
+    'interaction_created': (d: InteractionView) => handleInteractionCreated(d),
     // === messageStore (5 种) ===
     'stream_delta':       (d) => {
         // 首次 delta 时在 messageStore 创建占位 assistant 消息
@@ -118,14 +230,6 @@ const handlers: Record<string, (data: any) => void> = {
     'thinking_delta':     (d) => useMessageStore.getState().appendThinkingDelta(d.delta),
     'tool_use_start':     (d) => useMessageStore.getState().startToolCall(d.toolUseId, d.toolName, d.input),
     'tool_use_input':     (d) => {
-        console.log('[APOS-DEBUG] tool_use_input received:', {
-            toolUseId: d.toolUseId,
-            toolName: d.toolName,
-            inputType: typeof d.input,
-            inputKeys: d.input && typeof d.input === 'object' ? Object.keys(d.input) : [],
-            inputSample: JSON.stringify(d.input)?.substring(0, 300),
-            timestamp: Date.now(),
-        });
         useMessageStore.getState().updateToolCallInput(d.toolUseId, d.input);
     },
     'tool_use_progress':  (d) => useMessageStore.getState().updateToolCallProgress(d.toolUseId, d.progress),
@@ -161,7 +265,24 @@ const handlers: Record<string, (data: any) => void> = {
     'agent_complete':     (d) => useTaskStore.getState().completeAgentTask(d.taskId, d.result),
 
     // === appUiStore (3 种) ===
-    'elicitation':        (d) => useAppUiStore.getState().showElicitationDialog(d),
+    'elicitation':        (d) => {
+        useAppUiStore.getState().showElicitationDialog(d);
+        if (d.interactionId) void import('./stompClient').then(({ send }) =>
+            send('/app/interaction-received', { interactionId: d.interactionId }));
+    },
+    'interaction_updated': (d: { interactionId: string; decisionDeadlineAt: number | string; serverNow?: number; version?: number }) => {
+        const deadline = clientDeadline(d.decisionDeadlineAt, d.serverNow);
+        if (deadline === undefined) return;
+        usePermissionStore.getState().updateInteractionDeadline(d.interactionId, deadline, d.version);
+        useAppUiStore.getState().updateElicitationDeadline(d.interactionId, deadline, d.version);
+    },
+    'interaction_terminal': (d: { interactionId: string; interactionType: string }) => {
+        usePermissionStore.getState().removeInteraction(d.interactionId);
+        if (d.interactionType === 'elicitation'
+            && useAppUiStore.getState().elicitationDialog?.interactionId === d.interactionId) {
+            useAppUiStore.getState().dismissElicitationDialog();
+        }
+    },
     'prompt_suggestion':  (d) => useAppUiStore.getState().setPromptSuggestion(d),
     'speculation_result': (d) => useAppUiStore.getState().updateSpeculation(d),
 
@@ -494,6 +615,9 @@ const handlers: Record<string, (data: any) => void> = {
 function handlePermissionRequest(data: PermissionRequest): void {
     usePermissionStore.getState().showPermission(data);
     useSessionStore.getState().setStatus('waiting_permission');
+    // ACK only after the reducer accepted the request into the visible inbox.
+    void import('./stompClient').then(({ send }) =>
+        send('/app/interaction-received', { interactionId: data.interactionId, correlationKey: data.toolUseId }));
 }
 
 /**
@@ -560,6 +684,8 @@ function handleCompactComplete(data: {
  * messageStore + sessionStore + bridgeStore + notificationStore
  */
 function handleSessionRestore(data: {
+    bindRequestId: string;
+    bindingEpoch: number;
     messages: Message[];
     activities?: ActivityData[];
     totalActivityCount?: number;
@@ -569,20 +695,38 @@ function handleSessionRestore(data: {
         model: string;
         status: 'idle' | 'interrupted';
     };
+    runSnapshot?: { id: string; status: string };
+    snapshotEventSeq?: number;
+    activeToolCalls?: Array<{ toolUseId: string; toolName: string; input: unknown; startedAt?: number }>;
+    costSummary?: { totalCost?: number };
 }): void {
+    const pending = pendingBinds.get(data.bindRequestId);
+    if (!pending || pending.sessionId !== data.metadata.sessionId
+            || pending.bindingEpoch !== data.bindingEpoch) return;
     // 1. 重置序列号
     resetSequence();
 
     // 2. 清除旧状态 → 加载完整消息历史
     useMessageStore.getState().clearMessages();
     data.messages.forEach(msg => useMessageStore.getState().addMessage(msg));
+    useMessageStore.getState().replaceActiveToolCalls(data.activeToolCalls ?? []);
+    if (data.runSnapshot?.id) {
+        useRunStore.getState().replaceRecoverySnapshot(
+            data.runSnapshot.id,
+            data.runSnapshot as unknown as Record<string, unknown>,
+            data.snapshotEventSeq ?? 0,
+        );
+    }
 
     // 3. 恢复会话元数据
     useSessionStore.getState().resumeSession(data.metadata.sessionId);
     useSessionStore.getState().setModel(data.metadata.model);
+    // session_restored 是服务端 bind-session 的确认；只有收到它才记为已绑定。
+    markSessionBound(data.metadata.sessionId);
+    boundBindingEpoch = data.bindingEpoch;
 
     // 4. 恢复状态
-    if (data.metadata.status === 'interrupted') {
+    if (data.metadata.status === 'interrupted' || data.runSnapshot?.status === 'INTERRUPTED') {
         useSessionStore.getState().setStatus('idle');
         useNotificationStore.getState().addNotification({
             key: 'session-restore-interrupted',
@@ -590,8 +734,21 @@ function handleSessionRestore(data: {
             message: 'AI 输出在断线期间被中断，你可以发送消息继续对话',
             timeout: 8000,
         });
+    } else if (data.runSnapshot?.status === 'RUNNING' || data.runSnapshot?.status === 'CANCELLING') {
+        useSessionStore.getState().setStatus('streaming');
+    } else if (data.runSnapshot?.status === 'WAITING_INTERACTION') {
+        useSessionStore.getState().setStatus('waiting_permission');
     } else {
         useSessionStore.getState().setStatus('idle');
+    }
+
+    if (data.costSummary && typeof data.costSummary.totalCost === 'number') {
+        const currentCost = useCostStore.getState();
+        useCostStore.getState().updateCost({
+            sessionCost: data.costSummary.totalCost,
+            totalCost: currentCost.totalCost,
+            usage: currentCost.usage,
+        });
     }
 
     // 5. 更新连接状态
@@ -617,6 +774,24 @@ function handleSessionRestore(data: {
         }
     }
 
-    // 7. 通知 waitForSessionRestore 等待者
-    sessionRestoredCallback?.();
+    // 7. The snapshot already represents snapshotEventSeq. Frames received after
+    // bind are held by the recovery gate and replayed only after this projection.
+    void recoverPendingInteractions(data.metadata.sessionId)
+        .catch((error) => useNotificationStore.getState().addNotification({
+            key: 'run-event-recovery-failed', level: 'warning',
+            message: `运行状态补齐失败：${error instanceof Error ? error.message : String(error)}`,
+            timeout: 8000,
+        }))
+        .finally(() => finishBind(data.bindRequestId, true, true));
+}
+
+async function recoverPendingInteractions(sessionId: string): Promise<void> {
+    const response = await fetch(`/api/interactions/pending?sessionId=${encodeURIComponent(sessionId)}`, {
+        headers: { 'X-Session-Id': sessionId },
+    });
+    if (!response.ok) throw new Error(`INTERACTION_RECOVERY_${response.status}`);
+    const pending = await response.json() as InteractionView[];
+    for (const interaction of pending) {
+        handleInteractionCreated(interaction);
+    }
 }

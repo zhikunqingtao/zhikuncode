@@ -133,7 +133,6 @@ function extractChangedFiles(toolName: string, input: unknown): FileChange[] {
 
   // 防御: input 为 null/undefined
   if (!input) {
-    console.log('[APOS-DEBUG] extractChangedFiles: input is null/undefined for tool:', toolName);
     return files;
   }
 
@@ -142,15 +141,12 @@ function extractChangedFiles(toolName: string, input: unknown): FileChange[] {
   if (typeof input === 'string') {
     try {
       parsedInput = JSON.parse(input);
-      console.log('[APOS-DEBUG] extractChangedFiles: parsed string input for tool:', toolName);
     } catch {
-      console.log('[APOS-DEBUG] extractChangedFiles: input is non-JSON string for tool:', toolName);
       return files;
     }
   }
 
   if (typeof parsedInput !== 'object' || Array.isArray(parsedInput)) {
-    console.log('[APOS-DEBUG] extractChangedFiles: input is not an object for tool:', toolName, typeof parsedInput);
     return files;
   }
 
@@ -281,15 +277,6 @@ function extractChangedFiles(toolName: string, input: unknown): FileChange[] {
       }
     }
   }
-
-  console.log('[APOS-DEBUG] extractChangedFiles result:', {
-    toolName,
-    toolLower,
-    inputKeys: Object.keys(inp),
-    filePathFound: filePath ?? 'none',
-    filesExtracted: files.length,
-    files: files.map(f => f.filePath),
-  });
 
   return files;
 }
@@ -513,20 +500,6 @@ export function useAPOSInitialization(): void {
           ) {
             processedToolCallsRef.current.add(toolUseId);
 
-            console.log('[APOS-DEBUG] Processing completed toolCall:', {
-              toolUseId,
-              toolName: toolCall.toolName,
-              status: toolCall.status,
-              inputType: typeof toolCall.input,
-              inputIsNull: toolCall.input === null || toolCall.input === undefined,
-              inputIsEmptyObj: toolCall.input && typeof toolCall.input === 'object' && Object.keys(toolCall.input as object).length === 0,
-              inputKeys: toolCall.input && typeof toolCall.input === 'object' && !Array.isArray(toolCall.input)
-                ? Object.keys(toolCall.input as object)
-                : [],
-              inputSample: JSON.stringify(toolCall.input)?.substring(0, 300),
-              timestamp: Date.now(),
-            });
-
             const operationType = inferOperationType(toolCall.toolName, toolCall.input);
             const summary = generateActivitySummary(toolCall.toolName, toolCall.input, operationType);
 
@@ -604,15 +577,6 @@ export function useAPOSInitialization(): void {
                 console.log('[APOS] Auto-approved read-only activity:', activity.id);
               }
             }
-
-            console.log('[APOS-DEBUG] Activity created:', {
-              id: activity.id,
-              toolName: toolCall.toolName,
-              operationType,
-              signal: activity.insight?.signal,
-              changedFiles: activity.changedFiles.length,
-              changedFilePaths: activity.changedFiles.map(f => f.filePath),
-            });
 
             // 写入类操作 → 异步触发后端验证（不阻塞 UI）
             if (
@@ -714,17 +678,6 @@ export function useAPOSInitialization(): void {
             const summary = generateActivitySummary(toolCall.toolName, toolCall.input, operationType);
             const changedFiles = extractChangedFiles(toolCall.toolName, toolCall.input);
 
-            console.log('[APOS-DEBUG] Backfill check:', {
-              toolUseId,
-              toolName: toolCall.toolName,
-              existingSummary: existing.summary,
-              existingChangedFiles: existing.changedFiles.length,
-              newChangedFiles: changedFiles.length,
-              newSummary: summary,
-              hasValidInput,
-              hasStringInput,
-            });
-
             if (changedFiles.length > 0 || summary !== existing.summary) {
               updateActivity(toolUseId, {
                 operationType,
@@ -739,13 +692,6 @@ export function useAPOSInitialization(): void {
                     metadata: toolCall.result.metadata,
                   },
                 }),
-              });
-              console.log('[APOS-DEBUG] Activity backfill-updated:', {
-                id: toolUseId,
-                toolName: toolCall.toolName,
-                newSummary: summary,
-                newFileCount: changedFiles.length,
-                newFilePaths: changedFiles.map(f => f.filePath),
               });
 
               // 回溯后如果是写入操作且还没触发验证，补充触发

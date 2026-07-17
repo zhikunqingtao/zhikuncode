@@ -67,12 +67,12 @@ public class MicroCompactService {
             }
 
             if (msg instanceof Message.UserMessage user
-                    && user.toolUseResult() != null
-                    && !user.toolUseResult().equals(CLEARED_MESSAGE)) {
+                    && MessageContentAccessor.legacyToolResult(user) != null
+                    && !MessageContentAccessor.legacyToolResult(user).equals(CLEARED_MESSAGE)) {
                 // 检查是否属于可压缩工具 — 通过预扫描的 ID 集合判断
                 boolean isCompactable = isCompactableByIds(user, compactableIds, messages);
                 if (isCompactable) {
-                    tokensFreed += tokenCounter.estimateTokens(user.toolUseResult());
+                    tokensFreed += tokenCounter.estimateTokens(MessageContentAccessor.legacyToolResult(user));
                     result.add(new Message.UserMessage(
                             user.uuid(), user.timestamp(), user.content(),
                             CLEARED_MESSAGE, user.sourceToolAssistantUUID()));

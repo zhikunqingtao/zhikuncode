@@ -19,14 +19,9 @@ public record PermissionDecision(
         PermissionRule matchedRule,
         PermissionMode mode,
         boolean remember,
-        RuleScope rememberScope,
+        PermissionScope rememberScope,
         boolean bubble
 ) {
-    /** 向后兼容: allowed 字段 */
-    public boolean allowed() {
-        return behavior == PermissionBehavior.ALLOW;
-    }
-
     // ==================== 工厂方法 ====================
 
     /** 基于规则允许 */
@@ -59,6 +54,11 @@ public record PermissionDecision(
                 PermissionDecisionReason.MODE, reason, null, null, false, null, false);
     }
 
+    public static PermissionDecision denyByInteraction(PermissionDecisionReason reasonType, String reason) {
+        return new PermissionDecision(PermissionBehavior.DENY,
+                reasonType, reason, null, null, false, null, false);
+    }
+
     /** 基于规则询问 */
     public static PermissionDecision ask(PermissionRule rule) {
         return new PermissionDecision(PermissionBehavior.ASK,
@@ -85,7 +85,7 @@ public record PermissionDecision(
     }
 
     /** 设置记忆 */
-    public PermissionDecision withRemember(boolean remember, RuleScope scope) {
+    public PermissionDecision withRemember(boolean remember, PermissionScope scope) {
         return new PermissionDecision(behavior, reasonType, reason, matchedRule, mode, remember, scope, bubble);
     }
 

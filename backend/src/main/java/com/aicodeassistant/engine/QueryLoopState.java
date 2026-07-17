@@ -25,6 +25,8 @@ public class QueryLoopState {
     private int maxOutputTokensRecoveryCount = 0;
     private Integer maxTokensOverride = null;
     private boolean hasAttemptedReactiveCompact = false;
+    /** Final serialized provider payload may trigger at most one local compact/rebuild. */
+    private boolean providerPayloadGuardRetryAttempted = false;
     private int turnCount = 0;
     private AbortReason abortReason = null;
     private boolean stopHookActive = false;
@@ -62,6 +64,7 @@ public class QueryLoopState {
     public int getMaxOutputTokensRecoveryCount() { return maxOutputTokensRecoveryCount; }
     public Integer getMaxTokensOverride() { return maxTokensOverride; }
     public boolean hasAttemptedReactiveCompact() { return hasAttemptedReactiveCompact; }
+    public boolean hasAttemptedProviderPayloadGuardRetry() { return providerPayloadGuardRetryAttempted; }
     public int getTurnCount() { return turnCount; }
     public AbortReason getAbortReason() { return abortReason; }
     public boolean isStopHookActive() { return stopHookActive; }
@@ -118,6 +121,10 @@ public class QueryLoopState {
 
     public void setHasAttemptedReactiveCompact(boolean attempted) {
         this.hasAttemptedReactiveCompact = attempted;
+    }
+
+    public void setProviderPayloadGuardRetryAttempted(boolean attempted) {
+        this.providerPayloadGuardRetryAttempted = attempted;
     }
 
     public void incrementTurnCount() {

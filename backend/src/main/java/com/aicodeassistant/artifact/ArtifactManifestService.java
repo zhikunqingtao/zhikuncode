@@ -2,411 +2,178 @@ package com.aicodeassistant.artifact;
 
 import com.aicodeassistant.config.database.DatabaseResolver;
 import com.aicodeassistant.config.database.SqliteConfig;
-import com.aicodeassistant.run.RunEvent;
-import com.aicodeassistant.run.RunEventRepository;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.aicodeassistant.run.RunControlService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HexFormat;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import com.aicodeassistant.security.ManagedPathLockManager;
 
-/**
- * 产物清单服务 — 核心业务逻辑。
- * <p>
- * 负责从运行事件中提取文件变更记录，生成清单并验证文件完整性。
- */
+/** Explicit artifact declaration, sealing and verification authority. */
 @Service
+@DependsOn("migrationRunner")
 public class ArtifactManifestService {
-
-    private static final Logger log = LoggerFactory.getLogger(ArtifactManifestService.class);
-
-    private static final Set<String> FILE_MODIFYING_TOOLS = Set.of(
-        "Write", "Edit", "NotebookEdit", "Bash"
-    );
-
-    private static final Set<String> FILE_PATH_KEYS = Set.of(
-        "filePath", "path", "file_path"
-    );
-
-    private static final long MAX_VERIFY_FILE_SIZE = 200 * 1024 * 1024L; // 200MB
-
-    private final JdbcTemplate jdbcTemplate;
-    private final SqliteConfig sqliteConfig;
-    private final Path dbPath;
-    private final RunEventRepository eventRepository;
-    private final ObjectMapper objectMapper;
-
-    private static final RowMapper<ArtifactEntry> ENTRY_ROW_MAPPER = (rs, rowNum) -> new ArtifactEntry(
-        rs.getString("id"),
-        rs.getString("manifest_id"),
-        rs.getString("file_path"),
-        rs.getString("operation"),
-        rs.getString("expected_hash"),
-        rs.getString("actual_hash"),
-        rs.getObject("file_size") != null ? rs.getLong("file_size") : null,
-        rs.getInt("verified") == 1,
-        rs.getString("mismatch_detail"),
-        Instant.parse(rs.getString("created_at"))
-    );
-
-    private static final RowMapper<ArtifactManifest> MANIFEST_ROW_MAPPER = (rs, rowNum) -> {
-        String verifiedAtStr = rs.getString("verified_at");
-        return new ArtifactManifest(
-            rs.getString("id"),
-            rs.getString("run_id"),
-            rs.getString("session_id"),
-            rs.getString("status"),
-            rs.getInt("total_files"),
-            rs.getInt("verified_files"),
-            rs.getInt("failed_files"),
-            Instant.parse(rs.getString("created_at")),
-            verifiedAtStr != null ? Instant.parse(verifiedAtStr) : null,
-            List.of() // entries loaded separately
-        );
-    };
-
-    public ArtifactManifestService(@Qualifier("projectJdbcTemplate") JdbcTemplate jdbcTemplate,
-                                    SqliteConfig sqliteConfig,
-                                    DatabaseResolver databaseResolver,
-                                    RunEventRepository eventRepository,
-                                    ObjectMapper objectMapper) {
-        this.jdbcTemplate = jdbcTemplate;
-        this.sqliteConfig = sqliteConfig;
-        this.dbPath = databaseResolver.getProjectDbPath(Path.of(System.getProperty("user.dir")));
-        this.eventRepository = eventRepository;
-        this.objectMapper = objectMapper;
+    private static final long MAX_VERIFICATION_BYTES = 200L * 1024 * 1024;
+    private final JdbcTemplate jdbc; private final SqliteConfig sqlite; private final Path dbPath;
+    private final TransactionTemplate tx; private final ObjectMapper json;
+    private final RunControlService runs;
+    private final com.aicodeassistant.security.ManagedWorkspacePathResolver managedPaths;
+    private final ManagedPathLockManager pathLocks;
+    private record Update(String id,String state,String actual,Long size,String validator,String failure){}
+    public ArtifactManifestService(@Qualifier("projectJdbcTemplate") JdbcTemplate jdbc,
+            SqliteConfig sqlite, DatabaseResolver resolver,
+            @Qualifier("projectTransactionManager") PlatformTransactionManager txManager,
+            ObjectMapper json, RunControlService runs,
+            com.aicodeassistant.security.ManagedWorkspacePathResolver managedPaths,
+            ManagedPathLockManager pathLocks) {
+        this.jdbc=jdbc; this.sqlite=sqlite; this.dbPath=resolver.getProjectDbPath(Path.of(System.getProperty("user.dir")));
+        this.tx=new TransactionTemplate(txManager); this.json=json; this.runs=runs; this.managedPaths=managedPaths;
+        this.pathLocks=pathLocks;
     }
 
-    /**
-     * 生成产物清单 — 从运行事件中提取文件变更记录。
-     */
-    public ArtifactManifest generateManifest(String runId, String sessionId) {
-        List<RunEvent> toolEvents = eventRepository.getEventsByType(runId, "tool_result");
-
-        List<ArtifactEntry> entries = new ArrayList<>();
-        String manifestId = UUID.randomUUID().toString();
-        Instant now = Instant.now();
-
-        for (RunEvent event : toolEvents) {
-            try {
-                JsonNode eventData = objectMapper.readTree(event.eventData());
-
-                // 跳过失败的工具结果
-                if (eventData.has("isError") && eventData.get("isError").asBoolean()) {
-                    continue;
-                }
-
-                String toolName = extractToolName(eventData);
-                if (toolName == null || !FILE_MODIFYING_TOOLS.contains(toolName)) {
-                    continue;
-                }
-
-                String filePath = extractFilePath(eventData);
-                if (filePath == null || filePath.isBlank()) {
-                    continue;
-                }
-
-                String operation = extractOperation(eventData, toolName);
-                String expectedHash = extractExpectedHash(eventData);
-
-                ArtifactEntry entry = new ArtifactEntry(
-                    UUID.randomUUID().toString(),
-                    manifestId,
-                    filePath,
-                    operation,
-                    expectedHash,
-                    null,  // actualHash — set during verification
-                    null,  // fileSize — set during verification
-                    false,
-                    null,
-                    now
-                );
-                entries.add(entry);
-            } catch (Exception e) {
-                log.debug("Failed to parse event data for run={}, seq={}: {}",
-                    runId, event.seq(), e.getMessage());
+    public ArtifactEntry declare(String runId, String sessionId, String toolUseId,
+                                 String path, String operation, String validatorId,
+                                 String workspaceRoot) {
+        if (runId==null||sessionId==null||toolUseId==null)
+            throw new IllegalArgumentException("ARTIFACT_DECLARATION_INCOMPLETE");
+        Path canonical=canonical(path, workspaceRoot); Instant now=Instant.now();
+        String normalizedOperation=normalizeOperation(operation);
+        String manifestId=write(() -> {
+            List<String> ids=jdbc.queryForList("SELECT manifest_id FROM artifact_manifests WHERE run_id=?",String.class,runId);
+            String id=ids.isEmpty()?UUID.randomUUID().toString():ids.getFirst();
+            if(ids.isEmpty()) jdbc.update("INSERT INTO artifact_manifests(manifest_id,run_id,session_id,workspace_root,state,created_at,updated_at) VALUES(?,?,?,?,'open',?,?)",
+                    id,runId,sessionId,root(workspaceRoot).toString(),now.toString(),now.toString());
+            else {
+                String storedRoot=jdbc.queryForObject("SELECT workspace_root FROM artifact_manifests WHERE manifest_id=?",String.class,id);
+                if(!root(workspaceRoot).toString().equals(storedRoot))
+                    throw new IllegalArgumentException("ARTIFACT_WORKSPACE_ROOT_CONFLICT");
             }
-        }
-
-        if (entries.isEmpty()) {
-            return null;
-        }
-
-        ArtifactManifest manifest = new ArtifactManifest(
-            manifestId, runId, sessionId, "pending",
-            entries.size(), 0, 0, now, null, entries
-        );
-
-        // Persist manifest and entries
-        sqliteConfig.executeWriteVoid(dbPath, () -> {
-            jdbcTemplate.update("""
-                INSERT INTO artifact_manifests
-                (id, run_id, session_id, status, total_files, verified_files, failed_files, created_at, verified_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                manifest.id(), manifest.runId(), manifest.sessionId(), manifest.status(),
-                manifest.totalFiles(), manifest.verifiedFiles(), manifest.failedFiles(),
-                manifest.createdAt().toString(), null
-            );
-
-            for (ArtifactEntry entry : entries) {
-                jdbcTemplate.update("""
-                    INSERT INTO artifact_entries
-                    (id, manifest_id, file_path, operation, expected_hash, actual_hash, file_size, verified, mismatch_detail, created_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """,
-                    entry.id(), entry.manifestId(), entry.filePath(), entry.operation(),
-                    entry.expectedHash(), entry.actualHash(), entry.fileSize(),
-                    entry.verified() ? 1 : 0, entry.mismatchDetail(),
-                    entry.createdAt().toString()
-                );
-            }
+            jdbc.update("""
+                    INSERT INTO artifact_entries(artifact_id,manifest_id,tool_use_id,canonical_path,operation,state,
+                      sealed_hash,required_validator_id,created_at,updated_at)
+                    VALUES(?,?,?,?,?,'declared',NULL,?,?,?)
+                    ON CONFLICT(manifest_id,canonical_path) DO UPDATE SET tool_use_id=excluded.tool_use_id,
+                      operation=excluded.operation,state='declared',sealed_hash=NULL,
+                      actual_hash=NULL,file_size=NULL,required_validator_id=excluded.required_validator_id,
+                      validator_result_json=NULL,failure_code=NULL,updated_at=excluded.updated_at
+                    """,UUID.randomUUID().toString(),id,toolUseId,canonical.toString(),normalizedOperation,
+                    validatorId==null?"sha256":validatorId,now.toString(),now.toString());
+            jdbc.update("UPDATE artifact_manifests SET state='open',updated_at=? WHERE manifest_id=?",now.toString(),id);
+            runs.appendEventInCurrentWrite(runId,"artifact_declared",toolUseId,Map.of(
+                    "manifestId",id,"path",canonical.toString(),"operation",normalizedOperation,
+                    "validatorId",validatorId==null?"sha256":validatorId));
+            return id;
         });
-
-        log.info("Generated manifest: id={}, run={}, entries={}", manifestId, runId, entries.size());
-        return manifest;
+        return loadEntries(manifestId).stream().filter(e->e.filePath().equals(canonical.toString())).findFirst().orElseThrow();
     }
 
-    /**
-     * 验证清单 — 检查每个文件条目的完整性。
-     */
+    private ArtifactEntry sealLocked(String runId, Path canonical, String sealedHash, String workspaceRoot) {
+        Instant now=Instant.now();
+        String manifestId=write(() -> {
+            List<String> ids=jdbc.queryForList("SELECT manifest_id FROM artifact_manifests WHERE run_id=?",String.class,runId);
+            if(ids.isEmpty())throw new IllegalArgumentException("ARTIFACT_NOT_DECLARED");
+            String id=ids.getFirst();
+            String storedRoot=jdbc.queryForObject("SELECT workspace_root FROM artifact_manifests WHERE manifest_id=?",String.class,id);
+            if(!root(workspaceRoot).toString().equals(storedRoot))
+                throw new IllegalArgumentException("ARTIFACT_WORKSPACE_ROOT_CONFLICT");
+            int updated=jdbc.update("UPDATE artifact_entries SET state='sealed',sealed_hash=?,updated_at=? WHERE manifest_id=? AND canonical_path=? AND state='declared'",
+                    sealedHash.toLowerCase(),now.toString(),id,canonical.toString());
+            if(updated!=1)throw new IllegalStateException("ARTIFACT_SEAL_STATE_CONFLICT");
+            Integer open=jdbc.queryForObject("SELECT COUNT(*) FROM artifact_entries WHERE manifest_id=? AND state='declared'",Integer.class,id);
+            if(open!=null&&open==0)jdbc.update("UPDATE artifact_manifests SET state='sealed',updated_at=? WHERE manifest_id=?",now.toString(),id);
+            runs.appendEventInCurrentWrite(runId,"artifact_sealed",null,Map.of(
+                    "manifestId",id,"path",canonical.toString(),"sealedHash",sealedHash.toLowerCase()));
+            return id;
+        });
+        return loadEntries(manifestId).stream().filter(e->e.filePath().equals(canonical.toString())).findFirst().orElseThrow();
+    }
+
+    public ArtifactEntry sealFromFile(String runId, String path, String workspaceRoot) throws Exception {
+        Path canonical=canonical(path,workspaceRoot);
+        return pathLocks.withLock(canonical,()->{
+            if(!Files.isRegularFile(canonical,LinkOption.NOFOLLOW_LINKS)||Files.isSymbolicLink(canonical))
+                throw new IllegalArgumentException("ARTIFACT_OUTPUT_NOT_REGULAR_FILE");
+            return sealLocked(runId,canonical,computeSha256(canonical),workspaceRoot);
+        });
+    }
+
     public VerificationResult verify(String manifestId) {
-        List<ArtifactEntry> entries = loadEntries(manifestId);
-        int verified = 0;
-        int failed = 0;
-        List<VerificationResult.FailureDetail> failures = new ArrayList<>();
-
-        // Collect batch update data
-        record EntryUpdate(String id, String actualHash, Long fileSize, boolean verified, String mismatchDetail) {}
-        List<EntryUpdate> entryUpdates = new ArrayList<>();
-
-        for (ArtifactEntry entry : entries) {
-            Path filePath = Path.of(entry.filePath());
-            boolean fileExists = Files.exists(filePath);
-            String actualHash = null;
-            Long fileSize = null;
-            boolean entryVerified = false;
-            String mismatchDetail = null;
-
-            switch (entry.operation()) {
-                case "deleted" -> {
-                    if (!fileExists) {
-                        entryVerified = true;
-                    } else {
-                        mismatchDetail = "File still exists after deletion";
-                    }
-                }
-                case "created", "modified" -> {
-                    if (!fileExists) {
-                        mismatchDetail = "File does not exist";
-                    } else {
-                        try {
-                            fileSize = Files.size(filePath);
-                            if (fileSize > MAX_VERIFY_FILE_SIZE) {
-                                // Skip hash for large files, only verify existence
-                                entryVerified = true;
-                                log.info("Skipping hash verification for large file ({} bytes): {}", fileSize, filePath);
-                            } else {
-                                actualHash = computeSha256(filePath);
-                                if (entry.expectedHash() != null && !entry.expectedHash().equals(actualHash)) {
-                                    mismatchDetail = "Hash mismatch: expected=" + entry.expectedHash()
-                                        + ", actual=" + actualHash;
-                                } else {
-                                    entryVerified = true;
-                                }
-                            }
-                        } catch (Exception e) {
-                            mismatchDetail = "Failed to verify: " + e.getMessage();
-                        }
-                    }
-                }
-                default -> {
-                    mismatchDetail = "Unknown operation: " + entry.operation();
-                }
-            }
-
-            if (entryVerified) {
-                verified++;
-            } else {
-                failed++;
-                failures.add(new VerificationResult.FailureDetail(entry.filePath(), mismatchDetail));
-            }
-
-            entryUpdates.add(new EntryUpdate(entry.id(), actualHash, fileSize, entryVerified, mismatchDetail));
+        ArtifactManifest manifest=getManifestById(manifestId).orElseThrow(()->new IllegalArgumentException("ARTIFACT_MANIFEST_NOT_FOUND"));
+        List<ArtifactEntry> entries=loadEntries(manifestId); List<VerificationResult.FailureDetail> failures=new ArrayList<>();
+        int verified=0,failed=0,unverified=0; Instant now=Instant.now();
+        List<Update> updates=new ArrayList<>();
+        for(ArtifactEntry entry:entries){
+            String state="failed",actual=null,failure=null; Long size=null; String validator=null;
+            try{
+                Path path=canonical(entry.filePath(),manifest.workspaceRoot());
+                Update update=pathLocks.withLock(path,()->verifyEntry(entry,path,now));
+                state=update.state(); actual=update.actual(); size=update.size(); validator=update.validator(); failure=update.failure();
+            }catch(Exception e){failure="VERIFICATION_ERROR"; validator=safeJson(Map.of("error",String.valueOf(e.getMessage())));}
+            boolean passed="integrity_verified".equals(state)||"content_verified".equals(state);
+            if(passed)verified++; else if("unverified".equals(state)||"unverified_size_limit".equals(state))unverified++; else failed++;
+            if(!passed)failures.add(new VerificationResult.FailureDetail(entry.filePath(),failure));
+            updates.add(new Update(entry.id(),state,actual,size,validator,failure));
         }
-
-        // Determine overall status
-        String status;
-        if (failed == 0 && verified > 0) {
-            status = "verified";
-        } else if (verified > 0 && failed > 0) {
-            status = "partial";
-        } else {
-            status = "failed";
-        }
-
-        // Batch update all entries and manifest in one write transaction
-        Instant now = Instant.now();
-        final int fVerified = verified;
-        final int fFailed = failed;
-        final String fStatus = status;
-        sqliteConfig.executeWriteVoid(dbPath, () -> {
-            for (EntryUpdate eu : entryUpdates) {
-                jdbcTemplate.update("""
-                    UPDATE artifact_entries SET actual_hash = ?, file_size = ?, verified = ?, mismatch_detail = ?
-                    WHERE id = ?
-                    """,
-                    eu.actualHash(), eu.fileSize(), eu.verified() ? 1 : 0, eu.mismatchDetail(), eu.id()
-                );
-            }
-            jdbcTemplate.update("""
-                UPDATE artifact_manifests SET status = ?, verified_files = ?, failed_files = ?, verified_at = ?
-                WHERE id = ?
-                """,
-                fStatus, fVerified, fFailed, now.toString(), manifestId
-            );
-        });
-
-        log.info("Verified manifest: id={}, status={}, verified={}, failed={}",
-            manifestId, status, verified, failed);
-
-        return new VerificationResult(status, verified, failed, entries.size(), failures);
+        String manifestState=failed>0?(verified>0?"partial":"failed"):(unverified>0?"unverified":"verified");
+        int verifiedCount=verified, failedOrUnverifiedCount=failed+unverified;
+        write(()->{for(Update u:updates)jdbc.update("UPDATE artifact_entries SET state=?,actual_hash=?,file_size=?,validator_result_json=?,failure_code=?,updated_at=? WHERE artifact_id=?",
+                u.state(),u.actual(),u.size(),u.validator(),u.failure(),now.toString(),u.id());
+            jdbc.update("UPDATE artifact_manifests SET state=?,updated_at=? WHERE manifest_id=?",manifestState,now.toString(),manifestId);
+            String runId=jdbc.queryForObject("SELECT run_id FROM artifact_manifests WHERE manifest_id=?",String.class,manifestId);
+            runs.appendEventInCurrentWrite(runId,"artifact_verification_changed",null,Map.of(
+                    "manifestId",manifestId,"status",manifestState,"verified",verifiedCount,
+                    "failedOrUnverified",failedOrUnverifiedCount,"total",entries.size()));
+            return null;});
+        return new VerificationResult(manifestState,verified,failed+unverified,entries.size(),failures);
     }
 
-    /**
-     * 获取清单（含条目） — 按 run_id 查询。
-     */
-    public Optional<ArtifactManifest> getManifest(String runId) {
-        List<ArtifactManifest> manifests = jdbcTemplate.query(
-            "SELECT * FROM artifact_manifests WHERE run_id = ? ORDER BY created_at DESC LIMIT 1",
-            MANIFEST_ROW_MAPPER, runId
-        );
-        if (manifests.isEmpty()) {
-            return Optional.empty();
-        }
-        ArtifactManifest manifest = manifests.getFirst();
-        List<ArtifactEntry> entries = loadEntries(manifest.id());
-        return Optional.of(new ArtifactManifest(
-            manifest.id(), manifest.runId(), manifest.sessionId(), manifest.status(),
-            manifest.totalFiles(), manifest.verifiedFiles(), manifest.failedFiles(),
-            manifest.createdAt(), manifest.verifiedAt(), entries
-        ));
+    private Update verifyEntry(ArtifactEntry entry,Path path,Instant now) throws Exception {
+        String state="failed",actual=null,failure=null,validator=null;Long size=null;
+        if("deleted".equals(entry.operation())){
+            if(Files.exists(path,LinkOption.NOFOLLOW_LINKS))failure="DELETE_TARGET_STILL_EXISTS";
+            else if(entry.expectedHash()==null)failure="SEALED_HASH_MISSING";
+            else {state="integrity_verified";validator=json.writeValueAsString(Map.of("validator","sha256","deleted",true));}
+        } else if(entry.expectedHash()==null){state="unverified";failure="SEALED_HASH_MISSING";}
+        else if(!Files.isRegularFile(path,LinkOption.NOFOLLOW_LINKS)||Files.isSymbolicLink(path)){failure="ARTIFACT_NOT_REGULAR_FILE";}
+        else {size=Files.size(path);if(size>MAX_VERIFICATION_BYTES){state="unverified_size_limit";failure="VERIFICATION_SIZE_LIMIT";}
+        else {actual=computeSha256(path);if(!entry.expectedHash().equals(actual))failure="HASH_MISMATCH";
+        else if(entry.requiredValidatorId()==null||"sha256".equals(entry.requiredValidatorId())){state="integrity_verified";validator=json.writeValueAsString(Map.of("validator","sha256","passed",true));}
+        else {state="unverified";failure="VALIDATOR_UNAVAILABLE";validator=json.writeValueAsString(Map.of("validator",entry.requiredValidatorId(),"passed",false));}}}
+        return new Update(entry.id(),state,actual,size,validator,failure);
     }
 
-    /**
-     * 按 manifest ID 获取清单（含条目）。
-     */
-    public Optional<ArtifactManifest> getManifestById(String manifestId) {
-        List<ArtifactManifest> manifests = jdbcTemplate.query(
-            "SELECT * FROM artifact_manifests WHERE id = ?",
-            MANIFEST_ROW_MAPPER, manifestId
-        );
-        if (manifests.isEmpty()) {
-            return Optional.empty();
-        }
-        ArtifactManifest manifest = manifests.getFirst();
-        List<ArtifactEntry> entries = loadEntries(manifest.id());
-        return Optional.of(new ArtifactManifest(
-            manifest.id(), manifest.runId(), manifest.sessionId(), manifest.status(),
-            manifest.totalFiles(), manifest.verifiedFiles(), manifest.failedFiles(),
-            manifest.createdAt(), manifest.verifiedAt(), entries
-        ));
+    public Optional<ArtifactManifest> getManifest(String runId){
+        List<Map<String,Object>> rows=jdbc.queryForList("SELECT * FROM artifact_manifests WHERE run_id=?",runId);
+        return rows.isEmpty()?Optional.empty():Optional.of(mapManifest(rows.getFirst()));
     }
-
-    /**
-     * 计算文件 SHA-256 哈希值。
-     */
-    public String computeSha256(Path path) throws IOException, NoSuchAlgorithmException {
-        MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        try (InputStream is = Files.newInputStream(path)) {
-            byte[] buffer = new byte[8192];
-            int len;
-            while ((len = is.read(buffer)) != -1) {
-                digest.update(buffer, 0, len);
-            }
-        }
-        return HexFormat.of().formatHex(digest.digest());
+    public Optional<ArtifactManifest> getManifestById(String id){
+        List<Map<String,Object>> rows=jdbc.queryForList("SELECT * FROM artifact_manifests WHERE manifest_id=?",id);
+        return rows.isEmpty()?Optional.empty():Optional.of(mapManifest(rows.getFirst()));
     }
-
-    // ───── 内部方法 ─────
-
-    private List<ArtifactEntry> loadEntries(String manifestId) {
-        return jdbcTemplate.query(
-            "SELECT * FROM artifact_entries WHERE manifest_id = ? ORDER BY created_at ASC",
-            ENTRY_ROW_MAPPER, manifestId
-        );
-    }
-
-    private String extractToolName(JsonNode eventData) {
-        if (eventData.has("toolName")) {
-            return eventData.get("toolName").asText();
-        }
-        if (eventData.has("tool_name")) {
-            return eventData.get("tool_name").asText();
-        }
-        if (eventData.has("tool")) {
-            return eventData.get("tool").asText();
-        }
-        return null;
-    }
-
-    private String extractFilePath(JsonNode eventData) {
-        for (String key : FILE_PATH_KEYS) {
-            if (eventData.has(key)) {
-                String val = eventData.get(key).asText();
-                if (val != null && !val.isBlank() && !"null".equals(val)) {
-                    return val;
-                }
-            }
-        }
-        // Check nested "input" or "args" object
-        JsonNode input = eventData.has("input") ? eventData.get("input") :
-                         eventData.has("args") ? eventData.get("args") : null;
-        if (input != null && input.isObject()) {
-            for (String key : FILE_PATH_KEYS) {
-                if (input.has(key)) {
-                    String val = input.get(key).asText();
-                    if (val != null && !val.isBlank() && !"null".equals(val)) {
-                        return val;
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    private String extractOperation(JsonNode eventData, String toolName) {
-        if (eventData.has("operation")) {
-            return eventData.get("operation").asText();
-        }
-        // Infer from tool name
-        return switch (toolName) {
-            case "Write" -> "created";
-            case "Edit", "NotebookEdit" -> "modified";
-            case "Bash" -> "modified";
-            default -> "modified";
-        };
-    }
-
-    private String extractExpectedHash(JsonNode eventData) {
-        if (eventData.has("expectedHash")) {
-            return eventData.get("expectedHash").asText();
-        }
-        if (eventData.has("expected_hash")) {
-            return eventData.get("expected_hash").asText();
-        }
-        return null;
-    }
+    public String computeSha256(Path path) throws Exception { MessageDigest d=MessageDigest.getInstance("SHA-256");
+        try(InputStream in=Files.newInputStream(path)){byte[] b=new byte[8192];for(int n;(n=in.read(b))!=-1;)d.update(b,0,n);}return HexFormat.of().formatHex(d.digest());}
+    private ArtifactManifest mapManifest(Map<String,Object> r){String id=String.valueOf(r.get("manifest_id"));return new ArtifactManifest(id,String.valueOf(r.get("run_id")),String.valueOf(r.get("session_id")),String.valueOf(r.get("workspace_root")),String.valueOf(r.get("state")),Instant.parse(String.valueOf(r.get("created_at"))),Instant.parse(String.valueOf(r.get("updated_at"))),loadEntries(id));}
+    private List<ArtifactEntry> loadEntries(String id){return jdbc.query("SELECT * FROM artifact_entries WHERE manifest_id=? ORDER BY created_at",(rs,n)->new ArtifactEntry(rs.getString("artifact_id"),rs.getString("manifest_id"),rs.getString("tool_use_id"),rs.getString("canonical_path"),rs.getString("operation"),rs.getString("state"),rs.getString("sealed_hash"),rs.getString("actual_hash"),rs.getObject("file_size")==null?null:rs.getLong("file_size"),rs.getString("required_validator_id"),rs.getString("validator_result_json"),rs.getString("failure_code"),Instant.parse(rs.getString("created_at")),Instant.parse(rs.getString("updated_at"))),id);}
+    private Path canonical(String raw,String workspaceRoot){try{return managedPaths.resolveProspective(Path.of(raw),workspaceRoot);}catch(IOException|IllegalArgumentException e){throw new IllegalArgumentException("ARTIFACT_PATH_INVALID",e);}}
+    private Path root(String workspaceRoot){try{return Path.of(workspaceRoot).toRealPath();}catch(IOException|RuntimeException e){throw new IllegalArgumentException("ARTIFACT_WORKSPACE_ROOT_INVALID",e);}}
+    private static String normalizeOperation(String op){return switch(op==null?"":op.toLowerCase()){case "create","created"->"created";case "modify","modified","update"->"modified";case "delete","deleted"->"deleted";default->throw new IllegalArgumentException("ARTIFACT_OPERATION_INVALID");};}
+    private String safeJson(Object v){try{return json.writeValueAsString(v);}catch(Exception e){return "{}";}}
+    private <T>T write(java.util.function.Supplier<T> op){return sqlite.executeWrite(dbPath,()->tx.execute(s->op.get()));}
 }

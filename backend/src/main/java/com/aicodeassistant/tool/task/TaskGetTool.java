@@ -80,7 +80,7 @@ public class TaskGetTool implements Tool {
         String taskId = input.getString("taskId");
         Optional<TaskState> taskOpt = taskCoordinator.getTask(taskId);
         if (taskOpt.isEmpty()) {
-            return ToolResult.error("Task not found: " + taskId);
+            return ToolResult.validationError("TASK_NOT_FOUND", "Task not found: " + taskId);
         }
         TaskState task = taskOpt.get();
 

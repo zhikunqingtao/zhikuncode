@@ -1,7 +1,5 @@
 package com.aicodeassistant.engine;
 
-import com.aicodeassistant.config.ModelCapabilityConfig;
-import com.aicodeassistant.llm.ModelCapabilityRegistry;
 import com.aicodeassistant.model.ContentBlock;
 import com.aicodeassistant.model.Message;
 import com.aicodeassistant.model.Usage;
@@ -28,10 +26,7 @@ class TokenCounterTest {
 
     @BeforeEach
     void setUp() {
-        ModelCapabilityConfig capCfg = new ModelCapabilityConfig();
-        ModelCapabilityRegistry capRegistry = new ModelCapabilityRegistry(capCfg);
-        capRegistry.init();
-        counter = new TokenCounter(capRegistry, null, null);
+        counter = new TokenCounter(null, null, null);
     }
 
     // ═══════════════════════════════════════════════════════════════

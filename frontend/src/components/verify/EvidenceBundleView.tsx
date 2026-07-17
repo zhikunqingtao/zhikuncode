@@ -177,7 +177,6 @@ const ScreenshotGrid: React.FC<{ items: EvidenceItem[] }> = ({ items }) => (
             return (
                 <div key={item.id} className="border rounded overflow-hidden bg-gray-50">
                     {src ? (
-                        // eslint-disable-next-line jsx-a11y/img-redundant-alt
                         <img
                             src={src}
                             alt={item.summary ?? 'screenshot'}

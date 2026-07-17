@@ -127,12 +127,12 @@ public class AskUserQuestionTool implements Tool {
 
         // 1. 输入验证: 1-4 个问题，每个 2-4 个选项
         if (questions == null || questions.isEmpty() || questions.size() > 4) {
-            return ToolResult.error("Must provide 1-4 questions.");
+            return ToolResult.validationError("ELICITATION_QUESTION_COUNT_INVALID", "Must provide 1-4 questions.");
         }
         for (Map<String, Object> q : questions) {
             List<Map<String, String>> options = (List<Map<String, String>>) q.get("options");
             if (options == null || options.size() < 2 || options.size() > 4) {
-                return ToolResult.error(
+                return ToolResult.validationError("ELICITATION_OPTION_COUNT_INVALID",
                         "Each question must have 2-4 options. Got: "
                                 + (options == null ? 0 : options.size()));
             }
@@ -156,18 +156,21 @@ public class AskUserQuestionTool implements Tool {
             log.info("AskUserQuestion: sending question {}/{}: '{}'", i + 1, questions.size(), questionText);
 
             ElicitationResponse response = elicitationService.requestAndWait(
-                    context.sessionId(), questionText, elicitOptions, QUESTION_TIMEOUT_MS);
+                    context.sessionId(), context.currentRunId(), questionText, elicitOptions, QUESTION_TIMEOUT_MS);
 
             switch (response.status()) {
                 case SUCCESS -> allAnswers.put("q" + (i + 1), response.value());
                 case CANCELLED -> {
-                    return ToolResult.error("User cancelled the question.");
+                    return ToolResult.cancelled("ELICITATION_CANCELLED", "User cancelled the question.",
+                            ToolResult.EffectState.NOT_STARTED);
                 }
                 case TIMEOUT -> {
-                    return ToolResult.error("User did not respond within 5 minutes.");
+                    return ToolResult.internalError("ELICITATION_EXPIRED",
+                            "User did not respond within 5 minutes.", ToolResult.EffectState.NOT_STARTED);
                 }
                 case ERROR -> {
-                    return ToolResult.error("Error: " + response.error());
+                    return ToolResult.internalError("ELICITATION_FAILED",
+                            "Error: " + response.error(), ToolResult.EffectState.NOT_STARTED);
                 }
             }
         }
@@ -179,7 +182,8 @@ public class AskUserQuestionTool implements Tool {
             result.put("answers", allAnswers);
             return ToolResult.success(MAPPER.writeValueAsString(result));
         } catch (Exception e) {
-            return ToolResult.error("Error serializing result: " + e.getMessage());
+            return ToolResult.internalError("ELICITATION_RESULT_SERIALIZATION_FAILED",
+                    "Error serializing result: " + e.getMessage(), ToolResult.EffectState.NONE);
         }
     }
 }

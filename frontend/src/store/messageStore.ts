@@ -36,6 +36,7 @@ export interface MessageStoreState {
     updateToolCallInput: (toolUseId: string, input: unknown) => void;
     updateToolCallProgress: (toolUseId: string, progress: string) => void;
     completeToolCall: (toolUseId: string, result: ToolResult) => void;
+    replaceActiveToolCalls: (calls: Array<{ toolUseId: string; toolName: string; input: unknown; startedAt?: number }>) => void;
     finalizeStream: (usage: Usage) => void;
     clearMessages: () => void;
     rewindToMessage: (messageId: string) => void;
@@ -55,7 +56,11 @@ export const useMessageStore = create<MessageStoreState>()(
         tokenBudgetState: null,
         tokenWarning: null,
 
-        addMessage: (msg) => set(d => { d.messages.push(msg); }),
+        addMessage: (msg) => set(d => {
+            const existing = d.messages.findIndex(item => item.uuid === msg.uuid);
+            if (existing >= 0) d.messages[existing] = msg;
+            else d.messages.push(msg);
+        }),
         appendStreamDelta: (delta) => set(d => {
             // 首次收到 stream_delta 时，创建占位 assistant 消息
             if (!d.streamingMessageId) {
@@ -123,6 +128,15 @@ export const useMessageStore = create<MessageStoreState>()(
                 tc.result = result;
                 tc.duration = Date.now() - tc.startTime;
             }
+        }),
+        replaceActiveToolCalls: (calls) => set(d => {
+            d.activeToolCalls.clear();
+            calls.forEach(call => d.activeToolCalls.set(call.toolUseId, {
+                toolName: call.toolName || 'Tool',
+                input: call.input ?? {},
+                status: 'running',
+                startTime: call.startedAt ?? Date.now(),
+            }));
         }),
         finalizeStream: (_usage) => set(d => {
             // 先刷新 streamingStore 中的剩余缓冲

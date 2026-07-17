@@ -8,9 +8,12 @@ import com.aicodeassistant.tool.ToolInput;
 import com.aicodeassistant.tool.ToolUseContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.aicodeassistant.tool.bash.BashCommandClassifier;
+import com.aicodeassistant.tool.bash.BashSecurityAnalyzer;
+import com.aicodeassistant.tool.bash.ast.ParseForSecurityResult;
 import com.aicodeassistant.config.FeatureFlagService;
 import com.aicodeassistant.hook.HookRegistry;
 import com.aicodeassistant.hook.HookService;
@@ -19,8 +22,6 @@ import com.aicodeassistant.sandbox.SandboxManager;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
 /**
@@ -108,13 +109,10 @@ public class PermissionPipeline {
             Pattern.compile("\\bsed\\s+(-[a-zA-Z]*i|-i[a-zA-Z]*)\\s+")
     );
 
-    /** 异步权限等待 — toolUseId → CompletableFuture<PermissionDecision> */
-    private final ConcurrentHashMap<String, CompletableFuture<PermissionDecision>> pendingRequests =
+    /** 异步权限等待 — Run-scoped correlation key → wake-up future. */
+    private final ConcurrentHashMap<InteractionKey, CompletableFuture<PermissionDecision>> pendingRequests =
             new ConcurrentHashMap<>();
-
-    /** 并发门控标志 — 确保每个 toolUseId 的解析逻辑只执行一次 */
-    private final ConcurrentHashMap<String, AtomicBoolean> processedFlags =
-            new ConcurrentHashMap<>();
+    private record InteractionKey(String runId, String correlationKey) { }
 
     private final PermissionRuleMatcher ruleMatcher;
     private final PermissionRuleRepository ruleRepository;
@@ -123,10 +121,14 @@ public class PermissionPipeline {
     private final SandboxManager sandboxManager;
     private final PathSecurityService pathSecurityService;
     private final BashCommandClassifier bashCommandClassifier;
+    private final BashSecurityAnalyzer bashSecurityAnalyzer;
     private final FeatureFlagService featureFlags;
     private final CommandBlacklistService commandBlacklistService;
-    private final DurablePermissionService durablePermissionService;
+    private final PermissionInteractionService permissionInteractions;
+    private final PersistentPermissionGrantStore grantStore;
+    private final PermissionGrantKeyFactory grantKeyFactory;
 
+    @Autowired
     public PermissionPipeline(PermissionRuleMatcher ruleMatcher,
                               PermissionRuleRepository ruleRepository,
                               AutoModeClassifier autoModeClassifier,
@@ -134,9 +136,12 @@ public class PermissionPipeline {
                               SandboxManager sandboxManager,
                               PathSecurityService pathSecurityService,
                               BashCommandClassifier bashCommandClassifier,
+                              BashSecurityAnalyzer bashSecurityAnalyzer,
                               FeatureFlagService featureFlags,
                               CommandBlacklistService commandBlacklistService,
-                              @org.springframework.context.annotation.Lazy DurablePermissionService durablePermissionService) {
+                              @org.springframework.context.annotation.Lazy PermissionInteractionService permissionInteractions,
+                              PersistentPermissionGrantStore grantStore,
+                              PermissionGrantKeyFactory grantKeyFactory) {
         this.ruleMatcher = ruleMatcher;
         this.ruleRepository = ruleRepository;
         this.autoModeClassifier = autoModeClassifier;
@@ -144,9 +149,23 @@ public class PermissionPipeline {
         this.sandboxManager = sandboxManager;
         this.pathSecurityService = pathSecurityService;
         this.bashCommandClassifier = bashCommandClassifier;
+        this.bashSecurityAnalyzer = bashSecurityAnalyzer;
         this.featureFlags = featureFlags;
         this.commandBlacklistService = commandBlacklistService;
-        this.durablePermissionService = durablePermissionService;
+        this.permissionInteractions = permissionInteractions;
+        this.grantStore = grantStore;
+        this.grantKeyFactory = grantKeyFactory;
+    }
+
+    public PermissionPipeline(PermissionRuleMatcher ruleMatcher, PermissionRuleRepository ruleRepository,
+                              AutoModeClassifier autoModeClassifier, HookService hookService,
+                              SandboxManager sandboxManager, PathSecurityService pathSecurityService,
+                              BashCommandClassifier bashCommandClassifier, FeatureFlagService featureFlags,
+                              CommandBlacklistService commandBlacklistService,
+                              PermissionInteractionService permissionInteractions) {
+        this(ruleMatcher, ruleRepository, autoModeClassifier, hookService, sandboxManager,
+                pathSecurityService, bashCommandClassifier, null, featureFlags, commandBlacklistService,
+                permissionInteractions, null, null);
     }
 
     /**
@@ -166,7 +185,7 @@ public class PermissionPipeline {
                 tool.getName(), permissionContext.mode());
 
         // ===== Step 1a: deny 规则 =====
-        log.info("[DIAG-PERM] Step 1a: checking deny rules for tool={}", tool.getName());
+        log.debug("Step 1a: checking deny rules for tool={}", tool.getName());
         PermissionRule denyRule = ruleMatcher.findDenyRule(permissionContext, tool);
         if (denyRule != null) {
             log.debug("Step 1a: deny rule matched for tool={}", tool.getName());
@@ -175,7 +194,7 @@ public class PermissionPipeline {
         }
 
         // ===== Step 1b: ask 规则 =====
-        log.info("[DIAG-PERM] Step 1b: checking ask rules for tool={}", tool.getName());
+        log.debug("Step 1b: checking ask rules for tool={}", tool.getName());
         PermissionRule askRule = ruleMatcher.findAskRule(permissionContext, tool);
         if (askRule != null) {
             log.debug("Step 1b: ask rule matched for tool={}", tool.getName());
@@ -183,11 +202,11 @@ public class PermissionPipeline {
         }
 
         // ===== Step 1c: 工具自身权限检查 =====
-        log.info("[DIAG-PERM] Step 1c: tool.checkPermissions() for tool={}", tool.getName());
+        log.debug("Step 1c: tool.checkPermissions() for tool={}", tool.getName());
         PermissionBehavior toolBehavior;
         try {
             toolBehavior = tool.checkPermissions(input, context);
-            log.info("[DIAG-PERM] Step 1c result: tool={}, behavior={}", tool.getName(), toolBehavior);
+            log.debug("Step 1c result: tool={}, behavior={}", tool.getName(), toolBehavior);
         } catch (Exception e) {
             log.warn("Step 1c: tool.checkPermissions() failed for tool={}: {}",
                     tool.getName(), e.getMessage());
@@ -208,7 +227,7 @@ public class PermissionPipeline {
         }
 
         // ===== Step 1f: 内容级 ask 规则 (优先于 bypass 模式) =====
-        log.info("[DIAG-PERM] Step 1f: checkContentLevelAsk for tool={}", tool.getName());
+        log.debug("Step 1f: checkContentLevelAsk for tool={}", tool.getName());
 
         // ===== Step 1f-pre: 系统级命令黑名单（bypass 免疫）=====
         if (BASH_TOOL_NAMES.contains(tool.getName())) {
@@ -249,14 +268,14 @@ public class PermissionPipeline {
         }
 
         // ===== Step 1f-bash: Bash 命令危险删除 + 环境变量检查 (Layer 4+7) =====
-        log.info("[DIAG-PERM] Step 1f-bash: checking for tool={}", tool.getName());
+        log.debug("Step 1f-bash: checking for tool={}", tool.getName());
         if (BASH_TOOL_NAMES.contains(tool.getName())) {
             String command = input.getString("command");
             String rmBlock = pathSecurityService.checkDangerousRemoval(command);
             if (rmBlock != null) {
                 return PermissionDecision.denyByMode(rmBlock);
             }
-            String envBlock = pathSecurityService.checkEnvVarAccess(command);
+            String envBlock = checkBashEnvironmentAccess(command);
             if (envBlock != null) {
                 if (envBlock.startsWith("ASK:")) {
                     return PermissionDecision.ask(envBlock.substring(4).trim());
@@ -266,7 +285,7 @@ public class PermissionPipeline {
         }
 
         // ===== Step 1g: 安全检查（bypass 免疫） =====
-        log.info("[DIAG-PERM] Step 1g: safety check for tool={}", tool.getName());
+        log.debug("Step 1g: safety check for tool={}", tool.getName());
         toolPath = tool.getPath(input);
         if (toolPath != null && isProtectedPath(toolPath)) {
             log.debug("Step 1g: protected path detected for tool={}, path={}", 
@@ -290,14 +309,7 @@ public class PermissionPipeline {
             return classifierDecision.get();
         }
 
-        // ===== Step 1j: Sandbox 权限规则覆盖（新增）=====
-        Optional<PermissionDecision> sandboxDecision = evaluateSandboxRules(tool.getName(), input);
-        if (sandboxDecision.isPresent()) {
-            log.debug("Step 1j: sandbox rule decision for tool={}: {}", tool.getName(), sandboxDecision.get().behavior());
-            return sandboxDecision.get();
-        }
-
-        // ===== Step 1k: 敏感系统文件访问检查（bypass 免疫） =====
+        // ===== Step 1j: 敏感系统文件访问检查（必须先于 sandbox/auto allow） =====
         if (BASH_TOOL_NAMES.contains(tool.getName())) {
             String bashCmd = input.getOptionalString("command").orElse(null);
             String sensitiveBlock = pathSecurityService.checkSensitiveFileRead(bashCmd);
@@ -305,6 +317,13 @@ public class PermissionPipeline {
                 log.debug("Step 1k: sensitive file read blocked for tool={}, reason={}", tool.getName(), sensitiveBlock);
                 return PermissionDecision.denyByMode(sensitiveBlock);
             }
+        }
+
+        // ===== Step 1k: Sandbox 权限规则覆盖 =====
+        Optional<PermissionDecision> sandboxDecision = evaluateSandboxRules(tool.getName(), input);
+        if (sandboxDecision.isPresent()) {
+            log.debug("Step 1k: sandbox rule decision for tool={}: {}", tool.getName(), sandboxDecision.get().behavior());
+            return sandboxDecision.get();
         }
 
         // ===== Step 2a: skipAllPrompts 模式 =====
@@ -321,6 +340,22 @@ public class PermissionPipeline {
                 ? input.getOptionalString("command").orElse("")
                 : "";
         String step2bRiskLevel = assessCommandRiskLevel(step2bCommand);
+        if (grantStore != null && grantKeyFactory != null && context.sessionId() != null) {
+            var key = grantKeyFactory.create(tool, input, context.workingDirectory(), step2bRiskLevel);
+            if (key.isPresent()) {
+                boolean child = context.parentSessionId() != null;
+                boolean grantMatch = child
+                        ? isChildExactEligible(tool, input, step2bRiskLevel)
+                          && grantStore.matchesChildExact(context.parentSessionId(), context.currentRunId(),
+                                context.sessionId(), childAgentType(context), key.get())
+                        : grantStore.matchesSession(context.currentRunId(), context.sessionId(), key.get())
+                          || grantStore.matchesWorkspace(context.currentRunId(), grantKeyFactory.workspaceHash(
+                                  key.get().canonicalCwd()), key.get());
+                if (grantMatch) {
+                    return PermissionDecision.allow(PermissionDecisionReason.OTHER, null);
+                }
+            }
+        }
         PermissionRule allowRule = ruleMatcher.findAllowRule(permissionContext, tool, input, step2bRiskLevel);
         if (allowRule != null) {
             log.debug("Step 2b: allow rule matched for tool={}", tool.getName());
@@ -339,8 +374,35 @@ public class PermissionPipeline {
             return PermissionDecision.allow(PermissionDecisionReason.MODE, mode);
         }
 
-        log.info("[DIAG-PERM] Step 3: applyModeTransformation: tool={}, behavior={}, mode={}", tool.getName(), toolBehavior, mode);
+        log.debug("Step 3: applyModeTransformation: tool={}, behavior={}, mode={}", tool.getName(), toolBehavior, mode);
         return applyModeTransformation(toolBehavior, mode, tool, input);
+    }
+
+    private String checkBashEnvironmentAccess(String command) {
+        if (command == null) return null;
+        if (command.matches("^\\s*(env|printenv)\\s*$")) {
+            return "ASK: Bulk environment export may leak sensitive information";
+        }
+        // Unit-test compatibility constructors do not provide the AST analyzer. Production
+        // injection always does; fail closed instead of silently falling back to regex parsing.
+        if (bashSecurityAnalyzer == null) {
+            return "ASK: Bash environment analysis unavailable";
+        }
+        var analysis = bashSecurityAnalyzer.analyzeEnvironmentReferences(command);
+        if (analysis.requiresConservativeAsk()) {
+            return "ASK: Bash environment references could not be proven safe ("
+                    + analysis.parseStatus().name().toLowerCase(Locale.ROOT) + ")";
+        }
+        if (!analysis.sensitiveInheritedReferences().isEmpty()) {
+            return "Sensitive environment variable access denied: $"
+                    + analysis.sensitiveInheritedReferences().iterator().next();
+        }
+        for (String inherited : analysis.inheritedReferences()) {
+            if (!bashSecurityAnalyzer.isAllowedInheritedEnvironmentReference(inherited)) {
+                return "ASK: Command references non-whitelisted env var: $" + inherited;
+            }
+        }
+        return null;
     }
 
     /**
@@ -434,49 +496,72 @@ public class PermissionPipeline {
      * @param allowed  用户是否允许
      * @param scope    记忆作用域
      */
-    public void rememberDecision(Tool tool, ToolInput input,
-                                  boolean allowed, RuleScope scope, String projectKey) {
-        PermissionRuleSource source = switch (scope) {
-            case SESSION -> PermissionRuleSource.USER_SESSION;
-            case PROJECT -> PermissionRuleSource.USER_PROJECT;  // 复用已有别名
-            case GLOBAL  -> PermissionRuleSource.USER_GLOBAL;
-        };
-
-        // ★ V4: projectKey 为空时降级为 SESSION，防止 PROJECT 规则泄漏为 GLOBAL
-        if (source == PermissionRuleSource.USER_PROJECT && projectKey == null) {
-            log.warn("PROJECT scope remember requested but projectKey is null; falling back to SESSION scope");
-            source = PermissionRuleSource.USER_SESSION;
+    /** Persist an allow grant after the winning interaction CAS. Denials are not broad grants. */
+    public void rememberDecision(Tool tool, ToolInput input, boolean allowed, PermissionScope scope,
+                                 String projectKey, String sessionId, String runId, String toolUseId) {
+        if (!allowed || grantStore == null || grantKeyFactory == null || sessionId == null) return;
+        String command = ("Bash".equals(tool.getName()) || "BashTool".equals(tool.getName()))
+                ? input.getOptionalString("command").orElse("") : "";
+        String risk = assessCommandRiskLevel(command);
+        var key = grantKeyFactory.create(tool, input, projectKey, risk);
+        if (key.isEmpty()) return; // ONCE: no persistent grant
+        String interactionId = permissionInteractions.interactionId(runId, toolUseId);
+        if (interactionId == null) return;
+        if (scope == PermissionScope.WORKSPACE && key.get().workspaceAllowed()) {
+            grantStore.saveStandard("WORKSPACE", null,
+                    grantKeyFactory.workspaceHash(key.get().canonicalCwd()), key.get(), interactionId);
+        } else if (scope == PermissionScope.SESSION) {
+            grantStore.saveStandard("SESSION", sessionId, null, key.get(), interactionId);
         }
+    }
 
-        String toolName = tool.getName();
-        // ★ V4: 不再存储具体命令内容，统一工具级信任
-        // 安全由 assessCommandRiskLevel() + 硬门控保证
-        String ruleContent = null;
-
-        PermissionRuleValue value = ruleContent != null
-                ? new PermissionRuleValue(toolName, ruleContent)
-                : new PermissionRuleValue(toolName, null);
-
-        PermissionRule rule = new PermissionRule(source,
-                allowed ? PermissionBehavior.ALLOW : PermissionBehavior.DENY,
-                value);
-
-        if (allowed) {
-            if (source == PermissionRuleSource.USER_PROJECT && projectKey != null) {
-                ruleRepository.addAllowRuleForProject(projectKey, rule);
-            } else {
-                ruleRepository.addAllowRule(rule);
-            }
-        } else {
-            if (source == PermissionRuleSource.USER_PROJECT && projectKey != null) {
-                ruleRepository.addDenyRuleForProject(projectKey, rule);
-            } else {
-                ruleRepository.addDenyRule(rule);
-            }
+    public void rememberChildDecision(Tool tool, ToolInput input, boolean allowed,
+                                      ToolUseContext context, String toolUseId) {
+        if (!allowed || grantStore == null || grantKeyFactory == null || context == null
+                || context.parentSessionId() == null) return;
+        String command = BASH_TOOL_NAMES.contains(tool.getName())
+                ? input.getOptionalString("command").orElse("") : "";
+        String risk = assessCommandRiskLevel(command);
+        if (!isChildExactEligible(tool, input, risk)) return;
+        var key = grantKeyFactory.create(tool, input, context.workingDirectory(), risk);
+        String interactionId = permissionInteractions.interactionId(context.currentRunId(), toolUseId);
+        if (key.isPresent() && interactionId != null) {
+            grantStore.saveChildExact(context.parentSessionId(), context.currentRunId(),
+                    context.sessionId(), childAgentType(context), key.get(), interactionId);
         }
+    }
 
-        log.info("Remembered permission decision: tool={}, allowed={}, scope={}, projectKey={}, content={}",
-                toolName, allowed, scope, projectKey, ruleContent);
+    private static String childAgentType(ToolUseContext context) {
+        return context.agentHierarchy() == null || context.agentHierarchy().isBlank()
+                ? "subagent" : context.agentHierarchy();
+    }
+
+    /**
+     * Conservative child-agent reuse gate. Exact hashing is not sufficient on
+     * its own: only AST-proven, non-writing, non-networking operations may be
+     * reused. Any unsupported syntax or environment ambiguity remains ASK.
+     */
+    private boolean isChildExactEligible(Tool tool, ToolInput input, String risk) {
+        if (!"low".equals(risk) || tool == null || !tool.isReadOnly(input)) return false;
+        if (!BASH_TOOL_NAMES.contains(tool.getName())) return true;
+        if (bashSecurityAnalyzer == null) return false;
+        String command = input.getOptionalString("command").orElse("");
+        ParseForSecurityResult parsed = bashSecurityAnalyzer.parseForSecurity(command);
+        if (!(parsed instanceof ParseForSecurityResult.Simple simple) || simple.commands().isEmpty()) return false;
+        var environment = bashSecurityAnalyzer.analyzeEnvironmentReferences(command);
+        if (environment.requiresConservativeAsk() || !environment.sensitiveInheritedReferences().isEmpty()) {
+            return false;
+        }
+        Set<String> forbidden = Set.of(
+                "curl", "wget", "nc", "ncat", "ssh", "scp", "rsync", "ftp",
+                "npm", "npx", "yarn", "pnpm", "pip", "pip3", "brew", "apt", "apt-get",
+                "git", "docker", "kubectl", "tee", "dd", "mv", "cp", "rm", "touch",
+                "sed", "perl", "python", "python3", "node", "bash", "sh", "zsh");
+        return simple.commands().stream().allMatch(node ->
+                !node.argv().isEmpty()
+                        && node.redirects().isEmpty()
+                        && node.envVars().isEmpty()
+                        && !forbidden.contains(node.argv().getFirst()));
     }
 
     // ==================== 异步权限请求 ====================
@@ -484,146 +569,95 @@ public class PermissionPipeline {
     /**
      * 发起异步权限请求 — 返回 CompletableFuture 等待用户决策。
      * <p>
-         * 通过 WebSocket 推送 permission_request 到前端，前端展示权限对话框，
-     * 用户选择后通过 /app/permission 回传，最终 resolvePermission() 完成 future。
+     * 通过 WebSocket 推送持久化 interaction 到前端，前端展示权限对话框。
+     * 用户决定只经 {@code /api/interactions/{id}/decisions} 写入数据库 CAS；
+     * 内存 future 仅由数据库终态唤醒，不参与裁决。
      *
      * @param toolUseId  工具调用 ID
-     * @param toolName   工具名称
-     * @param input      工具输入（前端展示用）
+     * @param tool       工具定义
+     * @param input      经过 hook 处理后的工具输入
      * @param reason     请求原因（前端展示用）
      * @param wsPusher   WebSocket 推送器（由调用方注入，避免循环依赖）
      * @param sessionId  会话 ID
      * @return 用户决策的 CompletableFuture
      */
     public CompletableFuture<PermissionDecision> requestPermission(
-            String toolUseId, String toolName, Map<String, Object> input,
-            String reason, PermissionNotifier wsPusher, String sessionId) {
-
-        return requestPermission(toolUseId, toolName, input, reason, wsPusher, sessionId, null, null);
-    }
-
-    /**
-     * 发起异步权限请求（支持持久化参数）。
-     */
-    public CompletableFuture<PermissionDecision> requestPermission(
-            String toolUseId, String toolName, Map<String, Object> input,
+            String toolUseId, Tool tool, ToolInput input,
             String reason, PermissionNotifier wsPusher, String sessionId,
-            String runId, String childSessionId) {
+            String runId, String childSessionId, String workingDirectory) {
 
-        CompletableFuture<PermissionDecision> future = new CompletableFuture<>();
-        CompletableFuture<PermissionDecision> existing = pendingRequests.putIfAbsent(toolUseId, future);
-        if (existing != null) {
-            log.warn("Duplicate permission request for toolUseId={}, returning existing", toolUseId);
-            return existing;
+        if (tool == null || input == null) {
+            return CompletableFuture.completedFuture(
+                    PermissionDecision.denyByMode("Permission request is missing typed tool input"));
         }
-
-        // 注册并发门控标志
-        processedFlags.put(toolUseId, new AtomicBoolean(false));
+        String toolName = tool.getName();
+        Map<String, Object> inputMap = rawInputMap(input);
 
         // 通过 WebSocket 推送权限请求到前端
-        String commandStr = String.valueOf(input.getOrDefault("command", ""));
+        String commandStr = String.valueOf(inputMap.getOrDefault("command", ""));
         String riskLevel = assessCommandRiskLevel(commandStr);
+        List<String> scopeOptions = grantKeyFactory == null
+                ? List.of()
+                : grantKeyFactory.create(tool, input, workingDirectory, riskLevel)
+                        .map(key -> childSessionId != null || !key.workspaceAllowed()
+                                ? List.of("session")
+                                : List.of("session", "workspace"))
+                        .orElseGet(List::of);
 
         // 记录转发来源信息（当 sessionId 与 wsPusher 的目标会话不同时，说明是子代理冒泡转发）
         log.info("Permission request: toolUseId={}, toolName={}, targetSession={}",
                 toolUseId, toolName, sessionId);
 
-        // ★ 持久化权限请求到 DB（在 WS 推送之前）
-        try {
-            String inputSummary = commandStr.length() > 500
-                    ? commandStr.substring(0, 500) + "..."
-                    : commandStr;
-            String source = childSessionId != null ? "bubble" : "direct";
-            durablePermissionService.persistRequest(
-                    runId, sessionId, toolUseId, toolName, riskLevel,
-                    reason, inputSummary, source, childSessionId);
-        } catch (Exception e) {
-            log.warn("Failed to persist permission request (non-fatal): toolUseId={}, error={}",
-                    toolUseId, e.getMessage());
-        }
-
-        wsPusher.sendPermissionRequest(sessionId, toolUseId, toolName, input, riskLevel, reason);
-
-        // 300 秒超时 → 自动拒绝（与 DB timeout_at 对齐）
-        CompletableFuture<PermissionDecision> wrappedFuture =
-            future.orTimeout(DurablePermissionService.TIMEOUT_SECONDS, TimeUnit.SECONDS)
-                  .exceptionally(ex -> {
-                      AtomicBoolean flag = processedFlags.get(toolUseId);
-                      if (flag != null && flag.compareAndSet(false, true)) {
-                          pendingRequests.remove(toolUseId);
-                          log.warn("Permission request timed out: toolUseId={}", toolUseId);
-                          // 同步更新 DB 状态
-                          try {
-                              boolean dbUpdated = durablePermissionService.resolve(toolUseId, "deny", "TIMEOUT", false, null);
-                              if (!dbUpdated) {
-                                  log.debug("DB permission already resolved for timed-out request: toolUseId={}", toolUseId);
-                              }
-                          } catch (Exception e) {
-                              log.warn("Failed to resolve timed-out request in DB: {}", e.getMessage());
-                          }
-                      } else {
-                          log.debug("Timeout handler skipped for toolUseId={} (already processed by resolvePermission)", toolUseId);
-                      }
-                      // 清理标志
-                      processedFlags.remove(toolUseId);
-                      return PermissionDecision.denyByMode("Permission request timed out");
-                  });
-
-        return wrappedFuture;
-    }
-
-    /**
-     * 解决挂起的权限请求 — 由权限响应处理方调用。
-     *
-     * @param toolUseId 工具调用 ID
-     * @param decision  用户的权限决策
-     */
-    public void resolvePermission(String toolUseId, PermissionDecision decision) {
-        AtomicBoolean flag = processedFlags.get(toolUseId);
-        if (flag == null || !flag.compareAndSet(false, true)) {
-            log.debug("resolvePermission skipped for toolUseId={} (already processed or timed out)", toolUseId);
-            return;
-        }
-
-        CompletableFuture<PermissionDecision> future = pendingRequests.remove(toolUseId);
-        if (future != null) {
-            boolean completed = future.complete(decision);
-            if (completed) {
-                log.info("Permission resolved: toolUseId={}, behavior={}", toolUseId, decision.behavior());
-            } else {
-                log.debug("Permission future already completed for toolUseId={} (may have timed out)", toolUseId);
+        CompletableFuture<PermissionDecision> authorityFuture;
+        InteractionKey interactionKey = new InteractionKey(runId, toolUseId);
+        synchronized (pendingRequests) {
+            CompletableFuture<PermissionDecision> existing = pendingRequests.get(interactionKey);
+            if (existing != null) {
+                log.warn("Duplicate permission request for toolUseId={}, returning existing", toolUseId);
+                return existing;
             }
-        } else {
-            log.debug("No pending request found for toolUseId={} (may have timed out)", toolUseId);
+            try {
+                String inputSummary = commandStr.length() > 500
+                        ? commandStr.substring(0, 500) + "..."
+                        : commandStr;
+                String source = childSessionId != null ? "bubble" : "direct";
+                permissionInteractions.persistRequest(
+                        runId, sessionId, toolUseId, toolName, riskLevel,
+                        reason, inputSummary, scopeOptions, source, childSessionId);
+                authorityFuture = permissionInteractions.awaitDecision(runId, toolUseId);
+                pendingRequests.put(interactionKey, authorityFuture);
+            } catch (Exception e) {
+                log.error("Failed to persist permission request: toolUseId={}, error={}",
+                        toolUseId, e.getMessage());
+                return CompletableFuture.completedFuture(
+                        PermissionDecision.denyByMode("Permission persistence failed"));
+            }
         }
-        // 清理标志
-        processedFlags.remove(toolUseId);
+
+        // InteractionCreatedEvent is the sole delivery path. Direct notifier calls
+        // would race the durable event and produce duplicate prompts.
+        authorityFuture.whenComplete((ignored, error) -> {
+            pendingRequests.remove(interactionKey, authorityFuture);
+        });
+        return authorityFuture;
     }
 
-    /**
-     * 注册待处理的权限请求 — 用于子代理冒泡场景。
-     * 当前端响应时，resolvePermission(toolUseId, decision) 会完成此 future。
-     *
-     * @param toolUseId 工具调用 ID
-     * @param future    待完成的 CompletableFuture
-     */
-    public void registerPendingRequest(String toolUseId, CompletableFuture<PermissionDecision> future) {
-        processedFlags.put(toolUseId, new AtomicBoolean(false));
-        pendingRequests.put(toolUseId, future);
-        // 超时清理: future 完成后确保从 map 中移除
-        future.whenComplete((result, ex) -> {
-            pendingRequests.remove(toolUseId);
-            processedFlags.remove(toolUseId);
+    private static Map<String, Object> rawInputMap(ToolInput input) {
+        if (!(input.getRawData() instanceof Map<?, ?> raw)) {
+            return Map.of("input", String.valueOf(input.getRawData()));
+        }
+        Map<String, Object> result = new LinkedHashMap<>();
+        raw.forEach((key, value) -> {
+            if (key != null) result.put(String.valueOf(key), value);
         });
+        return Collections.unmodifiableMap(result);
     }
 
     /**
      * 取消所有挂起的权限请求（会话中断时调用）。
      */
     public void cancelAllPending() {
-        pendingRequests.forEach((id, future) -> {
-            future.complete(PermissionDecision.denyByMode("Session interrupted"));
-        });
+        permissionInteractions.cancelAll("session_interrupted");
         pendingRequests.clear();
     }
 
@@ -639,35 +673,7 @@ public class PermissionPipeline {
                 "label", "Allow for this session",
                 "scope", "session",
                 "toolName", tool.getName()));
-        suggestions.add(Map.of(
-                "label", "Always allow " + tool.getName(),
-                "scope", "global",
-                "toolName", tool.getName()));
-
-        // BashTool: 生成前缀规则建议
-        if (BASH_TOOL_NAMES.contains(tool.getName())) {
-            String cmd = input.getOptionalString("command").orElse(null);
-            if (cmd != null) {
-                String prefix = extractCommandPrefix(cmd);
-                if (prefix != null && !BARE_SHELL_PREFIXES.contains(prefix.split("\\s+")[0])) {
-                    suggestions.add(Map.of(
-                            "label", String.format("Always allow 'Bash(%s:*)'", prefix),
-                            "scope", "global",
-                            "toolName", "Bash",
-                            "ruleContent", prefix));
-                }
-            }
-        }
         return suggestions;
-    }
-
-    /**
-     * 提取命令前缀（前 2 个词）。
-     */
-    private String extractCommandPrefix(String command) {
-        if (command == null || command.isBlank()) return null;
-        String[] parts = command.trim().split("\\s+", 3);
-        return parts.length >= 2 ? parts[0] + " " + parts[1] : parts[0];
     }
 
     // ==================== Hook / Classifier / Sandbox 权限评估 ====================
@@ -787,18 +793,20 @@ public class PermissionPipeline {
      * 当在 Docker 沙箱中运行时，文件系统操作限制在工作目录内，
      * 网络访问可能受限。沙箱提供额外的安全层，允许更宽松的工具权限。
      * <p>
-     * 文件操作类工具（FileEdit、FileWrite、Bash）在沙箱中自动允许。
+     * 只有确实将在 Docker 沙箱中执行的 Bash 命令可获得此覆盖。
+     * FileEdit/FileWrite 在宿主工作区执行，不得借用 Docker 隔离结果自动放行。
      *
      * @param toolName  工具名称
      * @param toolInput 工具输入
      * @return 权限决策（非沙箱环境或不匹配时返回 empty）
      */
-    private Optional<PermissionDecision> evaluateSandboxRules(String toolName, ToolInput toolInput) {
+    Optional<PermissionDecision> evaluateSandboxRules(String toolName, ToolInput toolInput) {
         if (!sandboxManager.isSandboxingEnabled()) {
             return Optional.empty();
         }
-        // 沙箱中的文件操作自动允许（沙箱已提供隔离）
-        if (Set.of("FileEdit", "FileWrite", "Write", "Edit", "Bash", "BashTool").contains(toolName)) {
+        if (BASH_TOOL_NAMES.contains(toolName)) {
+            String command = toolInput.getOptionalString("command").orElse("");
+            if (!sandboxManager.shouldUseSandbox(command)) return Optional.empty();
             return Optional.of(PermissionDecision.allow(
                     PermissionDecisionReason.SANDBOX_OVERRIDE, null));
         }

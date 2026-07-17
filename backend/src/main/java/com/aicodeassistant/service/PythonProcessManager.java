@@ -85,8 +85,7 @@ public class PythonProcessManager {
                     "python", "-m", "uvicorn",
                     "src.main:app",
                     "--host", pythonHost,
-                    "--port", String.valueOf(pythonPort),
-                    "--reload"
+                    "--port", String.valueOf(pythonPort)
             );
 
             // 设置工作目录为 python-service

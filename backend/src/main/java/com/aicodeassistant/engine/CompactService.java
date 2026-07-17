@@ -147,7 +147,7 @@ public class CompactService {
                     compactedMessageCount, compressionRatio, null, 0);
         }
 
-        public int savedTokens() { return beforeTokens - afterTokens; }
+        public int savedTokens() { return Math.max(0, beforeTokens - afterTokens); }
 
         public String summary() {
             return String.format("压缩 %d 条消息: %d → %d tokens (%.1f%% 压缩率)",
@@ -163,6 +163,9 @@ public class CompactService {
         }
 
         public static CompactResult success(List<Message> compacted, int beforeTokens, int afterTokens) {
+            if (afterTokens >= beforeTokens) {
+                return CompactResult.skipped("no_token_savings");
+            }
             int saved = beforeTokens - afterTokens;
             double ratio = beforeTokens > 0 ? (double) saved / beforeTokens : 0.0;
             return new CompactResult(compacted, beforeTokens, afterTokens,
@@ -251,12 +254,16 @@ public class CompactService {
                 List<Message> compactedMessages = buildCompactResultWithSummary(plan, structuredSummary);
                 int afterTokens = tokenCounter.estimateTokens(compactedMessages);
                 double ratio = beforeTokens > 0 ? (double) (beforeTokens - afterTokens) / beforeTokens : 0.0;
-                log.info("压缩完成 (LLM 摘要, 质量校验通过): {} → {} tokens, 压缩率 {}%",
-                        beforeTokens, afterTokens, String.format("%.1f", ratio * 100));
-                CompactResult result = new CompactResult(compactedMessages, beforeTokens, afterTokens,
-                        plan.compactionMessages().size(), ratio);
-                executeCompactHooks(compactedMessages, result);
-                return result;
+                if (afterTokens < beforeTokens) {
+                    log.info("压缩完成 (LLM 摘要, 质量校验通过): {} → {} tokens, 压缩率 {}%",
+                            beforeTokens, afterTokens, String.format("%.1f", ratio * 100));
+                    CompactResult result = new CompactResult(compactedMessages, beforeTokens, afterTokens,
+                            plan.compactionMessages().size(), ratio);
+                    executeCompactHooks(compactedMessages, result);
+                    return result;
+                }
+                log.warn("LLM 摘要未减少 token，拒绝应用候选并降级: {} → {}",
+                        beforeTokens, afterTokens);
             } else {
                 log.warn("LLM 摘要质量不足，降级到关键消息选择");
             }
@@ -281,10 +288,14 @@ public class CompactService {
 
                 int afterTokens = tokenCounter.estimateTokens(compactedMessages);
                 double ratio = beforeTokens > 0 ? (double) (beforeTokens - afterTokens) / beforeTokens : 0.0;
-                log.info("压缩完成 (关键消息选择): {} → {} tokens, 压缩率 {}",
-                        beforeTokens, afterTokens, String.format("%.1f%%", ratio * 100));
-                return new CompactResult(compactedMessages, beforeTokens, afterTokens,
-                        plan.compactionMessages().size() - selected.size(), ratio);
+                if (afterTokens < beforeTokens) {
+                    log.info("压缩完成 (关键消息选择): {} → {} tokens, 压缩率 {}",
+                            beforeTokens, afterTokens, String.format("%.1f%%", ratio * 100));
+                    return new CompactResult(compactedMessages, beforeTokens, afterTokens,
+                            plan.compactionMessages().size() - selected.size(), ratio);
+                }
+                log.warn("关键消息选择未减少 token，拒绝应用候选并降级: {} → {}",
+                        beforeTokens, afterTokens);
             }
         } catch (RuntimeException e) {
             log.error("关键消息选择失败，进入尾部截断", e);
@@ -297,6 +308,10 @@ public class CompactService {
                 messages.subList(messages.size() - keepCount, messages.size()));
 
         int afterTokens = tokenCounter.estimateTokens(truncated);
+        if (afterTokens >= beforeTokens) {
+            log.warn("尾部截断未减少 token，保留原上下文: {} → {}", beforeTokens, afterTokens);
+            return CompactResult.skipped("no_token_savings");
+        }
         double ratio = beforeTokens > 0 ? (double) (beforeTokens - afterTokens) / beforeTokens : 0.0;
         return new CompactResult(truncated, beforeTokens, afterTokens,
                 messages.size() - keepCount, ratio);
@@ -401,9 +416,10 @@ public class CompactService {
         for (Message msg : messages) {
             switch (msg) {
                 case Message.UserMessage user -> {
-                    if (user.toolUseResult() != null) {
-                        sb.append("[ToolResult] ").append(user.toolUseResult(), 0,
-                                Math.min(user.toolUseResult().length(), 500)).append("\n");
+                    if (MessageContentAccessor.legacyToolResult(user) != null) {
+                        String canonicalResult = MessageContentAccessor.legacyToolResult(user);
+                        sb.append("[ToolResult] ").append(canonicalResult, 0,
+                                Math.min(canonicalResult.length(), 500)).append("\n");
                     } else if (user.content() != null) {
                         for (var block : user.content()) {
                             if (block instanceof ContentBlock.TextBlock text) {
@@ -492,7 +508,7 @@ public class CompactService {
                         .anyMatch(b -> b instanceof ContentBlock.ToolUseBlock);
                 if (hasToolUse && i + 1 < nonSystemMessages.size()) {
                     Message next = nonSystemMessages.get(i + 1);
-                    if (next instanceof Message.UserMessage user && user.toolUseResult() != null) {
+                    if (next instanceof Message.UserMessage user && MessageContentAccessor.legacyToolResult(user) != null) {
                         toolPairs.add(List.of(msg, next));
                         pairedIndices.add(i);
                         pairedIndices.add(i + 1);
@@ -521,7 +537,7 @@ public class CompactService {
         // 先填充最近的用户消息
         for (int i = remaining.size() - 1; i >= 0; i--) {
             Message msg = remaining.get(i);
-            if (msg instanceof Message.UserMessage user && user.toolUseResult() == null) {
+            if (msg instanceof Message.UserMessage user && MessageContentAccessor.legacyToolResult(user) == null) {
                 int msgTokens = tokenCounter.estimateTokens(List.of(msg));
                 if (usedTokens + msgTokens <= tokenBudget) {
                     selected.add(msg);
@@ -555,8 +571,8 @@ public class CompactService {
             return MessagePriority.P0_SYSTEM;
         }
         if (message instanceof Message.UserMessage user) {
-            if (user.toolUseResult() != null) {
-                String result = user.toolUseResult();
+            if (MessageContentAccessor.legacyToolResult(user) != null) {
+                String result = MessageContentAccessor.legacyToolResult(user);
                 if (result.contains("error") || result.contains("Error")
                         || result.contains("failed") || result.contains("Failed")) {
                     return MessagePriority.P2_ERROR_CONTEXT;
@@ -652,7 +668,7 @@ public class CompactService {
         int adjustedIndex = startIndex;
         Set<String> allToolResultIds = new HashSet<>();
         for (int i = startIndex; i < messages.size(); i++) {
-            if (messages.get(i) instanceof Message.UserMessage user && user.toolUseResult() != null) {
+            if (messages.get(i) instanceof Message.UserMessage user && MessageContentAccessor.legacyToolResult(user) != null) {
                 allToolResultIds.add(user.sourceToolAssistantUUID());
             }
         }

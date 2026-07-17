@@ -13,7 +13,6 @@ import { usePermissionStore } from '@/store/permissionStore';
 import { useActivityStore } from '@/store/activityStore';
 import { useAppUiStore } from '@/store/appUiStore';
 import { useSessionStore } from '@/store/sessionStore';
-import { sendToServer, sendPermissionResponse } from '@/api/stompClient';
 import PermissionDialog from '@/components/permission/PermissionDialog';
 import { ElicitationDialog } from '@/components/dialog/ElicitationDialog';
 import { SettingsPanel } from '@/components/dialog/SettingsPanel';
@@ -24,50 +23,71 @@ export const DialogManager: React.FC = () => {
     const currentPermission = pendingPermissions[0] ?? null;
     const { elicitationDialog, dismissElicitationDialog } = useAppUiStore();
 
-    // Handle permission decision — 更新本地状态 + 发送决策到后端
-    const handlePermissionDecision = React.useCallback((decision: { toolUseId: string; decision: 'allow' | 'deny'; remember?: boolean; scope?: string }) => {
-        // 1. 发送决策到后端（必须先于状态清理，确保 toolUseId 有效）
-        sendPermissionResponse(
-            decision.toolUseId,
-            decision.decision,
-            decision.remember,
-            decision.scope
-        );
-        // 2. 更新本地 store 状态（respondPermission 会 shift 队列头部）
-        respondPermission(decision);
-        // 3. 如果队列还有剩余请求则保持 awaiting 状态，否则恢复 streaming
+    const submitDecision = React.useCallback(async (
+        interactionId: string,
+        expectedVersion: number,
+        decision: 'allow' | 'deny' | 'answer' | 'cancel',
+        response?: unknown,
+        remember = false,
+        scope = 'session',
+    ) => {
+        const sessionId = useSessionStore.getState().sessionId;
+        if (!sessionId) throw new Error('SESSION_NOT_BOUND');
+        const result = await fetch(`/api/interactions/${encodeURIComponent(interactionId)}/decisions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Session-Id': sessionId },
+            body: JSON.stringify({ expectedVersion, decision, response, remember, scope }),
+        });
+        if (!result.ok) throw new Error(`INTERACTION_DECISION_FAILED_${result.status}`);
+    }, []);
+
+    // Business decisions use REST; WebSocket is only notification/received-ACK transport.
+    const handlePermissionDecision = React.useCallback(async (decision: { toolUseId: string; decision: 'allow' | 'deny'; remember?: boolean; scope?: string }) => {
+        const request = usePermissionStore.getState().pendingPermissions
+            .find(item => item.toolUseId === decision.toolUseId);
+        if (!request?.interactionId || request.version === undefined) return;
+        try {
+            await submitDecision(request.interactionId, request.version, decision.decision,
+                undefined, decision.remember, decision.scope);
+        } catch (error) {
+            console.error('[Interaction] Permission decision failed:', error);
+            return;
+        }
+        respondPermission(decision, request.interactionId);
         if (usePermissionStore.getState().pendingPermissions.length === 0) {
             useSessionStore.getState().setStatus('streaming');
         }
-        // 4. 标记 Activity 决策：批准/拒绝
         if (decision.decision === 'allow') {
             useActivityStore.getState().markToolUseApproved(decision.toolUseId);
         } else {
             useActivityStore.getState().markToolUseDenied(decision.toolUseId);
         }
-    }, [respondPermission]);
+    }, [respondPermission, submitDecision]);
 
-    // Handle elicitation submit — send response to backend via WebSocket
-    const handleElicitationSubmit = React.useCallback((requestId: string, response: string | string[]) => {
-        sendToServer('/app/elicitation', {
-            requestId,
-            answer: response,
-        });
+    const handleElicitationSubmit = React.useCallback(async (_requestId: string, response: string | string[]) => {
+        const current = useAppUiStore.getState().elicitationDialog;
+        if (!current?.interactionId || current.version === undefined) return;
+        try {
+            await submitDecision(current.interactionId, current.version, 'answer', response);
+        } catch (error) {
+            console.error('[Interaction] Elicitation decision failed:', error);
+            return;
+        }
         dismissElicitationDialog();
         useSessionStore.getState().setStatus('streaming');
-    }, [dismissElicitationDialog]);
+    }, [dismissElicitationDialog, submitDecision]);
 
-    // Handle elicitation cancel — send cancellation to backend
-    const handleElicitationCancel = React.useCallback(() => {
-        if (elicitationDialog?.requestId) {
-            sendToServer('/app/elicitation', {
-                requestId: elicitationDialog.requestId,
-                answer: null, // null indicates cancellation
-            });
+    const handleElicitationCancel = React.useCallback(async () => {
+        if (!elicitationDialog?.interactionId || elicitationDialog.version === undefined) return;
+        try {
+            await submitDecision(elicitationDialog.interactionId, elicitationDialog.version, 'cancel');
+        } catch (error) {
+            console.error('[Interaction] Elicitation cancel failed:', error);
+            return;
         }
         dismissElicitationDialog();
         useSessionStore.getState().setStatus('idle');
-    }, [elicitationDialog, dismissElicitationDialog]);
+    }, [elicitationDialog, dismissElicitationDialog, submitDecision]);
 
     return (
         <>
@@ -86,6 +106,7 @@ export const DialogManager: React.FC = () => {
                     requestId={elicitationDialog.requestId}
                     question={elicitationDialog.question}
                     options={elicitationDialog.options as { value: string; label: string; description?: string }[] | undefined}
+                    decisionDeadlineAt={elicitationDialog.decisionDeadlineAt}
                     allowFreeText={!elicitationDialog.options || (elicitationDialog.options as unknown[]).length === 0}
                     onSubmit={handleElicitationSubmit}
                     onCancel={handleElicitationCancel}

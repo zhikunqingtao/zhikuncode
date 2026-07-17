@@ -118,7 +118,8 @@ public class McpAuthTool implements Tool {
             // Step 1: OAuth 发现
             OAuthEndpoints endpoints = discoverOAuthEndpoints();
             if (endpoints == null) {
-                return ToolResult.error("Failed to discover OAuth endpoints for server: " + serverName);
+                return ToolResult.networkError("MCP_OAUTH_DISCOVERY_FAILED",
+                        "Failed to discover OAuth endpoints for server: " + serverName, ToolResult.Retryability.SAFE_READ_ONLY);
             }
 
             // Step 2: PKCE 参数生成
@@ -144,7 +145,8 @@ public class McpAuthTool implements Tool {
             try {
                 authCode = codeFuture.get(CALLBACK_TIMEOUT.toSeconds(), TimeUnit.SECONDS);
             } catch (Exception e) {
-                return ToolResult.error("OAuth authorization timed out. Please try again.");
+                return ToolResult.internalError("MCP_OAUTH_AUTHORIZATION_EXPIRED",
+                        "OAuth authorization timed out. Please try again.", ToolResult.EffectState.NOT_STARTED);
             }
 
             // Step 6: 令牌交换
@@ -153,7 +155,9 @@ public class McpAuthTool implements Tool {
                     redirectUri, pkce.codeVerifier());
 
             if (tokens == null) {
-                return ToolResult.error("Failed to exchange authorization code for tokens.");
+                return ToolResult.networkError("MCP_OAUTH_TOKEN_EXCHANGE_FAILED",
+                        "Failed to exchange authorization code for tokens.", ToolResult.Retryability.NEVER,
+                        ToolResult.EffectState.UNKNOWN);
             }
 
             // Step 7: 令牌存储
@@ -167,7 +171,8 @@ public class McpAuthTool implements Tool {
 
         } catch (Exception e) {
             log.error("OAuth authentication failed for {}: {}", serverName, e.getMessage(), e);
-            return ToolResult.error("Authentication failed: " + e.getMessage());
+            return ToolResult.providerError("MCP_OAUTH_AUTHENTICATION_FAILED",
+                    "Authentication failed: " + e.getMessage(), ToolResult.Retryability.NEVER);
         }
     }
 

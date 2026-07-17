@@ -73,7 +73,8 @@ class RunEnvelopeRepositoryTest {
         RunEnvelope mockEnvelope = new RunEnvelope(
                 "run-1", "session-1", null, RunEnvelope.RunStatus.RUNNING,
                 "main", "qwen-max", null, now, null, null,
-                0, 0.0, 0, 0, null, now, now
+                0, 0.0, 0, 0, null, now, now,
+                0, null, null, RunEnvelope.VerificationStatus.NOT_REQUESTED, null, null
         );
         when(jdbcTemplate.query(contains("WHERE id = ?"), any(RowMapper.class), eq("run-1")))
                 .thenReturn(List.of(mockEnvelope));
@@ -108,12 +109,15 @@ class RunEnvelopeRepositoryTest {
         RunEnvelope envelope1 = new RunEnvelope(
                 "run-1", "session-1", null, RunEnvelope.RunStatus.COMPLETED,
                 "main", "qwen-max", null, now, now, null,
-                1000, 0.05, 5, 3, null, now, now
+                1000, 0.05, 5, 3, null, now, now,
+                0, RunEnvelope.RunExitReason.MODEL_FINISHED, null,
+                RunEnvelope.VerificationStatus.NOT_REQUESTED, now, null
         );
         RunEnvelope envelope2 = new RunEnvelope(
                 "run-2", "session-1", null, RunEnvelope.RunStatus.RUNNING,
                 "sub-agent", "qwen-max", null, now, null, null,
-                0, 0.0, 0, 0, null, now, now
+                0, 0.0, 0, 0, null, now, now,
+                0, null, null, RunEnvelope.VerificationStatus.NOT_REQUESTED, null, null
         );
         when(jdbcTemplate.query(contains("WHERE session_id = ?"), any(RowMapper.class),
                 eq("session-1"), eq(10)))
@@ -128,49 +132,4 @@ class RunEnvelopeRepositoryTest {
         assertThat(result.get(1).id()).isEqualTo("run-2");
     }
 
-    @Test
-    void shouldUpdateStatus_whenCalled() {
-        // Given
-        when(jdbcTemplate.update(anyString(), any(Object[].class))).thenReturn(1);
-
-        Instant now = Instant.now();
-        RunEnvelope updated = new RunEnvelope(
-                "run-1", "session-1", null, RunEnvelope.RunStatus.COMPLETED,
-                "main", "qwen-max", null, now, now, null,
-                2000, 0.1, 10, 5, null, now, now
-        );
-
-        // When
-        repository.updateStatus("run-1", updated);
-
-        // Then: UPDATE 被调用
-        ArgumentCaptor<Object[]> argsCaptor = ArgumentCaptor.forClass(Object[].class);
-        verify(jdbcTemplate).update(contains("UPDATE run_envelopes SET"), argsCaptor.capture());
-        Object[] args = argsCaptor.getValue();
-        assertThat(args[0]).isEqualTo("completed"); // status dbValue
-        assertThat(args[3]).isEqualTo(2000);        // total_tokens
-        assertThat(args[4]).isEqualTo(0.1);         // total_cost_usd
-        assertThat(args[5]).isEqualTo(10);          // tool_call_count
-        assertThat(args[6]).isEqualTo(5);           // turn_count
-        assertThat(args[9]).isEqualTo("run-1");     // WHERE id
-    }
-
-    @Test
-    void shouldUpdateStatus_whenAborted() {
-        // Given
-        when(jdbcTemplate.update(anyString(), any(Object[].class))).thenReturn(1);
-
-        RunEnvelope running = RunEnvelope.start("session-1", null, "main", "qwen-max");
-        RunEnvelope aborted = running.abort("user_interrupt");
-
-        // When
-        repository.updateStatus(running.id(), aborted);
-
-        // Then
-        ArgumentCaptor<Object[]> argsCaptor = ArgumentCaptor.forClass(Object[].class);
-        verify(jdbcTemplate).update(contains("UPDATE run_envelopes SET"), argsCaptor.capture());
-        Object[] args = argsCaptor.getValue();
-        assertThat(args[0]).isEqualTo("aborted");        // status
-        assertThat(args[2]).isEqualTo("user_interrupt");  // abort_reason
-    }
 }

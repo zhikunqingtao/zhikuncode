@@ -12,7 +12,7 @@
 
 import { Client as StompClient, IFrame, IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-import { dispatch, resetSequence, resetBoundSession } from './dispatch';
+import { bindSessionAndWait, dispatch, resetSequence, resetBoundSession } from './dispatch';
 import { useSessionStore } from '@/store/sessionStore';
 import type { ServerMessage } from '@/types';
 
@@ -37,7 +37,7 @@ const VALID_MESSAGE_TYPES: ReadonlySet<string> = new Set([
     'verification_result',
     'verify_progress',
     // RV-4: 证据包待审批通知（统一在 /user/queue/messages 通道分发）
-    'verify_attention',
+    'verify_attention', 'protocol_error', 'interaction_created', 'interaction_terminal', 'interaction_updated',
 ]);
 
 /**
@@ -115,11 +115,19 @@ const RECONNECT_TIMEOUT = 10 * 60 * 1000; // 重连超时 10min
 let stompClient: StompClient | null = null;
 let reconnectAttempts = 0;
 let reconnectStartTime = 0;
+let applicationPingTimer: ReturnType<typeof setInterval> | null = null;
+
+function stopApplicationPing(): void {
+    if (applicationPingTimer !== null) {
+        clearInterval(applicationPingTimer);
+        applicationPingTimer = null;
+    }
+}
 
 /**
  * 创建并激活 STOMP 客户端连接
  */
-export function createStompClient(sessionId: string, authToken: string): StompClient {
+export function createStompClient(_sessionId: string, authToken: string): StompClient {
     // 如果已有连接，先断开
     if (stompClient?.active) {
         stompClient.deactivate();
@@ -137,7 +145,6 @@ export function createStompClient(sessionId: string, authToken: string): StompCl
         // 否则后端 localhost 模式走匿名 Principal 路径
         connectHeaders: {
             ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-            'X-Session-Id': sessionId,
         },
 
         // 心跳配置 — 对齐 §8.5.4 configureMessageBroker
@@ -179,12 +186,15 @@ export function createStompClient(sessionId: string, authToken: string): StompCl
             //       防止 session_restored 的 clearMessages() 吞掉用户消息
             const activeSessionId = useSessionStore.getState().sessionId;
             if (activeSessionId) {
-                client.publish({
-                    destination: '/app/bind-session',
-                    body: JSON.stringify({ sessionId: activeSessionId }),
-                });
+                void bindSessionAndWait(activeSessionId, payload => client.publish({
+                    destination: '/app/bind-session', body: JSON.stringify(payload),
+                }));
                 console.info('[WS] Reconnect: re-bound session', activeSessionId);
             }
+            stopApplicationPing();
+            applicationPingTimer = setInterval(() => {
+                if (client.connected) send('/app/ping', {});
+            }, 10_000);
         },
 
         // STOMP 错误回调
@@ -200,6 +210,7 @@ export function createStompClient(sessionId: string, authToken: string): StompCl
 
         // WebSocket 关闭回调
         onWebSocketClose: () => {
+            stopApplicationPing();
             if (reconnectStartTime === 0) {
                 reconnectStartTime = Date.now();
             }
@@ -251,6 +262,7 @@ export function createStompClient(sessionId: string, authToken: string): StompCl
  * 断开 STOMP 连接
  */
 export function disconnectStomp(): void {
+    stopApplicationPing();
     if (stompClient?.active) {
         stompClient.deactivate();
     }
@@ -290,16 +302,6 @@ export function sendUserMessage(text: string, attachments?: Attachment[], refere
     send('/app/chat', { text, attachments, references });
 }
 
-/** #2 发送权限响应 → /app/permission */
-export function sendPermissionResponse(
-    toolUseId: string,
-    decision: 'allow' | 'deny' | 'allow_always',
-    remember?: boolean,
-    scope?: string
-): void {
-    send('/app/permission', { toolUseId, decision, remember, scope });
-}
-
 /** #3 发送中断 → /app/interrupt */
 export function sendInterrupt(): void {
     send('/app/interrupt', {});
@@ -328,11 +330,6 @@ export function sendMcpOperation(operation: string, serverId: string, config?: o
 /** #8 回退文件 → /app/rewind */
 export function sendRewindFiles(messageId: string, filePaths: string[]): void {
     send('/app/rewind', { messageId, filePaths });
-}
-
-/** #9 AI 反向提问响应 → /app/elicitation */
-export function sendElicitationResponse(requestId: string, answer: string | string[] | null): void {
-    send('/app/elicitation', { requestId, answer });
 }
 
 /** #10 心跳探测 → /app/ping */

@@ -9,6 +9,8 @@ import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 import javax.imageio.stream.ImageOutputStream;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -29,7 +31,8 @@ public class TokenBudgetGuard {
 
     private static final double TEXT_TOKEN_RATIO = 3.5;
     private static final int BASE64_LENGTH_THRESHOLD = 40_000;
-    private static final int PROTECT_TAIL_COUNT = 2;
+    private static final int MAX_DECODED_IMAGE_BYTES = 10 * 1024 * 1024;
+    private static final long MAX_IMAGE_PIXELS = 40_000_000L;
     private static final List<String> BASE64_PREFIXES = List.of(
             "/9j/", "iVBOR", "R0lGOD", "UklGR", "PHN2"
     );
@@ -60,14 +63,19 @@ public class TokenBudgetGuard {
      * 第一遍保护尾部2条消息，第二遍（若仍超限）清理全部。
      */
     public GuardResult enforcePhase1(List<Message> messages, int inputBudget) {
-        int tokensBefore = estimateTokens(messages);
+        return enforcePhase1(messages, inputBudget, TEXT_TOKEN_RATIO);
+    }
+
+    public GuardResult enforcePhase1(List<Message> messages, int inputBudget, double textTokenRatio) {
+        validateRatio(textTokenRatio);
+        int tokensBefore = estimateTokens(messages, textTokenRatio);
         if (tokensBefore <= inputBudget) {
             return new GuardResult(new ArrayList<>(messages), false, tokensBefore, tokensBefore);
         }
 
         // 第一遍: protectTail=true, 跳过最后2条
-        List<Message> cleaned = deepCleanBase64(messages, true);
-        int tokensAfterFirstPass = estimateTokens(cleaned);
+        List<Message> cleaned = deepCleanBase64(messages, 2);
+        int tokensAfterFirstPass = estimateTokens(cleaned, textTokenRatio);
 
         if (tokensAfterFirstPass <= inputBudget) {
             log.info("Phase1 first pass sufficient: {} -> {} tokens (budget={})",
@@ -76,8 +84,11 @@ public class TokenBudgetGuard {
         }
 
         // 第二遍: protectTail=false, 清理所有
-        cleaned = deepCleanBase64(messages, false);
-        int tokensAfterSecondPass = estimateTokens(cleaned);
+        // The newest request/tool-result message is never silently deleted.
+        // If historical cleanup is insufficient the later cascade/guard fails
+        // explicitly instead of changing the current user intent.
+        cleaned = deepCleanBase64(messages, 1);
+        int tokensAfterSecondPass = estimateTokens(cleaned, textTokenRatio);
         log.info("Phase1 second pass: {} -> {} tokens (budget={})",
                 tokensBefore, tokensAfterSecondPass, inputBudget);
         return new GuardResult(cleaned, true, tokensBefore, tokensAfterSecondPass);
@@ -90,7 +101,18 @@ public class TokenBudgetGuard {
      * 超限时按梯度降级策略依次尝试。
      */
     public FinalBudgetResult enforcePhase2(List<Map<String, Object>> apiMessages, int inputBudget) {
-        int estimated = estimateApiTokens(apiMessages);
+        return enforcePhase2(apiMessages, inputBudget, collectImageHashes(apiMessages), TEXT_TOKEN_RATIO);
+    }
+
+    public FinalBudgetResult enforcePhase2(List<Map<String, Object>> apiMessages, int inputBudget,
+                                           Set<String> transientImageHashes) {
+        return enforcePhase2(apiMessages, inputBudget, transientImageHashes, TEXT_TOKEN_RATIO);
+    }
+
+    public FinalBudgetResult enforcePhase2(List<Map<String, Object>> apiMessages, int inputBudget,
+                                           Set<String> transientImageHashes, double textTokenRatio) {
+        validateRatio(textTokenRatio);
+        int estimated = estimateApiTokens(apiMessages, textTokenRatio);
 
         if (estimated <= inputBudget) {
             Set<String> hashes = collectImageHashes(apiMessages);
@@ -102,8 +124,8 @@ public class TokenBudgetGuard {
         StringBuilder summary = new StringBuilder();
 
         // 策略1: 缩略图替换 (640px, quality=0.6)
-        current = replaceImagesWithThumbnails(current, 640, 0.6f);
-        estimated = estimateApiTokens(current);
+        current = replaceImagesWithThumbnails(current, 640, 0.6f, transientImageHashes);
+        estimated = estimateApiTokens(current, textTokenRatio);
         summary.append("策略1-缩略图替换;");
         if (estimated <= inputBudget) {
             Set<String> hashes = collectImageHashes(current);
@@ -111,8 +133,8 @@ public class TokenBudgetGuard {
         }
 
         // 策略2: 替换图片为文本摘要
-        current = replaceImagesWithTextSummary(current);
-        estimated = estimateApiTokens(current);
+        current = replaceImagesWithTextSummary(deepCopyApiMessages(apiMessages), transientImageHashes);
+        estimated = estimateApiTokens(current, textTokenRatio);
         summary.append("策略2-图片替换为文本;");
         if (estimated <= inputBudget) {
             Set<String> hashes = collectImageHashes(current);
@@ -120,8 +142,8 @@ public class TokenBudgetGuard {
         }
 
         // 策略3: 移除所有注入的图片
-        current = removeAllInjectedImages(current);
-        estimated = estimateApiTokens(current);
+        current = removeAllInjectedImages(deepCopyApiMessages(apiMessages), transientImageHashes);
+        estimated = estimateApiTokens(current, textTokenRatio);
         summary.append("策略3-移除所有图片;");
         Set<String> hashes = collectImageHashes(current);
         boolean fits = estimated <= inputBudget;
@@ -133,9 +155,9 @@ public class TokenBudgetGuard {
 
     // ==================== Phase1 辅助方法 ====================
 
-    private List<Message> deepCleanBase64(List<Message> messages, boolean protectTail) {
+    private List<Message> deepCleanBase64(List<Message> messages, int protectTailCount) {
         List<Message> result = new ArrayList<>(messages.size());
-        int protectFrom = protectTail ? Math.max(0, messages.size() - PROTECT_TAIL_COUNT) : messages.size();
+        int protectFrom = Math.max(0, messages.size() - Math.max(1, protectTailCount));
 
         for (int i = 0; i < messages.size(); i++) {
             Message msg = messages.get(i);
@@ -152,7 +174,7 @@ public class TokenBudgetGuard {
     private Message cleanMessageBase64(Message msg) {
         if (msg instanceof Message.UserMessage user) {
             List<ContentBlock> cleanedBlocks = cleanContentBlocks(user.content());
-            String cleanedToolResult = cleanToolUseResult(user.toolUseResult());
+            String cleanedToolResult = cleanToolUseResult(MessageContentAccessor.legacyToolResult(user));
             return new Message.UserMessage(
                     user.uuid(), user.timestamp(), cleanedBlocks,
                     cleanedToolResult, user.sourceToolAssistantUUID());
@@ -208,9 +230,9 @@ public class TokenBudgetGuard {
 
     // ==================== Phase2 辅助方法 ====================
 
-    @SuppressWarnings("unchecked")
     private List<Map<String, Object>> replaceImagesWithThumbnails(
-            List<Map<String, Object>> apiMessages, int maxDim, float quality) {
+            List<Map<String, Object>> apiMessages, int maxDim, float quality,
+            Set<String> transientImageHashes) {
         List<Map<String, Object>> result = new ArrayList<>(apiMessages.size());
         for (Map<String, Object> msg : apiMessages) {
             Object contentObj = msg.get("content");
@@ -218,8 +240,9 @@ public class TokenBudgetGuard {
                 List<Map<String, Object>> newContent = new ArrayList<>();
                 for (Object item : contentList) {
                     if (item instanceof Map<?, ?> block) {
-                        Map<String, Object> blockMap = (Map<String, Object>) block;
-                        if ("image".equals(blockMap.get("type"))) {
+                        Map<String, Object> blockMap = toStringObjectMap(block);
+                        if ("image".equals(blockMap.get("type"))
+                                && transientImageHashes.contains(hashImageBlock(blockMap))) {
                             Map<String, Object> resized = resizeImageBlock(blockMap, maxDim, quality);
                             newContent.add(resized);
                         } else {
@@ -237,18 +260,36 @@ public class TokenBudgetGuard {
         return result;
     }
 
-    @SuppressWarnings("unchecked")
     private Map<String, Object> resizeImageBlock(Map<String, Object> block, int maxDim, float quality) {
         try {
             Object source = block.get("source");
-            if (!(source instanceof Map<?, ?>)) return new LinkedHashMap<>(block);
-            Map<String, Object> sourceMap = (Map<String, Object>) source;
+            if (!(source instanceof Map<?, ?> rawSource)) return new LinkedHashMap<>(block);
+            Map<String, Object> sourceMap = toStringObjectMap(rawSource);
             String data = (String) sourceMap.get("data");
             if (data == null || data.isEmpty()) return new LinkedHashMap<>(block);
 
             byte[] imageBytes = Base64.getDecoder().decode(data);
+            if (imageBytes.length > MAX_DECODED_IMAGE_BYTES) {
+                return omittedImage("encoded image exceeds 10 MiB safety limit");
+            }
+            try (ImageInputStream input = ImageIO.createImageInputStream(new ByteArrayInputStream(imageBytes))) {
+                if (input == null) return omittedImage("unsupported image stream");
+                Iterator<ImageReader> readers = ImageIO.getImageReaders(input);
+                if (!readers.hasNext()) return omittedImage("unsupported image format");
+                ImageReader reader = readers.next();
+                try {
+                    reader.setInput(input, true, true);
+                    int width = reader.getWidth(0);
+                    int height = reader.getHeight(0);
+                    if (width <= 0 || height <= 0 || (long) width * height > MAX_IMAGE_PIXELS) {
+                        return omittedImage("image dimensions exceed safe pixel budget");
+                    }
+                } finally {
+                    reader.dispose();
+                }
+            }
             BufferedImage original = ImageIO.read(new ByteArrayInputStream(imageBytes));
-            if (original == null) return new LinkedHashMap<>(block);
+            if (original == null) return omittedImage("image decode failed");
 
             // 计算缩放尺寸
             int w = original.getWidth();
@@ -289,13 +330,19 @@ public class TokenBudgetGuard {
             newBlock.put("source", newSource);
             return newBlock;
         } catch (Exception e) {
-            log.warn("缩略图生成失败，保留原始: {}", e.getMessage());
-            return new LinkedHashMap<>(block);
+            log.warn("缩略图生成失败，安全省略原图: {}", e.getMessage());
+            return omittedImage("thumbnail generation failed");
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private List<Map<String, Object>> replaceImagesWithTextSummary(List<Map<String, Object>> apiMessages) {
+    private static Map<String, Object> omittedImage(String reason) {
+        return new LinkedHashMap<>(Map.of(
+                "type", "text",
+                "text", "[Image omitted by media safety guard: " + reason + "]"));
+    }
+
+    private List<Map<String, Object>> replaceImagesWithTextSummary(List<Map<String, Object>> apiMessages,
+                                                                    Set<String> transientImageHashes) {
         List<Map<String, Object>> result = new ArrayList<>(apiMessages.size());
         for (Map<String, Object> msg : apiMessages) {
             Object contentObj = msg.get("content");
@@ -303,8 +350,9 @@ public class TokenBudgetGuard {
                 List<Map<String, Object>> newContent = new ArrayList<>();
                 for (Object item : contentList) {
                     if (item instanceof Map<?, ?> block) {
-                        Map<String, Object> blockMap = (Map<String, Object>) block;
-                        if ("image".equals(blockMap.get("type"))) {
+                        Map<String, Object> blockMap = toStringObjectMap(block);
+                        if ("image".equals(blockMap.get("type"))
+                                && transientImageHashes.contains(hashImageBlock(blockMap))) {
                             Map<String, Object> textBlock = new LinkedHashMap<>();
                             textBlock.put("type", "text");
                             textBlock.put("text", "[图片已移除以减少上下文]");
@@ -324,8 +372,8 @@ public class TokenBudgetGuard {
         return result;
     }
 
-    @SuppressWarnings("unchecked")
-    private List<Map<String, Object>> removeAllInjectedImages(List<Map<String, Object>> apiMessages) {
+    private List<Map<String, Object>> removeAllInjectedImages(List<Map<String, Object>> apiMessages,
+                                                               Set<String> transientImageHashes) {
         List<Map<String, Object>> result = new ArrayList<>(apiMessages.size());
         for (Map<String, Object> msg : apiMessages) {
             Object contentObj = msg.get("content");
@@ -333,8 +381,9 @@ public class TokenBudgetGuard {
                 List<Map<String, Object>> newContent = new ArrayList<>();
                 for (Object item : contentList) {
                     if (item instanceof Map<?, ?> block) {
-                        Map<String, Object> blockMap = (Map<String, Object>) block;
-                        if (!"image".equals(blockMap.get("type"))) {
+                        Map<String, Object> blockMap = toStringObjectMap(block);
+                        if (!"image".equals(blockMap.get("type"))
+                                || !transientImageHashes.contains(hashImageBlock(blockMap))) {
                             newContent.add(new LinkedHashMap<>(blockMap));
                         }
                     }
@@ -349,7 +398,6 @@ public class TokenBudgetGuard {
         return result;
     }
 
-    @SuppressWarnings("unchecked")
     private Set<String> collectImageHashes(List<Map<String, Object>> apiMessages) {
         Set<String> hashes = new HashSet<>();
         for (Map<String, Object> msg : apiMessages) {
@@ -357,15 +405,12 @@ public class TokenBudgetGuard {
             if (contentObj instanceof List<?> contentList) {
                 for (Object item : contentList) {
                     if (item instanceof Map<?, ?> block) {
-                        Map<String, Object> blockMap = (Map<String, Object>) block;
+                        Map<String, Object> blockMap = toStringObjectMap(block);
                         if ("image".equals(blockMap.get("type"))) {
                             Object source = blockMap.get("source");
                             if (source instanceof Map<?, ?> sourceMap) {
-                                String data = (String) ((Map<String, Object>) sourceMap).get("data");
-                                if (data != null && !data.isEmpty()) {
-                                    String prefix = data.substring(0, Math.min(100, data.length()));
-                                    hashes.add(String.valueOf(prefix.hashCode()));
-                                }
+                                String hash = hashImageBlock(blockMap);
+                                if (hash != null) hashes.add(hash);
                             }
                         }
                     }
@@ -375,7 +420,18 @@ public class TokenBudgetGuard {
         return hashes;
     }
 
-    @SuppressWarnings("unchecked")
+    private String hashImageBlock(Map<String, Object> block) {
+        try {
+            Object source=block.get("source");
+            if(!(source instanceof Map<?,?> raw))return null;
+            Object data = raw.get("data");
+            if(!(data instanceof String encoded)||encoded.isBlank())return null;
+            byte[] bytes=Base64.getDecoder().decode(encoded);
+            return java.util.HexFormat.of().formatHex(
+                    java.security.MessageDigest.getInstance("SHA-256").digest(bytes));
+        }catch(Exception invalid){return null;}
+    }
+
     private List<Map<String, Object>> deepCopyApiMessages(List<Map<String, Object>> apiMessages) {
         List<Map<String, Object>> result = new ArrayList<>(apiMessages.size());
         for (Map<String, Object> msg : apiMessages) {
@@ -385,7 +441,7 @@ public class TokenBudgetGuard {
                 List<Map<String, Object>> newContent = new ArrayList<>();
                 for (Object item : contentList) {
                     if (item instanceof Map<?, ?> block) {
-                        newContent.add(new LinkedHashMap<>((Map<String, Object>) block));
+                        newContent.add(toStringObjectMap(block));
                     }
                 }
                 copy.put("content", newContent);
@@ -402,75 +458,83 @@ public class TokenBudgetGuard {
      * 文本: length / 3.5, Base64: 1:1
      */
     int estimateTokens(List<Message> messages) {
+        return estimateTokens(messages, TEXT_TOKEN_RATIO);
+    }
+
+    int estimateTokens(List<Message> messages, double textTokenRatio) {
         int total = 0;
         for (Message msg : messages) {
             if (msg instanceof Message.UserMessage user) {
-                total += estimateContentBlocksTokens(user.content());
-                if (user.toolUseResult() != null) {
-                    total += estimateStringTokens(user.toolUseResult());
+                total += estimateContentBlocksTokens(user.content(), textTokenRatio);
+                if (MessageContentAccessor.legacyToolResult(user) != null) {
+                    total += estimateStringTokens(MessageContentAccessor.legacyToolResult(user), textTokenRatio);
                 }
             } else if (msg instanceof Message.AssistantMessage assistant) {
-                total += estimateContentBlocksTokens(assistant.content());
+                total += estimateContentBlocksTokens(assistant.content(), textTokenRatio);
             } else if (msg instanceof Message.SystemMessage system) {
                 if (system.content() != null) {
-                    total += (int) (system.content().length() / TEXT_TOKEN_RATIO);
+                    total += (int) (system.content().length() / textTokenRatio);
                 }
             }
         }
         return total;
     }
 
-    private int estimateContentBlocksTokens(List<ContentBlock> blocks) {
+    private int estimateContentBlocksTokens(List<ContentBlock> blocks, double textTokenRatio) {
         if (blocks == null) return 0;
         int total = 0;
         for (ContentBlock block : blocks) {
             if (block instanceof ContentBlock.TextBlock tb) {
-                total += tb.text() != null ? (int) (tb.text().length() / TEXT_TOKEN_RATIO) : 0;
+                total += tb.text() != null ? (int) (tb.text().length() / textTokenRatio) : 0;
             } else if (block instanceof ContentBlock.ImageBlock img) {
                 total += img.base64Data() != null ? img.base64Data().length() : 0;
             } else if (block instanceof ContentBlock.ToolResultBlock trb) {
-                total += trb.content() != null ? estimateStringTokens(trb.content()) : 0;
+                total += trb.content() != null ? estimateStringTokens(trb.content(), textTokenRatio) : 0;
             } else if (block instanceof ContentBlock.ToolUseBlock tub) {
-                total += tub.input() != null ? (int) (tub.input().toString().length() / TEXT_TOKEN_RATIO) : 0;
+                total += tub.input() != null ? (int) (tub.input().toString().length() / textTokenRatio) : 0;
             } else if (block instanceof ContentBlock.ThinkingBlock thk) {
-                total += thk.thinking() != null ? (int) (thk.thinking().length() / TEXT_TOKEN_RATIO) : 0;
+                total += thk.thinking() != null ? (int) (thk.thinking().length() / textTokenRatio) : 0;
             }
         }
         return total;
     }
 
-    private int estimateStringTokens(String content) {
+    private int estimateStringTokens(String content, double textTokenRatio) {
         if (content == null) return 0;
         if (isBase64Content(content)) {
             return content.length(); // 1:1
         }
-        return (int) (content.length() / TEXT_TOKEN_RATIO);
+        return (int) (content.length() / textTokenRatio);
     }
 
     /**
      * 估算 API 格式消息的 token 数。
      */
-    @SuppressWarnings("unchecked")
     int estimateApiTokens(List<Map<String, Object>> apiMessages) {
+        return estimateApiTokens(apiMessages, TEXT_TOKEN_RATIO);
+    }
+
+    int estimateApiTokens(List<Map<String, Object>> apiMessages, double textTokenRatio) {
         int total = 0;
         for (Map<String, Object> msg : apiMessages) {
             Object contentObj = msg.get("content");
             if (contentObj instanceof String text) {
-                total += (int) (text.length() / TEXT_TOKEN_RATIO);
+                total += (int) (text.length() / textTokenRatio);
             } else if (contentObj instanceof List<?> contentList) {
                 for (Object item : contentList) {
                     if (item instanceof Map<?, ?> block) {
-                        Map<String, Object> blockMap = (Map<String, Object>) block;
+                        Map<String, Object> blockMap = toStringObjectMap(block);
                         String type = (String) blockMap.get("type");
                         if ("text".equals(type)) {
                             String text = (String) blockMap.get("text");
                             if (text != null) {
-                                total += (int) (text.length() / TEXT_TOKEN_RATIO);
+                                total += (int) (text.length() / textTokenRatio);
                             }
                         } else if ("image".equals(type)) {
                             Object source = blockMap.get("source");
                             if (source instanceof Map<?, ?> sourceMap) {
-                                String data = (String) ((Map<String, Object>) sourceMap).get("data");
+                                Object rawData = sourceMap.get("data");
+                                String data = rawData instanceof String text ? text : null;
                                 if (data != null) {
                                     total += data.length(); // 1:1
                                 }
@@ -481,19 +545,35 @@ public class TokenBudgetGuard {
                                 if (isBase64Content(s)) {
                                     total += s.length(); // 1:1
                                 } else {
-                                    total += (int) (s.length() / TEXT_TOKEN_RATIO);
+                                    total += (int) (s.length() / textTokenRatio);
                                 }
                             }
                         } else {
                             // tool_use, thinking 等其他类型按文本估算
                             String text = blockMap.toString();
-                            total += (int) (text.length() / TEXT_TOKEN_RATIO);
+                            total += (int) (text.length() / textTokenRatio);
                         }
                     }
                 }
             }
         }
         return total;
+    }
+
+    private static Map<String, Object> toStringObjectMap(Map<?, ?> source) {
+        Map<String, Object> copy = new LinkedHashMap<>();
+        for (Map.Entry<?, ?> entry : source.entrySet()) {
+            if (entry.getKey() instanceof String key) {
+                copy.put(key, entry.getValue());
+            }
+        }
+        return copy;
+    }
+
+    private static void validateRatio(double ratio) {
+        if (!Double.isFinite(ratio) || ratio <= 0.5 || ratio > 16.0) {
+            throw new IllegalArgumentException("Invalid textTokenRatio");
+        }
     }
 
     // ==================== 通用辅助 ====================

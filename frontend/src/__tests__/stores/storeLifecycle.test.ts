@@ -140,6 +140,16 @@ describe('TC-STORE-003: permissionStore 权限审批流程', () => {
         expect(usePermissionStore.getState().pendingPermissions.length).toBe(0);
         expect(usePermissionStore.getState().denialTracking.totalDenials).toBe(1);
     });
+
+    it('permission terminal/REST race never removes the next queued request', () => {
+        usePermissionStore.getState().showPermission({ interactionId: 'i-1', toolUseId: 't-1',
+            toolName: 'Bash', input: {}, riskLevel: 'low', reason: 'first' });
+        usePermissionStore.getState().showPermission({ interactionId: 'i-2', toolUseId: 't-2',
+            toolName: 'Bash', input: {}, riskLevel: 'low', reason: 'second' });
+        usePermissionStore.getState().removeInteraction('i-1');
+        usePermissionStore.getState().respondPermission({ toolUseId: 't-1', decision: 'allow' }, 'i-1');
+        expect(usePermissionStore.getState().pendingPermissions.map(p => p.interactionId)).toEqual(['i-2']);
+    });
 });
 
 // ==================== TC-STORE-004: costStore Token 费用累计 ====================

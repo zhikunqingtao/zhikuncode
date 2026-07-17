@@ -104,8 +104,6 @@ const CustomizedContent: React.FC<CustomizedContentProps> = (props) => {
   const gw = width - GAP;
   const gh = height - GAP;
 
-  if (gw < 2 || gh < 2) return null;
-
   const showCC = gw > 50 && gh > 32;
   const showName = gw > 24 && gh > 16;
   const showBadge = gw > 60 && gh > 44;
@@ -124,6 +122,8 @@ const CustomizedContent: React.FC<CustomizedContentProps> = (props) => {
       onDrill(originalNode);
     }
   }, [hasChildren, originalNode, onDrill]);
+
+  if (gw < 2 || gh < 2) return null;
 
   return (
     <g

@@ -88,7 +88,7 @@ public class SleepTool implements Tool {
 
         // 1. 上限校验
         if (seconds < 1 || seconds > MAX_SLEEP_SECONDS) {
-            return ToolResult.error(
+            return ToolResult.validationError("SLEEP_DURATION_INVALID",
                     "seconds must be between 1 and " + MAX_SLEEP_SECONDS + ", got: " + seconds);
         }
 

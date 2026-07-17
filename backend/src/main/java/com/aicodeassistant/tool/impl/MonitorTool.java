@@ -81,7 +81,7 @@ public class MonitorTool implements Tool {
     public ToolResult call(ToolInput input, ToolUseContext context) {
         // 门控检查
         if (!featureFlagService.isEnabled("RESOURCE_MONITOR")) {
-            return ToolResult.error("MonitorTool is disabled. Set environment variable RESOURCE_MONITOR=true "
+            return ToolResult.validationError("RESOURCE_MONITOR_DISABLED", "MonitorTool is disabled. Set environment variable RESOURCE_MONITOR=true "
                     + "or update features.flags.RESOURCE_MONITOR in application.yml to enable.");
         }
 
@@ -99,7 +99,8 @@ public class MonitorTool implements Tool {
             return ToolResult.success(result);
         } catch (Exception e) {
             log.error("MonitorTool error: {}", e.getMessage(), e);
-            return ToolResult.error("Failed to collect system metrics: " + e.getMessage());
+            return ToolResult.internalError("RESOURCE_MONITOR_FAILED",
+                    "Failed to collect system metrics: " + e.getMessage(), ToolResult.EffectState.NONE);
         }
     }
 

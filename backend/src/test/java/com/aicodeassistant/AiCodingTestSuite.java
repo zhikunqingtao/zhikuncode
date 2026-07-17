@@ -1,14 +1,12 @@
 package com.aicodeassistant;
 
 import com.aicodeassistant.config.FeatureFlagService;
-import com.aicodeassistant.config.ModelCapabilityConfig;
 import com.aicodeassistant.engine.TokenCounter;
 import com.aicodeassistant.engine.correction.CorrectionInstruction;
 import com.aicodeassistant.engine.correction.CompileErrorParser;
 import com.aicodeassistant.engine.correction.SelfCorrectionLoop;
 import com.aicodeassistant.engine.correction.TestFailureParser;
 import com.aicodeassistant.engine.tokenizer.TokenizerService;
-import com.aicodeassistant.llm.ModelCapabilityRegistry;
 import com.aicodeassistant.tool.bash.BashErrorClassifier;
 import com.aicodeassistant.tool.recovery.BashRecoveryPolicy;
 import com.aicodeassistant.tool.recovery.ToolRecoveryFramework.RecoveryAction;
@@ -307,12 +305,9 @@ class AiCodingTestSuite {
 
         @BeforeEach
         void setUp() {
-            ModelCapabilityConfig capCfg = new ModelCapabilityConfig();
-            ModelCapabilityRegistry capRegistry = new ModelCapabilityRegistry(capCfg);
-            capRegistry.init();
             featureFlagService = new FeatureFlagService();
             featureFlagService.setFlags(Map.of("PRECISE_TOKENIZER", true));
-            tokenCounter = new TokenCounter(capRegistry, tokenizerService, featureFlagService);
+            tokenCounter = new TokenCounter(null, tokenizerService, featureFlagService);
         }
 
         @Test
@@ -360,12 +355,9 @@ class AiCodingTestSuite {
 
         @BeforeEach
         void setUp() {
-            ModelCapabilityConfig capCfg = new ModelCapabilityConfig();
-            ModelCapabilityRegistry capRegistry = new ModelCapabilityRegistry(capCfg);
-            capRegistry.init();
             featureFlagService = new FeatureFlagService();
             featureFlagService.setFlags(Map.of("PRECISE_TOKENIZER", false));
-            tokenCounter = new TokenCounter(capRegistry, tokenizerService, featureFlagService);
+            tokenCounter = new TokenCounter(null, tokenizerService, featureFlagService);
         }
 
         @Test

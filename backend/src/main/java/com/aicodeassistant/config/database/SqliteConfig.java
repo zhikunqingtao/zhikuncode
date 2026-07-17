@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import javax.sql.DataSource;
@@ -28,16 +30,6 @@ import java.util.function.Supplier;
 public class SqliteConfig implements DisposableBean {
 
     private static final Logger log = LoggerFactory.getLogger(SqliteConfig.class);
-
-    private static final String SQLITE_PRAGMAS = String.join("; ", List.of(
-            "PRAGMA journal_mode=WAL",
-            "PRAGMA busy_timeout=5000",
-            "PRAGMA synchronous=NORMAL",
-            "PRAGMA cache_size=-8000",
-            "PRAGMA foreign_keys=ON",
-            "PRAGMA wal_autocheckpoint=1000",
-            "PRAGMA temp_store=MEMORY"
-    ));
 
     private final DatabaseResolver databaseResolver;
 
@@ -60,6 +52,12 @@ public class SqliteConfig implements DisposableBean {
     @Qualifier("globalJdbcTemplate")
     public JdbcTemplate globalJdbcTemplate(@Qualifier("globalDataSource") DataSource ds) {
         return new JdbcTemplate(ds);
+    }
+
+    @Bean("globalTransactionManager")
+    public PlatformTransactionManager globalTransactionManager(
+            @Qualifier("globalDataSource") DataSource ds) {
+        return new DataSourceTransactionManager(ds);
     }
 
     // ───── 项目库 DataSource (按需缓存) ─────
@@ -96,6 +94,12 @@ public class SqliteConfig implements DisposableBean {
         return new JdbcTemplate(ds);
     }
 
+    @Bean("projectTransactionManager")
+    public PlatformTransactionManager projectTransactionManager(
+            @Qualifier("projectDataSource") DataSource ds) {
+        return new DataSourceTransactionManager(ds);
+    }
+
     // ───── 写入串行化 ─────
 
     private final ConcurrentHashMap<Path, ReentrantLock> writeLocks = new ConcurrentHashMap<>();
@@ -128,7 +132,18 @@ public class SqliteConfig implements DisposableBean {
         config.setJdbcUrl("jdbc:sqlite:" + dbPath.toAbsolutePath());
         config.setMaximumPoolSize(maxPoolSize);
         config.setMinimumIdle(1);
-        config.setConnectionInitSql(SQLITE_PRAGMAS);
+        // Hikari's connectionInitSql is a *single* statement. Passing a
+        // semicolon-separated PRAGMA list caused the driver to apply only the
+        // first entry, silently leaving foreign_keys disabled. Use the Xerial
+        // connection properties so every pooled connection has the same policy.
+        org.sqlite.SQLiteConfig sqlite = new org.sqlite.SQLiteConfig();
+        sqlite.setJournalMode(org.sqlite.SQLiteConfig.JournalMode.WAL);
+        sqlite.setBusyTimeout(5_000);
+        sqlite.setSynchronous(org.sqlite.SQLiteConfig.SynchronousMode.NORMAL);
+        sqlite.setCacheSize(-8_000);
+        sqlite.enforceForeignKeys(true);
+        sqlite.setTempStore(org.sqlite.SQLiteConfig.TempStore.MEMORY);
+        config.setDataSourceProperties(sqlite.toProperties());
         // SQLite 不支持连接测试查询 isValid()，使用此配置
         config.setConnectionTestQuery("SELECT 1");
         return new HikariDataSource(config);

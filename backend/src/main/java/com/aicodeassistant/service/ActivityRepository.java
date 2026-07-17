@@ -1,11 +1,19 @@
 package com.aicodeassistant.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
+import com.aicodeassistant.security.SensitiveDataFilter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 
@@ -15,13 +23,18 @@ import java.util.Map;
 @Repository
 public class ActivityRepository {
 
+    private static final int MAX_JSON_BYTES = 10 * 1024;
+
     private final JdbcTemplate jdbcTemplate;
     private final ObjectMapper objectMapper;
+    private final SensitiveDataFilter sensitiveDataFilter;
 
     public ActivityRepository(@Qualifier("projectJdbcTemplate") JdbcTemplate jdbcTemplate,
-                              ObjectMapper objectMapper) {
+                              ObjectMapper objectMapper,
+                              SensitiveDataFilter sensitiveDataFilter) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
+        this.sensitiveDataFilter = sensitiveDataFilter;
     }
 
     /**
@@ -31,6 +44,9 @@ public class ActivityRepository {
                        String status, long timestamp, Integer duration, int fileCount,
                        String decision, String toolResultJson, String changedFilesJson, String insightJson) {
         String now = Instant.now().toString();
+        toolResultJson = boundJson(sanitizeJson(toolResultJson));
+        changedFilesJson = boundJson(sanitizeJson(changedFilesJson));
+        insightJson = boundJson(sanitizeJson(insightJson));
         jdbcTemplate.update(
                 """
                 INSERT OR REPLACE INTO activities (id, session_id, operation_type, summary,
@@ -42,6 +58,57 @@ public class ActivityRepository {
                 status, timestamp, duration, fileCount, decision,
                 toolResultJson, changedFilesJson, insightJson, now, now
         );
+    }
+
+    /** Repository-level safety net so non-WebSocket producers cannot drop an Activity. */
+    String boundJson(String value) {
+        if (value == null) return null;
+        byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
+        if (bytes.length <= MAX_JSON_BYTES) return value;
+        try {
+            String hash = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));
+            String preview = value.substring(0, Math.min(2048, value.length()));
+            String result = objectMapper.writeValueAsString(Map.of(
+                    "truncated", true, "originalBytes", bytes.length,
+                    "payloadSha256", hash, "payloadPreview", preview));
+            if (result.getBytes(StandardCharsets.UTF_8).length <= MAX_JSON_BYTES) return result;
+            return objectMapper.writeValueAsString(Map.of(
+                    "truncated", true, "originalBytes", bytes.length, "payloadSha256", hash));
+        } catch (Exception e) {
+            throw new IllegalArgumentException("ACTIVITY_PAYLOAD_BOUNDING_FAILED", e);
+        }
+    }
+
+    private String sanitizeJson(String value) {
+        if (value == null) return null;
+        try {
+            return objectMapper.writeValueAsString(sanitizeNode(objectMapper.readTree(value)));
+        } catch (Exception invalidJson) {
+            try {
+                return objectMapper.writeValueAsString(Map.of(
+                        "invalidJson", true,
+                        "payloadPreview", sensitiveDataFilter.filter(
+                                value.substring(0, Math.min(2048, value.length())))));
+            } catch (Exception serializationError) {
+                throw new IllegalArgumentException("ACTIVITY_PAYLOAD_SANITIZATION_FAILED", serializationError);
+            }
+        }
+    }
+
+    private JsonNode sanitizeNode(JsonNode node) {
+        if (node == null || node.isNull()) return node;
+        if (node.isTextual()) return TextNode.valueOf(sensitiveDataFilter.filter(node.textValue()));
+        if (node.isObject()) {
+            ObjectNode copy = ((ObjectNode) node).deepCopy();
+            copy.fields().forEachRemaining(entry -> copy.set(entry.getKey(), sanitizeNode(entry.getValue())));
+            return copy;
+        }
+        if (node.isArray()) {
+            ArrayNode copy = objectMapper.createArrayNode();
+            node.forEach(child -> copy.add(sanitizeNode(child)));
+            return copy;
+        }
+        return node;
     }
 
     /**
@@ -70,6 +137,7 @@ public class ActivityRepository {
      */
     public void updateInsight(String id, String insightJson) {
         String now = Instant.now().toString();
+        insightJson = boundJson(sanitizeJson(insightJson));
         jdbcTemplate.update(
                 "UPDATE activities SET insight_json = ?, updated_at = ? WHERE id = ?",
                 insightJson, now, id

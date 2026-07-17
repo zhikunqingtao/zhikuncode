@@ -8,7 +8,7 @@
  * - High:   红色警告图标，默认"拒绝"
  *
  * 键盘快捷键: Y=Allow, N=Deny, Escape=Deny
- * "Remember" 选项带范围选择 (session/project/global)
+ * "Remember" 选项只展示服务端允许的 session/workspace 范围。
  */
 
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
@@ -48,12 +48,19 @@ const RISK_CONFIG = {
     },
 } as const;
 
-const TIMEOUT_SECONDS = 120;
+const DEFAULT_TIMEOUT_SECONDS = 300;
 
 const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision }) => {
     const [remember, setRemember] = useState(false);
-    const [scope, setScope] = useState<'session' | 'project' | 'global'>('session');
-    const [remainingSeconds, setRemainingSeconds] = useState(TIMEOUT_SECONDS);
+    const scopeOptions: ReadonlyArray<'session' | 'workspace'> =
+        request.scopeOptions ?? [];
+    const canRemember = scopeOptions.length > 0;
+    const [scope, setScope] = useState<'session' | 'workspace'>(
+        scopeOptions.includes('session') ? 'session' : (scopeOptions[0] ?? 'session'));
+    const initialRemaining = () => request.decisionDeadlineAt
+        ? Math.max(0, Math.ceil((request.decisionDeadlineAt - Date.now()) / 1000))
+        : null;
+    const [remainingSeconds, setRemainingSeconds] = useState<number | null>(initialRemaining);
     const [decided, setDecided] = useState(false);
     const dialogRef = useRef<HTMLDivElement>(null);
     const riskLevel = (request.riskLevel || 'medium').toLowerCase() as keyof typeof RISK_CONFIG;
@@ -80,16 +87,21 @@ const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision
     }, [request.toolName]);
 
     const handleAllow = useCallback(() => {
-        if (decided) return;
+        if (decided || remainingSeconds === null || remainingSeconds <= 0) return;
         setDecided(true);
-        onDecision({ toolUseId: request.toolUseId, decision: 'allow', remember, scope });
-    }, [decided, onDecision, request.toolUseId, remember, scope]);
+        onDecision({
+            toolUseId: request.toolUseId,
+            decision: 'allow',
+            remember: canRemember && remember,
+            ...(canRemember && remember ? { scope } : {}),
+        });
+    }, [canRemember, decided, onDecision, request.toolUseId, remember, scope, remainingSeconds]);
 
     const handleDeny = useCallback(() => {
-        if (decided) return;
+        if (decided || remainingSeconds === null || remainingSeconds <= 0) return;
         setDecided(true);
         onDecision({ toolUseId: request.toolUseId, decision: 'deny', remember: false });
-    }, [decided, onDecision, request.toolUseId]);
+    }, [decided, onDecision, request.toolUseId, remainingSeconds]);
 
     // Keyboard shortcuts: Y=allow, N=deny, Escape=deny
     useEffect(() => {
@@ -108,29 +120,30 @@ const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision
     // Reset all internal state when request changes (dialog reopens)
     useEffect(() => {
         setDecided(false);
-        setRemainingSeconds(TIMEOUT_SECONDS);
+        setRemainingSeconds(request.decisionDeadlineAt
+            ? Math.max(0, Math.ceil((request.decisionDeadlineAt - Date.now()) / 1000))
+            : null);
         setRemember(false);
         setScope('session');
-    }, [request.toolUseId]);
+    }, [request.toolUseId, request.decisionDeadlineAt]);
 
-    // Countdown timer — only decrements
+    // Recompute from the absolute server deadline. Browser timer throttling must
+    // never extend the user's decision window.
     useEffect(() => {
         const timer = setInterval(() => {
-            setRemainingSeconds(prev => (prev <= 0 ? 0 : prev - 1));
+            setRemainingSeconds(request.decisionDeadlineAt
+                ? Math.max(0, Math.ceil((request.decisionDeadlineAt - Date.now()) / 1000))
+                : null);
         }, 1000);
         return () => clearInterval(timer);
-    }, [request.toolUseId]);
+    }, [request.toolUseId, request.decisionDeadlineAt]);
 
-    // Auto-deny on expiry — separated from countdown to avoid race condition
-    useEffect(() => {
-        if (remainingSeconds === 0 && !decided) {
-            setDecided(true);
-            handleDeny();
-        }
-    }, [remainingSeconds, decided, handleDeny]);
+    // The countdown is display-only. The server is the sole timeout authority.
 
-    const timerUrgent = remainingSeconds <= 30;
-    const timerCritical = remainingSeconds <= 10;
+    const deadlineConfirmed = remainingSeconds !== null;
+    const expired = deadlineConfirmed && remainingSeconds <= 0;
+    const timerUrgent = deadlineConfirmed && remainingSeconds <= 30;
+    const timerCritical = deadlineConfirmed && remainingSeconds <= 10;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -171,6 +184,7 @@ const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision
                     </div>
                     <button
                         onClick={handleDeny}
+                        disabled={!deadlineConfirmed || expired || decided}
                         className="p-1 rounded text-gray-500 hover:text-gray-300"
                     >
                         <X size={16} />
@@ -198,16 +212,20 @@ const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision
                         <span className={`text-xs ${
                             timerUrgent ? 'text-red-400 font-bold' : 'text-gray-500'
                         } ${timerCritical ? 'animate-pulse' : ''}`}>
-                            {remainingSeconds}s remaining
+                            {deadlineConfirmed ? `${remainingSeconds}s remaining` : 'Waiting for delivery confirmation'}
                         </span>
-                        <span className="text-xs text-gray-600">Auto-deny on timeout</span>
+                        <span className="text-xs text-gray-600">
+                            {expired ? 'Waiting for server status' : 'Server decision deadline'}
+                        </span>
                     </div>
                     <div className="w-full h-1.5 bg-gray-700/50 rounded-full overflow-hidden">
                         <div
                             className={`h-full rounded-full transition-all duration-1000 ease-linear ${
                                 timerUrgent ? 'bg-red-500' : 'bg-blue-500'
                             } ${timerCritical ? 'animate-pulse' : ''}`}
-                            style={{ width: `${(remainingSeconds / TIMEOUT_SECONDS) * 100}%` }}
+                            style={{ width: `${deadlineConfirmed
+                                ? Math.min(100, (remainingSeconds / DEFAULT_TIMEOUT_SECONDS) * 100)
+                                : 0}%` }}
                         />
                     </div>
                 </div>
@@ -215,9 +233,10 @@ const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision
                 {/* Actions */}
                 <div className="px-5 py-3 border-t border-gray-700/50 space-y-3">
                     {/* Remember option */}
-                    <label className="flex items-center gap-2 text-xs text-gray-400">
+                    {canRemember && <label className="flex items-center gap-2 text-xs text-gray-400">
                         <input
                             type="checkbox"
+                            disabled={!deadlineConfirmed || expired || decided}
                             checked={remember}
                             onChange={e => setRemember(e.target.checked)}
                             className="rounded border-gray-600"
@@ -226,21 +245,22 @@ const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision
                         {remember && (
                             <select
                                 value={scope}
+                                disabled={!deadlineConfirmed || expired || decided}
                                 onChange={e => setScope(e.target.value as typeof scope)}
                                 className="ml-2 text-xs rounded border border-gray-600 bg-gray-800
                                            text-gray-300 px-1.5 py-0.5"
                             >
-                                <option value="session">This session</option>
-                                <option value="project">This project</option>
-                                <option value="global">Always</option>
+                                {scopeOptions.includes('session') && <option value="session">This session</option>}
+                                {scopeOptions.includes('workspace') && <option value="workspace">This workspace</option>}
                             </select>
                         )}
-                    </label>
+                    </label>}
 
                     {/* Buttons */}
                     <div className="flex justify-end gap-2">
                         <button
                             onClick={handleDeny}
+                            disabled={!deadlineConfirmed || expired || decided}
                             className="px-4 py-2 rounded-lg text-sm border border-gray-600
                                        text-gray-300 hover:bg-gray-800 transition-colors"
                         >
@@ -248,6 +268,7 @@ const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision
                         </button>
                         <button
                             onClick={handleAllow}
+                            disabled={!deadlineConfirmed || expired || decided}
                             className={`px-4 py-2 rounded-lg text-sm text-white transition-colors
                                 ${risk.btnClass}`}
                         >

@@ -109,8 +109,8 @@ public class ToolResultSummarizer {
         boolean changed = false;
         for (Message msg : messages) {
             if (msg instanceof Message.UserMessage userMsg
-                    && userMsg.toolUseResult() != null
-                    && userMsg.toolUseResult().length() > SOFT_LIMIT_CHARS) {
+                    && MessageContentAccessor.legacyToolResult(userMsg) != null
+                    && MessageContentAccessor.legacyToolResult(userMsg).length() > SOFT_LIMIT_CHARS) {
                 processed.add(truncateToolResult(userMsg));
                 changed = true;
             } else {
@@ -136,7 +136,7 @@ public class ToolResultSummarizer {
         int messageIndex = 0;
         for (Message msg : messages) {
             if (msg instanceof Message.UserMessage userMsg
-                    && userMsg.toolUseResult() != null
+                    && MessageContentAccessor.legacyToolResult(userMsg) != null
                     && (currentTurn - estimateTurn(messageIndex, messages.size(), currentTurn))
                         > STALE_TURN_THRESHOLD) {
                 // 替换旧工具结果为清理标记
@@ -160,7 +160,7 @@ public class ToolResultSummarizer {
      * 截断过大的工具结果，保留头尾和截断提示。
      */
     private Message.UserMessage truncateToolResult(Message.UserMessage msg) {
-        String result = msg.toolUseResult();
+        String result = MessageContentAccessor.legacyToolResult(msg);
         if (result.length() <= SOFT_LIMIT_CHARS) return msg;
 
         String truncated;

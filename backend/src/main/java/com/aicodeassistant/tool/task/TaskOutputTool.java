@@ -83,7 +83,7 @@ public class TaskOutputTool implements Tool {
         // 1. 仅在子任务上下文中启用
         String currentTaskId = context.currentTaskId();
         if (currentTaskId == null) {
-            return ToolResult.error(
+            return ToolResult.validationError("TASK_CONTEXT_REQUIRED",
                     "TaskOutput can only be used within a sub-task context.");
         }
 
@@ -99,7 +99,7 @@ public class TaskOutputTool implements Tool {
         // 3. 写入父任务的结果缓冲区
         Optional<TaskState> taskOpt = taskCoordinator.getTask(currentTaskId);
         if (taskOpt.isEmpty()) {
-            return ToolResult.error("Task not found: " + currentTaskId);
+            return ToolResult.validationError("TASK_NOT_FOUND", "Task not found: " + currentTaskId);
         }
         TaskState task = taskOpt.get();
         task.setOutput(output);

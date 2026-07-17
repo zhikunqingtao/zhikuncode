@@ -61,10 +61,11 @@ export function useKeybinding(bindings: KeyBinding[]) {
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
+    const timerAtRegistration = chordTimerRef.current;
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
-      if (chordTimerRef.current) {
-        clearTimeout(chordTimerRef.current);
+      if (timerAtRegistration) {
+        clearTimeout(timerAtRegistration);
       }
     };
   }, [handleKeyDown]);

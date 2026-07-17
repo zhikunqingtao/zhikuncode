@@ -41,12 +41,13 @@ class PermissionEnhancementGoldenTest {
         }
 
         @Test
-        @DisplayName("向后兼容别名存在")
-        void backwardCompatAliases() {
-            assertNotNull(PermissionRuleSource.USER_GLOBAL);
-            assertNotNull(PermissionRuleSource.USER_PROJECT);
-            assertNotNull(PermissionRuleSource.USER_SESSION);
+        @DisplayName("系统和扩展规则来源存在")
+        void systemAndExtensionSourcesExist() {
             assertNotNull(PermissionRuleSource.SYSTEM_DEFAULT);
+            assertNotNull(PermissionRuleSource.HOOK);
+            assertNotNull(PermissionRuleSource.MCP);
+            assertNotNull(PermissionRuleSource.CLASSIFIER);
+            assertNotNull(PermissionRuleSource.SANDBOX);
         }
 
         @Test
@@ -60,9 +61,9 @@ class PermissionEnhancementGoldenTest {
         }
 
         @Test
-        @DisplayName("枚举总数 >= 14 (8 新 + 6 旧)")
+        @DisplayName("权限来源只保留 13 个规范值")
         void enumCount() {
-            assertTrue(PermissionRuleSource.values().length >= 14);
+            assertEquals(13, PermissionRuleSource.values().length);
         }
     }
 

@@ -46,6 +46,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
     private final List<String> supportedModels;
     private final String defaultModel;
     private final ApiKeyRotationManager keyRotationManager;
+    private final FinalProviderPayloadGuard payloadGuard;
 
     private final ConcurrentHashMap<String, Call> activeCalls = new ConcurrentHashMap<>();
 
@@ -67,6 +68,11 @@ public class OpenAiCompatibleProvider implements LlmProvider {
             String baseUrl,
             String defaultModel,
             List<String> supportedModels) {
+        this(providerName,objectMapper,httpProperties,keyRotationManager,apiKey,baseUrl,defaultModel,supportedModels,null);
+    }
+    public OpenAiCompatibleProvider(String providerName,ObjectMapper objectMapper,LlmHttpProperties httpProperties,
+            ApiKeyRotationManager keyRotationManager,String apiKey,String baseUrl,String defaultModel,
+            List<String> supportedModels,FinalProviderPayloadGuard payloadGuard) {
         this.providerName = providerName;
         this.objectMapper = objectMapper;
         this.apiKey = apiKey;
@@ -74,6 +80,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         this.baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
         this.defaultModel = defaultModel;
         this.supportedModels = supportedModels;
+        this.payloadGuard = payloadGuard;
 
         this.httpClient = new OkHttpClient.Builder()
                 .connectionPool(new ConnectionPool(
@@ -148,10 +155,12 @@ public class OpenAiCompatibleProvider implements LlmProvider {
             List<Map<String, Object>> tools,
             int maxTokens,
             ThinkingConfig thinkingConfig,
+            LlmCallContext callContext,
             StreamChatCallback callback) {
 
         ObjectNode requestBody = buildOpenAiRequest(model, messages, systemPrompt, tools, maxTokens, thinkingConfig);
-        log.info("[DIAG] streamChat: model={}, messagesSize={}, baseUrl={}", model, messages.size(), baseUrl);
+        if(payloadGuard!=null)payloadGuard.validate("openai",model,requestBody,maxTokens);
+        log.debug("Starting model stream: model={}, messages={}", model, messages.size());
 
         // P1-12: 使用 Key 轮换管理器获取 API Key
         String effectiveApiKey = keyRotationManager.getKeyCount() > 0
@@ -164,16 +173,16 @@ public class OpenAiCompatibleProvider implements LlmProvider {
                 .post(RequestBody.create(requestBody.toString(), JSON_MEDIA))
                 .build();
 
-        String callId = "openai-" + System.nanoTime();
-        log.info("[DIAG] streamChat: 发送 HTTP 请求, callId={}, url={}", callId, baseUrl + "/chat/completions");
+        String callId = callContext.requestId();
+        log.debug("Sending model HTTP request: callId={}", callId);
         Call call = httpClient.newCall(request);
-        activeCalls.put(callId, call);
-
         // 工具调用累积器 — OpenAI 的工具调用通过多个 delta 增量拼接
         Map<Integer, ToolCallAccumulator> toolCallAccumulators = new HashMap<>();
 
-        try (Response response = call.execute()) {
-            log.info("[DIAG] streamChat: HTTP 响应 code={}, callId={}", response.code(), callId);
+        try (AutoCloseable ignored = LlmCallRegistration.register(activeCalls, callId, call,
+                     callContext.cancellation(), Call::cancel);
+             Response response = call.execute()) {
+            log.debug("Model HTTP response: code={}, callId={}", response.code(), callId);
             if (!response.isSuccessful()) {
                 handleErrorResponse(response, callback);
                 return;
@@ -214,19 +223,19 @@ public class OpenAiCompatibleProvider implements LlmProvider {
 
         } catch (IOException e) {
             if (call.isCanceled()) {
-                callback.onComplete();
+                callback.onError(new LlmApiException(
+                        "LLM_CALL_CANCELLED", e, false));
             } else {
                 callback.onError(new LlmApiException("OpenAI stream error: " + e.getMessage(), true));
             }
-        } finally {
-            activeCalls.remove(callId);
+        } catch (Exception e) {
+            callback.onError(e instanceof LlmApiException ? e : new LlmApiException(e.getMessage(), e, false));
         }
     }
 
-    @Override
-    public void abort() {
-        activeCalls.values().forEach(Call::cancel);
-        activeCalls.clear();
+    @jakarta.annotation.PreDestroy
+    void cancelAllOnShutdown() {
+        LlmCallRegistration.cancelAll(activeCalls, Call::cancel);
     }
 
     // ═══════════════════════════════════════════

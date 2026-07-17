@@ -1,6 +1,7 @@
 package com.aicodeassistant.tool.impl;
 
 import com.aicodeassistant.tool.impl.AtomicFileWriter.WriteResult;
+import com.aicodeassistant.security.PathSecurityService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -43,7 +44,8 @@ class AtomicFileWriterTest {
         Path target = tempDir.resolve("output.txt");
         String content = "Hello, Atomic World!";
 
-        WriteResult result = writer.atomicWrite(target, content, "agent-1");
+        WriteResult result = writer.write(target, content.getBytes(StandardCharsets.UTF_8), "agent-1",
+                AtomicFileWriter.ExpectedOldState.absent(), tempDir.toString());
 
         assertThat(result.success()).isTrue();
         assertThat(result.newHash()).isNotNull().isNotEmpty();
@@ -58,8 +60,8 @@ class AtomicFileWriterTest {
     }
 
     @Test
-    @DisplayName("TC-FILE-012: 写入失败时自动回滚 — 原文件内容不变")
-    void tc012_rollbackOnFailure() throws IOException {
+    @DisplayName("TC-FILE-012: 历史记录失败不伪装成文件写入失败")
+    void tc012_historyFailureDoesNotInvalidateAtomicWrite() throws IOException {
         // 创建原始文件
         Path target = tempDir.resolve("rollback-test.txt");
         String originalContent = "original content that must survive";
@@ -72,14 +74,15 @@ class AtomicFileWriterTest {
                 .when(spyTracker).recordWrite(anyString(), anyString(), anyString());
 
         AtomicFileWriter failingWriter = new AtomicFileWriter(spyTracker);
-        WriteResult result = failingWriter.atomicWrite(target, "new content", "agent-fail");
+        WriteResult result = failingWriter.write(target, "new content".getBytes(StandardCharsets.UTF_8), "agent-fail",
+                AtomicFileWriter.ExpectedOldState.sha256(spyTracker.computeHash(originalContent)), tempDir.toString());
 
-        assertThat(result.success()).isFalse();
-        assertThat(result.error()).contains("Simulated failure");
+        assertThat(result.success()).isTrue();
+        assertThat(result.historyRecorded()).isFalse();
+        assertThat(result.error()).isNull();
 
-        // 验证原文件已从备份恢复
-        String restoredContent = Files.readString(target, StandardCharsets.UTF_8);
-        assertThat(restoredContent).isEqualTo(originalContent);
+        // 原子替换已经成功；审计历史失败不能回滚或破坏新文件。
+        assertThat(Files.readString(target, StandardCharsets.UTF_8)).isEqualTo("new content");
     }
 
     @Test
@@ -96,7 +99,8 @@ class AtomicFileWriterTest {
                 .when(spyTracker).recordWrite(anyString(), anyString(), anyString());
 
         AtomicFileWriter failingWriter = new AtomicFileWriter(spyTracker);
-        failingWriter.atomicWrite(target, "interrupted content", "agent-x");
+        failingWriter.write(target, "interrupted content".getBytes(StandardCharsets.UTF_8), "agent-x",
+                AtomicFileWriter.ExpectedOldState.sha256(spyTracker.computeHash(originalContent)), tempDir.toString());
 
         // 验证目录中没有残留的 .tmp 文件
         List<Path> tmpFiles = new ArrayList<>();
@@ -113,7 +117,8 @@ class AtomicFileWriterTest {
         Path target = tempDir.resolve("subdir").resolve("brand-new.txt");
         String content = "brand new file content";
 
-        WriteResult result = writer.atomicWrite(target, content, "agent-create");
+        WriteResult result = writer.write(target, content.getBytes(StandardCharsets.UTF_8), "agent-create",
+                AtomicFileWriter.ExpectedOldState.absent(), tempDir.toString());
 
         assertThat(result.success()).isTrue();
         assertThat(result.newHash()).isNotNull().isNotEmpty();
@@ -121,5 +126,57 @@ class AtomicFileWriterTest {
 
         // 验证文件已创建且内容正确
         assertThat(target).exists().hasContent(content);
+    }
+
+    @Test
+    void managedWriteSafelyCreatesMissingParents() {
+        PathSecurityService security = mock(PathSecurityService.class);
+        when(security.checkWritePermission(anyString(), anyString()))
+                .thenReturn(PathSecurityService.PathCheckResult.allowed());
+        AtomicFileWriter managed = new AtomicFileWriter(tracker, security);
+        Path target = tempDir.resolve("missing").resolve("nested").resolve("deep").resolve("file.txt");
+
+        WriteResult result = managed.atomicWrite(target, "data", "agent", tempDir.toString(), null);
+
+        assertThat(result.success()).isTrue();
+        assertThat(target).hasContent("data");
+    }
+
+    @Test
+    void managedWriteRejectsSymbolicLinkInExistingParentChain() throws IOException {
+        Path outside = Files.createDirectory(tempDir.resolveSibling(tempDir.getFileName() + "-outside"));
+        try {
+            Path link = tempDir.resolve("linked-parent");
+            Files.createSymbolicLink(link, outside);
+            PathSecurityService security = mock(PathSecurityService.class);
+            when(security.checkWritePermission(anyString(), anyString()))
+                    .thenReturn(PathSecurityService.PathCheckResult.allowed());
+            AtomicFileWriter managed = new AtomicFileWriter(tracker, security);
+
+            WriteResult result = managed.atomicWrite(link.resolve("file.txt"), "new", "agent",
+                    tempDir.toString(), null);
+
+            assertThat(result.success()).isFalse();
+            assertThat(outside.resolve("file.txt")).doesNotExist();
+        } finally {
+            Files.deleteIfExists(outside.resolve("file.txt"));
+            Files.deleteIfExists(outside);
+        }
+    }
+
+    @Test
+    void managedWriteRejectsSymbolicLinkTarget() throws IOException {
+        Path real = Files.writeString(tempDir.resolve("real.txt"), "old");
+        Path link = tempDir.resolve("link.txt");
+        Files.createSymbolicLink(link, real.getFileName());
+        PathSecurityService security = mock(PathSecurityService.class);
+        when(security.checkWritePermission(anyString(), anyString()))
+                .thenReturn(PathSecurityService.PathCheckResult.allowed());
+        AtomicFileWriter managed = new AtomicFileWriter(tracker, security);
+
+        WriteResult result = managed.atomicWrite(link, "new", "agent", tempDir.toString(), null);
+
+        assertThat(result.success()).isFalse();
+        assertThat(Files.readString(real)).isEqualTo("old");
     }
 }

@@ -1,6 +1,5 @@
 package com.aicodeassistant.engine;
 
-import com.aicodeassistant.llm.ModelCapabilityRegistry;
 import com.aicodeassistant.llm.ModelRegistry;
 import com.aicodeassistant.model.ContentBlock;
 import com.aicodeassistant.model.Message;
@@ -36,7 +35,6 @@ class ContextCascadeE2ETest {
     @Mock private CompactService compactService;
     @Mock private TokenCounter tokenCounter;
     @Mock private ModelRegistry modelRegistry;
-    @Mock private ModelCapabilityRegistry modelCapabilityRegistry;
 
     private ContextCascade cascade;
 
@@ -45,9 +43,13 @@ class ContextCascadeE2ETest {
 
     @BeforeEach
     void setUp() {
+        lenient().when(modelRegistry.getTokenCharRatio(anyString())).thenReturn(3.5);
+        lenient().when(tokenCounter.estimateTokens(anyList(), anyString()))
+                .thenAnswer(inv -> tokenCounter.estimateTokens(
+                        inv.<List<Message>>getArgument(0)));
         cascade = new ContextCascade(
                 snipService, microCompactService, contextCollapseService,
-                compactService, tokenCounter, modelRegistry, modelCapabilityRegistry);
+                compactService, tokenCounter, modelRegistry);
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -94,7 +96,6 @@ class ContextCascadeE2ETest {
     /** 设置 mock：所有层不做任何操作（透传） */
     private void setupPassthroughMocks(List<Message> messages) {
         lenient().when(modelRegistry.getContextWindowForModel(MODEL)).thenReturn(CONTEXT_WINDOW);
-        lenient().when(modelCapabilityRegistry.isRegistered(MODEL)).thenReturn(false);
         lenient().when(tokenCounter.estimateTokens(anyList())).thenReturn(5000);
         lenient().when(snipService.snipToolResults(anyList(), anyInt())).thenReturn(messages);
         lenient().when(microCompactService.compactMessages(anyList(), anyInt()))
@@ -306,7 +307,6 @@ class ContextCascadeE2ETest {
         // Collapse 后 token 已低于阈值
         when(tokenCounter.estimateTokens(anyList())).thenReturn(5000);
         when(modelRegistry.getContextWindowForModel(MODEL)).thenReturn(CONTEXT_WINDOW);
-        when(modelCapabilityRegistry.isRegistered(MODEL)).thenReturn(false);
 
         // When
         var result = cascade.executePreApiCascade(
@@ -399,7 +399,6 @@ class ContextCascadeE2ETest {
         List<Message> afterCompact = buildMessages(10);
 
         when(modelRegistry.getContextWindowForModel(MODEL)).thenReturn(CONTEXT_WINDOW);
-        when(modelCapabilityRegistry.isRegistered(MODEL)).thenReturn(false);
 
         // Step 1: Snip reduces tokens
         when(snipService.snipToolResults(eq(original), anyInt())).thenReturn(afterSnip);
@@ -503,7 +502,6 @@ class ContextCascadeE2ETest {
         // Given: contextWindow=100000, effectiveWindow=75000, buffer=13000, threshold=62000
         List<Message> messages = buildMessages(10);
         when(modelRegistry.getContextWindowForModel(MODEL)).thenReturn(CONTEXT_WINDOW);
-        when(modelCapabilityRegistry.isRegistered(MODEL)).thenReturn(false);
 
         // 低于所有阈值
         when(tokenCounter.estimateTokens(anyList())).thenReturn(30000);

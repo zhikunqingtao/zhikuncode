@@ -81,9 +81,9 @@ public class ContextCollapseService {
                 continue;
             }
 
-            if (msg instanceof Message.UserMessage userMsg && userMsg.toolUseResult() != null) {
+            if (msg instanceof Message.UserMessage userMsg && MessageContentAccessor.legacyToolResult(userMsg) != null) {
                 // 工具结果消息：保留 toolUseId，内容替换为 [collapsed]
-                String originalContent = userMsg.toolUseResult();
+                String originalContent = MessageContentAccessor.legacyToolResult(userMsg);
                 if (originalContent.length() > 50) {
                     Message.UserMessage collapsed = new Message.UserMessage(
                             userMsg.uuid(), userMsg.timestamp(),
@@ -192,7 +192,7 @@ public class ContextCollapseService {
             int distanceFromTail = totalMessages - 1 - i;
 
             // 规则：UserMessage（非工具结果）永远保留原文
-            if (msg instanceof Message.UserMessage userMsg && userMsg.toolUseResult() == null) {
+            if (msg instanceof Message.UserMessage userMsg && MessageContentAccessor.legacyToolResult(userMsg) == null) {
                 result.add(msg);
                 continue;
             }
@@ -248,9 +248,9 @@ public class ContextCollapseService {
             return new Message.AssistantMessage(
                     am.uuid(), am.timestamp(), collapsedBlocks, am.stopReason(), am.usage());
         }
-        if (msg instanceof Message.UserMessage um && um.toolUseResult() != null) {
+        if (msg instanceof Message.UserMessage um && MessageContentAccessor.legacyToolResult(um) != null) {
             // 工具结果消息：折叠 toolUseResult 内容但保留结构
-            String collapsedContent = level.collapse(um.toolUseResult());
+            String collapsedContent = level.collapse(MessageContentAccessor.legacyToolResult(um));
             return new Message.UserMessage(
                     um.uuid(), um.timestamp(), um.content(),
                     collapsedContent, um.sourceToolAssistantUUID());
@@ -266,8 +266,8 @@ public class ContextCollapseService {
                         ? (t.text() != null ? t.text().length() : 0) : 0)
                 .sum();
         }
-        if (msg instanceof Message.UserMessage um && um.toolUseResult() != null) {
-            return um.toolUseResult().length();
+        if (msg instanceof Message.UserMessage um && MessageContentAccessor.legacyToolResult(um) != null) {
+            return MessageContentAccessor.legacyToolResult(um).length();
         }
         return 0;
     }

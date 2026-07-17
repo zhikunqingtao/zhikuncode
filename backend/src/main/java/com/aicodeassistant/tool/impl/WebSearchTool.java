@@ -105,15 +105,15 @@ public class WebSearchTool implements Tool {
 
         // 1. 输入验证
         if (!allowedDomains.isEmpty() && !blockedDomains.isEmpty()) {
-            return ToolResult.error(
+            return ToolResult.validationError("WEB_SEARCH_DOMAIN_FILTER_CONFLICT",
                     "allowed_domains and blocked_domains cannot both be specified.");
         }
 
         // 2. 检查后端可用性
         if (!searchBackend.isAvailable()) {
-            return ToolResult.error(
+            return ToolResult.providerError("WEB_SEARCH_BACKEND_UNAVAILABLE",
                     "Web search is not available. Configure a search backend via "
-                            + "web-search.backend property or set BRAVE_API_KEY / SERPAPI_KEY.");
+                            + "web-search.backend property or set BRAVE_API_KEY / SERPAPI_KEY.", ToolResult.Retryability.SAFE_READ_ONLY);
         }
 
         // 3. 构建搜索选项
@@ -153,7 +153,7 @@ public class WebSearchTool implements Tool {
 
         } catch (Exception e) {
             log.warn("Web search failed for query '{}': {}", query, e.getMessage());
-            return ToolResult.error("Web search failed: " + e.getMessage());
+            return ToolResult.networkError("WEB_SEARCH_FAILED", "Web search failed: " + e.getMessage(), ToolResult.Retryability.SAFE_READ_ONLY);
         }
     }
 }

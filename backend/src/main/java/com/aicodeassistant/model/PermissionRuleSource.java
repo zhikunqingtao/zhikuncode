@@ -24,13 +24,6 @@ public enum PermissionRuleSource {
     /** 会话内临时设置 (用户单次授权) */
     SESSION,
 
-    // ===== 向后兼容别名 =====
-    /** @deprecated 使用 USER_SETTINGS */
-    USER_GLOBAL,
-    /** @deprecated 使用 PROJECT_SETTINGS */
-    USER_PROJECT,
-    /** @deprecated 使用 SESSION */
-    USER_SESSION,
     /** 系统默认 */
     SYSTEM_DEFAULT,
     /** Hook 注入 */

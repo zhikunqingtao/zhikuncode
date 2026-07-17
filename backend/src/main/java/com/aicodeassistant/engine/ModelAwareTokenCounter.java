@@ -1,6 +1,7 @@
 package com.aicodeassistant.engine;
 
-import com.aicodeassistant.llm.ModelCapabilityRegistry;
+import com.aicodeassistant.llm.ModelRegistry;
+import org.springframework.beans.factory.annotation.Autowired;
 import com.aicodeassistant.model.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +15,7 @@ import java.util.List;
  * 基于不同模型的 tokenCharRatio 进行精准估算，并对中文内容进行修正。
  * <p>
  * 设计原则：
- * - 组合 TokenCounter 和 ModelCapabilityRegistry
+ * - 组合 TokenCounter 和唯一的 ModelRegistry
  * - 不改变 TokenCounter 的原有行为（向后兼容）
  * - 提供基于 modelId 的增强估算能力
  */
@@ -23,13 +24,10 @@ public class ModelAwareTokenCounter {
 
     private static final Logger log = LoggerFactory.getLogger(ModelAwareTokenCounter.class);
 
-    private final ModelCapabilityRegistry registry;
+    private final ModelRegistry registry;
     private final TokenCounter tokenCounter;
 
-    public ModelAwareTokenCounter(ModelCapabilityRegistry registry, TokenCounter tokenCounter) {
-        this.registry = registry;
-        this.tokenCounter = tokenCounter;
-    }
+    @Autowired public ModelAwareTokenCounter(ModelRegistry registry,TokenCounter tokenCounter){this.registry=registry;this.tokenCounter=tokenCounter;}
 
     /**
      * 基于模型的单文本 Token 估算。
@@ -46,7 +44,7 @@ public class ModelAwareTokenCounter {
     public long estimateTokens(String content, String modelId) {
         if (content == null || content.isEmpty()) return 0;
 
-        double ratio = registry.getCapability(modelId).tokenCharRatio();
+        double ratio = registry.getTokenCharRatio(modelId);
 
         // 中文内容修正
         double chineseRatio = calculateChineseRatio(content);
@@ -69,29 +67,21 @@ public class ModelAwareTokenCounter {
     public long estimateTokens(List<Message> messages, String modelId) {
         if (messages == null || messages.isEmpty()) return 0;
 
-        // 先用 TokenCounter 的方式获取基于默认 ratio 的估算
-        int defaultEstimate = tokenCounter.estimateTokens(messages);
-
-        // 按模型 ratio 与默认 ratio 的比值进行修正
-        double modelRatio = registry.getCapability(modelId).tokenCharRatio();
-        double defaultRatio = 3.5; // DEFAULT_CHARS_PER_TOKEN
-        double correctionFactor = defaultRatio / modelRatio;
-
-        return (long) (defaultEstimate * correctionFactor);
+        return tokenCounter.estimateTokens(messages, modelId);
     }
 
     /**
      * 获取模型的上下文窗口大小。
      */
     public int getContextWindow(String modelId) {
-        return registry.getCapability(modelId).contextWindow();
+        return registry.getContextWindowForModel(modelId);
     }
 
     /**
      * 获取模型的最大输出 Token 数。
      */
     public int getOutputMaxTokens(String modelId) {
-        return registry.getCapability(modelId).outputMaxTokens();
+        return registry.getMaxOutputTokensForModel(modelId);
     }
 
     /**

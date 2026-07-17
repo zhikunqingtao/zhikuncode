@@ -45,7 +45,13 @@ public class RunEnvelopeRepository {
                 rs.getInt("turn_count"),
                 rs.getString("error_summary"),
                 Instant.parse(rs.getString("created_at")),
-                Instant.parse(rs.getString("updated_at"))
+                Instant.parse(rs.getString("updated_at")),
+                rs.getLong("version"),
+                RunEnvelope.RunExitReason.fromDbValue(rs.getString("exit_reason")),
+                RunEnvelope.RunExitReason.fromDbValue(rs.getString("requested_exit_reason")),
+                RunEnvelope.VerificationStatus.fromDbValue(rs.getString("verification_status")),
+                rs.getString("terminal_at") == null ? null : Instant.parse(rs.getString("terminal_at")),
+                rs.getString("waiting_reason")
         );
     };
 
@@ -64,8 +70,10 @@ public class RunEnvelopeRepository {
                         INSERT INTO run_envelopes
                         (id, session_id, parent_run_id, status, agent_type, model, prompt_hash,
                          started_at, finished_at, abort_reason, total_tokens, total_cost_usd,
-                         tool_call_count, turn_count, error_summary, created_at, updated_at)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                         tool_call_count, turn_count, error_summary, created_at, updated_at,
+                         version, exit_reason, requested_exit_reason, verification_status,
+                         terminal_at, waiting_reason)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         """,
                         envelope.id(),
                         envelope.sessionId(),
@@ -83,34 +91,15 @@ public class RunEnvelopeRepository {
                         envelope.turnCount(),
                         envelope.errorSummary(),
                         envelope.createdAt().toString(),
-                        envelope.updatedAt().toString()
+                        envelope.updatedAt().toString(),
+                        envelope.version(),
+                        envelope.exitReason() == null ? null : envelope.exitReason().dbValue(),
+                        envelope.requestedExitReason() == null ? null : envelope.requestedExitReason().dbValue(),
+                        envelope.verificationStatus().dbValue(),
+                        envelope.terminalAt() == null ? null : envelope.terminalAt().toString(),
+                        envelope.waitingReason()
                 ));
         log.debug("Inserted run envelope: id={}, session={}", envelope.id(), envelope.sessionId());
-    }
-
-    /** 更新运行信封状态 */
-    public void updateStatus(String runId, RunEnvelope updated) {
-        sqliteConfig.executeWriteVoid(dbPath, () ->
-                jdbcTemplate.update("""
-                        UPDATE run_envelopes SET
-                            status = ?, finished_at = ?, abort_reason = ?,
-                            total_tokens = ?, total_cost_usd = ?,
-                            tool_call_count = ?, turn_count = ?,
-                            error_summary = ?, updated_at = ?
-                        WHERE id = ?
-                        """,
-                        updated.status().dbValue(),
-                        updated.finishedAt() != null ? updated.finishedAt().toString() : null,
-                        updated.abortReason(),
-                        updated.totalTokens(),
-                        updated.totalCostUsd(),
-                        updated.toolCallCount(),
-                        updated.turnCount(),
-                        updated.errorSummary(),
-                        updated.updatedAt().toString(),
-                        runId
-                ));
-        log.debug("Updated run envelope: id={}, status={}", runId, updated.status());
     }
 
     /** 按 ID 查找运行信封 */
@@ -134,19 +123,4 @@ public class RunEnvelopeRepository {
                 ROW_MAPPER, RunEnvelope.RunStatus.RUNNING.dbValue());
     }
 
-    /** 批量将 running 状态标记为 aborted — 启动清理使用 */
-    public int markStaleRunsAborted(String abortReason) {
-        String now = Instant.now().toString();
-        return sqliteConfig.executeWrite(dbPath, () ->
-                jdbcTemplate.update("""
-                        UPDATE run_envelopes SET status = ?, abort_reason = ?,
-                            finished_at = ?, updated_at = ?
-                        WHERE status = ?
-                        """,
-                        RunEnvelope.RunStatus.ABORTED.dbValue(),
-                        abortReason,
-                        now, now,
-                        RunEnvelope.RunStatus.RUNNING.dbValue()
-                ));
-    }
 }

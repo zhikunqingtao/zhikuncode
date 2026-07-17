@@ -1,8 +1,9 @@
 package com.aicodeassistant.artifact;
 
-import com.aicodeassistant.run.RunEnvelopeRepository;
 import com.aicodeassistant.security.PathSecurityService;
-import com.aicodeassistant.websocket.WebSocketSessionManager;
+import com.aicodeassistant.security.SessionAccessAuthorizer;
+import com.aicodeassistant.run.RunControlService;
+import com.aicodeassistant.run.RunEnvelope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -19,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>
  * 安全保障:
  * <ul>
- *   <li>Session 归属验证 — 通过 runId 反查 sessionId，确认 session 在线</li>
+ *   <li>Session 归属验证 — 通过 runId 反查 sessionId，不依赖连接在线状态</li>
  *   <li>路径安全校验 — 拒绝 symlink、设备文件、FIFO 等特殊路径</li>
  *   <li>调用频率限制 — verify 端点基于 session 的内存计数器限流</li>
  * </ul>
@@ -36,32 +37,33 @@ public class ArtifactController {
     private static final long VERIFY_RATE_WINDOW_MS = 60_000L;
 
     private final ArtifactManifestService artifactManifestService;
-    private final RunEnvelopeRepository runEnvelopeRepository;
-    private final WebSocketSessionManager sessionManager;
+    private final SessionAccessAuthorizer access;
     private final PathSecurityService pathSecurityService;
+    private final RunControlService runs;
 
-    /** 简单内存限流器：sessionId -> (count, windowStart) */
+    /** 有界内存限流器：sessionId -> (count, windowStart) */
     private final ConcurrentHashMap<String, long[]> verifyRateMap = new ConcurrentHashMap<>();
 
     public ArtifactController(ArtifactManifestService artifactManifestService,
-                              RunEnvelopeRepository runEnvelopeRepository,
-                              WebSocketSessionManager sessionManager,
-                              PathSecurityService pathSecurityService) {
+                              SessionAccessAuthorizer access,
+                              PathSecurityService pathSecurityService,
+                              RunControlService runs) {
         this.artifactManifestService = artifactManifestService;
-        this.runEnvelopeRepository = runEnvelopeRepository;
-        this.sessionManager = sessionManager;
+        this.access = access;
         this.pathSecurityService = pathSecurityService;
+        this.runs = runs;
     }
 
     /**
      * 获取运行的产物清单（含条目）。
      */
     @GetMapping("/{runId}/manifest")
-    public ResponseEntity<ArtifactManifest> getManifest(@PathVariable String runId) {
-        // 鉴权：通过 runId 查找所属 session 并验证 session 在线
-        var runOpt = runEnvelopeRepository.findById(runId);
-        if (runOpt.isEmpty() || !sessionManager.isSessionOnline(runOpt.get().sessionId())) {
-            log.warn("Manifest access denied: runId={}, session not online", runId);
+    public ResponseEntity<ArtifactManifest> getManifest(@PathVariable String runId,
+            @RequestHeader("X-Session-Id") String sessionId) {
+        // 鉴权：验证 run 与客户端声明的 session 归属关系
+        var runOpt = access.accessibleRun(runId, sessionId);
+        if (runOpt.isEmpty()) {
+            log.warn("Manifest access denied: runId={}, session ownership mismatch", runId);
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -74,11 +76,12 @@ public class ArtifactController {
      * 触发重新验证并返回结果。
      */
     @PostMapping("/{runId}/manifest/verify")
-    public ResponseEntity<VerificationResult> verifyManifest(@PathVariable String runId) {
-        // 1. 鉴权：通过 runId 查找所属 session 并验证 session 在线
-        var runOpt = runEnvelopeRepository.findById(runId);
-        if (runOpt.isEmpty() || !sessionManager.isSessionOnline(runOpt.get().sessionId())) {
-            log.warn("Manifest verify denied: runId={}, session not online", runId);
+    public ResponseEntity<VerificationResult> verifyManifest(@PathVariable String runId,
+            @RequestHeader("X-Session-Id") String assertedSessionId) {
+        // 1. 鉴权：验证 run 与客户端声明的 session 归属关系
+        var runOpt = access.accessibleRun(runId, assertedSessionId);
+        if (runOpt.isEmpty()) {
+            log.warn("Manifest verify denied: runId={}, session ownership mismatch", runId);
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         String sessionId = runOpt.get().sessionId();
@@ -97,7 +100,7 @@ public class ArtifactController {
         ArtifactManifest manifest = manifestOpt.get();
 
         // 4. 路径安全校验：验证清单中所有文件路径的安全性
-        String pathError = validateEntryPaths(manifest.entries());
+        String pathError = validateEntryPaths(manifest.entries(), manifest.workspaceRoot());
         if (pathError != null) {
             log.warn("Manifest verify blocked by path security: runId={}, reason={}", runId, pathError);
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
@@ -106,7 +109,26 @@ public class ArtifactController {
         }
 
         // 5. 执行验证
-        VerificationResult result = artifactManifestService.verify(manifest.id());
+        RunEnvelope.VerificationStatus current = runOpt.get().verificationStatus();
+        RunControlService.TransitionResult started = runs.setVerification(runId, current,
+                RunEnvelope.VerificationStatus.PENDING, "manual_artifact_verification");
+        if (started != RunControlService.TransitionResult.APPLIED) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+        VerificationResult result;
+        try {
+            result = artifactManifestService.verify(manifest.id());
+        } catch (RuntimeException failure) {
+            runs.setVerification(runId, RunEnvelope.VerificationStatus.PENDING,
+                    RunEnvelope.VerificationStatus.FAILED, "verification_exception");
+            throw failure;
+        }
+        RunEnvelope.VerificationStatus terminal = switch (result.status()) {
+            case "verified" -> RunEnvelope.VerificationStatus.VERIFIED;
+            case "unverified" -> RunEnvelope.VerificationStatus.UNVERIFIED;
+            default -> RunEnvelope.VerificationStatus.FAILED;
+        };
+        runs.setVerification(runId, RunEnvelope.VerificationStatus.PENDING, terminal, result.status());
         return ResponseEntity.ok(result);
     }
 
@@ -118,8 +140,7 @@ public class ArtifactController {
      *
      * @return null 表示安全，非 null 表示拒绝原因
      */
-    private String validateEntryPaths(List<ArtifactEntry> entries) {
-        String workingDirectory = System.getProperty("user.dir");
+    private String validateEntryPaths(List<ArtifactEntry> entries, String workingDirectory) {
 
         for (ArtifactEntry entry : entries) {
             String filePath = entry.filePath();
@@ -166,8 +187,13 @@ public class ArtifactController {
      *
      * @return true 表示允许，false 表示被限流
      */
-    private boolean checkRateLimit(String sessionId) {
+    private synchronized boolean checkRateLimit(String sessionId) {
         long now = System.currentTimeMillis();
+        if (verifyRateMap.size() >= 1024) {
+            verifyRateMap.entrySet().removeIf(entry ->
+                    now - entry.getValue()[1] > VERIFY_RATE_WINDOW_MS);
+            if (!verifyRateMap.containsKey(sessionId) && verifyRateMap.size() >= 1024) return false;
+        }
         long[] state = verifyRateMap.compute(sessionId, (key, existing) -> {
             if (existing == null || (now - existing[1]) > VERIFY_RATE_WINDOW_MS) {
                 // 新窗口

@@ -129,7 +129,7 @@ public class FileReadTool implements Tool {
         PathCheckResult checkResult = pathSecurity.checkReadPermission(
                 input.getString("file_path"), context.workingDirectory());
         if (!checkResult.isAllowed()) {
-            return ToolResult.failure(FailureType.PATH_OUTSIDE_WORKSPACE, checkResult.message());
+            return ToolResult.permissionDenied("PATH_OUTSIDE_WORKSPACE", checkResult.message());
         }
         if (checkResult.needsConfirmation()) {
             log.warn("Reading sensitive file (allowed with warning): {}", filePath);
@@ -140,20 +140,21 @@ public class FileReadTool implements Tool {
 
             // 2. 检查文件存在
             if (!Files.exists(path)) {
-                return ToolResult.failure(FailureType.FILE_NOT_FOUND, filePath);
+                return ToolResult.validationError("FILE_NOT_FOUND", "Target file does not exist: " + filePath);
             }
 
             // 2.5 符号链接逃逸防护
             Path realPath = path.toRealPath();
             Path workspaceReal = Path.of(context.workingDirectory()).toRealPath();
             if (!realPath.startsWith(workspaceReal)) {
-                return ToolResult.error("Symlink resolves outside workspace: " + realPath);
+                return ToolResult.validationError("FILE_SYMLINK_ESCAPES_WORKSPACE",
+                        "Symlink resolves outside workspace: " + realPath);
             }
 
             // 3. 检查文件大小
             long fileSize = Files.size(path);
             if (fileSize > MAX_SIZE_BYTES) {
-                return ToolResult.failure(FailureType.INVALID_INPUT,
+                return ToolResult.validationError("FILE_TOO_LARGE",
                         "File too large (" + fileSize + " bytes). Use offset and limit parameters to read in chunks.");
             }
 
@@ -176,7 +177,7 @@ public class FileReadTool implements Tool {
             // 5. 编码检测
             Charset charset = encodingDetector.detectCharset(path);
             if (charset == null) {
-                return ToolResult.error("File appears to be binary and cannot be read as text. "
+                return ToolResult.validationError("FILE_BINARY_UNSUPPORTED", "File appears to be binary and cannot be read as text. "
                         + "Binary files like compiled code, images, or archives are not supported.");
             }
 
@@ -242,7 +243,8 @@ public class FileReadTool implements Tool {
 
         } catch (IOException e) {
             log.error("Failed to read file: {}", filePath, e);
-            return ToolResult.error("Failed to read file: " + e.getMessage());
+            return ToolResult.internalError("FILE_READ_IO_FAILED",
+                    "Failed to read file: " + e.getMessage(), ToolResult.EffectState.NONE);
         }
     }
 

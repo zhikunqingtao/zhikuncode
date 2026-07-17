@@ -158,9 +158,9 @@ public class GitTool implements Tool {
                 CAPABILITY, "/api/git/" + action, body, JsonNode.class);
 
         if (resp.isEmpty()) {
-            return ToolResult.error(
+            return ToolResult.providerError("GIT_ANALYSIS_UNAVAILABLE",
                     "Git enhanced analysis unavailable. "
-                    + "Ensure gitpython is installed and GIT_ENHANCED capability is active.");
+                    + "Ensure gitpython is installed and GIT_ENHANCED capability is active.", ToolResult.Retryability.SAFE_READ_ONLY);
         }
         try {
             JsonNode node = resp.get();
@@ -169,13 +169,14 @@ public class GitTool implements Tool {
             if (successField != null && !successField.asBoolean(true)) {
                 String errorCode = node.has("error_code") ? node.get("error_code").asText() : "UNKNOWN";
                 String errorMsg  = node.has("error_message") ? node.get("error_message").asText() : "Unknown error";
-                return ToolResult.error(errorCode + ": " + errorMsg);
+                return ToolResult.providerError(errorCode, errorMsg, ToolResult.Retryability.SAFE_READ_ONLY);
             }
             // 成功时：将 data 字段序列化为输出（若 data 为 null 则输出整个节点）
             JsonNode data = node.get("data");
             return ToolResult.success(objectMapper.writeValueAsString(data != null ? data : node));
         } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-            return ToolResult.error("Failed to serialize git response: " + e.getMessage());
+            return ToolResult.internalError("GIT_RESPONSE_SERIALIZATION_FAILED",
+                    "Failed to serialize git response: " + e.getMessage(), ToolResult.EffectState.NONE);
         }
     }
 }

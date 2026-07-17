@@ -24,9 +24,9 @@ from capabilities import (
 class TestCapabilityDomain:
     """CapabilityDomain 枚举测试"""
 
-    def test_has_six_domains(self):
-        """应包含 6 个能力域（CODE_INTEL/GIT_ENHANCED/FILE_PROCESSING/BROWSER_AUTOMATION/CODE_QUALITY/ANALYSIS）"""
-        assert len(CapabilityDomain) == 6
+    def test_registry_covers_all_domains(self):
+        """能力域枚举和注册表必须一一对应，新增能力时不应留下脆弱的固定数量断言。"""
+        assert set(CapabilityDomain) == set(CAPABILITY_REGISTRY)
 
     def test_core_domains_exist(self):
         """P0 核心域: CODE_INTEL 和 FILE_PROCESSING 必须存在"""
@@ -119,7 +119,7 @@ class TestDiscoverCapabilities:
         """应返回完整的 CAPABILITY_REGISTRY"""
         result = discover_capabilities()
         assert result is CAPABILITY_REGISTRY
-        assert len(result) == 6
+        assert len(result) == len(CapabilityDomain)
 
     def test_all_entries_checked(self):
         """调用后每个条目的 is_available 应为 bool 值"""

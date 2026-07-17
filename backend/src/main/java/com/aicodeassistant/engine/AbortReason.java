@@ -13,8 +13,6 @@ public enum AbortReason {
     TIMEOUT,
     /** 不可恢复错误 */
     ERROR,
-    /** WebSocket 断连 — 客户端已离线，无需继续执行 */
-    SESSION_DISCONNECTED,
     /** 系统关闭 — 应用优雅关闭时终止后台代理 */
     SYSTEM_SHUTDOWN
 }

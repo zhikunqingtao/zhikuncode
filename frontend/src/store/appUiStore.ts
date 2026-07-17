@@ -22,8 +22,9 @@ export interface AppUiStoreState {
      */
     pendingVisualizationTab: string | null;
 
-    showElicitationDialog: (data: { requestId: string; question: string; options: unknown }) => void;
+    showElicitationDialog: (data: ElicitationRequest) => void;
     dismissElicitationDialog: () => void;
+    updateElicitationDeadline: (interactionId: string, decisionDeadlineAt: number, version?: number) => void;
     setPromptSuggestion: (data: PromptSuggestion | null) => void;
     updateSpeculation: (data: { id: string; accepted: boolean }) => void;
     requestVisualizationTab: (tab: string | null) => void;
@@ -38,6 +39,12 @@ export const useAppUiStore = create<AppUiStoreState>()(
 
         showElicitationDialog: (data) => set(d => { d.elicitationDialog = data; }),
         dismissElicitationDialog: () => set(d => { d.elicitationDialog = null; }),
+        updateElicitationDeadline: (interactionId, decisionDeadlineAt, version) => set(d => {
+            if (d.elicitationDialog?.interactionId === interactionId) {
+                d.elicitationDialog.decisionDeadlineAt = decisionDeadlineAt;
+                if (version !== undefined) d.elicitationDialog.version = version;
+            }
+        }),
         setPromptSuggestion: (data) => set(d => { d.promptSuggestion = data; }),
         updateSpeculation: (data) => set(d => { d.speculationResults.set(data.id, data.accepted); }),
         requestVisualizationTab: (tab) => set(d => { d.pendingVisualizationTab = tab; }),

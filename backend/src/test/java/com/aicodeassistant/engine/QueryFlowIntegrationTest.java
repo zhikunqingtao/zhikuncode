@@ -2,7 +2,6 @@ package com.aicodeassistant.engine;
 
 import com.aicodeassistant.config.AgentTimeoutConfig;
 import com.aicodeassistant.config.FeatureFlagService;
-import com.aicodeassistant.config.ModelCapabilityConfig;
 import com.aicodeassistant.engine.ContextCascade;
 import com.aicodeassistant.engine.scheduling.ToolPriorityScheduler;
 import com.aicodeassistant.engine.strategy.DefaultTerminationStrategy;
@@ -73,10 +72,7 @@ class QueryFlowIntegrationTest {
                 mock(PathSecurityService.class), mock(BashCommandClassifier.class),
                 mock(FeatureFlagService.class), mock(CommandBlacklistService.class), null);
 
-        ModelCapabilityConfig capCfg = new ModelCapabilityConfig();
-        ModelCapabilityRegistry capRegistry = new ModelCapabilityRegistry(capCfg);
-        capRegistry.init();
-        TokenCounter tokenCounter = new TokenCounter(capRegistry, null, null);
+        TokenCounter tokenCounter = new TokenCounter(null, null, null);
         CompactService compactService = new CompactService(tokenCounter, providerRegistry, null, null);
         ModelTierService modelTierService = new ModelTierService();
         ModelAwareRetryPolicy retryPolicy = new ModelAwareRetryPolicy();
@@ -102,7 +98,11 @@ class QueryFlowIntegrationTest {
         TokenBudgetGuard tokenBudgetGuard = mock(TokenBudgetGuard.class);
         when(tokenBudgetGuard.enforcePhase1(any(), anyInt()))
                 .thenAnswer(inv -> new TokenBudgetGuard.GuardResult(inv.getArgument(0), false, 0, 0));
+        when(tokenBudgetGuard.enforcePhase1(any(), anyInt(), anyDouble()))
+                .thenAnswer(inv -> new TokenBudgetGuard.GuardResult(inv.getArgument(0), false, 0, 0));
         when(tokenBudgetGuard.enforcePhase2(any(), anyInt()))
+                .thenAnswer(inv -> new TokenBudgetGuard.FinalBudgetResult(inv.getArgument(0), Set.of(), 0, inv.getArgument(1), true, ""));
+        when(tokenBudgetGuard.enforcePhase2(any(), anyInt(), anySet(), anyDouble()))
                 .thenAnswer(inv -> new TokenBudgetGuard.FinalBudgetResult(inv.getArgument(0), Set.of(), 0, inv.getArgument(1), true, ""));
 
         ImageRefInjector imageRefInjector = mock(ImageRefInjector.class);
@@ -111,6 +111,7 @@ class QueryFlowIntegrationTest {
 
         ModelRegistry modelRegistryMock = mock(ModelRegistry.class);
         when(modelRegistryMock.getContextWindowForModel(anyString())).thenReturn(200000);
+        when(modelRegistryMock.getTokenCharRatio(anyString())).thenReturn(3.5);
 
         queryEngine = new QueryEngine(
                 providerRegistry, compactService, apiRetryService,
@@ -121,7 +122,7 @@ class QueryFlowIntegrationTest {
                 null, null,  // incrementalCollapseManager, visualizationAutoRouter (both @Nullable)
                 null, mock(FeatureFlagService.class),  // backgroundAgentTracker (@Nullable), featureFlagService
                 new DefaultTerminationStrategy(), new ToolPriorityScheduler(), null,  // selfCorrectionLoop (@Nullable)
-                new AgentTimeoutConfig(), tokenBudgetGuard, imageRefInjector, null  // agentTimeoutConfig, tokenBudgetGuard, imageRefInjector, runTracker
+                new AgentTimeoutConfig(), tokenBudgetGuard, imageRefInjector, null, null  // runTracker, runExecutions
         );
 
         handler = new RecordingHandler();
@@ -265,7 +266,8 @@ class QueryFlowIntegrationTest {
         Tool failTool = new EchoTool() {
             @Override public String getName() { return "FailTool"; }
             @Override public ToolResult call(ToolInput input, ToolUseContext context) {
-                return ToolResult.error("Simulated tool failure");
+                return ToolResult.internalError("SIMULATED_TOOL_FAILURE", "Simulated tool failure",
+                        ToolResult.EffectState.NONE);
             }
         };
 
@@ -307,11 +309,11 @@ class QueryFlowIntegrationTest {
         public void streamChat(String model, List<Map<String, Object>> messages,
                                 String systemPrompt, List<Map<String, Object>> tools,
                                 int maxTokens, ThinkingConfig thinkingConfig,
+                                LlmCallContext callContext,
                                 StreamChatCallback callback) {
             behavior.perform(callback);
         }
 
-        @Override public void abort() {}
     }
 
     // ═══════════════ 辅助: EchoTool ═══════════════

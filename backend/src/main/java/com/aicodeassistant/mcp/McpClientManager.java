@@ -23,12 +23,13 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 import org.springframework.core.env.Environment;
 
@@ -71,17 +72,23 @@ public class McpClientManager implements SmartLifecycle {
     private volatile boolean running = false;
 
     // ★ 自定义重连线程池（避免占用公共 ForkJoinPool）
-    private static final ExecutorService RECONNECT_POOL =
+    private final ExecutorService reconnectPool =
         Executors.newFixedThreadPool(2,
             r -> { Thread t = new Thread(r, "mcp-reconnect"); t.setDaemon(true); return t; });
 
     // ★ 异步延迟重连调度器（替代 healthCheck 中的阻塞 Thread.sleep）
-    private static final ScheduledExecutorService RECONNECT_SCHEDULER =
+    private final ScheduledExecutorService reconnectScheduler =
         Executors.newSingleThreadScheduledExecutor(
             r -> { Thread t = new Thread(r, "mcp-reconnect-scheduler"); t.setDaemon(true); return t; });
 
     // ★ 新增：幂等重连保护（原子操作，不使用 synchronized）
-    private final ConcurrentHashMap<String, Boolean> reconnectingServers = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, McpServerConnection> reconnectingServers = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, ScheduledReconnect> scheduledReconnects =
+            new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, ActiveReconnect> activeReconnects =
+            new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, AtomicLong> connectionGenerations =
+            new ConcurrentHashMap<>();
 
     public McpClientManager(McpConfiguration mcpConfiguration,
                             McpConfigurationResolver configurationResolver,
@@ -123,18 +130,23 @@ public class McpClientManager implements SmartLifecycle {
     // ===== SmartLifecycle =====
 
     @Override
-    public void start() {
+    public synchronized void start() {
+        if (running) {
+            return;
+        }
+        if (reconnectPool.isShutdown() || reconnectScheduler.isShutdown()) {
+            throw new IllegalStateException("MCP_CLIENT_MANAGER_CANNOT_RESTART_AFTER_SHUTDOWN");
+        }
         log.info("McpClientManager starting — initializing MCP connections");
+        running = true;
         initializeDefaultRoots();
         initializeAll();
-        running = true;
     }
 
     @Override
     public void stop() {
         log.info("McpClientManager stopping — closing all MCP connections");
         shutdown();
-        running = false;
     }
 
     @Override
@@ -201,6 +213,8 @@ public class McpClientManager implements SmartLifecycle {
 
     /** 动态添加 MCP 服务器 — 含信任检查 (§11.2.2) */
     public McpServerConnection addServer(McpServerConfig config) {
+        requireRunning();
+        long generation = nextGeneration(config.name());
         // 运行时添加的服务器，若来源为可信配置文件则自动信任
         if (!approvalService.isTrusted(config) && config.scope() != null) {
             // scope 非空表示来自配置文件解析（LOCAL/USER/ENTERPRISE），而非手动添加
@@ -217,7 +231,7 @@ public class McpClientManager implements SmartLifecycle {
             conn.setRootsProvider(rootsProvider);
             conn.setProgressTracker(progressTracker);
             conn.setStatus(McpConnectionStatus.NEEDS_AUTH);
-            connections.put(config.name(), conn);
+            installConnection(config.name(), generation, conn);
             return conn;
         }
 
@@ -226,21 +240,29 @@ public class McpClientManager implements SmartLifecycle {
         conn.setProgressTracker(progressTracker);
         try {
             conn.connect();
-            connections.put(config.name(), conn);
-            registerToolsFromConnection(conn);
-            log.info("MCP server connected: {}", config.name());
+            installConnection(config.name(), generation, conn);
+            if (conn.getStatus() == McpConnectionStatus.CONNECTED) {
+                registerToolsFromConnection(conn);
+                log.info("MCP server connected: {}", config.name());
+            } else {
+                log.warn("MCP server did not reach CONNECTED state: {} (status={})",
+                        config.name(), conn.getStatus());
+            }
         } catch (Exception e) {
             log.debug("Failed to connect MCP server: {}", config.name(), e);
             conn.setStatus(McpConnectionStatus.FAILED);
-            connections.put(config.name(), conn);
+            installConnection(config.name(), generation, conn);
         }
         return conn;
     }
 
     /** 移除 MCP 服务器 */
     public boolean removeServer(String name) {
+        nextGeneration(name);
         McpServerConnection conn = connections.remove(name);
+        cancelReconnectWork(name);
         if (conn != null) {
+            reconnectingServers.remove(name, conn);
             toolRegistry.unregisterByPrefix("mcp__" + name + "__");
             conn.close();
             log.info("MCP server removed: {}", name);
@@ -292,16 +314,30 @@ public class McpClientManager implements SmartLifecycle {
      * 重启指定 MCP 服务器。
      */
     public void restartServer(String name) {
+        requireRunning();
         McpServerConnection conn = connections.get(name);
         if (conn == null) {
             throw new IllegalArgumentException("MCP server not found: " + name);
         }
+        long generation = nextGeneration(name);
+        cancelReconnectWork(name);
         log.info("Restarting MCP server: {}", name);
+        toolRegistry.unregisterByPrefix("mcp__" + name + "__");
         conn.close();
         try {
             conn.connect();
-            conn.resetReconnectAttempts();
-            log.info("MCP server restarted: {}", name);
+            if (!isCurrentConnection(name, conn, generation)) {
+                closeQuietly(conn);
+                return;
+            }
+            if (conn.getStatus() == McpConnectionStatus.CONNECTED) {
+                conn.resetReconnectAttempts();
+                registerToolsFromConnection(conn);
+                log.info("MCP server restarted: {}", name);
+            } else {
+                log.warn("MCP server restart did not reach CONNECTED state: {} (status={})",
+                        name, conn.getStatus());
+            }
         } catch (Exception e) {
             log.error("Failed to restart MCP server: {}", name, e);
             conn.setStatus(McpConnectionStatus.FAILED);
@@ -402,6 +438,13 @@ public class McpClientManager implements SmartLifecycle {
 
     /** 优雅关闭所有 MCP 连接 */
     public void shutdown() {
+        running = false;
+        connectionGenerations.forEach((name, ignored) -> nextGeneration(name));
+        scheduledReconnects.values().forEach(scheduled -> scheduled.future().cancel(false));
+        scheduledReconnects.clear();
+        activeReconnects.values().forEach(active -> active.future().cancel(true));
+        activeReconnects.clear();
+        reconnectingServers.clear();
         connections.values().forEach(conn -> {
             try {
                 conn.close();
@@ -410,6 +453,16 @@ public class McpClientManager implements SmartLifecycle {
             }
         });
         connections.clear();
+        reconnectPool.shutdownNow();
+        reconnectScheduler.shutdownNow();
+        awaitTermination(reconnectPool, "reconnect worker");
+        awaitTermination(reconnectScheduler, "reconnect scheduler");
+    }
+
+    private void requireRunning() {
+        if (!running) {
+            throw new IllegalStateException("MCP_CLIENT_MANAGER_NOT_RUNNING");
+        }
     }
 
     // ===== M3 Roots 安全边界 =====
@@ -488,6 +541,7 @@ public class McpClientManager implements SmartLifecycle {
 
         // 监听工具变更通知 — 自动重新注册
         conn.onToolsChanged(() -> {
+            if (!isCurrentConnection(conn.getName(), conn, generationOf(conn.getName()))) return;
             toolRegistry.unregisterByPrefix("mcp__" + conn.getName() + "__");
             registerToolsFromConnection(conn);
             log.info("MCP tools refreshed for server: {}", conn.getName());
@@ -531,31 +585,52 @@ public class McpClientManager implements SmartLifecycle {
      * ★ 使用 scheduleReconnect 的幂等保护避免并发重连。
      */
     private void scheduleDelayedReconnect(String serverId, McpServerConnection conn) {
+        long generation = generationOf(serverId);
+        if (!isCurrentConnection(serverId, conn, generation)) return;
         int attempt = conn.getReconnectAttempts();
         if (attempt >= MAX_RECONNECT_ATTEMPTS) {
             log.warn("MCP server {} exceeded max reconnect attempts ({}), giving up",
                     serverId, MAX_RECONNECT_ATTEMPTS);
             return;
         }
-        long backoffMs = calculateBackoffWithJitter(attempt + 1);
-        log.info("Scheduling reconnect for MCP server {} in {}ms (attempt {}/{})",
-                serverId, backoffMs, attempt + 1, MAX_RECONNECT_ATTEMPTS);
-
-        RECONNECT_SCHEDULER.schedule(() -> attemptReconnect(serverId, conn),
-                backoffMs, TimeUnit.MILLISECONDS);
+        scheduledReconnects.compute(serverId, (id, existing) -> {
+            if (existing != null && existing.connection() == conn && !existing.future().isDone()) return existing;
+            if (existing != null) existing.future().cancel(false);
+            long backoffMs = calculateBackoffWithJitter(attempt + 1);
+            log.info("Scheduling reconnect for MCP server {} in {}ms (attempt {}/{})",
+                    serverId, backoffMs, attempt + 1, MAX_RECONNECT_ATTEMPTS);
+            if (!isCurrentConnection(serverId, conn, generation)) return null;
+            java.util.concurrent.atomic.AtomicReference<ScheduledReconnect> self = new java.util.concurrent.atomic.AtomicReference<>();
+            java.util.concurrent.ScheduledFuture<?> future = reconnectScheduler.schedule(() -> {
+                ScheduledReconnect scheduled = self.get();
+                if (scheduled != null) scheduledReconnects.remove(serverId, scheduled);
+                if (isCurrentConnection(serverId, conn, generation)) {
+                    submitReconnect(serverId, conn, generation);
+                }
+            }, backoffMs, TimeUnit.MILLISECONDS);
+            ScheduledReconnect scheduled = new ScheduledReconnect(conn, generation, future);
+            self.set(scheduled);
+            return scheduled;
+        });
     }
 
     /**
      * 执行实际重连 — 在重连线程池中运行。
      */
-    private void attemptReconnect(String serverId, McpServerConnection conn) {
+    private void attemptReconnect(String serverId, McpServerConnection conn, long generation) {
+        if (!isCurrentConnection(serverId, conn, generation)) return;
         // 幂等保护: 避免同一服务器并发重连
-        if (reconnectingServers.putIfAbsent(serverId, Boolean.TRUE) != null) {
+        if (reconnectingServers.putIfAbsent(serverId, conn) != null) {
             log.debug("Reconnect already in progress for '{}', skipping", serverId);
             return;
         }
         try {
+            if (!isCurrentConnection(serverId, conn, generation)) return;
             conn.connect();
+            if (!isCurrentConnection(serverId, conn, generation)) {
+                closeQuietly(conn);
+                return;
+            }
             if (conn.getStatus() == McpConnectionStatus.CONNECTED) {
                 conn.resetReconnectAttempts();
                 registerToolsFromConnection(conn);
@@ -569,9 +644,15 @@ public class McpClientManager implements SmartLifecycle {
             conn.incrementReconnectAttempts();
             log.debug("Reconnect failed for {}: {}", serverId, e.getMessage());
         } finally {
-            reconnectingServers.remove(serverId);
+            reconnectingServers.remove(serverId, conn);
         }
     }
+
+    private record ScheduledReconnect(McpServerConnection connection,
+                                      long generation,
+                                      java.util.concurrent.ScheduledFuture<?> future) { }
+
+    private record ActiveReconnect(McpServerConnection connection, long generation, Future<?> future) { }
 
     /**
      * ERR-3 fix: 调度指定连接的异步重连（健康检查失败时调用）。
@@ -583,12 +664,76 @@ public class McpClientManager implements SmartLifecycle {
      */
     public void scheduleReconnect(String connectionName) {
         getConnection(connectionName).ifPresent(conn -> {
+            long generation = generationOf(connectionName);
+            if (!isCurrentConnection(connectionName, conn, generation)) return;
             conn.setStatus(McpConnectionStatus.DEGRADED);
             broadcastHealthStatus(connectionName, McpConnectionStatus.DEGRADED);
-            // ★ 使用自定义线程池，幂等保护在 attemptReconnect 内部
-            CompletableFuture.runAsync(() -> attemptReconnect(connectionName, conn),
-                    RECONNECT_POOL);
+            submitReconnect(connectionName, conn, generation);
         });
+    }
+
+    private void submitReconnect(String serverId, McpServerConnection conn, long generation) {
+        activeReconnects.compute(serverId, (id, existing) -> {
+            if (existing != null && existing.connection() == conn
+                    && existing.generation() == generation && !existing.future().isDone()) return existing;
+            if (existing != null) existing.future().cancel(true);
+            java.util.concurrent.FutureTask<Void> task = new java.util.concurrent.FutureTask<>(() -> {
+                try { attemptReconnect(serverId, conn, generation); }
+                finally {
+                    activeReconnects.computeIfPresent(serverId,
+                            (key, active) -> active.connection() == conn && active.generation() == generation
+                                    ? null : active);
+                }
+                return null;
+            });
+            ActiveReconnect active = new ActiveReconnect(conn, generation, task);
+            reconnectPool.execute(task);
+            return active;
+        });
+    }
+
+    private long nextGeneration(String serverId) {
+        return connectionGenerations.computeIfAbsent(serverId, ignored -> new AtomicLong()).incrementAndGet();
+    }
+
+    private long generationOf(String serverId) {
+        AtomicLong generation = connectionGenerations.get(serverId);
+        return generation == null ? 0L : generation.get();
+    }
+
+    private void installConnection(String serverId, long generation, McpServerConnection conn) {
+        if (!running || generationOf(serverId) != generation) {
+            closeQuietly(conn);
+            throw new IllegalStateException("MCP_CONNECTION_LIFECYCLE_CHANGED");
+        }
+        McpServerConnection previous = connections.put(serverId, conn);
+        if (previous != null && previous != conn) closeQuietly(previous);
+    }
+
+    private boolean isCurrentConnection(String serverId, McpServerConnection conn, long generation) {
+        return running && generationOf(serverId) == generation && connections.get(serverId) == conn;
+    }
+
+    private void cancelReconnectWork(String serverId) {
+        ScheduledReconnect scheduled = scheduledReconnects.remove(serverId);
+        if (scheduled != null) scheduled.future().cancel(false);
+        ActiveReconnect active = activeReconnects.remove(serverId);
+        if (active != null) active.future().cancel(true);
+    }
+
+    private void closeQuietly(McpServerConnection connection) {
+        try { connection.close(); }
+        catch (RuntimeException e) { log.debug("Failed to close stale MCP connection {}", connection.getName(), e); }
+    }
+
+    private void awaitTermination(java.util.concurrent.ExecutorService executor, String label) {
+        try {
+            if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
+                log.warn("MCP {} did not terminate within 5 seconds", label);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     /**

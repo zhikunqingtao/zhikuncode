@@ -25,7 +25,6 @@ interface SystemMessageProps {
 
 const SystemMessage: React.FC<SystemMessageProps> = ({ message }) => {
     const subtype = message.subtype;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const metadata = (message as any).metadata as Record<string, unknown> | undefined;
 
     // JSX result — route by metadata.action

@@ -73,21 +73,6 @@ public class PathSecurityService {
         DANGEROUS_REMOVAL_TARGETS = Collections.unmodifiableSet(targets);
     }
 
-    // ===== Layer 7: 安全环境变量白名单 =====
-    private static final Set<String> SAFE_ENV_VARS = Set.of(
-        "PATH", "HOME", "USER", "SHELL", "LANG", "LC_ALL",
-        "TERM", "EDITOR", "VISUAL", "PAGER",
-        "JAVA_HOME", "MAVEN_HOME", "GRADLE_HOME",
-        "NODE_PATH", "NPM_CONFIG_PREFIX",
-        "PYTHON_PATH", "VIRTUAL_ENV", "CONDA_PREFIX",
-        "GIT_AUTHOR_NAME", "GIT_AUTHOR_EMAIL",
-        "GIT_COMMITTER_NAME", "GIT_COMMITTER_EMAIL",
-        "GOPATH", "GOROOT", "CARGO_HOME", "RUSTUP_HOME",
-        "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_CACHE_HOME",
-        "TMPDIR", "TMP", "TEMP",
-        "DISPLAY", "WAYLAND_DISPLAY", "COLORTERM", "TERM_PROGRAM"
-    );
-
     // ==================== 读取权限检查 ====================
 
     /**
@@ -208,29 +193,6 @@ public class PathSecurityService {
             }
             if ("*".equals(target) || ".".equals(target) || "..".equals(target))
                 return "Wildcard removal denied: " + command;
-        }
-        return null;
-    }
-
-    // ==================== Layer 7: 环境变量检查 ====================
-
-    /**
-     * 检测 Bash 命令中的环境变量访问。
-     *
-     * @param command Bash 命令字符串
-     * @return null=安全, "ASK:…"=需用户确认, 其他=硬拒绝
-     */
-    public String checkEnvVarAccess(String command) {
-        if (command == null) return null;
-        if (command.matches("^\\s*(env|printenv)\\s*$"))
-            return "ASK: Bulk environment export may leak sensitive information";
-        Matcher em = Pattern.compile("\\$\\{?(\\w+)\\}?").matcher(command);
-        while (em.find()) {
-            String var = em.group(1);
-            if (!SAFE_ENV_VARS.contains(var)) {
-                log.warn("Non-whitelisted env var access: {}", var);
-                return "ASK: Command references non-whitelisted env var: $" + var;
-            }
         }
         return null;
     }
@@ -416,11 +378,6 @@ public class PathSecurityService {
             }
         }
         return null;
-    }
-
-    /** 获取安全环境变量白名单（供外部查询） */
-    public Set<String> getSafeEnvVars() {
-        return SAFE_ENV_VARS;
     }
 
     /** 路径检查结果 */

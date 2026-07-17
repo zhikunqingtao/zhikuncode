@@ -50,7 +50,7 @@ public interface LlmProvider {
                 .map(ToolDefinition::toAnthropicFormat)
                 .toList();
         streamChat(model, mapMessages, systemPrompt.toPlainText(), mapTools,
-                maxTokens, thinkingConfig, callback);
+                maxTokens, thinkingConfig, LlmCallContext.unscoped(), callback);
     }
 
     /**
@@ -60,7 +60,7 @@ public interface LlmProvider {
      * @deprecated 使用强类型版本替代
      */
     @Deprecated
-    void streamChat(
+    default void streamChat(
             String model,
             List<Map<String, Object>> messages,
             String systemPrompt,
@@ -68,10 +68,22 @@ public interface LlmProvider {
             int maxTokens,
             ThinkingConfig thinkingConfig,
             StreamChatCallback callback
-    );
+    ) {
+        streamChat(model, messages, systemPrompt, tools, maxTokens, thinkingConfig,
+                LlmCallContext.unscoped(), callback);
+    }
 
-    /** 中断当前请求 */
-    void abort();
+    /** Run-scoped provider call. Implementations must only cancel this context's HTTP call. */
+    void streamChat(
+            String model,
+            List<Map<String, Object>> messages,
+            String systemPrompt,
+            List<Map<String, Object>> tools,
+            int maxTokens,
+            ThinkingConfig thinkingConfig,
+            LlmCallContext callContext,
+            StreamChatCallback callback
+    );
 
     /**
      * 同步调用 LLM — 用于分类器等低延迟场景。

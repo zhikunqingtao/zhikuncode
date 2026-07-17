@@ -115,9 +115,9 @@ public class SnipService {
         List<Message> result = new ArrayList<>(messages.size());
         for (Message msg : messages) {
             if (msg instanceof Message.UserMessage user
-                    && user.toolUseResult() != null
-                    && user.toolUseResult().length() > budgetChars) {
-                String snipped = snipIfNeeded(user.toolUseResult(), budgetChars);
+                    && MessageContentAccessor.legacyToolResult(user) != null
+                    && MessageContentAccessor.legacyToolResult(user).length() > budgetChars) {
+                String snipped = snipIfNeeded(MessageContentAccessor.legacyToolResult(user), budgetChars);
                 result.add(new Message.UserMessage(
                         user.uuid(), user.timestamp(), user.content(),
                         snipped, user.sourceToolAssistantUUID()));

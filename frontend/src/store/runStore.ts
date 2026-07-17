@@ -50,11 +50,14 @@ export interface VerificationResultPayload {
 export interface RunStoreState {
     manifests: Map<string, ArtifactManifest>;
     verificationResults: Map<string, VerificationResult>;
+    recoverySnapshots: Map<string, Record<string, unknown>>;
+    recoveryEventSeq: Map<string, number>;
 
     setManifest: (runId: string, manifest: ArtifactManifest) => void;
     handleVerificationResult: (data: VerificationResultPayload) => void;
     clearManifest: (runId: string) => void;
     cleanup: () => void;
+    replaceRecoverySnapshot: (runId: string, snapshot: Record<string, unknown>, eventSeq: number) => void;
 }
 
 const ONE_HOUR_MS = 60 * 60 * 1000;
@@ -63,6 +66,13 @@ export const useRunStore = create<RunStoreState>()(
     subscribeWithSelector(immer((set) => ({
         manifests: new Map<string, ArtifactManifest>(),
         verificationResults: new Map<string, VerificationResult>(),
+        recoverySnapshots: new Map<string, Record<string, unknown>>(),
+        recoveryEventSeq: new Map<string, number>(),
+
+        replaceRecoverySnapshot: (runId, snapshot, eventSeq) => set(state => {
+            state.recoverySnapshots.set(runId, snapshot);
+            state.recoveryEventSeq.set(runId, eventSeq);
+        }),
 
         setManifest: (runId, manifest) => set(state => {
             manifest.lastAccessedAt = Date.now();
@@ -73,6 +83,8 @@ export const useRunStore = create<RunStoreState>()(
                 if (now - entry.lastAccessedAt > ONE_HOUR_MS) {
                     state.manifests.delete(key);
                     state.verificationResults.delete(key);
+                    state.recoverySnapshots.delete(key);
+                    state.recoveryEventSeq.delete(key);
                 }
             }
         }),
@@ -92,6 +104,8 @@ export const useRunStore = create<RunStoreState>()(
         clearManifest: (runId) => set(state => {
             state.manifests.delete(runId);
             state.verificationResults.delete(runId);
+            state.recoverySnapshots.delete(runId);
+            state.recoveryEventSeq.delete(runId);
         }),
 
         cleanup: () => set(state => {
@@ -100,6 +114,8 @@ export const useRunStore = create<RunStoreState>()(
                 if (now - entry.lastAccessedAt > ONE_HOUR_MS) {
                     state.manifests.delete(key);
                     state.verificationResults.delete(key);
+                    state.recoverySnapshots.delete(key);
+                    state.recoveryEventSeq.delete(key);
                 }
             }
         }),

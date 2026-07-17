@@ -40,6 +40,8 @@
 
     <properties>
         <java.version>21</java.version>
+        <!-- Mockito 5 inline mock maker 在 JDK 21 上必须以静态 javaagent 启动，禁止依赖运行时 self-attach。 -->
+        <mockito.version>5.14.2</mockito.version>
         <!-- Spring Security 版本由 Spring Boot 3.4.x 管理（自动匹配 6.4.x） -->
         <!--
             Surefire argLine 默认空值：
@@ -186,6 +188,18 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.mockito</groupId>
+                    <artifactId>mockito-core</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
@@ -273,8 +287,11 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <!-- 启用 JDK 动态 agent 加载（Mockito ByteBuddy 在 JDK 21 下必需） -->
-                    <argLine>@{argLine} -Djdk.attach.allowAttachSelf=true -XX:+EnableDynamicAgentLoading</argLine>
+                    <!--
+                        JDK 21 禁止依赖 Mockito/ByteBuddy 动态 self-attach。显式 javaagent 同时兼容
+                        普通测试与 JaCoCo（@{argLine} 由 coverage profile 注入）。
+                    -->
+                    <argLine>@{argLine} -javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar</argLine>
                     <!-- 输出重定向：保持测试日志完整性 -->
                     <redirectTestOutputToFile>false</redirectTestOutputToFile>
                 </configuration>

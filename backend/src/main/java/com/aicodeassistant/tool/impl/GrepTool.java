@@ -166,9 +166,10 @@ public class GrepTool implements Tool {
             if (!HAS_RIPGREP) {
                 if (input.getBoolean("multiline", false)
                         || input.getOptionalString("type").isPresent()) {
-                    return ToolResult.failure(FailureType.COMMAND_NOT_FOUND,
+                    return ToolResult.failed(ToolResult.ToolFailureType.PROCESS, "RIPGREP_NOT_INSTALLED",
                         "This search uses ripgrep-specific features (multiline/type) but rg is not installed.\n"
-                        + "Install: brew install ripgrep (macOS) | apt-get install ripgrep (Linux)");
+                        + "Install: brew install ripgrep (macOS) | apt-get install ripgrep (Linux)",
+                        ToolResult.Retryability.NEVER, ToolResult.EffectState.NOT_STARTED, null, Map.of());
                 }
                 log.info("Using grep fallback (ripgrep not available)");
             }
@@ -216,9 +217,10 @@ public class GrepTool implements Tool {
                     process.waitFor(2, TimeUnit.SECONDS);
                 }
                 log.warn("Grep process timed out after {}ms for pattern '{}'", PROCESS_TIMEOUT_MS, pattern);
-                return ToolResult.error(
+                return ToolResult.timedOut("GREP_PROCESS_DEADLINE_EXCEEDED",
                         "Search timed out after " + (PROCESS_TIMEOUT_MS / 1000) + " seconds. " +
-                        "Try narrowing the search with 'glob' or 'path' parameters.");
+                        "Try narrowing the search with 'glob' or 'path' parameters.", 137, !process.isAlive(),
+                        ToolResult.EffectState.NONE);
             }
 
             // 获取输出（进程已结束，给少量时间等待流读取完成）
@@ -259,16 +261,21 @@ public class GrepTool implements Tool {
 
         } catch (IOException e) {
             log.error("Grep failed for pattern '{}': {}", pattern, e.getMessage());
-            return ToolResult.error("Grep search failed: " + e.getMessage());
+            return ToolResult.internalError("GREP_PROCESS_START_FAILED",
+                    "Grep search failed: " + e.getMessage(), ToolResult.EffectState.NONE);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            return ToolResult.failure(FailureType.ABORTED, "Grep search interrupted");
+            return ToolResult.cancelled("GREP_INTERRUPTED", "Grep search interrupted",
+                    ToolResult.EffectState.NONE);
         } catch (ExecutionException e) {
             log.error("Grep output read failed for pattern '{}': {}", pattern, e.getMessage());
-            return ToolResult.error("Grep search failed: " + e.getCause().getMessage());
+            return ToolResult.internalError("GREP_OUTPUT_READ_FAILED",
+                    "Grep search failed: " + e.getCause().getMessage(), ToolResult.EffectState.NONE);
         } catch (TimeoutException e) {
             log.warn("Grep output stream read timed out for pattern '{}'", pattern);
-            return ToolResult.error("Grep output read timed out. Try narrowing the search with 'glob' or 'path' parameters.");
+            return ToolResult.timedOut("GREP_OUTPUT_DEADLINE_EXCEEDED",
+                    "Grep output read timed out. Try narrowing the search with 'glob' or 'path' parameters.",
+                    null, true, ToolResult.EffectState.NONE);
         }
     }
 

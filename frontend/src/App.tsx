@@ -8,7 +8,7 @@ import { useMessageStore } from '@/store/messageStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { useConfigStore } from '@/store/configStore';
 import { sendToServer, isWsConnected, sendSlashCommand } from '@/api/stompClient';
-import { waitForSessionRestore, isSessionBound, markSessionBound } from '@/api/dispatch';
+import { bindSessionAndWait, isSessionBound } from '@/api/dispatch';
 import { SkillDetailModal } from '@/components/skills/SkillDetailModal';
 import { MobileApprovalSheet } from '@/components/verify/MobileApprovalSheet';
 import type { SubmitEvent, Message, Command } from '@/types';
@@ -131,10 +131,20 @@ function App() {
     //    因此必须在 addMessage 之前完成，且只执行一次。
     //    WS 重连时 stompClient.ts onConnect 会调用 resetBoundSession() 重置状态。
     if (currentSessionId && !isSessionBound(currentSessionId)) {
-      sendToServer('/app/bind-session', { sessionId: currentSessionId });
-      markSessionBound(currentSessionId);
-      // 等待 session_restored 处理完成，避免 clearMessages 清掉后续添加的用户消息
-      await waitForSessionRestore(500);
+      const restored = await bindSessionAndWait(currentSessionId, payload =>
+        sendToServer('/app/bind-session', payload));
+      if (!restored) {
+        useMessageStore.getState().addMessage({
+          uuid: generateUUID(),
+          type: 'system',
+          content: '会话绑定未获得服务端确认，已停止发送。请检查连接后重试。',
+          timestamp: Date.now(),
+          subtype: 'error',
+          errorCode: 'SESSION_BIND_TIMEOUT',
+        } as Message);
+        useSessionStore.getState().setStatus('idle');
+        return;
+      }
     }
 
     // 4. ★ 在 bind/restore 完成后再添加用户消息到 store（确保不被 clearMessages 清除）

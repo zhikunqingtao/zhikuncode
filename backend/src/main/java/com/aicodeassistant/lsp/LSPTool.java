@@ -163,7 +163,7 @@ public class LSPTool implements Tool {
 
         // 1. 验证操作类型
         if (!VALID_OPERATIONS.contains(operation)) {
-            return ToolResult.error("Unknown LSP operation: " + operation
+            return ToolResult.validationError("LSP_OPERATION_INVALID", "Unknown LSP operation: " + operation
                     + ". Valid operations: " + VALID_OPERATIONS);
         }
 
@@ -175,13 +175,13 @@ public class LSPTool implements Tool {
         // 3. 获取文件路径
         String filePath = input.getString("filePath", null);
         if (filePath == null || filePath.isEmpty()) {
-            return ToolResult.error("'filePath' is required for operation: " + operation);
+            return ToolResult.validationError("LSP_FILE_REQUIRED", "'filePath' is required for operation: " + operation);
         }
 
         // 4. 文件大小检查
         File file = new File(filePath);
         if (file.exists() && file.length() > MAX_FILE_SIZE) {
-            return ToolResult.error("File too large: " + file.length()
+            return ToolResult.validationError("LSP_FILE_SIZE_LIMIT", "File too large: " + file.length()
                     + " bytes (max " + MAX_FILE_SIZE / 1024 / 1024 + "MB)");
         }
 
@@ -189,8 +189,8 @@ public class LSPTool implements Tool {
         LSPServerInstance server = serverManager.getServerForFile(filePath);
         if (server == null) {
             String ext = LSPServerManager.getFileExtension(filePath);
-            return ToolResult.error("No LSP server available for file type: " + ext
-                    + ". Supported extensions: " + serverManager.getSupportedExtensions());
+            return ToolResult.providerError("LSP_SERVER_UNAVAILABLE", "No LSP server available for file type: " + ext
+                    + ". Supported extensions: " + serverManager.getSupportedExtensions(), ToolResult.Retryability.NEVER);
         }
 
         // 6. 需要位置参数的操作 — 验证 line/character
@@ -208,7 +208,8 @@ public class LSPTool implements Tool {
             return handleCallHierarchy(operation, filePath, input, server);
         }
 
-        return ToolResult.error("Unhandled operation: " + operation);
+        return ToolResult.internalError("LSP_OPERATION_UNHANDLED", "Unhandled operation: " + operation,
+                ToolResult.EffectState.NONE);
     }
 
     private ToolResult handlePositionOperation(String operation, String filePath,
@@ -216,7 +217,7 @@ public class LSPTool implements Tool {
         int line = input.getInt("line", -1);
         int character = input.getInt("character", -1);
         if (line < 1 || character < 1) {
-            return ToolResult.error("'line' and 'character' (1-based) are required for: " + operation);
+            return ToolResult.validationError("LSP_POSITION_REQUIRED", "'line' and 'character' (1-based) are required for: " + operation);
         }
 
         String method = OPERATION_TO_METHOD.get(operation);
@@ -228,7 +229,8 @@ public class LSPTool implements Tool {
             Map<String, Object> result = server.sendRequest(method, params);
             return ToolResult.success(formatResult(operation, result));
         } catch (Exception e) {
-            return ToolResult.error("LSP " + operation + " failed: " + e.getMessage());
+            return ToolResult.providerError("LSP_REQUEST_FAILED", "LSP " + operation + " failed: " + e.getMessage(),
+                    ToolResult.Retryability.SAFE_READ_ONLY);
         }
     }
 
@@ -240,14 +242,15 @@ public class LSPTool implements Tool {
             Map<String, Object> result = server.sendRequest("textDocument/documentSymbol", params);
             return ToolResult.success(formatResult("documentSymbol", result));
         } catch (Exception e) {
-            return ToolResult.error("LSP documentSymbol failed: " + e.getMessage());
+            return ToolResult.providerError("LSP_DOCUMENT_SYMBOL_FAILED", "LSP documentSymbol failed: " + e.getMessage(),
+                    ToolResult.Retryability.SAFE_READ_ONLY);
         }
     }
 
     private ToolResult handleWorkspaceSymbol(ToolInput input) {
         String query = input.getString("query", "");
         if (query.isEmpty()) {
-            return ToolResult.error("'query' is required for workspaceSymbol operation");
+            return ToolResult.validationError("LSP_QUERY_REQUIRED", "'query' is required for workspaceSymbol operation");
         }
 
         // P1: 需要遍历所有服务器发送请求
@@ -265,7 +268,7 @@ public class LSPTool implements Tool {
         int line = input.getInt("line", -1);
         int character = input.getInt("character", -1);
         if (line < 1 || character < 1) {
-            return ToolResult.error("'line' and 'character' are required for " + operation);
+            return ToolResult.validationError("LSP_POSITION_REQUIRED", "'line' and 'character' are required for " + operation);
         }
 
         try {
@@ -282,7 +285,8 @@ public class LSPTool implements Tool {
 
             return ToolResult.success(formatCallLocations(operation, results));
         } catch (Exception e) {
-            return ToolResult.error("LSP " + operation + " failed: " + e.getMessage());
+            return ToolResult.providerError("LSP_REQUEST_FAILED", "LSP " + operation + " failed: " + e.getMessage(),
+                    ToolResult.Retryability.SAFE_READ_ONLY);
         }
     }
 

@@ -50,12 +50,10 @@ class SandboxManagerTest {
     }
 
     @Test
-    @DisplayName("buildSandboxedProcess — 构建正确的 Docker 命令")
-    void buildSandboxedProcess_correctDockerCommand() {
-        ProcessBuilder pb = manager.buildSandboxedProcess(
-                "ls -la", Path.of("/tmp/test"), Map.of("PATH", "/usr/bin"));
-
-        var command = pb.command();
+    @DisplayName("prepareInvocation — 构建正确的 Docker 命令")
+    void prepareInvocation_correctDockerCommand() {
+        var command = manager.prepareInvocation(
+                "ls -la", Path.of("/tmp/test"), Map.of("PATH", "/usr/bin"), "run", "tool").command();
         assertTrue(command.contains("docker"));
         assertTrue(command.contains("run"));
         assertTrue(command.contains("--rm"));
@@ -66,24 +64,22 @@ class SandboxManagerTest {
     }
 
     @Test
-    @DisplayName("buildSandboxedProcess — 环境变量注入")
-    void buildSandboxedProcess_envVars() {
-        ProcessBuilder pb = manager.buildSandboxedProcess(
-                "echo hello", Path.of("/tmp"), Map.of("MY_VAR", "test"));
-
-        var command = pb.command();
+    @DisplayName("prepareInvocation — 环境变量注入")
+    void prepareInvocation_envVars() {
+        var command = manager.prepareInvocation(
+                "echo hello", Path.of("/tmp"), Map.of("MY_VAR", "test"), "run", "tool").command();
         assertTrue(command.contains("-e"));
         assertTrue(command.contains("MY_VAR=test"));
     }
 
     @Test
-    @DisplayName("buildSandboxedProcess — 网络启用时不加 --network=none")
-    void buildSandboxedProcess_networkEnabled() {
+    @DisplayName("prepareInvocation — 网络启用时不加 --network=none")
+    void prepareInvocation_networkEnabled() {
         config.setNetworkEnabled(true);
-        ProcessBuilder pb = manager.buildSandboxedProcess(
-                "curl http://example.com", Path.of("/tmp"), Map.of());
+        var command = manager.prepareInvocation(
+                "curl http://example.com", Path.of("/tmp"), Map.of(), "run", "tool").command();
 
-        assertFalse(pb.command().contains("--network=none"));
+        assertFalse(command.contains("--network=none"));
     }
 
     @Test
@@ -119,25 +115,12 @@ class SandboxManagerTest {
     }
 
     @Test
-    @DisplayName("SandboxResult — 成功结果")
-    void sandboxResult_success() {
-        var result = new SandboxManager.SandboxResult("output", 0, false);
-        assertTrue(result.isSuccess());
-    }
-
-    @Test
-    @DisplayName("SandboxResult — 超时结果")
-    void sandboxResult_timeout() {
-        var result = new SandboxManager.SandboxResult("partial", -1, true);
-        assertFalse(result.isSuccess());
-        assertTrue(result.timedOut());
-    }
-
-    @Test
-    @DisplayName("SandboxResult — 失败结果")
-    void sandboxResult_failure() {
-        var result = new SandboxManager.SandboxResult("error", 1, false);
-        assertFalse(result.isSuccess());
+    @DisplayName("prepareInvocation — container identity and cleanup are owned")
+    void prepareInvocation_ownedContainer() {
+        var invocation = manager.prepareInvocation("echo ok", Path.of("/tmp"), Map.of(), "run", "tool");
+        assertTrue(invocation.command().contains("--name"));
+        assertTrue(invocation.containerName().startsWith("zhikun-run-tool-"));
+        assertNotNull(invocation.cleanup());
     }
 
     private ToolInput createToolInput(String command) {

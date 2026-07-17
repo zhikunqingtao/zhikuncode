@@ -60,6 +60,7 @@
 | 📦 | **Evidence Bundle Visualization (RV-4)** | Tabbed viewer for 7 evidence types (screenshots / commands / console / tests / network HAR / videos / diffs); on verification failure, a STOMP `verify_attention` notification triggers a mobile bottom-sheet for one-tap approve/reject. Backed by `/api/evidence/*` REST endpoints (bundle by id, list by session, binary blob by SHA-256) |
 | 🏆 | **SWE-bench Lite Submission** | Single backbone `qwen3.7-max` + closed six-tool set (Read/Edit/Write/Bash/Grep/Glob); no internet, no sub-agent. Official harness reports **Resolve 56.0% (168/300)** and Patch generation **94.7% (284/300)**. [Technical Report →](https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html) |
 | 🚀 | **Extreme Performance** | REST API p50 1.5ms · WS STOMP handshake 2.22ms · 490 real request samples verified, core engines are zero-external-dependency pure Java implementations |
+| 🏭 | **Runtime Reliability** | Run state CAS atomic management · Durable Interaction Inbox (no message loss on disconnect) · Process hard timeout + graceful termination cascade · Permission Grant persistence (SESSION/WORKSPACE) · Artifact declare→seal→hash verification · Provider local budget guard |
 
 ---
 
@@ -401,6 +402,8 @@ ZhikunCode’s intelligent decision-making is driven by five core engines workin
 | **TokenBudgetGuard** | ~400 lines | Two-phase token budget control | Phase 1 historical Base64 pre-cleanup + Phase 2 final payload three-tier gradient degradation, preventing request overflows |
 | **ToolExecutionPipeline** | 618 lines | Tool execution full lifecycle | 7 main phases (with 2 sub-phases) in strict order |
 | **SelfCorrectionLoop** | — | Error diagnosis & auto-repair | MAX_ATTEMPTS=3 (default) / 7 (SWE-bench) |
+| **RunControlService** | ~500 LOC | Run lifecycle CAS | Three-dimensional state atomic updates, single terminal authority |
+| **DurableInteractionService** | ~400 LOC | Durable Interaction | Inbox + ACK + 30s offline grace + UNDELIVERABLE |
 
 ### Agent Loop Query Cycle
 
@@ -469,6 +472,8 @@ The permission pipeline uses a **multi-step short-circuit decision chain** desig
 | **Step 1a-1k** | 11 steps | Pre-security checks (Deny rules, Ask rules, tool permissions, command blocklist, dangerous deletion, write path safety, environment variables, hook injection, etc.) | Static rule matching + content safety |
 | **Step 2a-2b** | 2 steps | Mode application (Classifier AI risk assessment, Sandbox rules) | Dynamic mode branching |
 | **Step 3** | 1 step | Final decision output (DEFAULT/PLAN/ACCEPT_EDITS/DONT_ASK/AUTO/SKIP_ALL_PROMPTS mode branch decision) | Terminal decision |
+
+> Permission decisions support SESSION/WORKSPACE two-level persistence. Child agents are isolated via ChildExactGrant and do not inherit parent permissions.
 
 ### Protected Paths
 

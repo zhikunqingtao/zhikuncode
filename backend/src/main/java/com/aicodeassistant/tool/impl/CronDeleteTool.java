@@ -82,7 +82,7 @@ public class CronDeleteTool implements Tool {
                     + ", cron='" + task.cron() + "'"
                     + ", remaining=" + cronTaskService.taskCount());
         } else {
-            return ToolResult.error("No scheduled task found with id: " + id);
+            return ToolResult.validationError("CRON_TASK_NOT_FOUND", "No scheduled task found with id: " + id);
         }
     }
 }

@@ -167,7 +167,7 @@ public class WebFetchTool implements Tool {
         // SSRF 防护 — URL 安全检查
         String ssrfError = checkUrlSafety(url);
         if (ssrfError != null) {
-            return ToolResult.error("SSRF protection: " + ssrfError);
+            return ToolResult.validationError("WEB_FETCH_URL_DENIED", "SSRF protection: " + ssrfError);
         }
 
         Request request = new Request.Builder()
@@ -185,7 +185,8 @@ public class WebFetchTool implements Tool {
             byte[] bodyBytes;
             try (ResponseBody body = response.body()) {
                 if (body == null) {
-                    return ToolResult.error("Empty response from " + url);
+                    return ToolResult.networkError("WEB_FETCH_EMPTY_RESPONSE", "Empty response from " + url,
+                            ToolResult.Retryability.SAFE_READ_ONLY);
                 }
                 bodyBytes = readBodyWithLimit(body, MAX_RESPONSE_BYTES);
             }
@@ -218,13 +219,17 @@ public class WebFetchTool implements Tool {
                     .withMetadata("truncated", truncated);
 
         } catch (SocketTimeoutException e) {
-            return ToolResult.error("Request timed out after " + TIMEOUT_SECONDS + "s: " + url);
+            return ToolResult.networkError("WEB_FETCH_DEADLINE_EXCEEDED",
+                    "Request timed out after " + TIMEOUT_SECONDS + "s: " + url,
+                    ToolResult.Retryability.SAFE_READ_ONLY);
         } catch (IOException e) {
             String msg = e.getMessage();
             if (msg != null && msg.contains("Response exceeds size limit")) {
-                return ToolResult.error("Response too large (max " + MAX_RESPONSE_BYTES / 1024 / 1024 + "MB): " + url);
+                return ToolResult.validationError("WEB_FETCH_RESPONSE_SIZE_LIMIT",
+                        "Response too large (max " + MAX_RESPONSE_BYTES / 1024 / 1024 + "MB): " + url);
             }
-            return ToolResult.error("Failed to fetch URL: " + msg);
+            return ToolResult.networkError("WEB_FETCH_IO_FAILED", "Failed to fetch URL: " + msg,
+                    ToolResult.Retryability.SAFE_READ_ONLY);
         }
     }
 

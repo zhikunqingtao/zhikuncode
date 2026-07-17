@@ -88,7 +88,8 @@ public class CronListTool implements Tool {
             return ToolResult.success(objectMapper.writeValueAsString(result));
         } catch (Exception e) {
             log.error("Failed to list cron tasks: {}", e.getMessage(), e);
-            return ToolResult.error("Failed to list cron tasks: " + e.getMessage());
+            return ToolResult.internalError("CRON_LIST_FAILED", "Failed to list cron tasks: " + e.getMessage(),
+                    ToolResult.EffectState.NONE);
         }
     }
 }

@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
  * 注意: 可变状态，不适合用 record。
  *
  */
-public class AbortContext {
+public class AbortContext implements com.aicodeassistant.llm.CancellationSignal {
 
     private static final Logger log = LoggerFactory.getLogger(AbortContext.class);
 
@@ -33,13 +33,16 @@ public class AbortContext {
      * 触发中断 — volatile 写保证 happens-before。
      */
     public void abort(AbortReason r) {
-        if (this.aborted) return;  // 幂等
-        this.reason = r;
-        this.aborted = true;
+        List<Runnable> callbacks;
+        synchronized (this) {
+            if (this.aborted) return;
+            this.reason = r;
+            this.aborted = true;
+            callbacks = List.copyOf(abortCallbacks);
+            abortCallbacks.clear();
+        }
         abortFuture.complete(r);
-
-        // 执行所有注册的中断回调
-        for (Runnable callback : abortCallbacks) {
+        for (Runnable callback : callbacks) {
             try {
                 callback.run();
             } catch (Exception e) {
@@ -53,29 +56,41 @@ public class AbortContext {
      * 注册 abort 回调，用于中断正在进行的 HTTP 请求等。
      * 如果已经 aborted，立即执行回调。
      */
-    public void onAbortDo(Runnable callback) {
-        if (aborted) {
-            callback.run();  // 已经 aborted，立即执行
-        } else {
-            abortCallbacks.add(callback);
+    public com.aicodeassistant.llm.CancellationSignal.Registration register(Runnable callback) {
+        java.util.Objects.requireNonNull(callback, "callback");
+        synchronized (this) {
+            if (!aborted) {
+                abortCallbacks.add(callback);
+                return () -> abortCallbacks.remove(callback);
+            }
         }
+        callback.run();
+        return () -> { };
+    }
+
+    /** Compatibility adapter for older cancellation-aware tools. */
+    public void onAbortDo(Runnable callback) {
+        register(callback);
     }
 
     public boolean isAborted() {
         return aborted;
     }
 
+    @Override
+    public boolean isCancelled() { return isAborted(); }
+
     public AbortReason getReason() {
         return reason;
     }
 
     /**
-     * 是否应注入用户中断消息。
-     * submit-interrupt 不注入中断消息（保留用户新输入）。
+     * Only an explicit stop action is represented as a user-interrupt message.
+     * Submit replacement, timeout, internal failure and shutdown have their own
+     * structured exit reasons and must not be mislabeled as user actions.
      */
     public boolean shouldInjectInterruptMessage() {
-        return reason != AbortReason.SUBMIT_INTERRUPT
-                && reason != AbortReason.SESSION_DISCONNECTED;
+        return reason == AbortReason.USER_INTERRUPT;
     }
 
     /**

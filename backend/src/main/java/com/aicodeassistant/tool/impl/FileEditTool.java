@@ -135,7 +135,7 @@ public class FileEditTool implements Tool {
         PathCheckResult checkResult = pathSecurity.checkWritePermission(
                 input.getString("file_path"), context.workingDirectory());
         if (!checkResult.isAllowed()) {
-            return ToolResult.error(checkResult.message());
+            return ToolResult.validationError("FILE_WRITE_PATH_DENIED", checkResult.message());
         }
         if (checkResult.needsConfirmation()) {
             log.warn("Writing to sensitive path (allowed with warning): {}", filePath);
@@ -144,16 +144,16 @@ public class FileEditTool implements Tool {
         try {
             // 1. 基础验证
             if (oldString.equals(newString)) {
-                return ToolResult.error("old_string and new_string are identical. No changes to make.");
+                return ToolResult.validationError("FILE_EDIT_NO_CHANGE", "old_string and new_string are identical. No changes to make.");
             }
 
             // ★ FileStateCache 前置检查 — Read-before-Edit + 过期检测 (§11.5.9)
             FileStateCache cache = sessionManager.getFileStateCache(context.sessionId());
             if (!oldString.isEmpty() && !cache.hasBeenRead(filePath)) {
-                return ToolResult.error("请先使用 Read 工具读取文件内容");
+                return ToolResult.validationError("FILE_READ_REQUIRED", "请先使用 Read 工具读取文件内容");
             }
             if (!oldString.isEmpty() && cache.isStale(filePath)) {
-                return ToolResult.error("文件已被外部修改，请重新 Read");
+                return ToolResult.validationError("FILE_READ_STATE_STALE", "文件已被外部修改，请重新 Read");
             }
 
             Path path = resolved;
@@ -161,20 +161,31 @@ public class FileEditTool implements Tool {
             // 2. 文件不存在 + old_string 为空 = 创建新文件
             if (!Files.exists(path)) {
                 if (oldString.isEmpty()) {
-                    if (path.getParent() != null) {
-                        Files.createDirectories(path.getParent());
+                    WriteResult createResult = atomicFileWriter.write(path,
+                            newString.getBytes(java.nio.charset.StandardCharsets.UTF_8),
+                            context.sessionId(), AtomicFileWriter.ExpectedOldState.absent(),
+                            context.workingDirectory());
+                    if (!createResult.success()) {
+                        return writeFailure(createResult);
                     }
-                    Files.writeString(path, newString, StandardCharsets.UTF_8);
-                    return ToolResult.success("Created: " + filePath)
+                    String postCommitError = "";
+                    try { sessionManager.getFileStateCache(context.sessionId()).markModified(filePath); }
+                    catch (RuntimeException failure) {
+                        postCommitError = "POST_COMMIT_CACHE_UPDATE_FAILED";
+                        log.warn("File create applied but cache update failed for {}: {}", filePath, failure.getMessage());
+                    }
+                    return ToolResult.successWithEffect("Created: " + filePath, ToolResult.EffectState.APPLIED)
                             .withMetadata("type", "create")
-                            .withMetadata("filePath", filePath);
+                            .withMetadata("filePath", filePath)
+                            .withMetadata("sealedHash", createResult.newHash())
+                            .withMetadata("postCommitErrorCode", postCommitError);
                 }
-                return ToolResult.error("File does not exist: " + filePath);
+                return ToolResult.validationError("FILE_NOT_FOUND", "File does not exist: " + filePath);
             }
 
             // 3. 文件大小检查
             if (Files.size(path) > MAX_EDIT_FILE_SIZE) {
-                return ToolResult.error("File too large (>1GB). Cannot edit.");
+                return ToolResult.validationError("FILE_EDIT_SIZE_LIMIT", "File too large (>1GB). Cannot edit.");
             }
 
             String fileContent = Files.readString(path, StandardCharsets.UTF_8);
@@ -183,13 +194,10 @@ public class FileEditTool implements Tool {
             fileVersionTracker.recordRead(filePath);
             String expectedHash = fileVersionTracker.computeHash(fileContent);
 
-            // ── 新增: 编辑前保存快照 ──
-            fileHistoryService.trackEdit(filePath, context.sessionId(), context.toolUseId(), "edit");
-
             // 4. 查找 old_string (5 策略 fuzzy matching)
             String actualOldString = findActualString(fileContent, oldString);
             if (actualOldString == null) {
-                return ToolResult.error(
+                return ToolResult.validationError("FILE_EDIT_MATCH_NOT_FOUND",
                         "No match found for the specified old_string in " + filePath + ".\n"
                                 + "Attempted strategies: exact → quote-normalization → trailing-whitespace → newline-normalization → tab/space-normalization\n"
                                 + "Suggestions:\n"
@@ -201,7 +209,7 @@ public class FileEditTool implements Tool {
             // 5. 验证唯一性
             int matchCount = countMatches(fileContent, actualOldString);
             if (matchCount > 1 && !replaceAll) {
-                return ToolResult.error("Found " + matchCount + " matches. "
+                return ToolResult.validationError("FILE_EDIT_MATCH_AMBIGUOUS", "Found " + matchCount + " matches. "
                         + "Set replace_all=true or provide more context to uniquely identify.");
             }
 
@@ -217,7 +225,7 @@ public class FileEditTool implements Tool {
             if (conflictResult.hasConflict()) {
                 log.warn("Conflict-Abort: file {} modified since last read (expected={}, current={})",
                         filePath, conflictResult.expectedHash(), conflictResult.currentHash());
-                return ToolResult.error(
+                return ToolResult.validationError("FILE_CONFLICT",
                         "文件自上次读取后已被修改，请重新读取文件后再编辑。\n"
                         + "Expected hash: " + conflictResult.expectedHash() + "\n"
                         + "Current hash: " + conflictResult.currentHash()
@@ -226,33 +234,66 @@ public class FileEditTool implements Tool {
             }
 
             // 8. 原子写入（替代 Files.writeString）
-            WriteResult writeResult = atomicFileWriter.atomicWrite(path, newContent, context.sessionId());
+            String expectedOldHash = fileVersionTracker.computeHash(fileContent);
+            WriteResult writeResult = atomicFileWriter.write(path,
+                    newContent.getBytes(java.nio.charset.StandardCharsets.UTF_8), context.sessionId(),
+                    AtomicFileWriter.ExpectedOldState.sha256(expectedOldHash),
+                    context.workingDirectory());
             if (!writeResult.success()) {
-                return ToolResult.error("原子写入失败: " + writeResult.error());
+                return writeFailure(writeResult);
+            }
+            FileHistoryService.HistoryRecordResult history;
+            String diffText = "";
+            String postCommitError = "";
+            try {
+                history = fileHistoryService.trackAppliedEdit(filePath, fileContent, context.sessionId(),
+                        context.toolUseId(), "edit");
+                if (history == null) history = new FileHistoryService.HistoryRecordResult(false, "HISTORY_RESULT_UNAVAILABLE");
+                sessionManager.getFileStateCache(context.sessionId()).markModified(filePath);
+                List<String> originalLines = Arrays.asList(fileContent.split("\n", -1));
+                List<String> newLines = Arrays.asList(newContent.split("\n", -1));
+                Patch<String> patch = DiffUtils.diff(originalLines, newLines);
+                diffText = String.join("\n", UnifiedDiffUtils.generateUnifiedDiff(
+                        filePath, filePath, originalLines, patch, 3));
+            } catch (RuntimeException postCommitFailure) {
+                log.warn("File edit applied but post-commit bookkeeping failed for {}: {}",
+                        filePath, postCommitFailure.getMessage());
+                history = new FileHistoryService.HistoryRecordResult(false, "POST_COMMIT_BOOKKEEPING_FAILED");
+                postCommitError = "POST_COMMIT_BOOKKEEPING_FAILED";
             }
 
-            // 9. 生成 unified diff
-            List<String> originalLines = Arrays.asList(fileContent.split("\n", -1));
-            List<String> newLines = Arrays.asList(newContent.split("\n", -1));
-            Patch<String> patch = DiffUtils.diff(originalLines, newLines);
-            List<String> unifiedDiff = UnifiedDiffUtils.generateUnifiedDiff(
-                    filePath, filePath, originalLines, patch, 3);
-
-            String diffText = String.join("\n", unifiedDiff);
-
-            return ToolResult.success("Edited: " + filePath)
+            return ToolResult.successWithEffect("Edited: " + filePath, ToolResult.EffectState.APPLIED)
                     .withMetadata("type", "update")
                     .withMetadata("filePath", filePath)
                     .withMetadata("diff", diffText)
+                    .withMetadata("sealedHash", writeResult.newHash())
+                    .withMetadata("historyRecorded", history.recorded())
+                    .withMetadata("historyErrorCode", history.errorCode() == null ? "" : history.errorCode())
+                    .withMetadata("postCommitErrorCode", postCommitError)
                     .withMetadata("matchCount", replaceAll ? matchCount : 1);
 
         } catch (IOException e) {
             log.error("Failed to edit file: {}", filePath, e);
-            return ToolResult.error("Failed to edit file: " + e.getMessage());
+            return ToolResult.internalError("FILE_EDIT_IO_FAILED",
+                    "Failed to edit file: " + e.getMessage(), ToolResult.EffectState.NOT_STARTED);
         } finally {
             // ★ KeyFileTracker 埋点 — 记录文件编辑 ★
-            keyFileTracker.trackFileReference(context.sessionId(), filePath, context.toolUseId());
+            try { keyFileTracker.trackFileReference(context.sessionId(), filePath, context.toolUseId()); }
+            catch (RuntimeException trackingFailure) {
+                log.warn("File reference tracking failed for {}: {}", filePath, trackingFailure.getMessage());
+            }
         }
+    }
+
+    private static ToolResult writeFailure(WriteResult result) {
+        ToolResult.EffectState effect = switch (result.effect()) {
+            case NOT_STARTED -> ToolResult.EffectState.NOT_STARTED;
+            case APPLIED -> ToolResult.EffectState.APPLIED;
+            case UNKNOWN -> ToolResult.EffectState.UNKNOWN;
+        };
+        return ToolResult.failed(ToolResult.ToolFailureType.INTERNAL, "ATOMIC_WRITE_FAILED",
+                "原子写入失败: " + result.error(), ToolResult.Retryability.NEVER,
+                effect, null, Map.of("sealedHash", result.newHash() == null ? "" : result.newHash()));
     }
 
     /**

@@ -94,7 +94,8 @@ class ToolExecutionTimeoutTest {
         // pipeline 返回 error result
         when(pipeline.execute(any(Tool.class), any(ToolInput.class), any(ToolUseContext.class), any()))
                 .thenReturn(ToolExecutionResult.of(
-                        ToolResult.error("<tool_use_error>boom</tool_use_error>")));
+                        ToolResult.internalError("TEST_TOOL_FAILURE",
+                                "<tool_use_error>boom</tool_use_error>", ToolResult.EffectState.NONE)));
 
         Tool highRisk = mockTool("HighRiskMock", true, false, 10_000L);
         session.addTool(highRisk, ToolInput.from(Map.of()), "tu-hr", ctx);
@@ -123,7 +124,8 @@ class ToolExecutionTimeoutTest {
 
         when(pipeline.execute(any(Tool.class), any(ToolInput.class), any(ToolUseContext.class), any()))
                 .thenReturn(ToolExecutionResult.of(
-                        ToolResult.error("<tool_use_error>read failed</tool_use_error>")));
+                        ToolResult.internalError("TEST_READ_FAILURE",
+                                "<tool_use_error>read failed</tool_use_error>", ToolResult.EffectState.NONE)));
 
         Tool lowRisk = mockTool("ReadMock", false, true, 10_000L);
         session.addTool(lowRisk, ToolInput.from(Map.of()), "tu-low", ctx);
@@ -137,7 +139,7 @@ class ToolExecutionTimeoutTest {
     // ═══════════════ 场景 3: SubAgent 超时返回结构化 error ═══════════════
 
     @Test
-    @DisplayName("场景3: AgentResult.STATUS_TIMEOUT 通过 AgentTool 映射为 ToolResult.error()")
+    @DisplayName("场景3: AgentResult.STATUS_TIMEOUT 通过 AgentTool 映射为结构化超时结果")
     void testSubAgentTimeoutMappedToToolErrorWithTag() {
         SubAgentExecutor mockExecutor = mock(SubAgentExecutor.class);
         LlmProviderRegistry mockRegistry = mock(LlmProviderRegistry.class);
@@ -225,10 +227,10 @@ class ToolExecutionTimeoutTest {
                 mock(com.aicodeassistant.tool.bash.BashCommandClassifier.class),
                 mock(com.aicodeassistant.tool.bash.ShellStateManager.class),
                 mock(com.aicodeassistant.tool.bash.BashOutputProcessor.class),
-                mock(com.aicodeassistant.tool.bash.ProcessTreeManager.class),
                 mock(com.aicodeassistant.sandbox.SandboxManager.class),
                 mock(com.aicodeassistant.security.CommandBlacklistService.class),
-                mock(com.aicodeassistant.tool.bash.BashErrorClassifier.class));
+                mock(com.aicodeassistant.tool.bash.BashErrorClassifier.class),
+                mock(com.aicodeassistant.tool.process.ManagedProcessRunner.class));
         assertThat(bashTool.isHighRisk()).as("BashTool 必须为高危").isTrue();
         assertThat(bashTool.getMaxExecutionTimeMs()).as("BashTool 应声明 10 分钟").isEqualTo(600_000L);
 

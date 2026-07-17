@@ -176,12 +176,12 @@ public class McpToolAdapter implements Tool {
                     log.info("MCP server '{}' reconnected during wait, proceeding with call",
                             connection.getName());
                 } else {
-                    return fallbackToCacheOrError(cacheKey,
+                    return fallbackToCacheOrError(cacheKey, "MCP_CONNECTION_UNAVAILABLE",
                             "MCP server '" + connection.getName()
                                     + "' not connected after wait (status: " + connection.getStatus() + ")");
                 }
             } else {
-                return fallbackToCacheOrError(cacheKey,
+                return fallbackToCacheOrError(cacheKey, "MCP_CONNECTION_UNAVAILABLE",
                         "MCP server '" + connection.getName()
                                 + "' is not connected (status: " + connection.getStatus() + ")");
             }
@@ -233,14 +233,14 @@ public class McpToolAdapter implements Tool {
             if (e.getCode() == JsonRpcError.REQUEST_TIMEOUT) {
                 log.warn("MCP tool call timed out after {}ms: {} on {}",
                         timeoutMs, originalToolName, connection.getName());
-                return fallbackToCacheOrError(cacheKey,
+                return fallbackToCacheOrError(cacheKey, "MCP_CALL_DEADLINE_EXCEEDED",
                         "MCP tool call timed out after " + timeoutMs + "ms");
             }
             log.error("MCP tool call failed: {} on {}", originalToolName, connection.getName(), e);
-            return fallbackToCacheOrError(cacheKey, "MCP error: " + e.getMessage());
+            return fallbackToCacheOrError(cacheKey, "MCP_PROTOCOL_ERROR", "MCP error: " + e.getMessage());
         } catch (Exception e) {
             log.error("MCP tool call failed: {} on {}", originalToolName, connection.getName(), e);
-            return fallbackToCacheOrError(cacheKey, "MCP tool call failed: " + e.getMessage());
+            return fallbackToCacheOrError(cacheKey, "MCP_TRANSPORT_ERROR", "MCP tool call failed: " + e.getMessage());
         } finally {
             // M4: 资源清理 — 无论成功/失败/超时都需 unregister
             if (tracked) {
@@ -289,7 +289,7 @@ public class McpToolAdapter implements Tool {
      * ★ 降级策略 — 连接失败时尝试返回缓存结果，否则返回错误。
      * 缓存命中时在结果中标记 [cached]，让 AI 知道这是缓存数据。
      */
-    private ToolResult fallbackToCacheOrError(String cacheKey, String errorMsg) {
+    private ToolResult fallbackToCacheOrError(String cacheKey, String errorCode, String errorMsg) {
         if (!isRealtimeTool()) {
             String cached = RESULT_CACHE.getIfPresent(cacheKey);
             if (cached != null) {
@@ -301,7 +301,8 @@ public class McpToolAdapter implements Tool {
                         .withMetadata("cached", "true");
             }
         }
-        return ToolResult.error(errorMsg);
+        return ToolResult.networkError(errorCode, errorMsg, ToolResult.Retryability.NEVER,
+                ToolResult.EffectState.UNKNOWN);
     }
 
     /**

@@ -153,7 +153,8 @@ public class TaskCreateTool implements Tool {
                     "Task #" + taskId + " created successfully: " + description);
 
         } catch (IllegalStateException e) {
-            return ToolResult.error("Failed to create task: " + e.getMessage());
+            return ToolResult.internalError("TASK_CREATE_FAILED", "Failed to create task: " + e.getMessage(),
+                    ToolResult.EffectState.UNKNOWN);
         }
     }
 

@@ -285,8 +285,11 @@ public class SessionController {
         for (Message msg : data.messages()) {
             if (msg instanceof Message.UserMessage user) {
                 sb.append("## User\n\n");
-                if (user.toolUseResult() != null) {
-                    sb.append(user.toolUseResult()).append("\n\n");
+                for (var block : com.aicodeassistant.engine.MessageContentAccessor.viewOf(user).blocks()) {
+                    if (block instanceof com.aicodeassistant.model.ContentBlock.TextBlock text)
+                        sb.append(text.text()).append("\n\n");
+                    else if (block instanceof com.aicodeassistant.model.ContentBlock.ToolResultBlock result)
+                        sb.append(result.content()).append("\n\n");
                 }
             } else if (msg instanceof Message.AssistantMessage assistant) {
                 sb.append("## Assistant\n\n");

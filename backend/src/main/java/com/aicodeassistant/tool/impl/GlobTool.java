@@ -81,12 +81,12 @@ public class GlobTool implements Tool {
         Path basePath = Path.of(searchPath);
 
         if (!Files.isDirectory(basePath)) {
-            return ToolResult.error("Directory does not exist: " + searchPath);
+            return ToolResult.validationError("GLOB_DIRECTORY_NOT_FOUND", "Directory does not exist: " + searchPath);
         }
 
         // UNC路径安全检查
         if (searchPath.startsWith("\\\\") || searchPath.startsWith("//")) {
-            return ToolResult.error("UNC paths are not allowed");
+            return ToolResult.validationError("GLOB_UNC_PATH_DENIED", "UNC paths are not allowed");
         }
 
         long start = System.currentTimeMillis();
@@ -128,7 +128,8 @@ public class GlobTool implements Tool {
 
         } catch (IOException e) {
             log.error("Glob search failed for pattern '{}' in '{}'", pattern, searchPath, e);
-            return ToolResult.error("Glob search failed: " + e.getMessage());
+            return ToolResult.internalError("GLOB_SEARCH_IO_FAILED",
+                    "Glob search failed: " + e.getMessage(), ToolResult.EffectState.NONE);
         }
 
         long durationMs = System.currentTimeMillis() - start;

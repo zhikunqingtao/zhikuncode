@@ -1,8 +1,6 @@
 package com.aicodeassistant.engine;
 
-import com.aicodeassistant.config.ModelCapabilityConfig;
 import com.aicodeassistant.llm.LlmProviderRegistry;
-import com.aicodeassistant.llm.ModelCapabilityRegistry;
 import com.aicodeassistant.model.ContentBlock;
 import com.aicodeassistant.model.Message;
 import com.aicodeassistant.model.SystemMessageType;
@@ -26,10 +24,7 @@ class CompactServiceUnitTest {
 
     @BeforeEach
     void setUp() {
-        ModelCapabilityConfig capCfg = new ModelCapabilityConfig();
-        ModelCapabilityRegistry capRegistry = new ModelCapabilityRegistry(capCfg);
-        capRegistry.init();
-        tokenCounter = new TokenCounter(capRegistry, null, null);
+        tokenCounter = new TokenCounter(null, null, null);
         compactService = new CompactService(tokenCounter, new LlmProviderRegistry(List.of(), null), null, null);
     }
 
@@ -224,8 +219,13 @@ class CompactServiceUnitTest {
             CompactService.CompactResult result = compactService.compact(messages, 100000, false);
             if (result.skipReason() == null) {
                 assertThat(result.compactedMessages()).isNotEmpty();
+                assertThat(result.afterTokens()).isLessThan(result.beforeTokens());
+                assertThat(result.savedTokens()).isPositive();
+                assertThat(result.compressionRatio()).isPositive();
                 // 压缩后消息数应不超过原始消息数 + 1 (压缩边界标记)
                 assertThat(result.compactedMessages().size()).isLessThanOrEqualTo(messages.size() + 1);
+            } else {
+                assertThat(result.skipReason()).isIn("no_token_savings", "not_needed");
             }
         }
 
@@ -277,6 +277,17 @@ class CompactServiceUnitTest {
                     List.of(userMessage("a")), 1000, 500);
             assertThat(result.savedTokens()).isEqualTo(500);
             assertThat(result.compressionRatio()).isCloseTo(0.5, org.assertj.core.data.Offset.offset(0.01));
+        }
+
+        @Test
+        @DisplayName("success 拒绝 token 扩张候选")
+        void successRejectsExpansion() {
+            CompactService.CompactResult result = CompactService.CompactResult.success(
+                    List.of(userMessage("larger")), 100, 101);
+
+            assertThat(result.skipReason()).isEqualTo("no_token_savings");
+            assertThat(result.savedTokens()).isZero();
+            assertThat(result.compressionRatio()).isZero();
         }
 
         @Test

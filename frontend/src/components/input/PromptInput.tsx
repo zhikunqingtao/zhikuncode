@@ -110,6 +110,33 @@ const PromptInput: React.FC<PromptInputProps> = ({
         return () => window.removeEventListener('keydown', handler);
     }, []);
 
+    const handleSubmit = useCallback(() => {
+        const trimmed = input.trim();
+        if (!trimmed && attachments.length === 0) return;
+
+        if (trimmed.startsWith('/')) {
+            onSlashCommand(trimmed);
+            setInput('');
+            setShowCommands(false);
+            return;
+        }
+        if (useSessionStore.getState().status === 'streaming') {
+            sendToServer('/app/interrupt', { isSubmitInterrupt: true });
+        }
+        historyRef.current.push(trimmed);
+        setHistoryIndex(-1);
+        const submitAttachments: Attachment[] = attachments.map(a => ({
+            type: a.type.startsWith('image/') ? 'image' as const : 'file' as const,
+            name: a.name,
+            base64Data: a.base64Content ?? '',
+            mediaType: a.type,
+        }));
+        onSubmit({ text: trimmed, attachments: submitAttachments, references: new Map(), isFastMode: false });
+        attachments.forEach(a => { if (a.previewUrl) URL.revokeObjectURL(a.previewUrl); });
+        setInput('');
+        setAttachments([]);
+    }, [input, attachments, onSubmit, onSlashCommand]);
+
     // Keyboard event handling
     const handleKeyDown = useCallback((e: KeyboardEvent<HTMLTextAreaElement>) => {
         // IME composition protection (v1.49.0 F4-03)
@@ -167,46 +194,7 @@ const PromptInput: React.FC<PromptInputProps> = ({
         if (e.key === 'Tab' && showCommands) {
             e.preventDefault();
         }
-    }, [input, isLoading, showCommands, showGlobalPalette, historyIndex, onInterrupt]);
-
-    const handleSubmit = useCallback(() => {
-        const trimmed = input.trim();
-        if (!trimmed && attachments.length === 0) return;
-
-        // Slash command detection
-        if (trimmed.startsWith('/')) {
-            onSlashCommand(trimmed);
-            setInput('');
-            setShowCommands(false);
-            return;
-        }
-
-        // Normal message submission
-        // 如果当前正在流式响应，发送 submit-interrupt（对齐原版 reason !== 'interrupt'）
-        if (useSessionStore.getState().status === 'streaming') {
-            sendToServer('/app/interrupt', { isSubmitInterrupt: true });
-        }
-        historyRef.current.push(trimmed);
-        setHistoryIndex(-1);
-        const submitAttachments: Attachment[] = attachments.map(a => ({
-            type: a.type.startsWith('image/') ? 'image' as const : 'file' as const,
-            name: a.name,
-            base64Data: a.base64Content ?? '',
-            mediaType: a.type,
-        }));
-        onSubmit({
-            text: trimmed,
-            attachments: submitAttachments,
-            references: new Map(),
-            isFastMode: false,
-        });
-        // 释放所有预览 URL，防止内存泄漏
-        attachments.forEach(a => {
-            if (a.previewUrl) URL.revokeObjectURL(a.previewUrl);
-        });
-        setInput('');
-        setAttachments([]);
-    }, [input, attachments, onSubmit, onSlashCommand]);
+    }, [input, isLoading, showCommands, showGlobalPalette, historyIndex, onInterrupt, handleSubmit]);
 
     const handleFiles = useCallback(async (files: File[]) => {
         const accepted: LocalAttachment[] = [];

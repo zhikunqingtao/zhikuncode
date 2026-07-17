@@ -103,7 +103,7 @@ public class SyntheticOutputTool implements Tool {
         Map<String, Object> rawData = input.getRawData();
 
         if (rawData.isEmpty()) {
-            return ToolResult.error("Empty structured output.");
+            return ToolResult.validationError("STRUCTURED_OUTPUT_EMPTY", "Empty structured output.");
         }
 
         try {
@@ -118,8 +118,8 @@ public class SyntheticOutputTool implements Tool {
                     .withMetadata("structured_output", rawData);
 
         } catch (Exception e) {
-            return ToolResult.error(
-                    "Failed to process structured output: " + e.getMessage());
+            return ToolResult.internalError("STRUCTURED_OUTPUT_PROCESSING_FAILED",
+                    "Failed to process structured output: " + e.getMessage(), ToolResult.EffectState.NONE);
         }
     }
 

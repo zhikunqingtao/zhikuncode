@@ -3,9 +3,11 @@ import { useMessageStore } from '@/store/messageStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { usePermissionStore } from '@/store/permissionStore';
 import { useNotificationStore } from '@/store/notificationStore';
-import { dispatch } from '@/api/dispatch';
+import { bindSessionAndWait, dispatch, resetBoundSession } from '@/api/dispatch';
 
 beforeEach(() => {
+    resetBoundSession();
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => [] }));
     // Reset stores between tests
     useMessageStore.setState({
         messages: [],
@@ -32,12 +34,20 @@ describe('dispatch 消息分发', () => {
         }).not.toThrow();
     });
 
-    test('session_restored → clearMessages + addMessage + resumeSession', () => {
+    test('session_restored → clearMessages + addMessage + resumeSession', async () => {
+        let bindRequestId = '';
+        let bindingEpoch = 0;
+        const bound = bindSessionAndWait('s1', payload => {
+            bindRequestId = payload.bindRequestId;
+            bindingEpoch = payload.bindingEpoch;
+        });
         dispatch({
-            type: 'session_restored', ts: 1,
+            type: 'session_restored', ts: 1, bindRequestId, protocolVersion: 3,
+            bindingEpoch,
             messages: [{ type: 'user', uuid: '1', timestamp: 1, content: [{ type: 'text', text: 'hi' }] }],
             metadata: { sessionId: 's1', model: 'gpt-4o', status: 'idle' },
         } as never);
+        await expect(bound).resolves.toBe(true);
         expect(useMessageStore.getState().messages).toHaveLength(1);
         expect(useSessionStore.getState().model).toBe('gpt-4o');
     });

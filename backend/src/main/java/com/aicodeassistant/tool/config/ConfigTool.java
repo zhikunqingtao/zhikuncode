@@ -165,7 +165,7 @@ public class ConfigTool implements Tool {
             case "get" -> {
                 String key = input.getString("key");
                 if (!DEFAULTS.containsKey(key)) {
-                    yield ToolResult.error("Unknown setting: " + key);
+                    yield ToolResult.validationError("CONFIG_SETTING_UNKNOWN", "Unknown setting: " + key);
                 }
                 Object value = store.getOrDefault(key, DEFAULTS.get(key));
                 yield ToolResult.success(
@@ -176,7 +176,7 @@ public class ConfigTool implements Tool {
                 String value = input.getString("value");
 
                 if (!DEFAULTS.containsKey(key)) {
-                    yield ToolResult.error("Unknown setting: " + key);
+                    yield ToolResult.validationError("CONFIG_SETTING_UNKNOWN", "Unknown setting: " + key);
                 }
 
                 // "default" → 重置
@@ -192,7 +192,7 @@ public class ConfigTool implements Tool {
                         ? getModelOptions()
                         : OPTIONS.get(key);
                 if (options != null && !options.contains(value)) {
-                    yield ToolResult.error(
+                    yield ToolResult.validationError("CONFIG_VALUE_INVALID",
                             "Invalid value for '" + key + "'. Options: " + options);
                 }
 
@@ -205,7 +205,7 @@ public class ConfigTool implements Tool {
                 yield ToolResult.success(String.format(
                         "Setting '%s' updated: %s → %s", key, previousValue, typedValue));
             }
-            default -> ToolResult.error(
+            default -> ToolResult.validationError("CONFIG_ACTION_INVALID",
                     "Unknown action: " + action + ". Expected: get, set, list.");
         };
     }

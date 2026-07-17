@@ -64,7 +64,7 @@ public class SkillExecutor {
         // 1. 查找技能定义
         SkillDefinition skill = skillRegistry.resolve(skillName);
         if (skill == null) {
-            return ToolResult.error("Skill not found: " + skillName
+            return ToolResult.validationError("SKILL_NOT_FOUND", "Skill not found: " + skillName
                     + ". Available skills: " + skillRegistry.getAllSkills().stream()
                     .map(SkillDefinition::name)
                     .reduce((a, b) -> a + ", " + b)
@@ -81,7 +81,7 @@ public class SkillExecutor {
         SkillToolValidator.ValidationResult argsValidation = skillToolValidator.validateArgs(skill.effectiveName(), params);
         if (!argsValidation.allowed()) {
             log.warn("[SKILL] Args validation failed for '{}': {}", skill.effectiveName(), argsValidation.reason());
-            return ToolResult.error("Skill argument validation failed: " + argsValidation.reason());
+            return ToolResult.validationError("SKILL_ARGUMENTS_INVALID", "Skill argument validation failed: " + argsValidation.reason());
         }
 
         String renderedPrompt = skill.renderTemplate(params);
@@ -90,7 +90,7 @@ public class SkillExecutor {
         int estimatedRequestTokens = tokenCounter.estimateTokens(renderedPrompt);
         if (!skillTokenBudget.canConsume(context.sessionId(), skillName, estimatedRequestTokens)) {
             BudgetStatus status = skillTokenBudget.getStatus(context.sessionId(), skillName);
-            return ToolResult.error(String.format(
+            return ToolResult.validationError("SKILL_TOKEN_BUDGET_EXCEEDED", String.format(
                     "Skill token budget exceeded. Skill '%s' used %d/%d tokens, session total %d/%d",
                     skillName, status.skillUsed(), SkillTokenBudget.SINGLE_SKILL_BUDGET,
                     status.sessionUsed(), SkillTokenBudget.TOTAL_SESSION_BUDGET));
@@ -101,7 +101,7 @@ public class SkillExecutor {
             SkillToolValidator.ValidationResult forkValidation = skillToolValidator.validateForkPermission(skill, context);
             if (!forkValidation.allowed()) {
                 log.warn("[SKILL] Fork validation failed for '{}': {}", skill.effectiveName(), forkValidation.reason());
-                return ToolResult.error("Skill fork permission denied: " + forkValidation.reason());
+                return ToolResult.permissionDenied("SKILL_FORK_PERMISSION_DENIED", "Skill fork permission denied: " + forkValidation.reason());
             }
         }
 
@@ -120,10 +120,13 @@ public class SkillExecutor {
                 log.warn("[SKILL] Execution timed out after {}s for skill '{}'", SKILL_TIMEOUT_SECONDS, skillName);
                 // Record estimated consumption on timeout
                 skillTokenBudget.recordConsumption(context.sessionId(), skillName, estimatedRequestTokens);
-                return ToolResult.error("Skill '" + skillName + "' execution timed out after " + SKILL_TIMEOUT_SECONDS + " seconds");
+                return ToolResult.timedOut("SKILL_EXECUTION_DEADLINE_EXCEEDED",
+                        "Skill '" + skillName + "' execution timed out after " + SKILL_TIMEOUT_SECONDS + " seconds",
+                        null, true, ToolResult.EffectState.UNKNOWN);
             }
             log.error("[SKILL] Unexpected error executing skill '{}': {}", skillName, ex.getMessage(), ex);
-            return ToolResult.error("Skill execution failed: " + ex.getMessage());
+            return ToolResult.internalError("SKILL_EXECUTION_FAILED", "Skill execution failed: " + ex.getMessage(),
+                    ToolResult.EffectState.UNKNOWN);
         }
 
         // 5. 记录实际token消耗
@@ -161,9 +164,8 @@ public class SkillExecutor {
                                       ToolUseContext context) {
         log.info("Skill '{}' executing in inline mode", skill.name());
 
-        return new ToolResult(
+        return ToolResult.success(
                 "Skill '" + skill.name() + "' loaded. Prompt injected.",
-                false,
                 Map.of(
                         "injectedPrompt", renderedPrompt,
                         "commandName", skill.name(),

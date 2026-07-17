@@ -54,10 +54,11 @@ public class LspTool implements Tool {
                     lspService.getDiagnostics(filePath)));
                 case "hover" -> ToolResult.success(
                     lspService.getHoverInfo(filePath, input.getInt("line"), input.getInt("column")));
-                default -> ToolResult.error("未知 LSP 操作: " + action);
+                default -> ToolResult.validationError("LSP_OPERATION_INVALID", "未知 LSP 操作: " + action);
             };
         } catch (Exception e) {
-            return ToolResult.error("LSP 查询失败: " + e.getMessage());
+            return ToolResult.providerError("LSP_REQUEST_FAILED", "LSP 查询失败: " + e.getMessage(),
+                    ToolResult.Retryability.SAFE_READ_ONLY);
         }
     }
 

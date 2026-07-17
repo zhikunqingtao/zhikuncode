@@ -58,8 +58,8 @@ const TreeNode: React.FC<{ node: FileNode; depth: number }> = ({ node, depth }) 
 );
 
 export const FileListRenderer: React.FC<{ content: string }> = ({ content }) => {
-    const paths = content.trim().split('\n').filter(Boolean);
-    const tree = useMemo(() => buildTree(paths), [content]);
+    const paths = useMemo(() => content.trim().split('\n').filter(Boolean), [content]);
+    const tree = useMemo(() => buildTree(paths), [paths]);
 
     return (
         <div className="text-sm">

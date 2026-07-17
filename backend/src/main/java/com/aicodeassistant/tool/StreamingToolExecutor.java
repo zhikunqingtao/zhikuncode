@@ -7,6 +7,9 @@ import io.micrometer.core.instrument.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import com.aicodeassistant.tool.process.ManagedProcessRunner;
+import com.aicodeassistant.run.RunExecutionRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,10 +49,18 @@ public class StreamingToolExecutor {
     private final Counter cascadeAbortCounter;
     private final Counter watchdogFiredCounter;
     private final Counter syntheticErrorCounter;
+    private final ManagedProcessRunner processRunner;
+    private final RunExecutionRegistry runExecutions;
+    private final ConcurrentHashMap<String, java.util.Set<ExecutionSession>> sessionsByRun = new ConcurrentHashMap<>();
 
-    public StreamingToolExecutor(ToolExecutionPipeline pipeline, MeterRegistry meterRegistry) {
+    @Autowired
+    public StreamingToolExecutor(ToolExecutionPipeline pipeline, MeterRegistry meterRegistry,
+                                 ManagedProcessRunner processRunner,
+                                 RunExecutionRegistry runExecutions) {
         this.pipeline = pipeline;
         this.meterRegistry = meterRegistry;
+        this.processRunner = processRunner;
+        this.runExecutions = runExecutions;
 
         // ★ Virtual Thread 活跃数 Gauge
         Gauge.builder("zhiku.tool.virtual_threads.active", activeVirtualThreads, AtomicInteger::get)
@@ -75,6 +86,16 @@ public class StreamingToolExecutor {
                 .register(meterRegistry);
     }
 
+    public StreamingToolExecutor(ToolExecutionPipeline pipeline, MeterRegistry meterRegistry) {
+        this(pipeline, meterRegistry, null, null);
+    }
+
+    /** Isolated-test constructor. */
+    public StreamingToolExecutor(ToolExecutionPipeline pipeline, MeterRegistry meterRegistry,
+                                 ManagedProcessRunner processRunner) {
+        this(pipeline, meterRegistry, processRunner, null);
+    }
+
     /** 工具状态机 */
     public enum ToolState {
         QUEUED,
@@ -92,6 +113,7 @@ public class StreamingToolExecutor {
         private volatile ToolState state;
         private volatile ToolResult result;
         private volatile ToolUseContext updatedContext;  // contextModifier 产生的更新上下文
+        private volatile Thread executionThread;
 
         public TrackedTool(String toolUseId, Tool tool, ToolInput input, ToolUseContext context) {
             this.toolUseId = toolUseId;
@@ -115,7 +137,37 @@ public class StreamingToolExecutor {
      * @param initialContext 初始工具使用上下文
      */
     public ExecutionSession newSession(ToolUseContext initialContext) {
-        return new ExecutionSession(initialContext);
+        String ownerRunId = initialContext == null ? null : initialContext.currentRunId();
+        RunExecutionRegistry.WorkLease lease = ownerRunId == null || runExecutions == null
+                ? null : runExecutions.acquireWork(ownerRunId, "tool-session", java.util.UUID.randomUUID().toString());
+        ExecutionSession session = new ExecutionSession(initialContext, lease);
+        if (lease != null) lease.onCancel(() -> session.discard(false));
+        if (session.ownerRunId != null) {
+            sessionsByRun.computeIfAbsent(session.ownerRunId, ignored -> ConcurrentHashMap.newKeySet())
+                    .add(session);
+        }
+        return session;
+    }
+
+    /** Cancels queued work for one Run. Running process-backed tools are stopped by ManagedProcessRunner. */
+    public int cancelRun(String runId) {
+        return cancelRunDetailed(runId).confirmedSessions();
+    }
+
+    public ToolCancelSummary cancelRunDetailed(String runId) {
+        java.util.Set<ExecutionSession> sessions = sessionsByRun.remove(runId);
+        if (sessions == null) return new ToolCancelSummary(0, 0, 0);
+        sessions.forEach(session -> session.discard(false));
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
+        int confirmed = 0;
+        for (ExecutionSession session : sessions) {
+            if (session.awaitStopped(deadline)) confirmed++;
+        }
+        return new ToolCancelSummary(sessions.size(), confirmed, sessions.size() - confirmed);
+    }
+
+    public record ToolCancelSummary(int foundSessions, int confirmedSessions, int unconfirmedSessions) {
+        public boolean allTerminated() { return unconfirmedSessions == 0; }
     }
 
     /**
@@ -129,6 +181,9 @@ public class StreamingToolExecutor {
         private volatile boolean sessionDiscarded = false;
         // ★ 新增：会话级当前上下文，支持 CAS 更新（contextModifier 传播）
         private final AtomicReference<ToolUseContext> currentContext;
+        private final String ownerRunId;
+        private final RunExecutionRegistry.WorkLease workLease;
+        private final java.util.concurrent.atomic.AtomicBoolean workLeaseClosed = new java.util.concurrent.atomic.AtomicBoolean();
 
         // ★ 条件变量，替代固定 50ms 轮询
         private final Object completionLock = new Object();
@@ -138,7 +193,13 @@ public class StreamingToolExecutor {
 
         // ★ 有参构造器，接收初始 context
         public ExecutionSession(ToolUseContext initialContext) {
+            this(initialContext, null);
+        }
+
+        private ExecutionSession(ToolUseContext initialContext, RunExecutionRegistry.WorkLease workLease) {
             this.currentContext = new AtomicReference<>(initialContext);
+            this.ownerRunId = initialContext == null ? null : initialContext.currentRunId();
+            this.workLease = workLease;
         }
 
         /** 添加工具到执行队列 */
@@ -148,7 +209,7 @@ public class StreamingToolExecutor {
             TrackedTool tt = new TrackedTool(toolUseId, tool, input, effectiveContext);
             tracked.add(tt);
             queue.add(tt);
-            log.info("[DIAG-TOOL] addTool: toolUseId={}, toolName={}, queueSize={}, trackedSize={}",
+            log.debug("addTool: toolUseId={}, toolName={}, queueSize={}, trackedSize={}",
                     toolUseId, tool.getName(), queue.size(), tracked.size());
 
             // ★ 使用工具声明的预期执行时间（替代硬编码）
@@ -172,25 +233,26 @@ public class StreamingToolExecutor {
             while (!queue.isEmpty()) {
                 TrackedTool next = queue.peek();
                 boolean canExec = canExecute(next);
-                log.info("[DIAG-TOOL] processQueue: tool={}, canExecute={}, active={}, queueSize={}",
+                log.debug("processQueue: tool={}, canExecute={}, active={}, queueSize={}",
                         next.tool.getName(), canExec, active.get(), queue.size());
                 if (!canExec) break;
 
                 queue.poll();
                 active.incrementAndGet();
                 next.state = ToolState.EXECUTING;
-                log.info("[DIAG-TOOL] processQueue: launching virtual thread for tool={}, toolUseId={}",
+                log.debug("processQueue: launching virtual thread for tool={}, toolUseId={}",
                         next.tool.getName(), next.toolUseId);
 
                 Thread.ofVirtual().name("zhiku-tool-" + next.tool.getName()).start(() -> {
-                    log.info("[DIAG-TOOL] virtual thread started: tool={}, threadName={}",
+                    next.executionThread = Thread.currentThread();
+                    log.debug("virtual thread started: tool={}, threadName={}",
                             next.tool.getName(), Thread.currentThread().getName());
                     activeVirtualThreads.incrementAndGet();
                     Timer.Sample sample = Timer.start(meterRegistry);
                     try {
                         if (sessionDiscarded) {
-                            next.result = ToolResult.error(
-                                    "<tool_use_error>Tool execution discarded</tool_use_error>");
+                            next.result = ToolResult.cancelled("TOOL_DISCARDED",
+                                    "Tool execution discarded", ToolResult.EffectState.NOT_STARTED);
                         } else {
                             ToolExecutionResult execResult = pipeline.execute(next.tool, next.input,
                                     next.context.withToolUseId(next.toolUseId),
@@ -214,8 +276,9 @@ public class StreamingToolExecutor {
 
                         toolExecutionTotal.increment();
                     } catch (Exception e) {
-                        next.result = ToolResult.error(
-                                "<tool_use_error>Execution error: " + e.getMessage() + "</tool_use_error>");
+                        next.result = ToolResult.internalError("TOOL_EXECUTION_EXCEPTION",
+                                "<tool_use_error>Execution error: " + e.getMessage() + "</tool_use_error>",
+                                ToolResult.EffectState.UNKNOWN);
                         next.state = ToolState.COMPLETED;
                         notifyCompletion(); // 通知消费者有工具完成
 
@@ -232,7 +295,10 @@ public class StreamingToolExecutor {
                                 .register(meterRegistry));
                         activeVirtualThreads.decrementAndGet();
                         active.decrementAndGet();
+                        next.executionThread = null;
+                        notifyCompletion();
                         processQueue();
+                        if (active.get() == 0 && queue.isEmpty()) deregister();
                     }
                 });
             }
@@ -252,8 +318,10 @@ public class StreamingToolExecutor {
 
         /** 是否所有工具都已完成 */
         public boolean isAllCompleted() {
-            return tracked.stream().allMatch(t ->
+            boolean completed = tracked.stream().allMatch(t ->
                     t.state == ToolState.COMPLETED || t.state == ToolState.YIELDED);
+            if (completed) deregister();
+            return completed;
         }
 
         /** 总工具数 */
@@ -268,7 +336,42 @@ public class StreamingToolExecutor {
 
         /** 丢弃所有挂起工具 */
         public void discard() {
+            discard(true);
+        }
+
+        private void discard(boolean cancelOwnedProcesses) {
             this.sessionDiscarded = true;
+            ToolUseContext context = currentContext.get();
+            if (cancelOwnedProcesses && processRunner != null && context != null && context.currentRunId() != null) {
+                processRunner.cancelRun(context.currentRunId());
+            }
+            queue.clear();
+            tracked.stream().filter(t -> t.state == ToolState.EXECUTING)
+                    .map(t -> t.executionThread).filter(java.util.Objects::nonNull)
+                    .forEach(Thread::interrupt);
+            tracked.stream().filter(t -> t.state == ToolState.QUEUED).forEach(t -> {
+                t.result = ToolResult.cancelled("TOOL_NOT_STARTED", "Cancelled before execution",
+                        ToolResult.EffectState.NOT_STARTED);
+                t.state = ToolState.COMPLETED;
+            });
+            notifyCompletion();
+            deregister();
+        }
+
+        private boolean awaitStopped(long deadlineNanos) {
+            synchronized (completionLock) {
+                while (active.get() > 0) {
+                    long remaining = deadlineNanos - System.nanoTime();
+                    if (remaining <= 0) return false;
+                    try {
+                        TimeUnit.NANOSECONDS.timedWait(completionLock, remaining);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        return active.get() == 0;
+                    }
+                }
+                return true;
+            }
         }
 
         /** 是否已被丢弃 */
@@ -276,12 +379,26 @@ public class StreamingToolExecutor {
             return sessionDiscarded;
         }
 
+        private void deregister() {
+            if (ownerRunId != null) {
+                sessionsByRun.computeIfPresent(ownerRunId, (ignored, sessions) -> {
+                    sessions.remove(this);
+                    return sessions.isEmpty() ? null : sessions;
+                });
+            }
+            if (active.get() == 0 && queue.isEmpty()
+                    && workLease != null && workLeaseClosed.compareAndSet(false, true)) {
+                workLease.close();
+            }
+        }
+
         /**
          * 直接添加一个已完成的 error result（工具未找到等场景）。
                  */
         public void addErrorResult(String toolUseId, String errorContent) {
             TrackedTool tt = new TrackedTool(toolUseId, null, null, null);
-            tt.result = ToolResult.error(errorContent);
+            tt.result = ToolResult.internalError("TOOL_SIBLING_ABORTED", errorContent,
+                    ToolResult.EffectState.NOT_STARTED);
             tt.state = ToolState.COMPLETED;
             tracked.add(tt);
         }

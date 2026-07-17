@@ -196,7 +196,8 @@ public class SubAgentExecutor {
                     .withNestingDepth(nestingDepth)
                     .withParentSessionId(parentContext.sessionId())
                     .withAgentHierarchy(buildAgentHierarchy(parentContext))
-                    .withPermissionNotifier(parentContext.permissionNotifier());
+                    .withPermissionNotifier(parentContext.permissionNotifier())
+                    .withCurrentRunId(parentContext.currentRunId());
             QueryLoopState state = new QueryLoopState(
                     new ArrayList<>(List.of(buildUserMessage(request.prompt()))),
                     subContext);

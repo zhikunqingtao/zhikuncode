@@ -126,11 +126,11 @@ public class VisualizationTool implements Tool {
     public ToolResult call(ToolInput input, ToolUseContext context) {
         String viewType = input.getString("viewType", null);
         if (viewType == null || !ALLOWED_VIEW_TYPES.contains(viewType)) {
-            return ToolResult.error("Unsupported viewType: " + viewType);
+            return ToolResult.validationError("VISUALIZATION_TYPE_UNSUPPORTED", "Unsupported viewType: " + viewType);
         }
         String sessionId = context != null ? context.sessionId() : null;
         if (sessionId == null || sessionId.isBlank()) {
-            return ToolResult.error("sessionId is required to publish visualization");
+            return ToolResult.validationError("VISUALIZATION_SESSION_REQUIRED", "sessionId is required to publish visualization");
         }
 
         Object rawProps = input.getRawData().get("props");

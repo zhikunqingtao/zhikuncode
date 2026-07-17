@@ -1,14 +1,16 @@
 package com.aicodeassistant.hook;
 
 import org.apache.hc.client5.http.DnsResolver;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.core5.util.Timeout;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.time.Duration;
 
 /**
  * SSRF 防护。
@@ -123,16 +125,20 @@ public class SsrfGuard {
         // 2. 构建 HttpClient：禁用重定向 + 绑定 DnsResolver
         var connMgr = PoolingHttpClientConnectionManagerBuilder.create()
                 .setDnsResolver(ssrfSafeDns)
+                .setDefaultConnectionConfig(ConnectionConfig.custom()
+                        .setConnectTimeout(Timeout.ofSeconds(30))
+                        .build())
                 .build();
         var httpClient = HttpClients.custom()
                 .setConnectionManager(connMgr)
+                .setDefaultRequestConfig(RequestConfig.custom()
+                        .setResponseTimeout(Timeout.ofSeconds(30))
+                        .build())
                 .disableRedirectHandling() // maxRedirects=0
                 .build();
 
-        // 3. 设置超时
+        // 3. HttpClient owns both connect and response deadlines.
         var factory = new HttpComponentsClientHttpRequestFactory(httpClient);
-        factory.setConnectTimeout(Duration.ofSeconds(30));
-        // Note: read timeout is set at request level via RequestConfig in HttpClient5
 
         return new RestTemplate(factory);
     }

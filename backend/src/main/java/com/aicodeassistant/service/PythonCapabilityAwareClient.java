@@ -180,6 +180,7 @@ public class PythonCapabilityAwareClient {
      */
     public <T> Optional<T> callWithRetry(String endpoint, Object body,
                                          Class<T> resultType) {
+        boolean retryAllowed = isReadOnlyEndpoint(endpoint);
         for (int attempt = 0; attempt <= MAX_RETRIES; attempt++) {
             try {
                 String jsonBody = objectMapper.writeValueAsString(body);
@@ -198,7 +199,21 @@ public class PythonCapabilityAwareClient {
                 }
                 log.warn("Python 调用 {} 返回 HTTP {}: {}", endpoint,
                         response.statusCode(), response.body());
+                if (response.statusCode() >= 400 && response.statusCode() < 500) {
+                    log.info("Permanent Python client error is not retryable: endpoint={}, status={}",
+                            endpoint, response.statusCode());
+                    return Optional.empty();
+                }
+                if (!retryAllowed) {
+                    log.info("Python side-effecting/unknown endpoint is not retried: {}", endpoint);
+                    return Optional.empty();
+                }
             } catch (Exception e) {
+                if (!retryAllowed) {
+                    log.warn("Python side-effecting/unknown endpoint failed without retry: {}: {}",
+                            endpoint, e.getMessage());
+                    return Optional.empty();
+                }
                 if (attempt < MAX_RETRIES) {
                     long delayMs = RETRY_BASE_DELAY.toMillis() * (1L << attempt); // 指数退避: 500, 1000, 2000, 4000
                     log.debug("Python 调用 {} 失败 (尝试 {}/{}), {}ms 后重试...",
@@ -223,6 +238,7 @@ public class PythonCapabilityAwareClient {
      */
     public <T> Optional<T> callWithRetry(String endpoint, Object body,
                                          Class<T> resultType, Duration timeout) {
+        boolean retryAllowed = isReadOnlyEndpoint(endpoint);
         for (int attempt = 0; attempt <= MAX_RETRIES; attempt++) {
             try {
                 String jsonBody = objectMapper.writeValueAsString(body);
@@ -241,7 +257,18 @@ public class PythonCapabilityAwareClient {
                 }
                 log.warn("Python 调用 {} 返回 HTTP {}: {}", endpoint,
                         response.statusCode(), response.body());
+                if (response.statusCode() >= 400 && response.statusCode() < 500) {
+                    log.info("Permanent Python client error is not retryable: endpoint={}, status={}",
+                            endpoint, response.statusCode());
+                    return Optional.empty();
+                }
+                if (!retryAllowed) return Optional.empty();
             } catch (Exception e) {
+                if (!retryAllowed) {
+                    log.warn("Python side-effecting/unknown endpoint failed without retry: {}: {}",
+                            endpoint, e.getMessage());
+                    return Optional.empty();
+                }
                 if (attempt < MAX_RETRIES) {
                     long delayMs = RETRY_BASE_DELAY.toMillis() * (1L << attempt);
                     log.debug("Python 调用 {} 失败 (尝试 {}/{}), {}ms 后重试...",
@@ -258,6 +285,16 @@ public class PythonCapabilityAwareClient {
             }
         }
         return Optional.empty();
+    }
+
+    /** Explicit conservative allow-list. Unknown POST endpoints are never retried. */
+    private static boolean isReadOnlyEndpoint(String endpoint) {
+        if (endpoint == null) return false;
+        return endpoint.startsWith("/api/analysis/")
+                || endpoint.startsWith("/api/code-intel/")
+                || endpoint.startsWith("/api/code-path/")
+                || endpoint.startsWith("/api/code-diagram/")
+                || endpoint.startsWith("/api/git/");
     }
 
     /**

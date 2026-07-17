@@ -1,8 +1,6 @@
 package com.aicodeassistant.engine.correction;
 
-import com.aicodeassistant.config.ModelCapabilityConfig;
 import com.aicodeassistant.engine.TokenCounter;
-import com.aicodeassistant.llm.ModelCapabilityRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,10 +24,7 @@ class SelfCorrectionIntegrationTest {
         CompileErrorParser compileErrorParser = new CompileErrorParser();
         TestFailureParser testFailureParser = new TestFailureParser();
 
-        ModelCapabilityConfig config = new ModelCapabilityConfig();
-        ModelCapabilityRegistry registry = new ModelCapabilityRegistry(config);
-        registry.init();
-        TokenCounter tokenCounter = new TokenCounter(registry, null, null);
+        TokenCounter tokenCounter = new TokenCounter(null, null, null);
 
         selfCorrectionLoop = new SelfCorrectionLoop(compileErrorParser, testFailureParser, tokenCounter);
     }

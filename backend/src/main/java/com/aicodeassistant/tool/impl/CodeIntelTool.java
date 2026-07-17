@@ -53,7 +53,7 @@ public class CodeIntelTool implements Tool {
         String language = input.getString("language", "").toLowerCase();
 
         if (!SUPPORTED_LANGUAGES.contains(language)) {
-            return ToolResult.error("Language '" + language + "' not supported by code-intel. "
+            return ToolResult.validationError("CODE_INTEL_LANGUAGE_UNSUPPORTED", "Language '" + language + "' not supported by code-intel. "
                     + "Supported: " + SUPPORTED_LANGUAGES + ". Use Read tool instead.");
         }
 
@@ -65,7 +65,7 @@ public class CodeIntelTool implements Tool {
             default -> null;
         };
         if (endpoint == null) {
-            return ToolResult.error("未知 CodeIntel 操作: " + action
+            return ToolResult.validationError("CODE_INTEL_ACTION_INVALID", "未知 CodeIntel 操作: " + action
                     + "（支持: parse|symbols|code-map|dependencies）");
         }
 
@@ -73,7 +73,8 @@ public class CodeIntelTool implements Tool {
         Optional<String> result = pythonClient.callIfAvailable("CODE_INTEL", endpoint, body, String.class);
         return result
                 .map(ToolResult::success)
-                .orElseGet(() -> ToolResult.error(
-                        "CodeIntel 能力当前不可用（Python 服务未就绪或缺少 tree-sitter 依赖），请改用 Read 工具。"));
+                .orElseGet(() -> ToolResult.providerError("CODE_INTEL_UNAVAILABLE",
+                        "CodeIntel 能力当前不可用（Python 服务未就绪或缺少 tree-sitter 依赖），请改用 Read 工具。",
+                        ToolResult.Retryability.SAFE_READ_ONLY));
     }
 }

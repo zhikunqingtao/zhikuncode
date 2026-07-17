@@ -24,8 +24,15 @@ def _get_encoder():
             import tiktoken
             _encoder = tiktoken.get_encoding("cl100k_base")
             logger.info("tiktoken cl100k_base 编码器已初始化")
-        except ImportError:
-            logger.warning("tiktoken 未安装，将使用字符估算回退")
+        except Exception as exc:
+            # tiktoken may be installed while its encoding table is not yet
+            # cached.  Loading that table can fail in an offline installation;
+            # token estimation must remain available instead of turning a
+            # transient network/cache problem into an HTTP 500.
+            logger.warning(
+                "tiktoken 编码器不可用，将使用字符估算回退: %s",
+                type(exc).__name__,
+            )
             _encoder = "fallback"
     return _encoder
 

@@ -1,11 +1,11 @@
 package com.aicodeassistant.engine;
 
-import com.aicodeassistant.llm.ModelCapabilityRegistry;
 import com.aicodeassistant.llm.ModelRegistry;
 import com.aicodeassistant.model.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
@@ -34,7 +34,7 @@ public class ContextCascade {
 
     // ============ 阈值常量 ============
 
-    /** Buffer-based 自动压缩缓冲 token 数（默认值，当 ModelCapabilityRegistry 不可用时使用） */
+    /** Buffer-based 自动压缩缓冲 token 数（ModelRegistry 未知模型时的保守值） */
     private static final int AUTOCOMPACT_BUFFER_TOKENS_DEFAULT = 13_000;
 
     /** 最大连续自动压缩失败次数（电路断路器） */
@@ -52,22 +52,13 @@ public class ContextCascade {
     private final CompactService compactService;
     private final TokenCounter tokenCounter;
     private final ModelRegistry modelRegistry;
-    private final ModelCapabilityRegistry modelCapabilityRegistry;
-
-    public ContextCascade(SnipService snipService,
-                          MicroCompactService microCompactService,
-                          ContextCollapseService contextCollapseService,
-                          CompactService compactService,
-                          TokenCounter tokenCounter,
-                          ModelRegistry modelRegistry,
-                          ModelCapabilityRegistry modelCapabilityRegistry) {
-        this.snipService = snipService;
-        this.microCompactService = microCompactService;
-        this.contextCollapseService = contextCollapseService;
-        this.compactService = compactService;
-        this.tokenCounter = tokenCounter;
-        this.modelRegistry = modelRegistry;
-        this.modelCapabilityRegistry = modelCapabilityRegistry;
+    @Autowired
+    public ContextCascade(SnipService snipService,MicroCompactService microCompactService,
+            ContextCollapseService contextCollapseService,CompactService compactService,
+            TokenCounter tokenCounter,ModelRegistry modelRegistry){
+        this.snipService=snipService;this.microCompactService=microCompactService;
+        this.contextCollapseService=contextCollapseService;this.compactService=compactService;
+        this.tokenCounter=tokenCounter;this.modelRegistry=modelRegistry;
     }
 
     // ============ 级联状态 ============
@@ -102,7 +93,10 @@ public class ContextCascade {
             CompactService.CompactResult autoCompactResult
     ) {
         public int totalTokensFreed() {
-            return originalTokens - finalTokens;
+            // Estimation strategies may change between the two measurements. A
+            // negative "freed" value is not meaningful and previously polluted
+            // run metrics, so expose the conservative lower bound.
+            return Math.max(0, originalTokens - finalTokens);
         }
 
         public String summary() {
@@ -160,13 +154,12 @@ public class ContextCascade {
         int contextWindow = modelRegistry.getContextWindowForModel(model);
         int reservedForSummary = contextWindow / 4;
         int effectiveWindow = contextWindow - reservedForSummary;
-        // 动态获取 buffer tokens：优先从 ModelCapabilityRegistry 获取，回退到默认值
-        int bufferTokens = modelCapabilityRegistry.isRegistered(model)
-                ? modelCapabilityRegistry.getBufferTokens(model)
-                : AUTOCOMPACT_BUFFER_TOKENS_DEFAULT;
+        // 根据唯一的 ModelRegistry 上下文窗口动态计算缓冲区。
+        int bufferTokens = Math.max(AUTOCOMPACT_BUFFER_TOKENS_DEFAULT,
+                (int)(contextWindow * 0.10));
         int autoCompactThreshold = effectiveWindow - bufferTokens;
 
-        int currentTokens = tokenCounter.estimateTokens(messages);
+        int currentTokens = tokenCounter.estimateTokens(messages, model);
 
         return new TokenWarningState(
                 currentTokens > (int) (autoCompactThreshold * 0.7),  // 警告
@@ -192,7 +185,7 @@ public class ContextCascade {
             AutoCompactTrackingState trackingState) {
 
         int contextWindow = modelRegistry.getContextWindowForModel(model);
-        int originalTokens = tokenCounter.estimateTokens(messages);
+        int originalTokens = tokenCounter.estimateTokens(messages, model);
         List<Message> current = messages;
 
         boolean snipExecuted = false;
@@ -206,10 +199,11 @@ public class ContextCascade {
         CompactService.CompactResult acResult = null;
 
         // ===== Level 0: Snip (单条工具结果截断) =====
-        int toolResultBudget = (int) (contextWindow * TOOL_RESULT_BUDGET_RATIO * 3.5);
+        int toolResultBudget = (int) (contextWindow * TOOL_RESULT_BUDGET_RATIO
+                * modelRegistry.getTokenCharRatio(model));
         List<Message> afterSnip = snipService.snipToolResults(current, toolResultBudget);
-        int snipBefore = tokenCounter.estimateTokens(current);
-        int snipAfter = tokenCounter.estimateTokens(afterSnip);
+        int snipBefore = tokenCounter.estimateTokens(current, model);
+        int snipAfter = tokenCounter.estimateTokens(afterSnip, model);
         if (snipAfter < snipBefore) {
             snipExecuted = true;
             snipTokensFreed = snipBefore - snipAfter;
@@ -285,7 +279,7 @@ public class ContextCascade {
             }
         }
 
-        int finalTokens = tokenCounter.estimateTokens(current);
+        int finalTokens = tokenCounter.estimateTokens(current, model);
         CascadeResult result = new CascadeResult(current, originalTokens, finalTokens,
                 snipExecuted, snipTokensFreed, mcExecuted, mcTokensFreed,
                 collapseExecuted, collapseCharsFreed,

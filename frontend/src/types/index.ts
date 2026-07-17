@@ -48,11 +48,11 @@ export interface ThinkingDeltaPayload { type: 'thinking_delta'; delta: string; m
 export interface ToolUseStartPayload { type: 'tool_use_start'; toolUseId: string; toolName: string; input: Record<string, unknown> }
 export interface ToolUseInputPayload { type: 'tool_use_input'; toolUseId: string; toolName: string; input: Record<string, unknown>; ts?: number }
 export interface ToolUseProgressPayload { type: 'tool_use_progress'; toolUseId: string; progress: string }
-export interface ToolResultPayload { type: 'tool_result'; toolUseId: string; content: string; isError: boolean }
+export interface ToolResultPayload { type: 'tool_result'; toolUseId: string; content: string; isError: boolean; schemaVersion?: 2; executionStatus?: 'succeeded'|'failed'|'timed_out'|'cancelled'; failureType?: string; failureCode?: string; retryability?: string; effectState?: string; exitCode?: number; outputPreview?: string; outputTruncated?: boolean }
 export interface CompactStartPayload { type: 'compact_start'; sessionId: string }
 export interface CompactCompletePayload { type: 'compact_complete'; sessionId: string; removedCount: number; summary: string }
 export interface RateLimitPayload { type: 'rate_limit'; retryAfterMs: number; limitType: string }
-export interface PermissionRequestPayload { type: 'permission_request'; toolUseId: string; toolName: string; input: Record<string, unknown>; riskLevel: 'low' | 'medium' | 'high'; reason: string; source?: 'subagent' | string; childSessionId?: string }
+export interface PermissionRequestPayload { type: 'permission_request'; interactionId?: string; toolUseId: string; toolName: string; input: Record<string, unknown>; riskLevel: 'low' | 'medium' | 'high'; reason: string; source?: 'subagent' | string; childSessionId?: string; decisionDeadlineAt?: number; scopeOptions?: Array<'session' | 'workspace'> }
 export interface CostUpdatePayload { type: 'cost_update'; sessionCost: number; totalCost: number; usage: Usage }
 export interface TaskUpdatePayload { type: 'task_update'; taskId: string; status: string; progress?: unknown; result?: unknown }
 export interface AgentSpawnPayload { type: 'agent_spawn'; taskId: string; agentName: string; agentType: string }
@@ -73,7 +73,23 @@ export interface McpToolProgressPayload {
     total: number;
     message: string;
 }
-export interface SessionRestoredPayload { type: 'session_restored'; messages: Message[]; metadata: { sessionId: string; model: string; status: string }; totalCount?: number; hasMore?: boolean; compactSummary?: string | null; oldestLoadedUuid?: string }
+export interface SessionRestoredPayload {
+    type: 'session_restored';
+    bindRequestId: string;
+    bindingEpoch: number;
+    protocolVersion: number;
+    messages: Message[];
+    metadata: { sessionId: string; model: string; status: string };
+    totalCount?: number;
+    hasMore?: boolean;
+    compactSummary?: string | null;
+    oldestLoadedUuid?: string;
+    snapshotEventSeq?: number;
+    activeToolCalls?: Array<{ toolUseId: string; toolName: string; input?: Record<string, unknown> }>;
+    runSnapshot?: Record<string, unknown> | null;
+    costSummary?: { totalCost?: number };
+}
+export interface ProtocolErrorPayload { type: 'protocol_error'; code: string; supportedVersion: number; bindRequestId?: string; bindingEpoch?: number }
 export interface MessageCompletePayload { type: 'message_complete'; messageId: string; usage: Usage; stopReason: string }
 export interface PongPayload { type: 'pong'; timestamp: number }
 export interface ErrorPayload { type: 'error'; code: string; message: string; retryable: boolean }
@@ -172,6 +188,7 @@ export type ServerMessage =
     | McpToolUpdatePayload
     | McpToolProgressPayload
     | SessionRestoredPayload
+    | ProtocolErrorPayload
     | MessageCompletePayload
     | PongPayload
     | ErrorPayload
@@ -307,8 +324,11 @@ export interface McpPromptArgument {
 
 export interface ElicitationRequest {
     requestId: string;
+    interactionId?: string;
+    version?: number;
     question: string;
     options: unknown;
+    decisionDeadlineAt?: number;
 }
 
 // ==================== 提示建议 ====================
@@ -377,6 +397,8 @@ export interface DenialTrackingState {
 }
 
 export interface PermissionRequest {
+    interactionId?: string;
+    version?: number;
     toolUseId: string;
     toolName: string;
     input: Record<string, unknown>;
@@ -384,6 +406,8 @@ export interface PermissionRequest {
     reason: string;
     source?: 'subagent' | string;
     childSessionId?: string;
+    decisionDeadlineAt?: number;
+    scopeOptions?: Array<'session' | 'workspace'>;
 }
 
 // ==================== 配置相关 ====================

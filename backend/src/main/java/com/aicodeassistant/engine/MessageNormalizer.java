@@ -259,32 +259,9 @@ public class MessageNormalizer {
     // ==================== 转换辅助方法 ====================
 
     private Map<String, Object> convertUserMessage(Message.UserMessage user) {
-        // 优先使用 content blocks 中的 ToolResultBlock（保留 isError 信息）
-        if (user.content() != null && !user.content().isEmpty()
-                && user.content().getFirst() instanceof ContentBlock.ToolResultBlock) {
-            List<Map<String, Object>> contentBlocks = new ArrayList<>();
-            for (ContentBlock block : user.content()) {
-                contentBlocks.add(contentBlockToMap(block));
-            }
-            return new HashMap<>(Map.of("role", "user", "content", contentBlocks));
-        }
-        if (user.toolUseResult() != null && user.sourceToolAssistantUUID() != null) {
-            // tool_result fallback（丢失 isError 信息）
-            return new HashMap<>(Map.of(
-                    "role", "user",
-                    "content", List.of(new HashMap<>(Map.of(
-                            "type", "tool_result",
-                            "tool_use_id", user.sourceToolAssistantUUID(),
-                            "content", user.toolUseResult() != null ? user.toolUseResult() : ""
-                    )))
-            ));
-        }
-        // 普通用户消息
         List<Map<String, Object>> contentBlocks = new ArrayList<>();
-        if (user.content() != null) {
-            for (ContentBlock block : user.content()) {
-                contentBlocks.add(contentBlockToMap(block));
-            }
+        for (ContentBlock block : MessageContentAccessor.viewOf(user).blocks()) {
+            contentBlocks.add(contentBlockToMap(block));
         }
         return new HashMap<>(Map.of("role", "user", "content", contentBlocks));
     }
@@ -356,15 +333,8 @@ public class MessageNormalizer {
     public static MessageParam fromMessage(Message msg) {
         return switch (msg) {
             case Message.UserMessage user -> {
-                List<ContentPart> parts = convertContentParts(user.content());
-                // 兼容 toolUseResult 旧路径
-                if (parts.isEmpty() && user.toolUseResult() != null
-                        && user.sourceToolAssistantUUID() != null) {
-                    parts = List.of(new ContentPart.ToolResultPart(
-                            user.sourceToolAssistantUUID(),
-                            user.toolUseResult() != null ? user.toolUseResult() : "",
-                            false));
-                }
+                List<ContentPart> parts = convertContentParts(
+                        MessageContentAccessor.viewOf(user).blocks());
                 yield new MessageParam.UserParam(parts);
             }
             case Message.AssistantMessage assistant -> {

@@ -25,15 +25,20 @@ import com.aicodeassistant.llm.ModelCapabilities;
 import com.aicodeassistant.llm.ModelRegistry;
 import com.aicodeassistant.llm.ThinkingConfig;
 import com.aicodeassistant.llm.VisionModelRouter;
+import com.aicodeassistant.interaction.InteractionRequest;
+import com.aicodeassistant.interaction.InteractionCreatedEvent;
+import com.aicodeassistant.interaction.InteractionTerminalEvent;
+import com.aicodeassistant.interaction.InteractionView;
 import com.aicodeassistant.model.PermissionBehavior;
 import com.aicodeassistant.model.PermissionDecision;
-import com.aicodeassistant.model.RuleScope;
 import com.aicodeassistant.permission.PermissionPipeline;
 import com.aicodeassistant.model.ContentBlock;
 import com.aicodeassistant.model.Message;
 import com.aicodeassistant.model.Usage;
 import com.aicodeassistant.prompt.EffectiveSystemPromptBuilder;
 import com.aicodeassistant.prompt.SystemPromptConfig;
+import com.aicodeassistant.run.RunEnvelopeRepository;
+import com.aicodeassistant.run.RunEventRepository;
 import com.aicodeassistant.session.SessionData;
 import com.aicodeassistant.session.SessionManager;
 import com.aicodeassistant.tool.Tool;
@@ -44,11 +49,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import org.springframework.web.socket.messaging.SessionConnectedEvent;
 import org.springframework.stereotype.Controller;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import java.nio.file.Path;
 import java.security.Principal;
@@ -72,6 +79,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class WebSocketController implements PermissionNotifier {
 
     private static final Logger log = LoggerFactory.getLogger(WebSocketController.class);
+    private static final int WS_PROTOCOL_VERSION = 3;
 
     private final SimpMessagingTemplate messaging;
     private final WebSocketSessionManager wsSessionManager;
@@ -93,7 +101,12 @@ public class WebSocketController implements PermissionNotifier {
     private final CostTrackerService costTrackerService;                                          // F2 费用追踪
     private final ActivityRepository activityRepository;                                            // Activity 持久化
     private final ObjectMapper objectMapper;                                                        // JSON 序列化
-    private final com.aicodeassistant.permission.DurablePermissionService durablePermissionService;  // 权限持久化
+    private final com.aicodeassistant.permission.PermissionInteractionService permissionInteractions;
+    private final RunEnvelopeRepository runEnvelopeRepository;
+    private final RunEventRepository runEventRepository;
+    private final com.aicodeassistant.run.RunRecoveryProjectionService runRecoveryProjectionService;
+    private final com.aicodeassistant.run.RunExecutionRegistry runExecutions;
+    private final com.aicodeassistant.run.RunTerminationCoordinator runTermination;
 
     /** 会话级查询运行守卫 — 防止同一会话并发执行多个 QueryEngine */
     private final ConcurrentHashMap<String, AtomicBoolean> sessionQueryRunning = new ConcurrentHashMap<>();
@@ -121,7 +134,12 @@ public class WebSocketController implements PermissionNotifier {
                                 ActivityRepository activityRepository,
                                 ObjectMapper objectMapper,
                                 VisionModelRouter visionModelRouter,
-                                com.aicodeassistant.permission.DurablePermissionService durablePermissionService) {
+                                com.aicodeassistant.permission.PermissionInteractionService permissionInteractions,
+                                RunEnvelopeRepository runEnvelopeRepository,
+                                RunEventRepository runEventRepository,
+                                com.aicodeassistant.run.RunRecoveryProjectionService runRecoveryProjectionService,
+                                com.aicodeassistant.run.RunExecutionRegistry runExecutions,
+                                com.aicodeassistant.run.RunTerminationCoordinator runTermination) {
         this.messaging = messaging;
         this.wsSessionManager = wsSessionManager;
         this.queryEngine = queryEngine;
@@ -142,7 +160,12 @@ public class WebSocketController implements PermissionNotifier {
         this.activityRepository = activityRepository;
         this.objectMapper = objectMapper;
         this.visionModelRouter = visionModelRouter;
-        this.durablePermissionService = durablePermissionService;
+        this.permissionInteractions = permissionInteractions;
+        this.runEnvelopeRepository = runEnvelopeRepository;
+        this.runEventRepository = runEventRepository;
+        this.runRecoveryProjectionService = runRecoveryProjectionService;
+        this.runExecutions = runExecutions;
+        this.runTermination = runTermination;
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -157,9 +180,10 @@ public class WebSocketController implements PermissionNotifier {
      * @param payload   消息负载 (会被 Jackson 序列化为 JSON 字段)
      */
     public void pushToUser(String sessionId, String type, Object payload) {
-        String principal = wsSessionManager.getPrincipalForSession(sessionId);
-        if (principal == null) {
-            log.debug("No principal found for session {}, skipping push of type={}", sessionId, type);
+        Set<String> principals = wsSessionManager.getPrincipalsForSession(sessionId);
+        if (principals.isEmpty()) {
+            log.warn("push skipped: eventType={}, sessionId={}, runId=unknown, seq=unknown, isRecoverable={}",
+                    type,sessionId,isCriticalMessage(type));
             return;
         }
 
@@ -176,21 +200,26 @@ public class WebSocketController implements PermissionNotifier {
             message.put("payload", payload); // 降级: 非 Map 时嵌套
         }
 
-        messaging.convertAndSendToUser(principal, "/queue/messages", message);
+        principals.forEach(principal -> {
+            Map<String, Object> routed = new LinkedHashMap<>(message);
+            routed.put("_sessionId", sessionId);
+            routed.put("_bindingEpoch", wsSessionManager.getBindingEpochForPrincipal(principal));
+            messaging.convertAndSendToUser(principal, "/queue/messages", routed);
+        });
     }
 
     /**
      * 推送 Map payload（扁平结构）。
      */
     private void push(String sessionId, String type, Map<String, Object> fields) {
-        String principal = wsSessionManager.getPrincipalForSession(sessionId);
-        if (principal == null) {
-            // ★ 新增：关键消息入缓冲队列，等待重连后补发
+        Set<String> principals = wsSessionManager.getPrincipalsForSession(sessionId);
+        if (principals.isEmpty()) {
             if (isCriticalMessage(type)) {
-                wsSessionManager.bufferMessage(sessionId, type, fields);
-                log.warn("push({}) buffered: no principal for sessionId={}", type, sessionId);
+                log.warn("push unavailable: eventType={}, sessionId={}, runId={}, seq={}, isRecoverable=true",
+                        type,sessionId,fields.getOrDefault("runId","unknown"),fields.getOrDefault("seq","unknown"));
             } else {
-                log.warn("push({}) skipped: no principal for sessionId={}", type, sessionId);
+                log.debug("push unavailable: eventType={}, sessionId={}, runId={}, seq={}, isRecoverable=false",
+                        type,sessionId,fields.getOrDefault("runId","unknown"),fields.getOrDefault("seq","unknown"));
             }
             return;
         }
@@ -201,20 +230,100 @@ public class WebSocketController implements PermissionNotifier {
         message.putAll(fields);
 
         if ("stream_delta".equals(type) || "thinking_delta".equals(type)) {
-            log.trace("push {} to principal={}, len={}", type, principal, fields.getOrDefault("delta", "").toString().length());
+            log.trace("push {} to principals={}, len={}", type, principals.size(), fields.getOrDefault("delta", "").toString().length());
         } else {
-            log.info("push({}) to principal={}, sessionId={}", type, principal, sessionId);
+            log.info("push({}) to principals={}, sessionId={}", type, principals.size(), sessionId);
         }
+        principals.forEach(principal -> {
+            Map<String, Object> routed = new LinkedHashMap<>(message);
+            routed.put("_sessionId", sessionId);
+            routed.put("_bindingEpoch", wsSessionManager.getBindingEpochForPrincipal(principal));
+            messaging.convertAndSendToUser(principal, "/queue/messages", routed);
+        });
+    }
+
+    private void pushToPrincipal(String principal, String type, Map<String, Object> fields) {
+        Map<String, Object> message = new LinkedHashMap<>();
+        message.put("type", type);
+        message.put("ts", System.currentTimeMillis());
+        message.putAll(fields);
         messaging.convertAndSendToUser(principal, "/queue/messages", message);
     }
 
     private static final Set<String> CRITICAL_MESSAGE_TYPES = Set.of(
-        "permission_request", "tool_result", "message_complete",
+        "permission_request", "tool_result", "tool_finished", "message_complete",
+        "run_completed", "run_failed", "error", "cost_update",
+        "interaction_created", "interaction_terminal", "interaction_updated",
         "permission_mode_changed", "tool_use_start"
     );
 
     private boolean isCriticalMessage(String type) {
         return CRITICAL_MESSAGE_TYPES.contains(type);
+    }
+
+    @EventListener
+    public void onInteractionCreated(InteractionCreatedEvent event) {
+        try {
+            deliverInteraction(event.request(), InteractionDelivery.INITIAL);
+        } catch (RuntimeException deliveryFailure) {
+            log.warn("Interaction initial delivery deferred: interactionId={}, error={}",
+                    event.request().interactionId(), deliveryFailure.getMessage());
+        }
+    }
+
+    @EventListener
+    public void onInteractionTerminal(InteractionTerminalEvent event) {
+        try {
+            pushInteractionView(event.request(), "interaction_terminal");
+        } catch (RuntimeException deliveryFailure) {
+            log.warn("Interaction terminal notification unavailable: interactionId={}, error={}",
+                    event.request().interactionId(), deliveryFailure.getMessage());
+        }
+    }
+
+    private enum InteractionDelivery { INITIAL, RETRY, RECOVERY }
+
+    private void deliverInteraction(InteractionRequest request, InteractionDelivery delivery) {
+        if (permissionInteractions == null) return;
+        String transport = wsSessionManager.getTransportIdsForSession(request.sessionId()).stream()
+                .findFirst().orElse(null);
+        if (transport == null) {
+            log.info("Interaction pending without bound transport: interactionId={}, sessionId={}",
+                    request.interactionId(), request.sessionId());
+            return;
+        }
+        boolean claimed;
+        if (delivery == InteractionDelivery.RECOVERY) {
+            request = permissionInteractions.prepareRecoveryDelivery(request.interactionId(), transport);
+            claimed = request.status() == InteractionRequest.Status.PENDING;
+        } else {
+            claimed = delivery == InteractionDelivery.RETRY
+                    ? permissionInteractions.claimRedelivery(request.interactionId(), request.dispatchAttempts(), transport)
+                    : permissionInteractions.markInteractionDispatched(request.interactionId(), transport);
+        }
+        if (!claimed) return;
+        pushInteractionView(permissionInteractions.findInteraction(request.interactionId()), "interaction_created");
+    }
+
+    private void pushInteractionView(InteractionRequest request, String type) {
+        InteractionView view = permissionInteractions.view(request);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> payload = objectMapper.convertValue(view, Map.class);
+        push(request.sessionId(), type, payload);
+    }
+
+    /** Retry a delivered-but-unacknowledged interaction at 1s/2s/4s. */
+    @Scheduled(fixedDelay = 250)
+    public void redeliverUnacknowledgedInteractions() {
+        if (permissionInteractions == null) return;
+        for (InteractionRequest request : permissionInteractions.redeliveryCandidates(Instant.now())) {
+            try {
+                deliverInteraction(request, InteractionDelivery.RETRY);
+            } catch (Exception error) {
+                log.warn("Interaction redelivery failed: interactionId={}, attempt={}, error={}",
+                        request.interactionId(), request.dispatchAttempts() + 1, error.getMessage());
+            }
+        }
     }
 
     // ───── #1-5: messageStore ─────
@@ -255,9 +364,15 @@ public class WebSocketController implements PermissionNotifier {
     public void sendPermissionRequest(String sessionId, String toolUseId,
                                        String toolName, Object input,
                                        String riskLevel, String reason) {
-        push(sessionId, "permission_request",
-                Map.of("toolUseId", toolUseId, "toolName", toolName,
-                        "input", input, "riskLevel", riskLevel, "reason", reason));
+        // Production wiring always supplies the durable authority. The null branch
+        // preserves the existing isolated-controller test/embedding constructor.
+        if (permissionInteractions != null) return; // InteractionCreatedEvent is the single production delivery path.
+        Map<String, Object> payload = new java.util.HashMap<>();
+        payload.put("toolUseId", toolUseId); payload.put("toolName", toolName);
+        payload.put("input", input); payload.put("riskLevel", riskLevel); payload.put("reason", reason);
+        payload.put("scopeOptions", ("Bash".equals(toolName) || "BashTool".equals(toolName))
+                ? List.of("session") : List.of("session", "workspace"));
+        push(sessionId, "permission_request", payload);
     }
 
     /** #6b 来自子代理的权限请求 — 转发到父会话 */
@@ -265,10 +380,12 @@ public class WebSocketController implements PermissionNotifier {
     public void sendPermissionRequestFromChild(String parentSessionId, String childSessionId,
                                                 String toolUseId, String toolName,
                                                 Object input, String riskLevel, String reason) {
-        push(parentSessionId, "permission_request",
-                Map.of("toolUseId", toolUseId, "toolName", toolName,
-                        "input", input, "riskLevel", riskLevel, "reason", reason,
-                        "source", "subagent", "childSessionId", childSessionId));
+        Map<String,Object> fields=new HashMap<>();
+        fields.put("toolUseId",toolUseId);fields.put("toolName",toolName);fields.put("input",input);
+        fields.put("riskLevel",riskLevel);fields.put("reason",reason);fields.put("source","subagent");
+        fields.put("childSessionId",childSessionId);fields.put("scopeOptions",List.of("session"));
+        if (permissionInteractions != null) return; // delivered by the durable interaction event
+        push(parentSessionId,"permission_request",fields);
     }
 
     /** #6c 工具权限被拒绝通知 — 前端应清除对应 changedFiles */
@@ -421,19 +538,6 @@ public class WebSocketController implements PermissionNotifier {
     /** #23 MCP 工具列表变更 */
     public void sendMcpToolUpdate(String sessionId, String serverId, Object tools) {
         push(sessionId, "mcp_tool_update", Map.of("serverId", serverId, "tools", tools));
-    }
-
-    // ───── #24: 断线重连 ─────
-
-    /** #24 断线重连恢复 */
-    @SuppressWarnings("unchecked")
-    public void sendSessionRestored(String sessionId, Object messages, Object metadata) {
-        Object convertedMessages = messages;
-        if (messages instanceof List<?> list && !list.isEmpty() && list.get(0) instanceof com.aicodeassistant.model.Message) {
-            convertedMessages = convertMessagesForWs((List<com.aicodeassistant.model.Message>) list);
-        }
-        push(sessionId, "session_restored",
-                Map.of("messages", convertedMessages, "metadata", metadata));
     }
 
     // ───── #25: 心跳 ─────
@@ -772,7 +876,7 @@ public class WebSocketController implements PermissionNotifier {
             log.info("QueryEngine 完成: sessionId={}, stopReason={}, turns={}",
                     sessionId, result.stopReason(), result.turnCount());
         } catch (Throwable t) {
-            log.error("[DIAG-TOOL] executeQueryInternal 执行异常: sessionId={}, exType={}, message={}",
+            log.error("Query execution failed: sessionId={}, exType={}, message={}",
                     sessionId, t.getClass().getName(), t.getMessage(), t);
             if (t instanceof Exception e) {
                 handler.onError(e);
@@ -781,7 +885,7 @@ public class WebSocketController implements PermissionNotifier {
             }
         } finally {
             // ★ 保障: 即使异常也确保发送 message_complete，防止前端卡在加载态
-            log.info("[DIAG-TOOL] executeQueryInternal finally: sessionId={}, resultIsNull={}", sessionId, result == null);
+            log.debug("Query execution finished: sessionId={}, resultPresent={}", sessionId, result != null);
             if (result == null) {
                 sendMessageComplete(sessionId, Usage.zero(), "error");
             }
@@ -949,46 +1053,42 @@ public class WebSocketController implements PermissionNotifier {
     public void handlePermissionResponse(@Payload ClientMessage.PermissionResponsePayload resp,
                                           Principal principal) {
         String sessionId = resolveSessionId(principal);
-        log.info("WS permission_response: sessionId={}, toolUseId={}, decision={}",
-                sessionId, resp.toolUseId(), resp.decision());
+        sendError(sessionId, "interaction_rest_required",
+                "协议 v2 的交互决定必须提交到 /api/interactions/{id}/decisions", false);
+    }
 
-        // 根据用户决策构建 PermissionDecision
-        PermissionBehavior behavior;
-        try {
-            behavior = PermissionBehavior.valueOf(resp.decision().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            // 处理 "allow_always" 等非标准值
-            behavior = resp.decision().toLowerCase().contains("allow")
-                    ? PermissionBehavior.ALLOW : PermissionBehavior.DENY;
-        }
-
-        PermissionDecision decision;
-        if (behavior == PermissionBehavior.ALLOW) {
-            RuleScope scope = "global".equals(resp.scope()) ? RuleScope.GLOBAL
-                    : "project".equals(resp.scope()) ? RuleScope.PROJECT
-                    : RuleScope.SESSION;
-            decision = PermissionDecision.allow(
-                    com.aicodeassistant.model.PermissionDecisionReason.OTHER,
-                    null
-            ).withRemember(resp.remember(), scope);
-        } else {
-            decision = PermissionDecision.denyByMode("User denied");
-        }
-
-        permissionPipeline.resolvePermission(resp.toolUseId(), decision);
-
-        // ★ 同步更新 DB 持久化状态
-        try {
-            String dbDecision = (behavior == PermissionBehavior.ALLOW) ? "approved" : "denied";
-            boolean updated = durablePermissionService.resolve(resp.toolUseId(), dbDecision, "USER_WS",
-                    resp.remember(), resp.scope());
-            if (!updated) {
-                log.warn("DB permission already resolved (concurrent race): toolUseId={}", resp.toolUseId());
+    @MessageMapping("/interaction-received")
+    public void handleInteractionReceived(@Payload Map<String, Object> payload, Principal principal,
+                                          SimpMessageHeaderAccessor headers) {
+        String interactionId = String.valueOf(payload.getOrDefault("interactionId", ""));
+        String transportId = headers == null ? null : headers.getSessionId();
+        if (transportId == null) return;
+        if (!interactionId.isBlank()) {
+            try {
+                String sessionId = resolveSessionId(principal);
+                var requested = permissionInteractions.findInteraction(interactionId);
+                if (!sessionId.equals(requested.sessionId())
+                        || !wsSessionManager.getTransportIdsForSession(sessionId).contains(transportId)) {
+                    log.warn("Interaction ACK rejected: interactionId={}, session={}, transport={}",
+                            interactionId, sessionId, transportId);
+                    return;
+                }
+                int deliveryGeneration = payload.get("deliveryGeneration") instanceof Number number
+                        ? number.intValue() : -1;
+                if (permissionInteractions.acknowledgeInteraction(
+                        interactionId, deliveryGeneration, transportId)) {
+                    var interaction = permissionInteractions.findInteraction(interactionId);
+                    push(interaction.sessionId(), "interaction_updated", Map.of(
+                            "interactionId", interactionId,
+                            "decisionDeadlineAt", interaction.decisionDeadlineAt().toEpochMilli(),
+                            "serverNow", System.currentTimeMillis(),
+                            "version", interaction.version()));
+                }
             }
-        } catch (Exception e) {
-            log.warn("Failed to persist permission decision: toolUseId={}, error={}",
-                    resp.toolUseId(), e.getMessage());
+            catch (Exception e) { log.debug("Interaction ACK ignored: id={}, error={}", interactionId, e.getMessage()); }
+            return;
         }
+        log.debug("Ignoring legacy interaction ACK without interactionId");
     }
 
     /**
@@ -1022,31 +1122,23 @@ public class WebSocketController implements PermissionNotifier {
                 : AbortReason.USER_INTERRUPT;
 
         log.info("WS interrupt: sessionId={}, reason={}", sessionId, reason);
-        queryEngine.abort(sessionId, reason);
+        String activeRunId = runExecutions.activeRunForSession(sessionId).orElse(null);
+        if (activeRunId != null) runTermination.cancelByUser(activeRunId, reason.name().toLowerCase());
+        else queryEngine.abort(sessionId, reason);
 
         // 推送 interrupt_ack 到前端
         push(sessionId, "interrupt_ack", Map.of("reason", reason.name()));
     }
 
-    /**
-     * WebSocket 断连监听 — 主动中止孤立会话的 QueryEngine 循环。
-     * <p>
-     * 当前端刷新或关闭页面时，STOMP 断连会触发此事件。
-     * 由于 WebSocketSessionManager 已经清理了 principal 映射，
-     * 这里通过 transport sessionId 找到 app sessionId 并触发 abort。
-     */
+    /** Transport disconnect is not a user cancellation signal. */
     @EventListener
     public void handleWebSocketDisconnect(SessionDisconnectEvent event) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
         // 从 session attributes 中获取 app sessionId
         Map<String, Object> attrs = accessor.getSessionAttributes();
         String appSessionId = attrs != null ? (String) attrs.get("sessionId") : null;
-        if (appSessionId != null && !"default".equals(appSessionId)) {
-            log.info("WebSocket disconnect detected, aborting QueryEngine: sessionId={}", appSessionId);
-            queryEngine.abort(appSessionId, AbortReason.SESSION_DISCONNECTED);
-            // 中止后清理 AbortContext，避免内存泄漏
-            queryEngine.removeAbortContext(appSessionId);
-        }
+        if (appSessionId != null && !"default".equals(appSessionId))
+            log.info("WebSocket transport disconnected; Run retained for reconnect: sessionId={}", appSessionId);
     }
 
     /**
@@ -1308,21 +1400,17 @@ public class WebSocketController implements PermissionNotifier {
     public void handleElicitationResponse(@Payload ClientMessage.ElicitationResponsePayload payload,
                                            Principal principal) {
         String sessionId = resolveSessionId(principal);
-        log.info("WS elicitation_response: sessionId={}, requestId={}", sessionId, payload.requestId());
-        if (payload.answer() == null) {
-            // null answer = user cancelled
-            elicitationService.cancelElicitation(payload.requestId());
-        } else {
-            elicitationService.resolveElicitation(payload.requestId(), payload.answer());
-        }
+        sendError(sessionId, "interaction_rest_required",
+                "协议 v2 的交互决定必须提交到 /api/interactions/{id}/decisions", false);
     }
 
     /**
      * #10 心跳 → /app/ping
      */
     @MessageMapping("/ping")
-    public void handlePing(Principal principal) {
+    public void handlePing(Principal principal, SimpMessageHeaderAccessor headers) {
         String sessionId = resolveSessionId(principal);
+        wsSessionManager.refreshTransport(headers == null ? null : headers.getSessionId());
         sendPong(sessionId);
     }
 
@@ -1330,27 +1418,71 @@ public class WebSocketController implements PermissionNotifier {
      * #11 绑定会话 → /app/bind-session
      */
     @MessageMapping("/bind-session")
-    public void handleBindSession(@Payload Map<String, String> payload, Principal principal) {
-        String sessionId = payload.get("sessionId");
+    public void handleBindSession(@Payload Map<String, Object> payload, Principal principal,
+                                  SimpMessageHeaderAccessor headers) {
+        String sessionId = payload.get("sessionId") instanceof String value ? value : null;
+        String bindRequestId = payload.get("bindRequestId") instanceof String value ? value : null;
+        long bindingEpoch = payload.get("bindingEpoch") instanceof Number number
+                ? number.longValue() : -1;
+        int protocolVersion = payload.get("protocolVersion") instanceof Number number
+                ? number.intValue() : -1;
+        if (principal != null && protocolVersion != WS_PROTOCOL_VERSION) {
+            pushBindError(principal.getName(), "UPGRADE_REQUIRED", bindRequestId, bindingEpoch);
+            log.warn("WS bind rejected: unsupported protocol principal={}, supplied={}",
+                    principal.getName(), protocolVersion);
+            return;
+        }
+        if (principal != null && (bindRequestId == null || bindRequestId.isBlank())) {
+            pushBindError(principal.getName(), "BIND_REQUEST_ID_REQUIRED", bindRequestId, bindingEpoch);
+            return;
+        }
+        if (principal != null && bindingEpoch < 1) {
+            pushBindError(principal.getName(), "BINDING_EPOCH_REQUIRED", bindRequestId, bindingEpoch);
+            return;
+        }
         if (sessionId != null && principal != null) {
-            wsSessionManager.bindSession(principal.getName(), sessionId);
-            log.info("WS bind-session: principal={}, sessionId={}", principal.getName(), sessionId);
-
-            // ── 从 DB 加载并初始化 session 模型 ──
+            String transportId = headers == null ? null : headers.getSessionId();
+            if (transportId == null) {
+                pushBindError(principal.getName(), "TRANSPORT_ID_UNAVAILABLE", bindRequestId, bindingEpoch);
+                return;
+            }
+            Optional<SessionData> dataOpt;
+            try { dataOpt = sessionManager.loadSession(sessionId); }
+            catch (Exception e) {
+                pushBindError(principal.getName(), "BIND_RECOVERY_FAILED", bindRequestId, bindingEpoch);
+                return;
+            }
+            if (dataOpt.isEmpty()) {
+                pushBindError(principal.getName(), "SESSION_NOT_FOUND", bindRequestId, bindingEpoch);
+                return;
+            }
             try {
-                sessionManager.loadSession(sessionId).ifPresent(data -> {
-                    if (data.model() != null && !data.model().isEmpty()) {
-                        sessionModels.put(sessionId, data.model());
-                        log.info("Restored session model from DB: sessionId={}, model={}", sessionId, data.model());
-                    }
-                });
-            } catch (Exception e) {
-                log.warn("Failed to restore session model: sessionId={}", sessionId, e);
+                wsSessionManager.bindSession(principal.getName(), transportId, sessionId, bindingEpoch);
+            } catch (IllegalStateException stale) {
+                pushBindError(principal.getName(), stale.getMessage(), bindRequestId, bindingEpoch);
+                return;
+            }
+            log.info("WS bind-session: principal={}, transport={}, sessionId={}",
+                    principal.getName(), transportId, sessionId);
+
+            // Bind before taking the recovery snapshot so all later frames are
+            // captured by the client's recovery gate. Reload after binding to
+            // avoid losing a message committed between authorization and bind.
+            dataOpt = sessionManager.loadSession(sessionId);
+            if (dataOpt.isEmpty()) {
+                wsSessionManager.unbindSession(transportId);
+                pushBindError(principal.getName(), "SESSION_NOT_FOUND", bindRequestId, bindingEpoch);
+                return;
+            }
+
+            SessionData boundData = dataOpt.get();
+            if (boundData.model() != null && !boundData.model().isEmpty()) {
+                sessionModels.put(sessionId, boundData.model());
+                log.info("Restored session model from DB: sessionId={}, model={}", sessionId, boundData.model());
             }
 
             // ── 新增: 推送 session_restored（含 activities）──
             try {
-                Optional<SessionData> dataOpt = sessionManager.loadSession(sessionId);
                 if (dataOpt.isPresent()) {
                     SessionData data = dataOpt.get();
                     Map<String, Object> metadata = Map.of(
@@ -1378,12 +1510,27 @@ public class WebSocketController implements PermissionNotifier {
                     restoredPayload.put("activities", activities);
                     restoredPayload.put("totalActivityCount", totalActivityCount);
                     restoredPayload.put("hasMore", hasMore);
-                    push(sessionId, "session_restored", restoredPayload);
+                    restoredPayload.put("protocolVersion", WS_PROTOCOL_VERSION);
+                    restoredPayload.put("bindRequestId", bindRequestId);
+                    restoredPayload.put("bindingEpoch", bindingEpoch);
+                    restoredPayload.put("serverNow", System.currentTimeMillis());
+                    if (runRecoveryProjectionService != null) {
+                        var projection = runRecoveryProjectionService.latestForSession(sessionId);
+                        if (projection.runSnapshot() != null) restoredPayload.put("runSnapshot", projection.runSnapshot());
+                        restoredPayload.put("snapshotEventSeq", projection.snapshotEventSeq());
+                        restoredPayload.put("activeToolCalls", projection.activeToolCalls());
+                    }
+                    restoredPayload.put("costSummary", costTrackerService == null
+                            ? Map.of() : costTrackerService.getSessionCost(sessionId));
+                    pushToPrincipal(principal.getName(), "session_restored", restoredPayload);
                     log.info("Pushed session_restored: sessionId={}, messages={}, activities={}, total={}, hasMore={}",
                         sessionId, data.messages().size(), activities.size(), totalActivityCount, hasMore);
+                } else {
+                    pushBindError(principal.getName(), "SESSION_NOT_FOUND", bindRequestId, bindingEpoch);
                 }
             } catch (Exception e) {
                 log.warn("Failed to push session_restored for {}: {}", sessionId, e.getMessage());
+                pushBindError(principal.getName(), "BIND_RECOVERY_FAILED", bindRequestId, bindingEpoch);
             }
 
             // ★ 重连后先推送当前权限模式（前端收到后会 clearPermissions）
@@ -1392,31 +1539,38 @@ public class WebSocketController implements PermissionNotifier {
                 push(sessionId, "permission_mode_changed", Map.of("mode", currentMode.name()));
             }
 
-            // ★ 再重放 pending 权限请求（此时 clearPermissions 已执行完毕）
+            // ★ 再重放全部 pending interaction（此时 clearPermissions 已执行完毕）
             try {
-                var pendingPerms = durablePermissionService.getPending(sessionId);
-                for (var perm : pendingPerms) {
-                    push(sessionId, "permission_request",
-                            Map.of("toolUseId", perm.toolUseId(),
-                                    "toolName", perm.toolName(),
-                                    "input", Map.of("command", perm.inputSummary() != null ? perm.inputSummary() : ""),
-                                    "riskLevel", perm.riskLevel(),
-                                    "reason", perm.reason() != null ? perm.reason() : ""));
+                var pendingInteractions = permissionInteractions.getPendingInteractions(sessionId);
+                int permissionCount = 0;
+                for (var interaction : pendingInteractions) {
+                    deliverInteraction(interaction, InteractionDelivery.RECOVERY);
+                    if (interaction.type() == InteractionRequest.Type.PERMISSION) permissionCount++;
                 }
-                if (!pendingPerms.isEmpty()) {
-                    log.info("Replayed {} pending permission requests for session={}",
-                            pendingPerms.size(), sessionId);
+                if (!pendingInteractions.isEmpty()) {
+                    log.info("Replayed {} pending interactions ({} permissions) for session={}",
+                            pendingInteractions.size(), permissionCount, sessionId);
                 }
             } catch (Exception e) {
                 log.warn("Failed to replay pending permissions for {}: {}", sessionId, e.getMessage());
             }
 
-            // ★ 新增：刷新缓冲的未发送消息
-            wsSessionManager.flushBufferedMessages(sessionId, (type, fields) -> push(sessionId, type, fields));
         } else {
             log.warn("WS bind-session failed: principal={}, sessionId={}",
                     principal != null ? principal.getName() : "null", sessionId);
+            if (principal != null) {
+                pushBindError(principal.getName(), "BIND_SESSION_REQUIRED", bindRequestId, bindingEpoch);
+            }
         }
+    }
+
+    private void pushBindError(String principal, String code, String bindRequestId, long bindingEpoch) {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("code", code == null ? "BIND_FAILED" : code);
+        payload.put("supportedVersion", WS_PROTOCOL_VERSION);
+        if (bindRequestId != null) payload.put("bindRequestId", bindRequestId);
+        if (bindingEpoch >= 0) payload.put("bindingEpoch", bindingEpoch);
+        pushToPrincipal(principal, "protocol_error", payload);
     }
 
     // ───── 辅助方法 ─────
@@ -1425,19 +1579,13 @@ public class WebSocketController implements PermissionNotifier {
      * 从 Principal 解析应用层 sessionId。
      */
     private String resolveSessionId(Principal principal) {
-        if (principal == null) return "unknown";
+        if (principal == null) throw new IllegalStateException("SESSION_NOT_BOUND");
         String principalName = principal.getName();
         String sessionId = wsSessionManager.getSessionForPrincipal(principalName);
         if (sessionId != null) {
             return sessionId;
         }
-        // Fallback: 映射缺失时，使用 principalName 作为临时 sessionId，
-        // 并主动建立双向映射，确保后续 push() 能找到 principal。
-        // 配合 cleanupStaleEntries 的条件删除逻辑，
-        // 当后续 /bind-session 更新为真实 sessionId 后，此临时映射不会误伤合法映射。
-        log.warn("resolveSessionId: no mapping for principal={}, creating fallback binding", principalName);
-        wsSessionManager.bindSession(principalName, principalName);
-        return principalName;
+        throw new IllegalStateException("SESSION_NOT_BOUND");
     }
 
     // ───── Activity STOMP 端点 ─────
@@ -1467,23 +1615,37 @@ public class WebSocketController implements PermissionNotifier {
             int fileCount = payload.get("fileCount") != null ? ((Number) payload.get("fileCount")).intValue() : 0;
             String decision = (String) payload.get("decision");
 
-            String toolResultJson = payload.get("toolResult") != null ? objectMapper.writeValueAsString(payload.get("toolResult")) : null;
-            String changedFilesJson = payload.get("changedFiles") != null ? objectMapper.writeValueAsString(payload.get("changedFiles")) : null;
-            String insightJson = payload.get("insight") != null ? objectMapper.writeValueAsString(payload.get("insight")) : null;
-
-            // 大小限制检查
-            if ((toolResultJson != null && toolResultJson.length() > MAX_ACTIVITY_JSON_SIZE) ||
-                (changedFilesJson != null && changedFilesJson.length() > MAX_ACTIVITY_JSON_SIZE) ||
-                (insightJson != null && insightJson.length() > MAX_ACTIVITY_JSON_SIZE)) {
-                log.warn("Activity save rejected: JSON field exceeds {}B limit, id={}", MAX_ACTIVITY_JSON_SIZE, id);
-                return;
-            }
+            String toolResultJson = boundedActivityJson(payload.get("toolResult"));
+            String changedFilesJson = boundedActivityJson(payload.get("changedFiles"));
+            String insightJson = boundedActivityJson(payload.get("insight"));
 
             activityRepository.upsert(id, sessionId, operationType, summary, status, timestamp, duration, fileCount, decision, toolResultJson, changedFilesJson, insightJson);
             log.debug("Activity saved: id={}, sessionId={}, type={}", id, sessionId, operationType);
         } catch (Exception e) {
             log.warn("Failed to save activity: {}", e.getMessage());
         }
+    }
+
+    /** Preserve an auditable row when a diagnostic value is too large. */
+    private String boundedActivityJson(Object value) throws Exception {
+        if (value == null) return null;
+        String full = objectMapper.writeValueAsString(value);
+        byte[] bytes = full.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        if (bytes.length <= MAX_ACTIVITY_JSON_SIZE) return full;
+        var digest = java.security.MessageDigest.getInstance("SHA-256").digest(bytes);
+        String hash = java.util.HexFormat.of().formatHex(digest);
+        int previewLength = Math.min(2048, full.length());
+        String bounded = objectMapper.writeValueAsString(Map.of(
+                "truncated", true,
+                "originalBytes", bytes.length,
+                "sha256", hash,
+                "preview", full.substring(0, previewLength)));
+        // Defensive bound in case escaping expands the preview unexpectedly.
+        if (bounded.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > MAX_ACTIVITY_JSON_SIZE) {
+            bounded = objectMapper.writeValueAsString(Map.of(
+                    "truncated", true, "originalBytes", bytes.length, "sha256", hash));
+        }
+        return bounded;
     }
 
     /**
@@ -1581,8 +1743,8 @@ public class WebSocketController implements PermissionNotifier {
                     map.put("type", "user");
                     map.put("uuid", u.uuid());
                     map.put("timestamp", u.timestamp() != null ? u.timestamp().toEpochMilli() : 0);
-                    map.put("content", convertContentBlocksForWs(u.content()));
-                    if (u.toolUseResult() != null) map.put("toolUseResult", u.toolUseResult());
+                    map.put("content", convertContentBlocksForWs(
+                            com.aicodeassistant.engine.MessageContentAccessor.viewOf(u).blocks()));
                 }
                 case com.aicodeassistant.model.Message.AssistantMessage a -> {
                     map.put("type", "assistant");

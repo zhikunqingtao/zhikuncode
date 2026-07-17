@@ -2,7 +2,6 @@ package com.aicodeassistant.tool.impl;
 
 import com.aicodeassistant.model.PermissionBehavior;
 import com.aicodeassistant.sandbox.SandboxManager;
-import com.aicodeassistant.sandbox.SandboxManager.SandboxResult;
 import com.aicodeassistant.security.CommandBlacklistService;
 import com.aicodeassistant.tool.*;
 import com.aicodeassistant.tool.bash.BashCommandClassifier;
@@ -11,10 +10,11 @@ import com.aicodeassistant.tool.bash.BashErrorClassifier.ErrorClassification;
 import com.aicodeassistant.tool.bash.BashOutputProcessor;
 import com.aicodeassistant.tool.bash.BashSecurityAnalyzer;
 import com.aicodeassistant.tool.bash.CommandCategory;
-import com.aicodeassistant.tool.bash.ProcessTreeManager;
 import com.aicodeassistant.tool.bash.ShellStateManager;
 import com.aicodeassistant.tool.bash.ast.BashAstNode.SimpleCommandNode;
 import com.aicodeassistant.tool.bash.ast.ParseForSecurityResult;
+import com.aicodeassistant.tool.process.ManagedProcessRunner;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -25,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Map;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -87,27 +88,28 @@ public class BashTool implements Tool {
     private final BashCommandClassifier commandClassifier;
     private final ShellStateManager shellStateManager;
     private final BashOutputProcessor outputProcessor;
-    private final ProcessTreeManager processTreeManager;
     private final SandboxManager sandboxManager;
     private final CommandBlacklistService commandBlacklistService;
     private final BashErrorClassifier errorClassifier;
+    private final ManagedProcessRunner managedProcessRunner;
 
+    @Autowired
     public BashTool(BashSecurityAnalyzer securityAnalyzer,
                     BashCommandClassifier commandClassifier,
                     ShellStateManager shellStateManager,
                     BashOutputProcessor outputProcessor,
-                    ProcessTreeManager processTreeManager,
                     SandboxManager sandboxManager,
                     CommandBlacklistService commandBlacklistService,
-                    BashErrorClassifier errorClassifier) {
+                    BashErrorClassifier errorClassifier,
+                    ManagedProcessRunner managedProcessRunner) {
         this.securityAnalyzer = securityAnalyzer;
         this.commandClassifier = commandClassifier;
         this.shellStateManager = shellStateManager;
         this.outputProcessor = outputProcessor;
-        this.processTreeManager = processTreeManager;
         this.sandboxManager = sandboxManager;
         this.commandBlacklistService = commandBlacklistService;
         this.errorClassifier = errorClassifier;
+        this.managedProcessRunner = managedProcessRunner;
     }
 
     /**
@@ -127,7 +129,10 @@ public class BashTool implements Tool {
                                                     String command) {
         ErrorClassification classification = errorClassifier.classify(
                 exitCode, outputForClassification, command);
-        return ToolResult.error(errorMessage)
+        return ToolResult.failed(ToolResult.ToolFailureType.PROCESS,
+                        "BASH_" + classification.type().name(), errorMessage,
+                        ToolResult.Retryability.NEVER, ToolResult.EffectState.UNKNOWN,
+                        exitCode, Map.of())
                 .withMetadata("failure_category", classification.type().name())
                 .withMetadata("failure_suggestion", classification.suggestion());
     }
@@ -254,7 +259,15 @@ public class BashTool implements Tool {
                         "command", Map.of("type", "string", "description", "The shell command to execute"),
                         "timeout", Map.of("type", "integer", "description", "Timeout in milliseconds (default 120000)"),
                         "description", Map.of("type", "string", "description", "Description of what the command does"),
-                        "is_background", Map.of("type", "boolean", "description", "Run command in background, returning immediately with process ID")
+                        "is_background", Map.of("type", "boolean", "description", "Run command in background, returning immediately with process ID"),
+                        "declared_outputs", Map.of(
+                                "type", "array",
+                                "description", "Outputs explicitly declared before execution; undeclared side effects are not artifacts",
+                                "items", Map.of("type", "object", "properties", Map.of(
+                                        "path", Map.of("type", "string"),
+                                        "operation", Map.of("type", "string", "enum", List.of("created", "modified", "deleted")),
+                                        "requiredValidatorId", Map.of("type", "string")),
+                                        "required", List.of("path", "operation")))
                 ),
                 "required", java.util.List.of("command")
         );
@@ -484,7 +497,7 @@ public class BashTool implements Tool {
         String rejection = validateCommandSafety(command);
         if (rejection != null) {
             log.warn("Command blocked by safety validation: {} — reason: {}", command, rejection);
-            return ToolResult.error(rejection)
+            return ToolResult.validationError("BASH_COMMAND_SAFETY_DENIED", rejection)
                     .withMetadata("failure_category", BashErrorClassifier.ErrorType.NEEDS_HUMAN.name())
                     .withMetadata("failure_suggestion", rejection);
         }
@@ -515,22 +528,22 @@ public class BashTool implements Tool {
 
             // 后台执行模式
             if (isBackground) {
-                ProcessBuilder pb = new ProcessBuilder("bash", "-c", wrappedCommand);
-                pb.directory(new File(workingDir));
-                pb.redirectErrorStream(true);
-                // P1-05: 后台进程重定向输出到 /dev/null，防止管道填满导致进程阻塞
-                pb.redirectOutput(ProcessBuilder.Redirect.DISCARD);
-                pb.redirectError(ProcessBuilder.Redirect.DISCARD);
-                Process process = pb.start();
-                // 关闭 stdin，防止资源泄漏
-                process.getOutputStream().close();
-                long pid = process.pid();
+                if (managedProcessRunner == null || context.currentRunId() == null
+                        || context.toolUseId() == null) {
+                    return ToolResult.failed(ToolResult.ToolFailureType.PROCESS,
+                            "PROCESS_OWNERSHIP_MISSING", "Background process requires runId and toolUseId",
+                            ToolResult.Retryability.NEVER, ToolResult.EffectState.NOT_STARTED,
+                            null, Map.of());
+                }
+                long pid = managedProcessRunner.startBackground(new ManagedProcessRunner.BackgroundRequest(
+                        List.of("bash", "-c", wrappedCommand), Path.of(workingDir),
+                        context.currentRunId(), context.toolUseId(), context.sessionId())).pid();
                 log.info("Background process started: pid={}, command={}", pid, command);
-                return ToolResult.success(String.format(
+                return ToolResult.backgroundStarted(String.format(
                         "Background process started with PID %d.%n"
-                        + "Use `kill %d` to stop it.%n"
+                        + "It remains owned by the current session; use `kill %d` to stop it earlier.%n"
                         + "Note: output is not captured for background processes.",
-                        pid, pid));
+                        pid, pid), pid);
             }
 
             // UI 分类日志（第四层，独立于安全分类）
@@ -539,71 +552,48 @@ public class BashTool implements Tool {
 
             // === 沙箱路由判断：高危命令进容器执行 ===
             if (sandboxManager.isSandboxingEnabled() && sandboxManager.shouldUseSandbox(command)) {
-                return executeSandboxed(command, workingDir, timeout);
+                return executeSandboxed(command, workingDir, timeout, context);
             }
 
-            // 2. 构建进程
-            ProcessBuilder pb = new ProcessBuilder("bash", "-c", wrappedCommand);
-            pb.directory(new File(workingDir));
-            pb.redirectErrorStream(true);
-
-            // 3. 启动进程并读取输出
-            Process process = pb.start();
-            StringBuilder output = new StringBuilder();
-            boolean truncated = false;
-
-            try {
-                try (var reader = new BufferedReader(
-                        new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        if (output.length() + line.length() > MAX_OUTPUT_CHARS) {
-                            truncated = true;
-                            break;
-                        }
-                        output.append(line).append('\n');
-                    }
-                }
-
-                // 4. 等待进程完成 (含超时)
-                // 梯度终止: 进程树 SIGTERM → 等 2s → SIGKILL
-                boolean completed = process.waitFor(timeout, TimeUnit.MILLISECONDS);
-                if (!completed) {
-                    processTreeManager.destroyProcessTree(process, Duration.ofSeconds(2));
-                    String timeoutMsg = "Command timed out after " + timeout + "ms";
-                    // 超时使用退出码 137 (SIGKILL) 触发 TIMEOUT 分类
-                    return buildErrorWithClassification(timeoutMsg, 137, timeoutMsg, command);
-                }
-
-                int exitCode = process.exitValue();
-                String rawStdout = output.toString();
-
-                // 5. 更新 Shell 状态
-                shellStateManager.updateStateFromSnapshot(sessionId);
-
-                // 6. 智能截断输出
-                boolean hasError = exitCode != 0;
-                String stdout = outputProcessor.processOutput(rawStdout, hasError);
-
-                // 7. 构建结果
-                if (hasError) {
-                    String errorBody = "Exit code: " + exitCode + "\n" + stdout;
-                    // rawStdout 提供完整原始输出（含 stderr 因 redirectErrorStream），用于关键字匹配
-                    return buildErrorWithClassification(errorBody, exitCode, rawStdout, command);
-                }
-
-                return ToolResult.success(stdout)
-                        .withMetadata("exitCode", exitCode)
-                        .withMetadata("truncated", truncated);
-            } finally {
-                // 确保关闭所有流，防止资源泄漏
-                try { process.getInputStream().close(); } catch (Exception ignored) {}
-                try { process.getErrorStream().close(); } catch (Exception ignored) {}
-                try { process.getOutputStream().close(); } catch (Exception ignored) {}
-                if (process.isAlive()) {
-                    process.destroyForcibly();
-                }
+            if (context.currentRunId() == null || context.currentRunId().isBlank()
+                    || context.toolUseId() == null || context.toolUseId().isBlank()) {
+                return ToolResult.failed(ToolResult.ToolFailureType.PROCESS,
+                        "PROCESS_OWNERSHIP_MISSING",
+                        "Managed process requires runId and toolUseId",
+                        ToolResult.Retryability.NEVER, ToolResult.EffectState.NOT_STARTED,
+                        null, Map.of());
             }
+            ManagedProcessRunner.Result result = managedProcessRunner.run(
+                    new ManagedProcessRunner.Request(List.of("bash", "-c", wrappedCommand),
+                            Path.of(workingDir), Duration.ofMillis(timeout),
+                            context.currentRunId(), context.toolUseId()));
+            String combined = result.stdout() + (result.stderr().isBlank()
+                    ? "" : (result.stdout().isBlank() ? "" : "\n") + result.stderr());
+            if (result.cancelled()) {
+                return ToolResult.cancelled("PROCESS_CANCELLED", "Command cancelled",
+                        ToolResult.EffectState.UNKNOWN)
+                        .withMetadata("terminationConfirmed", result.terminationConfirmed())
+                        .withMetadata("descendantTrackingUnavailable", result.descendantTrackingUnavailable());
+            }
+            if (result.timedOut()) {
+                return ToolResult.timedOut("PROCESS_DEADLINE_EXCEEDED",
+                        "Command timed out after " + timeout + "ms\n" + combined,
+                        137, result.terminationConfirmed())
+                        .withMetadata("terminationConfirmed", result.terminationConfirmed())
+                        .withMetadata("descendantTrackingUnavailable", result.descendantTrackingUnavailable())
+                        .withMetadata("stdoutTruncated", result.stdoutTruncated())
+                        .withMetadata("stderrTruncated", result.stderrTruncated());
+            }
+            shellStateManager.updateStateFromSnapshot(sessionId);
+            boolean failed = result.exitCode() != 0;
+            String processed = outputProcessor.processOutput(combined, failed);
+            if (failed) return buildErrorWithClassification(
+                    "Exit code: " + result.exitCode() + "\n" + processed,
+                    result.exitCode(), combined, command);
+            return ToolResult.successWithEffect(processed, ToolResult.EffectState.UNKNOWN)
+                    .withMetadata("exitCode", result.exitCode())
+                    .withMetadata("truncated", result.stdoutTruncated() || result.stderrTruncated())
+                    .withMetadata("elapsedMs", result.elapsedMs());
 
         } catch (IOException e) {
             log.error("Failed to execute command: {}", command, e);
@@ -619,19 +609,56 @@ public class BashTool implements Tool {
     /**
      * 在沙箱容器中执行命令（用于高危命令隔离）。
      */
-    private ToolResult executeSandboxed(String command, String workingDir, long timeoutMs) {
-        SandboxResult result = sandboxManager.execute(command, Path.of(workingDir), Map.of());
+    private ToolResult executeSandboxed(String command, String workingDir, long timeoutMs,
+                                        ToolUseContext context) throws java.io.IOException, InterruptedException {
+        if (managedProcessRunner == null || context.currentRunId() == null || context.toolUseId() == null) {
+            return ToolResult.failed(ToolResult.ToolFailureType.PROCESS, "PROCESS_OWNERSHIP_MISSING",
+                    "Sandbox process requires runId and toolUseId", ToolResult.Retryability.NEVER,
+                    ToolResult.EffectState.NOT_STARTED, null, Map.of());
+        }
+        var invocation = sandboxManager.prepareInvocation(command, Path.of(workingDir), Map.of(),
+                context.currentRunId(), context.toolUseId());
+        long effectiveTimeout = Math.min(timeoutMs, sandboxManager.getTimeoutSeconds() * 1000L);
+        ManagedProcessRunner.Result result = managedProcessRunner.run(new ManagedProcessRunner.Request(
+                invocation.command(), Path.of(workingDir), java.time.Duration.ofMillis(effectiveTimeout),
+                context.currentRunId(), context.toolUseId(), invocation.cleanup()));
+        if (result.cancelled()) {
+            return ToolResult.cancelled("PROCESS_CANCELLED", "Sandboxed command cancelled",
+                    ToolResult.EffectState.UNKNOWN)
+                    .withMetadata("sandboxed", true)
+                    .withMetadata("containerName", invocation.containerName())
+                    .withMetadata("terminationConfirmed", result.terminationConfirmed());
+        }
         if (result.timedOut()) {
             String timeoutMsg = "Sandboxed command timed out after "
-                    + sandboxManager.getTimeoutSeconds() + "s";
-            return buildErrorWithClassification(timeoutMsg, 137, timeoutMsg, command);
+                    + effectiveTimeout + "ms";
+            ErrorClassification classification = errorClassifier.classify(137, timeoutMsg, command);
+            return ToolResult.timedOut("PROCESS_DEADLINE_EXCEEDED", timeoutMsg, 137,
+                            result.terminationConfirmed())
+                    .withMetadata("sandboxed", true)
+                    .withMetadata("containerName", invocation.containerName())
+                    .withMetadata("terminationConfirmed", result.terminationConfirmed())
+                    .withMetadata("failure_category", classification.type().name())
+                    .withMetadata("failure_suggestion", classification.suggestion());
         }
+        if (!result.terminationConfirmed()) {
+            return ToolResult.failed(ToolResult.ToolFailureType.PROCESS,
+                    "PROCESS_TERMINATION_UNCONFIRMED",
+                    "Sandbox command exited but container cleanup could not be confirmed",
+                    ToolResult.Retryability.NEVER, ToolResult.EffectState.UNKNOWN,
+                    result.exitCode(), Map.of("sandboxed", true,
+                            "containerName", invocation.containerName(),
+                            "terminationConfirmed", false));
+        }
+        String output = result.stdout() + (result.stderr().isBlank() ? "" : "\n" + result.stderr());
         if (result.exitCode() != 0) {
-            String errorBody = "Exit code: " + result.exitCode() + "\n" + result.output();
-            return buildErrorWithClassification(errorBody, result.exitCode(), result.output(), command);
+            String errorBody = "Exit code: " + result.exitCode() + "\n" + output;
+            return buildErrorWithClassification(errorBody, result.exitCode(), output, command);
         }
-        return ToolResult.success(result.output())
+        return ToolResult.successWithEffect(output, ToolResult.EffectState.UNKNOWN)
                 .withMetadata("sandboxed", true)
-                .withMetadata("exitCode", result.exitCode());
+                .withMetadata("exitCode", result.exitCode())
+                .withMetadata("containerName", invocation.containerName())
+                .withMetadata("terminationConfirmed", result.terminationConfirmed());
     }
 }

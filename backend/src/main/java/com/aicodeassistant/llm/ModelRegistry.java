@@ -15,7 +15,9 @@ public class ModelRegistry {
     private static final Logger log = LoggerFactory.getLogger(ModelRegistry.class);
 
     private final Map<String, ModelCapabilities> customModels = new ConcurrentHashMap<>();
+    private final Set<String> warnedUnknownModels = ConcurrentHashMap.newKeySet();
     private final LlmProviderRegistry providerRegistry;
+    private final ModelCapabilitiesProperties properties;
 
     // 内置模型映射表
     private static final Map<String, ModelCapabilities> BUILTIN_MODELS = Map.ofEntries(
@@ -52,7 +54,14 @@ public class ModelRegistry {
     );
 
     public ModelRegistry(LlmProviderRegistry providerRegistry) {
+        this(providerRegistry, new ModelCapabilitiesProperties());
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public ModelRegistry(LlmProviderRegistry providerRegistry, ModelCapabilitiesProperties properties) {
         this.providerRegistry = providerRegistry;
+        this.properties = properties;
+        applyConfiguredOverrides();
         log.info("ModelRegistry initialized with {} built-in models", BUILTIN_MODELS.size());
     }
 
@@ -66,6 +75,8 @@ public class ModelRegistry {
         return getCapabilities(modelId).maxOutputTokens();
     }
 
+    public double getTokenCharRatio(String modelId) { return getCapabilities(modelId).tokenCharRatio(); }
+
     /**
      * 获取完整模型能力 — 三级查询优先级:
      * 1. 用户自定义覆盖（YAML 配置）
@@ -74,6 +85,12 @@ public class ModelRegistry {
      * 4. 保守默认值（ModelCapabilities.DEFAULT）
      */
     public ModelCapabilities getCapabilities(String modelId) {
+        if (modelId == null || modelId.isBlank()) {
+            if (warnedUnknownModels.add("<blank>")) {
+                log.warn("Blank model id; using conservative DEFAULT capabilities");
+            }
+            return ModelCapabilities.DEFAULT;
+        }
         // Level 1: 用户自定义覆盖
         ModelCapabilities custom = customModels.get(modelId);
         if (custom != null) return custom;
@@ -99,8 +116,19 @@ public class ModelRegistry {
         }
 
         // Level 4: 保守默认值
-        log.debug("Unknown model '{}', using DEFAULT capabilities", modelId);
+        if (warnedUnknownModels.add(String.valueOf(modelId))) {
+            log.warn("Unknown model '{}'; using conservative DEFAULT capabilities", modelId);
+        }
         return ModelCapabilities.DEFAULT;
+    }
+
+    public boolean isKnownModel(String modelId) {
+        if (modelId == null) return false;
+        if (customModels.containsKey(modelId) || BUILTIN_MODELS.containsKey(modelId)) return true;
+        if (BUILTIN_MODELS.keySet().stream().anyMatch(k -> k.endsWith("/*")
+                && modelId.startsWith(k.substring(0, k.length() - 1)))) return true;
+        try { providerRegistry.getProvider(modelId).getModelCapabilities(modelId); return true; }
+        catch (Exception ignored) { return false; }
     }
 
     /** 注册自定义模型能力（YAML 配置加载时调用） */
@@ -128,6 +156,36 @@ public class ModelRegistry {
 
     private static ModelCapabilities caps(String id, String name, int maxOut, int ctx,
             boolean stream, boolean think, boolean img, int maxImages, boolean tool, double in$, double out$) {
-        return new ModelCapabilities(id, name, maxOut, ctx, stream, think, img, maxImages, tool, in$, out$);
+        return new ModelCapabilities(id, name, maxOut, ctx, stream, think, img, maxImages, tool, in$, out$, 3.5);
+    }
+
+    private void applyConfiguredOverrides() {
+        for (var entry : properties.getCapabilities().entrySet()) {
+            String id = entry.getKey();
+            ModelCapabilitiesProperties.Override override = entry.getValue();
+            if (override.getTokenCharRatio() == null)
+                throw new IllegalStateException("model.capabilities." + id + ".tokenCharRatio is required");
+            ModelCapabilities base = resolveBase(id);
+            int context = override.getContextWindow() == null ? base.contextWindow() : override.getContextWindow();
+            int output = override.getOutputMaxTokens() == null ? base.maxOutputTokens() : override.getOutputMaxTokens();
+            customModels.put(id, new ModelCapabilities(id,
+                    "unknown".equals(base.modelId()) ? id : base.displayName(), output, context,
+                    value(override.getSupportsStreaming(), base.supportsStreaming()), base.supportsThinking(),
+                    value(override.getSupportsVision(), base.supportsImages()), base.maxImages(),
+                    value(override.getSupportsToolUse(), base.supportsToolUse()),
+                    base.costPer1kInput(), base.costPer1kOutput(), override.getTokenCharRatio(),
+                    value(override.getSupportsCache(), base.supportsCache())));
+        }
+    }
+
+    private ModelCapabilities resolveBase(String modelId) {
+        try { return providerRegistry.getProvider(modelId).getModelCapabilities(modelId); }
+        catch (Exception ignored) { }
+        ModelCapabilities builtin = BUILTIN_MODELS.get(modelId);
+        return builtin == null ? ModelCapabilities.DEFAULT : builtin;
+    }
+
+    private static boolean value(Boolean configured, boolean fallback) {
+        return configured == null ? fallback : configured;
     }
 }

@@ -10,6 +10,8 @@ import com.github.difflib.patch.Patch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import com.aicodeassistant.tool.impl.AtomicFileWriter;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -32,6 +34,7 @@ public class FileHistoryService {
     private final Map<String, Instant> readTimestamps = new ConcurrentHashMap<>();
     private final FileSnapshotRepository snapshotRepository;
     private final SessionManager sessionManager;
+    private final AtomicFileWriter atomicFileWriter;
 
     // ==================== 事务管理 (F3) ====================
 
@@ -51,8 +54,16 @@ public class FileHistoryService {
 
     public FileHistoryService(FileSnapshotRepository snapshotRepository,
                               SessionManager sessionManager) {
+        this(snapshotRepository, sessionManager, null);
+    }
+
+    @Autowired
+    public FileHistoryService(FileSnapshotRepository snapshotRepository,
+                              SessionManager sessionManager,
+                              AtomicFileWriter atomicFileWriter) {
         this.snapshotRepository = snapshotRepository;
         this.sessionManager = sessionManager;
+        this.atomicFileWriter = atomicFileWriter;
     }
 
     /**
@@ -216,6 +227,39 @@ public class FileHistoryService {
         readTimestamps.put(filePath, Instant.now());
     }
 
+    /**
+     * Persist a pre-write snapshot only after the authority-changing write has
+     * succeeded. This prevents failed/conflicted writes from appearing in undo
+     * history while preserving the exact bytes observed before the CAS write.
+     */
+    public HistoryRecordResult trackAppliedEdit(String filePath, String originalContent, String sessionId,
+                                                String messageId, String operation) {
+        if (originalContent == null || originalContent.getBytes(StandardCharsets.UTF_8).length > 10 * 1024 * 1024) {
+            updateAppliedEditCaches(filePath, sessionId);
+            return new HistoryRecordResult(false, "HISTORY_SNAPSHOT_NOT_APPLICABLE");
+        }
+        HistoryRecordResult result;
+        try {
+            FileSnapshot snapshot = new FileSnapshot(UUID.randomUUID().toString(), sessionId,
+                    messageId, filePath, originalContent, operation, Instant.now().toString());
+            snapshotRepository.save(snapshot);
+            result = new HistoryRecordResult(true, null);
+        } catch (RuntimeException failure) {
+            log.warn("File effect applied but history snapshot failed for {}: {}", filePath, failure.getMessage());
+            result = new HistoryRecordResult(false, "HISTORY_SNAPSHOT_PERSIST_FAILED");
+        }
+        updateAppliedEditCaches(filePath, sessionId);
+        return result;
+    }
+
+    private void updateAppliedEditCaches(String filePath, String sessionId) {
+        ActiveTransaction active = activeTransactions.get(sessionId);
+        if (active != null && !active.changedFiles().contains(filePath)) active.changedFiles().add(filePath);
+        readTimestamps.put(filePath, Instant.now());
+    }
+
+    public record HistoryRecordResult(boolean recorded, String errorCode) { }
+
     // ==================== Rewind 回退功能 ====================
 
     /**
@@ -247,6 +291,15 @@ public class FileHistoryService {
      * @return 回退结果
      */
     public RewindResult rewindFiles(String sessionId, String messageId, List<String> filePaths) {
+        if (atomicFileWriter == null) {
+            return new RewindResult(false, List.of(), List.of(),
+                    List.of("ATOMIC_FILE_WRITER_UNAVAILABLE"));
+        }
+        Optional<com.aicodeassistant.session.SessionData> session = sessionManager.loadSession(sessionId);
+        if (session.isEmpty()) {
+            return new RewindResult(false, List.of(), List.of(), List.of("SESSION_NOT_FOUND"));
+        }
+        String workspaceRoot = session.get().workingDir();
         List<FileSnapshot> snapshots = snapshotRepository.findByMessageId(messageId);
         if (snapshots.isEmpty()) {
             return new RewindResult(false, List.of(), List.of(),
@@ -277,19 +330,22 @@ public class FileHistoryService {
                     trackEdit(snapshot.filePath(), sessionId, rewindMessageId, "rewind");
                 }
 
-                // 原子写入：临时文件 + move
-                Path tmpFile = targetPath.resolveSibling(targetPath.getFileName() + ".rewind.tmp");
-                Files.createDirectories(targetPath.getParent());
-                Files.writeString(tmpFile, snapshot.content(), StandardCharsets.UTF_8);
-                Files.move(tmpFile, targetPath,
-                        StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+                AtomicFileWriter.ExpectedOldState expected = Files.exists(targetPath, LinkOption.NOFOLLOW_LINKS)
+                        ? AtomicFileWriter.ExpectedOldState.sha256(sha256(targetPath))
+                        : AtomicFileWriter.ExpectedOldState.absent();
+                AtomicFileWriter.WriteResult write = atomicFileWriter.write(targetPath,
+                        snapshot.content().getBytes(StandardCharsets.UTF_8), sessionId, expected, workspaceRoot);
+                if (!write.success()) {
+                    errors.add(snapshot.filePath() + ": " + write.error());
+                    continue;
+                }
 
                 // 更新会话级 FileStateCache
                 fileStateCache.markModified(snapshot.filePath());
                 restoredFiles.add(snapshot.filePath());
                 log.info("Rewind restored: session={}, file={}", sessionId, snapshot.filePath());
 
-            } catch (IOException e) {
+            } catch (Exception e) {
                 errors.add(snapshot.filePath() + ": " + e.getMessage());
                 log.warn("Rewind failed for {}: {}", snapshot.filePath(), e.getMessage());
             }
@@ -297,6 +353,15 @@ public class FileHistoryService {
 
         return new RewindResult(!errors.isEmpty() ? false : true,
                 restoredFiles, skippedFiles, errors);
+    }
+
+    private static String sha256(Path path) throws Exception {
+        java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+        try (java.io.InputStream input = Files.newInputStream(path)) {
+            byte[] buffer = new byte[8192];
+            for (int read; (read = input.read(buffer)) >= 0;) if (read > 0) digest.update(buffer, 0, read);
+        }
+        return java.util.HexFormat.of().formatHex(digest.digest());
     }
 
     /**

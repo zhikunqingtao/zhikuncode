@@ -12,14 +12,9 @@ import org.springframework.web.socket.messaging.SessionConnectedEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 import java.security.Principal;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -30,7 +25,7 @@ import java.util.concurrent.TimeUnit;
  * 职责:
  * <ul>
  *   <li>监听 STOMP CONNECTED/DISCONNECT 事件</li>
- *   <li>从 CONNECT 帧 session attributes 中提取 X-Session-Id</li>
+ *   <li>CONNECTED 时只登记 transport，v2 bind-session 成功后才绑定应用会话</li>
  *   <li>维护 principal → sessionId 和 sessionId → principal 映射</li>
  *   <li>为 {@link WebSocketController} 提供 Principal/SessionId 查找</li>
  * </ul>
@@ -41,26 +36,32 @@ public class WebSocketSessionManager {
     private static final Logger log = LoggerFactory.getLogger(WebSocketSessionManager.class);
 
     /** 映射最大存活时间（无活跃连接时），防止 disconnect 事件丢失导致内存泄漏 */
-    private static final long STALE_ENTRY_TTL_MS = 10 * 60 * 1000L; // 10 分钟
+    // Transport heartbeats and every inbound STOMP frame refresh this lease. 180s
+    // tolerates browser timer throttling while still bounding leaked transports.
+    private static final long STALE_ENTRY_TTL_MS = 180_000L;
+    private static final long OFFLINE_GRACE_MS = 30_000L;
 
-    /** principal name → application sessionId */
-    private final ConcurrentHashMap<String, String> principalToSession = new ConcurrentHashMap<>();
+    /** Server-issued STOMP transport id → its complete liveness/bind state. */
+    private final ConcurrentHashMap<String, TransportState> transports = new ConcurrentHashMap<>();
 
-    /** application sessionId → principal name */
-    private final ConcurrentHashMap<String, String> sessionToPrincipal = new ConcurrentHashMap<>();
+    /** Application session id → currently bound server transport ids. */
+    private final ConcurrentHashMap<String, Set<String>> sessionToTransports = new ConcurrentHashMap<>();
 
-    /** STOMP transport sessionId → principal name (用于 disconnect 清理) */
-    private final ConcurrentHashMap<String, String> transportToSession = new ConcurrentHashMap<>();
+    /** Offline marker is informational only; it never cancels a Run. */
+    private final ConcurrentHashMap<String, Long> sessionOfflineSince = new ConcurrentHashMap<>();
 
-    /** sessionId → 最后活跃时间戳（用于定时清理过期映射） */
-    private final ConcurrentHashMap<String, Long> sessionLastActive = new ConcurrentHashMap<>();
-
-    // ★ 新增：未发送消息缓冲队列（关键消息不丢失）
-    private final ConcurrentHashMap<String, Queue<Map<String, Object>>> messageBuffer = new ConcurrentHashMap<>();
-    private static final int MAX_BUFFER_SIZE = 100;
-
-    /** transportSessionId → 注册时间戳（用于定时清理孤儿 transport 映射） */
-    private final ConcurrentHashMap<String, Long> transportLastActive = new ConcurrentHashMap<>();
+    public record TransportState(String transportId, String principalName, String appSessionId,
+                                 long connectedAtNanos, long lastSeenAtNanos,
+                                 boolean bindCompleted, long bindingEpoch) {
+        TransportState touch(long now) {
+            return new TransportState(transportId, principalName, appSessionId,
+                    connectedAtNanos, now, bindCompleted, bindingEpoch);
+        }
+        TransportState bind(String sessionId, long now, long epoch) {
+            return new TransportState(transportId, principalName, sessionId,
+                    connectedAtNanos, now, true, epoch);
+        }
+    }
 
     private final ScheduledExecutorService cleanupScheduler =
             Executors.newSingleThreadScheduledExecutor(r -> {
@@ -69,13 +70,13 @@ public class WebSocketSessionManager {
                 return thread;
             });
 
-    /** 启动定时清理任务 — 每 5 分钟扫描一次过期映射 */
+    /** 启动定时清理任务 — 10 秒 heartbeat/stale 扫描。 */
     @PostConstruct
     public void init() {
         cleanupScheduler.scheduleAtFixedRate(this::cleanupStaleEntries,
-                5, 5, TimeUnit.MINUTES);
-        log.info("WebSocket session cleanup scheduler started (TTL={}min, interval=5min)",
-                STALE_ENTRY_TTL_MS / 60_000);
+                10, 10, TimeUnit.SECONDS);
+        log.info("WebSocket session cleanup scheduler started (TTL={}s, interval=10s)",
+                STALE_ENTRY_TTL_MS / 1000);
     }
 
     /** 关闭清理调度器 */
@@ -100,23 +101,8 @@ public class WebSocketSessionManager {
         }
 
         String principalName = user.getName();
-
-        // 从 session attributes 中取出应用层 sessionId
-        Map<String, Object> attrs = accessor.getSessionAttributes();
-        String appSessionId = attrs != null ? (String) attrs.get("sessionId") : null;
-
-        if (appSessionId != null) {
-            principalToSession.put(principalName, appSessionId);
-            sessionToPrincipal.put(appSessionId, principalName);
-            transportToSession.put(transportSessionId, principalName);
-            sessionLastActive.put(appSessionId, System.currentTimeMillis());
-            transportLastActive.put(transportSessionId, System.currentTimeMillis());
-            log.info("WebSocket session bound: principal={}, sessionId={}", principalName, appSessionId);
-        } else {
-            transportToSession.put(transportSessionId, principalName);
-            transportLastActive.put(transportSessionId, System.currentTimeMillis());
-            log.debug("WebSocket connected without sessionId: principal={}", principalName);
-        }
+        registerTransport(transportSessionId, principalName);
+        log.debug("WebSocket connected and awaiting bind-session: principal={}", principalName);
     }
 
     /**
@@ -133,14 +119,10 @@ public class WebSocketSessionManager {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
         String transportSessionId = accessor.getSessionId();
 
-        String principalName = transportToSession.remove(transportSessionId);
-        transportLastActive.remove(transportSessionId);
-        if (principalName != null) {
-            // ★ 不立即移除 principal ↔ session 映射 — 留给重连窗口和进行中的工具执行
-            // 重连后前端会发送 bind-session 覆盖旧映射，TTL 清理会回收孤儿条目
-            String appSessionId = principalToSession.get(principalName);
-            log.info("WebSocket transport disconnected: principal={}, sessionId={} (mapping retained for reconnect)",
-                    principalName, appSessionId);
+        TransportState removed = disconnectTransport(transportSessionId);
+        if (removed != null) {
+            log.info("WebSocket transport disconnected: principal={}, sessionId={} (offline grace started)",
+                    removed.principalName(), removed.appSessionId());
         }
     }
 
@@ -150,33 +132,75 @@ public class WebSocketSessionManager {
      * 根据 principal name 获取应用层 sessionId。
      */
     public String getSessionForPrincipal(String principalName) {
-        return principalToSession.get(principalName);
+        return transports.values().stream()
+                .filter(t -> t.bindCompleted() && t.principalName().equals(principalName))
+                .max(java.util.Comparator.comparingLong(TransportState::lastSeenAtNanos))
+                .map(TransportState::appSessionId).orElse(null);
     }
 
     /**
      * 根据应用层 sessionId 获取 principal name。
      */
     public String getPrincipalForSession(String sessionId) {
-        return sessionToPrincipal.get(sessionId);
+        return getPrincipalsForSession(sessionId).stream().findFirst().orElse(null);
+    }
+    public Set<String> getPrincipalsForSession(String sessionId) {
+        Set<String> ids=sessionToTransports.get(sessionId);
+        if(ids==null)return Set.of();
+        return ids.stream().map(transports::get).filter(java.util.Objects::nonNull)
+                .filter(TransportState::bindCompleted).map(TransportState::principalName)
+                .collect(java.util.stream.Collectors.toUnmodifiableSet());
+    }
+    public Set<String> getTransportIdsForSession(String sessionId) {
+        Set<String> ids=sessionToTransports.get(sessionId);
+        if(ids==null)return Set.of();
+        return ids.stream().filter(transports::containsKey)
+                .collect(java.util.stream.Collectors.toUnmodifiableSet());
     }
 
-    /**
-     * 手动绑定 principal ↔ sessionId（用于 REST API 创建会话后绑定）。
-     */
-    public void bindSession(String principalName, String sessionId) {
-        // ★ 重连场景: 旧 principal (anon-OLD) 映射到同一 sessionId，
-        //   新 principal (anon-NEW) 绑定时需清理旧条目，否则 principalToSession 中
-        //   旧条目永远无法被 TTL 清理（TTL 以 sessionId 遍历，找不到已覆盖的旧 principal）。
-        String oldPrincipal = sessionToPrincipal.get(sessionId);
-        if (oldPrincipal != null && !oldPrincipal.equals(principalName)) {
-            principalToSession.remove(oldPrincipal);
-            log.info("Replaced stale principal mapping: old={}, new={}, sessionId={}",
-                    oldPrincipal, principalName, sessionId);
-        }
-        principalToSession.put(principalName, sessionId);
-        sessionToPrincipal.put(sessionId, principalName);
-        sessionLastActive.put(sessionId, System.currentTimeMillis());
-        log.debug("Session manually bound: principal={}, sessionId={}", principalName, sessionId);
+    void registerTransport(String transportId, String principalName) {
+        if (transportId == null || principalName == null)
+            throw new IllegalArgumentException("transport and principal are required");
+        long now = System.nanoTime();
+        TransportState state = new TransportState(transportId, principalName, null,
+                now, now, false, 0);
+        TransportState previous = transports.putIfAbsent(transportId, state);
+        if (previous != null && !previous.principalName().equals(principalName))
+            throw new IllegalStateException("TRANSPORT_PRINCIPAL_MISMATCH");
+    }
+
+    public void bindSession(String principalName, String transportId, String sessionId, long bindingEpoch) {
+        if (principalName == null || transportId == null || sessionId == null)
+            throw new IllegalArgumentException("principal, transport and session are required");
+        if (bindingEpoch < 1) throw new IllegalArgumentException("bindingEpoch must be positive");
+        long now=System.nanoTime();
+        transports.compute(transportId,(id,current)->{
+            if(current==null||!current.principalName().equals(principalName))
+                throw new IllegalStateException("TRANSPORT_PRINCIPAL_MISMATCH");
+            if(current.appSessionId()!=null&&!current.appSessionId().equals(sessionId))
+                removeSessionIndex(current.appSessionId(),transportId);
+            if (bindingEpoch <= current.bindingEpoch())
+                throw new IllegalStateException("STALE_BINDING_EPOCH");
+            return current.bind(sessionId,now,bindingEpoch);
+        });
+        sessionToTransports.computeIfAbsent(sessionId,ignored->ConcurrentHashMap.newKeySet()).add(transportId);
+        sessionOfflineSince.remove(sessionId);
+        log.debug("Session transport bound: principal={}, transport={}, sessionId={}",principalName,transportId,sessionId);
+    }
+
+    public void unbindSession(String transportId) {
+        transports.computeIfPresent(transportId, (id, current) -> {
+            if (current.appSessionId() != null) removeSessionIndex(current.appSessionId(), transportId);
+            long now = System.nanoTime();
+            return new TransportState(current.transportId(), current.principalName(), null,
+                    current.connectedAtNanos(), now, false, current.bindingEpoch());
+        });
+    }
+
+    public long getBindingEpochForPrincipal(String principalName) {
+        return transports.values().stream()
+                .filter(t -> t.bindCompleted() && t.principalName().equals(principalName))
+                .mapToLong(TransportState::bindingEpoch).max().orElse(0);
     }
 
     /**
@@ -184,16 +208,20 @@ public class WebSocketSessionManager {
      * 不在 getPrincipalForSession 等读取方法中调用，避免推送行为自身续期。
      */
     public void refreshActivity(String sessionId) {
-        if (sessionToPrincipal.containsKey(sessionId)) {
-            sessionLastActive.put(sessionId, System.currentTimeMillis());
-        }
+        Set<String> ids=sessionToTransports.getOrDefault(sessionId,Set.of());
+        long now=System.nanoTime(); ids.forEach(id->transports.computeIfPresent(id,(key,state)->state.touch(now)));
+    }
+    public void refreshTransport(String transportId) {
+        if(transportId==null)return;
+        long now=System.nanoTime(); transports.computeIfPresent(transportId,(key,state)->state.touch(now));
     }
 
     /**
      * 检查指定 sessionId 是否有在线连接。
      */
     public boolean isSessionOnline(String sessionId) {
-        return sessionToPrincipal.containsKey(sessionId);
+        Set<String> ids = sessionToTransports.get(sessionId);
+        return ids != null && ids.stream().anyMatch(transports::containsKey);
     }
 
     /**
@@ -201,41 +229,8 @@ public class WebSocketSessionManager {
      * 用于广播式推送（如 MCP 健康状态变更）。
      */
     public Set<String> getActiveSessionIds() {
-        return Set.copyOf(sessionToPrincipal.keySet());
-    }
-
-    // ───── 消息缓冲 ─────
-
-    /**
-     * 缓冲关键消息，等待重连后补发。
-     */
-    public void bufferMessage(String sessionId, String type, Map<String, Object> fields) {
-        Queue<Map<String, Object>> queue = messageBuffer.computeIfAbsent(sessionId, k -> new ConcurrentLinkedQueue<>());
-        if (queue.size() >= MAX_BUFFER_SIZE) {
-            queue.poll(); // 满时丢弃最旧消息
-            log.warn("Message buffer overflow for session {}, dropping oldest", sessionId);
-        }
-        Map<String, Object> buffered = new LinkedHashMap<>(fields);
-        buffered.put("type", type);
-        buffered.put("ts", System.currentTimeMillis());
-        queue.offer(buffered);
-    }
-
-    /**
-     * 刷新缓冲消息（重连后调用）。
-     */
-    public void flushBufferedMessages(String sessionId, java.util.function.BiConsumer<String, Map<String, Object>> pushFn) {
-        Queue<Map<String, Object>> queue = messageBuffer.remove(sessionId);
-        if (queue != null && !queue.isEmpty()) {
-            int count = 0;
-            Map<String, Object> msg;
-            while ((msg = queue.poll()) != null) {
-                String type = (String) msg.remove("type");
-                pushFn.accept(type, msg);
-                count++;
-            }
-            log.info("Flushed {} buffered messages for session {}", count, sessionId);
-        }
+        return sessionToTransports.entrySet().stream().filter(e -> e.getValue().stream().anyMatch(transports::containsKey))
+                .map(Entry::getKey).collect(java.util.stream.Collectors.toUnmodifiableSet());
     }
 
     // ───── 定时清理 ─────
@@ -246,50 +241,32 @@ public class WebSocketSessionManager {
      * 同时清理全部四个映射表: sessionLastActive, sessionToPrincipal, principalToSession, transportToSession。
      */
     private void cleanupStaleEntries() {
-        long now = System.currentTimeMillis();
+        long now = System.nanoTime();
         int cleaned = 0;
-
-        // 1. 清理过期的 application session 映射
-        Iterator<Entry<String, Long>> sessionIter = sessionLastActive.entrySet().iterator();
-        while (sessionIter.hasNext()) {
-            Entry<String, Long> entry = sessionIter.next();
-            if (now - entry.getValue() > STALE_ENTRY_TTL_MS) {
-                String staleSessionId = entry.getKey();
-                String principal = sessionToPrincipal.remove(staleSessionId);
-                if (principal != null) {
-                    // 仅当 principalToSession 仍指向该 staleSessionId 时才移除，
-                    // 避免误删已被 /bind-session 更新为真实 sessionId 的合法映射
-                    principalToSession.compute(principal, (k, v) ->
-                        (v != null && v.equals(staleSessionId)) ? null : v
-                    );
-                }
-                // 清理对应的消息缓冲
-                Queue<Map<String, Object>> buf = messageBuffer.remove(staleSessionId);
-                if (buf != null && !buf.isEmpty()) {
-                    log.info("Dropping {} buffered messages for stale sessionId={}", buf.size(), staleSessionId);
-                }
-                sessionIter.remove();
-                cleaned++;
-                log.info("Cleaned stale session mapping: sessionId={}, principal={}", staleSessionId, principal);
-            }
+        long staleNanos=TimeUnit.MILLISECONDS.toNanos(STALE_ENTRY_TTL_MS);
+        for(TransportState state:Set.copyOf(transports.values())){
+            if(now-state.lastSeenAtNanos()>staleNanos&&disconnectTransport(state.transportId())!=null)cleaned++;
         }
-
-        // 2. 清理过期的 transport session 映射（防止 disconnect 丢失导致 transportToSession 泄漏）
-        Iterator<Entry<String, Long>> transportIter = transportLastActive.entrySet().iterator();
-        while (transportIter.hasNext()) {
-            Entry<String, Long> entry = transportIter.next();
-            if (now - entry.getValue() > STALE_ENTRY_TTL_MS) {
-                String staleTransportId = entry.getKey();
-                transportToSession.remove(staleTransportId);
-                transportIter.remove();
-                cleaned++;
-                log.debug("Cleaned stale transport mapping: transportSessionId={}", staleTransportId);
-            }
-        }
+        sessionOfflineSince.entrySet().removeIf(e->
+                now-e.getValue()>TimeUnit.MILLISECONDS.toNanos(OFFLINE_GRACE_MS)
+                        && !isSessionOnline(e.getKey()));
 
         if (cleaned > 0) {
             log.info("Session cleanup completed: removed {} stale entries, activeSessions={}, activeTransports={}",
-                    cleaned, sessionToPrincipal.size(), transportToSession.size());
+                    cleaned, sessionToTransports.size(), transports.size());
         }
+    }
+
+    TransportState disconnectTransport(String transportId){
+        TransportState removed=transports.remove(transportId);
+        if(removed!=null&&removed.appSessionId()!=null){
+            removeSessionIndex(removed.appSessionId(),transportId);
+            if(!isSessionOnline(removed.appSessionId()))sessionOfflineSince.put(removed.appSessionId(),System.nanoTime());
+        }
+        return removed;
+    }
+    private void removeSessionIndex(String sessionId,String transportId){
+        Set<String> ids=sessionToTransports.get(sessionId);
+        if(ids!=null){ids.remove(transportId);if(ids.isEmpty())sessionToTransports.remove(sessionId,ids);}
     }
 }

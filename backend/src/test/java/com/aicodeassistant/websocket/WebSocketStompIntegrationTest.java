@@ -43,7 +43,13 @@ class WebSocketStompIntegrationTest {
         EffectiveSystemPromptBuilder systemPromptBuilder = mock(EffectiveSystemPromptBuilder.class);
         controller = new WebSocketController(messaging, sessionManager,
                 queryEngine, toolRegistry, providerRegistry, systemPromptBuilder,
-                null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+                null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                null, null, null, null, null);
+    }
+
+    private void bind(String principal, String session) {
+        sessionManager.registerTransport(principal, principal);
+        sessionManager.bindSession(principal, principal, session, 1);
     }
 
     // ═══════════════ 1. 推送消息格式验证 ═══════════════
@@ -52,7 +58,7 @@ class WebSocketStompIntegrationTest {
     @DisplayName("pushToUser — 消息包含 type + ts + payload 字段")
     void pushToUser_shouldSendFlatJsonMessage() {
         // 绑定 session
-        sessionManager.bindSession("user-1", "session-1");
+        bind("user-1", "session-1");
 
         // 推送
         controller.pushToUser("session-1", "stream_delta", Map.of("text", "hello"));
@@ -83,12 +89,34 @@ class WebSocketStompIntegrationTest {
         verifyNoInteractions(messaging);
     }
 
+    @Test
+    void differentTransportsNeverReceiveAnotherApplicationSessionsEvents() {
+        bind("transport-a", "session-a");
+        bind("transport-b", "session-b");
+
+        controller.sendStreamDelta("session-a", "private-a");
+
+        verify(messaging).convertAndSendToUser(eq("transport-a"), eq("/queue/messages"), any());
+        verify(messaging, never()).convertAndSendToUser(eq("transport-b"), anyString(), any());
+    }
+
+    @Test
+    void normalSessionEventsBroadcastToAllTransportsBoundToThatSession() {
+        bind("transport-a", "session-a");
+        bind("transport-b", "session-a");
+
+        controller.sendStreamDelta("session-a", "shared");
+
+        verify(messaging).convertAndSendToUser(eq("transport-a"), eq("/queue/messages"), any());
+        verify(messaging).convertAndSendToUser(eq("transport-b"), eq("/queue/messages"), any());
+    }
+
     // ═══════════════ 3. sendStreamDelta 推送 ═══════════════
 
     @Test
     @DisplayName("sendStreamDelta — 推送文本增量")
     void sendStreamDelta_shouldPushTextDelta() {
-        sessionManager.bindSession("user-1", "session-1");
+        bind("user-1", "session-1");
 
         controller.sendStreamDelta("session-1", "Hello World");
 
@@ -109,7 +137,7 @@ class WebSocketStompIntegrationTest {
     @Test
     @DisplayName("sendToolResult — 推送工具执行结果")
     void sendToolResult_shouldPushToolResult() {
-        sessionManager.bindSession("user-1", "session-1");
+        bind("user-1", "session-1");
 
         controller.sendToolResult("session-1", "tool-1", "file content", false);
 
@@ -130,7 +158,7 @@ class WebSocketStompIntegrationTest {
     @Test
     @DisplayName("sendError — 推送错误消息")
     void sendError_shouldPushError() {
-        sessionManager.bindSession("user-1", "session-1");
+        bind("user-1", "session-1");
 
         controller.sendError("session-1", "ERR_001", "Something went wrong", false);
 
@@ -151,7 +179,7 @@ class WebSocketStompIntegrationTest {
     @Test
     @DisplayName("sendPermissionRequest — 推送权限请求")
     void sendPermissionRequest_shouldPushPermission() {
-        sessionManager.bindSession("user-1", "session-1");
+        bind("user-1", "session-1");
 
         controller.sendPermissionRequest("session-1", "tool-1", "BashTool",
                 Map.of("command", "rm -rf /tmp/test"), "high", "destructive command");
@@ -173,7 +201,7 @@ class WebSocketStompIntegrationTest {
     @Test
     @DisplayName("sendCostUpdate — 推送费用更新")
     void sendCostUpdate_shouldPushCost() {
-        sessionManager.bindSession("user-1", "session-1");
+        bind("user-1", "session-1");
 
         Usage usage = new Usage(100, 50, 0, 0);
         controller.sendCostUpdate("session-1", 0.01, 0.015, usage);
@@ -195,7 +223,7 @@ class WebSocketStompIntegrationTest {
     @Test
     @DisplayName("SessionManager — bindSession 建立双向映射")
     void sessionManager_bindSession_shouldCreateBidirectionalMapping() {
-        sessionManager.bindSession("principal-A", "session-A");
+        bind("principal-A", "session-A");
 
         assertThat(sessionManager.getSessionForPrincipal("principal-A")).isEqualTo("session-A");
         assertThat(sessionManager.getPrincipalForSession("session-A")).isEqualTo("principal-A");
@@ -215,7 +243,7 @@ class WebSocketStompIntegrationTest {
     @Test
     @DisplayName("sendMessageComplete — 推送消息完成标记")
     void sendMessageComplete_shouldPushComplete() {
-        sessionManager.bindSession("user-1", "session-1");
+        bind("user-1", "session-1");
 
         Usage usage = new Usage(200, 100, 0, 0);
         controller.sendMessageComplete("session-1", usage, "end_turn");
@@ -237,7 +265,7 @@ class WebSocketStompIntegrationTest {
     @Test
     @DisplayName("sendPong — 响应 Ping")
     void sendPong_shouldPushPong() {
-        sessionManager.bindSession("user-1", "session-1");
+        bind("user-1", "session-1");
 
         controller.sendPong("session-1");
 

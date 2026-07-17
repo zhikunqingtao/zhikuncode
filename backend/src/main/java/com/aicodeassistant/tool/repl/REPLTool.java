@@ -134,14 +134,14 @@ public class REPLTool implements Tool {
                 metadata.put("stderr", replManager.truncateOutput(stderr));
             }
 
-            return new ToolResult(output, false, metadata);
+            return ToolResult.success(output, metadata);
         } catch (UnsupportedOperationException e) {
-            return ToolResult.error(e.getMessage());
+            return ToolResult.validationError("REPL_OPERATION_UNSUPPORTED", e.getMessage());
         } catch (ReplManager.ReplException e) {
-            return ToolResult.error("REPL error: " + e.getMessage());
+            return ToolResult.internalError("REPL_SESSION_ERROR", "REPL error: " + e.getMessage(), ToolResult.EffectState.UNKNOWN);
         } catch (Exception e) {
             log.error("REPL execution failed: {}", e.getMessage(), e);
-            return ToolResult.error("REPL execution failed: " + e.getMessage());
+            return ToolResult.internalError("REPL_EXECUTION_FAILED", "REPL execution failed: " + e.getMessage(), ToolResult.EffectState.UNKNOWN);
         }
     }
 

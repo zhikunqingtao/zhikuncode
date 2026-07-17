@@ -137,7 +137,7 @@ public class WorktreeTool implements Tool {
             case "list" -> handleList();
             case "add" -> handleAdd(input);
             case "remove" -> handleRemove(input);
-            default -> ToolResult.error("Unknown subcommand: " + subcommand);
+            default -> ToolResult.validationError("WORKTREE_SUBCOMMAND_INVALID", "Unknown subcommand: " + subcommand);
         };
     }
 
@@ -156,7 +156,9 @@ public class WorktreeTool implements Tool {
 
             if (exitCode != 0) {
                 log.warn("git worktree list failed (exit {}): {}", exitCode, output);
-                return ToolResult.error("Failed to list worktrees: " + output.trim());
+                return ToolResult.failed(ToolResult.ToolFailureType.PROCESS, "WORKTREE_LIST_EXIT_NONZERO",
+                        "Failed to list worktrees: " + output.trim(), ToolResult.Retryability.NEVER,
+                        ToolResult.EffectState.NONE, exitCode, Map.of());
             }
 
             int activeCount = worktreeManager.getActiveCount();
@@ -166,7 +168,7 @@ public class WorktreeTool implements Tool {
             return ToolResult.success(result);
         } catch (IOException | InterruptedException e) {
             log.error("Failed to execute git worktree list", e);
-            return ToolResult.error("Failed to list worktrees: " + e.getMessage());
+            return ToolResult.internalError("WORKTREE_LIST_FAILED", "Failed to list worktrees: " + e.getMessage(), ToolResult.EffectState.NONE);
         }
     }
 
@@ -185,7 +187,7 @@ public class WorktreeTool implements Tool {
             return ToolResult.success(result);
         } catch (RuntimeException e) {
             log.error("Failed to create worktree for agent '{}'", agentId, e);
-            return ToolResult.error("Failed to create worktree: " + e.getMessage());
+            return ToolResult.internalError("WORKTREE_CREATE_FAILED", "Failed to create worktree: " + e.getMessage(), ToolResult.EffectState.UNKNOWN);
         }
     }
 
@@ -201,7 +203,7 @@ public class WorktreeTool implements Tool {
             return ToolResult.success("Worktree removed successfully: " + worktreePath);
         } catch (RuntimeException e) {
             log.error("Failed to remove worktree at {}", worktreePath, e);
-            return ToolResult.error("Failed to remove worktree: " + e.getMessage());
+            return ToolResult.internalError("WORKTREE_REMOVE_FAILED", "Failed to remove worktree: " + e.getMessage(), ToolResult.EffectState.UNKNOWN);
         }
     }
 }

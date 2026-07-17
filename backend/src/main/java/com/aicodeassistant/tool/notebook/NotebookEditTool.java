@@ -9,18 +9,18 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
+import com.aicodeassistant.tool.impl.AtomicFileWriter;
+import com.aicodeassistant.tool.impl.FileVersionTracker;
+import com.aicodeassistant.security.ManagedWorkspacePathResolver;
 
 import java.io.IOException;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * NotebookEditTool — 编辑 Jupyter Notebook (.ipynb) 文件。
@@ -42,12 +42,23 @@ public class NotebookEditTool implements Tool {
 
     private static final Logger log = LoggerFactory.getLogger(NotebookEditTool.class);
 
-    /** JVM 内路径级线程锁 (v1.49.0 F3-03) */
-    private static final ConcurrentHashMap<Path, ReentrantLock> pathLocks = new ConcurrentHashMap<>();
-    /** 锁定超时 (秒) */
+    /** Retained public constant for the notebook golden contract. Atomic writes no longer wait on a separate lock. */
     static final int LOCK_TIMEOUT_SECONDS = 5;
+    private static final long MAX_NOTEBOOK_BYTES = 100L * 1024 * 1024;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final AtomicFileWriter atomicFileWriter;
+    private final ManagedWorkspacePathResolver managedPaths;
+
+    @Autowired
+    public NotebookEditTool(AtomicFileWriter atomicFileWriter, ManagedWorkspacePathResolver managedPaths) {
+        this.atomicFileWriter = atomicFileWriter;
+        this.managedPaths = managedPaths;
+    }
+
+    public NotebookEditTool() {
+        this(new AtomicFileWriter(new FileVersionTracker()), new ManagedWorkspacePathResolver());
+    }
 
     @Override
     public String getName() {
@@ -105,37 +116,18 @@ public class NotebookEditTool implements Tool {
         String notebookPath = input.getString("notebook_path");
         String command = input.getString("command");
 
-        Path path = Path.of(notebookPath).toAbsolutePath().normalize();
-
-        // Layer 1: JVM 内路径级锁
-        ReentrantLock jvmLock = pathLocks.computeIfAbsent(path, p -> new ReentrantLock());
         try {
-            if (!jvmLock.tryLock(LOCK_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
-                return ToolResult.error("Timeout acquiring JVM lock on " + notebookPath);
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return ToolResult.error("Interrupted while acquiring lock on " + notebookPath);
-        }
-
-        try {
-            // Layer 2: 跨进程文件级锁
-            try (FileChannel channel = FileChannel.open(path,
-                    StandardOpenOption.READ, StandardOpenOption.WRITE);
-                 FileLock fileLock = channel.tryLock()) {
-
-                if (fileLock == null) {
-                    return ToolResult.error("Failed to acquire file lock on " + notebookPath);
-                }
-
-                // 解析 notebook JSON — 先读取全部字节再解析
-                java.nio.ByteBuffer buf = java.nio.ByteBuffer.allocate((int) channel.size());
-                channel.read(buf);
-                buf.flip();
-                JsonNode notebook = objectMapper.readTree(buf.array(), 0, buf.limit());
+            Path path = managedPaths.resolveProspective(Path.of(notebookPath), context.workingDirectory());
+            if (!Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS) || Files.isSymbolicLink(path))
+                return ToolResult.validationError("NOTEBOOK_NOT_REGULAR_FILE", "Notebook is not a regular file: " + notebookPath);
+            if (Files.size(path) > MAX_NOTEBOOK_BYTES)
+                return ToolResult.validationError("NOTEBOOK_SIZE_LIMIT", "Notebook exceeds 100MiB limit: " + notebookPath);
+            byte[] original = Files.readAllBytes(path);
+            String expectedHash = sha256(original);
+                JsonNode notebook = objectMapper.readTree(original);
                 ArrayNode cells = (ArrayNode) notebook.get("cells");
                 if (cells == null) {
-                    return ToolResult.error("Invalid notebook: no 'cells' array found");
+                    return ToolResult.validationError("NOTEBOOK_CELLS_MISSING", "Invalid notebook: no 'cells' array found");
                 }
 
                 // 执行操作
@@ -148,22 +140,35 @@ public class NotebookEditTool implements Tool {
                     default -> throw new IllegalArgumentException("Unknown command: " + command);
                 };
 
-                // 写回文件
-                channel.position(0);
-                channel.truncate(0);
                 byte[] outputBytes = objectMapper.writerWithDefaultPrettyPrinter()
                         .writeValueAsBytes(notebook);
-                channel.write(java.nio.ByteBuffer.wrap(outputBytes));
-
-                return ToolResult.success("Notebook updated: " + result);
-            }
+            AtomicFileWriter.WriteResult write = atomicFileWriter.write(path, outputBytes,
+                    context.sessionId(), AtomicFileWriter.ExpectedOldState.sha256(expectedHash),
+                    context.workingDirectory());
+            if (!write.success()) return ToolResult.failed(ToolResult.ToolFailureType.INTERNAL,
+                    "NOTEBOOK_ATOMIC_WRITE_FAILED", write.error(), ToolResult.Retryability.NEVER,
+                    switch (write.effect()) {
+                        case NOT_STARTED -> ToolResult.EffectState.NOT_STARTED;
+                        case APPLIED -> ToolResult.EffectState.APPLIED;
+                        case UNKNOWN -> ToolResult.EffectState.UNKNOWN;
+                    }, null, Map.of());
+            return ToolResult.successWithEffect("Notebook updated: " + result, ToolResult.EffectState.APPLIED)
+                    .withMetadata("sealedHash", write.newHash());
         } catch (IllegalArgumentException e) {
-            return ToolResult.error(e.getMessage());
+            return ToolResult.validationError("NOTEBOOK_INPUT_INVALID", e.getMessage());
         } catch (IOException e) {
             log.error("Notebook edit failed: {}", e.getMessage(), e);
-            return ToolResult.error("Notebook edit failed: " + e.getMessage());
-        } finally {
-            jvmLock.unlock();
+            return ToolResult.internalError("NOTEBOOK_EDIT_IO_FAILED", "Notebook edit failed: " + e.getMessage(),
+                    ToolResult.EffectState.NOT_STARTED);
+        }
+    }
+
+    private static String sha256(byte[] bytes) {
+        try {
+            return java.util.HexFormat.of().formatHex(
+                    java.security.MessageDigest.getInstance("SHA-256").digest(bytes));
+        } catch (java.security.NoSuchAlgorithmException impossible) {
+            throw new IllegalStateException("SHA-256 unavailable", impossible);
         }
     }
 

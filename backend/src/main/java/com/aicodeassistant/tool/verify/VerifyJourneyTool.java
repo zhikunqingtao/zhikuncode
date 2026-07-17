@@ -186,7 +186,7 @@ public class VerifyJourneyTool implements Tool {
         // 1. 解析输入
         Object journeyRaw = input.getRawData().get("journey");
         if (!(journeyRaw instanceof List<?> journeyList) || journeyList.isEmpty()) {
-            return ToolResult.error("VerifyJourney requires a non-empty 'journey' array");
+            return ToolResult.validationError("VERIFY_JOURNEY_EMPTY", "VerifyJourney requires a non-empty 'journey' array");
         }
         List<Map<String, Object>> journey = (List<Map<String, Object>>) journeyRaw;
 
@@ -241,12 +241,14 @@ public class VerifyJourneyTool implements Tool {
                 return handleVerificationResult(result, sessionId, journey.size());
 
             } catch (DevServerTimeoutException e) {
-                return ToolResult.error("Dev server failed to start within " + DEV_SERVER_TIMEOUT.toSeconds()
+                return ToolResult.timedOut("DEV_SERVER_START_DEADLINE_EXCEEDED",
+                        "Dev server failed to start within " + DEV_SERVER_TIMEOUT.toSeconds()
                         + "s. Log tail:\n" + e.getLogTail()
-                        + "\nFix the dev server issue and retry VerifyJourney.");
+                        + "\nFix the dev server issue and retry VerifyJourney.", null, true,
+                        ToolResult.EffectState.UNKNOWN);
             } catch (Exception e) {
                 log.warn("VerifyJourney failed with unexpected exception", e);
-                return ToolResult.error("VerifyJourney failed: " + e.getMessage());
+                return ToolResult.internalError("VERIFY_JOURNEY_FAILED", "VerifyJourney failed: " + e.getMessage(), ToolResult.EffectState.UNKNOWN);
             } finally {
                 // 清理 DevServer + 浏览器 session
                 if (handle != null) {
@@ -369,7 +371,8 @@ public class VerifyJourneyTool implements Tool {
             } catch (Exception e) {
                 log.warn("Failed to send verify_attention notification: {}", e.getMessage());
             }
-            return ToolResult.error(enrichedMsg + " (evidence bundle: " + saved.bundleId() + ")");
+            return ToolResult.internalError("VERIFY_JOURNEY_ASSERTION_FAILED",
+                    enrichedMsg + " (evidence bundle: " + saved.bundleId() + ")", ToolResult.EffectState.NONE);
         }
     }
 

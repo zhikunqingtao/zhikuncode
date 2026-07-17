@@ -11,14 +11,12 @@ export {
     isConnected,
     send,
     sendUserMessage,
-    sendPermissionResponse,
     sendInterrupt,
     sendSetModel,
     sendSetPermissionMode,
     sendSlashCommand,
     sendMcpOperation,
     sendRewindFiles,
-    sendElicitationResponse,
     sendPing,
 } from './stompClient';
 

@@ -98,6 +98,7 @@ public class QueryEngine {
     private final RunTracker runTracker;
     private final TokenBudgetGuard tokenBudgetGuard;
     private final ImageRefInjector imageRefInjector;
+    private final com.aicodeassistant.run.RunExecutionRegistry runExecutions;
 
     /** 单条工具结果最大占上下文窗口的 30% */
     private static final double TOOL_RESULT_BUDGET_RATIO = 0.3;
@@ -147,7 +148,8 @@ public class QueryEngine {
                        AgentTimeoutConfig agentTimeoutConfig,
                        TokenBudgetGuard tokenBudgetGuard,
                        ImageRefInjector imageRefInjector,
-                       @org.springframework.context.annotation.Lazy RunTracker runTracker) {
+                       @org.springframework.context.annotation.Lazy RunTracker runTracker,
+                       @org.springframework.lang.Nullable com.aicodeassistant.run.RunExecutionRegistry runExecutions) {
         this.providerRegistry = providerRegistry;
         this.compactService = compactService;
         this.apiRetryService = apiRetryService;
@@ -178,6 +180,7 @@ public class QueryEngine {
         this.tokenBudgetGuard = tokenBudgetGuard;
         this.imageRefInjector = imageRefInjector;
         this.runTracker = runTracker;
+        this.runExecutions = runExecutions;
     }
 
     @PostConstruct
@@ -207,6 +210,10 @@ public class QueryEngine {
      * @param reason    中断原因
      */
     public void abort(String sessionId, AbortReason reason) {
+        if (runExecutions != null && runExecutions.abortSession(sessionId, reason)) {
+            log.info("QueryEngine abort: sessionId={}, reason={}", sessionId, reason);
+            return;
+        }
         AbortContext ctx = abortContexts.get(sessionId);
         if (ctx != null) {
             ctx.abort(reason);
@@ -235,6 +242,10 @@ public class QueryEngine {
      * 获取会话的 AbortContext（只读，不创建）。
      */
     public AbortContext getAbortContext(String sessionId) {
+        if (runExecutions != null) {
+            AbortContext registered = runExecutions.cancellationForSession(sessionId).orElse(null);
+            if (registered != null) return registered;
+        }
         return abortContexts.get(sessionId);
     }
 
@@ -272,13 +283,30 @@ public class QueryEngine {
         boolean runFailureRecorded = false;
         if (runTracker != null && sessionId != null) {
             try {
-                RunEnvelope run = runTracker.startRun(sessionId, null, "query", config.model());
+                String parentRunId = state.getToolUseContext() != null
+                        ? state.getToolUseContext().currentRunId() : null;
+                String agentType = state.getToolUseContext() != null
+                        && state.getToolUseContext().parentSessionId() != null ? "subagent" : "query";
+                RunEnvelope run = runTracker.startRun(sessionId, parentRunId, agentType, config.model());
                 currentRunId = run.id();
+                if (runExecutions != null) {
+                    runExecutions.register(currentRunId, sessionId, getOrCreateAbortContext(sessionId));
+                }
                 if (state.getToolUseContext() != null) {
                     state.setToolUseContext(state.getToolUseContext().withCurrentRunId(currentRunId));
                 }
             } catch (Exception e) {
-                log.warn("Failed to start RunTracker run: {}", e.getMessage());
+                log.error("Failed to establish Run execution authority", e);
+                if (currentRunId != null && runTracker != null) {
+                    try { runTracker.failRun(currentRunId, "RUN_EXECUTION_REGISTRATION_FAILED"); }
+                    catch (Exception recordFailure) {
+                        log.error("Failed to terminate partially-created Run {}", currentRunId, recordFailure);
+                    }
+                }
+                unregisterRunExecution(currentRunId);
+                handler.onError(e);
+                return new QueryResult(state.getMessages(), totalUsage,
+                        "error", "RUN_EXECUTION_REGISTRATION_FAILED", state.getTurnCount());
             }
         }
 
@@ -286,17 +314,27 @@ public class QueryEngine {
             preCleanImageHistory(config, state);
             totalUsage = queryLoop(config, state, handler, aborted);
         } catch (Exception e) {
-            log.error("QueryEngine 执行异常", e);
-            handler.onError(e);
+            boolean cancelled = aborted.get() || isCancellation(e);
+            if (cancelled) log.info("QueryEngine execution cancelled: {}", e.getMessage());
+            else {
+                log.error("QueryEngine 执行异常", e);
+                handler.onError(e);
+            }
             // ★ RunTracker: 异常路径 — 标记为 FAILED
             if (currentRunId != null && runTracker != null) {
                 try {
-                    runTracker.failRun(currentRunId, e.getMessage());
+                    if (cancelled) {
+                        AbortReason reason = state.getAbortReason() != null
+                                ? state.getAbortReason() : AbortReason.USER_INTERRUPT;
+                        runTracker.abortRun(currentRunId, reason, cancellationDetail(reason));
+                    }
+                    else runTracker.failRun(currentRunId, e.getMessage());
                     runFailureRecorded = true;
                 } catch (Exception ex) {
                     log.warn("Failed to record RunTracker failure: {}", ex.getMessage());
                 }
             }
+            unregisterRunExecution(currentRunId);
             return new QueryResult(state.getMessages(), totalUsage,
                     "error", e.getMessage(), state.getTurnCount());
         } finally {
@@ -313,9 +351,7 @@ public class QueryEngine {
                     // 用户中断或超时 — 标记为 ABORTED
                     AbortReason abortReason = state.getAbortReason() != null
                             ? state.getAbortReason() : AbortReason.USER_INTERRUPT;
-                    String reason = abortReason == AbortReason.TIMEOUT
-                            ? "timeout" : abortReason.name().toLowerCase();
-                    runTracker.abortRun(currentRunId, reason);
+                    runTracker.abortRun(currentRunId, abortReason, cancellationDetail(abortReason));
                 } else if (state.isRecoveryExhausted()) {
                     // 恢复耗尽（413/本地预算守卫）— 标记为 FAILED
                     runTracker.failRun(currentRunId, "context budget recovery exhausted");
@@ -328,6 +364,7 @@ public class QueryEngine {
                 log.warn("Failed to update RunTracker run status: {}", e.getMessage());
             }
         }
+        unregisterRunExecution(currentRunId);
 
         // P1: 恢复耗尽时返回失败 QueryResult，而非伪装成功
         if (state.isRecoveryExhausted()) {
@@ -344,6 +381,29 @@ public class QueryEngine {
 
         return new QueryResult(state.getMessages(), totalUsage,
                 stopReason, null, state.getTurnCount());
+    }
+
+    private void unregisterRunExecution(String runId) {
+        if (runId == null || runExecutions == null) return;
+        try { runExecutions.unregister(runId); }
+        catch (Exception e) { log.error("Run execution cleanup failed: run={}", runId, e); }
+    }
+
+    private static boolean isCancellation(Throwable error) {
+        if (error instanceof LlmApiException llm) {
+            return "cancelled".equals(llm.getErrorType())
+                    || "LLM_CALL_CANCELLED".equals(llm.getMessage());
+        }
+        return false;
+    }
+
+    private static String cancellationDetail(AbortReason reason) {
+        return switch (reason) {
+            case USER_INTERRUPT, SUBMIT_INTERRUPT -> "user_cancelled";
+            case TIMEOUT -> "deadline_exceeded";
+            case SYSTEM_SHUTDOWN -> "service_restart";
+            case ERROR -> "execution_cancelled_after_internal_error";
+        };
     }
 
     /**
@@ -363,17 +423,18 @@ public class QueryEngine {
         // 创建局部工具调用追踪器（每次 queryLoop 独立实例，避免跨会话状态污染）
         ToolCallTracker tracker = new ToolCallTracker();
 
-        log.info("[DIAG] queryLoop 进入: model={}, messageCount={}, maxTurns={}, aborted={}",
+        log.debug("queryLoop 进入: model={}, messageCount={}, maxTurns={}, aborted={}",
                 config.model(), state.getMessages().size(), config.maxTurns(), aborted.get());
 
         // P1-6 fix: 扫描所有消息，依赖 confirmedHashes 防重复（避免 ContextCascade 后索引漂移）
         final int runStartIndex = 0;
         final Set<String> confirmedImageHashes = new HashSet<>();
+        final Map<String,Integer> rejectedImageBudgets = new HashMap<>();
 
         while (!aborted.get()) {
             state.incrementTurnCount();
             int turn = state.getTurnCount();
-            log.info("[DIAG] Turn {} 开始: messageCount={}, model={}", turn, state.getMessages().size(), currentModel[0]);
+            log.debug("Turn {} 开始: messageCount={}, model={}", turn, state.getMessages().size(), currentModel[0]);
             handler.onTurnStart(turn);
 
             // ===== Step 0.5: Incremental collapse check =====
@@ -426,21 +487,22 @@ public class QueryEngine {
                 }
             }
             LlmProvider provider = providerRegistry.getProvider(effectiveModel);
-            log.info("[DIAG] Turn {} Step3: provider={}, effectiveModel={}, effectiveMaxTokens={}",
+            log.debug("Turn {} Step3: provider={}, effectiveModel={}, effectiveMaxTokens={}",
                     turn, provider.getClass().getSimpleName(), effectiveModel, effectiveMaxTokens);
 
             // === Phase1: 历史 Base64 预清理 ===
             // 始终使用 effectiveModel 的实际窗口（处理 fallback 降级场景）
             int effectiveContextWindow = modelRegistry.getContextWindowForModel(effectiveModel);
+            double tokenCharRatio = modelRegistry.getTokenCharRatio(effectiveModel);
             int systemPromptTokens = config.systemPrompt() != null
-                ? (int)(config.systemPrompt().length() / 3.5) : 0;
+                ? (int)(config.systemPrompt().length() / tokenCharRatio) : 0;
 
             // 估算工具定义 tokens（序列化后的长度 / 3.5）
             int toolDefsTokens = 0;
             if (config.toolDefinitions() != null && !config.toolDefinitions().isEmpty()) {
                 try {
                     String toolDefsJson = objectMapper.writeValueAsString(config.toolDefinitions());
-                    toolDefsTokens = (int)(toolDefsJson.length() / 3.5);
+                    toolDefsTokens = (int)(toolDefsJson.length() / tokenCharRatio);
                 } catch (Exception e) {
                     toolDefsTokens = config.toolDefinitions().size() * 200; // 每个工具约 200 tokens fallback 估算
                 }
@@ -449,28 +511,42 @@ public class QueryEngine {
             int bufferTokens = (int)(effectiveContextWindow * 0.05);
             int inputBudget = effectiveContextWindow - effectiveMaxTokens - systemPromptTokens - toolDefsTokens - bufferTokens;
 
-            TokenBudgetGuard.GuardResult guardResult = tokenBudgetGuard.enforcePhase1(state.getMessages(), inputBudget);
+            TokenBudgetGuard.GuardResult guardResult = tokenBudgetGuard.enforcePhase1(
+                    state.getMessages(), inputBudget, tokenCharRatio);
             if (guardResult.trimmed()) {
                 state.setMessages(guardResult.messages());
                 log.info("[ImageOpt] Phase1 cleanup: {} → {} tokens", guardResult.tokensBefore(), guardResult.tokensAfter());
             }
 
             // === 图片临时注入 ===
-            int currentTokens = tokenCounter.estimateTokens(state.getMessages());
+            int currentTokens = tokenCounter.estimateTokens(state.getMessages(), effectiveModel);
             int remainingBudget = inputBudget - currentTokens;
             String workingDir = state.getToolUseContext() != null ? state.getToolUseContext().workingDirectory() : null;
             ImageRefInjector.InjectResult injectResult = imageRefInjector.injectForApiCall(
-                state.getMessages(), runStartIndex, remainingBudget, confirmedImageHashes, workingDir);
+                state.getMessages(), runStartIndex, remainingBudget, confirmedImageHashes,
+                rejectedImageBudgets, workingDir);
+            // Optional/mocked injectors used by extensions may return null. Image
+            // injection is an optimization and must never break the query loop.
+            if (injectResult == null) {
+                log.warn("ImageRefInjector returned null; continuing without transient images");
+                injectResult = new ImageRefInjector.InjectResult(state.getMessages(), Set.of());
+            }
             List<Message> apiReadyMessages = injectResult.messages();
             Set<String> pendingHashes = injectResult.pendingHashes();
 
             List<MessageParam> typedMessages = messageNormalizer.normalizeTyped(apiReadyMessages);
             List<Map<String, Object>> apiMessages = MessageParamConverter.toMaps(typedMessages);
-            log.info("[DIAG] Turn {} Step3: apiMessages.size={}, typedMessages.size={}",
+            log.debug("Turn {} Step3: apiMessages.size={}, typedMessages.size={}",
                     turn, apiMessages.size(), typedMessages.size());
 
             // === Phase2: 最终 payload 校验 ===
-            TokenBudgetGuard.FinalBudgetResult finalCheck = tokenBudgetGuard.enforcePhase2(apiMessages, inputBudget);
+            // Keep the established two-argument path when no transient image
+            // was injected. Besides preserving extension compatibility, this
+            // makes the important boundary explicit: only transient images
+            // may be degraded by the hash-aware overload.
+            TokenBudgetGuard.FinalBudgetResult finalCheck = pendingHashes.isEmpty()
+                    ? tokenBudgetGuard.enforcePhase2(apiMessages, inputBudget, Set.of(), tokenCharRatio)
+                    : tokenBudgetGuard.enforcePhase2(apiMessages, inputBudget, pendingHashes, tokenCharRatio);
             if (!finalCheck.fitsBudget()) {
                 log.warn("[ImageOpt] Local budget guard triggered: {} > {}", finalCheck.estimatedTokens(), inputBudget);
                 handler.onRecovery(RecoveryEvent.of413(1, "local budget guard"));
@@ -493,9 +569,27 @@ public class QueryEngine {
             ThinkingConfig resolvedThinking = resolveThinking(
                     config.thinkingConfig(), provider, currentModel[0], handler, state);
 
-            log.info("[DIAG] Turn {} Step3: 开始 API 调用 streamChat...", turn);
+            if (aborted.get()) {
+                log.info("[ABORT] Turn {} Step3: abort detected before streamChat, breaking loop", turn);
+                break;
+            }
+            log.debug("Turn {} Step3: 开始 API 调用 streamChat...", turn);
             try {
+                com.aicodeassistant.llm.CancellationSignal callCancellation = loopSessionId == null
+                        ? com.aicodeassistant.llm.CancellationSignal.none()
+                        : getOrCreateAbortContext(loopSessionId);
+                String llmRequestId = "llm-" + java.util.UUID.randomUUID();
+                com.aicodeassistant.run.RunExecutionRegistry.WorkLease llmLease =
+                        runExecutions == null || state.getToolUseContext() == null
+                                || state.getToolUseContext().currentRunId() == null
+                                ? null : runExecutions.acquireWork(
+                                        state.getToolUseContext().currentRunId(), "llm", llmRequestId);
+                try (llmLease) {
                 apiRetryService.executeWithRetry(() -> {
+                    if (callCancellation.isCancelled()) {
+                        throw new LlmApiException("LLM_CALL_CANCELLED", false, 0,
+                                "cancelled", 0);
+                    }
                     collector.clearTerminalError(); // P0-2: 每次 retry 前重置
                     provider.streamChat(
                             effectiveModel,
@@ -504,6 +598,9 @@ public class QueryEngine {
                             config.toolDefinitions(),
                             effectiveMaxTokens,
                             resolvedThinking,
+                            new com.aicodeassistant.llm.LlmCallContext(
+                                    llmRequestId,
+                                    callCancellation),
                             collector
                     );
                     // P0-2: streamChat 正常返回后，检查 collector 是否收到了 terminal error
@@ -518,8 +615,30 @@ public class QueryEngine {
                         throw terminalError;
                     }
                     return null;
-                }, config.querySource(), effectiveModel);
+                }, config.querySource(), effectiveModel, callCancellation);
+                }
             } catch (LlmApiException e) {
+                if (aborted.get() || isCancellation(e)) {
+                    session.discard();
+                    break;
+                }
+                // The final serialized request guard is local and must never enter
+                // HTTP retry/fallback handling. Execute one existing context
+                // compaction, then rebuild the complete provider request on the
+                // next loop iteration. A second rejection is terminal.
+                if ("CONTEXT_BUDGET_EXCEEDED".equals(e.getErrorType())) {
+                    if (!state.hasAttemptedProviderPayloadGuardRetry()) {
+                        state.setProviderPayloadGuardRetryAttempted(true);
+                        handler.onRecovery(RecoveryEvent.of413(1, "final payload compact"));
+                        if (tryReactiveCompact(config, state, handler)) {
+                            handler.onTurnEnd(turn, "final_payload_guard_retry");
+                            continue;
+                        }
+                    }
+                    state.setRecoveryExhausted(true);
+                    handler.onError(e);
+                    break;
+                }
                 // 413 prompt_too_long → 消息扣留 + 两阶段恢复
                 if (isContextLimitError(e)) {
 
@@ -599,11 +718,26 @@ public class QueryEngine {
             // === 图片注入确认: API 调用成功，将本轮 pending hashes 标记为已确认 ===
             confirmedImageHashes.addAll(pendingHashes);
 
+            if (aborted.get()) {
+                log.info("[ABORT] Turn {} Step4: abort detected after streamChat, discarding", turn);
+                session.discard();
+                break;
+            }
+
             // ===== Step 4: 收集 API 响应 =====
-            log.info("[DIAG-TOOL] Turn {} Step4: streamChat returned, building AssistantMessage...", turn);
+            log.debug("Turn {} Step4: streamChat returned, building AssistantMessage...", turn);
             Message.AssistantMessage assistantMessage = collector.buildAssistantMessage();
             state.addMessage(assistantMessage);
             handler.onAssistantMessage(assistantMessage);
+            String eventRunId = state.getToolUseContext() == null
+                    ? null : state.getToolUseContext().currentRunId();
+            if (eventRunId != null && runTracker != null) {
+                runTracker.recordEvent(eventRunId, "message_completed", Map.of(
+                        "messageId", assistantMessage.uuid(),
+                        "turn", turn,
+                        "stopReason", assistantMessage.stopReason() == null ? "unknown" : assistantMessage.stopReason(),
+                        "contentBlockCount", assistantMessage.content() == null ? 0 : assistantMessage.content().size()));
+            }
 
             // ===== 事务边界: 开始 =====
             String txSessionId = state.getToolUseContext() != null
@@ -623,6 +757,13 @@ public class QueryEngine {
             if (assistantMessage.usage() != null) {
                 totalUsage = totalUsage.add(assistantMessage.usage());
                 handler.onUsage(assistantMessage.usage());
+                if (eventRunId != null && runTracker != null) {
+                    runTracker.recordEvent(eventRunId, "cost_snapshot", Map.of(
+                            "turn", turn,
+                            "inputTokens", totalUsage.inputTokens(),
+                            "outputTokens", totalUsage.outputTokens(),
+                            "totalTokens", totalUsage.totalTokens()));
+                }
             }
 
             // ===== Abort 检查（必须在 Step 5 之前）=====
@@ -654,11 +795,10 @@ public class QueryEngine {
                     }
                 }
 
-                // 注入用户中断消息（非 submit-interrupt 且非 session 断连时）
+                // Only an explicit stop action is represented as a user interruption.
                 AbortReason abortReason = state.getAbortReason() != null
                         ? state.getAbortReason() : AbortReason.USER_INTERRUPT;
-                if (abortReason != AbortReason.SUBMIT_INTERRUPT
-                        && abortReason != AbortReason.SESSION_DISCONNECTED) {
+                if (abortReason == AbortReason.USER_INTERRUPT) {
                     Message.UserMessage interruptMsg = new Message.UserMessage(
                             UUID.randomUUID().toString(), Instant.now(),
                             List.of(new ContentBlock.TextBlock(
@@ -733,7 +873,7 @@ public class QueryEngine {
                                         Instant.now(),
                                         List.of(new ContentBlock.TextBlock(correctionPrompt)),
                                         null, null));
-                                log.info("[DIAG-TOOL] Injected parameter-correction prompt for tool '{}', toolId={}",
+                                log.debug("Injected parameter-correction prompt for tool '{}', toolId={}",
                                         failedToolName, trb.toolUseId());
                                 break; // 只处理第一个参数错误
                             }
@@ -1208,6 +1348,12 @@ public class QueryEngine {
         final long watchdogMs = fixedOverrideMs > 0 ? fixedOverrideMs : dynamicWatchdogMs;
         long startTime = System.currentTimeMillis();
 
+        if (aborted.get()) {
+            log.info("[ABORT] consumeToolResults: abort at entry, discarding session");
+            session.discard();
+            return results;
+        }
+
         while (!session.isAllCompleted()) {
             // 检查 abort 信号
             if (aborted.get()) {
@@ -1234,8 +1380,8 @@ public class QueryEngine {
             }
 
             if (!session.isAllCompleted()) {
-                // ★ 条件等待，替代固定 50ms 轮询
-                session.awaitAnyCompletion(200, TimeUnit.MILLISECONDS);
+                // ★ 条件等待，缩短至 50ms 保证中止信号快速响应
+                session.awaitAnyCompletion(50, TimeUnit.MILLISECONDS);
             }
         }
 
@@ -1370,7 +1516,7 @@ public class QueryEngine {
                     }
                     cleaned.add(new Message.UserMessage(
                             userMsg.uuid(), userMsg.timestamp(), filteredBlocks,
-                            userMsg.toolUseResult(), userMsg.sourceToolAssistantUUID()));
+                            MessageContentAccessor.rawLegacyToolResult(userMsg), userMsg.sourceToolAssistantUUID()));
                 } else {
                     cleaned.add(msg);
                 }
@@ -1529,7 +1675,7 @@ public class QueryEngine {
                 case LlmStreamEvent.MessageDelta delta -> {
                     this.usage = delta.usage();
                     this.stopReason = delta.stopReason();
-                    log.info("[DIAG-TOOL] MessageDelta: stopReason={}, currentToolId={}", delta.stopReason(), currentToolId);
+                    log.debug("MessageDelta: stopReason={}, currentToolId={}", delta.stopReason(), currentToolId);
                     // ★ 修复：不在 MessageDelta 中触发 flushToolBlock()。
                     // Qwen 等 OpenAI 兼容模型可能在最后一批 ToolInputDelta 到达前
                     // 先发送 finish_reason，导致工具参数被截断。
@@ -1546,7 +1692,7 @@ public class QueryEngine {
                 case LlmStreamEvent.BlockStop bs -> {
                     // ★ 流式即时启动：tool_use block 结束时立即 flush 并提交执行
                     // 无需等待 MessageDelta，实现 "收到即启动" 而非 "收集完再启动"
-                    log.info("[DIAG-TOOL] BlockStop event: currentToolId={}, currentToolName={}", currentToolId, currentToolName);
+                    log.debug("BlockStop event: currentToolId={}, currentToolName={}", currentToolId, currentToolName);
                     flushToolBlock();
                 }
             }
@@ -1554,7 +1700,7 @@ public class QueryEngine {
 
         @Override
         public void onComplete() {
-            log.info("[DIAG-TOOL] onComplete: contentBlocks={}, stopReason={}, hasTerminalError={}",
+            log.debug("onComplete: contentBlocks={}, stopReason={}, hasTerminalError={}",
                     contentBlocks.size(), stopReason, terminalError != null);
             // P1: 不清除 terminalError — 如果 onError 已设置错误（如 chunk 解析失败后流仍到达 [DONE]），
             // 让 retry lambda 在 streamChat 返回后检测到并重新抛出。
@@ -1612,40 +1758,37 @@ public class QueryEngine {
         private void flushToolBlock() {
             if (currentToolId != null) {
                 String inputStr = currentToolInput.toString();
-                log.info("[DIAG-TOOL] flushToolBlock: toolId={}, toolName={}, inputLen={}, rawInput='{}'",
-                        currentToolId, currentToolName, inputStr.length(),
-                        inputStr.length() <= 200 ? inputStr : inputStr.substring(0, 200) + "...[truncated]");
+                log.debug("flushToolBlock: toolId={}, toolName={}, inputLen={}",
+                        currentToolId, currentToolName, inputStr.length());
                 JsonNode inputNode;
                 try {
                     inputNode = inputStr.isEmpty()
                             ? objectMapper.createObjectNode()
                             : objectMapper.readTree(inputStr);
                 } catch (Exception e) {
-                    // ★ P1: 先尝试 JSON 自动补全，再降级到空对象
-                    JsonNode recovered = tryRecoverJson(inputStr, e);
-                    if (recovered != null) {
-                        log.info("[DIAG-TOOL] JSON auto-recovered for tool '{}', toolId={}", currentToolName, currentToolId);
-                        inputNode = recovered;
-                    } else {
-                        log.warn("[DIAG-TOOL] flushToolBlock JSON parse error: toolId={}, inputLen={}, error={}",
-                                currentToolId, inputStr.length(), e.getMessage());
-                        inputNode = objectMapper.createObjectNode();
-                    }
+                    log.warn("Tool input JSON incomplete: toolId={}, toolName={}, inputLen={}",
+                            currentToolId, currentToolName, inputStr.length());
+                    terminalError = new LlmApiException(
+                            "INVALID_TOOL_INPUT_JSON", e, false);
+                    currentToolId = null;
+                    currentToolName = null;
+                    currentToolInput.setLength(0);
+                    return;
                 }
                 ContentBlock.ToolUseBlock toolBlock = new ContentBlock.ToolUseBlock(
                         currentToolId, currentToolName, inputNode);
                 contentBlocks.add(toolBlock);
 
                 // 立即提交到 StreamingToolExecutor 开始并行执行
-                log.info("[DIAG-TOOL] flushToolBlock submit: session={}, discarded={}",
+                log.debug("flushToolBlock submit: session={}, discarded={}",
                         session != null, session != null && session.isDiscarded());
                 if (session != null && !session.isDiscarded()) {
                     Tool tool = findToolByName(currentToolName);
-                    log.info("[DIAG-TOOL] findToolByName({}): found={}", currentToolName, tool != null);
+                    log.debug("findToolByName({}): found={}", currentToolName, tool != null);
                     if (tool != null) {
                         ToolInput toolInput = ToolInput.fromJsonNode(inputNode);
                         session.addTool(tool, toolInput, currentToolId, toolUseContext);
-                        log.info("[DIAG-TOOL] addTool submitted: toolId={}, toolName={}", currentToolId, currentToolName);
+                        log.debug("addTool submitted: toolId={}, toolName={}", currentToolId, currentToolName);
                     } else {
                         // 工具未找到 — 直接标记 COMPLETED + error，附带可用工具列表引导恢复
                         log.warn("Tool not found in streaming phase: {}", currentToolName);
@@ -1666,36 +1809,6 @@ public class QueryEngine {
             }
         }
 
-        /**
-         * 尝试修复截断的 JSON：补全引号/括号。
-         * 在 flushToolBlock 解析失败时作为降级策略，避免空对象丢失工具参数。
-         */
-        private JsonNode tryRecoverJson(String input, Exception originalError) {
-            String trimmed = input.trim();
-            if (trimmed.isEmpty()) return null;
-
-            // 策略1：如果错误是 "expecting closing quote"，尝试补引号+括号
-            String errMsg = originalError.getMessage();
-            if (errMsg != null && (errMsg.contains("closing") || errMsg.contains("quote") || errMsg.contains("Unexpected end"))) {
-                String[] suffixes = {"\"}", "\"}}"  , "\"}}}" };
-                for (String suffix : suffixes) {
-                    try {
-                        return objectMapper.readTree(trimmed + suffix);
-                    } catch (Exception ignored) {}
-                }
-            }
-
-            // 策略2：逐步补全括号
-            String[] closers = {"}", "}}", "}}}", "]}", "]}}"};
-            for (String closer : closers) {
-                try {
-                    return objectMapper.readTree(trimmed + closer);
-                } catch (Exception ignored) {}
-            }
-
-            return null;
-        }
-
         private Tool findToolByName(String name) {
             if (tools == null) return null;
             return tools.stream()
@@ -1704,7 +1817,7 @@ public class QueryEngine {
         }
 
         Message.AssistantMessage buildAssistantMessage() {
-            log.info("[DIAG-TOOL] buildAssistantMessage: contentBlocks={}, stopReason={}", contentBlocks.size(), stopReason);
+            log.debug("buildAssistantMessage: contentBlocks={}, stopReason={}", contentBlocks.size(), stopReason);
             flushTextBlock();
             flushToolBlock();
             return new Message.AssistantMessage(
@@ -1747,18 +1860,18 @@ public class QueryEngine {
     // ==================== 查询结果 ====================
 
     private void preCleanImageHistory(QueryConfig config, QueryLoopState state) {
-        int contextWindow = config.contextWindow() > 0 ? config.contextWindow()
-            : modelRegistry.getContextWindowForModel(config.model());
-        int currentTokens = tokenCounter.estimateTokens(state.getMessages());
+        int contextWindow = modelRegistry.getContextWindowForModel(config.model());
+        double tokenCharRatio = modelRegistry.getTokenCharRatio(config.model());
+        int currentTokens = tokenCounter.estimateTokens(state.getMessages(), config.model());
         if ((double) currentTokens / contextWindow < 0.6) return;
 
         int systemPromptTokens = config.systemPrompt() != null
-            ? (int)(config.systemPrompt().length() / 3.5) : 0;
+            ? (int)(config.systemPrompt().length() / tokenCharRatio) : 0;
         int inputBudget = contextWindow - config.maxTokens() - systemPromptTokens
             - (int)(contextWindow * 0.05);
 
         TokenBudgetGuard.GuardResult result = tokenBudgetGuard.enforcePhase1(
-            state.getMessages(), inputBudget);
+            state.getMessages(), inputBudget, tokenCharRatio);
         if (result.trimmed()) {
             state.setMessages(result.messages());
             log.info("[PreClean] 历史 Base64 清理: {} → {} tokens",

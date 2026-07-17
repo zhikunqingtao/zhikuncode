@@ -2,6 +2,7 @@ package com.aicodeassistant.engine;
 
 import com.aicodeassistant.llm.ApiCircuitBreaker;
 import com.aicodeassistant.llm.LlmApiException;
+import com.aicodeassistant.llm.CancellationSignal;
 import com.aicodeassistant.llm.ModelAwareRetryPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,10 +74,16 @@ public class ApiRetryService {
      */
     public <T> T executeWithRetry(Supplier<T> operation, String querySource,
                                    String currentModel) {
+        return executeWithRetry(operation, querySource, currentModel, CancellationSignal.none());
+    }
+
+    public <T> T executeWithRetry(Supplier<T> operation, String querySource,
+                                   String currentModel, CancellationSignal cancellation) {
         int attempt = 0;
         int retries529 = 0;
 
         while (true) {
+            if (cancellation.isCancelled()) throw cancelled();
             // ★ 熔断器检查 — 如果处于 OPEN 状态则快速失败
             if (!circuitBreaker.allowRequest()) {
                 throw new LlmApiException(
@@ -92,6 +99,12 @@ public class ApiRetryService {
                 circuitBreaker.recordSuccess();
                 return result;
             } catch (LlmApiException e) {
+                // Cancellation is a control-flow outcome, not a provider failure. Counting it
+                // against the circuit breaker would allow one user cancellation to degrade
+                // unrelated Runs using the same provider.
+                if (isCancellation(e) || cancellation.isCancelled()) {
+                    throw cancelled();
+                }
                 // ★ 失败 → 记录到熔断器
                 circuitBreaker.recordFailure();
                 attempt++;
@@ -127,13 +140,29 @@ public class ApiRetryService {
                         attempt, DEFAULT_MAX_RETRIES, delay + "ms", e.getMessage());
 
                 try {
-                    Thread.sleep(delay);
+                    java.util.concurrent.CountDownLatch cancelled = new java.util.concurrent.CountDownLatch(1);
+                    try (CancellationSignal.Registration ignored = cancellation.register(cancelled::countDown)) {
+                        if (cancellation.isCancelled()
+                                || cancelled.await(delay, java.util.concurrent.TimeUnit.MILLISECONDS)) {
+                            throw cancelled();
+                        }
+                    }
                 } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt();
                     throw new RuntimeException("API 重试被中断", ie);
                 }
             }
         }
+    }
+
+    private static LlmApiException cancelled() {
+        return new LlmApiException("LLM_CALL_CANCELLED", false, 0,
+                "cancelled", 0);
+    }
+
+    private static boolean isCancellation(LlmApiException error) {
+        return "cancelled".equals(error.getErrorType())
+                || "LLM_CALL_CANCELLED".equals(error.getMessage());
     }
 
     /**

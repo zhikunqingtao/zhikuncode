@@ -42,6 +42,7 @@ public class ImageRefInjector {
     private static final int MAX_IMAGES_PER_CALL = 5;
     private static final long MAX_SINGLE_IMAGE_BYTES = 1_500_000L; // 单张图片最多 1.5MB Base64
     private static final long MAX_TOTAL_INJECT_BYTES = 2_000_000L; // 总量最多 2MB Base64
+    private static final long MAX_IMAGE_PIXELS = 40_000_000L;
 
     private final ObjectMapper objectMapper;
     private final PathSecurityService pathSecurityService;
@@ -78,6 +79,14 @@ public class ImageRefInjector {
     public InjectResult injectForApiCall(List<Message> messages, int runStartIndex,
                                          int remainingBudget, Set<String> confirmedHashes,
                                          String workingDirectory) {
+        return injectForApiCall(messages,runStartIndex,remainingBudget,confirmedHashes,
+                new HashMap<>(),workingDirectory);
+    }
+
+    public InjectResult injectForApiCall(List<Message> messages, int runStartIndex,
+                                         int remainingBudget, Set<String> confirmedHashes,
+                                         Map<String,Integer> rejectedBudgetByHash,
+                                         String workingDirectory) {
         List<Message> result = deepCopyMessages(messages);
         Set<String> pendingHashes = new HashSet<>();
 
@@ -101,6 +110,8 @@ public class ImageRefInjector {
                             if (confirmedHashes.contains(ref.sha256()) || seenHashes.contains(ref.sha256())) {
                                 continue;
                             }
+                            Integer rejectedAt = rejectedBudgetByHash.get(ref.sha256());
+                            if (rejectedAt != null && remainingBudget <= rejectedAt) continue;
                             seenHashes.add(ref.sha256());
                             candidates.add(new CandidateRef(i, blockIdx, ref));
                         }
@@ -116,8 +127,13 @@ public class ImageRefInjector {
             if (selected.size() >= MAX_IMAGES_PER_CALL) break;
             CandidateRef c = candidates.get(i);
             long estimatedSize = (long) Math.ceil(c.ref().fileSize() * 4.0 / 3.0);
-            if (estimatedSize > MAX_SINGLE_IMAGE_BYTES) continue; // 单张太大，跳过
-            if (estimatedBytes + estimatedSize > MAX_TOTAL_INJECT_BYTES) continue; // 累计超限，跳过
+            if (estimatedSize > MAX_SINGLE_IMAGE_BYTES || estimatedSize > remainingBudget) {
+                rejectedBudgetByHash.put(c.ref().sha256(), remainingBudget); continue;
+            }
+            if (estimatedBytes + estimatedSize > MAX_TOTAL_INJECT_BYTES
+                    || estimatedBytes + estimatedSize > remainingBudget) {
+                rejectedBudgetByHash.put(c.ref().sha256(), remainingBudget); continue;
+            }
             selected.add(c);
             estimatedBytes += estimatedSize;
         }
@@ -163,12 +179,13 @@ public class ImageRefInjector {
                                 if (dataLen > MAX_SINGLE_IMAGE_BYTES) {
                                     log.debug("Image single limit exceeded: size={} > max={}",
                                             dataLen, MAX_SINGLE_IMAGE_BYTES);
-                                    continue;
+                                    rejectedBudgetByHash.put(ref.sha256(), remainingBudget); continue;
                                 }
                                 // 二次硬校验：累计超限
                                 if (actualInjectedBytes + dataLen > MAX_TOTAL_INJECT_BYTES) {
                                     log.debug("Image injection total limit reached: actual={} + new={} > max={}",
                                             actualInjectedBytes, dataLen, MAX_TOTAL_INJECT_BYTES);
+                                    rejectedBudgetByHash.put(ref.sha256(), remainingBudget);
                                     continue; // 跳过此图片，block 已在 newContent 中
                                 }
                                 newContent.add(imageBlock);
@@ -176,6 +193,10 @@ public class ImageRefInjector {
                                 budgetLeft -= dataLen;
                                 actualInjectedBytes += dataLen;
                                 modified = true;
+                            } else {
+                                // Integrity/path failures may be retried only if the budget changes;
+                                // file-change detection creates a new content hash.
+                                rejectedBudgetByHash.put(ref.sha256(), remainingBudget);
                             }
                         }
                     }
@@ -212,6 +233,11 @@ public class ImageRefInjector {
      */
     ContentBlock validateAndLoad(ImageToolRef ref, int budgetTokens, String workingDirectory) {
         try {
+            if (ref.width() <= 0 || ref.height() <= 0
+                    || (long) ref.width() * ref.height() > MAX_IMAGE_PIXELS) {
+                log.debug("Image dimensions rejected: {}x{}", ref.width(), ref.height());
+                return null;
+            }
             // ① 路径安全检查
             PathSecurityService.PathCheckResult checkResult =
                     pathSecurityService.checkReadPermission(ref.path(), workingDirectory);
@@ -352,7 +378,7 @@ public class ImageRefInjector {
             List<ContentBlock> contentCopy = um.content() != null
                     ? new ArrayList<>(um.content()) : null;
             return new UserMessage(um.uuid(), um.timestamp(), contentCopy,
-                    um.toolUseResult(), um.sourceToolAssistantUUID());
+                    MessageContentAccessor.rawLegacyToolResult(um), um.sourceToolAssistantUUID());
         } else if (msg instanceof AssistantMessage am) {
             List<ContentBlock> contentCopy = am.content() != null
                     ? new ArrayList<>(am.content()) : null;
@@ -376,7 +402,7 @@ public class ImageRefInjector {
     private Message rebuildMessage(Message msg, List<ContentBlock> newContent) {
         if (msg instanceof UserMessage um) {
             return new UserMessage(um.uuid(), um.timestamp(), newContent,
-                    um.toolUseResult(), um.sourceToolAssistantUUID());
+                    MessageContentAccessor.rawLegacyToolResult(um), um.sourceToolAssistantUUID());
         } else if (msg instanceof AssistantMessage am) {
             return new AssistantMessage(am.uuid(), am.timestamp(), newContent,
                     am.stopReason(), am.usage());

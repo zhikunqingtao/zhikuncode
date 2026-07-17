@@ -1,6 +1,6 @@
 package com.aicodeassistant.engine;
 
-import com.aicodeassistant.llm.ModelCapabilityRegistry;
+import com.aicodeassistant.llm.ModelRegistry;
 import com.aicodeassistant.model.ContentBlock;
 import com.aicodeassistant.model.Message;
 import com.aicodeassistant.config.FeatureFlagService;
@@ -41,16 +41,16 @@ public class TokenCounter {
     /** 中文内容每 token 字符数 */
     private static final double CHINESE_CHARS_PER_TOKEN = 2.0;
 
-    private final ModelCapabilityRegistry modelCapabilityRegistry;
+    private final ModelRegistry modelRegistry;
     private final TokenizerService tokenizerService;
     private final FeatureFlagService featureFlagService;
 
-    public TokenCounter(ModelCapabilityRegistry modelCapabilityRegistry,
+    @Autowired
+    public TokenCounter(ModelRegistry modelRegistry,
                         @Autowired(required = false) TokenizerService tokenizerService,
                         FeatureFlagService featureFlagService) {
-        this.modelCapabilityRegistry = modelCapabilityRegistry;
-        this.tokenizerService = tokenizerService;
-        this.featureFlagService = featureFlagService;
+        this.modelRegistry=modelRegistry;
+        this.tokenizerService=tokenizerService; this.featureFlagService=featureFlagService;
     }
 
     // ===== 公开 API =====
@@ -61,12 +61,12 @@ public class TokenCounter {
     public int estimateTokens(List<Message> messages) {
         if (messages == null || messages.isEmpty()) return 0;
 
-        int totalChars = 0;
+        long totalChars = 0;
         for (Message msg : messages) {
             totalChars += estimateMessageChars(msg);
         }
         // 消息边界开销: 每条消息约 4 token
-        return (int) (totalChars / DEFAULT_CHARS_PER_TOKEN) + messages.size() * 4;
+        return saturatingTokens(totalChars / DEFAULT_CHARS_PER_TOKEN + (long) messages.size() * 4);
     }
 
     /**
@@ -82,12 +82,12 @@ public class TokenCounter {
         if (messages == null || messages.isEmpty()) return 0;
         if (modelId == null || modelId.isBlank()) return estimateTokens(messages);
 
-        double modelRatio = modelCapabilityRegistry.getTokenCharRatio(modelId);
-        int totalChars = 0;
+        double modelRatio = modelRegistry == null ? DEFAULT_CHARS_PER_TOKEN : modelRegistry.getTokenCharRatio(modelId);
+        long totalChars = 0;
         for (Message msg : messages) {
             totalChars += estimateMessageChars(msg);
         }
-        return (int) (totalChars / modelRatio) + messages.size() * 4;
+        return saturatingTokens(totalChars / modelRatio + (long) messages.size() * 4);
     }
 
     /**
@@ -124,7 +124,7 @@ public class TokenCounter {
         if (text == null || text.isEmpty()) return 0;
         if (modelId == null || modelId.isBlank()) return estimateTokens(text);
 
-        double ratio = modelCapabilityRegistry.getTokenCharRatio(modelId);
+        double ratio = modelRegistry == null ? DEFAULT_CHARS_PER_TOKEN : modelRegistry.getTokenCharRatio(modelId);
 
         // 中文内容修正
         long chineseChars = text.codePoints()
@@ -170,7 +170,7 @@ public class TokenCounter {
      */
     public int estimateImageTokens(int width, int height) {
         if (width <= 0 || height <= 0) return 85; // 回退到默认值
-        return (int) Math.ceil((double) (width * height) / 750.0);
+        return saturatingTokens(Math.ceil(((double) width * (double) height) / 750.0));
     }
 
     /**
@@ -277,39 +277,18 @@ public class TokenCounter {
     /**
      * 估算单条消息的字符数。
      */
-    private int estimateMessageChars(Message message) {
-        return switch (message) {
-            case Message.UserMessage user -> {
-                int chars = 0;
-                if (user.content() != null) {
-                    for (ContentBlock block : user.content()) {
-                        chars += estimateBlockChars(block);
-                    }
-                }
-                if (user.toolUseResult() != null) {
-                    chars += user.toolUseResult().length();
-                }
-                yield chars;
-            }
-            case Message.AssistantMessage assistant -> {
-                int chars = 0;
-                if (assistant.content() != null) {
-                    for (ContentBlock block : assistant.content()) {
-                        chars += estimateBlockChars(block);
-                    }
-                }
-                yield chars;
-            }
-            case Message.SystemMessage system -> {
-                yield system.content() != null ? system.content().length() : 0;
-            }
-        };
+    private long estimateMessageChars(Message message) {
+        long chars = 0;
+        for (ContentBlock block : MessageContentAccessor.viewOf(message).blocks()) {
+            chars += estimateBlockChars(block);
+        }
+        return chars;
     }
 
     /**
      * 估算内容块的字符数（增强版）。
      */
-    private int estimateBlockChars(ContentBlock block) {
+    private long estimateBlockChars(ContentBlock block) {
         return switch (block) {
             case ContentBlock.TextBlock text ->
                     text.text() != null ? text.text().length() : 0;
@@ -323,11 +302,16 @@ public class TokenCounter {
                 // 使用精确的图片 token 计算（如果有尺寸信息）
                 // image block 的 chars 等效 = token数 * 默认系数
                 int tokens = estimateImageTokens(image.width(), image.height());
-                yield (int) (tokens * DEFAULT_CHARS_PER_TOKEN);
+                yield (long) Math.ceil(tokens * DEFAULT_CHARS_PER_TOKEN);
             }
             case ContentBlock.ThinkingBlock thinking ->
                     thinking.thinking() != null ? thinking.thinking().length() : 0;
             case ContentBlock.RedactedThinkingBlock redacted -> 10;
         };
+    }
+
+    private static int saturatingTokens(double value) {
+        if (!Double.isFinite(value) || value >= Integer.MAX_VALUE) return Integer.MAX_VALUE;
+        return value <= 0 ? 0 : (int) Math.ceil(value);
     }
 }

@@ -115,7 +115,7 @@ public class ToolSearchTool implements Tool {
     public ToolResult call(ToolInput input, ToolUseContext context) {
         String query = input.getString("query");
         if (query == null || query.isBlank()) {
-            return ToolResult.error("Query parameter is required");
+            return ToolResult.validationError("TOOL_SEARCH_QUERY_REQUIRED", "Query parameter is required");
         }
 
         log.debug("ToolSearch query: '{}'", query);

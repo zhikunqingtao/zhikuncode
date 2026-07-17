@@ -138,7 +138,7 @@ public class SendMessageTool implements Tool {
 
         // 2. 单播: 检查目标是否存在
         if (!registeredAgents.contains(to)) {
-            return ToolResult.error("Agent not found: " + to);
+            return ToolResult.validationError("MESSAGE_AGENT_NOT_FOUND", "Agent not found: " + to);
         }
 
         // 3. 写入目标邮箱

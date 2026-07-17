@@ -1,7 +1,7 @@
 package com.aicodeassistant.tool.impl;
 
 import com.aicodeassistant.sandbox.SandboxManager;
-import com.aicodeassistant.sandbox.SandboxManager.SandboxResult;
+import com.aicodeassistant.tool.process.ManagedProcessRunner;
 import com.aicodeassistant.security.CommandBlacklistService;
 import com.aicodeassistant.tool.ToolInput;
 import com.aicodeassistant.tool.ToolResult;
@@ -11,13 +11,13 @@ import com.aicodeassistant.tool.bash.BashErrorClassifier;
 import com.aicodeassistant.tool.bash.BashErrorClassifier.ErrorType;
 import com.aicodeassistant.tool.bash.BashOutputProcessor;
 import com.aicodeassistant.tool.bash.BashSecurityAnalyzer;
-import com.aicodeassistant.tool.bash.ProcessTreeManager;
 import com.aicodeassistant.tool.bash.ShellStateManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,6 +47,7 @@ class BashToolFailureClassificationTest {
     private ShellStateManager shellStateManager;
     private BashCommandClassifier commandClassifier;
     private BashOutputProcessor outputProcessor;
+    private ManagedProcessRunner processRunner;
     private ToolUseContext context;
 
     @BeforeEach
@@ -55,8 +56,8 @@ class BashToolFailureClassificationTest {
         commandClassifier = mock(BashCommandClassifier.class);
         shellStateManager = mock(ShellStateManager.class);
         outputProcessor = mock(BashOutputProcessor.class);
-        ProcessTreeManager processTreeManager = mock(ProcessTreeManager.class);
         sandboxManager = mock(SandboxManager.class);
+        processRunner = mock(ManagedProcessRunner.class);
         CommandBlacklistService blacklist = mock(CommandBlacklistService.class);
         // 使用真实分类器以验证端到端契约
         BashErrorClassifier errorClassifier = new BashErrorClassifier();
@@ -74,9 +75,12 @@ class BashToolFailureClassificationTest {
                 .thenAnswer(inv -> inv.getArgument(0));
 
         bashTool = new BashTool(securityAnalyzer, commandClassifier, shellStateManager,
-                outputProcessor, processTreeManager, sandboxManager, blacklist, errorClassifier);
+                outputProcessor, sandboxManager, blacklist, errorClassifier, processRunner);
 
-        context = ToolUseContext.of("/tmp", "test-session");
+        context = ToolUseContext.of("/tmp", "test-session").withCurrentRunId("run-1").withToolUseId("tool-1");
+        lenient().when(sandboxManager.prepareInvocation(anyString(), any(Path.class), any(), anyString(), anyString()))
+                .thenReturn(new SandboxManager.SandboxInvocation(List.of("echo", "test"), "container", deadline -> true));
+        lenient().when(sandboxManager.getTimeoutSeconds()).thenReturn(30);
     }
 
     @Test
@@ -96,12 +100,11 @@ class BashToolFailureClassificationTest {
 
     @Test
     @DisplayName("沙箱超时 → metadata.failure_category=TIMEOUT")
-    void sandboxTimeout_attachesTimeoutCategory() {
+    void sandboxTimeout_attachesTimeoutCategory() throws Exception {
         when(sandboxManager.isSandboxingEnabled()).thenReturn(true);
         when(sandboxManager.shouldUseSandbox(anyString())).thenReturn(true);
         when(sandboxManager.getTimeoutSeconds()).thenReturn(30);
-        when(sandboxManager.execute(anyString(), any(Path.class), any()))
-                .thenReturn(new SandboxResult("partial output", -1, true));
+        when(processRunner.run(any())).thenReturn(result(137, "partial output", "", true));
 
         ToolInput input = ToolInput.from(Map.of("command", "long-running-cmd"));
         ToolResult result = bashTool.call(input, context);
@@ -115,11 +118,10 @@ class BashToolFailureClassificationTest {
 
     @Test
     @DisplayName("沙箱非零退出 — 命令未找到 (exit 127) → metadata.failure_category=NON_RETRYABLE")
-    void sandboxNonZero_commandNotFound_attachesNonRetryable() {
+    void sandboxNonZero_commandNotFound_attachesNonRetryable() throws Exception {
         when(sandboxManager.isSandboxingEnabled()).thenReturn(true);
         when(sandboxManager.shouldUseSandbox(anyString())).thenReturn(true);
-        when(sandboxManager.execute(anyString(), any(Path.class), any()))
-                .thenReturn(new SandboxResult("bash: nosuchcmd: command not found", 127, false));
+        when(processRunner.run(any())).thenReturn(result(127, "bash: nosuchcmd: command not found", "", false));
 
         ToolInput input = ToolInput.from(Map.of("command", "python script.py"));
         ToolResult result = bashTool.call(input, context);
@@ -134,11 +136,10 @@ class BashToolFailureClassificationTest {
 
     @Test
     @DisplayName("沙箱非零退出 — 网络错误 → metadata.failure_category=RETRYABLE")
-    void sandboxNonZero_networkError_attachesRetryable() {
+    void sandboxNonZero_networkError_attachesRetryable() throws Exception {
         when(sandboxManager.isSandboxingEnabled()).thenReturn(true);
         when(sandboxManager.shouldUseSandbox(anyString())).thenReturn(true);
-        when(sandboxManager.execute(anyString(), any(Path.class), any()))
-                .thenReturn(new SandboxResult("curl: (7) Connection refused", 7, false));
+        when(processRunner.run(any())).thenReturn(result(7, "curl: (7) Connection refused", "", false));
 
         ToolInput input = ToolInput.from(Map.of("command", "curl http://localhost:9999"));
         ToolResult result = bashTool.call(input, context);
@@ -152,11 +153,10 @@ class BashToolFailureClassificationTest {
 
     @Test
     @DisplayName("沙箱成功路径 → metadata 不包含 failure_category（向后兼容）")
-    void sandboxSuccess_doesNotAttachFailureCategory() {
+    void sandboxSuccess_doesNotAttachFailureCategory() throws Exception {
         when(sandboxManager.isSandboxingEnabled()).thenReturn(true);
         when(sandboxManager.shouldUseSandbox(anyString())).thenReturn(true);
-        when(sandboxManager.execute(anyString(), any(Path.class), any()))
-                .thenReturn(new SandboxResult("hello\n", 0, false));
+        when(processRunner.run(any())).thenReturn(result(0, "hello\n", "", false));
 
         ToolInput input = ToolInput.from(Map.of("command", "echo hello"));
         ToolResult result = bashTool.call(input, context);
@@ -169,11 +169,10 @@ class BashToolFailureClassificationTest {
 
     @Test
     @DisplayName("metadata 序列化 — failure_category/suggestion 均为 String 类型")
-    void metadataValuesAreStrings() {
+    void metadataValuesAreStrings() throws Exception {
         when(sandboxManager.isSandboxingEnabled()).thenReturn(true);
         when(sandboxManager.shouldUseSandbox(anyString())).thenReturn(true);
-        when(sandboxManager.execute(anyString(), any(Path.class), any()))
-                .thenReturn(new SandboxResult("compile error", 1, false));
+        when(processRunner.run(any())).thenReturn(result(1, "compile error", "", false));
 
         ToolInput input = ToolInput.from(Map.of("command", "make"));
         ToolResult result = bashTool.call(input, context);
@@ -186,5 +185,10 @@ class BashToolFailureClassificationTest {
         assertThat(serializable.metadata())
                 .containsKey("failure_category")
                 .containsKey("failure_suggestion");
+    }
+
+    private static ManagedProcessRunner.Result result(int exit, String stdout, String stderr, boolean timedOut) {
+        return new ManagedProcessRunner.Result(exit, stdout, stderr, false, false,
+                timedOut, false, true, 10, false);
     }
 }

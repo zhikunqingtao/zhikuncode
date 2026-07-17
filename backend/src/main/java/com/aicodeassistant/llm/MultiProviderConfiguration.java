@@ -39,7 +39,8 @@ public class MultiProviderConfiguration {
             @Value("${llm.openai.api-key:}") String legacyApiKey,
             @Value("${llm.openai.base-url:https://api.openai.com/v1}") String legacyBaseUrl,
             @Value("${llm.openai.default-model:gpt-4o}") String legacyDefaultModel,
-            @Value("${llm.openai.models:gpt-4o,gpt-4o-mini,gpt-4-turbo}") List<String> legacyModels) {
+            @Value("${llm.openai.models:gpt-4o,gpt-4o-mini,gpt-4-turbo}") List<String> legacyModels,
+            FinalProviderPayloadGuard payloadGuard) {
 
         List<LlmProvider> providers = new ArrayList<>();
 
@@ -64,7 +65,7 @@ public class MultiProviderConfiguration {
                 OpenAiCompatibleProvider provider = new OpenAiCompatibleProvider(
                         name, objectMapper, httpProperties, keyManager,
                         config.apiKey(), config.baseUrl(),
-                        config.defaultModel(), config.models());
+                        config.defaultModel(), config.models(), payloadGuard);
                 providers.add(provider);
                 log.info("Created multi-provider '{}': baseUrl={}, models={}",
                         name, config.baseUrl(), config.models());
@@ -78,7 +79,7 @@ public class MultiProviderConfiguration {
                 OpenAiCompatibleProvider provider = new OpenAiCompatibleProvider(
                         "openai-compatible", objectMapper, httpProperties, keyManager,
                         legacyApiKey, legacyBaseUrl,
-                        legacyDefaultModel, legacyModels);
+                        legacyDefaultModel, legacyModels, payloadGuard);
                 providers.add(provider);
                 log.info("Created legacy single-provider: baseUrl={}, models={}",
                         legacyBaseUrl, legacyModels);

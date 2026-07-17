@@ -124,7 +124,18 @@ class ZhipuMcpConfigTest {
         McpApprovalService approval = mock(McpApprovalService.class);
         when(approval.isTrusted(any())).thenReturn(true);
         ToolRegistry toolRegistry = mock(ToolRegistry.class);
-        McpClientManager clientManager = new McpClientManager(configuration, null, toolRegistry, approval, null, null, null, null, null, null, null, null);
+        McpConfigurationResolver resolver = mock(McpConfigurationResolver.class);
+        when(resolver.resolveAll()).thenReturn(List.of());
+        McpClientManager clientManager = new McpClientManager(
+                configuration, resolver, toolRegistry, approval,
+                mock(McpCapabilityRegistryService.class),
+                mock(org.springframework.core.env.Environment.class),
+                mock(org.springframework.messaging.simp.SimpMessagingTemplate.class),
+                mock(com.aicodeassistant.websocket.WebSocketSessionManager.class),
+                mock(com.aicodeassistant.mcp.schema.SchemaCompressor.class),
+                mock(com.aicodeassistant.mcp.roots.McpRootsProvider.class),
+                mock(com.aicodeassistant.mcp.progress.McpProgressTracker.class), null);
+        clientManager.start();
 
         // When - 添加服务器
         McpServerConfig config = McpServerConfig.sse("zhipu-websearch", MCP_SSE_URL);
@@ -148,6 +159,7 @@ class ZhipuMcpConfigTest {
 
         // Cleanup
         clientManager.removeServer("zhipu-websearch");
+        clientManager.shutdown();
     }
 
     @Test

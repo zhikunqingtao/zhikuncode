@@ -1,9 +1,7 @@
 package com.aicodeassistant.engine;
 
-import com.aicodeassistant.config.ModelCapabilityConfig;
 import com.aicodeassistant.llm.LlmProvider;
 import com.aicodeassistant.llm.LlmProviderRegistry;
-import com.aicodeassistant.llm.ModelCapabilityRegistry;
 import com.aicodeassistant.model.ContentBlock;
 import com.aicodeassistant.model.Message;
 import com.aicodeassistant.model.SystemMessageType;
@@ -41,10 +39,7 @@ class ContextManagementTest {
 
         @BeforeEach
         void setUp() {
-            ModelCapabilityConfig capCfg = new ModelCapabilityConfig();
-            ModelCapabilityRegistry capRegistry = new ModelCapabilityRegistry(capCfg);
-            capRegistry.init();
-            tokenCounter = new TokenCounter(capRegistry, null, null);
+            tokenCounter = new TokenCounter(null, null, null);
             compactService = new CompactService(tokenCounter, null, null, null);
         }
 
@@ -114,10 +109,7 @@ class ContextManagementTest {
 
         @BeforeEach
         void setUp() {
-            ModelCapabilityConfig capCfg = new ModelCapabilityConfig();
-            ModelCapabilityRegistry capRegistry = new ModelCapabilityRegistry(capCfg);
-            capRegistry.init();
-            tokenCounter = new TokenCounter(capRegistry, null, null);
+            tokenCounter = new TokenCounter(null, null, null);
             compactService = new CompactService(tokenCounter, null, null, null);
         }
 
@@ -200,10 +192,7 @@ class ContextManagementTest {
 
         @BeforeEach
         void setUp() {
-            ModelCapabilityConfig capCfg = new ModelCapabilityConfig();
-            ModelCapabilityRegistry capRegistry = new ModelCapabilityRegistry(capCfg);
-            capRegistry.init();
-            tokenCounter = new TokenCounter(capRegistry, null, null);
+            tokenCounter = new TokenCounter(null, null, null);
             compactService = new CompactService(tokenCounter, providerRegistry, null, null);
         }
 
@@ -274,10 +263,7 @@ class ContextManagementTest {
 
         @BeforeEach
         void setUp() {
-            ModelCapabilityConfig capCfg = new ModelCapabilityConfig();
-            ModelCapabilityRegistry capRegistry = new ModelCapabilityRegistry(capCfg);
-            capRegistry.init();
-            tokenCounter = new TokenCounter(capRegistry, null, null);
+            tokenCounter = new TokenCounter(null, null, null);
         }
 
         @Test
@@ -382,10 +368,7 @@ class ContextManagementTest {
 
         @BeforeEach
         void setUp() {
-            ModelCapabilityConfig capCfg = new ModelCapabilityConfig();
-            ModelCapabilityRegistry capRegistry = new ModelCapabilityRegistry(capCfg);
-            capRegistry.init();
-            tokenCounter = new TokenCounter(capRegistry, null, null);
+            tokenCounter = new TokenCounter(null, null, null);
             compactService = new CompactService(tokenCounter, null, null, null);
         }
 

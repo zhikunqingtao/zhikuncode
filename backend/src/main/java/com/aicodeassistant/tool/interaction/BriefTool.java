@@ -122,14 +122,14 @@ public class BriefTool implements Tool {
             }
             case "custom" -> {
                 if (topic.isBlank()) {
-                    return ToolResult.error("'topic' is required for custom scope.");
+                    return ToolResult.validationError("BRIEF_TOPIC_REQUIRED", "'topic' is required for custom scope.");
                 }
                 contextBuilder.append("## Custom Brief: ").append(topic).append("\n\n");
                 contextBuilder.append("Working directory: ").append(context.workingDirectory()).append("\n\n");
                 contextBuilder.append("*Detailed analysis will be available after LlmClient integration.*\n");
             }
             default -> {
-                return ToolResult.error("Unknown scope: " + scope + ". Use: project, session, or custom.");
+                return ToolResult.validationError("BRIEF_SCOPE_INVALID", "Unknown scope: " + scope + ". Use: project, session, or custom.");
             }
         }
 

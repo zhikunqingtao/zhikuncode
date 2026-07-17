@@ -47,7 +47,8 @@ class ToolSystemDeepTest {
             assertNotNull(success);
             assertFalse(success.isError());
 
-            ToolResult error = ToolResult.error("error msg");
+            ToolResult error = ToolResult.internalError("TEST_FAILURE", "error msg",
+                    ToolResult.EffectState.NONE);
             assertNotNull(error);
             assertTrue(error.isError());
         }
@@ -122,7 +123,8 @@ class ToolSystemDeepTest {
         @Test
         @DisplayName("ToolResult.isError() 标记错误结果")
         void testToolResultIsError() {
-            ToolResult errorResult = ToolResult.error("Timeout exceeded");
+            ToolResult errorResult = ToolResult.timedOut("TEST_TIMEOUT", "Timeout exceeded",
+                    null, true, ToolResult.EffectState.NONE);
             assertTrue(errorResult.isError(), "错误结果 isError 应为 true");
             assertTrue(errorResult.content().contains("Timeout"),
                 "错误内容应包含超时说明");

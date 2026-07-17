@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -175,6 +176,32 @@ public class BashSecurityAnalyzer {
     /** 安全级别 */
     public enum SecurityLevel { SAFE, ASK, DENY }
 
+    /** Result of the AST-backed shell environment reference analysis. */
+    public record EnvironmentReferenceAnalysis(
+            Set<String> localDefinitions,
+            Set<String> inheritedReferences,
+            Set<String> sensitiveInheritedReferences,
+            EnvironmentParseStatus parseStatus,
+            String reason) {
+        public enum EnvironmentParseStatus { SUCCESS, TOO_COMPLEX, UNAVAILABLE }
+
+        public EnvironmentReferenceAnalysis {
+            localDefinitions = Set.copyOf(localDefinitions);
+            inheritedReferences = Set.copyOf(inheritedReferences);
+            sensitiveInheritedReferences = Set.copyOf(sensitiveInheritedReferences);
+        }
+
+        public boolean requiresConservativeAsk() {
+            return parseStatus != EnvironmentParseStatus.SUCCESS;
+        }
+    }
+
+    private static final Pattern SHELL_VARIABLE_REFERENCE = Pattern.compile(
+            "\\$\\{?([A-Za-z_][A-Za-z0-9_]*|[0-9]+|[?$!#@*_-])\\}?");
+    private static final Pattern SENSITIVE_ENV_NAME = Pattern.compile(
+            ".*(TOKEN|API_KEY|SECRET|PASSWORD|PASSWD|PRIVATE_KEY|CREDENTIAL).*",
+            Pattern.CASE_INSENSITIVE);
+
     // ──── 公共入口 ────
 
     /**
@@ -264,6 +291,254 @@ public class BashSecurityAnalyzer {
         }
 
         return result;
+    }
+
+    /**
+     * Analyses inherited environment references with the same bounded Bash AST used by the
+     * permission parser. This deliberately fails closed: unsupported/dynamic shell semantics
+     * are ASK, never an implicit allow.
+     */
+    public EnvironmentReferenceAnalysis analyzeEnvironmentReferences(String command) {
+        if (command == null || command.isBlank()) {
+            return environmentResult(new EnvironmentAccumulator(),
+                    EnvironmentReferenceAnalysis.EnvironmentParseStatus.SUCCESS, null);
+        }
+        if (command.length() > MAX_COMMAND_LENGTH) {
+            return environmentResult(new EnvironmentAccumulator(),
+                    EnvironmentReferenceAnalysis.EnvironmentParseStatus.UNAVAILABLE,
+                    "command exceeds parser limit");
+        }
+        ProgramNode root = parser.parse(command);
+        if (root == null) {
+            return environmentResult(new EnvironmentAccumulator(),
+                    EnvironmentReferenceAnalysis.EnvironmentParseStatus.UNAVAILABLE,
+                    "Bash parser unavailable");
+        }
+        EnvironmentAccumulator accumulator = new EnvironmentAccumulator();
+        EnvironmentReferenceAnalysis.EnvironmentParseStatus status =
+                analyseEnvironmentNode(root, new HashSet<>(), accumulator);
+        return environmentResult(accumulator, status,
+                status == EnvironmentReferenceAnalysis.EnvironmentParseStatus.SUCCESS
+                        ? null : "dynamic or unsupported shell environment semantics");
+    }
+
+    public boolean isAllowedInheritedEnvironmentReference(String variable) {
+        return variable != null && SAFE_ENV_VARS.contains(variable);
+    }
+
+    private EnvironmentReferenceAnalysis.EnvironmentParseStatus analyseEnvironmentNode(
+            BashAstNode node, Set<String> scope, EnvironmentAccumulator accumulator) {
+        if (node == null) return EnvironmentReferenceAnalysis.EnvironmentParseStatus.SUCCESS;
+        return switch (node) {
+            case ProgramNode program -> {
+                var status = EnvironmentReferenceAnalysis.EnvironmentParseStatus.SUCCESS;
+                for (StatementNode statement : program.statements()) {
+                    status = mergeEnvironmentStatus(status,
+                            analyseEnvironmentNode(statement, scope, accumulator));
+                }
+                yield status;
+            }
+            case StatementNode statement -> analyseEnvironmentNode(statement.body(), scope, accumulator);
+            case PipelineNode pipeline -> {
+                var status = EnvironmentReferenceAnalysis.EnvironmentParseStatus.SUCCESS;
+                for (BashAstNode command : pipeline.commands()) {
+                    status = mergeEnvironmentStatus(status,
+                            analyseEnvironmentNode(command, new HashSet<>(scope), accumulator));
+                }
+                yield status;
+            }
+            case AndOrNode andOr -> mergeEnvironmentStatus(
+                    analyseEnvironmentNode(andOr.left(), scope, accumulator),
+                    analyseEnvironmentNode(andOr.right(), new HashSet<>(scope), accumulator));
+            case RedirectedStatementNode redirected -> {
+                var status = analyseEnvironmentNode(redirected.body(), scope, accumulator);
+                for (RedirectNode redirect : redirected.redirects()) {
+                    status = mergeEnvironmentStatus(status,
+                            scanEnvironmentWord(redirect.target(), scope, accumulator));
+                }
+                yield status;
+            }
+            case SubshellNode subshell ->
+                    analyseEnvironmentNode(subshell.body(), new HashSet<>(scope), accumulator);
+            case BraceGroupNode group -> analyseEnvironmentNode(group.body(), scope, accumulator);
+            case IfNode conditional -> {
+                var status = analyseEnvironmentNode(conditional.condition(), scope, accumulator);
+                status = mergeEnvironmentStatus(status,
+                        analyseEnvironmentNode(conditional.thenBody(), new HashSet<>(scope), accumulator));
+                status = mergeEnvironmentStatus(status,
+                        analyseEnvironmentNode(conditional.elseBody(), new HashSet<>(scope), accumulator));
+                yield status;
+            }
+            case ForNode loop -> {
+                var status = EnvironmentReferenceAnalysis.EnvironmentParseStatus.SUCCESS;
+                for (String word : loop.words()) {
+                    status = mergeEnvironmentStatus(status,
+                            scanEnvironmentWord(word, scope, accumulator));
+                }
+                Set<String> loopScope = new HashSet<>(scope);
+                defineLocal(loop.varName(), loopScope, accumulator);
+                yield mergeEnvironmentStatus(status,
+                        analyseEnvironmentNode(loop.body(), loopScope, accumulator));
+            }
+            case WhileNode loop -> mergeEnvironmentStatus(
+                    analyseEnvironmentNode(loop.condition(), scope, accumulator),
+                    analyseEnvironmentNode(loop.body(), new HashSet<>(scope), accumulator));
+            case CaseNode caseNode -> {
+                var status = scanEnvironmentWord(caseNode.word(), scope, accumulator);
+                for (CaseItem item : caseNode.items()) {
+                    status = mergeEnvironmentStatus(status,
+                            analyseEnvironmentNode(item.body(), new HashSet<>(scope), accumulator));
+                }
+                yield status;
+            }
+            case FunctionDefNode function ->
+                    analyseEnvironmentNode(function.body(), new HashSet<>(scope), accumulator);
+            case NegatedCommandNode negated -> analyseEnvironmentNode(negated.body(), scope, accumulator);
+            case DeclarationCommandNode declaration -> {
+                var status = EnvironmentReferenceAnalysis.EnvironmentParseStatus.SUCCESS;
+                for (VarAssignment assignment : declaration.assignments()) {
+                    status = mergeEnvironmentStatus(status,
+                            scanEnvironmentWord(assignment.value(), scope, accumulator));
+                    defineLocal(assignment.name(), scope, accumulator);
+                }
+                for (String argument : declaration.argv()) {
+                    status = mergeEnvironmentStatus(status,
+                            scanEnvironmentWord(argument, scope, accumulator));
+                }
+                yield status;
+            }
+            case SimpleCommandNode simple -> analyseSimpleCommandEnvironment(simple, scope, accumulator);
+            case TestCommandNode test -> scanEnvironmentWords(test.argv(), scope, accumulator);
+            case VariableAssignmentNode assignment -> {
+                var status = scanEnvironmentWord(assignment.value(), scope, accumulator);
+                defineLocal(assignment.name(), scope, accumulator);
+                yield status;
+            }
+            case TooComplexNode ignored -> EnvironmentReferenceAnalysis.EnvironmentParseStatus.TOO_COMPLEX;
+        };
+    }
+
+    private EnvironmentReferenceAnalysis.EnvironmentParseStatus analyseSimpleCommandEnvironment(
+            SimpleCommandNode command, Set<String> scope, EnvironmentAccumulator accumulator) {
+        Set<String> commandScope = new HashSet<>(scope);
+        var status = EnvironmentReferenceAnalysis.EnvironmentParseStatus.SUCCESS;
+        for (VarAssignment assignment : command.envVars()) {
+            status = mergeEnvironmentStatus(status,
+                    scanEnvironmentWord(assignment.value(), scope, accumulator));
+            defineLocal(assignment.name(), commandScope, accumulator);
+            if (command.argv().isEmpty()) defineLocal(assignment.name(), scope, accumulator);
+        }
+        status = mergeEnvironmentStatus(status,
+                scanEnvironmentWords(command.argv(), commandScope, accumulator));
+        for (RedirectNode redirect : command.redirects()) {
+            status = mergeEnvironmentStatus(status,
+                    scanEnvironmentWord(redirect.target(), commandScope, accumulator));
+        }
+        if (!command.argv().isEmpty()) {
+            String executable = stripShellQuotes(command.argv().getFirst());
+            if (EVAL_LIKE_BUILTINS.contains(executable)) {
+                return EnvironmentReferenceAnalysis.EnvironmentParseStatus.TOO_COMPLEX;
+            }
+            if ("read".equals(executable)) {
+                for (int i = 1; i < command.argv().size(); i++) {
+                    String candidate = stripShellQuotes(command.argv().get(i));
+                    if (candidate.matches("[A-Za-z_][A-Za-z0-9_]*")) {
+                        defineLocal(candidate, scope, accumulator);
+                    }
+                }
+            }
+        }
+        return status;
+    }
+
+    private EnvironmentReferenceAnalysis.EnvironmentParseStatus scanEnvironmentWords(
+            Collection<String> words, Set<String> scope, EnvironmentAccumulator accumulator) {
+        var status = EnvironmentReferenceAnalysis.EnvironmentParseStatus.SUCCESS;
+        for (String word : words) {
+            status = mergeEnvironmentStatus(status,
+                    scanEnvironmentWord(word, scope, accumulator));
+        }
+        return status;
+    }
+
+    private EnvironmentReferenceAnalysis.EnvironmentParseStatus scanEnvironmentWord(
+            String word, Set<String> scope, EnvironmentAccumulator accumulator) {
+        if (word == null || word.isEmpty()) {
+            return EnvironmentReferenceAnalysis.EnvironmentParseStatus.SUCCESS;
+        }
+        if (word.contains("${!") || word.contains("$(") || word.indexOf('`') >= 0) {
+            return EnvironmentReferenceAnalysis.EnvironmentParseStatus.TOO_COMPLEX;
+        }
+        String expandable = removeSingleQuotedSegments(word);
+        Matcher matcher = SHELL_VARIABLE_REFERENCE.matcher(expandable);
+        while (matcher.find()) {
+            String variable = matcher.group(1);
+            if (variable.chars().allMatch(Character::isDigit)
+                    || SPECIAL_VAR_NAMES.contains(variable)) {
+                continue;
+            }
+            if (scope.contains(variable)) continue;
+            accumulator.inheritedReferences.add(variable);
+            if (SENSITIVE_ENV_NAME.matcher(variable).matches()) {
+                accumulator.sensitiveInheritedReferences.add(variable);
+            }
+        }
+        return EnvironmentReferenceAnalysis.EnvironmentParseStatus.SUCCESS;
+    }
+
+    private static String removeSingleQuotedSegments(String value) {
+        StringBuilder result = new StringBuilder(value.length());
+        boolean singleQuoted = false;
+        for (int index = 0; index < value.length(); index++) {
+            char ch = value.charAt(index);
+            if (ch == '\'' && (index == 0 || value.charAt(index - 1) != '\\')) {
+                singleQuoted = !singleQuoted;
+                continue;
+            }
+            if (!singleQuoted) result.append(ch);
+        }
+        return result.toString();
+    }
+
+    private static String stripShellQuotes(String value) {
+        if (value == null) return "";
+        return value.replace("\"", "").replace("'", "");
+    }
+
+    private static void defineLocal(String variable, Set<String> scope,
+                                    EnvironmentAccumulator accumulator) {
+        if (variable == null || variable.isBlank()) return;
+        scope.add(variable);
+        accumulator.localDefinitions.add(variable);
+    }
+
+    private static EnvironmentReferenceAnalysis.EnvironmentParseStatus mergeEnvironmentStatus(
+            EnvironmentReferenceAnalysis.EnvironmentParseStatus left,
+            EnvironmentReferenceAnalysis.EnvironmentParseStatus right) {
+        if (left == EnvironmentReferenceAnalysis.EnvironmentParseStatus.UNAVAILABLE
+                || right == EnvironmentReferenceAnalysis.EnvironmentParseStatus.UNAVAILABLE) {
+            return EnvironmentReferenceAnalysis.EnvironmentParseStatus.UNAVAILABLE;
+        }
+        if (left == EnvironmentReferenceAnalysis.EnvironmentParseStatus.TOO_COMPLEX
+                || right == EnvironmentReferenceAnalysis.EnvironmentParseStatus.TOO_COMPLEX) {
+            return EnvironmentReferenceAnalysis.EnvironmentParseStatus.TOO_COMPLEX;
+        }
+        return EnvironmentReferenceAnalysis.EnvironmentParseStatus.SUCCESS;
+    }
+
+    private static EnvironmentReferenceAnalysis environmentResult(
+            EnvironmentAccumulator accumulator,
+            EnvironmentReferenceAnalysis.EnvironmentParseStatus status,
+            String reason) {
+        return new EnvironmentReferenceAnalysis(accumulator.localDefinitions,
+                accumulator.inheritedReferences, accumulator.sensitiveInheritedReferences,
+                status, reason);
+    }
+
+    private static final class EnvironmentAccumulator {
+        private final Set<String> localDefinitions = new LinkedHashSet<>();
+        private final Set<String> inheritedReferences = new LinkedHashSet<>();
+        private final Set<String> sensitiveInheritedReferences = new LinkedHashSet<>();
     }
 
     // ──── 预检查 ────

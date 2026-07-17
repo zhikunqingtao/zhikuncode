@@ -143,6 +143,14 @@ features:
     SEARCH_STRATEGY_ROUTER: false        # F1: 作用域感知搜索策略路由（灰度用）
 
 # MCP 配置
+process:
+  runner:
+    max-capture-bytes: ${PROCESS_RUNNER_MAX_CAPTURE_BYTES:1048576}
+    max-preview-chars: ${PROCESS_RUNNER_MAX_PREVIEW_CHARS:30000}
+    terminate-grace-ms: ${PROCESS_RUNNER_TERMINATE_GRACE_MS:1000}
+    drain-join-ms: ${PROCESS_RUNNER_DRAIN_JOIN_MS:1000}
+    max-concurrent: ${PROCESS_RUNNER_MAX_CONCURRENT:16}
+
 mcp:
   capability-registry-path: ${MCP_REGISTRY_PATH:${user.dir}/../configuration/mcp/mcp_capability_registry.json}
   servers: {}

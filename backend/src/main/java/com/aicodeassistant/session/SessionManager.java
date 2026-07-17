@@ -1,11 +1,10 @@
 package com.aicodeassistant.session;
 
 import com.aicodeassistant.config.database.SqliteConfig;
-import com.aicodeassistant.engine.AbortContext;
-import com.aicodeassistant.engine.AbortReason;
-import com.aicodeassistant.engine.QueryEngine;
 import com.aicodeassistant.hook.HookService;
 import com.aicodeassistant.model.*;
+import com.aicodeassistant.run.RunExecutionRegistry;
+import com.aicodeassistant.run.RunTerminationCoordinator;
 import com.aicodeassistant.state.AppStateStore;
 import com.aicodeassistant.tool.agent.BackgroundAgentTracker;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -52,7 +51,8 @@ public class SessionManager {
     private final HookService hookService;
     private final SessionSnapshotService snapshotService;
     private final BackgroundAgentTracker backgroundAgentTracker;
-    private final QueryEngine queryEngine;
+    private final RunExecutionRegistry runExecutions;
+    private final RunTerminationCoordinator runTermination;
 
     // ★ FileStateCache — 会话级文件状态缓存 (§11.5.9)
     private final ConcurrentHashMap<String, FileStateCache> fileStateCaches = new ConcurrentHashMap<>();
@@ -72,7 +72,8 @@ public class SessionManager {
                           HookService hookService,
                           SessionSnapshotService snapshotService,
                           BackgroundAgentTracker backgroundAgentTracker,
-                          @org.springframework.context.annotation.Lazy QueryEngine queryEngine) {
+                          RunExecutionRegistry runExecutions,
+                          @org.springframework.context.annotation.Lazy RunTerminationCoordinator runTermination) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
         this.sqliteConfig = sqliteConfig;
@@ -80,7 +81,8 @@ public class SessionManager {
         this.hookService = hookService;
         this.snapshotService = snapshotService;
         this.backgroundAgentTracker = backgroundAgentTracker;
-        this.queryEngine = queryEngine;
+        this.runExecutions = runExecutions;
+        this.runTermination = runTermination;
     }
 
     // ───── RowMapper ─────
@@ -363,12 +365,8 @@ public class SessionManager {
             // 向所有活跃代理发送 abort 信号
             for (String agentId : activeAgents) {
                 String childSessionId = "subagent-" + agentId;
-                if (queryEngine != null) {
-                    AbortContext ctx = queryEngine.getAbortContext(childSessionId);
-                    if (ctx != null) {
-                        ctx.abort(AbortReason.SESSION_DISCONNECTED);
-                    }
-                }
+                runExecutions.activeRunForSession(childSessionId).ifPresent(runId ->
+                        runTermination.cancelByUser(runId, "session_deleted"));
             }
             // 给代理最多 5 秒优雅关闭
             backgroundAgentTracker.awaitAllAgents(sessionId, Duration.ofSeconds(5), null);

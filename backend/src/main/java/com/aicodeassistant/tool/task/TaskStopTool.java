@@ -81,12 +81,12 @@ public class TaskStopTool implements Tool {
 
         Optional<TaskState> taskOpt = taskCoordinator.getTask(taskId);
         if (taskOpt.isEmpty()) {
-            return ToolResult.error("Task not found: " + taskId);
+            return ToolResult.validationError("TASK_NOT_FOUND", "Task not found: " + taskId);
         }
         TaskState task = taskOpt.get();
 
         if (task.getStatus().isTerminal()) {
-            return ToolResult.error("Task already in terminal state: " + task.getStatus());
+            return ToolResult.validationError("TASK_ALREADY_TERMINAL", "Task already in terminal state: " + task.getStatus());
         }
 
         // 三层中断传播（委托给 TaskCoordinator）
@@ -95,7 +95,8 @@ public class TaskStopTool implements Tool {
             return ToolResult.success(
                     "Task " + taskId + " cancelled. Reason: " + reason);
         } else {
-            return ToolResult.error("Failed to cancel task: " + taskId);
+            return ToolResult.internalError("TASK_CANCEL_FAILED", "Failed to cancel task: " + taskId,
+                    ToolResult.EffectState.UNKNOWN);
         }
     }
 

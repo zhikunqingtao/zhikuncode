@@ -6,5 +6,30 @@ package com.aicodeassistant.config.database;
  *
  */
 public interface Migration {
+    enum Scope { GLOBAL, PROJECT }
+
+    /** Stable identifier persisted in schema_migrations. */
+    default String id() {
+        return getClass().getName();
+    }
+
+    /** Existing migrations are project-scoped unless explicitly declared global. */
+    default Scope scope() {
+        return Scope.PROJECT;
+    }
+
+    /**
+     * Stable checksum. New migrations should override this with a SHA-256 of their frozen SQL.
+     * The class name fallback is intentionally stable for the already released idempotent migrations.
+     */
+    default String checksum() {
+        return MigrationChecksums.sha256(id());
+    }
+
     void execute();
+
+    /** Post-condition checked in the same transaction as execute(). */
+    default void validate() {
+        // Existing idempotent migrations predate post-condition hooks.
+    }
 }

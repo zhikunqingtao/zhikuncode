@@ -47,6 +47,7 @@ import { ActivityStream } from '@/components/apos/ActivityStream';
 import { FeatureFlagPanel } from '@/components/apos/FeatureFlagPanel';
 import { SessionFileExplorer } from '@/components/apos/SessionFileExplorer';
 import { sendToServer } from '@/api/stompClient';
+import { bindSessionAndWait } from '@/api/dispatch';
 import type { TaskState } from '@/types';
 
 type TabType = 'sessions' | 'tasks' | 'files' | 'sequence' | 'dag' | 'git' | 'complexity' | 'impact' | 'api-docs' | 'diagram' | 'code-path' | 'apos';
@@ -343,7 +344,7 @@ function SessionList() {
             useSessionStore.getState().resumeSession(sessionId);
             // App.tsx 的 sessionStore.subscribe 会自动同步 activityStore.currentSessionId
             // 绑定 WebSocket session
-            sendToServer('/app/bind-session', { sessionId });
+            await bindSessionAndWait(sessionId, payload => sendToServer('/app/bind-session', payload));
         } catch (e) {
             console.error('[SessionList] Failed to switch session:', e);
         }
@@ -358,7 +359,7 @@ function SessionList() {
             const newSessionId = useSessionStore.getState().sessionId;
             if (newSessionId) {
                 // App.tsx 的 sessionStore.subscribe 会自动同步 activityStore.currentSessionId
-                sendToServer('/app/bind-session', { sessionId: newSessionId });
+                await bindSessionAndWait(newSessionId, payload => sendToServer('/app/bind-session', payload));
             }
             fetchSessions();
         } catch (e) {
