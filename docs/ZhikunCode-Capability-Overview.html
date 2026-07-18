@@ -295,8 +295,9 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
     <rect x="0" y="0" width="1280" height="260" rx="10" fill="url(#cardBgGrad)" stroke="#F59E0B" stroke-width="1.4" opacity="1"/>
     <text x="15" y="22" fill="#F59E0B" font-size="14" font-weight="bold">统一工具授权与执行准入</text>
     <text x="310" y="22" fill="#8da4b0" font-size="10">AuthorizationService · OperationAnalyzerRegistry · ToolExecutionGateway</text>
+    <text x="1030" y="22" fill="#6EE7B7" font-size="8">2026-07-18 有限运行窗口验证</text>
 
-    <!-- Phase 1: Rules & Tool (Steps 1a-1e) -->
+    <!-- Phase 1: 输入校验、Hook 重验、冻结输入与 Analyzer 事实生成 -->
     <g transform="translate(15, 38)">
       <text x="0" y="12" fill="#F59E0B" font-size="10" font-weight="bold">Phase 1 输入与语义分析</text>
       <rect x="0" y="18" width="130" height="35" rx="2" fill="#1b5e20" stroke="#4caf50" stroke-width="0.6"/>
@@ -326,7 +327,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
       <text x="552" y="38" fill="#ffd740" font-size="10">→</text>
     </g>
 
-    <!-- Phase 2: Content Security (Steps 1f-1k) -->
+    <!-- Phase 2: 策略、Grant、权限模式与持久交互裁决 -->
     <g transform="translate(15, 100)">
       <text x="0" y="12" fill="#DC4A5C" font-size="10" font-weight="bold">Phase 2 决策顺序（命中即短路）</text>
 
@@ -335,16 +336,16 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
       <text x="6" y="46" fill="#8da4b0" font-size="7">基于冻结事实，只可收紧</text>
 
       <rect x="155" y="18" width="130" height="35" rx="2" fill="#4e342e" stroke="#ff7043" stroke-width="0.6"/>
-      <text x="161" y="33" fill="#ffab91" font-size="8">SAFE_INTERNAL / Grant</text>
-      <text x="161" y="46" fill="#8da4b0" font-size="7">命中即 ALLOW；未命中继续</text>
+      <text x="161" y="33" fill="#ffab91" font-size="8">SAFE_INTERNAL / 初次 Grant</text>
+      <text x="161" y="46" fill="#8da4b0" font-size="7">初次匹配 ALLOW；执行前再复检</text>
 
       <rect x="295" y="18" width="130" height="35" rx="2" fill="#bf360c" stroke="#ff5722" stroke-width="0.6"/>
       <text x="301" y="33" fill="#ffab91" font-size="8">PermissionMode</text>
       <text x="301" y="46" fill="#8da4b0" font-size="7">ALLOW / DENY / 需要交互</text>
 
       <rect x="435" y="18" width="130" height="35" rx="2" fill="#bf360c" stroke="#ff5722" stroke-width="0.6"/>
-      <text x="441" y="33" fill="#ffab91" font-size="8">Durable Interaction</text>
-      <text x="441" y="46" fill="#8da4b0" font-size="7">仅需交互时：options + ACK</text>
+      <text x="441" y="33" fill="#ffab91" font-size="8">Durable Interaction v3</text>
+      <text x="441" y="46" fill="#8da4b0" font-size="7">options + generation；ACK ≠ 决定</text>
 
       <rect x="575" y="18" width="115" height="35" rx="2" fill="#b71c1c" stroke="#ef5350" stroke-width="0.6"/>
       <text x="581" y="33" fill="#ffcdd2" font-size="8">AuthorizedOperation</text>
@@ -357,7 +358,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
       <text x="567" y="38" fill="#DC4A5C" font-size="10">→</text>
     </g>
 
-    <!-- Phase 3: Final Decision (Steps 1h-1k) -->
+    <!-- Phase 3: 最终动态复检、Grant 复检与 Gateway 执行准入 -->
     <g transform="translate(15, 165)">
       <text x="0" y="12" fill="#A78BFA" font-size="10" font-weight="bold">Phase 3 最终复检与执行准入</text>
 
@@ -367,11 +368,11 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
 
       <rect x="130" y="18" width="120" height="35" rx="2" fill="#311b92" stroke="#9c27b0" stroke-width="0.6"/>
       <text x="136" y="33" fill="#ce93d8" font-size="9">动态环境复检</text>
-      <text x="136" y="46" fill="#8da4b0" font-size="7">路径 / 符号链接 / 风险</text>
+      <text x="136" y="46" fill="#8da4b0" font-size="7">仅安全事实退化时拒绝</text>
 
       <rect x="260" y="18" width="120" height="35" rx="2" fill="#311b92" stroke="#7c4dff" stroke-width="0.6"/>
       <text x="266" y="33" fill="#ce93d8" font-size="9">准入短事务</text>
-      <text x="266" y="46" fill="#8da4b0" font-size="7">Grant/ONCE + tool_started</text>
+      <text x="266" y="46" fill="#8da4b0" font-size="7">最终 Grant 复检 + admitted</text>
 
       <rect x="390" y="18" width="120" height="35" rx="2" fill="#880e4f" stroke="#d32f2f" stroke-width="0.8"/>
       <text x="396" y="33" fill="#ffcdd2" font-size="9">Tool Gateway</text>
@@ -403,7 +404,8 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
     </g>
 
     <!-- Protected paths note -->
-    <text x="15" y="248" fill="#7a95a8" font-size="8">HIGH/复杂 Shell/未知 MCP: ONCE | Guarded Bash: RUN/SESSION | 受约束文件能力: SESSION/WORKSPACE | System invariant 始终复检</text>
+    <text x="15" y="240" fill="#7a95a8" font-size="8">HIGH/复杂 Shell/未知 MCP: ONCE | Guarded Bash: RUN/SESSION | 受约束文件能力: SESSION/WORKSPACE</text>
+    <text x="15" y="253" fill="#7a95a8" font-size="8">用户批准和 Grant 均不能覆盖 system invariant；无害环境变化不得触发最终误拒绝</text>
   </g>
 
   <!-- ═══ 2C: LLM Multi-Model Router ═══ -->
@@ -830,13 +832,13 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
 
     <g transform="translate(20, 38)">
       <text x="0" y="12" fill="#4dd0e1" font-size="9" font-weight="bold">权限交互持久流:</text>
-      <text x="0" y="28" fill="#8da4b0" font-size="8">interaction_requests · 服务端 deadline 与 CAS 终态</text>
-      <text x="0" y="42" fill="#8da4b0" font-size="8">optionId + operationHash + deliveryGeneration</text>
-      <text x="0" y="56" fill="#8da4b0" font-size="8">AuthorizationService → Grant / ONCE decision</text>
-      <text x="0" y="70" fill="#8da4b0" font-size="8">提交后唤醒等待者并发送终态事件</text>
+      <text x="0" y="28" fill="#8da4b0" font-size="8">optionId + descriptorHash + scopeOptions + expectedVersion</text>
+      <text x="0" y="42" fill="#8da4b0" font-size="8">deliveryGeneration ACK 仅确认当前投递，不代表允许</text>
+      <text x="0" y="56" fill="#8da4b0" font-size="8">用户决定由 interaction_requests 数据库 CAS 产生唯一终态</text>
+      <text x="0" y="70" fill="#8da4b0" font-size="8">提交后唤醒等待者；旧代次 ACK 不能确认新投递</text>
       <line x1="0" y1="78" x2="360" y2="78" stroke="#253555" stroke-width="0.5"/>
       <text x="0" y="92" fill="#4dd0e1" font-size="9" font-weight="bold">STOMP端点:</text>
-      <text x="0" y="105" fill="#8da4b0" font-size="8">/ws STOMP连接 · SessionRegistry会话管理 · 心跳检测</text>
+      <text x="0" y="105" fill="#8da4b0" font-size="8">offline grace → bind-session → session snapshot → 权限模式恢复</text>
     </g>
   </g>
 

@@ -820,8 +820,9 @@
         <rect x="0" y="0" width="1280" height="260" rx="10" fill="url(#cardBgGrad)" stroke="#F59E0B" stroke-width="1.4" opacity="1"/>
         <text x="15" y="22" fill="#F59E0B" font-size="14" font-weight="bold">统一工具授权与执行准入</text>
         <text x="310" y="22" fill="#8da4b0" font-size="10">AuthorizationService · OperationAnalyzerRegistry · ToolExecutionGateway</text>
+        <text x="1030" y="22" fill="#6EE7B7" font-size="8">2026-07-18 有限运行窗口验证</text>
     
-        <!-- Phase 1: Rules & Tool (Steps 1a-1e) -->
+        <!-- Phase 1: 输入校验、Hook 重验、冻结输入与 Analyzer 事实生成 -->
         <g transform="translate(15, 38)">
           <text x="0" y="12" fill="#F59E0B" font-size="10" font-weight="bold">Phase 1 输入与语义分析</text>
           <rect x="0" y="18" width="130" height="35" rx="2" fill="#1b5e20" stroke="#4caf50" stroke-width="0.6"/>
@@ -851,7 +852,7 @@
           <text x="552" y="38" fill="#ffd740" font-size="10">→</text>
         </g>
     
-        <!-- Phase 2: Content Security (Steps 1f-1k) -->
+        <!-- Phase 2: 策略、Grant、权限模式与持久交互裁决 -->
         <g transform="translate(15, 100)">
           <text x="0" y="12" fill="#DC4A5C" font-size="10" font-weight="bold">Phase 2 决策顺序（命中即短路）</text>
     
@@ -860,16 +861,16 @@
           <text x="6" y="46" fill="#8da4b0" font-size="7">基于冻结事实，只可收紧</text>
     
           <rect x="155" y="18" width="130" height="35" rx="2" fill="#4e342e" stroke="#ff7043" stroke-width="0.6"/>
-          <text x="161" y="33" fill="#ffab91" font-size="8">SAFE_INTERNAL / Grant</text>
-          <text x="161" y="46" fill="#8da4b0" font-size="7">命中即 ALLOW；未命中继续</text>
+          <text x="161" y="33" fill="#ffab91" font-size="8">SAFE_INTERNAL / 初次 Grant</text>
+          <text x="161" y="46" fill="#8da4b0" font-size="7">初次匹配 ALLOW；执行前再复检</text>
     
           <rect x="295" y="18" width="130" height="35" rx="2" fill="#bf360c" stroke="#ff5722" stroke-width="0.6"/>
           <text x="301" y="33" fill="#ffab91" font-size="8">PermissionMode</text>
           <text x="301" y="46" fill="#8da4b0" font-size="7">ALLOW / DENY / 需要交互</text>
     
           <rect x="435" y="18" width="130" height="35" rx="2" fill="#bf360c" stroke="#ff5722" stroke-width="0.6"/>
-          <text x="441" y="33" fill="#ffab91" font-size="8">Durable Interaction</text>
-          <text x="441" y="46" fill="#8da4b0" font-size="7">仅需交互时：options + ACK</text>
+          <text x="441" y="33" fill="#ffab91" font-size="8">Durable Interaction v3</text>
+          <text x="441" y="46" fill="#8da4b0" font-size="7">options + generation；ACK ≠ 决定</text>
     
           <rect x="575" y="18" width="115" height="35" rx="2" fill="#b71c1c" stroke="#ef5350" stroke-width="0.6"/>
           <text x="581" y="33" fill="#ffcdd2" font-size="8">AuthorizedOperation</text>
@@ -882,7 +883,7 @@
           <text x="567" y="38" fill="#DC4A5C" font-size="10">→</text>
         </g>
     
-        <!-- Phase 3: Final Decision (Steps 1h-1k) -->
+        <!-- Phase 3: 最终动态复检、Grant 复检与 Gateway 执行准入 -->
         <g transform="translate(15, 165)">
           <text x="0" y="12" fill="#A78BFA" font-size="10" font-weight="bold">Phase 3 最终复检与执行准入</text>
     
@@ -892,11 +893,11 @@
     
           <rect x="130" y="18" width="120" height="35" rx="2" fill="#311b92" stroke="#9c27b0" stroke-width="0.6"/>
           <text x="136" y="33" fill="#ce93d8" font-size="9">动态环境复检</text>
-          <text x="136" y="46" fill="#8da4b0" font-size="7">路径 / 符号链接 / 风险</text>
+          <text x="136" y="46" fill="#8da4b0" font-size="7">仅安全事实退化时拒绝</text>
     
           <rect x="260" y="18" width="120" height="35" rx="2" fill="#311b92" stroke="#7c4dff" stroke-width="0.6"/>
           <text x="266" y="33" fill="#ce93d8" font-size="9">准入短事务</text>
-          <text x="266" y="46" fill="#8da4b0" font-size="7">Grant/ONCE + tool_started</text>
+          <text x="266" y="46" fill="#8da4b0" font-size="7">最终 Grant 复检 + admitted</text>
     
           <rect x="390" y="18" width="120" height="35" rx="2" fill="#880e4f" stroke="#d32f2f" stroke-width="0.8"/>
           <text x="396" y="33" fill="#ffcdd2" font-size="9">Tool Gateway</text>
@@ -928,7 +929,8 @@
         </g>
     
         <!-- Protected paths note -->
-        <text x="15" y="248" fill="#7a95a8" font-size="8">HIGH/复杂 Shell/未知 MCP: ONCE | Guarded Bash: RUN/SESSION | 受约束文件能力: SESSION/WORKSPACE | System invariant 始终复检</text>
+        <text x="15" y="240" fill="#7a95a8" font-size="8">HIGH/复杂 Shell/未知 MCP: ONCE | Guarded Bash: RUN/SESSION | 受约束文件能力: SESSION/WORKSPACE</text>
+        <text x="15" y="253" fill="#7a95a8" font-size="8">用户批准和 Grant 均不能覆盖 system invariant；无害环境变化不得触发最终误拒绝</text>
       </g>
     
       <!-- ═══ 2C: LLM Multi-Model Router ═══ -->
@@ -1355,13 +1357,13 @@
     
         <g transform="translate(20, 38)">
           <text x="0" y="12" fill="#4dd0e1" font-size="9" font-weight="bold">权限交互持久流:</text>
-          <text x="0" y="28" fill="#8da4b0" font-size="8">interaction_requests · 服务端 deadline 与 CAS 终态</text>
-          <text x="0" y="42" fill="#8da4b0" font-size="8">optionId + operationHash + deliveryGeneration</text>
-          <text x="0" y="56" fill="#8da4b0" font-size="8">AuthorizationService → Grant / ONCE decision</text>
-          <text x="0" y="70" fill="#8da4b0" font-size="8">提交后唤醒等待者并发送终态事件</text>
+          <text x="0" y="28" fill="#8da4b0" font-size="8">optionId + descriptorHash + scopeOptions + expectedVersion</text>
+          <text x="0" y="42" fill="#8da4b0" font-size="8">deliveryGeneration ACK 仅确认当前投递，不代表允许</text>
+          <text x="0" y="56" fill="#8da4b0" font-size="8">用户决定由 interaction_requests 数据库 CAS 产生唯一终态</text>
+          <text x="0" y="70" fill="#8da4b0" font-size="8">提交后唤醒等待者；旧代次 ACK 不能确认新投递</text>
           <line x1="0" y1="78" x2="360" y2="78" stroke="#253555" stroke-width="0.5"/>
           <text x="0" y="92" fill="#4dd0e1" font-size="9" font-weight="bold">STOMP端点:</text>
-          <text x="0" y="105" fill="#8da4b0" font-size="8">/ws STOMP连接 · SessionRegistry会话管理 · 心跳检测</text>
+          <text x="0" y="105" fill="#8da4b0" font-size="8">offline grace → bind-session → session snapshot → 权限模式恢复</text>
         </g>
       </g>
     
@@ -2708,7 +2710,7 @@
       <rect x="820" y="126" width="100" height="28" rx="14" fill="rgba(245,158,11,.18)" stroke="#F59E0B" stroke-width="1.2"/>
       <text x="870" y="144" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="700">WAITING INTERACTION</text>
 
-      <!-- Row 1: steps 1a-1e -->
+      <!-- 输入校验、Hook 重验、冻结输入与 Analyzer 事实生成 -->
       <rect x="50" y="130" width="120" height="56" rx="8" fill="#151829" stroke="#EF4444" stroke-width=".8"/>
       <text x="110" y="150" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="600">Schema 校验</text>
       <text x="110" y="164" text-anchor="middle" fill="#6B70A0" font-size="7.5">参数补全与重验</text>
@@ -2770,7 +2772,7 @@
       <text x="578" y="248" text-anchor="middle" fill="#6B70A0" font-size="6.5">V015 CAS / 可建 Grant</text>
       <line x1="647" y1="230" x2="818" y2="140" stroke="#F59E0B" stroke-width="1" stroke-dasharray="3" opacity=".55" marker-end="url(#pArO)"/>
 
-      <!-- Row 3: steps 1g, 1h, 1i, 1j, 1k -->
+      <!-- 最终动态复检、Grant 复检与 Gateway 执行准入 -->
       <line x1="272" y1="258" x2="272" y2="268" stroke="#10B981" stroke-width="1" opacity=".45"/>
       <line x1="425" y1="258" x2="425" y2="268" stroke="#10B981" stroke-width="1" opacity=".45"/>
       <line x1="578" y1="258" x2="578" y2="268" stroke="#10B981" stroke-width="1" opacity=".45"/>
@@ -2851,7 +2853,7 @@
       <text x="130" y="664" text-anchor="middle" fill="#6B70A0" font-size="7.5">SAFE file read 可按模式放行</text>
       <line x1="210" y1="654" x2="248" y2="654" stroke="#A855F7" stroke-width="1.5" marker-end="url(#pArP)"/>
 
-      <!-- 7 Mode boxes -->
+      <!-- 四种权限模式及 Scope/继承参考项 -->
       <rect x="248" y="630" width="82" height="48" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
       <text x="289" y="649" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">DEFAULT</text>
       <text x="289" y="666" text-anchor="middle" fill="#6B70A0" font-size="6.5">用户确认</text>
@@ -2874,7 +2876,7 @@
       <text x="819" y="649" text-anchor="middle" fill="#6B70A0" font-size="9" font-weight="600">DIRECT_ONLY</text>
       <text x="819" y="666" text-anchor="middle" fill="#6B70A0" font-size="6.5">RUN 不跨 actor</text>
 
-      <!-- AUTO mode detail -->
+      <!-- 子代理 Grant 继承说明 -->
       <rect x="638" y="690" width="220" height="36" rx="8" fill="rgba(168,85,247,.08)" stroke="#A855F7" stroke-width=".6" stroke-dasharray="3"/>
       <text x="748" y="705" text-anchor="middle" fill="#A855F7" font-size="8">子代理通过 root session/root run 身份直接匹配 Grant</text>
       <text x="748" y="718" text-anchor="middle" fill="#6B70A0" font-size="7">不经过第二套冒泡授权权威</text>
@@ -3062,7 +3064,7 @@
         <div class="feature-card">
           <span class="icon">&#128274;</span>
           <h3>8 层安全架构</h3>
-          <p>8 层 Bash 安全治理 + 统一授权服务 + Tool Gateway 执行前复检。不是"能跑就行"，而是生产级安全保障。</p>
+          <p>Bash 语义分析 + 统一授权服务 + Tool Gateway 执行前复检，形成 fail-closed 分层控制；当前结论来自源码、测试与有限本地运行验证，不等同于独立安全认证。</p>
         </div>
         <div class="feature-card">
           <span class="icon">&#129302;</span>
@@ -3090,9 +3092,9 @@
           <div class="desc">命令白名单、路径约束、超时熔断、资源配额……层层拦截恶意操作</div>
         </div>
         <div class="security-item">
-          <div class="big-number">14</div>
-          <div class="unit">步权限管道</div>
-          <div class="desc">从冻结输入、语义分析、Grant/交互裁决到最终动态复检，核心工具统一经过安全审查</div>
+          <div class="big-number">11</div>
+          <div class="unit">个授权职责边界</div>
+          <div class="desc">输入重验、冻结输入、Analyzer/invariant、Security Hook、Grant/模式/交互、输出声明、最终复检与 Gateway 准入</div>
         </div>
         <div class="security-item">
           <div class="big-number">289</div>

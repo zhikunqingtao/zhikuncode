@@ -4,11 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ZhikunCode — Complete System Architecture | AI-Powered Web IDE</title>
-<meta name="description" content="ZhikunCode Complete System Architecture - Enterprise-grade AI-powered Web IDE with 115,783 lines of code across Java Spring Boot, React TypeScript, and Python FastAPI. Full-stack architecture reference for developers and technical leaders.">
+<meta name="description" content="ZhikunCode system architecture reference covering the Java Agent runtime, React frontend, Python capabilities, unified authorization, durable interaction, and multi-model execution.">
 <meta name="keywords" content="ZhikunCode, AI IDE, system architecture, web IDE, Spring Boot, React, FastAPI, open source, code assistant">
 <meta name="author" content="ZhikunCode Team">
 <meta property="og:title" content="ZhikunCode — Complete System Architecture">
-<meta property="og:description" content="Enterprise-grade AI-powered Web IDE architecture reference. 115,783 lines, 759 files, full-stack design with Agent Loop, 14-step Permission Pipeline, and Multi-LLM support.">
+<meta property="og:description" content="ZhikunCode full-stack architecture reference with Agent Loop, frozen-input authorization, constrained grants, durable interaction, Tool Gateway admission, and multi-LLM support.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://zhikunqingtao.github.io/zhikuncode/ZhikunCode-Architecture.html">
 <meta property="og:image" content="https://zhikunqingtao.github.io/zhikuncode/assets/architecture-preview.png">
@@ -1154,7 +1154,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
   </div>
 </div>
 
-<!-- ============ SECTION 4: 14-STEP PERMISSION ============ -->
+<!-- ============ SECTION 4: 统一授权与执行准入 ============ -->
 <div class="section" id="s4">
   <div class="section-head">
     <span class="section-num java">04</span>
@@ -1174,10 +1174,10 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
         <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">5</div><div class="line"></div></div><div class="flow-body"><div class="ft">只收紧 Security Hook</div><div class="fd">只读取冻结输入和已生成事实；可以拒绝，但不能修改输入或扩大授权</div></div></div>
         <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">6</div><div class="line"></div></div><div class="flow-body"><div class="ft">SAFE_INTERNAL / Grant</div><div class="fd">精确 SAFE_INTERNAL 由内建策略放行，否则匹配 scope、profile、Analyzer 版本与约束</div></div></div>
         <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">7</div><div class="line"></div></div><div class="flow-body"><div class="ft">权限模式裁决</div><div class="fd">DEFAULT / PLAN / ACCEPT_EDITS / DONT_ASK</div></div></div>
-        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">8</div><div class="line"></div></div><div class="flow-body"><div class="ft">Durable Interaction</div><div class="fd">服务端下发 decision/scope options，数据库 CAS 终态</div></div></div>
+        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">8</div><div class="line"></div></div><div class="flow-body"><div class="ft">Durable Interaction v3</div><div class="fd">optionId / descriptorHash / scopeOptions / expectedVersion / deliveryGeneration；ACK 只确认投递，用户决定由数据库 CAS 产生唯一终态</div></div></div>
         <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">9</div><div class="line"></div></div><div class="flow-body"><div class="ft">声明输出规划</div><div class="fd">planOutputs() 在 Gateway 前生成无副作用的产物声明；工具并发/work lease 由上游 StreamingToolExecutor 管理</div></div></div>
-        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">10</div><div class="line"></div></div><div class="flow-body"><div class="ft">最终动态复检</div><div class="fd">路径、符号链接、环境、Grant 撤销与 ONCE 终态</div></div></div>
-        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">11</div><div class="line"></div></div><div class="flow-body"><div class="ft">ToolExecutionGateway</div><div class="fd">提交 tool_started 后调用冻结输入对应的 Tool.call()</div></div></div>
+        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">10</div><div class="line"></div></div><div class="flow-body"><div class="ft">最终动态与 Grant 复检</div><div class="fd">仅在路径、符号链接、风险或授权约束发生安全退化，或 Grant 撤销/过期时拒绝；无害环境变化不得误拒绝</div></div></div>
+        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">11</div><div class="line"></div></div><div class="flow-body"><div class="ft">ToolExecutionGateway</div><div class="fd">短事务提交 execution_admitted/tool_started 与声明输出，事务外调用冻结输入对应的 Tool.call()</div></div></div>
       </div>
     </div>
   </div>
@@ -1207,6 +1207,16 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       </div>
       <div style="margin-top:12px;font-size:.78rem;color:var(--text2)">
         核心组件: <span class="mono">AuthorizationService</span> · <span class="mono">OperationAnalyzerRegistry</span> · <span class="mono">PermissionGrantRepository</span> · <span class="mono">DurableInteractionService</span> · <span class="mono">ToolExecutionGateway</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card java-accent">
+    <div class="card-title"><span class="tag green">日志证实</span> 运行验证与证据边界 <span class="tag cyan">2026-07-18</span></div>
+    <div class="card-detail show">
+      <div class="flow">
+        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--green);font-size:.65rem">✓</div></div><div class="flow-body"><div class="ft">19:43–20:00 权限运行窗口</div><div class="fd">7 次请求在 DEFAULT 模式下执行并以 end_turn 正常结束；Permission Interaction ANSWERED 6 次。20 条 Grant match 对应 10 次工具操作的初次匹配与执行前最终复检（Bash 2、Edit 4、Read 2、Write 2），不是重复执行。该窗口未出现 AUTHORIZATION_FINAL_RECHECK_DENIED、INTERACTION_PAYLOAD_INVALID、SQLITE_BUSY 或 tool_permission_denied。</div></div></div>
+        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--cyan);font-size:.65rem">↻</div></div><div class="flow-body"><div class="ft">20:23 会话恢复</div><div class="fd">日志验证 offline grace → bind-session → session_restored → permission_mode_changed；这是有限本地运行证据，不等同于独立安全认证或全部并发/故障场景证明。</div></div></div>
       </div>
     </div>
   </div>
@@ -1249,7 +1259,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <rect x="820" y="126" width="100" height="28" rx="14" fill="rgba(245,158,11,.18)" stroke="#F59E0B" stroke-width="1.2"/>
       <text x="870" y="144" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="700">WAITING INTERACTION</text>
 
-      <!-- Row 1: steps 1a-1e -->
+      <!-- 输入校验、Hook 重验、冻结输入与 Analyzer 事实生成 -->
       <rect x="50" y="130" width="120" height="56" rx="8" fill="#151829" stroke="#EF4444" stroke-width=".8"/>
       <text x="110" y="150" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="600">Schema 校验</text>
       <text x="110" y="164" text-anchor="middle" fill="#6B70A0" font-size="7.5">参数补全与重验</text>
@@ -1300,18 +1310,18 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <line x1="341" y1="230" x2="356" y2="230" stroke="#F59E0B" stroke-width="1" marker-end="url(#pArO)"/>
 
       <rect x="356" y="202" width="138" height="56" rx="8" fill="#151829" stroke="#EF4444" stroke-width=".8"/>
-      <text x="425" y="218" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="600">Grant 匹配</text>
+      <text x="425" y="218" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="600">初次 Grant 匹配</text>
       <text x="425" y="232" text-anchor="middle" fill="#6B70A0" font-size="7.5">命中即 GRANT ALLOW</text>
       <text x="425" y="248" text-anchor="middle" fill="#6B70A0" font-size="6.5">root/scope/profile/constraint</text>
       <line x1="494" y1="230" x2="509" y2="230" stroke="#EF4444" stroke-width="1" marker-end="url(#pArR)"/>
 
       <rect x="509" y="202" width="138" height="56" rx="8" fill="#151829" stroke="#EF4444" stroke-width=".8"/>
       <text x="578" y="218" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="600">Mode / Interaction</text>
-      <text x="578" y="232" text-anchor="middle" fill="#6B70A0" font-size="7.5">ALLOW / DENY / v3 options</text>
-      <text x="578" y="248" text-anchor="middle" fill="#6B70A0" font-size="6.5">V015 CAS / 可建 Grant</text>
+      <text x="578" y="232" text-anchor="middle" fill="#6B70A0" font-size="7.5">v3 options + deliveryGeneration</text>
+      <text x="578" y="248" text-anchor="middle" fill="#6B70A0" font-size="6.5">ACK ≠ decision · V015 CAS</text>
       <line x1="647" y1="230" x2="818" y2="140" stroke="#F59E0B" stroke-width="1" stroke-dasharray="3" opacity=".55" marker-end="url(#pArO)"/>
 
-      <!-- Row 3: steps 1g, 1h, 1i, 1j, 1k -->
+      <!-- 最终动态复检、Grant 复检与 Gateway 执行准入 -->
       <line x1="272" y1="258" x2="272" y2="268" stroke="#10B981" stroke-width="1" opacity=".45"/>
       <line x1="425" y1="258" x2="425" y2="268" stroke="#10B981" stroke-width="1" opacity=".45"/>
       <line x1="578" y1="258" x2="578" y2="268" stroke="#10B981" stroke-width="1" opacity=".45"/>
@@ -1333,13 +1343,13 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <rect x="350" y="274" width="135" height="56" rx="8" fill="#151829" stroke="#06B6D4" stroke-width=".8"/>
       <text x="417" y="290" text-anchor="middle" fill="#06B6D4" font-size="9" font-weight="600">动态环境复检</text>
       <text x="417" y="304" text-anchor="middle" fill="#6B70A0" font-size="7.5">analyzer.recheck()</text>
-      <text x="417" y="320" text-anchor="middle" fill="#6B70A0" font-size="6.5">路径/链接/环境</text>
+      <text x="417" y="320" text-anchor="middle" fill="#6B70A0" font-size="6.5">仅安全事实退化时拒绝</text>
       <line x1="485" y1="302" x2="500" y2="302" stroke="#06B6D4" stroke-width="1" marker-end="url(#pArR)"/>
 
       <rect x="500" y="274" width="135" height="56" rx="8" fill="#151829" stroke="#10B981" stroke-width=".8"/>
       <text x="567" y="290" text-anchor="middle" fill="#10B981" font-size="9" font-weight="600">准入短事务</text>
-      <text x="567" y="304" text-anchor="middle" fill="#6B70A0" font-size="7.5">Grant/ONCE + 预声明</text>
-      <text x="567" y="320" text-anchor="middle" fill="#6B70A0" font-size="6.5">写 tool_started 后提交</text>
+      <text x="567" y="304" text-anchor="middle" fill="#6B70A0" font-size="7.5">Grant 最终复检 + 预声明</text>
+      <text x="567" y="320" text-anchor="middle" fill="#6B70A0" font-size="6.5">execution_admitted 提交</text>
       <line x1="635" y1="302" x2="650" y2="302" stroke="#10B981" stroke-width="1" marker-end="url(#pArG)"/>
 
       <rect x="650" y="274" width="135" height="56" rx="8" fill="#151829" stroke="#F59E0B" stroke-width="1.2"/>
@@ -1392,7 +1402,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <text x="130" y="664" text-anchor="middle" fill="#6B70A0" font-size="7.5">SAFE file read 可按模式放行</text>
       <line x1="210" y1="654" x2="248" y2="654" stroke="#A855F7" stroke-width="1.5" marker-end="url(#pArP)"/>
 
-      <!-- 7 Mode boxes -->
+      <!-- 四种权限模式及 Scope/继承参考项 -->
       <rect x="248" y="630" width="82" height="48" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
       <text x="289" y="649" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">DEFAULT</text>
       <text x="289" y="666" text-anchor="middle" fill="#6B70A0" font-size="6.5">用户确认</text>
@@ -1415,7 +1425,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <text x="819" y="649" text-anchor="middle" fill="#6B70A0" font-size="9" font-weight="600">DIRECT_ONLY</text>
       <text x="819" y="666" text-anchor="middle" fill="#6B70A0" font-size="6.5">RUN 不跨 actor</text>
 
-      <!-- AUTO mode detail -->
+      <!-- 子代理继承说明 -->
       <rect x="638" y="690" width="220" height="36" rx="8" fill="rgba(168,85,247,.08)" stroke="#A855F7" stroke-width=".6" stroke-dasharray="3"/>
       <text x="748" y="705" text-anchor="middle" fill="#A855F7" font-size="8">子代理通过 root session/root run 身份直接匹配 Grant</text>
       <text x="748" y="718" text-anchor="middle" fill="#6B70A0" font-size="7">不经过第二套冒泡授权权威</text>
