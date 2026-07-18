@@ -54,11 +54,17 @@ public interface TerminationStrategy {
      * @param success      是否成功
      * @param errorMessage 错误信息（成功时为 null）
      * @param timestamp    执行时间戳
+     * @param recoveryRelevant 是否属于需要触发 Agent 故障恢复的系统/工具错误；用户拒绝等预期权限终态为 false
      */
     record ToolCallRecord(
             String toolName,
             boolean success,
             String errorMessage,
-            Instant timestamp
-    ) {}
+            Instant timestamp,
+            boolean recoveryRelevant
+    ) {
+        public ToolCallRecord(String toolName, boolean success, String errorMessage, Instant timestamp) {
+            this(toolName, success, errorMessage, timestamp, !success);
+        }
+    }
 }

@@ -1,7 +1,5 @@
 package com.aicodeassistant.tool;
 
-import com.aicodeassistant.model.PermissionBehavior;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -106,25 +104,8 @@ public interface Tool {
     /** 回填可观察输入 */
     default ToolInput backfillObservableInput(ToolInput input) { return input; }
 
-    /**
-     * 工具自身权限检查 — 管线 Step 1c。
-     * <p>
-     * 默认实现返回 PASSTHROUGH，交给管线后续步骤处理。
-     * 工具可覆写此方法实现子命令级规则匹配（如 BashTool）。
-     */
-    default PermissionBehavior checkPermissions(ToolInput input, ToolUseContext context) {
-        return PermissionBehavior.PASSTHROUGH;
-    }
-
     /** 是否需要用户交互（如 AskTool 需要用户输入） */
     default boolean requiresUserInteraction() { return false; }
-
-    /**
-     * AUTO 模式分类器输入 — 返回工具调用的安全相关摘要。
-     * <p>
-     * 返回 null 或空字符串表示无分类器相关输入，直接放行。
-     */
-    default String toAutoClassifierInput(ToolInput input) { return null; }
 
     // ==================== 安全性标记 ====================
 
@@ -145,13 +126,6 @@ public interface Tool {
 
     /** 是否为只读操作 */
     default boolean isReadOnly(ToolInput input) { return false; }
-
-    // ==================== AUTO 模式分类 ====================
-
-    /** isSearchOrReadCommand 信息 */
-    default SearchReadInfo isSearchOrReadCommand(ToolInput input) {
-        return SearchReadInfo.NONE;
-    }
 
     // ==================== 验证 ====================
 
@@ -192,18 +166,6 @@ public interface Tool {
      * @return 处理后的工具结果
      */
     default ToolResult mapToolResult(ToolResult result) { return result; }
-
-    /**
-     * 权限匹配器准备 — 为权限规则匹配提供工具特定上下文。
-     * <p>
-         * BashTool 可提取命令前缀用于匹配 alwaysAllow/deny 规则。
-     *
-     * @param input 工具输入
-     * @return 权限行为指示，默认 PASSTHROUGH
-     */
-    default PermissionBehavior preparePermissionMatcher(ToolInput input) {
-        return PermissionBehavior.PASSTHROUGH;
-    }
 
     // ==================== 类型标记 ====================
 

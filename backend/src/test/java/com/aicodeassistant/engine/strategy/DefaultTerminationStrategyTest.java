@@ -151,4 +151,16 @@ class DefaultTerminationStrategyTest {
 
         assertThat(decision).isEqualTo(TerminationDecision.CONTINUE);
     }
+
+    @Test
+    void expectedPermissionOutcomesAreExcludedFromFailureWindow() {
+        List<ToolCallRecord> permissionOutcomes = IntStream.range(0, 5)
+                .mapToObj(i -> new ToolCallRecord(
+                        "Bash", false, "PERMISSION_USER_DENIED", Instant.now(), false))
+                .toList();
+        LoopContext context = new LoopContext(
+                3, 10, 0, 5, true, null, 10_000L, 100_000L, permissionOutcomes);
+
+        assertThat(strategy.evaluate(context)).isEqualTo(TerminationDecision.CONTINUE);
+    }
 }

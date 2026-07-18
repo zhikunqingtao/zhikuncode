@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.Map;
 
@@ -36,15 +37,15 @@ class WebSocketStompIntegrationTest {
     @BeforeEach
     void setUp() {
         messaging = mock(SimpMessagingTemplate.class);
-        sessionManager = new WebSocketSessionManager(null);
+        sessionManager = new WebSocketSessionManager(mock(JdbcTemplate.class));
         QueryEngine queryEngine = mock(QueryEngine.class);
         ToolRegistry toolRegistry = mock(ToolRegistry.class);
         LlmProviderRegistry providerRegistry = mock(LlmProviderRegistry.class);
         EffectiveSystemPromptBuilder systemPromptBuilder = mock(EffectiveSystemPromptBuilder.class);
         controller = new WebSocketController(messaging, sessionManager,
                 queryEngine, toolRegistry, providerRegistry, systemPromptBuilder,
-                null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
-                null, null, null, null, null);
+                null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                null, null, null, null);
     }
 
     private void bind(String principal, String session) {

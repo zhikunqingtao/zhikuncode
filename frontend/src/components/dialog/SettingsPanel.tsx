@@ -101,7 +101,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
                             <option value="qwen3.7-plus">Qwen 3.7 Plus</option>
                             <option value="deepseek-v4-pro">DeepSeek V4 Pro</option>
                             <option value="deepseek-v4-flash">DeepSeek V4 Flash</option>
-                            <option value="kimi-k2.6">Kimi K2.6</option>
+                            <option value="kimi-k3">Kimi K3</option>
                             <option value="kimi-k2.7-code">Kimi K2.7 Code</option>
                             <option value="moonshot-v1-128k">Moonshot V1 128K</option>
                             <option value="glm-5.2">GLM-5.2</option>
@@ -165,7 +165,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
                             <PermissionOption
                                 mode="dont_ask"
                                 label="无需询问"
-                                description="低风险操作不询问"
+                                description="不弹窗，需要确认的操作自动拒绝"
                                 selected={permissionMode === 'dont_ask'}
                                 onClick={() => handlePermissionModeChange('dont_ask')}
                             />

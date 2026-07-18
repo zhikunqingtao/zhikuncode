@@ -1,6 +1,6 @@
 package com.aicodeassistant.controller;
 
-import com.aicodeassistant.permission.PersistentPermissionGrantStore;
+import com.aicodeassistant.authorization.PermissionGrantRepository;
 import com.aicodeassistant.security.SessionAccessAuthorizer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,13 +16,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class PermissionGrantControllerTest {
-    private PersistentPermissionGrantStore grants;
+    private PermissionGrantRepository grants;
     private SessionAccessAuthorizer access;
     private PermissionGrantController controller;
 
     @BeforeEach
     void setUp() {
-        grants = mock(PersistentPermissionGrantStore.class);
+        grants = mock(PermissionGrantRepository.class);
         access = mock(SessionAccessAuthorizer.class);
         controller = new PermissionGrantController(grants, access);
     }

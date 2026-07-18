@@ -1,6 +1,5 @@
 package com.aicodeassistant.tool.impl;
 
-import com.aicodeassistant.model.PermissionBehavior;
 import com.aicodeassistant.sandbox.SandboxManager;
 import com.aicodeassistant.security.CommandBlacklistService;
 import com.aicodeassistant.tool.*;
@@ -284,67 +283,6 @@ public class BashTool implements Tool {
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    // [v1.57.0 G1] checkPermissions() — BashTool 权限检查核心入口
-    //
-    // 此方法在 PermissionPipeline Step 1c 被调用 (§3.4.3a)。
-    // 三级降级: AST → 正则 → Python bashlex (fail-closed)
-    // ═══════════════════════════════════════════════════════════════════
-    @Override
-    public PermissionBehavior checkPermissions(ToolInput input, ToolUseContext context) {
-        String command = input.getString("command");
-
-        // ── Step 0: AST 安全解析 (§3.2.3c parseForSecurity) ──
-        ParseForSecurityResult astResult = securityAnalyzer.parseForSecurity(command);
-
-        return switch (astResult) {
-            case ParseForSecurityResult.Simple simple -> {
-                // AST 解析成功 → 所有子命令均通过 checkSemantics
-                if (simple.commands().isEmpty()) {
-                    // 空命令或纯赋值 → passthrough
-                    yield PermissionBehavior.PASSTHROUGH;
-                }
-                // 全部子命令 argv[0] 为只读 → passthrough
-                boolean allReadOnly = simple.commands().stream().allMatch(cmd -> {
-                    String argv0 = cmd.argv().isEmpty() ? "" : cmd.argv().getFirst();
-                    return commandClassifier.isSearchOrReadCommand(argv0);
-                });
-                if (allReadOnly) {
-                    yield PermissionBehavior.PASSTHROUGH;
-                }
-                // 非只读 → ask 用户确认
-                yield PermissionBehavior.ASK;
-            }
-
-            case ParseForSecurityResult.TooComplex tooComplex -> {
-                // AST 标记为复杂 → ask 用户确认
-                log.debug("AST too-complex: {} (node: {})", tooComplex.reason(), tooComplex.nodeType());
-                yield PermissionBehavior.ASK;
-            }
-
-            case ParseForSecurityResult.ParseUnavailable unavailable -> {
-                // ── 降级路径: 正则分类器 (层级 2) ──
-                yield handleParseUnavailable(command);
-            }
-        };
-    }
-
-    /**
-     * AST 解析不可用时的降级处理。
-     * <p>
-     * 降级链: 正则分类器 → Python bashlex → fail-closed ask。
-     */
-    private PermissionBehavior handleParseUnavailable(String command) {
-        // 尝试正则分类器快速判断 (覆盖 90%+ 简单命令)
-        var classification = commandClassifier.classify(command);
-        if (classification.isReadOnly()) {
-            return PermissionBehavior.PASSTHROUGH;
-        }
-        // 无法安全分类 → fail-closed: ask 用户确认
-        log.debug("Parse unavailable + regex classifier unable to classify, fail-closed ask");
-        return PermissionBehavior.ASK;
-    }
-
-    // ═══════════════════════════════════════════════════════════════════
     // [v1.57.0 G2] isReadOnly() — 基于 AST 分析的只读判断
     //
     // 修复: 原实现使用首 token 判断,
@@ -389,20 +327,6 @@ public class BashTool implements Tool {
         }
         // 无法判断 → 保守返回 false (由 checkPermissions 的 ask 兜底)
         return false;
-    }
-
-    @Override
-    public String toAutoClassifierInput(ToolInput input) {
-        return input.getString("command");
-    }
-
-    @Override
-    public PermissionBehavior preparePermissionMatcher(ToolInput input) {
-        String command = input.getOptionalString("command").orElse(null);
-        if (command == null || command.isBlank()) return PermissionBehavior.PASSTHROUGH;
-        // 提取命令前缀用于匹配 alwaysAllow/deny 规则
-        // 裸 shell 前缀的 ASK 逻辑已在 PermissionPipeline.checkContentLevelAsk 中处理
-        return PermissionBehavior.PASSTHROUGH;
     }
 
     /**

@@ -176,7 +176,7 @@ public class BashSecurityAnalyzer {
     /** 安全级别 */
     public enum SecurityLevel { SAFE, ASK, DENY }
 
-    /** Result of the AST-backed shell environment reference analysis. */
+    /** 基于受限 AST 的 Shell 环境变量引用分析结果。 */
     public record EnvironmentReferenceAnalysis(
             Set<String> localDefinitions,
             Set<String> inheritedReferences,
@@ -211,6 +211,18 @@ public class BashSecurityAnalyzer {
      * @return ParseForSecurityResult
      */
     public ParseForSecurityResult parseForSecurity(String cmd) {
+        var sessionState = appStateStore.getState().session();
+        String workDir = sessionState.workingDirectory();
+        java.nio.file.Path cwd = workDir != null ? java.nio.file.Path.of(workDir)
+                : java.nio.file.Path.of(System.getProperty("user.dir"));
+        String projRoot = sessionState.projectRoot();
+        java.nio.file.Path projectRoot = projRoot != null ? java.nio.file.Path.of(projRoot) : cwd;
+        return parseForSecurity(cmd, cwd, projectRoot);
+    }
+
+    /** 授权流程使用的显式上下文入口，绝不读取其他会话的 AppState。 */
+    public ParseForSecurityResult parseForSecurity(String cmd, java.nio.file.Path cwd,
+                                                    java.nio.file.Path projectRoot) {
         // 空字符串 → simple([])
         if (cmd == null || cmd.isBlank()) {
             return new ParseForSecurityResult.Simple(List.of());
@@ -246,15 +258,12 @@ public class BashSecurityAnalyzer {
 
         // ★ 新增：路径安全验证（仅对 Simple 结果） ★
         if (result instanceof ParseForSecurityResult.Simple simple) {
-            var sessionState = appStateStore.getState().session();
-            String workDir = sessionState.workingDirectory();
-            java.nio.file.Path cwd = workDir != null ? java.nio.file.Path.of(workDir) 
-                    : java.nio.file.Path.of(System.getProperty("user.dir"));
-            String projRoot = sessionState.projectRoot();
-            java.nio.file.Path projectRoot = projRoot != null ? java.nio.file.Path.of(projRoot) : cwd;
+            java.nio.file.Path effectiveCwd = cwd == null
+                    ? java.nio.file.Path.of(System.getProperty("user.dir")) : cwd;
+            java.nio.file.Path effectiveRoot = projectRoot == null ? effectiveCwd : projectRoot;
 
             // 路径约束检查
-            String pathConstraint = pathValidator.checkPathConstraints(cmd, cwd, projectRoot);
+            String pathConstraint = pathValidator.checkPathConstraints(cmd, effectiveCwd, effectiveRoot);
             if (pathConstraint != null) {
                 return new ParseForSecurityResult.TooComplex(pathConstraint, "path-constraint");
             }
@@ -265,7 +274,7 @@ public class BashSecurityAnalyzer {
                 if (!argv.isEmpty()) {
                     String cmdName = argv.getFirst();
                     String pathCheck = pathValidator.validateCommandPaths(
-                            cmdName, argv.subList(1, argv.size()), cwd, projectRoot);
+                            cmdName, argv.subList(1, argv.size()), effectiveCwd, effectiveRoot);
                     if (pathCheck != null) {
                         return new ParseForSecurityResult.TooComplex(pathCheck, "path-validation");
                     }
@@ -294,9 +303,8 @@ public class BashSecurityAnalyzer {
     }
 
     /**
-     * Analyses inherited environment references with the same bounded Bash AST used by the
-     * permission parser. This deliberately fails closed: unsupported/dynamic shell semantics
-     * are ASK, never an implicit allow.
+     * 使用权限解析器共享的受限 Bash AST 分析继承环境变量引用。
+     * 对不支持或动态 Shell 语义安全失败闭合：要求用户确认，绝不隐式放行。
      */
     public EnvironmentReferenceAnalysis analyzeEnvironmentReferences(String command) {
         if (command == null || command.isBlank()) {

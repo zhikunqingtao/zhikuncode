@@ -106,10 +106,10 @@ public class QueryController {
         // 1. 创建或复用会话
         String sessionId = resolveSessionId(request);
 
-        // INC-3 fix: 使用请求传入的 permissionMode，默认仍为 SKIP_ALL_PROMPTS
+        // 无界面的 REST 调用没有持久交互传输，默认必须拒绝需要询问的操作，不能静默绕过授权。
         PermissionMode effectiveMode = request.permissionMode() != null
                 ? request.permissionMode()
-                : PermissionMode.SKIP_ALL_PROMPTS;  // REST API 默认仍为 SKIP_ALL_PROMPTS
+                : PermissionMode.DONT_ASK;
         permissionModeManager.setMode(sessionId, effectiveMode);
         log.debug("REST API /api/query: permissionMode={} (requested={})",
                 effectiveMode, request.permissionMode());
@@ -227,7 +227,7 @@ public class QueryController {
                 // INC-3 fix: 使用请求传入的 permissionMode
                 PermissionMode effectiveMode = request.permissionMode() != null
                         ? request.permissionMode()
-                        : PermissionMode.SKIP_ALL_PROMPTS;
+                        : PermissionMode.DONT_ASK;
                 permissionModeManager.setMode(sessionId, effectiveMode);
                 List<Tool> tools = assembleToolPool(
                         request.allowedTools(), request.disallowedTools());
@@ -338,7 +338,7 @@ public class QueryController {
         // INC-3 fix: 使用请求传入的 permissionMode
         PermissionMode effectiveMode = request.permissionMode() != null
                 ? request.permissionMode()
-                : PermissionMode.SKIP_ALL_PROMPTS;
+                : PermissionMode.DONT_ASK;
         permissionModeManager.setMode(request.sessionId(), effectiveMode);
 
         // 2. 准备工具和系统提示

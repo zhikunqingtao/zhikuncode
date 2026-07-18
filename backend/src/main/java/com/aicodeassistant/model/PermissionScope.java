@@ -1,8 +1,9 @@
 package com.aicodeassistant.model;
 
-/** Scope selected for a user permission decision. */
+/** 用户权限决策可选择的授权范围。 */
 public enum PermissionScope {
     ONCE,
+    RUN,
     SESSION,
     WORKSPACE
 }

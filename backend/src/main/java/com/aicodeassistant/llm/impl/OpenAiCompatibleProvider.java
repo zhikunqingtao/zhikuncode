@@ -263,6 +263,9 @@ public class OpenAiCompatibleProvider implements LlmProvider {
             ObjectNode thinking = root.putObject("thinking");
             thinking.put("type", "enabled");
             root.put("reasoning_effort", "max");
+        } else if ("kimi-k3".equals(model)) {
+            // Kimi K3 官方推荐显式传入 reasoning_effort="max" 以获得最强推理
+            root.put("reasoning_effort", "max");
         } else if (isQwenThinkingModel(model) && thinkingConfig.requiresThinkingSupport()) {
             root.put("enable_thinking", true);
         }
@@ -294,7 +297,9 @@ public class OpenAiCompatibleProvider implements LlmProvider {
 
         ObjectNode root = objectMapper.createObjectNode();
         root.put("model", model);
-        root.put("max_tokens", maxTokens);
+        // Kimi 系列模型使用 max_completion_tokens 参数名（官方要求）
+        String maxTokensKey = model.startsWith("kimi-") ? "max_completion_tokens" : "max_tokens";
+        root.put(maxTokensKey, maxTokens);
 
         ArrayNode messagesArray = root.putArray("messages");
 
@@ -487,13 +492,12 @@ public class OpenAiCompatibleProvider implements LlmProvider {
     // ═══════════════════════════════════════════
 
     /**
-     * 同步调用 LLM — 用于 AutoModeClassifier 等低延迟场景。
+     * 同步调用 LLM — 用于需要非流式响应的低延迟场景。
      * <p>
      * 使用非流式请求（stream:false），支持 stopSequences。
-     * HTTP 429 时内部执行一次指数退避重试（AutoModeClassifier.callClassifierLLM()
-     * 不使用 ApiRetryService，429 异常会被包装为 ClassifierUnavailableException）。
+     * HTTP 429 时内部执行一次指数退避重试；该同步路径不使用 ApiRetryService，
+     * 429 异常由调用方按普通提供商异常处理。
      *
-     * @see com.aicodeassistant.permission.AutoModeClassifier#callClassifierLLM
      */
     @Override
     public String chatSync(String model, String systemPrompt, String userContent,

@@ -52,7 +52,7 @@ export interface ToolResultPayload { type: 'tool_result'; toolUseId: string; con
 export interface CompactStartPayload { type: 'compact_start'; sessionId: string }
 export interface CompactCompletePayload { type: 'compact_complete'; sessionId: string; removedCount: number; summary: string }
 export interface RateLimitPayload { type: 'rate_limit'; retryAfterMs: number; limitType: string }
-export interface PermissionRequestPayload { type: 'permission_request'; interactionId?: string; toolUseId: string; toolName: string; input: Record<string, unknown>; riskLevel: 'low' | 'medium' | 'high'; reason: string; source?: 'subagent' | string; childSessionId?: string; decisionDeadlineAt?: number; scopeOptions?: Array<'session' | 'workspace'> }
+export interface PermissionRequestPayload { type: 'permission_request'; interactionId?: string; toolUseId: string; toolName: string; input: Record<string, unknown>; riskLevel: 'low' | 'medium' | 'high'; reason: string; source?: 'subagent' | string; childSessionId?: string; decisionDeadlineAt?: number; scopeOptions?: PermissionRememberScope[] }
 export interface CostUpdatePayload { type: 'cost_update'; sessionCost: number; totalCost: number; usage: Usage }
 export interface TaskUpdatePayload { type: 'task_update'; taskId: string; status: string; progress?: unknown; result?: unknown }
 export interface AgentSpawnPayload { type: 'agent_spawn'; taskId: string; agentName: string; agentType: string }
@@ -149,15 +149,6 @@ export interface WorkerProgressPayload {
     terminationReason: 'completed' | 'error' | 'aborted' | null;
 }
 
-export interface PermissionBubblePayload {
-    type: 'permission_bubble';
-    requestId: string;
-    workerId: string;
-    toolName: string;
-    riskLevel: 'low' | 'medium' | 'high';
-    reason: string;
-}
-
 export interface ToolPermissionDeniedPayload {
     type: 'tool_permission_denied';
     toolUseId: string;
@@ -203,7 +194,6 @@ export type ServerMessage =
     | TokenBudgetNudgePayload
     | SwarmStateUpdatePayload
     | WorkerProgressPayload
-    | PermissionBubblePayload
     | ToolPermissionDeniedPayload
     | WorkflowPhaseUpdatePayload;
 
@@ -382,13 +372,17 @@ export interface Attachment {
 
 // ==================== 权限相关 ====================
 
-export type PermissionMode = 'default' | 'plan' | 'accept_edits' | 'dont_ask' | 'skip_all_prompts' | 'auto' | 'bubble';
+export type PermissionMode = 'default' | 'plan' | 'accept_edits' | 'dont_ask';
+export type PermissionRememberScope = 'run' | 'session' | 'workspace';
 
 export interface PermissionDecision {
     toolUseId: string;
     decision: 'allow' | 'deny';
     remember?: boolean;
     scope?: string;
+    optionId: string;
+    operationHash: string;
+    deliveryGeneration: number;
 }
 
 export interface DenialTrackingState {
@@ -407,8 +401,16 @@ export interface PermissionRequest {
     reason: string;
     source?: 'subagent' | string;
     childSessionId?: string;
+    actorRunId?: string;
+    actorType?: 'direct' | 'descendant' | string;
     decisionDeadlineAt?: number;
-    scopeOptions?: Array<'session' | 'workspace'>;
+    scopeOptions?: PermissionRememberScope[];
+    operationHash?: string;
+    options?: Array<{
+        optionId: string;
+        decision: 'allow' | 'deny';
+        scope: 'once' | PermissionRememberScope;
+    }>;
 }
 
 // ==================== 配置相关 ====================
@@ -577,19 +579,10 @@ export interface WorkerInfo {
     terminationReason: 'completed' | 'error' | 'aborted' | null;
 }
 
-export interface PermissionBubbleRequest {
-    requestId: string;
-    workerId: string;
-    toolName: string;
-    riskLevel: 'low' | 'medium' | 'high';
-    reason: string;
-    timestamp: number;
-}
-
 export interface SwarmLogEntry {
     id: string;
     timestamp: number;
-    type: 'worker_start' | 'worker_complete' | 'worker_error' | 'task_assigned' | 'permission_bubble' | 'message';
+    type: 'worker_start' | 'worker_complete' | 'worker_error' | 'task_assigned' | 'message';
     workerId?: string;
     content: string;
 }

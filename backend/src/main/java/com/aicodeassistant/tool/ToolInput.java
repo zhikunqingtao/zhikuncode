@@ -3,6 +3,9 @@ package com.aicodeassistant.tool;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -10,7 +13,7 @@ import java.util.Optional;
 /**
  * 工具输入参数包装器 — 对 JSON 输入的类型安全访问。
  * <p>
- * 所有工具的 call()/checkPermissions() 方法均接收此类型。
+ * 所有工具的 call() 和授权 Analyzer 均接收此类型。
  * 内部持有 {@code Map<String, Object>}（从 LLM 的 tool_use.input JSON 解析而来），
  * 提供类型安全的取值方法。
  *
@@ -20,7 +23,7 @@ public class ToolInput {
     private final Map<String, Object> data;
 
     public ToolInput(Map<String, Object> data) {
-        this.data = data != null ? data : Map.of();
+        this.data = immutableMap(data == null ? Map.of() : data);
     }
 
     public static ToolInput from(Map<String, Object> data) {
@@ -38,7 +41,7 @@ public class ToolInput {
             Map<String, Object> map = mapper.convertValue(node, Map.class);
             return new ToolInput(map != null ? map : Map.of());
         } catch (Exception e) {
-            return new ToolInput(Map.of());
+            throw new ToolInputValidationException("TOOL_INPUT_INVALID: cannot convert JSON input", e);
         }
     }
 
@@ -164,5 +167,27 @@ public class ToolInput {
     /** 是否包含指定键 */
     public boolean has(String key) {
         return data.containsKey(key);
+    }
+
+    private static Map<String, Object> immutableMap(Map<?, ?> source) {
+        Map<String, Object> copy = new LinkedHashMap<>();
+        source.forEach((key, value) -> {
+            if (!(key instanceof String textKey)) {
+                throw new ToolInputValidationException("TOOL_INPUT_INVALID: object keys must be strings");
+            }
+            copy.put(textKey, immutableValue(value));
+        });
+        // JSON 明确允许 null；Collections 的只读包装既保留 null 语义，也阻止授权后修改输入。
+        return Collections.unmodifiableMap(copy);
+    }
+
+    private static Object immutableValue(Object value) {
+        if (value instanceof Map<?, ?> map) return immutableMap(map);
+        if (value instanceof List<?> list) {
+            List<Object> copy = new ArrayList<>(list.size());
+            list.forEach(element -> copy.add(immutableValue(element)));
+            return Collections.unmodifiableList(copy);
+        }
+        return value;
     }
 }

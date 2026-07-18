@@ -37,13 +37,16 @@ public class TaskCreateTool implements Tool {
     private final TaskCoordinator taskCoordinator;
     private final SubAgentExecutor subAgentExecutor;
     private final ToolRegistry toolRegistry;
+    private final StreamingToolExecutor toolExecutor;
 
     public TaskCreateTool(TaskCoordinator taskCoordinator,
                           SubAgentExecutor subAgentExecutor,
-                          @Lazy ToolRegistry toolRegistry) {
+                          @Lazy ToolRegistry toolRegistry,
+                          @Lazy StreamingToolExecutor toolExecutor) {
         this.taskCoordinator = taskCoordinator;
         this.subAgentExecutor = subAgentExecutor;
         this.toolRegistry = toolRegistry;
+        this.toolExecutor = toolExecutor;
     }
 
     @Override
@@ -189,7 +192,11 @@ public class TaskCreateTool implements Tool {
             }
             var bashTool = bashToolOpt.get();
             ToolInput bashInput = ToolInput.from(Map.of("command", prompt));
-            ToolResult result = bashTool.call(bashInput, context);
+            ToolUseContext childContext = context.withToolUseId(
+                    (context.toolUseId() == null ? taskId : context.toolUseId()) + ":shell:" + UUID.randomUUID());
+            ToolExecutionResult execution = toolExecutor.executeDetached(bashTool, bashInput,
+                    childContext.toolUseId(), childContext);
+            ToolResult result = execution.result();
             log.info("Shell task {} completed: {}", taskId,
                     result != null ? "success" : "null result");
         } catch (Exception e) {

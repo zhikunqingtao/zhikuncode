@@ -94,7 +94,7 @@ public class AtomicFileWriter {
      * @param agentId    执行写入的 agent/session 标识
      * @return 写入结果
      */
-    /** Path-lock + expected-old-hash write used by managed file tools. */
+    /** 受管文件工具使用的“路径锁 + 旧状态预期值”写入入口。 */
     public WriteResult atomicWrite(Path targetPath, String content, String agentId,
                                    String workingDirectory, String expectedOldHash) {
         ExpectedOldState expected = expectedOldHash == null
@@ -102,7 +102,7 @@ public class AtomicFileWriter {
         return write(targetPath, content.getBytes(StandardCharsets.UTF_8), agentId, expected, workingDirectory);
     }
 
-    /** V2 managed entry: expected state is mandatory and null never means overwrite-anything. */
+    /** 受管写入入口：必须提供预期旧状态，null 绝不表示无条件覆盖。 */
     public WriteResult write(Path targetPath, byte[] content, String actorId,
                              ExpectedOldState expected, String workingDirectory) {
         if (expected == null) return new WriteResult(false, null, "EXPECTED_OLD_STATE_REQUIRED");
@@ -155,8 +155,8 @@ public class AtomicFileWriter {
                 if(!sha.value().equals(actualOldHash))return new WriteResult(false,null,"OLD_HASH_CONFLICT");
             }
 
-            // Write the replacement into a same-directory temporary file. User history is
-            // recorded only after the authority-changing move; it is not part of correctness.
+            // 在同目录临时文件中写入替换内容。用户历史只在改变权威状态的移动后记录，
+            // 历史记录成功与否不决定文件写入是否成功。
             tmpPath = Files.createTempFile(targetPath.getParent(),
                     "." + targetPath.getFileName(), ".tmp");
             try(FileChannel channel=FileChannel.open(tmpPath,StandardOpenOption.WRITE,
@@ -166,15 +166,14 @@ public class AtomicFileWriter {
                 channel.force(true);
             }
 
-            // Revalidate immediately before the authority-changing move. This
-            // catches parent/symlink replacement between the initial check and IO.
+            // 在改变权威状态的移动前立即复检，捕获首次检查与 I/O 之间的父目录或符号链接替换。
             if (pathSecurityService != null) {
                 managedPaths.assertUnchanged(targetPath, workingDirectory);
                 var beforeMove = pathSecurityService.checkWritePermission(targetPath.toString(), workingDirectory);
                 if (!beforeMove.isAllowed()) throw new IOException("PRE_MOVE_SECURITY_DENIED: " + beforeMove.message());
             }
 
-            // ATOMIC_MOVE replaces the target. There is deliberately no non-atomic fallback.
+            // 使用 ATOMIC_MOVE 替换目标；故意不提供非原子降级路径。
             Files.move(tmpPath, targetPath,
                     StandardCopyOption.ATOMIC_MOVE,
                     StandardCopyOption.REPLACE_EXISTING);
@@ -196,8 +195,8 @@ public class AtomicFileWriter {
                 fileVersionTracker.recordWrite(targetPath.toString(), newHash, agentId);
             } catch (RuntimeException historyFailure) {
                 historyRecorded = false;
-                log.warn("File write succeeded but history recording failed for {}: {}",
-                        targetPath, historyFailure.getMessage());
+                log.warn("File write succeeded but history recording failed: path={}, actor={}",
+                        targetPath, agentId, historyFailure);
             }
 
             log.debug("Atomic write successful: {}", targetPath);
@@ -212,7 +211,7 @@ public class AtomicFileWriter {
                 try {
                     Files.deleteIfExists(tmpPath);
                 } catch (IOException cleanupEx) {
-                    log.warn("Failed to cleanup temp file: {}", tmpPath);
+                    log.warn("Failed to cleanup atomic-write temp file: path={}", tmpPath, cleanupEx);
                 }
             }
             if (!moved && managedPaths != null) managedPaths.cleanupEmptyDirectories(createdDirectories);
@@ -224,8 +223,8 @@ public class AtomicFileWriter {
                     actualHash = sha256(targetPath);
                     if (actualHash.equals(sha256(content))) effect = WriteEffect.APPLIED;
                 } catch (Exception verificationFailure) {
-                    log.warn("Could not determine post-move effect for {}: {}",
-                            targetPath, verificationFailure.getMessage());
+                    log.warn("Could not determine post-move write effect: path={}",
+                            targetPath, verificationFailure);
                 }
                 return new WriteResult(false, actualHash,
                         "POST_MOVE_FAILURE: " + e.getMessage(), false, false,

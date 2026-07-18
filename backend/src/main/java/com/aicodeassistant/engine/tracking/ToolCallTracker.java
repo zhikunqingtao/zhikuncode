@@ -1,6 +1,7 @@
 package com.aicodeassistant.engine.tracking;
 
 import com.aicodeassistant.engine.strategy.TerminationStrategy.ToolCallRecord;
+import com.aicodeassistant.tool.ToolResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.time.Instant;
@@ -38,8 +39,20 @@ public class ToolCallTracker {
      * @param errorMessage 错误信息（成功时传 null）
      */
     public void record(String toolName, boolean success, String errorMessage) {
-        history.add(new ToolCallRecord(toolName, success, errorMessage, Instant.now()));
-        if (success) {
+        record(toolName, success, errorMessage, !success);
+    }
+
+    /** 依据结构化工具结果区分预期权限终态与真正需要恢复的系统错误。 */
+    public void record(String toolName, ToolResult result) {
+        boolean recoveryRelevant = result.isError()
+                && result.failureType() != ToolResult.ToolFailureType.PERMISSION;
+        record(toolName, !result.isError(), result.isError() ? result.failureCode() : null,
+                recoveryRelevant);
+    }
+
+    private void record(String toolName, boolean success, String errorMessage, boolean recoveryRelevant) {
+        history.add(new ToolCallRecord(toolName, success, errorMessage, Instant.now(), recoveryRelevant));
+        if (success || !recoveryRelevant) {
             consecutiveErrors.set(0);
         } else {
             int count = consecutiveErrors.incrementAndGet();
@@ -76,9 +89,10 @@ public class ToolCallTracker {
      */
     public boolean isWindowAllFailed(int windowSize) {
         synchronized (history) {
-            if (history.size() < windowSize) return false;
-            List<ToolCallRecord> window = history.subList(
-                    history.size() - windowSize, history.size());
+            List<ToolCallRecord> relevant = history.stream()
+                    .filter(ToolCallRecord::recoveryRelevant).toList();
+            if (relevant.size() < windowSize) return false;
+            List<ToolCallRecord> window = relevant.subList(relevant.size() - windowSize, relevant.size());
             return window.stream().noneMatch(ToolCallRecord::success);
         }
     }
@@ -91,9 +105,10 @@ public class ToolCallTracker {
      */
     public boolean isSameErrorRepeated(int threshold) {
         synchronized (history) {
-            if (history.size() < threshold) return false;
-            List<ToolCallRecord> tail = history.subList(
-                    history.size() - threshold, history.size());
+            List<ToolCallRecord> relevant = history.stream()
+                    .filter(ToolCallRecord::recoveryRelevant).toList();
+            if (relevant.size() < threshold) return false;
+            List<ToolCallRecord> tail = relevant.subList(relevant.size() - threshold, relevant.size());
             // 全部失败且错误信息相同
             if (tail.stream().anyMatch(ToolCallRecord::success)) return false;
             String firstError = tail.getFirst().errorMessage();

@@ -8,8 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Process-local serialization authority for mutations and integrity observations
- * of the same canonical workspace path.
+ * 同一规范工作区路径的进程内串行化权威，用于协调文件修改与完整性观察。
  */
 @Component
 public class ManagedPathLockManager {

@@ -1,10 +1,12 @@
 package com.aicodeassistant.tool;
 
+import com.aicodeassistant.authorization.OperationAnalyzerRegistry;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -39,12 +41,23 @@ public class ToolRegistry {
     /**
      * 构造函数 — 通过 Spring 自动注入所有 Tool 实现。
      */
-    public ToolRegistry(List<Tool> tools) {
+    @Autowired
+    public ToolRegistry(List<Tool> tools, OperationAnalyzerRegistry analyzers) {
         for (Tool tool : tools) {
+            if (tool.getClass().getName().startsWith("com.aicodeassistant.")
+                    && !tool.isMcp() && !analyzers.isExplicitCoreTool(tool.getName())) {
+                throw new IllegalStateException("AUTHORIZATION_ANALYZER_MISSING: " + tool.getName()
+                        + " (" + tool.getClass().getName() + ")");
+            }
             register(tool);
         }
         log.info("ToolRegistry initialized with {} tools: {}",
                 toolsByName.size(), toolsByName.keySet());
+    }
+
+    /** 单元测试专用构造器；生产环境始终使用带 Analyzer 完整性校验的构造器。 */
+    ToolRegistry(List<Tool> tools) {
+        for (Tool tool : tools) register(tool);
     }
 
     /** 注册工具 */

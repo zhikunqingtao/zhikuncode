@@ -44,7 +44,7 @@ class HookServiceEventTest {
             AtomicInteger callCount = new AtomicInteger(0);
             hookRegistry.register(HookEvent.PRE_TOOL_USE, null, 1,
                 ctx -> { callCount.incrementAndGet(); return HookRegistry.HookResult.passThrough(); },
-                "test-hook");
+                "test-hook", HookRegistry.HookRole.INPUT_TRANSFORM);
 
             HookRegistry.HookContext context = new HookRegistry.HookContext(
                 "Bash", "ls -la", null, "test-session", Map.of());
@@ -60,7 +60,7 @@ class HookServiceEventTest {
             AtomicInteger callCount = new AtomicInteger(0);
             hookRegistry.register(HookEvent.POST_TOOL_USE, null, 1,
                 ctx -> { callCount.incrementAndGet(); return HookRegistry.HookResult.passThrough(); },
-                "test-hook");
+                "test-hook", HookRegistry.HookRole.PRESENTATION);
 
             HookRegistry.HookContext context = new HookRegistry.HookContext(
                 "Bash", null, "output", "test-session", Map.of());
@@ -75,7 +75,7 @@ class HookServiceEventTest {
             AtomicInteger callCount = new AtomicInteger(0);
             hookRegistry.register(HookEvent.USER_PROMPT_SUBMIT, null, 1,
                 ctx -> { callCount.incrementAndGet(); return HookRegistry.HookResult.passThrough(); },
-                "test-hook");
+                "test-hook", HookRegistry.HookRole.PRESENTATION);
 
             HookRegistry.HookContext context = new HookRegistry.HookContext(
                 null, "user input", null, "test-session", Map.of());
@@ -90,7 +90,7 @@ class HookServiceEventTest {
             AtomicInteger callCount = new AtomicInteger(0);
             hookRegistry.register(HookEvent.NOTIFICATION, null, 1,
                 ctx -> { callCount.incrementAndGet(); return HookRegistry.HookResult.passThrough(); },
-                "test-hook");
+                "test-hook", HookRegistry.HookRole.PRESENTATION);
 
             HookRegistry.HookContext context = new HookRegistry.HookContext(
                 null, null, null, null, Map.of("level", "info", "message", "test"));
@@ -126,25 +126,25 @@ class HookServiceEventTest {
     class ExceptionIsolationTests {
 
         @Test
-        @DisplayName("Hook 异常不应影响主流程")
-        void hookExceptionDoesNotBlockMainFlow() {
+        @DisplayName("执行前 Hook 异常应安全失败闭合")
+        void preHookExceptionFailsClosed() {
             // 注册一个抛异常的 Hook（高优先级数=后执行）
             hookRegistry.register(HookEvent.PRE_TOOL_USE, null, 10,
                 ctx -> { throw new RuntimeException("测试异常"); },
-                "bad-hook");
+                "bad-hook", HookRegistry.HookRole.INPUT_TRANSFORM);
 
             // 注册一个正常的 Hook（低优先级数=先执行）
             AtomicInteger goodHookCalls = new AtomicInteger(0);
             hookRegistry.register(HookEvent.PRE_TOOL_USE, null, 1,
                 ctx -> { goodHookCalls.incrementAndGet(); return HookRegistry.HookResult.passThrough(); },
-                "good-hook");
+                "good-hook", HookRegistry.HookRole.INPUT_TRANSFORM);
 
             HookRegistry.HookContext context = new HookRegistry.HookContext(
                 "Bash", "ls", null, "test", Map.of());
 
-            // 执行不应抛出异常
-            assertDoesNotThrow(() -> hookService.execute(HookEvent.PRE_TOOL_USE, context),
-                "Hook 异常不应传播到主流程");
+            HookRegistry.HookResult result = assertDoesNotThrow(
+                    () -> hookService.execute(HookEvent.PRE_TOOL_USE, context));
+            assertFalse(result.proceed(), "执行前 Hook 异常必须阻止工具继续执行");
         }
     }
 
@@ -162,7 +162,7 @@ class HookServiceEventTest {
     void hookDenyShouldBlockExecution() {
         hookRegistry.register(HookEvent.PRE_TOOL_USE, null, 1,
             ctx -> HookRegistry.HookResult.deny("操作被拒绝"),
-            "deny-hook");
+            "deny-hook", HookRegistry.HookRole.INPUT_TRANSFORM);
 
         HookRegistry.HookContext context = new HookRegistry.HookContext(
             "Bash", "rm -rf /", null, "test", Map.of());

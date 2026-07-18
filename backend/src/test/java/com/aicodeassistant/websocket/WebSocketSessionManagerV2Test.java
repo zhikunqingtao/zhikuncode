@@ -4,9 +4,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+
+import org.springframework.jdbc.core.JdbcTemplate;
 
 class WebSocketSessionManagerV2Test {
-    private final WebSocketSessionManager manager = new WebSocketSessionManager(null);
+    private final WebSocketSessionManager manager = new WebSocketSessionManager(mock(JdbcTemplate.class));
 
     @AfterEach void close() { manager.destroy(); }
 

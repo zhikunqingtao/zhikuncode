@@ -75,7 +75,8 @@ class PluginIntegrationTest {
 
         // HelloPlugin 提供 PostToolUse 钩子 → 桥接到 HookRegistry.register(event, matcher, priority, handler, source)
         verify(hookRegistry, atLeastOnce()).register(
-                any(HookEvent.class), any(), anyInt(), any(), any());
+                any(HookEvent.class), any(), anyInt(), any(), any(),
+                eq(HookRegistry.HookRole.PRESENTATION));
     }
 
     @Test

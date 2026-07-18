@@ -56,6 +56,11 @@ public class HookService {
      * @return 执行结果（如果有钩子拒绝则 proceed=false）
      */
     public HookRegistry.HookResult execute(HookEvent event, HookRegistry.HookContext context) {
+        return execute(event, context, java.util.EnumSet.allOf(HookRegistry.HookRole.class));
+    }
+
+    private HookRegistry.HookResult execute(HookEvent event, HookRegistry.HookContext context,
+                                            java.util.Set<HookRegistry.HookRole> roles) {
         List<HookRegistry.HookRegistration> hooks = hookRegistry.getHooks(event);
         if (hooks.isEmpty()) {
             return HookRegistry.HookResult.passThrough();
@@ -66,6 +71,7 @@ public class HookService {
         HookRegistry.HookContext currentContext = context;
 
         for (HookRegistry.HookRegistration hook : hooks) {
+            if (!roles.contains(hook.role())) continue;
             // 匹配器检查
             if (!matchesContext(hook.matcher(), currentContext)) {
                 continue;
@@ -74,8 +80,19 @@ public class HookService {
             try {
                 HookRegistry.HookResult result = hook.handler().apply(currentContext);
 
+                if (hook.role() == HookRegistry.HookRole.SECURITY_CONSTRAINT
+                        && (result.modifiedInput() != null || result.modifiedOutput() != null)) {
+                    return HookRegistry.HookResult.deny("SECURITY_HOOK_ATTEMPTED_INPUT_MUTATION");
+                }
+                if (hook.role() == HookRegistry.HookRole.PRESENTATION
+                        && event == HookEvent.PRE_TOOL_USE) {
+                    return HookRegistry.HookResult.deny("PRESENTATION_HOOK_REGISTERED_PRE_EXECUTION");
+                }
+
                 if (!result.proceed()) {
-                    log.info("Hook denied operation: event={}, source={}, reason={}",
+                    log.info("Hook denied operation: event={}, source={}, role={}",
+                            event, hook.source(), hook.role());
+                    log.debug("Hook denial detail: event={}, source={}, reason={}",
                             event, hook.source(), result.message());
                     return result;
                 }
@@ -103,9 +120,12 @@ public class HookService {
                 }
 
             } catch (Exception e) {
-                log.warn("Hook execution failed: event={}, source={}, error={}",
-                        event, hook.source(), e.getMessage());
-                // 钩子执行失败不阻止主流程
+                log.warn("Hook execution failed: event={}, source={}, role={}",
+                        event, hook.source(), hook.role(), e);
+                if (hook.role() != HookRegistry.HookRole.PRESENTATION
+                        || event == HookEvent.PRE_TOOL_USE) {
+                    return HookRegistry.HookResult.deny("HOOK_EXECUTION_FAILED");
+                }
             }
         }
 
@@ -128,7 +148,18 @@ public class HookService {
      */
     public HookRegistry.HookResult executePreToolUse(String toolName, String toolInput, String sessionId) {
         return execute(HookEvent.PRE_TOOL_USE,
-                HookRegistry.HookContext.forTool(toolName, toolInput, sessionId));
+                HookRegistry.HookContext.forTool(toolName, toolInput, sessionId),
+                java.util.EnumSet.of(HookRegistry.HookRole.INPUT_TRANSFORM));
+    }
+
+    /** 安全钩子只在不可变输入分析后运行，并且只能拒绝或收紧约束。 */
+    public HookRegistry.HookResult executeSecurityConstraints(String toolName, String toolInput,
+                                                              String sessionId,
+                                                              Map<String, Object> authorizationFacts) {
+        return execute(HookEvent.PRE_TOOL_USE,
+                new HookRegistry.HookContext(toolName, toolInput, null, sessionId,
+                        Map.copyOf(authorizationFacts)),
+                java.util.EnumSet.of(HookRegistry.HookRole.SECURITY_CONSTRAINT));
     }
 
     /**
@@ -136,7 +167,8 @@ public class HookService {
      */
     public HookRegistry.HookResult executePostToolUse(String toolName, String toolOutput, String sessionId) {
         return execute(HookEvent.POST_TOOL_USE,
-                HookRegistry.HookContext.forToolOutput(toolName, toolOutput, sessionId));
+                HookRegistry.HookContext.forToolOutput(toolName, toolOutput, sessionId),
+                java.util.EnumSet.of(HookRegistry.HookRole.PRESENTATION));
     }
 
     /**

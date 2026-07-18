@@ -29,7 +29,7 @@ const VALID_MESSAGE_TYPES: ReadonlySet<string> = new Set([
     'mcp_health_status', 'session_restored', 'pong', 'compact_event', 'token_warning',
     'interrupt_ack', 'model_changed', 'model_routed', 'permission_mode_changed', 'command_result',
     'rewind_complete', 'token_budget_nudge', 'plan_update',
-    'swarm_state_update', 'worker_progress', 'permission_bubble', 'workflow_phase_update',
+    'swarm_state_update', 'worker_progress', 'workflow_phase_update',
     'session_list_updated',
     // 差异化升级 v1.5 §4.5 C: 结构化输出自动可视化消息
     'visualization',

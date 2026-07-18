@@ -55,6 +55,26 @@ class ArtifactManifestServiceV2Test {
                 .contains("SEALED_HASH_MISSING");
     }
 
+    @Test
+    void shellStyleDeleteIsObservedButNotReportedAsIntegrityVerified() throws Exception {
+        Fixture fixture=fixture();
+        Path output=temp.resolve("delete-me.txt");
+        Files.writeString(output,"snapshot-before-delete");
+        ArtifactEntry declared=fixture.service.declare("r3","s1","tool-3",output.toString(),
+                "delete","sha256",temp.toString());
+        fixture.service.sealFromFile("r3",output.toString(),temp.toString());
+
+        Files.delete(output);
+        VerificationResult result=fixture.service.verify(declared.manifestId());
+
+        assertThat(result.status()).isEqualTo("unverified");
+        assertThat(result.failures()).extracting(VerificationResult.FailureDetail::reason)
+                .containsExactly("DELETE_CONTENT_NOT_ATOMICALLY_VERIFIED");
+        ArtifactEntry verified=fixture.service.getManifest("r3").orElseThrow().entries().getFirst();
+        assertThat(verified.state()).isEqualTo("unverified");
+        assertThat(verified.validatorResultJson()).contains("deletion_snapshot", "preDeleteSha256");
+    }
+
     private Fixture fixture() {
         DatabaseResolver resolver=new DatabaseResolver("",temp.resolve("db").toString());
         sqlite=new SqliteConfig(resolver);
@@ -66,7 +86,7 @@ class ArtifactManifestServiceV2Test {
         jdbc.execute("CREATE TABLE artifact_entries(artifact_id TEXT PRIMARY KEY)");
         new V017_RebuildArtifactV2Schema(jdbc).execute();
         jdbc.update("INSERT INTO sessions(id) VALUES('s1')");
-        jdbc.update("INSERT INTO run_envelopes(id) VALUES('r1'),('r2')");
+        jdbc.update("INSERT INTO run_envelopes(id) VALUES('r1'),('r2'),('r3')");
         ArtifactManifestService service=new ArtifactManifestService(jdbc,sqlite,resolver,
                 new DataSourceTransactionManager(ds),new ObjectMapper(),mock(RunControlService.class),
                 new com.aicodeassistant.security.ManagedWorkspacePathResolver(),

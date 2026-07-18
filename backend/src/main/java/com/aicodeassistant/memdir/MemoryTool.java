@@ -1,6 +1,5 @@
 package com.aicodeassistant.memdir;
 
-import com.aicodeassistant.model.PermissionBehavior;
 import com.aicodeassistant.tool.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

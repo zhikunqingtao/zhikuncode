@@ -31,7 +31,6 @@ import java.util.stream.Collectors;
  * <ul>
  *   <li>Worker 使用 Java 21 Virtual Thread 并发执行</li>
  *   <li>邮箱通信使用 {@link TeamMailbox} (ConcurrentLinkedQueue)</li>
- *   <li>权限冒泡通过 {@link LeaderPermissionBridge} 异步等待</li>
  *   <li>状态变更通过 WebSocket 推送到前端</li>
  * </ul>
  * <p>
@@ -48,7 +47,6 @@ public class SwarmService {
     private final TeamManager teamManager;
     private final TeamMailbox teamMailbox;
     private final SwarmWorkerRunner workerRunner;
-    private final LeaderPermissionBridge permissionBridge;
     private final WebSocketController webSocketController;
     private final CoordinatorEventBus eventBus;
 
@@ -77,14 +75,12 @@ public class SwarmService {
                         TeamManager teamManager,
                         TeamMailbox teamMailbox,
                         SwarmWorkerRunner workerRunner,
-                        LeaderPermissionBridge permissionBridge,
                         @Lazy WebSocketController webSocketController,
                         CoordinatorEventBus eventBus) {
         this.featureFlags = featureFlags;
         this.teamManager = teamManager;
         this.teamMailbox = teamMailbox;
         this.workerRunner = workerRunner;
-        this.permissionBridge = permissionBridge;
         this.webSocketController = webSocketController;
         this.eventBus = eventBus;
     }
@@ -394,9 +390,6 @@ public class SwarmService {
             state.workers().keySet().forEach(teamMailbox::clearMailbox);
         }
         teamMailbox.clearMailbox(swarmId + "-leader");
-
-        // 清理权限请求
-        permissionBridge.clearAll();
 
         // 销毁团队
         if (state != null) {

@@ -20,7 +20,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.regex.Pattern;
 
 /**
  * 插件管理器 — 管理插件的完整生命周期。
@@ -61,9 +60,6 @@ public class PluginManager {
 
     /** 插件提供的工具 */
     private final Map<String, Tool> pluginTools = new ConcurrentHashMap<>();
-
-    /** 已注册的钩子 (按事件类型分组) */
-    private final Map<HookHandler.HookEventType, List<HookHandler>> registeredHooks = new ConcurrentHashMap<>();
 
     /** 是否已初始化 */
     private volatile boolean initialized = false;
@@ -155,10 +151,6 @@ public class PluginManager {
 
         // 3. 钩子桥接 → HookRegistry
         for (HookHandler hook : plugin.hooks()) {
-            registeredHooks
-                    .computeIfAbsent(hook.eventType(), k -> new ArrayList<>())
-                    .add(hook);
-
             HookEvent systemEvent = mapPluginHookEvent(hook.eventType());
             if (systemEvent != null) {
                 hookRegistry.register(
@@ -182,21 +174,25 @@ public class PluginManager {
                                 pluginResult.modifiedOutput(),
                                 pluginResult.message());
                         } catch (java.util.concurrent.CompletionException e) {
-                            if (e.getCause() instanceof java.util.concurrent.TimeoutException) {
-                                log.warn("Plugin hook '{}' timed out (>5s), allowing",
-                                        plugin.name());
-                            } else {
-                                log.warn("Plugin hook '{}' execution failed: {}",
-                                        plugin.name(), e.getCause().getMessage());
+                            if (systemEvent == HookEvent.PRE_TOOL_USE) {
+                                throw new IllegalStateException("Security plugin hook failed", e);
                             }
+                            log.warn("Presentation plugin hook failed: plugin={}, event={}",
+                                    plugin.name(), systemEvent, e);
                             return HookRegistry.HookResult.allow();
                         } catch (Exception e) {
-                            log.warn("Plugin hook '{}' execution failed: {}",
-                                    plugin.name(), e.getMessage());
+                            if (systemEvent == HookEvent.PRE_TOOL_USE) {
+                                throw new IllegalStateException("Security plugin hook failed", e);
+                            }
+                            log.warn("Presentation plugin hook failed: plugin={}, event={}",
+                                    plugin.name(), systemEvent, e);
                             return HookRegistry.HookResult.allow();
                         }
                     },
-                    "plugin:" + plugin.name()
+                    "plugin:" + plugin.name(),
+                    systemEvent == HookEvent.PRE_TOOL_USE
+                            ? HookRegistry.HookRole.SECURITY_CONSTRAINT
+                            : HookRegistry.HookRole.PRESENTATION
                 );
             }
             log.debug("Bridged plugin hook: {} → HookRegistry (source=plugin:{})",
@@ -248,7 +244,7 @@ public class PluginManager {
                 try {
                     plugin.extension().onUnload();
                 } catch (Exception e) {
-                    log.warn("Error unloading plugin '{}': {}", plugin.name(), e.getMessage());
+                    log.warn("Plugin unload callback failed: plugin={}", plugin.name(), e);
                 }
             }
             // 关闭 ClassLoader
@@ -256,8 +252,7 @@ public class PluginManager {
                 ClassLoader cl = plugin.extension().getClass().getClassLoader();
                 if (cl instanceof java.net.URLClassLoader ucl) {
                     try { ucl.close(); } catch (Exception e) {
-                        log.warn("Failed to close ClassLoader for '{}': {}",
-                                plugin.name(), e.getMessage());
+                        log.warn("Plugin ClassLoader close failed: plugin={}", plugin.name(), e);
                     }
                 }
             }
@@ -265,7 +260,6 @@ public class PluginManager {
         loadedPlugins.clear();
         pluginCommands.clear();
         pluginTools.clear();
-        registeredHooks.clear();
     }
 
     @PreDestroy
@@ -326,63 +320,6 @@ public class PluginManager {
         } finally {
             rwLock.readLock().unlock();
         }
-    }
-
-    /**
-     * 执行 PreToolUse 钩子 — 在工具调用前拦截。
-     *
-     * @param toolName  工具名称
-     * @param toolInput 工具输入
-     * @return 钩子结果（如果有匹配的钩子）
-     */
-    public Optional<HookHandler.HookResult> executePreToolUseHooks(String toolName, String toolInput) {
-        return executeHooks(HookHandler.HookEventType.PRE_TOOL_USE, toolName, toolInput);
-    }
-
-    /**
-     * 执行 PostToolUse 钩子 — 在工具调用后处理。
-     */
-    public Optional<HookHandler.HookResult> executePostToolUseHooks(String toolName, String toolOutput) {
-        return executeHooks(HookHandler.HookEventType.POST_TOOL_USE, toolName, toolOutput);
-    }
-
-    /**
-     * 执行指定类型的钩子。
-     */
-    private Optional<HookHandler.HookResult> executeHooks(
-            HookHandler.HookEventType eventType, String toolName, String data) {
-        List<HookHandler> hooks = registeredHooks.get(eventType);
-        if (hooks == null || hooks.isEmpty()) {
-            return Optional.empty();
-        }
-
-        // 按优先级排序
-        List<HookHandler> sorted = hooks.stream()
-                .sorted(Comparator.comparingInt(HookHandler::priority))
-                .toList();
-
-        for (HookHandler hook : sorted) {
-            // 匹配器检查
-            if (hook.matcher() != null && !hook.matcher().isEmpty()) {
-                if (!Pattern.matches(hook.matcher(), toolName)) {
-                    continue;
-                }
-            }
-
-            try {
-                HookHandler.HookContext ctx = HookHandler.HookContext.of(toolName, data);
-                HookHandler.HookResult result = hook.handler().apply(ctx);
-
-                if (!result.proceed()) {
-                    // 钩子拒绝了操作
-                    return Optional.of(result);
-                }
-            } catch (Exception e) {
-                log.warn("Hook execution failed for {}: {}", toolName, e.getMessage());
-            }
-        }
-
-        return Optional.empty();
     }
 
     /**

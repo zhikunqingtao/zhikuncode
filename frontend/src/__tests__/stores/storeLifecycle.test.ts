@@ -123,7 +123,8 @@ describe('TC-STORE-003: permissionStore 权限审批流程', () => {
         expect(usePermissionStore.getState().pendingPermissions.length).toBe(1);
         expect(usePermissionStore.getState().pendingPermissions[0].toolName).toBe('Write');
 
-        const allowDecision: PermissionDecision = { toolUseId: 'perm-001', decision: 'allow' };
+        const allowDecision: PermissionDecision = { toolUseId: 'perm-001', decision: 'allow',
+            optionId: 'allow_once', operationHash: 'op-1', deliveryGeneration: 1 };
         usePermissionStore.getState().respondPermission(allowDecision);
         expect(usePermissionStore.getState().pendingPermissions.length).toBe(0);
 
@@ -135,7 +136,8 @@ describe('TC-STORE-003: permissionStore 权限审批流程', () => {
             riskLevel: 'high',
             reason: '危险命令',
         });
-        const denyDecision: PermissionDecision = { toolUseId: 'perm-002', decision: 'deny' };
+        const denyDecision: PermissionDecision = { toolUseId: 'perm-002', decision: 'deny',
+            optionId: 'deny', operationHash: 'op-2', deliveryGeneration: 1 };
         usePermissionStore.getState().respondPermission(denyDecision);
         expect(usePermissionStore.getState().pendingPermissions.length).toBe(0);
         expect(usePermissionStore.getState().denialTracking.totalDenials).toBe(1);
@@ -147,8 +149,18 @@ describe('TC-STORE-003: permissionStore 权限审批流程', () => {
         usePermissionStore.getState().showPermission({ interactionId: 'i-2', toolUseId: 't-2',
             toolName: 'Bash', input: {}, riskLevel: 'low', reason: 'second' });
         usePermissionStore.getState().removeInteraction('i-1');
-        usePermissionStore.getState().respondPermission({ toolUseId: 't-1', decision: 'allow' }, 'i-1');
+        usePermissionStore.getState().respondPermission({ toolUseId: 't-1', decision: 'allow',
+            optionId: 'allow_once', operationHash: 'op-1', deliveryGeneration: 1 }, 'i-1');
         expect(usePermissionStore.getState().pendingPermissions.map(p => p.interactionId)).toEqual(['i-2']);
+    });
+
+    it('uses durable interactionId rather than toolUseId as the queue identity', () => {
+        usePermissionStore.getState().showPermission({ interactionId: 'i-1', toolUseId: 'same-tool',
+            toolName: 'Bash', input: {}, riskLevel: 'low', reason: 'first attempt' });
+        usePermissionStore.getState().showPermission({ interactionId: 'i-2', toolUseId: 'same-tool',
+            toolName: 'Bash', input: {}, riskLevel: 'low', reason: 'second durable request' });
+        expect(usePermissionStore.getState().pendingPermissions.map(p => p.interactionId))
+            .toEqual(['i-1', 'i-2']);
     });
 });
 

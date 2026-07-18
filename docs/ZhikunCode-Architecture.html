@@ -200,8 +200,8 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
     <div class="nav-section-label">Java 核心引擎</div>
     <a class="nav-item" href="#s3"><div class="ni" style="background:rgba(245,158,11,.15);color:#F59E0B">03</div><span>Agent Loop 引擎</span></a>
     <a class="nav-item" href="#svg-sc"><div class="ni" style="background:rgba(255,107,157,.15);color:#FF6B9D">▸</div><span>自纠错检测</span></a>
-    <a class="nav-item" href="#s4"><div class="ni" style="background:rgba(245,158,11,.15);color:#F59E0B">04</div><span>14步权限管线</span></a>
-    <a class="nav-item" href="#svg-amc"><div class="ni" style="background:rgba(0,212,255,.15);color:#00D4FF">▸</div><span>AutoModeClassifier</span></a>
+    <a class="nav-item" href="#s4"><div class="ni" style="background:rgba(245,158,11,.15);color:#F59E0B">04</div><span>统一授权架构</span></a>
+    <a class="nav-item" href="#svg-amc"><div class="ni" style="background:rgba(0,212,255,.15);color:#00D4FF">▸</div><span>Grant 与交互</span></a>
     <a class="nav-item" href="#s5"><div class="ni" style="background:rgba(245,158,11,.15);color:#F59E0B">05</div><span>Bash 安全模块</span></a>
     <a class="nav-item" href="#s5b"><div class="ni" style="background:rgba(168,85,247,.15);color:#A855F7">5b</div><span>Docker 沙箱隔离</span></a>
 
@@ -417,7 +417,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <text x="117" y="309" text-anchor="middle" fill="#6B70A0" font-size="8">9,003行</text>
       <rect x="185" y="278" width="115" height="40" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
       <text x="242" y="295" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">Permission</text>
-      <text x="242" y="309" text-anchor="middle" fill="#6B70A0" font-size="8">14步 752行</text>
+      <text x="242" y="309" text-anchor="middle" fill="#6B70A0" font-size="8">统一授权 + 最终复检</text>
       <rect x="310" y="278" width="115" height="40" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
       <text x="367" y="295" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">Tool System</text>
       <text x="367" y="309" text-anchor="middle" fill="#6B70A0" font-size="8">105+文件 ~19,081行</text>
@@ -628,7 +628,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <!-- ToolExecutionPipeline -->
       <rect x="295" y="285" width="470" height="42" rx="6" fill="#111327" stroke="#10B981" stroke-width="1"/>
       <text x="530" y="301" text-anchor="middle" font-size="8" fill="#10B981" font-weight="600">ToolExecutionPipeline — 9阶段</text>
-      <text x="530" y="316" text-anchor="middle" font-size="6.5" fill="#6B70A0">Schema验证 → 自定义验证 → PreHook → 权限检查 → 工具调用 → PostHook → contextModifier</text>
+      <text x="530" y="316" text-anchor="middle" font-size="6.5" fill="#6B70A0">Schema验证 → PreHook → 冻结输入/授权 → Gateway复检执行 → PostHook → contextModifier</text>
 
       <!-- BlockStop streaming note -->
       <rect x="295" y="340" width="470" height="28" rx="5" fill="rgba(255,107,157,.06)" stroke="#FF6B9D" stroke-width=".8"/>
@@ -745,7 +745,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
       <rect x="204" y="218" width="130" height="44" rx="6" fill="#0F1221" stroke="#F59E0B" stroke-width="1"/>
       <text x="269" y="236" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="600">Permission</text>
-      <text x="269" y="252" text-anchor="middle" fill="#6B70A0" font-size="9">14步 2,844行</text>
+      <text x="269" y="252" text-anchor="middle" fill="#6B70A0" font-size="9">Analyzer · Grant · Gateway</text>
 
       <rect x="348" y="218" width="130" height="44" rx="6" fill="#0F1221" stroke="#F59E0B" stroke-width="1"/>
       <text x="413" y="236" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="600">Bash Security</text>
@@ -857,7 +857,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
     <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--java)">2</div><div class="line"></div></div><div class="flow-body"><div class="ft">创建流式执行会话 <span class="tag java">StreamingToolExecutor.newSession</span></div><div class="fd">初始化工具执行上下文 · 并行通道就绪</div></div></div>
     <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--java)">3</div><div class="line"></div></div><div class="flow-body"><div class="ft">API 调用 + 模型降级 <span class="tag java">LlmProvider.streamChat</span></div><div class="fd">流式工具执行(立即启动) · 413二阶段恢复 · 模型降级链</div></div></div>
     <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--java)">4</div><div class="line"></div></div><div class="flow-body"><div class="ft">收集 API 响应 <span class="tag java">StreamCollector.buildAssistantMessage</span></div><div class="fd">流式chunk聚合 · 工具调用提取 · thinking块处理</div></div></div>
-    <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--java)">5</div><div class="line"></div></div><div class="flow-body"><div class="ft">消费工具结果 <span class="tag green">并行执行，异步等待</span></div><div class="fd">工具权限检查 → 并行执行 → 结果收集 · 事务边界隔离</div></div></div>
+    <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--java)">5</div><div class="line"></div></div><div class="flow-body"><div class="ft">消费工具结果 <span class="tag green">并行执行，异步等待</span></div><div class="fd">StreamingToolExecutor 调度 → 每个调用进入统一授权/Gateway → 结果按序收集</div></div></div>
     <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--java)">6</div><div class="line"></div></div><div class="flow-body"><div class="ft">继续/终止判定</div><div class="fd">end_turn 信号检测 · max_tokens 恢复机制 · StopHook 自定义拦截</div></div></div>
     <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--java)">7</div><div class="line"></div></div><div class="flow-body"><div class="ft">工具摘要注入 <span class="tag java">ToolResultSummarizer</span></div><div class="fd">长结果截断摘要 · LLM辅助压缩 · 上下文预算控制</div></div></div>
     <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--java)">8</div><div class="line"></div></div><div class="flow-body"><div class="ft">状态更新 → 回到 Step 1 <span class="tag green">LOOP</span></div><div class="fd">消息历史追加 · 统计更新 · 压缩指标评估 · 循环继续</div></div></div>
@@ -923,7 +923,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <circle cx="891" cy="215" r="14" fill="#10B981"/><text x="891" y="220" text-anchor="middle" fill="#0B0D17" font-size="11" font-weight="800">5</text>
       <text x="810" y="215" text-anchor="middle" fill="#10B981" font-size="10" font-weight="700">消费工具结果</text>
       <text x="810" y="231" text-anchor="middle" fill="#6B70A0" font-size="8">并行执行·异步等待</text>
-      <text x="810" y="247" text-anchor="middle" fill="#9FA4C4" font-size="7">权限检查→并行→收集</text>
+      <text x="810" y="247" text-anchor="middle" fill="#9FA4C4" font-size="7">并发调度→逐调用授权/Gateway→按序收集</text>
       <line x1="725" y1="231" x2="690" y2="231" stroke="#10B981" stroke-width="1.5" marker-end="url(#lArG)"/>
 
       <rect x="500" y="195" width="190" height="72" rx="10" fill="#151829" stroke="#06B6D4" stroke-width="1.2"/>
@@ -1158,62 +1158,62 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 <div class="section" id="s4">
   <div class="section-head">
     <span class="section-num java">04</span>
-    <h2>14步权限管线</h2>
-    <span class="meta">permission/ 11文件 2,844行 · PermissionPipeline.java 817行</span>
+    <h2>统一权限分析、授权与执行准入</h2>
+    <span class="meta">authorization/ · V015 Durable Interaction · V019 Permission Grant</span>
   </div>
 
   <!-- Stage 1 -->
   <div class="card java-accent">
-    <div class="card-title" onclick="toggleDetail(this)"><span class="toggle open">▶</span> STAGE 1: 拒绝 / 询问规则 <span class="tag red">11 步</span></div>
+    <div class="card-title" onclick="toggleDetail(this)"><span class="toggle open">▶</span> STAGE 1: 统一授权与执行主链 <span class="tag red">11 个职责边界</span></div>
     <div class="card-detail show">
       <div class="flow">
-        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">1a</div><div class="line"></div></div><div class="flow-body"><div class="ft">deny 规则检查</div><div class="fd">显式拒绝列表 → DENY</div></div></div>
-        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">1b</div><div class="line"></div></div><div class="flow-body"><div class="ft">ask 规则检查</div><div class="fd">需询问列表 → ASK</div></div></div>
-        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">1c</div><div class="line"></div></div><div class="flow-body"><div class="ft">工具自身权限检查</div><div class="fd">tool.checkPermissions() · 内置安全约束</div></div></div>
-        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">1d</div><div class="line"></div></div><div class="flow-body"><div class="ft">工具实现拒绝</div><div class="fd">执行层拒绝 → DENY</div></div></div>
-        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">1e</div><div class="line"></div></div><div class="flow-body"><div class="ft">requiresUserInteraction</div><div class="fd">标记需要用户交互 → ASK</div></div></div>
-        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">1f</div><div class="line"></div></div><div class="flow-body"><div class="ft">内容级 ask 规则 <span class="tag red">优先于 bypass</span></div><div class="fd">内容模式匹配 → 强制ASK · bypass免疫</div></div></div>
-        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.55rem">1f-pre</div><div class="line"></div></div><div class="flow-body"><div class="ft">系统级命令黑名单 <span class="tag red">bypass 免疫</span></div><div class="fd">CommandBlacklistService → 高危命令永久拦截</div></div></div>
-        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.55rem">1f-w</div><div class="line"></div></div><div class="flow-body"><div class="ft">写路径危险文件检查</div><div class="fd">.env / 配置 / 密钥写入 → ASK</div></div></div>
-        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.55rem">1f-b</div><div class="line"></div></div><div class="flow-body"><div class="ft">Bash 危险删除 + 环境变量</div><div class="fd">rm -rf / export 等危险模式 → ASK</div></div></div>
-        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">1g</div><div class="line"></div></div><div class="flow-body"><div class="ft">安全检查 <span class="tag red">bypass 免疫</span></div><div class="fd">敏感目录(.git/.zhikun/) → 永久拦截</div></div></div>
-        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">1k</div><div class="line"></div></div><div class="flow-body"><div class="ft">敏感系统文件访问检查</div><div class="fd">系统文件(/etc/passwd ~/.ssh/) → 拦截</div></div></div>
+        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">1</div><div class="line"></div></div><div class="flow-body"><div class="ft">Schema / Tool / PreToolUse</div><div class="fd">输入补全后执行 Hook；Hook 改写输入时重新执行完整 Schema 与 Tool 校验</div></div></div>
+        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">2</div><div class="line"></div></div><div class="flow-body"><div class="ft">冻结规范输入</div><div class="fd">FrozenToolInput · canonical JSON · inputHash</div></div></div>
+        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">3</div><div class="line"></div></div><div class="flow-body"><div class="ft">Subject + Operation Analyzer</div><div class="fd">从 Run ancestry 解析 root identity，再按显式 toolName → analyzerId 选择 Analyzer</div></div></div>
+        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">4</div><div class="line"></div></div><div class="flow-body"><div class="ft">OperationDescriptor + invariant</div><div class="fd">effect/resource/environment/network/risk；拒绝非法资源字符与敏感继承环境</div></div></div>
+        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">5</div><div class="line"></div></div><div class="flow-body"><div class="ft">只收紧 Security Hook</div><div class="fd">只读取冻结输入和已生成事实；可以拒绝，但不能修改输入或扩大授权</div></div></div>
+        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">6</div><div class="line"></div></div><div class="flow-body"><div class="ft">SAFE_INTERNAL / Grant</div><div class="fd">精确 SAFE_INTERNAL 由内建策略放行，否则匹配 scope、profile、Analyzer 版本与约束</div></div></div>
+        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">7</div><div class="line"></div></div><div class="flow-body"><div class="ft">权限模式裁决</div><div class="fd">DEFAULT / PLAN / ACCEPT_EDITS / DONT_ASK</div></div></div>
+        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">8</div><div class="line"></div></div><div class="flow-body"><div class="ft">Durable Interaction</div><div class="fd">服务端下发 decision/scope options，数据库 CAS 终态</div></div></div>
+        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">9</div><div class="line"></div></div><div class="flow-body"><div class="ft">声明输出规划</div><div class="fd">planOutputs() 在 Gateway 前生成无副作用的产物声明；工具并发/work lease 由上游 StreamingToolExecutor 管理</div></div></div>
+        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">10</div><div class="line"></div></div><div class="flow-body"><div class="ft">最终动态复检</div><div class="fd">路径、符号链接、环境、Grant 撤销与 ONCE 终态</div></div></div>
+        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">11</div><div class="line"></div></div><div class="flow-body"><div class="ft">ToolExecutionGateway</div><div class="fd">提交 tool_started 后调用冻结输入对应的 Tool.call()</div></div></div>
       </div>
     </div>
   </div>
 
-  <!-- Stage 2 -->
+  <!-- Grant reference matrix -->
   <div class="card java-accent">
-    <div class="card-title" onclick="toggleDetail(this)"><span class="toggle open">▶</span> STAGE 2: 允许规则 + STAGE 1 尾检 <span class="tag green">2 步</span></div>
+    <div class="card-title" onclick="toggleDetail(this)"><span class="toggle open">▶</span> Grant 能力与继承矩阵 <span class="tag green">策略参考</span></div>
     <div class="card-detail show">
       <div class="flow">
-        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--green);font-size:.6rem">1h</div><div class="line"></div></div><div class="flow-body"><div class="ft">Hook 权限规则注入</div><div class="fd">StopHook / 插件动态权限注入</div></div></div>
-        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--green);font-size:.6rem">1i</div><div class="line"></div></div><div class="flow-body"><div class="ft">Classifier 权限规则注入 <span class="tag cyan">auto 模式</span></div><div class="fd">AutoModeClassifier 591行 · 智能分类 → 自动授权</div></div></div>
-        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--green);font-size:.6rem">1j</div><div class="line"></div></div><div class="flow-body"><div class="ft">Sandbox 权限规则覆盖</div><div class="fd">Docker沙箱 → 放宽约束</div></div></div>
-        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--green);font-size:.6rem">2a</div><div class="line"></div></div><div class="flow-body"><div class="ft">skipAllPrompts 模式</div><div class="fd">全局绕过开关 → 跳过非免疫检查</div></div></div>
-        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--green);font-size:.6rem">2b</div><div class="line"></div></div><div class="flow-body"><div class="ft">alwaysAllow 规则</div><div class="fd">持久化允许列表 → ALLOW</div></div></div>
+        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--green);font-size:.6rem">A</div><div class="line"></div></div><div class="flow-body"><div class="ft">高风险与复杂 Shell</div><div class="fd">只允许 ONCE，不创建可复用 Grant</div></div></div>
+        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--green);font-size:.6rem">B</div><div class="line"></div></div><div class="flow-body"><div class="ft">Guarded exact Bash</div><div class="fd">只支持 RUN / SESSION，不支持 WORKSPACE</div></div></div>
+        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--green);font-size:.6rem">C</div><div class="line"></div></div><div class="flow-body"><div class="ft">受约束文件能力</div><div class="fd">安全读与 typed edit 可按约束支持 WORKSPACE</div></div></div>
+        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--green);font-size:.6rem">D</div><div class="line"></div></div><div class="flow-body"><div class="ft">未知 MCP / 动态 Tool</div><div class="fd">GenericMcpAnalyzer · exact ONCE</div></div></div>
+        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--green);font-size:.6rem">E</div><div class="line"></div></div><div class="flow-body"><div class="ft">子代理受控继承</div><div class="fd">root session/root run + DIRECT_ONLY/ROOT_AND_DESCENDANTS</div></div></div>
       </div>
     </div>
   </div>
 
-  <!-- Stage 3 -->
+  <!-- Mode and scope reference matrix -->
   <div class="card java-accent">
-    <div class="card-title" onclick="toggleDetail(this)"><span class="toggle open">▶</span> STAGE 3: 模式转换 <span class="tag purple">1 步 → 7 模式</span></div>
+    <div class="card-title" onclick="toggleDetail(this)"><span class="toggle open">▶</span> 模式与作用域 <span class="tag purple">4 模式 · 4 作用域</span></div>
     <div class="card-detail show">
       <div class="flow">
-        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--purple);font-size:.65rem">3</div></div><div class="flow-body"><div class="ft">passthrough → ask，进入模式分支</div><div class="fd" style="margin-top:6px">
-          <span class="tag java">DEFAULT</span> <span class="tag ts">PLAN</span> <span class="tag green">ACCEPT_EDITS</span> <span class="tag cyan">DONT_ASK</span> <span class="tag red">SKIP_ALL_PROMPTS</span> <span class="tag purple">AUTO</span> <span class="tag" style="background:rgba(255,255,255,.08);color:var(--text2)">BUBBLE</span>
+        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--purple);font-size:.65rem">✓</div></div><div class="flow-body"><div class="ft">授权结果与作用域</div><div class="fd" style="margin-top:6px">
+          <span class="tag java">DEFAULT</span> <span class="tag ts">PLAN</span> <span class="tag green">ACCEPT_EDITS</span> <span class="tag cyan">DONT_ASK</span> <span class="tag red">ONCE</span> <span class="tag purple">RUN / SESSION</span> <span class="tag" style="background:rgba(255,255,255,.08);color:var(--text2)">WORKSPACE</span>
         </div></div></div>
       </div>
       <div style="margin-top:12px;font-size:.78rem;color:var(--text2)">
-        辅助组件: <span class="mono">AutoModeClassifier (591行)</span> · <span class="mono">PermissionRuleRepository (271行)</span> · <span class="mono">PermissionRuleMatcher (253行)</span> · <span class="mono">PermissionModeManager (155行)</span>
+        核心组件: <span class="mono">AuthorizationService</span> · <span class="mono">OperationAnalyzerRegistry</span> · <span class="mono">PermissionGrantRepository</span> · <span class="mono">DurableInteractionService</span> · <span class="mono">ToolExecutionGateway</span>
       </div>
     </div>
   </div>
 
-  <!-- SVG 插画: 14步权限管线流程图 -->
+  <!-- SVG 插画: 统一授权与执行准入流程图 -->
   <div class="card" style="margin-top:16px;padding:0;overflow:hidden;border:1px solid var(--border2)">
-    <div style="padding:16px 20px 8px;font-size:.85rem;font-weight:700;color:var(--java);letter-spacing:.02em">▸ 14步权限管线全景流程</div>
+    <div style="padding:16px 20px 8px;font-size:.85rem;font-weight:700;color:var(--java);letter-spacing:.02em">▸ 统一授权与执行准入全景流程</div>
     <svg viewBox="0 0 960 800" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
       <defs>
         <linearGradient id="gS1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#EF4444" stop-opacity=".15"/><stop offset="100%" stop-color="#EF4444" stop-opacity=".03"/></linearGradient>
@@ -1231,120 +1231,121 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
       <!-- Title bar -->
       <rect x="30" y="16" width="900" height="36" rx="8" fill="#151829" stroke="#F59E0B" stroke-width="1"/>
-      <text x="480" y="39" text-anchor="middle" fill="#F59E0B" font-size="13" font-weight="700" style="font-family:'JetBrains Mono',monospace">PermissionPipeline.java — 817行 · 14步 · 3阶段</text>
+      <text x="480" y="39" text-anchor="middle" fill="#F59E0B" font-size="13" font-weight="700" style="font-family:'JetBrains Mono',monospace">AuthorizationService · OperationAnalyzerRegistry · ToolExecutionGateway</text>
 
       <!-- Decision tree explanation banner -->
       <rect x="30" y="58" width="900" height="24" rx="6" fill="rgba(245,158,11,.08)" stroke="#F59E0B" stroke-width=".6" stroke-dasharray="4"/>
-      <text x="480" y="74" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">决策树结构 — 每步匹配即短路返回，不走完所有步骤 · 🔒 = bypass免疫（即使bypass=true也会拦截）</text>
+      <text x="480" y="74" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">校验/Hook → 冻结输入 → root subject + Analyzer → 只收紧安全 Hook → 授权 → Gateway 复检与执行</text>
 
       <!-- ===== STAGE 1: Deny/Ask Rules (11 steps) ===== -->
       <rect x="30" y="90" width="900" height="340" rx="12" fill="url(#gS1)" stroke="#EF4444" stroke-width="1" filter="url(#glowR)"/>
-      <text x="50" y="116" fill="#EF4444" font-size="13" font-weight="700">STAGE 1: 拒绝 / 询问规则</text>
-      <text x="280" y="116" fill="#6B70A0" font-size="10" style="font-family:'JetBrains Mono',monospace">11 步 — 安全过滤（短路决策树）</text>
+      <text x="50" y="116" fill="#EF4444" font-size="13" font-weight="700">STAGE 1: 输入冻结与授权事实</text>
+      <text x="280" y="116" fill="#6B70A0" font-size="10" style="font-family:'JetBrains Mono',monospace">OperationDescriptor 由 Analyzer 基于冻结输入生成</text>
 
       <!-- Short-circuit exit nodes (right side) -->
       <rect x="820" y="94" width="100" height="28" rx="14" fill="rgba(239,68,68,.18)" stroke="#EF4444" stroke-width="1.2"/>
-      <text x="870" y="112" text-anchor="middle" fill="#EF4444" font-size="10" font-weight="700">DENY 返回</text>
+      <text x="870" y="106" text-anchor="middle" fill="#EF4444" font-size="7.5" font-weight="700">VALIDATION /</text>
+      <text x="870" y="117" text-anchor="middle" fill="#EF4444" font-size="7.5" font-weight="700">POLICY DENY</text>
       <rect x="820" y="126" width="100" height="28" rx="14" fill="rgba(245,158,11,.18)" stroke="#F59E0B" stroke-width="1.2"/>
-      <text x="870" y="144" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="700">ASK 返回</text>
+      <text x="870" y="144" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="700">WAITING INTERACTION</text>
 
       <!-- Row 1: steps 1a-1e -->
       <rect x="50" y="130" width="120" height="56" rx="8" fill="#151829" stroke="#EF4444" stroke-width=".8"/>
-      <text x="110" y="150" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="600">1a deny规则</text>
-      <text x="110" y="164" text-anchor="middle" fill="#6B70A0" font-size="7.5">显式拒绝→DENY</text>
-      <text x="110" y="178" text-anchor="middle" fill="#EF4444" font-size="7" opacity=".7">findDenyRule()</text>
+      <text x="110" y="150" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="600">Schema 校验</text>
+      <text x="110" y="164" text-anchor="middle" fill="#6B70A0" font-size="7.5">参数补全与重验</text>
+      <text x="110" y="178" text-anchor="middle" fill="#EF4444" font-size="7" opacity=".7">Tool.validateInput()</text>
       <!-- Short-circuit arrow 1a → DENY -->
       <line x1="140" y1="130" x2="140" y2="108" stroke="#EF4444" stroke-width="1" stroke-dasharray="3" opacity=".7"/>
       <line x1="140" y1="108" x2="818" y2="108" stroke="#EF4444" stroke-width="1" stroke-dasharray="3" opacity=".5"/>
       <line x1="170" y1="158" x2="185" y2="158" stroke="#EF4444" stroke-width="1" marker-end="url(#pArR)"/>
 
       <rect x="185" y="130" width="120" height="56" rx="8" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
-      <text x="245" y="150" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">1b ask规则</text>
-      <text x="245" y="164" text-anchor="middle" fill="#6B70A0" font-size="7.5">需询问→ASK</text>
-      <text x="245" y="178" text-anchor="middle" fill="#F59E0B" font-size="7" opacity=".7">findAskRule()</text>
-      <!-- Short-circuit arrow 1b → ASK -->
-      <line x1="275" y1="130" x2="275" y2="140" stroke="#F59E0B" stroke-width="1" stroke-dasharray="3" opacity=".7"/>
-      <line x1="275" y1="140" x2="818" y2="140" stroke="#F59E0B" stroke-width="1" stroke-dasharray="3" opacity=".5"/>
+      <text x="245" y="150" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">PreToolUse Hook</text>
+      <text x="245" y="164" text-anchor="middle" fill="#6B70A0" font-size="7.5">可改输入 / 可拒绝</text>
+      <text x="245" y="178" text-anchor="middle" fill="#F59E0B" font-size="7" opacity=".7">改写后完整重验</text>
       <line x1="305" y1="158" x2="320" y2="158" stroke="#EF4444" stroke-width="1" marker-end="url(#pArR)"/>
 
       <rect x="320" y="130" width="120" height="56" rx="8" fill="#151829" stroke="#EF4444" stroke-width=".8"/>
-      <text x="380" y="150" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="600">1c 工具权限</text>
-      <text x="380" y="164" text-anchor="middle" fill="#6B70A0" font-size="7.5">checkPermissions()</text>
-      <text x="380" y="178" text-anchor="middle" fill="#6B70A0" font-size="7" opacity=".7">→DENY/ASK/PASS</text>
+      <text x="380" y="150" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="600">FrozenToolInput</text>
+      <text x="380" y="164" text-anchor="middle" fill="#6B70A0" font-size="7.5">canonical JSON + inputHash</text>
+      <text x="380" y="178" text-anchor="middle" fill="#6B70A0" font-size="7" opacity=".7">执行输入由冻结字节重建</text>
       <line x1="440" y1="158" x2="455" y2="158" stroke="#EF4444" stroke-width="1" marker-end="url(#pArR)"/>
 
       <rect x="455" y="130" width="120" height="56" rx="8" fill="#151829" stroke="#EF4444" stroke-width=".8"/>
-      <text x="515" y="150" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="600">1d 工具拒绝</text>
-      <text x="515" y="164" text-anchor="middle" fill="#6B70A0" font-size="7.5">DENY→短路</text>
-      <text x="515" y="178" text-anchor="middle" fill="#EF4444" font-size="7" opacity=".7">PermBehavior.DENY</text>
+      <text x="515" y="150" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="600">Subject + Analyzer</text>
+      <text x="515" y="164" text-anchor="middle" fill="#6B70A0" font-size="7.5">root identity / analyzerFor()</text>
+      <text x="515" y="178" text-anchor="middle" fill="#EF4444" font-size="7" opacity=".7">核心工具漏配即失败</text>
       <line x1="575" y1="158" x2="590" y2="158" stroke="#EF4444" stroke-width="1" marker-end="url(#pArR)"/>
 
       <rect x="590" y="130" width="120" height="56" rx="8" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
-      <text x="650" y="150" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">1e 用户交互</text>
-      <text x="650" y="164" text-anchor="middle" fill="#6B70A0" font-size="7.5">requiresInteraction</text>
-      <text x="650" y="178" text-anchor="middle" fill="#F59E0B" font-size="7" opacity=".7">→ASK短路</text>
+      <text x="650" y="150" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">OperationDescriptor</text>
+      <text x="650" y="164" text-anchor="middle" fill="#6B70A0" font-size="7.5">operationHash</text>
+      <text x="650" y="178" text-anchor="middle" fill="#F59E0B" font-size="7" opacity=".7">effect/resource/risk + invariant</text>
 
-      <!-- Row 2: steps 1f, 1f-pre, 1f-w, 1f-b (bypass immune group) -->
+      <!-- Row 2: policy, grant, mode and durable interaction -->
       <line x1="650" y1="186" x2="650" y2="196" stroke="#EF4444" stroke-width="1" opacity=".5"/>
       <line x1="650" y1="196" x2="90" y2="196" stroke="#EF4444" stroke-width="1" opacity=".3" stroke-dasharray="4"/>
       <line x1="90" y1="196" x2="90" y2="202" stroke="#EF4444" stroke-width="1" opacity=".5"/>
 
       <rect x="50" y="202" width="138" height="56" rx="8" fill="#151829" stroke="#F59E0B" stroke-width="1.2"/>
-      <text x="119" y="218" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">🔒 1f 内容级ask</text>
-      <text x="119" y="232" text-anchor="middle" fill="#F59E0B" font-size="7" font-weight="600">bypass 免疫</text>
-      <text x="119" y="248" text-anchor="middle" fill="#6B70A0" font-size="6.5">裸shell+危险模式</text>
+      <text x="119" y="218" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">Security Hook</text>
+      <text x="119" y="232" text-anchor="middle" fill="#F59E0B" font-size="7" font-weight="600">只可收紧 / 可拒绝</text>
+      <text x="119" y="248" text-anchor="middle" fill="#6B70A0" font-size="6.5">基于冻结事实执行</text>
       <line x1="188" y1="230" x2="203" y2="230" stroke="#F59E0B" stroke-width="1" marker-end="url(#pArO)"/>
 
       <rect x="203" y="202" width="138" height="56" rx="8" fill="#151829" stroke="#F59E0B" stroke-width="1.2"/>
-      <text x="272" y="218" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">🔒 1f-pre 命令黑名单</text>
-      <text x="272" y="232" text-anchor="middle" fill="#F59E0B" font-size="7" font-weight="600">bypass 免疫</text>
-      <text x="272" y="248" text-anchor="middle" fill="#6B70A0" font-size="6.5">ABSOLUTE_DENY/ASK</text>
+      <text x="272" y="218" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">SAFE_INTERNAL</text>
+      <text x="272" y="232" text-anchor="middle" fill="#F59E0B" font-size="7" font-weight="600">命中即 POLICY ALLOW</text>
+      <text x="272" y="248" text-anchor="middle" fill="#6B70A0" font-size="6.5">未命中才继续 Grant</text>
       <line x1="341" y1="230" x2="356" y2="230" stroke="#F59E0B" stroke-width="1" marker-end="url(#pArO)"/>
 
       <rect x="356" y="202" width="138" height="56" rx="8" fill="#151829" stroke="#EF4444" stroke-width=".8"/>
-      <text x="425" y="218" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="600">1f-w 危险文件写入</text>
-      <text x="425" y="232" text-anchor="middle" fill="#6B70A0" font-size="7.5">.env/密钥→DENY/ASK</text>
-      <text x="425" y="248" text-anchor="middle" fill="#6B70A0" font-size="6.5">PathSecurityService</text>
+      <text x="425" y="218" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="600">Grant 匹配</text>
+      <text x="425" y="232" text-anchor="middle" fill="#6B70A0" font-size="7.5">命中即 GRANT ALLOW</text>
+      <text x="425" y="248" text-anchor="middle" fill="#6B70A0" font-size="6.5">root/scope/profile/constraint</text>
       <line x1="494" y1="230" x2="509" y2="230" stroke="#EF4444" stroke-width="1" marker-end="url(#pArR)"/>
 
       <rect x="509" y="202" width="138" height="56" rx="8" fill="#151829" stroke="#EF4444" stroke-width=".8"/>
-      <text x="578" y="218" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="600">1f-b 危险Bash</text>
-      <text x="578" y="232" text-anchor="middle" fill="#6B70A0" font-size="7.5">rm -rf/export→ASK</text>
-      <text x="578" y="248" text-anchor="middle" fill="#6B70A0" font-size="6.5">env变量篡改检测</text>
+      <text x="578" y="218" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="600">Mode / Interaction</text>
+      <text x="578" y="232" text-anchor="middle" fill="#6B70A0" font-size="7.5">ALLOW / DENY / v3 options</text>
+      <text x="578" y="248" text-anchor="middle" fill="#6B70A0" font-size="6.5">V015 CAS / 可建 Grant</text>
+      <line x1="647" y1="230" x2="818" y2="140" stroke="#F59E0B" stroke-width="1" stroke-dasharray="3" opacity=".55" marker-end="url(#pArO)"/>
 
       <!-- Row 3: steps 1g, 1h, 1i, 1j, 1k -->
-      <line x1="578" y1="258" x2="578" y2="268" stroke="#EF4444" stroke-width="1" opacity=".5"/>
-      <line x1="578" y1="268" x2="90" y2="268" stroke="#EF4444" stroke-width="1" opacity=".3" stroke-dasharray="4"/>
-      <line x1="90" y1="268" x2="90" y2="274" stroke="#EF4444" stroke-width="1" opacity=".5"/>
+      <line x1="272" y1="258" x2="272" y2="268" stroke="#10B981" stroke-width="1" opacity=".45"/>
+      <line x1="425" y1="258" x2="425" y2="268" stroke="#10B981" stroke-width="1" opacity=".45"/>
+      <line x1="578" y1="258" x2="578" y2="268" stroke="#10B981" stroke-width="1" opacity=".45"/>
+      <line x1="578" y1="268" x2="117" y2="268" stroke="#10B981" stroke-width="1" opacity=".3" stroke-dasharray="4"/>
+      <line x1="117" y1="268" x2="117" y2="274" stroke="#10B981" stroke-width="1" opacity=".5"/>
 
       <rect x="50" y="274" width="135" height="56" rx="8" fill="#151829" stroke="#F59E0B" stroke-width="1.2"/>
-      <text x="117" y="290" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">🔒 1g 安全检查</text>
-      <text x="117" y="304" text-anchor="middle" fill="#F59E0B" font-size="7" font-weight="600">bypass 免疫</text>
-      <text x="117" y="320" text-anchor="middle" fill="#6B70A0" font-size="6.5">.git/.zhikun/.env/.ssh</text>
+      <text x="117" y="290" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">AuthorizedOperation</text>
+      <text x="117" y="304" text-anchor="middle" fill="#F59E0B" font-size="7" font-weight="600">ALLOW source</text>
+      <text x="117" y="320" text-anchor="middle" fill="#6B70A0" font-size="6.5">policy/grant/user</text>
       <line x1="185" y1="302" x2="200" y2="302" stroke="#EF4444" stroke-width="1" marker-end="url(#pArR)"/>
 
       <rect x="200" y="274" width="135" height="56" rx="8" fill="#151829" stroke="#10B981" stroke-width=".8"/>
-      <text x="267" y="290" text-anchor="middle" fill="#10B981" font-size="9" font-weight="600">1h Hook规则注入</text>
-      <text x="267" y="304" text-anchor="middle" fill="#6B70A0" font-size="7.5">PreToolUse Hook</text>
-      <text x="267" y="320" text-anchor="middle" fill="#6B70A0" font-size="6.5">proceed=false→ASK</text>
+      <text x="267" y="290" text-anchor="middle" fill="#10B981" font-size="9" font-weight="600">Declared Outputs</text>
+      <text x="267" y="304" text-anchor="middle" fill="#6B70A0" font-size="7.5">planOutputs()</text>
+      <text x="267" y="320" text-anchor="middle" fill="#6B70A0" font-size="6.5">无副作用预声明</text>
       <line x1="335" y1="302" x2="350" y2="302" stroke="#10B981" stroke-width="1" marker-end="url(#pArG)"/>
 
       <rect x="350" y="274" width="135" height="56" rx="8" fill="#151829" stroke="#06B6D4" stroke-width=".8"/>
-      <text x="417" y="290" text-anchor="middle" fill="#06B6D4" font-size="9" font-weight="600">1i Classifier注入</text>
-      <text x="417" y="304" text-anchor="middle" fill="#6B70A0" font-size="7.5">仅auto模式</text>
-      <text x="417" y="320" text-anchor="middle" fill="#6B70A0" font-size="6.5">高风险命令→ASK</text>
+      <text x="417" y="290" text-anchor="middle" fill="#06B6D4" font-size="9" font-weight="600">动态环境复检</text>
+      <text x="417" y="304" text-anchor="middle" fill="#6B70A0" font-size="7.5">analyzer.recheck()</text>
+      <text x="417" y="320" text-anchor="middle" fill="#6B70A0" font-size="6.5">路径/链接/环境</text>
       <line x1="485" y1="302" x2="500" y2="302" stroke="#06B6D4" stroke-width="1" marker-end="url(#pArR)"/>
 
       <rect x="500" y="274" width="135" height="56" rx="8" fill="#151829" stroke="#10B981" stroke-width=".8"/>
-      <text x="567" y="290" text-anchor="middle" fill="#10B981" font-size="9" font-weight="600">1j Sandbox覆盖</text>
-      <text x="567" y="304" text-anchor="middle" fill="#6B70A0" font-size="7.5">Docker放宽权限</text>
-      <text x="567" y="320" text-anchor="middle" fill="#6B70A0" font-size="6.5">沙箱内→ALLOW</text>
+      <text x="567" y="290" text-anchor="middle" fill="#10B981" font-size="9" font-weight="600">准入短事务</text>
+      <text x="567" y="304" text-anchor="middle" fill="#6B70A0" font-size="7.5">Grant/ONCE + 预声明</text>
+      <text x="567" y="320" text-anchor="middle" fill="#6B70A0" font-size="6.5">写 tool_started 后提交</text>
       <line x1="635" y1="302" x2="650" y2="302" stroke="#10B981" stroke-width="1" marker-end="url(#pArG)"/>
 
       <rect x="650" y="274" width="135" height="56" rx="8" fill="#151829" stroke="#F59E0B" stroke-width="1.2"/>
-      <text x="717" y="290" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">🔒 1k 敏感文件</text>
-      <text x="717" y="304" text-anchor="middle" fill="#F59E0B" font-size="7" font-weight="600">bypass 免疫</text>
-      <text x="717" y="320" text-anchor="middle" fill="#6B70A0" font-size="6.5">/etc/passwd ~/.ssh</text>
+      <text x="717" y="290" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">Tool Gateway</text>
+      <text x="717" y="304" text-anchor="middle" fill="#F59E0B" font-size="7" font-weight="600">唯一生产入口</text>
+      <text x="717" y="320" text-anchor="middle" fill="#6B70A0" font-size="6.5">事务外 Tool.call(冻结输入)</text>
 
       <!-- Result badges for Stage 1 -->
       <rect x="50" y="345" width="110" height="28" rx="14" fill="rgba(239,68,68,.12)" stroke="#EF4444" stroke-width=".8"/>
@@ -1352,49 +1353,43 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <rect x="175" y="345" width="110" height="28" rx="14" fill="rgba(245,158,11,.12)" stroke="#F59E0B" stroke-width=".8"/>
       <text x="230" y="363" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="700">→ ASK</text>
       <rect x="300" y="345" width="170" height="28" rx="14" fill="rgba(16,185,129,.08)" stroke="#10B981" stroke-width=".8"/>
-      <text x="385" y="363" text-anchor="middle" fill="#10B981" font-size="10">全部通过 → Stage2</text>
-      <!-- bypass immune legend -->
+      <text x="385" y="363" text-anchor="middle" fill="#10B981" font-size="10">授权通过 → 执行准入</text>
+      <!-- invariant legend -->
       <rect x="500" y="345" width="270" height="28" rx="14" fill="rgba(245,158,11,.06)" stroke="#F59E0B" stroke-width=".6" stroke-dasharray="3"/>
-      <text x="635" y="363" text-anchor="middle" fill="#F59E0B" font-size="8">🔒 1f · 1f-pre · 1g · 1k = 4步 bypass免疫，无法绕过</text>
+      <text x="635" y="363" text-anchor="middle" fill="#F59E0B" font-size="8">Analyzer 约束、invariant 与最终动态复检始终生效，Grant 不能扩大边界</text>
 
-      <!-- Stage transition arrow with condition -->
-      <line x1="480" y1="410" x2="480" y2="435" stroke="#6B70A0" stroke-width="2" class="anim-line"/>
-      <polygon points="475 433,485 433,480 443" fill="#6B70A0"/>
-      <rect x="380" y="415" width="200" height="18" rx="9" fill="rgba(16,185,129,.1)" stroke="#10B981" stroke-width=".6"/>
-      <text x="480" y="428" text-anchor="middle" fill="#10B981" font-size="8" font-weight="600">仅当 Stage1 全部通过</text>
+      <!-- 下方两块是策略参考矩阵，不是 Tool.call() 之后继续执行的运行步骤。 -->
+      <rect x="330" y="411" width="300" height="20" rx="10" fill="rgba(107,112,160,.08)" stroke="#6B70A0" stroke-width=".6" stroke-dasharray="3"/>
+      <text x="480" y="425" text-anchor="middle" fill="#9FA4C4" font-size="8" font-weight="600">以下为授权策略参考矩阵，不表示后续运行时阶段</text>
 
       <!-- ===== STAGE 2: Allow Rules (2 steps) ===== -->
       <rect x="30" y="445" width="900" height="110" rx="12" fill="url(#gS2)" stroke="#10B981" stroke-width="1" filter="url(#glowGr)"/>
-      <text x="50" y="471" fill="#10B981" font-size="13" font-weight="700">STAGE 2: 允许规则</text>
-      <text x="200" y="471" fill="#6B70A0" font-size="10" style="font-family:'JetBrains Mono',monospace">2 步 — 授权放行</text>
+      <text x="50" y="471" fill="#10B981" font-size="13" font-weight="700">REFERENCE A: Grant 与作用域</text>
+      <text x="330" y="471" fill="#6B70A0" font-size="10" style="font-family:'JetBrains Mono',monospace">受约束复用，不保存 HIGH/复杂 Shell</text>
 
       <rect x="50" y="485" width="200" height="48" rx="8" fill="#151829" stroke="#10B981" stroke-width=".8"/>
-      <text x="150" y="505" text-anchor="middle" fill="#10B981" font-size="9" font-weight="600">2a bypass模式</text>
-      <text x="150" y="521" text-anchor="middle" fill="#6B70A0" font-size="8">SKIP_ALL_PROMPTS/PLAN+bypass → ALLOW</text>
+      <text x="150" y="505" text-anchor="middle" fill="#10B981" font-size="9" font-weight="600">RUN / SESSION</text>
+      <text x="150" y="521" text-anchor="middle" fill="#6B70A0" font-size="8">Guarded exact Bash / exact file</text>
       <line x1="250" y1="509" x2="275" y2="509" stroke="#10B981" stroke-width="1" marker-end="url(#pArG)"/>
 
       <rect x="275" y="485" width="200" height="48" rx="8" fill="#151829" stroke="#10B981" stroke-width=".8"/>
-      <text x="375" y="505" text-anchor="middle" fill="#10B981" font-size="9" font-weight="600">2b alwaysAllow</text>
-      <text x="375" y="521" text-anchor="middle" fill="#6B70A0" font-size="8">持久化允许列表 → ALLOW</text>
+      <text x="375" y="505" text-anchor="middle" fill="#10B981" font-size="9" font-weight="600">SESSION / WORKSPACE</text>
+      <text x="375" y="521" text-anchor="middle" fill="#6B70A0" font-size="8">受约束文件 read/edit capability</text>
 
       <!-- Result badge -->
       <rect x="520" y="485" width="140" height="24" rx="12" fill="rgba(16,185,129,.12)" stroke="#10B981" stroke-width=".8"/>
       <text x="590" y="501" text-anchor="middle" fill="#10B981" font-size="9" font-weight="700">匹配 → ALLOW</text>
       <rect x="680" y="485" width="170" height="24" rx="12" fill="rgba(168,85,247,.1)" stroke="#A855F7" stroke-width=".8"/>
-      <text x="765" y="501" text-anchor="middle" fill="#A855F7" font-size="9">未匹配 → passthrough</text>
-
-      <!-- Stage transition arrow -->
-      <line x1="480" y1="555" x2="480" y2="580" stroke="#6B70A0" stroke-width="2" class="anim-line"/>
-      <polygon points="475 578,485 578,480 588" fill="#6B70A0"/>
+      <text x="765" y="501" text-anchor="middle" fill="#A855F7" font-size="9">未匹配 → 模式或交互裁决</text>
 
       <!-- ===== STAGE 3: Mode Conversion (1 step) ===== -->
       <rect x="30" y="590" width="900" height="180" rx="12" fill="url(#gS3)" stroke="#A855F7" stroke-width="1" filter="url(#glowPu)"/>
-      <text x="50" y="616" fill="#A855F7" font-size="13" font-weight="700">STAGE 3: 模式转换</text>
-      <text x="215" y="616" fill="#6B70A0" font-size="10" style="font-family:'JetBrains Mono',monospace">passthrough → ask → 7 模式分支</text>
+      <text x="50" y="616" fill="#A855F7" font-size="13" font-weight="700">REFERENCE B: 模式、Scope 与继承</text>
+      <text x="390" y="616" fill="#6B70A0" font-size="10" style="font-family:'JetBrains Mono',monospace">4 种用户模式 · ALLOW / DENY / INTERACTION</text>
 
       <rect x="50" y="632" width="160" height="44" rx="8" fill="#151829" stroke="#A855F7" stroke-width="1"/>
-      <text x="130" y="650" text-anchor="middle" fill="#A855F7" font-size="10" font-weight="600">passthrough → ask</text>
-      <text x="130" y="664" text-anchor="middle" fill="#6B70A0" font-size="7.5">只读NONE → ALLOW</text>
+      <text x="130" y="650" text-anchor="middle" fill="#A855F7" font-size="10" font-weight="600">无 Grant → 按模式裁决</text>
+      <text x="130" y="664" text-anchor="middle" fill="#6B70A0" font-size="7.5">SAFE file read 可按模式放行</text>
       <line x1="210" y1="654" x2="248" y2="654" stroke="#A855F7" stroke-width="1.5" marker-end="url(#pArP)"/>
 
       <!-- 7 Mode boxes -->
@@ -1409,35 +1404,35 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <text x="469" y="666" text-anchor="middle" fill="#6B70A0" font-size="6.5">编辑放行</text>
       <rect x="518" y="630" width="82" height="48" rx="6" fill="#151829" stroke="#06B6D4" stroke-width=".8"/>
       <text x="559" y="649" text-anchor="middle" fill="#06B6D4" font-size="8" font-weight="600">DONT_ASK</text>
-      <text x="559" y="666" text-anchor="middle" fill="#6B70A0" font-size="6.5">写→DENY</text>
+      <text x="559" y="666" text-anchor="middle" fill="#6B70A0" font-size="6.5">仅 SAFE file read</text>
       <rect x="608" y="630" width="72" height="48" rx="6" fill="#151829" stroke="#EF4444" stroke-width=".8"/>
-      <text x="644" y="649" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="600">SKIP_ALL_PROMPTS</text>
-      <text x="644" y="666" text-anchor="middle" fill="#6B70A0" font-size="6.5">全部放行</text>
+      <text x="644" y="649" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="600">ONCE</text>
+      <text x="644" y="666" text-anchor="middle" fill="#6B70A0" font-size="6.5">不持久化</text>
       <rect x="688" y="630" width="82" height="48" rx="6" fill="#151829" stroke="#A855F7" stroke-width=".8"/>
-      <text x="729" y="649" text-anchor="middle" fill="#A855F7" font-size="9" font-weight="600">AUTO</text>
-      <text x="729" y="666" text-anchor="middle" fill="#6B70A0" font-size="6.5">LLM两阶段</text>
+      <text x="729" y="649" text-anchor="middle" fill="#A855F7" font-size="7.5" font-weight="600">ROOT_AND_DESC</text>
+      <text x="729" y="666" text-anchor="middle" fill="#6B70A0" font-size="6.5">子代理受控继承</text>
       <rect x="778" y="630" width="82" height="48" rx="6" fill="#151829" stroke="#6B70A0" stroke-width=".8"/>
-      <text x="819" y="649" text-anchor="middle" fill="#6B70A0" font-size="9" font-weight="600">BUBBLE</text>
-      <text x="819" y="666" text-anchor="middle" fill="#6B70A0" font-size="6.5">冒泡父Agent</text>
+      <text x="819" y="649" text-anchor="middle" fill="#6B70A0" font-size="9" font-weight="600">DIRECT_ONLY</text>
+      <text x="819" y="666" text-anchor="middle" fill="#6B70A0" font-size="6.5">RUN 不跨 actor</text>
 
       <!-- AUTO mode detail -->
       <rect x="638" y="690" width="220" height="36" rx="8" fill="rgba(168,85,247,.08)" stroke="#A855F7" stroke-width=".6" stroke-dasharray="3"/>
-      <text x="748" y="705" text-anchor="middle" fill="#A855F7" font-size="8">AUTO: killswitch检查 → LLM分类</text>
-      <text x="748" y="718" text-anchor="middle" fill="#6B70A0" font-size="7">classify() → ALLOW / ASK(降级)</text>
+      <text x="748" y="705" text-anchor="middle" fill="#A855F7" font-size="8">子代理通过 root session/root run 身份直接匹配 Grant</text>
+      <text x="748" y="718" text-anchor="middle" fill="#6B70A0" font-size="7">不经过第二套冒泡授权权威</text>
 
       <!-- Final decision -->
       <rect x="280" y="740" width="400" height="40" rx="20" fill="#151829" stroke="#10B981" stroke-width="1.5"/>
-      <text x="480" y="764" text-anchor="middle" fill="#10B981" font-size="12" font-weight="700">最终决策: ALLOW / DENY / ASK / BUBBLE</text>
+      <text x="480" y="764" text-anchor="middle" fill="#10B981" font-size="12" font-weight="700">最终结果: AuthorizedOperation / DENY / WAITING_INTERACTION</text>
     </svg>
   </div>
 
-  <!-- AutoModeClassifier LLM 自动权限分类管线 -->
+  <!-- Grant、模式与持久交互裁决 -->
   <h3 id="svg-amc" style="margin-top:28px;margin-bottom:16px;font-size:1.05rem;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;scroll-margin-top:24px">
     <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:linear-gradient(135deg,#00D4FF,#7B61FF)"></span>
-    AUTO 模式 — LLM 智能权限分类 (AutoModeClassifier · 591行)
+    Grant、权限模式与持久交互
   </h3>
   <div class="card" style="margin-top:0;padding:0;overflow:hidden;border:1px solid var(--border2)">
-    <div style="padding:16px 20px 8px;font-size:.85rem;font-weight:700;color:#7B61FF;letter-spacing:.02em">▸ AutoModeClassifier 两阶段 XML 分类决策流</div>
+    <div style="padding:16px 20px 8px;font-size:.85rem;font-weight:700;color:#7B61FF;letter-spacing:.02em">▸ AuthorizationService 裁决与 V015/V019 数据权威</div>
     <svg width="100%" viewBox="0 0 900 450" xmlns="http://www.w3.org/2000/svg" style="display:block">
       <defs>
         <linearGradient id="amc-grad1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#00D4FF" stop-opacity=".2"/><stop offset="100%" stop-color="#7B61FF" stop-opacity=".05"/></linearGradient>
@@ -1462,16 +1457,16 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
       <!-- Title bar -->
       <rect x="20" y="10" width="860" height="32" rx="8" fill="#151829" stroke="url(#amc-grad2)" stroke-width="1"/>
-      <text x="450" y="30" text-anchor="middle" fill="url(#amc-grad2)" font-size="12" font-weight="700" style="font-family:'JetBrains Mono',monospace">AutoModeClassifier.java — 591行 · 两阶段 XML 分类 · LRU缓存 · 4级模型回退</text>
+      <text x="450" y="30" text-anchor="middle" fill="url(#amc-grad2)" font-size="12" font-weight="700" style="font-family:'JetBrains Mono',monospace">AuthorizationService · PermissionGrantRepository · DurableInteractionService</text>
 
       <!-- Integration context -->
       <rect x="20" y="48" width="860" height="20" rx="6" fill="rgba(123,97,255,.06)" stroke="#7B61FF" stroke-width=".5" stroke-dasharray="4"/>
-      <text x="450" y="62" text-anchor="middle" fill="#7B61FF" font-size="8" font-weight="600">Pipeline Stage 3 case AUTO → FeatureFlag killswitch → classify(tool, input, context) → PermissionDecision</text>
+      <text x="450" y="62" text-anchor="middle" fill="#7B61FF" font-size="8" font-weight="600">SAFE_INTERNAL → Grant → mode → Durable Interaction；任一允许分支生成 AuthorizedOperation</text>
 
       <!-- ===== INPUT ===== -->
       <rect x="310" y="76" width="280" height="36" rx="8" fill="#151829" stroke="#00D4FF" stroke-width="1" filter="url(#amc-glowC)"/>
-      <text x="450" y="92" text-anchor="middle" fill="#00D4FF" font-size="10" font-weight="700" style="font-family:'JetBrains Mono',monospace">classify(Tool, ToolInput, PermissionContext)</text>
-      <text x="450" y="105" text-anchor="middle" fill="#6B70A0" font-size="7" style="font-family:'JetBrains Mono',monospace">工具名 + 命令/参数 + 权限上下文(规则集)</text>
+      <text x="450" y="92" text-anchor="middle" fill="#00D4FF" font-size="10" font-weight="700" style="font-family:'JetBrains Mono',monospace">authorizePrepared(Tool, FrozenToolInput, PreparedOperation)</text>
+      <text x="450" y="105" text-anchor="middle" fill="#6B70A0" font-size="7" style="font-family:'JetBrains Mono',monospace">root session/root run + operationHash + effect/resource/risk</text>
 
       <!-- Arrow down -->
       <line x1="450" y1="112" x2="450" y2="126" stroke="#00D4FF" stroke-width="1.5" class="amc-flow"/>
@@ -1479,11 +1474,11 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
       <!-- ===== FAILURE CHECK ===== -->
       <rect x="345" y="130" width="210" height="28" rx="6" fill="#151829" stroke="#FF6B9D" stroke-width=".8"/>
-      <text x="450" y="147" text-anchor="middle" fill="#FF6B9D" font-size="9" font-weight="600" style="font-family:'JetBrains Mono',monospace">consecutiveFailures ≥ 3 ?</text>
-      <!-- YES branch → ASK fallback -->
+      <text x="450" y="147" text-anchor="middle" fill="#FF6B9D" font-size="9" font-weight="600" style="font-family:'JetBrains Mono',monospace">SAFE_INTERNAL exact effect?</text>
+      <!-- YES branch → built-in policy allow -->
       <line x1="555" y1="144" x2="640" y2="144" stroke="#FF6B9D" stroke-width="1" marker-end="url(#amc-arR)"/>
       <rect x="640" y="130" width="165" height="28" rx="14" fill="rgba(255,107,157,.1)" stroke="#FF6B9D" stroke-width=".8"/>
-      <text x="722" y="148" text-anchor="middle" fill="#FF6B9D" font-size="8" font-weight="600">→ ASK (分类器暂停)</text>
+      <text x="722" y="148" text-anchor="middle" fill="#FF6B9D" font-size="8" font-weight="600">→ POLICY ALLOW</text>
       <text x="598" y="138" fill="#FF6B9D" font-size="7">YES</text>
 
       <!-- NO arrow down -->
@@ -1493,13 +1488,13 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
       <!-- ===== CACHE CHECK ===== -->
       <rect x="345" y="182" width="210" height="28" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
-      <text x="450" y="199" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600" style="font-family:'JetBrains Mono',monospace">LRU 缓存 (容量100) 命中?</text>
+      <text x="450" y="199" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600" style="font-family:'JetBrains Mono',monospace">受约束 Permission Grant 命中?</text>
       <!-- HIT → return cached -->
       <line x1="555" y1="196" x2="640" y2="196" stroke="#F59E0B" stroke-width="1" marker-end="url(#amc-arO)"/>
       <rect x="640" y="182" width="165" height="28" rx="14" fill="rgba(245,158,11,.1)" stroke="#F59E0B" stroke-width=".8"/>
-      <text x="722" y="200" text-anchor="middle" fill="#F59E0B" font-size="8" font-weight="600">→ 缓存结果 (跳过LLM)</text>
+      <text x="722" y="200" text-anchor="middle" fill="#F59E0B" font-size="8" font-weight="600">→ AuthorizedOperation</text>
       <text x="590" y="190" fill="#F59E0B" font-size="7">HIT</text>
-      <text x="640" y="224" fill="#6B70A0" font-size="6.5" style="font-family:'JetBrains Mono',monospace">key=toolName:inputHash</text>
+      <text x="640" y="224" fill="#6B70A0" font-size="6.5" style="font-family:'JetBrains Mono',monospace">scope/profile/constraint/analyzerVersion</text>
 
       <!-- MISS arrow down -->
       <text x="458" y="220" fill="#10B981" font-size="7">MISS</text>
@@ -1508,7 +1503,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
       <!-- ===== INPUT BLANK CHECK ===== -->
       <rect x="340" y="234" width="220" height="24" rx="6" fill="#151829" stroke="#6B70A0" stroke-width=".6"/>
-      <text x="450" y="250" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">toAutoClassifierInput() 为空?→ALLOW</text>
+      <text x="450" y="250" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">未命中 Grant → 应用 PermissionMode</text>
 
       <!-- Arrow down to Quick Stage -->
       <line x1="450" y1="258" x2="450" y2="272" stroke="#00D4FF" stroke-width="1.5" class="amc-flow"/>
@@ -1516,52 +1511,52 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
       <!-- ===== QUICK STAGE ===== -->
       <rect x="55" y="276" width="370" height="80" rx="10" fill="url(#amc-gradQ)" stroke="#00D4FF" stroke-width="1.2" filter="url(#amc-glowC)"/>
-      <text x="75" y="296" fill="#00D4FF" font-size="11" font-weight="700" style="font-family:'JetBrains Mono',monospace">Quick 阶段 (快速判断)</text>
+      <text x="75" y="296" fill="#00D4FF" font-size="11" font-weight="700" style="font-family:'JetBrains Mono',monospace">Mode 阶段（无需用户交互）</text>
       <rect x="75" y="304" width="160" height="20" rx="4" fill="#151829" stroke="#00D4FF" stroke-width=".6"/>
-      <text x="155" y="318" text-anchor="middle" fill="#e8e8f0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">max_tokens = 64</text>
+      <text x="155" y="318" text-anchor="middle" fill="#e8e8f0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">PLAN / DONT_ASK</text>
       <rect x="245" y="304" width="160" height="20" rx="4" fill="#151829" stroke="#00D4FF" stroke-width=".6"/>
-      <text x="325" y="318" text-anchor="middle" fill="#e8e8f0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">stop = ['&lt;/block&gt;']</text>
-      <text x="75" y="344" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">XML输出: &lt;block&gt;no&lt;/block&gt;=ALLOW · &lt;block&gt;yes&lt;/block&gt;=DENY</text>
+      <text x="325" y="318" text-anchor="middle" fill="#e8e8f0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">ACCEPT_EDITS</text>
+      <text x="75" y="344" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">安全读取/受控编辑可按模式放行；需交互操作不得静默放行</text>
 
       <!-- Quick ALLOW branch (fast path) -->
       <line x1="240" y1="356" x2="240" y2="384" stroke="#10B981" stroke-width="1.5" marker-end="url(#amc-arG)"/>
       <rect x="155" y="386" width="170" height="28" rx="14" fill="rgba(16,185,129,.12)" stroke="#10B981" stroke-width="1"/>
-      <text x="240" y="404" text-anchor="middle" fill="#10B981" font-size="9" font-weight="700">ALLOW (缓存 + 返回)</text>
-      <text x="178" y="372" fill="#10B981" font-size="7" font-weight="600">&lt;block&gt;no&lt;/block&gt;</text>
+      <text x="240" y="404" text-anchor="middle" fill="#10B981" font-size="9" font-weight="700">ALLOW（记录授权来源）</text>
+      <text x="178" y="372" fill="#10B981" font-size="7" font-weight="600">模式明确允许</text>
 
       <!-- Quick DENY → Thinking arrow -->
       <line x1="425" y1="336" x2="490" y2="336" stroke="#7B61FF" stroke-width="1.5" class="amc-flow" marker-end="url(#amc-arP)"/>
-      <text x="440" y="330" fill="#FF6B9D" font-size="7" font-weight="600">&lt;block&gt;yes&lt;/block&gt; 或解析失败</text>
+      <text x="440" y="330" fill="#FF6B9D" font-size="7" font-weight="600">DEFAULT 或需显式确认</text>
 
       <!-- ===== THINKING STAGE ===== -->
       <rect x="490" y="276" width="380" height="80" rx="10" fill="url(#amc-gradT)" stroke="#7B61FF" stroke-width="1.2" filter="url(#amc-glow)"/>
-      <text x="510" y="296" fill="#7B61FF" font-size="11" font-weight="700" style="font-family:'JetBrains Mono',monospace">Thinking 阶段 (深度推理)</text>
+      <text x="510" y="296" fill="#7B61FF" font-size="11" font-weight="700" style="font-family:'JetBrains Mono',monospace">Durable Interaction（需要用户决策）</text>
       <rect x="510" y="304" width="160" height="20" rx="4" fill="#151829" stroke="#7B61FF" stroke-width=".6"/>
-      <text x="590" y="318" text-anchor="middle" fill="#e8e8f0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">max_tokens = 4096</text>
+      <text x="590" y="318" text-anchor="middle" fill="#e8e8f0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">optionId + expectedVersion</text>
       <rect x="680" y="304" width="170" height="20" rx="4" fill="#151829" stroke="#7B61FF" stroke-width=".6"/>
-      <text x="765" y="318" text-anchor="middle" fill="#e8e8f0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">chain-of-thought 推理</text>
-      <text x="510" y="344" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">&lt;thinking&gt;…&lt;/thinking&gt; + &lt;block&gt; + &lt;reason&gt;</text>
+      <text x="765" y="318" text-anchor="middle" fill="#e8e8f0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">deliveryGeneration + ACK</text>
+      <text x="510" y="344" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">服务端提供 decision/scope options；同事务 CAS 终态并按需创建 Grant</text>
 
       <!-- Thinking results -->
       <line x1="620" y1="356" x2="620" y2="384" stroke="#10B981" stroke-width="1" marker-end="url(#amc-arG)"/>
       <rect x="545" y="386" width="150" height="28" rx="14" fill="rgba(16,185,129,.12)" stroke="#10B981" stroke-width="1"/>
-      <text x="620" y="404" text-anchor="middle" fill="#10B981" font-size="9" font-weight="700">ALLOW (缓存)</text>
-      <text x="575" y="372" fill="#10B981" font-size="7">no</text>
+      <text x="620" y="404" text-anchor="middle" fill="#10B981" font-size="9" font-weight="700">ALLOW（ONCE 或 Grant）</text>
+      <text x="575" y="372" fill="#10B981" font-size="7">ANSWERED allow</text>
 
       <line x1="750" y1="356" x2="750" y2="384" stroke="#F59E0B" stroke-width="1" marker-end="url(#amc-arO)"/>
       <rect x="690" y="386" width="170" height="28" rx="14" fill="rgba(245,158,11,.12)" stroke="#F59E0B" stroke-width="1"/>
-      <text x="775" y="404" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="700">ASK (需用户确认)</text>
-      <text x="710" y="372" fill="#F59E0B" font-size="7">yes / 解析失败</text>
+      <text x="775" y="404" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="700">DENY / EXPIRED</text>
+      <text x="710" y="372" fill="#F59E0B" font-size="7">DENIED / EXPIRED / UNDELIVERABLE</text>
 
       <!-- ===== ERROR HANDLING (bottom) ===== -->
       <rect x="20" y="422" width="270" height="22" rx="6" fill="rgba(255,107,157,.06)" stroke="#FF6B9D" stroke-width=".5" stroke-dasharray="3"/>
-      <text x="155" y="437" text-anchor="middle" fill="#FF6B9D" font-size="7.5" font-weight="600" style="font-family:'JetBrains Mono',monospace">Timeout(3s) → ASK · 不可用 → fallbackToRuleMatching()</text>
+      <text x="155" y="437" text-anchor="middle" fill="#FF6B9D" font-size="7.5" font-weight="600" style="font-family:'JetBrains Mono',monospace">交互超时 → EXPIRED · DONT_ASK → 结构化拒绝</text>
 
       <rect x="310" y="422" width="280" height="22" rx="6" fill="rgba(0,212,255,.06)" stroke="#00D4FF" stroke-width=".5" stroke-dasharray="3"/>
-      <text x="450" y="437" text-anchor="middle" fill="#00D4FF" font-size="7.5" font-weight="600" style="font-family:'JetBrains Mono',monospace">LLM: resolveClassifierModel() 4级回退 · chatSync()</text>
+      <text x="450" y="437" text-anchor="middle" fill="#00D4FF" font-size="7.5" font-weight="600" style="font-family:'JetBrains Mono',monospace">V015 interaction_requests · CAS 单一交互权威</text>
 
       <rect x="610" y="422" width="270" height="22" rx="6" fill="rgba(123,97,255,.06)" stroke="#7B61FF" stroke-width=".5" stroke-dasharray="3"/>
-      <text x="745" y="437" text-anchor="middle" fill="#7B61FF" font-size="7.5" font-weight="600" style="font-family:'JetBrains Mono',monospace">Prompt: BASE_PROMPT + PERMISSIONS + FEW_SHOT</text>
+      <text x="745" y="437" text-anchor="middle" fill="#7B61FF" font-size="7.5" font-weight="600" style="font-family:'JetBrains Mono',monospace">V019 permission_grants · 约束、过期与撤销</text>
     </svg>
   </div>
 </div>
@@ -1777,7 +1772,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
       <!-- 标题栏 -->
       <rect x="20" y="12" width="860" height="32" rx="6" fill="#151829" stroke="#A855F7" stroke-width="1"/>
-      <text x="450" y="33" text-anchor="middle" fill="#A855F7" font-size="12" font-weight="700" style="font-family:'JetBrains Mono',monospace">Docker 沙箱隔离架构 — SandboxManager + SandboxConfig + PermissionPipeline Step 1j</text>
+      <text x="450" y="33" text-anchor="middle" fill="#A855F7" font-size="12" font-weight="700" style="font-family:'JetBrains Mono',monospace">Docker 沙箱隔离架构 — SandboxManager + SandboxConfig + ToolExecutionGateway</text>
 
       <!-- ========== 左侧: 主机环境 ========== -->
       <rect x="30" y="55" width="250" height="430" rx="8" fill="url(#sbx-gHost)" stroke="#6B7280" stroke-width="1" stroke-dasharray="4"/>
@@ -1853,14 +1848,14 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <text x="340" y="330" fill="#9CA3AF" font-size="8" style="font-family:'JetBrains Mono',monospace">sudo 包装检测: 解包 sudo 前缀后再匹配首命令令牌</text>
       <text x="340" y="346" fill="#6B7280" font-size="7" style="font-family:'JetBrains Mono',monospace">条件: isSandboxingEnabled() = config.enabled && isDockerAvailable()</text>
 
-      <!-- ========== 底部: PermissionPipeline 集成 ========== -->
+      <!-- ========== 底部: Authorization/Gateway 集成 ========== -->
       <rect x="310" y="375" width="570" height="110" rx="8" fill="url(#sbx-gPerm)" stroke="#F59E0B" stroke-width="1"/>
-      <text x="595" y="395" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="700" style="font-family:'JetBrains Mono',monospace">PermissionPipeline Step 1j — Sandbox 权限规则覆盖</text>
-      <text x="325" y="415" fill="#FCD34D" font-size="8.5" style="font-family:'JetBrains Mono',monospace">evaluateSandboxRules() → PermissionPipeline.java:693-703</text>
-      <text x="325" y="432" fill="#D1D5DB" font-size="8" style="font-family:'JetBrains Mono',monospace">条件: sandboxManager.isSandboxingEnabled() == true</text>
-      <text x="325" y="448" fill="#D1D5DB" font-size="8" style="font-family:'JetBrains Mono',monospace">效果: FileEdit / FileWrite / Write / Edit / Bash / BashTool → 自动 ALLOW</text>
-      <text x="325" y="464" fill="#D1D5DB" font-size="8" style="font-family:'JetBrains Mono',monospace">原因: SANDBOX_OVERRIDE — 沙箱已提供容器级隔离，放宽权限约束</text>
-      <text x="325" y="480" fill="#6B7280" font-size="7" style="font-family:'JetBrains Mono',monospace">优先级: Step 1i (Classifier) 之后, Step 1k (敏感文件检查) 之前 — 命中即短路返回</text>
+      <text x="595" y="395" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="700" style="font-family:'JetBrains Mono',monospace">AuthorizationService — 沙箱不扩大授权边界</text>
+      <text x="325" y="415" fill="#FCD34D" font-size="8.5" style="font-family:'JetBrains Mono',monospace">finalDynamicRecheck() → ToolExecutionGateway.execute()</text>
+      <text x="325" y="432" fill="#D1D5DB" font-size="8" style="font-family:'JetBrains Mono',monospace">顺序: Analyzer/Grant/Interaction → Gateway 复检与准入事务 → BashTool.call()</text>
+      <text x="325" y="448" fill="#D1D5DB" font-size="8" style="font-family:'JetBrains Mono',monospace">沙箱仅是 BashTool 内部的可选执行隔离；不会为文件或 Bash 操作自动授权</text>
+      <text x="325" y="464" fill="#D1D5DB" font-size="8" style="font-family:'JetBrains Mono',monospace">Docker 不可用或未启用时不改变 AuthorizationService 的风险、作用域与交互裁决</text>
+      <text x="325" y="480" fill="#6B7280" font-size="7" style="font-family:'JetBrains Mono',monospace">安全边界: sandboxManager.isSandboxingEnabled() 只选择执行路径，不是授权来源</text>
 
       <!-- 连接箭头: 主机 → 容器 -->
       <line x1="280" y1="195" x2="310" y2="195" stroke="#A855F7" stroke-width="1.5" stroke-dasharray="4"/>
@@ -1978,7 +1973,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <line x1="610" y1="240" x2="610" y2="262" stroke="#EF4444" stroke-width="1" opacity=".5"/>
       <rect x="536" y="262" width="148" height="42" rx="8" fill="#151829" stroke="#EF4444" stroke-width="1.2"/>
       <text x="610" y="282" fill="#EF4444" font-size="10" font-weight="600" text-anchor="middle" style="font-family:'JetBrains Mono',monospace">Moonshot / Kimi</text>
-      <text x="610" y="296" fill="#6B70A0" font-size="8" text-anchor="middle" style="font-family:'JetBrains Mono',monospace">kimi-k2.6 / v1-128k</text>
+      <text x="610" y="296" fill="#6B70A0" font-size="8" text-anchor="middle" style="font-family:'JetBrains Mono',monospace">kimi-k3 / v1-128k</text>
       <!-- Ollama -->
       <line x1="760" y1="240" x2="760" y2="262" stroke="#84CC16" stroke-width="1" opacity=".5"/>
       <rect x="686" y="262" width="148" height="42" rx="8" fill="#151829" stroke="#84CC16" stroke-width="1.2"/>
@@ -2486,11 +2481,12 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <text x="28" y="399" font-size="8" fill="#EF4444" font-weight="600" style="font-family:'JetBrains Mono',monospace">权限交互</text>
       <line x1="745" y1="410" x2="120" y2="410" stroke="#EF4444" stroke-width="1.2" marker-end="url(#ws-arrow-r)"/>
       <text x="430" y="406" text-anchor="middle" font-size="7.5" fill="#EF4444" style="font-family:'JetBrains Mono',monospace" font-weight="600">permission_request → /user/queue/messages</text>
-      <text x="430" y="420" text-anchor="middle" font-size="6.5" fill="#6B70A0" style="font-family:'JetBrains Mono',monospace">toolName + riskLevel + reason → PermissionDialog</text>
-      <!-- 用户响应 -->
+      <text x="430" y="420" text-anchor="middle" font-size="6.5" fill="#6B70A0" style="font-family:'JetBrains Mono',monospace">interactionId + optionId/scopeOptions + operationHash + deliveryGeneration</text>
+      <!-- 前端确认已展示 -->
       <line x1="120" y1="435" x2="340" y2="435" stroke="#EF4444" stroke-width="1" marker-end="url(#ws-arrow-r)"/>
-      <text x="230" y="431" text-anchor="middle" font-size="7.5" fill="#EF4444" style="font-family:'JetBrains Mono',monospace">SEND /app/permission</text>
-      <text x="230" y="445" text-anchor="middle" font-size="6.5" fill="#6B70A0" style="font-family:'JetBrains Mono',monospace">allow | deny | allow_always → PermissionPipeline</text>
+      <text x="230" y="431" text-anchor="middle" font-size="7.5" fill="#EF4444" style="font-family:'JetBrains Mono',monospace">SEND /app/interaction-received</text>
+      <text x="230" y="445" text-anchor="middle" font-size="6.5" fill="#6B70A0" style="font-family:'JetBrains Mono',monospace">interactionId + deliveryGeneration → ACK 后启动 300s 决策窗口</text>
+      <text x="565" y="445" text-anchor="middle" font-size="6.5" fill="#F59E0B" style="font-family:'JetBrains Mono',monospace">用户决定: POST /api/interactions/{id}/decisions（protocol v3 + expectedVersion + optionId）</text>
 
       <!-- ⑥ 心跳检测 y=460 -->
       <rect x="12" y="455" width="11" height="11" rx="2" fill="#06B6D4"/><text x="18" y="463" text-anchor="middle" font-size="7.5" fill="#fff" font-weight="700">6</text>
@@ -2532,13 +2528,13 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <text x="838" y="295" font-size="6.8" fill="#F59E0B" style="font-family:'JetBrains Mono',monospace">队列: 200</text>
       <text x="838" y="308" font-size="6.8" fill="#6B70A0" style="font-family:'JetBrains Mono',monospace">TTL清理: 5min</text>
 
-      <!-- 12 种 @MessageMapping 端点列表 -->
+      <!-- 主要 @MessageMapping 端点列表；权限决定本身改走 REST v3。 -->
       <rect x="830" y="322" width="120" height="172" rx="6" fill="#111327" stroke="#2A2D45" stroke-width=".8"/>
-      <text x="890" y="338" text-anchor="middle" font-size="7.5" fill="#F59E0B" font-weight="600" style="font-family:'JetBrains Mono',monospace">12 种 Client→Server</text>
+      <text x="890" y="338" text-anchor="middle" font-size="7.5" fill="#F59E0B" font-weight="600" style="font-family:'JetBrains Mono',monospace">主要 Client→Server 端点</text>
       <line x1="838" y1="344" x2="942" y2="344" stroke="#2A2D45" stroke-width=".5"/>
       <text x="838" y="357" font-size="6.5" fill="#F59E0B" style="font-family:'JetBrains Mono',monospace">/app/chat</text>
-      <text x="838" y="368" font-size="6.5" fill="#F59E0B" style="font-family:'JetBrains Mono',monospace">/app/permission</text>
-      <text x="838" y="379" font-size="6.5" fill="#F59E0B" style="font-family:'JetBrains Mono',monospace">/app/permission-bubble</text>
+      <text x="838" y="368" font-size="6.5" fill="#F59E0B" style="font-family:'JetBrains Mono',monospace">/app/interaction-received</text>
+      <text x="838" y="379" font-size="6.5" fill="#6B70A0" style="font-family:'JetBrains Mono',monospace">/app/permission (v2拒绝)</text>
       <text x="838" y="390" font-size="6.5" fill="#F59E0B" style="font-family:'JetBrains Mono',monospace">/app/interrupt</text>
       <text x="838" y="401" font-size="6.5" fill="#F59E0B" style="font-family:'JetBrains Mono',monospace">/app/model</text>
       <text x="838" y="412" font-size="6.5" fill="#F59E0B" style="font-family:'JetBrains Mono',monospace">/app/permission-mode</text>
@@ -2655,8 +2651,8 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <!-- 11 send destinations -->
       <text x="28" y="166" font-size="7" fill="#5B8CD8">#1  sendUserMessage()</text>
       <text x="210" y="166" font-size="6.5" fill="#3B82F6" font-weight="600">→ /app/chat</text>
-      <text x="28" y="180" font-size="7" fill="#5B8CD8">#2  sendPermissionResponse()</text>
-      <text x="210" y="180" font-size="6.5" fill="#3B82F6" font-weight="600">→ /app/permission</text>
+      <text x="28" y="180" font-size="7" fill="#5B8CD8">#2  acknowledgeInteraction()</text>
+      <text x="210" y="180" font-size="6.5" fill="#3B82F6" font-weight="600">→ /app/interaction-received</text>
       <text x="28" y="194" font-size="7" fill="#5B8CD8">#3  sendInterrupt()</text>
       <text x="210" y="194" font-size="6.5" fill="#3B82F6" font-weight="600">→ /app/interrupt</text>
       <text x="28" y="208" font-size="7" fill="#5B8CD8">#4  sendSetModel()</text>
@@ -2695,7 +2691,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
       <!-- 14 destinations listed -->
       <text x="328" y="200" font-size="6" fill="#4B6EC4">/app/chat</text>
-      <text x="400" y="200" font-size="6" fill="#4B6EC4">/app/permission</text>
+      <text x="400" y="200" font-size="6" fill="#4B6EC4">/app/interaction-received</text>
       <text x="490" y="200" font-size="6" fill="#4B6EC4">/app/interrupt</text>
       <text x="328" y="212" font-size="6" fill="#4B6EC4">/app/model</text>
       <text x="400" y="212" font-size="6" fill="#4B6EC4">/app/permission-mode</text>
@@ -2705,7 +2701,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <text x="472" y="224" font-size="6" fill="#4B6EC4">/app/elicitation</text>
       <text x="328" y="236" font-size="6" fill="#4B6EC4">/app/ping</text>
       <text x="400" y="236" font-size="6" fill="#4B6EC4">/app/bind-session</text>
-      <text x="500" y="236" font-size="6" fill="#4B6EC4">/app/permission-bubble</text>
+      <text x="500" y="236" font-size="6" fill="#6B70A0">/app/permission(v2拒绝)</text>
       <text x="328" y="248" font-size="6" fill="#4B6EC4">/app/activity-save</text>
       <text x="430" y="248" font-size="6" fill="#4B6EC4">/app/activity-update</text>
 
@@ -2738,10 +2734,10 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <text x="606" y="166" font-size="7" fill="#D4A24A">@MessageMapping  14 handlers</text>
       <text x="606" y="180" font-size="6.5" fill="#C49040">/chat</text>
       <text x="660" y="180" font-size="6" fill="#6B70A0">L464 → executeQuery() Virtual Thread</text>
-      <text x="606" y="192" font-size="6.5" fill="#C49040">/permission</text>
-      <text x="680" y="192" font-size="6" fill="#6B70A0">L748 → allow/deny/allow_always</text>
-      <text x="606" y="204" font-size="6.5" fill="#C49040">/permission-bubble</text>
-      <text x="710" y="204" font-size="6" fill="#6B70A0">L785</text>
+      <text x="606" y="192" font-size="6.5" fill="#6B70A0">/permission</text>
+      <text x="680" y="192" font-size="6" fill="#6B70A0">协议 v2 → REST v3 错误</text>
+      <text x="606" y="204" font-size="6.5" fill="#C49040">/interaction-received</text>
+      <text x="730" y="204" font-size="6" fill="#6B70A0">deliveryGeneration ACK</text>
       <text x="606" y="216" font-size="6.5" fill="#C49040">/interrupt</text>
       <text x="670" y="216" font-size="6" fill="#6B70A0">L801 → AgentLoop cancel</text>
       <text x="606" y="228" font-size="6.5" fill="#C49040">/model</text>
@@ -3066,7 +3062,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
           </div>
         </div>
       </div>
-      <div style="margin-top:12px;font-size:.75rem;color:var(--text3)">共 51 个工具实现 · 每个工具继承 AbstractTool 基类 · 支持权限声明 + Schema 定义 + 流式结果</div>
+      <div style="margin-top:12px;font-size:.75rem;color:var(--text3)">共 51 个工具实现 · 工具提供 Schema/元数据，生产授权由 Analyzer + AuthorizationService + Gateway 统一负责</div>
     </div>
   </div>
 
@@ -3161,7 +3157,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <rect x="545" y="92" width="4" height="70" rx="2" fill="#F59E0B"/>
       <text x="565" y="116" fill="#F59E0B" font-size="12" font-weight="700" style="font-family:'JetBrains Mono',monospace">L1 ToolRegistry</text>
       <text x="565" y="134" fill="#a0a0b8" font-size="9.5" style="font-family:'JetBrains Mono',monospace">工具注册表 — 工具发现与注册</text>
-      <text x="565" y="150" fill="#e8e8f0" font-size="9" style="font-family:'JetBrains Mono',monospace">AbstractTool → Schema定义 + 权限声明 + 注册</text>
+      <text x="565" y="150" fill="#e8e8f0" font-size="9" style="font-family:'JetBrains Mono',monospace">AbstractTool → Schema/元数据 + 注册；Analyzer 决定授权事实</text>
 
       <!-- Arrow down -->
       <line x1="745" y1="162" x2="745" y2="178" stroke="#06B6D4" stroke-width="1.5" marker-end="url(#maPipe)"/>
@@ -3171,7 +3167,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <rect x="545" y="178" width="4" height="70" rx="2" fill="#A855F7"/>
       <text x="565" y="202" fill="#A855F7" font-size="12" font-weight="700" style="font-family:'JetBrains Mono',monospace">L2 ToolExecutionPipeline</text>
       <text x="565" y="220" fill="#a0a0b8" font-size="9.5" style="font-family:'JetBrains Mono',monospace">执行管道 — 核心编排引擎</text>
-      <text x="565" y="236" fill="#e8e8f0" font-size="9" style="font-family:'JetBrains Mono',monospace">参数校验 → 权限检查 → 执行调度 → 超时控制</text>
+      <text x="565" y="236" fill="#e8e8f0" font-size="9" style="font-family:'JetBrains Mono',monospace">参数校验 → 统一授权/Gateway → 执行调度 → 超时控制</text>
 
       <line x1="745" y1="248" x2="745" y2="264" stroke="#06B6D4" stroke-width="1.5" marker-end="url(#maPipe)"/>
 
@@ -3311,14 +3307,14 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
         <circle cx="760" cy="58" r="14" fill="#151829" stroke="#EC4899" stroke-width="1.5"/>
         <text x="760" y="63" text-anchor="middle" fill="#EC4899" font-size="11" font-weight="700" style="font-family:'JetBrains Mono',monospace">4</text>
         <text x="782" y="63" fill="#EC4899" font-size="10" font-weight="700" style="font-family:'JetBrains Mono',monospace">Permission Check</text>
-        <text x="750" y="82" fill="#9FA4C4" font-size="7.5" style="font-family:'JetBrains Mono',monospace">14步三阶段权限检查</text>
+        <text x="750" y="82" fill="#9FA4C4" font-size="7.5" style="font-family:'JetBrains Mono',monospace">冻结输入 · Subject/Analyzer · Security Hook · 统一授权</text>
         <rect x="750" y="90" width="220" height="18" rx="4" fill="#151829" stroke="#EC4899" stroke-width=".7"/>
-        <text x="860" y="102" text-anchor="middle" fill="#E8EAF6" font-size="7" style="font-family:'JetBrains Mono',monospace">PermissionPipeline.checkPermission()</text>
+        <text x="860" y="102" text-anchor="middle" fill="#E8EAF6" font-size="7" style="font-family:'JetBrains Mono',monospace">AuthorizationService.authorizePrepared()</text>
         <text x="750" y="120" fill="#10B981" font-size="7" style="font-family:'JetBrains Mono',monospace">ALLOW → 继续执行</text>
         <text x="750" y="133" fill="#EF4444" font-size="7" style="font-family:'JetBrains Mono',monospace">DENY  → 终止执行</text>
-        <text x="750" y="146" fill="#F59E0B" font-size="7" style="font-family:'JetBrains Mono',monospace">ASK   → 等待用户决策</text>
-        <text x="750" y="165" fill="#6B70A0" font-size="6.5" style="font-family:'JetBrains Mono',monospace">PermissionPipeline.java 752行</text>
-        <text x="750" y="178" fill="#6B70A0" font-size="6.5" style="font-family:'JetBrains Mono',monospace">tool, input, context, permContext</text>
+        <text x="750" y="146" fill="#F59E0B" font-size="7" style="font-family:'JetBrains Mono',monospace">INTERACTION → 等待数据库终态</text>
+        <text x="750" y="165" fill="#6B70A0" font-size="6.5" style="font-family:'JetBrains Mono',monospace">ToolExecutionGateway 唯一生产执行入口</text>
+        <text x="750" y="178" fill="#6B70A0" font-size="6.5" style="font-family:'JetBrains Mono',monospace">输出: AuthorizedOperation（policy/grant/user source）</text>
 
         <!-- ═══ U-Turn Arrow (Stage 4 → Stage 5) ═══ -->
         <path d="M 960 190 Q 980 220, 960 240 L 40 240 Q 20 240, 20 260" fill="none" stroke="#F59E0B" stroke-width="1.5" stroke-dasharray="6 3" marker-end="url(#tep-arr)"/>
@@ -3328,16 +3324,16 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
         <!-- LOWER ROW: Stage 5-7 (left to right) -->
         <!-- ════════════════════════════════════════════ -->
 
-        <!-- Stage 5: tool.call() -->
+        <!-- Stage 5: ToolExecutionGateway -->
         <rect x="20" y="262" width="350" height="130" rx="10" fill="url(#tep-g2)" stroke="#3B82F6" stroke-width="1.2" filter="url(#tep-glow)"/>
         <circle cx="40" cy="278" r="14" fill="#151829" stroke="#3B82F6" stroke-width="1.5"/>
         <text x="40" y="283" text-anchor="middle" fill="#3B82F6" font-size="11" font-weight="700" style="font-family:'JetBrains Mono',monospace">5</text>
-        <text x="62" y="283" fill="#3B82F6" font-size="10" font-weight="700" style="font-family:'JetBrains Mono',monospace">tool.call() · VirtualThread</text>
-        <text x="30" y="300" fill="#9FA4C4" font-size="7.5" style="font-family:'JetBrains Mono',monospace">StreamingToolExecutor 并发执行</text>
+        <text x="62" y="283" fill="#3B82F6" font-size="10" font-weight="700" style="font-family:'JetBrains Mono',monospace">ToolExecutionGateway · 唯一 Tool.call() 入口</text>
+        <text x="30" y="300" fill="#9FA4C4" font-size="7.5" style="font-family:'JetBrains Mono',monospace">并发/VirtualThread 由上游 StreamingToolExecutor 管理</text>
         <rect x="30" y="308" width="330" height="18" rx="4" fill="#151829" stroke="#3B82F6" stroke-width=".7"/>
-        <text x="195" y="320" text-anchor="middle" fill="#E8EAF6" font-size="7" style="font-family:'JetBrains Mono',monospace">tool.call(ToolInput, ToolUseContext) → ToolResult</text>
-        <text x="30" y="338" fill="#10B981" font-size="7" style="font-family:'JetBrains Mono',monospace">isConcurrencySafe()=true: 多工具并行 (Read/Glob/Grep/Token*)</text>
-        <text x="30" y="351" fill="#EF4444" font-size="7" style="font-family:'JetBrains Mono',monospace">isConcurrencySafe()=false: 独占执行 (BashTool写操作)</text>
+        <text x="195" y="320" text-anchor="middle" fill="#E8EAF6" font-size="7" style="font-family:'JetBrains Mono',monospace">动态复检 → 短事务 Grant/ONCE/预声明/tool_started → 提交 → call()</text>
+        <text x="30" y="338" fill="#10B981" font-size="7" style="font-family:'JetBrains Mono',monospace">上游 isConcurrencySafe()=true: 可并行调度，仍逐调用经过授权/Gateway</text>
+        <text x="30" y="351" fill="#EF4444" font-size="7" style="font-family:'JetBrains Mono',monospace">上游 isConcurrencySafe()=false: 独占调度，不改变权限裁决语义</text>
         <text x="30" y="364" fill="#F59E0B" font-size="7" style="font-family:'JetBrains Mono',monospace">失败恢复: attemptBashErrorRecovery() (Stage 5c)</text>
         <text x="30" y="380" fill="#6B70A0" font-size="6.5" style="font-family:'JetBrains Mono',monospace">StreamingToolExecutor.java · 状态机: QUEUED→EXECUTING→COMPLETED→YIELDED</text>
 
@@ -3648,7 +3644,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
 <!-- 工具权限决策模型 SVG -->
 <div class="card" style="margin-top:16px;padding:0;overflow:hidden;border:1px solid var(--border2)">
-  <div style="padding:16px 20px 8px;font-size:.85rem;font-weight:700;color:var(--java);letter-spacing:.02em">▸ 工具权限决策模型 — 7种模式 · 7步管线 · 3层Bash验证</div>
+  <div style="padding:16px 20px 8px;font-size:.85rem;font-weight:700;color:var(--java);letter-spacing:.02em">▸ 工具权限决策模型 — 4种模式 · 4种作用域 · 执行前复检</div>
   <svg viewBox="0 0 960 620" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
     <defs>
       <linearGradient id="gPermMode" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#F59E0B" stop-opacity=".15"/><stop offset="100%" stop-color="#F59E0B" stop-opacity=".03"/></linearGradient>
@@ -3665,32 +3661,32 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
     <!-- ===== LEFT: 7 Permission Modes ===== -->
     <rect x="20" y="20" width="280" height="380" rx="10" fill="url(#gPermMode)" stroke="#F59E0B" stroke-width="1.2"/>
-    <text x="160" y="44" text-anchor="middle" fill="#F59E0B" font-size="12" font-weight="700" style="font-family:'JetBrains Mono',monospace">7种权限模式</text>
-    <text x="160" y="60" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">PermissionMode.java 37行</text>
+    <text x="160" y="44" text-anchor="middle" fill="#F59E0B" font-size="12" font-weight="700" style="font-family:'JetBrains Mono',monospace">4种权限模式 / 4种作用域</text>
+    <text x="160" y="60" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">PermissionMode.java · DEFAULT / PLAN / ACCEPT_EDITS / DONT_ASK</text>
 
     <rect x="40" y="75" width="240" height="26" rx="5" fill="#151829" stroke="#10B981" stroke-width="1"/>
     <text x="160" y="92" text-anchor="middle" fill="#10B981" font-size="9" font-weight="600" style="font-family:'JetBrains Mono',monospace">DEFAULT — 写操作弹窗确认</text>
 
     <rect x="40" y="108" width="240" height="26" rx="5" fill="#151829" stroke="#3B82F6" stroke-width="1"/>
-    <text x="160" y="125" text-anchor="middle" fill="#3B82F6" font-size="9" font-weight="600" style="font-family:'JetBrains Mono',monospace">PLAN — 只读自动允许</text>
+    <text x="160" y="125" text-anchor="middle" fill="#3B82F6" font-size="9" font-weight="600" style="font-family:'JetBrains Mono',monospace">PLAN — 仅 SAFE workspace file read</text>
 
     <rect x="40" y="141" width="240" height="26" rx="5" fill="#151829" stroke="#06B6D4" stroke-width="1"/>
-    <text x="160" y="158" text-anchor="middle" fill="#06B6D4" font-size="9" font-weight="600" style="font-family:'JetBrains Mono',monospace">ACCEPT_EDITS — 文件编辑自动</text>
+    <text x="160" y="158" text-anchor="middle" fill="#06B6D4" font-size="9" font-weight="600" style="font-family:'JetBrains Mono',monospace">ACCEPT_EDITS — 受控工作区文件写</text>
 
     <rect x="40" y="174" width="240" height="26" rx="5" fill="#151829" stroke="#A855F7" stroke-width="1"/>
-    <text x="160" y="191" text-anchor="middle" fill="#A855F7" font-size="9" font-weight="600" style="font-family:'JetBrains Mono',monospace">DONT_ASK — 不弹窗(写→拒绝)</text>
+    <text x="160" y="191" text-anchor="middle" fill="#A855F7" font-size="9" font-weight="600" style="font-family:'JetBrains Mono',monospace">DONT_ASK — 仅 SAFE 文件读，否则拒绝</text>
 
     <rect x="40" y="207" width="240" height="26" rx="5" fill="#151829" stroke="#F59E0B" stroke-width="1"/>
-    <text x="160" y="224" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600" style="font-family:'JetBrains Mono',monospace">BYPASS — 全部自动允许</text>
+    <text x="160" y="224" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600" style="font-family:'JetBrains Mono',monospace">ONCE / RUN — 单次与当前执行</text>
 
     <rect x="40" y="240" width="240" height="26" rx="5" fill="#151829" stroke="#EC4899" stroke-width="1"/>
-    <text x="160" y="257" text-anchor="middle" fill="#EC4899" font-size="9" font-weight="600" style="font-family:'JetBrains Mono',monospace">AUTO — LLM分类器判定(591行)</text>
+    <text x="160" y="257" text-anchor="middle" fill="#EC4899" font-size="9" font-weight="600" style="font-family:'JetBrains Mono',monospace">SESSION — 根会话及后代受控复用</text>
 
     <rect x="40" y="273" width="240" height="26" rx="5" fill="#151829" stroke="#EF4444" stroke-width="1"/>
-    <text x="160" y="290" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="600" style="font-family:'JetBrains Mono',monospace">BUBBLE — 子Agent权限冒泡</text>
+    <text x="160" y="290" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="600" style="font-family:'JetBrains Mono',monospace">WORKSPACE — 仅受约束文件能力</text>
 
     <!-- Tool requirements -->
-    <text x="40" y="320" fill="#6B70A0" font-size="8" font-weight="600" style="font-family:'JetBrains Mono',monospace">工具级权限需求(PermissionRequirement):</text>
+    <text x="40" y="320" fill="#6B70A0" font-size="8" font-weight="600" style="font-family:'JetBrains Mono',monospace">工具元数据(PermissionRequirement，非授权权威):</text>
     <rect x="40" y="330" width="75" height="22" rx="4" fill="#151829" stroke="#10B981" stroke-width=".8"/>
     <text x="77" y="345" text-anchor="middle" fill="#10B981" font-size="8" style="font-family:'JetBrains Mono',monospace">NONE</text>
     <rect x="122" y="330" width="100" height="22" rx="4" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
@@ -3698,44 +3694,44 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
     <rect x="229" y="330" width="100" height="22" rx="4" fill="#151829" stroke="#A855F7" stroke-width=".8"/>
     <text x="279" y="345" text-anchor="middle" fill="#A855F7" font-size="8" style="font-family:'JetBrains Mono',monospace">CONDITIONAL</text>
 
-    <text x="40" y="375" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">NONE: LspTool, VisualizationTool, WebFetchTool</text>
-    <text x="40" y="390" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">ALWAYS_ASK: FileEdit, Bash(写操作)</text>
+    <text x="40" y="375" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">实际裁决只由 Analyzer、AuthorizationService 与 Gateway 完成</text>
+    <text x="40" y="390" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">metadata 不得绕过 risk/effect/resource 与最终动态复检</text>
 
-    <!-- ===== CENTER: 7-Step Pipeline ===== -->
+    <!-- ===== CENTER: Unified authorization flow ===== -->
     <rect x="320" y="20" width="310" height="380" rx="10" fill="url(#gPermPipe)" stroke="#3B82F6" stroke-width="1.2"/>
-    <text x="475" y="44" text-anchor="middle" fill="#3B82F6" font-size="12" font-weight="700" style="font-family:'JetBrains Mono',monospace">7步决策管线</text>
-    <text x="475" y="60" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">PermissionPipeline.java 752行</text>
+    <text x="475" y="44" text-anchor="middle" fill="#3B82F6" font-size="12" font-weight="700" style="font-family:'JetBrains Mono',monospace">统一授权与执行流程</text>
+    <text x="475" y="60" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">AuthorizationService + PermissionGrantRepository</text>
 
     <rect x="340" y="72" width="270" height="24" rx="5" fill="#151829" stroke="#EF4444" stroke-width="1"/>
-    <text x="475" y="88" text-anchor="middle" fill="#EF4444" font-size="8.5" font-weight="600" style="font-family:'JetBrains Mono',monospace">1a. deny规则检查 → 命中则拒绝</text>
+    <text x="475" y="88" text-anchor="middle" fill="#EF4444" font-size="8.5" font-weight="600" style="font-family:'JetBrains Mono',monospace">Schema / Tool 校验 → PreToolUse → 重验</text>
 
     <rect x="340" y="102" width="270" height="24" rx="5" fill="#151829" stroke="#F59E0B" stroke-width="1"/>
-    <text x="475" y="118" text-anchor="middle" fill="#F59E0B" font-size="8.5" font-weight="600" style="font-family:'JetBrains Mono',monospace">1b. ask规则 → 命中则弹窗询问</text>
+    <text x="475" y="118" text-anchor="middle" fill="#F59E0B" font-size="8.5" font-weight="600" style="font-family:'JetBrains Mono',monospace">FrozenToolInput → canonical JSON + inputHash</text>
 
     <rect x="340" y="132" width="270" height="24" rx="5" fill="#151829" stroke="#A855F7" stroke-width="1"/>
-    <text x="475" y="148" text-anchor="middle" fill="#A855F7" font-size="8.5" font-weight="600" style="font-family:'JetBrains Mono',monospace">1c. tool.checkPermissions()</text>
+    <text x="475" y="148" text-anchor="middle" fill="#A855F7" font-size="8.5" font-weight="600" style="font-family:'JetBrains Mono',monospace">SubjectResolver + Analyzer → root identity / facts</text>
 
     <rect x="340" y="162" width="270" height="24" rx="5" fill="#151829" stroke="#EF4444" stroke-width=".8"/>
-    <text x="475" y="178" text-anchor="middle" fill="#EF4444" font-size="8.5" style="font-family:'JetBrains Mono',monospace">1d-1f. 工具拒绝/交互/内容级ask</text>
+    <text x="475" y="178" text-anchor="middle" fill="#EF4444" font-size="8.5" style="font-family:'JetBrains Mono',monospace">OperationDescriptor · risk/effect/resource</text>
 
     <rect x="340" y="192" width="270" height="24" rx="5" fill="#151829" stroke="#EF4444" stroke-width="1.2"/>
-    <text x="475" y="208" text-anchor="middle" fill="#EF4444" font-size="8.5" font-weight="600" style="font-family:'JetBrains Mono',monospace">1g. 安全检查(.git/.env/.ssh)</text>
+    <text x="475" y="208" text-anchor="middle" fill="#EF4444" font-size="8.5" font-weight="600" style="font-family:'JetBrains Mono',monospace">Invariant + 只收紧 Security Hook</text>
 
     <rect x="340" y="228" width="270" height="24" rx="5" fill="#151829" stroke="#10B981" stroke-width="1"/>
-    <text x="475" y="244" text-anchor="middle" fill="#10B981" font-size="8.5" font-weight="600" style="font-family:'JetBrains Mono',monospace">2a. bypass模式 → 直接允许</text>
+    <text x="475" y="244" text-anchor="middle" fill="#10B981" font-size="8.5" font-weight="600" style="font-family:'JetBrains Mono',monospace">SAFE_INTERNAL → Grant → 模式 → Interaction</text>
 
     <rect x="340" y="258" width="270" height="24" rx="5" fill="#151829" stroke="#10B981" stroke-width=".8"/>
-    <text x="475" y="274" text-anchor="middle" fill="#10B981" font-size="8.5" style="font-family:'JetBrains Mono',monospace">2b. alwaysAllow规则 → 允许</text>
+    <text x="475" y="274" text-anchor="middle" fill="#10B981" font-size="8.5" style="font-family:'JetBrains Mono',monospace">AuthorizedOperation → planOutputs()</text>
 
     <rect x="340" y="294" width="270" height="24" rx="5" fill="#151829" stroke="#06B6D4" stroke-width="1"/>
-    <text x="475" y="310" text-anchor="middle" fill="#06B6D4" font-size="8.5" font-weight="600" style="font-family:'JetBrains Mono',monospace">3. passthrough → 进入模式分支</text>
+    <text x="475" y="310" text-anchor="middle" fill="#06B6D4" font-size="8.5" font-weight="600" style="font-family:'JetBrains Mono',monospace">Gateway 动态/Grant 复检 → 短事务 → call()</text>
 
-    <!-- Pipeline supporting classes -->
-    <text x="340" y="340" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">辅助组件:</text>
-    <text x="340" y="355" fill="#9FA4C4" font-size="7.5" style="font-family:'JetBrains Mono',monospace">PermissionRuleRepository 271行 · 规则存储</text>
-    <text x="340" y="370" fill="#9FA4C4" font-size="7.5" style="font-family:'JetBrains Mono',monospace">PermissionRuleMatcher 253行 · 规则匹配</text>
-    <text x="340" y="385" fill="#9FA4C4" font-size="7.5" style="font-family:'JetBrains Mono',monospace">DenialTrackingService 158行 · 拒绝追踪</text>
-    <text x="340" y="400" fill="#9FA4C4" font-size="7.5" style="font-family:'JetBrains Mono',monospace">PermissionModeManager 155行 · 模式管理</text>
+    <!-- Authorization supporting classes -->
+    <text x="340" y="340" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">授权组件:</text>
+    <text x="340" y="355" fill="#9FA4C4" font-size="7.5" style="font-family:'JetBrains Mono',monospace">PermissionGrantRepository · 约束化 Grant</text>
+    <text x="340" y="370" fill="#9FA4C4" font-size="7.5" style="font-family:'JetBrains Mono',monospace">OperationAnalyzerRegistry · 工具分析器</text>
+    <text x="340" y="385" fill="#9FA4C4" font-size="7.5" style="font-family:'JetBrains Mono',monospace">AuthorizationDiagnostic · 结构化裁决信息</text>
+    <text x="340" y="400" fill="#9FA4C4" font-size="7.5" style="font-family:'JetBrains Mono',monospace">PermissionModeManager · 模式管理</text>
 
     <!-- ===== RIGHT: BashCommandClassifier ===== -->
     <rect x="650" y="20" width="290" height="380" rx="10" fill="url(#gPermBash)" stroke="#EF4444" stroke-width="1.2"/>
@@ -3747,14 +3743,14 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
     <text x="795" y="93" text-anchor="middle" fill="#10B981" font-size="10" font-weight="600" style="font-family:'JetBrains Mono',monospace">Layer 1: READONLY_COMMANDS</text>
     <text x="795" y="110" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">~60个纯只读命令</text>
     <text x="795" y="125" text-anchor="middle" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">ls, cat, grep, find, wc, head...</text>
-    <text x="795" y="138" text-anchor="middle" fill="#10B981" font-size="7.5" style="font-family:'JetBrains Mono',monospace">→ 无需参数检查，直接放行</text>
+    <text x="795" y="138" text-anchor="middle" fill="#10B981" font-size="7.5" style="font-family:'JetBrains Mono',monospace">→ 生成 SAFE/GUARDED 分析事实</text>
 
     <!-- Layer 2 -->
     <rect x="670" y="155" width="250" height="70" rx="8" fill="#151829" stroke="#F59E0B" stroke-width="1"/>
     <text x="795" y="173" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="600" style="font-family:'JetBrains Mono',monospace">Layer 2: READONLY_REGEXES</text>
     <text x="795" y="190" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">正则匹配只读命令模式</text>
     <text x="795" y="205" text-anchor="middle" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">git log/status/diff, docker ps...</text>
-    <text x="795" y="218" text-anchor="middle" fill="#F59E0B" font-size="7.5" style="font-family:'JetBrains Mono',monospace">→ 模式匹配，参数级验证</text>
+    <text x="795" y="218" text-anchor="middle" fill="#F59E0B" font-size="7.5" style="font-family:'JetBrains Mono',monospace">→ 参数级验证后交由 AuthorizationService</text>
 
     <!-- Layer 3 -->
     <rect x="670" y="235" width="250" height="80" rx="8" fill="#151829" stroke="#EF4444" stroke-width="1.2"/>
@@ -3766,9 +3762,9 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
     <!-- Decision flow -->
     <line x1="795" y1="318" x2="795" y2="338" stroke="#EF4444" stroke-width="1.2" marker-end="url(#maPermR)"/>
     <rect x="700" y="340" width="190" height="30" rx="6" fill="#151829" stroke="#EF4444" stroke-width="1"/>
-    <text x="795" y="359" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="600" style="font-family:'JetBrains Mono',monospace">危险模式强制 ASK</text>
+    <text x="795" y="359" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="600" style="font-family:'JetBrains Mono',monospace">危险/复杂输入 → HIGH + ONCE</text>
     <text x="795" y="385" text-anchor="middle" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">rm -rf / · chmod 777 · mkfs</text>
-    <text x="795" y="398" text-anchor="middle" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">即使BYPASS模式也不可跳过</text>
+    <text x="795" y="398" text-anchor="middle" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">不可创建持久 Grant；绝对黑名单直接拒绝</text>
 
     <!-- ===== BOTTOM: Security Protected Paths ===== -->
     <rect x="20" y="420" width="920" height="80" rx="10" fill="#0F1221" stroke="#252840" stroke-width="1"/>
@@ -3785,18 +3781,18 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
     <text x="377" y="469" text-anchor="middle" fill="#EF4444" font-size="8" style="font-family:'JetBrains Mono',monospace">.gnupg</text>
     <rect x="420" y="455" width="60" height="20" rx="4" fill="#151829" stroke="#EF4444" stroke-width=".8"/>
     <text x="450" y="469" text-anchor="middle" fill="#EF4444" font-size="8" style="font-family:'JetBrains Mono',monospace">.aws</text>
-    <text x="500" y="469" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">← 即使 SKIP_ALL_PROMPTS 模式也强制检查</text>
+    <text x="500" y="469" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">← File/Bash Analyzer 与 finalDynamicRecheck 负责路径、链接和动态环境复检</text>
 
-    <text x="40" y="492" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">AutoModeClassifier 591行 · LLM驱动自动分类 | DangerousRuleStripper 167行 | PluginSettingsSource 120行 | PolicySettingsSource 144行</text>
+    <text x="40" y="492" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">OperationAnalyzerRegistry · PermissionGrantRepository · DurableInteractionService · ToolExecutionGateway</text>
 
     <!-- ===== BOTTOM: Summary Bar ===== -->
     <rect x="20" y="520" width="920" height="80" rx="10" fill="#0F1221" stroke="#F59E0B" stroke-width=".8"/>
     <text x="40" y="544" fill="#F59E0B" font-size="10" font-weight="600" style="font-family:'JetBrains Mono',monospace">权限系统核心统计</text>
-    <text x="40" y="565" fill="#9FA4C4" font-size="9" style="font-family:'JetBrains Mono',monospace">PermissionPipeline 752行</text>
-    <text x="240" y="565" fill="#9FA4C4" font-size="9" style="font-family:'JetBrains Mono',monospace">BashCommandClassifier 1,235行</text>
-    <text x="500" y="565" fill="#9FA4C4" font-size="9" style="font-family:'JetBrains Mono',monospace">AutoModeClassifier 591行</text>
-    <text x="720" y="565" fill="#9FA4C4" font-size="9" style="font-family:'JetBrains Mono',monospace">7模式 · 7步管线 · 3层验证</text>
-    <text x="40" y="585" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">关键设计: 安全检查不可被任何模式绕过 · 内容级危险模式强制ASK · BUBBLE模式支持子Agent权限冒泡 · DenialTracking防滥用</text>
+    <text x="40" y="565" fill="#9FA4C4" font-size="9" style="font-family:'JetBrains Mono',monospace">AuthorizationService</text>
+    <text x="240" y="565" fill="#9FA4C4" font-size="9" style="font-family:'JetBrains Mono',monospace">Bash Parser/Classifier（复用现有实现）</text>
+    <text x="500" y="565" fill="#9FA4C4" font-size="9" style="font-family:'JetBrains Mono',monospace">OperationAnalyzerRegistry</text>
+    <text x="720" y="565" fill="#9FA4C4" font-size="9" style="font-family:'JetBrains Mono',monospace">4模式 · 4作用域 · 2继承策略</text>
+    <text x="40" y="585" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">关键设计: 冻结输入 · 不变量不可覆盖 · 持久交互CAS · 子Agent按root identity匹配Grant · Gateway最终复检</text>
   </svg>
 </div>
 
@@ -4119,7 +4115,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
       <rect x="545" y="692" width="108" height="30" rx="5" fill="#0F1226" stroke="#84CC16" stroke-width=".7"/>
       <text x="599" y="705" text-anchor="middle" fill="#84CC16" font-size="8" font-weight="700" style="font-family:'JetBrains Mono',monospace">PermissionPipe</text>
-      <text x="599" y="716" text-anchor="middle" fill="#6B70A0" font-size="6.5" style="font-family:'JetBrains Mono',monospace">14步权限</text>
+      <text x="599" y="716" text-anchor="middle" fill="#6B70A0" font-size="6.5" style="font-family:'JetBrains Mono',monospace">统一授权</text>
 
       <rect x="55" y="728" width="245" height="28" rx="5" fill="#0F1226" stroke="#84CC16" stroke-width=".7"/>
       <text x="177" y="740" text-anchor="middle" fill="#84CC16" font-size="8" font-weight="700" style="font-family:'JetBrains Mono',monospace">CompactService · 上下文压缩</text>
@@ -6265,30 +6261,30 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
     <!-- ===== RIGHT: SubAgent Mode ===== -->
     <rect x="670" y="140" width="300" height="420" rx="12" fill="url(#gMaSub)" stroke="#06B6D4" stroke-width="1.5"/>
     <text x="820" y="168" text-anchor="middle" fill="#06B6D4" font-size="14" font-weight="700" style="font-family:'JetBrains Mono',monospace">SubAgent Mode</text>
-    <text x="820" y="185" text-anchor="middle" fill="#6B70A0" font-size="9" style="font-family:'JetBrains Mono',monospace">独立子代理 · 权限冒泡机制</text>
+    <text x="820" y="185" text-anchor="middle" fill="#6B70A0" font-size="9" style="font-family:'JetBrains Mono',monospace">独立子代理 · root identity 授权继承</text>
 
     <!-- SubAgentExecutor -->
     <rect x="695" y="205" width="250" height="44" rx="8" fill="#151829" stroke="#06B6D4" stroke-width="1.2"/>
     <text x="820" y="224" text-anchor="middle" fill="#06B6D4" font-size="11" font-weight="700" style="font-family:'JetBrains Mono',monospace">SubAgentExecutor</text>
     <text x="820" y="241" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">1,032行 · 子代理执行与隔离</text>
 
-    <!-- Permission Bubble Flow -->
+    <!-- Authorization subject resolution -->
     <rect x="695" y="270" width="250" height="40" rx="8" fill="#151829" stroke="#EF4444" stroke-width="1"/>
-    <text x="820" y="287" text-anchor="middle" fill="#EF4444" font-size="10" font-weight="600" style="font-family:'JetBrains Mono',monospace">LeaderPermissionBridge</text>
-    <text x="820" y="302" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">210行 · 权限请求冒泡</text>
+    <text x="820" y="287" text-anchor="middle" fill="#EF4444" font-size="10" font-weight="600" style="font-family:'JetBrains Mono',monospace">AuthorizationSubjectResolver</text>
+    <text x="820" y="302" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">解析 root session / root run / actor run</text>
 
-    <!-- Permission bubble diagram -->
+    <!-- Grant inheritance diagram -->
     <rect x="720" y="330" width="80" height="30" rx="6" fill="#151829" stroke="#06B6D4" stroke-width=".8"/>
     <text x="760" y="349" text-anchor="middle" fill="#06B6D4" font-size="8" style="font-family:'JetBrains Mono',monospace">SubAgent</text>
     <text x="808" y="349" fill="#EF4444" font-size="10">→</text>
     <rect x="820" y="330" width="60" height="30" rx="6" fill="#151829" stroke="#EF4444" stroke-width=".8"/>
-    <text x="850" y="349" text-anchor="middle" fill="#EF4444" font-size="8" style="font-family:'JetBrains Mono',monospace">Bridge</text>
+    <text x="850" y="349" text-anchor="middle" fill="#EF4444" font-size="8" style="font-family:'JetBrains Mono',monospace">Subject</text>
     <text x="888" y="349" fill="#F59E0B" font-size="10">→</text>
     <rect x="900" y="330" width="60" height="30" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
-    <text x="930" y="349" text-anchor="middle" fill="#F59E0B" font-size="8" style="font-family:'JetBrains Mono',monospace">Leader</text>
+    <text x="930" y="349" text-anchor="middle" fill="#F59E0B" font-size="8" style="font-family:'JetBrains Mono',monospace">Grant</text>
 
-    <!-- Bubble label -->
-    <text x="820" y="380" text-anchor="middle" fill="#EF4444" font-size="8" style="font-family:'JetBrains Mono',monospace">权限请求冒泡方向 →</text>
+    <!-- Authorization inheritance label -->
+    <text x="820" y="380" text-anchor="middle" fill="#EF4444" font-size="8" style="font-family:'JetBrains Mono',monospace">root identity 授权继承 →</text>
 
     <!-- InProcessBackend -->
     <rect x="695" y="400" width="250" height="36" rx="8" fill="#151829" stroke="#06B6D4" stroke-width=".8"/>
@@ -6300,8 +6296,8 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
     <!-- SubAgent说明 -->
     <text x="820" y="510" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">子Agent独立Agent Loop</text>
-    <text x="820" y="525" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">权限请求冒泡至父Agent</text>
-    <text x="820" y="540" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">BUBBLE模式隔离执行</text>
+    <text x="820" y="525" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">按 root session/root run 匹配 Grant</text>
+    <text x="820" y="540" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">不再存在独立冒泡权限权威</text>
 
     <!-- ===== BOTTOM: Shared Infrastructure ===== -->
     <rect x="30" y="590" width="940" height="130" rx="12" fill="url(#gMaBase)" stroke="#F59E0B" stroke-width="1"/>
@@ -6328,7 +6324,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
     <text x="240" y="698" fill="#06B6D4" font-size="9" style="font-family:'JetBrains Mono',monospace">+ tool/agent/SubAgentExecutor 1,032行</text>
     <text x="450" y="698" fill="#A855F7" font-size="9" style="font-family:'JetBrains Mono',monospace">Swarm: Virtual Thread并发</text>
     <text x="670" y="698" fill="#3B82F6" font-size="9" style="font-family:'JetBrains Mono',monospace">Team: 邮箱通信</text>
-    <text x="830" y="698" fill="#EF4444" font-size="9" style="font-family:'JetBrains Mono',monospace">权限冒泡: BUBBLE模式</text>
+    <text x="830" y="698" fill="#EF4444" font-size="9" style="font-family:'JetBrains Mono',monospace">授权继承: ROOT_AND_DESCENDANTS</text>
   </svg>
 </div>
 
@@ -6419,7 +6415,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
   <rect x="380" y="225" width="240" height="28" rx="6" fill="#151829" stroke="#10B981" stroke-width=".8"/>
   <text x="500" y="243" text-anchor="middle" fill="#9FA4C4" font-size="9">SwarmState · Caffeine TTL 4h</text>
   <rect x="380" y="260" width="240" height="28" rx="6" fill="#151829" stroke="#10B981" stroke-width=".8"/>
-  <text x="500" y="278" text-anchor="middle" fill="#9FA4C4" font-size="9">LeaderPermissionBridge · 210行</text>
+  <text x="500" y="278" text-anchor="middle" fill="#9FA4C4" font-size="9">AuthorizationSubjectResolver · root session/root run</text>
 
   <!-- Four phases -->
   <text x="500" y="305" text-anchor="middle" fill="#10B981" font-size="8" font-weight="600">四阶段流水线</text>
@@ -6448,7 +6444,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
   <!-- ===== RIGHT: SubAgent Mode ===== -->
   <rect x="690" y="100" width="280" height="340" rx="10" fill="url(#coord-grad-sub)" stroke="#F59E0B" stroke-width="1.5"/>
   <text x="830" y="124" text-anchor="middle" fill="#F59E0B" font-size="13" font-weight="700">SubAgent 模式</text>
-  <text x="830" y="140" text-anchor="middle" fill="#6B70A0" font-size="8">独立子代理 · 权限冒泡 · BUBBLE模式</text>
+  <text x="830" y="140" text-anchor="middle" fill="#6B70A0" font-size="8">独立子代理 · 受约束 Grant 继承</text>
 
   <!-- Key classes -->
   <rect x="710" y="155" width="240" height="28" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
@@ -6458,18 +6454,18 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
   <rect x="710" y="225" width="240" height="28" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
   <text x="830" y="243" text-anchor="middle" fill="#9FA4C4" font-size="9">WorktreeManager · Git隔离</text>
   <rect x="710" y="260" width="240" height="28" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
-  <text x="830" y="278" text-anchor="middle" fill="#9FA4C4" font-size="9">PermissionModeManager · BUBBLE</text>
+  <text x="830" y="278" text-anchor="middle" fill="#9FA4C4" font-size="9">DIRECT_ONLY / ROOT_AND_DESCENDANTS</text>
 
-  <!-- Permission bubble -->
-  <text x="830" y="305" text-anchor="middle" fill="#F59E0B" font-size="8" font-weight="600">权限冒泡机制</text>
+  <!-- Grant inheritance -->
+  <text x="830" y="305" text-anchor="middle" fill="#F59E0B" font-size="8" font-weight="600">父子授权继承机制</text>
   <rect x="715" y="312" width="56" height="22" rx="4" fill="#151829" stroke="#F59E0B" stroke-width=".6"/>
   <text x="743" y="326" text-anchor="middle" fill="#e8e8f0" font-size="7">SubAgent</text>
   <text x="778" y="326" fill="#EF4444" font-size="9">→</text>
   <rect x="790" y="312" width="56" height="22" rx="4" fill="#151829" stroke="#EF4444" stroke-width=".6"/>
-  <text x="818" y="326" text-anchor="middle" fill="#EF4444" font-size="7">Bridge</text>
+  <text x="818" y="326" text-anchor="middle" fill="#EF4444" font-size="7">Subject</text>
   <text x="852" y="326" fill="#F59E0B" font-size="9">→</text>
   <rect x="863" y="312" width="56" height="22" rx="4" fill="#151829" stroke="#F59E0B" stroke-width=".6"/>
-  <text x="891" y="326" text-anchor="middle" fill="#F59E0B" font-size="7">Parent</text>
+  <text x="891" y="326" text-anchor="middle" fill="#F59E0B" font-size="7">Grant</text>
 
   <!-- Scenario -->
   <rect x="710" y="345" width="240" height="40" rx="6" fill="rgba(245,158,11,0.06)" stroke="#F59E0B" stroke-width=".5" stroke-dasharray="4 3"/>
@@ -6479,7 +6475,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
   <!-- Mode char -->
   <rect x="710" y="395" width="240" height="36" rx="6" fill="#0F1221" stroke="#252840" stroke-width=".8"/>
   <text x="730" y="411" fill="#F59E0B" font-size="7.5" font-weight="600">并行度</text><text x="785" y="411" fill="#e8e8f0" font-size="7.5">独立Agent Loop(串行)</text>
-  <text x="730" y="424" fill="#F59E0B" font-size="7.5" font-weight="600">同步</text><text x="785" y="424" fill="#e8e8f0" font-size="7.5">权限冒泡至父 · 超时5min</text>
+  <text x="730" y="424" fill="#F59E0B" font-size="7.5" font-weight="600">匹配</text><text x="785" y="424" fill="#e8e8f0" font-size="7.5">root identity + descriptor constraints</text>
 
   <!-- ===== BOTTOM: Decision Matrix ===== -->
   <rect x="30" y="450" width="940" height="40" rx="8" fill="#0F1221" stroke="#7B61FF" stroke-width="1"/>
@@ -6606,8 +6602,8 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
   <line x1="500" y1="204" x2="500" y2="214" stroke="#A855F7" stroke-width="1" class="df-flow" marker-end="url(#df-ar-s)"/>
 
   <rect x="355" y="216" width="290" height="30" rx="6" fill="#151829" stroke="#EF4444" stroke-width=".8"/>
-  <text x="500" y="230" text-anchor="middle" fill="#EF4444" font-size="8">LeaderPermissionBridge · 210行</text>
-  <text x="500" y="241" text-anchor="middle" class="df-code">60秒权限冒泡等待: approve / deny / timeout</text>
+  <text x="500" y="230" text-anchor="middle" fill="#EF4444" font-size="8">AuthorizationService · DurableInteractionService</text>
+  <text x="500" y="241" text-anchor="middle" class="df-code">父 Grant 未命中时创建持久权限交互</text>
 
   <line x1="500" y1="246" x2="500" y2="256" stroke="#10B981" stroke-width="1" class="df-flow" marker-end="url(#df-ar-g)"/>
 
@@ -6646,7 +6642,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
   <text x="365" y="468" class="df-label">2. 广播 shutdown_request → 30s异步等待</text>
   <text x="365" y="480" class="df-label">3. cleanupSwarm() → TERMINATED</text>
   <text x="365" y="492" class="df-label">4. TeamMailbox.clearMailbox()</text>
-  <text x="365" y="504" class="df-label">5. LeaderPermissionBridge.clearAll()</text>
+  <text x="365" y="504" class="df-label">5. RUN Grant 仅匹配同一 rootRun，并受 TTL/显式撤销约束</text>
 
   <!-- Swarm state machine -->
   <rect x="355" y="515" width="290" height="48" rx="6" fill="rgba(168,85,247,0.08)" stroke="#A855F7" stroke-width=".6" stroke-dasharray="4 3"/>
@@ -6717,9 +6713,9 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
   <!-- SubAgent permission -->
   <rect x="695" y="470" width="270" height="50" rx="6" fill="#0F1221" stroke="#EF4444" stroke-width=".6"/>
-  <text x="830" y="485" text-anchor="middle" fill="#EF4444" font-size="7.5" font-weight="600">权限冒泡 · PermissionModeManager</text>
-  <text x="705" y="500" class="df-label">• BUBBLE模式: 子Agent权限请求冒泡至父Agent</text>
-  <text x="705" y="512" class="df-label">• LeaderPermissionBridge: 60s等待 approve/deny/timeout</text>
+  <text x="830" y="485" text-anchor="middle" fill="#EF4444" font-size="7.5" font-weight="600">授权继承 · AuthorizationSubjectResolver</text>
+  <text x="705" y="500" class="df-label">• SESSION/WORKSPACE: root及后代按相同约束复用</text>
+  <text x="705" y="512" class="df-label">• RUN DIRECT_ONLY: 不被兄弟或后代误用</text>
 
   <!-- SubAgent result -->
   <rect x="695" y="530" width="270" height="36" rx="6" fill="rgba(6,182,212,0.08)" stroke="#06B6D4" stroke-width=".6" stroke-dasharray="4 3"/>

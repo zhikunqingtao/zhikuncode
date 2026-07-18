@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * V002: 初始化项目数据库 Schema (data.db)。
- * 创建 sessions, messages, permission_rules, file_snapshots, tasks 表。
+ * 创建 sessions, messages, file_snapshots, tasks 表。
  *
  */
 @Order(2)
@@ -78,22 +78,6 @@ public class V002_InitProjectSchema implements Migration {
                 """);
         projectJdbcTemplate.execute(
                 "CREATE INDEX IF NOT EXISTS idx_messages_session ON messages(session_id, seq_num)");
-
-        // 权限规则表
-        projectJdbcTemplate.execute("""
-                CREATE TABLE IF NOT EXISTS permission_rules (
-                    id           TEXT PRIMARY KEY,
-                    tool_name    TEXT NOT NULL,
-                    rule_content TEXT,
-                    rule_type    TEXT NOT NULL,
-                    scope        TEXT NOT NULL,
-                    session_id   TEXT,
-                    created_at   TEXT NOT NULL,
-                    expires_at   TEXT
-                )
-                """);
-        projectJdbcTemplate.execute(
-                "CREATE INDEX IF NOT EXISTS idx_permission_rules_scope ON permission_rules(scope, tool_name)");
 
         // 文件快照表
         projectJdbcTemplate.execute("""

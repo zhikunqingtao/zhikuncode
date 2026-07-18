@@ -39,7 +39,7 @@ public class ModelRegistry {
         entry("deepseek-v4-pro",   caps("deepseek-v4-pro",   "DeepSeek V4 Pro",  384000, 1000000, true, true, false, 0, true, 0.001, 0.004)),
         entry("deepseek-v4-flash", caps("deepseek-v4-flash", "DeepSeek V4 Flash", 384000, 1000000, true, true, false, 0, true, 0.0005, 0.002)),
         // Moonshot
-        entry("kimi-k2.6",          caps("kimi-k2.6",          "Kimi K2.6",         16384, 256000,  true, true, true, 8, true, 0.002, 0.012)),
+        entry("kimi-k3",          caps("kimi-k3",          "Kimi K3",         131072, 1000000,  true, true, true, 8, true, 0.002, 0.012)),
         entry("kimi-k2.7-code",     caps("kimi-k2.7-code",     "Kimi K2.7 Code",    16384, 256000,  true, true, true, 8, true, 0.002, 0.012)),
         entry("moonshot-v1-128k",  caps("moonshot-v1-128k",  "Moonshot V1 128K",   8192, 128000,  true, false, false, 0, true, 0.001, 0.002)),
         entry("qwen-turbo",        caps("qwen-turbo",        "Qwen Turbo",         8192, 1000000,  true, false, false, 0, true, 0.0003, 0.0006)),
@@ -98,7 +98,14 @@ public class ModelRegistry {
         // Level 2: 从 Provider 动态查询
         // 注意: getProvider() 在无匹配时抛 IllegalArgumentException，不返回 null
         try {
-            return providerRegistry.getProvider(modelId).getModelCapabilities(modelId);
+            ModelCapabilities providerCapabilities =
+                    providerRegistry.getProvider(modelId).getModelCapabilities(modelId);
+            if (providerCapabilities != null) {
+                return providerCapabilities;
+            }
+            // Provider 属于扩展边界，错误实现可能违反非空契约；注册表必须继续
+            // 回退，确保所有调用方始终获得完整的能力对象。
+            log.warn("Provider returned null capabilities for model '{}'; falling back to built-in", modelId);
         } catch (Exception e) {
             log.trace("No provider for model {}, falling back to built-in", modelId);
         }
@@ -127,7 +134,7 @@ public class ModelRegistry {
         if (customModels.containsKey(modelId) || BUILTIN_MODELS.containsKey(modelId)) return true;
         if (BUILTIN_MODELS.keySet().stream().anyMatch(k -> k.endsWith("/*")
                 && modelId.startsWith(k.substring(0, k.length() - 1)))) return true;
-        try { providerRegistry.getProvider(modelId).getModelCapabilities(modelId); return true; }
+        try { return providerRegistry.getProvider(modelId).getModelCapabilities(modelId) != null; }
         catch (Exception ignored) { return false; }
     }
 
@@ -179,7 +186,11 @@ public class ModelRegistry {
     }
 
     private ModelCapabilities resolveBase(String modelId) {
-        try { return providerRegistry.getProvider(modelId).getModelCapabilities(modelId); }
+        try {
+            ModelCapabilities providerCapabilities =
+                    providerRegistry.getProvider(modelId).getModelCapabilities(modelId);
+            if (providerCapabilities != null) return providerCapabilities;
+        }
         catch (Exception ignored) { }
         ModelCapabilities builtin = BUILTIN_MODELS.get(modelId);
         return builtin == null ? ModelCapabilities.DEFAULT : builtin;

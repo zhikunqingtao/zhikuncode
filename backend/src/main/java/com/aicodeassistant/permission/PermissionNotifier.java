@@ -1,9 +1,9 @@
 package com.aicodeassistant.permission;
 
 /**
- * 权限通知接口 — 解耦 PermissionPipeline 与 WebSocketController。
+ * 权限通知接口 — 解耦工具执行管线与 WebSocketController。
  * <p>
- * P1-06: PermissionPipeline 不再直接依赖 WebSocketController 类型，
+ * 权限层不直接依赖 WebSocketController 类型，
  * 而是通过此接口与前端通信。WebSocketController 实现此接口。
  */
 public interface PermissionNotifier {

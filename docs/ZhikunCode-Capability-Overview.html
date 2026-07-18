@@ -259,8 +259,8 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
       <!-- S5 -->
       <rect x="900" y="0" width="270" height="55" rx="3" fill="#1a237e" stroke="#ffd740" stroke-width="0.8"/>
       <text x="908" y="16" fill="#ffd740" font-size="10" font-weight="bold">S5 工具执行</text>
-      <text x="908" y="30" fill="#a0b4be" font-size="8">ToolExecutionPipeline + PermissionPipeline</text>
-      <text x="908" y="42" fill="#8da4b0" font-size="8">权限决策 · 优先级调度 · 并发执行</text>
+      <text x="908" y="30" fill="#a0b4be" font-size="8">ToolExecutionPipeline + AuthorizationService</text>
+      <text x="908" y="42" fill="#8da4b0" font-size="8">输入冻结 · 授权裁决 · Gateway 执行</text>
 
       <!-- Reverse arrows -->
       <line x1="895" y1="27" x2="875" y2="27" stroke="#ffd740" stroke-width="1.5"/>
@@ -290,34 +290,34 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
     </g>
   </g>
 
-  <!-- ═══ 2B: PermissionPipeline ═══ -->
+  <!-- ═══ 2B: Unified Authorization ═══ -->
   <g transform="translate(20, 400)">
     <rect x="0" y="0" width="1280" height="260" rx="10" fill="url(#cardBgGrad)" stroke="#F59E0B" stroke-width="1.4" opacity="1"/>
-    <text x="15" y="22" fill="#F59E0B" font-size="14" font-weight="bold">权限管道（PermissionPipeline）安全决策链</text>
-    <text x="310" y="22" fill="#8da4b0" font-size="10">PermissionPipeline.java · 817行 · 14步短路决策 · 任何一步DENY即短路返回 ⚡</text>
+    <text x="15" y="22" fill="#F59E0B" font-size="14" font-weight="bold">统一工具授权与执行准入</text>
+    <text x="310" y="22" fill="#8da4b0" font-size="10">AuthorizationService · OperationAnalyzerRegistry · ToolExecutionGateway</text>
 
     <!-- Phase 1: Rules & Tool (Steps 1a-1e) -->
     <g transform="translate(15, 38)">
-      <text x="0" y="12" fill="#F59E0B" font-size="10" font-weight="bold">Phase 1 规则层 (5步)</text>
+      <text x="0" y="12" fill="#F59E0B" font-size="10" font-weight="bold">Phase 1 输入与语义分析</text>
       <rect x="0" y="18" width="130" height="35" rx="2" fill="#1b5e20" stroke="#4caf50" stroke-width="0.6"/>
-      <text x="6" y="33" fill="#a5d6a7" font-size="9">1a Deny规则</text>
-      <text x="6" y="46" fill="#8da4b0" font-size="7">ruleMatcher.findDenyRule()</text>
+      <text x="6" y="33" fill="#a5d6a7" font-size="9">Schema / Tool 校验</text>
+      <text x="6" y="46" fill="#8da4b0" font-size="7">校验工具输入契约</text>
 
       <rect x="140" y="18" width="130" height="35" rx="2" fill="#1b5e20" stroke="#66bb6a" stroke-width="0.6"/>
-      <text x="146" y="33" fill="#a5d6a7" font-size="9">1b Ask规则</text>
-      <text x="146" y="46" fill="#8da4b0" font-size="7">ruleMatcher.findAskRule()</text>
+      <text x="146" y="33" fill="#a5d6a7" font-size="9">PreToolUse Hook</text>
+      <text x="146" y="46" fill="#8da4b0" font-size="7">可改输入；修改后完整重验</text>
 
       <rect x="280" y="18" width="130" height="35" rx="2" fill="#2e7d32" stroke="#81c784" stroke-width="0.6"/>
-      <text x="286" y="33" fill="#a5d6a7" font-size="9">1c 工具权限</text>
-      <text x="286" y="46" fill="#8da4b0" font-size="7">tool.checkPermissions()</text>
+      <text x="286" y="33" fill="#a5d6a7" font-size="9">FrozenToolInput</text>
+      <text x="286" y="46" fill="#8da4b0" font-size="7">canonical JSON + inputHash</text>
 
       <rect x="420" y="18" width="130" height="35" rx="2" fill="#2e7d32" stroke="#81c784" stroke-width="0.6"/>
-      <text x="426" y="33" fill="#a5d6a7" font-size="9">1d 工具拒绝</text>
-      <text x="426" y="46" fill="#8da4b0" font-size="7">DENY by implementation</text>
+      <text x="426" y="33" fill="#a5d6a7" font-size="9">Subject + Analyzer</text>
+      <text x="426" y="46" fill="#8da4b0" font-size="7">root identity + 显式注册</text>
 
       <rect x="560" y="18" width="140" height="35" rx="2" fill="#33691e" stroke="#aed581" stroke-width="0.6"/>
-      <text x="566" y="33" fill="#a5d6a7" font-size="9">1e 交互模式</text>
-      <text x="566" y="46" fill="#8da4b0" font-size="7">requiresUserInteraction()</text>
+      <text x="566" y="33" fill="#a5d6a7" font-size="9">OperationDescriptor</text>
+      <text x="566" y="46" fill="#8da4b0" font-size="7">effect/resource/risk + invariant</text>
 
       <!-- Arrows between phase 1 steps -->
       <text x="132" y="38" fill="#ffd740" font-size="10">→</text>
@@ -328,27 +328,27 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
 
     <!-- Phase 2: Content Security (Steps 1f-1k) -->
     <g transform="translate(15, 100)">
-      <text x="0" y="12" fill="#DC4A5C" font-size="10" font-weight="bold">Phase 2 内容安全 (5步, Bypass Immune⚡)</text>
+      <text x="0" y="12" fill="#DC4A5C" font-size="10" font-weight="bold">Phase 2 决策顺序（命中即短路）</text>
 
       <rect x="0" y="18" width="145" height="35" rx="2" fill="#4e342e" stroke="#ff8a65" stroke-width="0.6"/>
-      <text x="6" y="33" fill="#ffab91" font-size="8">1f-pre 命令黑名单</text>
-      <text x="6" y="46" fill="#8da4b0" font-size="7">ABSOLUTE_DENY级</text>
+      <text x="6" y="33" fill="#ffab91" font-size="8">Security Hook</text>
+      <text x="6" y="46" fill="#8da4b0" font-size="7">基于冻结事实，只可收紧</text>
 
       <rect x="155" y="18" width="130" height="35" rx="2" fill="#4e342e" stroke="#ff7043" stroke-width="0.6"/>
-      <text x="161" y="33" fill="#ffab91" font-size="8">1f 内容Ask</text>
-      <text x="161" y="46" fill="#8da4b0" font-size="7">rm -rf / | chmod 777</text>
+      <text x="161" y="33" fill="#ffab91" font-size="8">SAFE_INTERNAL / Grant</text>
+      <text x="161" y="46" fill="#8da4b0" font-size="7">命中即 ALLOW；未命中继续</text>
 
       <rect x="295" y="18" width="130" height="35" rx="2" fill="#bf360c" stroke="#ff5722" stroke-width="0.6"/>
-      <text x="301" y="33" fill="#ffab91" font-size="8">1f-write 写路径</text>
-      <text x="301" y="46" fill="#8da4b0" font-size="7">.git/.ssh/.env保护</text>
+      <text x="301" y="33" fill="#ffab91" font-size="8">PermissionMode</text>
+      <text x="301" y="46" fill="#8da4b0" font-size="7">ALLOW / DENY / 需要交互</text>
 
       <rect x="435" y="18" width="130" height="35" rx="2" fill="#bf360c" stroke="#ff5722" stroke-width="0.6"/>
-      <text x="441" y="33" fill="#ffab91" font-size="8">1f-bash 危险删除</text>
-      <text x="441" y="46" fill="#8da4b0" font-size="7">不可逆+环境变量</text>
+      <text x="441" y="33" fill="#ffab91" font-size="8">Durable Interaction</text>
+      <text x="441" y="46" fill="#8da4b0" font-size="7">仅需交互时：options + ACK</text>
 
       <rect x="575" y="18" width="115" height="35" rx="2" fill="#b71c1c" stroke="#ef5350" stroke-width="0.6"/>
-      <text x="581" y="33" fill="#ffcdd2" font-size="8">1g 安全检查</text>
-      <text x="581" y="46" fill="#8da4b0" font-size="7">受保护路径</text>
+      <text x="581" y="33" fill="#ffcdd2" font-size="8">AuthorizedOperation</text>
+      <text x="581" y="46" fill="#8da4b0" font-size="7">仅 ALLOW 分支生成</text>
 
       <!-- Arrows between phase 2 steps -->
       <text x="147" y="38" fill="#DC4A5C" font-size="10">→</text>
@@ -359,23 +359,23 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
 
     <!-- Phase 3: Final Decision (Steps 1h-1k) -->
     <g transform="translate(15, 165)">
-      <text x="0" y="12" fill="#A78BFA" font-size="10" font-weight="bold">Phase 3 最终决策 (4步)</text>
+      <text x="0" y="12" fill="#A78BFA" font-size="10" font-weight="bold">Phase 3 最终复检与执行准入</text>
 
       <rect x="0" y="18" width="120" height="35" rx="2" fill="#311b92" stroke="#9c27b0" stroke-width="0.6"/>
-      <text x="6" y="33" fill="#ce93d8" font-size="9">1h Hook注入</text>
-      <text x="6" y="46" fill="#8da4b0" font-size="7">插件级门控</text>
+      <text x="6" y="33" fill="#ce93d8" font-size="9">Declared Outputs</text>
+      <text x="6" y="46" fill="#8da4b0" font-size="7">planOutputs() 无副作用规划</text>
 
       <rect x="130" y="18" width="120" height="35" rx="2" fill="#311b92" stroke="#9c27b0" stroke-width="0.6"/>
-      <text x="136" y="33" fill="#ce93d8" font-size="9">1i Classifier</text>
-      <text x="136" y="46" fill="#8da4b0" font-size="7">仅AUTO模式</text>
+      <text x="136" y="33" fill="#ce93d8" font-size="9">动态环境复检</text>
+      <text x="136" y="46" fill="#8da4b0" font-size="7">路径 / 符号链接 / 风险</text>
 
       <rect x="260" y="18" width="120" height="35" rx="2" fill="#311b92" stroke="#7c4dff" stroke-width="0.6"/>
-      <text x="266" y="33" fill="#ce93d8" font-size="9">1j Sandbox</text>
-      <text x="266" y="46" fill="#8da4b0" font-size="7">沙箱自动放行</text>
+      <text x="266" y="33" fill="#ce93d8" font-size="9">准入短事务</text>
+      <text x="266" y="46" fill="#8da4b0" font-size="7">Grant/ONCE + tool_started</text>
 
       <rect x="390" y="18" width="120" height="35" rx="2" fill="#880e4f" stroke="#d32f2f" stroke-width="0.8"/>
-      <text x="396" y="33" fill="#ffcdd2" font-size="9">1k 敏感文件</text>
-      <text x="396" y="46" fill="#8da4b0" font-size="7">/etc/passwd等</text>
+      <text x="396" y="33" fill="#ffcdd2" font-size="9">Tool Gateway</text>
+      <text x="396" y="46" fill="#8da4b0" font-size="7">提交后 Tool.call(冻结输入)</text>
 
       <!-- Arrows -->
       <text x="122" y="38" fill="#A78BFA" font-size="10">→</text>
@@ -384,7 +384,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
 
       <!-- Mode branches -->
       <g transform="translate(540, 0)">
-        <text x="0" y="12" fill="#8da4b0" font-size="9">→ 7种模式分支:</text>
+        <text x="0" y="12" fill="#8da4b0" font-size="9">参考矩阵 · 4 种模式 / 4 种作用域:</text>
         <rect x="0" y="18" width="75" height="28" rx="2" fill="#1a237e" stroke="#7c4dff" stroke-width="0.5"/>
         <text x="5" y="36" fill="#b39ddb" font-size="8">DEFAULT</text>
         <rect x="80" y="18" width="65" height="28" rx="2" fill="#1a237e" stroke="#7c4dff" stroke-width="0.5"/>
@@ -394,16 +394,16 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
         <rect x="255" y="18" width="80" height="28" rx="2" fill="#1a237e" stroke="#7c4dff" stroke-width="0.5"/>
         <text x="260" y="36" fill="#b39ddb" font-size="8">DONT_ASK</text>
         <rect x="340" y="18" width="60" height="28" rx="2" fill="#1a237e" stroke="#7c4dff" stroke-width="0.5"/>
-        <text x="345" y="36" fill="#b39ddb" font-size="8">AUTO</text>
+        <text x="345" y="36" fill="#b39ddb" font-size="8">ONCE/RUN</text>
         <rect x="405" y="18" width="70" height="28" rx="2" fill="#1a237e" stroke="#7c4dff" stroke-width="0.5"/>
-        <text x="410" y="36" fill="#b39ddb" font-size="8">BUBBLE</text>
+        <text x="410" y="36" fill="#b39ddb" font-size="8">SESSION</text>
         <rect x="480" y="18" width="80" height="28" rx="2" fill="#1a237e" stroke="#7c4dff" stroke-width="0.5"/>
-        <text x="485" y="36" fill="#b39ddb" font-size="8">SKIP_ALL</text>
+        <text x="485" y="36" fill="#b39ddb" font-size="8">WORKSPACE</text>
       </g>
     </g>
 
     <!-- Protected paths note -->
-    <text x="15" y="248" fill="#7a95a8" font-size="8">PROTECTED_PATHS: .git, .zhikun, .env, .ssh, .gnupg, .aws | BARE_SHELL_PREFIXES: sh,bash,zsh,fish,sudo,eval... | DESTRUCTIVE: rm -rf,dd,mkfs,git push --force...</text>
+    <text x="15" y="248" fill="#7a95a8" font-size="8">HIGH/复杂 Shell/未知 MCP: ONCE | Guarded Bash: RUN/SESSION | 受约束文件能力: SESSION/WORKSPACE | System invariant 始终复检</text>
   </g>
 
   <!-- ═══ 2C: LLM Multi-Model Router ═══ -->
@@ -435,7 +435,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
       <text x="0" y="26" fill="#8da4b0" font-size="8">deepseek-v4-pro (384K, thinking)</text>
       <text x="0" y="38" fill="#8da4b0" font-size="8">deepseek-v4-flash (384K, thinking)</text>
       <text x="0" y="50" fill="#8da4b0" font-size="8">qwen3.7-max (65.5K, thinking)</text>
-      <text x="0" y="62" fill="#8da4b0" font-size="8">qwen3.7-plus (8K) | kimi-k2.6 (16K)</text>
+      <text x="0" y="62" fill="#8da4b0" font-size="8">qwen3.7-plus (8K) | kimi-k3 (16K)</text>
       <text x="0" y="74" fill="#8da4b0" font-size="8">glm-5.2 (131K) | glm-5v-turbo (131K)</text>
     </g>
 
@@ -464,7 +464,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
   <g transform="translate(660, 1095)">
     <rect x="0" y="0" width="640" height="300" rx="10" fill="url(#cardBgGrad)" stroke="#06b6d4" stroke-width="1.4" opacity="1"/>
     <text x="15" y="22" fill="#06b6d4" font-size="14" font-weight="bold">工具执行系统</text>
-    <text x="160" y="22" fill="#8da4b0" font-size="10">26内置工具 + MCP动态工具 · 每次调用前必过PermissionPipeline</text>
+    <text x="160" y="22" fill="#8da4b0" font-size="10">内置工具 + MCP动态工具 · 核心生产调用统一经过 ToolExecutionGateway</text>
 
     <!-- Tool grid -->
     <g transform="translate(15, 38)">
@@ -677,7 +677,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
     <g transform="translate(20, 40)">
       <rect x="0" y="0" width="260" height="35" rx="3" fill="#311b92" stroke="#9c27b0" stroke-width="0.7"/>
       <text x="10" y="15" fill="#ce93d8" font-size="10" font-weight="bold">PreToolUse</text>
-      <text x="10" y="28" fill="#8da4b0" font-size="8">工具执行前验证 · 权限Step 1h注入 · proceed/deny</text>
+      <text x="10" y="28" fill="#8da4b0" font-size="8">输入转换/拒绝；改写后 Schema 与 Tool 完整重验</text>
 
       <rect x="0" y="42" width="260" height="35" rx="3" fill="#311b92" stroke="#9c27b0" stroke-width="0.7"/>
       <text x="10" y="57" fill="#ce93d8" font-size="10" font-weight="bold">PostToolUse</text>
@@ -778,7 +778,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
 
       <rect x="170" y="0" width="160" height="35" rx="3" fill="#312E81" stroke="#A78BFA" stroke-width="0.6"/>
       <text x="178" y="15" fill="#C4B5FD" font-size="9" font-weight="bold">Sub-Agent(s)</text>
-      <text x="178" y="28" fill="#8da4b0" font-size="8">权限BUBBLE冒泡到父</text>
+      <text x="178" y="28" fill="#8da4b0" font-size="8">root identity 匹配父会话 Grant</text>
 
       <line x1="152" y1="17" x2="168" y2="17" stroke="#A78BFA" stroke-width="1.2"/>
 
@@ -829,11 +829,11 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
     <text x="185" y="22" fill="#8da4b0" font-size="10">WebSocketController.java · 1,590行</text>
 
     <g transform="translate(20, 38)">
-      <text x="0" y="12" fill="#4dd0e1" font-size="9" font-weight="bold">权限请求异步流:</text>
-      <text x="0" y="28" fill="#8da4b0" font-size="8">CompletableFuture&lt;PermissionDecision&gt; future</text>
-      <text x="0" y="42" fill="#8da4b0" font-size="8">pendingRequests.put(toolUseId, future)</text>
-      <text x="0" y="56" fill="#8da4b0" font-size="8">assessCommandRiskLevel(cmd) → HIGH/MEDIUM/LOW</text>
-      <text x="0" y="70" fill="#8da4b0" font-size="8">future.orTimeout(120, SECONDS) → 超时自动DENY</text>
+      <text x="0" y="12" fill="#4dd0e1" font-size="9" font-weight="bold">权限交互持久流:</text>
+      <text x="0" y="28" fill="#8da4b0" font-size="8">interaction_requests · 服务端 deadline 与 CAS 终态</text>
+      <text x="0" y="42" fill="#8da4b0" font-size="8">optionId + operationHash + deliveryGeneration</text>
+      <text x="0" y="56" fill="#8da4b0" font-size="8">AuthorizationService → Grant / ONCE decision</text>
+      <text x="0" y="70" fill="#8da4b0" font-size="8">提交后唤醒等待者并发送终态事件</text>
       <line x1="0" y1="78" x2="360" y2="78" stroke="#253555" stroke-width="0.5"/>
       <text x="0" y="92" fill="#4dd0e1" font-size="9" font-weight="bold">STOMP端点:</text>
       <text x="0" y="105" fill="#8da4b0" font-size="8">/ws STOMP连接 · SessionRegistry会话管理 · 心跳检测</text>
@@ -878,33 +878,33 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
     <text x="15" y="200" fill="#7a95a8" font-size="8">Verifier.verify(context) → Evidence → EvidenceStore.persist() → STOMP push → React渲染</text>
   </g>
 
-  <!-- ═══ 2N: Enterprise Compliance & Audit ═══ -->
+  <!-- ═══ 2N: Security Controls & Audit Support ═══ -->
   <g transform="translate(20, 1715)">
     <rect x="0" y="0" width="620" height="210" rx="10" fill="url(#cardBgGrad)" stroke="#DC4A5C" stroke-width="1.8" opacity="1"/>
     <rect x="0" y="0" width="620" height="210" rx="10" fill="#DC4A5C" opacity="0.05"/>
-    <text x="15" y="22" fill="#F87171" font-size="14" font-weight="bold" filter="url(#glowRed)">企业合规与审计体系</text>
-    <text x="215" y="22" fill="#8da4b0" font-size="10">security/ 5文件 · 1,644行 · 4层安全纵深</text>
+    <text x="15" y="22" fill="#F87171" font-size="14" font-weight="bold" filter="url(#glowRed)">安全控制与审计支撑</text>
+    <text x="215" y="22" fill="#8da4b0" font-size="10">授权主链与横切安全组件分离</text>
 
     <!-- 4 Layers -->
     <g transform="translate(15, 38)">
       <rect x="0" y="0" width="585" height="35" rx="2" fill="#450A0A" stroke="#DC2626" stroke-width="0.7"/>
-      <text x="8" y="14" fill="#FCA5A5" font-size="9" font-weight="bold">Layer 1: CommandBlacklistService</text>
-      <text x="8" y="28" fill="#8da4b0" font-size="8">ABSOLUTE_DENY 不可绕过命令拦截 · rm -rf / sudo / dd / mkfs 等</text>
+      <text x="8" y="14" fill="#FCA5A5" font-size="9" font-weight="bold">Bash Analyzer: CommandBlacklist + Parser/Path</text>
+      <text x="8" y="28" fill="#8da4b0" font-size="8">生成命令风险、effect、resource 与可授权约束；绝对黑名单直接拒绝</text>
 
       <rect x="0" y="40" width="585" height="35" rx="2" fill="#450A0A" stroke="#B91C1C" stroke-width="0.6"/>
-      <text x="8" y="54" fill="#FCA5A5" font-size="9" font-weight="bold">Layer 2: SensitivePathRegistry</text>
-      <text x="8" y="68" fill="#8da4b0" font-size="8">PathProtectionLevel 4级: FORBIDDEN / PROTECTED / AUDIT / NORMAL</text>
+      <text x="8" y="54" fill="#FCA5A5" font-size="9" font-weight="bold">File Analyzer: PathSecurityService</text>
+      <text x="8" y="68" fill="#8da4b0" font-size="8">规范化资源边界；Gateway 执行前重新检查路径、符号链接与授权约束</text>
 
       <rect x="0" y="80" width="585" height="35" rx="2" fill="#450A0A" stroke="#991B1B" stroke-width="0.6"/>
-      <text x="8" y="94" fill="#FCA5A5" font-size="9" font-weight="bold">Layer 3: SensitiveDataFilter</text>
-      <text x="8" y="108" fill="#8da4b0" font-size="8">16种脱敏模式 (API_KEY/JWT/PASSWORD/AWS_SECRET等) · 10+ regex</text>
+      <text x="8" y="94" fill="#FCA5A5" font-size="9" font-weight="bold">SensitiveDataFilter: 输出侧纵深防护</text>
+      <text x="8" y="108" fill="#8da4b0" font-size="8">PostToolUse 后过滤工具结果，并为 Analyzer 生成脱敏摘要；不负责授权</text>
 
       <rect x="0" y="120" width="585" height="35" rx="2" fill="#450A0A" stroke="#7F1D1D" stroke-width="0.6"/>
-      <text x="8" y="134" fill="#FCA5A5" font-size="9" font-weight="bold">Layer 4: SecurityAuditLogger</text>
-      <text x="8" y="148" fill="#8da4b0" font-size="8">BlockLevel 4级 · 独立日志通道: [SECURITY-BLOCK] / [SECURITY-PATH]</text>
+      <text x="8" y="134" fill="#FCA5A5" font-size="9" font-weight="bold">SecurityAuditLogger: 横切审计记录</text>
+      <text x="8" y="148" fill="#8da4b0" font-size="8">[SECURITY-BLOCK] / [SECURITY-PATH] / [SECURITY-AUDIT]；不参与放行</text>
     </g>
 
-    <text x="15" y="200" fill="#7a95a8" font-size="8">安全纵深: 请求→黑名单拦截→路径保护→数据脱敏→审计记录 · ABSOLUTE_DENY/HIGH_RISK_ASK/AUDIT_LOG/ALLOWED</text>
+    <text x="15" y="200" fill="#7a95a8" font-size="8">权限主链: FrozenInput → Analyzer facts → AuthorizationService → Gateway final recheck → Tool.call()</text>
   </g>
 
   <!-- ═══ 2O: Bridge Cross-End Ecosystem ═══ -->
@@ -1041,7 +1041,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
     <rect x="0" y="0" width="1280" height="385" rx="10" fill="url(#cardBgGrad)" stroke="#06b6d4" stroke-width="1.8" opacity="1"/>
     <rect x="0" y="0" width="1280" height="385" rx="10" fill="#06b6d4" opacity="0.05"/>
     <text x="15" y="22" fill="#22D3EE" font-size="14" font-weight="bold" filter="url(#glowTeal)">工具执行管线（ToolExecutionPipeline）9-Stage</text>
-    <text x="380" y="22" fill="#8da4b0" font-size="10">ToolExecutionPipeline.java L112-618 · 每次工具调用必过此流水线</text>
+    <text x="380" y="22" fill="#8da4b0" font-size="10">ToolExecutionPipeline.java L128-304 · 每次生产工具调用必过授权与 Gateway 主路径</text>
 
     <!-- Pipeline stages - vertical flow -->
     <g transform="translate(40, 42)">
@@ -1049,8 +1049,8 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
       <rect x="0" y="0" width="540" height="28" rx="3" fill="#164E63" stroke="#06b6d4" stroke-width="0.8"/>
       <text x="10" y="18" fill="#67E8F9" font-size="9" font-weight="bold">Stage 1</text>
       <text x="70" y="18" fill="#06b6d4" font-size="9">SCHEMA_PARSE</text>
-      <text x="200" y="18" fill="#8da4b0" font-size="8">parseSchema() — JSON Schema解析工具参数定义</text>
-      <text x="480" y="18" fill="#7a95a8" font-size="8">L112</text>
+      <text x="200" y="18" fill="#8da4b0" font-size="8">validateSchema() — JSON Schema 结构校验入口</text>
+      <text x="480" y="18" fill="#7a95a8" font-size="8">L128</text>
 
       <!-- Arrow -->
       <line x1="270" y1="29" x2="270" y2="35" stroke="#06b6d4" stroke-width="1.5"/>
@@ -1061,7 +1061,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
       <text x="10" y="58" fill="#67E8F9" font-size="9" font-weight="bold">Stage 1.5</text>
       <text x="80" y="58" fill="#06b6d4" font-size="9">JSON_VALIDATE</text>
       <text x="210" y="58" fill="#8da4b0" font-size="8">jsonSchemaValidator — 输入参数格式校验</text>
-      <text x="480" y="58" fill="#7a95a8" font-size="8">L115</text>
+      <text x="480" y="58" fill="#7a95a8" font-size="8">L128</text>
 
       <!-- Arrow -->
       <line x1="270" y1="69" x2="270" y2="75" stroke="#06b6d4" stroke-width="1.5"/>
@@ -1072,7 +1072,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
       <text x="10" y="98" fill="#67E8F9" font-size="9" font-weight="bold">Stage 2</text>
       <text x="70" y="98" fill="#06b6d4" font-size="9">TOOL_VALIDATE_INPUT</text>
       <text x="230" y="98" fill="#8da4b0" font-size="8">tool.validateInput() — 工具自定义校验</text>
-      <text x="480" y="98" fill="#7a95a8" font-size="8">L120</text>
+      <text x="480" y="98" fill="#7a95a8" font-size="8">L133</text>
 
       <!-- Arrow -->
       <line x1="270" y1="109" x2="270" y2="115" stroke="#06b6d4" stroke-width="1.5"/>
@@ -1083,7 +1083,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
       <text x="10" y="138" fill="#67E8F9" font-size="9" font-weight="bold">Stage 2.5</text>
       <text x="80" y="138" fill="#06b6d4" font-size="9">INPUT_BACKFILL</text>
       <text x="210" y="138" fill="#8da4b0" font-size="8">backfillObservable() — 可观测参数自动填充</text>
-      <text x="480" y="138" fill="#7a95a8" font-size="8">L129</text>
+      <text x="480" y="138" fill="#7a95a8" font-size="8">L143</text>
 
       <!-- Arrow -->
       <line x1="270" y1="149" x2="270" y2="155" stroke="#06b6d4" stroke-width="1.5"/>
@@ -1094,7 +1094,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
       <text x="10" y="178" fill="#67E8F9" font-size="9" font-weight="bold">Stage 3</text>
       <text x="70" y="178" fill="#06b6d4" font-size="9">PRE_HOOK</text>
       <text x="170" y="178" fill="#8da4b0" font-size="8">hookService.pre() — 工具执行前置钩子</text>
-      <text x="480" y="178" fill="#7a95a8" font-size="8">L132</text>
+      <text x="480" y="178" fill="#7a95a8" font-size="8">L153</text>
 
       <!-- Arrow -->
       <line x1="270" y1="189" x2="270" y2="195" stroke="#ff1744" stroke-width="2"/>
@@ -1104,8 +1104,8 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
       <rect x="0" y="200" width="540" height="28" rx="3" fill="#4A0404" stroke="#ff1744" stroke-width="1.5"/>
       <text x="10" y="218" fill="#FF8A80" font-size="9" font-weight="bold">Stage 4 ◆</text>
       <text x="80" y="218" fill="#ff1744" font-size="9" font-weight="bold">PERMISSION_CHECK</text>
-      <text x="240" y="218" fill="#FFCDD2" font-size="8">唯一DENY中断点 — PermissionPipeline 14步短路</text>
-      <text x="480" y="218" fill="#ff1744" font-size="8" font-weight="bold">L162</text>
+      <text x="240" y="218" fill="#FFCDD2" font-size="8">冻结输入 → Analyzer → Security Hook → AuthorizationService</text>
+      <text x="480" y="218" fill="#ff1744" font-size="8" font-weight="bold">L187-205</text>
 
       <!-- Arrow -->
       <line x1="270" y1="229" x2="270" y2="235" stroke="#00e676" stroke-width="2"/>
@@ -1115,8 +1115,8 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
       <rect x="0" y="240" width="540" height="28" rx="3" fill="#1B4332" stroke="#00e676" stroke-width="1.5"/>
       <text x="10" y="258" fill="#A7F3D0" font-size="9" font-weight="bold">Stage 5 ★</text>
       <text x="80" y="258" fill="#00e676" font-size="9" font-weight="bold">EXECUTE</text>
-      <text x="170" y="258" fill="#D1FAE5" font-size="8">tool.call() — 唯一副作用点 (文件写入/命令执行)</text>
-      <text x="480" y="258" fill="#00e676" font-size="8" font-weight="bold">L257</text>
+      <text x="170" y="258" fill="#D1FAE5" font-size="8">ToolExecutionGateway 复检/准入 → Tool.call()（唯一生产入口）</text>
+      <text x="480" y="258" fill="#00e676" font-size="8" font-weight="bold">L224-252</text>
 
       <!-- Arrow -->
       <line x1="270" y1="269" x2="270" y2="275" stroke="#06b6d4" stroke-width="1.5"/>
@@ -1127,14 +1127,14 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
       <text x="10" y="298" fill="#67E8F9" font-size="9" font-weight="bold">Stage 6</text>
       <text x="70" y="298" fill="#06b6d4" font-size="9">POST_HOOK</text>
       <text x="165" y="298" fill="#8da4b0" font-size="8">hookService.post()</text>
-      <text x="235" y="298" fill="#7a95a8" font-size="7">L264</text>
+      <text x="235" y="298" fill="#7a95a8" font-size="7">L259</text>
 
       <!-- Stage 7 -->
       <rect x="280" y="280" width="260" height="28" rx="3" fill="#164E63" stroke="#06b6d4" stroke-width="0.8"/>
       <text x="290" y="298" fill="#67E8F9" font-size="9" font-weight="bold">Stage 7</text>
       <text x="350" y="298" fill="#06b6d4" font-size="9">CONTEXT_MODIFIER</text>
       <text x="480" y="298" fill="#8da4b0" font-size="8">返回Result</text>
-      <text x="515" y="298" fill="#7a95a8" font-size="7">L305</text>
+      <text x="515" y="298" fill="#7a95a8" font-size="7">L304</text>
     </g>
 
     <!-- Legend -->
@@ -1149,13 +1149,13 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
 
       <text x="0" y="90" fill="#8da4b0" font-size="8" font-weight="bold">流水线特性:</text>
       <text x="0" y="106" fill="#7a95a8" font-size="8">• 单工具串行执行，多工具可并发</text>
-      <text x="0" y="120" fill="#7a95a8" font-size="8">• Stage 4 DENY 立即终止后续所有阶段</text>
-      <text x="0" y="134" fill="#7a95a8" font-size="8">• Stage 5 为唯一产生外部可观测效果的阶段</text>
-      <text x="0" y="148" fill="#7a95a8" font-size="8">• Stage 6/7 无论成功失败均执行 (finally语义)</text>
+      <text x="0" y="120" fill="#7a95a8" font-size="8">• 校验、Hook、Analyzer、模式/交互与最终复检均可拒绝</text>
+      <text x="0" y="134" fill="#7a95a8" font-size="8">• Stage 5 委托 Gateway 后才产生外部可观测效果</text>
+      <text x="0" y="148" fill="#7a95a8" font-size="8">• PostHook/Modifier 仅处理成功取得的 ToolResult；异常走结构化 catch 分支</text>
     </g>
 
     <!-- Source reference -->
-    <text x="15" y="370" fill="#7a95a8" font-size="8">L112(Schema)→L115(JSON)→L120(Validate)→L129(Backfill)→L132(PreHook)→L162(Permission)→L257(Execute)→L264(PostHook)→L305(Modifier)</text>
+    <text x="15" y="370" fill="#7a95a8" font-size="8">L128(Schema)→L133(Validate)→L143(Backfill)→L153(PreHook)→L187(Freeze/Auth)→L224(Gateway)→L259(PostHook)→L304(Modifier)</text>
   </g>
 
   <!-- Dependency connection lines (dashed) -->
@@ -1169,11 +1169,11 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
   <line x1="1290" y1="1700" x2="1290" y2="375" stroke="#10B981" stroke-width="1" stroke-dasharray="4,3" opacity="0.4"/>
   <text x="1100" y="1695" fill="#10B981" font-size="7" opacity="0.7">APOS→QueryEngine 验证执行结果</text>
 
-  <!-- Security → PermissionPipeline (安全纵深) -->
+  <!-- Security → AuthorizationService (安全纵深) -->
   <line x1="330" y1="1715" x2="330" y2="1700" stroke="#EF4444" stroke-width="1" stroke-dasharray="4,3" opacity="0.6"/>
   <line x1="330" y1="1700" x2="10" y2="1700" stroke="#EF4444" stroke-width="1" stroke-dasharray="4,3" opacity="0.6"/>
   <line x1="10" y1="1700" x2="10" y2="660" stroke="#EF4444" stroke-width="1" stroke-dasharray="4,3" opacity="0.4"/>
-  <text x="35" y="1695" fill="#EF4444" font-size="7" opacity="0.7">Security→PermissionPipeline 安全纵深</text>
+  <text x="35" y="1695" fill="#EF4444" font-size="7" opacity="0.7">Security→AuthorizationService→Gateway 安全纵深</text>
 
   <!-- Bridge → Frontend+Backend (跨端通信) -->
   <line x1="210" y1="2590" x2="210" y2="2575" stroke="#6366F1" stroke-width="1" stroke-dasharray="4,3" opacity="0.5"/>
@@ -1215,11 +1215,11 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
 
       <rect x="0" y="84" width="845" height="25" rx="2" fill="#450A0A" stroke="#7F1D1D" stroke-width="0.7"/>
       <text x="8" y="100" fill="#FCA5A5" font-size="9" font-weight="bold">L4 权限验证</text>
-      <text x="120" y="100" fill="#8da4b0" font-size="8">→ PermissionPipeline 14步短路决策链 · 任意一步DENY即阻断</text>
+      <text x="120" y="100" fill="#8da4b0" font-size="8">→ AuthorizationService 统一裁决 · Gateway 执行前复检</text>
 
       <rect x="0" y="112" width="845" height="25" rx="2" fill="#450A0A" stroke="#B91C1C" stroke-width="0.6"/>
-      <text x="8" y="128" fill="#FCA5A5" font-size="9" font-weight="bold">L5 Docker沙箱</text>
-      <text x="120" y="128" fill="#8da4b0" font-size="8">只读FS(--read-only) + 内存限制(--memory) + 网络隔离(--network=none)</text>
+      <text x="8" y="128" fill="#FCA5A5" font-size="9" font-weight="bold">L5 可选 Docker沙箱</text>
+      <text x="120" y="128" fill="#8da4b0" font-size="8">授权通过后选择执行路径；默认关闭，不是权限放行来源</text>
 
       <rect x="0" y="140" width="845" height="25" rx="2" fill="#450A0A" stroke="#B91C1C" stroke-width="0.6"/>
       <text x="8" y="156" fill="#FCA5A5" font-size="9" font-weight="bold">L6 参数净化</text>
@@ -1233,7 +1233,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
       <text x="443" y="184" fill="#FCA5A5" font-size="9" font-weight="bold">L8 审计日志</text>
       <text x="535" y="184" fill="#8da4b0" font-size="8">SecurityAuditLogger · 完整记录 · 可追溯</text>
     </g>
-    <text x="15" y="242" fill="#7a95a8" font-size="8">安全链: 解析→黑名单→路径遍历→权限→沙箱→净化→脱敏→审计 · 逐层收窄 · 任意层可阻断</text>
+    <text x="15" y="242" fill="#7a95a8" font-size="8">安全链: 解析/Analyzer→授权→Gateway复检→可选沙箱执行→脱敏/审计 · 沙箱不能扩大 Grant 或模式边界</text>
   </g>
 
   <!-- ═══ Multi-Agent 三模式 ═══ -->
@@ -1255,7 +1255,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
       <rect x="0" y="60" width="610" height="26" rx="2" fill="#312E81" stroke="#7C3AED" stroke-width="0.6"/>
       <text x="8" y="70" fill="#C4B5FD" font-size="9" font-weight="bold">SubAgent模式</text>
       <text x="100" y="70" fill="#8da4b0" font-size="8">三隔离级别(NONE/WORKTREE/FORK) + BackgroundAgentTracker + 5min超时</text>
-      <text x="8" y="82" fill="#7a95a8" font-size="7">父Agent → spawn(隔离级别) → 子Agent独立执行 → 权限BUBBLE冒泡</text>
+      <text x="8" y="82" fill="#7a95a8" font-size="7">父Agent → spawn → 子Agent独立执行 → root session/root run 受控继承 Grant</text>
     </g>
   </g>
 

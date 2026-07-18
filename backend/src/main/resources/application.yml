@@ -44,8 +44,8 @@ llm:
     moonshot:
       api-key: ${LLM_PROVIDER_MOONSHOT_API_KEY:}
       base-url: https://api.moonshot.cn/v1
-      default-model: kimi-k2.6
-      models: ${LLM_PROVIDER_MOONSHOT_MODELS:kimi-k2.6,kimi-k2.7-code,moonshot-v1-128k}
+      default-model: kimi-k3
+      models: ${LLM_PROVIDER_MOONSHOT_MODELS:kimi-k3,kimi-k2.7-code,moonshot-v1-128k}
     zhipu:
       api-key: ${LLM_PROVIDER_ZHIPU_API_KEY:}
       base-url: https://open.bigmodel.cn/api/paas/v4

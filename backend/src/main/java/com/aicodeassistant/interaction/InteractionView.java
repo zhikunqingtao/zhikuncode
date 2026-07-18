@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
-/** Stable protocol DTO shared by WebSocket delivery and REST recovery. */
+/** WebSocket 投递与 REST 恢复共用的稳定协议 DTO。 */
 public record InteractionView(
         int protocolVersion,
         String interactionId,
@@ -19,6 +19,8 @@ public record InteractionView(
         Object response,
         String source,
         String childSessionId,
+        String actorRunId,
+        String actorType,
         int deliveryGeneration,
         int dispatchAttempts,
         Instant createdAt,
@@ -28,5 +30,7 @@ public record InteractionView(
         Instant decidedAt,
         String terminalReason,
         long version,
-        long serverNow) {
+        long serverNow,
+        String operationHash,
+        List<Map<String, String>> options) {
 }

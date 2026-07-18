@@ -29,8 +29,10 @@ export const usePermissionStore = create<PermissionStoreState>()(
         denialTracking: { consecutiveDenials: 0, totalDenials: 0 },
 
         showPermission: (req) => set(d => {
-            // 去重：如果同 toolUseId 已存在则更新，否则添加
-            const idx = d.pendingPermissions.findIndex(p => p.toolUseId === req.toolUseId);
+            // interactionId 是持久化身份；重试可能按设计复用 toolUseId。
+            const idx = d.pendingPermissions.findIndex(p => req.interactionId
+                ? p.interactionId === req.interactionId
+                : !p.interactionId && p.toolUseId === req.toolUseId);
             if (idx >= 0) {
                 d.pendingPermissions[idx] = req;
             } else {
@@ -38,8 +40,7 @@ export const usePermissionStore = create<PermissionStoreState>()(
             }
         }),
         respondPermission: (decision, interactionId) => set(d => {
-            // Terminal WS may arrive before REST resolves. Remove only the request
-            // the user actually answered; never shift a subsequently queued request.
+            // WebSocket 终态可能先于 REST 返回；只移除用户实际回答的请求，不能误删后续排队请求。
             d.pendingPermissions = d.pendingPermissions.filter(p =>
                 p.interactionId !== (interactionId ?? decision.toolUseId)
                 && p.toolUseId !== decision.toolUseId);

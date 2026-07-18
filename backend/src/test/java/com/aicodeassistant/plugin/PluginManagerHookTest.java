@@ -13,7 +13,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.core.env.Environment;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -94,94 +93,12 @@ class PluginManagerHookTest {
             manager.initializePlugins();
 
             // 验证 hookRegistry.register 被调用时传入了正确的系统事件类型
+            HookRegistry.HookRole expectedRole = expectedSystemEvent == HookEvent.PRE_TOOL_USE
+                    ? HookRegistry.HookRole.SECURITY_CONSTRAINT
+                    : HookRegistry.HookRole.PRESENTATION;
             verify(hookRegistry).register(
-                    eq(expectedSystemEvent), any(), eq(10), any(), eq("plugin:test-plugin"));
-        }
-    }
-
-    // ==================== executePreToolUseHooks 端到端 ====================
-
-    @Nested
-    @DisplayName("executePreToolUseHooks 端到端测试")
-    class ExecutePreToolUseHooksTests {
-
-        @Test
-        @DisplayName("无钩子注册时返回 Optional.empty()")
-        void shouldReturnEmptyWhenNoHooksRegistered() {
-            pluginManager.initializePlugins();
-
-            Optional<HookHandler.HookResult> result =
-                    pluginManager.executePreToolUseHooks("Bash", "ls -la");
-
-            assertTrue(result.isEmpty());
-        }
-
-        @Test
-        @DisplayName("注册钩子后正确执行")
-        void shouldExecuteRegisteredHook() {
-            HookHandler hook = HookHandler.preToolUse(".*", 10,
-                    ctx -> HookHandler.HookResult.allow());
-
-            PluginExtension ext = createPluginWithHooks("security", List.of(hook));
-            PluginLoader mockLoader = mock(PluginLoader.class);
-            LoadedPlugin plugin = LoadedPlugin.builtin("security", ext);
-            when(mockLoader.loadAllPlugins()).thenReturn(
-                    new PluginLoadResult(List.of(plugin), List.of(), List.of()));
-
-            PluginManager manager = new PluginManager(
-                    mockLoader, commandRegistry, toolRegistry, hookRegistry, mcpClientManager);
-            manager.initializePlugins();
-
-            // 钩子允许执行 → 返回 Optional.empty()（仅拒绝时返回非空）
-            Optional<HookHandler.HookResult> result =
-                    manager.executePreToolUseHooks("Bash", "echo hello");
-            assertTrue(result.isEmpty());
-        }
-
-        @Test
-        @DisplayName("钩子返回 deny 时停止并返回结果")
-        void shouldStopOnFirstDenyResult() {
-            HookHandler denyHook = HookHandler.preToolUse("Bash", 10,
-                    ctx -> HookHandler.HookResult.deny("Bash is blocked"));
-
-            PluginExtension ext = createPluginWithHooks("guard", List.of(denyHook));
-            PluginLoader mockLoader = mock(PluginLoader.class);
-            LoadedPlugin plugin = LoadedPlugin.builtin("guard", ext);
-            when(mockLoader.loadAllPlugins()).thenReturn(
-                    new PluginLoadResult(List.of(plugin), List.of(), List.of()));
-
-            PluginManager manager = new PluginManager(
-                    mockLoader, commandRegistry, toolRegistry, hookRegistry, mcpClientManager);
-            manager.initializePlugins();
-
-            Optional<HookHandler.HookResult> result =
-                    manager.executePreToolUseHooks("Bash", "rm -rf /");
-
-            assertTrue(result.isPresent());
-            assertFalse(result.get().proceed());
-            assertEquals("Bash is blocked", result.get().message());
-        }
-
-        @Test
-        @DisplayName("不匹配的钩子不应执行")
-        void shouldSkipNonMatchingHooks() {
-            HookHandler hook = HookHandler.preToolUse("Write", 10,
-                    ctx -> HookHandler.HookResult.deny("Write blocked"));
-
-            PluginExtension ext = createPluginWithHooks("filter", List.of(hook));
-            PluginLoader mockLoader = mock(PluginLoader.class);
-            LoadedPlugin plugin = LoadedPlugin.builtin("filter", ext);
-            when(mockLoader.loadAllPlugins()).thenReturn(
-                    new PluginLoadResult(List.of(plugin), List.of(), List.of()));
-
-            PluginManager manager = new PluginManager(
-                    mockLoader, commandRegistry, toolRegistry, hookRegistry, mcpClientManager);
-            manager.initializePlugins();
-
-            // "Bash" 不匹配 "Write" 模式 → 不拦截
-            Optional<HookHandler.HookResult> result =
-                    manager.executePreToolUseHooks("Bash", "ls");
-            assertTrue(result.isEmpty());
+                    eq(expectedSystemEvent), any(), eq(10), any(), eq("plugin:test-plugin"),
+                    eq(expectedRole));
         }
     }
 

@@ -26,7 +26,6 @@ class SwarmControllerTest {
 
     private SwarmService swarmService;
     private FeatureFlagService featureFlags;
-    private LeaderPermissionBridge permissionBridge;
     private AnomalyEventRepository anomalyEventRepository;
     private WebSocketSessionManager webSocketSessionManager;
     private SwarmController controller;
@@ -35,13 +34,12 @@ class SwarmControllerTest {
     void setUp() {
         swarmService = mock(SwarmService.class);
         featureFlags = mock(FeatureFlagService.class);
-        permissionBridge = mock(LeaderPermissionBridge.class);
         anomalyEventRepository = mock(AnomalyEventRepository.class);
         webSocketSessionManager = mock(WebSocketSessionManager.class);
         when(featureFlags.isEnabled("ENABLE_AGENT_SWARMS")).thenReturn(true);
         when(swarmService.createSwarm(any(), any()))
                 .thenAnswer(inv -> new SwarmState("swarm-test", ((SwarmConfig) inv.getArgument(0)).teamName()));
-        controller = new SwarmController(swarmService, featureFlags, permissionBridge, anomalyEventRepository, webSocketSessionManager);
+        controller = new SwarmController(swarmService, featureFlags, anomalyEventRepository, webSocketSessionManager);
     }
 
     @Test

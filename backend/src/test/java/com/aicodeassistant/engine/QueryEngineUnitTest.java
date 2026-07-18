@@ -10,8 +10,6 @@ import com.aicodeassistant.hook.HookRegistry;
 import com.aicodeassistant.hook.HookService;
 import com.aicodeassistant.llm.*;
 import com.aicodeassistant.model.*;
-import com.aicodeassistant.permission.PermissionPipeline;
-import com.aicodeassistant.permission.PermissionRuleRepository;
 import com.aicodeassistant.run.RunTracker;
 import com.aicodeassistant.tool.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -43,8 +41,6 @@ class QueryEngineUnitTest {
     @Mock LlmProviderRegistry providerRegistry;
     @Mock CompactService compactService;
     @Mock ApiRetryService apiRetryService;
-    @Mock PermissionPipeline permissionPipeline;
-    @Mock PermissionRuleRepository permissionRuleRepository;
     @Mock TokenCounter tokenCounter;
     @Mock StreamingToolExecutor streamingToolExecutor;
     @Mock MessageNormalizer messageNormalizer;
@@ -73,7 +69,7 @@ class QueryEngineUnitTest {
         objectMapper = new ObjectMapper();
         queryEngine = new QueryEngine(
                 providerRegistry, compactService, apiRetryService,
-                permissionPipeline, permissionRuleRepository, tokenCounter,
+                tokenCounter,
                 objectMapper, streamingToolExecutor, messageNormalizer, hookService,
                 snipService, microCompactService, modelRegistry,
                 thinkingBudgetCalculator, modelTierService, fileHistoryService,
@@ -92,6 +88,7 @@ class QueryEngineUnitTest {
         // 默认 ModelRegistry mock: 返回合理的 contextWindow
         lenient().when(modelRegistry.getContextWindowForModel(anyString())).thenReturn(200000);
         lenient().when(modelRegistry.getTokenCharRatio(anyString())).thenReturn(3.5);
+        lenient().when(modelRegistry.getCapabilities(anyString())).thenReturn(testModelCapabilities());
         // 默认 TokenBudgetGuard mock: 直接放行
         lenient().when(tokenBudgetGuard.enforcePhase1(anyList(), anyInt()))
                 .thenAnswer(inv -> new TokenBudgetGuard.GuardResult(inv.getArgument(0), false, 0, 0));
@@ -102,7 +99,8 @@ class QueryEngineUnitTest {
         lenient().when(tokenBudgetGuard.enforcePhase2(anyList(), anyInt(), anySet(), anyDouble()))
                 .thenAnswer(inv -> new TokenBudgetGuard.FinalBudgetResult(inv.getArgument(0), Set.of(), 0, inv.getArgument(1), true, ""));
         // 默认 ImageRefInjector mock: 直接返回原消息
-        lenient().when(imageRefInjector.injectForApiCall(anyList(), anyInt(), anyInt(), any(), any()))
+        lenient().when(imageRefInjector.injectForApiCall(
+                        anyList(), anyInt(), anyInt(), anySet(), anyMap(), nullable(String.class), anyInt()))
                 .thenAnswer(inv -> new ImageRefInjector.InjectResult(inv.getArgument(0), Set.of()));
         // 默认 ContextCascade mock: 直接返回原消息列表（无压缩）
         lenient().when(contextCascade.executePreApiCascade(anyList(), anyString(), any()))
@@ -112,6 +110,11 @@ class QueryEngineUnitTest {
                     return new ContextCascade.CascadeResult(
                             msgs, tokens, tokens, false, 0, false, 0, false, 0, false, false, null);
                 });
+    }
+
+    private static ModelCapabilities testModelCapabilities() {
+        return new ModelCapabilities("mock-model", "Mock Model", 8192, 200000,
+                true, false, true, 5, true, 0.0, 0.0);
     }
 
     // ═══════════════ 8步循环测试 ═══════════════

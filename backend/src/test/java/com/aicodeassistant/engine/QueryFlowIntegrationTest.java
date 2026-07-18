@@ -10,13 +10,7 @@ import com.aicodeassistant.hook.HookRegistry;
 import com.aicodeassistant.hook.HookService;
 import com.aicodeassistant.llm.*;
 import com.aicodeassistant.model.*;
-import com.aicodeassistant.permission.AutoModeClassifier;
 import com.aicodeassistant.permission.PermissionModeManager;
-import com.aicodeassistant.permission.PermissionPipeline;
-import com.aicodeassistant.permission.PermissionRuleMatcher;
-import com.aicodeassistant.permission.PermissionRuleRepository;
-import com.aicodeassistant.permission.PluginSettingsSource;
-import com.aicodeassistant.permission.PolicySettingsSource;
 import com.aicodeassistant.sandbox.SandboxManager;
 import com.aicodeassistant.security.CommandBlacklistService;
 import com.aicodeassistant.security.PathSecurityService;
@@ -24,6 +18,7 @@ import com.aicodeassistant.security.SensitiveDataFilter;
 import com.aicodeassistant.tool.*;
 import com.aicodeassistant.tool.bash.BashCommandClassifier;
 import com.aicodeassistant.tool.recovery.ToolRecoveryFramework;
+import com.aicodeassistant.authorization.*;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -53,7 +48,6 @@ import static org.mockito.Mockito.*;
 class QueryFlowIntegrationTest {
 
     private LlmProviderRegistry providerRegistry;
-    private PermissionPipeline permissionPipeline;
     private QueryEngine queryEngine;
     private ObjectMapper objectMapper;
     private RecordingHandler handler;
@@ -63,15 +57,6 @@ class QueryFlowIntegrationTest {
     void setUp() {
         objectMapper = new ObjectMapper();
         providerRegistry = new LlmProviderRegistry(List.of(), null);
-        PermissionRuleRepository ruleRepo = new PermissionRuleRepository(
-                        new PolicySettingsSource(objectMapper), new PluginSettingsSource());
-        PermissionRuleMatcher ruleMatcher = new PermissionRuleMatcher();
-        AutoModeClassifier autoModeClassifier = new AutoModeClassifier(providerRegistry);
-        permissionPipeline = new PermissionPipeline(ruleMatcher, ruleRepo, autoModeClassifier,
-                mock(HookService.class), mock(SandboxManager.class),
-                mock(PathSecurityService.class), mock(BashCommandClassifier.class),
-                mock(FeatureFlagService.class), mock(CommandBlacklistService.class), null);
-
         TokenCounter tokenCounter = new TokenCounter(null, null, null);
         CompactService compactService = new CompactService(tokenCounter, providerRegistry, null, null);
         ModelTierService modelTierService = new ModelTierService();
@@ -82,8 +67,30 @@ class QueryFlowIntegrationTest {
         HookService hookService = new HookService(new HookRegistry(), null);
         SensitiveDataFilter sensitiveDataFilter = new SensitiveDataFilter();
         ToolRecoveryFramework recoveryFramework = new ToolRecoveryFramework(List.of());
+        FrozenToolInputFactory frozenInputs = new FrozenToolInputFactory(objectMapper, 1024 * 1024, 4 * 1024 * 1024);
+        AuthorizationService authorization = mock(AuthorizationService.class);
+        ToolExecutionGateway gateway = mock(ToolExecutionGateway.class);
+        OperationDescriptor descriptor = mock(OperationDescriptor.class);
+        AuthorizationSubject subject = mock(AuthorizationSubject.class);
+        when(descriptor.operationHash()).thenReturn("test-operation");
+        when(descriptor.risk()).thenReturn(RiskClass.SAFE);
+        when(descriptor.effects()).thenReturn(List.of(EffectClass.SAFE_INTERNAL));
+        when(authorization.prepare(any(), any(), any(), any())).thenReturn(
+                new PreparedOperation(subject, descriptor, "attempt-test"));
+        when(authorization.authorizePrepared(any(), any(), any(), any(), any())).thenAnswer(inv ->
+                new AuthorizedOperation(subject, descriptor,
+                        inv.<com.aicodeassistant.tool.ToolInput>getArgument(2),
+                        com.aicodeassistant.authorization.AuthorizationDiagnostic.Source.POLICY,
+                        "TEST", null, null, null, "attempt-test"));
+        when(gateway.execute(any(), any(), any(), any())).thenAnswer(inv -> {
+            Tool tool = inv.getArgument(0);
+            AuthorizedOperation allowed = inv.getArgument(1);
+            ToolUseContext context = inv.getArgument(2);
+            return tool.call(allowed.executionInput(), context);
+        });
         StreamingToolExecutor streamingToolExecutor = new StreamingToolExecutor(
-                new ToolExecutionPipeline(hookService, objectMapper, permissionPipeline, ruleRepo, sensitiveDataFilter, new PermissionModeManager(null), recoveryFramework, null), new SimpleMeterRegistry());
+                new ToolExecutionPipeline(hookService, objectMapper, sensitiveDataFilter, frozenInputs,
+                        authorization, gateway, recoveryFramework, null, null), new SimpleMeterRegistry());
         MessageNormalizer messageNormalizer = new MessageNormalizer();
         SnipService snipService = new SnipService();
         MicroCompactService microCompactService = new MicroCompactService(tokenCounter);
@@ -106,16 +113,20 @@ class QueryFlowIntegrationTest {
                 .thenAnswer(inv -> new TokenBudgetGuard.FinalBudgetResult(inv.getArgument(0), Set.of(), 0, inv.getArgument(1), true, ""));
 
         ImageRefInjector imageRefInjector = mock(ImageRefInjector.class);
-        when(imageRefInjector.injectForApiCall(any(), anyInt(), anyInt(), any(), any()))
+        when(imageRefInjector.injectForApiCall(
+                        anyList(), anyInt(), anyInt(), anySet(), anyMap(), nullable(String.class), anyInt()))
                 .thenAnswer(inv -> new ImageRefInjector.InjectResult(inv.getArgument(0), Set.of()));
 
         ModelRegistry modelRegistryMock = mock(ModelRegistry.class);
         when(modelRegistryMock.getContextWindowForModel(anyString())).thenReturn(200000);
         when(modelRegistryMock.getTokenCharRatio(anyString())).thenReturn(3.5);
+        when(modelRegistryMock.getCapabilities(anyString())).thenReturn(
+                new ModelCapabilities("mock-model", "Mock Model", 8192, 200000,
+                        true, false, true, 5, true, 0.0, 0.0));
 
         queryEngine = new QueryEngine(
                 providerRegistry, compactService, apiRetryService,
-                permissionPipeline, ruleRepo, tokenCounter, objectMapper,
+                tokenCounter, objectMapper,
                 streamingToolExecutor, messageNormalizer, hookService,
                 snipService, microCompactService, modelRegistryMock, null, modelTierService, mock(FileHistoryService.class), mock(ToolResultSummarizer.class),
                 contextCascade, mock(CompactMetrics.class),

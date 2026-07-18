@@ -275,7 +275,8 @@ class TaskToolGoldenTest {
         @BeforeEach
         void setUp() {
             coordinator = new TaskCoordinator(mock(SimpMessagingTemplate.class));
-            tool = new TaskCreateTool(coordinator, mock(SubAgentExecutor.class), mock(ToolRegistry.class));
+            tool = new TaskCreateTool(coordinator, mock(SubAgentExecutor.class), mock(ToolRegistry.class),
+                    mock(com.aicodeassistant.tool.StreamingToolExecutor.class));
         }
 
         @Test

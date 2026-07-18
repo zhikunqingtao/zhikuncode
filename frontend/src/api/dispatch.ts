@@ -67,15 +67,25 @@ interface InteractionView {
     status: string;
     prompt: Record<string, unknown>;
     allowedDecisions: string[];
-    scopeOptions: Array<'session' | 'workspace'>;
+    scopeOptions: Array<'run' | 'session' | 'workspace'>;
     response?: unknown;
     source?: string;
     childSessionId?: string;
+    actorRunId?: string;
+    actorType?: string;
     deliveryGeneration: number;
     decisionDeadlineAt?: string | number;
     deliveryWindowEndsAt: string | number;
     version: number;
     serverNow: number;
+    operationHash?: string;
+    options?: PermissionOption[];
+}
+
+interface PermissionOption {
+    optionId: string;
+    decision: 'allow' | 'deny';
+    scope: 'once' | 'run' | 'session' | 'workspace';
 }
 
 function clientDeadline(deadline: string | number | undefined, serverNow?: number): number | undefined {
@@ -86,7 +96,8 @@ function clientDeadline(deadline: string | number | undefined, serverNow?: numbe
 }
 
 function handleInteractionCreated(interaction: InteractionView): void {
-    if (interaction.protocolVersion !== 2 || interaction.status !== 'pending') return;
+    const expectedProtocol = interaction.interactionType === 'permission' ? 3 : 2;
+    if (interaction.protocolVersion !== expectedProtocol || interaction.status !== 'pending') return;
     const prompt = interaction.prompt ?? {};
     const deadline = clientDeadline(interaction.decisionDeadlineAt, interaction.serverNow);
     if (interaction.interactionType === 'permission') {
@@ -94,7 +105,7 @@ function handleInteractionCreated(interaction: InteractionView): void {
             interactionId: interaction.interactionId,
             version: interaction.version,
             deliveryGeneration: interaction.deliveryGeneration,
-            toolUseId: interaction.correlationKey,
+            toolUseId: String(prompt.toolUseId ?? interaction.correlationKey),
             toolName: String(prompt.toolName ?? 'unknown'),
             input: { command: String(prompt.inputSummary ?? '') },
             riskLevel: prompt.riskLevel === 'low' || prompt.riskLevel === 'high'
@@ -102,7 +113,11 @@ function handleInteractionCreated(interaction: InteractionView): void {
             reason: String(prompt.reason ?? ''),
             source: interaction.source,
             childSessionId: interaction.childSessionId,
+            actorRunId: interaction.actorRunId,
+            actorType: interaction.actorType,
             scopeOptions: interaction.scopeOptions,
+            operationHash: interaction.operationHash,
+            options: interaction.options,
             decisionDeadlineAt: deadline,
         });
     } else if (interaction.interactionType === 'elicitation') {
@@ -389,7 +404,7 @@ const handlers: Record<string, (data: any) => void> = {
         });
     },
     'permission_mode_changed':  (d: { mode: string }) => {
-        // ★ 大小写安全：后端 PermissionMode 枚举为大写（如 "AUTO"），前端类型为小写（如 'auto'）
+        // 后端枚举为大写，前端使用小写稳定值。
         const normalizedMode = d.mode.toLowerCase() as PermissionMode;
         // 更新权限 Store 的权限模式
         usePermissionStore.getState().setPermissionMode(normalizedMode);
@@ -489,10 +504,6 @@ const handlers: Record<string, (data: any) => void> = {
             }
         }
     },
-    'permission_bubble':   (d: import('@/types').PermissionBubblePayload) => {
-        useSwarmStore.getState().addPermissionBubble(d);
-    },
-
     // === #41: Coordinator 工作流 (1 种) ===
     'workflow_phase_update': (d: import('@/types').WorkflowPhaseUpdatePayload) => {
         useCoordinatorStore.getState().updateWorkflowPhase(d);
@@ -627,7 +638,7 @@ const handlers: Record<string, (data: any) => void> = {
 function handlePermissionRequest(data: PermissionRequest): void {
     usePermissionStore.getState().showPermission(data);
     useSessionStore.getState().setStatus('waiting_permission');
-    // ACK only after the reducer accepted the request into the visible inbox.
+    // 只有 Store 已接收并能展示该请求后才发送 ACK，避免后端误以为用户已经看到弹窗。
     void import('./stompClient').then(({ send }) =>
         send('/app/interaction-received', {
             interactionId: data.interactionId,
@@ -790,8 +801,7 @@ function handleSessionRestore(data: {
         }
     }
 
-    // 7. The snapshot already represents snapshotEventSeq. Frames received after
-    // bind are held by the recovery gate and replayed only after this projection.
+    // 快照已包含 snapshotEventSeq；bind 后收到的帧由恢复门暂存，完成投影后再依次重放。
     void recoverPendingInteractions(data.metadata.sessionId)
         .catch((error) => useNotificationStore.getState().addNotification({
             key: 'run-event-recovery-failed', level: 'warning',
@@ -801,7 +811,7 @@ function handleSessionRestore(data: {
         .finally(() => finishBind(data.bindRequestId, true, true));
 }
 
-async function recoverPendingInteractions(sessionId: string): Promise<void> {
+export async function recoverPendingInteractions(sessionId: string): Promise<void> {
     const response = await fetch(`/api/interactions/pending?sessionId=${encodeURIComponent(sessionId)}`, {
         headers: { 'X-Session-Id': sessionId },
     });

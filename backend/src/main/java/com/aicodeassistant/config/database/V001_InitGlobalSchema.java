@@ -61,22 +61,6 @@ public class V001_InitGlobalSchema implements Migration {
         globalJdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_memories_scope ON memories(scope)");
         globalJdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_memories_category ON memories(category)");
 
-        // 全局权限规则表
-        globalJdbcTemplate.execute("""
-                CREATE TABLE IF NOT EXISTS permission_rules (
-                    id           TEXT PRIMARY KEY,
-                    tool_name    TEXT NOT NULL,
-                    rule_content TEXT,
-                    rule_type    TEXT NOT NULL,
-                    scope        TEXT NOT NULL DEFAULT 'global',
-                    session_id   TEXT,
-                    created_at   TEXT NOT NULL,
-                    expires_at   TEXT
-                )
-                """);
-
-        globalJdbcTemplate.execute(
-                "CREATE INDEX IF NOT EXISTS idx_permission_rules_scope ON permission_rules(scope, tool_name)");
     }
 
     @Override

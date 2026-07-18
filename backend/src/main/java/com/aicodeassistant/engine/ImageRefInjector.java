@@ -39,7 +39,7 @@ public class ImageRefInjector {
     );
 
     private static final long MAX_FILE_SIZE = 10L * 1024 * 1024; // 10MB
-    private static final int MAX_IMAGES_PER_CALL = 5;
+    private static final int MAX_IMAGES_PER_CALL = 8;
     private static final long MAX_SINGLE_IMAGE_BYTES = 1_500_000L; // 单张图片最多 1.5MB Base64
     private static final long MAX_TOTAL_INJECT_BYTES = 2_000_000L; // 总量最多 2MB Base64
     private static final long MAX_IMAGE_PIXELS = 40_000_000L;
@@ -79,14 +79,27 @@ public class ImageRefInjector {
     public InjectResult injectForApiCall(List<Message> messages, int runStartIndex,
                                          int remainingBudget, Set<String> confirmedHashes,
                                          String workingDirectory) {
-        return injectForApiCall(messages,runStartIndex,remainingBudget,confirmedHashes,
-                new HashMap<>(),workingDirectory);
+        return injectForApiCall(messages, runStartIndex, remainingBudget, confirmedHashes,
+                new HashMap<>(), workingDirectory, MAX_IMAGES_PER_CALL);
     }
 
+    /**
+     * 带 modelMaxImages 参数的重载 — 根据模型实际能力动态限制注入数量。
+     *
+     * @param modelMaxImages 模型支持的最大图片数（来自 ModelCapabilities.maxImages()）;
+     *                       ≤ 0 表示模型不支持图片，直接返回空结果
+     */
     public InjectResult injectForApiCall(List<Message> messages, int runStartIndex,
                                          int remainingBudget, Set<String> confirmedHashes,
                                          Map<String,Integer> rejectedBudgetByHash,
-                                         String workingDirectory) {
+                                         String workingDirectory, int modelMaxImages) {
+        // 模型不支持图片，直接返回原消息（不注入）
+        if (modelMaxImages <= 0) {
+            log.debug("Model does not support images (maxImages={}), skipping injection", modelMaxImages);
+            return new InjectResult(deepCopyMessages(messages), Set.of());
+        }
+        // 实际上限 = min(绝对安全上限, 模型能力上限)
+        int effectiveMaxImages = Math.min(MAX_IMAGES_PER_CALL, modelMaxImages);
         List<Message> result = deepCopyMessages(messages);
         Set<String> pendingHashes = new HashSet<>();
 
@@ -124,7 +137,7 @@ public class ImageRefInjector {
         List<CandidateRef> selected = new ArrayList<>();
         long estimatedBytes = 0;
         for (int i = candidates.size() - 1; i >= 0; i--) {
-            if (selected.size() >= MAX_IMAGES_PER_CALL) break;
+            if (selected.size() >= effectiveMaxImages) break;
             CandidateRef c = candidates.get(i);
             long estimatedSize = (long) Math.ceil(c.ref().fileSize() * 4.0 / 3.0);
             if (estimatedSize > MAX_SINGLE_IMAGE_BYTES || estimatedSize > remainingBudget) {

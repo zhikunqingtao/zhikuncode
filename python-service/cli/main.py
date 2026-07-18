@@ -58,8 +58,9 @@ class OutputFormat(str, Enum):
 
 class PermissionMode(str, Enum):
     dont_ask = "dont_ask"
-    skip_all_prompts = "skip_all_prompts"
     default = "default"
+    plan = "plan"
+    accept_edits = "accept_edits"
 
 
 class EffortLevel(str, Enum):
@@ -111,8 +112,6 @@ def main(
     # 权限
     permission_mode: PermissionMode = typer.Option(
         PermissionMode.dont_ask, "--permission-mode", help="权限模式"),
-    no_permissions: bool = typer.Option(
-        False, "--no-permissions", help="跳过所有权限"),
     # 工具
     allowed_tools: Optional[str] = typer.Option(
         None, "--allowed-tools", help="工具白名单(逗号分隔)"),
@@ -172,9 +171,8 @@ def main(
         raise typer.Exit(code=2)
 
     # 4. 解析权限模式
-    perm = "SKIP_ALL_PROMPTS" if no_permissions else permission_mode.value.upper()
-    if no_permissions and not quiet:
-        console.print("[yellow]WARNING: All prompts skipped[/yellow]")
+    # 非交互 CLI 不能绕过系统安全不变量；DONT_ASK 会结构化拒绝需要用户确认的操作。
+    perm = permission_mode.value.upper()
 
     # 5. 解析会话
     cache = SessionCache()

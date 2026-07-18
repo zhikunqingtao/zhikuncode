@@ -64,6 +64,28 @@ class ModelRegistryConfigurationTest {
         assertEquals(100, counter.estimateTokensForModel(text, "unknown-model"));
     }
 
+    @Test
+    void providerReturningNullFallsBackToConservativeCapabilities() {
+        LlmProvider nullProvider = new LlmProvider() {
+            @Override public String getProviderName() { return "null-provider"; }
+            @Override public List<String> getSupportedModels() { return List.of("broken-model"); }
+            @Override public void streamChat(String model, List<Map<String, Object>> messages,
+                                             String systemPrompt, List<Map<String, Object>> tools,
+                                             int maxTokens, ThinkingConfig thinkingConfig,
+                                             LlmCallContext context, StreamChatCallback callback) {
+                throw new UnsupportedOperationException();
+            }
+            @Override public String getDefaultModel() { return "broken-model"; }
+            @Override public ModelCapabilities getModelCapabilities(String model) { return null; }
+        };
+
+        ModelRegistry registry = new ModelRegistry(
+                new LlmProviderRegistry(List.of(nullProvider), new MockEnvironment()));
+
+        assertSame(ModelCapabilities.DEFAULT, registry.getCapabilities("broken-model"));
+        assertFalse(registry.isKnownModel("broken-model"));
+    }
+
     private static LlmProvider provider() {
         return new LlmProvider() {
             @Override public String getProviderName() { return "test"; }

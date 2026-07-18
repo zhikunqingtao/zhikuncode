@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/** Forward-only maintenance migration to the authoritative Run/Event V2 schema. */
+/** 将 Run/Event 结构维护为 V2 权威模型的单向迁移。 */
 @Component
 @Order(14)
 public class V014_RebuildRunV2Schema implements Migration {
@@ -24,9 +24,6 @@ public class V014_RebuildRunV2Schema implements Migration {
 
     @Override
     public void execute() {
-        // V011 references run_envelopes. No-history migration still has to clear
-        // the child rows before the run tables can be rebuilt with FK checks on.
-        jdbc.execute("DELETE FROM permission_requests");
         jdbc.execute("DELETE FROM agent_checkpoints");
         jdbc.execute("DELETE FROM artifact_entries");
         jdbc.execute("DELETE FROM artifact_manifests");

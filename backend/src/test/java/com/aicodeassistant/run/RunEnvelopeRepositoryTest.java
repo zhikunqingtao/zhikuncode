@@ -1,17 +1,13 @@
 package com.aicodeassistant.run;
 
-import com.aicodeassistant.config.database.DatabaseResolver;
-import com.aicodeassistant.config.database.SqliteConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
-import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -27,43 +23,11 @@ import static org.mockito.Mockito.*;
 class RunEnvelopeRepositoryTest {
 
     @Mock private JdbcTemplate jdbcTemplate;
-    @Mock private SqliteConfig sqliteConfig;
-    @Mock private DatabaseResolver databaseResolver;
-
     private RunEnvelopeRepository repository;
 
     @BeforeEach
     void setUp() {
-        when(databaseResolver.getProjectDbPath(any(Path.class))).thenReturn(Path.of("/tmp/test.db"));
-
-        // SqliteConfig.executeWriteVoid 直接执行传入的 Runnable
-        lenient().doAnswer(inv -> {
-            Runnable runnable = inv.getArgument(1);
-            runnable.run();
-            return null;
-        }).when(sqliteConfig).executeWriteVoid(any(Path.class), any(Runnable.class));
-
-        repository = new RunEnvelopeRepository(jdbcTemplate, sqliteConfig, databaseResolver);
-    }
-
-    @Test
-    void shouldInsert_whenCreateCalled() {
-        // Given
-        when(jdbcTemplate.update(anyString(), any(Object[].class))).thenReturn(1);
-        RunEnvelope envelope = RunEnvelope.start("session-1", null, "main", "qwen-max");
-
-        // When
-        repository.insert(envelope);
-
-        // Then: INSERT 被执行
-        ArgumentCaptor<Object[]> argsCaptor = ArgumentCaptor.forClass(Object[].class);
-        verify(jdbcTemplate).update(contains("INSERT INTO run_envelopes"), argsCaptor.capture());
-        Object[] args = argsCaptor.getValue();
-        assertThat(args[0]).isEqualTo(envelope.id());
-        assertThat(args[1]).isEqualTo("session-1");
-        assertThat(args[3]).isEqualTo("running"); // status dbValue
-        assertThat(args[4]).isEqualTo("main");    // agentType
-        assertThat(args[5]).isEqualTo("qwen-max"); // model
+        repository = new RunEnvelopeRepository(jdbcTemplate);
     }
 
     @Test

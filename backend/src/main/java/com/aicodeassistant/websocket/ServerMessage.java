@@ -214,15 +214,6 @@ public final class ServerMessage {
             String terminationReason    // "completed" | "error" | "aborted"
     ) {}
 
-    /** #40 permission_bubble — Worker 权限冒泡请求 */
-    public record PermissionBubble(
-            String requestId,       // LeaderPermissionBridge 用于匹配回调
-            String workerId,
-            String toolName,
-            String riskLevel,
-            String reason
-    ) {}
-
     // ==================== #41: coordinatorStore ====================
 
     /** #41 workflow_phase_update — Coordinator 四阶段工作流阶段变更 */

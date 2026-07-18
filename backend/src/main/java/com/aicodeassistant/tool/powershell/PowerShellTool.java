@@ -1,6 +1,5 @@
 package com.aicodeassistant.tool.powershell;
 
-import com.aicodeassistant.model.PermissionBehavior;
 import com.aicodeassistant.tool.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -233,8 +232,4 @@ public class PowerShellTool implements Tool {
         return "bash";
     }
 
-    @Override
-    public String toAutoClassifierInput(ToolInput input) {
-        return "PowerShell: " + input.getString("command", "");
-    }
 }

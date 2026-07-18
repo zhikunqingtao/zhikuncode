@@ -29,9 +29,6 @@ import com.aicodeassistant.interaction.InteractionRequest;
 import com.aicodeassistant.interaction.InteractionCreatedEvent;
 import com.aicodeassistant.interaction.InteractionTerminalEvent;
 import com.aicodeassistant.interaction.InteractionView;
-import com.aicodeassistant.model.PermissionBehavior;
-import com.aicodeassistant.model.PermissionDecision;
-import com.aicodeassistant.permission.PermissionPipeline;
 import com.aicodeassistant.model.ContentBlock;
 import com.aicodeassistant.model.Message;
 import com.aicodeassistant.model.Usage;
@@ -91,13 +88,11 @@ public class WebSocketController implements PermissionNotifier {
     private final VisionModelRouter visionModelRouter;   // 视觉模型路由
     private final SessionManager sessionManager;           // P1-0 新增
     private final ElicitationService elicitationService;   // P1-5 新增
-    private final PermissionPipeline permissionPipeline;    // P0 权限闭环
     private final CommandRegistry commandRegistry;             // P1 Slash命令
     private final McpClientManager mcpClientManager;           // P1 MCP操作
     private final FileHistoryService fileHistoryService;       // P1 文件回退
     private final ProjectContextService projectContextService;  // F5 项目上下文
     private final PermissionModeManager permissionModeManager;    // P1-03 权限模式
-    private final com.aicodeassistant.coordinator.LeaderPermissionBridge leaderPermissionBridge;  // Swarm 权限冒泡
     private final CostTrackerService costTrackerService;                                          // F2 费用追踪
     private final ActivityRepository activityRepository;                                            // Activity 持久化
     private final ObjectMapper objectMapper;                                                        // JSON 序列化
@@ -123,13 +118,11 @@ public class WebSocketController implements PermissionNotifier {
                                 ModelRegistry modelRegistry,
                                 SessionManager sessionManager,
                                 ElicitationService elicitationService,
-                                PermissionPipeline permissionPipeline,
                                 CommandRegistry commandRegistry,
                                 McpClientManager mcpClientManager,
                                 FileHistoryService fileHistoryService,
                                 ProjectContextService projectContextService,
                                 PermissionModeManager permissionModeManager,
-                                @org.springframework.context.annotation.Lazy com.aicodeassistant.coordinator.LeaderPermissionBridge leaderPermissionBridge,
                                 CostTrackerService costTrackerService,
                                 ActivityRepository activityRepository,
                                 ObjectMapper objectMapper,
@@ -149,13 +142,11 @@ public class WebSocketController implements PermissionNotifier {
         this.modelRegistry = modelRegistry;
         this.sessionManager = sessionManager;
         this.elicitationService = elicitationService;
-        this.permissionPipeline = permissionPipeline;
         this.commandRegistry = commandRegistry;
         this.mcpClientManager = mcpClientManager;
         this.fileHistoryService = fileHistoryService;
         this.projectContextService = projectContextService;
         this.permissionModeManager = permissionModeManager;
-        this.leaderPermissionBridge = leaderPermissionBridge;
         this.costTrackerService = costTrackerService;
         this.activityRepository = activityRepository;
         this.objectMapper = objectMapper;
@@ -314,7 +305,7 @@ public class WebSocketController implements PermissionNotifier {
         push(request.sessionId(), type, payload);
     }
 
-    /** Retry a delivered-but-unacknowledged interaction at 1s/2s/4s. */
+    /** 对已投递但未收到 ACK 的交互按 1/2/4 秒退避重投。 */
     @Scheduled(fixedDelay = 250)
     public void redeliverUnacknowledgedInteractions() {
         if (permissionInteractions == null) return;
@@ -366,9 +357,8 @@ public class WebSocketController implements PermissionNotifier {
     public void sendPermissionRequest(String sessionId, String toolUseId,
                                        String toolName, Object input,
                                        String riskLevel, String reason) {
-        // Production wiring always supplies the durable authority. The null branch
-        // preserves the existing isolated-controller test/embedding constructor.
-        if (permissionInteractions != null) return; // InteractionCreatedEvent is the single production delivery path.
+        // 生产环境始终注入持久化权威；null 分支只保留给隔离 Controller 测试和嵌入式构造器。
+        if (permissionInteractions != null) return; // 生产环境只允许 InteractionCreatedEvent 触发投递。
         Map<String, Object> payload = new java.util.HashMap<>();
         payload.put("toolUseId", toolUseId); payload.put("toolName", toolName);
         payload.put("input", input); payload.put("riskLevel", riskLevel); payload.put("reason", reason);
@@ -1094,23 +1084,6 @@ public class WebSocketController implements PermissionNotifier {
     }
 
     /**
-     * #2b 权限冒泡响应 → /app/permission-bubble
-     * Swarm Worker 权限冒泡决策回调。
-     */
-    @MessageMapping("/permission-bubble")
-    public void handlePermissionBubbleResponse(@Payload Map<String, Object> payload,
-                                                Principal principal) {
-        String sessionId = resolveSessionId(principal);
-        String requestId = (String) payload.get("requestId");
-        boolean approved = Boolean.TRUE.equals(payload.get("approved"));
-        log.info("WS permission_bubble_response: sessionId={}, requestId={}, approved={}",
-                sessionId, requestId, approved);
-        if (requestId != null && leaderPermissionBridge != null) {
-            leaderPermissionBridge.resolvePermission(requestId, approved);
-        }
-    }
-
-    /**
      * #3 中断当前回合 → /app/interrupt
      */
     @MessageMapping("/interrupt")
@@ -1132,7 +1105,7 @@ public class WebSocketController implements PermissionNotifier {
         push(sessionId, "interrupt_ack", Map.of("reason", reason.name()));
     }
 
-    /** Transport disconnect is not a user cancellation signal. */
+    /** 传输连接断开不等于用户取消 Run。 */
     @EventListener
     public void handleWebSocketDisconnect(SessionDisconnectEvent event) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
@@ -1193,7 +1166,7 @@ public class WebSocketController implements PermissionNotifier {
      * #5 切换权限模式 → /app/permission-mode
      */
     private static final Set<String> ALLOWED_PERMISSION_MODES = Set.of(
-            "DEFAULT", "PLAN", "ACCEPT_EDITS", "DONT_ASK", "AUTO");
+            "DEFAULT", "PLAN", "ACCEPT_EDITS", "DONT_ASK");
 
     @MessageMapping("/permission-mode")
     public void handleSetPermissionMode(@Payload ClientMessage.SetPermissionModePayload payload,
@@ -1482,9 +1455,8 @@ public class WebSocketController implements PermissionNotifier {
             log.info("WS bind-session: principal={}, transport={}, sessionId={}",
                     principal.getName(), transportId, sessionId);
 
-            // Bind before taking the recovery snapshot so all later frames are
-            // captured by the client's recovery gate. Reload after binding to
-            // avoid losing a message committed between authorization and bind.
+            // 先绑定再生成恢复快照，使后续帧全部进入客户端恢复门。
+            // 绑定后重新读取会话，避免丢失授权校验与绑定之间已提交的消息。
             dataOpt = sessionManager.loadSession(sessionId);
             if (dataOpt.isEmpty()) {
                 wsSessionManager.unbindSession(transportId);
@@ -1643,7 +1615,7 @@ public class WebSocketController implements PermissionNotifier {
         }
     }
 
-    /** Preserve an auditable row when a diagnostic value is too large. */
+    /** 诊断值过大时保留可审计的有界记录。 */
     private String boundedActivityJson(Object value) throws Exception {
         if (value == null) return null;
         String full = objectMapper.writeValueAsString(value);
@@ -1657,7 +1629,7 @@ public class WebSocketController implements PermissionNotifier {
                 "originalBytes", bytes.length,
                 "sha256", hash,
                 "preview", full.substring(0, previewLength)));
-        // Defensive bound in case escaping expands the preview unexpectedly.
+        // 防御性限制：JSON 转义可能使预览长度意外增大。
         if (bounded.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > MAX_ACTIVITY_JSON_SIZE) {
             bounded = objectMapper.writeValueAsString(Map.of(
                     "truncated", true, "originalBytes", bytes.length, "sha256", hash));

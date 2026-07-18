@@ -11,7 +11,6 @@ const typeIcons: Record<string, { icon: string; color: string }> = {
     worker_complete: { icon: '✓', color: 'text-blue-500' },
     worker_error: { icon: '✗', color: 'text-red-500' },
     task_assigned: { icon: '→', color: 'text-purple-500' },
-    permission_bubble: { icon: '⚠', color: 'text-amber-500' },
     message: { icon: '●', color: 'text-zinc-400' },
 };
 

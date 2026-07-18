@@ -13,12 +13,12 @@
 
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { ShieldAlert, Info, X } from 'lucide-react';
-import type { PermissionRequest, PermissionDecision } from '@/types';
+import type { PermissionRequest, PermissionDecision, PermissionRememberScope } from '@/types';
 import { CodeBlock } from '@/components/message';
 
 interface PermissionDialogProps {
     request: PermissionRequest;
-    onDecision: (decision: PermissionDecision) => void;
+    onDecision: (decision: PermissionDecision) => Promise<void>;
 }
 
 const RISK_CONFIG = {
@@ -52,16 +52,18 @@ const DEFAULT_TIMEOUT_SECONDS = 300;
 
 const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision }) => {
     const [remember, setRemember] = useState(false);
-    const scopeOptions: ReadonlyArray<'session' | 'workspace'> =
+    const scopeOptions: ReadonlyArray<PermissionRememberScope> =
         request.scopeOptions ?? [];
     const canRemember = scopeOptions.length > 0;
-    const [scope, setScope] = useState<'session' | 'workspace'>(
+    const [scope, setScope] = useState<PermissionRememberScope>(
         scopeOptions.includes('session') ? 'session' : (scopeOptions[0] ?? 'session'));
     const initialRemaining = () => request.decisionDeadlineAt
         ? Math.max(0, Math.ceil((request.decisionDeadlineAt - Date.now()) / 1000))
         : null;
     const [remainingSeconds, setRemainingSeconds] = useState<number | null>(initialRemaining);
-    const [decided, setDecided] = useState(false);
+    const [submission, setSubmission] = useState<'idle' | 'submitting' | 'succeeded'>('idle');
+    const [submissionError, setSubmissionError] = useState<string | null>(null);
+    const decided = submission !== 'idle';
     const dialogRef = useRef<HTMLDivElement>(null);
     const riskLevel = (request.riskLevel || 'medium').toLowerCase() as keyof typeof RISK_CONFIG;
     const risk = RISK_CONFIG[riskLevel] ?? RISK_CONFIG.medium;
@@ -70,7 +72,7 @@ const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision
     // Focus trap
     useEffect(() => { dialogRef.current?.focus(); }, []);
 
-    // Format tool input for readable display
+    // 将工具输入格式化为便于用户核对的展示文本。
     const formattedInput = useMemo(() => {
         if (request.toolName === 'BashTool' || request.toolName === 'Bash') {
             return (request.input.command as string) ?? JSON.stringify(request.input, null, 2);
@@ -86,22 +88,42 @@ const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision
         return 'json';
     }, [request.toolName]);
 
+    const submit = useCallback(async (decision: PermissionDecision) => {
+        setSubmission('submitting');
+        setSubmissionError(null);
+        try {
+            await onDecision(decision);
+            setSubmission('succeeded');
+        } catch (error) {
+            setSubmission('idle');
+            setSubmissionError(error instanceof Error ? error.message : 'Permission decision failed');
+        }
+    }, [onDecision]);
+
     const handleAllow = useCallback(() => {
-        if (decided || remainingSeconds === null || remainingSeconds <= 0) return;
-        setDecided(true);
-        onDecision({
+        if (decided || remainingSeconds === null || remainingSeconds <= 0 || !request.operationHash) return;
+        const requestedScope = canRemember && remember ? scope : 'once';
+        const selected = request.options?.find(option => option.decision === 'allow' && option.scope === requestedScope);
+        if (!selected) return;
+        void submit({
             toolUseId: request.toolUseId,
             decision: 'allow',
             remember: canRemember && remember,
             ...(canRemember && remember ? { scope } : {}),
+            optionId: selected.optionId,
+            operationHash: request.operationHash,
+            deliveryGeneration: request.deliveryGeneration ?? -1,
         });
-    }, [canRemember, decided, onDecision, request.toolUseId, remember, scope, remainingSeconds]);
+    }, [canRemember, decided, request, remember, scope, remainingSeconds, submit]);
 
     const handleDeny = useCallback(() => {
-        if (decided || remainingSeconds === null || remainingSeconds <= 0) return;
-        setDecided(true);
-        onDecision({ toolUseId: request.toolUseId, decision: 'deny', remember: false });
-    }, [decided, onDecision, request.toolUseId, remainingSeconds]);
+        if (decided || remainingSeconds === null || remainingSeconds <= 0 || !request.operationHash) return;
+        const selected = request.options?.find(option => option.decision === 'deny');
+        if (!selected) return;
+        void submit({ toolUseId: request.toolUseId, decision: 'deny', remember: false,
+            optionId: selected.optionId, operationHash: request.operationHash,
+            deliveryGeneration: request.deliveryGeneration ?? -1 });
+    }, [decided, request, remainingSeconds, submit]);
 
     // Keyboard shortcuts: Y=allow, N=deny, Escape=deny
     useEffect(() => {
@@ -119,16 +141,17 @@ const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision
 
     // Reset all internal state when request changes (dialog reopens)
     useEffect(() => {
-        setDecided(false);
+        setSubmission('idle');
+        setSubmissionError(null);
         setRemainingSeconds(request.decisionDeadlineAt
             ? Math.max(0, Math.ceil((request.decisionDeadlineAt - Date.now()) / 1000))
             : null);
         setRemember(false);
-        setScope('session');
-    }, [request.toolUseId, request.decisionDeadlineAt]);
+        const nextScopes = request.scopeOptions ?? [];
+        setScope(nextScopes.includes('session') ? 'session' : (nextScopes[0] ?? 'session'));
+    }, [request.toolUseId, request.decisionDeadlineAt, request.scopeOptions]);
 
-    // Recompute from the absolute server deadline. Browser timer throttling must
-    // never extend the user's decision window.
+    // 始终根据服务端绝对截止时间重新计算，浏览器定时器节流不能延长决策窗口。
     useEffect(() => {
         const timer = setInterval(() => {
             setRemainingSeconds(request.decisionDeadlineAt
@@ -138,7 +161,7 @@ const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision
         return () => clearInterval(timer);
     }, [request.toolUseId, request.decisionDeadlineAt]);
 
-    // The countdown is display-only. The server is the sole timeout authority.
+    // 倒计时只用于展示，服务端是超时终态的唯一裁决权威。
 
     const deadlineConfirmed = remainingSeconds !== null;
     const expired = deadlineConfirmed && remainingSeconds <= 0;
@@ -163,7 +186,7 @@ const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision
                     <div className="flex-1">
                         <div id="permission-title" className="font-semibold text-sm text-gray-200 flex items-center gap-2">
                             {request.toolName}
-                            {request.source === 'subagent' && (
+                            {(request.actorType === 'descendant' || request.source === 'descendant' || request.source === 'subagent') && (
                                 <span className="inline-block text-xs px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400">
                                     Sub-Agent
                                 </span>
@@ -173,11 +196,11 @@ const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision
                             <span className={`inline-block text-xs px-1.5 py-0.5 rounded ${risk.badge}`}>
                                 {risk.label}
                             </span>
-                            {request.source === 'subagent' && request.childSessionId && (
+                            {(request.actorType === 'descendant' || request.source === 'descendant' || request.source === 'subagent') && request.actorRunId && (
                                 <span className="text-xs text-gray-500">
-                                    Forwarded from: {request.childSessionId.length > 12
-                                        ? `${request.childSessionId.slice(0, 12)}…`
-                                        : request.childSessionId}
+                                    Agent run: {request.actorRunId.length > 12
+                                        ? `${request.actorRunId.slice(0, 12)}…`
+                                        : request.actorRunId}
                                 </span>
                             )}
                         </div>
@@ -232,6 +255,11 @@ const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision
 
                 {/* Actions */}
                 <div className="px-5 py-3 border-t border-gray-700/50 space-y-3">
+                    {submissionError && (
+                        <div role="alert" className="text-xs text-red-400">
+                            {submissionError}. You can retry while the request is pending.
+                        </div>
+                    )}
                     {/* Remember option */}
                     {canRemember && <label className="flex items-center gap-2 text-xs text-gray-400">
                         <input
@@ -250,7 +278,8 @@ const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision
                                 className="ml-2 text-xs rounded border border-gray-600 bg-gray-800
                                            text-gray-300 px-1.5 py-0.5"
                             >
-                                {scopeOptions.includes('session') && <option value="session">This session</option>}
+                                {scopeOptions.includes('run') && <option value="run">Only this agent/run</option>}
+                                {scopeOptions.includes('session') && <option value="session">This session and child agents</option>}
                                 {scopeOptions.includes('workspace') && <option value="workspace">This workspace</option>}
                             </select>
                         )}
@@ -272,7 +301,7 @@ const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision
                             className={`px-4 py-2 rounded-lg text-sm text-white transition-colors
                                 ${risk.btnClass}`}
                         >
-                            Allow (Y)
+                            {submission === 'submitting' ? 'Submitting…' : 'Allow (Y)'}
                         </button>
                     </div>
                 </div>

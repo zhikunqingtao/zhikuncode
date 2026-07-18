@@ -105,15 +105,6 @@ class PowerShellToolGoldenTest {
         }
 
         @Test
-        @DisplayName("toAutoClassifierInput 包含命令")
-        void autoClassifierInput() {
-            String result = tool.toAutoClassifierInput(
-                    ToolInput.from(Map.of("command", "Get-Process")));
-            assertTrue(result.contains("PowerShell"));
-            assertTrue(result.contains("Get-Process"));
-        }
-
-        @Test
         @DisplayName("输入 Schema 包含 command 和 timeout")
         void inputSchemaFields() {
             Map<String, Object> schema = tool.getInputSchema();

@@ -1,6 +1,5 @@
 package com.aicodeassistant.tool.repl;
 
-import com.aicodeassistant.model.PermissionBehavior;
 import com.aicodeassistant.tool.*;
 import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
@@ -168,13 +167,6 @@ public class REPLTool implements Tool {
     @Override
     public String getGroup() {
         return "bash";
-    }
-
-    @Override
-    public String toAutoClassifierInput(ToolInput input) {
-        String language = input.getString("language", "python");
-        String code = input.getString("code", "");
-        return String.format("REPL(%s): %s", language, code);
     }
 
     @PreDestroy

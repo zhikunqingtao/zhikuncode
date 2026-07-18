@@ -30,7 +30,6 @@ public class SwarmController {
 
     private final SwarmService swarmService;
     private final FeatureFlagService featureFlags;
-    private final LeaderPermissionBridge permissionBridge;
     private final AnomalyEventRepository anomalyEventRepository;
     private final WebSocketSessionManager webSocketSessionManager;
 
@@ -39,12 +38,10 @@ public class SwarmController {
 
     public SwarmController(SwarmService swarmService,
                             FeatureFlagService featureFlags,
-                            LeaderPermissionBridge permissionBridge,
                             AnomalyEventRepository anomalyEventRepository,
                             WebSocketSessionManager webSocketSessionManager) {
         this.swarmService = swarmService;
         this.featureFlags = featureFlags;
-        this.permissionBridge = permissionBridge;
         this.anomalyEventRepository = anomalyEventRepository;
         this.webSocketSessionManager = webSocketSessionManager;
     }
@@ -278,22 +275,4 @@ public class SwarmController {
                 "Worker aborted: " + (request.reason() != null ? request.reason() : "no reason")));
     }
 
-    /**
-     * 处理权限冒泡决策（前端 → 后端）。
-     * POST /api/swarm/permission/{requestId}
-     * Body: { "approved": true/false }
-     */
-    @PostMapping("/permission/{requestId}")
-    public ResponseEntity<?> resolvePermission(
-            @PathVariable String requestId,
-            @RequestBody Map<String, Object> body) {
-        if (!featureFlags.isEnabled("ENABLE_AGENT_SWARMS")) {
-            return ResponseEntity.status(403)
-                    .body(Map.of("error", "Agent Swarms feature is disabled"));
-        }
-
-        boolean approved = Boolean.TRUE.equals(body.get("approved"));
-        permissionBridge.resolvePermission(requestId, approved);
-        return ResponseEntity.ok(Map.of("requestId", requestId, "decision", approved ? "allow" : "deny"));
-    }
 }

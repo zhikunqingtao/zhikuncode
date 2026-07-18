@@ -238,15 +238,6 @@ class REPLToolGoldenTest {
         }
 
         @Test
-        @DisplayName("toAutoClassifierInput 包含语言和代码")
-        void autoClassifierInput() {
-            String result = tool.toAutoClassifierInput(
-                    ToolInput.from(Map.of("language", "python", "code", "print(1)")));
-            assertTrue(result.contains("python"));
-            assertTrue(result.contains("print(1)"));
-        }
-
-        @Test
         @DisplayName("输入 Schema 包含 language, code, sessionId")
         void inputSchemaFields() {
             Map<String, Object> schema = tool.getInputSchema();

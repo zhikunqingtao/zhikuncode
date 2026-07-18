@@ -1,6 +1,5 @@
 package com.aicodeassistant.tool.notebook;
 
-import com.aicodeassistant.model.PermissionBehavior;
 import com.aicodeassistant.tool.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,7 +41,7 @@ public class NotebookEditTool implements Tool {
 
     private static final Logger log = LoggerFactory.getLogger(NotebookEditTool.class);
 
-    /** Retained public constant for the notebook golden contract. Atomic writes no longer wait on a separate lock. */
+    /** 为 Notebook 黄金契约保留的公开常量；原子写入不再等待独立锁。 */
     static final int LOCK_TIMEOUT_SECONDS = 5;
     private static final long MAX_NOTEBOOK_BYTES = 100L * 1024 * 1024;
 

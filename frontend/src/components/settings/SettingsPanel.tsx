@@ -82,7 +82,7 @@ function ModelPicker() {
     { id: 'qwen3.7-plus', name: 'Qwen 3.7 Plus', description: '均衡性能' },
     { id: 'deepseek-v4-pro', name: 'DeepSeek V4 Pro', description: '深度推理' },
     { id: 'deepseek-v4-flash', name: 'DeepSeek V4 Flash', description: '快速响应' },
-    { id: 'kimi-k2.6', name: 'Kimi K2.6', description: '长文本理解' },
+    { id: 'kimi-k3', name: 'Kimi K3', description: '长文本理解' },
     { id: 'kimi-k2.7-code', name: 'Kimi K2.7 Code', description: '长文本理解' },
     { id: 'moonshot-v1-128k', name: 'Moonshot V1 128K', description: '128K上下文' },
     { id: 'glm-5.2', name: 'GLM-5.2', description: '智谱最新' },
@@ -120,7 +120,6 @@ function PermissionModePicker() {
     { id: 'plan', name: 'Plan', description: 'Read-only operations auto-allowed' },
     { id: 'accept_edits', name: 'Accept Edits', description: 'File edits auto-allowed' },
     { id: 'dont_ask', name: "Don't Ask", description: 'No prompts, write operations auto-denied' },
-    { id: 'auto', name: 'Auto', description: 'LLM classifier decides permissions' },
   ];
 
   const handleChange = (mode: PermissionMode) => {

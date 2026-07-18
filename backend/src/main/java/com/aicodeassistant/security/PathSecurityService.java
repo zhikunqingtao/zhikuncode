@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
 /**
  * 统一路径安全验证服务
  * <p>
- * 供 FileReadTool、FileEditTool、PermissionPipeline 共用，确保安全策略一致。
+ * 供文件工具与统一 Authorization Gateway 共用，确保分析和执行前复检策略一致。
  * 硬编码敏感路径黑名单，不可通过配置修改（安全设计）。
  *
  * @see PathValidator

@@ -2,11 +2,17 @@ package com.aicodeassistant.tool;
 
 import com.aicodeassistant.hook.HookRegistry;
 import com.aicodeassistant.hook.HookService;
+import com.aicodeassistant.authorization.AuthorizationException;
+import com.aicodeassistant.authorization.AuthorizationService;
+import com.aicodeassistant.authorization.AuthorizedOperation;
+import com.aicodeassistant.authorization.FrozenToolInput;
+import com.aicodeassistant.authorization.FrozenToolInputFactory;
+import com.aicodeassistant.authorization.ToolExecutionGateway;
+import com.aicodeassistant.authorization.ToolExecutionGateway.AdmissionException;
+import com.aicodeassistant.authorization.PreparedOperation;
 import com.aicodeassistant.model.*;
-import com.aicodeassistant.permission.PermissionModeManager;
+import com.aicodeassistant.interaction.DurableInteractionService.InteractionOperationException;
 import com.aicodeassistant.permission.PermissionNotifier;
-import com.aicodeassistant.permission.PermissionPipeline;
-import com.aicodeassistant.permission.PermissionRuleRepository;
 import com.aicodeassistant.run.RunTracker;
 import com.aicodeassistant.artifact.ArtifactManifestService;
 import com.aicodeassistant.security.SensitiveDataFilter;
@@ -28,30 +34,21 @@ import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Duration;
-import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 /**
- * 工具执行管线 — 7 阶段执行流程。
+ * 工具执行的唯一入口。
  * <p>
- * 阶段 1: Schema 输入验证
- * 阶段 1.5: JSON Schema 结构化验证
- * 阶段 2: 工具自定义验证
- * 阶段 2.5: 输入预处理 (backfill)
- * 阶段 3: PreToolUse 钩子
- * 阶段 4: 权限检查
- * 阶段 5: 工具调用
- * 阶段 6: 结果处理 + PostToolUse 钩子
- * 阶段 7: contextModifier 提取与应用
- *
+ * 输入依次经过 Schema/工具验证、backfill、可修改输入的前置钩子和二次验证；
+ * 之后冻结输入、生成操作描述、执行只可收紧的安全钩子，并通过授权网关完成最终复检与调用。
+ * 结果再经过展示钩子、敏感数据过滤和持久化后返回。
  */
 @Component
 public class ToolExecutionPipeline {
@@ -60,48 +57,37 @@ public class ToolExecutionPipeline {
 
     private final HookService hookService;
     private final ObjectMapper objectMapper;
-    private final PermissionPipeline permissionPipeline;
-    private final PermissionRuleRepository permissionRuleRepository;
     private final SensitiveDataFilter sensitiveDataFilter;
-    private final PermissionModeManager permissionModeManager;
+    private final FrozenToolInputFactory frozenInputs;
+    private final AuthorizationService authorizationService;
+    private final ToolExecutionGateway gateway;
     private final ToolRecoveryFramework recoveryFramework;
     @Nullable
     private final RunTracker runTracker;
     @Nullable private final ArtifactManifestService artifactManifestService;
 
-    public ToolExecutionPipeline(HookService hookService, ObjectMapper objectMapper,
-                                  PermissionPipeline permissionPipeline,
-                                  PermissionRuleRepository permissionRuleRepository,
-                                  SensitiveDataFilter sensitiveDataFilter,
-                                  PermissionModeManager permissionModeManager,
-                                  ToolRecoveryFramework recoveryFramework,
-                                  @Lazy @Nullable RunTracker runTracker) {
-        this(hookService, objectMapper, permissionPipeline, permissionRuleRepository,
-                sensitiveDataFilter, permissionModeManager, recoveryFramework, runTracker, null);
-    }
-
     @Autowired
     public ToolExecutionPipeline(HookService hookService, ObjectMapper objectMapper,
-                                  PermissionPipeline permissionPipeline,
-                                  PermissionRuleRepository permissionRuleRepository,
                                   SensitiveDataFilter sensitiveDataFilter,
-                                  PermissionModeManager permissionModeManager,
+                                  FrozenToolInputFactory frozenInputs,
+                                  AuthorizationService authorizationService,
+                                  ToolExecutionGateway gateway,
                                   ToolRecoveryFramework recoveryFramework,
                                   @Lazy @Nullable RunTracker runTracker,
                                   @Lazy @Nullable ArtifactManifestService artifactManifestService) {
         this.hookService = hookService;
         this.objectMapper = objectMapper;
-        this.permissionPipeline = permissionPipeline;
-        this.permissionRuleRepository = permissionRuleRepository;
         this.sensitiveDataFilter = sensitiveDataFilter;
-        this.permissionModeManager = permissionModeManager;
+        this.frozenInputs = frozenInputs;
+        this.authorizationService = authorizationService;
+        this.gateway = gateway;
         this.recoveryFramework = recoveryFramework;
         this.runTracker = runTracker;
         this.artifactManifestService = artifactManifestService;
     }
 
     /**
-     * 执行工具 — 完整 7 阶段管线。
+     * 执行工具完整管线。
      *
      * @param tool    工具实例
      * @param input   工具输入
@@ -115,7 +101,7 @@ public class ToolExecutionPipeline {
     }
 
     /**
-     * 执行工具 — 完整 7 阶段管线。
+     * 执行工具完整管线。
      *
      * @param tool    工具实例
      * @param input   工具输入
@@ -126,9 +112,6 @@ public class ToolExecutionPipeline {
         return doExecute(tool, input, context, null, 1);
     }
 
-    /** 最大自动重试次数 */
-    private static final int MAX_RETRY_ATTEMPTS = 3;
-
     private ToolExecutionResult doExecute(Tool tool, ToolInput input, ToolUseContext context,
                                   PermissionNotifier wsPusher, int attemptCount) {
         // 回退: 若调用方未传 wsPusher，从 context 中获取
@@ -136,6 +119,7 @@ public class ToolExecutionPipeline {
                 ? wsPusher : context.permissionNotifier();
         String toolName = tool.getName();
         long startTime = System.currentTimeMillis();
+        FrozenToolInput frozen = null;
 
         try {
             // ── 阶段 1: Schema 输入验证 ──
@@ -185,130 +169,50 @@ public class ToolExecutionPipeline {
                         objectMapper.readValue(hookResult.modifiedInput(), java.util.Map.class);
                     processedInput = ToolInput.from(modified);
                 } catch (Exception e) {
-                    log.warn("Failed to parse modified input from hook, using original: {}",
-                            e.getMessage());
+                    log.warn("Input-transform hook returned invalid JSON: tool={}", toolName, e);
+                    return ToolExecutionResult.of(ToolResult.validationError(
+                            "HOOK_INPUT_INVALID", "Input-transform hook returned invalid JSON: " + e.getMessage()));
                 }
             }
 
-            // ── 阶段 4: 权限检查 ──
-            PermissionRequirement permReq = tool.getPermissionRequirement();
-            log.debug("Permission stage: tool={}, requirement={}, sessionId={}", toolName, permReq, context.sessionId());
-            if (permReq != PermissionRequirement.NONE) {
-                // 构建权限上下文 — 从 PermissionModeManager 获取会话级模式
-                PermissionMode sessionMode = permissionModeManager.getMode(context.sessionId());
-                PermissionContext permContext = permissionRuleRepository.buildContext(
-                        sessionMode, false, false);
-                PermissionDecision decision = permissionPipeline.checkPermission(
-                        tool, processedInput, context, permContext);
-                log.debug("Permission decision: tool={}, behavior={}, reason={}",
-                        toolName, decision.behavior(), decision.reason());
-
-                if (decision.isDenied()) {
-                    log.info("Tool {} permission denied: {}", toolName, decision.reason());
-                    // 通知前端清除已显示的 changedFiles
-                    if (effectivePusher != null && context.sessionId() != null) {
-                        String denyToolUseId = context.toolUseId() != null ? context.toolUseId() : toolName;
-                        effectivePusher.sendToolPermissionDenied(context.sessionId(), denyToolUseId, toolName);
-                    }
-                    return ToolExecutionResult.of(ToolResult.permissionDenied(
-                            "PERMISSION_POLICY_DENIED", "Permission denied: " + decision.reason()));
-                }
-
-                if (decision.behavior() == PermissionBehavior.ASK) {
-                    log.info("[PERM-BUBBLE] ASK decision: tool={}, bubble={}, parentSessionId={}, "
-                            + "sessionId={}, reason={}", toolName, decision.bubble(),
-                            context.parentSessionId(), context.sessionId(), decision.reason());
-
-                    // 冒泡判定：parentSessionId 存在即为子代理会话，无条件冒泡
-                    boolean shouldBubble = context.parentSessionId() != null;
-
-                    if (shouldBubble) {
-                        log.info("Forwarding permission to parent session: tool={}, parentSession={}, "
-                                + "originalBubble={}", toolName, context.parentSessionId(), decision.bubble());
-                        ToolExecutionResult bubbleResult = forwardPermissionToParent(
-                                tool, processedInput, decision.withBubble(true), context, effectivePusher);
-                        if (bubbleResult != null) {
-                            return bubbleResult; // 拒绝或错误
-                        }
-                        // null 表示父代理已批准，继续执行工具
-                    } else {
-                    // 兜底：如果 parentSessionId 为 null 但 bubble 标记为 true，属于异常状态
-                    if (decision.bubble()) {
-                        log.error("[BUG] decision.bubble()=true but parentSessionId is null! "
-                                + "tool={}, sessionId={}", toolName, context.sessionId());
-                    }
-                    if (effectivePusher == null || context.sessionId() == null) {
-                        log.warn("Tool {} requires permission but no WebSocket pusher available, denying. "
-                                + "sessionId={}, contextNotifier={}, wsPusherParam={}",
-                                toolName, context.sessionId(),
-                        context.permissionNotifier() != null ? context.permissionNotifier().getClass().getSimpleName() : "null",
-                                wsPusher != null ? wsPusher.getClass().getSimpleName() : "null");
-                        return ToolExecutionResult.of(ToolResult.permissionDenied(
-                                "PERMISSION_PROMPT_UNAVAILABLE", "Permission required but cannot prompt user. "
-                                + "This typically occurs in REST API mode \u2014 use WebSocket for interactive permission prompts."));
-                    }
-                    // 异步等待用户决策（在 VirtualThread 上 join() 不会阻塞平台线程）
-                    String toolUseId = context.toolUseId() != null ? context.toolUseId() : toolName;
-                    PermissionDecision userDecision = permissionPipeline.requestPermission(
-                            toolUseId, tool, processedInput,
-                            decision.reason() != null ? decision.reason() : "Tool requires permission",
-                            effectivePusher, context.sessionId(),
-                            context.currentRunId(),
-                            null, context.workingDirectory()
-                    ).join();
-
-                    if (!userDecision.isAllowed()) {
-                        String failureCode = permissionFailureCode(userDecision.reasonType());
-                        log.info("Tool {} permission interaction ended: code={}", toolName, failureCode);
-                        // ★ V4: Deny + Remember 也需要记住拒绝决策
-                        if (userDecision.remember()) {
-                            String denyProjectKey = context != null ? context.workingDirectory() : null;
-                            permissionPipeline.rememberDecision(
-                                    tool, processedInput,
-                                    false,  // denied
-                                    userDecision.rememberScope() != null ? userDecision.rememberScope() : PermissionScope.SESSION,
-                                    denyProjectKey, context.sessionId(), context.currentRunId(), toolUseId);
-                        }
-                        effectivePusher.sendToolPermissionDenied(context.sessionId(), toolUseId, toolName);
-                        return ToolExecutionResult.of(ToolResult.permissionDenied(
-                                failureCode, userDecision.reason() == null
-                                        ? "Permission interaction did not allow execution" : userDecision.reason()));
-                    }
-
-                    if (userDecision.remember()) {
-                        String allowProjectKey = context != null ? context.workingDirectory() : null;
-                        permissionPipeline.rememberDecision(tool, processedInput,
-                                true, userDecision.rememberScope() != null
-                                        ? userDecision.rememberScope() : PermissionScope.SESSION, allowProjectKey,
-                                context.sessionId(), context.currentRunId(), toolUseId);
-                    }
-                    } // end else (non-bubble path)
-                }
+            // 输入转换钩子不属于可信输入源，必须重新执行完整 Schema 和工具校验。
+            validateSchema(tool, processedInput.getRawData());
+            ValidationResult transformedValidation = tool.validateInput(processedInput, context);
+            if (!transformedValidation.isValid()) {
+                return ToolExecutionResult.of(ToolResult.validationError(
+                        transformedValidation.errorCode() == null ? "TOOL_INPUT_INVALID" : transformedValidation.errorCode(),
+                        "Transformed input validation failed: " + transformedValidation.errorMessage()));
             }
+
+            // ── 阶段 4: 冻结输入并进入单一授权权威 ──
+            frozen = frozenInputs.freeze(toolName, processedInput);
+            processedInput = frozen.toToolInput(objectMapper);
+            PreparedOperation prepared = authorizationService.prepare(tool, frozen, processedInput, context);
+            HookRegistry.HookResult securityHook = hookService.executeSecurityConstraints(
+                    toolName, frozen.canonicalJson(), context.sessionId(), Map.of(
+                            "operationHash", prepared.descriptor().operationHash(),
+                            "risk", prepared.descriptor().risk().name(),
+                            "effects", prepared.descriptor().effects()));
+            if (!securityHook.proceed()) {
+                log.info("Security hook denied tool execution: tool={}, runId={}",
+                        toolName, context.currentRunId());
+                log.debug("Security hook denial detail: tool={}, reason={}",
+                        toolName, securityHook.message());
+                return ToolExecutionResult.of(ToolResult.permissionDenied("TOOL_BLOCKED_BY_SECURITY_HOOK",
+                        "Tool execution blocked by security hook: " + securityHook.message()));
+            }
+            AuthorizedOperation authorized = authorizationService.authorizePrepared(
+                    tool, frozen, processedInput, context, prepared);
 
             // ── 阶段 5: 工具调用 ──
             log.debug("Executing tool: {} (stage 5: call)", toolName);
 
-            // ★ RunTracker: 记录 tool_call 事件
+            // 授权诊断和 tool_started 由 AuthorizationService/Gateway 统一记录。
             String currentRunId = context.currentRunId();
-            if (currentRunId != null && runTracker != null) {
-                try {
-                    Map<String, Object> toolCallPayload = new HashMap<>();
-                    toolCallPayload.put("toolName", toolName);
-                    toolCallPayload.put("toolUseId", context.toolUseId() != null ? context.toolUseId() : "");
-                    String inputFilePath = extractFilePathFromInput(processedInput);
-                    if (inputFilePath != null) {
-                        toolCallPayload.put("filePath", inputFilePath);
-                    }
-                    runTracker.recordEvent(currentRunId, "tool_call", toolCallPayload);
-                } catch (Exception e) {
-                    log.warn("Failed to record tool_call event: {}", e.getMessage());
-                }
-            }
 
             List<DeclaredOutput> declaredOutputs;
             try {
-                declaredOutputs = declareOutputs(toolName, processedInput, context);
+                declaredOutputs = planOutputs(toolName, processedInput, context);
             } catch (Exception declarationError) {
                 log.warn("Artifact pre-declaration rejected: tool={}, error={}", toolName,
                         declarationError.getMessage());
@@ -318,16 +222,21 @@ public class ToolExecutionPipeline {
                         ToolResult.EffectState.NOT_STARTED, null, Map.of()));
             }
 
-            ToolResult result = tool.call(processedInput, context);
+            ToolResult result = gateway.execute(tool, authorized, context,
+                    () -> {
+                        try {
+                            declareOutputsInCurrentTransaction(declaredOutputs, toolName, context);
+                        } catch (RuntimeException admissionFailure) {
+                            throw new AdmissionException("ARTIFACT_DECLARATION_FAILED", admissionFailure);
+                        }
+                    });
 
-            // A tool may report an operational error after its file effect has already
-            // been committed (for example, a post-move verification failure).  The
-            // artifact still has to be sealed so that the database reflects the real
-            // workspace state and the model is not encouraged to repeat the write.
+            // 工具可能在文件副作用已提交后才报告错误（例如原子移动后的校验失败）。此时仍需封存产物，
+            // 让数据库反映真实工作区状态，并避免模型因“假失败”重复写入。
             if ((!result.isError() || result.effectState() == ToolResult.EffectState.APPLIED)
                     && artifactManifestService != null && context.currentRunId() != null) {
                 for (DeclaredOutput output : declaredOutputs) {
-                    if ("deleted".equals(output.operation())) continue; // sealed from the pre-delete bytes
+                    if ("deleted".equals(output.operation())) continue; // 已根据删除前字节完成封存。
                     try {
                         artifactManifestService.sealFromFile(context.currentRunId(), output.path(),
                                 context.workingDirectory());
@@ -341,43 +250,6 @@ public class ToolExecutionPipeline {
                                 Map.of("filePath", output.path()));
                         break;
                     }
-                }
-            }
-
-            // ★ RunTracker: 记录 tool_result 事件
-            if (currentRunId != null && runTracker != null) {
-                try {
-                    Map<String, Object> toolResultPayload = new HashMap<>();
-                    toolResultPayload.put("toolName", toolName);
-                    toolResultPayload.put("toolUseId", context.toolUseId() != null ? context.toolUseId() : "");
-                    toolResultPayload.put("isError", result.isError());
-                    toolResultPayload.put("schemaVersion", 2);
-                    toolResultPayload.put("executionStatus", result.executionStatus().name().toLowerCase());
-                    if (result.failureCode() != null) toolResultPayload.put("failureCode", result.failureCode());
-                    toolResultPayload.put("effectState", result.effectState().name().toLowerCase());
-                    toolResultPayload.put("retryability", result.retryability().name().toLowerCase());
-                    toolResultPayload.put("outputPreview", result.outputPreview());
-                    toolResultPayload.put("outputTruncated", result.outputTruncated());
-                    String resultFilePath = extractFilePathFromInput(processedInput);
-                    if (resultFilePath != null) {
-                        toolResultPayload.put("filePath", resultFilePath);
-                    }
-                    runTracker.recordEvent(currentRunId, "tool_result", toolResultPayload);
-                    if (result.executionStatus() == ToolResult.ExecutionStatus.TIMED_OUT) {
-                        runTracker.recordEvent(currentRunId, "process_timed_out", Map.of(
-                                "toolName", toolName,
-                                "toolUseId", context.toolUseId() == null ? "" : context.toolUseId(),
-                                "failureCode", result.failureCode() == null ? "PROCESS_DEADLINE_EXCEEDED" : result.failureCode(),
-                                "terminationConfirmed", result.metadata().getOrDefault("terminationConfirmed", false)));
-                    } else if (result.executionStatus() == ToolResult.ExecutionStatus.CANCELLED) {
-                        runTracker.recordEvent(currentRunId, "process_cancelled", Map.of(
-                                "toolName", toolName,
-                                "toolUseId", context.toolUseId() == null ? "" : context.toolUseId(),
-                                "failureCode", result.failureCode() == null ? "PROCESS_CANCELLED" : result.failureCode(),
-                                "effectState", result.effectState().name().toLowerCase()));
-                    }
-                } catch (Exception e) {
-                    log.warn("Failed to record tool_result event: {}", e.getMessage());
                 }
             }
 
@@ -426,6 +298,9 @@ public class ToolExecutionPipeline {
                 result = result.withContent(truncated, true);
             }
 
+            // 只持久化最终返回给模型和用户的映射、展示处理、脱敏及截断后结果。
+            recordToolResult(currentRunId, toolName, processedInput, context, result);
+
             // ── 阶段 7: contextModifier 提取与应用 ──
             var modifier = result.getContextModifier();
             ToolUseContext updatedContext = null;
@@ -436,6 +311,44 @@ public class ToolExecutionPipeline {
 
             return ToolExecutionResult.of(result.toSerializable(), updatedContext);
 
+        } catch (AuthorizationException denied) {
+            log.info("Tool {} authorization ended: code={}", toolName, denied.code());
+            if (effectivePusher != null && context.sessionId() != null) {
+                effectivePusher.sendToolPermissionDenied(context.sessionId(),
+                        context.toolUseId() == null ? toolName : context.toolUseId(), toolName);
+            }
+            return ToolExecutionResult.of(ToolResult.permissionDenied(denied.code(), denied.getMessage()));
+        } catch (AdmissionException admissionFailure) {
+            log.warn("Tool admission rejected: tool={}, runId={}, toolUseId={}, code={}",
+                    toolName, context.currentRunId(), context.toolUseId(), admissionFailure.code());
+            log.debug("Tool admission rejection detail: tool={}", toolName, admissionFailure);
+            return ToolExecutionResult.of(ToolResult.failed(
+                    ToolResult.ToolFailureType.VALIDATION, admissionFailure.code(),
+                    "Tool admission failed before execution: " + admissionFailure.getCause().getMessage(),
+                    ToolResult.Retryability.NEVER, ToolResult.EffectState.NOT_STARTED, null, Map.of()));
+        } catch (com.aicodeassistant.config.database.SqliteConfig.DatabaseWriteUnavailableException unavailable) {
+            log.warn("Authorization database unavailable: tool={}, runId={}, toolUseId={}, code={}",
+                    toolName, context.currentRunId(), context.toolUseId(), unavailable.code());
+            ToolResult.Retryability retryability = tool.isReadOnly(input)
+                    ? ToolResult.Retryability.SAFE_READ_ONLY
+                    : ToolResult.Retryability.IDEMPOTENCY_REQUIRED;
+            return ToolExecutionResult.of(ToolResult.failed(
+                    ToolResult.ToolFailureType.INTERNAL, unavailable.code(),
+                    "Authorization state is temporarily unavailable",
+                    retryability, ToolResult.EffectState.NOT_STARTED,
+                    null, Map.of()));
+        } catch (InteractionOperationException interactionFailure) {
+            log.error("Permission interaction operation failed: tool={}, runId={}, toolUseId={}, code={}",
+                    toolName, context.currentRunId(), context.toolUseId(), interactionFailure.code(),
+                    interactionFailure);
+            boolean invalidPayload = "INTERACTION_PAYLOAD_INVALID".equals(interactionFailure.code());
+            return ToolExecutionResult.of(ToolResult.failed(
+                    invalidPayload ? ToolResult.ToolFailureType.VALIDATION : ToolResult.ToolFailureType.INTERNAL,
+                    interactionFailure.code(), invalidPayload
+                            ? "Permission interaction payload is invalid"
+                            : "Permission interaction could not be persisted",
+                    ToolResult.Retryability.NEVER, ToolResult.EffectState.NOT_STARTED,
+                    null, Map.of()));
         } catch (ToolInputValidationException e) {
             log.warn("Tool {} input validation error: {}", toolName, e.getMessage());
             return ToolExecutionResult.of(ToolResult.validationError("INVALID_TOOL_INPUT", e.getMessage()));
@@ -455,6 +368,8 @@ public class ToolExecutionPipeline {
             }
 
             return ToolExecutionResult.of(failedResult);
+        } finally {
+            if (frozen != null) frozen.close();
         }
     }
 
@@ -519,6 +434,41 @@ public class ToolExecutionPipeline {
         return result.exitCode() == null ? -1 : result.exitCode();
     }
 
+    private void recordToolResult(String runId, String toolName, ToolInput processedInput,
+                                  ToolUseContext context, ToolResult result) {
+        if (runId == null || runTracker == null) return;
+        try {
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("toolName", toolName);
+            payload.put("toolUseId", context.toolUseId() != null ? context.toolUseId() : "");
+            payload.put("isError", result.isError());
+            payload.put("schemaVersion", 2);
+            payload.put("executionStatus", result.executionStatus().name().toLowerCase());
+            if (result.failureCode() != null) payload.put("failureCode", result.failureCode());
+            payload.put("effectState", result.effectState().name().toLowerCase());
+            payload.put("retryability", result.retryability().name().toLowerCase());
+            payload.put("outputPreview", result.outputPreview());
+            payload.put("outputTruncated", result.outputTruncated());
+            String filePath = extractFilePathFromInput(processedInput);
+            if (filePath != null) payload.put("filePath", filePath);
+            runTracker.recordEvent(runId, "tool_result", payload);
+            if (result.executionStatus() == ToolResult.ExecutionStatus.TIMED_OUT) {
+                runTracker.recordEvent(runId, "process_timed_out", Map.of(
+                        "toolName", toolName, "toolUseId", context.toolUseId() == null ? "" : context.toolUseId(),
+                        "failureCode", result.failureCode() == null ? "PROCESS_DEADLINE_EXCEEDED" : result.failureCode(),
+                        "terminationConfirmed", result.metadata().getOrDefault("terminationConfirmed", false)));
+            } else if (result.executionStatus() == ToolResult.ExecutionStatus.CANCELLED) {
+                runTracker.recordEvent(runId, "process_cancelled", Map.of(
+                        "toolName", toolName, "toolUseId", context.toolUseId() == null ? "" : context.toolUseId(),
+                        "failureCode", result.failureCode() == null ? "PROCESS_CANCELLED" : result.failureCode(),
+                        "effectState", result.effectState().name().toLowerCase()));
+            }
+        } catch (Exception failure) {
+            log.warn("Failed to record tool_result event: tool={}, runId={}, toolUseId={}",
+                    toolName, runId, context.toolUseId(), failure);
+        }
+    }
+
     /**
      * 针对 Bash 工具错误结果尝试恢复。
      *
@@ -548,19 +498,10 @@ public class ToolExecutionPipeline {
 
             RecoveryDecision decision = recovery.get();
 
-            // RETRY_SAME：自动重试（带指数退避延迟）
-            if (decision.action() == RecoveryAction.RETRY_SAME && errorResult.isRetryable()
-                    && attemptCount < MAX_RETRY_ATTEMPTS) {
-                long delayMs = calculateRetryDelay(attemptCount);
-                log.info("[Recovery] Bash tool retry #{} after {}ms delay (exitCode={}, hint={})",
-                        attemptCount + 1, delayMs, exitCode, decision.hintForLlm());
-                try {
-                    Thread.sleep(delayMs);
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt();
-                    return ToolExecutionResult.of(errorResult);
-                }
-                return doExecute(tool, input, context, wsPusher, attemptCount + 1);
+            // 管线无法证明递归重试时钩子、Shell 状态和动态授权事实未变化，因此仅返回恢复提示，
+            // 由模型发起新的 toolUseId 并重新完成验证与授权。
+            if (decision.action() == RecoveryAction.RETRY_SAME && errorResult.isRetryable()) {
+                return enrichErrorWithHint(errorResult, decision);
             }
 
             // 非重试决策或已达上限 → 附加 hint 信息返回给 LLM
@@ -578,86 +519,6 @@ public class ToolExecutionPipeline {
         String hint = decision.hintForLlm() != null ? decision.hintForLlm() : "";
         String enrichedContent = errorResult.content() + "\n\n[Recovery Hint] " + hint;
         return ToolExecutionResult.of(errorResult.withContent(enrichedContent, false));
-    }
-
-    /**
-     * 计算重试延迟（指数退避）：1s, 2s, 4s...
-     */
-    private long calculateRetryDelay(int attemptCount) {
-        return 1000L * (1L << (attemptCount - 1));
-    }
-
-    /**
-     * 将权限请求冒泡转发给父代理的前端界面。
-     *
-     * @return null 表示父代理已批准（继续执行工具）；非 null 表示拒绝或错误
-     */
-    private ToolExecutionResult forwardPermissionToParent(
-            Tool tool, ToolInput processedInput, PermissionDecision decision,
-            ToolUseContext context, PermissionNotifier wsPusher) {
-        try {
-            String toolUseId = context.toolUseId() != null ? context.toolUseId() : tool.getName();
-            // 通过子代理专用接口转发权限请求，携带 source 和 childSessionId 信息
-            String childSessionId = context.sessionId();
-            String reason = String.format("[From Sub-Agent] %s",
-                    decision.reason() != null ? decision.reason() : "Tool requires permission");
-
-            // The same durable interaction path is used for direct and bubbled requests.
-            PermissionDecision result = permissionPipeline.requestPermission(
-                    toolUseId, tool, processedInput, reason, wsPusher,
-                    context.parentSessionId(), context.currentRunId(), childSessionId,
-                    context.workingDirectory()).join();
-
-            if (!result.isAllowed()) {
-                log.info("Parent agent denied permission for tool={}", tool.getName());
-                // ★ V4: Deny + Remember 也需要记住拒绝决策
-                if (result.remember()) {
-                    String denyProjectKey = context != null ? context.workingDirectory() : null;
-                    permissionPipeline.rememberDecision(
-                            tool, processedInput,
-                            false,  // denied
-                            result.rememberScope() != null ? result.rememberScope() : PermissionScope.SESSION,
-                            denyProjectKey, context.sessionId(), context.currentRunId(), toolUseId);
-                }
-                // 通知前端（父会话）清除已显示的 changedFiles
-                if (wsPusher != null) {
-                    String targetSessionId = context.parentSessionId() != null
-                            ? context.parentSessionId()
-                            : context.sessionId();
-                    if (targetSessionId != null) {
-                        String denyToolUseId = context.toolUseId() != null
-                                ? context.toolUseId()
-                                : tool.getName();
-                        wsPusher.sendToolPermissionDenied(
-                                targetSessionId, denyToolUseId, tool.getName());
-                    }
-                }
-                return ToolExecutionResult.of(ToolResult.permissionDenied(
-                        "PERMISSION_PARENT_DENIED", "Permission denied by parent agent"));
-            }
-
-            // 记忆规则
-            if (result.remember()) {
-                permissionPipeline.rememberChildDecision(tool, processedInput, true, context, toolUseId);
-            }
-
-            return null; // null 表示继续执行工具
-        } catch (Exception e) {
-            log.error("Failed to forward permission to parent: {}", e.getMessage(), e);
-            return ToolExecutionResult.of(ToolResult.internalError("PERMISSION_FORWARDING_FAILED",
-                    "Permission forwarding failed: " + e.getMessage(), ToolResult.EffectState.NOT_STARTED));
-        }
-    }
-
-    private static String permissionFailureCode(com.aicodeassistant.model.PermissionDecisionReason reason) {
-        if (reason == null) return "PERMISSION_DENIED";
-        return switch (reason) {
-            case USER_DENIED -> "PERMISSION_USER_DENIED";
-            case INTERACTION_EXPIRED -> "PERMISSION_EXPIRED";
-            case INTERACTION_UNDELIVERABLE -> "PERMISSION_UNDELIVERABLE";
-            case INTERACTION_CANCELLED -> "PERMISSION_CANCELLED";
-            default -> "PERMISSION_DENIED";
-        };
     }
 
     /**
@@ -684,11 +545,12 @@ public class ToolExecutionPipeline {
         return null;
     }
 
-    private record DeclaredOutput(String path, String operation) {}
+    private record DeclaredOutput(String path, String operation, String validator,
+                                  String deleteSealHash) {}
 
     @SuppressWarnings("unchecked")
-    private List<DeclaredOutput> declareOutputs(String toolName, ToolInput input,
-                                                ToolUseContext context) throws Exception {
+    private List<DeclaredOutput> planOutputs(String toolName, ToolInput input,
+                                             ToolUseContext context) throws Exception {
         if (artifactManifestService == null || context.currentRunId() == null) return List.of();
         List<Map<String,Object>> declarations = new ArrayList<>();
         if (Set.of("Write", "Edit", "FileWrite", "FileEdit", "NotebookEdit").contains(toolName)) {
@@ -724,24 +586,44 @@ public class ToolExecutionPipeline {
         List<DeclaredOutput> result = new ArrayList<>();
         for (Map<String,Object> declaration : declarations) {
             String path=String.valueOf(declaration.get("path"));
-            String operation=String.valueOf(declaration.get("operation"));
+            String operation=ArtifactManifestService.normalizeOperation(
+                    String.valueOf(declaration.get("operation")));
             String validator=String.valueOf(declaration.get("requiredValidatorId"));
-            var entry=artifactManifestService.declare(context.currentRunId(),context.sessionId(),
-                    context.toolUseId()==null?toolName:context.toolUseId(),path,operation,validator,
-                    context.workingDirectory());
-            if("deleted".equals(entry.operation())) {
-                artifactManifestService.sealFromFile(context.currentRunId(),path,context.workingDirectory());
+            String deleteSealHash = null;
+            if ("deleted".equals(operation)) {
+                ArtifactManifestService.DeleteSeal seal = artifactManifestService.prepareDeleteSeal(
+                        path, context.workingDirectory());
+                path = seal.canonicalPath();
+                deleteSealHash = seal.sha256();
             }
-            result.add(new DeclaredOutput(path,entry.operation()));
+            result.add(new DeclaredOutput(path, operation, validator, deleteSealHash));
         }
         return List.copyOf(result);
+    }
+
+    private void declareOutputsInCurrentTransaction(List<DeclaredOutput> outputs, String toolName,
+                                                    ToolUseContext context) {
+        if (artifactManifestService == null) return;
+        for (DeclaredOutput output : outputs) {
+            var entry = artifactManifestService.declareInCurrentTransaction(context.currentRunId(),
+                    context.sessionId(), context.toolUseId() == null ? toolName : context.toolUseId(),
+                    output.path(), output.operation(), output.validator(), context.workingDirectory());
+            if ("deleted".equals(entry.operation())) {
+                try {
+                    artifactManifestService.sealDeleteInCurrentTransaction(context.currentRunId(),
+                            output.path(), output.deleteSealHash(), context.workingDirectory());
+                } catch (Exception failure) {
+                    throw new IllegalStateException("ARTIFACT_DELETE_SEAL_FAILED", failure);
+                }
+            }
+        }
     }
 
     /**
      * JSON Schema 结构化验证 — 管线阶段 1.5。
      * <p>
      * 使用 networknt json-schema-validator 对工具输入进行结构化验证。
-     * 降级策略：Schema 验证过程本身出异常时（如 Schema 格式错误），仅 warn 日志不阻断执行。
+     * Schema 定义或验证器本身异常时 fail-closed，防止未验证输入进入授权和执行阶段。
      *
      * @param tool  工具实例
      * @param input 工具输入参数
@@ -772,8 +654,9 @@ public class ToolExecutionPipeline {
         } catch (ToolInputValidationException e) {
             throw e; // 验证失败直接上抛
         } catch (Exception e) {
-            log.warn("Schema validation error for tool {} (degraded, continuing): {}",
-                    tool.getName(), e.getMessage());
+            log.error("Schema validation infrastructure failed: tool={}", tool.getName(), e);
+            throw new ToolInputValidationException(
+                    "Schema validation could not be completed for tool " + tool.getName(), e);
         }
     }
 }

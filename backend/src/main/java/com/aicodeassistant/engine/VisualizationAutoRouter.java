@@ -5,6 +5,7 @@ import com.aicodeassistant.model.Message;
 import com.aicodeassistant.tool.ToolInput;
 import com.aicodeassistant.tool.ToolResult;
 import com.aicodeassistant.tool.ToolUseContext;
+import com.aicodeassistant.tool.StreamingToolExecutor;
 import com.aicodeassistant.tool.impl.VisualizationTool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,14 +36,17 @@ public class VisualizationAutoRouter {
     private final VisualizationIntentClassifier classifier;
     private final VisualizationTool visualizationTool;
     private final boolean autoRoutingEnabled;
+    private final StreamingToolExecutor toolExecutor;
 
     public VisualizationAutoRouter(
             VisualizationIntentClassifier classifier,
             VisualizationTool visualizationTool,
+            StreamingToolExecutor toolExecutor,
             @Value("${visualization.auto-routing.enabled:false}") boolean autoRoutingEnabled
     ) {
         this.classifier = classifier;
         this.visualizationTool = visualizationTool;
+        this.toolExecutor = toolExecutor;
         this.autoRoutingEnabled = autoRoutingEnabled;
     }
 
@@ -69,10 +73,11 @@ public class VisualizationAutoRouter {
             Map<String, Object> toolInput = new LinkedHashMap<>();
             toolInput.put("viewType", hint.viewType());
             toolInput.put("props", hint.params() != null ? hint.params() : Map.of());
-            ToolUseContext ctx = ToolUseContext.of(
-                    state.getToolUseContext() != null ? state.getToolUseContext().workingDirectory() : null,
-                    sessionId);
-            ToolResult result = visualizationTool.call(ToolInput.from(toolInput), ctx);
+            ToolUseContext base = state.getToolUseContext();
+            if (base == null || base.currentRunId() == null) return;
+            ToolUseContext ctx = base.withToolUseId("visualization-auto-" + java.util.UUID.randomUUID());
+            ToolResult result = toolExecutor.executeDetached(visualizationTool, ToolInput.from(toolInput),
+                    ctx.toolUseId(), ctx).result();
             if (result != null && result.isError()) {
                 log.debug("VisualizationAutoRouter tool returned error: {}", result.content());
             }

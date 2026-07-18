@@ -16,8 +16,6 @@ import com.aicodeassistant.hook.HookService;
 import com.aicodeassistant.llm.*;
 import com.aicodeassistant.model.*;
 import com.aicodeassistant.config.FeatureFlagService;
-import com.aicodeassistant.permission.PermissionPipeline;
-import com.aicodeassistant.permission.PermissionRuleRepository;
 import com.aicodeassistant.tool.*;
 import com.aicodeassistant.tool.agent.BackgroundAgentTracker;
 import com.aicodeassistant.run.RunEnvelope;
@@ -68,8 +66,6 @@ public class QueryEngine {
     private final LlmProviderRegistry providerRegistry;
     private final CompactService compactService;
     private final ApiRetryService apiRetryService;
-    private final PermissionPipeline permissionPipeline;
-    private final PermissionRuleRepository permissionRuleRepository;
     private final TokenCounter tokenCounter;
     private final ObjectMapper objectMapper;
     private final StreamingToolExecutor streamingToolExecutor;
@@ -122,8 +118,6 @@ public class QueryEngine {
     public QueryEngine(LlmProviderRegistry providerRegistry,
                        CompactService compactService,
                        ApiRetryService apiRetryService,
-                       PermissionPipeline permissionPipeline,
-                       PermissionRuleRepository permissionRuleRepository,
                        TokenCounter tokenCounter,
                        ObjectMapper objectMapper,
                        StreamingToolExecutor streamingToolExecutor,
@@ -153,8 +147,6 @@ public class QueryEngine {
         this.providerRegistry = providerRegistry;
         this.compactService = compactService;
         this.apiRetryService = apiRetryService;
-        this.permissionPipeline = permissionPipeline;
-        this.permissionRuleRepository = permissionRuleRepository;
         this.tokenCounter = tokenCounter;
         this.objectMapper = objectMapper;
         this.streamingToolExecutor = streamingToolExecutor;
@@ -522,9 +514,10 @@ public class QueryEngine {
             int currentTokens = tokenCounter.estimateTokens(state.getMessages(), effectiveModel);
             int remainingBudget = inputBudget - currentTokens;
             String workingDir = state.getToolUseContext() != null ? state.getToolUseContext().workingDirectory() : null;
+            int modelMaxImages = modelRegistry.getCapabilities(effectiveModel).maxImages();
             ImageRefInjector.InjectResult injectResult = imageRefInjector.injectForApiCall(
                 state.getMessages(), runStartIndex, remainingBudget, confirmedImageHashes,
-                rejectedImageBudgets, workingDir);
+                rejectedImageBudgets, workingDir, modelMaxImages);
             // Optional/mocked injectors used by extensions may return null. Image
             // injection is an optimization and must never break the query loop.
             if (injectResult == null) {
@@ -827,25 +820,9 @@ public class QueryEngine {
                             sortedBlocks.stream().map(ContentBlock.ToolUseBlock::name).toList());
                 }
 
-                List<Message> toolResults = consumeToolResults(session, handler, aborted, toolUseBlocks);
+                List<Message> toolResults = consumeToolResults(
+                        session, handler, aborted, toolUseBlocks, tracker);
                 state.addMessages(toolResults);
-
-                // ★ 工具调用追踪：记录每次工具执行结果
-                for (Message toolResultMsg : toolResults) {
-                    if (toolResultMsg instanceof Message.UserMessage um && um.content() != null) {
-                        for (ContentBlock block : um.content()) {
-                            if (block instanceof ContentBlock.ToolResultBlock trb) {
-                                // 找到对应的 toolUseBlock 以获取工具名
-                                String toolName = toolUseBlocks.stream()
-                                        .filter(tb -> tb.id().equals(trb.toolUseId()))
-                                        .map(ContentBlock.ToolUseBlock::name)
-                                        .findFirst().orElse("unknown");
-                                tracker.record(toolName, !trb.isError(),
-                                        trb.isError() ? trb.content() : null);
-                            }
-                        }
-                    }
-                }
 
                 // ★ 新增：获取工具执行后更新的 context（contextModifier 传播）
                 ToolUseContext updatedContext = session.getCurrentContext();
@@ -1327,7 +1304,8 @@ public class QueryEngine {
             StreamingToolExecutor.ExecutionSession session,
             QueryMessageHandler handler,
             AtomicBoolean aborted,
-            List<ContentBlock.ToolUseBlock> toolUseBlocks) {
+            List<ContentBlock.ToolUseBlock> toolUseBlocks,
+            ToolCallTracker tracker) {
         List<Message> results = new ArrayList<>();
 
         // ★ Watchdog：基于 session 中最长工具声明超时的 watchdogMultiplier 倍
@@ -1373,6 +1351,7 @@ public class QueryEngine {
 
             List<StreamingToolExecutor.TrackedTool> yielded = session.yieldCompleted();
             for (StreamingToolExecutor.TrackedTool tt : yielded) {
+                tracker.record(toolName(toolUseBlocks, tt.getToolUseId()), tt.getResult());
                 ContentBlock.ToolResultBlock resultBlock = new ContentBlock.ToolResultBlock(
                         tt.getToolUseId(), tt.getResult().content(), tt.getResult().isError());
                 handler.onToolResult(tt.getToolUseId(), resultBlock);
@@ -1387,6 +1366,7 @@ public class QueryEngine {
 
         // 最终一次 yield
         for (StreamingToolExecutor.TrackedTool tt : session.yieldCompleted()) {
+            tracker.record(toolName(toolUseBlocks, tt.getToolUseId()), tt.getResult());
             ContentBlock.ToolResultBlock resultBlock = new ContentBlock.ToolResultBlock(
                     tt.getToolUseId(), tt.getResult().content(), tt.getResult().isError());
             handler.onToolResult(tt.getToolUseId(), resultBlock);
@@ -1406,6 +1386,7 @@ public class QueryEngine {
                 log.warn("Generating synthetic error for orphaned tool_use: id={}, name={}",
                         block.id(), block.name());
                 session.notifySyntheticError();
+                tracker.record(block.name(), false, "TOOL_EXECUTOR_CONTRACT_VIOLATED");
                 ContentBlock.ToolResultBlock synthetic = new ContentBlock.ToolResultBlock(
                         block.id(),
                         "<tool_use_error>Tool execution did not complete: "
@@ -1417,6 +1398,11 @@ public class QueryEngine {
         }
 
         return results;
+    }
+
+    private static String toolName(List<ContentBlock.ToolUseBlock> blocks, String toolUseId) {
+        return blocks.stream().filter(block -> block.id().equals(toolUseId))
+                .map(ContentBlock.ToolUseBlock::name).findFirst().orElse("unknown");
     }
 
     /**

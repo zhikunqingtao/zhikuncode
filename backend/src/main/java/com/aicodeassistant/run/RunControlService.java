@@ -21,6 +21,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import java.nio.file.Path;
 import java.time.Instant;
+import java.time.Duration;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.HexFormat;
@@ -28,7 +29,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Single database authority for Run state transitions and event sequencing. */
+/** Run 状态转换和事件序号的单一数据库权威。 */
 @Service
 @DependsOn("migrationRunner")
 public class RunControlService {
@@ -54,7 +55,7 @@ public class RunControlService {
         this.sensitiveDataFilter = sensitiveDataFilter;
     }
 
-    /** Isolated test/source compatibility constructor. */
+    /** 仅供隔离单元测试使用的构造器。 */
     public RunControlService(JdbcTemplate jdbc, SqliteConfig sqliteConfig, DatabaseResolver resolver,
                              PlatformTransactionManager txManager, ObjectMapper objectMapper) {
         this(jdbc, sqliteConfig, resolver, txManager, objectMapper, null);
@@ -63,6 +64,19 @@ public class RunControlService {
     public RunEnvelope start(String sessionId, String parentRunId, String agentType, String model) {
         RunEnvelope run = RunEnvelope.start(sessionId, parentRunId, agentType, model);
         write(() -> {
+            if (parentRunId == null) {
+                Integer sessions = jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM sessions WHERE id=?", Integer.class, sessionId);
+                if (sessions == null || sessions != 1) {
+                    throw new IllegalArgumentException("RUN_ROOT_SESSION_NOT_FOUND");
+                }
+            } else {
+                Integer parents = jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM run_envelopes WHERE id=?", Integer.class, parentRunId);
+                if (parents == null || parents != 1) {
+                    throw new IllegalArgumentException("RUN_PARENT_NOT_FOUND");
+                }
+            }
             jdbc.update("""
                     INSERT INTO run_envelopes
                     (id,session_id,parent_run_id,status,version,agent_type,model,started_at,
@@ -84,8 +98,18 @@ public class RunControlService {
                 null, null, reason, null, null, 0, 0.0, 0);
     }
 
+    public TransitionResult markWaitingInCurrentWrite(String runId, String reason) {
+        return transitionInCurrentWrite(runId, List.of("running"), RunEnvelope.RunStatus.WAITING_INTERACTION,
+                null, null, reason, null, null, 0, 0.0, 0);
+    }
+
     public TransitionResult markRunning(String runId) {
         return transition(runId, List.of("waiting_interaction"), RunEnvelope.RunStatus.RUNNING,
+                null, null, null, null, null, 0, 0.0, 0);
+    }
+
+    public TransitionResult markRunningInCurrentWrite(String runId) {
+        return transitionInCurrentWrite(runId, List.of("waiting_interaction"), RunEnvelope.RunStatus.RUNNING,
                 null, null, null, null, null, 0, 0.0, 0);
     }
 
@@ -122,6 +146,17 @@ public class RunControlService {
         return write(() -> appendEventInCurrentWrite(runId, type, toolUseId, data));
     }
 
+    public RunEvent appendEventBounded(String runId, String type, String toolUseId, Object data) {
+        return sqliteConfig.executeWriteBounded(dbPath, Duration.ofSeconds(5),
+                () -> transaction.execute(status -> appendEventInCurrentWrite(runId, type, toolUseId, data)));
+    }
+
+    /** 授权网关的短临界区；只允许有界元数据检查，严禁执行工具、文件副作用或网络操作。 */
+    public <T> T executeBoundedWrite(java.util.function.Supplier<T> operation) {
+        return sqliteConfig.executeWriteBounded(dbPath, Duration.ofSeconds(5),
+                () -> transaction.execute(status -> operation.get()));
+    }
+
     public TransitionResult setVerification(String runId, RunEnvelope.VerificationStatus expected,
                                             RunEnvelope.VerificationStatus target, String detail) {
         return write(() -> {
@@ -146,7 +181,16 @@ public class RunControlService {
                                         RunEnvelope.RunExitReason requestedReason,
                                         String waitingReason, String abortReason, String error,
                                         int tokens, double cost, int turns) {
-        return write(() -> {
+        return write(() -> transitionInCurrentWrite(runId, expected, target, exitReason, requestedReason,
+                waitingReason, abortReason, error, tokens, cost, turns));
+    }
+
+    private TransitionResult transitionInCurrentWrite(String runId, List<String> expected,
+                                        RunEnvelope.RunStatus target,
+                                        RunEnvelope.RunExitReason exitReason,
+                                        RunEnvelope.RunExitReason requestedReason,
+                                        String waitingReason, String abortReason, String error,
+                                        int tokens, double cost, int turns) {
             List<Map<String, Object>> rows = jdbc.queryForList(
                     "SELECT status,version FROM run_envelopes WHERE id=?", runId);
             if (rows.isEmpty()) return TransitionResult.NOT_FOUND;
@@ -172,22 +216,21 @@ public class RunControlService {
                     now.toString(), runId, version);
             if (updated != 1) return TransitionResult.VERSION_CONFLICT;
             if (terminal) {
-                // ChildExactGrant lifetime is bounded by the parent Run. Keeping
-                // this in the same project transaction avoids an authority gap.
+                // RUN 授权属于根 Run；子 Run 进入终态时不得撤销根 Run 的授权。
                 jdbc.update("UPDATE permission_grants SET expires_at=COALESCE(expires_at,?), revoked_at=COALESCE(revoked_at,?) " +
-                                "WHERE grant_kind='CHILD_EXACT' AND parent_run_id=? AND revoked_at IS NULL",
-                        now.toString(), now.toString(), runId);
+                                "WHERE scope='RUN' AND root_run_id=? AND revoked_at IS NULL " +
+                                "AND EXISTS(SELECT 1 FROM run_envelopes r WHERE r.id=? AND r.parent_run_id IS NULL)",
+                        now.toString(), now.toString(), runId, runId);
             }
             appendEventInCurrentWrite(runId, "run_status_changed", null, Map.of(
                     "from", current, "to", target.dbValue(),
                     "exitReason", value(db(exitReason))));
             return TransitionResult.APPLIED;
-        });
     }
 
     /**
-     * Appends an event inside a caller-owned project-database write lock/transaction.
-     * Only project-database authority services may use this; controllers must call appendEvent().
+     * 在调用方已持有的项目库写锁和事务中追加事件。
+     * 仅项目数据库权威服务可调用；Controller 必须使用 appendEvent()。
      */
     public RunEvent appendEventInCurrentWrite(String runId, String type, String toolUseId, Object data) {
         Integer max = jdbc.queryForObject("SELECT COALESCE(MAX(seq),0) FROM run_event_log WHERE run_id=?",

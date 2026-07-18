@@ -18,6 +18,9 @@ import java.util.function.Function;
 @Component
 public class HookRegistry {
 
+    /** 钩子能力边界；角色决定失败策略以及是否允许修改输入。 */
+    public enum HookRole { INPUT_TRANSFORM, SECURITY_CONSTRAINT, PRESENTATION }
+
     private static final Logger log = LoggerFactory.getLogger(HookRegistry.class);
 
     /** 已注册的钩子 (按事件类型分组) */
@@ -31,13 +34,21 @@ public class HookRegistry {
      * @param priority 优先级（数值越小越先执行）
      * @param handler  处理函数
      * @param source   钩子来源标识
+     * @param role     钩子能力角色，用于确定失败策略与输入修改权限
      */
     public void register(HookEvent event, String matcher, int priority,
-                         Function<HookContext, HookResult> handler, String source) {
-        HookRegistration registration = new HookRegistration(event, matcher, priority, handler, source);
+                         Function<HookContext, HookResult> handler, String source, HookRole role) {
+        Objects.requireNonNull(role, "Hook role is required");
+        if (event == HookEvent.PRE_TOOL_USE && role == HookRole.PRESENTATION) {
+            throw new IllegalArgumentException("Presentation hooks cannot run before tool execution");
+        }
+        if (event == HookEvent.POST_TOOL_USE && role != HookRole.PRESENTATION) {
+            throw new IllegalArgumentException("Post-tool hooks must be presentation-only");
+        }
+        HookRegistration registration = new HookRegistration(event, matcher, priority, handler, source, role);
         hooks.computeIfAbsent(event, k -> new CopyOnWriteArrayList<>()).add(registration);
-        log.debug("Hook registered: event={}, matcher={}, priority={}, source={}",
-                event, matcher, priority, source);
+        log.debug("Hook registered: event={}, matcher={}, priority={}, source={}, role={}",
+                event, matcher, priority, source, role);
     }
 
     /**
@@ -84,7 +95,8 @@ public class HookRegistry {
             String matcher,
             int priority,
             Function<HookContext, HookResult> handler,
-            String source
+            String source,
+            HookRole role
     ) {}
 
     /**

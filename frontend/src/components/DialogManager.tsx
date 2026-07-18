@@ -13,9 +13,11 @@ import { usePermissionStore } from '@/store/permissionStore';
 import { useActivityStore } from '@/store/activityStore';
 import { useAppUiStore } from '@/store/appUiStore';
 import { useSessionStore } from '@/store/sessionStore';
+import { useNotificationStore } from '@/store/notificationStore';
 import PermissionDialog from '@/components/permission/PermissionDialog';
 import { ElicitationDialog } from '@/components/dialog/ElicitationDialog';
 import { SettingsPanel } from '@/components/dialog/SettingsPanel';
+import { recoverPendingInteractions } from '@/api/dispatch';
 
 export const DialogManager: React.FC = () => {
     const { activeDialog, closeDialog } = useDialogStore();
@@ -30,28 +32,54 @@ export const DialogManager: React.FC = () => {
         response?: unknown,
         remember = false,
         scope = 'session',
+        optionId?: string,
+        operationHash?: string,
+        deliveryGeneration?: number,
     ) => {
         const sessionId = useSessionStore.getState().sessionId;
         if (!sessionId) throw new Error('SESSION_NOT_BOUND');
         const result = await fetch(`/api/interactions/${encodeURIComponent(interactionId)}/decisions`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-Session-Id': sessionId },
-            body: JSON.stringify({ expectedVersion, decision, response, remember, scope }),
+            body: JSON.stringify({ expectedVersion, decision, response, remember, scope, optionId, operationHash, deliveryGeneration }),
         });
-        if (!result.ok) throw new Error(`INTERACTION_DECISION_FAILED_${result.status}`);
+        if (!result.ok) {
+            const payload = await result.json().catch(() => ({})) as { code?: string };
+            const failure = new Error(payload.code ?? `INTERACTION_DECISION_FAILED_${result.status}`);
+            Object.assign(failure, { status: result.status });
+            throw failure;
+        }
     }, []);
 
-    // Business decisions use REST; WebSocket is only notification/received-ACK transport.
-    const handlePermissionDecision = React.useCallback(async (decision: { toolUseId: string; decision: 'allow' | 'deny'; remember?: boolean; scope?: string }) => {
+    // 业务裁决通过 REST 提交；WebSocket 只负责通知和“已收到”ACK。
+    const handlePermissionDecision = React.useCallback(async (decision: { toolUseId: string; decision: 'allow' | 'deny'; remember?: boolean; scope?: string; optionId: string; operationHash: string; deliveryGeneration: number }) => {
         const request = usePermissionStore.getState().pendingPermissions
             .find(item => item.toolUseId === decision.toolUseId);
         if (!request?.interactionId || request.version === undefined) return;
         try {
             await submitDecision(request.interactionId, request.version, decision.decision,
-                undefined, decision.remember, decision.scope);
+                undefined, decision.remember, decision.scope, decision.optionId, decision.operationHash,
+                decision.deliveryGeneration);
         } catch (error) {
             console.error('[Interaction] Permission decision failed:', error);
-            return;
+            if (error instanceof Error && error.message === 'PERMISSION_PROTOCOL_MISMATCH') {
+                usePermissionStore.getState().removeInteraction(request.interactionId);
+                useNotificationStore.getState().addNotification({
+                    key: `permission-upgrade-${request.interactionId}`,
+                    level: 'warning',
+                    message: '客户端版本已更新，请刷新页面后重试。',
+                    priority: 'high',
+                    timeout: 0,
+                });
+            }
+            if (error instanceof Error && (error as Error & { status?: number }).status === 409) {
+                const sessionId = useSessionStore.getState().sessionId;
+                if (sessionId) {
+                    usePermissionStore.getState().removeInteraction(request.interactionId);
+                    await recoverPendingInteractions(sessionId);
+                }
+            }
+            throw error;
         }
         respondPermission(decision, request.interactionId);
         if (usePermissionStore.getState().pendingPermissions.length === 0) {

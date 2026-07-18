@@ -36,7 +36,7 @@
 > **deploy it to a server, open a browser, and start coding. Works on your phone too.**
 
 > 🏗️ **[View Full System Architecture →](https://zhikunqingtao.github.io/zhikuncode/ZhikunCode-Architecture.html)**  
-> Three-tier Separation · 758 Files · 115,879 Lines of Code · Java Backend 79,639 + TypeScript Frontend 28,394 + Python Service 7,846 · Full Visualization
+> Java Agent Runtime · React Browser Control Plane · Python Capability Service · Full Visualization
 
 > 🏆 **[SWE-bench Lite Technical Report →](https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html)**  
 > Submission namespace `20260525_zhikuncode` · Official harness Resolve **168 / 300 (56.0%)** · Patch generation 284 / 300 (94.7%)
@@ -49,18 +49,18 @@
 |---|---|---|
 | 🌐 | **Full Browser-Based Control** | Deploy once, then manage everything from any device's browser — permission approvals, plan discussions, task management. Works on mobile. No client installation needed |
 | 🤖 | **Multi-Agent Collaboration** | Three collaboration modes: Team (fixed roles) / Swarm (dynamic negotiation) / SubAgent (parent-child delegation). Complex tasks are automatically distributed |
-| 🔒 | **Defense-in-Depth Security** | 8-layer Bash sandbox (error classification + output truncation + process tree mgmt) + 14-step permission pipeline (PermissionPipeline 817 lines, Step 1a-1k pre-security checks + Step 2a-2b mode application + Step 3 final decision) + 308 security test coverage (including 19 new CWE-22 depth-defense unit tests in v9.3). Every command must pass security checks before execution |
+| 🔒 | **Unified Authorization Security** | Every core tool passes through the Tool Gateway: canonical input freezing → Operation Analyzer risk/resource analysis → system invariants → RUN/SESSION/WORKSPACE grant matching or durable permission interaction → final dynamic recheck → structured result auditing. High-risk operations are ONCE-only, and unknown MCP/dynamic tools default to one-time approval |
 | 🇨🇳 | **Native Chinese LLM Support** | Qwen / DeepSeek / Moonshot / Zhipu GLM / MiniMax work out of the box with direct connections from mainland China — no VPN required |
 | 🐳 | **One-Command Docker Deployment** | `docker compose up -d` — one command to start. Data stays local, fully private |
-| ⚡ | **Intelligent Context Management** | Six-layer compression cascade (Snip / MicroCompact / ContextCollapse / AutoCompact / CollapseDrain / ReactiveCompact) + incremental collapse (auto-compress every 10 turns) + 413 two-phase recovery (CollapseDrain aggressive compression → ReactiveCompact) + Precise Token Counting (tiktoken multi-model support) + Self-Correction Loop (SelfCorrectionLoop, auto-diagnose compile/test failures, max 3 retries) + three-level token alerts + image context governance (large image externalization → on-demand injection → budget guard three-layer protection) for seamless ultra-long conversations. Core Engines: ContextCascade (348 lines, 6-layer compression) + QueryEngine (1,583 lines, multi-step iteration loop) |
-| 📷 | **Multimodal Image Chat** | Upload images for AI analysis; **Intelligent Vision Routing** — when the selected model lacks image input support, the system auto-routes to a vision-capable model from the same provider (with global fallback) and reverts to the original model after image processing. **Image Budget Guard** — large images (>50KB) are auto-externalized to lightweight JSON references, injected on-demand before API calls; two-phase token budget guard prevents multi-image conversations from accumulating beyond limits (≤1.5MB per image, ≤2MB total, max 5 concurrent injections). Supported models: gpt-5.6-sol / gpt-5.4-mini / claude-sonnet-4-6 / claude-opus-4-8 / qwen3.7-plus / kimi-k2.6 / kimi-k2.7-code / glm-5v-turbo / MiniMax-M3 / openai/gpt-5.6-sol / google/gemini-3.5-flash (max 5MB per image, image count limit varies by model) |
+| ⚡ | **Intelligent Context Management** | Six-layer compression cascade (Snip / MicroCompact / ContextCollapse / AutoCompact / CollapseDrain / ReactiveCompact) + incremental collapse (auto-compress every 10 turns) + 413 two-phase recovery (CollapseDrain aggressive compression → ReactiveCompact) + Precise Token Counting (tiktoken multi-model support) + Self-Correction Loop (SelfCorrectionLoop, auto-diagnose compile/test failures, max 3 retries) + three-level token alerts + image context governance (large image externalization → on-demand injection → budget guard three-layer protection) for seamless ultra-long conversations. The core engines are ContextCascade and QueryEngine |
+| 📷 | **Multimodal Image Chat** | Upload images for AI analysis; **Intelligent Vision Routing** — when the selected model lacks image input support, the system auto-routes to a vision-capable model from the same provider (with global fallback) and reverts to the original model after image processing. **Image Budget Guard** — large images (>50KB) are auto-externalized to lightweight JSON references, injected on-demand before API calls; two-phase token budget guard prevents multi-image conversations from accumulating beyond limits (≤1.5MB per image, ≤2MB total, max 5 concurrent injections). Supported models: gpt-5.6-sol / gpt-5.4-mini / claude-sonnet-4-6 / claude-opus-4-8 / qwen3.7-plus / kimi-k3 / kimi-k2.7-code / glm-5v-turbo / MiniMax-M3 / openai/gpt-5.6-sol / google/gemini-3.5-flash (max 5MB per image, image count limit varies by model) |
 | 🖼️ | **Browser Semantic Snapshot** | `/snap` command captures full web page state (DOM structure + interactive elements), extracts structured JSON for Agent parsing and replay verification |
 | 📊 | **Real-Time Activity Tracking & Approval** | Activity Panel records full AI tool execution lifecycle, L1/L2/L3 three-layer display, Signal smart tagging (auto_approve/review_recommended/needs_review), one-click batch approval, SQLite backend persistence, session restoration support |
 | 🧪 | **Runtime Verification Framework** | VerifierFactory tri-modal dispatch (browser/http_api/auto) + 8 HTTP action handlers + JSONPath assertions + evidence chain SQLite storage + Feature Flag dual-gating + frontend real-time progress panel |
 | 📦 | **Evidence Bundle Visualization (RV-4)** | Tabbed viewer for 7 evidence types (screenshots / commands / console / tests / network HAR / videos / diffs); on verification failure, a STOMP `verify_attention` notification triggers a mobile bottom-sheet for one-tap approve/reject. Backed by `/api/evidence/*` REST endpoints (bundle by id, list by session, binary blob by SHA-256) |
 | 🏆 | **SWE-bench Lite Submission** | Single backbone `qwen3.7-max` + closed six-tool set (Read/Edit/Write/Bash/Grep/Glob); no internet, no sub-agent. Official harness reports **Resolve 56.0% (168/300)** and Patch generation **94.7% (284/300)**. [Technical Report →](https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html) |
 | 🚀 | **Extreme Performance** | REST API p50 1.5ms · WS STOMP handshake 2.22ms · 490 real request samples verified, core engines are zero-external-dependency pure Java implementations |
-| 🏭 | **Runtime Reliability** | Run state CAS atomic management · Durable Interaction Inbox (no message loss on disconnect) · Process hard timeout + graceful termination cascade · Permission Grant persistence (SESSION/WORKSPACE) · Artifact declare→seal→hash verification · Provider local budget guard |
+| 🏭 | **Runtime Reliability** | Run state CAS atomic management · Durable Interaction Inbox (reconnect recovery) · Process hard timeout + graceful termination cascade · Scoped grants with controlled sub-agent inheritance · Artifact declare→seal→hash verification · Provider local budget guard |
 
 ---
 
@@ -178,6 +178,8 @@ cd frontend && npm install && npm run dev
 
 > **RV-1 Runtime Verification Dependencies**: `jsonpath-ng` (JSONPath assertion engine), `httpx` (async HTTP client), already included in `python-service/requirements.txt`.
 
+> **Permission Data Note:** The current authorization architecture uses V015 durable interactions and V019 constrained grants as its database authority and does not read legacy permission tables. Recreate the project database for development upgrades and approve operations again under the current version.
+
 ### Supported LLM Providers
 
 ZhikunCode supports **multi-Provider simultaneous configuration** (recommended) and single-Provider mode. In multi-Provider mode, you can freely switch models from the frontend:
@@ -214,7 +216,7 @@ If no multi-Provider keys are configured, the system automatically falls back to
 |----------|----------|-------------------|-------|
 | **Qwen / DashScope** | `https://dashscope.aliyuncs.com/compatible-mode/v1` | qwen3.7-max | **Default**, direct connection in China |
 | **DeepSeek** | `https://api.deepseek.com/v1` | deepseek-v4-pro | Direct connection in China |
-| **Moonshot (Kimi)** | `https://api.moonshot.cn/v1` | kimi-k2.6 / kimi-k2.7-code | Direct connection; image support |
+| **Moonshot (Kimi)** | `https://api.moonshot.cn/v1` | kimi-k3 / kimi-k2.7-code | Direct connection; kimi-k3 features 1M context window and native vision |
 | **Zhipu (GLM)** | `https://open.bigmodel.cn/api/paas/v4/chat/completions` | glm-5.2, glm-5v-turbo | China direct access |
 | **MiniMax** | `https://api.minimax.chat/v1` | MiniMax-M3 | 1M context window |
 | **ZenMux (Multi-Model Gateway)** | `https://zenmux.ai/api/v1` | anthropic/claude-opus-4.8 / claude-fable-5 / openai/gpt-5.6-sol / google/gemini-3.5-flash | 1M context · Image support |
@@ -321,8 +323,8 @@ ZhikunCode has completed an end-to-end SWE-bench Lite evaluation (300 instances,
 | Security Feature | ZhikunCode | Aider | Cline | Claude Code |
 |-----------------|:---:|:---:|:---:|:---:|
 | Command Sandbox | 8-layer checks | ❌ User approval | ❌ User approval | ✅ gVisor/Firecracker |
-| Permission Pipeline | 14-step pipeline | ❌ | Simple confirm | Permission system |
-| Security Tests | 308 items | Not disclosed | Not disclosed | Not disclosed |
+| Tool Authorization | Unified Tool Gateway + final dynamic recheck | ❌ | Simple confirm | Permission system |
+| Security Tests | Authorization/Bash/path/concurrency suites | Not disclosed | Not disclosed | Not disclosed |
 | Sensitive Path Block | ✅ | ❌ | ❌ | ❌ |
 | Dangerous Cmd Block | ✅ | ❌ | ❌ | ✅ Partial |
 | Env Var Whitelist | ✅ | ❌ | ❌ | ❌ |
@@ -335,7 +337,7 @@ ZhikunCode has completed an end-to-end SWE-bench Lite evaluation (300 instances,
 
 | Capability | ZhikunCode Implementation | Technical Highlight |
 |------------|--------------------------|--------------------|
-| Context Compression | ✅ 6-layer cascade + 413 two-phase recovery | ContextCascade 348 lines, progressive compression from L0 Snip to L4 ReactiveCompact |
+| Context Compression | ✅ 6-layer cascade + 413 two-phase recovery | ContextCascade provides progressive compression from L0 Snip to L4 ReactiveCompact |
 | Runtime Verification | ✅ Tri-modal runtime verification + 7-type evidence chain | VerifierFactory dispatch (browser/http_api/auto), Feature Flag controlled |
 | MCP Transport Protocol | ✅ 4 transport modes (StdIO/SSE/WebSocket/HTTP) | Client+Server dual mode, covering both local and remote scenarios |
 | SWE-bench Verified | ✅ 56.0% pass rate (open-source reproducible) | Full evaluation pipeline open-sourced, supports independent verification |
@@ -366,7 +368,7 @@ ZhikunCode uses a three-tier architecture: the Java backend handles core orchest
 
 | Layer | Tech Stack | Responsibilities |
 |-------|-----------|-----------------|
-| **Backend** | Java 21, Spring Boot 3.4.x, WebSocket, SQLite | Core orchestration engine, LLM API routing, Agent management, tool execution (50 built-in tools + MCP dynamic extensions), permission pipeline, session persistence |
+| **Backend** | Java 21, Spring Boot 3.4.x, WebSocket, SQLite | Core orchestration engine, LLM API routing, Agent management, built-in tools and MCP dynamic extensions, unified authorization gateway, session persistence |
 | **Frontend** | React 18, TypeScript 5.6, Vite 5, TailwindCSS, Monaco Editor, xterm.js, Zustand | Conversational UI, code editor, built-in terminal, file browser, settings panel, real-time streaming output, Agent collaboration visualization |
 | **Python Service** | FastAPI, Uvicorn, Python 3.11+ | Code analysis, AST parsing, MCP tool bridging |
 
@@ -391,26 +393,29 @@ In production, all three services are packaged in a single Docker container:
 
 ### Core Engines
 
-ZhikunCode’s intelligent decision-making is driven by five core engines working in concert:
+ZhikunCode’s intelligent decision-making is driven by the following core engines working in concert:
 
-| Engine | Scale | Responsibility | Key Feature |
-|--------|-------|---------------|-------------|
-| **QueryEngine** | 1,583 lines | Agent decision-making & tool execution orchestration | Multi-step iteration loop driving the full Agent Loop |
-| **PermissionPipeline** | 817 lines | Security decision short-circuit chain | 14-step short-circuit (Step 1a-1k + 2a-2b + 3), returns on first match |
-| **ContextCascade** | 348 lines | Context compression & recovery | 6-layer cascade + 413 two-phase recovery |
-| **ImageRefInjector** | ~300 lines | Image reference safe injection & budget management | Three-phase selection (collect → newest-first → forward inject), dual budget (1.5MB/image, 2MB total), 6-step validation, SHA-256 dedup |
-| **TokenBudgetGuard** | ~400 lines | Two-phase token budget control | Phase 1 historical Base64 pre-cleanup + Phase 2 final payload three-tier gradient degradation, preventing request overflows |
-| **ToolExecutionPipeline** | 618 lines | Tool execution full lifecycle | 7 main phases (with 2 sub-phases) in strict order |
-| **SelfCorrectionLoop** | — | Error diagnosis & auto-repair | MAX_ATTEMPTS=3 (default) / 7 (SWE-bench) |
-| **RunControlService** | ~500 LOC | Run lifecycle CAS | Three-dimensional state atomic updates, single terminal authority |
-| **DurableInteractionService** | ~400 LOC | Durable Interaction | Inbox + ACK + 30s offline grace + UNDELIVERABLE |
+| Engine | Responsibility | Key Feature |
+|--------|---------------|-------------|
+| **QueryEngine** | Agent decision-making & tool execution orchestration | Multi-step iteration loop driving the full Agent Loop |
+| **AuthorizationService** | Unified policy and authorization decision | System invariants, permission modes, grant matching, durable interactions |
+| **OperationAnalyzerRegistry** | Tool semantics and risk analysis | File, Bash, network, MCP/dynamic tool classification |
+| **ToolExecutionGateway** | Single core-tool execution entry point | Execution slot, final authorization recheck, structured results |
+| **PermissionGrantRepository** | Grant persistence, matching, and revocation | RUN/SESSION/WORKSPACE scopes and parent-child Agent inheritance |
+| **ContextCascade** | Context compression & recovery | 6-layer cascade + 413 two-phase recovery |
+| **ImageRefInjector** | Safe image-reference injection and budget management | Candidate selection, dynamic budgets, integrity checks, and deduplication |
+| **TokenBudgetGuard** | Two-phase token budget control | Historical Base64 cleanup and final-payload gradient degradation |
+| **ToolExecutionPipeline** | Full tool execution lifecycle | Validation, input freezing, authorization, execution, and result normalization |
+| **SelfCorrectionLoop** | Error diagnosis & auto-repair | MAX_ATTEMPTS=3 (default) / 7 (SWE-bench) |
+| **RunControlService** | Run lifecycle CAS | Atomic state updates with a single terminal authority |
+| **DurableInteractionService** | Durable Interaction | Inbox, ACK, server deadline, CAS terminal state, and reconnect recovery |
 
 ### Agent Loop Query Cycle
 
-ZhikunCode’s core execution engine QueryEngine (1,583 lines) drives Agent decision-making and tool execution through a multi-step iteration loop:
+ZhikunCode's QueryEngine drives Agent decision-making and tool execution through a multi-step iteration loop:
 
 ```
-Compression Cascade (ContextCascade 348 lines) → Streaming Session Creation → API Call (with circuit breaker + adaptive retry + downgrade protection) → Response Collection → Tool Result Consumption (4-layer priority scheduling, ToolExecutionPipeline 7 main phases) → 6-dimension termination evaluation → Tool Summary Injection → State Update
+Compression Cascade (ContextCascade) → Streaming Session Creation → API Call (with circuit breaker, adaptive retry, and downgrade protection) → Response Collection → Tool Result Consumption (ToolExecutionPipeline) → Termination Evaluation → Tool Summary Injection → State Update
 ```
 
 **Key Subsystems:**
@@ -438,7 +443,7 @@ Compression Cascade (ContextCascade 348 lines) → Streaming Session Creation �
 | L3 | CollapseDrain (aggressive compression) | contextWindow × 0.5 target, 413 recovery Phase 1 | 413 error first phase |
 | L4 | ReactiveCompact (reactive compression) | Keep only 1 turn + extreme compression, 413 recovery Phase 2 | 413 error second phase |
 
-Source: `ContextCascade.java` (348 lines)
+Source: `ContextCascade.java`
 
 </details>
 
@@ -457,27 +462,59 @@ All shell commands must pass through these 8 layers before execution:
 | **Layer 1** | Command parsing | Parses command structure; identifies pipes, redirects, and subcommands |
 | **Layer 2** | Blocklist filtering | Three-tier interception system (ABSOLUTE_DENY/HIGH_RISK_ASK/AUDIT_LOG), blocks known dangerous commands (`rm -rf /`, `mkfs`, `dd`, `format`, etc.), with ReDoS regex protection |
 | **Layer 3** | Path traversal detection | Prevents `../` path traversal attacks; blocks device paths and UNC paths |
-| **Layer 4** | Permission verification | 14-step permission pipeline decision; sensitive operations require user approval |
+| **Layer 4** | Permission verification | Unified authorization gateway decision; sensitive operations require user approval |
 | **Layer 5** | Sandboxed execution | Destructive commands run in a Docker sandbox (read-only filesystem + memory limits + network isolation) |
 | **Layer 6** | Argument sanitization | Environment variable allowlist, command injection protection |
 | **Layer 7** | Output validation | Detects anomalous output, redacts sensitive information |
 | **Layer 8** | Audit logging | Complete record of every command execution for traceability |
 
-### 14-Step Permission Pipeline (PermissionPipeline, 817 lines)
+### Unified Tool Authorization Flow
 
-The permission pipeline uses a **multi-step short-circuit decision chain** design — any matching interception rule returns immediately without further processing:
+Every core tool execution goes through the same non-bypassable authorization chain:
 
-| Phase | Steps | Check Content | Characteristics |
-|-------|-------|---------------|----------------|
-| **Step 1a-1k** | 11 steps | Pre-security checks (Deny rules, Ask rules, tool permissions, command blocklist, dangerous deletion, write path safety, environment variables, hook injection, etc.) | Static rule matching + content safety |
-| **Step 2a-2b** | 2 steps | Mode application (Classifier AI risk assessment, Sandbox rules) | Dynamic mode branching |
-| **Step 3** | 1 step | Final decision output (DEFAULT/PLAN/ACCEPT_EDITS/DONT_ASK/AUTO/SKIP_ALL_PROMPTS mode branch decision) | Terminal decision |
+```text
+Schema/Tool validation
+→ Canonical input freezing
+→ Operation Analyzer
+→ System security invariants
+→ Grant / permission mode / user interaction decision
+→ Acquire execution lease
+→ Final path, symlink, environment, and authorization recheck
+→ Tool Gateway execution
+→ Structured Effect / Result / audit event
+```
 
-> Permission decisions support SESSION/WORKSPACE two-level persistence. Child agents are isolated via ChildExactGrant and do not inherit parent permissions.
+- Tools execute from frozen canonical input, so mutating the original parameters after authorization cannot change the executed operation.
+- High-risk operations are ONCE-only and never create reusable grants.
+- Provably safe Bash commands support exact RUN/SESSION grants, never broad WORKSPACE grants.
+- Constrained file reads and edits may use SESSION/WORKSPACE grants.
+- Unknown MCP and dynamic tools default to ONCE; only a dedicated Analyzer may create reusable grants.
+- Grants cannot override protected paths, symlink escape checks, sensitive environment rules, or dynamic pre-execution changes.
+- The SQLite Interaction CAS terminal state is the sole authority for user decisions.
+
+### Authorization Scopes and Multi-Agent Inheritance
+
+| Scope | Lifetime | Sub-Agent behavior |
+|-------|----------|--------------------|
+| ONCE | Current operation | Not persisted |
+| RUN | Current direct Run | DIRECT_ONLY; not inherited by siblings or descendants |
+| SESSION | Current root session | Reusable by the root Agent and descendants under identical constraints |
+| WORKSPACE | Current canonical workspace | Constrained file capabilities are reusable by the root session and descendants |
+
+Sub-agents match parent grants through an authorization subject composed of root session, root run, and actor ancestry. Inheritance reuses only identical tool semantics and constraints; it cannot expand paths, commands, risk level, or resource scope.
+
+### Permission Modes
+
+| Mode | Behavior |
+|------|----------|
+| DEFAULT | Controlled operations without a reusable grant request user confirmation |
+| PLAN | Only safe workspace reads are allowed; other effects are denied |
+| ACCEPT_EDITS | Non-high-risk in-workspace file edits are auto-allowed; other controlled operations still require confirmation |
+| DONT_ASK | Creates no interaction; safe reads may run and operations requiring confirmation are denied |
 
 ### Protected Paths
 
-The following paths require user confirmation even in skip_all_prompts mode:
+The following paths are always protected by system security invariants; permission modes and saved grants cannot bypass them:
 
 - `.git` — Git repository data
 - `.env` — Environment variables and secrets
@@ -487,7 +524,7 @@ The following paths require user confirmation even in skip_all_prompts mode:
 
 ### Security Testing
 
-- **308 security tests** covering all security paths
+- Dedicated tests cover authorization, Bash, paths, symlinks, WebSocket behavior, concurrency, and database CAS
 - Includes command injection, path traversal, permission bypass, and other attack scenarios
 - **New defense-in-depth in v9.3**:
   - **CWE-22 Path Traversal**: `CoordinatorService.getScratchpadDir` sessionId allowlist (11 unit tests) + `SwarmController.createSwarm` teamName allowlist (8 unit tests). Even if upstream URI interception is bypassed, the allowlist remains the final on-disk line of defense
@@ -510,11 +547,14 @@ Full test report: [ZhikunCode v9.3 End-to-End Test Report](test-results/v9.3/Zhi
 **Continuous Integration:**
 - **GitHub Actions Pipeline**: Automatically runs backend compilation, frontend build, Python tests, and Docker image verification on every push
 
-**Test Coverage (v9.4):**
-- **Total**: 1948 cases + 490 performance probes + 7 security probes = **2445** (including APOS E2E comprehensive 123 cases: 62 Phase 1 + 50 Phase 2 + 11 risk fixes)
-- **Backend Unit/Integration Tests**: 1500 PASS / 0 failure / 0 error / 48 skipped (including AI Coding Enhancement 238 unit tests), coverage Inst 42.17% / Branch 30.44%
-- **Python pytest**: 47 PASS, coverage 25.66%
-- **Frontend vitest**: 78 PASS / 16 skipped (94 total)
+**Current Main-Branch Verification (2026-07-18):**
+- **Backend Unit/Integration Tests**: 2076 tests / 0 failure / 0 error / 48 skipped
+- **Python pytest**: 69 PASS
+- **Frontend vitest**: 87 PASS / 16 skipped (103 total)
+- **Static and Build Validation**: frontend ESLint, TypeScript, and Vite production build passed
+- **Three-Service Startup Validation**: Backend/SQLite `UP`, Python health `ok`, and the Frontend page responded successfully
+
+**Historical Specialized and E2E Baselines:**
 - **36-Module REST/WS/LLM/Session Smoke**: 45/45 PASS (42 REST + 1 WS STOMP + 1 LLM live inference + 1 Session persistence)
 - **E2E Differentiated Pipelines**: Task 6 Multi-Agent Collaboration (CoordinatorEventBus) · Task 7 Visualization Auto-Routing (`/visualize` mermaid/json/text) · Task 8 Browser Semantic Snapshot MVP (`/snap`) — all end-to-end PASS
 - **APOS Phase 1 E2E**: 62 cases (9 modules, including 28 core features + 34 supporting paths) 100% PASS, covering Activity UI / Data Flow / Three-layer Display / Signal Marking / Feature Flag / Backend API / Responsive / Persistence, with 4 bug fix regressions
@@ -527,10 +567,10 @@ Full test report: [ZhikunCode v9.3 End-to-End Test Report](test-results/v9.3/Zhi
 
 | Framework | Layer | Coverage | Count |
 |-----------|-------|----------|-------|
-| JUnit 5 + Mockito | Backend Unit/Integration | Context/Permission/Skill/Plugin/LLM/MCP/Memory/Concurrency/SSE/Persistence/Tool/Coordinator/Swarm/AI Coding Enhancement etc. | 1500 PASS |
-| Vitest | Frontend Unit | Store Lifecycle/Cross-Tab Sync/Streaming Render/Immer Immutability/Route Boundary | 78 PASS |
+| JUnit 5 + Mockito | Backend Unit/Integration | Context/Authorization Gateway/Skill/Plugin/LLM/MCP/Memory/Concurrency/SSE/Persistence/Tool/Coordinator/Swarm etc. | 2076 tests / 0 failure / 0 error |
+| Vitest | Frontend Unit | Store lifecycle/cross-tab sync/streaming/permission interactions/reconnect recovery/route boundary | 87 PASS |
 | Playwright + Node scripts | E2E | Coordinator WS subscription / Three visualization viewTypes / Browser snapshot MVP / APOS Phase 1 full-stack / APOS Phase 2 full-stack | Task 6/7/8/APOS all green |
-| Pytest | Python Service | Token Estimation/File Processing/Browser Automation/Semantic Snapshot/Code Analyzers | 47 PASS |
+| Pytest | Python Service | Token estimation/file processing/browser automation/semantic snapshots/code analyzers/CLI | 69 PASS |
 
 **Performance Baseline (v9.3, 490 real request samples):**
 
@@ -867,7 +907,7 @@ aica --continue "fix the bug we just discussed"
 |---------|-------------|
 | Three output formats | `text` (terminal Markdown rendering) / `json` (structured) / `stream-json` (SSE streaming) |
 | Pipe support | Auto-reads stdin, seamlessly composable with shell pipes |
-| Permission modes | `--permission-mode dont_ask/skip_all_prompts/default` to control security policy (CLI defaults to `dont_ask`) |
+| Permission modes | `--permission-mode default/plan/accept_edits/dont_ask` controls the security policy (CLI defaults to `dont_ask` and cannot bypass system security invariants) |
 | Session management | `--continue` resumes last session, `--resume <id>` restores a specific session |
 | Model selection | `--model` to specify model, `--effort` to control reasoning depth |
 | Tool control | `--allowed-tools` / `--disallowed-tools` whitelist/blocklist |
@@ -929,14 +969,17 @@ From your browser, you can manage the entire AI coding workflow:
 The frontend and backend maintain a real-time connection via **STOMP over SockJS** (auto-negotiates WebSocket → xhr-streaming → xhr-polling fallback):
 
 - **Streaming output** — LLM responses stream token by token, no waiting for completion
-- **Permission bubbling** — Sub-Agent permission requests are pushed to the browser in real time
+- **Durable permission interactions** — Requests are persisted to SQLite before browser delivery; unfinished requests recover after refresh or reconnect
+- **Server-authoritative terminal decisions** — The browser submits only server-provided options; allow, deny, expiry, and cancellation are mutually exclusive database CAS outcomes
+- **Server deadline** — The permission decision window is 300 seconds; the frontend displays the server deadline and never fabricates a local denial
+- **Sub-Agent grant reuse** — Descendants reuse root-session SESSION/WORKSPACE grants only under identical constraints, avoiding duplicate prompts
 - **State synchronization** — Agent state changes are reflected in the UI instantly
 - **Heartbeat keep-alive** — Bidirectional 10s heartbeat detection, auto-reconnect on disconnect (exponential backoff 1s→10s)
 - **Message guarantees** — 128KB message size limit, 1MB send buffer, 30s send timeout
 
 ### 🌉 Bridge (Cross-Platform Bridging)
 
-ZhikunCode provides cross-platform bridging capabilities through the Bridge module (9 files / 1,530 lines):
+ZhikunCode provides cross-platform bridging capabilities through the Bridge module:
 
 | Component | Responsibility |
 |-----------|---------------|
@@ -1000,7 +1043,8 @@ Phases follow strict sequential order (no skipping). Each phase records timestam
 - Worker count adjusts dynamically, no pre-declaration needed
 - One Virtual Thread per Worker, 30-minute timeout protection
 - Worker toolsets precisely controlled via allowList/denyList
-- Permissions bubble up to UI (`LeaderPermissionBridge`) with stacked display for concurrent permission requests, each with an independent 60-second countdown timer, supporting individual or batch approve/deny — auto-denies on timeout to prevent deadlocks
+- Workers use the root-session authorization subject; matching SESSION/WORKSPACE grants can be reused by descendants under identical constraints
+- Operations without a matching grant use Durable Interaction in the root-session browser, with SQLite persistence, ACK, reconnect recovery, and server-authoritative terminal decisions
 - Real-time status pushed via STOMP WebSocket
 - Active Swarms managed by Caffeine cache, 4-hour TTL auto-evicts stale instances
 
@@ -1084,7 +1128,7 @@ ZhikunCode supports MCP protocol Client + Server dual mode, covering 4 transport
 
 ## 🛠️ Built-in Tools
 
-ZhikunCode ships with 50 built-in tools + MCP dynamic extensions, covering the full development lifecycle:
+ZhikunCode provides built-in tools across the development lifecycle and supports dynamic MCP extensions:
 
 | Category | Tools | Description |
 |----------|-------|-------------|
@@ -1094,7 +1138,7 @@ ZhikunCode ships with 50 built-in tools + MCP dynamic extensions, covering the f
 | **Git Operations** | GitTool, Worktree | Git command execution, Worktree management |
 | **Web Tools** | WebSearch, WebFetch, WebBrowser | Web search, page fetching, browser automation |
 | **Agent Collaboration** | AgentTool | Create and manage sub-Agents |
-| **Task Management** | Task create/get/list/update/stop/output | SharedTaskList task collaboration (6 tools) |
+| **Task Management** | Task create/get/list/update/stop/output | SharedTaskList task collaboration |
 | **Interaction** | AskUserQuestion, Brief, Sleep, TodoWrite | User questions, briefings, wait, todo lists |
 | **Scheduled Tasks** | CronCreate, CronList, CronDelete | Cron job management |
 | **Plan Mode** | EnterPlanMode, ExitPlanMode, VerifyPlan | Plan-then-execute workflow |
@@ -1177,7 +1221,7 @@ Environment variables are managed via the `.env` file. Copy `.env.example` and m
 | `ZHIKUN_COORDINATOR_MODE` | — | 0 | Feature flag, enable coordinator mode (0=off, 1=on) |
 | `LLM_PROVIDER_DASHSCOPE_MODELS` | — | qwen3.7-max,qwen3.6-plus | DashScope available models (comma-separated) |
 | `LLM_PROVIDER_DEEPSEEK_MODELS` | — | deepseek-v4-pro,deepseek-v4-flash | DeepSeek available models (comma-separated) |
-| `LLM_PROVIDER_MOONSHOT_MODELS` | — | kimi-k2.6,moonshot-v1-128k | Moonshot available models (comma-separated) |
+| `LLM_PROVIDER_MOONSHOT_MODELS` | — | kimi-k3,moonshot-v1-128k | Moonshot available models (comma-separated) |
 
 **Context Management Configuration (application.yml):**
 

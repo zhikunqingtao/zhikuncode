@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import PermissionDialog from '@/components/permission/PermissionDialog';
 import { ElicitationDialog } from '@/components/dialog/ElicitationDialog';
@@ -21,7 +21,14 @@ const permission = (deadline?: number) => ({
     riskLevel: 'low' as const,
     reason: 'Write a workspace file',
     decisionDeadlineAt: deadline,
-    scopeOptions: ['session'] as Array<'session' | 'workspace'>,
+    deliveryGeneration: 1,
+    operationHash: 'op-1',
+    options: [
+        { optionId: 'allow_once', decision: 'allow' as const, scope: 'once' as const },
+        { optionId: 'allow_session', decision: 'allow' as const, scope: 'session' as const },
+        { optionId: 'deny', decision: 'deny' as const, scope: 'once' as const },
+    ],
+    scopeOptions: ['session'] as Array<'run' | 'session' | 'workspace'>,
 });
 
 describe('durable interaction deadlines', () => {
@@ -45,7 +52,7 @@ describe('durable interaction deadlines', () => {
         />);
 
         fireEvent.click(screen.getByLabelText(/Remember this decision/));
-        expect(screen.getByRole('option', { name: 'This session' })).toBeInTheDocument();
+        expect(screen.getByRole('option', { name: 'This session and child agents' })).toBeInTheDocument();
         expect(screen.queryByRole('option', { name: 'This workspace' })).not.toBeInTheDocument();
 
         act(() => {
@@ -57,8 +64,8 @@ describe('durable interaction deadlines', () => {
         expect(onDecision).not.toHaveBeenCalled();
     });
 
-    it('does not invent a remember scope when the server offers ONCE only', () => {
-        const onDecision = vi.fn();
+    it('does not invent a remember scope when the server offers ONCE only', async () => {
+        const onDecision = vi.fn().mockResolvedValue(undefined);
         render(<PermissionDialog
             request={{ ...permission(Date.now() + 30_000), scopeOptions: [] }}
             onDecision={onDecision}
@@ -66,11 +73,44 @@ describe('durable interaction deadlines', () => {
 
         expect(screen.queryByLabelText(/Remember this decision/)).not.toBeInTheDocument();
         fireEvent.click(screen.getByRole('button', { name: /Allow/ }));
-        expect(onDecision).toHaveBeenCalledWith(expect.objectContaining({
+        await waitFor(() => expect(onDecision).toHaveBeenCalledWith(expect.objectContaining({
             decision: 'allow',
             remember: false,
-        }));
+        })));
         expect(onDecision.mock.calls[0][0]).not.toHaveProperty('scope');
+    });
+
+    it('renders the explicit run scope and keeps session as the inheritance-friendly default', () => {
+        const onDecision = vi.fn();
+        const request = permission(Date.now() + 30_000);
+        render(<PermissionDialog
+            request={{
+                ...request,
+                scopeOptions: ['run', 'session'],
+                options: [
+                    ...request.options,
+                    { optionId: 'allow_run', decision: 'allow' as const, scope: 'run' as const },
+                ],
+            }}
+            onDecision={onDecision}
+        />);
+
+        fireEvent.click(screen.getByLabelText(/Remember this decision/));
+        expect(screen.getByRole('option', { name: 'Only this agent/run' })).toBeInTheDocument();
+        expect(screen.getByRole('combobox')).toHaveValue('session');
+    });
+
+    it('re-enables a pending permission after a transient decision failure', async () => {
+        const onDecision = vi.fn()
+            .mockRejectedValueOnce(new Error('INTERACTION_DECISION_FAILED_503'))
+            .mockResolvedValueOnce(undefined);
+        render(<PermissionDialog request={permission(Date.now() + 30_000)} onDecision={onDecision} />);
+
+        fireEvent.click(screen.getByRole('button', { name: /Allow/ }));
+        expect(await screen.findByRole('alert')).toHaveTextContent('INTERACTION_DECISION_FAILED_503');
+        await waitFor(() => expect(screen.getByRole('button', { name: /Allow/ })).toBeEnabled());
+        fireEvent.click(screen.getByRole('button', { name: /Allow/ }));
+        await waitFor(() => expect(onDecision).toHaveBeenCalledTimes(2));
     });
 
     it('elicitation expiry disables actions without manufacturing a cancel decision', () => {

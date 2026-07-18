@@ -68,7 +68,8 @@ public class DefaultTerminationStrategy implements TerminationStrategy {
         }
 
         // 5. 滑动窗口检查：最近 5 次工具调用全失败 → REQUEST_USER_INPUT
-        List<ToolCallRecord> recent = context.recentResults();
+        List<ToolCallRecord> recent = context.recentResults() == null ? List.of()
+                : context.recentResults().stream().filter(ToolCallRecord::recoveryRelevant).toList();
         if (recent != null && recent.size() >= SLIDING_WINDOW_SIZE) {
             List<ToolCallRecord> lastWindow = recent.subList(
                     recent.size() - SLIDING_WINDOW_SIZE, recent.size());

@@ -90,7 +90,7 @@ public class StreamingToolExecutor {
         this(pipeline, meterRegistry, null, null);
     }
 
-    /** Isolated-test constructor. */
+    /** 仅供隔离单元测试使用的构造器。 */
     public StreamingToolExecutor(ToolExecutionPipeline pipeline, MeterRegistry meterRegistry,
                                  ManagedProcessRunner processRunner) {
         this(pipeline, meterRegistry, processRunner, null);
@@ -137,19 +137,41 @@ public class StreamingToolExecutor {
      * @param initialContext 初始工具使用上下文
      */
     public ExecutionSession newSession(ToolUseContext initialContext) {
-        String ownerRunId = initialContext == null ? null : initialContext.currentRunId();
-        RunExecutionRegistry.WorkLease lease = ownerRunId == null || runExecutions == null
-                ? null : runExecutions.acquireWork(ownerRunId, "tool-session", java.util.UUID.randomUUID().toString());
-        ExecutionSession session = new ExecutionSession(initialContext, lease);
-        if (lease != null) lease.onCancel(() -> session.discard(false));
-        if (session.ownerRunId != null) {
-            sessionsByRun.computeIfAbsent(session.ownerRunId, ignored -> ConcurrentHashMap.newKeySet())
-                    .add(session);
-        }
-        return session;
+        // 仅创建 LLM 回合收集器不算 Run 工作；收到首个真实工具调用时才注册。
+        // 否则正常的最终助手回合会保留空租约，导致 Run 无法完成。
+        return new ExecutionSession(initialContext);
     }
 
-    /** Cancels queued work for one Run. Running process-backed tools are stopped by ManagedProcessRunner. */
+    /**
+     * 让内部调度工具与模型发起的工具共用同一队列、Run 租约和取消权威。
+     * 调用方不得直接调用 ToolExecutionPipeline。
+     */
+    public ToolExecutionResult executeDetached(Tool tool, ToolInput input, String toolUseId,
+                                               ToolUseContext context) {
+        if (tool == null || context == null || toolUseId == null || toolUseId.isBlank()) {
+            throw new IllegalArgumentException("DETACHED_TOOL_EXECUTION_INVALID");
+        }
+        ExecutionSession session = newSession(context);
+        session.addTool(tool, input, toolUseId, context);
+        while (!session.isAllCompleted()) {
+            session.awaitAnyCompletion(1, TimeUnit.SECONDS);
+            if (Thread.currentThread().isInterrupted()) {
+                session.discard();
+                Thread.currentThread().interrupt();
+                return ToolExecutionResult.of(ToolResult.cancelled("TOOL_CANCELLED",
+                        "Detached tool execution interrupted", ToolResult.EffectState.UNKNOWN));
+            }
+        }
+        List<TrackedTool> completed = session.yieldCompleted();
+        if (completed.size() != 1 || completed.getFirst().getResult() == null) {
+            return ToolExecutionResult.of(ToolResult.internalError("DETACHED_TOOL_RESULT_MISSING",
+                    "Detached tool did not produce exactly one result", ToolResult.EffectState.UNKNOWN));
+        }
+        TrackedTool tracked = completed.getFirst();
+        return ToolExecutionResult.of(tracked.getResult(), tracked.getUpdatedContext());
+    }
+
+    /** 取消指定 Run 的排队任务；正在运行的进程型工具由 ManagedProcessRunner 负责终止。 */
     public int cancelRun(String runId) {
         return cancelRunDetailed(runId).confirmedSessions();
     }
@@ -182,7 +204,8 @@ public class StreamingToolExecutor {
         // ★ 新增：会话级当前上下文，支持 CAS 更新（contextModifier 传播）
         private final AtomicReference<ToolUseContext> currentContext;
         private final String ownerRunId;
-        private final RunExecutionRegistry.WorkLease workLease;
+        private volatile RunExecutionRegistry.WorkLease workLease;
+        private final java.util.concurrent.atomic.AtomicBoolean sessionRegistered = new java.util.concurrent.atomic.AtomicBoolean();
         private final java.util.concurrent.atomic.AtomicBoolean workLeaseClosed = new java.util.concurrent.atomic.AtomicBoolean();
 
         // ★ 条件变量，替代固定 50ms 轮询
@@ -193,17 +216,13 @@ public class StreamingToolExecutor {
 
         // ★ 有参构造器，接收初始 context
         public ExecutionSession(ToolUseContext initialContext) {
-            this(initialContext, null);
-        }
-
-        private ExecutionSession(ToolUseContext initialContext, RunExecutionRegistry.WorkLease workLease) {
             this.currentContext = new AtomicReference<>(initialContext);
             this.ownerRunId = initialContext == null ? null : initialContext.currentRunId();
-            this.workLease = workLease;
         }
 
         /** 添加工具到执行队列 */
         public void addTool(Tool tool, ToolInput input, String toolUseId, ToolUseContext context) {
+            ensureRegistered();
             // ★ 修改：使用会话级 currentContext 而非调用方传入的原始 context
             ToolUseContext effectiveContext = currentContext.get();
             TrackedTool tt = new TrackedTool(toolUseId, tool, input, effectiveContext);
@@ -218,6 +237,22 @@ public class StreamingToolExecutor {
             }
 
             processQueue();
+        }
+
+        /** 仅为确实包含可执行工具任务的会话注册 Run 工作租约。 */
+        private void ensureRegistered() {
+            if (ownerRunId == null || sessionRegistered.get()) return;
+            synchronized (sessionRegistered) {
+                if (sessionRegistered.get()) return;
+                RunExecutionRegistry.WorkLease acquired = runExecutions == null ? null
+                        : runExecutions.acquireWork(ownerRunId, "tool-session",
+                                java.util.UUID.randomUUID().toString());
+                workLease = acquired;
+                sessionsByRun.computeIfAbsent(ownerRunId, ignored -> ConcurrentHashMap.newKeySet())
+                        .add(this);
+                sessionRegistered.set(true);
+                if (acquired != null) acquired.onCancel(() -> discard(false));
+            }
         }
 
         private boolean canExecute(TrackedTool tt) {
@@ -380,15 +415,16 @@ public class StreamingToolExecutor {
         }
 
         private void deregister() {
-            if (ownerRunId != null) {
+            if (ownerRunId != null && sessionRegistered.get()) {
                 sessionsByRun.computeIfPresent(ownerRunId, (ignored, sessions) -> {
                     sessions.remove(this);
                     return sessions.isEmpty() ? null : sessions;
                 });
             }
+            RunExecutionRegistry.WorkLease lease = workLease;
             if (active.get() == 0 && queue.isEmpty()
-                    && workLease != null && workLeaseClosed.compareAndSet(false, true)) {
-                workLease.close();
+                    && lease != null && workLeaseClosed.compareAndSet(false, true)) {
+                lease.close();
             }
         }
 

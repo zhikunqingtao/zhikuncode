@@ -27,7 +27,7 @@ import java.util.concurrent.*;
  * 每个 Worker 复用 {@link QueryEngine#execute} 执行引擎，但使用独立的：
  * <ul>
  *   <li>工具集（经过 allowList/denyList 过滤）</li>
- *   <li>权限模式（降级为 BUBBLE，通过 {@link LeaderPermissionBridge} 冒泡）</li>
+ *   <li>权限主体通过持久化 Run 父链继承根会话授权</li>
  *   <li>上下文（隔离的 {@link QueryLoopState}）</li>
  * </ul>
  * <p>
@@ -49,7 +49,6 @@ public class SwarmWorkerRunner {
 
     private final QueryEngine queryEngine;
     private final ToolRegistry toolRegistry;
-    private final LeaderPermissionBridge permissionBridge;
     private final ModelRegistry modelRegistry;
 
     /** Virtual Thread Executor — 每个 Worker 一个虚拟线程 */
@@ -58,11 +57,9 @@ public class SwarmWorkerRunner {
 
     public SwarmWorkerRunner(@Lazy QueryEngine queryEngine,
                               @Lazy ToolRegistry toolRegistry,
-                              LeaderPermissionBridge permissionBridge,
                               ModelRegistry modelRegistry) {
         this.queryEngine = queryEngine;
         this.toolRegistry = toolRegistry;
-        this.permissionBridge = permissionBridge;
         this.modelRegistry = modelRegistry;
     }
 
@@ -134,7 +131,8 @@ public class SwarmWorkerRunner {
                 .toList();
 
         // 2. 构建 worker 上下文（独立消息历史 + scratchpad）
-        String workerSessionId = "swarm-worker-" + workerId;
+        // 保留根会话 ID，并通过 parentSessionId/currentRunId 建立持久化子 Run 父链；
+        // 权限继承只信任数据库父链，不依赖临时 worker 标识。
         ToolUseContext workerContext = parentContext
                 .withNestingDepth(parentContext.nestingDepth() + 1)
                 .withCurrentTaskId(workerId)
@@ -176,7 +174,7 @@ public class SwarmWorkerRunner {
         swarmState.markWorkerWorking(workerId, taskPrompt);
 
         // 6. 执行查询循环
-        WorkerMessageHandler handler = new WorkerMessageHandler(workerId, swarmState, permissionBridge);
+        WorkerMessageHandler handler = new WorkerMessageHandler(workerId, swarmState);
         QueryEngine.QueryResult result = queryEngine.execute(workerConfig, workerState, handler);
 
         // 7. 标记 Worker 为空闲
@@ -287,13 +285,9 @@ public class SwarmWorkerRunner {
 
         private final String workerId;
         private final SwarmState swarmState;
-        private final LeaderPermissionBridge permissionBridge;
-
-        WorkerMessageHandler(String workerId, SwarmState swarmState,
-                              LeaderPermissionBridge permissionBridge) {
+        WorkerMessageHandler(String workerId, SwarmState swarmState) {
             this.workerId = workerId;
             this.swarmState = swarmState;
-            this.permissionBridge = permissionBridge;
         }
 
         @Override

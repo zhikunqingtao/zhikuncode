@@ -10,6 +10,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,7 +27,7 @@ import java.util.Optional;
 import java.util.UUID;
 import com.aicodeassistant.security.ManagedPathLockManager;
 
-/** Explicit artifact declaration, sealing and verification authority. */
+/** 产物显式声明、封存与验证的统一权威。 */
 @Service
 @DependsOn("migrationRunner")
 public class ArtifactManifestService {
@@ -37,6 +38,7 @@ public class ArtifactManifestService {
     private final com.aicodeassistant.security.ManagedWorkspacePathResolver managedPaths;
     private final ManagedPathLockManager pathLocks;
     private record Update(String id,String state,String actual,Long size,String validator,String failure){}
+    public record DeleteSeal(String canonicalPath, String sha256) { }
     public ArtifactManifestService(@Qualifier("projectJdbcTemplate") JdbcTemplate jdbc,
             SqliteConfig sqlite, DatabaseResolver resolver,
             @Qualifier("projectTransactionManager") PlatformTransactionManager txManager,
@@ -51,11 +53,29 @@ public class ArtifactManifestService {
     public ArtifactEntry declare(String runId, String sessionId, String toolUseId,
                                  String path, String operation, String validatorId,
                                  String workspaceRoot) {
+        return write(() -> declareInCurrentTransaction(runId, sessionId, toolUseId, path,
+                operation, validatorId, workspaceRoot));
+    }
+
+    /** 由 ToolExecutionGateway 在最终授权复检通过后调用。 */
+    public ArtifactEntry declareInCurrentTransaction(String runId, String sessionId, String toolUseId,
+                                 String path, String operation, String validatorId,
+                                 String workspaceRoot) {
+        if (!TransactionSynchronizationManager.isActualTransactionActive()) {
+            throw new IllegalStateException("ARTIFACT_DECLARATION_REQUIRES_TRANSACTION");
+        }
         if (runId==null||sessionId==null||toolUseId==null)
             throw new IllegalArgumentException("ARTIFACT_DECLARATION_INCOMPLETE");
         Path canonical=canonical(path, workspaceRoot); Instant now=Instant.now();
         String normalizedOperation=normalizeOperation(operation);
-        String manifestId=write(() -> {
+        String manifestId = declareBody(runId, sessionId, toolUseId, canonical,
+                normalizedOperation, validatorId, workspaceRoot, now);
+        return loadEntries(manifestId).stream().filter(e->e.filePath().equals(canonical.toString())).findFirst().orElseThrow();
+    }
+
+    private String declareBody(String runId, String sessionId, String toolUseId, Path canonical,
+                               String normalizedOperation, String validatorId,
+                               String workspaceRoot, Instant now) {
             List<String> ids=jdbc.queryForList("SELECT manifest_id FROM artifact_manifests WHERE run_id=?",String.class,runId);
             String id=ids.isEmpty()?UUID.randomUUID().toString():ids.getFirst();
             if(ids.isEmpty()) jdbc.update("INSERT INTO artifact_manifests(manifest_id,run_id,session_id,workspace_root,state,created_at,updated_at) VALUES(?,?,?,?,'open',?,?)",
@@ -80,13 +100,42 @@ public class ArtifactManifestService {
                     "manifestId",id,"path",canonical.toString(),"operation",normalizedOperation,
                     "validatorId",validatorId==null?"sha256":validatorId));
             return id;
+    }
+
+    /**
+     * 在进入数据库准入事务前读取待删除文件，避免形成“数据库写锁 → 路径锁”的反向锁序。
+     * 返回值只代表准入前快照，不承诺回滚工具随后产生的文件副作用。
+     */
+    public DeleteSeal prepareDeleteSeal(String path, String workspaceRoot) throws Exception {
+        Path canonical = canonical(path, workspaceRoot);
+        return pathLocks.withLock(canonical, () -> {
+            if (!Files.isRegularFile(canonical, LinkOption.NOFOLLOW_LINKS) || Files.isSymbolicLink(canonical)) {
+                throw new IllegalArgumentException("ARTIFACT_OUTPUT_NOT_REGULAR_FILE");
+            }
+            return new DeleteSeal(canonical.toString(), computeSha256(canonical));
         });
-        return loadEntries(manifestId).stream().filter(e->e.filePath().equals(canonical.toString())).findFirst().orElseThrow();
+    }
+
+    /** 将准入前计算的删除快照写入当前数据库事务；本方法不得执行文件 I/O。 */
+    public void sealDeleteInCurrentTransaction(String runId, String canonicalPath,
+                                               String sealedHash, String workspaceRoot) {
+        if (!TransactionSynchronizationManager.isActualTransactionActive()) {
+            throw new IllegalStateException("ARTIFACT_SEAL_REQUIRES_TRANSACTION");
+        }
+        if (sealedHash == null || !sealedHash.matches("[0-9a-fA-F]{64}")) {
+            throw new IllegalArgumentException("ARTIFACT_SEAL_HASH_INVALID");
+        }
+        Path canonical = canonical(canonicalPath, workspaceRoot);
+        sealBody(runId, canonical, sealedHash, workspaceRoot);
     }
 
     private ArtifactEntry sealLocked(String runId, Path canonical, String sealedHash, String workspaceRoot) {
+        String manifestId=write(() -> sealBody(runId, canonical, sealedHash, workspaceRoot));
+        return loadEntries(manifestId).stream().filter(e->e.filePath().equals(canonical.toString())).findFirst().orElseThrow();
+    }
+
+    private String sealBody(String runId, Path canonical, String sealedHash, String workspaceRoot) {
         Instant now=Instant.now();
-        String manifestId=write(() -> {
             List<String> ids=jdbc.queryForList("SELECT manifest_id FROM artifact_manifests WHERE run_id=?",String.class,runId);
             if(ids.isEmpty())throw new IllegalArgumentException("ARTIFACT_NOT_DECLARED");
             String id=ids.getFirst();
@@ -101,8 +150,6 @@ public class ArtifactManifestService {
             runs.appendEventInCurrentWrite(runId,"artifact_sealed",null,Map.of(
                     "manifestId",id,"path",canonical.toString(),"sealedHash",sealedHash.toLowerCase()));
             return id;
-        });
-        return loadEntries(manifestId).stream().filter(e->e.filePath().equals(canonical.toString())).findFirst().orElseThrow();
     }
 
     public ArtifactEntry sealFromFile(String runId, String path, String workspaceRoot) throws Exception {
@@ -149,7 +196,15 @@ public class ArtifactManifestService {
         if("deleted".equals(entry.operation())){
             if(Files.exists(path,LinkOption.NOFOLLOW_LINKS))failure="DELETE_TARGET_STILL_EXISTS";
             else if(entry.expectedHash()==null)failure="SEALED_HASH_MISSING";
-            else {state="integrity_verified";validator=json.writeValueAsString(Map.of("validator","sha256","deleted",true));}
+            else {
+                // Shell/Python 删除只能证明“已不存在”；执行前快照不能证明最终被删除的字节未被并发修改。
+                state="unverified";
+                failure="DELETE_CONTENT_NOT_ATOMICALLY_VERIFIED";
+                validator=json.writeValueAsString(Map.of(
+                        "validator","deletion_snapshot",
+                        "deletionObserved",true,
+                        "preDeleteSha256",entry.expectedHash()));
+            }
         } else if(entry.expectedHash()==null){state="unverified";failure="SEALED_HASH_MISSING";}
         else if(!Files.isRegularFile(path,LinkOption.NOFOLLOW_LINKS)||Files.isSymbolicLink(path)){failure="ARTIFACT_NOT_REGULAR_FILE";}
         else {size=Files.size(path);if(size>MAX_VERIFICATION_BYTES){state="unverified_size_limit";failure="VERIFICATION_SIZE_LIMIT";}
@@ -173,7 +228,15 @@ public class ArtifactManifestService {
     private List<ArtifactEntry> loadEntries(String id){return jdbc.query("SELECT * FROM artifact_entries WHERE manifest_id=? ORDER BY created_at",(rs,n)->new ArtifactEntry(rs.getString("artifact_id"),rs.getString("manifest_id"),rs.getString("tool_use_id"),rs.getString("canonical_path"),rs.getString("operation"),rs.getString("state"),rs.getString("sealed_hash"),rs.getString("actual_hash"),rs.getObject("file_size")==null?null:rs.getLong("file_size"),rs.getString("required_validator_id"),rs.getString("validator_result_json"),rs.getString("failure_code"),Instant.parse(rs.getString("created_at")),Instant.parse(rs.getString("updated_at"))),id);}
     private Path canonical(String raw,String workspaceRoot){try{return managedPaths.resolveProspective(Path.of(raw),workspaceRoot);}catch(IOException|IllegalArgumentException e){throw new IllegalArgumentException("ARTIFACT_PATH_INVALID",e);}}
     private Path root(String workspaceRoot){try{return Path.of(workspaceRoot).toRealPath();}catch(IOException|RuntimeException e){throw new IllegalArgumentException("ARTIFACT_WORKSPACE_ROOT_INVALID",e);}}
-    private static String normalizeOperation(String op){return switch(op==null?"":op.toLowerCase()){case "create","created"->"created";case "modify","modified","update"->"modified";case "delete","deleted"->"deleted";default->throw new IllegalArgumentException("ARTIFACT_OPERATION_INVALID");};}
+    /** 将工具声明的操作别名收敛为产物清单使用的稳定值。 */
+    public static String normalizeOperation(String operation) {
+        return switch (operation == null ? "" : operation.toLowerCase(java.util.Locale.ROOT)) {
+            case "create", "created" -> "created";
+            case "modify", "modified", "update" -> "modified";
+            case "delete", "deleted" -> "deleted";
+            default -> throw new IllegalArgumentException("ARTIFACT_OPERATION_INVALID");
+        };
+    }
     private String safeJson(Object v){try{return json.writeValueAsString(v);}catch(Exception e){return "{}";}}
     private <T>T write(java.util.function.Supplier<T> op){return sqlite.executeWrite(dbPath,()->tx.execute(s->op.get()));}
 }
