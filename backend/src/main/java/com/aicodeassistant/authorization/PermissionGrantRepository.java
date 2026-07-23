@@ -101,6 +101,7 @@ public class PermissionGrantRepository {
         return null;
     }
 
+
     public String create(AuthorizationSubject subject, OperationDescriptor operation,
             PermissionScope requestedScope, String interactionId) {
         return boundedWrite(() -> transaction.execute(status ->
@@ -121,7 +122,7 @@ public class PermissionGrantRepository {
                         "WHERE revoked_at IS NULL AND expires_at<=?", now.toString(), now.toString());
 
         String constraintsJson = writeConstraint(plan.constraint);
-        String capabilityHash = plan.kind == GrantKind.EXACT_GUARDED ? null
+        String capabilityHash = (plan.kind == GrantKind.EXACT_GUARDED || plan.kind == GrantKind.TOOL_GUARDED) ? null
                 : hash(plan.kind.name() + "\0" + constraintsJson + "\0" + operation.authorizationSchemaVersion());
         Identity identity = identity(subject, plan.scope, plan.delegation);
         String id = UUID.randomUUID().toString();
@@ -141,7 +142,7 @@ public class PermissionGrantRepository {
                 identity.rootSessionId, identity.rootRunId, identity.actorRunId, identity.workspaceKey,
                 operation.authorizationSchemaVersion(), operation.analyzerId(), operation.toolName(),
                 operation.action(), writeJson(operation.effects()),
-                plan.kind == GrantKind.EXACT_GUARDED ? operation.operationHash() : null,
+                (plan.kind == GrantKind.EXACT_GUARDED || plan.kind == GrantKind.TOOL_GUARDED) ? operation.operationHash() : null,
                 capabilityHash, constraintsJson, operation.risk().name(), interactionId,
                 now.toString(), expires.toString());
         if (inserted == 1) {
@@ -211,10 +212,11 @@ public class PermissionGrantRepository {
     private GrantPlan plan(OperationDescriptor operation, PermissionScope requested) {
         if (requested == null || requested == PermissionScope.ONCE || operation.risk() == RiskClass.HIGH) return null;
         if ("bash-v2".equals(operation.analyzerId())) {
-            if (requested == PermissionScope.WORKSPACE || operation.risk() != RiskClass.GUARDED) return null;
-            return new GrantPlan(GrantKind.EXACT_GUARDED, requested,
+            if (requested == PermissionScope.WORKSPACE) return null;
+            if (operation.risk() != RiskClass.GUARDED && operation.risk() != RiskClass.SAFE) return null;
+            return new GrantPlan(GrantKind.TOOL_GUARDED, requested,
                     requested == PermissionScope.RUN ? DelegationPolicy.DIRECT_ONLY : DelegationPolicy.ROOT_AND_DESCENDANTS,
-                    new GrantConstraint.Exact(operation.operationHash()));
+                    new GrantConstraint.ToolWide());
         }
         if ("file-v1".equals(operation.analyzerId())) {
             if (requested == PermissionScope.RUN) {
@@ -304,7 +306,7 @@ public class PermissionGrantRepository {
                 """, String.class, plan.kind.name(), plan.scope.name(), plan.delegation.name(),
                 identity.rootSessionId, identity.rootRunId, identity.actorRunId, identity.workspaceKey,
                 operation.authorizationSchemaVersion(), operation.analyzerId(), operation.toolName(),
-                operation.action(), plan.kind == GrantKind.EXACT_GUARDED ? operation.operationHash() : null,
+                operation.action(), (plan.kind == GrantKind.EXACT_GUARDED || plan.kind == GrantKind.TOOL_GUARDED) ? operation.operationHash() : null,
                 capabilityHash);
     }
 
@@ -313,6 +315,9 @@ public class PermissionGrantRepository {
         switch (constraint) {
             case GrantConstraint.Exact exact -> {
                 encoded.put("type", "EXACT"); encoded.put("operationHash", exact.operationHash());
+            }
+            case GrantConstraint.ToolWide ignored -> {
+                encoded.put("type", "TOOL_WIDE");
             }
             case GrantConstraint.WorkspaceRead read -> {
                 encoded.put("type", "WORKSPACE_READ");
@@ -333,6 +338,9 @@ public class PermissionGrantRepository {
             Map<String, Object> value = json.readValue(encoded, new TypeReference<>() { });
             if (kind == GrantKind.EXACT_GUARDED) {
                 return new GrantConstraint.Exact(String.valueOf(value.get("operationHash")));
+            }
+            if (kind == GrantKind.TOOL_GUARDED) {
+                return new GrantConstraint.ToolWide();
             }
             List<String> prefixes = ((List<?>) value.getOrDefault("relativeDirectoryPrefixes", List.of()))
                     .stream().map(String::valueOf).toList();

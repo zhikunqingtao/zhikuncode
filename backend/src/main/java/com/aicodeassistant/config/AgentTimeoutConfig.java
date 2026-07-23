@@ -20,7 +20,7 @@ import jakarta.annotation.PostConstruct;
 @Component
 @ConfigurationProperties(prefix = "agent.timeout")
 public class AgentTimeoutConfig {
-    private int defaultSeconds = 600;
+    private int defaultSeconds = 1800;
     private int maxSeconds = 1800;
     private int gracefulShutdownSeconds = 30;
     private int maxWaitMinutes = 15;

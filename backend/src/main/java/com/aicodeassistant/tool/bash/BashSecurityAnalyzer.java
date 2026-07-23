@@ -256,32 +256,6 @@ public class BashSecurityAnalyzer {
         // ── AST 遍历 ──
         ParseForSecurityResult result = walkProgram(cmd, root);
 
-        // ★ 新增：路径安全验证（仅对 Simple 结果） ★
-        if (result instanceof ParseForSecurityResult.Simple simple) {
-            java.nio.file.Path effectiveCwd = cwd == null
-                    ? java.nio.file.Path.of(System.getProperty("user.dir")) : cwd;
-            java.nio.file.Path effectiveRoot = projectRoot == null ? effectiveCwd : projectRoot;
-
-            // 路径约束检查
-            String pathConstraint = pathValidator.checkPathConstraints(cmd, effectiveCwd, effectiveRoot);
-            if (pathConstraint != null) {
-                return new ParseForSecurityResult.TooComplex(pathConstraint, "path-constraint");
-            }
-
-            // 逐命令路径验证
-            for (var sc : simple.commands()) {
-                List<String> argv = sc.argv();
-                if (!argv.isEmpty()) {
-                    String cmdName = argv.getFirst();
-                    String pathCheck = pathValidator.validateCommandPaths(
-                            cmdName, argv.subList(1, argv.size()), effectiveCwd, effectiveRoot);
-                    if (pathCheck != null) {
-                        return new ParseForSecurityResult.TooComplex(pathCheck, "path-validation");
-                    }
-                }
-            }
-        }
-
         // ★ Heredoc 安全分析
         if (HeredocExtractor.containsHeredoc(cmd)) {
             var extractor = new HeredocExtractor();

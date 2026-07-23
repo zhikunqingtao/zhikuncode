@@ -196,14 +196,31 @@ public class AgentTool implements Tool {
                         "Prompt: " + prompt);
             } else {
                 result = subAgentExecutor.executeSync(request, context);
-                // 超时路径：返回 error ToolResult，避免 LLM 误认为子代理成功完成
-                if (result.isTimeout()) {
-                    return ToolResult.timedOut("SUBAGENT_DEADLINE_EXCEEDED", result.result(), null, true, ToolResult.EffectState.UNKNOWN);
-                }
-                // 同步模式: 返回执行结果
-                return ToolResult.success(result.result() != null
-                        ? result.result()
-                        : "Sub-agent completed without response.");
+                // 根据 Agent 状态返回对应类型的 ToolResult
+                return switch (result.status()) {
+                    case SubAgentExecutor.AgentResult.STATUS_COMPLETED ->
+                            ToolResult.success(result.result() != null
+                                    ? result.result()
+                                    : "Sub-agent completed without response.");
+                    case SubAgentExecutor.AgentResult.STATUS_TIMEOUT ->
+                            ToolResult.timedOut("SUBAGENT_DEADLINE_EXCEEDED", result.result(), null, true, ToolResult.EffectState.UNKNOWN);
+                    case SubAgentExecutor.AgentResult.STATUS_INTERRUPTED ->
+                            ToolResult.cancelled("SUBAGENT_INTERRUPTED",
+                                    result.result() != null ? result.result() : "Sub-agent was interrupted.",
+                                    ToolResult.EffectState.UNKNOWN);
+                    case SubAgentExecutor.AgentResult.STATUS_MAX_TURNS ->
+                            ToolResult.internalError("SUBAGENT_MAX_TURNS",
+                                    result.result() != null ? result.result() : "Sub-agent reached max turns limit without completing.",
+                                    ToolResult.EffectState.UNKNOWN);
+                    case SubAgentExecutor.AgentResult.STATUS_FAILED ->
+                            ToolResult.internalError("SUBAGENT_EXECUTION_FAILED",
+                                    result.result() != null ? result.result() : "Sub-agent execution failed.",
+                                    ToolResult.EffectState.UNKNOWN);
+                    default ->
+                            ToolResult.internalError("SUBAGENT_UNKNOWN_STATUS",
+                                    "Unknown agent status: " + result.status() + ". Result: " + result.result(),
+                                    ToolResult.EffectState.UNKNOWN);
+                };
             }
         } catch (AgentLimitExceededException e) {
             log.warn("Agent limit exceeded: {}", e.getMessage());

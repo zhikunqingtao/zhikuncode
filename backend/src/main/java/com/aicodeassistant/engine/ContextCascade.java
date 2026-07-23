@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * ContextCascade — 5 层压缩级联统一协调器。
@@ -184,6 +186,7 @@ public class ContextCascade {
             List<Message> messages, String model,
             AutoCompactTrackingState trackingState) {
 
+        long cascadeStartedAt = System.nanoTime();
         int contextWindow = modelRegistry.getContextWindowForModel(model);
         int originalTokens = tokenCounter.estimateTokens(messages, model);
         List<Message> current = messages;
@@ -222,62 +225,76 @@ public class ContextCascade {
 
         // ===== Level 1.5: ContextCollapse (三级渐进折叠) =====
         boolean collapseAttempted = true;
+        List<Message> collapseInput = current;
+        Integer collapseBeforeTokens = estimateTokensForDiagnostics(collapseInput, model);
         ContextCollapseService.CollapseResult collapseResult =
-                contextCollapseService.progressiveCollapse(current);
+                contextCollapseService.progressiveCollapse(collapseInput);
+        boolean collapseMessagesChanged = diagnosticallyDifferent(collapseInput, collapseResult.messages());
         if (collapseResult.collapsedCount() > 0) {
             collapseExecuted = true;
             collapseCharsFreed = collapseResult.estimatedCharsFreed();
             current = collapseResult.messages();
-            log.debug("Level 1.5 ProgressiveCollapse: collapsed {} messages, ~{} chars freed",
-                    collapseResult.collapsedCount(), collapseResult.estimatedCharsFreed());
         }
 
         // ===== Level 2: AutoCompact (LLM 摘要) — 含 Collapse 互斥协调 =====
         boolean collapseDidExecute = collapseAttempted && collapseResult.collapsedCount() > 0;
         int collapseFreedChars = collapseResult.estimatedCharsFreed();
+        TokenWarningState postCollapseWarning = null;
+        String autoCompactDecision;
 
         if (collapseDidExecute) {
             // Collapse 已执行，重新评估是否仍需 AutoCompact
-            TokenWarningState postCollapseWarning = calculateTokenWarningState(current, model);
+            postCollapseWarning = calculateTokenWarningState(current, model);
             if (!postCollapseWarning.isAboveAutoCompactThreshold()) {
-                log.info("Level 2 AutoCompact 跳过: Collapse 已释放足够空间 " +
-                        "(collapseCharsFreed={}, postTokens={}, threshold={})",
-                        collapseFreedChars, postCollapseWarning.currentTokens(),
-                        postCollapseWarning.autoCompactThreshold());
+                autoCompactDecision = "SKIP_BELOW_THRESHOLD";
             } else if (!trackingState.isCircuitBroken()) {
-                log.info("Level 2 AutoCompact 触发: Collapse 释放不足 (postTokens={} > threshold={})",
-                        postCollapseWarning.currentTokens(), postCollapseWarning.autoCompactThreshold());
+                autoCompactDecision = "ATTEMPT";
                 acAttempted = true;
                 try {
                     acResult = compactService.compact(current, contextWindow, false);
                     if (acResult.skipReason() == null && !acResult.compactedMessages().isEmpty()) {
                         acExecuted = true;
                         current = acResult.compactedMessages();
-                        log.info("Level 2 AutoCompact completed: {}", acResult.summary());
                     }
                 } catch (Exception e) {
                     log.error("Level 2 AutoCompact failed", e);
                 }
+            } else {
+                autoCompactDecision = "CIRCUIT_OPEN";
             }
         } else if (!trackingState.isCircuitBroken()) {
             // Collapse 未执行，保持原有 AutoCompact 判断逻辑
-            TokenWarningState warning = calculateTokenWarningState(current, model);
-            if (warning.isAboveAutoCompactThreshold()) {
-                log.info("Level 2 AutoCompact triggered: {} tokens > threshold {}",
-                        warning.currentTokens(), warning.autoCompactThreshold());
+            postCollapseWarning = calculateTokenWarningState(current, model);
+            if (postCollapseWarning.isAboveAutoCompactThreshold()) {
+                autoCompactDecision = "ATTEMPT";
                 acAttempted = true;
                 try {
                     acResult = compactService.compact(current, contextWindow, false);
                     if (acResult.skipReason() == null && !acResult.compactedMessages().isEmpty()) {
                         acExecuted = true;
                         current = acResult.compactedMessages();
-                        log.info("Level 2 AutoCompact completed: {}", acResult.summary());
                     }
                 } catch (Exception e) {
                     log.error("Level 2 AutoCompact failed", e);
                 }
+            } else {
+                autoCompactDecision = "NOT_NEEDED_NO_COLLAPSE";
             }
+        } else {
+            autoCompactDecision = "CIRCUIT_OPEN";
         }
+
+        Integer collapseAfterTokens = postCollapseWarning != null
+                ? postCollapseWarning.currentTokens()
+                : collapseBeforeTokens;
+        Integer collapseTokenDelta = collapseBeforeTokens != null && collapseAfterTokens != null
+                ? collapseBeforeTokens - collapseAfterTokens
+                : null;
+        logCascadeEvaluation(collapseAttempted, collapseDidExecute,
+                collapseResult.collapsedCount(), collapseFreedChars,
+                collapseMessagesChanged, collapseBeforeTokens, collapseAfterTokens,
+                collapseTokenDelta, postCollapseWarning, autoCompactDecision,
+                acAttempted, acExecuted, cascadeStartedAt);
 
         int finalTokens = tokenCounter.estimateTokens(current, model);
         CascadeResult result = new CascadeResult(current, originalTokens, finalTokens,
@@ -291,6 +308,61 @@ public class ContextCascade {
         }
 
         return result;
+    }
+
+    private void logCascadeEvaluation(
+            boolean collapseAttempted, boolean collapseExecuted,
+            int collapsedCount, int collapseCharsFreed,
+            boolean messagesChanged, Integer collapseBeforeTokens,
+            Integer collapseAfterTokens, Integer collapseTokenDelta,
+            TokenWarningState warning, String autoCompactDecision,
+            boolean autoCompactAttempted, boolean autoCompactExecuted,
+            long cascadeStartedAt) {
+        try {
+            String format = "event=context_cascade_evaluation contextEvalId={} sessionId={} runId={} turn={} " +
+                    "collapseAttempted={} collapseExecuted={} collapsedCount={} charsFreed={} " +
+                    "messagesChanged={} tokensBefore={} tokensAfter={} tokenDelta={} " +
+                    "threshold={} aboveThreshold={} autoCompactDecision={} " +
+                    "autoCompactAttempted={} autoCompactExecuted={} elapsedMicros={}";
+            Object[] args = {
+                    mdcValue("contextEvalId"), mdcValue("sessionId"), mdcValue("runId"), mdcValue("turn"),
+                    collapseAttempted, collapseExecuted, collapsedCount, collapseCharsFreed,
+                    messagesChanged, collapseBeforeTokens, collapseAfterTokens, collapseTokenDelta,
+                    warning != null ? warning.autoCompactThreshold() : null,
+                    warning != null ? warning.isAboveAutoCompactThreshold() : null,
+                    autoCompactDecision, autoCompactAttempted, autoCompactExecuted,
+                    TimeUnit.NANOSECONDS.toMicros(System.nanoTime() - cascadeStartedAt)
+            };
+            if (collapseCharsFreed < 0 || (collapseTokenDelta != null && collapseTokenDelta < 0)) {
+                log.warn(format, args);
+            } else {
+                log.debug(format, args);
+            }
+        } catch (RuntimeException ignored) {
+            // 诊断失败不得改变 Cascade 返回值。
+        }
+    }
+
+    private boolean diagnosticallyDifferent(Object before, Object after) {
+        try {
+            return !Objects.equals(before, after);
+        } catch (RuntimeException ignored) {
+            return false;
+        }
+    }
+
+    private Integer estimateTokensForDiagnostics(List<Message> messages, String model) {
+        try {
+            return tokenCounter.estimateTokens(messages, model);
+        } catch (RuntimeException ignored) {
+            // 诊断估算失败不得改变原有压缩和 AutoCompact 流程。
+            return null;
+        }
+    }
+
+    private String mdcValue(String key) {
+        String value = org.slf4j.MDC.get(key);
+        return value != null ? value : "none";
     }
 
     // ============ 错误恢复级联（413 时调用） ============

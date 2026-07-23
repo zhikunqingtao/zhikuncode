@@ -9,6 +9,7 @@ public final class PermissionGrantMatcher {
     public static boolean matches(GrantConstraint constraint, OperationDescriptor operation) {
         return switch (constraint) {
             case GrantConstraint.Exact exact -> exact.operationHash().equals(operation.operationHash());
+            case GrantConstraint.ToolWide ignored -> true;
             case GrantConstraint.WorkspaceRead read -> matchesFile(
                     read.relativeDirectoryPrefixes(), read.allowedOperations(), operation);
             case GrantConstraint.WorkspaceEdit edit -> matchesFile(

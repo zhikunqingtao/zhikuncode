@@ -1,5 +1,6 @@
 package com.aicodeassistant.security;
 
+import com.aicodeassistant.authorization.AuthorizationException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
@@ -165,7 +166,15 @@ public class CommandBlacklistService {
             // NPM 发布
             new RuleEntry(
                     Pattern.compile("\\bnpm\\s+(publish|unpublish)"),
-                    "NPM publish/unpublish")
+                    "NPM publish/unpublish"),
+            // 特权提升命令
+            new RuleEntry(
+                    Pattern.compile("\\b(sudo|su|doas)\\s+"),
+                    "Privilege escalation command"),
+            // setuid/setgid 修改
+            new RuleEntry(
+                    Pattern.compile("chmod\\s+(?:[^\\s]*\\+[su]|[^\\s]*[ug]\\+s)"),
+                    "setuid/setgid permission modification")
     );
 
     private static final List<RuleEntry> BUILTIN_AUDIT_LOG = List.of(
@@ -338,6 +347,19 @@ public class CommandBlacklistService {
         }
         String reconstructed = String.join(" ", argv);
         return checkCommand(reconstructed);
+    }
+
+    /**
+     * 若命令属于 ABSOLUTE_DENY，抛出 AuthorizationException。
+     *
+     * @param command 待检查的命令
+     * @throws AuthorizationException 若命令命中绝对拒绝规则
+     */
+    public void requireNotAbsolutelyDenied(String command) {
+        BlockResult result = checkCommand(command);
+        if (result.level() == BlockLevel.ABSOLUTE_DENY) {
+            throw new AuthorizationException("COMMAND_ABSOLUTELY_DENIED", result.reason());
+        }
     }
 
     // ===== 辅助方法 =====

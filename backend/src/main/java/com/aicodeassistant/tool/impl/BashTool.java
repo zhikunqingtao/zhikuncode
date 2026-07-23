@@ -64,25 +64,6 @@ public class BashTool implements Tool {
         }
     }
 
-    // 高危破坏性命令 — 经 AST 包装命令剥离后检查 argv[0]
-    private static final Set<String> DESTRUCTIVE_COMMANDS = Set.of(
-            "rm", "rmdir", "chmod", "chown", "mkfs", "dd",
-            "shred", "truncate", "wipefs", "fdisk", "parted",
-            "kill", "killall", "pkill", "reboot", "shutdown",
-            "halt", "poweroff", "init", "systemctl",
-            "sudo", "su", "doas");  // 禁止特权提升命令
-
-    // 绝对拦截命令 — 这些命令在任何情况下都必须 100% 拒绝执行
-    private static final Set<String> BLOCKED_COMMANDS = Set.of(
-            "sudo", "su", "doas");  // 特权提升命令
-
-    // 危险 flag 模式 — 检测特定命令+危险flag组合
-    private static final Map<String, Set<String>> DANGEROUS_FLAG_PATTERNS = Map.of(
-            "rm", Set.of("-rf", "-fr", "--recursive", "--force"),
-            "chmod", Set.of("777", "755", "666", "+s", "u+s", "g+s"),
-            "chown", Set.of("-R", "--recursive")
-    );
-
     private final BashSecurityAnalyzer securityAnalyzer;
     private final BashCommandClassifier commandClassifier;
     private final ShellStateManager shellStateManager;
@@ -299,7 +280,12 @@ public class BashTool implements Tool {
             // 所有简单命令均通过 isSearchOrRead 检查 → 整体只读
             return simple.commands().stream().allMatch(cmd -> {
                 String argv0 = cmd.argv().isEmpty() ? "" : cmd.argv().getFirst();
-                return commandClassifier.isSearchOrReadCommand(argv0);
+                if (commandClassifier.isSearchOrReadCommand(argv0)) {
+                    return true;
+                }
+                // 二次判定：拼接完整命令调用 isReadOnlyCommand（覆盖 git/docker/gh 等只读子命令）
+                String fullCmd = String.join(" ", cmd.argv());
+                return commandClassifier.isReadOnlyCommand(fullCmd);
             });
         }
         // AST 解析失败或 too-complex → 降级到正则分类器
@@ -312,119 +298,20 @@ public class BashTool implements Tool {
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    // [v1.57.0 G3] isDestructive() — 基于 AST 分析的破坏性判断
+    // [v1.57.0 G3] isDestructive() — 统一使用黑名单服务判定
     // ═══════════════════════════════════════════════════════════════════
     @Override
     public boolean isDestructive(ToolInput input) {
         String command = input.getString("command");
-
-        ParseForSecurityResult result = securityAnalyzer.parseForSecurity(command);
-        if (result instanceof ParseForSecurityResult.Simple simple) {
-            return simple.commands().stream().anyMatch(cmd -> {
-                String argv0 = cmd.argv().isEmpty() ? "" : cmd.argv().getFirst();
-                return DESTRUCTIVE_COMMANDS.contains(argv0);
-            });
-        }
-        // 无法判断 → 保守返回 false (由 checkPermissions 的 ask 兜底)
-        return false;
-    }
-
-    /**
-     * 预执行安全验证 — 在执行前拦截绝对禁止的危险命令。
-     * <p>
-     * 检查项:
-     * 1. 特权提升命令 (sudo/su/doas) → 100% 拦截
-     * 2. 危险 rm -rf / 模式 → 拦截
-     * 3. chmod 危险权限修改 → 拦截
-     * 4. 危险 flag 组合检测
-     *
-     * @param command 待执行命令
-     * @return 拒绝原因，null 表示通过验证
-     */
-    private String validateCommandSafety(String command) {
-        if (command == null || command.isBlank()) return null;
-        String trimmed = command.trim();
-
-        // 1. 拆分管道/链式命令，逐段检查
-        String[] segments = trimmed.split("\\s*(?:\\|\\||&&|[|;])\\s*");
-        for (String segment : segments) {
-            String seg = segment.trim();
-            if (seg.isEmpty()) continue;
-
-            // 剥离环境变量赋值前缀 (KEY=VAL)
-            String stripped = seg.replaceAll("^(\\w+=\\S*\\s+)+", "");
-
-            // 提取首 token
-            String[] tokens = stripped.split("\\s+");
-            if (tokens.length == 0) continue;
-            String argv0 = tokens[0];
-
-            // 1a. 特权提升命令绝对拦截
-            if (BLOCKED_COMMANDS.contains(argv0)) {
-                return String.format("Blocked: '%s' is a privilege escalation command and is not allowed. "
-                        + "Execute commands directly without privilege escalation.", argv0);
-            }
-
-            // 1b. 危险 rm -rf / 模式检测
-            if ("rm".equals(argv0)) {
-                String argsStr = stripped.substring(2).trim();
-                boolean hasRecursiveForce = argsStr.contains("-rf") || argsStr.contains("-fr")
-                        || (argsStr.contains("--recursive") && argsStr.contains("--force"));
-                if (hasRecursiveForce) {
-                    // 检查是否针对根目录或关键系统目录
-                    for (String token : tokens) {
-                        if ("/".equals(token) || "/*".equals(token)
-                                || token.startsWith("/etc") || token.startsWith("/usr")
-                                || token.startsWith("/bin") || token.startsWith("/sbin")
-                                || token.startsWith("/boot") || token.startsWith("/var")
-                                || token.startsWith("/sys") || token.startsWith("/proc")
-                                || token.equals("~") || token.equals("$HOME")) {
-                            return String.format("Blocked: 'rm -rf %s' targets a critical system path "
-                                    + "and is not allowed.", token);
-                        }
-                    }
-                }
-            }
-
-            // 1c. chmod 危险权限模式检测
-            if ("chmod".equals(argv0) && tokens.length >= 2) {
-                for (int i = 1; i < tokens.length; i++) {
-                    String t = tokens[i];
-                    if ("777".equals(t) || "+s".equals(t) || "u+s".equals(t) || "g+s".equals(t)) {
-                        return String.format("Blocked: 'chmod %s' sets dangerous permissions "
-                                + "and is not allowed.", t);
-                    }
-                }
-            }
-
-            // 1d. 危险 flag 组合检测
-            Set<String> dangerousFlags = DANGEROUS_FLAG_PATTERNS.get(argv0);
-            if (dangerousFlags != null) {
-                for (int i = 1; i < tokens.length; i++) {
-                    if (dangerousFlags.contains(tokens[i])) {
-                        log.debug("Dangerous flag detected: {} {} (flag: {})",
-                                argv0, tokens[i], tokens[i]);
-                        // 仅标记日志，不拦截 —— 由权限系统(ASK)决定
-                        break;
-                    }
-                }
-            }
-        }
-        return null; // 验证通过
+        if (command == null || command.isBlank()) return false;
+        CommandBlacklistService.BlockResult result = commandBlacklistService.checkCommand(command);
+        return result.level() == CommandBlacklistService.BlockLevel.HIGH_RISK_ASK
+                || result.level() == CommandBlacklistService.BlockLevel.ABSOLUTE_DENY;
     }
 
     @Override
     public ToolResult call(ToolInput input, ToolUseContext context) {
         String command = input.getString("command");
-
-        // ── 预执行安全验证 — 绝对拦截危险命令 ──
-        String rejection = validateCommandSafety(command);
-        if (rejection != null) {
-            log.warn("Command blocked by safety validation: {} — reason: {}", command, rejection);
-            return ToolResult.validationError("BASH_COMMAND_SAFETY_DENIED", rejection)
-                    .withMetadata("failure_category", BashErrorClassifier.ErrorType.NEEDS_HUMAN.name())
-                    .withMetadata("failure_suggestion", rejection);
-        }
 
         // 动态超时策略：LLM显式指定timeout时尊重其选择，否则基于命令类型推荐
         long timeout;
@@ -445,6 +332,12 @@ public class BashTool implements Tool {
         String sessionId = context.sessionId();
 
         try {
+            // 绝对禁止命令最终防线（纵深防御）
+            CommandBlacklistService.BlockResult blockResult = commandBlacklistService.checkCommand(command);
+            if (blockResult.level() == CommandBlacklistService.BlockLevel.ABSOLUTE_DENY) {
+                return ToolResult.permissionDenied("COMMAND_ABSOLUTELY_DENIED", blockResult.reason());
+            }
+
             // 1. Shell 状态包装
             String wrappedCommand = shellStateManager.wrapCommand(command, sessionId);
             String workingDir = shellStateManager.resolveWorkingDirectory(

@@ -506,31 +506,55 @@ public class StreamingToolExecutor {
             ToolResult result = next.result;
             if (result == null || !result.isError() || next.tool == null) return;
 
+            String toolName = next.tool.getName();
+            boolean isHighRisk = next.tool.isHighRisk();
+            int queuedCount = (int) tracked.stream().filter(t -> t.state == ToolState.QUEUED).count();
+            int executingCount = active.get();
+            String failureCode = result.failureCode();
+            var failureType = result.failureType();
+
+            log.debug("[TOOL-CASCADE] Evaluating cascade: tool={}, toolUseId={}, isHighRisk={}, " +
+                            "failureType={}, failureCode={}, sessionDiscarded={}, queuedSiblings={}, executingSiblings={}",
+                    toolName, next.toolUseId, isHighRisk, failureType, failureCode,
+                    sessionDiscarded, queuedCount, executingCount);
+
             // ★ FailureType 枚举判断：非系统级失败不触发级联丢弃
-            if (result.failureType() != null) {
-                switch (result.failureType()) {
+            if (failureType != null) {
+                switch (failureType) {
                     case PERMISSION:
                     case VALIDATION:
                         // 权限类/验证类是单工具级别的问题，不应级联丢弃兄弟工具
                         log.info("[TOOL-CASCADE] Skipping cascade discard for non-systemic failure: type={}, toolUseId={}",
-                                result.failureType(), next.toolUseId);
+                                failureType, next.toolUseId);
                         return;
                     default:
                         // PROCESS, NETWORK, INTERNAL, PROVIDER 等可能表示系统级问题，保留级联判断
+                        log.debug("[TOOL-CASCADE] Systemic failure type detected: type={}, tool={}, proceeding with cascade evaluation",
+                                failureType, toolName);
                         break;
                 }
             }
 
-            boolean shouldCascade = next.tool.isHighRisk();
-            if (!shouldCascade || sessionDiscarded) return;
+            boolean shouldCascade = isHighRisk;
+            if (!shouldCascade) {
+                log.debug("[TOOL-CASCADE] No cascade: tool='{}' is not high-risk, skipping. toolUseId={}",
+                        toolName, next.toolUseId);
+                return;
+            }
+            if (sessionDiscarded) {
+                log.debug("[TOOL-CASCADE] No cascade: session already discarded. tool='{}', toolUseId={}",
+                        toolName, next.toolUseId);
+                return;
+            }
 
-            String toolName = next.tool.getName();
             String content = result.content();
             String snippet = content != null
                     ? content.substring(0, Math.min(200, content.length()))
                     : "null";
-            log.warn("[TOOL-CASCADE] High-risk tool '{}' (id={}) errored, discarding sibling tools. Error: {}",
-                    toolName, next.toolUseId, snippet);
+            int affectedCount = queuedCount + executingCount;
+            log.warn("[TOOL-CASCADE] High-risk tool '{}' (id={}) errored, discarding {} sibling tools. " +
+                            "failureType={}, failureCode={}, error: {}",
+                    toolName, next.toolUseId, affectedCount, failureType, failureCode, snippet);
             sessionDiscarded = true;
             cascadeAbortCounter.increment();
         }

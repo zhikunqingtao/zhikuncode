@@ -111,6 +111,38 @@ public class SubAgentExecutor {
     }
 
     /**
+     * 根据 QueryResult 和异常类型分类 Agent 最终状态。
+     * 纯函数，无副作用（InterruptedException 时会重新设置中断标志）。
+     */
+    private static String classifyAgentStatus(QueryEngine.QueryResult result, Throwable error) {
+        if (error instanceof InterruptedException) {
+            Thread.currentThread().interrupt();
+            return AgentResult.STATUS_INTERRUPTED;
+        }
+        if (error != null) {
+            return AgentResult.STATUS_FAILED;
+        }
+        if (result == null || result.error() != null) {
+            return AgentResult.STATUS_FAILED;
+        }
+        String stopReason = result.stopReason();
+        if ("end_turn".equals(stopReason) || "stop".equals(stopReason)) {
+            return AgentResult.STATUS_COMPLETED;
+        }
+        if ("max_turns".equals(stopReason)) {
+            return AgentResult.STATUS_MAX_TURNS;
+        }
+        if ("aborted".equals(stopReason) || "cancelled".equals(stopReason)) {
+            return AgentResult.STATUS_INTERRUPTED;
+        }
+        // stopReason 为 null 或其他未知值：如果消息非空视为成功，否则失败
+        if (result.messages() != null && !result.messages().isEmpty()) {
+            return AgentResult.STATUS_COMPLETED;
+        }
+        return AgentResult.STATUS_FAILED;
+    }
+
+    /**
      * 同步执行子代理 — AgentTool.call() 的主入口。
      *
      * @param request       子代理请求（含 prompt, agentType, model, isolation 等）
@@ -174,6 +206,10 @@ public class SubAgentExecutor {
             FileStateCache parentCache = sessionManager.getFileStateCache(parentContext.sessionId());
             FileStateCache childCache = parentCache.cloneCache();
             String childSessionId = "subagent-" + request.agentId();
+
+            // ★ 注册虚拟会话到 sessions 表（解决 artifact_manifests 外键约束）
+            sessionManager.registerSubAgentSession(
+                    childSessionId, workDir.toString(), parentContext.sessionId());
 
             // 临时注册子代理的 FileStateCache
             sessionManager.getFileStateCache(childSessionId);
@@ -272,12 +308,11 @@ public class SubAgentExecutor {
                 }
             } catch (ExecutionException e) {
                 log.error("Sub-agent {} execution failed with exception", request.agentId(), e.getCause());
-                return new AgentResult(AgentResult.STATUS_COMPLETED,
+                return new AgentResult(classifyAgentStatus(null, e.getCause()),
                         "Agent execution failed: " + (e.getCause() != null ? e.getCause().getMessage() : e.getMessage()),
                         request.prompt(), null);
             } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                return new AgentResult(AgentResult.STATUS_COMPLETED, "Agent interrupted", request.prompt(), null);
+                return new AgentResult(classifyAgentStatus(null, e), "Agent interrupted", request.prompt(), null);
             } finally {
                 // ★ 修复6: 统一资源清理 — 所有退出路径都经过这里
                 // Worktree 清理
@@ -304,6 +339,9 @@ public class SubAgentExecutor {
                     log.warn("FileStateCache cleanup failed for agent {}: {}",
                             request.agentId(), cleanupEx.getMessage());
                 }
+
+                // ★ 关闭虚拟会话（标记 status='closed'）
+                sessionManager.closeSubAgentSession(childSessionId);
             }
 
             // 9. 截取结果
@@ -322,12 +360,12 @@ public class SubAgentExecutor {
                         durationMs);
             }
 
-            return new AgentResult(AgentResult.STATUS_COMPLETED, answer, request.prompt(), null);
+            return new AgentResult(classifyAgentStatus(result, null), answer, request.prompt(), null);
         } catch (AgentLimitExceededException e) {
             throw e;  // 让调用方处理
         } catch (Exception e) {
             log.error("Sub-agent execution failed: {}", request.agentId(), e);
-            return new AgentResult(AgentResult.STATUS_COMPLETED,
+            return new AgentResult(classifyAgentStatus(null, e),
                     "Agent execution failed: " + e.getMessage(),
                     request.prompt(), null);
         }
@@ -614,7 +652,7 @@ public class SubAgentExecutor {
 
     /** 子代理执行结果 */
     public record AgentResult(
-            String status,     // "completed" | "timeout" | "async_launched"
+            String status,     // "completed" | "timeout" | "failed" | "interrupted" | "max_turns" | "async_launched"
             String result,
             String prompt,
             String outputFile  // 异步模式下的输出文件路径
@@ -625,6 +663,12 @@ public class SubAgentExecutor {
         public static final String STATUS_TIMEOUT = "timeout";
         /** Agent 异步已启动 */
         public static final String STATUS_ASYNC_LAUNCHED = "async_launched";
+        /** Agent 执行失败（异常或错误） */
+        public static final String STATUS_FAILED = "failed";
+        /** Agent 被中断 */
+        public static final String STATUS_INTERRUPTED = "interrupted";
+        /** Agent 达到最大轮次限制 */
+        public static final String STATUS_MAX_TURNS = "max_turns";
 
         public boolean isTimeout() {
             return STATUS_TIMEOUT.equals(status);
@@ -687,6 +731,11 @@ public class SubAgentExecutor {
             // 5. 初始化循环状态 — 使用复制的消息
             FileStateCache childCache = parentCache.cloneCache();
             String childSessionId = "fork-" + request.agentId();
+
+            // ★ 注册虚拟会话到 sessions 表（解决 artifact_manifests 外键约束）
+            sessionManager.registerSubAgentSession(
+                    childSessionId, parentContext.workingDirectory(), parentContext.sessionId());
+
             sessionManager.getFileStateCache(childSessionId).merge(childCache);
 
             ToolUseContext forkContext = ToolUseContext.of(
@@ -714,7 +763,10 @@ public class SubAgentExecutor {
             } catch (TimeoutException e) {
                 future.cancel(true);
                 log.warn("Fork agent {} timed out", request.agentId());
-                return new AgentResult(AgentResult.STATUS_COMPLETED,
+                // ★ 超时也要关闭虚拟会话
+                sessionManager.closeSubAgentSession(childSessionId);
+                sessionManager.removeFileStateCache(childSessionId);
+                return new AgentResult(AgentResult.STATUS_TIMEOUT,
                         "Fork agent timed out after " + PER_AGENT_TIMEOUT.toSeconds() + " seconds",
                         request.prompt(), null);
             }
@@ -723,6 +775,9 @@ public class SubAgentExecutor {
             FileStateCache childFinalCache = sessionManager.getFileStateCache(childSessionId);
             parentCache.merge(childFinalCache);
             sessionManager.removeFileStateCache(childSessionId);
+
+            // ★ 关闭虚拟会话
+            sessionManager.closeSubAgentSession(childSessionId);
 
             // 8. 提取结果
             String answer = extractFinalAnswer(result);
@@ -733,13 +788,15 @@ public class SubAgentExecutor {
             long durationMs = Duration.between(startTime, Instant.now()).toMillis();
             log.info("Fork agent {} completed in {}ms", request.agentId(), durationMs);
 
-            return new AgentResult(AgentResult.STATUS_COMPLETED, answer, request.prompt(), null);
+            return new AgentResult(classifyAgentStatus(result, null), answer, request.prompt(), null);
 
         } catch (AgentLimitExceededException e) {
             throw e;
         } catch (Exception e) {
             log.error("Fork agent execution failed: {}", request.agentId(), e);
-            return new AgentResult(AgentResult.STATUS_COMPLETED,
+            // ★ 异常时也尝试关闭虚拟会话
+            sessionManager.closeSubAgentSession("fork-" + request.agentId());
+            return new AgentResult(classifyAgentStatus(null, e),
                     "Fork agent execution failed: " + e.getMessage(),
                     request.prompt(), null);
         }

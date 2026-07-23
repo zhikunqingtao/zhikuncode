@@ -72,7 +72,9 @@ public class SessionRepository {
         return jdbcTemplate.query(
                 """
                 SELECT s.*, (SELECT COUNT(*) FROM messages m WHERE m.session_id = s.id) AS message_count
-                FROM sessions s ORDER BY s.updated_at DESC LIMIT ?
+                FROM sessions s
+                WHERE (s.metadata_json IS NULL OR s.metadata_json NOT LIKE '%"type":"subagent"%')
+                ORDER BY s.updated_at DESC LIMIT ?
                 """,
                 SUMMARY_ROW_MAPPER,
                 limit

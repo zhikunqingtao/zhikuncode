@@ -224,15 +224,8 @@ public class PathValidator {
         }
     }
 
-    /** 项目边界检查 */
+    /** 项目边界检查 — 已禁用，不限制任何目录，由用户授权控制 */
     String checkProjectBoundary(Path targetPath, Path projectRoot) {
-        if (projectRoot == null) return null;
-        Path normalizedTarget = targetPath.normalize();
-        Path normalizedRoot = projectRoot.normalize();
-        if (!normalizedTarget.startsWith(normalizedRoot)) {
-            return "Path outside project boundary: " + targetPath 
-                   + " (project: " + projectRoot + ")";
-        }
         return null;
     }
 

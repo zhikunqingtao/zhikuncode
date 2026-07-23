@@ -2,7 +2,11 @@ package com.aicodeassistant.security;
 
 import org.springframework.stereotype.Component;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -26,6 +30,7 @@ import java.util.regex.Pattern;
 @Component
 public class SensitiveDataFilter {
 
+    private static final Logger log = LoggerFactory.getLogger(SensitiveDataFilter.class);
     private static final String REDACTED = "***REDACTED***";
 
     private static final List<Pattern> PATTERNS = List.of(
@@ -68,15 +73,19 @@ public class SensitiveDataFilter {
         if (content == null) return null;
         String result = content;
         for (Pattern p : PATTERNS) {
-            result = p.matcher(result).replaceAll(matchResult -> {
-                String token = matchResult.group(1);
-                if (token == null) return REDACTED;
-                int underscoreIdx = token.indexOf('_');
-                String prefix = underscoreIdx > 0 && underscoreIdx < 8
-                    ? token.substring(0, underscoreIdx + 1)
-                    : token.substring(0, Math.min(4, token.length()));
-                return prefix + "***REDACTED-" + token.length() + "***";
-            });
+            try {
+                result = p.matcher(result).replaceAll(matchResult -> {
+                    String token = matchResult.group(1);
+                    if (token == null) return Matcher.quoteReplacement(REDACTED);
+                    int underscoreIdx = token.indexOf('_');
+                    String prefix = underscoreIdx > 0 && underscoreIdx < 8
+                        ? token.substring(0, underscoreIdx + 1)
+                        : token.substring(0, Math.min(4, token.length()));
+                    return Matcher.quoteReplacement(prefix + "***REDACTED-" + token.length() + "***");
+                });
+            } catch (IllegalArgumentException e) {
+                log.warn("SensitiveDataFilter: skipping pattern [{}] due to replacement error: {}", p.pattern(), e.getMessage());
+            }
         }
         return result;
     }

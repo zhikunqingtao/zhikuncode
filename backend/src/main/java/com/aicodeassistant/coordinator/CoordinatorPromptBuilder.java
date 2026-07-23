@@ -121,7 +121,7 @@ public class CoordinatorPromptBuilder {
             ```xml
             <task-notification>
             <task-id>{agentId}</task-id>
-            <status>completed|failed|killed</status>
+            <status>completed|failed|timeout|interrupted|max_turns|async_launched</status>
             <summary>{人类可读的状态摘要}</summary>
             <result>{agent 的最终文本回复}</result>
             <usage>
@@ -131,6 +131,14 @@ public class CoordinatorPromptBuilder {
             </usage>
             </task-notification>
             ```
+            
+            Agent 执行结束状态：completed | failed | timeout | interrupted | max_turns | async_launched
+            - completed: Agent 正常完成任务
+            - failed: Agent 执行过程中发生错误
+            - timeout: Agent 执行超时
+            - interrupted: Agent 被中断或取消
+            - max_turns: Agent 达到最大对话轮次限制
+            - async_launched: Agent 已异步启动（后续通过通知获取结果）
             
             - `<result>` 和 `<usage>` 是可选段落
             - `<summary>` 描述结果："completed"、"failed: {error}" 或 "was stopped"
@@ -217,6 +225,18 @@ public class CoordinatorPromptBuilder {
             当 worker 报告失败时：
             - 通过 SendMessage 继续同一个 worker——它拥有完整的错误上下文
             - 如果纠正尝试失败，换一种方法或报告给用户
+            
+            ### 验证与返工策略
+            
+            验证失败不意味着任务失败——Coordinator 应该主动尝试一次修复：
+            
+            1. 如果 Worker 报告验证未通过，在当前用户委托范围内定位问题原因
+            2. 指挥一个或多个 Worker 执行修复（修改代码、调整配置等）
+            3. 运行验证 Worker 重新验证
+            4. 如果第二次验证仍失败，如实向用户报告失败和原因
+            
+            除非任务需要用户提供新信息或可能造成严重破坏，否则不应等待用户再次提醒。\
+            一次有界的自动修复提高了一次成功率，也让 Worker 有机会纠正自己的错误。
             
             ### 停止 Worker
             

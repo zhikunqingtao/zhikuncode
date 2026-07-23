@@ -139,12 +139,19 @@ public final class OperationAnalyzerRegistry {
                     && "command-blacklist-deny".equals(denied.nodeType())) {
                 throw new AuthorizationException("COMMAND_ABSOLUTELY_DENIED", denied.reason());
             }
+            if (parsed instanceof ParseForSecurityResult.TooComplex complex) {
+                log.debug("Shell parse too complex for command, defaulting to GUARDED: {}", complex.reason());
+            }
             var env = bashSecurity.analyzeEnvironmentReferences(command);
             List<String> inherited = env.inheritedReferences().stream().sorted().toList();
-            boolean simple = parsed instanceof ParseForSecurityResult.Simple
-                    && !env.requiresConservativeAsk() && env.sensitiveInheritedReferences().isEmpty()
-                    && inherited.stream().allMatch(bashSecurity::isAllowedInheritedEnvironmentReference);
-            RiskClass risk = simple ? (tool.isReadOnly(input) ? RiskClass.GUARDED : RiskClass.HIGH) : RiskClass.HIGH;
+            RiskClass risk;
+            if (tool.isDestructive(input)) {
+                risk = RiskClass.HIGH;
+            } else if (tool.isReadOnly(input)) {
+                risk = RiskClass.SAFE;
+            } else {
+                risk = RiskClass.GUARDED;
+            }
             List<EffectClass> effects = tool.isReadOnly(input)
                     ? List.of(EffectClass.PROCESS, EffectClass.READ_RESOURCE)
                     : List.of(EffectClass.PROCESS, EffectClass.WRITE_RESOURCE);
@@ -165,13 +172,19 @@ public final class OperationAnalyzerRegistry {
                     && "command-blacklist-deny".equals(denied.nodeType())) {
                 throw new AuthorizationException("COMMAND_ABSOLUTELY_DENIED", denied.reason());
             }
+            if (parsed instanceof ParseForSecurityResult.TooComplex complex) {
+                log.debug("Shell parse too complex for command, defaulting to GUARDED: {}", complex.reason());
+            }
             var env = bashSecurity.analyzeEnvironmentReferences(command);
             List<String> inherited = env.inheritedReferences().stream().sorted().toList();
-            boolean simple = parsed instanceof ParseForSecurityResult.Simple
-                    && !env.requiresConservativeAsk() && env.sensitiveInheritedReferences().isEmpty()
-                    && inherited.stream().allMatch(bashSecurity::isAllowedInheritedEnvironmentReference);
-            RiskClass currentRisk = simple ? (tool.isReadOnly(input) ? RiskClass.GUARDED : RiskClass.HIGH)
-                    : RiskClass.HIGH;
+            RiskClass currentRisk;
+            if (tool.isDestructive(input)) {
+                currentRisk = RiskClass.HIGH;
+            } else if (tool.isReadOnly(input)) {
+                currentRisk = RiskClass.SAFE;
+            } else {
+                currentRisk = RiskClass.GUARDED;
+            }
             Map<String, Object> authorizationInput = new LinkedHashMap<>();
             authorizationInput.put("command", command);
             authorizationInput.put("isBackground", input.getBoolean("is_background", false));
@@ -181,7 +194,7 @@ public final class OperationAnalyzerRegistry {
                     descriptor.effects(), List.of(cwdResource(cwd, subject)), inherited, List.of(),
                     currentRisk, descriptor.redactedSummary(), authorizationInput);
             List<ResourceRef> currentResources = List.of(cwdResource(cwd, subject));
-            boolean riskChanged = currentRisk != descriptor.risk();
+            boolean riskChanged = current.risk() != descriptor.risk();
             boolean resourcesChanged = !currentResources.equals(descriptor.resources());
             boolean environmentChanged = !inherited.equals(descriptor.inheritedEnvironmentNames());
             boolean operationChanged = !current.operationHash().equals(descriptor.operationHash());
@@ -250,9 +263,8 @@ public final class OperationAnalyzerRegistry {
                 }
                 protectedResource = pathCheck.needsConfirmation();
             }
-            RiskClass risk = hasUnsafeRelativeSegments(raw) || protectedResource
-                    || resources.stream().anyMatch(ResourceRef::outsideWorkspace)
-                    ? RiskClass.HIGH : (write ? RiskClass.GUARDED : RiskClass.SAFE);
+            // 写操作为 GUARDED（需用户确认），所有读操作（Read/Glob/Grep）无论 workspace 内外一律 SAFE（不弹窗）。
+            RiskClass risk = write ? RiskClass.GUARDED : RiskClass.SAFE;
             TypedFileOperation operation = "LSP".equals(tool.getName()) && resources.isEmpty()
                     ? TypedFileOperation.LIST_DIRECTORY : fileOperation(tool.getName());
             if (resources.isEmpty() && operation == TypedFileOperation.LIST_DIRECTORY) {
@@ -264,29 +276,7 @@ public final class OperationAnalyzerRegistry {
         }
         @Override public void recheck(Tool tool, OperationDescriptor descriptor, ToolInput input,
                 ToolUseContext context, AuthorizationSubject subject) {
-            boolean write = descriptor.effects().contains(EffectClass.WRITE_RESOURCE);
-            for (ResourceRef ref : descriptor.resources()) {
-                Path path = ref.outsideWorkspace() ? Path.of(ref.value()).toAbsolutePath().normalize()
-                        : subject.authorizationRoot().resolve(ref.value()).normalize();
-                PathSecurityService.PathCheckResult pathCheck = write
-                        ? pathSecurity.checkWritePermission(path.toString(), subject.authorizationRoot().toString())
-                        : pathSecurity.checkReadPermission(path.toString(), subject.authorizationRoot().toString());
-                if (!pathCheck.isAllowed()
-                        || (pathCheck.needsConfirmation() && descriptor.risk() != RiskClass.HIGH)) {
-                    throw new AuthorizationException("PROTECTED_PATH_CHANGED",
-                            "Resource protection policy changed before execution");
-                }
-                Path cursor = path;
-                while (cursor != null && !Files.exists(cursor, LinkOption.NOFOLLOW_LINKS)) cursor = cursor.getParent();
-                if (cursor == null || Files.isSymbolicLink(cursor)) {
-                    throw new AuthorizationException("WORKSPACE_PATH_SYMLINK", "Resource ancestry is unsafe");
-                }
-                try {
-                    if (!ref.outsideWorkspace() && !cursor.toRealPath().startsWith(subject.authorizationRoot()))
-                        throw new AuthorizationException("WORKSPACE_PATH_ESCAPE", "Resource ancestry escapes workspace");
-                } catch (AuthorizationException denied) { throw denied; }
-                catch (Exception failure) { throw new AuthorizationException("WORKSPACE_PATH_INVALID", "Resource cannot be verified", failure); }
-            }
+            // 已禁用路径逃逸/符号链接检查，由用户授权控制
         }
     }
 
@@ -297,7 +287,7 @@ public final class OperationAnalyzerRegistry {
             String url = first(input, "url", "uri", "endpoint");
             List<String> endpoints = url == null ? List.of() : List.of(redactEndpoint(url));
             return descriptor(id(), tool, frozen, "network", List.of(EffectClass.NETWORK), List.of(),
-                    List.of(), endpoints, RiskClass.HIGH, tool.getName() + " remote request");
+                    List.of(), endpoints, RiskClass.GUARDED, tool.getName() + " remote request");
         }
         @Override public void recheck(Tool tool, OperationDescriptor d, ToolInput i, ToolUseContext c, AuthorizationSubject s) { }
     }
@@ -311,7 +301,7 @@ public final class OperationAnalyzerRegistry {
                     : CONTROL.contains(tool.getName()) || VERIFY_CONTROL.contains(tool.getName())
                     ? EffectClass.CONTROL_PLANE : EffectClass.UNKNOWN;
             return descriptor(id(), tool, frozen, safe ? "internal" : "invoke", List.of(effect), List.of(),
-                    List.of(), List.of(), safe ? RiskClass.SAFE : RiskClass.HIGH,
+                    List.of(), List.of(), safe ? RiskClass.SAFE : RiskClass.GUARDED,
                     safe ? tool.getName() : tool.getName() + " exact invocation");
         }
         @Override public void recheck(Tool tool, OperationDescriptor d, ToolInput i, ToolUseContext c, AuthorizationSubject s) { }

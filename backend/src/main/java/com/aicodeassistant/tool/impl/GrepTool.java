@@ -35,7 +35,7 @@ public class GrepTool implements Tool {
     private static final int MAX_RESULT_SIZE_CHARS = 20_000;
     private static final int MAX_OUTPUT_LINES = 10_000;
     private static final int MAX_COLUMNS = 500;
-    private static final long PROCESS_TIMEOUT_MS = 120_000L; // 120秒，低于外层180s Watchdog
+    private static final long PROCESS_TIMEOUT_MS = 300_000L; // 300秒(5分钟)，与外层Watchdog对齐
     private static final long GRACEFUL_KILL_WAIT_MS = 5_000L; // 优雅终止等待
     private static final AtomicInteger THREAD_COUNTER = new AtomicInteger(0);
     private static final ExecutorService STREAM_READER_EXECUTOR =

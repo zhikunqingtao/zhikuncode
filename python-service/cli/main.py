@@ -192,7 +192,7 @@ def main(
         "systemPrompt": effective_system_prompt,
         "appendSystemPrompt": append_system_prompt,
         "permissionMode": perm,
-        "maxTurns": max_turns or 10,
+        "maxTurns": max_turns or 99,
         "maxBudgetUsd": max_budget,
         "allowedTools": allowed_tools.split(",") if allowed_tools else None,
         "disallowedTools": disallowed_tools.split(",") if disallowed_tools else None,

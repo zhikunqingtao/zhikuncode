@@ -65,6 +65,46 @@ public class SessionManager {
         fileStateCaches.remove(sessionId);
     }
 
+    // ───── 子代理虚拟会话注册 ─────
+
+    /**
+     * 注册子代理虚拟会话到 sessions 表 — 解决 artifact_manifests 外键约束。
+     * <p>
+     * 使用 INSERT OR IGNORE 确保幂等性（重复调用不报错）。
+     *
+     * @param sessionId       子代理虚拟会话 ID（如 "subagent-xxx" 或 "fork-xxx"）
+     * @param workingDir      工作目录
+     * @param parentSessionId 父会话 ID（记录到 metadata_json 中）
+     */
+    public void registerSubAgentSession(String sessionId, String workingDir, String parentSessionId) {
+        String now = Instant.now().toString();
+        String metadataJson = String.format(
+                "{\"type\":\"subagent\",\"parent_session_id\":\"%s\"}", parentSessionId);
+        jdbcTemplate.update(
+                "INSERT OR IGNORE INTO sessions (id, model, working_dir, status, metadata_json, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                sessionId, "subagent", workingDir, "active", metadataJson, now, now
+        );
+        log.debug("Registered sub-agent session: {} (parent={})", sessionId, parentSessionId);
+    }
+
+    /**
+     * 关闭子代理虚拟会话 — 在 finally 块中调用，确保异常终止时也能清理。
+     *
+     * @param sessionId 子代理虚拟会话 ID
+     */
+    public void closeSubAgentSession(String sessionId) {
+        try {
+            String now = Instant.now().toString();
+            jdbcTemplate.update(
+                    "UPDATE sessions SET status = 'closed', updated_at = ? WHERE id = ?",
+                    now, sessionId
+            );
+            log.debug("Closed sub-agent session: {}", sessionId);
+        } catch (Exception e) {
+            log.warn("Failed to close sub-agent session {}: {}", sessionId, e.getMessage());
+        }
+    }
+
     public SessionManager(@Qualifier("projectJdbcTemplate") JdbcTemplate jdbcTemplate,
                           ObjectMapper objectMapper,
                           SqliteConfig sqliteConfig,
@@ -305,7 +345,9 @@ public class SessionManager {
         return jdbcTemplate.query(
                 """
                 SELECT s.*, (SELECT COUNT(*) FROM messages m WHERE m.session_id = s.id) AS message_count
-                FROM sessions s ORDER BY s.updated_at DESC LIMIT ?
+                FROM sessions s
+                WHERE (s.metadata_json IS NULL OR s.metadata_json NOT LIKE '%"type":"subagent"%')
+                ORDER BY s.updated_at DESC LIMIT ?
                 """,
                 summaryMapper, limit
         );
@@ -322,7 +364,9 @@ public class SessionManager {
             sessions = jdbcTemplate.query(
                     """
                     SELECT s.*, (SELECT COUNT(*) FROM messages m WHERE m.session_id = s.id) AS message_count
-                    FROM sessions s ORDER BY s.updated_at DESC LIMIT ?
+                    FROM sessions s
+                    WHERE (s.metadata_json IS NULL OR s.metadata_json NOT LIKE '%"type":"subagent"%')
+                    ORDER BY s.updated_at DESC LIMIT ?
                     """,
                     summaryMapper, limit + 1
             );
@@ -335,7 +379,10 @@ public class SessionManager {
             sessions = jdbcTemplate.query(
                     """
                     SELECT s.*, (SELECT COUNT(*) FROM messages m WHERE m.session_id = s.id) AS message_count
-                    FROM sessions s WHERE s.updated_at < ? ORDER BY s.updated_at DESC LIMIT ?
+                    FROM sessions s
+                    WHERE s.updated_at < ?
+                      AND (s.metadata_json IS NULL OR s.metadata_json NOT LIKE '%"type":"subagent"%')
+                    ORDER BY s.updated_at DESC LIMIT ?
                     """,
                     summaryMapper, cursorTime, limit + 1
             );

@@ -19,7 +19,7 @@ public class V015_CreateInteractionSchema implements Migration {
 
     @Override public void execute() {
         jdbc.execute("""
-                CREATE TABLE interaction_requests (
+                CREATE TABLE IF NOT EXISTS interaction_requests (
                   interaction_id TEXT PRIMARY KEY,
                   correlation_key TEXT NOT NULL,
                   session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,

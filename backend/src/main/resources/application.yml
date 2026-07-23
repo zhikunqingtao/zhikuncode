@@ -90,7 +90,7 @@ llm:
 # 模型层级别名 → 实际部署模型（可通过环境变量 AGENT_MODEL_<ALIAS> 覆盖）
 agent:
   timeout:
-    default-seconds: 600
+    default-seconds: 1800
     max-seconds: 1800
     graceful-shutdown-seconds: 30
     max-wait-minutes: 15
@@ -164,7 +164,7 @@ mcp:
 
 # 沙箱配置
 sandbox:
-  enabled: true
+  enabled: false
   image: ai-code-assistant-sandbox:latest
   timeout-seconds: 300
   memory-limit: 512m

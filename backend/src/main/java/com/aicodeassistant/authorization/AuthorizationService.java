@@ -71,6 +71,10 @@ public final class AuthorizationService {
                     AuthorizationDiagnostic.Source.POLICY, "BUILTIN_SAFE", null, null,
                     null, executionAttemptId);
         }
+        // HIGH 风险操作每次必须弹窗确认，不可被记住，跳过所有 Grant 匹配
+        if (operation.risk() == RiskClass.HIGH) {
+            return interact(tool, frozen, executionInput, context, subject, operation, executionAttemptId);
+        }
         PermissionGrantRepository.Match match = grants.findMatch(subject, operation);
         if (match != null) {
             return new AuthorizedOperation(subject, operation, executionInput,
@@ -79,12 +83,13 @@ public final class AuthorizationService {
         }
 
         PermissionMode mode = modes.getMode(subject.rootSessionId());
-        boolean safeWorkspaceRead = "file-v1".equals(operation.analyzerId())
+        // SAFE 读操作在所有模式下自动放行，不弹窗（读操作已统一为 SAFE 级别）
+        boolean safeRead = "file-v1".equals(operation.analyzerId())
                 && operation.risk() == RiskClass.SAFE
                 && operation.effects().equals(List.of(EffectClass.READ_RESOURCE));
-        if ((mode == PermissionMode.PLAN || mode == PermissionMode.DONT_ASK) && safeWorkspaceRead) {
+        if (safeRead) {
             return new AuthorizedOperation(subject, operation, executionInput,
-                    AuthorizationDiagnostic.Source.MODE, mode.name(), null, null,
+                    AuthorizationDiagnostic.Source.MODE, "SAFE_READ_AUTO", null, null,
                     null, executionAttemptId);
         }
         if (mode == PermissionMode.PLAN) {
@@ -193,6 +198,10 @@ public final class AuthorizationService {
         Map<String, Object> response = response(request);
         if (!operation.operationHash().equals(response.get("operationHash")))
             throw new AuthorizationException("PERMISSION_PROTOCOL_MISMATCH", "Permission response does not match this operation");
+        if (operation.risk() == RiskClass.HIGH && Boolean.TRUE.equals(response.get("remember"))) {
+            throw new AuthorizationException("PERMISSION_HIGH_RISK_NOT_REMEMBERABLE",
+                    "HIGH risk operations cannot be remembered");
+        }
         if (Boolean.TRUE.equals(response.get("remember"))) {
             PermissionGrantRepository.Match remembered = grants.findMatch(subject, operation);
             if (remembered == null) {

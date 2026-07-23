@@ -584,6 +584,10 @@ public class WebSocketController implements PermissionNotifier {
     public void handleUserMessage(@Payload ClientMessage.UserMessagePayload msg,
                                    Principal principal) {
         String sessionId = resolveSessionId(principal);
+        if (sessionId == null) {
+            log.warn("Ignoring message: session not yet bound for principal={}", principal != null ? principal.getName() : "null");
+            return;
+        }
         // 刷新 session 活跃时间（明确的用户动作）
         wsSessionManager.refreshActivity(sessionId);
         log.info("WS user_message: sessionId={}, text={}", sessionId,
@@ -1045,6 +1049,10 @@ public class WebSocketController implements PermissionNotifier {
     public void handlePermissionResponse(@Payload ClientMessage.PermissionResponsePayload resp,
                                           Principal principal) {
         String sessionId = resolveSessionId(principal);
+        if (sessionId == null) {
+            log.warn("Ignoring message: session not yet bound for principal={}", principal != null ? principal.getName() : "null");
+            return;
+        }
         sendError(sessionId, "interaction_rest_required",
                 "协议 v2 的交互决定必须提交到 /api/interactions/{id}/decisions", false);
     }
@@ -1058,6 +1066,10 @@ public class WebSocketController implements PermissionNotifier {
         if (!interactionId.isBlank()) {
             try {
                 String sessionId = resolveSessionId(principal);
+                if (sessionId == null) {
+                    log.warn("Ignoring message: session not yet bound for principal={}", principal != null ? principal.getName() : "null");
+                    return;
+                }
                 var requested = permissionInteractions.findInteraction(interactionId);
                 if (!sessionId.equals(requested.sessionId())
                         || !wsSessionManager.getTransportIdsForSession(sessionId).contains(transportId)) {
@@ -1090,6 +1102,10 @@ public class WebSocketController implements PermissionNotifier {
     public void handleInterrupt(@Payload(required = false) Map<String, Object> payload,
                                  Principal principal) {
         String sessionId = resolveSessionId(principal);
+        if (sessionId == null) {
+            log.warn("Ignoring message: session not yet bound for principal={}", principal != null ? principal.getName() : "null");
+            return;
+        }
         boolean isSubmitInterrupt = payload != null
                 && Boolean.TRUE.equals(payload.get("isSubmitInterrupt"));
         AbortReason reason = isSubmitInterrupt
@@ -1140,6 +1156,10 @@ public class WebSocketController implements PermissionNotifier {
     public void handleSetModel(@Payload ClientMessage.SetModelPayload payload,
                                 Principal principal) {
         String sessionId = resolveSessionId(principal);
+        if (sessionId == null) {
+            log.warn("Ignoring message: session not yet bound for principal={}", principal != null ? principal.getName() : "null");
+            return;
+        }
         log.info("WS set_model: sessionId={}, model={}", sessionId, payload.model());
         // Validate model exists via ModelRegistry capabilities
         try {
@@ -1172,6 +1192,10 @@ public class WebSocketController implements PermissionNotifier {
     public void handleSetPermissionMode(@Payload ClientMessage.SetPermissionModePayload payload,
                                          Principal principal) {
         String sessionId = resolveSessionId(principal);
+        if (sessionId == null) {
+            log.warn("Ignoring message: session not yet bound for principal={}", principal != null ? principal.getName() : "null");
+            return;
+        }
         log.info("WS set_permission_mode: sessionId={}, mode={}", sessionId, payload.mode());
         if (!ALLOWED_PERMISSION_MODES.contains(payload.mode())) {
             log.warn("Permission mode not in allowlist: {}", payload.mode());
@@ -1194,6 +1218,10 @@ public class WebSocketController implements PermissionNotifier {
     public void handleSlashCommand(@Payload ClientMessage.SlashCommandPayload payload,
                                     Principal principal) {
         String sessionId = resolveSessionId(principal);
+        if (sessionId == null) {
+            log.warn("Ignoring message: session not yet bound for principal={}", principal != null ? principal.getName() : "null");
+            return;
+        }
         log.info("WS slash_command: sessionId={}, command=/{} {}", sessionId,
                 payload.command(), payload.args());
         try {
@@ -1297,6 +1325,10 @@ public class WebSocketController implements PermissionNotifier {
     public void handleMcpOperation(@Payload ClientMessage.McpOperationPayload payload,
                                     Principal principal) {
         String sessionId = resolveSessionId(principal);
+        if (sessionId == null) {
+            log.warn("Ignoring message: session not yet bound for principal={}", principal != null ? principal.getName() : "null");
+            return;
+        }
         log.info("WS mcp_operation: sessionId={}, op={}, serverId={}",
                 sessionId, payload.operation(), payload.serverId());
         try {
@@ -1353,6 +1385,10 @@ public class WebSocketController implements PermissionNotifier {
     public void handleRewindFiles(@Payload ClientMessage.RewindFilesPayload payload,
                                    Principal principal) {
         String sessionId = resolveSessionId(principal);
+        if (sessionId == null) {
+            log.warn("Ignoring message: session not yet bound for principal={}", principal != null ? principal.getName() : "null");
+            return;
+        }
         log.info("WS rewind_files: sessionId={}, messageId={}, files={}",
                 sessionId, payload.messageId(), payload.filePaths());
 
@@ -1375,6 +1411,10 @@ public class WebSocketController implements PermissionNotifier {
     public void handleElicitationResponse(@Payload ClientMessage.ElicitationResponsePayload payload,
                                            Principal principal) {
         String sessionId = resolveSessionId(principal);
+        if (sessionId == null) {
+            log.warn("Ignoring message: session not yet bound for principal={}", principal != null ? principal.getName() : "null");
+            return;
+        }
         sendError(sessionId, "interaction_rest_required",
                 "协议 v2 的交互决定必须提交到 /api/interactions/{id}/decisions", false);
     }
@@ -1386,21 +1426,17 @@ public class WebSocketController implements PermissionNotifier {
     public void handlePing(Principal principal, SimpMessageHeaderAccessor headers) {
         String transportId = headers == null ? null : headers.getSessionId();
         wsSessionManager.refreshTransport(transportId);
-        try {
-            String sessionId = resolveSessionId(principal);
+        String sessionId = resolveSessionId(principal);
+        if (sessionId != null) {
             sendPong(sessionId);
-        } catch (IllegalStateException e) {
-            if ("SESSION_NOT_BOUND".equals(e.getMessage())) {
-                // 心跳仍有效：刷新transport活跃时间，响应pong但标记需要绑定
-                if (principal != null) {
-                    pushToPrincipal(principal.getName(), "pong",
-                            Map.of("bindRequired", true, "serverNow", System.currentTimeMillis()));
-                }
-                log.debug("Heartbeat from unbound session, responded with bindRequired: principal={}, transport={}",
-                        principal != null ? principal.getName() : "unknown", transportId);
-            } else {
-                throw e;
+        } else {
+            // 心跳仍有效：刷新transport活跃时间，响应pong但标记需要绑定
+            if (principal != null) {
+                pushToPrincipal(principal.getName(), "pong",
+                        Map.of("bindRequired", true, "serverNow", System.currentTimeMillis()));
             }
+            log.debug("Heartbeat from unbound session, responded with bindRequired: principal={}, transport={}",
+                    principal != null ? principal.getName() : "unknown", transportId);
         }
     }
 
@@ -1568,13 +1604,9 @@ public class WebSocketController implements PermissionNotifier {
      * 从 Principal 解析应用层 sessionId。
      */
     private String resolveSessionId(Principal principal) {
-        if (principal == null) throw new IllegalStateException("SESSION_NOT_BOUND");
+        if (principal == null) return null;
         String principalName = principal.getName();
-        String sessionId = wsSessionManager.getSessionForPrincipal(principalName);
-        if (sessionId != null) {
-            return sessionId;
-        }
-        throw new IllegalStateException("SESSION_NOT_BOUND");
+        return wsSessionManager.getSessionForPrincipal(principalName);
     }
 
     // ───── Activity STOMP 端点 ─────
@@ -1588,6 +1620,10 @@ public class WebSocketController implements PermissionNotifier {
     @MessageMapping("/activity-save")
     public void handleActivitySave(@Payload Map<String, Object> payload, Principal principal) {
         String sessionId = resolveSessionId(principal);
+        if (sessionId == null) {
+            log.warn("Ignoring message: session not yet bound for principal={}", principal != null ? principal.getName() : "null");
+            return;
+        }
         try {
             String id = (String) payload.get("id");
             // 输入验证：id 非空 + 长度限制

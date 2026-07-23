@@ -4,8 +4,9 @@ import java.util.List;
 
 /** 由 V019 持久化的封闭授权约束模型。 */
 public sealed interface GrantConstraint permits GrantConstraint.Exact,
-        GrantConstraint.WorkspaceRead, GrantConstraint.WorkspaceEdit {
+        GrantConstraint.ToolWide, GrantConstraint.WorkspaceRead, GrantConstraint.WorkspaceEdit {
     record Exact(String operationHash) implements GrantConstraint { }
+    record ToolWide() implements GrantConstraint { }
     record WorkspaceRead(List<String> relativeDirectoryPrefixes,
                          List<TypedFileOperation> allowedOperations) implements GrantConstraint {
         public WorkspaceRead {

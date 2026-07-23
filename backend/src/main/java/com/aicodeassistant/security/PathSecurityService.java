@@ -59,6 +59,13 @@ public class PathSecurityService {
         "node_modules"
     );
 
+    // ===== Layer 2.5: 系统关键目录 — 写入需确认（不硬拒绝） =====
+    private static final List<String> SYSTEM_CRITICAL_DIRS = List.of(
+        "/etc", "/usr", "/bin", "/sbin", "/boot", "/var",
+        "/lib", "/lib64", "/opt", "/root",
+        "/sys", "/proc", "/System", "/Applications"
+    );
+
     // ===== Layer 4: 危险删除目标路径 =====
     private static final Set<String> DANGEROUS_REMOVAL_TARGETS;
     static {
@@ -147,7 +154,16 @@ public class PathSecurityService {
             }
         }
 
-        // 5.5 符号链接写入检查 — Layer 3
+        // 5.5 系统关键目录写入检查 — Layer 2.5
+        String resolvedStr = resolved.toString();
+        for (String sysDir : SYSTEM_CRITICAL_DIRS) {
+            if (resolvedStr.equals(sysDir) || resolvedStr.startsWith(sysDir + "/")) {
+                return PathCheckResult.needsConfirmation(
+                    "Writing to system critical directory: " + sysDir);
+            }
+        }
+
+        // 5.6 符号链接写入检查 — Layer 3
         try {
             if (Files.isSymbolicLink(resolved)) {
                 Path realPath = resolved.toRealPath();
@@ -163,7 +179,7 @@ public class PathSecurityService {
             // 文件不存在，允许继续
         }
 
-        // 5.6 Windows 路径绕过检测 — Layer 5
+        // 5.7 Windows 路径绕过检测 — Layer 5
         PathCheckResult winCheck = checkWindowsBypass(filePath);
         if (winCheck != null) return winCheck;
 
@@ -243,9 +259,8 @@ public class PathSecurityService {
     }
 
     private boolean isAllowedExternalPath(Path path) {
-        String pathStr = path.toString();
-        return pathStr.startsWith("/tmp") ||
-               pathStr.startsWith(System.getProperty("java.io.tmpdir"));
+        // 不限制项目边界 — 允许访问任意路径（设备文件和危险文件黑名单仍然生效）
+        return true;
     }
 
     private boolean containsPathComponent(Path path, String component) {

@@ -48,6 +48,7 @@ class BashToolFailureClassificationTest {
     private BashCommandClassifier commandClassifier;
     private BashOutputProcessor outputProcessor;
     private ManagedProcessRunner processRunner;
+    private CommandBlacklistService blacklist;
     private ToolUseContext context;
 
     @BeforeEach
@@ -58,9 +59,14 @@ class BashToolFailureClassificationTest {
         outputProcessor = mock(BashOutputProcessor.class);
         sandboxManager = mock(SandboxManager.class);
         processRunner = mock(ManagedProcessRunner.class);
-        CommandBlacklistService blacklist = mock(CommandBlacklistService.class);
+        blacklist = mock(CommandBlacklistService.class);
         // 使用真实分类器以验证端到端契约
         BashErrorClassifier errorClassifier = new BashErrorClassifier();
+
+        // 默认：命令被允许（非 ABSOLUTE_DENY）
+        lenient().when(blacklist.checkCommand(anyString()))
+                .thenReturn(new CommandBlacklistService.BlockResult(
+                        CommandBlacklistService.BlockLevel.ALLOWED, null, null));
 
         // 通用桩（lenient — 部分用例不会触发）
         lenient().when(shellStateManager.wrapCommand(anyString(), anyString()))
@@ -84,18 +90,19 @@ class BashToolFailureClassificationTest {
     }
 
     @Test
-    @DisplayName("预执行安全拦截 (sudo) → metadata.failure_category=NEEDS_HUMAN")
+    @DisplayName("ABSOLUTE_DENY 命令 (rm -rf /) → permissionDenied with COMMAND_ABSOLUTELY_DENIED")
     void safetyRejection_attachesNeedsHumanCategory() {
-        ToolInput input = ToolInput.from(Map.of("command", "sudo rm -rf /"));
+        String command = "rm -rf /";
+        when(blacklist.checkCommand(command))
+                .thenReturn(CommandBlacklistService.BlockResult.deny(
+                        "rm\\s+.*", "Recursive deletion of system directory"));
 
+        ToolInput input = ToolInput.from(Map.of("command", command));
         ToolResult result = bashTool.call(input, context);
 
         assertThat(result.isError()).isTrue();
-        assertThat(result.metadata())
-                .containsEntry("failure_category", ErrorType.NEEDS_HUMAN.name())
-                .containsKey("failure_suggestion");
-        assertThat((String) result.metadata().get("failure_suggestion"))
-                .containsIgnoringCase("privilege");
+        assertThat(result.failureCode()).isEqualTo("COMMAND_ABSOLUTELY_DENIED");
+        assertThat(result.content()).contains("Recursive deletion of system directory");
     }
 
     @Test

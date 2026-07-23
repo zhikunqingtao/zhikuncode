@@ -702,6 +702,8 @@ public class BashCommandClassifier {
             "cat", "head", "tail", "less", "more", "wc", "stat", "file",
             "strings", "jq", "awk", "cut", "sort", "uniq", "tr");
     private static final Set<String> LIST_CMDS = Set.of("ls", "tree", "du");
+    private static final Set<String> SHELL_BUILTINS_READONLY = Set.of(
+            "cd", "pwd", "echo", "printf", "true", "false", "test", "[", "env", "printenv");
     private static final Set<String> SILENT_CMDS = Set.of(
             "mv", "cp", "rm", "mkdir", "rmdir", "chmod", "chown", "chgrp",
             "touch", "ln", "cd", "export", "unset", "wait");
@@ -756,7 +758,8 @@ public class BashCommandClassifier {
      */
     public boolean isSearchOrReadCommand(String argv0) {
         if (argv0 == null || argv0.isBlank()) return false;
-        return SEARCH_CMDS.contains(argv0) || READ_CMDS.contains(argv0) || LIST_CMDS.contains(argv0);
+        return SEARCH_CMDS.contains(argv0) || READ_CMDS.contains(argv0) || LIST_CMDS.contains(argv0)
+                || SHELL_BUILTINS_READONLY.contains(argv0);
     }
 
     // ══════════════════════════════════════════════════════════════

@@ -7,8 +7,19 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+import java.security.DigestOutputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.HexFormat;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Context Collapse 精细化服务 — 保留消息骨架(role+toolUseId)，清空内容。
@@ -27,6 +38,7 @@ import java.util.List;
 public class ContextCollapseService {
 
     private static final Logger log = LoggerFactory.getLogger(ContextCollapseService.class);
+    private static final int FINGERPRINT_HEX_LENGTH = 16;
 
     /** 保护尾部消息数，尾部 N 条消息不参与折叠，保留最近上下文完整性 */
     private final int defaultProtectedTail;
@@ -178,7 +190,11 @@ public class ContextCollapseService {
      * @return 折叠结果
      */
     public CollapseResult progressiveCollapse(List<Message> messages, List<CollapseLevel> levels) {
+        long startedAt = System.nanoTime();
         if (messages == null || messages.isEmpty()) {
+            logProgressiveDiagnostics("NO_CANDIDATE", 0, 0, 0,
+                    0, 0, 0, 0, 0,
+                    "empty", "empty", elapsedMicros(startedAt));
             return new CollapseResult(messages != null ? messages : List.of(), 0, 0);
         }
         List<CollapseLevel> sortedLevels = levels != null ? levels : DEFAULT_LEVELS;
@@ -186,7 +202,11 @@ public class ContextCollapseService {
         List<Message> result = new ArrayList<>(totalMessages);
         int collapsedCount = 0;
         int estimatedCharsFreed = 0;
-
+        int changedCount = 0;
+        int sameLengthChangedCount = 0;
+        int positiveCount = 0;
+        int zeroCount = 0;
+        int negativeCount = 0;
         for (int i = 0; i < totalMessages; i++) {
             Message msg = messages.get(i);
             int distanceFromTail = totalMessages - 1 - i;
@@ -210,15 +230,37 @@ public class ContextCollapseService {
                 Message collapsedMsg = collapseMessage(msg, level);
                 int charsBefore = estimateMessageChars(msg);
                 int charsAfter = estimateMessageChars(collapsedMsg);
-                estimatedCharsFreed += (charsBefore - charsAfter);
+                int charsFreed = charsBefore - charsAfter;
+                estimatedCharsFreed += charsFreed;
+                if (diagnosticallyDifferent(msg, collapsedMsg)) {
+                    changedCount++;
+                    if (charsBefore == charsAfter) sameLengthChangedCount++;
+                }
+                if (charsFreed > 0) {
+                    positiveCount++;
+                } else if (charsFreed == 0) {
+                    zeroCount++;
+                } else {
+                    negativeCount++;
+                }
                 result.add(collapsedMsg);
                 collapsedCount++;
             }
         }
 
-        if (collapsedCount > 0) {
-            log.info("ProgressiveCollapse: collapsed {} messages, ~{} chars freed",
-                    collapsedCount, estimatedCharsFreed);
+        String outcome = classifyOutcome(collapsedCount, positiveCount, negativeCount,
+                estimatedCharsFreed);
+        try {
+            boolean diagnosticsEnabled = negativeCount > 0 ? log.isWarnEnabled() : log.isDebugEnabled();
+            boolean fingerprintNeeded = negativeCount > 0 || zeroCount > 0 || sameLengthChangedCount > 0;
+            String inputFingerprint = diagnosticsEnabled && fingerprintNeeded ? fingerprint(messages) : "not_sampled";
+            String outputFingerprint = diagnosticsEnabled && fingerprintNeeded ? fingerprint(result) : "not_sampled";
+            logProgressiveDiagnostics(outcome, totalMessages, collapsedCount,
+                    changedCount, sameLengthChangedCount, positiveCount, zeroCount,
+                    negativeCount, estimatedCharsFreed, inputFingerprint, outputFingerprint,
+                    elapsedMicros(startedAt));
+        } catch (RuntimeException ignored) {
+            // 诊断失败不得改变折叠结果。
         }
         return new CollapseResult(result, collapsedCount, estimatedCharsFreed);
     }
@@ -270,6 +312,93 @@ public class ContextCollapseService {
             return MessageContentAccessor.legacyToolResult(um).length();
         }
         return 0;
+    }
+
+    private String classifyOutcome(int candidateCount, int positiveCount,
+                                   int negativeCount, int netCharsFreed) {
+        if (candidateCount == 0) return "NO_CANDIDATE";
+        if (netCharsFreed < 0) return "NEGATIVE_NET";
+        if (negativeCount > 0) return "MIXED_WITH_NEGATIVE";
+        if (positiveCount > 0) return "POSITIVE_ONLY";
+        return "NO_GAIN";
+    }
+
+    private boolean diagnosticallyDifferent(Message before, Message after) {
+        try {
+            return !Objects.equals(before, after);
+        } catch (RuntimeException ignored) {
+            return false;
+        }
+    }
+
+    private void logProgressiveDiagnostics(
+            String outcome, int totalMessages, int candidateCount,
+            int changedCount, int sameLengthChangedCount,
+            int positiveCount, int zeroCount, int negativeCount,
+            int netCharsFreed, String inputFingerprint,
+            String outputFingerprint, long elapsedMicros) {
+        try {
+            String format = "event=context_collapse_candidates contextEvalId={} sessionId={} runId={} turn={} " +
+                    "outcome={} totalMessages={} candidates={} changed={} sameLengthChanged={} " +
+                    "positiveCount={} zeroCount={} negativeCount={} netCharsFreed={} " +
+                    "inputFingerprint={} outputFingerprint={} elapsedMicros={}";
+            Object[] args = {
+                    mdcValue("contextEvalId"), mdcValue("sessionId"), mdcValue("runId"), mdcValue("turn"),
+                    outcome, totalMessages, candidateCount, changedCount, sameLengthChangedCount,
+                    positiveCount, zeroCount, negativeCount, netCharsFreed,
+                    inputFingerprint, outputFingerprint, elapsedMicros
+            };
+            if (negativeCount > 0) {
+                log.warn(format, args);
+            } else {
+                log.debug(format, args);
+            }
+        } catch (RuntimeException ignored) {
+            // 日志后端失败不得影响折叠主流程。
+        }
+    }
+
+    private String mdcValue(String key) {
+        String value = org.slf4j.MDC.get(key);
+        return value != null ? value : "none";
+    }
+
+    private String fingerprint(List<Message> messages) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            try (Writer writer = new OutputStreamWriter(
+                    new DigestOutputStream(OutputStream.nullOutputStream(), digest),
+                    StandardCharsets.UTF_8)) {
+                for (Message message : messages) {
+                    updateDigest(writer, message.getClass().getSimpleName());
+                    updateDigest(writer, message.uuid());
+                    if (message instanceof Message.AssistantMessage assistant && assistant.content() != null) {
+                        for (ContentBlock block : assistant.content()) {
+                            if (block instanceof ContentBlock.TextBlock text) {
+                                updateDigest(writer, text.text());
+                            }
+                        }
+                    } else if (message instanceof Message.UserMessage user) {
+                        updateDigest(writer, MessageContentAccessor.legacyToolResult(user));
+                    } else if (message instanceof Message.SystemMessage system) {
+                        updateDigest(writer, system.content());
+                    }
+                }
+            }
+            return HexFormat.of().formatHex(digest.digest()).substring(0, FINGERPRINT_HEX_LENGTH);
+        } catch (NoSuchAlgorithmException | IOException | RuntimeException e) {
+            // 诊断信息不得影响压缩主流程。
+            return "unavailable";
+        }
+    }
+
+    private void updateDigest(Writer writer, String value) throws IOException {
+        if (value != null) writer.write(value);
+        writer.write('\0');
+    }
+
+    private long elapsedMicros(long startedAt) {
+        return TimeUnit.NANOSECONDS.toMicros(System.nanoTime() - startedAt);
     }
 
     // ── 结果 DTO ──────────────────────────────────────────────

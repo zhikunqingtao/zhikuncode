@@ -390,8 +390,10 @@ public class DurableInteractionService {
                         throw new IllegalArgumentException("PERMISSION_SCOPE_NOT_ALLOWED");
                     String grantId = grants.createInCurrentTransaction(authorization.subject().toSubject(),
                             authorization.operation(), scope, id);
-                    runs.appendEventInCurrentWrite(request.runId(), "permission_grant_created", null, Map.of(
-                            "interactionId", id, "grantId", grantId, "operationHash", authorization.operationHash()));
+                    if (grantId != null) {
+                        runs.appendEventInCurrentWrite(request.runId(), "permission_grant_created", null, Map.of(
+                                "interactionId", id, "grantId", grantId, "operationHash", authorization.operationHash()));
+                    }
                 }
                 if (authorization != null) {
                     runs.appendEventInCurrentWrite(request.runId(), "permission_resolved", null, Map.of(

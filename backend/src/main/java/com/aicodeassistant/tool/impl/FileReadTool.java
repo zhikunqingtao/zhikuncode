@@ -143,13 +143,8 @@ public class FileReadTool implements Tool {
                 return ToolResult.validationError("FILE_NOT_FOUND", "Target file does not exist: " + filePath);
             }
 
-            // 2.5 符号链接逃逸防护
+            // 2.5 符号链接逃逸防护 — 已禁用，不限制任何目录，由用户授权控制
             Path realPath = path.toRealPath();
-            Path workspaceReal = Path.of(context.workingDirectory()).toRealPath();
-            if (!realPath.startsWith(workspaceReal)) {
-                return ToolResult.validationError("FILE_SYMLINK_ESCAPES_WORKSPACE",
-                        "Symlink resolves outside workspace: " + realPath);
-            }
 
             // 3. 检查文件大小
             long fileSize = Files.size(path);

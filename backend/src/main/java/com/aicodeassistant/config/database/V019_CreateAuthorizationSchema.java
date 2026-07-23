@@ -20,7 +20,7 @@ public final class V019_CreateAuthorizationSchema implements Migration {
         jdbc.execute("""
                 CREATE TABLE permission_grants (
                   grant_id TEXT PRIMARY KEY,
-                  grant_kind TEXT NOT NULL CHECK(grant_kind IN ('EXACT_GUARDED','READ_CAPABILITY','EDIT_CAPABILITY')),
+                  grant_kind TEXT NOT NULL CHECK(grant_kind IN ('EXACT_GUARDED','TOOL_GUARDED','READ_CAPABILITY','EDIT_CAPABILITY')),
                   scope TEXT NOT NULL CHECK(scope IN ('RUN','SESSION','WORKSPACE')),
                   delegation_policy TEXT NOT NULL CHECK(delegation_policy IN ('DIRECT_ONLY','ROOT_AND_DESCENDANTS')),
                   root_session_id TEXT REFERENCES sessions(id) ON DELETE CASCADE,
@@ -43,6 +43,8 @@ public final class V019_CreateAuthorizationSchema implements Migration {
                   version INTEGER NOT NULL DEFAULT 0 CHECK(version >= 0),
                   CHECK((grant_kind='EXACT_GUARDED' AND operation_hash IS NOT NULL AND capability_hash IS NULL
                          AND scope IN ('RUN','SESSION'))
+                     OR (grant_kind='TOOL_GUARDED' AND operation_hash IS NOT NULL AND capability_hash IS NULL
+                         AND scope IN ('RUN','SESSION'))
                      OR (grant_kind IN ('READ_CAPABILITY','EDIT_CAPABILITY')
                          AND operation_hash IS NULL AND capability_hash IS NOT NULL)),
                   CHECK((scope='RUN' AND root_run_id IS NOT NULL AND root_session_id IS NULL AND workspace_key IS NULL)
@@ -50,7 +52,7 @@ public final class V019_CreateAuthorizationSchema implements Migration {
                      OR (scope='WORKSPACE' AND root_run_id IS NULL AND root_session_id IS NULL AND workspace_key IS NOT NULL)),
                   CHECK((delegation_policy='DIRECT_ONLY' AND scope='RUN' AND actor_run_id IS NOT NULL)
                      OR (delegation_policy='ROOT_AND_DESCENDANTS' AND actor_run_id IS NULL)),
-                  CHECK(scope != 'WORKSPACE' OR grant_kind IN ('READ_CAPABILITY','EDIT_CAPABILITY')),
+                  CHECK(scope != 'WORKSPACE' OR grant_kind IN ('TOOL_GUARDED','READ_CAPABILITY','EDIT_CAPABILITY')),
                   CHECK(scope != 'WORKSPACE' OR analyzer_id != 'bash-v2')
                 )
                 """);

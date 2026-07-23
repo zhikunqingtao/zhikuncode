@@ -26,9 +26,11 @@ public class ManagedWorkspacePathResolver {
                     ? root.resolve(lexicalRoot.relativize(lexicalCandidate)).normalize()
                     : lexicalCandidate;
         } else candidate = root.resolve(raw).normalize();
-        if (!candidate.startsWith(root) || candidate.equals(root))
-            throw new IllegalArgumentException("target is outside workspace");
-        validateExistingSegments(root, candidate);
+        if (candidate.equals(root))
+            throw new IllegalArgumentException("target is the workspace root itself");
+        if (candidate.startsWith(root)) {
+            validateExistingSegments(root, candidate);
+        }
         return candidate;
     }
 
@@ -38,20 +40,29 @@ public class ManagedWorkspacePathResolver {
         Path parent = candidate.getParent();
         if (parent == null) throw new IllegalArgumentException("target parent is required");
         List<Path> created = new ArrayList<>();
-        Path current = root;
-        for (Path segment : root.relativize(parent)) {
-            current = current.resolve(segment);
-            if (!Files.exists(current, NO_FOLLOW)) {
-                try {
-                    Files.createDirectory(current);
-                    created.add(current);
-                } catch (FileAlreadyExistsException raced) {
-                    // Validate the winner below.
+        if (candidate.startsWith(root)) {
+            Path current = root;
+            for (Path segment : root.relativize(parent)) {
+                current = current.resolve(segment);
+                if (!Files.exists(current, NO_FOLLOW)) {
+                    try {
+                        Files.createDirectory(current);
+                        created.add(current);
+                    } catch (FileAlreadyExistsException raced) {
+                        // Validate the winner below.
+                    }
                 }
+                assertRealDirectory(root, current);
             }
-            assertRealDirectory(root, current);
+            validateExistingSegments(root, candidate);
+        } else {
+            // 用户显式提供 workspace 外绝对路径：跳过 workspace 边界校验，仅确保父目录存在且为真实目录。
+            if (!Files.exists(parent, NO_FOLLOW)) {
+                Files.createDirectories(parent);
+            }
+            if (Files.isSymbolicLink(parent) || !Files.isDirectory(parent, NO_FOLLOW))
+                throw new IllegalArgumentException("target parent is not a real directory: " + parent);
         }
-        validateExistingSegments(root, candidate);
         return new MaterializedTarget(candidate, List.copyOf(created));
     }
 
@@ -62,7 +73,11 @@ public class ManagedWorkspacePathResolver {
         Path parent = candidate.getParent();
         if (parent == null || !Files.isDirectory(parent, NO_FOLLOW))
             throw new IOException("target parent is not a real directory");
-        assertRealDirectory(root(workspaceRoot), parent);
+        Path root = root(workspaceRoot);
+        if (candidate.startsWith(root)) {
+            assertRealDirectory(root, parent);
+        }
+        // workspace 外绝对路径：不做 workspace 边界校验，父目录存在性已在上方检查。
     }
 
     public void cleanupEmptyDirectories(List<Path> createdDirectories) {

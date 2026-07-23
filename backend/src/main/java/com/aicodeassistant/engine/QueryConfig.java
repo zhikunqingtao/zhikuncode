@@ -45,7 +45,7 @@ public record QueryConfig(
     public static final int ESCALATED_MAX_TOKENS = 65536;
 
     /** 最大循环轮次 */
-    public static final int DEFAULT_MAX_TURNS = 200;
+    public static final int DEFAULT_MAX_TURNS = 1024;
 
     /** 最大输出恢复次数 */
     public static final int MAX_OUTPUT_TOKENS_RECOVERY_LIMIT = 3;

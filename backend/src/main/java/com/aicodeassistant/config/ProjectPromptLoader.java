@@ -171,13 +171,7 @@ public class ProjectPromptLoader {
                     String includePath = m.group(1).trim();
                     Path includeFile = basePath.resolve(includePath).normalize();
 
-                    // 安全检查：include 路径必须在项目目录内
-                    if (!includeFile.startsWith(basePath)) {
-                        log.warn("Blocked @include outside project boundary: {} (base: {})",
-                                 includeFile, basePath);
-                        content.append("<!-- @include blocked: path outside project -->").append("\n");
-                        continue;
-                    }
+                    // 安全检查 — 已禁用，不限制 @include 路径，由用户授权控制
 
                     try {
                         if (Files.exists(includeFile) && Files.isRegularFile(includeFile)) {

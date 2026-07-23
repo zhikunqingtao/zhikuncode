@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -432,25 +433,51 @@ public class QueryEngine {
             // ===== Step 0.5: Incremental collapse check =====
             String loopSessionId = state.getToolUseContext() != null
                     ? state.getToolUseContext().sessionId() : null;
+            boolean incrementalFlagBefore = state.isIncrementalCollapseNeeded();
+            boolean incrementalDue = false;
             // ===== Step 0.6: Visualization Auto-Router (v1.5 升级项 C Beta) =====
             // 默认关闭下适配器内部直接 return，零开销；命中时独立消息推送，不改变循环语义。
             if (visualizationAutoRouter != null) {
                 visualizationAutoRouter.maybeRoute(loopSessionId, state);
             }
             if (incrementalCollapseManager != null && loopSessionId != null) {
-                log.debug("Incremental collapse check: sessionId={}, cumulativeContribution=1", loopSessionId);
-                if (incrementalCollapseManager.shouldCollapse(loopSessionId, 1)) {
-                    log.debug("Incremental collapse triggered at cumulative turn (request contribution: 1)");
+                incrementalDue = incrementalCollapseManager.shouldCollapse(loopSessionId, 1);
+                if (incrementalDue) {
                     state.setIncrementalCollapseNeeded(true);
                 }
             }
+            boolean incrementalFlagAfter = state.isIncrementalCollapseNeeded();
 
             // ===== Step 1: 压缩级联（统一入口）=====
             ContextCascade.AutoCompactTrackingState trackingState = state.isAutoCompactEnabled()
                     ? state.toAutoCompactTrackingState()
                     : new ContextCascade.AutoCompactTrackingState(false, state.getTurnCount(), null, Integer.MAX_VALUE);
-            ContextCascade.CascadeResult cascadeResult = contextCascade.executePreApiCascade(
-                    state.getMessages(), currentModel[0], trackingState);
+            String contextRunId = state.getToolUseContext() != null
+                    ? state.getToolUseContext().currentRunId() : null;
+            String correlationBase = contextRunId != null ? contextRunId
+                    : (loopSessionId != null ? loopSessionId : "unscoped");
+            String contextEvalId = correlationBase + ":" + turn;
+            ContextCascade.CascadeResult cascadeResult;
+            Map<String, String> previousMdc = null;
+            boolean restoreMdc = false;
+            try {
+                try {
+                    previousMdc = MDC.getCopyOfContextMap();
+                    restoreMdc = true;
+                    MDC.put("contextEvalId", contextEvalId);
+                    MDC.put("sessionId", diagnosticValue(loopSessionId));
+                    MDC.put("runId", diagnosticValue(contextRunId));
+                    MDC.put("turn", Integer.toString(turn));
+                    logIncrementalEvaluation(contextEvalId, loopSessionId, contextRunId, turn,
+                            incrementalDue, incrementalFlagBefore, incrementalFlagAfter);
+                } catch (RuntimeException ignored) {
+                    // 诊断上下文失败不得阻止核心 Cascade 执行。
+                }
+                cascadeResult = contextCascade.executePreApiCascade(
+                        state.getMessages(), currentModel[0], trackingState);
+            } finally {
+                if (restoreMdc) restoreMdc(previousMdc);
+            }
             state.setMessages(cascadeResult.messages());
 
             // ===== Step 1b: AutoCompact 状态回写 =====
@@ -1150,6 +1177,37 @@ public class QueryEngine {
         }
 
         return totalUsage;
+    }
+
+    private static String diagnosticValue(String value) {
+        return value != null && !value.isBlank() ? value : "none";
+    }
+
+    private void logIncrementalEvaluation(
+            String contextEvalId, String sessionId, String runId, int turn,
+            boolean incrementalDue, boolean incrementalFlagBefore, boolean incrementalFlagAfter) {
+        try {
+            String format = "event=context_incremental_evaluation contextEvalId={} sessionId={} runId={} turn={} " +
+                    "incrementalDue={} incrementalFlagBefore={} incrementalFlagAfter={} contribution={}";
+            Object[] args = {contextEvalId, diagnosticValue(sessionId), diagnosticValue(runId), turn,
+                    incrementalDue, incrementalFlagBefore, incrementalFlagAfter, 1};
+            if (incrementalDue || incrementalFlagBefore || incrementalFlagAfter) {
+                log.debug(format, args);
+            } else {
+                log.trace(format, args);
+            }
+        } catch (RuntimeException ignored) {
+            // 日志失败不得影响 Agent 主循环。
+        }
+    }
+
+    private void restoreMdc(Map<String, String> previousMdc) {
+        try {
+            MDC.clear();
+            if (previousMdc != null) MDC.setContextMap(previousMdc);
+        } catch (RuntimeException ignored) {
+            // MDC 恢复失败不得掩盖核心 Cascade 的返回值或异常。
+        }
     }
 
     // ==================== Step 1: 压缩 ====================
