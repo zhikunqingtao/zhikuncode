@@ -24,12 +24,15 @@ import com.aicodeassistant.verify.StepResult;
 import com.aicodeassistant.verify.UserJourneyVerifier;
 import com.aicodeassistant.verify.Verifier;
 import com.aicodeassistant.verify.VerifierFactory;
+import com.aicodeassistant.observability.BestEffortObservabilityRecorder;
+import com.aicodeassistant.observability.SafeLogValue;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.nio.file.Path;
 import java.time.Duration;
@@ -68,6 +71,7 @@ public class VerifyJourneyTool implements Tool {
     private final ActivityRepository activityRepository;
     private final ObjectMapper objectMapper;
     private final NotificationService notificationService;
+    private volatile BestEffortObservabilityRecorder observabilityRecorder;
 
     public VerifyJourneyTool(PythonCapabilityAwareClient pythonClient,
                              DevServerLauncher devServerLauncher,
@@ -89,6 +93,11 @@ public class VerifyJourneyTool implements Tool {
         this.activityRepository = activityRepository;
         this.objectMapper = objectMapper;
         this.notificationService = notificationService;
+    }
+
+    @Autowired(required = false)
+    void setObservabilityRecorder(BestEffortObservabilityRecorder observabilityRecorder) {
+        this.observabilityRecorder = observabilityRecorder;
     }
 
     @Override
@@ -183,9 +192,28 @@ public class VerifyJourneyTool implements Tool {
     @Override
     @SuppressWarnings("unchecked")
     public ToolResult call(ToolInput input, ToolUseContext context) {
+        long startedNanos = System.nanoTime();
+        String requestedMode = safeRequestedMode(input);
+        int requestedSteps = safeRequestedStepCount(input);
+        String observationRunId = safeRunId(context);
+        recordVerificationStarted(observationRunId, requestedMode, requestedSteps);
+        try {
+            return callInternal(input, context, startedNanos, observationRunId);
+        } catch (RuntimeException failure) {
+            recordVerificationFailure(observationRunId, requestedMode, requestedSteps,
+                    "failed", failure, startedNanos);
+            throw failure;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private ToolResult callInternal(ToolInput input, ToolUseContext context, long startedNanos,
+                                    String observationRunId) {
         // 1. 解析输入
         Object journeyRaw = input.getRawData().get("journey");
         if (!(journeyRaw instanceof List<?> journeyList) || journeyList.isEmpty()) {
+            recordVerificationValidationFailure(observationRunId, safeRequestedMode(input),
+                    requestedStepCount(journeyRaw), startedNanos);
             return ToolResult.validationError("VERIFY_JOURNEY_EMPTY", "VerifyJourney requires a non-empty 'journey' array");
         }
         List<Map<String, Object>> journey = (List<Map<String, Object>>) journeyRaw;
@@ -206,6 +234,8 @@ public class VerifyJourneyTool implements Tool {
         // 3. 浏览器模式：需要启动 DevServer
         if ("browser".equals(selectedMode)) {
             if (!pythonClient.isCapabilityAvailable(CAPABILITY)) {
+                recordVerificationSkipped(observationRunId, selectedMode, journey.size(),
+                        "capability_unavailable", startedNanos);
                 return ToolResult.success("Runtime verification unavailable: BROWSER_AUTOMATION capability not available. "
                         + "This does not block your task - proceed without runtime verification.");
             }
@@ -213,6 +243,8 @@ public class VerifyJourneyTool implements Tool {
             // PreviewStackDetector 探测
             StackInfo stack = previewStackDetector.detect(Path.of(workspace));
             if ("unknown".equals(stack.stackId())) {
+                recordVerificationSkipped(observationRunId, selectedMode, journey.size(),
+                        "unsupported_stack", startedNanos);
                 return ToolResult.success("Runtime verification skipped: unsupported stack (" + stack.stackId() + "). "
                         + "Proceed without runtime verification.");
             }
@@ -238,16 +270,23 @@ public class VerifyJourneyTool implements Tool {
 
                 String principal = sessionId;
                 JourneyResult result = verifier.verify(browserReq, principal);
-                return handleVerificationResult(result, sessionId, journey.size());
+                return handleVerificationResult(result, sessionId, journey.size(),
+                        observationRunId, selectedMode, startedNanos);
 
             } catch (DevServerTimeoutException e) {
+                recordVerificationFailure(observationRunId, selectedMode, journey.size(),
+                        "timeout", e, startedNanos);
                 return ToolResult.timedOut("DEV_SERVER_START_DEADLINE_EXCEEDED",
                         "Dev server failed to start within " + DEV_SERVER_TIMEOUT.toSeconds()
                         + "s. Log tail:\n" + e.getLogTail()
                         + "\nFix the dev server issue and retry VerifyJourney.", null, true,
                         ToolResult.EffectState.UNKNOWN);
             } catch (Exception e) {
-                log.warn("VerifyJourney failed with unexpected exception", e);
+                log.warn("VerifyJourney failed: errorType={}, errorLength={}, errorFingerprint={}",
+                        SafeLogValue.errorType(e), SafeLogValue.length(e.getMessage()),
+                        SafeLogValue.fingerprint(e.getMessage()));
+                recordVerificationFailure(observationRunId, selectedMode, journey.size(),
+                        "failed", e, startedNanos);
                 return ToolResult.internalError("VERIFY_JOURNEY_FAILED", "VerifyJourney failed: " + e.getMessage(), ToolResult.EffectState.UNKNOWN);
             } finally {
                 // 清理 DevServer + 浏览器 session
@@ -274,6 +313,8 @@ public class VerifyJourneyTool implements Tool {
         } else {
             // HTTP API 模式：无需启动 DevServer
             if (!pythonClient.isCapabilityAvailable("HTTP_API")) {
+                recordVerificationSkipped(observationRunId, selectedMode, journey.size(),
+                        "capability_unavailable", startedNanos);
                 return ToolResult.success("Runtime verification unavailable: HTTP_API capability not available. "
                         + "This does not block your task - proceed without runtime verification.");
             }
@@ -292,15 +333,22 @@ public class VerifyJourneyTool implements Tool {
 
             String principal = sessionId;
             JourneyResult result = verifier.verify(apiReq, principal);
-            return handleVerificationResult(result, sessionId, journey.size());
+            return handleVerificationResult(result, sessionId, journey.size(),
+                    observationRunId, selectedMode, startedNanos);
         }
+    }
+
+    private static String safeRunId(ToolUseContext context) {
+        try { return context == null ? null : context.currentRunId(); }
+        catch (Throwable ignored) { return null; }
     }
 
     /**
      * 统一后处理：证据保存 → STOMP 推送 → Activity 记录 → 返回 ToolResult
      * 浏览器模式和 HTTP 模式共用此方法，避免逻辑重复。
      */
-    private ToolResult handleVerificationResult(JourneyResult result, String sessionId, int stepCount) {
+    private ToolResult handleVerificationResult(JourneyResult result, String sessionId, int stepCount,
+                                                String runId, String mode, long startedNanos) {
         EvidenceBundle bundle = EvidenceBundle.builder()
                 .sessionId(sessionId)
                 .kind("journey")
@@ -309,6 +357,7 @@ public class VerifyJourneyTool implements Tool {
                 .items(buildEvidenceItems(result))
                 .build();
         EvidenceBundle saved = evidenceStore.save(bundle);
+        recordVerificationCompleted(runId, mode, stepCount, result, saved, startedNanos);
 
         // STOMP 推送最终结果
         try {
@@ -349,10 +398,9 @@ public class VerifyJourneyTool implements Tool {
             String failedAction = failedStep != null ? failedStep.action() : "unknown";
             int passedSteps = countPassedSteps(result.stepResults());
             String errorCategory = categorizeError(baseMsg, failedStep);
-            String truncatedError = baseMsg.length() > 200 ? baseMsg.substring(0, 200) : baseMsg;
-            log.info("[RV-METRICS] verify_journey_failed session={} step={}/{} action={} category={} passed={} timestamp={} error={}",
+            log.info("[RV-METRICS] verify_journey_failed session={} step={}/{} action={} category={} passed={} timestamp={} errorLength={} errorFingerprint={}",
                     sessionId, failedIdx, stepCount, failedAction, errorCategory, passedSteps,
-                    Instant.now().toString(), truncatedError);
+                    Instant.now().toString(), SafeLogValue.length(baseMsg), SafeLogValue.fingerprint(baseMsg));
             recordActivity(sessionId, result.verdict(), saved.bundleId(), "failed",
                     "Runtime verification failed", enrichedMsg);
             // RV-4: failed 时主动推送 verify_attention 通知（payload 使用 enrichedMsg）
@@ -374,6 +422,97 @@ public class VerifyJourneyTool implements Tool {
             return ToolResult.internalError("VERIFY_JOURNEY_ASSERTION_FAILED",
                     enrichedMsg + " (evidence bundle: " + saved.bundleId() + ")", ToolResult.EffectState.NONE);
         }
+    }
+
+    private void recordVerificationSkipped(String runId, String mode, int stepCount,
+                                           String reason, long startedNanos) {
+        try {
+            recordVerificationEvent(runId, "runtime_verification_skipped", Map.of(
+                    "mode", mode, "stepCount", stepCount, "reason", reason,
+                    "durationMs", elapsedMillis(startedNanos)));
+        } catch (Throwable ignored) { }
+    }
+
+    private void recordVerificationFailure(String runId, String mode, int stepCount,
+                                           String verdict, Throwable error, long startedNanos) {
+        try {
+            recordVerificationEvent(runId, "runtime_verification_completed", Map.of(
+                    "mode", mode, "stepCount", stepCount, "verdict", verdict,
+                    "durationMs", elapsedMillis(startedNanos),
+                    "errorType", SafeLogValue.errorType(error)));
+        } catch (Throwable ignored) { }
+    }
+
+    private void recordVerificationValidationFailure(String runId, String mode, int stepCount,
+                                                     long startedNanos) {
+        try {
+            recordVerificationEvent(runId, "runtime_verification_completed", Map.of(
+                    "mode", mode, "stepCount", stepCount, "verdict", "invalid_input",
+                    "durationMs", elapsedMillis(startedNanos),
+                    "errorType", "validation_error"));
+        } catch (Throwable ignored) { }
+    }
+
+    private void recordVerificationStarted(String runId, String mode, int stepCount) {
+        try {
+            recordVerificationEvent(runId, "runtime_verification_started", Map.of(
+                    "mode", mode, "stepCount", stepCount));
+        } catch (Throwable ignored) { }
+    }
+
+    private void recordVerificationCompleted(String runId, String mode, int stepCount,
+                                             JourneyResult result, EvidenceBundle saved,
+                                             long startedNanos) {
+        try {
+            int passedSteps = countPassedSteps(result.stepResults());
+            int screenshots = result.stepResults() == null ? 0 : (int) result.stepResults().stream()
+                    .filter(step -> step.screenshotBase64() != null).count();
+            Map<String, Object> event = new HashMap<>();
+            event.put("mode", mode);
+            event.put("stepCount", stepCount);
+            event.put("passedSteps", passedSteps);
+            event.put("failedSteps", Math.max(0, stepCount - passedSteps));
+            event.put("verdict", result.verdict());
+            event.put("bundleId", saved.bundleId());
+            event.put("screenshotCount", screenshots);
+            event.put("artifactCount", result.artifacts() == null ? 0 : result.artifacts().size());
+            event.put("artifactTypes", result.artifacts() == null ? List.of() : result.artifacts().keySet());
+            event.put("durationMs", elapsedMillis(startedNanos));
+            event.put("errorLength", SafeLogValue.length(result.errorMessage()));
+            event.put("errorFingerprint", SafeLogValue.fingerprint(result.errorMessage()));
+            recordVerificationEvent(runId, "runtime_verification_completed", event);
+        } catch (Throwable ignored) { }
+    }
+
+    private void recordVerificationEvent(String runId, String eventType, Map<String, Object> data) {
+        try {
+            BestEffortObservabilityRecorder recorder = observabilityRecorder;
+            if (recorder != null && runId != null) recorder.record(runId, eventType, null, data);
+        } catch (Throwable ignored) { }
+    }
+
+    private static long elapsedMillis(long startedNanos) {
+        return Math.max(0L, java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(
+                System.nanoTime() - startedNanos));
+    }
+
+    private static String safeRequestedMode(ToolInput input) {
+        try { return input == null ? "unknown" : input.getString("verification_mode", "auto"); }
+        catch (Throwable ignored) { return "unknown"; }
+    }
+
+    private static int safeRequestedStepCount(ToolInput input) {
+        try {
+            return input != null && input.getRawData().get("journey") instanceof List<?> steps
+                    ? steps.size() : 0;
+        } catch (Throwable ignored) {
+            return 0;
+        }
+    }
+
+    private static int requestedStepCount(Object journeyRaw) {
+        try { return journeyRaw instanceof List<?> steps ? steps.size() : 0; }
+        catch (Throwable ignored) { return 0; }
     }
 
     private List<EvidenceItem> buildEvidenceItems(JourneyResult result) {

@@ -4,7 +4,9 @@ import com.aicodeassistant.engine.AbortReason;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.aicodeassistant.observability.BestEffortObservabilityRecorder;
 
 import java.util.Optional;
 import java.time.Duration;
@@ -20,6 +22,7 @@ public class RunTracker {
     private final ApplicationEventPublisher publisher;
     private final RunTerminationCoordinator termination;
     private final RunExecutionRegistry executions;
+    private volatile BestEffortObservabilityRecorder observabilityRecorder;
 
     public RunTracker(RunControlService control, RunEnvelopeRepository envelopes,
                       ApplicationEventPublisher publisher,
@@ -30,6 +33,11 @@ public class RunTracker {
         this.publisher = publisher;
         this.termination = termination;
         this.executions = executions;
+    }
+
+    @Autowired(required = false)
+    void setObservabilityRecorder(BestEffortObservabilityRecorder observabilityRecorder) {
+        this.observabilityRecorder = observabilityRecorder;
     }
 
     public RunEnvelope startRun(String sessionId, String parentRunId, String agentType, String model) {
@@ -45,6 +53,22 @@ public class RunTracker {
             String toolUseId, Object data) {
         return control.appendEvent(
                 runId, canonicalEventType(eventType), toolUseId, data);
+    }
+
+    /** Supplemental event path: intentionally lossy and never allowed to fail the caller. */
+    public boolean recordEventBestEffort(String runId, String eventType, Object data) {
+        return recordEventBestEffort(runId, eventType, null, data);
+    }
+
+    public boolean recordEventBestEffort(
+            String runId, String eventType, String toolUseId, Object data) {
+        try {
+            BestEffortObservabilityRecorder recorder = observabilityRecorder;
+            return recorder != null && recorder.record(
+                    runId, canonicalEventType(eventType), toolUseId, data);
+        } catch (Throwable ignored) {
+            return false;
+        }
     }
 
     public void completeRun(String runId, int totalTokens, double totalCost,

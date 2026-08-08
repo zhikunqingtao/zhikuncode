@@ -1,5 +1,7 @@
 package com.aicodeassistant.tool;
 
+import com.aicodeassistant.observability.MdcScope;
+
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -110,6 +112,7 @@ public class StreamingToolExecutor {
         private final Tool tool;
         private final ToolInput input;
         private final ToolUseContext context;
+        private final Map<String, String> diagnosticContext;
         private volatile ToolState state;
         private volatile ToolResult result;
         private volatile ToolUseContext updatedContext;  // contextModifier 产生的更新上下文
@@ -120,6 +123,7 @@ public class StreamingToolExecutor {
             this.tool = tool;
             this.input = input;
             this.context = context;
+            this.diagnosticContext = MdcScope.capture();
             this.state = ToolState.QUEUED;
         }
 
@@ -279,6 +283,9 @@ public class StreamingToolExecutor {
                         next.tool.getName(), next.toolUseId);
 
                 Thread.ofVirtual().name("zhiku-tool-" + next.tool.getName()).start(() -> {
+                    try (MdcScope ignoredMdc = MdcScope.open(next.diagnosticContext);
+                         MdcScope ignoredTool = MdcScope.open(
+                                 java.util.Collections.singletonMap("toolUseId", next.toolUseId))) {
                     next.executionThread = Thread.currentThread();
                     log.debug("virtual thread started: tool={}, threadName={}",
                             next.tool.getName(), Thread.currentThread().getName());
@@ -334,6 +341,7 @@ public class StreamingToolExecutor {
                         notifyCompletion();
                         processQueue();
                         if (active.get() == 0 && queue.isEmpty()) deregister();
+                    }
                     }
                 });
             }

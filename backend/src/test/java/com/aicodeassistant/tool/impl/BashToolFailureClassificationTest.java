@@ -120,7 +120,8 @@ class BashToolFailureClassificationTest {
         assertThat(result.content()).contains("timed out");
         assertThat(result.metadata())
                 .containsEntry("failure_category", ErrorType.TIMEOUT.name())
-                .containsKey("failure_suggestion");
+                .containsKey("failure_suggestion")
+                .doesNotContainKey("pid");
     }
 
     @Test
@@ -135,7 +136,8 @@ class BashToolFailureClassificationTest {
 
         assertThat(result.isError()).isTrue();
         assertThat(result.metadata())
-                .containsEntry("failure_category", ErrorType.NON_RETRYABLE.name());
+                .containsEntry("failure_category", ErrorType.NON_RETRYABLE.name())
+                .doesNotContainKey("pid");
         // python → python3 替代建议
         assertThat((String) result.metadata().get("failure_suggestion"))
                 .contains("python3");
@@ -171,7 +173,8 @@ class BashToolFailureClassificationTest {
         assertThat(result.isError()).isFalse();
         assertThat(result.metadata())
                 .doesNotContainKey("failure_category")
-                .doesNotContainKey("failure_suggestion");
+                .doesNotContainKey("failure_suggestion")
+                .doesNotContainKey("pid");
     }
 
     @Test

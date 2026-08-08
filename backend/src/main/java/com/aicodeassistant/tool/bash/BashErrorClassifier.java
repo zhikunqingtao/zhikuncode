@@ -1,5 +1,7 @@
 package com.aicodeassistant.tool.bash;
 
+import com.aicodeassistant.observability.SafeLogValue;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -43,7 +45,8 @@ public class BashErrorClassifier {
      * @return 错误分类结果
      */
     public ErrorClassification classify(int exitCode, String stderr, String command) {
-        log.debug("Classifying bash error: exitCode={}, command={}", exitCode, command);
+        log.debug("Classifying bash error: exitCode={}, commandLength={}, commandFingerprint={}",
+                exitCode, SafeLogValue.length(command), SafeLogValue.fingerprint(command));
         String stderrLower = stderr != null ? stderr.toLowerCase() : "";
 
         // 退出码 137/143 → 被信号杀死（SIGKILL/SIGTERM）
@@ -58,7 +61,8 @@ public class BashErrorClassifier {
 
         // 退出码 127 → 命令不存在
         if (exitCode == 127) {
-            log.debug("Classified as NON_RETRYABLE: command not found (cmd={})", command);
+            log.debug("Classified as NON_RETRYABLE: command not found (commandFingerprint={})",
+                    SafeLogValue.fingerprint(command));
             String suggestion = buildCommandNotFoundSuggestion(command);
             return new ErrorClassification(
                     ErrorType.NON_RETRYABLE,

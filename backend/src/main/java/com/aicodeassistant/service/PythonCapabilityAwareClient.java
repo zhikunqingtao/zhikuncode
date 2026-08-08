@@ -1,10 +1,14 @@
 package com.aicodeassistant.service;
 
+import com.aicodeassistant.observability.SafeLogValue;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -16,6 +20,8 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.regex.Pattern;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -37,6 +43,8 @@ public class PythonCapabilityAwareClient {
     private static final Duration HEAVY_READ_TIMEOUT = Duration.ofSeconds(120);
     private static final int MAX_RETRIES = 3;
     private static final Duration RETRY_BASE_DELAY = Duration.ofMillis(500);
+    private static final Pattern SAFE_CORRELATION_HEADER =
+            Pattern.compile("^[A-Za-z0-9._:-]{1,128}$");
     private static final Duration SUCCESS_CACHE_TTL = Duration.ofMinutes(5);
     private static final Duration FAILURE_CACHE_TTL = Duration.ofSeconds(30);
 
@@ -60,15 +68,20 @@ public class PythonCapabilityAwareClient {
         }
     }
 
+    @Autowired
     public PythonCapabilityAwareClient(
             @Value("http://${python.service.host:127.0.0.1}:${python.service.port:8000}") String baseUrl,
             ObjectMapper objectMapper) {
-        this.baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
-        this.objectMapper = objectMapper;
-        this.httpClient = HttpClient.newBuilder()
+        this(baseUrl, objectMapper, HttpClient.newBuilder()
                 .connectTimeout(CONNECT_TIMEOUT)
                 .version(HttpClient.Version.HTTP_1_1)
-                .build();
+                .build());
+    }
+
+    PythonCapabilityAwareClient(String baseUrl, ObjectMapper objectMapper, HttpClient httpClient) {
+        this.baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
+        this.objectMapper = objectMapper;
+        this.httpClient = httpClient;
     }
 
     // ═══ 启动时主动刷新 ═══
@@ -81,7 +94,8 @@ public class PythonCapabilityAwareClient {
                 refreshCapabilities();
                 log.info("Python 能力清单启动刷新完成");
             } catch (Exception e) {
-                log.warn("Python 能力清单启动刷新失败，将在下次调用时重试: {}", e.getMessage());
+                log.warn("Python capability startup refresh failed; retry deferred: errorType={}",
+                        SafeLogValue.errorType(e));
             }
         });
     }
@@ -113,7 +127,8 @@ public class PythonCapabilityAwareClient {
         } catch (Exception e) {
             this.lastRefreshTimestamp = System.currentTimeMillis();
             this.lastRefreshSuccess = false;
-            log.warn("Python 服务能力探测失败，使用短缓存: {}", e.getMessage());
+            log.warn("Python capability probe failed; short cache enabled: errorType={}",
+                    SafeLogValue.errorType(e));
         }
     }
 
@@ -181,24 +196,27 @@ public class PythonCapabilityAwareClient {
     public <T> Optional<T> callWithRetry(String endpoint, Object body,
                                          Class<T> resultType) {
         boolean retryAllowed = isReadOnlyEndpoint(endpoint);
+        String requestId = UUID.randomUUID().toString();
         for (int attempt = 0; attempt <= MAX_RETRIES; attempt++) {
             try {
                 String jsonBody = objectMapper.writeValueAsString(body);
-                log.debug("POST {} body({}chars): {}", endpoint, jsonBody.length(),
-                        jsonBody.length() > 500 ? jsonBody.substring(0, 500) + "..." : jsonBody);
-                var request = HttpRequest.newBuilder()
+                log.debug("Python POST request: endpoint={}, requestId={}, attempt={}, bodyLength={}, bodyFingerprint={}",
+                        endpoint, requestId, attempt + 1, jsonBody.length(), SafeLogValue.fingerprint(jsonBody));
+                var requestBuilder = HttpRequest.newBuilder()
                         .uri(URI.create(baseUrl + endpoint))
                         .timeout(READ_TIMEOUT)
                         .header("Content-Type", "application/json")
-                        .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
-                        .build();
+                        .POST(HttpRequest.BodyPublishers.ofString(jsonBody));
+                addCorrelationHeaders(requestBuilder, requestId, attempt + 1);
+                var request = requestBuilder.build();
                 var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
                 if (response.statusCode() >= 200 && response.statusCode() < 300) {
                     T result = objectMapper.readValue(response.body(), resultType);
                     return Optional.ofNullable(result);
                 }
-                log.warn("Python 调用 {} 返回 HTTP {}: {}", endpoint,
-                        response.statusCode(), response.body());
+                log.warn("Python POST failed: endpoint={}, requestId={}, attempt={}, status={}, responseLength={}, responseFingerprint={}",
+                        endpoint, requestId, attempt + 1, response.statusCode(),
+                        SafeLogValue.length(response.body()), SafeLogValue.fingerprint(response.body()));
                 if (response.statusCode() >= 400 && response.statusCode() < 500) {
                     log.info("Permanent Python client error is not retryable: endpoint={}, status={}",
                             endpoint, response.statusCode());
@@ -210,14 +228,14 @@ public class PythonCapabilityAwareClient {
                 }
             } catch (Exception e) {
                 if (!retryAllowed) {
-                    log.warn("Python side-effecting/unknown endpoint failed without retry: {}: {}",
-                            endpoint, e.getMessage());
+                    log.warn("Python side-effecting/unknown endpoint failed without retry: endpoint={}, requestId={}, errorType={}",
+                            endpoint, requestId, SafeLogValue.errorType(e));
                     return Optional.empty();
                 }
                 if (attempt < MAX_RETRIES) {
                     long delayMs = RETRY_BASE_DELAY.toMillis() * (1L << attempt); // 指数退避: 500, 1000, 2000, 4000
-                    log.debug("Python 调用 {} 失败 (尝试 {}/{}), {}ms 后重试...",
-                            endpoint, attempt + 1, MAX_RETRIES, delayMs);
+                    log.debug("Python POST retry: endpoint={}, requestId={}, attempt={}, maxRetries={}, delayMs={}, errorType={}",
+                            endpoint, requestId, attempt + 1, MAX_RETRIES, delayMs, SafeLogValue.errorType(e));
                     try {
                         Thread.sleep(delayMs);
                     } catch (InterruptedException ie) {
@@ -225,7 +243,8 @@ public class PythonCapabilityAwareClient {
                         break;
                     }
                 } else {
-                    log.error("Python 调用 {} 最终失败 ({} 次重试耗尽)", endpoint, MAX_RETRIES, e);
+                    log.error("Python POST exhausted: endpoint={}, requestId={}, retries={}, errorType={}",
+                            endpoint, requestId, MAX_RETRIES, SafeLogValue.errorType(e));
                 }
             }
         }
@@ -239,24 +258,27 @@ public class PythonCapabilityAwareClient {
     public <T> Optional<T> callWithRetry(String endpoint, Object body,
                                          Class<T> resultType, Duration timeout) {
         boolean retryAllowed = isReadOnlyEndpoint(endpoint);
+        String requestId = UUID.randomUUID().toString();
         for (int attempt = 0; attempt <= MAX_RETRIES; attempt++) {
             try {
                 String jsonBody = objectMapper.writeValueAsString(body);
-                log.debug("POST {} body({}chars): {}", endpoint, jsonBody.length(),
-                        jsonBody.length() > 500 ? jsonBody.substring(0, 500) + "..." : jsonBody);
-                var request = HttpRequest.newBuilder()
+                log.debug("Python POST request: endpoint={}, requestId={}, attempt={}, bodyLength={}, bodyFingerprint={}",
+                        endpoint, requestId, attempt + 1, jsonBody.length(), SafeLogValue.fingerprint(jsonBody));
+                var requestBuilder = HttpRequest.newBuilder()
                         .uri(URI.create(baseUrl + endpoint))
                         .timeout(timeout)
                         .header("Content-Type", "application/json")
-                        .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
-                        .build();
+                        .POST(HttpRequest.BodyPublishers.ofString(jsonBody));
+                addCorrelationHeaders(requestBuilder, requestId, attempt + 1);
+                var request = requestBuilder.build();
                 var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
                 if (response.statusCode() >= 200 && response.statusCode() < 300) {
                     T result = objectMapper.readValue(response.body(), resultType);
                     return Optional.ofNullable(result);
                 }
-                log.warn("Python 调用 {} 返回 HTTP {}: {}", endpoint,
-                        response.statusCode(), response.body());
+                log.warn("Python POST failed: endpoint={}, requestId={}, attempt={}, status={}, responseLength={}, responseFingerprint={}",
+                        endpoint, requestId, attempt + 1, response.statusCode(),
+                        SafeLogValue.length(response.body()), SafeLogValue.fingerprint(response.body()));
                 if (response.statusCode() >= 400 && response.statusCode() < 500) {
                     log.info("Permanent Python client error is not retryable: endpoint={}, status={}",
                             endpoint, response.statusCode());
@@ -265,14 +287,14 @@ public class PythonCapabilityAwareClient {
                 if (!retryAllowed) return Optional.empty();
             } catch (Exception e) {
                 if (!retryAllowed) {
-                    log.warn("Python side-effecting/unknown endpoint failed without retry: {}: {}",
-                            endpoint, e.getMessage());
+                    log.warn("Python side-effecting/unknown endpoint failed without retry: endpoint={}, requestId={}, errorType={}",
+                            endpoint, requestId, SafeLogValue.errorType(e));
                     return Optional.empty();
                 }
                 if (attempt < MAX_RETRIES) {
                     long delayMs = RETRY_BASE_DELAY.toMillis() * (1L << attempt);
-                    log.debug("Python 调用 {} 失败 (尝试 {}/{}), {}ms 后重试...",
-                            endpoint, attempt + 1, MAX_RETRIES, delayMs);
+                    log.debug("Python POST retry: endpoint={}, requestId={}, attempt={}, maxRetries={}, delayMs={}, errorType={}",
+                            endpoint, requestId, attempt + 1, MAX_RETRIES, delayMs, SafeLogValue.errorType(e));
                     try {
                         Thread.sleep(delayMs);
                     } catch (InterruptedException ie) {
@@ -280,7 +302,8 @@ public class PythonCapabilityAwareClient {
                         break;
                     }
                 } else {
-                    log.error("Python 调用 {} 最终失败 ({} 次重试耗尽)", endpoint, MAX_RETRIES, e);
+                    log.error("Python POST exhausted: endpoint={}, requestId={}, retries={}, errorType={}",
+                            endpoint, requestId, MAX_RETRIES, SafeLogValue.errorType(e));
                 }
             }
         }
@@ -295,6 +318,29 @@ public class PythonCapabilityAwareClient {
                 || endpoint.startsWith("/api/code-path/")
                 || endpoint.startsWith("/api/code-diagram/")
                 || endpoint.startsWith("/api/git/");
+    }
+
+    private static void addCorrelationHeaders(HttpRequest.Builder builder,
+                                              String requestId, int attempt) {
+        addHeaderIfPresent(builder, "X-Request-Id", requestId);
+        addHeaderIfPresent(builder, "X-Attempt", Integer.toString(attempt));
+        addHeaderIfPresent(builder, "X-Run-Id", safeMdc("runId"));
+        addHeaderIfPresent(builder, "X-Session-Id", safeMdc("sessionId"));
+    }
+
+    private static void addHeaderIfPresent(HttpRequest.Builder builder, String name, String value) {
+        try {
+            if (value != null && SAFE_CORRELATION_HEADER.matcher(value).matches()) {
+                builder.header(name, value);
+            }
+        } catch (Throwable ignored) {
+            // Diagnostic correlation must never make an otherwise valid request fail.
+        }
+    }
+
+    private static String safeMdc(String key) {
+        try { return MDC.get(key); }
+        catch (Throwable ignored) { return null; }
     }
 
     /**

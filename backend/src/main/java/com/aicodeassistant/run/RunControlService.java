@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.aicodeassistant.security.SensitiveDataFilter;
+import com.aicodeassistant.observability.SafeLogValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
@@ -87,7 +88,8 @@ public class RunControlService {
                     run.agentType(), run.model(), run.startedAt().toString(),
                     run.createdAt().toString(), run.updatedAt().toString());
             appendEventInCurrentWrite(run.id(), "run_started", null, Map.of(
-                    "sessionId", sessionId, "agentType", value(agentType), "model", value(model)));
+                    "sessionId", sessionId, "parentRunId", value(parentRunId),
+                    "agentType", value(agentType), "model", value(model)));
             return null;
         });
         return run;
@@ -191,11 +193,15 @@ public class RunControlService {
                                         RunEnvelope.RunExitReason requestedReason,
                                         String waitingReason, String abortReason, String error,
                                         int tokens, double cost, int turns) {
-            List<Map<String, Object>> rows = jdbc.queryForList(
-                    "SELECT status,version FROM run_envelopes WHERE id=?", runId);
+            List<Map<String, Object>> rows = jdbc.queryForList("""
+                    SELECT status,version,parent_run_id,agent_type,requested_exit_reason,
+                           total_tokens,total_cost_usd,turn_count
+                    FROM run_envelopes WHERE id=?
+                    """, runId);
             if (rows.isEmpty()) return TransitionResult.NOT_FOUND;
-            String current = String.valueOf(rows.getFirst().get("status"));
-            long version = ((Number) rows.getFirst().get("version")).longValue();
+            Map<String, Object> currentRow = rows.getFirst();
+            String current = String.valueOf(currentRow.get("status"));
+            long version = ((Number) currentRow.get("version")).longValue();
             if (!expected.contains(current)) {
                 return isTerminal(current) ? TransitionResult.ALREADY_TERMINAL : TransitionResult.INVALID_TRANSITION;
             }
@@ -222,9 +228,29 @@ public class RunControlService {
                                 "AND EXISTS(SELECT 1 FROM run_envelopes r WHERE r.id=? AND r.parent_run_id IS NULL)",
                         now.toString(), now.toString(), runId, runId);
             }
-            appendEventInCurrentWrite(runId, "run_status_changed", null, Map.of(
-                    "from", current, "to", target.dbValue(),
-                    "exitReason", value(db(exitReason))));
+            Map<String, Object> statusEvent = new LinkedHashMap<>();
+            statusEvent.put("from", current);
+            statusEvent.put("to", target.dbValue());
+            statusEvent.put("parentRunId", value(currentRow.get("parent_run_id")));
+            statusEvent.put("agentType", value(currentRow.get("agent_type")));
+            statusEvent.put("exitReason", value(db(exitReason)));
+            statusEvent.put("requestedExitReason", value(requestedReason == null
+                    ? currentRow.get("requested_exit_reason") : db(requestedReason)));
+            statusEvent.put("waitingReason", value(waitingReason));
+            statusEvent.put("abortReason", value(abortReason));
+            statusEvent.put("errorPresent", error != null && !error.isBlank());
+            statusEvent.put("errorCategory", error == null || error.isBlank()
+                    ? "none" : value(db(exitReason)));
+            statusEvent.put("errorLength", SafeLogValue.length(error));
+            statusEvent.put("errorFingerprint", SafeLogValue.fingerprint(error));
+            statusEvent.put("totalTokens", tokens > 0 ? tokens
+                    : ((Number) currentRow.get("total_tokens")).intValue());
+            statusEvent.put("totalCostUsd", cost > 0 ? cost
+                    : ((Number) currentRow.get("total_cost_usd")).doubleValue());
+            statusEvent.put("turnCount", turns > 0 ? turns
+                    : ((Number) currentRow.get("turn_count")).intValue());
+            statusEvent.put("totalsAvailable", true);
+            appendEventInCurrentWrite(runId, "run_status_changed", null, statusEvent);
             return TransitionResult.APPLIED;
     }
 
@@ -236,6 +262,18 @@ public class RunControlService {
         Integer max = jdbc.queryForObject("SELECT COALESCE(MAX(seq),0) FROM run_event_log WHERE run_id=?",
                 Integer.class, runId);
         int seq = (max == null ? 0 : max) + 1;
+        String json = serializeEvent(runId, toolUseId, data);
+        long ts = System.currentTimeMillis();
+        jdbc.update("INSERT INTO run_event_log(run_id,seq,event_type,event_data,ts) VALUES(?,?,?,?,?)",
+                runId, seq, type, json, ts);
+        if ("tool_started".equals(type) || "tool_call".equals(type)) {
+            jdbc.update("UPDATE run_envelopes SET tool_call_count=tool_call_count+1,updated_at=? WHERE id=?",
+                    Instant.now().toString(), runId);
+        }
+        return new RunEvent(null, runId, seq, type, json, ts);
+    }
+
+    private String serializeEvent(String runId, String toolUseId, Object data) {
         Map<String, Object> envelope = new LinkedHashMap<>();
         envelope.put("schemaVersion", 2);
         envelope.put("entityId", runId);
@@ -261,14 +299,7 @@ public class RunControlService {
             }
         }
         catch (Exception e) { throw new IllegalArgumentException("RUN_EVENT_SERIALIZATION_FAILED", e); }
-        long ts = System.currentTimeMillis();
-        jdbc.update("INSERT INTO run_event_log(run_id,seq,event_type,event_data,ts) VALUES(?,?,?,?,?)",
-                runId, seq, type, json, ts);
-        if ("tool_started".equals(type) || "tool_call".equals(type)) {
-            jdbc.update("UPDATE run_envelopes SET tool_call_count=tool_call_count+1,updated_at=? WHERE id=?",
-                    Instant.now().toString(), runId);
-        }
-        return new RunEvent(null, runId, seq, type, json, ts);
+        return json;
     }
 
     private JsonNode sanitizeNode(JsonNode node) {
@@ -290,7 +321,9 @@ public class RunControlService {
     @PostConstruct
     void interruptStaleRuns() {
         List<String> ids = jdbc.queryForList("SELECT id FROM run_envelopes WHERE status IN ('queued','running','waiting_interaction','cancelling')", String.class);
+        if (!ids.isEmpty()) log.warn("Recovering stale Runs after service restart: count={}", ids.size());
         ids.forEach(id -> interrupt(id, RunEnvelope.RunExitReason.SERVICE_RESTART));
+        if (!ids.isEmpty()) log.info("Stale Run recovery completed: interruptedCount={}", ids.size());
     }
 
     private <T> T write(java.util.function.Supplier<T> operation) {

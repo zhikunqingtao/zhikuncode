@@ -20,6 +20,8 @@ import com.aicodeassistant.tool.*;
 import com.aicodeassistant.tool.agent.BackgroundAgentTracker;
 import com.aicodeassistant.run.RunEnvelope;
 import com.aicodeassistant.run.RunTracker;
+import com.aicodeassistant.observability.MdcScope;
+import com.aicodeassistant.observability.SafeLogValue;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -275,12 +277,12 @@ public class QueryEngine {
         // ★ RunTracker: 启动运行追踪并将 runId 传播到 ToolUseContext
         String currentRunId = null;
         boolean runFailureRecorded = false;
+        String parentRunId = state.getToolUseContext() != null
+                ? state.getToolUseContext().currentRunId() : null;
+        String agentType = state.getToolUseContext() != null
+                && state.getToolUseContext().parentSessionId() != null ? "subagent" : "query";
         if (runTracker != null && sessionId != null) {
             try {
-                String parentRunId = state.getToolUseContext() != null
-                        ? state.getToolUseContext().currentRunId() : null;
-                String agentType = state.getToolUseContext() != null
-                        && state.getToolUseContext().parentSessionId() != null ? "subagent" : "query";
                 RunEnvelope run = runTracker.startRun(sessionId, parentRunId, agentType, config.model());
                 currentRunId = run.id();
                 if (runExecutions != null) {
@@ -304,6 +306,12 @@ public class QueryEngine {
             }
         }
 
+        Map<String, String> runCorrelation = new LinkedHashMap<>();
+        if (sessionId != null) runCorrelation.put("sessionId", sessionId);
+        if (currentRunId != null) runCorrelation.put("runId", currentRunId);
+        if (parentRunId != null) runCorrelation.put("parentRunId", parentRunId);
+        runCorrelation.put("agentType", agentType);
+        try (MdcScope ignoredRunScope = MdcScope.open(runCorrelation)) {
         try {
             preCleanImageHistory(config, state);
             totalUsage = queryLoop(config, state, handler, aborted);
@@ -388,6 +396,7 @@ public class QueryEngine {
 
         return new QueryResult(state.getMessages(), totalUsage,
                 stopReason, null, state.getTurnCount());
+        }
     }
 
     private void unregisterRunExecution(String runId) {
@@ -459,6 +468,11 @@ public class QueryEngine {
     private void emitRunInputApplied(
             QueryMessageHandler handler,
             com.aicodeassistant.run.RunExecutionRegistry.InputReceipt receipt) {
+        recordCurrentRunEvent("run_input_applied", Map.of(
+                "requestId", receipt.requestId(),
+                "textLength", SafeLogValue.length(receipt.text()),
+                "textFingerprint", SafeLogValue.fingerprint(receipt.text()),
+                "appliedAt", receipt.appliedAt()));
         try {
             handler.onStreamEvent("run_input_applied", Map.of(
                     "requestId", receipt.requestId(),
@@ -473,6 +487,12 @@ public class QueryEngine {
     private void emitRunInputRejected(
             QueryMessageHandler handler,
             com.aicodeassistant.run.RunExecutionRegistry.InputReceipt receipt) {
+        recordCurrentRunEvent("run_input_rejected", Map.of(
+                "requestId", receipt.requestId(),
+                "rejectionCode", receipt.rejectionCode() == null ? "unknown" : receipt.rejectionCode(),
+                "textLength", SafeLogValue.length(receipt.text()),
+                "textFingerprint", SafeLogValue.fingerprint(receipt.text()),
+                "rejectedAt", receipt.rejectedAt()));
         try {
             handler.onStreamEvent("run_input_rejected", Map.of(
                     "requestId", receipt.requestId(),
@@ -482,6 +502,22 @@ public class QueryEngine {
         } catch (RuntimeException deliveryFailure) {
             log.warn("Failed to deliver run_input_rejected: requestId={}, error={}",
                     receipt.requestId(), deliveryFailure.getMessage());
+        }
+    }
+
+    private void recordCurrentRunEvent(String type, Map<String, Object> data) {
+        recordCurrentRunEvent(type, () -> data);
+    }
+
+    private void recordCurrentRunEvent(
+            String type, java.util.function.Supplier<Map<String, Object>> dataSupplier) {
+        try {
+            String runId = MDC.get("runId");
+            if (runTracker != null && runId != null) {
+                runTracker.recordEventBestEffort(runId, type, dataSupplier.get());
+            }
+        } catch (Throwable ignored) {
+            // Supplemental observability is deliberately non-authoritative.
         }
     }
 
@@ -546,6 +582,8 @@ public class QueryEngine {
 
             state.incrementTurnCount();
             int turn = state.getTurnCount();
+            try { MDC.put("turn", Integer.toString(turn)); }
+            catch (Throwable ignored) { }
             log.debug("Turn {} 开始: messageCount={}, model={}", turn, state.getMessages().size(), currentModel[0]);
             handler.onTurnStart(turn);
 
@@ -713,17 +751,31 @@ public class QueryEngine {
                 break;
             }
             log.debug("Turn {} Step3: 开始 API 调用 streamChat...", turn);
+            String llmRequestId = "llm-" + java.util.UUID.randomUUID();
+            long llmStartedNanos = System.nanoTime();
+            int[] llmAttemptCount = {0};
+            try { handler.onStreamRequestStart(llmRequestId); }
+            catch (Throwable callbackFailure) {
+                log.warn("Stream request correlation callback failed: requestId={}, errorType={}",
+                        llmRequestId, SafeLogValue.errorType(callbackFailure));
+            }
+            recordCurrentRunEvent("llm_call_started", () -> Map.of(
+                    "requestId", llmRequestId,
+                    "provider", diagnosticValue(provider.getProviderName()),
+                    "model", effectiveModel,
+                    "turn", turn,
+                    "attemptCount", 0));
             try {
                 com.aicodeassistant.llm.CancellationSignal callCancellation = loopSessionId == null
                         ? com.aicodeassistant.llm.CancellationSignal.none()
                         : getOrCreateAbortContext(loopSessionId);
-                String llmRequestId = "llm-" + java.util.UUID.randomUUID();
                 com.aicodeassistant.run.RunExecutionRegistry.WorkLease llmLease =
                         runExecutions == null || state.getToolUseContext() == null
                                 || state.getToolUseContext().currentRunId() == null
                                 ? null : runExecutions.acquireWork(
                                         state.getToolUseContext().currentRunId(), "llm", llmRequestId);
-                try (llmLease) {
+                try (MdcScope ignoredLlmScope = MdcScope.open(Map.of("llmRequestId", llmRequestId));
+                     llmLease) {
                 apiRetryService.executeWithRetry(() -> {
                     if (callCancellation.isCancelled()) {
                         throw new LlmApiException("LLM_CALL_CANCELLED", false, 0,
@@ -755,8 +807,20 @@ public class QueryEngine {
                     }
                     return null;
                 }, config.querySource(), effectiveModel, callCancellation);
+                llmAttemptCount[0] = Math.max(0, apiRetryService.lastAttemptCount());
                 }
             } catch (LlmApiException e) {
+                llmAttemptCount[0] = Math.max(0, apiRetryService.lastAttemptCount());
+                recordCurrentRunEvent("llm_call_failed", () -> Map.of(
+                        "requestId", llmRequestId,
+                        "provider", diagnosticValue(provider.getProviderName()),
+                        "model", effectiveModel,
+                        "turn", turn,
+                        "attemptCount", llmAttemptCount[0],
+                        "durationMs", elapsedMillis(llmStartedNanos),
+                        "statusCode", e.getStatusCode(),
+                        "errorType", e.getErrorType() == null
+                                ? SafeLogValue.errorType(e) : e.getErrorType()));
                 if (aborted.get() || isCancellation(e)) {
                     session.discard();
                     break;
@@ -769,6 +833,9 @@ public class QueryEngine {
                     if (!state.hasAttemptedProviderPayloadGuardRetry()) {
                         state.setProviderPayloadGuardRetryAttempted(true);
                         handler.onRecovery(RecoveryEvent.of413(1, "final payload compact"));
+                        recordCurrentRunEvent("llm_recovery_attempted", Map.of(
+                                "requestId", llmRequestId, "strategy", "final_payload_compact",
+                                "attempt", 1, "turn", turn));
                         if (tryReactiveCompact(config, state, handler)) {
                             handler.onTurnEnd(turn, "final_payload_guard_retry");
                             continue;
@@ -786,6 +853,9 @@ public class QueryEngine {
                     state.setPromptTooLongWithheld(true);
                     int recoveryAttempt = state.getWithheldErrors().size();
                     handler.onRecovery(RecoveryEvent.of413(recoveryAttempt, "collapse drain"));
+                    recordCurrentRunEvent("llm_recovery_attempted", Map.of(
+                            "requestId", llmRequestId, "strategy", "collapse_drain",
+                            "attempt", recoveryAttempt, "turn", turn));
 
                     // Phase 1: context-collapse drain (防止重复)
                     if (!"collapse_drain_retry".equals(state.getLastTransitionReason())) {
@@ -832,8 +902,17 @@ public class QueryEngine {
                 if (e instanceof LlmApiException llmEx && llmEx.isFallbackTrigger()
                         && config.fallbackModel() != null
                         && !config.fallbackModel().equals(currentModel[0])) {
-                    log.warn("Fallback triggered: {} → {}, reason: {}",
-                            currentModel[0], config.fallbackModel(), e.getMessage());
+                    log.warn("Fallback triggered: fromModel={}, toModel={}, status={}, errorType={}",
+                            currentModel[0], config.fallbackModel(), e.getStatusCode(),
+                            e.getErrorType() == null ? SafeLogValue.errorType(e) : e.getErrorType());
+                    recordCurrentRunEvent("model_fallback", () -> Map.of(
+                            "requestId", llmRequestId,
+                            "fromModel", currentModel[0],
+                            "toModel", config.fallbackModel(),
+                            "turn", turn,
+                            "attemptCount", llmAttemptCount[0],
+                            "errorType", e.getErrorType() == null
+                                    ? SafeLogValue.errorType(e) : e.getErrorType()));
                     hookService.executeNotification("warn",
                             "Model fallback: " + currentModel[0] + " → " + config.fallbackModel());
                     session.discard();
@@ -852,6 +931,18 @@ public class QueryEngine {
                     continue;
                 }
                 throw e;
+            } catch (RuntimeException e) {
+                llmAttemptCount[0] = Math.max(0, apiRetryService.lastAttemptCount());
+                recordCurrentRunEvent("llm_call_failed", () -> Map.of(
+                        "requestId", llmRequestId,
+                        "provider", diagnosticValue(provider.getProviderName()),
+                        "model", effectiveModel,
+                        "turn", turn,
+                        "attemptCount", llmAttemptCount[0],
+                        "durationMs", elapsedMillis(llmStartedNanos),
+                        "statusCode", 0,
+                        "errorType", SafeLogValue.errorType(e)));
+                throw e;
             }
 
             // === 图片注入确认: API 调用成功，将本轮 pending hashes 标记为已确认 ===
@@ -866,6 +957,21 @@ public class QueryEngine {
             // ===== Step 4: 收集 API 响应 =====
             log.debug("Turn {} Step4: streamChat returned, building AssistantMessage...", turn);
             Message.AssistantMessage assistantMessage = collector.buildAssistantMessage();
+            Usage callUsage = assistantMessage.usage();
+            recordCurrentRunEvent("llm_call_completed", () -> {
+                Map<String, Object> llmCompleted = new LinkedHashMap<>();
+                llmCompleted.put("requestId", llmRequestId);
+                llmCompleted.put("provider", diagnosticValue(provider.getProviderName()));
+                llmCompleted.put("model", effectiveModel);
+                llmCompleted.put("turn", turn);
+                llmCompleted.put("attemptCount", llmAttemptCount[0]);
+                llmCompleted.put("durationMs", elapsedMillis(llmStartedNanos));
+                llmCompleted.put("inputTokens", callUsage == null ? 0 : callUsage.inputTokens());
+                llmCompleted.put("outputTokens", callUsage == null ? 0 : callUsage.outputTokens());
+                llmCompleted.put("cacheReadInputTokens", callUsage == null ? 0 : callUsage.cacheReadInputTokens());
+                llmCompleted.put("cacheCreationInputTokens", callUsage == null ? 0 : callUsage.cacheCreationInputTokens());
+                return llmCompleted;
+            });
             state.addMessage(assistantMessage);
             handler.onAssistantMessage(assistantMessage);
             String eventRunId = state.getToolUseContext() == null
@@ -1331,6 +1437,10 @@ public class QueryEngine {
         return value != null && !value.isBlank() ? value : "none";
     }
 
+    private static long elapsedMillis(long startedNanos) {
+        return Math.max(0L, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedNanos));
+    }
+
     private void logIncrementalEvaluation(
             String contextEvalId, String sessionId, String runId, int turn,
             boolean incrementalDue, boolean incrementalFlagBefore, boolean incrementalFlagAfter) {
@@ -1413,6 +1523,9 @@ public class QueryEngine {
                     state.resetAutoCompactFailures();
                     handler.onCompactEvent("smc_compact",
                             smcResult.beforeTokens(), smcResult.afterTokens());
+                    recordCurrentRunEvent("context_compacted", Map.of(
+                            "mode", "smc_compact", "beforeTokens", smcResult.beforeTokens(),
+                            "afterTokens", smcResult.afterTokens()));
                     log.info("SMC 压缩完成: {}", smcResult.summary());
                     return;
                 }
@@ -1429,6 +1542,9 @@ public class QueryEngine {
                     state.resetAutoCompactFailures();
                     handler.onCompactEvent("auto_compact",
                             result.beforeTokens(), result.afterTokens());
+                    recordCurrentRunEvent("context_compacted", Map.of(
+                            "mode", "auto_compact", "beforeTokens", result.beforeTokens(),
+                            "afterTokens", result.afterTokens()));
                     hookService.executeNotification("info", "Context auto-compacted: "
                             + result.beforeTokens() + " \u2192 " + result.afterTokens() + " tokens");
                     log.info("自动压缩完成: {}", result.summary());
@@ -1459,6 +1575,9 @@ public class QueryEngine {
                 state.setMessages(result.compactedMessages());
                 handler.onCompactEvent("reactive_compact",
                         result.beforeTokens(), result.afterTokens());
+                recordCurrentRunEvent("context_compacted", Map.of(
+                        "mode", "reactive_compact", "beforeTokens", result.beforeTokens(),
+                        "afterTokens", result.afterTokens()));
                 compactMetrics.recordRecoverySuccess(
                         result.compressionRatio(),
                         System.currentTimeMillis() - startTime);
@@ -1488,6 +1607,9 @@ public class QueryEngine {
                 state.setMessages(result.compactedMessages());
                 handler.onCompactEvent("context_collapse_drain",
                         result.beforeTokens(), result.afterTokens());
+                recordCurrentRunEvent("context_compacted", Map.of(
+                        "mode", "context_collapse_drain", "beforeTokens", result.beforeTokens(),
+                        "afterTokens", result.afterTokens()));
                 compactMetrics.recordRecoverySuccess(
                         result.compressionRatio(),
                         System.currentTimeMillis() - startTime);

@@ -1,5 +1,7 @@
 package com.aicodeassistant.engine;
 
+import com.aicodeassistant.observability.SafeLogValue;
+
 import com.aicodeassistant.command.CommandRegistry;
 import com.aicodeassistant.command.slash.SlashCommandParser;
 import com.aicodeassistant.hook.HookEvent;
@@ -66,8 +68,9 @@ public class UserInputProcessor {
             if (parsed != null) {
                 var command = commandRegistry.findCommand(parsed.commandName());
                 if (command.isPresent()) {
-                    log.debug("Detected command: /{} args='{}'",
-                            parsed.commandName(), parsed.args());
+                    log.debug("Detected command: /{} argsLength={} argsFingerprint={}",
+                            parsed.commandName(), SafeLogValue.length(parsed.args()),
+                            SafeLogValue.fingerprint(parsed.args()));
                     return ProcessedInput.command(parsed.commandName(), parsed.args());
                 }
             }

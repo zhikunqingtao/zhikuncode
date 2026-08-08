@@ -1,5 +1,7 @@
 package com.aicodeassistant.tool.recovery;
 
+import com.aicodeassistant.observability.SafeLogValue;
+
 import com.aicodeassistant.tool.bash.BashErrorClassifier;
 import com.aicodeassistant.tool.bash.BashErrorClassifier.ErrorClassification;
 import com.aicodeassistant.tool.bash.BashErrorClassifier.ErrorType;
@@ -48,8 +50,9 @@ public class BashRecoveryPolicy implements ToolRecoveryPolicy {
         ErrorClassification classification = errorClassifier.classify(
                 context.exitCode(), context.errorMessage(), command);
 
-        log.debug("Bash recovery classification: type={}, category={}, command={}",
-                classification.type(), classification.category(), command);
+        log.debug("Bash recovery classification: type={}, category={}, commandLength={}, commandFingerprint={}",
+                classification.type(), classification.category(), SafeLogValue.length(command),
+                SafeLogValue.fingerprint(command));
 
         // 将错误分类映射为恢复决策
         return switch (classification.type()) {

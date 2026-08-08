@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.annotation.PostConstruct;
 import com.aicodeassistant.run.RunExecutionRegistry;
+import com.aicodeassistant.observability.BestEffortObservabilityRecorder;
+import com.aicodeassistant.observability.SafeLogValue;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,6 +18,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -42,6 +45,7 @@ public class ManagedProcessRunner {
     private final Map<ProcessKey, ActiveProcess> active = new ConcurrentHashMap<>();
     private volatile Semaphore capacity = new Semaphore(16);
     private final RunExecutionRegistry runExecutions;
+    private volatile BestEffortObservabilityRecorder observabilityRecorder;
 
     @Autowired
     public ManagedProcessRunner(RunExecutionRegistry runExecutions) {
@@ -50,6 +54,11 @@ public class ManagedProcessRunner {
 
     /** Isolated-test constructor. Production always injects the Run admission authority. */
     public ManagedProcessRunner() { this.runExecutions = null; }
+
+    @Autowired(required = false)
+    void setObservabilityRecorder(BestEffortObservabilityRecorder observabilityRecorder) {
+        this.observabilityRecorder = observabilityRecorder;
+    }
 
     @PostConstruct
     void validateConfiguration() {
@@ -107,6 +116,12 @@ public class ManagedProcessRunner {
         try {
             Future<Capture> stdout = drains.submit(() -> drain(process.getInputStream()));
             Future<Capture> stderr = drains.submit(() -> drain(process.getErrorStream()));
+            recordProcessEvent(request.runId(), "process_started", request.toolUseId(), () -> Map.of(
+                    "pid", process.pid(),
+                    "executableCategory", executableCategory(request.command()),
+                    "argvCount", request.command().size(),
+                    "argvLength", SafeLogValue.totalLength(request.command()),
+                    "commandFingerprint", SafeLogValue.fingerprintParts(request.command())));
             long remainingNanos = request.timeout().toNanos() - (System.nanoTime() - started);
             boolean completed = remainingNanos > 0
                     && process.waitFor(remainingNanos, TimeUnit.NANOSECONDS);
@@ -118,10 +133,18 @@ public class ManagedProcessRunner {
             Capture err = awaitDrain(stderr, cleanupDeadline);
             long elapsedMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started);
             boolean cancelled=activeProcess.cancelled().get();
-            return new Result(cancelled?130:(completed ? process.exitValue() : 137),
+            Result result = new Result(cancelled?130:(completed ? process.exitValue() : 137),
                     preview(out.text()), preview(err.text()), out.truncated(), err.truncated(),
                     !completed&&!cancelled, cancelled, terminationConfirmed, elapsedMs,
                     descendantsUnavailable(process));
+            recordProcessEvent(request.runId(), "process_finished", request.toolUseId(), () -> Map.of(
+                    "pid", process.pid(), "exitCode", result.exitCode(),
+                    "durationMs", result.elapsedMs(), "timedOut", result.timedOut(),
+                    "cancelled", result.cancelled(),
+                    "terminationConfirmed", result.terminationConfirmed(),
+                    "stdoutTruncated", result.stdoutTruncated(),
+                    "stderrTruncated", result.stderrTruncated()));
+            return result;
         } finally {
             active.remove(key, activeProcess);
             long finalDeadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
@@ -137,6 +160,7 @@ public class ManagedProcessRunner {
 
     /** Starts a bounded, owned background process whose output is discarded. */
     public BackgroundResult startBackground(BackgroundRequest request) throws IOException {
+        long startedNanos = System.nanoTime();
         RunExecutionRegistry.WorkLease workLease = acquireLease(
                 request.runId(), request.toolUseId(), Ownership.RUN);
         if (!capacity.tryAcquire()) {
@@ -182,11 +206,27 @@ public class ManagedProcessRunner {
         process.onExit().whenComplete((ignored, error) -> {
             active.remove(key, owned);
             capacity.release();
+            int exitCode;
+            try { exitCode = process.exitValue(); }
+            catch (RuntimeException unavailable) { exitCode = -1; }
+            int observedExitCode = exitCode;
+            long elapsedMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedNanos);
+            String eventType = owned.cancelled().get() ? "process_cancelled" : "process_exited";
+            recordProcessEvent(request.runId(), eventType, request.toolUseId(), () -> Map.of(
+                    "pid", process.pid(), "exitCode", observedExitCode, "durationMs", elapsedMs,
+                    "cancelled", owned.cancelled().get(),
+                    "errorType", SafeLogValue.errorType(error)));
         });
         // Launch is Run-owned, but the successfully-started background service is
         // session-owned. This transfer lets development servers survive the query
         // that started them while still making a cancellation during launch safe.
         if (workLease != null) workLease.close();
+        recordProcessEvent(request.runId(), "process_started", request.toolUseId(), () -> Map.of(
+                "pid", process.pid(), "background", true,
+                "executableCategory", executableCategory(request.command()),
+                "argvCount", request.command().size(),
+                "argvLength", SafeLogValue.totalLength(request.command()),
+                "commandFingerprint", SafeLogValue.fingerprintParts(request.command())));
         return new BackgroundResult(process.pid());
     }
 
@@ -243,7 +283,12 @@ public class ManagedProcessRunner {
                 if (terminate(entry.getValue(), deadline) && cleanup(entry.getValue(), deadline)) confirmed++;
             }
         }
-        return new CancelSummary(found, confirmed, found - confirmed);
+        CancelSummary summary = new CancelSummary(found, confirmed, found - confirmed);
+        recordProcessEvent(runId, "process_cancellation_summary", null, () -> Map.of(
+                "activeCount", summary.activeCount(),
+                "confirmedCount", summary.confirmedCount(),
+                "unconfirmedCount", summary.unconfirmedCount()));
+        return summary;
     }
 
     public boolean cancel(String runId, String toolUseId) {
@@ -252,6 +297,16 @@ public class ManagedProcessRunner {
         process.cancelled().set(true);
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
         return terminate(process, deadline) && cleanup(process, deadline);
+    }
+
+    private void recordProcessEvent(String runId, String eventType, String toolUseId,
+                                    java.util.function.Supplier<Map<String, Object>> data) {
+        try {
+            BestEffortObservabilityRecorder recorder = observabilityRecorder;
+            if (recorder != null) recorder.record(runId, eventType, toolUseId, data.get());
+        } catch (Throwable ignored) {
+            // Supplemental process observation must not affect lifecycle cleanup.
+        }
     }
 
     private boolean terminate(ActiveProcess owned, long cleanupDeadlineNanos) {
@@ -374,6 +429,20 @@ public class ManagedProcessRunner {
         return value.length() <= maxPreviewChars ? value : value.substring(0, maxPreviewChars);
     }
     private static void closeQuietly(java.io.Closeable closeable) { try { closeable.close(); } catch (Exception ignored) {} }
+    private static String executableCategory(List<String> command) {
+        try {
+            if (command == null || command.isEmpty() || command.getFirst() == null) return "unknown";
+            String executable = Path.of(command.getFirst()).getFileName().toString().toLowerCase();
+            if (Set.of("bash", "sh", "zsh", "fish", "cmd", "powershell", "pwsh").contains(executable)) return "shell";
+            if (executable.startsWith("python")) return "python";
+            if (Set.of("node", "npm", "npx", "pnpm", "yarn", "bun").contains(executable)) return "javascript";
+            if (Set.of("java", "javac", "mvn", "mvnw", "gradle", "gradlew").contains(executable)) return "jvm";
+            if (Set.of("git", "gh").contains(executable)) return "git";
+            return "other";
+        } catch (Throwable ignored) {
+            return "unknown";
+        }
+    }
     private static boolean descendantsUnavailable(Process process) {
         try { process.descendants().close(); return false; }
         catch (RuntimeException e) { return true; }

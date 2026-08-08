@@ -1,5 +1,7 @@
 package com.aicodeassistant.security;
 
+import com.aicodeassistant.observability.SafeLogValue;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -23,7 +25,6 @@ import java.util.Map;
 public class SecurityAuditLogger {
 
     private static final Logger auditLog = LoggerFactory.getLogger("security-audit");
-    private static final Logger log = LoggerFactory.getLogger(SecurityAuditLogger.class);
 
     /**
      * 记录被拦截的命令。
@@ -32,8 +33,12 @@ public class SecurityAuditLogger {
      * @param result  拦截结果
      */
     public void logBlocked(String command, CommandBlacklistService.BlockResult result) {
-        auditLog.warn("[SECURITY-BLOCK] level={}, rule={}, reason={}, command={}",
-                result.level(), result.rule(), result.reason(), sanitize(command));
+        try {
+            auditLog.warn("[SECURITY-BLOCK] level={}, rule={}, reasonLength={}, reasonFingerprint={}, commandLength={}, commandFingerprint={}",
+                    result.level(), result.rule(), SafeLogValue.length(result.reason()),
+                    SafeLogValue.fingerprint(result.reason()), SafeLogValue.length(command),
+                    SafeLogValue.fingerprint(command));
+        } catch (Throwable ignored) { }
     }
 
     /**
@@ -43,8 +48,11 @@ public class SecurityAuditLogger {
      * @param result 路径检查结果
      */
     public void logPathAccess(String path, SensitivePathRegistry.PathCheckResult result) {
-        auditLog.warn("[SECURITY-PATH] level={}, path={}, reason={}",
-                result.level(), sanitize(path), result.reason());
+        try {
+            auditLog.warn("[SECURITY-PATH] level={}, pathLength={}, pathFingerprint={}, reasonLength={}, reasonFingerprint={}",
+                    result.level(), SafeLogValue.length(path), SafeLogValue.fingerprint(path),
+                    SafeLogValue.length(result.reason()), SafeLogValue.fingerprint(result.reason()));
+        } catch (Throwable ignored) { }
     }
 
     /**
@@ -54,17 +62,11 @@ public class SecurityAuditLogger {
      * @param context 事件上下文
      */
     public void logAuditEvent(String event, Map<String, Object> context) {
-        auditLog.info("[SECURITY-AUDIT] event={}, timestamp={}, context={}",
-                event, Instant.now(), context);
-    }
-
-    /**
-     * 清理日志内容，防止日志注入。
-     */
-    private String sanitize(String input) {
-        if (input == null) return "null";
-        return input.replace("\n", "\\n")
-                    .replace("\r", "\\r")
-                    .replace("\t", "\\t");
+        try {
+            String rendered = context == null ? "" : String.valueOf(context);
+            auditLog.info("[SECURITY-AUDIT] event={}, timestamp={}, contextKeys={}, contextLength={}, contextFingerprint={}",
+                    event, Instant.now(), context == null ? java.util.Set.of() : context.keySet(),
+                    SafeLogValue.length(rendered), SafeLogValue.fingerprint(rendered));
+        } catch (Throwable ignored) { }
     }
 }

@@ -24,6 +24,7 @@ import java.util.function.Supplier;
 public class ApiRetryService {
 
     private static final Logger log = LoggerFactory.getLogger(ApiRetryService.class);
+    private final ThreadLocal<Integer> lastAttemptCount = ThreadLocal.withInitial(() -> 0);
 
     // ==================== 核心常量 ====================
     private static final int DEFAULT_MAX_RETRIES = 10;
@@ -81,6 +82,7 @@ public class ApiRetryService {
                                    String currentModel, CancellationSignal cancellation) {
         int attempt = 0;
         int retries529 = 0;
+        safeSetLastAttemptCount(0);
 
         // 一次逻辑调用只执行一次 breaker admission；内部重试不重复消耗配额。
         if (!circuitBreaker.allowRequest()) {
@@ -93,6 +95,7 @@ public class ApiRetryService {
         while (true) {
             if (cancellation.isCancelled()) throw cancelled();
             try {
+                safeSetLastAttemptCount(attempt + 1);
                 T result = operation.get();
                 // ★ 成功 → 报告给 ModelTierService 和熔断器
                 modelTierService.reportSuccess(currentModel);
@@ -119,8 +122,9 @@ public class ApiRetryService {
                         throw e;
                     }
                     retries529++;
-                    log.warn("529 容量超限 (attempt {}/{}), 源: {}, 等待重试...",
-                            retries529, MAX_529_RETRIES, querySource);
+                    log.warn("LLM retry capacity limit: attempt={}, max529Retries={}, querySource={}, model={}, status={}, errorType={}, retryAfterMs={}",
+                            retries529, MAX_529_RETRIES, querySource, currentModel,
+                            e.getStatusCode(), e.getErrorType(), e.getRetryAfterMs());
                 }
                 // 2. 检查是否为可重试的标准错误
                 else if (!isRetryableError(e)) {
@@ -131,14 +135,17 @@ public class ApiRetryService {
                 // 3. 超过最大重试次数
                 if (attempt >= DEFAULT_MAX_RETRIES) {
                     circuitBreaker.recordFailure();
-                    log.error("API 调用超过最大重试次数 ({}), 放弃", DEFAULT_MAX_RETRIES);
+                    log.error("LLM retry exhausted: attempts={}, querySource={}, model={}, status={}, errorType={}",
+                            DEFAULT_MAX_RETRIES, querySource, currentModel,
+                            e.getStatusCode(), e.getErrorType());
                     throw e;
                 }
 
                 // 4. 计算延迟并等待（优先使用模型感知策略）
                 long delay = calculateDelayWithModelAwareness(attempt, e, currentModel);
-                log.warn("API 调用失败 (attempt {}/{}), {} 后重试: {}",
-                        attempt, DEFAULT_MAX_RETRIES, delay + "ms", e.getMessage());
+                log.warn("LLM retry scheduled: attempt={}, maxRetries={}, delayMs={}, querySource={}, model={}, status={}, errorType={}, retryAfterMs={}",
+                        attempt, DEFAULT_MAX_RETRIES, delay, querySource, currentModel,
+                        e.getStatusCode(), e.getErrorType(), e.getRetryAfterMs());
 
                 try {
                     java.util.concurrent.CountDownLatch cancelled = new java.util.concurrent.CountDownLatch(1);
@@ -154,6 +161,17 @@ public class ApiRetryService {
                 }
             }
         }
+    }
+
+    /** Diagnostic-only count for the most recent logical call on the current thread. */
+    public int lastAttemptCount() {
+        try { return lastAttemptCount.get(); }
+        catch (Throwable ignored) { return 0; }
+    }
+
+    private void safeSetLastAttemptCount(int count) {
+        try { lastAttemptCount.set(count); }
+        catch (Throwable ignored) { }
     }
 
     private static LlmApiException cancelled() {

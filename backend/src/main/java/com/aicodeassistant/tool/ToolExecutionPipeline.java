@@ -21,6 +21,7 @@ import com.aicodeassistant.tool.recovery.ToolRecoveryFramework;
 import com.aicodeassistant.tool.recovery.ToolRecoveryFramework.RecoveryAction;
 import com.aicodeassistant.tool.recovery.ToolRecoveryFramework.RecoveryContext;
 import com.aicodeassistant.tool.recovery.ToolRecoveryFramework.RecoveryDecision;
+import com.aicodeassistant.observability.SafeLogValue;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.schema.JsonSchema;
@@ -40,6 +41,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -141,9 +143,10 @@ public class ToolExecutionPipeline {
             if (!validation.isValid()) {
                 log.warn("Tool input validation failed for {}: {} - {}",
                         toolName, validation.errorCode(), validation.errorMessage());
-                return ToolExecutionResult.of(ToolResult.validationError(
+                terminalResult = ToolResult.validationError(
                         validation.errorCode() == null ? "TOOL_INPUT_INVALID" : validation.errorCode(),
-                        "Input validation failed: " + validation.errorMessage()));
+                        "Input validation failed: " + validation.errorMessage());
+                return ToolExecutionResult.of(terminalResult);
             }
 
             // ── 阶段 2.5: 输入预处理 ──
@@ -162,8 +165,9 @@ public class ToolExecutionPipeline {
 
             if (!hookResult.proceed()) {
                 log.info("Tool {} blocked by PreToolUse hook: {}", toolName, hookResult.message());
-                return ToolExecutionResult.of(ToolResult.permissionDenied("TOOL_BLOCKED_BY_HOOK",
-                        "Tool execution blocked by hook: " + hookResult.message()));
+                terminalResult = ToolResult.permissionDenied("TOOL_BLOCKED_BY_HOOK",
+                        "Tool execution blocked by hook: " + hookResult.message());
+                return ToolExecutionResult.of(terminalResult);
             }
 
             // 如果钩子修改了输入，使用修改后的输入
@@ -176,8 +180,9 @@ public class ToolExecutionPipeline {
                     processedInput = ToolInput.from(modified);
                 } catch (Exception e) {
                     log.warn("Input-transform hook returned invalid JSON: tool={}", toolName, e);
-                    return ToolExecutionResult.of(ToolResult.validationError(
-                            "HOOK_INPUT_INVALID", "Input-transform hook returned invalid JSON: " + e.getMessage()));
+                    terminalResult = ToolResult.validationError(
+                            "HOOK_INPUT_INVALID", "Input-transform hook returned invalid JSON: " + e.getMessage());
+                    return ToolExecutionResult.of(terminalResult);
                 }
             }
 
@@ -185,9 +190,10 @@ public class ToolExecutionPipeline {
             validateSchema(tool, processedInput.getRawData());
             ValidationResult transformedValidation = tool.validateInput(processedInput, context);
             if (!transformedValidation.isValid()) {
-                return ToolExecutionResult.of(ToolResult.validationError(
+                terminalResult = ToolResult.validationError(
                         transformedValidation.errorCode() == null ? "TOOL_INPUT_INVALID" : transformedValidation.errorCode(),
-                        "Transformed input validation failed: " + transformedValidation.errorMessage()));
+                        "Transformed input validation failed: " + transformedValidation.errorMessage());
+                return ToolExecutionResult.of(terminalResult);
             }
 
             // ── 阶段 4: 冻结输入并进入单一授权权威 ──
@@ -204,8 +210,9 @@ public class ToolExecutionPipeline {
                         toolName, context.currentRunId());
                 log.debug("Security hook denial detail: tool={}, reason={}",
                         toolName, securityHook.message());
-                return ToolExecutionResult.of(ToolResult.permissionDenied("TOOL_BLOCKED_BY_SECURITY_HOOK",
-                        "Tool execution blocked by security hook: " + securityHook.message()));
+                terminalResult = ToolResult.permissionDenied("TOOL_BLOCKED_BY_SECURITY_HOOK",
+                        "Tool execution blocked by security hook: " + securityHook.message());
+                return ToolExecutionResult.of(terminalResult);
             }
             AuthorizedOperation authorized = authorizationService.authorizePrepared(
                     tool, frozen, processedInput, context, prepared);
@@ -221,10 +228,11 @@ public class ToolExecutionPipeline {
             } catch (Exception declarationError) {
                 log.warn("Artifact pre-declaration rejected: tool={}, error={}", toolName,
                         declarationError.getMessage());
-                return ToolExecutionResult.of(ToolResult.failed(
+                terminalResult = ToolResult.failed(
                         ToolResult.ToolFailureType.VALIDATION, "ARTIFACT_DECLARATION_FAILED",
                         declarationError.getMessage(), ToolResult.Retryability.NEVER,
-                        ToolResult.EffectState.NOT_STARTED, null, Map.of()));
+                        ToolResult.EffectState.NOT_STARTED, null, Map.of());
+                return ToolExecutionResult.of(terminalResult);
             }
 
             ToolResult result = gateway.execute(tool, authorized, context,
@@ -369,13 +377,17 @@ public class ToolExecutionPipeline {
                     null, Map.of());
             return ToolExecutionResult.of(terminalResult);
         } catch (ToolInputValidationException e) {
-            log.warn("Tool {} input validation error: {}", toolName, e.getMessage());
+            log.warn("Tool input validation error: tool={}, errorType={}, errorLength={}, errorFingerprint={}",
+                    toolName, SafeLogValue.errorType(e), SafeLogValue.length(e.getMessage()),
+                    SafeLogValue.fingerprint(e.getMessage()));
             terminalResult = ToolResult.validationError(
                     "INVALID_TOOL_INPUT", e.getMessage());
             return ToolExecutionResult.of(terminalResult);
         } catch (Exception e) {
             long durationMs = System.currentTimeMillis() - startTime;
-            log.error("Tool {} execution failed after {}ms: {}", toolName, durationMs, e.getMessage(), e);
+            log.error("Tool execution failed: tool={}, durationMs={}, errorType={}, errorLength={}, errorFingerprint={}",
+                    toolName, durationMs, SafeLogValue.errorType(e),
+                    SafeLogValue.length(e.getMessage()), SafeLogValue.fingerprint(e.getMessage()));
 
             // ★ 尝试恢复—通过 ToolRecoveryFramework
             ToolResult failedResult = ToolResult.internalError("TOOL_EXECUTION_FAILED",
@@ -385,6 +397,7 @@ public class ToolExecutionPipeline {
 
             if (recovery.isPresent()) {
                 RecoveryDecision decision = recovery.get();
+                recordRecoveryDecision(currentRunId, context, toolName, decision, attemptCount);
                 ToolExecutionResult recoveryResult =
                         buildRecoveryResult(decision, failedResult);
                 terminalResult = recoveryResult.result();
@@ -402,7 +415,12 @@ public class ToolExecutionPipeline {
                                 "Tool execution terminated without a result",
                                 ToolResult.EffectState.UNKNOWN);
                 recordToolResult(currentRunId, toolName,
-                        processedInput, context, resultToRecord);
+                        processedInput, context, resultToRecord,
+                        attemptCount, System.currentTimeMillis() - startTime);
+            } else if (terminalResult != null) {
+                recordToolRejected(currentRunId, toolName, context,
+                        terminalResult, attemptCount,
+                        System.currentTimeMillis() - startTime);
             }
             if (frozen != null) frozen.close();
         }
@@ -464,7 +482,8 @@ public class ToolExecutionPipeline {
     }
 
     private void recordToolResult(String runId, String toolName, ToolInput processedInput,
-                                  ToolUseContext context, ToolResult result) {
+                                  ToolUseContext context, ToolResult result,
+                                  int attemptCount, long durationMs) {
         if (runId == null || runTracker == null) return;
         try {
             Map<String, Object> payload = new HashMap<>();
@@ -478,18 +497,24 @@ public class ToolExecutionPipeline {
             payload.put("retryability", result.retryability().name().toLowerCase());
             payload.put("outputPreview", result.outputPreview());
             payload.put("outputTruncated", result.outputTruncated());
+            payload.put("outputLength", SafeLogValue.length(result.content()));
+            payload.put("outputFingerprint", SafeLogValue.fingerprint(result.content()));
+            payload.put("durationMs", Math.max(0L, durationMs));
+            payload.put("attemptCount", attemptCount);
+            if (result.exitCode() != null) payload.put("exitCode", result.exitCode());
+            copySafeResultMetadata(result.metadata(), payload);
             String filePath = extractFilePathFromInput(processedInput);
             if (filePath != null) payload.put("filePath", filePath);
             runTracker.recordEvent(
                     runId, "tool_result", context.toolUseId(), payload);
             if (result.executionStatus() == ToolResult.ExecutionStatus.TIMED_OUT) {
-                runTracker.recordEvent(
+                runTracker.recordEventBestEffort(
                         runId, "process_timed_out", context.toolUseId(), Map.of(
                         "toolName", toolName, "toolUseId", context.toolUseId() == null ? "" : context.toolUseId(),
                         "failureCode", result.failureCode() == null ? "PROCESS_DEADLINE_EXCEEDED" : result.failureCode(),
                         "terminationConfirmed", result.metadata().getOrDefault("terminationConfirmed", false)));
             } else if (result.executionStatus() == ToolResult.ExecutionStatus.CANCELLED) {
-                runTracker.recordEvent(
+                runTracker.recordEventBestEffort(
                         runId, "process_cancelled", context.toolUseId(), Map.of(
                         "toolName", toolName, "toolUseId", context.toolUseId() == null ? "" : context.toolUseId(),
                         "failureCode", result.failureCode() == null ? "PROCESS_CANCELLED" : result.failureCode(),
@@ -498,6 +523,33 @@ public class ToolExecutionPipeline {
         } catch (Exception failure) {
             log.warn("Failed to record tool_result event: tool={}, runId={}, toolUseId={}",
                     toolName, runId, context.toolUseId(), failure);
+        }
+    }
+
+    private void recordToolRejected(String runId, String toolName, ToolUseContext context,
+                                    ToolResult result, int attemptCount, long durationMs) {
+        if (runId == null || runTracker == null) return;
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("toolName", toolName);
+        payload.put("failureCode", result.failureCode() == null ? "TOOL_REJECTED" : result.failureCode());
+        payload.put("failureType", result.failureType() == null ? "unknown"
+                : result.failureType().name().toLowerCase());
+        payload.put("effectState", result.effectState().name().toLowerCase());
+        payload.put("attemptCount", attemptCount);
+        payload.put("durationMs", Math.max(0L, durationMs));
+        runTracker.recordEventBestEffort(runId, "tool_rejected", context.toolUseId(), payload);
+    }
+
+    private static void copySafeResultMetadata(Map<String, Object> metadata,
+                                               Map<String, Object> payload) {
+        if (metadata == null) return;
+        for (String key : List.of("terminationConfirmed", "descendantTrackingUnavailable",
+                "stdoutTruncated", "stderrTruncated", "truncated", "elapsedMs",
+                "mode", "sandboxed")) {
+            Object value = metadata.get(key);
+            if (value instanceof Number || value instanceof Boolean || value instanceof String) {
+                payload.put(key, value);
+            }
         }
     }
 
@@ -529,6 +581,7 @@ public class ToolExecutionPipeline {
             }
 
             RecoveryDecision decision = recovery.get();
+            recordRecoveryDecision(context.currentRunId(), context, tool.getName(), decision, attemptCount);
 
             // 管线无法证明递归重试时钩子、Shell 状态和动态授权事实未变化，因此仅返回恢复提示，
             // 由模型发起新的 toolUseId 并重新完成验证与授权。
@@ -551,6 +604,20 @@ public class ToolExecutionPipeline {
         String hint = decision.hintForLlm() != null ? decision.hintForLlm() : "";
         String enrichedContent = errorResult.content() + "\n\n[Recovery Hint] " + hint;
         return ToolExecutionResult.of(errorResult.withContent(enrichedContent, false));
+    }
+
+    private void recordRecoveryDecision(String runId, ToolUseContext context, String toolName,
+                                        RecoveryDecision decision, int attemptCount) {
+        if (runId == null || runTracker == null || decision == null) return;
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("toolName", toolName);
+        data.put("action", decision.action().name().toLowerCase());
+        data.put("attemptCount", attemptCount);
+        if (decision.alternativeToolName() != null) {
+            data.put("alternativeTool", decision.alternativeToolName());
+        }
+        runTracker.recordEventBestEffort(runId, "tool_recovery_decided",
+                context.toolUseId(), data);
     }
 
     /**

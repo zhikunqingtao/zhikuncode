@@ -1,5 +1,7 @@
 package com.aicodeassistant.verify;
 
+import com.aicodeassistant.observability.SafeLogValue;
+
 import com.aicodeassistant.tool.bash.ProcessTreeManager;
 import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
@@ -63,7 +65,8 @@ public class DevServerLauncher {
         }
 
         long pid = process.pid();
-        log.info("Dev server started: pid={}, command={}, port={}", pid, command, port);
+        log.info("Dev server started: pid={}, commandLength={}, commandFingerprint={}, port={}", pid,
+                SafeLogValue.length(command), SafeLogValue.fingerprint(command), port);
 
         // PID 持久化
         Path pidFile = workspace.resolve(".ai-code-assistant/devserver.pid");

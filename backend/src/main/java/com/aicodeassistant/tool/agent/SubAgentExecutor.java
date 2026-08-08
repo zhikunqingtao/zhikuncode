@@ -22,11 +22,14 @@ import com.aicodeassistant.session.SessionManager;
 import com.aicodeassistant.tool.Tool;
 import com.aicodeassistant.tool.ToolRegistry;
 import com.aicodeassistant.tool.ToolUseContext;
+import com.aicodeassistant.observability.BestEffortObservabilityRecorder;
+import com.aicodeassistant.observability.SafeLogValue;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -68,6 +71,7 @@ public class SubAgentExecutor {
     private final ModelRegistry modelRegistry;  // ★ 新增: 查询模型 maxOutputTokens ★
     private final CheckpointService checkpointService;  // ★ 新增: 子代理检查点 ★
     private final ObjectMapper objectMapper;  // ★ 新增: 检查点 JSON 序列化 ★
+    private volatile BestEffortObservabilityRecorder observabilityRecorder;
 
     /** 子代理结果最大字符数 */
     static final int MAX_RESULT_SIZE_CHARS = 100_000;
@@ -110,6 +114,11 @@ public class SubAgentExecutor {
         this.objectMapper = objectMapper;
     }
 
+    @Autowired(required = false)
+    void setObservabilityRecorder(BestEffortObservabilityRecorder observabilityRecorder) {
+        this.observabilityRecorder = observabilityRecorder;
+    }
+
     /**
      * 根据 QueryResult 和异常类型分类 Agent 最终状态。
      * 纯函数，无副作用（InterruptedException 时会重新设置中断标志）。
@@ -150,6 +159,26 @@ public class SubAgentExecutor {
      * @return AgentResult 执行结果
      */
     public AgentResult executeSync(AgentRequest request, ToolUseContext parentContext) {
+        long startedNanos = System.nanoTime();
+        String parentRunId = parentContext == null ? null : parentContext.currentRunId();
+        recordSubAgentEvent(parentRunId, "subagent_started", request, null, 0L, null);
+        try {
+            AgentResult result = executeSyncInternal(request, parentContext);
+            String eventType = AgentResult.STATUS_COMPLETED.equals(result.status())
+                    ? "subagent_completed"
+                    : AgentResult.STATUS_TIMEOUT.equals(result.status())
+                    ? "subagent_timed_out" : "subagent_failed";
+            recordSubAgentEvent(parentRunId, eventType, request, result.status(),
+                    elapsedMillis(startedNanos), null);
+            return result;
+        } catch (RuntimeException failure) {
+            recordSubAgentEvent(parentRunId, "subagent_failed", request,
+                    AgentResult.STATUS_FAILED, elapsedMillis(startedNanos), failure);
+            throw failure;
+        }
+    }
+
+    private AgentResult executeSyncInternal(AgentRequest request, ToolUseContext parentContext) {
         // ★ Team 路由: 如果指定了 teamName，分发到 TeamManager
         if (request.teamName() != null && !request.teamName().isBlank()) {
             log.info("Routing agent request to team: {}", request.teamName());
@@ -365,6 +394,35 @@ public class SubAgentExecutor {
                     "Agent execution failed: " + e.getMessage(),
                     request.prompt(), null);
         }
+    }
+
+    private void recordSubAgentEvent(String parentRunId, String eventType,
+                                     AgentRequest request, String status,
+                                     long durationMs, Throwable error) {
+        BestEffortObservabilityRecorder recorder = observabilityRecorder;
+        if (recorder == null || parentRunId == null || request == null) return;
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("agentId", request.agentId());
+        String executionMode = request.teamName() != null && !request.teamName().isBlank()
+                ? "team" : request.fork() ? "fork" : "subagent";
+        data.put("executionMode", executionMode);
+        if (!"team".equals(executionMode) && request.agentId() != null) {
+            data.put("childSessionId", (request.fork() ? "fork-" : "subagent-") + request.agentId());
+        }
+        data.put("agentType", request.agentType() == null ? "unknown" : request.agentType());
+        data.put("isolation", request.fork() ? "none"
+                : request.isolation() == null ? "unknown"
+                : request.isolation().name().toLowerCase());
+        data.put("promptLength", SafeLogValue.length(request.prompt()));
+        data.put("promptFingerprint", SafeLogValue.fingerprint(request.prompt()));
+        if (status != null) data.put("status", status);
+        if (durationMs > 0) data.put("durationMs", durationMs);
+        if (error != null) data.put("errorType", SafeLogValue.errorType(error));
+        recorder.record(parentRunId, eventType, null, data);
+    }
+
+    private static long elapsedMillis(long startedNanos) {
+        return Math.max(0L, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedNanos));
     }
 
     /**

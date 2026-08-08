@@ -1,5 +1,7 @@
 package com.aicodeassistant.command;
 
+import com.aicodeassistant.observability.SafeLogValue;
+
 import com.aicodeassistant.command.slash.SlashCommandParser;
 import com.aicodeassistant.command.slash.SlashCommandParser.ParsedSlashCommand;
 import org.slf4j.Logger;
@@ -76,8 +78,9 @@ public class CommandRouter {
 
         // 5. 执行命令
         try {
-            log.debug("Executing command: /{} args='{}' type={}",
-                    command.getName(), parsed.args(), command.getType());
+            log.debug("Executing command: /{} argsLength={} argsFingerprint={} type={}",
+                    command.getName(), SafeLogValue.length(parsed.args()),
+                    SafeLogValue.fingerprint(parsed.args()), command.getType());
 
             CommandResult result = command.execute(parsed.args(), context);
 

@@ -6,6 +6,11 @@ import com.aicodeassistant.tool.process.ManagedProcessRunner;
 import com.aicodeassistant.tool.StreamingToolExecutor;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import com.aicodeassistant.observability.BestEffortObservabilityRecorder;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /** The only coordinator allowed to move an active Run through cancellation to a terminal state. */
 @Service
@@ -15,12 +20,18 @@ public class RunTerminationCoordinator {
     private final ManagedProcessRunner processes;
     private final RunExecutionRegistry executions;
     private final StreamingToolExecutor tools;
+    private volatile BestEffortObservabilityRecorder observabilityRecorder;
 
     public RunTerminationCoordinator(RunControlService runs, DurableInteractionService interactions,
                                      ManagedProcessRunner processes, RunExecutionRegistry executions,
                                      StreamingToolExecutor tools) {
         this.runs = runs; this.interactions = interactions; this.processes = processes;
         this.executions = executions; this.tools = tools;
+    }
+
+    @Autowired(required = false)
+    void setObservabilityRecorder(BestEffortObservabilityRecorder observabilityRecorder) {
+        this.observabilityRecorder = observabilityRecorder;
     }
 
     public Result cancelByUser(String runId, String detail) {
@@ -31,6 +42,7 @@ public class RunTerminationCoordinator {
         DurableInteractionService.CancellationResult requested =
                 interactions.beginRunTermination(runId, reason, detail == null ? reason.dbValue() : detail);
         if (requested.runTransition() != RunControlService.TransitionResult.APPLIED) {
+            recordSummary(runId, reason, requested.runTransition(), null, null, false);
             return new Result(requested.runTransition(), null, false);
         }
 
@@ -58,8 +70,9 @@ public class RunTerminationCoordinator {
         } else {
             terminal = runs.fail(runId, reason, detail);
         }
-        return new Result(terminal, stopped,
-                quiescent && stopped.allTerminated() && toolsStopped.allTerminated());
+        boolean confirmed = quiescent && stopped.allTerminated() && toolsStopped.allTerminated();
+        recordSummary(runId, reason, terminal, stopped, toolsStopped, quiescent);
+        return new Result(terminal, stopped, confirmed);
     }
 
     @EventListener
@@ -74,6 +87,24 @@ public class RunTerminationCoordinator {
             case SERVICE_RESTART -> AbortReason.SYSTEM_SHUTDOWN;
             default -> AbortReason.ERROR;
         };
+    }
+
+    private void recordSummary(String runId, RunEnvelope.RunExitReason reason,
+                               RunControlService.TransitionResult transition,
+                               ManagedProcessRunner.CancelSummary stopped,
+                               StreamingToolExecutor.ToolCancelSummary toolsStopped,
+                               boolean quiescent) {
+        BestEffortObservabilityRecorder recorder = observabilityRecorder;
+        if (recorder == null) return;
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("reason", reason == null ? "unknown" : reason.dbValue());
+        data.put("transition", transition == null ? "unknown" : transition.name().toLowerCase());
+        data.put("quiescent", quiescent);
+        data.put("processCount", stopped == null ? 0 : stopped.activeCount());
+        data.put("processUnconfirmed", stopped == null ? 0 : stopped.unconfirmedCount());
+        data.put("toolSessionCount", toolsStopped == null ? 0 : toolsStopped.foundSessions());
+        data.put("toolSessionUnconfirmed", toolsStopped == null ? 0 : toolsStopped.unconfirmedSessions());
+        recorder.record(runId, "run_termination_summary", null, data);
     }
 
     public record Result(RunControlService.TransitionResult transition,

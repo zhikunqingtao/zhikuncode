@@ -2,6 +2,7 @@ package com.aicodeassistant.run;
 
 import com.aicodeassistant.config.database.DatabaseResolver;
 import com.aicodeassistant.config.database.SqliteConfig;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -74,6 +75,38 @@ class RunControlServiceCasTest {
         assertThatThrownBy(() -> service.start("synthetic-child", "missing", "subagent", "known"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("RUN_PARENT_NOT_FOUND");
+    }
+
+    @Test
+    void statusEventsContainPersistedCorrelationAndAccurateZeroTotals() throws Exception {
+        DatabaseResolver resolver = new DatabaseResolver("", temp.toString());
+        sqlite = new SqliteConfig(resolver);
+        var dataSource = sqlite.getProjectDataSource(Path.of("ignored"));
+        JdbcTemplate jdbc = new JdbcTemplate(dataSource);
+        createSchema(jdbc);
+        jdbc.update("INSERT INTO sessions(id) VALUES('s1')");
+        ObjectMapper mapper = new ObjectMapper();
+        RunControlService service = new RunControlService(jdbc, sqlite, resolver,
+                new DataSourceTransactionManager(dataSource), mapper);
+        RunEnvelope parent = service.start("s1", null, "main", "known");
+        RunEnvelope child = service.start("child-session", parent.id(), "subagent", "known");
+
+        assertThat(service.complete(child.id(), 0, 0.0, 0))
+                .isEqualTo(RunControlService.TransitionResult.APPLIED);
+        String eventJson = jdbc.queryForObject("""
+                SELECT event_data FROM run_event_log
+                WHERE run_id=? AND event_type='run_status_changed'
+                ORDER BY seq DESC LIMIT 1
+                """, String.class, child.id());
+        JsonNode data = mapper.readTree(eventJson).path("data");
+
+        assertThat(data.path("parentRunId").asText()).isEqualTo(parent.id());
+        assertThat(data.path("agentType").asText()).isEqualTo("subagent");
+        assertThat(data.path("totalTokens").asInt()).isZero();
+        assertThat(data.path("totalCostUsd").asDouble()).isZero();
+        assertThat(data.path("turnCount").asInt()).isZero();
+        assertThat(data.path("totalsAvailable").asBoolean()).isTrue();
+        assertThat(data.path("errorCategory").asText()).isEqualTo("none");
     }
 
     private static void createSchema(JdbcTemplate jdbc) {

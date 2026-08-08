@@ -1,5 +1,7 @@
 package com.aicodeassistant.mcp;
 
+import com.aicodeassistant.observability.SafeLogValue;
+
 import com.aicodeassistant.tool.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -322,10 +324,12 @@ public class McpAuthTool implements Tool {
                 );
             }
 
-            log.error("Token exchange failed: {} {}", response.statusCode(), response.body());
+            log.error("Token exchange failed: status={}, responseLength={}, responseFingerprint={}",
+                    response.statusCode(), SafeLogValue.length(response.body()),
+                    SafeLogValue.fingerprint(response.body()));
             return null;
         } catch (Exception e) {
-            log.error("Token exchange error: {}", e.getMessage());
+            log.error("Token exchange error: errorType={}", SafeLogValue.errorType(e));
             return null;
         }
     }

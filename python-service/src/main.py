@@ -8,8 +8,11 @@ v1.15.0: 能力域动态探测 + 按需加载路由
 import importlib
 import logging
 import os
+import re
+import time
+import uuid
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from capabilities import (
@@ -20,6 +23,7 @@ from capabilities import (
 )
 
 logger = logging.getLogger(__name__)
+_SAFE_REQUEST_ID = re.compile(r"^[A-Za-z0-9._:-]{1,128}$")
 
 # 路由模块 → (prefix, tags) 映射
 ROUTER_PREFIX_MAP = {
@@ -95,6 +99,46 @@ app = FastAPI(
     version="1.15.0",
     lifespan=lifespan,
 )
+
+
+@app.middleware("http")
+async def request_correlation_middleware(request: Request, call_next):
+    """Correlate Java/Python calls without reading or changing request/response bodies."""
+    incoming = request.headers.get("x-request-id", "")
+    request_id = incoming if _SAFE_REQUEST_ID.fullmatch(incoming) else str(uuid.uuid4())
+    started = time.perf_counter()
+    try:
+        response = await call_next(request)
+    except Exception as error:
+        try:
+            logger.warning(
+                "python_request_failed requestId=%s method=%s path=%s durationMs=%d errorType=%s",
+                request_id,
+                request.method,
+                request.url.path,
+                int((time.perf_counter() - started) * 1000),
+                type(error).__name__,
+            )
+        except Exception:
+            pass
+        raise
+
+    try:
+        response.headers["X-Request-Id"] = request_id
+    except Exception:
+        pass
+    try:
+        logger.info(
+            "python_request_completed requestId=%s method=%s path=%s status=%s durationMs=%d",
+            request_id,
+            request.method,
+            request.url.path,
+            response.status_code,
+            int((time.perf_counter() - started) * 1000),
+        )
+    except Exception:
+        pass
+    return response
 
 # 注册始终可用的 Token 估算路由
 app.include_router(token_router, prefix="/api/v1/tokens", tags=["Token Estimation"])

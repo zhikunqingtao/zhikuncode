@@ -4,7 +4,7 @@
   日志策略与 Debug 系统:
     - 5 级日志: TRACE(VERBOSE), DEBUG, INFO, WARN, ERROR
     - 控制台 + 文件输出 + 滚动策略
-    - MCP 日志分离: 每个 MCP 服务器独立日志文件
+    - 安全审计日志与业务日志物理分离
     - 内存错误队列: 由 InMemoryErrorLog bean 实现 (非 Log4j2 管理)
 -->
 <Configuration status="WARN" monitorInterval="30">
@@ -12,10 +12,11 @@
     <Properties>
         <!-- 日志目录: 优先使用环境变量 LOG_DIR，回退到项目根/log/ -->
         <Property name="APP_LOG_DIR">${env:LOG_DIR:-${sys:user.dir}/../log}</Property>
-        <!-- 控制台日志格式: 时间 级别 [线程] 类名 - 消息 -->
-        <Property name="CONSOLE_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight{%-5level} [%thread] %cyan{%logger{36}} - %msg%n</Property>
-        <!-- 文件日志格式: 时间 级别 [线程] 类全名 - 消息 -->
-        <Property name="FILE_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{60} - %msg%n</Property>
+        <Property name="CORRELATION_PATTERN">[sid=%replace{%X{sessionId}}{^$}{-} rid=%replace{%X{runId}}{^$}{-} prid=%replace{%X{parentRunId}}{^$}{-} agent=%replace{%X{agentType}}{^$}{-} turn=%replace{%X{turn}}{^$}{-} tool=%replace{%X{toolUseId}}{^$}{-} llm=%replace{%X{llmRequestId}}{^$}{-}]</Property>
+        <!-- 控制台日志格式: 时间 级别 [线程] 关联信息 类名 - 消息 -->
+        <Property name="CONSOLE_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight{%-5level} [%thread] ${CORRELATION_PATTERN} %cyan{%logger{36}} - %msg%n</Property>
+        <!-- 文件日志格式: 时间 级别 [线程] 关联信息 类全名 - 消息 -->
+        <Property name="FILE_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] ${CORRELATION_PATTERN} %logger{60} - %msg%n</Property>
     </Properties>
 
     <Appenders>
@@ -78,37 +79,46 @@
             </DefaultRolloverStrategy>
         </RollingFile>
 
-        <!-- ===== MCP 日志分离: 通过 Routing Appender 按 MCP 服务器名路由 ===== -->
-        <!-- 用法: MDC.put("mcpServer", serverName); log.info("..."); MDC.remove("mcpServer"); -->
-        <Routing name="McpRouting">
-            <Routes pattern="${ctx:mcpServer}">
-                <!-- 默认路由 (无 mcpServer MDC 时不输出到此 appender) -->
-                <Route key="${ctx:mcpServer}">
-                    <RollingFile name="McpFile-${ctx:mcpServer}"
-                                 fileName="${APP_LOG_DIR}/mcp/${ctx:mcpServer}.log"
-                                 filePattern="${APP_LOG_DIR}/mcp/${ctx:mcpServer}-%d{yyyy-MM-dd}-%i.log.gz">
-                        <PatternLayout pattern="${FILE_PATTERN}" charset="UTF-8"/>
-                        <Policies>
-                            <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
-                            <SizeBasedTriggeringPolicy size="5MB"/>
-                        </Policies>
-                        <DefaultRolloverStrategy max="10">
-                            <Delete basePath="${APP_LOG_DIR}/mcp" maxDepth="1">
-                                <IfFileName glob="${ctx:mcpServer}-*.log.gz"/>
-                                <IfLastModified age="14d"/>
-                            </Delete>
-                        </DefaultRolloverStrategy>
-                    </RollingFile>
-                </Route>
-            </Routes>
-        </Routing>
+        <RollingFile name="SecurityAuditFile"
+                     fileName="${APP_LOG_DIR}/security-audit.log"
+                     filePattern="${APP_LOG_DIR}/security-audit-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="${FILE_PATTERN}" charset="UTF-8"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="10MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="30"/>
+        </RollingFile>
+
+        <RollingFile name="ObservabilityEventsFile" ignoreExceptions="false"
+                     fileName="${APP_LOG_DIR}/observability-events.log"
+                     filePattern="${APP_LOG_DIR}/observability-events-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %enc{%msg}{CRLF}%n" charset="UTF-8"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="10MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="14">
+                <Delete basePath="${APP_LOG_DIR}" maxDepth="1">
+                    <IfFileName glob="observability-events-*.log.gz"/>
+                    <IfLastModified age="14d"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
     </Appenders>
 
     <Loggers>
         <!-- ===== MCP 心跳日志降噪 ===== -->
         <Logger name="com.aicodeassistant.mcp.McpServerConnection" level="INFO" additivity="false">
             <AppenderRef ref="AppFile"/>
-            <AppenderRef ref="McpRouting"/>
+        </Logger>
+
+        <Logger name="security-audit" level="INFO" additivity="false">
+            <AppenderRef ref="SecurityAuditFile"/>
+        </Logger>
+
+        <Logger name="observability-events" level="INFO" additivity="false">
+            <AppenderRef ref="ObservabilityEventsFile"/>
         </Logger>
 
         <!-- ===== 应用日志 ===== -->
@@ -117,7 +127,6 @@
             <AppenderRef ref="AppFile"/>
             <AppenderRef ref="ErrorFile"/>
             <AppenderRef ref="DebugFile"/>
-            <AppenderRef ref="McpRouting"/>
         </Logger>
 
         <!-- ===== Spring Framework 日志 ===== -->

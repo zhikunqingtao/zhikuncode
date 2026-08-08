@@ -76,3 +76,21 @@ async def test_nonexistent_route_returns_404():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         resp = await client.get("/api/nonexistent")
     assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_request_id_is_preserved_and_returned():
+    request_id = "java-run-123:attempt"
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        resp = await client.get("/api/health", headers={"X-Request-Id": request_id})
+    assert resp.status_code == 200
+    assert resp.headers["X-Request-Id"] == request_id
+
+
+@pytest.mark.asyncio
+async def test_invalid_request_id_is_replaced_without_changing_response():
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        resp = await client.get("/api/health", headers={"X-Request-Id": "invalid request id"})
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "ok"
+    assert resp.headers["X-Request-Id"] != "invalid request id"

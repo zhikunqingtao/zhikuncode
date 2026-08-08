@@ -1,5 +1,7 @@
 package com.aicodeassistant.bridge;
 
+import com.aicodeassistant.observability.SafeLogValue;
+
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
@@ -322,7 +324,8 @@ public class BridgeServer {
     private void handleCommand(String sessionId, BridgeMessage message) {
         String command = message.payload().get("command") != null
                 ? message.payload().get("command").toString() : null;
-        log.info("Bridge command: session={}, command={}", sessionId, command);
+        log.info("Bridge command: session={}, commandLength={}, commandFingerprint={}", sessionId,
+                SafeLogValue.length(command), SafeLogValue.fingerprint(command));
     }
 
     private void handleFileOpen(String sessionId, BridgeMessage message) {

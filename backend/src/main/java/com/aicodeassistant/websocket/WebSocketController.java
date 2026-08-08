@@ -1,5 +1,7 @@
 package com.aicodeassistant.websocket;
 
+import com.aicodeassistant.observability.SafeLogValue;
+
 import com.aicodeassistant.context.ProjectContextService;
 import com.aicodeassistant.exception.WorkspaceException;
 import com.aicodeassistant.service.ActivityRepository;
@@ -628,8 +630,8 @@ public class WebSocketController implements PermissionNotifier {
         }
         // 刷新 session 活跃时间（明确的用户动作）
         wsSessionManager.refreshActivity(sessionId);
-        log.info("WS user_message: sessionId={}, text={}", sessionId,
-                msg.text() != null ? msg.text().substring(0, Math.min(50, msg.text().length())) : "");
+        log.info("WS user_message: sessionId={}, textLength={}, textFingerprint={}", sessionId,
+                SafeLogValue.length(msg.text()), SafeLogValue.fingerprint(msg.text()));
 
         // ★ 并发查询保护: 同一会话同时只允许一个 QueryEngine 运行
         AtomicBoolean running = sessionQueryRunning.computeIfAbsent(sessionId, k -> new AtomicBoolean(false));
@@ -1380,8 +1382,8 @@ public class WebSocketController implements PermissionNotifier {
             log.warn("Ignoring message: session not yet bound for principal={}", principal != null ? principal.getName() : "null");
             return;
         }
-        log.info("WS slash_command: sessionId={}, command=/{} {}", sessionId,
-                payload.command(), payload.args());
+        log.info("WS slash_command: sessionId={}, command=/{} argsLength={} argsFingerprint={}", sessionId,
+                payload.command(), SafeLogValue.length(payload.args()), SafeLogValue.fingerprint(payload.args()));
         try {
             var cmd = commandRegistry.getCommand(payload.command());
             CommandContext ctx = CommandContext.of(

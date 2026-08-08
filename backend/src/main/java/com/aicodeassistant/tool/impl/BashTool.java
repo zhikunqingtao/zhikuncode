@@ -1,5 +1,7 @@
 package com.aicodeassistant.tool.impl;
 
+import com.aicodeassistant.observability.SafeLogValue;
+
 import com.aicodeassistant.sandbox.SandboxManager;
 import com.aicodeassistant.security.CommandBlacklistService;
 import com.aicodeassistant.tool.*;
@@ -325,7 +327,7 @@ public class BashTool implements Tool {
             timeout = Math.min(recommended, MAX_TIMEOUT_MS);
             if (recommended != DEFAULT_TIMEOUT_MS) {
                 log.debug("Dynamic timeout applied: {} → {}ms (category: {})",
-                    command.substring(0, Math.min(50, command.length())), recommended, timeoutCategory);
+                    SafeLogValue.fingerprint(command), recommended, timeoutCategory);
             }
         }
         boolean isBackground = input.getBoolean("is_background", false);
@@ -355,7 +357,8 @@ public class BashTool implements Tool {
                 long pid = managedProcessRunner.startBackground(new ManagedProcessRunner.BackgroundRequest(
                         List.of("bash", "-c", wrappedCommand), Path.of(workingDir),
                         context.currentRunId(), context.toolUseId(), context.sessionId())).pid();
-                log.info("Background process started: pid={}, command={}", pid, command);
+                log.info("Background process started: pid={}, commandLength={}, commandFingerprint={}",
+                        pid, SafeLogValue.length(command), SafeLogValue.fingerprint(command));
                 return ToolResult.backgroundStarted(String.format(
                         "Background process started with PID %d.%n"
                         + "It remains owned by the current session; use `kill %d` to stop it earlier.%n"
@@ -365,7 +368,8 @@ public class BashTool implements Tool {
 
             // UI 分类日志（第四层，独立于安全分类）
             CommandCategory uiCategory = commandClassifier.classifyForUI(command);
-            log.debug("Executing command [category={}]: {}", uiCategory.getDisplayLabel(), command);
+            log.debug("Executing command: category={}, commandLength={}, commandFingerprint={}",
+                    uiCategory.getDisplayLabel(), SafeLogValue.length(command), SafeLogValue.fingerprint(command));
 
             // === 沙箱路由判断：高危命令进容器执行 ===
             if (sandboxManager.isSandboxingEnabled() && sandboxManager.shouldUseSandbox(command)) {
@@ -413,7 +417,8 @@ public class BashTool implements Tool {
                     .withMetadata("elapsedMs", result.elapsedMs());
 
         } catch (IOException e) {
-            log.error("Failed to execute command: {}", command, e);
+            log.error("Failed to execute command: commandLength={}, commandFingerprint={}, errorType={}",
+                    SafeLogValue.length(command), SafeLogValue.fingerprint(command), SafeLogValue.errorType(e));
             String errMsg = "Failed to execute command: " + e.getMessage();
             // 进程启动失败 → exitCode=-1，由分类器基于 stderr 关键字判断（默认 NON_RETRYABLE）
             return buildErrorWithClassification(errMsg, -1, e.getMessage() == null ? "" : e.getMessage(), command);
