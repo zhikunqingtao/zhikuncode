@@ -6,7 +6,8 @@
  * 跨 Store 消息通过私有 handle* 方法协调。
  */
 
-import type { Message, MessageCompletePayload, ServerMessage, PermissionRequest, PermissionMode, TokenWarningPayload, ToolPermissionDeniedPayload } from '@/types';
+import { isPermissionMode } from '@/types';
+import type { Message, MessageCompletePayload, ServerMessage, PermissionRequest, TokenWarningPayload, ToolPermissionDeniedPayload } from '@/types';
 import type { ActivityData } from '@/types/apos';
 import { useMessageStore } from '@/store/messageStore';
 import { useActivityStore } from '@/store/activityStore';
@@ -554,13 +555,13 @@ const handlers: Record<string, (data: any) => void> = {
     },
     'permission_mode_changed':  (d: { mode: string }) => {
         // 后端枚举为大写，前端使用小写稳定值。
-        const normalizedMode = d.mode.toLowerCase() as PermissionMode;
-        // 更新权限 Store 的权限模式
-        usePermissionStore.getState().setPermissionMode(normalizedMode);
-        // 清除挂起的权限请求
-        if (usePermissionStore.getState().pendingPermissions.length > 0) {
-            usePermissionStore.getState().clearPermissions();
+        const normalizedMode = d.mode.toLowerCase();
+        if (!isPermissionMode(normalizedMode)) {
+            console.error('[Protocol] Invalid permission mode:', d.mode);
+            return;
         }
+        // 服务端确认是唯一的主动切换提交点。
+        usePermissionStore.getState().setPermissionMode(normalizedMode);
         // 通知用户权限模式已变更
         useNotificationStore.getState().addNotification({
             key: 'permission-mode-changed',
@@ -918,6 +919,7 @@ function handleSessionRestore(data: {
     metadata: {
         sessionId: string;
         model: string;
+        permissionMode: string;
         status: 'idle' | 'interrupted';
     };
     runSnapshot?: { id: string; status: string };
@@ -928,6 +930,12 @@ function handleSessionRestore(data: {
     const pending = pendingBinds.get(data.bindRequestId);
     if (!pending || pending.sessionId !== data.metadata.sessionId
             || pending.bindingEpoch !== data.bindingEpoch) return;
+    const restoredPermissionMode = data.metadata.permissionMode?.toLowerCase();
+    if (!isPermissionMode(restoredPermissionMode)) {
+        console.error('[Protocol] Invalid restored permission mode:',
+            data.metadata.permissionMode);
+        return;
+    }
     // From this point the bind is confirmed. If interaction recovery exceeds
     // the outer timeout, queued frames must be replayed rather than discarded.
     pending.restoreAccepted = true;
@@ -959,6 +967,7 @@ function handleSessionRestore(data: {
     // 4. 恢复会话元数据
     useSessionStore.getState().resumeSession(data.metadata.sessionId);
     useSessionStore.getState().setModel(data.metadata.model);
+    usePermissionStore.getState().setPermissionMode(restoredPermissionMode);
     // session_restored 是服务端 bind-session 的确认；只有收到它才记为已绑定。
     markSessionBound(data.metadata.sessionId);
     boundBindingEpoch = data.bindingEpoch;

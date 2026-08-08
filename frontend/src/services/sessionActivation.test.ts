@@ -48,6 +48,7 @@ function restore(payload: BindPayload, messages: Message[] = []): void {
         metadata: {
             sessionId: payload.sessionId,
             model: 'test-model',
+            permissionMode: 'DEFAULT',
             status: 'idle',
         },
     } as never);

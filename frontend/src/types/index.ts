@@ -81,7 +81,7 @@ export interface SessionRestoredPayload {
     bindingEpoch: number;
     protocolVersion: number;
     messages: Message[];
-    metadata: { sessionId: string; model: string; status: string };
+    metadata: { sessionId: string; model: string; permissionMode: string; status: string };
     totalCount?: number;
     hasMore?: boolean;
     compactSummary?: string | null;
@@ -133,7 +133,7 @@ export interface ModelRoutedPayload {
     routedModelName: string;
     reason: string;
 }
-export interface PermissionModeChangedPayload { type: 'permission_mode_changed'; mode: string }
+export interface PermissionModeChangedPayload { type: 'permission_mode_changed'; mode: string; previous?: string }
 export interface CommandResultPayload { type: 'command_result'; command: string; resultType: 'text' | 'jsx' | 'prompt'; output?: string; data?: Record<string, unknown> }
 export interface RewindCompletePayload { type: 'rewind_complete'; messageId: string; files: string[] }
 export interface TokenBudgetNudgePayload { type: 'token_budget_nudge'; pct: number; currentTokens: number; budgetTokens: number }
@@ -420,7 +420,18 @@ export interface Attachment {
 
 // ==================== 权限相关 ====================
 
-export type PermissionMode = 'default' | 'plan' | 'accept_edits' | 'dont_ask';
+export const PERMISSION_MODES = [
+    'default',
+    'plan',
+    'accept_edits',
+    'dont_ask',
+    'auto_approve',
+] as const;
+export type PermissionMode = typeof PERMISSION_MODES[number];
+export function isPermissionMode(value: unknown): value is PermissionMode {
+    return typeof value === 'string'
+        && (PERMISSION_MODES as readonly string[]).includes(value);
+}
 export type PermissionRememberScope = 'run' | 'session' | 'workspace';
 
 export interface PermissionDecision {

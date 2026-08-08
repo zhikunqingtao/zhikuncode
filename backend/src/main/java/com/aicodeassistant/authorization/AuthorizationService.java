@@ -100,6 +100,13 @@ public final class AuthorizationService {
                     null, executionAttemptId);
         }
         PermissionMode mode = modes.getMode(subject.rootSessionId());
+        // AUTO_APPROVE 只替代人工授权。分析、不变量和 Security Hook 已在调用方完成，
+        // 工具仍必须经过产物声明、最终动态复检和唯一执行网关。
+        if (mode == PermissionMode.AUTO_APPROVE) {
+            return new AuthorizedOperation(subject, operation, executionInput,
+                    AuthorizationDiagnostic.Source.MODE, "AUTO_APPROVE", null, null,
+                    null, executionAttemptId);
+        }
         // HIGH 风险操作每次必须弹窗确认，不可被记住，跳过所有 Grant 匹配
         if (operation.risk() == RiskClass.HIGH) {
             if (mode == PermissionMode.PLAN) {

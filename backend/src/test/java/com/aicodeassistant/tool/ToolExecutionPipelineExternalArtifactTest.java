@@ -73,9 +73,9 @@ class ToolExecutionPipelineExternalArtifactTest {
                     bound.put("file_path", outside.toString());
                     return new AuthorizedOperation(
                             subject, descriptor, ToolInput.from(bound),
-                            AuthorizationDiagnostic.Source.USER_ONCE,
-                            "USER_APPROVED_ONCE", null, null,
-                            "interaction", "attempt");
+                            AuthorizationDiagnostic.Source.MODE,
+                            "AUTO_APPROVE", null, null,
+                            null, "attempt");
                 });
         when(gateway.execute(any(), any(), any(), any(), any()))
                 .thenAnswer(invocation -> {

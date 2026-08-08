@@ -63,6 +63,7 @@ class PermissionMode(str, Enum):
     default = "default"
     plan = "plan"
     accept_edits = "accept_edits"
+    auto_approve = "auto_approve"
 
 
 class EffortLevel(str, Enum):
@@ -256,7 +257,7 @@ def main(
         raise typer.Exit(code=2)
 
     # 4. 解析权限模式
-    # 非交互 CLI 不能绕过系统安全不变量；DONT_ASK 会结构化拒绝需要用户确认的操作。
+    # 权限模式只控制授权决策；任何模式都不能绕过系统安全不变量。
     perm = permission_mode.value.upper()
 
     if working_dir is not None and not _is_loopback_server(server):

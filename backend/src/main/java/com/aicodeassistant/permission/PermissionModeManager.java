@@ -48,14 +48,20 @@ public class PermissionModeManager {
      * 设置权限模式。
      */
     public void setMode(String sessionId, PermissionMode mode) {
-        PermissionMode previous = sessionModes.put(sessionId, mode);
+        PermissionMode storedPrevious = sessionModes.put(sessionId, mode);
+        PermissionMode previous = storedPrevious == null
+                ? PermissionMode.DEFAULT : storedPrevious;
         // 推送权限模式变更到前端（仅当模式实际变化时）
         if (previous != mode) {
-            log.info("Permission mode changed: session={}, {} → {}", sessionId, previous, mode);
+            if (mode == PermissionMode.AUTO_APPROVE || previous == PermissionMode.AUTO_APPROVE) {
+                log.warn("Permission mode changed: session={}, {} → {}", sessionId, previous, mode);
+            } else {
+                log.info("Permission mode changed: session={}, {} → {}", sessionId, previous, mode);
+            }
             if (wsPusher != null) {
                 try {
                     wsPusher.pushToUser(sessionId, "permission_mode_changed",
-                        java.util.Map.of("mode", mode.name(), "previous", String.valueOf(previous)));
+                        java.util.Map.of("mode", mode.name(), "previous", previous.name()));
                 } catch (Exception e) {
                     log.debug("Failed to push permission_mode_changed (non-fatal): {}", e.getMessage());
                 }

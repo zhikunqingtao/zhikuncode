@@ -111,7 +111,7 @@ describe('transport-scoped bind recovery', () => {
         dispatch({
             type: 'session_restored', bindRequestId: payload!.bindRequestId, protocolVersion: 3,
             bindingEpoch: payload!.bindingEpoch, messages: [],
-            metadata: { sessionId: 'session-new', model: 'model', status: 'idle' },
+            metadata: { sessionId: 'session-new', model: 'model', permissionMode: 'DEFAULT', status: 'idle' },
         });
 
         expect(usePermissionStore.getState().pendingPermissions).toEqual([]);
@@ -144,7 +144,7 @@ describe('transport-scoped bind recovery', () => {
         dispatch({
             type: 'session_restored', bindRequestId: payloadA!.bindRequestId, protocolVersion: 3,
             bindingEpoch: payloadA!.bindingEpoch, messages: [],
-            metadata: { sessionId: 'session-a', model: 'model-a', status: 'idle' },
+            metadata: { sessionId: 'session-a', model: 'model-a', permissionMode: 'DEFAULT', status: 'idle' },
         });
 
         const boundB = bindSessionAndWait('session-b', value => { payloadB = value; });
@@ -152,7 +152,7 @@ describe('transport-scoped bind recovery', () => {
         dispatch({
             type: 'session_restored', bindRequestId: payloadB!.bindRequestId, protocolVersion: 3,
             bindingEpoch: payloadB!.bindingEpoch, messages: [],
-            metadata: { sessionId: 'session-b', model: 'model-b', status: 'idle' },
+            metadata: { sessionId: 'session-b', model: 'model-b', permissionMode: 'DEFAULT', status: 'idle' },
         });
         await expect(boundB).resolves.toBe(true);
 
@@ -183,14 +183,14 @@ describe('transport-scoped bind recovery', () => {
         dispatch({
             type: 'session_restored', bindRequestId: payloadA!.bindRequestId, protocolVersion: 3,
             bindingEpoch: payloadA!.bindingEpoch, messages: [],
-            metadata: { sessionId: 'session-a', model: 'model-a', status: 'idle' },
+            metadata: { sessionId: 'session-a', model: 'model-a', permissionMode: 'DEFAULT', status: 'idle' },
         });
         const boundB = bindSessionAndWait('session-b', value => { payloadB = value; });
         await expect(boundA).resolves.toBe(false);
         dispatch({
             type: 'session_restored', bindRequestId: payloadB!.bindRequestId, protocolVersion: 3,
             bindingEpoch: payloadB!.bindingEpoch, messages: [],
-            metadata: { sessionId: 'session-b', model: 'model-b', status: 'idle' },
+            metadata: { sessionId: 'session-b', model: 'model-b', permissionMode: 'DEFAULT', status: 'idle' },
         });
         await expect(boundB).resolves.toBe(true);
 
@@ -208,7 +208,7 @@ describe('transport-scoped bind recovery', () => {
         dispatch({
             type: 'session_restored', bindRequestId: payload!.bindRequestId, protocolVersion: 3,
             bindingEpoch: payload!.bindingEpoch, messages: [],
-            metadata: { sessionId: 'session-current', model: 'model', status: 'idle' },
+            metadata: { sessionId: 'session-current', model: 'model', permissionMode: 'DEFAULT', status: 'idle' },
         });
         await expect(bound).resolves.toBe(true);
 
@@ -234,7 +234,7 @@ describe('transport-scoped bind recovery', () => {
         dispatch({
             type: 'session_restored', bindRequestId: payload!.bindRequestId, protocolVersion: 3,
             bindingEpoch: payload!.bindingEpoch, messages: [],
-            metadata: { sessionId: 'session-ack', model: 'model', status: 'idle' },
+            metadata: { sessionId: 'session-ack', model: 'model', permissionMode: 'DEFAULT', status: 'idle' },
         });
         await expect(bound).resolves.toBe(true);
 
@@ -253,7 +253,7 @@ describe('transport-scoped bind recovery', () => {
         dispatch({
             type: 'session_restored', bindRequestId: reboundPayload!.bindRequestId, protocolVersion: 3,
             bindingEpoch: reboundPayload!.bindingEpoch, messages: [],
-            metadata: { sessionId: 'session-ack', model: 'model', status: 'idle' },
+            metadata: { sessionId: 'session-ack', model: 'model', permissionMode: 'DEFAULT', status: 'idle' },
         });
         await expect(rebound).resolves.toBe(true);
         await vi.waitFor(() => expect(sendToServerMock).toHaveBeenCalledWith(
@@ -284,7 +284,7 @@ describe('transport-scoped bind recovery', () => {
         dispatch({
             type: 'session_restored', bindRequestId: otherPayload!.bindRequestId, protocolVersion: 3,
             bindingEpoch: otherPayload!.bindingEpoch, messages: [],
-            metadata: { sessionId: 'session-other', model: 'model', status: 'idle' },
+            metadata: { sessionId: 'session-other', model: 'model', permissionMode: 'DEFAULT', status: 'idle' },
         });
         await expect(otherBound).resolves.toBe(true);
 
@@ -295,7 +295,7 @@ describe('transport-scoped bind recovery', () => {
         dispatch({
             type: 'session_restored', bindRequestId: returnedPayload!.bindRequestId, protocolVersion: 3,
             bindingEpoch: returnedPayload!.bindingEpoch, messages: [],
-            metadata: { sessionId: 'session-ack', model: 'model', status: 'idle' },
+            metadata: { sessionId: 'session-ack', model: 'model', permissionMode: 'DEFAULT', status: 'idle' },
         });
         await expect(returned).resolves.toBe(true);
         await Promise.resolve();
@@ -319,12 +319,12 @@ describe('transport-scoped bind recovery', () => {
         dispatch({
             type: 'session_restored', bindRequestId: firstPayload!.bindRequestId, protocolVersion: 3,
             bindingEpoch: firstPayload!.bindingEpoch,
-            messages: [], metadata: { sessionId: 'session-a', model: 'wrong', status: 'idle' },
+            messages: [], metadata: { sessionId: 'session-a', model: 'wrong', permissionMode: 'DEFAULT', status: 'idle' },
         });
         dispatch({
             type: 'session_restored', bindRequestId: secondPayload!.bindRequestId, protocolVersion: 3,
             bindingEpoch: secondPayload!.bindingEpoch,
-            messages: [], metadata: { sessionId: 'session-b', model: 'model', status: 'idle' },
+            messages: [], metadata: { sessionId: 'session-b', model: 'model', permissionMode: 'DEFAULT', status: 'idle' },
             runSnapshot: { id: 'run-b', status: 'RUNNING' }, snapshotEventSeq: 42,
             activeToolCalls: [{ toolUseId: 'tool-b', toolName: 'Bash', input: { command: 'work' } }],
             costSummary: { totalCost: 3 },

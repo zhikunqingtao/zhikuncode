@@ -11,6 +11,27 @@ import { useCostStore } from '@/store/costStore';
 import { usePermissionStore } from '@/store/permissionStore';
 import { useBridgeStore } from '@/store/bridgeStore';
 import { TokenBudgetIndicator } from '@/components/status/TokenBudgetIndicator';
+import type { PermissionMode } from '@/types';
+
+export function getPermissionModeLabel(mode: PermissionMode): string {
+    switch (mode) {
+        case 'default': return '默认模式';
+        case 'plan': return '计划模式';
+        case 'accept_edits': return '接受编辑';
+        case 'dont_ask': return '无需询问';
+        case 'auto_approve': return '完全访问权限';
+    }
+}
+
+export function getPermissionModeColor(mode: PermissionMode): string {
+    switch (mode) {
+        case 'default': return 'text-blue-500';
+        case 'plan': return 'text-purple-500';
+        case 'accept_edits': return 'text-green-500';
+        case 'dont_ask': return 'text-yellow-500';
+        case 'auto_approve': return 'text-orange-500';
+    }
+}
 
 export function StatusBar() {
     const { model, status, turnCount } = useSessionStore();
@@ -18,24 +39,6 @@ export function StatusBar() {
     const { sessionCost, totalCost, usage } = useCostStore();
     const { pendingPermissions } = usePermissionStore();
     const { bridgeStatus } = useBridgeStore();
-
-    const getPermissionModeLabel = (mode: string) => {
-        switch (mode) {
-            case 'read_only': return '只读';
-            case 'read_write': return '读写';
-            case 'auto_edit': return '自动';
-            default: return mode;
-        }
-    };
-
-    const getPermissionModeColor = (mode: string) => {
-        switch (mode) {
-            case 'read_only': return 'text-blue-500';
-            case 'read_write': return 'text-yellow-500';
-            case 'auto_edit': return 'text-green-500';
-            default: return 'text-gray-500';
-        }
-    };
 
     const getStatusLabel = (s: string) => {
         switch (s) {

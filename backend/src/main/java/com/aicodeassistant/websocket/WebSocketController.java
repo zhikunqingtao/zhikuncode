@@ -1345,9 +1345,6 @@ public class WebSocketController implements PermissionNotifier {
     /**
      * #5 切换权限模式 → /app/permission-mode
      */
-    private static final Set<String> ALLOWED_PERMISSION_MODES = Set.of(
-            "DEFAULT", "PLAN", "ACCEPT_EDITS", "DONT_ASK");
-
     @MessageMapping("/permission-mode")
     public void handleSetPermissionMode(@Payload ClientMessage.SetPermissionModePayload payload,
                                          Principal principal) {
@@ -1356,18 +1353,22 @@ public class WebSocketController implements PermissionNotifier {
             log.warn("Ignoring message: session not yet bound for principal={}", principal != null ? principal.getName() : "null");
             return;
         }
-        log.info("WS set_permission_mode: sessionId={}, mode={}", sessionId, payload.mode());
-        if (!ALLOWED_PERMISSION_MODES.contains(payload.mode())) {
-            log.warn("Permission mode not in allowlist: {}", payload.mode());
-            return;
-        }
+        String requestedMode = payload == null ? null : payload.mode();
         try {
+            if (requestedMode == null || requestedMode.isBlank()) {
+                throw new IllegalArgumentException("Permission mode is required");
+            }
             com.aicodeassistant.model.PermissionMode mode =
-                    com.aicodeassistant.model.PermissionMode.valueOf(payload.mode());
+                    com.aicodeassistant.model.PermissionMode.valueOf(requestedMode);
+            log.info("WS set_permission_mode: sessionId={}, mode={}", sessionId, mode);
             permissionModeManager.setMode(sessionId, mode);
         } catch (IllegalArgumentException e) {
-            log.warn("Invalid permission mode: {}", payload.mode());
-            push(sessionId, "error", Map.of("message", "Invalid permission mode: " + payload.mode()));
+            log.warn("Invalid permission mode: length={}, fingerprint={}",
+                    SafeLogValue.length(requestedMode), SafeLogValue.fingerprint(requestedMode));
+            push(sessionId, "error", Map.of(
+                    "code", "INVALID_PERMISSION_MODE",
+                    "message", "Invalid permission mode",
+                    "retryable", false));
         }
     }
 
@@ -1691,7 +1692,7 @@ public class WebSocketController implements PermissionNotifier {
                     Map<String, Object> metadata = Map.of(
                         "sessionId", sessionId,
                         "model", data.model() != null ? data.model() : "",
-                        "permissionMode", "DEFAULT",
+                        "permissionMode", permissionModeManager.getMode(sessionId).name(),
                         "status", data.status() != null ? data.status() : "idle"
                     );
 
@@ -1736,13 +1737,8 @@ public class WebSocketController implements PermissionNotifier {
                 pushBindError(principal.getName(), "BIND_RECOVERY_FAILED", bindRequestId, bindingEpoch);
             }
 
-            // ★ 重连后先推送当前权限模式（前端收到后会 clearPermissions）
-            com.aicodeassistant.model.PermissionMode currentMode = permissionModeManager.getMode(sessionId);
-            if (currentMode != null) {
-                push(sessionId, "permission_mode_changed", Map.of("mode", currentMode.name()));
-            }
-
-            // ★ 再重放全部 pending interaction（此时 clearPermissions 已执行完毕）
+            // 重放全部 pending interaction。session_restored 已经携带权威权限模式，
+            // 无需发送会触发虚假“已切换”通知的重复模式事件。
             try {
                 var pendingInteractions = permissionInteractions.getPendingInteractions(sessionId);
                 int permissionCount = 0;

@@ -415,8 +415,8 @@ export function sendSetModel(model: string): void {
 }
 
 /** #5 切换权限模式 → /app/permission-mode */
-export function sendSetPermissionMode(mode: string): void {
-    send('/app/permission-mode', { mode });
+export function sendSetPermissionMode(mode: string): boolean {
+    return sendToServer('/app/permission-mode', { mode });
 }
 
 /** #6 Slash 命令 → /app/command */

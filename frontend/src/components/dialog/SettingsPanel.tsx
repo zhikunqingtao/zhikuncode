@@ -10,7 +10,9 @@ import { X, Moon, Sun, Monitor, Keyboard, Shield, Globe, Sparkles } from 'lucide
 import { useConfigStore } from '@/store/configStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { usePermissionStore } from '@/store/permissionStore';
+import { useNotificationStore } from '@/store/notificationStore';
 import { sendSetPermissionMode } from '@/api/stompClient';
+import { isSessionBound } from '@/api/dispatch';
 import type { ThemeConfig, PermissionMode } from '@/types';
 
 interface SettingsPanelProps {
@@ -19,8 +21,10 @@ interface SettingsPanelProps {
 
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
     const { theme, setTheme, locale, setLocale } = useConfigStore();
-    const { model, setModel, effortValue, setEffort } = useSessionStore();
-    const { permissionMode, setPermissionMode } = usePermissionStore();
+    const { sessionId, model, setModel, effortValue, setEffort } = useSessionStore();
+    const { permissionMode } = usePermissionStore();
+    const addNotification = useNotificationStore(state => state.addNotification);
+    const hasBoundSession = Boolean(sessionId && isSessionBound(sessionId));
     const isMac = navigator.platform.includes('Mac');
 
     const handleThemeChange = useCallback((mode: ThemeConfig['mode']) => {
@@ -28,10 +32,22 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
     }, [setTheme]);
 
     const handlePermissionModeChange = useCallback((mode: PermissionMode) => {
-        setPermissionMode(mode);
-        // 同步到后端，后端枚举使用大写值
-        sendSetPermissionMode(mode.toUpperCase());
-    }, [setPermissionMode]);
+        if (!hasBoundSession) {
+            addNotification({
+                key: 'permission-mode-no-session',
+                level: 'error',
+                message: '请先创建或选择会话，再切换权限模式',
+            });
+            return;
+        }
+        if (!sendSetPermissionMode(mode.toUpperCase())) {
+            addNotification({
+                key: 'permission-mode-send-failed',
+                level: 'error',
+                message: '权限模式切换发送失败，请检查连接后重试',
+            });
+        }
+    }, [addNotification, hasBoundSession]);
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -148,6 +164,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
                                 description="标准权限控制"
                                 selected={permissionMode === 'default'}
                                 onClick={() => handlePermissionModeChange('default')}
+                                disabled={!hasBoundSession}
                             />
                             <PermissionOption
                                 mode="plan"
@@ -155,6 +172,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
                                 description="先制定计划再执行"
                                 selected={permissionMode === 'plan'}
                                 onClick={() => handlePermissionModeChange('plan')}
+                                disabled={!hasBoundSession}
                             />
                             <PermissionOption
                                 mode="accept_edits"
@@ -162,6 +180,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
                                 description="自动接受编辑操作"
                                 selected={permissionMode === 'accept_edits'}
                                 onClick={() => handlePermissionModeChange('accept_edits')}
+                                disabled={!hasBoundSession}
                             />
                             <PermissionOption
                                 mode="dont_ask"
@@ -169,8 +188,23 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
                                 description="不弹窗，需要确认的操作自动拒绝"
                                 selected={permissionMode === 'dont_ask'}
                                 onClick={() => handlePermissionModeChange('dont_ask')}
+                                disabled={!hasBoundSession}
+                            />
+                            <PermissionOption
+                                mode="auto_approve"
+                                label="完全访问权限"
+                                description="自动批准所有工具权限请求，允许请求工作区外文件和公共互联网；仍执行系统安全与部署限制"
+                                selected={permissionMode === 'auto_approve'}
+                                onClick={() => handlePermissionModeChange('auto_approve')}
+                                disabled={!hasBoundSession}
+                                warning
                             />
                         </div>
+                        {!hasBoundSession && (
+                            <p className="mt-2 text-xs text-[var(--text-muted)]">
+                                请先创建或选择会话后再设置权限模式。
+                            </p>
+                        )}
                     </section>
 
                     {/* Language Section */}
@@ -259,23 +293,31 @@ function PermissionOption({
     description,
     selected,
     onClick,
+    disabled,
+    warning = false,
 }: {
     mode: PermissionMode;
     label: string;
     description: string;
     selected: boolean;
     onClick: () => void;
+    disabled: boolean;
+    warning?: boolean;
 }) {
     return (
         <button
             onClick={onClick}
+            disabled={disabled}
             className={`w-full px-4 py-3 rounded-lg border text-left transition-all
+                ${disabled ? 'cursor-not-allowed opacity-50' : ''}
                 ${selected
-                    ? 'border-blue-500 bg-blue-500/10'
-                    : 'border-[var(--border)] hover:border-blue-500/50 hover:bg-[var(--bg-hover)]'
+                    ? warning ? 'border-orange-500 bg-orange-500/10' : 'border-blue-500 bg-blue-500/10'
+                    : warning ? 'border-orange-500/60 hover:bg-orange-500/10'
+                        : 'border-[var(--border)] hover:border-blue-500/50 hover:bg-[var(--bg-hover)]'
                 }`}
         >
-            <div className={`font-medium ${selected ? 'text-blue-500' : 'text-[var(--text-primary)]'}`}>
+            <div className={`font-medium ${warning ? 'text-orange-500'
+                : selected ? 'text-blue-500' : 'text-[var(--text-primary)]'}`}>
                 {label}
             </div>
             <div className="text-sm text-[var(--text-muted)]">{description}</div>

@@ -23,6 +23,10 @@ beforeEach(() => {
         turnCount: 0,
         isAborted: false,
     });
+    usePermissionStore.setState({
+        pendingPermissions: [],
+        permissionMode: 'default',
+    });
 });
 
 describe('dispatch 消息分发', () => {
@@ -45,11 +49,12 @@ describe('dispatch 消息分发', () => {
             type: 'session_restored', ts: 1, bindRequestId, protocolVersion: 3,
             bindingEpoch,
             messages: [{ type: 'user', uuid: '1', timestamp: 1, content: [{ type: 'text', text: 'hi' }] }],
-            metadata: { sessionId: 's1', model: 'gpt-4o', status: 'idle' },
+            metadata: { sessionId: 's1', model: 'gpt-4o', permissionMode: 'AUTO_APPROVE', status: 'idle' },
         } as never);
         await expect(bound).resolves.toBe(true);
         expect(useMessageStore.getState().messages).toHaveLength(1);
         expect(useSessionStore.getState().model).toBe('gpt-4o');
+        expect(usePermissionStore.getState().permissionMode).toBe('auto_approve');
     });
 
     test('permission_request → showPermission + waiting_permission', () => {
@@ -115,6 +120,37 @@ describe('dispatch 消息分发', () => {
     test('model_changed → setModel', () => {
         dispatch({ type: 'model_changed', ts: 1, model: 'qwen3.6-plus' } as never);
         expect(useSessionStore.getState().model).toBe('qwen3.6-plus');
+    });
+
+    test('permission_mode_changed commits server mode without hiding pending requests', () => {
+        usePermissionStore.getState().showPermission({
+            interactionId: 'permission-1',
+            toolUseId: 'tool-1',
+            toolName: 'Bash',
+            input: {},
+            riskLevel: 'high',
+            reason: 'existing request',
+        });
+
+        dispatch({
+            type: 'permission_mode_changed',
+            mode: 'AUTO_APPROVE',
+            previous: 'DEFAULT',
+            ts: 1,
+        } as never);
+
+        expect(usePermissionStore.getState().permissionMode).toBe('auto_approve');
+        expect(usePermissionStore.getState().pendingPermissions).toHaveLength(1);
+    });
+
+    test('permission_mode_changed ignores unknown server values', () => {
+        dispatch({
+            type: 'permission_mode_changed',
+            mode: 'UNKNOWN',
+            ts: 1,
+        } as never);
+
+        expect(usePermissionStore.getState().permissionMode).toBe('default');
     });
 
     test('message_complete → finalizeStream + idle', async () => {

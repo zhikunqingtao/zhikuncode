@@ -6,6 +6,7 @@ import com.aicodeassistant.exception.RequestValidationException;
 import com.aicodeassistant.llm.LlmProviderRegistry;
 import com.aicodeassistant.llm.ModelRegistry;
 import com.aicodeassistant.model.Usage;
+import com.aicodeassistant.model.PermissionMode;
 import com.aicodeassistant.permission.PermissionModeManager;
 import com.aicodeassistant.prompt.EffectiveSystemPromptBuilder;
 import com.aicodeassistant.service.ProjectWorkspaceService;
@@ -34,6 +35,28 @@ class QueryControllerProjectContractTest {
 
     @TempDir
     Path workspace;
+
+    @Test
+    void queryAndConversationContractsAcceptAutoApprove() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+
+        QueryController.QueryRequest query = mapper.readValue("""
+                {
+                  "prompt": "hello",
+                  "permissionMode": "AUTO_APPROVE"
+                }
+                """, QueryController.QueryRequest.class);
+        QueryController.ConversationRequest conversation = mapper.readValue("""
+                {
+                  "sessionId": "session-1",
+                  "prompt": "hello",
+                  "permissionMode": "AUTO_APPROVE"
+                }
+                """, QueryController.ConversationRequest.class);
+
+        assertThat(query.permissionMode()).isEqualTo(PermissionMode.AUTO_APPROVE);
+        assertThat(conversation.permissionMode()).isEqualTo(PermissionMode.AUTO_APPROVE);
+    }
 
     @Test
     void rejectsClientWorkingDirectoryBeforeSessionResolution()

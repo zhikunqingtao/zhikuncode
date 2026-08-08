@@ -5,12 +5,17 @@ import com.aicodeassistant.exception.WorkspaceException;
 import com.aicodeassistant.llm.LlmProviderRegistry;
 import com.aicodeassistant.model.ContentBlock;
 import com.aicodeassistant.model.Message;
+import com.aicodeassistant.model.PermissionMode;
 import com.aicodeassistant.model.Usage;
+import com.aicodeassistant.permission.PermissionInteractionService;
+import com.aicodeassistant.permission.PermissionModeManager;
 import com.aicodeassistant.prompt.EffectiveSystemPromptBuilder;
 import com.aicodeassistant.service.ProjectWorkspaceService;
+import com.aicodeassistant.service.ActivityRepository;
 import com.aicodeassistant.session.SessionData;
 import com.aicodeassistant.session.SessionManager;
 import com.aicodeassistant.tool.ToolRegistry;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,6 +25,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.http.HttpStatus;
 
 import java.time.Instant;
+import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -43,25 +49,53 @@ class WebSocketStompIntegrationTest {
 
     private SimpMessagingTemplate messaging;
     private WebSocketSessionManager sessionManager;
+    private PermissionModeManager permissionModes;
     private WebSocketController controller;
 
     @BeforeEach
     void setUp() {
         messaging = mock(SimpMessagingTemplate.class);
         sessionManager = new WebSocketSessionManager(mock(JdbcTemplate.class));
+        permissionModes = mock(PermissionModeManager.class);
         QueryEngine queryEngine = mock(QueryEngine.class);
         ToolRegistry toolRegistry = mock(ToolRegistry.class);
         LlmProviderRegistry providerRegistry = mock(LlmProviderRegistry.class);
         EffectiveSystemPromptBuilder systemPromptBuilder = mock(EffectiveSystemPromptBuilder.class);
         controller = new WebSocketController(messaging, sessionManager,
                 queryEngine, toolRegistry, providerRegistry, systemPromptBuilder,
-                null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null, permissionModes, null, null, null, null, null,
                 null, null, null, null, null);
     }
 
     private void bind(String principal, String session) {
         sessionManager.registerTransport(principal, principal);
         sessionManager.bindSession(principal, principal, session, 1);
+    }
+
+    @Test
+    void permissionModeAcceptsAutoApproveAndRejectsInvalidValues() {
+        bind("user-1", "session-1");
+        Principal principal = () -> "user-1";
+
+        controller.handleSetPermissionMode(
+                new ClientMessage.SetPermissionModePayload("AUTO_APPROVE"), principal);
+
+        verify(permissionModes).setMode("session-1", PermissionMode.AUTO_APPROVE);
+
+        controller.handleSetPermissionMode(
+                new ClientMessage.SetPermissionModePayload("invalid-client-value"), principal);
+
+        verify(permissionModes, times(1)).setMode(anyString(), any());
+        verify(messaging).convertAndSendToUser(
+                eq("user-1"), eq("/queue/messages"),
+                argThat(message -> {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> payload = (Map<String, Object>) message;
+                    return "error".equals(payload.get("type"))
+                            && "INVALID_PERMISSION_MODE".equals(payload.get("code"))
+                            && "Invalid permission mode".equals(payload.get("message"))
+                            && !String.valueOf(payload).contains("invalid-client-value");
+                }));
     }
 
     // ═══════════════ 1. 推送消息格式验证 ═══════════════
@@ -310,6 +344,57 @@ class WebSocketStompIntegrationTest {
                             && Long.valueOf(2).equals(
                                     payload.get("bindingEpoch"));
                 }));
+    }
+
+    @Test
+    void sessionRestoreUsesActualPermissionModeWithoutDuplicateChangeEvent() {
+        SessionManager persistedSessions = mock(SessionManager.class);
+        ProjectWorkspaceService projectWorkspaces = mock(ProjectWorkspaceService.class);
+        ActivityRepository activities = mock(ActivityRepository.class);
+        PermissionInteractionService interactions = mock(PermissionInteractionService.class);
+        SessionData target = new SessionData(
+                "session-1", "model", "/saved/workspace", "title",
+                "idle", List.of(), Map.of(), Usage.zero(), 0, null,
+                Instant.now(), Instant.now());
+        when(persistedSessions.loadSession("session-1")).thenReturn(Optional.of(target));
+        when(permissionModes.getMode("session-1")).thenReturn(PermissionMode.AUTO_APPROVE);
+        when(activities.findBySessionId("session-1")).thenReturn(List.of());
+        when(interactions.getPendingInteractions("session-1")).thenReturn(List.of());
+        WebSocketController bindController = new WebSocketController(
+                messaging, sessionManager, mock(QueryEngine.class),
+                mock(ToolRegistry.class), mock(LlmProviderRegistry.class),
+                mock(EffectiveSystemPromptBuilder.class), null,
+                persistedSessions, null, null, null, null, null,
+                projectWorkspaces, permissionModes, null, activities,
+                new ObjectMapper(), null, interactions,
+                null, null, null, null, null);
+        sessionManager.registerTransport("transport-1", "principal-A");
+        SimpMessageHeaderAccessor headers = SimpMessageHeaderAccessor.create();
+        headers.setSessionId("transport-1");
+
+        bindController.handleBindSession(Map.of(
+                        "sessionId", "session-1",
+                        "protocolVersion", 3,
+                        "bindRequestId", "bind-1",
+                        "bindingEpoch", 1),
+                () -> "principal-A", headers);
+
+        verify(messaging).convertAndSendToUser(
+                eq("principal-A"), eq("/queue/messages"),
+                argThat(message -> {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> payload = (Map<String, Object>) message;
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> metadata =
+                            (Map<String, Object>) payload.get("metadata");
+                    return "session_restored".equals(payload.get("type"))
+                            && metadata != null
+                            && "AUTO_APPROVE".equals(metadata.get("permissionMode"));
+                }));
+        verify(messaging, never()).convertAndSendToUser(
+                anyString(), eq("/queue/messages"),
+                argThat(message -> message instanceof Map<?, ?> payload
+                        && "permission_mode_changed".equals(payload.get("type"))));
     }
 
     // ═══════════════ 9. sendMessageComplete 推送 ═══════════════

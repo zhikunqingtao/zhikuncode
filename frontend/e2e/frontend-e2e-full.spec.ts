@@ -169,6 +169,7 @@ test.describe('前端 E2E 与 UI 功能测试 (Task 13)', () => {
               metadata: {
                 sessionId: bind.sessionId,
                 model: 'test-model',
+                permissionMode: 'DEFAULT',
                 status: 'idle',
               },
             });

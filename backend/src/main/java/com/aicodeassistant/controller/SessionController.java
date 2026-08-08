@@ -5,7 +5,9 @@ import com.aicodeassistant.exception.RequestValidationException;
 import com.aicodeassistant.exception.SessionNotFoundException;
 import com.aicodeassistant.llm.LlmProviderRegistry;
 import com.aicodeassistant.model.Message;
+import com.aicodeassistant.model.PermissionMode;
 import com.aicodeassistant.model.SessionSummary;
+import com.aicodeassistant.permission.PermissionModeManager;
 import com.aicodeassistant.session.SessionData;
 import com.aicodeassistant.session.SessionManager;
 import com.aicodeassistant.session.SessionPage;
@@ -51,19 +53,22 @@ public class SessionController {
     private final SimpMessagingTemplate messaging;
     private final WebSocketSessionManager wsSessionManager;
     private final ProjectWorkspaceService projectWorkspaces;
+    private final PermissionModeManager permissionModes;
 
     public SessionController(SessionManager sessionManager,
                              CompactService compactService,
                              LlmProviderRegistry providerRegistry,
                              SimpMessagingTemplate messaging,
                              WebSocketSessionManager wsSessionManager,
-                             ProjectWorkspaceService projectWorkspaces) {
+                             ProjectWorkspaceService projectWorkspaces,
+                             PermissionModeManager permissionModes) {
         this.sessionManager = sessionManager;
         this.compactService = compactService;
         this.providerRegistry = providerRegistry;
         this.messaging = messaging;
         this.wsSessionManager = wsSessionManager;
         this.projectWorkspaces = projectWorkspaces;
+        this.permissionModes = permissionModes;
     }
 
     /**
@@ -85,9 +90,11 @@ public class SessionController {
         String projectId = request == null ? null : request.projectId();
         String workingDir = projectWorkspaces.resolveWorkspace(projectId)
                 .toString();
-        String permissionMode = request != null ? request.permissionMode() : null;
+        PermissionMode permissionMode = request != null && request.permissionMode() != null
+                ? request.permissionMode() : PermissionMode.DEFAULT;
 
         String sessionId = sessionManager.createSession(model, workingDir);
+        permissionModes.setMode(sessionId, permissionMode);
 
         // 通知所有活跃 WebSocket 连接刷新会话列表
         notifySessionListChanged();
@@ -326,7 +333,7 @@ public class SessionController {
             String projectId,
             String workingDirectory,
             String model,
-            String permissionMode,
+            PermissionMode permissionMode,
             String resumeSessionId
     ) {}
 
@@ -334,7 +341,7 @@ public class SessionController {
             String sessionId,
             String webSocketUrl,
             String model,
-            String permissionMode,
+            PermissionMode permissionMode,
             Instant createdAt
     ) {}
 

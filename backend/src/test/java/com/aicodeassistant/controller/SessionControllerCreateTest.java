@@ -3,6 +3,8 @@ package com.aicodeassistant.controller;
 import com.aicodeassistant.engine.CompactService;
 import com.aicodeassistant.exception.RequestValidationException;
 import com.aicodeassistant.llm.LlmProviderRegistry;
+import com.aicodeassistant.model.PermissionMode;
+import com.aicodeassistant.permission.PermissionModeManager;
 import com.aicodeassistant.service.ProjectWorkspaceService;
 import com.aicodeassistant.session.SessionManager;
 import com.aicodeassistant.websocket.WebSocketSessionManager;
@@ -30,24 +32,30 @@ class SessionControllerCreateTest {
                 mock(LlmProviderRegistry.class);
         ProjectWorkspaceService projects =
                 mock(ProjectWorkspaceService.class);
+        PermissionModeManager permissionModes =
+                mock(PermissionModeManager.class);
         when(projects.resolveWorkspace("project-1"))
                 .thenReturn(workspace);
         when(sessions.createSession(
                 "model-1", workspace.toString()))
                 .thenReturn("session-1");
         SessionController controller =
-                controller(sessions, providers, projects);
+                controller(sessions, providers, projects, permissionModes);
 
         var response = controller.createSession(
                 new SessionController.CreateSessionRequest(
                         "project-1", null, "model-1",
-                        null, null));
+                        PermissionMode.AUTO_APPROVE, null));
 
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().sessionId())
                 .isEqualTo("session-1");
+        assertThat(response.getBody().permissionMode())
+                .isEqualTo(PermissionMode.AUTO_APPROVE);
         verify(sessions).createSession(
                 "model-1", workspace.toString());
+        verify(permissionModes).setMode(
+                "session-1", PermissionMode.AUTO_APPROVE);
     }
 
     @Test
@@ -57,6 +65,8 @@ class SessionControllerCreateTest {
                 mock(LlmProviderRegistry.class);
         ProjectWorkspaceService projects =
                 mock(ProjectWorkspaceService.class);
+        PermissionModeManager permissionModes =
+                mock(PermissionModeManager.class);
         when(providers.getDefaultModel())
                 .thenReturn("default-model");
         when(projects.resolveWorkspace(null))
@@ -65,11 +75,16 @@ class SessionControllerCreateTest {
                 "default-model", workspace.toString()))
                 .thenReturn("session-default");
         SessionController controller =
-                controller(sessions, providers, projects);
+                controller(sessions, providers, projects, permissionModes);
 
         assertThat(controller.createSession(null)
-                .getBody().sessionId())
-                .isEqualTo("session-default");
+                .getBody())
+                .satisfies(body -> {
+                    assertThat(body.sessionId()).isEqualTo("session-default");
+                    assertThat(body.permissionMode()).isEqualTo(PermissionMode.DEFAULT);
+                });
+        verify(permissionModes).setMode(
+                "session-default", PermissionMode.DEFAULT);
         assertThatThrownBy(() -> controller.createSession(
                 new SessionController.CreateSessionRequest(
                         null, "/client/path", null,
@@ -84,13 +99,15 @@ class SessionControllerCreateTest {
     private static SessionController controller(
             SessionManager sessions,
             LlmProviderRegistry providers,
-            ProjectWorkspaceService projects) {
+            ProjectWorkspaceService projects,
+            PermissionModeManager permissionModes) {
         return new SessionController(
                 sessions,
                 mock(CompactService.class),
                 providers,
                 mock(SimpMessagingTemplate.class),
                 mock(WebSocketSessionManager.class),
-                projects);
+                projects,
+                permissionModes);
     }
 }

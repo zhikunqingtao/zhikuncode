@@ -603,6 +603,9 @@ Sub-agents match parent grants through an authorization subject composed of root
 | PLAN | Only safe workspace reads are allowed; other effects are denied |
 | ACCEPT_EDITS | Non-high-risk in-workspace file edits are auto-allowed; other controlled operations still require confirmation |
 | DONT_ASK | Creates no interaction; safe reads, existing grants, and ordinary file operations inside an authorized Project may run; other operations requiring confirmation are denied |
+| AUTO_APPROVE | Automatically approves every operation that reaches the interactive authorization stage, including requests for files outside the workspace and the public internet; hard denials, security hooks, SSRF protection, and deployment sandboxes remain in force |
+
+`AUTO_APPROVE` removes tool permission prompts. On remote deployments, use it only when the runtime account, filesystem, and network boundaries are appropriate. It grants no privileges beyond the operating system and does not bypass system or deployment security controls.
 
 ### Protected Paths
 
@@ -1007,7 +1010,7 @@ When neither `--working-dir` nor `--project-id` is provided, and no Session is s
 |---------|-------------|
 | Three output formats | `text` (terminal Markdown rendering) / `json` (structured) / `stream-json` (SSE streaming) |
 | Pipe support | Auto-reads stdin, seamlessly composable with shell pipes |
-| Permission modes | `--permission-mode default/plan/accept_edits/dont_ask` controls the security policy (CLI defaults to `dont_ask` and cannot bypass system security invariants) |
+| Permission modes | `--permission-mode default/plan/accept_edits/dont_ask/auto_approve` controls authorization (CLI defaults to `dont_ask`; `auto_approve` removes interactive confirmation but cannot bypass hard denials, security hooks, SSRF protection, or deployment sandboxes) |
 | Session management | `--continue` resumes last session, `--resume <id>` restores a specific session |
 | Model selection | `--model` to specify model, `--effort` to control reasoning depth |
 | Tool control | `--allowed-tools` / `--disallowed-tools` whitelist/blocklist |

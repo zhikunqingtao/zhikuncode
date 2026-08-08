@@ -164,7 +164,7 @@ public final class ServerMessage {
     public record ModelChanged(String model) {}
 
     /** #30 permission_mode_changed — 权限模式切换确认 */
-    public record PermissionModeChanged(String mode) {}
+    public record PermissionModeChanged(String mode, String previous) {}
 
     /** #31 command_result — 命令执行结果 */
     public record CommandResult(String command, String output) {}

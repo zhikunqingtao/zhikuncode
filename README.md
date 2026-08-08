@@ -604,6 +604,9 @@ Web 新会话必须先选择一个已授权目录。远程和 Docker 部署的�
 | PLAN | 只允许安全工作区读取，其他 Effect 拒绝 |
 | ACCEPT_EDITS | 自动允许工作区内非高风险文件编辑，其他受控操作仍需确认 |
 | DONT_ASK | 不创建交互；安全读取、已有 Grant 和已授权 Project 内普通文件操作可执行，其他需要交互的操作直接拒绝 |
+| AUTO_APPROVE | 自动批准所有到达人工授权阶段的工具操作，包括工作区外文件和公共互联网请求；硬拒绝、安全 Hook、SSRF 防护和部署沙箱仍然生效 |
+
+`AUTO_APPROVE` 会取消工具权限确认，远程部署使用时应确认运行账户、文件系统和网络边界符合预期。它不会赋予操作系统之外的新权限，也不会绕过系统安全与部署限制。
 
 ### 受保护路径
 
@@ -1008,7 +1011,7 @@ aica --continue "fix the bug we just discussed"
 |------|------|
 | 三种输出格式 | `text`（终端 Markdown 渲染）/ `json`（结构化）/ `stream-json`（SSE 流式） |
 | 管道支持 | 自动读取 stdin，与 shell 管道无缝组合 |
-| 权限模式 | `--permission-mode default/plan/accept_edits/dont_ask` 控制安全策略（CLI 默认 `dont_ask`，不能绕过系统安全不变量） |
+| 权限模式 | `--permission-mode default/plan/accept_edits/dont_ask/auto_approve` 控制授权策略（CLI 默认 `dont_ask`；`auto_approve` 取消人工确认，但不能绕过硬拒绝、安全 Hook、SSRF 或部署沙箱） |
 | 会话管理 | `--continue` 继续上次会话，`--resume <id>` 恢复指定会话 |
 | 模型选择 | `--model` 指定模型，`--effort` 控制推理深度 |
 | 工具控制 | `--allowed-tools` / `--disallowed-tools` 白名单/黑名单 |
