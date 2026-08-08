@@ -248,17 +248,30 @@ public class ArtifactManifestService {
         return rows.isEmpty()?Optional.empty():Optional.of(mapManifest(rows.getFirst()));
     }
     /**
-     * Returns manifests from the same persisted session as {@code currentRunId}, newest first.
-     * This lets a later, explicit publish Run refer to an artifact verified when the preceding
-     * generation Run completed without widening the boundary to other sessions or the filesystem.
+     * Returns manifests owned by the same persisted root session as {@code currentRunId}, newest
+     * first. Ownership includes descendant subagent Runs linked through {@code parent_run_id}.
+     * This lets a later, explicit publish Run refer to an artifact verified by a preceding root Run
+     * or one of its subagents without widening the boundary to other sessions or the filesystem.
      */
     public List<ArtifactManifest> getManifestsForRunSession(String currentRunId) {
         if (currentRunId == null || currentRunId.isBlank()) return List.of();
         List<String> ids = jdbc.queryForList("""
+                WITH RECURSIVE
+                current_session(session_id) AS (
+                    SELECT session_id FROM run_envelopes WHERE id = ?
+                ),
+                authorized_runs(id) AS (
+                    SELECT r.id
+                    FROM run_envelopes r
+                    JOIN current_session current ON current.session_id = r.session_id
+                    UNION
+                    SELECT child.id
+                    FROM run_envelopes child
+                    JOIN authorized_runs parent ON child.parent_run_id = parent.id
+                )
                 SELECT m.manifest_id
                 FROM artifact_manifests m
-                JOIN run_envelopes current_run ON current_run.id = ?
-                WHERE m.session_id = current_run.session_id
+                JOIN authorized_runs authorized ON authorized.id = m.run_id
                 ORDER BY m.updated_at DESC, m.manifest_id DESC
                 """, String.class, currentRunId);
         return ids.stream().map(this::getManifestById)

@@ -138,20 +138,64 @@ class ArtifactManifestServiceV2Test {
                 .extracting(ArtifactManifest::runId).containsExactly("r5");
     }
 
+    @Test
+    void laterRootRunIncludesDescendantSubagentArtifactsButExcludesOtherLineages()
+            throws Exception {
+        Fixture fixture = fixture();
+        Path childOutput = Files.writeString(
+                temp.resolve("child.txt"), "same-root-child");
+        ArtifactEntry childEntry = fixture.service.declare(
+                "r-child", "subagent-s1", "tool-child",
+                childOutput.toString(), "created", "sha256", temp.toString());
+        fixture.service.sealFromFile(
+                "r-child", childOutput.toString(), temp.toString());
+        fixture.service.verify(childEntry.manifestId());
+
+        Path grandchildOutput = Files.writeString(
+                temp.resolve("grandchild.txt"), "same-root-grandchild");
+        ArtifactEntry grandchildEntry = fixture.service.declare(
+                "r-grandchild", "subagent-nested", "tool-grandchild",
+                grandchildOutput.toString(), "created", "sha256", temp.toString());
+        fixture.service.sealFromFile(
+                "r-grandchild", grandchildOutput.toString(), temp.toString());
+        fixture.service.verify(grandchildEntry.manifestId());
+
+        Path unrelatedOutput = Files.writeString(
+                temp.resolve("unrelated-child.txt"), "other-root-child");
+        ArtifactEntry unrelatedEntry = fixture.service.declare(
+                "r-other-child", "subagent-s2", "tool-other-child",
+                unrelatedOutput.toString(), "created", "sha256", temp.toString());
+        fixture.service.sealFromFile(
+                "r-other-child", unrelatedOutput.toString(), temp.toString());
+        fixture.service.verify(unrelatedEntry.manifestId());
+
+        assertThat(fixture.service.getManifestsForRunSession("r2"))
+                .extracting(ArtifactManifest::runId)
+                .containsExactlyInAnyOrder("r-child", "r-grandchild");
+        assertThat(fixture.service.getManifestsForRunSession("r6"))
+                .extracting(ArtifactManifest::runId)
+                .containsExactly("r-other-child");
+    }
+
     private Fixture fixture() {
         DatabaseResolver resolver=new DatabaseResolver("",temp.resolve("db").toString());
         sqlite=new SqliteConfig(resolver);
         var ds=sqlite.getProjectDataSource(Path.of("ignored"));
         JdbcTemplate jdbc=new JdbcTemplate(ds);
         jdbc.execute("CREATE TABLE sessions(id TEXT PRIMARY KEY)");
-        jdbc.execute("CREATE TABLE run_envelopes(id TEXT PRIMARY KEY, session_id TEXT NOT NULL)");
+        jdbc.execute("CREATE TABLE run_envelopes("
+                + "id TEXT PRIMARY KEY, session_id TEXT NOT NULL, parent_run_id TEXT)");
         jdbc.execute("CREATE TABLE artifact_manifests(manifest_id TEXT PRIMARY KEY)");
         jdbc.execute("CREATE TABLE artifact_entries(artifact_id TEXT PRIMARY KEY)");
         new V017_RebuildArtifactV2Schema(jdbc).execute();
-        jdbc.update("INSERT INTO sessions(id) VALUES('s1'),('s2')");
-        jdbc.update("INSERT INTO run_envelopes(id,session_id) VALUES"
-                + "('r1','s1'),('r2','s1'),('r3','s1'),('r4','s1'),"
-                + "('r5','s2'),('r6','s2')");
+        jdbc.update("INSERT INTO sessions(id) VALUES"
+                + "('s1'),('s2'),('subagent-s1'),('subagent-nested'),('subagent-s2')");
+        jdbc.update("INSERT INTO run_envelopes(id,session_id,parent_run_id) VALUES"
+                + "('r1','s1',NULL),('r2','s1',NULL),('r3','s1',NULL),('r4','s1',NULL),"
+                + "('r5','s2',NULL),('r6','s2',NULL),"
+                + "('r-child','subagent-s1','r1'),"
+                + "('r-grandchild','subagent-nested','r-child'),"
+                + "('r-other-child','subagent-s2','r5')");
         DataSourceTransactionManager transactionManager =
                 new DataSourceTransactionManager(ds);
         ArtifactManifestService service=new ArtifactManifestService(jdbc,sqlite,resolver,
