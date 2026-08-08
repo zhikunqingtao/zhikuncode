@@ -2,6 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 const HEAVY_ANALYSIS_TESTS =
   /(?:f35-code-diagram|f40-code-path)\.spec\.ts/;
+const E2E_BASE_URL = 'http://localhost:5173';
 
 /**
  * Playwright E2E Test Configuration
@@ -23,7 +24,7 @@ export default defineConfig({
     ['junit', { outputFile: '../docs/test-results/playwright-junit.xml' }],
   ],
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: E2E_BASE_URL,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -56,9 +57,9 @@ export default defineConfig({
     // },
   ],
   webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5173',
-    reuseExistingServer: !process.env.CI,
+    command: 'npm run dev -- --host 127.0.0.1 --port 5173 --strictPort',
+    url: E2E_BASE_URL,
+    reuseExistingServer: false,
     timeout: 30_000,
   },
 });
