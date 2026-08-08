@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Locator, Page } from '@playwright/test';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -19,6 +19,48 @@ async function setupDesktopPage(page: Page) {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto('/', { waitUntil: 'networkidle' });
   await page.waitForTimeout(2000);
+}
+
+/**
+ * Sending the first message of a new session requires an authorized Project.
+ * Complete that application flow when it appears instead of leaving a modal
+ * over the page and timing out on the next interaction.
+ */
+async function confirmProjectSelectionIfRequested(page: Page) {
+  const dialogTitle = page.getByText('选择文件夹授权', { exact: true });
+  const opened = await dialogTitle
+    .waitFor({ state: 'visible', timeout: 5000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!opened) return;
+
+  const projectRadios = page.locator('input[name="project"]');
+  if (await projectRadios.count() > 0) {
+    await projectRadios.first().check({ force: true });
+  } else {
+    const authorizeButton = page.getByRole('button', {
+      name: '授权此文件夹',
+    });
+    await expect(authorizeButton).toBeEnabled({ timeout: 15000 });
+    await authorizeButton.click();
+  }
+
+  const useProjectButton = page.getByRole('button', {
+    name: '使用所选授权',
+  });
+  await expect(useProjectButton).toBeEnabled({ timeout: 15000 });
+  await useProjectButton.click();
+  await expect(dialogTitle).not.toBeVisible({ timeout: 15000 });
+}
+
+async function submitPrompt(
+  page: Page,
+  input: Locator,
+  prompt: string,
+) {
+  await input.fill(prompt);
+  await input.press('Enter');
+  await confirmProjectSelectionIfRequested(page);
 }
 
 // Helper: click sidebar tab by title attribute
@@ -465,37 +507,23 @@ test.describe('F1 Mermaid渲染', () => {
     await expect(input).toBeVisible();
 
     // 发送mermaid请求
-    await input.fill('请用mermaid语法画一个简单的流程图：A-->B-->C。直接返回 ```mermaid 代码块。');
-    await input.press('Enter');
-
-    // 等待SVG渲染
-    try {
-      await page.waitForSelector('svg:not(button svg):not(header svg)', { timeout: 90000 });
-      await page.waitForTimeout(2000);
-    } catch {
-      console.log('[TC-VIS-15] SVG not found, mermaid may not have rendered');
-    }
+    await submitPrompt(
+      page,
+      input,
+      '请用mermaid语法画一个简单的流程图：A-->B-->C。直接返回 ```mermaid 代码块。',
+    );
 
     // 验证Mermaid工具栏按钮（复制SVG / 下载PNG）
     // MermaidBlock has buttons with title="复制 SVG" and title="下载 PNG"
-    // These buttons appear on hover (group-hover)
-    // Hover over the mermaid container to show buttons
-    const mermaidContainer = page.locator('.group').filter({ has: page.locator('svg') }).first();
-    const containerExists = await mermaidContainer.isVisible().catch(() => false);
+    // Waiting for the toolbar avoids matching unrelated icon SVGs elsewhere.
+    const copyBtn = page.locator('button[title="复制 SVG"]').last();
+    const downloadBtn = page.locator('button[title="下载 PNG"]').last();
+    await expect(copyBtn).toBeAttached({ timeout: 90000 });
 
-    if (containerExists) {
-      await mermaidContainer.hover();
-      await page.waitForTimeout(500);
-
-      const copyBtn = page.locator('button[title="复制 SVG"]');
-      const downloadBtn = page.locator('button[title="下载 PNG"]');
-      const hasCopy = await copyBtn.isVisible().catch(() => false);
-      const hasDownload = await downloadBtn.isVisible().catch(() => false);
-
-      console.log(`[TC-VIS-15] Copy SVG button: ${hasCopy}, Download PNG button: ${hasDownload}`);
-    } else {
-      console.log('[TC-VIS-15] Mermaid container not found');
-    }
+    const mermaidContainer = copyBtn.locator('xpath=../..');
+    await mermaidContainer.hover();
+    await expect(copyBtn).toBeVisible();
+    await expect(downloadBtn).toBeVisible();
 
     await screenshot(page, 'vis-15-mermaid-toolbar');
   });
@@ -505,19 +533,41 @@ test.describe('F1 Mermaid渲染', () => {
 
     await setupDesktopPage(page);
 
-    const input = page.locator('textarea[aria-label="输入消息"]');
-    await expect(input).toBeVisible();
-
-    // 发送一个会触发工具调用的请求
-    await input.fill('请读取当前目录下的 package.json 文件的前3行');
-    await input.press('Enter');
-
-    // 等待AI回复
-    await page.waitForTimeout(30000);
+    // The sequence panel consumes committed MessageStore tool blocks. Inject
+    // that boundary directly so this visualization test is deterministic and
+    // does not depend on an LLM choosing a tool or a permission deadline.
+    await page.evaluate(async () => {
+      const mod = await import('/src/store/messageStore.ts');
+      const store = (mod as any).useMessageStore;
+      const now = Date.now();
+      store.getState().clearMessages();
+      store.getState().addMessage({
+        uuid: 'tc-vis-16-assistant',
+        type: 'assistant',
+        timestamp: now,
+        content: [{
+          type: 'tool_use',
+          toolUseId: 'tc-vis-16-read',
+          toolName: 'Read',
+          input: { file_path: 'package.json', limit: 3 },
+        }],
+      });
+      store.getState().addMessage({
+        uuid: 'tc-vis-16-result',
+        type: 'user',
+        timestamp: now + 100,
+        content: [{
+          type: 'tool_result',
+          toolUseId: 'tc-vis-16-read',
+          content: '{\n  "name": "ai-code-assistant"\n}',
+          isError: false,
+        }],
+      });
+    });
 
     // 切换到序列图Tab
     await clickSidebarTab(page, '序列图');
-    await page.waitForTimeout(1000);
+    await expect(page.locator('aside')).toContainText('1 次调用');
 
     // 检查序列图面板状态
     const asideText = await page.locator('aside').textContent() ?? '';
@@ -526,6 +576,8 @@ test.describe('F1 Mermaid渲染', () => {
 
     console.log(`[TC-VIS-16] Tool data in sequence: ${hasToolData}, Empty state: ${hasEmptyState}`);
     console.log(`[TC-VIS-16] Aside snippet: ${asideText.substring(0, 300)}`);
+    expect(hasToolData).toBe(true);
+    expect(hasEmptyState).toBe(false);
 
     await screenshot(page, 'vis-16-sequence-with-data');
   });

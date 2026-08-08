@@ -7,6 +7,12 @@ const __dirname = path.dirname(__filename);
 const SCREENSHOT_DIR = path.resolve(__dirname, '../../docs/test-results/screenshots/visualization');
 const PROJECT_ROOT = '/Users/guoqingtao/Desktop/dev/code/zhikuncode/python-service';
 
+// Code-diagram generation is CPU-heavy. Override the project's
+// fullyParallel setting so this file does not overload the analysis service.
+// `default` keeps every test independent, unlike Playwright's serial mode
+// which skips the remaining group after one failure.
+test.describe.configure({ mode: 'default' });
+
 // ── Helper 函数 ──
 
 async function screenshot(page: Page, name: string) {

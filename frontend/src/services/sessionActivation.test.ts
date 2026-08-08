@@ -7,6 +7,7 @@ import {
 import {
     isWsConnected,
     sendToServer,
+    waitForWsConnection,
 } from '@/api/stompClient';
 import { useMessageStore } from '@/store/messageStore';
 import { useSessionStore } from '@/store/sessionStore';
@@ -20,6 +21,7 @@ import {
 vi.mock('@/api/stompClient', () => ({
     isWsConnected: vi.fn(() => true),
     sendToServer: vi.fn(() => true),
+    waitForWsConnection: vi.fn(() => Promise.resolve()),
 }));
 
 interface BindPayload {
@@ -56,6 +58,8 @@ describe('Session activation transaction', () => {
         vi.useFakeTimers();
         vi.mocked(isWsConnected).mockReturnValue(true);
         vi.mocked(sendToServer).mockReset();
+        vi.mocked(waitForWsConnection).mockReset();
+        vi.mocked(waitForWsConnection).mockResolvedValue();
         resetBoundSession();
         window.sessionStorage.clear();
         useMessageStore.getState().clearMessages();
@@ -114,6 +118,74 @@ describe('Session activation transaction', () => {
         restore(binds[0], [{ ...oldMessage, uuid: 'late-new-state' }]);
         expect(useSessionStore.getState().sessionId).toBe('session-old');
         expect(useMessageStore.getState().messages).toEqual([oldMessage]);
+    });
+
+    it('keeps the latest selection pending beyond the old connection timeout', async () => {
+        let connect: (() => void) | undefined;
+        vi.mocked(isWsConnected).mockReturnValue(false);
+        vi.mocked(waitForWsConnection).mockImplementation(() =>
+            new Promise<void>(resolve => { connect = resolve; }));
+        vi.mocked(sendToServer).mockImplementation((_destination, body) => {
+            restore(body as BindPayload, []);
+            return true;
+        });
+
+        const activation = activateSessionCandidate('session-delayed');
+        await vi.advanceTimersByTimeAsync(5_000);
+
+        expect(sendToServer).not.toHaveBeenCalled();
+        expect(getPendingSessionActivation()).toBe(activation);
+        expect(useSessionStore.getState().sessionId).toBeNull();
+
+        vi.mocked(isWsConnected).mockReturnValue(true);
+        connect?.();
+        await expect(activation).resolves.toEqual({
+            status: 'activated',
+            sessionId: 'session-delayed',
+        });
+        expect(sendToServer).toHaveBeenCalledTimes(1);
+        expect(useSessionStore.getState().sessionId)
+            .toBe('session-delayed');
+    });
+
+    it('cancels a disconnected selection when a newer selection wins', async () => {
+        const waits: Array<{
+            resolve: () => void;
+            reject: (error: Error) => void;
+        }> = [];
+        vi.mocked(isWsConnected).mockReturnValue(false);
+        vi.mocked(waitForWsConnection).mockImplementation(signal =>
+            new Promise<void>((resolve, reject) => {
+                waits.push({ resolve, reject });
+                signal?.addEventListener('abort', () => {
+                    const error = new Error('superseded');
+                    error.name = 'AbortError';
+                    reject(error);
+                }, { once: true });
+            }));
+        vi.mocked(sendToServer).mockImplementation((_destination, body) => {
+            restore(body as BindPayload, []);
+            return true;
+        });
+
+        const first = activateSessionCandidate('session-a');
+        await Promise.resolve();
+        const second = activateSessionCandidate('session-b');
+
+        await expect(first).resolves.toEqual({
+            status: 'superseded',
+            sessionId: 'session-a',
+        });
+        expect(waits).toHaveLength(2);
+
+        vi.mocked(isWsConnected).mockReturnValue(true);
+        waits[1].resolve();
+        await expect(second).resolves.toEqual({
+            status: 'activated',
+            sessionId: 'session-b',
+        });
+        expect(sendToServer).toHaveBeenCalledTimes(1);
+        expect(useSessionStore.getState().sessionId).toBe('session-b');
     });
 
     it('lets a newer switch win over an older in-flight result', async () => {

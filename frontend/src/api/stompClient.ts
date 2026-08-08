@@ -118,6 +118,71 @@ let reconnectAttempts = 0;
 let reconnectStartTime = 0;
 let applicationPingTimer: ReturnType<typeof setInterval> | null = null;
 
+interface ConnectionWaiter {
+    resolve: () => void;
+    reject: (error: Error) => void;
+    signal?: AbortSignal;
+    abortHandler?: () => void;
+}
+
+const connectionWaiters = new Set<ConnectionWaiter>();
+
+function removeConnectionWaiter(waiter: ConnectionWaiter): void {
+    connectionWaiters.delete(waiter);
+    if (waiter.signal && waiter.abortHandler) {
+        waiter.signal.removeEventListener('abort', waiter.abortHandler);
+    }
+}
+
+function resolveConnectionWaiters(): void {
+    for (const waiter of [...connectionWaiters]) {
+        removeConnectionWaiter(waiter);
+        waiter.resolve();
+    }
+}
+
+function rejectConnectionWaiters(error: Error): void {
+    for (const waiter of [...connectionWaiters]) {
+        removeConnectionWaiter(waiter);
+        waiter.reject(error);
+    }
+}
+
+function connectionWaitAborted(): Error {
+    const error = new Error('WebSocket connection wait was superseded');
+    error.name = 'AbortError';
+    return error;
+}
+
+/**
+ * Wait for the current or next STOMP connection without relying on a short
+ * polling timeout. The caller owns cancellation so a newer user intent can
+ * supersede an older pending action.
+ */
+export function waitForWsConnection(signal?: AbortSignal): Promise<void> {
+    if (isWsConnected()) return Promise.resolve();
+    if (signal?.aborted) return Promise.reject(connectionWaitAborted());
+
+    return new Promise<void>((resolve, reject) => {
+        const waiter: ConnectionWaiter = { resolve, reject, signal };
+        if (signal) {
+            waiter.abortHandler = () => {
+                removeConnectionWaiter(waiter);
+                reject(connectionWaitAborted());
+            };
+            signal.addEventListener('abort', waiter.abortHandler, { once: true });
+        }
+        connectionWaiters.add(waiter);
+
+        // Close the subscribe/check race if onConnect ran between the first
+        // connectivity check and waiter registration.
+        if (isWsConnected() && connectionWaiters.has(waiter)) {
+            removeConnectionWaiter(waiter);
+            resolve();
+        }
+    });
+}
+
 function stopApplicationPing(): void {
     if (applicationPingTimer !== null) {
         clearInterval(applicationPingTimer);
@@ -179,6 +244,10 @@ export function createStompClient(_sessionId: string, authToken: string): StompC
                     dispatch(data);
                 }
             });
+
+            // The user queue is subscribed before activation waiters resume,
+            // so an immediate bind cannot lose its session_restored response.
+            resolveConnectionWaiters();
 
             // ★ 重连后立即重发 bind-session — 恢复后端 principal↔sessionId 映射
             // 确保正在执行的工具（如 Bash 权限请求）的 push() 能找到 principal
@@ -256,6 +325,9 @@ export function createStompClient(_sessionId: string, authToken: string): StompC
 
             // 重连超时检测 (10min)
             if (Date.now() - reconnectStartTime > RECONNECT_TIMEOUT) {
+                rejectConnectionWaiters(
+                    new Error('WebSocket 重连超时，请刷新页面后重试'),
+                );
                 client.deactivate();
                 useBridgeStore.getState().updateBridgeStatus({ status: 'disconnected', url: '' });
                 useNotificationStore.getState().removeNotification('disconnect-warning');
@@ -287,6 +359,7 @@ export function createStompClient(_sessionId: string, authToken: string): StompC
  */
 export function disconnectStomp(): void {
     stopApplicationPing();
+    rejectConnectionWaiters(new Error('WebSocket 连接已关闭'));
     if (stompClient?.active) {
         stompClient.deactivate();
     }

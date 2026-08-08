@@ -6,6 +6,7 @@ import {
 import {
     isWsConnected,
     sendToServer,
+    waitForWsConnection,
 } from '@/api/stompClient';
 import { useSessionStore } from '@/store/sessionStore';
 
@@ -16,12 +17,12 @@ export type SessionActivationResult =
 
 export interface ActivationOptions {
     bindTimeoutMs?: number;
-    connectionTimeoutMs?: number;
 }
 
 interface PendingActivation {
     sessionId: string;
     generation: number;
+    connectionController: AbortController;
     promise: Promise<SessionActivationResult>;
 }
 
@@ -32,26 +33,6 @@ let pendingActivation: PendingActivation | null = null;
 export function getPendingSessionActivation():
         Promise<SessionActivationResult> | null {
     return pendingActivation?.promise ?? null;
-}
-
-async function waitForWebSocketConnection(timeoutMs: number): Promise<void> {
-    if (isWsConnected()) return;
-    await new Promise<void>(resolve => {
-        const check = window.setInterval(() => {
-            if (isWsConnected()) {
-                window.clearInterval(check);
-                window.clearTimeout(timeout);
-                resolve();
-            }
-        }, 100);
-        const timeout = window.setTimeout(() => {
-            window.clearInterval(check);
-            resolve();
-        }, timeoutMs);
-    });
-    if (!isWsConnected()) {
-        throw new Error('WebSocket 未连接，请检查服务后重试');
-    }
 }
 
 function publishBind(payload: {
@@ -136,10 +117,11 @@ export function activateSessionCandidate(
     }
 
     const generation = ++activationGeneration;
+    pendingActivation?.connectionController.abort();
+    const connectionController = new AbortController();
     const previousSessionId =
         useSessionStore.getState().sessionId?.trim() || null;
     const bindTimeoutMs = options.bindTimeoutMs ?? 5000;
-    const connectionTimeoutMs = options.connectionTimeoutMs ?? 3000;
 
     const operation = (async (): Promise<SessionActivationResult> => {
         try {
@@ -151,7 +133,7 @@ export function activateSessionCandidate(
                 };
             }
 
-            await waitForWebSocketConnection(connectionTimeoutMs);
+            await waitForWsConnection(connectionController.signal);
             if (generation !== activationGeneration) {
                 return {
                     status: 'superseded',
@@ -222,6 +204,7 @@ export function activateSessionCandidate(
     pendingActivation = {
         sessionId: normalizedSessionId,
         generation,
+        connectionController,
         promise: tracked,
     };
     return tracked;

@@ -1,4 +1,8 @@
 import { test, expect } from '@playwright/test';
+import {
+  createMockActivities,
+  injectActivityData,
+} from './helpers/apos1-helpers';
 
 /**
  * Helper: Navigate to the Activity (APOS) tab and wait for content
@@ -23,8 +27,9 @@ test.describe('APOS Phase 2 - Activity Cards', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
-    // Wait for mock data injection (500ms delay + buffer)
-    await page.waitForTimeout(1500);
+    // Mock injection was removed from the application bootstrap. Keep the
+    // test fixture explicit so these cases do not depend on production code.
+    await injectActivityData(page, createMockActivities());
   });
 
   test('TC-P2-005: Activity cards display with mock data', async ({ page }) => {
@@ -43,15 +48,15 @@ test.describe('APOS Phase 2 - Activity Cards', () => {
     expect(count).toBeLessThanOrEqual(10);
   });
 
-  test('TC-P2-006: Activity cards show correct count (5 mock activities)', async ({ page }) => {
+  test('TC-P2-006: Activity cards show correct count (6 mock activities)', async ({ page }) => {
     await navigateToActivityTab(page);
 
     // Wait for activity cards to appear
     const cards = getActivityCards(page);
     await expect(cards.first()).toBeVisible({ timeout: 10000 });
 
-    // Verify 5 mock activities rendered
-    await expect(cards).toHaveCount(5, { timeout: 5000 });
+    // Verify the shared APOS fixture is rendered in full.
+    await expect(cards).toHaveCount(6, { timeout: 5000 });
   });
 
   test('TC-P2-007: Activity cards survive session restore race condition', async ({ page }) => {
@@ -74,9 +79,9 @@ test.describe('APOS Phase 2 - Activity Cards', () => {
 
     // Wait for all cards visible
     const cards = getActivityCards(page);
-    await expect(cards).toHaveCount(5, { timeout: 10000 });
+    await expect(cards).toHaveCount(6, { timeout: 10000 });
 
-    // Click "可放行" filter (auto_approve: mock-act-001, mock-act-003 = 2 cards)
+    // Click "可放行" filter (mock-activity-001 and -005 = 2 cards)
     const autoApproveFilter = page.locator('button').filter({ hasText: '可放行' });
     await autoApproveFilter.click();
     await page.waitForTimeout(500);
@@ -88,7 +93,7 @@ test.describe('APOS Phase 2 - Activity Cards', () => {
     await allFilter.click();
     await page.waitForTimeout(500);
 
-    await expect(cards).toHaveCount(5, { timeout: 5000 });
+    await expect(cards).toHaveCount(6, { timeout: 5000 });
   });
 
   test('TC-P2-009: Activity card L2 expansion on click', async ({ page }) => {

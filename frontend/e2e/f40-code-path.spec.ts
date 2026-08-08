@@ -7,6 +7,11 @@ const __dirname = path.dirname(__filename);
 const SCREENSHOT_DIR = path.resolve(__dirname, '../../docs/test-results/screenshots/visualization');
 const PROJECT_ROOT = '/Users/guoqingtao/Desktop/dev/code/zhikuncode/python-service';
 
+// Endpoint scanning and path tracing share the Python analysis service.
+// Run this file in order even when the project enables fullyParallel, while
+// retaining independent failure/retry semantics for each test.
+test.describe.configure({ mode: 'default' });
+
 // ── Helper 函数 ──
 
 async function screenshot(page: Page, name: string) {

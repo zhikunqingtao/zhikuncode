@@ -1,5 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const HEAVY_ANALYSIS_TESTS =
+  /(?:f35-code-diagram|f40-code-path)\.spec\.ts/;
+
 /**
  * Playwright E2E Test Configuration
  * @see https://playwright.dev/docs/test-configuration
@@ -32,6 +35,15 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'], channel: 'chrome' },
+      testIgnore: HEAVY_ANALYSIS_TESTS,
+    },
+    {
+      name: 'heavy-analysis',
+      use: { ...devices['Desktop Chrome'], channel: 'chrome' },
+      testMatch: HEAVY_ANALYSIS_TESTS,
+      // F35/F40 share the same CPU-heavy Python analysis service. Keep the
+      // rest of the suite parallel while these two files use one worker.
+      workers: 1,
     },
     // Firefox and WebKit disabled - using system Chrome via channel
     // {
