@@ -158,6 +158,31 @@ class DurableInteractionServiceCasTest {
     }
 
     @Test
+    void shortAckTimeoutRemainsRecoverableUntilFinalDeliveryWindow() {
+        Fixture fixture = fixture();
+        InteractionRequest request = fixture.interactions.create("tool-recoverable-ack", "s1", fixture.run.id(),
+                InteractionRequest.Type.ELICITATION, java.util.Map.of("tool", "Agent"),
+                List.of("allow", "deny"), List.of("session"), "direct", null);
+        assertThat(fixture.interactions.markDispatched(request.interactionId(), "transport-1")).isTrue();
+        fixture.jdbc.update("""
+                UPDATE interaction_requests SET first_dispatched_at=?,delivery_ack_deadline_at=?,
+                  delivery_window_ends_at=? WHERE interaction_id=?
+                """, Instant.now().minusSeconds(6).toString(), Instant.EPOCH.toString(),
+                Instant.now().plusSeconds(20).toString(), request.interactionId());
+
+        fixture.interactions.expireDeadlines();
+
+        InteractionRequest recoverable = fixture.interactions.findById(request.interactionId());
+        assertThat(recoverable.status()).isEqualTo(InteractionRequest.Status.PENDING);
+        assertThat(fixture.interactions.redeliveryCandidates(Instant.now()))
+                .extracting(InteractionRequest::interactionId).contains(request.interactionId());
+        assertThat(fixture.interactions.acknowledgeReceived(
+                recoverable.interactionId(), recoverable.deliveryGeneration(), "transport-reconnected"))
+                .isTrue();
+        assertThat(fixture.interactions.findById(request.interactionId()).receivedAt()).isNotNull();
+    }
+
+    @Test
     void redeliveryClaimsAreAtomicAndBounded() {
         Fixture fixture = fixture();
         InteractionRequest request = fixture.interactions.create("tool-3", "s1", fixture.run.id(),

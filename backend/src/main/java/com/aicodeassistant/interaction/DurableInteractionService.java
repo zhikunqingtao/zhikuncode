@@ -240,15 +240,15 @@ public class DurableInteractionService {
         return write(() -> jdbc.update("""
                 UPDATE interaction_requests SET dispatch_attempts=dispatch_attempts+1,last_transport_id=?,
                   delivery_generation=delivery_generation+1,updated_at=? WHERE interaction_id=? AND status='pending'
-                  AND received_at IS NULL AND dispatch_attempts=?
-                """, transportId, now.toString(), id, expectedAttempts) == 1);
+                  AND received_at IS NULL AND dispatch_attempts=? AND delivery_window_ends_at>?
+                """, transportId, now.toString(), id, expectedAttempts, now.toString()) == 1);
     }
 
     public List<InteractionRequest> redeliveryCandidates(Instant now) {
         return jdbc.query("""
                 SELECT * FROM interaction_requests WHERE status='pending' AND received_at IS NULL
                   AND first_dispatched_at IS NOT NULL AND dispatch_attempts BETWEEN 1 AND 3
-                  AND delivery_ack_deadline_at>?
+                  AND delivery_window_ends_at>?
                 ORDER BY first_dispatched_at
                 """, this::map, now.toString()).stream().filter(request -> {
             long ageMillis = java.time.Duration.between(request.firstDispatchedAt(), now).toMillis();
@@ -275,10 +275,9 @@ public class DurableInteractionService {
                   updated_at=? WHERE interaction_id=? AND status='pending'
                   AND received_at IS NULL
                   AND delivery_generation=?
-                  AND ((delivery_ack_deadline_at IS NOT NULL AND delivery_ack_deadline_at>=?)
-                    OR (delivery_ack_deadline_at IS NULL AND delivery_window_ends_at>=?))
+                  AND delivery_window_ends_at>=?
                 """, now.toString(), now.plusSeconds(DECISION_SECONDS).toString(), transportId,
-                now.toString(), id, deliveryGeneration, now.toString(), now.toString());
+                now.toString(), id, deliveryGeneration, now.toString());
             if (updated == 1) {
                 InteractionRequest request = findById(id);
                 runs.appendEventInCurrentWrite(request.runId(), "interaction_updated", null, Map.of(
@@ -557,8 +556,9 @@ public class DurableInteractionService {
     }
 
     /**
-     * 仅数据库终态可以结束等待。投递 ACK 会把短投递期限切换为用户决策期限，
-     * 因此旧期限唤醒后若状态仍为 PENDING，必须按数据库中的最新期限继续等待。
+     * 仅数据库终态可以结束等待。未收到 ACK 时等待完整投递窗口；收到 ACK 后切换为
+     * 用户决策期限。短 ACK 期限仅记录单次投递状态，不能提前终结等待；重投仍按
+     * 首次投递后的 1/2/4 秒退避计划执行。
      */
     private void waitForCurrentDeadline(String id,
             java.util.concurrent.CompletableFuture<InteractionRequest.Status> terminal) {
@@ -575,8 +575,7 @@ public class DurableInteractionService {
             return;
         }
         Instant deadline = current.receivedAt() == null
-                ? (current.deliveryAckDeadlineAt() == null
-                    ? current.deliveryWindowEndsAt() : current.deliveryAckDeadlineAt())
+                ? current.deliveryWindowEndsAt()
                 : current.decisionDeadlineAt();
         if (deadline == null) {
             terminal.completeExceptionally(new IllegalStateException("INTERACTION_DEADLINE_MISSING"));
@@ -605,8 +604,7 @@ public class DurableInteractionService {
         if (current.status() != InteractionRequest.Status.PENDING) return;
         Instant now = Instant.now();
         if (current.receivedAt() == null) {
-            Instant deadline = current.deliveryAckDeadlineAt() == null
-                    ? current.deliveryWindowEndsAt() : current.deliveryAckDeadlineAt();
+            Instant deadline = current.deliveryWindowEndsAt();
             if (deadline != null && !deadline.isAfter(now)) {
                 expire(id, InteractionRequest.Status.UNDELIVERABLE, "delivery_not_acknowledged");
             }
@@ -692,10 +690,9 @@ public class DurableInteractionService {
         Instant now = Instant.now();
         List<String> undelivered = jdbc.queryForList("""
                 SELECT interaction_id FROM interaction_requests WHERE status='pending' AND received_at IS NULL
-                AND ((delivery_ack_deadline_at IS NOT NULL AND delivery_ack_deadline_at<=?)
-                  OR (delivery_ack_deadline_at IS NULL AND delivery_window_ends_at<=?))
+                AND delivery_window_ends_at<=?
                 ORDER BY created_at LIMIT 100
-                """, String.class, now.toString(), now.toString());
+                """, String.class, now.toString());
         undelivered.forEach(id -> expire(id, InteractionRequest.Status.UNDELIVERABLE, "delivery_not_acknowledged"));
         List<String> expired = jdbc.queryForList("""
                 SELECT interaction_id FROM interaction_requests

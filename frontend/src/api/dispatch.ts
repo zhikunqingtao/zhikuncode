@@ -49,6 +49,21 @@ let nextBindingEpoch = 0;
 let boundBindingEpoch = 0;
 let boundBindRequestId: string | null = null;
 
+interface PendingInteractionAck {
+    sessionId: string;
+    deliveryGeneration: number;
+    correlationKey?: string;
+}
+
+/**
+ * 尚未被服务端确认的交互送达 ACK。
+ *
+ * ACK 只表示权限弹窗已经进入前端 Store，不代表用户允许操作。断线时保留最新
+ * deliveryGeneration，待服务端重投或 Session 恢复后再次发送，避免一次 publish
+ * 失败直接把交互变成 UNDELIVERABLE。
+ */
+const pendingInteractionAcks = new Map<string, PendingInteractionAck>();
+
 /** 恢复状态下仍需立即处理的关键消息类型（时间敏感，不可延迟或丢弃） */
 const RECOVERY_BYPASS_TYPES: ReadonlySet<string> = new Set([
     'session_restored', 'protocol_error',
@@ -123,7 +138,7 @@ function handleInteractionCreated(interaction: InteractionView): void {
             operationHash: interaction.operationHash,
             options: interaction.options,
             decisionDeadlineAt: deadline,
-        });
+        }, interaction.sessionId);
     } else if (interaction.interactionType === 'elicitation') {
         useAppUiStore.getState().showElicitationDialog({
             interactionId: interaction.interactionId,
@@ -133,17 +148,22 @@ function handleInteractionCreated(interaction: InteractionView): void {
             options: prompt.options ?? [],
             decisionDeadlineAt: deadline,
         });
-        void import('./stompClient').then(({ send }) =>
-            send('/app/interaction-received', {
-                interactionId: interaction.interactionId,
-                deliveryGeneration: interaction.deliveryGeneration,
-            }));
+        queueInteractionAck(interaction.sessionId, interaction.interactionId,
+            interaction.deliveryGeneration);
     }
 }
 
 /** 标记会话已绑定 */
 export function markSessionBound(sessionId: string): void {
     boundSessionId = sessionId;
+    // 切换 Session 后不保留其他 Session 的前端 ACK；再次进入时由服务端 pending
+    // 权威数据重放，避免终态消息未送达时在浏览器进程内长期积累陈旧条目。
+    for (const [interactionId, pending] of pendingInteractionAcks) {
+        if (pending.sessionId !== sessionId) pendingInteractionAcks.delete(interactionId);
+    }
+    // 连接恢复后先尝试补发内存中保留的 ACK；若服务端已生成新代次，随后重放的
+    // interaction_created 会覆盖旧代次并再次发送。
+    void flushPendingInteractionAcks(sessionId);
 }
 
 /** 检查会话是否已绑定 */
@@ -156,6 +176,31 @@ export function resetBoundSession(): void {
     boundSessionId = null;
     boundBindingEpoch = 0;
     boundBindRequestId = null;
+}
+
+function queueInteractionAck(sessionId: string | null, interactionId?: string,
+        deliveryGeneration?: number, correlationKey?: string): void {
+    if (!sessionId || !interactionId || !deliveryGeneration || deliveryGeneration < 1) return;
+    const current = pendingInteractionAcks.get(interactionId);
+    if (current && current.deliveryGeneration > deliveryGeneration) return;
+    pendingInteractionAcks.set(interactionId, { sessionId, deliveryGeneration, correlationKey });
+    void flushPendingInteractionAcks(sessionId);
+}
+
+/** 仅向当前权威绑定的 Session 重发 ACK；发送失败时保留，等待重投/重连恢复。 */
+async function flushPendingInteractionAcks(sessionId: string): Promise<void> {
+    const { sendToServer } = await import('./stompClient');
+    if (boundSessionId !== sessionId || useSessionStore.getState().sessionId !== sessionId) return;
+    for (const [interactionId, pending] of pendingInteractionAcks) {
+        if (pending.sessionId !== sessionId) continue;
+        // dynamic import 期间可能收到更新一代的重投，旧代次绝不能覆盖新代次。
+        if (pendingInteractionAcks.get(interactionId) !== pending) continue;
+        sendToServer('/app/interaction-received', {
+            interactionId,
+            deliveryGeneration: pending.deliveryGeneration,
+            ...(pending.correlationKey ? { correlationKey: pending.correlationKey } : {}),
+        });
+    }
 }
 
 /**
@@ -376,7 +421,7 @@ const handlers: Record<string, (data: any) => void> = {
     'rate_limit':         (d) => useSessionStore.getState().handleRateLimit(d),
 
     // === permissionStore + sessionStore (1 种) ===
-    'permission_request': (d) => handlePermissionRequest(d),
+    'permission_request': (d) => handlePermissionRequest(d, useSessionStore.getState().sessionId),
 
     // === activityStore: 权限拒绝后清除 changedFiles (1 种) ===
     'tool_permission_denied': (d: ToolPermissionDeniedPayload) => {
@@ -400,12 +445,14 @@ const handlers: Record<string, (data: any) => void> = {
             send('/app/interaction-received', { interactionId: d.interactionId }));
     },
     'interaction_updated': (d: { interactionId: string; decisionDeadlineAt: number | string; serverNow?: number; version?: number }) => {
+        pendingInteractionAcks.delete(d.interactionId);
         const deadline = clientDeadline(d.decisionDeadlineAt, d.serverNow);
         if (deadline === undefined) return;
         usePermissionStore.getState().updateInteractionDeadline(d.interactionId, deadline, d.version);
         useAppUiStore.getState().updateElicitationDeadline(d.interactionId, deadline, d.version);
     },
     'interaction_terminal': (d: { interactionId: string; interactionType: string }) => {
+        pendingInteractionAcks.delete(d.interactionId);
         usePermissionStore.getState().removeInteraction(d.interactionId);
         if (d.interactionType === 'elicitation'
             && useAppUiStore.getState().elicitationDialog?.interactionId === d.interactionId) {
@@ -737,16 +784,11 @@ const handlers: Record<string, (data: any) => void> = {
 // ==================== 跨 Store 私有方法 ====================
 
 /** 权限请求 — permissionStore + sessionStore */
-function handlePermissionRequest(data: PermissionRequest): void {
+function handlePermissionRequest(data: PermissionRequest, sessionId: string | null): void {
     usePermissionStore.getState().showPermission(data);
     useSessionStore.getState().setStatus('waiting_permission');
     // 只有 Store 已接收并能展示该请求后才发送 ACK，避免后端误以为用户已经看到弹窗。
-    void import('./stompClient').then(({ send }) =>
-        send('/app/interaction-received', {
-            interactionId: data.interactionId,
-            deliveryGeneration: data.deliveryGeneration,
-            correlationKey: data.toolUseId,
-        }));
+    queueInteractionAck(sessionId, data.interactionId, data.deliveryGeneration, data.toolUseId);
 }
 
 /**

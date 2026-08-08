@@ -13,6 +13,12 @@ import { useRunStore } from '@/store/runStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { useAppUiStore } from '@/store/appUiStore';
 
+const sendToServerMock = vi.hoisted(() => vi.fn(() => true));
+vi.mock('@/api/stompClient', () => ({
+    send: vi.fn(),
+    sendToServer: sendToServerMock,
+}));
+
 function deferred<T>() {
     let resolve!: (value: T) => void;
     let reject!: (reason?: unknown) => void;
@@ -70,6 +76,8 @@ const elicitationInteraction = (sessionId: string, suffix: string) => ({
 
 describe('transport-scoped bind recovery', () => {
     beforeEach(() => {
+        sendToServerMock.mockClear();
+        sendToServerMock.mockReturnValue(true);
         resetBoundSession();
         window.sessionStorage.clear();
         useSessionStore.setState({ sessionId: null });
@@ -211,6 +219,90 @@ describe('transport-scoped bind recovery', () => {
 
         expect(usePermissionStore.getState().pendingPermissions.map(item => item.interactionId))
             .toEqual(['permission-refresh']);
+        await vi.waitFor(() => expect(sendToServerMock).toHaveBeenCalledWith(
+            '/app/interaction-received',
+            expect.objectContaining({
+                interactionId: 'permission-refresh',
+                deliveryGeneration: 1,
+            }),
+        ));
+    });
+
+    it('retains a failed interaction ACK and sends the newest redelivery generation', async () => {
+        let payload: { sessionId: string; protocolVersion: number; bindRequestId: string; bindingEpoch: number } | undefined;
+        const bound = bindSessionAndWait('session-ack', value => { payload = value; });
+        dispatch({
+            type: 'session_restored', bindRequestId: payload!.bindRequestId, protocolVersion: 3,
+            bindingEpoch: payload!.bindingEpoch, messages: [],
+            metadata: { sessionId: 'session-ack', model: 'model', status: 'idle' },
+        });
+        await expect(bound).resolves.toBe(true);
+
+        sendToServerMock.mockReturnValue(false);
+        dispatch({ type: 'interaction_created', ...permissionInteraction('session-ack', 'ack') } as any);
+        await vi.waitFor(() => expect(sendToServerMock).toHaveBeenCalledWith(
+            '/app/interaction-received',
+            expect.objectContaining({ interactionId: 'permission-ack', deliveryGeneration: 1 }),
+        ));
+
+        resetBoundSession();
+        sendToServerMock.mockClear();
+        sendToServerMock.mockReturnValue(true);
+        let reboundPayload: typeof payload;
+        const rebound = bindSessionAndWait('session-ack', value => { reboundPayload = value; });
+        dispatch({
+            type: 'session_restored', bindRequestId: reboundPayload!.bindRequestId, protocolVersion: 3,
+            bindingEpoch: reboundPayload!.bindingEpoch, messages: [],
+            metadata: { sessionId: 'session-ack', model: 'model', status: 'idle' },
+        });
+        await expect(rebound).resolves.toBe(true);
+        await vi.waitFor(() => expect(sendToServerMock).toHaveBeenCalledWith(
+            '/app/interaction-received',
+            expect.objectContaining({ interactionId: 'permission-ack', deliveryGeneration: 1 }),
+        ));
+
+        sendToServerMock.mockClear();
+        dispatch({
+            type: 'interaction_created',
+            ...permissionInteraction('session-ack', 'ack'),
+            deliveryGeneration: 2,
+        } as any);
+        await vi.waitFor(() => expect(sendToServerMock).toHaveBeenCalledWith(
+            '/app/interaction-received',
+            expect.objectContaining({ interactionId: 'permission-ack', deliveryGeneration: 2 }),
+        ));
+        expect(sendToServerMock).not.toHaveBeenCalledWith(
+            '/app/interaction-received',
+            expect.objectContaining({ interactionId: 'permission-ack', deliveryGeneration: 1 }),
+        );
+
+        // 切到其他 Session 时应丢弃旧 Session 的本地 ACK；再次进入旧 Session
+        // 必须等待服务端 pending 恢复，不能凭陈旧内存状态自行补发。
+        resetBoundSession();
+        let otherPayload: typeof payload;
+        const otherBound = bindSessionAndWait('session-other', value => { otherPayload = value; });
+        dispatch({
+            type: 'session_restored', bindRequestId: otherPayload!.bindRequestId, protocolVersion: 3,
+            bindingEpoch: otherPayload!.bindingEpoch, messages: [],
+            metadata: { sessionId: 'session-other', model: 'model', status: 'idle' },
+        });
+        await expect(otherBound).resolves.toBe(true);
+
+        resetBoundSession();
+        sendToServerMock.mockClear();
+        let returnedPayload: typeof payload;
+        const returned = bindSessionAndWait('session-ack', value => { returnedPayload = value; });
+        dispatch({
+            type: 'session_restored', bindRequestId: returnedPayload!.bindRequestId, protocolVersion: 3,
+            bindingEpoch: returnedPayload!.bindingEpoch, messages: [],
+            metadata: { sessionId: 'session-ack', model: 'model', status: 'idle' },
+        });
+        await expect(returned).resolves.toBe(true);
+        await Promise.resolve();
+        expect(sendToServerMock).not.toHaveBeenCalledWith(
+            '/app/interaction-received',
+            expect.objectContaining({ interactionId: 'permission-ack' }),
+        );
     });
 
     it('matches bindRequestId, snapshots atomically, then replays frames received during recovery', async () => {
