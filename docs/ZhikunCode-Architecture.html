@@ -199,9 +199,11 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
     <div class="nav-section-label">Java 核心引擎</div>
     <a class="nav-item" href="#s3"><div class="ni" style="background:rgba(245,158,11,.15);color:#F59E0B">03</div><span>Agent Loop 引擎</span></a>
+    <a class="nav-item" href="#svg-run-control"><div class="ni" style="background:rgba(168,85,247,.15);color:#A855F7">▸</div><span>Run 控制与 Steering</span></a>
     <a class="nav-item" href="#svg-sc"><div class="ni" style="background:rgba(255,107,157,.15);color:#FF6B9D">▸</div><span>自纠错检测</span></a>
     <a class="nav-item" href="#s4"><div class="ni" style="background:rgba(245,158,11,.15);color:#F59E0B">04</div><span>统一授权架构</span></a>
     <a class="nav-item" href="#svg-amc"><div class="ni" style="background:rgba(0,212,255,.15);color:#00D4FF">▸</div><span>Grant 与交互</span></a>
+    <a class="nav-item" href="#svg-project"><div class="ni" style="background:rgba(59,130,246,.15);color:#3B82F6">▸</div><span>Project 信任边界</span></a>
     <a class="nav-item" href="#s5"><div class="ni" style="background:rgba(245,158,11,.15);color:#F59E0B">05</div><span>Bash 安全模块</span></a>
     <a class="nav-item" href="#s5b"><div class="ni" style="background:rgba(168,85,247,.15);color:#A855F7">5b</div><span>Docker 沙箱隔离</span></a>
 
@@ -220,11 +222,13 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
     <a class="nav-item" href="#svg-plc"><div class="ni" style="background:rgba(123,97,255,.15);color:#7B61FF">▸</div><span>插件生命周期</span></a>
     <a class="nav-item" href="#s9b"><div class="ni" style="background:rgba(239,68,68,.15);color:#EF4444">9b</div><span>CLI 斜杠命令系统</span></a>
     <a class="nav-item" href="#s9c"><div class="ni" style="background:rgba(245,158,11,.15);color:#F59E0B">9c</div><span>运行时验证</span></a>
+    <a class="nav-item" href="#svg-artifact-publish"><div class="ni" style="background:rgba(16,185,129,.15);color:#10B981">▸</div><span>Artifact 显式发布</span></a>
 
     <div class="nav-section-label">上下文与记忆</div>
     <a class="nav-item" href="#s10"><div class="ni" style="background:rgba(245,158,11,.15);color:#F59E0B">10</div><span>上下文管理</span></a>
     <a class="nav-item" href="#svg-tz"><div class="ni" style="background:rgba(245,158,11,.15);color:#F59E0B">▸</div><span>压缩三区划分</span></a>
     <a class="nav-item" href="#s11"><div class="ni" style="background:rgba(245,158,11,.15);color:#F59E0B">11</div><span>辅助系统</span></a>
+    <a class="nav-item" href="#svg-observability"><div class="ni" style="background:rgba(6,182,212,.15);color:#06B6D4">▸</div><span>观测与恢复</span></a>
 
     <div class="nav-section-label">多Agent 协调</div>
     <a class="nav-item" href="#s8"><div class="ni" style="background:rgba(245,158,11,.15);color:#F59E0B">12</div><span>多Agent协调</span></a>
@@ -254,10 +258,10 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
   <div class="sub">Enterprise-Grade AI-Powered Web IDE — Architecture Reference</div>
   <div class="badge-row">
     <span class="badge"><span class="c" style="background:var(--java)"></span><span class="mono">Java 68.8%</span></span>
-    <span class="badge"><span class="c" style="background:var(--ts)"></span><span class="mono">TypeScript 24.9%</span></span>
-    <span class="badge"><span class="c" style="background:var(--py)"></span><span class="mono">Python 6.4%</span></span>
-    <span class="badge"><span class="c" style="background:var(--green)"></span><span class="mono">115,783 Lines</span></span>
-    <span class="badge"><span class="c" style="background:var(--cyan)"></span><span class="mono">759 Files</span></span>
+    <span class="badge"><span class="c" style="background:var(--ts)"></span><span class="mono">React 25.0%</span></span>
+    <span class="badge"><span class="c" style="background:var(--py)"></span><span class="mono">Python + CLI 6.0%</span></span>
+    <span class="badge"><span class="c" style="background:var(--green)"></span><span class="mono">134,826 Product Lines</span></span>
+    <span class="badge"><span class="c" style="background:var(--cyan)"></span><span class="mono">863 Git-Tracked Files · ea0170c</span></span>
   </div>
 </div>
 
@@ -276,10 +280,10 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
           <canvas id="ringChart" width="200" height="200" style="width:200px;height:200px"></canvas>
         </div>
         <div>
-          <div style="margin-bottom:12px"><span class="tag java">Java 后端主源码</span><br><span class="big-num java mono" style="font-size:1.5rem">79,636</span><span class="stat-label"> 行 / 541 文件</span></div>
-          <div style="margin-bottom:12px"><span class="tag java">Java 测试代码</span><br><span class="big-num java mono" style="font-size:1.5rem">31,612</span><span class="stat-label"> 行 / 134 文件</span></div>
-          <div style="margin-bottom:12px"><span class="tag ts">React 前端</span><br><span class="big-num ts mono" style="font-size:1.5rem">28,791</span><span class="stat-label"> 行 / 190 文件</span></div>
-          <div><span class="tag py">Python 服务</span><br><span class="big-num py mono" style="font-size:1.5rem">7,356</span><span class="stat-label"> 行 / 28 文件</span></div>
+          <div style="margin-bottom:12px"><span class="tag java">Java 后端主源码</span><br><span class="big-num java mono" style="font-size:1.5rem">93,118</span><span class="stat-label"> 行 / 622 文件</span></div>
+          <div style="margin-bottom:12px"><span class="tag java">Java 测试代码</span><br><span class="big-num java mono" style="font-size:1.5rem">40,974</span><span class="stat-label"> 行 / 208 文件</span></div>
+          <div style="margin-bottom:12px"><span class="tag ts">React 前端</span><br><span class="big-num ts mono" style="font-size:1.5rem">33,642</span><span class="stat-label"> 行 / 209 文件</span></div>
+          <div><span class="tag py">Python 服务与 CLI</span><br><span class="big-num py mono" style="font-size:1.5rem">8,066</span><span class="stat-label"> 行 / 32 文件</span></div>
         </div>
       </div>
     </div>
@@ -288,7 +292,8 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <table style="width:100%;font-size:.82rem;margin-top:8px">
         <tr><td style="color:var(--text3);padding:4px 0">项目名称</td><td style="font-weight:600;padding:4px 0">ZhikunCode</td></tr>
         <tr><td style="color:var(--text3);padding:4px 0">产品形态</td><td style="padding:4px 0">AI-Powered Web IDE</td></tr>
-        <tr><td style="color:var(--text3);padding:4px 0">总代码量</td><td class="mono" style="padding:4px 0">115,783 行（含测试 147,395 行）/ 893 文件</td></tr>
+        <tr><td style="color:var(--text3);padding:4px 0">产品源代码</td><td class="mono" style="padding:4px 0">134,826 行 / 863 个 Git 跟踪文件 · ea0170c / 2026-08-09（不统计本地忽略文件）</td></tr>
+        <tr><td style="color:var(--text3);padding:4px 0">测试规模</td><td class="mono" style="padding:4px 0">Java + Python 43,176 行 / 226 文件；前端 E2E 24 specs</td></tr>
         <tr><td style="color:var(--text3);padding:4px 0">后端框架</td><td style="padding:4px 0">Spring Boot 3.4 + Java 21</td></tr>
         <tr><td style="color:var(--text3);padding:4px 0">前端框架</td><td style="padding:4px 0">React 18.3 + Vite 5.4 + Zustand 4.5</td></tr>
         <tr><td style="color:var(--text3);padding:4px 0">分析服务</td><td style="padding:4px 0">FastAPI + uvicorn + tree-sitter</td></tr>
@@ -302,10 +307,10 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
   <div class="card">
     <div class="card-title" style="cursor:default">代码量分布</div>
     <div style="display:grid;grid-template-columns:120px 1fr 80px;gap:8px;align-items:center;margin-top:12px;font-size:.82rem">
-      <span>Java 主源码</span><div class="pbar"><div class="pbar-fill java" style="width:55.0%"></div></div><span class="mono" style="text-align:right;color:var(--java)">79,636</span>
-      <span>Java 测试</span><div class="pbar"><div class="pbar-fill java" style="width:20.1%"></div></div><span class="mono" style="text-align:right;color:var(--java)">31,612</span>
-      <span>React 前端</span><div class="pbar"><div class="pbar-fill ts" style="width:19.6%"></div></div><span class="mono" style="text-align:right;color:var(--ts)">28,791</span>
-      <span>Python 服务</span><div class="pbar"><div class="pbar-fill py" style="width:6.5%"></div></div><span class="mono" style="text-align:right;color:var(--py)">7,356</span>
+      <span>Java 主源码</span><div class="pbar"><div class="pbar-fill java" style="width:68.8%"></div></div><span class="mono" style="text-align:right;color:var(--java)">93,118</span>
+      <span>Java 测试</span><div class="pbar"><div class="pbar-fill java" style="width:30.3%"></div></div><span class="mono" style="text-align:right;color:var(--java)">40,974</span>
+      <span>React 前端</span><div class="pbar"><div class="pbar-fill ts" style="width:25.0%"></div></div><span class="mono" style="text-align:right;color:var(--ts)">33,642</span>
+      <span>Python + CLI</span><div class="pbar"><div class="pbar-fill py" style="width:6.0%"></div></div><span class="mono" style="text-align:right;color:var(--py)">8,066</span>
     </div>
   </div>
 </div>
@@ -323,18 +328,18 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <!-- Frontend box -->
       <rect x="150" y="10" width="600" height="80" rx="12" fill="#0F1221" stroke="#3B82F6" stroke-width="2"/>
       <text x="450" y="40" text-anchor="middle" fill="#3B82F6" font-size="16" font-weight="700" style="font-family:'JetBrains Mono',monospace">React 前端</text>
-      <text x="450" y="60" text-anchor="middle" fill="#9FA4C4" font-size="11" style="font-family:'JetBrains Mono',monospace">28,791 行 · 190 文件 · 31 Zustand Store · 112 组件 · 15 可视化</text>
-      <text x="450" y="76" text-anchor="middle" fill="#6B70A0" font-size="10" style="font-family:'JetBrains Mono',monospace">dispatch.ts 557行 | stompClient.ts 363行</text>
+      <text x="450" y="60" text-anchor="middle" fill="#9FA4C4" font-size="11" style="font-family:'JetBrains Mono',monospace">33,642 行 · 209 文件 · 36 Store 文件 · 117 TSX 文件（109 非测试）</text>
+      <text x="450" y="76" text-anchor="middle" fill="#6B70A0" font-size="10" style="font-family:'JetBrains Mono',monospace">Project 选择 · Run steering · 结构化工具卡片 · STOMP 重连</text>
       <!-- Java box -->
       <rect x="80" y="200" width="380" height="90" rx="12" fill="#0F1221" stroke="#F59E0B" stroke-width="2"/>
       <text x="270" y="230" text-anchor="middle" fill="#F59E0B" font-size="16" font-weight="700" style="font-family:'JetBrains Mono',monospace">Java 后端</text>
-      <text x="270" y="250" text-anchor="middle" fill="#9FA4C4" font-size="11" style="font-family:'JetBrains Mono',monospace">79,636 行 · 541 文件 · Spring Boot 3.4</text>
+      <text x="270" y="250" text-anchor="middle" fill="#9FA4C4" font-size="11" style="font-family:'JetBrains Mono',monospace">93,118 行 · 622 文件 · Spring Boot 3.4</text>
       <text x="270" y="268" text-anchor="middle" fill="#6B70A0" font-size="10" style="font-family:'JetBrains Mono',monospace">Port 8080 · Agent Loop · Permission · MCP · Tools</text>
       <!-- Python box -->
       <rect x="520" y="200" width="300" height="90" rx="12" fill="#0F1221" stroke="#84CC16" stroke-width="2"/>
       <text x="670" y="230" text-anchor="middle" fill="#84CC16" font-size="16" font-weight="700" style="font-family:'JetBrains Mono',monospace">Python 分析服务</text>
-      <text x="670" y="250" text-anchor="middle" fill="#9FA4C4" font-size="11" style="font-family:'JetBrains Mono',monospace">7,356 行 · 28 文件 · FastAPI</text>
-      <text x="670" y="268" text-anchor="middle" fill="#6B70A0" font-size="10" style="font-family:'JetBrains Mono',monospace">Port 8000 · 6 能力域 · tree-sitter</text>
+      <text x="670" y="250" text-anchor="middle" fill="#9FA4C4" font-size="11" style="font-family:'JetBrains Mono',monospace">8,066 行 · 32 文件 · FastAPI + CLI</text>
+      <text x="670" y="268" text-anchor="middle" fill="#6B70A0" font-size="10" style="font-family:'JetBrains Mono',monospace">Port 8000 · 7 能力域 · tree-sitter</text>
       <!-- Infra boxes -->
       <rect x="40" y="360" width="140" height="48" rx="8" fill="#151829" stroke="#353860" stroke-width="1"/>
       <text x="110" y="389" text-anchor="middle" fill="#A855F7" font-size="12" font-weight="600" style="font-family:'JetBrains Mono',monospace">LLM API</text>
@@ -382,12 +387,12 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <!-- ===== REACT FRONTEND BLOCK ===== -->
       <rect x="240" y="20" width="480" height="140" rx="14" fill="url(#gReact)" stroke="#3B82F6" stroke-width="1.5" filter="url(#glowT)"/>
       <text x="480" y="48" text-anchor="middle" fill="#3B82F6" font-size="16" font-weight="700" style="font-family:'JetBrains Mono',monospace">React 前端</text>
-      <text x="480" y="66" text-anchor="middle" fill="#9FA4C4" font-size="11" style="font-family:'JetBrains Mono',monospace">28,791 行 · 190 文件</text>
+      <text x="480" y="66" text-anchor="middle" fill="#9FA4C4" font-size="11" style="font-family:'JetBrains Mono',monospace">33,642 行 · 209 文件</text>
       <!-- FE sub-modules -->
       <rect x="260" y="80" width="88" height="32" rx="6" fill="#151829" stroke="#3B82F6" stroke-width=".8"/>
-      <text x="304" y="100" text-anchor="middle" fill="#9FA4C4" font-size="9" style="font-family:'JetBrains Mono',monospace">32 Store</text>
+      <text x="304" y="100" text-anchor="middle" fill="#9FA4C4" font-size="9" style="font-family:'JetBrains Mono',monospace">36 Store</text>
       <rect x="358" y="80" width="88" height="32" rx="6" fill="#151829" stroke="#3B82F6" stroke-width=".8"/>
-      <text x="402" y="100" text-anchor="middle" fill="#9FA4C4" font-size="9" style="font-family:'JetBrains Mono',monospace">112 组件</text>
+      <text x="402" y="100" text-anchor="middle" fill="#9FA4C4" font-size="9" style="font-family:'JetBrains Mono',monospace">117 TSX文件</text>
       <rect x="456" y="80" width="88" height="32" rx="6" fill="#151829" stroke="#3B82F6" stroke-width=".8"/>
       <text x="500" y="100" text-anchor="middle" fill="#9FA4C4" font-size="9" style="font-family:'JetBrains Mono',monospace">15 可视化</text>
       <rect x="554" y="80" width="96" height="32" rx="6" fill="#151829" stroke="#3B82F6" stroke-width=".8"/>
@@ -395,7 +400,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <rect x="660" y="80" width="50" height="32" rx="6" fill="#151829" stroke="#3B82F6" stroke-width=".8"/>
       <text x="685" y="100" text-anchor="middle" fill="#9FA4C4" font-size="8" style="font-family:'JetBrains Mono',monospace">363</text>
       <!-- FE label bottom -->
-      <text x="480" y="146" text-anchor="middle" fill="#6B70A0" font-size="9" style="font-family:'JetBrains Mono',monospace">dispatch.ts 557行 · stompClient.ts 363行</text>
+      <text x="480" y="146" text-anchor="middle" fill="#6B70A0" font-size="9" style="font-family:'JetBrains Mono',monospace">dispatch.ts · stompClient.ts</text>
 
       <!-- ===== Communication arrows ===== -->
       <!-- FE -> Java: REST+WS -->
@@ -410,7 +415,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <!-- ===== JAVA BACKEND BLOCK ===== -->
       <rect x="40" y="220" width="520" height="200" rx="14" fill="url(#gJava)" stroke="#F59E0B" stroke-width="1.5" filter="url(#glowJ)"/>
       <text x="300" y="248" text-anchor="middle" fill="#F59E0B" font-size="16" font-weight="700" style="font-family:'JetBrains Mono',monospace">Java 后端</text>
-      <text x="300" y="264" text-anchor="middle" fill="#9FA4C4" font-size="11" style="font-family:'JetBrains Mono',monospace">79,636 行 · 541 文件 · Spring Boot 3.4</text>
+      <text x="300" y="264" text-anchor="middle" fill="#9FA4C4" font-size="11" style="font-family:'JetBrains Mono',monospace">93,118 行 · 622 文件 · Spring Boot 3.4</text>
       <!-- Java internal layers -->
       <rect x="60" y="278" width="115" height="40" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
       <text x="117" y="295" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">Agent Engine</text>
@@ -420,7 +425,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <text x="242" y="309" text-anchor="middle" fill="#6B70A0" font-size="8">统一授权 + 最终复检</text>
       <rect x="310" y="278" width="115" height="40" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
       <text x="367" y="295" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">Tool System</text>
-      <text x="367" y="309" text-anchor="middle" fill="#6B70A0" font-size="8">105+文件 ~19,081行</text>
+      <text x="367" y="309" text-anchor="middle" fill="#6B70A0" font-size="8">40+ 内置 · 动态扩展</text>
       <rect x="435" y="278" width="115" height="40" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
       <text x="492" y="295" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">MCP Protocol</text>
       <text x="492" y="309" text-anchor="middle" fill="#6B70A0" font-size="8">4传输 5,219行(main)</text>
@@ -430,7 +435,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <text x="117" y="359" text-anchor="middle" fill="#6B70A0" font-size="8">26文件 3,456行</text>
       <rect x="185" y="328" width="115" height="40" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
       <text x="242" y="345" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">Multi-Agent</text>
-      <text x="242" y="359" text-anchor="middle" fill="#6B70A0" font-size="8">19文件 4,138行</text>
+      <text x="242" y="359" text-anchor="middle" fill="#6B70A0" font-size="8">5 类 Agent</text>
       <rect x="310" y="328" width="115" height="40" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
       <text x="367" y="345" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">Bash Security</text>
       <text x="367" y="359" text-anchor="middle" fill="#6B70A0" font-size="8">6层AST 5,620行</text>
@@ -447,13 +452,13 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <!-- ===== PYTHON SERVICE BLOCK ===== -->
       <rect x="620" y="220" width="300" height="200" rx="14" fill="url(#gPy)" stroke="#84CC16" stroke-width="1.5" filter="url(#glowP)"/>
       <text x="770" y="248" text-anchor="middle" fill="#84CC16" font-size="16" font-weight="700" style="font-family:'JetBrains Mono',monospace">Python 分析服务</text>
-      <text x="770" y="264" text-anchor="middle" fill="#9FA4C4" font-size="11" style="font-family:'JetBrains Mono',monospace">7,356 行 · 28 文件 · FastAPI</text>
+      <text x="770" y="264" text-anchor="middle" fill="#9FA4C4" font-size="11" style="font-family:'JetBrains Mono',monospace">8,066 行 · 32 文件 · 服务 + CLI</text>
       <rect x="640" y="278" width="130" height="36" rx="6" fill="#151829" stroke="#84CC16" stroke-width=".8"/>
       <text x="705" y="300" text-anchor="middle" fill="#84CC16" font-size="9" font-weight="600">Analyzers</text>
       <rect x="780" y="278" width="130" height="36" rx="6" fill="#151829" stroke="#84CC16" stroke-width=".8"/>
       <text x="845" y="300" text-anchor="middle" fill="#84CC16" font-size="9" font-weight="600">Services</text>
       <rect x="640" y="324" width="130" height="36" rx="6" fill="#151829" stroke="#84CC16" stroke-width=".8"/>
-      <text x="705" y="346" text-anchor="middle" fill="#84CC16" font-size="9" font-weight="600">8 Routers</text>
+      <text x="705" y="346" text-anchor="middle" fill="#84CC16" font-size="9" font-weight="600">7 能力域</text>
       <rect x="780" y="324" width="130" height="36" rx="6" fill="#151829" stroke="#84CC16" stroke-width=".8"/>
       <text x="845" y="346" text-anchor="middle" fill="#84CC16" font-size="9" font-weight="600">tree-sitter</text>
       <text x="770" y="408" text-anchor="middle" fill="#6B70A0" font-size="9" style="font-family:'JetBrains Mono',monospace">:8000</text>
@@ -475,9 +480,9 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
       <!-- ===== Legend ===== -->
       <rect x="60" y="530" width="840" height="36" rx="8" fill="#0F1221" stroke="#252840" stroke-width="1"/>
-      <circle cx="90" cy="548" r="5" fill="#F59E0B"/><text x="100" y="552" fill="#F59E0B" font-size="9">Java 79,636行</text>
-      <circle cx="220" cy="548" r="5" fill="#3B82F6"/><text x="230" y="552" fill="#3B82F6" font-size="9">React 28,791行</text>
-      <circle cx="350" cy="548" r="5" fill="#84CC16"/><text x="360" y="552" fill="#84CC16" font-size="9">Python 7,356行</text>
+      <circle cx="90" cy="548" r="5" fill="#F59E0B"/><text x="100" y="552" fill="#F59E0B" font-size="9">Java 93,118行</text>
+      <circle cx="220" cy="548" r="5" fill="#3B82F6"/><text x="230" y="552" fill="#3B82F6" font-size="9">React 33,642行</text>
+      <circle cx="350" cy="548" r="5" fill="#84CC16"/><text x="360" y="552" fill="#84CC16" font-size="9">Python 8,066行</text>
       <line x1="480" y1="548" x2="510" y2="548" stroke="#3B82F6" stroke-width="2" class="anim-line"/><text x="516" y="552" fill="#6B70A0" font-size="9">通信链路</text>
       <line x1="600" y1="548" x2="630" y2="548" stroke="#6B70A0" stroke-width="1.5" class="anim-line"/><text x="636" y="552" fill="#6B70A0" font-size="9">外部服务</text>
     </svg>
@@ -490,7 +495,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <table class="link-table">
         <thead><tr><th>#</th><th>链路</th><th>协议</th><th>关键文件</th></tr></thead>
         <tbody>
-          <tr><td class="mono">1</td><td>前端 → Java 后端</td><td>REST API + WebSocket/STOMP</td><td class="mono" style="font-size:.72rem">dispatch.ts (557行) + stompClient.ts (363行)</td></tr>
+          <tr><td class="mono">1</td><td>前端 → Java 后端</td><td>REST API + WebSocket/STOMP</td><td class="mono" style="font-size:.72rem">dispatch.ts + stompClient.ts</td></tr>
           <tr><td class="mono">2</td><td>前端 → Python 服务</td><td>Vite Proxy 转发</td><td class="mono" style="font-size:.72rem">/api/git, /api/files, /api/code-quality, /api/analysis → :8000</td></tr>
           <tr><td class="mono">3</td><td>Java → LLM</td><td>HTTP/SSE Stream</td><td class="mono" style="font-size:.72rem">LlmProviderRegistry → Anthropic / OpenAiCompatible</td></tr>
           <tr><td class="mono">4</td><td>Java → MCP Server</td><td>4种传输</td><td class="mono" style="font-size:.72rem">McpClientManager — STDIO/SSE/HTTP/WS</td></tr>
@@ -507,7 +512,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
   <div class="section-head">
     <span class="section-num all">02.5</span>
     <h2>全链路数据流 — 从用户输入到流式响应</h2>
-    <span class="meta">dispatch.ts 557行 → STOMP/WS → QueryEngine 8步循环 → 流式工具执行 → Zustand 实时更新</span>
+    <span class="meta">dispatch.ts → STOMP/WS → QueryEngine 8步循环 → 流式工具执行 → Zustand 实时更新</span>
   </div>
 
   <div class="card" style="padding:24px">
@@ -542,24 +547,24 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
       <!-- stompClient.ts -->
       <rect x="30" y="120" width="210" height="56" rx="8" fill="#0F1221" stroke="#00D4FF" stroke-width="1.2"/>
-      <text x="135" y="140" text-anchor="middle" font-size="9" fill="#00D4FF" font-weight="600">stompClient.ts (363行)</text>
+      <text x="135" y="140" text-anchor="middle" font-size="9" fill="#00D4FF" font-weight="600">stompClient.ts</text>
       <text x="135" y="154" text-anchor="middle" font-size="7" fill="#9FA4C4">sendUserMessage('/app/chat')</text>
       <text x="135" y="166" text-anchor="middle" font-size="7" fill="#6B70A0">STOMP over SockJS · 心跳10s · 指数退避重连</text>
 
       <!-- dispatch.ts -->
       <rect x="30" y="320" width="210" height="56" rx="8" fill="#0F1221" stroke="#00D4FF" stroke-width="1.2"/>
-      <text x="135" y="340" text-anchor="middle" font-size="9" fill="#00D4FF" font-weight="600">dispatch.ts (557行)</text>
+      <text x="135" y="340" text-anchor="middle" font-size="9" fill="#00D4FF" font-weight="600">dispatch.ts</text>
       <text x="135" y="354" text-anchor="middle" font-size="7" fill="#9FA4C4">按 type 分发到 Zustand Store</text>
       <text x="135" y="366" text-anchor="middle" font-size="7" fill="#6B70A0">40+ 消息类型 · 序列号校验 · 跨Store协调</text>
 
       <!-- Zustand Store -->
       <rect x="30" y="398" width="210" height="48" rx="8" fill="#0F1221" stroke="#10B981" stroke-width="1.2"/>
-      <text x="135" y="418" text-anchor="middle" font-size="9" fill="#10B981" font-weight="600">Zustand Store (31个)</text>
+      <text x="135" y="418" text-anchor="middle" font-size="9" fill="#10B981" font-weight="600">Store 文件 (36个)</text>
       <text x="135" y="434" text-anchor="middle" font-size="7" fill="#6B70A0">messageStore · sessionStore · activityStore ...</text>
 
       <!-- UI Render -->
       <rect x="30" y="462" width="210" height="30" rx="6" fill="#0F1221" stroke="#10B981" stroke-width="1"/>
-      <text x="135" y="481" text-anchor="middle" font-size="8" fill="#10B981">UI 实时渲染 (86 组件)</text>
+      <text x="135" y="481" text-anchor="middle" font-size="8" fill="#10B981">UI 实时渲染（117 TSX文件）</text>
 
       <!-- ====== CENTER: Java Backend ====== -->
       <!-- WebSocketController -->
@@ -642,7 +647,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <!-- Python Service -->
       <rect x="310" y="405" width="200" height="40" rx="7" fill="#151829" stroke="#84CC16" stroke-width="1.2"/>
       <text x="410" y="423" text-anchor="middle" font-size="9" fill="#84CC16" font-weight="600">Python 分析服务 (:8000)</text>
-      <text x="410" y="437" text-anchor="middle" font-size="7" fill="#6B70A0">HTTP Proxy · FastAPI · tree-sitter · 6能力域</text>
+      <text x="410" y="437" text-anchor="middle" font-size="7" fill="#6B70A0">HTTP Proxy · FastAPI · tree-sitter · 7能力域</text>
 
       <!-- ====== RIGHT: Result Return ====== -->
       <!-- STOMP Push -->
@@ -686,14 +691,15 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
       <!-- ====== BOTTOM STATS BAR ====== -->
       <rect x="20" y="470" width="1060" height="22" rx="5" fill="#111327" stroke="#2A2D45" stroke-width=".6"/>
-      <text x="30" y="484" font-size="7" fill="#00D4FF" font-weight="600">stompClient.ts 363行</text>
-      <text x="180" y="484" font-size="7" fill="#00D4FF">dispatch.ts 557行</text>
+      <text x="30" y="484" font-size="7" fill="#00D4FF" font-weight="600">stompClient.ts</text>
+      <text x="180" y="484" font-size="7" fill="#00D4FF">dispatch.ts</text>
       <text x="320" y="484" font-size="7" fill="#7B61FF" font-weight="600">QueryEngine 1,434行 8步循环</text>
       <text x="540" y="484" font-size="7" fill="#10B981">StreamingToolExecutor 286行</text>
       <text x="720" y="484" font-size="7" fill="#10B981">ToolExecutionPipeline 618行 9阶段</text>
-      <text x="920" y="484" font-size="7" fill="#84CC16">Python 7,356行</text>
+      <text x="920" y="484" font-size="7" fill="#84CC16">Python + CLI 8,066行</text>
     </svg>
   </div>
+
 </div>
 
 <!-- ============ SECTION 15: GLOBAL DATA FLOW ============ -->
@@ -721,9 +727,9 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <text x="130" y="88" fill="#3B82F6" font-size="10" font-weight="600" style="font-family:'JetBrains Mono',monospace">REACT FRONTEND</text>
       <!-- FE modules -->
       <rect x="140" y="96" width="110" height="38" rx="6" fill="#0F1221" stroke="#3B82F6" stroke-width="1"/>
-      <text x="195" y="119" text-anchor="middle" fill="#9FA4C4" font-size="10" style="font-family:'JetBrains Mono',monospace">112 Components</text>
+      <text x="195" y="119" text-anchor="middle" fill="#9FA4C4" font-size="10" style="font-family:'JetBrains Mono',monospace">117 TSX文件</text>
       <rect x="264" y="96" width="110" height="38" rx="6" fill="#0F1221" stroke="#3B82F6" stroke-width="1"/>
-      <text x="319" y="119" text-anchor="middle" fill="#9FA4C4" font-size="10" style="font-family:'JetBrains Mono',monospace">31 Zustand</text>
+      <text x="319" y="119" text-anchor="middle" fill="#9FA4C4" font-size="10" style="font-family:'JetBrains Mono',monospace">36 Stores</text>
       <rect x="388" y="96" width="120" height="38" rx="6" fill="#0F1221" stroke="#3B82F6" stroke-width="1"/>
       <text x="448" y="119" text-anchor="middle" fill="#9FA4C4" font-size="10" style="font-family:'JetBrains Mono',monospace">dispatch.ts</text>
       <rect x="522" y="96" width="120" height="38" rx="6" fill="#0F1221" stroke="#3B82F6" stroke-width="1"/>
@@ -736,12 +742,12 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
       <!-- Java Backend layer -->
       <rect x="40" y="190" width="620" height="260" rx="10" fill="none" stroke="#F59E0B" stroke-width="1" stroke-dasharray="4"/>
-      <text x="50" y="208" fill="#F59E0B" font-size="10" font-weight="600" style="font-family:'JetBrains Mono',monospace">JAVA BACKEND (79,636 lines)</text>
+      <text x="50" y="208" fill="#F59E0B" font-size="10" font-weight="600" style="font-family:'JetBrains Mono',monospace">JAVA BACKEND (93,118 lines / 622 files)</text>
 
       <!-- Java modules -->
       <rect x="60" y="218" width="130" height="44" rx="6" fill="#0F1221" stroke="#F59E0B" stroke-width="1"/>
       <text x="125" y="236" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="600">Agent Loop</text>
-      <text x="125" y="252" text-anchor="middle" fill="#6B70A0" font-size="9">engine/ 9,003行</text>
+      <text x="125" y="252" text-anchor="middle" fill="#6B70A0" font-size="9">engine/ · Agent Loop与上下文编排</text>
 
       <rect x="204" y="218" width="130" height="44" rx="6" fill="#0F1221" stroke="#F59E0B" stroke-width="1"/>
       <text x="269" y="236" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="600">Permission</text>
@@ -753,7 +759,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
       <rect x="492" y="218" width="150" height="44" rx="6" fill="#0F1221" stroke="#F59E0B" stroke-width="1"/>
       <text x="567" y="236" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="600">Tool System</text>
-      <text x="567" y="252" text-anchor="middle" fill="#6B70A0" font-size="9">105+文件 ~19,081行 43工具</text>
+      <text x="567" y="252" text-anchor="middle" fill="#6B70A0" font-size="9">40+内置工具 · MCP/插件动态扩展</text>
 
       <rect x="60" y="278" width="130" height="44" rx="6" fill="#0F1221" stroke="#F59E0B" stroke-width="1"/>
       <text x="125" y="296" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="600">LLM Provider</text>
@@ -765,7 +771,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
       <rect x="348" y="278" width="130" height="44" rx="6" fill="#0F1221" stroke="#F59E0B" stroke-width="1"/>
       <text x="413" y="296" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="600">Multi-Agent</text>
-      <text x="413" y="312" text-anchor="middle" fill="#6B70A0" font-size="9">19文件 4,138行</text>
+      <text x="413" y="312" text-anchor="middle" fill="#6B70A0" font-size="9">5类 Agent · 受控协作</text>
 
       <rect x="492" y="278" width="150" height="44" rx="6" fill="#0F1221" stroke="#F59E0B" stroke-width="1"/>
       <text x="567" y="296" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="600">Context Mgmt</text>
@@ -795,16 +801,16 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
       <!-- Python layer -->
       <rect x="690" y="190" width="250" height="160" rx="10" fill="none" stroke="#84CC16" stroke-width="1" stroke-dasharray="4"/>
-      <text x="700" y="208" fill="#84CC16" font-size="10" font-weight="600" style="font-family:'JetBrains Mono',monospace">PYTHON SERVICE (7,356 lines)</text>
+      <text x="700" y="208" fill="#84CC16" font-size="10" font-weight="600" style="font-family:'JetBrains Mono',monospace">PYTHON SERVICE + CLI (8,066 lines / 32 files)</text>
 
       <rect x="710" y="218" width="210" height="34" rx="6" fill="#0F1221" stroke="#84CC16" stroke-width="1"/>
       <text x="815" y="240" text-anchor="middle" fill="#9FA4C4" font-size="10">Analyzers (2,872行)</text>
 
       <rect x="710" y="262" width="210" height="34" rx="6" fill="#0F1221" stroke="#84CC16" stroke-width="1"/>
-      <text x="815" y="284" text-anchor="middle" fill="#9FA4C4" font-size="10">8 API Routers (1,526行)</text>
+      <text x="815" y="284" text-anchor="middle" fill="#9FA4C4" font-size="10">7 能力域 · 条件 Router</text>
 
       <rect x="710" y="306" width="210" height="34" rx="6" fill="#0F1221" stroke="#84CC16" stroke-width="1"/>
-      <text x="815" y="328" text-anchor="middle" fill="#9FA4C4" font-size="10">Services (1,725行)</text>
+      <text x="815" y="328" text-anchor="middle" fill="#9FA4C4" font-size="10">Services · 浏览器、Git、文件与复杂度分析</text>
 
       <!-- FE -> Java -->
       <line x1="380" y1="150" x2="300" y2="190" stroke="#3B82F6" stroke-width="1.5" class="anim-line" marker-end="url(#ahT)"/>
@@ -849,7 +855,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
   <div class="section-head">
     <span class="section-num java">03</span>
     <h2>Agent Loop — 8步循环引擎</h2>
-    <span class="meta">engine/ 9,003行 · QueryEngine.java 1,434行</span>
+    <span class="meta">engine/ · QueryEngine.java · Agent Loop 与 Run 编排</span>
   </div>
 
   <div class="flow">
@@ -879,7 +885,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
       <!-- Title bar -->
       <rect x="30" y="16" width="900" height="36" rx="8" fill="#151829" stroke="#F59E0B" stroke-width="1"/>
-      <text x="480" y="39" text-anchor="middle" fill="#F59E0B" font-size="13" font-weight="700" style="font-family:'JetBrains Mono',monospace">QueryEngine.java — 1,434行 · 8步循环 · 流式工具执行</text>
+      <text x="480" y="39" text-anchor="middle" fill="#F59E0B" font-size="13" font-weight="700" style="font-family:'JetBrains Mono',monospace">QueryEngine.java — 8步循环 · 流式工具执行</text>
 
       <!-- Step boxes arranged in a circuit -->
       <!-- Row 1: Steps 1-4 (left to right) -->
@@ -1149,8 +1155,30 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <rect x="300" y="430" width="300" height="52" rx="8" fill="#151829" stroke="#10B981" stroke-width="1"/>
       <text x="450" y="449" text-anchor="middle" fill="#10B981" font-size="9" font-weight="600">SelfCorrectionLoop</text>
       <text x="450" y="463" text-anchor="middle" fill="#6B70A0" font-size="7">shouldAbort() · isPersistentError()</text>
-      <text x="450" y="477" text-anchor="middle" fill="#9FA4C4" font-size="6.5">349行 · engine/correction/</text>
+      <text x="450" y="477" text-anchor="middle" fill="#9FA4C4" font-size="6.5">engine/correction/ · 错误检测与修复决策</text>
     </svg>
+  </div>
+  <h3 id="svg-run-control" style="font-size:1.05rem;font-weight:700;color:#A855F7;margin:28px 0 12px;letter-spacing:.02em;scroll-margin-top:24px">Run 控制与运行中 Steering</h3>
+  <div class="card java-accent">
+    <div class="card-title" onclick="toggleDetail(this)"><span class="toggle open">▶</span> RunExecutionRegistry + RunControlService <span class="tag purple">运行中输入</span><span class="tag green">CAS 终态</span></div>
+    <div class="card-detail show">
+      <div class="flow">
+        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--purple)">1</div><div class="line"></div></div><div class="flow-body"><div class="ft">注册活跃执行</div><div class="fd">QueryEngine 启动 Run 时向 RunExecutionRegistry 注册 runId、sessionId 与 AbortContext；Registry 只维护当前进程内的活跃映射和取消上下文。</div></div></div>
+        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--purple)">2</div><div class="line"></div></div><div class="flow-body"><div class="ft">运行中输入与 Steering 回执</div><div class="fd">前端向 <span class="mono">/app/run-input</span> 发送 requestId/text，服务端按已认证 Session 查找活跃 Run 并进入内存队列；客户端事件统一为 queued / applied / rejected。</div></div></div>
+        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red)">3</div><div class="line"></div></div><div class="flow-body"><div class="ft">取消、进程终止与 checkpoint 分工</div><div class="fd">AbortContext 提供协作式取消，ManagedProcessRunner 负责超时后的梯度终止；CheckpointService 独立保存子 Agent checkpoint，不属于 Registry 输入队列。</div></div></div>
+        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--green)">4</div></div><div class="flow-body"><div class="ft">CAS 单一终态</div><div class="fd">RunControlService 通过 compare-and-set 只接受一个 COMPLETED / FAILED / CANCELLED / INTERRUPTED 终态，迟到回调不能覆盖权威结果。</div></div></div>
+      </div>
+      <svg viewBox="0 0 960 230" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;margin-top:14px">
+        <defs><marker id="runCtlArrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#6B70A0"/></marker></defs>
+        <rect width="960" height="230" rx="10" fill="#0B0D17"/><rect x="1" y="1" width="958" height="228" rx="9" fill="none" stroke="#252840"/>
+        <rect x="30" y="70" width="170" height="88" rx="9" fill="#151829" stroke="#3B82F6"/><text x="115" y="98" text-anchor="middle" fill="#3B82F6" font-size="11" font-weight="700">WebSocket / REST</text><text x="115" y="120" text-anchor="middle" fill="#9FA4C4" font-size="8">steer · cancel · resume</text><text x="115" y="140" text-anchor="middle" fill="#6B70A0" font-size="8">Session-bound requestId/text</text>
+        <rect x="255" y="70" width="190" height="88" rx="9" fill="#151829" stroke="#A855F7"/><text x="350" y="98" text-anchor="middle" fill="#A855F7" font-size="11" font-weight="700">RunExecutionRegistry</text><text x="350" y="120" text-anchor="middle" fill="#9FA4C4" font-size="8">active run · steering queue</text><text x="350" y="140" text-anchor="middle" fill="#6B70A0" font-size="8">in-memory · cancellation</text>
+        <rect x="500" y="70" width="190" height="88" rx="9" fill="#151829" stroke="#F59E0B"/><text x="595" y="98" text-anchor="middle" fill="#F59E0B" font-size="11" font-weight="700">QueryEngine</text><text x="595" y="120" text-anchor="middle" fill="#9FA4C4" font-size="8">turn boundary 消费输入</text><text x="595" y="140" text-anchor="middle" fill="#6B70A0" font-size="8">applied/rejected Run 事件</text>
+        <rect x="745" y="70" width="185" height="88" rx="9" fill="#151829" stroke="#10B981"/><text x="837" y="98" text-anchor="middle" fill="#10B981" font-size="11" font-weight="700">RunControlService</text><text x="837" y="120" text-anchor="middle" fill="#9FA4C4" font-size="8">CAS terminal state</text><text x="837" y="140" text-anchor="middle" fill="#6B70A0" font-size="8">完成 / 失败 / 取消 / 中断</text>
+        <line x1="200" y1="114" x2="255" y2="114" stroke="#6B70A0" stroke-width="1.3" class="anim-line" marker-end="url(#runCtlArrow)"/><line x1="445" y1="114" x2="500" y2="114" stroke="#6B70A0" stroke-width="1.3" class="anim-line" marker-end="url(#runCtlArrow)"/><line x1="690" y1="114" x2="745" y2="114" stroke="#6B70A0" stroke-width="1.3" class="anim-line" marker-end="url(#runCtlArrow)"/>
+        <text x="480" y="205" text-anchor="middle" fill="#6B70A0" font-size="9">重连恢复完整 Session 消息、最新 Run snapshot/event sequence、活跃工具状态与待处理持久交互</text>
+      </svg>
+    </div>
   </div>
 </div>
 
@@ -1159,7 +1187,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
   <div class="section-head">
     <span class="section-num java">04</span>
     <h2>统一权限分析、授权与执行准入</h2>
-    <span class="meta">authorization/ · V015 Durable Interaction · V019 Permission Grant</span>
+    <span class="meta">authorization/ · V015 Durable Interaction · V019 Permission Grant · V020 Project</span>
   </div>
 
   <!-- Stage 1 -->
@@ -1173,7 +1201,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
         <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">4</div><div class="line"></div></div><div class="flow-body"><div class="ft">OperationDescriptor + invariant</div><div class="fd">effect/resource/environment/network/risk；拒绝非法资源字符与敏感继承环境</div></div></div>
         <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">5</div><div class="line"></div></div><div class="flow-body"><div class="ft">只收紧 Security Hook</div><div class="fd">只读取冻结输入和已生成事实；可以拒绝，但不能修改输入或扩大授权</div></div></div>
         <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">6</div><div class="line"></div></div><div class="flow-body"><div class="ft">SAFE_INTERNAL / Grant</div><div class="fd">精确 SAFE_INTERNAL 由内建策略放行，否则匹配 scope、profile、Analyzer 版本与约束</div></div></div>
-        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">7</div><div class="line"></div></div><div class="flow-body"><div class="ft">权限模式裁决</div><div class="fd">DEFAULT / PLAN / ACCEPT_EDITS / DONT_ASK</div></div></div>
+        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">7</div><div class="line"></div></div><div class="flow-body"><div class="ft">权限模式裁决</div><div class="fd">DEFAULT / PLAN / ACCEPT_EDITS / DONT_ASK / AUTO_APPROVE；自动批准只替代人工确认，不绕过硬拒绝、安全 Hook、SSRF 防护或部署沙箱。</div></div></div>
         <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">8</div><div class="line"></div></div><div class="flow-body"><div class="ft">Durable Interaction v3</div><div class="fd">optionId / descriptorHash / scopeOptions / expectedVersion / deliveryGeneration；ACK 只确认投递，用户决定由数据库 CAS 产生唯一终态</div></div></div>
         <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">9</div><div class="line"></div></div><div class="flow-body"><div class="ft">声明输出规划</div><div class="fd">planOutputs() 在 Gateway 前生成无副作用的产物声明；工具并发/work lease 由上游 StreamingToolExecutor 管理</div></div></div>
         <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red);font-size:.6rem">10</div><div class="line"></div></div><div class="flow-body"><div class="ft">最终动态与 Grant 复检</div><div class="fd">仅在路径、符号链接、风险或授权约束发生安全退化，或 Grant 撤销/过期时拒绝；无害环境变化不得误拒绝</div></div></div>
@@ -1198,11 +1226,12 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
   <!-- Mode and scope reference matrix -->
   <div class="card java-accent">
-    <div class="card-title" onclick="toggleDetail(this)"><span class="toggle open">▶</span> 模式与作用域 <span class="tag purple">4 模式 · 4 作用域</span></div>
+    <div class="card-title" onclick="toggleDetail(this)"><span class="toggle open">▶</span> 权限模式与授权范围 <span class="tag purple">5 模式 · ONCE决策 + 3持久Grant范围</span></div>
     <div class="card-detail show">
       <div class="flow">
         <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--purple);font-size:.65rem">✓</div></div><div class="flow-body"><div class="ft">授权结果与作用域</div><div class="fd" style="margin-top:6px">
-          <span class="tag java">DEFAULT</span> <span class="tag ts">PLAN</span> <span class="tag green">ACCEPT_EDITS</span> <span class="tag cyan">DONT_ASK</span> <span class="tag red">ONCE</span> <span class="tag purple">RUN / SESSION</span> <span class="tag" style="background:rgba(255,255,255,.08);color:var(--text2)">WORKSPACE</span>
+          <span style="color:var(--text3)">权限模式：</span><span class="tag java">DEFAULT</span> <span class="tag ts">PLAN</span> <span class="tag green">ACCEPT_EDITS</span> <span class="tag cyan">DONT_ASK</span> <span class="tag red">AUTO_APPROVE</span><br>
+          <span style="color:var(--text3)">授权范围：</span><span class="tag red">ONCE（一次性决策，不持久化）</span> <span class="tag purple">RUN</span> <span class="tag purple">SESSION</span> <span class="tag" style="background:rgba(255,255,255,.08);color:var(--text2)">WORKSPACE</span> <span style="color:var(--text3)">（后三者为持久 Grant 范围）</span>
         </div></div></div>
       </div>
       <div style="margin-top:12px;font-size:.78rem;color:var(--text2)">
@@ -1212,11 +1241,11 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
   </div>
 
   <div class="card java-accent">
-    <div class="card-title"><span class="tag green">日志证实</span> 运行验证与证据边界 <span class="tag cyan">2026-07-18</span></div>
+    <div class="card-title"><span class="tag green">证据边界</span> 源码、测试与运行交叉核验</div>
     <div class="card-detail show">
       <div class="flow">
-        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--green);font-size:.65rem">✓</div></div><div class="flow-body"><div class="ft">19:43–20:00 权限运行窗口</div><div class="fd">7 次请求在 DEFAULT 模式下执行并以 end_turn 正常结束；Permission Interaction ANSWERED 6 次。20 条 Grant match 对应 10 次工具操作的初次匹配与执行前最终复检（Bash 2、Edit 4、Read 2、Write 2），不是重复执行。该窗口未出现 AUTHORIZATION_FINAL_RECHECK_DENIED、INTERACTION_PAYLOAD_INVALID、SQLITE_BUSY 或 tool_permission_denied。</div></div></div>
-        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--cyan);font-size:.65rem">↻</div></div><div class="flow-body"><div class="ft">20:23 会话恢复</div><div class="fd">日志验证 offline grace → bind-session → session_restored → permission_mode_changed；这是有限本地运行证据，不等同于独立安全认证或全部并发/故障场景证明。</div></div></div>
+        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--green);font-size:.65rem">✓</div></div><div class="flow-body"><div class="ft">架构事实来源</div><div class="fd">权限模式、Grant 范围、Project 边界和执行前复检以当前提交中的枚举、服务实现、数据库迁移与自动化测试为权威依据。</div></div></div>
+        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--cyan);font-size:.65rem">↻</div></div><div class="flow-body"><div class="ft">运行证据边界</div><div class="fd">运行日志仅用于内部交叉核验关联上下文、工具链和恢复路径；不公开任务内容、路径、会话标识、时间窗口或运行统计，也不将未覆盖能力标记为日志已验证。</div></div></div>
       </div>
     </div>
   </div>
@@ -1395,14 +1424,14 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <!-- ===== STAGE 3: Mode Conversion (1 step) ===== -->
       <rect x="30" y="590" width="900" height="180" rx="12" fill="url(#gS3)" stroke="#A855F7" stroke-width="1" filter="url(#glowPu)"/>
       <text x="50" y="616" fill="#A855F7" font-size="13" font-weight="700">REFERENCE B: 模式、Scope 与继承</text>
-      <text x="390" y="616" fill="#6B70A0" font-size="10" style="font-family:'JetBrains Mono',monospace">4 种用户模式 · ALLOW / DENY / INTERACTION</text>
+      <text x="390" y="616" fill="#6B70A0" font-size="10" style="font-family:'JetBrains Mono',monospace">5 种权限模式 · 授权范围见 REFERENCE A</text>
 
       <rect x="50" y="632" width="160" height="44" rx="8" fill="#151829" stroke="#A855F7" stroke-width="1"/>
       <text x="130" y="650" text-anchor="middle" fill="#A855F7" font-size="10" font-weight="600">无 Grant → 按模式裁决</text>
       <text x="130" y="664" text-anchor="middle" fill="#6B70A0" font-size="7.5">SAFE file read 可按模式放行</text>
       <line x1="210" y1="654" x2="248" y2="654" stroke="#A855F7" stroke-width="1.5" marker-end="url(#pArP)"/>
 
-      <!-- 四种权限模式及 Scope/继承参考项 -->
+      <!-- 五种权限模式及继承参考项；ONCE/RUN/SESSION/WORKSPACE 属于上方授权范围 -->
       <rect x="248" y="630" width="82" height="48" rx="6" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
       <text x="289" y="649" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600">DEFAULT</text>
       <text x="289" y="666" text-anchor="middle" fill="#6B70A0" font-size="6.5">用户确认</text>
@@ -1416,8 +1445,8 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <text x="559" y="649" text-anchor="middle" fill="#06B6D4" font-size="8" font-weight="600">DONT_ASK</text>
       <text x="559" y="666" text-anchor="middle" fill="#6B70A0" font-size="6.5">仅 SAFE file read</text>
       <rect x="608" y="630" width="72" height="48" rx="6" fill="#151829" stroke="#EF4444" stroke-width=".8"/>
-      <text x="644" y="649" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="600">ONCE</text>
-      <text x="644" y="666" text-anchor="middle" fill="#6B70A0" font-size="6.5">不持久化</text>
+      <text x="644" y="649" text-anchor="middle" fill="#EF4444" font-size="7.5" font-weight="600">AUTO_APPROVE</text>
+      <text x="644" y="666" text-anchor="middle" fill="#6B70A0" font-size="6.5">硬拒绝仍生效</text>
       <rect x="688" y="630" width="82" height="48" rx="6" fill="#151829" stroke="#A855F7" stroke-width=".8"/>
       <text x="729" y="649" text-anchor="middle" fill="#A855F7" font-size="7.5" font-weight="600">ROOT_AND_DESC</text>
       <text x="729" y="666" text-anchor="middle" fill="#6B70A0" font-size="6.5">子代理受控继承</text>
@@ -1569,6 +1598,29 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <text x="745" y="437" text-anchor="middle" fill="#7B61FF" font-size="7.5" font-weight="600" style="font-family:'JetBrains Mono',monospace">V019 permission_grants · 约束、过期与撤销</text>
     </svg>
   </div>
+
+  <h3 id="svg-project" style="font-size:1.05rem;font-weight:700;color:#3B82F6;margin:28px 0 12px;letter-spacing:.02em;scroll-margin-top:24px">V020 Project 工作空间信任边界</h3>
+  <div class="card java-accent">
+    <div class="card-title" onclick="toggleDetail(this)"><span class="toggle open">▶</span> Project 授权、Session 工作目录与路径归一化 <span class="tag ts">V020</span><span class="tag red">Fail Closed</span></div>
+    <div class="card-detail show">
+      <div class="flow">
+        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--ts)">1</div><div class="line"></div></div><div class="flow-body"><div class="ft">选择并持久授权 Project</div><div class="fd">直连本机且显式启用时可使用原生目录选择器；远程、反向代理和生产部署只浏览配置的 allowed roots。服务端保存可查询、切换和撤销的 V020 Project 记录。</div></div></div>
+        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--ts)">2</div><div class="line"></div></div><div class="flow-body"><div class="ft">绑定 Session 默认相对路径根</div><div class="fd">服务端解析真实、规范化绝对路径并拒绝根目录、符号链接别名、身份重绑定及规范化失败；Session 只接受 projectId，客户端任意 workingDirectory 会被拒绝。</div></div></div>
+        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--java)">3</div><div class="line"></div></div><div class="flow-body"><div class="ft">越界重新进入授权链</div><div class="fd">Project 内普通文件读取或编辑是否自动允许取决于权限模式和 Grant；Project 外资源重新经过 Analyzer、AuthorizationService 与 Gateway 最终复检。</div></div></div>
+        <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--red)">4</div></div><div class="flow-body"><div class="ft">边界说明</div><div class="fd">Project 是持久、可撤销的信任范围和默认相对路径根，不是通用 OS 沙箱；Bash、敏感文件和高风险操作始终受独立安全控制。</div></div></div>
+      </div>
+      <svg viewBox="0 0 960 245" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;margin-top:14px">
+        <defs><marker id="projectArrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#6B70A0"/></marker></defs>
+        <rect width="960" height="245" rx="10" fill="#0B0D17"/><rect x="1" y="1" width="958" height="243" rx="9" fill="none" stroke="#252840"/>
+        <rect x="25" y="55" width="180" height="105" rx="9" fill="#151829" stroke="#3B82F6"/><text x="115" y="83" text-anchor="middle" fill="#3B82F6" font-size="11" font-weight="700">Project Selection</text><text x="115" y="106" text-anchor="middle" fill="#9FA4C4" font-size="8">本机 picker / 远程 allowed roots</text><text x="115" y="130" text-anchor="middle" fill="#6B70A0" font-size="8">不信任客户端 cwd 字符串</text>
+        <rect x="255" y="55" width="180" height="105" rx="9" fill="#151829" stroke="#06B6D4"/><text x="345" y="83" text-anchor="middle" fill="#06B6D4" font-size="11" font-weight="700">Path Normalization</text><text x="345" y="106" text-anchor="middle" fill="#9FA4C4" font-size="8">real / canonical path</text><text x="345" y="130" text-anchor="middle" fill="#6B70A0" font-size="8">符号链接与别名复检</text>
+        <rect x="485" y="55" width="180" height="105" rx="9" fill="#151829" stroke="#A855F7"/><text x="575" y="83" text-anchor="middle" fill="#A855F7" font-size="11" font-weight="700">V020 Project Record</text><text x="575" y="106" text-anchor="middle" fill="#9FA4C4" font-size="8">persistent · revocable</text><text x="575" y="130" text-anchor="middle" fill="#6B70A0" font-size="8">Session root binding</text>
+        <rect x="715" y="55" width="220" height="105" rx="9" fill="#151829" stroke="#F59E0B"/><text x="825" y="83" text-anchor="middle" fill="#F59E0B" font-size="11" font-weight="700">Authorization + Gateway</text><text x="825" y="106" text-anchor="middle" fill="#9FA4C4" font-size="8">普通文件读写 / 越界复检</text><text x="825" y="130" text-anchor="middle" fill="#6B70A0" font-size="8">硬拒绝 / Hook / Sandbox 不变</text>
+        <line x1="205" y1="108" x2="255" y2="108" stroke="#6B70A0" class="anim-line" marker-end="url(#projectArrow)"/><line x1="435" y1="108" x2="485" y2="108" stroke="#6B70A0" class="anim-line" marker-end="url(#projectArrow)"/><line x1="665" y1="108" x2="715" y2="108" stroke="#6B70A0" class="anim-line" marker-end="url(#projectArrow)"/>
+        <rect x="185" y="192" width="590" height="30" rx="15" fill="rgba(239,68,68,.08)" stroke="#EF4444" stroke-width=".8"/><text x="480" y="211" text-anchor="middle" fill="#EF4444" font-size="9">任意 cwd / 根目录 / 未授权根 / 别名或重绑定 / 规范化失败 → 拒绝绑定</text>
+      </svg>
+    </div>
+  </div>
 </div>
 
 <!-- ============ SECTION 5: BASH SECURITY ============ -->
@@ -1576,7 +1628,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
   <div class="section-head">
     <span class="section-num java">05</span>
     <h2>Bash 安全模块 — 6层 AST 解析</h2>
-    <span class="meta">tool/bash/ 17文件 5,620行</span>
+    <span class="meta">tool/bash/ · 语义分析、分类、路径和执行前复检</span>
   </div>
 
   <div class="grid-2">
@@ -1633,7 +1685,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
       <!-- 标题 -->
       <text x="340" y="32" fill="#e8e8f0" font-size="13" font-weight="700" style="font-family:'JetBrains Mono',monospace">Bash Command Input</text>
-      <text x="340" y="46" fill="#6B70A0" font-size="9" style="font-family:'JetBrains Mono',monospace">BashTool.java 559行 → 入口</text>
+      <text x="340" y="46" fill="#6B70A0" font-size="9" style="font-family:'JetBrains Mono',monospace">BashTool.java → 安全执行入口</text>
 
       <!-- 入口箭头 -->
       <line x1="380" y1="52" x2="380" y2="68" stroke="#3B82F6" stroke-width="2" stroke-dasharray="4,3"/>
@@ -1758,7 +1810,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
       <!-- 底部统计条 -->
       <rect x="80" y="560" width="620" height="14" rx="4" fill="#151829"/>
-      <text x="390" y="571" text-anchor="middle" fill="#6B70A0" font-size="9" style="font-family:'JetBrains Mono',monospace">tool/bash/ 17文件 · 5,620行  |  sandbox/ 2文件 · 316行  |  security/ 5文件 · 1,248行  |  总计 24文件 · 7,184行</text>
+      <text x="390" y="571" text-anchor="middle" fill="#6B70A0" font-size="9" style="font-family:'JetBrains Mono',monospace">tool/bash 语义分析  |  sandbox 容器隔离  |  security Hook与敏感路径保护</text>
     </svg>
   </div>
 </div>
@@ -1766,7 +1818,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 <!-- ============ SECTION 5b: DOCKER SANDBOX ISOLATION ============ -->
 <div class="section" id="s5b">
   <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:28px;margin-top:24px">
-    <h3 style="font-size:1rem;font-weight:700;margin-bottom:16px;color:var(--text);text-align:center">Docker 沙箱隔离 — 容器级安全边界 <span style="color:var(--text3);font-weight:400;font-size:.75rem">— SandboxManager.java 259行 · SandboxConfig.java 57行</span></h3>
+    <h3 style="font-size:1rem;font-weight:700;margin-bottom:16px;color:var(--text);text-align:center">Docker 沙箱隔离 — 容器级安全边界 <span style="color:var(--text3);font-weight:400;font-size:.75rem">— SandboxManager.java · SandboxConfig.java</span></h3>
     <svg viewBox="0 0 900 500" xmlns="http://www.w3.org/2000/svg" style="width:100%;min-width:750px">
       <defs>
         <linearGradient id="sbx-gHost" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6B7280" stop-opacity=".18"/><stop offset="100%" stop-color="#6B7280" stop-opacity=".04"/></linearGradient>
@@ -1878,7 +1930,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
       <!-- 底部统计条 -->
       <rect x="30" y="490" width="840" height="14" rx="4" fill="#151829"/>
-      <text x="450" y="500" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">sandbox/ 2文件 316行 | 隔离层: read-only FS + network=none + seccomp + mem 512m + timeout 300s | 非root用户: zhikun</text>
+      <text x="450" y="500" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">sandbox/ | 隔离层: read-only FS + network=none + seccomp + mem 512m + timeout 300s | 非root用户: zhikun</text>
     </svg>
   </div>
 </div>
@@ -1888,7 +1940,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
   <div class="section-head">
     <span class="section-num java">06</span>
     <h2>LLM 多提供商架构</h2>
-    <span class="meta">llm/ 26文件 3,456行</span>
+    <span class="meta">llm/ · Provider注册、能力目录、重试与降级</span>
   </div>
 
   <div class="card java-accent">
@@ -1907,9 +1959,10 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       </div>
       <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px;font-size:.78rem">
         <div><span style="color:var(--text3)">模型别名:</span></div>
-        <div><span class="tag cyan">light</span> → qwen3.7-plus</div>
-        <div><span class="tag java">standard</span> → qwen3.7-plus</div>
+        <div><span class="tag cyan">light</span> → qwen3.7-max</div>
+        <div><span class="tag java">standard</span> → qwen3.7-max</div>
         <div><span class="tag purple">premium</span> → qwen3.7-max</div>
+        <div><span class="tag green">Token Plan 可选</span> → qwen3.8-max（独立 Provider，不进入默认降级链）</div>
       </div>
     </div>
   </div>
@@ -1973,7 +2026,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <line x1="310" y1="240" x2="310" y2="262" stroke="#F59E0B" stroke-width="1" opacity=".5"/>
       <rect x="236" y="262" width="148" height="42" rx="8" fill="#151829" stroke="#F59E0B" stroke-width="1.2"/>
       <text x="310" y="282" fill="#F59E0B" font-size="10" font-weight="600" text-anchor="middle" style="font-family:'JetBrains Mono',monospace">通义千问 Qwen</text>
-      <text x="310" y="296" fill="#6B70A0" font-size="8" text-anchor="middle" style="font-family:'JetBrains Mono',monospace">3.7-max / 3.7-plus / turbo</text>
+      <text x="310" y="296" fill="#6B70A0" font-size="8" text-anchor="middle" style="font-family:'JetBrains Mono',monospace">3.7-max/plus · 3.8-max(Token Plan)</text>
       <!-- DeepSeek -->
       <line x1="460" y1="240" x2="460" y2="262" stroke="#3B82F6" stroke-width="1" opacity=".5"/>
       <rect x="386" y="262" width="148" height="42" rx="8" fill="#151829" stroke="#3B82F6" stroke-width="1.2"/>
@@ -2222,7 +2275,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
       <!-- ===== Title ===== -->
       <text x="450" y="26" fill="#06B6D4" font-size="14" font-weight="700" text-anchor="middle">API 密钥轮换机制 — Round-robin + 冷却跳过</text>
-      <text x="450" y="42" fill="#6B70A0" font-size="9" text-anchor="middle">ApiKeyRotationManager.java · 150行 · ConcurrentHashMap&lt;Key,Instant&gt; 冷却表 · AtomicInteger 轮换索引</text>
+      <text x="450" y="42" fill="#6B70A0" font-size="9" text-anchor="middle">ApiKeyRotationManager.java · ConcurrentHashMap&lt;Key,Instant&gt; 冷却表 · AtomicInteger 轮换索引</text>
 
       <!-- ===== Left Panel: Key Pool (x=20-260) ===== -->
       <rect x="20" y="55" width="240" height="280" rx="10" fill="#0F1221" stroke="#06B6D4" stroke-width="1.5" filter="url(#akr-sh)"/>
@@ -2413,7 +2466,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <!-- 生命线头部 -->
       <rect x="60" y="40" width="120" height="34" rx="6" fill="#1E3A5F" stroke="#3B82F6" stroke-width="1.2"/>
       <text x="120" y="56" text-anchor="middle" font-size="9.5" fill="#3B82F6" font-weight="700" style="font-family:'JetBrains Mono',monospace">React 前端</text>
-      <text x="120" y="67" text-anchor="middle" font-size="7" fill="#6B70A0" style="font-family:'JetBrains Mono',monospace">stompClient.ts 363行</text>
+      <text x="120" y="67" text-anchor="middle" font-size="7" fill="#6B70A0" style="font-family:'JetBrains Mono',monospace">stompClient.ts</text>
 
       <rect x="270" y="40" width="140" height="34" rx="6" fill="#2A1F0A" stroke="#F59E0B" stroke-width="1.2"/>
       <text x="340" y="56" text-anchor="middle" font-size="9.5" fill="#F59E0B" font-weight="700" style="font-family:'JetBrains Mono',monospace">Spring WebSocket 层</text>
@@ -2514,8 +2567,8 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <line x1="180" y1="550" x2="120" y2="550" stroke="#EF4444" stroke-width="1.2" marker-end="url(#ws-arrow-r)"/>
       <text x="210" y="542" font-size="6.8" fill="#EF4444" style="font-family:'JetBrains Mono',monospace">指数退避 1s→2s→4s→8s→10s</text>
       <line x1="120" y1="562" x2="340" y2="562" stroke="#3B82F6" stroke-width="1.2" stroke-dasharray="4,2" marker-end="url(#ws-arrow)"/>
-      <text x="230" y="558" text-anchor="middle" font-size="7" fill="#3B82F6" style="font-family:'JetBrains Mono',monospace">重连 → SockJS /ws + CONNECT + re-bind-session</text>
-      <text x="230" y="574" text-anchor="middle" font-size="6.5" fill="#6B70A0" style="font-family:'JetBrains Mono',monospace">超时 10min → deactivate() · 映射保留供重连 (TTL 10min 清理)</text>
+      <text x="230" y="558" text-anchor="middle" font-size="7" fill="#3B82F6" style="font-family:'JetBrains Mono',monospace">重连 → SockJS /ws + CONNECT + bind-session</text>
+      <text x="230" y="574" text-anchor="middle" font-size="6.5" fill="#6B70A0" style="font-family:'JetBrains Mono',monospace">session_restored → 完整消息/活动 + Run snapshot/event seq + 活跃工具 + 待处理交互</text>
 
       <!-- 右侧说明面板 -->
       <rect x="830" y="88" width="120" height="225" rx="6" fill="#111327" stroke="#2A2D45" stroke-width=".8"/>
@@ -2559,15 +2612,15 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <!-- 底部统计条 -->
       <rect x="20" y="590" width="920" height="22" rx="5" fill="#111327" stroke="#2A2D45" stroke-width=".6"/>
       <text x="30" y="604" font-size="7.5" fill="#F59E0B" style="font-family:'JetBrains Mono',monospace" font-weight="600">后端 websocket/ 4文件 1,755行</text>
-      <text x="220" y="604" font-size="7.5" fill="#F59E0B" style="font-family:'JetBrains Mono',monospace">WebSocketConfig.java 249行</text>
-      <text x="420" y="604" font-size="7.5" fill="#3B82F6" style="font-family:'JetBrains Mono',monospace" font-weight="600">前端 stompClient.ts 363行</text>
-      <text x="610" y="604" font-size="7.5" fill="#3B82F6" style="font-family:'JetBrains Mono',monospace">dispatch.ts 557行</text>
+      <text x="220" y="604" font-size="7.5" fill="#F59E0B" style="font-family:'JetBrains Mono',monospace">WebSocketConfig.java</text>
+      <text x="420" y="604" font-size="7.5" fill="#3B82F6" style="font-family:'JetBrains Mono',monospace" font-weight="600">前端 stompClient.ts</text>
+      <text x="610" y="604" font-size="7.5" fill="#3B82F6" style="font-family:'JetBrains Mono',monospace">dispatch.ts</text>
       <text x="760" y="604" font-size="7.5" fill="#6B70A0" style="font-family:'JetBrains Mono',monospace">useWebSocket.ts 119行</text>
     </svg>
   </div>
 
   <!-- SVG: WebSocket/STOMP 实时通信协议栈 -->
-  <h3 id="svg-ws" style="font-size:1.05rem;font-weight:700;color:#7B61FF;margin:28px 0 12px;letter-spacing:.02em;scroll-margin-top:24px">WebSocket/STOMP 实时通信 — stompClient.ts 363行 · 双向消息流</h3>
+  <h3 id="svg-ws" style="font-size:1.05rem;font-weight:700;color:#7B61FF;margin:28px 0 12px;letter-spacing:.02em;scroll-margin-top:24px">WebSocket/STOMP 实时通信 — 双向消息、结构化卡片与重连对账</h3>
   <div class="card" style="margin-top:0;padding:0;overflow:hidden;border:1px solid var(--border2)">
     <div style="padding:16px 20px 8px;font-size:.85rem;font-weight:700;color:#7B61FF;letter-spacing:.02em">▸ WebSocket/STOMP 实时通信协议栈 — 源码验证</div>
     <svg id="ws-protocol-stack" width="100%" viewBox="0 0 900 450" xmlns="http://www.w3.org/2000/svg" style="display:block;font-family:'JetBrains Mono',monospace">
@@ -2656,7 +2709,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <!-- Left panel: Frontend stompClient.ts -->
       <rect x="16" y="128" width="290" height="244" rx="8" fill="#0D0F1E" stroke="#3B82F6" stroke-width="1"/>
       <rect x="16" y="128" width="290" height="24" rx="8" fill="#3B82F6" fill-opacity=".12"/>
-      <text x="161" y="144" text-anchor="middle" font-size="8.5" fill="#3B82F6" font-weight="700">Frontend · stompClient.ts (363行)</text>
+      <text x="161" y="144" text-anchor="middle" font-size="8.5" fill="#3B82F6" font-weight="700">Frontend · stompClient.ts</text>
 
       <!-- 11 send destinations -->
       <text x="28" y="166" font-size="7" fill="#5B8CD8">#1  sendUserMessage()</text>
@@ -2731,7 +2784,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
       <!-- Message type count -->
       <line x1="330" y1="332" x2="572" y2="332" stroke="#2A2D45" stroke-width=".5"/>
-      <text x="328" y="346" font-size="6.5" fill="#F59E0B" font-weight="600">35+ 消息类型白名单 (VALID_MESSAGE_TYPES)</text>
+      <text x="328" y="346" font-size="6.5" fill="#F59E0B" font-weight="600">受控消息类型白名单 (VALID_MESSAGE_TYPES)</text>
       <text x="328" y="358" font-size="5.8" fill="#6B70A0">stream_delta · thinking_delta · tool_use_start · tool_result</text>
       <text x="328" y="368" font-size="5.8" fill="#6B70A0">permission_request · cost_update · task_update · agent_spawn</text>
 
@@ -3026,7 +3079,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
   <div class="section-head">
     <span class="section-num java">09</span>
     <h2>工具系统</h2>
-    <span class="meta">tool/ 105+文件 ~19,081行 · tool/impl/ — 51个工具</span>
+    <span class="meta">40+ 内置工具 · MCP / 插件 / 平台条件工具动态扩展</span>
   </div>
 
   <div class="card java-accent">
@@ -3097,7 +3150,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
       <!-- ===== LEFT: TOOL CATEGORIES ===== -->
       <rect x="30" y="48" width="440" height="590" rx="10" fill="url(#gToolCat)" stroke="#F59E0B" stroke-width="1" filter="url(#glowTool)"/>
-      <text x="50" y="74" fill="#F59E0B" font-size="13" font-weight="700" style="font-family:'JetBrains Mono',monospace">工具分类树 — 43个工具 / 5类</text>
+      <text x="50" y="74" fill="#F59E0B" font-size="13" font-weight="700" style="font-family:'JetBrains Mono',monospace">工具分类树 — 40+ 内置工具 / 5类 · 动态扩展</text>
 
       <!-- Cat 1: Core Execution (8) -->
       <rect x="50" y="90" width="400" height="92" rx="8" fill="rgba(239,68,68,0.06)" stroke="#EF4444" stroke-width=".8"/>
@@ -3654,7 +3707,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
 <!-- 工具权限决策模型 SVG -->
 <div class="card" style="margin-top:16px;padding:0;overflow:hidden;border:1px solid var(--border2)">
-  <div style="padding:16px 20px 8px;font-size:.85rem;font-weight:700;color:var(--java);letter-spacing:.02em">▸ 工具权限决策模型 — 4种模式 · 4种作用域 · 执行前复检</div>
+  <div style="padding:16px 20px 8px;font-size:.85rem;font-weight:700;color:var(--java);letter-spacing:.02em">▸ 工具权限决策模型 — 5种权限模式 · ONCE一次性决策 + 3种持久Grant范围 · 执行前复检</div>
   <svg viewBox="0 0 960 620" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
     <defs>
       <linearGradient id="gPermMode" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#F59E0B" stop-opacity=".15"/><stop offset="100%" stop-color="#F59E0B" stop-opacity=".03"/></linearGradient>
@@ -3669,10 +3722,10 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
     </defs>
     <rect width="960" height="620" fill="#0B0D17"/><rect width="960" height="620" fill="url(#gridPerm)"/>
 
-    <!-- ===== LEFT: 7 Permission Modes ===== -->
+    <!-- ===== LEFT: 5 permission modes + 4 grant scopes ===== -->
     <rect x="20" y="20" width="280" height="380" rx="10" fill="url(#gPermMode)" stroke="#F59E0B" stroke-width="1.2"/>
-    <text x="160" y="44" text-anchor="middle" fill="#F59E0B" font-size="12" font-weight="700" style="font-family:'JetBrains Mono',monospace">4种权限模式 / 4种作用域</text>
-    <text x="160" y="60" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">PermissionMode.java · DEFAULT / PLAN / ACCEPT_EDITS / DONT_ASK</text>
+    <text x="160" y="44" text-anchor="middle" fill="#F59E0B" font-size="12" font-weight="700" style="font-family:'JetBrains Mono',monospace">5模式 / ONCE决策 + 3持久Grant范围</text>
+    <text x="160" y="60" text-anchor="middle" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">DEFAULT · PLAN · ACCEPT_EDITS · DONT_ASK · AUTO_APPROVE</text>
 
     <rect x="40" y="75" width="240" height="26" rx="5" fill="#151829" stroke="#10B981" stroke-width="1"/>
     <text x="160" y="92" text-anchor="middle" fill="#10B981" font-size="9" font-weight="600" style="font-family:'JetBrains Mono',monospace">DEFAULT — 写操作弹窗确认</text>
@@ -3687,13 +3740,13 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
     <text x="160" y="191" text-anchor="middle" fill="#A855F7" font-size="9" font-weight="600" style="font-family:'JetBrains Mono',monospace">DONT_ASK — 仅 SAFE 文件读，否则拒绝</text>
 
     <rect x="40" y="207" width="240" height="26" rx="5" fill="#151829" stroke="#F59E0B" stroke-width="1"/>
-    <text x="160" y="224" text-anchor="middle" fill="#F59E0B" font-size="9" font-weight="600" style="font-family:'JetBrains Mono',monospace">ONCE / RUN — 单次与当前执行</text>
+    <text x="160" y="224" text-anchor="middle" fill="#F59E0B" font-size="8.5" font-weight="600" style="font-family:'JetBrains Mono',monospace">AUTO_APPROVE — 自动确认，硬拒绝仍生效</text>
 
     <rect x="40" y="240" width="240" height="26" rx="5" fill="#151829" stroke="#EC4899" stroke-width="1"/>
-    <text x="160" y="257" text-anchor="middle" fill="#EC4899" font-size="9" font-weight="600" style="font-family:'JetBrains Mono',monospace">SESSION — 根会话及后代受控复用</text>
+    <text x="160" y="257" text-anchor="middle" fill="#EC4899" font-size="9" font-weight="600" style="font-family:'JetBrains Mono',monospace">一次性决策: ONCE（不持久化）</text>
 
     <rect x="40" y="273" width="240" height="26" rx="5" fill="#151829" stroke="#EF4444" stroke-width="1"/>
-    <text x="160" y="290" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="600" style="font-family:'JetBrains Mono',monospace">WORKSPACE — 仅受约束文件能力</text>
+    <text x="160" y="290" text-anchor="middle" fill="#EF4444" font-size="9" font-weight="600" style="font-family:'JetBrains Mono',monospace">持久Grant: RUN / SESSION / WORKSPACE</text>
 
     <!-- Tool requirements -->
     <text x="40" y="320" fill="#6B70A0" font-size="8" font-weight="600" style="font-family:'JetBrains Mono',monospace">工具元数据(PermissionRequirement，非授权权威):</text>
@@ -3746,7 +3799,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
     <!-- ===== RIGHT: BashCommandClassifier ===== -->
     <rect x="650" y="20" width="290" height="380" rx="10" fill="url(#gPermBash)" stroke="#EF4444" stroke-width="1.2"/>
     <text x="795" y="44" text-anchor="middle" fill="#EF4444" font-size="12" font-weight="700" style="font-family:'JetBrains Mono',monospace">Bash 3层验证</text>
-    <text x="795" y="60" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">BashCommandClassifier.java 1,235行</text>
+    <text x="795" y="60" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">BashCommandClassifier.java</text>
 
     <!-- Layer 1 -->
     <rect x="670" y="75" width="250" height="70" rx="8" fill="#151829" stroke="#10B981" stroke-width="1"/>
@@ -3801,7 +3854,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
     <text x="40" y="565" fill="#9FA4C4" font-size="9" style="font-family:'JetBrains Mono',monospace">AuthorizationService</text>
     <text x="240" y="565" fill="#9FA4C4" font-size="9" style="font-family:'JetBrains Mono',monospace">Bash Parser/Classifier（复用现有实现）</text>
     <text x="500" y="565" fill="#9FA4C4" font-size="9" style="font-family:'JetBrains Mono',monospace">OperationAnalyzerRegistry</text>
-    <text x="720" y="565" fill="#9FA4C4" font-size="9" style="font-family:'JetBrains Mono',monospace">4模式 · 4作用域 · 2继承策略</text>
+    <text x="720" y="565" fill="#9FA4C4" font-size="9" style="font-family:'JetBrains Mono',monospace">5模式 · ONCE决策 + 3持久Grant范围 · 2继承策略</text>
     <text x="40" y="585" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">关键设计: 冻结输入 · 不变量不可覆盖 · 持久交互CAS · 子Agent按root identity匹配Grant · Gateway最终复检</text>
   </svg>
 </div>
@@ -3942,7 +3995,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
     </div>
 
 <!-- ============ SECTION 9b: CLI SLASH COMMAND ============ -->
-<!-- CLI Slash Command 系统架构 SVG — 基于 Command.java(66行), CommandRegistry.java(253行), CommandRouter.java(100行), SlashCommandParser.java(69行), WebSocketController.java(1392行), impl/(37文件,3141行) -->
+<!-- CLI Slash Command 系统架构 SVG — 基于 Command、CommandRegistry、CommandRouter、SlashCommandParser、WebSocketController 与 command/impl 职责 -->
 <div class="section" id="s9b">
   <div class="section-head">
     <span class="section-num java">9b</span>
@@ -4061,7 +4114,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <text x="468" y="459" fill="#EF4444" font-size="7.5" font-weight="700" style="font-family:'JetBrains Mono',monospace">⑥ getAvailability() 可用性</text>
 
       <text x="86" y="482" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">CommandContext { sessionId, workingDir, currentModel, isAuthenticated, isRemoteMode, isBridgeMode, appState }</text>
-      <text x="86" y="494" fill="#6B70A0" font-size="7" style="font-family:'JetBrains Mono',monospace">CommandRouter.java · 100 行 · 任何一层失败 → CommandResult.error()</text>
+      <text x="86" y="494" fill="#6B70A0" font-size="7" style="font-family:'JetBrains Mono',monospace">CommandRouter.java · 任何一层失败 → CommandResult.error()</text>
 
       <line x1="350" y1="498" x2="350" y2="518" stroke="#F59E0B" stroke-width="1.4" marker-end="url(#slashArrOrange)"/>
       <text x="360" y="512" fill="#F59E0B" font-size="7.5" font-weight="700" style="font-family:'JetBrains Mono',monospace">execute(args, context)</text>
@@ -4195,7 +4248,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <text x="760" y="482" fill="#9FA4C4" font-size="7.5" style="font-family:'JetBrains Mono',monospace">压缩上下文结果</text>
       <text x="695" y="500" fill="#F59E0B" font-size="8" font-weight="700" style="font-family:'JetBrains Mono',monospace">• ERROR</text>
       <text x="760" y="500" fill="#9FA4C4" font-size="7.5" style="font-family:'JetBrains Mono',monospace">错误信息·不中断会话</text>
-      <text x="812" y="512" text-anchor="middle" fill="#6B70A0" font-size="6.5" style="font-family:'JetBrains Mono',monospace">CommandResult.java · 59 行</text>
+      <text x="812" y="512" text-anchor="middle" fill="#6B70A0" font-size="6.5" style="font-family:'JetBrains Mono',monospace">CommandResult.java · 结构化命令结果</text>
 
       <!-- Command interface panel -->
       <text x="685" y="534" fill="#9FA4C4" font-size="9" font-weight="700" style="font-family:'JetBrains Mono',monospace">Command 接口 · 核心方法</text>
@@ -4205,7 +4258,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <text x="695" y="586" fill="#06B6D4" font-size="7.5" style="font-family:'JetBrains Mono',monospace">List&lt;String&gt; getAliases()</text>
       <text x="695" y="600" fill="#06B6D4" font-size="7.5" style="font-family:'JetBrains Mono',monospace">Availability getAvailability()</text>
       <text x="695" y="614" fill="#06B6D4" font-size="7.5" style="font-family:'JetBrains Mono',monospace">execute(args, context)</text>
-      <text x="695" y="630" fill="#6B70A0" font-size="7" style="font-family:'JetBrains Mono',monospace">Command.java · 66 行 · PromptCommand 33 行</text>
+      <text x="695" y="630" fill="#6B70A0" font-size="7" style="font-family:'JetBrains Mono',monospace">Command.java · PromptCommand · 稳定接口职责</text>
 
       <!-- WS Messages panel -->
       <text x="685" y="658" fill="#9FA4C4" font-size="9" font-weight="700" style="font-family:'JetBrains Mono',monospace">WebSocket 推送消息类型</text>
@@ -4215,7 +4268,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <text x="695" y="714" fill="#06B6D4" font-size="7.5" font-weight="700" style="font-family:'JetBrains Mono',monospace">← 出口：command_result</text>
       <text x="695" y="728" fill="#9FA4C4" font-size="7" style="font-family:'JetBrains Mono',monospace">  stream_delta · tool_use_request</text>
       <text x="695" y="742" fill="#9FA4C4" font-size="7" style="font-family:'JetBrains Mono',monospace">  permission_request · error</text>
-      <text x="695" y="756" fill="#6B70A0" font-size="6.5" style="font-family:'JetBrains Mono',monospace">WebSocketController.java · 1,392 行</text>
+      <text x="695" y="756" fill="#6B70A0" font-size="6.5" style="font-family:'JetBrains Mono',monospace">WebSocketController.java · slash_command / command_result</text>
 
       <!-- Bottom summary bar inside main flow -->
       <rect x="40" y="768" width="620" height="0" fill="none"/>
@@ -4229,21 +4282,21 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
         <div>
           <div style="font-weight:700;color:var(--java);margin-bottom:8px">command/ 核心接口</div>
           <div class="tree">
-            <div class="tree-item"><span class="tn">Command.java</span> <span class="tv">66 行 · 基础接口</span></div>
+            <div class="tree-item"><span class="tn">Command.java</span> <span class="tv">基础接口</span></div>
             <div class="tree-item"><span class="tn">CommandType.java</span> <span class="tv">LOCAL / PROMPT / LOCAL_JSX</span></div>
-            <div class="tree-item"><span class="tn">CommandContext.java</span> <span class="tv">35 行 · record</span></div>
-            <div class="tree-item"><span class="tn">CommandResult.java</span> <span class="tv">59 行 · 5种型</span></div>
-            <div class="tree-item"><span class="tn">PromptCommand.java</span> <span class="tv">33 行 · 提示词接口</span></div>
+            <div class="tree-item"><span class="tn">CommandContext.java</span> <span class="tv">不可变命令上下文 record</span></div>
+            <div class="tree-item"><span class="tn">CommandResult.java</span> <span class="tv">5 种结构化结果</span></div>
+            <div class="tree-item"><span class="tn">PromptCommand.java</span> <span class="tv">提示词接口</span></div>
           </div>
         </div>
         <div>
           <div style="font-weight:700;color:var(--purple);margin-bottom:8px">command/ 调度与解析</div>
           <div class="tree">
-            <div class="tree-item"><span class="tn">SlashCommandParser.java</span> <span class="tv">69 行 · parse()</span></div>
-            <div class="tree-item"><span class="tn">CommandRegistry.java</span> <span class="tv">253 行 · 88 命令</span></div>
-            <div class="tree-item"><span class="tn">CommandRouter.java</span> <span class="tv">100 行 · 6层安全</span></div>
-            <div class="tree-item"><span class="tn">command/impl/</span> <span class="tv">37 文件 · ~3,141 行</span></div>
-            <div class="tree-item"><span class="tn">websocket/WebSocketController</span> <span class="tv">1,392 行 · handleSlashCommand()</span></div>
+            <div class="tree-item"><span class="tn">SlashCommandParser.java</span> <span class="tv">parse()</span></div>
+            <div class="tree-item"><span class="tn">CommandRegistry.java</span> <span class="tv">命令注册与发现</span></div>
+            <div class="tree-item"><span class="tn">CommandRouter.java</span> <span class="tv">6 层安全路由</span></div>
+            <div class="tree-item"><span class="tn">command/impl/</span> <span class="tv">命令实现集合</span></div>
+            <div class="tree-item"><span class="tn">websocket/WebSocketController</span> <span class="tv">handleSlashCommand()</span></div>
           </div>
         </div>
       </div>
@@ -4567,6 +4620,28 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <line x1="786" y1="476" x2="786" y2="494" stroke="#EF4444" stroke-width="1.2" marker-end="url(#haArrR)"/>
     </svg>
   </div>
+
+  <h3 id="svg-artifact-publish" style="font-size:1.05rem;font-weight:700;color:#10B981;margin:28px 0 12px;letter-spacing:.02em;scroll-margin-top:24px">验证产物归属与显式发布链路</h3>
+  <div class="card java-accent">
+    <div class="card-title" onclick="toggleDetail(this)"><span class="toggle open">▶</span> Artifact declare → seal/hash → verified entry → PublishArtifact → OSS <span class="tag green">Verified / Partial</span><span class="tag red">显式高风险</span></div>
+    <div class="card-detail show">
+      <p style="font-size:.8rem;color:var(--text2);margin-bottom:14px">工具先声明预期输出，执行完成后封存并计算哈希；Manifest 状态可以是 verified，也可以是包含目标已验证条目的 partial。目标条目还需在发布前再次匹配哈希，并在用户明确提出发布和通过一次高风险授权后才能进入 OSS。生成、预览或完成 Run 均不会自动上传。</p>
+      <svg viewBox="0 0 960 300" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
+        <defs><marker id="artifactArrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#6B70A0"/></marker></defs>
+        <rect width="960" height="300" rx="10" fill="#0B0D17"/><rect x="1" y="1" width="958" height="298" rx="9" fill="none" stroke="#252840"/>
+        <rect x="25" y="58" width="145" height="90" rx="8" fill="#151829" stroke="#3B82F6"/><text x="97" y="84" text-anchor="middle" fill="#3B82F6" font-size="10" font-weight="700">declare</text><text x="97" y="106" text-anchor="middle" fill="#9FA4C4" font-size="8">planOutputs()</text><text x="97" y="128" text-anchor="middle" fill="#6B70A0" font-size="8">路径 / 类型 / owner</text>
+        <rect x="205" y="58" width="145" height="90" rx="8" fill="#151829" stroke="#F59E0B"/><text x="277" y="84" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="700">seal + hash</text><text x="277" y="106" text-anchor="middle" fill="#9FA4C4" font-size="8">普通文件封存</text><text x="277" y="128" text-anchor="middle" fill="#6B70A0" font-size="8">size / SHA-256</text>
+        <rect x="385" y="58" width="155" height="90" rx="8" fill="#151829" stroke="#10B981"/><text x="462" y="84" text-anchor="middle" fill="#10B981" font-size="10" font-weight="700">verified entry</text><text x="462" y="106" text-anchor="middle" fill="#9FA4C4" font-size="8">manifest: verified / partial</text><text x="462" y="128" text-anchor="middle" fill="#6B70A0" font-size="8">发布前再次验 hash</text>
+        <rect x="575" y="58" width="160" height="90" rx="8" fill="#151829" stroke="#EF4444"/><text x="655" y="84" text-anchor="middle" fill="#EF4444" font-size="10" font-weight="700">PublishArtifact</text><text x="655" y="106" text-anchor="middle" fill="#9FA4C4" font-size="8">明确指令 + ONCE</text><text x="655" y="128" text-anchor="middle" fill="#6B70A0" font-size="8">敏感内容 / 路径复检</text>
+        <rect x="770" y="58" width="165" height="90" rx="8" fill="#151829" stroke="#06B6D4"/><text x="852" y="84" text-anchor="middle" fill="#06B6D4" font-size="10" font-weight="700">OSS 权威外链</text><text x="852" y="106" text-anchor="middle" fill="#9FA4C4" font-size="8">私有上传 → 远端校验</text><text x="852" y="128" text-anchor="middle" fill="#6B70A0" font-size="8">成功后 public-read</text>
+        <line x1="170" y1="103" x2="205" y2="103" stroke="#6B70A0" class="anim-line" marker-end="url(#artifactArrow)"/><line x1="350" y1="103" x2="385" y2="103" stroke="#6B70A0" class="anim-line" marker-end="url(#artifactArrow)"/><line x1="540" y1="103" x2="575" y2="103" stroke="#6B70A0" class="anim-line" marker-end="url(#artifactArrow)"/><line x1="735" y1="103" x2="770" y2="103" stroke="#6B70A0" class="anim-line" marker-end="url(#artifactArrow)"/>
+        <rect x="150" y="195" width="660" height="70" rx="10" fill="rgba(168,85,247,.08)" stroke="#A855F7" stroke-width="1"/>
+        <text x="480" y="218" text-anchor="middle" fill="#A855F7" font-size="10" font-weight="700">根 Session 与后代 Run 产物归属</text>
+        <text x="480" y="239" text-anchor="middle" fill="#9FA4C4" font-size="8.5">候选包括同一持久化根 Session 的根 Run，以及通过 parent_run_id 建立的授权后代 Run；目标条目必须已验证且哈希仍匹配</text>
+        <text x="480" y="256" text-anchor="middle" fill="#6B70A0" font-size="8">目录、批量、符号链接、workspace 外路径、凭证与敏感文件拒绝发布</text>
+      </svg>
+    </div>
+  </div>
 </div>
 
 <!-- ============ SECTION 10: CONTEXT MANAGEMENT ============ -->
@@ -4607,7 +4682,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
       <!-- Title -->
       <rect x="30" y="14" width="900" height="38" rx="8" fill="#151829" stroke="#F59E0B" stroke-width="1" filter="url(#ccGlowF)"/>
-      <text x="480" y="38" text-anchor="middle" fill="#F59E0B" font-size="13" font-weight="700">6 层级联上下文压缩管道 — ContextCascade.java 348行 · 统一协调器</text>
+      <text x="480" y="38" text-anchor="middle" fill="#F59E0B" font-size="13" font-weight="700">6 层级联上下文压缩管道 — ContextCascade.java · 统一协调器</text>
 
       <!-- Orchestrator label (left side) -->
       <rect x="20" y="70" width="100" height="460" rx="8" fill="#151829" stroke="#F59E0B" stroke-width=".8" stroke-dasharray="4,3"/>
@@ -4820,12 +4895,12 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
 <!-- === ENHANCEMENT: Monitoring feedback === -->
 <rect x="680" y="600" width="250" height="36" rx="6" fill="#0F1221" stroke="#06B6D4" stroke-width=".8"/>
-<text x="805" y="616" text-anchor="middle" fill="#06B6D4" font-size="8" style="font-family:'JetBrains Mono',monospace">CompactMetrics 79行 · 压缩效率监控</text>
-<text x="805" y="630" text-anchor="middle" fill="#6B70A0" font-size="7" style="font-family:'JetBrains Mono',monospace">IncrementalCollapseManager 174行 · 增量折叠</text>
+<text x="805" y="616" text-anchor="middle" fill="#06B6D4" font-size="8" style="font-family:'JetBrains Mono',monospace">CompactMetrics · 压缩效率监控</text>
+<text x="805" y="630" text-anchor="middle" fill="#6B70A0" font-size="7" style="font-family:'JetBrains Mono',monospace">IncrementalCollapseManager · 增量折叠</text>
     </svg>
   </div>
 
-  <!-- ContextCascade 六层正常执行流程 SVG — 基于 ContextCascade.java(348行), SnipService.java(150行), MicroCompactService.java(183行), ContextCollapseService.java(283行), CompactService.java(1058行) -->
+  <!-- ContextCascade 六层正常执行流程 SVG — 基于 ContextCascade、SnipService、MicroCompactService、ContextCollapseService 与 CompactService 的稳定职责 -->
   <h3 style="color:#3B82F6;font-family:'JetBrains Mono',monospace;font-size:1.05rem;margin-top:32px;margin-bottom:14px;padding-left:4px;letter-spacing:.03em">ContextCascade 正常执行流程 — executePreApiCascade</h3>
   <div style="background:#080A12;border-radius:14px;padding:18px 10px 10px;overflow-x:auto">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 900" style="width:100%;max-width:960px;display:block;margin:auto;font-family:'JetBrains Mono',monospace">
@@ -4909,7 +4984,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <rect x="90" y="419" width="55" height="22" rx="5" fill="#8B5CF6"/>
       <text x="117" y="434" text-anchor="middle" fill="#fff" font-size="9" font-weight="800">L1.5</text>
       <text x="160" y="434" fill="#8B5CF6" font-size="12" font-weight="700">ContextCollapse</text>
-      <text x="310" y="434" fill="#6B70A0" font-size="9">ContextCollapseService.java · 283行</text>
+      <text x="310" y="434" fill="#6B70A0" font-size="9">ContextCollapseService.java · 会话折叠</text>
       <text x="100" y="454" fill="#9FA4C4" font-size="8.5">方法: progressiveCollapse()</text>
       <text x="100" y="468" fill="#9FA4C4" font-size="8">动作: 三级渐进折叠处理</text>
       <text x="100" y="482" fill="#6B70A0" font-size="7.5">A. FullRetention: 尾部10条完整保留</text>
@@ -4931,7 +5006,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <rect x="90" y="537" width="55" height="22" rx="5" fill="#F59E0B"/>
       <text x="117" y="552" text-anchor="middle" fill="#0B0D17" font-size="10" font-weight="800">L2</text>
       <text x="160" y="552" fill="#F59E0B" font-size="12" font-weight="700">AutoCompact ⭐</text>
-      <text x="295" y="552" fill="#6B70A0" font-size="9">CompactService.java · 1,058行</text>
+      <text x="295" y="552" fill="#6B70A0" font-size="9">CompactService.java · 主动压缩</text>
       <text x="100" y="572" fill="#9FA4C4" font-size="8.5">方法: compactMessages()</text>
       <text x="100" y="586" fill="#9FA4C4" font-size="8">触发: token使用率 > 85% 阈值 (AUTO_COMPACT_THRESHOLD=0.85)</text>
       <text x="100" y="600" fill="#9FA4C4" font-size="8">三区划分: FROZEN → COMPACTION → PRESERVED(最近3轮)</text>
@@ -5218,7 +5293,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <!-- Lane 3: LLM Provider -->
       <rect x="330" y="70" width="150" height="50" rx="12" fill="url(#exec_purple)" stroke="#A855F7" stroke-width="1.5"/>
       <text x="405" y="92" text-anchor="middle" fill="#A855F7" font-size="13" font-weight="700">LLM Provider</text>
-      <text x="405" y="108" text-anchor="middle" fill="#6B70A0" font-size="9">DashScope / qwen3.6-max</text>
+      <text x="405" y="108" text-anchor="middle" fill="#6B70A0" font-size="9">DashScope / qwen3.7-max</text>
 
       <!-- Lane 4: ToolExecutionPipeline -->
       <rect x="490" y="70" width="170" height="50" rx="12" fill="url(#exec_green)" stroke="#10B981" stroke-width="1.5"/>
@@ -5420,7 +5495,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
   <div class="grid-2">
     <div class="card java-accent">
-      <div class="card-title" onclick="toggleDetail(this)"><span class="toggle">▶</span> 记忆系统 <span class="tag java">memdir/ 5文件 1,089行</span></div>
+      <div class="card-title" onclick="toggleDetail(this)"><span class="toggle">▶</span> 记忆系统 <span class="tag java">memdir/ · Project记忆与检索</span></div>
       <div class="card-detail">
         <div class="tree">
           <div class="tree-item"><span class="tn">MemdirService</span><span class="tv">598行 — 核心记忆目录管理</span></div>
@@ -5431,10 +5506,11 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       </div>
     </div>
     <div class="card java-accent">
-      <div class="card-title" onclick="toggleDetail(this)"><span class="toggle">▶</span> Skill 系统 <span class="tag java">skill/ 9文件 1,437行</span></div>
+      <div class="card-title" onclick="toggleDetail(this)"><span class="toggle">▶</span> Skill 系统 <span class="tag java">14 个内置 Skill · 动态扩展</span></div>
       <div class="card-detail">
         <div class="tree">
-          <div class="tree-item"><span class="tn">SkillRegistry</span><span class="tv">412行 — SkillSource 6 类枚举，3 类已加载 (BUNDLED/PROJECT/USER)，WatchService 热重载 500ms 防抖</span></div>
+          <div class="tree-item"><span class="tn">SkillRegistry</span><span class="tv">14 个内置 Skill，按 BUNDLED / PROJECT / USER / PLUGIN / MANAGED / MCP 六层来源合并，WatchService 热重载</span></div>
+          <div class="tree-item"><span class="tn">Bundled Catalog</span><span class="tv">commit · review · fix · test · pr · debug · verify · stuck · remember · software-architecture · csv-data-summarizer · prompt-engineering · test-driven-development · publish-oss</span></div>
           <div class="tree-item"><span class="tn">SkillDefinition</span><span class="tv">95行 — record 类型 · SkillSource 枚举 6 值</span></div>
           <div class="tree-item"><span class="tn">FrontmatterParser</span><span class="tv">241行 — 简化 YAML 解析 (key: value / 列表项)</span></div>
           <div class="tree-item"><span class="tn">FrontmatterData</span><span class="tv">75行 — 16 个 frontmatter 字段</span></div>
@@ -5444,7 +5520,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       </div>
     </div>
     <div class="card java-accent">
-      <div class="card-title" onclick="toggleDetail(this)"><span class="toggle">▶</span> 安全模块 <span class="tag red">security/ 5文件 1,248行</span></div>
+      <div class="card-title" onclick="toggleDetail(this)"><span class="toggle">▶</span> 安全模块 <span class="tag red">security/ · Hook与敏感路径</span></div>
       <div class="card-detail">
         <div class="tree">
           <div class="tree-item"><span class="tn">CommandBlacklistService</span><span class="tv">377行 — 命令黑名单</span></div>
@@ -5456,7 +5532,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       </div>
     </div>
     <div class="card java-accent">
-      <div class="card-title" onclick="toggleDetail(this)"><span class="toggle">▶</span> Docker 沙箱 <span class="tag purple">sandbox/ 2文件 316行</span></div>
+      <div class="card-title" onclick="toggleDetail(this)"><span class="toggle">▶</span> Docker 沙箱 <span class="tag purple">sandbox/ · 容器隔离</span></div>
       <div class="card-detail">
         <div class="tree">
           <div class="tree-item"><span class="tn">SandboxManager</span><span class="tv">容器隔离执行环境</span></div>
@@ -5482,7 +5558,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       </defs>
 
       <!-- ===== 背景标题 ===== -->
-      <text x="480" y="22" text-anchor="middle" fill="#6B70A0" font-size="11" style="font-family:'JetBrains Mono',monospace">memdir/ 5文件 1,089行 + history/ 2文件 455行 + controller/ 2文件 240行 + frontend 1文件 112行</text>
+      <text x="480" y="22" text-anchor="middle" fill="#6B70A0" font-size="11" style="font-family:'JetBrains Mono',monospace">memdir + history + controller + frontend · Project记忆持久化与检索链路</text>
 
       <!-- ===== 左侧: 存储层 ===== -->
       <rect x="20" y="40" width="200" height="310" rx="10" fill="url(#gMemStore)" stroke="#F59E0B" stroke-opacity=".3" stroke-width="1"/>
@@ -5968,7 +6044,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
   <!-- SVG 插画: Skill 系统任务分解架构 -->
   <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:28px;margin-top:24px">
-    <h4 style="font-size:.88rem;font-weight:700;margin-bottom:16px;color:var(--text);text-align:center">Skill 系统加载与执行架构 <span style="color:var(--text3);font-weight:400;font-size:.75rem">— skill/ 9文件 1,437行 · inline/fork 双模式</span></h4>
+    <h4 style="font-size:.88rem;font-weight:700;margin-bottom:16px;color:var(--text);text-align:center">Skill 系统加载与执行架构 <span style="color:var(--text3);font-weight:400;font-size:.75rem">— 14 个内置 Skill · inline/fork 双模式 · 动态来源合并</span></h4>
     <svg viewBox="0 0 960 480" xmlns="http://www.w3.org/2000/svg" style="width:100%;min-width:750px">
       <defs>
         <linearGradient id="gSkillIn" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#10B981" stop-opacity=".25"/><stop offset="100%" stop-color="#10B981" stop-opacity=".06"/></linearGradient>
@@ -5996,9 +6072,9 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <!-- SkillRegistry -->
       <rect x="230" y="66" width="200" height="70" rx="8" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
       <text x="330" y="86" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="600" style="font-family:'JetBrains Mono',monospace">SkillRegistry</text>
-      <text x="330" y="102" text-anchor="middle" fill="#e8e8f0" font-size="8.5" style="font-family:'JetBrains Mono',monospace">SkillRegistry.java 412行</text>
+      <text x="330" y="102" text-anchor="middle" fill="#e8e8f0" font-size="8.5" style="font-family:'JetBrains Mono',monospace">SkillRegistry.java</text>
       <text x="330" y="118" text-anchor="middle" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">SkillSource 6 类 · 3 类已加载</text>
-      <text x="330" y="130" text-anchor="middle" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">SkillDefinition.java 95行</text>
+      <text x="330" y="130" text-anchor="middle" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">SkillDefinition.java · 来源与元数据</text>
 
       <!-- FrontmatterParser -->
       <rect x="450" y="66" width="180" height="70" rx="8" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
@@ -6014,7 +6090,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <!-- SkillExecutor -->
       <rect x="260" y="166" width="200" height="60" rx="8" fill="#151829" stroke="#F59E0B" stroke-width="1"/>
       <text x="360" y="190" text-anchor="middle" fill="#F59E0B" font-size="10" font-weight="600" style="font-family:'JetBrains Mono',monospace">SkillExecutor</text>
-      <text x="360" y="206" text-anchor="middle" fill="#e8e8f0" font-size="8.5" style="font-family:'JetBrains Mono',monospace">SkillExecutor.java 176行</text>
+      <text x="360" y="206" text-anchor="middle" fill="#e8e8f0" font-size="8.5" style="font-family:'JetBrains Mono',monospace">SkillExecutor.java</text>
       <text x="360" y="220" text-anchor="middle" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">inline/fork 分发 · 120s 超时</text>
 
       <!-- SkillTool -->
@@ -6136,8 +6212,35 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
     </div>
 
     <div style="margin-top:14px;padding:10px 12px;background:#0F1221;border-left:3px solid #F59E0B;border-radius:4px;font-size:.72rem;color:#9FA4C4;line-height:1.55">
-      <span style="color:#F59E0B;font-weight:700">源码锚点：</span>
-      SkillRegistry.java#L49 (<code>USER_SKILLS_DIR=".zhikun/skills"</code>) · #L52 (<code>PROJECT_SKILLS_DIR=".zhikun/skills"</code>) · #L55-57 (BUILTIN: commit/review/fix/test/pr) · #L66 (DEBOUNCE_MS=500) · #L22-34 (优先级 Javadoc) ｜ SkillDefinition.java#L30-37 (SkillSource 6 值) ｜ SkillExecutor.java#L45 (SKILL_TIMEOUT_SECONDS=120) · #L81 (validateArgs) · #L101 (validateForkPermission) ｜ SkillToolValidator.java#L20-31 (MAX_ARG_LENGTH/MAX_FORK_NESTING_DEPTH/DANGEROUS_PATTERNS)
+      <span style="color:#F59E0B;font-weight:700">稳定职责锚点：</span>
+      SkillRegistry（六层来源与热重载） · SkillDefinition（来源和元数据） · SkillExecutor（预算、超时和 fork） · SkillToolValidator（参数、嵌套和注入检查）。具体源码行号随提交变化，不作为架构契约。
+    </div>
+  </div>
+
+  <h3 id="svg-observability" style="font-size:1.05rem;font-weight:700;color:#06B6D4;margin:28px 0 12px;letter-spacing:.02em;scroll-margin-top:24px">结构化观测、Session 恢复投影与断线恢复</h3>
+  <div class="card java-accent">
+    <div class="card-title" onclick="toggleDetail(this)"><span class="toggle open">▶</span> BestEffortObservabilityRecorder、结构化结果与恢复投影 <span class="tag cyan">职责分离</span><span class="tag purple">故障隔离</span></div>
+    <div class="card-detail show">
+      <div class="grid-2">
+        <div class="flow">
+          <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--cyan)">1</div><div class="line"></div></div><div class="flow-body"><div class="ft">统一 MDC 关联上下文</div><div class="fd"><span class="mono">sid / rid / prid / agent / turn / tool / llm</span> 由整体日志上下文贯穿 Run、父子 Agent、工具和模型调用，不归因于单个 Recorder。</div></div></div>
+          <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--cyan)">2</div></div><div class="flow-body"><div class="ft">结构化外部资源</div><div class="fd">工具结果投影为可折叠卡片；下载、Artifact 和 OSS 地址携带来源、状态与权威链接，不从日志文本猜测资源。</div></div></div>
+        </div>
+        <div class="flow">
+          <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--purple)">3</div><div class="line"></div></div><div class="flow-body"><div class="ft">Recorder 故障隔离</div><div class="fd">BestEffortObservabilityRecorder 使用有界异步队列写补充事件，并记录丢弃、写失败和队列深度指标；失败不升级为工具或 Run 执行失败。</div></div></div>
+          <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--green)">4</div></div><div class="flow-body"><div class="ft">重连恢复</div><div class="fd">session_restored 返回完整 Session 消息、最近活动、最新 Run snapshot/event sequence 和活跃工具状态，并重放待处理的持久交互；前端按绑定代次替换投影。</div></div></div>
+        </div>
+      </div>
+      <svg viewBox="0 0 960 245" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;margin-top:14px">
+        <defs><marker id="observeArrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#6B70A0"/></marker></defs>
+        <rect width="960" height="245" rx="10" fill="#0B0D17"/><rect x="1" y="1" width="958" height="243" rx="9" fill="none" stroke="#252840"/>
+        <rect x="25" y="62" width="190" height="100" rx="9" fill="#151829" stroke="#F59E0B"/><text x="120" y="89" text-anchor="middle" fill="#F59E0B" font-size="11" font-weight="700">MDC Correlation</text><text x="120" y="113" text-anchor="middle" fill="#9FA4C4" font-size="8">sid/rid/prid/agent/turn</text><text x="120" y="136" text-anchor="middle" fill="#6B70A0" font-size="8">tool / llm</text>
+        <rect x="270" y="62" width="190" height="100" rx="9" fill="#151829" stroke="#06B6D4"/><text x="365" y="89" text-anchor="middle" fill="#06B6D4" font-size="10" font-weight="700">BestEffortObservabilityRecorder</text><text x="365" y="113" text-anchor="middle" fill="#9FA4C4" font-size="8">supplemental event log</text><text x="365" y="136" text-anchor="middle" fill="#6B70A0" font-size="8">bounded queue + metrics</text>
+        <rect x="515" y="62" width="190" height="100" rx="9" fill="#151829" stroke="#A855F7"/><text x="610" y="89" text-anchor="middle" fill="#A855F7" font-size="11" font-weight="700">Session Restore</text><text x="610" y="113" text-anchor="middle" fill="#9FA4C4" font-size="8">messages / Run event seq</text><text x="610" y="136" text-anchor="middle" fill="#6B70A0" font-size="8">active tools / pending interactions</text>
+        <rect x="760" y="62" width="175" height="100" rx="9" fill="#151829" stroke="#3B82F6"/><text x="847" y="89" text-anchor="middle" fill="#3B82F6" font-size="11" font-weight="700">React Projection</text><text x="847" y="113" text-anchor="middle" fill="#9FA4C4" font-size="8">结构化结果 / 工具卡片</text><text x="847" y="136" text-anchor="middle" fill="#6B70A0" font-size="8">权威下载 / snapshot 替换</text>
+        <line x1="215" y1="112" x2="270" y2="112" stroke="#6B70A0" class="anim-line" marker-end="url(#observeArrow)"/><line x1="705" y1="112" x2="760" y2="112" stroke="#6B70A0" class="anim-line" marker-end="url(#observeArrow)"/>
+        <text x="480" y="205" text-anchor="middle" fill="#6B70A0" font-size="9">补充观测与 Session 恢复是独立支路；工具结构化结果和持久 Run/交互状态保持各自权威</text>
+      </svg>
     </div>
   </div>
 </div>
@@ -6147,12 +6250,17 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
   <div class="section-head">
     <span class="section-num java">12</span>
     <h2>多Agent协调系统</h2>
-    <span class="meta">coordinator/ 19文件 4,138行 + agent/ 10文件 2,409行 = 29个类</span>
+    <span class="meta">5 类内置 Agent · Team / Swarm / SubAgent 三种协作模式</span>
   </div>
 
   <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;font-size:.78rem">
     <span class="tag java">Team模式</span><span class="tag purple">Swarm模式</span><span class="tag cyan">SubAgent模式</span>
-    <span style="color:var(--text3);margin-left:auto">coordinator/ 19文件 · tool/agent/SubAgentExecutor 1,032行 · SwarmService 484行</span>
+    <span style="color:var(--text3);margin-left:auto">general-purpose · explore · verification · plan · guide</span>
+  </div>
+
+  <div class="card java-accent">
+    <div class="card-title" style="cursor:default">根 Session 身份、授权与验证产物归属</div>
+    <p style="font-size:.78rem;color:var(--text2)">子 Agent 通过 root session / root run 身份匹配受约束 Grant，不建立第二套授权权威。Artifact 保留 agent 与 parent run 关联；显式发布候选来自同一持久化根 Session 的根 Run 与授权后代 Run，目标条目必须已验证且发布前哈希仍匹配。</p>
   </div>
 
   <div class="card" style="margin-top:16px;padding:0;overflow:hidden;border:1px solid var(--border2)">
@@ -6751,12 +6859,12 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
   <div class="section-head">
     <span class="section-num ts">13</span>
     <h2>React 前端架构</h2>
-    <span class="meta">190文件 28,791行</span>
+    <span class="meta">209 文件 · 33,642 行 · 117 TSX 文件（109 非测试）· 36 Store</span>
   </div>
 
   <div class="grid-2">
     <div class="card ts-accent">
-      <div class="card-title" onclick="toggleDetail(this)"><span class="toggle open">▶</span> 组件层 <span class="tag ts">112文件 13,502行 24子目录</span></div>
+      <div class="card-title" onclick="toggleDetail(this)"><span class="toggle open">▶</span> 组件层 <span class="tag ts">117 TSX 文件（109 非测试）· 24 子目录</span></div>
       <div class="card-detail show">
         <div style="display:flex;flex-wrap:wrap;gap:6px;font-size:.75rem">
           <span class="tag ts">visualization ×14</span>
@@ -6811,18 +6919,18 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
   </div>
 
   <div class="card ts-accent" style="margin-top:12px">
-    <div class="card-title" onclick="toggleDetail(this)"><span class="toggle">▶</span> 状态管理 — 31 个 Zustand Store <span class="tag ts">约2,846~3,278行</span><span style="font-size:.7rem;color:var(--text3);margin-left:4px">(仅业务Store)</span></div>
+    <div class="card-title" onclick="toggleDetail(this)"><span class="toggle">▶</span> 状态管理 — 36 个 Store 文件 <span class="tag ts">Zustand + 配套状态模块</span></div>
     <div class="card-detail">
       <div style="display:flex;flex-wrap:wrap;gap:6px;font-size:.75rem">
         <span class="tag ts">coordinatorStore</span><span class="tag ts">mcpStore</span><span class="tag ts">configStore</span><span class="tag ts">swarmStore</span><span class="tag ts">messageStore</span><span class="tag ts">planStore</span><span class="tag ts">taskStore</span><span class="tag ts">sessionStore</span><span class="tag ts">toolStore</span><span class="tag ts">permissionStore</span>
-        <span class="tag" style="background:rgba(59,130,246,.06);color:var(--text3)">+ 21 more stores</span>
+        <span class="tag" style="background:rgba(59,130,246,.06);color:var(--text3)">+ 26 more store files</span>
       </div>
     </div>
   </div>
 
   <!-- SVG 插画: 前端状态管理架构图 -->
   <div class="card" style="margin-top:16px;padding:0;overflow:hidden;border:1px solid var(--border2)">
-    <div style="padding:16px 20px 8px;font-size:.85rem;font-weight:700;color:var(--ts);letter-spacing:.02em">▸ 31个 Zustand Store 分类与依赖关系</div>
+    <div style="padding:16px 20px 8px;font-size:.85rem;font-weight:700;color:var(--ts);letter-spacing:.02em">▸ 36 个 Store 文件分类与依赖关系</div>
     <svg viewBox="0 0 960 700" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
       <defs>
         <linearGradient id="gStoreBiz" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#3B82F6" stop-opacity=".15"/><stop offset="100%" stop-color="#3B82F6" stop-opacity=".03"/></linearGradient>
@@ -6913,7 +7021,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <rect x="490" y="385" width="440" height="80" rx="10" fill="rgba(239,68,68,0.06)" stroke="#EF4444" stroke-width="1.2" stroke-dasharray="6"/>
       <text x="510" y="409" fill="#EF4444" font-size="12" font-weight="700" style="font-family:'JetBrains Mono',monospace">broadcastMiddleware.ts</text>
       <text x="510" y="429" fill="#a0a0b8" font-size="9.5" style="font-family:'JetBrains Mono',monospace">跨Store广播中间件 — 事件驱动状态同步</text>
-      <text x="510" y="449" fill="#e8e8f0" font-size="9" style="font-family:'JetBrains Mono',monospace">连接所有31个Store · 发布/订阅模式</text>
+      <text x="510" y="449" fill="#e8e8f0" font-size="9" style="font-family:'JetBrains Mono',monospace">连接全部 36 个 Store 文件 · 发布/订阅模式</text>
 
       <!-- ===== DEPENDENCY ARROWS ===== -->
       <!-- configStore → all zones (核心依赖) -->
@@ -6943,7 +7051,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
   <!-- SVG: Zustand Store 依赖关系 DAG -->
   <div id="svg-zst" class="card" style="margin-top:16px;padding:0;overflow:hidden;border:1px solid var(--border2);scroll-margin-top:24px">
-    <h3 style="padding:16px 20px 8px;font-size:.85rem;font-weight:700;color:var(--ts);letter-spacing:.02em;margin:0">▸ Store 依赖关系 — dispatch.ts 558行 · 消息分发中枢</h3>
+    <h3 style="padding:16px 20px 8px;font-size:.85rem;font-weight:700;color:var(--ts);letter-spacing:.02em;margin:0">▸ Store 依赖关系 — dispatch.ts · 消息分发中枢</h3>
     <svg id="zst-dag" width="100%" viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg" style="display:block;font-family:'JetBrains Mono',monospace">
       <defs>
         <linearGradient id="zst-grad-ui" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#3B82F6" stop-opacity=".18"/><stop offset="100%" stop-color="#3B82F6" stop-opacity=".03"/></linearGradient>
@@ -7461,11 +7569,11 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
     <div class="card-detail">
       <div class="grid-2" style="font-size:.82rem">
         <div>
-          <span class="mono" style="color:var(--ts);font-weight:700">dispatch.ts</span> <span class="mono" style="color:var(--text3)">557行</span>
+          <span class="mono" style="color:var(--ts);font-weight:700">dispatch.ts</span>
           <p style="color:var(--text2);font-size:.78rem;margin-top:4px">REST API 统一调度层 · 请求/响应拦截 · 错误重试</p>
         </div>
         <div>
-          <span class="mono" style="color:var(--ts);font-weight:700">stompClient.ts</span> <span class="mono" style="color:var(--text3)">363行</span>
+          <span class="mono" style="color:var(--ts);font-weight:700">stompClient.ts</span>
           <p style="color:var(--text2);font-size:.78rem;margin-top:4px">WebSocket/STOMP 实时通信 · 消息订阅 · 重连机制</p>
         </div>
       </div>
@@ -7485,12 +7593,12 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
   <div class="section-head">
     <span class="section-num py">14</span>
     <h2>Python 分析服务架构</h2>
-    <span class="meta">28文件 7,356行</span>
+    <span class="meta">服务 + CLI · 32 文件 · 8,066 行 · 7 能力域</span>
   </div>
 
   <div class="grid-2">
     <div class="card py-accent">
-      <div class="card-title" onclick="toggleDetail(this)"><span class="toggle open">▶</span> 分析引擎 <span class="tag py">analyzers/ 2,872行</span></div>
+      <div class="card-title" onclick="toggleDetail(this)"><span class="toggle open">▶</span> 分析引擎 <span class="tag py">analyzers/ · 调用图、影响和路径分析</span></div>
       <div class="card-detail show">
         <div class="tree">
           <div class="tree-item"><span class="tn">flow_chart_generator.py</span><span class="tv">657 行</span></div>
@@ -7502,10 +7610,10 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       </div>
     </div>
     <div class="card py-accent">
-      <div class="card-title" onclick="toggleDetail(this)"><span class="toggle open">▶</span> 业务服务 <span class="tag py">services/ 1,725行</span></div>
+      <div class="card-title" onclick="toggleDetail(this)"><span class="toggle open">▶</span> 业务服务 <span class="tag py">services/ · 浏览器、Git与文件服务</span></div>
       <div class="card-detail show">
         <div class="tree">
-          <div class="tree-item"><span class="tn">browser_service.py</span><span class="tv">799 行</span></div>
+          <div class="tree-item"><span class="tn">browser_service.py</span><span class="tv">浏览器会话与自动化服务</span></div>
           <div class="tree-item"><span class="tn">complexity_analyzer.py</span><span class="tv">515 行</span></div>
           <div class="tree-item"><span class="tn">tree_sitter_service.py</span><span class="tv">237 行</span></div>
           <div class="tree-item"><span class="tn">browser_models.py</span><span class="tv">119 行 — Pydantic 浏览器数据模型</span></div>
@@ -7515,7 +7623,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
   </div>
 
   <div class="card py-accent" style="margin-top:12px">
-    <div class="card-title" onclick="toggleDetail(this)"><span class="toggle open">▶</span> API 路由 <span class="tag py">routers/ 1,526行</span></div>
+    <div class="card-title" onclick="toggleDetail(this)"><span class="toggle open">▶</span> API 路由 <span class="tag py">routers/ · 核心与条件路由</span></div>
     <div class="card-detail show">
       <div style="display:grid;grid-template-columns:1fr auto;gap:2px 24px;font-size:.8rem;max-width:400px">
         <span>/api/analysis</span><span class="mono" style="color:var(--py)">434行</span>
@@ -7531,9 +7639,9 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
   </div>
 
   <div class="card py-accent" style="margin-top:12px">
-    <div class="card-title" style="cursor:default">6个能力域 <span style="font-size:.72rem;color:var(--text3);font-weight:400;margin-left:8px">支持优雅降级</span></div>
+    <div class="card-title" style="cursor:default">7个能力域 <span style="font-size:.72rem;color:var(--text3);font-weight:400;margin-left:8px">支持优雅降级</span></div>
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">
-      <span class="tag py">CODE_INTEL</span><span class="tag py">FILE_PROCESSING</span><span class="tag py">CODE_QUALITY</span><span class="tag py">ANALYSIS</span><span class="tag py">GIT_ENHANCED</span><span class="tag py">BROWSER_AUTOMATION</span>
+      <span class="tag py">CODE_INTEL</span><span class="tag py">FILE_PROCESSING</span><span class="tag py">CODE_QUALITY</span><span class="tag py">ANALYSIS</span><span class="tag py">GIT_ENHANCED</span><span class="tag py">BROWSER_AUTOMATION</span><span class="tag py">HTTP_API</span>
     </div>
   </div>
 
@@ -7672,7 +7780,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
       <!-- ===== SUMMARY BAR ===== -->
       <rect x="60" y="585" width="840" height="36" rx="8" fill="#0F1221" stroke="#252840" stroke-width="1"/>
-      <text x="80" y="608" fill="#84CC16" font-size="10" font-weight="600" style="font-family:'JetBrains Mono',monospace">28文件 7,356行</text>
+      <text x="80" y="608" fill="#84CC16" font-size="10" font-weight="600" style="font-family:'JetBrains Mono',monospace">32文件 8,066行 · 服务 + CLI</text>
       <text x="230" y="608" fill="#06B6D4" font-size="10" style="font-family:'JetBrains Mono',monospace">8个API端点</text>
       <text x="380" y="608" fill="#A855F7" font-size="10" style="font-family:'JetBrains Mono',monospace">7个分析器</text>
       <text x="520" y="608" fill="#F59E0B" font-size="10" style="font-family:'JetBrains Mono',monospace">7个服务</text>
@@ -7771,7 +7879,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <!-- ===== ROW 3: Analyzers + Services ===== -->
       <rect x="30" y="160" width="840" height="190" rx="10" fill="url(#pya-gAna)" stroke="#A855F7" stroke-width="1"/>
       <text x="50" y="178" fill="#A855F7" font-size="10" font-weight="700" style="font-family:'JetBrains Mono',monospace">分析器层 — 5 个核心分析器 + 支撑服务</text>
-      <text x="320" y="178" fill="#6B70A0" font-size="7" style="font-family:'JetBrains Mono',monospace">analyzers/ 2,872行 · libcst + networkx + tree-sitter 多语言解析</text>
+      <text x="320" y="178" fill="#6B70A0" font-size="7" style="font-family:'JetBrains Mono',monospace">analyzers/ · libcst + networkx + tree-sitter 多语言解析</text>
 
       <!-- Analyzer 1: CallGraphBuilder -->
       <rect x="42" y="188" width="250" height="60" rx="7" fill="#151829" stroke="#A855F7" stroke-width=".8"/>
@@ -7779,7 +7887,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <text x="167" y="214" text-anchor="middle" fill="#a0a0b8" font-size="7" style="font-family:'JetBrains Mono',monospace">调用图构建 · networkx.DiGraph</text>
       <text x="167" y="225" text-anchor="middle" fill="#6B70A0" font-size="6.5" style="font-family:'JetBrains Mono',monospace">Python(libcst high) Java(ts medium) TS(ts low)</text>
       <text x="167" y="236" text-anchor="middle" fill="#6B70A0" font-size="6" style="font-family:'JetBrains Mono',monospace">IN: project_root → OUT: nx.DiGraph(nodes+edges)</text>
-      <text x="167" y="246" text-anchor="middle" fill="#4B5563" font-size="5.5" style="font-family:'JetBrains Mono',monospace">call_graph_builder.py · 583行</text>
+      <text x="167" y="246" text-anchor="middle" fill="#4B5563" font-size="5.5" style="font-family:'JetBrains Mono',monospace">call_graph_builder.py · 调用图构建</text>
 
       <!-- Analyzer 2: ChangeImpactAnalyzer -->
       <rect x="305" y="188" width="250" height="60" rx="7" fill="#151829" stroke="#A855F7" stroke-width=".8"/>
@@ -7787,7 +7895,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <text x="430" y="214" text-anchor="middle" fill="#a0a0b8" font-size="7" style="font-family:'JetBrains Mono',monospace">变更影响 BFS 传播 · 60s 超时保护</text>
       <text x="430" y="225" text-anchor="middle" fill="#6B70A0" font-size="6.5" style="font-family:'JetBrains Mono',monospace">impact_level: direct → indirect → potential</text>
       <text x="430" y="236" text-anchor="middle" fill="#6B70A0" font-size="6" style="font-family:'JetBrains Mono',monospace">IN: file_path+changed_lines → OUT: 影响链路图</text>
-      <text x="430" y="246" text-anchor="middle" fill="#4B5563" font-size="5.5" style="font-family:'JetBrains Mono',monospace">change_impact_analyzer.py · 417行 (F33)</text>
+      <text x="430" y="246" text-anchor="middle" fill="#4B5563" font-size="5.5" style="font-family:'JetBrains Mono',monospace">change_impact_analyzer.py · 影响分析 (F33)</text>
 
       <!-- Analyzer 3: CodePathTracer -->
       <rect x="568" y="188" width="290" height="60" rx="7" fill="#151829" stroke="#A855F7" stroke-width=".8"/>
@@ -7795,7 +7903,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <text x="713" y="214" text-anchor="middle" fill="#a0a0b8" font-size="7" style="font-family:'JetBrains Mono',monospace">API 端点扫描 + 正向 BFS 调用路径追踪</text>
       <text x="713" y="225" text-anchor="middle" fill="#6B70A0" font-size="6.5" style="font-family:'JetBrains Mono',monospace">Java Spring Boot · Python FastAPI · TS Express</text>
       <text x="713" y="236" text-anchor="middle" fill="#6B70A0" font-size="6" style="font-family:'JetBrains Mono',monospace">IN: entry_file+function → OUT: 层级调用链</text>
-      <text x="713" y="246" text-anchor="middle" fill="#4B5563" font-size="5.5" style="font-family:'JetBrains Mono',monospace">code_path_tracer.py · 623行 (F40)</text>
+      <text x="713" y="246" text-anchor="middle" fill="#4B5563" font-size="5.5" style="font-family:'JetBrains Mono',monospace">code_path_tracer.py · 路径追踪 (F40)</text>
 
       <!-- Analyzer 4: SequenceDiagramGenerator -->
       <rect x="42" y="258" width="250" height="60" rx="7" fill="#151829" stroke="#EC4899" stroke-width=".8"/>
@@ -7803,7 +7911,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <text x="167" y="284" text-anchor="middle" fill="#a0a0b8" font-size="7" style="font-family:'JetBrains Mono',monospace">Mermaid 时序图 · Controller→Service→Repo</text>
       <text x="167" y="295" text-anchor="middle" fill="#6B70A0" font-size="6.5" style="font-family:'JetBrains Mono',monospace">参与者角色映射 · 循环调用检测与截断</text>
       <text x="167" y="306" text-anchor="middle" fill="#6B70A0" font-size="6" style="font-family:'JetBrains Mono',monospace">IN: API路径/方法签名 → OUT: sequenceDiagram</text>
-      <text x="167" y="316" text-anchor="middle" fill="#4B5563" font-size="5.5" style="font-family:'JetBrains Mono',monospace">sequence_diagram_generator.py · 528行 (F35)</text>
+      <text x="167" y="316" text-anchor="middle" fill="#4B5563" font-size="5.5" style="font-family:'JetBrains Mono',monospace">sequence_diagram_generator.py · 时序图 (F35)</text>
 
       <!-- Analyzer 5: FlowChartGenerator -->
       <rect x="305" y="258" width="250" height="60" rx="7" fill="#151829" stroke="#EC4899" stroke-width=".8"/>
@@ -7811,7 +7919,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <text x="430" y="284" text-anchor="middle" fill="#a0a0b8" font-size="7" style="font-family:'JetBrains Mono',monospace">Mermaid 流程图 · if/loop/try 控制流</text>
       <text x="430" y="295" text-anchor="middle" fill="#6B70A0" font-size="6.5" style="font-family:'JetBrains Mono',monospace">tree-sitter AST 解析 · 嵌套深度限制 3 层</text>
       <text x="430" y="306" text-anchor="middle" fill="#6B70A0" font-size="6" style="font-family:'JetBrains Mono',monospace">IN: target方法体 → OUT: flowchart TD</text>
-      <text x="430" y="316" text-anchor="middle" fill="#4B5563" font-size="5.5" style="font-family:'JetBrains Mono',monospace">flow_chart_generator.py · 658行 (F35)</text>
+      <text x="430" y="316" text-anchor="middle" fill="#4B5563" font-size="5.5" style="font-family:'JetBrains Mono',monospace">flow_chart_generator.py · 流程图 (F35)</text>
 
       <!-- Services box -->
       <rect x="568" y="258" width="290" height="60" rx="7" fill="#151829" stroke="#F59E0B" stroke-width=".8"/>
@@ -7819,7 +7927,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <text x="713" y="284" text-anchor="middle" fill="#a0a0b8" font-size="7" style="font-family:'JetBrains Mono',monospace">TreeSitterService  50+ 语言 AST 统一接口 238行</text>
       <text x="713" y="295" text-anchor="middle" fill="#a0a0b8" font-size="7" style="font-family:'JetBrains Mono',monospace">ComplexityAnalyzer  radon+tree-sitter 启发式 516行</text>
       <text x="713" y="306" text-anchor="middle" fill="#a0a0b8" font-size="7" style="font-family:'JetBrains Mono',monospace">FileDetector · GitEnhancedService · BrowserService</text>
-      <text x="713" y="316" text-anchor="middle" fill="#4B5563" font-size="5.5" style="font-family:'JetBrains Mono',monospace">services/ 总计 1,725行 (含 browser_service 799行)</text>
+      <text x="713" y="316" text-anchor="middle" fill="#4B5563" font-size="5.5" style="font-family:'JetBrains Mono',monospace">services/ · 浏览器会话、Git增强、文件检测与复杂度分析</text>
 
       <!-- dependency arrows between analyzers -->
       <text x="167" y="255" text-anchor="middle" fill="#4B5563" font-size="6" style="font-family:'JetBrains Mono',monospace">↓ 被 2/3/4 依赖</text>
@@ -7884,8 +7992,8 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
       <!-- ===== BOTTOM: Summary bar ===== -->
       <rect x="30" y="480" width="840" height="55" rx="10" fill="#0F1221" stroke="#252840" stroke-width="1"/>
-      <text x="50" y="500" fill="#84CC16" font-size="10" font-weight="600" style="font-family:'JetBrains Mono',monospace">6 能力域</text>
-      <text x="50" y="515" fill="#6B70A0" font-size="6.5" style="font-family:'JetBrains Mono',monospace">CODE_INTEL · FILE_PROCESSING · CODE_QUALITY · ANALYSIS · GIT_ENHANCED · BROWSER_AUTOMATION</text>
+      <text x="50" y="500" fill="#84CC16" font-size="10" font-weight="600" style="font-family:'JetBrains Mono',monospace">7 能力域</text>
+      <text x="50" y="515" fill="#6B70A0" font-size="6.5" style="font-family:'JetBrains Mono',monospace">CODE_INTEL · FILE_PROCESSING · CODE_QUALITY · ANALYSIS · GIT_ENHANCED · BROWSER_AUTOMATION · HTTP_API</text>
       <text x="50" y="528" fill="#4B5563" font-size="6" style="font-family:'JetBrains Mono',monospace">capabilities.py:19 CapabilityDomain · 四层检测: 包导入 + 版本校验 + 系统二进制 + 冒烟测试 · 缺失能力优雅降级</text>
 
       <text x="720" y="500" text-anchor="middle" fill="#06B6D4" font-size="9" style="font-family:'JetBrains Mono',monospace">8 路由模块 · 30+ 端点</text>
@@ -7896,7 +8004,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
   <!-- Python Service Bridge 调用流 -->
   <div style="margin:24px 0 0;padding:20px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--card-radius)">
-    <div style="padding:0 0 12px;font-size:.85rem;font-weight:700;color:#84CC16;letter-spacing:.02em">▸ Java ↔ Python 服务完整调用流 · PythonCapabilityAwareClient · 6能力域 · 指数退避重试</div>
+    <div style="padding:0 0 12px;font-size:.85rem;font-weight:700;color:#84CC16;letter-spacing:.02em">▸ Java ↔ Python 服务完整调用流 · PythonCapabilityAwareClient · 7能力域 · 指数退避重试</div>
     <svg width="100%" viewBox="0 0 1000 580" xmlns="http://www.w3.org/2000/svg" style="display:block;border-radius:10px;background:#0B0D17">
       <defs>
         <linearGradient id="psb-gJava" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#F59E0B" stop-opacity=".18"/><stop offset="100%" stop-color="#F59E0B" stop-opacity=".04"/></linearGradient>
@@ -7923,7 +8031,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
       <!-- Title -->
       <text x="500" y="24" text-anchor="middle" fill="#E8EAF6" font-size="12" font-weight="700" style="font-family:'JetBrains Mono',monospace">后端 → Python 服务完整调用流</text>
-      <text x="500" y="38" text-anchor="middle" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">PythonCapabilityAwareClient · ConcurrentHashMap + TTL · 指数退避重试 · 6能力域动态注册</text>
+      <text x="500" y="38" text-anchor="middle" fill="#6B70A0" font-size="7.5" style="font-family:'JetBrains Mono',monospace">PythonCapabilityAwareClient · ConcurrentHashMap + TTL · 指数退避重试 · 7能力域动态注册</text>
 
       <!-- ===== LEFT: Java Tool Layer ===== -->
       <rect x="30" y="52" width="270" height="440" rx="12" fill="url(#psb-gJava)" stroke="#F59E0B" stroke-width="1.2" filter="url(#psb-glowO)"/>
@@ -8147,7 +8255,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <rect x="457" y="174" width="100" height="28" rx="6" fill="#151829" stroke="#84CC16" stroke-width=".7"/>
       <text x="507" y="192" text-anchor="middle" fill="#9FA4C4" font-size="8" style="font-family:'JetBrains Mono',monospace">Tokenizer</text>
       <rect x="343" y="210" width="214" height="26" rx="6" fill="#151829" stroke="#84CC16" stroke-width=".5"/>
-      <text x="450" y="227" text-anchor="middle" fill="#6B70A0" font-size="7" style="font-family:'JetBrains Mono',monospace">6个能力域 · 6,661行 · venv隔离</text>
+      <text x="450" y="227" text-anchor="middle" fill="#6B70A0" font-size="7" style="font-family:'JetBrains Mono',monospace">7个能力域 · 按能力条件装载 · venv隔离</text>
 
       <!-- 前端静态资源 -->
       <rect x="600" y="90" width="250" height="160" rx="12" fill="url(#deploy-gReact)" stroke="#3B82F6" stroke-width="1.2" filter="url(#deploy-glowR)"/>
@@ -8236,7 +8344,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
 
 <!-- Footer -->
 <div style="text-align:center;padding:48px 0 24px;color:var(--text3);font-size:.75rem;border-top:1px solid var(--border);margin-top:48px">
-  ZhikunCode Architecture Reference · 115,783 Lines · 759 Files · Generated for CTO Review
+  ZhikunCode Architecture Reference · ea0170c · 2026-08-09 · 134,826 Product Lines · 863 Git-Tracked Files
 </div>
 
 </div><!-- /main -->
@@ -8247,7 +8355,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
   var c = document.getElementById('ringChart');
   if(!c) return;
   var ctx = c.getContext('2d');
-  var data = [{v:79636,color:'#F59E0B'},{v:31612,color:'#D97706'},{v:28791,color:'#3B82F6'},{v:7356,color:'#84CC16'}];
+  var data = [{v:93118,color:'#F59E0B'},{v:33642,color:'#3B82F6'},{v:8066,color:'#84CC16'}];
   var total = data.reduce(function(s,d){return s+d.v},0);
   var cx=100, cy=100, r=80, r2=55, ang=-Math.PI/2;
   data.forEach(function(d){
@@ -8269,7 +8377,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
   ctx.font='bold 18px monospace';
   ctx.fillStyle='#E8EAF6';
   ctx.textAlign='center';
-  ctx.fillText('147,395',cx,cy-2);
+  ctx.fillText('134,826',cx,cy-2);
   ctx.font='11px sans-serif';
   ctx.fillStyle='#6B70A0';
   ctx.fillText('total lines',cx,cy+14);

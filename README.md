@@ -39,6 +39,11 @@
 > 🏗️ **[查看完整系统架构图 →](https://zhikunqingtao.github.io/zhikuncode/ZhikunCode-Architecture.html)**  
 > Java Agent Runtime · React 浏览器操作面 · Python Capability Service · 全景可视化
 
+> 🧭 **[查看完整能力总览 →](https://zhikunqingtao.github.io/zhikuncode/ZhikunCode-Capability-Overview.html)**
+> 交互入口 · Agent / Run · 权限安全 · 工具与 Skill · 验证产物 · 观测恢复
+
+> **代码快照：** `ea0170c` · 2026-08-09 · Git 跟踪的产品源代码 134,826 行 / 863 文件（Java 93,118 / 622、React 33,642 / 209、Python 服务与 CLI 8,066 / 32；不统计本地忽略文件）
+
 > 🔎 **[同一黄金监控任务的双工具执行审计 →](https://zhikunqingtao.github.io/zhikuncode/case-studies/zhikuncode-codex-gold-monitor-audit.html)**
 > ZhikunCode × Codex · 哈希匹配的原始运行日志核验与脱敏摘录、冻结产物哈希、代码检查与公开脱敏截图、38 条证据与 14 维可复算评分
 
@@ -86,11 +91,12 @@
 | | 特性 | 说明 |
 |---|---|---|
 | 🌐 | **浏览器全流程操控** | 部署一次，任何设备的浏览器即可完成全流程操作 —— 权限审批、方案协商、任务管控，手机上也能用，无需安装客户端 |
+| 📁 | **Project 与 Run 控制** | 直连本机可选用原生目录选择器，远程部署只浏览配置的 allowed roots；Project 经真实路径规范化并持久授权，Session 拒绝客户端任意 `workingDirectory`。运行中输入按 Session 投递并返回 queued/applied/rejected，支持取消、包含 INTERRUPTED 的 CAS 单一终态与 WebSocket 恢复 |
 | 🤖 | **多 Agent 协作** | Team（固定分工）/ Swarm（动态协商）/ SubAgent（主从委派）三种协作模式，复杂任务自动分工 |
 | 🔒 | **统一授权安全架构** | 所有核心工具统一经过 Tool Gateway：规范化输入冻结 → Operation Analyzer 风险与资源分析 → 系统不变量检查 → RUN/SESSION/WORKSPACE Grant 匹配或持久权限交互 → 执行前动态复检 → 结构化结果审计。高风险操作只允许单次授权；专用 Network/MCP Analyzer 对 SAFE/GUARDED 操作支持按工具记住 RUN/SESSION 授权，未知 MCP/动态工具默认只能单次审批 |
 | 🇨🇳 | **国产大模型直连** | 千问 / DeepSeek / Moonshot / 智谱GLM / MiniMax 开箱即用，国内网络直连，无需科学上网 |
 | 🐳 | **Docker 一键部署** | `docker compose up -d` 一条命令启动，数据存本地，完全私有 |
-| 📤 | **显式 OSS 产物发布（可选）** | 通过 `/publish-oss` 将当前会话中的单个已验证产物发布为永久公开下载地址；默认关闭、绝不自动上传，每次发布都需要用户明确指令和单次授权 |
+| 📤 | **显式 OSS 产物发布（可选）** | 通过 `/publish-oss` 从同一持久化根 Session 的根 Run 或授权后代 Run 中选择已验证条目，发布前再次校验哈希后生成永久公开下载地址；默认关闭、绝不自动上传，每次发布都需要用户明确指令和单次高风险授权 |
 | ⚡ | **智能上下文管理** | 六层压缩级联（Snip / MicroCompact / ContextCollapse / AutoCompact / CollapseDrain / ReactiveCompact）+ 增量折叠（每10轮自动压缩）+ 413 两阶段恢复（CollapseDrain 激进压缩 → ReactiveCompact 反应式压缩）+ 精确 Token 计数（tiktoken 多模型支持）+ 自纠错循环（SelfCorrectionLoop，编译/测试失败自动诊断修复，最多3次）+ Token三级告警 + 图片上下文治理（大图外置化 → 按需注入 → 预算守卫三层防护），无缝应对超长对话。核心引擎为 ContextCascade 与 QueryEngine |
 | 📷 | **多模态图片对话** | 支持图片上传输入，模型自动识别图片内容并分析；**智能视觉模型路由**——当前模型不支持图片时，自动切换至同厂商视觉模型处理，处理完成后无缝切回原模型，遵循"同厂商优先 + 全局兜底"策略。**图片预算守卫**——大图片（>50KB）自动外置化为轻量 JSON 引用，API 调用前按需注入，两阶段 Token 预算守卫确保多图对话不累积超限（单张≤1.5MB，总量≤2MB，最多 5 张并发注入）。支持的模型：gpt-5.6-sol / gpt-5.4-mini / claude-sonnet-4-6 / claude-opus-4-8 / qwen3.7-plus / kimi-k3 / kimi-k2.7-code / glm-5v-turbo / MiniMax-M3 / openai/gpt-5.6-sol / google/gemini-3.5-flash（单张≤5MB，数量上限因模型而异） |
 | 🖼️ | **浏览器语义快照** | `/snap` 命令智能捕获网页完整状态（DOM 结构 + 交互元素），支持富交互页面语义提取，生成结构化 JSON 供 Agent 解析和回放验证 |
@@ -99,7 +105,7 @@
 | 🔍 | **RV-4 证据包可视化** | 验证产物 7 类证据（screenshot / command / console / test / video / har / diff）Tab 分栏展示，移动端订阅 STOMP `verify_attention` 通知一键审批/驳回，REST API `/api/evidence/*` 提供查询与 Blob 下载 |
 | 🏆 | **SWE-bench Lite 实测** | 单模型 `qwen3.7-max` + 6 工具闭集（Read/Edit/Write/Bash/Grep/Glob），无网络、无 sub-agent；官方 harness 评测 **Resolve 56.0% (168/300)**、Patch 生成率 **94.7% (284/300)**，[技术报告 →](https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html) |
 | 🚀 | **极致性能** | REST API p50 1.5ms · WS STOMP 握手 2.22ms · 490次真实请求采样验证，核心引擎零外部依赖纯 Java 实现 |
-| 🏭 | **运行时可靠性** | Run状态CAS原子管理 · 持久交互Inbox(断线可恢复) · 进程硬超时+梯度终止 · 作用域权限Grant与子Agent受控继承 · Artifact declare→seal→hash验证 · Provider本地预算守卫 |
+| 🏭 | **运行时可靠性** | Run 状态 CAS 原子管理 · 完整 Session 快照、Run event sequence 与待处理持久交互重放 · 进程硬超时+梯度终止 · 作用域 Grant 与子 Agent 受控继承 · Artifact declare→seal→hash 验证及显式发布 · 结构化工具结果生成工具卡片与权威下载链接 · `sid/rid/prid/agent/turn/tool/llm` 日志关联 · BestEffortObservabilityRecorder 补充事件失败隔离 · Provider 本地预算守卫 |
 
 ---
 
@@ -225,7 +231,7 @@ cd frontend && npm install && npm run dev
 
 ### 可选：将已验证产物发布到 OSS
 
-ZhikunCode 提供内置 `/publish-oss` Skill，可将当前会话中的一个已验证产物发布为 OSS 永久公开下载地址。本功能**默认关闭且绝不自动上传**：生成文件、完成 Run、预览或打开文件都不会触发上传；每次发布都必须由用户明确提出，并通过一次高风险权限确认。
+ZhikunCode 提供内置 `/publish-oss` Skill，可从同一持久化根 Session 内的根 Run 与通过 `parent_run_id` 建立的后代 Run 中选择一个已验证产物条目，发布为 OSS 永久公开下载地址。本功能**默认关闭且绝不自动上传**：生成文件、完成 Run、预览或打开文件都不会触发上传；每次发布都必须由用户明确提出，并通过一次高风险权限确认。
 
 该功能仅支持通过 **ECS 实例 RAM 角色**和 IMDSv2 获取自动轮换的 STS 临时凭证，不接受长期 OSS AccessKey。每个部署者都必须配置自己的 Bucket、Region、Endpoint 和 RAM 角色；克隆或启动本仓库不会连接项目维护者的 OSS。
 
@@ -247,14 +253,14 @@ ZHIKUN_OSS_REQUEST_TIMEOUT_MS=120000
 
 使用流程：
 
-1. 在当前会话中生成产物，等待 Artifact 完成校验。
+1. 在当前持久化根 Session 中生成产物；Manifest 完成 declare → seal/hash → verify 后，状态可以是 `verified`，也可以是包含目标已验证条目的 `partial`。
 2. 明确输入 `/publish-oss <文件路径>`，或说明“上传刚生成的产物到 OSS”。
 3. 核对确认卡片中的文件名、大小、公开范围和“永久公开”警告后，批准本次操作。
 4. 上传成功后使用返回的 OSS 地址下载产物。
 
 安全边界与当前限制：
 
-- 只允许当前会话和 workspace 内 Artifact Manifest 已验证的**单个普通文件**，默认不超过 100 MiB。
+- 只允许同一持久化根 Session 内根 Run 或授权后代 Run 所声明、目标条目已验证且仍匹配 Manifest 哈希的 workspace 内**单个普通文件**，默认不超过 100 MiB。
 - 拒绝目录、批量上传、符号链接、workspace 外路径、`.env`、私钥、数据库、凭证配置及检测到敏感内容的文件。
 - 对象先私有上传，远端校验成功后才切换为 `public-read`；失败时清理本次新建的私有对象。
 - 返回地址为**永久公开下载地址**。OSS 默认域名通常会下载 HTML，而不是在浏览器中直接渲染。
@@ -272,6 +278,9 @@ ZhikunCode 支持**多 Provider 同时配置**（推荐）和单 Provider 两种
 ```bash
 # DashScope（千问系列）
 LLM_PROVIDER_DASHSCOPE_API_KEY=your-dashscope-key
+
+# DashScope Token Plan（百炼订阅专属 sk-sp- Key，与按量计费 Key 分离）
+LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_API_KEY=your-token-plan-key
 
 # DeepSeek
 LLM_PROVIDER_DEEPSEEK_API_KEY=your-deepseek-key
@@ -295,7 +304,8 @@ LLM_PROVIDER_ZENMUX_API_KEY=your-zenmux-api-key-here
 
 | 服务商 | Base URL | 推荐模型 | 备注 |
 |--------|----------|----------|------|
-| **千问/DashScope** | `https://dashscope.aliyuncs.com/compatible-mode/v1` | qwen3.7-max | **默认**，国内直连 |
+| **千问/DashScope** | `https://dashscope.aliyuncs.com/compatible-mode/v1` | qwen3.7-max / qwen3.7-plus | **默认 Provider**，国内直连 |
+| **千问/DashScope Token Plan** | `https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1` | qwen3.8-max | 可选订阅 Provider，使用独立 `sk-sp-` Key；不是全局默认或预定义降级链成员 |
 | **DeepSeek** | `https://api.deepseek.com/v1` | deepseek-v4-pro | 国内直连 |
 | **Moonshot（Kimi）** | `https://api.moonshot.cn/v1` | kimi-k3 / kimi-k2.7-code | 国内直连；kimi-k3 支持 1M 上下文和原生视觉 |
 | **Zhipu（智谱 GLM）** | `https://open.bigmodel.cn/api/paas/v4/chat/completions` | glm-5.2, glm-5v-turbo | 国内直连 |
@@ -488,8 +498,13 @@ ZhikunCode 的智能决策由以下核心引擎协同驱动：
 | **Token预算守卫（TokenBudgetGuard）** | 两阶段 Token 预算控制 | 历史 Base64 预清理 + 最终 payload 梯度降级 |
 | **工具执行管线（ToolExecutionPipeline）** | 工具执行全生命周期 | 校验、输入冻结、授权、执行和结果归一化 |
 | **自纠错循环（SelfCorrectionLoop）** | 错误诊断与自动修复 | MAX_ATTEMPTS=3(默认)/7(SWE-bench) |
-| **RunControlService** | Run 生命周期 CAS | 状态原子更新，单一终态权威 |
+| **RunControlService** | Run 生命周期 CAS | 状态原子更新，COMPLETED/FAILED/CANCELLED/INTERRUPTED 单一终态权威 |
+| **RunExecutionRegistry** | 活跃 Run 执行注册 | 以 Session 映射内存活跃 Run、输入队列与取消上下文；不承担 checkpoint 持久化 |
 | **DurableInteractionService** | 持久交互 | Inbox、ACK、服务端 deadline、CAS 终态与重连恢复 |
+| **Project 工作空间服务** | Project 选择与信任边界 | 持久授权、真实路径规范化、Session 工作目录固定、符号链接/别名/重绑定及越界复检 |
+| **Artifact Manifest 与发布策略** | 验证产物归属和显式发布 | 从同一根 Session 的 `verified` 或 `partial` Manifest 中选择已验证条目，发布前复核哈希 |
+| **BestEffortObservabilityRecorder** | 补充观测故障隔离 | 有界异步事件队列、丢弃/写失败指标；记录失败不反向破坏主执行链 |
+| **日志关联与恢复投影** | 诊断关联和断线恢复 | MDC 提供 `sid/rid/prid/agent/turn/tool/llm`；完整 Session 快照、Run event sequence、活跃工具状态及持久交互重放恢复前端 |
 
 ### Agent Loop 查询循环
 
@@ -593,6 +608,8 @@ Web 新会话必须先选择一个已授权目录。远程和 Docker 部署的�
 | RUN | 当前直接执行 Run | DIRECT_ONLY，不被兄弟或后代继承 |
 | SESSION | 当前根会话 | 根 Agent 及其后代可在相同约束下复用 |
 | WORKSPACE | 当前规范化工作区 | 根会话及后代可复用受约束的文件能力 |
+
+`ONCE` 是不写入 Grant 仓库的一次性授权决策；`RUN`、`SESSION`、`WORKSPACE` 才是三种持久 Grant 范围。
 
 子 Agent 使用 root session、root run 和 actor ancestry 构成的授权主体匹配父会话 Grant。继承只复用相同工具语义和约束，不能扩大路径、命令、风险等级或资源范围。
 
@@ -751,7 +768,7 @@ ZhikunCode 的skill技能系统（Skill System）是一个 **Markdown 驱动的�
 | **数据摘要** | `/csv-data-summarizer` | CSV统计分析+可视化图表+Markdown报告 |
 | **Prompt工程** | `/prompt-engineering` | 优化prompt结构、清晰度和有效性 |
 | **测试驱动开发** | `/test-driven-development` | TDD红→绿→重构循环方法论指导 |
-| **OSS 产物发布** | `/publish-oss` | 经单次授权，将当前会话中的一个已验证产物发布为永久公开 OSS 下载地址；默认关闭且不会自动上传 |
+| **OSS 产物发布** | `/publish-oss` | 经单次高风险授权，从同一持久化根 Session 的根 Run 或授权后代 Run 中发布目标条目已验证且哈希仍匹配的产物；默认关闭且不会自动上传 |
 
 ### 6 级加载源优先级
 
@@ -1179,7 +1196,7 @@ Research → Synthesis → Implementation → Verification
 
 ### 模型别名路由
 
-Agent 使用三级回退策略解析模型：用户参数 → Agent 类型默认 → 全局默认。通过 `application.yml` 中的 `agent.model-aliases` 配置别名映射（如 `light → qwen-plus`），避免硬编码模型名称，一处配置全局生效。
+Agent 使用三级回退策略解析模型：用户参数 → Agent 类型默认 → 全局默认。通过 `application.yml` 中的 `agent.model-aliases` 配置别名映射；当前 `light`、`standard`、`premium` 默认均为 `qwen3.7-max`，可通过配置统一调整，避免在 Agent 定义中硬编码模型名称。
 
 ---
 
@@ -1232,7 +1249,7 @@ ZhikunCode 支持 MCP 协议的 Client + Server 双向模式，覆盖 4 种传�
 
 ## 🛠️ 内置工具集
 
-ZhikunCode 提供覆盖开发全流程的内置工具，并支持 MCP 动态扩展：
+ZhikunCode 提供 **40+ 内置工具**，并支持 MCP、插件与平台条件工具动态扩展；最终可用集合以当前部署、Feature Flag 和已连接的 MCP Server 为准：
 
 | 分类 | 工具 | 说明 |
 |------|------|------|
@@ -1328,7 +1345,8 @@ ZhikunCode 内置 11 项可视化能力，让 AI 编程过程中的数据和状�
 | 变量 | 必填 | 默认值 | 说明 |
 |------|:---:|--------|------|
 | `ZHIKUN_COORDINATOR_MODE` | — | 0 | Feature flag，启用协调器模式（0=关闭，1=开启） |
-| `LLM_PROVIDER_DASHSCOPE_MODELS` | — | qwen3.7-max,qwen3.6-plus | DashScope 可用模型列表（逗号分隔） |
+| `LLM_PROVIDER_DASHSCOPE_MODELS` | — | qwen3.7-max,qwen3.7-plus | 按量计费 DashScope 可用模型列表（逗号分隔；实际目录可动态扩展） |
+| `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS` | — | qwen3.8-max | Token Plan Provider 可用模型列表；与普通 DashScope 配置相互独立 |
 | `LLM_PROVIDER_DEEPSEEK_MODELS` | — | deepseek-v4-pro,deepseek-v4-flash | DeepSeek 可用模型列表（逗号分隔） |
 | `LLM_PROVIDER_MOONSHOT_MODELS` | — | kimi-k3,moonshot-v1-128k | Moonshot 可用模型列表（逗号分隔） |
 

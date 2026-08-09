@@ -22,7 +22,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
 </head>
 <body>
 <div class="blueprint-container">
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 4350" preserveAspectRatio="xMidYMin meet">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 4860" preserveAspectRatio="xMidYMin meet">
 <defs>
   <!-- Circuit board grid pattern -->
   <pattern id="circuitGrid" x="0" y="0" width="50" height="50" patternUnits="userSpaceOnUse">
@@ -95,14 +95,14 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
 </defs>
 
 <!-- Background -->
-<rect width="1400" height="4350" fill="#0B0D17"/>
-<rect width="1400" height="4350" fill="url(#circuitGrid)"/>
+<rect width="1400" height="4860" fill="#0B0D17"/>
+<rect width="1400" height="4860" fill="url(#circuitGrid)"/>
 
 <!-- ═══════════════════════ TITLE SECTION ═══════════════════════ -->
 <g transform="translate(700, 50)">
   <text x="0" y="42" text-anchor="middle" fill="#00e5ff" font-size="52" font-weight="800" filter="url(#glowCyan)" style="animation: breathe 4s infinite">ZhikunCode</text>
   <text x="0" y="78" text-anchor="middle" fill="#B8D4E8" font-size="22" font-weight="600" letter-spacing="8">系统工程架构大图</text>
-  <text x="0" y="110" text-anchor="middle" fill="#8BA4B8" font-size="13">115,879行源码 · 17+模型 · 26工具 · 13技能 · Java 21 Virtual Threads · Spring Boot 3</text>
+  <text x="0" y="110" text-anchor="middle" fill="#8BA4B8" font-size="13">134,826行 / 863个Git跟踪产品文件 · 40+内置工具 · 14技能 · 5类Agent · 5种权限模式 · ea0170c / 2026-08-09</text>
   <line x1="-500" y1="125" x2="500" y2="125" stroke="url(#flowLine)" stroke-width="1.5" opacity="0.5"/>
 </g>
 
@@ -112,9 +112,9 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
   <rect x="0" y="0" width="1320" height="200" rx="10" fill="none" stroke="#00e5ff" stroke-width="1.5" opacity="0.5"/>
   <rect x="0" y="0" width="1320" height="200" rx="10" fill="#00e5ff" opacity="0.04"/>
   <!-- Layer label -->
-  <rect x="20" y="-12" width="280" height="24" rx="6" fill="#0B0D17"/>
-  <text x="30" y="4" fill="#00e5ff" font-size="15" font-weight="bold">FRONTEND LAYER · TypeScript 28,394行</text>
-  <text x="380" y="4" fill="#8BA4B8" font-size="11">110 React组件 · 14+ Zustand Stores · STOMP WebSocket</text>
+  <rect x="20" y="-12" width="380" height="24" rx="6" fill="#0B0D17"/>
+  <text x="30" y="4" fill="#00e5ff" font-size="15" font-weight="bold">FRONTEND LAYER · React 33,642行 · 209文件</text>
+  <text x="430" y="4" fill="#8BA4B8" font-size="11">117 TSX文件（109非测试） · 36 Store文件 · STOMP WebSocket</text>
 
   <!-- WebSocket STOMP -->
   <g transform="translate(40, 35)">
@@ -150,7 +150,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
   <!-- Zustand Stores -->
   <g transform="translate(600, 35)">
     <rect x="0" y="0" width="340" height="145" rx="4" fill="#0f2035" stroke="#00e5ff" stroke-width="0.8" opacity="0.8"/>
-    <text x="10" y="20" fill="#00e5ff" font-size="12" font-weight="bold">Zustand 状态管理 (14+ Stores)</text>
+    <text x="10" y="20" fill="#00e5ff" font-size="12" font-weight="bold">状态管理 (36 Store 文件)</text>
     <text x="10" y="40" fill="#4dd0e1" font-size="9">messageStore</text><text x="100" y="40" fill="#7a95a8" font-size="9">消息历史/流式</text>
     <text x="10" y="55" fill="#4dd0e1" font-size="9">toolStore</text><text x="100" y="55" fill="#7a95a8" font-size="9">工具定义/执行状态</text>
     <text x="10" y="70" fill="#4dd0e1" font-size="9">mcpCapabilityStore</text><text x="140" y="70" fill="#7a95a8" font-size="9">MCP能力动态注册</text>
@@ -192,13 +192,13 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
   <rect x="0" y="0" width="1320" height="3375" rx="10" fill="#ffd740" opacity="0.025"/>
   <!-- Layer label -->
   <rect x="20" y="-12" width="560" height="24" rx="6" fill="#0B0D17"/>
-  <text x="30" y="4" fill="#ffd740" font-size="15" font-weight="bold">BACKEND CORE · Java 79,639行 · 541文件 · Spring Boot 3 · Java 21 Virtual Threads</text>
+  <text x="30" y="4" fill="#ffd740" font-size="15" font-weight="bold">BACKEND CORE · Java 93,118行 · 622文件 · Spring Boot 3 · Java 21 Virtual Threads</text>
 
   <!-- ═══ 2A: QueryEngine ═══ -->
   <g transform="translate(20, 25)">
     <rect x="0" y="0" width="1280" height="350" rx="10" fill="url(#cardBgGrad)" stroke="#ffd740" stroke-width="1.4" opacity="1"/>
     <text x="15" y="22" fill="#ffd740" font-size="14" font-weight="bold">查询引擎（QueryEngine）</text>
-    <text x="250" y="22" fill="#8da4b0" font-size="10">QueryEngine.java · 1,583行 · 8步迭代循环 · MAX_TURNS=200</text>
+    <text x="250" y="22" fill="#8da4b0" font-size="10">QueryEngine.java · 8步迭代循环 · MAX_TURNS=200</text>
 
     <!-- 8-step cycle: top row S1-S4 -->
     <g transform="translate(30, 42)">
@@ -385,7 +385,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
 
       <!-- Mode branches -->
       <g transform="translate(540, 0)">
-        <text x="0" y="12" fill="#8da4b0" font-size="9">参考矩阵 · 4 种模式 / 4 种作用域:</text>
+        <text x="0" y="12" fill="#8da4b0" font-size="9">参考矩阵 · 5 种权限模式 / ONCE一次性决策 + 3种持久Grant范围:</text>
         <rect x="0" y="18" width="75" height="28" rx="2" fill="#1a237e" stroke="#7c4dff" stroke-width="0.5"/>
         <text x="5" y="36" fill="#b39ddb" font-size="8">DEFAULT</text>
         <rect x="80" y="18" width="65" height="28" rx="2" fill="#1a237e" stroke="#7c4dff" stroke-width="0.5"/>
@@ -394,12 +394,9 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
         <text x="155" y="36" fill="#b39ddb" font-size="8">ACCEPT_EDITS</text>
         <rect x="255" y="18" width="80" height="28" rx="2" fill="#1a237e" stroke="#7c4dff" stroke-width="0.5"/>
         <text x="260" y="36" fill="#b39ddb" font-size="8">DONT_ASK</text>
-        <rect x="340" y="18" width="60" height="28" rx="2" fill="#1a237e" stroke="#7c4dff" stroke-width="0.5"/>
-        <text x="345" y="36" fill="#b39ddb" font-size="8">ONCE/RUN</text>
-        <rect x="405" y="18" width="70" height="28" rx="2" fill="#1a237e" stroke="#7c4dff" stroke-width="0.5"/>
-        <text x="410" y="36" fill="#b39ddb" font-size="8">SESSION</text>
-        <rect x="480" y="18" width="80" height="28" rx="2" fill="#1a237e" stroke="#7c4dff" stroke-width="0.5"/>
-        <text x="485" y="36" fill="#b39ddb" font-size="8">WORKSPACE</text>
+        <rect x="340" y="18" width="96" height="28" rx="2" fill="#1a237e" stroke="#ef4444" stroke-width="0.5"/>
+        <text x="345" y="36" fill="#fca5a5" font-size="8">AUTO_APPROVE</text>
+        <text x="445" y="36" fill="#8da4b0" font-size="7.5">Scope: ONCE · RUN · SESSION · WORKSPACE</text>
       </g>
     </g>
 
@@ -412,7 +409,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
   <g transform="translate(20, 1095)">
     <rect x="0" y="0" width="620" height="300" rx="10" fill="url(#cardBgGrad)" stroke="#ffd740" stroke-width="1.4" opacity="1"/>
     <text x="15" y="22" fill="#ffd740" font-size="14" font-weight="bold">LLM 多模型路由</text>
-    <text x="195" y="22" fill="#8da4b0" font-size="10">LlmProviderRegistry · ModelRegistry · 17+模型</text>
+    <text x="195" y="22" fill="#8da4b0" font-size="10">LlmProviderRegistry · ModelRegistry · 模型目录动态扩展</text>
 
     <!-- Router icon -->
     <rect x="20" y="38" width="100" height="35" rx="3" fill="#1a237e" stroke="#ffd740" stroke-width="1"/>
@@ -436,8 +433,8 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
       <text x="0" y="12" fill="#F87171" font-size="10" font-weight="bold">国产模型</text>
       <text x="0" y="26" fill="#8da4b0" font-size="8">deepseek-v4-pro (384K, thinking)</text>
       <text x="0" y="38" fill="#8da4b0" font-size="8">deepseek-v4-flash (384K, thinking)</text>
-      <text x="0" y="50" fill="#8da4b0" font-size="8">qwen3.7-max (65.5K, thinking)</text>
-      <text x="0" y="62" fill="#8da4b0" font-size="8">qwen3.7-plus (8K) | kimi-k3 (16K)</text>
+      <text x="0" y="50" fill="#8da4b0" font-size="8">qwen3.7-max（默认）| qwen3.8-max（Token Plan可选）</text>
+      <text x="0" y="62" fill="#8da4b0" font-size="8">模型目录动态扩展 | kimi-k3 (16K)</text>
       <text x="0" y="74" fill="#8da4b0" font-size="8">glm-5.2 (131K) | glm-5v-turbo (131K)</text>
     </g>
 
@@ -458,7 +455,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
     <g transform="translate(20, 250)">
       <rect x="0" y="0" width="580" height="38" rx="3" fill="#1a1a2e" stroke="#ff8f00" stroke-width="0.6"/>
       <text x="10" y="14" fill="#ff8f00" font-size="9" font-weight="bold">降级链</text>
-      <text x="10" y="28" fill="#8da4b0" font-size="8">30min冷却 → 3次成功恢复 | 三级回退: 用户指定模型 → Agent默认(light/standard/premium) → 全局默认(qwen3.7-max)</text>
+      <text x="10" y="28" fill="#8da4b0" font-size="8">预定义降级链: qwen3.7-max / qwen3.7-plus / deepseek-v4-flash | Agent与全局默认: qwen3.7-max</text>
     </g>
   </g>
 
@@ -466,7 +463,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
   <g transform="translate(660, 1095)">
     <rect x="0" y="0" width="640" height="300" rx="10" fill="url(#cardBgGrad)" stroke="#06b6d4" stroke-width="1.4" opacity="1"/>
     <text x="15" y="22" fill="#06b6d4" font-size="14" font-weight="bold">工具执行系统</text>
-    <text x="160" y="22" fill="#8da4b0" font-size="10">内置工具 + MCP动态工具 · 核心生产调用统一经过 ToolExecutionGateway</text>
+    <text x="160" y="22" fill="#8da4b0" font-size="10">40+内置工具 + MCP/插件/平台条件工具 · 统一经过 ToolExecutionGateway</text>
 
     <!-- Tool grid -->
     <g transform="translate(15, 38)">
@@ -722,7 +719,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
   <g transform="translate(680, 2225)">
     <rect x="0" y="0" width="620" height="170" rx="10" fill="url(#cardBgGrad)" stroke="#F59E0B" stroke-width="1.4" opacity="1"/>
     <text x="15" y="22" fill="#FBBF24" font-size="13" font-weight="bold">技能系统（Skill System）</text>
-    <text x="155" y="22" fill="#8da4b0" font-size="10">SkillRegistry.java · 415行 · 13内置技能 · 6层优先级</text>
+    <text x="155" y="22" fill="#8da4b0" font-size="10">14 内置技能 · 6层优先级 · 支持动态扩展</text>
 
     <!-- Priority layers -->
     <g transform="translate(20, 38)">
@@ -761,6 +758,8 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
       <text x="6" y="80" fill="#fff176" font-size="8">prompt-eng</text>
       <rect x="105" y="66" width="110" height="20" rx="2" fill="#f57f17" fill-opacity="0.2" stroke="#ffc107" stroke-width="0.5"/>
       <text x="111" y="80" fill="#fff176" font-size="8">test-driven-dev</text>
+      <rect x="220" y="66" width="85" height="20" rx="2" fill="#f57f17" fill-opacity="0.2" stroke="#ffc107" stroke-width="0.5"/>
+      <text x="226" y="80" fill="#fff176" font-size="8">publish-oss</text>
     </g>
 
     <!-- Hot reload -->
@@ -771,7 +770,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
   <g transform="translate(20, 2420)">
     <rect x="0" y="0" width="400" height="145" rx="10" fill="url(#cardBgGrad)" stroke="#A78BFA" stroke-width="1.4" opacity="1"/>
     <text x="15" y="22" fill="#A78BFA" font-size="13" font-weight="bold">多Agent协作（Multi-Agent）</text>
-    <text x="225" y="22" fill="#8da4b0" font-size="10">AgentConcurrencyController</text>
+    <text x="225" y="22" fill="#8da4b0" font-size="10">5类Agent · general-purpose/explore/verification/plan/guide</text>
 
     <g transform="translate(20, 38)">
       <rect x="0" y="0" width="150" height="35" rx="3" fill="#312E81" stroke="#A78BFA" stroke-width="0.6"/>
@@ -828,7 +827,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
   <g transform="translate(900, 2420)">
     <rect x="0" y="0" width="400" height="145" rx="10" fill="url(#cardBgGrad)" stroke="#06b6d4" stroke-width="1.4" opacity="1"/>
     <text x="15" y="22" fill="#22D3EE" font-size="14" font-weight="bold">WebSocket控制器</text>
-    <text x="185" y="22" fill="#8da4b0" font-size="10">WebSocketController.java · 1,590行</text>
+    <text x="185" y="22" fill="#8da4b0" font-size="10">WebSocketController.java · STOMP会话与消息控制</text>
 
     <g transform="translate(20, 38)">
       <text x="0" y="12" fill="#4dd0e1" font-size="9" font-weight="bold">权限交互持久流:</text>
@@ -942,7 +941,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
     <g transform="translate(15, 38)">
       <rect x="0" y="0" width="385" height="26" rx="2" fill="#1a237e" stroke="#ffd740" stroke-width="0.6"/>
       <text x="8" y="17" fill="#FFF176" font-size="9" font-weight="bold">基础指令层</text>
-      <text x="90" y="17" fill="#8da4b0" font-size="8">角色定义 + 工具描述 (26工具Schema注入)</text>
+      <text x="90" y="17" fill="#8da4b0" font-size="8">角色定义 + 工具描述 (40+工具Schema动态注入)</text>
 
       <rect x="0" y="30" width="385" height="26" rx="2" fill="#1a237e" stroke="#FFD54F" stroke-width="0.6"/>
       <text x="8" y="47" fill="#FFF176" font-size="9" font-weight="bold">上下文注入层</text>
@@ -1305,10 +1304,10 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
     </g>
   </g>
 
-  <!-- ═══ 13技能清单 ═══ -->
+  <!-- ═══ 14技能清单 ═══ -->
   <g transform="translate(860, 2930)">
     <rect x="0" y="0" width="440" height="140" rx="10" fill="url(#cardBgGrad)" stroke="#F59E0B" stroke-width="1.4" opacity="1"/>
-    <text x="15" y="22" fill="#FBBF24" font-size="13" font-weight="bold">完整13技能清单</text>
+    <text x="15" y="22" fill="#FBBF24" font-size="13" font-weight="bold">完整14技能清单</text>
     <text x="155" y="22" fill="#8da4b0" font-size="10">Slash Command · 技能描述</text>
     <g transform="translate(15, 36)">
       <text x="0" y="14" fill="#fff176" font-size="9">/commit 智能提交</text>
@@ -1320,6 +1319,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
       <text x="220" y="32" fill="#fff176" font-size="9">/verify 代码验证</text>
       <text x="320" y="32" fill="#fff176" font-size="9">/stuck 脱困诊断</text>
       <text x="0" y="50" fill="#fff176" font-size="9">/remember 会话记忆</text>
+      <text x="220" y="50" fill="#fff176" font-size="9">/publish-oss 产物发布</text>
       <text x="0" y="68" fill="#FFC107" font-size="8">/software-architecture</text>
       <text x="155" y="68" fill="#FFC107" font-size="8">/csv-data-summarizer</text>
       <text x="0" y="84" fill="#FFC107" font-size="8">/prompt-engineering</text>
@@ -1343,7 +1343,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
   <rect x="0" y="0" width="1320" height="280" rx="10" fill="#A78BFA" opacity="0.035"/>
   <!-- Layer label -->
   <rect x="20" y="-12" width="340" height="24" rx="6" fill="#0B0D17"/>
-  <text x="30" y="4" fill="#A78BFA" font-size="15" font-weight="bold">PYTHON SERVICE · FastAPI 7,846行 · main.py 148L</text>
+  <text x="30" y="4" fill="#A78BFA" font-size="15" font-weight="bold">PYTHON SERVICE + CLI · 8,066行 · 32文件 · 7能力域</text>
 
   <!-- 4-Layer Capability Detection -->
   <g transform="translate(40, 30)">
@@ -1430,7 +1430,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
     <text x="90" y="20" fill="#8da4b0" font-size="8">FastAPI + Uvicorn</text>
 
     <text x="10" y="42" fill="#C4B5FD" font-size="9" font-weight="bold">启动流程:</text>
-    <text x="10" y="58" fill="#8da4b0" font-size="8">main.py:148L → 4层能力探测 → 动态注册Router</text>
+    <text x="10" y="58" fill="#8da4b0" font-size="8">FastAPI 启动 → 4层能力探测 → 动态注册 Router</text>
     <text x="10" y="74" fill="#8da4b0" font-size="8">能力缺失 → 跳过对应Router (graceful degradation)</text>
 
     <text x="10" y="98" fill="#C4B5FD" font-size="9" font-weight="bold">接口契约:</text>
@@ -1445,27 +1445,106 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
   </g>
 </g>
 
+<!-- ═══════════════════════ LATEST RUNTIME CONTROL ═══════════════════════ -->
+<g transform="translate(40, 4180)">
+  <rect x="0" y="0" width="1320" height="390" rx="10" fill="none" stroke="#4B5EAA" stroke-width="1.5" opacity="0.7"/>
+  <rect x="0" y="0" width="1320" height="390" rx="10" fill="url(#cardBgGrad)" opacity="0.55"/>
+  <rect x="20" y="-12" width="490" height="24" rx="6" fill="#0B0D17"/>
+  <text x="30" y="4" fill="#00e5ff" font-size="15" font-weight="bold">LATEST RUNTIME CONTROL · ea0170c · 2026-08-09</text>
+  <text x="535" y="4" fill="#8BA4B8" font-size="11">Project · Steering · Verified Artifact · Observability / Recovery</text>
+
+  <!-- Project / Session -->
+  <g transform="translate(20, 48)">
+    <rect x="0" y="0" width="290" height="250" rx="8" fill="url(#cardBgGrad)" stroke="#00e5ff" stroke-width="1.2" filter="url(#cardShadow)"/>
+    <text x="16" y="28" fill="#00e5ff" font-size="13" font-weight="bold">PROJECT / SESSION</text>
+    <rect x="205" y="12" width="68" height="22" rx="11" fill="#00e5ff" opacity="0.12"/><text x="239" y="27" text-anchor="middle" fill="#00e5ff" font-size="8">CORE</text>
+    <text x="16" y="58" fill="#B8D4E8" font-size="10" font-weight="600">V020 Project Trust Boundary</text>
+    <text x="16" y="82" fill="#8da4b0" font-size="9">• 本机 picker / 远程 allowed roots</text>
+    <text x="16" y="104" fill="#8da4b0" font-size="9">• canonical / real path 归一化</text>
+    <text x="16" y="126" fill="#8da4b0" font-size="9">• Session 固定默认相对路径根</text>
+    <text x="16" y="148" fill="#8da4b0" font-size="9">• 任意 cwd / 别名 / 重绑定拒绝</text>
+    <line x1="16" y1="170" x2="274" y2="170" stroke="#253555" stroke-width="0.6"/>
+    <text x="16" y="194" fill="#7a95a8" font-size="8.5">Project 是可撤销信任范围</text>
+    <text x="16" y="214" fill="#7a95a8" font-size="8.5">不是通用 OS 文件沙箱</text>
+    <text x="16" y="236" fill="#00e5ff" font-size="8">普通文件读写按模式放行 / 越界复检</text>
+  </g>
+
+  <!-- Run steering / CAS -->
+  <g transform="translate(350, 48)">
+    <rect x="0" y="0" width="290" height="250" rx="8" fill="url(#cardBgGrad)" stroke="#A78BFA" stroke-width="1.2" filter="url(#cardShadow)"/>
+    <text x="16" y="28" fill="#A78BFA" font-size="13" font-weight="bold">RUN STEERING / CAS</text>
+    <rect x="205" y="12" width="68" height="22" rx="11" fill="#A78BFA" opacity="0.12"/><text x="239" y="27" text-anchor="middle" fill="#A78BFA" font-size="8">CORE</text>
+    <text x="16" y="58" fill="#C4B5FD" font-size="10" font-weight="600">Session → In-memory Active Run</text>
+    <text x="16" y="82" fill="#8da4b0" font-size="9">• requestId/text → queued/applied/rejected</text>
+    <text x="16" y="104" fill="#8da4b0" font-size="9">• steering queue / turn boundary（内存）</text>
+    <text x="16" y="126" fill="#8da4b0" font-size="9">• AbortContext / 进程梯度终止</text>
+    <text x="16" y="148" fill="#8da4b0" font-size="9">• RunControlService CAS 单一终态</text>
+    <line x1="16" y1="170" x2="274" y2="170" stroke="#253555" stroke-width="0.6"/>
+    <text x="16" y="194" fill="#7a95a8" font-size="8.5">COMPLETED / FAILED / CANCELLED / INTERRUPTED</text>
+    <text x="16" y="214" fill="#7a95a8" font-size="8.5">迟到回调不能覆盖权威状态</text>
+    <text x="16" y="236" fill="#A78BFA" font-size="8">CheckpointService 与输入队列职责分离</text>
+  </g>
+
+  <!-- Verified Artifact -->
+  <g transform="translate(680, 48)">
+    <rect x="0" y="0" width="290" height="250" rx="8" fill="url(#cardBgGrad)" stroke="#10B981" stroke-width="1.2" filter="url(#cardShadow)"/>
+    <text x="16" y="28" fill="#10B981" font-size="13" font-weight="bold">VERIFIED ARTIFACT</text>
+    <rect x="194" y="12" width="79" height="22" rx="11" fill="#10B981" opacity="0.12"/><text x="233" y="27" text-anchor="middle" fill="#10B981" font-size="8">OPTIONAL</text>
+    <text x="16" y="58" fill="#A7F3D0" font-size="10" font-weight="600">Declare → Seal / Hash → Verify</text>
+    <text x="16" y="82" fill="#8da4b0" font-size="9">• verified/partial manifest 中的验证条目</text>
+    <text x="16" y="104" fill="#8da4b0" font-size="9">• PublishArtifact 显式高风险授权</text>
+    <text x="16" y="126" fill="#8da4b0" font-size="9">• OSS 私有上传 / 远端校验 / 公开</text>
+    <text x="16" y="148" fill="#8da4b0" font-size="9">• 权威下载链接结构化返回</text>
+    <line x1="16" y1="170" x2="274" y2="170" stroke="#253555" stroke-width="0.6"/>
+    <text x="16" y="194" fill="#7a95a8" font-size="8.5">同一持久化根 Session 的根 Run</text>
+    <text x="16" y="214" fill="#7a95a8" font-size="8.5">及 parent_run_id 授权后代 Run</text>
+    <text x="16" y="236" fill="#10B981" font-size="8">默认关闭 · 永不自动上传</text>
+  </g>
+
+  <!-- Observability / Recovery -->
+  <g transform="translate(1010, 48)">
+    <rect x="0" y="0" width="290" height="250" rx="8" fill="url(#cardBgGrad)" stroke="#F59E0B" stroke-width="1.2" filter="url(#cardShadow)"/>
+    <text x="16" y="28" fill="#F59E0B" font-size="13" font-weight="bold">OBSERVE / RECOVER</text>
+    <rect x="195" y="12" width="78" height="22" rx="11" fill="#F59E0B" opacity="0.12"/><text x="234" y="27" text-anchor="middle" fill="#F59E0B" font-size="8">DYNAMIC</text>
+    <text x="16" y="58" fill="#FBBF24" font-size="10" font-weight="600">BestEffortObservabilityRecorder</text>
+    <text x="16" y="82" fill="#8da4b0" font-size="9">• MDC: sid/rid/prid/agent/turn/tool/llm</text>
+    <text x="16" y="104" fill="#8da4b0" font-size="9">• 结构化结果 → 工具卡片 / 外部资源</text>
+    <text x="16" y="126" fill="#8da4b0" font-size="9">• Recorder 有界补充事件故障隔离</text>
+    <text x="16" y="148" fill="#8da4b0" font-size="9">• 完整 Session / Run event seq 恢复</text>
+    <line x1="16" y1="170" x2="274" y2="170" stroke="#253555" stroke-width="0.6"/>
+    <text x="16" y="194" fill="#7a95a8" font-size="8.5">活跃工具状态 / 待处理持久交互重放</text>
+    <text x="16" y="214" fill="#7a95a8" font-size="8.5">补充观测失败不破坏主执行链</text>
+    <text x="16" y="236" fill="#F59E0B" font-size="8">WebSocket reconnect · idempotent</text>
+  </g>
+
+  <line x1="310" y1="173" x2="350" y2="173" stroke="#00e5ff" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#arrowGold)"/>
+  <line x1="640" y1="173" x2="680" y2="173" stroke="#A78BFA" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#arrowGold)"/>
+  <line x1="970" y1="173" x2="1010" y2="173" stroke="#10B981" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#arrowGold)"/>
+  <rect x="160" y="330" width="1000" height="36" rx="18" fill="#0f2035" stroke="#4B5EAA" stroke-width="0.8"/>
+  <text x="660" y="353" text-anchor="middle" fill="#94A3B8" font-size="10">5 种权限模式 · ONCE一次性决策 + RUN/SESSION/WORKSPACE持久Grant · 硬拒绝 / Hook / SSRF / 沙箱不变</text>
+</g>
+
 <!-- ═══════════════════════ BOTTOM STATS BAR ═══════════════════════ -->
-<g transform="translate(40, 4185)">
+<g transform="translate(40, 4620)">
   <rect x="0" y="0" width="1320" height="65" rx="10" fill="url(#statBarGrad)" stroke="#4B5EAA" stroke-width="1.5" opacity="1"/>
   <rect x="0" y="0" width="1320" height="65" rx="10" fill="url(#flowLine)" opacity="0.08"/>
 
   <!-- Stats -->
   <text x="660" y="26" text-anchor="middle" fill="#E2E8F0" font-size="14" font-weight="bold" letter-spacing="1.5">
-    Java 79,639行 │ TypeScript 28,394行 │ Python 7,846行 │ 总计 115,879行
+    Java 93,118行 │ React 33,642行 │ Python服务与CLI 8,066行 │ 总计 134,826行
   </text>
   <text x="660" y="50" text-anchor="middle" fill="#94A3B8" font-size="11" letter-spacing="1">
-    541 Java文件 │ 110 React组件 │ 26工具 │ 13技能 │ 17+模型 │ 14 Stores │ 35 MCP文件
+    622 Java文件 │ 117 TSX文件（109非测试） │ 40+内置工具 │ 14技能 │ 5类Agent │ 5权限模式 │ 36 Store文件
   </text>
 </g>
 
 <!-- ═══════════════════════ DATA FLOW MAIN LINES ═══════════════════════ -->
 <!-- Main vertical flow line with animation -->
-<line x1="60" y1="190" x2="60" y2="4185" stroke="url(#flowLine)" stroke-width="1.5" stroke-dasharray="8,6" opacity="0.35" style="animation: pulseFlowLine 3s linear infinite"/>
-<line x1="1360" y1="190" x2="1360" y2="4185" stroke="url(#flowLine)" stroke-width="1.5" stroke-dasharray="8,6" opacity="0.35" style="animation: pulseFlowLine 3s linear infinite"/>
+<line x1="60" y1="190" x2="60" y2="4620" stroke="url(#flowLine)" stroke-width="1.5" stroke-dasharray="8,6" opacity="0.35" style="animation: pulseFlowLine 3s linear infinite"/>
+<line x1="1360" y1="190" x2="1360" y2="4620" stroke="url(#flowLine)" stroke-width="1.5" stroke-dasharray="8,6" opacity="0.35" style="animation: pulseFlowLine 3s linear infinite"/>
 
 <!-- Footer -->
-<text x="700" y="4275" text-anchor="middle" fill="#4B5EAA" font-size="11" font-weight="500">ZhikunCode System Architecture Blueprint · 源码实证驱动 · 所有数据100%来自代码审查</text>
+<text x="700" y="4770" text-anchor="middle" fill="#4B5EAA" font-size="11" font-weight="500">ZhikunCode System Architecture Blueprint · ea0170c · 2026-08-09 · 产品源码统计口径</text>
 
 </svg>
 </div>
