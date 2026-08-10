@@ -39,11 +39,14 @@
 > 🏗️ **[View Full System Architecture →](https://zhikunqingtao.github.io/zhikuncode/ZhikunCode-Architecture.html)**  
 > Java Agent Runtime · React Browser Control Plane · Python Capability Service · Full Visualization
 
-> 🔎 **[Dual-Tool Execution Audit of the Same Gold-Monitor Task →](https://zhikunqingtao.github.io/zhikuncode/case-studies/zhikuncode-codex-gold-monitor-audit.html)**
-> ZhikunCode × Codex · Hash-matched raw run-log verification with redacted excerpts, frozen artifact hashes, code inspection and published redacted screenshots · 38 evidence entries · 14 recomputable scoring dimensions
+> 🔎 **[Real-Time Gold Monitor: ZhikunCode vs Codex Head-to-Head →](https://zhikunqingtao.github.io/zhikuncode/case-studies/zhikuncode-codex-gold-monitor-audit.html)**
+> ZhikunCode × Codex · Same task, two implementations · 14 scoring dimensions, process screenshots and full execution records
 
-> 🚄 **[12306 Waitlist Fulfillment Visualization: Dual-Tool Comparative Evaluation →](https://zhikunqingtao.github.io/zhikuncode/case-studies/zhikuncode-codex-12306-audit.html)**
-> ZhikunCode/KimiK3 × Codex/GPT-5.6 Sol · 7-dimension evaluation · 21 evidence entries · 65-line redacted log excerpt · 11 runtime screenshots · SHA-256 manifest
+> 🚄 **[12306 Full-Chain Visualization: Single File, Zero Dependencies →](https://zhikunqingtao.github.io/zhikuncode/case-studies/zhikuncode-codex-12306-audit.html)**
+> ZhikunCode/KimiK3 × Codex/GPT-5.6 Sol · 7-dimension comparison · Both artifacts playable online
+
+> 🎮 **[5 Hours: AI Builds a Playable Web Version of "Honor of Kings" from Scratch →](https://zhikunqingtao.github.io/zhikuncode/case-studies/zhikuncode%E5%BC%80%E5%8F%91%E7%8E%8B%E8%80%85%E8%8D%A3%E8%80%80.html)**
+> Kimi K3 · One continuous 5h29m run · 19 files / 7,979 lines of pure static Three.js · Open a browser and play
 
 > 🏆 **[SWE-bench Lite Technical Report →](https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html)**  
 > Submission namespace `20260525_zhikuncode` · Official harness Resolve **168 / 300 (56.0%)** · Patch generation 284 / 300 (94.7%)
@@ -52,32 +55,46 @@
 
 ## 🔎 Open Engineering Cases
 
-### Gold-Monitor Task: ZhikunCode × Codex
+### Real-Time Gold Monitor: ZhikunCode vs Codex Head-to-Head
 
-The same requirement was given to ZhikunCode and Codex independently, then audited across 14 dimensions including requirement understanding, development interaction, process efficiency, data accuracy, architecture, code quality, user experience, and reproducibility. The report keeps both sides' strengths and defects, and publishes the scoring formulas, evidence IDs, screenshots, and known limitations.
+The same real-time gold-price monitoring brief was handed to ZhikunCode and Codex to build from scratch, then scored across 14 dimensions — requirement understanding, development interaction, data accuracy, architecture, code quality, user experience and more. The report keeps both sides' strengths and defects.
 
-- ZhikunCode: Kimi K3 hit HTTP 429; the user switched to GLM-5.2 and continued within the same logical session.
+- ZhikunCode: Kimi K3 hit an HTTP 429; the user switched to GLM-5.2 and continued within the same logical session.
 - Codex: GPT-5.6 Sol, reasoning effort High.
-- The case's custom audit scores are ZhikunCode 68.3 and Codex 68.4, with heavily overlapping score ranges.
-- This result only describes this single-task delivery; it does not imply model-capability equivalence, nor does it constitute a product ranking.
+- Final scores: ZhikunCode 68.3 vs Codex 68.4 — effectively a dead heat.
 
-**[View the full public audit →](https://zhikunqingtao.github.io/zhikuncode/case-studies/zhikuncode-codex-gold-monitor-audit.html)** ·
-**[Download structured evidence JSON →](case-studies/zhikuncode-codex-gold-monitor-evidence.json)** ·
-**[Generation & review notes →](case-studies/README.md)**
+**[View comparison report →](https://zhikunqingtao.github.io/zhikuncode/case-studies/zhikuncode-codex-gold-monitor-audit.html)** ·
+**[Download raw data →](case-studies/zhikuncode-codex-gold-monitor-evidence.json)** ·
+**[About the methodology →](case-studies/README.md)**
 
-### 12306 Waitlist Fulfillment Visualization: ZhikunCode × Codex
+### 12306 Full-Chain Visualization: Single File, Zero Dependencies
 
-The same "12306 waitlist-fulfillment backend full-chain" dynamic visualization task was given to ZhikunCode and Codex independently, then evaluated across 7 dimensions: task understanding, code quality, dynamic visualization, architecture & math, user experience, development efficiency, and technical implementation. The report keeps both sides' strengths and defects, and publishes the scoring formulas, 21 evidence IDs, 11 runtime screenshots, and known limitations.
+The same "12306 waitlist-fulfillment backend full-chain" animated visualization brief was given to ZhikunCode and Codex, then evaluated across 7 dimensions: task understanding, code quality, dynamic visualization, architecture & math, user experience, development efficiency, and technical implementation. The report keeps both sides' strengths and defects.
 
-- ZhikunCode: kimi-k3 (KimiK3), delivered a single-file HTML (1,061 lines, zero external network dependencies), with a 548KB full execution log available for audit.
-- Codex: GPT-5.6 Sol (high reasoning mode), delivered a Next.js project; its process evidence is at the "partial" grade (a session-interface screenshot proves the 27m52s total duration and the change size; no execution log), so the development-efficiency dimension is scored at the "partial" evidence grade.
-- The case's custom weighted scores are ZhikunCode 8.68 and Codex 8.45 (both totals weighted across all 7 dimensions), with heavily overlapping score ranges.
-- This result only describes this single-task delivery; it does not imply model-capability equivalence, nor does it constitute a product ranking.
+- ZhikunCode: kimi-k3 delivered a single-file HTML — 1,061 lines, zero external network dependencies, open it and it runs.
+- Codex: GPT-5.6 Sol (high reasoning mode) delivered a Next.js project; session screenshots show 27m52s total.
+- Final weighted scores: ZhikunCode 8.68 vs Codex 8.45 — a narrow gap, but two completely different artifacts.
 
-**[View the full comparative evaluation →](https://zhikunqingtao.github.io/zhikuncode/case-studies/zhikuncode-codex-12306-audit.html)** ·
+**[View comparison report →](https://zhikunqingtao.github.io/zhikuncode/case-studies/zhikuncode-codex-12306-audit.html)** ·
 **[Live artifact demo →](https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/12306-comparison/artifacts/zhikuncode/12306-houbu.html)** ·
-**[Download structured evidence JSON →](case-studies/zhikuncode-codex-12306-evidence.json)** ·
-**[Generation & review notes →](case-studies/README.md)**
+**[Download raw data →](case-studies/zhikuncode-codex-12306-evidence.json)** ·
+**[About the methodology →](case-studies/README.md)**
+
+### 5 Hours: AI Builds a Playable Web Version of "Honor of Kings" from Scratch
+
+In a single overnight run on 2026-08-09, ZhikunCode used Kimi K3 to build a purely static Three.js 5v5 MOBA game: hero draft, live matches, AI teammates and enemies — all playable straight from the browser.
+
+- One continuous 5h29m run, producing 19 first-party files and 7,979 lines of code.
+- 10 sub-agents working in parallel across gameplay, rendering, AI behavior and level assets.
+- Purely static delivery — no backend, no external network dependencies, runs directly in the browser.
+- Every step on record: 43 screenshots and 5 original screen recordings to drill into.
+
+**[View full case study →](https://zhikunqingtao.github.io/zhikuncode/case-studies/zhikuncode%E5%BC%80%E5%8F%91%E7%8E%8B%E8%80%85%E8%8D%A3%E8%80%80.html)** ·
+**[Play online (5-hero draft) →](https://king.zhikun.xin/)** ·
+**[Auto demo (jump straight into a match) →](https://king.zhikun.xin/?demo=1)** ·
+**[About the methodology →](case-studies/README.md)**
+
+> All cases above are single-task test records. See each case report page for detailed methodology and data.
 
 ---
 

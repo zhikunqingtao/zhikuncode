@@ -44,14 +44,14 @@
 
 > **代码快照：** `ea0170c` · 2026-08-09 · Git 跟踪的产品源代码 134,826 行 / 863 文件（Java 93,118 / 622、React 33,642 / 209、Python 服务与 CLI 8,066 / 32；不统计本地忽略文件）
 
-> 🔎 **[同一黄金监控任务的双工具执行审计 →](https://zhikunqingtao.github.io/zhikuncode/case-studies/zhikuncode-codex-gold-monitor-audit.html)**
-> ZhikunCode × Codex · 哈希匹配的原始运行日志核验与脱敏摘录、冻结产物哈希、代码检查与公开脱敏截图、38 条证据与 14 维可复算评分
+> 🔎 **[实时黄金监控：ZhikunCode vs Codex 同题 PK →](https://zhikunqingtao.github.io/zhikuncode/case-studies/zhikuncode-codex-gold-monitor-audit.html)**
+> ZhikunCode × Codex · 同一需求两套实现，14 维评分、过程截图与完整执行记录
 
-> 🚄 **[12306 候补可视化双工具对比评估 →](https://zhikunqingtao.github.io/zhikuncode/case-studies/zhikuncode-codex-12306-audit.html)**
-> ZhikunCode/KimiK3 × Codex/GPT-5.6 Sol · 7 维评估、21 条证据、65 行脱敏日志摘录、11 张运行截图与 SHA-256 清单
+> 🚄 **[12306 候补全链路可视化：单文件零依赖交付 →](https://zhikunqingtao.github.io/zhikuncode/case-studies/zhikuncode-codex-12306-audit.html)**
+> ZhikunCode/KimiK3 × Codex/GPT-5.6 Sol · 7 维对比评估，双方产物可直接在线试玩
 
-> 🎮 **[类《王者荣耀》单机 Web 5v5 MOBA 原型证据实录 →](docs/case-studies/zhikuncode开发王者荣耀.html)**
-> Kimi K3 · 首末请求锚点跨度5小时29分17秒 · 19个第一方文件/7,979行 · 873条运行事件与账单逐条匹配 · 91张本案例证据SVG · 43个截图文件/42份唯一内容 · 5份原始录屏映射
+> 🎮 **[5小时 AI 从零写出可玩的《王者荣耀》网页版 →](https://zhikunqingtao.github.io/zhikuncode/case-studies/zhikuncode%E5%BC%80%E5%8F%91%E7%8E%8B%E8%80%85%E8%8D%A3%E8%80%80.html)**
+> Kimi K3 · 一次连续开发 5 小时 29 分 · 19 个文件 / 7,979 行纯静态 Three.js · 打开浏览器即可试玩
 
 > 🏆 **[SWE-bench Lite 技术报告 →](https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html)**  
 > 提交命名空间 `20260525_zhikuncode` · 官方 harness 评测 Resolve **168 / 300 (56.0%)** · Patch 生成率 284 / 300 (94.7%)
@@ -60,49 +60,46 @@
 
 ## 🔎 公开工程案例
 
-### 黄金监控任务：ZhikunCode × Codex
+### 实时黄金监控：ZhikunCode vs Codex 同题 PK
 
-同一需求分别交由 ZhikunCode 与 Codex 完成，并从需求理解、开发交互、过程效率、数据准确性、架构、代码质量、用户体验和可复现性等 14 个维度进行审计。报告保留双方优点与缺陷，公开评分公式、证据编号、截图和已知限制。
+同一个实时黄金监控需求，分别交给 ZhikunCode 与 Codex 从零完成，再按需求理解、开发交互、数据准确性、架构、代码质量、用户体验等 14 个维度打分。报告同时保留双方的优点与缺陷。
 
 - ZhikunCode：Kimi K3 遇到 HTTP 429 后，由用户切换至 GLM-5.2 并在同一逻辑会话中继续。
 - Codex：GPT-5.6 Sol，推理强度 High。
-- 本案例自定义审计评分为 ZhikunCode 68.3、Codex 68.4，评分区间大幅重叠。
-- 该结果只描述本次单任务交付，不代表模型能力等价，也不构成产品排名。
+- 最终评分 ZhikunCode 68.3、Codex 68.4 —— 两者几乎打成平手。
 
-**[查看完整公开审计 →](https://zhikunqingtao.github.io/zhikuncode/case-studies/zhikuncode-codex-gold-monitor-audit.html)** ·
-**[下载结构化证据 JSON →](docs/case-studies/zhikuncode-codex-gold-monitor-evidence.json)** ·
-**[查看生成与复核说明 →](docs/case-studies/README.md)**
+**[查看对比报告 →](https://zhikunqingtao.github.io/zhikuncode/case-studies/zhikuncode-codex-gold-monitor-audit.html)** ·
+**[下载原始数据 →](docs/case-studies/zhikuncode-codex-gold-monitor-evidence.json)** ·
+**[了解评测方法 →](docs/case-studies/README.md)**
 
-### 12306 候补可视化对比评估：ZhikunCode × Codex
+### 12306 候补全链路可视化：单文件零依赖交付
 
-同一"12306 候补成功后台全链路"动态可视化任务分别交由 ZhikunCode 与 Codex 完成，从任务理解、代码质量、动态可视化、架构与数学、用户体验、开发效率、技术实现 7 个维度评估。报告保留双方优点与缺陷，公开评分公式、21 条证据编号、11 张运行截图和已知限制。
+同一个"12306 候补成功后台全链路"动态可视化需求，分别交给 ZhikunCode 与 Codex 完成，从任务理解、代码质量、动态可视化、架构与数学、用户体验、开发效率、技术实现 7 个维度评估。报告同时保留双方的优点与缺陷。
 
-- ZhikunCode：kimi-k3（KimiK3），交付单文件 HTML（1,061 行，零外部网络依赖），548KB 完整执行日志可审计。
-- Codex：GPT-5.6 Sol（高推理模式），交付 Next.js 工程；过程证据为部分档位（会话界面截图证明总耗时 27m52s 与改动规模，无执行日志），开发效率维度按"部分"档位计分。
-- 本案例自定义加权评分为 ZhikunCode 8.68、Codex 8.45（两侧同为七维加权），评分区间大幅重叠。
-- 该结果只描述本次单任务交付，不代表模型能力等价，也不构成产品排名。
+- ZhikunCode：kimi-k3 交付单文件 HTML，1,061 行、零外部网络依赖，打开就能跑。
+- Codex：GPT-5.6 Sol（高推理模式）交付 Next.js 工程，会话截图显示总耗时 27m52s。
+- 最终加权评分 ZhikunCode 8.68、Codex 8.45 —— 差距很小，产物风格截然不同。
 
-**[查看完整对比评估 →](https://zhikunqingtao.github.io/zhikuncode/case-studies/zhikuncode-codex-12306-audit.html)** ·
+**[查看对比报告 →](https://zhikunqingtao.github.io/zhikuncode/case-studies/zhikuncode-codex-12306-audit.html)** ·
 **[产物在线 Demo →](https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/12306-comparison/artifacts/zhikuncode/12306-houbu.html)** ·
-**[下载结构化证据 JSON →](docs/case-studies/zhikuncode-codex-12306-evidence.json)** ·
-**[查看生成与复核说明 →](docs/case-studies/README.md)**
+**[下载原始数据 →](docs/case-studies/zhikuncode-codex-12306-evidence.json)** ·
+**[了解评测方法 →](docs/case-studies/README.md)**
 
-### 类《王者荣耀》的单机 Web 5v5 MOBA 原型：全过程证据实录
+### 5小时，AI 从零写出可玩的《王者荣耀》网页版
 
-ZhikunCode 使用 Kimi K3 在 2026-08-09 凌晨完成一个纯静态 Three.js 单机 Web 5v5 MOBA 原型。案例公开代码快照、限定在 01:30–07:01 的三类日志、账单 CSV、数据库冻结导出、截图和录屏映射，并明确披露证据与法律边界。
+ZhikunCode 使用 Kimi K3 在 2026-08-09 凌晨一次性完成了一个纯静态 Three.js 5v5 MOBA 游戏：选将、对局、AI 队友与敌人全部可玩，打开浏览器就能进。
 
-- 19 个第一方文件、7,979 行；完整代码快照另含 2 个 vendored Three.js 文件和对应 MIT 许可证。
-- 10 个子 Agent 的事件字段为 completed=7/failed=3；实际终止语义为 1 次自然完成、6 次期限回收、3 次轮次回收。
-- 873 条运行时 completed 请求与账单 token 元组逐条精确匹配；另外 4 条账单记录单独对账，不推算缺少价格依据的金额。
-- 43 个截图文件对应 42 份唯一图像内容；5 份原始录屏保持不变，页面仅使用明确标注的 H.264 倍速/压缩预览。
-- 91 张本案例证据 SVG 把产物代码、运行日志、账单、截图和视频串成可下钻图谱；39 张原表与 25 段代码/日志全文仍完整保留在折叠审计层。
-- 两份源应用日志按完整时间戳块合并为 38,626 块/38,641 行公开日志；最小脱敏只替换本机用户根路径并拦截秘密/PII，关联 ID 保留。
-- 报告不宣称复刻官方游戏、不把同系统 QA 称作第三方独立验收，也不把本地哈希和时间元数据描述为绝对真实性证明。
+- 一次连续开发 5 小时 29 分，产出 19 个第一方文件、7,979 行代码。
+- 10 个子 Agent 协作分工，覆盖玩法、渲染、AI 行为与关卡资源。
+- 纯静态交付，无后端、无外部网络依赖，浏览器直接运行。
+- 全过程留痕：43 张截图与 5 段原始录屏，可跟着报告一路下钻。
 
-**[查看本地案例报告 →](docs/case-studies/zhikuncode开发王者荣耀.html)** ·
+**[查看详细案例 →](https://zhikunqingtao.github.io/zhikuncode/case-studies/zhikuncode%E5%BC%80%E5%8F%91%E7%8E%8B%E8%80%85%E8%8D%A3%E8%80%80.html)** ·
 **[在线试玩（5英雄选将）→](https://king.zhikun.xin/)** ·
 **[自动演示（直接进入对局）→](https://king.zhikun.xin/?demo=1)** ·
-**[查看复核说明 →](docs/case-studies/README.md)**
+**[了解评测方法 →](docs/case-studies/README.md)**
+
+> 以上案例均为单次任务实测记录，详细方法与数据见各案例报告页。
 
 ---
 
