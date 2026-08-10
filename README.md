@@ -50,6 +50,9 @@
 > 🚄 **[12306 候补可视化双工具对比评估 →](https://zhikunqingtao.github.io/zhikuncode/case-studies/zhikuncode-codex-12306-audit.html)**
 > ZhikunCode/KimiK3 × Codex/GPT-5.6 Sol · 7 维评估、21 条证据、65 行脱敏日志摘录、11 张运行截图与 SHA-256 清单
 
+> 🎮 **[类《王者荣耀》单机 Web 5v5 MOBA 原型证据实录 →](docs/case-studies/zhikuncode开发王者荣耀.html)**
+> Kimi K3 · 首末请求锚点跨度5小时29分17秒 · 19个第一方文件/7,979行 · 873条运行事件与账单逐条匹配 · 91张本案例证据SVG · 43个截图文件/42份唯一内容 · 5份原始录屏映射
+
 > 🏆 **[SWE-bench Lite 技术报告 →](https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html)**  
 > 提交命名空间 `20260525_zhikuncode` · 官方 harness 评测 Resolve **168 / 300 (56.0%)** · Patch 生成率 284 / 300 (94.7%)
 
@@ -83,6 +86,23 @@
 **[产物在线 Demo →](https://zhikunqingtao.github.io/zhikuncode/case-studies/assets/12306-comparison/artifacts/zhikuncode/12306-houbu.html)** ·
 **[下载结构化证据 JSON →](docs/case-studies/zhikuncode-codex-12306-evidence.json)** ·
 **[查看生成与复核说明 →](docs/case-studies/README.md)**
+
+### 类《王者荣耀》的单机 Web 5v5 MOBA 原型：全过程证据实录
+
+ZhikunCode 使用 Kimi K3 在 2026-08-09 凌晨完成一个纯静态 Three.js 单机 Web 5v5 MOBA 原型。案例公开代码快照、限定在 01:30–07:01 的三类日志、账单 CSV、数据库冻结导出、截图和录屏映射，并明确披露证据与法律边界。
+
+- 19 个第一方文件、7,979 行；完整代码快照另含 2 个 vendored Three.js 文件和对应 MIT 许可证。
+- 10 个子 Agent 的事件字段为 completed=7/failed=3；实际终止语义为 1 次自然完成、6 次期限回收、3 次轮次回收。
+- 873 条运行时 completed 请求与账单 token 元组逐条精确匹配；另外 4 条账单记录单独对账，不推算缺少价格依据的金额。
+- 43 个截图文件对应 42 份唯一图像内容；5 份原始录屏保持不变，页面仅使用明确标注的 H.264 倍速/压缩预览。
+- 91 张本案例证据 SVG 把产物代码、运行日志、账单、截图和视频串成可下钻图谱；39 张原表与 25 段代码/日志全文仍完整保留在折叠审计层。
+- 两份源应用日志按完整时间戳块合并为 38,626 块/38,641 行公开日志；最小脱敏只替换本机用户根路径并拦截秘密/PII，关联 ID 保留。
+- 报告不宣称复刻官方游戏、不把同系统 QA 称作第三方独立验收，也不把本地哈希和时间元数据描述为绝对真实性证明。
+
+**[查看本地案例报告 →](docs/case-studies/zhikuncode开发王者荣耀.html)** ·
+**[在线试玩（5英雄选将）→](https://king.zhikun.xin/)** ·
+**[自动演示（直接进入对局）→](https://king.zhikun.xin/?demo=1)** ·
+**[查看复核说明 →](docs/case-studies/README.md)**
 
 ---
 

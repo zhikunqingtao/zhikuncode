@@ -1,0 +1,302 @@
+{
+  "schemaVersion": 2,
+  "caseId": "zhikuncode-king-20260809",
+  "generatedAt": "2026-08-10T04:04:06.118Z",
+  "sessionId": "b8f86099-452d-4ba6-89c2-c3fee8f4b422",
+  "timeZone": "Asia/Shanghai",
+  "developmentWindow": {
+    "startInclusiveLocal": "2026-08-09T01:30:00+08:00",
+    "endExclusiveLocal": "2026-08-09T07:01:00+08:00",
+    "startInclusiveUtc": "2026-08-08T17:30:00Z",
+    "endExclusiveUtc": "2026-08-08T23:01:00Z"
+  },
+  "sourceProject": {
+    "sourcePathAtCapture": "<PROJECT_ROOT>",
+    "excluded": [
+      ".DS_Store"
+    ],
+    "aggregate": {
+      "files": 57,
+      "digest": "1efe5f9c31e07a5e4cf3e874b3c30ba25498c0d5d1c39c23bcb3c791c3270ab4"
+    },
+    "evidenceCopyPath": "code"
+  },
+  "database": {
+    "sourcePath": "backend/.ai-code-assistant/data.db",
+    "note": "The live database is mutable. Public exports are frozen by session id and development-window bounds.",
+    "queries": {
+      "session": "SELECT * FROM sessions WHERE id='b8f86099-452d-4ba6-89c2-c3fee8f4b422'",
+      "messages": "session_id='b8f86099-452d-4ba6-89c2-c3fee8f4b422' AND created_at >= '2026-08-08T17:30:00Z' AND created_at < '2026-08-08T23:01:00Z' ORDER BY seq_num, created_at, id",
+      "activities": "session_id='b8f86099-452d-4ba6-89c2-c3fee8f4b422' AND timestamp >= unixepoch('2026-08-08T17:30:00Z')*1000 AND timestamp < unixepoch('2026-08-08T23:01:00Z')*1000",
+      "interactions": "session_id='b8f86099-452d-4ba6-89c2-c3fee8f4b422' AND created_at >= '2026-08-08T17:30:00Z' AND created_at < '2026-08-08T23:01:00Z'"
+    },
+    "frozenCounts": {
+      "messages": 229,
+      "activities": 113,
+      "interactionRequests": 4
+    },
+    "publicExport": {
+      "localPathPolicy": "Replace the source project, repository root, user home, and local OS account name with <PROJECT_ROOT>, <REPO_ROOT>, <USER_HOME>, and <LOCAL_USER>.",
+      "localUserPlaceholder": "<LOCAL_USER>",
+      "messageRows": 229,
+      "thinkingBlocksRemoved": 71,
+      "retainedBlockTypes": [
+        "text",
+        "tool_result",
+        "tool_use"
+      ]
+    }
+  },
+  "logs": {
+    "sourceFiles": [
+      {
+        "path": "log/app-2026-08-09-1.log.gz",
+        "exists": true,
+        "sha256": "6afa9714824281fdae194240dd0e337984767b45503a95c5e5fb6b28f0c8453b"
+      },
+      {
+        "path": "log/app-2026-08-09-2.log.gz",
+        "exists": true,
+        "sha256": "78aa43fd7353edcfc5f1a0f8cd82f5dd7492cb3ac376cd5438606210fa80d2d3"
+      },
+      {
+        "path": "log/security-audit.log",
+        "exists": true,
+        "sha256": "65cbd20092e34d8231df4a51ab6c7c302a00eee0e797290f515ba5fd6baa306e"
+      },
+      {
+        "path": "log/observability-events.log",
+        "exists": true,
+        "sha256": "a4ad35ae793c7d3ac84d8e31f2a2ca0c5c9186808a965b984ab2a5cca65803a2"
+      }
+    ],
+    "rule": "Keep complete timestamp blocks with 2026-08-09 01:30:00.000 <= timestamp < 2026-08-09 07:01:00.000 Asia/Shanghai; preserve continuation lines; concatenate the first rotated segment before the captured continuation segment; do not deduplicate.",
+    "frozenFiles": [
+      {
+        "path": "logs/app-session-20260809-0130-0701.public.log",
+        "lines": 38641,
+        "timestampBlocks": 38626,
+        "sha256": "ba3220722af426d9d755b4788894135e4ea0c7b3906c3a4db94066b20a5feabd",
+        "derivation": "FILTERED_FROM_TWO_SOURCE_LOGS_THEN_MINIMALLY_REDACTED"
+      },
+      {
+        "path": "logs/observability-events-20260809-0130-0701.jsonl",
+        "lines": 2003
+      },
+      {
+        "path": "logs/security-audit-20260809-0130-0701.log",
+        "lines": 116
+      }
+    ],
+    "mergeProvenance": {
+      "schemaVersion": 1,
+      "caseId": "zhikuncode-king-20260809",
+      "policy": "MINIMAL_REDACTION_PRESERVE_TECHNICAL_TRACE_IDS",
+      "developmentWindow": {
+        "startInclusiveLocal": "2026-08-09 01:30:00.000",
+        "endExclusiveLocal": "2026-08-09 07:01:00.000",
+        "timeZone": "Asia/Shanghai"
+      },
+      "mergeOrder": [
+        "rotated-gzip",
+        "captured-current-log-rotated-gzip"
+      ],
+      "sources": [
+        {
+          "id": "rotated-gzip",
+          "sourcePath": "log/app-2026-08-09-1.log.gz",
+          "compressed": true,
+          "capturedSizeBytes": 549050,
+          "capturedMtimeMs": 1786227569816.712,
+          "capturedSha256": "6afa9714824281fdae194240dd0e337984767b45503a95c5e5fb6b28f0c8453b",
+          "selectedTimestampBlocks": 30948,
+          "selectedPhysicalLines": 30954,
+          "firstTimestamp": "2026-08-09 01:30:01.516",
+          "lastTimestamp": "2026-08-09 06:19:29.725",
+          "selectedSha256": "3c8f065b23f9c0eb5492a0674b0379578ac84032a51d8e3a14ccb83b17649848"
+        },
+        {
+          "id": "captured-current-log-rotated-gzip",
+          "sourcePath": "log/app-2026-08-09-2.log.gz",
+          "compressed": true,
+          "capturedSizeBytes": 380079,
+          "capturedMtimeMs": 1786291493050.245,
+          "capturedSha256": "78aa43fd7353edcfc5f1a0f8cd82f5dd7492cb3ac376cd5438606210fa80d2d3",
+          "selectedTimestampBlocks": 7678,
+          "selectedPhysicalLines": 7687,
+          "firstTimestamp": "2026-08-09 06:19:29.725",
+          "lastTimestamp": "2026-08-09 07:00:41.483",
+          "selectedSha256": "7698f5731b0355aede72959b0062db553bff5f0bef3674d2d907e1bf75d1926c"
+        }
+      ],
+      "merged": {
+        "timestampBlocks": 38626,
+        "physicalLines": 38641,
+        "firstTimestamp": "2026-08-09 01:30:01.516",
+        "lastTimestamp": "2026-08-09 07:00:41.483",
+        "rawMergedSha256": "99a2adaf38ea705c7a95201c310b37fbd8d6d613c3905e44a9b2af6b750c98b4",
+        "identicalCrossSourceBlocks": 0,
+        "sameBoundaryTimestamp": "2026-08-09 06:19:29.725",
+        "boundaryBlockCount": 5,
+        "boundaryBlocksDistinct": true
+      },
+      "redactions": [
+        {
+          "name": "local-user-home",
+          "count": 1356,
+          "replacement": "<USER_HOME>"
+        },
+        {
+          "name": "local-user-name",
+          "count": 0,
+          "replacement": "<LOCAL_USER>"
+        },
+        {
+          "name": "private-key",
+          "count": 0,
+          "replacement": "[REDACTED:private-key#NN]"
+        },
+        {
+          "name": "aliyun-or-aws-access-key",
+          "count": 0,
+          "replacement": "[REDACTED:aliyun-or-aws-access-key#NN]"
+        },
+        {
+          "name": "provider-secret-key",
+          "count": 0,
+          "replacement": "[REDACTED:provider-secret-key#NN]"
+        },
+        {
+          "name": "github-token",
+          "count": 0,
+          "replacement": "[REDACTED:github-token#NN]"
+        },
+        {
+          "name": "slack-token",
+          "count": 0,
+          "replacement": "[REDACTED:slack-token#NN]"
+        },
+        {
+          "name": "jwt",
+          "count": 0,
+          "replacement": "[REDACTED:jwt#NN]"
+        },
+        {
+          "name": "authorization-bearer",
+          "count": 0,
+          "replacement": "[REDACTED:authorization-bearer#NN]"
+        },
+        {
+          "name": "cookie-header",
+          "count": 0,
+          "replacement": "[REDACTED:cookie-header#NN]"
+        },
+        {
+          "name": "named-password",
+          "count": 0,
+          "replacement": "[REDACTED:named-password#NN]"
+        }
+      ],
+      "publicArtifactRedactions": [
+        {
+          "name": "local-user-name",
+          "replacement": "<LOCAL_USER>",
+          "count": 33,
+          "scope": "22 occurrences in four database exports plus 11 deterministic copies in visualization-data.json"
+        }
+      ],
+      "databaseExports": {
+        "paths": [
+          "db/session-row.json",
+          "db/session-messages.json",
+          "db/activities-20260809-0130-0701.json",
+          "db/interaction-requests-20260809-0130-0701.json"
+        ],
+        "localUserNameRule": {
+          "name": "local-user-name",
+          "replacement": "<LOCAL_USER>",
+          "count": 22,
+          "derivedVisualizationCopies": 11
+        }
+      },
+      "preservedIdentifiers": [
+        "sessionId",
+        "runId",
+        "parentRunId",
+        "llmRequestId",
+        "toolUseId",
+        "downstreamRequestId"
+      ],
+      "publicFile": {
+        "path": "logs/app-session-20260809-0130-0701.public.log",
+        "sizeBytes": 13021786,
+        "physicalLines": 38641,
+        "timestampBlocks": 38626,
+        "sha256": "ba3220722af426d9d755b4788894135e4ea0c7b3906c3a4db94066b20a5feabd"
+      },
+      "postScan": {
+        "highConfidenceSecrets": 0,
+        "emailAddresses": 0,
+        "mainlandChinaPhoneNumbers": 0,
+        "authorizationHeaders": 0,
+        "originalHomePaths": 0,
+        "originalLocalUserNames": 0
+      }
+    },
+    "publicFile": {
+      "path": "logs/app-session-20260809-0130-0701.public.log",
+      "sizeBytes": 13021786,
+      "physicalLines": 38641,
+      "timestampBlocks": 38626,
+      "sha256": "ba3220722af426d9d755b4788894135e4ea0c7b3906c3a4db94066b20a5feabd"
+    },
+    "redactionReport": "redaction-report.json"
+  },
+  "videos": {
+    "sourceDirectoryAtCapture": "<USER_HOME>/Desktop/dev/project/过程录屏",
+    "originalPolicy": "Original recordings are copied byte-for-byte and kept as audit masters.",
+    "previewPolicy": "Public browser previews may be renamed, accelerated, scaled, padded, and transcoded; release-assets.json maps each preview to its original SHA-256."
+  },
+  "onlineDeployment": {
+    "classification": "OUTSIDE_DEVELOPMENT_WINDOW_ALIYUN_HTTPS_DEPLOYMENT",
+    "deploymentRelationship": "SAME_STATIC_BUILD_WITH_RUNTIME_QUERY_PARAMETER",
+    "standard": {
+      "url": "https://king.zhikun.xin/",
+      "label": "在线试玩",
+      "description": "从5名英雄选将页开始，由玩家锁定英雄并手动操作。",
+      "expectedTitle": "KING_OK",
+      "expectedHeroCards": 5
+    },
+    "demo": {
+      "url": "https://king.zhikun.xin/?demo=1",
+      "label": "自动演示",
+      "description": "跳过选将，自动进入运行中的5v5对局；脚本控制亚瑟推进、战斗、施放技能和残血撤退。",
+      "expectedTitle": "KING_OK",
+      "queryParameter": "demo=1"
+    },
+    "sourceBindings": [
+      {
+        "path": "code/src/main.js",
+        "symbols": [
+          "params.get('demo') === '1'",
+          "state.enableDemo()"
+        ]
+      },
+      {
+        "path": "code/src/game/state.js",
+        "symbols": [
+          "enableDemo()",
+          "_demoControl(dt)",
+          "_demoSkills(p, target)"
+        ]
+      }
+    ],
+    "statisticsPolicy": "Online deployment verification is report-production evidence and is not included in the 01:30-07:01 development statistics."
+  },
+  "trustLimitations": [
+    "SHA-256 proves integrity relative to the manifest, not the original capture time or authorship.",
+    "Filename timestamps and filesystem birth times are metadata, not trusted timestamps.",
+    "Application logs, observability logs, and SQLite exports are local sources in a shared trust domain.",
+    "The provider bill CSV is a separate exported source but carries no provider cryptographic signature in this bundle."
+  ]
+}

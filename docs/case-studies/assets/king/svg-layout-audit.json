@@ -1,0 +1,2858 @@
+{
+  "schemaVersion": 3,
+  "caseId": "zhikuncode-king-20260809",
+  "reportVersion": "v15",
+  "classification": "OUTSIDE_DEVELOPMENT_WINDOW_DIRECT_BROWSER_LAYOUT_AUDIT",
+  "observedAt": "2026-08-10T08:38:21.357Z",
+  "browser": {
+    "name": "Chromium",
+    "surface": "Codex in-app browser",
+    "measurement": "direct DOM geometry and interactive controls"
+  },
+  "report": {
+    "path": "zhikuncode开发王者荣耀.html",
+    "sha256": "93e4ed8c17b37ce06ece4006175cfed41ab759259f9ec4a44f39c5493cd01e8e",
+    "bytes": 1859505
+  },
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "thresholds": {
+    "foregroundOverflowSvgUnits": 1,
+    "textIntersectionOfSmallerBoxRatio": 0.08,
+    "standardBottomBlankRatio": 0.12,
+    "complex1400BottomBlankRatio": 0.15
+  },
+  "summary": {
+    "figures": 91,
+    "foregroundOverflowFigures": 0,
+    "textCollisionFigures": 0,
+    "excessiveBottomBlankFigures": 0,
+    "allMeasured": true
+  },
+  "figures": [
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 710
+      },
+      "id": "CASE-V01",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 710,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 690
+      },
+      "id": "CASE-V02",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 690,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 735
+      },
+      "id": "CASE-V03",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 735,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 960
+      },
+      "id": "CASE-V04",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 960,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 755
+      },
+      "id": "CASE-V05",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 755,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 730
+      },
+      "id": "CASE-V06",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 730,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 765
+      },
+      "id": "CASE-V07",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 765,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 780
+      },
+      "id": "CASE-V08",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 780,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 820
+      },
+      "id": "SRC-V01",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 820,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 800
+      },
+      "id": "SRC-V02",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 800,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 845
+      },
+      "id": "SRC-V03",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 845,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 735
+      },
+      "id": "SRC-V04",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 735,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 800
+      },
+      "id": "KING-V01",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1161,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 800,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 760
+      },
+      "id": "KING-V02",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1163,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 760,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 760
+      },
+      "id": "KING-V03",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1163,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 760,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 760
+      },
+      "id": "KING-V04",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1163,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 760,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 760
+      },
+      "id": "KING-V05",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1163,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 760,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 800
+      },
+      "id": "KING-V06",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1161,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 800,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 800
+      },
+      "id": "KING-V07",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1161,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 800,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 800
+      },
+      "id": "KING-V08",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1161,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 800,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 760
+      },
+      "id": "KING-V09",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1163,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 760,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 760
+      },
+      "id": "KING-V10",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1163,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 760,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 760
+      },
+      "id": "KING-V11",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1163,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 760,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 760
+      },
+      "id": "KING-V12",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1163,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 760,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 760
+      },
+      "id": "KING-V13",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1163,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 760,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 760
+      },
+      "id": "KING-V14",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1163,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 760,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 760
+      },
+      "id": "KING-V15",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1163,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 760,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 774
+      },
+      "id": "KING-V16",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1163,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 774,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 760
+      },
+      "id": "KING-V17",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1163,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 760,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 760
+      },
+      "id": "KING-V18",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1163,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 760,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 760
+      },
+      "id": "KING-V19",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1163,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 760,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 800
+      },
+      "id": "KING-V20",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1161,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 800,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 760
+      },
+      "id": "KING-V21",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1163,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 760,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 760
+      },
+      "id": "KING-V22",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1163,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 760,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 760
+      },
+      "id": "KING-V23",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1163,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 760,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 760
+      },
+      "id": "KING-V24",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1163,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 760,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 800
+      },
+      "id": "KING-V25",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1161,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 800,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 760
+      },
+      "id": "KING-V26",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1163,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 760,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 795
+      },
+      "id": "PLAT-V01",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 795,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 795
+      },
+      "id": "PLAT-V02",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 795,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 700
+      },
+      "id": "PLAT-V03",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 700,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 795
+      },
+      "id": "PLAT-V04",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 795,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 815
+      },
+      "id": "PLAT-V05",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 815,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 770
+      },
+      "id": "PLAT-V06",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 770,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 800
+      },
+      "id": "PLAT-V07",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 800,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 755
+      },
+      "id": "PLAT-V08",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 755,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 790
+      },
+      "id": "PLAT-V09",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 790,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 815
+      },
+      "id": "PLAT-V10",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 815,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 790
+      },
+      "id": "LOG-V01",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1165,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 790,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 820
+      },
+      "id": "LOG-V03",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1165,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 820,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1400,
+        "y1": 0,
+        "y2": 990
+      },
+      "id": "RUN-V01",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 990,
+        "width": 1400
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1400,
+        "y1": 0,
+        "y2": 740
+      },
+      "id": "RUN-V02",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 740,
+        "width": 1400
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1400,
+        "y1": 0,
+        "y2": 855
+      },
+      "id": "RUN-V03",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 855,
+        "width": 1400
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 855
+      },
+      "id": "RUN-V04",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 855,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1400,
+        "y1": 0,
+        "y2": 855
+      },
+      "id": "RUN-V05",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 855,
+        "width": 1400
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 780
+      },
+      "id": "RUN-V06",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 780,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 835
+      },
+      "id": "RUN-V07",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 835,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 800
+      },
+      "id": "RUN-V08",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 800,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 750
+      },
+      "id": "DBG-V01",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1154,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 750,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 815
+      },
+      "id": "DBG-V02",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1154,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 815,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 790
+      },
+      "id": "DBG-V03",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1154,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 790,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 755
+      },
+      "id": "DBG-V04",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1154,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 755,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 875
+      },
+      "id": "DBG-V05",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1154,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 875,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 805
+      },
+      "id": "DBG-V06",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1154,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 805,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 775
+      },
+      "id": "QA-V01",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 775,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1400,
+        "y1": 0,
+        "y2": 855
+      },
+      "id": "QA-V02",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 855,
+        "width": 1400
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 735
+      },
+      "id": "QA-V03",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 735,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 855
+      },
+      "id": "QA-V04",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 855,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 835
+      },
+      "id": "QA-V05",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 835,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1400,
+        "y1": 0,
+        "y2": 1280
+      },
+      "id": "QA-V06",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1149,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 1280,
+        "width": 1400
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 795
+      },
+      "id": "QA-V07",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1149,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 795,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 825
+      },
+      "id": "QA-V08",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1149,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 825,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1400,
+        "y1": 0,
+        "y2": 1110
+      },
+      "id": "QA-V09",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1149,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 1110,
+        "width": 1400
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 775
+      },
+      "id": "QA-V10",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 775,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 730
+      },
+      "id": "AUDIT-V01",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 730,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 830
+      },
+      "id": "AUDIT-V02",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 830,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 780
+      },
+      "id": "AUDIT-V03",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 780,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 725
+      },
+      "id": "AUDIT-V04",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 725,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 805
+      },
+      "id": "AUDIT-V05",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 805,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 775
+      },
+      "id": "AUDIT-V06",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 775,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 775
+      },
+      "id": "AUDIT-V07",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 775,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 780
+      },
+      "id": "AUDIT-V08",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 780,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 815
+      },
+      "id": "AUDIT-V09",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 815,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1400,
+        "y1": 0,
+        "y2": 780
+      },
+      "id": "AUDIT-V10",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 780,
+        "width": 1400
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1400,
+        "y1": 0,
+        "y2": 1180
+      },
+      "id": "AUDIT-V11",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 1180,
+        "width": 1400
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 840
+      },
+      "id": "AUDIT-V12",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 840,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 790
+      },
+      "id": "LOG-V02",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1165,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 790,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 815
+      },
+      "id": "META-V01",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 815,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 815
+      },
+      "id": "META-V02",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 815,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 780
+      },
+      "id": "META-V03",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 780,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    },
+    {
+      "blankRatios": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "collisionSamples": [],
+      "contentBounds": {
+        "x1": 0,
+        "x2": 1200,
+        "y1": 0,
+        "y2": 900
+      },
+      "id": "META-V04",
+      "minimumTextSizePx": 12,
+      "overflow": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "renderedWidthPx": 1157,
+      "textCollisionCount": 0,
+      "viewBox": {
+        "height": 900,
+        "width": 1200
+      },
+      "manualReview": "measured",
+      "measurement": "DIRECT_CHROMIUM_DOM_GEOMETRY"
+    }
+  ],
+  "scope": "在1280×720真实Chromium DOM中逐图测量91张SVG的viewBox边界、文字碰撞与底部留白。"
+}

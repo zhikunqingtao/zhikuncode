@@ -1,0 +1,160 @@
+{
+  "schemaVersion": 2,
+  "publicationStatus": "PENDING_USER_APPROVAL",
+  "intendedReleaseTag": "king-evidence-v1",
+  "plannedReleasePage": "https://github.com/zhikunqingtao/zhikuncode/releases/tag/king-evidence-v1",
+  "captureTimeBasis": "FILENAME_METADATA_ONLY_NOT_A_TRUSTED_TIMESTAMP",
+  "note": "Original HEVC files are audit masters. Preview files are derived H.264/AAC assets and are not byte-equivalent to the originals.",
+  "assets": [
+    {
+      "original": "钉钉录屏_2026-08-09 013111.mp4",
+      "preview": "01-开发过程-4x.mp4",
+      "speed": 4,
+      "releaseAssetName": "king-development-013111-original.mp4",
+      "classification": "DEVELOPMENT_WINDOW",
+      "captureTimeFromFilename": "2026-08-09T01:31:11+08:00",
+      "originalPath": "videos/钉钉录屏_2026-08-09 013111.mp4",
+      "originalSha256": "892f7f5dfdb1fffd4ba3ff9fa4f0c40b0585ca05c147cf1c99278b804deb2b13",
+      "originalMedia": {
+        "durationSeconds": 418.085,
+        "sizeBytes": 69960790,
+        "videoCodec": "hevc",
+        "width": 2498,
+        "height": 1440,
+        "audioCodec": null
+      },
+      "previewPath": "videos/previews/01-开发过程-4x.mp4",
+      "previewSha256": "b25e6373212b4c95d9ef6981479fac3da494e6a9a4b597feca0bb74052a4e11b",
+      "previewMedia": {
+        "durationSeconds": 104.533,
+        "sizeBytes": 2199262,
+        "videoCodec": "h264",
+        "width": 960,
+        "height": 540,
+        "audioCodec": null
+      },
+      "releaseAvailability": "PENDING_RELEASE_CREATION",
+      "plannedReleaseUrl": "https://github.com/zhikunqingtao/zhikuncode/releases/download/king-evidence-v1/king-development-013111-original.mp4"
+    },
+    {
+      "original": "钉钉录屏_2026-08-09 054310.mp4",
+      "preview": "02-玩法开发-2x.mp4",
+      "speed": 2,
+      "releaseAssetName": "king-gameplay-054310-original.mp4",
+      "classification": "DEVELOPMENT_WINDOW",
+      "captureTimeFromFilename": "2026-08-09T05:43:10+08:00",
+      "originalPath": "videos/钉钉录屏_2026-08-09 054310.mp4",
+      "originalSha256": "832097e80aa3af068f99155ad363e767b2fd87a011f00b2cf873c04358b5139f",
+      "originalMedia": {
+        "durationSeconds": 279.277,
+        "sizeBytes": 69085685,
+        "videoCodec": "hevc",
+        "width": 2498,
+        "height": 1440,
+        "audioCodec": "aac"
+      },
+      "previewPath": "videos/previews/02-玩法开发-2x.mp4",
+      "previewSha256": "ca16651dba81e3ea05410de9db6ee29a236f8f403146c63a42b1f8b4dfdd27e9",
+      "previewMedia": {
+        "durationSeconds": 139.633,
+        "sizeBytes": 5255236,
+        "videoCodec": "h264",
+        "width": 960,
+        "height": 540,
+        "audioCodec": "aac"
+      },
+      "releaseAvailability": "PENDING_RELEASE_CREATION",
+      "plannedReleaseUrl": "https://github.com/zhikunqingtao/zhikuncode/releases/download/king-evidence-v1/king-gameplay-054310-original.mp4"
+    },
+    {
+      "original": "钉钉录屏_2026-08-09 060909.mp4",
+      "preview": "03-视觉修复-1x.mp4",
+      "speed": 1,
+      "releaseAssetName": "king-visual-fix-060909-original.mp4",
+      "classification": "DEVELOPMENT_WINDOW",
+      "captureTimeFromFilename": "2026-08-09T06:09:09+08:00",
+      "originalPath": "videos/钉钉录屏_2026-08-09 060909.mp4",
+      "originalSha256": "9c914b654bc4d77f39d6cf21f6fcf99b35e9f032ba37c3e3e51cd0b4560339bb",
+      "originalMedia": {
+        "durationSeconds": 119.91,
+        "sizeBytes": 13803739,
+        "videoCodec": "hevc",
+        "width": 2498,
+        "height": 1440,
+        "audioCodec": "aac"
+      },
+      "previewPath": "videos/previews/03-视觉修复-1x.mp4",
+      "previewSha256": "06cc772589d47ecbe8c64187bebf824ada199dc5a3e9eb0e16f8e21723caeb8b",
+      "previewMedia": {
+        "durationSeconds": 119.9,
+        "sizeBytes": 1260952,
+        "videoCodec": "h264",
+        "width": 960,
+        "height": 540,
+        "audioCodec": "aac"
+      },
+      "releaseAvailability": "PENDING_RELEASE_CREATION",
+      "plannedReleaseUrl": "https://github.com/zhikunqingtao/zhikuncode/releases/download/king-evidence-v1/king-visual-fix-060909-original.mp4"
+    },
+    {
+      "original": "钉钉录屏_2026-08-09 092155（最终运行版）.mp4",
+      "preview": "04-最终运行-4x.mp4",
+      "speed": 4,
+      "releaseAssetName": "king-final-run-092155-original.mp4",
+      "classification": "OUTSIDE_DEVELOPMENT_WINDOW_FINAL_RUN_SUPPLEMENT",
+      "captureTimeFromFilename": "2026-08-09T09:21:55+08:00",
+      "originalPath": "videos/钉钉录屏_2026-08-09 092155（最终运行版）.mp4",
+      "originalSha256": "63fa7c8b1d12cee91e1321eb494eaa12071503644f3e066e9bbb5025208d4558",
+      "originalMedia": {
+        "durationSeconds": 608.717,
+        "sizeBytes": 151201417,
+        "videoCodec": "hevc",
+        "width": 2498,
+        "height": 1440,
+        "audioCodec": null
+      },
+      "previewPath": "videos/previews/04-最终运行-4x.mp4",
+      "previewSha256": "b39746b77e7c0ca245b47c09820f14c8c9c4bc9c8e2435c52363e87ef2874ed2",
+      "previewMedia": {
+        "durationSeconds": 152.167,
+        "sizeBytes": 7666804,
+        "videoCodec": "h264",
+        "width": 960,
+        "height": 540,
+        "audioCodec": null
+      },
+      "releaseAvailability": "PENDING_RELEASE_CREATION",
+      "plannedReleaseUrl": "https://github.com/zhikunqingtao/zhikuncode/releases/download/king-evidence-v1/king-final-run-092155-original.mp4"
+    },
+    {
+      "original": "阿里云在线试玩录屏.mp4",
+      "preview": "05-阿里云在线试玩-2x.mp4",
+      "speed": 2,
+      "releaseAssetName": "king-cloud-demo-115336-original.mp4",
+      "classification": "OUTSIDE_DEVELOPMENT_WINDOW_CLOUD_DEPLOYMENT_SUPPLEMENT",
+      "captureTimeFromFilename": "2026-08-09T11:53:36+08:00",
+      "originalPath": "videos/阿里云在线试玩录屏.mp4",
+      "originalSha256": "6d5aef9c24005c53f343cd9146f9940367ba1c6c503523dcd4520d881065c388",
+      "originalMedia": {
+        "durationSeconds": 207.127,
+        "sizeBytes": 107300943,
+        "videoCodec": "hevc",
+        "width": 2498,
+        "height": 1440,
+        "audioCodec": "aac"
+      },
+      "previewPath": "videos/previews/05-阿里云在线试玩-2x.mp4",
+      "previewSha256": "21612bdf0d0923652eef375b274ac9032acc86531e11cd079951f24b85e33e1d",
+      "previewMedia": {
+        "durationSeconds": 103.567,
+        "sizeBytes": 8048992,
+        "videoCodec": "h264",
+        "width": 960,
+        "height": 540,
+        "audioCodec": "aac"
+      },
+      "releaseAvailability": "PENDING_RELEASE_CREATION",
+      "plannedReleaseUrl": "https://github.com/zhikunqingtao/zhikuncode/releases/download/king-evidence-v1/king-cloud-demo-115336-original.mp4"
+    }
+  ]
+}

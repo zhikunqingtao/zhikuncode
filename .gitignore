@@ -131,3 +131,12 @@ gold-monitor
 backend/learn/
 
 python-service/workspace/
+
+# 王者峡谷案例：公开可复算证据进入仓库；五份原始 HEVC 录屏仅作为
+# 本地审计母版/未来 GitHub Release 资产，Pages 只跟踪 previews/ 派生版。
+!docs/case-studies/assets/king/
+!docs/case-studies/assets/king/**
+!docs/case-studies/assets/king/logs/*.log
+docs/case-studies/assets/king/videos/*.mp4
+!docs/case-studies/assets/king/videos/previews/
+!docs/case-studies/assets/king/videos/previews/*.mp4

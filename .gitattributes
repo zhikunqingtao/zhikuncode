@@ -1,0 +1,2 @@
+# Frozen upstream snapshot: preserve bytes exactly, including upstream indentation.
+docs/case-studies/assets/king/code/lib/three.module.js -whitespace

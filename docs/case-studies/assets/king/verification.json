@@ -1,0 +1,3418 @@
+{
+  "schemaVersion": 10,
+  "caseId": "zhikuncode-king-20260809",
+  "status": "VERIFIED",
+  "evidenceWindow": {
+    "startInclusive": "2026-08-09T01:30:00+08:00",
+    "endExclusive": "2026-08-09T07:01:00+08:00"
+  },
+  "platformSnapshot": {
+    "nearestCommitBeforeWindow": {
+      "hash": "ea0170ce0a2e4412874b2dce1200502bd9a81a48",
+      "shortHash": "ea0170c",
+      "authoredAt": "2026-08-09T00:42:02+08:00",
+      "subject": "fix: allow publishing verified subagent artifacts"
+    },
+    "documentationCommitAfterWindow": {
+      "hash": "74aef152fb25cfd3501ac2cf495832746aedd8f6",
+      "shortHash": "74aef15",
+      "authoredAt": "2026-08-09T12:04:07+08:00",
+      "subject": "docs: update architecture and capability documentation"
+    },
+    "documentationCommitChangedFiles": [
+      "README.md",
+      "docs/ZhikunCode-Architecture.html",
+      "docs/ZhikunCode-Capability-Overview.html",
+      "docs/index.html"
+    ],
+    "runtimeBuildIdRecordedInCaseLogs": null,
+    "versionAttribution": "TIME_CORRELATED_SOURCE_SNAPSHOT_NOT_BINARY_ATTESTATION",
+    "queryEngineNumberedSteps": 8,
+    "citedRuntimeSourceFiles": [
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/engine/QueryEngine.java",
+        "className": "QueryEngine",
+        "sha256": "7fc60288cbf72489b191966dcc680aac2eae61af6617a716ba7b757098141192",
+        "declaredClassFound": true,
+        "unchangedThroughDocumentationCommit": true
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/engine/ContextCascade.java",
+        "className": "ContextCascade",
+        "sha256": "239a9b15977948372215d82e4c58364ab6a29690d6101c5124acc278893e3ba9",
+        "declaredClassFound": true,
+        "unchangedThroughDocumentationCommit": true
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/tool/ToolExecutionPipeline.java",
+        "className": "ToolExecutionPipeline",
+        "sha256": "0f8bcd527dd9d45cf1afa33878cfdafe58125152f88dbccea8b2b14b82b0fe38",
+        "declaredClassFound": true,
+        "unchangedThroughDocumentationCommit": true
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/tool/agent/SubAgentExecutor.java",
+        "className": "SubAgentExecutor",
+        "sha256": "dd62b3869c2e453bc64534915d9141da6facc5a214b1fe4a441bac9ab3d708f1",
+        "declaredClassFound": true,
+        "unchangedThroughDocumentationCommit": true
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/tool/agent/AgentConcurrencyController.java",
+        "className": "AgentConcurrencyController",
+        "sha256": "f578d5872b3b36b00042bfb47c719a87c6020b614bf96c64f1281ab0931f7ceb",
+        "declaredClassFound": true,
+        "unchangedThroughDocumentationCommit": true
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/tool/agent/CheckpointService.java",
+        "className": "CheckpointService",
+        "sha256": "ad097b4e8ed44d891151f2b5b20ecfc568a91f035e47c96fcfbeee9d49bb356d",
+        "declaredClassFound": true,
+        "unchangedThroughDocumentationCommit": true
+      },
+      {
+        "path": "backend/src/main/java/com/aicodeassistant/observability/BestEffortObservabilityRecorder.java",
+        "className": "BestEffortObservabilityRecorder",
+        "sha256": "f5c655e1de3e152ef12a9c3452dbece6250fb9d53826b7bbb44564d7a25d9193",
+        "declaredClassFound": true,
+        "unchangedThroughDocumentationCommit": true
+      }
+    ],
+    "productSource": {
+      "files": 863,
+      "lines": 134826,
+      "groups": {
+        "java": {
+          "files": 622,
+          "lines": 93118
+        },
+        "react": {
+          "files": 209,
+          "lines": 33642
+        },
+        "pythonServiceAndCli": {
+          "files": 32,
+          "lines": 8066
+        }
+      },
+      "countingRule": "backend/src/main/java/**/*.java + frontend/src/**/*.{ts,tsx,css} + python-service/{src,cli}/**/*.py at ea0170c"
+    }
+  },
+  "code": {
+    "firstPartyFiles": 19,
+    "firstPartyLines": 7979,
+    "moduleGraph": {
+      "sourceModules": 17,
+      "relativeImportEdges": 39,
+      "firstPartyEdges": 38,
+      "vendoredEdges": 1
+    },
+    "productComplexity": {
+      "sourceLineDomains": {
+        "game": 2989,
+        "world": 1570,
+        "engine": 1278,
+        "ui": 1172,
+        "config": 362,
+        "main": 186,
+        "utils": 88,
+        "entryAndLauncher": 334,
+        "srcTotal": 7645,
+        "firstPartyTotal": 7979
+      },
+      "mapTopology": {
+        "worldSize": 180,
+        "lanes": 3,
+        "towers": 18,
+        "brushes": 14,
+        "camps": 10,
+        "regularCamps": 8,
+        "objectiveCamps": 2,
+        "crystals": 2,
+        "fountains": 2,
+        "baseGates": 6,
+        "trees": 120,
+        "rocks": 46
+      },
+      "combat": {
+        "heroDefinitions": 5,
+        "runtimeHeroes": 10,
+        "aiHeroes": 9,
+        "activeSkills": 15,
+        "aimModes": [
+          "area",
+          "around",
+          "dash",
+          "line",
+          "self",
+          "target"
+        ],
+        "items": 12,
+        "equipmentSlots": 6,
+        "minionTypes": 4,
+        "monsterTypes": 5
+      },
+      "progression": {
+        "maxLevel": 15,
+        "firstWaveSeconds": 10,
+        "waveIntervalSeconds": 30,
+        "passiveGoldStartSeconds": 120,
+        "tyrantFirstSeconds": 480,
+        "overlordFirstSeconds": 600,
+        "minionGrowthStartSeconds": 720
+      }
+    },
+    "runtimePipeline": {
+      "logicHz": 30,
+      "maxSubsteps": 5,
+      "mainOrder": [
+        "input",
+        "fixed-state-update",
+        "animation",
+        "minimap",
+        "vfx",
+        "map-animation",
+        "camera",
+        "render",
+        "hud"
+      ],
+      "gameStateOrder": [
+        "spawner",
+        "skills",
+        "brush",
+        "player-actions",
+        "hero-ai",
+        "unit-ai",
+        "fountains",
+        "separation",
+        "collision-and-model-sync",
+        "purge"
+      ]
+    },
+    "aiTopology": {
+      "runtimeHeroes": 10,
+      "aiHeroControllers": 9,
+      "roles": [
+        "top",
+        "mid",
+        "bot",
+        "bot2",
+        "jungle"
+      ],
+      "heroModes": [
+        "ASSAULT",
+        "DEFEND",
+        "GROUP_PUSH",
+        "JUNGLE",
+        "LANE",
+        "OBJECTIVE",
+        "PUSH",
+        "RETREAT",
+        "TEAMFIGHT"
+      ],
+      "specializedAiTypes": [
+        "hero",
+        "minion",
+        "tower",
+        "monster"
+      ]
+    },
+    "presentationPipeline": {
+      "groundTextureSize": 2048,
+      "proceduralChannels": [
+        "canvas-textures",
+        "three-models",
+        "vfx-pools",
+        "webaudio",
+        "speech-synthesis"
+      ],
+      "vfxPools": {
+        "particles": 1024,
+        "tracers": 48,
+        "shockwaves": 12,
+        "pillars": 10,
+        "shells": 12
+      },
+      "minimapRefreshSeconds": 0.25
+    },
+    "evidenceMatchesSourceRuntime": true,
+    "sourceProjectAggregate": {
+      "files": 57,
+      "digest": "1efe5f9c31e07a5e4cf3e874b3c30ba25498c0d5d1c39c23bcb3c791c3270ab4"
+    }
+  },
+  "bill": {
+    "requests": 877,
+    "inputTokens": 82906205,
+    "outputTokens": 673938,
+    "cachedTokens": 80468224,
+    "nonCachedTokens": 2437981,
+    "cacheRatio": 0.9705935038276086,
+    "cacheRatioPercent": 97.059,
+    "physicalLines": 878
+  },
+  "runtime": {
+    "events": 2003,
+    "eventCounts": {
+      "llm_call_started": 878,
+      "llm_call_completed": 873,
+      "process_started": 104,
+      "process_finished": 104,
+      "subagent_started": 10,
+      "llm_call_failed": 5,
+      "process_cancellation_summary": 12,
+      "run_termination_summary": 6,
+      "subagent_completed": 7,
+      "run_input_applied": 1,
+      "subagent_failed": 3
+    },
+    "inputTokens": 82300554,
+    "outputTokens": 670170,
+    "exactlyMatchedCompletedRequests": 873,
+    "billOnlyRows": [
+      {
+        "time": "2026-08-09 02:09:59",
+        "inputTokens": 93911,
+        "outputTokens": 989
+      },
+      {
+        "time": "2026-08-09 03:17:41",
+        "inputTokens": 130657,
+        "outputTokens": 70
+      },
+      {
+        "time": "2026-08-09 03:52:34",
+        "inputTokens": 117254,
+        "outputTokens": 1738
+      },
+      {
+        "time": "2026-08-09 06:08:41",
+        "inputTokens": 263829,
+        "outputTokens": 971
+      }
+    ]
+  },
+  "database": {
+    "sessionId": "b8f86099-452d-4ba6-89c2-c3fee8f4b422",
+    "sessionAggregateTokenFields": {
+      "input": 0,
+      "output": 0
+    },
+    "messages": {
+      "rows": 229,
+      "user": 117,
+      "assistant": 112,
+      "inputTokens": 7386868,
+      "outputTokens": 58959
+    },
+    "activities": 113,
+    "interactionRequests": 4,
+    "frozenExportsMatchSource": true
+  },
+  "logs": {
+    "appLines": 38641,
+    "observabilityLines": 2003,
+    "securityLines": 116,
+    "deterministicallyRebuiltFromSource": {
+      "app": true,
+      "security": true,
+      "observability": true
+    },
+    "appSourceResolution": {
+      "captureIdentity": "log/app-2026-08-09-2.log.gz",
+      "resolvedPath": "log/app-2026-08-09-2.log.gz",
+      "rotationAware": true,
+      "selectedFragmentSha256": "7698f5731b0355aede72959b0062db553bff5f0bef3674d2d907e1bf75d1926c"
+    },
+    "mergeProvenance": {
+      "timestampBlocks": 38626,
+      "physicalLines": 38641,
+      "firstTimestamp": "2026-08-09 01:30:01.516",
+      "lastTimestamp": "2026-08-09 07:00:41.483",
+      "rawMergedSha256": "99a2adaf38ea705c7a95201c310b37fbd8d6d613c3905e44a9b2af6b750c98b4",
+      "identicalCrossSourceBlocks": 0,
+      "sameBoundaryTimestamp": "2026-08-09 06:19:29.725",
+      "boundaryBlockCount": 5,
+      "boundaryBlocksDistinct": true
+    },
+    "publicRedaction": {
+      "policy": "MINIMAL_REDACTION_PRESERVE_TECHNICAL_TRACE_IDS",
+      "publicFile": {
+        "path": "logs/app-session-20260809-0130-0701.public.log",
+        "sizeBytes": 13021786,
+        "physicalLines": 38641,
+        "timestampBlocks": 38626,
+        "sha256": "ba3220722af426d9d755b4788894135e4ea0c7b3906c3a4db94066b20a5feabd"
+      },
+      "redactions": [
+        {
+          "name": "local-user-home",
+          "count": 1356,
+          "replacement": "<USER_HOME>"
+        },
+        {
+          "name": "local-user-name",
+          "count": 0,
+          "replacement": "<LOCAL_USER>"
+        },
+        {
+          "name": "private-key",
+          "count": 0,
+          "replacement": "[REDACTED:private-key#NN]"
+        },
+        {
+          "name": "aliyun-or-aws-access-key",
+          "count": 0,
+          "replacement": "[REDACTED:aliyun-or-aws-access-key#NN]"
+        },
+        {
+          "name": "provider-secret-key",
+          "count": 0,
+          "replacement": "[REDACTED:provider-secret-key#NN]"
+        },
+        {
+          "name": "github-token",
+          "count": 0,
+          "replacement": "[REDACTED:github-token#NN]"
+        },
+        {
+          "name": "slack-token",
+          "count": 0,
+          "replacement": "[REDACTED:slack-token#NN]"
+        },
+        {
+          "name": "jwt",
+          "count": 0,
+          "replacement": "[REDACTED:jwt#NN]"
+        },
+        {
+          "name": "authorization-bearer",
+          "count": 0,
+          "replacement": "[REDACTED:authorization-bearer#NN]"
+        },
+        {
+          "name": "cookie-header",
+          "count": 0,
+          "replacement": "[REDACTED:cookie-header#NN]"
+        },
+        {
+          "name": "named-password",
+          "count": 0,
+          "replacement": "[REDACTED:named-password#NN]"
+        }
+      ],
+      "postScan": {
+        "highConfidenceSecrets": 0,
+        "emailAddresses": 0,
+        "mainlandChinaPhoneNumbers": 0,
+        "authorizationHeaders": 0,
+        "originalHomePaths": 0,
+        "originalLocalUserNames": 0
+      }
+    },
+    "traceability": {
+      "mdcRows": 38626,
+      "sessions": 11,
+      "runs": 11,
+      "workerParentMappings": 10,
+      "rootSessionId": "b8f86099-452d-4ba6-89c2-c3fee8f4b422",
+      "rootRunId": "eb2e9ba2-6975-4c83-9e83-8eebcb7f1b10",
+      "mappings": [
+        {
+          "childSessionId": "subagent-agent-1c86cd96",
+          "childRunId": "ed87ec42-4c46-429b-bb85-4ad1d6810877",
+          "parentRunId": "eb2e9ba2-6975-4c83-9e83-8eebcb7f1b10"
+        },
+        {
+          "childSessionId": "subagent-agent-1c9d320a",
+          "childRunId": "1c2a6bb7-b0ee-4eb0-b4f4-d73be78dece5",
+          "parentRunId": "eb2e9ba2-6975-4c83-9e83-8eebcb7f1b10"
+        },
+        {
+          "childSessionId": "subagent-agent-392c10e7",
+          "childRunId": "4a2529cd-7267-48ff-9829-b3769bf6cd2c",
+          "parentRunId": "eb2e9ba2-6975-4c83-9e83-8eebcb7f1b10"
+        },
+        {
+          "childSessionId": "subagent-agent-596000a2",
+          "childRunId": "01262f8f-d971-4198-a6ff-f5140acb8a50",
+          "parentRunId": "eb2e9ba2-6975-4c83-9e83-8eebcb7f1b10"
+        },
+        {
+          "childSessionId": "subagent-agent-64f62e42",
+          "childRunId": "b11d33bb-4d08-477b-88fa-977ddfba67c9",
+          "parentRunId": "eb2e9ba2-6975-4c83-9e83-8eebcb7f1b10"
+        },
+        {
+          "childSessionId": "subagent-agent-6b9d1e29",
+          "childRunId": "8a3c0a29-db30-454d-a714-6f6ed6265f7e",
+          "parentRunId": "eb2e9ba2-6975-4c83-9e83-8eebcb7f1b10"
+        },
+        {
+          "childSessionId": "subagent-agent-9b527904",
+          "childRunId": "ede81716-cf73-4fc9-bc1d-2a2774d2535d",
+          "parentRunId": "eb2e9ba2-6975-4c83-9e83-8eebcb7f1b10"
+        },
+        {
+          "childSessionId": "subagent-agent-adc6f86f",
+          "childRunId": "3cc33bb6-4156-4212-b2db-b5a50ae2070a",
+          "parentRunId": "eb2e9ba2-6975-4c83-9e83-8eebcb7f1b10"
+        },
+        {
+          "childSessionId": "subagent-agent-bf99fd68",
+          "childRunId": "338682fe-2e12-4748-afd5-ebcb0809c855",
+          "parentRunId": "eb2e9ba2-6975-4c83-9e83-8eebcb7f1b10"
+        },
+        {
+          "childSessionId": "subagent-agent-ea473eef",
+          "childRunId": "65db84b4-29ad-42df-9356-49c2b402a785",
+          "parentRunId": "eb2e9ba2-6975-4c83-9e83-8eebcb7f1b10"
+        }
+      ],
+      "roleSource": "MDC agent field",
+      "observabilityAgentTypeRoleWarning": "observability data.agentType=general-purpose is not used to distinguish coordinator and SubAgent roles"
+    },
+    "toolIdentity": {
+      "compositeKey": "sessionId+runId+toolUseId",
+      "compositeToolKeys": 968,
+      "bareToolIds": 422,
+      "collisionsAvoidedByCompositeKey": 546,
+      "webBrowserCompositeKeys": 376,
+      "webBrowserPythonPostRecords": 376,
+      "uniquePythonRequestIds": 376,
+      "browserToolsWithExactlyOneDownstreamRequest": 376,
+      "browserToolsMissingDownstreamRequest": 0,
+      "browserToolsWithDuplicateDownstreamRequests": 0,
+      "traceExample": {
+        "observedAt": "2026-08-09 01:55:36.270",
+        "rootSessionId": "b8f86099-452d-4ba6-89c2-c3fee8f4b422",
+        "rootRunId": "eb2e9ba2-6975-4c83-9e83-8eebcb7f1b10",
+        "workerSessionId": "subagent-agent-64f62e42",
+        "workerRunId": "b11d33bb-4d08-477b-88fa-977ddfba67c9",
+        "parentRunId": "eb2e9ba2-6975-4c83-9e83-8eebcb7f1b10",
+        "turn": 11,
+        "llmRequestId": "llm-72c74176-a7d6-49e0-adb2-7f16dc9a1045",
+        "toolUseId": "WebBrowser_26",
+        "downstreamRequestId": "97ad9951-84cb-4b7a-8c5e-a1458a3c2c9f",
+        "endpoint": "/api/browser/navigate",
+        "completedInMs": 3244,
+        "error": false
+      }
+    },
+    "llmAudit": {
+      "started": 878,
+      "completed": 873,
+      "failed": 5,
+      "uniqueStartedRequestIds": 878,
+      "uniqueTerminalRequestIds": 878,
+      "missingTerminalIds": 0,
+      "orphanTerminalIds": 0,
+      "duplicateTerminalIds": 0,
+      "failedRequests": [
+        {
+          "requestId": "llm-9be2b7f6-1703-451d-a784-0b8a8574fd79",
+          "sessionId": "subagent-agent-64f62e42",
+          "runId": "b11d33bb-4d08-477b-88fa-977ddfba67c9",
+          "turn": 77,
+          "errorType": "cancelled",
+          "statusCode": 0,
+          "attemptCount": 1,
+          "durationMs": 21949
+        },
+        {
+          "requestId": "llm-09b735ff-1b97-4c3e-b671-337c787df536",
+          "sessionId": "subagent-agent-1c86cd96",
+          "runId": "ed87ec42-4c46-429b-bb85-4ad1d6810877",
+          "turn": 39,
+          "errorType": "cancelled",
+          "statusCode": 0,
+          "attemptCount": 1,
+          "durationMs": 1626
+        },
+        {
+          "requestId": "llm-18a06309-c081-4212-9cc4-5984e36c661d",
+          "sessionId": "subagent-agent-1c9d320a",
+          "runId": "1c2a6bb7-b0ee-4eb0-b4f4-d73be78dece5",
+          "turn": 64,
+          "errorType": "cancelled",
+          "statusCode": 0,
+          "attemptCount": 1,
+          "durationMs": 5054
+        },
+        {
+          "requestId": "llm-0cb6cec1-c4f7-48a3-aac0-71caaa330f52",
+          "sessionId": "subagent-agent-ea473eef",
+          "runId": "65db84b4-29ad-42df-9356-49c2b402a785",
+          "turn": 52,
+          "errorType": "cancelled",
+          "statusCode": 0,
+          "attemptCount": 1,
+          "durationMs": 42662
+        },
+        {
+          "requestId": "llm-4b25ef43-7c3d-4967-ac48-f9a0ded3f497",
+          "sessionId": "subagent-agent-392c10e7",
+          "runId": "4a2529cd-7267-48ff-9829-b3769bf6cd2c",
+          "turn": 90,
+          "errorType": "cancelled",
+          "statusCode": 0,
+          "attemptCount": 1,
+          "durationMs": 23431
+        }
+      ],
+      "completedDurationMs": {
+        "count": 873,
+        "total": 16005982,
+        "mean": 18334.45819014891,
+        "median": 7652,
+        "p95NearestRank": 61546,
+        "maximum": 745910,
+        "histogram": [
+          {
+            "label": "<5s",
+            "minInclusiveMs": 0,
+            "maxExclusiveMs": 5000,
+            "requests": 209
+          },
+          {
+            "label": "5–10s",
+            "minInclusiveMs": 5000,
+            "maxExclusiveMs": 10000,
+            "requests": 339
+          },
+          {
+            "label": "10–30s",
+            "minInclusiveMs": 10000,
+            "maxExclusiveMs": 30000,
+            "requests": 232
+          },
+          {
+            "label": "30–60s",
+            "minInclusiveMs": 30000,
+            "maxExclusiveMs": 60000,
+            "requests": 46
+          },
+          {
+            "label": "60–120s",
+            "minInclusiveMs": 60000,
+            "maxExclusiveMs": 120000,
+            "requests": 27
+          },
+          {
+            "label": "≥120s",
+            "minInclusiveMs": 120000,
+            "maxExclusiveMs": null,
+            "requests": 20
+          }
+        ]
+      }
+    },
+    "failureContinuation": {
+      "llm": {
+        "failed": 5,
+        "errorType": "cancelled",
+        "statusCode": 0,
+        "attemptCount": 1,
+        "failedRequestsWithLaterGlobalLlmStart": 5,
+        "sameRequestIdRetryClaimed": false
+      },
+      "tools": {
+        "errorTrue": 17,
+        "errorTrueByTool": {
+          "Edit": 6,
+          "WebBrowser": 5,
+          "Agent": 3,
+          "CodeIntel": 1,
+          "Bash": 2
+        }
+      },
+      "workers": {
+        "started": 10,
+        "naturalCompletions": 1,
+        "deadlineReclaims": 6,
+        "maxTurnsReclaims": 3
+      },
+      "mcp": {
+        "server": "zhipu-websearch",
+        "connectionLosses": 60,
+        "successfulReconnects": 60,
+        "pairedReconnects": 60,
+        "unpairedEvents": 0
+      },
+      "causalRecoveryInferred": false,
+      "boundary": "Later activity is a temporal continuation observation, not proof that a specific failure was automatically repaired or that no intermediate generation was lost."
+    },
+    "contextGovernance": {
+      "evaluations": 878,
+      "uniqueEvaluationIds": 878,
+      "llmStartedEvents": 878,
+      "collapseAttempted": 878,
+      "collapseExecuted": 26,
+      "charsFreed": 2029,
+      "maximumTokensBefore": 240202,
+      "maximumTokensAfter": 240202,
+      "thresholds": [
+        650000
+      ],
+      "aboveThresholdEvents": 0,
+      "autoCompactAttempted": 0,
+      "autoCompactExecuted": 0,
+      "collapseDrainObserved": 0,
+      "reactiveCompactObserved": 0,
+      "payloadTooLargeRecoveryObserved": 0,
+      "collapseCandidateEvents": 878,
+      "collapseOutcomes": {
+        "NO_CANDIDATE": 50,
+        "NO_GAIN": 802,
+        "POSITIVE_ONLY": 26
+      }
+    },
+    "toolLifecycle": {
+      "uniqueCalls": 968,
+      "stage1Validation": 968,
+      "stage5Call": 968,
+      "completed": 968,
+      "completeThreeEventLifecycles": 968,
+      "incompleteOrDuplicateLifecycles": 0,
+      "errorFalse": 951,
+      "errorTrue": 17,
+      "errorFalsePercent": 98.244,
+      "errorTrueByTool": {
+        "Edit": 6,
+        "WebBrowser": 5,
+        "Agent": 3,
+        "CodeIntel": 1,
+        "Bash": 2
+      }
+    },
+    "executionControls": {
+      "atomicWriteSuccesses": 267,
+      "checkpointSaves": 157,
+      "mcpReconnects": {
+        "server": "zhipu-websearch",
+        "connectionLosses": 60,
+        "successfulReconnects": 60,
+        "pairedReconnects": 60,
+        "unpairedEvents": 0
+      }
+    }
+  },
+  "tools": {
+    "total": 968,
+    "distribution": {
+      "AskUserQuestion": 1,
+      "Bash": 102,
+      "Write": 37,
+      "Agent": 10,
+      "Read": 162,
+      "TodoWrite": 11,
+      "WebBrowser": 376,
+      "Edit": 185,
+      "Sleep": 61,
+      "Grep": 20,
+      "Glob": 1,
+      "CodeIntel": 1,
+      "Snip": 1
+    }
+  },
+  "externalBaseline": {
+    "name": "SWE-bench Lite",
+    "relationshipToCase": "SEPARATE_SELF_RUN_PLATFORM_BASELINE_NOT_A_CASE_CONTROL_GROUP",
+    "evaluation": "official SWE-bench Lite harness (self-run artifacts)",
+    "totalInstances": 300,
+    "submittedInstances": 300,
+    "resolvedInstances": 168,
+    "resolveRatePercent": 56,
+    "nonEmptyPatches": 284,
+    "patchGenerationRatePercent": 94.7,
+    "model": "qwen3.7-max",
+    "tools": [
+      "Read",
+      "Edit",
+      "Write",
+      "Bash",
+      "Grep",
+      "Glob"
+    ],
+    "networkAccess": false,
+    "subAgentDelegation": false,
+    "metadataCheckedByExternalMaintainer": false,
+    "evidence": [
+      "docs/swe-bench/20260525/results.json",
+      "docs/swe-bench/20260525/all_preds.jsonl",
+      "docs/swe-bench/20260525/metadata.yaml",
+      "docs/swe-bench-report.html"
+    ]
+  },
+  "screenshots": {
+    "files": 43,
+    "uniqueContent": 42
+  },
+  "productVisualizations": [
+    {
+      "id": "KING-V01",
+      "evidenceType": "code+image",
+      "title": "最终产物全景：一帧画面中的实时系统",
+      "description": "九个源码标注把截图中的小地图、英雄、兵线、血条、技能、经济、特效与固定步长状态联系起来。",
+      "screenshotPaths": [
+        "screenshots/screenshot_b8f86099-452d-4ba6-89c2-c3fee8f4b422_1786228379180.png"
+      ],
+      "screenshotSha256": [
+        "bf7fb809ccebfba622f07c39cb00f3151ca145aa911037ccd6ec1b9ac4c0f504"
+      ],
+      "sourceFiles": [
+        "src/main.js",
+        "src/game/state.js",
+        "src/ui/hud.js"
+      ],
+      "codeSymbolOrExcerpt": "state = new GameState({ scene: engine.scene, mapData, vfx });",
+      "proofScope": "最终画面同时消费地图、单位状态、AI结果、HUD和表现层输出。",
+      "cannotProve": "单帧截图不能证明十名英雄同时可见，也不能证明所有技能分支或性能目标均通过。",
+      "richness": {
+        "svgBytes": 8016,
+        "textLabels": 37,
+        "interactiveNodes": 9,
+        "sourceSymbolLabels": 24,
+        "flowEdges": 0,
+        "calloutPanels": 37,
+        "sourceRails": 0,
+        "viewBox": [
+          1200,
+          800
+        ]
+      }
+    },
+    {
+      "id": "KING-V02",
+      "evidenceType": "code",
+      "title": "十二个运行子系统的数据、命令与反馈图",
+      "description": "区分顶层装配、共享状态、固定逻辑、逐帧表现和界面回调，并直接标出冻结源码符号。",
+      "screenshotPaths": [],
+      "screenshotSha256": [],
+      "sourceFiles": [
+        "src/main.js",
+        "src/game/state.js",
+        "src/game/ai.js",
+        "src/game/skills.js",
+        "src/game/spawner.js",
+        "src/game/shop.js",
+        "src/world/map.js",
+        "src/world/models.js",
+        "src/engine/vfx.js",
+        "src/ui/hud.js",
+        "src/ui/minimap.js"
+      ],
+      "codeSymbolOrExcerpt": null,
+      "proofScope": "玩法不是若干孤立演示，而是通过调用、共享状态和事件形成闭环。",
+      "cannotProve": "耦合关系本身不代表架构最优、低缺陷或高测试覆盖率。",
+      "richness": {
+        "svgBytes": 9165,
+        "textLabels": 63,
+        "interactiveNodes": 13,
+        "sourceSymbolLabels": 57,
+        "flowEdges": 11,
+        "calloutPanels": 0,
+        "sourceRails": 2,
+        "viewBox": [
+          1200,
+          760
+        ]
+      }
+    },
+    {
+      "id": "KING-V03",
+      "evidenceType": "code",
+      "title": "17个模块、39条本地相对导入边的完整拓扑",
+      "description": "按engine、game、world和ui分组展示17个模块，并把main.js的10条顶层依赖与state.js的7条玩法汇合边单独标出。",
+      "screenshotPaths": [],
+      "screenshotSha256": [],
+      "sourceFiles": [
+        "src/main.js",
+        "src/game/state.js"
+      ],
+      "codeSymbolOrExcerpt": null,
+      "proofScope": "17个模块形成可静态复算的跨领域运行结构。",
+      "cannotProve": "导入边数量不能替代圈复杂度、测试覆盖率或代码质量分析。",
+      "richness": {
+        "svgBytes": 9074,
+        "textLabels": 58,
+        "interactiveNodes": 16,
+        "sourceSymbolLabels": 75,
+        "flowEdges": 11,
+        "calloutPanels": 0,
+        "sourceRails": 2,
+        "viewBox": [
+          1200,
+          760
+        ]
+      }
+    },
+    {
+      "id": "KING-V04",
+      "evidenceType": "code",
+      "title": "7,979行第一方代码的领域、模块与职责分布",
+      "description": "面积表示领域规模，条形表示17个JavaScript模块的行数，并把入口index.html与start.command单独列示。",
+      "screenshotPaths": [],
+      "screenshotSha256": [],
+      "sourceFiles": [
+        "src/main.js",
+        "src/config.js"
+      ],
+      "codeSymbolOrExcerpt": null,
+      "proofScope": "核心玩法、世界和引擎合计占主要代码体量，产物不是单页UI拼装。",
+      "cannotProve": "代码更多不等于实现更优，也不能由行数推断开发效率。",
+      "richness": {
+        "svgBytes": 7680,
+        "textLabels": 47,
+        "interactiveNodes": 6,
+        "sourceSymbolLabels": 16,
+        "flowEdges": 0,
+        "calloutPanels": 0,
+        "sourceRails": 1,
+        "viewBox": [
+          1200,
+          760
+        ]
+      }
+    },
+    {
+      "id": "KING-V05",
+      "evidenceType": "code",
+      "title": "180×180峡谷的可执行坐标蓝图",
+      "description": "按config.js中的真实坐标绘制三路、对角河道、18座塔、10个营地、14片草丛、2座水晶、2个泉水和6个基地门。",
+      "screenshotPaths": [],
+      "screenshotSha256": [],
+      "sourceFiles": [
+        "src/config.js",
+        "src/world/map.js"
+      ],
+      "codeSymbolOrExcerpt": null,
+      "proofScope": "地图同时承担路线、建筑、资源、视野和基地攻防拓扑。",
+      "cannotProve": "坐标蓝图不证明地图平衡、寻路最优或所有装饰均同时可见。",
+      "richness": {
+        "svgBytes": 10342,
+        "textLabels": 54,
+        "interactiveNodes": 8,
+        "sourceSymbolLabels": 7,
+        "flowEdges": 0,
+        "calloutPanels": 0,
+        "sourceRails": 1,
+        "viewBox": [
+          1200,
+          760
+        ]
+      }
+    },
+    {
+      "id": "KING-V06",
+      "evidenceType": "code+image",
+      "title": "程序化地图：由配置、Canvas纹理、Three.js几何和碰撞体合成的WebGL场景",
+      "description": "八个标注区分截图可见地物与源码生成责任。",
+      "screenshotPaths": [
+        "screenshots/phase1-map/shot6_overview_river_center.png"
+      ],
+      "screenshotSha256": [
+        "815a9c23b57fd624d56d92b49d6f70825054fafdeafd3a6c660d931e45401ec3"
+      ],
+      "sourceFiles": [
+        "src/config.js",
+        "src/world/map.js",
+        "src/engine/renderer.js"
+      ],
+      "codeSymbolOrExcerpt": "const tex = new THREE.CanvasTexture(cv);",
+      "proofScope": "地图画面能与坐标配置、Canvas纹理及Three.js构建代码逐项对应。",
+      "cannotProve": "R01截图是阶段存档，不能代替最终版本的性能测试或路径覆盖。",
+      "richness": {
+        "svgBytes": 7235,
+        "textLabels": 33,
+        "interactiveNodes": 8,
+        "sourceSymbolLabels": 11,
+        "flowEdges": 0,
+        "calloutPanels": 33,
+        "sourceRails": 0,
+        "viewBox": [
+          1200,
+          800
+        ]
+      }
+    },
+    {
+      "id": "KING-V07",
+      "evidenceType": "code+image",
+      "title": "基地攻防：画面背后的塔序、水晶守卫、围墙门与AI防卡死",
+      "description": "七个标注将敌方基地截图与config/state/ai/map中的攻防规则联系起来。",
+      "screenshotPaths": [
+        "screenshots/phase1-map/shot5_enemy_base_crystal.png"
+      ],
+      "screenshotSha256": [
+        "f6e4a5de7193a850fa58736e2132d009c0e674d44810798e04878145a1c71f86"
+      ],
+      "sourceFiles": [
+        "src/config.js",
+        "src/world/map.js",
+        "src/game/state.js",
+        "src/game/ai.js"
+      ],
+      "codeSymbolOrExcerpt": "isCrystalInvuln(crystal) {",
+      "proofScope": "“推水晶”依赖建筑顺序、守卫减伤、AI目标和导航同时成立。",
+      "cannotProve": "这套简化规则不等同于商业MOBA的完整高地、兵营和防御机制。",
+      "richness": {
+        "svgBytes": 6528,
+        "textLabels": 29,
+        "interactiveNodes": 7,
+        "sourceSymbolLabels": 4,
+        "flowEdges": 0,
+        "calloutPanels": 29,
+        "sourceRails": 0,
+        "viewBox": [
+          1200,
+          800
+        ]
+      }
+    },
+    {
+      "id": "KING-V08",
+      "evidenceType": "code+image",
+      "title": "野区、龙坑与草丛视野的共同生态",
+      "description": "标注暴君、主宰、普通营地、leash回营、草丛显隐和AI对中立资源的安全判断。",
+      "screenshotPaths": [
+        "screenshots/phase1-map/shot3_river_pit_brush.png"
+      ],
+      "screenshotSha256": [
+        "28ef594d935e3d81543cdfec9743e2cfd07e3f8f8d6de7a302fd16d9de136bd9"
+      ],
+      "sourceFiles": [
+        "src/config.js",
+        "src/game/spawner.js",
+        "src/game/ai.js",
+        "src/game/state.js"
+      ],
+      "codeSymbolOrExcerpt": "this.objectives = this.camps.filter(c => c.id === 'tyrant' || c.id === 'overlord');",
+      "proofScope": "野区并非装饰，它通过刷新、Buff、团队奖励、视野和AI决策改变战局。",
+      "cannotProve": "截图没有独立展示全部10个营地或所有目标击杀流程。",
+      "richness": {
+        "svgBytes": 7147,
+        "textLabels": 33,
+        "interactiveNodes": 8,
+        "sourceSymbolLabels": 4,
+        "flowEdges": 0,
+        "calloutPanels": 33,
+        "sourceRails": 0,
+        "viewBox": [
+          1200,
+          800
+        ]
+      }
+    },
+    {
+      "id": "KING-V09",
+      "evidenceType": "code",
+      "title": "双时钟主循环：30Hz确定逻辑与逐帧渲染并行",
+      "description": "展示requestAnimationFrame、dt封顶、accumulator、最大5次补步、GameState固定更新与表现层逐帧更新的完整分工。",
+      "screenshotPaths": [],
+      "screenshotSha256": [],
+      "sourceFiles": [
+        "src/config.js",
+        "src/main.js"
+      ],
+      "codeSymbolOrExcerpt": null,
+      "proofScope": "玩法时间与显示刷新被明确分离，并提供补步上限和加速验收入口。",
+      "cannotProve": "固定步长不自动保证确定性联网同步；本项目没有网络帧同步。",
+      "richness": {
+        "svgBytes": 8166,
+        "textLabels": 54,
+        "interactiveNodes": 8,
+        "sourceSymbolLabels": 19,
+        "flowEdges": 6,
+        "calloutPanels": 0,
+        "sourceRails": 1,
+        "viewBox": [
+          1200,
+          760
+        ]
+      }
+    },
+    {
+      "id": "KING-V10",
+      "evidenceType": "code",
+      "title": "GameState.update()的十阶段严格顺序",
+      "description": "以固定逻辑tick为单位，按生成、技能、视野、玩家、英雄AI、单位AI、泉水、分离、碰撞同步和清理的顺序更新。",
+      "screenshotPaths": [],
+      "screenshotSha256": [],
+      "sourceFiles": [
+        "src/game/state.js"
+      ],
+      "codeSymbolOrExcerpt": null,
+      "proofScope": "每个逻辑步不是单一动画更新，而是十类相互依赖的世界演算。",
+      "cannotProve": "图中十阶段是报告归纳，日志没有逐tick记录每个内部分支。",
+      "richness": {
+        "svgBytes": 8403,
+        "textLabels": 49,
+        "interactiveNodes": 10,
+        "sourceSymbolLabels": 21,
+        "flowEdges": 9,
+        "calloutPanels": 0,
+        "sourceRails": 1,
+        "viewBox": [
+          1200,
+          760
+        ]
+      }
+    },
+    {
+      "id": "KING-V11",
+      "evidenceType": "code",
+      "title": "英雄、小兵、野怪与建筑的单位生命周期",
+      "description": "用四条并行生命线展示生成、移动、索敌、攻击、受伤、死亡、奖励、重生或清理的差异。",
+      "screenshotPaths": [],
+      "screenshotSha256": [],
+      "sourceFiles": [
+        "src/game/state.js",
+        "src/game/spawner.js",
+        "src/game/ai.js"
+      ],
+      "codeSymbolOrExcerpt": null,
+      "proofScope": "不同单位共享结算基础，但生成、奖励、重生和终局语义不同。",
+      "cannotProve": "统一基类不意味着所有对象都具备相同AI或完整组件化架构。",
+      "richness": {
+        "svgBytes": 10044,
+        "textLabels": 50,
+        "interactiveNodes": 20,
+        "sourceSymbolLabels": 15,
+        "flowEdges": 16,
+        "calloutPanels": 0,
+        "sourceRails": 1,
+        "viewBox": [
+          1200,
+          760
+        ]
+      }
+    },
+    {
+      "id": "KING-V12",
+      "evidenceType": "code+runtime",
+      "title": "1名玩家 + 9名AI的5v5阵容装配",
+      "description": "展示双方上路、中路、下路双人和打野五个角色，以及玩家英雄选择后的镜像英雄池限制。",
+      "screenshotPaths": [],
+      "screenshotSha256": [],
+      "sourceFiles": [
+        "src/config.js",
+        "src/game/state.js"
+      ],
+      "codeSymbolOrExcerpt": null,
+      "proofScope": "运行时确实装配蓝4＋红5共9个AI英雄，验收也读到双方各5名英雄。",
+      "cannotProve": "镜像英雄池不代表阵容多样性、BP、玩家匹配或AI水平。",
+      "richness": {
+        "svgBytes": 6943,
+        "textLabels": 42,
+        "interactiveNodes": 10,
+        "sourceSymbolLabels": 17,
+        "flowEdges": 0,
+        "calloutPanels": 0,
+        "sourceRails": 1,
+        "viewBox": [
+          1200,
+          760
+        ]
+      }
+    },
+    {
+      "id": "KING-V13",
+      "evidenceType": "code",
+      "title": "英雄AI的九层优先级状态机",
+      "description": "按HeroAI.update中的真实判定顺序展示锁定、撤退、恢复、回防、强攻、团战、集团推进、中立目标和默认分路/打野。",
+      "screenshotPaths": [],
+      "screenshotSha256": [],
+      "sourceFiles": [
+        "src/game/ai.js"
+      ],
+      "codeSymbolOrExcerpt": null,
+      "proofScope": "9名AI英雄不只是“向前走”，而是在生存、回防、团战、资源与终局之间按优先级分流。",
+      "cannotProve": "规则状态机不等于机器学习，也没有对决策质量做对照实验。",
+      "richness": {
+        "svgBytes": 7323,
+        "textLabels": 35,
+        "interactiveNodes": 9,
+        "sourceSymbolLabels": 15,
+        "flowEdges": 8,
+        "calloutPanels": 0,
+        "sourceRails": 1,
+        "viewBox": [
+          1200,
+          760
+        ]
+      }
+    },
+    {
+      "id": "KING-V14",
+      "evidenceType": "code",
+      "title": "小兵AI：三路路径、索敌脱离、推塔和防卡死",
+      "description": "展示一只小兵在生成、路径偏移、索敌、攻击、脱离、路点到达、塔后超级兵和主宰强化之间的决策。",
+      "screenshotPaths": [],
+      "screenshotSha256": [],
+      "sourceFiles": [
+        "src/config.js",
+        "src/game/ai.js",
+        "src/game/spawner.js"
+      ],
+      "codeSymbolOrExcerpt": null,
+      "proofScope": "兵线同时连接时间、AI、经济、建筑无敌、终局和防卡死机制。",
+      "cannotProve": "规则没有形成工业级导航网格，拥挤和极端路径仍可能存在。",
+      "richness": {
+        "svgBytes": 8158,
+        "textLabels": 50,
+        "interactiveNodes": 14,
+        "sourceSymbolLabels": 10,
+        "flowEdges": 5,
+        "calloutPanels": 0,
+        "sourceRails": 1,
+        "viewBox": [
+          1200,
+          760
+        ]
+      }
+    },
+    {
+      "id": "KING-V15",
+      "evidenceType": "code",
+      "title": "四类AI与全局规则的多智能体拼图",
+      "description": "对比英雄、小兵、防御塔和野怪四套不同行为规则，并展示草丛、泉水、建筑无敌和共享伤害结算如何跨类型影响决策。",
+      "screenshotPaths": [],
+      "screenshotSha256": [],
+      "sourceFiles": [
+        "src/game/ai.js",
+        "src/game/state.js"
+      ],
+      "codeSymbolOrExcerpt": null,
+      "proofScope": "同一局中存在四套不同AI规则，并通过共享空间查询与伤害状态互相作用。",
+      "cannotProve": "“四类AI”描述规则类型，不等于四个独立进程、学习模型或高级协同智能。",
+      "richness": {
+        "svgBytes": 6642,
+        "textLabels": 48,
+        "interactiveNodes": 5,
+        "sourceSymbolLabels": 19,
+        "flowEdges": 4,
+        "calloutPanels": 0,
+        "sourceRails": 1,
+        "viewBox": [
+          1200,
+          760
+        ]
+      }
+    },
+    {
+      "id": "KING-V16",
+      "evidenceType": "code",
+      "title": "五英雄×三主动技能的十五条战斗路径",
+      "description": "对每个技能直接标出名称、瞄准模式、基础冷却和关键效果，展示五个职业的不同实现路径。",
+      "screenshotPaths": [],
+      "screenshotSha256": [],
+      "sourceFiles": [
+        "src/game/skills.js"
+      ],
+      "codeSymbolOrExcerpt": null,
+      "proofScope": "15项技能并非仅更换名称，而是包含不同瞄准、弹道、控制、状态和位移实现。",
+      "cannotProve": "源码存在不等于15项技能均在公开录屏中逐项独立展示。",
+      "richness": {
+        "svgBytes": 10338,
+        "textLabels": 71,
+        "interactiveNodes": 15,
+        "sourceSymbolLabels": 4,
+        "flowEdges": 0,
+        "calloutPanels": 0,
+        "sourceRails": 1,
+        "viewBox": [
+          1200,
+          774
+        ]
+      }
+    },
+    {
+      "id": "KING-V17",
+      "evidenceType": "code",
+      "title": "六种技能瞄准模型与空间校验",
+      "description": "展示self、around、target、area、line和dash六类瞄准几何，并标出15项技能的分布、范围、目标选择与HUD指针输入。",
+      "screenshotPaths": [],
+      "screenshotSha256": [],
+      "sourceFiles": [
+        "src/game/skills.js"
+      ],
+      "codeSymbolOrExcerpt": null,
+      "proofScope": "技能输入与空间目标至少覆盖六类不同语义，HUD、玩家和AI都需适配。",
+      "cannotProve": "六类瞄准不等于商业游戏的碰撞精度、手感或取消施法体验。",
+      "richness": {
+        "svgBytes": 6846,
+        "textLabels": 50,
+        "interactiveNodes": 6,
+        "sourceSymbolLabels": 14,
+        "flowEdges": 0,
+        "calloutPanels": 0,
+        "sourceRails": 1,
+        "viewBox": [
+          1200,
+          760
+        ]
+      }
+    },
+    {
+      "id": "KING-V18",
+      "evidenceType": "code",
+      "title": "一次技能施放跨越十个代码环节",
+      "description": "从键盘或指针输入、HUD瞄准、动作队列、状态门控、SkillSystem资源检查，到弹道、延迟、Buff、伤害和多通道反馈。",
+      "screenshotPaths": [],
+      "screenshotSha256": [],
+      "sourceFiles": [
+        "src/main.js",
+        "src/game/state.js",
+        "src/game/skills.js",
+        "src/engine/vfx.js",
+        "src/engine/audio.js",
+        "src/ui/hud.js"
+      ],
+      "codeSymbolOrExcerpt": null,
+      "proofScope": "一次施法横跨输入、固定tick、技能系统、状态结算和表现层，不是单个CSS动画。",
+      "cannotProve": "图是静态调用链归纳，不是逐技能的动态调用追踪。",
+      "richness": {
+        "svgBytes": 8163,
+        "textLabels": 49,
+        "interactiveNodes": 10,
+        "sourceSymbolLabels": 23,
+        "flowEdges": 9,
+        "calloutPanels": 0,
+        "sourceRails": 1,
+        "viewBox": [
+          1200,
+          760
+        ]
+      }
+    },
+    {
+      "id": "KING-V19",
+      "evidenceType": "code",
+      "title": "战斗结算：从技能面板值到死亡、奖励与终局",
+      "description": "展示AD/AP缩放、暴击与建筑倍率、护甲魔抗、水晶守卫、护盾、控制、死亡分发和金币经验统计的统一流水线。",
+      "screenshotPaths": [],
+      "screenshotSha256": [],
+      "sourceFiles": [
+        "src/config.js",
+        "src/game/state.js",
+        "src/game/shop.js"
+      ],
+      "codeSymbolOrExcerpt": null,
+      "proofScope": "伤害结果继续驱动控制、死亡、经济、等级、统计、重生与胜负。",
+      "cannotProve": "简化公式没有穿透、韧性等商业游戏的完整数值体系，也未建立平衡性结论。",
+      "richness": {
+        "svgBytes": 9652,
+        "textLabels": 60,
+        "interactiveNodes": 16,
+        "sourceSymbolLabels": 17,
+        "flowEdges": 5,
+        "calloutPanels": 0,
+        "sourceRails": 1,
+        "viewBox": [
+          1200,
+          760
+        ]
+      }
+    },
+    {
+      "id": "KING-V20",
+      "evidenceType": "code+image",
+      "title": "河道交战的画面—代码联证图",
+      "description": "十个直接标注把画面中的战术信息、世界实体、AI决策、状态投影和输入回调连到冻结源码。",
+      "screenshotPaths": [
+        "screenshots/screenshot_b8f86099-452d-4ba6-89c2-c3fee8f4b422_1786228379180.png"
+      ],
+      "screenshotSha256": [
+        "bf7fb809ccebfba622f07c39cb00f3151ca145aa911037ccd6ec1b9ac4c0f504"
+      ],
+      "sourceFiles": [
+        "src/main.js",
+        "src/world/models.js",
+        "src/game/ai.js",
+        "src/ui/hud.js",
+        "src/ui/minimap.js",
+        "src/game/shop.js"
+      ],
+      "codeSymbolOrExcerpt": "hud.onSkill = (slot) => state.queueAction(slot);",
+      "proofScope": "截图中可见对象能逐项定位到冻结代码，画面不是与源码脱节的宣传渲染。",
+      "cannotProve": "画面内只清楚可见5名英雄，不能称为完整10人同屏团战。",
+      "richness": {
+        "svgBytes": 8753,
+        "textLabels": 41,
+        "interactiveNodes": 10,
+        "sourceSymbolLabels": 25,
+        "flowEdges": 0,
+        "calloutPanels": 41,
+        "sourceRails": 0,
+        "viewBox": [
+          1200,
+          800
+        ]
+      }
+    },
+    {
+      "id": "KING-V21",
+      "evidenceType": "code+image+runtime",
+      "title": "从选将到水晶结算再回到新对局的状态机",
+      "description": "展示选择英雄、建立GameState、分路发育、资源争夺、团战、推塔、水晶死亡、结算表和重新开始的完整控制流。",
+      "screenshotPaths": [
+        "screenshots/screenshot_qa_1786228500285.png",
+        "screenshots/screenshot_qa_1786229287687.png"
+      ],
+      "screenshotSha256": [
+        "3f317e81814fe3de79a048d23a245ecb3151519863becd1a400e7eb055c60cf6",
+        "0ad8494dc876a46ffda9d0a23143e874b1af3d2059bcd5485db5330ec43b010d"
+      ],
+      "sourceFiles": [
+        "src/ui/screens.js",
+        "src/game/state.js"
+      ],
+      "codeSymbolOrExcerpt": "showResult() {",
+      "proofScope": "选将与结算均有冻结画面，最终验收还记录水晶胜负和重开成功。",
+      "cannotProve": "两张截图之间的全部路径仍需结合对局记录和录屏，不能由首尾画面单独推出。",
+      "richness": {
+        "svgBytes": 8443,
+        "textLabels": 56,
+        "interactiveNodes": 13,
+        "sourceSymbolLabels": 21,
+        "flowEdges": 3,
+        "calloutPanels": 0,
+        "sourceRails": 1,
+        "viewBox": [
+          1200,
+          760
+        ]
+      }
+    },
+    {
+      "id": "KING-V22",
+      "evidenceType": "code",
+      "title": "经济与成长：一次战斗如何改变下一次战斗",
+      "description": "展示补兵、英雄击杀、助攻、破塔、暴君主宰和被动收入，如何转换为金币经验、等级技能和12件装备，再反馈到推进。",
+      "screenshotPaths": [],
+      "screenshotSha256": [],
+      "sourceFiles": [
+        "src/config.js",
+        "src/game/state.js",
+        "src/game/shop.js"
+      ],
+      "codeSymbolOrExcerpt": null,
+      "proofScope": "金币经验不是装饰数字，而会修改技能、英雄面板、装备和推进能力。",
+      "cannotProve": "现有四局样本不足以证明经济曲线、装备价格或阵营平衡合理。",
+      "richness": {
+        "svgBytes": 9768,
+        "textLabels": 65,
+        "interactiveNodes": 18,
+        "sourceSymbolLabels": 6,
+        "flowEdges": 3,
+        "calloutPanels": 0,
+        "sourceRails": 1,
+        "viewBox": [
+          1200,
+          760
+        ]
+      }
+    },
+    {
+      "id": "KING-V23",
+      "evidenceType": "code",
+      "title": "一局比赛中并行推进的长短时间系统",
+      "description": "展示首波兵线、周期出兵、被动金、暴君、主宰、小兵成长，以及技能CD、回城、Buff、召唤师技能、重生和多杀窗口。",
+      "screenshotPaths": [],
+      "screenshotSha256": [],
+      "sourceFiles": [
+        "src/config.js",
+        "src/game/spawner.js",
+        "src/game/state.js"
+      ],
+      "codeSymbolOrExcerpt": null,
+      "proofScope": "一局比赛由多个长短时间轴并行推进，测试终局必须等待或使用受控倍速。",
+      "cannotProve": "配置时间与商业《王者荣耀》当前规则一致，也不证明节奏已经平衡。",
+      "richness": {
+        "svgBytes": 8224,
+        "textLabels": 51,
+        "interactiveNodes": 15,
+        "sourceSymbolLabels": 6,
+        "flowEdges": 8,
+        "calloutPanels": 0,
+        "sourceRails": 1,
+        "viewBox": [
+          1200,
+          760
+        ]
+      }
+    },
+    {
+      "id": "KING-V24",
+      "evidenceType": "code",
+      "title": "程序化表现管线：地表、模型、特效与声音如何被实时造出来",
+      "description": "展示Canvas 2D地表纹理、Three.js程序化模型、对象池VFX、WebAudio和speechSynthesis如何与WebGL、DOM和Canvas UI合成。",
+      "screenshotPaths": [],
+      "screenshotSha256": [],
+      "sourceFiles": [
+        "src/world/map.js",
+        "src/world/models.js",
+        "src/engine/vfx.js",
+        "src/engine/audio.js"
+      ],
+      "codeSymbolOrExcerpt": null,
+      "proofScope": "现有代码未依赖外部模型、贴图、音频或字体URL，画面和声音主要由代码生成。",
+      "cannotProve": "这不代表没有第三方依赖，也不代表美术品质达到工业游戏水平。",
+      "richness": {
+        "svgBytes": 6117,
+        "textLabels": 40,
+        "interactiveNodes": 4,
+        "sourceSymbolLabels": 28,
+        "flowEdges": 4,
+        "calloutPanels": 0,
+        "sourceRails": 1,
+        "viewBox": [
+          1200,
+          760
+        ]
+      }
+    },
+    {
+      "id": "KING-V25",
+      "evidenceType": "code+image",
+      "title": "HUD画面—代码联证：十一类信息与输入同步",
+      "description": "十一个直接标注将小地图、比分、时间、世界血条、生命法力、等级金币、装备、商店、技能、召唤师技能、回城和普攻连接到数据源。",
+      "screenshotPaths": [
+        "screenshots/screenshot_b8f86099-452d-4ba6-89c2-c3fee8f4b422_1786225061947.png"
+      ],
+      "screenshotSha256": [
+        "42a4cfe4fe0f6e71fe76b764a024789e53184f6fae2371276644855928c4ed13"
+      ],
+      "sourceFiles": [
+        "src/main.js",
+        "src/ui/hud.js",
+        "src/ui/minimap.js",
+        "src/ui/screens.js",
+        "src/game/shop.js"
+      ],
+      "codeSymbolOrExcerpt": "minimap.update(state, dt);",
+      "proofScope": "HUD不只是静态皮肤，它读取共享状态并把玩家输入送回固定逻辑循环。",
+      "cannotProve": "单个1280×800画面不能证明所有分辨率、触控设备和无障碍输入均兼容。",
+      "richness": {
+        "svgBytes": 9419,
+        "textLabels": 45,
+        "interactiveNodes": 11,
+        "sourceSymbolLabels": 6,
+        "flowEdges": 0,
+        "calloutPanels": 45,
+        "sourceRails": 0,
+        "viewBox": [
+          1200,
+          800
+        ]
+      }
+    },
+    {
+      "id": "KING-V26",
+      "evidenceType": "boundary",
+      "title": "最终产物的已交付能力、实测范围与下一阶段",
+      "description": "四层工程图把已运行能力、指定路径验收、静态源码结构和下一阶段能力放在同一张路线图中。",
+      "screenshotPaths": [],
+      "screenshotSha256": [],
+      "sourceFiles": [
+        "src/config.js",
+        "src/main.js",
+        "src/game/state.js"
+      ],
+      "codeSymbolOrExcerpt": null,
+      "proofScope": "现有单机原型已经接通跨系统运行链，并在指定浏览器路径完成终局验收。",
+      "cannotProve": "26张图不能把原型变成商业《王者荣耀》，也不证明平台对其他任务的平均成功率。",
+      "richness": {
+        "svgBytes": 5740,
+        "textLabels": 29,
+        "interactiveNodes": 4,
+        "sourceSymbolLabels": 6,
+        "flowEdges": 1,
+        "calloutPanels": 0,
+        "sourceRails": 1,
+        "viewBox": [
+          1200,
+          760
+        ]
+      }
+    }
+  ],
+  "productVisualizationRichness": {
+    "figures": 26,
+    "totalSvgBytes": 212329,
+    "totalTextLabels": 1239,
+    "totalInteractiveNodes": 273,
+    "totalSourceSymbolLabels": 470,
+    "screenshotOverlays": 6,
+    "professionalCanvasCount": 26,
+    "generatedBy": "scripts/enhance-king-product-viz.mjs"
+  },
+  "logVisualizations": [
+    {
+      "id": "LOG-V01",
+      "evidenceType": "frozen-app-log",
+      "title": "LOG-V01 一次真实WebBrowser调用的七层标识符血缘链",
+      "description": "从根会话与根Run，经Worker子会话与子Run、Turn 11、LLM请求、WebBrowser工具、Python请求，到3244毫秒完成记录。右侧解释复合键与字段来源。",
+      "proofScope": "冻结窗口可重建11个会话、11个Run、10条父子关系；此浏览器调用可从根Run追到唯一Python请求与终态。",
+      "cannotProve": "标识符关联不评价Worker产出质量，不把376次调用变成376项成功测试，也不证明调度策略最优。",
+      "richness": {
+        "svgBytes": 6973,
+        "textLabels": 47,
+        "interactiveNodes": 10,
+        "viewBox": [
+          1200,
+          790
+        ]
+      }
+    },
+    {
+      "id": "LOG-V03",
+      "evidenceType": "app-log+observability",
+      "title": "LOG-V03 局部故障、终态和后续活动泳道",
+      "description": "五条泳道分别展示模型取消、工具结构化错误、Worker期限和轮次终止、MCP断线重连、原子写入与Checkpoint。每条泳道分开记录发生、终态和随后可确认活动。",
+      "proofScope": "故障、错误和运行边界没有被成功叙事抹去；终态可以分类并复算，之后仍有全局模型调用、续作和最终验收活动。",
+      "cannotProve": "时间上的后续活动不自动构成修复因果；不能声称失败请求同ID重试成功、所有错误都自动修复或无中间内容损失。",
+      "richness": {
+        "svgBytes": 7805,
+        "textLabels": 49,
+        "interactiveNodes": 5,
+        "viewBox": [
+          1200,
+          820
+        ]
+      }
+    },
+    {
+      "id": "LOG-V02",
+      "evidenceType": "observability-events",
+      "title": "LOG-V02 878个LLM请求终态闭合与873个完成请求耗时分布",
+      "description": "上半部展示878个started按requestId闭合为873 completed和5 failed，缺失、孤立、重复均为零。下半部展示六档耗时直方图及均值、中位数、P95、最大值。",
+      "proofScope": "878个started requestId各自有且只有一个终态；873个完成请求耗时可由公开事件逐条复算。",
+      "cannotProve": "Token或耗时越大质量越高；5次failed进入提供方账单；本案延迟优于其他平台；失败请求以同一ID重试成功。",
+      "richness": {
+        "svgBytes": 7149,
+        "textLabels": 53,
+        "interactiveNodes": 15,
+        "viewBox": [
+          1200,
+          790
+        ]
+      }
+    }
+  ],
+  "logVisualizationRichness": {
+    "figures": 3,
+    "totalSvgBytes": 21927,
+    "totalTextLabels": 149,
+    "totalInteractiveNodes": 30,
+    "pcFirstCanvases": 3,
+    "generatedBy": "scripts/enhance-king-log-viz.mjs"
+  },
+  "codeImageBindings": [
+    {
+      "id": "KING-V01",
+      "screenshots": [
+        {
+          "path": "screenshots/screenshot_b8f86099-452d-4ba6-89c2-c3fee8f4b422_1786228379180.png",
+          "sha256": "bf7fb809ccebfba622f07c39cb00f3151ca145aa911037ccd6ec1b9ac4c0f504"
+        }
+      ],
+      "sourceFile": "src/main.js",
+      "exactCode": "state = new GameState({ scene: engine.scene, mapData, vfx });"
+    },
+    {
+      "id": "KING-V06",
+      "screenshots": [
+        {
+          "path": "screenshots/phase1-map/shot6_overview_river_center.png",
+          "sha256": "815a9c23b57fd624d56d92b49d6f70825054fafdeafd3a6c660d931e45401ec3"
+        }
+      ],
+      "sourceFile": "src/world/map.js",
+      "exactCode": "const tex = new THREE.CanvasTexture(cv);"
+    },
+    {
+      "id": "KING-V07",
+      "screenshots": [
+        {
+          "path": "screenshots/phase1-map/shot5_enemy_base_crystal.png",
+          "sha256": "f6e4a5de7193a850fa58736e2132d009c0e674d44810798e04878145a1c71f86"
+        }
+      ],
+      "sourceFile": "src/game/state.js",
+      "exactCode": "isCrystalInvuln(crystal) {"
+    },
+    {
+      "id": "KING-V08",
+      "screenshots": [
+        {
+          "path": "screenshots/phase1-map/shot3_river_pit_brush.png",
+          "sha256": "28ef594d935e3d81543cdfec9743e2cfd07e3f8f8d6de7a302fd16d9de136bd9"
+        }
+      ],
+      "sourceFile": "src/game/spawner.js",
+      "exactCode": "this.objectives = this.camps.filter(c => c.id === 'tyrant' || c.id === 'overlord');"
+    },
+    {
+      "id": "KING-V20",
+      "screenshots": [
+        {
+          "path": "screenshots/screenshot_b8f86099-452d-4ba6-89c2-c3fee8f4b422_1786228379180.png",
+          "sha256": "bf7fb809ccebfba622f07c39cb00f3151ca145aa911037ccd6ec1b9ac4c0f504"
+        }
+      ],
+      "sourceFile": "src/main.js",
+      "exactCode": "hud.onSkill = (slot) => state.queueAction(slot);"
+    },
+    {
+      "id": "KING-V21",
+      "screenshots": [
+        {
+          "path": "screenshots/screenshot_qa_1786228500285.png",
+          "sha256": "3f317e81814fe3de79a048d23a245ecb3151519863becd1a400e7eb055c60cf6"
+        },
+        {
+          "path": "screenshots/screenshot_qa_1786229287687.png",
+          "sha256": "0ad8494dc876a46ffda9d0a23143e874b1af3d2059bcd5485db5330ec43b010d"
+        }
+      ],
+      "sourceFile": "src/ui/screens.js",
+      "exactCode": "showResult() {"
+    },
+    {
+      "id": "KING-V25",
+      "screenshots": [
+        {
+          "path": "screenshots/screenshot_b8f86099-452d-4ba6-89c2-c3fee8f4b422_1786225061947.png",
+          "sha256": "42a4cfe4fe0f6e71fe76b764a024789e53184f6fae2371276644855928c4ed13"
+        }
+      ],
+      "sourceFile": "src/main.js",
+      "exactCode": "minimap.update(state, dt);"
+    }
+  ],
+  "reportContentCoverage": {
+    "tables": [
+      {
+        "id": "TABLE-01",
+        "tag": "table",
+        "visualizationId": "RUN-V01",
+        "normalizedTextSha256": "1504f0d20793d98cc4f03fee7ee531d10e11a7f8f42ee97eb8e171d5c4c58832",
+        "originalHtmlBytes": 1960,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-02",
+        "tag": "table",
+        "visualizationId": "CASE-V04",
+        "normalizedTextSha256": "7caa81b3a1de96109a3ebf461790f37ba7904ec7de6bd4a162ce0c77d8717d44",
+        "originalHtmlBytes": 2170,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-03",
+        "tag": "table",
+        "visualizationId": "CASE-V04",
+        "normalizedTextSha256": "8a78002151bfa49b933b84419e8a8d79f19dec101b3c89be25ffa86a87922fdb",
+        "originalHtmlBytes": 698,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-04",
+        "tag": "table",
+        "visualizationId": "CASE-V05",
+        "normalizedTextSha256": "53a6825c24a9c826921cc8c9543705f75e26128b33bcb2dfd459af68fc6446a7",
+        "originalHtmlBytes": 1235,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-05",
+        "tag": "table",
+        "visualizationId": "CASE-V06",
+        "normalizedTextSha256": "a8bf7c0b9de4350b395be6271e609a907d9be1c9cfb70a3166abccd5391a8e2f",
+        "originalHtmlBytes": 792,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-06",
+        "tag": "table",
+        "visualizationId": "CASE-V08",
+        "normalizedTextSha256": "5ade760332e3f1be624b80da3497c3d784606b2fb351448d25ab607dd58ca03d",
+        "originalHtmlBytes": 976,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-07",
+        "tag": "table",
+        "visualizationId": "SRC-V01",
+        "normalizedTextSha256": "6ffbfe60b16077b0e9321b6012b175846ed6a2c284f6b82e51f01173b79ec8db",
+        "originalHtmlBytes": 3781,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-08",
+        "tag": "table",
+        "visualizationId": "SRC-V02",
+        "normalizedTextSha256": "569bfa909c92ccf10f246c6c571d51fa93082b382381a6f42927fc39115ae062",
+        "originalHtmlBytes": 2265,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-09",
+        "tag": "table",
+        "visualizationId": "PLAT-V02",
+        "normalizedTextSha256": "f935aad81f9b5282bec7f458d67e769113c82c600dc0741a8a6e763e32f15616",
+        "originalHtmlBytes": 1682,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-10",
+        "tag": "table",
+        "visualizationId": "LOG-V01",
+        "normalizedTextSha256": "5a1e22087c9901f1665798f4462fccc9ee385577db5e1ef0ef366d7b5944151c",
+        "originalHtmlBytes": 1506,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-11",
+        "tag": "table",
+        "visualizationId": "PLAT-V03",
+        "normalizedTextSha256": "24f215468256eea2df809764f45894ff817a1326611cb3a7638862c5071a2c67",
+        "originalHtmlBytes": 1569,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-12",
+        "tag": "table",
+        "visualizationId": "PLAT-V08",
+        "normalizedTextSha256": "19a612794bc46411b0887f2a5028c87e2e7c4951560b9105c5523d065091276c",
+        "originalHtmlBytes": 994,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-13",
+        "tag": "table",
+        "visualizationId": "LOG-V03",
+        "normalizedTextSha256": "d5735550a99d838bcd008d357cd1cc97e7f1e4ad0ec70f01e5107ad49f4f5d0d",
+        "originalHtmlBytes": 1221,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-14",
+        "tag": "table",
+        "visualizationId": "PLAT-V09",
+        "normalizedTextSha256": "9e4aa4fcc7b9fc7dba2d37b055d06e0733c7c9db69a8e9774f4f78ca232c9cbe",
+        "originalHtmlBytes": 791,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-15",
+        "tag": "table",
+        "visualizationId": "PLAT-V10",
+        "normalizedTextSha256": "f9ea6122ab0c61547fa13603bfb1fa0865d6b06be723df30a26a653d59880904",
+        "originalHtmlBytes": 1782,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-16",
+        "tag": "table",
+        "visualizationId": "RUN-V08",
+        "normalizedTextSha256": "a1ebef23f78055990a3209f28a2019682fc17873d6c3a9e500637003115a4a33",
+        "originalHtmlBytes": 1159,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-17",
+        "tag": "table",
+        "visualizationId": "RUN-V01",
+        "normalizedTextSha256": "b38a337805f5fd4fbbf0aa4444ceafdfa30de48f773d558ed54fd678f9f323eb",
+        "originalHtmlBytes": 3111,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-18",
+        "tag": "table",
+        "visualizationId": "RUN-V04",
+        "normalizedTextSha256": "d4d28702c0d0da726b6756612c18359279b2c3be115f5d19ac7a851c6fde2696",
+        "originalHtmlBytes": 1684,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-19",
+        "tag": "table",
+        "visualizationId": "RUN-V05",
+        "normalizedTextSha256": "5598207d61960314b0d4045963265799bd82314f91b69661e738848ed83914cc",
+        "originalHtmlBytes": 1387,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-20",
+        "tag": "table",
+        "visualizationId": "RUN-V06",
+        "normalizedTextSha256": "2ec55b2f68b10519d2eeb98633085a8ab67101a422776ff872fb47a6f42a479c",
+        "originalHtmlBytes": 1451,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-21",
+        "tag": "table",
+        "visualizationId": "RUN-V01",
+        "normalizedTextSha256": "3f5cf78f10eb01eb4b53333ff7a491dd525f8921979561558326c3e3465ae6d8",
+        "originalHtmlBytes": 1623,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-22",
+        "tag": "table",
+        "visualizationId": "RUN-V01",
+        "normalizedTextSha256": "f1e41db6b5e0c6657aa7e25978553c8f47ae27666e09e3ffe1606ee47a43347a",
+        "originalHtmlBytes": 3560,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-23",
+        "tag": "table",
+        "visualizationId": "QA-V01",
+        "normalizedTextSha256": "8e880a02060abb8ec6fcc25215fe6cc2911e463da228d1106314b44099a66edc",
+        "originalHtmlBytes": 1659,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-24",
+        "tag": "table",
+        "visualizationId": "QA-V02",
+        "normalizedTextSha256": "0bc5e64e68310e2acea8130e7a8158499ea87b1eb64bd61d85ce6c09691bdc5f",
+        "originalHtmlBytes": 4330,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-25",
+        "tag": "table",
+        "visualizationId": "QA-V03",
+        "normalizedTextSha256": "d734b79ce5b4db09cc8b95bbd95f38da303c10bfa6639236696f47b6a53d107b",
+        "originalHtmlBytes": 2546,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-26",
+        "tag": "table",
+        "visualizationId": "QA-V05",
+        "normalizedTextSha256": "c81411980f3267d02505663bf0deed934e8f3f518e096f801bf0e62d62288d5b",
+        "originalHtmlBytes": 516,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-27",
+        "tag": "table",
+        "visualizationId": "AUDIT-V01",
+        "normalizedTextSha256": "73b67624f0b8cf97e3fa941fb9aa8bac1d62f59688d774317b0f350a27cb3134",
+        "originalHtmlBytes": 1062,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-28",
+        "tag": "table",
+        "visualizationId": "AUDIT-V02",
+        "normalizedTextSha256": "1e026355755c0e3dbba5e23ddf1442d0c40c9006d6d1956d575a9078b786a7cb",
+        "originalHtmlBytes": 1316,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-29",
+        "tag": "table",
+        "visualizationId": "AUDIT-V05",
+        "normalizedTextSha256": "6dabca365937ecd856445990a5795cb5fb125018a6f734e3e67283991406be21",
+        "originalHtmlBytes": 606,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-30",
+        "tag": "table",
+        "visualizationId": "AUDIT-V06",
+        "normalizedTextSha256": "feddaa72a43db95d0fd6e40d37b3724b193733f584701a4c391207801c5f4b4d",
+        "originalHtmlBytes": 819,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-31",
+        "tag": "table",
+        "visualizationId": "AUDIT-V08",
+        "normalizedTextSha256": "eb6fde67aaab3b0bc082763afb32765ccb60badf16e8320d4bbaad7bf06f8c33",
+        "originalHtmlBytes": 1037,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-32",
+        "tag": "table",
+        "visualizationId": "AUDIT-V10",
+        "normalizedTextSha256": "ad40fcc027e16cf51efaf4ac4fb596f34a00cce784098b6d0eacc5610bbc811c",
+        "originalHtmlBytes": 9873,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-33",
+        "tag": "table",
+        "visualizationId": "AUDIT-V11",
+        "normalizedTextSha256": "d753f1dfb5a443b417f290ce5fcf6f7350309c6b111883f30f2071daecf51b95",
+        "originalHtmlBytes": 4782,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-34",
+        "tag": "table",
+        "visualizationId": "AUDIT-V03",
+        "normalizedTextSha256": "dc00b4f552e838aa14c2d4792b96787608d24e3c49e7b41f9d0020380002539e",
+        "originalHtmlBytes": 808,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-35",
+        "tag": "table",
+        "visualizationId": "META-V01",
+        "normalizedTextSha256": "09112a4444aee37eaf4dbe5d62786996d3b82f548973993cea236610096152fb",
+        "originalHtmlBytes": 1465,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-36",
+        "tag": "table",
+        "visualizationId": "META-V02",
+        "normalizedTextSha256": "1e1970bf361d3cd5c9c0bf26c88855830f8e6adf8a15ca9184a8366e2c6598ac",
+        "originalHtmlBytes": 2120,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-37",
+        "tag": "table",
+        "visualizationId": "META-V03",
+        "normalizedTextSha256": "97e42c7f3d1a8db38a94afe3a93c1ba9cb59208ab13841187caea31a8762276f",
+        "originalHtmlBytes": 3021,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-38",
+        "tag": "table",
+        "visualizationId": "META-V04",
+        "normalizedTextSha256": "dfc5d3f62808d01aeb4c523e75e5b285e3312f4a7aa128e24b689e142f0fe81c",
+        "originalHtmlBytes": 6461,
+        "wrapped": false
+      },
+      {
+        "id": "TABLE-39",
+        "tag": "table",
+        "visualizationId": "META-V04",
+        "normalizedTextSha256": "672c0e0b86c96d2c3ddfbd3a4407a3f9a1adca65c1ceb9412ee76bc281b34808",
+        "originalHtmlBytes": 823,
+        "wrapped": false
+      }
+    ],
+    "preformattedBlocks": [
+      {
+        "id": "PRE-01",
+        "tag": "pre",
+        "visualizationId": "CASE-V06",
+        "normalizedTextSha256": "2292972663fe6ae2cadbc02e8fdf8b97b07dea8cb5ac09de06ed6aff400ae1a1",
+        "originalHtmlBytes": 722,
+        "wrapped": false
+      },
+      {
+        "id": "PRE-02",
+        "tag": "pre",
+        "visualizationId": "KING-V03",
+        "normalizedTextSha256": "b03469f57f3f133491effc01d71e84a921d7aa3d52acd05b1a072d0e41717bb7",
+        "originalHtmlBytes": 198,
+        "wrapped": false
+      },
+      {
+        "id": "PRE-03",
+        "tag": "pre",
+        "visualizationId": "SRC-V03",
+        "normalizedTextSha256": "9e3057bc4ac25c654cc396b29de642e2fd13751e36261d1297845bc88781cdb7",
+        "originalHtmlBytes": 10940,
+        "wrapped": false
+      },
+      {
+        "id": "PRE-04",
+        "tag": "pre",
+        "visualizationId": "SRC-V04",
+        "normalizedTextSha256": "1abc8de3497e9de7aaf7c7a36a42ca3a83d5e24a703e3fbaafcc87bfa91b2b10",
+        "originalHtmlBytes": 467,
+        "wrapped": false
+      },
+      {
+        "id": "PRE-05",
+        "tag": "pre",
+        "visualizationId": "KING-V04",
+        "normalizedTextSha256": "9ff4a62b7725c97b9d25d3376382e5cbf843bc7cbcbb514b08229147cac9484e",
+        "originalHtmlBytes": 253,
+        "wrapped": false
+      },
+      {
+        "id": "PRE-06",
+        "tag": "pre",
+        "visualizationId": "KING-V06",
+        "normalizedTextSha256": "50a0d95c6013c366b06a96c74ea17268806b7f0806ad741a1d6e6a2140576613",
+        "originalHtmlBytes": 221,
+        "wrapped": false
+      },
+      {
+        "id": "PRE-07",
+        "tag": "pre",
+        "visualizationId": "KING-V07",
+        "normalizedTextSha256": "abeb62e76b193b42d8b4c9535e0f0025ff46d6e01860f6d485c0dcc0d8e1f752",
+        "originalHtmlBytes": 195,
+        "wrapped": false
+      },
+      {
+        "id": "PRE-08",
+        "tag": "pre",
+        "visualizationId": "KING-V08",
+        "normalizedTextSha256": "7bbd8e7b4c8066dbbe13f3dd28717bcc0c73c7218c6ec6cb1bfcafb16445ef1c",
+        "originalHtmlBytes": 316,
+        "wrapped": false
+      },
+      {
+        "id": "PRE-09",
+        "tag": "pre",
+        "visualizationId": "KING-V18",
+        "normalizedTextSha256": "c38f8e8231181406aeda886fa4f455c3453fdb5d21a470efbf213d5cc3c4f681",
+        "originalHtmlBytes": 230,
+        "wrapped": false
+      },
+      {
+        "id": "PRE-10",
+        "tag": "pre",
+        "visualizationId": "KING-V21",
+        "normalizedTextSha256": "c3ca5c69b1514e2e555707bb7d98c9a7fa00d68387eb796f077aee56fd367a68",
+        "originalHtmlBytes": 171,
+        "wrapped": false
+      },
+      {
+        "id": "PRE-11",
+        "tag": "pre",
+        "visualizationId": "KING-V24",
+        "normalizedTextSha256": "69bdc11452470fc0d6375536632e172c5e97d0b118830f0593f4686e1b592e92",
+        "originalHtmlBytes": 183,
+        "wrapped": false
+      },
+      {
+        "id": "PRE-12",
+        "tag": "pre",
+        "visualizationId": "PLAT-V02",
+        "normalizedTextSha256": "54b9303dd30104aa2a54d5b5090b8577f5bce9d6e96dc90c4105be8e3ed72067",
+        "originalHtmlBytes": 767,
+        "wrapped": false
+      },
+      {
+        "id": "PRE-13",
+        "tag": "pre",
+        "visualizationId": "PLAT-V01",
+        "normalizedTextSha256": "242d8fe6973256dc697b1f043f03484ccb0dabaa875454ba0ac4f0c22923eacd",
+        "originalHtmlBytes": 252,
+        "wrapped": false
+      },
+      {
+        "id": "PRE-14",
+        "tag": "pre",
+        "visualizationId": "PLAT-V07",
+        "normalizedTextSha256": "96609c8ee51569a2527ae828836295895782fc7730434cb98282406b05b62510",
+        "originalHtmlBytes": 255,
+        "wrapped": false
+      },
+      {
+        "id": "PRE-15",
+        "tag": "pre",
+        "visualizationId": "RUN-V05",
+        "normalizedTextSha256": "4e83a29a05e1cb2762ae9fdccb5586d61837cdb9cb20346b6b8697df106d76fc",
+        "originalHtmlBytes": 3415,
+        "wrapped": false
+      },
+      {
+        "id": "PRE-16",
+        "tag": "pre",
+        "visualizationId": "RUN-V05",
+        "normalizedTextSha256": "eb9c3126a902abc3507f9ce2672165404c1ad2c1f2994bce167b25dc4319dc7c",
+        "originalHtmlBytes": 3522,
+        "wrapped": false
+      },
+      {
+        "id": "PRE-17",
+        "tag": "pre",
+        "visualizationId": "RUN-V07",
+        "normalizedTextSha256": "92d8c5f3630560ed5d32339e6c9ea20d7846bf8101a429c9cc2e30500e363ef7",
+        "originalHtmlBytes": 244,
+        "wrapped": false
+      },
+      {
+        "id": "PRE-18",
+        "tag": "pre",
+        "visualizationId": "DBG-V02",
+        "normalizedTextSha256": "1757f6c4dbd7403234f3d46ec69ad4e5ba23a843ced02f46c630148149516726",
+        "originalHtmlBytes": 934,
+        "wrapped": false
+      },
+      {
+        "id": "PRE-19",
+        "tag": "pre",
+        "visualizationId": "DBG-V03",
+        "normalizedTextSha256": "7b95a1a5b8af0a2281de6815e16f0ec5657a2fc0cad74cce3093e486b2403f39",
+        "originalHtmlBytes": 1338,
+        "wrapped": false
+      },
+      {
+        "id": "PRE-20",
+        "tag": "pre",
+        "visualizationId": "DBG-V04",
+        "normalizedTextSha256": "40352a68d10eea8f3c3073dce0bd87e6162d52c25e1b9e9975401c26d78e592c",
+        "originalHtmlBytes": 991,
+        "wrapped": false
+      },
+      {
+        "id": "PRE-21",
+        "tag": "pre",
+        "visualizationId": "QA-V03",
+        "normalizedTextSha256": "a6a79bc8b7383234d0873ce96e1543af69f32bf00a7ba781e9ecbd764c996a0d",
+        "originalHtmlBytes": 687,
+        "wrapped": false
+      },
+      {
+        "id": "PRE-22",
+        "tag": "pre",
+        "visualizationId": "AUDIT-V06",
+        "normalizedTextSha256": "98bc9720ac47615acbb52d91373d9153ea72cd33194313dead9f3d46c60e04ff",
+        "originalHtmlBytes": 1890,
+        "wrapped": false
+      },
+      {
+        "id": "PRE-23",
+        "tag": "pre",
+        "visualizationId": "META-V04",
+        "normalizedTextSha256": "00f132bd5e79b420203f2c5c3c18de88c188c507fa6649e9a004f35f70a501f3",
+        "originalHtmlBytes": 1562,
+        "wrapped": false
+      },
+      {
+        "id": "PRE-24",
+        "tag": "pre",
+        "visualizationId": "AUDIT-V12",
+        "normalizedTextSha256": "fe71fce9d4b782c7b90248a3a83d16b6429325a0d19cf0b0e0fc3080cf40cae1",
+        "originalHtmlBytes": 1976,
+        "wrapped": false
+      },
+      {
+        "id": "PRE-25",
+        "tag": "pre",
+        "visualizationId": "SRC-V04",
+        "normalizedTextSha256": "e9df0f7caa5b0f5173919d1416f9bfa727b049f4f5b92df787ed82395d45e387",
+        "originalHtmlBytes": 588,
+        "wrapped": false
+      }
+    ],
+    "screenshots": {
+      "files": 43,
+      "uniqueContent": 42,
+      "primaryVisualizations": [
+        "CASE-V01",
+        "CASE-V04",
+        "DBG-V05",
+        "QA-V06",
+        "QA-V07"
+      ],
+      "allFrames": [
+        {
+          "ordinal": 1,
+          "path": "assets/king/screenshots/screenshot_subagent-agent-1c86cd96_1786214519805.png",
+          "sourcePath": "screenshots/screenshot_subagent-agent-1c86cd96_1786214519805.png",
+          "bytes": 622242,
+          "sha256": "9ace684e4575e292402a35cde95a5a19733d7b43f68a583366189dbfd3a418ae",
+          "timestampFromFilename": "2026-08-08T18:41:59.805Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_subagent-agent-1c86cd96_1786214519805.png"
+        },
+        {
+          "ordinal": 2,
+          "path": "assets/king/screenshots/screenshot_b8f86099-452d-4ba6-89c2-c3fee8f4b422_1786214784060.png",
+          "sourcePath": "screenshots/screenshot_b8f86099-452d-4ba6-89c2-c3fee8f4b422_1786214784060.png",
+          "bytes": 610651,
+          "sha256": "520b128d280df216d37155dadc0fed4c4d1592636f14d5884674a029a2969b5a",
+          "timestampFromFilename": "2026-08-08T18:46:24.060Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_b8f86099-452d-4ba6-89c2-c3fee8f4b422_1786214784060.png"
+        },
+        {
+          "ordinal": 3,
+          "path": "assets/king/screenshots/screenshot_subagent-agent-6b9d1e29_1786222596187.png",
+          "sourcePath": "screenshots/screenshot_subagent-agent-6b9d1e29_1786222596187.png",
+          "bytes": 675782,
+          "sha256": "3e27d35a94264c014947fa4f6e855156b71fad617e4f2f9cc1e0a7e65174939d",
+          "timestampFromFilename": "2026-08-08T20:56:36.187Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_subagent-agent-6b9d1e29_1786222596187.png"
+        },
+        {
+          "ordinal": 4,
+          "path": "assets/king/screenshots/screenshot_subagent-agent-6b9d1e29_1786223136843.png",
+          "sourcePath": "screenshots/screenshot_subagent-agent-6b9d1e29_1786223136843.png",
+          "bytes": 692047,
+          "sha256": "eb77dcc3709f7e405cec1003ec35b56a8d65be610a6dd71c1d74287378739dbb",
+          "timestampFromFilename": "2026-08-08T21:05:36.843Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_subagent-agent-6b9d1e29_1786223136843.png"
+        },
+        {
+          "ordinal": 5,
+          "path": "assets/king/screenshots/screenshot_subagent-agent-596000a2_1786224198927.png",
+          "sourcePath": "screenshots/screenshot_subagent-agent-596000a2_1786224198927.png",
+          "bytes": 461016,
+          "sha256": "d649635e8e30e26de8f7da5acdc4d985e20a5543e53f1cf49ee11a980a08499f",
+          "timestampFromFilename": "2026-08-08T21:23:18.927Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_subagent-agent-596000a2_1786224198927.png"
+        },
+        {
+          "ordinal": 6,
+          "path": "assets/king/screenshots/screenshot_subagent-agent-596000a2_1786224248465.png",
+          "sourcePath": "screenshots/screenshot_subagent-agent-596000a2_1786224248465.png",
+          "bytes": 192937,
+          "sha256": "765f9b0b4cc3b69a16481efdefddaa5d1f00f01aef0e5dc3c0444709c39d2e2c",
+          "timestampFromFilename": "2026-08-08T21:24:08.465Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_subagent-agent-596000a2_1786224248465.png"
+        },
+        {
+          "ordinal": 7,
+          "path": "assets/king/screenshots/screenshot_subagent-agent-596000a2_1786224285049.png",
+          "sourcePath": "screenshots/screenshot_subagent-agent-596000a2_1786224285049.png",
+          "bytes": 232330,
+          "sha256": "86abc79918dc59ddd1f28c966e247e2f9b5963092f19765e7cf2f72f2e6b6bdf",
+          "timestampFromFilename": "2026-08-08T21:24:45.049Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_subagent-agent-596000a2_1786224285049.png"
+        },
+        {
+          "ordinal": 8,
+          "path": "assets/king/screenshots/screenshot_subagent-agent-596000a2_1786224382375.png",
+          "sourcePath": "screenshots/screenshot_subagent-agent-596000a2_1786224382375.png",
+          "bytes": 268090,
+          "sha256": "753a8690085a1551d12475109d6caf2f45ca58b9953297a8f322ef586e0d10b4",
+          "timestampFromFilename": "2026-08-08T21:26:22.375Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_subagent-agent-596000a2_1786224382375.png"
+        },
+        {
+          "ordinal": 9,
+          "path": "assets/king/screenshots/screenshot_subagent-agent-596000a2_1786224523468.png",
+          "sourcePath": "screenshots/screenshot_subagent-agent-596000a2_1786224523468.png",
+          "bytes": 432962,
+          "sha256": "b2043a96274256c2dd15fe040b55d88c83f10a3265cc0de774bcf08508b18004",
+          "timestampFromFilename": "2026-08-08T21:28:43.468Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_subagent-agent-596000a2_1786224523468.png"
+        },
+        {
+          "ordinal": 10,
+          "path": "assets/king/screenshots/screenshot_subagent-agent-596000a2_1786224568019.png",
+          "sourcePath": "screenshots/screenshot_subagent-agent-596000a2_1786224568019.png",
+          "bytes": 566298,
+          "sha256": "97ba226d38aff1576e8e227144acea4cebc88658096b56247597d5d4fdcc61dc",
+          "timestampFromFilename": "2026-08-08T21:29:28.019Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_subagent-agent-596000a2_1786224568019.png"
+        },
+        {
+          "ordinal": 11,
+          "path": "assets/king/screenshots/screenshot_subagent-agent-596000a2_1786224619323.png",
+          "sourcePath": "screenshots/screenshot_subagent-agent-596000a2_1786224619323.png",
+          "bytes": 262109,
+          "sha256": "0bd74cfc99ef234075b17df3a8fadd4debfe76333968e9bda558ec59f814c0c3",
+          "timestampFromFilename": "2026-08-08T21:30:19.323Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_subagent-agent-596000a2_1786224619323.png"
+        },
+        {
+          "ordinal": 12,
+          "path": "assets/king/screenshots/screenshot_subagent-agent-596000a2_1786224657609.png",
+          "sourcePath": "screenshots/screenshot_subagent-agent-596000a2_1786224657609.png",
+          "bytes": 687749,
+          "sha256": "a76c0e9f96206186df4563376c7e6caebc2fad0badd2a7a5f301c9d5e5320585",
+          "timestampFromFilename": "2026-08-08T21:30:57.609Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_subagent-agent-596000a2_1786224657609.png"
+        },
+        {
+          "ordinal": 13,
+          "path": "assets/king/screenshots/screenshot_b8f86099-452d-4ba6-89c2-c3fee8f4b422_1786224926438.png",
+          "sourcePath": "screenshots/screenshot_b8f86099-452d-4ba6-89c2-c3fee8f4b422_1786224926438.png",
+          "bytes": 461017,
+          "sha256": "dd90687c376ed0199d73f89d9f50853a868afc8bde7f9cb9c92ea0d5c379e678",
+          "timestampFromFilename": "2026-08-08T21:35:26.438Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_b8f86099-452d-4ba6-89c2-c3fee8f4b422_1786224926438.png"
+        },
+        {
+          "ordinal": 14,
+          "path": "assets/king/screenshots/screenshot_b8f86099-452d-4ba6-89c2-c3fee8f4b422_1786224971688.png",
+          "sourcePath": "screenshots/screenshot_b8f86099-452d-4ba6-89c2-c3fee8f4b422_1786224971688.png",
+          "bytes": 475925,
+          "sha256": "cdefd9f3ad935f430ae02d11cdebcb39406a60bbbfbb6e99fefbbcdb8fbaafd6",
+          "timestampFromFilename": "2026-08-08T21:36:11.688Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_b8f86099-452d-4ba6-89c2-c3fee8f4b422_1786224971688.png"
+        },
+        {
+          "ordinal": 15,
+          "path": "assets/king/screenshots/screenshot_b8f86099-452d-4ba6-89c2-c3fee8f4b422_1786225061947.png",
+          "sourcePath": "screenshots/screenshot_b8f86099-452d-4ba6-89c2-c3fee8f4b422_1786225061947.png",
+          "bytes": 192858,
+          "sha256": "42a4cfe4fe0f6e71fe76b764a024789e53184f6fae2371276644855928c4ed13",
+          "timestampFromFilename": "2026-08-08T21:37:41.947Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_b8f86099-452d-4ba6-89c2-c3fee8f4b422_1786225061947.png"
+        },
+        {
+          "ordinal": 16,
+          "path": "assets/king/screenshots/screenshot_subagent-agent-392c10e7_1786226388657.png",
+          "sourcePath": "screenshots/screenshot_subagent-agent-392c10e7_1786226388657.png",
+          "bytes": 59568,
+          "sha256": "014ff5c8cabb1f5b01edb0e1ca87e07e2501888a3f5b9606701198d05b080bf6",
+          "timestampFromFilename": "2026-08-08T21:59:48.657Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_subagent-agent-392c10e7_1786226388657.png"
+        },
+        {
+          "ordinal": 17,
+          "path": "assets/king/screenshots/screenshot_subagent-agent-392c10e7_1786226491632.png",
+          "sourcePath": "screenshots/screenshot_subagent-agent-392c10e7_1786226491632.png",
+          "bytes": 574962,
+          "sha256": "e0bc9236eae2fd7b4f1e1d088ce9e5969b87535514b8c2c4ccefbdaaeb2d32db",
+          "timestampFromFilename": "2026-08-08T22:01:31.632Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_subagent-agent-392c10e7_1786226491632.png"
+        },
+        {
+          "ordinal": 18,
+          "path": "assets/king/screenshots/screenshot_subagent-agent-392c10e7_1786226526581.png",
+          "sourcePath": "screenshots/screenshot_subagent-agent-392c10e7_1786226526581.png",
+          "bytes": 217304,
+          "sha256": "9e382edbde32007f13eef8bdfda6e6cd11fa93edd13d110f9a93faa6395e9d89",
+          "timestampFromFilename": "2026-08-08T22:02:06.581Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_subagent-agent-392c10e7_1786226526581.png"
+        },
+        {
+          "ordinal": 19,
+          "path": "assets/king/screenshots/screenshot_subagent-agent-392c10e7_1786226570166.png",
+          "sourcePath": "screenshots/screenshot_subagent-agent-392c10e7_1786226570166.png",
+          "bytes": 420060,
+          "sha256": "4a0e157288157babc26cc8ab3b3a48ada92a19a3f73ce54a599de4da7980d959",
+          "timestampFromFilename": "2026-08-08T22:02:50.166Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_subagent-agent-392c10e7_1786226570166.png"
+        },
+        {
+          "ordinal": 20,
+          "path": "assets/king/screenshots/screenshot_subagent-agent-392c10e7_1786226660395.png",
+          "sourcePath": "screenshots/screenshot_subagent-agent-392c10e7_1786226660395.png",
+          "bytes": 194239,
+          "sha256": "859177a283460b07937f3f9ebe90c02000d40a1c6d31160d8bbafdb6720a8e90",
+          "timestampFromFilename": "2026-08-08T22:04:20.395Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_subagent-agent-392c10e7_1786226660395.png"
+        },
+        {
+          "ordinal": 21,
+          "path": "assets/king/screenshots/screenshot_subagent-agent-392c10e7_1786226714869.png",
+          "sourcePath": "screenshots/screenshot_subagent-agent-392c10e7_1786226714869.png",
+          "bytes": 247677,
+          "sha256": "588701d8ec23efecdaf655fce8e8e1d9e21d24e761f8dcb6ce9f82849a0607cc",
+          "timestampFromFilename": "2026-08-08T22:05:14.869Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_subagent-agent-392c10e7_1786226714869.png"
+        },
+        {
+          "ordinal": 22,
+          "path": "assets/king/screenshots/screenshot_subagent-agent-392c10e7_1786226855742.png",
+          "sourcePath": "screenshots/screenshot_subagent-agent-392c10e7_1786226855742.png",
+          "bytes": 355847,
+          "sha256": "cfd52ddd282ead74f8b1eebeee5badd171fd30e60da19894fce2e2661d81514f",
+          "timestampFromFilename": "2026-08-08T22:07:35.742Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_subagent-agent-392c10e7_1786226855742.png"
+        },
+        {
+          "ordinal": 23,
+          "path": "assets/king/screenshots/screenshot_b8f86099-452d-4ba6-89c2-c3fee8f4b422_1786226976445.png",
+          "sourcePath": "screenshots/screenshot_b8f86099-452d-4ba6-89c2-c3fee8f4b422_1786226976445.png",
+          "bytes": 572350,
+          "sha256": "a11244f38f0f7c8d8ae4deb4a46421754ee92d13ba0277491151258296cb68f4",
+          "timestampFromFilename": "2026-08-08T22:09:36.445Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_b8f86099-452d-4ba6-89c2-c3fee8f4b422_1786226976445.png"
+        },
+        {
+          "ordinal": 24,
+          "path": "assets/king/screenshots/screenshot_p5b_1786227389921.png",
+          "sourcePath": "screenshots/screenshot_p5b_1786227389921.png",
+          "bytes": 596506,
+          "sha256": "3b96e9f411055c4d810bdafa0dcd60fe659008f1a2ccce389daed394f73a2fa5",
+          "timestampFromFilename": "2026-08-08T22:16:29.921Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_p5b_1786227389921.png"
+        },
+        {
+          "ordinal": 25,
+          "path": "assets/king/screenshots/screenshot_p5b_1786227810671.png",
+          "sourcePath": "screenshots/screenshot_p5b_1786227810671.png",
+          "bytes": 491386,
+          "sha256": "26e6dcbe4e481d30b5ed2278b887e05072a23bd69c53bc02ee1a264d1366824f",
+          "timestampFromFilename": "2026-08-08T22:23:30.671Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_p5b_1786227810671.png"
+        },
+        {
+          "ordinal": 26,
+          "path": "assets/king/screenshots/screenshot_p5b_1786227848467.png",
+          "sourcePath": "screenshots/screenshot_p5b_1786227848467.png",
+          "bytes": 545684,
+          "sha256": "b69746ab3023741a3d6137a5014c5a0e74bbc1f71aa8d39adfadb501fcfdc670",
+          "timestampFromFilename": "2026-08-08T22:24:08.467Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_p5b_1786227848467.png"
+        },
+        {
+          "ordinal": 27,
+          "path": "assets/king/screenshots/screenshot_p5b_1786227926106.png",
+          "sourcePath": "screenshots/screenshot_p5b_1786227926106.png",
+          "bytes": 545027,
+          "sha256": "6d725df1717e270b24d31403808854e5441a1823aba490c18b1b59d45704ea32",
+          "timestampFromFilename": "2026-08-08T22:25:26.106Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_p5b_1786227926106.png"
+        },
+        {
+          "ordinal": 28,
+          "path": "assets/king/screenshots/screenshot_p5b_1786227987623.png",
+          "sourcePath": "screenshots/screenshot_p5b_1786227987623.png",
+          "bytes": 550902,
+          "sha256": "43ceca8b736935bccaca0518116e9a8698dfbb31b81d8837b7dada176ae9e792",
+          "timestampFromFilename": "2026-08-08T22:26:27.623Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_p5b_1786227987623.png"
+        },
+        {
+          "ordinal": 29,
+          "path": "assets/king/screenshots/screenshot_p5b_1786228021255.png",
+          "sourcePath": "screenshots/screenshot_p5b_1786228021255.png",
+          "bytes": 470976,
+          "sha256": "f1aa019c89cae8b97bbd3c20525587aa39f3c58d69ae8836f7d70a822565fb19",
+          "timestampFromFilename": "2026-08-08T22:27:01.255Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_p5b_1786228021255.png"
+        },
+        {
+          "ordinal": 30,
+          "path": "assets/king/screenshots/screenshot_p5b_1786228208808.png",
+          "sourcePath": "screenshots/screenshot_p5b_1786228208808.png",
+          "bytes": 369208,
+          "sha256": "a6fa8cf4f1a94ebaa6eb5b65f9ccd6c94ee88f097ab86f5bfa19742880267836",
+          "timestampFromFilename": "2026-08-08T22:30:08.808Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_p5b_1786228208808.png"
+        },
+        {
+          "ordinal": 31,
+          "path": "assets/king/screenshots/screenshot_p5b_1786228259525.png",
+          "sourcePath": "screenshots/screenshot_p5b_1786228259525.png",
+          "bytes": 471466,
+          "sha256": "0b44431cf03dfbb3c58044bd594c4f553524d03b7c33bb7ce2850f485d27bd1a",
+          "timestampFromFilename": "2026-08-08T22:30:59.525Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_p5b_1786228259525.png"
+        },
+        {
+          "ordinal": 32,
+          "path": "assets/king/screenshots/screenshot_p5b_1786228298367.png",
+          "sourcePath": "screenshots/screenshot_p5b_1786228298367.png",
+          "bytes": 522165,
+          "sha256": "fe1ee965985863c4abdc06118de3684724d650e4f0d05746d9bcc2964a23f07a",
+          "timestampFromFilename": "2026-08-08T22:31:38.367Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_p5b_1786228298367.png"
+        },
+        {
+          "ordinal": 33,
+          "path": "assets/king/screenshots/screenshot_b8f86099-452d-4ba6-89c2-c3fee8f4b422_1786228379180.png",
+          "sourcePath": "screenshots/screenshot_b8f86099-452d-4ba6-89c2-c3fee8f4b422_1786228379180.png",
+          "bytes": 452585,
+          "sha256": "bf7fb809ccebfba622f07c39cb00f3151ca145aa911037ccd6ec1b9ac4c0f504",
+          "timestampFromFilename": "2026-08-08T22:32:59.180Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_b8f86099-452d-4ba6-89c2-c3fee8f4b422_1786228379180.png"
+        },
+        {
+          "ordinal": 34,
+          "path": "assets/king/screenshots/screenshot_qa_1786228500285.png",
+          "sourcePath": "screenshots/screenshot_qa_1786228500285.png",
+          "bytes": 469896,
+          "sha256": "3f317e81814fe3de79a048d23a245ecb3151519863becd1a400e7eb055c60cf6",
+          "timestampFromFilename": "2026-08-08T22:35:00.285Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_qa_1786228500285.png"
+        },
+        {
+          "ordinal": 35,
+          "path": "assets/king/screenshots/screenshot_qa_1786229033812.png",
+          "sourcePath": "screenshots/screenshot_qa_1786229033812.png",
+          "bytes": 421972,
+          "sha256": "b0494d729e3a5f7cf26a678524537ec03dfb5cd32d83befb6dbf23b66a817c1b",
+          "timestampFromFilename": "2026-08-08T22:43:53.812Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_qa_1786229033812.png"
+        },
+        {
+          "ordinal": 36,
+          "path": "assets/king/screenshots/screenshot_qa_1786229287687.png",
+          "sourcePath": "screenshots/screenshot_qa_1786229287687.png",
+          "bytes": 445414,
+          "sha256": "0ad8494dc876a46ffda9d0a23143e874b1af3d2059bcd5485db5330ec43b010d",
+          "timestampFromFilename": "2026-08-08T22:48:07.687Z",
+          "timestampBasis": "FILENAME_METADATA_ONLY",
+          "stage": "screenshot_qa_1786229287687.png"
+        },
+        {
+          "ordinal": 37,
+          "path": "assets/king/screenshots/phase1-map/shot1_spawn_fountain.png",
+          "sourcePath": "screenshots/phase1-map/shot1_spawn_fountain.png",
+          "bytes": 152800,
+          "sha256": "74e5521f1890ece0b9a220fd93a198757693c00b11e5bfe95774918f66aa0351",
+          "timestampFromFilename": null,
+          "timestampBasis": "REPORT_CAPTION_OR_DIRECTORY_STAGE",
+          "stage": "phase1-map"
+        },
+        {
+          "ordinal": 38,
+          "path": "assets/king/screenshots/phase1-map/shot2_walking_lane_tower.png",
+          "sourcePath": "screenshots/phase1-map/shot2_walking_lane_tower.png",
+          "bytes": 634620,
+          "sha256": "b1824471bcf4a26771eceb1db6f5272f95b558721baf7a69f167522c11d2b3f5",
+          "timestampFromFilename": null,
+          "timestampBasis": "REPORT_CAPTION_OR_DIRECTORY_STAGE",
+          "stage": "phase1-map"
+        },
+        {
+          "ordinal": 39,
+          "path": "assets/king/screenshots/phase1-map/shot3_river_pit_brush.png",
+          "sourcePath": "screenshots/phase1-map/shot3_river_pit_brush.png",
+          "bytes": 460303,
+          "sha256": "28ef594d935e3d81543cdfec9743e2cfd07e3f8f8d6de7a302fd16d9de136bd9",
+          "timestampFromFilename": null,
+          "timestampBasis": "REPORT_CAPTION_OR_DIRECTORY_STAGE",
+          "stage": "phase1-map"
+        },
+        {
+          "ordinal": 40,
+          "path": "assets/king/screenshots/phase1-map/shot4_enemy_tower.png",
+          "sourcePath": "screenshots/phase1-map/shot4_enemy_tower.png",
+          "bytes": 683219,
+          "sha256": "12321ef7de758f22b54f9f743fe62605b1a50670062e2bc24c6752317e598b4a",
+          "timestampFromFilename": null,
+          "timestampBasis": "REPORT_CAPTION_OR_DIRECTORY_STAGE",
+          "stage": "phase1-map"
+        },
+        {
+          "ordinal": 41,
+          "path": "assets/king/screenshots/phase1-map/shot5_enemy_base_crystal.png",
+          "sourcePath": "screenshots/phase1-map/shot5_enemy_base_crystal.png",
+          "bytes": 128414,
+          "sha256": "f6e4a5de7193a850fa58736e2132d009c0e674d44810798e04878145a1c71f86",
+          "timestampFromFilename": null,
+          "timestampBasis": "REPORT_CAPTION_OR_DIRECTORY_STAGE",
+          "stage": "phase1-map"
+        },
+        {
+          "ordinal": 42,
+          "path": "assets/king/screenshots/phase1-map/shot6_overview_river_center.png",
+          "sourcePath": "screenshots/phase1-map/shot6_overview_river_center.png",
+          "bytes": 985021,
+          "sha256": "815a9c23b57fd624d56d92b49d6f70825054fafdeafd3a6c660d931e45401ec3",
+          "timestampFromFilename": null,
+          "timestampBasis": "REPORT_CAPTION_OR_DIRECTORY_STAGE",
+          "stage": "phase1-map"
+        },
+        {
+          "ordinal": 43,
+          "path": "assets/king/screenshots/phase2-combat/1_minion_clash.png",
+          "sourcePath": "screenshots/phase2-combat/1_minion_clash.png",
+          "bytes": 622242,
+          "sha256": "9ace684e4575e292402a35cde95a5a19733d7b43f68a583366189dbfd3a418ae",
+          "timestampFromFilename": null,
+          "timestampBasis": "REPORT_CAPTION_OR_DIRECTORY_STAGE",
+          "stage": "phase2-combat"
+        }
+      ]
+    },
+    "videos": {
+      "registered": 5,
+      "previews": 5,
+      "derivedFrames": 20,
+      "visualizations": [
+        "QA-V08",
+        "QA-V09",
+        "QA-V10"
+      ],
+      "storyboardFrames": [
+        {
+          "videoIndex": 1,
+          "frameIndex": 1,
+          "preview": "01-开发过程-4x.mp4",
+          "original": "钉钉录屏_2026-08-09 013111.mp4",
+          "classification": "DEVELOPMENT_WINDOW",
+          "speed": 4,
+          "path": "assets/king/videos/storyboard-frames/01-01.jpg",
+          "previewSeconds": 15.68,
+          "originalApproxSeconds": 62.72,
+          "extractionFraction": 0.15,
+          "sha256": "5f06a23f348fc085e053f128363956f5ece671a6ebc9b536243a0cf37f2d8c6c",
+          "sizeBytes": 14889,
+          "width": 640,
+          "height": 360
+        },
+        {
+          "videoIndex": 1,
+          "frameIndex": 2,
+          "preview": "01-开发过程-4x.mp4",
+          "original": "钉钉录屏_2026-08-09 013111.mp4",
+          "classification": "DEVELOPMENT_WINDOW",
+          "speed": 4,
+          "path": "assets/king/videos/storyboard-frames/01-02.jpg",
+          "previewSeconds": 39.723,
+          "originalApproxSeconds": 158.892,
+          "extractionFraction": 0.38,
+          "sha256": "cebb36ca468989684cc59775c8a2c6b309a734c89182b647dbb959f3f30b20b2",
+          "sizeBytes": 29290,
+          "width": 640,
+          "height": 360
+        },
+        {
+          "videoIndex": 1,
+          "frameIndex": 3,
+          "preview": "01-开发过程-4x.mp4",
+          "original": "钉钉录屏_2026-08-09 013111.mp4",
+          "classification": "DEVELOPMENT_WINDOW",
+          "speed": 4,
+          "path": "assets/king/videos/storyboard-frames/01-03.jpg",
+          "previewSeconds": 64.81,
+          "originalApproxSeconds": 259.24,
+          "extractionFraction": 0.62,
+          "sha256": "10c6d0c38be9080fdac6597221c4a37f61334f0dd3e6c9312532c0eae47ff4cb",
+          "sizeBytes": 27009,
+          "width": 640,
+          "height": 360
+        },
+        {
+          "videoIndex": 1,
+          "frameIndex": 4,
+          "preview": "01-开发过程-4x.mp4",
+          "original": "钉钉录屏_2026-08-09 013111.mp4",
+          "classification": "DEVELOPMENT_WINDOW",
+          "speed": 4,
+          "path": "assets/king/videos/storyboard-frames/01-04.jpg",
+          "previewSeconds": 88.853,
+          "originalApproxSeconds": 355.412,
+          "extractionFraction": 0.85,
+          "sha256": "7c858b35bd9a748b3460b155f12cf485587e66814f14e5bf6dba730e93b90988",
+          "sizeBytes": 27401,
+          "width": 640,
+          "height": 360
+        },
+        {
+          "videoIndex": 2,
+          "frameIndex": 1,
+          "preview": "02-玩法开发-2x.mp4",
+          "original": "钉钉录屏_2026-08-09 054310.mp4",
+          "classification": "DEVELOPMENT_WINDOW",
+          "speed": 2,
+          "path": "assets/king/videos/storyboard-frames/02-01.jpg",
+          "previewSeconds": 20.945,
+          "originalApproxSeconds": 41.89,
+          "extractionFraction": 0.15,
+          "sha256": "723ab8ef78a9ba3f3d8d1543b71ad3bfb3e101470f32678c5d05c880c3e1dea7",
+          "sizeBytes": 28193,
+          "width": 640,
+          "height": 360
+        },
+        {
+          "videoIndex": 2,
+          "frameIndex": 2,
+          "preview": "02-玩法开发-2x.mp4",
+          "original": "钉钉录屏_2026-08-09 054310.mp4",
+          "classification": "DEVELOPMENT_WINDOW",
+          "speed": 2,
+          "path": "assets/king/videos/storyboard-frames/02-02.jpg",
+          "previewSeconds": 53.061,
+          "originalApproxSeconds": 106.122,
+          "extractionFraction": 0.38,
+          "sha256": "9980aa1604b12ee8e13fa86b9eb0c7448b9a12c112f37986ba7112475843c1e7",
+          "sizeBytes": 28084,
+          "width": 640,
+          "height": 360
+        },
+        {
+          "videoIndex": 2,
+          "frameIndex": 3,
+          "preview": "02-玩法开发-2x.mp4",
+          "original": "钉钉录屏_2026-08-09 054310.mp4",
+          "classification": "DEVELOPMENT_WINDOW",
+          "speed": 2,
+          "path": "assets/king/videos/storyboard-frames/02-03.jpg",
+          "previewSeconds": 86.572,
+          "originalApproxSeconds": 173.144,
+          "extractionFraction": 0.62,
+          "sha256": "b127df3c413813a800cc5c440e373d3d42ea3e6d1c3bce30c4431d52c72e2614",
+          "sizeBytes": 30569,
+          "width": 640,
+          "height": 360
+        },
+        {
+          "videoIndex": 2,
+          "frameIndex": 4,
+          "preview": "02-玩法开发-2x.mp4",
+          "original": "钉钉录屏_2026-08-09 054310.mp4",
+          "classification": "DEVELOPMENT_WINDOW",
+          "speed": 2,
+          "path": "assets/king/videos/storyboard-frames/02-04.jpg",
+          "previewSeconds": 118.688,
+          "originalApproxSeconds": 237.376,
+          "extractionFraction": 0.85,
+          "sha256": "d1eef1b00650fd0eac73e14837c53b7cdd46b420351cc02c2fb9ed7f0f2bc567",
+          "sizeBytes": 30418,
+          "width": 640,
+          "height": 360
+        },
+        {
+          "videoIndex": 3,
+          "frameIndex": 1,
+          "preview": "03-视觉修复-1x.mp4",
+          "original": "钉钉录屏_2026-08-09 060909.mp4",
+          "classification": "DEVELOPMENT_WINDOW",
+          "speed": 1,
+          "path": "assets/king/videos/storyboard-frames/03-01.jpg",
+          "previewSeconds": 17.985,
+          "originalApproxSeconds": 17.985,
+          "extractionFraction": 0.15,
+          "sha256": "792a97fc1344180c6afad56ec79967a6614001f606ea9c3da2be66560f0628c8",
+          "sizeBytes": 25717,
+          "width": 640,
+          "height": 360
+        },
+        {
+          "videoIndex": 3,
+          "frameIndex": 2,
+          "preview": "03-视觉修复-1x.mp4",
+          "original": "钉钉录屏_2026-08-09 060909.mp4",
+          "classification": "DEVELOPMENT_WINDOW",
+          "speed": 1,
+          "path": "assets/king/videos/storyboard-frames/03-02.jpg",
+          "previewSeconds": 45.562,
+          "originalApproxSeconds": 45.562,
+          "extractionFraction": 0.38,
+          "sha256": "4f873ba573f368e4abfc9741f1d3cd59d6810bf5f7891fcf688db7ff8ff51eb0",
+          "sizeBytes": 15143,
+          "width": 640,
+          "height": 360
+        },
+        {
+          "videoIndex": 3,
+          "frameIndex": 3,
+          "preview": "03-视觉修复-1x.mp4",
+          "original": "钉钉录屏_2026-08-09 060909.mp4",
+          "classification": "DEVELOPMENT_WINDOW",
+          "speed": 1,
+          "path": "assets/king/videos/storyboard-frames/03-03.jpg",
+          "previewSeconds": 74.338,
+          "originalApproxSeconds": 74.338,
+          "extractionFraction": 0.62,
+          "sha256": "3f79dc9758a80307d3fc149f82a539700f7631462b43978e27f3e7ad7acd66f9",
+          "sizeBytes": 29383,
+          "width": 640,
+          "height": 360
+        },
+        {
+          "videoIndex": 3,
+          "frameIndex": 4,
+          "preview": "03-视觉修复-1x.mp4",
+          "original": "钉钉录屏_2026-08-09 060909.mp4",
+          "classification": "DEVELOPMENT_WINDOW",
+          "speed": 1,
+          "path": "assets/king/videos/storyboard-frames/03-04.jpg",
+          "previewSeconds": 101.915,
+          "originalApproxSeconds": 101.915,
+          "extractionFraction": 0.85,
+          "sha256": "900273c5ba204ea910b5e291028da51863415eb780fae2e7c19e070ce4a20373",
+          "sizeBytes": 29196,
+          "width": 640,
+          "height": 360
+        },
+        {
+          "videoIndex": 4,
+          "frameIndex": 1,
+          "preview": "04-最终运行-4x.mp4",
+          "original": "钉钉录屏_2026-08-09 092155（最终运行版）.mp4",
+          "classification": "OUTSIDE_DEVELOPMENT_WINDOW_FINAL_RUN_SUPPLEMENT",
+          "speed": 4,
+          "path": "assets/king/videos/storyboard-frames/04-01.jpg",
+          "previewSeconds": 22.825,
+          "originalApproxSeconds": 91.3,
+          "extractionFraction": 0.15,
+          "sha256": "4ef215c72ecc43cd8849f821d456d18e43f73984115acdbcd936fbab2314aa27",
+          "sizeBytes": 25062,
+          "width": 640,
+          "height": 360
+        },
+        {
+          "videoIndex": 4,
+          "frameIndex": 2,
+          "preview": "04-最终运行-4x.mp4",
+          "original": "钉钉录屏_2026-08-09 092155（最终运行版）.mp4",
+          "classification": "OUTSIDE_DEVELOPMENT_WINDOW_FINAL_RUN_SUPPLEMENT",
+          "speed": 4,
+          "path": "assets/king/videos/storyboard-frames/04-02.jpg",
+          "previewSeconds": 57.823,
+          "originalApproxSeconds": 231.292,
+          "extractionFraction": 0.38,
+          "sha256": "96b0486b73a41dec53d0ea6c6a541eb7312157d3bbeba8476d009555c1033c26",
+          "sizeBytes": 27580,
+          "width": 640,
+          "height": 360
+        },
+        {
+          "videoIndex": 4,
+          "frameIndex": 3,
+          "preview": "04-最终运行-4x.mp4",
+          "original": "钉钉录屏_2026-08-09 092155（最终运行版）.mp4",
+          "classification": "OUTSIDE_DEVELOPMENT_WINDOW_FINAL_RUN_SUPPLEMENT",
+          "speed": 4,
+          "path": "assets/king/videos/storyboard-frames/04-03.jpg",
+          "previewSeconds": 94.344,
+          "originalApproxSeconds": 377.376,
+          "extractionFraction": 0.62,
+          "sha256": "6bd6f7aec11920adeeb833ea43beda9728b68c385f70f77ff31753c909d0c547",
+          "sizeBytes": 37842,
+          "width": 640,
+          "height": 360
+        },
+        {
+          "videoIndex": 4,
+          "frameIndex": 4,
+          "preview": "04-最终运行-4x.mp4",
+          "original": "钉钉录屏_2026-08-09 092155（最终运行版）.mp4",
+          "classification": "OUTSIDE_DEVELOPMENT_WINDOW_FINAL_RUN_SUPPLEMENT",
+          "speed": 4,
+          "path": "assets/king/videos/storyboard-frames/04-04.jpg",
+          "previewSeconds": 129.342,
+          "originalApproxSeconds": 517.368,
+          "extractionFraction": 0.85,
+          "sha256": "1ecb143bea61a86470a444b0be00d4875d31e4ed55f99471efaf18843d7cf3c2",
+          "sizeBytes": 28684,
+          "width": 640,
+          "height": 360
+        },
+        {
+          "videoIndex": 5,
+          "frameIndex": 1,
+          "preview": "05-阿里云在线试玩-2x.mp4",
+          "original": "阿里云在线试玩录屏.mp4",
+          "classification": "OUTSIDE_DEVELOPMENT_WINDOW_CLOUD_DEPLOYMENT_SUPPLEMENT",
+          "speed": 2,
+          "path": "assets/king/videos/storyboard-frames/05-01.jpg",
+          "previewSeconds": 15.535,
+          "originalApproxSeconds": 31.07,
+          "extractionFraction": 0.15,
+          "sha256": "eb679c49e6db3aa760fb3393d04cde8517215d99ae63cef43dd6c8b7fd04aa5c",
+          "sizeBytes": 32035,
+          "width": 640,
+          "height": 360
+        },
+        {
+          "videoIndex": 5,
+          "frameIndex": 2,
+          "preview": "05-阿里云在线试玩-2x.mp4",
+          "original": "阿里云在线试玩录屏.mp4",
+          "classification": "OUTSIDE_DEVELOPMENT_WINDOW_CLOUD_DEPLOYMENT_SUPPLEMENT",
+          "speed": 2,
+          "path": "assets/king/videos/storyboard-frames/05-02.jpg",
+          "previewSeconds": 39.355,
+          "originalApproxSeconds": 78.71,
+          "extractionFraction": 0.38,
+          "sha256": "de87546f81516b8c79813ecb329f60fba65f5477cb5b365a617ed5d159fe1a21",
+          "sizeBytes": 31100,
+          "width": 640,
+          "height": 360
+        },
+        {
+          "videoIndex": 5,
+          "frameIndex": 3,
+          "preview": "05-阿里云在线试玩-2x.mp4",
+          "original": "阿里云在线试玩录屏.mp4",
+          "classification": "OUTSIDE_DEVELOPMENT_WINDOW_CLOUD_DEPLOYMENT_SUPPLEMENT",
+          "speed": 2,
+          "path": "assets/king/videos/storyboard-frames/05-03.jpg",
+          "previewSeconds": 64.212,
+          "originalApproxSeconds": 128.424,
+          "extractionFraction": 0.62,
+          "sha256": "af737df97ad69a2922dfe7b1aced858a5924d849f282e7e5fdf99f896208f0d1",
+          "sizeBytes": 27619,
+          "width": 640,
+          "height": 360
+        },
+        {
+          "videoIndex": 5,
+          "frameIndex": 4,
+          "preview": "05-阿里云在线试玩-2x.mp4",
+          "original": "阿里云在线试玩录屏.mp4",
+          "classification": "OUTSIDE_DEVELOPMENT_WINDOW_CLOUD_DEPLOYMENT_SUPPLEMENT",
+          "speed": 2,
+          "path": "assets/king/videos/storyboard-frames/05-04.jpg",
+          "previewSeconds": 88.032,
+          "originalApproxSeconds": 176.064,
+          "extractionFraction": 0.85,
+          "sha256": "d1adb50a550b3f66a4b34b07db1d7b7821ede47f93108335489b02dfec48a79e",
+          "sizeBytes": 30263,
+          "width": 640,
+          "height": 360
+        }
+      ]
+    },
+    "evidenceLedger": {
+      "first": "E01",
+      "last": "E42",
+      "visualization": "AUDIT-V10"
+    }
+  },
+  "visualizationCoverage": {
+    "reportVersion": "v15",
+    "visualDesign": {
+      "system": "v14-layout-contract-1",
+      "typography": {
+        "sans": "system",
+        "mono": "system",
+        "minimumVisibleLabel": 12,
+        "cardTitle": 16,
+        "body": 14,
+        "code": 13,
+        "question": 27
+      },
+      "contrast": {
+        "textOnRaised": 14.922,
+        "codeOnRaised": 7.93,
+        "lineOnPanel": 3.132
+      },
+      "undefinedSvgClasses": [],
+      "unstyledSvgText": 0,
+      "caseV04": {
+        "codeStrips": 7,
+        "targets": 7,
+        "convergenceDomains": 4,
+        "imageSize": [
+          384,
+          324
+        ]
+      },
+      "layoutAudit": {
+        "figures": 91,
+        "foregroundOverflowFigures": 0,
+        "textCollisionFigures": 0,
+        "excessiveBottomBlankFigures": 0,
+        "allMeasured": true
+      }
+    },
+    "total": 91,
+    "retained": 29,
+    "added": 62,
+    "independentRenderers": 62,
+    "medianSvgBytes": 10475,
+    "medianTextLabels": 42,
+    "manifestSchemaVersion": 5,
+    "manifestSha256": "503e4fde13d0163fc2ff8848bdf7b3d41526c7f8721f618b8c0e414c0fe4014a",
+    "editorial": {
+      "visualGrammars": [
+        "magazine-opening",
+        "canyon-blueprint",
+        "runtime-cutaway",
+        "run-timeline",
+        "incident-redline",
+        "qa-contact-sheet",
+        "forensic-ledger",
+        "editorial-verdict"
+      ],
+      "chapterTheses": [
+        "这次开发不是从代码开始，而是从四个范围选择开始。39.6秒内确定技术、模式、地图与操控，随后才把目标写成16条可验收合同。",
+        "地图、战斗、AI、兵线、建筑、经济、HUD和表现层都要共享同一份实时状态。17个模块与39条本地导入边，只是这张运行图的骨架。",
+        "模型请求只是其中一层。协调循环、工具管线、上下文治理、浏览器反馈与持久化共同把一次回答变成数小时的工程过程。",
+        "一个根Run先后接住10个Worker：只有1次自然完成，6次到达期限，3次到达最大轮次。项目依靠落盘成果和后续复验继续向前。",
+        "小兵堵路、终局僵持、基地贴墙和发光性能问题都曾阻断体验。每次修复都从浏览器状态取证开始，再回到具体代码。",
+        "结构化状态回答“系统在做什么”，截图和录屏回答“玩家看到了什么”。两者同时成立，才能支持可玩原型的结论。",
+        "账单、运行事件、数据库、公开日志、代码、图片和视频分别回答不同问题。报告只在这些证据交叉处下结论。",
+        "结果值得认可，不是因为调用次数多，而是多系统产物、失败后的接续、真实浏览器反馈和可复查材料同时存在。"
+      ],
+      "compactFootnotes": 62,
+      "adjacentAuditLayers": 62,
+      "visibleBatchTemplateEyebrows": 0,
+      "repeatedKpiRail": false
+    },
+    "visualizationData": {
+      "schemaVersion": 2,
+      "sha256": "48519436bb589041be575233c35a2d3b0542fdcd3eafbe415303737fe2515c54",
+      "facts": 72,
+      "codeFiles": 19,
+      "importEdges": 39,
+      "contextPoints": 878,
+      "minuteBuckets": 331,
+      "hourlyBillBuckets": 7,
+      "runs": 11,
+      "evidenceAssets": 114
+    },
+    "svgLayoutAudit": {
+      "schemaVersion": 3,
+      "sha256": "c887853d00808e2140930084a3eda21f7d10728867ad8b08ca5dd15ac4ec21b8",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "thresholds": {
+        "foregroundOverflowSvgUnits": 1,
+        "textIntersectionOfSmallerBoxRatio": 0.08,
+        "standardBottomBlankRatio": 0.12,
+        "complex1400BottomBlankRatio": 0.15
+      },
+      "summary": {
+        "figures": 91,
+        "foregroundOverflowFigures": 0,
+        "textCollisionFigures": 0,
+        "excessiveBottomBlankFigures": 0,
+        "allMeasured": true
+      }
+    }
+  },
+  "videoDerivedFrames": {
+    "videos": 5,
+    "frames": 20,
+    "classification": "DERIVED_VIDEO_STORYBOARD_FRAMES_NOT_INDEPENDENT_CAPTURE_EVIDENCE",
+    "items": [
+      {
+        "video": "钉钉录屏_2026-08-09 013111.mp4",
+        "classification": "DEVELOPMENT_WINDOW",
+        "path": "videos/storyboard-frames/01-01.jpg",
+        "previewSeconds": 15.68,
+        "originalApproxSeconds": 62.72,
+        "extractionFraction": 0.15,
+        "sha256": "5f06a23f348fc085e053f128363956f5ece671a6ebc9b536243a0cf37f2d8c6c",
+        "sizeBytes": 14889,
+        "width": 640,
+        "height": 360
+      },
+      {
+        "video": "钉钉录屏_2026-08-09 013111.mp4",
+        "classification": "DEVELOPMENT_WINDOW",
+        "path": "videos/storyboard-frames/01-02.jpg",
+        "previewSeconds": 39.723,
+        "originalApproxSeconds": 158.892,
+        "extractionFraction": 0.38,
+        "sha256": "cebb36ca468989684cc59775c8a2c6b309a734c89182b647dbb959f3f30b20b2",
+        "sizeBytes": 29290,
+        "width": 640,
+        "height": 360
+      },
+      {
+        "video": "钉钉录屏_2026-08-09 013111.mp4",
+        "classification": "DEVELOPMENT_WINDOW",
+        "path": "videos/storyboard-frames/01-03.jpg",
+        "previewSeconds": 64.81,
+        "originalApproxSeconds": 259.24,
+        "extractionFraction": 0.62,
+        "sha256": "10c6d0c38be9080fdac6597221c4a37f61334f0dd3e6c9312532c0eae47ff4cb",
+        "sizeBytes": 27009,
+        "width": 640,
+        "height": 360
+      },
+      {
+        "video": "钉钉录屏_2026-08-09 013111.mp4",
+        "classification": "DEVELOPMENT_WINDOW",
+        "path": "videos/storyboard-frames/01-04.jpg",
+        "previewSeconds": 88.853,
+        "originalApproxSeconds": 355.412,
+        "extractionFraction": 0.85,
+        "sha256": "7c858b35bd9a748b3460b155f12cf485587e66814f14e5bf6dba730e93b90988",
+        "sizeBytes": 27401,
+        "width": 640,
+        "height": 360
+      },
+      {
+        "video": "钉钉录屏_2026-08-09 054310.mp4",
+        "classification": "DEVELOPMENT_WINDOW",
+        "path": "videos/storyboard-frames/02-01.jpg",
+        "previewSeconds": 20.945,
+        "originalApproxSeconds": 41.89,
+        "extractionFraction": 0.15,
+        "sha256": "723ab8ef78a9ba3f3d8d1543b71ad3bfb3e101470f32678c5d05c880c3e1dea7",
+        "sizeBytes": 28193,
+        "width": 640,
+        "height": 360
+      },
+      {
+        "video": "钉钉录屏_2026-08-09 054310.mp4",
+        "classification": "DEVELOPMENT_WINDOW",
+        "path": "videos/storyboard-frames/02-02.jpg",
+        "previewSeconds": 53.061,
+        "originalApproxSeconds": 106.122,
+        "extractionFraction": 0.38,
+        "sha256": "9980aa1604b12ee8e13fa86b9eb0c7448b9a12c112f37986ba7112475843c1e7",
+        "sizeBytes": 28084,
+        "width": 640,
+        "height": 360
+      },
+      {
+        "video": "钉钉录屏_2026-08-09 054310.mp4",
+        "classification": "DEVELOPMENT_WINDOW",
+        "path": "videos/storyboard-frames/02-03.jpg",
+        "previewSeconds": 86.572,
+        "originalApproxSeconds": 173.144,
+        "extractionFraction": 0.62,
+        "sha256": "b127df3c413813a800cc5c440e373d3d42ea3e6d1c3bce30c4431d52c72e2614",
+        "sizeBytes": 30569,
+        "width": 640,
+        "height": 360
+      },
+      {
+        "video": "钉钉录屏_2026-08-09 054310.mp4",
+        "classification": "DEVELOPMENT_WINDOW",
+        "path": "videos/storyboard-frames/02-04.jpg",
+        "previewSeconds": 118.688,
+        "originalApproxSeconds": 237.376,
+        "extractionFraction": 0.85,
+        "sha256": "d1eef1b00650fd0eac73e14837c53b7cdd46b420351cc02c2fb9ed7f0f2bc567",
+        "sizeBytes": 30418,
+        "width": 640,
+        "height": 360
+      },
+      {
+        "video": "钉钉录屏_2026-08-09 060909.mp4",
+        "classification": "DEVELOPMENT_WINDOW",
+        "path": "videos/storyboard-frames/03-01.jpg",
+        "previewSeconds": 17.985,
+        "originalApproxSeconds": 17.985,
+        "extractionFraction": 0.15,
+        "sha256": "792a97fc1344180c6afad56ec79967a6614001f606ea9c3da2be66560f0628c8",
+        "sizeBytes": 25717,
+        "width": 640,
+        "height": 360
+      },
+      {
+        "video": "钉钉录屏_2026-08-09 060909.mp4",
+        "classification": "DEVELOPMENT_WINDOW",
+        "path": "videos/storyboard-frames/03-02.jpg",
+        "previewSeconds": 45.562,
+        "originalApproxSeconds": 45.562,
+        "extractionFraction": 0.38,
+        "sha256": "4f873ba573f368e4abfc9741f1d3cd59d6810bf5f7891fcf688db7ff8ff51eb0",
+        "sizeBytes": 15143,
+        "width": 640,
+        "height": 360
+      },
+      {
+        "video": "钉钉录屏_2026-08-09 060909.mp4",
+        "classification": "DEVELOPMENT_WINDOW",
+        "path": "videos/storyboard-frames/03-03.jpg",
+        "previewSeconds": 74.338,
+        "originalApproxSeconds": 74.338,
+        "extractionFraction": 0.62,
+        "sha256": "3f79dc9758a80307d3fc149f82a539700f7631462b43978e27f3e7ad7acd66f9",
+        "sizeBytes": 29383,
+        "width": 640,
+        "height": 360
+      },
+      {
+        "video": "钉钉录屏_2026-08-09 060909.mp4",
+        "classification": "DEVELOPMENT_WINDOW",
+        "path": "videos/storyboard-frames/03-04.jpg",
+        "previewSeconds": 101.915,
+        "originalApproxSeconds": 101.915,
+        "extractionFraction": 0.85,
+        "sha256": "900273c5ba204ea910b5e291028da51863415eb780fae2e7c19e070ce4a20373",
+        "sizeBytes": 29196,
+        "width": 640,
+        "height": 360
+      },
+      {
+        "video": "钉钉录屏_2026-08-09 092155（最终运行版）.mp4",
+        "classification": "OUTSIDE_DEVELOPMENT_WINDOW_FINAL_RUN_SUPPLEMENT",
+        "path": "videos/storyboard-frames/04-01.jpg",
+        "previewSeconds": 22.825,
+        "originalApproxSeconds": 91.3,
+        "extractionFraction": 0.15,
+        "sha256": "4ef215c72ecc43cd8849f821d456d18e43f73984115acdbcd936fbab2314aa27",
+        "sizeBytes": 25062,
+        "width": 640,
+        "height": 360
+      },
+      {
+        "video": "钉钉录屏_2026-08-09 092155（最终运行版）.mp4",
+        "classification": "OUTSIDE_DEVELOPMENT_WINDOW_FINAL_RUN_SUPPLEMENT",
+        "path": "videos/storyboard-frames/04-02.jpg",
+        "previewSeconds": 57.823,
+        "originalApproxSeconds": 231.292,
+        "extractionFraction": 0.38,
+        "sha256": "96b0486b73a41dec53d0ea6c6a541eb7312157d3bbeba8476d009555c1033c26",
+        "sizeBytes": 27580,
+        "width": 640,
+        "height": 360
+      },
+      {
+        "video": "钉钉录屏_2026-08-09 092155（最终运行版）.mp4",
+        "classification": "OUTSIDE_DEVELOPMENT_WINDOW_FINAL_RUN_SUPPLEMENT",
+        "path": "videos/storyboard-frames/04-03.jpg",
+        "previewSeconds": 94.344,
+        "originalApproxSeconds": 377.376,
+        "extractionFraction": 0.62,
+        "sha256": "6bd6f7aec11920adeeb833ea43beda9728b68c385f70f77ff31753c909d0c547",
+        "sizeBytes": 37842,
+        "width": 640,
+        "height": 360
+      },
+      {
+        "video": "钉钉录屏_2026-08-09 092155（最终运行版）.mp4",
+        "classification": "OUTSIDE_DEVELOPMENT_WINDOW_FINAL_RUN_SUPPLEMENT",
+        "path": "videos/storyboard-frames/04-04.jpg",
+        "previewSeconds": 129.342,
+        "originalApproxSeconds": 517.368,
+        "extractionFraction": 0.85,
+        "sha256": "1ecb143bea61a86470a444b0be00d4875d31e4ed55f99471efaf18843d7cf3c2",
+        "sizeBytes": 28684,
+        "width": 640,
+        "height": 360
+      },
+      {
+        "video": "阿里云在线试玩录屏.mp4",
+        "classification": "OUTSIDE_DEVELOPMENT_WINDOW_CLOUD_DEPLOYMENT_SUPPLEMENT",
+        "path": "videos/storyboard-frames/05-01.jpg",
+        "previewSeconds": 15.535,
+        "originalApproxSeconds": 31.07,
+        "extractionFraction": 0.15,
+        "sha256": "eb679c49e6db3aa760fb3393d04cde8517215d99ae63cef43dd6c8b7fd04aa5c",
+        "sizeBytes": 32035,
+        "width": 640,
+        "height": 360
+      },
+      {
+        "video": "阿里云在线试玩录屏.mp4",
+        "classification": "OUTSIDE_DEVELOPMENT_WINDOW_CLOUD_DEPLOYMENT_SUPPLEMENT",
+        "path": "videos/storyboard-frames/05-02.jpg",
+        "previewSeconds": 39.355,
+        "originalApproxSeconds": 78.71,
+        "extractionFraction": 0.38,
+        "sha256": "de87546f81516b8c79813ecb329f60fba65f5477cb5b365a617ed5d159fe1a21",
+        "sizeBytes": 31100,
+        "width": 640,
+        "height": 360
+      },
+      {
+        "video": "阿里云在线试玩录屏.mp4",
+        "classification": "OUTSIDE_DEVELOPMENT_WINDOW_CLOUD_DEPLOYMENT_SUPPLEMENT",
+        "path": "videos/storyboard-frames/05-03.jpg",
+        "previewSeconds": 64.212,
+        "originalApproxSeconds": 128.424,
+        "extractionFraction": 0.62,
+        "sha256": "af737df97ad69a2922dfe7b1aced858a5924d849f282e7e5fdf99f896208f0d1",
+        "sizeBytes": 27619,
+        "width": 640,
+        "height": 360
+      },
+      {
+        "video": "阿里云在线试玩录屏.mp4",
+        "classification": "OUTSIDE_DEVELOPMENT_WINDOW_CLOUD_DEPLOYMENT_SUPPLEMENT",
+        "path": "videos/storyboard-frames/05-04.jpg",
+        "previewSeconds": 88.032,
+        "originalApproxSeconds": 176.064,
+        "extractionFraction": 0.85,
+        "sha256": "d1adb50a550b3f66a4b34b07db1d7b7821ede47f93108335489b02dfec48a79e",
+        "sizeBytes": 30263,
+        "width": 640,
+        "height": 360
+      }
+    ]
+  },
+  "evidenceDomainGraph": {
+    "domains": [
+      "code",
+      "application-log",
+      "observability",
+      "security-log",
+      "database",
+      "provider-bill",
+      "screenshots",
+      "videos",
+      "browser-verification"
+    ],
+    "visualizationId": "AUDIT-V09",
+    "trustBoundary": "Most sources remain local and are not mutually independent third-party attestations."
+  },
+  "videos": {
+    "originalsRegistered": 5,
+    "originalsLocallyVerified": 5,
+    "previews": [
+      {
+        "path": "videos/previews/01-开发过程-4x.mp4",
+        "durationSeconds": 104.533333,
+        "sizeBytes": 2199262,
+        "videoCodec": "h264",
+        "width": 960,
+        "height": 540
+      },
+      {
+        "path": "videos/previews/02-玩法开发-2x.mp4",
+        "durationSeconds": 139.633333,
+        "sizeBytes": 5255236,
+        "videoCodec": "h264",
+        "width": 960,
+        "height": 540
+      },
+      {
+        "path": "videos/previews/03-视觉修复-1x.mp4",
+        "durationSeconds": 119.9,
+        "sizeBytes": 1260952,
+        "videoCodec": "h264",
+        "width": 960,
+        "height": 540
+      },
+      {
+        "path": "videos/previews/04-最终运行-4x.mp4",
+        "durationSeconds": 152.166667,
+        "sizeBytes": 7666804,
+        "videoCodec": "h264",
+        "width": 960,
+        "height": 540
+      },
+      {
+        "path": "videos/previews/05-阿里云在线试玩-2x.mp4",
+        "durationSeconds": 103.566667,
+        "sizeBytes": 8048992,
+        "videoCodec": "h264",
+        "width": 960,
+        "height": 540
+      }
+    ]
+  },
+  "html": {
+    "bytes": 1859505,
+    "sha256": "93e4ed8c17b37ce06ece4006175cfed41ab759259f9ec4a44f39c5493cd01e8e",
+    "localReferences": 86,
+    "duplicateIds": []
+  },
+  "secretScan": {
+    "filesScanned": 43,
+    "highConfidenceMatches": 0
+  },
+  "failures": []
+}

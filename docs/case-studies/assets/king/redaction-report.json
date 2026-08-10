@@ -1,0 +1,155 @@
+{
+  "schemaVersion": 1,
+  "caseId": "zhikuncode-king-20260809",
+  "policy": "MINIMAL_REDACTION_PRESERVE_TECHNICAL_TRACE_IDS",
+  "developmentWindow": {
+    "startInclusiveLocal": "2026-08-09 01:30:00.000",
+    "endExclusiveLocal": "2026-08-09 07:01:00.000",
+    "timeZone": "Asia/Shanghai"
+  },
+  "mergeOrder": [
+    "rotated-gzip",
+    "captured-current-log-rotated-gzip"
+  ],
+  "sources": [
+    {
+      "id": "rotated-gzip",
+      "sourcePath": "log/app-2026-08-09-1.log.gz",
+      "compressed": true,
+      "capturedSizeBytes": 549050,
+      "capturedMtimeMs": 1786227569816.712,
+      "capturedSha256": "6afa9714824281fdae194240dd0e337984767b45503a95c5e5fb6b28f0c8453b",
+      "selectedTimestampBlocks": 30948,
+      "selectedPhysicalLines": 30954,
+      "firstTimestamp": "2026-08-09 01:30:01.516",
+      "lastTimestamp": "2026-08-09 06:19:29.725",
+      "selectedSha256": "3c8f065b23f9c0eb5492a0674b0379578ac84032a51d8e3a14ccb83b17649848"
+    },
+    {
+      "id": "captured-current-log-rotated-gzip",
+      "sourcePath": "log/app-2026-08-09-2.log.gz",
+      "compressed": true,
+      "capturedSizeBytes": 380079,
+      "capturedMtimeMs": 1786291493050.245,
+      "capturedSha256": "78aa43fd7353edcfc5f1a0f8cd82f5dd7492cb3ac376cd5438606210fa80d2d3",
+      "selectedTimestampBlocks": 7678,
+      "selectedPhysicalLines": 7687,
+      "firstTimestamp": "2026-08-09 06:19:29.725",
+      "lastTimestamp": "2026-08-09 07:00:41.483",
+      "selectedSha256": "7698f5731b0355aede72959b0062db553bff5f0bef3674d2d907e1bf75d1926c"
+    }
+  ],
+  "merged": {
+    "timestampBlocks": 38626,
+    "physicalLines": 38641,
+    "firstTimestamp": "2026-08-09 01:30:01.516",
+    "lastTimestamp": "2026-08-09 07:00:41.483",
+    "rawMergedSha256": "99a2adaf38ea705c7a95201c310b37fbd8d6d613c3905e44a9b2af6b750c98b4",
+    "identicalCrossSourceBlocks": 0,
+    "sameBoundaryTimestamp": "2026-08-09 06:19:29.725",
+    "boundaryBlockCount": 5,
+    "boundaryBlocksDistinct": true
+  },
+  "redactions": [
+    {
+      "name": "local-user-home",
+      "count": 1356,
+      "replacement": "<USER_HOME>"
+    },
+    {
+      "name": "local-user-name",
+      "count": 0,
+      "replacement": "<LOCAL_USER>"
+    },
+    {
+      "name": "private-key",
+      "count": 0,
+      "replacement": "[REDACTED:private-key#NN]"
+    },
+    {
+      "name": "aliyun-or-aws-access-key",
+      "count": 0,
+      "replacement": "[REDACTED:aliyun-or-aws-access-key#NN]"
+    },
+    {
+      "name": "provider-secret-key",
+      "count": 0,
+      "replacement": "[REDACTED:provider-secret-key#NN]"
+    },
+    {
+      "name": "github-token",
+      "count": 0,
+      "replacement": "[REDACTED:github-token#NN]"
+    },
+    {
+      "name": "slack-token",
+      "count": 0,
+      "replacement": "[REDACTED:slack-token#NN]"
+    },
+    {
+      "name": "jwt",
+      "count": 0,
+      "replacement": "[REDACTED:jwt#NN]"
+    },
+    {
+      "name": "authorization-bearer",
+      "count": 0,
+      "replacement": "[REDACTED:authorization-bearer#NN]"
+    },
+    {
+      "name": "cookie-header",
+      "count": 0,
+      "replacement": "[REDACTED:cookie-header#NN]"
+    },
+    {
+      "name": "named-password",
+      "count": 0,
+      "replacement": "[REDACTED:named-password#NN]"
+    }
+  ],
+  "publicArtifactRedactions": [
+    {
+      "name": "local-user-name",
+      "replacement": "<LOCAL_USER>",
+      "count": 33,
+      "scope": "22 occurrences in four database exports plus 11 deterministic copies in visualization-data.json"
+    }
+  ],
+  "databaseExports": {
+    "paths": [
+      "db/session-row.json",
+      "db/session-messages.json",
+      "db/activities-20260809-0130-0701.json",
+      "db/interaction-requests-20260809-0130-0701.json"
+    ],
+    "localUserNameRule": {
+      "name": "local-user-name",
+      "replacement": "<LOCAL_USER>",
+      "count": 22,
+      "derivedVisualizationCopies": 11
+    }
+  },
+  "preservedIdentifiers": [
+    "sessionId",
+    "runId",
+    "parentRunId",
+    "llmRequestId",
+    "toolUseId",
+    "downstreamRequestId"
+  ],
+  "publicFile": {
+    "path": "logs/app-session-20260809-0130-0701.public.log",
+    "sizeBytes": 13021786,
+    "physicalLines": 38641,
+    "timestampBlocks": 38626,
+    "sha256": "ba3220722af426d9d755b4788894135e4ea0c7b3906c3a4db94066b20a5feabd"
+  },
+  "postScan": {
+    "highConfidenceSecrets": 0,
+    "emailAddresses": 0,
+    "mainlandChinaPhoneNumbers": 0,
+    "authorizationHeaders": 0,
+    "originalHomePaths": 0,
+    "originalLocalUserNames": 0
+  }
+}

@@ -1,0 +1,272 @@
+{
+  "schemaVersion": 1,
+  "classification": "DERIVED_VIDEO_STORYBOARD_FRAMES_NOT_INDEPENDENT_CAPTURE_EVIDENCE",
+  "fixedFractions": [
+    0.15,
+    0.38,
+    0.62,
+    0.85
+  ],
+  "videos": [
+    {
+      "original": "钉钉录屏_2026-08-09 013111.mp4",
+      "originalSha256": "892f7f5dfdb1fffd4ba3ff9fa4f0c40b0585ca05c147cf1c99278b804deb2b13",
+      "preview": "01-开发过程-4x.mp4",
+      "previewSha256": "b25e6373212b4c95d9ef6981479fac3da494e6a9a4b597feca0bb74052a4e11b",
+      "classification": "DEVELOPMENT_WINDOW",
+      "speed": 4,
+      "frameTimeBasis": "DERIVED_FROM_PREVIEW_TIMECODE_ORIGINAL_APPROX_EQUALS_PREVIEW_SECONDS_TIMES_SPEED",
+      "ffmpegCommandTemplate": "ffmpeg -ss <previewSeconds> -i <preview> -frames:v 1 -vf scale=640:360:force_original_aspect_ratio=decrease,pad=640:360:(ow-iw)/2:(oh-ih)/2:black -q:v 3 <target.jpg>",
+      "frames": [
+        {
+          "path": "videos/storyboard-frames/01-01.jpg",
+          "previewSeconds": 15.68,
+          "originalApproxSeconds": 62.72,
+          "extractionFraction": 0.15,
+          "sha256": "5f06a23f348fc085e053f128363956f5ece671a6ebc9b536243a0cf37f2d8c6c",
+          "sizeBytes": 14889,
+          "width": 640,
+          "height": 360
+        },
+        {
+          "path": "videos/storyboard-frames/01-02.jpg",
+          "previewSeconds": 39.723,
+          "originalApproxSeconds": 158.892,
+          "extractionFraction": 0.38,
+          "sha256": "cebb36ca468989684cc59775c8a2c6b309a734c89182b647dbb959f3f30b20b2",
+          "sizeBytes": 29290,
+          "width": 640,
+          "height": 360
+        },
+        {
+          "path": "videos/storyboard-frames/01-03.jpg",
+          "previewSeconds": 64.81,
+          "originalApproxSeconds": 259.24,
+          "extractionFraction": 0.62,
+          "sha256": "10c6d0c38be9080fdac6597221c4a37f61334f0dd3e6c9312532c0eae47ff4cb",
+          "sizeBytes": 27009,
+          "width": 640,
+          "height": 360
+        },
+        {
+          "path": "videos/storyboard-frames/01-04.jpg",
+          "previewSeconds": 88.853,
+          "originalApproxSeconds": 355.412,
+          "extractionFraction": 0.85,
+          "sha256": "7c858b35bd9a748b3460b155f12cf485587e66814f14e5bf6dba730e93b90988",
+          "sizeBytes": 27401,
+          "width": 640,
+          "height": 360
+        }
+      ]
+    },
+    {
+      "original": "钉钉录屏_2026-08-09 054310.mp4",
+      "originalSha256": "832097e80aa3af068f99155ad363e767b2fd87a011f00b2cf873c04358b5139f",
+      "preview": "02-玩法开发-2x.mp4",
+      "previewSha256": "ca16651dba81e3ea05410de9db6ee29a236f8f403146c63a42b1f8b4dfdd27e9",
+      "classification": "DEVELOPMENT_WINDOW",
+      "speed": 2,
+      "frameTimeBasis": "DERIVED_FROM_PREVIEW_TIMECODE_ORIGINAL_APPROX_EQUALS_PREVIEW_SECONDS_TIMES_SPEED",
+      "ffmpegCommandTemplate": "ffmpeg -ss <previewSeconds> -i <preview> -frames:v 1 -vf scale=640:360:force_original_aspect_ratio=decrease,pad=640:360:(ow-iw)/2:(oh-ih)/2:black -q:v 3 <target.jpg>",
+      "frames": [
+        {
+          "path": "videos/storyboard-frames/02-01.jpg",
+          "previewSeconds": 20.945,
+          "originalApproxSeconds": 41.89,
+          "extractionFraction": 0.15,
+          "sha256": "723ab8ef78a9ba3f3d8d1543b71ad3bfb3e101470f32678c5d05c880c3e1dea7",
+          "sizeBytes": 28193,
+          "width": 640,
+          "height": 360
+        },
+        {
+          "path": "videos/storyboard-frames/02-02.jpg",
+          "previewSeconds": 53.061,
+          "originalApproxSeconds": 106.122,
+          "extractionFraction": 0.38,
+          "sha256": "9980aa1604b12ee8e13fa86b9eb0c7448b9a12c112f37986ba7112475843c1e7",
+          "sizeBytes": 28084,
+          "width": 640,
+          "height": 360
+        },
+        {
+          "path": "videos/storyboard-frames/02-03.jpg",
+          "previewSeconds": 86.572,
+          "originalApproxSeconds": 173.144,
+          "extractionFraction": 0.62,
+          "sha256": "b127df3c413813a800cc5c440e373d3d42ea3e6d1c3bce30c4431d52c72e2614",
+          "sizeBytes": 30569,
+          "width": 640,
+          "height": 360
+        },
+        {
+          "path": "videos/storyboard-frames/02-04.jpg",
+          "previewSeconds": 118.688,
+          "originalApproxSeconds": 237.376,
+          "extractionFraction": 0.85,
+          "sha256": "d1eef1b00650fd0eac73e14837c53b7cdd46b420351cc02c2fb9ed7f0f2bc567",
+          "sizeBytes": 30418,
+          "width": 640,
+          "height": 360
+        }
+      ]
+    },
+    {
+      "original": "钉钉录屏_2026-08-09 060909.mp4",
+      "originalSha256": "9c914b654bc4d77f39d6cf21f6fcf99b35e9f032ba37c3e3e51cd0b4560339bb",
+      "preview": "03-视觉修复-1x.mp4",
+      "previewSha256": "06cc772589d47ecbe8c64187bebf824ada199dc5a3e9eb0e16f8e21723caeb8b",
+      "classification": "DEVELOPMENT_WINDOW",
+      "speed": 1,
+      "frameTimeBasis": "DERIVED_FROM_PREVIEW_TIMECODE_ORIGINAL_APPROX_EQUALS_PREVIEW_SECONDS_TIMES_SPEED",
+      "ffmpegCommandTemplate": "ffmpeg -ss <previewSeconds> -i <preview> -frames:v 1 -vf scale=640:360:force_original_aspect_ratio=decrease,pad=640:360:(ow-iw)/2:(oh-ih)/2:black -q:v 3 <target.jpg>",
+      "frames": [
+        {
+          "path": "videos/storyboard-frames/03-01.jpg",
+          "previewSeconds": 17.985,
+          "originalApproxSeconds": 17.985,
+          "extractionFraction": 0.15,
+          "sha256": "792a97fc1344180c6afad56ec79967a6614001f606ea9c3da2be66560f0628c8",
+          "sizeBytes": 25717,
+          "width": 640,
+          "height": 360
+        },
+        {
+          "path": "videos/storyboard-frames/03-02.jpg",
+          "previewSeconds": 45.562,
+          "originalApproxSeconds": 45.562,
+          "extractionFraction": 0.38,
+          "sha256": "4f873ba573f368e4abfc9741f1d3cd59d6810bf5f7891fcf688db7ff8ff51eb0",
+          "sizeBytes": 15143,
+          "width": 640,
+          "height": 360
+        },
+        {
+          "path": "videos/storyboard-frames/03-03.jpg",
+          "previewSeconds": 74.338,
+          "originalApproxSeconds": 74.338,
+          "extractionFraction": 0.62,
+          "sha256": "3f79dc9758a80307d3fc149f82a539700f7631462b43978e27f3e7ad7acd66f9",
+          "sizeBytes": 29383,
+          "width": 640,
+          "height": 360
+        },
+        {
+          "path": "videos/storyboard-frames/03-04.jpg",
+          "previewSeconds": 101.915,
+          "originalApproxSeconds": 101.915,
+          "extractionFraction": 0.85,
+          "sha256": "900273c5ba204ea910b5e291028da51863415eb780fae2e7c19e070ce4a20373",
+          "sizeBytes": 29196,
+          "width": 640,
+          "height": 360
+        }
+      ]
+    },
+    {
+      "original": "钉钉录屏_2026-08-09 092155（最终运行版）.mp4",
+      "originalSha256": "63fa7c8b1d12cee91e1321eb494eaa12071503644f3e066e9bbb5025208d4558",
+      "preview": "04-最终运行-4x.mp4",
+      "previewSha256": "b39746b77e7c0ca245b47c09820f14c8c9c4bc9c8e2435c52363e87ef2874ed2",
+      "classification": "OUTSIDE_DEVELOPMENT_WINDOW_FINAL_RUN_SUPPLEMENT",
+      "speed": 4,
+      "frameTimeBasis": "DERIVED_FROM_PREVIEW_TIMECODE_ORIGINAL_APPROX_EQUALS_PREVIEW_SECONDS_TIMES_SPEED",
+      "ffmpegCommandTemplate": "ffmpeg -ss <previewSeconds> -i <preview> -frames:v 1 -vf scale=640:360:force_original_aspect_ratio=decrease,pad=640:360:(ow-iw)/2:(oh-ih)/2:black -q:v 3 <target.jpg>",
+      "frames": [
+        {
+          "path": "videos/storyboard-frames/04-01.jpg",
+          "previewSeconds": 22.825,
+          "originalApproxSeconds": 91.3,
+          "extractionFraction": 0.15,
+          "sha256": "4ef215c72ecc43cd8849f821d456d18e43f73984115acdbcd936fbab2314aa27",
+          "sizeBytes": 25062,
+          "width": 640,
+          "height": 360
+        },
+        {
+          "path": "videos/storyboard-frames/04-02.jpg",
+          "previewSeconds": 57.823,
+          "originalApproxSeconds": 231.292,
+          "extractionFraction": 0.38,
+          "sha256": "96b0486b73a41dec53d0ea6c6a541eb7312157d3bbeba8476d009555c1033c26",
+          "sizeBytes": 27580,
+          "width": 640,
+          "height": 360
+        },
+        {
+          "path": "videos/storyboard-frames/04-03.jpg",
+          "previewSeconds": 94.344,
+          "originalApproxSeconds": 377.376,
+          "extractionFraction": 0.62,
+          "sha256": "6bd6f7aec11920adeeb833ea43beda9728b68c385f70f77ff31753c909d0c547",
+          "sizeBytes": 37842,
+          "width": 640,
+          "height": 360
+        },
+        {
+          "path": "videos/storyboard-frames/04-04.jpg",
+          "previewSeconds": 129.342,
+          "originalApproxSeconds": 517.368,
+          "extractionFraction": 0.85,
+          "sha256": "1ecb143bea61a86470a444b0be00d4875d31e4ed55f99471efaf18843d7cf3c2",
+          "sizeBytes": 28684,
+          "width": 640,
+          "height": 360
+        }
+      ]
+    },
+    {
+      "original": "阿里云在线试玩录屏.mp4",
+      "originalSha256": "6d5aef9c24005c53f343cd9146f9940367ba1c6c503523dcd4520d881065c388",
+      "preview": "05-阿里云在线试玩-2x.mp4",
+      "previewSha256": "21612bdf0d0923652eef375b274ac9032acc86531e11cd079951f24b85e33e1d",
+      "classification": "OUTSIDE_DEVELOPMENT_WINDOW_CLOUD_DEPLOYMENT_SUPPLEMENT",
+      "speed": 2,
+      "frameTimeBasis": "DERIVED_FROM_PREVIEW_TIMECODE_ORIGINAL_APPROX_EQUALS_PREVIEW_SECONDS_TIMES_SPEED",
+      "ffmpegCommandTemplate": "ffmpeg -ss <previewSeconds> -i <preview> -frames:v 1 -vf scale=640:360:force_original_aspect_ratio=decrease,pad=640:360:(ow-iw)/2:(oh-ih)/2:black -q:v 3 <target.jpg>",
+      "frames": [
+        {
+          "path": "videos/storyboard-frames/05-01.jpg",
+          "previewSeconds": 15.535,
+          "originalApproxSeconds": 31.07,
+          "extractionFraction": 0.15,
+          "sha256": "eb679c49e6db3aa760fb3393d04cde8517215d99ae63cef43dd6c8b7fd04aa5c",
+          "sizeBytes": 32035,
+          "width": 640,
+          "height": 360
+        },
+        {
+          "path": "videos/storyboard-frames/05-02.jpg",
+          "previewSeconds": 39.355,
+          "originalApproxSeconds": 78.71,
+          "extractionFraction": 0.38,
+          "sha256": "de87546f81516b8c79813ecb329f60fba65f5477cb5b365a617ed5d159fe1a21",
+          "sizeBytes": 31100,
+          "width": 640,
+          "height": 360
+        },
+        {
+          "path": "videos/storyboard-frames/05-03.jpg",
+          "previewSeconds": 64.212,
+          "originalApproxSeconds": 128.424,
+          "extractionFraction": 0.62,
+          "sha256": "af737df97ad69a2922dfe7b1aced858a5924d849f282e7e5fdf99f896208f0d1",
+          "sizeBytes": 27619,
+          "width": 640,
+          "height": 360
+        },
+        {
+          "path": "videos/storyboard-frames/05-04.jpg",
+          "previewSeconds": 88.032,
+          "originalApproxSeconds": 176.064,
+          "extractionFraction": 0.85,
+          "sha256": "d1adb50a550b3f66a4b34b07db1d7b7821ede47f93108335489b02dfec48a79e",
+          "sizeBytes": 30263,
+          "width": 640,
+          "height": 360
+        }
+      ]
+    }
+  ]
+}
