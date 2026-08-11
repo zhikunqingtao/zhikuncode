@@ -41,7 +41,10 @@ h4{font-size:15.5px;margin:22px 0 8px;color:var(--blue2)}
 p{margin:10px 0;color:var(--tx2)}
 .lead{font-size:17px;color:var(--tx2);max-width:62em}
 .eyebrow{font:600 12px var(--mono);letter-spacing:.18em;color:var(--gold);margin-top:10px}
-.hero-record{display:flex;justify-content:space-between;font:11px var(--mono);color:var(--mut);letter-spacing:.12em;border-bottom:1px solid var(--line);padding-bottom:12px;flex-wrap:wrap;gap:6px}
+.hero-record{display:flex;justify-content:space-between;align-items:center;font:11px var(--mono);color:var(--mut);letter-spacing:.12em;border-bottom:1px solid var(--line);padding-bottom:12px;flex-wrap:wrap;gap:6px}
+.hero-record-repo{display:inline-flex;align-items:center;gap:7px;padding:2px 9px;border:1px solid var(--line2);border-radius:7px;background:#d3b36a14;color:var(--gold2);font:700 13.5px/1.6 var(--mono);letter-spacing:.02em;vertical-align:middle;-webkit-user-drag:none;word-break:break-all}
+.hero-record-repo svg{flex:none;width:18px;height:18px;transform:translateY(-1px)}
+.hero-record-repo:hover,.hero-record-repo:focus-visible{color:var(--gold);border-color:var(--gold);background:#d3b36a24;text-decoration:underline}
 .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:30px 0 10px}
 .metric{display:block;padding:18px 20px;border:1px solid var(--line);border-radius:12px;background:linear-gradient(180deg,var(--s1),var(--bg2))}
 .metric:hover{text-decoration:none;border-color:var(--line2)}
@@ -330,6 +333,8 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;opa
 .v15-topbar-brand{display:flex;align-items:center;gap:8px;color:var(--v15-white);text-decoration:none;white-space:nowrap}.v15-topbar-brand i{width:12px;height:12px;border:2px solid var(--v15-gold);transform:rotate(45deg)}.v15-topbar-brand span{color:var(--v15-gold);font:700 11px var(--mono);letter-spacing:.14em}.v15-topbar-brand b{font-size:12px}
 .v15-topbar nav{display:flex;gap:3px;overflow:hidden;flex:1}.v15-topbar nav a{padding:8px 9px;border-radius:4px;color:#aebccc;text-decoration:none;font-size:12px;white-space:nowrap}.v15-topbar nav a:hover,.v15-topbar nav a:focus-visible{background:#1a2c43;color:#fff;outline:none}
 .v15-topbar button,#motionToggle{border:1px solid #526984;background:#101e30;color:#d7e0eb;padding:8px 11px;border-radius:4px;font:700 11px var(--mono);cursor:pointer}
+.v15-topbar-repo{display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid #526984;border-radius:4px;background:#101e30;color:#d7e0eb;font:700 11px var(--mono);text-decoration:none;white-space:nowrap}
+.v15-topbar-repo:hover,.v15-topbar-repo:focus-visible{border-color:var(--v15-gold);color:#fff;text-decoration:none;outline:none}
 
 /* Cover spread */
 #top{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(430px,.92fr);gap:20px 36px;min-height:100vh;padding-top:22px}
@@ -392,6 +397,7 @@ body.motion-paused *,body.motion-paused *:before,body.motion-paused *:after{anim
   <nav aria-label="章节快速导航">
     <a href="#part-0">交付</a><a href="#part-product">游戏系统</a><a href="#part-arch">运行时</a><a href="#part-3">编排</a><a href="#part-4">攻坚</a><a href="#part-5">验收</a><a href="#part-6">审计</a><a href="#part-7">结论</a>
   </nav>
+  <a class="v15-topbar-repo" href="https://github.com/zhikunqingtao/zhikuncode/" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A7.995 7.995 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>GitHub</a>
   <button id="motionToggle" type="button" aria-pressed="false">暂停动效</button>
 </div>
 <!-- V15-TOPBAR:END -->
@@ -420,7 +426,7 @@ body.motion-paused *,body.motion-paused *:before,body.motion-paused *:after{anim
 <main class="main">
 <!-- ============================== HERO ============================== -->
 <header class="section" id="top">
-  <div class="hero-record"><span>ZHIKUNCODE · 工程案例档案</span><span>证据窗口 2026-08-09 01:30–07:01 (Asia/Shanghai) · 会话 b8f86099</span></div>
+  <div class="hero-record"><span>ZHIKUNCODE · 工程案例档案 · <a class="hero-record-repo" href="https://github.com/zhikunqingtao/zhikuncode" target="_blank" rel="noopener noreferrer" title="在新标签页打开 GitHub 仓库：https://github.com/zhikunqingtao/zhikuncode"><svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A7.995 7.995 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>https://github.com/zhikunqingtao/zhikuncode</a></span><span>证据窗口 2026-08-09 01:30–07:01 (Asia/Shanghai) · 会话 b8f86099</span></div>
   <div class="part-intro">
     <div class="eyebrow">开发日期 · 2026-08-09 凌晨 · 本地单机 Web 游戏 · 模型 Kimi K3（moonshot）</div>
     <h1>5 小时 29 分 17 秒，<br><em>从一句话到可玩的单机 Web 5v5 MOBA 原型</em></h1>
