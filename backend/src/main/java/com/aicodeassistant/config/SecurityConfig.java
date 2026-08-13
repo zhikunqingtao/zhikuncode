@@ -62,6 +62,7 @@ public class SecurityConfig {
                             "style-src 'self' 'unsafe-inline'; " +
                             "connect-src 'self' ws: wss:; " +
                             "img-src 'self' data: blob:; " +
+                            "frame-src 'self' blob:; " +
                             "font-src 'self' data:;")
                     )
                     .frameOptions(frame -> frame.deny())

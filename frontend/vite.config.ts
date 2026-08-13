@@ -28,11 +28,30 @@ export default defineConfig(({ mode }) => {
 
         server: {
             port: 5173,
+            strictPort: true,
             // The dev proxy targets localhost services whose security model
             // trusts loopback peers. Exposing this proxy would make remote
             // requests indistinguishable from local ones at the backend.
             host: '127.0.0.1',
             proxy: {
+                // Session-aware project search is implemented by the Java
+                // backend. Keep this more specific route before the Python
+                // file-processing prefix below.
+                '/api/files/search': {
+                    target: env.VITE_API_URL || 'http://localhost:8080',
+                    changeOrigin: true,
+                    secure: false,
+                },
+                '/api/sessions': {
+                    target: env.VITE_API_URL || 'http://localhost:8080',
+                    changeOrigin: true,
+                    secure: false,
+                },
+                '/api/workbench': {
+                    target: env.VITE_API_URL || 'http://localhost:8080',
+                    changeOrigin: true,
+                    secure: false,
+                },
                 '/api/git': {
                     target: env.VITE_PYTHON_URL || 'http://127.0.0.1:8000',
                     changeOrigin: true,

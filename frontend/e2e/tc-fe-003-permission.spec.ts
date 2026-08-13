@@ -69,6 +69,7 @@ test.describe('TC-FE-003 权限审批交互验证', () => {
       // 验证工具名显示
       const hasToolName = dialogText.includes('Bash') || dialogText.includes('File') ||
                           dialogText.includes('Read') || dialogText.includes('Tool');
+      expect(hasToolName).toBe(true);
       console.log(`[TC-FE-003a] Tool name in dialog: ${hasToolName}`);
 
       await screenshot(page, 'tc-fe-003a-dialog-verified');
@@ -78,8 +79,8 @@ test.describe('TC-FE-003 权限审批交互验证', () => {
       await page.waitForTimeout(1000);
     } else {
       console.log('[TC-FE-003a] Permission dialog did not appear (LLM may not have triggered a tool call)');
-      // 不让测试直接失败，记录截图
       await screenshot(page, 'tc-fe-003a-no-dialog');
+      test.skip(true, '模型未触发权限请求，不能据此判定权限弹窗已通过验证');
     }
   });
 
@@ -113,6 +114,7 @@ test.describe('TC-FE-003 权限审批交互验证', () => {
     } else {
       console.log('[TC-FE-003b] Permission dialog did not appear');
       await screenshot(page, 'tc-fe-003b-no-dialog');
+      test.skip(true, '模型未触发权限请求，拒绝流程未执行');
     }
   });
 
@@ -148,6 +150,7 @@ test.describe('TC-FE-003 权限审批交互验证', () => {
     } else {
       console.log('[TC-FE-003c] Permission dialog did not appear');
       await screenshot(page, 'tc-fe-003c-no-dialog');
+      test.skip(true, '模型未触发权限请求，允许流程未执行');
     }
   });
 
@@ -168,6 +171,7 @@ test.describe('TC-FE-003 权限审批交互验证', () => {
       const rememberCheckbox = dialog.locator('input[type="checkbox"]').first();
       const hasCheckbox = await rememberCheckbox.isVisible({ timeout: 3000 }).catch(() => false);
       console.log(`[TC-FE-003d] Remember checkbox visible: ${hasCheckbox}`);
+      expect(hasCheckbox).toBe(true);
 
       if (hasCheckbox) {
         // 勾选后应出现 scope 选择器
@@ -176,6 +180,7 @@ test.describe('TC-FE-003 权限审批交互验证', () => {
         const scopeSelect = dialog.locator('select').first();
         const hasScope = await scopeSelect.isVisible({ timeout: 3000 }).catch(() => false);
         console.log(`[TC-FE-003d] Scope selector visible after check: ${hasScope}`);
+        expect(hasScope).toBe(true);
 
         if (hasScope) {
           // 验证 scope 选项
@@ -192,6 +197,7 @@ test.describe('TC-FE-003 权限审批交互验证', () => {
       await denyBtn.click();
     } else {
       console.log('[TC-FE-003d] Permission dialog did not appear');
+      test.skip(true, '模型未触发权限请求，记住授权范围未执行');
     }
   });
 });

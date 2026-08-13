@@ -174,6 +174,7 @@ const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision
                 ref={dialogRef}
                 tabIndex={-1}
                 role="alertdialog"
+                data-interaction-id={request.interactionId ?? request.toolUseId}
                 aria-modal="true"
                 aria-labelledby="permission-title"
                 aria-describedby="permission-desc"

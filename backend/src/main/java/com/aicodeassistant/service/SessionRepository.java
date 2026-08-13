@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.UUID;
 
 /**
@@ -20,15 +21,17 @@ import java.util.UUID;
 public class SessionRepository {
 
     private final JdbcTemplate jdbcTemplate;
+    private final ObjectMapper objectMapper;
+    private final RowMapper<SessionSummary> summaryRowMapper;
 
-    public SessionRepository(@Qualifier("projectJdbcTemplate") JdbcTemplate jdbcTemplate) {
+    public SessionRepository(@Qualifier("projectJdbcTemplate") JdbcTemplate jdbcTemplate,
+                             ObjectMapper objectMapper) {
         this.jdbcTemplate = jdbcTemplate;
-    }
-
-    private static final RowMapper<SessionSummary> SUMMARY_ROW_MAPPER = (rs, rowNum) ->
-            new SessionSummary(
+        this.objectMapper = objectMapper;
+        this.summaryRowMapper = (rs, rowNum) -> new SessionSummary(
                     rs.getString("id"),
                     rs.getString("title"),
+                    extractGoalPreview(rs.getString("first_user_content")),
                     rs.getString("model"),
                     rs.getString("working_dir"),
                     rs.getInt("message_count"),
@@ -36,6 +39,7 @@ public class SessionRepository {
                     Instant.parse(rs.getString("created_at")),
                     Instant.parse(rs.getString("updated_at"))
             );
+    }
 
     /**
      * 创建新会话。
@@ -56,10 +60,14 @@ public class SessionRepository {
     public Optional<SessionSummary> findById(String sessionId) {
         List<SessionSummary> results = jdbcTemplate.query(
                 """
-                SELECT s.*, (SELECT COUNT(*) FROM messages m WHERE m.session_id = s.id) AS message_count
+                SELECT s.*,
+                    (SELECT m.content_json FROM messages m
+                     WHERE m.session_id = s.id AND m.role = 'user'
+                     ORDER BY m.seq_num ASC LIMIT 1) AS first_user_content,
+                    (SELECT COUNT(*) FROM messages m WHERE m.session_id = s.id) AS message_count
                 FROM sessions s WHERE s.id = ?
                 """,
-                SUMMARY_ROW_MAPPER,
+                summaryRowMapper,
                 sessionId
         );
         return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
@@ -71,12 +79,16 @@ public class SessionRepository {
     public List<SessionSummary> listAll(int limit) {
         return jdbcTemplate.query(
                 """
-                SELECT s.*, (SELECT COUNT(*) FROM messages m WHERE m.session_id = s.id) AS message_count
+                SELECT s.*,
+                    (SELECT m.content_json FROM messages m
+                     WHERE m.session_id = s.id AND m.role = 'user'
+                     ORDER BY m.seq_num ASC LIMIT 1) AS first_user_content,
+                    (SELECT COUNT(*) FROM messages m WHERE m.session_id = s.id) AS message_count
                 FROM sessions s
                 WHERE (s.metadata_json IS NULL OR s.metadata_json NOT LIKE '%"type":"subagent"%')
                 ORDER BY s.updated_at DESC LIMIT ?
                 """,
-                SUMMARY_ROW_MAPPER,
+                summaryRowMapper,
                 limit
         );
     }
@@ -127,5 +139,23 @@ public class SessionRepository {
      */
     public void delete(String sessionId) {
         jdbcTemplate.update("DELETE FROM sessions WHERE id = ?", sessionId);
+    }
+
+    private String extractGoalPreview(String contentJson) {
+        if (contentJson == null || contentJson.isBlank()) return null;
+        try {
+            var root = objectMapper.readTree(contentJson);
+            if (!root.isArray()) return null;
+            for (var node : root) {
+                if (!"text".equals(node.path("type").asText())) continue;
+                String text = node.path("text").asText("").strip().replaceAll("\\s+", " ");
+                if (text.isBlank()) continue;
+                int[] codePoints = text.codePoints().toArray();
+                return codePoints.length <= 80 ? text : new String(codePoints, 0, 80) + "…";
+            }
+        } catch (Exception ignored) {
+            // 展示预览失败不影响 Session 读取。
+        }
+        return null;
     }
 }

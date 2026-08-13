@@ -59,26 +59,18 @@ test.describe('TC-FE-005 工具调用结果渲染验证', () => {
     await page.waitForTimeout(15000);
     await screenshot(page, 'tc-fe-005a-after-wait');
 
-    // 验证页面有代码块或工具结果
-    const codeBlocks = page.locator('pre code, pre, .code-block, [class*="tool-result"], [class*="CodeBlock"]');
-    const codeBlockCount = await codeBlocks.count();
-    console.log(`[TC-FE-005a] Code/tool result blocks found: ${codeBlockCount}`);
-
-    if (codeBlockCount > 0) {
-      const firstBlock = codeBlocks.first();
-      const blockText = await firstBlock.textContent();
-      expect(blockText).toBeTruthy();
-      expect(blockText!.length).toBeGreaterThan(0);
-      console.log(`[TC-FE-005a] First block content length: ${blockText!.length}`);
+    // 只检查真实的工具结果卡；提示词自身包含 package.json，不能作为结果证据。
+    const toolBlock = page.locator('.tool-call-block').last();
+    const toolRendered = await toolBlock.isVisible({ timeout: 5000 }).catch(() => false);
+    if (!toolRendered) {
+      await screenshot(page, 'tc-fe-005a-no-tool-call');
+      test.skip(true, '模型未触发工具调用，工具结果渲染未执行');
     }
-
-    // 检查页面整体内容是否包含工具调用相关元素
-    const pageContent = await page.textContent('body') ?? '';
-    const hasToolIndicators = pageContent.includes('package.json') ||
-                              pageContent.includes('"name"') ||
-                              pageContent.includes('"version"') ||
-                              pageContent.includes('dependencies');
-    console.log(`[TC-FE-005a] Tool output indicators found: ${hasToolIndicators}`);
+    await expect(toolBlock.getByText('Result', { exact: true })).toBeVisible();
+    const resultText = await toolBlock.textContent() ?? '';
+    expect(resultText.length).toBeGreaterThan(20);
+    expect(resultText).toMatch(/package\.json|"name"|"version"|dependencies/);
+    console.log(`[TC-FE-005a] Tool result content length: ${resultText.length}`);
     await screenshot(page, 'tc-fe-005a-result-verified');
   });
 
@@ -104,6 +96,9 @@ test.describe('TC-FE-005 工具调用结果渲染验证', () => {
     const hasLoading = (await loadingIndicators.count()) > 0;
     console.log(`[TC-FE-005b] Loading indicators found: ${hasLoading}`);
     await screenshot(page, 'tc-fe-005b-loading-state');
+    if (!hasLoading) {
+      test.skip(true, '采样窗口内未观察到工具加载状态');
+    }
 
     // 如果出现权限弹窗，允许
     const allowBtn = page.locator('[role="alertdialog"] button:has-text("Allow")').first();
@@ -174,6 +169,7 @@ test.describe('TC-FE-005 工具调用结果渲染验证', () => {
       }
     } else {
       console.log('[TC-FE-005c] No collapse toggle found - tool result may not be collapsible');
+      test.skip(true, '本次模型回复未产生可折叠的工具结果');
     }
   });
 
@@ -209,6 +205,9 @@ test.describe('TC-FE-005 工具调用结果渲染验证', () => {
     const preElements = page.locator('pre');
     const preCount = await preElements.count();
     console.log(`[TC-FE-005d] Pre elements: ${preCount}`);
+    if (preCount === 0) {
+      test.skip(true, '本次模型回复未产生可验证的代码块');
+    }
 
     if (preCount > 0) {
       const firstPre = preElements.first();

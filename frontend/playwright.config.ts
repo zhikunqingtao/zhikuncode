@@ -25,6 +25,19 @@ export default defineConfig({
   ],
   use: {
     baseURL: E2E_BASE_URL,
+    // The legacy suite exercises the full developer surface. Production still
+    // defaults to the simple workbench; dedicated workbench tests override this
+    // stored preference before the application boots.
+    storageState: {
+      cookies: [],
+      origins: [{
+        origin: E2E_BASE_URL,
+        localStorage: [{
+          name: 'zhikun.workbench.default-view',
+          value: 'development',
+        }],
+      }],
+    },
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -59,7 +72,9 @@ export default defineConfig({
   webServer: {
     command: 'npm run dev -- --host 127.0.0.1 --port 5173 --strictPort',
     url: E2E_BASE_URL,
-    reuseExistingServer: false,
+    // Local development follows stop.sh -> start.sh and may already have Vite
+    // running. CI always starts a clean, isolated server.
+    reuseExistingServer: !process.env.CI,
     timeout: 30_000,
   },
 });

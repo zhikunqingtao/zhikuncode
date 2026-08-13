@@ -388,7 +388,9 @@ test.describe('APOS Phase 2 - Mobile Responsive (TC-APOS2-029~037)', () => {
     await page.waitForTimeout(800);
 
     // 尝试点击 Activity 卡片打开 BottomSheet
-    const activityCard = page.getByText('Drag Test Activity');
+    const activityCard = page.locator('[data-testid="activity-card-l1"]:visible').filter({
+      hasText: 'Drag Test Activity',
+    }).first();
     if (await activityCard.isVisible()) {
       await activityCard.click();
       await page.waitForTimeout(600);
@@ -417,9 +419,15 @@ test.describe('APOS Phase 2 - Mobile Responsive (TC-APOS2-029~037)', () => {
           await expect(overlay).toBeVisible({ timeout: 3000 });
 
           // 测试拖拽距离超过 100px — Sheet 关闭
-          await page.mouse.move(startX, startY);
+          // 第一次短拖拽松手后面板会弹回，必须重新读取手柄坐标，
+          // 否则第二次拖拽仍使用动画前的旧位置，实际不会命中面板。
+          const resetHandleBox = await dragHandle.boundingBox();
+          expect(resetHandleBox).not.toBeNull();
+          const resetX = resetHandleBox!.x + resetHandleBox!.width / 2;
+          const resetY = resetHandleBox!.y + resetHandleBox!.height / 2;
+          await page.mouse.move(resetX, resetY);
           await page.mouse.down();
-          await page.mouse.move(startX, startY + 150, { steps: 15 });
+          await page.mouse.move(resetX, resetY + 150, { steps: 15 });
           await page.mouse.up();
           await page.waitForTimeout(800);
 

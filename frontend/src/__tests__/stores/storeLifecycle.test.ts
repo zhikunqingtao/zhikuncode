@@ -163,6 +163,26 @@ describe('TC-STORE-003: permissionStore 权限审批流程', () => {
         expect(usePermissionStore.getState().pendingPermissions.map(p => p.interactionId))
             .toEqual(['i-1', 'i-2']);
     });
+
+    it('连续审批严格按队列逐项完成', () => {
+        usePermissionStore.getState().showPermission({ interactionId: 'i-1', toolUseId: 't-1',
+            toolName: 'Write', input: {}, riskLevel: 'medium', reason: 'first' });
+        usePermissionStore.getState().showPermission({ interactionId: 'i-2', toolUseId: 't-2',
+            toolName: 'Bash', input: {}, riskLevel: 'high', reason: 'second' });
+
+        expect(usePermissionStore.getState().pendingPermissions.map(p => p.interactionId))
+            .toEqual(['i-1', 'i-2']);
+
+        usePermissionStore.getState().respondPermission({ toolUseId: 't-1', decision: 'allow',
+            optionId: 'allow_once', operationHash: 'op-1', deliveryGeneration: 1 }, 'i-1');
+        expect(usePermissionStore.getState().pendingPermissions.map(p => p.interactionId))
+            .toEqual(['i-2']);
+
+        usePermissionStore.getState().respondPermission({ toolUseId: 't-2', decision: 'deny',
+            optionId: 'deny', operationHash: 'op-2', deliveryGeneration: 1 }, 'i-2');
+        expect(usePermissionStore.getState().pendingPermissions).toEqual([]);
+        expect(usePermissionStore.getState().denialTracking.totalDenials).toBe(1);
+    });
 });
 
 describe('elicitationStore 交互身份隔离', () => {

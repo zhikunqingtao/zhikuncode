@@ -24,6 +24,9 @@ import {
   activateSessionCandidate,
   getPendingSessionActivation,
 } from '@/services/sessionActivation';
+import { SimpleWorkbench } from '@/components/workbench/SimpleWorkbench';
+import { useWorkbenchViewStore } from '@/store/workbenchViewStore';
+import { useJourneyVerifyStore } from '@/store/journeyVerifyStore';
 
 interface SkillItem {
   name: string;
@@ -33,7 +36,9 @@ interface SkillItem {
 
 function App() {
   const { messages, addMessage } = useMessageStore();
-  const { status } = useSessionStore();
+  const { status, sessionId } = useSessionStore();
+  const workbenchEnabled = useWorkbenchViewStore(s => s.enabled);
+  const viewMode = useWorkbenchViewStore(s => s.viewMode);
   const { loadConfig } = useConfigStore();
   const sessionReadinessRef = useRef<Promise<string | null> | null>(null);
   const newSessionRequestRef = useRef<Promise<string | null> | null>(null);
@@ -50,10 +55,14 @@ function App() {
           // 仅当会话真正切换时清理 UI 状态（不清空 activities）
           if (prevSessionId && prevSessionId !== sessionId) {
             useActivityStore.getState().clearForNewSession();
+            useJourneyVerifyStore.getState().reset();
           }
           useActivityStore.getState().setCurrentSessionId(sessionId);
+          useWorkbenchViewStore.getState().setActiveSession(sessionId);
         } else {
           useActivityStore.getState().clearAll();
+          useJourneyVerifyStore.getState().reset();
+          useWorkbenchViewStore.getState().setActiveSession(null);
         }
       }
     );
@@ -62,6 +71,7 @@ function App() {
     if (currentId) {
       useActivityStore.getState().setCurrentSessionId(currentId);
     }
+    useWorkbenchViewStore.getState().setActiveSession(currentId);
     return () => { unsubscribe(); };
   }, []);
 
@@ -347,25 +357,25 @@ function App() {
     <>
       <AppLayout>
         <div className="h-full flex flex-col">
-          {/* Message List */}
           <div className="flex-1 overflow-hidden">
-            {messages.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-[var(--text-muted)]">
-                <div className="text-center">
-                  <div className="text-4xl mb-3">💬</div>
-                  <div className="text-lg font-medium text-[var(--text-primary)]">开始对话</div>
-                  <div className="text-sm mt-2">
-                    输入消息或按 <kbd className="px-2 py-0.5 bg-[var(--bg-secondary)] rounded">/</kbd> 查看命令
+            {workbenchEnabled && viewMode === 'simple' ? (
+              <SimpleWorkbench sessionId={sessionId} messages={messages} status={status} />
+            ) : messages.length === 0 ? (
+                <div className="h-full flex items-center justify-center text-[var(--text-muted)]">
+                  <div className="text-center">
+                    <div className="text-4xl mb-3">💬</div>
+                    <div className="text-lg font-medium text-[var(--text-primary)]">开始对话</div>
+                    <div className="text-sm mt-2">
+                      输入消息或按 <kbd className="px-2 py-0.5 bg-[var(--bg-secondary)] rounded">/</kbd> 查看命令
+                    </div>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <MessageList />
-            )}
+              ) : (
+                <MessageList />
+              )}
           </div>
 
-          {/* RV-1 Runtime Verification 进度面板 — status='idle' 时返回 null，不占空间 */}
-          <JourneyVerifyPanel />
+          {(!workbenchEnabled || viewMode === 'development') && <JourneyVerifyPanel />}
 
           {/* Input */}
           <div className="border-t border-[var(--border)] p-4 bg-[var(--bg-secondary)]">
@@ -379,6 +389,7 @@ function App() {
               permissionMode="read_write"
               messages={messages}
               commands={allCommands}
+              simpleMode={workbenchEnabled && viewMode === 'simple'}
             />
           </div>
         </div>

@@ -18,6 +18,7 @@ interface ElicitationOption {
 
 interface ElicitationDialogProps {
     requestId: string;
+    interactionId?: string;
     question: string;
     options?: ElicitationOption[];
     inputType?: 'select' | 'text' | 'confirm' | 'multiselect' | 'number';
@@ -37,6 +38,7 @@ interface ElicitationDialogProps {
 
 export const ElicitationDialog: React.FC<ElicitationDialogProps> = ({
     requestId,
+    interactionId,
     question,
     options,
     inputType = 'select',
@@ -160,6 +162,7 @@ export const ElicitationDialog: React.FC<ElicitationDialogProps> = ({
                 ref={dialogRef}
                 tabIndex={-1}
                 role="dialog"
+                data-interaction-id={interactionId}
                 aria-modal="true"
                 className="w-full max-w-md mx-4 rounded-xl border border-[var(--border)] bg-[var(--bg-primary)]
                             shadow-2xl overflow-hidden outline-none"

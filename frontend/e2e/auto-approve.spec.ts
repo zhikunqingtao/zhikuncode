@@ -112,7 +112,7 @@ test.describe('AUTO_APPROVE permission mode', () => {
     });
 
     await page.goto('/');
-    await page.locator('button[title="新建会话"]').click();
+    await page.getByLabel('新建会话', { exact: true }).click();
     await page.getByText(project.name, { exact: true }).click();
     await page.getByRole('button', { name: '使用所选授权' }).click();
     await page.locator('button[title="设置"]').click();

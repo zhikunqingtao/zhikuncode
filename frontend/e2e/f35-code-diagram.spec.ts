@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const SCREENSHOT_DIR = path.resolve(__dirname, '../../docs/test-results/screenshots/visualization');
-const PROJECT_ROOT = '/Users/guoqingtao/Desktop/dev/code/zhikuncode/python-service';
+const PROJECT_ROOT = path.resolve(__dirname, '../../python-service');
 
 // Code-diagram generation is CPU-heavy. Override the project's
 // fullyParallel setting so this file does not overload the analysis service.

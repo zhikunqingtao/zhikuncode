@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const SCREENSHOT_DIR = path.resolve(__dirname, '../../docs/test-results/screenshots/visualization');
-const PROJECT_ROOT = '/Users/guoqingtao/Desktop/dev/code/zhikuncode/python-service';
+const PROJECT_ROOT = path.resolve(__dirname, '../../python-service');
 
 // Endpoint scanning and path tracing share the Python analysis service.
 // Run this file in order even when the project enables fullyParallel, while

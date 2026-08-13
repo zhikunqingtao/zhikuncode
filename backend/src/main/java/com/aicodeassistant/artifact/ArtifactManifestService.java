@@ -277,6 +277,24 @@ public class ArtifactManifestService {
         return ids.stream().map(this::getManifestById)
                 .flatMap(Optional::stream).toList();
     }
+
+    /** 只返回指定根 Run 递归子树产生的清单，不跨到同一 Session 的其他根 Run。 */
+    public List<ArtifactManifest> getManifestsForRunTree(String rootRunId) {
+        if (rootRunId == null || rootRunId.isBlank()) return List.of();
+        List<String> ids = jdbc.queryForList("""
+                WITH RECURSIVE run_tree(id) AS (
+                  SELECT id FROM run_envelopes WHERE id = ? AND parent_run_id IS NULL
+                  UNION ALL
+                  SELECT child.id FROM run_envelopes child
+                  JOIN run_tree parent ON child.parent_run_id = parent.id
+                )
+                SELECT m.manifest_id FROM artifact_manifests m
+                JOIN run_tree tree ON tree.id = m.run_id
+                ORDER BY m.updated_at DESC, m.manifest_id DESC
+                """, String.class, rootRunId);
+        return ids.stream().map(this::getManifestById)
+                .flatMap(Optional::stream).toList();
+    }
     public Optional<ArtifactManifest> getManifestById(String id){
         List<Map<String,Object>> rows=jdbc.queryForList("SELECT * FROM artifact_manifests WHERE manifest_id=?",id);
         return rows.isEmpty()?Optional.empty():Optional.of(mapManifest(rows.getFirst()));

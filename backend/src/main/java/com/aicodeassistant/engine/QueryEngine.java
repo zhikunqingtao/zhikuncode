@@ -99,6 +99,7 @@ public class QueryEngine {
     private final TokenBudgetGuard tokenBudgetGuard;
     private final ImageRefInjector imageRefInjector;
     private final com.aicodeassistant.run.RunExecutionRegistry runExecutions;
+    private volatile com.aicodeassistant.workbench.WorkbenchRunLinkService workbenchLinks;
 
     /** 单条工具结果最大占上下文窗口的 30% */
     private static final double TOOL_RESULT_BUDGET_RATIO = 0.3;
@@ -177,6 +178,12 @@ public class QueryEngine {
         this.imageRefInjector = imageRefInjector;
         this.runTracker = runTracker;
         this.runExecutions = runExecutions;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setWorkbenchRunLinkService(
+            com.aicodeassistant.workbench.WorkbenchRunLinkService workbenchLinks) {
+        this.workbenchLinks = workbenchLinks;
     }
 
     @PostConstruct
@@ -290,6 +297,13 @@ public class QueryEngine {
                 }
                 if (state.getToolUseContext() != null) {
                     state.setToolUseContext(state.getToolUseContext().withCurrentRunId(currentRunId));
+                }
+                if (parentRunId == null && workbenchLinks != null) {
+                    state.getMessages().stream()
+                            .filter(Message.UserMessage.class::isInstance)
+                            .map(Message.UserMessage.class::cast)
+                            .reduce((first, second) -> second)
+                            .ifPresent(request -> workbenchLinks.bindRequest(run.id(), request));
                 }
             } catch (Exception e) {
                 log.error("Failed to establish Run execution authority", e);
@@ -982,6 +996,10 @@ public class QueryEngine {
                         "turn", turn,
                         "stopReason", assistantMessage.stopReason() == null ? "unknown" : assistantMessage.stopReason(),
                         "contentBlockCount", assistantMessage.content() == null ? 0 : assistantMessage.content().size()));
+            }
+            if (workbenchLinks != null && state.getToolUseContext() != null
+                    && state.getToolUseContext().parentSessionId() == null) {
+                workbenchLinks.bindFinalResult(eventRunId, assistantMessage);
             }
 
             // ===== 事务边界: 开始 =====

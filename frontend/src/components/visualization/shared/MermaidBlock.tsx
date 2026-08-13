@@ -159,6 +159,7 @@ const MermaidBlock: React.FC<MermaidBlockProps> = ({ code }) => {
     if (svg) {
         return (
             <div
+                data-testid="mermaid-block"
                 className="relative rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] overflow-hidden group"
                 onMouseEnter={() => setShowButtons(true)}
                 onMouseLeave={() => setShowButtons(false)}

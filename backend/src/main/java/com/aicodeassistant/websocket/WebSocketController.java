@@ -42,6 +42,7 @@ import com.aicodeassistant.run.RunEnvelopeRepository;
 import com.aicodeassistant.run.RunEventRepository;
 import com.aicodeassistant.session.SessionData;
 import com.aicodeassistant.session.SessionManager;
+import com.aicodeassistant.session.SessionMessagePersistence;
 import com.aicodeassistant.tool.Tool;
 import com.aicodeassistant.tool.ToolRegistry;
 import com.aicodeassistant.tool.ToolUseContext;
@@ -876,25 +877,8 @@ public class WebSocketController implements PermissionNotifier {
 
         QueryLoopState state = new QueryLoopState(new ArrayList<>(historyMessages), toolUseContext);
 
-        // 注册消息增量持久化 listener：每条新消息进入 state 的瞬间即落库
-        state.addMessageListener(msg -> {
-            try {
-                switch (msg) {
-                    case Message.UserMessage user -> sessionManager.addMessageWithId(
-                            user.uuid(), sessionId, "user", user.content(), null, 0, 0);
-                    case Message.AssistantMessage assistant -> sessionManager.addMessageWithId(
-                            assistant.uuid(), sessionId, "assistant", assistant.content(),
-                            assistant.stopReason(),
-                            assistant.usage() != null ? assistant.usage().inputTokens() : 0,
-                            assistant.usage() != null ? assistant.usage().outputTokens() : 0);
-                    case Message.SystemMessage system -> sessionManager.addMessageWithId(
-                            system.uuid(), sessionId, "system", system.content(), null, 0, 0);
-                }
-            } catch (Exception e) {
-                log.error("消息增量持久化失败, sessionId={}, msgId={}", sessionId, msg.uuid(), e);
-                // 不抛出 —— 持久化失败不应中断 LLM 流；L615-L638 兜底可恢复
-            }
-        });
+        SessionMessagePersistence persistence = SessionMessagePersistence.attach(
+                state, sessionManager, sessionId, "WebSocket");
 
         // 组装用户消息 content：TextBlock + 所有 ImageBlock（多模态）
         List<ContentBlock> userContent = new ArrayList<>();
@@ -914,38 +898,16 @@ public class WebSocketController implements PermissionNotifier {
         try {
             result = queryEngine.execute(config, state, handler);
 
-            // 6. ★ 幂等兜底：execute 正常返回后再补写一次，INSERT OR IGNORE 自动去重（与 listener 使用相同 UUID）
+            // 6. Listener 是正常写入入口；这里只补偿 listener 未确认的消息。
             List<Message> newMessages = List.of();
             try {
                 List<Message> allMessages = result.messages();
                 int newStartIndex = historyMessages.size();
                 newMessages = new ArrayList<>(allMessages.subList(
                         Math.min(newStartIndex, allMessages.size()), allMessages.size()));
-                int fallbackCount = 0;
-                for (Message msg : newMessages) {
-                    switch (msg) {
-                        case Message.UserMessage user -> {
-                            sessionManager.addMessageWithId(
-                                    user.uuid(), sessionId, "user", user.content(), null, 0, 0);
-                            fallbackCount++;
-                        }
-                        case Message.AssistantMessage assistant -> {
-                            sessionManager.addMessageWithId(
-                                    assistant.uuid(), sessionId, "assistant", assistant.content(),
-                                    assistant.stopReason(),
-                                    assistant.usage() != null ? assistant.usage().inputTokens() : 0,
-                                    assistant.usage() != null ? assistant.usage().outputTokens() : 0);
-                            fallbackCount++;
-                        }
-                        case Message.SystemMessage system -> {
-                            sessionManager.addMessageWithId(
-                                    system.uuid(), sessionId, "system", system.content(), null, 0, 0);
-                            fallbackCount++;
-                        }
-                    }
-                }
+                int fallbackCount = persistence.reconcile(newMessages);
                 if (fallbackCount > 0) {
-                    log.info("WS 兜底补写 {} 条消息（INSERT OR IGNORE 去重）, sessionId={}", fallbackCount, sessionId);
+                    log.info("WS 兜底补写 {} 条 listener 未确认消息, sessionId={}", fallbackCount, sessionId);
                 }
             } catch (Exception e) {
                 log.error("WS 兜底持久化失败, sessionId={}", sessionId, e);

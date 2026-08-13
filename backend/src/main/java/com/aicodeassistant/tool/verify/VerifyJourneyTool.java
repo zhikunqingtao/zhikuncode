@@ -142,6 +142,11 @@ public class VerifyJourneyTool implements Tool {
                     "enum", List.of("browser", "http_api", "auto"),
                     "description", "Verification mode: 'browser' (Playwright), 'http_api' (HTTP calls), 'auto' (detect from steps). Default: 'auto'"
                 )),
+                Map.entry("claim", Map.of(
+                    "type", "string",
+                    "maxLength", 1000,
+                    "description", "Optional exact user acceptance criterion verified by this journey. Copy one original requirement verbatim; omit for a general technical check"
+                )),
                 Map.entry("record", Map.of(
                     "type", "boolean",
                     "description", "Whether to record video/trace/HAR. Only for browser verification. Default: true"
@@ -221,6 +226,7 @@ public class VerifyJourneyTool implements Tool {
         String startCommand = input.getString("start_command", null);
         String baseUrl = input.getString("base_url", null);
         String verificationMode = input.getString("verification_mode", "auto");
+        String evidenceClaim = normalizedClaim(input.getString("claim", null));
         boolean record = input.has("record") ? input.getBoolean("record") : true;
 
         String workspace = context.workingDirectory();
@@ -271,7 +277,7 @@ public class VerifyJourneyTool implements Tool {
                 String principal = sessionId;
                 JourneyResult result = verifier.verify(browserReq, principal);
                 return handleVerificationResult(result, sessionId, journey.size(),
-                        observationRunId, selectedMode, startedNanos);
+                        evidenceClaim, observationRunId, selectedMode, startedNanos);
 
             } catch (DevServerTimeoutException e) {
                 recordVerificationFailure(observationRunId, selectedMode, journey.size(),
@@ -334,7 +340,7 @@ public class VerifyJourneyTool implements Tool {
             String principal = sessionId;
             JourneyResult result = verifier.verify(apiReq, principal);
             return handleVerificationResult(result, sessionId, journey.size(),
-                    observationRunId, selectedMode, startedNanos);
+                    evidenceClaim, observationRunId, selectedMode, startedNanos);
         }
     }
 
@@ -348,12 +354,14 @@ public class VerifyJourneyTool implements Tool {
      * 浏览器模式和 HTTP 模式共用此方法，避免逻辑重复。
      */
     private ToolResult handleVerificationResult(JourneyResult result, String sessionId, int stepCount,
-                                                String runId, String mode, long startedNanos) {
+                                                String evidenceClaim, String runId, String mode,
+                                                long startedNanos) {
         EvidenceBundle bundle = EvidenceBundle.builder()
                 .sessionId(sessionId)
+                .runId(runId)
                 .kind("journey")
                 .verdict(result.verdict())
-                .claim("VerifyJourney invoked")
+                .claim(evidenceClaim)
                 .items(buildEvidenceItems(result))
                 .build();
         EvidenceBundle saved = evidenceStore.save(bundle);
@@ -422,6 +430,12 @@ public class VerifyJourneyTool implements Tool {
             return ToolResult.internalError("VERIFY_JOURNEY_ASSERTION_FAILED",
                     enrichedMsg + " (evidence bundle: " + saved.bundleId() + ")", ToolResult.EffectState.NONE);
         }
+    }
+
+    private static String normalizedClaim(String claim) {
+        if (claim == null || claim.isBlank()) return "VerifyJourney invoked";
+        String normalized = claim.strip();
+        return normalized.length() <= 1000 ? normalized : "VerifyJourney invoked";
     }
 
     private void recordVerificationSkipped(String runId, String mode, int stepCount,

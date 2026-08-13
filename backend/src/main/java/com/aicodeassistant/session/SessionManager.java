@@ -131,6 +131,7 @@ public class SessionManager {
             new SessionSummary(
                     rs.getString("id"),
                     rs.getString("title"),
+                    extractGoalPreview(rs.getString("first_user_content")),
                     rs.getString("model"),
                     rs.getString("working_dir"),
                     rs.getInt("message_count"),
@@ -344,7 +345,11 @@ public class SessionManager {
     public List<SessionSummary> listSessions(int limit) {
         return jdbcTemplate.query(
                 """
-                SELECT s.*, (SELECT COUNT(*) FROM messages m WHERE m.session_id = s.id) AS message_count
+                SELECT s.*,
+                    (SELECT m.content_json FROM messages m
+                     WHERE m.session_id = s.id AND m.role = 'user'
+                     ORDER BY m.seq_num ASC LIMIT 1) AS first_user_content,
+                    (SELECT COUNT(*) FROM messages m WHERE m.session_id = s.id) AS message_count
                 FROM sessions s
                 WHERE (s.metadata_json IS NULL OR s.metadata_json NOT LIKE '%"type":"subagent"%')
                 ORDER BY s.updated_at DESC LIMIT ?
@@ -363,7 +368,11 @@ public class SessionManager {
             // 首次加载：从最新开始，多取 1 条用于判断 hasMore
             sessions = jdbcTemplate.query(
                     """
-                    SELECT s.*, (SELECT COUNT(*) FROM messages m WHERE m.session_id = s.id) AS message_count
+                    SELECT s.*,
+                        (SELECT m.content_json FROM messages m
+                         WHERE m.session_id = s.id AND m.role = 'user'
+                         ORDER BY m.seq_num ASC LIMIT 1) AS first_user_content,
+                        (SELECT COUNT(*) FROM messages m WHERE m.session_id = s.id) AS message_count
                     FROM sessions s
                     WHERE (s.metadata_json IS NULL OR s.metadata_json NOT LIKE '%"type":"subagent"%')
                     ORDER BY s.updated_at DESC LIMIT ?
@@ -378,7 +387,11 @@ public class SessionManager {
             );
             sessions = jdbcTemplate.query(
                     """
-                    SELECT s.*, (SELECT COUNT(*) FROM messages m WHERE m.session_id = s.id) AS message_count
+                    SELECT s.*,
+                        (SELECT m.content_json FROM messages m
+                         WHERE m.session_id = s.id AND m.role = 'user'
+                         ORDER BY m.seq_num ASC LIMIT 1) AS first_user_content,
+                        (SELECT COUNT(*) FROM messages m WHERE m.session_id = s.id) AS message_count
                     FROM sessions s
                     WHERE s.updated_at < ?
                       AND (s.metadata_json IS NULL OR s.metadata_json NOT LIKE '%"type":"subagent"%')
@@ -640,6 +653,25 @@ public class SessionManager {
                 }
             }
         } catch (Exception ignored) {}
+        return null;
+    }
+
+    private String extractGoalPreview(String contentJson) {
+        if (contentJson == null || contentJson.isBlank()) return null;
+        try {
+            var root = objectMapper.readTree(contentJson);
+            if (!root.isArray()) return null;
+            for (var node : root) {
+                if (!"text".equals(node.path("type").asText())) continue;
+                String text = node.path("text").asText("").strip().replaceAll("\\s+", " ");
+                if (text.isBlank()) continue;
+                int[] codePoints = text.codePoints().toArray();
+                if (codePoints.length <= 80) return text;
+                return new String(codePoints, 0, 80) + "…";
+            }
+        } catch (Exception ignored) {
+            // 标题预览是展示增强；损坏的旧消息不应阻断会话列表。
+        }
         return null;
     }
 

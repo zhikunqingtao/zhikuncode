@@ -12,6 +12,7 @@ import { usePermissionStore } from '@/store/permissionStore';
 import { useBridgeStore } from '@/store/bridgeStore';
 import { TokenBudgetIndicator } from '@/components/status/TokenBudgetIndicator';
 import type { PermissionMode } from '@/types';
+import { useWorkbenchViewStore } from '@/store/workbenchViewStore';
 
 export function getPermissionModeLabel(mode: PermissionMode): string {
     switch (mode) {
@@ -39,6 +40,7 @@ export function StatusBar() {
     const { sessionCost, totalCost, usage } = useCostStore();
     const { pendingPermissions } = usePermissionStore();
     const { bridgeStatus } = useBridgeStore();
+    const simpleMode = useWorkbenchViewStore(s => s.enabled && s.viewMode === 'simple');
 
     const getStatusLabel = (s: string) => {
         switch (s) {
@@ -49,6 +51,21 @@ export function StatusBar() {
             default: return s;
         }
     };
+
+    if (simpleMode) {
+        return (
+            <footer className="h-8 border-t border-[var(--border)] bg-[var(--bg-secondary)] flex items-center justify-between px-4 text-xs shrink-0">
+                <div className="flex items-center gap-2">
+                    <div className={`h-2 w-2 rounded-full ${status === 'streaming' ? 'animate-pulse bg-blue-500' : status === 'waiting_permission' ? 'bg-amber-500' : status === 'compacting' ? 'bg-purple-500' : 'bg-green-500'}`} />
+                    <span className="text-[var(--text-secondary)]">{getStatusLabel(status)}</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-[var(--text-muted)]" title={bridgeStatus === 'connected' ? '已连接' : '未连接'}>
+                    {bridgeStatus === 'connected' ? <Wifi className="h-3.5 w-3.5 text-green-500" /> : <WifiOff className="h-3.5 w-3.5 text-red-500" />}
+                    <span>{bridgeStatus === 'connected' ? '已连接' : '连接中'}</span>
+                </div>
+            </footer>
+        );
+    }
 
     return (
         <div className="shrink-0">

@@ -14,6 +14,8 @@ import { useConfigStore } from '@/store/configStore';
 import { useModelStore } from '@/store/modelStore';
 import { sendSetModel } from '@/api/stompClient';
 import { dispatchNewAuthorizedSessionRequest } from '@/services/authorizedSession';
+import { useWorkbenchViewStore } from '@/store/workbenchViewStore';
+import { WorkbenchViewSwitch } from '@/components/workbench/WorkbenchViewSwitch';
 
 interface HeaderProps {
     onMenuClick?: () => void;
@@ -25,6 +27,9 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
     const { sessionCost, totalCost } = useCostStore();
     const { openDialog } = useDialogStore();
     const { theme, setTheme } = useConfigStore();
+    const workbenchEnabled = useWorkbenchViewStore(s => s.enabled);
+    const viewMode = useWorkbenchViewStore(s => s.viewMode);
+    const simpleMode = workbenchEnabled && viewMode === 'simple';
 
     // 动态加载可用模型列表（统一从 modelStore 缓存读取，附带 supportsImages / maxImages 能力）
     const { models: availableModels, defaultModel, loaded, fetchModels } = useModelStore();
@@ -67,7 +72,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
     };
 
     return (
-        <header className="h-14 border-b border-[var(--border)] bg-[var(--bg-secondary)] flex items-center px-4 shrink-0">
+        <header className="h-14 border-b border-[var(--border)] bg-[var(--bg-secondary)] flex items-center px-2 sm:px-4 shrink-0">
             {/* Left: Menu Button (mobile) + Logo */}
             <div className="flex items-center gap-3">
                 {showMenuButton && (
@@ -79,46 +84,48 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                         <Menu className="w-5 h-5 text-[var(--text-secondary)]" />
                     </button>
                 )}
-                <div className="flex items-center gap-2">
+                <div className="hidden sm:flex items-center gap-2">
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
                         <Bot className="w-5 h-5 text-white" />
                     </div>
                     <span className="font-semibold text-[var(--text-primary)] hidden sm:block">
-                        AI Assistant
+                        {workbenchEnabled ? 'ZhikunCode' : 'AI Assistant'}
                     </span>
                 </div>
             </div>
 
             {/* Center: Session Title & Model Selector */}
-            <div className="flex-1 flex items-center justify-center gap-4">
-                <span className="text-sm text-[var(--text-secondary)] truncate max-w-[150px] hidden md:block">
-                    {sessionId ? `Session: ${sessionId.slice(0, 8)}...` : 'New Session'}
-                </span>
-                
-                <select
-                    value={model || ''}
-                    onChange={(e) => {
-                        const newModel = e.target.value;
-                        setModel(newModel);
-                        // 同步更新 configStore 默认模型并持久化到后端数据库
-                        useConfigStore.getState().saveConfig({ defaultModel: newModel });
-                        // 通知后端切换当前会话模型，避免必须新开聊天才能生效
-                        sendSetModel(newModel);
-                    }}
-                    className="px-3 py-1.5 text-sm rounded-lg border border-[var(--border)] 
-                        bg-[var(--bg-primary)] text-[var(--text-primary)]
-                        focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                    {availableModels.map(m => (
-                        <option key={m.id} value={m.id}>{m.displayName}</option>
-                    ))}
-                </select>
+            <div className="flex-1 flex items-center justify-center gap-3 min-w-0">
+                {workbenchEnabled && <WorkbenchViewSwitch />}
+                {!simpleMode && (
+                    <>
+                        <span className="text-sm text-[var(--text-secondary)] truncate max-w-[150px] hidden md:block">
+                            {sessionId ? `Session: ${sessionId.slice(0, 8)}...` : 'New Session'}
+                        </span>
+                        <select
+                            value={model || ''}
+                            onChange={(e) => {
+                                const newModel = e.target.value;
+                                setModel(newModel);
+                                useConfigStore.getState().saveConfig({ defaultModel: newModel });
+                                sendSetModel(newModel);
+                            }}
+                            className="hidden sm:block px-3 py-1.5 text-sm rounded-lg border border-[var(--border)]
+                                bg-[var(--bg-primary)] text-[var(--text-primary)]
+                                focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            {availableModels.map(m => (
+                                <option key={m.id} value={m.id}>{m.displayName}</option>
+                            ))}
+                        </select>
+                    </>
+                )}
             </div>
 
             {/* Right: Cost + New Session + Settings */}
             <div className="flex items-center gap-2">
                 {/* Cost Indicator */}
-                <div className="hidden md:flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[var(--bg-primary)] border border-[var(--border)]">
+                <div className={`${simpleMode ? 'hidden' : 'hidden md:flex'} items-center gap-1 px-3 py-1.5 rounded-lg bg-[var(--bg-primary)] border border-[var(--border)]`}>
                     <DollarSign className="w-4 h-4 text-green-500" />
                     <span className="text-sm text-[var(--text-secondary)]">
                         {formatCost(sessionCost)}
@@ -131,7 +138,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                 {/* Theme Toggle */}
                 <button
                     onClick={toggleTheme}
-                    className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-secondary)] transition-colors"
+                    className="hidden sm:inline-flex p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-secondary)] transition-colors"
                     title={isGlass ? '切换到浅色模式' : isDark ? '切换到液态玻璃模式' : '切换到深色模式'}
                     aria-label={isGlass ? '切换到浅色模式' : isDark ? '切换到液态玻璃模式' : '切换到深色模式'}
                 >
@@ -142,7 +149,8 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                 <button
                     onClick={handleNewSession}
                     className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-secondary)]"
-                    title="新建会话"
+                    title={simpleMode ? '新建任务' : '新建会话'}
+                    aria-label={simpleMode ? '新建任务' : '新建会话'}
                 >
                     <Plus className="w-5 h-5" />
                 </button>
@@ -150,7 +158,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                 {/* Settings */}
                 <button
                     onClick={() => openDialog('settings')}
-                    className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-secondary)]"
+                    className="hidden sm:inline-flex p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-secondary)]"
                     title="设置"
                 >
                     <Settings className="w-5 h-5" />

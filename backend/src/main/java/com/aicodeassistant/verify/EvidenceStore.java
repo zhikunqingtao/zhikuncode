@@ -64,11 +64,12 @@ public class EvidenceStore {
 
         jdbcTemplate.update("""
                 INSERT OR REPLACE INTO evidence_bundles
-                    (bundle_id, session_id, agent_id, kind, claim, verdict, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                    (bundle_id, session_id, run_id, agent_id, kind, claim, verdict, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 bundleId,
                 bundle.sessionId(),
+                bundle.runId(),
                 bundle.agentId(),
                 bundle.kind(),
                 filterText(bundle.claim()),
@@ -100,7 +101,7 @@ public class EvidenceStore {
             }
         }
 
-        return new EvidenceBundle(bundleId, bundle.sessionId(), bundle.agentId(),
+        return new EvidenceBundle(bundleId, bundle.sessionId(), bundle.runId(), bundle.agentId(),
                 bundle.kind(), bundle.claim(), bundle.verdict(), savedItems, createdAt);
     }
 
@@ -130,6 +131,18 @@ public class EvidenceStore {
             bundles.add(mapBundle(row, items));
         }
         return bundles;
+    }
+
+    /** 只读取明确绑定到给定 Run 子树的证据包。 */
+    public List<EvidenceBundle> findByRunIds(Collection<String> runIds) {
+        if (runIds == null || runIds.isEmpty()) return List.of();
+        String placeholders = String.join(",", java.util.Collections.nCopies(runIds.size(), "?"));
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(
+                "SELECT * FROM evidence_bundles WHERE run_id IN (" + placeholders
+                        + ") ORDER BY created_at DESC",
+                runIds.toArray());
+        return rows.stream().map(row -> mapBundle(row,
+                queryItems(String.valueOf(row.get("bundle_id"))))).toList();
     }
 
     /**
@@ -193,6 +206,7 @@ public class EvidenceStore {
         return new EvidenceBundle(
                 (String) row.get("bundle_id"),
                 (String) row.get("session_id"),
+                (String) row.get("run_id"),
                 (String) row.get("agent_id"),
                 (String) row.get("kind"),
                 (String) row.get("claim"),

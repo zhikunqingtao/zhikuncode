@@ -9,9 +9,10 @@
  * - 流式更新不闪烁 (streaming 消息使用增量渲染)
  */
 
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
 import { useMessageStore } from '@/store/messageStore';
+import { useWorkbenchViewStore } from '@/store/workbenchViewStore';
 
 import MessageItem from './MessageItem';
 
@@ -31,6 +32,42 @@ const MessageList: React.FC = () => {
     const streamingContent = useMessageStore(s => s.streamingContent);
     const thinkingContent = useMessageStore(s => s.thinkingContent);
     const activeToolCalls = useMessageStore(s => s.activeToolCalls);
+    const pendingMessageId = useWorkbenchViewStore(s => s.pendingMessageId);
+    const consumePendingMessage = useWorkbenchViewStore(s => s.consumePendingMessage);
+
+    useEffect(() => {
+        if (!pendingMessageId) return;
+        const index = messages.findIndex(message => message.uuid === pendingMessageId);
+        if (index < 0) {
+            consumePendingMessage();
+            return;
+        }
+        let cancelled = false;
+        let timer: ReturnType<typeof setTimeout> | null = null;
+        let attempts = 0;
+        const reveal = () => {
+            if (cancelled) return;
+            attempts += 1;
+            if (!virtuosoRef.current && attempts < 10) {
+                timer = setTimeout(reveal, 50);
+                return;
+            }
+            virtuosoRef.current?.scrollToIndex({ index, align: 'center', behavior: 'auto' });
+            // Virtuoso performs its initial measurement after mount. A second
+            // authoritative scroll prevents that first layout pass from
+            // resetting a deep link to the beginning of a long Session.
+            timer = setTimeout(() => {
+                virtuosoRef.current?.scrollToIndex({ index, align: 'center', behavior: 'auto' });
+                consumePendingMessage();
+            }, 120);
+        };
+        const frame = requestAnimationFrame(reveal);
+        return () => {
+            cancelled = true;
+            cancelAnimationFrame(frame);
+            if (timer) clearTimeout(timer);
+        };
+    }, [consumePendingMessage, messages, pendingMessageId]);
 
     // Render each message item
     const itemContent = useCallback((index: number, _data: unknown) => {

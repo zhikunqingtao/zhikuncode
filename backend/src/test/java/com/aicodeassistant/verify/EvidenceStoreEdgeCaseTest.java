@@ -309,7 +309,7 @@ class EvidenceStoreEdgeCaseTest {
         // bundle 写入正常
         verify(jdbcTemplate).update(
                 argThat((String sql) -> sql.contains("INSERT OR REPLACE INTO evidence_bundles")),
-                eq("ev-cyc"), eq("sess"), eq("agent"), eq("journey"),
+                eq("ev-cyc"), eq("sess"), eq((String) null), eq("agent"), eq("journey"),
                 eq("claim"), eq("verified"), eq("2026-06-05T10:00:00Z"));
 
         // item 写入时 meta_json 列为 null

@@ -73,8 +73,7 @@ zhikun.local.md
 .zhikun/
 
 # 运行时 PID 文件
-.service-pids
-.service-pids 2
+.service-pids*
 
 # Internal docs (not for public)
 docs/local/

@@ -9,6 +9,7 @@ import java.time.Instant;
 public record SessionSummary(
         String id,
         String title,
+        String goalPreview,
         String model,
         String workingDirectory,
         int messageCount,

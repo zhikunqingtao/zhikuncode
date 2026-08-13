@@ -167,6 +167,11 @@ public class ProjectWorkspaceService {
                 && nativeDirectoryPicker.isAvailable();
     }
 
+    /** 直接本机桌面能力的共同边界；不依赖文件夹选择器实现是否可用。 */
+    public boolean localDesktopAccessAllowed(String remoteAddress) {
+        return localPickerEnabled && allowedRoots.isEmpty() && isLoopback(remoteAddress);
+    }
+
     /**
      * Opens the native chooser and returns the selected directory listing.
      * Selection alone never creates or authorizes a Project.

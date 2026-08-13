@@ -79,7 +79,7 @@ class EvidenceStoreTest {
     void save_bundleWithoutItems_insertsBundleRow() {
         Instant createdAt = Instant.parse("2026-06-05T10:00:00Z");
         EvidenceBundle bundle = new EvidenceBundle(
-                "ev-001", "session-1", "agent-1",
+                "ev-001", "session-1", "run-1", "agent-1",
                 "journey", "claim text", "verified",
                 List.of(),
                 createdAt
@@ -97,6 +97,7 @@ class EvidenceStoreTest {
                         && sql.contains("created_at")),
                 eq("ev-001"),
                 eq("session-1"),
+                eq("run-1"),
                 eq("agent-1"),
                 eq("journey"),
                 eq("claim text"),
@@ -117,7 +118,7 @@ class EvidenceStoreTest {
         EvidenceItem item2 = new EvidenceItem("item-2", "command", "Step 2 ok", null, Map.of());
 
         EvidenceBundle bundle = new EvidenceBundle(
-                "ev-002", "session-2", "agent-1",
+                "ev-002", "session-2", "run-2", "agent-1",
                 "journey", "claim", "verified",
                 List.of(item1, item2),
                 createdAt

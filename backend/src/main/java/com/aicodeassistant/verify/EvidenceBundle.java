@@ -18,6 +18,7 @@ import java.util.List;
 public record EvidenceBundle(
     String bundleId,
     String sessionId,
+    String runId,
     String agentId,
     String kind,
     String claim,
@@ -25,6 +26,13 @@ public record EvidenceBundle(
     List<EvidenceItem> items,
     Instant createdAt
 ) {
+    /** 历史调用兼容：没有Run上下文的证据保持未绑定。 */
+    public EvidenceBundle(String bundleId, String sessionId, String agentId,
+                          String kind, String claim, String verdict,
+                          List<EvidenceItem> items, Instant createdAt) {
+        this(bundleId, sessionId, null, agentId, kind, claim, verdict, items, createdAt);
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -32,6 +40,7 @@ public record EvidenceBundle(
     public static class Builder {
         private String bundleId;
         private String sessionId;
+        private String runId;
         private String agentId;
         private String kind;
         private String claim;
@@ -41,6 +50,7 @@ public record EvidenceBundle(
 
         public Builder bundleId(String bundleId) { this.bundleId = bundleId; return this; }
         public Builder sessionId(String sessionId) { this.sessionId = sessionId; return this; }
+        public Builder runId(String runId) { this.runId = runId; return this; }
         public Builder agentId(String agentId) { this.agentId = agentId; return this; }
         public Builder kind(String kind) { this.kind = kind; return this; }
         public Builder claim(String claim) { this.claim = claim; return this; }
@@ -51,7 +61,7 @@ public record EvidenceBundle(
         public EvidenceBundle build() {
             if (bundleId == null) bundleId = "ev-" + java.util.UUID.randomUUID().toString().substring(0, 8);
             if (createdAt == null) createdAt = Instant.now();
-            return new EvidenceBundle(bundleId, sessionId, agentId, kind, claim, verdict, items, createdAt);
+            return new EvidenceBundle(bundleId, sessionId, runId, agentId, kind, claim, verdict, items, createdAt);
         }
     }
 }

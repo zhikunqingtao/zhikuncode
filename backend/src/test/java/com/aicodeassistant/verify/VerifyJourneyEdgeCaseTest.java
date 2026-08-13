@@ -13,6 +13,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.ArgumentCaptor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.nio.file.Files;
@@ -136,7 +137,8 @@ class VerifyJourneyEdgeCaseTest {
         ToolInput input = ToolInput.from(Map.of(
                 "journey", steps,
                 "verification_mode", "http_api",
-                "base_url", "http://127.0.0.1:8080"
+                "base_url", "http://127.0.0.1:8080",
+                "claim", "必须生成当前报告"
         ));
         ToolUseContext ctx = ToolUseContext.of(workspace.toString(), "session-large");
 
@@ -152,6 +154,10 @@ class VerifyJourneyEdgeCaseTest {
         assertFalse(result.isError(), "无尺寸限制时大 journey 应通过：" + result.content());
         assertTrue(result.content().contains("1000 steps"),
                 "成功消息应反映实际步数 1000，实际：" + result.content());
+        ArgumentCaptor<EvidenceBundle> evidence = ArgumentCaptor.forClass(EvidenceBundle.class);
+        verify(evidenceStore).save(evidence.capture());
+        assertEquals("必须生成当前报告", evidence.getValue().claim(),
+                "明确提供的验收条款必须逐字进入证据声明");
     }
 
     // ─────────────────────────────────────────────────────────────────────

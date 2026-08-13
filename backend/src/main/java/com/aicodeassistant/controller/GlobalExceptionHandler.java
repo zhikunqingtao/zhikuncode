@@ -9,9 +9,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -73,6 +75,21 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(
                 errorBody("MISSING_PARAMETER",
                         "Required parameter '" + ex.getParameterName() + "' is missing", null));
+    }
+
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    public ResponseEntity<Map<String, Object>> handleMissingHeader(MissingRequestHeaderException ex) {
+        return ResponseEntity.badRequest().body(
+                errorBody("MISSING_HEADER",
+                        "Required header '" + ex.getHeaderName() + "' is missing", null));
+    }
+
+    /** Preserve deliberate API status codes instead of converting them to 500. */
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<Map<String, Object>> handleResponseStatus(ResponseStatusException ex) {
+        String reason = ex.getReason() == null ? "REQUEST_REJECTED" : ex.getReason();
+        return ResponseEntity.status(ex.getStatusCode())
+                .body(errorBody(reason, reason, null));
     }
 
     /**

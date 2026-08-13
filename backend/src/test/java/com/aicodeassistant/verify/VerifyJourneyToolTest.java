@@ -122,5 +122,6 @@ class VerifyJourneyToolTest {
         Map<String, Object> schema = tool.getInputSchema();
         assertEquals("object", schema.get("type"));
         assertTrue(((java.util.List<?>) schema.get("required")).contains("journey"));
+        assertTrue(((Map<?, ?>) schema.get("properties")).containsKey("claim"));
     }
 }

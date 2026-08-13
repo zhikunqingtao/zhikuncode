@@ -22,6 +22,7 @@ import com.aicodeassistant.prompt.SystemPromptConfig;
 import com.aicodeassistant.service.ProjectWorkspaceService;
 import com.aicodeassistant.session.SessionData;
 import com.aicodeassistant.session.SessionManager;
+import com.aicodeassistant.session.SessionMessagePersistence;
 import com.aicodeassistant.tool.Tool;
 import com.aicodeassistant.tool.ToolRegistry;
 import com.aicodeassistant.tool.ToolUseContext;
@@ -156,11 +157,14 @@ public class QueryController {
         ToolUseContext toolCtx = ToolUseContext.of(
                 session.workingDir(), sessionId);
         QueryLoopState state = new QueryLoopState(historyMessages, toolCtx);
+        SessionMessagePersistence persistence = SessionMessagePersistence.attach(
+                state, sessionManager, sessionId, "REST /api/query");
         // 添加用户消息
-        state.addMessage(new Message.UserMessage(
+        Message.UserMessage requestMessage = new Message.UserMessage(
                 UUID.randomUUID().toString(), Instant.now(),
                 List.of(new ContentBlock.TextBlock(userMessage)),
-                null, null));
+                null, null);
+        state.addMessage(requestMessage);
 
         // 7. 执行查询
         ResultCollectingHandler handler = new ResultCollectingHandler();
@@ -172,21 +176,9 @@ public class QueryController {
             List<Message> newMessages = result.messages().subList(
                     Math.min(existingCount, result.messages().size()),
                     result.messages().size());
-            for (Message msg : newMessages) {
-                switch (msg) {
-                    case Message.UserMessage user -> sessionManager.addMessage(
-                            sessionId, "user", user.content(), null, 0, 0);
-                    case Message.AssistantMessage assistant -> sessionManager.addMessage(
-                            sessionId, "assistant", assistant.content(),
-                            assistant.stopReason(),
-                            assistant.usage() != null ? assistant.usage().inputTokens() : 0,
-                            assistant.usage() != null ? assistant.usage().outputTokens() : 0);
-                    case Message.SystemMessage system -> sessionManager.addMessage(
-                            sessionId, "system", system.content(), null, 0, 0);
-                }
-            }
-            log.debug("REST API /api/query: 已持久化 {} 条新消息到会话 {}（历史 {} 条）",
-                    newMessages.size(), sessionId, historyMessages.size());
+            int recovered = persistence.reconcile(newMessages);
+            log.debug("REST API /api/query: 已确认 {} 条新消息，补写 {} 条，会话 {}（历史 {} 条）",
+                    newMessages.size(), recovered, sessionId, historyMessages.size());
         } catch (Exception e) {
             log.error("REST API 消息持久化失败, sessionId={}", sessionId, e);
             // 持久化失败不阻塞响应返回（降级策略）
@@ -263,10 +255,13 @@ public class QueryController {
                 ToolUseContext toolCtx = ToolUseContext.of(
                         session.workingDir(), sessionId);
                 QueryLoopState state = new QueryLoopState(historyMessages, toolCtx);
-                state.addMessage(new Message.UserMessage(
+                SessionMessagePersistence persistence = SessionMessagePersistence.attach(
+                        state, sessionManager, sessionId, "SSE /api/query/stream");
+                Message.UserMessage requestMessage = new Message.UserMessage(
                         UUID.randomUUID().toString(), Instant.now(),
                         List.of(new ContentBlock.TextBlock(userMessage)),
-                        null, null));
+                        null, null);
+                state.addMessage(requestMessage);
 
                 // 流式回调 → SSE 推送（使用独立 SseStreamHandler）
                 SseStreamHandler handler = new SseStreamHandler(emitter, objectMapper);
@@ -278,21 +273,9 @@ public class QueryController {
                     List<Message> newMessages = result.messages().subList(
                             Math.min(existingCount, result.messages().size()),
                             result.messages().size());
-                    for (Message msg : newMessages) {
-                        switch (msg) {
-                            case Message.UserMessage user -> sessionManager.addMessage(
-                                    sessionId, "user", user.content(), null, 0, 0);
-                            case Message.AssistantMessage assistant -> sessionManager.addMessage(
-                                    sessionId, "assistant", assistant.content(),
-                                    assistant.stopReason(),
-                                    assistant.usage() != null ? assistant.usage().inputTokens() : 0,
-                                    assistant.usage() != null ? assistant.usage().outputTokens() : 0);
-                            case Message.SystemMessage system -> sessionManager.addMessage(
-                                    sessionId, "system", system.content(), null, 0, 0);
-                        }
-                    }
-                    log.debug("SSE /api/query/stream: 已持久化 {} 条新消息到会话 {}（历史 {} 条）",
-                            newMessages.size(), sessionId, historyMessages.size());
+                    int recovered = persistence.reconcile(newMessages);
+                    log.debug("SSE /api/query/stream: 已确认 {} 条新消息，补写 {} 条，会话 {}（历史 {} 条）",
+                            newMessages.size(), recovered, sessionId, historyMessages.size());
                 } catch (Exception e) {
                     log.error("SSE 消息持久化失败, sessionId={}", sessionId, e);
                 }
@@ -376,12 +359,15 @@ public class QueryController {
         log.debug("REST API conversation: permissionMode={}, notifier=null (by design)",
                 effectiveMode);
         QueryLoopState state = new QueryLoopState(new ArrayList<>(session.messages()), toolCtx);
+        SessionMessagePersistence persistence = SessionMessagePersistence.attach(
+                state, sessionManager, request.sessionId(), "REST /api/query/conversation");
 
         // 追加新用户消息
-        state.addMessage(new Message.UserMessage(
+        Message.UserMessage requestMessage = new Message.UserMessage(
                 UUID.randomUUID().toString(), Instant.now(),
                 List.of(new ContentBlock.TextBlock(request.prompt())),
-                null, null));
+                null, null);
+        state.addMessage(requestMessage);
 
         // 4. 执行查询
         ResultCollectingHandler handler = new ResultCollectingHandler();
@@ -393,21 +379,9 @@ public class QueryController {
             List<Message> newMessages = result.messages().subList(
                     Math.min(existingCount, result.messages().size()),
                     result.messages().size());
-            for (Message msg : newMessages) {
-                switch (msg) {
-                    case Message.UserMessage user -> sessionManager.addMessage(
-                            request.sessionId(), "user", user.content(), null, 0, 0);
-                    case Message.AssistantMessage assistant -> sessionManager.addMessage(
-                            request.sessionId(), "assistant", assistant.content(),
-                            assistant.stopReason(),
-                            assistant.usage() != null ? assistant.usage().inputTokens() : 0,
-                            assistant.usage() != null ? assistant.usage().outputTokens() : 0);
-                    case Message.SystemMessage system -> sessionManager.addMessage(
-                            request.sessionId(), "system", system.content(), null, 0, 0);
-                }
-            }
-            log.debug("REST API /api/query/conversation: 已持久化 {} 条新消息到会话 {}",
-                    newMessages.size(), request.sessionId());
+            int recovered = persistence.reconcile(newMessages);
+            log.debug("REST API /api/query/conversation: 已确认 {} 条新消息，补写 {} 条，会话 {}",
+                    newMessages.size(), recovered, request.sessionId());
         } catch (Exception e) {
             log.error("Conversation 消息持久化失败, sessionId={}",
                     request.sessionId(), e);

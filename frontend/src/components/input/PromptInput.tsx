@@ -59,6 +59,7 @@ interface PromptInputProps {
     permissionMode: string;
     messages: Message[];
     commands: Command[];
+    simpleMode?: boolean;
 }
 
 const PromptInput: React.FC<PromptInputProps> = ({
@@ -69,6 +70,7 @@ const PromptInput: React.FC<PromptInputProps> = ({
     runActive,
     compacting,
     commands,
+    simpleMode = false,
 }) => {
     const [input, setInput] = useState('');
     const [attachments, setAttachments] = useState<LocalAttachment[]>([]);
@@ -221,7 +223,9 @@ const PromptInput: React.FC<PromptInputProps> = ({
         // Enter (no Shift) → submit
         if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey) {
             e.preventDefault();
-            if (input.trim()) void handleSubmit();
+            if (input.trim() || attachments.length > 0) {
+                void handleSubmit();
+            }
             return;
         }
 
@@ -261,7 +265,7 @@ const PromptInput: React.FC<PromptInputProps> = ({
         if (e.key === 'Tab' && showCommands) {
             e.preventDefault();
         }
-    }, [input, runActive, compacting, showCommands, showGlobalPalette, historyIndex, onInterrupt, handleSubmit]);
+    }, [input, attachments.length, runActive, compacting, showCommands, showGlobalPalette, historyIndex, onInterrupt, handleSubmit]);
 
     const handleFiles = useCallback(async (files: File[]) => {
         if (runActive || compacting) {
@@ -536,7 +540,9 @@ const PromptInput: React.FC<PromptInputProps> = ({
                             ? '正在压缩上下文，请稍候…'
                             : runActive
                             ? '输入对当前任务的新指令，将在当前操作完成后应用'
-                            : `Type a message... (/ for commands, ${navigator.platform.includes('Mac') ? '⌘' : 'Ctrl+'}K for palette)`
+                            : simpleMode
+                            ? '描述你希望完成或继续修改的事情…'
+                            : `输入消息…（/ 查看命令，${navigator.platform.includes('Mac') ? '⌘' : 'Ctrl+'}K 打开命令面板）`
                     }
                     disabled={disabled || compacting || isSubmitting}
                     aria-label="输入消息"

@@ -15,12 +15,13 @@ import {
 } from 'vitest';
 import PromptInput from './PromptInput';
 import type { Command } from '@/types';
+import { useWorkbenchViewStore } from '@/store/workbenchViewStore';
 
 function renderInput(
     onSubmit: (event: unknown) => Promise<boolean>,
     onSlashCommand = vi.fn().mockResolvedValue(true),
     commands: Command[] = [],
-    state: { runActive?: boolean; compacting?: boolean } = {},
+    state: { runActive?: boolean; compacting?: boolean; simpleMode?: boolean } = {},
 ) {
     render(
         <PromptInput
@@ -33,12 +34,19 @@ function renderInput(
             permissionMode="read_write"
             messages={[]}
             commands={commands}
+            simpleMode={state.simpleMode}
         />,
     );
 }
 
 describe('PromptInput asynchronous submit', () => {
     beforeEach(() => {
+        useWorkbenchViewStore.setState({
+            enabled: true,
+            activeSessionId: 'session-a',
+            defaultView: 'simple',
+            viewMode: 'simple',
+        });
         Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
             configurable: true,
             value: vi.fn(),
@@ -92,6 +100,14 @@ describe('PromptInput asynchronous submit', () => {
 
         await waitFor(() => expect(input).toBeEnabled());
         expect(input).toHaveValue('keep this draft');
+    });
+
+    it('uses result-oriented copy in the simple workbench', () => {
+        renderInput(vi.fn().mockResolvedValue(true), undefined, [], {
+            simpleMode: true,
+        });
+        expect(screen.getByRole('textbox', { name: '输入消息' }))
+            .toHaveAttribute('placeholder', '描述你希望完成或继续修改的事情…');
     });
 
     it('clears a slash command only after it was accepted', async () => {

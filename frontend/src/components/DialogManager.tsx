@@ -133,6 +133,7 @@ export const DialogManager: React.FC = () => {
                 <ElicitationDialog
                     key={elicitationDialog.interactionId}
                     requestId={elicitationDialog.requestId}
+                    interactionId={elicitationDialog.interactionId}
                     question={elicitationDialog.question}
                     options={elicitationDialog.options as { value: string; label: string; description?: string }[] | undefined}
                     decisionDeadlineAt={elicitationDialog.decisionDeadlineAt}

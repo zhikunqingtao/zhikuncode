@@ -108,6 +108,8 @@ ZhikunCode 使用 Kimi K3 在 2026-08-09 凌晨一次性完成了一个纯静态
 | | 特性 | 说明 |
 |---|---|---|
 | 🌐 | **浏览器全流程操控** | 部署一次，任何设备的浏览器即可完成全流程操作 —— 权限审批、方案协商、任务管控，手机上也能用，无需安装客户端 |
+| 🧭 | **双视图任务工作台** | 同一 Session 可在简洁工作台与开发工作台之间自由切换。简洁工作台集中展示当前要求、执行状态、主要成果、待处理事项和验收结果；开发工作台保留完整对话、工具、文件、Git、终端、浏览器与 Agent 信息。切换只改变信息组织，不改变后台执行方式 |
+| 📦 | **当前交付投影** | 按当前 Root Run 及其递归子 Run 关联本轮要求、最终回复、交付物、待处理 Interaction、活动与 Evidence，避免把不同执行轮次的数据拼接成一次交付；无法精确关联的旧 Session 会明确采用兼容回退 |
 | 📁 | **Project 与 Run 控制** | 直连本机可选用原生目录选择器，远程部署只浏览配置的 allowed roots；Project 经真实路径规范化并持久授权，Session 拒绝客户端任意 `workingDirectory`。运行中输入按 Session 投递并返回 queued/applied/rejected，支持取消、包含 INTERRUPTED 的 CAS 单一终态与 WebSocket 恢复 |
 | 🤖 | **多 Agent 协作** | Team（固定分工）/ Swarm（动态协商）/ SubAgent（主从委派）三种协作模式，复杂任务自动分工 |
 | 🔒 | **统一授权安全架构** | 所有核心工具统一经过 Tool Gateway：规范化输入冻结 → Operation Analyzer 风险与资源分析 → 系统不变量检查 → RUN/SESSION/WORKSPACE Grant 匹配或持久权限交互 → 执行前动态复检 → 结构化结果审计。高风险操作只允许单次授权；专用 Network/MCP Analyzer 对 SAFE/GUARDED 操作支持按工具记住 RUN/SESSION 授权，未知 MCP/动态工具默认只能单次审批 |
@@ -207,7 +209,8 @@ cd zhikuncode
 cp .env.example .env
 # 编辑 .env，填入你的 LLM API Key
 
-# 一键启动三端服务
+# 停止旧进程后启动三端服务
+./stop.sh
 ./start.sh
 ```
 
@@ -220,6 +223,15 @@ cp .env.example .env
 | **Frontend** | `http://localhost:5173` | React 开发服务器 |
 
 > `./start.sh` 默认把仓库根目录设为 workspace；仅当 allowed roots 和本地 picker 开关都没有非空配置时，才自动启用直连本机目录浏览。
+
+#### 本地工作台使用说明
+
+- 首次使用默认进入**简洁工作台**；可通过页面顶部随时切换到**开发工作台**。
+- 简洁工作台面向结果，展示当前 Root Run 对应的要求、最终回复、主要成果、待处理事项、近期活动和验收状态，不把旧执行结果混入本轮交付。
+- 开发工作台保留完整对话、工具调用、文件、Diff、Git、终端、浏览器、Agent 和证据视图。
+- 视图选择保存在当前浏览器中，并支持按 Session 记住选择；切换视图不会中断任务或改变运行状态。
+- PDF、图片、文本和 Markdown 等支持在工作台内安全预览；其他文件可切换到开发工作台文件区处理。
+- “在文件夹中显示”仅适用于从本机浏览器直连本地 ZhikunCode 的场景。
 
 <details>
 <summary><b>手动分别启动各服务</b></summary>
@@ -677,10 +689,11 @@ Web 新会话必须先选择一个已授权目录。远程和 Docker 部署的�
 **持续集成：**
 - **GitHub Actions 自动化流水线**：主 CI 执行后端编译和前端构建；Python 测试当前为非阻塞检查，Docker 镜像验证仅在 `main` push 时执行。
 
-**当前代码验证结果（2026-08-02）：**
-- **后端单元/集成测试**：2244 tests / 0 failure / 0 error / 48 skipped
-- **Python pytest**：104 PASS
-- **前端 vitest**：142 PASS / 16 skipped（158 total）
+**当前代码本地验证快照（2026-08-13）：**
+- **后端单元/集成测试**：2317 tests / 0 failure / 0 error / 48 skipped
+- **Python pytest**：107 PASS
+- **前端 vitest**：182 PASS / 16 skipped（198 total）
+- **简洁工作台 Playwright E2E**：3 / 3 PASS
 - **静态与构建验证**：TypeScript 与 Vite 生产构建通过
 
 **历史专项与 E2E 基线：**
@@ -696,10 +709,10 @@ Web 新会话必须先选择一个已授权目录。远程和 Docker 部署的�
 
 | 框架 | 层级 | 覆盖范围 | 数量 |
 |------|------|---------|------|
-| JUnit 5 + Mockito | 后端单元/集成测试 | 上下文/授权网关/技能/插件/LLM/MCP/记忆/并发/SSE/持久化/工具/Coordinator/Swarm 等 | 2244 tests / 0 failure / 0 error |
-| Vitest | 前端单元测试 | Store 生命周期/跨 Tab 同步/流式渲染/权限交互/重连恢复/路由边界 | 142 PASS / 16 skipped |
-| Playwright + 节点脚本 | 端到端 E2E | Coordinator WS 订阅 / 可视化 3 种 viewType / 浏览器快照 MVP / APOS Phase 1 全栈 / APOS Phase 2 全栈 | Task 6/7/8/APOS 全绿 |
-| Pytest | Python 服务测试 | Token 估算/文件处理/浏览器自动化/语义快照/代码分析器/CLI | 104 PASS |
+| JUnit 5 + Mockito | 后端单元/集成测试 | 上下文/授权网关/技能/插件/LLM/MCP/记忆/并发/SSE/持久化/工具/Coordinator/Swarm/工作台投影等 | 2317 tests / 0 failure / 0 error / 48 skipped |
+| Vitest | 前端单元测试 | Store 生命周期/跨 Tab 同步/流式渲染/权限交互/重连恢复/工作台与路由边界 | 182 PASS / 16 skipped |
+| Playwright + 节点脚本 | 端到端 E2E | 简洁工作台 / Coordinator WS 订阅 / 可视化 3 种 viewType / 浏览器快照 MVP / APOS Phase 1 全栈 / APOS Phase 2 全栈 | 简洁工作台 3/3 PASS；Task 6/7/8/APOS 历史基线全绿 |
+| Pytest | Python 服务测试 | Token 估算/文件处理/浏览器自动化/语义快照/代码分析器/CLI | 107 PASS |
 
 **性能基线（v9.3，490 次真实请求采样）：**
 

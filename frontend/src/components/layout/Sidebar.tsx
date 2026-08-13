@@ -26,6 +26,8 @@ import {
     Workflow,
     Network,
     Activity
+    ,Search
+    ,CircleDashed
 } from 'lucide-react';
 import { APISequenceDiagram } from '@/components/visualization/backend/APISequenceDiagram';
 import { FileTreePanel } from '@/components/layout/FileTreePanel';
@@ -50,6 +52,8 @@ import { dispatchNewAuthorizedSessionRequest } from '@/services/authorizedSessio
 import { activateSessionCandidate } from '@/services/sessionActivation';
 import { generateUUID } from '@/utils/uuid';
 import type { TaskState } from '@/types';
+import { useWorkbenchViewStore } from '@/store/workbenchViewStore';
+import { taskTitle } from '@/utils/workbenchPresentation';
 
 type TabType = 'sessions' | 'tasks' | 'files' | 'sequence' | 'dag' | 'git' | 'complexity' | 'impact' | 'api-docs' | 'diagram' | 'code-path' | 'apos';
 
@@ -75,6 +79,9 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab }: Si
         return 'sessions';
     });
     const { tasks, clearTasks } = useTaskStore();
+    const workbenchEnabled = useWorkbenchViewStore(s => s.enabled);
+    const viewMode = useWorkbenchViewStore(s => s.viewMode);
+    const simpleMode = workbenchEnabled && viewMode === 'simple';
 
     // ── Auto-Routing 跳转接收端（v1.5 升级项 C Beta） ──
     // VisualizationMessage 点击“查看”时写入 pendingVisualizationTab，本处消费后置空。
@@ -147,8 +154,8 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab }: Si
 
     const aposEnabled = useFeatureFlagStore((s) => s.flags.APOS_ACTIVITY_STREAM);
 
-    const tabs: { id: TabType; label: string; icon: typeof MessageSquare }[] = [
-        { id: 'sessions', label: '会话', icon: MessageSquare },
+    const allTabs: { id: TabType; label: string; icon: typeof MessageSquare }[] = [
+        { id: 'sessions', label: simpleMode ? '任务' : '会话', icon: MessageSquare },
         { id: 'tasks', label: '任务', icon: CheckCircle2 },
         { id: 'files', label: '文件', icon: FolderTree },
         { id: 'sequence', label: '序列图', icon: ArrowDownUp },
@@ -161,6 +168,15 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab }: Si
         { id: 'code-path', label: '代码路径', icon: Network },
         ...(aposEnabled ? [{ id: 'apos' as TabType, label: 'Activity', icon: Activity }] : []),
     ];
+    const tabs = simpleMode
+        ? allTabs.filter(tab => tab.id === 'sessions')
+        : allTabs;
+
+    useEffect(() => {
+        if (simpleMode && activeTab !== 'sessions') {
+            setActiveTab('sessions');
+        }
+    }, [activeTab, simpleMode]);
 
     // Drawer 模式不使用动态宽度
     const sidebarStyle = isDrawerMode ? undefined : { width: `${width}px` };
@@ -189,18 +205,20 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab }: Si
                     </button>
                 ))}
                 {/* 新窗口打开按钮 */}
-                <button
-                    onClick={handleOpenInNewWindow}
-                    className="p-1.5 ml-auto text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] rounded transition-colors self-center mr-1"
-                    title="在新窗口中打开侧边栏"
-                >
-                    <ExternalLink className="w-4 h-4" />
-                </button>
+                {!simpleMode && (
+                    <button
+                        onClick={handleOpenInNewWindow}
+                        className="p-1.5 ml-auto text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] rounded transition-colors self-center mr-1"
+                        title="在新窗口中打开侧边栏"
+                    >
+                        <ExternalLink className="w-4 h-4" />
+                    </button>
+                )}
             </div>
 
             {/* Content */}
             <div className="flex-1 overflow-y-auto">
-                {activeTab === 'sessions' && <SessionList />}
+                {activeTab === 'sessions' && (simpleMode ? <SimpleTaskList /> : <SessionList />)}
                 {activeTab === 'tasks' && <TaskPanel tasks={tasks} onClear={clearTasks} />}
                 {activeTab === 'files' && <FileTreePanel sidebarWidth={isDrawerMode ? 280 : width} />}
                 {activeTab === 'sequence' && <APISequenceDiagram />}
@@ -282,6 +300,7 @@ function ApiDocsTab() {
 interface SessionSummary {
     id: string;
     title: string | null;
+    goalPreview?: string | null;
     model: string;
     workingDirectory: string;
     messageCount: number;
@@ -297,6 +316,8 @@ function SessionList() {
     const [hasMore, setHasMore] = useState(false);
     const [nextCursor, setNextCursor] = useState<string | null>(null);
     const currentSessionId = useSessionStore(s => s.sessionId);
+    const currentMessages = useMessageStore(s => s.messages);
+    const simpleMode = useWorkbenchViewStore(s => s.enabled && s.viewMode === 'simple');
     const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     // 加载会话列表
@@ -405,7 +426,7 @@ function SessionList() {
                         border border-dashed border-[var(--border)] transition-colors"
                 >
                     <Plus className="w-4 h-4" />
-                    新建会话
+                    {simpleMode ? '新建任务' : '新建会话'}
                 </button>
             </div>
 
@@ -413,10 +434,20 @@ function SessionList() {
             <div className="flex-1 overflow-y-auto p-2 space-y-1">
                 {sessions.length === 0 ? (
                     <div className="p-4 text-center text-[var(--text-muted)] text-sm">
-                        暂无会话记录
+                        {simpleMode ? '暂无任务记录' : '暂无会话记录'}
                     </div>
                 ) : (
-                    sessions.map(session => (
+                    sessions.map(session => {
+                        const folder = session.workingDirectory.split(/[\\/]/).filter(Boolean).at(-1);
+                        const displayTitle = simpleMode
+                            ? taskTitle(
+                                session.title,
+                                session.id === currentSessionId ? currentMessages : [],
+                                session.workingDirectory,
+                                session.goalPreview,
+                            )
+                            : session.title || taskTitle(null, [], session.workingDirectory, session.goalPreview);
+                        return (
                         <div
                             key={session.id}
                             onClick={() => { void handleSwitchSession(session.id); }}
@@ -428,16 +459,21 @@ function SessionList() {
                             <div className="flex items-start justify-between gap-1">
                                 <div className="flex-1 min-w-0">
                                     <div className="text-sm font-medium text-[var(--text-primary)] truncate">
-                                        {session.title || `会话 ${session.id.slice(0, 8)}`}
+                                        {displayTitle}
                                     </div>
-                                    <div className="flex items-center gap-2 mt-1">
+                                    {!simpleMode && <div className="flex items-center gap-2 mt-1">
                                         <span className="text-xs text-[var(--text-muted)] truncate">
-                                            {session.model}
+                                            {session.model} · {session.id.slice(0, 8)}
                                         </span>
                                         <span className="text-xs text-[var(--text-muted)]">
                                             {session.messageCount} 条消息
                                         </span>
-                                    </div>
+                                    </div>}
+                                    {simpleMode && folder && (
+                                        <div className="mt-1 truncate text-xs text-[var(--text-muted)]" title={session.workingDirectory}>
+                                            文件夹：{folder}
+                                        </div>
+                                    )}
                                     <div className="flex items-center gap-1 mt-1 text-xs text-[var(--text-muted)]">
                                         <Clock className="w-3 h-3" />
                                         {formatTime(session.updatedAt)}
@@ -448,13 +484,15 @@ function SessionList() {
                                     className="p-1 rounded opacity-0 group-hover:opacity-100
                                         hover:bg-red-500/10 text-[var(--text-muted)] hover:text-red-500
                                         transition-all"
-                                    title="删除会话"
+                                    title={simpleMode ? '删除任务' : '删除会话'}
+                                    aria-label={simpleMode ? '删除任务' : '删除会话'}
                                 >
                                     <Trash2 className="w-3.5 h-3.5" />
                                 </button>
                             </div>
                         </div>
-                    ))
+                        );
+                    })
                 )}
 
                 {/* 加载更多 */}
@@ -469,6 +507,90 @@ function SessionList() {
             </div>
         </div>
     );
+}
+
+type WorkbenchTaskGroup = 'ACTION_REQUIRED' | 'RUNNING' | 'REVIEWABLE' | 'OTHER';
+interface WorkbenchTaskItem {
+    sessionId: string;
+    title: string;
+    folderName: string;
+    status: WorkbenchTaskGroup;
+    updatedAt: string;
+    pendingCount: number;
+    hint: string;
+}
+interface WorkbenchTaskGroupView { status: WorkbenchTaskGroup; label: string; tasks: WorkbenchTaskItem[]; }
+
+/** 简洁模式任务导航只消费服务端权威分组，不从消息数或客户端状态推断。 */
+function SimpleTaskList() {
+    const [groups, setGroups] = useState<WorkbenchTaskGroupView[]>([]);
+    const [query, setQuery] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [collapsed, setCollapsed] = useState<Set<WorkbenchTaskGroup>>(new Set(['OTHER']));
+    const currentSessionId = useSessionStore(state => state.sessionId);
+    const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    const fetchTasks = useCallback(async (search = query) => {
+        try {
+            const params = new URLSearchParams(); if (search.trim()) params.set('query', search.trim());
+            const response = await fetch(`/api/workbench/tasks${params.size ? `?${params}` : ''}`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json() as { groups?: WorkbenchTaskGroupView[] };
+            setGroups(Array.isArray(data.groups) ? data.groups : []);
+        } catch (error) { console.warn('[SimpleTaskList] Failed to fetch tasks:', error); }
+        finally { setLoading(false); }
+    }, [query]);
+
+    useEffect(() => {
+        const timer = window.setTimeout(() => { void fetchTasks(query); }, query ? 250 : 0);
+        return () => window.clearTimeout(timer);
+    }, [fetchTasks, query]);
+    useEffect(() => {
+        pollRef.current = setInterval(() => { void fetchTasks(query); }, 30000);
+        const handler = () => { void fetchTasks(query); };
+        window.addEventListener('session-list-updated', handler);
+        return () => { if (pollRef.current) clearInterval(pollRef.current); window.removeEventListener('session-list-updated', handler); };
+    }, [fetchTasks, query]);
+
+    const switchTask = async (sessionId: string) => {
+        if (sessionId === currentSessionId) return;
+        const result = await activateSessionCandidate(sessionId);
+        if (result.status === 'failed') useNotificationStore.getState().addNotification({ key: `task-switch-${generateUUID()}`, level: 'error', message: `切换任务失败：${result.error.message}` });
+    };
+    const deleteTask = async (event: React.MouseEvent, sessionId: string) => {
+        event.stopPropagation();
+        if (!window.confirm('确定删除这个任务及其本地记录吗？')) return;
+        const response = await fetch(`/api/sessions/${sessionId}`, { method: 'DELETE' });
+        if (response.ok) void fetchTasks(query);
+    };
+    const iconFor = (status: WorkbenchTaskGroup) => status === 'ACTION_REQUIRED' ? XCircle
+        : status === 'RUNNING' ? Loader2 : status === 'REVIEWABLE' ? CheckCircle2 : CircleDashed;
+    const toneFor = (status: WorkbenchTaskGroup) => status === 'ACTION_REQUIRED' ? 'text-amber-500'
+        : status === 'RUNNING' ? 'text-blue-500' : status === 'REVIEWABLE' ? 'text-green-500' : 'text-[var(--text-muted)]';
+    const formatTime = (value: string) => {
+        const diff = Date.now() - Date.parse(value); const minutes = Math.floor(diff / 60000);
+        if (minutes < 1) return '刚刚'; if (minutes < 60) return `${minutes} 分钟前`;
+        const hours = Math.floor(minutes / 60); if (hours < 24) return `${hours} 小时前`;
+        return `${Math.floor(hours / 24)} 天前`;
+    };
+
+    return <div className="flex h-full flex-col">
+        <div className="space-y-2 border-b border-[var(--border)] p-2">
+            <button onClick={() => dispatchNewAuthorizedSessionRequest()} className="flex w-full items-center gap-2 rounded-lg border border-dashed border-[var(--border)] px-3 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"><Plus className="h-4 w-4" />新建任务</button>
+            <label className="flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2"><Search className="h-4 w-4 text-[var(--text-muted)]" /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="搜索任务或文件夹" className="min-w-0 flex-1 bg-transparent text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]" /></label>
+        </div>
+        <div className="flex-1 overflow-y-auto p-2">
+            {loading && <div className="flex justify-center p-4"><Loader2 className="h-5 w-5 animate-spin text-[var(--text-muted)]" /></div>}
+            {!loading && groups.every(group => group.tasks.length === 0) && <p className="p-4 text-center text-sm text-[var(--text-muted)]">没有匹配的任务</p>}
+            {groups.map(group => {
+                if (group.tasks.length === 0) return null;
+                const collapsedGroup = collapsed.has(group.status); const GroupIcon = iconFor(group.status);
+                return <section key={group.status} className="mb-3"><button onClick={() => setCollapsed(previous => { const next = new Set(previous); next.has(group.status) ? next.delete(group.status) : next.add(group.status); return next; })} className="flex w-full items-center gap-2 px-2 py-1.5 text-xs font-medium text-[var(--text-secondary)]"><span>{collapsedGroup ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}</span><GroupIcon className={`h-3.5 w-3.5 ${toneFor(group.status)} ${group.status === 'RUNNING' ? 'animate-spin' : ''}`} />{group.label}<span className="ml-auto text-[var(--text-muted)]">{group.tasks.length}</span></button>
+                    {!collapsedGroup && <div className="space-y-1">{group.tasks.map(task => <div key={task.sessionId} onClick={() => { void switchTask(task.sessionId); }} className={`group cursor-pointer rounded-lg border px-3 py-2.5 transition-colors ${task.sessionId === currentSessionId ? 'border-blue-500/30 bg-blue-500/10' : 'border-transparent hover:bg-[var(--bg-hover)]'}`}><div className="flex items-start gap-2"><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-[var(--text-primary)]">{task.title}</p><p className="mt-1 truncate text-xs text-[var(--text-muted)]">{task.folderName} · {task.hint}</p><p className="mt-1 flex items-center gap-1 text-[11px] text-[var(--text-muted)]"><Clock className="h-3 w-3" />{formatTime(task.updatedAt)}</p></div><button onClick={event => { void deleteTask(event, task.sessionId); }} className="rounded p-1 text-[var(--text-muted)] opacity-0 hover:bg-red-500/10 hover:text-red-500 group-hover:opacity-100" aria-label={`删除任务 ${task.title}`}><Trash2 className="h-3.5 w-3.5" /></button></div></div>)}</div>}
+                </section>;
+            })}
+        </div>
+    </div>;
 }
 
 // Task Panel Component

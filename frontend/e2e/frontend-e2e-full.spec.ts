@@ -187,7 +187,7 @@ test.describe('前端 E2E 与 UI 功能测试 (Task 13)', () => {
     });
 
     await page.goto('/', { waitUntil: 'domcontentloaded' });
-    const newSessionButton = page.locator('button[title="新建会话"]');
+    const newSessionButton = page.getByLabel('新建会话', { exact: true });
     await expect(newSessionButton,
       `Application failed to render: ${browserErrors.join(' | ')}`,
     ).toBeVisible();

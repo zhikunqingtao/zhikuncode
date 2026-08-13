@@ -9,7 +9,7 @@ test.describe.configure({ timeout: 300_000 });
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const SCREENSHOT_DIR = path.resolve(__dirname, '../../docs/test-results/screenshots/visualization');
-const PROJECT_ROOT = '/Users/guoqingtao/Desktop/dev/code/zhikuncode/python-service';
+const PROJECT_ROOT = path.resolve(__dirname, '../../python-service');
 
 // 确保截图目录存在
 test.beforeAll(async () => {

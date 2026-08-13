@@ -103,6 +103,8 @@ In a single overnight run on 2026-08-09, ZhikunCode used Kimi K3 to build a pure
 | | Feature | Description |
 |---|---|---|
 | 🌐 | **Full Browser-Based Control** | Deploy once, then manage everything from any device's browser — permission approvals, plan discussions, task management. Works on mobile. No client installation needed |
+| 🧭 | **Dual-View Task Workbench** | Switch freely between a result-focused Simple Workbench and the full Development Workbench within the same Session. The simple view brings the current request, execution state, primary deliverable, pending actions, and acceptance results together; the development view keeps the full conversation, tools, files, Git, terminal, browser, and Agent details. Switching views does not change runtime behavior |
+| 📦 | **Current Delivery Projection** | Correlates the current request, final response, deliverables, pending Interactions, activities, and Evidence through the current Root Run and its recursive child Runs, preventing results from different executions from being presented as one delivery. Legacy Sessions that cannot be correlated exactly are explicitly marked as compatibility fallbacks |
 | 🤖 | **Multi-Agent Collaboration** | Three collaboration modes: Team (fixed roles) / Swarm (dynamic negotiation) / SubAgent (parent-child delegation). Complex tasks are automatically distributed |
 | 🔒 | **Unified Authorization Security** | Every core tool passes through the Tool Gateway: canonical input freezing → Operation Analyzer risk/resource analysis → system invariants → RUN/SESSION/WORKSPACE grant matching or durable permission interaction → final dynamic recheck → structured result auditing. High-risk operations are ONCE-only, and unknown MCP/dynamic tools default to one-time approval |
 | 🇨🇳 | **Native Chinese LLM Support** | Qwen / DeepSeek / Moonshot / Zhipu GLM / MiniMax work out of the box with direct connections from mainland China — no VPN required |
@@ -201,7 +203,8 @@ cd zhikuncode
 cp .env.example .env
 # Edit .env and add your LLM API Key
 
-# Start all three services at once
+# Stop old processes, then start all three services
+./stop.sh
 ./start.sh
 ```
 
@@ -214,6 +217,15 @@ All three services start simultaneously:
 | **Frontend** | `http://localhost:5173` | React dev server |
 
 > `./start.sh` uses the repository root as the default workspace. It enables direct-local directory browsing only when neither allowed roots nor the local-picker flag has a non-empty value.
+
+#### Using the Local Workbench
+
+- First-time users enter the **Simple Workbench** by default and can switch to the **Development Workbench** from the page header at any time.
+- The Simple Workbench presents the request, final response, primary deliverable, pending actions, recent activities, and acceptance status for the current Root Run without mixing in older execution results.
+- The Development Workbench retains the full conversation, tool calls, files, diffs, Git, terminal, browser, Agent, and evidence views.
+- The selected view is stored in the current browser and can be remembered per Session. Switching views does not interrupt a task or alter its runtime state.
+- PDFs, images, text, and Markdown can be previewed safely inside the workbench. Other files remain available through the Development Workbench file area.
+- “Reveal in folder” is available only when a local browser connects directly to the local ZhikunCode instance.
 
 <details>
 <summary><b>Start each service manually</b></summary>
@@ -659,10 +671,11 @@ Full test report: [ZhikunCode v9.3 End-to-End Test Report](test-results/v9.3/Zhi
 **Continuous Integration:**
 - **GitHub Actions Pipeline**: The main CI runs backend compilation and the frontend build. Python tests are currently non-blocking, and Docker image verification runs only on pushes to `main`.
 
-**Current Code Verification (2026-08-02):**
-- **Backend Unit/Integration Tests**: 2244 tests / 0 failure / 0 error / 48 skipped
-- **Python pytest**: 104 PASS
-- **Frontend vitest**: 142 PASS / 16 skipped (158 total)
+**Current Local Verification Snapshot (2026-08-13):**
+- **Backend Unit/Integration Tests**: 2317 tests / 0 failure / 0 error / 48 skipped
+- **Python pytest**: 107 PASS
+- **Frontend vitest**: 182 PASS / 16 skipped (198 total)
+- **Simple Workbench Playwright E2E**: 3 / 3 PASS
 - **Static and Build Validation**: TypeScript and the Vite production build passed
 
 **Historical Specialized and E2E Baselines:**
@@ -678,10 +691,10 @@ Full test report: [ZhikunCode v9.3 End-to-End Test Report](test-results/v9.3/Zhi
 
 | Framework | Layer | Coverage | Count |
 |-----------|-------|----------|-------|
-| JUnit 5 + Mockito | Backend Unit/Integration | Context/Authorization Gateway/Skill/Plugin/LLM/MCP/Memory/Concurrency/SSE/Persistence/Tool/Coordinator/Swarm etc. | 2244 tests / 0 failure / 0 error |
-| Vitest | Frontend Unit | Store lifecycle/cross-tab sync/streaming/permission interactions/reconnect recovery/route boundary | 142 PASS / 16 skipped |
-| Playwright + Node scripts | E2E | Coordinator WS subscription / Three visualization viewTypes / Browser snapshot MVP / APOS Phase 1 full-stack / APOS Phase 2 full-stack | Task 6/7/8/APOS all green |
-| Pytest | Python Service | Token estimation/file processing/browser automation/semantic snapshots/code analyzers/CLI | 104 PASS |
+| JUnit 5 + Mockito | Backend Unit/Integration | Context/Authorization Gateway/Skill/Plugin/LLM/MCP/Memory/Concurrency/SSE/Persistence/Tool/Coordinator/Swarm/Workbench projection etc. | 2317 tests / 0 failure / 0 error / 48 skipped |
+| Vitest | Frontend Unit | Store lifecycle/cross-tab sync/streaming/permission interactions/reconnect recovery/workbench and route boundaries | 182 PASS / 16 skipped |
+| Playwright + Node scripts | E2E | Simple Workbench / Coordinator WS subscription / Three visualization viewTypes / Browser snapshot MVP / APOS Phase 1 full-stack / APOS Phase 2 full-stack | Simple Workbench 3/3 PASS; Task 6/7/8/APOS historical baseline green |
+| Pytest | Python Service | Token estimation/file processing/browser automation/semantic snapshots/code analyzers/CLI | 107 PASS |
 
 **Performance Baseline (v9.3, 490 real request samples):**
 

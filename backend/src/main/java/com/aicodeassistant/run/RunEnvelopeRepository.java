@@ -64,6 +64,41 @@ public class RunEnvelopeRepository {
                 ROW_MAPPER, sessionId, limit);
     }
 
+    /** 会话最近一次根 Run；子 Agent Run 不参与当前交付版本选择。 */
+    public Optional<RunEnvelope> findLatestRootBySession(String sessionId) {
+        List<RunEnvelope> results = jdbcTemplate.query(
+                """
+                SELECT * FROM run_envelopes
+                WHERE session_id = ? AND parent_run_id IS NULL
+                ORDER BY started_at DESC, id DESC LIMIT 1
+                """, ROW_MAPPER, sessionId);
+        return results.stream().findFirst();
+    }
+
+    /** 按时间倒序读取会话根 Run，用于寻找上次可用交付。 */
+    public List<RunEnvelope> findRootRunsBySession(String sessionId, int limit) {
+        return jdbcTemplate.query(
+                """
+                SELECT * FROM run_envelopes
+                WHERE session_id = ? AND parent_run_id IS NULL
+                ORDER BY started_at DESC, id DESC LIMIT ?
+                """, ROW_MAPPER, sessionId, limit);
+    }
+
+    /** 返回 rootRun 及其递归子 Run。 */
+    public List<RunEnvelope> findTree(String rootRunId) {
+        return jdbcTemplate.query("""
+                WITH RECURSIVE run_tree(id) AS (
+                  SELECT id FROM run_envelopes WHERE id = ? AND parent_run_id IS NULL
+                  UNION ALL
+                  SELECT child.id FROM run_envelopes child
+                  JOIN run_tree parent ON child.parent_run_id = parent.id
+                )
+                SELECT r.* FROM run_envelopes r JOIN run_tree t ON t.id = r.id
+                ORDER BY r.started_at ASC, r.id ASC
+                """, ROW_MAPPER, rootRunId);
+    }
+
     /** 查找所有正在运行的信封 */
     public List<RunEnvelope> findRunning() {
         return jdbcTemplate.query(
