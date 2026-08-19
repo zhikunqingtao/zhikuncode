@@ -1655,8 +1655,8 @@ docker compose up -d
 如果这个项目对你有帮助，欢迎点个 Star ⭐
 
 <div align="center">
-  <a href="https://star-history.com/#zhikunqingtao/zhikuncode&Date">
-    <img src="https://api.star-history.com/svg?repos=zhikunqingtao/zhikuncode&type=Date" alt="Star History Chart" width="600" />
+  <a href="https://star-history.dera.page/#zhikunqingtao/zhikuncode&type=Date">
+    <img src="https://star-history.dera.page/svg?repos=zhikunqingtao/zhikuncode&type=Date" alt="Star History Chart" width="600" />
   </a>
 </div>
 
