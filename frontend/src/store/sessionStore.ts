@@ -75,6 +75,9 @@ export const useSessionStore = create<SessionStoreState>()(
                 body: JSON.stringify({
                     projectId,
                     model,
+                    // 新建会话默认使用完全访问权限；后端 Jackson 枚举
+                    // 反序列化大小写敏感，必须传大写形式。
+                    permissionMode: 'AUTO_APPROVE',
                 }),
             });
             if (!resp.ok) {

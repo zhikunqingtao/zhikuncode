@@ -176,7 +176,7 @@ const AssistantBlockRenderer: React.FC<AssistantBlockRendererProps> = ({ block, 
             return <ToolCallBlock toolUseId={block.toolUseId} toolCall={tc} />;
         }
         case 'image':
-            return <ImageBlock base64Data={block.base64Data} mediaType={block.mediaType} />;
+            return <ImageBlock base64Data={block.base64Data} src={block.url} mediaType={block.mediaType} />;
         case 'server_tool_use':
             return (
                 <div className="text-xs text-gray-500 italic my-1">

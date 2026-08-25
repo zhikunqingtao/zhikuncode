@@ -55,6 +55,9 @@ public class OpenAiCompatibleProvider implements LlmProvider {
             // DeepSeek 模型
             Map.entry("deepseek-v4-pro", new ModelCapabilities("deepseek-v4-pro", "DeepSeek V4 Pro", 384000, 1000000, true, true, false, 0, true, 0.001, 0.004)),
             Map.entry("deepseek-v4-flash", new ModelCapabilities("deepseek-v4-flash", "DeepSeek V4 Flash", 384000, 1000000, true, true, false, 0, true, 0.0005, 0.002)),
+            Map.entry("deepseek-v4-flash-vision-exp", new ModelCapabilities("deepseek-v4-flash-vision-exp", "DeepSeek V4 Flash Vision Exp", 384000, 1000000, true, true, true, 5, true, 0.0005, 0.002)),
+            Map.entry("deepseek-v4-pro-0813", new ModelCapabilities("deepseek-v4-pro-0813", "DeepSeek V4 Pro 0813（百炼）", 384000, 1000000, true, true, false, 0, true, 0.001, 0.004)),
+            Map.entry("deepseek-v4-flash-0731", new ModelCapabilities("deepseek-v4-flash-0731", "DeepSeek V4 Flash 0731（百炼）", 384000, 1000000, true, true, false, 0, true, 0.0005, 0.002)),
             // 阿里云百炼 - 通义千问模型（qwen3.7-max/qwen3.7-plus/qwen-turbo 已迁移至 ModelRegistry.BUILTIN_MODELS）
             Map.entry("qwen-coder-plus", new ModelCapabilities("qwen-coder-plus", "通义千问 Coder Plus", 8192, 131072, true, false, false, 0, true, 0.0007, 0.002))
     );
@@ -256,10 +259,15 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         streamOptions.put("include_usage", true);
 
         // DeepSeek V4 思考模式参数
-        // DeepSeek V4 系列（deepseek-v4-pro / deepseek-v4-flash）默认启用思考模式，
+        // DeepSeek V4 系列（含百炼日期版本）默认启用思考模式，
         // 必须始终发送 thinking 参数以保持一致性
         // 项目策略：V4 系列一律使用 max 推理强度（不在乎成本与耗时，追求最强推理）。
-        if (isDeepSeekV4Model(model)) {
+        if (isDeepSeekVisionModel(model)) {
+            // 实测视觉请求在非思考模式下能稳定返回完整正文；思考模式可能在较短
+            // max_tokens 下只消耗推理预算而没有 content，因此视觉兜底固定关闭思考。
+            ObjectNode thinking = root.putObject("thinking");
+            thinking.put("type", "disabled");
+        } else if (isDeepSeekV4Model(model)) {
             ObjectNode thinking = root.putObject("thinking");
             thinking.put("type", "enabled");
             root.put("reasoning_effort", "max");
@@ -273,9 +281,14 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         return root;
     }
 
-    /** 判断是否为 DeepSeek V4 系列模型（仅 v4-pro / v4-flash 需要 thinking + max） */
+    /** 判断是否为 DeepSeek V4 系列模型（直连及百炼日期版本均使用 thinking + max） */
     private static boolean isDeepSeekV4Model(String model) {
-        return model != null && model.startsWith("deepseek-v4-");
+        return model != null && model.startsWith("deepseek-v4-") && !isDeepSeekVisionModel(model);
+    }
+
+    /** DeepSeek 图片理解兜底模型使用独立、稳定的非思考请求参数。 */
+    private static boolean isDeepSeekVisionModel(String model) {
+        return "deepseek-v4-flash-vision-exp".equals(model);
     }
 
     /** 判断是否为支持思考模式的 Qwen 模型 */
@@ -349,13 +362,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
                             } else if ("image".equals(b.get("type"))) {
                                 Object srcObj = b.get("source");
                                 if (!(srcObj instanceof Map<?,?> src)) continue;
-                                Object mediaType = src.get("media_type");
-                                Object data = src.get("data");
-                                if (mediaType == null || data == null) continue;
-                                ObjectNode imgPart = contentArray.addObject();
-                                imgPart.put("type", "image_url");
-                                ObjectNode imgUrl = imgPart.putObject("image_url");
-                                imgUrl.put("url", "data:" + mediaType + ";base64," + data);
+                                appendImageUrlPart(contentArray, src);
                             }
                         }
                         if (contentArray.isEmpty()) {
@@ -454,17 +461,9 @@ public class OpenAiCompatibleProvider implements LlmProvider {
                     }
                     for (Object block : blocks) {
                         if (block instanceof Map<?,?> b && "image".equals(b.get("type"))) {
-                            // 内部 Anthropic 格式: {type:"image", source:{type:"base64", media_type, data}}
                             Object srcObj = b.get("source");
                             if (!(srcObj instanceof Map<?,?> src)) continue;
-                            Object mediaType = src.get("media_type");
-                            Object data = src.get("data");
-                            if (mediaType == null || data == null) continue;
-                            ObjectNode imgPart = contentArray.addObject();
-                            imgPart.put("type", "image_url");
-                            ObjectNode imgUrl = imgPart.putObject("image_url");
-                            // OpenAI 兼容 data URI: data:{mediaType};base64,{base64Data}
-                            imgUrl.put("url", "data:" + mediaType + ";base64," + data);
+                            appendImageUrlPart(contentArray, src);
                         }
                     }
                 } else {
@@ -495,6 +494,23 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         }
 
         return root;
+    }
+
+    /** Converts either an Anthropic-style base64 or URL source to OpenAI image_url. */
+    private static void appendImageUrlPart(ArrayNode contentArray, Map<?, ?> source) {
+        Object remoteUrl = source.get("url");
+        String resolvedUrl;
+        if (remoteUrl != null && !remoteUrl.toString().isBlank()) {
+            resolvedUrl = remoteUrl.toString();
+        } else {
+            Object mediaType = source.get("media_type");
+            Object data = source.get("data");
+            if (mediaType == null || data == null) return;
+            resolvedUrl = "data:" + mediaType + ";base64," + data;
+        }
+        ObjectNode imagePart = contentArray.addObject();
+        imagePart.put("type", "image_url");
+        imagePart.putObject("image_url").put("url", resolvedUrl);
     }
 
     // ═══════════════════════════════════════════

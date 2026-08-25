@@ -10,8 +10,9 @@ import { useConfigStore } from '@/store/configStore';
 import { sendToServer, sendRunInput, sendSlashCommand } from '@/api/stompClient';
 import { SkillDetailModal } from '@/components/skills/SkillDetailModal';
 import { MobileApprovalSheet } from '@/components/verify/MobileApprovalSheet';
-import type { SubmitEvent, Message, Command } from '@/types';
+import type { SubmitEvent, Message, Command, PastePublishResult } from '@/types';
 import { generateUUID } from '@/utils/uuid';
+import { publishPastedImages as publishPastedImagesCore } from '@/utils/pasteImagePublisher';
 import { useAPOSInitialization } from '@/hooks/useAPOSInitialization';
 import { useActivityStore } from '@/store/activityStore';
 import { useNotificationStore } from '@/store/notificationStore';
@@ -156,6 +157,13 @@ function App() {
     return tracked;
   }, []);
 
+  // 粘贴图片发布：核心逻辑抽取到 utils/pasteImagePublisher 以便单测锁定契约，
+  // 此处仅做薄封装注入 ensureSessionReady。
+  const publishPastedImages = useCallback(
+    (files: File[]): Promise<PastePublishResult> => publishPastedImagesCore(files, ensureSessionReady),
+    [ensureSessionReady],
+  );
+
   // 发送消息
   const handleSubmit = useCallback(async (event: SubmitEvent) => {
     let currentSessionId: string | null;
@@ -198,11 +206,12 @@ function App() {
     }
     if (event.attachments && event.attachments.length > 0) {
       for (const att of event.attachments) {
-        if (att.type === 'image' && att.base64Data) {
+        if (att.type === 'image' && (att.base64Data || att.url)) {
           contentBlocks.push({
             type: 'image',
             mediaType: att.mediaType || 'image/png',
             base64Data: att.base64Data,
+            url: att.url,
           });
         }
       }
@@ -383,6 +392,7 @@ function App() {
               onSubmit={handleSubmit}
               onSlashCommand={handleSlashCommand}
               onInterrupt={handleInterrupt}
+              onPasteImages={publishPastedImages}
               disabled={false}
               runActive={status === 'streaming' || status === 'waiting_permission'}
               compacting={status === 'compacting'}

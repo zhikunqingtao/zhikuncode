@@ -74,6 +74,35 @@ class AliyunConfigVerificationTest {
     }
 
     @Test
+    void testBailianDeepSeekModelCapabilities() {
+        OpenAiCompatibleProvider provider = createProvider(
+                List.of("deepseek-v4-pro-0813", "deepseek-v4-flash-0731"));
+
+        ModelCapabilities pro = provider.getModelCapabilities("deepseek-v4-pro-0813");
+        assertEquals("DeepSeek V4 Pro 0813（百炼）", pro.displayName());
+        assertTrue(pro.supportsThinking());
+
+        ModelCapabilities flash = provider.getModelCapabilities("deepseek-v4-flash-0731");
+        assertEquals("DeepSeek V4 Flash 0731（百炼）", flash.displayName());
+        assertTrue(flash.supportsThinking());
+    }
+
+    @Test
+    void testDeepSeekVisionModelCapabilities() {
+        OpenAiCompatibleProvider provider = createProvider(
+                List.of("deepseek-v4-flash-vision-exp"));
+
+        ModelCapabilities caps = provider.getModelCapabilities("deepseek-v4-flash-vision-exp");
+        assertEquals("DeepSeek V4 Flash Vision Exp", caps.displayName());
+        assertEquals(1_000_000, caps.contextWindow());
+        assertEquals(384_000, caps.maxOutputTokens());
+        assertTrue(caps.supportsThinking());
+        assertTrue(caps.supportsImages());
+        assertEquals(5, caps.maxImages());
+        assertTrue(caps.supportsToolUse());
+    }
+
+    @Test
     void testModelRegistryBuiltinQwenModels() {
         // 验证 ModelRegistry.BUILTIN_MODELS 中千问模型 contextWindow 已更新为官方最新值
         // 由于 ModelRegistry 需要 LlmProviderRegistry，这里通过构造 mock 的 registry 来测试
@@ -92,7 +121,24 @@ class AliyunConfigVerificationTest {
 
         ModelCapabilities qwen38 = modelRegistry.getCapabilities("qwen3.8-max");
         assertEquals("qwen3.8-max", qwen38.modelId());
-        assertEquals("Qwen 3.8 Max (百炼订阅)", qwen38.displayName());
+        assertEquals("Qwen 3.8 Max（百炼）", qwen38.displayName());
         assertNotSame(ModelCapabilities.DEFAULT, qwen38);
+
+        ModelCapabilities deepseekPro = modelRegistry.getCapabilities("deepseek-v4-pro-0813");
+        assertEquals("DeepSeek V4 Pro 0813（百炼）", deepseekPro.displayName());
+        assertTrue(deepseekPro.supportsThinking());
+
+        ModelCapabilities deepseekFlash = modelRegistry.getCapabilities("deepseek-v4-flash-0731");
+        assertEquals("DeepSeek V4 Flash 0731（百炼）", deepseekFlash.displayName());
+        assertTrue(deepseekFlash.supportsThinking());
+
+        ModelCapabilities deepseekVision = modelRegistry.getCapabilities("deepseek-v4-flash-vision-exp");
+        assertEquals("DeepSeek V4 Flash Vision Exp", deepseekVision.displayName());
+        assertTrue(deepseekVision.supportsImages());
+        assertEquals(384_000, deepseekVision.maxOutputTokens());
+
+        ModelCapabilities glm53 = modelRegistry.getCapabilities("glm-5.3");
+        assertEquals("GLM-5.3", glm53.displayName());
+        assertNotSame(ModelCapabilities.DEFAULT, glm53);
     }
 }

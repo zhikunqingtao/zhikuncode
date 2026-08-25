@@ -11,17 +11,15 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-/** Non-secret configuration and fail-closed validation for explicit OSS publication. */
+/** Non-secret configuration and fail-closed validation for OSS publication. */
 @Component
 @ConfigurationProperties(prefix = "zhikuncode.oss")
 public class OssPublishProperties {
     private static final Pattern BUCKET = Pattern.compile("[a-z0-9][a-z0-9-]{1,61}[a-z0-9]");
     private static final Pattern REGION = Pattern.compile("[a-z0-9]+(?:-[a-z0-9]+)+");
     private static final Pattern SAFE_PREFIX = Pattern.compile("[A-Za-z0-9][A-Za-z0-9._/-]{0,255}");
-    private static final List<String> FORBIDDEN_CREDENTIAL_ENV = List.of(
-            "OSS_ACCESS_KEY_ID", "OSS_ACCESS_KEY_SECRET", "OSS_SESSION_TOKEN",
-            "ALIBABA_CLOUD_ACCESS_KEY_ID", "ALIBABA_CLOUD_ACCESS_KEY_SECRET",
-            "ALIBABA_CLOUD_SECURITY_TOKEN");
+    private static final List<String> FORBIDDEN_LEGACY_CREDENTIAL_ENV = List.of(
+            "OSS_ACCESS_KEY_ID", "OSS_ACCESS_KEY_SECRET", "OSS_SESSION_TOKEN");
 
     private boolean enabled;
     private String endpoint = "";
@@ -29,6 +27,7 @@ public class OssPublishProperties {
     private String bucket = "";
     private String prefix = "zhikuncode-artifacts";
     private String ecsRoleName = "";
+    private String credentialMode = "auto";
     private long maxFileBytes = 100L * 1024 * 1024;
     private int connectTimeoutMs = 10_000;
     private int requestTimeoutMs = 120_000;
@@ -39,7 +38,7 @@ public class OssPublishProperties {
 
     void requireReady(Map<String, String> environment) {
         if (!enabled) throw new OssConfigurationException("OSS_PUBLISHING_DISABLED");
-        rejectStaticCredentials(environment);
+        rejectLegacyCredentials(environment);
         String normalizedRegion = trim(region).toLowerCase(Locale.ROOT);
         String normalizedBucket = trim(bucket).toLowerCase(Locale.ROOT);
         String normalizedPrefix = normalizedPrefix();
@@ -49,7 +48,8 @@ public class OssPublishProperties {
         if (!BUCKET.matcher(normalizedBucket).matches()) {
             throw new OssConfigurationException("OSS_BUCKET_INVALID");
         }
-        if (trim(ecsRoleName).isEmpty()) {
+        CredentialMode mode = resolvedCredentialMode(environment);
+        if (mode == CredentialMode.ECS_RAM_ROLE && trim(ecsRoleName).isEmpty()) {
             throw new OssConfigurationException("OSS_ECS_ROLE_REQUIRED");
         }
         if (!SAFE_PREFIX.matcher(normalizedPrefix).matches()
@@ -73,12 +73,73 @@ public class OssPublishProperties {
         }
     }
 
-    static void rejectStaticCredentials(Map<String, String> environment) {
-        if (FORBIDDEN_CREDENTIAL_ENV.stream()
+    static void rejectLegacyCredentials(Map<String, String> environment) {
+        if (FORBIDDEN_LEGACY_CREDENTIAL_ENV.stream()
                 .anyMatch(name -> !trim(environment.get(name)).isEmpty())) {
             throw new OssConfigurationException("OSS_CREDENTIAL_SOURCE_FORBIDDEN");
         }
     }
+
+    /** Backward-compatible test/helper name; standard ALIBABA_CLOUD_* variables are allowed. */
+    static void rejectStaticCredentials(Map<String, String> environment) {
+        rejectLegacyCredentials(environment);
+    }
+
+    public CredentialMode resolvedCredentialMode() {
+        return resolvedCredentialMode(System.getenv());
+    }
+
+    CredentialMode resolvedCredentialMode(Map<String, String> environment) {
+        String value = trim(credentialMode).toLowerCase(Locale.ROOT).replace('-', '_');
+        if (value.isEmpty() || "auto".equals(value)) {
+            if (hasLocalEnvironmentCredentials(environment)) {
+                return CredentialMode.DEFAULT_CHAIN;
+            }
+            return trim(ecsRoleName).isEmpty()
+                    ? CredentialMode.DEFAULT_CHAIN : CredentialMode.ECS_RAM_ROLE;
+        }
+        return switch (value) {
+            case "ecs", "ecs_ram_role" -> CredentialMode.ECS_RAM_ROLE;
+            case "default", "default_chain", "local" -> CredentialMode.DEFAULT_CHAIN;
+            default -> throw new OssConfigurationException("OSS_CREDENTIAL_MODE_INVALID");
+        };
+    }
+
+    private static boolean hasLocalEnvironmentCredentials(Map<String, String> environment) {
+        return !trim(environment.get("ALIBABA_CLOUD_ACCESS_KEY_ID")).isEmpty()
+                && !trim(environment.get("ALIBABA_CLOUD_ACCESS_KEY_SECRET")).isEmpty();
+    }
+
+    /** Only URLs issued below the configured clipboard prefix may be sent back to a model. */
+    public boolean isTrustedClipboardImageUrl(String value) {
+        if (value == null || value.isBlank()) return false;
+        try {
+            URI uri = URI.create(value);
+            String expectedHost = bucket() + "." + endpointUri().getHost();
+            String expectedPath = "/" + normalizedPrefix() + "/clipboard/";
+            String rawPath = uri.getRawPath();
+            return "https".equalsIgnoreCase(uri.getScheme())
+                    && expectedHost.equalsIgnoreCase(uri.getHost())
+                    && uri.getPort() == -1 && uri.getUserInfo() == null
+                    && uri.getQuery() == null && uri.getFragment() == null
+                    && rawPath != null && rawPath.startsWith(expectedPath)
+                    && !rawPath.contains("%")
+                    && rawPath.equals(uri.normalize().getRawPath());
+        } catch (RuntimeException invalid) {
+            return false;
+        }
+    }
+
+    public String publicUrl(String objectKey) {
+        try {
+            return new URI("https", bucket() + "." + endpointUri().getHost(),
+                    "/" + objectKey, null).toASCIIString();
+        } catch (Exception invalid) {
+            throw new OssConfigurationException("OSS_PUBLIC_URL_INVALID");
+        }
+    }
+
+    public enum CredentialMode { ECS_RAM_ROLE, DEFAULT_CHAIN }
 
     public URI endpointUri() {
         try {
@@ -124,6 +185,8 @@ public class OssPublishProperties {
     public void setPrefix(String prefix) { this.prefix = prefix; }
     public String getEcsRoleName() { return ecsRoleName; }
     public void setEcsRoleName(String ecsRoleName) { this.ecsRoleName = ecsRoleName; }
+    public String getCredentialMode() { return credentialMode; }
+    public void setCredentialMode(String credentialMode) { this.credentialMode = credentialMode; }
     public long getMaxFileBytes() { return maxFileBytes; }
     public void setMaxFileBytes(long maxFileBytes) { this.maxFileBytes = maxFileBytes; }
     public int getConnectTimeoutMs() { return connectTimeoutMs; }

@@ -41,7 +41,7 @@ const ContentBlockRenderer: React.FC<{ block: ContentBlock }> = ({ block }) => {
         case 'text':
             return <TextBlock text={block.text} />;
         case 'image':
-            return <ImageBlock base64Data={block.base64Data} mediaType={block.mediaType} />;
+            return <ImageBlock base64Data={block.base64Data} src={block.url} mediaType={block.mediaType} />;
         default:
             return null;
     }

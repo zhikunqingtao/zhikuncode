@@ -156,8 +156,8 @@ function EditDialog({ capabilityId, onClose }: { capabilityId: string; onClose: 
             onChange={(v) => setFormData({ ...formData, description: v })} />
           <Field label="简要描述" value={formData.briefDescription}
             onChange={(v) => setFormData({ ...formData, briefDescription: v })} />
-          <Field label="SSE URL" value={formData.sseUrl}
-            onChange={(v) => setFormData({ ...formData, sseUrl: v })} />
+          <Field label="Server URL" value={formData.url}
+            onChange={(v) => setFormData({ ...formData, url: v })} />
           <Field label="超时 (ms)" value={String(formData.timeoutMs)}
             onChange={(v) => setFormData({ ...formData, timeoutMs: parseInt(v) || 30000 })} />
           <Field label="API Key Config" value={formData.apiKeyConfig}

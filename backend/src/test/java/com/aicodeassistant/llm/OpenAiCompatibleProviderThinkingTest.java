@@ -41,7 +41,8 @@ class OpenAiCompatibleProviderThinkingTest {
                 "sk-test",
                 "https://dashscope.aliyuncs.com/compatible-mode/v1",
                 "qwen3.7-plus",
-                List.of("qwen3.7-max", "qwen3.7-plus", "qwen-coder-plus", "deepseek-v4-pro")
+                List.of("qwen3.7-max", "qwen3.7-plus", "qwen-coder-plus", "deepseek-v4-pro",
+                        "deepseek-v4-flash-vision-exp")
         );
     }
 
@@ -120,6 +121,8 @@ class OpenAiCompatibleProviderThinkingTest {
 
         assertThat((boolean) m.invoke(null, "deepseek-v4-pro")).isTrue();
         assertThat((boolean) m.invoke(null, "deepseek-v4-flash")).isTrue();
+        assertThat((boolean) m.invoke(null, "deepseek-v4-pro-0813")).isTrue();
+        assertThat((boolean) m.invoke(null, "deepseek-v4-flash-0731")).isTrue();
         assertThat((boolean) m.invoke(null, "deepseek-v3-pro")).isFalse();
         assertThat((boolean) m.invoke(null, "deepseek-chat")).isFalse();
         assertThat((boolean) m.invoke(null, (Object) null)).isFalse();
@@ -133,5 +136,29 @@ class OpenAiCompatibleProviderThinkingTest {
         org.assertj.core.api.Assertions.assertThatThrownBy(
                 () -> provider.getModelCapabilities("qwen3.7-max"))
                 .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("tc012: DeepSeek Vision 官方能力支持 thinking 与图片")
+    void tc012_deepseekVisionCapabilities() {
+        ModelCapabilities caps = provider.getModelCapabilities("deepseek-v4-flash-vision-exp");
+
+        assertThat(caps.supportsThinking()).isTrue();
+        assertThat(caps.supportsImages()).isTrue();
+        assertThat(caps.maxImages()).isEqualTo(5);
+    }
+
+    @Test
+    @DisplayName("tc013: DeepSeek Vision 从普通 V4 max-thinking 策略中排除")
+    void tc013_deepseekVisionUsesDedicatedRequestStrategy() throws Exception {
+        Method vision = OpenAiCompatibleProvider.class
+                .getDeclaredMethod("isDeepSeekVisionModel", String.class);
+        Method v4 = OpenAiCompatibleProvider.class
+                .getDeclaredMethod("isDeepSeekV4Model", String.class);
+        vision.setAccessible(true);
+        v4.setAccessible(true);
+
+        assertThat((boolean) vision.invoke(null, "deepseek-v4-flash-vision-exp")).isTrue();
+        assertThat((boolean) v4.invoke(null, "deepseek-v4-flash-vision-exp")).isFalse();
     }
 }

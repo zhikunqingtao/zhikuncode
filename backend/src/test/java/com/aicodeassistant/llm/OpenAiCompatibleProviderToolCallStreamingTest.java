@@ -42,17 +42,17 @@ class OpenAiCompatibleProviderToolCallStreamingTest {
 
     @Test
     void acceptsQwenEmptyIdentityContinuation() {
-        assertAccepted("", "", false);
+        assertAccepted("qwen3.8-max", "", "", false);
     }
 
     @Test
     void preservesKimiSparseContinuation() {
-        assertAccepted(null, null, false);
+        assertAccepted("kimi-k3", null, null, false);
     }
 
     @Test
     void usageOnlyTailDoesNotReplaceToolUseStopReason() {
-        assertAccepted("", "", true);
+        assertAccepted("qwen3.8-max", "", "", true);
     }
 
     @Test
@@ -79,6 +79,7 @@ class OpenAiCompatibleProviderToolCallStreamingTest {
     }
 
     private void assertAccepted(
+            String model,
             String continuationId, String continuationName,
             boolean includeUsageTail) {
         List<String> chunks = new ArrayList<>(List.of(
@@ -86,7 +87,7 @@ class OpenAiCompatibleProviderToolCallStreamingTest {
                 toolChunk(continuationId, continuationName, "hello\"}"),
                 finishChunk()));
         if (includeUsageTail) chunks.add(usageChunk());
-        Capture capture = run(chunks.toArray(String[]::new));
+        Capture capture = runForModel(model, chunks.toArray(String[]::new));
 
         assertNull(capture.error);
         assertTrue(capture.completed);
@@ -116,6 +117,10 @@ class OpenAiCompatibleProviderToolCallStreamingTest {
     }
 
     private Capture run(String... chunks) {
+        return runForModel("qwen3.8-max", chunks);
+    }
+
+    private Capture runForModel(String model, String... chunks) {
         StringBuilder body = new StringBuilder();
         for (String chunk : chunks) {
             body.append("data: ").append(chunk).append("\n\n");
@@ -127,7 +132,7 @@ class OpenAiCompatibleProviderToolCallStreamingTest {
 
         Capture capture = new Capture();
         provider.streamChat(
-                "qwen3.8-max",
+                model,
                 List.of(Map.of("role", "user", "content", "test")),
                 "system", List.of(), 1024, new ThinkingConfig.Disabled(),
                 LlmCallContext.unscoped(), capture);

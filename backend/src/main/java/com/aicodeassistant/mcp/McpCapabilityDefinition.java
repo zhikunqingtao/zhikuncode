@@ -2,6 +2,7 @@ package com.aicodeassistant.mcp;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Map;
@@ -19,7 +20,9 @@ public record McpCapabilityDefinition(
         @JsonProperty("id") String id,
         @JsonProperty("name") String name,
         @JsonProperty("toolName") String toolName,
-        @JsonProperty("sseUrl") String sseUrl,
+        @JsonProperty("serverKey") String serverKey,
+        @JsonProperty("url") @JsonAlias("sseUrl") String url,
+        @JsonProperty("transportType") McpTransportType transportType,
         @JsonProperty("apiKeyConfig") String apiKeyConfig,
         @JsonProperty("apiKeyDefault") String apiKeyDefault,
         @JsonProperty("domain") String domain,
@@ -36,16 +39,22 @@ public record McpCapabilityDefinition(
     /** 快捷构造: 切换 enabled 状态 */
     public McpCapabilityDefinition withEnabled(boolean newEnabled) {
         return new McpCapabilityDefinition(
-                id, name, toolName, sseUrl, apiKeyConfig, apiKeyDefault,
+                id, name, toolName, serverKey, url, transportType, apiKeyConfig, apiKeyDefault,
                 domain, category, briefDescription, videoCallSummary, description,
                 input, output, timeoutMs, newEnabled, videoCallEnabled);
     }
 
-    /** 从 sseUrl 提取服务器 key (URL path 倒数第二段) */
+    /** 旧注册表未声明传输类型时保持 SSE 默认行为。 */
+    public McpTransportType resolvedTransportType() {
+        return transportType != null ? transportType : McpTransportType.SSE;
+    }
+
+    /** 从端点 URL 提取服务器 key (URL path 倒数第二段) */
     public String extractServerKey() {
-        if (sseUrl == null) return id;
+        if (serverKey != null && !serverKey.isBlank()) return serverKey;
+        if (url == null) return id;
         try {
-            String path = java.net.URI.create(sseUrl).getPath();
+            String path = java.net.URI.create(url).getPath();
             String[] segments = java.util.Arrays.stream(path.split("/"))
                     .filter(s -> !s.isEmpty())
                     .toArray(String[]::new);

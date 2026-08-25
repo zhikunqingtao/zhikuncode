@@ -297,11 +297,18 @@ public class MessageNormalizer {
                 if (result.isError()) map.put("is_error", true);
                 yield map;
             }
-            case ContentBlock.ImageBlock image ->
-                    new HashMap<>(Map.of("type", "image", "source", Map.of(
-                            "type", "base64",
-                            "media_type", image.mediaType(),
-                            "data", image.base64Data())));
+            case ContentBlock.ImageBlock image -> {
+                Map<String, Object> source = new HashMap<>();
+                if (image.url() != null && !image.url().isBlank()) {
+                    source.put("type", "url");
+                    source.put("url", image.url());
+                } else {
+                    source.put("type", "base64");
+                    source.put("media_type", image.mediaType());
+                    source.put("data", image.base64Data());
+                }
+                yield new HashMap<>(Map.of("type", "image", "source", source));
+            }
             case ContentBlock.ThinkingBlock thinking ->
                     new HashMap<>(Map.of("type", "thinking", "thinking",
                             thinking.thinking() != null ? thinking.thinking() : ""));
@@ -419,7 +426,7 @@ public class MessageNormalizer {
                             result.content() != null ? result.content() : "",
                             result.isError());
             case ContentBlock.ImageBlock image ->
-                    new ContentPart.ImagePart(image.mediaType(), image.base64Data());
+                    new ContentPart.ImagePart(image.mediaType(), image.base64Data(), image.url());
             case ContentBlock.ThinkingBlock thinking ->
                     new ContentPart.ThinkingPart(
                             thinking.thinking() != null ? thinking.thinking() : "");

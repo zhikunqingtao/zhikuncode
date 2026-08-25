@@ -15,6 +15,10 @@ spring:
     serialization:
       write-dates-as-timestamps: false
     default-property-inclusion: non_null
+  servlet:
+    multipart:
+      max-file-size: 6MB
+      max-request-size: 6MB
 
 zhikuncode:
   database:
@@ -29,13 +33,14 @@ zhikuncode:
     # Server-owned shared root used by coordinator and swarm runs.
     system-root: ${app.working-dir:${user.dir}}/.zhikun/scratchpad
   oss:
-    # Disabled by default. Enable only on an ECS instance with the named RAM role attached.
+    # Disabled by default. auto prefers local ALIBABA_CLOUD_* credentials, then a named ECS RAM Role.
     enabled: ${ZHIKUN_OSS_ENABLED:false}
     endpoint: ${ZHIKUN_OSS_ENDPOINT:}
     region: ${ZHIKUN_OSS_REGION:}
     bucket: ${ZHIKUN_OSS_BUCKET:}
     prefix: ${ZHIKUN_OSS_PREFIX:zhikuncode-artifacts}
     ecs-role-name: ${ZHIKUN_OSS_ECS_ROLE_NAME:}
+    credential-mode: ${ZHIKUN_OSS_CREDENTIAL_MODE:auto}
     max-file-bytes: ${ZHIKUN_OSS_MAX_FILE_BYTES:104857600}
     connect-timeout-ms: ${ZHIKUN_OSS_CONNECT_TIMEOUT_MS:10000}
     request-timeout-ms: ${ZHIKUN_OSS_REQUEST_TIMEOUT_MS:120000}
@@ -65,12 +70,12 @@ llm:
       api-key: ${LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_API_KEY:}
       base-url: https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1
       default-model: qwen3.8-max
-      models: ${LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS:qwen3.8-max}
+      models: ${LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS:qwen3.8-max,deepseek-v4-pro-0813,deepseek-v4-flash-0731}
     deepseek:
       api-key: ${LLM_PROVIDER_DEEPSEEK_API_KEY:}
       base-url: https://api.deepseek.com/v1
       default-model: deepseek-v4-pro
-      models: ${LLM_PROVIDER_DEEPSEEK_MODELS:deepseek-v4-pro,deepseek-v4-flash}
+      models: ${LLM_PROVIDER_DEEPSEEK_MODELS:deepseek-v4-pro,deepseek-v4-flash,deepseek-v4-flash-vision-exp}
     moonshot:
       api-key: ${LLM_PROVIDER_MOONSHOT_API_KEY:}
       base-url: https://api.moonshot.cn/v1
@@ -79,8 +84,8 @@ llm:
     zhipu:
       api-key: ${LLM_PROVIDER_ZHIPU_API_KEY:}
       base-url: https://open.bigmodel.cn/api/paas/v4
-      default-model: glm-5.2
-      models: ${LLM_PROVIDER_ZHIPU_MODELS:glm-5.2,glm-5v-turbo}
+      default-model: glm-5.3
+      models: ${LLM_PROVIDER_ZHIPU_MODELS:glm-5.3,glm-5v-turbo}
     minimax:
       api-key: ${LLM_PROVIDER_MINIMAX_API_KEY:}
       base-url: https://api.minimax.chat/v1
@@ -184,12 +189,12 @@ process:
 mcp:
   capability-registry-path: ${MCP_REGISTRY_PATH:${user.dir}/../configuration/mcp/mcp_capability_registry.json}
   servers: {}
-    # 智谱 WebSearch MCP (通过阿里云百炼) - 默认禁用，如需启用请配置 LLM_PROVIDER_DASHSCOPE_API_KEY 后取消下方注释
+    # 智谱 WebSearch MCP（通过阿里云百炼）已由能力注册表管理；以下仅为手动 server 配置示例
     # zhipu-websearch:
     #   type: SSE
     #   url: https://dashscope.aliyuncs.com/api/v1/mcps/zhipu-websearch/sse
     #   headers:
-    #     Authorization: Bearer ${LLM_PROVIDER_DASHSCOPE_API_KEY:${LLM_API_KEY:your-api-key-here}}
+    #     Authorization: Bearer ${LLM_PROVIDER_DASHSCOPE_API_KEY:}
     #   scope: USER
 
 # 沙箱配置

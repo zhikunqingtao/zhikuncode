@@ -38,15 +38,18 @@ public class ModelRegistry {
         // 国产大模型
         entry("deepseek-v4-pro",   caps("deepseek-v4-pro",   "DeepSeek V4 Pro",  384000, 1000000, true, true, false, 0, true, 0.001, 0.004)),
         entry("deepseek-v4-flash", caps("deepseek-v4-flash", "DeepSeek V4 Flash", 384000, 1000000, true, true, false, 0, true, 0.0005, 0.002)),
+        entry("deepseek-v4-flash-vision-exp", caps("deepseek-v4-flash-vision-exp", "DeepSeek V4 Flash Vision Exp", 384000, 1000000, true, true, true, 5, true, 0.0005, 0.002)),
+        entry("deepseek-v4-pro-0813",   caps("deepseek-v4-pro-0813",   "DeepSeek V4 Pro 0813（百炼）",   384000, 1000000, true, true, false, 0, true, 0.001, 0.004)),
+        entry("deepseek-v4-flash-0731", caps("deepseek-v4-flash-0731", "DeepSeek V4 Flash 0731（百炼）", 384000, 1000000, true, true, false, 0, true, 0.0005, 0.002)),
         // Moonshot
         entry("kimi-k3",          caps("kimi-k3",          "Kimi K3",         131072, 1000000,  true, true, true, 8, true, 0.002, 0.012)),
         entry("kimi-k2.7-code",     caps("kimi-k2.7-code",     "Kimi K2.7 Code",    16384, 256000,  true, true, true, 8, true, 0.002, 0.012)),
         entry("moonshot-v1-128k",  caps("moonshot-v1-128k",  "Moonshot V1 128K",   8192, 128000,  true, false, false, 0, true, 0.001, 0.002)),
         entry("qwen-turbo",        caps("qwen-turbo",        "Qwen Turbo",         8192, 1000000,  true, false, false, 0, true, 0.0003, 0.0006)),
         entry("qwen3.7-max", caps("qwen3.7-max", "Qwen 3.7 Max", 65536, 1000000, true, true, false, 0, true, 0.009, 0.054)),
-        entry("qwen3.8-max", caps("qwen3.8-max", "Qwen 3.8 Max (百炼订阅)", 65536, 1000000, true, true, true, 4, true, 0.009, 0.054)),
+        entry("qwen3.8-max", caps("qwen3.8-max", "Qwen 3.8 Max（百炼）", 65536, 1000000, true, true, true, 4, true, 0.009, 0.054)),
         entry("qwen3.7-plus",      caps("qwen3.7-plus",      "Qwen 3.7 Plus",      8192, 1000000,  true, true, true, 4, true, 0.0008, 0.002)),
-        entry("glm-5.2",           caps("glm-5.2",           "GLM-5.2",            131072, 1048576,  true, true, false, 0, true, 0.001, 0.001)),
+        entry("glm-5.3",           caps("glm-5.3",           "GLM-5.3",            131072, 1048576,  true, true, false, 0, true, 0.001, 0.001)),
         entry("glm-5v-turbo",      caps("glm-5v-turbo",      "GLM-5V-Turbo",       131072, 204800,  true, true, true, 150, true, 0.0012, 0.004)),
         // MiniMax
         entry("MiniMax-M3",       caps("MiniMax-M3",       "MiniMax M3",        16384, 1000000, true, true, true, 4, true, 0.001, 0.004)),

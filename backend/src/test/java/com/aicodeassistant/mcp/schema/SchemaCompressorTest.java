@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -157,6 +158,85 @@ class SchemaCompressorTest {
         ObjectNode schema = buildLargeSchema();
         JsonNode result = disabled.compress(schema);
         assertSame(schema, result);
+    }
+
+    @Test
+    void normalizesNonStandardTypeAliasesBelowCompressionThreshold() {
+        ObjectNode schema = MAPPER.createObjectNode();
+        schema.put("type", "object");
+        ObjectNode props = schema.putObject("properties");
+        props.putObject("prompt_extend").put("type", "bool");
+        props.putObject("count").put("type", "int");
+        props.putObject("ratio").put("type", "float");
+
+        JsonNode result = compressor.compress(schema);
+
+        assertNotSame(schema, result);
+        assertEquals("boolean", result.path("properties").path("prompt_extend").path("type").asText());
+        assertEquals("integer", result.path("properties").path("count").path("type").asText());
+        assertEquals("number", result.path("properties").path("ratio").path("type").asText());
+        // 规范化不得修改远端返回的原始 schema。
+        assertEquals("bool", schema.path("properties").path("prompt_extend").path("type").asText());
+    }
+
+    @Test
+    void normalizesAliasesEvenWhenCompressionIsDisabled() {
+        SchemaCompressor disabled = new SchemaCompressor(false, THRESHOLD);
+        ObjectNode schema = MAPPER.createObjectNode();
+        schema.put("type", "object");
+        schema.putObject("properties").putObject("watermark").put("type", "bool");
+
+        JsonNode result = disabled.compress(schema);
+
+        assertEquals("boolean", result.path("properties").path("watermark").path("type").asText());
+    }
+
+    @Test
+    void mapEntryPointNormalizesAliasesEvenWhenCompressionIsDisabled() {
+        SchemaCompressor disabled = new SchemaCompressor(false, THRESHOLD);
+        Map<String, Object> schema = Map.of(
+                "type", "object",
+                "properties", Map.of("watermark", Map.of("type", "bool")));
+
+        Map<String, Object> result = disabled.compress(schema);
+
+        assertEquals("boolean", ((Map<?, ?>) ((Map<?, ?>) result.get("properties"))
+                .get("watermark")).get("type"));
+        assertEquals("bool", ((Map<?, ?>) ((Map<?, ?>) schema.get("properties"))
+                .get("watermark")).get("type"));
+    }
+
+    @Test
+    void propertyNamedTypeIsNotMistakenForSchemaTypeKeyword() {
+        ObjectNode schema = MAPPER.createObjectNode();
+        schema.put("type", "object");
+        ObjectNode typeProperty = schema.putObject("properties").putObject("type");
+        typeProperty.put("type", "bool");
+        typeProperty.put("description", "A parameter whose name is literally type");
+
+        JsonNode result = compressor.compress(schema);
+
+        assertTrue(result.path("properties").path("type").isObject());
+        assertEquals("boolean", result.path("properties").path("type").path("type").asText());
+        assertEquals("A parameter whose name is literally type",
+                result.path("properties").path("type").path("description").asText());
+    }
+
+    @Test
+    void annotationObjectsAreNotRewrittenAsSchemas() {
+        ObjectNode schema = MAPPER.createObjectNode();
+        schema.put("type", "object");
+        ObjectNode field = schema.putObject("properties").putObject("payload");
+        field.put("type", "object");
+        field.putObject("default").put("type", "bool");
+        field.putArray("examples").addObject().put("type", "int");
+
+        JsonNode result = compressor.compress(schema);
+
+        assertEquals("bool", result.path("properties").path("payload")
+                .path("default").path("type").asText());
+        assertEquals("int", result.path("properties").path("payload")
+                .path("examples").path(0).path("type").asText());
     }
 
     // ===== helpers =====

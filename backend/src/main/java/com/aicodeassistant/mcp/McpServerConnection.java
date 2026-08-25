@@ -203,7 +203,7 @@ public class McpServerConnection {
         return switch (config.type()) {
             case STDIO      -> new McpStdioTransport(config);
             case SSE, SSE_IDE -> createSseTransport(config);
-            case HTTP        -> new McpStreamableHttpTransport(config.url());
+            case HTTP        -> createHttpTransport(config);
             case WS, WS_IDE  -> new McpWebSocketTransport(
                     config.url().replace("http://", "ws://").replace("https://", "wss://"));
             default -> {
@@ -235,6 +235,24 @@ public class McpServerConnection {
             });
         }
         return new McpSseTransport(baseUrl, builder.build());
+    }
+
+    /** Streamable HTTP 传输创建 — 注入配置中的鉴权与自定义请求头。 */
+    private static McpStreamableHttpTransport createHttpTransport(McpServerConfig config) {
+        okhttp3.OkHttpClient.Builder builder = new okhttp3.OkHttpClient.Builder()
+                .connectTimeout(java.time.Duration.ofSeconds(10))
+                // 每个 JSON-RPC 调用由 McpStreamableHttpTransport 按 timeoutMs 设置 Call 超时。
+                // 禁用固定读超时，避免图像编辑等长任务被 60 秒提前截断。
+                .readTimeout(java.time.Duration.ZERO)
+                .writeTimeout(java.time.Duration.ofSeconds(10));
+        if (config.headers() != null && !config.headers().isEmpty()) {
+            builder.addInterceptor(chain -> {
+                okhttp3.Request.Builder req = chain.request().newBuilder();
+                config.headers().forEach(req::header);
+                return chain.proceed(req.build());
+            });
+        }
+        return new McpStreamableHttpTransport(config.url(), builder.build());
     }
 
     /**

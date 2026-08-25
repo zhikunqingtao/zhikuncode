@@ -115,9 +115,9 @@ ZhikunCode 使用 Kimi K3 在 2026-08-09 凌晨一次性完成了一个纯静态
 | 🔒 | **统一授权安全架构** | 所有核心工具统一经过 Tool Gateway：规范化输入冻结 → Operation Analyzer 风险与资源分析 → 系统不变量检查 → RUN/SESSION/WORKSPACE Grant 匹配或持久权限交互 → 执行前动态复检 → 结构化结果审计。高风险操作只允许单次授权；专用 Network/MCP Analyzer 对 SAFE/GUARDED 操作支持按工具记住 RUN/SESSION 授权，未知 MCP/动态工具默认只能单次审批 |
 | 🇨🇳 | **国产大模型直连** | 千问 / DeepSeek / Moonshot / 智谱GLM / MiniMax 开箱即用，国内网络直连，无需科学上网 |
 | 🐳 | **Docker 一键部署** | `docker compose up -d` 一条命令启动，数据存本地，完全私有 |
-| 📤 | **显式 OSS 产物发布（可选）** | 通过 `/publish-oss` 从同一持久化根 Session 的根 Run 或授权后代 Run 中选择已验证条目，发布前再次校验哈希后生成永久公开下载地址；默认关闭、绝不自动上传，每次发布都需要用户明确指令和单次高风险授权 |
+| 📤 | **OSS 发布与截图粘贴（可选）** | `/publish-oss` 仍只按明确指令发布已验证产物；粘贴截图支持双路径——OSS 已配置时走后端快速上传，OSS 未配置时自动降级为 Base64 直传，无需额外配置即可使用图片分析能力 |
 | ⚡ | **智能上下文管理** | 六层压缩级联（Snip / MicroCompact / ContextCollapse / AutoCompact / CollapseDrain / ReactiveCompact）+ 增量折叠（每10轮自动压缩）+ 413 两阶段恢复（CollapseDrain 激进压缩 → ReactiveCompact 反应式压缩）+ 精确 Token 计数（tiktoken 多模型支持）+ 自纠错循环（SelfCorrectionLoop，编译/测试失败自动诊断修复，最多3次）+ Token三级告警 + 图片上下文治理（大图外置化 → 按需注入 → 预算守卫三层防护），无缝应对超长对话。核心引擎为 ContextCascade 与 QueryEngine |
-| 📷 | **多模态图片对话** | 支持图片上传输入，模型自动识别图片内容并分析；**智能视觉模型路由**——当前模型不支持图片时，自动切换至同厂商视觉模型处理，处理完成后无缝切回原模型，遵循"同厂商优先 + 全局兜底"策略。**图片预算守卫**——大图片（>50KB）自动外置化为轻量 JSON 引用，API 调用前按需注入，两阶段 Token 预算守卫确保多图对话不累积超限（单张≤1.5MB，总量≤2MB，最多 5 张并发注入）。支持的模型：gpt-5.6-sol / gpt-5.4-mini / claude-sonnet-4-6 / claude-opus-4-8 / qwen3.7-plus / kimi-k3 / kimi-k2.7-code / glm-5v-turbo / MiniMax-M3 / openai/gpt-5.6-sol / google/gemini-3.5-flash（单张≤5MB，数量上限因模型而异） |
+| 📷 | **多模态图片对话** | 支持图片上传输入，模型自动识别图片内容并分析；**智能视觉模型路由**——当前模型不支持图片时，自动切换至同厂商视觉模型处理，处理完成后无缝切回原模型；DeepSeek 系列优先使用 `deepseek-v4-flash-vision-exp`，不可用时再走同 Provider / 全局兜底。**图片预算守卫**——大图片（>50KB）自动外置化为轻量 JSON 引用，API 调用前按需注入，两阶段 Token 预算守卫确保多图对话不累积超限（单张≤1.5MB，总量≤2MB，最多 5 张并发注入）。支持的模型：gpt-5.6-sol / gpt-5.4-mini / claude-sonnet-4-6 / claude-opus-4-8 / qwen3.7-plus / deepseek-v4-flash-vision-exp / kimi-k3 / kimi-k2.7-code / glm-5v-turbo / MiniMax-M3 / openai/gpt-5.6-sol / google/gemini-3.5-flash（单张≤5MB，数量上限因模型而异） |
 | 🖼️ | **浏览器语义快照** | `/snap` 命令智能捕获网页完整状态（DOM 结构 + 交互元素），支持富交互页面语义提取，生成结构化 JSON 供 Agent 解析和回放验证 |
 | 📊 | **实时活动追踪与审批** | Activity Panel 实时记录 AI 工具执行全流程，L1/L2/L3 三层展示体系，Signal 智能标记（auto_approve/review_recommended/needs_review），一键批量审批决策，SQLite 后端持久化，支持会话恢复 |
 | 🧪 | **运行时验证框架（Runtime Verification）** | VerifierFactory 三模态分发（browser/http_api/auto）+ 8 种 HTTP action handler + JSONPath 断言 + 证据链 SQLite 存储 + Feature Flag 双重门控 + 前端实时进度面板 |
@@ -258,13 +258,15 @@ cd frontend && npm install && npm run dev
 
 > **权限数据说明：** 当前授权架构以 V015 持久交互和 V019 受约束 Grant 为数据库权威，不读取旧权限表。开发环境升级时直接重建项目数据库，并在新版本中重新授权。
 
-### 可选：将已验证产物发布到 OSS
+### 可选：OSS 产物发布与截图粘贴
 
 ZhikunCode 提供内置 `/publish-oss` Skill，可从同一持久化根 Session 内的根 Run 与通过 `parent_run_id` 建立的后代 Run 中选择一个已验证产物条目，发布为 OSS 永久公开下载地址。本功能**默认关闭且绝不自动上传**：生成文件、完成 Run、预览或打开文件都不会触发上传；每次发布都必须由用户明确提出，并通过一次高风险权限确认。
 
-该功能仅支持通过 **ECS 实例 RAM 角色**和 IMDSv2 获取自动轮换的 STS 临时凭证，不接受长期 OSS AccessKey。每个部署者都必须配置自己的 Bucket、Region、Endpoint 和 RAM 角色；克隆或启动本仓库不会连接项目维护者的 OSS。
+启用同一套 OSS 配置后，浏览器还能感知从其他应用复制并粘贴到对话框的 PNG/JPEG/WebP 截图（单张不超过 5 MiB），通过固定后端通道立即上传，并将服务端验证过的 OSS 图片地址直接交给视觉模型。这个路径不调用 `/publish-oss` Skill，也不额外调用 LLM；OSS 未配置时自动降级为 Base64 直传，无需额外配置即可使用图片分析能力。
 
-在 ECS 的 `.env` 中配置以下非敏感参数：
+凭证模式默认为 `auto`：本机存在完整的标准 `ALIBABA_CLOUD_ACCESS_KEY_ID`/`ALIBABA_CLOUD_ACCESS_KEY_SECRET` 时优先使用阿里云默认凭证链；否则，配置了 `ZHIKUN_OSS_ECS_ROLE_NAME` 时使用 **ECS RAM Role + IMDSv2**；两者都没有时仍尝试默认凭证链（例如阿里云 CLI 默认 Profile）。因此同一套非密钥配置可同时支持本地一键启动和 ECS。每个部署者都必须使用自己的 Bucket 与最小权限身份；仓库不包含维护者的 OSS 凭证。
+
+在 `.env` 中配置：
 
 ```bash
 ZHIKUN_OSS_ENABLED=true
@@ -273,12 +275,15 @@ ZHIKUN_OSS_REGION=cn-your-region
 ZHIKUN_OSS_BUCKET=your-bucket
 ZHIKUN_OSS_PREFIX=zhikuncode-artifacts
 ZHIKUN_OSS_ECS_ROLE_NAME=your-ecs-ram-role
+ZHIKUN_OSS_CREDENTIAL_MODE=auto
 ZHIKUN_OSS_MAX_FILE_BYTES=104857600
 ZHIKUN_OSS_CONNECT_TIMEOUT_MS=10000
 ZHIKUN_OSS_REQUEST_TIMEOUT_MS=120000
 ```
 
-> RAM 角色只应授予目标前缀所需的最小 OSS 权限。不要设置或提交 `OSS_ACCESS_KEY_ID`、`OSS_ACCESS_KEY_SECRET`、`OSS_SESSION_TOKEN` 及对应的 `ALIBABA_CLOUD_*` 长期凭证变量；发布前的配置校验会拒绝这些变量。
+本地部署可先配置阿里云 CLI 默认 Profile；也可将受限 RAM 用户或临时 STS 的 `ALIBABA_CLOUD_ACCESS_KEY_ID`、`ALIBABA_CLOUD_ACCESS_KEY_SECRET` 与可选 `ALIBABA_CLOUD_SECURITY_TOKEN` 写入本机 `.env`。不要提交真实值。旧式 `OSS_ACCESS_KEY_ID`、`OSS_ACCESS_KEY_SECRET`、`OSS_SESSION_TOKEN` 会被拒绝。
+
+> 身份只应具有目标 Bucket/前缀所需的最小 `PutObject`、`GetObject/HeadObject`、`PutObjectAcl` 和失败清理 `DeleteObject` 权限；Bucket 必须允许目标对象设置 `public-read`，否则上传会失败并尝试清理私有对象。
 
 使用流程：
 
@@ -294,7 +299,7 @@ ZHIKUN_OSS_REQUEST_TIMEOUT_MS=120000
 - 对象先私有上传，远端校验成功后才切换为 `public-read`；失败时清理本次新建的私有对象。
 - 返回地址为**永久公开下载地址**。OSS 默认域名通常会下载 HTML，而不是在浏览器中直接渲染。
 - 当前精简版不提供批量发布、发布历史或撤销入口；删除公开对象需要运维人员在 OSS 侧显式执行。
-- 本地开发环境没有 ECS 实例元数据凭证，只能测试交互和配置校验；真实上传必须在已绑定 RAM 角色的 ECS 上验收。
+- 本地与 ECS 都支持真实上传；本地使用默认凭证链，ECS 建议使用自动轮换的 RAM Role 临时凭证。
 
 ### 支持的 LLM 服务商
 
@@ -334,10 +339,10 @@ LLM_PROVIDER_ZENMUX_API_KEY=your-zenmux-api-key-here
 | 服务商 | Base URL | 推荐模型 | 备注 |
 |--------|----------|----------|------|
 | **千问/DashScope** | `https://dashscope.aliyuncs.com/compatible-mode/v1` | qwen3.7-max / qwen3.7-plus | **默认 Provider**，国内直连 |
-| **千问/DashScope Token Plan** | `https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1` | qwen3.8-max | 可选订阅 Provider，使用独立 `sk-sp-` Key；不是全局默认或预定义降级链成员 |
-| **DeepSeek** | `https://api.deepseek.com/v1` | deepseek-v4-pro | 国内直连 |
+| **阿里云百炼 Token Plan** | `https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1` | qwen3.8-max / deepseek-v4-pro-0813 / deepseek-v4-flash-0731 | 可选订阅 Provider，使用独立 `sk-sp-` Key；三个模型在前端均标注“百炼”，且不进入全局默认或预定义降级链 |
+| **DeepSeek** | `https://api.deepseek.com/v1` | deepseek-v4-pro / deepseek-v4-flash / deepseek-v4-flash-vision-exp | 国内直连；Vision Exp 作为 DeepSeek 系列图片理解兜底 |
 | **Moonshot（Kimi）** | `https://api.moonshot.cn/v1` | kimi-k3 / kimi-k2.7-code | 国内直连；kimi-k3 支持 1M 上下文和原生视觉 |
-| **Zhipu（智谱 GLM）** | `https://open.bigmodel.cn/api/paas/v4/chat/completions` | glm-5.2, glm-5v-turbo | 国内直连 |
+| **Zhipu（智谱 GLM）** | `https://open.bigmodel.cn/api/paas/v4/chat/completions` | glm-5.3, glm-5v-turbo | 国内直连 |
 | **MiniMax** | `https://api.minimax.chat/v1` | MiniMax-M3 | 百万上下文 |
 | **ZenMux（多模型中转）** | `https://zenmux.ai/api/v1` | anthropic/claude-opus-4.8 / claude-fable-5 / openai/gpt-5.6-sol / google/gemini-3.5-flash | 1M 上下文 · 支持图片 |
 | **OpenAI** | `https://api.openai.com/v1` | gpt-5.6-sol / gpt-5.4-mini | 需要外网访问 |
@@ -347,24 +352,27 @@ LLM_PROVIDER_ZENMUX_API_KEY=your-zenmux-api-key-here
 
 ### 可选：启用 DashScope 托管 MCP 服务
 
-从最新版本起，为避免未配置阿里云百炼 Key 的用户遭遇启动日志刷屏，**默认不启用**以下托管在 `dashscope.aliyuncs.com` 上的 MCP 服务：
+ZhikunCode 预置了以下阿里云百炼 MCP。没有配置百炼 Key 时会跳过远端连接，不影响核心对话、代码编辑和本地工具使用。
 
-| MCP 服务 | 能力 | 对应工具 ID |
-|---------|------|-------------|
-| `Wan25Media` | 万相 2.5 图像生成 / 图生图 | `mcp_wan25_image_gen`、`mcp_wan25_image_edit` |
-| `zhipu-websearch` | 智谱联网搜索 Pro | `mcp_web_search_pro` |
+| MCP 服务 | 传输 | 能力 | 工具数 |
+|---------|------|------|-------|
+| 高德地图 | SSE | 地理编码、IP 定位、天气、搜索、距离与四类路线规划等 | 13 |
+| 千问-图像生成（QwenImage） | HTTP | 文生图、单图编辑、多图融合 | 3 |
+| 万相-视频生成（WanVideo） | HTTP | 文生视频、图生视频、数字人、首尾帧视频及结果查询 | 8 |
+| OneKey 新闻查询 | HTTP | 频道、热榜、按频道或标题检索新闻 | 3 |
+| OneKey 得理法律数据 | HTTP | 法规与类案检索 | 2 |
+| OneKey 上奇企业工商 | HTTP | 企业匹配、工商、股东、人员、投资、分支、联系方式 | 7 |
+| OneKey 文本内容审核 | HTTP | 违规、推广、辱骂、低质和广告法风险审核 | 1 |
+| `zhipu-websearch` | SSE | 智谱联网搜索 Pro | 1 |
 
-> ℹ️ 不启用这些 MCP 完全不影响核心对话、代码编辑、本地工具使用。
-
-**如需使用**（需要阿里云百炼 API Key 且在控制台开通相应 MCP 能力）：
+**如需使用**（需要阿里云百炼 API Key，并在控制台开通相应 MCP 能力）：
 
 1. 在 `.env` 中配置 DashScope Key：
    ```bash
    LLM_PROVIDER_DASHSCOPE_API_KEY=sk-xxxxxxxx
    ```
-2. 在 [`backend/src/main/resources/application.yml`](backend/src/main/resources/application.yml) 中取消 `zhipu-websearch` 配置块的注释。
-3. 在 [`configuration/mcp/mcp_capability_registry.json`](configuration/mcp/mcp_capability_registry.json) 中把需要的条目 `enabled` 改为 `true`。
-4. 通过 `./stop.sh && ./start.sh` 完整重启三端使配置生效。
+2. 在 [`configuration/mcp/mcp_capability_registry.json`](configuration/mcp/mcp_capability_registry.json) 中确认需要的条目为 `"enabled": true`。
+3. 通过 `./stop.sh && ./start.sh` 完整重启三端使配置生效。
 
 ---
 
@@ -689,11 +697,11 @@ Web 新会话必须先选择一个已授权目录。远程和 Docker 部署的�
 **持续集成：**
 - **GitHub Actions 自动化流水线**：主 CI 执行后端编译和前端构建；Python 测试当前为非阻塞检查，Docker 镜像验证仅在 `main` push 时执行。
 
-**当前代码本地验证快照（2026-08-13）：**
-- **后端单元/集成测试**：2317 tests / 0 failure / 0 error / 48 skipped
+**当前代码本地验证快照（2026-08-25）：**
+- **后端单元/集成测试**：1234 tests / 0 failure / 0 error / 61 skipped
 - **Python pytest**：107 PASS
-- **前端 vitest**：182 PASS / 16 skipped（198 total）
-- **简洁工作台 Playwright E2E**：3 / 3 PASS
+- **前端 vitest**：204 PASS / 16 skipped（220 total）
+- **简洁工作台 Playwright E2E**：7 / 7 PASS
 - **静态与构建验证**：TypeScript 与 Vite 生产构建通过
 
 **历史专项与 E2E 基线：**
@@ -709,9 +717,9 @@ Web 新会话必须先选择一个已授权目录。远程和 Docker 部署的�
 
 | 框架 | 层级 | 覆盖范围 | 数量 |
 |------|------|---------|------|
-| JUnit 5 + Mockito | 后端单元/集成测试 | 上下文/授权网关/技能/插件/LLM/MCP/记忆/并发/SSE/持久化/工具/Coordinator/Swarm/工作台投影等 | 2317 tests / 0 failure / 0 error / 48 skipped |
-| Vitest | 前端单元测试 | Store 生命周期/跨 Tab 同步/流式渲染/权限交互/重连恢复/工作台与路由边界 | 182 PASS / 16 skipped |
-| Playwright + 节点脚本 | 端到端 E2E | 简洁工作台 / Coordinator WS 订阅 / 可视化 3 种 viewType / 浏览器快照 MVP / APOS Phase 1 全栈 / APOS Phase 2 全栈 | 简洁工作台 3/3 PASS；Task 6/7/8/APOS 历史基线全绿 |
+| JUnit 5 + Mockito | 后端单元/集成测试 | 上下文/授权网关/技能/插件/LLM/MCP/记忆/并发/SSE/持久化/工具/Coordinator/Swarm/工作台投影等 | 1234 tests / 0 failure / 0 error / 61 skipped |
+| Vitest | 前端单元测试 | Store 生命周期/跨 Tab 同步/流式渲染/权限交互/重连恢复/工作台与路由边界 | 204 PASS / 16 skipped |
+| Playwright + 节点脚本 | 端到端 E2E | 简洁工作台 / Coordinator WS 订阅 / 可视化 3 种 viewType / 浏览器快照 MVP / APOS Phase 1 全栈 / APOS Phase 2 全栈 | 简洁工作台 7/7 PASS；Task 6/7/8/APOS 历史基线全绿 |
 | Pytest | Python 服务测试 | Token 估算/文件处理/浏览器自动化/语义快照/代码分析器/CLI | 107 PASS |
 
 **性能基线（v9.3，490 次真实请求采样）：**
@@ -1238,9 +1246,11 @@ ZhikunCode 实现了标准的 [MCP（Model Context Protocol）](https://modelcon
 
 | 工具 | 说明 | 来源 |
 |------|------|------|
-| **万相 2.5 图像生成** | AI 绘画，输入文本生成图片 | DashScope MCP |
-| **万相 2.5 图像编辑** | AI 图像编辑（图生图） | DashScope MCP |
+| **高德地图（13 项）** | IP 定位、天气、地理编码、地点搜索、距离与路线规划 | DashScope MCP |
+| **千问图像生成（3 项）** | 文生图、单图编辑和多图融合 | DashScope Streamable HTTP MCP |
+| **万相视频生成（8 项）** | 文生视频、图生视频、数字人和首尾帧视频的异步提交与查询 | DashScope Streamable HTTP MCP |
 | **网络搜索 Pro** | 联网搜索，返回网页摘要 | DashScope MCP |
+| **OneKey 新闻 / 法律 / 企业 / 内容审核** | 外部数据查询与文本安全 | DashScope Streamable HTTP MCP |
 
 ### 自定义 MCP 工具
 
@@ -1251,7 +1261,8 @@ ZhikunCode 实现了标准的 [MCP（Model Context Protocol）](https://modelcon
   "id": "mcp_your_tool",
   "name": "你的工具名称",
   "toolName": "mcp_server_tool_name",
-  "sseUrl": "https://your-mcp-server/sse",
+  "url": "https://your-mcp-server/mcp",
+  "transportType": "HTTP",
   "domain": "your_domain",
   "category": "MCP_TOOL",
   "enabled": true
@@ -1336,8 +1347,10 @@ ZhikunCode 内置 11 项可视化能力，让 AI 编程过程中的数据和状�
 | 变量 | 必填 | 默认值 | 说明 |
 |------|:---:|--------|------|
 | `LLM_PROVIDER_DASHSCOPE_API_KEY` | — | — | 千问/DashScope API Key |
+| `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_API_KEY` | — | — | 阿里云百炼 Token Plan 专属 API Key |
 | `LLM_PROVIDER_DEEPSEEK_API_KEY` | — | — | DeepSeek API Key |
 | `LLM_PROVIDER_MOONSHOT_API_KEY` | — | — | Moonshot/Kimi API Key |
+| `LLM_PROVIDER_ZHIPU_API_KEY` | — | — | 智谱 GLM API Key |
 | `LLM_DEFAULT_MODEL` | — | qwen3.7-max | 默认模型（未显式选择时使用） |
 
 > 多 Provider 模式下至少配置一个 Provider 的 API Key 即可。前端支持自由切换已配置的 Provider。
@@ -1376,9 +1389,10 @@ ZhikunCode 内置 11 项可视化能力，让 AI 编程过程中的数据和状�
 |------|:---:|--------|------|
 | `ZHIKUN_COORDINATOR_MODE` | — | 0 | Feature flag，启用协调器模式（0=关闭，1=开启） |
 | `LLM_PROVIDER_DASHSCOPE_MODELS` | — | qwen3.7-max,qwen3.7-plus | 按量计费 DashScope 可用模型列表（逗号分隔；实际目录可动态扩展） |
-| `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS` | — | qwen3.8-max | Token Plan Provider 可用模型列表；与普通 DashScope 配置相互独立 |
-| `LLM_PROVIDER_DEEPSEEK_MODELS` | — | deepseek-v4-pro,deepseek-v4-flash | DeepSeek 可用模型列表（逗号分隔） |
+| `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS` | — | qwen3.8-max,deepseek-v4-pro-0813,deepseek-v4-flash-0731 | 百炼 Token Plan Provider 可用模型列表；与普通 DashScope、DeepSeek 直连配置相互独立 |
+| `LLM_PROVIDER_DEEPSEEK_MODELS` | — | deepseek-v4-pro,deepseek-v4-flash,deepseek-v4-flash-vision-exp | DeepSeek 可用模型列表；Vision Exp 用作系列图片理解兜底（逗号分隔） |
 | `LLM_PROVIDER_MOONSHOT_MODELS` | — | kimi-k3,moonshot-v1-128k | Moonshot 可用模型列表（逗号分隔） |
+| `LLM_PROVIDER_ZHIPU_MODELS` | — | glm-5.3,glm-5v-turbo | 智谱 GLM 可用模型列表（逗号分隔） |
 
 **上下文管理配置（application.yml）：**
 

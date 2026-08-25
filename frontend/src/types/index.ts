@@ -33,7 +33,7 @@ export type ContentBlock =
     | { type: 'thinking'; thinking: string }
     | { type: 'redacted_thinking' }
     | { type: 'server_tool_use'; toolUseId: string; toolName: string }
-    | { type: 'image'; mediaType: string; base64Data: string };
+    | { type: 'image'; mediaType: string; base64Data?: string; url?: string };
 
 /** Token 用量 — 对齐 §5.1 Java record Usage */
 export interface Usage {
@@ -412,7 +412,7 @@ export interface BridgeConfig {
 export interface Attachment {
     type: 'file' | 'image' | 'url';
     name: string;
-    base64Data: string;
+    base64Data?: string;
     mediaType?: string;
     path?: string;
     url?: string;
@@ -519,6 +519,23 @@ export interface SubmitEvent {
     effortLevel?: 'low' | 'medium' | 'high';
 }
 
+/** 粘贴图片经后端 OSS 发布后的元信息 */
+export interface PublishedPastedImage {
+    name: string;
+    size: number;
+    mediaType: string;
+    url: string;
+}
+
+/**
+ * 粘贴图片发布结果:
+ * - oss: OSS 已配置，图片已上传并返回可信 URL
+ * - base64: OSS 未配置（或状态查询失败），降级为与按钮上传一致的 Base64 直传
+ */
+export type PastePublishResult =
+    | { mode: 'oss'; items: PublishedPastedImage[] }
+    | { mode: 'base64' };
+
 /** 本地附件 (含 File 对象，用于上传) */
 export interface LocalAttachment {
     id: string;
@@ -528,6 +545,8 @@ export interface LocalAttachment {
     file: File;
     /** 图片附件的纯 base64 内容（不含 data:URL 前缀），由 FileReader 异步生成 */
     base64Content?: string;
+    /** 浏览器粘贴后由后端直接发布到 OSS 的可信地址。 */
+    remoteUrl?: string;
     /** 图片附件的本地预览 URL（URL.createObjectURL 创建，需在移除时 revoke） */
     previewUrl?: string;
 }

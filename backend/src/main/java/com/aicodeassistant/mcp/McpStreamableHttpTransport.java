@@ -60,7 +60,7 @@ public class McpStreamableHttpTransport implements McpTransport {
     public McpStreamableHttpTransport(String baseUrl) {
         this(baseUrl, new OkHttpClient.Builder()
                 .connectTimeout(Duration.ofSeconds(10))
-                .readTimeout(Duration.ofSeconds(60))
+                .readTimeout(Duration.ZERO)
                 .writeTimeout(Duration.ofSeconds(10))
                 .build());
     }
@@ -153,7 +153,11 @@ public class McpStreamableHttpTransport implements McpTransport {
                 requestBuilder.header("Mcp-Session-Id", sessionId);
             }
 
-            try (Response response = httpClient.newCall(requestBuilder.build()).execute()) {
+            Call call = httpClient.newCall(requestBuilder.build());
+            if (timeoutMs > 0) {
+                call.timeout().timeout(timeoutMs, TimeUnit.MILLISECONDS);
+            }
+            try (Response response = call.execute()) {
                 if (!response.isSuccessful()) {
                     throw new McpProtocolException(new JsonRpcError(
                             JsonRpcError.INTERNAL_ERROR,

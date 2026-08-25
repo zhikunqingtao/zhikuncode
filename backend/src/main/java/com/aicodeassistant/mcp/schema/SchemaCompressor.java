@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -21,6 +22,8 @@ import java.util.Map;
  * 当 schema JSON 序列化后超过阈值（默认 2048 字节）时，按优先级逐步剥离低价值
  * 信息以缩小体积：
  * <ol>
+ *   <li>规范化远端 MCP 返回的非标准 JSON Schema 类型别名（例如
+ *       {@code bool -> boolean}）</li>
  *   <li>移除所有 {@code examples} / {@code example} 字段</li>
  *   <li>截断超过 200 字符的 {@code description} 字段（保留前 200 字符 + "..."）</li>
  *   <li>{@code enum} 数组超过 10 项时仅保留前 5 项 + 添加 "..." 占位</li>
@@ -42,6 +45,15 @@ public class SchemaCompressor {
     static final int ENUM_KEEP = 5;
     static final int ENUM_THRESHOLD = 10;
     static final String TRUNCATE_MARK = "...";
+
+    private static final List<String> SCHEMA_MAP_KEYWORDS = List.of(
+            "properties", "patternProperties", "$defs", "definitions", "dependentSchemas");
+    private static final List<String> SCHEMA_KEYWORDS = List.of(
+            "items", "additionalItems", "additionalProperties", "unevaluatedItems",
+            "unevaluatedProperties", "propertyNames", "contains", "not", "if", "then",
+            "else", "contentSchema");
+    private static final List<String> SCHEMA_ARRAY_KEYWORDS = List.of(
+            "oneOf", "anyOf", "allOf", "prefixItems");
 
     private final boolean enabled;
     private final int thresholdBytes;
@@ -70,16 +82,24 @@ public class SchemaCompressor {
      * 压缩 schema。如果未启用、为空或未超阈值，原样返回。
      */
     public JsonNode compress(JsonNode originalSchema) {
-        if (!enabled || originalSchema == null || originalSchema.isNull()) {
-            return originalSchema;
-        }
-        int originalSize = sizeOf(originalSchema);
-        if (originalSize <= thresholdBytes) {
+        if (originalSchema == null || originalSchema.isNull()) {
             return originalSchema;
         }
 
-        // Deep copy 避免修改入参
+        // MCP 服务端返回的 inputSchema 并不总是严格遵循 JSON Schema。
+        // 例如 WanVideo 当前会返回 type:"bool"；DashScope/Qwen 会宽松接受，
+        // Moonshot 则会因同一请求中任一非法 schema 而拒绝整批工具。兼容性规范化
+        // 必须不受“压缩开关/大小阈值”影响，否则小 schema 会绕过修复。
         JsonNode working = originalSchema.deepCopy();
+        boolean normalized = normalizeTypeAliases(working);
+
+        if (!enabled) {
+            return normalized ? working : originalSchema;
+        }
+        int originalSize = sizeOf(originalSchema);
+        if (sizeOf(working) <= thresholdBytes) {
+            return normalized ? working : originalSchema;
+        }
 
         // 步骤 1: 移除 examples / example
         stripExamples(working);
@@ -109,7 +129,7 @@ public class SchemaCompressor {
      */
     @SuppressWarnings("unchecked")
     public Map<String, Object> compress(Map<String, Object> originalSchema) {
-        if (!enabled || originalSchema == null || originalSchema.isEmpty()) {
+        if (originalSchema == null || originalSchema.isEmpty()) {
             return originalSchema;
         }
         JsonNode node = MAPPER.valueToTree(originalSchema);
@@ -121,6 +141,79 @@ public class SchemaCompressor {
     }
 
     // ===== 内部工具 =====
+
+    /**
+     * 递归规范化常见的非标准类型别名。
+     *
+     * <p>只处理文本类型值；若某个参数本身名为 {@code type}，其值是一个
+     * schema 对象，则不会被误改。遍历仍会进入该对象并规范化真正的类型关键字。
+     */
+    private boolean normalizeTypeAliases(JsonNode node) {
+        if (!(node instanceof ObjectNode obj)) return false;
+
+        boolean changed = normalizeTypeKeyword(obj);
+        for (String keyword : SCHEMA_MAP_KEYWORDS) {
+            JsonNode schemas = obj.get(keyword);
+            if (schemas instanceof ObjectNode schemaMap) {
+                Iterator<JsonNode> values = schemaMap.elements();
+                while (values.hasNext()) {
+                    changed |= normalizeTypeAliases(values.next());
+                }
+            }
+        }
+        for (String keyword : SCHEMA_KEYWORDS) {
+            JsonNode schema = obj.get(keyword);
+            if (schema != null && schema.isObject()) {
+                changed |= normalizeTypeAliases(schema);
+            }
+        }
+        for (String keyword : SCHEMA_ARRAY_KEYWORDS) {
+            JsonNode schemas = obj.get(keyword);
+            if (schemas instanceof ArrayNode schemaArray) {
+                for (JsonNode schema : schemaArray) {
+                    changed |= normalizeTypeAliases(schema);
+                }
+            }
+        }
+        return changed;
+    }
+
+    private boolean normalizeTypeKeyword(ObjectNode schema) {
+        JsonNode typeNode = schema.get("type");
+        if (typeNode != null && typeNode.isTextual()) {
+            String normalized = normalizeTypeName(typeNode.asText());
+            if (normalized != null) {
+                schema.put("type", normalized);
+                return true;
+            }
+            return false;
+        }
+        if (typeNode instanceof ArrayNode types) {
+            boolean changed = false;
+            for (int i = 0; i < types.size(); i++) {
+                JsonNode candidate = types.get(i);
+                if (!candidate.isTextual()) continue;
+                String normalized = normalizeTypeName(candidate.asText());
+                if (normalized != null) {
+                    types.set(i, new TextNode(normalized));
+                    changed = true;
+                }
+            }
+            return changed;
+        }
+        return false;
+    }
+
+    private String normalizeTypeName(String type) {
+        return switch (type) {
+            case "bool" -> "boolean";
+            case "int", "long" -> "integer";
+            case "float", "double" -> "number";
+            case "dict", "map" -> "object";
+            case "list" -> "array";
+            default -> null;
+        };
+    }
 
     private int sizeOf(JsonNode node) {
         try {

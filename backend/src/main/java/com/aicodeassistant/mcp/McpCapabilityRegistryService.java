@@ -93,6 +93,18 @@ public class McpCapabilityRegistryService {
                 .findFirst();
     }
 
+    public Optional<McpCapabilityDefinition> findEnabledByToolName(String serverKey, String toolName) {
+        return capabilities.values().stream()
+                .filter(McpCapabilityDefinition::enabled)
+                .filter(cap -> toolName.equals(cap.toolName()) && serverKey.equals(cap.extractServerKey()))
+                .findFirst();
+    }
+
+    public boolean hasDefinitionsForServer(String serverKey) {
+        return capabilities.values().stream()
+                .anyMatch(cap -> serverKey.equals(cap.extractServerKey()));
+    }
+
     public List<String> listDomains() {
         return capabilities.values().stream()
                 .map(McpCapabilityDefinition::domain).filter(Objects::nonNull)

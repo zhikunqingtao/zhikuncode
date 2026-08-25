@@ -124,8 +124,9 @@ public class PublishArtifactTool implements Tool {
     private static String publicMessage(String code) {
         return switch (code) {
             case "OSS_PUBLISHING_DISABLED" -> "OSS artifact publication is disabled on this deployment.";
-            case "OSS_CREDENTIAL_SOURCE_FORBIDDEN" -> "Static OSS credentials are forbidden; use the ECS instance RAM role.";
+            case "OSS_CREDENTIAL_SOURCE_FORBIDDEN" -> "Legacy OSS_* credential variables are forbidden; use an ECS RAM role or the Alibaba Cloud default credential chain.";
             case "OSS_ECS_ROLE_REQUIRED", "OSS_INSTANCE_ROLE_UNAVAILABLE" -> "The ECS instance RAM role is unavailable.";
+            case "OSS_CREDENTIALS_UNAVAILABLE" -> "No local Alibaba Cloud credentials were found in the default credential chain.";
             case "OSS_PUBLIC_ACCESS_BLOCKED" -> "The bucket blocks public object access; the private upload was cleaned up.";
             case "ARTIFACT_NOT_IN_CURRENT_SESSION" ->
                     "The requested file is not a declared artifact of the current session.";

@@ -4,6 +4,7 @@ import com.aicodeassistant.config.oss.OssPublishProperties;
 import com.aicodeassistant.tool.ToolResult;
 import com.aliyun.credentials.Client;
 import com.aliyun.credentials.models.Config;
+import com.aliyun.credentials.provider.DefaultCredentialsProvider;
 import com.aliyun.sdk.service.oss2.OSSClient;
 import com.aliyun.sdk.service.oss2.credentials.Credentials;
 import com.aliyun.sdk.service.oss2.credentials.CredentialsProvider;
@@ -28,7 +29,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.Supplier;
 
-/** The only component allowed to acquire ECS role credentials or call the OSS SDK. */
+/** The only component allowed to acquire Alibaba Cloud credentials or call the OSS SDK. */
 @Service
 public class OssArtifactService {
     private static final Logger log = LoggerFactory.getLogger(OssArtifactService.class);
@@ -106,18 +107,23 @@ public class OssArtifactService {
 
     private OSSClient createClient() {
         try {
-            Config config = new Config().setType("ecs_ram_role")
-                    .setRoleName(properties.ecsRoleName())
-                    .setDisableIMDSv1(true)
-                    .setEnableIMDSv2(true);
-            Client credentialClient = new Client(config);
+            OssPublishProperties.CredentialMode mode = properties.resolvedCredentialMode();
+            String credentialFailureCode = mode == OssPublishProperties.CredentialMode.ECS_RAM_ROLE
+                    ? "OSS_INSTANCE_ROLE_UNAVAILABLE" : "OSS_CREDENTIALS_UNAVAILABLE";
+            Client credentialClient = switch (mode) {
+                case ECS_RAM_ROLE -> new Client(new Config().setType("ecs_ram_role")
+                        .setRoleName(properties.ecsRoleName())
+                        .setDisableIMDSv1(true)
+                        .setEnableIMDSv2(true));
+                case DEFAULT_CHAIN -> new Client(DefaultCredentialsProvider.builder().build());
+            };
             CredentialsProvider provider = new CredentialsProviderSupplier(() -> {
                 try {
                     var credential = credentialClient.getCredential();
                     return new Credentials(credential.getAccessKeyId(), credential.getAccessKeySecret(),
                             credential.getSecurityToken());
                 } catch (Exception failure) {
-                    throw new IllegalStateException("OSS_INSTANCE_ROLE_UNAVAILABLE", failure);
+                    throw new IllegalStateException(credentialFailureCode, failure);
                 }
             });
             return OSSClient.newBuilder()
@@ -129,7 +135,10 @@ public class OssArtifactService {
                     .retryMaxAttempts(3)
                     .build();
         } catch (Exception failure) {
-            throw new OssPublishException("OSS_INSTANCE_ROLE_UNAVAILABLE",
+            String code = properties.resolvedCredentialMode()
+                    == OssPublishProperties.CredentialMode.ECS_RAM_ROLE
+                    ? "OSS_INSTANCE_ROLE_UNAVAILABLE" : "OSS_CREDENTIALS_UNAVAILABLE";
+            throw new OssPublishException(code,
                     ToolResult.ToolFailureType.PROVIDER, ToolResult.Retryability.IDEMPOTENCY_REQUIRED,
                     ToolResult.EffectState.NOT_STARTED, failure);
         }
@@ -194,6 +203,13 @@ public class OssArtifactService {
 
     private OssPublishException mapFailure(Exception failure, Phase phase) {
         if (failure instanceof OssPublishException known) return known;
+        String credentialFailureCode = credentialFailureCode(failure);
+        if (credentialFailureCode != null) {
+            return new OssPublishException(credentialFailureCode,
+                    ToolResult.ToolFailureType.PROVIDER,
+                    ToolResult.Retryability.IDEMPOTENCY_REQUIRED,
+                    ToolResult.EffectState.NOT_STARTED, failure);
+        }
         ServiceException service = ServiceException.asCause(failure);
         if (service != null) {
             log.warn("OSS request failed: phase={}, status={}, code={}, requestId={}",
@@ -216,6 +232,18 @@ public class OssArtifactService {
         }
         return new OssPublishException("OSS_PUBLISH_FAILED", ToolResult.ToolFailureType.PROVIDER,
                 ToolResult.Retryability.IDEMPOTENCY_REQUIRED, ToolResult.EffectState.UNKNOWN, failure);
+    }
+
+    private static String credentialFailureCode(Throwable failure) {
+        for (Throwable current = failure; current != null; current = current.getCause()) {
+            if ("OSS_INSTANCE_ROLE_UNAVAILABLE".equals(current.getMessage())) {
+                return "OSS_INSTANCE_ROLE_UNAVAILABLE";
+            }
+            if ("OSS_CREDENTIALS_UNAVAILABLE".equals(current.getMessage())) {
+                return "OSS_CREDENTIALS_UNAVAILABLE";
+            }
+        }
+        return null;
     }
 
     private static String contentDisposition(String fileName) {

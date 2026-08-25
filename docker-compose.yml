@@ -25,8 +25,12 @@ services:
       # ---- Multi-Provider LLM (Recommended) ----
       - LLM_PROVIDER_DASHSCOPE_API_KEY=${LLM_PROVIDER_DASHSCOPE_API_KEY:-}
       - LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_API_KEY=${LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_API_KEY:-}
+      - LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS=${LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS:-qwen3.8-max,deepseek-v4-pro-0813,deepseek-v4-flash-0731}
       - LLM_PROVIDER_DEEPSEEK_API_KEY=${LLM_PROVIDER_DEEPSEEK_API_KEY:-}
+      - LLM_PROVIDER_DEEPSEEK_MODELS=${LLM_PROVIDER_DEEPSEEK_MODELS:-deepseek-v4-pro,deepseek-v4-flash,deepseek-v4-flash-vision-exp}
       - LLM_PROVIDER_MOONSHOT_API_KEY=${LLM_PROVIDER_MOONSHOT_API_KEY:-}
+      - LLM_PROVIDER_ZHIPU_API_KEY=${LLM_PROVIDER_ZHIPU_API_KEY:-}
+      - LLM_PROVIDER_ZHIPU_MODELS=${LLM_PROVIDER_ZHIPU_MODELS:-glm-5.3,glm-5v-turbo}
       # ---- Legacy Single-Provider (Backward Compatible) ----
       - LLM_API_KEY=${LLM_API_KEY:-}
       - LLM_BASE_URL=${LLM_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
@@ -47,17 +51,21 @@ services:
       - ZHIKUN_WORKSPACE_ALLOWED_ROOTS=/app/workspace
       - ZHIKUN_GLOBAL_DB_PATH=/app/data/global.db
       - ZHIKUNCODE_DATABASE_PROJECT_ROOT=/app/data
-      # ---- Optional explicit OSS artifact publication (disabled by default) ----
-      # Credentials are obtained from the ECS instance RAM role through IMDSv2.
+      # ---- Optional OSS publishing + clipboard image paste (disabled by default) ----
+      # auto prefers local ALIBABA_CLOUD_* credentials, then a named ECS RAM Role.
       - ZHIKUN_OSS_ENABLED=${ZHIKUN_OSS_ENABLED:-false}
       - ZHIKUN_OSS_ENDPOINT=${ZHIKUN_OSS_ENDPOINT:-}
       - ZHIKUN_OSS_REGION=${ZHIKUN_OSS_REGION:-}
       - ZHIKUN_OSS_BUCKET=${ZHIKUN_OSS_BUCKET:-}
       - ZHIKUN_OSS_PREFIX=${ZHIKUN_OSS_PREFIX:-zhikuncode-artifacts}
       - ZHIKUN_OSS_ECS_ROLE_NAME=${ZHIKUN_OSS_ECS_ROLE_NAME:-}
+      - ZHIKUN_OSS_CREDENTIAL_MODE=${ZHIKUN_OSS_CREDENTIAL_MODE:-auto}
       - ZHIKUN_OSS_MAX_FILE_BYTES=${ZHIKUN_OSS_MAX_FILE_BYTES:-104857600}
       - ZHIKUN_OSS_CONNECT_TIMEOUT_MS=${ZHIKUN_OSS_CONNECT_TIMEOUT_MS:-10000}
       - ZHIKUN_OSS_REQUEST_TIMEOUT_MS=${ZHIKUN_OSS_REQUEST_TIMEOUT_MS:-120000}
+      - ALIBABA_CLOUD_ACCESS_KEY_ID=${ALIBABA_CLOUD_ACCESS_KEY_ID:-}
+      - ALIBABA_CLOUD_ACCESS_KEY_SECRET=${ALIBABA_CLOUD_ACCESS_KEY_SECRET:-}
+      - ALIBABA_CLOUD_SECURITY_TOKEN=${ALIBABA_CLOUD_SECURITY_TOKEN:-}
     volumes:
       # Persistent data (SQLite DB, session data, memories)
       - zhikun-data:/app/data

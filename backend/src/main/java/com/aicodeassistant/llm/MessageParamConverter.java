@@ -90,9 +90,16 @@ public final class MessageParamConverter {
                     } else if ("text".equals(type)) {
                         parts.add(new MessageParam.ContentPart.TextPart((String) block.get("text")));
                     } else if ("image".equals(type)) {
+                        Object sourceValue = block.get("source");
+                        Map<?, ?> source = sourceValue instanceof Map<?, ?> sourceMap
+                                ? sourceMap : Map.of();
                         parts.add(new MessageParam.ContentPart.ImagePart(
-                                (String) block.get("media_type"),
-                                (String) block.get("data")));
+                                stringValue(source.containsKey("media_type")
+                                        ? source.get("media_type") : block.get("media_type")),
+                                stringValue(source.containsKey("data")
+                                        ? source.get("data") : block.get("data")),
+                                stringValue(source.containsKey("url")
+                                        ? source.get("url") : block.get("url"))));
                     } else {
                         parts.add(new MessageParam.ContentPart.TextPart(
                                 block.toString()));
@@ -190,13 +197,22 @@ public final class MessageParamConverter {
                 Map<String, Object> m = new HashMap<>();
                 m.put("type", "image");
                 Map<String, Object> source = new HashMap<>();
-                source.put("type", "base64");
-                source.put("media_type", ip.mediaType());
-                source.put("data", ip.base64Data());
+                if (ip.url() != null && !ip.url().isBlank()) {
+                    source.put("type", "url");
+                    source.put("url", ip.url());
+                } else {
+                    source.put("type", "base64");
+                    source.put("media_type", ip.mediaType());
+                    source.put("data", ip.base64Data());
+                }
                 m.put("source", source);
                 yield m;
             }
         };
+    }
+
+    private static String stringValue(Object value) {
+        return value == null ? null : value.toString();
     }
 
     /**

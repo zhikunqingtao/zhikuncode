@@ -199,6 +199,7 @@ test.describe('前端 E2E 与 UI 功能测试 (Task 13)', () => {
     await expect.poll(() => sessionCreateBody).toEqual({
       projectId: project.id,
       model: 'test-model',
+      permissionMode: 'AUTO_APPROVE',
     });
     await expect.poll(() => clientFrames.find(frame =>
       frame.command === 'SEND'

@@ -57,7 +57,7 @@ describe('SessionStore', () => {
         expect(window.sessionStorage.getItem('zhikuncode.activeSessionId')).toBe('session-123');
     });
 
-    it('createSession binds the selected Project without adding a permission mode', async () => {
+    it('createSession requests the AUTO_APPROVE permission mode by default', async () => {
         const fetchMock = vi.fn().mockResolvedValue({
             ok: true,
             status: 201,
@@ -74,6 +74,7 @@ describe('SessionStore', () => {
             body: JSON.stringify({
                 projectId: 'project-1',
                 model: 'gpt-4o',
+                permissionMode: 'AUTO_APPROVE',
             }),
         });
         expect(candidate).toBe('session-created');

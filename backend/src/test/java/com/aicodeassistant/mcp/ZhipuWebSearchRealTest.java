@@ -25,17 +25,24 @@ import static org.junit.jupiter.api.Assertions.*;
  * 3. 服务端通过 SSE 流推送 JSON-RPC 响应
  * <p>
  * 关键: SSE 连接必须保持开放，不能断开后重连（会话绑定）
+ * <p>
+ * 仅在显式设置 {@code RUN_ZHIPU_MCP_LIVE_TESTS=true} 时运行；认证统一读取
+ * {@code LLM_PROVIDER_DASHSCOPE_API_KEY}，因为该 MCP 由 DashScope 网关提供。
  */
+@EnabledIfEnvironmentVariable(named = "RUN_ZHIPU_MCP_LIVE_TESTS", matches = "(?i)true")
 class ZhipuWebSearchRealTest {
 
     private static final String MCP_SSE_URL = "https://dashscope.aliyuncs.com/api/v1/mcps/zhipu-websearch/sse";
-    private static final String API_KEY = System.getenv("LLM_API_KEY") != null
-            ? System.getenv("LLM_API_KEY") : "test-api-key-placeholder";
+
+    private String apiKey;
 
     @Test
-    @EnabledIfEnvironmentVariable(named = "ZHIPU_API_KEY", matches = ".+")
     @Timeout(value = 60, unit = TimeUnit.SECONDS)
     void testRealWebSearch() throws Exception {
+        apiKey = System.getenv("LLM_PROVIDER_DASHSCOPE_API_KEY");
+        assertNotNull(apiKey, "运行真实测试前必须设置 LLM_PROVIDER_DASHSCOPE_API_KEY");
+        assertFalse(apiKey.isBlank(), "LLM_PROVIDER_DASHSCOPE_API_KEY 不能为空");
+
         // ==================== 入参 ====================
         String searchQuery = "阿里巴巴通义千问最新版本";
         int numResults = 3;
@@ -44,7 +51,6 @@ class ZhipuWebSearchRealTest {
         System.out.println("MCP SSE URL: " + MCP_SSE_URL);
         System.out.println("搜索关键词: " + searchQuery);
         System.out.println("结果数量: " + numResults);
-        System.out.println("API Key: " + API_KEY.substring(0, 10) + "...");
         System.out.println("====================================================\n");
 
         long startTime = System.currentTimeMillis();
@@ -54,7 +60,7 @@ class ZhipuWebSearchRealTest {
         URL sseUrl = new URL(MCP_SSE_URL);
         HttpURLConnection sseConn = (HttpURLConnection) sseUrl.openConnection();
         sseConn.setRequestMethod("GET");
-        sseConn.setRequestProperty("Authorization", "Bearer " + API_KEY);
+        sseConn.setRequestProperty("Authorization", "Bearer " + apiKey);
         sseConn.setRequestProperty("Accept", "text/event-stream");
         sseConn.setConnectTimeout(15000);
         sseConn.setReadTimeout(0); // 无超时 — SSE 长连接
@@ -220,7 +226,7 @@ class ZhipuWebSearchRealTest {
         URL url = new URL(endpoint);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("POST");
-        conn.setRequestProperty("Authorization", "Bearer " + API_KEY);
+        conn.setRequestProperty("Authorization", "Bearer " + apiKey);
         conn.setRequestProperty("Content-Type", "application/json");
         conn.setDoOutput(true);
         conn.setConnectTimeout(10000);

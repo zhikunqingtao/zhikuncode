@@ -600,9 +600,16 @@ public class SessionManager {
                             case "image" -> {
                                 com.fasterxml.jackson.databind.JsonNode source = node.get("source");
                                 if (source != null) {
-                                    blocks.add(new ContentBlock.ImageBlock(
-                                            source.get("media_type").asText(),
-                                            source.get("data").asText()));
+                                    String mediaType = source.has("media_type")
+                                            ? source.get("media_type").asText() : "image/png";
+                                    if ("url".equals(source.path("type").asText())
+                                            && source.hasNonNull("url")) {
+                                        blocks.add(ContentBlock.ImageBlock.fromUrl(
+                                                mediaType, source.get("url").asText()));
+                                    } else if (source.hasNonNull("data")) {
+                                        blocks.add(new ContentBlock.ImageBlock(
+                                                mediaType, source.get("data").asText()));
+                                    }
                                 }
                             }
                             case "thinking" -> blocks.add(new ContentBlock.ThinkingBlock(
@@ -738,9 +745,14 @@ public class SessionManager {
             }
             case ContentBlock.ImageBlock image -> {
                 Map<String, Object> sourceMap = new HashMap<>();
-                sourceMap.put("type", "base64");
-                sourceMap.put("media_type", image.mediaType());
-                sourceMap.put("data", image.base64Data());
+                if (image.url() != null && !image.url().isBlank()) {
+                    sourceMap.put("type", "url");
+                    sourceMap.put("url", image.url());
+                } else {
+                    sourceMap.put("type", "base64");
+                    sourceMap.put("media_type", image.mediaType());
+                    sourceMap.put("data", image.base64Data());
+                }
                 Map<String, Object> map = new HashMap<>();
                 map.put("type", "image");
                 map.put("source", sourceMap);

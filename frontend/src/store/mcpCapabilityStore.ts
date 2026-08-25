@@ -6,7 +6,7 @@ export interface McpCapabilityDefinition {
   id: string;
   name: string;
   toolName: string;
-  sseUrl: string;
+  url: string;
   apiKeyConfig: string;
   apiKeyDefault?: string;
   domain: string;
@@ -40,6 +40,26 @@ export interface McpCapabilityStoreState {
   testCapability: (id: string) => Promise<{ status: string; error?: string }>;
 }
 
+/**
+ * 后端返回的原始能力定义：新契约字段为 url；
+ * 旧后端/旧缓存数据可能仍携带 sseUrl
+ * （对应后端 McpCapabilityDefinition 的 @JsonProperty("url") + @JsonAlias("sseUrl")）。
+ */
+type RawMcpCapability = Omit<McpCapabilityDefinition, 'url'> & {
+  url?: string;
+  sseUrl?: string;
+};
+
+/**
+ * 契约归一化：将 url ?? sseUrl 统一映射到 url，并剔除旧的 sseUrl 字段。
+ * store 内部状态与后续 PUT/POST 请求体因此只依赖 url 契约，
+ * 避免旧字段残留导致编辑保存时后端 url 被置空覆盖。
+ */
+function normalizeCapability(raw: RawMcpCapability): McpCapabilityDefinition {
+  const { sseUrl, ...rest } = raw;
+  return { ...rest, url: raw.url ?? sseUrl ?? '' };
+}
+
 export const useMcpCapabilityStore = create<McpCapabilityStoreState>()(
   subscribeWithSelector(immer((set, get) => ({
     capabilities: [],
@@ -59,7 +79,7 @@ export const useMcpCapabilityStore = create<McpCapabilityStoreState>()(
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         const data = await resp.json();
         set(d => {
-          d.capabilities = data.capabilities ?? [];
+          d.capabilities = (data.capabilities ?? []).map(normalizeCapability);
           d.total = data.total ?? 0;
           d.enabledCount = data.enabledCount ?? 0;
           d.loading = false;
@@ -117,7 +137,7 @@ export const useMcpCapabilityStore = create<McpCapabilityStoreState>()(
         const updated = await resp.json();
         set(d => {
           const idx = d.capabilities.findIndex(c => c.id === id);
-          if (idx >= 0) d.capabilities[idx] = updated;
+          if (idx >= 0) d.capabilities[idx] = normalizeCapability(updated);
         });
       } catch (e) {
         console.error('[McpCapabilityStore] updateCapability failed:', e);
@@ -133,7 +153,7 @@ export const useMcpCapabilityStore = create<McpCapabilityStoreState>()(
         });
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         const created = await resp.json();
-        set(d => { d.capabilities.push(created); d.total++; });
+        set(d => { d.capabilities.push(normalizeCapability(created)); d.total++; });
       } catch (e) {
         console.error('[McpCapabilityStore] addCapability failed:', e);
       }

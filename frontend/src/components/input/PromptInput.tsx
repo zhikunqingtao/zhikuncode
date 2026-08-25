@@ -11,9 +11,9 @@
  * 6. IME 保护: isComposing 状态下忽略快捷键 (CJK 输入法)
  */
 
-import React, { useState, useRef, useCallback, useEffect, useMemo, type KeyboardEvent } from 'react';
+import React, { useState, useRef, useCallback, useEffect, useMemo, type ClipboardEvent, type KeyboardEvent } from 'react';
 import { Send, Square, X } from 'lucide-react';
-import type { Command, LocalAttachment, SubmitEvent, Message, Attachment } from '@/types';
+import type { Command, LocalAttachment, SubmitEvent, Message, Attachment, PastePublishResult } from '@/types';
 import { useNotificationStore } from '@/store/notificationStore';
 import CommandPalette from './CommandPalette';
 import FileUpload from './FileUpload';
@@ -26,7 +26,7 @@ const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 /**
  * 通用的前端图片数量上限（参考值，仅用于防御性约束）。
  *
- * 后端已实现智能视觉路由：当用户选择不支持图片的模型（如 glm-5.2）时，
+ * 后端已实现智能视觉路由：当用户选择不支持图片的模型（如 glm-5.3）时，
  * 会自动路由到同厂商视觉模型，因此前端不再基于 modelInfo.supportsImages 前置禁用按钮。
  * 实际可处理的图片数量由路由后的视觉模型决定，前端仅保留一个合理上限。
  */
@@ -60,6 +60,7 @@ interface PromptInputProps {
     messages: Message[];
     commands: Command[];
     simpleMode?: boolean;
+    onPasteImages: (files: File[]) => Promise<PastePublishResult>;
 }
 
 const PromptInput: React.FC<PromptInputProps> = ({
@@ -71,6 +72,7 @@ const PromptInput: React.FC<PromptInputProps> = ({
     compacting,
     commands,
     simpleMode = false,
+    onPasteImages,
 }) => {
     const [input, setInput] = useState('');
     const [attachments, setAttachments] = useState<LocalAttachment[]>([]);
@@ -80,9 +82,19 @@ const PromptInput: React.FC<PromptInputProps> = ({
     const [fileQuery, setFileQuery] = useState('');
     const [historyIndex, setHistoryIndex] = useState(-1);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isUploadingPaste, setIsUploadingPaste] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const historyRef = useRef<string[]>([]);
     const submissionRef = useRef(false);
+    // 异步链路（粘贴上传/读取 base64）的卸载防护：卸载后短路 setState/通知并回收 ObjectURL
+    const isMountedRef = useRef(true);
+
+    useEffect(() => {
+        isMountedRef.current = true;
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
 
     // 图片上传按钮始终可用：后端的智能视觉路由会处理模型适配，
     // 前端不再基于 supportsImages 进行前置禁用，仅保留通用数量上限。
@@ -174,6 +186,7 @@ const PromptInput: React.FC<PromptInputProps> = ({
             name: a.name,
             base64Data: a.base64Content ?? '',
             mediaType: a.type,
+            url: a.remoteUrl,
         }));
         submissionRef.current = true;
         setIsSubmitting(true);
@@ -294,6 +307,8 @@ const PromptInput: React.FC<PromptInputProps> = ({
         }
 
         for (const f of imageFiles) {
+            // 组件卸载后停止处理后续图片，避免卸载后继续读文件/发通知
+            if (!isMountedRef.current) break;
             const isImage = f.type.startsWith('image/');
 
             // 超出通用图片数量上限：静默丢弃剩余图片，仅提示一次
@@ -330,6 +345,7 @@ const PromptInput: React.FC<PromptInputProps> = ({
                     base.previewUrl = URL.createObjectURL(f);
                     currentImageCount += 1;
                 } catch (err) {
+                    if (!isMountedRef.current) break;
                     notify({
                         key: `attach-read-fail-${generateUUID()}`,
                         level: 'error',
@@ -342,10 +358,109 @@ const PromptInput: React.FC<PromptInputProps> = ({
             accepted.push(base);
         }
 
+        // 卸载后不再 setState；已创建的预览 URL 未进入 attachmentsRef，需就地回收
+        if (!isMountedRef.current) {
+            accepted.forEach(a => {
+                if (a.previewUrl) URL.revokeObjectURL(a.previewUrl);
+            });
+            return;
+        }
+
         if (accepted.length > 0) {
             setAttachments(prev => [...prev, ...accepted]);
         }
     }, [imageCount, maxImages, runActive, compacting]);
+
+    const handlePaste = useCallback((event: ClipboardEvent<HTMLTextAreaElement>) => {
+        const itemFiles = Array.from(event.clipboardData.items)
+            .filter(item => item.kind === 'file' && item.type.startsWith('image/'))
+            .map(item => item.getAsFile())
+            .filter((file): file is File => file !== null);
+        const imageFiles = itemFiles.length > 0
+            ? itemFiles
+            : Array.from(event.clipboardData.files).filter(file => file.type.startsWith('image/'));
+        if (imageFiles.length === 0) return;
+        event.preventDefault();
+
+        if (runActive || compacting || isUploadingPaste) {
+            useNotificationStore.getState().addNotification({
+                key: `paste-image-busy-${generateUUID()}`,
+                level: 'warning',
+                message: '当前任务运行、压缩或图片上传期间不能粘贴图片',
+            });
+            return;
+        }
+
+        const remaining = Math.max(0, maxImages - imageCount);
+        const accepted = imageFiles.slice(0, remaining).filter(file => file.size <= MAX_IMAGE_SIZE);
+        const notify = useNotificationStore.getState().addNotification;
+        if (imageFiles.some(file => file.size > MAX_IMAGE_SIZE)) {
+            notify({
+                key: `paste-image-size-${generateUUID()}`,
+                level: 'warning',
+                message: '部分粘贴图片超过 5MB，已跳过',
+            });
+        }
+        if (imageFiles.length > remaining) {
+            notify({
+                key: `paste-image-limit-${generateUUID()}`,
+                level: 'warning',
+                message: `图片数量最多为 ${maxImages} 张，超出部分已跳过`,
+            });
+        }
+        if (accepted.length === 0) return;
+
+        setIsUploadingPaste(true);
+        void onPasteImages(accepted).then(async result => {
+            if (result.mode === 'base64') {
+                // OSS 未配置：降级复用按钮/拖拽上传的 Base64 直传路径
+                // （readFileAsBase64 + 预览 + 数量/大小校验均由 handleFiles 统一处理）。
+                await handleFiles(accepted);
+                if (!isMountedRef.current) return;
+                notify({
+                    key: `paste-image-inline-${generateUUID()}`,
+                    level: 'info',
+                    message: `${accepted.length} 张粘贴图片将随消息直传（OSS 未配置）`,
+                    timeout: 2500,
+                });
+                return;
+            }
+            const remoteAttachments: LocalAttachment[] = result.items.map((item, index) => ({
+                id: generateUUID(),
+                name: item.name,
+                size: item.size,
+                type: item.mediaType,
+                file: accepted[index],
+                previewUrl: URL.createObjectURL(accepted[index]),
+                remoteUrl: item.url,
+            }));
+            // await 期间组件可能已卸载：新建的预览 URL 不会进入 attachmentsRef，
+            // 需就地回收，且不再 setState/发通知。
+            if (!isMountedRef.current) {
+                remoteAttachments.forEach(a => {
+                    if (a.previewUrl) URL.revokeObjectURL(a.previewUrl);
+                });
+                return;
+            }
+            setAttachments(previous => [...previous, ...remoteAttachments]);
+            notify({
+                key: `paste-image-uploaded-${generateUUID()}`,
+                level: 'success',
+                message: `${remoteAttachments.length} 张粘贴图片已自动上传 OSS`,
+                timeout: 2500,
+            });
+        }).catch(error => {
+            if (!isMountedRef.current) return;
+            notify({
+                key: `paste-image-failed-${generateUUID()}`,
+                level: 'error',
+                message: error instanceof Error ? error.message : '粘贴图片上传 OSS 失败',
+                timeout: 7000,
+            });
+        }).finally(() => {
+            if (isMountedRef.current) setIsUploadingPaste(false);
+        });
+    }, [compacting, handleFiles, imageCount, isUploadingPaste, maxImages, onPasteImages, runActive]);
 
     // Drag & drop file upload
     const handleDrop = useCallback((e: React.DragEvent) => {
@@ -535,6 +650,7 @@ const PromptInput: React.FC<PromptInputProps> = ({
                         else setShowCommands(false);
                     }}
                     onKeyDown={handleKeyDown}
+                    onPaste={handlePaste}
                     placeholder={
                         compacting
                             ? '正在压缩上下文，请稍候…'
@@ -544,7 +660,7 @@ const PromptInput: React.FC<PromptInputProps> = ({
                             ? '描述你希望完成或继续修改的事情…'
                             : `输入消息…（/ 查看命令，${navigator.platform.includes('Mac') ? '⌘' : 'Ctrl+'}K 打开命令面板）`
                     }
-                    disabled={disabled || compacting || isSubmitting}
+                    disabled={disabled || compacting || isSubmitting || isUploadingPaste}
                     aria-label="输入消息"
                     aria-multiline="true"
                     className="flex-1 resize-none rounded-lg border border-gray-700 bg-gray-900
@@ -560,13 +676,13 @@ const PromptInput: React.FC<PromptInputProps> = ({
                     <FileUpload
                         onFiles={handleFiles}
                         accept="image/*"
-                        disabled={disabled || isSubmitting}
+                        disabled={disabled || isSubmitting || isUploadingPaste}
                         title={`上传图片（不支持图片的模型将由视觉模型自动处理，上限 ${maxImages} 张）`}
                     />
                 )}
                 <button
                     onClick={() => { void handleSubmit(); }}
-                    disabled={disabled || compacting || isSubmitting
+                    disabled={disabled || compacting || isSubmitting || isUploadingPaste
                         || (!input.trim() && attachments.length === 0)}
                     aria-label={runActive ? '发送运行中干预' : '发送消息'}
                     title={runActive ? '发送运行中干预' : '发送消息'}

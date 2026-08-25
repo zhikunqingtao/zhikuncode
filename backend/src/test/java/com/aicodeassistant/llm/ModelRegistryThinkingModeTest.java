@@ -125,4 +125,15 @@ class ModelRegistryThinkingModeTest {
         assertThat(caps).isEqualTo(ModelCapabilities.DEFAULT);
         assertThat(caps.supportsThinking()).isFalse();
     }
+
+    @Test
+    @DisplayName("tc012: DeepSeek Vision 注册为 1M 上下文图片模型")
+    void tc012_deepseekVisionCapabilities() {
+        ModelCapabilities caps = modelRegistry.getCapabilities("deepseek-v4-flash-vision-exp");
+
+        assertThat(caps.contextWindow()).isEqualTo(1_000_000);
+        assertThat(caps.maxOutputTokens()).isEqualTo(384_000);
+        assertThat(caps.supportsImages()).isTrue();
+        assertThat(caps.maxImages()).isEqualTo(5);
+    }
 }

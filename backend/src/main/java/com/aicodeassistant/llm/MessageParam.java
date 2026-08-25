@@ -20,7 +20,11 @@ public sealed interface MessageParam {
         record ToolResultPart(String toolUseId, String content, boolean isError) implements ContentPart {}
         record ThinkingPart(String thinking) implements ContentPart {}
         record RedactedThinkingPart(String data) implements ContentPart {}
-        record ImagePart(String mediaType, String base64Data) implements ContentPart {}
+        record ImagePart(String mediaType, String base64Data, String url) implements ContentPart {
+            public ImagePart(String mediaType, String base64Data) {
+                this(mediaType, base64Data, null);
+            }
+        }
     }
 
     // ===== 新版 record (目标结构) =====

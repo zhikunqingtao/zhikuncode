@@ -109,9 +109,9 @@ In a single overnight run on 2026-08-09, ZhikunCode used Kimi K3 to build a pure
 | 🔒 | **Unified Authorization Security** | Every core tool passes through the Tool Gateway: canonical input freezing → Operation Analyzer risk/resource analysis → system invariants → RUN/SESSION/WORKSPACE grant matching or durable permission interaction → final dynamic recheck → structured result auditing. High-risk operations are ONCE-only, and unknown MCP/dynamic tools default to one-time approval |
 | 🇨🇳 | **Native Chinese LLM Support** | Qwen / DeepSeek / Moonshot / Zhipu GLM / MiniMax work out of the box with direct connections from mainland China — no VPN required |
 | 🐳 | **One-Command Docker Deployment** | `docker compose up -d` — one command to start. Data stays local, fully private |
-| 📤 | **Explicit OSS Artifact Publishing (Optional)** | Use `/publish-oss` to publish one verified artifact from the current session as a permanently public download; disabled by default, never automatic, and requires an explicit request plus one-time approval for every publication |
+| 📤 | **OSS Publishing and Screenshot Paste (Optional)** | `/publish-oss` remains explicit-only for verified artifacts; pasted screenshots support dual-path — OSS upload when configured, automatic Base64 fallback when OSS is not configured, enabling image analysis with no extra setup |
 | ⚡ | **Intelligent Context Management** | Six-layer compression cascade (Snip / MicroCompact / ContextCollapse / AutoCompact / CollapseDrain / ReactiveCompact) + incremental collapse (auto-compress every 10 turns) + 413 two-phase recovery (CollapseDrain aggressive compression → ReactiveCompact) + Precise Token Counting (tiktoken multi-model support) + Self-Correction Loop (SelfCorrectionLoop, auto-diagnose compile/test failures, max 3 retries) + three-level token alerts + image context governance (large image externalization → on-demand injection → budget guard three-layer protection) for seamless ultra-long conversations. The core engines are ContextCascade and QueryEngine |
-| 📷 | **Multimodal Image Chat** | Upload images for AI analysis; **Intelligent Vision Routing** — when the selected model lacks image input support, the system auto-routes to a vision-capable model from the same provider (with global fallback) and reverts to the original model after image processing. **Image Budget Guard** — large images (>50KB) are auto-externalized to lightweight JSON references, injected on-demand before API calls; two-phase token budget guard prevents multi-image conversations from accumulating beyond limits (≤1.5MB per image, ≤2MB total, max 5 concurrent injections). Supported models: gpt-5.6-sol / gpt-5.4-mini / claude-sonnet-4-6 / claude-opus-4-8 / qwen3.7-plus / kimi-k3 / kimi-k2.7-code / glm-5v-turbo / MiniMax-M3 / openai/gpt-5.6-sol / google/gemini-3.5-flash (max 5MB per image, image count limit varies by model) |
+| 📷 | **Multimodal Image Chat** | Upload images for AI analysis; **Intelligent Vision Routing** — when the selected model lacks image input support, the system auto-routes to a vision-capable model and reverts to the original model afterward. DeepSeek models prefer `deepseek-v4-flash-vision-exp`, then fall back to same-provider/global vision routing when unavailable. **Image Budget Guard** — large images (>50KB) are auto-externalized to lightweight JSON references, injected on-demand before API calls; two-phase token budget guard prevents multi-image conversations from accumulating beyond limits (≤1.5MB per image, ≤2MB total, max 5 concurrent injections). Supported models: gpt-5.6-sol / gpt-5.4-mini / claude-sonnet-4-6 / claude-opus-4-8 / qwen3.7-plus / deepseek-v4-flash-vision-exp / kimi-k3 / kimi-k2.7-code / glm-5v-turbo / MiniMax-M3 / openai/gpt-5.6-sol / google/gemini-3.5-flash (max 5MB per image, image count limit varies by model) |
 | 🖼️ | **Browser Semantic Snapshot** | `/snap` command captures full web page state (DOM structure + interactive elements), extracts structured JSON for Agent parsing and replay verification |
 | 📊 | **Real-Time Activity Tracking & Approval** | Activity Panel records full AI tool execution lifecycle, L1/L2/L3 three-layer display, Signal smart tagging (auto_approve/review_recommended/needs_review), one-click batch approval, SQLite backend persistence, session restoration support |
 | 🧪 | **Runtime Verification Framework** | VerifierFactory tri-modal dispatch (browser/http_api/auto) + 8 HTTP action handlers + JSONPath assertions + evidence chain SQLite storage + Feature Flag dual-gating + frontend real-time progress panel |
@@ -252,13 +252,15 @@ cd frontend && npm install && npm run dev
 
 > **Permission Data Note:** The current authorization architecture uses V015 durable interactions and V019 constrained grants as its database authority and does not read legacy permission tables. Recreate the project database for development upgrades and approve operations again under the current version.
 
-### Optional: Publish Verified Artifacts to OSS
+### Optional: OSS Artifact Publishing and Screenshot Paste
 
 ZhikunCode includes a built-in `/publish-oss` Skill that can publish one verified artifact from the current session as a permanently public OSS download. This feature is **disabled by default and never uploads automatically**: generating a file, completing a Run, previewing, or opening a file cannot trigger it. Every publication requires an explicit user request and a one-time high-risk permission confirmation.
 
-The feature supports **ECS instance RAM roles and IMDSv2 only**, using automatically rotated STS temporary credentials. Long-lived OSS AccessKeys are not accepted. Every deployment must configure its own Bucket, Region, Endpoint, and RAM role; cloning or starting this repository does not connect to the maintainer's OSS resources.
+With the same OSS configuration enabled, the browser can detect PNG/JPEG/WebP screenshots pasted from another application (up to 5 MiB each), publish them immediately through a deterministic backend endpoint, and pass the server-validated OSS image URL directly to the vision model. This path does not invoke `/publish-oss` or make an extra LLM call. If OSS is not configured, screenshots automatically fall back to Base64 inline upload — no extra configuration needed to use image analysis.
 
-Configure these non-secret values in the ECS `.env` file:
+Credential mode defaults to `auto`: complete standard `ALIBABA_CLOUD_ACCESS_KEY_ID`/`ALIBABA_CLOUD_ACCESS_KEY_SECRET` values take priority through Alibaba Cloud's default credential chain; otherwise a configured `ZHIKUN_OSS_ECS_ROLE_NAME` uses **ECS RAM Role + IMDSv2**; with neither present it still tries the default chain (for example an Alibaba Cloud CLI default profile). The same non-secret configuration can therefore support both local one-click startup and ECS. Every deployment must use its own Bucket and least-privilege identity.
+
+Configure `.env` as follows:
 
 ```bash
 ZHIKUN_OSS_ENABLED=true
@@ -267,12 +269,15 @@ ZHIKUN_OSS_REGION=cn-your-region
 ZHIKUN_OSS_BUCKET=your-bucket
 ZHIKUN_OSS_PREFIX=zhikuncode-artifacts
 ZHIKUN_OSS_ECS_ROLE_NAME=your-ecs-ram-role
+ZHIKUN_OSS_CREDENTIAL_MODE=auto
 ZHIKUN_OSS_MAX_FILE_BYTES=104857600
 ZHIKUN_OSS_CONNECT_TIMEOUT_MS=10000
 ZHIKUN_OSS_REQUEST_TIMEOUT_MS=120000
 ```
 
-> Grant the RAM role only the minimum OSS permissions required for the target prefix. Do not set or commit `OSS_ACCESS_KEY_ID`, `OSS_ACCESS_KEY_SECRET`, `OSS_SESSION_TOKEN`, or their `ALIBABA_CLOUD_*` credential equivalents; pre-publication configuration validation rejects these variables.
+For local deployment, configure the Alibaba Cloud CLI default profile, or place restricted RAM-user / temporary STS values in the local `.env` as `ALIBABA_CLOUD_ACCESS_KEY_ID`, `ALIBABA_CLOUD_ACCESS_KEY_SECRET`, and optional `ALIBABA_CLOUD_SECURITY_TOKEN`. Never commit real values. Legacy `OSS_ACCESS_KEY_ID`, `OSS_ACCESS_KEY_SECRET`, and `OSS_SESSION_TOKEN` variables are rejected.
+
+> Grant only the target Bucket/prefix permissions needed for `PutObject`, `GetObject/HeadObject`, `PutObjectAcl`, and cleanup via `DeleteObject`. The Bucket must allow the target object to become `public-read`; otherwise the operation fails and attempts to clean up the private object.
 
 Usage:
 
@@ -288,7 +293,7 @@ Security boundaries and current limitations:
 - The object is uploaded privately first and changed to `public-read` only after remote verification; a newly created private object is cleaned up if publication fails.
 - The returned URL is a **permanently public download URL**. HTML served from the default OSS domain is normally downloaded rather than rendered inline by the browser.
 - The current minimal version does not provide batch publishing, publication history, or a revoke action; operators must explicitly delete public objects in OSS.
-- Local development has no ECS instance-metadata credentials, so it can only test interaction and configuration validation. Real upload acceptance testing must run on an ECS instance with the RAM role attached.
+- Both local and ECS deployments support real uploads. Local startup uses the default credential chain; ECS should use automatically rotated RAM Role credentials.
 
 ### Supported LLM Providers
 
@@ -301,6 +306,9 @@ Configure independent API Keys for each provider in `.env`, and switch freely fr
 ```bash
 # DashScope (Qwen series)
 LLM_PROVIDER_DASHSCOPE_API_KEY=your-dashscope-key
+
+# DashScope Token Plan (Alibaba Cloud Bailian; independent sk-sp- key)
+LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_API_KEY=your-token-plan-key
 
 # DeepSeek
 LLM_PROVIDER_DEEPSEEK_API_KEY=your-deepseek-key
@@ -325,9 +333,10 @@ If no multi-Provider keys are configured, the system automatically falls back to
 | Provider | Base URL | Recommended Model | Notes |
 |----------|----------|-------------------|-------|
 | **Qwen / DashScope** | `https://dashscope.aliyuncs.com/compatible-mode/v1` | qwen3.7-max | **Default**, direct connection in China |
-| **DeepSeek** | `https://api.deepseek.com/v1` | deepseek-v4-pro | Direct connection in China |
+| **Alibaba Cloud Bailian Token Plan** | `https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1` | qwen3.8-max / deepseek-v4-pro-0813 / deepseek-v4-flash-0731 | Optional subscription Provider using an independent `sk-sp-` key; all three models are labeled “Bailian” in the UI |
+| **DeepSeek** | `https://api.deepseek.com/v1` | deepseek-v4-pro / deepseek-v4-flash / deepseek-v4-flash-vision-exp | Direct connection in China; Vision Exp is the image-understanding fallback for DeepSeek models |
 | **Moonshot (Kimi)** | `https://api.moonshot.cn/v1` | kimi-k3 / kimi-k2.7-code | Direct connection; kimi-k3 features 1M context window and native vision |
-| **Zhipu (GLM)** | `https://open.bigmodel.cn/api/paas/v4/chat/completions` | glm-5.2, glm-5v-turbo | China direct access |
+| **Zhipu (GLM)** | `https://open.bigmodel.cn/api/paas/v4/chat/completions` | glm-5.3, glm-5v-turbo | China direct access |
 | **MiniMax** | `https://api.minimax.chat/v1` | MiniMax-M3 | 1M context window |
 | **ZenMux (Multi-Model Gateway)** | `https://zenmux.ai/api/v1` | anthropic/claude-opus-4.8 / claude-fable-5 / openai/gpt-5.6-sol / google/gemini-3.5-flash | 1M context · Image support |
 | **OpenAI** | `https://api.openai.com/v1` | gpt-5.6-sol / gpt-5.4-mini | Requires international network access |
@@ -337,24 +346,27 @@ If no multi-Provider keys are configured, the system automatically falls back to
 
 ### Optional: Enable DashScope-hosted MCP Services
 
-Starting from the latest version, the following MCP services hosted on `dashscope.aliyuncs.com` are **disabled by default**, to avoid startup log flooding for users who have not configured an Alibaba Cloud Bailian API Key:
+ZhikunCode ships with the following Alibaba Cloud Bailian MCP services. Without a Bailian API Key, remote connections are simply skipped — core chat, code editing, and local tools are unaffected.
 
-| MCP Service | Capability | Tool IDs |
-|-------------|------------|----------|
-| `Wan25Media` | Wanx 2.5 image generation / image-to-image editing | `mcp_wan25_image_gen`, `mcp_wan25_image_edit` |
-| `zhipu-websearch` | Zhipu Web Search Pro | `mcp_web_search_pro` |
+| MCP Service | Transport | Capability | Tools |
+|-------------|-----------|------------|-------|
+| Amap (Gaode Maps) | SSE | Geocoding, IP positioning, weather, search, distance and four route-planning modes, etc. | 13 |
+| QwenImage | HTTP | Text-to-image, single-image editing, multi-image fusion | 3 |
+| WanVideo | HTTP | Text-to-video, image-to-video, digital humans, first/last-frame video, and result queries | 8 |
+| OneKey News | HTTP | Channels, hot lists, news search by channel or title | 3 |
+| OneKey Deli Legal Data | HTTP | Regulations and similar-case retrieval | 2 |
+| OneKey Shangqi Business Registry | HTTP | Company matching, business registration, shareholders, personnel, investments, branches, contact details | 7 |
+| OneKey Content Moderation | HTTP | Violation, promotion, abuse, low-quality, and advertising-law risk review | 1 |
+| `zhipu-websearch` | SSE | Zhipu Web Search Pro | 1 |
 
-> ℹ️ Disabling these MCPs does **not** affect core chat, code editing, or local tools.
-
-**To enable them** (requires an Alibaba Cloud Bailian API Key with the corresponding MCP capabilities activated in the console):
+**To use them** (requires an Alibaba Cloud Bailian API Key with the corresponding MCP capabilities activated in the console):
 
 1. Configure your DashScope key in `.env`:
    ```bash
    LLM_PROVIDER_DASHSCOPE_API_KEY=sk-xxxxxxxx
    ```
-2. Uncomment the `zhipu-websearch` block in [`backend/src/main/resources/application.yml`](../backend/src/main/resources/application.yml).
-3. Flip `enabled` to `true` for the entries you need in [`configuration/mcp/mcp_capability_registry.json`](../configuration/mcp/mcp_capability_registry.json).
-4. Run `./stop.sh && ./start.sh` to fully restart all three tiers so the changes take effect.
+2. Confirm the entries you need are `"enabled": true` in [`configuration/mcp/mcp_capability_registry.json`](../configuration/mcp/mcp_capability_registry.json).
+3. Run `./stop.sh && ./start.sh` to fully restart all three tiers so the changes take effect.
 
 ---
 
@@ -671,11 +683,11 @@ Full test report: [ZhikunCode v9.3 End-to-End Test Report](test-results/v9.3/Zhi
 **Continuous Integration:**
 - **GitHub Actions Pipeline**: The main CI runs backend compilation and the frontend build. Python tests are currently non-blocking, and Docker image verification runs only on pushes to `main`.
 
-**Current Local Verification Snapshot (2026-08-13):**
-- **Backend Unit/Integration Tests**: 2317 tests / 0 failure / 0 error / 48 skipped
+**Current Local Verification Snapshot (2026-08-25):**
+- **Backend Unit/Integration Tests**: 1234 tests / 0 failure / 0 error / 61 skipped
 - **Python pytest**: 107 PASS
-- **Frontend vitest**: 182 PASS / 16 skipped (198 total)
-- **Simple Workbench Playwright E2E**: 3 / 3 PASS
+- **Frontend vitest**: 204 PASS / 16 skipped (220 total)
+- **Simple Workbench Playwright E2E**: 7 / 7 PASS
 - **Static and Build Validation**: TypeScript and the Vite production build passed
 
 **Historical Specialized and E2E Baselines:**
@@ -691,9 +703,9 @@ Full test report: [ZhikunCode v9.3 End-to-End Test Report](test-results/v9.3/Zhi
 
 | Framework | Layer | Coverage | Count |
 |-----------|-------|----------|-------|
-| JUnit 5 + Mockito | Backend Unit/Integration | Context/Authorization Gateway/Skill/Plugin/LLM/MCP/Memory/Concurrency/SSE/Persistence/Tool/Coordinator/Swarm/Workbench projection etc. | 2317 tests / 0 failure / 0 error / 48 skipped |
-| Vitest | Frontend Unit | Store lifecycle/cross-tab sync/streaming/permission interactions/reconnect recovery/workbench and route boundaries | 182 PASS / 16 skipped |
-| Playwright + Node scripts | E2E | Simple Workbench / Coordinator WS subscription / Three visualization viewTypes / Browser snapshot MVP / APOS Phase 1 full-stack / APOS Phase 2 full-stack | Simple Workbench 3/3 PASS; Task 6/7/8/APOS historical baseline green |
+| JUnit 5 + Mockito | Backend Unit/Integration | Context/Authorization Gateway/Skill/Plugin/LLM/MCP/Memory/Concurrency/SSE/Persistence/Tool/Coordinator/Swarm/Workbench projection etc. | 1234 tests / 0 failure / 0 error / 61 skipped |
+| Vitest | Frontend Unit | Store lifecycle/cross-tab sync/streaming/permission interactions/reconnect recovery/workbench and route boundaries | 204 PASS / 16 skipped |
+| Playwright + Node scripts | E2E | Simple Workbench / Coordinator WS subscription / Three visualization viewTypes / Browser snapshot MVP / APOS Phase 1 full-stack / APOS Phase 2 full-stack | Simple Workbench 7/7 PASS; Task 6/7/8/APOS historical baseline green |
 | Pytest | Python Service | Token estimation/file processing/browser automation/semantic snapshots/code analyzers/CLI | 107 PASS |
 
 **Performance Baseline (v9.3, 490 real request samples):**
@@ -1220,9 +1232,11 @@ ZhikunCode implements the standard [MCP (Model Context Protocol)](https://modelc
 
 | Tool | Description | Source |
 |------|-------------|--------|
-| **Wanx 2.5 Image Generation** | AI painting — generate images from text | DashScope MCP |
-| **Wanx 2.5 Image Editing** | AI image editing (image-to-image) | DashScope MCP |
+| **Amap (13 tools)** | IP positioning, weather, geocoding, place search, distance and route planning | DashScope MCP |
+| **QwenImage (3 tools)** | Text-to-image, single-image editing, and multi-image fusion | DashScope Streamable HTTP MCP |
+| **WanVideo (8 tools)** | Async submission and queries for text-to-video, image-to-video, digital humans, and first/last-frame video | DashScope Streamable HTTP MCP |
 | **Web Search Pro** | Online search, returns web page summaries | DashScope MCP |
+| **OneKey News / Legal / Business / Content Moderation** | External data queries and text safety | DashScope Streamable HTTP MCP |
 
 ### Custom MCP Tools
 
@@ -1233,7 +1247,8 @@ Register new MCP tools in `configuration/mcp/mcp_capability_registry.json`:
   "id": "mcp_your_tool",
   "name": "Your Tool Name",
   "toolName": "mcp_server_tool_name",
-  "sseUrl": "https://your-mcp-server/sse",
+  "url": "https://your-mcp-server/mcp",
+  "transportType": "HTTP",
   "domain": "your_domain",
   "category": "MCP_TOOL",
   "enabled": true
@@ -1318,8 +1333,10 @@ Environment variables are managed via the `.env` file. Copy `.env.example` and m
 | Variable | Required | Default | Description |
 |----------|:---:|---------|-------------|
 | `LLM_PROVIDER_DASHSCOPE_API_KEY` | — | — | Qwen/DashScope API Key |
+| `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_API_KEY` | — | — | Alibaba Cloud Bailian Token Plan API Key |
 | `LLM_PROVIDER_DEEPSEEK_API_KEY` | — | — | DeepSeek API Key |
 | `LLM_PROVIDER_MOONSHOT_API_KEY` | — | — | Moonshot/Kimi API Key |
+| `LLM_PROVIDER_ZHIPU_API_KEY` | — | — | Zhipu GLM API Key |
 | `LLM_DEFAULT_MODEL` | — | qwen3.7-max | Default model (used when no explicit selection) |
 
 > In multi-Provider mode, configure at least one Provider's API Key. The frontend supports free switching between configured Providers.
@@ -1357,9 +1374,11 @@ Environment variables are managed via the `.env` file. Copy `.env.example` and m
 | Variable | Required | Default | Description |
 |----------|:---:|---------|-------------|
 | `ZHIKUN_COORDINATOR_MODE` | — | 0 | Feature flag, enable coordinator mode (0=off, 1=on) |
-| `LLM_PROVIDER_DASHSCOPE_MODELS` | — | qwen3.7-max,qwen3.6-plus | DashScope available models (comma-separated) |
-| `LLM_PROVIDER_DEEPSEEK_MODELS` | — | deepseek-v4-pro,deepseek-v4-flash | DeepSeek available models (comma-separated) |
+| `LLM_PROVIDER_DASHSCOPE_MODELS` | — | qwen3.7-max,qwen3.7-plus | DashScope available models (comma-separated) |
+| `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS` | — | qwen3.8-max,deepseek-v4-pro-0813,deepseek-v4-flash-0731 | Alibaba Cloud Bailian Token Plan models; independent from standard DashScope and direct DeepSeek settings |
+| `LLM_PROVIDER_DEEPSEEK_MODELS` | — | deepseek-v4-pro,deepseek-v4-flash,deepseek-v4-flash-vision-exp | DeepSeek models; Vision Exp is the family image-understanding fallback (comma-separated) |
 | `LLM_PROVIDER_MOONSHOT_MODELS` | — | kimi-k3,moonshot-v1-128k | Moonshot available models (comma-separated) |
+| `LLM_PROVIDER_ZHIPU_MODELS` | — | glm-5.3,glm-5v-turbo | Zhipu GLM available models (comma-separated) |
 
 **Context Management Configuration (application.yml):**
 

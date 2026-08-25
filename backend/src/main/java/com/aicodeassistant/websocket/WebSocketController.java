@@ -3,6 +3,7 @@ package com.aicodeassistant.websocket;
 import com.aicodeassistant.observability.SafeLogValue;
 
 import com.aicodeassistant.context.ProjectContextService;
+import com.aicodeassistant.config.oss.OssPublishProperties;
 import com.aicodeassistant.exception.WorkspaceException;
 import com.aicodeassistant.service.ActivityRepository;
 import com.aicodeassistant.service.CostTrackerService;
@@ -108,6 +109,7 @@ public class WebSocketController implements PermissionNotifier {
     private final com.aicodeassistant.run.RunRecoveryProjectionService runRecoveryProjectionService;
     private final com.aicodeassistant.run.RunExecutionRegistry runExecutions;
     private final com.aicodeassistant.run.RunTerminationCoordinator runTermination;
+    private final OssPublishProperties ossPublishProperties;
 
     /** 会话级查询运行守卫 — 防止同一会话并发执行多个 QueryEngine */
     private final ConcurrentHashMap<String, AtomicBoolean> sessionQueryRunning = new ConcurrentHashMap<>();
@@ -139,7 +141,8 @@ public class WebSocketController implements PermissionNotifier {
                                 RunEventRepository runEventRepository,
                                 com.aicodeassistant.run.RunRecoveryProjectionService runRecoveryProjectionService,
                                 com.aicodeassistant.run.RunExecutionRegistry runExecutions,
-                                com.aicodeassistant.run.RunTerminationCoordinator runTermination) {
+                                com.aicodeassistant.run.RunTerminationCoordinator runTermination,
+                                OssPublishProperties ossPublishProperties) {
         this.messaging = messaging;
         this.wsSessionManager = wsSessionManager;
         this.queryEngine = queryEngine;
@@ -165,6 +168,7 @@ public class WebSocketController implements PermissionNotifier {
         this.runRecoveryProjectionService = runRecoveryProjectionService;
         this.runExecutions = runExecutions;
         this.runTermination = runTermination;
+        this.ossPublishProperties = ossPublishProperties;
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -646,10 +650,17 @@ public class WebSocketController implements PermissionNotifier {
         List<ContentBlock.ImageBlock> imageBlocks = new ArrayList<>();
         if (msg.attachments() != null) {
             for (ClientMessage.UserMessagePayload.Attachment att : msg.attachments()) {
-                if (att != null && "image".equals(att.type()) && att.base64Data() != null && !att.base64Data().isEmpty()) {
-                    imageBlocks.add(new ContentBlock.ImageBlock(
-                            att.mediaType() != null ? att.mediaType() : "image/png",
-                            att.base64Data()));
+                if (att == null || !"image".equals(att.type())) continue;
+                String mediaType = att.mediaType() != null ? att.mediaType() : "image/png";
+                if (att.url() != null && !att.url().isBlank()) {
+                    if (!ossPublishProperties.isTrustedClipboardImageUrl(att.url())) {
+                        sendError(sessionId, "image_url_untrusted", "图片地址不是当前服务生成的可信 OSS 地址", false);
+                        running.set(false);
+                        return;
+                    }
+                    imageBlocks.add(ContentBlock.ImageBlock.fromUrl(mediaType, att.url()));
+                } else if (att.base64Data() != null && !att.base64Data().isEmpty()) {
+                    imageBlocks.add(new ContentBlock.ImageBlock(mediaType, att.base64Data()));
                 }
             }
         }
@@ -1977,7 +1988,8 @@ public class WebSocketController implements PermissionNotifier {
                 case ContentBlock.ImageBlock img -> {
                     map.put("type", "image");
                     map.put("mediaType", img.mediaType());
-                    map.put("base64Data", img.base64Data());
+                    if (img.url() != null && !img.url().isBlank()) map.put("url", img.url());
+                    else map.put("base64Data", img.base64Data());
                 }
                 case ContentBlock.RedactedThinkingBlock r -> {
                     map.put("type", "redacted_thinking");

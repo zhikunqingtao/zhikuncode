@@ -8,12 +8,20 @@
 ## [Unreleased]
 
 ### Added
+- 新增浏览器截图粘贴的固定 OSS 快速通道：无需 Skill 或额外 LLM 调用，上传后将可信 HTTPS 图片地址直接交给视觉模型；未配置 OSS 时给出明确提示。
+- OSS 凭证支持 ECS RAM Role/IMDSv2 与本地阿里云默认凭证链双模式，覆盖本地一键启动和 Docker Compose 透传。
 - 新增可浏览、持久且可撤销的 Project 文件夹授权；Project 作为信任范围和默认相对路径根，普通操作在其内免打扰，范围外操作进入常规授权，敏感路径和高风险操作仍需逐次确认。
+- 新增百炼 Token Plan 渠道 `deepseek-v4-pro-0813` 与 `deepseek-v4-flash-0731`，并与 `qwen3.8-max` 统一标注“百炼”。
+- 新增 `deepseek-v4-flash-vision-exp` 图片理解模型，作为 DeepSeek 系列的专属视觉兜底。
 
 ### Changed
 - Web 新会话必须先选择 Project；Session、Query 和文件搜索统一由 `projectId` / `sessionId` 解析服务端工作目录。
+- 智谱主模型全量升级为 GLM-5.3，覆盖前后端默认配置与中英文文档。
 - **Breaking:** Query 不再接受客户端提供的 `workingDirectory`。CLI 本地连接会登记当前目录，远程连接应使用 `--project-id` 或服务端默认工作区。
 - 无 allowed roots 时，本机目录选择默认关闭；直连本机桌面服务须显式设置 `ZHIKUN_LOCAL_PICKER_ENABLED=true`，远程或反向代理部署须配置 `ZHIKUN_WORKSPACE_ALLOWED_ROOTS`。
+
+### Fixed
+- 规范化远端 MCP Schema 中的非标准类型别名（如 `bool` → `boolean`），避免 Moonshot/Kimi 因任一工具 Schema 非法而拒绝包含智谱搜索在内的整批工具。
 
 ### Security
 - 内置文件搜索、写入、Glob、Grep、LSP 与 Snip 以单一 Session 根解析相对路径；范围外绝对路径进入常规授权，并在执行前复检路径、符号链接和 Project 状态。

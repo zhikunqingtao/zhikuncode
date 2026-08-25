@@ -195,10 +195,24 @@ public class McpClientManager implements SmartLifecycle {
         if (registryService != null && registryService.size() > 0) {
             List<McpCapabilityDefinition> enabledCaps = registryService.listEnabled();
             int registryConnections = 0;
+            int missingApiKeyServers = 0;
+            int missingEndpointServers = 0;
+            Set<String> missingApiKeyProperties = new LinkedHashSet<>();
+            Set<String> attemptedRegistryServers = new HashSet<>();
             for (McpCapabilityDefinition cap : enabledCaps) {
                 String serverKey = cap.extractServerKey();
-                if (!connections.containsKey(serverKey)) {
+                if (!connections.containsKey(serverKey) && attemptedRegistryServers.add(serverKey)) {
                     try {
+                        McpServerConfig candidate = buildConfigFromRegistry(cap);
+                        if (candidate.url() == null || candidate.url().isBlank()) {
+                            missingEndpointServers++;
+                            continue;
+                        }
+                        if (requiresApiKey(cap) && !hasAuthorization(candidate)) {
+                            missingApiKeyServers++;
+                            missingApiKeyProperties.add(apiKeyPropertyName(cap));
+                            continue;
+                        }
                         enableFromRegistry(cap);
                         registryConnections++;
                     } catch (Exception e) {
@@ -206,8 +220,12 @@ public class McpClientManager implements SmartLifecycle {
                     }
                 }
             }
-            log.info("MCP registry: activated {} capabilities from {} enabled entries",
-                    registryConnections, enabledCaps.size());
+            String missingKeyDetail = missingApiKeyProperties.isEmpty()
+                    ? "" : " " + missingApiKeyProperties;
+            log.info("MCP registry: activated {} server(s) from {} enabled entries; "
+                            + "skipped {} server(s) with missing API keys{} and {} with missing endpoints",
+                    registryConnections, enabledCaps.size(), missingApiKeyServers,
+                    missingKeyDetail, missingEndpointServers);
         }
     }
 
@@ -263,7 +281,7 @@ public class McpClientManager implements SmartLifecycle {
         cancelReconnectWork(name);
         if (conn != null) {
             reconnectingServers.remove(name, conn);
-            toolRegistry.unregisterByPrefix("mcp__" + name + "__");
+            toolRegistry.unregisterByPrefix(mcpToolPrefix(name));
             conn.close();
             log.info("MCP server removed: {}", name);
             return true;
@@ -322,7 +340,7 @@ public class McpClientManager implements SmartLifecycle {
         long generation = nextGeneration(name);
         cancelReconnectWork(name);
         log.info("Restarting MCP server: {}", name);
-        toolRegistry.unregisterByPrefix("mcp__" + name + "__");
+        toolRegistry.unregisterByPrefix(mcpToolPrefix(name));
         conn.close();
         try {
             conn.connect();
@@ -378,16 +396,18 @@ public class McpClientManager implements SmartLifecycle {
                 .map(mcpTool -> {
                     String enhancedDesc = null;
                     long customTimeout = 0;
+                    McpCapabilityDefinition capability = null;
                     if (registryService != null) {
-                        var capOpt = registryService.findByToolName(
+                        var capOpt = registryService.findEnabledByToolName(
                                 connection.getName(), mcpTool.name());
                         if (capOpt.isPresent()) {
-                            enhancedDesc = capOpt.get().description();
-                            customTimeout = capOpt.get().timeoutMs();
+                            capability = capOpt.get();
+                            enhancedDesc = capability.description();
+                            customTimeout = capability.timeoutMs();
                         }
                     }
                     return (Tool) new McpToolAdapter(
-                            "mcp__" + connection.getName() + "__" + mcpTool.name(),
+                            buildExternalToolName(connection.getName(), mcpTool.name(), capability),
                             mcpTool.description(), mcpTool.inputSchema(),
                             connection, mcpTool.name(),
                             enhancedDesc, customTimeout, schemaCompressor,
@@ -522,16 +542,17 @@ public class McpClientManager implements SmartLifecycle {
             }
             String enhancedDesc = null;
             long customTimeout = 0;
+            McpCapabilityDefinition capability = null;
             if (registryService != null) {
-                var capOpt = registryService.findByToolName(conn.getName(), mcpTool.name());
+                var capOpt = registryService.findEnabledByToolName(conn.getName(), mcpTool.name());
                 if (capOpt.isPresent()) {
-                    McpCapabilityDefinition cap = capOpt.get();
-                    enhancedDesc = cap.description();
-                    customTimeout = cap.timeoutMs();
+                    capability = capOpt.get();
+                    enhancedDesc = capability.description();
+                    customTimeout = capability.timeoutMs();
                 }
             }
             McpToolAdapter adapter = new McpToolAdapter(
-                    "mcp__" + conn.getName() + "__" + mcpTool.name(),
+                    buildExternalToolName(conn.getName(), mcpTool.name(), capability),
                     mcpTool.description(), mcpTool.inputSchema(),
                     conn, mcpTool.name(),
                     enhancedDesc, customTimeout, schemaCompressor,
@@ -542,7 +563,7 @@ public class McpClientManager implements SmartLifecycle {
         // 监听工具变更通知 — 自动重新注册
         conn.onToolsChanged(() -> {
             if (!isCurrentConnection(conn.getName(), conn, generationOf(conn.getName()))) return;
-            toolRegistry.unregisterByPrefix("mcp__" + conn.getName() + "__");
+            toolRegistry.unregisterByPrefix(mcpToolPrefix(conn.getName()));
             registerToolsFromConnection(conn);
             log.info("MCP tools refreshed for server: {}", conn.getName());
         });
@@ -553,9 +574,53 @@ public class McpClientManager implements SmartLifecycle {
      */
     private boolean isToolAllowed(String serverName, String toolName) {
         Map<String, List<String>> permissions = mcpConfiguration.getChannelPermissions();
-        if (permissions == null || permissions.isEmpty()) return true;
-        List<String> blocked = permissions.getOrDefault(serverName, List.of());
-        return !blocked.contains(toolName) && !blocked.contains("*");
+        if (permissions != null && !permissions.isEmpty()) {
+            List<String> blocked = permissions.getOrDefault(serverName, List.of());
+            if (blocked.contains(toolName) || blocked.contains("*")) return false;
+        }
+        // 注册表管理的服务器采用显式 allowlist，防止远端 tools/list 暴露未启用工具。
+        return registryService == null
+                || !registryService.hasDefinitionsForServer(serverName)
+                || registryService.findEnabledByToolName(serverName, toolName).isPresent();
+    }
+
+    /**
+     * 对外工具名必须兼容 OpenAI 风格的 function-name 约束。
+     * 远端原始工具名仍保存在 McpToolAdapter 中，实际 tools/call 不受重命名影响。
+     */
+    static String buildExternalToolName(String serverName, String originalToolName,
+                                        McpCapabilityDefinition capability) {
+        String safeServer = safeToolNameComponent(serverName, "server");
+        String safeTool = originalToolName != null && originalToolName.matches("[A-Za-z0-9_-]+")
+                ? originalToolName
+                : null;
+        if ((safeTool == null || safeTool.isBlank()) && capability != null
+                && capability.id() != null) {
+            safeTool = capability.id().replaceFirst("^mcp_", "");
+        }
+        safeTool = safeToolNameComponent(safeTool, "tool_" + shortNameHash(originalToolName));
+
+        String candidate = "mcp__" + safeServer + "__" + safeTool;
+        if (candidate.length() <= 64) {
+            return candidate;
+        }
+        String suffix = "_" + shortNameHash(candidate);
+        return candidate.substring(0, 64 - suffix.length()) + suffix;
+    }
+
+    private static String mcpToolPrefix(String serverName) {
+        return "mcp__" + safeToolNameComponent(serverName, "server") + "__";
+    }
+
+    private static String safeToolNameComponent(String value, String fallback) {
+        if (value == null || value.isBlank()) return fallback;
+        String safe = value.replaceAll("[^A-Za-z0-9_-]", "_")
+                .replaceAll("_+", "_");
+        return safe.isBlank() ? fallback : safe;
+    }
+
+    private static String shortNameHash(String value) {
+        return String.format("%08x", value != null ? value.hashCode() : 0);
     }
 
     // ===== 健康检查 + 指数退避重连 =====
@@ -776,6 +841,12 @@ public class McpClientManager implements SmartLifecycle {
     public McpServerConnection enableFromRegistry(McpCapabilityDefinition def) {
         McpServerConfig config = buildConfigFromRegistry(def);
 
+        if (requiresApiKey(def) && !hasAuthorization(config)) {
+            log.debug("MCP capability '{}' remains inactive — API key '{}' is not configured",
+                    def.id(), apiKeyPropertyName(def));
+            return inactiveRegistryConnection(config, McpConnectionStatus.NEEDS_AUTH);
+        }
+
         log.info("Enabling MCP capability '{}' \u2192 server '{}'", def.id(), config.name());
 
         // 注册表工具自动信任 — 跳过交互式审批
@@ -787,23 +858,64 @@ public class McpClientManager implements SmartLifecycle {
         return addServer(config);
     }
 
+    private McpServerConnection inactiveRegistryConnection(
+            McpServerConfig config, McpConnectionStatus status) {
+        McpServerConnection connection = new McpServerConnection(config);
+        connection.setRootsProvider(rootsProvider);
+        connection.setProgressTracker(progressTracker);
+        connection.setStatus(status);
+        return connection;
+    }
+
+    private static boolean requiresApiKey(McpCapabilityDefinition def) {
+        return (def.apiKeyConfig() != null && !def.apiKeyConfig().isBlank())
+                || (def.apiKeyDefault() != null && !def.apiKeyDefault().isBlank());
+    }
+
+    private static boolean hasAuthorization(McpServerConfig config) {
+        String authorization = config.headers().get("Authorization");
+        return authorization != null && !authorization.isBlank();
+    }
+
+    private static String apiKeyPropertyName(McpCapabilityDefinition def) {
+        return def.apiKeyConfig() != null && !def.apiKeyConfig().isBlank()
+                ? def.apiKeyConfig() : "<registry-default>";
+    }
+
     /** 从注册表定义构建 McpServerConfig — 供 enableFromRegistry 和 testCapability 共用 */
     public McpServerConfig buildConfigFromRegistry(McpCapabilityDefinition def) {
         String serverKey = def.extractServerKey();
+        String endpointUrl = def.url();
+        if (environment != null && endpointUrl != null) {
+            String resolvedUrl = environment.resolvePlaceholders(endpointUrl);
+            endpointUrl = resolvedUrl != null ? resolvedUrl : endpointUrl;
+        }
+        if (endpointUrl != null && (endpointUrl.isBlank()
+                || (endpointUrl.startsWith("${") && endpointUrl.endsWith("}")))) {
+            endpointUrl = null;
+        }
         String apiKey = null;
-        if (def.apiKeyConfig() != null) {
+        if (environment != null && def.apiKeyConfig() != null) {
             apiKey = environment.getProperty(def.apiKeyConfig());
         }
         if (apiKey == null || apiKey.isEmpty()) {
             apiKey = def.apiKeyDefault();
+            if (environment != null && apiKey != null) {
+                apiKey = environment.resolvePlaceholders(apiKey);
+            }
+        }
+        if (apiKey != null && (apiKey.isBlank()
+                || (apiKey.startsWith("${") && apiKey.endsWith("}"))
+                || "your-api-key-here".equals(apiKey))) {
+            apiKey = null;
         }
         Map<String, String> headers = new LinkedHashMap<>();
         if (apiKey != null && !apiKey.isEmpty()) {
             headers.put("Authorization", "Bearer " + apiKey);
         }
         return new McpServerConfig(
-                serverKey, McpTransportType.SSE,
+                serverKey, def.resolvedTransportType(),
                 null, List.of(), Map.of(),
-                def.sseUrl(), headers, McpConfigScope.DYNAMIC);
+                endpointUrl, headers, McpConfigScope.DYNAMIC);
     }
 }

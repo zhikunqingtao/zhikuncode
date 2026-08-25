@@ -1,12 +1,14 @@
 {
-  "_schema_version" : "1.0",
+  "_schema_version" : "1.1",
   "description" : "MCP能力注册表 - 细粒度MCP工具定义（每个MCP Server一个工具，规范化入参出参）",
-  "lastUpdated" : "2026-05-06",
+  "lastUpdated" : "2026-08-24",
   "usage_guide" : {
     "id" : "MCP能力唯一标识（建议mcp_前缀）",
     "name" : "显示名称（中文）",
     "toolName" : "MCP Server上的原始工具名",
-    "sseUrl" : "MCP Server的SSE端点URL",
+    "serverKey" : "同一MCP Server下工具共享的稳定服务器标识；用于连接复用和启用白名单",
+    "url" : "MCP Server端点URL（兼容旧字段sseUrl）",
+    "transportType" : "传输类型：SSE、HTTP、STDIO或WS；旧条目默认SSE",
     "apiKeyConfig" : "Spring配置属性名，用于解析API Key",
     "apiKeyDefault" : "API Key的默认值（可选，当配置属性不存在时使用）",
     "domain" : "功能域分类",
@@ -16,88 +18,17 @@
     "description" : "完整描述（用于AI语义理解和工具选择）",
     "input" : "输入参数Schema（同unified_capability_registry格式）",
     "output" : "输出参数Schema（同unified_capability_registry格式）",
-    "timeoutMs" : "调用超时时间（毫秒），图像生成建议120000+",
+    "timeoutMs" : "单次工具调用超时时间（毫秒）；图像生成/编辑和视频提交按耗时任务配置为600000",
     "enabled" : "是否启用",
     "videoCallEnabled" : "视频通话场景是否启用该工具（布尔值）"
   },
   "mcp_tools" : [ {
-    "id" : "mcp_wan25_image_edit",
-    "name" : "万相2.5图像编辑",
-    "toolName" : "modelstudio_image_edit_wan25",
-    "sseUrl" : "https://dashscope.aliyuncs.com/api/v1/mcps/Wan25Media/sse",
-    "apiKeyConfig" : "dashscope.api-key",
-    "apiKeyDefault" : "${LLM_API_KEY}",
-    "domain" : "image_processing",
-    "category" : "MCP_TOOL",
-    "briefDescription" : "AI图像编辑（图生图）服务，输入原图URL和描述返回编辑后图片URL",
-    "videoCallSummary" : "AI编辑图片",
-    "description" : "基于万相2.5的AI图像编辑（图生图）服务，通过MCP SSE协议调用DashScope平台。输入原图URL、编辑功能、文本描述和分辨率，自动对图片进行智能编辑并返回编辑后的图片URL。支持多种图像编辑操作。",
-    "input" : {
-      "prompt" : {
-        "type" : "string",
-        "required" : true,
-        "description" : "正向提示词，用来描述生成图像中期望包含的元素和视觉特点，超过2000字自动截断"
-      },
-      "images" : {
-        "type" : "array",
-        "required" : true,
-        "description" : "输入图像URL数组。URL不能包含中文字符，需为公网可访问地址"
-      }
-    },
-    "output" : {
-      "results" : {
-        "type" : "array",
-        "required" : true,
-        "description" : "编辑后的图像URL列表"
-      },
-      "request_id" : {
-        "type" : "string",
-        "description" : "请求ID"
-      }
-    },
-    "timeoutMs" : 120000,
-    "enabled" : false,
-    "videoCallEnabled" : false
-  }, {
-    "id" : "mcp_wan25_image_gen",
-    "name" : "万相2.5图像生成",
-    "toolName" : "modelstudio_image_gen_wan25",
-    "sseUrl" : "https://dashscope.aliyuncs.com/api/v1/mcps/Wan25Media/sse",
-    "apiKeyConfig" : "dashscope.api-key",
-    "apiKeyDefault" : "${LLM_API_KEY}",
-    "domain" : "image_processing",
-    "category" : "MCP_TOOL",
-    "briefDescription" : "AI绘画服务，输入文本描述返回图片URL",
-    "videoCallSummary" : "AI生成图片",
-    "description" : "基于万相2.5的AI绘画（图像生成）服务，通过MCP SSE协议调用DashScope平台。输入正向提示词，自动生成高质量图片并返回OSS图片URL。支持多种风格和场景的图像创作。",
-    "input" : {
-      "prompt" : {
-        "type" : "string",
-        "required" : true,
-        "description" : "正向提示词，描述需要生成的图像内容"
-      }
-    },
-    "output" : {
-      "results" : {
-        "type" : "array",
-        "required" : true,
-        "description" : "生成的图像URL列表"
-      },
-      "request_id" : {
-        "type" : "string",
-        "description" : "请求ID"
-      }
-    },
-    "timeoutMs" : 120000,
-    "enabled" : false,
-    "videoCallEnabled" : false
-  }, {
     "id" : "mcp_web_search_pro",
     "name" : "网络搜索Pro",
     "toolName" : "webSearchPro",
-    "sseUrl" : "https://dashscope.aliyuncs.com/api/v1/mcps/zhipu-websearch/sse",
-    "apiKeyConfig" : "dashscope.api-key",
-    "apiKeyDefault" : "${LLM_API_KEY}",
+    "url" : "https://dashscope.aliyuncs.com/api/v1/mcps/zhipu-websearch/sse",
+    "transportType" : "SSE",
+    "apiKeyConfig" : "llm.providers.dashscope.api-key",
     "domain" : "web_search",
     "category" : "MCP_TOOL",
     "briefDescription" : "搜索网络信息，返回网页标题、URL、摘要、网站名称及图标",
@@ -169,5 +100,1259 @@
     "timeoutMs" : 30000,
     "enabled" : true,
     "videoCallEnabled" : false
+  }, {
+    "id" : "mcp_onekey_news_channels",
+    "name" : "新闻频道查询",
+    "toolName" : "news.channel_query",
+    "url" : "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00075019/mcp",
+    "transportType" : "HTTP",
+    "apiKeyConfig" : "llm.providers.dashscope.api-key",
+    "domain" : "news",
+    "category" : "MCP_TOOL",
+    "briefDescription" : "查询新闻频道分类及频道ID",
+    "videoCallSummary" : "查询新闻频道",
+    "description" : "查询新闻频道分类并获取频道ID；不传频道名时返回全部频道，支持中文模糊匹配。",
+    "input" : {
+      "channel" : { "type" : "string", "required" : false, "description" : "频道名称，支持模糊查询" }
+    },
+    "output" : {
+      "content" : { "type" : "array", "description" : "新闻频道列表" }
+    },
+    "timeoutMs" : 15000,
+    "enabled" : true,
+    "videoCallEnabled" : false
+  }, {
+    "id" : "mcp_onekey_news_hot",
+    "name" : "新闻热榜查询",
+    "toolName" : "news.hotnews",
+    "url" : "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00075019/mcp",
+    "transportType" : "HTTP",
+    "apiKeyConfig" : "llm.providers.dashscope.api-key",
+    "domain" : "news",
+    "category" : "MCP_TOOL",
+    "briefDescription" : "获取最近的热点新闻和热搜",
+    "videoCallSummary" : "获取新闻热榜",
+    "description" : "获取最近的热点新闻。结果用于内部分析和事实线索发现；对外展示或转载前应核验来源、时效与版权。",
+    "input" : {
+      "need_pinned_news" : { "type" : "boolean", "required" : false, "description" : "是否包含置顶新闻，默认false" }
+    },
+    "output" : {
+      "content" : { "type" : "array", "description" : "热点新闻结果" }
+    },
+    "timeoutMs" : 15000,
+    "enabled" : true,
+    "videoCallEnabled" : false
+  }, {
+    "id" : "mcp_onekey_news_search",
+    "name" : "新闻检索",
+    "toolName" : "news.query",
+    "url" : "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00075019/mcp",
+    "transportType" : "HTTP",
+    "apiKeyConfig" : "llm.providers.dashscope.api-key",
+    "domain" : "news",
+    "category" : "MCP_TOOL",
+    "briefDescription" : "按频道或标题关键词检索近期新闻",
+    "videoCallSummary" : "检索近期新闻",
+    "description" : "按频道名称、精确频道ID或标题关键词检索近期新闻。优先使用最新类频道；对外展示前应核验来源、时效与版权。",
+    "input" : {
+      "channel_name" : { "type" : "string", "required" : false, "description" : "新闻频道名称，可模糊匹配" },
+      "channel_id" : { "type" : "string", "required" : false, "description" : "新闻频道ID，精确匹配" },
+      "title" : { "type" : "string", "required" : false, "description" : "新闻标题关键词，可模糊匹配" }
+    },
+    "output" : {
+      "content" : { "type" : "array", "description" : "新闻检索结果" }
+    },
+    "timeoutMs" : 15000,
+    "enabled" : true,
+    "videoCallEnabled" : false
+  }, {
+    "id" : "mcp_onekey_legal_cases",
+    "name" : "得理类案检索",
+    "toolName" : "ali-case-list",
+    "url" : "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00074976/mcp",
+    "transportType" : "HTTP",
+    "apiKeyConfig" : "llm.providers.dashscope.api-key",
+    "domain" : "legal_research",
+    "category" : "MCP_TOOL",
+    "briefDescription" : "根据自然语言问题检索相关裁判案例",
+    "videoCallSummary" : "检索相关案例",
+    "description" : "根据自然语言问题检索相关案例，返回标题、案号、裁判日期、法院和案件类型等。结果仅供研究，不能代替律师意见或原始裁判文书核验。",
+    "input" : {
+      "query" : { "type" : "string", "required" : true, "description" : "法律问题或检索主题" },
+      "page_no" : { "type" : "integer", "required" : false, "description" : "页码，默认1" },
+      "page_size" : { "type" : "integer", "required" : false, "description" : "每页条数，默认5" },
+      "sort_field" : { "type" : "string", "required" : false, "description" : "correlation、time或activeDate" },
+      "sort_order" : { "type" : "string", "required" : false, "description" : "desc或asc" }
+    },
+    "output" : {
+      "content" : { "type" : "array", "description" : "相关案例结果" }
+    },
+    "timeoutMs" : 30000,
+    "enabled" : true,
+    "videoCallEnabled" : false
+  }, {
+    "id" : "mcp_onekey_legal_laws",
+    "name" : "得理法规检索",
+    "toolName" : "ali-law-list",
+    "url" : "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00074976/mcp",
+    "transportType" : "HTTP",
+    "apiKeyConfig" : "llm.providers.dashscope.api-key",
+    "domain" : "legal_research",
+    "category" : "MCP_TOOL",
+    "briefDescription" : "根据自然语言问题检索相关法律法规",
+    "videoCallSummary" : "检索法律法规",
+    "description" : "根据自然语言问题检索相关法律法规，返回标题、发布和实施日期、发布机关、效力级别与时效性。结果仅供研究，关键结论必须核验权威原文。",
+    "input" : {
+      "query" : { "type" : "string", "required" : true, "description" : "法律问题或检索主题" },
+      "page_no" : { "type" : "integer", "required" : false, "description" : "页码，默认1" },
+      "page_size" : { "type" : "integer", "required" : false, "description" : "每页条数，默认5" },
+      "sort_field" : { "type" : "string", "required" : false, "description" : "correlation或time" },
+      "sort_order" : { "type" : "string", "required" : false, "description" : "desc或asc" }
+    },
+    "output" : {
+      "content" : { "type" : "array", "description" : "相关法规结果" }
+    },
+    "timeoutMs" : 30000,
+    "enabled" : true,
+    "videoCallEnabled" : false
+  }, {
+    "id" : "mcp_onekey_company_search",
+    "name" : "企业搜索匹配",
+    "toolName" : "search_company_id",
+    "url" : "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00074980/mcp",
+    "transportType" : "HTTP",
+    "apiKeyConfig" : "llm.providers.dashscope.api-key",
+    "domain" : "company_intelligence",
+    "category" : "MCP_TOOL",
+    "briefDescription" : "按企业名称或标识搜索匹配企业",
+    "videoCallSummary" : "搜索匹配企业",
+    "description" : "根据企业名称或其他公开标识搜索并匹配企业，适合作为其他企业工商工具的预处理步骤。",
+    "input" : {
+      "keyword" : { "type" : "string", "required" : true, "description" : "企业名称或其他公开标识" }
+    },
+    "output" : {
+      "content" : { "type" : "array", "description" : "匹配企业列表" }
+    },
+    "timeoutMs" : 20000,
+    "enabled" : true,
+    "videoCallEnabled" : false
+  }, {
+    "id" : "mcp_onekey_company_overview",
+    "name" : "企业工商概览",
+    "toolName" : "get_company_overview",
+    "url" : "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00074980/mcp",
+    "transportType" : "HTTP",
+    "apiKeyConfig" : "llm.providers.dashscope.api-key",
+    "domain" : "company_intelligence",
+    "category" : "MCP_TOOL",
+    "briefDescription" : "查询企业基本工商登记与经营状态",
+    "videoCallSummary" : "查询企业工商",
+    "description" : "查询企业名称、法定代表人、注册资本、成立日期、经营状态和企业类型等公开工商概览。企业名称和统一社会信用代码至少提供一个。",
+    "input" : {
+      "company_name" : { "type" : "string", "required" : false, "description" : "企业完整名称，与信用代码至少提供一个" },
+      "credit_code" : { "type" : "string", "required" : false, "description" : "统一社会信用代码，与企业名称至少提供一个" }
+    },
+    "output" : {
+      "content" : { "type" : "array", "description" : "企业工商概览" }
+    },
+    "timeoutMs" : 20000,
+    "enabled" : true,
+    "videoCallEnabled" : false
+  }, {
+    "id" : "mcp_onekey_company_shareholders",
+    "name" : "企业股东查询",
+    "toolName" : "get_company_shareholders",
+    "url" : "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00074980/mcp",
+    "transportType" : "HTTP",
+    "apiKeyConfig" : "llm.providers.dashscope.api-key",
+    "domain" : "company_intelligence",
+    "category" : "MCP_TOOL",
+    "briefDescription" : "查询企业公开股东和出资信息",
+    "videoCallSummary" : "查询企业股东",
+    "description" : "查询企业公开股东名称、出资比例、认缴金额、实缴金额与股东类型。企业名称和统一社会信用代码至少提供一个。",
+    "input" : {
+      "company_name" : { "type" : "string", "required" : false, "description" : "企业完整名称，与信用代码至少提供一个" },
+      "credit_code" : { "type" : "string", "required" : false, "description" : "统一社会信用代码，与企业名称至少提供一个" }
+    },
+    "output" : {
+      "content" : { "type" : "array", "description" : "企业股东信息" }
+    },
+    "timeoutMs" : 20000,
+    "enabled" : true,
+    "videoCallEnabled" : false
+  }, {
+    "id" : "mcp_onekey_company_staff",
+    "name" : "企业主要人员查询",
+    "toolName" : "get_company_staff",
+    "url" : "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00074980/mcp",
+    "transportType" : "HTTP",
+    "apiKeyConfig" : "llm.providers.dashscope.api-key",
+    "domain" : "company_intelligence",
+    "category" : "MCP_TOOL",
+    "briefDescription" : "查询企业法人、董事、监事和高管",
+    "videoCallSummary" : "查询企业人员",
+    "description" : "查询企业公开的法人、董事、监事和高管等主要人员及职务信息。企业名称和统一社会信用代码至少提供一个。",
+    "input" : {
+      "company_name" : { "type" : "string", "required" : false, "description" : "企业完整名称，与信用代码至少提供一个" },
+      "credit_code" : { "type" : "string", "required" : false, "description" : "统一社会信用代码，与企业名称至少提供一个" }
+    },
+    "output" : {
+      "content" : { "type" : "array", "description" : "企业主要人员信息" }
+    },
+    "timeoutMs" : 20000,
+    "enabled" : true,
+    "videoCallEnabled" : false
+  }, {
+    "id" : "mcp_onekey_company_investments",
+    "name" : "企业对外投资查询",
+    "toolName" : "get_company_participating",
+    "url" : "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00074980/mcp",
+    "transportType" : "HTTP",
+    "apiKeyConfig" : "llm.providers.dashscope.api-key",
+    "domain" : "company_intelligence",
+    "category" : "MCP_TOOL",
+    "briefDescription" : "查询企业公开对外投资与参股信息",
+    "videoCallSummary" : "查询对外投资",
+    "description" : "查询企业公开的被投资企业、投资比例、认缴金额和被投资企业状态。企业名称和统一社会信用代码至少提供一个。",
+    "input" : {
+      "company_name" : { "type" : "string", "required" : false, "description" : "企业完整名称，与信用代码至少提供一个" },
+      "credit_code" : { "type" : "string", "required" : false, "description" : "统一社会信用代码，与企业名称至少提供一个" }
+    },
+    "output" : {
+      "content" : { "type" : "array", "description" : "企业对外投资信息" }
+    },
+    "timeoutMs" : 20000,
+    "enabled" : true,
+    "videoCallEnabled" : false
+  }, {
+    "id" : "mcp_onekey_company_branches",
+    "name" : "企业分支机构查询",
+    "toolName" : "get_company_branches",
+    "url" : "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00074980/mcp",
+    "transportType" : "HTTP",
+    "apiKeyConfig" : "llm.providers.dashscope.api-key",
+    "domain" : "company_intelligence",
+    "category" : "MCP_TOOL",
+    "briefDescription" : "查询企业公开分支机构信息",
+    "videoCallSummary" : "查询分支机构",
+    "description" : "查询企业公开的分支机构名称、负责人、注册地址和经营状态。企业名称和统一社会信用代码至少提供一个。",
+    "input" : {
+      "company_name" : { "type" : "string", "required" : false, "description" : "企业完整名称，与信用代码至少提供一个" },
+      "credit_code" : { "type" : "string", "required" : false, "description" : "统一社会信用代码，与企业名称至少提供一个" }
+    },
+    "output" : {
+      "content" : { "type" : "array", "description" : "企业分支机构信息" }
+    },
+    "timeoutMs" : 20000,
+    "enabled" : true,
+    "videoCallEnabled" : false
+  }, {
+    "id" : "mcp_onekey_company_contact",
+    "name" : "企业联系方式查询",
+    "toolName" : "get_company_contact",
+    "url" : "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00074980/mcp",
+    "transportType" : "HTTP",
+    "apiKeyConfig" : "llm.providers.dashscope.api-key",
+    "domain" : "company_intelligence",
+    "category" : "MCP_TOOL",
+    "briefDescription" : "查询企业公开电话、邮箱和网址",
+    "videoCallSummary" : "查询企业联系信息",
+    "description" : "查询企业公开的联系电话、邮箱和网址，仅应用于合法业务核验，不用于骚扰或批量营销。企业名称和统一社会信用代码至少提供一个。",
+    "input" : {
+      "company_name" : { "type" : "string", "required" : false, "description" : "企业完整名称，与信用代码至少提供一个" },
+      "credit_code" : { "type" : "string", "required" : false, "description" : "统一社会信用代码，与企业名称至少提供一个" }
+    },
+    "output" : {
+      "content" : { "type" : "array", "description" : "企业公开联系方式" }
+    },
+    "timeoutMs" : 20000,
+    "enabled" : true,
+    "videoCallEnabled" : false
+  }, {
+    "id" : "mcp_onekey_text_moderation",
+    "name" : "文本内容审核",
+    "toolName" : "文本内容审核",
+    "url" : "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00075121/mcp",
+    "transportType" : "HTTP",
+    "apiKeyConfig" : "llm.providers.dashscope.api-key",
+    "domain" : "content_safety",
+    "category" : "MCP_TOOL",
+    "briefDescription" : "审核文本中的违规、推广、辱骂、低质和广告法风险",
+    "videoCallSummary" : "审核文本内容",
+    "description" : "审核文本中的违禁违规、恶意推广、低俗辱骂、低质灌水及广告法风险。服务端将待审核文本参数命名为address，调用时必须把原始文本放入address字段。",
+    "input" : {
+      "address" : { "type" : "string", "required" : true, "description" : "待审核的原始文本（服务端字段名为address，并非地址）" }
+    },
+    "output" : {
+      "content" : { "type" : "array", "description" : "内容审核分类和风险结果" }
+    },
+    "timeoutMs" : 15000,
+    "enabled" : true,
+    "videoCallEnabled" : false
+  }, {
+    "id": "mcp_amap_direction_bicycling",
+    "name": "高德骑行路径规划",
+    "toolName": "maps_direction_bicycling",
+    "serverKey": "amap-maps",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/amap-maps/sse",
+    "transportType": "SSE",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "map_navigation",
+    "category": "MCP_TOOL",
+    "briefDescription": "规划骑行通勤方案，考虑天桥、单行线、封路等，最大支持500km",
+    "videoCallSummary": "骑行路线规划",
+    "description": "骑行路径规划服务，根据起点和终点经纬度坐标规划骑行通勤方案。规划时会考虑天桥、单行线、封路等情况，最大支持500km的骑行路线规划。返回距离、耗时及详细分步骑行指引。",
+    "input": {
+      "origin": {
+        "type": "string",
+        "required": true,
+        "description": "出发点经纬度，坐标格式为：经度,纬度",
+        "example": "120.130396,30.259242"
+      },
+      "destination": {
+        "type": "string",
+        "required": true,
+        "description": "目的地经纬度，坐标格式为：经度,纬度",
+        "example": "120.022475,30.277218"
+      }
+    },
+    "output": {
+      "origin": {
+        "type": "string",
+        "description": "起点经纬度"
+      },
+      "destination": {
+        "type": "string",
+        "description": "终点经纬度"
+      },
+      "paths": {
+        "type": "array",
+        "description": "骑行方案列表，每个方案包含distance(距离/米)、duration(耗时/秒)、steps(分步指引数组，含instruction/road/distance/orientation/duration)"
+      }
+    },
+    "timeoutMs": 30000,
+    "enabled": true,
+    "videoCallEnabled": false
+  }, {
+    "id": "mcp_amap_direction_driving",
+    "name": "高德驾车路径规划",
+    "toolName": "maps_direction_driving",
+    "serverKey": "amap-maps",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/amap-maps/sse",
+    "transportType": "SSE",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "map_navigation",
+    "category": "MCP_TOOL",
+    "briefDescription": "规划小客车、轿车驾车通勤方案，返回路线距离和耗时",
+    "videoCallSummary": "查驾车路线",
+    "description": "驾车路径规划服务，根据用户起终点经纬度坐标规划以小客车、轿车通勤出行的方案，并返回通勤方案的数据，包含路线距离、预估耗时和详细分步驾驶指引。",
+    "input": {
+      "origin": {
+        "type": "string",
+        "required": true,
+        "description": "出发点经纬度，坐标格式为：经度,纬度",
+        "example": "120.130396,30.259242"
+      },
+      "destination": {
+        "type": "string",
+        "required": true,
+        "description": "目的地经纬度，坐标格式为：经度,纬度",
+        "example": "120.022475,30.277218"
+      }
+    },
+    "output": {
+      "origin": {
+        "type": "string",
+        "description": "起点经纬度"
+      },
+      "destination": {
+        "type": "string",
+        "description": "终点经纬度"
+      },
+      "paths": {
+        "type": "array",
+        "description": "驾车方案列表，每个方案包含path/distance(距离/米)/duration(耗时/秒)/steps(分步指引数组，含instruction/road/distance/orientation/duration)"
+      }
+    },
+    "timeoutMs": 30000,
+    "enabled": true,
+    "videoCallEnabled": false
+  }, {
+    "id": "mcp_amap_direction_transit",
+    "name": "高德公共交通路径规划",
+    "toolName": "maps_direction_transit_integrated",
+    "serverKey": "amap-maps",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/amap-maps/sse",
+    "transportType": "SSE",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "map_navigation",
+    "category": "MCP_TOOL",
+    "briefDescription": "综合火车、公交、地铁等公共交通方式规划通勤方案",
+    "videoCallSummary": "查公交路线",
+    "description": "公共交通综合路径规划服务，根据用户起终点经纬度坐标规划综合各类公共交通（火车、公交、地铁）方式的通勤方案。跨城场景下必须传起点城市与终点城市。返回多种换乘方案及详细步行、乘车指引。",
+    "input": {
+      "origin": {
+        "type": "string",
+        "required": true,
+        "description": "出发点经纬度，坐标格式为：经度,纬度",
+        "example": "120.130396,30.259242"
+      },
+      "destination": {
+        "type": "string",
+        "required": true,
+        "description": "目的地经纬度，坐标格式为：经度,纬度",
+        "example": "120.022475,30.277218"
+      },
+      "city": {
+        "type": "string",
+        "required": true,
+        "description": "公共交通规划起点城市",
+        "example": "杭州市"
+      },
+      "cityd": {
+        "type": "string",
+        "required": true,
+        "description": "公共交通规划终点城市",
+        "example": "杭州市"
+      }
+    },
+    "output": {
+      "origin": {
+        "type": "string",
+        "description": "起点经纬度"
+      },
+      "destination": {
+        "type": "string",
+        "description": "终点经纬度"
+      },
+      "distance": {
+        "type": "string",
+        "description": "起终点直线距离（米）"
+      },
+      "transits": {
+        "type": "array",
+        "description": "公交换乘方案列表，每个方案包含duration(耗时/秒)、walking_distance(步行距离/米)、segments(换乘段数组，每段含walking步行信息、bus公交信息、entrance入口、exit出口、railway铁路信息)"
+      }
+    },
+    "timeoutMs": 30000,
+    "enabled": true,
+    "videoCallEnabled": false
+  }, {
+    "id": "mcp_amap_direction_walking",
+    "name": "高德步行路径规划",
+    "toolName": "maps_direction_walking",
+    "serverKey": "amap-maps",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/amap-maps/sse",
+    "transportType": "SSE",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "map_navigation",
+    "category": "MCP_TOOL",
+    "briefDescription": "规划100km以内的步行通勤方案，返回步行路线和耗时",
+    "videoCallSummary": "查步行路线",
+    "description": "步行路径规划服务，根据输入起点终点经纬度坐标规划100km以内的步行通勤方案，并返回通勤方案的数据，包含步行距离、预估耗时和详细分步步行指引。",
+    "input": {
+      "origin": {
+        "type": "string",
+        "required": true,
+        "description": "出发点经纬度，坐标格式为：经度,纬度",
+        "example": "120.130396,30.259242"
+      },
+      "destination": {
+        "type": "string",
+        "required": true,
+        "description": "目的地经纬度，坐标格式为：经度,纬度",
+        "example": "120.022475,30.277218"
+      }
+    },
+    "output": {
+      "route": {
+        "type": "object",
+        "description": "路线对象，包含origin(起点)、destination(终点)、paths(步行方案数组，每个方案含distance/duration/steps分步指引)"
+      }
+    },
+    "timeoutMs": 30000,
+    "enabled": true,
+    "videoCallEnabled": false
+  }, {
+    "id": "mcp_amap_distance",
+    "name": "高德距离测量",
+    "toolName": "maps_distance",
+    "serverKey": "amap-maps",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/amap-maps/sse",
+    "transportType": "SSE",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "map_navigation",
+    "category": "MCP_TOOL",
+    "briefDescription": "测量两个经纬度坐标间的距离，支持驾车、步行、直线距离",
+    "videoCallSummary": "测量两地距离",
+    "description": "距离测量服务，测量两个经纬度坐标之间的距离，支持驾车距离、步行距离和球面直线距离三种测量方式。可同时传入多个起点坐标进行批量测量。",
+    "input": {
+      "origins": {
+        "type": "string",
+        "required": true,
+        "description": "起点经纬度，可传多个坐标用竖线分隔（如120,30|120,31），坐标格式为：经度,纬度",
+        "example": "120.022475,30.277218"
+      },
+      "destination": {
+        "type": "string",
+        "required": true,
+        "description": "终点经纬度，坐标格式为：经度,纬度",
+        "example": "120.130396,30.259242"
+      },
+      "type": {
+        "type": "string",
+        "required": false,
+        "description": "距离测量类型：1=驾车距离，0=直线距离，3=步行距离",
+        "example": "1"
+      }
+    },
+    "output": {
+      "results": {
+        "type": "array",
+        "description": "测量结果列表，每项包含origin_id(起点编号)、dest_id(终点编号)、distance(距离/米)、duration(耗时/秒)"
+      }
+    },
+    "timeoutMs": 15000,
+    "enabled": true,
+    "videoCallEnabled": false
+  }, {
+    "id": "mcp_amap_geocode",
+    "name": "高德地理编码",
+    "toolName": "maps_geo",
+    "serverKey": "amap-maps",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/amap-maps/sse",
+    "transportType": "SSE",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "map_geocoding",
+    "category": "MCP_TOOL",
+    "briefDescription": "将结构化地址或地标名称转换为经纬度坐标",
+    "videoCallSummary": "地址转坐标",
+    "description": "地理编码服务，将详细的结构化地址转换为经纬度坐标。支持对地标性名胜景区、建筑物名称解析为经纬度坐标，可指定查询城市缩小范围。返回省市区、adcode、经纬度等信息。",
+    "input": {
+      "address": {
+        "type": "string",
+        "required": true,
+        "description": "待解析的结构化地址信息",
+        "example": "浙江省杭州市西湖区雷峰塔"
+      },
+      "city": {
+        "type": "string",
+        "required": false,
+        "description": "指定查询的城市",
+        "example": "杭州市"
+      }
+    },
+    "output": {
+      "results": {
+        "type": "array",
+        "description": "地理编码结果列表，每项包含country(国家)、province(省)、city(市)、citycode(城市编码)、district(区)、street(街道)、number(门牌号)、adcode(行政编码)、location(经纬度)、level(匹配级别)"
+      }
+    },
+    "timeoutMs": 15000,
+    "enabled": true,
+    "videoCallEnabled": false
+  }, {
+    "id": "mcp_amap_regeocode",
+    "name": "高德逆地理编码",
+    "toolName": "maps_regeocode",
+    "serverKey": "amap-maps",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/amap-maps/sse",
+    "transportType": "SSE",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "map_geocoding",
+    "category": "MCP_TOOL",
+    "briefDescription": "将经纬度坐标转换为行政区划地址信息",
+    "videoCallSummary": "坐标转地址",
+    "description": "逆地理编码服务，将一个高德经纬度坐标转换为行政区划地址信息。输入经纬度返回对应的省市区、街道、门牌号等详细地址信息。",
+    "input": {
+      "location": {
+        "type": "string",
+        "required": true,
+        "description": "经纬度坐标，格式为：经度,纬度",
+        "example": "120.130396,30.259242"
+      }
+    },
+    "output": {
+      "formatted_address": {
+        "type": "string",
+        "description": "格式化后的详细地址"
+      },
+      "addressComponent": {
+        "type": "object",
+        "description": "地址组成要素，包含province(省)、city(市)、district(区)、township(乡镇)、street(街道)、number(门牌号)等"
+      }
+    },
+    "timeoutMs": 15000,
+    "enabled": true,
+    "videoCallEnabled": false
+  }, {
+    "id": "mcp_amap_ip_location",
+    "name": "高德IP定位",
+    "toolName": "maps_ip_location",
+    "serverKey": "amap-maps",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/amap-maps/sse",
+    "transportType": "SSE",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "map_geocoding",
+    "category": "MCP_TOOL",
+    "briefDescription": "根据IP地址定位所在省市位置",
+    "videoCallSummary": "IP定位城市",
+    "description": "IP定位服务，根据用户输入的IP地址定位IP的所在位置，返回对应的省份、城市、行政编码以及地理范围矩形框。",
+    "input": {
+      "ip": {
+        "type": "string",
+        "required": true,
+        "description": "待定位的IP地址",
+        "example": "42.120.75.17"
+      }
+    },
+    "output": {
+      "province": {
+        "type": "string",
+        "description": "省份"
+      },
+      "city": {
+        "type": "string",
+        "description": "城市"
+      },
+      "adcode": {
+        "type": "string",
+        "description": "行政区划编码"
+      },
+      "rectangle": {
+        "type": "string",
+        "description": "地理范围矩形框（左下角与右上角经纬度）"
+      }
+    },
+    "timeoutMs": 15000,
+    "enabled": true,
+    "videoCallEnabled": false
+  }, {
+    "id": "mcp_amap_around_search",
+    "name": "高德周边搜索",
+    "toolName": "maps_around_search",
+    "serverKey": "amap-maps",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/amap-maps/sse",
+    "transportType": "SSE",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "map_search",
+    "category": "MCP_TOOL",
+    "briefDescription": "根据关键词和坐标搜索周边指定半径内的POI",
+    "videoCallSummary": "搜索周边地点",
+    "description": "周边搜索服务，根据用户传入关键词以及中心点坐标location，搜索出radius半径范围内的POI（兴趣点）信息，返回POI名称、地址、类型编码、照片等详细信息。",
+    "input": {
+      "location": {
+        "type": "string",
+        "required": true,
+        "description": "中心点经纬度，坐标格式为：经度,纬度",
+        "example": "120.130396,30.259242"
+      },
+      "keywords": {
+        "type": "string",
+        "required": true,
+        "description": "搜索关键词",
+        "example": "肯德基"
+      },
+      "radius": {
+        "type": "string",
+        "required": false,
+        "description": "搜索半径，单位为米",
+        "example": "5000"
+      }
+    },
+    "output": {
+      "pois": {
+        "type": "array",
+        "description": "POI列表，每项包含id(POI ID)、name(名称)、address(地址)、typecode(类型编码)、photo(照片URL)"
+      }
+    },
+    "timeoutMs": 15000,
+    "enabled": true,
+    "videoCallEnabled": false
+  }, {
+    "id": "mcp_amap_search_detail",
+    "name": "高德POI详情查询",
+    "toolName": "maps_search_detail",
+    "serverKey": "amap-maps",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/amap-maps/sse",
+    "transportType": "SSE",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "map_search",
+    "category": "MCP_TOOL",
+    "briefDescription": "查询关键词搜或周边搜获取到的POI ID的详细信息",
+    "videoCallSummary": "查地点详情",
+    "description": "POI详情查询服务，根据通过关键词搜索或周边搜索获取到的POI ID，查询该POI的详细信息，包含名称、经纬度、地址、商圈、城市、类型、评分、人均消费、营业时间等。",
+    "input": {
+      "id": {
+        "type": "string",
+        "required": true,
+        "description": "关键词搜索或周边搜索获取到的POI ID",
+        "example": "B0KUGAN64N"
+      }
+    },
+    "output": {
+      "id": {
+        "type": "string",
+        "description": "POI ID"
+      },
+      "name": {
+        "type": "string",
+        "description": "POI名称"
+      },
+      "location": {
+        "type": "string",
+        "description": "经纬度坐标"
+      },
+      "address": {
+        "type": "string",
+        "description": "详细地址"
+      },
+      "business_area": {
+        "type": "string",
+        "description": "所属商圈"
+      },
+      "city": {
+        "type": "string",
+        "description": "所在城市"
+      },
+      "type": {
+        "type": "string",
+        "description": "POI类型"
+      },
+      "rating": {
+        "type": "string",
+        "description": "评分"
+      },
+      "cost": {
+        "type": "string",
+        "description": "人均消费"
+      },
+      "open_time": {
+        "type": "string",
+        "description": "营业时间"
+      }
+    },
+    "timeoutMs": 15000,
+    "enabled": true,
+    "videoCallEnabled": false
+  }, {
+    "id": "mcp_amap_text_search",
+    "name": "高德关键词搜索",
+    "toolName": "maps_text_search",
+    "serverKey": "amap-maps",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/amap-maps/sse",
+    "transportType": "SSE",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "map_search",
+    "category": "MCP_TOOL",
+    "briefDescription": "根据关键字进行POI搜索，返回相关地点信息",
+    "videoCallSummary": "搜索地点",
+    "description": "关键字搜索服务，根据用户输入的关键字进行POI搜索，并返回相关地点信息。支持指定城市和城市范围限制，返回POI名称、地址、类型编码、照片等信息列表。",
+    "input": {
+      "keywords": {
+        "type": "string",
+        "required": true,
+        "description": "查询关键字",
+        "example": "肯德基"
+      },
+      "city": {
+        "type": "string",
+        "required": false,
+        "description": "查询城市",
+        "example": "杭州市"
+      },
+      "citylimit": {
+        "type": "boolean",
+        "required": false,
+        "description": "是否限制在城市范围内搜索，默认false",
+        "example": false
+      }
+    },
+    "output": {
+      "suggestion": {
+        "type": "object",
+        "description": "搜索建议，包含关键词补全和城市建议"
+      },
+      "pois": {
+        "type": "array",
+        "description": "POI列表，每项包含id(POI ID)、name(名称)、address(地址)、typecode(类型编码)、photo(照片URL)"
+      }
+    },
+    "timeoutMs": 15000,
+    "enabled": true,
+    "videoCallEnabled": false
+  }, {
+    "id": "mcp_amap_schema_navi",
+    "name": "高德客户端导航唤醒",
+    "toolName": "maps_schema_navi",
+    "serverKey": "amap-maps",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/amap-maps/sse",
+    "transportType": "SSE",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "map_navigation",
+    "category": "MCP_TOOL",
+    "briefDescription": "生成唤醒高德客户端导航页面的URI链接",
+    "videoCallSummary": "唤醒高德导航",
+    "description": "Schema唤醒客户端导航服务，根据用户输入的终点经纬度信息，返回一个拼装好的客户端唤醒URI，用户点击该URI即可唤起高德地图客户端APP并自动跳转到导航页面。",
+    "input": {
+      "lon": {
+        "type": "string",
+        "required": true,
+        "description": "终点经度",
+        "example": "120.130396"
+      },
+      "lat": {
+        "type": "string",
+        "required": true,
+        "description": "终点纬度",
+        "example": "30.259242"
+      }
+    },
+    "output": {
+      "text": {
+        "type": "string",
+        "description": "客户端唤醒URI，格式为amapuri://navi?sourceApplication=amap_mcp&lon={lon}&lat={lat}&dev=1&style=2"
+      }
+    },
+    "timeoutMs": 10000,
+    "enabled": true,
+    "videoCallEnabled": false
+  }, {
+    "id": "mcp_amap_weather",
+    "name": "高德天气查询（降级备用）",
+    "toolName": "maps_weather",
+    "serverKey": "amap-maps",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/amap-maps/sse",
+    "transportType": "SSE",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "map_weather",
+    "category": "MCP_TOOL",
+    "briefDescription": "降级天气查询，根据城市名称或adcode查询基础天气预报",
+    "videoCallSummary": "查城市天气",
+    "description": "降级天气查询服务（当mcp_advanced_weather不可用时使用），根据城市名称或标准adcode查询指定城市的基础天气预报信息，返回未来数天的天气预报，包含日期、星期、日间/夜间天气状况、温度、风向、风力等气象数据。不支持生活指数、小时级预报、天气预警等高级功能。",
+    "input": {
+      "city": {
+        "type": "string",
+        "required": true,
+        "description": "城市名称或adcode编码",
+        "example": "杭州市"
+      }
+    },
+    "output": {
+      "city": {
+        "type": "string",
+        "description": "城市名称"
+      },
+      "forecasts": {
+        "type": "array",
+        "description": "天气预报列表，每项包含date(日期)、week(星期)、dayweather(日间天气)、nightweather(夜间天气)、daytemp(日间温度)、nighttemp(夜间温度)、daywind(日间风向)、nightwind(夜间风向)、daypower(日间风力)、nightpower(夜间风力)"
+      }
+    },
+    "timeoutMs": 15000,
+    "enabled": true,
+    "videoCallEnabled": false
+  }, {
+    "id": "mcp_qwen_image_gen",
+    "name": "千问图像生成",
+    "toolName": "modelstudio_qwen_image_gen",
+    "serverKey": "QwenImage",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/QwenImage/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "image_processing",
+    "category": "MCP_TOOL",
+    "briefDescription": "使用千问图像模型生成图片，擅长中英文文字渲染",
+    "videoCallSummary": "千问生成图片",
+    "description": "阿里云百炼官方千问图像生成工具，支持多种艺术风格，尤其擅长复杂的中英文文字渲染。",
+    "input": {
+      "prompt": {
+        "type": "string",
+        "required": true,
+        "description": "图像生成提示词"
+      },
+      "size": {
+        "type": "string",
+        "required": false,
+        "description": "输出图像尺寸，以远端工具Schema为准"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 600000,
+    "enabled": true,
+    "videoCallEnabled": false
+  }, {
+    "id": "mcp_qwen_image_edit",
+    "name": "千问图像编辑",
+    "toolName": "modelstudio_qwen_image_edit",
+    "serverKey": "QwenImage",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/QwenImage/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "image_processing",
+    "category": "MCP_TOOL",
+    "briefDescription": "精准编辑单张图片，支持文字、调色、风格和物体修改",
+    "videoCallSummary": "千问编辑图片",
+    "description": "阿里云百炼官方千问图像编辑工具，支持中英双语文字编辑、调色、细节增强、风格迁移、增删物体及动作调整。",
+    "input": {
+      "prompt": {
+        "type": "string",
+        "required": true,
+        "description": "图像编辑提示词"
+      },
+      "image_url": {
+        "type": "string",
+        "required": true,
+        "description": "公网可访问的输入图片URL"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 600000,
+    "enabled": true,
+    "videoCallEnabled": false
+  }, {
+    "id": "mcp_qwen_image_fusion",
+    "name": "千问多图融合",
+    "toolName": "modelstudio_qwen_image_edit_new",
+    "serverKey": "QwenImage",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/QwenImage/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "image_processing",
+    "category": "MCP_TOOL",
+    "briefDescription": "按提示词融合多张图片，支持风格混合与场景合成",
+    "videoCallSummary": "千问多图融合",
+    "description": "阿里云百炼官方千问多图融合工具，基于qwen-image-edit将多张图像按提示词语义融合为新图。",
+    "input": {
+      "prompt": {
+        "type": "string",
+        "required": true,
+        "description": "多图融合提示词"
+      },
+      "image_urls": {
+        "type": "array",
+        "required": true,
+        "description": "公网可访问的输入图片URL列表"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 600000,
+    "enabled": true,
+    "videoCallEnabled": false
+  }, {
+    "id": "mcp_wan_video_text_submit",
+    "name": "万相文生视频任务提交",
+    "toolName": "modelstudio_text_to_video_submit_task",
+    "serverKey": "WanVideo",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/WanVideo/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "video_generation",
+    "category": "MCP_TOOL",
+    "briefDescription": "根据文字描述提交5秒无声视频生成任务",
+    "videoCallSummary": "提交文生视频",
+    "description": "阿里云百炼官方万相文生视频异步任务提交工具，支持480P、720P、1080P多档分辨率。",
+    "input": {
+      "prompt": {
+        "type": "string",
+        "required": true,
+        "description": "视频内容提示词"
+      },
+      "size": {
+        "type": "string",
+        "required": false,
+        "description": "输出分辨率或尺寸，以远端Schema为准"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 600000,
+    "enabled": true,
+    "videoCallEnabled": false
+  }, {
+    "id": "mcp_wan_video_text_fetch",
+    "name": "万相文生视频结果查询",
+    "toolName": "modelstudio_text_to_video_fetch_result",
+    "serverKey": "WanVideo",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/WanVideo/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "video_generation",
+    "category": "MCP_TOOL",
+    "briefDescription": "根据任务ID查询万相文生视频生成结果",
+    "videoCallSummary": "查询文生视频",
+    "description": "查询万相文生视频异步任务状态及结果。",
+    "input": {
+      "task_id": {
+        "type": "string",
+        "required": true,
+        "description": "任务提交返回的Task ID"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 120000,
+    "enabled": true,
+    "videoCallEnabled": false
+  }, {
+    "id": "mcp_wan_video_image_submit",
+    "name": "万相首帧图生视频任务提交",
+    "toolName": "modelstudio_image_to_video_submit_task",
+    "serverKey": "WanVideo",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/WanVideo/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "video_generation",
+    "category": "MCP_TOOL",
+    "briefDescription": "根据首帧图片和提示词提交5秒视频生成任务",
+    "videoCallSummary": "提交图生视频",
+    "description": "阿里云百炼官方万相首帧图生视频异步任务提交工具，支持创意特效模板。",
+    "input": {
+      "img_url": {
+        "type": "string",
+        "required": true,
+        "description": "公网可访问的首帧图片URL"
+      },
+      "prompt": {
+        "type": "string",
+        "required": false,
+        "description": "视频生成提示词"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 600000,
+    "enabled": true,
+    "videoCallEnabled": false
+  }, {
+    "id": "mcp_wan_video_image_fetch",
+    "name": "万相图生视频结果查询",
+    "toolName": "modelstudio_image_to_video_fetch_result",
+    "serverKey": "WanVideo",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/WanVideo/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "video_generation",
+    "category": "MCP_TOOL",
+    "briefDescription": "根据任务ID查询万相图生视频生成结果",
+    "videoCallSummary": "查询图生视频",
+    "description": "查询万相首帧图生视频异步任务状态及结果。",
+    "input": {
+      "task_id": {
+        "type": "string",
+        "required": true,
+        "description": "任务提交返回的Task ID"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 120000,
+    "enabled": true,
+    "videoCallEnabled": false
+  }, {
+    "id": "mcp_wan_video_speech_submit",
+    "name": "万相数字人视频任务提交",
+    "toolName": "modelstudio_speech_to_video_submit_task",
+    "serverKey": "WanVideo",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/WanVideo/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "video_generation",
+    "category": "MCP_TOOL",
+    "briefDescription": "使用人物图片和音频提交数字人视频生成任务",
+    "videoCallSummary": "提交数字人视频",
+    "description": "阿里云百炼官方万相数字人异步任务提交工具，支持真人及卡通人物的说话、唱歌和表演场景。",
+    "input": {
+      "image_url": {
+        "type": "string",
+        "required": true,
+        "description": "公网可访问的人物图片URL"
+      },
+      "audio_url": {
+        "type": "string",
+        "required": true,
+        "description": "公网可访问的人声音频URL"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 600000,
+    "enabled": true,
+    "videoCallEnabled": false
+  }, {
+    "id": "mcp_wan_video_speech_fetch",
+    "name": "万相数字人视频结果查询",
+    "toolName": "modelstudio_speech_to_video_fetch_result",
+    "serverKey": "WanVideo",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/WanVideo/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "video_generation",
+    "category": "MCP_TOOL",
+    "briefDescription": "根据任务ID查询万相数字人视频生成结果",
+    "videoCallSummary": "查询数字人视频",
+    "description": "查询万相数字人异步任务状态及结果。",
+    "input": {
+      "task_id": {
+        "type": "string",
+        "required": true,
+        "description": "任务提交返回的Task ID"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 120000,
+    "enabled": true,
+    "videoCallEnabled": false
+  }, {
+    "id": "mcp_wan_video_first_last_submit",
+    "name": "万相首尾帧视频任务提交",
+    "toolName": "modelstudio_image_to_video_fl_wan22_submit_task",
+    "serverKey": "WanVideo",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/WanVideo/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "video_generation",
+    "category": "MCP_TOOL",
+    "briefDescription": "根据首帧、尾帧图片和提示词提交视频生成任务",
+    "videoCallSummary": "提交首尾帧视频",
+    "description": "万相wan2.2首尾帧生视频异步任务提交工具，可生成首尾画面自然过渡的无声视频。",
+    "input": {
+      "first_frame_url": {
+        "type": "string",
+        "required": true,
+        "description": "公网可访问的首帧图片URL"
+      },
+      "last_frame_url": {
+        "type": "string",
+        "required": true,
+        "description": "公网可访问的尾帧图片URL"
+      },
+      "prompt": {
+        "type": "string",
+        "required": false,
+        "description": "视频生成提示词"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 600000,
+    "enabled": true,
+    "videoCallEnabled": false
+  }, {
+    "id": "mcp_wan_video_fetch",
+    "name": "万相视频统一结果查询",
+    "toolName": "modelstudio_wan_video_fetch_result",
+    "serverKey": "WanVideo",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/WanVideo/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "video_generation",
+    "category": "MCP_TOOL",
+    "briefDescription": "统一查询万相异步视频任务状态和视频URL",
+    "videoCallSummary": "查询万相视频",
+    "description": "根据Task ID统一查询万相文生视频、图生视频等异步任务的状态及视频URL。",
+    "input": {
+      "task_id": {
+        "type": "string",
+        "required": true,
+        "description": "任务提交返回的Task ID"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 120000,
+    "enabled": true,
+    "videoCallEnabled": false
   } ]
 }

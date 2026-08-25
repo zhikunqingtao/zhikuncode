@@ -64,7 +64,7 @@ class WebSocketStompIntegrationTest {
         controller = new WebSocketController(messaging, sessionManager,
                 queryEngine, toolRegistry, providerRegistry, systemPromptBuilder,
                 null, null, null, null, null, null, null, null, permissionModes, null, null, null, null, null,
-                null, null, null, null, null);
+                null, null, null, null, null, mock(com.aicodeassistant.config.oss.OssPublishProperties.class));
     }
 
     private void bind(String principal, String session) {
@@ -316,7 +316,8 @@ class WebSocketStompIntegrationTest {
                 mock(EffectiveSystemPromptBuilder.class), null,
                 persistedSessions, null, null, null, null, null,
                 projectWorkspaces, null, null, null, null, null, null,
-                null, null, null, null, null);
+                null, null, null, null, null,
+                mock(com.aicodeassistant.config.oss.OssPublishProperties.class));
         SimpMessageHeaderAccessor headers =
                 SimpMessageHeaderAccessor.create();
         headers.setSessionId("principal-A");
@@ -367,7 +368,8 @@ class WebSocketStompIntegrationTest {
                 persistedSessions, null, null, null, null, null,
                 projectWorkspaces, permissionModes, null, activities,
                 new ObjectMapper(), null, interactions,
-                null, null, null, null, null);
+                null, null, null, null, null,
+                mock(com.aicodeassistant.config.oss.OssPublishProperties.class));
         sessionManager.registerTransport("transport-1", "principal-A");
         SimpMessageHeaderAccessor headers = SimpMessageHeaderAccessor.create();
         headers.setSessionId("transport-1");

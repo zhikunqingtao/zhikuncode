@@ -72,11 +72,22 @@ public sealed interface ContentBlock {
             String mediaType,
             String base64Data,
             int width,
-            int height
+            int height,
+            String url
     ) implements ContentBlock {
         /** 向后兼容: 无尺寸信息时使用默认值 */
         public ImageBlock(String mediaType, String base64Data) {
-            this(mediaType, base64Data, 0, 0);
+            this(mediaType, base64Data, 0, 0, null);
+        }
+
+        /** 向后兼容: 本地图片引用仍可携带尺寸。 */
+        public ImageBlock(String mediaType, String base64Data, int width, int height) {
+            this(mediaType, base64Data, width, height, null);
+        }
+
+        /** 已由服务端验证过的远程图片 URL。 */
+        public static ImageBlock fromUrl(String mediaType, String url) {
+            return new ImageBlock(mediaType, null, 0, 0, url);
         }
     }
 
