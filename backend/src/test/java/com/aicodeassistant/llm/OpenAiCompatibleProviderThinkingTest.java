@@ -18,8 +18,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * 验证目标：
  * <ul>
  *   <li>对 MODEL_CAPABILITIES 中存在的模型直接返回其 supportsThinking 值</li>
- *   <li>对 qwen3.7-/qwen3.6- 前缀模型走 isQwenThinkingModel 判定</li>
+ *   <li>对 qwen3.8-/qwen3.7-/qwen3.6- 前缀模型走 isQwenThinkingModel 判定</li>
  *   <li>对 deepseek-v4- 前缀模型走 isDeepSeekV4Model 判定</li>
+ *   <li>对 glm-5.3 / glm-5.3-flash 走 isGlmForcedThinkingModel 判定（强制思考）</li>
  *   <li>未匹配模型返回 false（不再抛 IllegalArgumentException）</li>
  * </ul>
  */
@@ -65,7 +66,7 @@ class OpenAiCompatibleProviderThinkingTest {
     }
 
     @Test
-    @DisplayName("tc004: supportsThinking(qwen-turbo) 返回 false（不匹配 qwen3.7-/qwen3.6- 前缀）")
+    @DisplayName("tc004: supportsThinking(qwen-turbo) 返回 false（不匹配 qwen3.8-/qwen3.7-/qwen3.6- 前缀）")
     void tc004_qwenTurbo_supportsThinkingFalse() {
         assertThat(provider.supportsThinking("qwen-turbo")).isFalse();
     }
@@ -160,5 +161,48 @@ class OpenAiCompatibleProviderThinkingTest {
 
         assertThat((boolean) vision.invoke(null, "deepseek-v4-flash-vision-exp")).isTrue();
         assertThat((boolean) v4.invoke(null, "deepseek-v4-flash-vision-exp")).isFalse();
+    }
+
+    @Test
+    @DisplayName("tc014: supportsThinking(glm-5.3-flash) 返回 true（强制思考，不可关闭）")
+    void tc014_glm53Flash_supportsThinkingTrue() {
+        assertThat(provider.supportsThinking("glm-5.3-flash")).isTrue();
+    }
+
+    @Test
+    @DisplayName("tc015: supportsThinking(glm-5.3) 返回 true（强制思考，不可关闭）")
+    void tc015_glm53_supportsThinkingTrue() {
+        assertThat(provider.supportsThinking("glm-5.3")).isTrue();
+    }
+
+    @Test
+    @DisplayName("tc016: isGlmForcedThinkingModel 边界 - 仅 glm-5.3 / glm-5.3-flash 匹配")
+    void tc016_isGlmForcedThinkingModel_boundary() throws Exception {
+        Method m = OpenAiCompatibleProvider.class.getDeclaredMethod("isGlmForcedThinkingModel", String.class);
+        m.setAccessible(true);
+
+        assertThat((boolean) m.invoke(null, "glm-5.3")).isTrue();
+        assertThat((boolean) m.invoke(null, "glm-5.3-flash")).isTrue();
+        assertThat((boolean) m.invoke(null, "glm-5.2")).isFalse();
+        assertThat((boolean) m.invoke(null, "glm-5v-turbo")).isFalse();
+        assertThat((boolean) m.invoke(null, (Object) null)).isFalse();
+    }
+
+    @Test
+    @DisplayName("tc017: supportsThinking(qwen3.8-flash / qwen3.8-max) 返回 true（百炼官方支持思考模式）")
+    void tc017_qwen38Models_supportsThinkingTrue() {
+        assertThat(provider.supportsThinking("qwen3.8-flash")).isTrue();
+        assertThat(provider.supportsThinking("qwen3.8-max")).isTrue();
+    }
+
+    @Test
+    @DisplayName("tc018: isQwenThinkingModel 边界 - qwen3.8- 前缀匹配")
+    void tc018_isQwenThinkingModel_qwen38PrefixMatches() throws Exception {
+        Method m = OpenAiCompatibleProvider.class.getDeclaredMethod("isQwenThinkingModel", String.class);
+        m.setAccessible(true);
+
+        assertThat((boolean) m.invoke(null, "qwen3.8-max")).isTrue();
+        assertThat((boolean) m.invoke(null, "qwen3.8-flash")).isTrue();
+        assertThat((boolean) m.invoke(null, "qwen3.8-anything-future")).isTrue();
     }
 }

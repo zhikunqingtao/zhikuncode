@@ -25,12 +25,12 @@ services:
       # ---- Multi-Provider LLM (Recommended) ----
       - LLM_PROVIDER_DASHSCOPE_API_KEY=${LLM_PROVIDER_DASHSCOPE_API_KEY:-}
       - LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_API_KEY=${LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_API_KEY:-}
-      - LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS=${LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS:-qwen3.8-max,deepseek-v4-pro-0813,deepseek-v4-flash-0731}
+      - LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS=${LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS:-qwen3.8-max,qwen3.8-flash,deepseek-v4-pro-0813,deepseek-v4-flash-0731}
       - LLM_PROVIDER_DEEPSEEK_API_KEY=${LLM_PROVIDER_DEEPSEEK_API_KEY:-}
       - LLM_PROVIDER_DEEPSEEK_MODELS=${LLM_PROVIDER_DEEPSEEK_MODELS:-deepseek-v4-pro,deepseek-v4-flash,deepseek-v4-flash-vision-exp}
       - LLM_PROVIDER_MOONSHOT_API_KEY=${LLM_PROVIDER_MOONSHOT_API_KEY:-}
       - LLM_PROVIDER_ZHIPU_API_KEY=${LLM_PROVIDER_ZHIPU_API_KEY:-}
-      - LLM_PROVIDER_ZHIPU_MODELS=${LLM_PROVIDER_ZHIPU_MODELS:-glm-5.3,glm-5v-turbo}
+      - LLM_PROVIDER_ZHIPU_MODELS=${LLM_PROVIDER_ZHIPU_MODELS:-glm-5.3,glm-5.3-flash}
       # ---- Legacy Single-Provider (Backward Compatible) ----
       - LLM_API_KEY=${LLM_API_KEY:-}
       - LLM_BASE_URL=${LLM_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}

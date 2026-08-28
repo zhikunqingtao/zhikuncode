@@ -117,7 +117,7 @@ ZhikunCode 使用 Kimi K3 在 2026-08-09 凌晨一次性完成了一个纯静态
 | 🐳 | **Docker 一键部署** | `docker compose up -d` 一条命令启动，数据存本地，完全私有 |
 | 📤 | **OSS 发布与截图粘贴（可选）** | `/publish-oss` 仍只按明确指令发布已验证产物；粘贴截图支持双路径——OSS 已配置时走后端快速上传，OSS 未配置时自动降级为 Base64 直传，无需额外配置即可使用图片分析能力 |
 | ⚡ | **智能上下文管理** | 六层压缩级联（Snip / MicroCompact / ContextCollapse / AutoCompact / CollapseDrain / ReactiveCompact）+ 增量折叠（每10轮自动压缩）+ 413 两阶段恢复（CollapseDrain 激进压缩 → ReactiveCompact 反应式压缩）+ 精确 Token 计数（tiktoken 多模型支持）+ 自纠错循环（SelfCorrectionLoop，编译/测试失败自动诊断修复，最多3次）+ Token三级告警 + 图片上下文治理（大图外置化 → 按需注入 → 预算守卫三层防护），无缝应对超长对话。核心引擎为 ContextCascade 与 QueryEngine |
-| 📷 | **多模态图片对话** | 支持图片上传输入，模型自动识别图片内容并分析；**智能视觉模型路由**——当前模型不支持图片时，自动切换至同厂商视觉模型处理，处理完成后无缝切回原模型；DeepSeek 系列优先使用 `deepseek-v4-flash-vision-exp`，不可用时再走同 Provider / 全局兜底。**图片预算守卫**——大图片（>50KB）自动外置化为轻量 JSON 引用，API 调用前按需注入，两阶段 Token 预算守卫确保多图对话不累积超限（单张≤1.5MB，总量≤2MB，最多 5 张并发注入）。支持的模型：gpt-5.6-sol / gpt-5.4-mini / claude-sonnet-4-6 / claude-opus-4-8 / qwen3.7-plus / deepseek-v4-flash-vision-exp / kimi-k3 / kimi-k2.7-code / glm-5v-turbo / MiniMax-M3 / openai/gpt-5.6-sol / google/gemini-3.5-flash（单张≤5MB，数量上限因模型而异） |
+| 📷 | **多模态图片对话** | 支持图片上传输入，模型自动识别图片内容并分析；**智能视觉模型路由**——当前模型不支持图片时，自动切换至同厂商视觉模型处理，处理完成后无缝切回原模型；DeepSeek 系列优先使用 `deepseek-v4-flash-vision-exp`，不可用时再走同 Provider / 全局兜底。**图片预算守卫**——大图片（>50KB）自动外置化为轻量 JSON 引用，API 调用前按需注入，两阶段 Token 预算守卫确保多图对话不累积超限（单张≤1.5MB，总量≤2MB，最多 5 张并发注入）。支持的模型：gpt-5.6-sol / gpt-5.4-mini / claude-sonnet-4-6 / claude-opus-4-8 / qwen3.7-plus / deepseek-v4-flash-vision-exp / kimi-k3 / kimi-k2.7-code / glm-5.3-flash / MiniMax-M3 / openai/gpt-5.6-sol / google/gemini-3.5-flash（单张≤5MB，数量上限因模型而异） |
 | 🖼️ | **浏览器语义快照** | `/snap` 命令智能捕获网页完整状态（DOM 结构 + 交互元素），支持富交互页面语义提取，生成结构化 JSON 供 Agent 解析和回放验证 |
 | 📊 | **实时活动追踪与审批** | Activity Panel 实时记录 AI 工具执行全流程，L1/L2/L3 三层展示体系，Signal 智能标记（auto_approve/review_recommended/needs_review），一键批量审批决策，SQLite 后端持久化，支持会话恢复 |
 | 🧪 | **运行时验证框架（Runtime Verification）** | VerifierFactory 三模态分发（browser/http_api/auto）+ 8 种 HTTP action handler + JSONPath 断言 + 证据链 SQLite 存储 + Feature Flag 双重门控 + 前端实时进度面板 |
@@ -339,10 +339,10 @@ LLM_PROVIDER_ZENMUX_API_KEY=your-zenmux-api-key-here
 | 服务商 | Base URL | 推荐模型 | 备注 |
 |--------|----------|----------|------|
 | **千问/DashScope** | `https://dashscope.aliyuncs.com/compatible-mode/v1` | qwen3.7-max / qwen3.7-plus | **默认 Provider**，国内直连 |
-| **阿里云百炼 Token Plan** | `https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1` | qwen3.8-max / deepseek-v4-pro-0813 / deepseek-v4-flash-0731 | 可选订阅 Provider，使用独立 `sk-sp-` Key；三个模型在前端均标注“百炼”，且不进入全局默认或预定义降级链 |
+| **阿里云百炼 Token Plan** | `https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1` | qwen3.8-max / qwen3.8-flash / deepseek-v4-pro-0813 / deepseek-v4-flash-0731 | 可选订阅 Provider，使用独立 `sk-sp-` Key；四个模型在前端均标注“百炼”，且不进入全局默认或预定义降级链 |
 | **DeepSeek** | `https://api.deepseek.com/v1` | deepseek-v4-pro / deepseek-v4-flash / deepseek-v4-flash-vision-exp | 国内直连；Vision Exp 作为 DeepSeek 系列图片理解兜底 |
 | **Moonshot（Kimi）** | `https://api.moonshot.cn/v1` | kimi-k3 / kimi-k2.7-code | 国内直连；kimi-k3 支持 1M 上下文和原生视觉 |
-| **Zhipu（智谱 GLM）** | `https://open.bigmodel.cn/api/paas/v4/chat/completions` | glm-5.3, glm-5v-turbo | 国内直连 |
+| **Zhipu（智谱 GLM）** | `https://open.bigmodel.cn/api/paas/v4/chat/completions` | glm-5.3, glm-5.3-flash | 国内直连 |
 | **MiniMax** | `https://api.minimax.chat/v1` | MiniMax-M3 | 百万上下文 |
 | **ZenMux（多模型中转）** | `https://zenmux.ai/api/v1` | anthropic/claude-opus-4.8 / claude-fable-5 / openai/gpt-5.6-sol / google/gemini-3.5-flash | 1M 上下文 · 支持图片 |
 | **OpenAI** | `https://api.openai.com/v1` | gpt-5.6-sol / gpt-5.4-mini | 需要外网访问 |
@@ -1389,10 +1389,10 @@ ZhikunCode 内置 11 项可视化能力，让 AI 编程过程中的数据和状�
 |------|:---:|--------|------|
 | `ZHIKUN_COORDINATOR_MODE` | — | 0 | Feature flag，启用协调器模式（0=关闭，1=开启） |
 | `LLM_PROVIDER_DASHSCOPE_MODELS` | — | qwen3.7-max,qwen3.7-plus | 按量计费 DashScope 可用模型列表（逗号分隔；实际目录可动态扩展） |
-| `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS` | — | qwen3.8-max,deepseek-v4-pro-0813,deepseek-v4-flash-0731 | 百炼 Token Plan Provider 可用模型列表；与普通 DashScope、DeepSeek 直连配置相互独立 |
+| `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS` | — | qwen3.8-max,qwen3.8-flash,deepseek-v4-pro-0813,deepseek-v4-flash-0731 | 百炼 Token Plan Provider 可用模型列表；与普通 DashScope、DeepSeek 直连配置相互独立 |
 | `LLM_PROVIDER_DEEPSEEK_MODELS` | — | deepseek-v4-pro,deepseek-v4-flash,deepseek-v4-flash-vision-exp | DeepSeek 可用模型列表；Vision Exp 用作系列图片理解兜底（逗号分隔） |
 | `LLM_PROVIDER_MOONSHOT_MODELS` | — | kimi-k3,moonshot-v1-128k | Moonshot 可用模型列表（逗号分隔） |
-| `LLM_PROVIDER_ZHIPU_MODELS` | — | glm-5.3,glm-5v-turbo | 智谱 GLM 可用模型列表（逗号分隔） |
+| `LLM_PROVIDER_ZHIPU_MODELS` | — | glm-5.3,glm-5.3-flash | 智谱 GLM 可用模型列表（逗号分隔） |
 
 **上下文管理配置（application.yml）：**
 

@@ -116,6 +116,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
                             <option value="qwen3.7-max">Qwen 3.7 Max</option>
                             <option value="qwen3.7-plus">Qwen 3.7 Plus</option>
                             <option value="qwen3.8-max">Qwen 3.8 Max（百炼）</option>
+                            <option value="qwen3.8-flash">Qwen 3.8 Flash（百炼）</option>
                             <option value="deepseek-v4-pro">DeepSeek V4 Pro</option>
                             <option value="deepseek-v4-flash">DeepSeek V4 Flash</option>
                             <option value="deepseek-v4-flash-vision-exp">DeepSeek V4 Flash Vision Exp（图片理解兜底）</option>
@@ -125,7 +126,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
                             <option value="kimi-k2.7-code">Kimi K2.7 Code</option>
                             <option value="moonshot-v1-128k">Moonshot V1 128K</option>
                             <option value="glm-5.3">GLM-5.3</option>
-                            <option value="glm-5v-turbo">GLM-5V-Turbo</option>
+                            <option value="glm-5.3-flash">GLM-5.3-Flash</option>
                             <option value="MiniMax-M3">MiniMax M3</option>
                             <option value="anthropic/claude-opus-4.8">Claude Opus 4.8 (zenmux)</option>
                             <option value="anthropic/claude-fable-5">Claude Fable 5 (zenmux)</option>

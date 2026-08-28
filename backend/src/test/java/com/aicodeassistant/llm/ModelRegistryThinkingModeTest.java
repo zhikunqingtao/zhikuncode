@@ -18,6 +18,7 @@ import static org.mockito.Mockito.lenient;
  *   <li>qwen3.7-plus: contextWindow=1000000, maxOutputTokens=8192, supportsThinking=true</li>
  *   <li>qwen-turbo (对照): supportsThinking=false</li>
  *   <li>deepseek-v4-pro: supportsThinking=true（在 BUILTIN_MODELS 中）</li>
+ *   <li>glm-5.3-flash: 1M 上下文 / 128K 输出 / 强制思考 / 50 张图片上限（官方规格）</li>
  * </ul>
  */
 @DisplayName("ModelRegistry M0-a/b Thinking 模式参数测试")
@@ -135,5 +136,19 @@ class ModelRegistryThinkingModeTest {
         assertThat(caps.maxOutputTokens()).isEqualTo(384_000);
         assertThat(caps.supportsImages()).isTrue();
         assertThat(caps.maxImages()).isEqualTo(5);
+    }
+
+    @Test
+    @DisplayName("tc013: glm-5.3-flash 官方规格 — 1M 上下文 / 128K 输出 / 强制思考 / 50 张图片")
+    void tc013_glm53Flash_officialSpec() {
+        ModelCapabilities caps = modelRegistry.getCapabilities("glm-5.3-flash");
+
+        assertThat(caps.contextWindow()).isEqualTo(1_048_576);
+        assertThat(caps.maxOutputTokens()).isEqualTo(131_072);
+        assertThat(caps.supportsThinking()).isTrue();
+        assertThat(caps.supportsImages()).isTrue();
+        assertThat(caps.maxImages()).isEqualTo(50);
+        assertThat(caps.supportsToolUse()).isTrue();
+        assertThat(caps.supportsStreaming()).isTrue();
     }
 }

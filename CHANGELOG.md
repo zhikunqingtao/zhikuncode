@@ -11,6 +11,7 @@
 - 新增浏览器截图粘贴的固定 OSS 快速通道：无需 Skill 或额外 LLM 调用，上传后将可信 HTTPS 图片地址直接交给视觉模型；未配置 OSS 时给出明确提示。
 - OSS 凭证支持 ECS RAM Role/IMDSv2 与本地阿里云默认凭证链双模式，覆盖本地一键启动和 Docker Compose 透传。
 - 新增可浏览、持久且可撤销的 Project 文件夹授权；Project 作为信任范围和默认相对路径根，普通操作在其内免打扰，范围外操作进入常规授权，敏感路径和高风险操作仍需逐次确认。
+- 新增百炼 Token Plan 渠道 `qwen3.8-flash`（官方规格：1M 上下文、131072 最大输出、多模态输入、支持思考模式），接入方式与 `qwen3.8-max` 一致。
 - 新增百炼 Token Plan 渠道 `deepseek-v4-pro-0813` 与 `deepseek-v4-flash-0731`，并与 `qwen3.8-max` 统一标注“百炼”。
 - 新增 `deepseek-v4-flash-vision-exp` 图片理解模型，作为 DeepSeek 系列的专属视觉兜底。
 

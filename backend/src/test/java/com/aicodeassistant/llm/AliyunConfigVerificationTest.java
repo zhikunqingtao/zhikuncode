@@ -124,6 +124,21 @@ class AliyunConfigVerificationTest {
         assertEquals("Qwen 3.8 Max（百炼）", qwen38.displayName());
         assertNotSame(ModelCapabilities.DEFAULT, qwen38);
 
+        // qwen3.8-flash 官方规格（help.aliyun.com/zh/model-studio/qwen3-8-flash）
+        ModelCapabilities qwen38Flash = modelRegistry.getCapabilities("qwen3.8-flash");
+        assertEquals("qwen3.8-flash", qwen38Flash.modelId());
+        assertEquals("Qwen 3.8 Flash（百炼）", qwen38Flash.displayName());
+        assertNotSame(ModelCapabilities.DEFAULT, qwen38Flash);
+        assertEquals(1_000_000, qwen38Flash.contextWindow(),
+                "qwen3.8-flash contextWindow should be 1000000 (official)");
+        assertEquals(131_072, qwen38Flash.maxOutputTokens(),
+                "qwen3.8-flash maxOutputTokens should be 131072 (official)");
+        assertTrue(qwen38Flash.supportsThinking());
+        assertTrue(qwen38Flash.supportsImages());
+        assertEquals(4, qwen38Flash.maxImages());
+        assertTrue(qwen38Flash.supportsToolUse());
+        assertTrue(qwen38Flash.supportsStreaming());
+
         ModelCapabilities deepseekPro = modelRegistry.getCapabilities("deepseek-v4-pro-0813");
         assertEquals("DeepSeek V4 Pro 0813（百炼）", deepseekPro.displayName());
         assertTrue(deepseekPro.supportsThinking());

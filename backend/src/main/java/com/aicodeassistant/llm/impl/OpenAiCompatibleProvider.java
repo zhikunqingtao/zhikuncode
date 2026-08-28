@@ -134,7 +134,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
      * 触发 getModelCapabilities() 的 IllegalArgumentException。
      * <p>
      * 此处复用 Provider 已有的模型族判定函数（{@link #isDeepSeekV4Model} /
-     * {@link #isQwenThinkingModel}），与请求构建阶段的 thinking 参数下发逻辑保持一致；
+     * {@link #isQwenThinkingModel} / {@link #isGlmForcedThinkingModel}），与请求构建阶段的 thinking 参数下发逻辑保持一致；
      * 同时 getModelCapabilities() 的抛异常契约保持不变，ModelRegistry 的 Level 2→Level 3
      * fallback 链路不受影响。
      */
@@ -143,7 +143,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         if (model == null) return false;
         ModelCapabilities caps = MODEL_CAPABILITIES.get(model);
         if (caps != null) return caps.supportsThinking();
-        return isDeepSeekV4Model(model) || isQwenThinkingModel(model);
+        return isDeepSeekV4Model(model) || isQwenThinkingModel(model) || isGlmForcedThinkingModel(model);
     }
 
     // ═══════════════════════════════════════════
@@ -274,6 +274,17 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         } else if ("kimi-k3".equals(model)) {
             // Kimi K3 官方推荐显式传入 reasoning_effort="max" 以获得最强推理
             root.put("reasoning_effort", "max");
+        } else if (isGlmForcedThinkingModel(model)) {
+            // GLM-5.3 / GLM-5.3-Flash 官方规范：thinking.type 仅支持 enabled（思考不可关闭），
+            // 推理强度由 reasoning_effort 控制（low/high/max，官方推荐 max）。
+            // clear_thinking=false 开启保留式思考——thinking 块已在消息历史中
+            // 完整回传（reasoning_content），Coding/Agent 场景官方推荐；
+            // 流式调用官方建议 stream 与 tool_stream 同时开启。
+            ObjectNode thinking = root.putObject("thinking");
+            thinking.put("type", "enabled");
+            thinking.put("clear_thinking", false);
+            root.put("reasoning_effort", "max");
+            root.put("tool_stream", true);
         } else if (isQwenThinkingModel(model) && thinkingConfig.requiresThinkingSupport()) {
             root.put("enable_thinking", true);
         }
@@ -291,9 +302,18 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         return "deepseek-v4-flash-vision-exp".equals(model);
     }
 
-    /** 判断是否为支持思考模式的 Qwen 模型 */
+    /** 判断是否为支持思考模式的 Qwen 模型（qwen3.8-max/flash 官方均支持思考模式） */
     private static boolean isQwenThinkingModel(String model) {
-        return model != null && (model.startsWith("qwen3.7-") || model.startsWith("qwen3.6-"));
+        return model != null && (model.startsWith("qwen3.8-") || model.startsWith("qwen3.7-") || model.startsWith("qwen3.6-"));
+    }
+
+    /**
+     * 判断是否为 GLM 强制思考模型（GLM-5.3 / GLM-5.3-Flash）。
+     * 官方 API 规范：thinking.type 仅支持 enabled，不支持 disabled，
+     * 由 reasoning_effort（low/high/max）控制思考强度。
+     */
+    private static boolean isGlmForcedThinkingModel(String model) {
+        return "glm-5.3".equals(model) || "glm-5.3-flash".equals(model);
     }
 
     /**

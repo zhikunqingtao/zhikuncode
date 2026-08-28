@@ -48,9 +48,16 @@ public class ModelRegistry {
         entry("qwen-turbo",        caps("qwen-turbo",        "Qwen Turbo",         8192, 1000000,  true, false, false, 0, true, 0.0003, 0.0006)),
         entry("qwen3.7-max", caps("qwen3.7-max", "Qwen 3.7 Max", 65536, 1000000, true, true, false, 0, true, 0.009, 0.054)),
         entry("qwen3.8-max", caps("qwen3.8-max", "Qwen 3.8 Max（百炼）", 65536, 1000000, true, true, true, 4, true, 0.009, 0.054)),
+        // Qwen3.8-Flash 官方规格（help.aliyun.com/zh/model-studio/qwen3-8-flash）：
+        // 1M 上下文 / 131072 最大输出 / 多模态（Image/Text/Video 输入）/ 支持思考模式（最大思维链 262144）
+        // 北京区定价：输入 0.8 元/M、输出 2.7 元/M tokens
+        entry("qwen3.8-flash", caps("qwen3.8-flash", "Qwen 3.8 Flash（百炼）", 131072, 1000000, true, true, true, 4, true, 0.0008, 0.0027)),
         entry("qwen3.7-plus",      caps("qwen3.7-plus",      "Qwen 3.7 Plus",      8192, 1000000,  true, true, true, 4, true, 0.0008, 0.002)),
         entry("glm-5.3",           caps("glm-5.3",           "GLM-5.3",            131072, 1048576,  true, true, false, 0, true, 0.001, 0.001)),
-        entry("glm-5v-turbo",      caps("glm-5v-turbo",      "GLM-5V-Turbo",       131072, 204800,  true, true, true, 150, true, 0.0012, 0.004)),
+        // GLM-5.3-Flash 官方规格（docs.bigmodel.cn/cn/guide/models/vlm/glm-5.3-flash）：
+        // 1M 上下文 / 128K 最大输出 / 原生多模态（单图≤5MB，系列上限 50 张）/ 强制思考不可关闭
+        // 定价为 GLM-5.3 的 1/10（输入 $0.15/M、输出 $0.50/M）
+        entry("glm-5.3-flash",     caps("glm-5.3-flash",     "GLM-5.3-Flash",      131072, 1048576,  true, true, true, 50, true, 0.00015, 0.0005)),
         // MiniMax
         entry("MiniMax-M3",       caps("MiniMax-M3",       "MiniMax M3",        16384, 1000000, true, true, true, 4, true, 0.001, 0.004)),
         // Ollama 本地

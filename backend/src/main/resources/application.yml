@@ -70,7 +70,7 @@ llm:
       api-key: ${LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_API_KEY:}
       base-url: https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1
       default-model: qwen3.8-max
-      models: ${LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS:qwen3.8-max,deepseek-v4-pro-0813,deepseek-v4-flash-0731}
+      models: ${LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS:qwen3.8-max,qwen3.8-flash,deepseek-v4-pro-0813,deepseek-v4-flash-0731}
     deepseek:
       api-key: ${LLM_PROVIDER_DEEPSEEK_API_KEY:}
       base-url: https://api.deepseek.com/v1
@@ -85,7 +85,7 @@ llm:
       api-key: ${LLM_PROVIDER_ZHIPU_API_KEY:}
       base-url: https://open.bigmodel.cn/api/paas/v4
       default-model: glm-5.3
-      models: ${LLM_PROVIDER_ZHIPU_MODELS:glm-5.3,glm-5v-turbo}
+      models: ${LLM_PROVIDER_ZHIPU_MODELS:glm-5.3,glm-5.3-flash}
     minimax:
       api-key: ${LLM_PROVIDER_MINIMAX_API_KEY:}
       base-url: https://api.minimax.chat/v1

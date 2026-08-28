@@ -204,7 +204,7 @@ class McpModelCompatibilityLiveTest {
                 env("LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_BASE_URL",
                         "https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1"),
                 "LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS",
-                "qwen3.8-max,deepseek-v4-pro-0813,deepseek-v4-flash-0731");
+                "qwen3.8-max,qwen3.8-flash,deepseek-v4-pro-0813,deepseek-v4-flash-0731");
         addProvider(endpoints, "deepseek", "LLM_PROVIDER_DEEPSEEK_API_KEY",
                 env("LLM_PROVIDER_DEEPSEEK_BASE_URL", "https://api.deepseek.com/v1"),
                 "LLM_PROVIDER_DEEPSEEK_MODELS",
@@ -214,7 +214,7 @@ class McpModelCompatibilityLiveTest {
                 "LLM_PROVIDER_MOONSHOT_MODELS", "kimi-k3,kimi-k2.7-code,moonshot-v1-128k");
         addProvider(endpoints, "zhipu", "LLM_PROVIDER_ZHIPU_API_KEY",
                 env("LLM_PROVIDER_ZHIPU_BASE_URL", "https://open.bigmodel.cn/api/paas/v4"),
-                "LLM_PROVIDER_ZHIPU_MODELS", "glm-5.3,glm-5v-turbo");
+                "LLM_PROVIDER_ZHIPU_MODELS", "glm-5.3,glm-5.3-flash");
         addProvider(endpoints, "minimax", "LLM_PROVIDER_MINIMAX_API_KEY",
                 env("LLM_PROVIDER_MINIMAX_BASE_URL", "https://api.minimax.chat/v1"),
                 "LLM_PROVIDER_MINIMAX_MODELS", "MiniMax-M3");
