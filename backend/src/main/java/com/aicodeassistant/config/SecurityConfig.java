@@ -62,6 +62,7 @@ public class SecurityConfig {
                             "style-src 'self' 'unsafe-inline'; " +
                             "connect-src 'self' ws: wss:; " +
                             "img-src 'self' data: blob: https://*.aliyuncs.com; " +
+                            "media-src 'self' blob: https://*.aliyuncs.com http://*.aliyuncs.com; " +
                             "frame-src 'self' blob:; " +
                             "font-src 'self' data:;")
                     )

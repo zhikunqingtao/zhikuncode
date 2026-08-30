@@ -17,6 +17,8 @@ import type { Command, LocalAttachment, SubmitEvent, Message, Attachment, PasteP
 import { useNotificationStore } from '@/store/notificationStore';
 import CommandPalette from './CommandPalette';
 import FileUpload from './FileUpload';
+import VoiceInputButton from './VoiceInputButton';
+import { useAsrAvailability } from '@/hooks/useAsrAvailability';
 import { FileAutoComplete } from './FileAutoComplete';
 import { generateUUID } from '@/utils/uuid';
 
@@ -88,6 +90,8 @@ const PromptInput: React.FC<PromptInputProps> = ({
     const submissionRef = useRef(false);
     // 异步链路（粘贴上传/读取 base64）的卸载防护：卸载后短路 setState/通知并回收 ObjectURL
     const isMountedRef = useRef(true);
+    // 追踪光标位置，用于语音识别结果插入光标处而非追加末尾
+    const cursorPosRef = useRef<number | null>(null);
 
     useEffect(() => {
         isMountedRef.current = true;
@@ -99,6 +103,7 @@ const PromptInput: React.FC<PromptInputProps> = ({
     // 图片上传按钮始终可用：后端的智能视觉路由会处理模型适配，
     // 前端不再基于 supportsImages 进行前置禁用，仅保留通用数量上限。
     const maxImages = FRONTEND_MAX_IMAGES;
+    const asrAvailable = useAsrAvailability();
 
     const imageCount = useMemo(
         () => attachments.filter(a => a.type.startsWith('image/')).length,
@@ -633,6 +638,7 @@ const PromptInput: React.FC<PromptInputProps> = ({
                     onChange={e => {
                         const text = e.target.value;
                         const cursor = e.target.selectionStart || 0;
+                        cursorPosRef.current = e.target.selectionStart ?? null;
                         setInput(text);
 
                         // 检测 @ 触发
@@ -651,6 +657,12 @@ const PromptInput: React.FC<PromptInputProps> = ({
                     }}
                     onKeyDown={handleKeyDown}
                     onPaste={handlePaste}
+                    onSelect={() => {
+                        cursorPosRef.current = textareaRef.current?.selectionStart ?? null;
+                    }}
+                    onBlur={() => {
+                        cursorPosRef.current = textareaRef.current?.selectionStart ?? null;
+                    }}
                     placeholder={
                         compacting
                             ? '正在压缩上下文，请稍候…'
@@ -678,6 +690,31 @@ const PromptInput: React.FC<PromptInputProps> = ({
                         accept="image/*"
                         disabled={disabled || isSubmitting || isUploadingPaste}
                         title={`上传图片（不支持图片的模型将由视觉模型自动处理，上限 ${maxImages} 张）`}
+                    />
+                )}
+                {asrAvailable && !runActive && !compacting && (
+                    <VoiceInputButton
+                        onTranscript={(text) => {
+                            setInput(prev => {
+                                const pos = cursorPosRef.current;
+                                if (pos !== null && pos >= 0 && pos <= prev.length) {
+                                    const newText = prev.slice(0, pos) + text + prev.slice(pos);
+                                    const newCursorPos = pos + text.length;
+                                    cursorPosRef.current = newCursorPos;
+                                    requestAnimationFrame(() => {
+                                        if (textareaRef.current) {
+                                            textareaRef.current.selectionStart = newCursorPos;
+                                            textareaRef.current.selectionEnd = newCursorPos;
+                                            textareaRef.current.focus();
+                                        }
+                                    });
+                                    return newText;
+                                }
+                                cursorPosRef.current = prev.length + text.length;
+                                return prev + text;
+                            });
+                        }}
+                        disabled={disabled || isSubmitting || isUploadingPaste}
                     />
                 )}
                 <button

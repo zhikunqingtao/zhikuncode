@@ -395,3 +395,12 @@ body {
   box-shadow: var(--glass-shadow), var(--glass-inner-shadow);
   border-radius: var(--border-radius);
 }
+
+/* ===== 声波动画 — 语音录音态指示器 ===== */
+@keyframes soundwave {
+  0%, 100% { transform: scaleY(0.4); }
+  50% { transform: scaleY(1); }
+}
+.animate-soundwave {
+  animation: soundwave 1s ease-in-out infinite;
+}

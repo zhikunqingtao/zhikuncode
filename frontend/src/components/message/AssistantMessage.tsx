@@ -19,7 +19,9 @@ import TextBlock from './TextBlock';
 import ThinkingBlock from './ThinkingBlock';
 import ToolCallBlock from './ToolCallBlock';
 import ImageBlock from './ImageBlock';
+import TtsPlayButton from './TtsPlayButton';
 import { useStreamingText } from '@/hooks/useStreamingText';
+import { useTtsAvailability } from '@/hooks/useTtsAvailability';
 
 interface AssistantMessageProps {
     message: Extract<Message, { type: 'assistant' }>;
@@ -40,6 +42,13 @@ const AssistantMessage: React.FC<AssistantMessageProps> = ({
     thinkingContent,
     activeToolCalls,
 }) => {
+    const ttsAvailable = useTtsAvailability();
+    const plainText = message.content
+        .filter(b => b.type === 'text')
+        .map(b => (b as Extract<ContentBlock, { type: 'text' }>).text)
+        .join('\n')
+        .trim();
+
     return (
         <div className="assistant-message flex gap-3 px-4 py-3">
             {/* Avatar */}
@@ -49,7 +58,12 @@ const AssistantMessage: React.FC<AssistantMessageProps> = ({
 
             {/* Content */}
             <div className="flex-1 min-w-0">
-                <div className="text-xs text-[var(--text-secondary)] mb-1 font-medium">Assistant</div>
+                <div className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)] mb-1 font-medium">
+                    <span>Assistant</span>
+                    {ttsAvailable && !isStreaming && plainText && (
+                        <TtsPlayButton messageId={message.uuid} text={plainText} />
+                    )}
+                </div>
 
                 {isStreaming ? (
                     <StreamingContent
