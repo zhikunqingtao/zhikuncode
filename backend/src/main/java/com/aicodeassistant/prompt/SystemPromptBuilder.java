@@ -476,6 +476,8 @@ public class SystemPromptBuilder {
             ## 渲染
             你的输出将使用 CommonMark 规范以等宽字体渲染。\
             在适当的地方使用 GitHub 风格的 markdown 进行格式化，包括带语言标识符的围栅代码块。
+            当需要在回复中展示图片时，使用标准 Markdown 图片语法 `![描述](路径或URL)`。\
+            路径支持工作区内的绝对路径、相对路径或 http(s) URL。
             """;
 
     // ── 段落 3: 任务执行指南 ──
