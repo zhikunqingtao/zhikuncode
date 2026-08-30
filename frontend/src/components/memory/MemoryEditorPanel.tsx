@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Save, Eye, Edit3, FileText, Plus, RefreshCw } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import DOMPurify from 'dompurify';
 
 interface MemoryEditorProps {
@@ -95,7 +96,7 @@ export const MemoryEditorPanel: React.FC<MemoryEditorProps> = ({
             <div className="flex-1 overflow-auto">
                 {isPreview ? (
                     <div className="p-4 prose prose-invert prose-sm max-w-none">
-                        <ReactMarkdown>{DOMPurify.sanitize(content)}</ReactMarkdown>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{DOMPurify.sanitize(content)}</ReactMarkdown>
                     </div>
                 ) : (
                     <textarea

@@ -31,6 +31,14 @@ const ImageBlock: React.FC<ImageBlockProps> = ({
         ? `data:${mediaType};base64,${base64Data}`
         : src ?? '';
 
+    // src 变化时在渲染阶段重置 error 状态（React 官方推荐模式），
+    // 避免旧 src 加载失败后新 src 永久停留在失败兜底 UI
+    const [lastSrc, setLastSrc] = useState(imageSrc);
+    if (lastSrc !== imageSrc) {
+        setLastSrc(imageSrc);
+        setLoadError(false);
+    }
+
     const toggleZoom = useCallback(() => setZoomed(prev => !prev), []);
 
     if (!imageSrc) {
