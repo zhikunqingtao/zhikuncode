@@ -77,6 +77,12 @@ if ! command -v node &>/dev/null; then
     exit 1
 fi
 
+# 检查 npm
+if ! command -v npm &>/dev/null; then
+    log_error "未找到 npm，请安装 npm"
+    exit 1
+fi
+
 # 检查 Python 虚拟环境（优先 venv，回退 .venv，最后回退系统命令）
 PYTHON_VENV_DIR=""
 PYTHON_CMD=""
@@ -120,6 +126,27 @@ fi
 if [ -z "${ZHIKUN_WORKSPACE_ALLOWED_ROOTS:-}" ] \
         && [ -z "${ZHIKUN_LOCAL_PICKER_ENABLED:-}" ]; then
     export ZHIKUN_LOCAL_PICKER_ENABLED=true
+fi
+
+# ======================== 同步 Frontend 依赖 ========================
+cd "$PROJECT_ROOT/frontend"
+
+# 首次启动或依赖清单更新后，按 lock 文件重新安装依赖。
+# npm 成功安装后会更新 node_modules/.package-lock.json；依赖未变化时仅做文件检查。
+if [ ! -f package-lock.json ]; then
+    log_error "未找到 frontend/package-lock.json，无法确定性安装前端依赖"
+    exit 1
+fi
+if [ ! -d node_modules ] \
+        || [ ! -f node_modules/.package-lock.json ] \
+        || [ package.json -nt node_modules/.package-lock.json ] \
+        || [ package-lock.json -nt node_modules/.package-lock.json ]; then
+    log_info "检测到前端依赖变更，正在执行 npm ci..."
+    if ! npm ci --no-audit --no-fund > "$FRONTEND_LOG" 2>&1; then
+        log_error "前端依赖安装失败，请查看日志: $FRONTEND_LOG"
+        exit 1
+    fi
+    log_info "前端依赖安装完成"
 fi
 
 # ======================== 清理端口 ========================
