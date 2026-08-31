@@ -85,9 +85,13 @@ const ImageBlock: React.FC<ImageBlockProps> = ({
                     onClick={toggleZoom}
                 >
                     <button
-                        onClick={toggleZoom}
+                        onClick={(event) => {
+                            event.stopPropagation();
+                            setZoomed(false);
+                        }}
                         className="absolute top-4 right-4 p-2 rounded-full bg-gray-800 text-white hover:bg-gray-700"
                         aria-label="Close zoom"
+                        type="button"
                     >
                         <X size={20} />
                     </button>
