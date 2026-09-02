@@ -347,7 +347,7 @@ If no multi-Provider keys are configured, the system automatically falls back to
 
 ### Optional: Enable DashScope-hosted MCP Services
 
-ZhikunCode ships with the following Alibaba Cloud Bailian MCP services. Without a Bailian API Key, remote connections are simply skipped — core chat, code editing, and local tools are unaffected.
+ZhikunCode currently ships with 17 preconfigured Alibaba Cloud Bailian MCP services providing 83 tools, all enabled by default in the registry. Without a Bailian API Key, remote connections are simply skipped — core chat, code editing, and local tools are unaffected.
 
 | MCP Service | Transport | Capability | Tools |
 |-------------|-----------|------------|-------|
@@ -359,8 +359,17 @@ ZhikunCode ships with the following Alibaba Cloud Bailian MCP services. Without 
 | OneKey Shangqi Business Registry | HTTP | Company matching, business registration, shareholders, personnel, investments, branches, contact details | 7 |
 | OneKey Content Moderation | HTTP | Violation, promotion, abuse, low-quality, and advertising-law risk review | 1 |
 | `zhipu-websearch` | SSE | Zhipu Web Search Pro | 1 |
+| Eastmoney Market Intelligence | HTTP | Stock quotes, announcements, research, financials, capital flows, and market data | 11 |
+| Enterprise Intellectual Property | HTTP | Enterprise intellectual-property information | 1 |
+| Wanfang Literature | HTTP | Academic literature search and record details | 2 |
+| arXiv Papers | SSE | Paper search, details, authors, and categories | 4 |
+| 1688 Product Sourcing | HTTP | Product sourcing and supplier discovery | 1 |
+| Logistics & Express | SSE | Shipment lookup and tracking | 2 |
+| Precious Metals | HTTP | Gold, silver, and other precious-metals market data | 6 |
+| Chain Retail & Tea Insights | HTTP | Chain brands, stores, trade areas, and tea-market insights | 8 |
+| Tourism Insights | HTTP | Attractions, visitor flows, hotels, and tourism-market analysis | 10 |
 
-**To use them** (requires an Alibaba Cloud Bailian API Key with the corresponding MCP capabilities activated in the console):
+**To use them** (requires an Alibaba Cloud Bailian API Key with the corresponding MCP capabilities activated in the console; some services may incur charges—refer to the Bailian console for current pricing):
 
 1. Configure your DashScope key in `.env`:
    ```bash
@@ -1229,7 +1238,9 @@ Agents use a three-level fallback strategy for model resolution: user parameter 
 
 ZhikunCode implements the standard [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) and supports Client + Server dual mode, connecting to external MCP services via 4 transport methods (StdIO/SSE/WebSocket/HTTP):
 
-### Built-in MCP Tools
+### Preconfigured MCP Services
+
+The current registry contains 17 services and 83 tools, all enabled by default. Actual availability depends on the Bailian API Key, console activation status, and account quota.
 
 | Tool | Description | Source |
 |------|-------------|--------|
@@ -1237,7 +1248,16 @@ ZhikunCode implements the standard [MCP (Model Context Protocol)](https://modelc
 | **QwenImage (3 tools)** | Text-to-image, single-image editing, and multi-image fusion | DashScope Streamable HTTP MCP |
 | **WanVideo (8 tools)** | Async submission and queries for text-to-video, image-to-video, digital humans, and first/last-frame video | DashScope Streamable HTTP MCP |
 | **Web Search Pro** | Online search, returns web page summaries | DashScope MCP |
-| **OneKey News / Legal / Business / Content Moderation** | External data queries and text safety | DashScope Streamable HTTP MCP |
+| **OneKey News / Legal / Business / Content Moderation (13 tools)** | External data queries and text safety | DashScope Streamable HTTP MCP |
+| **Eastmoney Market Intelligence (11 tools)** | Stock quotes, announcements, research, financials, capital flows, and market data | DashScope Streamable HTTP MCP |
+| **Enterprise Intellectual Property (1 tool)** | Enterprise intellectual-property information | DashScope Streamable HTTP MCP |
+| **Wanfang Literature (2 tools)** | Academic literature search and record details | DashScope Streamable HTTP MCP |
+| **arXiv Papers (4 tools)** | Paper search, details, authors, and categories | DashScope SSE MCP |
+| **1688 Product Sourcing (1 tool)** | Product sourcing and supplier discovery | DashScope Streamable HTTP MCP |
+| **Logistics & Express (2 tools)** | Shipment lookup and tracking | DashScope SSE MCP |
+| **Precious Metals (6 tools)** | Gold, silver, and other precious-metals market data | DashScope Streamable HTTP MCP |
+| **Chain Retail & Tea Insights (8 tools)** | Chain brands, stores, trade areas, and tea-market insights | DashScope Streamable HTTP MCP |
+| **Tourism Insights (10 tools)** | Attractions, visitor flows, hotels, and tourism-market analysis | DashScope Streamable HTTP MCP |
 
 ### Custom MCP Tools
 

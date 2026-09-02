@@ -164,7 +164,7 @@ class OneKeyRegistryIntegrationTest {
         McpCapabilityRegistryService registry =
                 new McpCapabilityRegistryService(new ObjectMapper(), configuration);
         registry.loadRegistry();
-        assertEquals(38, registry.enabledCount());
+        assertEquals(83, registry.enabledCount());
 
         McpConfigurationResolver resolver = mock(McpConfigurationResolver.class);
         when(resolver.resolveAll()).thenReturn(List.of());

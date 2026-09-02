@@ -353,7 +353,7 @@ LLM_PROVIDER_ZENMUX_API_KEY=your-zenmux-api-key-here
 
 ### 可选：启用 DashScope 托管 MCP 服务
 
-ZhikunCode 预置了以下阿里云百炼 MCP。没有配置百炼 Key 时会跳过远端连接，不影响核心对话、代码编辑和本地工具使用。
+ZhikunCode 当前预置了 17 个阿里云百炼 MCP 服务、共 83 个工具，注册表中均默认启用。没有配置百炼 Key 时会跳过远端连接，不影响核心对话、代码编辑和本地工具使用。
 
 | MCP 服务 | 传输 | 能力 | 工具数 |
 |---------|------|------|-------|
@@ -365,8 +365,17 @@ ZhikunCode 预置了以下阿里云百炼 MCP。没有配置百炼 Key 时会跳
 | OneKey 上奇企业工商 | HTTP | 企业匹配、工商、股东、人员、投资、分支、联系方式 | 7 |
 | OneKey 文本内容审核 | HTTP | 违规、推广、辱骂、低质和广告法风险审核 | 1 |
 | `zhipu-websearch` | SSE | 智谱联网搜索 Pro | 1 |
+| 东方财富妙想 | HTTP | 股票行情、公告、研报、财务、资金与市场数据查询 | 11 |
+| 企业知识产权 | HTTP | 企业知识产权信息查询 | 1 |
+| 万方文献 | HTTP | 学术文献检索与详情查询 | 2 |
+| arXiv 论文 | SSE | 论文搜索、详情、作者与分类查询 | 4 |
+| 1688 选品 | HTTP | 商品选品与货源查询 | 1 |
+| 物流快递 | SSE | 快递物流查询与轨迹跟踪 | 2 |
+| 贵金属行情 | HTTP | 黄金、白银等贵金属行情与市场数据 | 6 |
+| 连锁商业 / 茶饮洞察 | HTTP | 连锁品牌、门店、商圈与茶饮市场洞察 | 8 |
+| 旅游洞察 | HTTP | 景区、客流、酒店与旅游市场数据分析 | 10 |
 
-**如需使用**（需要阿里云百炼 API Key，并在控制台开通相应 MCP 能力）：
+**如需使用**（需要阿里云百炼 API Key，并在控制台开通相应 MCP 能力；部分服务调用可能产生费用，具体以百炼控制台为准）：
 
 1. 在 `.env` 中配置 DashScope Key：
    ```bash
@@ -1243,7 +1252,9 @@ Agent 使用三级回退策略解析模型：用户参数 → Agent 类型默认
 
 ZhikunCode 实现了标准的 [MCP（Model Context Protocol）](https://modelcontextprotocol.io/) 协议，支持 Client + Server 双向模式，通过 4 种传输方式（StdIO/SSE/WebSocket/HTTP）连接外部 MCP 服务：
 
-### 内置 MCP 工具
+### 预置 MCP 服务
+
+当前注册表包含 17 个服务、83 个工具，均默认启用；实际可用性取决于百炼 API Key、控制台开通状态和账户额度。
 
 | 工具 | 说明 | 来源 |
 |------|------|------|
@@ -1251,7 +1262,16 @@ ZhikunCode 实现了标准的 [MCP（Model Context Protocol）](https://modelcon
 | **千问图像生成（3 项）** | 文生图、单图编辑和多图融合 | DashScope Streamable HTTP MCP |
 | **万相视频生成（8 项）** | 文生视频、图生视频、数字人和首尾帧视频的异步提交与查询 | DashScope Streamable HTTP MCP |
 | **网络搜索 Pro** | 联网搜索，返回网页摘要 | DashScope MCP |
-| **OneKey 新闻 / 法律 / 企业 / 内容审核** | 外部数据查询与文本安全 | DashScope Streamable HTTP MCP |
+| **OneKey 新闻 / 法律 / 企业 / 内容审核（13 项）** | 外部数据查询与文本安全 | DashScope Streamable HTTP MCP |
+| **东方财富妙想（11 项）** | 股票行情、公告、研报、财务、资金与市场数据查询 | DashScope Streamable HTTP MCP |
+| **企业知识产权（1 项）** | 企业知识产权信息查询 | DashScope Streamable HTTP MCP |
+| **万方文献（2 项）** | 学术文献检索与详情查询 | DashScope Streamable HTTP MCP |
+| **arXiv 论文（4 项）** | 论文搜索、详情、作者与分类查询 | DashScope SSE MCP |
+| **1688 选品（1 项）** | 商品选品与货源查询 | DashScope Streamable HTTP MCP |
+| **物流快递（2 项）** | 快递物流查询与轨迹跟踪 | DashScope SSE MCP |
+| **贵金属行情（6 项）** | 黄金、白银等贵金属行情与市场数据 | DashScope Streamable HTTP MCP |
+| **连锁商业 / 茶饮洞察（8 项）** | 连锁品牌、门店、商圈与茶饮市场洞察 | DashScope Streamable HTTP MCP |
+| **旅游洞察（10 项）** | 景区、客流、酒店与旅游市场数据分析 | DashScope Streamable HTTP MCP |
 
 ### 自定义 MCP 工具
 

@@ -1,7 +1,7 @@
 {
   "_schema_version" : "1.1",
   "description" : "MCP能力注册表 - 细粒度MCP工具定义（每个MCP Server一个工具，规范化入参出参）",
-  "lastUpdated" : "2026-08-24",
+  "lastUpdated" : "2026-09-02",
   "usage_guide" : {
     "id" : "MCP能力唯一标识（建议mcp_前缀）",
     "name" : "显示名称（中文）",
@@ -1354,5 +1354,3158 @@
     "timeoutMs": 120000,
     "enabled": true,
     "videoCallEnabled": false
-  } ]
+  },
+  {
+    "id": "mcp_miaoxiang_ashare",
+    "name": "A股金融数据",
+    "toolName": "mx_ashare_finance_data",
+    "serverKey": "market-cmgjmcp00074946",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00074946/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "financial_research",
+    "category": "MCP_TOOL",
+    "briefDescription": "查询A股行情、财务、估值、股东及公司事件",
+    "videoCallSummary": "查询A股数据",
+    "description": "基于东方财富数据库，支持自然语言查询A股金融数据，覆盖A股股票基本资料、行情与技术指标、财务与估值、股本与股东结构、公司事件（IPO/增减持/股权激励/风险事件等）、量化风险指标（alpha/beta/夏普）等，单次请求最多支持500只股票，可发起多次请求。例如：格力电器的上市时间与最近5日的涨跌幅与换手率",
+    "input": {
+      "query": {
+        "type": "string",
+        "required": true,
+        "description": "问句"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 60000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_miaoxiang_bond",
+    "name": "债券金融数据",
+    "toolName": "mx_bond_finance_data",
+    "serverKey": "market-cmgjmcp00074946",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00074946/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "financial_research",
+    "category": "MCP_TOOL",
+    "briefDescription": "查询债券发行、兑付、行情、估值及信用评级",
+    "videoCallSummary": "查询债券数据",
+    "description": "基于东方财富数据库，支持自然语言查询债券金融数据，覆盖债券基本信息与发行兑付、行情报价与估值分析（久期/凸性）、发债主体财务指标，以及信用评级、回购、可转债转股条款等特殊指标，单次请求最多支持500只债券，可发起多次请求。例如：23广东11、19黑龙江债01的发行期限与发行总额",
+    "input": {
+      "query": {
+        "type": "string",
+        "required": true,
+        "description": "问句"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 60000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_miaoxiang_comprehensive",
+    "name": "综合金融数据",
+    "toolName": "mx_comprehensive_finance_data",
+    "serverKey": "market-cmgjmcp00074946",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00074946/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "financial_research",
+    "category": "MCP_TOOL",
+    "briefDescription": "查询企业发行人及其他综合金融数据",
+    "videoCallSummary": "查询综合金融",
+    "description": "基于东方财富数据库，支持自然语言综合性查询金融数据，当无法确定品种或者是其他品种（例如企业发行人、非上市公司等）可以使用此工具，单次请求最多支持500只证券或实体，可发起多次请求。例如：华为技术有限公司的企业基本信息",
+    "input": {
+      "query": {
+        "type": "string",
+        "required": true,
+        "description": "问句"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 60000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_miaoxiang_news",
+    "name": "金融新闻研报检索",
+    "toolName": "mx_finance_search_news",
+    "serverKey": "market-cmgjmcp00074946",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00074946/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "financial_research",
+    "category": "MCP_TOOL",
+    "briefDescription": "检索金融新闻、研报、评级、目标价和行业观点",
+    "videoCallSummary": "检索金融研报",
+    "description": "基于东方财富数据库,新闻资讯相关片段检索。\n适用:查询个股、行业、板块、指数、宏观策略等新闻资讯、研究报告、评级观点、目标价、投资逻辑、盈利预测、风险提示、行业趋势判断等文本内容。典型问句涉及:最新研报、券商怎么看、评级变化、目标价、投资建议、行业研究观点、发布的新闻。\n不适用:查询上市公司公告/交易所公告用mx_finance_search_notice;查询实时或历史行情、财务、估值等具体数值指标用对应品种金融数据工具;按条件筛选标的用mx_stocks_screener。例:中信证券最新研报观点、券商怎么看半导体硅片行业、贵州茅台近期评级和目标价",
+    "input": {
+      "query": {
+        "type": "string",
+        "required": true,
+        "description": "新闻资讯查询问句,建议包含证券/行业/板块/主题、关注内容和时间范围"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 60000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_miaoxiang_notice",
+    "name": "金融公告检索",
+    "toolName": "mx_finance_search_notice",
+    "serverKey": "market-cmgjmcp00074946",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00074946/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "financial_research",
+    "category": "MCP_TOOL",
+    "briefDescription": "检索上市公司、基金、债券和交易所公告",
+    "videoCallSummary": "检索金融公告",
+    "description": "基于东方财富数据库,搜索公告与官方披露文件。\n适用:查询上市公司公告、基金公告、债券公告、港美股公告、交易所公告、监管披露、定期报告、临时公告、重大事项公告等文本内容。典型问句涉及:最近发生了什么、最新公告、定增/并购重组/股权激励/分红/减持/风险提示/问询函/年报半年报内容等。\n不适用:查询券商研报和投资观点用mx_finance_search_news;查询行情、财务、估值、股本股东等结构化数值指标用对应品种金融数据工具;按条件筛选标的用mx_stocks_screener。例:中信证券最近公告、格力电器最新分红公告、寒武纪近期重大事项公告",
+    "input": {
+      "query": {
+        "type": "string",
+        "required": true,
+        "description": "公告查询问句,建议包含证券/主体、公告类型或关注事项和时间范围"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 60000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_miaoxiang_fund",
+    "name": "基金金融数据",
+    "toolName": "mx_fund_finance_data",
+    "serverKey": "market-cmgjmcp00074946",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00074946/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "financial_research",
+    "category": "MCP_TOOL",
+    "briefDescription": "查询基金资料、净值、绩效、持仓与管理人数据",
+    "videoCallSummary": "查询基金数据",
+    "description": "基于东方财富数据库，支持自然语言查询基金金融数据，覆盖基金基本资料与发行信息、行情与业绩绩效（净值/收益率/排名/alpha/beta）、报告期财务与分红、份额与持有人结构、资产配置与持仓明细、基金公司维度指标，单次请求最多支持500只基金，可发起多次请求。例如：工银双盈债券A(010068)的发行日期与发行费率",
+    "input": {
+      "query": {
+        "type": "string",
+        "required": true,
+        "description": "问句"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 60000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_miaoxiang_hk",
+    "name": "港股金融数据",
+    "toolName": "mx_hk_finance_data",
+    "serverKey": "market-cmgjmcp00074946",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00074946/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "financial_research",
+    "category": "MCP_TOOL",
+    "briefDescription": "查询港股行情、财务、估值、股东及公司事件",
+    "videoCallSummary": "查询港股数据",
+    "description": "基于东方财富数据库，支持自然语言查询港股金融数据，覆盖港股证券与公司基本资料、股本与股东结构、行情与技术指标、量化风险指标、财务三表与估值盈利预测，以及IPO/回购/分红等，单次请求最多支持500只股票，可发起多次请求。例如：智谱、minimax的所属行业、上市日期与发行价",
+    "input": {
+      "query": {
+        "type": "string",
+        "required": true,
+        "description": "问句"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 60000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_miaoxiang_index_block",
+    "name": "指数板块金融数据",
+    "toolName": "mx_index_block_finance_data",
+    "serverKey": "market-cmgjmcp00074946",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00074946/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "financial_research",
+    "category": "MCP_TOOL",
+    "briefDescription": "查询指数、行业和概念板块行情与估值",
+    "videoCallSummary": "查询指数板块",
+    "description": "基于东方财富数据库，支持自然语言查询指数或板块金融数据，覆盖指数及行业、概念、市场板块的行情、技术指标、财务估值，以及成分股聚合指标，单次请求最多支持500个指数/板块，可发起多次请求。例如：沪深300、中证200过去10个交易日的涨跌幅和收盘点数",
+    "input": {
+      "query": {
+        "type": "string",
+        "required": true,
+        "description": "问句"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 60000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_miaoxiang_macro",
+    "name": "宏观与行业数据",
+    "toolName": "mx_macro_data",
+    "serverKey": "market-cmgjmcp00074946",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00074946/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "financial_research",
+    "category": "MCP_TOOL",
+    "briefDescription": "查询宏观经济、行业景气及大宗商品指标",
+    "videoCallSummary": "查询宏观数据",
+    "description": "基于东方财富数据库，查询宏观经济、行业经济与大宗商品高频/历史指标数据。\n适用：全球及中国宏观指标、区域经济指标、行业景气与产业链数据、主要产品产量/销量/进出口/库存/开工率/价格等指标；覆盖能源、金属、化工、农产品、新能源、光伏、锂电、半导体等行业的量价数据。典型查询包括：GDP、CPI、PPI、M2、社融、利率、进出口、工业增加值、地区经济数据，以及多晶硅、硅片、电池片、组件、碳酸锂、原油、铜、螺纹钢、煤炭、PTA等商品或行业指标的最新价格、历史走势、同比/环比变化。\n不适用：查询个股、基金、债券、港美股等具体证券的行情、财务、估值、股东、公告和事件数据，应使用对应品种金融数据工具；按条件筛选证券应使用筛选工具。\n",
+    "input": {
+      "query": {
+        "type": "string",
+        "required": true,
+        "description": "查询宏观经济或行业经济指标的问句，请尽量明确指标名称、品种/行业、地区、时间范围、频率、统计口径、单位或需要的维度。"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 60000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_miaoxiang_screener",
+    "name": "证券条件筛选",
+    "toolName": "mx_stocks_screener",
+    "serverKey": "market-cmgjmcp00074946",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00074946/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "financial_research",
+    "category": "MCP_TOOL",
+    "briefDescription": "按条件筛选股票、基金和债券",
+    "videoCallSummary": "筛选证券标的",
+    "description": "按条件筛选多只证券（选股/选基/选债）。适用：用户需要找满足某些条件的股票/基金/债券，而非查询特定标的数据。典型问句涉及：排名（市盈率最低的50只）、条件过滤（股价大于500元、涨幅超5%）、多标的对比筛选，当涉及多品种（例如A股和港股等）拆分为多个query调用。不适用：查特定个股/基金/债券的数据用对应品种工具，查新闻研报用mx_finance_search_news。支持A股、港股、美股、基金、债券筛选。例：股价大于500元的股票、创业板市盈率最低的50只",
+    "input": {
+      "query": {
+        "type": "string",
+        "required": true,
+        "description": "问句"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 60000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_miaoxiang_us",
+    "name": "美股金融数据",
+    "toolName": "mx_us_finance_data",
+    "serverKey": "market-cmgjmcp00074946",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00074946/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "financial_research",
+    "category": "MCP_TOOL",
+    "briefDescription": "查询美股行情、财务、估值、股东及公司事件",
+    "videoCallSummary": "查询美股数据",
+    "description": "基于东方财富数据库，支持自然语言查询美股金融数据，覆盖美股证券与公司基本资料、股本与股东结构、行情与技术指标、量化风险指标、财务三表与估值盈利预测，以及IPO/回购/分红等，单次请求最多支持500只股票，可发起多次请求。例如：苹果和特斯拉近10个交易日的涨跌幅、换手率",
+    "input": {
+      "query": {
+        "type": "string",
+        "required": true,
+        "description": "问句"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 60000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_company_ipr_assets",
+    "name": "企业知识产权资产",
+    "toolName": "get_company_ipr_assets",
+    "serverKey": "market-cmgjmcp00074975",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00074975/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "company_intelligence",
+    "category": "MCP_TOOL",
+    "briefDescription": "查询企业专利、商标和软件著作权存量",
+    "videoCallSummary": "查询企业知识产权",
+    "description": "【类别】静态信息\n    【摘要】查询企业名下全部知识产权资产清单（专利、商标、软著等），为存量快照\n    【内容】专利数量统计、专利列表、软件著作权等\n    【场景】需要评估企业知识产权储备、无形资产价值时调用\n    【关联】与 get_company_ipr_events （增量动态）配合使用——event 看近期新增，asset 看总量存量\n    【参数说明】\n      - company_name/credit_code: 企业标识（二选一）",
+    "input": {
+      "credit_code": {
+        "type": "string",
+        "required": false,
+        "description": "企业统一社会信用代码，企业名称和信用代码二者至少提供一个"
+      },
+      "company_name": {
+        "type": "string",
+        "required": false,
+        "description": "企业完整名称，企业名称和信用代码二者至少提供一个"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 30000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_wanfang_search",
+    "name": "万方文献检索",
+    "toolName": "wanfang_search",
+    "serverKey": "market-cmgjmcp00075341",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00075341/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "academic_research",
+    "category": "MCP_TOOL",
+    "briefDescription": "检索期刊、学位论文、会议、专利、标准和法规",
+    "videoCallSummary": "检索万方文献",
+    "description": "万方文献检索，支持 PQ 表达式检索、过滤、排序、深度翻页与标题向量检索，可在期刊、学位论文、会议、专利、标准、法规等资源库中检索文献",
+    "input": {
+      "collections": {
+        "type": "array",
+        "required": true,
+        "default": [
+          "OpenPeriodical"
+        ],
+        "description": "资源库 collection 名称列表，常用：OpenPeriodical（期刊论文）、OpenPeriodicalChi（中文期刊）、OpenPeriodicalEng（英文期刊）、OpenThesis（学位论文）、OpenConference（会议）、OpenPatent（专利）、OpenStandard（标准）、OpenClaw（法规）、OpenCstad（成果）、OpenNstr（科技报告）",
+        "items": {
+          "type": "string"
+        }
+      },
+      "cursor_mark": {
+        "type": "string",
+        "required": false,
+        "description": "深度翻页游标，不支持跨库搜索；第一次请求传 \"*\"，之后每次请求传上次返回的 nextCursorMark；传 \"-\" 表示请求结束；cursor_mark 有值时 start 将被忽略"
+      },
+      "filters": {
+        "type": "array",
+        "required": false,
+        "description": "过滤条件列表，每个元素为 {\"field\": 限定字段, \"value\": 限定值}，如 [{\"field\":\"SourceDB\",\"value\":\"NSTL\"}]",
+        "items": {
+          "properties": {
+            "field": {
+              "description": "限定字段，如 SourceDB、DBID",
+              "type": "string"
+            },
+            "value": {
+              "description": "限定值，可为 mapping 中的值或表达式，如 \"(期刊论文 OR 学位论文)\"",
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "query": {
+        "type": "string",
+        "required": true,
+        "description": "检索条件，支持 PQ 表达式（如 \"(信息 AND 图书馆) AND PublishYear:[1983 TO *]\"，字段可用中文别名，如 标题:机械 AND 摘要:加工），也支持直接传关键词（如 \"计算机\"）；向量检索时使用 TitleVector: 前缀并配合 vectorParameter 参数"
+      },
+      "returned_fields": {
+        "type": "array",
+        "required": false,
+        "description": "返回字段列表，可为空；为空时返回默认字段 Title、Creator、PublishYear、Type、PeriodicalTitle、Abstract、Keywords、DOI、Id、Volum、Issue、Page、Publisher、OriginalOrganization、Inventor",
+        "items": {
+          "type": "string"
+        }
+      },
+      "rows": {
+        "type": "integer",
+        "required": false,
+        "default": 20,
+        "description": "页大小，默认为 20，不能超过 100"
+      },
+      "sort": {
+        "type": "object",
+        "required": false,
+        "description": "排序方式，两种用法：1) 字段排序，如 {\"sorts\":[{\"by\":\"CitedCount\",\"order\":\"DESC\"}]}；2) 预置排序名称，如 {\"sort_name\":\"OfflineScore\"}（智搜默认排序）",
+        "properties": {
+          "sort_name": {
+            "description": "预置排序名称，如 OfflineScore",
+            "type": "string"
+          },
+          "sorts": {
+            "description": "排序字段列表，每个元素为 {\"by\": 排序字段, \"order\": 排序方式}",
+            "items": {
+              "properties": {
+                "by": {
+                  "description": "排序字段，如 score、PublishYear、CitedCount，可为 PQ 中的任何别名",
+                  "type": "string"
+                },
+                "order": {
+                  "description": "排序方式，默认为 DESC 降序",
+                  "enum": [
+                    "ASC",
+                    "DESC"
+                  ],
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          }
+        }
+      },
+      "start": {
+        "type": "integer",
+        "required": false,
+        "default": 0,
+        "description": "数据起始位置，从 0 开始，默认为 0，不能超过 5000；需要获取更多数据时请使用 cursor_mark"
+      },
+      "vectorParameter": {
+        "type": "object",
+        "required": false,
+        "description": "向量检索参数，配合 TitleVector: 前缀查询使用（如 query=\"TitleVector:计算机发展简史计算机二进制冯·诺依曼\"），仅命中欧式距离小于 v_distance 的结果",
+        "properties": {
+          "top_n": {
+            "description": "向量搜索每个段最多返回的条数，默认值为 10",
+            "type": "integer"
+          },
+          "v_distance": {
+            "description": "向量搜索的欧式距离，小于此距离的结果才会被命中返回，默认值为 1",
+            "type": "number"
+          },
+          "v_nprobe": {
+            "description": "搜索的簇个数，最大值为 8，值越大搜索延迟越高但查全率可能更高，默认值为 2",
+            "type": "integer"
+          },
+          "vector_field": {
+            "description": "向量检索的检索字段，全文检索使用 SentenceVec",
+            "type": "string"
+          },
+          "vector_value": {
+            "description": "向量检索的检索 query 字符串，建议使用一个完整的句子",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 60000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_wanfang_get",
+    "name": "万方文献详情",
+    "toolName": "wanfang_get",
+    "serverKey": "market-cmgjmcp00075341",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00075341/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "academic_research",
+    "category": "MCP_TOOL",
+    "briefDescription": "根据资源库和资源ID获取单篇文献详情",
+    "videoCallSummary": "获取万方详情",
+    "description": "根据万方资源库名称和资源 ID 获取单篇文献的详细信息",
+    "input": {
+      "collection": {
+        "type": "string",
+        "required": true,
+        "description": "资源库（Solr collection 或别名），如 OpenPeriodical"
+      },
+      "id": {
+        "type": "string",
+        "required": true,
+        "description": "资源 ID，如 dbch202004054"
+      },
+      "returned_fields": {
+        "type": "array",
+        "required": false,
+        "description": "返回字段列表，可为空；可以是 PQ 中的任何别名，如 \"标题\"、\"题目\"、\"ttl\" 都表示 Title",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 60000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_arxiv_search",
+    "name": "arXiv论文搜索",
+    "toolName": "search_arxiv",
+    "serverKey": "arxiv_paper",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/arxiv_paper/sse",
+    "transportType": "SSE",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "academic_research",
+    "category": "MCP_TOOL",
+    "briefDescription": "按关键词搜索arXiv论文",
+    "videoCallSummary": "搜索arXiv论文",
+    "description": "搜索 arXiv 论文",
+    "input": {
+      "query": {
+        "type": "string",
+        "required": true,
+        "description": "搜索英文关键词"
+      },
+      "maxResults": {
+        "type": "number",
+        "required": false,
+        "description": "最大结果数量",
+        "default": 5
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 30000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_arxiv_recent_ai",
+    "name": "arXiv最新AI论文",
+    "toolName": "get_recent_ai_papers",
+    "serverKey": "arxiv_paper",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/arxiv_paper/sse",
+    "transportType": "SSE",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "academic_research",
+    "category": "MCP_TOOL",
+    "briefDescription": "获取arXiv人工智能领域最新论文",
+    "videoCallSummary": "获取最新AI论文",
+    "description": "获取 arXiv AI 领域最新论文（cs.AI/recent）",
+    "input": {},
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 30000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_arxiv_pdf_url",
+    "name": "arXiv PDF链接",
+    "toolName": "get_arxiv_pdf_url",
+    "serverKey": "arxiv_paper",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/arxiv_paper/sse",
+    "transportType": "SSE",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "academic_research",
+    "category": "MCP_TOOL",
+    "briefDescription": "获取arXiv论文PDF下载链接",
+    "videoCallSummary": "获取论文PDF",
+    "description": "获取 arXiv PDF 下载链接",
+    "input": {
+      "input": {
+        "type": "string",
+        "required": true,
+        "description": "arXiv 论文URL（如：http://arxiv.org/abs/2403.15137v1）或 arXiv ID（如：2403.15137v1）"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 30000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_arxiv_parse",
+    "name": "arXiv论文内容解析",
+    "toolName": "parse_paper_content",
+    "serverKey": "arxiv_paper",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/arxiv_paper/sse",
+    "transportType": "SSE",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "academic_research",
+    "category": "MCP_TOOL",
+    "briefDescription": "解析arXiv论文HTML或PDF正文",
+    "videoCallSummary": "解析arXiv论文",
+    "description": "解析论文内容（优先使用 HTML 版本，回退到 PDF）",
+    "input": {
+      "input": {
+        "type": "string",
+        "required": true,
+        "description": "arXiv 论文URL或 arXiv ID"
+      },
+      "paperInfo": {
+        "type": "object",
+        "required": false,
+        "description": "论文信息（可选，用于添加论文元数据）",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "published": {
+            "type": "string"
+          },
+          "authors": {
+            "type": "array"
+          }
+        }
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 120000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_1688_find_product",
+    "name": "1688智能选品",
+    "toolName": "find_product",
+    "serverKey": "market-cmgjmcp00075018",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00075018/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "product_sourcing",
+    "category": "MCP_TOOL",
+    "briefDescription": "通过文字、图片或商品ID搜索1688商品及同款",
+    "videoCallSummary": "搜索1688商品",
+    "description": "图文召回商品_正式版:支持query查找相关商品\n支持输入图片搜索同款商品\n支持输入1688商品ID搜索同款商品",
+    "input": {
+      "imgBase64": {
+        "type": "string",
+        "required": false,
+        "description": "图片Base64编码结果"
+      },
+      "icTags": {
+        "type": "string",
+        "required": false,
+        "description": "IC标（品池标签），英文逗号分隔，如 \"tag1,tag2,tag3\""
+      },
+      "sortType": {
+        "type": "string",
+        "required": false,
+        "description": "/**      * 排序类型：      * price_asc - 价格从低到高      * price_desc - 价格从高到低      * sold_desc - 销量从高到低      * yx_desc - 严选指数从高到低      * 不传或为空则使用默认排序（相关性排序）      *       * 注：文本/图像召回均生效      */"
+      },
+      "query": {
+        "type": "string",
+        "required": false,
+        "description": "文本检索Query"
+      },
+      "imageUrl": {
+        "type": "string",
+        "required": false,
+        "description": "图片检索URL"
+      },
+      "scoreLevel": {
+        "type": "string",
+        "required": false,
+        "description": "/**      * 召回相关性档位，用于过滤同款召回商品的相关性分数。      * 可选值（不区分大小写）：      * \"high\" - 高相关性      * \"medium\" - 中相关性      * \"low\" - 低相关性      * 不传或为空则不进行相关性档位过滤。      *      * 注：仅对同款召回生效，文本召回的 ranked_score 为排序分数，不参与档位过滤。      */"
+      },
+      "pageSize": {
+        "type": "integer",
+        "required": false,
+        "description": "返回结果数量"
+      },
+      "purchaseAmount": {
+        "type": "integer",
+        "required": false,
+        "description": "采购件数"
+      },
+      "tags": {
+        "type": "string",
+        "required": false,
+        "description": "TC标（品池标签），英文逗号分隔，如 \"tag1,tag2,tag3\""
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 30000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_express_discern",
+    "name": "快递公司识别",
+    "toolName": "discern_express",
+    "serverKey": "market-cmgjmcp00074959",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00074959/sse",
+    "transportType": "SSE",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "logistics",
+    "category": "MCP_TOOL",
+    "briefDescription": "根据快递运单号识别快递公司",
+    "videoCallSummary": "识别快递公司",
+    "description": "- 根据快递运单号自动识别快递公司",
+    "input": {
+      "number": {
+        "type": "string",
+        "required": true,
+        "description": "运单编号"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 30000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_express_track",
+    "name": "快递物流轨迹查询",
+    "toolName": "get_express_v2_info",
+    "serverKey": "market-cmgjmcp00074959",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00074959/sse",
+    "transportType": "SSE",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "logistics",
+    "category": "MCP_TOOL",
+    "briefDescription": "根据快递公司和运单号查询实时物流轨迹",
+    "videoCallSummary": "查询快递轨迹",
+    "description": "快递单号查询实时物流信息",
+    "input": {
+      "express_code": {
+        "type": "string",
+        "required": false,
+        "description": "快递公司编号.例如圆通:YTO.YTO-圆通快递;YUNDA-韵达快递;ZTO-中通快递;ZTOKY-中通快运;STO-申通快递;HTKY-百世快递;BESTQJT-百世快运;JT-极兔快递;POSTB-邮政国内小包;POST-中国邮政;EMS-EMS;SF-顺丰速运;FW-丰网速运;JD-京东快递;KYE-跨越速运;DBKD-德邦快递;XFWL-信丰快递;UC-优速快递;TTKDEX-天天快递;EYB-EMS 快递包裹 / 邮政快递包裹;ZJS-宅急送;ANE56-安能;LB-龙邦;FAST-快捷;DBL-德邦物流;DBKY-德邦快运;ZTKY-中铁物流 / 飞豹快递;CRE-中铁快运;SURE-速尔快递;UAPEX-全一快递;CNEX-佳吉快运;CP449455-京广速运;JYM-加运美速递;YDKY-韵达快运;FEDEX-联邦快递;POSTBK-邮政标准快递;RRS-日日顺;SNWL-苏宁快递;ZMKM-丹鸟;RFD-如风达;YCKY-远成快运;JYSCM-九曳供应链;CP468398-圆通承诺达;GTO-国通;QFKD-全峰;SDSD-山东递速;CP443514-百世云配;LE10032270-韵达同城;PADTF-平安达腾飞;YMDD-壹米滴答;HOAU-天地华宇;STOKY-申通快运;CP471906-顺心捷达;EWINSHINE-万象物流;QRT-全日通;GZFY-凡宇快递;XBWL-新邦物流;CAE-民航快递;FEC-银捷速递;SFWL-盛丰物流;HLWL-恒路物流;JIAYI-佳怡物流;LTS-联昊通;SZSA56-圣安物流;SHENGHUI-盛辉物流;YTZG-运通中港快递;HMJ-黄马甲配送;CHENGBANG-晟邦物流;GZLT-飞远配送;HZABC-飞远 (爱彼西) 配送;JDYWL-筋斗云物流;BJCS-城市一百物流;YCT-黑猫宅急便;ONTRAC-OnTrac;CITYLINK-City-Link;COE-COE;DTW-大田物流;EES-百福东方;MBEX-民邦快递;HQKY-华企快运;YFEXPRESS-越丰物流;AIR-亚风速递;MANCOWL-万家物流;SZML56-明亮物流;CXCOD-传喜物流;D4PX-递四方;TNT-TNT;UPS-UPS;USPS-USPS;DHLCN-DHL 中国;EMSGJ-EMS 国际;CNPOSTGJ-邮政国际包裹;DHLDE-DHL 德国;KERRYEAS-嘉里大通;DHL-DHL 全球;FEDEXUS-FedEx 美国;FEDEXCN-FedEx 中国;ARAMEX-Aramex;SANTAI-三态速递;OCS-OCS;MYAAE-AAE 全球专递;YWWL-燕文物流;ASENDIA-Asendia USA;RUSTON-俄速通;XLOBO-贝海国际速递;SPSR-中俄快递;SAD-赛澳递;SUIJIAWL-穗佳物流;ROYALMAIL-英国皇家邮政;JKYZ-捷克邮政;BLYZ-波兰邮政;FGYZ-法国邮政;POSTTR-土耳其邮政;POSTCL-智利邮政;POSTBY-白俄罗斯邮政;POSTES-西班牙邮政;POSTUA-乌克兰邮政;POSTNO-挪威邮政;POSTZA-南非邮政;POSTPT-葡萄牙邮政;POSTSA-沙特邮政;POSTIN-印度邮政;POSTBG-保加利亚邮政;POSTAE-阿联酋邮政;POSTAU-澳大利亚邮政;POSTPK-巴基斯坦邮政;POSTMT-马耳他邮政;POSTLB-黎巴嫩邮政;POSTMD-摩尔多瓦邮政;POSTSRB-塞尔维亚邮政;POSTHR-克罗地亚邮政;POSTAM-亚美尼亚邮政;POSTMK-马其顿邮政;POSTFI-芬兰邮政;POSTAR-阿根廷邮政;POSTSK-斯洛伐克邮政;SERPOST-秘鲁邮政;POSTIT-意大利邮政;POSTSI-斯洛文尼亚邮政;POSTHU-匈牙利邮政;POSTMU-毛里求斯邮政;POSTAT-奥地利邮政;POSTAL-阿尔巴尼亚邮政;POSTEE-爱沙尼亚邮政;POSTLV-拉脱维亚邮政;POSTCO-哥伦比亚邮政;POSTBR-巴西邮政;POSTCH-瑞士邮政;BLSYZ-比利时邮政;RBYZEMS-日本邮政;EPOST-韩国邮政;POSTTH-泰国邮政;POSTSE-瑞典邮政"
+      },
+      "number": {
+        "type": "string",
+        "required": true,
+        "description": "运单编号"
+      },
+      "mobile": {
+        "type": "string",
+        "required": false,
+        "description": "手机号.顺丰速运、中通、跨越速运需要传入收/寄件人手机号或后四位手机号"
+      },
+      "sort": {
+        "type": "string",
+        "required": false,
+        "description": "物流明细排序.desc：倒序，asc：升序，默认asc"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 30000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_precious_domestic_contract",
+    "name": "国内贵金属合约",
+    "toolName": "precious_metal_domestic_contract",
+    "serverKey": "market-cmgjmcp00075146",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00075146/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "commodity_market",
+    "category": "MCP_TOOL",
+    "briefDescription": "查询国内贵金属及有色金属合约信息",
+    "videoCallSummary": "查询国内合约",
+    "description": "查询国内贵金属合约,支持以下品种AUTD-黄金T+D;AGTD-白银T+D;AU99-AU99.99;MAUTD-mAU(T+D);IAU99-iAU99.99;AUTN06-纽约金TN06;AUTN12-纽约金TN12;AU0-黄金;AG0-白银;CU0-铜;BC0-国际铜;ZN0-锌;AL0-铝;NI0-镍;SN0-锡;PB0-铅;SS0-不锈钢;RB0-螺纹钢",
+    "input": {
+      "symbol": {
+        "type": "string",
+        "required": true,
+        "description": "国内贵金属期货品种代码.支持AUTD-黄金T+D;AGTD-白银T+D;AU99-AU99.99;MAUTD-mAU(T+D);IAU99-iAU99.99;AUTN06-纽约金TN06;AUTN12-纽约金TN12;AU0-黄金;AG0-白银;CU0-铜;BC0-国际铜;ZN0-锌;AL0-铝;NI0-镍;SN0-锡;PB0-铅;SS0-不锈钢;RB0-螺纹钢"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 30000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_precious_domestic_kline",
+    "name": "国内贵金属K线",
+    "toolName": "precious_metal_domestic_kline",
+    "serverKey": "market-cmgjmcp00075146",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00075146/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "commodity_market",
+    "category": "MCP_TOOL",
+    "briefDescription": "查询国内贵金属及有色金属K线",
+    "videoCallSummary": "查询国内K线",
+    "description": "查询国内贵金属k线,支持以下品种AUTD-黄金T+D;AGTD-白银T+D;AU0-黄金;AG0-白银;CU0-铜;BC0-国际铜;ZN0-锌;AL0-铝;NI0-镍;SN0-锡;PB0-铅;SS0-不锈钢;RB0-螺纹钢",
+    "input": {
+      "symbol": {
+        "type": "string",
+        "required": true,
+        "description": "国内贵金属品种.支持AUTD-黄金T+D;AGTD-白银T+D;AU0-黄金;AG0-白银;CU0-铜;BC0-国际铜;ZN0-锌;AL0-铝;NI0-镍;SN0-锡;PB0-铅;SS0-不锈钢;RB0-螺纹钢"
+      },
+      "type": {
+        "type": "string",
+        "required": true,
+        "description": "k线类型.0-日k;1-1分钟;5-五分钟;30-30分钟;60-60分钟;120-120分钟;240-240分钟"
+      },
+      "limit": {
+        "type": "string",
+        "required": false,
+        "description": "返回条数.默认10"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 30000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_precious_domestic_price",
+    "name": "国内贵金属报价",
+    "toolName": "precious_metal_domestic_price",
+    "serverKey": "market-cmgjmcp00075146",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00075146/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "commodity_market",
+    "category": "MCP_TOOL",
+    "briefDescription": "查询国内贵金属及有色金属实时报价",
+    "videoCallSummary": "查询国内报价",
+    "description": "查询国内贵金属报价,支持以下品种支持AUTD-黄金T+D;AGTD-白银T+D;AU99-AU99.99;MAUTD-mAU(T+D);IAU99-iAU99.99;AUTN06-纽约金TN06;AUTN12-纽约金TN12;AU0-黄金;AG0-白银;CU0-铜;BC0-国际铜;ZN0-锌;AL0-铝;NI0-镍;SN0-锡;PB0-铅;SS0-不锈钢;RB0-螺纹钢。",
+    "input": {
+      "symbol": {
+        "type": "string",
+        "required": true,
+        "description": "国内贵金属品种.支持AUTD-黄金T+D;AGTD-白银T+D;AU99-AU99.99;MAUTD-mAU(T+D);IAU99-iAU99.99;AUTN06-纽约金TN06;AUTN12-纽约金TN12;AU0-黄金;AG0-白银;CU0-铜;BC0-国际铜;ZN0-锌;AL0-铝;NI0-镍;SN0-锡;PB0-铅;SS0-不锈钢;RB0-螺纹钢"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 30000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_precious_international_contract",
+    "name": "国际贵金属期货合约",
+    "toolName": "precious_metal_inter_contract",
+    "serverKey": "market-cmgjmcp00075146",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00075146/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "commodity_market",
+    "category": "MCP_TOOL",
+    "briefDescription": "查询国际贵金属及有色金属期货合约",
+    "videoCallSummary": "查询国际合约",
+    "description": "查询国际贵金属期货合约,支持以下品种XAU-伦敦金;XAG-伦敦银;CAD-伦敦铜;AHD-伦敦铝;ZSD-伦敦锌;NID-伦敦镍;PBD-伦敦铅;SND-伦敦锡;XPT-现货铂金;XPD-现货钯金;GC-美黄金;SI-美白银;HG-美铜。",
+    "input": {
+      "symbol": {
+        "type": "string",
+        "required": true,
+        "description": "国际贵金属期货品种代码.支持XAU-伦敦金;XAG-伦敦银;CAD-伦敦铜;AHD-伦敦铝;ZSD-伦敦锌;NID-伦敦镍;PBD-伦敦铅;SND-伦敦锡;XPT-现货铂金;XPD-现货钯金;GC-美黄金;SI-美白银;HG-美铜"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 30000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_precious_international_kline",
+    "name": "国际贵金属K线",
+    "toolName": "precious_metal_inter_kline",
+    "serverKey": "market-cmgjmcp00075146",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00075146/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "commodity_market",
+    "category": "MCP_TOOL",
+    "briefDescription": "查询国际贵金属及有色金属K线",
+    "videoCallSummary": "查询国际K线",
+    "description": "查询国际贵金属K线,支持以下品种XAU-伦敦金;XAG-伦敦银;CAD-伦敦铜;AHD-伦敦铝;ZSD-伦敦锌;NID-伦敦镍;PBD-伦敦铅;SND-伦敦锡;XPT-现货铂金;XPD-现货钯金;GC-美黄金;SI-美白银;HG-美铜",
+    "input": {
+      "symbol": {
+        "type": "string",
+        "required": true,
+        "description": "国际贵金属代码.支持XAU-伦敦金;XAG-伦敦银;CAD-伦敦铜;AHD-伦敦铝;ZSD-伦敦锌;NID-伦敦镍;PBD-伦敦铅;SND-伦敦锡;XPT-现货铂金;XPD-现货钯金;GC-美黄金;SI-美白银;HG-美铜"
+      },
+      "type": {
+        "type": "string",
+        "required": true,
+        "description": "k线类型.0-日k;1-1分钟;5-五分钟;30-30分钟;60-60分钟;120-120分钟;240-240分钟"
+      },
+      "limit": {
+        "type": "string",
+        "required": false,
+        "description": "返回条数.默认10"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 30000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_precious_international_price",
+    "name": "国际贵金属报价",
+    "toolName": "precious_metal_inter_price",
+    "serverKey": "market-cmgjmcp00075146",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00075146/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "commodity_market",
+    "category": "MCP_TOOL",
+    "briefDescription": "查询国际贵金属及有色金属实时报价",
+    "videoCallSummary": "查询国际报价",
+    "description": "查询国际贵金属报价,支持以下品种XAU-伦敦金;XAG-伦敦银;CAD-伦敦铜;AHD-伦敦铝;ZSD-伦敦锌;NID-伦敦镍;PBD-伦敦铅;SND-伦敦锡;XPT-现货铂金;XPD-现货钯金;GC-美黄金;SI-美白银;HG-美铜",
+    "input": {
+      "symbol": {
+        "type": "string",
+        "required": true,
+        "description": "国际贵金属品种.支持XAU-伦敦金;XAG-伦敦银;CAD-伦敦铜;AHD-伦敦铝;ZSD-伦敦锌;NID-伦敦镍;PBD-伦敦铅;SND-伦敦锡;XPT-现货铂金;XPD-现货钯金;GC-美黄金;SI-美白银;HG-美铜"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 30000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_chain_brand_search",
+    "name": "连锁品牌搜索",
+    "toolName": "search_chain_brands",
+    "serverKey": "market-cmgjmcp00075054",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00075054/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "retail_insights",
+    "category": "MCP_TOOL",
+    "briefDescription": "按关键词、品类和分页条件搜索连锁品牌",
+    "videoCallSummary": "搜索连锁品牌",
+    "description": "按品牌关键词、品类和分页条件查询连锁品牌（返回名称/品类/均价/门店数/评分）",
+    "input": {
+      "page": {
+        "type": "integer",
+        "required": false,
+        "default": 1,
+        "description": "页码，默认 1",
+        "minimum": 1,
+        "title": "Page"
+      },
+      "keyword": {
+        "type": "string",
+        "required": false,
+        "default": "茶",
+        "description": "品牌关键词，默认“茶”",
+        "title": "Keyword"
+      },
+      "category": {
+        "type": "string",
+        "required": false,
+        "default": "饮品",
+        "description": "品类，默认“饮品”",
+        "title": "Category"
+      },
+      "page_size": {
+        "type": "integer",
+        "required": false,
+        "default": 20,
+        "description": "每页数量，默认 20，最大 100",
+        "maximum": 100,
+        "minimum": 1,
+        "title": "Page Size"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 30000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_chain_brand_rank",
+    "name": "连锁品牌排行",
+    "toolName": "rank_chain_brands",
+    "serverKey": "market-cmgjmcp00075054",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00075054/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "retail_insights",
+    "category": "MCP_TOOL",
+    "briefDescription": "按门店数、热度或人均价格查询品牌排行",
+    "videoCallSummary": "查询品牌排行",
+    "description": "按门店数、热度分或人均价格查询连锁品牌排行",
+    "input": {
+      "limit": {
+        "type": "integer",
+        "required": false,
+        "default": 20,
+        "description": "返回数量，默认 20",
+        "title": "Limit"
+      },
+      "category": {
+        "type": "string",
+        "required": false,
+        "default": "饮品",
+        "description": "品类，默认“饮品”",
+        "title": "Category"
+      },
+      "rank_type": {
+        "type": "string",
+        "required": false,
+        "default": "store_nums",
+        "description": "排行指标，默认 store_nums（门店数）；其他热度分或人均价格枚举待上游补齐",
+        "title": "Rank Type"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 30000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_chain_market_analysis",
+    "name": "连锁市场分析",
+    "toolName": "analyze_chain_market",
+    "serverKey": "market-cmgjmcp00075054",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00075054/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "retail_insights",
+    "category": "MCP_TOOL",
+    "briefDescription": "按品类或行政区域分析连锁市场结构",
+    "videoCallSummary": "分析连锁市场",
+    "description": "连锁市场结构分析：analysis_type=category 按品类 / region 按行政区域",
+    "input": {
+      "analysis_type": {
+        "type": "string",
+        "required": true,
+        "description": "分析类型：category=按品类，region=按行政区域",
+        "enum": [
+          "category",
+          "region"
+        ],
+        "title": "Analysis Type"
+      },
+      "category": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": "饮品",
+        "description": "品类；仅 analysis_type=category 时使用",
+        "title": "Category"
+      },
+      "province": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": "北京",
+        "description": "省份；仅 analysis_type=region 时使用",
+        "title": "Province"
+      },
+      "city": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": "北京",
+        "description": "城市；仅 analysis_type=region 时使用",
+        "title": "City"
+      },
+      "dimension": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": "city",
+        "description": "区域统计维度；仅 analysis_type=region 时使用",
+        "title": "Dimension"
+      },
+      "limit": {
+        "type": "integer",
+        "required": false,
+        "default": 20,
+        "description": "返回数量，默认 20",
+        "title": "Limit"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 30000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_chain_brand_stores",
+    "name": "品牌与门店详情",
+    "toolName": "get_brand_and_stores",
+    "serverKey": "market-cmgjmcp00075054",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00075054/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "retail_insights",
+    "category": "MCP_TOOL",
+    "briefDescription": "查询品牌信息、门店规模和门店列表",
+    "videoCallSummary": "查询品牌门店",
+    "description": "按品牌 id 查询品牌基础信息、价格、评分、门店规模和门店列表",
+    "input": {
+      "id": {
+        "type": "integer",
+        "required": true,
+        "default": 1,
+        "description": "品牌 ID，UUMit 试用默认 1；推荐取品牌搜索或排行结果的 items[].original_id，兼容 items[].id",
+        "title": "Id"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 30000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_chain_store_search",
+    "name": "品牌门店搜索",
+    "toolName": "search_brand_stores",
+    "serverKey": "market-cmgjmcp00075054",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00075054/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "retail_insights",
+    "category": "MCP_TOOL",
+    "briefDescription": "按品牌、区域和关键词搜索门店",
+    "videoCallSummary": "搜索品牌门店",
+    "description": "按品牌、区域和关键词查询门店名称、地址、营业时间和评分",
+    "input": {
+      "city": {
+        "type": "string",
+        "required": false,
+        "default": "北京",
+        "description": "城市，默认“北京”",
+        "title": "City"
+      },
+      "page": {
+        "type": "integer",
+        "required": false,
+        "default": 1,
+        "description": "页码，默认 1",
+        "minimum": 1,
+        "title": "Page"
+      },
+      "brand_id": {
+        "type": "integer",
+        "required": false,
+        "default": 1,
+        "description": "品牌 ID，默认 1；推荐取品牌搜索或排行结果的 items[].original_id",
+        "title": "Brand Id"
+      },
+      "keyword": {
+        "type": "string",
+        "required": false,
+        "default": "示例",
+        "description": "门店关键词，默认“示例”",
+        "title": "Keyword"
+      },
+      "page_size": {
+        "type": "integer",
+        "required": false,
+        "default": 20,
+        "description": "每页数量，默认 20，最大 100",
+        "maximum": 100,
+        "minimum": 1,
+        "title": "Page Size"
+      },
+      "province": {
+        "type": "string",
+        "required": false,
+        "default": "北京",
+        "description": "省份，默认“北京”",
+        "title": "Province"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 30000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_chain_beverage_compare",
+    "name": "茶饮品牌对比",
+    "toolName": "compare_beverage_brands",
+    "serverKey": "market-cmgjmcp00075054",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00075054/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "retail_insights",
+    "category": "MCP_TOOL",
+    "briefDescription": "比较茶饮品牌规模、覆盖、营业率及竞品重叠",
+    "videoCallSummary": "对比茶饮品牌",
+    "description": "比较蜜雪冰城/瑞幸咖啡/幸运咖的门店规模、城市覆盖、营业率、外卖率及竞品重叠",
+    "input": {
+      "city": {
+        "type": "string",
+        "required": false,
+        "default": "郑州市",
+        "description": "城市筛选，默认“郑州市”",
+        "title": "City"
+      },
+      "province": {
+        "type": "string",
+        "required": false,
+        "default": "河南省",
+        "description": "省份筛选，默认“河南省”",
+        "title": "Province"
+      },
+      "brand_code": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "品牌编码；不传表示蜜雪冰城、瑞幸咖啡和幸运咖三品牌汇总",
+        "title": "Brand Code"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 30000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_chain_store_competition",
+    "name": "茶饮门店竞品分析",
+    "toolName": "analyze_beverage_store_competition",
+    "serverKey": "market-cmgjmcp00075054",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00075054/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "retail_insights",
+    "category": "MCP_TOOL",
+    "briefDescription": "分析茶饮门店与周边竞品关系",
+    "videoCallSummary": "分析门店竞品",
+    "description": "门店与周边竞品分析：mode=search 门店/附近/竞品关系 / detail 单店详情",
+    "input": {
+      "mode": {
+        "type": "string",
+        "required": true,
+        "description": "调用模式：search=门店及竞品关系查询，detail=单店详情",
+        "enum": [
+          "search",
+          "detail"
+        ],
+        "title": "Mode"
+      },
+      "data_type": {
+        "type": "string",
+        "required": false,
+        "default": "store",
+        "description": "数据类型，默认 store；枚举待上游补齐，仅 search 模式使用",
+        "title": "Data Type"
+      },
+      "brand_code": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "品牌编码；UUMit 试用默认值按模式不同：search=mixue，detail=luckin",
+        "examples": [
+          "mixue",
+          "luckin"
+        ],
+        "title": "Brand Code",
+        "x-defaults-by-mode": {
+          "detail": "luckin",
+          "search": "mixue"
+        }
+      },
+      "city": {
+        "type": "string",
+        "required": false,
+        "default": "郑州市",
+        "description": "城市筛选，默认“郑州市”；仅 search 模式使用",
+        "title": "City"
+      },
+      "keyword": {
+        "type": "string",
+        "required": false,
+        "default": "大学",
+        "description": "门店名称关键词，默认“大学”；仅 search 模式使用",
+        "title": "Keyword"
+      },
+      "lat": {
+        "type": "number",
+        "required": false,
+        "default": 34.7466,
+        "description": "纬度，默认 34.7466；附近查询时与 lng 必须同时提供",
+        "title": "Lat"
+      },
+      "lng": {
+        "type": "number",
+        "required": false,
+        "default": 113.6254,
+        "description": "经度，默认 113.6254；附近查询时与 lat 必须同时提供",
+        "title": "Lng"
+      },
+      "radius_km": {
+        "type": "number",
+        "required": false,
+        "default": 3,
+        "description": "附近门店半径，默认 3 公里；仅 search 模式使用",
+        "title": "Radius Km"
+      },
+      "page": {
+        "type": "integer",
+        "required": false,
+        "default": 1,
+        "description": "页码，默认 1；仅 search 模式使用",
+        "minimum": 1,
+        "title": "Page"
+      },
+      "id": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": 151,
+        "description": "门店 ID；detail 模式必填，UUMit 试用默认 151；取 /api/data/11/list 的 items[].id",
+        "title": "Id"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 30000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_chain_tea_consumption",
+    "name": "茶饮消费分析",
+    "toolName": "analyze_tea_consumption",
+    "serverKey": "market-cmgjmcp00075054",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00075054/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "retail_insights",
+    "category": "MCP_TOOL",
+    "briefDescription": "分析茶饮消费排行、城市、产品、客群和场景",
+    "videoCallSummary": "分析茶饮消费",
+    "description": "茶饮消费综合分析：analysis_type=ranking|summary|city|product|audience|scenario",
+    "input": {
+      "analysis_type": {
+        "type": "string",
+        "required": true,
+        "description": "分析类型：ranking=品牌排行，summary=消费汇总，city=城市，product=产品，audience=人群，scenario=消费场景",
+        "enum": [
+          "ranking",
+          "summary",
+          "city",
+          "product",
+          "audience",
+          "scenario"
+        ],
+        "title": "Analysis Type"
+      },
+      "year": {
+        "type": "string",
+        "required": false,
+        "default": "2024",
+        "description": "年份，默认 2024；ranking 或 summary 模式使用",
+        "title": "Year"
+      },
+      "limit": {
+        "type": "integer",
+        "required": false,
+        "default": 20,
+        "description": "返回数量，默认 20；ranking、city 或 product 模式使用",
+        "title": "Limit"
+      },
+      "city": {
+        "type": "string",
+        "required": false,
+        "default": "上海",
+        "description": "城市，默认“上海”；仅 summary 模式使用",
+        "title": "City"
+      },
+      "brand": {
+        "type": "string",
+        "required": false,
+        "default": "示例品牌",
+        "description": "品牌，默认“示例品牌”；仅 summary 模式使用",
+        "title": "Brand"
+      },
+      "dimension": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "统计维度；UUMit 试用默认值按分析类型不同：audience=age_group，scenario=scenario",
+        "examples": [
+          "age_group",
+          "scenario"
+        ],
+        "title": "Dimension",
+        "x-defaults-by-analysis-type": {
+          "audience": "age_group",
+          "scenario": "scenario"
+        }
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 30000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_tourism_overview",
+    "name": "旅游消费总览",
+    "toolName": "get_tourism_overview",
+    "serverKey": "market-cmgjmcp00075060",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00075060/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "tourism_insights",
+    "category": "MCP_TOOL",
+    "briefDescription": "查询景点、游客行为、消费和满意度总体指标",
+    "videoCallSummary": "查询旅游总览",
+    "description": "旅游消费总览：景点数量、游客行为、消费和满意度总体指标",
+    "input": {
+      "city": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "景点所在城市",
+        "title": "City"
+      },
+      "province": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "景点所在省份",
+        "title": "Province"
+      },
+      "date_from": {
+        "required": false,
+        "anyOf": [
+          {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "游玩日期范围起始日，格式 YYYY-MM-DD",
+        "title": "Date From"
+      },
+      "date_to": {
+        "required": false,
+        "anyOf": [
+          {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "游玩日期范围结束日，格式 YYYY-MM-DD",
+        "title": "Date To"
+      },
+      "spend_min": {
+        "required": false,
+        "anyOf": [
+          {
+            "minimum": 0,
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "最低消费金额",
+        "title": "Spend Min"
+      },
+      "spend_max": {
+        "required": false,
+        "anyOf": [
+          {
+            "minimum": 0,
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "最高消费金额",
+        "title": "Spend Max"
+      },
+      "spot_type": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "景点类型",
+        "title": "Spot Type"
+      },
+      "sentiment": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "评论情绪倾向",
+        "title": "Sentiment"
+      },
+      "satisfaction_min": {
+        "required": false,
+        "anyOf": [
+          {
+            "minimum": 0,
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "最低满意度",
+        "title": "Satisfaction Min"
+      },
+      "keyword": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "景点名称或简介关键词",
+        "title": "Keyword"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 30000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_tourism_spot_search",
+    "name": "旅游景点搜索",
+    "toolName": "search_scenic_spots",
+    "serverKey": "market-cmgjmcp00075060",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00075060/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "tourism_insights",
+    "category": "MCP_TOOL",
+    "briefDescription": "按地区、类型、销量和票价搜索旅游景点",
+    "videoCallSummary": "搜索旅游景点",
+    "description": "按数据集、地区、类型、关键词、销量和票价搜索旅游景点",
+    "input": {
+      "dataset": {
+        "type": "string",
+        "required": true,
+        "description": "数据集：heat=景点基础和热度，consumption=消费和满意度",
+        "enum": [
+          "heat",
+          "consumption"
+        ],
+        "title": "Dataset"
+      },
+      "city": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "景点所在城市；dataset=heat 时试用示例为北京",
+        "title": "City",
+        "x-defaults-by-dataset": {
+          "heat": "北京"
+        }
+      },
+      "province": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "景点所在省份；dataset=heat 时试用示例为北京",
+        "title": "Province",
+        "x-defaults-by-dataset": {
+          "heat": "北京"
+        }
+      },
+      "spot_type": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "景点类型；dataset=heat 时试用示例为博物馆",
+        "title": "Spot Type",
+        "x-defaults-by-dataset": {
+          "heat": "博物馆"
+        }
+      },
+      "keyword": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "景点名称或简介关键词",
+        "title": "Keyword"
+      },
+      "sales_min": {
+        "required": false,
+        "anyOf": [
+          {
+            "minimum": 0,
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "最低景区销量",
+        "title": "Sales Min"
+      },
+      "ticket_price_min": {
+        "required": false,
+        "anyOf": [
+          {
+            "minimum": 0,
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "最低票价",
+        "title": "Ticket Price Min"
+      },
+      "ticket_price_max": {
+        "required": false,
+        "anyOf": [
+          {
+            "minimum": 0,
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "最高票价",
+        "title": "Ticket Price Max"
+      },
+      "page": {
+        "type": "integer",
+        "required": false,
+        "default": 1,
+        "description": "页码，默认 1",
+        "minimum": 1,
+        "title": "Page"
+      },
+      "page_size": {
+        "type": "integer",
+        "required": false,
+        "default": 20,
+        "description": "每页数量，默认 20，最大 100",
+        "maximum": 100,
+        "minimum": 1,
+        "title": "Page Size"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 30000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_tourism_spot_profile",
+    "name": "旅游景点详情",
+    "toolName": "get_scenic_spot_profile",
+    "serverKey": "market-cmgjmcp00075060",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00075060/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "tourism_insights",
+    "category": "MCP_TOOL",
+    "briefDescription": "查询景点位置、票价、评分、销量和满意度",
+    "videoCallSummary": "查询景点详情",
+    "description": "景点详情：dataset + id，返回位置/类型/票价/评分/销量/热度/消费/满意度",
+    "input": {
+      "dataset": {
+        "type": "string",
+        "required": true,
+        "description": "数据集：heat=景点基础和热度，consumption=消费和满意度",
+        "enum": [
+          "heat",
+          "consumption"
+        ],
+        "title": "Dataset"
+      },
+      "id": {
+        "type": "integer",
+        "required": true,
+        "description": "景点 ID；取对应数据集 search 或 rank 结果的 items[].id；试用示例 heat=10、consumption=1",
+        "minimum": 1,
+        "title": "Id",
+        "x-defaults-by-dataset": {
+          "consumption": 1,
+          "heat": 10
+        }
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 30000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_tourism_spot_rank",
+    "name": "旅游景点排行",
+    "toolName": "rank_scenic_spots",
+    "serverKey": "market-cmgjmcp00075060",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00075060/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "tourism_insights",
+    "category": "MCP_TOOL",
+    "briefDescription": "按评分、销量、热度、票价或消费查询景点排行",
+    "videoCallSummary": "查询景点排行",
+    "description": "景点排行：dataset=heat|consumption，按评分/销量/热度/票价/消费/满意度",
+    "input": {
+      "dataset": {
+        "type": "string",
+        "required": true,
+        "description": "数据集：heat=景点基础和热度，consumption=消费和满意度",
+        "enum": [
+          "heat",
+          "consumption"
+        ],
+        "title": "Dataset"
+      },
+      "rank_type": {
+        "type": "string",
+        "required": false,
+        "default": "sales",
+        "description": "排行指标，默认 sales；consumption 支持 visits/spend/satisfaction/price",
+        "title": "Rank Type"
+      },
+      "limit": {
+        "type": "integer",
+        "required": false,
+        "default": 20,
+        "description": "返回数量，默认 20",
+        "maximum": 100,
+        "minimum": 1,
+        "title": "Limit"
+      },
+      "city": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "景点所在城市",
+        "title": "City"
+      },
+      "province": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "景点所在省份",
+        "title": "Province"
+      },
+      "keyword": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "景点名称或简介关键词",
+        "title": "Keyword"
+      },
+      "spot_type": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "景点类型",
+        "title": "Spot Type"
+      },
+      "sales_min": {
+        "required": false,
+        "anyOf": [
+          {
+            "minimum": 0,
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "最低景区销量",
+        "title": "Sales Min"
+      },
+      "ticket_price_min": {
+        "required": false,
+        "anyOf": [
+          {
+            "minimum": 0,
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "最低票价",
+        "title": "Ticket Price Min"
+      },
+      "satisfaction_min": {
+        "required": false,
+        "anyOf": [
+          {
+            "minimum": 0,
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "最低满意度",
+        "title": "Satisfaction Min"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 30000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_tourism_city_compare",
+    "name": "旅游城市对比",
+    "toolName": "compare_city_tourism",
+    "serverKey": "market-cmgjmcp00075060",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00075060/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "tourism_insights",
+    "category": "MCP_TOOL",
+    "briefDescription": "比较旅游城市供给、票价、销量、消费和满意度",
+    "videoCallSummary": "对比旅游城市",
+    "description": "旅游城市对比：当前开放 consumption 数据集，比较供给/票价/销量/消费/满意度",
+    "input": {
+      "dataset": {
+        "type": "string",
+        "required": true,
+        "const": "consumption",
+        "description": "当前仅开放已完成上游契约验证的 consumption 数据集",
+        "title": "Dataset"
+      },
+      "city": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "景点所在城市",
+        "title": "City"
+      },
+      "province": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "景点所在省份",
+        "title": "Province"
+      },
+      "keyword": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "景点名称或简介关键词",
+        "title": "Keyword"
+      },
+      "spot_type": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "景点类型",
+        "title": "Spot Type"
+      },
+      "sales_min": {
+        "required": false,
+        "anyOf": [
+          {
+            "minimum": 0,
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "最低景区销量",
+        "title": "Sales Min"
+      },
+      "ticket_price_min": {
+        "required": false,
+        "anyOf": [
+          {
+            "minimum": 0,
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "最低票价",
+        "title": "Ticket Price Min"
+      },
+      "ticket_price_max": {
+        "required": false,
+        "anyOf": [
+          {
+            "minimum": 0,
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "最高票价",
+        "title": "Ticket Price Max"
+      },
+      "satisfaction_min": {
+        "required": false,
+        "anyOf": [
+          {
+            "minimum": 0,
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "最低满意度",
+        "title": "Satisfaction Min"
+      },
+      "limit": {
+        "required": false,
+        "anyOf": [
+          {
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "返回数量，试用默认 20",
+        "title": "Limit",
+        "x-defaults-by-dataset": {
+          "consumption": 20
+        }
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 30000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_tourism_behavior_search",
+    "name": "游客行为搜索",
+    "toolName": "search_visitor_behaviors",
+    "serverKey": "market-cmgjmcp00075060",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00075060/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "tourism_insights",
+    "category": "MCP_TOOL",
+    "briefDescription": "按景点、地区、日期、出行方式和消费搜索游客行为",
+    "videoCallSummary": "搜索游客行为",
+    "description": "搜索游客行为：按景点/地区/日期/出行方式/情绪/消费/游客条件分页查询",
+    "input": {
+      "city": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "景点所在城市",
+        "title": "City"
+      },
+      "province": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "景点所在省份",
+        "title": "Province"
+      },
+      "date_from": {
+        "required": false,
+        "anyOf": [
+          {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "游玩日期范围起始日，格式 YYYY-MM-DD",
+        "title": "Date From"
+      },
+      "date_to": {
+        "required": false,
+        "anyOf": [
+          {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "游玩日期范围结束日，格式 YYYY-MM-DD",
+        "title": "Date To"
+      },
+      "spend_min": {
+        "required": false,
+        "anyOf": [
+          {
+            "minimum": 0,
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "最低消费金额",
+        "title": "Spend Min"
+      },
+      "spend_max": {
+        "required": false,
+        "anyOf": [
+          {
+            "minimum": 0,
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "最高消费金额",
+        "title": "Spend Max"
+      },
+      "spot_name": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "景点名称关键词",
+        "title": "Spot Name"
+      },
+      "sentiment": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "评论情绪倾向",
+        "title": "Sentiment"
+      },
+      "page": {
+        "type": "integer",
+        "required": false,
+        "default": 1,
+        "description": "页码，默认 1",
+        "minimum": 1,
+        "title": "Page"
+      },
+      "page_size": {
+        "type": "integer",
+        "required": false,
+        "default": 20,
+        "description": "每页数量，默认 20，最大 100",
+        "maximum": 100,
+        "minimum": 1,
+        "title": "Page Size"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 30000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_tourism_behavior_detail",
+    "name": "游客行为详情",
+    "toolName": "get_visitor_behavior_record",
+    "serverKey": "market-cmgjmcp00075060",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00075060/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "tourism_insights",
+    "category": "MCP_TOOL",
+    "briefDescription": "查询单条游客行为、消费、停留时间和满意度",
+    "videoCallSummary": "查询游客行为",
+    "description": "游客行为详情：按 id 查询景点/来源地/出行方式/消费/停留时间/满意度",
+    "input": {
+      "id": {
+        "type": "integer",
+        "required": true,
+        "default": 1,
+        "description": "游客行为记录 ID；取 visits/search 的 items[].id，试用示例为 1",
+        "minimum": 1,
+        "title": "Id"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 30000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_tourism_segment_analysis",
+    "name": "游客结构分析",
+    "toolName": "analyze_visitor_segments",
+    "serverKey": "market-cmgjmcp00075060",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00075060/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "tourism_insights",
+    "category": "MCP_TOOL",
+    "briefDescription": "按来源地、年龄、景点类型、出行方式和性别分析客群",
+    "videoCallSummary": "分析游客结构",
+    "description": "游客结构分析：dataset=heat|consumption，按来源地/年龄段/景点类型/出行方式/性别/情绪",
+    "input": {
+      "dataset": {
+        "type": "string",
+        "required": true,
+        "description": "数据集：heat=景点基础和热度，consumption=消费和满意度",
+        "enum": [
+          "heat",
+          "consumption"
+        ],
+        "title": "Dataset"
+      },
+      "dimension": {
+        "type": "string",
+        "required": false,
+        "default": "province",
+        "description": "统计维度，默认 province；支持来源地、年龄段、景点类型、出行方式等",
+        "title": "Dimension"
+      },
+      "limit": {
+        "required": false,
+        "anyOf": [
+          {
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "返回数量；consumption 试用默认 20",
+        "title": "Limit",
+        "x-defaults-by-dataset": {
+          "consumption": 20
+        }
+      },
+      "city": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "景点所在城市",
+        "title": "City"
+      },
+      "province": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "景点所在省份",
+        "title": "Province"
+      },
+      "age_min": {
+        "required": false,
+        "anyOf": [
+          {
+            "minimum": 0,
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "游客最小年龄",
+        "title": "Age Min"
+      },
+      "age_max": {
+        "required": false,
+        "anyOf": [
+          {
+            "minimum": 0,
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "游客最大年龄",
+        "title": "Age Max"
+      },
+      "source_region": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "游客来源地",
+        "title": "Source Region"
+      },
+      "travel_method": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "旅游方式",
+        "title": "Travel Method"
+      },
+      "tourist_gender": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "游客性别",
+        "title": "Tourist Gender"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 30000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_tourism_trend_analysis",
+    "name": "旅游消费趋势",
+    "toolName": "analyze_tourism_trends",
+    "serverKey": "market-cmgjmcp00075060",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00075060/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "tourism_insights",
+    "category": "MCP_TOOL",
+    "briefDescription": "按日、月、季度或年度分析旅游消费趋势",
+    "videoCallSummary": "分析旅游趋势",
+    "description": "旅游消费趋势：当前开放 consumption 数据集，grain=day|month|quarter|year",
+    "input": {
+      "dataset": {
+        "type": "string",
+        "required": true,
+        "const": "consumption",
+        "description": "当前仅开放已完成上游契约验证的 consumption 数据集",
+        "title": "Dataset"
+      },
+      "grain": {
+        "type": "string",
+        "required": false,
+        "default": "month",
+        "description": "时间粒度：day/month/quarter/year，试用默认 month",
+        "enum": [
+          "day",
+          "month",
+          "quarter",
+          "year"
+        ],
+        "title": "Grain",
+        "x-defaults-by-dataset": {
+          "consumption": "month"
+        }
+      },
+      "city": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "景点所在城市",
+        "title": "City"
+      },
+      "province": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "景点所在省份",
+        "title": "Province"
+      },
+      "date_from": {
+        "required": false,
+        "anyOf": [
+          {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "游玩日期范围起始日，格式 YYYY-MM-DD",
+        "title": "Date From"
+      },
+      "date_to": {
+        "required": false,
+        "anyOf": [
+          {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "游玩日期范围结束日，格式 YYYY-MM-DD",
+        "title": "Date To"
+      },
+      "spot_type": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "景点类型",
+        "title": "Spot Type"
+      },
+      "source_region": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "游客来源地",
+        "title": "Source Region"
+      },
+      "travel_method": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "旅游方式",
+        "title": "Travel Method"
+      },
+      "sentiment": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "评论情绪倾向",
+        "title": "Sentiment"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 30000,
+    "enabled": true,
+    "videoCallEnabled": false
+  },
+  {
+    "id": "mcp_tourism_sentiment_analysis",
+    "name": "游客情绪分析",
+    "toolName": "analyze_visitor_sentiment",
+    "serverKey": "market-cmgjmcp00075060",
+    "url": "https://dashscope.aliyuncs.com/api/v1/mcps/market-cmgjmcp00075060/mcp",
+    "transportType": "HTTP",
+    "apiKeyConfig": "llm.providers.dashscope.api-key",
+    "domain": "tourism_insights",
+    "category": "MCP_TOOL",
+    "briefDescription": "分析游客情绪分布和满意度",
+    "videoCallSummary": "分析游客情绪",
+    "description": "游客情绪与满意度分析：当前开放 consumption 数据集，比较正/中/负情绪游客",
+    "input": {
+      "dataset": {
+        "type": "string",
+        "required": true,
+        "const": "consumption",
+        "description": "当前仅开放已完成上游契约验证的 consumption 数据集",
+        "title": "Dataset"
+      },
+      "city": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "景点所在城市",
+        "title": "City"
+      },
+      "province": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "景点所在省份",
+        "title": "Province"
+      },
+      "date_from": {
+        "required": false,
+        "anyOf": [
+          {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "游玩日期范围起始日，格式 YYYY-MM-DD",
+        "title": "Date From"
+      },
+      "date_to": {
+        "required": false,
+        "anyOf": [
+          {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "游玩日期范围结束日，格式 YYYY-MM-DD",
+        "title": "Date To"
+      },
+      "spot_type": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "景点类型",
+        "title": "Spot Type"
+      },
+      "source_region": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "游客来源地",
+        "title": "Source Region"
+      },
+      "travel_method": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "旅游方式",
+        "title": "Travel Method"
+      },
+      "tourist_gender": {
+        "required": false,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "游客性别",
+        "title": "Tourist Gender"
+      },
+      "satisfaction_min": {
+        "required": false,
+        "anyOf": [
+          {
+            "minimum": 0,
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "最低满意度",
+        "title": "Satisfaction Min"
+      }
+    },
+    "output": {
+      "content": {
+        "type": "array",
+        "description": "MCP返回的内容块"
+      },
+      "isError": {
+        "type": "boolean",
+        "description": "调用是否失败"
+      }
+    },
+    "timeoutMs": 30000,
+    "enabled": true,
+    "videoCallEnabled": false
+  }
+  ]
 }

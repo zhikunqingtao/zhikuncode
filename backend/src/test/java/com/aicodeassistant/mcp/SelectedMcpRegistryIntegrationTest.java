@@ -36,13 +36,25 @@ class SelectedMcpRegistryIntegrationTest {
     @Test
     void selectedGroupsHaveExpectedCountsAndDefaultStates() {
         List<McpCapabilityDefinition> all = registry.listAll();
-        assertEquals(38, all.size());
-        assertEquals(38, registry.enabledCount());
+        assertEquals(83, all.size());
+        assertEquals(83, registry.enabledCount());
         assertEquals(all.size(), new HashSet<>(all.stream().map(McpCapabilityDefinition::id).toList()).size());
 
         assertGroup("mcp_amap_", 13, true);
         assertServer("QwenImage", 3, true);
         assertServer("WanVideo", 8, true);
+        assertServer("market-cmgjmcp00074946", 11, true);
+        assertServer("market-cmgjmcp00074975", 1, true);
+        assertServer("market-cmgjmcp00075341", 2, true);
+        assertServer("arxiv_paper", 4, true);
+        assertServer("market-cmgjmcp00075018", 1, true);
+        assertServer("market-cmgjmcp00074959", 2, true);
+        assertServer("market-cmgjmcp00075146", 6, true);
+        assertServer("market-cmgjmcp00075054", 8, true);
+        assertServer("market-cmgjmcp00075060", 10, true);
+        assertServerTransport("arxiv_paper", McpTransportType.SSE);
+        assertServerTransport("market-cmgjmcp00074959", McpTransportType.SSE);
+        assertServerTransport("market-cmgjmcp00074946", McpTransportType.HTTP);
         assertGroup("mcp_bili_", 0, false);
         assertGroup("mcp_dingtalk_", 0, false);
         assertGroup("mcp_didi_", 0, false);
@@ -96,5 +108,14 @@ class SelectedMcpRegistryIntegrationTest {
                 .toList();
         assertEquals(count, definitions.size());
         assertTrue(definitions.stream().allMatch(def -> def.enabled() == enabled));
+    }
+
+    private void assertServerTransport(String serverKey, McpTransportType transportType) {
+        List<McpCapabilityDefinition> definitions = registry.listAll().stream()
+                .filter(def -> serverKey.equals(def.extractServerKey()))
+                .toList();
+        assertFalse(definitions.isEmpty());
+        assertTrue(definitions.stream()
+                .allMatch(def -> def.resolvedTransportType() == transportType));
     }
 }
