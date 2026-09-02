@@ -17,7 +17,7 @@ COPY frontend/.env.production ./.env.production
 RUN npm run build
 
 # ---- Stage 2: Build Backend ----
-FROM eclipse-temurin:21-jdk AS backend-build
+FROM eclipse-temurin:25-jdk AS backend-build
 WORKDIR /build
 
 # Cache Maven dependencies (layer caching optimization)
@@ -35,7 +35,7 @@ RUN cd backend && ./mvnw package -DskipTests -B \
 FROM ghcr.io/github/github-mcp-server:v1.11.0 AS github-mcp
 
 # ---- Stage 3: Production Runtime ----
-FROM eclipse-temurin:21-jre-jammy AS runtime
+FROM eclipse-temurin:25-jre-jammy AS runtime
 
 LABEL maintainer="ZhikunCode Team"
 LABEL org.opencontainers.image.title="ZhikunCode"
