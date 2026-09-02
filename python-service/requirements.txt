@@ -20,7 +20,7 @@ rope==1.13.0
 jedi==0.19.2
 
 # ──── LSP_BRIDGE 域 ────
-pygls==1.3.1
+pygls==2.1.1
 
 # ──── FILE_PROCESSING 域 ────
 chardet==5.2.0
