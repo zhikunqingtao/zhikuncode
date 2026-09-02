@@ -11,6 +11,7 @@ export type DialogType =
     | 'permission' 
     | 'elicitation' 
     | 'settings' 
+    | 'mcp'
     | 'export' 
     | 'resume' 
     | 'theme' 

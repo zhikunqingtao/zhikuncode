@@ -63,8 +63,8 @@ llm:
     dashscope:
       api-key: ${LLM_PROVIDER_DASHSCOPE_API_KEY:}
       base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
-      default-model: qwen3.7-max
-      models: ${LLM_PROVIDER_DASHSCOPE_MODELS:qwen3.7-max,qwen3.7-plus}
+      default-model: qwen3.8-max-0902
+      models: ${LLM_PROVIDER_DASHSCOPE_MODELS:qwen3.8-max-0902,qwen3.7-plus}
     # 阿里云百炼 Token Plan 订阅专属端点（sk-sp- key），与上方按量计费 key 相互独立。
     dashscope-token-plan:
       api-key: ${LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_API_KEY:}
@@ -95,7 +95,7 @@ llm:
       api-key: ${LLM_PROVIDER_ZENMUX_API_KEY:}
       base-url: https://zenmux.ai/api/v1
       default-model: anthropic/claude-opus-4.8
-      models: ${LLM_PROVIDER_ZENMUX_MODELS:anthropic/claude-opus-4.8,anthropic/claude-fable-5,openai/gpt-5.6-sol,google/gemini-3.5-flash}
+      models: ${LLM_PROVIDER_ZENMUX_MODELS:anthropic/claude-opus-4.8,anthropic/claude-fable-5.1,openai/gpt-5.6-sol,google/gemini-3.5-flash}
   # ===== 单 Provider 配置（向后兼容）=====
   # 如果 llm.providers 为空，回退到此配置
   openai:
@@ -110,9 +110,9 @@ llm:
     #   Azure OpenAI: https://{resource}.openai.azure.com/openai/deployments/{deployment}/v1
     base-url: ${LLM_BASE_URL:https://dashscope.aliyuncs.com/compatible-mode/v1}
     # 默认模型（各提供商模型名不同，请配合 base-url 设置）
-    default-model: ${LLM_DEFAULT_MODEL:qwen3.7-max}
+    default-model: ${LLM_DEFAULT_MODEL:qwen3.8-max-0902}
     # 支持的模型列表（逗号分隔）
-    models: ${LLM_MODELS:qwen3.7-max,qwen3.7-plus,qwen-turbo,qwen-coder-plus}
+    models: ${LLM_MODELS:qwen3.8-max-0902,qwen3.7-plus,qwen-turbo,qwen-coder-plus}
   http:
     pool:
       max-idle-connections: 5
@@ -135,9 +135,9 @@ agent:
     prompt-too-long-withhold: true
     media-recovery: true
   model-aliases:
-    light: qwen3.7-max
-    standard: qwen3.7-max
-    premium: qwen3.7-max
+    light: qwen3.8-max-0902
+    standard: qwen3.8-max-0902
+    premium: qwen3.8-max-0902
 
 # 分类器模型配置（留空则按四级回退: env → 此配置 → lightweight → default）
 classifier:
@@ -188,6 +188,8 @@ process:
 
 mcp:
   capability-registry-path: ${MCP_REGISTRY_PATH:${user.dir}/../configuration/mcp/mcp_capability_registry.json}
+  # 用户开关状态；低频或高风险 MCP 默认关闭，其他服务保持默认启用。
+  service-state-path: ${MCP_SERVICE_STATE_PATH:${user.home}/.zhikun/mcp-service-states.json}
   servers: {}
     # 智谱 WebSearch MCP（通过阿里云百炼）已由能力注册表管理；以下仅为手动 server 配置示例
     # zhipu-websearch:
@@ -268,10 +270,10 @@ app:
     session-timeout-hours: 24
   model:
     # 默认模型（千问示例）
-    default: qwen3.7-max
+    default: qwen3.8-max-0902
     # 降级链 — 按性能从高到低
     tier-chain:
-      - qwen3.7-max
+      - qwen3.8-max-0902
       - qwen3.7-plus
       - qwen-turbo
     # 降级时是否自动剥离 thinking blocks
@@ -307,7 +309,7 @@ model:
       supportsToolUse: true
       supportsVision: true
       supportsStreaming: true
-    qwen3.7-max:
+    qwen3.8-max-0902:
       contextWindow: 1000000
       tokenCharRatio: 2.5
       outputMaxTokens: 65536
@@ -329,7 +331,7 @@ model:
       supportsToolUse: true
       supportsVision: true
       supportsStreaming: true
-    anthropic/claude-fable-5:
+    anthropic/claude-fable-5.1:
       contextWindow: 1000000
       tokenCharRatio: 3.5
       outputMaxTokens: 64000

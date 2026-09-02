@@ -42,15 +42,15 @@ class OpenAiCompatibleProviderThinkingTest {
                 "sk-test",
                 "https://dashscope.aliyuncs.com/compatible-mode/v1",
                 "qwen3.7-plus",
-                List.of("qwen3.7-max", "qwen3.7-plus", "qwen-coder-plus", "deepseek-v4-pro",
+                List.of("qwen3.8-max-0902", "qwen3.7-plus", "qwen-coder-plus", "deepseek-v4-pro",
                         "deepseek-v4-flash-vision-exp")
         );
     }
 
     @Test
-    @DisplayName("tc001: supportsThinking(qwen3.7-max) 返回 true")
+    @DisplayName("tc001: supportsThinking(qwen3.8-max-0902) 返回 true")
     void tc001_qwen37Max_supportsThinkingTrue() {
-        assertThat(provider.supportsThinking("qwen3.7-max")).isTrue();
+        assertThat(provider.supportsThinking("qwen3.8-max-0902")).isTrue();
     }
 
     @Test
@@ -95,7 +95,7 @@ class OpenAiCompatibleProviderThinkingTest {
         Method m = OpenAiCompatibleProvider.class.getDeclaredMethod("isQwenThinkingModel", String.class);
         m.setAccessible(true);
 
-        assertThat((boolean) m.invoke(null, "qwen3.7-max")).isTrue();
+        assertThat((boolean) m.invoke(null, "qwen3.8-max-0902")).isTrue();
         assertThat((boolean) m.invoke(null, "qwen3.7-plus")).isTrue();
         assertThat((boolean) m.invoke(null, "qwen3.7-anything-future")).isTrue();
     }
@@ -135,7 +135,7 @@ class OpenAiCompatibleProviderThinkingTest {
         // supportsThinking 已 fallback，但 getModelCapabilities 的抛异常契约应保留，
         // 以便 ModelRegistry Level 2→3 fallback 链路不受影响
         org.assertj.core.api.Assertions.assertThatThrownBy(
-                () -> provider.getModelCapabilities("qwen3.7-max"))
+                () -> provider.getModelCapabilities("qwen3.8-max-0902"))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 

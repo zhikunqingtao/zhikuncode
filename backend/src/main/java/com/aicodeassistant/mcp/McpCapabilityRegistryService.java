@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -27,19 +28,43 @@ public class McpCapabilityRegistryService {
 
     private static final Logger log = LoggerFactory.getLogger(McpCapabilityRegistryService.class);
 
+    /** 默认关闭的低频或高风险 MCP；用户可在管理页显式启用。 */
+    private static final Set<String> DEFAULT_DISABLED_SERVERS = Set.of(
+            "github",                 // GitHub MCP Server
+            "context7",               // Context7
+            "alibaba-cloud-ops",      // Alibaba Cloud Ops
+            "market-cmgjmcp00075019", // 新闻查询
+            "market-cmgjmcp00074976", // 法律检索
+            "market-cmgjmcp00074980", // 企业信息
+            "market-cmgjmcp00075121", // 文本内容审核
+            "market-cmgjmcp00074946", // A股金融数据
+            "market-cmgjmcp00074975", // 企业知识产权
+            "market-cmgjmcp00075341", // 万方文献
+            "arxiv_paper",
+            "market-cmgjmcp00075018", // 1688智能选品
+            "market-cmgjmcp00074959", // 物流查询
+            "market-cmgjmcp00075146", // 贵金属行情
+            "market-cmgjmcp00075054", // 零售洞察
+            "market-cmgjmcp00075060"  // 旅游消费
+    );
+
     private final ObjectMapper objectMapper;
     private final Map<String, McpCapabilityDefinition> capabilities = new ConcurrentHashMap<>();
+    private final Map<String, Boolean> serviceStates = new ConcurrentHashMap<>();
 
     /** 通过 McpConfiguration 构造注入，而非 @Value 字段注入 */
     private final String registryPath;
+    private final String serviceStatePath;
 
     public McpCapabilityRegistryService(ObjectMapper objectMapper, McpConfiguration mcpConfiguration) {
         this.objectMapper = objectMapper.copy().enable(SerializationFeature.INDENT_OUTPUT);
         this.registryPath = mcpConfiguration.getCapabilityRegistryPath();
+        this.serviceStatePath = mcpConfiguration.getServiceStatePath();
     }
 
     @PostConstruct
     public void loadRegistry() {
+        loadServiceStates();
         Path path = Path.of(registryPath);
         if (!Files.exists(path)) {
             log.warn("MCP capability registry not found: {}", registryPath);
@@ -81,6 +106,41 @@ public class McpCapabilityRegistryService {
 
     public List<McpCapabilityDefinition> listEnabled() {
         return capabilities.values().stream().filter(McpCapabilityDefinition::enabled).toList();
+    }
+
+    /** 仅返回用户在管理页显式启用、且仍在工具白名单内的能力。 */
+    public List<McpCapabilityDefinition> listRuntimeEnabled() {
+        return capabilities.values().stream()
+                .filter(McpCapabilityDefinition::enabled)
+                .filter(cap -> isServiceEnabled(cap.extractServerKey()))
+                .toList();
+    }
+
+    public List<McpCapabilityDefinition> listByServerKey(String serverKey) {
+        return capabilities.values().stream()
+                .filter(cap -> serverKey.equals(cap.extractServerKey()))
+                .sorted(Comparator.comparing(McpCapabilityDefinition::name,
+                        Comparator.nullsLast(String::compareTo)))
+                .toList();
+    }
+
+    /** 用户选择优先；未选择时使用内置的最小化默认开启策略。 */
+    public boolean isServiceEnabled(String serverKey) {
+        return serviceStates.getOrDefault(serverKey,
+                !DEFAULT_DISABLED_SERVERS.contains(serverKey));
+    }
+
+    public Map<String, Boolean> listServiceStates() {
+        return Map.copyOf(serviceStates);
+    }
+
+    public void setServiceEnabled(String serverKey, boolean enabled) {
+        if (serverKey == null || serverKey.isBlank()) {
+            throw new IllegalArgumentException("MCP server key is required");
+        }
+        serviceStates.put(serverKey, enabled);
+        saveServiceStates();
+        log.info("MCP service '{}' user state changed to enabled={}", serverKey, enabled);
     }
 
     public Optional<McpCapabilityDefinition> findById(String id) {
@@ -190,6 +250,56 @@ public class McpCapabilityRegistryService {
             log.error("Failed to save MCP capability registry: {}", e.getMessage(), e);
         } finally {
             saveLock.unlock();
+        }
+    }
+
+    private void loadServiceStates() {
+        if (serviceStatePath == null || serviceStatePath.isBlank()) return;
+        serviceStates.clear();
+        Path path = Path.of(serviceStatePath);
+        if (!Files.isRegularFile(path)) {
+            log.info("MCP service state file not found; using built-in defaults: {}", path);
+            return;
+        }
+        try {
+            JsonNode root = objectMapper.readTree(path.toFile());
+            JsonNode states = root.path("services");
+            if (!states.isObject()) return;
+            states.fields().forEachRemaining(entry ->
+                    serviceStates.put(entry.getKey(), entry.getValue().asBoolean(false)));
+            log.info("Loaded {} MCP service preference(s) from {}", serviceStates.size(), path);
+        } catch (IOException e) {
+            log.warn("Failed to load MCP service states from {}: {}", path, e.getMessage());
+        }
+    }
+
+    /** 小文件同步原子写入，保证接口返回成功时用户选择已落盘。 */
+    private void saveServiceStates() {
+        if (serviceStatePath == null || serviceStatePath.isBlank()) return;
+        Path path = Path.of(serviceStatePath);
+        try {
+            Path parent = path.toAbsolutePath().getParent();
+            if (parent != null) Files.createDirectories(parent);
+            ObjectNode root = objectMapper.createObjectNode();
+            root.put("version", 1);
+            ObjectNode services = root.putObject("services");
+            serviceStates.entrySet().stream()
+                    .sorted(Map.Entry.comparingByKey())
+                    .forEach(entry -> services.put(entry.getKey(), entry.getValue()));
+            Path temp = Files.createTempFile(parent, "mcp-service-states-", ".tmp");
+            try {
+                objectMapper.writeValue(temp.toFile(), root);
+                try {
+                    Files.move(temp, path, StandardCopyOption.ATOMIC_MOVE,
+                            StandardCopyOption.REPLACE_EXISTING);
+                } catch (java.nio.file.AtomicMoveNotSupportedException ignored) {
+                    Files.move(temp, path, StandardCopyOption.REPLACE_EXISTING);
+                }
+            } finally {
+                Files.deleteIfExists(temp);
+            }
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to persist MCP service state", e);
         }
     }
 }

@@ -14,7 +14,7 @@ import static org.mockito.Mockito.lenient;
  * <p>
  * 验证目标：
  * <ul>
- *   <li>qwen3.7-max: contextWindow=1000000, maxOutputTokens=65536, supportsThinking=true</li>
+ *   <li>qwen3.8-max-0902: contextWindow=1000000, maxOutputTokens=65536, supportsThinking=true</li>
  *   <li>qwen3.7-plus: contextWindow=1000000, maxOutputTokens=8192, supportsThinking=true</li>
  *   <li>qwen-turbo (对照): supportsThinking=false</li>
  *   <li>deepseek-v4-pro: supportsThinking=true（在 BUILTIN_MODELS 中）</li>
@@ -39,25 +39,25 @@ class ModelRegistryThinkingModeTest {
     }
 
     @Test
-    @DisplayName("tc001: qwen3.7-max contextWindow = 1000000")
+    @DisplayName("tc001: qwen3.8-max-0902 contextWindow = 1000000")
     void tc001_qwen37Max_contextWindow1M() {
-        ModelCapabilities caps = modelRegistry.getCapabilities("qwen3.7-max");
+        ModelCapabilities caps = modelRegistry.getCapabilities("qwen3.8-max-0902");
 
         assertThat(caps.contextWindow()).isEqualTo(1_000_000);
     }
 
     @Test
-    @DisplayName("tc002: qwen3.7-max maxOutputTokens = 65536")
+    @DisplayName("tc002: qwen3.8-max-0902 maxOutputTokens = 65536")
     void tc002_qwen37Max_maxOutputTokens65536() {
-        ModelCapabilities caps = modelRegistry.getCapabilities("qwen3.7-max");
+        ModelCapabilities caps = modelRegistry.getCapabilities("qwen3.8-max-0902");
 
         assertThat(caps.maxOutputTokens()).isEqualTo(65536);
     }
 
     @Test
-    @DisplayName("tc003: qwen3.7-max supportsThinking = true")
+    @DisplayName("tc003: qwen3.8-max-0902 supportsThinking = true")
     void tc003_qwen37Max_supportsThinkingTrue() {
-        ModelCapabilities caps = modelRegistry.getCapabilities("qwen3.7-max");
+        ModelCapabilities caps = modelRegistry.getCapabilities("qwen3.8-max-0902");
 
         assertThat(caps.supportsThinking()).isTrue();
     }
@@ -103,9 +103,9 @@ class ModelRegistryThinkingModeTest {
     }
 
     @Test
-    @DisplayName("tc009: getContextWindowForModel(qwen3.7-max) 与 capabilities 一致")
+    @DisplayName("tc009: getContextWindowForModel(qwen3.8-max-0902) 与 capabilities 一致")
     void tc009_getContextWindowForModel_consistent() {
-        int ctx = modelRegistry.getContextWindowForModel("qwen3.7-max");
+        int ctx = modelRegistry.getContextWindowForModel("qwen3.8-max-0902");
 
         assertThat(ctx).isEqualTo(1_000_000);
     }

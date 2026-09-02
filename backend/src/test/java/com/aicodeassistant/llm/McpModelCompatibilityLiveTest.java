@@ -221,11 +221,11 @@ class McpModelCompatibilityLiveTest {
         addProvider(endpoints, "zenmux", "LLM_PROVIDER_ZENMUX_API_KEY",
                 env("LLM_PROVIDER_ZENMUX_BASE_URL", "https://zenmux.ai/api/v1"),
                 "LLM_PROVIDER_ZENMUX_MODELS",
-                "anthropic/claude-opus-4.8,anthropic/claude-fable-5,openai/gpt-5.6-sol,google/gemini-3.5-flash");
+                "anthropic/claude-opus-4.8,anthropic/claude-fable-5.1,openai/gpt-5.6-sol,google/gemini-3.5-flash");
         addProvider(endpoints, "dashscope", "LLM_PROVIDER_DASHSCOPE_API_KEY",
                 env("LLM_PROVIDER_DASHSCOPE_BASE_URL",
                         "https://dashscope.aliyuncs.com/compatible-mode/v1"),
-                "LLM_PROVIDER_DASHSCOPE_MODELS", "qwen3.7-max,qwen3.7-plus");
+                "LLM_PROVIDER_DASHSCOPE_MODELS", "qwen3.8-max-0902,qwen3.7-plus");
         return endpoints;
     }
 

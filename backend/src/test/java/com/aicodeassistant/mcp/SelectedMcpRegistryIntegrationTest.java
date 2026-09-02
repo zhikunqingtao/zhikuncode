@@ -90,6 +90,10 @@ class SelectedMcpRegistryIntegrationTest {
         allowed.setAccessible(true);
 
         assertTrue((boolean) allowed.invoke(manager, "amap-maps", "maps_geo"));
+        McpCapabilityDefinition defaultDisabled = registry
+                .listByServerKey("market-cmgjmcp00074946").getFirst();
+        assertFalse((boolean) allowed.invoke(manager,
+                defaultDisabled.extractServerKey(), defaultDisabled.toolName()));
         assertFalse((boolean) allowed.invoke(manager, "amap-maps", "unknown_remote_tool"));
         assertTrue((boolean) allowed.invoke(manager, "unmanaged-server", "arbitrary_tool"));
     }

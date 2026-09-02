@@ -34,8 +34,18 @@ services:
       # ---- Legacy Single-Provider (Backward Compatible) ----
       - LLM_API_KEY=${LLM_API_KEY:-}
       - LLM_BASE_URL=${LLM_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
-      - LLM_DEFAULT_MODEL=${LLM_DEFAULT_MODEL:-qwen3.7-max}
+      - LLM_DEFAULT_MODEL=${LLM_DEFAULT_MODEL:-qwen3.8-max-0902}
       - LLM_MODELS=${LLM_MODELS:-}
+      # ---- External MCP servers ----
+      - ZHIKUN_MCP_SERVERS=${ZHIKUN_MCP_SERVERS:-}
+      - CONTEXT7_API_KEY=${CONTEXT7_API_KEY:-}
+      - GITHUB_TOOLS=${GITHUB_TOOLS:-get_me,get_file_contents,search_code,list_branches,list_commits,list_pull_requests,pull_request_read}
+      - GITHUB_READ_ONLY=${GITHUB_READ_ONLY:-1}
+      - GITHUB_LOCKDOWN_MODE=${GITHUB_LOCKDOWN_MODE:-1}
+      - ALIBABA_CLOUD_ACCESS_KEY_ID=${ALIBABA_CLOUD_ACCESS_KEY_ID:-}
+      - ALIBABA_CLOUD_ACCESS_KEY_SECRET=${ALIBABA_CLOUD_ACCESS_KEY_SECRET:-}
+      - ALIBABA_CLOUD_SECURITY_TOKEN=${ALIBABA_CLOUD_SECURITY_TOKEN:-}
+      - ALIBABA_CLOUD_OPS_VISIBLE_TOOLS=${ALIBABA_CLOUD_OPS_VISIBLE_TOOLS:-ECS_DescribeInstances,ECS_DescribeRegions,ECS_DescribeSecurityGroups,OSS_ListBuckets,OSS_ListObjects}
       # ---- Optional (Docker Advanced) — has Dockerfile defaults, override if needed ----
       # Private network access: allows Docker bridge network IPs to bypass auth
       # - ALLOW_PRIVATE_NETWORK=${ALLOW_PRIVATE_NETWORK:-true}
@@ -43,6 +53,8 @@ services:
       # - LOG_DIR=${LOG_DIR:-/app/log}
       # MCP capability registry path
       # - MCP_REGISTRY_PATH=${MCP_REGISTRY_PATH:-/app/configuration/mcp/mcp_capability_registry.json}
+      # Persist user MCP enable/disable choices in the existing data volume.
+      - MCP_SERVICE_STATE_PATH=/app/data/mcp-service-states.json
       # ---- Internal ----
       - PYTHON_SERVICE_HOST=127.0.0.1
       - PYTHON_SERVICE_PORT=8000

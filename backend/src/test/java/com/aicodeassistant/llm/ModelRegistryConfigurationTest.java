@@ -53,13 +53,13 @@ class ModelRegistryConfigurationTest {
         qwen.setTokenCharRatio(2.5);
         ModelCapabilitiesProperties.Override deepseek = new ModelCapabilitiesProperties.Override();
         deepseek.setTokenCharRatio(2.8);
-        properties.setCapabilities(Map.of("qwen3.7-max", qwen, "deepseek-coder", deepseek));
+        properties.setCapabilities(Map.of("qwen3.8-max-0902", qwen, "deepseek-coder", deepseek));
         ModelRegistry registry = new ModelRegistry(
                 new LlmProviderRegistry(List.of(), new MockEnvironment()), properties);
         TokenCounter counter = new TokenCounter(registry, null, new FeatureFlagService());
         String text = "a".repeat(350);
 
-        assertEquals(140, counter.estimateTokensForModel(text, "qwen3.7-max"));
+        assertEquals(140, counter.estimateTokensForModel(text, "qwen3.8-max-0902"));
         assertEquals(125, counter.estimateTokensForModel(text, "deepseek-coder"));
         assertEquals(100, counter.estimateTokensForModel(text, "unknown-model"));
     }

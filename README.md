@@ -123,7 +123,7 @@ ZhikunCode 使用 Kimi K3 在 2026-08-09 凌晨一次性完成了一个纯静态
 | 📊 | **实时活动追踪与审批** | Activity Panel 实时记录 AI 工具执行全流程，L1/L2/L3 三层展示体系，Signal 智能标记（auto_approve/review_recommended/needs_review），一键批量审批决策，SQLite 后端持久化，支持会话恢复 |
 | 🧪 | **运行时验证框架（Runtime Verification）** | VerifierFactory 三模态分发（browser/http_api/auto）+ 8 种 HTTP action handler + JSONPath 断言 + 证据链 SQLite 存储 + Feature Flag 双重门控 + 前端实时进度面板 |
 | 🔍 | **RV-4 证据包可视化** | 验证产物 7 类证据（screenshot / command / console / test / video / har / diff）Tab 分栏展示，移动端订阅 STOMP `verify_attention` 通知一键审批/驳回，REST API `/api/evidence/*` 提供查询与 Blob 下载 |
-| 🏆 | **SWE-bench Lite 实测** | 单模型 `qwen3.7-max` + 6 工具闭集（Read/Edit/Write/Bash/Grep/Glob），无网络、无 sub-agent；官方 harness 评测 **Resolve 56.0% (168/300)**、Patch 生成率 **94.7% (284/300)**，[技术报告 →](https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html) |
+| 🏆 | **SWE-bench Lite 历史实测（2026-05）** | 历史评测模型 `qwen3.7-max`（保留原记录）+ 6 工具闭集（Read/Edit/Write/Bash/Grep/Glob），无网络、无 sub-agent；官方 harness 评测 **Resolve 56.0% (168/300)**、Patch 生成率 **94.7% (284/300)**，[技术报告 →](https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html) |
 | 🚀 | **极致性能** | REST API p50 1.5ms · WS STOMP 握手 2.22ms · 490次真实请求采样验证，核心引擎零外部依赖纯 Java 实现 |
 | 🏭 | **运行时可靠性** | Run 状态 CAS 原子管理 · 完整 Session 快照、Run event sequence 与待处理持久交互重放 · 进程硬超时+梯度终止 · 作用域 Grant 与子 Agent 受控继承 · Artifact declare→seal→hash 验证及显式发布 · 结构化工具结果生成工具卡片与权威下载链接 · `sid/rid/prid/agent/turn/tool/llm` 日志关联 · BestEffortObservabilityRecorder 补充事件失败隔离 · Provider 本地预算守卫 |
 
@@ -329,7 +329,7 @@ LLM_PROVIDER_ZHIPU_API_KEY=your-zhipu-api-key-here
 # MiniMax
 LLM_PROVIDER_MINIMAX_API_KEY=your-minimax-api-key-here
 
-# ZenMux (claude-opus-4.8 / claude-fable-5 / openai/gpt-5.6-sol / google/gemini-3.5-flash, 1M 上下文)
+# ZenMux (claude-opus-4.8 / claude-fable-5.1 / openai/gpt-5.6-sol / google/gemini-3.5-flash, 1M 上下文)
 LLM_PROVIDER_ZENMUX_API_KEY=your-zenmux-api-key-here
 ```
 
@@ -339,13 +339,13 @@ LLM_PROVIDER_ZENMUX_API_KEY=your-zenmux-api-key-here
 
 | 服务商 | Base URL | 推荐模型 | 备注 |
 |--------|----------|----------|------|
-| **千问/DashScope** | `https://dashscope.aliyuncs.com/compatible-mode/v1` | qwen3.7-max / qwen3.7-plus | **默认 Provider**，国内直连 |
+| **千问/DashScope** | `https://dashscope.aliyuncs.com/compatible-mode/v1` | qwen3.8-max-0902 / qwen3.7-plus | **默认 Provider**，国内直连 |
 | **阿里云百炼 Token Plan** | `https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1` | qwen3.8-max / qwen3.8-flash / deepseek-v4-pro-0813 / deepseek-v4-flash-0731 | 可选订阅 Provider，使用独立 `sk-sp-` Key；四个模型在前端均标注“百炼”，且不进入全局默认或预定义降级链 |
 | **DeepSeek** | `https://api.deepseek.com/v1` | deepseek-v4-pro / deepseek-v4-flash / deepseek-v4-flash-vision-exp | 国内直连；Vision Exp 作为 DeepSeek 系列图片理解兜底 |
 | **Moonshot（Kimi）** | `https://api.moonshot.cn/v1` | kimi-k3 / kimi-k2.7-code | 国内直连；kimi-k3 支持 1M 上下文和原生视觉 |
 | **Zhipu（智谱 GLM）** | `https://open.bigmodel.cn/api/paas/v4/chat/completions` | glm-5.3, glm-5.3-flash | 国内直连 |
 | **MiniMax** | `https://api.minimax.chat/v1` | MiniMax-M3 | 百万上下文 |
-| **ZenMux（多模型中转）** | `https://zenmux.ai/api/v1` | anthropic/claude-opus-4.8 / claude-fable-5 / openai/gpt-5.6-sol / google/gemini-3.5-flash | 1M 上下文 · 支持图片 |
+| **ZenMux（多模型中转）** | `https://zenmux.ai/api/v1` | anthropic/claude-opus-4.8 / claude-fable-5.1 / openai/gpt-5.6-sol / google/gemini-3.5-flash | 1M 上下文 · 支持图片 |
 | **OpenAI** | `https://api.openai.com/v1` | gpt-5.6-sol / gpt-5.4-mini | 需要外网访问 |
 | **本地 Ollama** | `http://localhost:11434/v1` | 支持所有 Ollama 模型（ollama/*） | 完全离线 |
 
@@ -353,7 +353,9 @@ LLM_PROVIDER_ZENMUX_API_KEY=your-zenmux-api-key-here
 
 ### 可选：启用 DashScope 托管 MCP 服务
 
-ZhikunCode 当前预置了 17 个阿里云百炼 MCP 服务、共 83 个工具，注册表中均默认启用。没有配置百炼 Key 时会跳过远端连接，不影响核心对话、代码编辑和本地工具使用。
+ZhikunCode 当前预置了 17 个阿里云百炼 MCP 服务、共 83 个白名单工具。运行时采用服务级最小化默认策略：智谱联网搜索、高德地图、千问图像和万相视频默认开启；新闻、法律、企业信息、文本审核、金融、学术、采购、物流、行情和行业洞察等 13 个低频或高风险服务默认关闭。没有配置百炼 Key 时会跳过远端连接，不影响核心对话、代码编辑和本地工具使用。
+
+默认关闭或被用户关闭的 MCP 不建立连接、不注册工具，也不会向模型上下文注入工具描述；直接调用会被拒绝。点击页面顶部的插头图标可打开 **MCP 管理**，按服务即时启用或关闭，选择保存在本机且无需重启。
 
 | MCP 服务 | 传输 | 能力 | 工具数 |
 |---------|------|------|-------|
@@ -381,8 +383,10 @@ ZhikunCode 当前预置了 17 个阿里云百炼 MCP 服务、共 83 个工具�
    ```bash
    LLM_PROVIDER_DASHSCOPE_API_KEY=sk-xxxxxxxx
    ```
-2. 在 [`configuration/mcp/mcp_capability_registry.json`](configuration/mcp/mcp_capability_registry.json) 中确认需要的条目为 `"enabled": true`。
-3. 通过 `./stop.sh && ./start.sh` 完整重启三端使配置生效。
+2. 首次修改 `.env` 后，通过 `./stop.sh && ./start.sh` 完整重启三端。
+3. 在页面顶部打开 **MCP 管理**，仅启用当前任务需要的服务；后续开关即时生效，无需重启。
+
+> 注册表中的 `"enabled": true` 表示该工具进入管理员白名单，不等于服务在运行时默认开启。工具必须同时通过注册表白名单、服务开关和凭证可用性三层检查。
 
 ---
 
@@ -396,7 +400,7 @@ ZhikunCode 已完成 SWE-bench Lite（300 实例，pass@1）官方 harness 评�
 |---|---|---|
 | Resolved Instances | **168 / 300 (56.0%)** | `docs/swe-bench/20260525/results.json` `resolved=168` |
 | Patch 生成率 | **284 / 300 (94.7%)** | `all_preds.jsonl`（其中 16 条空 patch） |
-| 主干模型 | `qwen3.7-max` | `docs/swe-bench/20260525/metadata.yaml` |
+| 历史主干模型（保留原记录） | `qwen3.7-max` | `docs/swe-bench/20260525/metadata.yaml` |
 | 工具闭集 | Read / Edit / Write / Bash / Grep / Glob | [`swe-bench/swe_bench.py`](swe-bench/swe_bench.py) `ALLOWED_TOOLS` |
 | 单实例预算 | 60 轮 / 900 秒 | [`swe_bench.py`](swe-bench/swe_bench.py) `solve_instance(max_turns=60, timeout=900)` |
 | 并发 worker | 1 | `--workers` 默认值 |
@@ -707,10 +711,10 @@ Web 新会话必须先选择一个已授权目录。远程和 Docker 部署的�
 **持续集成：**
 - **GitHub Actions 自动化流水线**：主 CI 执行后端编译和前端构建；Python 测试当前为非阻塞检查，Docker 镜像验证仅在 `main` push 时执行。
 
-**当前代码本地验证快照（2026-08-25）：**
-- **后端单元/集成测试**：1234 tests / 0 failure / 0 error / 61 skipped
+**当前代码本地验证快照（2026-09-02）：**
+- **后端单元/集成测试**：1258 tests / 0 failure / 0 error / 62 skipped
 - **Python pytest**：107 PASS
-- **前端 vitest**：204 PASS / 16 skipped（220 total）
+- **前端 vitest**：207 PASS / 16 skipped（223 total）
 - **简洁工作台 Playwright E2E**：7 / 7 PASS
 - **静态与构建验证**：TypeScript 与 Vite 生产构建通过
 
@@ -727,8 +731,8 @@ Web 新会话必须先选择一个已授权目录。远程和 Docker 部署的�
 
 | 框架 | 层级 | 覆盖范围 | 数量 |
 |------|------|---------|------|
-| JUnit 5 + Mockito | 后端单元/集成测试 | 上下文/授权网关/技能/插件/LLM/MCP/记忆/并发/SSE/持久化/工具/Coordinator/Swarm/工作台投影等 | 1234 tests / 0 failure / 0 error / 61 skipped |
-| Vitest | 前端单元测试 | Store 生命周期/跨 Tab 同步/流式渲染/权限交互/重连恢复/工作台与路由边界 | 204 PASS / 16 skipped |
+| JUnit 5 + Mockito | 后端单元/集成测试 | 上下文/授权网关/技能/插件/LLM/MCP/记忆/并发/SSE/持久化/工具/Coordinator/Swarm/工作台投影等 | 1258 tests / 0 failure / 0 error / 62 skipped |
+| Vitest | 前端单元测试 | Store 生命周期/跨 Tab 同步/流式渲染/权限交互/重连恢复/工作台与路由边界 | 207 PASS / 16 skipped |
 | Playwright + 节点脚本 | 端到端 E2E | 简洁工作台 / Coordinator WS 订阅 / 可视化 3 种 viewType / 浏览器快照 MVP / APOS Phase 1 全栈 / APOS Phase 2 全栈 | 简洁工作台 7/7 PASS；Task 6/7/8/APOS 历史基线全绿 |
 | Pytest | Python 服务测试 | Token 估算/文件处理/浏览器自动化/语义快照/代码分析器/CLI | 107 PASS |
 
@@ -1244,7 +1248,7 @@ Research → Synthesis → Implementation → Verification
 
 ### 模型别名路由
 
-Agent 使用三级回退策略解析模型：用户参数 → Agent 类型默认 → 全局默认。通过 `application.yml` 中的 `agent.model-aliases` 配置别名映射；当前 `light`、`standard`、`premium` 默认均为 `qwen3.7-max`，可通过配置统一调整，避免在 Agent 定义中硬编码模型名称。
+Agent 使用三级回退策略解析模型：用户参数 → Agent 类型默认 → 全局默认。通过 `application.yml` 中的 `agent.model-aliases` 配置别名映射；当前 `light`、`standard`、`premium` 默认均为 `qwen3.8-max-0902`，可通过配置统一调整，避免在 Agent 定义中硬编码模型名称。
 
 ---
 
@@ -1254,7 +1258,12 @@ ZhikunCode 实现了标准的 [MCP（Model Context Protocol）](https://modelcon
 
 ### 预置 MCP 服务
 
-当前注册表包含 17 个服务、83 个工具，均默认启用；实际可用性取决于百炼 API Key、控制台开通状态和账户额度。
+当前注册表包含 17 个服务、83 个白名单工具。服务是否在运行时开放由独立的服务级开关控制；实际可用性还取决于百炼 API Key、控制台开通状态和账户额度。
+
+- **默认开启（4 个）**：智谱联网搜索、高德地图、千问图像、万相视频。
+- **默认关闭（13 个）**：新闻、法律、企业信息、文本内容审核、A 股金融数据、企业知识产权、万方文献、arXiv、1688 选品、物流、贵金属、零售洞察、旅游消费。
+- **上下文隔离**：关闭的服务不连接、不注册、不注入模型工具上下文，直接调用返回拒绝结果。
+- **用户控制**：点击页面顶部插头图标进入 **MCP 管理**。开关即时生效，状态默认保存在 `~/.zhikun/mcp-service-states.json`；Docker 使用持久化路径 `/app/data/mcp-service-states.json`。
 
 | 工具 | 说明 | 来源 |
 |------|------|------|
@@ -1273,9 +1282,33 @@ ZhikunCode 实现了标准的 [MCP（Model Context Protocol）](https://modelcon
 | **连锁商业 / 茶饮洞察（8 项）** | 连锁品牌、门店、商圈与茶饮市场洞察 | DashScope Streamable HTTP MCP |
 | **旅游洞察（10 项）** | 景区、客流、酒店与旅游市场数据分析 | DashScope Streamable HTTP MCP |
 
+### 可选外部 MCP 服务
+
+GitHub、Context7 和 Alibaba Cloud Ops 通过 `.env` 中的 `ZHIKUN_MCP_SERVERS` 配置。配置只会让服务进入可选列表，三个服务均默认关闭，必须由用户在 **MCP 管理** 页面手动启用。不要使用 `MCP_SERVERS`：该名称会与 Spring Boot 的 `mcp.servers` 配置绑定冲突。完整 JSON 模板见 [`.env.example`](.env.example)，真实密钥不得提交到 Git。
+
+| 服务 | 默认状态（配置后） | 工具白名单 |
+|------|------------------|------------|
+| **GitHub MCP Server** | 默认关闭，需在管理页手动启用 | `get_me`、`get_file_contents`、`search_code`、`list_branches`、`list_commits`、`list_pull_requests`、`pull_request_read`；强制只读和 Lockdown 模式 |
+| **Context7** | 默认关闭，需在管理页手动启用 | `resolve-library-id`、`query-docs` |
+| **Alibaba Cloud Ops** | 默认关闭，需在管理页手动启用 | `ECS_DescribeInstances`、`ECS_DescribeRegions`、`ECS_DescribeSecurityGroups`、`OSS_ListBuckets`、`OSS_ListObjects` |
+
+```bash
+# 仅示例占位符；请将真实值放入已被 Git 忽略的 .env
+CONTEXT7_API_KEY=your-context7-api-key
+ALIBABA_CLOUD_ACCESS_KEY_ID=your-access-key-id
+ALIBABA_CLOUD_ACCESS_KEY_SECRET=your-access-key-secret
+GITHUB_TOOLS=get_me,get_file_contents,search_code,list_branches,list_commits,list_pull_requests,pull_request_read
+GITHUB_READ_ONLY=1
+GITHUB_LOCKDOWN_MODE=1
+ALIBABA_CLOUD_OPS_VISIBLE_TOOLS=ECS_DescribeInstances,ECS_DescribeRegions,ECS_DescribeSecurityGroups,OSS_ListBuckets,OSS_ListObjects
+# ZHIKUN_MCP_SERVERS=<从 .env.example 复制 JSON 模板>
+```
+
+修改 `.env` 或外部 MCP 连接配置后需要重启；重启后还需在 **MCP 管理** 页面手动启用所需服务。之后在管理页启用或关闭服务无需再次重启。
+
 ### 自定义 MCP 工具
 
-在 `configuration/mcp/mcp_capability_registry.json` 中注册新的 MCP 工具：
+管理员可在 `configuration/mcp/mcp_capability_registry.json` 中注册新的 MCP 工具。这里的 `enabled` 是工具白名单，不是用户服务开关：
 
 ```json
 {
@@ -1295,6 +1328,7 @@ ZhikunCode 实现了标准的 [MCP（Model Context Protocol）](https://modelcon
 - **MCP Roots 安全边界**：声明工作区文件系统根，防止 MCP 服务器越界访问
 - **MCP 长操作进度追踪**：实时显示 MCP 工具执行进度，支持用户取消
 - **MCP Schema 智能压缩**：自动压缩大型工具参数描述，减少 LLM 上下文占用
+- **MCP 服务级上下文隔离**：关闭的服务不会建立连接、注册工具或向模型上下文注入 Schema
 
 ### MCP 协议传输层
 
@@ -1372,7 +1406,7 @@ ZhikunCode 内置 11 项可视化能力，让 AI 编程过程中的数据和状�
 | `LLM_PROVIDER_DEEPSEEK_API_KEY` | — | — | DeepSeek API Key |
 | `LLM_PROVIDER_MOONSHOT_API_KEY` | — | — | Moonshot/Kimi API Key |
 | `LLM_PROVIDER_ZHIPU_API_KEY` | — | — | 智谱 GLM API Key |
-| `LLM_DEFAULT_MODEL` | — | qwen3.7-max | 默认模型（未显式选择时使用） |
+| `LLM_DEFAULT_MODEL` | — | qwen3.8-max-0902 | 默认模型（未显式选择时使用） |
 
 > 多 Provider 模式下至少配置一个 Provider 的 API Key 即可。前端支持自由切换已配置的 Provider。
 
@@ -1382,7 +1416,7 @@ ZhikunCode 内置 11 项可视化能力，让 AI 编程过程中的数据和状�
 |------|:---:|--------|------|
 | `LLM_API_KEY` | ✅ | — | LLM 服务商的 API Key |
 | `LLM_BASE_URL` | — | DashScope | LLM API 地址 |
-| `LLM_DEFAULT_MODEL` | — | qwen3.7-max | 默认模型 |
+| `LLM_DEFAULT_MODEL` | — | qwen3.8-max-0902 | 默认模型 |
 | `LLM_MODELS` | — | 千问系列 | 可用模型列表（逗号分隔） |
 
 > 如 `LLM_PROVIDER_*` 均为空，系统自动回退到单 Provider 模式。
@@ -1409,7 +1443,7 @@ ZhikunCode 内置 11 项可视化能力，让 AI 编程过程中的数据和状�
 | 变量 | 必填 | 默认值 | 说明 |
 |------|:---:|--------|------|
 | `ZHIKUN_COORDINATOR_MODE` | — | 0 | Feature flag，启用协调器模式（0=关闭，1=开启） |
-| `LLM_PROVIDER_DASHSCOPE_MODELS` | — | qwen3.7-max,qwen3.7-plus | 按量计费 DashScope 可用模型列表（逗号分隔；实际目录可动态扩展） |
+| `LLM_PROVIDER_DASHSCOPE_MODELS` | — | qwen3.8-max-0902,qwen3.7-plus | 按量计费 DashScope 可用模型列表（逗号分隔；实际目录可动态扩展） |
 | `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS` | — | qwen3.8-max,qwen3.8-flash,deepseek-v4-pro-0813,deepseek-v4-flash-0731 | 百炼 Token Plan Provider 可用模型列表；与普通 DashScope、DeepSeek 直连配置相互独立 |
 | `LLM_PROVIDER_DEEPSEEK_MODELS` | — | deepseek-v4-pro,deepseek-v4-flash,deepseek-v4-flash-vision-exp | DeepSeek 可用模型列表；Vision Exp 用作系列图片理解兜底（逗号分隔） |
 | `LLM_PROVIDER_MOONSHOT_MODELS` | — | kimi-k3,moonshot-v1-128k | Moonshot 可用模型列表（逗号分隔） |

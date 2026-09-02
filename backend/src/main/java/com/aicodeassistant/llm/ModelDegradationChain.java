@@ -26,9 +26,9 @@ public class ModelDegradationChain {
 
     /** 预定义降级链 — key: 主模型, value: 按优先级排列的降级模型列表 */
     private static final Map<String, List<String>> DEGRADATION_CHAINS = Map.of(
-            "claude-sonnet-4-6", List.of("qwen3.7-max", "deepseek-v4-flash"),
-            "qwen3.7-max", List.of("qwen3.7-plus", "deepseek-v4-flash"),
-            "qwen3.7-plus", List.of("deepseek-v4-flash", "qwen3.7-max")
+            "claude-sonnet-4-6", List.of("qwen3.8-max-0902", "deepseek-v4-flash"),
+            "qwen3.8-max-0902", List.of("qwen3.7-plus", "deepseek-v4-flash"),
+            "qwen3.7-plus", List.of("deepseek-v4-flash", "qwen3.8-max-0902")
     );
 
     /**

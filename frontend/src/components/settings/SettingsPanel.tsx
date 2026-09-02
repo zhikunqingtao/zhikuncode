@@ -76,9 +76,9 @@ export function SettingsPanel() {
 
 /** 模型选择下拉框 */
 function ModelPicker() {
-  const [model, setModel] = useState('qwen3.7-max');
+  const [model, setModel] = useState('qwen3.8-max-0902');
   const models = [
-    { id: 'qwen3.7-max', name: 'Qwen 3.7 Max', description: '最强推理' },
+    { id: 'qwen3.8-max-0902', name: 'Qwen 3.8 Max 0902', description: '最强推理' },
     { id: 'qwen3.7-plus', name: 'Qwen 3.7 Plus', description: '均衡性能' },
     { id: 'qwen3.8-max', name: 'Qwen 3.8 Max（百炼）', description: '百炼订阅' },
     { id: 'qwen3.8-flash', name: 'Qwen 3.8 Flash（百炼）', description: '百炼订阅 · 快速多模态' },
@@ -94,7 +94,7 @@ function ModelPicker() {
     { id: 'glm-5.3-flash', name: 'GLM-5.3-Flash', description: '智谱多模态编程模型' },
     { id: 'MiniMax-M3', name: 'MiniMax M3', description: '百万上下文' },
     { id: 'anthropic/claude-opus-4.8', name: 'claude-opus-4.8', description: '1M上下文 · 编程旗舰' },
-    { id: 'anthropic/claude-fable-5', name: 'claude-fable-5', description: '1M上下文 · Mythos级' },
+    { id: 'anthropic/claude-fable-5.1', name: 'claude-fable-5.1', description: '1M上下文 · Mythos级' },
     { id: 'openai/gpt-5.6-sol', name: 'OpenAI GPT-5.6 Sol', description: 'OpenAI 旗舰模型' },
     { id: 'google/gemini-3.5-flash', name: 'Google Gemini 3.5 Flash', description: 'Google 快速响应' },
   ];

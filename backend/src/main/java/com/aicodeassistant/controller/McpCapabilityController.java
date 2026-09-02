@@ -73,9 +73,13 @@ public class McpCapabilityController {
             McpCapabilityDefinition def = registryService.toggleEnabled(id, enabled);
             String status;
             if (enabled) {
-                McpServerConnection conn = mcpManager.enableFromRegistry(def);
-                status = conn.getStatus() == McpConnectionStatus.CONNECTED
-                        ? "connected" : conn.getStatus().name().toLowerCase();
+                if (!registryService.isServiceEnabled(def.extractServerKey())) {
+                    status = "service_disabled";
+                } else {
+                    McpServerConnection conn = mcpManager.enableFromRegistry(def);
+                    status = conn.getStatus() == McpConnectionStatus.CONNECTED
+                            ? "connected" : conn.getStatus().name().toLowerCase();
+                }
             } else {
                 // 同服务器多工具保护 — 仅当无其他启用工具时才移除服务器
                 String serverKey = def.extractServerKey();
@@ -174,6 +178,12 @@ public class McpCapabilityController {
     public ResponseEntity<Map<String, Object>> invokeCapability(
             @PathVariable String id, @RequestBody Map<String, Object> body) {
         return registryService.findById(id).map(def -> {
+            if (!registryService.isServiceEnabled(def.extractServerKey())) {
+                return ResponseEntity.status(409).body(Map.<String, Object>of(
+                        "id", id,
+                        "status", "disabled",
+                        "error", "Enable this MCP service before invoking its tools"));
+            }
             try {
                 // 从请求体中提取实际参数和超时
                 @SuppressWarnings("unchecked")

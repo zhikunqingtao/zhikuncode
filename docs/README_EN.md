@@ -117,7 +117,7 @@ In a single overnight run on 2026-08-09, ZhikunCode used Kimi K3 to build a pure
 | 📊 | **Real-Time Activity Tracking & Approval** | Activity Panel records full AI tool execution lifecycle, L1/L2/L3 three-layer display, Signal smart tagging (auto_approve/review_recommended/needs_review), one-click batch approval, SQLite backend persistence, session restoration support |
 | 🧪 | **Runtime Verification Framework** | VerifierFactory tri-modal dispatch (browser/http_api/auto) + 8 HTTP action handlers + JSONPath assertions + evidence chain SQLite storage + Feature Flag dual-gating + frontend real-time progress panel |
 | 📦 | **Evidence Bundle Visualization (RV-4)** | Tabbed viewer for 7 evidence types (screenshots / commands / console / tests / network HAR / videos / diffs); on verification failure, a STOMP `verify_attention` notification triggers a mobile bottom-sheet for one-tap approve/reject. Backed by `/api/evidence/*` REST endpoints (bundle by id, list by session, binary blob by SHA-256) |
-| 🏆 | **SWE-bench Lite Submission** | Single backbone `qwen3.7-max` + closed six-tool set (Read/Edit/Write/Bash/Grep/Glob); no internet, no sub-agent. Official harness reports **Resolve 56.0% (168/300)** and Patch generation **94.7% (284/300)**. [Technical Report →](https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html) |
+| 🏆 | **Historical SWE-bench Lite Submission (2026-05)** | Historical evaluation model `qwen3.7-max` (original record retained) + closed six-tool set (Read/Edit/Write/Bash/Grep/Glob); no internet, no sub-agent. Official harness reports **Resolve 56.0% (168/300)** and Patch generation **94.7% (284/300)**. [Technical Report →](https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html) |
 | 🚀 | **Extreme Performance** | REST API p50 1.5ms · WS STOMP handshake 2.22ms · 490 real request samples verified, core engines are zero-external-dependency pure Java implementations |
 | 🏭 | **Runtime Reliability** | Run state CAS atomic management · Durable Interaction Inbox (reconnect recovery) · Process hard timeout + graceful termination cascade · Scoped grants with controlled sub-agent inheritance · Artifact declare→seal→hash verification · Provider local budget guard |
 
@@ -323,7 +323,7 @@ LLM_PROVIDER_ZHIPU_API_KEY=your-zhipu-api-key-here
 # MiniMax
 LLM_PROVIDER_MINIMAX_API_KEY=your-minimax-api-key-here
 
-# ZenMux (claude-opus-4.8 / claude-fable-5 / openai/gpt-5.6-sol / google/gemini-3.5-flash, 1M context)
+# ZenMux (claude-opus-4.8 / claude-fable-5.1 / openai/gpt-5.6-sol / google/gemini-3.5-flash, 1M context)
 LLM_PROVIDER_ZENMUX_API_KEY=your-zenmux-api-key-here
 ```
 
@@ -333,13 +333,13 @@ If no multi-Provider keys are configured, the system automatically falls back to
 
 | Provider | Base URL | Recommended Model | Notes |
 |----------|----------|-------------------|-------|
-| **Qwen / DashScope** | `https://dashscope.aliyuncs.com/compatible-mode/v1` | qwen3.7-max | **Default**, direct connection in China |
+| **Qwen / DashScope** | `https://dashscope.aliyuncs.com/compatible-mode/v1` | qwen3.8-max-0902 | **Default**, direct connection in China |
 | **Alibaba Cloud Bailian Token Plan** | `https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1` | qwen3.8-max / qwen3.8-flash / deepseek-v4-pro-0813 / deepseek-v4-flash-0731 | Optional subscription Provider using an independent `sk-sp-` key; all four models are labeled “Bailian” in the UI |
 | **DeepSeek** | `https://api.deepseek.com/v1` | deepseek-v4-pro / deepseek-v4-flash / deepseek-v4-flash-vision-exp | Direct connection in China; Vision Exp is the image-understanding fallback for DeepSeek models |
 | **Moonshot (Kimi)** | `https://api.moonshot.cn/v1` | kimi-k3 / kimi-k2.7-code | Direct connection; kimi-k3 features 1M context window and native vision |
 | **Zhipu (GLM)** | `https://open.bigmodel.cn/api/paas/v4/chat/completions` | glm-5.3, glm-5.3-flash | China direct access |
 | **MiniMax** | `https://api.minimax.chat/v1` | MiniMax-M3 | 1M context window |
-| **ZenMux (Multi-Model Gateway)** | `https://zenmux.ai/api/v1` | anthropic/claude-opus-4.8 / claude-fable-5 / openai/gpt-5.6-sol / google/gemini-3.5-flash | 1M context · Image support |
+| **ZenMux (Multi-Model Gateway)** | `https://zenmux.ai/api/v1` | anthropic/claude-opus-4.8 / claude-fable-5.1 / openai/gpt-5.6-sol / google/gemini-3.5-flash | 1M context · Image support |
 | **OpenAI** | `https://api.openai.com/v1` | gpt-5.6-sol / gpt-5.4-mini | Requires international network access |
 | **Local Ollama** | `http://localhost:11434/v1` | All Ollama models (ollama/*) | Fully offline |
 
@@ -347,7 +347,9 @@ If no multi-Provider keys are configured, the system automatically falls back to
 
 ### Optional: Enable DashScope-hosted MCP Services
 
-ZhikunCode currently ships with 17 preconfigured Alibaba Cloud Bailian MCP services providing 83 tools, all enabled by default in the registry. Without a Bailian API Key, remote connections are simply skipped — core chat, code editing, and local tools are unaffected.
+ZhikunCode currently ships with 17 preconfigured Alibaba Cloud Bailian MCP services providing 83 allowlisted tools. Runtime uses a minimal service-level default: Zhipu Web Search, Amap, QwenImage, and WanVideo start enabled; 13 lower-frequency or higher-risk news, legal, business, moderation, finance, academic, sourcing, logistics, market, and industry-data services start disabled. Without a Bailian API Key, remote connections are simply skipped—core chat, code editing, and local tools are unaffected.
+
+An MCP service that is disabled by default or by the user is not connected, does not register tools, and contributes no tool descriptions to the model context; direct invocation is rejected. Open **MCP Management** from the plug icon in the top bar to enable or disable services immediately. Choices are stored locally and do not require a restart.
 
 | MCP Service | Transport | Capability | Tools |
 |-------------|-----------|------------|-------|
@@ -375,8 +377,10 @@ ZhikunCode currently ships with 17 preconfigured Alibaba Cloud Bailian MCP servi
    ```bash
    LLM_PROVIDER_DASHSCOPE_API_KEY=sk-xxxxxxxx
    ```
-2. Confirm the entries you need are `"enabled": true` in [`configuration/mcp/mcp_capability_registry.json`](../configuration/mcp/mcp_capability_registry.json).
-3. Run `./stop.sh && ./start.sh` to fully restart all three tiers so the changes take effect.
+2. After the initial `.env` change, run `./stop.sh && ./start.sh` to restart all three tiers.
+3. Open **MCP Management** from the top bar and enable only the services needed for the current task. Later toggles take effect immediately without a restart.
+
+> `"enabled": true` in the registry means that a tool is on the administrator allowlist; it does not mean that its service starts enabled at runtime. Registry allowlisting, the service switch, and credential readiness are separate gates.
 
 ---
 
@@ -390,7 +394,7 @@ ZhikunCode has completed an end-to-end SWE-bench Lite evaluation (300 instances,
 |---|---|---|
 | Resolved Instances | **168 / 300 (56.0%)** | `docs/swe-bench/20260525/results.json` `resolved=168` |
 | Patch Generation Rate | **284 / 300 (94.7%)** | `all_preds.jsonl` (16 empty patches) |
-| Backbone Model | `qwen3.7-max` | `docs/swe-bench/20260525/metadata.yaml` |
+| Historical Backbone Model (original record retained) | `qwen3.7-max` | `docs/swe-bench/20260525/metadata.yaml` |
 | Closed Tool Set | Read / Edit / Write / Bash / Grep / Glob | [`swe-bench/swe_bench.py`](../swe-bench/swe_bench.py) `ALLOWED_TOOLS` |
 | Per-instance Budget | 60 turns / 900 seconds | [`swe_bench.py`](../swe-bench/swe_bench.py) `solve_instance(max_turns=60, timeout=900)` |
 | Parallel Workers | 1 | `--workers` default |
@@ -693,10 +697,10 @@ Full test report: [ZhikunCode v9.3 End-to-End Test Report](test-results/v9.3/Zhi
 **Continuous Integration:**
 - **GitHub Actions Pipeline**: The main CI runs backend compilation and the frontend build. Python tests are currently non-blocking, and Docker image verification runs only on pushes to `main`.
 
-**Current Local Verification Snapshot (2026-08-25):**
-- **Backend Unit/Integration Tests**: 1234 tests / 0 failure / 0 error / 61 skipped
+**Current Local Verification Snapshot (2026-09-02):**
+- **Backend Unit/Integration Tests**: 1258 tests / 0 failure / 0 error / 62 skipped
 - **Python pytest**: 107 PASS
-- **Frontend vitest**: 204 PASS / 16 skipped (220 total)
+- **Frontend vitest**: 207 PASS / 16 skipped (223 total)
 - **Simple Workbench Playwright E2E**: 7 / 7 PASS
 - **Static and Build Validation**: TypeScript and the Vite production build passed
 
@@ -713,8 +717,8 @@ Full test report: [ZhikunCode v9.3 End-to-End Test Report](test-results/v9.3/Zhi
 
 | Framework | Layer | Coverage | Count |
 |-----------|-------|----------|-------|
-| JUnit 5 + Mockito | Backend Unit/Integration | Context/Authorization Gateway/Skill/Plugin/LLM/MCP/Memory/Concurrency/SSE/Persistence/Tool/Coordinator/Swarm/Workbench projection etc. | 1234 tests / 0 failure / 0 error / 61 skipped |
-| Vitest | Frontend Unit | Store lifecycle/cross-tab sync/streaming/permission interactions/reconnect recovery/workbench and route boundaries | 204 PASS / 16 skipped |
+| JUnit 5 + Mockito | Backend Unit/Integration | Context/Authorization Gateway/Skill/Plugin/LLM/MCP/Memory/Concurrency/SSE/Persistence/Tool/Coordinator/Swarm/Workbench projection etc. | 1258 tests / 0 failure / 0 error / 62 skipped |
+| Vitest | Frontend Unit | Store lifecycle/cross-tab sync/streaming/permission interactions/reconnect recovery/workbench and route boundaries | 207 PASS / 16 skipped |
 | Playwright + Node scripts | E2E | Simple Workbench / Coordinator WS subscription / Three visualization viewTypes / Browser snapshot MVP / APOS Phase 1 full-stack / APOS Phase 2 full-stack | Simple Workbench 7/7 PASS; Task 6/7/8/APOS historical baseline green |
 | Pytest | Python Service | Token estimation/file processing/browser automation/semantic snapshots/code analyzers/CLI | 107 PASS |
 
@@ -1240,7 +1244,12 @@ ZhikunCode implements the standard [MCP (Model Context Protocol)](https://modelc
 
 ### Preconfigured MCP Services
 
-The current registry contains 17 services and 83 tools, all enabled by default. Actual availability depends on the Bailian API Key, console activation status, and account quota.
+The current registry contains 17 services and 83 allowlisted tools. Runtime exposure is controlled by a separate service-level switch; actual availability also depends on the Bailian API Key, console activation status, and account quota.
+
+- **Enabled by default (4):** Zhipu Web Search, Amap, QwenImage, and WanVideo.
+- **Disabled by default (13):** News, legal research, business information, content moderation, A-share financial data, enterprise intellectual property, Wanfang, arXiv, 1688 sourcing, logistics, precious metals, retail insights, and tourism insights.
+- **Context isolation:** A disabled service is not connected or registered and injects no tool definitions into the model context. Direct invocation is rejected.
+- **User control:** Open **MCP Management** from the plug icon in the top bar. Changes take effect immediately and are stored in `~/.zhikun/mcp-service-states.json`; Docker persists them at `/app/data/mcp-service-states.json`.
 
 | Tool | Description | Source |
 |------|-------------|--------|
@@ -1259,9 +1268,33 @@ The current registry contains 17 services and 83 tools, all enabled by default. 
 | **Chain Retail & Tea Insights (8 tools)** | Chain brands, stores, trade areas, and tea-market insights | DashScope Streamable HTTP MCP |
 | **Tourism Insights (10 tools)** | Attractions, visitor flows, hotels, and tourism-market analysis | DashScope Streamable HTTP MCP |
 
+### Optional External MCP Services
+
+GitHub, Context7, and Alibaba Cloud Ops are configured through `ZHIKUN_MCP_SERVERS` in `.env`. Configuration only makes these services available for selection: all three are disabled by default and must be enabled manually in **MCP Management**. Do not use `MCP_SERVERS`: that name collides with Spring Boot binding for `mcp.servers`. See [`.env.example`](../.env.example) for the complete JSON template, and never commit real credentials.
+
+| Service | Default after configuration | Tool allowlist |
+|---------|-----------------------------|----------------|
+| **GitHub MCP Server** | Disabled by default; enable manually in MCP Management | `get_me`, `get_file_contents`, `search_code`, `list_branches`, `list_commits`, `list_pull_requests`, `pull_request_read`; read-only and Lockdown modes are enforced |
+| **Context7** | Disabled by default; enable manually in MCP Management | `resolve-library-id`, `query-docs` |
+| **Alibaba Cloud Ops** | Disabled by default; enable manually in MCP Management | `ECS_DescribeInstances`, `ECS_DescribeRegions`, `ECS_DescribeSecurityGroups`, `OSS_ListBuckets`, `OSS_ListObjects` |
+
+```bash
+# Place real values only in the Git-ignored .env file
+CONTEXT7_API_KEY=your-context7-api-key
+ALIBABA_CLOUD_ACCESS_KEY_ID=your-access-key-id
+ALIBABA_CLOUD_ACCESS_KEY_SECRET=your-access-key-secret
+GITHUB_TOOLS=get_me,get_file_contents,search_code,list_branches,list_commits,list_pull_requests,pull_request_read
+GITHUB_READ_ONLY=1
+GITHUB_LOCKDOWN_MODE=1
+ALIBABA_CLOUD_OPS_VISIBLE_TOOLS=ECS_DescribeInstances,ECS_DescribeRegions,ECS_DescribeSecurityGroups,OSS_ListBuckets,OSS_ListObjects
+# ZHIKUN_MCP_SERVERS=<copy the JSON template from .env.example>
+```
+
+Restart after changing `.env` or external MCP connection configuration, then enable the required service manually in **MCP Management**. Later changes to a service switch take effect without another restart.
+
 ### Custom MCP Tools
 
-Register new MCP tools in `configuration/mcp/mcp_capability_registry.json`:
+Administrators can register new MCP tools in `configuration/mcp/mcp_capability_registry.json`. Here, `enabled` is the tool allowlist flag, not the user-facing service switch:
 
 ```json
 {
@@ -1281,6 +1314,7 @@ Register new MCP tools in `configuration/mcp/mcp_capability_registry.json`:
 - **MCP Roots Security Boundary**: Declares workspace filesystem roots to prevent MCP servers from accessing unauthorized paths
 - **MCP Progress Tracking**: Real-time progress display for long-running MCP tool operations with cancellation support
 - **MCP Schema Compression**: Automatically compresses large tool parameter schemas to reduce LLM context usage
+- **Service-Level Context Isolation**: Disabled services do not connect, register tools, or inject schemas into the model context
 
 ### MCP Protocol Transport Layer
 
@@ -1358,7 +1392,7 @@ Environment variables are managed via the `.env` file. Copy `.env.example` and m
 | `LLM_PROVIDER_DEEPSEEK_API_KEY` | — | — | DeepSeek API Key |
 | `LLM_PROVIDER_MOONSHOT_API_KEY` | — | — | Moonshot/Kimi API Key |
 | `LLM_PROVIDER_ZHIPU_API_KEY` | — | — | Zhipu GLM API Key |
-| `LLM_DEFAULT_MODEL` | — | qwen3.7-max | Default model (used when no explicit selection) |
+| `LLM_DEFAULT_MODEL` | — | qwen3.8-max-0902 | Default model (used when no explicit selection) |
 
 > In multi-Provider mode, configure at least one Provider's API Key. The frontend supports free switching between configured Providers.
 
@@ -1368,7 +1402,7 @@ Environment variables are managed via the `.env` file. Copy `.env.example` and m
 |----------|:---:|---------|-------------|
 | `LLM_API_KEY` | ✅ | — | API Key for your LLM provider |
 | `LLM_BASE_URL` | — | DashScope | LLM API endpoint |
-| `LLM_DEFAULT_MODEL` | — | qwen3.7-max | Default model |
+| `LLM_DEFAULT_MODEL` | — | qwen3.8-max-0902 | Default model |
 | `LLM_MODELS` | — | Qwen series | Available models (comma-separated) |
 
 > If all `LLM_PROVIDER_*` keys are empty, the system automatically falls back to single-Provider mode.
@@ -1395,7 +1429,7 @@ Environment variables are managed via the `.env` file. Copy `.env.example` and m
 | Variable | Required | Default | Description |
 |----------|:---:|---------|-------------|
 | `ZHIKUN_COORDINATOR_MODE` | — | 0 | Feature flag, enable coordinator mode (0=off, 1=on) |
-| `LLM_PROVIDER_DASHSCOPE_MODELS` | — | qwen3.7-max,qwen3.7-plus | DashScope available models (comma-separated) |
+| `LLM_PROVIDER_DASHSCOPE_MODELS` | — | qwen3.8-max-0902,qwen3.7-plus | DashScope available models (comma-separated) |
 | `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS` | — | qwen3.8-max,qwen3.8-flash,deepseek-v4-pro-0813,deepseek-v4-flash-0731 | Alibaba Cloud Bailian Token Plan models; independent from standard DashScope and direct DeepSeek settings |
 | `LLM_PROVIDER_DEEPSEEK_MODELS` | — | deepseek-v4-pro,deepseek-v4-flash,deepseek-v4-flash-vision-exp | DeepSeek models; Vision Exp is the family image-understanding fallback (comma-separated) |
 | `LLM_PROVIDER_MOONSHOT_MODELS` | — | kimi-k3,moonshot-v1-128k | Moonshot available models (comma-separated) |

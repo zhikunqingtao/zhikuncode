@@ -1,0 +1,23 @@
+#!/usr/bin/env sh
+set -eu
+
+# Docker installs the MCP server into a dedicated environment. Local development
+# uses a separate ignored venv so FastMCP/Pydantic pins cannot affect ZhikunCode.
+for candidate in \
+    "${ZHIKUN_ALIBABA_CLOUD_OPS_MCP_BIN:-}" \
+    "/app/mcp-servers/alibaba-cloud-ops/bin/alibaba-cloud-ops-mcp-server" \
+    "${PWD}/.ai-code-assistant/venvs/alibaba-cloud-ops/bin/alibaba-cloud-ops-mcp-server" \
+    "${PWD}/backend/.ai-code-assistant/venvs/alibaba-cloud-ops/bin/alibaba-cloud-ops-mcp-server"
+do
+    if [ -n "${candidate}" ] && [ -x "${candidate}" ]; then
+        exec "${candidate}" "$@"
+    fi
+done
+
+if command -v uvx >/dev/null 2>&1; then
+    exec uvx --from alibaba-cloud-ops-mcp-server==0.9.27 \
+        alibaba-cloud-ops-mcp-server "$@"
+fi
+
+echo "Alibaba Cloud Ops MCP runtime is not installed" >&2
+exit 127

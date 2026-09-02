@@ -83,10 +83,10 @@ describe('TC-STORE-002: sessionStore 会话生命周期', () => {
 
     it('resumeSession 正确切换会话', async () => {
         await useSessionStore.getState().resumeSession('session-1');
-        useSessionStore.getState().setModel('qwen3.7-max');
+        useSessionStore.getState().setModel('qwen3.8-max-0902');
 
         expect(useSessionStore.getState().sessionId).toBe('session-1');
-        expect(useSessionStore.getState().model).toBe('qwen3.7-max');
+        expect(useSessionStore.getState().model).toBe('qwen3.8-max-0902');
 
         await useSessionStore.getState().resumeSession('session-2');
         expect(useSessionStore.getState().sessionId).toBe('session-2');

@@ -33,9 +33,7 @@ class McpServerConnectionHttpHeadersTest {
 
         server.enqueue(jsonRpcResult(1, "{\"protocolVersion\":\"2025-03-26\",\"capabilities\":{},\"serverInfo\":{\"name\":\"test\",\"version\":\"1\"}}"));
         server.enqueue(new MockResponse().setResponseCode(202));
-        server.enqueue(jsonRpcResult(2, "{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{},\"serverInfo\":{\"name\":\"test\",\"version\":\"1\"}}"));
-        server.enqueue(new MockResponse().setResponseCode(202));
-        server.enqueue(jsonRpcResult(3, "{\"tools\":[{\"name\":\"ping\",\"description\":\"Ping\",\"inputSchema\":{\"type\":\"object\"}}]}"));
+        server.enqueue(jsonRpcResult(2, "{\"tools\":[{\"name\":\"ping\",\"description\":\"Ping\",\"inputSchema\":{\"type\":\"object\"}}]}"));
 
         McpServerConfig config = new McpServerConfig(
                 "one-key-test",
@@ -56,7 +54,7 @@ class McpServerConnectionHttpHeadersTest {
                 .map(McpServerConnection.McpToolDefinition::name)
                 .toList());
 
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 3; i++) {
             RecordedRequest request = server.takeRequest(2, TimeUnit.SECONDS);
             assertNotNull(request, "expected MCP handshake request " + (i + 1));
             assertEquals("Bearer test-dashscope-key", request.getHeader("Authorization"));
@@ -72,10 +70,8 @@ class McpServerConnectionHttpHeadersTest {
         server.start();
         server.enqueue(jsonRpcResult(1, "{\"protocolVersion\":\"2025-03-26\",\"capabilities\":{},\"serverInfo\":{\"name\":\"test\",\"version\":\"1\"}}"));
         server.enqueue(new MockResponse().setResponseCode(202));
-        server.enqueue(jsonRpcResult(2, "{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{},\"serverInfo\":{\"name\":\"test\",\"version\":\"1\"}}"));
-        server.enqueue(new MockResponse().setResponseCode(202));
-        server.enqueue(jsonRpcResult(3, "{\"tools\":[{\"name\":\"slow\",\"description\":\"Slow\",\"inputSchema\":{\"type\":\"object\"}}]}"));
-        server.enqueue(jsonRpcResult(4, "{\"content\":[{\"type\":\"text\",\"text\":\"late\"}],\"isError\":false}")
+        server.enqueue(jsonRpcResult(2, "{\"tools\":[{\"name\":\"slow\",\"description\":\"Slow\",\"inputSchema\":{\"type\":\"object\"}}]}"));
+        server.enqueue(jsonRpcResult(3, "{\"content\":[{\"type\":\"text\",\"text\":\"late\"}],\"isError\":false}")
                 .setBodyDelay(500, TimeUnit.MILLISECONDS));
 
         McpServerConnection connection = new McpServerConnection(new McpServerConfig(

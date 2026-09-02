@@ -113,7 +113,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
                                 bg-[var(--bg-secondary)] text-[var(--text-primary)]
                                 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
-                            <option value="qwen3.7-max">Qwen 3.7 Max</option>
+                            <option value="qwen3.8-max-0902">Qwen 3.8 Max 0902</option>
                             <option value="qwen3.7-plus">Qwen 3.7 Plus</option>
                             <option value="qwen3.8-max">Qwen 3.8 Max（百炼）</option>
                             <option value="qwen3.8-flash">Qwen 3.8 Flash（百炼）</option>
@@ -129,7 +129,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
                             <option value="glm-5.3-flash">GLM-5.3-Flash</option>
                             <option value="MiniMax-M3">MiniMax M3</option>
                             <option value="anthropic/claude-opus-4.8">Claude Opus 4.8 (zenmux)</option>
-                            <option value="anthropic/claude-fable-5">Claude Fable 5 (zenmux)</option>
+                            <option value="anthropic/claude-fable-5.1">Claude Fable 5.1 (zenmux)</option>
                             <option value="openai/gpt-5.6-sol">OpenAI GPT-5.6 Sol</option>
                             <option value="google/gemini-3.5-flash">Google Gemini 3.5 Flash</option>
                         </select>

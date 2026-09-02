@@ -1959,9 +1959,9 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       </div>
       <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px;font-size:.78rem">
         <div><span style="color:var(--text3)">模型别名:</span></div>
-        <div><span class="tag cyan">light</span> → qwen3.7-max</div>
-        <div><span class="tag java">standard</span> → qwen3.7-max</div>
-        <div><span class="tag purple">premium</span> → qwen3.7-max</div>
+        <div><span class="tag cyan">light</span> → qwen3.8-max-0902</div>
+        <div><span class="tag java">standard</span> → qwen3.8-max-0902</div>
+        <div><span class="tag purple">premium</span> → qwen3.8-max-0902</div>
         <div><span class="tag green">百炼 Token Plan</span> → qwen3.8-max / qwen3.8-flash / deepseek-v4-pro-0813 / deepseek-v4-flash-0731（独立 Provider，不进入默认降级链）</div>
       </div>
     </div>
@@ -2133,22 +2133,22 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <rect x="770" y="122" width="8" height="8" rx="2" fill="#10B981"/>
       <text x="782" y="130" fill="#9FA4C4" font-size="7">Tier 2</text>
     
-      <!-- Chain 1: claude-sonnet-4-6 → qwen3.7-max → deepseek-v4-flash -->
+      <!-- Chain 1: claude-sonnet-4-6 → qwen3.8-max-0902 → deepseek-v4-flash -->
       <rect x="40" y="160" width="180" height="26" rx="5" fill="#1C1F34" stroke="#FF6B9D" stroke-width="1.2"/>
       <text x="130" y="177" fill="#FF6B9D" font-size="8" font-weight="600" text-anchor="middle">claude-sonnet-4-6</text>
       <line x1="220" y1="173" x2="264" y2="173" stroke="#F59E0B" stroke-width="1.5" class="mts-fl"/>
       <polygon points="262,169 270,173 262,177" fill="#F59E0B"/>
       <rect x="272" y="160" width="140" height="26" rx="5" fill="#1C1F34" stroke="#F59E0B" stroke-width="1.2"/>
-      <text x="342" y="177" fill="#F59E0B" font-size="8" font-weight="600" text-anchor="middle">qwen3.7-max</text>
+      <text x="342" y="177" fill="#F59E0B" font-size="8" font-weight="600" text-anchor="middle">qwen3.8-max-0902</text>
       <line x1="412" y1="173" x2="456" y2="173" stroke="#10B981" stroke-width="1.5" class="mts-fl"/>
       <polygon points="454,169 462,173 454,177" fill="#10B981"/>
       <rect x="464" y="160" width="140" height="26" rx="5" fill="#1C1F34" stroke="#10B981" stroke-width="1.2"/>
       <text x="534" y="177" fill="#10B981" font-size="8" font-weight="600" text-anchor="middle">deepseek-v4-flash</text>
       <text x="620" y="177" fill="#6B70A0" font-size="7">跨厂商降级</text>
     
-      <!-- Chain 2: qwen3.7-max → qwen3.7-plus → deepseek-v4-flash -->
+      <!-- Chain 2: qwen3.8-max-0902 → qwen3.7-plus → deepseek-v4-flash -->
       <rect x="40" y="210" width="180" height="26" rx="5" fill="#1C1F34" stroke="#FF6B9D" stroke-width="1.2"/>
-      <text x="130" y="227" fill="#FF6B9D" font-size="8" font-weight="600" text-anchor="middle">qwen3.7-max</text>
+      <text x="130" y="227" fill="#FF6B9D" font-size="8" font-weight="600" text-anchor="middle">qwen3.8-max-0902</text>
       <line x1="220" y1="223" x2="264" y2="223" stroke="#F59E0B" stroke-width="1.5" class="mts-fl"/>
       <polygon points="262,219 270,223 262,227" fill="#F59E0B"/>
       <rect x="272" y="210" width="140" height="26" rx="5" fill="#1C1F34" stroke="#F59E0B" stroke-width="1.2"/>
@@ -2159,7 +2159,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <text x="534" y="227" fill="#10B981" font-size="8" font-weight="600" text-anchor="middle">deepseek-v4-flash</text>
       <text x="620" y="227" fill="#6B70A0" font-size="7">同族 + 跨厂商</text>
     
-      <!-- Chain 3: qwen3.7-plus → deepseek-v4-flash → qwen3.7-max -->
+      <!-- Chain 3: qwen3.7-plus → deepseek-v4-flash → qwen3.8-max-0902 -->
       <rect x="40" y="260" width="180" height="26" rx="5" fill="#1C1F34" stroke="#FF6B9D" stroke-width="1.2"/>
       <text x="130" y="277" fill="#FF6B9D" font-size="8" font-weight="600" text-anchor="middle">qwen3.7-plus</text>
       <line x1="220" y1="273" x2="264" y2="273" stroke="#F59E0B" stroke-width="1.5" class="mts-fl"/>
@@ -2169,7 +2169,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <line x1="412" y1="273" x2="456" y2="273" stroke="#10B981" stroke-width="1.5" class="mts-fl"/>
       <polygon points="454,269 462,273 454,277" fill="#10B981"/>
       <rect x="464" y="260" width="140" height="26" rx="5" fill="#1C1F34" stroke="#10B981" stroke-width="1.2"/>
-      <text x="534" y="277" fill="#10B981" font-size="8" font-weight="600" text-anchor="middle">qwen3.7-max</text>
+      <text x="534" y="277" fill="#10B981" font-size="8" font-weight="600" text-anchor="middle">qwen3.8-max-0902</text>
       <text x="620" y="277" fill="#6B70A0" font-size="7">跨厂商 + 同族</text>
     
       <!-- 注: claude-haiku-4-5 / claude-opus-4-8 / gpt-5.6-sol 等模型未在降级链中, 由 ModelTierService 走默认策略 -->
@@ -5293,7 +5293,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <!-- Lane 3: LLM Provider -->
       <rect x="330" y="70" width="150" height="50" rx="12" fill="url(#exec_purple)" stroke="#A855F7" stroke-width="1.5"/>
       <text x="405" y="92" text-anchor="middle" fill="#A855F7" font-size="13" font-weight="700">LLM Provider</text>
-      <text x="405" y="108" text-anchor="middle" fill="#6B70A0" font-size="9">DashScope / qwen3.7-max</text>
+      <text x="405" y="108" text-anchor="middle" fill="#6B70A0" font-size="9">DashScope / qwen3.8-max-0902</text>
 
       <!-- Lane 4: ToolExecutionPipeline -->
       <rect x="490" y="70" width="170" height="50" rx="12" fill="url(#exec_green)" stroke="#10B981" stroke-width="1.5"/>

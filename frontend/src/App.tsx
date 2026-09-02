@@ -28,6 +28,7 @@ import {
 import { SimpleWorkbench } from '@/components/workbench/SimpleWorkbench';
 import { useWorkbenchViewStore } from '@/store/workbenchViewStore';
 import { useJourneyVerifyStore } from '@/store/journeyVerifyStore';
+import { usePageExitGuard } from '@/hooks/usePageExitGuard';
 
 interface SkillItem {
   name: string;
@@ -36,6 +37,8 @@ interface SkillItem {
 }
 
 function App() {
+  usePageExitGuard();
+
   const { messages, addMessage } = useMessageStore();
   const { status, sessionId } = useSessionStore();
   const workbenchEnabled = useWorkbenchViewStore(s => s.enabled);

@@ -31,6 +31,9 @@ COPY backend/src ./backend/src/
 RUN cd backend && ./mvnw package -DskipTests -B \
     && mv target/ai-code-assistant-*.jar target/app.jar
 
+# Official GitHub MCP binary, pinned to a release tag.
+FROM ghcr.io/github/github-mcp-server:v1.11.0 AS github-mcp
+
 # ---- Stage 3: Production Runtime ----
 FROM eclipse-temurin:21-jre-jammy AS runtime
 
@@ -75,8 +78,22 @@ RUN python3 -m venv /app/python-service/.venv && \
     /app/python-service/.venv/bin/pip install --no-cache-dir pip==24.0 && \
     /app/python-service/.venv/bin/pip install --no-cache-dir -r /app/python-service/requirements.lock
 
+# Alibaba Cloud Ops has stricter FastMCP/Pydantic pins than the application,
+# so isolate it from the Python analysis service.
+RUN python3 -m venv /app/mcp-servers/alibaba-cloud-ops && \
+    /app/mcp-servers/alibaba-cloud-ops/bin/pip install --no-cache-dir pip==24.0 && \
+    /app/mcp-servers/alibaba-cloud-ops/bin/pip install --no-cache-dir \
+        alibaba-cloud-ops-mcp-server==0.9.27
+
 # Create symlink so PythonProcessManager can resolve 'python' command
 RUN ln -sf /app/python-service/.venv/bin/python /usr/local/bin/python
+
+# External MCP runtimes and stable project launchers.
+COPY --from=github-mcp /server/github-mcp-server /usr/local/bin/github-mcp-server
+COPY scripts/mcp/zhikun-github-mcp scripts/mcp/zhikun-alibaba-cloud-ops-mcp /usr/local/bin/
+RUN chmod +x /usr/local/bin/github-mcp-server \
+    /usr/local/bin/zhikun-github-mcp \
+    /usr/local/bin/zhikun-alibaba-cloud-ops-mcp
 
 # Copy MCP capability registry
 COPY configuration/ ./configuration/

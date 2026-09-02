@@ -12,11 +12,64 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 class McpClientManagerLifecycleTest {
+    @Test
+    void disabledMcpToolsNeverEnterTheToolRegistry() throws Exception {
+        ToolRegistry tools = mock(ToolRegistry.class);
+        McpCapabilityRegistryService registry = mock(McpCapabilityRegistryService.class);
+        when(registry.isServiceEnabled("disabled-server")).thenReturn(false);
+        McpConfiguration configuration = new McpConfiguration();
+        McpClientManager manager = new McpClientManager(
+                configuration, mock(McpConfigurationResolver.class), tools,
+                mock(McpApprovalService.class), registry, mock(Environment.class),
+                mock(SimpMessagingTemplate.class), mock(WebSocketSessionManager.class),
+                mock(SchemaCompressor.class), mock(McpRootsProvider.class),
+                mock(McpProgressTracker.class), mock(QueryEngine.class));
+        McpServerConnection connection = mock(McpServerConnection.class);
+        when(connection.getName()).thenReturn("disabled-server");
+        when(connection.getTools()).thenReturn(List.of(
+                new McpServerConnection.McpToolDefinition(
+                        "hidden_tool", "must not reach model context", Map.of())));
+
+        Method register = McpClientManager.class.getDeclaredMethod(
+                "registerToolsFromConnection", McpServerConnection.class);
+        register.setAccessible(true);
+        register.invoke(manager, connection);
+
+        verify(tools, never()).registerDynamic(any());
+        manager.shutdown();
+    }
+
+    @Test
+    void configuredServersRespectAnExplicitDisabledPreference() {
+        McpConfiguration configuration = new McpConfiguration();
+        McpConfigurationResolver resolver = mock(McpConfigurationResolver.class);
+        McpServerConfig context7 = McpServerConfig.http(
+                "context7", "https://mcp.context7.com/mcp");
+        when(resolver.resolveAll()).thenReturn(List.of(context7));
+        McpCapabilityRegistryService registry = mock(McpCapabilityRegistryService.class);
+        when(registry.isServiceEnabled("context7")).thenReturn(false);
+
+        McpClientManager manager = new McpClientManager(
+                configuration, resolver, mock(ToolRegistry.class), mock(McpApprovalService.class),
+                registry, mock(Environment.class), mock(SimpMessagingTemplate.class),
+                mock(WebSocketSessionManager.class), mock(SchemaCompressor.class),
+                mock(McpRootsProvider.class), mock(McpProgressTracker.class), mock(QueryEngine.class));
+
+        manager.start();
+
+        assertEquals(0, manager.connectionCount());
+        assertEquals(List.of("context7"), manager.listConfiguredServers().stream()
+                .map(McpServerConfig::name).toList());
+        manager.shutdown();
+    }
+
     @Test
     void removedConnectionCannotReconnectOrTouchReplacementWithSameName() throws Exception {
         ToolRegistry tools = mock(ToolRegistry.class);

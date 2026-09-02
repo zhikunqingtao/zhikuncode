@@ -1,0 +1,46 @@
+#!/usr/bin/env sh
+set -eu
+
+GITHUB_MCP_IMAGE="ghcr.io/github/github-mcp-server:v1.11.0"
+
+# An explicit per-tool allowlist must not be broadened by an inherited toolset.
+if [ -n "${GITHUB_TOOLS:-}" ]; then
+    unset GITHUB_TOOLSETS
+fi
+
+# Prefer a project-local verified binary when available. The two PWD variants
+# cover start.sh launching Java from either the repository root or backend/.
+for candidate in \
+    "${ZHIKUN_GITHUB_MCP_BIN:-}" \
+    "${PWD}/.ai-code-assistant/bin/github-mcp-server" \
+    "${PWD}/backend/.ai-code-assistant/bin/github-mcp-server"
+do
+    if [ -n "${candidate}" ] && [ -x "${candidate}" ]; then
+        unset GITHUB_OAUTH_CALLBACK_PORT
+        exec "${candidate}" stdio
+    fi
+done
+
+# Production images copy the official binary directly. In that environment a
+# loopback OAuth callback is not browser-reachable, so let the server choose its
+# headless/device-code fallback.
+if command -v github-mcp-server >/dev/null 2>&1; then
+    unset GITHUB_OAUTH_CALLBACK_PORT
+    exec github-mcp-server stdio
+fi
+
+# Local development reuses the official container and publishes only the OAuth
+# callback port on loopback. Credentials stay in the server process memory.
+if command -v docker >/dev/null 2>&1; then
+    callback_port="${GITHUB_OAUTH_CALLBACK_PORT:-8085}"
+    exec docker run -i --rm \
+        -p "127.0.0.1:${callback_port}:${callback_port}" \
+        -e GITHUB_OAUTH_CALLBACK_PORT="${callback_port}" \
+        -e GITHUB_TOOLS \
+        -e GITHUB_READ_ONLY \
+        -e GITHUB_LOCKDOWN_MODE \
+        "${GITHUB_MCP_IMAGE}"
+fi
+
+echo "GitHub MCP requires github-mcp-server or Docker" >&2
+exit 127

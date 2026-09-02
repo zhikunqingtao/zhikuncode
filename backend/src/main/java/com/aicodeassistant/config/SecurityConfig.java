@@ -103,7 +103,9 @@ public class SecurityConfig {
                 .forEach(allowedOrigins::add);
         }
         config.setAllowedOrigins(allowedOrigins);
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        // MCP 服务管理使用 PATCH 切换启用状态。即使前端经 Vite 代理访问，
+        // 浏览器仍会携带 Origin；漏掉 PATCH 会被 Spring CORS 直接拒绝为 403。
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Session-Id"));
         config.setAllowCredentials(true);
         config.setExposedHeaders(List.of("Set-Cookie", "X-Session-Id"));

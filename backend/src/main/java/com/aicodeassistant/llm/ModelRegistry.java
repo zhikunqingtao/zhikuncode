@@ -30,7 +30,7 @@ public class ModelRegistry {
         entry("claude-haiku-4-5", caps("claude-haiku-4-5", "Claude Haiku 4.5", 8192, 200000, true, false, true, 10, true, 0.0008, 0.004)),
          // Anthropic via ZenMux (anthropic/ 前缀 = zenmux 中转，1M ctx · 128K 最大输出，我们保守设 64K)
         entry("anthropic/claude-opus-4.8", caps("anthropic/claude-opus-4.8", "Claude Opus 4.8", 64000, 1000000, true, false, true, 5, true, 0.005, 0.025)),
-        entry("anthropic/claude-fable-5", caps("anthropic/claude-fable-5", "Claude Fable 5", 64000, 1000000, true, false, true, 5, true, 0.010, 0.050)),
+        entry("anthropic/claude-fable-5.1", caps("anthropic/claude-fable-5.1", "Claude Fable 5.1", 64000, 1000000, true, false, true, 5, true, 0.010, 0.050)),
         // OpenAI via ZenMux (openai/ 前缀 = zenmux 中转)
         entry("openai/gpt-5.6-sol",   caps("openai/gpt-5.6-sol",   "OpenAI GPT-5.6 Sol",   128000, 1050000, true,  false, true, 4, true, 0.030, 0.180)),
         // Google via ZenMux (google/ 前缀 = zenmux 中转)
@@ -46,7 +46,7 @@ public class ModelRegistry {
         entry("kimi-k2.7-code",     caps("kimi-k2.7-code",     "Kimi K2.7 Code",    16384, 256000,  true, true, true, 8, true, 0.002, 0.012)),
         entry("moonshot-v1-128k",  caps("moonshot-v1-128k",  "Moonshot V1 128K",   8192, 128000,  true, false, false, 0, true, 0.001, 0.002)),
         entry("qwen-turbo",        caps("qwen-turbo",        "Qwen Turbo",         8192, 1000000,  true, false, false, 0, true, 0.0003, 0.0006)),
-        entry("qwen3.7-max", caps("qwen3.7-max", "Qwen 3.7 Max", 65536, 1000000, true, true, false, 0, true, 0.009, 0.054)),
+        entry("qwen3.8-max-0902", caps("qwen3.8-max-0902", "Qwen 3.8 Max 0902", 65536, 1000000, true, true, true, 4, true, 0.009, 0.054)),
         entry("qwen3.8-max", caps("qwen3.8-max", "Qwen 3.8 Max（百炼）", 65536, 1000000, true, true, true, 4, true, 0.009, 0.054)),
         // Qwen3.8-Flash 官方规格（help.aliyun.com/zh/model-studio/qwen3-8-flash）：
         // 1M 上下文 / 131072 最大输出 / 多模态（Image/Text/Video 输入）/ 支持思考模式（最大思维链 262144）

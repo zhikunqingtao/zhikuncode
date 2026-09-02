@@ -58,7 +58,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
             Map.entry("deepseek-v4-flash-vision-exp", new ModelCapabilities("deepseek-v4-flash-vision-exp", "DeepSeek V4 Flash Vision Exp", 384000, 1000000, true, true, true, 5, true, 0.0005, 0.002)),
             Map.entry("deepseek-v4-pro-0813", new ModelCapabilities("deepseek-v4-pro-0813", "DeepSeek V4 Pro 0813（百炼）", 384000, 1000000, true, true, false, 0, true, 0.001, 0.004)),
             Map.entry("deepseek-v4-flash-0731", new ModelCapabilities("deepseek-v4-flash-0731", "DeepSeek V4 Flash 0731（百炼）", 384000, 1000000, true, true, false, 0, true, 0.0005, 0.002)),
-            // 阿里云百炼 - 通义千问模型（qwen3.7-max/qwen3.7-plus/qwen-turbo 已迁移至 ModelRegistry.BUILTIN_MODELS）
+            // 阿里云百炼 - 通义千问模型（qwen3.8-max-0902/qwen3.7-plus/qwen-turbo 已迁移至 ModelRegistry.BUILTIN_MODELS）
             Map.entry("qwen-coder-plus", new ModelCapabilities("qwen-coder-plus", "通义千问 Coder Plus", 8192, 131072, true, false, false, 0, true, 0.0007, 0.002))
     );
 
@@ -130,7 +130,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
 
     /**
      * 思考能力快捷判定 — 覆盖 LlmProvider 默认实现以避免对 MODEL_CAPABILITIES 之外的模型
-     * （例如 qwen3.7-max / qwen3.7-plus，已迁移到 ModelRegistry.BUILTIN_MODELS）
+     * （例如 qwen3.8-max-0902 / qwen3.7-plus，已迁移到 ModelRegistry.BUILTIN_MODELS）
      * 触发 getModelCapabilities() 的 IllegalArgumentException。
      * <p>
      * 此处复用 Provider 已有的模型族判定函数（{@link #isDeepSeekV4Model} /

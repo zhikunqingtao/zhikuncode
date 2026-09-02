@@ -26,21 +26,21 @@ class LlmFallbackChainTest {
     @DisplayName("内置别名映射应包含 light/standard/premium 三级")
     void builtinAliasesShouldContainAllLevels() {
         LlmProvider provider = mock(LlmProvider.class);
-        when(provider.getDefaultModel()).thenReturn("qwen3.7-max");
+        when(provider.getDefaultModel()).thenReturn("qwen3.8-max-0902");
         when(provider.getFastModel()).thenReturn("qwen-plus");
         when(provider.getProviderName()).thenReturn("test-provider");
-        when(provider.getSupportedModels()).thenReturn(List.of("qwen-plus", "qwen3.7-plus", "qwen3.7-max"));
+        when(provider.getSupportedModels()).thenReturn(List.of("qwen-plus", "qwen3.7-plus", "qwen3.8-max-0902"));
 
         LlmProviderRegistry registry = new LlmProviderRegistry(
             List.of(provider), mockEnv);
 
         // 验证新别名映射（统一指向最强模型）
-        assertEquals("qwen3.7-max", registry.resolveModelAlias("light"),
-            "light 应映射到 qwen3.7-max");
-        assertEquals("qwen3.7-max", registry.resolveModelAlias("standard"),
-            "standard 应映射到 qwen3.7-max");
-        assertEquals("qwen3.7-max", registry.resolveModelAlias("premium"),
-            "premium 应映射到 qwen3.7-max");
+        assertEquals("qwen3.8-max-0902", registry.resolveModelAlias("light"),
+            "light 应映射到 qwen3.8-max-0902");
+        assertEquals("qwen3.8-max-0902", registry.resolveModelAlias("standard"),
+            "standard 应映射到 qwen3.8-max-0902");
+        assertEquals("qwen3.8-max-0902", registry.resolveModelAlias("premium"),
+            "premium 应映射到 qwen3.8-max-0902");
     }
 
     @Test
@@ -55,7 +55,7 @@ class LlmFallbackChainTest {
 
         // Level 3 回退：无 env、无 config → 使用内置别名
         String resolved = registry.resolveModelAlias("light");
-        assertEquals("qwen3.7-max", resolved, "应通过内置别名解析");
+        assertEquals("qwen3.8-max-0902", resolved, "应通过内置别名解析");
 
         // Level 4 回退：未知别名直接返回
         String unknown = registry.resolveModelAlias("my-custom-model");
@@ -67,9 +67,9 @@ class LlmFallbackChainTest {
     @DisplayName("默认模型兜底策略验证")
     void defaultModelFallbackStrategy() {
         LlmProvider provider = mock(LlmProvider.class);
-        when(provider.getDefaultModel()).thenReturn("qwen3.7-max");
+        when(provider.getDefaultModel()).thenReturn("qwen3.8-max-0902");
         when(provider.getProviderName()).thenReturn("test-provider");
-        when(provider.getSupportedModels()).thenReturn(List.of("qwen3.7-max"));
+        when(provider.getSupportedModels()).thenReturn(List.of("qwen3.8-max-0902"));
 
         LlmProviderRegistry registry = new LlmProviderRegistry(
             List.of(provider), mockEnv);
@@ -84,9 +84,9 @@ class LlmFallbackChainTest {
     void lightweightModelFallsBackToDefault() {
         LlmProvider provider = mock(LlmProvider.class);
         when(provider.getFastModel()).thenReturn(null);
-        when(provider.getDefaultModel()).thenReturn("qwen3.7-max");
+        when(provider.getDefaultModel()).thenReturn("qwen3.8-max-0902");
         when(provider.getProviderName()).thenReturn("test-provider");
-        when(provider.getSupportedModels()).thenReturn(List.of("qwen3.7-max"));
+        when(provider.getSupportedModels()).thenReturn(List.of("qwen3.8-max-0902"));
 
         LlmProviderRegistry registry = new LlmProviderRegistry(
             List.of(provider), mockEnv);
@@ -99,10 +99,10 @@ class LlmFallbackChainTest {
     @DisplayName("回退层级不超过 4 级")
     void fallbackChainMaxFourLevels() {
         LlmProvider provider = mock(LlmProvider.class);
-        when(provider.getDefaultModel()).thenReturn("qwen3.7-max");
+        when(provider.getDefaultModel()).thenReturn("qwen3.8-max-0902");
         when(provider.getFastModel()).thenReturn("qwen-plus");
         when(provider.getProviderName()).thenReturn("test-provider");
-        when(provider.getSupportedModels()).thenReturn(List.of("qwen-plus", "qwen3.7-max"));
+        when(provider.getSupportedModels()).thenReturn(List.of("qwen-plus", "qwen3.8-max-0902"));
 
         LlmProviderRegistry registry = new LlmProviderRegistry(
             List.of(provider), mockEnv);

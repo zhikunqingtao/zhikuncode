@@ -69,6 +69,8 @@ public class McpClientManager implements SmartLifecycle {
     private final McpProgressTracker progressTracker;
     private final QueryEngine queryEngine; // 用于 M4 AbortContext 查找（@Lazy 避免循环依赖）
     private final Map<String, McpServerConnection> connections = new ConcurrentHashMap<>();
+    /** 可由管理页启用的显式配置；保存配置本身，不包含于模型上下文。 */
+    private final Map<String, McpServerConfig> configuredServers = new ConcurrentHashMap<>();
     private volatile boolean running = false;
 
     // ★ 自定义重连线程池（避免占用公共 ForkJoinPool）
@@ -165,8 +167,14 @@ public class McpClientManager implements SmartLifecycle {
     public void initializeAll() {
         // 1. 从多来源解析器加载合并配置（LOCAL > USER > ENTERPRISE > ENV）
         //    ★ 来自配置文件的服务器自动信任
-        List<McpServerConfig> resolvedConfigs = configurationResolver.resolveAll();
+        List<McpServerConfig> resolvedConfigs = configurationResolver != null
+                ? configurationResolver.resolveAll() : List.of();
         for (McpServerConfig config : resolvedConfigs) {
+            configuredServers.put(config.name(), config);
+            if (!isServiceEnabled(config.name())) {
+                log.info("MCP server '{}' is configured but disabled by user preference", config.name());
+                continue;
+            }
             if (!approvalService.isTrusted(config)) {
                 approvalService.recordApproval(config, config.scope() != null ? config.scope().name() : "LOCAL");
                 log.info("Auto-trusted config-file MCP server: {} (scope={})", config.name(), config.scope());
@@ -178,6 +186,11 @@ public class McpClientManager implements SmartLifecycle {
         //    ★ application.yml 中配置的服务器自动信任 — 来自应用配置文件的服务器无需交互式审批
         List<McpServerConfig> appConfigs = mcpConfiguration.toMcpServerConfigs();
         for (McpServerConfig config : appConfigs) {
+            configuredServers.putIfAbsent(config.name(), config);
+            if (!isServiceEnabled(config.name())) {
+                log.info("MCP server '{}' is configured but disabled by user preference", config.name());
+                continue;
+            }
             if (!connections.containsKey(config.name())) {
                 // 自动信任 application.yml 配置的服务器
                 if (!approvalService.isTrusted(config)) {
@@ -193,7 +206,7 @@ public class McpClientManager implements SmartLifecycle {
 
         // 3. 从能力注册表加载已启用的工具定义，自动创建连接
         if (registryService != null && registryService.size() > 0) {
-            List<McpCapabilityDefinition> enabledCaps = registryService.listEnabled();
+            List<McpCapabilityDefinition> enabledCaps = registryService.listRuntimeEnabled();
             int registryConnections = 0;
             int missingApiKeyServers = 0;
             int missingEndpointServers = 0;
@@ -297,6 +310,26 @@ public class McpClientManager implements SmartLifecycle {
     /** 获取所有连接 */
     public List<McpServerConnection> listConnections() {
         return List.copyOf(connections.values());
+    }
+
+    /** 列出已发现但未必已启用的显式 MCP 配置。不会返回 headers/env 中的密钥。 */
+    public List<McpServerConfig> listConfiguredServers() {
+        return configuredServers.values().stream()
+                .sorted(Comparator.comparing(McpServerConfig::name))
+                .toList();
+    }
+
+    /** 用户从管理页显式启用一个配置型 MCP。 */
+    public McpServerConnection enableConfiguredServer(String name) {
+        McpServerConfig config = configuredServers.get(name);
+        if (config == null) {
+            throw new IllegalArgumentException("Configured MCP server not found: " + name);
+        }
+        if (!approvalService.isTrusted(config)) {
+            approvalService.recordApproval(config,
+                    config.scope() != null ? config.scope().name() + "_USER_ENABLED" : "USER_ENABLED");
+        }
+        return addServer(config);
     }
 
     /** 获取所有已连接的服务器 */
@@ -536,7 +569,7 @@ public class McpClientManager implements SmartLifecycle {
         for (McpToolDefinition mcpTool : conn.getTools()) {
             // 权限检查
             if (!isToolAllowed(conn.getName(), mcpTool.name())) {
-                log.info("MCP tool {}:{} blocked by channel permissions",
+                log.info("MCP tool {}:{} blocked by service/tool policy",
                         conn.getName(), mcpTool.name());
                 continue;
             }
@@ -573,6 +606,11 @@ public class McpClientManager implements SmartLifecycle {
      * 检查 MCP 工具是否被允许。
      */
     private boolean isToolAllowed(String serverName, String toolName) {
+        // 服务级开关是进入模型上下文前的第一道闸门。即使连接通过通用接口或
+        // 重连竞态意外存在，关闭的服务也不能向 ToolRegistry 注册任何工具。
+        if (registryService != null && !registryService.isServiceEnabled(serverName)) {
+            return false;
+        }
         Map<String, List<String>> permissions = mcpConfiguration.getChannelPermissions();
         if (permissions != null && !permissions.isEmpty()) {
             List<String> blocked = permissions.getOrDefault(serverName, List.of());
@@ -856,6 +894,18 @@ public class McpClientManager implements SmartLifecycle {
         }
 
         return addServer(config);
+    }
+
+    /** 管理页只返回就绪状态，绝不暴露实际密钥或 Authorization header。 */
+    public String registryReadiness(McpCapabilityDefinition def) {
+        McpServerConfig config = buildConfigFromRegistry(def);
+        if (config.url() == null || config.url().isBlank()) return "missing_endpoint";
+        if (requiresApiKey(def) && !hasAuthorization(config)) return "needs_auth";
+        return "ready";
+    }
+
+    private boolean isServiceEnabled(String serverName) {
+        return registryService != null && registryService.isServiceEnabled(serverName);
     }
 
     private McpServerConnection inactiveRegistryConnection(

@@ -17,7 +17,7 @@ import java.util.*;
  * <p>
  * 当前实现 4 级优先级（从低到高，后加载的覆盖先加载的同名服务器）:
  * <ol>
- *   <li>ENV — 环境变量 {@code MCP_SERVERS}（JSON 格式）</li>
+ *   <li>ENV — 环境变量 {@code ZHIKUN_MCP_SERVERS}（JSON 格式）</li>
  *   <li>ENTERPRISE — 企业级 {@code /etc/ai-code-assistant/mcp.json}</li>
  *   <li>USER — 用户级 {@code ~/.config/ai-code-assistant/mcp.json}</li>
  *   <li>LOCAL — 项目本地 {@code .ai-code-assistant/mcp.json}（最高优先级）</li>
@@ -42,7 +42,8 @@ public class McpConfigurationResolver {
     private static final String PROJECT_MCP_FILE = ".ai-code-assistant/mcp.json";
     private static final String USER_MCP_FILE = ".config/ai-code-assistant/mcp.json";
     private static final String ENTERPRISE_MCP_FILE = "/etc/ai-code-assistant/mcp.json";
-    private static final String ENV_VAR_MCP_SERVERS = "MCP_SERVERS";
+    // MCP_SERVERS collides with Spring Boot's relaxed binding for mcp.servers.
+    private static final String ENV_VAR_MCP_SERVERS = "ZHIKUN_MCP_SERVERS";
 
     private final ObjectMapper objectMapper;
     private final Environment environment;
@@ -121,7 +122,7 @@ public class McpConfigurationResolver {
     }
 
     /**
-     * 从环境变量 {@code MCP_SERVERS} 加载。
+     * 从环境变量 {@code ZHIKUN_MCP_SERVERS} 加载。
      * <p>
      * 格式: JSON 字符串，结构与 mcp.json 相同。
      */
@@ -145,7 +146,7 @@ public class McpConfigurationResolver {
             log.debug("Loaded {} MCP configs from env var {}", configs.size(), ENV_VAR_MCP_SERVERS);
             return configs;
         } catch (Exception e) {
-            log.warn("Failed to parse MCP_SERVERS env var: {}", e.getMessage());
+            log.warn("Failed to parse {} env var: {}", ENV_VAR_MCP_SERVERS, e.getMessage());
             return List.of();
         }
     }
@@ -169,10 +170,10 @@ public class McpConfigurationResolver {
 
         if (serverNode.has("command")) {
             type = McpTransportType.STDIO;
-            command = serverNode.get("command").asText();
+            command = resolvePlaceholders(serverNode.get("command").asText());
             if (serverNode.has("args")) {
                 List<String> argList = new ArrayList<>();
-                serverNode.get("args").forEach(n -> argList.add(n.asText()));
+                serverNode.get("args").forEach(n -> argList.add(resolvePlaceholders(n.asText())));
                 args = argList;
             }
         } else if (serverNode.has("url")) {
@@ -183,7 +184,7 @@ public class McpConfigurationResolver {
                 case "WS" -> McpTransportType.WS;
                 default -> McpTransportType.SSE;
             };
-            url = serverNode.get("url").asText();
+            url = resolvePlaceholders(serverNode.get("url").asText());
         } else {
             log.warn("MCP config '{}' has neither 'command' nor 'url', skipping", name);
             return null;
@@ -193,7 +194,7 @@ public class McpConfigurationResolver {
         if (serverNode.has("env")) {
             Map<String, String> envMap = new LinkedHashMap<>();
             serverNode.get("env").fieldNames().forEachRemaining(
-                    k -> envMap.put(k, serverNode.get("env").get(k).asText()));
+                    k -> envMap.put(k, resolvePlaceholders(serverNode.get("env").get(k).asText())));
             env = envMap;
         }
 
@@ -201,11 +202,21 @@ public class McpConfigurationResolver {
         if (serverNode.has("headers")) {
             Map<String, String> headerMap = new LinkedHashMap<>();
             serverNode.get("headers").fieldNames().forEachRemaining(
-                    k -> headerMap.put(k, serverNode.get("headers").get(k).asText()));
+                    k -> headerMap.put(k, resolvePlaceholders(serverNode.get("headers").get(k).asText())));
             headers = headerMap;
         }
 
         return new McpServerConfig(name, type, command, args, env, url, headers, scope);
+    }
+
+    /**
+     * Resolve Spring-style placeholders in MCP connection fields so secrets can
+     * stay in the process environment instead of being duplicated in JSON files.
+     * Missing placeholders fail the individual server configuration closed.
+     */
+    private String resolvePlaceholders(String value) {
+        if (value == null || value.isEmpty()) return value;
+        return environment.resolveRequiredPlaceholders(value);
     }
 
     // ===== 路径解析 =====

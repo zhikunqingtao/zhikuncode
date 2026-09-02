@@ -89,7 +89,7 @@ describe('State-based routing', () => {
         const newSessionId = 'session-new';
 
         // 模拟会话创建时的多 Store 协调
-        useSessionStore.setState({ sessionId: newSessionId, model: 'qwen3.7-max' });
+        useSessionStore.setState({ sessionId: newSessionId, model: 'qwen3.8-max-0902' });
         useMessageStore.getState().clearMessages();
         useCostStore.getState().resetSessionCost();
         usePermissionStore.getState().setPermissionMode('default');

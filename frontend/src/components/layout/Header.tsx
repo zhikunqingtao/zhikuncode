@@ -16,6 +16,7 @@ import { sendSetModel } from '@/api/stompClient';
 import { dispatchNewAuthorizedSessionRequest } from '@/services/authorizedSession';
 import { useWorkbenchViewStore } from '@/store/workbenchViewStore';
 import { WorkbenchViewSwitch } from '@/components/workbench/WorkbenchViewSwitch';
+import { McpIcon } from '@/components/mcp/McpIcon';
 
 interface HeaderProps {
     onMenuClick?: () => void;
@@ -156,6 +157,15 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                 </button>
 
                 {/* Settings */}
+                <button
+                    onClick={() => openDialog('mcp')}
+                    className="inline-flex p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-secondary)]"
+                    title="MCP 管理"
+                    aria-label="MCP 管理"
+                >
+                    <McpIcon className="h-5 w-8" />
+                </button>
+
                 <button
                     onClick={() => openDialog('settings')}
                     className="hidden sm:inline-flex p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-secondary)]"

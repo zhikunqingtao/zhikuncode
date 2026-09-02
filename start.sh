@@ -119,6 +119,10 @@ if [ -f "$PROJECT_ROOT/.env" ]; then
     set +a
 fi
 
+# Project-pinned MCP launchers. Keeping them on PATH makes the same ZHIKUN_MCP_SERVERS
+# JSON work for local development and the production container.
+export PATH="$PROJECT_ROOT/scripts/mcp:$PATH"
+
 # 本地一键启动需要能完成首次 Project 授权，同时保留显式的安全策略配置。
 if [ -z "${ZHIKUN_DEFAULT_WORKSPACE:-}" ]; then
     export ZHIKUN_DEFAULT_WORKSPACE="$PROJECT_ROOT"

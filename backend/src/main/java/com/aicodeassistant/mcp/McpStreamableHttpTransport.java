@@ -258,7 +258,8 @@ public class McpStreamableHttpTransport implements McpTransport {
             String json = objectMapper.writeValueAsString(response);
             Request.Builder builder = new Request.Builder()
                     .url(baseUrl)
-                    .post(RequestBody.create(json, JSON_MEDIA));
+                    .post(RequestBody.create(json, JSON_MEDIA))
+                    .header("Accept", "application/json, text/event-stream");
             if (sessionId != null) {
                 builder.header("Mcp-Session-Id", sessionId);
             }
@@ -282,7 +283,8 @@ public class McpStreamableHttpTransport implements McpTransport {
 
             Request.Builder requestBuilder = new Request.Builder()
                     .url(baseUrl)
-                    .post(RequestBody.create(json, JSON_MEDIA));
+                    .post(RequestBody.create(json, JSON_MEDIA))
+                    .header("Accept", "application/json, text/event-stream");
 
             if (sessionId != null) {
                 requestBuilder.header("Mcp-Session-Id", sessionId);

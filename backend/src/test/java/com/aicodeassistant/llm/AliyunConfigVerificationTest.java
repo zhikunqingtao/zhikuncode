@@ -107,13 +107,13 @@ class AliyunConfigVerificationTest {
         // 验证 ModelRegistry.BUILTIN_MODELS 中千问模型 contextWindow 已更新为官方最新值
         // 由于 ModelRegistry 需要 LlmProviderRegistry，这里通过构造 mock 的 registry 来测试
         OpenAiCompatibleProvider provider = createProvider(
-                List.of("qwen3.7-plus", "qwen3.7-max", "qwen-turbo"));
+                List.of("qwen3.7-plus", "qwen3.8-max-0902", "qwen-turbo"));
         LlmProviderRegistry providerRegistry = new LlmProviderRegistry(List.of(provider), null);
         ModelRegistry modelRegistry = new ModelRegistry(providerRegistry);
 
         // 千问模型应通过 Level 2 抛异常 → fallback 到 Level 3 BUILTIN_MODELS
-        assertEquals(1000000, modelRegistry.getCapabilities("qwen3.7-max").contextWindow(),
-                "qwen3.7-max contextWindow should be 1000000 (official)");
+        assertEquals(1000000, modelRegistry.getCapabilities("qwen3.8-max-0902").contextWindow(),
+                "qwen3.8-max-0902 contextWindow should be 1000000");
         assertEquals(1000000, modelRegistry.getCapabilities("qwen3.7-plus").contextWindow(),
                 "qwen3.7-plus contextWindow should be 1000000 (official)");
         assertEquals(1000000, modelRegistry.getCapabilities("qwen-turbo").contextWindow(),

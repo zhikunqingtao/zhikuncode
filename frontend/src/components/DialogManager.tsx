@@ -17,6 +17,7 @@ import { useNotificationStore } from '@/store/notificationStore';
 import PermissionDialog from '@/components/permission/PermissionDialog';
 import { ElicitationDialog } from '@/components/dialog/ElicitationDialog';
 import { SettingsPanel } from '@/components/dialog/SettingsPanel';
+import { McpManagementPage } from '@/components/mcp/McpManagementPage';
 import { recoverPendingInteractions } from '@/api/dispatch';
 
 export const DialogManager: React.FC = () => {
@@ -146,6 +147,10 @@ export const DialogManager: React.FC = () => {
             {/* Settings Panel */}
             {activeDialog === 'settings' && (
                 <SettingsPanel onClose={closeDialog} />
+            )}
+
+            {activeDialog === 'mcp' && (
+                <McpManagementPage onClose={closeDialog} />
             )}
         </>
     );

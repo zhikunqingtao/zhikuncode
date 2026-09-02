@@ -97,8 +97,14 @@ public class McpServerConnection {
             this.status = McpConnectionStatus.CONNECTED;
             log.info("MCP server '{}' connected via {}", config.name(), config.type());
 
-            // ★ MCP 协议握手: initialize → initialized 通知 → tools/list
-            performProtocolHandshake();
+            // Streamable HTTP performs initialize + initialized while establishing
+            // its session. Other transports only start their channel in connect().
+            // Avoid a second initialize request, which strict MCP servers reject.
+            if (transport instanceof McpStreamableHttpTransport) {
+                discoverTools();
+            } else {
+                performProtocolHandshake();
+            }
 
             // ★ M3/M4: 注册通知/反向请求分发器（roots/list、notifications/progress 等）
             transport.setNotificationHandler(this::dispatchNotification);

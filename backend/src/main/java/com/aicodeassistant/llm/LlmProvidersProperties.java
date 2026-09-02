@@ -16,8 +16,8 @@ import java.util.Map;
  *     dashscope:
  *       api-key: ${LLM_PROVIDER_DASHSCOPE_API_KEY:}
  *       base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
- *       default-model: qwen3.7-max
- *       models: qwen3.7-max,qwen3.7-plus
+ *       default-model: qwen3.8-max-0902
+ *       models: qwen3.8-max-0902,qwen3.7-plus
  *     dashscope-token-plan:
  *       api-key: ${LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_API_KEY:}
  *       base-url: https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1

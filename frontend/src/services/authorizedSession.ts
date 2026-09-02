@@ -24,7 +24,7 @@ export function requestAuthorizedSession(): Promise<string | null> {
         if (!project) return null;
 
         const defaultModel = useConfigStore.getState().defaultModel
-            ?? 'qwen3.7-max';
+            ?? 'qwen3.8-max-0902';
         return useSessionStore.getState().createSession(
             project.id,
             defaultModel,
