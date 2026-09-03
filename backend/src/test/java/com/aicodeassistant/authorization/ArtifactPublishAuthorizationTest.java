@@ -27,7 +27,8 @@ class ArtifactPublishAuthorizationTest {
     void permissionDescriptorFreezesPermanentPublicDestinationAndIntegrityFacts() throws Exception {
         ArtifactPublicationPolicy policy = mock(ArtifactPublicationPolicy.class);
         ArtifactPublicationPolicy.Snapshot approvedFacts = snapshot("hash-a", "object-a");
-        when(policy.inspect("report.html", "run-1")).thenReturn(approvedFacts);
+        when(policy.inspect("report.html", "run-1", workspace.toString()))
+                .thenReturn(approvedFacts);
         OperationAnalyzerRegistry registry = registry(policy);
         Tool tool = publishTool();
         ToolInput input = ToolInput.from(Map.of("file_path", "report.html"));
@@ -53,7 +54,7 @@ class ArtifactPublishAuthorizationTest {
     @Test
     void finalRecheckRejectsChangedHashOrObjectDestination() throws Exception {
         ArtifactPublicationPolicy policy = mock(ArtifactPublicationPolicy.class);
-        when(policy.inspect("report.html", "run-1"))
+        when(policy.inspect("report.html", "run-1", workspace.toString()))
                 .thenReturn(snapshot("hash-a", "object-a"), snapshot("hash-b", "object-b"));
         OperationAnalyzerRegistry registry = registry(policy);
         Tool tool = publishTool();

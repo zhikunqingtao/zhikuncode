@@ -497,7 +497,7 @@ public final class OperationAnalyzerRegistry {
             }
             try {
                 return artifactPublicationPolicy.inspect(input.getString("file_path", ""),
-                        context.currentRunId());
+                        context.currentRunId(), context.workingDirectory());
             } catch (ArtifactPublicationPolicy.ArtifactPublicationException denied) {
                 throw new AuthorizationException(denied.code(),
                         "Artifact publication policy denied the request", denied);

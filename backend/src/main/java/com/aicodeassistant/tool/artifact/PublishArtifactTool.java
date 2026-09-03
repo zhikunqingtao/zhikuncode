@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/** Explicitly publishes one verified artifact after a non-reusable HIGH-risk permission decision. */
+/** Explicitly publishes one exact, policy-checked workspace artifact after a non-reusable HIGH-risk decision. */
 @Component
 public class PublishArtifactTool implements Tool {
     private final ArtifactPublicationPolicy policy;
@@ -35,8 +35,8 @@ public class PublishArtifactTool implements Tool {
     @Override public String getName() { return "PublishArtifact"; }
 
     @Override public String getDescription() {
-        return "Publish exactly one verified artifact from the current session to OSS as a permanently public "
-                + "download. Call only after the user explicitly asks to upload or publish the artifact.";
+        return "Publish exactly one artifact at a user-provided exact path inside the current workspace to OSS "
+                + "as a permanently public download. Never scan or guess a path; call only after an explicit request.";
     }
 
     @Override public Map<String, Object> getInputSchema() { return schema(); }
@@ -49,7 +49,7 @@ public class PublishArtifactTool implements Tool {
                         "type", "string",
                         "minLength", 1,
                         "maxLength", 4096,
-                        "description", "Workspace-relative path of the verified artifact to publish")),
+                        "description", "Exact relative or absolute path of one artifact inside the current workspace")),
                 "required", java.util.List.of("file_path"),
                 "additionalProperties", false);
     }
@@ -78,7 +78,7 @@ public class PublishArtifactTool implements Tool {
         String requestedPath = input.getString("file_path");
         try {
             OssArtifactService.PublishedArtifact published = policy.withLockedSnapshot(
-                    requestedPath, context.currentRunId(), oss::publish);
+                    requestedPath, context.currentRunId(), context.workingDirectory(), oss::publish);
             Map<String, Object> externalResource = new LinkedHashMap<>();
             externalResource.put("schema", "external-resource/v1");
             externalResource.put("kind", "download");

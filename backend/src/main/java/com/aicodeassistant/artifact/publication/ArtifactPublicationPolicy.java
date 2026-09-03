@@ -54,25 +54,42 @@ public class ArtifactPublicationPolicy {
         this.properties = properties;
     }
 
-    public Snapshot inspect(String requestedPath, String currentRunId) {
+    public Snapshot inspect(String requestedPath, String currentRunId, String currentWorkspaceRoot) {
         properties.requireReady();
         if (currentRunId == null || currentRunId.isBlank()) {
             throw denied("ARTIFACT_RUN_REQUIRED");
         }
+        Path configuredWorkspace = absoluteNormalizedPath(
+                currentWorkspaceRoot, "ARTIFACT_WORKSPACE_INVALID");
+        Path workspace = realDirectory(currentWorkspaceRoot, "ARTIFACT_WORKSPACE_INVALID");
+        Path target = resolveRequestedPath(requestedPath, configuredWorkspace, workspace);
+        rejectSymlinkSegments(workspace, target);
         List<ArtifactManifest> candidates = manifests.getManifestsForRunSession(currentRunId);
-        if (candidates.isEmpty()) throw denied("ARTIFACT_MANIFEST_NOT_FOUND");
-
-        ManifestSelection selection = selectLatestExactArtifact(candidates, requestedPath);
-        ArtifactManifest manifest = selection.manifest();
-        ArtifactEntry entry = selection.entry();
-        Path workspace = selection.workspace();
-        Path target = selection.target();
-        if (!("verified".equals(manifest.status()) || "partial".equals(manifest.status()))) {
-            throw denied("ARTIFACT_MANIFEST_NOT_VERIFIED");
-        }
-        if (!entry.verified()) throw denied("ARTIFACT_NOT_VERIFIED");
-        if (!("created".equals(entry.operation()) || "modified".equals(entry.operation()))) {
-            throw denied("ARTIFACT_OPERATION_NOT_PUBLISHABLE");
+        ManifestSelection selection = selectLatestExactArtifact(candidates, target);
+        String artifactId;
+        String manifestId;
+        String sourceRunId;
+        String verifiedHash = null;
+        if (selection != null) {
+            ArtifactManifest manifest = selection.manifest();
+            ArtifactEntry entry = selection.entry();
+            if (!("verified".equals(manifest.status()) || "partial".equals(manifest.status()))) {
+                throw denied("ARTIFACT_MANIFEST_NOT_VERIFIED");
+            }
+            if (!entry.verified()) throw denied("ARTIFACT_NOT_VERIFIED");
+            if (!("created".equals(entry.operation()) || "modified".equals(entry.operation()))) {
+                throw denied("ARTIFACT_OPERATION_NOT_PUBLISHABLE");
+            }
+            artifactId = entry.id();
+            manifestId = manifest.id();
+            sourceRunId = manifest.runId();
+            verifiedHash = entry.actualHash() == null ? entry.expectedHash() : entry.actualHash();
+        } else {
+            Path relative = workspace.relativize(target);
+            artifactId = "workspace-" + digestHex(
+                    workspace + "\0" + relative.toString().replace('\\', '/')).substring(0, 32);
+            manifestId = "workspace";
+            sourceRunId = currentRunId;
         }
         if (!Files.isRegularFile(target, LinkOption.NOFOLLOW_LINKS) || Files.isSymbolicLink(target)) {
             throw denied("ARTIFACT_NOT_REGULAR_FILE");
@@ -83,48 +100,36 @@ public class ArtifactPublicationPolicy {
         long size = fileSize(target);
         if (size > properties.getMaxFileBytes()) throw denied("ARTIFACT_TOO_LARGE");
         String sha256 = sha256(target);
-        String verifiedHash = entry.actualHash() == null ? entry.expectedHash() : entry.actualHash();
-        if (verifiedHash == null || !sha256.equalsIgnoreCase(verifiedHash)) {
+        if (selection != null && (verifiedHash == null || !sha256.equalsIgnoreCase(verifiedHash))) {
             throw denied("ARTIFACT_HASH_CHANGED");
         }
         scanForSecrets(target);
 
         String filename = target.getFileName().toString();
-        String objectKey = properties.normalizedPrefix() + "/" + manifest.id() + "/"
-                + entry.id() + "/" + sha256 + "-" + properties.safeObjectFileName(filename);
+        String objectKey = properties.normalizedPrefix() + "/" + manifestId + "/"
+                + artifactId + "/" + sha256 + "-" + properties.safeObjectFileName(filename);
         String publicUrl = publicUrl(objectKey);
-        return new Snapshot(entry.id(), manifest.id(), manifest.runId(), relative.toString().replace('\\', '/'),
+        return new Snapshot(artifactId, manifestId, sourceRunId, relative.toString().replace('\\', '/'),
                 target, filename, size, sha256, detectMimeType(target), objectKey, publicUrl,
                 properties.bucket(), properties.endpoint());
     }
 
-    private ManifestSelection selectLatestExactArtifact(List<ArtifactManifest> candidates,
-                                                        String requestedPath) {
-        ArtifactPublicationException pathFailure = null;
+    private ManifestSelection selectLatestExactArtifact(List<ArtifactManifest> candidates, Path target) {
         for (ArtifactManifest candidate : candidates) {
-            Path workspace = realDirectory(candidate.workspaceRoot(), "ARTIFACT_WORKSPACE_INVALID");
-            Path target;
-            try {
-                target = resolveRequestedPath(requestedPath, workspace);
-            } catch (ArtifactPublicationException denied) {
-                pathFailure = denied;
-                continue;
-            }
-            rejectSymlinkSegments(workspace, target);
             ArtifactEntry entry = candidate.entries().stream()
                     .filter(item -> samePath(item.filePath(), target))
                     .findFirst().orElse(null);
-            if (entry != null) return new ManifestSelection(candidate, entry, workspace, target);
+            if (entry != null) return new ManifestSelection(candidate, entry);
         }
-        if (pathFailure != null) throw pathFailure;
-        throw denied("ARTIFACT_NOT_IN_CURRENT_SESSION");
+        return null;
     }
 
     public <T> T withLockedSnapshot(String requestedPath, String currentRunId,
+                                    String currentWorkspaceRoot,
                                     CheckedFunction<Snapshot, T> action) throws Exception {
-        Snapshot beforeLock = inspect(requestedPath, currentRunId);
+        Snapshot beforeLock = inspect(requestedPath, currentRunId, currentWorkspaceRoot);
         return pathLocks.withLock(beforeLock.path(), () -> {
-            Snapshot locked = inspect(requestedPath, currentRunId);
+            Snapshot locked = inspect(requestedPath, currentRunId, currentWorkspaceRoot);
             if (!beforeLock.sameSecurityFacts(locked)) throw denied("ARTIFACT_CHANGED_BEFORE_UPLOAD");
             return action.apply(locked);
         });
@@ -141,7 +146,16 @@ public class ArtifactPublicationPolicy {
         }
     }
 
-    private Path resolveRequestedPath(String requestedPath, Path workspace) {
+    private static String digestHex(String value) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            return HexFormat.of().formatHex(digest.digest(value.getBytes(StandardCharsets.UTF_8)));
+        } catch (Exception failure) {
+            throw denied("ARTIFACT_ID_FAILED");
+        }
+    }
+
+    private Path resolveRequestedPath(String requestedPath, Path configuredWorkspace, Path workspace) {
         if (requestedPath == null || requestedPath.isBlank()) throw denied("ARTIFACT_PATH_REQUIRED");
         Path raw;
         try {
@@ -152,7 +166,15 @@ public class ArtifactPublicationPolicy {
         for (Path segment : raw) {
             if ("..".equals(segment.toString())) throw denied("ARTIFACT_PATH_ESCAPE");
         }
-        Path target = (raw.isAbsolute() ? raw : workspace.resolve(raw)).toAbsolutePath().normalize();
+        Path target;
+        if (raw.isAbsolute()) {
+            Path normalized = raw.toAbsolutePath().normalize();
+            target = normalized.startsWith(configuredWorkspace)
+                    ? workspace.resolve(configuredWorkspace.relativize(normalized)).normalize()
+                    : normalized;
+        } else {
+            target = workspace.resolve(raw).toAbsolutePath().normalize();
+        }
         if (!target.startsWith(workspace)) throw denied("ARTIFACT_PATH_ESCAPE");
         return target;
     }
@@ -222,6 +244,14 @@ public class ArtifactPublicationPolicy {
         }
     }
 
+    private static Path absoluteNormalizedPath(String value, String code) {
+        try {
+            return Path.of(value).toAbsolutePath().normalize();
+        } catch (Exception failure) {
+            throw denied(code);
+        }
+    }
+
     private static boolean samePath(String stored, Path target) {
         try {
             Path storedPath = Path.of(stored).toAbsolutePath().normalize();
@@ -280,8 +310,7 @@ public class ArtifactPublicationPolicy {
         }
     }
 
-    private record ManifestSelection(ArtifactManifest manifest, ArtifactEntry entry,
-                                     Path workspace, Path target) { }
+    private record ManifestSelection(ArtifactManifest manifest, ArtifactEntry entry) { }
 
     @FunctionalInterface
     public interface CheckedFunction<T, R> { R apply(T value) throws Exception; }

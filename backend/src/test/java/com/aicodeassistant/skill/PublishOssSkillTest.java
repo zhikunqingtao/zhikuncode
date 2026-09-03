@@ -26,7 +26,8 @@ class PublishOssSkillTest {
                 .containsExactlyElementsOf(List.of("PublishArtifact", "AskUserQuestion"));
         assertThat(skill.frontmatter().whenToUse()).contains("绝不自动上传");
         assertThat(skill.content())
-                .contains("不得因文件生成", "仅调用一次 `PublishArtifact`", "永久公开地址")
+                .contains("不得因文件生成", "仅调用一次 `PublishArtifact`", "永久公开地址",
+                        "不得扫描或列举工作区", "精确路径", "没有记录时由发布策略现场校验")
                 .doesNotContain("OSS_ACCESS_KEY_ID", "OSS_ACCESS_KEY_SECRET");
     }
 }

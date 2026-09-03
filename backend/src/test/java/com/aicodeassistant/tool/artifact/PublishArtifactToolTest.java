@@ -89,6 +89,33 @@ class PublishArtifactToolTest {
     }
 
     @Test
+    void publishesExactUnlistedFileInsideCurrentWorkspace() throws Exception {
+        Path file = Files.writeString(workspace.resolve("generated.xlsx"), "safe workbook bytes");
+        ArtifactManifestService manifests = mock(ArtifactManifestService.class);
+        when(manifests.getManifestsForRunSession("run-1")).thenReturn(List.of());
+        OssPublishProperties properties = properties();
+        ArtifactPublicationPolicy policy = new ArtifactPublicationPolicy(
+                manifests, new ManagedPathLockManager(), properties);
+        OssArtifactService oss = mock(OssArtifactService.class);
+        when(oss.publish(org.mockito.ArgumentMatchers.any())).thenAnswer(invocation -> {
+            ArtifactPublicationPolicy.Snapshot artifact = invocation.getArgument(0);
+            return new OssArtifactService.PublishedArtifact(
+                    artifact.artifactId(), artifact.fileName(), artifact.size(), artifact.sha256(),
+                    artifact.objectKey(), artifact.publicUrl(), artifact.mimeType());
+        });
+        PublishArtifactTool tool = new PublishArtifactTool(policy, oss, properties, new ObjectMapper());
+
+        ToolResult result = tool.call(ToolInput.from(Map.of("file_path", file.toString())),
+                ToolUseContext.of(workspace.toString(), "session-1").withCurrentRunId("run-1"));
+
+        assertThat(result.executionStatus()).isEqualTo(ToolResult.ExecutionStatus.SUCCEEDED);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> structured = (Map<String, Object>) result.metadata().get("structuredResult");
+        assertThat(structured).containsEntry("label", "generated.xlsx");
+        assertThat(structured.get("objectKey")).asString().contains("/workspace/workspace-");
+    }
+
+    @Test
     void missingCurrentRunFailsBeforeAnyNetworkCall() {
         OssPublishProperties properties = properties();
         ArtifactManifestService manifests = mock(ArtifactManifestService.class);
