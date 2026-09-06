@@ -114,7 +114,7 @@ ZhikunCode 使用 Kimi K3 在 2026-08-09 凌晨一次性完成了一个纯静态
 | 🤖 | **多 Agent 协作** | Team（固定分工）/ Swarm（动态协商）/ SubAgent（主从委派）三种协作模式，复杂任务自动分工 |
 | 🔒 | **统一授权安全架构** | 所有核心工具统一经过 Tool Gateway：规范化输入冻结 → Operation Analyzer 风险与资源分析 → 系统不变量检查 → RUN/SESSION/WORKSPACE Grant 匹配或持久权限交互 → 执行前动态复检 → 结构化结果审计。高风险操作只允许单次授权；专用 Network/MCP Analyzer 对 SAFE/GUARDED 操作支持按工具记住 RUN/SESSION 授权，未知 MCP/动态工具默认只能单次审批 |
 | 🇨🇳 | **国产大模型直连** | 千问 / DeepSeek / Moonshot / 智谱GLM / MiniMax 开箱即用，国内网络直连，无需科学上网 |
-| 🐳 | **Docker 一键部署** | `docker compose up -d` 一条命令启动，数据存本地，完全私有 |
+| 🐳 | **Docker 一键部署** | `docker compose up -d` 默认启动 Java 后端和内置静态前端；镜像同时包含可选的受管 Python 服务，数据存本地 |
 | 📤 | **OSS 发布与截图粘贴（可选）** | `/publish-oss` 仍只按明确指令发布已验证产物；粘贴截图支持双路径——OSS 已配置时走后端快速上传，OSS 未配置时自动降级为 Base64 直传，无需额外配置即可使用图片分析能力 |
 | 🎙️ | **语音交互（ASR / TTS）** | 对话输入支持麦克风语音识别（qwen3-asr-flash），AI 回复支持一键朗读（qwen3-tts-flash）；接入阿里云百炼 DashScope，配置 API Key 即用，未配置时自动隐藏 |
 | ⚡ | **智能上下文管理** | 六层压缩级联（Snip / MicroCompact / ContextCollapse / AutoCompact / CollapseDrain / ReactiveCompact）+ 增量折叠（每10轮自动压缩）+ 413 两阶段恢复（CollapseDrain 激进压缩 → ReactiveCompact 反应式压缩）+ 精确 Token 计数（tiktoken 多模型支持）+ 自纠错循环（SelfCorrectionLoop，编译/测试失败自动诊断修复，最多3次）+ Token三级告警 + 图片上下文治理（大图外置化 → 按需注入 → 预算守卫三层防护），无缝应对超长对话。核心引擎为 ContextCascade 与 QueryEngine |
@@ -196,6 +196,8 @@ docker compose up -d
 
 启动完成后，打开浏览器访问 **http://localhost:8080** 即可使用。
 
+> 基础 `docker-compose.yml` 默认只启动 Java 后端（由它提供内置静态前端）。Docker 镜像已包含 Python 运行时与服务代码，但不会默认启动；需要容器内 Python 服务时，请通过自己的 Compose override 显式传入 `PYTHON_SERVICE_AUTO_START=true`、`PYTHON_SERVICE_PATH=/app/python-service`、`PYTHON_SERVICE_EXECUTABLE=/app/python-service/.venv/bin/python` 和 `WORKSPACE_ROOT=/app/workspace`，然后使用两个 Compose 文件重新创建容器。若还要让浏览器使用直连 Python 的界面能力，override 必须额外把 Python 绑定到容器接口、仅映射到宿主机 loopback，并通过反向代理开放所需的精确路由；不要把 `8000` 端口直接暴露到公网。
+
 > **系统要求：** Docker 20.10+，Docker Compose V2，建议 4GB+ 内存。
 
 ### 方式二：本地开发
@@ -247,6 +249,9 @@ cd backend && ./mvnw spring-boot:run -DskipTests
 cd python-service
 python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
+export WORKSPACE_ROOT="$(cd .. && pwd)"
+export ZHIKUN_LOCAL_PICKER_ENABLED=true
+export PYTHONPATH="$PWD/src"
 uvicorn src.main:app --host 127.0.0.1 --port 8000
 
 # 前端（另开终端，从仓库根目录启动）
@@ -516,13 +521,13 @@ ZhikunCode 采用三端分离架构，Java 后端负责核心编排，React 前�
 
 ### Docker 部署架构
 
-生产环境通过 Docker 单容器部署，三端服务打包在同一个镜像中：
+生产环境通过 Docker 单容器部署。镜像包含 Java 后端、内置静态前端和 Python 运行时；基础 Compose 默认只启动 Java 进程，受管 Python 服务需通过显式的环境变量/override 启用：
 
 ```
 ┌─────────────────────────────────────────────────┐
 │                Docker Container                  │
 │  ┌───────────┐  ┌───────────┐  ┌──────────────┐ │
-│  │  Backend   │  │  Python   │  │   Frontend   │ │
+│  │  Backend   │  │  Python*  │  │   Frontend   │ │
 │  │  :8080     │  │  :8000    │  │  (静态文件)   │ │
 │  └───────────┘  └───────────┘  └──────────────┘ │
 │                                                  │
@@ -532,6 +537,8 @@ ZhikunCode 采用三端分离架构，Java 后端负责核心编排，React 前�
 │  Port: 8080 → 宿主机                              │
 └──────────────────────────────────────────────────┘
 ```
+
+`*` Python 服务为可选的容器内受管进程，不对外暴露端口，也不由基础 Compose 默认启动。
 
 ### 核心引擎（Core Engines）
 
@@ -650,6 +657,7 @@ Web 新会话必须先选择一个已授权目录。远程和 Docker 部署的�
 - Session、Query 和文件搜索使用 `projectId` 或 `sessionId`；客户端提交任意 `workingDirectory` 会被拒绝。
 - 普通目录和 Git 子目录都可授权；只有所选目录本身就是 Git worktree 根目录时，才提供内置仓库上下文和 Git slash 命令。Bash 不是目录沙箱，但始终走独立的命令授权，不会因 Project 选择而自动获准。
 - 后端的 `ZHIKUN_LOCAL_PICKER_ENABLED` 安全默认值为 `false`。使用 `./start.sh` 本地快速启动时，如果 `ZHIKUN_WORKSPACE_ALLOWED_ROOTS` 和该变量均无非空配置，脚本会为直连本机桌面场景启用 picker；显式设置 `false` 或配置 allowed roots 时不会被覆盖或隐式启用。远程、反向代理和生产部署应显式保持关闭并配置 allowed roots。
+- Python 的 `WORKSPACE_ROOT` 是相对路径的默认锚点。配置 `ZHIKUN_WORKSPACE_ALLOWED_ROOTS` 后，Python 路由同样严格限制在这些根目录内；只有未配置 allowed roots 且显式启用本机 picker 的 loopback 开发模式，才允许分析用户选择的其他绝对路径。
 
 ### 授权范围与多 Agent 继承
 
@@ -709,7 +717,7 @@ Web 新会话必须先选择一个已授权目录。远程和 Docker 部署的�
 完整功能测试报告见 [ZhikunCode v9.3 全链路测试报告](docs/test-results/v9.3/ZhikunCode全链路测试报告.md)（2026-05-16）
 
 **持续集成：**
-- **GitHub Actions 自动化流水线**：主 CI 执行后端编译和前端构建；Python 测试当前为非阻塞检查，Docker 镜像验证仅在 `main` push 时执行。
+- **GitHub Actions 自动化流水线**：主 CI 执行后端与 Python 测试、前端检查和构建；Docker 镜像验证仅在 `main` push 时执行。
 
 **当前代码本地验证快照（2026-09-02）：**
 - **后端单元/集成测试**：1258 tests / 0 failure / 0 error / 62 skipped
@@ -1406,7 +1414,7 @@ ZhikunCode 内置 11 项可视化能力，让 AI 编程过程中的数据和状�
 | `LLM_PROVIDER_DEEPSEEK_API_KEY` | — | — | DeepSeek API Key |
 | `LLM_PROVIDER_MOONSHOT_API_KEY` | — | — | Moonshot/Kimi API Key |
 | `LLM_PROVIDER_ZHIPU_API_KEY` | — | — | 智谱 GLM API Key |
-| `LLM_DEFAULT_MODEL` | — | qwen3.8-max-0902 | 默认模型（未显式选择时使用） |
+| `LLM_DEFAULT_MODEL` | — | qwen3.8-max-0902 | 默认模型；不可用时回退到当前 Provider 的有效默认模型 |
 
 > 多 Provider 模式下至少配置一个 Provider 的 API Key 即可。前端支持自由切换已配置的 Provider。
 

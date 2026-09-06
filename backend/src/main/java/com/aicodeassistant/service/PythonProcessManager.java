@@ -3,18 +3,21 @@ package com.aicodeassistant.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -22,43 +25,45 @@ import java.util.concurrent.atomic.AtomicReference;
  * Python 子进程生命周期管理器。
  * <p>
  * 管理 Python FastAPI 服务的启动、监控、重启和停止。
- * <ul>
- *     <li>自动启动 Python 服务</li>
- *     <li>定期健康检查</li>
- *     <li>自动重启策略（最多 3 次连续失败后停止重试）</li>
- *     <li>优雅关闭</li>
- * </ul>
- *
  */
 @Service
 public class PythonProcessManager {
 
     private static final Logger log = LoggerFactory.getLogger(PythonProcessManager.class);
-
-    /** 最大连续重启次数 */
     private static final int MAX_RESTART_ATTEMPTS = 3;
-
-    /** 重启间隔（毫秒） */
-    private static final long RESTART_DELAY_MS = 5000;
 
     @Value("${python.service.host:127.0.0.1}")
     private String pythonHost;
 
+    @Value("${python.service.bind-host:127.0.0.1}")
+    private String pythonBindHost;
+
     @Value("${python.service.port:8000}")
     private int pythonPort;
 
-    @Value("${python.service.health-check-interval:30000}")
-    private long healthCheckInterval;
+    @Value("${python.service.path:../python-service}")
+    private String pythonServicePath;
+
+    @Value("${python.service.executable:python}")
+    private String pythonExecutable;
+
+    @Value("${python.service.auto-start:false}")
+    private boolean autoStart;
+
+    @Value("${python.service.startup-timeout-seconds:30}")
+    private int startupTimeoutSeconds;
+
+    @Value("${python.service.restart-delay-ms:5000}")
+    private long restartDelayMs;
 
     private final AtomicReference<Process> processRef = new AtomicReference<>();
-    private final AtomicReference<ProcessState> stateRef = new AtomicReference<>(ProcessState.STOPPED);
+    private final AtomicReference<ProcessState> stateRef =
+            new AtomicReference<>(ProcessState.STOPPED);
+    private final AtomicBoolean healthCheckInProgress = new AtomicBoolean(false);
     private final AtomicInteger restartCount = new AtomicInteger(0);
     private volatile Instant lastHealthCheck;
-    private volatile boolean autoStart = false;
+    private volatile boolean shutdownRequested;
 
-    /**
-     * 进程状态。
-     */
     public enum ProcessState {
         STOPPED,
         STARTING,
@@ -68,86 +73,113 @@ public class PythonProcessManager {
         FAILED
     }
 
+    @EventListener(ApplicationReadyEvent.class)
+    public void onApplicationReady() {
+        if (autoStart) {
+            startAsync();
+        }
+    }
+
+    void startAsync() {
+        Thread.ofVirtual().name("zhikun-python-startup").start(this::startWithRetry);
+    }
+
+    void startWithRetry() {
+        if (shutdownRequested || start()) {
+            return;
+        }
+
+        while (!shutdownRequested && restartCount.get() < MAX_RESTART_ATTEMPTS) {
+            int attempt = restartCount.incrementAndGet();
+            stateRef.set(ProcessState.RESTARTING);
+            log.warn("Python service startup failed, retrying ({}/{})",
+                    attempt, MAX_RESTART_ATTEMPTS);
+            try {
+                Thread.sleep(Math.max(0, restartDelayMs));
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                if (!shutdownRequested) {
+                    stateRef.set(ProcessState.FAILED);
+                }
+                return;
+            }
+            if (shutdownRequested || start()) {
+                return;
+            }
+        }
+
+        if (!shutdownRequested) {
+            stateRef.set(ProcessState.FAILED);
+            log.error("Python service startup retry limit reached ({}).",
+                    MAX_RESTART_ATTEMPTS);
+        }
+    }
+
     /**
      * 启动 Python 服务。
      */
     public synchronized boolean start() {
-        if (stateRef.get() == ProcessState.RUNNING) {
-            log.warn("Python service is already running");
+        if (shutdownRequested) {
+            return false;
+        }
+        Process existing = processRef.get();
+        if (stateRef.get() == ProcessState.RUNNING
+                && existing != null && existing.isAlive()) {
             return true;
+        }
+        if (existing != null && existing.isAlive()) {
+            stopProcess(existing);
+            processRef.compareAndSet(existing, null);
         }
 
         stateRef.set(ProcessState.STARTING);
         log.info("Starting Python service on {}:{}...", pythonHost, pythonPort);
 
+        Process process = null;
         try {
-            ProcessBuilder pb = new ProcessBuilder(
-                    "python", "-m", "uvicorn",
-                    "src.main:app",
-                    "--host", pythonHost,
-                    "--port", String.valueOf(pythonPort)
-            );
-
-            // 设置工作目录为 python-service
-            Path pythonServiceDir = Path.of("python-service");
-            if (pythonServiceDir.toFile().exists()) {
-                pb.directory(pythonServiceDir.toFile());
-            }
-
-            pb.redirectErrorStream(true);
-            Process process = pb.start();
+            ProcessBuilder builder = createProcessBuilder();
+            builder.redirectErrorStream(true);
+            process = builder.start();
             processRef.set(process);
+            Process started = process;
+            Thread.ofVirtual().name("zhikun-python-drain")
+                    .start(() -> drainOutput(started));
 
-            // 后台线程读取输出
-            Thread.ofVirtual().name("zhiku-python-drain").start(() -> drainOutput(process));
-
-            // 等待启动
-            Thread.sleep(2000);
-
-            if (process.isAlive() && checkHealth()) {
+            if (waitUntilHealthy(process)) {
                 stateRef.set(ProcessState.RUNNING);
                 restartCount.set(0);
                 log.info("Python service started successfully on port {}", pythonPort);
                 return true;
-            } else {
-                stateRef.set(ProcessState.FAILED);
-                log.error("Python service failed to start");
-                return false;
             }
-
+            log.error("Python service did not become healthy within {} seconds",
+                    Math.max(1, startupTimeoutSeconds));
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("Interrupted while starting Python service");
         } catch (Exception e) {
-            stateRef.set(ProcessState.FAILED);
             log.error("Failed to start Python service: {}", e.getMessage());
-            return false;
         }
+
+        if (process != null) {
+            if (process.isAlive()) {
+                stopProcess(process);
+            }
+            processRef.compareAndSet(process, null);
+        }
+        stateRef.set(ProcessState.FAILED);
+        return false;
     }
 
     /**
      * 停止 Python 服务。
      */
     public synchronized void stop() {
-        Process process = processRef.get();
-        if (process == null || !process.isAlive()) {
-            stateRef.set(ProcessState.STOPPED);
-            return;
+        Process process = processRef.getAndSet(null);
+        if (process != null && process.isAlive()) {
+            log.info("Stopping Python service...");
+            stopProcess(process);
         }
-
-        log.info("Stopping Python service...");
-        process.destroy();
-
-        try {
-            if (!process.waitFor(10, TimeUnit.SECONDS)) {
-                process.destroyForcibly();
-                log.warn("Python service force-killed");
-            }
-        } catch (InterruptedException e) {
-            process.destroyForcibly();
-            Thread.currentThread().interrupt();
-        }
-
-        processRef.set(null);
         stateRef.set(ProcessState.STOPPED);
-        log.info("Python service stopped");
     }
 
     /**
@@ -156,41 +188,40 @@ public class PythonProcessManager {
     public synchronized boolean restart() {
         stop();
         try {
-            Thread.sleep(RESTART_DELAY_MS);
+            Thread.sleep(Math.max(0, restartDelayMs));
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            stateRef.set(ProcessState.FAILED);
+            return false;
         }
         return start();
     }
 
     /**
-     * 健康检查 — 调用 Python 服务的 /health 端点。
+     * 健康检查 — 调用 Python 服务的 /api/health 端点。
      */
     public boolean checkHealth() {
+        HttpURLConnection connection = null;
         try {
-            URI uri = URI.create("http://" + pythonHost + ":" + pythonPort + "/health");
-            HttpURLConnection conn = (HttpURLConnection) uri.toURL().openConnection();
-            conn.setConnectTimeout(5000);
-            conn.setReadTimeout(5000);
-            conn.setRequestMethod("GET");
-
-            int responseCode = conn.getResponseCode();
-            conn.disconnect();
-
+            connection = (HttpURLConnection) healthUri().toURL().openConnection();
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(5000);
+            connection.setRequestMethod("GET");
+            boolean healthy = connection.getResponseCode() == 200;
             lastHealthCheck = Instant.now();
-            boolean healthy = responseCode == 200;
-
-            if (healthy) {
-                if (stateRef.get() == ProcessState.HEALTH_CHECK_FAILED) {
-                    stateRef.set(ProcessState.RUNNING);
-                    restartCount.set(0);
-                }
+            if (healthy && stateRef.get() == ProcessState.HEALTH_CHECK_FAILED) {
+                stateRef.set(ProcessState.RUNNING);
+                restartCount.set(0);
             }
-
             return healthy;
         } catch (Exception e) {
+            lastHealthCheck = Instant.now();
             log.debug("Health check failed: {}", e.getMessage());
             return false;
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
         }
     }
 
@@ -199,34 +230,62 @@ public class PythonProcessManager {
      */
     @Scheduled(fixedDelayString = "${python.service.health-check-interval:30000}")
     public void scheduledHealthCheck() {
-        if (stateRef.get() != ProcessState.RUNNING &&
-                stateRef.get() != ProcessState.HEALTH_CHECK_FAILED) {
+        ProcessState state = stateRef.get();
+        if (shutdownRequested || (state != ProcessState.RUNNING
+                && state != ProcessState.HEALTH_CHECK_FAILED)) {
+            return;
+        }
+        if (!healthCheckInProgress.compareAndSet(false, true)) {
+            return;
+        }
+        Thread.ofVirtual().name("zhikun-python-health")
+                .start(() -> {
+                    try {
+                        runHealthCheckCycle();
+                    } finally {
+                        healthCheckInProgress.set(false);
+                    }
+                });
+    }
+
+    synchronized void runHealthCheckCycle() {
+        ProcessState state = stateRef.get();
+        if (shutdownRequested || (state != ProcessState.RUNNING
+                && state != ProcessState.HEALTH_CHECK_FAILED)) {
+            return;
+        }
+        if (checkHealth()) {
+            return;
+        }
+        if (shutdownRequested) {
             return;
         }
 
-        if (!checkHealth()) {
-            stateRef.set(ProcessState.HEALTH_CHECK_FAILED);
-            int attempts = restartCount.incrementAndGet();
+        int attempts = restartCount.incrementAndGet();
+        if (attempts > MAX_RESTART_ATTEMPTS) {
+            stateRef.set(ProcessState.FAILED);
+            log.error("Python service restart limit reached ({}). Manual restart required.",
+                    MAX_RESTART_ATTEMPTS);
+            return;
+        }
 
-            if (attempts <= MAX_RESTART_ATTEMPTS) {
-                log.warn("Python service health check failed, attempting restart ({}/{})",
-                        attempts, MAX_RESTART_ATTEMPTS);
-                stateRef.set(ProcessState.RESTARTING);
-                restart();
-            } else {
-                log.error("Python service restart limit reached ({}). Manual restart required.",
-                        MAX_RESTART_ATTEMPTS);
-                stateRef.set(ProcessState.FAILED);
-            }
+        stateRef.set(ProcessState.RESTARTING);
+        log.warn("Python service health check failed, attempting restart ({}/{})",
+                attempts, MAX_RESTART_ATTEMPTS);
+        if (restart()) {
+            stateRef.set(ProcessState.RUNNING);
+            restartCount.set(0);
+        } else if (!shutdownRequested) {
+            stateRef.set(attempts == MAX_RESTART_ATTEMPTS
+                    ? ProcessState.FAILED : ProcessState.HEALTH_CHECK_FAILED);
         }
     }
 
     @PreDestroy
     public void onShutdown() {
+        shutdownRequested = true;
         stop();
     }
-
-    // ===== 查询 API =====
 
     public ProcessState getState() {
         return stateRef.get();
@@ -248,7 +307,58 @@ public class PythonProcessManager {
         return "http://" + pythonHost + ":" + pythonPort;
     }
 
-    // ===== 内部方法 =====
+    ProcessBuilder createProcessBuilder() {
+        Path serviceDir = Path.of(pythonServicePath).toAbsolutePath().normalize();
+        if (!serviceDir.toFile().isDirectory()) {
+            throw new IllegalStateException(
+                    "Python service path is not a directory: " + serviceDir);
+        }
+        ProcessBuilder builder = new ProcessBuilder(
+                pythonExecutable,
+                "-m", "uvicorn",
+                "src.main:app",
+                "--host", pythonBindHost,
+                "--port", Integer.toString(pythonPort));
+        builder.directory(serviceDir.toFile());
+
+        String sourcePath = serviceDir.resolve("src").toString();
+        String existingPythonPath = builder.environment().get("PYTHONPATH");
+        builder.environment().put("PYTHONPATH",
+                existingPythonPath == null || existingPythonPath.isBlank()
+                        ? sourcePath
+                        : sourcePath + File.pathSeparator + existingPythonPath);
+        return builder;
+    }
+
+    URI healthUri() {
+        return URI.create("http://" + pythonHost + ":" + pythonPort + "/api/health");
+    }
+
+    private boolean waitUntilHealthy(Process process) throws InterruptedException {
+        long deadline = System.nanoTime()
+                + TimeUnit.SECONDS.toNanos(Math.max(1, startupTimeoutSeconds));
+        while (!shutdownRequested && process.isAlive()
+                && System.nanoTime() < deadline) {
+            if (checkHealth()) {
+                return true;
+            }
+            Thread.sleep(500);
+        }
+        return false;
+    }
+
+    private void stopProcess(Process process) {
+        process.destroy();
+        try {
+            if (!process.waitFor(10, TimeUnit.SECONDS)) {
+                process.destroyForcibly();
+                log.warn("Python service force-killed");
+            }
+        } catch (InterruptedException e) {
+            process.destroyForcibly();
+            Thread.currentThread().interrupt();
+        }
+    }
 
     private void drainOutput(Process process) {
         try (BufferedReader reader = new BufferedReader(
@@ -257,7 +367,7 @@ public class PythonProcessManager {
             while ((line = reader.readLine()) != null) {
                 log.debug("[python] {}", line);
             }
-        } catch (Exception e) {
+        } catch (Exception ignored) {
             // 进程结束时正常退出
         }
     }

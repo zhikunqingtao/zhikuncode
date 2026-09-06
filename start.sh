@@ -118,6 +118,7 @@ if [ -f "$PROJECT_ROOT/.env" ]; then
     source "$PROJECT_ROOT/.env"
     set +a
 fi
+PYTHON_WORKSPACE_ROOT="${WORKSPACE_ROOT:-$PROJECT_ROOT}"
 
 # Project-pinned MCP launchers. Keeping them on PATH makes the same ZHIKUN_MCP_SERVERS
 # JSON work for local development and the production container.
@@ -195,15 +196,18 @@ if [ -z "$BACKEND_JAR" ] || [ ! -f "$BACKEND_JAR" ]; then
     exit 1
 fi
 log_info "打包完成: $(basename "$BACKEND_JAR")"
-# 直接用 java -jar 启动（PID = JVM PID，无 fork 问题）
-nohup java -jar "$BACKEND_JAR" >> "$BACKEND_LOG" 2>&1 < /dev/null &
+# 直接用 java -jar 启动（PID = JVM PID，无 fork 问题）。
+# 三端脚本会在下方独立启动 Python，必须覆盖 .env/父进程中的托管开关，避免争抢 8000 端口。
+nohup env PYTHON_SERVICE_AUTO_START=false \
+    java -jar "$BACKEND_JAR" >> "$BACKEND_LOG" 2>&1 < /dev/null &
 BACKEND_PID=$!
 log_info "Backend 进程已启动 (PID: $BACKEND_PID)"
 
 # ======================== 启动 Python ========================
 log_step "启动 Python 服务 (FastAPI :$PYTHON_PORT)..."
 cd "$PROJECT_ROOT/python-service"
-nohup env PYTHONPATH=./src "$PYTHON_CMD" -m uvicorn src.main:app \
+nohup env PYTHONPATH=./src WORKSPACE_ROOT="$PYTHON_WORKSPACE_ROOT" \
+    "$PYTHON_CMD" -m uvicorn src.main:app \
     --host 127.0.0.1 --port $PYTHON_PORT --reload > "$PYTHON_LOG" 2>&1 < /dev/null &
 PYTHON_PID=$!
 log_info "Python 进程已启动 (PID: $PYTHON_PID)"

@@ -33,7 +33,14 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
     const simpleMode = workbenchEnabled && viewMode === 'simple';
 
     // 动态加载可用模型列表（统一从 modelStore 缓存读取，附带 supportsImages / maxImages 能力）
-    const { models: availableModels, defaultModel, loaded, fetchModels } = useModelStore();
+    const {
+        models: availableModels,
+        defaultModel,
+        loaded,
+        loading: modelsLoading,
+        error: modelsError,
+        fetchModels,
+    } = useModelStore();
 
     useEffect(() => {
         if (loaded) return;
@@ -107,18 +114,36 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                             value={model || ''}
                             onChange={(e) => {
                                 const newModel = e.target.value;
+                                if (!newModel) return;
                                 setModel(newModel);
-                                useConfigStore.getState().saveConfig({ defaultModel: newModel });
+                                void useConfigStore.getState().saveConfig({ defaultModel: newModel });
                                 sendSetModel(newModel);
                             }}
+                            disabled={modelsLoading || availableModels.length === 0}
                             className="hidden sm:block px-3 py-1.5 text-sm rounded-lg border border-[var(--border)]
                                 bg-[var(--bg-primary)] text-[var(--text-primary)]
                                 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
+                            {availableModels.length === 0 && (
+                                <option value="">
+                                    {modelsLoading ? '模型加载中…'
+                                        : modelsError ? '模型列表加载失败' : '暂无可用模型'}
+                                </option>
+                            )}
                             {availableModels.map(m => (
                                 <option key={m.id} value={m.id}>{m.displayName}</option>
                             ))}
                         </select>
+                        {modelsError && (
+                            <button
+                                type="button"
+                                onClick={() => void fetchModels()}
+                                className="hidden sm:inline-flex text-xs text-blue-500 hover:underline"
+                                aria-label="重新加载模型列表"
+                            >
+                                重试
+                            </button>
+                        )}
                     </>
                 )}
             </div>

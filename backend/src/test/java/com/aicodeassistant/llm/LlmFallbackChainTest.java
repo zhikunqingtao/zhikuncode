@@ -44,23 +44,24 @@ class LlmFallbackChainTest {
     }
 
     @Test
-    @DisplayName("别名解析四级回退：env → config → builtin → direct")
+    @DisplayName("别名解析四级回退：无效 tier 回退，显式模型保持透传")
     void aliasResolutionFourLevelFallback() {
         LlmProvider provider = mock(LlmProvider.class);
+        when(provider.getDefaultModel()).thenReturn("qwen-plus");
         when(provider.getProviderName()).thenReturn("test-provider");
         when(provider.getSupportedModels()).thenReturn(List.of("qwen-plus"));
 
         LlmProviderRegistry registry = new LlmProviderRegistry(
             List.of(provider), mockEnv);
 
-        // Level 3 回退：无 env、无 config → 使用内置别名
+        // Level 3 映射到的内置模型未部署，必须回退到有效默认模型。
         String resolved = registry.resolveModelAlias("light");
-        assertEquals("qwen3.8-max-0902", resolved, "应通过内置别名解析");
+        assertEquals("qwen-plus", resolved, "应回退到 Provider 的有效默认模型");
 
-        // Level 4 回退：未知别名直接返回
-        String unknown = registry.resolveModelAlias("my-custom-model");
-        assertEquals("my-custom-model", unknown,
-            "未知别名应直接返回原始名称");
+        // Level 4 保留通用别名解析器的既有透传契约。
+        assertEquals("qwen-plus", registry.resolveModelAlias("qwen-plus"));
+        assertEquals("my-custom-model",
+                registry.resolveModelAlias("my-custom-model"));
     }
 
     @Test

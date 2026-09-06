@@ -13,12 +13,10 @@ from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
+from workspace_paths import WorkspacePathError, resolve_workspace_path
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["File Processing"])
-
-BASE_ROOT = os.path.abspath(os.getenv("WORKSPACE_ROOT", os.getcwd()))
-
 
 # ── Pydantic 模型 ──
 
@@ -59,7 +57,8 @@ class EncodingDetectBytesRequest(BaseModel):
 
 class FileTreeRequest(BaseModel):
     root_path: str = Field(..., description="项目根目录路径")
-    max_depth: Optional[int] = Field(5, description="最大递归深度")
+    max_depth: Optional[int] = Field(
+        5, ge=0, le=20, description="最大递归深度（0-20）")
     exclude_patterns: Optional[list[str]] = Field(None, description="额外排除的目录/文件名")
 
 
@@ -113,7 +112,7 @@ async def get_file_tree(request: FileTreeRequest):
                 size = None
             return FileTreeNode(
                 name=name,
-                path=os.path.relpath(path, request.root_path),
+                path=os.path.relpath(path, root),
                 type='file',
                 size=size,
                 extension=ext if ext else None,
@@ -129,6 +128,10 @@ async def get_file_tree(request: FileTreeRequest):
                     if entry in excludes or entry.startswith('.'):
                         continue
                     full_path = os.path.join(path, entry)
+                    # Never follow workspace symlinks while recursively listing;
+                    # their target may be replaced after the root validation.
+                    if os.path.islink(full_path):
+                        continue
                     if os.path.isdir(full_path):
                         dirs.append(full_path)
                     else:
@@ -143,19 +146,16 @@ async def get_file_tree(request: FileTreeRequest):
 
         return FileTreeNode(
             name=name,
-            path=os.path.relpath(path, request.root_path),
+            path=os.path.relpath(path, root),
             type='dir',
             children=children,
         )
 
-    # 安全校验：限制在工作空间内
-    requested_root = os.path.abspath(os.path.join(BASE_ROOT, request.root_path))
-    if not (requested_root == BASE_ROOT or requested_root.startswith(BASE_ROOT + os.sep)):
-        raise HTTPException(status_code=400, detail="root_path outside workspace is not allowed")
-
-    root = requested_root
-    if not os.path.isdir(root):
-        raise HTTPException(status_code=400, detail="Invalid root path")
+    # Canonical realpath validation prevents both ../ traversal and symlink escape.
+    try:
+        root = str(resolve_workspace_path(request.root_path, require_directory=True))
+    except WorkspacePathError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
 
     max_depth = request.max_depth if request.max_depth is not None else 5
 
@@ -171,8 +171,12 @@ async def get_file_tree(request: FileTreeRequest):
 async def detect_encoding(request: EncodingRequest):
     """检测文件编码"""
     try:
+        file_path = resolve_workspace_path(request.file_path, require_file=True)
+    except WorkspacePathError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+    try:
         det = _get_detector()
-        result = det.detect_encoding(request.file_path)
+        result = det.detect_encoding(str(file_path))
         return EncodingResponse(
             encoding=result.encoding,
             confidence=result.confidence,
@@ -189,8 +193,12 @@ async def detect_encoding(request: EncodingRequest):
 async def detect_type(request: MimeRequest):
     """检测文件 MIME 类型"""
     try:
+        file_path = resolve_workspace_path(request.file_path, require_file=True)
+    except WorkspacePathError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+    try:
         det = _get_detector()
-        result = det.detect_type(request.file_path)
+        result = det.detect_type(str(file_path))
         return MimeResponse(
             mime_type=result.mime_type,
             description=result.description,
@@ -208,8 +216,12 @@ async def detect_type(request: MimeRequest):
 async def safe_read(request: SafeReadRequest):
     """安全读取文件 — 自动检测编码"""
     try:
+        file_path = resolve_workspace_path(request.file_path, require_file=True)
+    except WorkspacePathError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+    try:
         det = _get_detector()
-        content, encoding = det.safe_read(request.file_path)
+        content, encoding = det.safe_read(str(file_path))
         return SafeReadResponse(
             content=content,
             encoding=encoding,
@@ -247,13 +259,17 @@ async def watch_files(
 ):
     """文件变更监听 — SSE 流式推送 (watchfiles Rust 内核)"""
     try:
+        watch_root = resolve_workspace_path(path, require_directory=True)
+    except WorkspacePathError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+    try:
         import watchfiles
         from sse_starlette.sse import EventSourceResponse
 
         ext_filter = set(extensions.split(",")) if extensions else None
 
         async def event_generator():
-            async for changes in watchfiles.awatch(path):
+            async for changes in watchfiles.awatch(str(watch_root)):
                 for change_type, changed_path in changes:
                     if ext_filter and not any(
                         changed_path.endswith(e) for e in ext_filter

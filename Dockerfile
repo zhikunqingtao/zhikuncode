@@ -7,8 +7,14 @@
 FROM node:22-alpine AS frontend-build
 WORKDIR /build/frontend
 
+ARG NPM_REGISTRY=https://registry.npmjs.org/
 COPY frontend/package.json frontend/package-lock.json ./
-RUN npm ci --ignore-scripts
+RUN case "${NPM_REGISTRY}" in https://*) ;; \
+        *) echo "NPM_REGISTRY must use HTTPS" >&2; exit 2 ;; \
+    esac && \
+    npm ci --ignore-scripts \
+    --registry="${NPM_REGISTRY}" \
+    --replace-registry-host=always
 
 COPY frontend/src ./src/
 COPY frontend/index.html frontend/vite.config.ts frontend/tsconfig.json ./
@@ -20,10 +26,43 @@ RUN npm run build
 FROM eclipse-temurin:21-jdk AS backend-build
 WORKDIR /build
 
+ARG MAVEN_REPOSITORY_URL=https://repo.maven.apache.org/maven2
+
 # Cache Maven dependencies (layer caching optimization)
 COPY backend/pom.xml ./backend/
 COPY backend/.mvn ./backend/.mvn/
 COPY backend/mvnw ./backend/
+RUN repository="${MAVEN_REPOSITORY_URL%/}" && \
+    case "$repository" in https://*) ;; \
+        *) echo "MAVEN_REPOSITORY_URL must use HTTPS" >&2; exit 2 ;; \
+    esac && \
+    repository_path="${repository#https://}" && \
+    case "$repository_path" in ""|*[!A-Za-z0-9._~:/-]*) \
+        echo "MAVEN_REPOSITORY_URL contains unsupported characters" >&2; exit 2 ;; \
+    esac && \
+    sed -i \
+        "s|https://repo.maven.apache.org/maven2|${repository}|g" \
+        backend/.mvn/wrapper/maven-wrapper.properties && \
+    grep -Fq "distributionUrl=${repository}/" \
+        backend/.mvn/wrapper/maven-wrapper.properties && \
+    grep -Fq "wrapperUrl=${repository}/" \
+        backend/.mvn/wrapper/maven-wrapper.properties && \
+    if [ "$repository" != 'https://repo.maven.apache.org/maven2' ]; then \
+        mkdir -p /root/.m2; \
+        printf '%s\n' \
+            '<?xml version="1.0" encoding="UTF-8"?>' \
+            '<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0">' \
+            '  <mirrors>' \
+            '    <mirror>' \
+            '      <id>docker-build-mirror</id>' \
+            '      <name>Configured build mirror</name>' \
+            "      <url>${repository}</url>" \
+            '      <mirrorOf>*</mirrorOf>' \
+            '    </mirror>' \
+            '  </mirrors>' \
+            '</settings>' \
+            > /root/.m2/settings.xml; \
+    fi
 RUN cd backend && chmod +x mvnw && ./mvnw dependency:go-offline -B
 
 # Build application JAR
@@ -35,7 +74,12 @@ RUN cd backend && ./mvnw package -DskipTests -B \
 FROM ghcr.io/github/github-mcp-server:v1.11.0 AS github-mcp
 
 # ---- Stage 3: Production Runtime ----
-FROM eclipse-temurin:21-jre-jammy AS runtime
+# Ubuntu 24.04 (noble) provides Python 3.12, matching pyproject.toml's
+# supported range (>=3.11,<3.13). Jammy's Python 3.10 is not supported.
+FROM eclipse-temurin:21-jre-noble AS runtime
+
+ARG UBUNTU_MIRROR_HOST=
+ARG PIP_INDEX_URL=https://pypi.org/simple
 
 LABEL maintainer="ZhikunCode Team"
 LABEL org.opencontainers.image.title="ZhikunCode"
@@ -44,15 +88,34 @@ LABEL org.opencontainers.image.vendor="ZhikunCode"
 LABEL org.opencontainers.image.source="https://github.com/zhikuncode/zhikuncode"
 
 # Install runtime dependencies:
-#   - python3 + venv: Python subprocess for code analysis
+#   - python3 + venv + libmagic: Python subprocess for analysis/file inspection
 #   - ripgrep: GrepTool backend
 #   - curl: healthcheck
 #   - git: Git tools
 #   - tree-sitter runtime handled by python venv
-RUN apt-get update && \
+RUN if [ -n "${UBUNTU_MIRROR_HOST}" ]; then \
+        case "${UBUNTU_MIRROR_HOST}" in *[!A-Za-z0-9.-]*) \
+            echo "UBUNTU_MIRROR_HOST must be a hostname" >&2; exit 2 ;; \
+        esac; \
+        mirror_replaced=false; \
+        for source_file in /etc/apt/sources.list /etc/apt/sources.list.d/ubuntu.sources; do \
+            if [ -f "$source_file" ] && grep -Eq 'https?://(archive|security|ports)\.ubuntu\.com' "$source_file"; then \
+                sed -E -i \
+                    "s#https?://(archive\.ubuntu\.com|security\.ubuntu\.com|ports\.ubuntu\.com)#https://${UBUNTU_MIRROR_HOST}#g" \
+                    "$source_file"; \
+                grep -Fq "https://${UBUNTU_MIRROR_HOST}/ubuntu" "$source_file" \
+                    || { echo "Ubuntu mirror replacement verification failed" >&2; exit 2; }; \
+                mirror_replaced=true; \
+            fi; \
+        done; \
+        [ "$mirror_replaced" = true ] \
+            || { echo "No supported Ubuntu source entry found" >&2; exit 2; }; \
+    fi && \
+    apt-get update && \
     apt-get install -y --no-install-recommends \
-        python3 python3-pip python3-venv \
+        python3 python3-pip python3-venv libmagic1 \
         ripgrep curl git && \
+    python3 -c 'import sys; assert (3, 11) <= sys.version_info[:2] < (3, 13), sys.version' && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -74,15 +137,23 @@ COPY python-service/requirements.txt ./python-service/
 COPY python-service/pyproject.toml ./python-service/
 
 # Setup Python virtual environment
-RUN python3 -m venv /app/python-service/.venv && \
-    /app/python-service/.venv/bin/pip install --no-cache-dir pip==24.0 && \
-    /app/python-service/.venv/bin/pip install --no-cache-dir -r /app/python-service/requirements.lock
+RUN case "${PIP_INDEX_URL}" in https://*) ;; \
+        *) echo "PIP_INDEX_URL must use HTTPS" >&2; exit 2 ;; \
+    esac && \
+    python3 -m venv /app/python-service/.venv && \
+    /app/python-service/.venv/bin/pip install --no-cache-dir \
+        --index-url "${PIP_INDEX_URL}" pip==24.0 && \
+    /app/python-service/.venv/bin/pip install --no-cache-dir \
+        --index-url "${PIP_INDEX_URL}" \
+        -r /app/python-service/requirements.lock
 
 # Alibaba Cloud Ops has stricter FastMCP/Pydantic pins than the application,
 # so isolate it from the Python analysis service.
 RUN python3 -m venv /app/mcp-servers/alibaba-cloud-ops && \
-    /app/mcp-servers/alibaba-cloud-ops/bin/pip install --no-cache-dir pip==24.0 && \
     /app/mcp-servers/alibaba-cloud-ops/bin/pip install --no-cache-dir \
+        --index-url "${PIP_INDEX_URL}" pip==24.0 && \
+    /app/mcp-servers/alibaba-cloud-ops/bin/pip install --no-cache-dir \
+        --index-url "${PIP_INDEX_URL}" \
         alibaba-cloud-ops-mcp-server==0.9.27
 
 # Create symlink so PythonProcessManager can resolve 'python' command

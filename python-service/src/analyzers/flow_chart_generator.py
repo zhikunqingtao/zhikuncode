@@ -194,6 +194,8 @@ class FlowChartGenerator:
             return None
 
         for path in root.rglob("*.java"):
+            if path.is_symlink():
+                continue
             if any(part in SKIP_DIRS for part in path.parts):
                 continue
             if class_name and class_name not in path.stem:
@@ -232,6 +234,8 @@ class FlowChartGenerator:
     ) -> Optional[Tuple[str, str, str, str]]:
         """在 Python 文件中搜索方法"""
         for path in root.rglob("*.py"):
+            if path.is_symlink():
+                continue
             if any(part in SKIP_DIRS for part in path.parts):
                 continue
             try:

@@ -4,13 +4,13 @@ import asyncio
 import logging
 import os
 import time
-from pathlib import Path
 from typing import Any, List, Literal, Optional
 
 import httpx
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
+from workspace_paths import WorkspacePathError, resolve_workspace_path
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["Analysis"])
@@ -150,23 +150,6 @@ async def get_python_openapi(request: Request):
     return request.app.openapi()
 
 
-# ── Helper functions (shared) ──
-
-def _validate_path_safe(path: str) -> bool:
-    """验证路径安全：禁止 .. 穿越"""
-    normalized = os.path.normpath(path)
-    return ".." not in normalized.split(os.sep)
-
-
-def _validate_paths_contained(file_path: str, project_root: str) -> bool:
-    """Ensure file_path is within project_root."""
-    try:
-        Path(file_path).resolve().relative_to(Path(project_root).resolve())
-        return True
-    except ValueError:
-        return False
-
-
 # ═══════════════════════════════════════════════════════════════
 # F35: Diagram Generation (时序图 / 流程图)
 # ═══════════════════════════════════════════════════════════════
@@ -206,12 +189,12 @@ _DIAGRAM_TIMEOUT_SECONDS = 30
 @router.post("/generate-diagram", response_model=DiagramGenerationResult)
 async def generate_diagram(request: DiagramRequest):
     """生成代码图表（时序图/流程图）— F35"""
-    # 1. 参数校验：project_root 必须是存在的目录
-    if not _validate_path_safe(request.project_root):
-        raise HTTPException(status_code=400, detail="Invalid project_root: path traversal detected")
-
-    if not os.path.isdir(request.project_root):
-        raise HTTPException(status_code=400, detail=f"project_root does not exist: {request.project_root}")
+    try:
+        project_root = resolve_workspace_path(
+            request.project_root, require_directory=True)
+    except WorkspacePathError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+    request = request.model_copy(update={"project_root": str(project_root)})
 
     if not request.target.strip():
         raise HTTPException(status_code=400, detail="target must not be empty")
@@ -330,26 +313,23 @@ async def analyze_change_impact(request: ChangeImpactRequest):
     """分析代码变更的影响链路 (F33)"""
     start_ms = time.time() * 1000
 
-    # 路径安全验证
-    if not _validate_path_safe(request.file_path):
-        return _change_impact_error(400, "INVALID_FILE_PATH", "path traversal detected", start_ms)
-    if not _validate_path_safe(request.project_root):
-        return _change_impact_error(400, "INVALID_PROJECT_ROOT", "path traversal detected", start_ms)
-
-    # 验证 file_path 位于 project_root 内
-    if not _validate_paths_contained(request.file_path, request.project_root):
-        return _change_impact_error(400, "FILE_OUTSIDE_PROJECT", "file_path must be within project_root", start_ms)
-
-    if not os.path.isdir(request.project_root):
-        return _change_impact_error(400, "PROJECT_ROOT_NOT_FOUND",
-                                    f"project_root does not exist: {request.project_root}", start_ms)
+    try:
+        project_root = resolve_workspace_path(
+            request.project_root, require_directory=True)
+        file_path = resolve_workspace_path(
+            request.file_path, base=project_root, require_file=True)
+    except WorkspacePathError:
+        return _change_impact_error(
+            400, "FILE_OUTSIDE_PROJECT",
+            "project_root and file_path must resolve inside the workspace",
+            start_ms)
 
     try:
         analyzer = _get_change_impact_analyzer()
         result = await analyzer.analyze(
-            file_path=request.file_path,
+            file_path=str(file_path),
             changed_lines=request.changed_lines,
-            project_root=request.project_root,
+            project_root=str(project_root),
             depth=request.depth,
         )
         elapsed_ms = round(time.time() * 1000 - start_ms, 1)
@@ -407,11 +387,12 @@ def _trace_code_path_sync(request: CodePathRequest) -> dict:
 @router.post("/api-endpoints")
 async def scan_api_endpoints(request: APIEndpointRequest):
     """扫描项目所有 API 端点 (F40)"""
-    if not _validate_path_safe(request.project_root):
-        raise HTTPException(status_code=400, detail="Invalid project_root: path traversal detected")
-
-    if not os.path.isdir(request.project_root):
-        raise HTTPException(status_code=400, detail=f"project_root does not exist: {request.project_root}")
+    try:
+        project_root = resolve_workspace_path(
+            request.project_root, require_directory=True)
+    except WorkspacePathError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+    request = request.model_copy(update={"project_root": str(project_root)})
 
     try:
         result = await asyncio.wait_for(
@@ -431,14 +412,17 @@ async def scan_api_endpoints(request: APIEndpointRequest):
 @router.post("/code-path")
 async def trace_code_path(request: CodePathRequest):
     """追踪指定 API 的完整代码路径 (F40)"""
-    if not _validate_path_safe(request.project_root):
-        raise HTTPException(status_code=400, detail="Invalid project_root: path traversal detected")
-
-    if not os.path.isdir(request.project_root):
-        raise HTTPException(status_code=400, detail=f"project_root does not exist: {request.project_root}")
-
-    if not _validate_path_safe(request.entry_file):
-        raise HTTPException(status_code=400, detail="Invalid entry_file: path traversal detected")
+    try:
+        project_root = resolve_workspace_path(
+            request.project_root, require_directory=True)
+        entry_file = resolve_workspace_path(
+            request.entry_file, base=project_root, require_file=True)
+    except WorkspacePathError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+    request = request.model_copy(update={
+        "project_root": str(project_root),
+        "entry_file": str(entry_file),
+    })
 
     try:
         result = await asyncio.wait_for(

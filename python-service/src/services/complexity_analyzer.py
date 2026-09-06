@@ -402,6 +402,12 @@ class ComplexityAnalyzer:
                 continue
             full_path = os.path.join(path, entry)
 
+            # The route validates the canonical scan root, but nested links can
+            # still be replaced independently. Never recurse into or analyze a
+            # symbolic link from a remotely supplied workspace.
+            if os.path.islink(full_path):
+                continue
+
             if os.path.isdir(full_path):
                 child = self._build_tree(full_path, project_root)
                 if child.loc > 0:  # 只保留有代码的目录

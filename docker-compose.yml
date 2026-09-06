@@ -56,8 +56,6 @@ services:
       # Persist user MCP enable/disable choices in the existing data volume.
       - MCP_SERVICE_STATE_PATH=/app/data/mcp-service-states.json
       # ---- Internal ----
-      - PYTHON_SERVICE_HOST=127.0.0.1
-      - PYTHON_SERVICE_PORT=8000
       - SPRING_WEB_RESOURCES_STATIC_LOCATIONS=classpath:/static/,file:/app/static/
       - ZHIKUN_DEFAULT_WORKSPACE=/app/workspace
       - ZHIKUN_WORKSPACE_ALLOWED_ROOTS=/app/workspace

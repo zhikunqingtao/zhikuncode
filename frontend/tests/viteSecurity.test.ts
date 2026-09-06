@@ -40,5 +40,8 @@ describe('Local development service security', () => {
             /uvicorn src\.main:app \\\s+--host 127\.0\.0\.1/,
         );
         expect(startScript).not.toContain('--host 0.0.0.0');
+        expect(startScript).toMatch(
+            /nohup env PYTHON_SERVICE_AUTO_START=false \\\s+java -jar/,
+        );
     });
 });

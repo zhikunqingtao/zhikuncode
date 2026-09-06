@@ -235,7 +235,8 @@ class ChangeImpactAnalyzer:
         max_mtime = 0.0
         try:
             for p in root.rglob("*"):
-                if p.is_file() and p.suffix in (".py", ".java", ".ts", ".tsx"):
+                if (not p.is_symlink() and p.is_file()
+                        and p.suffix in (".py", ".java", ".ts", ".tsx")):
                     # 快速采样：只检查前 200 个文件
                     mtime = p.stat().st_mtime
                     if mtime > max_mtime:

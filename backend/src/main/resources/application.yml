@@ -48,9 +48,16 @@ zhikuncode:
 # Python 服务配置
 python:
   service:
-    host: 127.0.0.1
-    port: 8000
-    health-check-interval: 30000
+    # host is used for Java-to-Python health/API calls; bind-host is passed to uvicorn.
+    auto-start: ${PYTHON_SERVICE_AUTO_START:false}
+    host: ${PYTHON_SERVICE_HOST:127.0.0.1}
+    bind-host: ${PYTHON_SERVICE_BIND_HOST:127.0.0.1}
+    port: ${PYTHON_SERVICE_PORT:8000}
+    path: ${PYTHON_SERVICE_PATH:../python-service}
+    executable: ${PYTHON_SERVICE_EXECUTABLE:python}
+    startup-timeout-seconds: ${PYTHON_SERVICE_STARTUP_TIMEOUT_SECONDS:30}
+    restart-delay-ms: ${PYTHON_SERVICE_RESTART_DELAY_MS:5000}
+    health-check-interval: ${PYTHON_SERVICE_HEALTH_CHECK_INTERVAL:30000}
 
 # LLM 配置
 # 支持 OpenAI 兼容提供商（阿里云百炼/DeepSeek/Moonshot/本地 Ollama 等）和原生 Anthropic
@@ -269,8 +276,8 @@ app:
     max-sessions: 5
     session-timeout-hours: 24
   model:
-    # 默认模型（千问示例）
-    default: qwen3.8-max-0902
+    # LlmProviderRegistry verifies the configured value against registered providers.
+    default: ${LLM_DEFAULT_MODEL:qwen3.8-max-0902}
     # 降级链 — 按性能从高到低
     tier-chain:
       - qwen3.8-max-0902

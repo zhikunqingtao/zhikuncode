@@ -29,6 +29,7 @@ class SelectedMcpRegistryIntegrationTest {
         assertTrue(Files.isRegularFile(registryPath));
         McpConfiguration configuration = new McpConfiguration();
         configuration.setCapabilityRegistryPath(registryPath.toString());
+        configuration.setServiceStatePath("");
         registry = new McpCapabilityRegistryService(new ObjectMapper(), configuration);
         registry.loadRegistry();
     }

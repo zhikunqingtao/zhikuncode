@@ -11,6 +11,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * LLM Provider 注册表 — 管理多供应商实例。
@@ -25,6 +27,8 @@ public class LlmProviderRegistry {
 
     private final Map<String, LlmProvider> providers = Collections.synchronizedMap(new java.util.LinkedHashMap<>());
     private final Environment env;
+    private final Set<String> warnedInvalidDefaults = ConcurrentHashMap.newKeySet();
+    private final Set<String> warnedInvalidTierAliases = ConcurrentHashMap.newKeySet();
 
     @Value("${classifier.model:}")
     private String classifierModel;
@@ -101,23 +105,49 @@ public class LlmProviderRegistry {
                 .toList();
     }
 
-    /** 获取全局默认模型 — 优先使用 app.model.default 配置 */
+    /**
+     * 获取全局默认模型。
+     * <p>
+     * 配置值只有在已注册 Provider 确实支持时才生效；陈旧配置会回退到
+     * Provider 的有效默认模型（再回退到首个可用模型），避免向客户端发布
+     * 一个无法调用的默认模型。
+     */
     public String getDefaultModel() {
-        // 优先使用配置文件/环境变量中指定的默认模型
-        if (configuredDefaultModel != null && !configuredDefaultModel.isBlank()) {
+        if (supportsModel(configuredDefaultModel)) {
             return configuredDefaultModel;
         }
-        return providers.values().stream()
-                .findFirst()
+
+        List<LlmProvider> snapshot = providerSnapshot();
+        String fallback = snapshot.stream()
                 .map(LlmProvider::getDefaultModel)
-                .orElse("qwen3.8-max-0902");
+                .filter(this::supportsModel)
+                .findFirst()
+                .orElseGet(() -> snapshot.stream()
+                        .flatMap(provider -> provider.getSupportedModels().stream())
+                        .filter(model -> model != null && !model.isBlank())
+                        .findFirst()
+                        .orElse(null));
+
+        if (fallback != null) {
+            if (configuredDefaultModel != null && !configuredDefaultModel.isBlank()
+                    && warnedInvalidDefaults.add(configuredDefaultModel)) {
+                log.warn("Configured default model '{}' is unavailable; using '{}'",
+                        configuredDefaultModel, fallback);
+            }
+            return fallback;
+        }
+
+        // 启动早期或测试环境可能尚无 Provider；保留非空返回契约。
+        return configuredDefaultModel != null && !configuredDefaultModel.isBlank()
+                ? configuredDefaultModel : "qwen3.8-max-0902";
     }
 
     /** 获取快速模型 — 用于分类器/摘要 */
     public String getFastModel() {
-        return providers.values().stream()
+        return providerSnapshot().stream()
                 .map(LlmProvider::getFastModel)
                 .filter(Objects::nonNull)
+                .filter(this::supportsModel)
                 .findFirst()
                 .orElse(getDefaultModel());
     }
@@ -144,39 +174,64 @@ public class LlmProviderRegistry {
      * 1. 环境变量 AGENT_MODEL_<ALIAS> (如 AGENT_MODEL_LIGHT=qwen3.7-plus)
      * 2. application.yml 配置 agent.model-aliases.<alias>
      * 3. 内置映射表（light→轻量模型, standard→默认模型, premium→旗舰模型）
-     * 4. 直接使用别名作为模型名（透传）
+     * 4. 显式模型 ID 按既有契约直接透传
+     * <p>
+     * 内置 tier 别名的目标未部署时回退到当前有效默认模型；需要严格
+     * 校验用户输入的入口应再调用 {@link #supportsModel(String)}。
      */
     public String resolveModelAlias(String modelNameOrAlias) {
         if (modelNameOrAlias == null || modelNameOrAlias.isBlank()) {
-            log.debug("resolveModelAlias: input is null/blank, falling back to default model: {}", getDefaultModel());
             return getDefaultModel();
         }
+
+        String normalized = modelNameOrAlias.toLowerCase();
+        boolean tierAlias = BUILTIN_ALIASES.containsKey(normalized);
 
         // Level 1: 环境变量覆盖
         String envKey = "AGENT_MODEL_" + modelNameOrAlias.toUpperCase().replace("-", "_");
         String envModel = System.getenv(envKey);
         if (envModel != null && !envModel.isBlank()) {
             log.debug("resolveModelAlias: '{}' resolved via env var {}={}", modelNameOrAlias, envKey, envModel);
-            return envModel;
+            return fallbackUnavailableTier(modelNameOrAlias, envModel, tierAlias);
         }
 
         // Level 2: application.yml 配置映射
-        String configModel = env.getProperty("agent.model-aliases." + modelNameOrAlias.toLowerCase());
+        String configModel = env.getProperty("agent.model-aliases." + normalized);
         if (configModel != null && !configModel.isBlank()) {
             log.debug("resolveModelAlias: '{}' resolved via config={}", modelNameOrAlias, configModel);
-            return configModel;
+            return fallbackUnavailableTier(modelNameOrAlias, configModel, tierAlias);
         }
 
         // Level 3: 内置别名映射（模型别名 → 实际部署模型）
-        String builtinModel = BUILTIN_ALIASES.get(modelNameOrAlias.toLowerCase());
+        String builtinModel = BUILTIN_ALIASES.get(normalized);
         if (builtinModel != null) {
             log.debug("resolveModelAlias: '{}' resolved via builtin alias={}", modelNameOrAlias, builtinModel);
-            return builtinModel;
+            return fallbackUnavailableTier(modelNameOrAlias, builtinModel, true);
         }
 
-        // Level 4: 直接返回，尝试作为模型名使用
-        log.debug("resolveModelAlias: '{}' used as-is (no alias match)", modelNameOrAlias);
+        // Level 4: 保留通用调用方的既有契约，直接透传显式模型 ID。
+        // Session/WebSocket 等用户输入边界会另行按 Provider 校验。
         return modelNameOrAlias;
+    }
+
+    private String fallbackUnavailableTier(String requested, String resolved,
+                                           boolean tierAlias) {
+        if (!tierAlias || supportsModel(resolved)) {
+            return resolved;
+        }
+
+        String fallback = getDefaultModel();
+        if (supportsModel(fallback)) {
+            String warningKey = String.valueOf(requested) + "->" + String.valueOf(resolved)
+                    + "->" + fallback;
+            if (warnedInvalidTierAliases.add(warningKey)) {
+                log.warn("Model tier alias '{}' resolved to unavailable model '{}'; using active default '{}'",
+                        requested, resolved, fallback);
+            }
+            return fallback;
+        }
+
+        return resolved;
     }
 
     /** 获取内置别名列表（供 AgentTool 动态构建模型枚举） */
@@ -188,12 +243,19 @@ public class LlmProviderRegistry {
      * 检查指定模型名称是否有对应的 Provider 可用。
      */
     public boolean hasProvider(String modelName) {
+        return supportsModel(modelName);
+    }
+
+    /** 指定模型是否由当前已注册 Provider 明确支持。 */
+    public boolean supportsModel(String modelName) {
         if (modelName == null || modelName.isBlank()) return false;
-        try {
-            getProvider(modelName);
-            return true;
-        } catch (Exception e) {
-            return false;
+        return providerSnapshot().stream()
+                .anyMatch(provider -> provider.getSupportedModels().contains(modelName));
+    }
+
+    private List<LlmProvider> providerSnapshot() {
+        synchronized (providers) {
+            return List.copyOf(providers.values());
         }
     }
 

@@ -106,7 +106,7 @@ echo "  Profile: ${SPRING_PROFILES_ACTIVE:-default}"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 # ---- Launch Java application ----
-# PythonProcessManager inside Spring Boot will start the Python subprocess automatically
+# PythonProcessManager inside Spring Boot starts Python only when explicitly enabled.
 exec java \
     ${JAVA_OPTS} \
     -Djava.security.egd=file:/dev/./urandom \

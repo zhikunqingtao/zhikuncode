@@ -18,14 +18,18 @@
 ### Changed
 - Web 新会话必须先选择 Project；Session、Query 和文件搜索统一由 `projectId` / `sessionId` 解析服务端工作目录。
 - 智谱主模型全量升级为 GLM-5.3，覆盖前后端默认配置与中英文文档。
+- 模型列表、默认模型、会话创建和恢复统一以当前已注册 Provider 为权威；无效或已下线模型不再显示为 `Unknown Model`，历史会话仅在当前连接中回退到可用默认模型。
+- Docker 运行时升级到 Python 3.12 并内置可选的受管 Python 服务；基础 Compose 保持默认不启动 Python，部署方须通过显式 override 启用。
 - **Breaking:** Query 不再接受客户端提供的 `workingDirectory`。CLI 本地连接会登记当前目录，远程连接应使用 `--project-id` 或服务端默认工作区。
 - 无 allowed roots 时，本机目录选择默认关闭；直连本机桌面服务须显式设置 `ZHIKUN_LOCAL_PICKER_ENABLED=true`，远程或反向代理部署须配置 `ZHIKUN_WORKSPACE_ALLOWED_ROOTS`。
 
 ### Fixed
 - 规范化远端 MCP Schema 中的非标准类型别名（如 `bool` → `boolean`），避免 Moonshot/Kimi 因任一工具 Schema 非法而拒绝包含智谱搜索在内的整批工具。
+- Python 健康恢复改为异步且防重入，避免异常重启阻塞 WebSocket 心跳、授权重投及其他定时任务。
 
 ### Security
 - 内置文件搜索、写入、Glob、Grep、LSP 与 Snip 以单一 Session 根解析相对路径；范围外绝对路径进入常规授权，并在执行前复检路径、符号链接和 Project 状态。
+- Python 文件、Git 与分析端点统一执行 canonical workspace allowlist 与请求 project-root 子路径边界校验，递归扫描跳过符号链接；文件树深度限制为 0–20，越界或不存在的分析路径统一拒绝。
 
 ## [1.2.0] - 2026-05-07
 

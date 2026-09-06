@@ -108,7 +108,7 @@ In a single overnight run on 2026-08-09, ZhikunCode used Kimi K3 to build a pure
 | 🤖 | **Multi-Agent Collaboration** | Three collaboration modes: Team (fixed roles) / Swarm (dynamic negotiation) / SubAgent (parent-child delegation). Complex tasks are automatically distributed |
 | 🔒 | **Unified Authorization Security** | Every core tool passes through the Tool Gateway: canonical input freezing → Operation Analyzer risk/resource analysis → system invariants → RUN/SESSION/WORKSPACE grant matching or durable permission interaction → final dynamic recheck → structured result auditing. High-risk operations are ONCE-only, and unknown MCP/dynamic tools default to one-time approval |
 | 🇨🇳 | **Native Chinese LLM Support** | Qwen / DeepSeek / Moonshot / Zhipu GLM / MiniMax work out of the box with direct connections from mainland China — no VPN required |
-| 🐳 | **One-Command Docker Deployment** | `docker compose up -d` — one command to start. Data stays local, fully private |
+| 🐳 | **One-Command Docker Deployment** | `docker compose up -d` starts the Java backend and bundled static frontend by default; the image also includes the optional managed Python service, and data stays local |
 | 📤 | **OSS Publishing and Screenshot Paste (Optional)** | `/publish-oss` remains explicit-only for verified artifacts; pasted screenshots support dual-path — OSS upload when configured, automatic Base64 fallback when OSS is not configured, enabling image analysis with no extra setup |
 | 🎙️ | **Voice Interaction (ASR / TTS)** | Microphone speech-to-text input (qwen3-asr-flash) and one-click text-to-speech for AI replies (qwen3-tts-flash); powered by Alibaba Cloud DashScope — just configure the API Key; buttons auto-hide when unconfigured |
 | ⚡ | **Intelligent Context Management** | Six-layer compression cascade (Snip / MicroCompact / ContextCollapse / AutoCompact / CollapseDrain / ReactiveCompact) + incremental collapse (auto-compress every 10 turns) + 413 two-phase recovery (CollapseDrain aggressive compression → ReactiveCompact) + Precise Token Counting (tiktoken multi-model support) + Self-Correction Loop (SelfCorrectionLoop, auto-diagnose compile/test failures, max 3 retries) + three-level token alerts + image context governance (large image externalization → on-demand injection → budget guard three-layer protection) for seamless ultra-long conversations. The core engines are ContextCascade and QueryEngine |
@@ -190,6 +190,8 @@ docker compose up -d
 
 Once started, open **http://localhost:8080** in your browser.
 
+> The base `docker-compose.yml` starts only the Java backend, which serves the bundled static frontend. The Docker image includes the Python runtime and service code, but does not start it by default. To enable the in-container Python service, explicitly pass `PYTHON_SERVICE_AUTO_START=true`, `PYTHON_SERVICE_PATH=/app/python-service`, `PYTHON_SERVICE_EXECUTABLE=/app/python-service/.venv/bin/python`, and `WORKSPACE_ROOT=/app/workspace` through your own Compose override, then recreate the container with both Compose files. If browser-facing features must call Python directly, the override must also bind Python to a container interface, publish it only on host loopback, and expose only the required routes through a reverse proxy; never publish port `8000` directly to the Internet.
+
 > **System Requirements:** Docker 20.10+, Docker Compose V2, 4GB+ RAM recommended.
 
 ### Option 2: Local Development
@@ -241,6 +243,9 @@ cd backend && ./mvnw spring-boot:run -DskipTests
 cd python-service
 python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
+export WORKSPACE_ROOT="$(cd .. && pwd)"
+export ZHIKUN_LOCAL_PICKER_ENABLED=true
+export PYTHONPATH="$PWD/src"
 uvicorn src.main:app --host 127.0.0.1 --port 8000
 
 # Frontend (new terminal, from the repository root)
@@ -510,13 +515,13 @@ ZhikunCode uses a three-tier architecture: the Java backend handles core orchest
 
 ### Docker Deployment Architecture
 
-In production, all three services are packaged in a single Docker container:
+Production uses a single Docker container. The image contains the Java backend, bundled static frontend, and Python runtime; the base Compose configuration starts only Java, while the managed Python service requires an explicit environment/override opt-in:
 
 ```
 ┌─────────────────────────────────────────────────┐
 │                Docker Container                  │
 │  ┌───────────┐  ┌───────────┐  ┌──────────────┐ │
-│  │  Backend   │  │  Python   │  │   Frontend   │ │
+│  │  Backend   │  │  Python*  │  │   Frontend   │ │
 │  │  :8080     │  │  :8000    │  │ (static files)│ │
 │  └───────────┘  └───────────┘  └──────────────┘ │
 │                                                  │
@@ -526,6 +531,8 @@ In production, all three services are packaged in a single Docker container:
 │  Port: 8080 → host                               │
 └──────────────────────────────────────────────────┘
 ```
+
+`*` The Python service is an optional in-container managed process. It is not exposed publicly and is not started by the base Compose configuration.
 
 ### Core Engines
 
@@ -638,6 +645,7 @@ A new Web session must first select an authorized directory. In remote and Docke
 - Session, Query, and file-search APIs use `projectId` or `sessionId`; arbitrary client-provided `workingDirectory` values are rejected.
 - Ordinary directories and Git subdirectories may both be authorized. Built-in repository context and Git slash commands are available only when the selected directory is itself the Git worktree root. Bash is not a directory sandbox, but it always follows its separate command-authorization flow and is never auto-approved merely by selecting a Project.
 - The backend security default for `ZHIKUN_LOCAL_PICKER_ENABLED` is `false`. For local quick starts, `./start.sh` enables the picker only when neither `ZHIKUN_WORKSPACE_ALLOWED_ROOTS` nor the picker variable has a non-empty value; an explicit `false` or configured allowed roots is preserved and never implicitly enables it. Remote, reverse-proxied, and production deployments should explicitly keep it disabled and configure allowed roots.
+- Python uses `WORKSPACE_ROOT` as the default anchor for relative paths. When `ZHIKUN_WORKSPACE_ALLOWED_ROOTS` is configured, Python routes enforce the same roots; only the loopback development mode with no allowed roots and an explicitly enabled local picker may analyze another absolute path selected by the user.
 
 ### Authorization Scopes and Multi-Agent Inheritance
 
@@ -695,7 +703,7 @@ The following paths are always protected by system security invariants; permissi
 Full test report: [ZhikunCode v9.3 End-to-End Test Report](test-results/v9.3/ZhikunCode全链路测试报告.md) (2026-05-16)
 
 **Continuous Integration:**
-- **GitHub Actions Pipeline**: The main CI runs backend compilation and the frontend build. Python tests are currently non-blocking, and Docker image verification runs only on pushes to `main`.
+- **GitHub Actions Pipeline**: The main CI runs backend and Python tests plus frontend checks and builds. Docker image verification runs only on pushes to `main`.
 
 **Current Local Verification Snapshot (2026-09-02):**
 - **Backend Unit/Integration Tests**: 1258 tests / 0 failure / 0 error / 62 skipped
@@ -1392,7 +1400,7 @@ Environment variables are managed via the `.env` file. Copy `.env.example` and m
 | `LLM_PROVIDER_DEEPSEEK_API_KEY` | — | — | DeepSeek API Key |
 | `LLM_PROVIDER_MOONSHOT_API_KEY` | — | — | Moonshot/Kimi API Key |
 | `LLM_PROVIDER_ZHIPU_API_KEY` | — | — | Zhipu GLM API Key |
-| `LLM_DEFAULT_MODEL` | — | qwen3.8-max-0902 | Default model (used when no explicit selection) |
+| `LLM_DEFAULT_MODEL` | — | qwen3.8-max-0902 | Default model; falls back to an active Provider default when unavailable |
 
 > In multi-Provider mode, configure at least one Provider's API Key. The frontend supports free switching between configured Providers.
 

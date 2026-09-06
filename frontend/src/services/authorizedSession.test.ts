@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useConfigStore } from '@/store/configStore';
+import { useModelStore } from '@/store/modelStore';
 import { useProjectStore, type Project } from '@/store/projectStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { requestAuthorizedSession } from './authorizedSession';
@@ -14,6 +15,14 @@ const project: Project = {
 const originalRequestSelection =
     useProjectStore.getState().requestSelection;
 const originalCreateSession = useSessionStore.getState().createSession;
+const originalFetchModels = useModelStore.getState().fetchModels;
+
+const model = (id: string) => ({
+    id,
+    displayName: id,
+    supportsImages: false,
+    maxImages: 0,
+});
 
 describe('requestAuthorizedSession', () => {
     beforeEach(() => {
@@ -25,6 +34,14 @@ describe('requestAuthorizedSession', () => {
             sessionId: null,
             createSession: originalCreateSession,
         });
+        useModelStore.setState({
+            models: [model('model-default')],
+            defaultModel: 'model-default',
+            loaded: true,
+            loading: false,
+            error: null,
+            fetchModels: originalFetchModels,
+        });
     });
 
     afterEach(() => {
@@ -35,6 +52,15 @@ describe('requestAuthorizedSession', () => {
             sessionId: null,
             createSession: originalCreateSession,
         });
+        useModelStore.setState({
+            models: [],
+            defaultModel: null,
+            loaded: false,
+            loading: false,
+            error: null,
+            fetchModels: originalFetchModels,
+        });
+        vi.unstubAllGlobals();
         vi.restoreAllMocks();
     });
 
@@ -64,6 +90,94 @@ describe('requestAuthorizedSession', () => {
         await expect(requestAuthorizedSession()).resolves.toBeNull();
 
         expect(createSession).not.toHaveBeenCalled();
+    });
+
+    it('uses the provider default when persisted config names a stale model', async () => {
+        useConfigStore.setState({ defaultModel: 'removed-model' });
+        useModelStore.setState({
+            models: [model('provider-default')],
+            defaultModel: 'provider-default',
+            loaded: true,
+        });
+        useProjectStore.setState({
+            requestSelection: vi.fn().mockResolvedValue(project),
+        });
+        const createSession = vi.fn().mockResolvedValue('session-created');
+        useSessionStore.setState({ createSession });
+
+        await expect(requestAuthorizedSession()).resolves.toBe('session-created');
+
+        expect(createSession).toHaveBeenCalledWith(project.id, 'provider-default');
+    });
+
+    it('loads the provider model contract before creating a cold-start Session', async () => {
+        useConfigStore.setState({ defaultModel: 'removed-model' });
+        const fetchModels = vi.fn(async () => {
+            useModelStore.setState({
+                models: [model('provider-default')],
+                defaultModel: 'provider-default',
+                loaded: true,
+                loading: false,
+                error: null,
+            });
+        });
+        useModelStore.setState({
+            models: [],
+            defaultModel: null,
+            loaded: false,
+            loading: false,
+            error: null,
+            fetchModels,
+        });
+        useProjectStore.setState({
+            requestSelection: vi.fn().mockResolvedValue(project),
+        });
+        const createSession = vi.fn().mockResolvedValue('session-created');
+        useSessionStore.setState({ createSession });
+
+        await expect(requestAuthorizedSession()).resolves.toBe('session-created');
+
+        expect(fetchModels).toHaveBeenCalledTimes(1);
+        expect(createSession).toHaveBeenCalledWith(project.id, 'provider-default');
+    });
+
+    it('waits for an in-flight model load before creating a Session', async () => {
+        let resolveModels!: (response: Response) => void;
+        vi.stubGlobal('fetch', vi.fn(() => new Promise<Response>(resolve => {
+            resolveModels = resolve;
+        })));
+        useModelStore.setState({
+            models: [],
+            defaultModel: null,
+            loaded: false,
+            loading: false,
+            error: null,
+            fetchModels: originalFetchModels,
+        });
+        useProjectStore.setState({
+            requestSelection: vi.fn().mockResolvedValue(project),
+        });
+        const createSession = vi.fn().mockResolvedValue('session-created');
+        useSessionStore.setState({ createSession });
+
+        const headerLoad = useModelStore.getState().fetchModels();
+        const creation = requestAuthorizedSession();
+        await Promise.resolve();
+        expect(createSession).not.toHaveBeenCalled();
+
+        resolveModels({
+            ok: true,
+            json: async () => ({
+                models: [model('provider-default')],
+                defaultModel: 'provider-default',
+            }),
+        } as Response);
+
+        await expect(Promise.all([headerLoad, creation])).resolves.toEqual([
+            undefined,
+            'session-created',
+        ]);
+        expect(createSession).toHaveBeenCalledWith(project.id, 'provider-default');
     });
 
     it('shares one authorization and Session request across double sends', async () => {

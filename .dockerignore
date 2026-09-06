@@ -27,6 +27,9 @@ backend/.ai-code-assistant/
 backend/.claude/
 backend/.scratchpad/
 backend/.agentskills/
+# Keep local builds equivalent to clean clones/releases; Maven Wrapper must
+# download its ignored JAR through the configured repository URL.
+backend/.mvn/wrapper/maven-wrapper.jar
 
 # ---- Frontend exclusions ----
 frontend/node_modules/

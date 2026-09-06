@@ -38,6 +38,14 @@ async def fp_client():
         yield ac
 
 
+@pytest.fixture(autouse=True)
+def workspace_policy(monkeypatch, tmp_path):
+    """File endpoints may only inspect the current test workspace."""
+    monkeypatch.setenv("WORKSPACE_ROOT", str(tmp_path))
+    monkeypatch.delenv("ZHIKUN_WORKSPACE_ALLOWED_ROOTS", raising=False)
+    monkeypatch.delenv("ZHIKUN_LOCAL_PICKER_ENABLED", raising=False)
+
+
 @pytest.mark.asyncio
 async def test_detect_encoding(fp_client, temp_text_file):
     """POST /api/files/detect-encoding — 编码检测"""
@@ -116,8 +124,8 @@ async def test_watch_endpoint_exists(fp_client, tmp_path):
 
 @pytest.mark.asyncio
 async def test_detect_encoding_nonexistent_file(fp_client):
-    """不存在的文件 → 404 或 500"""
+    """不存在或越界的文件在进入检测器前被拒绝。"""
     resp = await fp_client.post("/api/files/detect-encoding", json={
         "file_path": "/nonexistent/path/file.txt"
     })
-    assert resp.status_code in (404, 500)
+    assert resp.status_code == 400

@@ -1294,9 +1294,11 @@ public class WebSocketController implements PermissionNotifier {
             return;
         }
         log.info("WS set_model: sessionId={}, model={}", sessionId, payload.model());
-        // Validate model exists via ModelRegistry capabilities
+        // 能力表包含静态/保守回退，不代表 Provider 真能调用；必须按 Provider 校验。
         try {
-            modelRegistry.getCapabilities(payload.model());
+            if (!providerRegistry.supportsModel(payload.model())) {
+                throw new IllegalArgumentException("Unsupported model");
+            }
             // 存储模型选择到内存
             sessionModels.put(sessionId, payload.model());
             // 持久化到 DB
@@ -1653,10 +1655,22 @@ public class WebSocketController implements PermissionNotifier {
             }
 
             SessionData boundData = dataOpt.get();
-            if (boundData.model() != null && !boundData.model().isEmpty()) {
-                sessionModels.put(sessionId, boundData.model());
-                log.info("Restored session model from DB: sessionId={}, model={}", sessionId, boundData.model());
+            String restoredModel = boundData.model();
+            if (!providerRegistry.supportsModel(restoredModel)) {
+                String fallbackModel = providerRegistry.getDefaultModel();
+                if (!providerRegistry.supportsModel(fallbackModel)) {
+                    wsSessionManager.unbindSession(transportId);
+                    pushBindError(principal.getName(), "INVALID_MODEL",
+                            bindRequestId, bindingEpoch);
+                    return;
+                }
+                log.warn("Session model is unavailable; using the active provider default for this connection: sessionId={}, oldModel={}, newModel={}",
+                        sessionId, restoredModel, fallbackModel);
+                restoredModel = fallbackModel;
             }
+            sessionModels.put(sessionId, restoredModel);
+            log.info("Effective model selected for restored session: sessionId={}, model={}",
+                    sessionId, restoredModel);
 
             // ── 新增: 推送 session_restored（含 activities）──
             try {
@@ -1664,7 +1678,7 @@ public class WebSocketController implements PermissionNotifier {
                     SessionData data = dataOpt.get();
                     Map<String, Object> metadata = Map.of(
                         "sessionId", sessionId,
-                        "model", data.model() != null ? data.model() : "",
+                        "model", restoredModel,
                         "permissionMode", permissionModeManager.getMode(sessionId).name(),
                         "status", data.status() != null ? data.status() : "idle"
                     );

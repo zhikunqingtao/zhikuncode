@@ -78,9 +78,19 @@ public class SessionController {
     public ResponseEntity<CreateSessionResponse> createSession(
             @RequestBody(required = false) CreateSessionRequest request) {
         // 当请求体为空时，使用默认值创建会话
-        String model = (request != null && request.model() != null
+        String requestedModel = (request != null && request.model() != null
                 && !request.model().isBlank())
                 ? request.model() : providerRegistry.getDefaultModel();
+        final String model;
+        try {
+            model = providerRegistry.resolveModelAlias(requestedModel);
+            if (!providerRegistry.supportsModel(model)) {
+                throw new IllegalArgumentException("Unsupported model: " + model);
+            }
+        } catch (IllegalArgumentException unsupported) {
+            throw new RequestValidationException(
+                    "INVALID_MODEL", "Unsupported model: " + requestedModel);
+        }
         if (request != null && request.workingDirectory() != null
                 && !request.workingDirectory().isBlank()) {
             throw new RequestValidationException(

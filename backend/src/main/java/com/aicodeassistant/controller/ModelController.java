@@ -34,8 +34,7 @@ public class ModelController {
             @RequestParam(required = false) String modelId) {
         // 新增：单个模型查询时验证存在性
         if (modelId != null && !modelId.isBlank()) {
-            ModelCapabilities mc = modelRegistry.getCapabilities(modelId);
-            if (mc == ModelCapabilities.DEFAULT) {
+            if (!providerRegistry.supportsModel(modelId)) {
                 throw new IllegalArgumentException("Invalid model: " + modelId);
             }
         }
@@ -44,8 +43,8 @@ public class ModelController {
                 .map(id -> {
                     ModelCapabilities mc = modelRegistry.getCapabilities(id);
                     return new ModelInfo(
-                            mc.modelId(),
-                            mc.displayName(),
+                            id,
+                            displayName(id, mc),
                             mc.maxOutputTokens(),
                             mc.contextWindow(),
                             mc.supportsStreaming(),
@@ -59,6 +58,16 @@ public class ModelController {
                 .toList();
         return ResponseEntity.ok(new ModelListResponse(
                 models, providerRegistry.getDefaultModel()));
+    }
+
+    private static String displayName(String modelId, ModelCapabilities capabilities) {
+        String displayName = capabilities.displayName();
+        if (capabilities == ModelCapabilities.DEFAULT
+                || displayName == null || displayName.isBlank()
+                || "Unknown Model".equalsIgnoreCase(displayName)) {
+            return modelId;
+        }
+        return displayName;
     }
 
     // ═══ DTO Records ═══

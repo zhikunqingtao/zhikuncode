@@ -32,7 +32,7 @@ jobs:
         run: node scripts/verify-king-case.mjs
 
   # =========================================================================
-  # Job 1: 后端 Java 编译验证
+  # Job 1: 后端 Java 测试
   # =========================================================================
   backend-build:
     name: Backend Build (Java 21 + Maven)
@@ -54,9 +54,9 @@ jobs:
           cache: 'maven'
           cache-dependency-path: backend/pom.xml
 
-      # 验证编译通过（测试依赖真实 LLM API Key，CI 环境仅验证编译）
-      - name: Verify compilation
-        run: chmod +x mvnw && ./mvnw compile -B -q
+      # 真实网络集成测试由环境变量门禁；默认测试套件无需 API Key。
+      - name: Run tests
+        run: chmod +x mvnw && ./mvnw test -B -q
 
   # =========================================================================
   # Job 2: 前端构建与类型检查
@@ -120,7 +120,7 @@ jobs:
 
       # 运行单元测试（排除需要真实 API Key 的集成测试）
       - name: Run tests
-        run: pytest tests/ -v --ignore=tests/integration -k "not api_key and not llm" || true
+        run: pytest tests/ -v --ignore=tests/integration -k "not api_key and not llm"
 
   # =========================================================================
   # Job 4: Docker 镜像构建验证（仅 main 分支 push）

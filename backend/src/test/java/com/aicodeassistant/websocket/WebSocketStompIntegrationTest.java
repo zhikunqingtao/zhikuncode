@@ -50,6 +50,8 @@ class WebSocketStompIntegrationTest {
     private SimpMessagingTemplate messaging;
     private WebSocketSessionManager sessionManager;
     private PermissionModeManager permissionModes;
+    private LlmProviderRegistry providerRegistry;
+    private SessionManager persistedSessions;
     private WebSocketController controller;
 
     @BeforeEach
@@ -59,11 +61,12 @@ class WebSocketStompIntegrationTest {
         permissionModes = mock(PermissionModeManager.class);
         QueryEngine queryEngine = mock(QueryEngine.class);
         ToolRegistry toolRegistry = mock(ToolRegistry.class);
-        LlmProviderRegistry providerRegistry = mock(LlmProviderRegistry.class);
+        providerRegistry = mock(LlmProviderRegistry.class);
+        persistedSessions = mock(SessionManager.class);
         EffectiveSystemPromptBuilder systemPromptBuilder = mock(EffectiveSystemPromptBuilder.class);
         controller = new WebSocketController(messaging, sessionManager,
                 queryEngine, toolRegistry, providerRegistry, systemPromptBuilder,
-                null, null, null, null, null, null, null, null, permissionModes, null, null, null, null, null,
+                null, persistedSessions, null, null, null, null, null, null, permissionModes, null, null, null, null, null,
                 null, null, null, null, null, mock(com.aicodeassistant.config.oss.OssPublishProperties.class));
     }
 
@@ -96,6 +99,41 @@ class WebSocketStompIntegrationTest {
                             && "Invalid permission mode".equals(payload.get("message"))
                             && !String.valueOf(payload).contains("invalid-client-value");
                 }));
+    }
+
+    @Test
+    void setModelRejectsModelsUnavailableFromProviders() {
+        bind("user-1", "session-1");
+        when(providerRegistry.supportsModel("retired-model")).thenReturn(false);
+
+        controller.handleSetModel(
+                new ClientMessage.SetModelPayload("retired-model"), () -> "user-1");
+
+        verify(messaging).convertAndSendToUser(
+                eq("user-1"), eq("/queue/messages"),
+                argThat(message -> message instanceof Map<?, ?> payload
+                        && "error".equals(payload.get("type"))
+                        && "INVALID_MODEL".equals(payload.get("code"))));
+        verify(messaging, never()).convertAndSendToUser(
+                eq("user-1"), eq("/queue/messages"),
+                argThat(message -> message instanceof Map<?, ?> payload
+                        && "model_changed".equals(payload.get("type"))));
+    }
+
+    @Test
+    void setModelPersistsModelsSupportedByProviders() {
+        bind("user-1", "session-1");
+        when(providerRegistry.supportsModel("available-model")).thenReturn(true);
+
+        controller.handleSetModel(
+                new ClientMessage.SetModelPayload("available-model"), () -> "user-1");
+
+        verify(persistedSessions).updateSessionModel("session-1", "available-model");
+        verify(messaging).convertAndSendToUser(
+                eq("user-1"), eq("/queue/messages"),
+                argThat(message -> message instanceof Map<?, ?> payload
+                        && "model_changed".equals(payload.get("type"))
+                        && "available-model".equals(payload.get("model"))));
     }
 
     // ═══════════════ 1. 推送消息格式验证 ═══════════════
@@ -348,22 +386,25 @@ class WebSocketStompIntegrationTest {
     }
 
     @Test
-    void sessionRestoreUsesActualPermissionModeWithoutDuplicateChangeEvent() {
+    void sessionRestoreUsesPermissionModeAndRuntimeFallbackWithoutPersistingIt() {
         SessionManager persistedSessions = mock(SessionManager.class);
         ProjectWorkspaceService projectWorkspaces = mock(ProjectWorkspaceService.class);
         ActivityRepository activities = mock(ActivityRepository.class);
         PermissionInteractionService interactions = mock(PermissionInteractionService.class);
+        LlmProviderRegistry bindProviders = mock(LlmProviderRegistry.class);
         SessionData target = new SessionData(
-                "session-1", "model", "/saved/workspace", "title",
+                "session-1", "retired-model", "/saved/workspace", "title",
                 "idle", List.of(), Map.of(), Usage.zero(), 0, null,
                 Instant.now(), Instant.now());
         when(persistedSessions.loadSession("session-1")).thenReturn(Optional.of(target));
         when(permissionModes.getMode("session-1")).thenReturn(PermissionMode.AUTO_APPROVE);
+        when(bindProviders.getDefaultModel()).thenReturn("available-model");
+        when(bindProviders.supportsModel("available-model")).thenReturn(true);
         when(activities.findBySessionId("session-1")).thenReturn(List.of());
         when(interactions.getPendingInteractions("session-1")).thenReturn(List.of());
         WebSocketController bindController = new WebSocketController(
                 messaging, sessionManager, mock(QueryEngine.class),
-                mock(ToolRegistry.class), mock(LlmProviderRegistry.class),
+                mock(ToolRegistry.class), bindProviders,
                 mock(EffectiveSystemPromptBuilder.class), null,
                 persistedSessions, null, null, null, null, null,
                 projectWorkspaces, permissionModes, null, activities,
@@ -391,8 +432,10 @@ class WebSocketStompIntegrationTest {
                             (Map<String, Object>) payload.get("metadata");
                     return "session_restored".equals(payload.get("type"))
                             && metadata != null
-                            && "AUTO_APPROVE".equals(metadata.get("permissionMode"));
+                            && "AUTO_APPROVE".equals(metadata.get("permissionMode"))
+                            && "available-model".equals(metadata.get("model"));
                 }));
+        verify(persistedSessions, never()).updateSessionModel(anyString(), anyString());
         verify(messaging, never()).convertAndSendToUser(
                 anyString(), eq("/queue/messages"),
                 argThat(message -> message instanceof Map<?, ?> payload

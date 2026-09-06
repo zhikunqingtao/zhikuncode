@@ -1,4 +1,5 @@
 import { useConfigStore } from '@/store/configStore';
+import { useModelStore } from '@/store/modelStore';
 import { useProjectStore } from '@/store/projectStore';
 import { useSessionStore } from '@/store/sessionStore';
 
@@ -23,8 +24,16 @@ export function requestAuthorizedSession(): Promise<string | null> {
         const project = await useProjectStore.getState().requestSelection();
         if (!project) return null;
 
-        const defaultModel = useConfigStore.getState().defaultModel
-            ?? 'qwen3.8-max-0902';
+        const currentModels = useModelStore.getState();
+        if (!currentModels.loaded) {
+            await currentModels.fetchModels();
+        }
+        const refreshedModels = useModelStore.getState();
+        const configuredDefault = useConfigStore.getState().defaultModel;
+        const defaultModel = refreshedModels.models.some(
+            model => model.id === configuredDefault)
+            ? configuredDefault
+            : (refreshedModels.defaultModel ?? '');
         return useSessionStore.getState().createSession(
             project.id,
             defaultModel,

@@ -5,12 +5,13 @@
  * 包含: 主题设置、模型选择、权限模式、快捷键等
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { X, Moon, Sun, Monitor, Keyboard, Shield, Globe, Sparkles } from 'lucide-react';
 import { useConfigStore } from '@/store/configStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { usePermissionStore } from '@/store/permissionStore';
 import { useNotificationStore } from '@/store/notificationStore';
+import { useModelStore } from '@/store/modelStore';
 import { sendSetPermissionMode } from '@/api/stompClient';
 import { isSessionBound } from '@/api/dispatch';
 import type { ThemeConfig, PermissionMode } from '@/types';
@@ -22,10 +23,22 @@ interface SettingsPanelProps {
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
     const { theme, setTheme, locale, setLocale } = useConfigStore();
     const { sessionId, model, setModel, effortValue, setEffort } = useSessionStore();
+    const {
+        models: availableModels,
+        loaded,
+        loading: modelsLoading,
+        error: modelsError,
+        fetchModels,
+    } = useModelStore();
     const { permissionMode } = usePermissionStore();
     const addNotification = useNotificationStore(state => state.addNotification);
     const hasBoundSession = Boolean(sessionId && isSessionBound(sessionId));
     const isMac = navigator.platform.includes('Mac');
+
+    useEffect(() => {
+        if (loaded) return;
+        void fetchModels();
+    }, [loaded, fetchModels]);
 
     const handleThemeChange = useCallback((mode: ThemeConfig['mode']) => {
         setTheme({ mode });
@@ -109,30 +122,32 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
                         <select
                             value={model || ''}
                             onChange={(e) => setModel(e.target.value)}
+                            disabled={modelsLoading || availableModels.length === 0}
                             className="w-full px-3 py-2 rounded-lg border border-[var(--border)]
                                 bg-[var(--bg-secondary)] text-[var(--text-primary)]
                                 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
-                            <option value="qwen3.8-max-0902">Qwen 3.8 Max 0902</option>
-                            <option value="qwen3.7-plus">Qwen 3.7 Plus</option>
-                            <option value="qwen3.8-max">Qwen 3.8 Max（百炼）</option>
-                            <option value="qwen3.8-flash">Qwen 3.8 Flash（百炼）</option>
-                            <option value="deepseek-v4-pro">DeepSeek V4 Pro</option>
-                            <option value="deepseek-v4-flash">DeepSeek V4 Flash</option>
-                            <option value="deepseek-v4-flash-vision-exp">DeepSeek V4 Flash Vision Exp（图片理解兜底）</option>
-                            <option value="deepseek-v4-pro-0813">DeepSeek V4 Pro 0813（百炼）</option>
-                            <option value="deepseek-v4-flash-0731">DeepSeek V4 Flash 0731（百炼）</option>
-                            <option value="kimi-k3">Kimi K3</option>
-                            <option value="kimi-k2.7-code">Kimi K2.7 Code</option>
-                            <option value="moonshot-v1-128k">Moonshot V1 128K</option>
-                            <option value="glm-5.3">GLM-5.3</option>
-                            <option value="glm-5.3-flash">GLM-5.3-Flash</option>
-                            <option value="MiniMax-M3">MiniMax M3</option>
-                            <option value="anthropic/claude-opus-4.8">Claude Opus 4.8 (zenmux)</option>
-                            <option value="anthropic/claude-fable-5.1">Claude Fable 5.1 (zenmux)</option>
-                            <option value="openai/gpt-5.6-sol">OpenAI GPT-5.6 Sol</option>
-                            <option value="google/gemini-3.5-flash">Google Gemini 3.5 Flash</option>
+                            {availableModels.length === 0 && (
+                                <option value="">
+                                    {modelsLoading ? '模型加载中…'
+                                        : modelsError ? '模型列表加载失败' : '暂无可用模型'}
+                                </option>
+                            )}
+                            {availableModels.map(availableModel => (
+                                <option key={availableModel.id} value={availableModel.id}>
+                                    {availableModel.displayName}
+                                </option>
+                            ))}
                         </select>
+                        {modelsError && (
+                            <button
+                                type="button"
+                                onClick={() => void fetchModels()}
+                                className="mt-2 text-sm text-blue-500 hover:underline"
+                            >
+                                重新加载模型列表
+                            </button>
+                        )}
 
                         {/* Effort Slider */}
                         <div className="mt-4">

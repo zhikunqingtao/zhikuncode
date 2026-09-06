@@ -100,7 +100,7 @@ class CallGraphBuilder:
     def _iter_files(self, root: Path, extensions: Set[str], skip_tests: bool):
         """递归遍历项目文件，跳过排除目录和测试文件"""
         for path in root.rglob("*"):
-            if not path.is_file():
+            if path.is_symlink() or not path.is_file():
                 continue
             if path.suffix not in extensions:
                 continue

@@ -36,6 +36,10 @@ class SessionControllerCreateTest {
                 mock(PermissionModeManager.class);
         when(projects.resolveWorkspace("project-1"))
                 .thenReturn(workspace);
+        when(providers.resolveModelAlias("model-1"))
+                .thenReturn("model-1");
+        when(providers.supportsModel("model-1"))
+                .thenReturn(true);
         when(sessions.createSession(
                 "model-1", workspace.toString()))
                 .thenReturn("session-1");
@@ -69,6 +73,10 @@ class SessionControllerCreateTest {
                 mock(PermissionModeManager.class);
         when(providers.getDefaultModel())
                 .thenReturn("default-model");
+        when(providers.resolveModelAlias("default-model"))
+                .thenReturn("default-model");
+        when(providers.supportsModel("default-model"))
+                .thenReturn(true);
         when(projects.resolveWorkspace(null))
                 .thenReturn(workspace);
         when(sessions.createSession(
@@ -94,6 +102,45 @@ class SessionControllerCreateTest {
                         error -> assertThat(error.getCode())
                                 .isEqualTo(
                                         "SESSION_WORKING_DIRECTORY_UNSUPPORTED"));
+    }
+
+    @Test
+    void rejectsModelThatNoProviderSupports() {
+        SessionManager sessions = mock(SessionManager.class);
+        LlmProviderRegistry providers = mock(LlmProviderRegistry.class);
+        ProjectWorkspaceService projects = mock(ProjectWorkspaceService.class);
+        PermissionModeManager permissionModes = mock(PermissionModeManager.class);
+        when(providers.resolveModelAlias("retired-model"))
+                .thenReturn("retired-model");
+        when(providers.supportsModel("retired-model"))
+                .thenReturn(false);
+        SessionController controller =
+                controller(sessions, providers, projects, permissionModes);
+
+        assertThatThrownBy(() -> controller.createSession(
+                new SessionController.CreateSessionRequest(
+                        null, null, "retired-model", null, null)))
+                .isInstanceOfSatisfying(RequestValidationException.class,
+                        error -> assertThat(error.getCode()).isEqualTo("INVALID_MODEL"));
+    }
+
+    @Test
+    void resolvesTierAliasBeforePersistingSessionModel() {
+        SessionManager sessions = mock(SessionManager.class);
+        LlmProviderRegistry providers = mock(LlmProviderRegistry.class);
+        ProjectWorkspaceService projects = mock(ProjectWorkspaceService.class);
+        PermissionModeManager permissionModes = mock(PermissionModeManager.class);
+        when(providers.resolveModelAlias("light")).thenReturn("available-default");
+        when(providers.supportsModel("available-default")).thenReturn(true);
+        when(projects.resolveWorkspace(null)).thenReturn(workspace);
+        when(sessions.createSession("available-default", workspace.toString()))
+                .thenReturn("session-1");
+
+        controller(sessions, providers, projects, permissionModes)
+                .createSession(new SessionController.CreateSessionRequest(
+                        null, null, "light", null, null));
+
+        verify(sessions).createSession("available-default", workspace.toString());
     }
 
     private static SessionController controller(

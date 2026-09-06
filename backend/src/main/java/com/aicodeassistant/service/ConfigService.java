@@ -1,6 +1,7 @@
 package com.aicodeassistant.service;
 
 import com.aicodeassistant.config.database.SqliteConfig;
+import com.aicodeassistant.llm.LlmProviderRegistry;
 import com.aicodeassistant.model.PermissionMode;
 import com.aicodeassistant.model.PermissionRule;
 import com.aicodeassistant.model.ProjectConfig;
@@ -11,13 +12,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.Path;
 import java.util.*;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 配置管理服务 — 全局配置和项目配置的 CRUD。
@@ -35,27 +36,32 @@ public class ConfigService {
     private final JdbcTemplate projectJdbcTemplate;
     private final ObjectMapper objectMapper;
     private final SqliteConfig sqliteConfig;
+    private final LlmProviderRegistry providerRegistry;
 
     private volatile UserConfig cachedUserConfig;
     private volatile ProjectConfig cachedProjectConfig;
-
-    @Value("${app.model.default:qwen3.8-max-0902}")
-    private String defaultModelName;
+    private final Set<String> warnedUnavailableDefaultModels = ConcurrentHashMap.newKeySet();
 
     public ConfigService(@Qualifier("globalJdbcTemplate") JdbcTemplate globalJdbcTemplate,
                          @Qualifier("projectJdbcTemplate") JdbcTemplate projectJdbcTemplate,
                          ObjectMapper objectMapper,
-                         SqliteConfig sqliteConfig) {
+                         SqliteConfig sqliteConfig,
+                         LlmProviderRegistry providerRegistry) {
         this.globalJdbcTemplate = globalJdbcTemplate;
         this.projectJdbcTemplate = projectJdbcTemplate;
         this.objectMapper = objectMapper;
         this.sqliteConfig = sqliteConfig;
+        this.providerRegistry = providerRegistry;
     }
 
     /**
      * 获取用户全局配置。
      */
     public UserConfig getUserConfig() {
+        return withEffectiveDefaultModel(getStoredUserConfig());
+    }
+
+    private UserConfig getStoredUserConfig() {
         if (cachedUserConfig != null) {
             return cachedUserConfig;
         }
@@ -76,7 +82,7 @@ public class ConfigService {
      * 更新用户全局配置 — 支持部分更新。
      */
     public UserConfig updateUserConfig(Map<String, Object> updates) {
-        UserConfig current = getUserConfig();
+        UserConfig current = getStoredUserConfig();
         // 合并更新: 将 updates 合并到当前配置
         try {
             String currentJson = objectMapper.writeValueAsString(current);
@@ -88,7 +94,7 @@ public class ConfigService {
             saveConfigJson(globalJdbcTemplate, "global_config", "user_config", mergedJson);
             log.info("User config updated: {} fields", updates.size());
             cachedUserConfig = updated;
-            return updated;
+            return withEffectiveDefaultModel(updated);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to update user config", e);
         }
@@ -184,12 +190,35 @@ public class ConfigService {
     private UserConfig defaultUserConfig() {
         return new UserConfig(
                 "localhost", null, null,
-                defaultModelName, Map.of(),
+                providerRegistry.getDefaultModel(), Map.of(),
                 "dark", "en",
                 PermissionMode.DEFAULT, List.of(), List.of(),
                 Map.of(),
                 false, true, 80
         );
+    }
+
+    /**
+     * 对外返回时修正已下线的持久化默认模型，但不写回数据库。
+     * 用户后续显式选择模型时，updateUserConfig 才会持久化新值。
+     */
+    private UserConfig withEffectiveDefaultModel(UserConfig config) {
+        if (providerRegistry.supportsModel(config.defaultModel())) {
+            return config;
+        }
+        String fallback = providerRegistry.getDefaultModel();
+        if (warnedUnavailableDefaultModels.add(String.valueOf(config.defaultModel()))) {
+            log.warn("Persisted default model '{}' is unavailable; returning effective fallback '{}' without modifying storage",
+                    config.defaultModel(), fallback);
+        }
+        return new UserConfig(
+                config.authType(), config.apiKey(), config.oauthToken(),
+                fallback, config.modelAliases(),
+                config.theme(), config.locale(),
+                config.defaultPermissionMode(), config.globalAlwaysAllowRules(),
+                config.globalAlwaysDenyRules(), config.mcpServers(),
+                config.analyticsEnabled(), config.autoCompactEnabled(),
+                config.autoCompactThreshold());
     }
 
     private ProjectConfig defaultProjectConfig() {

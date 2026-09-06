@@ -1,13 +1,12 @@
 """Code quality analysis routes (F3: Complexity Treemap)."""
 
 import logging
-import os
 import time
-from pathlib import Path
 from typing import Optional, List
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
+from workspace_paths import WorkspacePathError, resolve_workspace_path
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["Code Quality"])
@@ -53,27 +52,18 @@ async def analyze_complexity(request: ComplexityRequest):
     """F3 代码复杂度分析 — 返回项目级 Treemap 数据"""
     start = time.time()
 
-    # 路径安全校验
-    project_root = os.path.abspath(request.project_root)
-    if ".." in request.project_root:
-        raise HTTPException(status_code=400, detail="Path traversal not allowed")
-    if not os.path.isabs(request.project_root):
-        raise HTTPException(status_code=400, detail="project_root must be an absolute path")
-    if not os.path.isdir(project_root):
-        raise HTTPException(status_code=400, detail=f"Directory not found: {project_root}")
+    try:
+        project_root_path = resolve_workspace_path(
+            request.project_root, require_directory=True)
+        target_path_obj = None
+        if request.target_path:
+            target_path_obj = resolve_workspace_path(
+                request.target_path, base=project_root_path)
+    except WorkspacePathError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
 
-    target_path = None
-    if request.target_path:
-        target_path = os.path.abspath(request.target_path)
-        if ".." in request.target_path:
-            raise HTTPException(status_code=400, detail="Path traversal not allowed in target_path")
-        # 验证 target_path 位于 project_root 内
-        try:
-            Path(target_path).resolve().relative_to(Path(project_root).resolve())
-        except ValueError:
-            raise HTTPException(status_code=400, detail="target_path must be within project_root")
-        if not os.path.exists(target_path):
-            raise HTTPException(status_code=400, detail=f"Target path not found: {target_path}")
+    project_root = str(project_root_path)
+    target_path = str(target_path_obj) if target_path_obj is not None else None
 
     try:
         analyzer = _get_analyzer(request.languages)
