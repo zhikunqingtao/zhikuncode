@@ -13,14 +13,37 @@ NC='\033[0m'
 
 log_info()  { echo -e "${GREEN}[INFO]${NC}  $1"; }
 log_warn()  { echo -e "${YELLOW}[WARN]${NC}  $1"; }
+log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
 kill_port() {
     local port=$1
     local pids
-    pids=$(lsof -ti:"$port" 2>/dev/null || true)
+    local remaining
+    local failed=0
+    local attempts=0
+    pids=$(lsof -nP -tiTCP:"$port" -sTCP:LISTEN 2>/dev/null || true)
     if [ -n "$pids" ]; then
-        echo "$pids" | xargs kill -9 2>/dev/null || true
-        log_info "已停止端口 $port 上的进程 (PID: $pids)"
+        while IFS= read -r pid; do
+            [ -n "$pid" ] || continue
+            if ! kill -9 "$pid" 2>/dev/null; then
+                failed=1
+            fi
+        done <<< "$pids"
+        while [ "$attempts" -lt 10 ]; do
+            remaining=$(lsof -nP -tiTCP:"$port" -sTCP:LISTEN 2>/dev/null || true)
+            if [ -z "$remaining" ]; then
+                log_info "已停止端口 $port 上的进程 (PID: $pids)"
+                return 0
+            fi
+            sleep 0.5
+            attempts=$((attempts + 1))
+        done
+        if [ "$failed" -ne 0 ]; then
+            log_error "无法终止端口 $port 上的全部进程，请检查权限；仍占用 PID: $remaining"
+        else
+            log_error "端口 $port 仍被占用 (PID: $remaining)"
+        fi
+        return 1
     fi
 }
 
@@ -41,9 +64,10 @@ fi
 
 # 兖底：通过端口清理
 sleep 1
-kill_port 8080
-kill_port 8000
-kill_port 5173
+STOP_FAILED=0
+kill_port 8080 || STOP_FAILED=1
+kill_port 8000 || STOP_FAILED=1
+kill_port 5173 || STOP_FAILED=1
 
 # 等待进程完全退出并释放文件句柄
 sleep 2
@@ -71,5 +95,9 @@ if [ -d "$PROJECT_ROOT/backend/target" ]; then
 fi
 
 echo ""
+if [ "$STOP_FAILED" -ne 0 ]; then
+    log_error "部分服务未能停止"
+    exit 1
+fi
 log_info "所有服务已停止"
 echo ""

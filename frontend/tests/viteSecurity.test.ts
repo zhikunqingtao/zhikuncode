@@ -35,6 +35,10 @@ describe('Local development service security', () => {
             new URL('../../start.sh', import.meta.url),
             'utf8',
         );
+        const stopScript = await readFile(
+            new URL('../../stop.sh', import.meta.url),
+            'utf8',
+        );
 
         expect(startScript).toMatch(
             /uvicorn src\.main:app \\\s+--host 127\.0\.0\.1/,
@@ -43,5 +47,18 @@ describe('Local development service security', () => {
         expect(startScript).toMatch(
             /nohup env PYTHON_SERVICE_AUTO_START=false \\\s+java -jar/,
         );
+        expect(startScript).toContain(
+            'http://127.0.0.1:$BACKEND_PORT/actuator/health',
+        );
+        expect(startScript).toContain(
+            'http://127.0.0.1:$PYTHON_PORT/api/health',
+        );
+        expect(startScript).toContain('if [ "$HEALTH_FAILED" -ne 0 ]');
+        for (const script of [startScript, stopScript]) {
+            expect(script).toContain(
+                'lsof -nP -tiTCP:"$port" -sTCP:LISTEN',
+            );
+            expect(script).toContain('无法终止端口 $port 上的全部进程');
+        }
     });
 });

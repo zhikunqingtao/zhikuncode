@@ -35,25 +35,50 @@ log_step()  { echo -e "${BLUE}[STEP]${NC}  $1"; }
 kill_port() {
     local port=$1
     local pids
-    pids=$(lsof -ti:"$port" 2>/dev/null || true)
+    local remaining
+    local failed=0
+    local attempts=0
+    pids=$(lsof -nP -tiTCP:"$port" -sTCP:LISTEN 2>/dev/null || true)
     if [ -n "$pids" ]; then
         log_warn "端口 $port 被占用 (PID: $pids)，正在清理..."
-        echo "$pids" | xargs kill -9 2>/dev/null || true
-        sleep 1
-        log_info "端口 $port 已释放"
+        while IFS= read -r pid; do
+            [ -n "$pid" ] || continue
+            if ! kill -9 "$pid" 2>/dev/null; then
+                failed=1
+            fi
+        done <<< "$pids"
+        while [ "$attempts" -lt 10 ]; do
+            remaining=$(lsof -nP -tiTCP:"$port" -sTCP:LISTEN 2>/dev/null || true)
+            if [ -z "$remaining" ]; then
+                log_info "端口 $port 已释放"
+                return 0
+            fi
+            sleep 0.5
+            attempts=$((attempts + 1))
+        done
+        if [ "$failed" -ne 0 ]; then
+            log_error "无法终止端口 $port 上的全部进程，请检查权限；仍占用 PID: $remaining"
+        else
+            log_error "端口 $port 仍被占用 (PID: $remaining)"
+        fi
+        return 1
     fi
 }
 
-# 等待端口就绪（使用 TCP 连接检测，避免 HTTP 状态码干扰）
-wait_for_port() {
-    local port=$1
-    local name=$2
-    local timeout=$3
+# 等待真实 HTTP 健康状态，避免把错误进程占用端口误判为启动成功。
+wait_for_http() {
+    local url=$1
+    local timeout=$2
+    local expected_pattern=${3:-}
     local elapsed=0
+    local response
 
     while [ $elapsed -lt "$timeout" ]; do
-        if nc -z localhost "$port" 2>/dev/null; then
-            return 0
+        if response=$(curl -fsS --max-time 2 "$url" 2>/dev/null); then
+            if [ -z "$expected_pattern" ] \
+                    || printf '%s' "$response" | grep -Eq "$expected_pattern"; then
+                return 0
+            fi
         fi
         sleep 2
         elapsed=$((elapsed + 2))
@@ -222,32 +247,49 @@ log_info "Frontend 进程已启动 (PID: $FRONTEND_PID)"
 # ======================== 健康检查 ========================
 echo ""
 log_step "等待服务就绪..."
+HEALTH_FAILED=0
 
 # 等待 Backend（最长 180 秒，冷启动编译+MCP连接较慢）
 printf "  Backend  "
-if wait_for_port $BACKEND_PORT "Backend" 180; then
+if wait_for_http "http://127.0.0.1:$BACKEND_PORT/actuator/health" 180 \
+        '"status"[[:space:]]*:[[:space:]]*"UP"'; then
     echo -e " ${GREEN}✔ 就绪${NC}"
 else
     echo -e " ${RED}✘ 超时${NC}"
     log_error "Backend 启动失败，请查看日志: $BACKEND_LOG"
+    HEALTH_FAILED=1
 fi
 
 # 等待 Python（最长 30 秒）
 printf "  Python   "
-if wait_for_port $PYTHON_PORT "Python" 30; then
+if wait_for_http "http://127.0.0.1:$PYTHON_PORT/api/health" 30 \
+        '"status"[[:space:]]*:[[:space:]]*"ok"'; then
     echo -e " ${GREEN}✔ 就绪${NC}"
 else
     echo -e " ${RED}✘ 超时${NC}"
     log_error "Python 启动失败，请查看日志: $PYTHON_LOG"
+    HEALTH_FAILED=1
 fi
 
 # 等待 Frontend（最长 30 秒）
 printf "  Frontend "
-if wait_for_port $FRONTEND_PORT "Frontend" 30; then
+if wait_for_http "http://127.0.0.1:$FRONTEND_PORT/" 30; then
     echo -e " ${GREEN}✔ 就绪${NC}"
 else
     echo -e " ${RED}✘ 超时${NC}"
     log_error "Frontend 启动失败，请查看日志: $FRONTEND_LOG"
+    HEALTH_FAILED=1
+fi
+
+if [ "$HEALTH_FAILED" -ne 0 ]; then
+    log_error "三端未全部健康，正在清理本次启动的进程"
+    kill "$BACKEND_PID" "$PYTHON_PID" "$FRONTEND_PID" 2>/dev/null || true
+    sleep 1
+    kill_port "$BACKEND_PORT" || true
+    kill_port "$PYTHON_PORT" || true
+    kill_port "$FRONTEND_PORT" || true
+    rm -f "$PROJECT_ROOT/.service-pids"
+    exit 1
 fi
 
 # ======================== 健康详情 ========================
@@ -291,16 +333,21 @@ echo ""
 
 # 保持脚本运行，等待 Ctrl+C 退出
 cleanup() {
+    local cleanup_failed=0
     echo ""
     log_warn "正在停止所有服务..."
     kill $BACKEND_PID $PYTHON_PID $FRONTEND_PID 2>/dev/null || true
     # 确保端口释放
     sleep 1
-    kill_port $BACKEND_PORT
-    kill_port $PYTHON_PORT
-    kill_port $FRONTEND_PORT
-    log_info "所有服务已停止"
+    kill_port $BACKEND_PORT || cleanup_failed=1
+    kill_port $PYTHON_PORT || cleanup_failed=1
+    kill_port $FRONTEND_PORT || cleanup_failed=1
     rm -f "$PID_FILE"
+    if [ "$cleanup_failed" -ne 0 ]; then
+        log_error "部分服务未能停止"
+        exit 1
+    fi
+    log_info "所有服务已停止"
     exit 0
 }
 
