@@ -48,6 +48,9 @@
 > 🎮 **[5 Hours: AI Builds a Playable Web Version of "Honor of Kings" from Scratch →](https://zhikunqingtao.github.io/zhikuncode/case-studies/zhikuncode%E5%BC%80%E5%8F%91%E7%8E%8B%E8%80%85%E8%8D%A3%E8%80%80.html)**
 > Kimi K3 · One continuous 5h29m run · 19 files / 7,979 lines of pure static Three.js · Open a browser and play
 
+> 📊 **[AI Office Tools Benchmark (Unitree Robotics scenario, as of 2026-08-30) →](https://zhikunqingtao.github.io/aireport/case-studies/AI%E5%8A%9E%E5%85%AC%E5%B7%A5%E5%85%B7%E5%AF%B9%E6%AF%94%E6%B5%8B%E8%AF%84_%E5%AE%87%E6%A0%91%E7%A7%91%E6%8A%80_%E6%88%AA%E8%87%B32026-08-30.html)**
+> 5 tools × 6 chained tasks · 30 frozen deliverables with evidence audit · Mirrored on Aliyun OSS: [oss.zhikun.xin](https://oss.zhikun.xin/zhikuncode/aireport/case-studies/AI%E5%8A%9E%E5%85%AC%E5%B7%A5%E5%85%B7%E5%AF%B9%E6%AF%94%E6%B5%8B%E8%AF%84_%E5%AE%87%E6%A0%91%E7%A7%91%E6%8A%80_%E6%88%AA%E8%87%B32026-08-30.html)
+
 > 🏆 **[SWE-bench Lite Technical Report →](https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html)**  
 > Submission namespace `20260525_zhikuncode` · Official harness Resolve **168 / 300 (56.0%)** · Patch generation 284 / 300 (94.7%)
 
@@ -93,6 +96,15 @@ In a single overnight run on 2026-08-09, ZhikunCode used Kimi K3 to build a pure
 **[Play online (5-hero draft) →](https://king.zhikun.xin/)** ·
 **[Auto demo (jump straight into a match) →](https://king.zhikun.xin/?demo=1)** ·
 **[About the methodology →](case-studies/README.md)**
+
+### AI Office Tools Benchmark (Unitree Robotics scenario, as of 2026-08-30)
+
+Five AI office tools — Qianwen Office, Qoder, Doubao Office, WorkBuddy and ZhikunCode — each executed the same six chained prompts on a Unitree Robotics research scenario, covering a full office workflow from an Excel analysis workbook and a Word research report to a PPT, infographics and an interactive HTML page, producing 30 frozen deliverables with per-file evidence audits.
+
+Two official rankings are reported: on the six-task equal-weight board ZhikunCode ranks 1st with 93.8 (Qianwen 2nd at 93.6); on the balanced investment-research board Qianwen ranks 1st at 93.3 with ZhikunCode 2nd at 92.7. Delivery-gate distribution across the 30 deliverables: G0 3 / G1 20 / G2 7. This is a single fixed-sample task-chain test and should not be extrapolated to any tool's overall capability.
+
+**[View full report (GitHub Pages) →](https://zhikunqingtao.github.io/aireport/case-studies/AI%E5%8A%9E%E5%85%AC%E5%B7%A5%E5%85%B7%E5%AF%B9%E6%AF%94%E6%B5%8B%E8%AF%84_%E5%AE%87%E6%A0%91%E7%A7%91%E6%8A%80_%E6%88%AA%E8%87%B32026-08-30.html)** ·
+**[Aliyun OSS mirror →](https://oss.zhikun.xin/zhikuncode/aireport/case-studies/AI%E5%8A%9E%E5%85%AC%E5%B7%A5%E5%85%B7%E5%AF%B9%E6%AF%94%E6%B5%8B%E8%AF%84_%E5%AE%87%E6%A0%91%E7%A7%91%E6%8A%80_%E6%88%AA%E8%87%B32026-08-30.html)**
 
 > All cases above are single-task test records. See each case report page for detailed methodology and data.
 

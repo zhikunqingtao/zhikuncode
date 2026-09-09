@@ -53,6 +53,9 @@
 > 🎮 **[5小时 AI 从零写出可玩的《王者荣耀》网页版 →](https://zhikunqingtao.github.io/zhikuncode/case-studies/zhikuncode%E5%BC%80%E5%8F%91%E7%8E%8B%E8%80%85%E8%8D%A3%E8%80%80.html)**
 > Kimi K3 · 一次连续开发 5 小时 29 分 · 19 个文件 / 7,979 行纯静态 Three.js · 打开浏览器即可试玩
 
+> 📊 **[AI 办公工具对比测评（宇树科技 · 截至 2026-08-30）→](https://zhikunqingtao.github.io/aireport/case-studies/AI%E5%8A%9E%E5%85%AC%E5%B7%A5%E5%85%B7%E5%AF%B9%E6%AF%94%E6%B5%8B%E8%AF%84_%E5%AE%87%E6%A0%91%E7%A7%91%E6%8A%80_%E6%88%AA%E8%87%B32026-08-30.html)**
+> 五款工具 × 六任务连续链路 · 30 件固定终稿证据复核 · 同一报告阿里云 OSS 镜像：[oss.zhikun.xin](https://oss.zhikun.xin/zhikuncode/aireport/case-studies/AI%E5%8A%9E%E5%85%AC%E5%B7%A5%E5%85%B7%E5%AF%B9%E6%AF%94%E6%B5%8B%E8%AF%84_%E5%AE%87%E6%A0%91%E7%A7%91%E6%8A%80_%E6%88%AA%E8%87%B32026-08-30.html)
+
 > 🏆 **[SWE-bench Lite 技术报告 →](https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html)**  
 > 提交命名空间 `20260525_zhikuncode` · 官方 harness 评测 Resolve **168 / 300 (56.0%)** · Patch 生成率 284 / 300 (94.7%)
 
@@ -98,6 +101,15 @@ ZhikunCode 使用 Kimi K3 在 2026-08-09 凌晨一次性完成了一个纯静态
 **[在线试玩（5英雄选将）→](https://king.zhikun.xin/)** ·
 **[自动演示（直接进入对局）→](https://king.zhikun.xin/?demo=1)** ·
 **[了解评测方法 →](docs/case-studies/README.md)**
+
+### AI 办公工具对比测评（宇树科技 · 截至 2026-08-30）
+
+五款 AI 办公工具——千问办公、Qoder、豆包办公、WorkBuddy 与 ZhikunCode——依次执行同一组六条连续指令，围绕宇树科技完成从 Excel 分析底稿、Word 研究报告、PPT 到信息图与交互 HTML 的完整办公链路，共产出 30 件固定终稿并逐件复核证据。
+
+正式排名双榜列示：六任务等权榜 ZhikunCode 以 93.8 分列第 1（千问 93.6 分第 2）；均衡投研实务榜千问 93.3 分第 1、ZhikunCode 92.7 分第 2。30 件终稿的交付闸门分布为 G0 3 件 / G1 20 件 / G2 7 件。本报告为单次固定样本任务链实测，不外推为各工具的总体能力。
+
+**[查看完整报告（GitHub Pages）→](https://zhikunqingtao.github.io/aireport/case-studies/AI%E5%8A%9E%E5%85%AC%E5%B7%A5%E5%85%B7%E5%AF%B9%E6%AF%94%E6%B5%8B%E8%AF%84_%E5%AE%87%E6%A0%91%E7%A7%91%E6%8A%80_%E6%88%AA%E8%87%B32026-08-30.html)** ·
+**[阿里云 OSS 镜像 →](https://oss.zhikun.xin/zhikuncode/aireport/case-studies/AI%E5%8A%9E%E5%85%AC%E5%B7%A5%E5%85%B7%E5%AF%B9%E6%AF%94%E6%B5%8B%E8%AF%84_%E5%AE%87%E6%A0%91%E7%A7%91%E6%8A%80_%E6%88%AA%E8%87%B32026-08-30.html)**
 
 > 以上案例均为单次任务实测记录，详细方法与数据见各案例报告页。
 
