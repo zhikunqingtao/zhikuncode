@@ -21,6 +21,10 @@ interface NativeDirectoryPicker {
 
     Optional<String> pick();
 
+    default Optional<String> pickFile() {
+        throw new UnavailableException(null);
+    }
+
     final class BusyException extends RuntimeException {}
 
     final class TimeoutException extends RuntimeException {}
@@ -63,6 +67,15 @@ final class SystemNativeDirectoryPicker implements NativeDirectoryPicker {
 
     @Override
     public Optional<String> pick() {
+        return pick(SelectionType.DIRECTORY);
+    }
+
+    @Override
+    public Optional<String> pickFile() {
+        return pick(SelectionType.FILE);
+    }
+
+    private Optional<String> pick(SelectionType selectionType) {
         if (!isAvailable()) {
             throw new UnavailableException(null);
         }
@@ -72,7 +85,7 @@ final class SystemNativeDirectoryPicker implements NativeDirectoryPicker {
 
         Process process = null;
         try {
-            process = new ProcessBuilder(command())
+            process = new ProcessBuilder(command(selectionType))
                     .redirectErrorStream(true)
                     .start();
             if (!process.waitFor(timeout.toMillis(), TimeUnit.MILLISECONDS)) {
@@ -105,11 +118,19 @@ final class SystemNativeDirectoryPicker implements NativeDirectoryPicker {
     }
 
     List<String> command() {
+        return command(SelectionType.DIRECTORY);
+    }
+
+    List<String> fileCommand() {
+        return command(SelectionType.FILE);
+    }
+
+    private List<String> command(SelectionType selectionType) {
         return switch (platform) {
             case MACOS -> List.of(
                     executable.toString(),
                     "-e",
-                    macScript(),
+                    selectionType == SelectionType.FILE ? macFileScript() : macScript(),
                     "--",
                     defaultStartDirectory().toString());
             case WINDOWS -> List.of(
@@ -118,7 +139,7 @@ final class SystemNativeDirectoryPicker implements NativeDirectoryPicker {
                     "-NonInteractive",
                     "-STA",
                     "-Command",
-                    windowsScript());
+                    selectionType == SelectionType.FILE ? windowsFileScript() : windowsScript());
             case UNSUPPORTED -> List.of();
         };
     }
@@ -173,6 +194,23 @@ final class SystemNativeDirectoryPicker implements NativeDirectoryPicker {
                 + "end run";
     }
 
+    private static String macFileScript() {
+        return "on run argv\n"
+                + "set startFolder to POSIX file (item 1 of argv) as alias\n"
+                + "try\n"
+                + "tell application \"Finder\"\n"
+                + "activate\n"
+                + "set selectedFile to choose file with prompt "
+                + "\"Select a local file path to reference\" default location "
+                + "startFolder\n"
+                + "end tell\n"
+                + "return POSIX path of selectedFile\n"
+                + "on error number -128\n"
+                + "return \"" + CANCELLED + "\"\n"
+                + "end try\n"
+                + "end run";
+    }
+
     private static Path defaultStartDirectory() {
         Path home = Path.of(System.getProperty("user.home", "."))
                 .toAbsolutePath().normalize();
@@ -196,6 +234,29 @@ final class SystemNativeDirectoryPicker implements NativeDirectoryPicker {
                 + "{ [Console]::Out.Write($dialog.SelectedPath) } else "
                 + "{ [Console]::Out.Write('" + CANCELLED + "') } "
                 + "} finally { $dialog.Dispose() }";
+    }
+
+    private static String windowsFileScript() {
+        return "[Console]::OutputEncoding = New-Object "
+                + "System.Text.UTF8Encoding($false); "
+                + "Add-Type -AssemblyName System.Windows.Forms; "
+                + "$dialog = New-Object System.Windows.Forms.OpenFileDialog; "
+                + "try { "
+                + "$dialog.Title = 'Select a local file path to reference'; "
+                + "$dialog.InitialDirectory = "
+                + "[Environment]::GetFolderPath('DesktopDirectory'); "
+                + "$dialog.Multiselect = $false; "
+                + "$dialog.CheckFileExists = $true; "
+                + "if ($dialog.ShowDialog() -eq "
+                + "[System.Windows.Forms.DialogResult]::OK) "
+                + "{ [Console]::Out.Write($dialog.FileName) } else "
+                + "{ [Console]::Out.Write('" + CANCELLED + "') } "
+                + "} finally { $dialog.Dispose() }";
+    }
+
+    private enum SelectionType {
+        DIRECTORY,
+        FILE
     }
 
     enum Platform {

@@ -24,6 +24,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -616,6 +617,18 @@ public class SessionManager {
                                     node.has("thinking") ? node.get("thinking").asText() : ""));
                             case "redacted_thinking" -> blocks.add(new ContentBlock.RedactedThinkingBlock(
                                     node.has("data") ? node.get("data").asText() : ""));
+                            case "provider_response_state" -> {
+                                List<com.fasterxml.jackson.databind.JsonNode> outputItems = new ArrayList<>();
+                                com.fasterxml.jackson.databind.JsonNode output = node.get("output");
+                                if (output != null && output.isArray()) {
+                                    output.forEach(item -> outputItems.add(item.deepCopy()));
+                                }
+                                blocks.add(new ContentBlock.ProviderResponseStateBlock(
+                                        node.path("provider").asText(""),
+                                        node.path("model").asText(""),
+                                        node.path("display_thinking").asText(""),
+                                        outputItems));
+                            }
                             default -> log.debug("Unknown content block type: {}", type);
                         }
                     } catch (Exception blockEx) {
@@ -768,6 +781,15 @@ public class SessionManager {
             case ContentBlock.RedactedThinkingBlock redacted ->
                 Map.of("type", "redacted_thinking", "data",
                         redacted.data() != null ? redacted.data() : "");
+            case ContentBlock.ProviderResponseStateBlock state -> {
+                Map<String, Object> map = new LinkedHashMap<>();
+                map.put("type", "provider_response_state");
+                map.put("provider", state.provider());
+                map.put("model", state.model());
+                map.put("display_thinking", state.displayThinking() != null ? state.displayThinking() : "");
+                map.put("output", state.outputItems());
+                yield map;
+            }
         };
     }
 

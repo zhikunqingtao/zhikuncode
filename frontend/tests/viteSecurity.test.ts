@@ -15,9 +15,15 @@ describe('Local development service security', () => {
 
         expect(config.server?.host).toBe('127.0.0.1');
         const proxy = config.server?.proxy;
-        expect(proxy?.['/api/files/search']).toMatchObject({
-            target: 'http://localhost:8080',
-        });
+        for (const route of [
+            '/api/files/pick',
+            '/api/files/reference-capability',
+            '/api/files/search',
+        ]) {
+            expect(proxy?.[route]).toMatchObject({
+                target: 'http://localhost:8080',
+            });
+        }
         for (const route of [
             '/api/git',
             '/api/files',

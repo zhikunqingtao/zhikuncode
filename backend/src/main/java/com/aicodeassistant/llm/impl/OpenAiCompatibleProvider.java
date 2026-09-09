@@ -14,9 +14,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -37,6 +41,11 @@ public class OpenAiCompatibleProvider implements LlmProvider {
 
     private static final Logger log = LoggerFactory.getLogger(OpenAiCompatibleProvider.class);
     private static final MediaType JSON_MEDIA = MediaType.parse("application/json");
+    private static final Set<String> ZENMUX_RESPONSES_MODELS = Set.of(
+            "openai/gpt-5.6-sol",
+            "openai/gpt-6-astra",
+            "google/gemini-3.8-flash",
+            "x-ai/grok-4.6");
 
     private final OkHttpClient httpClient;
     private final String providerName;
@@ -141,9 +150,16 @@ public class OpenAiCompatibleProvider implements LlmProvider {
     @Override
     public boolean supportsThinking(String model) {
         if (model == null) return false;
+        if ("zenmux".equalsIgnoreCase(providerName)
+                && ZENMUX_RESPONSES_MODELS.contains(model)) return true;
         ModelCapabilities caps = MODEL_CAPABILITIES.get(model);
         if (caps != null) return caps.supportsThinking();
         return isDeepSeekV4Model(model) || isQwenThinkingModel(model) || isGlmForcedThinkingModel(model);
+    }
+
+    private boolean usesResponsesApi(String model) {
+        return "zenmux".equalsIgnoreCase(providerName)
+                && ZENMUX_RESPONSES_MODELS.contains(model);
     }
 
     // ═══════════════════════════════════════════
@@ -160,6 +176,12 @@ public class OpenAiCompatibleProvider implements LlmProvider {
             ThinkingConfig thinkingConfig,
             LlmCallContext callContext,
             StreamChatCallback callback) {
+
+        if (usesResponsesApi(model)) {
+            streamResponses(model, messages, systemPrompt, tools, maxTokens,
+                    thinkingConfig, callContext, callback);
+            return;
+        }
 
         ObjectNode requestBody = buildOpenAiRequest(model, messages, systemPrompt, tools, maxTokens, thinkingConfig);
         if(payloadGuard!=null)payloadGuard.validate("openai",model,requestBody,maxTokens);
@@ -236,6 +258,70 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         }
     }
 
+    private void streamResponses(
+            String model,
+            List<Map<String, Object>> messages,
+            String systemPrompt,
+            List<Map<String, Object>> tools,
+            int maxTokens,
+            ThinkingConfig thinkingConfig,
+            LlmCallContext callContext,
+            StreamChatCallback callback) {
+        ObjectNode requestBody = buildResponsesRequest(
+                model, messages, systemPrompt, tools, maxTokens, thinkingConfig);
+        if (payloadGuard != null) payloadGuard.validate("zenmux-responses", model, requestBody, maxTokens);
+
+        String effectiveApiKey = keyRotationManager.getKeyCount() > 0
+                ? keyRotationManager.getNextKey() : apiKey;
+        Request request = new Request.Builder()
+                .url(baseUrl + "/responses")
+                .header("Authorization", "Bearer " + effectiveApiKey)
+                .header("Content-Type", "application/json")
+                .post(RequestBody.create(requestBody.toString(), JSON_MEDIA))
+                .build();
+        String callId = callContext.requestId();
+        Call call = httpClient.newCall(request);
+        ResponsesStreamState streamState = new ResponsesStreamState();
+
+        try (AutoCloseable ignored = LlmCallRegistration.register(activeCalls, callId, call,
+                     callContext.cancellation(), Call::cancel);
+             Response response = call.execute()) {
+            if (!response.isSuccessful()) {
+                handleErrorResponse(response, callback);
+                return;
+            }
+            ResponseBody body = response.body();
+            if (body == null) {
+                callback.onError(new LlmApiException("Empty Responses body", true));
+                return;
+            }
+            BufferedSource source = body.source();
+            while (!source.exhausted()) {
+                String line = source.readUtf8LineStrict();
+                if (line.isBlank() || line.startsWith(":")) continue;
+                if (!line.startsWith("data:")) continue;
+                String json = line.substring(5).trim();
+                if (json.isEmpty() || "[DONE]".equals(json)) continue;
+                JsonNode event = objectMapper.readTree(json);
+                processResponsesEvent(event, streamState, callback);
+                if (streamState.terminal) return;
+            }
+            callback.onError(new LlmApiException(
+                    "ZENMUX_RESPONSES_INCOMPLETE_STREAM", false, 0,
+                    "incomplete_stream", 0));
+        } catch (IOException e) {
+            if (call.isCanceled()) {
+                callback.onError(new LlmApiException("LLM_CALL_CANCELLED", e, false));
+            } else {
+                callback.onError(new LlmApiException(
+                        "ZenMux Responses stream error: " + e.getMessage(), true));
+            }
+        } catch (Exception e) {
+            callback.onError(e instanceof LlmApiException
+                    ? e : new LlmApiException(e.getMessage(), e, false));
+        }
+    }
+
     @jakarta.annotation.PreDestroy
     void cancelAllOnShutdown() {
         LlmCallRegistration.cancelAll(activeCalls, Call::cancel);
@@ -290,6 +376,304 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         }
 
         return root;
+    }
+
+    /** Builds the stateless ZenMux Responses request from internal message maps. */
+    private ObjectNode buildResponsesRequest(
+            String model,
+            List<Map<String, Object>> messages,
+            String systemPrompt,
+            List<Map<String, Object>> tools,
+            int maxTokens,
+            ThinkingConfig thinkingConfig) {
+        ObjectNode root = objectMapper.createObjectNode();
+        root.put("model", model);
+        root.put("stream", true);
+        root.put("store", false);
+        root.put("parallel_tool_calls", true);
+        root.put("max_output_tokens", maxTokens);
+        root.putArray("include").add("reasoning.encrypted_content");
+        if (systemPrompt != null && !systemPrompt.isBlank()) {
+            root.put("instructions", systemPrompt);
+        }
+
+        ObjectNode reasoning = root.putObject("reasoning");
+        if (thinkingConfig == null || thinkingConfig instanceof ThinkingConfig.Disabled) {
+            reasoning.put("effort", "none");
+        } else {
+            reasoning.put("effort", model.startsWith("openai/") ? "xhigh" : "high");
+            reasoning.put("summary", "auto");
+        }
+
+        ArrayNode input = root.putArray("input");
+        for (Map<String, Object> message : messages) {
+            String role = Objects.toString(message.get("role"), "user");
+            Object content = message.get("content");
+            if (!(content instanceof List<?> blocks)) {
+                appendResponsesTextMessage(input, role, content == null ? "" : content.toString());
+                continue;
+            }
+
+            if ("assistant".equals(role) && appendMatchingProviderState(input, blocks, model)) {
+                continue;
+            }
+
+            if ("user".equals(role)) {
+                for (Object block : blocks) {
+                    if (block instanceof Map<?, ?> map
+                            && "tool_result".equals(map.get("type"))) {
+                        ObjectNode output = input.addObject();
+                        output.put("type", "function_call_output");
+                        output.put("call_id", Objects.toString(map.get("tool_use_id"), ""));
+                        output.put("output", Objects.toString(map.get("content"), ""));
+                    }
+                }
+            }
+
+            ArrayNode contentParts = objectMapper.createArrayNode();
+            for (Object block : blocks) {
+                if (!(block instanceof Map<?, ?> map)) continue;
+                String type = Objects.toString(map.get("type"), "");
+                if ("text".equals(type)) {
+                    ObjectNode part = contentParts.addObject();
+                    part.put("type", "input_text");
+                    part.put("text", Objects.toString(map.get("text"), ""));
+                } else if ("image".equals(type) && "user".equals(role)) {
+                    Object source = map.get("source");
+                    if (source instanceof Map<?, ?> sourceMap) {
+                        String imageUrl = resolveResponseImageUrl(sourceMap);
+                        if (imageUrl != null) {
+                            ObjectNode part = contentParts.addObject();
+                            part.put("type", "input_image");
+                            part.put("detail", "auto");
+                            part.put("image_url", imageUrl);
+                        }
+                    }
+                }
+            }
+            if (!contentParts.isEmpty()) {
+                ObjectNode inputMessage = input.addObject();
+                inputMessage.put("type", "message");
+                inputMessage.put("role", role);
+                inputMessage.set("content", contentParts);
+            }
+
+            if ("assistant".equals(role)) {
+                for (Object block : blocks) {
+                    if (!(block instanceof Map<?, ?> map)
+                            || !"tool_use".equals(map.get("type"))) continue;
+                    ObjectNode call = input.addObject();
+                    call.put("type", "function_call");
+                    call.put("call_id", Objects.toString(map.get("id"), ""));
+                    call.put("name", Objects.toString(map.get("name"), ""));
+                    try {
+                        call.put("arguments", objectMapper.writeValueAsString(
+                                map.get("input") != null ? map.get("input") : Map.of()));
+                    } catch (Exception invalid) {
+                        throw new LlmApiException("INVALID_STORED_TOOL_INPUT", invalid, false);
+                    }
+                }
+            }
+        }
+
+        if (tools != null && !tools.isEmpty()) {
+            ArrayNode responseTools = root.putArray("tools");
+            for (Map<String, Object> tool : tools) {
+                Map<?, ?> function = tool.get("function") instanceof Map<?, ?> nested
+                        ? nested : tool;
+                ObjectNode encoded = responseTools.addObject();
+                encoded.put("type", "function");
+                encoded.put("name", Objects.toString(function.get("name"), ""));
+                Object description = function.get("description");
+                if (description != null) encoded.put("description", description.toString());
+                Object parameters = function.containsKey("parameters")
+                        ? function.get("parameters") : function.get("input_schema");
+                encoded.set("parameters", objectMapper.valueToTree(
+                        parameters != null ? parameters : Map.of("type", "object")));
+                encoded.put("strict", false);
+            }
+        }
+        return root;
+    }
+
+    private boolean appendMatchingProviderState(ArrayNode input, List<?> blocks, String model) {
+        for (Object block : blocks) {
+            if (!(block instanceof Map<?, ?> map)
+                    || !"provider_response_state".equals(map.get("type"))
+                    || !providerName.equals(map.get("provider"))
+                    || !model.equals(map.get("model"))) continue;
+            JsonNode output = objectMapper.valueToTree(map.get("output"));
+            if (!output.isArray() || output.isEmpty()) return false;
+            output.forEach(item -> input.add(item.deepCopy()));
+            return true;
+        }
+        return false;
+    }
+
+    private static void appendResponsesTextMessage(ArrayNode input, String role, String text) {
+        ObjectNode message = input.addObject();
+        message.put("type", "message");
+        message.put("role", role);
+        ArrayNode content = message.putArray("content");
+        ObjectNode part = content.addObject();
+        part.put("type", "input_text");
+        part.put("text", text);
+    }
+
+    private static String resolveResponseImageUrl(Map<?, ?> source) {
+        Object url = source.get("url");
+        if (url != null && !url.toString().isBlank()) return url.toString();
+        Object mediaType = source.get("media_type");
+        Object data = source.get("data");
+        return mediaType == null || data == null
+                ? null : "data:" + mediaType + ";base64," + data;
+    }
+
+    private void processResponsesEvent(JsonNode event, ResponsesStreamState state,
+                                       StreamChatCallback callback) {
+        String type = event.path("type").asText("");
+        switch (type) {
+            case "response.output_text.delta" -> emitTextDelta(event, callback);
+            case "response.refusal.delta" -> emitTextDelta(event, callback);
+            case "response.reasoning_summary_text.delta" -> {
+                String delta = event.path("delta").asText("");
+                if (!delta.isEmpty()) {
+                    state.reasoningSummary.append(delta);
+                    callback.onEvent(new LlmStreamEvent.ThinkingDelta(delta));
+                }
+            }
+            case "response.output_item.added", "response.output_item.done",
+                 "response.function_call_arguments.delta", "response.function_call_arguments.done",
+                 "response.reasoning_text.delta", "response.reasoning_text.done",
+                 "response.reasoning_summary_part.added", "response.reasoning_summary_part.done",
+                 "response.reasoning_summary_text.done" -> markResponsesProgress(state, callback);
+            case "response.completed" -> completeResponses(event.path("response"), false, state, callback);
+            case "response.incomplete" -> completeResponses(event.path("response"), true, state, callback);
+            case "response.failed" -> failResponses(event.path("response").path("error"), state, callback);
+            case "error" -> failResponses(event, state, callback);
+            default -> { /* forward-compatible: ignore lifecycle and unknown events */ }
+        }
+    }
+
+    private static void emitTextDelta(JsonNode event, StreamChatCallback callback) {
+        String delta = event.path("delta").asText("");
+        if (!delta.isEmpty()) callback.onEvent(new LlmStreamEvent.TextDelta(delta));
+    }
+
+    private static void markResponsesProgress(ResponsesStreamState state,
+                                              StreamChatCallback callback) {
+        if (!state.progressEmitted) {
+            state.progressEmitted = true;
+            callback.onEvent(new LlmStreamEvent.ProviderProgress());
+        }
+    }
+
+    private void completeResponses(JsonNode response, boolean incomplete,
+                                   ResponsesStreamState state,
+                                   StreamChatCallback callback) {
+        JsonNode output = response.path("output");
+        if (!output.isArray()) {
+            failResponsesText("ZENMUX_RESPONSES_OUTPUT_MISSING", state, callback);
+            return;
+        }
+        List<JsonNode> outputItems = new ArrayList<>();
+        boolean hasFunctionCall = false;
+        for (JsonNode item : output) {
+            outputItems.add(item.deepCopy());
+            if ("function_call".equals(item.path("type").asText())) hasFunctionCall = true;
+        }
+
+        if (incomplete) {
+            String reason = response.path("incomplete_details").path("reason").asText("");
+            if (!"max_output_tokens".equals(reason) || hasFunctionCall) {
+                failResponsesText("ZENMUX_RESPONSES_INCOMPLETE: " + reason, state, callback);
+                return;
+            }
+        }
+
+        if (state.reasoningSummary.isEmpty()) {
+            String summary = extractResponsesSummary(output);
+            if (!summary.isBlank()) {
+                state.reasoningSummary.append(summary);
+                callback.onEvent(new LlmStreamEvent.ThinkingDelta(summary));
+            }
+        }
+
+        List<ResponsesFunctionCall> functionCalls = new ArrayList<>();
+        if (!incomplete) {
+            int outputIndex = 0;
+            Set<String> callIds = new HashSet<>();
+            for (JsonNode item : output) {
+                if ("function_call".equals(item.path("type").asText())) {
+                    String callId = item.path("call_id").asText("");
+                    String name = item.path("name").asText("");
+                    String arguments = item.path("arguments").asText("");
+                    if (callId.isBlank() || name.isBlank() || arguments.isBlank()
+                            || !callIds.add(callId)) {
+                        failResponsesText("INVALID_RESPONSES_FUNCTION_CALL", state, callback);
+                        return;
+                    }
+                    try {
+                        objectMapper.readTree(arguments);
+                    } catch (Exception invalid) {
+                        failResponsesText("INVALID_RESPONSES_FUNCTION_ARGUMENTS", state, callback);
+                        return;
+                    }
+                    functionCalls.add(new ResponsesFunctionCall(
+                            outputIndex, callId, name, arguments));
+                }
+                outputIndex++;
+            }
+        }
+        callback.onEvent(new LlmStreamEvent.ProviderResponseState(outputItems));
+        for (ResponsesFunctionCall call : functionCalls) {
+            callback.onEvent(new LlmStreamEvent.ToolUseStart(call.callId(), call.name()));
+            callback.onEvent(new LlmStreamEvent.ToolInputDelta(call.callId(), call.arguments()));
+            callback.onEvent(new LlmStreamEvent.BlockStop(call.outputIndex()));
+        }
+        callback.onEvent(new LlmStreamEvent.MessageDelta(
+                parseResponsesUsage(response.path("usage")),
+                incomplete ? "max_tokens" : hasFunctionCall ? "tool_use" : "end_turn"));
+        state.terminal = true;
+        callback.onComplete();
+    }
+
+    private void failResponses(JsonNode error, ResponsesStreamState state,
+                               StreamChatCallback callback) {
+        String code = error.path("code").asText(error.path("type").asText("responses_error"));
+        String message = error.path("message").asText(code);
+        boolean retryable = code.contains("rate_limit") || code.contains("overloaded")
+                || code.contains("server") || code.contains("internal");
+        state.terminal = true;
+        callback.onError(new LlmApiException(message, retryable, 0, code, 0));
+    }
+
+    private static void failResponsesText(String message, ResponsesStreamState state,
+                                          StreamChatCallback callback) {
+        state.terminal = true;
+        callback.onError(new LlmApiException(message, false));
+    }
+
+    private Usage parseResponsesUsage(JsonNode usage) {
+        return new Usage(
+                usage.path("input_tokens").asInt(0),
+                usage.path("output_tokens").asInt(0),
+                usage.path("input_tokens_details").path("cached_tokens").asInt(0),
+                0);
+    }
+
+    private static String extractResponsesSummary(JsonNode output) {
+        StringBuilder text = new StringBuilder();
+        for (JsonNode item : output) {
+            if (!"reasoning".equals(item.path("type").asText())) continue;
+            for (JsonNode part : item.path("summary")) {
+                String value = part.path("text").asText("");
+                if (value.isBlank()) continue;
+                if (!text.isEmpty()) text.append('\n');
+                text.append(value);
+            }
+        }
+        return text.toString();
     }
 
     /** 判断是否为 DeepSeek V4 系列模型（直连及百炼日期版本均使用 thinking + max） */
@@ -821,4 +1205,14 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         boolean stopEmitted;
         final StringBuilder arguments = new StringBuilder();
     }
+
+    /** Per-request Responses SSE lifecycle state. */
+    private static final class ResponsesStreamState {
+        boolean progressEmitted;
+        boolean terminal;
+        final StringBuilder reasoningSummary = new StringBuilder();
+    }
+
+    private record ResponsesFunctionCall(
+            int outputIndex, String callId, String name, String arguments) { }
 }

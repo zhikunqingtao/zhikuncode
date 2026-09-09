@@ -50,6 +50,25 @@ class NativeDirectoryPickerTest {
     }
 
     @Test
+    void fileCommandsUseSingleFileNativeDialogs() {
+        SystemNativeDirectoryPicker mac = new SystemNativeDirectoryPicker(
+                SystemNativeDirectoryPicker.Platform.MACOS, Duration.ofSeconds(1));
+        SystemNativeDirectoryPicker windows = new SystemNativeDirectoryPicker(
+                SystemNativeDirectoryPicker.Platform.WINDOWS, Duration.ofSeconds(1));
+
+        assertThat(mac.fileCommand().get(2))
+                .contains("tell application \"Finder\"")
+                .contains("activate")
+                .contains("choose file")
+                .doesNotContain("choose folder");
+        assertThat(windows.fileCommand().getLast())
+                .contains("System.Windows.Forms.OpenFileDialog")
+                .contains("$dialog.Multiselect = $false")
+                .contains("$dialog.CheckFileExists = $true")
+                .contains("$dialog.Dispose()");
+    }
+
+    @Test
     void unsupportedPlatformHasNoCommandOrCapability() {
         SystemNativeDirectoryPicker picker =
                 new SystemNativeDirectoryPicker(

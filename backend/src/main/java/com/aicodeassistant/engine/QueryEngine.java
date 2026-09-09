@@ -677,6 +677,8 @@ public class QueryEngine {
                 }
             }
             LlmProvider provider = providerRegistry.getProvider(effectiveModel);
+            removeMismatchedProviderState(
+                    state, provider.getProviderName(), effectiveModel);
             log.debug("Turn {} Step3: provider={}, effectiveModel={}, effectiveMaxTokens={}",
                     turn, provider.getClass().getSimpleName(), effectiveModel, effectiveMaxTokens);
 
@@ -754,7 +756,8 @@ public class QueryEngine {
             // StreamCollector 持有 session, 支持流式工具启动
             StreamCollector collector = new StreamCollector(
                     handler, session, config.tools(),
-                    state.getToolUseContext(), objectMapper);
+                    state.getToolUseContext(), objectMapper,
+                    provider.getProviderName(), effectiveModel);
 
             // P1-16: ThinkingConfig 降级检查
             ThinkingConfig resolvedThinking = resolveThinking(
@@ -1798,7 +1801,8 @@ public class QueryEngine {
             if (msg instanceof Message.AssistantMessage assistant && assistant.content() != null) {
                 List<ContentBlock> filtered = assistant.content().stream()
                         .filter(b -> !(b instanceof ContentBlock.ThinkingBlock)
-                                && !(b instanceof ContentBlock.RedactedThinkingBlock))
+                                && !(b instanceof ContentBlock.RedactedThinkingBlock)
+                                && !(b instanceof ContentBlock.ProviderResponseStateBlock))
                         .toList();
                 if (filtered.size() != assistant.content().size()) {
                     // 如果过滤后为空，添加一个空文本块防止 API 400
@@ -1816,6 +1820,39 @@ public class QueryEngine {
             }
         }
         state.setMessages(cleaned);
+    }
+
+    /** Provider continuation state is valid only for its exact provider/model. */
+    private void removeMismatchedProviderState(
+            QueryLoopState state, String providerName, String model) {
+        List<Message> cleaned = new ArrayList<>();
+        boolean changed = false;
+        for (Message message : state.getMessages()) {
+            if (!(message instanceof Message.AssistantMessage assistant)
+                    || assistant.content() == null) {
+                cleaned.add(message);
+                continue;
+            }
+            List<ContentBlock> filtered = assistant.content().stream()
+                    .filter(block -> !(block instanceof ContentBlock.ProviderResponseStateBlock stateBlock)
+                            || (Objects.equals(providerName, stateBlock.provider())
+                                && Objects.equals(model, stateBlock.model())))
+                    .toList();
+            if (filtered.size() == assistant.content().size()) {
+                cleaned.add(message);
+            } else {
+                changed = true;
+                // Keep the historical message slot stable for persistence reconciliation,
+                // while ensuring downstream provider payloads never contain an empty message.
+                if (filtered.isEmpty()) {
+                    filtered = List.of(new ContentBlock.TextBlock(""));
+                }
+                cleaned.add(new Message.AssistantMessage(
+                        assistant.uuid(), assistant.timestamp(), filtered,
+                        assistant.stopReason(), assistant.usage()));
+            }
+        }
+        if (changed) state.setMessages(cleaned);
     }
 
     // ==================== 媒体恢复辅助方法 ====================
@@ -1957,6 +1994,8 @@ public class QueryEngine {
         private final List<Tool> tools;
         private final ToolUseContext toolUseContext;
         private final ObjectMapper objectMapper;
+        private final String providerName;
+        private final String model;
         private final List<ContentBlock> contentBlocks = new ArrayList<>();
         private final StringBuilder currentThinking = new StringBuilder();
         private final StringBuilder currentText = new StringBuilder();
@@ -1977,12 +2016,16 @@ public class QueryEngine {
                         StreamingToolExecutor.ExecutionSession session,
                         List<Tool> tools,
                         ToolUseContext toolUseContext,
-                        ObjectMapper objectMapper) {
+                        ObjectMapper objectMapper,
+                        String providerName,
+                        String model) {
             this.handler = handler;
             this.session = session;
             this.tools = tools;
             this.toolUseContext = toolUseContext;
             this.objectMapper = objectMapper;
+            this.providerName = providerName;
+            this.model = model;
         }
 
         @Override
@@ -2030,6 +2073,13 @@ public class QueryEngine {
                 }
                 case LlmStreamEvent.Error error -> {
                     handler.onError(new LlmApiException(error.message(), error.retryable()));
+                }
+                case LlmStreamEvent.ProviderProgress ignored -> hasReceivedEvents = true;
+                case LlmStreamEvent.ProviderResponseState state -> {
+                    hasReceivedEvents = true;
+                    contentBlocks.add(new ContentBlock.ProviderResponseStateBlock(
+                            providerName, model, currentThinking.toString(), state.outputItems()));
+                    currentThinking.setLength(0);
                 }
                 // Anthropic 细粒度事件 — 无需额外处理
                 case LlmStreamEvent.MessageStart ms -> { /* no-op */ }

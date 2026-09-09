@@ -1,5 +1,6 @@
 package com.aicodeassistant.controller;
 
+import com.aicodeassistant.config.oss.OssPublishProperties;
 import com.aicodeassistant.exception.SessionNotFoundException;
 import com.aicodeassistant.model.Usage;
 import com.aicodeassistant.service.FileSearchService;
@@ -8,6 +9,7 @@ import com.aicodeassistant.session.SessionData;
 import com.aicodeassistant.session.SessionManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.springframework.mock.web.MockHttpServletRequest;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -75,6 +77,70 @@ class FileControllerWorkspaceTest {
         assertThatThrownBy(() -> controller.searchFiles(
                 "readme", 20, "missing"))
                 .isInstanceOf(SessionNotFoundException.class);
+    }
+
+    @Test
+    void reportsNativePathOnlyWhenTheRequestCanUseTheNativePicker() {
+        ProjectWorkspaceService workspaces = mock(ProjectWorkspaceService.class);
+        when(workspaces.nativePickerAvailable("127.0.0.1")).thenReturn(true);
+        FileController controller = controller(workspaces, new OssPublishProperties());
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRemoteAddr("127.0.0.1");
+
+        var capability = controller.referenceCapability(request).getBody();
+
+        assertThat(capability).isNotNull();
+        assertThat(capability.mode()).isEqualTo("native_path");
+        assertThat(capability.maxFileBytes()).isNull();
+    }
+
+    @Test
+    void reportsOssUploadForForwardedOrRemoteRequestsWhenOssIsReady() {
+        ProjectWorkspaceService workspaces = mock(ProjectWorkspaceService.class);
+        when(workspaces.nativePickerAvailable(null)).thenReturn(false);
+        OssPublishProperties properties = readyOss();
+        FileController controller = controller(workspaces, properties);
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRemoteAddr("127.0.0.1");
+        request.addHeader("Forwarded", "for=198.51.100.7");
+
+        var capability = controller.referenceCapability(request).getBody();
+
+        assertThat(capability).isNotNull();
+        assertThat(capability.mode()).isEqualTo("oss_upload");
+        assertThat(capability.maxFileBytes()).isEqualTo(100L * 1024 * 1024);
+    }
+
+    @Test
+    void reportsUnavailableInsteadOfCallingTheNativePickerRemotely() {
+        ProjectWorkspaceService workspaces = mock(ProjectWorkspaceService.class);
+        when(workspaces.nativePickerAvailable("192.0.2.10")).thenReturn(false);
+        FileController controller = controller(workspaces, new OssPublishProperties());
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRemoteAddr("192.0.2.10");
+
+        var capability = controller.referenceCapability(request).getBody();
+
+        assertThat(capability).isNotNull();
+        assertThat(capability.mode()).isEqualTo("unavailable");
+        assertThat(capability.error()).isEqualTo("OSS_PUBLISHING_DISABLED");
+    }
+
+    private static FileController controller(ProjectWorkspaceService workspaces,
+                                             OssPublishProperties properties) {
+        return new FileController(new FileSearchService(), mock(SessionManager.class),
+                workspaces, null, properties);
+    }
+
+    private static OssPublishProperties readyOss() {
+        OssPublishProperties properties = new OssPublishProperties();
+        properties.setEnabled(true);
+        properties.setEndpoint("https://oss-cn-beijing.aliyuncs.com");
+        properties.setRegion("cn-beijing");
+        properties.setBucket("test-artifacts");
+        properties.setPrefix("zhikuncode-artifacts");
+        properties.setCredentialMode("default-chain");
+        return properties;
     }
 
     private static SessionData session(

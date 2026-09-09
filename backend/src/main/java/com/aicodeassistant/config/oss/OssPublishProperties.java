@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import java.net.URI;
 import java.text.Normalizer;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -53,7 +54,10 @@ public class OssPublishProperties {
             throw new OssConfigurationException("OSS_ECS_ROLE_REQUIRED");
         }
         if (!SAFE_PREFIX.matcher(normalizedPrefix).matches()
-                || normalizedPrefix.contains("..") || normalizedPrefix.startsWith("/")) {
+                || normalizedPrefix.contains("..") || normalizedPrefix.startsWith("/")
+                || Arrays.stream(normalizedPrefix.split("/", -1))
+                        .anyMatch(segment -> segment.isEmpty()
+                                || ".".equals(segment))) {
             throw new OssConfigurationException("OSS_PREFIX_INVALID");
         }
         URI uri = endpointUri();
@@ -112,11 +116,20 @@ public class OssPublishProperties {
 
     /** Only URLs issued below the configured clipboard prefix may be sent back to a model. */
     public boolean isTrustedClipboardImageUrl(String value) {
+        return isTrustedPublishedUrl(value, "clipboard");
+    }
+
+    /** Only URLs issued below the browser local-file prefix may be referenced in prompts. */
+    public boolean isTrustedLocalFileUrl(String value) {
+        return isTrustedPublishedUrl(value, "local-files");
+    }
+
+    private boolean isTrustedPublishedUrl(String value, String namespace) {
         if (value == null || value.isBlank()) return false;
         try {
             URI uri = URI.create(value);
             String expectedHost = bucket() + "." + endpointUri().getHost();
-            String expectedPath = "/" + normalizedPrefix() + "/clipboard/";
+            String expectedPath = "/" + normalizedPrefix() + "/" + namespace + "/";
             String rawPath = uri.getRawPath();
             return "https".equalsIgnoreCase(uri.getScheme())
                     && expectedHost.equalsIgnoreCase(uri.getHost())

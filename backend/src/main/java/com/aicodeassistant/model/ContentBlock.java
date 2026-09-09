@@ -7,11 +7,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * 内容块 — sealed interface 保证类型穷举。
- * 含 text / tool_use / tool_result / image / thinking / redacted_thinking 六种子类型。
+ * 含 text / tool_use / tool_result / image / thinking / redacted_thinking /
+ * provider_response_state 七种子类型。
  *
  * ★ 审查修复 [S2]：Jackson 多态序列化配置 ★
  * sealed interface 需要 @JsonTypeInfo + @JsonSubTypes 才能正确序列化/反序列化。
@@ -29,7 +31,8 @@ import java.util.Map;
     @JsonSubTypes.Type(value = ContentBlock.ToolResultBlock.class, name = "tool_result"),
     @JsonSubTypes.Type(value = ContentBlock.ThinkingBlock.class, name = "thinking"),
     @JsonSubTypes.Type(value = ContentBlock.ImageBlock.class, name = "image"),
-    @JsonSubTypes.Type(value = ContentBlock.RedactedThinkingBlock.class, name = "redacted_thinking")
+    @JsonSubTypes.Type(value = ContentBlock.RedactedThinkingBlock.class, name = "redacted_thinking"),
+    @JsonSubTypes.Type(value = ContentBlock.ProviderResponseStateBlock.class, name = "provider_response_state")
 })
 public sealed interface ContentBlock {
 
@@ -98,4 +101,28 @@ public sealed interface ContentBlock {
     record RedactedThinkingBlock(
             String data
     ) implements ContentBlock {}
+
+    /**
+     * Provider-private Responses state. It is persisted locally for exact
+     * stateless replay and must be projected away before any public response.
+     */
+    record ProviderResponseStateBlock(
+            String provider,
+            String model,
+            String displayThinking,
+            List<JsonNode> outputItems
+    ) implements ContentBlock {
+        public ProviderResponseStateBlock {
+            outputItems = outputItems == null ? List.of() : outputItems.stream()
+                    .filter(java.util.Objects::nonNull)
+                    .map(node -> (JsonNode) node.deepCopy())
+                    .toList();
+        }
+
+        @Override
+        public String toString() {
+            return "ProviderResponseStateBlock[provider=" + provider
+                    + ", model=" + model + ", outputItems=" + outputItems.size() + "]";
+        }
+    }
 }

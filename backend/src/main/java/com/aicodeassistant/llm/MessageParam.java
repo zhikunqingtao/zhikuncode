@@ -1,5 +1,7 @@
 package com.aicodeassistant.llm;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +22,9 @@ public sealed interface MessageParam {
         record ToolResultPart(String toolUseId, String content, boolean isError) implements ContentPart {}
         record ThinkingPart(String thinking) implements ContentPart {}
         record RedactedThinkingPart(String data) implements ContentPart {}
+        record ProviderResponseStatePart(String provider, String model,
+                                         String displayThinking,
+                                         List<JsonNode> outputItems) implements ContentPart {}
         record ImagePart(String mediaType, String base64Data, String url) implements ContentPart {
             public ImagePart(String mediaType, String base64Data) {
                 this(mediaType, base64Data, null);

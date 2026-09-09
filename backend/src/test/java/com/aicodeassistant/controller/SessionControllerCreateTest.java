@@ -155,6 +155,7 @@ class SessionControllerCreateTest {
                 mock(SimpMessagingTemplate.class),
                 mock(WebSocketSessionManager.class),
                 projects,
-                permissionModes);
+                permissionModes,
+                new com.aicodeassistant.service.PublicMessageProjection());
     }
 }

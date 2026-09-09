@@ -315,6 +315,15 @@ public class MessageNormalizer {
             case ContentBlock.RedactedThinkingBlock redacted ->
                     new HashMap<>(Map.of("type", "redacted_thinking", "data",
                             redacted.data() != null ? redacted.data() : ""));
+            case ContentBlock.ProviderResponseStateBlock state -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("type", "provider_response_state");
+                map.put("provider", state.provider());
+                map.put("model", state.model());
+                map.put("display_thinking", state.displayThinking() != null ? state.displayThinking() : "");
+                map.put("output", state.outputItems());
+                yield map;
+            }
         };
     }
 
@@ -433,6 +442,9 @@ public class MessageNormalizer {
             case ContentBlock.RedactedThinkingBlock redacted ->
                     new ContentPart.RedactedThinkingPart(
                             redacted.data() != null ? redacted.data() : "");
+            case ContentBlock.ProviderResponseStateBlock state ->
+                    new ContentPart.ProviderResponseStatePart(
+                            state.provider(), state.model(), state.displayThinking(), state.outputItems());
         };
     }
 

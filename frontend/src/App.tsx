@@ -10,9 +10,20 @@ import { useConfigStore } from '@/store/configStore';
 import { sendToServer, sendRunInput, sendSlashCommand } from '@/api/stompClient';
 import { SkillDetailModal } from '@/components/skills/SkillDetailModal';
 import { MobileApprovalSheet } from '@/components/verify/MobileApprovalSheet';
-import type { SubmitEvent, Message, Command, PastePublishResult } from '@/types';
+import type {
+  SubmitEvent,
+  Message,
+  Command,
+  PastePublishResult,
+  FileReferenceCapability,
+  PublishedLocalFile,
+} from '@/types';
 import { generateUUID } from '@/utils/uuid';
 import { publishPastedImages as publishPastedImagesCore } from '@/utils/pasteImagePublisher';
+import {
+  loadFileReferenceCapability,
+  publishLocalFile as publishLocalFileCore,
+} from '@/utils/localFilePublisher';
 import { useAPOSInitialization } from '@/hooks/useAPOSInitialization';
 import { useActivityStore } from '@/store/activityStore';
 import { useNotificationStore } from '@/store/notificationStore';
@@ -82,11 +93,30 @@ function App() {
   // 技能列表
   const [skills, setSkills] = useState<SkillItem[]>([]);
   const [selectedSkill, setSelectedSkill] = useState<string | null>(null);
+  const [fileReferenceCapability, setFileReferenceCapability] =
+    useState<FileReferenceCapability | null>(null);
 
   // 加载配置
   useEffect(() => {
     loadConfig();
   }, [loadConfig]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void loadFileReferenceCapability()
+      .then(capability => {
+        if (!cancelled) setFileReferenceCapability(capability);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setFileReferenceCapability({
+            mode: 'unavailable',
+            error: 'FILE_REFERENCE_CAPABILITY_UNAVAILABLE',
+          });
+        }
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   // 动态加载技能列表
   useEffect(() => {
@@ -164,6 +194,11 @@ function App() {
   // 此处仅做薄封装注入 ensureSessionReady。
   const publishPastedImages = useCallback(
     (files: File[]): Promise<PastePublishResult> => publishPastedImagesCore(files, ensureSessionReady),
+    [ensureSessionReady],
+  );
+
+  const publishLocalFile = useCallback(
+    (file: File): Promise<PublishedLocalFile> => publishLocalFileCore(file, ensureSessionReady),
     [ensureSessionReady],
   );
 
@@ -392,10 +427,13 @@ function App() {
           {/* Input */}
           <div className="border-t border-[var(--border)] p-4 bg-[var(--bg-secondary)]">
             <PromptInput
+              sessionId={sessionId}
               onSubmit={handleSubmit}
               onSlashCommand={handleSlashCommand}
               onInterrupt={handleInterrupt}
               onPasteImages={publishPastedImages}
+              onPublishLocalFile={publishLocalFile}
+              fileReferenceCapability={fileReferenceCapability}
               disabled={false}
               runActive={status === 'streaming' || status === 'waiting_permission'}
               compacting={status === 'compacting'}

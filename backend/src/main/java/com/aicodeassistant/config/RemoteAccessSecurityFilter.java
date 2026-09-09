@@ -159,7 +159,13 @@ public class RemoteAccessSecurityFilter extends OncePerRequestFilter {
         }
 
         // 尝试 3: URL 参数 ?token={token}
-        String urlToken = request.getParameter("token");
+        // This endpoint deliberately accepts arbitrary raw Content-Types. Calling
+        // getParameter() here would make servlet containers parse form-like file
+        // bodies before the controller can stream them. A query-token request
+        // would be redirected and lose its POST body anyway, so require the
+        // normal cookie or Bearer flow for this endpoint.
+        String urlToken = RawFileUploadWebConfig.isRawLocalFileUpload(request)
+                ? null : request.getParameter("token");
         if (urlToken != null && accessToken.equals(urlToken)) {
             issueSessionCookie(response);
             // 重定向到去掉 token 参数的 URL (避免 token 泄露到浏览器历史)

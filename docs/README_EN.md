@@ -105,6 +105,7 @@ In a single overnight run on 2026-08-09, ZhikunCode used Kimi K3 to build a pure
 | 🌐 | **Full Browser-Based Control** | Deploy once, then manage everything from any device's browser — permission approvals, plan discussions, task management. Works on mobile. No client installation needed |
 | 🧭 | **Dual-View Task Workbench** | Switch freely between a result-focused Simple Workbench and the full Development Workbench within the same Session. The simple view brings the current request, execution state, primary deliverable, pending actions, and acceptance results together; the development view keeps the full conversation, tools, files, Git, terminal, browser, and Agent details. Switching views does not change runtime behavior |
 | 📦 | **Current Delivery Projection** | Correlates the current request, final response, deliverables, pending Interactions, activities, and Evidence through the current Root Run and its recursive child Runs, preventing results from different executions from being presented as one delivery. Legacy Sessions that cannot be correlated exactly are explicitly marked as compatibility fallbacks |
+| 🔗 | **Local File References** | Direct local access adds a canonical path through the native picker without uploading content. ECS, remote, and proxied access uses the browser picker, immediately publishes the file as a permanently public OSS object, and adds its URL to the prompt. OSS must be configured for remote references |
 | 🤖 | **Multi-Agent Collaboration** | Three collaboration modes: Team (fixed roles) / Swarm (dynamic negotiation) / SubAgent (parent-child delegation). Complex tasks are automatically distributed |
 | 🔒 | **Unified Authorization Security** | Every core tool passes through the Tool Gateway: canonical input freezing → Operation Analyzer risk/resource analysis → system invariants → RUN/SESSION/WORKSPACE grant matching or durable permission interaction → final dynamic recheck → structured result auditing. High-risk operations are ONCE-only, and unknown MCP/dynamic tools default to one-time approval |
 | 🇨🇳 | **Native Chinese LLM Support** | Qwen / DeepSeek / Moonshot / Zhipu GLM / MiniMax work out of the box with direct connections from mainland China — no VPN required |
@@ -112,7 +113,7 @@ In a single overnight run on 2026-08-09, ZhikunCode used Kimi K3 to build a pure
 | 📤 | **OSS Publishing and Screenshot Paste (Optional)** | `/publish-oss` remains explicit-only for verified artifacts; pasted screenshots support dual-path — OSS upload when configured, automatic Base64 fallback when OSS is not configured, enabling image analysis with no extra setup |
 | 🎙️ | **Voice Interaction (ASR / TTS)** | Microphone speech-to-text input (qwen3-asr-flash) and one-click text-to-speech for AI replies (qwen3-tts-flash); powered by Alibaba Cloud DashScope — just configure the API Key; buttons auto-hide when unconfigured |
 | ⚡ | **Intelligent Context Management** | Six-layer compression cascade (Snip / MicroCompact / ContextCollapse / AutoCompact / CollapseDrain / ReactiveCompact) + incremental collapse (auto-compress every 10 turns) + 413 two-phase recovery (CollapseDrain aggressive compression → ReactiveCompact) + Precise Token Counting (tiktoken multi-model support) + Self-Correction Loop (SelfCorrectionLoop, auto-diagnose compile/test failures, max 3 retries) + three-level token alerts + image context governance (large image externalization → on-demand injection → budget guard three-layer protection) for seamless ultra-long conversations. The core engines are ContextCascade and QueryEngine |
-| 📷 | **Multimodal Image Chat** | Upload images for AI analysis; **Intelligent Vision Routing** — when the selected model lacks image input support, the system auto-routes to a vision-capable model and reverts to the original model afterward. DeepSeek models prefer `deepseek-v4-flash-vision-exp`, then fall back to same-provider/global vision routing when unavailable. **Image Budget Guard** — large images (>50KB) are auto-externalized to lightweight JSON references, injected on-demand before API calls; two-phase token budget guard prevents multi-image conversations from accumulating beyond limits (≤1.5MB per image, ≤2MB total, max 5 concurrent injections). Supported models: gpt-5.6-sol / gpt-5.4-mini / claude-sonnet-4-6 / claude-opus-4-8 / qwen3.7-plus / deepseek-v4-flash-vision-exp / kimi-k3 / kimi-k2.7-code / glm-5.3-flash / MiniMax-M3 / openai/gpt-5.6-sol / google/gemini-3.5-flash (max 5MB per image, image count limit varies by model) |
+| 📷 | **Multimodal Image Chat** | Upload images for AI analysis; **Intelligent Vision Routing** — when the selected model lacks image input support, the system auto-routes to a vision-capable model and reverts afterward. DeepSeek models prefer `deepseek-v4-flash-vision-exp`, then use same-provider/global vision fallback. **Image Budget Guard** externalizes large images (>50KB), injects them on demand, and applies a two-phase token budget guard. ZenMux image models include Opus 4.8, Fable 5.1, GPT-5.6 Sol, GPT-6 Astra, Gemini 3.8 Flash, and Grok 4.6 (limits vary by model) |
 | 🖼️ | **Browser Semantic Snapshot** | `/snap` command captures full web page state (DOM structure + interactive elements), extracts structured JSON for Agent parsing and replay verification |
 | 📊 | **Real-Time Activity Tracking & Approval** | Activity Panel records full AI tool execution lifecycle, L1/L2/L3 three-layer display, Signal smart tagging (auto_approve/review_recommended/needs_review), one-click batch approval, SQLite backend persistence, session restoration support |
 | 🧪 | **Runtime Verification Framework** | VerifierFactory tri-modal dispatch (browser/http_api/auto) + 8 HTTP action handlers + JSONPath assertions + evidence chain SQLite storage + Feature Flag dual-gating + frontend real-time progress panel |
@@ -258,11 +259,13 @@ cd frontend && npm install && npm run dev
 
 > **Permission Data Note:** The current authorization architecture uses V015 durable interactions and V019 constrained grants as its database authority and does not read legacy permission tables. Recreate the project database for development upgrades and approve operations again under the current version.
 
-### Optional: OSS Artifact Publishing and Screenshot Paste
+### Optional: OSS Artifact Publishing, Screenshot Paste, and Remote File References
 
-ZhikunCode includes a built-in `/publish-oss` Skill that can publish one verified artifact from the current session as a permanently public OSS download. This feature is **disabled by default and never uploads automatically**: generating a file, completing a Run, previewing, or opening a file cannot trigger it. Every publication requires an explicit user request and a one-time high-risk permission confirmation.
+ZhikunCode includes a built-in `/publish-oss` Skill that can publish one verified artifact from the current session as a permanently public OSS download. The `/publish-oss` path is **disabled by default and never uploads automatically**: generating a file, completing a Run, previewing, or opening a file cannot trigger it. Every publication requires an explicit user request and a one-time high-risk permission confirmation.
 
 With the same OSS configuration enabled, the browser can detect PNG/JPEG/WebP screenshots pasted from another application (up to 5 MiB each), publish them immediately through a deterministic backend endpoint, and pass the server-validated OSS image URL directly to the vision model. This path does not invoke `/publish-oss` or make an extra LLM call. If OSS is not configured, screenshots automatically fall back to Base64 inline upload — no extra configuration needed to use image analysis.
+
+Local File References selects its path from the effective request capability. Only direct loopback access with no forwarding proxy and all native-picker safety gates satisfied sends a canonical path without file content. ECS, remote, and proxied access instead opens the browser file picker, immediately uploads the selected file below `${ZHIKUN_OSS_PREFIX}/local-files/`, and appends its name and OSS URL to the prompt. The remote path accepts any file type up to `ZHIKUN_OSS_MAX_FILE_BYTES` (100 MiB by default); it does not fall back to Base64 when OSS is unavailable and does not scan filenames or content for secrets. Every uploaded object is permanently `public-read`; removing the tag, switching Sessions, or abandoning the draft does not delete it, so only select files that may be public.
 
 Credential mode defaults to `auto`: complete standard `ALIBABA_CLOUD_ACCESS_KEY_ID`/`ALIBABA_CLOUD_ACCESS_KEY_SECRET` values take priority through Alibaba Cloud's default credential chain; otherwise a configured `ZHIKUN_OSS_ECS_ROLE_NAME` uses **ECS RAM Role + IMDSv2**; with neither present it still tries the default chain (for example an Alibaba Cloud CLI default profile). The same non-secret configuration can therefore support both local one-click startup and ECS. Every deployment must use its own Bucket and least-privilege identity.
 
@@ -270,7 +273,7 @@ Configure `.env` as follows:
 
 ```bash
 ZHIKUN_OSS_ENABLED=true
-ZHIKUN_OSS_ENDPOINT=oss-cn-your-region.aliyuncs.com
+ZHIKUN_OSS_ENDPOINT=https://oss-cn-your-region.aliyuncs.com
 ZHIKUN_OSS_REGION=cn-your-region
 ZHIKUN_OSS_BUCKET=your-bucket
 ZHIKUN_OSS_PREFIX=zhikuncode-artifacts
@@ -300,6 +303,7 @@ Security boundaries and current limitations:
 - The returned URL is a **permanently public download URL**. HTML served from the default OSS domain is normally downloaded rather than rendered inline by the browser.
 - The current minimal version does not provide batch publishing, publication history, or a revoke action; operators must explicitly delete public objects in OSS.
 - Both local and ECS deployments support real uploads. Local startup uses the default credential chain; ECS should use automatically rotated RAM Role credentials.
+- Remote file references stream the raw request body without increasing Spring's global multipart limit. If a reverse proxy fronts ECS, its request-body limit must be at least `ZHIKUN_OSS_MAX_FILE_BYTES`.
 
 ### Supported LLM Providers
 
@@ -328,7 +332,7 @@ LLM_PROVIDER_ZHIPU_API_KEY=your-zhipu-api-key-here
 # MiniMax
 LLM_PROVIDER_MINIMAX_API_KEY=your-minimax-api-key-here
 
-# ZenMux (claude-opus-4.8 / claude-fable-5.1 / openai/gpt-5.6-sol / google/gemini-3.5-flash, 1M context)
+# ZenMux default catalog: Opus 4.8 / Fable 5.1 / GPT-5.6 Sol / GPT-6 Astra / Gemini 3.8 Flash / Grok 4.6
 LLM_PROVIDER_ZENMUX_API_KEY=your-zenmux-api-key-here
 ```
 
@@ -344,7 +348,7 @@ If no multi-Provider keys are configured, the system automatically falls back to
 | **Moonshot (Kimi)** | `https://api.moonshot.cn/v1` | kimi-k3 / kimi-k2.7-code | Direct connection; kimi-k3 features 1M context window and native vision |
 | **Zhipu (GLM)** | `https://open.bigmodel.cn/api/paas/v4/chat/completions` | glm-5.3, glm-5.3-flash | China direct access |
 | **MiniMax** | `https://api.minimax.chat/v1` | MiniMax-M3 | 1M context window |
-| **ZenMux (Multi-Model Gateway)** | `https://zenmux.ai/api/v1` | anthropic/claude-opus-4.8 / claude-fable-5.1 / openai/gpt-5.6-sol / google/gemini-3.5-flash | 1M context · Image support |
+| **ZenMux (Multi-Model Gateway)** | `https://zenmux.ai/api/v1` | anthropic/claude-opus-4.8 / anthropic/claude-fable-5.1 / openai/gpt-5.6-sol / openai/gpt-6-astra / google/gemini-3.8-flash / x-ai/grok-4.6 | Responses reasoning/tool continuation for OpenAI, Google, and xAI models · Image support |
 | **OpenAI** | `https://api.openai.com/v1` | gpt-5.6-sol / gpt-5.4-mini | Requires international network access |
 | **Local Ollama** | `http://localhost:11434/v1` | All Ollama models (ollama/*) | Fully offline |
 

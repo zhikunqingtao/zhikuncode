@@ -1,25 +1,27 @@
 package com.aicodeassistant.controller;
 
+import com.aicodeassistant.config.oss.OssPublishProperties;
+import com.aicodeassistant.exception.SessionNotFoundException;
 import com.aicodeassistant.service.FileSearchService;
 import com.aicodeassistant.service.FileSearchService.FileSearchResult;
 import com.aicodeassistant.service.ProjectWorkspaceService;
-import com.aicodeassistant.exception.SessionNotFoundException;
+import com.aicodeassistant.service.SessionFileAccessService;
 import com.aicodeassistant.session.SessionData;
 import com.aicodeassistant.session.SessionManager;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import jakarta.servlet.http.HttpServletRequest;
-import com.aicodeassistant.service.SessionFileAccessService;
 
 /**
  * 文件搜索 API — 支持 @文件附件功能的后端端点。
@@ -32,24 +34,28 @@ public class FileController {
     private final SessionManager sessionManager;
     private final ProjectWorkspaceService projectWorkspaces;
     private final SessionFileAccessService sessionFiles;
+    private final OssPublishProperties ossPublishProperties;
 
     @org.springframework.beans.factory.annotation.Autowired
     public FileController(
             FileSearchService fileSearchService,
             SessionManager sessionManager,
             ProjectWorkspaceService projectWorkspaces,
-            SessionFileAccessService sessionFiles) {
+            SessionFileAccessService sessionFiles,
+            OssPublishProperties ossPublishProperties) {
         this.fileSearchService = fileSearchService;
         this.sessionManager = sessionManager;
         this.projectWorkspaces = projectWorkspaces;
         this.sessionFiles = sessionFiles;
+        this.ossPublishProperties = ossPublishProperties;
     }
 
     /** 仅保留给不涉及预览/原生打开的隔离单元测试。 */
     FileController(FileSearchService fileSearchService,
                    SessionManager sessionManager,
                    ProjectWorkspaceService projectWorkspaces) {
-        this(fileSearchService, sessionManager, projectWorkspaces, null);
+        this(fileSearchService, sessionManager, projectWorkspaces, null,
+                new OssPublishProperties());
     }
 
     @GetMapping("/api/files/search")
@@ -64,6 +70,38 @@ public class FileController {
         List<FileSearchResult> results = fileSearchService.fuzzySearch(
                 query, workspace, limit);
         return ResponseEntity.ok(results);
+    }
+
+    @PostMapping("/api/files/pick")
+    public ResponseEntity<PickLocalFilesResponse> pickLocalFile(
+            @RequestHeader(name = "X-Zhikun-Native-Picker", required = false)
+            String nativePickerHeader,
+            HttpServletRequest servletRequest) {
+        ProjectController.assertNativePickerRequest(
+                nativePickerHeader, servletRequest);
+        return projectWorkspaces.pickFile(servletRequest.getRemoteAddr())
+                .map(file -> ResponseEntity.ok(
+                        new PickLocalFilesResponse(List.of(file))))
+                .orElseGet(() -> ResponseEntity.noContent().build());
+    }
+
+    @GetMapping("/api/files/reference-capability")
+    public ResponseEntity<FileReferenceCapability> referenceCapability(
+            HttpServletRequest servletRequest) {
+        String callerAddress = ProjectController.hasForwardingHeaders(servletRequest)
+                ? null : servletRequest.getRemoteAddr();
+        if (projectWorkspaces.nativePickerAvailable(callerAddress)) {
+            return ResponseEntity.ok(new FileReferenceCapability(
+                    "native_path", null, null));
+        }
+        try {
+            ossPublishProperties.requireReady();
+            return ResponseEntity.ok(new FileReferenceCapability(
+                    "oss_upload", ossPublishProperties.getMaxFileBytes(), null));
+        } catch (OssPublishProperties.OssConfigurationException unavailable) {
+            return ResponseEntity.ok(new FileReferenceCapability(
+                    "unavailable", null, unavailable.getMessage()));
+        }
     }
 
     @GetMapping("/api/sessions/{sessionId}/files/preview")
@@ -108,4 +146,10 @@ public class FileController {
     }
 
     public record RevealFileRequest(String path) { }
+
+    public record PickLocalFilesResponse(
+            List<ProjectWorkspaceService.LocalFileMetadata> files) { }
+
+    public record FileReferenceCapability(
+            String mode, Long maxFileBytes, String error) { }
 }

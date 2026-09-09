@@ -204,6 +204,79 @@ public class ProjectWorkspaceService {
     }
 
     /**
+     * Opens the native single-file chooser and returns metadata only. The file
+     * contents are neither read nor uploaded, and selection grants no tool
+     * authorization.
+     */
+    public Optional<LocalFileMetadata> pickFile(String remoteAddress) {
+        assertNativePickerAllowed(remoteAddress);
+        final Optional<String> selected;
+        try {
+            selected = nativeDirectoryPicker.pickFile();
+        } catch (NativeDirectoryPicker.BusyException busy) {
+            throw failure(HttpStatus.CONFLICT, "NATIVE_PICKER_BUSY",
+                    "Another native chooser is already open");
+        } catch (NativeDirectoryPicker.TimeoutException timeout) {
+            throw failure(HttpStatus.GATEWAY_TIMEOUT, "NATIVE_PICKER_TIMEOUT",
+                    "The file chooser timed out");
+        } catch (NativeDirectoryPicker.UnavailableException unavailable) {
+            throw failure(HttpStatus.SERVICE_UNAVAILABLE,
+                    "NATIVE_PICKER_UNAVAILABLE",
+                    "The native file chooser is unavailable");
+        }
+        if (selected.isEmpty()) return Optional.empty();
+        return Optional.of(validatePickedFile(selected.get()));
+    }
+
+    private LocalFileMetadata validatePickedFile(String value) {
+        final Path raw;
+        try {
+            raw = Path.of(value);
+        } catch (InvalidPathException invalid) {
+            throw failure(HttpStatus.BAD_REQUEST, "FILE_PATH_INVALID",
+                    "Selected file path is invalid");
+        }
+        if (!raw.isAbsolute()) {
+            throw failure(HttpStatus.BAD_REQUEST, "FILE_ABSOLUTE_REQUIRED",
+                    "Selected file path must be absolute");
+        }
+
+        final Path canonical;
+        try {
+            canonical = raw.toRealPath();
+        } catch (NoSuchFileException missing) {
+            throw failure(HttpStatus.BAD_REQUEST, "FILE_NOT_FOUND",
+                    "Selected file no longer exists");
+        } catch (AccessDeniedException denied) {
+            throw failure(HttpStatus.FORBIDDEN, "FILE_ACCESS_DENIED",
+                    "Selected file is not accessible");
+        } catch (Exception invalid) {
+            throw failure(HttpStatus.BAD_REQUEST, "FILE_PATH_INVALID",
+                    "Selected file path cannot be resolved");
+        }
+        if (!Files.isRegularFile(canonical, LinkOption.NOFOLLOW_LINKS)) {
+            throw failure(HttpStatus.BAD_REQUEST, "FILE_NOT_REGULAR",
+                    "Selected path must be a regular file");
+        }
+        if (!Files.isReadable(canonical)) {
+            throw failure(HttpStatus.FORBIDDEN, "FILE_ACCESS_DENIED",
+                    "Selected file is not readable");
+        }
+        try {
+            Path name = canonical.getFileName();
+            return new LocalFileMetadata(canonical.toString(),
+                    name == null ? canonical.toString() : name.toString(),
+                    Files.size(canonical));
+        } catch (AccessDeniedException denied) {
+            throw failure(HttpStatus.FORBIDDEN, "FILE_ACCESS_DENIED",
+                    "Selected file metadata is not readable");
+        } catch (Exception unavailable) {
+            throw failure(HttpStatus.CONFLICT, "FILE_UNAVAILABLE",
+                    "Selected file is no longer available");
+        }
+    }
+
+    /**
      * Resolves either an explicitly registered Project or the server-owned
      * default. Client-provided raw paths are deliberately not accepted here.
      */
@@ -605,5 +678,11 @@ public class ProjectWorkspaceService {
             String parent,
             List<DirectoryEntry> directories,
             boolean nativePickerAvailable
+    ) {}
+
+    public record LocalFileMetadata(
+            String path,
+            String name,
+            long size
     ) {}
 }

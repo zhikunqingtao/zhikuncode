@@ -40,6 +40,7 @@ public class FinalProviderPayloadGuard {
         if(node.isTextual()){
             String value=node.textValue();
             boolean encoded="data".equals(fieldName)||"base64".equals(fieldName)
+                    || "encrypted_content".equals(fieldName) || "signature".equals(fieldName)
                     ||value.startsWith("data:image/")||value.startsWith("data:application/");
             return encoded?value.length():(int)Math.ceil(value.length()/ratio);
         }
@@ -66,6 +67,7 @@ public class FinalProviderPayloadGuard {
         if (value instanceof CharSequence text) {
             String string = text.toString();
             boolean encoded = "data".equals(fieldName) || "base64".equals(fieldName)
+                    || "encrypted_content".equals(fieldName) || "signature".equals(fieldName)
                     || string.startsWith("data:image/") || string.startsWith("data:application/");
             return encoded ? string.length() : (int) Math.ceil(string.length() / ratio);
         }

@@ -1035,14 +1035,17 @@
         </g>
     
         <g transform="translate(420, 35)">
-          <text x="0" y="12" fill="#34D399" font-size="10" font-weight="bold">ZenMux 聚合 (4端点)</text>
-          <text x="0" y="26" fill="#8da4b0" font-size="8">anthropic/claude-opus-4.8 (64K)</text>
-          <text x="0" y="38" fill="#8da4b0" font-size="8">anthropic/claude-fable-5.1 (64K)</text>
-          <text x="0" y="50" fill="#8da4b0" font-size="8">openai/gpt-5.6-sol (128K)</text>
-          <text x="0" y="62" fill="#8da4b0" font-size="8">google/gemini-3.5-flash (65.5K)</text>
+          <text x="0" y="12" fill="#34D399" font-size="10" font-weight="bold">ZenMux 聚合 (6端点 · C/R)</text>
+          <text x="0" y="26" fill="#8da4b0" font-size="8">C anthropic/claude-opus-4.8 (64K)</text>
+          <text x="0" y="38" fill="#8da4b0" font-size="8">C anthropic/claude-fable-5.1 (64K)</text>
+          <text x="0" y="50" fill="#8da4b0" font-size="8">R openai/gpt-5.6-sol (128K)</text>
+          <text x="0" y="62" fill="#8da4b0" font-size="8">R openai/gpt-6-astra (128K)</text>
+          <text x="0" y="74" fill="#8da4b0" font-size="8">R google/gemini-3.8-flash (65.5K)</text>
+          <text x="0" y="86" fill="#8da4b0" font-size="8">R x-ai/grok-4.6 (65.5K)</text>
+          <text x="0" y="104" fill="#64748b" font-size="7.5">C=Chat Completions · R=Responses</text>
         </g>
     
-        <g transform="translate(420, 105)">
+        <g transform="translate(420, 135)">
           <text x="0" y="12" fill="#b0bec5" font-size="10" font-weight="bold">本地模型</text>
           <text x="0" y="26" fill="#8da4b0" font-size="8">ollama/* (4K ctx, 8K output)</text>
         </g>
@@ -3155,8 +3158,9 @@
       <line x1="240" y1="202" x2="270" y2="202" stroke="#6B70A0" stroke-width="1.5" class="anim-line" marker-end="url(#latestCtlArrow)"/>
       <line x1="475" y1="202" x2="505" y2="202" stroke="#6B70A0" stroke-width="1.5" class="anim-line" marker-end="url(#latestCtlArrow)"/>
       <line x1="710" y1="202" x2="740" y2="202" stroke="#6B70A0" stroke-width="1.5" class="anim-line" marker-end="url(#latestCtlArrow)"/>
-      <rect x="160" y="342" width="640" height="42" rx="21" fill="#151829" stroke="#6B70A0" stroke-width="1"/>
-      <text x="480" y="367" text-anchor="middle" fill="#9FA4C4" font-size="10">5 种权限模式 · ONCE一次性决策 + RUN/SESSION/WORKSPACE持久Grant · 硬拒绝 / Hook / SSRF / 沙箱不变</text>
+      <rect x="30" y="326" width="900" height="58" rx="16" fill="#151829" stroke="#6B70A0" stroke-width="1"/>
+      <text x="480" y="348" text-anchor="middle" fill="#22D3EE" font-size="8.5">文件引用：native_path = 本机 canonical 路径（不上传） · oss_upload = 浏览器原始请求体 → /local-files/ 永久 public-read</text>
+      <text x="480" y="370" text-anchor="middle" fill="#9FA4C4" font-size="9">5 种权限模式 · ONCE一次性决策 + RUN/SESSION/WORKSPACE持久Grant · 硬拒绝 / Hook / SSRF / 沙箱不变</text>
     </svg>
           </div>
         </div>

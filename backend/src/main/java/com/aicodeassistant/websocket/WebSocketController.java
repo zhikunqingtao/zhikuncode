@@ -2008,6 +2008,14 @@ public class WebSocketController implements PermissionNotifier {
                 case ContentBlock.RedactedThinkingBlock r -> {
                     map.put("type", "redacted_thinking");
                 }
+                case ContentBlock.ProviderResponseStateBlock state -> {
+                    if (state.displayThinking() != null && !state.displayThinking().isBlank()) {
+                        map.put("type", "thinking");
+                        map.put("thinking", state.displayThinking());
+                    } else {
+                        map.put("type", "redacted_thinking");
+                    }
+                }
             }
             return map;
         }).toList();

@@ -193,6 +193,15 @@ public final class MessageParamConverter {
                     new HashMap<>(Map.of("type", "thinking", "thinking", thp.thinking()));
             case MessageParam.ContentPart.RedactedThinkingPart rtp ->
                     new HashMap<>(Map.of("type", "redacted_thinking", "data", rtp.data()));
+            case MessageParam.ContentPart.ProviderResponseStatePart state -> {
+                Map<String, Object> m = new HashMap<>();
+                m.put("type", "provider_response_state");
+                m.put("provider", state.provider());
+                m.put("model", state.model());
+                m.put("display_thinking", state.displayThinking() != null ? state.displayThinking() : "");
+                m.put("output", state.outputItems() != null ? state.outputItems() : List.of());
+                yield m;
+            }
             case MessageParam.ContentPart.ImagePart ip -> {
                 Map<String, Object> m = new HashMap<>();
                 m.put("type", "image");

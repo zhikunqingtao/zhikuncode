@@ -371,6 +371,41 @@ class ProjectWorkspaceServiceTest {
 
     }
 
+    @Test
+    void filePickerReturnsCanonicalMetadataAndCancellation() throws Exception {
+        Path root = Files.createDirectory(temp.resolve("file-picker-root")).toRealPath();
+        Path file = Files.writeString(root.resolve("notes.txt"), "hello").toRealPath();
+        Path alias = root.resolve("notes-link.txt");
+        Files.createSymbolicLink(alias, file);
+        NativeDirectoryPicker picker = mock(NativeDirectoryPicker.class);
+        when(picker.isAvailable()).thenReturn(true);
+        when(picker.pickFile()).thenReturn(Optional.of(alias.toString()), Optional.empty());
+        ProjectWorkspaceService service = nativeService(
+                mock(ProjectRepository.class), "", root, true, picker);
+
+        var selected = service.pickFile("127.0.0.1").orElseThrow();
+        assertThat(selected.path()).isEqualTo(file.toString());
+        assertThat(selected.name()).isEqualTo("notes.txt");
+        assertThat(selected.size()).isEqualTo(5);
+        assertThat(service.pickFile("::1")).isEmpty();
+    }
+
+    @Test
+    void filePickerRejectsInvalidSelections() throws Exception {
+        Path root = Files.createDirectory(temp.resolve("file-picker-errors")).toRealPath();
+        NativeDirectoryPicker picker = mock(NativeDirectoryPicker.class);
+        when(picker.isAvailable()).thenReturn(true);
+        ProjectWorkspaceService service = nativeService(
+                mock(ProjectRepository.class), "", root, true, picker);
+
+        when(picker.pickFile()).thenReturn(Optional.of("relative.txt"));
+        assertCode(() -> service.pickFile("127.0.0.1"), "FILE_ABSOLUTE_REQUIRED");
+        when(picker.pickFile()).thenReturn(Optional.of(root.resolve("missing.txt").toString()));
+        assertCode(() -> service.pickFile("127.0.0.1"), "FILE_NOT_FOUND");
+        when(picker.pickFile()).thenReturn(Optional.of(root.toString()));
+        assertCode(() -> service.pickFile("127.0.0.1"), "FILE_NOT_REGULAR");
+    }
+
     private ProjectWorkspaceService service(
             ProjectRepository projects,
             String allowedRoots,

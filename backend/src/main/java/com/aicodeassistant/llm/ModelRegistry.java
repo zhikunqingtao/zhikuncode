@@ -30,11 +30,14 @@ public class ModelRegistry {
         entry("claude-haiku-4-5", caps("claude-haiku-4-5", "Claude Haiku 4.5", 8192, 200000, true, false, true, 10, true, 0.0008, 0.004)),
          // Anthropic via ZenMux (anthropic/ 前缀 = zenmux 中转，1M ctx · 128K 最大输出，我们保守设 64K)
         entry("anthropic/claude-opus-4.8", caps("anthropic/claude-opus-4.8", "Claude Opus 4.8", 64000, 1000000, true, false, true, 5, true, 0.005, 0.025)),
-        entry("anthropic/claude-fable-5.1", caps("anthropic/claude-fable-5.1", "Claude Fable 5.1", 64000, 1000000, true, false, true, 5, true, 0.010, 0.050)),
+        entry("anthropic/claude-fable-5.1", cacheCaps("anthropic/claude-fable-5.1", "Claude Fable 5.1", 64000, 1000000, true, false, true, 5, true, 0.010, 0.050)),
         // OpenAI via ZenMux (openai/ 前缀 = zenmux 中转)
-        entry("openai/gpt-5.6-sol",   caps("openai/gpt-5.6-sol",   "OpenAI GPT-5.6 Sol",   128000, 1050000, true,  false, true, 4, true, 0.030, 0.180)),
+        entry("openai/gpt-5.6-sol",   caps("openai/gpt-5.6-sol",   "OpenAI GPT-5.6 Sol",   128000, 1050000, true,  true, true, 4, true, 0.030, 0.180)),
+        entry("openai/gpt-6-astra",   caps("openai/gpt-6-astra",   "OpenAI GPT-6 Astra",   128000, 1050000, true,  true, true, 4, true, 0.010, 0.050)),
         // Google via ZenMux (google/ 前缀 = zenmux 中转)
-        entry("google/gemini-3.5-flash",   caps("google/gemini-3.5-flash",   "Google Gemini 3.5 Flash",   65530, 1050000, false, false, true, 4, true, 0.0015, 0.009)),
+        entry("google/gemini-3.8-flash",   caps("google/gemini-3.8-flash",   "Google Gemini 3.8 Flash",   65536, 1048576, true, true, true, 4, true, 0.0015, 0.0075)),
+        // xAI via ZenMux
+        entry("x-ai/grok-4.6", caps("x-ai/grok-4.6", "xAI Grok 4.6", 65536, 500000, true, true, true, 4, true, 0.004, 0.012)),
         // 国产大模型
         entry("deepseek-v4-pro",   caps("deepseek-v4-pro",   "DeepSeek V4 Pro",  384000, 1000000, true, true, false, 0, true, 0.001, 0.004)),
         entry("deepseek-v4-flash", caps("deepseek-v4-flash", "DeepSeek V4 Flash", 384000, 1000000, true, true, false, 0, true, 0.0005, 0.002)),
@@ -175,6 +178,13 @@ public class ModelRegistry {
     private static ModelCapabilities caps(String id, String name, int maxOut, int ctx,
             boolean stream, boolean think, boolean img, int maxImages, boolean tool, double in$, double out$) {
         return new ModelCapabilities(id, name, maxOut, ctx, stream, think, img, maxImages, tool, in$, out$, 3.5);
+    }
+
+    private static ModelCapabilities cacheCaps(String id, String name, int maxOut, int ctx,
+            boolean stream, boolean think, boolean img, int maxImages, boolean tool,
+            double in$, double out$) {
+        return new ModelCapabilities(id, name, maxOut, ctx, stream, think, img,
+                maxImages, tool, in$, out$, 3.5, true);
     }
 
     private void applyConfiguredOverrides() {

@@ -536,6 +536,21 @@ export type PastePublishResult =
     | { mode: 'oss'; items: PublishedPastedImage[] }
     | { mode: 'base64' };
 
+export interface FileReferenceCapability {
+    mode: 'native_path' | 'oss_upload' | 'unavailable';
+    maxFileBytes?: number;
+    error?: string;
+}
+
+export interface PublishedLocalFile {
+    artifactId: string;
+    name: string;
+    size: number;
+    sha256: string;
+    url: string;
+    mediaType: string;
+}
+
 /** 本地附件 (含 File 对象，用于上传) */
 export interface LocalAttachment {
     id: string;

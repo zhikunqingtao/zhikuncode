@@ -482,6 +482,15 @@ public class TokenBudgetGuard {
 
     private int estimateContentBlocksTokens(List<ContentBlock> blocks, double textTokenRatio) {
         if (blocks == null) return 0;
+        Optional<ContentBlock.ProviderResponseStateBlock> providerState = blocks.stream()
+                .filter(ContentBlock.ProviderResponseStateBlock.class::isInstance)
+                .map(ContentBlock.ProviderResponseStateBlock.class::cast)
+                .findFirst();
+        if (providerState.isPresent()) {
+            return providerState.get().outputItems().stream()
+                    .mapToInt(item -> item.toString().length())
+                    .sum();
+        }
         int total = 0;
         for (ContentBlock block : blocks) {
             if (block instanceof ContentBlock.TextBlock tb) {
@@ -521,6 +530,17 @@ public class TokenBudgetGuard {
             if (contentObj instanceof String text) {
                 total += (int) (text.length() / textTokenRatio);
             } else if (contentObj instanceof List<?> contentList) {
+                Optional<Map<String, Object>> providerState = contentList.stream()
+                        .filter(Map.class::isInstance)
+                        .map(Map.class::cast)
+                        .map(TokenBudgetGuard::toStringObjectMap)
+                        .filter(block -> "provider_response_state".equals(block.get("type")))
+                        .findFirst();
+                if (providerState.isPresent()) {
+                    Object output = providerState.get().get("output");
+                    total += output == null ? 0 : output.toString().length();
+                    continue;
+                }
                 for (Object item : contentList) {
                     if (item instanceof Map<?, ?> block) {
                         Map<String, Object> blockMap = toStringObjectMap(block);

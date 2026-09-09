@@ -16,6 +16,7 @@
 - 新增 `deepseek-v4-flash-vision-exp` 图片理解模型，作为 DeepSeek 系列的专属视觉兜底。
 
 ### Changed
+- ZenMux 默认目录保留 `anthropic/claude-fable-5.1`，新增 GPT-6 Astra、Gemini 3.8 Flash 与 Grok 4.6，并清理已替换或下线的旧型号。
 - Web 新会话必须先选择 Project；Session、Query 和文件搜索统一由 `projectId` / `sessionId` 解析服务端工作目录。
 - 智谱主模型全量升级为 GLM-5.3，覆盖前后端默认配置与中英文文档。
 - 模型列表、默认模型、会话创建和恢复统一以当前已注册 Provider 为权威；无效或已下线模型不再显示为 `Unknown Model`，历史会话仅在当前连接中回退到可用默认模型。

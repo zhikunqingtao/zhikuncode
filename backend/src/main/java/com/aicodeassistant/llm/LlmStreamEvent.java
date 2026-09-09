@@ -1,6 +1,9 @@
 package com.aicodeassistant.llm;
 
 import com.aicodeassistant.model.Usage;
+import com.fasterxml.jackson.databind.JsonNode;
+
+import java.util.List;
 
 /**
  * 统一的 LLM 流式事件 — 屏蔽各供应商差异。
@@ -34,6 +37,12 @@ public sealed interface LlmStreamEvent {
 
     /** 错误事件 */
     record Error(String message, boolean retryable) implements LlmStreamEvent {}
+
+    /** Provider 已产生不可透明重试的实质流事件，但该事件不对前端展示。 */
+    record ProviderProgress() implements LlmStreamEvent {}
+
+    /** Responses API 的完整、按序 output 状态，仅用于本地持久化和同模型回放。 */
+    record ProviderResponseState(List<JsonNode> outputItems) implements LlmStreamEvent {}
 
     // ===== Anthropic SSE 新增事件类型 =====
 

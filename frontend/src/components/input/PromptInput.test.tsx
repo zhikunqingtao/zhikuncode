@@ -14,7 +14,13 @@ import {
     vi,
 } from 'vitest';
 import PromptInput from './PromptInput';
-import type { Command, PastePublishResult } from '@/types';
+import type {
+    Command,
+    FileReferenceCapability,
+    PastePublishResult,
+    PublishedLocalFile,
+} from '@/types';
+import { useNotificationStore } from '@/store/notificationStore';
 import { useWorkbenchViewStore } from '@/store/workbenchViewStore';
 
 function renderInput(
@@ -23,6 +29,10 @@ function renderInput(
     commands: Command[] = [],
     state: { runActive?: boolean; compacting?: boolean; simpleMode?: boolean } = {},
     onPasteImages = vi.fn().mockResolvedValue({ mode: 'oss', items: [] }),
+    fileReferenceCapability: FileReferenceCapability | null = { mode: 'native_path' },
+    onPublishLocalFile = vi.fn<
+        (file: File) => Promise<PublishedLocalFile>
+    >(),
 ) {
     render(
         <PromptInput
@@ -37,12 +47,15 @@ function renderInput(
             commands={commands}
             simpleMode={state.simpleMode}
             onPasteImages={onPasteImages}
+            fileReferenceCapability={fileReferenceCapability}
+            onPublishLocalFile={onPublishLocalFile}
         />,
     );
 }
 
 describe('PromptInput asynchronous submit', () => {
     beforeEach(() => {
+        useNotificationStore.getState().clearAll();
         useWorkbenchViewStore.setState({
             enabled: true,
             activeSessionId: 'session-a',
@@ -426,4 +439,188 @@ describe('PromptInput asynchronous submit', () => {
         fireEvent.keyDown(window, { key: 'k', ctrlKey: true });
         expect(onSlashCommand).not.toHaveBeenCalled();
     });
+
+    it('accumulates, deduplicates, removes, and submits canonical local paths', async () => {
+        const onSubmit = vi.fn().mockResolvedValue(true);
+        const fetchMock = vi.fn()
+            .mockResolvedValueOnce(new Response(JSON.stringify({
+                files: [{ path: '/tmp/a.txt', name: 'a.txt', size: 1 }],
+            }), { status: 200 }))
+            .mockResolvedValueOnce(new Response(JSON.stringify({
+                files: [{ path: '/tmp/a.txt', name: 'a.txt', size: 1 }],
+            }), { status: 200 }))
+            .mockResolvedValueOnce(new Response(JSON.stringify({
+                files: [{ path: '/tmp/b.txt', name: 'b.txt', size: 2 }],
+            }), { status: 200 }));
+        vi.stubGlobal('fetch', fetchMock);
+        renderInput(onSubmit);
+        const picker = screen.getByRole('button', { name: '引用本地文件路径' });
+
+        fireEvent.click(picker);
+        await waitFor(() => expect(screen.getByText('a.txt')).toBeInTheDocument());
+        fireEvent.click(picker);
+        await waitFor(() => expect(screen.getAllByText('a.txt')).toHaveLength(1));
+        fireEvent.click(picker);
+        await waitFor(() => expect(screen.getByText('b.txt')).toBeInTheDocument());
+        fireEvent.click(screen.getByRole('button', { name: '移除本地路径 a.txt' }));
+        expect(screen.queryByText('a.txt')).not.toBeInTheDocument();
+        expect(screen.getByText('b.txt')).toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole('button', { name: '发送消息' }));
+        await waitFor(() => expect(onSubmit).toHaveBeenCalledWith(
+            expect.objectContaining({
+                text: '本地文件路径："/tmp/b.txt"',
+                attachments: [],
+            }),
+        ));
+        expect(fetchMock).toHaveBeenCalledWith('/api/files/pick', {
+            method: 'POST',
+            headers: { 'X-Zhikun-Native-Picker': '1' },
+        });
+    });
+
+    it('uploads a remote browser file immediately and submits only its OSS reference text', async () => {
+        const onSubmit = vi.fn().mockResolvedValue(true);
+        const url = 'https://bucket.oss-cn-beijing.aliyuncs.com/prefix/local-files/manual.pdf';
+        const onPublishLocalFile = vi.fn().mockResolvedValue({
+            artifactId: 'local-1',
+            name: 'manual.pdf',
+            size: 5,
+            sha256: 'same-hash',
+            url,
+            mediaType: 'application/pdf',
+        });
+        renderInput(
+            onSubmit,
+            undefined,
+            [],
+            {},
+            undefined,
+            { mode: 'oss_upload', maxFileBytes: 100 * 1024 * 1024 },
+            onPublishLocalFile,
+        );
+        const file = new File(['hello'], 'manual.pdf', { type: 'application/pdf' });
+        const fileInput = document.querySelector(
+            'input[data-local-file-reference-input]',
+        ) as HTMLInputElement;
+
+        fireEvent.click(screen.getByRole('button', { name: '上传本地文件到 OSS' }));
+        fireEvent.change(fileInput, { target: { files: [file] } });
+        await waitFor(() => expect(onPublishLocalFile).toHaveBeenCalledWith(file));
+        await waitFor(() => expect(screen.getByText('manual.pdf')).toBeInTheDocument());
+        expect(screen.getByText(/移除引用不会删除文件/)).toBeInTheDocument();
+
+        // The same server hash/name replaces the existing tag instead of duplicating it.
+        fireEvent.change(fileInput, { target: { files: [file] } });
+        await waitFor(() => expect(onPublishLocalFile).toHaveBeenCalledTimes(2));
+        expect(screen.getAllByText('manual.pdf')).toHaveLength(1);
+
+        fireEvent.click(screen.getByRole('button', {
+            name: '移除 OSS 文件引用 manual.pdf',
+        }));
+        expect(screen.queryByText('manual.pdf')).not.toBeInTheDocument();
+        fireEvent.change(fileInput, { target: { files: [file] } });
+        await waitFor(() => expect(onPublishLocalFile).toHaveBeenCalledTimes(3));
+        await waitFor(() => expect(screen.getByText('manual.pdf')).toBeInTheDocument());
+
+        fireEvent.click(screen.getByRole('button', { name: '发送消息' }));
+        await waitFor(() => expect(onSubmit).toHaveBeenCalledWith(
+            expect.objectContaining({
+                text: `本地文件 OSS 引用：${JSON.stringify({
+                    name: 'manual.pdf',
+                    url,
+                })}`,
+                attachments: [],
+            }),
+        ));
+    });
+
+    it('ignores an OSS upload response that arrives after a session switch', async () => {
+        let resolveUpload!: (file: PublishedLocalFile) => void;
+        const onPublishLocalFile = vi.fn(() => new Promise<PublishedLocalFile>(resolve => {
+            resolveUpload = resolve;
+        }));
+        const common = {
+            onSubmit: vi.fn().mockResolvedValue(true),
+            onSlashCommand: vi.fn().mockResolvedValue(true),
+            onInterrupt: vi.fn(),
+            disabled: false,
+            runActive: false,
+            compacting: false,
+            permissionMode: 'read_write',
+            messages: [],
+            commands: [],
+            onPasteImages: vi.fn().mockResolvedValue({ mode: 'oss', items: [] }),
+            fileReferenceCapability: {
+                mode: 'oss_upload' as const,
+                maxFileBytes: 100,
+            },
+            onPublishLocalFile,
+        };
+        const view = render(<PromptInput {...common} sessionId="session-a" />);
+        const fileInput = document.querySelector(
+            'input[data-local-file-reference-input]',
+        ) as HTMLInputElement;
+        fireEvent.change(fileInput, {
+            target: { files: [new File(['x'], 'late.txt', { type: 'text/plain' })] },
+        });
+        await waitFor(() => expect(onPublishLocalFile).toHaveBeenCalledTimes(1));
+
+        view.rerender(<PromptInput {...common} sessionId="session-b" />);
+        resolveUpload({
+            artifactId: 'local-late',
+            name: 'late.txt',
+            size: 1,
+            sha256: 'late-hash',
+            url: 'https://bucket.example/local-files/late.txt',
+            mediaType: 'text/plain',
+        });
+
+        await waitFor(() => expect(screen.queryByText('late.txt')).not.toBeInTheDocument());
+    });
+
+    it('keeps an in-flight OSS upload when it creates the first session', async () => {
+        let resolveUpload!: (file: PublishedLocalFile) => void;
+        const onPublishLocalFile = vi.fn(() => new Promise<PublishedLocalFile>(resolve => {
+            resolveUpload = resolve;
+        }));
+        const common = {
+            onSubmit: vi.fn().mockResolvedValue(true),
+            onSlashCommand: vi.fn().mockResolvedValue(true),
+            onInterrupt: vi.fn(),
+            disabled: false,
+            runActive: false,
+            compacting: false,
+            permissionMode: 'read_write',
+            messages: [],
+            commands: [],
+            onPasteImages: vi.fn().mockResolvedValue({ mode: 'oss', items: [] }),
+            fileReferenceCapability: {
+                mode: 'oss_upload' as const,
+                maxFileBytes: 100,
+            },
+            onPublishLocalFile,
+        };
+        const view = render(<PromptInput {...common} sessionId={null} />);
+        const fileInput = document.querySelector(
+            'input[data-local-file-reference-input]',
+        ) as HTMLInputElement;
+        fireEvent.change(fileInput, {
+            target: { files: [new File(['x'], 'created.txt', { type: 'text/plain' })] },
+        });
+        await waitFor(() => expect(onPublishLocalFile).toHaveBeenCalledTimes(1));
+
+        view.rerender(<PromptInput {...common} sessionId="session-created" />);
+        resolveUpload({
+            artifactId: 'local-created',
+            name: 'created.txt',
+            size: 1,
+            sha256: 'created-hash',
+            url: 'https://bucket.example/local-files/created.txt',
+            mediaType: 'text/plain',
+        });
+
+        await waitFor(() => expect(screen.getByText('created.txt')).toBeInTheDocument());
+    });
+
 });

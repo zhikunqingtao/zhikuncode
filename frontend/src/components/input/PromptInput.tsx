@@ -12,8 +12,17 @@
  */
 
 import React, { useState, useRef, useCallback, useEffect, useMemo, type ClipboardEvent, type KeyboardEvent } from 'react';
-import { Send, Square, X } from 'lucide-react';
-import type { Command, LocalAttachment, SubmitEvent, Message, Attachment, PastePublishResult } from '@/types';
+import { CloudUpload, FileSymlink, Loader2, Send, Square, X } from 'lucide-react';
+import type {
+    Command,
+    LocalAttachment,
+    SubmitEvent,
+    Message,
+    Attachment,
+    PastePublishResult,
+    FileReferenceCapability,
+    PublishedLocalFile,
+} from '@/types';
 import { useNotificationStore } from '@/store/notificationStore';
 import CommandPalette from './CommandPalette';
 import FileUpload from './FileUpload';
@@ -52,6 +61,7 @@ function readFileAsBase64(file: File): Promise<string> {
 }
 
 interface PromptInputProps {
+    sessionId?: string | null;
     onSubmit: (event: SubmitEvent) => Promise<boolean>;
     onSlashCommand: (command: string) => Promise<boolean>;
     onInterrupt: () => void;
@@ -63,9 +73,18 @@ interface PromptInputProps {
     commands: Command[];
     simpleMode?: boolean;
     onPasteImages: (files: File[]) => Promise<PastePublishResult>;
+    onPublishLocalFile: (file: File) => Promise<PublishedLocalFile>;
+    fileReferenceCapability: FileReferenceCapability | null;
+}
+
+interface PickedLocalFile {
+    path: string;
+    name: string;
+    size: number;
 }
 
 const PromptInput: React.FC<PromptInputProps> = ({
+    sessionId,
     onSubmit,
     onSlashCommand,
     onInterrupt,
@@ -75,6 +94,8 @@ const PromptInput: React.FC<PromptInputProps> = ({
     commands,
     simpleMode = false,
     onPasteImages,
+    onPublishLocalFile,
+    fileReferenceCapability,
 }) => {
     const [input, setInput] = useState('');
     const [attachments, setAttachments] = useState<LocalAttachment[]>([]);
@@ -85,9 +106,16 @@ const PromptInput: React.FC<PromptInputProps> = ({
     const [historyIndex, setHistoryIndex] = useState(-1);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isUploadingPaste, setIsUploadingPaste] = useState(false);
+    const [isPickingLocalFile, setIsPickingLocalFile] = useState(false);
+    const [isUploadingLocalFile, setIsUploadingLocalFile] = useState(false);
+    const [localFiles, setLocalFiles] = useState<PickedLocalFile[]>([]);
+    const [publishedLocalFiles, setPublishedLocalFiles] = useState<PublishedLocalFile[]>([]);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const browserFileInputRef = useRef<HTMLInputElement>(null);
     const historyRef = useRef<string[]>([]);
     const submissionRef = useRef(false);
+    const pickerRequestIdRef = useRef(0);
+    const previousSessionIdRef = useRef(sessionId);
     // 异步链路（粘贴上传/读取 base64）的卸载防护：卸载后短路 setState/通知并回收 ObjectURL
     const isMountedRef = useRef(true);
     // 追踪光标位置，用于语音识别结果插入光标处而非追加末尾
@@ -97,8 +125,24 @@ const PromptInput: React.FC<PromptInputProps> = ({
         isMountedRef.current = true;
         return () => {
             isMountedRef.current = false;
+            pickerRequestIdRef.current += 1;
         };
     }, []);
+
+    useEffect(() => {
+        const previousSessionId = previousSessionIdRef.current;
+        if (previousSessionId === sessionId) return;
+        previousSessionIdRef.current = sessionId;
+        // Selecting a remote file may create the first authorized Session.
+        // That initial null -> id binding belongs to the same draft and must not
+        // invalidate the in-flight upload. Real switches still clear references.
+        if (previousSessionId == null && sessionId != null) return;
+        pickerRequestIdRef.current += 1;
+        setIsPickingLocalFile(false);
+        setIsUploadingLocalFile(false);
+        setLocalFiles([]);
+        setPublishedLocalFiles([]);
+    }, [sessionId]);
 
     // 图片上传按钮始终可用：后端的智能视觉路由会处理模型适配，
     // 前端不再基于 supportsImages 进行前置禁用，仅保留通用数量上限。
@@ -139,6 +183,9 @@ const PromptInput: React.FC<PromptInputProps> = ({
         if (runActive || compacting) {
             setShowCommands(false);
             setShowGlobalPalette(false);
+            pickerRequestIdRef.current += 1;
+            setIsPickingLocalFile(false);
+            setIsUploadingLocalFile(false);
         }
     }, [runActive, compacting]);
 
@@ -166,12 +213,15 @@ const PromptInput: React.FC<PromptInputProps> = ({
 
     const handleSubmit = useCallback(async () => {
         const trimmed = input.trim();
-        if ((!trimmed && attachments.length === 0)
-                || submissionRef.current) return;
+        if ((!trimmed && attachments.length === 0 && localFiles.length === 0
+                && publishedLocalFiles.length === 0)
+                || submissionRef.current || isPickingLocalFile
+                || isUploadingLocalFile) return;
 
         if (compacting) return;
 
-        if (runActive && attachments.length > 0) {
+        if (runActive && (attachments.length > 0 || localFiles.length > 0
+                || publishedLocalFiles.length > 0)) {
             useNotificationStore.getState().addNotification({
                 key: 'run-input-attachments',
                 level: 'warning',
@@ -182,7 +232,9 @@ const PromptInput: React.FC<PromptInputProps> = ({
         }
         if (runActive && !trimmed) return;
 
-        if (!runActive && trimmed.startsWith('/')) {
+        if (!runActive && localFiles.length === 0
+                && publishedLocalFiles.length === 0
+                && trimmed.startsWith('/')) {
             await submitSlashCommand(trimmed);
             return;
         }
@@ -193,11 +245,23 @@ const PromptInput: React.FC<PromptInputProps> = ({
             mediaType: a.type,
             url: a.remoteUrl,
         }));
+        const localPathText = localFiles
+            .map(file => `本地文件路径：${JSON.stringify(file.path)}`)
+            .join('\n');
+        const publishedFileText = publishedLocalFiles
+            .map(file => `本地文件 OSS 引用：${JSON.stringify({
+                name: file.name,
+                url: file.url,
+            })}`)
+            .join('\n');
+        const submittedText = [trimmed, localPathText, publishedFileText]
+            .filter(Boolean)
+            .join('\n');
         submissionRef.current = true;
         setIsSubmitting(true);
         try {
             const sent = await onSubmit({
-                text: trimmed,
+                text: submittedText,
                 attachments: submitAttachments,
                 references: new Map(),
                 isFastMode: false,
@@ -211,6 +275,8 @@ const PromptInput: React.FC<PromptInputProps> = ({
             });
             setInput('');
             setAttachments([]);
+            setLocalFiles([]);
+            setPublishedLocalFiles([]);
         } finally {
             submissionRef.current = false;
             setIsSubmitting(false);
@@ -218,11 +284,164 @@ const PromptInput: React.FC<PromptInputProps> = ({
     }, [
         input,
         attachments,
+        localFiles,
+        publishedLocalFiles,
+        isPickingLocalFile,
+        isUploadingLocalFile,
         onSubmit,
         submitSlashCommand,
         runActive,
         compacting,
     ]);
+
+    const handlePickLocalFile = useCallback(async () => {
+        if (disabled || runActive || compacting || isSubmitting
+                || isUploadingPaste || isPickingLocalFile
+                || isUploadingLocalFile) return;
+        const requestId = ++pickerRequestIdRef.current;
+        setIsPickingLocalFile(true);
+        try {
+            const response = await fetch('/api/files/pick', {
+                method: 'POST',
+                headers: { 'X-Zhikun-Native-Picker': '1' },
+            });
+            if (response.status === 204) return;
+            if (!response.ok) {
+                let message = '选择本地文件失败';
+                try {
+                    const error = await response.json() as { message?: unknown };
+                    if (typeof error.message === 'string' && error.message) {
+                        message = error.message;
+                    }
+                } catch {
+                    // Keep the stable fallback for non-JSON proxy errors.
+                }
+                throw new Error(message);
+            }
+            const result = await response.json() as { files?: unknown };
+            if (!Array.isArray(result.files)
+                    || !result.files.every(file => typeof file === 'object'
+                        && file !== null
+                        && typeof (file as PickedLocalFile).path === 'string'
+                        && typeof (file as PickedLocalFile).name === 'string'
+                        && typeof (file as PickedLocalFile).size === 'number')) {
+                throw new Error('服务端返回了无效的本地文件信息');
+            }
+            if (!isMountedRef.current
+                    || requestId !== pickerRequestIdRef.current) return;
+            const files = result.files as PickedLocalFile[];
+            setLocalFiles(previous => {
+                const byPath = new Map(previous.map(file => [file.path, file]));
+                files.forEach(file => byPath.set(file.path, file));
+                return [...byPath.values()];
+            });
+        } catch (error) {
+            if (!isMountedRef.current
+                    || requestId !== pickerRequestIdRef.current) return;
+            useNotificationStore.getState().addNotification({
+                key: `pick-local-file-${generateUUID()}`,
+                level: 'error',
+                message: error instanceof Error
+                    ? error.message : '选择本地文件失败',
+                timeout: 7000,
+            });
+        } finally {
+            if (isMountedRef.current
+                    && requestId === pickerRequestIdRef.current) {
+                setIsPickingLocalFile(false);
+            }
+        }
+    }, [compacting, disabled, isPickingLocalFile, isSubmitting,
+        isUploadingLocalFile, isUploadingPaste, runActive]);
+
+    const handleBrowserLocalFile = useCallback(async (file: File) => {
+        if (disabled || runActive || compacting || isSubmitting
+                || isUploadingPaste || isPickingLocalFile
+                || isUploadingLocalFile) return;
+        const notify = useNotificationStore.getState().addNotification;
+        const maxBytes = fileReferenceCapability?.mode === 'oss_upload'
+            ? fileReferenceCapability.maxFileBytes : undefined;
+        if (file.size === 0) {
+            notify({
+                key: `upload-local-file-empty-${generateUUID()}`,
+                level: 'warning',
+                message: `文件 “${file.name}” 为空，未上传`,
+            });
+            return;
+        }
+        if (typeof maxBytes === 'number' && file.size > maxBytes) {
+            notify({
+                key: `upload-local-file-large-${generateUUID()}`,
+                level: 'warning',
+                message: `文件 “${file.name}” 超出 ${formatFileSize(maxBytes)} 上限`,
+            });
+            return;
+        }
+
+        const requestId = ++pickerRequestIdRef.current;
+        setIsUploadingLocalFile(true);
+        try {
+            const published = await onPublishLocalFile(file);
+            if (!isMountedRef.current
+                    || requestId !== pickerRequestIdRef.current) return;
+            setPublishedLocalFiles(previous => {
+                const key = `${published.sha256}\0${published.name}`;
+                const byContent = new Map(previous.map(item => [
+                    `${item.sha256}\0${item.name}`, item,
+                ]));
+                byContent.set(key, published);
+                return [...byContent.values()];
+            });
+            notify({
+                key: `upload-local-file-ok-${generateUUID()}`,
+                level: 'success',
+                message: `“${published.name}” 已上传为 OSS 公开文件`,
+                timeout: 3000,
+            });
+        } catch (error) {
+            if (!isMountedRef.current
+                    || requestId !== pickerRequestIdRef.current) return;
+            notify({
+                key: `upload-local-file-failed-${generateUUID()}`,
+                level: 'error',
+                message: error instanceof Error
+                    ? error.message : '本地文件上传 OSS 失败',
+                timeout: 7000,
+            });
+        } finally {
+            if (isMountedRef.current
+                    && requestId === pickerRequestIdRef.current) {
+                setIsUploadingLocalFile(false);
+            }
+        }
+    }, [compacting, disabled, fileReferenceCapability,
+        isPickingLocalFile, isSubmitting, isUploadingLocalFile,
+        isUploadingPaste, onPublishLocalFile, runActive]);
+
+    const handleFileReferenceClick = useCallback(() => {
+        if (disabled || runActive || compacting || isSubmitting
+                || isUploadingPaste || isPickingLocalFile
+                || isUploadingLocalFile) return;
+        if (fileReferenceCapability?.mode === 'native_path') {
+            void handlePickLocalFile();
+            return;
+        }
+        if (fileReferenceCapability?.mode === 'oss_upload') {
+            browserFileInputRef.current?.click();
+            return;
+        }
+        const error = fileReferenceCapability?.error;
+        useNotificationStore.getState().addNotification({
+            key: `file-reference-unavailable-${generateUUID()}`,
+            level: 'warning',
+            message: error === 'OSS_PUBLISHING_DISABLED'
+                ? '远程文件引用需要先配置 OSS'
+                : '本地文件引用能力当前不可用',
+            timeout: 5000,
+        });
+    }, [compacting, disabled, fileReferenceCapability,
+        handlePickLocalFile, isPickingLocalFile, isSubmitting,
+        isUploadingLocalFile, isUploadingPaste, runActive]);
 
     // Keyboard event handling
     const handleKeyDown = useCallback((e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -241,7 +460,8 @@ const PromptInput: React.FC<PromptInputProps> = ({
         // Enter (no Shift) → submit
         if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey) {
             e.preventDefault();
-            if (input.trim() || attachments.length > 0) {
+            if (input.trim() || attachments.length > 0 || localFiles.length > 0
+                    || publishedLocalFiles.length > 0) {
                 void handleSubmit();
             }
             return;
@@ -283,7 +503,9 @@ const PromptInput: React.FC<PromptInputProps> = ({
         if (e.key === 'Tab' && showCommands) {
             e.preventDefault();
         }
-    }, [input, attachments.length, runActive, compacting, showCommands, showGlobalPalette, historyIndex, onInterrupt, handleSubmit]);
+    }, [input, attachments.length, localFiles.length, publishedLocalFiles.length,
+        runActive, compacting, showCommands, showGlobalPalette, historyIndex,
+        onInterrupt, handleSubmit]);
 
     const handleFiles = useCallback(async (files: File[]) => {
         if (runActive || compacting) {
@@ -512,6 +734,17 @@ const PromptInput: React.FC<PromptInputProps> = ({
     // 后端的智能视觉路由会在请求时自动选择同厂商视觉模型处理图片，
     // 因此即便切换到 supportsImages=false 的模型也无需移除图片。
 
+    const fileReferenceBusy = isPickingLocalFile || isUploadingLocalFile;
+    const fileReferenceTitle = fileReferenceCapability === null
+        ? '正在获取本地文件引用能力'
+        : fileReferenceCapability.mode === 'native_path'
+        ? '选择一个本地文件路径（不上传文件内容）'
+        : fileReferenceCapability.mode === 'oss_upload'
+        ? `选择文件并立即上传为永久公开 OSS 对象（上限 ${formatFileSize(fileReferenceCapability.maxFileBytes ?? 0)}）`
+        : fileReferenceCapability.error === 'OSS_PUBLISHING_DISABLED'
+        ? '远程文件引用需要先配置 OSS'
+        : '本地文件引用能力当前不可用';
+
     return (
         <div
             className="relative"
@@ -630,6 +863,65 @@ const PromptInput: React.FC<PromptInputProps> = ({
                 </div>
             )}
 
+            {localFiles.length > 0 && (
+                <div className="mb-2 flex gap-2 flex-wrap">
+                    {localFiles.map(file => (
+                        <span
+                            key={file.path}
+                            title={`${file.path}\n该路径会发送给模型服务商；选择路径不授予读取权限。`}
+                            className="flex max-w-full items-center gap-1 rounded border border-amber-800/70 bg-amber-950/30 px-2 py-1 text-xs text-amber-200"
+                        >
+                            <FileSymlink size={13} className="shrink-0" />
+                            <span className="truncate">{file.name}</span>
+                            <span className="shrink-0 text-amber-500">({formatFileSize(file.size)})</span>
+                            <button
+                                type="button"
+                                aria-label={`移除本地路径 ${file.name}`}
+                                onClick={() => setLocalFiles(previous =>
+                                    previous.filter(item => item.path !== file.path))}
+                                className="ml-1 shrink-0 text-amber-500 hover:text-amber-200"
+                            >
+                                <X size={12} />
+                            </button>
+                        </span>
+                    ))}
+                    <span className="self-center text-xs text-gray-500">
+                        路径会发送给模型服务商；读取项目外文件仍需授权
+                    </span>
+                </div>
+            )}
+
+            {publishedLocalFiles.length > 0 && (
+                <div className="mb-2 flex gap-2 flex-wrap">
+                    {publishedLocalFiles.map(file => (
+                        <span
+                            key={`${file.sha256}\0${file.name}`}
+                            title={`${file.url}\n文件已上传为永久公开 OSS 对象；移除引用不会删除对象。`}
+                            className="flex max-w-full items-center gap-1 rounded border border-blue-800/70 bg-blue-950/30 px-2 py-1 text-xs text-blue-200"
+                        >
+                            <CloudUpload size={13} className="shrink-0" />
+                            <span className="truncate">{file.name}</span>
+                            <span className="shrink-0 text-blue-500">
+                                ({formatFileSize(file.size)})
+                            </span>
+                            <button
+                                type="button"
+                                aria-label={`移除 OSS 文件引用 ${file.name}`}
+                                onClick={() => setPublishedLocalFiles(previous =>
+                                    previous.filter(item => !(item.sha256 === file.sha256
+                                        && item.name === file.name)))}
+                                className="ml-1 shrink-0 text-blue-500 hover:text-blue-200"
+                            >
+                                <X size={12} />
+                            </button>
+                        </span>
+                    ))}
+                    <span className="self-center text-xs text-gray-500">
+                        已上传为永久公开 OSS 对象；移除引用不会删除文件
+                    </span>
+                </div>
+            )}
+
             {/* Input area */}
             <div className="flex items-end gap-2">
                 <textarea
@@ -672,7 +964,8 @@ const PromptInput: React.FC<PromptInputProps> = ({
                             ? '描述你希望完成或继续修改的事情…'
                             : `输入消息…（/ 查看命令，${navigator.platform.includes('Mac') ? '⌘' : 'Ctrl+'}K 打开命令面板）`
                     }
-                    disabled={disabled || compacting || isSubmitting || isUploadingPaste}
+                    disabled={disabled || compacting || isSubmitting
+                        || isUploadingPaste || isUploadingLocalFile}
                     aria-label="输入消息"
                     aria-multiline="true"
                     className="flex-1 resize-none rounded-lg border border-gray-700 bg-gray-900
@@ -684,11 +977,44 @@ const PromptInput: React.FC<PromptInputProps> = ({
                 />
 
                 {/* Toolbar */}
+                <input
+                    ref={browserFileInputRef}
+                    data-local-file-reference-input
+                    type="file"
+                    multiple={false}
+                    className="hidden"
+                    onChange={event => {
+                        const file = event.currentTarget.files?.[0];
+                        event.currentTarget.value = '';
+                        if (file) void handleBrowserLocalFile(file);
+                    }}
+                    disabled={disabled || runActive || compacting
+                        || isSubmitting || isUploadingPaste || fileReferenceBusy}
+                />
+                {!runActive && !compacting && (
+                    <button
+                        type="button"
+                        onClick={handleFileReferenceClick}
+                        disabled={disabled || isSubmitting || isUploadingPaste
+                            || fileReferenceBusy}
+                        aria-label={fileReferenceCapability?.mode === 'oss_upload'
+                            ? '上传本地文件到 OSS' : '引用本地文件路径'}
+                        title={fileReferenceTitle}
+                        className="shrink-0 rounded-lg p-2.5 text-gray-300 transition-colors hover:bg-gray-800 hover:text-white disabled:opacity-50"
+                    >
+                        {fileReferenceBusy
+                            ? <Loader2 size={16} className="animate-spin" />
+                            : fileReferenceCapability?.mode === 'oss_upload'
+                            ? <CloudUpload size={16} />
+                            : <FileSymlink size={16} />}
+                    </button>
+                )}
                 {!runActive && !compacting && (
                     <FileUpload
                         onFiles={handleFiles}
                         accept="image/*"
-                        disabled={disabled || isSubmitting || isUploadingPaste}
+                        disabled={disabled || isSubmitting || isUploadingPaste
+                            || isUploadingLocalFile}
                         title={`上传图片（不支持图片的模型将由视觉模型自动处理，上限 ${maxImages} 张）`}
                     />
                 )}
@@ -714,13 +1040,17 @@ const PromptInput: React.FC<PromptInputProps> = ({
                                 return prev + text;
                             });
                         }}
-                        disabled={disabled || isSubmitting || isUploadingPaste}
+                        disabled={disabled || isSubmitting || isUploadingPaste
+                            || isUploadingLocalFile}
                     />
                 )}
                 <button
                     onClick={() => { void handleSubmit(); }}
-                    disabled={disabled || compacting || isSubmitting || isUploadingPaste
-                        || (!input.trim() && attachments.length === 0)}
+                    disabled={disabled || compacting || isSubmitting
+                        || isUploadingPaste || fileReferenceBusy
+                        || (!input.trim() && attachments.length === 0
+                            && localFiles.length === 0
+                            && publishedLocalFiles.length === 0)}
                     aria-label={runActive ? '发送运行中干预' : '发送消息'}
                     title={runActive ? '发送运行中干预' : '发送消息'}
                     className="shrink-0 p-2.5 rounded-lg text-white transition-colors

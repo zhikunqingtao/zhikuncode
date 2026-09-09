@@ -53,24 +53,27 @@ public class ProjectController {
                     required = false)
             String nativePickerHeader,
             HttpServletRequest servletRequest) {
-        if (!"1".equals(nativePickerHeader)) {
-            throw new WorkspaceException(
-                    HttpStatus.FORBIDDEN,
-                    "NATIVE_PICKER_HEADER_REQUIRED",
-                    "X-Zhikun-Native-Picker: 1 is required");
-        }
-        if (hasForwardingHeaders(servletRequest)) {
-            throw new WorkspaceException(
-                    HttpStatus.FORBIDDEN,
-                    "NATIVE_PICKER_FORWARDED_REQUEST",
-                    "Native folder selection is unavailable through a proxy");
-        }
+        assertNativePickerRequest(nativePickerHeader, servletRequest);
         return workspaces.pickDirectory(servletRequest.getRemoteAddr())
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.noContent().build());
     }
 
-    private static boolean hasForwardingHeaders(
+    static void assertNativePickerRequest(String header,
+                                          HttpServletRequest request) {
+        if (!"1".equals(header)) {
+            throw new WorkspaceException(HttpStatus.FORBIDDEN,
+                    "NATIVE_PICKER_HEADER_REQUIRED",
+                    "X-Zhikun-Native-Picker: 1 is required");
+        }
+        if (hasForwardingHeaders(request)) {
+            throw new WorkspaceException(HttpStatus.FORBIDDEN,
+                    "NATIVE_PICKER_FORWARDED_REQUEST",
+                    "Native selection is unavailable through a proxy");
+        }
+    }
+
+    static boolean hasForwardingHeaders(
             HttpServletRequest request) {
         return hasHeader(request, "Forwarded")
                 || hasHeader(request, "X-Forwarded-For")

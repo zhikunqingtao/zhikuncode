@@ -34,9 +34,19 @@ export default defineConfig(({ mode }) => {
             // requests indistinguishable from local ones at the backend.
             host: '127.0.0.1',
             proxy: {
-                // Session-aware project search is implemented by the Java
-                // backend. Keep this more specific route before the Python
-                // file-processing prefix below.
+                // Native file selection and session-aware project search are
+                // implemented by the Java backend. Keep these more specific
+                // routes before the Python file-processing prefix below.
+                '/api/files/pick': {
+                    target: env.VITE_API_URL || 'http://localhost:8080',
+                    changeOrigin: true,
+                    secure: false,
+                },
+                '/api/files/reference-capability': {
+                    target: env.VITE_API_URL || 'http://localhost:8080',
+                    changeOrigin: true,
+                    secure: false,
+                },
                 '/api/files/search': {
                     target: env.VITE_API_URL || 'http://localhost:8080',
                     changeOrigin: true,

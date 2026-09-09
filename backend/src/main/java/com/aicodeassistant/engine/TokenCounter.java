@@ -84,10 +84,22 @@ public class TokenCounter {
 
         double modelRatio = modelRegistry == null ? DEFAULT_CHARS_PER_TOKEN : modelRegistry.getTokenCharRatio(modelId);
         long totalChars = 0;
+        long opaqueTokens = 0;
         for (Message msg : messages) {
-            totalChars += estimateMessageChars(msg);
+            ContentBlock.ProviderResponseStateBlock state =
+                    MessageContentAccessor.viewOf(msg).blocks().stream()
+                            .filter(ContentBlock.ProviderResponseStateBlock.class::isInstance)
+                            .map(ContentBlock.ProviderResponseStateBlock.class::cast)
+                            .findFirst().orElse(null);
+            if (state != null) {
+                opaqueTokens += state.outputItems().stream()
+                        .mapToLong(item -> item.toString().length()).sum();
+            } else {
+                totalChars += estimateMessageChars(msg);
+            }
         }
-        return saturatingTokens(totalChars / modelRatio + (long) messages.size() * 4);
+        return saturatingTokens(opaqueTokens + totalChars / modelRatio
+                + (long) messages.size() * 4);
     }
 
     /**
@@ -307,6 +319,9 @@ public class TokenCounter {
             case ContentBlock.ThinkingBlock thinking ->
                     thinking.thinking() != null ? thinking.thinking().length() : 0;
             case ContentBlock.RedactedThinkingBlock redacted -> 10;
+            case ContentBlock.ProviderResponseStateBlock state -> state.outputItems().stream()
+                    .mapToLong(item -> item.toString().length())
+                    .sum();
         };
     }
 

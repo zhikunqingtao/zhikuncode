@@ -4,9 +4,9 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.assertThat;
 
 class OssPublishPropertiesTest {
 
@@ -30,6 +30,17 @@ class OssPublishPropertiesTest {
 
         properties.setEndpoint("https://oss-cn-hangzhou.aliyuncs.com");
         assertThatThrownBy(() -> properties.requireReady(Map.of())).hasMessage("OSS_ENDPOINT_INVALID");
+    }
+
+    @Test
+    void prefixRejectsSegmentsThatWouldNormalizeAfterPublication() {
+        for (String prefix : new String[] { "safe/./files", "safe//files" }) {
+            OssPublishProperties properties = valid();
+            properties.setPrefix(prefix);
+
+            assertThatThrownBy(() -> properties.requireReady(Map.of()))
+                    .hasMessage("OSS_PREFIX_INVALID");
+        }
     }
 
     @Test
@@ -85,6 +96,18 @@ class OssPublishPropertiesTest {
     }
 
     @Test
+    void fileSizeLimitAllowsOneHundredMiBButNothingLarger() {
+        OssPublishProperties properties = valid();
+        properties.setMaxFileBytes(100L * 1024 * 1024);
+        assertThatCode(() -> properties.requireReady(Map.of()))
+                .doesNotThrowAnyException();
+
+        properties.setMaxFileBytes(100L * 1024 * 1024 + 1);
+        assertThatThrownBy(() -> properties.requireReady(Map.of()))
+                .hasMessage("OSS_FILE_LIMIT_INVALID");
+    }
+
+    @Test
     void onlyConfiguredClipboardPrefixIsTrusted() {
         OssPublishProperties properties = valid();
         String trusted = "https://test-artifacts.oss-cn-beijing.aliyuncs.com/"
@@ -103,6 +126,21 @@ class OssPublishPropertiesTest {
                 "https://test-artifacts.oss-cn-beijing.aliyuncs.com/"
                         + "zhikuncode-artifacts/clipboard/../private/image.png"))
                 .isFalse();
+    }
+
+    @Test
+    void onlyConfiguredLocalFilePrefixIsTrusted() {
+        OssPublishProperties properties = valid();
+        String trusted = "https://test-artifacts.oss-cn-beijing.aliyuncs.com/"
+                + "zhikuncode-artifacts/local-files/session/file.txt";
+
+        assertThat(properties.isTrustedLocalFileUrl(trusted)).isTrue();
+        assertThat(properties.isTrustedLocalFileUrl(trusted + "?signature=unexpected"))
+                .isFalse();
+        assertThat(properties.isTrustedLocalFileUrl(
+                "https://attacker.example/zhikuncode-artifacts/local-files/file.txt"))
+                .isFalse();
+        assertThat(properties.isTrustedClipboardImageUrl(trusted)).isFalse();
     }
 
     static OssPublishProperties valid() {

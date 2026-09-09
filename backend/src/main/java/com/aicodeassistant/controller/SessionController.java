@@ -12,6 +12,7 @@ import com.aicodeassistant.session.SessionData;
 import com.aicodeassistant.session.SessionManager;
 import com.aicodeassistant.session.SessionPage;
 import com.aicodeassistant.service.ProjectWorkspaceService;
+import com.aicodeassistant.service.PublicMessageProjection;
 import com.aicodeassistant.websocket.WebSocketSessionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,6 +55,7 @@ public class SessionController {
     private final WebSocketSessionManager wsSessionManager;
     private final ProjectWorkspaceService projectWorkspaces;
     private final PermissionModeManager permissionModes;
+    private final PublicMessageProjection publicMessages;
 
     public SessionController(SessionManager sessionManager,
                              CompactService compactService,
@@ -61,7 +63,8 @@ public class SessionController {
                              SimpMessagingTemplate messaging,
                              WebSocketSessionManager wsSessionManager,
                              ProjectWorkspaceService projectWorkspaces,
-                             PermissionModeManager permissionModes) {
+                             PermissionModeManager permissionModes,
+                             PublicMessageProjection publicMessages) {
         this.sessionManager = sessionManager;
         this.compactService = compactService;
         this.providerRegistry = providerRegistry;
@@ -69,6 +72,7 @@ public class SessionController {
         this.wsSessionManager = wsSessionManager;
         this.projectWorkspaces = projectWorkspaces;
         this.permissionModes = permissionModes;
+        this.publicMessages = publicMessages;
     }
 
     /**
@@ -163,7 +167,7 @@ public class SessionController {
      */
     @GetMapping("/{sessionId}")
     public ResponseEntity<SessionData> getSession(@PathVariable String sessionId) {
-        return ResponseEntity.ok(getSessionOrThrow(sessionId));
+        return ResponseEntity.ok(publicMessages.project(getSessionOrThrow(sessionId)));
     }
 
     /**
@@ -187,7 +191,7 @@ public class SessionController {
         return ResponseEntity.ok(new ResumeSessionResponse(
                 data.sessionId(),
                 "/ws/session/" + data.sessionId(),
-                data.messages()
+                publicMessages.project(data.messages())
         ));
     }
 
@@ -215,7 +219,7 @@ public class SessionController {
     public ResponseEntity<byte[]> exportSession(
             @PathVariable String sessionId,
             @RequestParam(defaultValue = "json") String format) {
-        SessionData data = getSessionOrThrow(sessionId);
+        SessionData data = publicMessages.project(getSessionOrThrow(sessionId));
 
         byte[] exportData;
         MediaType contentType;
@@ -266,7 +270,7 @@ public class SessionController {
         }
 
         int endIndex = Math.min(startIndex + limit, messages.size());
-        List<Message> pageMessages = messages.subList(startIndex, endIndex);
+        List<Message> pageMessages = publicMessages.project(messages.subList(startIndex, endIndex));
         boolean hasMore = endIndex < messages.size();
         String nextCursor = hasMore
                 ? Base64.getEncoder().encodeToString(String.valueOf(endIndex).getBytes())

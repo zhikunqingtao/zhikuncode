@@ -96,7 +96,6 @@ function ModelPicker() {
     { id: 'anthropic/claude-opus-4.8', name: 'claude-opus-4.8', description: '1M上下文 · 编程旗舰' },
     { id: 'anthropic/claude-fable-5.1', name: 'claude-fable-5.1', description: '1M上下文 · Mythos级' },
     { id: 'openai/gpt-5.6-sol', name: 'OpenAI GPT-5.6 Sol', description: 'OpenAI 旗舰模型' },
-    { id: 'google/gemini-3.5-flash', name: 'Google Gemini 3.5 Flash', description: 'Google 快速响应' },
   ];
 
   return (
