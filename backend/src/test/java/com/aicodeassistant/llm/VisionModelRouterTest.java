@@ -16,15 +16,6 @@ class VisionModelRouterTest {
     private final VisionModelRouter router = new VisionModelRouter(providerRegistry, modelRegistry);
 
     @Test
-    void directDeepSeekTextModelUsesDeepSeekVisionFallback() {
-        configureDeepSeekVisionAvailable();
-        when(modelRegistry.getCapabilities("deepseek-v4-pro")).thenReturn(textCaps("deepseek-v4-pro"));
-
-        assertEquals(VisionModelRouter.DEEPSEEK_VISION_MODEL,
-                router.resolveVisionModel("deepseek-v4-pro"));
-    }
-
-    @Test
     void bailianDeepSeekModelStillUsesDirectDeepSeekVisionFallback() {
         configureDeepSeekVisionAvailable();
         when(modelRegistry.getCapabilities("deepseek-v4-pro-0813"))

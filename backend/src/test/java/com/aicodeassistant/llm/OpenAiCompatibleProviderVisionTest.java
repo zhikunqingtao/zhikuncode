@@ -11,12 +11,11 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class OpenAiCompatibleProviderVisionTest {
 
-    private static final String MODEL = "deepseek-v4-flash-vision-exp";
+    private static final String MODEL = "deepseek-flash";
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private OpenAiCompatibleProvider provider;
@@ -31,7 +30,7 @@ class OpenAiCompatibleProviderVisionTest {
     }
 
     @Test
-    void visionRequestUsesOpenAiImageUrlAndDisablesThinking() throws Exception {
+    void visionRequestUsesOpenAiImageUrlAndV41ThinkingParams() throws Exception {
         Map<String, Object> image = Map.of(
                 "type", "image",
                 "source", Map.of(
@@ -52,8 +51,8 @@ class OpenAiCompatibleProviderVisionTest {
                 new ThinkingConfig.Enabled(10_000));
 
         assertEquals(MODEL, body.path("model").asText());
-        assertEquals("disabled", body.path("thinking").path("type").asText());
-        assertFalse(body.has("reasoning_effort"));
+        assertEquals("enabled", body.path("thinking").path("type").asText());
+        assertEquals("max", body.path("reasoning_effort").asText());
 
         JsonNode content = body.path("messages").get(0).path("content");
         assertTrue(content.isArray());

@@ -208,7 +208,7 @@ class McpModelCompatibilityLiveTest {
         addProvider(endpoints, "deepseek", "LLM_PROVIDER_DEEPSEEK_API_KEY",
                 env("LLM_PROVIDER_DEEPSEEK_BASE_URL", "https://api.deepseek.com/v1"),
                 "LLM_PROVIDER_DEEPSEEK_MODELS",
-                "deepseek-v4-pro,deepseek-v4-flash,deepseek-v4-flash-vision-exp");
+                "deepseek-flash");
         addProvider(endpoints, "moonshot", "LLM_PROVIDER_MOONSHOT_API_KEY",
                 env("LLM_PROVIDER_MOONSHOT_BASE_URL", "https://api.moonshot.cn/v1"),
                 "LLM_PROVIDER_MOONSHOT_MODELS", "kimi-k3,kimi-k2.7-code,moonshot-v1-128k");

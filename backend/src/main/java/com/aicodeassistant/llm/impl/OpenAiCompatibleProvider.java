@@ -62,9 +62,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
     /** 内置模型能力映射表*/
     private static final Map<String, ModelCapabilities> MODEL_CAPABILITIES = Map.ofEntries(
             // DeepSeek 模型
-            Map.entry("deepseek-v4-pro", new ModelCapabilities("deepseek-v4-pro", "DeepSeek V4 Pro", 384000, 1000000, true, true, false, 0, true, 0.001, 0.004)),
-            Map.entry("deepseek-v4-flash", new ModelCapabilities("deepseek-v4-flash", "DeepSeek V4 Flash", 384000, 1000000, true, true, false, 0, true, 0.0005, 0.002)),
-            Map.entry("deepseek-v4-flash-vision-exp", new ModelCapabilities("deepseek-v4-flash-vision-exp", "DeepSeek V4 Flash Vision Exp", 384000, 1000000, true, true, true, 5, true, 0.0005, 0.002)),
+            Map.entry("deepseek-flash", new ModelCapabilities("deepseek-flash", "DeepSeek V4.1 Flash", 384000, 1000000, true, true, true, 600, true, 0.0003, 0.0012)),
             Map.entry("deepseek-v4-pro-0813", new ModelCapabilities("deepseek-v4-pro-0813", "DeepSeek V4 Pro 0813（百炼）", 384000, 1000000, true, true, false, 0, true, 0.001, 0.004)),
             Map.entry("deepseek-v4-flash-0731", new ModelCapabilities("deepseek-v4-flash-0731", "DeepSeek V4 Flash 0731（百炼）", 384000, 1000000, true, true, false, 0, true, 0.0005, 0.002)),
             // 阿里云百炼 - 通义千问模型（qwen3.8-max-0902/qwen3.7-plus/qwen-turbo 已迁移至 ModelRegistry.BUILTIN_MODELS）
@@ -344,16 +342,11 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         ObjectNode streamOptions = root.putObject("stream_options");
         streamOptions.put("include_usage", true);
 
-        // DeepSeek V4 思考模式参数
-        // DeepSeek V4 系列（含百炼日期版本）默认启用思考模式，
+        // DeepSeek V4/V4.1 思考模式参数
+        // DeepSeek V4 系列、V4.1 Flash（含百炼日期版本）默认启用思考模式，
         // 必须始终发送 thinking 参数以保持一致性
         // 项目策略：V4 系列一律使用 max 推理强度（不在乎成本与耗时，追求最强推理）。
-        if (isDeepSeekVisionModel(model)) {
-            // 实测视觉请求在非思考模式下能稳定返回完整正文；思考模式可能在较短
-            // max_tokens 下只消耗推理预算而没有 content，因此视觉兜底固定关闭思考。
-            ObjectNode thinking = root.putObject("thinking");
-            thinking.put("type", "disabled");
-        } else if (isDeepSeekV4Model(model)) {
+        if (isDeepSeekV4Model(model)) {
             ObjectNode thinking = root.putObject("thinking");
             thinking.put("type", "enabled");
             root.put("reasoning_effort", "max");
@@ -676,14 +669,11 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         return text.toString();
     }
 
-    /** 判断是否为 DeepSeek V4 系列模型（直连及百炼日期版本均使用 thinking + max） */
+    /** 判断是否为 DeepSeek V4/V4.1 系列模型（直连及百炼日期版本均使用 thinking + max） */
     private static boolean isDeepSeekV4Model(String model) {
-        return model != null && model.startsWith("deepseek-v4-") && !isDeepSeekVisionModel(model);
-    }
-
-    /** DeepSeek 图片理解兜底模型使用独立、稳定的非思考请求参数。 */
-    private static boolean isDeepSeekVisionModel(String model) {
-        return "deepseek-v4-flash-vision-exp".equals(model);
+        return model != null
+                && ("deepseek-flash".equals(model)
+                    || model.startsWith("deepseek-v4-"));
     }
 
     /** 判断是否为支持思考模式的 Qwen 模型（qwen3.8-max/flash 官方均支持思考模式） */

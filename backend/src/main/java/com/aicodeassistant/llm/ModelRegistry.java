@@ -39,9 +39,10 @@ public class ModelRegistry {
         // xAI via ZenMux
         entry("x-ai/grok-4.6", caps("x-ai/grok-4.6", "xAI Grok 4.6", 65536, 500000, true, true, true, 4, true, 0.004, 0.012)),
         // 国产大模型
-        entry("deepseek-v4-pro",   caps("deepseek-v4-pro",   "DeepSeek V4 Pro",  384000, 1000000, true, true, false, 0, true, 0.001, 0.004)),
-        entry("deepseek-v4-flash", caps("deepseek-v4-flash", "DeepSeek V4 Flash", 384000, 1000000, true, true, false, 0, true, 0.0005, 0.002)),
-        entry("deepseek-v4-flash-vision-exp", caps("deepseek-v4-flash-vision-exp", "DeepSeek V4 Flash Vision Exp", 384000, 1000000, true, true, true, 5, true, 0.0005, 0.002)),
+        // DeepSeek V4.1 Flash 官方规格：1M 上下文 / 384K 最大输出 / 原生视觉 / 思考与工具调用。
+        // 模型规格：https://api-docs.deepseek.com/quick_start/pricing/
+        // 视觉限制：https://api-docs.deepseek.com/guides/vision/（单个请求最多 600 张图片）
+        entry("deepseek-flash", caps("deepseek-flash", "DeepSeek V4.1 Flash", 384000, 1000000, true, true, true, 600, true, 0.0003, 0.0012)),
         entry("deepseek-v4-pro-0813",   caps("deepseek-v4-pro-0813",   "DeepSeek V4 Pro 0813（百炼）",   384000, 1000000, true, true, false, 0, true, 0.001, 0.004)),
         entry("deepseek-v4-flash-0731", caps("deepseek-v4-flash-0731", "DeepSeek V4 Flash 0731（百炼）", 384000, 1000000, true, true, false, 0, true, 0.0005, 0.002)),
         // Moonshot

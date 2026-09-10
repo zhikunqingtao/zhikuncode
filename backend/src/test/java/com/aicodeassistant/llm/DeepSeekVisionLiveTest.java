@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /** 真实 DeepSeek 视觉调用；默认禁用，避免常规测试产生费用。 */
 class DeepSeekVisionLiveTest {
 
-    private static final String MODEL = "deepseek-v4-flash-vision-exp";
+    private static final String MODEL = "deepseek-flash";
 
     @Test
     @EnabledIfEnvironmentVariable(named = "DEEPSEEK_VISION_LIVE_TEST", matches = "true")

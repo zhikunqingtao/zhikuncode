@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <ul>
  *   <li>对 MODEL_CAPABILITIES 中存在的模型直接返回其 supportsThinking 值</li>
  *   <li>对 qwen3.8-/qwen3.7-/qwen3.6- 前缀模型走 isQwenThinkingModel 判定</li>
- *   <li>对 deepseek-v4- 前缀模型走 isDeepSeekV4Model 判定</li>
+ *   <li>对 deepseek-flash 与百炼日期版 DeepSeek 模型走 isDeepSeekV4Model 判定</li>
  *   <li>对 glm-5.3 / glm-5.3-flash 走 isGlmForcedThinkingModel 判定（强制思考）</li>
  *   <li>未匹配模型返回 false（不再抛 IllegalArgumentException）</li>
  * </ul>
@@ -42,8 +42,7 @@ class OpenAiCompatibleProviderThinkingTest {
                 "sk-test",
                 "https://dashscope.aliyuncs.com/compatible-mode/v1",
                 "qwen3.7-plus",
-                List.of("qwen3.8-max-0902", "qwen3.7-plus", "qwen-coder-plus", "deepseek-v4-pro",
-                        "deepseek-v4-flash-vision-exp")
+                List.of("qwen3.8-max-0902", "qwen3.7-plus", "qwen-coder-plus", "deepseek-flash")
         );
     }
 
@@ -72,9 +71,9 @@ class OpenAiCompatibleProviderThinkingTest {
     }
 
     @Test
-    @DisplayName("tc005: supportsThinking(deepseek-v4-pro) 返回 true（在 MODEL_CAPABILITIES 中）")
-    void tc005_deepseekV4Pro_supportsThinkingTrue() {
-        assertThat(provider.supportsThinking("deepseek-v4-pro")).isTrue();
+    @DisplayName("tc005: supportsThinking(deepseek-flash) 返回 true（在 MODEL_CAPABILITIES 中）")
+    void tc005_deepseekV41Flash_supportsThinkingTrue() {
+        assertThat(provider.supportsThinking("deepseek-flash")).isTrue();
     }
 
     @Test
@@ -115,13 +114,12 @@ class OpenAiCompatibleProviderThinkingTest {
     }
 
     @Test
-    @DisplayName("tc010: isDeepSeekV4Model 边界 - 仅 deepseek-v4- 前缀匹配")
+    @DisplayName("tc010: isDeepSeekV4Model 边界 - 正式 ID 与百炼日期版本匹配")
     void tc010_isDeepSeekV4Model_prefixMatching() throws Exception {
         Method m = OpenAiCompatibleProvider.class.getDeclaredMethod("isDeepSeekV4Model", String.class);
         m.setAccessible(true);
 
-        assertThat((boolean) m.invoke(null, "deepseek-v4-pro")).isTrue();
-        assertThat((boolean) m.invoke(null, "deepseek-v4-flash")).isTrue();
+        assertThat((boolean) m.invoke(null, "deepseek-flash")).isTrue();
         assertThat((boolean) m.invoke(null, "deepseek-v4-pro-0813")).isTrue();
         assertThat((boolean) m.invoke(null, "deepseek-v4-flash-0731")).isTrue();
         assertThat((boolean) m.invoke(null, "deepseek-v3-pro")).isFalse();
@@ -140,27 +138,13 @@ class OpenAiCompatibleProviderThinkingTest {
     }
 
     @Test
-    @DisplayName("tc012: DeepSeek Vision 官方能力支持 thinking 与图片")
-    void tc012_deepseekVisionCapabilities() {
-        ModelCapabilities caps = provider.getModelCapabilities("deepseek-v4-flash-vision-exp");
+    @DisplayName("tc012: DeepSeek V4.1 Flash 官方能力支持 thinking 与图片")
+    void tc012_deepseekV41FlashCapabilities() {
+        ModelCapabilities caps = provider.getModelCapabilities("deepseek-flash");
 
         assertThat(caps.supportsThinking()).isTrue();
         assertThat(caps.supportsImages()).isTrue();
-        assertThat(caps.maxImages()).isEqualTo(5);
-    }
-
-    @Test
-    @DisplayName("tc013: DeepSeek Vision 从普通 V4 max-thinking 策略中排除")
-    void tc013_deepseekVisionUsesDedicatedRequestStrategy() throws Exception {
-        Method vision = OpenAiCompatibleProvider.class
-                .getDeclaredMethod("isDeepSeekVisionModel", String.class);
-        Method v4 = OpenAiCompatibleProvider.class
-                .getDeclaredMethod("isDeepSeekV4Model", String.class);
-        vision.setAccessible(true);
-        v4.setAccessible(true);
-
-        assertThat((boolean) vision.invoke(null, "deepseek-v4-flash-vision-exp")).isTrue();
-        assertThat((boolean) v4.invoke(null, "deepseek-v4-flash-vision-exp")).isFalse();
+        assertThat(caps.maxImages()).isEqualTo(600);
     }
 
     @Test
@@ -205,4 +189,16 @@ class OpenAiCompatibleProviderThinkingTest {
         assertThat((boolean) m.invoke(null, "qwen3.8-flash")).isTrue();
         assertThat((boolean) m.invoke(null, "qwen3.8-anything-future")).isTrue();
     }
+
+    @Test
+    @DisplayName("tc019: 旧版 DeepSeek 直连模型已从能力目录移除")
+    void tc019_legacyDirectDeepSeekModelsRemoved() {
+        for (String model : List.of(
+                "deepseek-v4-pro", "deepseek-v4-flash", "deepseek-v4-flash-vision-exp")) {
+            org.assertj.core.api.Assertions.assertThatThrownBy(
+                    () -> provider.getModelCapabilities(model))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+    }
+
 }

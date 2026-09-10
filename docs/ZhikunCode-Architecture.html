@@ -1954,7 +1954,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
         <div style="padding-left:20px"><span style="color:var(--text3)">└──</span> <span style="color:var(--cyan);font-weight:600">OpenAiCompatibleProvider</span> <span style="color:var(--text3)">(1,218行)</span></div>
         <div style="padding-left:56px"><span style="color:var(--text3)">├──</span> OpenAI GPT</div>
         <div style="padding-left:56px"><span style="color:var(--text3)">├──</span> 通义千问 (Qwen)</div>
-        <div style="padding-left:56px"><span style="color:var(--text3)">├──</span> DeepSeek（含 deepseek-v4-flash-vision-exp 图片兜底）</div>
+        <div style="padding-left:56px"><span style="color:var(--text3)">├──</span> DeepSeek（deepseek-flash / V4.1 Flash 原生视觉）</div>
         <div style="padding-left:56px"><span style="color:var(--text3)">├──</span> Moonshot / Kimi</div>
         <div style="padding-left:56px"><span style="color:var(--text3)">├──</span> 智谱 GLM-5.3</div>
         <div style="padding-left:56px"><span style="color:var(--text3)">├──</span> ZenMux：Anthropic → Chat Completions；OpenAI / Google / xAI → Responses</div>
@@ -2155,7 +2155,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <rect x="770" y="122" width="8" height="8" rx="2" fill="#10B981"/>
       <text x="782" y="130" fill="#9FA4C4" font-size="7">Tier 2</text>
     
-      <!-- Chain 1: claude-sonnet-4-6 → qwen3.8-max-0902 → deepseek-v4-flash -->
+      <!-- Chain 1: claude-sonnet-4-6 → qwen3.8-max-0902 → deepseek-flash -->
       <rect x="40" y="160" width="180" height="26" rx="5" fill="#1C1F34" stroke="#FF6B9D" stroke-width="1.2"/>
       <text x="130" y="177" fill="#FF6B9D" font-size="8" font-weight="600" text-anchor="middle">claude-sonnet-4-6</text>
       <line x1="220" y1="173" x2="264" y2="173" stroke="#F59E0B" stroke-width="1.5" class="mts-fl"/>
@@ -2165,10 +2165,10 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <line x1="412" y1="173" x2="456" y2="173" stroke="#10B981" stroke-width="1.5" class="mts-fl"/>
       <polygon points="454,169 462,173 454,177" fill="#10B981"/>
       <rect x="464" y="160" width="140" height="26" rx="5" fill="#1C1F34" stroke="#10B981" stroke-width="1.2"/>
-      <text x="534" y="177" fill="#10B981" font-size="8" font-weight="600" text-anchor="middle">deepseek-v4-flash</text>
+      <text x="534" y="177" fill="#10B981" font-size="8" font-weight="600" text-anchor="middle">deepseek-flash</text>
       <text x="620" y="177" fill="#6B70A0" font-size="7">跨厂商降级</text>
     
-      <!-- Chain 2: qwen3.8-max-0902 → qwen3.7-plus → deepseek-v4-flash -->
+      <!-- Chain 2: qwen3.8-max-0902 → qwen3.7-plus → deepseek-flash -->
       <rect x="40" y="210" width="180" height="26" rx="5" fill="#1C1F34" stroke="#FF6B9D" stroke-width="1.2"/>
       <text x="130" y="227" fill="#FF6B9D" font-size="8" font-weight="600" text-anchor="middle">qwen3.8-max-0902</text>
       <line x1="220" y1="223" x2="264" y2="223" stroke="#F59E0B" stroke-width="1.5" class="mts-fl"/>
@@ -2178,16 +2178,16 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <line x1="412" y1="223" x2="456" y2="223" stroke="#10B981" stroke-width="1.5" class="mts-fl"/>
       <polygon points="454,219 462,223 454,227" fill="#10B981"/>
       <rect x="464" y="210" width="140" height="26" rx="5" fill="#1C1F34" stroke="#10B981" stroke-width="1.2"/>
-      <text x="534" y="227" fill="#10B981" font-size="8" font-weight="600" text-anchor="middle">deepseek-v4-flash</text>
+      <text x="534" y="227" fill="#10B981" font-size="8" font-weight="600" text-anchor="middle">deepseek-flash</text>
       <text x="620" y="227" fill="#6B70A0" font-size="7">同族 + 跨厂商</text>
     
-      <!-- Chain 3: qwen3.7-plus → deepseek-v4-flash → qwen3.8-max-0902 -->
+      <!-- Chain 3: qwen3.7-plus → deepseek-flash → qwen3.8-max-0902 -->
       <rect x="40" y="260" width="180" height="26" rx="5" fill="#1C1F34" stroke="#FF6B9D" stroke-width="1.2"/>
       <text x="130" y="277" fill="#FF6B9D" font-size="8" font-weight="600" text-anchor="middle">qwen3.7-plus</text>
       <line x1="220" y1="273" x2="264" y2="273" stroke="#F59E0B" stroke-width="1.5" class="mts-fl"/>
       <polygon points="262,269 270,273 262,277" fill="#F59E0B"/>
       <rect x="272" y="260" width="140" height="26" rx="5" fill="#1C1F34" stroke="#F59E0B" stroke-width="1.2"/>
-      <text x="342" y="277" fill="#F59E0B" font-size="8" font-weight="600" text-anchor="middle">deepseek-v4-flash</text>
+      <text x="342" y="277" fill="#F59E0B" font-size="8" font-weight="600" text-anchor="middle">deepseek-flash</text>
       <line x1="412" y1="273" x2="456" y2="273" stroke="#10B981" stroke-width="1.5" class="mts-fl"/>
       <polygon points="454,269 462,273 454,277" fill="#10B981"/>
       <rect x="464" y="260" width="140" height="26" rx="5" fill="#1C1F34" stroke="#10B981" stroke-width="1.2"/>

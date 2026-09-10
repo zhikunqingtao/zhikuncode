@@ -29,8 +29,8 @@ public class VisionModelRouter {
     /** 全局兜底视觉模型 */
     private static final String FALLBACK_VISION_MODEL = "qwen3.7-plus";
 
-    /** DeepSeek 系列专属图片理解兜底模型 */
-    static final String DEEPSEEK_VISION_MODEL = "deepseek-v4-flash-vision-exp";
+    /** DeepSeek 系列专属图片理解兜底模型（V4.1 Flash 原生支持视觉） */
+    static final String DEEPSEEK_VISION_MODEL = "deepseek-flash";
 
     public VisionModelRouter(LlmProviderRegistry providerRegistry, ModelRegistry modelRegistry) {
         this.providerRegistry = providerRegistry;

@@ -17,7 +17,7 @@ import static org.mockito.Mockito.lenient;
  *   <li>qwen3.8-max-0902: contextWindow=1000000, maxOutputTokens=65536, supportsThinking=true</li>
  *   <li>qwen3.7-plus: contextWindow=1000000, maxOutputTokens=8192, supportsThinking=true</li>
  *   <li>qwen-turbo (对照): supportsThinking=false</li>
- *   <li>deepseek-v4-pro: supportsThinking=true（在 BUILTIN_MODELS 中）</li>
+ *   <li>deepseek-flash: V4.1 Flash 的思考、视觉、工具与上下文能力</li>
  *   <li>glm-5.3-flash: 1M 上下文 / 128K 输出 / 强制思考 / 50 张图片上限（官方规格）</li>
  * </ul>
  */
@@ -95,9 +95,9 @@ class ModelRegistryThinkingModeTest {
     }
 
     @Test
-    @DisplayName("tc008: deepseek-v4-pro supportsThinking = true")
-    void tc008_deepseekV4Pro_supportsThinkingTrue() {
-        ModelCapabilities caps = modelRegistry.getCapabilities("deepseek-v4-pro");
+    @DisplayName("tc008: deepseek-flash supportsThinking = true")
+    void tc008_deepseekV41Flash_supportsThinkingTrue() {
+        ModelCapabilities caps = modelRegistry.getCapabilities("deepseek-flash");
 
         assertThat(caps.supportsThinking()).isTrue();
     }
@@ -128,14 +128,15 @@ class ModelRegistryThinkingModeTest {
     }
 
     @Test
-    @DisplayName("tc012: DeepSeek Vision 注册为 1M 上下文图片模型")
-    void tc012_deepseekVisionCapabilities() {
-        ModelCapabilities caps = modelRegistry.getCapabilities("deepseek-v4-flash-vision-exp");
+    @DisplayName("tc012: DeepSeek V4.1 Flash 注册为 1M 上下文原生多模态模型")
+    void tc012_deepseekV41FlashCapabilities() {
+        ModelCapabilities caps = modelRegistry.getCapabilities("deepseek-flash");
 
         assertThat(caps.contextWindow()).isEqualTo(1_000_000);
         assertThat(caps.maxOutputTokens()).isEqualTo(384_000);
         assertThat(caps.supportsImages()).isTrue();
-        assertThat(caps.maxImages()).isEqualTo(5);
+        assertThat(caps.maxImages()).isEqualTo(600);
+        assertThat(caps.supportsToolUse()).isTrue();
     }
 
     @Test
@@ -151,4 +152,5 @@ class ModelRegistryThinkingModeTest {
         assertThat(caps.supportsToolUse()).isTrue();
         assertThat(caps.supportsStreaming()).isTrue();
     }
+
 }

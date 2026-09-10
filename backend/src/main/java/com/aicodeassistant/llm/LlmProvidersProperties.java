@@ -26,8 +26,8 @@ import java.util.Map;
  *     deepseek:
  *       api-key: ${LLM_PROVIDER_DEEPSEEK_API_KEY:}
  *       base-url: https://api.deepseek.com/v1
- *       default-model: deepseek-v4-pro
- *       models: deepseek-v4-pro,deepseek-v4-flash,deepseek-v4-flash-vision-exp
+ *       default-model: deepseek-flash
+ *       models: deepseek-flash
  * </pre>
  */
 @ConfigurationProperties(prefix = "llm")

@@ -88,17 +88,17 @@ class AliyunConfigVerificationTest {
     }
 
     @Test
-    void testDeepSeekVisionModelCapabilities() {
+    void testDeepSeekV41FlashCapabilities() {
         OpenAiCompatibleProvider provider = createProvider(
-                List.of("deepseek-v4-flash-vision-exp"));
+                List.of("deepseek-flash"));
 
-        ModelCapabilities caps = provider.getModelCapabilities("deepseek-v4-flash-vision-exp");
-        assertEquals("DeepSeek V4 Flash Vision Exp", caps.displayName());
+        ModelCapabilities caps = provider.getModelCapabilities("deepseek-flash");
+        assertEquals("DeepSeek V4.1 Flash", caps.displayName());
         assertEquals(1_000_000, caps.contextWindow());
         assertEquals(384_000, caps.maxOutputTokens());
         assertTrue(caps.supportsThinking());
         assertTrue(caps.supportsImages());
-        assertEquals(5, caps.maxImages());
+        assertEquals(600, caps.maxImages());
         assertTrue(caps.supportsToolUse());
     }
 
@@ -147,8 +147,8 @@ class AliyunConfigVerificationTest {
         assertEquals("DeepSeek V4 Flash 0731（百炼）", deepseekFlash.displayName());
         assertTrue(deepseekFlash.supportsThinking());
 
-        ModelCapabilities deepseekVision = modelRegistry.getCapabilities("deepseek-v4-flash-vision-exp");
-        assertEquals("DeepSeek V4 Flash Vision Exp", deepseekVision.displayName());
+        ModelCapabilities deepseekVision = modelRegistry.getCapabilities("deepseek-flash");
+        assertEquals("DeepSeek V4.1 Flash", deepseekVision.displayName());
         assertTrue(deepseekVision.supportsImages());
         assertEquals(384_000, deepseekVision.maxOutputTokens());
 
