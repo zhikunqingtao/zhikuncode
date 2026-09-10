@@ -6,6 +6,7 @@
 import type { ToolCallRecord, AnomalyEvent } from '@/types/apos';
 import type { WorkerInfo } from '@/types';
 import { useAnomalyStore } from '@/store/anomalyStore';
+import { generateUUID } from '@/utils/uuid';
 
 export class AnomalyDetectionEngine {
     /**
@@ -111,7 +112,7 @@ export class AnomalyDetectionEngine {
         message: string
     ): AnomalyEvent {
         return {
-            id: crypto.randomUUID(),
+            id: generateUUID(),
             swarmId: '',  // 由调用方补充
             workerId: worker.workerId,
             workerName: worker.currentTask || worker.workerId,

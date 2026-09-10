@@ -217,7 +217,7 @@ export function bindSessionAndWait(
     timeoutMs = 5000,
 ): Promise<boolean> {
     if (activeRecoveryId) finishBind(activeRecoveryId, false, false);
-    const bindRequestId = crypto.randomUUID();
+    const bindRequestId = generateUUID();
     const bindingEpoch = ++nextBindingEpoch;
     return new Promise(resolve => {
         const timer = setTimeout(() => {
