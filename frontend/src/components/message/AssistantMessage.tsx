@@ -20,6 +20,7 @@ import ThinkingBlock from './ThinkingBlock';
 import ToolCallBlock from './ToolCallBlock';
 import ImageBlock from './ImageBlock';
 import TtsPlayButton from './TtsPlayButton';
+import MessageActions from './MessageActions';
 import { useStreamingText } from '@/hooks/useStreamingText';
 import { useTtsAvailability } from '@/hooks/useTtsAvailability';
 
@@ -50,7 +51,7 @@ const AssistantMessage: React.FC<AssistantMessageProps> = ({
         .trim();
 
     return (
-        <div className="assistant-message flex gap-3 px-4 py-3">
+        <div className="assistant-message group flex gap-3 px-4 py-3">
             {/* Avatar */}
             <div className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-600 flex items-center justify-center">
                 <Bot size={14} className="text-white" />
@@ -58,11 +59,14 @@ const AssistantMessage: React.FC<AssistantMessageProps> = ({
 
             {/* Content */}
             <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)] mb-1 font-medium">
-                    <span>Assistant</span>
-                    {ttsAvailable && !isStreaming && plainText && (
-                        <TtsPlayButton messageId={message.uuid} text={plainText} />
-                    )}
+                <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)] font-medium">
+                        <span>Assistant</span>
+                        {ttsAvailable && !isStreaming && plainText && (
+                            <TtsPlayButton messageId={message.uuid} text={plainText} />
+                        )}
+                    </div>
+                    <MessageActions message={message} isStreaming={isStreaming} />
                 </div>
 
                 {isStreaming ? (
@@ -168,13 +172,22 @@ const AssistantBlockRenderer: React.FC<AssistantBlockRendererProps> = ({ block, 
         case 'tool_use': {
             // Try to find state from activeToolCalls, fallback to basic info
             const state = activeToolCalls?.get(block.toolUseId);
-            const tc: ToolCallState = state ?? {
-                toolName: block.toolName,
-                input: block.input,
-                status: block.result?.isError ? 'error' : 'completed',
-                result: block.result,
-                startTime: 0,
-            };
+            // P1 兑底：activeToolCalls 命中但 input 为空对象时，回退使用 block.input
+            const activeInputEmpty = !!state
+                && state.input != null
+                && typeof state.input === 'object'
+                && !Array.isArray(state.input)
+                && Object.keys(state.input as Record<string, unknown>).length === 0;
+            const tc: ToolCallState = state
+                ? { ...state, input: activeInputEmpty ? block.input : state.input }
+                : {
+                    toolName: block.toolName,
+                    input: block.input,
+                    // 无 result 的工具仍在执行中，不得误标 completed
+                    status: block.result ? (block.result.isError ? 'error' : 'completed') : 'running',
+                    result: block.result,
+                    startTime: 0,
+                };
             return <ToolCallBlock toolUseId={block.toolUseId} toolCall={tc} />;
         }
         case 'tool_result': {

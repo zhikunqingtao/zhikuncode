@@ -10,8 +10,8 @@
 <Configuration status="WARN" monitorInterval="30">
 
     <Properties>
-        <!-- 日志目录: 优先使用环境变量 LOG_DIR，回退到项目根/log/ -->
-        <Property name="APP_LOG_DIR">${env:LOG_DIR:-${sys:user.dir}/../log}</Property>
+        <!-- 日志目录: 优先使用环境变量 LOG_DIR，回退到 JVM 工作目录/log/（避免 ../log 写到项目外） -->
+        <Property name="APP_LOG_DIR">${env:LOG_DIR:-${sys:user.dir}/log}</Property>
         <Property name="CORRELATION_PATTERN">[sid=%replace{%X{sessionId}}{^$}{-} rid=%replace{%X{runId}}{^$}{-} prid=%replace{%X{parentRunId}}{^$}{-} agent=%replace{%X{agentType}}{^$}{-} turn=%replace{%X{turn}}{^$}{-} tool=%replace{%X{toolUseId}}{^$}{-} llm=%replace{%X{llmRequestId}}{^$}{-}]</Property>
         <!-- 控制台日志格式: 时间 级别 [线程] 关联信息 类名 - 消息 -->
         <Property name="CONSOLE_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight{%-5level} [%thread] ${CORRELATION_PATTERN} %cyan{%logger{36}} - %msg%n</Property>

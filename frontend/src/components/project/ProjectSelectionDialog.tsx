@@ -236,7 +236,36 @@ export function ProjectSelectionDialog() {
                     </p>
                 </div>
 
-                <section aria-labelledby="authorized-projects-title">
+                {error && (
+                    <div role="alert" className="text-sm text-red-500">
+                        {error}
+                    </div>
+                )}
+
+                <div className="flex justify-end gap-2">
+                    <button
+                        type="button"
+                        onClick={cancelSelection}
+                        disabled={busy}
+                        className="rounded-lg px-4 py-2 text-sm hover:bg-[var(--bg-hover)] disabled:opacity-50"
+                    >
+                        取消本次选择
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => selected
+                            && confirmSelection(selected)}
+                        disabled={!selected || busy}
+                        className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white disabled:opacity-50"
+                    >
+                        使用所选授权
+                    </button>
+                </div>
+
+                <section
+                    aria-labelledby="authorized-projects-title"
+                    className="border-t border-[var(--border)] pt-4"
+                >
                     <div
                         id="authorized-projects-title"
                         className="mb-2 text-sm font-medium text-[var(--text-primary)]"
@@ -299,6 +328,63 @@ export function ProjectSelectionDialog() {
                         ))}
                     </div>
                 </section>
+
+                <section
+                    aria-label="授权当前所选文件夹"
+                    className="border-t border-[var(--border)] pt-4"
+                >
+                    <label className="block text-xs text-[var(--text-muted)]">
+                        授权名称
+                        <input
+                            value={name}
+                            onChange={event => setName(event.target.value)}
+                            placeholder="用于识别此持久授权"
+                            disabled={busy}
+                            className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-2 text-sm text-[var(--text-primary)]"
+                        />
+                    </label>
+
+                    <button
+                        type="button"
+                        onClick={() => void handleCreate()}
+                        disabled={busy || directoryLoading
+                            || nativePickerLoading
+                            || !name.trim() || !workspaceRoot.trim()
+                            || Boolean(existingForPath)}
+                        className="mt-3 rounded-lg border border-[var(--border)] px-3 py-2 text-sm hover:bg-[var(--bg-hover)] disabled:opacity-50"
+                    >
+                        {requesting
+                            ? '授权中…'
+                            : existingForPath
+                                ? '此文件夹已授权'
+                                : '授权此文件夹'}
+                    </button>
+                </section>
+
+                {directoryListing?.nativePickerAvailable === true && (
+                    <button
+                        type="button"
+                        onClick={() => void handleNativePicker()}
+                        disabled={busy || directoryLoading
+                            || nativePickerLoading}
+                        className="flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--border)] px-3 py-2 text-sm hover:bg-[var(--bg-hover)] disabled:opacity-50"
+                    >
+                        {nativePickerLoading ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                            <Folder className="h-4 w-4 text-blue-500" />
+                        )}
+                        {nativePickerLoading
+                            ? '正在打开文件夹选择器…'
+                            : '选择本机文件夹…'}
+                    </button>
+                )}
+
+                {directoryError && (
+                    <div role="alert" className="text-sm text-red-500">
+                        {directoryError}
+                    </div>
+                )}
 
                 <section
                     aria-labelledby="server-directory-title"
@@ -385,31 +471,6 @@ export function ProjectSelectionDialog() {
                         </div>
                     </div>
 
-                    {directoryListing?.nativePickerAvailable === true && (
-                        <button
-                            type="button"
-                            onClick={() => void handleNativePicker()}
-                            disabled={busy || directoryLoading
-                                || nativePickerLoading}
-                            className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--border)] px-3 py-2 text-sm hover:bg-[var(--bg-hover)] disabled:opacity-50"
-                        >
-                            {nativePickerLoading ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                                <Folder className="h-4 w-4 text-blue-500" />
-                            )}
-                            {nativePickerLoading
-                                ? '正在打开文件夹选择器…'
-                                : '选择本机文件夹…'}
-                        </button>
-                    )}
-
-                    {directoryError && (
-                        <div role="alert" className="mt-2 text-sm text-red-500">
-                            {directoryError}
-                        </div>
-                    )}
-
                     <details className="mt-3 text-sm">
                         <summary className="cursor-pointer text-[var(--text-muted)]">
                             高级：手动输入服务端绝对路径
@@ -436,60 +497,7 @@ export function ProjectSelectionDialog() {
                             </label>
                         </div>
                     </details>
-
-                    <label className="mt-3 block text-xs text-[var(--text-muted)]">
-                        授权名称
-                        <input
-                            value={name}
-                            onChange={event => setName(event.target.value)}
-                            placeholder="用于识别此持久授权"
-                            disabled={busy}
-                            className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-2 text-sm text-[var(--text-primary)]"
-                        />
-                    </label>
-
-                    <button
-                        type="button"
-                        onClick={() => void handleCreate()}
-                        disabled={busy || directoryLoading
-                            || nativePickerLoading
-                            || !name.trim() || !workspaceRoot.trim()
-                            || Boolean(existingForPath)}
-                        className="mt-3 rounded-lg border border-[var(--border)] px-3 py-2 text-sm hover:bg-[var(--bg-hover)] disabled:opacity-50"
-                    >
-                        {requesting
-                            ? '授权中…'
-                            : existingForPath
-                                ? '此文件夹已授权'
-                                : '授权此文件夹'}
-                    </button>
                 </section>
-
-                {error && (
-                    <div role="alert" className="text-sm text-red-500">
-                        {error}
-                    </div>
-                )}
-
-                <div className="flex justify-end gap-2 border-t border-[var(--border)] pt-4">
-                    <button
-                        type="button"
-                        onClick={cancelSelection}
-                        disabled={busy}
-                        className="rounded-lg px-4 py-2 text-sm hover:bg-[var(--bg-hover)] disabled:opacity-50"
-                    >
-                        取消本次选择
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => selected
-                            && confirmSelection(selected)}
-                        disabled={!selected || busy}
-                        className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white disabled:opacity-50"
-                    >
-                        使用所选授权
-                    </button>
-                </div>
             </div>
         </Modal>
     );

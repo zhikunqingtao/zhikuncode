@@ -195,7 +195,9 @@ describe('dispatch 消息分发', () => {
 
         expect(useMessageStore.getState().messages.map(message => message.uuid))
             .toEqual(['anchor', 'saved-user', 'saved-final']);
-        expect(useMessageStore.getState().activeToolCalls.size).toBe(0);
+        // 精准清理：committed messages 中未带 result 的 running 工具条目保留，
+        // 使后续到达的 tool_result 仍能通过 completeToolCall 关联
+        expect(useMessageStore.getState().activeToolCalls.get('tool-1')?.status).toBe('running');
         expect(useSessionStore.getState().status).toBe('idle');
     });
 

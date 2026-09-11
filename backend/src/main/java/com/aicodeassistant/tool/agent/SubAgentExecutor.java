@@ -205,7 +205,7 @@ public class SubAgentExecutor {
             // 1. 解析代理定义
             AgentDefinition agentDef = resolveAgentDefinition(request.agentType());
 
-            // 2. 解析模型: 参数 → 父会话继承 → 兆底
+            // 2. 解析模型: 参数 → 父会话继承 → 兜底
             String model = resolveModel(request.model(), agentDef, parentContext.parentModel());
 
             // 3. 组装工具集（过滤禁用工具）
@@ -437,10 +437,17 @@ public class SubAgentExecutor {
                                         long durationMs) {
         String status = classifyAgentStatus(result, null);
         String finalAnswer = answer;
+        // failed 时把 QueryResult.error 透出到结果开头，确保失败原因进入
+        // task-notification 的 summary（前 200 字符），不再被静默丢弃
+        if (AgentResult.STATUS_FAILED.equals(status)
+                && result != null && result.error() != null) {
+            finalAnswer = "failed: " + result.error()
+                    + (answer == null || answer.isBlank() ? "" : "\n" + answer);
+        }
         if (formatter != null && coordinatorMode) {
             finalAnswer = formatter.formatNotification(
                     request.agentId(),
-                    new AgentResult(status, answer, request.prompt(), null),
+                    new AgentResult(status, finalAnswer, request.prompt(), null),
                     durationMs);
         }
         return new AgentResult(status, finalAnswer, request.prompt(), null);
@@ -629,7 +636,7 @@ public class SubAgentExecutor {
             return parentModel;  // 直接使用，无需别名解析（已是真实模型 ID）
         }
 
-        // 优先级 3：兆底使用 premium 别名（最强模型）
+        // 优先级 3：兜底使用 premium 别名（最强模型）
         String resolved = providerRegistry.resolveModelAlias("premium");
         log.info("resolveModel: fallback to premium → '{}'", resolved);
         return resolved;
@@ -863,7 +870,9 @@ public class SubAgentExecutor {
             long durationMs = Duration.between(startTime, Instant.now()).toMillis();
             log.info("Fork agent {} completed in {}ms", request.agentId(), durationMs);
 
-            return new AgentResult(classifyAgentStatus(result, null), answer, request.prompt(), null);
+            // ★ 复用 buildFinalResult：failed 时透出 QueryResult.error（"failed: " 前缀），
+            // 与非 fork 路径保持一致；fork 不走 Coordinator 通知格式化，故 formatter 传 null
+            return buildFinalResult(result, answer, request, null, false, durationMs);
 
         } catch (AgentLimitExceededException e) {
             throw e;

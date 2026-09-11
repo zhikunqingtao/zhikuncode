@@ -43,6 +43,13 @@ const MessageItem: React.FC<MessageItemProps> = ({
         return gap > TIME_GAP_THRESHOLD;
     }, [message.timestamp, prevMessage]);
 
+    // 与 UserMessage 的防御兜底保持一致：user 消息无可渲染块时整条不渲染
+    // （含时间分隔条），避免孤立的浮动时间戳
+    if (message.type === 'user'
+            && !message.content.some(block => block.type === 'text' || block.type === 'image')) {
+        return null;
+    }
+
     return (
         <div className="message-item">
             {/* Timestamp divider */}

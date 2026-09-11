@@ -221,6 +221,9 @@ if [ -z "$BACKEND_JAR" ] || [ ! -f "$BACKEND_JAR" ]; then
     exit 1
 fi
 log_info "打包完成: $(basename "$BACKEND_JAR")"
+# 显式下发日志目录给 Log4j2，避免回退到 user.dir 推算导致日志写到项目外
+# （LOG_DIR 已在顶部定义；若 .env 中覆盖则尊重环境变量优先级）
+export LOG_DIR
 # 直接用 java -jar 启动（PID = JVM PID，无 fork 问题）。
 # 三端脚本会在下方独立启动 Python，必须覆盖 .env/父进程中的托管开关，避免争抢 8000 端口。
 nohup env PYTHON_SERVICE_AUTO_START=false \

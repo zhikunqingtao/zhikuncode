@@ -39,18 +39,44 @@ function attachCompletedToolResults(messages: Message[]): Message[] {
         }
     }
     if (results.size === 0) return messages;
-    return messages.map(message => {
-        if (message.type !== 'assistant') return message;
-        let changed = false;
-        const content = message.content.map(block => {
-            if (block.type !== 'tool_use') return block;
-            const result = results.get(block.toolUseId);
-            if (!result) return block;
-            changed = true;
-            return { ...block, result };
-        });
-        return changed ? { ...message, content } : message;
-    });
+    // 已被 assistant tool_use 实际消费的 toolUseId；孤儿 tool_result（无对应 tool_use）不算，原样保留
+    const consumedToolUseIds = new Set<string>();
+    for (const message of messages) {
+        if (message.type !== 'assistant') continue;
+        for (const block of message.content) {
+            if (block.type === 'tool_use' && results.has(block.toolUseId)) {
+                consumedToolUseIds.add(block.toolUseId);
+            }
+        }
+    }
+    if (consumedToolUseIds.size === 0) return messages;
+    const projected: Message[] = [];
+    for (const message of messages) {
+        if (message.type === 'assistant') {
+            let changed = false;
+            const content = message.content.map(block => {
+                if (block.type !== 'tool_use') return block;
+                const result = results.get(block.toolUseId);
+                if (!result) return block;
+                changed = true;
+                return { ...block, result };
+            });
+            projected.push(changed ? { ...message, content } : message);
+            continue;
+        }
+        if (message.type === 'user') {
+            // 块级过滤：剔除已被消费的 tool_result 载体块；混合 text 的消息保留剩余块
+            const remaining = message.content.filter(
+                block => !(block.type === 'tool_result' && consumedToolUseIds.has(block.toolUseId)),
+            );
+            // 纯 tool_result 载体消息被完全消费后不进入返回列表，避免渲染空白 "You" 气泡
+            if (remaining.length === 0 && message.content.length > 0) continue;
+            projected.push(remaining.length === message.content.length ? message : { ...message, content: remaining });
+            continue;
+        }
+        projected.push(message);
+    }
+    return projected;
 }
 
 export interface MessageStoreState {
@@ -71,6 +97,7 @@ export interface MessageStoreState {
     updateToolCallInput: (toolUseId: string, input: unknown) => void;
     updateToolCallProgress: (toolUseId: string, progress: string) => void;
     completeToolCall: (toolUseId: string, result: ToolResult) => void;
+    failAllRunningToolCalls: (errorMessage: string) => void;
     replaceActiveToolCalls: (calls: RecoveredToolCall[]) => void;
     restoreSessionSnapshot: (messages: Message[], calls: RecoveredToolCall[]) => void;
     reconcileCommittedRun: (replaceAfterMessageId: string | null, messages: Message[]) => boolean;
@@ -149,6 +176,8 @@ export const useMessageStore = create<MessageStoreState>()(
             const tc = d.activeToolCalls.get(id);
             if (tc) {
                 tc.input = input;
+            } else {
+                console.warn(`[MessageStore] tool_use_input: 未找到 toolUseId=${id} 的活跃工具调用，input 被丢弃`);
             }
         }),
         updateToolCallProgress: (id, progress) => set(d => {
@@ -164,6 +193,19 @@ export const useMessageStore = create<MessageStoreState>()(
             if (tc) {
                 tc.status = result.isError ? 'error' : 'completed';
                 tc.result = result;
+                tc.duration = Date.now() - tc.startTime;
+            } else {
+                console.warn(`[MessageStore] tool_result: 未找到 toolUseId=${id} 的活跃工具调用，result 被丢弃`);
+            }
+        }),
+        failAllRunningToolCalls: (errorMessage) => set(d => {
+            // 错误/run_failed 路径上 tool_result 永远不会到来：
+            // 将仍在 running 的工具调用标记为 error，避免工具卡片永久转圈。
+            // 已有终态（completed/error/permission_needed 等）的条目不受影响。
+            for (const tc of d.activeToolCalls.values()) {
+                if (tc.status !== 'running') continue;
+                tc.status = 'error';
+                tc.error = errorMessage;
                 tc.duration = Date.now() - tc.startTime;
             }
         }),
@@ -204,6 +246,16 @@ export const useMessageStore = create<MessageStoreState>()(
                 incomingIds.add(message.uuid);
             }
             const projectedMessages = attachCompletedToolResults(messages);
+            // 精准清理：仅清除 committed messages 中已带 result 的工具条目，
+            // 仍在 running（无 result）的条目保留，使后续 tool_result 仍能通过 completeToolCall 关联
+            const resolvedToolUseIds = new Set<string>();
+            for (const message of projectedMessages) {
+                if (message.type !== 'assistant' && message.type !== 'user') continue;
+                for (const block of message.content) {
+                    if (block.type === 'tool_use' && block.result) resolvedToolUseIds.add(block.toolUseId);
+                    else if (block.type === 'tool_result') resolvedToolUseIds.add(block.toolUseId);
+                }
+            }
             let reconciled = false;
             set(d => {
                 const keepCount = replaceAfterMessageId === null
@@ -217,7 +269,7 @@ export const useMessageStore = create<MessageStoreState>()(
                 d.streamingMessageId = null;
                 d.streamingContent = '';
                 d.thinkingContent = '';
-                d.activeToolCalls.clear();
+                resolvedToolUseIds.forEach(id => d.activeToolCalls.delete(id));
                 d.tokenBudgetState = null;
                 d.tokenWarning = null;
                 reconciled = true;
@@ -267,6 +319,20 @@ export const useMessageStore = create<MessageStoreState>()(
                     // 文本内容
                     if (combinedContent) {
                         content.push({ type: 'text' as const, text: combinedContent });
+                    }
+                    // 将本条流式消息期间的工具调用迁移为 tool_use block，
+                    // 保证流式→终态切换后工具卡片数据（id/name/完整 input/result/status）不丢失
+                    for (const [toolUseId, tc] of Array.from(d.activeToolCalls.entries())) {
+                        content.push({
+                            type: 'tool_use' as const,
+                            toolUseId,
+                            toolName: tc.toolName,
+                            input: tc.input ?? {},
+                            ...(tc.result ? { result: tc.result } : {}),
+                        });
+                        // 已有 result 的条目迁移后即可清理；running 条目保留，
+                        // 使后续到达的 tool_result 仍能通过 completeToolCall 关联
+                        if (tc.result) d.activeToolCalls.delete(toolUseId);
                     }
                     (msg as { content: unknown }).content = content;
                 }

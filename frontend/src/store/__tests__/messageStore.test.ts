@@ -180,8 +180,9 @@ describe('MessageStore', () => {
         expect(useMessageStore.getState().reconcileCommittedRun('history-anchor', committedTail)).toBe(true);
 
         const state = useMessageStore.getState();
+        // committed-results 是纯 tool_result 载体：结果已附加到 committed-tools 的 tool_use 上，载体消息本身被剔除
         expect(state.messages.map(message => message.uuid)).toEqual([
-            'history-anchor', 'committed-user', 'committed-tools', 'committed-results', 'committed-final',
+            'history-anchor', 'committed-user', 'committed-tools', 'committed-final',
         ]);
         expect(state.activeToolCalls.size).toBe(0);
         expect(state.streamingMessageId).toBeNull();
@@ -197,7 +198,7 @@ describe('MessageStore', () => {
         // A duplicated completion frame is idempotent and cannot duplicate history.
         expect(useMessageStore.getState().reconcileCommittedRun('history-anchor', committedTail)).toBe(true);
         expect(useMessageStore.getState().messages.map(message => message.uuid)).toEqual([
-            'history-anchor', 'committed-user', 'committed-tools', 'committed-results', 'committed-final',
+            'history-anchor', 'committed-user', 'committed-tools', 'committed-final',
         ]);
     });
 
@@ -289,6 +290,8 @@ describe('MessageStore', () => {
         if (toolUse.type !== 'tool_use') throw new Error('expected tool_use');
         expect(toolUse.result?.metadata?.structuredResult).toMatchObject({ url, objectKey });
         expect(state.activeToolCalls.size).toBe(0);
+        // user-1 是纯 tool_result 载体，已被剔除，不产生空白 "You" 气泡
+        expect(state.messages.map(message => message.uuid)).toEqual(['assistant-1']);
     });
 
 });

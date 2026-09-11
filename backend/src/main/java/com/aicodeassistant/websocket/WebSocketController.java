@@ -28,6 +28,7 @@ import com.aicodeassistant.permission.PermissionNotifier;
 import com.aicodeassistant.llm.LlmProviderRegistry;
 import com.aicodeassistant.llm.ModelCapabilities;
 import com.aicodeassistant.llm.ModelRegistry;
+import com.aicodeassistant.llm.ProviderErrorClassifier;
 import com.aicodeassistant.llm.ThinkingConfig;
 import com.aicodeassistant.llm.VisionModelRouter;
 import com.aicodeassistant.interaction.InteractionRequest;
@@ -259,7 +260,7 @@ public class WebSocketController implements PermissionNotifier {
         "permission_request", "tool_result", "tool_finished", "message_complete",
         "run_completed", "run_failed", "error", "cost_update",
         "interaction_created", "interaction_terminal", "interaction_updated",
-        "permission_mode_changed", "tool_use_start",
+        "permission_mode_changed", "tool_use_start", "tool_use_input",
         "run_input_applied", "run_input_rejected"
     );
 
@@ -450,8 +451,22 @@ public class WebSocketController implements PermissionNotifier {
 
     /** #8 错误消息 */
     public void sendError(String sessionId, String code, String message, boolean retryable) {
-        push(sessionId, "error",
-                Map.of("code", code, "message", message, "retryable", retryable));
+        sendError(sessionId, code, message, retryable, null, null);
+    }
+
+    /**
+     * #8 错误消息（带 Provider 结构化错误码）。
+     * errorCode/httpStatus 为新增可选字段（前端契约），null 时不下发，保持向后兼容。
+     */
+    public void sendError(String sessionId, String code, String message, boolean retryable,
+                          String errorCode, Integer httpStatus) {
+        Map<String, Object> fields = new LinkedHashMap<>();
+        fields.put("code", code);
+        fields.put("message", message);
+        fields.put("retryable", retryable);
+        if (errorCode != null) fields.put("errorCode", errorCode);
+        if (httpStatus != null) fields.put("httpStatus", httpStatus);
+        push(sessionId, "error", fields);
     }
 
     // ───── #9-10: sessionStore ─────
@@ -1147,8 +1162,16 @@ public class WebSocketController implements PermissionNotifier {
         @Override
         public void onError(Throwable error) {
             log.error("WsMessageHandler error: sessionId={}", sessionId, error);
-            sendError(sessionId, "query_error",
-                    error.getMessage() != null ? error.getMessage() : "Unknown error", true);
+            // Provider HTTP 错误（402/403/429/其他 4xx/5xx）分类为结构化错误码透出给前端
+            ProviderErrorClassifier.ClassifiedError classified =
+                    ProviderErrorClassifier.classify(error);
+            if (classified != null) {
+                sendError(sessionId, "query_error", classified.message(), classified.retryable(),
+                        classified.errorCode(), classified.httpStatus());
+            } else {
+                sendError(sessionId, "query_error",
+                        error.getMessage() != null ? error.getMessage() : "Unknown error", true);
+            }
         }
 
         @Override
@@ -1709,7 +1732,29 @@ public class WebSocketController implements PermissionNotifier {
                         var projection = runRecoveryProjectionService.latestForSession(sessionId);
                         if (projection.runSnapshot() != null) restoredPayload.put("runSnapshot", projection.runSnapshot());
                         restoredPayload.put("snapshotEventSeq", projection.snapshotEventSeq());
-                        restoredPayload.put("activeToolCalls", projection.activeToolCalls());
+                        // 授权审计事件仅存 inputHash，投影的 input 恒为空 Map；从已提交 messages 中补全
+                        List<Map<String, Object>> recoveredToolCalls = projection.activeToolCalls();
+                        if (data.messages() != null) {
+                            for (Map<String, Object> tc : recoveredToolCalls) {
+                                Object inputVal = tc.get("input");
+                                if (inputVal != null && !(inputVal instanceof Map<?, ?> mp && mp.isEmpty())) continue;
+                                String tcId = String.valueOf(tc.getOrDefault("toolUseId", ""));
+                                if (tcId.isBlank()) continue;
+                                searchInput:
+                                for (Message msg : data.messages()) {
+                                    if (!(msg instanceof Message.AssistantMessage a)) continue;
+                                    for (ContentBlock block : a.content()) {
+                                        if (!(block instanceof ContentBlock.ToolUseBlock tu)) continue;
+                                        if (!tcId.equals(tu.id())) continue;
+                                        if (tu.input() != null && !tu.input().isNull() && !tu.input().isEmpty()) {
+                                            tc.put("input", tu.input());
+                                        }
+                                        break searchInput;
+                                    }
+                                }
+                            }
+                        }
+                        restoredPayload.put("activeToolCalls", recoveredToolCalls);
                     }
                     restoredPayload.put("costSummary", costTrackerService == null
                             ? Map.of() : costTrackerService.getSessionCost(sessionId));

@@ -10,7 +10,10 @@ export PATH="/app/python-service/.venv/bin:${PATH}"
 export PYTHONPATH="/app/python-service/src"
 
 # ---- Ensure data directories exist ----
-mkdir -p /app/data /app/workspace
+# Explicitly pass the log directory to Log4j2 (container convention: /app/log);
+# an externally provided LOG_DIR always takes precedence.
+export LOG_DIR="${LOG_DIR:-/app/log}"
+mkdir -p /app/data /app/workspace "$LOG_DIR"
 
 # ============================================================
 # Pre-flight checks

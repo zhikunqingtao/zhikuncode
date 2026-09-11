@@ -336,6 +336,13 @@ public class QueryEngine {
                 log.error("QueryEngine 执行异常", e);
                 handler.onError(e);
             }
+            // Provider HTTP 错误（402/403/429 等）分类后写入 QueryResult.error，
+            // 保证子代理/父链路消费 result.error() 时能拿到结构化错误码
+            com.aicodeassistant.llm.ProviderErrorClassifier.ClassifiedError classified =
+                    com.aicodeassistant.llm.ProviderErrorClassifier.classify(e);
+            String errorDetail = classified != null
+                    ? classified.errorCode() + ": " + classified.message()
+                    : e.getMessage();
             rejectPendingRunInputs(
                     currentRunId,
                     state.getTurnCount() >= config.maxTurns()
@@ -350,7 +357,7 @@ public class QueryEngine {
                                 ? state.getAbortReason() : AbortReason.USER_INTERRUPT;
                         runTracker.abortRun(currentRunId, reason, cancellationDetail(reason));
                     }
-                    else runTracker.failRun(currentRunId, e.getMessage());
+                    else runTracker.failRun(currentRunId, errorDetail);
                     runFailureRecorded = true;
                 } catch (Exception ex) {
                     log.warn("Failed to record RunTracker failure: {}", ex.getMessage());
@@ -358,7 +365,7 @@ public class QueryEngine {
             }
             unregisterRunExecution(currentRunId);
             return new QueryResult(state.getMessages(), totalUsage,
-                    "error", e.getMessage(), state.getTurnCount());
+                    "error", errorDetail, state.getTurnCount());
         } finally {
             // P1-04: 确保清理 AbortContext，防止内存泄漏
             if (sessionId != null) {

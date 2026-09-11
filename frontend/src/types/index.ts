@@ -103,7 +103,9 @@ export interface MessageCompletePayload {
     committedMessages?: Message[];
 }
 export interface PongPayload { type: 'pong'; timestamp: number }
-export interface ErrorPayload { type: 'error'; code: string; message: string; retryable: boolean }
+/** Provider 错误码 — 与后端 error 事件契约约定的 errorCode 取值 */
+export type ProviderErrorCode = 'PROVIDER_PAYMENT_REQUIRED' | 'PROVIDER_FORBIDDEN' | 'PROVIDER_RATE_LIMITED' | 'PROVIDER_ERROR' | 'PROVIDER_UNREACHABLE';
+export interface ErrorPayload { type: 'error'; code?: string; message: string; retryable?: boolean; errorCode?: ProviderErrorCode; httpStatus?: number }
 export interface CompactEventPayload { type: 'compact_event'; phase: string; usagePercent: number; currentTokens: number }
 export interface TokenWarningPayload { type: 'token_warning'; currentTokens: number; maxTokens: number; usagePercent: number; warningLevel: string }
 export interface InterruptAckPayload { type: 'interrupt_ack'; reason: string }
@@ -259,6 +261,8 @@ export interface ToolCallState {
     toolName: string;
     input: unknown;
     status: 'pending' | 'running' | 'completed' | 'error' | 'permission_needed';
+    /** 非 tool_result 路径的失败原因（如 run_failed/error 事件终止 run 时写入） */
+    error?: string;
     result?: ToolResult;
     progress?: string;
     progressHistory?: string[];

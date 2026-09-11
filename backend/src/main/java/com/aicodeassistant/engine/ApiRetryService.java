@@ -4,6 +4,7 @@ import com.aicodeassistant.llm.ApiCircuitBreaker;
 import com.aicodeassistant.llm.LlmApiException;
 import com.aicodeassistant.llm.CancellationSignal;
 import com.aicodeassistant.llm.ModelAwareRetryPolicy;
+import com.aicodeassistant.llm.ProviderErrorClassifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,10 @@ public class ApiRetryService {
     private static final long BASE_DELAY_MS = 500;
     private static final long MAX_DELAY_MS = 30_000;
     private static final double BACKOFF_MULTIPLIER = 2.0;
+    /** 连接失败（ConnectException）小重试预算：最多 2 次重试（共 3 次尝试），总耗时 ≤10s */
+    private static final int MAX_CONNECT_FAILURE_ATTEMPTS = 3;
+    /** 连接失败重试固定短间隔，不走指数退避 */
+    private static final long CONNECT_RETRY_DELAY_MS = 2_000;
 
     // ==================== 依赖注入 ====================
     private final ModelTierService modelTierService;
@@ -110,6 +115,15 @@ public class ApiRetryService {
                 }
                 attempt++;
 
+                // 0. 确定性 HTTP 错误 (400/401/402/403) → 重试不可能成功，0 次重试立即失败。
+                //    这是请求级确定性错误（余额不足/认证失败等），不是服务可用性问题，
+                //    不计入熔断器 —— 熔断器跨模型共享，记录失败会波及健康模型。
+                if (isDeterministicClientError(e)) {
+                    log.error("LLM deterministic client error, no retry: querySource={}, model={}, status={}, errorType={}",
+                            querySource, currentModel, e.getStatusCode(), e.getErrorType());
+                    throw e;
+                }
+
                 // 1. 检查是否为 529 错误 (容量超限)
                 if (e.getStatusCode() == 529) {
                     // ★ 触发模型冷却
@@ -132,19 +146,25 @@ public class ApiRetryService {
                     throw e;
                 }
 
-                // 3. 超过最大重试次数
-                if (attempt >= DEFAULT_MAX_RETRIES) {
+                // 3. 超过最大重试次数（连接失败→小重试预算，其余→现有预算不变）
+                boolean connectFailure =
+                        ProviderErrorClassifier.findConnectException(e) != null;
+                int maxAttempts = connectFailure
+                        ? MAX_CONNECT_FAILURE_ATTEMPTS : DEFAULT_MAX_RETRIES;
+                if (attempt >= maxAttempts) {
                     circuitBreaker.recordFailure();
-                    log.error("LLM retry exhausted: attempts={}, querySource={}, model={}, status={}, errorType={}",
-                            DEFAULT_MAX_RETRIES, querySource, currentModel,
+                    log.error("LLM retry exhausted: attempts={}, connectFailure={}, querySource={}, model={}, status={}, errorType={}",
+                            maxAttempts, connectFailure, querySource, currentModel,
                             e.getStatusCode(), e.getErrorType());
                     throw e;
                 }
 
-                // 4. 计算延迟并等待（优先使用模型感知策略）
-                long delay = calculateDelayWithModelAwareness(attempt, e, currentModel);
+                // 4. 计算延迟并等待（连接失败固定短间隔；其余优先使用模型感知策略）
+                long delay = connectFailure
+                        ? CONNECT_RETRY_DELAY_MS
+                        : calculateDelayWithModelAwareness(attempt, e, currentModel);
                 log.warn("LLM retry scheduled: attempt={}, maxRetries={}, delayMs={}, querySource={}, model={}, status={}, errorType={}, retryAfterMs={}",
-                        attempt, DEFAULT_MAX_RETRIES, delay, querySource, currentModel,
+                        attempt, maxAttempts, delay, querySource, currentModel,
                         e.getStatusCode(), e.getErrorType(), e.getRetryAfterMs());
 
                 try {
@@ -193,6 +213,14 @@ public class ApiRetryService {
         return FOREGROUND_529_RETRY_SOURCES.stream()
                 .anyMatch(pattern -> querySource.equals(pattern)
                         || querySource.startsWith(pattern + ":"));
+    }
+
+    /**
+     * 确定性客户端错误 (400/401/402/403) — 重试不可能成功，不论 retryable 标记均立即失败。
+     */
+    private static boolean isDeterministicClientError(LlmApiException e) {
+        int status = e.getStatusCode();
+        return status == 400 || status == 401 || status == 402 || status == 403;
     }
 
     /**

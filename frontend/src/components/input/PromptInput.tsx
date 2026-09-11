@@ -12,7 +12,7 @@
  */
 
 import React, { useState, useRef, useCallback, useEffect, useMemo, type ClipboardEvent, type KeyboardEvent } from 'react';
-import { CloudUpload, FileSymlink, Loader2, Send, Square, X } from 'lucide-react';
+import { CloudUpload, FileSymlink, Loader2, Paperclip, Send, Square, X } from 'lucide-react';
 import type {
     Command,
     LocalAttachment,
@@ -1004,9 +1004,7 @@ const PromptInput: React.FC<PromptInputProps> = ({
                     >
                         {fileReferenceBusy
                             ? <Loader2 size={16} className="animate-spin" />
-                            : fileReferenceCapability?.mode === 'oss_upload'
-                            ? <CloudUpload size={16} />
-                            : <FileSymlink size={16} />}
+                            : <Paperclip size={16} />}
                     </button>
                 )}
                 {!runActive && !compacting && (

@@ -251,7 +251,8 @@ public class OpenAiCompatibleProvider implements LlmProvider {
                 callback.onError(new LlmApiException(
                         "LLM_CALL_CANCELLED", e, false));
             } else {
-                callback.onError(new LlmApiException("OpenAI stream error: " + e.getMessage(), true));
+                // 保留 cause 链，使 ConnectException 能被重试层/ProviderErrorClassifier 识别
+                callback.onError(new LlmApiException("OpenAI stream error: " + e.getMessage(), e, true));
             }
         } catch (Exception e) {
             callback.onError(e instanceof LlmApiException ? e : new LlmApiException(e.getMessage(), e, false));
@@ -313,8 +314,9 @@ public class OpenAiCompatibleProvider implements LlmProvider {
             if (call.isCanceled()) {
                 callback.onError(new LlmApiException("LLM_CALL_CANCELLED", e, false));
             } else {
+                // 保留 cause 链，使 ConnectException 能被重试层/ProviderErrorClassifier 识别
                 callback.onError(new LlmApiException(
-                        "ZenMux Responses stream error: " + e.getMessage(), true));
+                        "ZenMux Responses stream error: " + e.getMessage(), e, true));
             }
         } catch (Exception e) {
             callback.onError(e instanceof LlmApiException
@@ -1021,7 +1023,8 @@ public class OpenAiCompatibleProvider implements LlmProvider {
             } catch (LlmApiException e) {
                 throw e;
             } catch (IOException e) {
-                throw new LlmApiException("chatSync IO error: " + e.getMessage(), true);
+                // 保留 cause 链，使 ConnectException 能被重试层/ProviderErrorClassifier 识别
+                throw new LlmApiException("chatSync IO error: " + e.getMessage(), e, true);
             }
         }
         throw new LlmApiException("chatSync failed after 429 retry", true, 429);

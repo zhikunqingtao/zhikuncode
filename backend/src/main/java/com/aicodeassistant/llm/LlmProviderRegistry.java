@@ -264,7 +264,7 @@ public class LlmProviderRegistry {
          * 1. 环境变量 CLASSIFIER_MODEL
      * 2. application.yml classifier.model
      * 3. 轻量级模型 (getLightweightModel)
-     * 4. 默认模型 (getDefaultModel) 兆底
+     * 4. 默认模型 (getDefaultModel) 兜底
      */
     public String resolveClassifierModel() {
         // Level 1: 环境变量
@@ -287,7 +287,7 @@ public class LlmProviderRegistry {
             return lightweight;
         }
 
-        // Level 4: 默认模型兆底
+        // Level 4: 默认模型兜底
         String defaultModel = getDefaultModel();
         log.debug("resolveClassifierModel: fallback to default model={}", defaultModel);
         return defaultModel;
