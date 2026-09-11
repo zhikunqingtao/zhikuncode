@@ -106,52 +106,54 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
             <div className="flex-1 flex items-center justify-center gap-3 min-w-0">
                 {workbenchEnabled && <WorkbenchViewSwitch />}
                 {!simpleMode && (
-                    <>
-                        <span className="text-sm text-[var(--text-secondary)] truncate max-w-[150px] hidden md:block">
-                            {sessionId ? `Session: ${sessionId.slice(0, 8)}...` : 'New Session'}
-                        </span>
-                        <select
-                            value={model || ''}
-                            onChange={(e) => {
-                                const newModel = e.target.value;
-                                if (!newModel) return;
-                                setModel(newModel);
-                                void useConfigStore.getState().saveConfig({ defaultModel: newModel });
-                                sendSetModel(newModel);
-                            }}
-                            disabled={modelsLoading || availableModels.length === 0}
-                            className="hidden sm:block px-3 py-1.5 text-sm rounded-lg border border-[var(--border)]
-                                bg-[var(--bg-primary)] text-[var(--text-primary)]
-                                focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            {availableModels.length === 0 && (
-                                <option value="">
-                                    {modelsLoading ? '模型加载中…'
-                                        : modelsError ? '模型列表加载失败' : '暂无可用模型'}
-                                </option>
-                            )}
-                            {availableModels.map(m => (
-                                <option key={m.id} value={m.id}>{m.displayName}</option>
-                            ))}
-                        </select>
-                        {modelsError && (
-                            <button
-                                type="button"
-                                onClick={() => void fetchModels()}
-                                className="hidden sm:inline-flex text-xs text-blue-500 hover:underline"
-                                aria-label="重新加载模型列表"
-                            >
-                                重试
-                            </button>
-                        )}
-                    </>
+                    <span className="text-sm text-[var(--text-secondary)] truncate max-w-[150px] hidden md:block">
+                        {sessionId ? `Session: ${sessionId.slice(0, 8)}...` : 'New Session'}
+                    </span>
                 )}
+                {/* 模型选择器：两种视图模式下常驻，避免 simple 模式下无法切换模型 */}
+                <div className="flex min-w-0 items-center gap-2">
+                    <select
+                        aria-label="模型选择"
+                        value={model || ''}
+                        onChange={(e) => {
+                            const newModel = e.target.value;
+                            if (!newModel) return;
+                            setModel(newModel);
+                            void useConfigStore.getState().saveConfig({ defaultModel: newModel });
+                            sendSetModel(newModel);
+                        }}
+                        disabled={modelsLoading || availableModels.length === 0}
+                        className="min-w-0 max-w-[220px] truncate px-3 py-1.5 text-sm rounded-lg border border-[var(--border)]
+                            bg-[var(--bg-primary)] text-[var(--text-primary)]
+                            focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        {availableModels.length === 0 && (
+                            <option value="">
+                                {modelsLoading ? '模型加载中…'
+                                    : modelsError ? '模型列表加载失败' : '暂无可用模型'}
+                            </option>
+                        )}
+                        {availableModels.map(m => (
+                            <option key={m.id} value={m.id}>{m.displayName}</option>
+                        ))}
+                    </select>
+                    {modelsError && (
+                        <button
+                            type="button"
+                            onClick={() => void fetchModels()}
+                            className="inline-flex text-xs text-blue-500 hover:underline"
+                            aria-label="重新加载模型列表"
+                        >
+                            重试
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* Right: Cost + New Session + Settings */}
             <div className="flex items-center gap-2">
                 {/* Cost Indicator */}
-                <div className={`${simpleMode ? 'hidden' : 'hidden md:flex'} items-center gap-1 px-3 py-1.5 rounded-lg bg-[var(--bg-primary)] border border-[var(--border)]`}>
+                <div className="hidden md:flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[var(--bg-primary)] border border-[var(--border)]">
                     <DollarSign className="w-4 h-4 text-green-500" />
                     <span className="text-sm text-[var(--text-secondary)]">
                         {formatCost(sessionCost)}

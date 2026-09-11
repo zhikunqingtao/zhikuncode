@@ -24,6 +24,7 @@
 - Docker 运行时升级到 Python 3.12 并内置可选的受管 Python 服务；基础 Compose 保持默认不启动 Python，部署方须通过显式 override 启用。
 - **Breaking:** Query 不再接受客户端提供的 `workingDirectory`。CLI 本地连接会登记当前目录，远程连接应使用 `--project-id` 或服务端默认工作区。
 - 无 allowed roots 时，本机目录选择默认关闭；直连本机桌面服务须显式设置 `ZHIKUN_LOCAL_PICKER_ENABLED=true`，远程或反向代理部署须配置 `ZHIKUN_WORKSPACE_ALLOWED_ROOTS`。
+- 简洁工作台顶栏的模型选择器、模型重试与成本指示改为两种视图模式常驻（≥768px），视图切换器防挤压并在 <1024px 收缩为图标模式。
 
 ### Fixed
 - 规范化远端 MCP Schema 中的非标准类型别名（如 `bool` → `boolean`），避免 Moonshot/Kimi 因任一工具 Schema 非法而拒绝包含智谱搜索在内的整批工具。

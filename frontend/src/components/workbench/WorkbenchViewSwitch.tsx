@@ -10,7 +10,7 @@ export function WorkbenchViewSwitch() {
     return (
         <div className="flex items-center gap-1">
             <div
-                className="flex items-center rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] p-0.5"
+                className="flex shrink-0 items-center rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] p-0.5"
                 role="tablist"
                 aria-label="工作台视图"
             >
@@ -19,28 +19,30 @@ export function WorkbenchViewSwitch() {
                     role="tab"
                     aria-selected={mode === 'simple'}
                     aria-label="简洁工作台"
+                    title="简洁工作台"
                     onClick={() => setMode('simple')}
-                    className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${mode === 'simple' ? 'bg-blue-600 text-white' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+                    className={`flex items-center gap-1.5 rounded-md px-2 lg:px-2.5 py-1.5 text-xs font-medium transition-colors ${mode === 'simple' ? 'bg-blue-600 text-white' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
                 >
-                    <LayoutDashboard className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">简洁工作台</span>
+                    <LayoutDashboard className="h-3.5 w-3.5 shrink-0" />
+                    <span className="hidden whitespace-nowrap lg:inline">简洁工作台</span>
                 </button>
                 <button
                     type="button"
                     role="tab"
                     aria-selected={mode === 'development'}
                     aria-label="开发工作台"
+                    title="开发工作台"
                     onClick={() => setMode('development')}
-                    className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${mode === 'development' ? 'bg-blue-600 text-white' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+                    className={`flex items-center gap-1.5 rounded-md px-2 lg:px-2.5 py-1.5 text-xs font-medium transition-colors ${mode === 'development' ? 'bg-blue-600 text-white' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
                 >
-                    <Code2 className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">开发工作台</span>
+                    <Code2 className="h-3.5 w-3.5 shrink-0" />
+                    <span className="hidden whitespace-nowrap lg:inline">开发工作台</span>
                 </button>
             </div>
             <button
                 type="button"
                 onClick={() => setDefaultMode(mode)}
-                className="rounded-lg p-2 text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
+                className="shrink-0 rounded-lg p-2 text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
                 title={defaultMode === mode ? '当前视图已是本机默认' : '将当前视图设为本机默认'}
                 aria-label={defaultMode === mode ? '当前视图已是本机默认' : '将当前视图设为本机默认'}
             >
