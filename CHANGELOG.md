@@ -14,6 +14,7 @@
 - 新增百炼 Token Plan 渠道 `qwen3.8-flash`（官方规格：1M 上下文、131072 最大输出、多模态输入、支持思考模式），接入方式与 `qwen3.8-max` 一致。
 - 新增百炼 Token Plan 渠道 `deepseek-v4-pro-0813` 与 `deepseek-v4-flash-0731`，并与 `qwen3.8-max` 统一标注“百炼”。
 - 新增 `deepseek-v4-flash-vision-exp` 图片理解模型，作为 DeepSeek 系列的专属视觉兜底。
+- 同一 LLM Provider 支持逗号分隔多 API Key（ZenMux 订阅 Key `sk-ss-v1-` 优先、按量 Key `sk-ai-v1-` 兜底），402 quote_exceeded / 404 model_not_available / 429 时自动冷却切换。
 
 ### Changed
 - ZenMux 默认目录保留 `anthropic/claude-fable-5.1`，新增 GPT-6 Astra、Gemini 3.8 Flash 与 Grok 4.6，并清理已替换或下线的旧型号。

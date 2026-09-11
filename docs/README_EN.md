@@ -345,6 +345,9 @@ LLM_PROVIDER_ZHIPU_API_KEY=your-zhipu-api-key-here
 LLM_PROVIDER_MINIMAX_API_KEY=your-minimax-api-key-here
 
 # ZenMux default catalog: Opus 4.8 / Fable 5.1 / GPT-5.6 Sol / GPT-6 Astra / Gemini 3.8 Flash / Grok 4.6
+# Supports comma-separated multi-key: subscription key (sk-ss-v1- prefix) first,
+# pay-as-you-go key (sk-ai-v1- prefix) as fallback; auto cooldown 15 min and switch on
+# 402 quote_exceeded / 404 model_not_available.
 LLM_PROVIDER_ZENMUX_API_KEY=your-zenmux-api-key-here
 ```
 

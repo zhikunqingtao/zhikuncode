@@ -33,6 +33,9 @@ fi
 if [ -n "$LLM_PROVIDER_ZHIPU_API_KEY" ] && [ "$LLM_PROVIDER_ZHIPU_API_KEY" != "your-zhipu-api-key-here" ]; then
     HAS_PROVIDER_KEY=true
 fi
+if [ -n "$LLM_PROVIDER_ZENMUX_API_KEY" ] && [ "$LLM_PROVIDER_ZENMUX_API_KEY" != "your-zenmux-api-key-here" ]; then
+    HAS_PROVIDER_KEY=true
+fi
 HAS_LEGACY_KEY=false
 if [ -n "$LLM_API_KEY" ] && [ "$LLM_API_KEY" != "your-api-key-here" ]; then
     HAS_LEGACY_KEY=true
@@ -47,6 +50,7 @@ if [ "$HAS_PROVIDER_KEY" = false ] && [ "$HAS_LEGACY_KEY" = false ]; then
     echo "    LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_API_KEY=your-key"
     echo "    LLM_PROVIDER_DEEPSEEK_API_KEY=your-key"
     echo "    LLM_PROVIDER_ZHIPU_API_KEY=your-key"
+    echo "    LLM_PROVIDER_ZENMUX_API_KEY=your-key"
     echo ""
     echo "  Option 2 (Legacy): Set a single key:"
     echo "    LLM_API_KEY=your-key"
@@ -79,6 +83,10 @@ fi
 if [ -n "$LLM_PROVIDER_ZHIPU_API_KEY" ] && [ "$LLM_PROVIDER_ZHIPU_API_KEY" != "your-zhipu-api-key-here" ]; then
     MASKED="${LLM_PROVIDER_ZHIPU_API_KEY:0:6}****${LLM_PROVIDER_ZHIPU_API_KEY: -4}"
     echo "  Zhipu Key:      $MASKED"
+fi
+if [ -n "$LLM_PROVIDER_ZENMUX_API_KEY" ] && [ "$LLM_PROVIDER_ZENMUX_API_KEY" != "your-zenmux-api-key-here" ]; then
+    MASKED="${LLM_PROVIDER_ZENMUX_API_KEY:0:6}****${LLM_PROVIDER_ZENMUX_API_KEY: -4}"
+    echo "  ZenMux Key:     $MASKED"
 fi
 if [ "$HAS_LEGACY_KEY" = true ]; then
     MASKED="${LLM_API_KEY:0:6}****${LLM_API_KEY: -4}"

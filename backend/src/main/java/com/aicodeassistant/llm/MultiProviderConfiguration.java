@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -61,24 +62,29 @@ public class MultiProviderConfiguration {
                     continue;
                 }
 
-                ApiKeyRotationManager keyManager = new ApiKeyRotationManager(config.apiKey());
+                // 逗号分隔多 Key 通用能力（如 ZenMux 订阅 key sk-ss-v1- 优先 + 按量 key 兜底）：
+                // 拆分后传给 ApiKeyRotationManager，首个 key 作为构造 provider 的 fallback apiKey。
+                // 单 key 配置零行为变化（单 key 时 getNextKey() 返回唯一 key）。
+                List<String> apiKeys = splitApiKeys(config.apiKey());
+                ApiKeyRotationManager keyManager = new ApiKeyRotationManager(apiKeys);
                 OpenAiCompatibleProvider provider = new OpenAiCompatibleProvider(
                         name, objectMapper, httpProperties, keyManager,
-                        config.apiKey(), config.baseUrl(),
+                        apiKeys.isEmpty() ? null : apiKeys.getFirst(), config.baseUrl(),
                         config.defaultModel(), config.models(), payloadGuard);
                 providers.add(provider);
-                log.info("Created multi-provider '{}': baseUrl={}, models={}",
-                        name, config.baseUrl(), config.models());
+                log.info("Created multi-provider '{}': baseUrl={}, models={}, apiKeys={}",
+                        name, config.baseUrl(), config.models(), apiKeys.size());
             }
         }
 
         if (providers.isEmpty()) {
             // ===== 向后兼容: llm.openai.* =====
             if (legacyApiKey != null && !legacyApiKey.isBlank()) {
-                ApiKeyRotationManager keyManager = new ApiKeyRotationManager(legacyApiKey);
+                List<String> legacyApiKeys = splitApiKeys(legacyApiKey);
+                ApiKeyRotationManager keyManager = new ApiKeyRotationManager(legacyApiKeys);
                 OpenAiCompatibleProvider provider = new OpenAiCompatibleProvider(
                         "openai-compatible", objectMapper, httpProperties, keyManager,
-                        legacyApiKey, legacyBaseUrl,
+                        legacyApiKeys.isEmpty() ? null : legacyApiKeys.getFirst(), legacyBaseUrl,
                         legacyDefaultModel, legacyModels, payloadGuard);
                 providers.add(provider);
                 log.info("Created legacy single-provider: baseUrl={}, models={}",
@@ -90,5 +96,25 @@ public class MultiProviderConfiguration {
 
         log.info("MultiProviderConfiguration: {} provider(s) created", providers.size());
         return providers;
+    }
+
+    /**
+     * 拆分逗号分隔的 API Key 列表（trim、去空、去重、保持首次出现顺序）。
+     * <p>
+     * 支持同一 Provider 配置多把 key（如 ZenMux 订阅 key sk-ss-v1- 优先 + 按量 key 兜底）；
+     * 单 key 配置拆分后仍为单元素列表，与单 key 构造器语义完全一致；
+     * 去重避免重复 key 使 getKeyCount 虚高误触发多 key 冷却分支。
+     * <p>
+     * 包可见性：同包测试（MultiApiKeySplitTest）直接验证拆分逻辑。
+     */
+    static List<String> splitApiKeys(String rawApiKeys) {
+        if (rawApiKeys == null || rawApiKeys.isBlank()) {
+            return List.of();
+        }
+        return Arrays.stream(rawApiKeys.split(","))
+                .map(String::trim)
+                .filter(key -> !key.isEmpty())
+                .distinct()
+                .toList();
     }
 }

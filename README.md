@@ -351,6 +351,8 @@ LLM_PROVIDER_ZHIPU_API_KEY=your-zhipu-api-key-here
 LLM_PROVIDER_MINIMAX_API_KEY=your-minimax-api-key-here
 
 # ZenMux（默认目录：Opus 4.8 / Fable 5.1 / GPT-5.6 Sol / GPT-6 Astra / Gemini 3.8 Flash / Grok 4.6）
+# 支持逗号分隔多 Key：订阅 Key（sk-ss-v1- 前缀）放前优先、按量 Key（sk-ai-v1- 前缀）兜底；
+# 402 quote_exceeded / 404 model_not_available 时自动冷却 15 分钟切换到下一把 Key。
 LLM_PROVIDER_ZENMUX_API_KEY=your-zenmux-api-key-here
 ```
 

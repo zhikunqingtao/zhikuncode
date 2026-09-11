@@ -31,6 +31,8 @@ services:
       - LLM_PROVIDER_MOONSHOT_API_KEY=${LLM_PROVIDER_MOONSHOT_API_KEY:-}
       - LLM_PROVIDER_ZHIPU_API_KEY=${LLM_PROVIDER_ZHIPU_API_KEY:-}
       - LLM_PROVIDER_ZHIPU_MODELS=${LLM_PROVIDER_ZHIPU_MODELS:-glm-5.3,glm-5.3-flash}
+      - LLM_PROVIDER_MINIMAX_API_KEY=${LLM_PROVIDER_MINIMAX_API_KEY:-}
+      - LLM_PROVIDER_ZENMUX_API_KEY=${LLM_PROVIDER_ZENMUX_API_KEY:-}
       # ---- Legacy Single-Provider (Backward Compatible) ----
       - LLM_API_KEY=${LLM_API_KEY:-}
       - LLM_BASE_URL=${LLM_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}

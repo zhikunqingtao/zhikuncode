@@ -98,6 +98,10 @@ llm:
       base-url: https://api.minimax.chat/v1
       default-model: MiniMax-M3
       models: ${LLM_PROVIDER_MINIMAX_MODELS:MiniMax-M3}
+    # ZenMux（Anthropic Claude / OpenAI / Gemini / Grok 系列，1M 上下文）。
+    # api-key 支持逗号分隔多 key（通用能力，所有 provider 均可）：订阅 key（sk-ss-v1- 前缀）
+    # 放前面优先使用，按量计费 key（sk-ai-v1- 前缀）放后面兜底；订阅配额耗尽
+    # （402 quote_exceeded）或模型不在订阅计划（404 model_not_available）时自动冷却切换。
     zenmux:
       api-key: ${LLM_PROVIDER_ZENMUX_API_KEY:}
       base-url: https://zenmux.ai/api/v1

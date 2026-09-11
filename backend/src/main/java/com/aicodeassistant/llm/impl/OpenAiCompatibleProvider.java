@@ -46,6 +46,8 @@ public class OpenAiCompatibleProvider implements LlmProvider {
             "openai/gpt-6-astra",
             "google/gemini-3.8-flash",
             "x-ai/grok-4.6");
+    /** ZenMux 订阅配额错误（402 quote_exceeded / 404 model_not_available）的 Key 冷却时长 */
+    private static final Duration SUBSCRIPTION_QUOTA_COOLDOWN = Duration.ofMinutes(15);
 
     private final OkHttpClient httpClient;
     private final String providerName;
@@ -971,9 +973,37 @@ public class OpenAiCompatibleProvider implements LlmProvider {
                 }
 
                 if (!response.isSuccessful()) {
+                    int errorCode = response.code();
+                    String errorType = "";
+                    String errorBody = "";
+                    try {
+                        ResponseBody errorResponseBody = response.body();
+                        if (errorResponseBody != null) {
+                            // body 只能消费一次：同一次读取同时用于冷却判定与异常消息
+                            errorBody = errorResponseBody.string();
+                            JsonNode errorJson = objectMapper.readTree(errorBody);
+                            // error.type 优先、缺失时回退 error.code（双匹配）
+                            errorType = errorJson.path("error").path("type")
+                                    .asText(errorJson.path("error").path("code").asText(""));
+                        }
+                    } catch (Exception ignored) {
+                        // body 缺失或非 JSON 时不影响错误上抛
+                    }
+                    // 429 最终失败时也冷却实际使用的 Key（与流式路径一致）
+                    if (errorCode == 429 && keyRotationManager.getKeyCount() > 1) {
+                        markUsedKeyCooldown(response, null);
+                    }
+                    // ZenMux 订阅错误（402 quote_exceeded / 404 model_not_available）：
+                    // 冷却实际使用的 Key，后续 chatSync 调用自动切换到其他 Key
+                    applySubscriptionKeyCooldown(response, errorCode, errorType);
+                    // 异常消息截断：超长 body 只保留前 500 字符
+                    String detail = errorBody.isBlank() ? ""
+                            : (errorBody.length() > 500
+                                    ? ": " + errorBody.substring(0, 500) + "…"
+                                    : ": " + errorBody);
                     throw new LlmApiException(
-                            "chatSync HTTP " + response.code(),
-                            response.code() >= 500, response.code());
+                            "chatSync HTTP " + errorCode + detail,
+                            errorCode >= 500, errorCode);
                 }
 
                 ResponseBody body = response.body();
@@ -1150,11 +1180,15 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         int code = response.code();
         boolean retryable = code == 429 || code >= 500;
         String errorMsg;
+        String errorType = "";
         try {
             ResponseBody body = response.body();
             if (body != null) {
                 JsonNode bodyJson = objectMapper.readTree(body.string());
                 errorMsg = bodyJson.path("error").path("message").asText("Unknown error");
+                // error.type 优先、缺失时回退 error.code（双匹配）
+                errorType = bodyJson.path("error").path("type")
+                        .asText(bodyJson.path("error").path("code").asText(""));
             } else {
                 errorMsg = "HTTP " + code;
             }
@@ -1162,7 +1196,9 @@ public class OpenAiCompatibleProvider implements LlmProvider {
             errorMsg = "HTTP " + code;
         }
 
-        // P1-12: 429 限流时标记 Key 冷却
+        // P1-12: 429 限流时标记 Key 冷却 — 从 Authorization header 提取实际使用的 Key
+        // （getNextKey() 已前移轮换索引，getCurrentKey() 会指向未使用的下一把 Key）。
+        // Retry-After 解析失败/缺失时传 null，markRateLimited 内部回退默认冷却（60s）。
         if (code == 429 && keyRotationManager.getKeyCount() > 1) {
             String retryAfter = response.header("Retry-After");
             java.time.Duration cooldown = null;
@@ -1171,10 +1207,53 @@ public class OpenAiCompatibleProvider implements LlmProvider {
                     cooldown = java.time.Duration.ofSeconds(Long.parseLong(retryAfter));
                 } catch (NumberFormatException ignored) {}
             }
-            keyRotationManager.markRateLimited(keyRotationManager.getCurrentKey(), cooldown);
+            markUsedKeyCooldown(response, cooldown);
         }
 
+        // ZenMux 订阅 Key 专属错误（402/404）→ 冷却实际使用的 Key，后续请求切换
+        applySubscriptionKeyCooldown(response, code, errorType);
+
         callback.onError(new LlmApiException(errorMsg, retryable, code));
+    }
+
+    /**
+     * ZenMux 订阅 Key 专属错误冷却 — 402 quote_exceeded（订阅配额耗尽）/
+     * 404 model_not_available（模型不在订阅计划内）：同 key 重试必然再次失败，
+     * 标记实际使用的 Key 长冷却（15 分钟），后续请求自动切换到其他 Key（如按量 key 兜底）。
+     * 流式（handleErrorResponse）与同步（chatSync）路径共用；仅多 Key 时冷却才有意义。
+     */
+    private void applySubscriptionKeyCooldown(Response response, int code, String errorType) {
+        if (keyRotationManager.getKeyCount() > 1
+                && isSubscriptionQuotaError(code, errorType)) {
+            markUsedKeyCooldown(response, SUBSCRIPTION_QUOTA_COOLDOWN);
+        }
+    }
+
+    /**
+     * ZenMux 订阅 Key 专属错误：402 quote_exceeded（订阅配额耗尽）或
+     * 404 model_not_available（模型不在订阅计划内）。两者均不可重试。
+     */
+    private static boolean isSubscriptionQuotaError(int code, String errorType) {
+        return (code == 402 && "quote_exceeded".equals(errorType))
+                || (code == 404 && "model_not_available".equals(errorType));
+    }
+
+    /**
+     * 标记本次请求实际使用的 API Key 进入冷却。
+     * <p>
+     * 从响应对应请求的 Authorization header 提取 key（而非 getCurrentKey()：
+     * getNextKey() 调用后轮换索引已前移，getCurrentKey() 指向的是下一把 key）。
+     */
+    private void markUsedKeyCooldown(Response response, Duration cooldown) {
+        Request request = response.request();
+        String authorization = request == null ? null : request.header("Authorization");
+        if (authorization == null || !authorization.startsWith("Bearer ")) {
+            return;
+        }
+        String usedKey = authorization.substring("Bearer ".length()).trim();
+        if (!usedKey.isEmpty()) {
+            keyRotationManager.markRateLimited(usedKey, cooldown);
+        }
     }
 
     // ═══════════════════════════════════════════

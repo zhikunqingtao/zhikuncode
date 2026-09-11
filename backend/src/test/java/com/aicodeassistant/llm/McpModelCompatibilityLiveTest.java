@@ -78,9 +78,13 @@ class McpModelCompatibilityLiveTest {
     private static void runRoundTrip(ModelEndpoint endpoint) throws Exception {
         LlmHttpProperties http = new LlmHttpProperties(
                 new LlmHttpProperties.PoolProperties(2, 30), 20, 30, true);
+        // 与生产 MultiProviderConfiguration 一致：环境变量中的 key 可为逗号分隔多 key
+        // （如 ZenMux 订阅 key sk-ss-v1- 优先 + 按量 key 兜底），拆分后传入轮换器。
+        List<String> apiKeys = MultiProviderConfiguration.splitApiKeys(endpoint.apiKey());
         OpenAiCompatibleProvider provider = new OpenAiCompatibleProvider(
                 endpoint.provider(), MAPPER, http,
-                new ApiKeyRotationManager(endpoint.apiKey()), endpoint.apiKey(),
+                new ApiKeyRotationManager(apiKeys),
+                apiKeys.isEmpty() ? null : apiKeys.getFirst(),
                 endpoint.baseUrl(), endpoint.model(), List.of(endpoint.model()));
 
         Capture first = new Capture();
