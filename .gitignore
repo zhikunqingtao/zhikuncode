@@ -139,3 +139,6 @@ python-service/workspace/
 docs/case-studies/assets/king/videos/*.mp4
 !docs/case-studies/assets/king/videos/previews/
 !docs/case-studies/assets/king/videos/previews/*.mp4
+
+# 临时工作目录
+.tmp/
