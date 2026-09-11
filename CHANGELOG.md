@@ -27,6 +27,7 @@
 ### Fixed
 - 规范化远端 MCP Schema 中的非标准类型别名（如 `bool` → `boolean`），避免 Moonshot/Kimi 因任一工具 Schema 非法而拒绝包含智谱搜索在内的整批工具。
 - Python 健康恢复改为异步且防重入，避免异常重启阻塞 WebSocket 心跳、授权重投及其他定时任务。
+- 修复 Responses API 多轮对话中 assistant 历史文本被编码为 input_text 导致的跨模型 400 错误，现按规范编码为 output_text。
 
 ### Security
 - 内置文件搜索、写入、Glob、Grep、LSP 与 Snip 以单一 Session 根解析相对路径；范围外绝对路径进入常规授权，并在执行前复检路径、符号链接和 Project 状态。

@@ -195,6 +195,48 @@ class ZenMuxResponsesProviderTest {
                 .contains("INCOMPLETE_STREAM");
     }
 
+    @Test
+    void assistantHistoryTextIsEncodedAsOutputTextNotInputText() throws Exception {
+        // 不含 provider_response_state 的纯文本多轮对话：assistant 历史文本必须编码为 output_text
+        // （若编码为 input_text 会被 OpenAI/Gemini 后端 400 拒绝）
+        List<Map<String, Object>> messages = List.of(
+                Map.of("role", "user", "content", List.of(
+                        Map.of("type", "text", "text", "first user message"))),
+                Map.of("role", "assistant", "content", List.of(
+                        Map.of("type", "text", "text", "previous assistant reply"))),
+                Map.of("role", "user", "content", List.of(
+                        Map.of("type", "text", "text", "follow-up question"))));
+        enqueue(simpleCompletion());
+
+        run("openai/gpt-5.6-sol", messages, List.of(),
+                new ThinkingConfig.Disabled());
+        JsonNode body = mapper.readTree(server.takeRequest().getBody().readUtf8());
+
+        // user → input_text
+        JsonNode userMsg0 = body.path("input").get(0);
+        assertThat(userMsg0.path("role").asText()).isEqualTo("user");
+        assertThat(userMsg0.path("content").get(0).path("type").asText())
+                .isEqualTo("input_text");
+        assertThat(userMsg0.path("content").get(0).path("text").asText())
+                .isEqualTo("first user message");
+
+        // assistant → output_text（核心回归断言）
+        JsonNode assistantMsg = body.path("input").get(1);
+        assertThat(assistantMsg.path("role").asText()).isEqualTo("assistant");
+        assertThat(assistantMsg.path("content").get(0).path("type").asText())
+                .isEqualTo("output_text");
+        assertThat(assistantMsg.path("content").get(0).path("text").asText())
+                .isEqualTo("previous assistant reply");
+
+        // user → input_text
+        JsonNode userMsg1 = body.path("input").get(2);
+        assertThat(userMsg1.path("role").asText()).isEqualTo("user");
+        assertThat(userMsg1.path("content").get(0).path("type").asText())
+                .isEqualTo("input_text");
+        assertThat(userMsg1.path("content").get(0).path("text").asText())
+                .isEqualTo("follow-up question");
+    }
+
     private Capture run(String model, List<Map<String, Object>> messages,
                         List<Map<String, Object>> tools, ThinkingConfig thinking) {
         Capture capture = new Capture();

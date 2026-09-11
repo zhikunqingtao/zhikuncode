@@ -429,7 +429,10 @@ public class OpenAiCompatibleProvider implements LlmProvider {
                 String type = Objects.toString(map.get("type"), "");
                 if ("text".equals(type)) {
                     ObjectNode part = contentParts.addObject();
-                    part.put("type", "input_text");
+                    // Responses API: assistant 消息的 content 只允许 output_text/refusal，
+                    // 历史轮次的 assistant 文本若编码为 input_text 会被 OpenAI 后端 400 拒绝
+                    // (Invalid value: 'input_text')，Gemini 后端则因 parts 为空报错。
+                    part.put("type", "assistant".equals(role) ? "output_text" : "input_text");
                     part.put("text", Objects.toString(map.get("text"), ""));
                 } else if ("image".equals(type) && "user".equals(role)) {
                     Object source = map.get("source");
@@ -509,7 +512,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         message.put("role", role);
         ArrayNode content = message.putArray("content");
         ObjectNode part = content.addObject();
-        part.put("type", "input_text");
+        part.put("type", "assistant".equals(role) ? "output_text" : "input_text");
         part.put("text", text);
     }
 
