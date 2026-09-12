@@ -18,22 +18,7 @@ const LEGACY_ALLOWLIST: readonly { id: string; target: string; note: string }[] 
     {
         id: 'color-contrast',
         target: 'var\\(--text-muted\\)',
-        note: '旧变量 --text-muted(#94a3b8)：StatusBar / 成本显示 / visualization 面板等未迁移旧组件（P3 迁移时清除）',
-    },
-    {
-        id: 'color-contrast',
-        target: 'span[title="输入 Tokens"]',
-        note: 'StatusBar Token 显示（旧变量色，组件未在 P0/P1 改动范围），P3 迁移 StatusBar 时清除',
-    },
-    {
-        id: 'color-contrast',
-        target: 'span[title="输出 Tokens"]',
-        note: '同上，P3 清除',
-    },
-    {
-        id: 'color-contrast',
-        target: 'span[title="全局累计',
-        note: '同上，P3 清除',
+        note: '旧变量 --text-muted(#94a3b8)：visualization 面板等未迁移旧组件（后续迁移时清除）；StatusBar/Header 成本显示已于 P3 迁移清除',
     },
     {
         id: 'color-contrast',

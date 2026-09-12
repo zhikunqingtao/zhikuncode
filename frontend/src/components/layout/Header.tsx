@@ -17,6 +17,12 @@ import { dispatchNewAuthorizedSessionRequest } from '@/services/authorizedSessio
 import { useWorkbenchViewStore } from '@/store/workbenchViewStore';
 import { WorkbenchViewSwitch } from '@/components/workbench/WorkbenchViewSwitch';
 import { McpIcon } from '@/components/mcp/McpIcon';
+import { Kbd } from '@/components/ui';
+
+/** §7.4 头部按钮共性：hover/active/焦点环（ring-accent2-ring） */
+const HEADER_BUTTON_CLASS =
+    'p-2 rounded-lg hover:bg-hover2 active:scale-95 transition-interactive duration-fast text-t2 ' +
+    'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring';
 
 interface HeaderProps {
     onMenuClick?: () => void;
@@ -74,22 +80,34 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
         dispatchNewAuthorizedSessionRequest();
     }, []);
 
+    /** §7.4 ⌘K 命令钮：与 Ctrl+K 全局命令面板同一入口——
+     *  向 window 派发合成 keydown，命中 usePromptState 既有全局监听
+     * （运行中/压缩中的关闭语义与真实按键完全一致），不新写面板、不提升状态。 */
+    const openCommandPalette = useCallback(() => {
+        window.dispatchEvent(new KeyboardEvent('keydown', {
+            key: 'k',
+            ctrlKey: true,
+            bubbles: true,
+            cancelable: true,
+        }));
+    }, []);
+
     const formatCost = (cost: number) => {
         if (cost < 0.01) return '<$0.01';
         return `$${cost.toFixed(2)}`;
     };
 
     return (
-        <header className="h-14 border-b border-[var(--border)] bg-[var(--bg-secondary)] flex items-center px-2 md:px-4 shrink-0">
+        <header className="h-14 border-b border-hairline bg-surface2 flex items-center px-2 md:px-4 shrink-0">
             {/* Left: Menu Button (mobile) + Logo */}
             <div className="flex items-center gap-3">
                 {showMenuButton && (
                     <button
                         onClick={onMenuClick}
-                        className="p-2 rounded-lg hover:bg-hover2 active:scale-95 transition-interactive duration-fast lg:hidden"
+                        className={`${HEADER_BUTTON_CLASS} lg:hidden`}
                         aria-label="打开侧边栏"
                     >
-                        <Menu className="w-5 h-5 text-[var(--text-secondary)]" />
+                        <Menu className="w-5 h-5" />
                     </button>
                 )}
                 <div className="hidden md:flex items-center gap-2">
@@ -97,7 +115,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent2 to-accent2-strong flex items-center justify-center">
                         <Bot className="w-5 h-5 text-white" />
                     </div>
-                    <span className="font-semibold text-[var(--text-primary)] hidden md:block">
+                    <span className="font-semibold text-t1 hidden md:block">
                         {workbenchEnabled ? 'ZhikunCode' : 'AI Assistant'}
                     </span>
                 </div>
@@ -107,7 +125,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
             <div className="flex-1 flex items-center justify-center gap-3 min-w-0">
                 {workbenchEnabled && <WorkbenchViewSwitch />}
                 {!simpleMode && (
-                    <span className="text-sm text-[var(--text-secondary)] truncate max-w-[150px] hidden md:block">
+                    <span className="text-sm text-t2 truncate max-w-[150px] hidden md:block">
                         {sessionId ? `Session: ${sessionId.slice(0, 8)}...` : 'New Session'}
                     </span>
                 )}
@@ -146,7 +164,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                         <button
                             type="button"
                             onClick={() => void fetchModels()}
-                            className="inline-flex text-xs text-accent2 hover:underline"
+                            className="inline-flex text-xs text-accent2-strong hover:underline"
                             aria-label="重新加载模型列表"
                         >
                             重试
@@ -155,15 +173,31 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                 </div>
             </div>
 
-            {/* Right: Cost + New Session + Settings */}
+            {/* Right: ⌘K 命令钮 + Cost + New Session + Settings */}
             <div className="flex items-center gap-2">
+                {/* §7.4 ⌘K 命令钮（Demo-A）：命令 ⌘K 胶囊，点击 = Ctrl+K 全局命令面板同一入口。
+                    移动端不显示（§7.4 移动端只留 菜单+名称+新建）；compact(768–1023) 头部空间不足亦隐藏。
+                    现状无头像入口，按任务要求不新增。 */}
+                <button
+                    onClick={openCommandPalette}
+                    className="hidden lg:inline-flex items-center gap-1.5 h-8 px-3 rounded-full
+                        border border-hairline bg-surface2 text-sm text-t2
+                        hover:bg-hover2 active:scale-95 transition-interactive duration-fast
+                        focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring"
+                    title="全局命令面板（Ctrl+K）"
+                    aria-keyshortcuts="Control+K Meta+K"
+                >
+                    命令
+                    <Kbd>⌘K</Kbd>
+                </button>
+
                 {/* Cost Indicator（§3.8：成本数字 tabular-nums） */}
-                <div className="hidden md:flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[var(--bg-primary)] border border-[var(--border)]">
+                <div className="hidden md:flex items-center gap-1 px-3 py-1.5 rounded-lg bg-surface2 border border-hairline">
                     <DollarSign className="w-4 h-4 text-ok" />
-                    <span className="text-sm tabular-nums text-[var(--text-secondary)]">
+                    <span className="text-sm tabular-nums text-t1">
                         {formatCost(sessionCost)}
                     </span>
-                    <span className="text-xs tabular-nums text-[var(--text-muted)]">
+                    <span className="text-xs tabular-nums text-t2">
                         / {formatCost(totalCost)}
                     </span>
                 </div>
@@ -171,7 +205,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                 {/* Theme Toggle */}
                 <button
                     onClick={toggleTheme}
-                    className="hidden md:inline-flex p-2 rounded-lg hover:bg-hover2 active:scale-95 transition-interactive duration-fast text-[var(--text-secondary)]"
+                    className={`hidden md:inline-flex ${HEADER_BUTTON_CLASS}`}
                     title={isGlass ? '切换到浅色模式' : isDark ? '切换到液态玻璃模式' : '切换到深色模式'}
                     aria-label={isGlass ? '切换到浅色模式' : isDark ? '切换到液态玻璃模式' : '切换到深色模式'}
                 >
@@ -181,7 +215,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                 {/* New Session */}
                 <button
                     onClick={handleNewSession}
-                    className="p-2 rounded-lg hover:bg-hover2 active:scale-95 transition-interactive duration-fast text-[var(--text-secondary)]"
+                    className={HEADER_BUTTON_CLASS}
                     title={simpleMode ? '新建任务' : '新建会话'}
                     aria-label={simpleMode ? '新建任务' : '新建会话'}
                 >
@@ -191,7 +225,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                 {/* Settings */}
                 <button
                     onClick={() => openDialog('mcp')}
-                    className="inline-flex p-2 rounded-lg hover:bg-hover2 active:scale-95 transition-interactive duration-fast text-[var(--text-secondary)]"
+                    className={`inline-flex ${HEADER_BUTTON_CLASS}`}
                     title="MCP 管理"
                     aria-label="MCP 管理"
                 >
@@ -200,7 +234,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
 
                 <button
                     onClick={() => openDialog('settings')}
-                    className="hidden md:inline-flex p-2 rounded-lg hover:bg-hover2 active:scale-95 transition-interactive duration-fast text-[var(--text-secondary)]"
+                    className={`hidden md:inline-flex ${HEADER_BUTTON_CLASS}`}
                     title="设置"
                 >
                     <Settings className="w-5 h-5" />

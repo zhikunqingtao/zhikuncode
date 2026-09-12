@@ -7,7 +7,11 @@ import { useEffect, useCallback, useMemo, useRef } from 'react';
 import { Tree, NodeRendererProps } from 'react-arborist';
 import { Search, X, RefreshCw, Loader2, Copy, Check } from 'lucide-react';
 import { useFileTreeStore, type FileTreeNode } from '@/store/fileTreeStore';
+import { Chip, Kbd } from '@/components/ui';
 import { useState } from 'react';
+
+/** §7.5 面板 Label（11px 大写）：色取 text-t2 而非字面 text-t3（<4.5:1 不达 §10.1 AA，同 SettingsPanel 先例） */
+const PANEL_LABEL_CLASS = 'text-[11px] font-semibold uppercase tracking-wider text-t2';
 
 // ── react-arborist 数据格式 ──
 
@@ -53,7 +57,7 @@ function FileIcon({ icon }: { icon: string }) {
         return (
             <span className="inline-flex items-center justify-center w-4 h-4 text-[9px] font-bold rounded shrink-0"
                 style={{
-                    color: icon === 'TS' ? '#3178c6' : icon === 'JS' ? '#f7df1e' : 'var(--text-muted)',
+                    color: icon === 'TS' ? '#3178c6' : icon === 'JS' ? '#f7df1e' : 'var(--v2-text-3)',
                     backgroundColor: icon === 'TS' ? '#3178c620' : icon === 'JS' ? '#f7df1e20' : 'transparent',
                 }}>
                 {icon}
@@ -130,14 +134,15 @@ function FileNode({ node, style, dragHandle }: NodeRendererProps<ArboristNode>) 
             style={style}
             ref={dragHandle}
             onClick={handleClick}
-            className={`group flex items-center gap-1.5 px-2 cursor-pointer rounded-sm transition-colors
+            className={`group flex items-center gap-1.5 px-2 cursor-pointer rounded-md
+                transition-interactive duration-fast
                 ${isSelected
-                    ? 'bg-blue-500/15 text-[var(--text-primary)]'
-                    : 'hover:bg-[var(--bg-hover)] text-[var(--text-secondary)]'}`}
+                    ? 'bg-accent2-soft text-t1'
+                    : 'hover:bg-hover2 text-t2'}`}
         >
             {/* 展开/折叠指示器（目录） */}
             {!node.isLeaf && (
-                <span className="text-[10px] text-[var(--text-muted)] w-3 shrink-0">
+                <span className="text-[10px] text-t3 w-3 shrink-0">
                     {node.isOpen ? '▾' : '▸'}
                 </span>
             )}
@@ -153,12 +158,12 @@ function FileNode({ node, style, dragHandle }: NodeRendererProps<ArboristNode>) 
             {node.isLeaf && (
                 <button
                     onClick={handleCopy}
-                    className="p-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity
-                        hover:bg-[var(--bg-hover)] text-[var(--text-muted)]"
+                    className="p-0.5 rounded opacity-0 group-hover:opacity-100
+                        hover:bg-hover2 text-t3 transition-interactive duration-fast"
                     title="复制路径"
                 >
                     {copied
-                        ? <Check className="w-3 h-3 text-green-500" />
+                        ? <Check className="w-3 h-3 text-ok" />
                         : <Copy className="w-3 h-3" />
                     }
                 </button>
@@ -210,37 +215,59 @@ export function FileTreePanel({ sidebarWidth = 256 }: { sidebarWidth?: number })
         return convertToArboristData(treeData, searchQuery) ?? [];
     }, [treeData, searchQuery]);
 
+    // §7.5 计数 chip：全量文件数（不受搜索过滤影响）
+    const totalFiles = useMemo(() => {
+        if (!treeData) return 0;
+        let count = 0;
+        const walk = (n: FileTreeNode) => {
+            if (n.type === 'file') { count += 1; return; }
+            n.children?.forEach(walk);
+        };
+        treeData.children?.forEach(walk);
+        return count;
+    }, [treeData]);
+
     return (
         <div className="flex flex-col h-full">
-            {/* 顶部工具栏：搜索 + 刷新 */}
-            <div className="p-2 border-b border-[var(--border)] flex items-center gap-1.5 flex-shrink-0">
+            {/* §7.5 面板头：Label + 计数 chip */}
+            <div className="flex items-center justify-between gap-2 px-3 pt-3 pb-2 flex-shrink-0">
+                <span className={PANEL_LABEL_CLASS}>文件</span>
+                <Chip variant="accent" className="tabular-nums">{totalFiles}</Chip>
+            </div>
+
+            {/* 顶部工具栏：搜索（sunken2 + well + ⌘K kbd 提示）+ 刷新 */}
+            <div className="px-2 pb-2 border-b border-hairline flex items-center gap-1.5 flex-shrink-0">
                 <div className="flex-1 relative">
-                    <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)]" />
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-t3 pointer-events-none" />
                     <input
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="搜索文件..."
-                        className="w-full pl-7 pr-7 py-1.5 text-xs rounded
-                            bg-[var(--bg-primary)] border border-[var(--border)]
-                            text-[var(--text-primary)] placeholder:text-[var(--text-muted)]
-                            focus:outline-none focus:border-blue-500/50 transition-colors"
+                        aria-label="搜索文件"
+                        className="w-full h-8 pl-8 pr-8 rounded-xl bg-sunken2 shadow-well
+                            border border-transparent text-sm text-t1 placeholder:text-t4
+                            transition-surface duration-fast
+                            focus:outline-none focus:ring-[3px] focus:ring-accent2-ring"
                     />
-                    {searchQuery && (
+                    {searchQuery ? (
                         <button
                             onClick={handleClearSearch}
-                            className="absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 rounded
-                                hover:bg-[var(--bg-hover)] text-[var(--text-muted)]"
+                            aria-label="清除搜索"
+                            className="absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 rounded-md
+                                text-t3 hover:bg-hover2 hover:text-t1 transition-interactive duration-fast"
                         >
                             <X className="w-3.5 h-3.5" />
                         </button>
+                    ) : (
+                        <Kbd aria-hidden="true" className="absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none">⌘K</Kbd>
                     )}
                 </div>
                 <button
                     onClick={handleRefresh}
                     disabled={loading}
-                    className="p-1.5 rounded hover:bg-[var(--bg-hover)] text-[var(--text-muted)]
-                        disabled:opacity-50 transition-colors shrink-0"
+                    className="p-1.5 rounded-lg hover:bg-hover2 text-t3 hover:text-t1
+                        disabled:opacity-50 transition-interactive duration-fast shrink-0"
                     title="刷新文件树"
                 >
                     <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
@@ -251,16 +278,16 @@ export function FileTreePanel({ sidebarWidth = 256 }: { sidebarWidth?: number })
             <div ref={containerRef} className="flex-1 overflow-hidden">
                 {loading && !treeData && (
                     <div className="flex items-center justify-center h-full">
-                        <Loader2 className="w-5 h-5 animate-spin text-[var(--text-muted)]" />
+                        <Loader2 className="w-5 h-5 animate-spin text-t3" />
                     </div>
                 )}
 
                 {error && (
                     <div className="p-4 text-center">
-                        <p className="text-xs text-red-500 mb-2">{error}</p>
+                        <p className="text-xs text-err mb-2">{error}</p>
                         <button
                             onClick={handleRefresh}
-                            className="text-xs text-blue-500 hover:underline"
+                            className="text-xs text-accent2-strong hover:underline"
                         >
                             重试
                         </button>
@@ -268,7 +295,7 @@ export function FileTreePanel({ sidebarWidth = 256 }: { sidebarWidth?: number })
                 )}
 
                 {treeData && arboristData.length === 0 && searchQuery && (
-                    <div className="p-4 text-center text-[var(--text-muted)] text-xs">
+                    <div className="p-4 text-center text-t2 text-xs">
                         未找到匹配 "{searchQuery}" 的文件
                     </div>
                 )}
