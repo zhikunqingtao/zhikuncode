@@ -323,18 +323,40 @@ export const useMessageStore = create<MessageStoreState>()(
                     // 将本条流式消息期间的工具调用迁移为 tool_use block，
                     // 保证流式→终态切换后工具卡片数据（id/name/完整 input/result/status）不丢失
                     for (const [toolUseId, tc] of Array.from(d.activeToolCalls.entries())) {
+                        // error 状态（无 result）条目合成 isError result：错误状态借此持久化进消息内容，
+                        // 迁移后的 tool_use block 渲染为终态错误而非回退 running 转圈
+                        const result = tc.result
+                            ?? (tc.error ? { content: tc.error, isError: true } : undefined);
                         content.push({
                             type: 'tool_use' as const,
                             toolUseId,
                             toolName: tc.toolName,
                             input: tc.input ?? {},
-                            ...(tc.result ? { result: tc.result } : {}),
+                            ...(result ? { result } : {}),
                         });
-                        // 已有 result 的条目迁移后即可清理；running 条目保留，
+                        // 已有终态（result 或合成 error result）的条目迁移后即可清理；running 条目保留，
                         // 使后续到达的 tool_result 仍能通过 completeToolCall 关联
-                        if (tc.result) d.activeToolCalls.delete(toolUseId);
+                        if (result) d.activeToolCalls.delete(toolUseId);
                     }
                     (msg as { content: unknown }).content = content;
+                }
+            }
+            // 兜底清理：无流式消息承载时 error 条目（有 error 无 result）无人清理，
+            // 直接删除防止跨 run 残留（下一轮流式渲染重复展示旧卡片）；running/permission 条目语义不变。
+            // 但 tool_use block 可能已随此前的局部提交写入某条 assistant 消息（无 result）：
+            // 删除前先为其补写合成 isError result（与迁移路径一致），
+            // 避免 block 因失去 map 条目而回退 running 永久转圈
+            for (const [toolUseId, tc] of Array.from(d.activeToolCalls.entries())) {
+                if (!tc.result && tc.error) {
+                    for (const message of d.messages) {
+                        if (message.type !== 'assistant') continue;
+                        for (const block of message.content) {
+                            if (block.type === 'tool_use' && block.toolUseId === toolUseId && !block.result) {
+                                block.result = { content: tc.error, isError: true };
+                            }
+                        }
+                    }
+                    d.activeToolCalls.delete(toolUseId);
                 }
             }
             d.streamingMessageId = null;

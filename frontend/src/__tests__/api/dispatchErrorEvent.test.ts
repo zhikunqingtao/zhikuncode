@@ -76,7 +76,7 @@ describe('error 事件契约解析', () => {
         expect(useSessionStore.getState().status).toBe('idle');
     });
 
-    it('error 事件将仍在 running 的工具调用标记为 error，不再永久转圈', () => {
+    it('error 事件将 error 条目迁移进消息内容并清空 map，不再跨 run 残留', () => {
         const s = useMessageStore.getState();
         s.appendStreamDelta('working');
         s.startToolCall('err-tool-1', 'Bash', { command: 'sleep 100' });
@@ -89,17 +89,34 @@ describe('error 事件契约解析', () => {
         } as ServerMessage);
 
         const state = useMessageStore.getState();
-        // running 条目 → error，携带错误消息
-        const failed = state.activeToolCalls.get('err-tool-1');
-        expect(failed?.status).toBe('error');
-        expect(failed?.error).toBe('上游 Provider 错误');
-        expect(failed?.input).toEqual({ command: 'sleep 100' });
-        // 已完成条目被 finalizeStream 正常迁移清理（未被错误标记），result 已附加到 assistant 消息
-        expect(state.activeToolCalls.has('err-tool-2')).toBe(false);
+        // 原 running 条目：error 状态迁移进消息内容后从 activeToolCalls 清理，无残留
+        expect(state.activeToolCalls.size).toBe(0);
+        expect(state.activeToolCalls.has('err-tool-1')).toBe(false);
         const assistant = state.messages.find(m => m.type === 'assistant');
+        // 迁移后的 tool_use block 携带合成 isError result（渲染为终态错误，不转圈）
+        const failedBlock = assistant?.type === 'assistant'
+            ? assistant.content.find(b => b.type === 'tool_use' && b.toolUseId === 'err-tool-1')
+            : undefined;
+        expect(failedBlock && failedBlock.type === 'tool_use' ? failedBlock.result : undefined)
+            .toEqual({ content: '上游 Provider 错误', isError: true });
+        // 已完成条目被 finalizeStream 正常迁移清理，result 已附加到 assistant 消息
         const migrated = assistant?.type === 'assistant'
             ? assistant.content.find(b => b.type === 'tool_use' && b.toolUseId === 'err-tool-2')
             : undefined;
         expect(migrated && migrated.type === 'tool_use' ? migrated.result?.content : undefined).toBe('ok');
+    });
+
+    it('两轮 run：第一轮 error 清理后，第二轮流式渲染不含旧工具卡片', () => {
+        // 第一轮：流式 + running 工具 → error 事件
+        useMessageStore.getState().appendStreamDelta('round 1');
+        useMessageStore.getState().startToolCall('r1-tool', 'Grep', { pattern: 'foo' });
+        dispatch({ type: 'error', message: '第一轮失败' } as ServerMessage);
+        expect(useMessageStore.getState().activeToolCalls.has('r1-tool')).toBe(false);
+
+        // 第二轮流式渲染（StreamingContent 遍历 activeToolCalls）仅含新条目，旧卡片无残留
+        useMessageStore.getState().appendStreamDelta('round 2');
+        useMessageStore.getState().startToolCall('r2-tool', 'Bash', { command: 'echo hi' });
+        const state = useMessageStore.getState();
+        expect(Array.from(state.activeToolCalls.keys())).toEqual(['r2-tool']);
     });
 });

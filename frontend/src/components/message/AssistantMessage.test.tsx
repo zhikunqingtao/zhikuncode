@@ -48,6 +48,19 @@ describe('AssistantMessage finalized tool_use fallback status', () => {
         expect(screen.queryByText('Completed')).not.toBeInTheDocument();
     });
 
+    it('错误路径迁移合成的 isError result block（activeToolCalls 为空 Map）渲染为 Error，不回退 Running', () => {
+        // 错误条目已从 activeToolCalls 迁移/清理，仅靠消息内合成 result 维持终态错误
+        render(
+            <AssistantMessage
+                message={assistantMessage({ content: '上游 Provider 错误', isError: true })}
+                activeToolCalls={new Map()}
+            />,
+        );
+        expect(screen.getAllByText('Error').length).toBeGreaterThan(0);
+        expect(screen.queryByText('Running')).not.toBeInTheDocument();
+        expect(screen.queryByText('Completed')).not.toBeInTheDocument();
+    });
+
     it('activeToolCalls 中存在实时状态时优先使用实时状态', () => {
         const active = new Map<string, ToolCallState>([
             ['t-1', {

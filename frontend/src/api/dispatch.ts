@@ -871,13 +871,14 @@ function recoverAuthoritativeSession(sessionId: string | null): void {
  * 无论哪种情况都必须终止“生成中”状态，避免用户体感卡死。
  */
 function handleError(data: { code?: string; message: string; retryable?: boolean; errorCode?: string; httpStatus?: number }): void {
-    // 终止流式状态：提交已累积的流式内容与工具卡片，停止 spinner
+    // 错误路径上 tool_result 永远不会到来：先将仍在 running 的工具调用标记为 error，
+    // 避免 ToolCallBlock 在 running 状态下无限计时转圈
+    useMessageStore.getState().failAllRunningToolCalls(data.message);
+    // 终止流式状态：提交已累积的流式内容与工具卡片（error 条目在此迁移进消息内容并清理，
+    // 防止跨 run 残留到下一轮流式渲染），停止 spinner
     useMessageStore.getState().finalizeStream({
         inputTokens: 0, outputTokens: 0, cacheReadInputTokens: 0, cacheCreationInputTokens: 0,
     });
-    // 错误路径上 tool_result 永远不会到来：将仍在 running 的工具调用标记为 error，
-    // 避免 ToolCallBlock 在 running 状态下无限计时转圈
-    useMessageStore.getState().failAllRunningToolCalls(data.message);
     const providerErrorCode = data.errorCode || undefined;
     useMessageStore.getState().addMessage({
         type: 'system',
