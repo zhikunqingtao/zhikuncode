@@ -6,12 +6,13 @@
  * 响应式: 移动端 Sidebar 变为 Drawer
  */
 
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { StatusBar } from './StatusBar';
 import { Drawer } from './Drawer';
 import { useWebSocket } from '@/hooks/useWebSocket';
+import { useResponsive } from '@/hooks/useResponsive';
 import { useFeatureFlagStore } from '@/store/featureFlagStore';
 import { MobileStatusBar } from '@/components/apos/MobileStatusBar';
 
@@ -21,7 +22,8 @@ interface AppLayoutProps {
 
 export function AppLayout({ children }: AppLayoutProps) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [isMobile, setIsMobile] = useState(false);
+    // §8.1 断点统一：<768px 走 Drawer + 移动 Chrome；768–1023px compact 保留桌面侧栏；≥1024px 桌面
+    const { isMobile } = useResponsive();
 
     const aposEnabled = useFeatureFlagStore((s) => s.flags.APOS_ACTIVITY_STREAM);
     const mobileStatusEnabled = useFeatureFlagStore((s) => s.flags.APOS_MOBILE_STATUS);
@@ -35,17 +37,6 @@ export function AppLayout({ children }: AppLayoutProps) {
     const detachedTab = useMemo(() => {
         const params = new URLSearchParams(window.location.search);
         return params.get('tab') || undefined;
-    }, []);
-
-    // 检测移动端
-    useEffect(() => {
-        const checkMobile = () => {
-            setIsMobile(window.innerWidth < 1024);
-        };
-        
-        checkMobile();
-        window.addEventListener('resize', checkMobile);
-        return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
     // WebSocket 连接状态

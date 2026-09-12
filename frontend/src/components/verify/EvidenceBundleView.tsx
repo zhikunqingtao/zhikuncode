@@ -171,7 +171,7 @@ const ItemGroupRenderer: React.FC<{ type: string; items: EvidenceItem[] }> = ({ 
 
 // ---- screenshot ----
 const ScreenshotGrid: React.FC<{ items: EvidenceItem[] }> = ({ items }) => (
-    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
         {items.map((item) => {
             const src = pickImageSrc(item);
             return (

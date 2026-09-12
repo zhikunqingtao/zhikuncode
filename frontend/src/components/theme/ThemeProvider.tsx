@@ -59,6 +59,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         
         // 应用圆角
         if (theme.borderRadius) {
+            // §8.2 排查结论：sm/md/lg/xl 为圆角档位键名（JS 对象 key），
+            // 非 Tailwind 断点前缀，属迁移清单误报，保留不改。
             const radiusMap: Record<string, string> = {
                 none: '0px',
                 sm: '4px',

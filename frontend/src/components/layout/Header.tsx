@@ -80,7 +80,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
     };
 
     return (
-        <header className="h-14 border-b border-[var(--border)] bg-[var(--bg-secondary)] flex items-center px-2 sm:px-4 shrink-0">
+        <header className="h-14 border-b border-[var(--border)] bg-[var(--bg-secondary)] flex items-center px-2 md:px-4 shrink-0">
             {/* Left: Menu Button (mobile) + Logo */}
             <div className="flex items-center gap-3">
                 {showMenuButton && (
@@ -92,12 +92,12 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                         <Menu className="w-5 h-5 text-[var(--text-secondary)]" />
                     </button>
                 )}
-                <div className="hidden sm:flex items-center gap-2">
+                <div className="hidden md:flex items-center gap-2">
                     {/* §7.4：渐变 accent 方块（逻辑与文本不动，仅令牌化） */}
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent2 to-accent2-strong flex items-center justify-center">
                         <Bot className="w-5 h-5 text-white" />
                     </div>
-                    <span className="font-semibold text-[var(--text-primary)] hidden sm:block">
+                    <span className="font-semibold text-[var(--text-primary)] hidden md:block">
                         {workbenchEnabled ? 'ZhikunCode' : 'AI Assistant'}
                     </span>
                 </div>
@@ -171,7 +171,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                 {/* Theme Toggle */}
                 <button
                     onClick={toggleTheme}
-                    className="hidden sm:inline-flex p-2 rounded-lg hover:bg-hover2 active:scale-95 transition-interactive duration-fast text-[var(--text-secondary)]"
+                    className="hidden md:inline-flex p-2 rounded-lg hover:bg-hover2 active:scale-95 transition-interactive duration-fast text-[var(--text-secondary)]"
                     title={isGlass ? '切换到浅色模式' : isDark ? '切换到液态玻璃模式' : '切换到深色模式'}
                     aria-label={isGlass ? '切换到浅色模式' : isDark ? '切换到液态玻璃模式' : '切换到深色模式'}
                 >
@@ -200,7 +200,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
 
                 <button
                     onClick={() => openDialog('settings')}
-                    className="hidden sm:inline-flex p-2 rounded-lg hover:bg-hover2 active:scale-95 transition-interactive duration-fast text-[var(--text-secondary)]"
+                    className="hidden md:inline-flex p-2 rounded-lg hover:bg-hover2 active:scale-95 transition-interactive duration-fast text-[var(--text-secondary)]"
                     title="设置"
                 >
                     <Settings className="w-5 h-5" />

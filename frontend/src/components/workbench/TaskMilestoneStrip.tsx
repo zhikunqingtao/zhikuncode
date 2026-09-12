@@ -14,7 +14,7 @@ export function TaskMilestoneStrip({ current }: { current: CurrentWorkbenchView 
         { label: '交付', value: current?.delivery.totalFiles ? `本轮记录 ${current.delivery.totalFiles} 个文件` : '本轮尚无结构化交付', icon: current?.delivery.totalFiles ? FileCheck2 : CircleDashed, tone: current?.delivery.totalFiles ? 'text-emerald-500' : 'text-[var(--text-muted)]' },
         { label: '核验', value: verificationLabels[verification], icon: verification === 'PASSED' ? ShieldCheck : CircleDashed, tone: verification === 'PASSED' ? 'text-green-500' : verification === 'FAILED' ? 'text-red-500' : verification === 'PARTIAL' ? 'text-amber-500' : 'text-[var(--text-muted)]' },
     ];
-    return <section aria-label="任务里程碑" className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">{milestones.map(({ label, value, icon: Icon, tone }) => (
+    return <section aria-label="任务里程碑" className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">{milestones.map(({ label, value, icon: Icon, tone }) => (
         <div key={label} className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] px-4 py-3">
             <Icon className={`h-4 w-4 shrink-0 ${tone}`} />
             <div className="min-w-0"><p className="text-[11px] font-medium uppercase tracking-wide text-[var(--text-muted)]">{label}</p><p className="truncate text-sm font-medium text-[var(--text-primary)]" title={value}>{value}</p></div>

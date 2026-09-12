@@ -12,7 +12,7 @@ import { useState, useEffect, useCallback } from 'react';
  * 监听 CSS 媒体查询，返回当前是否匹配。
  *
  * @example
- * const isMobile = useMediaQuery('(max-width: 639px)');
+ * const isMobile = useMediaQuery('(max-width: 767px)');
  * const prefersDark = useMediaQuery('(prefers-color-scheme: dark)');
  * const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
  */
@@ -56,8 +56,12 @@ export function useMediaQuery(query: string): boolean {
 /**
  * 预定义断点 hooks — 对齐 §8.8.1 BREAKPOINTS
  */
+/**
+ * @deprecated §8.1 断点已统一为 768/1024，新代码请使用 useResponsive()。
+ * 本 hook 仅为兼容存量保留（hooks/index.ts 继续导出），口径已对齐 (max-width: 767px)。
+ */
 export function useIsMobile(): boolean {
-    return useMediaQuery('(max-width: 639px)');
+    return useMediaQuery('(max-width: 767px)');
 }
 
 export function useIsTablet(): boolean {

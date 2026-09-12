@@ -298,7 +298,7 @@ body {
 }
 
 /* ===== §8.8 移动端代码块横向滚动 ===== */
-@media (max-width: 639px) {
+@media (max-width: 767px) {
   pre {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;

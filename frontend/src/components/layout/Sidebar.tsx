@@ -54,6 +54,7 @@ import { generateUUID } from '@/utils/uuid';
 import type { TaskState } from '@/types';
 import { useWorkbenchViewStore } from '@/store/workbenchViewStore';
 import { taskTitle } from '@/utils/workbenchPresentation';
+import { useViewportWidth } from '@/hooks/useResponsive';
 
 type TabType = 'sessions' | 'tasks' | 'files' | 'sequence' | 'dag' | 'git' | 'complexity' | 'impact' | 'api-docs' | 'diagram' | 'code-path' | 'apos';
 
@@ -97,13 +98,15 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab }: Si
     }, [pendingVisualizationTab, requestVisualizationTab]);
 
     // ── 可拖拽宽度 ──
+    // §8.1 职责分离：断点走 useResponsive、像素走 useViewportWidth（rAF 节流，随缩放更新）
+    const viewportWidth = useViewportWidth();
     // 动态最大宽度：不超过 800px 且不超过视口 70%
-    const getMaxWidth = useCallback(() => Math.min(MAX_WIDTH, Math.floor(window.innerWidth * 0.7)), []);
+    const getMaxWidth = useCallback(() => Math.min(MAX_WIDTH, Math.floor(viewportWidth * 0.7)), [viewportWidth]);
 
     const [width, setWidth] = useState(() => {
         if (isDrawerMode) return 280;
         const saved = localStorage.getItem(STORAGE_KEY);
-        const maxW = Math.min(MAX_WIDTH, Math.floor(window.innerWidth * 0.7));
+        const maxW = Math.min(MAX_WIDTH, Math.floor(viewportWidth * 0.7));
         return saved ? Math.min(Math.max(Number(saved), MIN_WIDTH), maxW) : DEFAULT_WIDTH;
     });
     const [isDragging, setIsDragging] = useState(false);

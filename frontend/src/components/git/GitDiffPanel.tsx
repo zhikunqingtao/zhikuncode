@@ -1,5 +1,6 @@
 import React, { useState, lazy, Suspense } from 'react';
 import { FileText, ChevronDown, ChevronRight, GitBranch, Columns, AlignLeft } from 'lucide-react';
+import { useResponsive } from '@/hooks/useResponsive';
 
 // Monaco DiffEditor 懒加载，避免首屏加载大包
 const DiffEditor = lazy(() =>
@@ -16,7 +17,8 @@ interface GitDiffData {
 export const GitDiffPanel: React.FC<{ data: GitDiffData }> = ({ data }) => {
     const [expandedFiles, setExpandedFiles] = useState<Set<string>>(new Set());
     const [useMonaco, setUseMonaco] = useState(false);
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    // §8.1 断点统一：useResponsive 带 resize 监听，顺带修复缩放不更新缺陷
+    const { isMobile } = useResponsive();
 
     // 解析 diff 按文件分组
     const fileDiffs = parseDiffByFile(data.diff);

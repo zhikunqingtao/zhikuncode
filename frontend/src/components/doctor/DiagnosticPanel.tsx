@@ -72,7 +72,7 @@ export const DiagnosticPanel: React.FC<{
     return (
         <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] p-4 space-y-4">
             {/* Header + Summary + Actions */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                     <Activity size={18} className="text-blue-400" />
                     <span className="font-semibold text-[var(--text-primary)]">环境诊断报告</span>

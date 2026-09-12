@@ -73,7 +73,7 @@ export function McpManagementPage({ onClose }: McpManagementPageProps) {
         </header>
 
         <div className="border-b border-[var(--border)] px-6 py-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-4 text-sm text-[var(--text-secondary)]">
               <span>{total} 个服务</span>
               <span className="text-emerald-500">{enabledCount} 个已启用</span>
@@ -82,7 +82,7 @@ export function McpManagementPage({ onClose }: McpManagementPageProps) {
               </span>
             </div>
             <div className="flex gap-2">
-              <label className="relative block min-w-0 flex-1 sm:w-72">
+              <label className="relative block min-w-0 flex-1 md:w-72">
                 <Search className="absolute left-3 top-2.5 h-4 w-4 text-[var(--text-muted)]" />
                 <input
                   value={query}

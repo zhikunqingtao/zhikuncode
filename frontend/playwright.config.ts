@@ -2,6 +2,8 @@ import { defineConfig, devices } from '@playwright/test';
 
 const HEAVY_ANALYSIS_TESTS =
   /(?:f35-code-diagram|f40-code-path)\.spec\.ts/;
+// §8.7 mobile project 承担的移动/响应式 spec（视口统一 393×852，防双跑必配平）
+const MOBILE_TESTS = /.*(mobile|responsive).*\.spec\.ts/;
 const E2E_BASE_URL = 'http://localhost:5173';
 
 /**
@@ -49,7 +51,20 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-      testIgnore: HEAVY_ANALYSIS_TESTS,
+      // §8.7 配平 1：mobile spec 由 mobile project 承担，chromium 排除防双跑
+      testIgnore: [HEAVY_ANALYSIS_TESTS, MOBILE_TESTS],
+    },
+    {
+      name: 'mobile',
+      use: {
+        ...devices['Pixel 7'],
+        viewport: { width: 393, height: 852 },
+        isMobile: true,
+        hasTouch: true,
+        deviceScaleFactor: 3,
+        channel: 'chrome',
+      },
+      testMatch: MOBILE_TESTS,
     },
     {
       name: 'heavy-analysis',

@@ -65,12 +65,13 @@ test.describe('APOS Phase 2 - Mobile Responsive (TC-APOS2-029~037)', () => {
     const mobileStatusBar = page.locator('button[aria-label="展开状态详情"]');
     await expect(mobileStatusBar).toHaveCount(0);
 
-    // 2. Tablet viewport (768-1023px) — AppLayout 视为移动端（<1024）
+    // 2. Compact viewport (768-1023px) — §8.1 断点统一后属 compact（isMobile=false）：
+    //    保留桌面侧栏，MobileStatusBar 不可见（断言自旧 <1024 口径反转）
     await page.setViewportSize(VIEWPORTS.tablet);
     await page.waitForTimeout(500);
 
-    // MobileStatusBar 应可见（AppLayout isMobile = innerWidth < 1024）
-    await expect(mobileStatusBar).toBeVisible({ timeout: 5000 });
+    await expect(mobileStatusBar).toHaveCount(0);
+    await expect(desktopSidebar).toBeVisible({ timeout: 5000 });
 
     // 3. Mobile viewport (<= 767px) — 纯移动模式
     await page.setViewportSize(VIEWPORTS.mobile);
@@ -84,10 +85,20 @@ test.describe('APOS Phase 2 - Mobile Responsive (TC-APOS2-029~037)', () => {
     await page.waitForTimeout(500);
     await expect(mobileStatusBar).toHaveCount(0);
 
-    // 5. 临界值验证：1023px → 移动/平板模式（MobileStatusBar 可见）
+    // 5. 临界值验证：1023px → compact 上限（isMobile=false，MobileStatusBar 不可见）
     await page.setViewportSize({ width: 1023, height: 800 });
     await page.waitForTimeout(500);
+    await expect(mobileStatusBar).toHaveCount(0);
+
+    // 6. 临界值验证：767px → mobile 上限（MobileStatusBar 可见）
+    await page.setViewportSize({ width: 767, height: 800 });
+    await page.waitForTimeout(500);
     await expect(mobileStatusBar).toBeVisible({ timeout: 5000 });
+
+    // 7. 临界值验证：768px → compact 下限（isMobile=false，MobileStatusBar 不可见）
+    await page.setViewportSize({ width: 768, height: 800 });
+    await page.waitForTimeout(500);
+    await expect(mobileStatusBar).toHaveCount(0);
 
     await takeTestScreenshot(page, 'TC-APOS2-029', '01-responsive-breakpoints');
   });
@@ -96,8 +107,7 @@ test.describe('APOS Phase 2 - Mobile Responsive (TC-APOS2-029~037)', () => {
   // TC-APOS2-030: MobileStatusBar 固定底部展示
   // ────────────────────────────────────────────────────
   test('TC-APOS2-030: MobileStatusBar 固定底部展示', async ({ page }) => {
-    await page.setViewportSize(VIEWPORTS.mobile);
-    await page.waitForTimeout(500);
+    // §8.7 移动视口由 mobile project（393×852）承担，移除临时 setViewportSize
 
     // 启用所有相关 Feature Flags
     await injectFeatureFlags(page, flags(createPhase2Flags()));
@@ -128,8 +138,7 @@ test.describe('APOS Phase 2 - Mobile Responsive (TC-APOS2-029~037)', () => {
   // TC-APOS2-031: MobileStatusBar Pipeline 摘要信息展示
   // ────────────────────────────────────────────────────
   test('TC-APOS2-031: MobileStatusBar Pipeline 摘要信息展示', async ({ page }) => {
-    await page.setViewportSize(VIEWPORTS.mobile);
-    await page.waitForTimeout(500);
+    // §8.7 移动视口由 mobile project（393×852）承担，移除临时 setViewportSize
     await injectFeatureFlags(page, flags(createPhase2Flags()));
 
     // 场景 1：无活跃 Swarm 时显示 "无活动 Pipeline"
@@ -158,8 +167,7 @@ test.describe('APOS Phase 2 - Mobile Responsive (TC-APOS2-029~037)', () => {
   // TC-APOS2-032: MobileStatusBar 异常计数徽章
   // ────────────────────────────────────────────────────
   test('TC-APOS2-032: MobileStatusBar 异常计数徽章', async ({ page }) => {
-    await page.setViewportSize(VIEWPORTS.mobile);
-    await page.waitForTimeout(500);
+    // §8.7 移动视口由 mobile project（393×852）承担，移除临时 setViewportSize
     await injectFeatureFlags(page, flags(createPhase2Flags()));
 
     // 初始无异常 — 徽章不显示
@@ -202,8 +210,7 @@ test.describe('APOS Phase 2 - Mobile Responsive (TC-APOS2-029~037)', () => {
   // TC-APOS2-033: MobileStatusBar 展开/收起交互
   // ────────────────────────────────────────────────────
   test('TC-APOS2-033: MobileStatusBar 展开/收起交互', async ({ page }) => {
-    await page.setViewportSize(VIEWPORTS.mobile);
-    await page.waitForTimeout(500);
+    // §8.7 移动视口由 mobile project（393×852）承担，移除临时 setViewportSize
     await injectFeatureFlags(page, flags(createPhase2Flags()));
 
     // 注入变更影响数据使展开面板有内容
@@ -247,8 +254,7 @@ test.describe('APOS Phase 2 - Mobile Responsive (TC-APOS2-029~037)', () => {
   // TC-APOS2-034: MobilePipelineSummary Worker 状态统计
   // ────────────────────────────────────────────────────
   test('TC-APOS2-034: MobilePipelineSummary Worker 状态统计', async ({ page }) => {
-    await page.setViewportSize(VIEWPORTS.mobile);
-    await page.waitForTimeout(500);
+    // §8.7 移动视口由 mobile project（393×852）承担，移除临时 setViewportSize
     await injectFeatureFlags(page, flags(createPhase2Flags()));
 
     // 注入 4 个 Worker（状态循环：WORKING, STARTING, IDLE, TERMINATED）
@@ -297,8 +303,7 @@ test.describe('APOS Phase 2 - Mobile Responsive (TC-APOS2-029~037)', () => {
   // TC-APOS2-035: MobileImpactList 文件路径截断
   // ────────────────────────────────────────────────────
   test('TC-APOS2-035: MobileImpactList 文件路径截断', async ({ page }) => {
-    await page.setViewportSize(VIEWPORTS.mobile);
-    await page.waitForTimeout(500);
+    // §8.7 移动视口由 mobile project（393×852）承担，移除临时 setViewportSize
     await injectFeatureFlags(page, flags(createPhase2Flags()));
 
     // 注入含长路径的变更影响数据
@@ -348,8 +353,7 @@ test.describe('APOS Phase 2 - Mobile Responsive (TC-APOS2-029~037)', () => {
   // TC-APOS2-036: MobileBottomSheet 拖拽关闭
   // ────────────────────────────────────────────────────
   test('TC-APOS2-036: MobileBottomSheet 拖拽关闭', async ({ page }) => {
-    await page.setViewportSize(VIEWPORTS.mobile);
-    await page.waitForTimeout(500);
+    // §8.7 移动视口由 mobile project（393×852）承担，移除临时 setViewportSize
     await injectFeatureFlags(page, flags(createPhase2Flags()));
 
     // 移动端需打开 Drawer 才能访问 Sidebar 中的 APOS Tab
@@ -481,13 +485,14 @@ test.describe('APOS Phase 2 - Mobile Responsive (TC-APOS2-029~037)', () => {
     await expect(mobileStatusBar).toHaveCount(0);
     await expect(desktopSidebar).toBeVisible({ timeout: 5000 });
 
-    // 4. Tablet 模式：MobileStatusBar 可见（AppLayout < 1024 = mobile）
+    // 4. Compact 模式（768-1023px）：§8.1 断点统一后 isMobile=false ——
+    //    MobileStatusBar 不可见，Desktop Sidebar 保留（断言自旧 <1024 口径反转）
     await page.setViewportSize(VIEWPORTS.tablet);
     await page.waitForTimeout(600);
 
-    await expect(mobileStatusBar).toBeVisible({ timeout: 5000 });
-    // Desktop Sidebar 不可见
-    await expect(desktopSidebar).toHaveCount(0);
+    await expect(mobileStatusBar).toHaveCount(0);
+    // Desktop Sidebar 可见（compact 保留桌面侧栏）
+    await expect(desktopSidebar).toBeVisible({ timeout: 5000 });
 
     await takeTestScreenshot(page, 'TC-APOS2-037', '01-mutual-exclusion');
   });

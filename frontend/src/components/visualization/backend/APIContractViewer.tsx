@@ -232,7 +232,7 @@ const TagGroupPanel: React.FC<{
                 <span className="text-xs font-semibold text-[var(--text-primary)]">{group.tag}</span>
                 <span className="text-[10px] text-[var(--text-muted)]">({group.endpoints.length})</span>
                 {group.description && (
-                    <span className="text-[10px] text-[var(--text-muted)] truncate ml-1 hidden sm:inline">— {group.description}</span>
+                    <span className="text-[10px] text-[var(--text-muted)] truncate ml-1 hidden md:inline">— {group.description}</span>
                 )}
             </button>
 
@@ -405,7 +405,7 @@ export const APIContractViewer: React.FC<APIContractViewerProps> = ({ source: in
                                     : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'}`}
                         >
                             {tab.icon}
-                            <span className="hidden sm:inline">{tab.label}</span>
+                            <span className="hidden md:inline">{tab.label}</span>
                         </button>
                     ))}
                 </div>

@@ -38,7 +38,7 @@ export function TokenCostPanel({ sessionCost, totalCost, usage, history: _histor
             </h3>
 
             {/* Cost Summary */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
                 <div className="bg-blue-500/10 rounded-lg p-3">
                     <div className="text-xs text-blue-400">Session Cost</div>
                     <div className="text-lg font-semibold text-blue-300">

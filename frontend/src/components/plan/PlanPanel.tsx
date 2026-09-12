@@ -24,33 +24,7 @@ import {
     Square,
 } from 'lucide-react';
 import { usePlanStore, type PlanStep } from '@/store/planStore';
-
-// ==================== useBreakpoint Hook ====================
-
-type Breakpoint = 'mobile' | 'tablet' | 'desktop';
-
-function useBreakpoint(): Breakpoint {
-    const [bp, setBp] = useState<Breakpoint>(() => {
-        if (typeof window === 'undefined') return 'desktop';
-        const w = window.innerWidth;
-        if (w >= 1024) return 'desktop';
-        if (w >= 768) return 'tablet';
-        return 'mobile';
-    });
-
-    useEffect(() => {
-        const handleResize = () => {
-            const w = window.innerWidth;
-            if (w >= 1024) setBp('desktop');
-            else if (w >= 768) setBp('tablet');
-            else setBp('mobile');
-        };
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
-
-    return bp;
-}
+import { useResponsive } from '@/hooks/useResponsive';
 
 // ==================== StatusIcon ====================
 
@@ -380,16 +354,13 @@ function MobileDrawer() {
 
 export function PlanPanel() {
     const isPlanMode = usePlanStore(s => s.isPlanMode);
-    const breakpoint = useBreakpoint();
+    // §8.1 断点统一：<768 mobile / 768–1023 compact(tablet) / ≥1024 desktop，语义与原 useBreakpoint 一一映射
+    const { isTablet, isDesktop } = useResponsive();
 
     if (!isPlanMode) return null;
 
-    switch (breakpoint) {
-        case 'desktop':
-            return <DesktopPanel />;
-        case 'tablet':
-            return <TabletPanel />;
-        case 'mobile':
-            return <MobileDrawer />;
-    }
+    if (isDesktop) return <DesktopPanel />;
+    if (isTablet) return <TabletPanel />;
+    // isMobile（<768px）：底部抽屉
+    return <MobileDrawer />;
 }

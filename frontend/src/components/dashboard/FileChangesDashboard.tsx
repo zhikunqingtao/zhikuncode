@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FileText, Clock } from 'lucide-react';
+import { useResponsive } from '@/hooks/useResponsive';
 
 interface SnapshotEntry {
     messageId: string;
@@ -20,6 +21,9 @@ export const FileChangesDashboard: React.FC<{ sessionId: string }> = ({ sessionI
     const [diffStats, setDiffStats] = useState<DiffStatsResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'files' | 'diff'>('files');
+    // §8.1 断点统一：useResponsive 带 resize 监听，顺带修复缩放不更新缺陷
+    // （hook 须在 early return 之前调用）
+    const { isMobile } = useResponsive();
 
     // 对接已有后端 API — GET /api/sessions/{sessionId}/history/snapshots
     useEffect(() => {
@@ -54,8 +58,6 @@ export const FileChangesDashboard: React.FC<{ sessionId: string }> = ({ sessionI
     };
 
     if (loading) return <div className="p-4 text-sm text-[var(--text-muted)]">加载中...</div>;
-
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
     // 文件列表面板
     const fileList = (

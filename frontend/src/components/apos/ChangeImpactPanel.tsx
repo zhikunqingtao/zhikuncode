@@ -28,7 +28,7 @@ export function ChangeImpactPanel() {
   return (
     <div className="flex flex-col gap-3 p-3">
       {/* Risk Summary Cards */}
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
         <SummaryCard label="总文件数" value={riskSummary.totalFiles} variant="default" />
         <SummaryCard label="高风险" value={riskSummary.highRiskCount} variant="danger" />
         <SummaryCard label="测试缺口" value={riskSummary.testCoverageGapCount} variant="warning" />
