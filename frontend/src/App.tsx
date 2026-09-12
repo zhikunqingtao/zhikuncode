@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, useMemo, useRef } from 'react';
 import { AppLayout } from '@/components/layout';
 import { MessageList } from '@/components/message';
+import type { MessageListHandle } from '@/components/message';
 import { JourneyVerifyPanel } from '@/components/verify/JourneyVerifyPanel';
 import { PromptInput } from '@/components/input';
 import { DialogManager } from '@/components/DialogManager';
@@ -41,12 +42,36 @@ import { useWorkbenchViewStore } from '@/store/workbenchViewStore';
 import { useJourneyVerifyStore } from '@/store/journeyVerifyStore';
 import { usePageExitGuard } from '@/hooks/usePageExitGuard';
 import { useResponsive } from '@/hooks/useResponsive';
+import { useVirtualKeyboard } from '@/hooks/useVirtualKeyboard';
 
 interface SkillItem {
   name: string;
   description: string;
   source: string;
 }
+
+/**
+ * §7.6 移动态虚拟键盘桥（仅 isMobile 时挂载，桌面零副作用）：
+ * 启用 useVirtualKeyboard —— 它自写 --keyboard-height/--viewport-height CSS 变量，
+ * .prompt-input-container 据此上浮输入条；此处另消费其返回值，
+ * 在键盘弹起瞬间（0→>0）对消息流做一次性滚底，不接管后续滚动，
+ * 与 MessageList「用户上翻时不强制滚底」的既有逻辑正交。
+ */
+const MobileKeyboardBridge: React.FC<{
+  listRef: React.RefObject<MessageListHandle | null>;
+}> = ({ listRef }) => {
+  const { keyboardHeight } = useVirtualKeyboard();
+  const prevKeyboardHeightRef = useRef(0);
+
+  useEffect(() => {
+    if (prevKeyboardHeightRef.current === 0 && keyboardHeight > 0) {
+      listRef.current?.scrollToBottom();
+    }
+    prevKeyboardHeightRef.current = keyboardHeight;
+  }, [keyboardHeight, listRef]);
+
+  return null;
+};
 
 function App() {
   usePageExitGuard();
@@ -55,8 +80,9 @@ function App() {
   const { status, sessionId } = useSessionStore();
   const workbenchEnabled = useWorkbenchViewStore(s => s.enabled);
   const viewMode = useWorkbenchViewStore(s => s.viewMode);
-  // §7.6 移动态：输入区容器换肤（悬浮胶囊条 + safe-area），桌面保持既有样式
+  // §7.6 移动态：输入区容器换肤（悬浮胶囊条 + safe-area + 键盘高度），桌面保持既有样式
   const { isMobile } = useResponsive();
+  const messageListRef = useRef<MessageListHandle>(null);
   const { loadConfig } = useConfigStore();
   const sessionReadinessRef = useRef<Promise<string | null> | null>(null);
   const newSessionRequestRef = useRef<Promise<string | null> | null>(null);
@@ -421,15 +447,18 @@ function App() {
                   </div>
                 </div>
               ) : (
-                <MessageList />
+                <MessageList ref={messageListRef} />
               )}
           </div>
 
           {(!workbenchEnabled || viewMode === 'development') && <JourneyVerifyPanel />}
 
-          {/* Input（移动态：透明容器 + safe-area 内边距，承载 §7.6 悬浮胶囊条） */}
+          {/* §7.6 移动虚拟键盘桥：仅移动挂载（写 --keyboard-height + 弹起滚底） */}
+          {isMobile && <MobileKeyboardBridge listRef={messageListRef} />}
+
+          {/* Input（移动态：prompt-input-container = 键盘高度+safe-area 内边距，承载悬浮胶囊条） */}
           <div className={isMobile
-            ? 'px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-1'
+            ? 'prompt-input-container px-3 pt-1'
             : 'border-t border-[var(--border)] p-4 bg-[var(--bg-secondary)]'}>
             <PromptInput
               sessionId={sessionId}

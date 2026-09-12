@@ -9,7 +9,7 @@
  * - 流式更新不闪烁 (streaming 消息使用增量渲染)
  */
 
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useImperativeHandle, useRef } from 'react';
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
 import { useMessageStore } from '@/store/messageStore';
 import { useWorkbenchViewStore } from '@/store/workbenchViewStore';
@@ -24,10 +24,26 @@ const VIRTUOSO_CONFIG = {
     defaultItemHeight: 80,
 };
 
-const MessageList: React.FC = () => {
+/**
+ * §7.6 纯新增：MessageList 对外命令式 API。
+ * scrollToBottom 供「移动键盘弹起瞬间一次性滚底」等场景调用；
+ * 不触碰 followOutput 等既有滚动行为（用户上翻不强制滚底逻辑保持原样）。
+ */
+export interface MessageListHandle {
+    scrollToBottom: () => void;
+}
+
+const MessageList = React.forwardRef<MessageListHandle>((_props, ref) => {
     const virtuosoRef = useRef<VirtuosoHandle>(null);
     // §7.6 移动态：消息流底部 96px 渐隐遮罩（仅移动渲染，桌面零变化）
     const { isMobile } = useResponsive();
+
+    // §7.6 滚底 API（behavior:'auto' 一帧到位，避免与键盘/容器动画竞争）
+    useImperativeHandle(ref, () => ({
+        scrollToBottom: () => {
+            virtuosoRef.current?.scrollToIndex({ index: 'LAST', align: 'end', behavior: 'auto' });
+        },
+    }), []);
 
     // Subscribe to store slices
     const messages = useMessageStore(s => s.messages);
@@ -137,7 +153,7 @@ const MessageList: React.FC = () => {
             {mobileBottomFade}
         </div>
     );
-};
+});
 
 // ==================== Empty State ====================
 
@@ -152,5 +168,7 @@ const EmptyState: React.FC = () => (
         </div>
     </div>
 );
+
+MessageList.displayName = 'MessageList';
 
 export default React.memo(MessageList);

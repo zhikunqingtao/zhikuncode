@@ -267,8 +267,17 @@ body {
 }
 
 .prompt-input-container {
-  padding-bottom: calc(var(--keyboard-height, 0px) + env(safe-area-inset-bottom));
-  transition: padding-bottom 0.25s ease-out;
+  /* §7.6 键盘适配：padding-bottom = 键盘高度 + max(0.75rem 基线间距, safe-area)。
+     保留 0.75rem 下限以维持 P2b-2a 胶囊条既有视觉（键盘收起时与 pb-[max(0.75rem,…)] 完全一致） */
+  padding-bottom: calc(var(--keyboard-height, 0px) + max(0.75rem, env(safe-area-inset-bottom)));
+}
+
+/* 键盘避让属功能性过渡（§5.2）：仅在无 reduced-motion 偏好时声明 transition ——
+   motion-safe 等价写法，规避下方全局 !important 压平；reduced-motion 下 padding 瞬时生效、布局不变 */
+@media (prefers-reduced-motion: no-preference) {
+  .prompt-input-container {
+    transition: padding-bottom 0.25s ease-out;
+  }
 }
 
 /* ===== §8.8.5 动画偏好 ===== */
