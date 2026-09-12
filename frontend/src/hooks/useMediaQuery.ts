@@ -18,13 +18,15 @@ import { useState, useEffect, useCallback } from 'react';
  */
 export function useMediaQuery(query: string): boolean {
     const getMatch = useCallback((): boolean => {
-        if (typeof window === 'undefined') return false;
+        // SSR / jsdom 环境无 matchMedia 时安全降级为 false（如 jsdom 下 useResponsive 的 isMobile=false）
+        if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
         return window.matchMedia(query).matches;
     }, [query]);
 
     const [matches, setMatches] = useState(getMatch);
 
     useEffect(() => {
+        if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
         const mql = window.matchMedia(query);
 
         // 初始同步
