@@ -79,11 +79,11 @@ export const Progress = forwardRef<HTMLDivElement, ProgressProps>(
         return (
             <div className="flex w-full items-center gap-2">
                 {start !== undefined && (
-                    <span className="shrink-0 text-xs tabular-nums text-t3">{start}</span>
+                    <span className="shrink-0 text-xs tabular-nums text-t2">{start}</span>
                 )}
                 {track}
                 {end !== undefined && (
-                    <span className="shrink-0 text-xs tabular-nums text-t3">{end}</span>
+                    <span className="shrink-0 text-xs tabular-nums text-t2">{end}</span>
                 )}
             </div>
         );

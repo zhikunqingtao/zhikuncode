@@ -3,11 +3,11 @@ import { useConfigStore } from '../configStore';
 
 describe('ConfigStore', () => {
     beforeEach(() => {
-        // Reset to defaults
+        // Reset to defaults（§3.4/§9.6：默认强调色 = 靛蓝 #6366F1）
         useConfigStore.setState({
             theme: {
                 mode: 'system',
-                accentColor: '#3b82f6',
+                accentColor: '#6366F1',
                 fontSize: 'medium',
                 fontFamily: 'monospace',
                 borderRadius: 'md',
@@ -24,7 +24,7 @@ describe('ConfigStore', () => {
     it('should have default theme', () => {
         const { theme } = useConfigStore.getState();
         expect(theme.mode).toBe('system');
-        expect(theme.accentColor).toBe('#3b82f6');
+        expect(theme.accentColor).toBe('#6366F1');
         expect(theme.fontSize).toBe('medium');
     });
 
@@ -32,7 +32,7 @@ describe('ConfigStore', () => {
         useConfigStore.getState().setTheme({ mode: 'dark' });
         const { theme } = useConfigStore.getState();
         expect(theme.mode).toBe('dark');
-        expect(theme.accentColor).toBe('#3b82f6'); // unchanged
+        expect(theme.accentColor).toBe('#6366F1'); // unchanged
     });
 
     it('resetTheme restores defaults', () => {
@@ -40,7 +40,8 @@ describe('ConfigStore', () => {
         useConfigStore.getState().resetTheme();
         const { theme } = useConfigStore.getState();
         expect(theme.mode).toBe('system');
-        expect(theme.accentColor).toBe('#3b82f6');
+        // §9.6：默认强调色已改靛蓝
+        expect(theme.accentColor).toBe('#6366F1');
     });
 
     it('setLocale updates locale', () => {

@@ -3,6 +3,12 @@
  * SPEC: §8.2.6a.11 SettingsPanel
  *
  * 包含: 主题设置、模型选择、权限模式、快捷键等
+ * P1b（指南 §13 P1 首批替换）：按钮/输入项换用 @/components/ui 基元与 v2 令牌，
+ *      分组标题改 Label 风格（11px 大写 tracking-wider text-t3）；
+ *      所有设置项功能、事件逻辑与 DOM 结构不动。
+ *      说明：面板容器按 §7.7 Dialog 配方直写令牌（rounded-panel + shadow-e4），
+ *      未用 Card 基元——cn(twMerge) 无法合并自定义 rounded-panel 与基元 rounded-2xl，
+ *      className 覆盖不可靠。
  */
 
 import React, { useCallback, useEffect } from 'react';
@@ -14,7 +20,20 @@ import { useNotificationStore } from '@/store/notificationStore';
 import { useModelStore } from '@/store/modelStore';
 import { sendSetPermissionMode } from '@/api/stompClient';
 import { isSessionBound } from '@/api/dispatch';
+import { Button, Kbd, cn } from '@/components/ui';
 import type { ThemeConfig, PermissionMode } from '@/types';
+
+/** 分组标题 Label 风格（§3.8 Label：11px / 600 / 大写 / +0.06~0.08em）
+ *  颜色取 text-t2 而非任务书字面 text-t3：text-t3 实测对比度 3.89:1 不达 §10.1 AA 红线
+ * （≥4.5:1），text-t2 实测 ≥7:1；对比度红线优先于色级偏好（详见提交报告）。 */
+const sectionTitleClass =
+    'text-[11px] font-semibold uppercase tracking-wider text-t2 mb-3 flex items-center gap-2';
+
+/** 原生 select 复用 Input 基元配方（凹陷井 + 3px accent focus ring，§6.2） */
+const selectClass =
+    'w-full h-9 px-3 rounded-xl bg-sunken2 shadow-well border border-transparent text-sm text-t1 ' +
+    'transition-surface duration-fast focus:outline-none focus:ring-[3px] focus:ring-accent2-ring ' +
+    'disabled:opacity-50 disabled:pointer-events-none';
 
 interface SettingsPanelProps {
     onClose: () => void;
@@ -63,25 +82,22 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
     }, [addNotification, hasBoundSession]);
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-            <div className="w-full max-w-2xl mx-4 max-h-[80vh] rounded-xl border border-[var(--border)] 
-                            bg-[var(--bg-primary)] shadow-2xl overflow-hidden flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay2 backdrop-blur-sm">
+            <div className="w-full max-w-2xl mx-4 max-h-[80vh] rounded-panel border border-hairline
+                            bg-surfacev2 shadow-e4 overflow-hidden flex flex-col">
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-[var(--border)] flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-[var(--text-primary)]">设置</h2>
-                    <button
-                        onClick={onClose}
-                        className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-muted)]"
-                    >
+                <div className="px-6 py-4 border-b border-hairline flex items-center justify-between">
+                    <h2 className="text-base font-semibold text-t1">设置</h2>
+                    <Button variant="ghost" size="sm" iconOnly onClick={onClose} aria-label="关闭设置">
                         <X className="w-5 h-5" />
-                    </button>
+                    </Button>
                 </div>
 
                 {/* Content */}
                 <div className="flex-1 overflow-y-auto p-6 space-y-8">
                     {/* Theme Section */}
                     <section>
-                        <h3 className="text-sm font-medium text-[var(--text-secondary)] mb-3 flex items-center gap-2">
+                        <h3 className={sectionTitleClass}>
                             <Sun className="w-4 h-4" />
                             主题
                         </h3>
@@ -115,17 +131,16 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
 
                     {/* Model Section */}
                     <section>
-                        <h3 className="text-sm font-medium text-[var(--text-secondary)] mb-3 flex items-center gap-2">
+                        <h3 className={sectionTitleClass}>
                             <Globe className="w-4 h-4" />
                             模型
                         </h3>
                         <select
+                            aria-label="模型选择"
                             value={model || ''}
                             onChange={(e) => setModel(e.target.value)}
                             disabled={modelsLoading || availableModels.length === 0}
-                            className="w-full px-3 py-2 rounded-lg border border-[var(--border)]
-                                bg-[var(--bg-secondary)] text-[var(--text-primary)]
-                                focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className={selectClass}
                         >
                             {availableModels.length === 0 && (
                                 <option value="">
@@ -140,29 +155,31 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
                             ))}
                         </select>
                         {modelsError && (
-                            <button
-                                type="button"
+                            <Button
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => void fetchModels()}
-                                className="mt-2 text-sm text-blue-500 hover:underline"
+                                className="mt-2 text-accent2-strong hover:underline"
                             >
                                 重新加载模型列表
-                            </button>
+                            </Button>
                         )}
 
                         {/* Effort Slider */}
                         <div className="mt-4">
-                            <label className="text-sm text-[var(--text-secondary)]">
+                            <label htmlFor="settings-effort" className="text-sm text-t2">
                                 努力程度: {effortValue}
                             </label>
                             <input
+                                id="settings-effort"
                                 type="range"
                                 min={1}
                                 max={5}
                                 value={effortValue}
                                 onChange={(e) => setEffort(parseInt(e.target.value))}
-                                className="w-full mt-2"
+                                className="w-full mt-2 accent-accent2"
                             />
-                            <div className="flex justify-between text-xs text-[var(--text-muted)] mt-1">
+                            <div className="flex justify-between text-xs text-t2 mt-1">
                                 <span>快速</span>
                                 <span>平衡</span>
                                 <span>深度</span>
@@ -172,7 +189,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
 
                     {/* Permission Section */}
                     <section>
-                        <h3 className="text-sm font-medium text-[var(--text-secondary)] mb-3 flex items-center gap-2">
+                        <h3 className={sectionTitleClass}>
                             <Shield className="w-4 h-4" />
                             权限模式
                         </h3>
@@ -220,7 +237,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
                             />
                         </div>
                         {!hasBoundSession && (
-                            <p className="mt-2 text-xs text-[var(--text-muted)]">
+                            <p className="mt-2 text-xs text-t3">
                                 请先创建或选择会话后再设置权限模式。
                             </p>
                         )}
@@ -228,16 +245,15 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
 
                     {/* Language Section */}
                     <section>
-                        <h3 className="text-sm font-medium text-[var(--text-secondary)] mb-3 flex items-center gap-2">
+                        <h3 className={sectionTitleClass}>
                             <Globe className="w-4 h-4" />
                             语言
                         </h3>
                         <select
+                            aria-label="语言"
                             value={locale}
                             onChange={(e) => setLocale(e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg border border-[var(--border)]
-                                bg-[var(--bg-secondary)] text-[var(--text-primary)]
-                                focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className={selectClass}
                         >
                             <option value="zh-CN">简体中文</option>
                             <option value="zh-TW">繁體中文</option>
@@ -248,7 +264,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
 
                     {/* Shortcuts Section */}
                     <section>
-                        <h3 className="text-sm font-medium text-[var(--text-secondary)] mb-3 flex items-center gap-2">
+                        <h3 className={sectionTitleClass}>
                             <Keyboard className="w-4 h-4" />
                             快捷键
                         </h3>
@@ -264,20 +280,17 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 border-t border-[var(--border)] flex justify-end">
-                    <button
-                        onClick={onClose}
-                        className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm"
-                    >
+                <div className="px-6 py-4 border-t border-hairline flex justify-end">
+                    <Button variant="primary" onClick={onClose}>
                         完成
-                    </button>
+                    </Button>
                 </div>
             </div>
         </div>
     );
 };
 
-// Theme Option Component
+// Theme Option Component（自定义选项钮：布局为纵向卡片，非 Button 基元形态；配色与 ThemePicker 一致）
 function ThemeOption({
     icon: Icon,
     label,
@@ -292,14 +305,15 @@ function ThemeOption({
     return (
         <button
             onClick={onClick}
-            className={`flex flex-col items-center gap-2 p-4 rounded-lg border transition-all
-                ${selected
-                    ? 'border-blue-500 bg-blue-500/10'
-                    : 'border-[var(--border)] hover:border-blue-500/50 hover:bg-[var(--bg-hover)]'
-                }`}
+            className={cn(
+                'flex flex-col items-center gap-2 p-4 rounded-lg border transition-interactive duration-fast',
+                selected
+                    ? 'border-accent2 bg-accent2-soft'
+                    : 'border-hairline hover:border-accent2-ring hover:bg-hover2'
+            )}
         >
-            <Icon className={`w-5 h-5 ${selected ? 'text-blue-500' : 'text-[var(--text-secondary)]'}`} />
-            <span className={`text-sm ${selected ? 'text-blue-500' : 'text-[var(--text-primary)]'}`}>
+            <Icon className={cn('w-5 h-5', selected ? 'text-accent2-strong' : 'text-t2')} />
+            <span className="text-sm text-t1">
                 {label}
             </span>
         </button>
@@ -307,6 +321,7 @@ function ThemeOption({
 }
 
 // Permission Option Component
+// 注意：label 直接子元素必须是本 button（auto-approve e2e 依赖 getByText(label).locator('..') 定位按钮）
 function PermissionOption({
     label,
     description,
@@ -327,19 +342,20 @@ function PermissionOption({
         <button
             onClick={onClick}
             disabled={disabled}
-            className={`w-full px-4 py-3 rounded-lg border text-left transition-all
-                ${disabled ? 'cursor-not-allowed opacity-50' : ''}
-                ${selected
-                    ? warning ? 'border-orange-500 bg-orange-500/10' : 'border-blue-500 bg-blue-500/10'
-                    : warning ? 'border-orange-500/60 hover:bg-orange-500/10'
-                        : 'border-[var(--border)] hover:border-blue-500/50 hover:bg-[var(--bg-hover)]'
-                }`}
+            className={cn(
+                'w-full px-4 py-3 rounded-lg border text-left transition-interactive duration-fast',
+                disabled && 'cursor-not-allowed opacity-50',
+                selected
+                    ? warning ? 'border-warn bg-warnsoft' : 'border-accent2 bg-accent2-soft'
+                    : warning ? 'border-warn hover:bg-warnsoft'
+                        : 'border-hairline hover:border-accent2-ring hover:bg-hover2'
+            )}
         >
-            <div className={`font-medium ${warning ? 'text-orange-500'
-                : selected ? 'text-blue-500' : 'text-[var(--text-primary)]'}`}>
+            {/* 选中态经 border + soft 底 + （warning 时）warn 边双编码；文字保持 t1 以满足 §10.1 对比度 */}
+            <div className="font-medium text-t1">
                 {label}
             </div>
-            <div className="text-sm text-[var(--text-muted)]">{description}</div>
+            <div className="text-sm text-t2">{description}</div>
         </button>
     );
 }
@@ -348,15 +364,12 @@ function PermissionOption({
 function ShortcutItem({ keys, description }: { keys: string[]; description: string }) {
     return (
         <div className="flex items-center justify-between py-1">
-            <span className="text-[var(--text-secondary)]">{description}</span>
+            <span className="text-t2">{description}</span>
             <div className="flex items-center gap-1">
                 {keys.map((key, index) => (
                     <React.Fragment key={key}>
-                        <kbd className="px-2 py-0.5 bg-[var(--bg-secondary)] border border-[var(--border)]
-                            rounded text-xs text-[var(--text-primary)]">
-                            {key}
-                        </kbd>
-                        {index < keys.length - 1 && <span className="text-[var(--text-muted)]">+</span>}
+                        <Kbd>{key}</Kbd>
+                        {index < keys.length - 1 && <span className="text-t3">+</span>}
                     </React.Fragment>
                 ))}
             </div>

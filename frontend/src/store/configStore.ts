@@ -34,7 +34,8 @@ export interface ConfigStoreState {
 
 const DEFAULT_THEME: ThemeConfig = {
     mode: 'system',
-    accentColor: '#3b82f6',
+    // §3.4/§9.6：默认强调色改靛蓝（仅改默认值，无存量迁移逻辑）
+    accentColor: '#6366F1',
     fontSize: 'medium',
     fontFamily: 'monospace',
     borderRadius: 'md',
@@ -175,7 +176,8 @@ export const useConfigStore = create<ConfigStoreState>()(
                         const oldTheme = typeof data.theme === 'string' ? data.theme : 'system';
                         return {
                             ...data,
-                            theme: { mode: oldTheme, accentColor: '#3b82f6', fontSize: 'medium', fontFamily: 'monospace', borderRadius: 'md' },
+                            // §3.4/§9.6：兜底默认与 DEFAULT_THEME 统一为靛蓝
+                            theme: { mode: oldTheme, accentColor: '#6366F1', fontSize: 'medium', fontFamily: 'monospace', borderRadius: 'md' },
                             autoCompact: (data.autoCompact as Record<string, unknown>) ?? { enabled: true, threshold: 80 },
                             expandedView: data.expandedView ?? false,
                             outputStyle: data.outputStyle ?? { availableStyles: [], activeStyleName: null },

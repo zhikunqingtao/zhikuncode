@@ -13,10 +13,10 @@ const chipVariants = cva(
     {
         variants: {
             variant: {
-                accent: 'bg-accent2-soft text-accent2-strong',
-                ok: 'bg-oksoft text-ok',
-                warn: 'bg-warnsoft text-warn',
-                err: 'bg-errsoft text-err',
+                accent: 'bg-accent2-soft text-accent2-strong dark:text-accent2',
+                ok: 'bg-oksoft text-okstrong dark:text-ok',
+                warn: 'bg-warnsoft text-warnstrong dark:text-warn',
+                err: 'bg-errsoft text-errstrong dark:text-err',
                 neutral: 'bg-sunken2 text-t2',
             },
             selected: {

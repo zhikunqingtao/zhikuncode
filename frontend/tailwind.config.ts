@@ -56,10 +56,13 @@ export default {
                 },
                 ok: 'var(--v2-ok)',
                 oksoft: 'var(--v2-ok-soft)',
+                okstrong: 'var(--v2-ok-strong)',
                 err: 'var(--v2-err)',
                 errsoft: 'var(--v2-err-soft)',
+                errstrong: 'var(--v2-err-strong)',
                 warn: 'var(--v2-warn)',
                 warnsoft: 'var(--v2-warn-soft)',
+                warnstrong: 'var(--v2-warn-strong)',
             },
             borderRadius: {
                 panel: 'var(--v2-r-panel)',

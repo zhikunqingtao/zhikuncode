@@ -28,8 +28,9 @@ import {
     Textarea,
     Toggle,
 } from '@/components/ui';
+import { ACCENT_PRESETS, applyAccent, DEFAULT_ACCENT_HEX } from '@/theme/accents';
 
-/* ===== 主题与强调色（值取自指南 §3.4 终值表，与 ThemePicker 写入机制同源） ===== */
+/* ===== 主题与强调色（值取自指南 §3.4 终值表，与 ThemePicker 共用 @/theme/accents 同一写入机制） ===== */
 
 type ThemeName = 'light' | 'dark' | 'glass';
 const THEMES: { name: ThemeName; label: string }[] = [
@@ -38,36 +39,10 @@ const THEMES: { name: ThemeName; label: string }[] = [
     { name: 'glass', label: 'Glass' },
 ];
 
-interface AccentDef {
-    name: string;
-    label: string;
-    accent: string;
-    strong: string;
-    soft: string;
-    ring: string;
-}
-const ACCENTS: AccentDef[] = [
-    { name: 'indigo', label: '靛蓝', accent: '#6366F1', strong: '#4F46E5', soft: 'rgba(99,102,241,.10)', ring: 'rgba(99,102,241,.32)' },
-    { name: 'violet', label: '紫罗兰', accent: '#8B5CF6', strong: '#7C3AED', soft: 'rgba(139,92,246,.10)', ring: 'rgba(139,92,246,.32)' },
-    { name: 'magenta', label: '品红', accent: '#EC4899', strong: '#DB2777', soft: 'rgba(236,72,153,.10)', ring: 'rgba(236,72,153,.32)' },
-    { name: 'orange', label: '橙', accent: '#F59E0B', strong: '#C2410C', soft: 'rgba(245,158,11,.12)', ring: 'rgba(245,158,11,.35)' },
-    { name: 'green', label: '绿', accent: '#10B981', strong: '#047857', soft: 'rgba(16,185,129,.12)', ring: 'rgba(16,185,129,.35)' },
-    { name: 'red', label: '红', accent: '#EF4444', strong: '#DC2626', soft: 'rgba(239,68,68,.10)', ring: 'rgba(239,68,68,.32)' },
-];
-
 function applyTheme(theme: ThemeName) {
     const root = document.documentElement;
     root.classList.remove('light', 'dark', 'glass');
     root.classList.add(theme);
-}
-
-function applyAccent(a: AccentDef) {
-    const style = document.documentElement.style;
-    style.setProperty('--v2-accent', a.accent);
-    style.setProperty('--v2-accent-strong', a.strong);
-    style.setProperty('--v2-accent-soft', a.soft);
-    style.setProperty('--v2-accent-ring', a.ring);
-    /* hover/active 走 color-mix(var(--v2-accent-strong))，自动联动 */
 }
 
 /* ===== 布局小件 ===== */
@@ -75,7 +50,7 @@ function applyAccent(a: AccentDef) {
 function Section({ title, children }: { title: string; children: ReactNode }) {
     return (
         <section className="mb-10">
-            <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-t4">
+            <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-t2">
                 {title}
             </h2>
             {children}
@@ -86,7 +61,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 function Row({ label, children }: { label: string; children: ReactNode }) {
     return (
         <div className="mb-3 flex flex-wrap items-center gap-3">
-            <span className="w-28 shrink-0 text-xs text-t3">{label}</span>
+            <span className="w-28 shrink-0 text-xs text-t2">{label}</span>
             {children}
         </div>
     );
@@ -96,7 +71,7 @@ function Swatch({ cls, name }: { cls: string; name: string }) {
     return (
         <div className="flex w-24 flex-col gap-1">
             <div className={`h-10 rounded-lg border border-hairline ${cls}`} />
-            <span className="truncate font-mono text-[11px] text-t3">{name}</span>
+            <span className="truncate font-mono text-[11px] text-t2">{name}</span>
         </div>
     );
 }
@@ -105,12 +80,13 @@ function Swatch({ cls, name }: { cls: string; name: string }) {
 
 export default function DesignGallery() {
     const [theme, setTheme] = useState<ThemeName>('light');
-    const [accent, setAccent] = useState<AccentDef>(ACCENTS[0]);
+    const [accentHex, setAccentHex] = useState<string>(DEFAULT_ACCENT_HEX);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [toggleOn, setToggleOn] = useState(true);
 
     useEffect(() => applyTheme(theme), [theme]);
-    useEffect(() => applyAccent(accent), [accent]);
+    // glass 按 resolveTheme 语义归一为 light；dark 档写 dark soft/ring
+    useEffect(() => applyAccent(accentHex, theme === 'dark' ? 'dark' : 'light'), [accentHex, theme]);
 
     return (
         <div data-design-gallery className="min-h-screen bg-app2 text-t1">
@@ -135,7 +111,7 @@ export default function DesignGallery() {
                                     className={`h-7 rounded-xl px-3 text-xs font-medium transition-interactive duration-fast focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring ${
                                         theme === t.name
                                             ? 'bg-surfacev2 text-t1 shadow-e1'
-                                            : 'text-t3 hover:text-t1'
+                                            : 'text-t2 hover:text-t1'
                                     }`}
                                 >
                                     {t.label}
@@ -143,18 +119,18 @@ export default function DesignGallery() {
                             ))}
                         </div>
                         <div className="flex items-center gap-1.5" role="radiogroup" aria-label="强调色">
-                            {ACCENTS.map((a) => (
+                            {ACCENT_PRESETS.map((a) => (
                                 <button
-                                    key={a.name}
+                                    key={a.hex}
                                     type="button"
                                     role="radio"
-                                    aria-checked={accent.name === a.name}
+                                    aria-checked={accentHex === a.hex}
                                     title={a.label}
-                                    onClick={() => setAccent(a)}
+                                    onClick={() => setAccentHex(a.hex)}
                                     className="flex h-6 w-6 items-center justify-center rounded-full transition-interactive duration-fast focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring"
-                                    style={{ backgroundColor: a.accent }}
+                                    style={{ backgroundColor: a.hex }}
                                 >
-                                    {accent.name === a.name && (
+                                    {accentHex === a.hex && (
                                         <Check className="h-3.5 w-3.5 text-white" aria-hidden="true" />
                                     )}
                                 </button>
@@ -184,11 +160,18 @@ export default function DesignGallery() {
                         <Swatch cls="bg-err" name="err" />
                         <Swatch cls="bg-errsoft" name="errsoft" />
                     </div>
-                    <div className="mt-4 flex flex-wrap gap-6 text-sm">
-                        <span className="text-t1">text-t1 正文标题</span>
-                        <span className="text-t2">text-t2 次级</span>
-                        <span className="text-t3">text-t3 辅助</span>
-                        <span className="text-t4">text-t4 占位/装饰</span>
+                    <div className="mt-4 flex flex-wrap gap-5">
+                        {([
+                            ['--v2-text-1', 'text-t1 正文标题'],
+                            ['--v2-text-2', 'text-t2 次级'],
+                            ['--v2-text-3', 'text-t3 辅助（≥4.5:1 下限）'],
+                            ['--v2-text-4', 'text-t4 占位/装饰'],
+                        ] as const).map(([v, label]) => (
+                            <span key={v} className="flex items-center gap-2 text-xs text-t2">
+                                <i aria-hidden="true" className="h-4 w-4 rounded-full border border-hairline" style={{ background: `var(${v})` }} />
+                                {label}
+                            </span>
+                        ))}
                     </div>
                 </Section>
 
@@ -197,7 +180,7 @@ export default function DesignGallery() {
                         {(['shadow-e1', 'shadow-e2', 'shadow-e3', 'shadow-e4', 'shadow-well', 'shadow-soft', 'shadow-soft-sm'] as const).map((s) => (
                             <div key={s} className="flex w-24 flex-col gap-1">
                                 <div className={`h-12 rounded-xl bg-surfacev2 ${s}`} />
-                                <span className="font-mono text-[11px] text-t3">{s}</span>
+                                <span className="font-mono text-[11px] text-t2">{s}</span>
                             </div>
                         ))}
                     </div>
@@ -216,8 +199,8 @@ export default function DesignGallery() {
                         <p className="text-xl font-semibold">Title-1 · 20px / 650</p>
                         <p className="text-base font-semibold">Title-2 · 16px / 600</p>
                         <p className="text-sm leading-relaxed text-t2">Body · 14px / 1.6–1.75 正文样例</p>
-                        <p className="text-xs text-t3">Aux · 12px 辅助说明（字号下限）</p>
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-t4">
+                        <p className="text-xs text-t2">Aux · 12px 辅助说明（字号下限）</p>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-t2">
                             Label · 11px 大写分区
                         </p>
                         <p className="text-[32px] font-semibold tabular-nums tracking-[-0.02em]">
@@ -260,15 +243,15 @@ export default function DesignGallery() {
                     <div className="grid gap-4 md:grid-cols-3">
                         <Card className="p-4">
                             <p className="text-base font-semibold">静息卡片</p>
-                            <p className="mt-1 text-xs text-t3">surfacev2 · e2 · hairline</p>
+                            <p className="mt-1 text-xs text-t2">surfacev2 · e2 · hairline</p>
                         </Card>
                         <Card interactive className="p-4">
                             <p className="text-base font-semibold">可点卡片</p>
-                            <p className="mt-1 text-xs text-t3">hover 升 shadow-e3</p>
+                            <p className="mt-1 text-xs text-t2">hover 升 shadow-e3</p>
                         </Card>
                         <Card selected className="p-4">
                             <p className="text-base font-semibold">选中卡片</p>
-                            <p className="mt-1 text-xs text-t3">accent2-soft + 2px 内嵌条</p>
+                            <p className="mt-1 text-xs text-t2">accent2-soft + 2px 内嵌条</p>
                         </Card>
                     </div>
                 </Section>
@@ -304,7 +287,7 @@ export default function DesignGallery() {
                 <Section title="06 · Toggle">
                     <Row label="controlled">
                         <Toggle checked={toggleOn} onCheckedChange={setToggleOn} aria-label="受控开关" />
-                        <span className="text-xs tabular-nums text-t3">{toggleOn ? 'ON' : 'OFF'}</span>
+                        <span className="text-xs tabular-nums text-t2">{toggleOn ? 'ON' : 'OFF'}</span>
                     </Row>
                     <Row label="states">
                         <Toggle defaultChecked={false} aria-label="默认关" />
@@ -420,7 +403,7 @@ export default function DesignGallery() {
                         <Spinner size="sm" />
                         <Spinner size="md" />
                         <Spinner size="lg" />
-                        <span className="flex items-center gap-2 text-sm text-t3">
+                        <span className="flex items-center gap-2 text-sm text-t2">
                             <Spinner size="sm" /> 运行中 · 00:42
                         </span>
                     </Row>

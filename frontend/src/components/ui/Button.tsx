@@ -18,7 +18,7 @@ const buttonVariants = cva(
                 secondary:
                     'bg-surfacev2 text-t1 border border-hairline shadow-e1 hover:bg-hover2 hover:shadow-e2',
                 ghost: 'text-t2 hover:bg-hover2 hover:text-t1',
-                danger: 'bg-err text-white shadow-e1 hover:opacity-90',
+                danger: 'bg-errstrong text-white shadow-e1 hover:opacity-90',
             },
             size: {
                 sm: 'h-8 px-3 text-xs',

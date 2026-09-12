@@ -86,14 +86,15 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                 {showMenuButton && (
                     <button
                         onClick={onMenuClick}
-                        className="p-2 rounded-lg hover:bg-[var(--bg-hover)] lg:hidden"
+                        className="p-2 rounded-lg hover:bg-hover2 active:scale-95 transition-interactive duration-fast lg:hidden"
                         aria-label="打开侧边栏"
                     >
                         <Menu className="w-5 h-5 text-[var(--text-secondary)]" />
                     </button>
                 )}
                 <div className="hidden sm:flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                    {/* §7.4：渐变 accent 方块（逻辑与文本不动，仅令牌化） */}
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent2 to-accent2-strong flex items-center justify-center">
                         <Bot className="w-5 h-5 text-white" />
                     </div>
                     <span className="font-semibold text-[var(--text-primary)] hidden sm:block">
@@ -111,37 +112,41 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                     </span>
                 )}
                 {/* 模型选择器：两种视图模式下常驻，避免 simple 模式下无法切换模型 */}
+                {/* §7.4 模型 chip：bg-surface2 + hairline + rounded-full + accent 点（select 逻辑原样） */}
                 <div className="flex min-w-0 items-center gap-2">
-                    <select
-                        aria-label="模型选择"
-                        value={model || ''}
-                        onChange={(e) => {
-                            const newModel = e.target.value;
-                            if (!newModel) return;
-                            setModel(newModel);
-                            void useConfigStore.getState().saveConfig({ defaultModel: newModel });
-                            sendSetModel(newModel);
-                        }}
-                        disabled={modelsLoading || availableModels.length === 0}
-                        className="min-w-0 max-w-[220px] truncate px-3 py-1.5 text-sm rounded-lg border border-[var(--border)]
-                            bg-[var(--bg-primary)] text-[var(--text-primary)]
-                            focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        {availableModels.length === 0 && (
-                            <option value="">
-                                {modelsLoading ? '模型加载中…'
-                                    : modelsError ? '模型列表加载失败' : '暂无可用模型'}
-                            </option>
-                        )}
-                        {availableModels.map(m => (
-                            <option key={m.id} value={m.id}>{m.displayName}</option>
-                        ))}
-                    </select>
+                    <div className="flex min-w-0 items-center gap-2 px-3 py-1.5 rounded-full border border-hairline bg-surface2
+                        transition-surface duration-fast focus-within:ring-[3px] focus-within:ring-accent2-ring">
+                        <span className="h-2 w-2 shrink-0 rounded-full bg-accent2" aria-hidden="true" />
+                        <select
+                            aria-label="模型选择"
+                            value={model || ''}
+                            onChange={(e) => {
+                                const newModel = e.target.value;
+                                if (!newModel) return;
+                                setModel(newModel);
+                                void useConfigStore.getState().saveConfig({ defaultModel: newModel });
+                                sendSetModel(newModel);
+                            }}
+                            disabled={modelsLoading || availableModels.length === 0}
+                            className="min-w-0 max-w-[220px] truncate text-sm bg-transparent text-t1
+                                focus:outline-none disabled:opacity-50"
+                        >
+                            {availableModels.length === 0 && (
+                                <option value="">
+                                    {modelsLoading ? '模型加载中…'
+                                        : modelsError ? '模型列表加载失败' : '暂无可用模型'}
+                                </option>
+                            )}
+                            {availableModels.map(m => (
+                                <option key={m.id} value={m.id}>{m.displayName}</option>
+                            ))}
+                        </select>
+                    </div>
                     {modelsError && (
                         <button
                             type="button"
                             onClick={() => void fetchModels()}
-                            className="inline-flex text-xs text-blue-500 hover:underline"
+                            className="inline-flex text-xs text-accent2 hover:underline"
                             aria-label="重新加载模型列表"
                         >
                             重试
@@ -152,13 +157,13 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
 
             {/* Right: Cost + New Session + Settings */}
             <div className="flex items-center gap-2">
-                {/* Cost Indicator */}
+                {/* Cost Indicator（§3.8：成本数字 tabular-nums） */}
                 <div className="hidden md:flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[var(--bg-primary)] border border-[var(--border)]">
-                    <DollarSign className="w-4 h-4 text-green-500" />
-                    <span className="text-sm text-[var(--text-secondary)]">
+                    <DollarSign className="w-4 h-4 text-ok" />
+                    <span className="text-sm tabular-nums text-[var(--text-secondary)]">
                         {formatCost(sessionCost)}
                     </span>
-                    <span className="text-xs text-[var(--text-muted)]">
+                    <span className="text-xs tabular-nums text-[var(--text-muted)]">
                         / {formatCost(totalCost)}
                     </span>
                 </div>
@@ -166,7 +171,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                 {/* Theme Toggle */}
                 <button
                     onClick={toggleTheme}
-                    className="hidden sm:inline-flex p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-secondary)] transition-colors"
+                    className="hidden sm:inline-flex p-2 rounded-lg hover:bg-hover2 active:scale-95 transition-interactive duration-fast text-[var(--text-secondary)]"
                     title={isGlass ? '切换到浅色模式' : isDark ? '切换到液态玻璃模式' : '切换到深色模式'}
                     aria-label={isGlass ? '切换到浅色模式' : isDark ? '切换到液态玻璃模式' : '切换到深色模式'}
                 >
@@ -176,7 +181,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                 {/* New Session */}
                 <button
                     onClick={handleNewSession}
-                    className="p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-secondary)]"
+                    className="p-2 rounded-lg hover:bg-hover2 active:scale-95 transition-interactive duration-fast text-[var(--text-secondary)]"
                     title={simpleMode ? '新建任务' : '新建会话'}
                     aria-label={simpleMode ? '新建任务' : '新建会话'}
                 >
@@ -186,7 +191,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                 {/* Settings */}
                 <button
                     onClick={() => openDialog('mcp')}
-                    className="inline-flex p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-secondary)]"
+                    className="inline-flex p-2 rounded-lg hover:bg-hover2 active:scale-95 transition-interactive duration-fast text-[var(--text-secondary)]"
                     title="MCP 管理"
                     aria-label="MCP 管理"
                 >
@@ -195,7 +200,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
 
                 <button
                     onClick={() => openDialog('settings')}
-                    className="hidden sm:inline-flex p-2 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-secondary)]"
+                    className="hidden sm:inline-flex p-2 rounded-lg hover:bg-hover2 active:scale-95 transition-interactive duration-fast text-[var(--text-secondary)]"
                     title="设置"
                 >
                     <Settings className="w-5 h-5" />

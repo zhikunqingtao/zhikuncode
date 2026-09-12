@@ -3,11 +3,14 @@
  * SPEC: §8.7 主题系统
  *
  * 提供主题模式、强调色、字体大小等选项的快速切换
+ * P1b（指南 §9.6）：6 色按 §3.4 终值；选中态 accent 驱动；字号档与 4 模式逻辑不动
  */
 
 import React from 'react';
 import { Sun, Moon, Monitor, Check, Sparkles } from 'lucide-react';
 import { useConfigStore } from '@/store/configStore';
+import { ACCENT_PRESETS } from '@/theme/accents';
+import { cn } from '@/components/ui';
 import type { ThemeConfig } from '@/types';
 
 export const ThemePicker: React.FC = () => {
@@ -20,14 +23,7 @@ export const ThemePicker: React.FC = () => {
         { value: 'glass', label: '液态玻璃', icon: Sparkles },
     ];
 
-    const accentColors = [
-        { value: '#3b82f6', label: '蓝色' },
-        { value: '#8b5cf6', label: '紫色' },
-        { value: '#ec4899', label: '粉色' },
-        { value: '#f59e0b', label: '橙色' },
-        { value: '#10b981', label: '绿色' },
-        { value: '#ef4444', label: '红色' },
-    ];
+    const accentColors = ACCENT_PRESETS.map(({ hex, label }) => ({ value: hex, label }));
 
     const fontSizes: { value: ThemeConfig['fontSize']; label: string }[] = [
         { value: 'small', label: '小' },
@@ -39,64 +35,76 @@ export const ThemePicker: React.FC = () => {
         <div className="p-4 space-y-6">
             {/* 主题模式 */}
             <div>
-                <h4 className="text-sm font-medium text-[var(--text-secondary)] mb-3">主题模式</h4>
+                <h4 className="text-sm font-medium text-t2 mb-3">主题模式</h4>
                 <div className="flex gap-2">
-                    {modes.map(({ value, label, icon: Icon }) => (
-                        <button
-                            key={value}
-                            onClick={() => setTheme({ mode: value })}
-                            className={`flex-1 flex flex-col items-center gap-1 p-3 rounded-lg border transition-all
-                                ${theme.mode === value
-                                    ? 'border-blue-500 bg-blue-500/10'
-                                    : 'border-[var(--border)] hover:border-blue-500/50 hover:bg-[var(--bg-hover)]'
-                                }`}
-                        >
-                            <Icon className={`w-5 h-5 ${theme.mode === value ? 'text-blue-500' : 'text-[var(--text-secondary)]'}`} />
-                            <span className={`text-xs ${theme.mode === value ? 'text-blue-500' : 'text-[var(--text-primary)]'}`}>
-                                {label}
-                            </span>
-                        </button>
-                    ))}
+                    {modes.map(({ value, label, icon: Icon }) => {
+                        const selected = theme.mode === value;
+                        return (
+                            <button
+                                key={value}
+                                onClick={() => setTheme({ mode: value })}
+                                className={cn(
+                                    'flex-1 flex flex-col items-center gap-1 p-3 rounded-lg border transition-interactive duration-fast',
+                                    selected
+                                        ? 'border-accent2 bg-accent2-soft'
+                                        : 'border-hairline text-t1 hover:border-accent2-ring hover:bg-hover2'
+                                )}
+                            >
+                                {/* 选中态：accent 经边/soft 底/图标编码，文字保 t1（§10.1 对比度） */}
+                                <Icon className={cn('w-5 h-5', selected ? 'text-accent2' : 'text-t2')} />
+                                <span className="text-xs text-t1">{label}</span>
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
 
             {/* 强调色 */}
             <div>
-                <h4 className="text-sm font-medium text-[var(--text-secondary)] mb-3">强调色</h4>
+                <h4 className="text-sm font-medium text-t2 mb-3">强调色</h4>
                 <div className="flex gap-2 flex-wrap">
-                    {accentColors.map(({ value, label }) => (
-                        <button
-                            key={value}
-                            onClick={() => setTheme({ accentColor: value })}
-                            title={label}
-                            className={`w-8 h-8 rounded-full border-2 transition-all
-                                ${theme.accentColor === value
-                                    ? 'border-[var(--text-primary)] scale-110'
-                                    : 'border-transparent hover:scale-105'
-                                }`}
-                            style={{ backgroundColor: value }}
-                        >
-                            {theme.accentColor === value && (
-                                <Check className="w-4 h-4 text-white mx-auto" />
-                            )}
-                        </button>
-                    ))}
+                    {accentColors.map(({ value, label }) => {
+                        const selected = theme.accentColor?.toLowerCase() === value.toLowerCase();
+                        return (
+                            <button
+                                key={value}
+                                onClick={() => setTheme({ accentColor: value })}
+                                title={label}
+                                className={cn(
+                                    'w-8 h-8 rounded-full border-2 transition-interactive duration-fast',
+                                    selected
+                                        ? 'border-transparent scale-110'
+                                        : 'border-transparent hover:scale-105'
+                                )}
+                                style={{
+                                    backgroundColor: value,
+                                    /* 选中环 = accent2-ring（boxShadow 方式，§9.6） */
+                                    boxShadow: selected ? '0 0 0 3px var(--v2-accent-ring)' : undefined,
+                                }}
+                            >
+                                {selected && (
+                                    <Check className="w-4 h-4 text-white mx-auto" />
+                                )}
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
 
             {/* 字体大小 */}
             <div>
-                <h4 className="text-sm font-medium text-[var(--text-secondary)] mb-3">字体大小</h4>
+                <h4 className="text-sm font-medium text-t2 mb-3">字体大小</h4>
                 <div className="flex gap-2">
                     {fontSizes.map(({ value, label }) => (
                         <button
                             key={value}
                             onClick={() => setTheme({ fontSize: value })}
-                            className={`flex-1 py-2 rounded-lg border text-sm transition-all
-                                ${theme.fontSize === value
-                                    ? 'border-blue-500 bg-blue-500/10 text-blue-500'
-                                    : 'border-[var(--border)] hover:border-blue-500/50 hover:bg-[var(--bg-hover)] text-[var(--text-primary)]'
-                                }`}
+                            className={cn(
+                                'flex-1 py-2 rounded-lg border text-sm transition-interactive duration-fast',
+                                theme.fontSize === value
+                                    ? 'border-accent2 bg-accent2-soft text-t1'
+                                    : 'border-hairline text-t1 hover:border-accent2-ring hover:bg-hover2'
+                            )}
                         >
                             {label}
                         </button>

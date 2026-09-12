@@ -110,7 +110,7 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
                                     'disabled:opacity-50 disabled:pointer-events-none',
                                     isSelected
                                         ? 'bg-surfacev2 text-t1 shadow-e1'
-                                        : 'text-t3 hover:text-t1',
+                                        : 'text-t2 hover:text-t1',
                                 )}
                             >
                                 {item.label}

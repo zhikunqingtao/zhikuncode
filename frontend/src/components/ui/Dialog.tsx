@@ -202,7 +202,7 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
                                     type="button"
                                     aria-label="关闭"
                                     onClick={requestClose}
-                                    className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-t3 transition-interactive duration-fast hover:bg-hover2 hover:text-t1 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring"
+                                    className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-t2 transition-interactive duration-fast hover:bg-hover2 hover:text-t1 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring"
                                 >
                                     <X className="h-4 w-4" aria-hidden="true" />
                                 </button>
