@@ -26,6 +26,7 @@ import { usePromptState } from './usePromptState';
 import PromptTextarea from './PromptTextarea';
 import { PromptAttachmentBar, PromptToolbar } from './PromptToolbar';
 import PromptSendButton from './PromptSendButton';
+import MobilePromptBar from './MobilePromptBar';
 
 interface PromptInputProps {
     sessionId?: string | null;
@@ -46,9 +47,10 @@ interface PromptInputProps {
 
 const PromptInput: React.FC<PromptInputProps> = (props) => {
     const { runActive, compacting, commands, simpleMode = false } = props;
-    // §8.3.1 形态分发点：本步仅桌面形态；MobilePromptBar（§8.3 ③）将按 isMobile 在此分流
+    // §8.3.1-③ 形态分发：<768 移动胶囊形态（MobilePromptBar），其余桌面卡片形态。
+    // usePromptState 在本组件顶层仅调用一次，产物同时喂给两种形态；
+    // 形态切换只是同一实例内的条件渲染，输入状态不丢失。
     const { isMobile } = useResponsive();
-    void isMobile;
     const s = usePromptState(props);
     const { promptAttachments: a, localFileReference: f } = s;
 
@@ -85,64 +87,80 @@ const PromptInput: React.FC<PromptInputProps> = (props) => {
                     isGlobal />
             )}
 
-            <PromptAttachmentBar
-                attachments={a.attachments}
-                imageCount={a.imageCount}
-                maxImages={a.maxImages}
-                localFiles={f.localFiles}
-                publishedLocalFiles={f.publishedLocalFiles}
-                onRemoveAttachment={a.removeAttachment}
-                setLocalFiles={f.setLocalFiles}
-                setPublishedLocalFiles={f.setPublishedLocalFiles}
-            />
-
-            {/* Input area */}
-            <div className="flex items-end gap-2">
-                <PromptTextarea
-                    value={s.input}
-                    onValueChange={s.setInput}
-                    onCursorChange={s.syncCursorPos}
-                    onAtQueryChange={s.handleAtQueryChange}
-                    onSlashIntent={s.handleSlashIntent}
-                    onKeyDown={s.handleKeyDown}
-                    onPaste={a.handlePaste}
-                    textareaRef={s.textareaRef}
-                    compacting={compacting}
-                    runActive={runActive}
-                    simpleMode={simpleMode}
-                    disabled={props.disabled || compacting || s.isSubmitting
-                        || a.isUploadingPaste || f.isUploadingLocalFile}
-                />
-                <PromptToolbar
+            {isMobile ? (
+                /* 移动胶囊形态（§7.6 移动态）：快捷条 + 胶囊条/展开卡片 */
+                <MobilePromptBar
+                    state={s}
                     runActive={runActive}
                     compacting={compacting}
                     disabled={props.disabled}
-                    isSubmitting={s.isSubmitting}
-                    isUploadingPaste={a.isUploadingPaste}
-                    isUploadingLocalFile={f.isUploadingLocalFile}
-                    fileReferenceBusy={f.fileReferenceBusy}
-                    fileReferenceTitle={f.fileReferenceTitle}
+                    simpleMode={simpleMode}
                     fileReferenceCapability={props.fileReferenceCapability}
-                    asrAvailable={s.asrAvailable}
-                    maxImages={a.maxImages}
-                    browserFileInputRef={f.browserFileInputRef}
-                    onFileReferenceClick={f.handleFileReferenceClick}
-                    onBrowserLocalFile={f.handleBrowserLocalFile}
-                    onFiles={a.handleFiles}
-                    onVoiceTranscript={s.handleVoiceTranscript}
-                />
-                <PromptSendButton
-                    runActive={runActive}
-                    sendDisabled={props.disabled || compacting || s.isSubmitting
-                        || a.isUploadingPaste || f.fileReferenceBusy
-                        || (!s.input.trim() && a.attachments.length === 0
-                            && f.localFiles.length === 0
-                            && f.publishedLocalFiles.length === 0)}
-                    stopDisabled={props.disabled || s.isSubmitting}
-                    onSend={() => { void s.handleSubmit(); }}
                     onInterrupt={props.onInterrupt}
                 />
-            </div>
+            ) : (
+                /* 桌面卡片形态（P2b-1 既有 JSX，零行为变化） */
+                <>
+                    <PromptAttachmentBar
+                        attachments={a.attachments}
+                        imageCount={a.imageCount}
+                        maxImages={a.maxImages}
+                        localFiles={f.localFiles}
+                        publishedLocalFiles={f.publishedLocalFiles}
+                        onRemoveAttachment={a.removeAttachment}
+                        setLocalFiles={f.setLocalFiles}
+                        setPublishedLocalFiles={f.setPublishedLocalFiles}
+                    />
+
+                    {/* Input area */}
+                    <div className="flex items-end gap-2">
+                        <PromptTextarea
+                            value={s.input}
+                            onValueChange={s.setInput}
+                            onCursorChange={s.syncCursorPos}
+                            onAtQueryChange={s.handleAtQueryChange}
+                            onSlashIntent={s.handleSlashIntent}
+                            onKeyDown={s.handleKeyDown}
+                            onPaste={a.handlePaste}
+                            textareaRef={s.textareaRef}
+                            compacting={compacting}
+                            runActive={runActive}
+                            simpleMode={simpleMode}
+                            disabled={props.disabled || compacting || s.isSubmitting
+                                || a.isUploadingPaste || f.isUploadingLocalFile}
+                        />
+                        <PromptToolbar
+                            runActive={runActive}
+                            compacting={compacting}
+                            disabled={props.disabled}
+                            isSubmitting={s.isSubmitting}
+                            isUploadingPaste={a.isUploadingPaste}
+                            isUploadingLocalFile={f.isUploadingLocalFile}
+                            fileReferenceBusy={f.fileReferenceBusy}
+                            fileReferenceTitle={f.fileReferenceTitle}
+                            fileReferenceCapability={props.fileReferenceCapability}
+                            asrAvailable={s.asrAvailable}
+                            maxImages={a.maxImages}
+                            browserFileInputRef={f.browserFileInputRef}
+                            onFileReferenceClick={f.handleFileReferenceClick}
+                            onBrowserLocalFile={f.handleBrowserLocalFile}
+                            onFiles={a.handleFiles}
+                            onVoiceTranscript={s.handleVoiceTranscript}
+                        />
+                        <PromptSendButton
+                            runActive={runActive}
+                            sendDisabled={props.disabled || compacting || s.isSubmitting
+                                || a.isUploadingPaste || f.fileReferenceBusy
+                                || (!s.input.trim() && a.attachments.length === 0
+                                    && f.localFiles.length === 0
+                                    && f.publishedLocalFiles.length === 0)}
+                            stopDisabled={props.disabled || s.isSubmitting}
+                            onSend={() => { void s.handleSubmit(); }}
+                            onInterrupt={props.onInterrupt}
+                        />
+                    </div>
+                </>
+            )}
         </div>
     );
 };

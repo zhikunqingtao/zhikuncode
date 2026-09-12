@@ -40,6 +40,7 @@ import { SimpleWorkbench } from '@/components/workbench/SimpleWorkbench';
 import { useWorkbenchViewStore } from '@/store/workbenchViewStore';
 import { useJourneyVerifyStore } from '@/store/journeyVerifyStore';
 import { usePageExitGuard } from '@/hooks/usePageExitGuard';
+import { useResponsive } from '@/hooks/useResponsive';
 
 interface SkillItem {
   name: string;
@@ -54,6 +55,8 @@ function App() {
   const { status, sessionId } = useSessionStore();
   const workbenchEnabled = useWorkbenchViewStore(s => s.enabled);
   const viewMode = useWorkbenchViewStore(s => s.viewMode);
+  // §7.6 移动态：输入区容器换肤（悬浮胶囊条 + safe-area），桌面保持既有样式
+  const { isMobile } = useResponsive();
   const { loadConfig } = useConfigStore();
   const sessionReadinessRef = useRef<Promise<string | null> | null>(null);
   const newSessionRequestRef = useRef<Promise<string | null> | null>(null);
@@ -424,8 +427,10 @@ function App() {
 
           {(!workbenchEnabled || viewMode === 'development') && <JourneyVerifyPanel />}
 
-          {/* Input */}
-          <div className="border-t border-[var(--border)] p-4 bg-[var(--bg-secondary)]">
+          {/* Input（移动态：透明容器 + safe-area 内边距，承载 §7.6 悬浮胶囊条） */}
+          <div className={isMobile
+            ? 'px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-1'
+            : 'border-t border-[var(--border)] p-4 bg-[var(--bg-secondary)]'}>
             <PromptInput
               sessionId={sessionId}
               onSubmit={handleSubmit}

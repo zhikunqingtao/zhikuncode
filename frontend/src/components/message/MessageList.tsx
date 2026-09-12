@@ -13,6 +13,7 @@ import React, { useCallback, useEffect, useRef } from 'react';
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
 import { useMessageStore } from '@/store/messageStore';
 import { useWorkbenchViewStore } from '@/store/workbenchViewStore';
+import { useResponsive } from '@/hooks/useResponsive';
 
 import MessageItem from './MessageItem';
 
@@ -25,6 +26,8 @@ const VIRTUOSO_CONFIG = {
 
 const MessageList: React.FC = () => {
     const virtuosoRef = useRef<VirtuosoHandle>(null);
+    // §7.6 移动态：消息流底部 96px 渐隐遮罩（仅移动渲染，桌面零变化）
+    const { isMobile } = useResponsive();
 
     // Subscribe to store slices
     const messages = useMessageStore(s => s.messages);
@@ -96,12 +99,30 @@ const MessageList: React.FC = () => {
         return isAtBottom ? 'smooth' : false;
     }, [streamingMessageId]);
 
+    // §7.6 底部渐隐：transparent → --v2-bg-app，pointer-events-none，仅 isMobile
+    const mobileBottomFade = isMobile ? (
+        <div
+            data-testid="mobile-message-fade"
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-24"
+            style={{
+                background: 'linear-gradient(to bottom, transparent, var(--v2-bg-app))',
+            }}
+        />
+    ) : null;
+
     if (messages.length === 0) {
-        return <EmptyState />;
+        return (
+            <div className="message-list relative flex h-full flex-col overflow-hidden"
+                role="log" aria-live="polite" aria-label="对话消息">
+                <EmptyState />
+                {mobileBottomFade}
+            </div>
+        );
     }
 
     return (
-        <div className="message-list h-full overflow-hidden" role="log" aria-live="polite" aria-label="对话消息">
+        <div className="message-list relative h-full overflow-hidden" role="log" aria-live="polite" aria-label="对话消息">
             <Virtuoso
                 ref={virtuosoRef}
                 totalCount={messages.length}
@@ -113,6 +134,7 @@ const MessageList: React.FC = () => {
                 alignToBottom
                 className="h-full"
             />
+            {mobileBottomFade}
         </div>
     );
 };

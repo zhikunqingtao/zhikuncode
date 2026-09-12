@@ -20,6 +20,10 @@ interface PromptTextareaProps {
     runActive: boolean;
     simpleMode: boolean;
     disabled: boolean;
+    /** §8.3.1-③ 形态变体：mobile 去掉自带边框/背景（由胶囊容器承担）；默认 desktop 零回归 */
+    variant?: 'desktop' | 'mobile';
+    /** 仅 mobile 变体使用：收起态锁定单行高度预览（点击聚焦后展开） */
+    collapsed?: boolean;
 }
 
 const PromptTextarea: React.FC<PromptTextareaProps> = ({
@@ -35,15 +39,23 @@ const PromptTextarea: React.FC<PromptTextareaProps> = ({
     runActive,
     simpleMode,
     disabled,
+    variant = 'desktop',
+    collapsed = false,
 }) => {
+    const isMobileVariant = variant === 'mobile';
+
     // Auto-resize textarea height
     useEffect(() => {
         const el = textareaRef.current;
-        if (el) {
-            el.style.height = 'auto';
-            el.style.height = Math.min(el.scrollHeight, 200) + 'px';
+        if (!el) return;
+        // 移动收起态：单行高度预览，不随内容撑高（展开后恢复自适应）
+        if (isMobileVariant && collapsed) {
+            el.style.height = '24px';
+            return;
         }
-    }, [value, textareaRef]);
+        el.style.height = 'auto';
+        el.style.height = Math.min(el.scrollHeight, 200) + 'px';
+    }, [value, textareaRef, isMobileVariant, collapsed]);
 
     return (
         <textarea
@@ -87,12 +99,18 @@ const PromptTextarea: React.FC<PromptTextareaProps> = ({
             disabled={disabled}
             aria-label="输入消息"
             aria-multiline="true"
-            className="flex-1 resize-none rounded-lg border border-gray-700 bg-gray-900
+            className={
+                isMobileVariant
+                    ? `w-full flex-1 resize-none bg-transparent py-0.5 text-sm text-t1
+                       placeholder-t4 focus:outline-none
+                       disabled:opacity-50${collapsed ? ' overflow-y-hidden' : ''}`
+                    : `flex-1 resize-none rounded-lg border border-gray-700 bg-gray-900
                        px-3 py-2 text-sm text-gray-100
                        focus:outline-none focus:ring-2 focus:ring-blue-500/50
-                       disabled:opacity-50 placeholder-gray-500"
+                       disabled:opacity-50 placeholder-gray-500`
+            }
             rows={1}
-            autoFocus
+            autoFocus={!isMobileVariant}
         />
     );
 };

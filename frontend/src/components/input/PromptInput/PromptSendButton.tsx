@@ -14,6 +14,8 @@ interface PromptSendButtonProps {
     stopDisabled: boolean;
     onSend: () => void;
     onInterrupt: () => void;
+    /** §7.6 移动胶囊形态：44px 圆形 accent2-strong；默认 desktop 零回归 */
+    variant?: 'desktop' | 'mobile';
 }
 
 const PromptSendButton: React.FC<PromptSendButtonProps> = ({
@@ -22,33 +24,47 @@ const PromptSendButton: React.FC<PromptSendButtonProps> = ({
     stopDisabled,
     onSend,
     onInterrupt,
-}) => (
-    <>
-        <button
-            onClick={onSend}
-            disabled={sendDisabled}
-            aria-label={runActive ? '发送运行中干预' : '发送消息'}
-            title={runActive ? '发送运行中干预' : '发送消息'}
-            className="shrink-0 p-2.5 rounded-lg text-white transition-colors
-                       bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:hover:bg-blue-600"
-            type="button"
-        >
-            <Send size={16} />
-        </button>
-        {runActive && (
+    variant = 'desktop',
+}) => {
+    const isMobile = variant === 'mobile';
+    return (
+        <>
             <button
-                onClick={onInterrupt}
-                disabled={stopDisabled}
-                aria-label="停止当前任务"
-                title="停止当前任务"
-                className="shrink-0 p-2.5 rounded-lg text-white transition-colors
-                           bg-red-500 hover:bg-red-600 disabled:opacity-50"
+                onClick={onSend}
+                disabled={sendDisabled}
+                aria-label={runActive ? '发送运行中干预' : '发送消息'}
+                title={runActive ? '发送运行中干预' : '发送消息'}
+                className={isMobile
+                    ? `flex h-11 w-11 shrink-0 items-center justify-center rounded-full
+                       bg-accent2-strong text-white shadow-e1 transition-interactive
+                       duration-fast active:scale-95
+                       disabled:opacity-[.38] disabled:shadow-none`
+                    : `shrink-0 p-2.5 rounded-lg text-white transition-colors
+                       bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:hover:bg-blue-600`}
                 type="button"
             >
-                <Square size={16} />
+                <Send size={isMobile ? 18 : 16} />
             </button>
-        )}
-    </>
-);
+            {runActive && (
+                <button
+                    onClick={onInterrupt}
+                    disabled={stopDisabled}
+                    aria-label="停止当前任务"
+                    title="停止当前任务"
+                    className={isMobile
+                        ? `flex h-11 w-11 shrink-0 items-center justify-center rounded-full
+                           bg-red-500 text-white shadow-e1 transition-interactive
+                           duration-fast active:scale-95
+                           disabled:opacity-[.38] disabled:shadow-none`
+                        : `shrink-0 p-2.5 rounded-lg text-white transition-colors
+                           bg-red-500 hover:bg-red-600 disabled:opacity-50`}
+                    type="button"
+                >
+                    <Square size={isMobile ? 18 : 16} />
+                </button>
+            )}
+        </>
+    );
+};
 
 export default PromptSendButton;
