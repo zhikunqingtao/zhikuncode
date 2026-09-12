@@ -34,6 +34,8 @@ export default {
                 border: 'var(--color-border)',
                 /* ===== v2 令牌映射（新增 key，不覆盖默认） ===== */
                 app2: 'var(--v2-bg-app)',
+                /* P1a 追加：--v2-bg-surface 独立 key（P0 未映射，为保零视觉变化不重映射旧 surface） */
+                surfacev2: 'var(--v2-bg-surface)',
                 surface2: 'var(--v2-bg-surface-2)',
                 sunken2: 'var(--v2-bg-sunken)',
                 hover2: 'var(--v2-bg-hover)',
