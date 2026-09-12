@@ -41,6 +41,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import jakarta.annotation.PostConstruct;
@@ -66,6 +67,16 @@ public class QueryEngine {
             "that is where the cut happened. Break remaining work " +
             "into smaller pieces.";
     private static final int MAX_RUN_INPUTS_PER_TURN = 10;
+
+    /** 匹配 LLM 可能模仿的内部压缩标记前缀（每行行首、支持连续多个） */
+    private static final Pattern INTERNAL_MARKER_PREFIX = Pattern.compile(
+            "^\\s*(?:\\[(?:skeleton|collapsed|summary-collapsed|content compressed by system|content truncated by system|tool result cleared[^\\]]*|final)\\]\\s*)+",
+            Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
+
+    /** 匹配内嵌的折叠/摘要后缀标记（支持连续多个，结尾锚定） */
+    private static final Pattern INTERNAL_MARKER_SUFFIX = Pattern.compile(
+            "(?:\\.\\.\\.[\\s]*\\[(?:collapsed|summary-collapsed|content truncated by system)[^\\]]*\\]\\s*)+$",
+            Pattern.CASE_INSENSITIVE);
 
     private final LlmProviderRegistry providerRegistry;
     private final CompactService compactService;
@@ -981,6 +992,7 @@ public class QueryEngine {
             // ===== Step 4: 收集 API 响应 =====
             log.debug("Turn {} Step4: streamChat returned, building AssistantMessage...", turn);
             Message.AssistantMessage assistantMessage = collector.buildAssistantMessage();
+            assistantMessage = sanitizeInternalMarkers(assistantMessage);  // P1-1: 剥离模仿的内部标记
             Usage callUsage = assistantMessage.usage();
             recordCurrentRunEvent("llm_call_completed", () -> {
                 Map<String, Object> llmCompleted = new LinkedHashMap<>();
@@ -2292,6 +2304,47 @@ public class QueryEngine {
             || lower.contains("context length")
             || lower.contains("maximum context")
             || lower.contains("token limit");
+    }
+
+    /**
+     * 剥离 LLM 输出中模仿的内部压缩标记，防止脏输出落库后形成正反馈循环。
+     */
+    static Message.AssistantMessage sanitizeInternalMarkers(Message.AssistantMessage msg) {
+        if (msg == null || msg.content() == null || msg.content().isEmpty()) return msg;
+        boolean changed = false;
+        List<ContentBlock> cleaned = new ArrayList<>(msg.content().size());
+        for (ContentBlock block : msg.content()) {
+            if (block instanceof ContentBlock.TextBlock t && t.text() != null) {
+                String text = t.text();
+                // 快速路径：无方括号则跳过正则
+                if (text.indexOf('[') < 0) {
+                    cleaned.add(block);
+                    continue;
+                }
+                String sanitized = INTERNAL_MARKER_PREFIX.matcher(text).replaceAll("");
+                sanitized = INTERNAL_MARKER_SUFFIX.matcher(sanitized).replaceFirst("");
+                sanitized = sanitized.strip();
+                if (sanitized.isEmpty()) {
+                    // 剥离后为空：丢弃该块，避免空 TextBlock 直发 API 触发 400
+                    changed = true;
+                } else if (!sanitized.equals(text)) {
+                    changed = true;
+                    cleaned.add(new ContentBlock.TextBlock(sanitized));
+                } else {
+                    cleaned.add(block);
+                }
+            } else {
+                cleaned.add(block);
+            }
+        }
+        if (!changed) return msg;
+        if (cleaned.isEmpty()) {
+            // 所有块都被剥离丢弃：返回原消息，避免产生 content=[] 的非法消息
+            return msg;
+        }
+        return new Message.AssistantMessage(
+                msg.uuid(), msg.timestamp(), List.copyOf(cleaned),
+                msg.stopReason(), msg.usage());
     }
 
     /**

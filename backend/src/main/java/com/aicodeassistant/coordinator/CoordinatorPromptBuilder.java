@@ -2,6 +2,7 @@ package com.aicodeassistant.coordinator;
 
 import com.aicodeassistant.mcp.McpClientManager;
 import com.aicodeassistant.mcp.McpServerConnection;
+import com.aicodeassistant.prompt.SystemPromptBuilder;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
@@ -75,8 +76,11 @@ public class CoordinatorPromptBuilder {
                 ? ""
                 : buildProjectContext(projectRoot);
 
+        // 在 formatted() 结果之后拼接禁令段，避免模板内文本参与 % 格式化；
+        // 与主模式（SystemPromptBuilder）共用同一常量，保证禁令内容一致
         return COORDINATOR_SYSTEM_PROMPT_TEMPLATE.formatted(
-                workerTools, projectContext, scratchpad.toString(), mcpClients);
+                workerTools, projectContext, scratchpad.toString(), mcpClients)
+                + "\n" + SystemPromptBuilder.CONTEXT_COMPRESSION_MARKERS_SECTION;
     }
 
     private String buildProjectContext(Path projectRoot) {

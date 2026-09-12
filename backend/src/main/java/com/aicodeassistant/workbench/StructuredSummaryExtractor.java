@@ -16,7 +16,7 @@ public final class StructuredSummaryExtractor {
 
     public Summary extract(String markdown) {
         String text = markdown == null ? "" : markdown
-                .replaceFirst("(?i)^\\s*\\[(?:skeleton|final)]\\s*", "").strip();
+                .replaceFirst("(?i)^\\s*\\[(?:skeleton|final|content compressed by system|content truncated by system)]\\s*", "").strip();
         if (text.isBlank()) return new Summary(null, List.of(), List.of(), List.of());
 
         String conclusion = firstParagraph(text);

@@ -65,4 +65,24 @@ class CoordinatorPromptBuilderTest {
         assertTrue(prompt.contains("Project 外操作仍受现有权限策略约束，可能被拒绝或要求确认"));
     }
 
+    @Test
+    @DisplayName("提示词包含与主模式一致的上下文压缩标记禁令段")
+    void promptContainsContextCompressionMarkersSection() {
+        CoordinatorService coordinatorService = mock(CoordinatorService.class);
+        McpClientManager mcpClientManager = mock(McpClientManager.class);
+        when(coordinatorService.getWorkerToolsContext("session-1"))
+                .thenReturn(Map.of("workerToolsContext", "standard tools"));
+        when(mcpClientManager.getConnectedServers()).thenReturn(List.of());
+
+        CoordinatorPromptBuilder builder =
+                new CoordinatorPromptBuilder(coordinatorService, mcpClientManager);
+        String prompt = builder.buildCoordinatorPrompt(
+                "session-1", Path.of("/tmp/zhikun-scratchpad"));
+
+        assertTrue(prompt.contains("content compressed by system"));
+        assertTrue(prompt.contains(
+                com.aicodeassistant.prompt.SystemPromptBuilder
+                        .CONTEXT_COMPRESSION_MARKERS_SECTION));
+    }
+
 }

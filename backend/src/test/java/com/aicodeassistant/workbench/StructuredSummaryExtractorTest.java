@@ -35,4 +35,10 @@ class StructuredSummaryExtractorTest {
         assertThat(summary.completed()).isEmpty();
         assertThat(summary.issues()).isEmpty();
     }
+
+    @Test
+    void stripsContentCompressedBySystemPrefixBeforeExtraction() {
+        var summary = extractor.extract("[content compressed by system] 任务已完成，结果可用。");
+        assertThat(summary.conclusion()).isEqualTo("任务已完成，结果可用。");
+    }
 }

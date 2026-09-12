@@ -159,7 +159,7 @@ public class ContextCollapseService {
                         // ★ 修复：Math.min 保护边界，防止 textTruncateKeep > text.length()
                         int keepLen = Math.min(textTruncateKeep, t.text().length());
                         String truncated = t.text().substring(0, keepLen)
-                                + "\n...[collapsed: " + t.text().length() + " chars]";
+                                + "\n...[content truncated by system]";
                         return (ContentBlock) new ContentBlock.TextBlock(truncated);
                     }
                     return block;

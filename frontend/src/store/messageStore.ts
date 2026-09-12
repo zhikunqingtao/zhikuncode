@@ -10,6 +10,7 @@ import { subscribeWithSelector } from 'zustand/middleware';
 import type { Message, ToolResult, ToolCallState, Usage, TokenWarningPayload } from '@/types';
 import { streamingStore, flushStreamingBuffer } from '@/hooks/useStreamingText';
 import { generateUUID } from '@/utils/uuid';
+import { stripInternalMarkers } from '@/utils/internalMarkers';
 
 export interface TokenBudgetState {
     pct: number;
@@ -292,7 +293,14 @@ export const useMessageStore = create<MessageStoreState>()(
                         content.push({ type: 'thinking' as const, thinking: d.thinkingContent, completed: true });
                     }
                     if (combinedContent) {
-                        content.push({ type: 'text' as const, text: combinedContent });
+                        // 兜底剥离 LLM 模仿输出的内部折叠标记（错误路径无 committedMessages 清洗版替换）；
+                        // 剥离后为空且消息还有其他块时跳过空文本块，仅此一块时保留原文避免空气泡
+                        const cleaned = stripInternalMarkers(combinedContent);
+                        if (cleaned) {
+                            content.push({ type: 'text' as const, text: cleaned });
+                        } else if (content.length === 0) {
+                            content.push({ type: 'text' as const, text: combinedContent });
+                        }
                     }
                     (msg as { content: unknown }).content = content;
                 }
@@ -316,9 +324,16 @@ export const useMessageStore = create<MessageStoreState>()(
                     if (d.thinkingContent) {
                         content.push({ type: 'thinking' as const, thinking: d.thinkingContent, completed: true });
                     }
-                    // 文本内容
+                    // 文本内容：兜底剥离 LLM 模仿输出的内部折叠标记（错误路径无落库清洗版替换）
                     if (combinedContent) {
-                        content.push({ type: 'text' as const, text: combinedContent });
+                        const cleaned = stripInternalMarkers(combinedContent);
+                        // 剥离后为空且消息还有其他块（thinking/tool_use）时跳过空文本块；
+                        // 仅此一块时保留原文，避免渲染空消息气泡
+                        if (cleaned) {
+                            content.push({ type: 'text' as const, text: cleaned });
+                        } else if (content.length === 0 && d.activeToolCalls.size === 0) {
+                            content.push({ type: 'text' as const, text: combinedContent });
+                        }
                     }
                     // 将本条流式消息期间的工具调用迁移为 tool_use block，
                     // 保证流式→终态切换后工具卡片数据（id/name/完整 input/result/status）不丢失

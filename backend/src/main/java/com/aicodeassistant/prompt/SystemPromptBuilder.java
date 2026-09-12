@@ -923,6 +923,21 @@ public class SystemPromptBuilder {
              - 被后续发现取代的中间搜索结果
             """;
 
+    // public：coordinator 模式（CoordinatorPromptBuilder）复用同一份禁令文本，保持两模式输出一致
+    public static final String CONTEXT_COMPRESSION_MARKERS_SECTION = """
+            # 重要：上下文压缩标记
+
+            对话历史中可能出现以下系统自动生成的压缩标记：
+            - "[content compressed by system]" — 该助手消息已被系统骨架化压缩
+            - "[content truncated by system]" — 该消息内容已被系统截断
+            - "[collapsed]" — 工具结果已被系统清除
+            - "[tool result cleared]" — 工具结果已被释放
+
+            这些标记是系统内部上下文管理机制的产物，不是助手的输出格式。
+            你绝不能在回复中使用、模仿或引用这些标记格式。
+            你的每条回复必须是完整的、有意义的自然语言内容。
+            """;
+
     // ==================== buildStaticSections ====================
 
     private List<String> buildStaticSections(Set<String> enabledTools) {
@@ -934,7 +949,8 @@ public class SystemPromptBuilder {
             getUsingToolsSection(enabledTools),
             TONE_STYLE_SECTION,
             getOutputEfficiencySection(isInternalUser()),
-            FUNCTION_RESULT_CLEARING_SECTION
+            FUNCTION_RESULT_CLEARING_SECTION,
+            CONTEXT_COMPRESSION_MARKERS_SECTION
         );
     }
 

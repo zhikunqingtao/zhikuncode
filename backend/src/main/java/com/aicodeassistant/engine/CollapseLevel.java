@@ -33,7 +33,7 @@ public sealed interface CollapseLevel
                 return originalContent;
             }
             return originalContent.substring(0, Math.min(keepChars, originalContent.length()))
-                    + "\n...[summary-collapsed: " + originalContent.length() + " chars]";
+                    + "\n...[content truncated by system]";
         }
     }
 
@@ -43,17 +43,12 @@ public sealed interface CollapseLevel
         @Override public String collapse(String originalContent) {
             if (originalContent == null
                     || originalContent.length() <= 50
-                    || originalContent.startsWith("[skeleton] ")) {
+                    || originalContent.startsWith("[skeleton] ")       // 向后兼容旧格式
+                    || originalContent.startsWith("[content compressed by system]")) {
                 return originalContent;
             }
-            int newline = originalContent.indexOf('\n');
-            String firstLine = newline > 0
-                    ? originalContent.substring(0, Math.min(newline, 80))
-                    : originalContent.substring(0, Math.min(80, originalContent.length()));
-            String candidate = "[skeleton] " + firstLine + "...";
-            return candidate.length() < originalContent.length()
-                    ? candidate
-                    : originalContent;
+            // 守卫已保证 originalContent.length() > 50，固定短句必然更短
+            return "[content compressed by system]";
         }
     }
 }

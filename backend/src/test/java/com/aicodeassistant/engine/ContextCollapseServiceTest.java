@@ -166,7 +166,8 @@ class ContextCollapseServiceTest {
             ContentBlock.TextBlock tb = (ContentBlock.TextBlock) am.content().getFirst();
             assertTrue(tb.text().length() < longText.length(),
                     "Truncated text should be shorter than original");
-            assertTrue(tb.text().contains("collapsed"), "Should contain collapsed marker");
+            assertTrue(tb.text().contains("[content truncated by system]"),
+                    "Should contain system truncation marker");
         }
 
         @Test
