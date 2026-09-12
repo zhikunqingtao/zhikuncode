@@ -22,12 +22,20 @@ export interface AppUiStoreState {
      */
     pendingVisualizationTab: string | null;
 
+    /**
+     * 移动端导航 Tab（§7.5 抽屉文字列表选中项）。
+     * null = 主区显示聊天；非 null = 主区显示对应 Sidebar Tab 面板。
+     * 仅 <768px 移动形态消费；桌面端忽略。
+     */
+    mobileNavTab: string | null;
+
     showElicitationDialog: (data: ElicitationRequest) => void;
     dismissElicitationDialog: (interactionId: string) => void;
     updateElicitationDeadline: (interactionId: string, decisionDeadlineAt: number, version?: number) => void;
     setPromptSuggestion: (data: PromptSuggestion | null) => void;
     updateSpeculation: (data: { id: string; accepted: boolean }) => void;
     requestVisualizationTab: (tab: string | null) => void;
+    setMobileNavTab: (tab: string | null) => void;
 }
 
 export const useAppUiStore = create<AppUiStoreState>()(
@@ -36,6 +44,7 @@ export const useAppUiStore = create<AppUiStoreState>()(
         promptSuggestion: null,
         speculationResults: new Map(),
         pendingVisualizationTab: null,
+        mobileNavTab: null,
 
         showElicitationDialog: (data) => set(d => { d.elicitationDialog = data; }),
         dismissElicitationDialog: (interactionId) => set(d => {
@@ -52,5 +61,6 @@ export const useAppUiStore = create<AppUiStoreState>()(
         setPromptSuggestion: (data) => set(d => { d.promptSuggestion = data; }),
         updateSpeculation: (data) => set(d => { d.speculationResults.set(data.id, data.accepted); }),
         requestVisualizationTab: (tab) => set(d => { d.pendingVisualizationTab = tab; }),
+        setMobileNavTab: (tab) => set(d => { d.mobileNavTab = tab; }),
     })))
 );

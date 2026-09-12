@@ -7,13 +7,15 @@
  */
 
 import { useState, useCallback, useMemo } from 'react';
+import { ChevronLeft } from 'lucide-react';
 import { Header } from './Header';
-import { Sidebar } from './Sidebar';
+import { Sidebar, SidebarTabContent, SIDEBAR_TAB_LABELS, type TabType } from './Sidebar';
 import { StatusBar } from './StatusBar';
 import { Drawer } from './Drawer';
 import { useWebSocket } from '@/hooks/useWebSocket';
-import { useResponsive } from '@/hooks/useResponsive';
+import { useResponsive, useViewportWidth } from '@/hooks/useResponsive';
 import { useFeatureFlagStore } from '@/store/featureFlagStore';
+import { useAppUiStore } from '@/store/appUiStore';
 import { MobileStatusBar } from '@/components/apos/MobileStatusBar';
 
 interface AppLayoutProps {
@@ -27,6 +29,11 @@ export function AppLayout({ children }: AppLayoutProps) {
 
     const aposEnabled = useFeatureFlagStore((s) => s.flags.APOS_ACTIVITY_STREAM);
     const mobileStatusEnabled = useFeatureFlagStore((s) => s.flags.APOS_MOBILE_STATUS);
+
+    // §7.5 移动端：抽屉文字列表选中的 Tab 在主区呈现（null = 聊天）
+    const mobileNavTab = useAppUiStore((s) => s.mobileNavTab);
+    const setMobileNavTab = useAppUiStore((s) => s.setMobileNavTab);
+    const viewportWidth = useViewportWidth();
 
     // 检测是否为独立 Sidebar 模式（新窗口打开）
     const isDetachedSidebar = useMemo(() => {
@@ -96,18 +103,39 @@ export function AppLayout({ children }: AppLayoutProps) {
                     <Sidebar className="shrink-0" />
                 )}
 
-                {/* Mobile Drawer */}
+                {/* Mobile Drawer — §7.5 文字列表，选中 Tab 后自动关闭 */}
                 {isMobile && (
                     <Drawer open={sidebarOpen} onClose={closeSidebar}>
-                        <Sidebar isDrawerMode />
+                        <Sidebar isDrawerMode onNavigate={closeSidebar} />
                     </Drawer>
                 )}
 
                 {/* Main Content Area */}
                 <main className="flex-1 flex flex-col min-w-0">
-                    {/* Content */}
+                    {/* Content — 移动形态下抽屉选中 Tab 时主区切换为对应面板 */}
                     <div className="flex-1 overflow-hidden relative">
-                        {children}
+                        {isMobile && mobileNavTab ? (
+                            <div className="h-full flex flex-col">
+                                <div className="flex items-center gap-1 h-11 px-1 border-b border-[var(--border)] flex-shrink-0">
+                                    <button
+                                        onClick={() => setMobileNavTab(null)}
+                                        aria-label="返回"
+                                        className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl
+                                            text-t2 hover:bg-hover2 transition-colors duration-fast"
+                                    >
+                                        <ChevronLeft className="w-5 h-5" />
+                                    </button>
+                                    <span className="text-sm font-semibold text-t1 truncate">
+                                        {SIDEBAR_TAB_LABELS[mobileNavTab as TabType] ?? mobileNavTab}
+                                    </span>
+                                </div>
+                                <div className="flex-1 min-h-0 overflow-hidden">
+                                    <SidebarTabContent activeTab={mobileNavTab as TabType} width={viewportWidth} />
+                                </div>
+                            </div>
+                        ) : (
+                            children
+                        )}
                     </div>
 
                     {/* StatusBar */}

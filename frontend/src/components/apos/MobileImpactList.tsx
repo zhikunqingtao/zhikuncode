@@ -33,7 +33,7 @@ export function MobileImpactList({ onViewAll }: MobileImpactListProps) {
   if (top5.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-[44px] px-3">
-        <span className="text-xs text-gray-500">暂无变更影响数据</span>
+        <span className="text-xs text-t3">暂无变更影响数据</span>
       </div>
     );
   }
@@ -43,18 +43,18 @@ export function MobileImpactList({ onViewAll }: MobileImpactListProps) {
       {top5.map((file) => (
         <div
           key={file.filePath}
-          className="flex items-center gap-2 min-h-[44px] rounded-lg bg-[#1e1e2e]/60 px-3 py-2"
+          className="flex items-center gap-2 min-h-[44px] rounded-lg bg-surface2 px-3 py-2"
         >
           {/* 风险色标 */}
           <span
             className={`flex-shrink-0 w-2.5 h-2.5 rounded-full ${RISK_COLORS[file.riskLevel] ?? RISK_COLORS.safe}`}
           />
           {/* 文件名 */}
-          <span className="flex-1 text-xs text-gray-300 truncate font-mono">
+          <span className="flex-1 text-xs text-t1 truncate font-mono">
             {file.filePath.split('/').pop() ?? file.filePath}
           </span>
           {/* touchCount */}
-          <span className="flex-shrink-0 text-[10px] text-gray-500 tabular-nums">
+          <span className="flex-shrink-0 text-[10px] text-t3 tabular-nums">
             ×{file.touchCount}
           </span>
         </div>
@@ -64,7 +64,7 @@ export function MobileImpactList({ onViewAll }: MobileImpactListProps) {
       {aggregatedChanges.length > 5 && onViewAll && (
         <button
           onClick={onViewAll}
-          className="flex items-center justify-center min-h-[44px] min-w-[44px] rounded-lg text-xs text-blue-400 hover:bg-blue-500/10 active:bg-blue-500/20 transition-colors"
+          className="flex items-center justify-center min-h-[44px] min-w-[44px] rounded-lg text-xs text-accent2 hover:bg-accent2-soft active:bg-accent2-soft transition-colors duration-fast"
         >
           查看全部 ({aggregatedChanges.length})
         </button>

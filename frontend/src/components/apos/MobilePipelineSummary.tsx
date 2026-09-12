@@ -33,7 +33,7 @@ export function MobilePipelineSummary({ workers }: MobilePipelineSummaryProps) {
   ).length;
 
   return (
-    <div className="flex items-center gap-2 min-h-[44px] min-w-[44px] px-2">
+    <div className="flex items-center gap-2 min-w-[44px] px-2">
       {/* 状态圆点 */}
       <div className="flex items-center gap-1.5">
         {workers.map((worker) => (
@@ -46,7 +46,7 @@ export function MobilePipelineSummary({ workers }: MobilePipelineSummaryProps) {
       </div>
 
       {/* 进度文本 */}
-      <span className="text-xs text-gray-400 whitespace-nowrap">
+      <span className="text-xs text-t2 whitespace-nowrap">
         {completed}/{workers.length} 完成
       </span>
     </div>

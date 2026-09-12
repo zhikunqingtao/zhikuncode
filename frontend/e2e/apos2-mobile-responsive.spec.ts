@@ -1,8 +1,6 @@
 import { test, expect } from '@playwright/test';
 import {
   waitForAppReady,
-  navigateToAPOSTab,
-  openMobileDrawer,
   injectSwarmData,
   injectAnomalyData,
   injectChangeImpactData,
@@ -124,8 +122,8 @@ test.describe('APOS Phase 2 - Mobile Responsive (TC-APOS2-029~037)', () => {
     const statusBarContainer = page.locator('.fixed.bottom-0.left-0.right-0.z-50');
     await expect(statusBarContainer).toBeVisible({ timeout: 3000 });
 
-    // 验证背景样式
-    await expect(statusBarContainer).toHaveClass(/bg-\[#12121a\]/);
+    // 验证背景样式（§8.5 令牌化：bg-[#12121a] → bg-surfacev2/95）
+    await expect(statusBarContainer).toHaveClass(/bg-surfacev2/);
     await expect(statusBarContainer).toHaveClass(/backdrop-blur-sm/);
 
     // 验证 z-index 层级（z-50）
@@ -170,8 +168,8 @@ test.describe('APOS Phase 2 - Mobile Responsive (TC-APOS2-029~037)', () => {
     // §8.7 移动视口由 mobile project（393×852）承担，移除临时 setViewportSize
     await injectFeatureFlags(page, flags(createPhase2Flags()));
 
-    // 初始无异常 — 徽章不显示
-    const anomalyBadge = page.locator('.bg-red-500\\/20.text-red-300');
+    // 初始无异常 — 徽章不显示（§8.5 令牌化：bg-red-500/20 text-red-300 → errsoft/errstrong）
+    const anomalyBadge = page.locator('.bg-errsoft.text-errstrong');
     await expect(anomalyBadge).toHaveCount(0);
 
     // 注入异常数据
@@ -213,26 +211,25 @@ test.describe('APOS Phase 2 - Mobile Responsive (TC-APOS2-029~037)', () => {
     // §8.7 移动视口由 mobile project（393×852）承担，移除临时 setViewportSize
     await injectFeatureFlags(page, flags(createPhase2Flags()));
 
-    // 注入变更影响数据使展开面板有内容
+    // 注入变更影响数据使 sheet 有内容
     const impactState = createChangeImpactState(6, {
       withHighRisk: true,
       withTestGap: true,
     });
     await injectChangeImpactData(page, impact(impactState));
 
-    // 验证展开面板初始不可见
-    const expandPanel = page.locator('.fixed.bottom-\\[44px\\]');
-    await expect(expandPanel).toHaveCount(0);
+    // §8.4 接线后：点击状态细条展开 Bottom Sheet（旧内联展开面板已移除）
+    const sheet = page.locator('[role="dialog"][aria-label="状态详情"]');
+    await expect(sheet).toHaveCount(0);
 
-    // 点击状态条展开
+    // 点击状态条展开 sheet
     const statusButton = page.locator('button[aria-label="展开状态详情"]');
     await statusButton.click();
-    await page.waitForTimeout(400);
 
-    // 展开面板应可见
-    await expect(expandPanel).toBeVisible({ timeout: 3000 });
+    // sheet 应可见
+    await expect(sheet).toBeVisible({ timeout: 5000 });
 
-    // 验证展开面板包含 "高风险文件" 标题
+    // 验证 sheet 包含 "高风险文件" 标题
     const panelTitle = page.getByText('高风险文件');
     await expect(panelTitle).toBeVisible({ timeout: 3000 });
 
@@ -240,12 +237,15 @@ test.describe('APOS Phase 2 - Mobile Responsive (TC-APOS2-029~037)', () => {
     const chevron = page.locator('svg.rotate-180');
     await expect(chevron).toBeVisible({ timeout: 3000 });
 
-    // 再次点击状态条收起
-    await statusButton.click();
-    await page.waitForTimeout(400);
+    // Esc 关闭 sheet（§8.4 关闭方式之一）
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(500);
 
-    // 展开面板应不可见
-    await expect(expandPanel).toHaveCount(0);
+    // sheet 应不可见
+    await expect(sheet).toHaveCount(0);
+
+    // 焦点归还触发器（§10.7-④）
+    await expect(statusButton).toBeFocused({ timeout: 3000 });
 
     await takeTestScreenshot(page, 'TC-APOS2-033', '01-expand-collapse');
   });
@@ -314,10 +314,11 @@ test.describe('APOS Phase 2 - Mobile Responsive (TC-APOS2-029~037)', () => {
     });
     await injectChangeImpactData(page, impact(impactState));
 
-    // 展开 MobileStatusBar 面板
+    // 展开 MobileStatusBar 的 Bottom Sheet（§8.4 接线后 MobileImpactList 位于 sheet 内）
     const statusButton = page.locator('button[aria-label="展开状态详情"]');
     await statusButton.click();
-    await page.waitForTimeout(400);
+    const sheet = page.locator('[role="dialog"][aria-label="状态详情"]');
+    await expect(sheet).toBeVisible({ timeout: 5000 });
 
     // 验证 MobileImpactList 渲染了文件列表项
     const fileItems = page.locator('.flex.items-center.gap-2.rounded-lg');
@@ -356,11 +357,7 @@ test.describe('APOS Phase 2 - Mobile Responsive (TC-APOS2-029~037)', () => {
     // §8.7 移动视口由 mobile project（393×852）承担，移除临时 setViewportSize
     await injectFeatureFlags(page, flags(createPhase2Flags()));
 
-    // 移动端需打开 Drawer 才能访问 Sidebar 中的 APOS Tab
-    await openMobileDrawer(page);
-    await navigateToAPOSTab(page);
-
-    // 注入 Activity 数据以便可以打开 BottomSheet
+    // 注入 Activity 数据（§8.4 接线后：MobileStatusBar 点击展开 sheet 的详情对象）
     await page.evaluate(async () => {
       const mod = await import('/src/store/activityStore.ts');
       const store = (mod as any).useActivityStore;
@@ -389,62 +386,52 @@ test.describe('APOS Phase 2 - Mobile Responsive (TC-APOS2-029~037)', () => {
       const mod = await import('/src/store/sessionStore.ts');
       (mod as any).useSessionStore.setState({ sessionId: 'default' });
     });
+    await page.waitForTimeout(500);
+
+    // §8.4 接线：点击 MobileStatusBar 状态细条展开 Bottom Sheet（grabber 36×4 + overlay2 遮罩）
+    const statusButton = page.locator('button[aria-label="展开状态详情"]');
+    await expect(statusButton).toBeVisible({ timeout: 5000 });
+    await statusButton.click();
+
+    const sheet = page.locator('[role="dialog"][aria-label="状态详情"]');
+    await expect(sheet).toBeVisible({ timeout: 5000 });
+    await expect(sheet).toContainText('Drag Test Activity');
+
+    const overlay = sheet.locator('div.bg-overlay2');
+    await expect(overlay).toBeVisible();
+    const dragHandle = sheet.locator('div.h-1.w-9.rounded-full');
+    await expect(dragHandle).toBeVisible({ timeout: 3000 });
+
+    // 短距慢速下拉（位移 <25% 面板高度且速度 <500px/s）→ 回弹不关闭
+    const handleBox = await dragHandle.boundingBox();
+    expect(handleBox).not.toBeNull();
+    const startX = handleBox!.x + handleBox!.width / 2;
+    const startY = handleBox!.y + handleBox!.height / 2;
+    await page.mouse.move(startX, startY);
+    await page.mouse.down();
+    await page.mouse.move(startX, startY + 40, { steps: 10 });
+    await page.waitForTimeout(200); // 静置使拖拽速度归零，仅距离参与判定（40px < 25% 高度）
+    await page.mouse.up();
+    await page.waitForTimeout(500);
+
+    // Sheet 仍应打开（回弹）
+    await expect(sheet).toBeVisible({ timeout: 3000 });
+
+    // 下拉 >25% 面板高度 → 关闭
+    // 第一次短拖拽松手后面板会弹回，必须重新读取手柄坐标，
+    // 否则第二次拖拽仍使用动画前的旧位置，实际不会命中面板。
+    const resetHandleBox = await dragHandle.boundingBox();
+    expect(resetHandleBox).not.toBeNull();
+    const resetX = resetHandleBox!.x + resetHandleBox!.width / 2;
+    const resetY = resetHandleBox!.y + resetHandleBox!.height / 2;
+    await page.mouse.move(resetX, resetY);
+    await page.mouse.down();
+    await page.mouse.move(resetX, resetY + 320, { steps: 15 });
+    await page.mouse.up();
     await page.waitForTimeout(800);
 
-    // 尝试点击 Activity 卡片打开 BottomSheet
-    const activityCard = page.locator('[data-testid="activity-card-l1"]:visible').filter({
-      hasText: 'Drag Test Activity',
-    }).first();
-    if (await activityCard.isVisible()) {
-      await activityCard.click();
-      await page.waitForTimeout(600);
-
-      // 验证 BottomSheet 打开（遮罩层 bg-black/60 和拖拽手柄可见）
-      const overlay = page.locator('.bg-black\\/60');
-      const dragHandle = page.locator('.w-10.h-1.rounded-full.bg-gray-500');
-
-      if (await overlay.isVisible()) {
-        await expect(dragHandle).toBeVisible({ timeout: 3000 });
-
-        // 获取拖拽手柄位置
-        const handleBox = await dragHandle.boundingBox();
-        if (handleBox) {
-          const startX = handleBox.x + handleBox.width / 2;
-          const startY = handleBox.y + handleBox.height / 2;
-
-          // 测试拖拽距离不足 100px — Sheet 不关闭
-          await page.mouse.move(startX, startY);
-          await page.mouse.down();
-          await page.mouse.move(startX, startY + 80, { steps: 10 });
-          await page.mouse.up();
-          await page.waitForTimeout(500);
-
-          // Sheet 仍应打开
-          await expect(overlay).toBeVisible({ timeout: 3000 });
-
-          // 测试拖拽距离超过 100px — Sheet 关闭
-          // 第一次短拖拽松手后面板会弹回，必须重新读取手柄坐标，
-          // 否则第二次拖拽仍使用动画前的旧位置，实际不会命中面板。
-          const resetHandleBox = await dragHandle.boundingBox();
-          expect(resetHandleBox).not.toBeNull();
-          const resetX = resetHandleBox!.x + resetHandleBox!.width / 2;
-          const resetY = resetHandleBox!.y + resetHandleBox!.height / 2;
-          await page.mouse.move(resetX, resetY);
-          await page.mouse.down();
-          await page.mouse.move(resetX, resetY + 150, { steps: 15 });
-          await page.mouse.up();
-          await page.waitForTimeout(800);
-
-          // Sheet 应关闭（遮罩消失）
-          await expect(overlay).not.toBeVisible({ timeout: 5000 });
-        }
-      } else {
-        // BottomSheet 可能在桌面模式不通过卡片点击打开
-        test.skip(true, 'MobileBottomSheet 未通过卡片点击触发，可能需要特定触发条件');
-      }
-    } else {
-      test.skip(true, 'Activity 卡片在当前视口下不可见，组件待实现或需要 Activity Tab 切换');
-    }
+    // Sheet 应关闭（遮罩与面板一并退场）
+    await expect(sheet).not.toBeVisible({ timeout: 5000 });
 
     await takeTestScreenshot(page, 'TC-APOS2-036', '01-drag-close');
   });

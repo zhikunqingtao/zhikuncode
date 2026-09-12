@@ -56,7 +56,23 @@ import { useWorkbenchViewStore } from '@/store/workbenchViewStore';
 import { taskTitle } from '@/utils/workbenchPresentation';
 import { useViewportWidth } from '@/hooks/useResponsive';
 
-type TabType = 'sessions' | 'tasks' | 'files' | 'sequence' | 'dag' | 'git' | 'complexity' | 'impact' | 'api-docs' | 'diagram' | 'code-path' | 'apos';
+export type TabType = 'sessions' | 'tasks' | 'files' | 'sequence' | 'dag' | 'git' | 'complexity' | 'impact' | 'api-docs' | 'diagram' | 'code-path' | 'apos';
+
+/** §7.5 移动端抽屉文字列表 / 主区移动面板的 Tab 中文标签 */
+export const SIDEBAR_TAB_LABELS: Record<TabType, string> = {
+    sessions: '会话',
+    tasks: '任务',
+    files: '文件',
+    sequence: '序列图',
+    dag: 'DAG',
+    git: 'Git',
+    complexity: '复杂度',
+    impact: '影响分析',
+    'api-docs': 'API文档',
+    diagram: '图表生成',
+    'code-path': '代码路径',
+    apos: 'Activity',
+};
 
 // ═══ Sidebar 宽度配置 ═══
 const MIN_WIDTH = 256;
@@ -66,20 +82,22 @@ const STORAGE_KEY = 'sidebar-width';
 
 export interface SidebarProps {
     className?: string;
-    /** 是否在 Drawer 模式下（移动端），不显示拖拽手柄 */
+    /** 是否在 Drawer 模式下（移动端），渲染 §7.5 文字列表且不显示拖拽手柄 */
     isDrawerMode?: boolean;
     /** 独立窗口模式下的默认 Tab */
     defaultTab?: string;
+    /** Drawer 模式下选中 Tab 后的回调（用于自动关闭抽屉） */
+    onNavigate?: () => void;
 }
 
-export function Sidebar({ className = '', isDrawerMode = false, defaultTab }: SidebarProps) {
+export function Sidebar({ className = '', isDrawerMode = false, defaultTab, onNavigate }: SidebarProps) {
     const [activeTab, setActiveTab] = useState<TabType>(() => {
         if (defaultTab && ['sessions','tasks','files','sequence','dag','git','complexity','impact','api-docs','diagram','code-path','apos'].includes(defaultTab)) {
             return defaultTab as TabType;
         }
         return 'sessions';
     });
-    const { tasks, clearTasks } = useTaskStore();
+    const { tasks } = useTaskStore();
     const workbenchEnabled = useWorkbenchViewStore(s => s.enabled);
     const viewMode = useWorkbenchViewStore(s => s.viewMode);
     const simpleMode = workbenchEnabled && viewMode === 'simple';
@@ -181,93 +199,104 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab }: Si
         }
     }, [activeTab, simpleMode]);
 
+    // §7.5 移动端抽屉：选中 nav-item → 记录主区移动面板 Tab 并自动关闭抽屉
+    const setMobileNavTab = useAppUiStore((s) => s.setMobileNavTab);
+    const handleDrawerTabSelect = useCallback((tab: TabType) => {
+        setActiveTab(tab);
+        setMobileNavTab(tab);
+        onNavigate?.();
+    }, [setMobileNavTab, onNavigate]);
+
     // Drawer 模式不使用动态宽度
     const sidebarStyle = isDrawerMode ? undefined : { width: `${width}px` };
     const sidebarWidthClass = isDrawerMode ? 'w-full' : '';
 
     return (
         <aside
-            className={`${sidebarWidthClass} h-full bg-[var(--bg-secondary)] border-r border-[var(--border)] flex flex-col relative z-10 ${className}`}
+            className={`${sidebarWidthClass} h-full bg-[var(--bg-secondary)] ${isDrawerMode ? '' : 'border-r border-[var(--border)]'} flex flex-col relative z-10 ${className}`}
             style={sidebarStyle}
         >
-            {/* Tab Navigation */}
-            <div className="flex flex-wrap border-b border-[var(--border)] flex-shrink-0">
-                {tabs.map((tab) => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        title={tab.label}
-                        className={`py-2 px-2 text-sm font-medium flex items-center justify-center
-                            transition-colors ${
-                            activeTab === tab.id
-                                ? 'text-[var(--text-primary)] border-b-2 border-blue-500 bg-[var(--bg-hover)]'
-                                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]'
-                        }`}
-                    >
-                        <tab.icon className="w-4 h-4" />
-                    </button>
-                ))}
-                {/* 新窗口打开按钮 */}
-                {!simpleMode && (
-                    <button
-                        onClick={handleOpenInNewWindow}
-                        className="p-1.5 ml-auto text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] rounded transition-colors self-center mr-1"
-                        title="在新窗口中打开侧边栏"
-                    >
-                        <ExternalLink className="w-4 h-4" />
-                    </button>
-                )}
-            </div>
+            {isDrawerMode ? (
+                /* §7.5 移动端抽屉 = 文字列表：图标 + 文字 + badge，38px 行高、rounded-xl、
+                   active = accent2-soft 底 + accent 字 + 600 字重；选中后自动关闭抽屉 */
+                <nav aria-label="主导航" className="flex-1 overflow-y-auto flex flex-col gap-1 p-3">
+                    {tabs.map((tab) => {
+                        const isActive = activeTab === tab.id;
+                        const badge = tab.id === 'tasks' && tasks.size > 0 ? tasks.size : null;
+                        return (
+                            <button
+                                key={tab.id}
+                                title={tab.label}
+                                aria-current={isActive ? 'page' : undefined}
+                                onClick={() => handleDrawerTabSelect(tab.id)}
+                                className={`flex items-center gap-3 h-[38px] px-3 rounded-xl text-sm
+                                    transition-interactive duration-fast ${
+                                    isActive
+                                        ? 'bg-accent2-soft text-accent2 font-semibold'
+                                        : 'text-t2 hover:bg-hover2 hover:text-t1'
+                                }`}
+                            >
+                                <tab.icon className="w-4 h-4 shrink-0" />
+                                <span className="flex-1 text-left truncate">{tab.label}</span>
+                                {badge !== null && (
+                                    <span className="min-w-[20px] h-5 px-1.5 inline-flex items-center justify-center
+                                        rounded-full bg-accent2-soft text-accent2 text-xs font-semibold tabular-nums">
+                                        {badge}
+                                    </span>
+                                )}
+                            </button>
+                        );
+                    })}
+                    {/* 新窗口打开入口保留 */}
+                    {!simpleMode && (
+                        <button
+                            onClick={handleOpenInNewWindow}
+                            title="在新窗口中打开侧边栏"
+                            className="flex items-center gap-3 h-[38px] px-3 rounded-xl text-sm
+                                text-t3 hover:bg-hover2 hover:text-t1 transition-interactive duration-fast"
+                        >
+                            <ExternalLink className="w-4 h-4 shrink-0" />
+                            <span className="flex-1 text-left truncate">新窗口打开</span>
+                        </button>
+                    )}
+                </nav>
+            ) : (
+                <>
+                    {/* Tab Navigation — 桌面图标条（路径不动） */}
+                    <div className="flex flex-wrap border-b border-[var(--border)] flex-shrink-0">
+                        {tabs.map((tab) => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                title={tab.label}
+                                className={`py-2 px-2 text-sm font-medium flex items-center justify-center
+                                    transition-colors ${
+                                    activeTab === tab.id
+                                        ? 'text-[var(--text-primary)] border-b-2 border-blue-500 bg-[var(--bg-hover)]'
+                                        : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]'
+                                }`}
+                            >
+                                <tab.icon className="w-4 h-4" />
+                            </button>
+                        ))}
+                        {/* 新窗口打开按钮 */}
+                        {!simpleMode && (
+                            <button
+                                onClick={handleOpenInNewWindow}
+                                className="p-1.5 ml-auto text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] rounded transition-colors self-center mr-1"
+                                title="在新窗口中打开侧边栏"
+                            >
+                                <ExternalLink className="w-4 h-4" />
+                            </button>
+                        )}
+                    </div>
 
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto">
-                {activeTab === 'sessions' && (simpleMode ? <SimpleTaskList /> : <SessionList />)}
-                {activeTab === 'tasks' && <TaskPanel tasks={tasks} onClear={clearTasks} />}
-                {activeTab === 'files' && <FileTreePanel sidebarWidth={isDrawerMode ? 280 : width} />}
-                {activeTab === 'sequence' && <APISequenceDiagram />}
-                {activeTab === 'dag' && (
-                    <div className="h-full">
-                        <AgentDAGChart />
+                    {/* Content */}
+                    <div className="flex-1 overflow-y-auto">
+                        <SidebarTabContent activeTab={activeTab} width={width} />
                     </div>
-                )}
-                {activeTab === 'git' && (
-                    <div className="h-full">
-                        <GitTimeline repoPath="." />
-                    </div>
-                )}
-                {activeTab === 'complexity' && (
-                    <div className="h-full">
-                        <CodeComplexityTreemap />
-                    </div>
-                )}
-                {activeTab === 'impact' && (
-                    <div className="h-full">
-                        <ChangeImpactGraph />
-                    </div>
-                )}
-                {activeTab === 'api-docs' && (
-                    <ApiDocsTab />
-                )}
-                {activeTab === 'diagram' && (
-                    <div className="h-full">
-                        <CodeDiagramGenerator />
-                    </div>
-                )}
-                {activeTab === 'code-path' && (
-                    <div className="h-full">
-                        <CodePathTracer />
-                    </div>
-                )}
-                {activeTab === 'apos' && (
-                    <div className="grid grid-rows-[auto_1fr_auto] h-full overflow-hidden">
-                        <SessionFileExplorer />
-                        <ActivityStream />
-                        <div className="max-h-[180px] overflow-y-auto flex-shrink-0">
-                            <FeatureFlagPanel />
-                        </div>
-                    </div>
-                )}
-            </div>
+                </>
+            )}
 
             {/* 拖拽手柄 — 仅桌面端 */}
             {!isDrawerMode && (
@@ -283,6 +312,71 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab }: Si
                 </div>
             )}
         </aside>
+    );
+}
+
+// ═══ Sidebar Tab 内容渲染器 — 桌面侧栏 / 移动主区面板共用（§7.5） ═══
+export interface SidebarTabContentProps {
+    activeTab: TabType;
+    /** FileTreePanel 等需要的宽度参考（桌面=侧栏宽，移动主区=视口宽） */
+    width?: number;
+}
+
+export function SidebarTabContent({ activeTab, width = 280 }: SidebarTabContentProps) {
+    const { tasks, clearTasks } = useTaskStore();
+    const workbenchEnabled = useWorkbenchViewStore(s => s.enabled);
+    const viewMode = useWorkbenchViewStore(s => s.viewMode);
+    const simpleMode = workbenchEnabled && viewMode === 'simple';
+
+    return (
+        <>
+            {activeTab === 'sessions' && (simpleMode ? <SimpleTaskList /> : <SessionList />)}
+            {activeTab === 'tasks' && <TaskPanel tasks={tasks} onClear={clearTasks} />}
+            {activeTab === 'files' && <FileTreePanel sidebarWidth={width} />}
+            {activeTab === 'sequence' && <APISequenceDiagram />}
+            {activeTab === 'dag' && (
+                <div className="h-full">
+                    <AgentDAGChart />
+                </div>
+            )}
+            {activeTab === 'git' && (
+                <div className="h-full">
+                    <GitTimeline repoPath="." />
+                </div>
+            )}
+            {activeTab === 'complexity' && (
+                <div className="h-full">
+                    <CodeComplexityTreemap />
+                </div>
+            )}
+            {activeTab === 'impact' && (
+                <div className="h-full">
+                    <ChangeImpactGraph />
+                </div>
+            )}
+            {activeTab === 'api-docs' && (
+                <ApiDocsTab />
+            )}
+            {activeTab === 'diagram' && (
+                <div className="h-full">
+                    <CodeDiagramGenerator />
+                </div>
+            )}
+            {activeTab === 'code-path' && (
+                <div className="h-full">
+                    <CodePathTracer />
+                </div>
+            )}
+            {activeTab === 'apos' && (
+                <div className="grid grid-rows-[auto_1fr_auto] h-full overflow-hidden">
+                    <SessionFileExplorer />
+                    <ActivityStream />
+                    <div className="max-h-[180px] overflow-y-auto flex-shrink-0">
+                        <FeatureFlagPanel />
+                    </div>
+                </div>
+            )}
+        </>
     );
 }
 
