@@ -162,7 +162,7 @@ const ToolCallBlock: React.FC<ToolCallBlockProps> = ({ toolUseId, toolCall }) =>
             >
                 <ChevronRight
                     size={13}
-                    className={`shrink-0 text-t4 transition-transform duration-200 ${expanded ? 'rotate-90' : ''}`}
+                    className={`shrink-0 text-t4 transition-transform duration-base ${expanded ? 'rotate-90' : ''}`}
                 />
                 <Wrench size={14} className="shrink-0 text-t3" />
                 <span className="font-semibold text-sm text-t1 truncate">
@@ -228,7 +228,7 @@ const ToolCallBlock: React.FC<ToolCallBlockProps> = ({ toolUseId, toolCall }) =>
                         >
                             <ChevronRight
                                 size={12}
-                                className={`transition-transform duration-200 ${inputExpanded ? 'rotate-90' : ''}`}
+                                className={`transition-transform duration-base ${inputExpanded ? 'rotate-90' : ''}`}
                             />
                             Input
                         </button>
@@ -248,7 +248,7 @@ const ToolCallBlock: React.FC<ToolCallBlockProps> = ({ toolUseId, toolCall }) =>
                             >
                                 <ChevronRight
                                     size={12}
-                                    className={`transition-transform duration-200 ${resultExpanded ? 'rotate-90' : ''}`}
+                                    className={`transition-transform duration-base ${resultExpanded ? 'rotate-90' : ''}`}
                                 />
                                 Result
                                 {toolCall.result.isError && (

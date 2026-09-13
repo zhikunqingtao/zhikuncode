@@ -53,7 +53,7 @@ const CollapsedReadSearchBlock: React.FC<CollapsedReadSearchBlockProps> = ({
             >
                 <ChevronRight
                     size={12}
-                    className={`text-gray-500 transition-transform duration-200 ${expanded ? 'rotate-90' : ''}`}
+                    className={`text-gray-500 transition-transform duration-base ${expanded ? 'rotate-90' : ''}`}
                 />
                 <Icon size={14} className="text-gray-500" />
                 <span className="text-xs text-gray-400">{label}</span>

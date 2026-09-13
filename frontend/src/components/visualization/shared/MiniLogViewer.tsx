@@ -42,7 +42,7 @@ const MiniLogViewer: React.FC<MiniLogViewerProps> = ({ logs, defaultCollapsed = 
             >
                 <ChevronRight
                     size={10}
-                    className={`transition-transform duration-200 ${collapsed ? '' : 'rotate-90'}`}
+                    className={`transition-transform duration-base ${collapsed ? '' : 'rotate-90'}`}
                 />
                 查看详细日志 ({logs.length})
             </button>

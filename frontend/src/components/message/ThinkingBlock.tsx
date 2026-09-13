@@ -46,7 +46,7 @@ const ThinkingBlock: React.FC<ThinkingBlockProps> = ({
             >
                 <ChevronRight
                     size={14}
-                    className={`transition-transform duration-200 ${expanded ? 'rotate-90' : ''}`}
+                    className={`transition-transform duration-base ${expanded ? 'rotate-90' : ''}`}
                 />
                 <Brain size={14} className="text-accent2" />
                 <span className="flex-1 truncate">

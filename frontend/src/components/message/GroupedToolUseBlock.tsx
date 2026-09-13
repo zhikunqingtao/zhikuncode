@@ -52,7 +52,7 @@ const GroupedToolUseBlock: React.FC<GroupedToolUseBlockProps> = ({
             >
                 <ChevronRight
                     size={14}
-                    className={`text-gray-500 transition-transform duration-200 ${expanded ? 'rotate-90' : ''}`}
+                    className={`text-gray-500 transition-transform duration-base ${expanded ? 'rotate-90' : ''}`}
                 />
                 <Wrench size={14} className="text-gray-500" />
                 <span className="text-sm text-gray-300 font-medium">

@@ -44,7 +44,7 @@ export function CommandPanel({
                     {actions}
                     {collapsible && (
                         <ChevronDown
-                            className={`w-4 h-4 text-[var(--text-muted)] transition-transform duration-200 ${
+                            className={`w-4 h-4 text-[var(--text-muted)] transition-transform duration-base ${
                                 expanded ? 'rotate-180' : ''
                             }`}
                         />
