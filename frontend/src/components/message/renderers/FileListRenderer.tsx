@@ -37,17 +37,17 @@ const fileIcons: Record<string, string> = {
 };
 
 const FileIcon: React.FC<{ isDir: boolean; name: string }> = ({ isDir, name }) => {
-    if (isDir) return <span className="text-blue-400">📁</span>;
+    if (isDir) return <span className="text-accent2">📁</span>;
     const ext = name.split('.').pop()?.toLowerCase() || '';
     return <span>{fileIcons[ext] || '📄'}</span>;
 };
 
 const TreeNode: React.FC<{ node: FileNode; depth: number }> = ({ node, depth }) => (
     <div>
-        <div className="flex items-center gap-1 py-0.5 hover:bg-gray-800/50 rounded px-1"
+        <div className="flex items-center gap-1 py-0.5 hover:bg-hover2 rounded px-1"
             style={{ paddingLeft: `${depth * 16}px` }}>
             <FileIcon isDir={node.isDir} name={node.name} />
-            <span className={`text-sm font-mono ${node.isDir ? 'text-blue-300' : 'text-gray-300'}`}>
+            <span className={`text-sm font-mono ${node.isDir ? 'text-accent2' : 'text-t2'}`}>
                 {node.name}
             </span>
         </div>
@@ -63,8 +63,8 @@ export const FileListRenderer: React.FC<{ content: string }> = ({ content }) => 
 
     return (
         <div className="text-sm">
-            <div className="text-xs text-gray-400 mb-2">{paths.length} 个文件</div>
-            <div className="bg-gray-900 rounded p-2">
+            <div className="text-xs text-t3 mb-2 tabular-nums">{paths.length} 个文件</div>
+            <div className="bg-sunken2 border border-hairline rounded-xl p-2">
                 {tree.map(node => <TreeNode key={node.path} node={node} depth={0} />)}
             </div>
         </div>

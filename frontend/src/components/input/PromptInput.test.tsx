@@ -404,7 +404,7 @@ describe('PromptInput asynchronous submit', () => {
         });
 
         fireEvent.keyDown(window, { key: 'k', ctrlKey: true });
-        fireEvent.click(screen.getByRole('button', {
+        fireEvent.click(screen.getByRole('option', {
             name: /\/compact/,
         }));
 

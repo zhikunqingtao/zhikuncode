@@ -29,11 +29,11 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-overlay2 backdrop-blur-[3px]"
             onClick={onClose}
         >
             <div
-                className="bg-[var(--bg-primary)] rounded-xl shadow-2xl max-w-lg w-full mx-4 max-h-[80vh] overflow-y-auto"
+                className="bg-surfacev2 border border-hairline rounded-panel shadow-e4 motion-safe:animate-scale-in max-w-lg w-full mx-4 max-h-[80vh] overflow-y-auto"
                 onClick={e => e.stopPropagation()}
             >
                 {title && (

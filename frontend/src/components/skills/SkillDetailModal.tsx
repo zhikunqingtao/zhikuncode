@@ -36,8 +36,8 @@ export const SkillDetailModal: React.FC<{
     }, [skillName]);
 
     if (error) return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-            <div className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl shadow-2xl
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay2 backdrop-blur-[3px]" onClick={onClose}>
+            <div className="bg-surfacev2 border border-hairline rounded-panel shadow-e4 motion-safe:animate-scale-in
                             w-full max-w-lg mx-4 p-6" onClick={e => e.stopPropagation()}>
                 <p className="text-red-400 text-sm">{error}</p>
                 <button onClick={onClose} className="mt-3 text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)]">
@@ -49,8 +49,8 @@ export const SkillDetailModal: React.FC<{
     if (!detail) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-            <div className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl shadow-2xl
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay2 backdrop-blur-[3px]" onClick={onClose}>
+            <div className="bg-surfacev2 border border-hairline rounded-panel shadow-e4 motion-safe:animate-scale-in
                             w-full max-w-lg mx-4 max-h-[70vh] overflow-hidden flex flex-col"
                  onClick={e => e.stopPropagation()}>
                 {/* Header */}

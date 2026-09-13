@@ -157,19 +157,19 @@ export const ElicitationDialog: React.FC<ElicitationDialogProps> = ({
     const canAct = deadlineConfirmed && !expired;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay2 backdrop-blur-[3px]">
             <div
                 ref={dialogRef}
                 tabIndex={-1}
                 role="dialog"
                 data-interaction-id={interactionId}
                 aria-modal="true"
-                className="w-full max-w-md mx-4 rounded-xl border border-[var(--border)] bg-[var(--bg-primary)]
-                            shadow-2xl overflow-hidden outline-none"
+                className="w-full max-w-md mx-4 rounded-panel border border-hairline bg-surfacev2
+                            shadow-e4 overflow-hidden outline-none motion-safe:animate-scale-in"
             >
                 {/* Header */}
                 <div className="px-5 py-4 border-b border-[var(--border)] flex items-center gap-3">
-                    <HelpCircle className="w-5 h-5 text-blue-500" />
+                    <HelpCircle className="w-5 h-5 text-accent2" />
                     <div className="flex-1">
                         <h3 className="font-semibold text-[var(--text-primary)]">
                             AI 需要更多信息
@@ -209,8 +209,8 @@ export const ElicitationDialog: React.FC<ElicitationDialogProps> = ({
                                     disabled={!canAct}
                                     className={`w-full px-4 py-3 rounded-lg border text-left transition-all
                                         ${selectedOptions.includes(option.value)
-                                            ? 'border-blue-500 bg-blue-500/10'
-                                            : 'border-[var(--border)] hover:border-blue-500/50 hover:bg-[var(--bg-hover)]'
+                                            ? 'border-accent2 bg-accent2-soft'
+                                            : 'border-[var(--border)] hover:border-accent2 hover:bg-[var(--bg-hover)]'
                                         }`}
                                 >
                                     <div className="font-medium text-[var(--text-primary)]">
@@ -232,14 +232,14 @@ export const ElicitationDialog: React.FC<ElicitationDialogProps> = ({
                             <button
                                 onClick={() => { if (canAct) { setSelectedOptions(['yes']); onSubmit(requestId, 'yes'); } }}
                                 disabled={!canAct}
-                                className="flex-1 px-4 py-3 rounded-lg border border-green-500 bg-green-500/10
-                                    text-[var(--text-primary)] hover:bg-green-500/20 transition-colors"
+                                className="flex-1 px-4 py-3 rounded-lg border border-ok bg-oksoft
+                                    text-[var(--text-primary)] hover:bg-[var(--v2-ok-soft)] transition-colors"
                             >是</button>
                             <button
                                 onClick={() => { if (canAct) { setSelectedOptions(['no']); onSubmit(requestId, 'no'); } }}
                                 disabled={!canAct}
-                                className="flex-1 px-4 py-3 rounded-lg border border-red-500 bg-red-500/10
-                                    text-[var(--text-primary)] hover:bg-red-500/20 transition-colors"
+                                className="flex-1 px-4 py-3 rounded-lg border border-err bg-errsoft
+                                    text-[var(--text-primary)] hover:bg-[var(--v2-err-soft)] transition-colors"
                             >否</button>
                         </div>
                     )}
@@ -255,7 +255,7 @@ export const ElicitationDialog: React.FC<ElicitationDialogProps> = ({
                             placeholder={placeholder || '请输入...'}
                             className="w-full px-3 py-2 rounded-lg border border-[var(--border)]
                                 bg-[var(--bg-secondary)] text-[var(--text-primary)]
-                                focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                focus:outline-none focus:ring-[3px] focus:ring-accent2-ring"
                             autoFocus
                         />
                     )}
@@ -269,13 +269,13 @@ export const ElicitationDialog: React.FC<ElicitationDialogProps> = ({
                             placeholder="请输入您的回答..."
                             className="w-full px-3 py-2 rounded-lg border border-[var(--border)]
                                 bg-[var(--bg-secondary)] text-[var(--text-primary)]
-                                focus:outline-none focus:ring-2 focus:ring-blue-500
+                                focus:outline-none focus:ring-[3px] focus:ring-accent2-ring
                                 resize-none"
                             rows={4}
                             autoFocus
                         />
                     )}
-                    {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
+                    {error && <p className="text-sm text-err mt-2">{error}</p>}
                 </div>
 
                 {/* Actions */}
@@ -294,7 +294,7 @@ export const ElicitationDialog: React.FC<ElicitationDialogProps> = ({
                         disabled={!canSubmit || !canAct}
                         className={`px-4 py-2 rounded-lg text-sm text-white transition-colors
                             ${canSubmit && canAct
-                                ? 'bg-blue-600 hover:bg-blue-700' 
+                                ? 'bg-accent2-strong hover:bg-accent2-hover' 
                                 : 'bg-gray-400 cursor-not-allowed'
                             }`}
                     >

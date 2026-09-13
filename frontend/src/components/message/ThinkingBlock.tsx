@@ -4,6 +4,8 @@
  * SPEC: §8.2.1 ThinkingBlock (可折叠/展开)
  * 显示 AI 的思考过程，默认折叠，用户可展开查看。
  * 流式思考时自动展开并显示光标动画。
+ *
+ * §7.2：嵌入 AI 卡内的次级块，容器 sunken + hairline，状态色走 accent2 令牌。
  */
 
 import React, { useState, useCallback, useMemo } from 'react';
@@ -35,32 +37,32 @@ const ThinkingBlock: React.FC<ThinkingBlockProps> = ({
     }, [content, redacted]);
 
     return (
-        <div className="thinking-block my-2 rounded-lg border border-gray-700 bg-gray-900/50 overflow-hidden">
+        <div className="thinking-block my-2 rounded-xl border border-hairline bg-surface2 overflow-hidden">
             {/* Header — always visible */}
             <button
                 onClick={toggle}
-                className="flex items-center gap-2 w-full px-3 py-2 text-left text-sm text-gray-400 hover:bg-gray-800/50 transition-colors"
+                className="flex items-center gap-2 w-full px-3 py-2 text-left text-sm text-t3 hover:bg-hover2 transition-colors duration-fast"
                 disabled={redacted}
             >
                 <ChevronRight
                     size={14}
                     className={`transition-transform duration-200 ${expanded ? 'rotate-90' : ''}`}
                 />
-                <Brain size={14} className="text-purple-400" />
+                <Brain size={14} className="text-accent2" />
                 <span className="flex-1 truncate">
                     {expanded ? 'Thinking' : preview}
                 </span>
                 {streaming && (
-                    <span className="inline-block w-1.5 h-3 bg-purple-400 animate-pulse rounded-sm" />
+                    <span className="inline-block h-2 w-2 rounded-full bg-accent2 animate-accent-pulse motion-reduce:animate-none" />
                 )}
             </button>
 
             {/* Content — collapsible */}
             {expanded && !redacted && (
-                <div className="px-4 py-3 border-t border-gray-700/50 text-sm text-gray-400 whitespace-pre-wrap leading-relaxed max-h-96 overflow-y-auto">
+                <div className="px-4 py-3 border-t border-hairline text-sm text-t2 whitespace-pre-wrap leading-[1.75] max-h-96 overflow-y-auto">
                     {content || 'Thinking...'}
                     {streaming && (
-                        <span className="inline-block w-1.5 h-3 ml-0.5 bg-purple-400 animate-pulse rounded-sm" />
+                        <span className="inline-block w-1.5 h-3 ml-0.5 bg-accent2 animate-pulse rounded-sm" />
                     )}
                 </div>
             )}

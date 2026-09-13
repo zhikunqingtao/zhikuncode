@@ -108,10 +108,10 @@ const AttachmentMessage: React.FC<{
     message: Extract<Message, { type: 'attachment' }>;
 }> = ({ message }) => (
     <div className="px-4 py-2 my-1">
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--bg-secondary)] border border-[var(--border)] text-sm">
-            <Paperclip size={14} className="text-[var(--text-muted)]" />
-            <span className="text-[var(--text-primary)]">{message.fileName}</span>
-            <span className="text-xs text-[var(--text-muted)]">
+        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-surface2 border border-hairline text-sm">
+            <Paperclip size={14} className="text-t4" />
+            <span className="text-t1">{message.fileName}</span>
+            <span className="text-xs text-t4 tabular-nums">
                 ({formatFileSize(message.size)})
             </span>
         </div>
@@ -124,9 +124,9 @@ const GroupedToolUseMessage: React.FC<{
     message: Extract<Message, { type: 'grouped_tool_use' }>;
 }> = ({ message }) => (
     <div className="px-4 py-2 my-1">
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--bg-secondary)]/30 border border-[var(--border)]">
-            <Layers size={14} className="text-[var(--text-muted)]" />
-            <span className="text-xs text-[var(--text-secondary)]">
+        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-surface2 border border-hairline">
+            <Layers size={14} className="text-t4" />
+            <span className="text-xs text-t2 tabular-nums">
                 {message.toolCalls.length} tool calls
             </span>
             <div className="flex flex-wrap gap-1 ml-1">
@@ -135,10 +135,10 @@ const GroupedToolUseMessage: React.FC<{
                         key={tc.toolUseId}
                         className={`text-xs px-1.5 py-0.5 rounded ${
                             tc.status === 'completed'
-                                ? 'bg-green-900/30 text-green-400'
+                                ? 'bg-oksoft text-ok'
                                 : tc.status === 'error'
-                                  ? 'bg-red-900/30 text-red-400'
-                                  : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)]'
+                                  ? 'bg-errsoft text-err'
+                                  : 'bg-sunken2 text-t2'
                         }`}
                     >
                         {tc.toolName}
@@ -165,9 +165,9 @@ const CollapsedReadSearchMessage: React.FC<{
 
     return (
         <div className="px-4 py-2 my-1">
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--bg-secondary)]/30 border border-[var(--border)]">
-                <FolderSearch size={14} className="text-[var(--text-muted)]" />
-                <span className="text-xs text-[var(--text-secondary)]">{summary}</span>
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-surface2 border border-hairline">
+                <FolderSearch size={14} className="text-t4" />
+                <span className="text-xs text-t2">{summary}</span>
             </div>
         </div>
     );

@@ -30,26 +30,26 @@ export const SearchResultRenderer: React.FC<{ content: string; query?: string }>
     const highlightMatch = (text: string) => {
         if (!query) return text;
         const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-        return text.replace(regex, '<mark class="bg-yellow-500/40 text-yellow-200">$1</mark>');
+        return text.replace(regex, '<mark class="bg-warnsoft text-warnstrong">$1</mark>');
     };
 
     return (
         <div className="text-sm">
-            <div className="text-xs text-gray-400 mb-2">
+            <div className="text-xs text-t3 mb-2">
                 {grouped.size} 个文件中找到 {totalMatches} 个匹配
             </div>
             {Array.from(grouped).map(([file, matches]) => (
                 <div key={file} className="mb-3">
-                    <span className="text-blue-400 text-sm font-mono">
+                    <span className="text-accent2 text-sm font-mono">
                         {file}
                     </span>
-                    <span className="text-gray-500 text-xs ml-2">({matches.length} 匹配)</span>
-                    <div className="mt-1 bg-gray-900 rounded overflow-hidden">
+                    <span className="text-t4 text-xs ml-2 tabular-nums">({matches.length} 匹配)</span>
+                    <div className="mt-1 bg-sunken2 border border-hairline rounded-xl overflow-hidden">
                         {matches.map((m, i) => (
-                            <div key={i} className="flex hover:bg-gray-800/50">
-                                <span className="w-12 text-right text-gray-600 px-2 flex-shrink-0"
+                            <div key={i} className="flex hover:bg-hover2">
+                                <span className="w-12 text-right text-t4 px-2 flex-shrink-0 tabular-nums"
                                     >{m.line}</span>
-                                <span className="flex-1 font-mono whitespace-pre"
+                                <span className="flex-1 font-mono text-[12.5px] text-t1 whitespace-pre"
                                     dangerouslySetInnerHTML={{ __html: highlightMatch(m.content) }} />
                             </div>
                         ))}

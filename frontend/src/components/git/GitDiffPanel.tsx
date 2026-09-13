@@ -103,12 +103,12 @@ export const GitDiffPanel: React.FC<{ data: GitDiffData }> = ({ data }) => {
                                         <div key={i}
                                              className={`px-4 py-0.5 text-xs font-mono whitespace-pre ${
                                                  line.startsWith('+') && !line.startsWith('+++')
-                                                     ? 'bg-green-900/20 text-green-300'
+                                                     ? 'bg-[var(--v2-diff-add-bg)] text-t1'
                                                      : line.startsWith('-') && !line.startsWith('---')
-                                                         ? 'bg-red-900/20 text-red-300'
+                                                         ? 'bg-[var(--v2-diff-remove-bg)] text-t1'
                                                          : line.startsWith('@@')
-                                                             ? 'bg-blue-900/10 text-blue-300'
-                                                             : 'text-[var(--text-secondary)]'
+                                                             ? 'bg-accent2-soft text-accent2'
+                                                             : 'text-t2'
                                              }`}
                                         >
                                             {line}

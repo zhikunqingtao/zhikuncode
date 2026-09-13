@@ -82,9 +82,9 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
     }, [addNotification, hasBoundSession]);
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay2 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay2 backdrop-blur-[3px]">
             <div className="w-full max-w-2xl mx-4 max-h-[80vh] rounded-panel border border-hairline
-                            bg-surfacev2 shadow-e4 overflow-hidden flex flex-col">
+                            bg-surfacev2 shadow-e4 overflow-hidden flex flex-col motion-safe:animate-scale-in">
                 {/* Header */}
                 <div className="px-6 py-4 border-b border-hairline flex items-center justify-between">
                     <h2 className="text-base font-semibold text-t1">设置</h2>

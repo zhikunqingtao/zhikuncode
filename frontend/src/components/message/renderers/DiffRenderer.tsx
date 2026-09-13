@@ -1,6 +1,9 @@
 /**
  * DiffRenderer — FileEditTool 专用渲染器
  * 功能: 解析 unified diff 格式 + 增删行分色 + 行号显示
+ *
+ * §7.2 diff 行：del/add 整行 --v2-diff-remove-bg / --v2-diff-add-bg + 行首 −/＋；
+ * 头部 +n/−n chip 走 ok/err soft 底。
  */
 
 import React, { useMemo } from 'react';
@@ -41,34 +44,34 @@ export const DiffRenderer: React.FC<{ content: string; filePath?: string }> = ({
     const removeCount = diffLines.filter(l => l.type === 'remove').length;
 
     return (
-        <div className="rounded-md border border-gray-700 overflow-hidden">
+        <div className="rounded-xl border border-hairline overflow-hidden bg-sunken2">
             {filePath && (
-                <div className="bg-gray-800 px-3 py-1.5 text-sm flex justify-between">
-                    <span className="text-gray-300 font-mono">{filePath}</span>
-                    <span className="text-xs">
-                        <span className="text-green-400">+{addCount}</span>{' '}
-                        <span className="text-red-400">-{removeCount}</span>
+                <div className="bg-surface2 px-3 py-1.5 text-sm flex justify-between border-b border-hairline">
+                    <span className="text-t2 font-mono text-xs">{filePath}</span>
+                    <span className="flex items-center gap-1 text-[11px]">
+                        <span className="rounded bg-oksoft px-1.5 py-0.5 font-medium tabular-nums text-ok">+{addCount}</span>
+                        <span className="rounded bg-errsoft px-1.5 py-0.5 font-medium tabular-nums text-err">−{removeCount}</span>
                     </span>
                 </div>
             )}
-            <div className="font-mono text-sm overflow-x-auto">
+            <div className="font-mono text-[12.5px] leading-[1.7] overflow-x-auto">
                 {diffLines.map((line, i) => (
                     <div key={i} className={`flex
-                        ${line.type === 'add' ? 'bg-green-900/30' : ''}
-                        ${line.type === 'remove' ? 'bg-red-900/30' : ''}
-                        ${line.type === 'header' ? 'bg-blue-900/20 text-blue-400' : ''}`}>
-                        <span className="w-10 text-right text-gray-600 select-none px-1 flex-shrink-0">
+                        ${line.type === 'add' ? 'bg-[var(--v2-diff-add-bg)]' : ''}
+                        ${line.type === 'remove' ? 'bg-[var(--v2-diff-remove-bg)]' : ''}
+                        ${line.type === 'header' ? 'bg-accent2-soft text-accent2' : ''}`}>
+                        <span className="w-10 text-right text-t4 select-none px-1 flex-shrink-0 tabular-nums">
                             {line.oldLine || ''}
                         </span>
-                        <span className="w-10 text-right text-gray-600 select-none px-1 flex-shrink-0">
+                        <span className="w-10 text-right text-t4 select-none px-1 flex-shrink-0 tabular-nums">
                             {line.newLine || ''}
                         </span>
-                        <span className={`w-4 text-center flex-shrink-0
-                            ${line.type === 'add' ? 'text-green-400' : ''}
-                            ${line.type === 'remove' ? 'text-red-400' : ''}`}>
-                            {line.type === 'add' ? '+' : line.type === 'remove' ? '-' : ' '}
+                        <span className={`w-4 text-center flex-shrink-0 select-none
+                            ${line.type === 'add' ? 'text-ok' : ''}
+                            ${line.type === 'remove' ? 'text-err' : ''}`}>
+                            {line.type === 'add' ? '+' : line.type === 'remove' ? '−' : ' '}
                         </span>
-                        <span className="flex-1 whitespace-pre">{line.content}</span>
+                        <span className="flex-1 whitespace-pre text-t1">{line.content}</span>
                     </div>
                 ))}
             </div>

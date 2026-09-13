@@ -169,7 +169,7 @@ const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision
     const timerCritical = deadlineConfirmed && remainingSeconds <= 10;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay2 backdrop-blur-[3px]">
             <div
                 ref={dialogRef}
                 tabIndex={-1}
@@ -178,8 +178,8 @@ const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision
                 aria-modal="true"
                 aria-labelledby="permission-title"
                 aria-describedby="permission-desc"
-                className={`w-full max-w-lg mx-4 rounded-xl border-2 ${risk.border} ${risk.bg}
-                            shadow-2xl overflow-hidden outline-none`}
+                className={`w-full max-w-lg mx-4 rounded-panel border-2 ${risk.border} ${risk.bg}
+                            shadow-e4 overflow-hidden outline-none motion-safe:animate-scale-in`}
             >
                 {/* Title bar */}
                 <div className="px-5 py-3 border-b border-gray-700/50 flex items-center gap-3">

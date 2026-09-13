@@ -281,6 +281,8 @@ export interface NotificationItem {
     priority: NotificationPriority;
     timeout: number;
     createdAt: number;
+    /** §10.7-②：错误 Toast 的可执行重试动作（有则渲染"重试"主钮） */
+    onRetry?: () => void;
 }
 
 // ==================== 收件箱消息 ====================

@@ -55,8 +55,8 @@ export function McpManagementPage({ onClose }: McpManagementPageProps) {
   }, [query, services]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 backdrop-blur-sm">
-      <div className="flex h-[88vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-primary)] shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay2 p-3 backdrop-blur-[3px]">
+      <div className="flex h-[88vh] w-full max-w-5xl flex-col overflow-hidden rounded-panel border border-hairline bg-surfacev2 shadow-e4 motion-safe:animate-scale-in">
         <header className="flex items-start justify-between border-b border-[var(--border)] px-6 py-5">
           <div>
             <div className="flex items-center gap-2">
