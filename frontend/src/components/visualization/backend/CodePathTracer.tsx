@@ -5,6 +5,7 @@
  */
 
 import { useMemo, useState, useCallback, useEffect, memo } from 'react';
+import { CHART_COLORS } from '@/styles/design-tokens';
 import {
   ReactFlow,
   MiniMap,
@@ -47,20 +48,20 @@ import {
 // ── 层级颜色 & 图标配置 ──
 
 const LAYER_CONFIG: Record<string, { color: string; icon: LucideIcon; label: string }> = {
-  controller: { color: '#3b82f6', icon: Globe,    label: 'Controller' },
-  service:    { color: '#22c55e', icon: Cog,      label: 'Service' },
-  repository: { color: '#a855f7', icon: Database, label: 'Repository' },
-  database:   { color: '#f97316', icon: Database, label: 'Database' },
-  external:   { color: '#ef4444', icon: Zap,      label: 'External' },
-  utility:    { color: '#6b7280', icon: Box,      label: 'Utility' },
+  controller: { color: CHART_COLORS.light[4], icon: Globe,    label: 'Controller' },
+  service:    { color: CHART_COLORS.light[1], icon: Cog,      label: 'Service' },
+  repository: { color: CHART_COLORS.light[5], icon: Database, label: 'Repository' },
+  database:   { color: CHART_COLORS.light[2], icon: Database, label: 'Database' },
+  external:   { color: CHART_COLORS.light[3], icon: Zap,      label: 'External' },
+  utility:    { color: CHART_COLORS.light[7], icon: Box,      label: 'Utility' },
 };
 
 const METHOD_COLORS: Record<string, string> = {
-  GET: '#22c55e',
-  POST: '#3b82f6',
-  PUT: '#f59e0b',
-  DELETE: '#ef4444',
-  PATCH: '#a855f7',
+  GET: CHART_COLORS.light[1],
+  POST: CHART_COLORS.light[4],
+  PUT: CHART_COLORS.light[2],
+  DELETE: CHART_COLORS.light[3],
+  PATCH: CHART_COLORS.light[5],
 };
 
 // ── 数据转换 ──

@@ -12,6 +12,7 @@ import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { Copy, Check, Download, AlertTriangle } from 'lucide-react';
 import { useConfigStore } from '@/store/configStore';
 import { initMermaid, renderMermaid } from '@/utils/mermaid-config';
+import { resolveTheme } from '@/styles/design-tokens';
 
 interface MermaidBlockProps {
     code: string;
@@ -49,11 +50,8 @@ const MermaidBlock: React.FC<MermaidBlockProps> = ({ code }) => {
     const cacheRef = useRef<Map<string, string>>(new Map());
 
     const theme = useConfigStore(s => s.theme);
-    const isDark = useMemo(() => {
-        return theme.mode === 'dark' ||
-            theme.mode === 'glass' ||
-            (theme.mode === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    }, [theme.mode]);
+    // §4.4/§4.5 effectiveTheme：dark→dark，glass→light（修正原先 glass 被当 dark 的 bug），system→落类
+    const effectiveTheme = useMemo(() => resolveTheme(theme.mode), [theme.mode]);
 
     const incomplete = useMemo(() => looksIncomplete(code), [code]);
 
@@ -64,7 +62,7 @@ const MermaidBlock: React.FC<MermaidBlockProps> = ({ code }) => {
             return;
         }
 
-        const cacheKey = `${isDark ? 'd' : 'l'}:${code}`;
+        const cacheKey = `${effectiveTheme === 'dark' ? 'd' : 'l'}:${code}`;
         const cached = cacheRef.current.get(cacheKey);
         if (cached) {
             setSvg(cached);
@@ -77,7 +75,7 @@ const MermaidBlock: React.FC<MermaidBlockProps> = ({ code }) => {
 
         (async () => {
             try {
-                initMermaid(isDark);
+                initMermaid(effectiveTheme);
                 const result = await renderMermaid(id, code);
                 if (!cancelled) {
                     cacheRef.current.set(cacheKey, result.svg);
@@ -96,7 +94,7 @@ const MermaidBlock: React.FC<MermaidBlockProps> = ({ code }) => {
         })();
 
         return () => { cancelled = true; };
-    }, [code, isDark, incomplete]);
+    }, [code, effectiveTheme, incomplete]);
 
     const handleCopySvg = useCallback(async () => {
         if (!svg) return;

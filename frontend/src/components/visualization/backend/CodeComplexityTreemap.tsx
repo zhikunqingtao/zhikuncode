@@ -8,6 +8,7 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
 import { Treemap, ResponsiveContainer, Tooltip } from 'recharts';
+import { TOKENS, CHART_COLORS } from '@/styles/design-tokens';
 import {
   FolderOpen,
   FileCode,
@@ -27,19 +28,19 @@ import { useComplexityStore, type ComplexityNode } from '@/store/complexityStore
 // ── 风险等级颜色映射 ──
 
 const RISK_COLORS: Record<string, string> = {
-  'A': '#22c55e',
-  'B': '#84cc16',
-  'C': '#eab308',
-  'D': '#f97316',
-  'E': '#ef4444',
+  'A': TOKENS.light['--v2-ok'],
+  'B': CHART_COLORS.light[6],
+  'C': TOKENS.light['--v2-warn'],
+  'D': CHART_COLORS.light[2],
+  'E': TOKENS.light['--v2-err'],
 };
 
 const RISK_BG_COLORS: Record<string, string> = {
-  'A': 'rgba(34,197,94,0.85)',
-  'B': 'rgba(132,204,22,0.80)',
-  'C': 'rgba(234,179,8,0.80)',
-  'D': 'rgba(249,115,22,0.85)',
-  'E': 'rgba(239,68,68,0.85)',
+  'A': 'rgba(18,166,107,0.85)',
+  'B': 'rgba(101,163,13,0.80)',
+  'C': 'rgba(217,143,31,0.80)',
+  'D': 'rgba(217,119,6,0.85)',
+  'E': 'rgba(220,76,72,0.85)',
 };
 
 const RISK_LABELS: Record<string, string> = {

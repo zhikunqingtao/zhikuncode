@@ -5,6 +5,7 @@
  */
 
 import { useMemo, useState, useCallback, useRef, useEffect } from 'react';
+import { CHART_COLORS } from '@/styles/design-tokens';
 import {
   ReactFlow,
   MiniMap,
@@ -39,9 +40,9 @@ const nodeTypes = { agentNode: AgentDAGNode };
 
 /** 边样式映射 */
 const EDGE_STYLES: Record<CollaborationEdge['type'], { stroke: string; strokeDasharray?: string }> = {
-  explicit_dependency: { stroke: '#3B82F6' },
-  mailbox_communication: { stroke: '#10B981' },
-  time_inferred: { stroke: '#9CA3AF', strokeDasharray: '5,5' },
+  explicit_dependency: { stroke: CHART_COLORS.light[0] },
+  mailbox_communication: { stroke: CHART_COLORS.light[1] },
+  time_inferred: { stroke: CHART_COLORS.light[7], strokeDasharray: '5,5' },
 };
 
 /** 简单网格布局（dagre 失败时的回退方案） */
