@@ -88,6 +88,8 @@ docs/test-results/**/coverage/
 docs/test-results/**/logs/
 # 运行时截图（运行时产出，可重现；如需长期保留请显式 git add -f）
 docs/test-results/**/screenshots/
+# 设计记忆点归档截图（memory-points.spec.ts 运行时自动重新生成，可重现，不入库）
+docs/test-results/memory-points/
 
 # Playwright / 前端 E2E 临时产物
 frontend/test-results/
