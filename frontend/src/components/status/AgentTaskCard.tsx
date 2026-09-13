@@ -43,7 +43,7 @@ const TaskCardItem: React.FC<TaskCardItemProps> = ({ task }) => {
     }, [task.startTime]);
 
     return (
-        <div className={`border rounded-lg p-3 transition-all duration-200 ${config.color}`}>
+        <div className={`border rounded-lg p-3 transition-colors duration-base ${config.color}`}>
             {/* Header row */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -89,7 +89,7 @@ const TaskCardItem: React.FC<TaskCardItemProps> = ({ task }) => {
                             title={expanded ? '收起' : '展开详情'}
                         >
                             <svg
-                                className={`w-3.5 h-3.5 text-gray-500 transition-transform duration-200
+                                className={`w-3.5 h-3.5 text-gray-500 transition-transform duration-base
                                             ${expanded ? 'rotate-180' : ''}`}
                                 fill="none" stroke="currentColor" viewBox="0 0 24 24"
                             >

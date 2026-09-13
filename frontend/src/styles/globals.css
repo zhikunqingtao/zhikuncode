@@ -473,3 +473,38 @@ body {
 @keyframes indeterminate {                                 /* 不定进度条 */
   0% { transform: translateX(-60%) scaleX(.4) }
   100% { transform: translateX(160%) scaleX(.4) } }
+
+/* ===== §9.4 Glass 降级（.glass-reduced 与 @supports 实色回退） ===== */
+@supports not (backdrop-filter: blur(1px)) {
+  .glass header, .glass aside, .glass footer, .glass [role="dialog"], .glass .glass-card,
+  .glass button:hover, .glass select, .glass input[type="text"], .glass textarea, .glass pre, .glass code {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(255, 255, 255, 0.92) !important;
+  }
+}
+
+/* 低端设备 / 偏好低透明：关闭毛玻璃，面板实色化 */
+.glass-reduced header, .glass-reduced aside, .glass-reduced footer,
+.glass-reduced [role="dialog"], .glass-reduced .glass-card,
+.glass-reduced button:hover, .glass-reduced select,
+.glass-reduced input[type="text"], .glass-reduced textarea,
+.glass-reduced pre, .glass-reduced code {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+}
+
+/* ===== §5.4 展开/收起容器（grid-rows 方案；旧 Safari @supports 兜底 max-height） ===== */
+.expand-collapse {
+  display: grid;
+  transition: grid-template-rows var(--v2-dur-slow) var(--v2-ease), opacity var(--v2-dur-base) var(--v2-ease);
+}
+.expand-collapse[data-open="true"] { grid-template-rows: 1fr; opacity: 1; }
+.expand-collapse[data-open="false"] { grid-template-rows: 0fr; opacity: 0; }
+.expand-collapse > .expand-collapse-inner { overflow: hidden; }
+@supports not (grid-template-rows: 0fr) {
+  .expand-collapse { transition: max-height var(--v2-dur-slow) var(--v2-ease), opacity var(--v2-dur-base) var(--v2-ease); }
+  .expand-collapse[data-open="true"] { max-height: 600px; }
+  .expand-collapse[data-open="false"] { max-height: 0; }
+}

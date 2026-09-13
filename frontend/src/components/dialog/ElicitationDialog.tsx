@@ -207,7 +207,7 @@ export const ElicitationDialog: React.FC<ElicitationDialogProps> = ({
                                             : handleSingleSelect(option.value)
                                     }
                                     disabled={!canAct}
-                                    className={`w-full px-4 py-3 rounded-lg border text-left transition-all
+                                    className={`w-full px-4 py-3 rounded-lg border text-left transition-colors
                                         ${selectedOptions.includes(option.value)
                                             ? 'border-accent2 bg-accent2-soft'
                                             : 'border-[var(--border)] hover:border-accent2 hover:bg-[var(--bg-hover)]'

@@ -31,7 +31,7 @@ export const WorkerProgressCard: React.FC<WorkerProgressCardProps> = ({ worker }
     };
 
     return (
-        <div className={`rounded-lg border border-zinc-200 dark:border-zinc-700 p-3 ${cfg.bg} transition-all duration-200`}>
+        <div className={`rounded-lg border border-zinc-200 dark:border-zinc-700 p-3 ${cfg.bg} transition-[width] duration-base`}>
             {/* Header Row */}
             <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-1.5">

@@ -338,7 +338,7 @@ export const CodeDiagramGenerator: React.FC = () => {
                   </span>
                   <div className="flex-1 h-1.5 rounded-full bg-[var(--bg-primary)] overflow-hidden max-w-[120px]">
                     <div
-                      className={`h-full rounded-full ${confidenceColor.bar} transition-all`}
+                      className={`h-full rounded-full ${confidenceColor.bar} transition-[width]`}
                       style={{ width: `${result.confidenceScore * 100}%` }}
                     />
                   </div>

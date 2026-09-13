@@ -128,7 +128,7 @@ function ProgressBar({ steps }: { steps: PlanStep[] }) {
             </div>
             <div className="h-1.5 bg-[var(--bg-primary)] rounded-full overflow-hidden">
                 <div
-                    className="h-full bg-blue-500 transition-all duration-300"
+                    className="h-full bg-blue-500 transition-[width] duration-slow"
                     style={{ width: `${pct}%` }}
                 />
             </div>
@@ -246,7 +246,7 @@ function TabletPanel() {
     return (
         <aside
             className={`h-full bg-[var(--bg-secondary)] border-l border-[var(--border)] flex flex-col shrink-0
-                transition-all duration-200 ${expanded ? 'w-72' : 'w-10'}`}
+                transition-[width] duration-base ${expanded ? 'w-72' : 'w-10'}`}
         >
             {/* 切换按钮 */}
             <button
@@ -321,7 +321,7 @@ function MobileDrawer() {
 
             {/* Overlay */}
             <div
-                className={`fixed inset-0 z-40 bg-black/50 transition-opacity duration-200
+                className={`fixed inset-0 z-40 bg-black/50 transition-opacity duration-base
                     ${open ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
                 onClick={() => setOpen(false)}
                 aria-hidden="true"
@@ -334,7 +334,7 @@ function MobileDrawer() {
                 aria-label="计划面板"
                 className={`fixed bottom-0 left-0 right-0 z-50
                     bg-[var(--bg-primary)] rounded-t-2xl shadow-2xl
-                    transition-transform duration-200 ease-out
+                    transition-transform duration-base ease-out
                     ${open ? 'translate-y-0' : 'translate-y-full'}`}
                 style={{ maxHeight: '75vh' }}
             >

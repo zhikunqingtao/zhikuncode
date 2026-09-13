@@ -108,7 +108,7 @@ export const SwarmStatusPanel: React.FC = () => {
                 <div className="mt-2">
                     <div className="h-1.5 bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden">
                         <div
-                            className="h-full bg-green-500 dark:bg-green-400 rounded-full transition-all duration-500"
+                            className="h-full bg-green-500 dark:bg-green-400 rounded-full transition-[width] duration-sheet"
                             style={{ width: `${progressPct}%` }}
                         />
                     </div>

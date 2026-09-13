@@ -76,7 +76,7 @@ const ToolProgressBar: React.FC<ToolProgressBarProps> = ({ progress, startTime }
             <div className="h-1.5 w-full rounded-full bg-gray-700/60 overflow-hidden">
                 {parsed.percent != null ? (
                     <div
-                        className={`h-full rounded-full ${barColor} transition-all duration-300 ease-out`}
+                        className={`h-full rounded-full ${barColor} transition-[width] duration-slow ease-out`}
                         style={{ width: `${parsed.percent}%` }}
                     />
                 ) : (

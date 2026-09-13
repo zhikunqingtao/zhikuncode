@@ -41,7 +41,7 @@ export const McpToolProgressIndicator: React.FC<Props> = ({ progress, onCancel }
                 </div>
                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
                     <div
-                        className="bg-blue-500 h-1.5 rounded-full transition-all duration-300"
+                        className="bg-blue-500 h-1.5 rounded-full transition-[width] duration-slow"
                         style={{ width: `${Math.max(percentage, 5)}%` }}
                     />
                 </div>

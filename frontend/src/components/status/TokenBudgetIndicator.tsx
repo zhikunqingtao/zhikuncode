@@ -31,7 +31,7 @@ export const TokenBudgetIndicator: React.FC = () => {
     const clampedPct = Math.min(pct, 100);
 
     return (
-        <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-lg px-3 py-2 transition-all duration-300 animate-in fade-in">
+        <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-lg px-3 py-2 transition-[width] duration-slow animate-in fade-in">
             <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
                     Token 预算
@@ -42,7 +42,7 @@ export const TokenBudgetIndicator: React.FC = () => {
             </div>
             <div className="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                 <div
-                    className={`h-full ${getBarColor(pct)} rounded-full transition-all duration-500 ease-out`}
+                    className={`h-full ${getBarColor(pct)} rounded-full transition-[width] duration-sheet ease-out`}
                     style={{ width: `${clampedPct}%` }}
                 />
             </div>

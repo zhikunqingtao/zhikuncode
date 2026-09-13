@@ -1,4 +1,3 @@
-import { motion, AnimatePresence } from 'framer-motion';
 import { Check, X, ArrowRight, Loader2 } from 'lucide-react';
 import type { ActivityData, RiskAssessment } from '@/types/apos';
 import { computeButtonDisabled } from '@/types/apos';
@@ -28,16 +27,9 @@ export function ActivityCardL2({
   onViewDetails,
 }: ActivityCardL2Props) {
   return (
-    <AnimatePresence>
-      {isVisible && (
-        <motion.div
-          initial={{ height: 0, opacity: 0 }}
-          animate={{ height: 'auto', opacity: 1 }}
-          exit={{ height: 0, opacity: 0 }}
-          transition={{ duration: 0.3, ease: 'easeOut' }}
-          className="overflow-hidden border-b border-[var(--border)]"
-        >
-          <div className="px-4 py-3 bg-[var(--bg-secondary)] space-y-3">
+    <div className="expand-collapse" data-open={isVisible}>
+      <div className="expand-collapse-inner">
+        <div className={`px-4 py-3 bg-[var(--bg-secondary)] space-y-3 ${isVisible ? 'border-b border-[var(--border)]' : ''}`}>
             {/* Loading state when verification in progress */}
             {!assessment && activity.insight?.verificationStatus === 'pending' && (
               <div className="space-y-2">
@@ -217,8 +209,7 @@ export function ActivityCardL2({
               </button>
             </div>
           </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+        </div>
+      </div>
   );
 }

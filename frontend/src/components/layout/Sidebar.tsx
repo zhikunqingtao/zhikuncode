@@ -882,7 +882,7 @@ function TaskPanel({ tasks, onClear }: { tasks: Map<string, TaskState>; onClear:
                             {task.progress !== undefined && (
                                 <div className="h-1.5 bg-sunken2 rounded-full overflow-hidden">
                                     <div
-                                        className="h-full bg-accent2 transition-all"
+                                        className="h-full bg-accent2 transition-[width]"
                                         style={{ width: `${(task.progress as number) * 100}%` }}
                                     />
                                 </div>

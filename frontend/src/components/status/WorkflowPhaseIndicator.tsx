@@ -70,7 +70,7 @@ const PhaseStep: React.FC<PhaseStepProps> = ({ phase, isLast }) => {
             {/* Phase circle + label */}
             <div className="flex flex-col items-center min-w-[72px]">
                 <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm transition-all duration-300 ${statusStyles.circle}`}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm transition-[width] duration-slow ${statusStyles.circle}`}
                     title={`${phase.name}: ${phase.prompt || phaseLabels[phase.name]}`}
                 >
                     {phase.status === 'completed' ? (
@@ -94,7 +94,7 @@ const PhaseStep: React.FC<PhaseStepProps> = ({ phase, isLast }) => {
             {/* Connector line */}
             {!isLast && (
                 <div className="flex-1 mx-1.5 h-0.5 min-w-[24px]">
-                    <div className={`h-full rounded-full transition-all duration-500 ${statusStyles.line}`} />
+                    <div className={`h-full rounded-full transition-[width] duration-sheet ${statusStyles.line}`} />
                 </div>
             )}
         </div>

@@ -57,7 +57,7 @@ export const PipelineNode: React.FC<PipelineNodeProps> = ({ worker, swarmId: _sw
     const borderColor = getStatusBorderColor(worker);
 
     return (
-        <div className={`rounded-lg border-2 ${borderColor} bg-white dark:bg-gray-800 p-4 shadow-sm transition-all`}>
+        <div className={`rounded-lg border-2 ${borderColor} bg-white dark:bg-gray-800 p-4 shadow-sm transition-[width]`}>
             {/* Header: Name + Status */}
             <div className="flex items-center justify-between mb-2">
                 <span className="font-semibold text-sm text-gray-900 dark:text-gray-100 truncate">
@@ -73,7 +73,7 @@ export const PipelineNode: React.FC<PipelineNodeProps> = ({ worker, swarmId: _sw
                 <div className="mb-2">
                     <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                         <div
-                            className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                            className="bg-blue-500 h-2 rounded-full transition-[width] duration-slow"
                             style={{ width: `${Math.min(100, Math.max(0, worker.progressPercent))}%` }}
                         />
                     </div>

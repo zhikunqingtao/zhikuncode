@@ -46,6 +46,17 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         // v2 强调色令牌（§3.4）：--accent-color 保留给旧组件；
         // v2 令牌按 effectiveTheme 写入（glass→light；system→matchMedia，主题/强调色变化时随 applyTheme 重算）
         applyAccent(theme.accentColor ?? '#6366F1', resolveTheme(theme.mode));
+
+        // §9.4 Glass 降级：低端设备（deviceMemory<4）或偏好低透明（prefers-reduced-transparency）时
+        // 加 .glass-reduced（globals.css 中 backdrop-filter:none + 面板实色回退）；仅 glass 模式生效。
+        const prefersReducedTransparency = window.matchMedia('(prefers-reduced-transparency: reduce)').matches;
+        const deviceMemory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
+        const lowMemory = typeof deviceMemory === 'number' && deviceMemory < 4;
+        if (theme.mode === 'glass' && (prefersReducedTransparency || lowMemory)) {
+            root.classList.add('glass-reduced');
+        } else {
+            root.classList.remove('glass-reduced');
+        }
         
         // 应用字体大小
         if (theme.fontSize) {

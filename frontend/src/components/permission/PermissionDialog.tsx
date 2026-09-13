@@ -244,7 +244,7 @@ const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision
                     </div>
                     <div className="w-full h-1.5 bg-gray-700/50 rounded-full overflow-hidden">
                         <div
-                            className={`h-full rounded-full transition-all duration-1000 ease-linear ${
+                            className={`h-full rounded-full transition-[width] duration-1000 ease-linear ${
                                 timerUrgent ? 'bg-red-500' : 'bg-blue-500'
                             } ${timerCritical ? 'animate-pulse' : ''}`}
                             style={{ width: `${deadlineConfirmed

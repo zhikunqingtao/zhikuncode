@@ -36,7 +36,7 @@ export const DelegationWarningBanner: React.FC = () => {
                                bg-amber-50 dark:bg-amber-950/30
                                border border-amber-300 dark:border-amber-700
                                rounded-lg shadow-sm
-                               animate-in slide-in-from-top-2 duration-300"
+                               animate-in slide-in-from-top-2 duration-slow"
                     role="alert"
                 >
                     {/* Warning icon */}
