@@ -1,6 +1,7 @@
 import React, { useState, lazy, Suspense } from 'react';
 import { FileText, ChevronDown, ChevronRight, GitBranch, Columns, AlignLeft } from 'lucide-react';
 import { useResponsive } from '@/hooks/useResponsive';
+import { ensureZkMonacoThemes, zkMonacoTheme } from '@/styles/zkMonaco';
 
 // Monaco DiffEditor 懒加载，避免首屏加载大包
 const DiffEditor = lazy(() =>
@@ -85,7 +86,8 @@ export const GitDiffPanel: React.FC<{ data: GitDiffData }> = ({ data }) => {
                                     <Suspense fallback={<div className="p-4 text-xs text-[var(--text-muted)]">Loading diff editor...</div>}>
                                         <DiffEditor
                                             height="300px"
-                                            theme="vs-dark"
+                                            beforeMount={ensureZkMonacoThemes}
+                                            theme={zkMonacoTheme()}
                                             original={extractOriginal(lines)}
                                             modified={extractModified(lines)}
                                             options={{

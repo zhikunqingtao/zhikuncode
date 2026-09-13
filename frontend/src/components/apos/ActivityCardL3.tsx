@@ -7,6 +7,7 @@ import { SignalBadge } from './SignalBadge';
 import { VerificationIcon } from './VerificationIcon';
 import { OperationIcon } from './OperationIcon';
 import { useMessageStore } from '@/store/messageStore';
+import { ensureZkMonacoThemes, zkMonacoTheme } from '@/styles/zkMonaco';
 
 const MonacoDiffEditor = lazy(() =>
   import('@monaco-editor/react').then((mod) => ({ default: mod.DiffEditor }))
@@ -379,7 +380,8 @@ export function ActivityCardL3({
                       original={activity.originalContent}
                       modified={activity.modifiedContent}
                       language="typescript"
-                      theme="vs-dark"
+                      beforeMount={ensureZkMonacoThemes}
+                      theme={zkMonacoTheme()}
                       options={{
                         readOnly: true,
                         minimap: { enabled: false },

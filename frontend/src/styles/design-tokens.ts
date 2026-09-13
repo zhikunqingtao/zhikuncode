@@ -144,3 +144,145 @@ export function resolveTheme(mode: ThemeMode): 'light' | 'dark' {
     }
     return mode;
 }
+
+/* ================= §4.2 Monaco zk 主题（从 TOKENS 派生，供 defineTheme 使用） ================= */
+
+export interface MonacoThemeDef {
+    base: 'vs' | 'vs-dark';
+    inherit: boolean;
+    rules: { token: string; foreground: string; fontStyle?: string }[];
+    colors: Record<string, string>;
+}
+
+export const MONACO_ZK_THEMES: Record<'zk-light' | 'zk-dark', MonacoThemeDef> = {
+    'zk-light': {
+        base: 'vs',
+        inherit: true,
+        rules: [
+            { token: 'comment', foreground: TOKENS.light['--v2-text-3'], fontStyle: 'italic' },
+            { token: 'string', foreground: '#0E8A64' },
+            { token: 'keyword', foreground: '#6D28D9' },
+            { token: 'number', foreground: '#C2410C' },
+            { token: 'type', foreground: '#B45309' },
+            { token: 'class', foreground: '#B45309' },
+            { token: 'function', foreground: '#4F46E5' },
+            { token: 'variable', foreground: TOKENS.light['--v2-text-1'] },
+            { token: 'constant', foreground: '#C8427D' },
+            { token: 'enum', foreground: '#C8427D' },
+        ],
+        colors: {
+            'editor.background': TOKENS.light['--v2-bg-sunken'],
+            'editor.foreground': TOKENS.light['--v2-text-1'],
+            'editorLineNumber.foreground': TOKENS.light['--v2-text-4'],
+            'editorLineNumber.activeForeground': TOKENS.light['--v2-text-2'],
+            'editor.lineHighlightBackground': '#0F172A0A',
+            'editor.selectionBackground': '#6366F140',
+            'editorCursor.foreground': TOKENS.light['--v2-accent'],
+            'editorIndentGuide.background1': '#0F172A14',
+            'editorGutter.background': TOKENS.light['--v2-bg-sunken'],
+            'editorWidget.background': TOKENS.light['--v2-bg-surface'],
+            'editorWidget.border': '#0F172A14',
+            'editorSuggestWidget.selectedBackground': '#6366F11F',
+            'scrollbarSlider.background': '#CBD5E180',
+            'editorBracketMatch.border': '#6366F180',
+        },
+    },
+    'zk-dark': {
+        base: 'vs-dark',
+        inherit: true,
+        rules: [
+            { token: 'comment', foreground: TOKENS.dark['--v2-text-3'], fontStyle: 'italic' },
+            { token: 'string', foreground: '#3BC49B' },
+            { token: 'keyword', foreground: '#A78BFA' },
+            { token: 'number', foreground: '#F0A94E' },
+            { token: 'type', foreground: '#F0C24E' },
+            { token: 'class', foreground: '#F0C24E' },
+            { token: 'function', foreground: '#818CF8',
+            },
+            { token: 'variable', foreground: TOKENS.dark['--v2-text-1'] },
+            { token: 'constant', foreground: '#EC7CAC' },
+            { token: 'enum', foreground: '#EC7CAC' },
+        ],
+        colors: {
+            'editor.background': TOKENS.dark['--v2-bg-sunken'],
+            'editor.foreground': TOKENS.dark['--v2-text-1'],
+            'editorLineNumber.foreground': TOKENS.dark['--v2-text-4'],
+            'editorLineNumber.activeForeground': TOKENS.dark['--v2-text-2'],
+            'editor.lineHighlightBackground': '#FFFFFF0D',
+            'editor.selectionBackground': '#818CF840',
+            'editorCursor.foreground': '#818CF8',
+            'editorIndentGuide.background1': '#FFFFFF12',
+            'editorGutter.background': TOKENS.dark['--v2-bg-sunken'],
+            'editorWidget.background': TOKENS.dark['--v2-bg-surface'],
+            'editorWidget.border': '#FFFFFF12',
+            'editorSuggestWidget.selectedBackground': '#818CF81F',
+            'scrollbarSlider.background': '#47556980',
+            'editorBracketMatch.border': '#818CF880',
+        },
+    },
+} as const;
+
+/* ================= §4.3 xterm / ANSI 16 色（供 xterm theme 与 ANSI-to-HTML 使用） ================= */
+
+export interface AnsiPalette {
+    black: string; red: string; green: string; yellow: string;
+    blue: string; magenta: string; cyan: string; white: string;
+    brightBlack: string; brightRed: string; brightGreen: string; brightYellow: string;
+    brightBlue: string; brightMagenta: string; brightCyan: string; brightWhite: string;
+    background: string; foreground: string; cursor: string; selectionBackground: string;
+}
+
+export const XTERM_ANSI: Record<'light' | 'dark', AnsiPalette> = {
+    light: {
+        background: TOKENS.light['--v2-bg-sunken'],
+        foreground: TOKENS.light['--v2-text-1'],
+        cursor: TOKENS.light['--v2-accent'],
+        selectionBackground: '#6366F140',
+        black: TOKENS.light['--v2-text-1'],
+        red: '#C23A36',
+        green: '#0E8A64',
+        yellow: '#B45309',
+        blue: '#4F46E5',
+        magenta: '#C8427D',
+        cyan: '#0E7490',
+        white: '#D5DAE3',
+        brightBlack: TOKENS.light['--v2-text-3'],
+        brightRed: '#E0534F',
+        brightGreen: '#17A67B',
+        brightYellow: TOKENS.light['--v2-warn'],
+        brightBlue: TOKENS.light['--v2-accent'],
+        brightMagenta: '#E15C97',
+        brightCyan: '#0891B2',
+        brightWhite: TOKENS.light['--v2-bg-app'],
+    },
+    dark: {
+        background: TOKENS.dark['--v2-bg-sunken'],
+        foreground: TOKENS.dark['--v2-text-1'],
+        cursor: '#818CF8',
+        selectionBackground: '#818CF840',
+        black: TOKENS.dark['--v2-bg-surface-2'],
+        red: '#F17570',
+        green: TOKENS.dark['--v2-ok'],
+        yellow: '#F0C24E',
+        blue: '#818CF8',
+        magenta: '#EC7CAC',
+        cyan: '#5EEAD4',
+        white: TOKENS.dark['--v2-text-1'],
+        brightBlack: TOKENS.dark['--v2-text-4'],
+        brightRed: '#FCA5A1',
+        brightGreen: '#6EE7B7',
+        brightYellow: '#FDE68A',
+        brightBlue: '#A5B4FC',
+        brightMagenta: '#F9A8D4',
+        brightCyan: '#99F6E4',
+        brightWhite: '#FFFFFF',
+    },
+} as const;
+
+/** ANSI 数字码 → AnsiPalette 键名（供 ANSI-to-HTML 渲染器查色） */
+export const ANSI_CODE_TO_KEY: Record<string, keyof AnsiPalette> = {
+    '30': 'black', '31': 'red', '32': 'green', '33': 'yellow',
+    '34': 'blue', '35': 'magenta', '36': 'cyan', '37': 'white',
+    '90': 'brightBlack', '91': 'brightRed', '92': 'brightGreen', '93': 'brightYellow',
+    '94': 'brightBlue', '95': 'brightMagenta', '96': 'brightCyan', '97': 'brightWhite',
+} as const;

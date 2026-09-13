@@ -9,7 +9,7 @@
  * - 置信度指示条、警告展示、导出、元数据展示
  */
 
-import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   Loader2,
   AlertTriangle,
@@ -23,9 +23,9 @@ import {
   Info,
 } from 'lucide-react';
 import Editor from '@monaco-editor/react';
+import { ensureZkMonacoThemes, zkMonacoTheme } from '@/styles/zkMonaco';
 import MermaidBlock from '@/components/visualization/shared/MermaidBlock';
 import { useDiagramStore } from '@/store/diagramStore';
-import { useConfigStore } from '@/store/configStore';
 
 // ── 置信度颜色映射 ──
 
@@ -116,12 +116,6 @@ export const CodeDiagramGenerator: React.FC = () => {
   const generateDiagram = useDiagramStore(s => s.generateDiagram);
   const clearDiagram = useDiagramStore(s => s.clearDiagram);
   const updateMermaidSyntax = useDiagramStore(s => s.updateMermaidSyntax);
-
-  const theme = useConfigStore(s => s.theme);
-  const isDark = useMemo(() => {
-    return theme.mode === 'dark' || theme.mode === 'glass' ||
-      (theme.mode === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  }, [theme.mode]);
 
   // Debounced preview update
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
@@ -302,7 +296,8 @@ export const CodeDiagramGenerator: React.FC = () => {
                 defaultLanguage="markdown"
                 value={editorValue}
                 onChange={handleEditorChange}
-                theme={isDark ? 'vs-dark' : 'light'}
+                beforeMount={ensureZkMonacoThemes}
+                theme={zkMonacoTheme()}
                 options={{
                   minimap: { enabled: false },
                   fontSize: 12,
