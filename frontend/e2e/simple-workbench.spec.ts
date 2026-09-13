@@ -21,7 +21,8 @@ test.describe('Local simple workbench', () => {
     await expect(input).toHaveAttribute('placeholder', '描述你希望完成或继续修改的事情…');
     await input.fill('保留这段未发送内容');
     await page.getByRole('tab', { name: '开发工作台' }).click();
-    await expect(page.getByText('开始对话', { exact: true })).toBeVisible();
+    // §7.1 空态 Hero（P3 起替换「开始对话」占位）
+    await expect(page.getByRole('heading', { name: '今天想构建什么？' })).toBeVisible();
     await expect(input).toHaveValue('保留这段未发送内容');
 
     await page.getByRole('tab', { name: '简洁工作台' }).click();
@@ -113,6 +114,7 @@ test.describe('Local simple workbench', () => {
 
     await expect(page.getByRole('tablist', { name: '工作台视图' })).toHaveCount(0);
     await expect(page.getByText('AI Assistant', { exact: true })).toBeVisible();
-    await expect(page.getByText('开始对话', { exact: true })).toBeVisible();
+    // §7.1 空态 Hero（P3 起替换「开始对话」占位）
+    await expect(page.getByRole('heading', { name: '今天想构建什么？' })).toBeVisible();
   });
 });

@@ -23,7 +23,7 @@ const LEGACY_ALLOWLIST: readonly { id: string; target: string; note: string }[] 
     {
         id: 'color-contrast',
         target: '.mt-2',
-        note: 'PromptInput 提示文字「输入消息或按 / 查看命令」（旧 --color-muted #64748B，组件未改动）；P2 PromptInput 拆分改造时清除',
+        note: 'App.tsx 旧空态提示「输入消息或按 / 查看命令」（旧 --color-muted #64748B）；P3 §7.1 空态 Hero 已移除该节点，条目留作回归登记',
     },
 ];
 
