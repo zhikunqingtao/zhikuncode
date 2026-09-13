@@ -168,7 +168,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
                 </div>
 
                 {/* Footer hint */}
-                <div className="px-3 py-1.5 border-t border-hairline text-xs text-t3 flex items-center gap-3">
+                <div data-testid="command-palette-footer" className="px-3 py-1.5 border-t border-hairline text-xs text-t3 flex items-center gap-3">
                     <span className="flex items-center gap-1"><Kbd>↑↓</Kbd> 选择</span>
                     <span className="flex items-center gap-1"><Kbd>↵</Kbd> 确认</span>
                     <span className="flex items-center gap-1"><Kbd>Esc</Kbd> 关闭</span>

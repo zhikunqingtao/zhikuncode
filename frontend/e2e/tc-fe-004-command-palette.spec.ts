@@ -38,10 +38,10 @@ test.describe('TC-FE-004 命令面板与 Skill 触发', () => {
     await screenshot(page, 'tc-fe-004a-after-slash');
 
     // CommandPalette 渲染为 bg-gray-900 border border-gray-700 rounded-xl
-    // 包含 font-mono 的命令项和底部 "↵ Select" "Esc Close" 提示
-    const commandPalette = page.locator('.rounded-xl:has(button .font-mono)').first();
-    // 降级检测：查找包含 "↵ Select" 或 "Esc Close" 的面板
-    const paletteByFooter = page.locator(':has-text("↵ Select")').first();
+    // 包含 font-mono 的命令项和底部提示（容器为 rounded-panel）
+    const commandPalette = page.locator('div.rounded-panel:has(button .font-mono)').first();
+    // 降级检测：查找底部提示条
+    const paletteByFooter = page.getByTestId('command-palette-footer').first();
 
     const paletteVisible = await commandPalette.isVisible({ timeout: 5000 }).catch(() => false);
     const footerVisible = await paletteByFooter.isVisible({ timeout: 3000 }).catch(() => false);
@@ -50,7 +50,8 @@ test.describe('TC-FE-004 命令面板与 Skill 触发', () => {
 
     if (paletteVisible || footerVisible) {
       // 验证命令列表项存在 — CommandPalette 用 button 元素包含 font-mono 的 /{name}
-      const commandItems = page.locator('.font-mono');
+      // 注意：选择器必须限定在面板内，避免命中 Header 的 ⌘K 命令钮（其 Kbd 也含 font-mono）
+      const commandItems = commandPalette.locator('.font-mono');
       const itemCount = await commandItems.count();
       console.log(`[TC-FE-004a] Command items count: ${itemCount}`);
       expect(itemCount).toBeGreaterThan(0);

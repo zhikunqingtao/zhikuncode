@@ -87,9 +87,9 @@ test.describe('P2b-2a MobilePromptBar 移动形态 probe', () => {
     // ── 5c. chip 行为：命令面板 = 打开斜杠命令面板 ─────────
     await page.getByTestId('mobile-chip-commands').tap();
     await expect(textarea).toHaveValue('/');
-    await expect(page.getByText('↵ Select')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByTestId('command-palette-footer')).toBeVisible({ timeout: 5000 });
     await textarea.press('Escape');
-    await expect(page.getByText('↵ Select')).toBeHidden();
+    await expect(page.getByTestId('command-palette-footer')).toBeHidden();
 
     // ── + 菜单：图片附件（handleFiles）/ 文件引用 ─────────
     await plusBtn.tap();

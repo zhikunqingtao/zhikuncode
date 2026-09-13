@@ -81,7 +81,7 @@ test.describe('P2 PromptInput 关键路径', () => {
 
     await textarea.fill('/');
     // CommandPalette 底部固定提示（不依赖后端命令列表内容）
-    const paletteFooter = page.getByText('↵ Select');
+    const paletteFooter = page.getByTestId('command-palette-footer');
     await expect(paletteFooter).toBeVisible({ timeout: 5000 });
 
     await textarea.press('Escape');
