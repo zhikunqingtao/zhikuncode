@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, useMemo, useRef } from 'react';
 import { AppLayout } from '@/components/layout';
 import { MessageList } from '@/components/message';
 import type { MessageListHandle } from '@/components/message';
+import { EmptyHero } from '@/components/message/EmptyHero';
 import { JourneyVerifyPanel } from '@/components/verify/JourneyVerifyPanel';
 import { PromptInput } from '@/components/input';
 import { DialogManager } from '@/components/DialogManager';
@@ -437,15 +438,8 @@ function App() {
             {workbenchEnabled && viewMode === 'simple' ? (
               <SimpleWorkbench sessionId={sessionId} messages={messages} status={status} />
             ) : messages.length === 0 ? (
-                <div className="h-full flex items-center justify-center text-[var(--text-muted)]">
-                  <div className="text-center">
-                    <div className="text-4xl mb-3">💬</div>
-                    <div className="text-lg font-medium text-[var(--text-primary)]">开始对话</div>
-                    <div className="text-sm mt-2">
-                      输入消息或按 <kbd className="px-2 py-0.5 bg-[var(--bg-secondary)] rounded">/</kbd> 查看命令
-                    </div>
-                  </div>
-                </div>
+                /* §7.1 空态 Hero（记忆点①）：今天想构建什么？ */
+                <EmptyHero />
               ) : (
                 <MessageList ref={messageListRef} />
               )}
