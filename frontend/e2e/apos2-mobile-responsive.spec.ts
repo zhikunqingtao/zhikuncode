@@ -358,9 +358,9 @@ test.describe('APOS Phase 2 - Mobile Responsive (TC-APOS2-029~037)', () => {
     await injectFeatureFlags(page, flags(createPhase2Flags()));
 
     // 注入 Activity 数据（§8.4 接线后：MobileStatusBar 点击展开 sheet 的详情对象）
-    await page.evaluate(async () => {
-      const mod = await import('/src/store/activityStore.ts');
-      const store = (mod as any).useActivityStore;
+    // 经 window.__e2eStores 读写应用同一 store 实例（规避 vite HMR ?t= 实例分裂）
+    await page.evaluate(() => {
+      const store = (window as any).__e2eStores.activityStore;
       const activities = new Map();
       activities.set('test-activity-drag', {
         id: 'test-activity-drag',
@@ -381,10 +381,9 @@ test.describe('APOS Phase 2 - Mobile Responsive (TC-APOS2-029~037)', () => {
       });
       store.setState({ activities });
     });
-    // 设置 sessionId 以匹配 Activity 过滤
-    await page.evaluate(async () => {
-      const mod = await import('/src/store/sessionStore.ts');
-      (mod as any).useSessionStore.setState({ sessionId: 'default' });
+    // 设置 sessionId 以匹配 Activity 过滤（经 window.__e2eStores 同一实例）
+    await page.evaluate(() => {
+      (window as any).__e2eStores.sessionStore.setState({ sessionId: 'default' });
     });
     await page.waitForTimeout(500);
 

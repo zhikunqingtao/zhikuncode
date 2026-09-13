@@ -86,6 +86,13 @@ export async function injectFeatureFlags(
   flags: Record<string, boolean>,
 ): Promise<void> {
   await page.evaluate(async (injectedFlags) => {
+    // 优先经 window.__e2eStores 写应用同一 store 实例（规避 vite HMR ?t= 实例分裂）
+    const bridge = (window as any).__e2eStores?.featureFlagStore;
+    if (bridge) {
+      const currentFlags = bridge.getState().flags;
+      bridge.setState({ flags: { ...currentFlags, ...injectedFlags } });
+      return;
+    }
     const mod = await import('/src/store/featureFlagStore.ts');
     const store = (mod as any).useFeatureFlagStore;
     const currentFlags = store.getState().flags;
@@ -102,8 +109,9 @@ export async function injectActivityData(
   activities: unknown[],
 ): Promise<void> {
   await page.evaluate(async (injectedActivities) => {
-    const mod = await import('/src/store/activityStore.ts');
-    const store = (mod as any).useActivityStore;
+    // 优先经 window.__e2eStores 写应用同一 store 实例（规避 vite HMR ?t= 实例分裂）
+    const bridge = (window as any).__e2eStores?.activityStore;
+    const store = bridge ?? (await import('/src/store/activityStore.ts') as any).useActivityStore;
     for (const activity of injectedActivities as Array<{ id: string; [k: string]: unknown }>) {
       store.getState().addActivity(activity);
     }
