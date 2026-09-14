@@ -53,15 +53,14 @@ interface SkillItem {
 
 /**
  * §7.6 移动态虚拟键盘桥（仅 isMobile 时挂载，桌面零副作用）：
- * 启用 useVirtualKeyboard —— 它自写 --keyboard-height/--viewport-height CSS 变量，
- * .prompt-input-container 据此上浮输入条；此处另消费其返回值，
+ * 消费 App 统一计算的键盘高度（输入条和 MessageList 共用），
  * 在键盘弹起瞬间（0→>0）对消息流做一次性滚底，不接管后续滚动，
  * 与 MessageList「用户上翻时不强制滚底」的既有逻辑正交。
  */
 const MobileKeyboardBridge: React.FC<{
   listRef: React.RefObject<MessageListHandle | null>;
-}> = ({ listRef }) => {
-  const { keyboardHeight } = useVirtualKeyboard();
+  keyboardHeight: number;
+}> = ({ listRef, keyboardHeight }) => {
   const prevKeyboardHeightRef = useRef(0);
 
   useEffect(() => {
@@ -83,6 +82,7 @@ function App() {
   const viewMode = useWorkbenchViewStore(s => s.viewMode);
   // §7.6 移动态：输入区容器换肤（悬浮胶囊条 + safe-area + 键盘高度），桌面保持既有样式
   const { isMobile } = useResponsive();
+  const { keyboardHeight } = useVirtualKeyboard(isMobile);
   const messageListRef = useRef<MessageListHandle>(null);
   const { loadConfig } = useConfigStore();
   const sessionReadinessRef = useRef<Promise<string | null> | null>(null);
@@ -450,14 +450,14 @@ function App() {
                 /* §7.1 空态 Hero（记忆点①）：今天想构建什么？ */
                 <EmptyHero />
               ) : (
-                <MessageList ref={messageListRef} />
+                <MessageList ref={messageListRef} keyboardHeight={keyboardHeight} />
               )}
           </div>
 
           {(!workbenchEnabled || viewMode === 'development') && <JourneyVerifyPanel />}
 
-          {/* §7.6 移动虚拟键盘桥：仅移动挂载（写 --keyboard-height + 弹起滚底） */}
-          {isMobile && <MobileKeyboardBridge listRef={messageListRef} />}
+          {/* §7.6 移动虚拟键盘桥：仅移动挂载，键盘弹起时滚底 */}
+          {isMobile && <MobileKeyboardBridge listRef={messageListRef} keyboardHeight={keyboardHeight} />}
 
           {/* Input（移动态：prompt-input-container = 键盘高度+safe-area 内边距，承载悬浮胶囊条） */}
           <div className={isMobile

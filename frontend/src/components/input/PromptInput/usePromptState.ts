@@ -141,7 +141,7 @@ export function usePromptState({
             if (!accepted) return false;
             const targetKey = resolveTarget();
             if (clearDraft && targetKey !== undefined) {
-                usePromptDraftStore.getState().setInput(targetKey, '');
+                usePromptDraftStore.getState().setInput(targetKey, current => current === input ? '' : current);
             }
             setShowCommands(false);
             setShowGlobalPalette(false);
@@ -152,7 +152,7 @@ export function usePromptState({
             submissionRef.current = false;
             setIsSubmitting(false);
         }
-    }, [onSlashCommand, draftKey]);
+    }, [onSlashCommand, draftKey, input]);
 
     const handleSubmit = useCallback(async () => {
         const trimmed = input.trim();
@@ -220,10 +220,12 @@ export function usePromptState({
             const targetKey = resolveTarget();
             if (targetKey !== undefined) {
                 const drafts = usePromptDraftStore.getState();
-                drafts.setInput(targetKey, '');
-                drafts.setAttachments(targetKey, []);
-                drafts.setLocalFiles(targetKey, []);
-                drafts.setPublishedLocalFiles(targetKey, []);
+                // 从当前 store 快照按对象身份移除已提交项，保留重挂载后的编辑和新增引用。
+                const current = drafts.drafts[targetKey];
+                drafts.setInput(targetKey, current.input === input ? '' : current.input);
+                drafts.setAttachments(targetKey, current.attachments.filter(item => !attachments.includes(item)));
+                drafts.setLocalFiles(targetKey, current.localFiles.filter(item => !localFiles.includes(item)));
+                drafts.setPublishedLocalFiles(targetKey, current.publishedLocalFiles.filter(item => !publishedLocalFiles.includes(item)));
             }
         } finally {
             submissionRef.current = false;

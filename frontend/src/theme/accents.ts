@@ -1,7 +1,7 @@
 /**
  * accents.ts — 强调色机制（指南 §3.4 终值表，P1b）
  *
- * ACCENT_PRESETS：6 色 × { light, dark } 双主题令牌组。
+ * ACCENT_PRESETS：6 色及旧版蓝色 × { light, dark } 双主题令牌组。
  * - light：accent / strong（白字 ≥4.5:1）/ soft 底（10%~12%）/ ring 环（32%~35%）
  * - dark：accent 取表中 Dark 基准；strong 复用 light 值；soft 16% / ring 42%
  *   （soft/ring 的 alpha 表达式取 light 基准色 RGB 通道计算，
@@ -69,6 +69,11 @@ export const ACCENT_PRESETS: readonly AccentPreset[] = [
         hex: '#EF4444', label: '红',
         light: { accent: '#EF4444', strong: '#DC2626', soft: 'rgba(239,68,68,.10)', ring: 'rgba(239,68,68,.32)' },
         dark: { accent: '#F87171', soft: 'rgba(239,68,68,.16)', ring: 'rgba(239,68,68,.42)' },
+    },
+    {
+        hex: '#3B82F6', label: '蓝',
+        light: { accent: '#3B82F6', strong: '#1D4ED8', soft: 'rgba(59,130,246,.10)', ring: 'rgba(59,130,246,.32)' },
+        dark: { accent: '#60A5FA', soft: 'rgba(59,130,246,.16)', ring: 'rgba(59,130,246,.42)' },
     },
 ];
 

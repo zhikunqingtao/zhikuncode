@@ -126,6 +126,43 @@ describe('prompt draft persistence across unmount/remount', () => {
         expect(usePromptDraftStore.getState().drafts.__none__).toBeUndefined();
     });
 
+    it('clears only submitted content after the composer remounts and edits its draft', async () => {
+        let finish!: (sent: boolean) => void;
+        const first = renderHook(() => usePromptState({
+            ...createParams('session-a'),
+            onSubmit: () => new Promise<boolean>(resolve => { finish = resolve; }),
+        }));
+        act(() => {
+            first.result.current.setInput('old message');
+            first.result.current.localFileReference.setLocalFiles([{ path: '/old', name: 'old', size: 1 }]);
+            first.result.current.localFileReference.setPublishedLocalFiles([makePublishedLocalFile('old')]);
+        });
+        await act(async () => {
+            await first.result.current.promptAttachments.handleFiles([new File(['old'], 'old.png', { type: 'image/png' })]);
+        });
+        let pending!: Promise<void>;
+        act(() => { pending = first.result.current.handleSubmit(); });
+        first.unmount();
+
+        const second = renderHook(() => usePromptState(createParams('session-a')));
+        // 同路径文件重新选择、同内容 OSS 引用重新加入，也属于本次提交之后的新操作。
+        const localFile = { path: '/old', name: 'old', size: 1 };
+        const publishedFile = makePublishedLocalFile('old');
+        act(() => {
+            second.result.current.setInput('new unsent draft');
+            second.result.current.localFileReference.setLocalFiles([localFile]);
+            second.result.current.localFileReference.setPublishedLocalFiles([publishedFile]);
+        });
+        await act(async () => {
+            await second.result.current.promptAttachments.handleFiles([new File(['new'], 'new.png', { type: 'image/png' })]);
+        });
+        await act(async () => { finish(true); await pending; });
+        expect(second.result.current.input).toBe('new unsent draft');
+        expect(second.result.current.promptAttachments.attachments.map(item => item.name)).toEqual(['new.png']);
+        expect(second.result.current.localFileReference.localFiles).toEqual([localFile]);
+        expect(second.result.current.localFileReference.publishedLocalFiles).toEqual([publishedFile]);
+    });
+
     it.each(['oss', 'base64'] as const)('returns a pending %s paste to its original draft after switching', async (mode) => {
         let finish!: (value: PastePublishResult) => void;
         const onPasteImages = vi.fn(() => new Promise<PastePublishResult>(resolve => { finish = resolve; }));

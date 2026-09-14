@@ -432,8 +432,8 @@ body {
   --v2-border-hairline:rgba(255,255,255,.08); --v2-border-strong:rgba(255,255,255,.15);
   --v2-overlay:rgba(0,0,0,.55);
   --v2-text-1:#EDEEF3; --v2-text-2:#B7BCC9; --v2-text-3:#878FA0; --v2-text-4:#5F6779;
-  --v2-ok:#34D399; --v2-ok-soft:rgba(52,211,153,.14);
-  --v2-warn:#FBBF24; --v2-warn-soft:rgba(251,191,36,.14);
+  --v2-ok:#34D399; --v2-ok-soft:rgba(52,211,153,.14); --v2-ok-strong:#6EE7B7;
+  --v2-warn:#FBBF24; --v2-warn-soft:rgba(251,191,36,.14); --v2-warn-strong:#FDE68A;
   --v2-err:#F87171; --v2-err-soft:rgba(248,113,113,.14); --v2-err-strong:#DC2626;
   --v2-diff-add-bg:rgba(52,211,153,.12); --v2-diff-remove-bg:rgba(248,113,113,.12);
   --v2-shadow-xs:0 1px 2px rgba(0,0,0,.4);

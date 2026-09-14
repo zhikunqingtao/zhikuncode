@@ -146,7 +146,7 @@ const AttentionCard: React.FC<AttentionCardProps> = ({ attention, onApprove, onR
                 <button
                     type="button"
                     onClick={onApprove}
-                    className="flex-1 px-3 min-h-[44px] text-xs rounded-xl bg-ok text-white hover:bg-okstrong active:scale-[.97] transition-interactive duration-fast"
+                    className="flex-1 px-3 min-h-[44px] text-xs rounded-xl bg-okstrong text-white dark:text-app2 hover:brightness-110 active:scale-[.97] transition-interactive duration-fast"
                 >
                     Approve
                 </button>

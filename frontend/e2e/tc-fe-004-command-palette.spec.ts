@@ -82,23 +82,11 @@ test.describe('TC-FE-004 命令面板与 Skill 触发', () => {
     await screenshot(page, 'tc-fe-004b-palette-open');
 
     // 检查面板是否可见
-    const footerHint = page.locator('text=Esc Close').first();
-    const hintVisible = await footerHint.isVisible({ timeout: 3000 }).catch(() => false);
-
-    if (hintVisible) {
-      // 按 Escape 关闭
-      await textarea.press('Escape');
-      await page.waitForTimeout(1000);
-
-      const hintAfterEsc = await footerHint.isVisible({ timeout: 2000 }).catch(() => false);
-      console.log(`[TC-FE-004b] Palette visible after Escape: ${hintAfterEsc}`);
-      // 面板应该关闭
-      expect(hintAfterEsc).toBe(false);
-      await screenshot(page, 'tc-fe-004b-after-escape');
-    } else {
-      console.log('[TC-FE-004b] Command palette not detected, skipping Escape test');
-      await screenshot(page, 'tc-fe-004b-no-palette');
-    }
+    const footerHint = page.getByTestId('command-palette-footer');
+    await expect(footerHint).toBeVisible();
+    await textarea.press('Escape');
+    await expect(footerHint).toBeHidden();
+    await screenshot(page, 'tc-fe-004b-after-escape');
   });
 
   test('TC-FE-004c: Ctrl+K 打开全局命令面板', async ({ page }) => {
@@ -138,7 +126,7 @@ test.describe('TC-FE-004 命令面板与 Skill 触发', () => {
     }
   });
 
-  test('TC-FE-004d: 选择命令后面板关闭并执行', async ({ page }) => {
+  test('TC-FE-004d: 选择视图命令后面板关闭并执行', async ({ page }) => {
     test.setTimeout(60000);
 
     const textarea = page.locator('textarea[aria-label="输入消息"]');
@@ -148,27 +136,17 @@ test.describe('TC-FE-004 命令面板与 Skill 触发', () => {
     await textarea.fill('/');
     await page.waitForTimeout(1500);
 
-    // 查找命令项按钮
-    const commandButtons = page.locator('button:has(.font-mono)');
-    const btnCount = await commandButtons.count();
-    console.log(`[TC-FE-004d] Command buttons found: ${btnCount}`);
-
-    if (btnCount > 0) {
-      await screenshot(page, 'tc-fe-004d-before-select');
-
-      // 点击第一个命令
-      await commandButtons.first().click();
-      await page.waitForTimeout(2000);
-
-      // 验证面板关闭 — "Esc Close" 不再显示
-      const footerHint = page.locator('text=Esc Close').first();
-      const stillVisible = await footerHint.isVisible({ timeout: 2000 }).catch(() => false);
-      console.log(`[TC-FE-004d] Palette still visible after select: ${stillVisible}`);
-
-      await screenshot(page, 'tc-fe-004d-after-select');
-    } else {
-      console.log('[TC-FE-004d] No command buttons found');
-      await screenshot(page, 'tc-fe-004d-no-commands');
-    }
+    const footerHint = page.getByTestId('command-palette-footer');
+    await expect(footerHint).toBeVisible();
+    // 选择确定的本地命令，避免受后端连接和会话授权状态影响。
+    const viewCommand = footerHint.locator('..').getByRole('option', { name: '/视图：详细', exact: false });
+    await expect(viewCommand).toBeVisible();
+    await screenshot(page, 'tc-fe-004d-before-select');
+    await viewCommand.click();
+    await expect(footerHint).toBeHidden();
+    await expect.poll(() => page.evaluate(() =>
+      JSON.parse(localStorage.getItem('zhikun.turn-view.v1') ?? '{}').state?.density,
+    )).toBe('detailed');
+    await screenshot(page, 'tc-fe-004d-after-select');
   });
 });

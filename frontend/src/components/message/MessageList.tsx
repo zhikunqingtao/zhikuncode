@@ -37,7 +37,7 @@ import { useWorkbenchViewStore } from '@/store/workbenchViewStore';
 import { useTurnViewStore } from '@/store/turnViewStore';
 import { buildTurns, type Turn } from '@/store/selectors/turnProjection';
 import { useResponsive } from '@/hooks/useResponsive';
-import { useVirtualKeyboard, useKeyboardScrollCompensation } from '@/hooks/useVirtualKeyboard';
+import { useKeyboardScrollCompensation } from '@/hooks/useVirtualKeyboard';
 import { cn } from '@/components/ui/cn';
 
 import MessageItem from './MessageItem';
@@ -63,7 +63,7 @@ const VIRTUOSO_CONFIG = {
 
 /**
  * §8.8.3 P2 移动键盘滚动补偿桥（仅 isMobile 时挂载，桌面零副作用）：
- * 复用 useVirtualKeyboard 的 keyboardHeight 驱动此前闲置的
+ * 复用 App 传入的 keyboardHeight 驱动
  * useKeyboardScrollCompensation —— 键盘弹起动画压缩滚动容器可视高度后，
  * 把仍位于底部的滚动位置重新锚定到真实底部（delta 补偿 + 布局沉降期间
  * 持续锚底直至稳定，P2b-2b）；用户上翻时（atBottom=false）不补偿，
@@ -76,8 +76,8 @@ const VIRTUOSO_CONFIG = {
 const MobileKeyboardScrollBridge: React.FC<{
     scrollerRef: React.RefObject<HTMLDivElement | null>;
     atBottom: boolean;
-}> = ({ scrollerRef, atBottom }) => {
-    const { keyboardHeight } = useVirtualKeyboard();
+    keyboardHeight: number;
+}> = ({ scrollerRef, atBottom, keyboardHeight }) => {
     useKeyboardScrollCompensation(scrollerRef, keyboardHeight, atBottom);
     return null;
 };
@@ -91,7 +91,7 @@ export interface MessageListHandle {
     scrollToBottom: () => void;
 }
 
-const MessageList = React.forwardRef<MessageListHandle>((_props, ref) => {
+const MessageList = React.forwardRef<MessageListHandle, { keyboardHeight?: number }>(({ keyboardHeight = 0 }, ref) => {
     const virtuosoRef = useRef<VirtuosoHandle>(null);
     // §8.8.3 P2：Virtuoso scroller 元素（移动键盘滚动补偿的直接作用对象；
     // react-virtuoso 的 scrollerRef 为回调形式（其类型含 Window 分支——仅
@@ -417,7 +417,7 @@ const MessageList = React.forwardRef<MessageListHandle>((_props, ref) => {
                     <ListCollapse className="h-3.5 w-3.5" aria-hidden="true" />
                     退出详细视图
                 </button>
-                {isMobile && <MobileKeyboardScrollBridge scrollerRef={scrollerRef} atBottom={atBottom} />}
+                {isMobile && <MobileKeyboardScrollBridge scrollerRef={scrollerRef} atBottom={atBottom} keyboardHeight={keyboardHeight} />}
             </div>
         );
     }
@@ -448,7 +448,7 @@ const MessageList = React.forwardRef<MessageListHandle>((_props, ref) => {
                 className="min-h-0 flex-1"
             />
             {mobileBottomFade}
-            {isMobile && <MobileKeyboardScrollBridge scrollerRef={scrollerRef} atBottom={atBottom} />}
+            {isMobile && <MobileKeyboardScrollBridge scrollerRef={scrollerRef} atBottom={atBottom} keyboardHeight={keyboardHeight} />}
             <TurnOutline
                 turns={turns}
                 turnOrdinals={turnOrdinals}

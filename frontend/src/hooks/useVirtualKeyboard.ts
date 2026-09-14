@@ -31,12 +31,13 @@ export interface VirtualKeyboardState {
  *
  * @returns { keyboardHeight, isKeyboardVisible }
  */
-export function useVirtualKeyboard(): VirtualKeyboardState {
+export function useVirtualKeyboard(enabled = true): VirtualKeyboardState {
     const [keyboardHeight, setKeyboardHeight] = useState(0);
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
     const initialViewportHeight = useRef(0);
 
     useEffect(() => {
+        if (!enabled) return;
         const vv = window.visualViewport;
         if (!vv) return;
 
@@ -68,8 +69,12 @@ export function useVirtualKeyboard(): VirtualKeyboardState {
             vv.removeEventListener('resize', handleResize);
             vv.removeEventListener('scroll', handleResize);
             clearTimeout(debounceTimer);
+            document.documentElement.style.removeProperty('--keyboard-height');
+            document.documentElement.style.removeProperty('--viewport-height');
+            setKeyboardHeight(0);
+            setIsKeyboardVisible(false);
         };
-    }, []);
+    }, [enabled]);
 
     return { keyboardHeight, isKeyboardVisible };
 }

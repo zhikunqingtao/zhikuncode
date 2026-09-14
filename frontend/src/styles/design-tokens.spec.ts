@@ -116,6 +116,8 @@ describe('WCAG AA 文本对比度（正文/常规文本 ≥ 4.5:1）', () => {
         ['dark', '--v2-text-2', '--v2-bg-surface-2'],
         ['dark', '--v2-text-3', '--v2-bg-surface-2'],
         ['dark', '--v2-text-3', '--v2-bg-surface'],
+        ['dark', '--v2-ok-strong', '--v2-bg-surface-2'],
+        ['dark', '--v2-warn-strong', '--v2-bg-surface-2'],
     ];
     it.each(pairs)('%s %s on %s ≥ 4.5:1', (theme, fg, bg) => {
         const ratio = contrastRatio(TOKENS[theme][fg as never], TOKENS[theme][bg as never]);
