@@ -29,13 +29,13 @@ import type {
 } from '@/types';
 import { useNotificationStore } from '@/store/notificationStore';
 import {
-    PROMPT_DRAFT_FALLBACK_KEY,
-    resolvePromptDraftKey,
+    capturePromptDraftTarget,
     usePromptDraftStore,
 } from '@/store/promptDraftStore';
 import { useAsrAvailability } from '@/hooks/useAsrAvailability';
 import { usePromptAttachments } from './usePromptAttachments';
 import { useLocalFileReference } from './useLocalFileReference';
+import { usePromptDraftKey } from './usePromptDraftKey';
 
 export interface UsePromptStateParams {
     sessionId?: string | null;
@@ -64,21 +64,11 @@ export function usePromptState({
 }: UsePromptStateParams) {
     // 草稿文本托管到 promptDraftStore（按活动 sessionId 键控，仅内存）：
     // 卸载/重挂载（移动端底部导航切换）后从 store 读回；无会话时回落稳定兜底键。
-    const draftKey = resolvePromptDraftKey(sessionId);
+    const draftKey = usePromptDraftKey(sessionId);
     const input = usePromptDraftStore(s => s.drafts[draftKey]?.input ?? '');
-    // P1 修复（stale draft-key writes）：提交会创建首个会话（sessionId 在
-    // await onSubmit 期间 null → id），渲染期捕获的 draftKey 仍是兜底键，
-    // 提交成功后的 setInput('') 若写兜底键，已迁移走的草稿会在新会话输入框
-    // 「复活」。所有草稿写在调用时经 latestSessionIdRef 解析目标键，
-    // 确保清的是消息实际发往的那个会话的草稿。
-    const latestSessionIdRef = useRef(sessionId);
-    useEffect(() => {
-        latestSessionIdRef.current = sessionId;
-    }, [sessionId]);
     const setInput = useCallback<Dispatch<SetStateAction<string>>>((value) => {
-        const targetKey = resolvePromptDraftKey(latestSessionIdRef.current);
-        usePromptDraftStore.getState().setInput(targetKey, value);
-    }, []);
+        usePromptDraftStore.getState().setInput(draftKey, value);
+    }, [draftKey]);
     const [showCommands, setShowCommands] = useState(false);
     const [showGlobalPalette, setShowGlobalPalette] = useState(false);
     const [showFileComplete, setShowFileComplete] = useState(false);
@@ -107,30 +97,13 @@ export function usePromptState({
         onPublishLocalFile,
         fileReferenceCapability,
     });
-    const { attachments, setAttachments } = promptAttachments;
+    const { attachments } = promptAttachments;
     const {
         isPickingLocalFile,
         isUploadingLocalFile,
         localFiles,
-        setLocalFiles,
         publishedLocalFiles,
-        setPublishedLocalFiles,
     } = localFileReference;
-
-    // 首个会话创建（sessionId null → id 绑定，与 useLocalFileReference 同一语义）：
-    // 兜底键草稿随迁移到新会话键，保证提交成功后的清空写回正确的键，
-    // 避免旧兜底草稿在下次无会话输入框中「复活」。真实会话切换不做迁移，
-    // 各会话草稿保持隔离。
-    const previousDraftKeyRef = useRef(draftKey);
-    useEffect(() => {
-        const previousDraftKey = previousDraftKeyRef.current;
-        if (previousDraftKey === draftKey) return;
-        previousDraftKeyRef.current = draftKey;
-        if (previousDraftKey === PROMPT_DRAFT_FALLBACK_KEY
-                && draftKey !== PROMPT_DRAFT_FALLBACK_KEY) {
-            usePromptDraftStore.getState().migrateFallbackTo(draftKey);
-        }
-    }, [draftKey]);
 
     // Global Ctrl+K listener
     useEffect(() => {
@@ -162,10 +135,14 @@ export function usePromptState({
         if (submissionRef.current) return false;
         submissionRef.current = true;
         setIsSubmitting(true);
+        const resolveTarget = capturePromptDraftTarget(draftKey);
         try {
             const accepted = await onSlashCommand(command);
             if (!accepted) return false;
-            if (clearDraft) setInput('');
+            const targetKey = resolveTarget();
+            if (clearDraft && targetKey !== undefined) {
+                usePromptDraftStore.getState().setInput(targetKey, '');
+            }
             setShowCommands(false);
             setShowGlobalPalette(false);
             return true;
@@ -175,7 +152,7 @@ export function usePromptState({
             submissionRef.current = false;
             setIsSubmitting(false);
         }
-    }, [onSlashCommand, setInput]);
+    }, [onSlashCommand, draftKey]);
 
     const handleSubmit = useCallback(async () => {
         const trimmed = input.trim();
@@ -225,6 +202,7 @@ export function usePromptState({
             .join('\n');
         submissionRef.current = true;
         setIsSubmitting(true);
+        const resolveTarget = capturePromptDraftTarget(draftKey);
         try {
             const sent = await onSubmit({
                 text: submittedText,
@@ -239,10 +217,14 @@ export function usePromptState({
             attachments.forEach(a => {
                 if (a.previewUrl) URL.revokeObjectURL(a.previewUrl);
             });
-            setInput('');
-            setAttachments([]);
-            setLocalFiles([]);
-            setPublishedLocalFiles([]);
+            const targetKey = resolveTarget();
+            if (targetKey !== undefined) {
+                const drafts = usePromptDraftStore.getState();
+                drafts.setInput(targetKey, '');
+                drafts.setAttachments(targetKey, []);
+                drafts.setLocalFiles(targetKey, []);
+                drafts.setPublishedLocalFiles(targetKey, []);
+            }
         } finally {
             submissionRef.current = false;
             setIsSubmitting(false);
@@ -258,10 +240,7 @@ export function usePromptState({
         submitSlashCommand,
         runActive,
         compacting,
-        setInput,
-        setAttachments,
-        setLocalFiles,
-        setPublishedLocalFiles,
+        draftKey,
     ]);
 
     // Keyboard event handling

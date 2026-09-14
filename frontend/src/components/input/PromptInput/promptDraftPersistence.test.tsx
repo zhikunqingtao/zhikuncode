@@ -6,10 +6,10 @@
  * 卸载/重挂载循环应原样恢复，且不同会话草稿相互隔离。
  */
 
-import { act, renderHook } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import type { ClipboardEvent } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { PublishedLocalFile } from '@/types';
+import type { PastePublishResult, PublishedLocalFile } from '@/types';
 import type { UsePromptStateParams } from './usePromptState';
 import { usePromptState } from './usePromptState';
 import { usePromptAttachments } from './usePromptAttachments';
@@ -81,6 +81,69 @@ describe('prompt draft persistence across unmount/remount', () => {
     afterEach(() => {
         vi.unstubAllGlobals();
         vi.restoreAllMocks();
+    });
+
+    it('keeps session B intact when session A submit succeeds', async () => {
+        let finish!: (sent: boolean) => void;
+        const onSubmit = vi.fn(() => new Promise<boolean>(resolve => { finish = resolve; }));
+        const { result, rerender } = renderHook(
+            ({ sessionId }) => usePromptState({ ...createParams(sessionId), onSubmit }),
+            { initialProps: { sessionId: 'session-a' } },
+        );
+        act(() => {
+            result.current.setInput('draft a');
+            usePromptDraftStore.getState().setInput('session-b', 'draft b');
+            result.current.localFileReference.setLocalFiles([{ path: '/a', name: 'a', size: 1 }]);
+            usePromptDraftStore.getState().setPublishedLocalFiles('session-b', [makePublishedLocalFile('b')]);
+        });
+        let pending!: Promise<void>;
+        act(() => { pending = result.current.handleSubmit(); });
+        rerender({ sessionId: 'session-b' });
+        await act(async () => { finish(true); await pending; });
+        expect(result.current.input).toBe('draft b');
+        expect(result.current.localFileReference.publishedLocalFiles).toHaveLength(1);
+        const draftA = usePromptDraftStore.getState().drafts['session-a'];
+        expect(draftA.input).toBe('');
+        expect(draftA.localFiles).toHaveLength(0);
+    });
+
+    it('keeps slash-command cleanup attached to its first created session after another switch', async () => {
+        let finish!: (accepted: boolean) => void;
+        const onSlashCommand = vi.fn(() => new Promise<boolean>(resolve => { finish = resolve; }));
+        const { result, rerender } = renderHook(
+            ({ sessionId }) => usePromptState({ ...createParams(sessionId), onSlashCommand }),
+            { initialProps: { sessionId: null as string | null } },
+        );
+        act(() => result.current.setInput('/help'));
+        let pending!: Promise<boolean>;
+        act(() => { pending = result.current.submitSlashCommand('/help'); });
+        rerender({ sessionId: 'session-a' });
+        rerender({ sessionId: 'session-b' });
+        act(() => result.current.setInput('keep b'));
+        await act(async () => { finish(true); await pending; });
+        expect(result.current.input).toBe('keep b');
+        expect(usePromptDraftStore.getState().drafts['session-a'].input).toBe('');
+        expect(usePromptDraftStore.getState().drafts.__none__).toBeUndefined();
+    });
+
+    it.each(['oss', 'base64'] as const)('returns a pending %s paste to its original draft after switching', async (mode) => {
+        let finish!: (value: PastePublishResult) => void;
+        const onPasteImages = vi.fn(() => new Promise<PastePublishResult>(resolve => { finish = resolve; }));
+        const { result, rerender } = renderHook(
+            ({ sessionId }) => usePromptState({ ...createParams(sessionId), onPasteImages }),
+            { initialProps: { sessionId: null as string | null } },
+        );
+        const file = new File(['image'], 'a.png', { type: 'image/png' });
+        act(() => result.current.promptAttachments.handlePaste(makeImagePasteEvent(file)));
+        rerender({ sessionId: 'session-a' });
+        rerender({ sessionId: 'session-b' });
+        await act(async () => finish(mode === 'base64' ? { mode } : {
+            mode, items: [{ name: 'a.png', size: 5, mediaType: 'image/png', url: 'https://example.com/a.png' }],
+        }));
+        await waitFor(() => expect(usePromptDraftStore.getState().drafts['session-a'].attachments).toHaveLength(1));
+        expect(result.current.promptAttachments.attachments).toHaveLength(0);
+        rerender({ sessionId: 'session-a' });
+        expect(result.current.promptAttachments.attachments[0].name).toBe('a.png');
     });
 
     it('restores the draft text after an unmount/remount cycle (mobile tab switch)', () => {

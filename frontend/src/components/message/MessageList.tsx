@@ -69,7 +69,9 @@ const VIRTUOSO_CONFIG = {
  * 持续锚底直至稳定，P2b-2b）；用户上翻时（atBottom=false）不补偿，
  * 保留其阅读位置，沉降循环遇用户上滚手势立即停让。
  * 与 App.tsx MobileKeyboardBridge「弹起瞬间一次性滚底」正交、互不接管：
- * App 桥滚底完成（atBottom 翻转）后，本桥接续保持锚底直至布局沉降。
+ * App 桥负责弹起瞬间滚到底部，本桥自键盘开启瞬间接续，在布局沉降期间
+ * （padding 过渡 + Virtuoso 重测）持续锚底直至稳定 —— 不以 atBottom 翻转
+ * 为启动条件（实测其 true 事件在过渡窗口内不送达 React，P2b-2b 探针）。
  */
 const MobileKeyboardScrollBridge: React.FC<{
     scrollerRef: React.RefObject<HTMLDivElement | null>;
@@ -106,8 +108,8 @@ const MessageList = React.forwardRef<MessageListHandle>((_props, ref) => {
         scrollToBottom: () => {
             virtuosoRef.current?.scrollToIndex({ index: 'LAST', align: 'end', behavior: 'auto' });
             // P2b-2b：scrollToIndex 以估算行高定位末项，未测高行会欠冲
-            // （实测 ~276px），atBottom 不翻转、键盘沉降锚底循环无从接管；
-            // 用 scroller 真实几何强制抵底，保证「弹起滚底」语义确定落地
+            // （实测 ~276px）；用 scroller 真实几何强制抵底，保证
+            // 「弹起滚底」语义当帧确定落地（不等沉降锚底循环首帧）
             const scroller = scrollerRef.current;
             if (scroller) scroller.scrollTop = scroller.scrollHeight - scroller.clientHeight;
         },

@@ -19,6 +19,7 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import type { LocalAttachment, PickedLocalFile, PublishedLocalFile } from '@/types';
+import { generateUUID } from '@/utils/uuid';
 
 /** 无活动会话时的兜底草稿键 */
 export const PROMPT_DRAFT_FALLBACK_KEY = '__none__';
@@ -30,6 +31,8 @@ export function resolvePromptDraftKey(sessionId?: string | null): string {
 
 /** 单个会话的草稿（输入文本 + 图片附件 + 本地文件引用） */
 export interface PromptDraft {
+    /** 草稿身份随首次会话迁移保留，异步操作不依赖当前选中的会话。 */
+    id: string;
     input: string;
     attachments: LocalAttachment[];
     /** native picker 暂存的本地路径引用（P2 修复：随草稿托管，卸载不丢失） */
@@ -40,7 +43,7 @@ export interface PromptDraft {
 
 /** 新建草稿记录的默认形状（字段缺省会破坏精确快照断言与读取一致性） */
 function createEmptyDraft(): PromptDraft {
-    return { input: '', attachments: [], localFiles: [], publishedLocalFiles: [] };
+    return { id: generateUUID(), input: '', attachments: [], localFiles: [], publishedLocalFiles: [] };
 }
 
 /** setState 风格取值：直接值或基于前值的函数式更新 */
@@ -52,6 +55,7 @@ export interface PromptDraftStoreState {
     drafts: Record<string, PromptDraft>;
 
     // Actions
+    ensureDraft: (sessionId: string) => string;
     setInput: (sessionId: string, value: PromptDraftUpdater<string>) => void;
     setAttachments: (sessionId: string, value: PromptDraftUpdater<LocalAttachment[]>) => void;
     setLocalFiles: (sessionId: string, value: PromptDraftUpdater<PickedLocalFile[]>) => void;
@@ -74,8 +78,15 @@ export interface PromptDraftStoreState {
 }
 
 export const usePromptDraftStore = create<PromptDraftStoreState>()(
-    immer((set) => ({
+    immer((set, get) => ({
         drafts: {},
+
+        ensureDraft: (sessionId) => {
+            if (!get().drafts[sessionId]) {
+                set(d => { d.drafts[sessionId] = createEmptyDraft(); });
+            }
+            return get().drafts[sessionId].id;
+        },
 
         setInput: (sessionId, value) => set(d => {
             const record = d.drafts[sessionId] ?? createEmptyDraft();
@@ -110,3 +121,12 @@ export const usePromptDraftStore = create<PromptDraftStoreState>()(
         }),
     })),
 );
+
+/** Capture at the start of an operation, then resolve after each await.
+ * Migration preserves the ID; clearing/replacing a draft invalidates old work.
+ */
+export function capturePromptDraftTarget(sessionKey: string): () => string | undefined {
+    const id = usePromptDraftStore.getState().ensureDraft(sessionKey);
+    return () => Object.entries(usePromptDraftStore.getState().drafts)
+        .find(([, draft]) => draft.id === id)?.[0];
+}

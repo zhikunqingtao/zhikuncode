@@ -26,10 +26,11 @@ import type {
 } from '@/types';
 import { useNotificationStore } from '@/store/notificationStore';
 import {
-    resolvePromptDraftKey,
+    capturePromptDraftTarget,
     usePromptDraftStore,
 } from '@/store/promptDraftStore';
 import { generateUUID } from '@/utils/uuid';
+import { usePromptDraftKey } from './usePromptDraftKey';
 
 /** 单张图片附件大小上限：5MB */
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
@@ -79,23 +80,13 @@ export function usePromptAttachments({
 }: UsePromptAttachmentsParams) {
     // 附件托管到 promptDraftStore（按活动 sessionId 键控，仅内存）：
     // 卸载/重挂载（移动端底部导航切换）后从 store 读回，ObjectURL 保持有效。
-    const draftKey = resolvePromptDraftKey(sessionId);
+    const draftKey = usePromptDraftKey(sessionId);
     const attachments = usePromptDraftStore(
         s => s.drafts[draftKey]?.attachments ?? EMPTY_ATTACHMENTS,
     );
-    // P1 修复（stale draft-key writes）：粘贴图片的 OSS 发布会先
-    // ensureSessionReady() 创建首个会话（sessionId null → id），
-    // await 之后的 setAttachments 续体若仍写渲染期捕获的兜底键，
-    // 附件会落到已迁空的 '__none__' 上，首条消息丢失附件。
-    // 所有附件写在调用时经 latestSessionIdRef 解析目标键。
-    const latestSessionIdRef = useRef(sessionId);
-    useEffect(() => {
-        latestSessionIdRef.current = sessionId;
-    }, [sessionId]);
     const setAttachments = useCallback<Dispatch<SetStateAction<LocalAttachment[]>>>((value) => {
-        const targetKey = resolvePromptDraftKey(latestSessionIdRef.current);
-        usePromptDraftStore.getState().setAttachments(targetKey, value);
-    }, []);
+        usePromptDraftStore.getState().setAttachments(draftKey, value);
+    }, [draftKey]);
     const [isUploadingPaste, setIsUploadingPaste] = useState(false);
     // 异步链路（粘贴上传/读取 base64）的卸载防护：卸载后短路 setState/通知并回收 ObjectURL
     const isMountedRef = useRef(true);
@@ -116,7 +107,10 @@ export function usePromptAttachments({
         [attachments]
     );
 
-    const handleFiles = useCallback(async (files: File[]) => {
+    const handleFiles = useCallback(async (
+        files: File[],
+        resolveTarget = capturePromptDraftTarget(draftKey),
+    ) => {
         if (runActive || compacting) {
             useNotificationStore.getState().addNotification({
                 key: 'run-input-attachments',
@@ -195,7 +189,8 @@ export function usePromptAttachments({
         }
 
         // 卸载后不再 setState；已创建的预览 URL 未进入 attachmentsRef，需就地回收
-        if (!isMountedRef.current) {
+        const targetKey = resolveTarget();
+        if (!isMountedRef.current || targetKey === undefined) {
             accepted.forEach(a => {
                 if (a.previewUrl) URL.revokeObjectURL(a.previewUrl);
             });
@@ -203,9 +198,9 @@ export function usePromptAttachments({
         }
 
         if (accepted.length > 0) {
-            setAttachments(prev => [...prev, ...accepted]);
+            usePromptDraftStore.getState().setAttachments(targetKey, prev => [...prev, ...accepted]);
         }
-    }, [imageCount, maxImages, runActive, compacting, setAttachments]);
+    }, [imageCount, maxImages, runActive, compacting, draftKey]);
 
     const handlePaste = useCallback((event: ClipboardEvent<HTMLTextAreaElement>) => {
         const itemFiles = Array.from(event.clipboardData.items)
@@ -247,11 +242,12 @@ export function usePromptAttachments({
         if (accepted.length === 0) return;
 
         setIsUploadingPaste(true);
+        const resolveTarget = capturePromptDraftTarget(draftKey);
         void onPasteImages(accepted).then(async result => {
             if (result.mode === 'base64') {
                 // OSS 未配置：降级复用按钮/拖拽上传的 Base64 直传路径
                 // （readFileAsBase64 + 预览 + 数量/大小校验均由 handleFiles 统一处理）。
-                await handleFiles(accepted);
+                await handleFiles(accepted, resolveTarget);
                 if (!isMountedRef.current) return;
                 notify({
                     key: `paste-image-inline-${generateUUID()}`,
@@ -272,13 +268,14 @@ export function usePromptAttachments({
             }));
             // await 期间组件可能已卸载：新建的预览 URL 不会进入 attachmentsRef，
             // 需就地回收，且不再 setState/发通知。
-            if (!isMountedRef.current) {
+            const targetKey = resolveTarget();
+            if (!isMountedRef.current || targetKey === undefined) {
                 remoteAttachments.forEach(a => {
                     if (a.previewUrl) URL.revokeObjectURL(a.previewUrl);
                 });
                 return;
             }
-            setAttachments(previous => [...previous, ...remoteAttachments]);
+            usePromptDraftStore.getState().setAttachments(targetKey, previous => [...previous, ...remoteAttachments]);
             notify({
                 key: `paste-image-uploaded-${generateUUID()}`,
                 level: 'success',
@@ -297,7 +294,7 @@ export function usePromptAttachments({
             if (isMountedRef.current) setIsUploadingPaste(false);
         });
     }, [compacting, handleFiles, imageCount, isUploadingPaste, maxImages, onPasteImages,
-        runActive, setAttachments]);
+        runActive, draftKey]);
 
     // Drag & drop file upload
     const handleDrop = useCallback((e: React.DragEvent) => {

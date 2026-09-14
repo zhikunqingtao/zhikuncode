@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import type { LocalAttachment, PublishedLocalFile } from '@/types';
 import {
     PROMPT_DRAFT_FALLBACK_KEY,
+    capturePromptDraftTarget,
     resolvePromptDraftKey,
     usePromptDraftStore,
 } from './promptDraftStore';
@@ -32,6 +33,21 @@ function makePublishedLocalFile(name: string): PublishedLocalFile {
 describe('promptDraftStore', () => {
     beforeEach(() => {
         usePromptDraftStore.setState({ drafts: {} });
+    });
+
+    it('keeps an operation attached to its draft through migration and later fallback reuse', () => {
+        const resolveTarget = capturePromptDraftTarget(PROMPT_DRAFT_FALLBACK_KEY);
+        usePromptDraftStore.getState().migrateFallbackTo('session-a');
+        usePromptDraftStore.getState().setInput(PROMPT_DRAFT_FALLBACK_KEY, 'new draft');
+        usePromptDraftStore.getState().migrateFallbackTo('session-b');
+        expect(resolveTarget()).toBe('session-a');
+    });
+
+    it('invalidates an old operation when its draft is cleared and recreated', () => {
+        const resolveTarget = capturePromptDraftTarget('session-a');
+        usePromptDraftStore.getState().clear('session-a');
+        usePromptDraftStore.getState().setInput('session-a', 'replacement draft');
+        expect(resolveTarget()).toBeUndefined();
     });
 
     it('stores and reads the input draft per session', () => {
@@ -131,6 +147,7 @@ describe('promptDraftStore', () => {
 
         expect(usePromptDraftStore.getState().drafts).toEqual({
             'session-a': {
+                id: expect.any(String),
                 input: 'draft a',
                 attachments: [],
                 localFiles: [],
