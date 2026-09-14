@@ -27,6 +27,7 @@ import PromptTextarea from './PromptTextarea';
 import { PromptAttachmentBar, PromptToolbar } from './PromptToolbar';
 import PromptSendButton from './PromptSendButton';
 import MobilePromptBar from './MobilePromptBar';
+import { ModelChip, PermissionModeChip } from './PromptComposerChips';
 
 interface PromptInputProps {
     sessionId?: string | null;
@@ -158,6 +159,14 @@ const PromptInput: React.FC<PromptInputProps> = (props) => {
                             onSend={() => { void s.handleSubmit(); }}
                             onInterrupt={props.onInterrupt}
                         />
+                    </div>
+
+                    {/* composer-row：权限/模型 mini-chip + 键盘提示（仅桌面分支渲染） */}
+                    <div className="mt-2 flex items-center gap-2">
+                        <PermissionModeChip />
+                        <ModelChip />
+                        <span className="flex-1" />
+                        <span className="text-xs text-t2">⏎ 发送&ensp;·&ensp;⇧⏎ 换行</span>
                     </div>
                 </>
             )}

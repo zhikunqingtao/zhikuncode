@@ -16,12 +16,15 @@ interface ThinkingBlockProps {
     streaming?: boolean;
     /** 已脱敏的思考块 (redacted_thinking) — 仅显示占位符 */
     redacted?: boolean;
+    /** 思考耗时（毫秒）：存在时折叠态标签显示「已思考 Ns」（不足 1 秒显示「已思考 <1s」） */
+    durationMs?: number;
 }
 
 const ThinkingBlock: React.FC<ThinkingBlockProps> = ({
     content,
     streaming = false,
     redacted = false,
+    durationMs,
 }) => {
     const [expanded, setExpanded] = useState(streaming);
 
@@ -35,6 +38,15 @@ const ThinkingBlock: React.FC<ThinkingBlockProps> = ({
         const first = content.slice(0, 120).replace(/\n/g, ' ');
         return first.length < content.length ? `${first}...` : first;
     }, [content, redacted]);
+
+    // 折叠态标签：有耗时优先显示「已思考 Ns」，否则保持原文案
+    const collapsedLabel = useMemo(() => {
+        if (!redacted && durationMs != null) {
+            if (durationMs < 1000) return '已思考 <1s';
+            return `已思考 ${Math.floor(durationMs / 1000)}s`;
+        }
+        return preview;
+    }, [durationMs, redacted, preview]);
 
     return (
         <div className="thinking-block my-2 rounded-xl border border-hairline bg-surface2 overflow-hidden">
@@ -50,7 +62,7 @@ const ThinkingBlock: React.FC<ThinkingBlockProps> = ({
                 />
                 <Brain size={14} className="text-accent2" />
                 <span className="flex-1 truncate">
-                    {expanded ? 'Thinking' : preview}
+                    {expanded ? 'Thinking' : collapsedLabel}
                 </span>
                 {streaming && (
                     <span className="inline-block h-2 w-2 rounded-full bg-accent2 animate-accent-pulse motion-reduce:animate-none" />

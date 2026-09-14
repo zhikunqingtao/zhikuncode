@@ -39,8 +39,11 @@ const PromptSendButton: React.FC<PromptSendButtonProps> = ({
                        bg-accent2-strong text-white shadow-e1 transition-interactive
                        duration-fast active:scale-95
                        disabled:opacity-[.38] disabled:shadow-none`
-                    : `shrink-0 p-2.5 rounded-lg text-white transition-colors
-                       bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:hover:bg-blue-600`}
+                    : `shrink-0 p-2.5 rounded-xl text-white
+                       bg-accent2-strong shadow-e1 transition-interactive duration-fast
+                       hover:bg-accent2-hover hover:shadow-e2 active:scale-[.98]
+                       focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring
+                       disabled:opacity-50 disabled:shadow-none`}
                 type="button"
             >
                 <Send size={isMobile ? 18 : 16} />
@@ -56,8 +59,11 @@ const PromptSendButton: React.FC<PromptSendButtonProps> = ({
                            bg-red-500 text-white shadow-e1 transition-interactive
                            duration-fast active:scale-95
                            disabled:opacity-[.38] disabled:shadow-none`
-                        : `shrink-0 p-2.5 rounded-lg text-white transition-colors
-                           bg-red-500 hover:bg-red-600 disabled:opacity-50`}
+                        : `shrink-0 p-2.5 rounded-xl text-white
+                           bg-err shadow-e1 transition-interactive duration-fast
+                           hover:opacity-90 active:scale-[.98]
+                           focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring
+                           disabled:opacity-50`}
                     type="button"
                 >
                     <Square size={isMobile ? 18 : 16} />

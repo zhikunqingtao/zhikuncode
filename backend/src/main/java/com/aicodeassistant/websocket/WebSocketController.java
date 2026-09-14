@@ -733,11 +733,24 @@ public class WebSocketController implements PermissionNotifier {
             return;
         }
         wsSessionManager.refreshActivity(sessionId);
-        var result = runExecutions.offerInputForSession(
-                sessionId,
-                payload != null ? payload.requestId() : null,
-                payload != null ? payload.text() : null);
-        var receipt = result.receipt();
+        com.aicodeassistant.run.RunExecutionRegistry.InputReceipt receipt;
+        try {
+            receipt = runExecutions.offerInputForSession(
+                    sessionId,
+                    payload != null ? payload.requestId() : null,
+                    payload != null ? payload.text() : null,
+                    payload != null ? payload.meta() : null).receipt();
+        } catch (IllegalArgumentException invalidRequest) {
+            // 无效元数据（如显式 null 值）在写入任何状态前被拒绝；
+            // 以 run_input_rejected 通知客户端（等效 400），而非未处理异常。
+            long now = System.currentTimeMillis();
+            receipt = new com.aicodeassistant.run.RunExecutionRegistry.InputReceipt(
+                    payload != null ? payload.requestId() : null,
+                    payload != null ? payload.text() : null,
+                    com.aicodeassistant.run.RunExecutionRegistry.InputState.REJECTED,
+                    "INVALID_REQUEST", invalidRequest.getMessage(),
+                    now, null, now);
+        }
         switch (receipt.state()) {
             case QUEUED, APPLYING -> push(
                     sessionId, "run_input_queued", Map.of(
@@ -1984,6 +1997,11 @@ public class WebSocketController implements PermissionNotifier {
                     map.put("timestamp", u.timestamp() != null ? u.timestamp().toEpochMilli() : 0);
                     map.put("content", convertContentBlocksForWs(
                             com.aicodeassistant.engine.MessageContentAccessor.viewOf(u).blocks()));
+                    // 通用客户端元数据（如 {"steering": true}）原样回传，
+                    // 供前端轮次投影在快照/committedMessages 替换后仍识别 steering 边界
+                    if (u.meta() != null && !u.meta().isEmpty()) {
+                        map.put("meta", u.meta());
+                    }
                 }
                 case com.aicodeassistant.model.Message.AssistantMessage a -> {
                     map.put("type", "assistant");

@@ -43,14 +43,15 @@ export function SettingsPanel() {
   return (
     <div className="settings-panel flex flex-col h-full">
       {/* Tab 导航 */}
-      <div className="settings-tabs flex border-b border-gray-200 dark:border-gray-700">
+      <div className="settings-tabs flex border-b border-hairline">
         {TABS.map((tab) => (
           <button
             key={tab.id}
-            className={`settings-tab px-4 py-2 text-sm font-medium transition-colors
+            className={`settings-tab px-4 py-2 text-sm font-medium transition-interactive duration-fast
+              focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring
               ${activeTab === tab.id
-                ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400'
-                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                ? 'border-b-2 border-accent2 text-accent2-strong dark:text-accent2'
+                : 'text-t3 hover:text-t1'
               }`}
             onClick={() => setActiveTab(tab.id)}
           >
@@ -102,7 +103,9 @@ function ModelPicker() {
       <select
         value={model}
         onChange={(e) => setModel(e.target.value)}
-        className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600"
+        className="w-full p-2 border border-hairline rounded-xl bg-sunken2 shadow-well text-t1
+                   transition-surface duration-fast
+                   focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring"
       >
         {models.map((m) => (
           <option key={m.id} value={m.id}>
@@ -136,10 +139,10 @@ function PermissionModePicker() {
       {modes.map((m) => (
         <label
           key={m.id}
-          className={`flex items-center p-3 rounded border cursor-pointer transition-colors
+          className={`flex items-center p-3 rounded-xl border cursor-pointer transition-interactive duration-fast
             ${permissionMode === m.id
-              ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-              : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'
+              ? 'border-accent2 bg-accent2-soft'
+              : 'border-hairline hover:bg-hover2'
             }`}
         >
           <input
@@ -148,11 +151,11 @@ function PermissionModePicker() {
             value={m.id}
             checked={permissionMode === m.id}
             onChange={() => handleChange(m.id)}
-            className="mr-3"
+            className="mr-3 accent-accent2"
           />
           <div>
             <div className="font-medium">{m.name}</div>
-            <div className="text-sm text-gray-500">{m.description}</div>
+            <div className="text-sm text-t3">{m.description}</div>
           </div>
         </label>
       ))}
@@ -178,27 +181,29 @@ function MemoryManager() {
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold">Memory Manager</h3>
-      <p className="text-sm text-gray-500">
+      <p className="text-sm text-t3">
         管理跨会话持久化的项目记忆文件。
       </p>
       {/* 文件切换 */}
       <div className="flex gap-2">
         <button
           onClick={() => setActiveFile('zhikun.md')}
-          className={`px-3 py-1.5 min-h-10 rounded text-sm transition-colors ${
+          className={`px-3 py-1.5 min-h-10 rounded-xl text-sm transition-interactive duration-fast
+            focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring active:scale-[.98] ${
             activeFile === 'zhikun.md'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+              ? 'bg-accent2-strong text-white'
+              : 'bg-surface2 text-t2 hover:bg-hover2'
           }`}
         >
           🌐 zhikun.md (全局)
         </button>
         <button
           onClick={() => setActiveFile('zhikun.local.md')}
-          className={`px-3 py-1.5 min-h-10 rounded text-sm transition-colors ${
+          className={`px-3 py-1.5 min-h-10 rounded-xl text-sm transition-interactive duration-fast
+            focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring active:scale-[.98] ${
             activeFile === 'zhikun.local.md'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+              ? 'bg-accent2-strong text-white'
+              : 'bg-surface2 text-t2 hover:bg-hover2'
           }`}
         >
           📁 zhikun.local.md (项目)
@@ -238,7 +243,7 @@ function KeybindingsEditor() {
       <h3 className="text-lg font-semibold">Keyboard Shortcuts</h3>
       <table className="w-full text-sm">
         <thead>
-          <tr className="text-left border-b dark:border-gray-700">
+          <tr className="text-left border-b border-hairline">
             <th className="pb-2 pr-4">Key</th>
             <th className="pb-2 pr-4">Action</th>
             <th className="pb-2">Context</th>
@@ -248,15 +253,15 @@ function KeybindingsEditor() {
           {defaultBindings.map((binding, index) => (
             <tr
               key={index}
-              className="border-b border-gray-100 dark:border-gray-800"
+              className="border-b border-hairline"
             >
               <td className="py-2 pr-4">
-                <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-mono">
+                <kbd className="px-2 py-1 bg-sunken2 border border-hairline rounded text-xs font-mono">
                   {binding.key}
                 </kbd>
               </td>
               <td className="py-2 pr-4 font-mono text-xs">{binding.action}</td>
-              <td className="py-2 text-gray-500">{binding.context}</td>
+              <td className="py-2 text-t3">{binding.context}</td>
             </tr>
           ))}
         </tbody>

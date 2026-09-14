@@ -164,7 +164,7 @@ export default function DesignGallery() {
                         {([
                             ['--v2-text-1', 'text-t1 正文标题'],
                             ['--v2-text-2', 'text-t2 次级'],
-                            ['--v2-text-3', 'text-t3 辅助（≥4.5:1 下限）'],
+                            ['--v2-text-3', 'text-t3 辅助（实测 4.67:1，过 WCAG AA 4.5:1）'],
                             ['--v2-text-4', 'text-t4 占位/装饰'],
                         ] as const).map(([v, label]) => (
                             <span key={v} className="flex items-center gap-2 text-xs text-t2">

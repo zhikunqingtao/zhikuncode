@@ -12,6 +12,6 @@ describe('StatusBar permission mode presentation', () => {
 
     it('presents AUTO_APPROVE as a warning-style full access mode', () => {
         expect(getPermissionModeLabel('auto_approve')).toBe('完全访问权限');
-        expect(getPermissionModeColor('auto_approve')).toBe('text-orange-500');
+        expect(getPermissionModeColor('auto_approve')).toBe('text-err');
     });
 });

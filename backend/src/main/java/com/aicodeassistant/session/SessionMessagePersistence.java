@@ -51,14 +51,17 @@ public final class SessionMessagePersistence {
         try {
             switch (message) {
                 case Message.UserMessage user -> sessions.addMessageWithId(
-                        user.uuid(), sessionId, "user", user.content(), null, 0, 0);
+                        user.uuid(), sessionId, "user", user.content(), null, 0, 0,
+                        user.meta());
                 case Message.AssistantMessage assistant -> sessions.addMessageWithId(
                         assistant.uuid(), sessionId, "assistant", assistant.content(),
                         assistant.stopReason(),
                         assistant.usage() == null ? 0 : assistant.usage().inputTokens(),
-                        assistant.usage() == null ? 0 : assistant.usage().outputTokens());
+                        assistant.usage() == null ? 0 : assistant.usage().outputTokens(),
+                        null);
                 case Message.SystemMessage system -> sessions.addMessageWithId(
-                        system.uuid(), sessionId, "system", system.content(), null, 0, 0);
+                        system.uuid(), sessionId, "system", system.content(), null, 0, 0,
+                        null);
             }
             persistedMessageIds.add(message.uuid());
             return true;

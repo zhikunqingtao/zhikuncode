@@ -21,6 +21,7 @@ import type {
     PublishedLocalFile,
 } from '@/types';
 import { useNotificationStore } from '@/store/notificationStore';
+import { usePromptDraftStore } from '@/store/promptDraftStore';
 import { useWorkbenchViewStore } from '@/store/workbenchViewStore';
 
 function renderInput(
@@ -56,6 +57,8 @@ function renderInput(
 describe('PromptInput asynchronous submit', () => {
     beforeEach(() => {
         useNotificationStore.getState().clearAll();
+        // 草稿/附件现按会话持久化于 promptDraftStore（卸载不丢），用例间需显式重置
+        usePromptDraftStore.setState({ drafts: {} });
         useWorkbenchViewStore.setState({
             enabled: true,
             activeSessionId: 'session-a',

@@ -48,8 +48,8 @@ export const PromptAttachmentBar: React.FC<PromptAttachmentBarProps> = ({
                         <span
                             className={`text-xs px-1.5 py-0.5 rounded border
                                 ${imageCount >= maxImages
-                                    ? 'text-amber-300 border-amber-700 bg-amber-900/30'
-                                    : 'text-gray-400 border-gray-700 bg-gray-800/60'}`}
+                                    ? 'text-warnstrong border-warn bg-warnsoft'
+                                    : 'text-t3 border-hairline bg-sunken2'}`}
                             title={imageCount >= maxImages ? '已达当前模型图片上限' : undefined}
                         >
                             {imageCount}/{maxImages} 张图片
@@ -62,8 +62,8 @@ export const PromptAttachmentBar: React.FC<PromptAttachmentBarProps> = ({
                         // 图片缩略图预览 (60x60)
                         <div
                             key={a.id}
-                            className="relative group rounded border border-gray-700 overflow-hidden
-                                       bg-gray-800"
+                            className="relative group rounded border border-hairline overflow-hidden
+                                       bg-surfacev2"
                             style={{ width: 60, height: 60 }}
                             title={`${a.name} (${formatFileSize(a.size)})`}
                         >
@@ -77,7 +77,7 @@ export const PromptAttachmentBar: React.FC<PromptAttachmentBarProps> = ({
                                 type="button"
                                 aria-label={`移除 ${a.name}`}
                                 className="absolute top-0.5 right-0.5 p-0.5 rounded-full
-                                           bg-black/70 text-gray-200 hover:bg-black hover:text-white
+                                           bg-overlay2 text-white hover:bg-overlay2 hover:text-white
                                            opacity-80 group-hover:opacity-100 transition-opacity"
                             >
                                 <X size={12} />
@@ -86,16 +86,16 @@ export const PromptAttachmentBar: React.FC<PromptAttachmentBarProps> = ({
                     ) : (
                         <span
                             key={a.id}
-                            className="flex items-center gap-1 px-2 py-1 bg-gray-800 rounded text-xs text-gray-300
-                                       border border-gray-700"
+                            className="flex items-center gap-1 px-2 py-1 bg-surfacev2 rounded text-xs text-t2
+                                       border border-hairline"
                         >
                             📎 {a.name}
-                            <span className="text-gray-500">
+                            <span className="text-t3">
                                 ({formatFileSize(a.size)})
                             </span>
                             <button
                                 onClick={() => onRemoveAttachment(a.id)}
-                                className="ml-1 text-gray-500 hover:text-gray-300"
+                                className="ml-1 text-t3 hover:text-t1"
                                 type="button"
                                 aria-label={`移除 ${a.name}`}
                             >
@@ -114,23 +114,23 @@ export const PromptAttachmentBar: React.FC<PromptAttachmentBarProps> = ({
                     <span
                         key={file.path}
                         title={`${file.path}\n该路径会发送给模型服务商；选择路径不授予读取权限。`}
-                        className="flex max-w-full items-center gap-1 rounded border border-amber-800/70 bg-amber-950/30 px-2 py-1 text-xs text-amber-200"
+                        className="flex max-w-full items-center gap-1 rounded border border-warn bg-warnsoft px-2 py-1 text-xs text-warnstrong"
                     >
                         <FileSymlink size={13} className="shrink-0" />
                         <span className="truncate">{file.name}</span>
-                        <span className="shrink-0 text-amber-500">({formatFileSize(file.size)})</span>
+                        <span className="shrink-0 text-warn">({formatFileSize(file.size)})</span>
                         <button
                             type="button"
                             aria-label={`移除本地路径 ${file.name}`}
                             onClick={() => setLocalFiles(previous =>
                                 previous.filter(item => item.path !== file.path))}
-                            className="ml-1 shrink-0 text-amber-500 hover:text-amber-200"
+                            className="ml-1 shrink-0 text-warn hover:text-warnstrong"
                         >
                             <X size={12} />
                         </button>
                     </span>
                 ))}
-                <span className="self-center text-xs text-gray-500">
+                <span className="self-center text-xs text-t3">
                     路径会发送给模型服务商；读取项目外文件仍需授权
                 </span>
             </div>
@@ -142,11 +142,11 @@ export const PromptAttachmentBar: React.FC<PromptAttachmentBarProps> = ({
                     <span
                         key={`${file.sha256}\0${file.name}`}
                         title={`${file.url}\n文件已上传为永久公开 OSS 对象；移除引用不会删除对象。`}
-                        className="flex max-w-full items-center gap-1 rounded border border-blue-800/70 bg-blue-950/30 px-2 py-1 text-xs text-blue-200"
+                        className="flex max-w-full items-center gap-1 rounded border border-accent2-ring bg-accent2-soft px-2 py-1 text-xs text-accent2-strong"
                     >
                         <CloudUpload size={13} className="shrink-0" />
                         <span className="truncate">{file.name}</span>
-                        <span className="shrink-0 text-blue-500">
+                        <span className="shrink-0 text-accent2">
                             ({formatFileSize(file.size)})
                         </span>
                         <button
@@ -155,13 +155,13 @@ export const PromptAttachmentBar: React.FC<PromptAttachmentBarProps> = ({
                             onClick={() => setPublishedLocalFiles(previous =>
                                 previous.filter(item => !(item.sha256 === file.sha256
                                     && item.name === file.name)))}
-                            className="ml-1 shrink-0 text-blue-500 hover:text-blue-200"
+                            className="ml-1 shrink-0 text-accent2 hover:text-accent2-strong"
                         >
                             <X size={12} />
                         </button>
                     </span>
                 ))}
-                <span className="self-center text-xs text-gray-500">
+                <span className="self-center text-xs text-t3">
                     已上传为永久公开 OSS 对象；移除引用不会删除文件
                 </span>
             </div>
@@ -230,7 +230,7 @@ export const PromptToolbar: React.FC<PromptToolbarProps> = ({
                 aria-label={fileReferenceCapability?.mode === 'oss_upload'
                     ? '上传本地文件到 OSS' : '引用本地文件路径'}
                 title={fileReferenceTitle}
-                className="shrink-0 rounded-lg p-2.5 text-gray-300 transition-colors hover:bg-gray-800 hover:text-white disabled:opacity-50"
+                className="shrink-0 rounded-lg p-2.5 text-t2 transition-interactive duration-fast hover:bg-hover2 hover:text-t1 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring disabled:opacity-50"
             >
                 {fileReferenceBusy
                     ? <Loader2 size={16} className="animate-spin" />

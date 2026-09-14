@@ -7,6 +7,10 @@ import { cn } from './cn';
  * - 选中 = bg-surfacev2 + shadow-e1 + rounded-xl（容器 rounded-2xl 满足嵌套圆角规则）
  * - 键盘：←/→/↑/↓ 循环移动，Home/End 首尾；自动激活（焦点移动即选中）
  * - 受控（value + onValueChange）/ 非受控（defaultValue）
+ * - aria-controls ↔ tabpanel 接线：凡携带 content 的项都会渲染对应 tabpanel
+ *   （未选中者 hidden 常驻 DOM，保证 aria-controls 引用始终存在）；不带 content 的
+ *   项（如 TurnToolbar 密度 segmented control，面板由外部自渲染）不输出 aria-controls，
+ *   避免悬空引用。
  */
 export interface TabItem {
     value: string;
@@ -79,8 +83,6 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
             [items, select, selected],
         );
 
-        const activeItem = items.find((i) => i.value === selected);
-
         return (
             <div ref={ref} className={cn('w-full', className)} {...props}>
                 <div
@@ -100,7 +102,11 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
                                 role="tab"
                                 id={`${baseId}-tab-${item.value}`}
                                 aria-selected={isSelected}
-                                aria-controls={`${baseId}-panel-${item.value}`}
+                                aria-controls={
+                                    item.content != null
+                                        ? `${baseId}-panel-${item.value}`
+                                        : undefined
+                                }
                                 tabIndex={isSelected ? 0 : -1}
                                 disabled={item.disabled}
                                 onClick={() => select(item.value)}
@@ -118,15 +124,21 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
                         );
                     })}
                 </div>
-                {activeItem && activeItem.content !== undefined && (
-                    <div
-                        role="tabpanel"
-                        id={`${baseId}-panel-${activeItem.value}`}
-                        aria-labelledby={`${baseId}-tab-${activeItem.value}`}
-                        className="mt-3"
-                    >
-                        {activeItem.content}
-                    </div>
+                {/* 每个携带 content 的项渲染对应 tabpanel（未选中 hidden 常驻，
+                    保证 aria-controls 引用不悬空） */}
+                {items.map((item) =>
+                    item.content != null ? (
+                        <div
+                            key={item.value}
+                            role="tabpanel"
+                            id={`${baseId}-panel-${item.value}`}
+                            aria-labelledby={`${baseId}-tab-${item.value}`}
+                            hidden={item.value !== selected}
+                            className="mt-3"
+                        >
+                            {item.content}
+                        </div>
+                    ) : null,
                 )}
             </div>
         );

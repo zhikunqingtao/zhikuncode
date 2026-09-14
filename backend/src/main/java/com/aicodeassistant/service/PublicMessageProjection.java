@@ -31,7 +31,7 @@ public class PublicMessageProjection {
         return switch (message) {
             case Message.UserMessage user -> new Message.UserMessage(
                     user.uuid(), user.timestamp(), projectBlocks(user.content()),
-                    user.toolUseResult(), user.sourceToolAssistantUUID());
+                    user.toolUseResult(), user.sourceToolAssistantUUID(), user.meta());
             case Message.AssistantMessage assistant -> new Message.AssistantMessage(
                     assistant.uuid(), assistant.timestamp(), projectBlocks(assistant.content()),
                     assistant.stopReason(), assistant.usage());

@@ -63,14 +63,15 @@ const VoiceInputButton: React.FC<VoiceInputButtonProps> = ({ onTranscript, disab
             <button
                 onClick={handleClick}
                 disabled={buttonDisabled}
-                className={`shrink-0 p-2 rounded-lg transition-colors
+                className={`shrink-0 p-2 rounded-lg transition-interactive duration-fast
+                    focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring
                     ${buttonDisabled
-                        ? 'text-gray-600 cursor-not-allowed opacity-50'
+                        ? 'text-t4 cursor-not-allowed opacity-50'
                         : isRecording
-                        ? 'text-red-500 hover:bg-red-500/10'
+                        ? 'text-err hover:bg-errsoft'
                         : isError
-                        ? 'text-red-400'
-                        : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'}`}
+                        ? 'text-err'
+                        : 'text-t3 hover:text-t1 hover:bg-hover2'}`}
                 title={titleText}
                 type="button"
                 aria-label={titleText}
@@ -88,19 +89,19 @@ const VoiceInputButton: React.FC<VoiceInputButtonProps> = ({ onTranscript, disab
                     {soundwaveBars.map((bar, i) => (
                         <span
                             key={i}
-                            className="w-0.5 rounded-full bg-red-500 animate-soundwave"
+                            className="w-0.5 rounded-full bg-err animate-soundwave"
                             style={{ height: `${bar.height}px`, animationDelay: bar.delay }}
                         />
                     ))}
                 </span>
             )}
             {isRecording && (
-                <span className="text-xs text-gray-400 font-mono tabular-nums select-none">
+                <span className="text-xs text-t3 font-mono tabular-nums select-none">
                     {formatTime(elapsedSeconds)}
                 </span>
             )}
             {isError && error && (
-                <span className="text-xs text-red-400 select-none whitespace-nowrap">{error}</span>
+                <span className="text-xs text-err select-none whitespace-nowrap">{error}</span>
             )}
         </div>
     );

@@ -10,7 +10,9 @@ import { test, expect } from '@playwright/test';
  *      ③ 输入条未被"压出"可视区（boundingBox 完整落在视口内）
  *      ④ 恢复视口高度后 --keyboard-height 归零、布局回弹
  *  T2. 键盘弹起瞬间消息流一次性滚底（MessageList scrollToBottom API，
- *      852→640 压缩以保证消息区仍有可视高度）
+ *      852→640 压缩以保证消息区仍有可视高度），且布局沉降期间
+ *      （padding 0.25s 过渡 + Virtuoso 重测）持续锚底 —— ~2s 多次采样
+ *      距底全部 ≤80px，而非单一瞬间达标
  *
  * 模拟原理：useVirtualKeyboard 监听 window.visualViewport 的 resize/scroll，
  * Playwright setViewportSize 会同步改变 visualViewport.height 并派发 resize，
@@ -140,5 +142,22 @@ test.describe('P2b-2b 移动虚拟键盘接线 probe', () => {
     const after = await readScroll();
     expect(after!.top).toBeGreaterThan(0); // 确实发生了滚动
     await page.screenshot({ path: `${SHOT_DIR}/03-scrolled-to-bottom.png` });
+
+    // ── 稳定性：布局沉降期间持续锚底 —— ~2s 内 10 次采样，距底全部 ≤80px ──
+    // 回归点：键盘压缩视口后 padding-bottom 有 0.25s CSS 过渡、Virtuoso
+    // 行高/总高重测亦异步多帧完成，一次性 scrollBy 会残留距底缺口（曾实测
+    // 276px）；补偿须在沉降全程持续生效，而非单一瞬间达标。
+    const gaps: number[] = [];
+    for (let i = 0; i < 10; i += 1) {
+      const s = await readScroll();
+      expect(s).not.toBeNull();
+      gaps.push(s!.full - s!.top - s!.height);
+      await page.waitForTimeout(200);
+    }
+    expect(
+      Math.max(...gaps),
+      `距底 10 次采样须全部 ≤80px，实际：${gaps.join(', ')}`,
+    ).toBeLessThanOrEqual(80);
+    await page.screenshot({ path: `${SHOT_DIR}/04-bottom-stable-after-settle.png` });
   });
 });

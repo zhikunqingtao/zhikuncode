@@ -12,6 +12,7 @@ import { useCostStore } from '@/store/costStore';
 import { useDialogStore } from '@/store/dialogStore';
 import { useConfigStore } from '@/store/configStore';
 import { useModelStore } from '@/store/modelStore';
+import { useBridgeStore } from '@/store/bridgeStore';
 import { sendSetModel } from '@/api/stompClient';
 import { dispatchNewAuthorizedSessionRequest } from '@/services/authorizedSession';
 import { useWorkbenchViewStore } from '@/store/workbenchViewStore';
@@ -32,6 +33,7 @@ interface HeaderProps {
 export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
     const { sessionId, model, setModel } = useSessionStore();
     const { sessionCost, totalCost } = useCostStore();
+    const { bridgeStatus } = useBridgeStore();
     const { openDialog } = useDialogStore();
     const { theme, setTheme } = useConfigStore();
     const workbenchEnabled = useWorkbenchViewStore(s => s.enabled);
@@ -125,9 +127,15 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
             <div className="flex-1 flex items-center justify-center gap-3 min-w-0">
                 {workbenchEnabled && <WorkbenchViewSwitch />}
                 {!simpleMode && (
-                    <span className="text-sm text-t2 truncate max-w-[150px] hidden md:block">
-                        {sessionId ? `Session: ${sessionId.slice(0, 8)}...` : 'New Session'}
-                    </span>
+                    <div className="hidden md:flex flex-col leading-tight max-w-[150px]">
+                        <span className="text-sm text-t2 truncate">
+                            {sessionId ? `Session: ${sessionId.slice(0, 8)}...` : 'New Session'}
+                        </span>
+                        {/* 副标题：连接态（分支名因无随会话更新的可靠数据源未上） */}
+                        <span className="text-xs text-t3">
+                            {bridgeStatus === 'connected' ? '已连接' : '连接中'}
+                        </span>
+                    </div>
                 )}
                 {/* 模型选择器：两种视图模式下常驻，避免 simple 模式下无法切换模型 */}
                 {/* §7.4 模型 chip：bg-surface2 + hairline + rounded-full + accent 点（select 逻辑原样） */}

@@ -20,11 +20,6 @@ const LEGACY_ALLOWLIST: readonly { id: string; target: string; note: string }[] 
         target: 'var\\(--text-muted\\)',
         note: '旧变量 --text-muted(#94a3b8)：visualization 面板等未迁移旧组件（后续迁移时清除）；StatusBar/Header 成本显示已于 P3 迁移清除',
     },
-    {
-        id: 'color-contrast',
-        target: '.mt-2',
-        note: 'App.tsx 旧空态提示「输入消息或按 / 查看命令」（旧 --color-muted #64748B）；P3 §7.1 空态 Hero 已移除该节点，条目留作回归登记',
-    },
 ];
 
 const WCAG_TAGS = ['wcag2a', 'wcag2aa'];

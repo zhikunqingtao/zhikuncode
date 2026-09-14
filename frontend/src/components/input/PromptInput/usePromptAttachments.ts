@@ -3,15 +3,32 @@
  *
  * §8.3.1 PromptInput 拆分：从原 PromptInput.tsx 纯搬运（零行为变化）。
  * 职责：图片附件的按钮 / 拖拽 / 粘贴上传（含 OSS 直传与 Base64 降级），
- * 附件移除与组件卸载时的 ObjectURL 回收防护。
+ * 附件移除与异步链路卸载时的 ObjectURL 回收防护。
+ *
+ * 草稿持久化（P1 修复）：附件列表按活动 sessionId 键控托管到
+ * promptDraftStore（仅内存，理由同 usePromptState 的输入草稿），
+ * 卸载/重挂载后附件可恢复，不同会话相互隔离。
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ClipboardEvent } from 'react';
+import {
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+    type ClipboardEvent,
+    type Dispatch,
+    type SetStateAction,
+} from 'react';
 import type {
     LocalAttachment,
     PastePublishResult,
 } from '@/types';
 import { useNotificationStore } from '@/store/notificationStore';
+import {
+    resolvePromptDraftKey,
+    usePromptDraftStore,
+} from '@/store/promptDraftStore';
 import { generateUUID } from '@/utils/uuid';
 
 /** 单张图片附件大小上限：5MB */
@@ -47,14 +64,38 @@ export interface UsePromptAttachmentsParams {
     runActive: boolean;
     compacting: boolean;
     onPasteImages: (files: File[]) => Promise<PastePublishResult>;
+    /** 草稿归属会话：附件随 sessionId 键控存入 promptDraftStore；缺省回落稳定兜底键 */
+    sessionId?: string | null;
 }
+
+/** 选择器兜底空数组（模块级常量保证引用稳定，避免无意义重渲染） */
+const EMPTY_ATTACHMENTS: LocalAttachment[] = [];
 
 export function usePromptAttachments({
     runActive,
     compacting,
     onPasteImages,
+    sessionId,
 }: UsePromptAttachmentsParams) {
-    const [attachments, setAttachments] = useState<LocalAttachment[]>([]);
+    // 附件托管到 promptDraftStore（按活动 sessionId 键控，仅内存）：
+    // 卸载/重挂载（移动端底部导航切换）后从 store 读回，ObjectURL 保持有效。
+    const draftKey = resolvePromptDraftKey(sessionId);
+    const attachments = usePromptDraftStore(
+        s => s.drafts[draftKey]?.attachments ?? EMPTY_ATTACHMENTS,
+    );
+    // P1 修复（stale draft-key writes）：粘贴图片的 OSS 发布会先
+    // ensureSessionReady() 创建首个会话（sessionId null → id），
+    // await 之后的 setAttachments 续体若仍写渲染期捕获的兜底键，
+    // 附件会落到已迁空的 '__none__' 上，首条消息丢失附件。
+    // 所有附件写在调用时经 latestSessionIdRef 解析目标键。
+    const latestSessionIdRef = useRef(sessionId);
+    useEffect(() => {
+        latestSessionIdRef.current = sessionId;
+    }, [sessionId]);
+    const setAttachments = useCallback<Dispatch<SetStateAction<LocalAttachment[]>>>((value) => {
+        const targetKey = resolvePromptDraftKey(latestSessionIdRef.current);
+        usePromptDraftStore.getState().setAttachments(targetKey, value);
+    }, []);
     const [isUploadingPaste, setIsUploadingPaste] = useState(false);
     // 异步链路（粘贴上传/读取 base64）的卸载防护：卸载后短路 setState/通知并回收 ObjectURL
     const isMountedRef = useRef(true);
@@ -164,7 +205,7 @@ export function usePromptAttachments({
         if (accepted.length > 0) {
             setAttachments(prev => [...prev, ...accepted]);
         }
-    }, [imageCount, maxImages, runActive, compacting]);
+    }, [imageCount, maxImages, runActive, compacting, setAttachments]);
 
     const handlePaste = useCallback((event: ClipboardEvent<HTMLTextAreaElement>) => {
         const itemFiles = Array.from(event.clipboardData.items)
@@ -255,7 +296,8 @@ export function usePromptAttachments({
         }).finally(() => {
             if (isMountedRef.current) setIsUploadingPaste(false);
         });
-    }, [compacting, handleFiles, imageCount, isUploadingPaste, maxImages, onPasteImages, runActive]);
+    }, [compacting, handleFiles, imageCount, isUploadingPaste, maxImages, onPasteImages,
+        runActive, setAttachments]);
 
     // Drag & drop file upload
     const handleDrop = useCallback((e: React.DragEvent) => {
@@ -283,20 +325,11 @@ export function usePromptAttachments({
             }
             return prev.filter(a => a.id !== id);
         });
-    }, []);
+    }, [setAttachments]);
 
-    // 用 ref 追踪最新 attachments，确保卸载时能释放所有预览 URL
-    const attachmentsRef = useRef(attachments);
-    attachmentsRef.current = attachments;
-
-    // 组件卸载时释放所有预览 URL，防止内存泄露
-    useEffect(() => {
-        return () => {
-            attachmentsRef.current.forEach(a => {
-                if (a.previewUrl) URL.revokeObjectURL(a.previewUrl);
-            });
-        };
-    }, []);
+    // 注意：附件随草稿在组件卸载后继续存活于 promptDraftStore（重挂载需原样恢复），
+    // 因此不再于卸载时回收预览 ObjectURL。回收点收敛为：removeAttachment 移除、
+    // usePromptState.handleSubmit 提交成功、以及上述异步链路的卸载防护（isMountedRef）。
 
     // 注：模型切换不再清理已选图片附件。
     // 后端的智能视觉路由会在请求时自动选择同厂商视觉模型处理图片，

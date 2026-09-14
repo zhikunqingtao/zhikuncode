@@ -53,10 +53,11 @@ const FileUpload: React.FC<FileUploadProps> = ({
                     inputRef.current?.click();
                 }}
                 disabled={disabled}
-                className={`shrink-0 p-2 rounded-lg transition-colors
+                className={`shrink-0 p-2 rounded-lg transition-interactive duration-fast
+                    focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring
                     ${disabled
-                        ? 'text-gray-600 cursor-not-allowed opacity-50'
-                        : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'}`}
+                        ? 'text-t4 cursor-not-allowed opacity-50'
+                        : 'text-t3 hover:text-t1 hover:bg-hover2'}`}
                 title={title ?? '上传图片'}
                 aria-label="上传图片"
                 type="button"

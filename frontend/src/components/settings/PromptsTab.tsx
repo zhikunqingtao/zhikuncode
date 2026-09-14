@@ -50,24 +50,26 @@ export function PromptsTab() {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold">MCP Prompts</h3>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-t3 mt-1">
             {prompts.length} prompt{prompts.length !== 1 ? 's' : ''} available from {grouped.size} server{grouped.size !== 1 ? 's' : ''}
           </p>
         </div>
         <button
           onClick={() => fetchPrompts()}
           disabled={loadingPrompts}
-          className="px-3 py-1.5 text-xs rounded border border-gray-300 dark:border-gray-600
-                     hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+          className="px-3 py-1.5 text-xs rounded-xl border border-hairline
+                     hover:bg-hover2 transition-interactive duration-fast disabled:opacity-50
+                     focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring
+                     active:scale-[.98]"
         >
           {loadingPrompts ? 'Loading...' : 'Refresh'}
         </button>
       </div>
 
       {loadingPrompts && prompts.length === 0 ? (
-        <div className="text-center text-gray-400 py-8">Loading prompts...</div>
+        <div className="text-center text-t3 py-8">Loading prompts...</div>
       ) : prompts.length === 0 ? (
-        <div className="text-center text-gray-400 py-8">
+        <div className="text-center text-t3 py-8">
           No prompts discovered. Ensure MCP servers are connected and expose prompts.
         </div>
       ) : (
@@ -76,7 +78,7 @@ export function PromptsTab() {
           <div className="w-1/2 space-y-4 max-h-[60vh] overflow-y-auto pr-2">
             {Array.from(grouped.entries()).map(([serverName, serverPrompts]) => (
               <div key={serverName}>
-                <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+                <div className="text-xs font-semibold text-t3 uppercase tracking-wider mb-2">
                   {serverName}
                 </div>
                 <div className="space-y-2">
@@ -84,26 +86,27 @@ export function PromptsTab() {
                     <button
                       key={`${prompt.serverName}-${prompt.name}`}
                       onClick={() => selectPrompt(prompt)}
-                      className={`w-full text-left p-3 rounded-lg border transition-colors
+                      className={`w-full text-left p-3 rounded-xl border transition-interactive duration-fast
+                        focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring
                         ${selectedPrompt?.name === prompt.name && selectedPrompt?.serverName === prompt.serverName
-                          ? 'border-blue-400 bg-blue-50 dark:border-blue-600 dark:bg-blue-900/20'
-                          : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'
+                          ? 'border-accent2 bg-accent2-soft'
+                          : 'border-hairline hover:bg-hover2'
                         }`}
                     >
                       <div className="font-medium text-sm">{prompt.name}</div>
                       {prompt.description && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
+                        <p className="text-xs text-t3 mt-1 line-clamp-2">
                           {prompt.description}
                         </p>
                       )}
                       <div className="flex items-center gap-2 mt-1.5">
                         {prompt.arguments.length > 0 && (
-                          <span className="text-xs text-gray-400">
+                          <span className="text-xs text-t3">
                             {prompt.arguments.length} arg{prompt.arguments.length > 1 ? 's' : ''}
                           </span>
                         )}
                         {prompt.arguments.some(a => a.required) && (
-                          <span className="text-xs text-amber-500">
+                          <span className="text-xs text-warn">
                             {prompt.arguments.filter(a => a.required).length} required
                           </span>
                         )}
@@ -121,18 +124,18 @@ export function PromptsTab() {
               <div className="space-y-4">
                 <div>
                   <h4 className="font-semibold text-sm">{selectedPrompt.name}</h4>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  <p className="text-xs text-t3 mt-1">
                     Server: {selectedPrompt.serverName}
                   </p>
                   {selectedPrompt.description && (
-                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
+                    <p className="text-sm text-t2 mt-2">
                       {selectedPrompt.description}
                     </p>
                   )}
                 </div>
 
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
-                  <h5 className="text-xs font-semibold text-gray-500 uppercase mb-2">Arguments</h5>
+                <div className="border-t border-hairline pt-3">
+                  <h5 className="text-xs font-semibold text-t3 uppercase mb-2">Arguments</h5>
                   <PromptArgsForm
                     arguments={selectedPrompt.arguments}
                     onSubmit={handleExecute}
@@ -142,30 +145,30 @@ export function PromptsTab() {
 
                 {/* Result Display */}
                 {promptResult && (
-                  <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
-                    <h5 className="text-xs font-semibold text-gray-500 uppercase mb-2">Result</h5>
+                  <div className="border-t border-hairline pt-3">
+                    <h5 className="text-xs font-semibold text-t3 uppercase mb-2">Result</h5>
                     {promptResult.success ? (
                       <div className="space-y-2">
                         {promptResult.messages?.map((msg, idx) => (
-                          <div key={idx} className="p-2 rounded bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                            <span className="text-xs font-mono text-gray-400 block mb-1">{msg.role}</span>
+                          <div key={idx} className="p-2 rounded-xl bg-surface2 border border-hairline">
+                            <span className="text-xs font-mono text-t3 block mb-1">{msg.role}</span>
                             <div
-                              className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words"
+                              className="text-sm text-t2 whitespace-pre-wrap break-words"
                               dangerouslySetInnerHTML={{ __html: sanitize(msg.content) }}
                             />
                           </div>
                         ))}
                         {(!promptResult.messages || promptResult.messages.length === 0) && (
-                          <p className="text-sm text-gray-400 italic">No messages returned.</p>
+                          <p className="text-sm text-t3 italic">No messages returned.</p>
                         )}
                       </div>
                     ) : (
-                      <div className="p-3 rounded bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-                        <p className="text-sm text-red-600 dark:text-red-400 font-medium">
+                      <div className="p-3 rounded-xl bg-errsoft border border-err">
+                        <p className="text-sm text-errstrong dark:text-err font-medium">
                           {promptResult.error || 'Execution failed'}
                         </p>
                         {promptResult.details && promptResult.details.length > 0 && (
-                          <ul className="mt-2 text-xs text-red-500 list-disc list-inside">
+                          <ul className="mt-2 text-xs text-err list-disc list-inside">
                             {promptResult.details.map((d, i) => <li key={i}>{d}</li>)}
                           </ul>
                         )}
@@ -173,7 +176,8 @@ export function PromptsTab() {
                     )}
                     <button
                       onClick={clearPromptResult}
-                      className="mt-2 text-xs text-gray-400 hover:text-gray-600 underline"
+                      className="mt-2 text-xs text-t3 hover:text-t1 underline transition-interactive duration-fast
+                                 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring"
                     >
                       Clear result
                     </button>
@@ -181,7 +185,7 @@ export function PromptsTab() {
                 )}
               </div>
             ) : (
-              <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+              <div className="flex items-center justify-center h-full text-t3 text-sm">
                 Select a prompt to view details and execute
               </div>
             )}

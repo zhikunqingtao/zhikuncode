@@ -33,9 +33,15 @@ import { parseExternalResourceResult, structuredResultSchema } from '@/utils/str
 interface ToolCallBlockProps {
     toolUseId: string;
     toolCall: ToolCallState;
+    /**
+     * 受控展开态：传入后以传入值为准（受控优先）；
+     * 未传入时按状态决定默认展开（running/pending 展开，完成态折叠）。
+     */
+    expanded?: boolean;
 }
 
-const STATUS_CONFIG = {
+/** 状态 → 图标/颜色/文案（导出供 turn/ToolRunBlock 的 L2 行复用同一套语义） */
+export const STATUS_CONFIG = {
     pending:           { icon: Loader2, color: 'text-t4',      label: 'Pending',    spin: false },
     running:           { icon: Loader2, color: 'text-accent2', label: 'Running',    spin: true  },
     completed:         { icon: Check,   color: 'text-ok',      label: 'Completed',  spin: false },
@@ -46,12 +52,31 @@ const STATUS_CONFIG = {
 /** Edit 类工具名（带 +n/−n diff chip） */
 const EDIT_TOOL_NAMES = new Set(['FileEditTool', 'FileEdit', 'Edit', 'MultiEdit', 'FileWriteTool', 'FileWrite', 'Write', 'NotebookEdit']);
 
-/** 从工具输入提取主文件路径（file chip 数据源） */
-function extractFilePath(input: unknown): string | null {
+/** 工具耗时格式化（ms → 342ms / 12s / 3m 5s / 1h 2m）；导出供 ToolRunBlock 复用 */
+export function formatToolDuration(ms: number): string {
+    if (ms < 1000) return `${ms}ms`;
+    const totalSeconds = Math.floor(ms / 1000);
+    if (totalSeconds < 60) return `${totalSeconds}s`;
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    if (minutes < 60) return `${minutes}m ${seconds}s`;
+    const hours = Math.floor(minutes / 60);
+    return `${hours}h ${minutes % 60}m`;
+}
+
+/** 从工具输入提取主目标（文件路径 / 命令 / pattern，header chip 数据源） */
+export function extractPrimaryTarget(input: unknown): { target: string; isPath: boolean } | null {
     if (!input || typeof input !== 'object' || Array.isArray(input)) return null;
     const record = input as Record<string, unknown>;
-    const candidate = record.file_path ?? record.path ?? record.notebook_path ?? record.pattern;
-    return typeof candidate === 'string' && candidate.length > 0 ? candidate : null;
+    const pathCandidate = record.file_path ?? record.path ?? record.notebook_path;
+    if (typeof pathCandidate === 'string' && pathCandidate.length > 0) {
+        return { target: pathCandidate, isPath: true };
+    }
+    const other = record.command ?? record.pattern;
+    if (typeof other === 'string' && other.length > 0) {
+        return { target: other, isPath: false };
+    }
+    return null;
 }
 
 /** Edit 类工具的 +n/−n 统计：优先 input 的 old/new_string，其次 result 的 unified diff 行 */
@@ -96,16 +121,24 @@ function countLines(text: string): number {
     return text.length === 0 ? 0 : text.split('\n').length;
 }
 
-const ToolCallBlock: React.FC<ToolCallBlockProps> = ({ toolUseId, toolCall }) => {
-    // 主折叠开关：默认展开（保持既有可见行为），折叠后为一行
-    const [expanded, setExpanded] = useState(true);
+/** 文本/Markdown 类结果默认展示行数（Terminal / Diff 渲染分支自带折叠逻辑，不在此限） */
+const RESULT_PREVIEW_LINES = 30;
+
+const ToolCallBlock: React.FC<ToolCallBlockProps> = ({ toolUseId, toolCall, expanded: expandedProp }) => {
+    // 主折叠开关：running/pending 默认展开，完成态默认折叠（折叠后为一行）；
+    // 调用方显式传入 expanded 时受控优先
+    const [internalExpanded, setInternalExpanded] = useState(
+        () => toolCall.status === 'running' || toolCall.status === 'pending',
+    );
+    const expanded = expandedProp ?? internalExpanded;
     const [inputExpanded, setInputExpanded] = useState(false);
-    const [resultExpanded, setResultExpanded] = useState(true);
+    // 结果区默认折叠，避免长结果默认刷屏
+    const [resultExpanded, setResultExpanded] = useState(false);
 
     const statusCfg = STATUS_CONFIG[toolCall.status];
     const StatusIcon = statusCfg.icon;
 
-    const toggleExpanded = useCallback(() => setExpanded(prev => !prev), []);
+    const toggleExpanded = useCallback(() => setInternalExpanded(prev => !prev), []);
     const toggleInput = useCallback(() => setInputExpanded(prev => !prev), []);
     const toggleResult = useCallback(() => setResultExpanded(prev => !prev), []);
 
@@ -123,14 +156,7 @@ const ToolCallBlock: React.FC<ToolCallBlockProps> = ({ toolUseId, toolCall }) =>
 
     const formattedDuration = useMemo(() => {
         if (effectiveDuration == null) return null;
-        if (effectiveDuration < 1000) return `${effectiveDuration}ms`;
-        const totalSeconds = Math.floor(effectiveDuration / 1000);
-        if (totalSeconds < 60) return `${totalSeconds}s`;
-        const minutes = Math.floor(totalSeconds / 60);
-        const seconds = totalSeconds % 60;
-        if (minutes < 60) return `${minutes}m ${seconds}s`;
-        const hours = Math.floor(minutes / 60);
-        return `${hours}h ${minutes % 60}m`;
+        return formatToolDuration(effectiveDuration);
     }, [effectiveDuration]);
 
     const inputStr = useMemo(() => {
@@ -141,8 +167,7 @@ const ToolCallBlock: React.FC<ToolCallBlockProps> = ({ toolUseId, toolCall }) =>
         }
     }, [toolCall.input]);
 
-    const filePath = useMemo(() => extractFilePath(toolCall.input), [toolCall.input]);
-    const fileChip = filePath ? (filePath.split(/[\\/]/).pop() ?? filePath) : null;
+    const primaryTarget = useMemo(() => extractPrimaryTarget(toolCall.input), [toolCall.input]);
     const diffStats = useMemo(() => computeDiffStats(toolCall), [toolCall]);
 
     return (
@@ -168,12 +193,14 @@ const ToolCallBlock: React.FC<ToolCallBlockProps> = ({ toolUseId, toolCall }) =>
                 <span className="font-semibold text-sm text-t1 truncate">
                     {toolCall.toolName}
                 </span>
-                {fileChip && (
+                {primaryTarget && (
                     <span
                         className="shrink-0 max-w-[40%] truncate rounded-md bg-sunken2 px-2 py-0.5 font-mono text-[11px] text-t2"
-                        title={filePath ?? undefined}
+                        // 路径类目标省略号前置（保留文件名可见），命令/pattern 省略号后置
+                        style={primaryTarget.isPath ? { direction: 'rtl', textAlign: 'left' } : undefined}
+                        title={primaryTarget.target}
                     >
-                        {fileChip}
+                        {primaryTarget.target}
                     </span>
                 )}
                 {diffStats && diffStats.added > 0 && (
@@ -305,14 +332,41 @@ const ToolResultRenderer: React.FC<ToolResultRendererProps> = ({
     isError,
     metadata,
 }) => {
+    // 文本/Markdown 类结果（非 TerminalRenderer、非 DiffRenderer 分支）超过
+    // RESULT_PREVIEW_LINES 行时默认截断，可展开全部 / 再收起
+    const [showFullResult, setShowFullResult] = useState(false);
+    const resultLineCount = useMemo(() => (content ? countLines(content) : 0), [content]);
+    const shouldTruncate = resultLineCount > RESULT_PREVIEW_LINES;
+    const displayContent = shouldTruncate && !showFullResult
+        ? content.split('\n').slice(0, RESULT_PREVIEW_LINES).join('\n')
+        : content;
+    const toggleShowFull = useCallback(() => setShowFullResult(prev => !prev), []);
+
+    const truncateToggle = shouldTruncate ? (
+        <button
+            type="button"
+            onClick={toggleShowFull}
+            className="mt-1.5 flex items-center gap-1 text-xs text-t4 hover:text-t2 transition-colors"
+        >
+            <ChevronRight
+                size={12}
+                className={`transition-transform duration-base ${showFullResult ? 'rotate-90' : ''}`}
+            />
+            {showFullResult ? '收起' : `展开全部（共 ${resultLineCount} 行）`}
+        </button>
+    ) : null;
+
     if (isError) {
         return (
-            <div className="rounded-xl border border-err bg-errsoft px-3 py-2 text-sm text-err">
-                <div className="flex items-center gap-1.5 mb-1 font-medium">
-                    <XCircle size={14} />
-                    Error
+            <div>
+                <div className="rounded-xl border border-err bg-errsoft px-3 py-2 text-sm text-err">
+                    <div className="flex items-center gap-1.5 mb-1 font-medium">
+                        <XCircle size={14} />
+                        Error
+                    </div>
+                    <pre className="whitespace-pre-wrap text-xs">{displayContent}</pre>
                 </div>
-                <pre className="whitespace-pre-wrap text-xs">{content}</pre>
+                {truncateToggle}
             </div>
         );
     }
@@ -340,13 +394,28 @@ const ToolResultRenderer: React.FC<ToolResultRendererProps> = ({
             return <DiffRenderer content={content} />;
         case 'GrepTool':
         case 'Grep':
-            return <SearchResultRenderer content={content} />;
+            return (
+                <div>
+                    <SearchResultRenderer content={displayContent} />
+                    {truncateToggle}
+                </div>
+            );
         case 'GlobTool':
         case 'Glob':
-            return <FileListRenderer content={content} />;
+            return (
+                <div>
+                    <FileListRenderer content={displayContent} />
+                    {truncateToggle}
+                </div>
+            );
         default: {
             const lang = getResultLanguage(toolName);
-            return <CodeBlock code={content} language={lang} showLineNumbers={false} maxHeight={400} />;
+            return (
+                <div>
+                    <CodeBlock code={displayContent} language={lang} showLineNumbers={false} maxHeight={400} />
+                    {truncateToggle}
+                </div>
+            );
         }
     }
 };

@@ -289,16 +289,59 @@ describe('Dialog 交互（§10.7-④ 焦点归还链）', () => {
 
         onOpenChange.mockClear();
         rerender(<Controlled />);
-        /* 重新打开后点遮罩（面板外层容器自身 mousedown） */
+        /* 重新打开后点遮罩（aria-hidden 背景层：pointerdown + click 均落在遮罩上） */
         render(
             <Dialog open onOpenChange={onOpenChange} title="遮罩测试">
                 <p>y</p>
             </Dialog>,
         );
         const dialogEl = screen.getByRole('dialog', { name: '遮罩测试' });
-        const overlayContainer = dialogEl.parentElement!;
-        fireEvent.mouseDown(overlayContainer);
+        const backdrop = dialogEl.previousElementSibling as HTMLElement;
+        fireEvent.pointerDown(backdrop);
+        fireEvent.click(backdrop);
         expect(onOpenChange).toHaveBeenCalledWith(false);
+    });
+
+    it('遮罩 pointerdown + click 关闭（onClose 走同一 requestClose）', () => {
+        const onClose = vi.fn();
+        render(
+            <Dialog open onClose={onClose} title="遮罩">
+                <p>body</p>
+            </Dialog>,
+        );
+        const dialogEl = screen.getByRole('dialog');
+        const backdrop = dialogEl.previousElementSibling as HTMLElement;
+        fireEvent.pointerDown(backdrop);
+        fireEvent.click(backdrop);
+        expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('面板内按下、遮罩上松开：不关闭（防误关/点击穿透）', () => {
+        const onClose = vi.fn();
+        render(
+            <Dialog open onClose={onClose} title="拖拽释放">
+                <p>body</p>
+            </Dialog>,
+        );
+        const dialogEl = screen.getByRole('dialog');
+        const backdrop = dialogEl.previousElementSibling as HTMLElement;
+        /* pointerdown 落在面板内 → 不武装；即使 click 落在遮罩上也不关闭 */
+        fireEvent.pointerDown(dialogEl);
+        fireEvent.click(backdrop);
+        expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('点击面板内容：不关闭', () => {
+        const onClose = vi.fn();
+        render(
+            <Dialog open onClose={onClose} title="面板">
+                <button type="button">内部按钮</button>
+            </Dialog>,
+        );
+        const inner = screen.getByText('内部按钮');
+        fireEvent.pointerDown(inner);
+        fireEvent.click(inner);
+        expect(onClose).not.toHaveBeenCalled();
     });
 
     it('显式 triggerRef 卸载后归还其父容器（禁止归还 body）', () => {

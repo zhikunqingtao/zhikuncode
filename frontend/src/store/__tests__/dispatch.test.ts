@@ -4,6 +4,7 @@ import { useSessionStore } from '@/store/sessionStore';
 import { usePermissionStore } from '@/store/permissionStore';
 import { useNotificationStore } from '@/store/notificationStore';
 import { bindSessionAndWait, dispatch, resetBoundSession } from '@/api/dispatch';
+import { buildTurns } from '@/store/selectors/turnProjection';
 
 beforeEach(() => {
     resetBoundSession();
@@ -267,6 +268,35 @@ describe('dispatch 消息分发', () => {
             .toBe(nextAssistantId);
         expect(useMessageStore.getState().messages.map(message => message.type))
             .toEqual(['assistant', 'user', 'assistant']);
+    });
+
+    test('run_input_applied marks the steering message (meta + steeringMessageIds) for turn projection', () => {
+        useSessionStore.setState({ sessionId: 's1', status: 'streaming' });
+        useMessageStore.setState({
+            steeringMessageIds: {},
+            messages: [
+                { type: 'user', uuid: 'u-1', timestamp: 1, content: [{ type: 'text', text: 'hi' }] },
+                { type: 'assistant', uuid: 'a-1', timestamp: 2, content: [{ type: 'text', text: 'working' }] },
+            ] as never,
+        });
+
+        dispatch({
+            type: 'run_input_applied', requestId: 'req-steering-1',
+            text: 'change direction', appliedAt: 3,
+        } as never);
+
+        const state = useMessageStore.getState();
+        const steeringMsg = state.messages.find(m => m.uuid === 'req-steering-1');
+        expect(steeringMsg?.type).toBe('user');
+        expect((steeringMsg as { meta?: Record<string, unknown> }).meta?.steering).toBe(true);
+        expect(state.steeringMessageIds['s1']).toEqual(['req-steering-1']);
+
+        // 轮次投影集成：steering 消息归并当前轮，不新开轮
+        const turns = buildTurns(state.messages, {
+            steeringMessageIds: new Set(state.steeringMessageIds['s1']),
+        });
+        expect(turns).toHaveLength(1);
+        expect(turns[0].messages.map(m => m.uuid)).toEqual(['u-1', 'a-1', 'req-steering-1']);
     });
 
     test('run_input_rejected only idles a stale client when no active run exists', () => {

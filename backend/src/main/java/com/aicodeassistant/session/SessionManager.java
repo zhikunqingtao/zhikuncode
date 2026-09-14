@@ -314,21 +314,25 @@ public class SessionManager {
     /**
      * 幂等消息写入：使用外部传入的 messageId 作为主键，INSERT OR IGNORE 保证幂等。
      * 当主键冲突时静默跳过（已由 listener 或其他路径写入），不抛出异常。
+     *
+     * @param meta 通用客户端元数据（如 steering 标记），序列化为 meta_json 列；null 则不写入
      */
     public void addMessageWithId(String messageId, String sessionId, String role,
                                  Object content, String stopReason,
-                                 int inputTokens, int outputTokens) {
+                                 int inputTokens, int outputTokens,
+                                 Map<String, Object> meta) {
         String contentJson = toJsonString(content);
+        String metaJson = (meta == null || meta.isEmpty()) ? null : toJsonString(meta);
         String now = Instant.now().toString();
         int rows = jdbcTemplate.update(
                 """
                 INSERT OR IGNORE INTO messages (id, session_id, role, content_json, stop_reason,
-                    input_tokens, output_tokens, created_at, seq_num)
+                    input_tokens, output_tokens, created_at, seq_num, meta_json)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?,
-                    (SELECT COALESCE(MAX(seq_num), 0) + 1 FROM messages WHERE session_id = ?))
+                    (SELECT COALESCE(MAX(seq_num), 0) + 1 FROM messages WHERE session_id = ?), ?)
                 """,
                 messageId, sessionId, role, contentJson, stopReason,
-                inputTokens, outputTokens, now, sessionId
+                inputTokens, outputTokens, now, sessionId, metaJson
         );
         // 仅在真正插入新消息时更新会话时间戳（INSERT OR IGNORE 被忽略时 rows=0）
         if (rows > 0) {
@@ -544,8 +548,12 @@ public class SessionManager {
                 case "user" -> {
                     String toolUseResult = extractToolUseResult(contentJson);
                     String sourceToolAssistantUUID = extractSourceToolUUID(contentJson);
+                    // meta_json 为通用客户端元数据（如 steering 标记）；旧消息该列为 NULL → null
+                    String metaJson = (String) row.get("meta_json");
+                    Map<String, Object> meta = (metaJson == null || metaJson.isBlank())
+                            ? null : parseJsonMap(metaJson);
                     yield (Message) new Message.UserMessage(
-                            id, createdAt, blocks, toolUseResult, sourceToolAssistantUUID);
+                            id, createdAt, blocks, toolUseResult, sourceToolAssistantUUID, meta);
                 }
                 case "assistant" -> {
                     Usage usage = new Usage(inputTokens, outputTokens, 0, 0);

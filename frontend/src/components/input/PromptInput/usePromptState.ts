@@ -4,9 +4,22 @@
  * §8.3.1 PromptInput 拆分：从原 PromptInput.tsx 纯搬运（零行为变化）。
  * 图片附件与本地文件引用逻辑分别见 usePromptAttachments.ts /
  * useLocalFileReference.ts，本 Hook 组合其结果并对外统一暴露。
+ *
+ * 草稿持久化（P1 修复）：输入文本与图片附件按活动 sessionId 键控托管到
+ * promptDraftStore（仅内存）。移动端底部导航切换会卸载整个聊天树，
+ * 组件内 useState 会随之销毁；store 化后卸载/重挂载草稿可恢复，
+ * 且不同会话的草稿相互隔离。
  */
 
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import {
+    useCallback,
+    useEffect,
+    useRef,
+    useState,
+    type Dispatch,
+    type KeyboardEvent,
+    type SetStateAction,
+} from 'react';
 import type {
     Attachment,
     FileReferenceCapability,
@@ -15,6 +28,11 @@ import type {
     SubmitEvent,
 } from '@/types';
 import { useNotificationStore } from '@/store/notificationStore';
+import {
+    PROMPT_DRAFT_FALLBACK_KEY,
+    resolvePromptDraftKey,
+    usePromptDraftStore,
+} from '@/store/promptDraftStore';
 import { useAsrAvailability } from '@/hooks/useAsrAvailability';
 import { usePromptAttachments } from './usePromptAttachments';
 import { useLocalFileReference } from './useLocalFileReference';
@@ -44,7 +62,23 @@ export function usePromptState({
     onPublishLocalFile,
     fileReferenceCapability,
 }: UsePromptStateParams) {
-    const [input, setInput] = useState('');
+    // 草稿文本托管到 promptDraftStore（按活动 sessionId 键控，仅内存）：
+    // 卸载/重挂载（移动端底部导航切换）后从 store 读回；无会话时回落稳定兜底键。
+    const draftKey = resolvePromptDraftKey(sessionId);
+    const input = usePromptDraftStore(s => s.drafts[draftKey]?.input ?? '');
+    // P1 修复（stale draft-key writes）：提交会创建首个会话（sessionId 在
+    // await onSubmit 期间 null → id），渲染期捕获的 draftKey 仍是兜底键，
+    // 提交成功后的 setInput('') 若写兜底键，已迁移走的草稿会在新会话输入框
+    // 「复活」。所有草稿写在调用时经 latestSessionIdRef 解析目标键，
+    // 确保清的是消息实际发往的那个会话的草稿。
+    const latestSessionIdRef = useRef(sessionId);
+    useEffect(() => {
+        latestSessionIdRef.current = sessionId;
+    }, [sessionId]);
+    const setInput = useCallback<Dispatch<SetStateAction<string>>>((value) => {
+        const targetKey = resolvePromptDraftKey(latestSessionIdRef.current);
+        usePromptDraftStore.getState().setInput(targetKey, value);
+    }, []);
     const [showCommands, setShowCommands] = useState(false);
     const [showGlobalPalette, setShowGlobalPalette] = useState(false);
     const [showFileComplete, setShowFileComplete] = useState(false);
@@ -61,6 +95,7 @@ export function usePromptState({
         runActive,
         compacting,
         onPasteImages,
+        sessionId,
     });
     const localFileReference = useLocalFileReference({
         sessionId,
@@ -81,6 +116,21 @@ export function usePromptState({
         publishedLocalFiles,
         setPublishedLocalFiles,
     } = localFileReference;
+
+    // 首个会话创建（sessionId null → id 绑定，与 useLocalFileReference 同一语义）：
+    // 兜底键草稿随迁移到新会话键，保证提交成功后的清空写回正确的键，
+    // 避免旧兜底草稿在下次无会话输入框中「复活」。真实会话切换不做迁移，
+    // 各会话草稿保持隔离。
+    const previousDraftKeyRef = useRef(draftKey);
+    useEffect(() => {
+        const previousDraftKey = previousDraftKeyRef.current;
+        if (previousDraftKey === draftKey) return;
+        previousDraftKeyRef.current = draftKey;
+        if (previousDraftKey === PROMPT_DRAFT_FALLBACK_KEY
+                && draftKey !== PROMPT_DRAFT_FALLBACK_KEY) {
+            usePromptDraftStore.getState().migrateFallbackTo(draftKey);
+        }
+    }, [draftKey]);
 
     // Global Ctrl+K listener
     useEffect(() => {
@@ -125,7 +175,7 @@ export function usePromptState({
             submissionRef.current = false;
             setIsSubmitting(false);
         }
-    }, [onSlashCommand]);
+    }, [onSlashCommand, setInput]);
 
     const handleSubmit = useCallback(async () => {
         const trimmed = input.trim();
@@ -208,6 +258,7 @@ export function usePromptState({
         submitSlashCommand,
         runActive,
         compacting,
+        setInput,
         setAttachments,
         setLocalFiles,
         setPublishedLocalFiles,
@@ -275,7 +326,7 @@ export function usePromptState({
         }
     }, [input, attachments.length, localFiles.length, publishedLocalFiles.length,
         runActive, compacting, showCommands, showGlobalPalette, historyIndex,
-        onInterrupt, handleSubmit]);
+        onInterrupt, handleSubmit, setInput]);
 
     const asrAvailable = useAsrAvailability();
 
@@ -289,7 +340,7 @@ export function usePromptState({
             setInput(newText);
         }
         setShowFileComplete(false);
-    }, [input]);
+    }, [input, setInput]);
 
     // 语音识别结果插入光标处（原 VoiceInputButton onTranscript 内联逻辑搬运）
     const handleVoiceTranscript = useCallback((text: string) => {
@@ -311,7 +362,7 @@ export function usePromptState({
             cursorPosRef.current = prev.length + text.length;
             return prev + text;
         });
-    }, []);
+    }, [setInput]);
 
     // textarea 光标位置同步（onChange/onSelect/onBlur 共用）
     const syncCursorPos = useCallback((pos: number | null) => {

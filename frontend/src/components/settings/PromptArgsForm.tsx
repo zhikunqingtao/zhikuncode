@@ -57,14 +57,16 @@ export function PromptArgsForm({ arguments: argDefs, onSubmit, executing }: Prom
   if (argDefs.length === 0) {
     return (
       <form onSubmit={handleSubmit}>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+        <p className="text-sm text-t3 mb-3">
           This prompt requires no arguments.
         </p>
         <button
           type="submit"
           disabled={executing}
-          className="px-4 py-2 text-sm font-medium rounded bg-blue-500 text-white
-                     hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="px-4 py-2 text-sm font-medium rounded-xl bg-accent2-strong text-white
+                     hover:bg-accent2-hover disabled:opacity-50 disabled:cursor-not-allowed
+                     transition-interactive duration-fast active:scale-[.98]
+                     focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring"
         >
           {executing ? 'Executing...' : 'Execute Prompt'}
         </button>
@@ -76,24 +78,25 @@ export function PromptArgsForm({ arguments: argDefs, onSubmit, executing }: Prom
     <form onSubmit={handleSubmit} className="space-y-3">
       {argDefs.map((arg) => (
         <div key={arg.name}>
-          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+          <label className="block text-xs font-medium text-t2 mb-1">
             {arg.name}
-            {arg.required && <span className="text-red-500 ml-0.5">*</span>}
+            {arg.required && <span className="text-err ml-0.5">*</span>}
           </label>
           {arg.description && (
-            <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">{arg.description}</p>
+            <p className="text-xs text-t3 mb-1">{arg.description}</p>
           )}
           <input
             type="text"
             value={values[arg.name] || ''}
             onChange={(e) => handleChange(arg.name, e.target.value)}
             placeholder={arg.required ? `Required: ${arg.name}` : `Optional: ${arg.name}`}
-            className={`w-full p-2 text-sm border rounded dark:bg-gray-700 dark:border-gray-600
-              focus:outline-none focus:ring-2 focus:ring-blue-500/50
-              ${errors[arg.name] ? 'border-red-400 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
+            className={`w-full p-2 text-sm border rounded-xl bg-sunken2 shadow-well text-t1
+              placeholder:text-t4 transition-surface duration-fast
+              focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring
+              ${errors[arg.name] ? 'border-err' : 'border-hairline'}`}
           />
           {errors[arg.name] && (
-            <p className="text-xs text-red-500 mt-1">{errors[arg.name]}</p>
+            <p className="text-xs text-err mt-1">{errors[arg.name]}</p>
           )}
         </div>
       ))}
@@ -101,8 +104,10 @@ export function PromptArgsForm({ arguments: argDefs, onSubmit, executing }: Prom
       <button
         type="submit"
         disabled={executing}
-        className="mt-2 px-4 py-2 text-sm font-medium rounded bg-blue-500 text-white
-                   hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="mt-2 px-4 py-2 text-sm font-medium rounded-xl bg-accent2-strong text-white
+                   hover:bg-accent2-hover disabled:opacity-50 disabled:cursor-not-allowed
+                   transition-interactive duration-fast active:scale-[.98]
+                   focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring"
       >
         {executing ? 'Executing...' : 'Execute Prompt'}
       </button>

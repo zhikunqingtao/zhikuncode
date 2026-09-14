@@ -461,7 +461,9 @@ public class QueryEngine {
                                 input.requestId(), Instant.now(),
                                 List.of(new ContentBlock.TextBlock(
                                         input.text())),
-                                null, null)));
+                                null, null,
+                                input.meta() == null || input.meta().isEmpty()
+                                        ? null : input.meta())));
                 if (receipt.state()
                         == com.aicodeassistant.run.RunExecutionRegistry
                                 .InputState.APPLIED) {

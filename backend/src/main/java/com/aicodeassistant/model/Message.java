@@ -2,7 +2,9 @@ package com.aicodeassistant.model;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 
@@ -36,8 +38,25 @@ public sealed interface Message {
             Instant timestamp,
             List<ContentBlock> content,
             String toolUseResult,
-            String sourceToolAssistantUUID
-    ) implements Message {}
+            String sourceToolAssistantUUID,
+            /**
+             * 通用客户端元数据（持久化于 messages.meta_json，REST/WS 历史原样回传）。
+             * 例：运行中追加的 steering 指令携带 {"steering": true}，
+             * 供前端轮次投影在刷新后仍能识别 steering 边界。
+             */
+            @JsonInclude(JsonInclude.Include.NON_NULL) Map<String, Object> meta
+    ) implements Message {
+
+        /** 兼容旧调用方的 5 参构造（meta = null）。 */
+        public UserMessage(
+                String uuid,
+                Instant timestamp,
+                List<ContentBlock> content,
+                String toolUseResult,
+                String sourceToolAssistantUUID) {
+            this(uuid, timestamp, content, toolUseResult, sourceToolAssistantUUID, null);
+        }
+    }
 
     record AssistantMessage(
             String uuid,

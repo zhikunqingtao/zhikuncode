@@ -205,7 +205,7 @@ const MobilePromptBar: React.FC<MobilePromptBarProps> = ({
                         aria-expanded={attachMenuOpen}
                         disabled={plusDisabled}
                         onClick={() => setAttachMenuOpen(v => !v)}
-                        className="flex h-10 w-10 items-center justify-center rounded-full
+                        className="flex h-11 w-11 items-center justify-center rounded-full
                             border border-hairline bg-surfacev2 text-t2 shadow-e1
                             transition-interactive duration-fast active:scale-95
                             disabled:opacity-50"

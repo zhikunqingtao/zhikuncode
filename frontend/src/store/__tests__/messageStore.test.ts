@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useMessageStore } from '../messageStore';
+import { useMessageStore, MAX_STEERING_IDS_PER_SESSION } from '../messageStore';
 import type { Message } from '@/types';
 
 describe('MessageStore', () => {
@@ -294,4 +294,69 @@ describe('MessageStore', () => {
         expect(state.messages.map(message => message.uuid)).toEqual(['assistant-1']);
     });
 
+});
+
+describe('MessageStore steeringMessageIds / markSteeringMessage', () => {
+    beforeEach(() => {
+        useMessageStore.setState({
+            messages: [],
+            streamingMessageId: null,
+            streamingContent: '',
+            thinkingContent: '',
+            activeToolCalls: new Map(),
+            steeringMessageIds: {},
+        });
+    });
+
+    it('初始为空对象', () => {
+        expect(useMessageStore.getState().steeringMessageIds).toEqual({});
+    });
+
+    it('登记 uuid 并按 sessionId 键控', () => {
+        useMessageStore.getState().markSteeringMessage('s-1', 'req-1');
+        useMessageStore.getState().markSteeringMessage('s-1', 'req-2');
+        expect(useMessageStore.getState().steeringMessageIds['s-1']).toEqual(['req-1', 'req-2']);
+    });
+
+    it('同一 session 内去重', () => {
+        useMessageStore.getState().markSteeringMessage('s-1', 'req-1');
+        useMessageStore.getState().markSteeringMessage('s-1', 'req-1');
+        expect(useMessageStore.getState().steeringMessageIds['s-1']).toEqual(['req-1']);
+    });
+
+    it('不同 session 相互隔离', () => {
+        useMessageStore.getState().markSteeringMessage('s-1', 'req-1');
+        useMessageStore.getState().markSteeringMessage('s-2', 'req-1');
+        const ids = useMessageStore.getState().steeringMessageIds;
+        expect(ids['s-1']).toEqual(['req-1']);
+        expect(ids['s-2']).toEqual(['req-1']);
+    });
+
+    it(`每个 session 上限 ${MAX_STEERING_IDS_PER_SESSION} 条，超出丢最旧`, () => {
+        for (let i = 0; i < MAX_STEERING_IDS_PER_SESSION + 5; i++) {
+            useMessageStore.getState().markSteeringMessage('s-1', `req-${i}`);
+        }
+        const list = useMessageStore.getState().steeringMessageIds['s-1'];
+        expect(list).toHaveLength(MAX_STEERING_IDS_PER_SESSION);
+        expect(list[0]).toBe('req-5');
+        expect(list[list.length - 1]).toBe(`req-${MAX_STEERING_IDS_PER_SESSION + 4}`);
+    });
+
+    it('空 sessionId / 空 uuid 不登记', () => {
+        useMessageStore.getState().markSteeringMessage('', 'req-1');
+        useMessageStore.getState().markSteeringMessage('s-1', '');
+        expect(useMessageStore.getState().steeringMessageIds).toEqual({});
+    });
+
+    it('clearMessages 不清除 steeringMessageIds', () => {
+        useMessageStore.getState().markSteeringMessage('s-1', 'req-1');
+        useMessageStore.getState().addMessage({
+            uuid: 'msg-1', type: 'user',
+            content: [{ type: 'text', text: 'hi' }], timestamp: 1,
+        } as Message);
+        useMessageStore.getState().clearMessages();
+        const state = useMessageStore.getState();
+        expect(state.messages).toHaveLength(0);
+        expect(state.steeringMessageIds['s-1']).toEqual(['req-1']);
+    });
 });

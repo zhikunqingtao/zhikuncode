@@ -211,7 +211,7 @@ const TextBlock: React.FC<TextBlockProps> = ({ text, streaming = false }) => {
             return <li className="leading-[1.75]">{children}</li>;
         },
         // §7.2 ticks 清单：✓（ok 色 lucide Check）引导已勾选项；未勾选 = 空方框
-        input: ({ node, ...props }) => {
+        input: ({ node: _node, ...props }) => {
             if (props.type === 'checkbox') {
                 return props.checked
                     ? <Check size={14} className="mt-1 shrink-0 text-ok" aria-label="已完成" />

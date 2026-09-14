@@ -30,6 +30,38 @@ function assistantMessage(result?: ToolResult): Extract<Message, { type: 'assist
     };
 }
 
+function assistantTextMessage(text: string): Extract<Message, { type: 'assistant' }> {
+    return {
+        type: 'assistant',
+        uuid: 'a-text-1',
+        timestamp: Date.now(),
+        stopReason: 'end_turn',
+        usage: { inputTokens: 0, outputTokens: 0, cacheReadInputTokens: 0, cacheCreationInputTokens: 0 },
+        content: [{ type: 'text', text }],
+    };
+}
+
+describe('AssistantMessage 消息级操作行（共享 AssistantMessageActions）', () => {
+    it('终态文本回复渲染共享操作行（复制按钮 + 时间戳）', () => {
+        render(<AssistantMessage message={assistantTextMessage('你好')} />);
+        expect(screen.getByTestId('assistant-message-actions')).toBeInTheDocument();
+        expect(screen.getByTestId('message-copy-button')).toBeInTheDocument();
+        expect(screen.getByTestId('message-timestamp')).toBeInTheDocument();
+    });
+
+    it('流式进行中隐藏复制按钮，时间戳保留', () => {
+        render(
+            <AssistantMessage
+                message={assistantTextMessage('')}
+                isStreaming
+                streamingContent="输入中"
+            />,
+        );
+        expect(screen.queryByTestId('message-copy-button')).not.toBeInTheDocument();
+        expect(screen.getByTestId('message-timestamp')).toBeInTheDocument();
+    });
+});
+
 describe('AssistantMessage finalized tool_use fallback status', () => {
     it('无 result 的工具渲染为 Running，不误标 Completed', () => {
         render(<AssistantMessage message={assistantMessage()} />);

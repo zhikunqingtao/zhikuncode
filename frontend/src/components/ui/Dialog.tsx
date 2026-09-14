@@ -48,6 +48,10 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
         const autoId = useId();
         const titleId = `${autoId}-title`;
         const panelRef = useRef<HTMLDivElement | null>(null);
+        const backdropRef = useRef<HTMLDivElement | null>(null);
+        /** 遮罩关闭“武装”标记：仅 pointerdown 落在遮罩本身时置位，click 时再次校验目标仍为遮罩才关闭
+           （防“面板内按下、遮罩上松开”误关，也防点击穿透到遮罩下方元素） */
+        const backdropCloseArmedRef = useRef(false);
         /** 打开时捕获：触发器 + 其当时的父容器（供触发器卸载后归还） */
         const returnFocusRef = useRef<{ el: HTMLElement | null; parent: HTMLElement | null }>({
             el: null,
@@ -162,11 +166,18 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
         return createPortal(
             <div
                 className="fixed inset-0 z-50 flex items-center justify-center p-4"
-                onMouseDown={(e) => {
-                    if (e.target === e.currentTarget) requestClose();
+                onPointerDown={(e) => {
+                    backdropCloseArmedRef.current = e.target === backdropRef.current;
+                }}
+                onClick={(e) => {
+                    if (backdropCloseArmedRef.current && e.target === backdropRef.current) {
+                        requestClose();
+                    }
+                    backdropCloseArmedRef.current = false;
                 }}
             >
                 <div
+                    ref={backdropRef}
                     aria-hidden="true"
                     className="absolute inset-0 bg-overlay2 backdrop-blur-[2px]"
                 />

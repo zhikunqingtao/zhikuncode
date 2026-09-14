@@ -259,10 +259,19 @@ function App() {
       }
       const interventionText = event.text?.trim();
       if (!interventionText) return false;
-      if (!sendRunInput(generateUUID(), interventionText)) {
+      const runInputRequestId = generateUUID();
+      // meta.steering=true 随指令持久化到后端并在历史/快照中原样回传 ——
+      // 刷新后 steeringMessageIds（纯内存登记）丢失时，轮次投影仍能凭
+      // meta 识别 steering 边界，不将该消息误判为新一轮指令。
+      if (!sendRunInput(runInputRequestId, interventionText, { steering: true })) {
         addSessionError('运行中指令未发送，请检查 WebSocket 连接后重试。');
         return false;
       }
+      // 发送成功即登记 steering requestId：本路径不创建本地消息，消息由
+      // run_input_applied 回执（dispatch.ts）落库；提前登记可覆盖回执在断线期间
+      // 丢失的场景 —— 重连后 session_restored 快照中的该 user 消息（后端沿用
+      // requestId 作为 uuid）仍能被轮次投影识别为 steering 而非新一轮指令。
+      useMessageStore.getState().markSteeringMessage(currentSessionId, runInputRequestId);
       return true;
     }
     if (currentStatus === 'compacting') return false;
@@ -453,7 +462,7 @@ function App() {
           {/* Input（移动态：prompt-input-container = 键盘高度+safe-area 内边距，承载悬浮胶囊条） */}
           <div className={isMobile
             ? 'prompt-input-container px-3 pt-1'
-            : 'border-t border-[var(--border)] p-4 bg-[var(--bg-secondary)]'}>
+            : 'border-t border-hairline bg-app2 p-4'}>
             <PromptInput
               sessionId={sessionId}
               onSubmit={handleSubmit}

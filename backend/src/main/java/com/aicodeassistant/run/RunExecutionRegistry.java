@@ -45,8 +45,14 @@ public class RunExecutionRegistry {
     public record SteeringInput(
             String requestId,
             String text,
-            long submittedAt
-    ) {}
+            long submittedAt,
+            /** 客户端提交的通用元数据（如 {"steering": true}），随应用的消息持久化 */
+            Map<String, Object> meta
+    ) {
+        public SteeringInput(String requestId, String text, long submittedAt) {
+            this(requestId, text, submittedAt, null);
+        }
+    }
 
     public record InputReceipt(
             String requestId,
@@ -102,6 +108,13 @@ public class RunExecutionRegistry {
     /** Offers one idempotent instruction to the active Run for a Session. */
     public InputOfferResult offerInputForSession(
             String sessionId, String requestId, String text) {
+        return offerInputForSession(sessionId, requestId, text, null);
+    }
+
+    /** Offers one idempotent instruction (with optional client metadata) to the active Run for a Session. */
+    public InputOfferResult offerInputForSession(
+            String sessionId, String requestId, String text,
+            Map<String, Object> meta) {
         long now = System.currentTimeMillis();
         if (sessionId == null || sessionId.isBlank()
                 || requestId == null || requestId.isBlank()) {
@@ -122,6 +135,9 @@ public class RunExecutionRegistry {
             return rejectedOffer(requestId, text, "INPUT_TOO_LARGE",
                     "Input text exceeds " + MAX_INPUT_CHARS + " characters", now);
         }
+        // Fail fast, before any state is read or mutated: invalid metadata
+        // must never reach the receipt/queue writes inside offerInput.
+        Map<String, Object> normalizedMeta = validateAndNormalize(meta);
 
         String runId = runBySession.get(sessionId);
         Execution execution = runId == null ? null : byRun.get(runId);
@@ -129,7 +145,7 @@ public class RunExecutionRegistry {
             return rejectedOffer(requestId, text, "NO_ACTIVE_RUN",
                     "No active task is running for this session", now);
         }
-        return execution.offerInput(requestId, text, now);
+        return execution.offerInput(requestId, text, now, normalizedMeta);
     }
 
     public List<InputApplication> claimInputs(String runId, int limit) {
@@ -161,6 +177,30 @@ public class RunExecutionRegistry {
         return new InputOfferResult(false, new InputReceipt(
                 requestId, text, InputState.REJECTED, code, message,
                 now, null, now));
+    }
+
+    /**
+     * Validates client-supplied metadata and returns an immutable copy, or
+     * null when no metadata was supplied. Null keys or values are rejected
+     * up front (Jackson keeps explicit JSON nulls, and Map.copyOf would
+     * otherwise fail with an NPE after the receipt was already persisted),
+     * so the offer sequence — write receipt, then enqueue — stays atomic.
+     */
+    private static Map<String, Object> validateAndNormalize(
+            Map<String, Object> meta) {
+        if (meta == null || meta.isEmpty()) return null;
+        for (Map.Entry<String, Object> entry : meta.entrySet()) {
+            if (entry.getKey() == null) {
+                throw new IllegalArgumentException(
+                        "Input metadata keys must not be null");
+            }
+            if (entry.getValue() == null) {
+                throw new IllegalArgumentException(
+                        "Input metadata values must not be null (key: "
+                                + entry.getKey() + ")");
+            }
+        }
+        return Map.copyOf(meta);
     }
 
     private static String rejectionMessage(String code) {
@@ -300,6 +340,9 @@ public class RunExecutionRegistry {
         private final Deque<String> pendingInputIds = new ArrayDeque<>();
         private final Map<String, InputReceipt> inputReceipts =
                 new LinkedHashMap<>();
+        /** 客户端随指令提交的元数据，按 requestId 键控；生命周期与 Execution 一致。 */
+        private final Map<String, Map<String, Object>> inputMetaById =
+                new HashMap<>();
         private boolean admissionsOpen = true;
         private boolean inputAdmissionOpen = true;
         private boolean unregisterRequested;
@@ -321,7 +364,11 @@ public class RunExecutionRegistry {
         }
 
         private InputOfferResult offerInput(
-                String requestId, String text, long submittedAt) {
+                String requestId, String text, long submittedAt,
+                Map<String, Object> normalizedMeta) {
+            // normalizedMeta was already validated and made immutable by
+            // validateAndNormalize before any state was touched, so the
+            // receipt write and the enqueue below cannot fail halfway.
             lock.lock();
             try {
                 InputReceipt existing = inputReceipts.get(requestId);
@@ -349,6 +396,9 @@ public class RunExecutionRegistry {
                         requestId, text, InputState.QUEUED,
                         null, null, submittedAt, null, null);
                 inputReceipts.put(requestId, receipt);
+                if (normalizedMeta != null) {
+                    inputMetaById.put(requestId, normalizedMeta);
+                }
                 pendingInputIds.addLast(requestId);
                 return new InputOfferResult(true, receipt);
             } finally {
@@ -388,7 +438,8 @@ public class RunExecutionRegistry {
                 applications.add(new InputApplication(
                         this, workToken,
                         new SteeringInput(requestId, current.text(),
-                                current.submittedAt())));
+                                current.submittedAt(),
+                                inputMetaById.get(requestId))));
             }
             return List.copyOf(applications);
         }

@@ -104,10 +104,11 @@ const PromptTextarea: React.FC<PromptTextareaProps> = ({
                     ? `w-full flex-1 resize-none bg-transparent py-0.5 text-sm text-t1
                        placeholder-t4 focus:outline-none
                        disabled:opacity-50${collapsed ? ' overflow-y-hidden' : ''}`
-                    : `flex-1 resize-none rounded-lg border border-gray-700 bg-gray-900
-                       px-3 py-2 text-sm text-gray-100
-                       focus:outline-none focus:ring-2 focus:ring-blue-500/50
-                       disabled:opacity-50 placeholder-gray-500`
+                    : `flex-1 resize-none rounded-xl bg-sunken2 shadow-well
+                       px-3 py-2 text-sm text-t1 placeholder-t4
+                       transition-surface duration-fast
+                       focus:outline-none focus:ring-[3px] focus:ring-accent2-ring
+                       disabled:opacity-50`
             }
             rows={1}
             autoFocus={!isMobileVariant}

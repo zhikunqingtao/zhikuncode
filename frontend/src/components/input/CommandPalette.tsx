@@ -13,6 +13,24 @@ import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import type { Command } from '@/types';
 import { Search } from 'lucide-react';
 import { Kbd } from '@/components/ui';
+import { useTurnViewStore, type TurnDensity } from '@/store/turnViewStore';
+import { useSessionStore } from '@/store/sessionStore';
+
+/**
+ * 本地视图密度命令（P2 修复：detailed 视图不渲染 TurnToolbar，
+ * 面板命令 = 不依赖 toolbar 的常驻密度切换路径）。
+ * 与经 onSelect 上送服务端的 slash 命令不同 —— 命中后本地直接 setDensity
+ * 并关闭面板，不改输入草稿、不产生服务端往返；密度口径与 TurnToolbar 一致
+ * （切换即放弃当前会话手动展开偏好）。
+ */
+const VIEW_DENSITY_COMMANDS: Array<Command & { density: TurnDensity }> = [
+    { name: '视图：简洁', description: '切换消息视图密度：轮次全折叠', group: '视图', density: 'compact' },
+    { name: '视图：均衡', description: '切换消息视图密度：仅最新轮展开', group: '视图', density: 'balanced' },
+    { name: '视图：详细', description: '切换消息视图密度：消息平铺（旧版视图）', group: '视图', density: 'detailed' },
+];
+
+/** 命令名 → 目标密度（本地命令命中判定） */
+const VIEW_DENSITY_BY_NAME = new Map(VIEW_DENSITY_COMMANDS.map(c => [c.name, c.density]));
 
 interface CommandPaletteProps {
     commands: Command[];
@@ -37,15 +55,32 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
 
     const query = isGlobal ? searchInput : filter;
 
+    // 外部命令 + 本地视图密度命令，合并后统一过滤/分组渲染
+    const allCommands = useMemo(() => [...commands, ...VIEW_DENSITY_COMMANDS], [commands]);
+
     const filtered = useMemo(() => {
         const q = query.toLowerCase();
-        return commands
+        return allCommands
             .filter(c => !c.hidden)
             .filter(c =>
                 c.name.toLowerCase().includes(q) ||
                 c.description.toLowerCase().includes(q),
             );
-    }, [commands, query]);
+    }, [allCommands, query]);
+
+    // 命中分发：本地视图密度命令 → 直接 setDensity + 关闭；其余 → 上送 onSelect
+    const handleSelect = useCallback((cmd: Command) => {
+        const density = VIEW_DENSITY_BY_NAME.get(cmd.name);
+        if (density) {
+            useTurnViewStore.getState().setDensity(
+                density,
+                useSessionStore.getState().sessionId ?? undefined,
+            );
+            onClose();
+            return;
+        }
+        onSelect(cmd.name);
+    }, [onSelect, onClose]);
 
     // Reset index when filter changes
     useEffect(() => { setSelectedIndex(0); }, [query]);
@@ -74,7 +109,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
             case 'Enter':
                 e.preventDefault();
                 if (filtered[selectedIndex]) {
-                    onSelect(filtered[selectedIndex].name);
+                    handleSelect(filtered[selectedIndex]);
                 }
                 break;
             case 'Escape':
@@ -82,7 +117,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
                 onClose();
                 break;
         }
-    }, [filtered, selectedIndex, onSelect, onClose]);
+    }, [filtered, selectedIndex, handleSelect, onClose]);
 
     // Group commands by group
     const grouped = useMemo(() => {
@@ -146,7 +181,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
                                     return (
                                         <button
                                             key={cmd.name}
-                                            onClick={() => onSelect(cmd.name)}
+                                            onClick={() => handleSelect(cmd)}
                                             className={`w-full text-left px-3 py-2 flex items-center justify-between
                                                 text-sm transition-colors
                                                 ${idx === selectedIndex

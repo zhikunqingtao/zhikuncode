@@ -23,7 +23,7 @@ export const TOKENS = {
         '--v2-overlay': 'rgba(16,24,40,.32)',
         '--v2-text-1': '#1A1D26',
         '--v2-text-2': '#4A5160',
-        '--v2-text-3': '#737B8C',
+        '--v2-text-3': '#6B7280',
         '--v2-text-4': '#9AA1B2',
         '--v2-ok': '#12A66B',
         '--v2-ok-soft': 'rgba(18,166,107,.12)',

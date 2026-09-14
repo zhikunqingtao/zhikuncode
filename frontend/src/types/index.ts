@@ -8,7 +8,11 @@
 // ==================== 消息类型 — 对齐 §5.1 Java sealed interface Message ====================
 
 export type Message =
-    | { type: 'user';      uuid: string; timestamp: number; content: ContentBlock[]; toolUseResult?: string }
+    | { type: 'user';      uuid: string; timestamp: number; content: ContentBlock[]; toolUseResult?: string;
+        /** 通用元数据（后端持久化并在历史/快照中原样回传）：steering=true 表示
+         *  运行中追加的干预指令，供轮次投影（store/selectors/turnProjection）
+         *  识别，不作为新一轮边界 */
+        meta?: Record<string, unknown> }
     | { type: 'assistant';  uuid: string; timestamp: number; content: ContentBlock[]; stopReason: string; usage: Usage }
     | { type: 'system';     uuid: string; timestamp: number; content: string; subtype?: string;
         errorCode?: string; retryable?: boolean;
@@ -555,6 +559,13 @@ export interface PublishedLocalFile {
     sha256: string;
     url: string;
     mediaType: string;
+}
+
+/** native 文件选择器返回的本地路径引用（仅路径元信息，不上传内容） */
+export interface PickedLocalFile {
+    path: string;
+    name: string;
+    size: number;
 }
 
 /** 本地附件 (含 File 对象，用于上传) */

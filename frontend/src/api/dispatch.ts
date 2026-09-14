@@ -379,11 +379,23 @@ const handlers: Record<string, (data: any) => void> = {
         // 重连后可能重放同一 applied receipt；此时快照已含该 user 消息，
         // 不得再次封口随后正在生成的 assistant 段。
         if (!alreadyApplied) messageStore.finalizeAssistantSegment();
+        // steering 双通道标记（供轮次投影 buildTurns 归并、不新开轮）：
+        // 1) steeringMessageIds 按 sessionId 登记 requestId —— 已核实后端
+        //    QueryEngine.applyRunInputs 提交该 steering UserMessage 时沿用客户端
+        //    requestId 作为消息 uuid（new Message.UserMessage(input.requestId(), ...)），
+        //    因此 reconcileCommittedRun / session_restored 快照替换后 uuid 不变，
+        //    登记依旧命中；重放 receipt 时重复登记由 markSteeringMessage 去重。
+        // 2) meta.steering=true 写在本地消息上作冗余标记 —— 后端已将 meta
+        //    持久化（messages.meta_json）并在历史/快照/committedMessages 中
+        //    原样回传，因此刷新后（通道 1 的内存登记丢失）仅凭通道 2 即可识别。
+        const currentSessionId = useSessionStore.getState().sessionId;
+        if (currentSessionId) messageStore.markSteeringMessage(currentSessionId, d.requestId);
         messageStore.addMessage({
             type: 'user',
             uuid: d.requestId,
             timestamp: d.appliedAt,
             content: [{ type: 'text', text: d.text }],
+            meta: { steering: true },
         } as Message);
         useNotificationStore.getState().addNotification({
             key,

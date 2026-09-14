@@ -19,3 +19,4 @@ export { useNotificationStore, type NotificationStoreState } from './notificatio
 export { useInboxStore, type InboxStoreState } from './inboxStore';
 export { useCodeInsightStore, type CodeInsightState } from './codeInsightStore';
 export { useModelStore, type ModelStoreState, type ModelInfo } from './modelStore';
+export { usePromptDraftStore, type PromptDraftStoreState } from './promptDraftStore';

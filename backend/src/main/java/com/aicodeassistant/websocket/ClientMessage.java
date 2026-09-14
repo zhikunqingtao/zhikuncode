@@ -59,5 +59,10 @@ public final class ClientMessage {
     public record PingPayload() {}
 
     /** 运行中的根 Run 追加用户指令 → /app/run-input */
-    public record RunInputPayload(String requestId, String text) {}
+    public record RunInputPayload(
+            String requestId,
+            String text,
+            /** 通用客户端元数据（如 {"steering": true}），随消息持久化并在历史中原样回传 */
+            Map<String, Object> meta
+    ) {}
 }

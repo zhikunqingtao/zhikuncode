@@ -41,31 +41,33 @@ export function McpCapabilityPanel() {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold">MCP 工具管理</h3>
-          <p className="text-sm text-gray-500 mt-1">共 {total} 个工具，已启用 {enabledCount} 个</p>
+          <p className="text-sm text-t3 mt-1">共 {total} 个工具，已启用 {enabledCount} 个</p>
         </div>
       </div>
 
       <div className="flex flex-wrap gap-2">
         <button
-          className={`px-3 py-1 text-xs rounded-full border transition-colors
+          className={`px-3 py-1 text-xs rounded-full border transition-interactive duration-fast
+            focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring active:scale-[.98]
             ${activeDomain === null
-              ? 'bg-blue-500 text-white border-blue-500'
-              : 'border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+              ? 'bg-accent2-strong text-white border-accent2-strong'
+              : 'border-hairline text-t2 hover:bg-hover2'}`}
           onClick={() => setActiveDomain(null)}
         >全部</button>
         {domains.map((d) => (
           <button key={d}
-            className={`px-3 py-1 text-xs rounded-full border transition-colors
+            className={`px-3 py-1 text-xs rounded-full border transition-interactive duration-fast
+              focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring active:scale-[.98]
               ${activeDomain === d
-                ? 'bg-blue-500 text-white border-blue-500'
-                : 'border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                ? 'bg-accent2-strong text-white border-accent2-strong'
+                : 'border-hairline text-t2 hover:bg-hover2'}`}
             onClick={() => setActiveDomain(d)}
           >{DOMAIN_LABELS[d] ?? d}</button>
         ))}
       </div>
 
       {loading ? (
-        <div className="text-center text-gray-400 py-8">加载中...</div>
+        <div className="text-center text-t3 py-8">加载中...</div>
       ) : (
         <div className="space-y-3 max-h-[60vh] overflow-y-auto">
           {capabilities.map((cap) => (
@@ -73,7 +75,7 @@ export function McpCapabilityPanel() {
               onToggle={handleToggle} onTest={handleTest} onEdit={() => setEditingId(cap.id)} />
           ))}
           {capabilities.length === 0 && (
-            <div className="text-center text-gray-400 py-8">当前分类下无工具</div>
+            <div className="text-center text-t3 py-8">当前分类下无工具</div>
           )}
         </div>
       )}
@@ -93,20 +95,20 @@ function CapabilityCard({
   onEdit: () => void;
 }) {
   return (
-    <div className={`p-4 rounded-lg border transition-colors
+    <div className={`p-4 rounded-2xl border transition-surface duration-fast
       ${cap.enabled
-        ? 'border-blue-200 bg-blue-50/50 dark:border-blue-800 dark:bg-blue-900/10'
-        : 'border-gray-200 dark:border-gray-700'}`}>
+        ? 'border-accent2 bg-accent2-soft'
+        : 'border-hairline'}`}>
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="font-medium text-sm">{cap.name}</span>
-            <span className="text-xs px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-500">
+            <span className="text-xs px-2 py-0.5 rounded bg-surface2 text-t3">
               {DOMAIN_LABELS[cap.domain] ?? cap.domain}
             </span>
           </div>
-          <p className="text-xs text-gray-500 mt-1 line-clamp-2">{cap.briefDescription}</p>
-          <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
+          <p className="text-xs text-t3 mt-1 line-clamp-2">{cap.briefDescription}</p>
+          <div className="flex items-center gap-3 mt-2 text-xs text-t3">
             <span>超时: {(cap.timeoutMs / 1000).toFixed(0)}s</span>
             <span>SSE</span>
             <span className="font-mono">{cap.toolName}</span>
@@ -114,20 +116,25 @@ function CapabilityCard({
         </div>
         <button onClick={() => onToggle(cap.id, cap.enabled)}
           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ml-4 flex-shrink-0
-            ${cap.enabled ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'}`}>
-          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform
+            focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring
+            ${cap.enabled ? 'bg-accent2-strong' : 'bg-sunken2 shadow-well'}`}>
+          <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-soft-sm transition-transform
             ${cap.enabled ? 'translate-x-6' : 'translate-x-1'}`} />
         </button>
       </div>
       <div className="flex items-center gap-2 mt-3">
         <button onClick={onEdit}
-          className="text-xs px-2 py-1 rounded border border-gray-300 dark:border-gray-600
-                     hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">编辑</button>
+          className="text-xs px-2 py-1 rounded-xl border border-hairline
+                     hover:bg-hover2 transition-interactive duration-fast
+                     focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring
+                     active:scale-[.98]">编辑</button>
         <button onClick={() => onTest(cap.id)}
-          className="text-xs px-2 py-1 rounded border border-gray-300 dark:border-gray-600
-                     hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">测试</button>
+          className="text-xs px-2 py-1 rounded-xl border border-hairline
+                     hover:bg-hover2 transition-interactive duration-fast
+                     focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring
+                     active:scale-[.98]">测试</button>
         {testResult && (
-          <span className={`text-xs ${testResult.status === 'reachable' ? 'text-green-500' : 'text-red-500'}`}>
+          <span className={`text-xs ${testResult.status === 'reachable' ? 'text-ok' : 'text-err'}`}>
             {testResult.status === 'reachable' ? '可达' : testResult.status}
           </span>
         )}
@@ -165,9 +172,15 @@ function EditDialog({ capabilityId, onClose }: { capabilityId: string; onClose: 
         </div>
         <div className="flex justify-end gap-2 mt-6">
           <button onClick={onClose}
-            className="px-4 py-2 text-sm rounded border border-gray-300 dark:border-gray-600">取消</button>
+            className="px-4 py-2 text-sm rounded-xl border border-hairline text-t2
+                       hover:bg-hover2 transition-interactive duration-fast
+                       focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring
+                       active:scale-[.98]">取消</button>
           <button onClick={handleSave}
-            className="px-4 py-2 text-sm rounded bg-blue-500 text-white hover:bg-blue-600">保存</button>
+            className="px-4 py-2 text-sm rounded-xl bg-accent2-strong text-white
+                       hover:bg-accent2-hover transition-interactive duration-fast
+                       focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring
+                       active:scale-[.98]">保存</button>
         </div>
       </div>
     </div>
@@ -179,13 +192,17 @@ function Field({ label, value, onChange, multiline }: {
 }) {
   return (
     <div>
-      <label className="block text-xs font-medium text-gray-500 mb-1">{label}</label>
+      <label className="block text-xs font-medium text-t3 mb-1">{label}</label>
       {multiline ? (
         <textarea value={value} onChange={(e) => onChange(e.target.value)}
-          className="w-full p-2 text-sm border rounded dark:bg-gray-700 dark:border-gray-600 h-20" />
+          className="w-full p-2 text-sm border border-hairline rounded-xl bg-sunken2 shadow-well text-t1 h-20
+                     transition-surface duration-fast
+                     focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring" />
       ) : (
         <input type="text" value={value} onChange={(e) => onChange(e.target.value)}
-          className="w-full p-2 text-sm border rounded dark:bg-gray-700 dark:border-gray-600" />
+          className="w-full p-2 text-sm border border-hairline rounded-xl bg-sunken2 shadow-well text-t1
+                     transition-surface duration-fast
+                     focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring" />
       )}
     </div>
   );

@@ -23,28 +23,31 @@ interface PermissionDialogProps {
 
 const RISK_CONFIG = {
     low: {
-        bg: 'bg-blue-900/20',
-        border: 'border-blue-500/50',
-        badge: 'bg-blue-500/20 text-blue-400',
+        bg: 'bg-accent2-soft',
+        border: 'border-accent2',
+        badge: 'bg-accent2-soft text-accent2-strong dark:text-accent2',
+        iconClass: 'text-accent2-strong dark:text-accent2',
         icon: Info,
         label: 'Low Risk',
-        btnClass: 'bg-blue-600 hover:bg-blue-700',
+        btnClass: 'bg-accent2-strong hover:bg-accent2-hover',
     },
     medium: {
-        bg: 'bg-yellow-900/20',
-        border: 'border-yellow-500/50',
-        badge: 'bg-yellow-500/20 text-yellow-400',
+        bg: 'bg-warnsoft',
+        border: 'border-warn',
+        badge: 'bg-warnsoft text-warnstrong dark:text-warn',
+        iconClass: 'text-warnstrong dark:text-warn',
         icon: ShieldAlert,
         label: 'Medium Risk',
-        btnClass: 'bg-yellow-600 hover:bg-yellow-700',
+        btnClass: 'bg-warn hover:opacity-90',
     },
     high: {
-        bg: 'bg-red-900/20',
-        border: 'border-red-500/50',
-        badge: 'bg-red-500/20 text-red-400',
+        bg: 'bg-errsoft',
+        border: 'border-err',
+        badge: 'bg-errsoft text-errstrong dark:text-err',
+        iconClass: 'text-errstrong dark:text-err',
         icon: ShieldAlert,
         label: 'High Risk',
-        btnClass: 'bg-red-600 hover:bg-red-700',
+        btnClass: 'bg-err hover:opacity-90',
     },
 } as const;
 
@@ -182,13 +185,13 @@ const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision
                             shadow-e4 overflow-hidden outline-none motion-safe:animate-scale-in`}
             >
                 {/* Title bar */}
-                <div className="px-5 py-3 border-b border-gray-700/50 flex items-center gap-3">
-                    <RiskIcon size={20} className={risk.badge.split(' ')[1]} />
+                <div className="px-5 py-3 border-b border-hairline flex items-center gap-3">
+                    <RiskIcon size={20} className={risk.iconClass} />
                     <div className="flex-1">
-                        <div id="permission-title" className="font-semibold text-sm text-gray-200 flex items-center gap-2">
+                        <div id="permission-title" className="font-semibold text-sm text-t1 flex items-center gap-2">
                             {request.toolName}
                             {(request.actorType === 'descendant' || request.source === 'descendant' || request.source === 'subagent') && (
-                                <span className="inline-block text-xs px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400">
+                                <span className="inline-block text-xs px-1.5 py-0.5 rounded bg-accent2-soft text-accent2-strong dark:text-accent2">
                                     Sub-Agent
                                 </span>
                             )}
@@ -198,7 +201,7 @@ const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision
                                 {risk.label}
                             </span>
                             {(request.actorType === 'descendant' || request.source === 'descendant' || request.source === 'subagent') && request.actorRunId && (
-                                <span className="text-xs text-gray-500">
+                                <span className="text-xs text-t3">
                                     Agent run: {request.actorRunId.length > 12
                                         ? `${request.actorRunId.slice(0, 12)}…`
                                         : request.actorRunId}
@@ -209,7 +212,9 @@ const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision
                     <button
                         onClick={handleDeny}
                         disabled={!deadlineConfirmed || expired || decided}
-                        className="p-1 rounded text-gray-500 hover:text-gray-300"
+                        className="p-1 rounded text-t3 hover:text-t1 transition-interactive duration-fast
+                                   focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring
+                                   disabled:opacity-50 disabled:pointer-events-none"
                     >
                         <X size={16} />
                     </button>
@@ -217,7 +222,7 @@ const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision
 
                 {/* Content */}
                 <div className="px-5 py-4 space-y-3">
-                    <p id="permission-desc" className="text-sm text-gray-400">{request.reason}</p>
+                    <p id="permission-desc" className="text-sm text-t3">{request.reason}</p>
 
                     {/* Tool input preview */}
                     <div className="max-h-48 overflow-y-auto">
@@ -234,18 +239,18 @@ const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision
                 <div className="px-5 pt-3">
                     <div className="flex items-center justify-between mb-1.5">
                         <span className={`text-xs ${
-                            timerUrgent ? 'text-red-400 font-bold' : 'text-gray-500'
+                            timerUrgent ? 'text-err font-bold' : 'text-t3'
                         } ${timerCritical ? 'animate-pulse' : ''}`}>
                             {deadlineConfirmed ? `${remainingSeconds}s remaining` : 'Waiting for delivery confirmation'}
                         </span>
-                        <span className="text-xs text-gray-600">
+                        <span className="text-xs text-t4">
                             {expired ? 'Waiting for server status' : 'Server decision deadline'}
                         </span>
                     </div>
-                    <div className="w-full h-1.5 bg-gray-700/50 rounded-full overflow-hidden">
+                    <div className="w-full h-1.5 bg-sunken2 shadow-well rounded-full overflow-hidden">
                         <div
                             className={`h-full rounded-full transition-[width] duration-1000 ease-linear ${
-                                timerUrgent ? 'bg-red-500' : 'bg-blue-500'
+                                timerUrgent ? 'bg-err' : 'bg-accent2'
                             } ${timerCritical ? 'animate-pulse' : ''}`}
                             style={{ width: `${deadlineConfirmed
                                 ? Math.min(100, (remainingSeconds / DEFAULT_TIMEOUT_SECONDS) * 100)
@@ -255,22 +260,22 @@ const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision
                 </div>
 
                 {/* Actions */}
-                <div className="px-5 py-3 border-t border-gray-700/50 space-y-3">
+                <div className="px-5 py-3 border-t border-hairline space-y-3">
                     {submissionError && (
-                        <div role="alert" className="text-xs text-red-400">
+                        <div role="alert" className="text-xs text-err">
                             {submissionError}. You can retry while the request is pending.
                         </div>
                     )}
                     {/* Remember option */}
                     {canRemember && (
                         <div className="space-y-1.5">
-                            <label className="flex items-center gap-2 text-xs text-gray-400">
+                            <label className="flex items-center gap-2 text-xs text-t3">
                                 <input
                                     type="checkbox"
                                     disabled={!deadlineConfirmed || expired || decided}
                                     checked={remember}
                                     onChange={e => setRemember(e.target.checked)}
-                                    className="rounded border-gray-600"
+                                    className="rounded border-hairline accent-accent2"
                                 />
                                 Remember this decision
                                 {remember && (
@@ -278,8 +283,10 @@ const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision
                                         value={scope}
                                         disabled={!deadlineConfirmed || expired || decided}
                                         onChange={e => setScope(e.target.value as typeof scope)}
-                                        className="ml-2 text-xs rounded border border-gray-600 bg-gray-800
-                                                   text-gray-300 px-1.5 py-0.5"
+                                        className="ml-2 text-xs rounded border border-hairline bg-sunken2
+                                                   text-t2 px-1.5 py-0.5 transition-surface duration-fast
+                                                   focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring
+                                                   disabled:opacity-50"
                                     >
                                         {scopeOptions.includes('run') && <option value="run">Only this agent/run</option>}
                                         {scopeOptions.includes('session') && <option value="session">This session and child agents</option>}
@@ -288,7 +295,7 @@ const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision
                                 )}
                             </label>
                             {request.rememberScopeDescription && (
-                                <p className="pl-6 text-[11px] leading-4 text-gray-500">
+                                <p className="pl-6 text-[11px] leading-4 text-t3">
                                     {request.rememberScopeDescription}
                                 </p>
                             )}
@@ -300,15 +307,19 @@ const PermissionDialog: React.FC<PermissionDialogProps> = ({ request, onDecision
                         <button
                             onClick={handleDeny}
                             disabled={!deadlineConfirmed || expired || decided}
-                            className="px-4 py-2 rounded-lg text-sm border border-gray-600
-                                       text-gray-300 hover:bg-gray-800 transition-colors"
+                            className="px-4 py-2 rounded-xl text-sm border border-hairline
+                                       text-t2 hover:bg-hover2 transition-interactive duration-fast
+                                       focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring
+                                       active:scale-[.98] disabled:opacity-50 disabled:pointer-events-none"
                         >
                             Deny (N)
                         </button>
                         <button
                             onClick={handleAllow}
                             disabled={!deadlineConfirmed || expired || decided}
-                            className={`px-4 py-2 rounded-lg text-sm text-white transition-colors
+                            className={`px-4 py-2 rounded-xl text-sm text-white transition-interactive duration-fast
+                                focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring
+                                active:scale-[.98] disabled:opacity-50 disabled:pointer-events-none
                                 ${risk.btnClass}`}
                         >
                             {submission === 'submitting' ? 'Submitting…' : 'Allow (Y)'}

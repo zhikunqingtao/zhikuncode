@@ -89,6 +89,14 @@ export interface MessageStoreState {
     activeToolCalls: Map<string, ToolCallState>;
     tokenBudgetState: TokenBudgetState | null;
     tokenWarning: TokenWarningPayload | null;
+    /**
+     * steering（运行中追加指令）消息 uuid 登记，按 sessionId 键控天然隔离。
+     * 供轮次投影（store/selectors/turnProjection）在 reconcile 换 uuid 后仍能识别
+     * steering 消息 —— 后端提交 steering UserMessage 时沿用客户端 requestId 作为
+     * 消息 uuid，因此快照/committedMessages 替换后登记依旧命中。
+     * clearMessages / restoreSessionSnapshot 均不清除本字段。
+     */
+    steeringMessageIds: Record<string, string[]>;
 
     // Actions
     addMessage: (msg: Message) => void;
@@ -110,7 +118,12 @@ export interface MessageStoreState {
     clearTokenBudgetState: () => void;
     setTokenWarning: (warning: TokenWarningPayload | null) => void;
     clearTokenWarning: () => void;
+    /** 登记 steering 消息 uuid（去重；每个 session 上限 200 条，超出丢最旧） */
+    markSteeringMessage: (sessionId: string, uuid: string) => void;
 }
+
+/** steeringMessageIds 每个 session 的上限（超出丢最旧） */
+export const MAX_STEERING_IDS_PER_SESSION = 200;
 
 export const useMessageStore = create<MessageStoreState>()(
     subscribeWithSelector(immer((set) => ({
@@ -121,6 +134,7 @@ export const useMessageStore = create<MessageStoreState>()(
         activeToolCalls: new Map(),
         tokenBudgetState: null,
         tokenWarning: null,
+        steeringMessageIds: {},
 
         addMessage: (msg) => set(d => {
             const existing = d.messages.findIndex(item => item.uuid === msg.uuid);
@@ -399,5 +413,15 @@ export const useMessageStore = create<MessageStoreState>()(
         clearTokenBudgetState: () => set(d => { d.tokenBudgetState = null; }),
         setTokenWarning: (warning) => set((draft) => { draft.tokenWarning = warning; }),
         clearTokenWarning: () => set((draft) => { draft.tokenWarning = null; }),
+        markSteeringMessage: (sessionId, uuid) => set(d => {
+            if (!sessionId || !uuid) return;
+            const list = d.steeringMessageIds[sessionId] ?? (d.steeringMessageIds[sessionId] = []);
+            if (list.includes(uuid)) return;
+            list.push(uuid);
+            // 上限保护：超出丢最旧（FIFO）
+            if (list.length > MAX_STEERING_IDS_PER_SESSION) {
+                list.splice(0, list.length - MAX_STEERING_IDS_PER_SESSION);
+            }
+        }),
     })))
 );

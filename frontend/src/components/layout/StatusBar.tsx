@@ -31,11 +31,11 @@ export function getPermissionModeLabel(mode: PermissionMode): string {
 
 export function getPermissionModeColor(mode: PermissionMode): string {
     switch (mode) {
-        case 'default': return 'text-blue-500';
-        case 'plan': return 'text-purple-500';
-        case 'accept_edits': return 'text-green-500';
-        case 'dont_ask': return 'text-yellow-500';
-        case 'auto_approve': return 'text-orange-500';
+        case 'default': return 'text-accent2';
+        case 'plan': return 'text-accent2-strong';
+        case 'accept_edits': return 'text-ok';
+        case 'dont_ask': return 'text-warn';
+        case 'auto_approve': return 'text-err';
     }
 }
 

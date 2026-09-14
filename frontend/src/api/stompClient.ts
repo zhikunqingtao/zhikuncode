@@ -400,8 +400,14 @@ export function sendUserMessage(text: string, attachments?: Attachment[], refere
 }
 
 /** 向当前运行中的根任务追加指令，不中断当前调用。 */
-export function sendRunInput(requestId: string, text: string): boolean {
-    return sendToServer('/app/run-input', { requestId, text });
+export function sendRunInput(
+    requestId: string,
+    text: string,
+    meta?: Record<string, unknown>,
+): boolean {
+    // meta 为通用客户端元数据（如 { steering: true }）：后端随消息持久化并在
+    // 历史/快照中原样回传，刷新后轮次投影仍能识别 steering 边界。
+    return sendToServer('/app/run-input', { requestId, text, ...(meta ? { meta } : {}) });
 }
 
 /** #3 发送中断 → /app/interrupt */

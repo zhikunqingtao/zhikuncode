@@ -372,28 +372,11 @@ body {
   box-shadow: var(--glass-shadow), var(--glass-inner-shadow);
 }
 
-/* 按钮微玻璃效果 */
-.glass button:hover {
-  backdrop-filter: blur(8px) saturate(150%);
-  -webkit-backdrop-filter: blur(8px) saturate(150%);
-}
+/* v2 迁移：按钮 hover 已由组件令牌类承担，旧玻璃元素规则移除（原 .glass button:hover） */
 
-/* 下拉菜单/输入框玻璃 */
-.glass select,
-.glass input[type="text"],
-.glass textarea {
-  backdrop-filter: blur(12px) saturate(160%);
-  -webkit-backdrop-filter: blur(12px) saturate(160%);
-  background: rgba(255, 255, 255, 0.5) !important;
-  border-color: var(--glass-border) !important;
-}
+/* v2 迁移：select/input/textarea 凹陷井由组件令牌类承担，旧玻璃元素规则移除（原 .glass select/input[type="text"]/textarea） */
 
-/* 代码块玻璃效果 */
-.glass pre,
-.glass code {
-  backdrop-filter: blur(10px) saturate(140%);
-  -webkit-backdrop-filter: blur(10px) saturate(140%);
-}
+/* v2 迁移：代码块底面已由组件令牌类（bg-sunken2）承担，旧玻璃元素规则移除（原 .glass pre/code） */
 
 /* 液态玻璃卡片 — 通用工具类 */
 .glass .glass-card {
@@ -420,7 +403,7 @@ body {
   --v2-bg-hover:rgba(16,24,40,.045); --v2-bg-active:rgba(16,24,40,.07);
   --v2-border-hairline:rgba(16,24,40,.08); --v2-border-strong:rgba(16,24,40,.14);
   --v2-overlay:rgba(16,24,40,.32);
-  --v2-text-1:#1A1D26; --v2-text-2:#4A5160; --v2-text-3:#737B8C; --v2-text-4:#9AA1B2;
+  --v2-text-1:#1A1D26; --v2-text-2:#4A5160; --v2-text-3:#6B7280; --v2-text-4:#9AA1B2;
   --v2-ok:#12A66B; --v2-ok-soft:rgba(18,166,107,.12); --v2-ok-strong:#065F46;
   --v2-warn:#D98F1F; --v2-warn-soft:rgba(217,143,31,.12); --v2-warn-strong:#92400E;
   --v2-err:#DC4C48; --v2-err-soft:rgba(220,76,72,.12); --v2-err-strong:#B91C1C;
@@ -463,6 +446,25 @@ body {
   --v2-chart-5:#38BDF8; --v2-chart-6:#C084FC; --v2-chart-7:#A3E635; --v2-chart-8:#94A3B8;
 }
 
+/* ===== v2 令牌 Glass 覆写：中性面半透明化（文字/语义/accent 继承 light 套） ===== */
+.glass{
+  --v2-bg-app:transparent;
+  --v2-bg-surface:rgba(255,255,255,.72);
+  --v2-bg-surface-2:rgba(255,255,255,.55);
+  --v2-bg-sunken:rgba(255,255,255,.42);
+  --v2-bg-hover:rgba(16,24,40,.05);
+  --v2-bg-active:rgba(16,24,40,.08);
+  --v2-border-hairline:rgba(16,24,40,.10);
+  --v2-border-strong:rgba(16,24,40,.16);
+  --v2-overlay:rgba(16,24,40,.36);
+  --v2-shadow-xs:0 1px 2px rgba(16,24,40,.05);
+  --v2-shadow-sm:0 1px 2px rgba(16,24,40,.05),0 2px 8px rgba(16,24,40,.06);
+  --v2-shadow-md:0 2px 6px rgba(16,24,40,.06),0 10px 28px rgba(16,24,40,.10);
+  --v2-shadow-lg:0 4px 12px rgba(16,24,40,.08),0 20px 56px rgba(16,24,40,.16);
+  --v2-shadow-inset:inset 0 2px 5px rgba(16,24,40,.08);
+  /* soft 双影保留 light 值（浅色渐变底上成立）；文字/ok/warn/err/accent/chart 继承 :root */
+}
+
 /* ===== v2 keyframes（新增；保留现有 shimmer/slideUp/soundwave，合计 8 个） ===== */
 @keyframes fadeIn  { from { opacity: 0 } to { opacity: 1 } }
 @keyframes scaleIn { from { opacity: 0; transform: scale(.98) } to { opacity: 1; transform: scale(1) } }
@@ -476,8 +478,8 @@ body {
 
 /* ===== §9.4 Glass 降级（.glass-reduced 与 @supports 实色回退） ===== */
 @supports not (backdrop-filter: blur(1px)) {
-  .glass header, .glass aside, .glass footer, .glass [role="dialog"], .glass .glass-card,
-  .glass button:hover, .glass select, .glass input[type="text"], .glass textarea, .glass pre, .glass code {
+  /* v2 迁移：button/select/input/textarea/pre/code 元素规则已移除，实色回退仅保留玻璃基调容器 */
+  .glass header, .glass aside, .glass footer, .glass [role="dialog"], .glass .glass-card {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
     background: rgba(255, 255, 255, 0.92) !important;
@@ -485,11 +487,9 @@ body {
 }
 
 /* 低端设备 / 偏好低透明：关闭毛玻璃，面板实色化 */
+/* v2 迁移：button/select/input/textarea/pre/code 元素规则已移除，实色回退仅保留玻璃基调容器 */
 .glass-reduced header, .glass-reduced aside, .glass-reduced footer,
-.glass-reduced [role="dialog"], .glass-reduced .glass-card,
-.glass-reduced button:hover, .glass-reduced select,
-.glass-reduced input[type="text"], .glass-reduced textarea,
-.glass-reduced pre, .glass-reduced code {
+.glass-reduced [role="dialog"], .glass-reduced .glass-card {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   background: rgba(255, 255, 255, 0.92) !important;

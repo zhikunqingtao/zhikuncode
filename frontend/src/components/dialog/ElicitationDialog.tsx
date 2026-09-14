@@ -68,7 +68,7 @@ export const ElicitationDialog: React.FC<ElicitationDialogProps> = ({
     useEffect(() => {
         dialogRef.current?.focus();
         setRemaining(secondsUntilDeadline());
-        
+
         const handler = (e: KeyboardEvent) => {
             if (e.key === 'Escape' && !expiredRef.current) {
                 onCancel();
@@ -146,13 +146,13 @@ export const ElicitationDialog: React.FC<ElicitationDialogProps> = ({
     }, [requestId, options, selectedOptions, freeText, allowFreeText, onSubmit, inputType, validation, expired]);
 
     const canSubmit = (inputType === 'select' || inputType === 'multiselect')
-        ? selectedOptions.length > 0 
+        ? selectedOptions.length > 0
         : (inputType === 'confirm')
         ? true
         : (inputType === 'text' || inputType === 'number' || allowFreeText)
         ? freeText.trim().length > 0
-        : options 
-        ? selectedOptions.length > 0 
+        : options
+        ? selectedOptions.length > 0
         : allowFreeText && freeText.trim().length > 0;
     const canAct = deadlineConfirmed && !expired;
 
@@ -201,7 +201,7 @@ export const ElicitationDialog: React.FC<ElicitationDialogProps> = ({
                             {options.map((option) => (
                                 <button
                                     key={option.value}
-                                    onClick={() => 
+                                    onClick={() =>
                                         inputType === 'multiselect'
                                             ? handleOptionToggle(option.value)
                                             : handleSingleSelect(option.value)
@@ -294,7 +294,7 @@ export const ElicitationDialog: React.FC<ElicitationDialogProps> = ({
                         disabled={!canSubmit || !canAct}
                         className={`px-4 py-2 rounded-lg text-sm text-white transition-colors
                             ${canSubmit && canAct
-                                ? 'bg-accent2-strong hover:bg-accent2-hover' 
+                                ? 'bg-accent2-strong hover:bg-accent2-hover'
                                 : 'bg-gray-400 cursor-not-allowed'
                             }`}
                     >

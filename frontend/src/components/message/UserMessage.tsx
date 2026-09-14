@@ -29,7 +29,7 @@ const UserMessage: React.FC<UserMessageProps> = ({ message }) => {
     return (
         <div className="user-message group flex flex-col items-end px-4 py-3">
             {/* Label */}
-            <div className="mb-1 text-[11px] font-medium text-t3">You</div>
+            <div className="mb-1 text-xs font-medium text-t3">You</div>
 
             {/* Bubble（§7.2：soft 底 + ring 边 + 尾角 6px，右对齐） */}
             <div className="max-w-[76%] rounded-2xl rounded-br-md border border-accent2-ring bg-accent2-soft px-[17px] py-[11px] text-sm text-t1">

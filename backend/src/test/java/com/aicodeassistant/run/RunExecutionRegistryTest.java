@@ -2,10 +2,14 @@ package com.aicodeassistant.run;
 
 import com.aicodeassistant.engine.AbortContext;
 import com.aicodeassistant.engine.AbortReason;
+import com.aicodeassistant.websocket.ClientMessage;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -281,5 +285,112 @@ class RunExecutionRegistryTest {
 
         assertThat(registry.isRegistered("run")).isFalse();
         assertThat(registry.activeRunForSession("session")).isEmpty();
+    }
+
+    @Test
+    void nullMetaValueIsRejectedBeforeAnyStateMutation() throws Exception {
+        // Entry-point reality check: Jackson maps {"steering": null} to a
+        // Java Map containing key "steering" with a null value.
+        ClientMessage.RunInputPayload payload = new ObjectMapper().readValue(
+                "{\"requestId\":null,\"text\":\"steer\",\"meta\":{\"steering\":null}}",
+                ClientMessage.RunInputPayload.class);
+        assertThat(payload.meta()).containsKey("steering");
+        assertThat(payload.meta().get("steering")).isNull();
+
+        RunExecutionRegistry registry = new RunExecutionRegistry();
+        registry.register("run", "session", new AbortContext());
+        String requestId = UUID.randomUUID().toString();
+        Map<String, Object> meta = new HashMap<>();
+        meta.put("steering", null);
+
+        // Null metadata values are rejected with IllegalArgumentException
+        // before any receipt is written or the input is enqueued.
+        assertThatThrownBy(() -> registry.offerInputForSession(
+                "session", requestId, "steer", meta))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        // The failed offer enqueued nothing.
+        assertThat(registry.claimInputs("run", 10)).isEmpty();
+
+        // No half-persisted receipt short-circuits the retry: the same
+        // requestId is accepted fresh, returns QUEUED, and is claimable.
+        var retry = registry.offerInputForSession(
+                "session", requestId, "steer", Map.of("steering", true));
+        assertThat(retry.accepted()).isTrue();
+        assertThat(retry.receipt().state())
+                .isEqualTo(RunExecutionRegistry.InputState.QUEUED);
+        List<RunExecutionRegistry.InputApplication> applications =
+                registry.claimInputs("run", 10);
+        assertThat(applications).hasSize(1);
+        assertThat(applications.getFirst().input().meta())
+                .containsEntry("steering", true);
+    }
+
+    @Test
+    void nullMetaKeyIsRejectedBeforeAnyStateMutation() {
+        RunExecutionRegistry registry = new RunExecutionRegistry();
+        registry.register("run", "session", new AbortContext());
+        String requestId = UUID.randomUUID().toString();
+        Map<String, Object> meta = new HashMap<>();
+        meta.put(null, "steering");
+
+        assertThatThrownBy(() -> registry.offerInputForSession(
+                "session", requestId, "steer", meta))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThat(registry.claimInputs("run", 10)).isEmpty();
+
+        // The requestId was not burned: a valid retry is queued and claimable.
+        var retry = registry.offerInputForSession(
+                "session", requestId, "steer");
+        assertThat(retry.accepted()).isTrue();
+        assertThat(retry.receipt().state())
+                .isEqualTo(RunExecutionRegistry.InputState.QUEUED);
+        assertThat(registry.claimInputs("run", 10)).hasSize(1);
+    }
+
+    @Test
+    void validMetaIsSnapshottedAndDeliveredWithClaimedInput() {
+        RunExecutionRegistry registry = new RunExecutionRegistry();
+        registry.register("run", "session", new AbortContext());
+        String requestId = UUID.randomUUID().toString();
+        Map<String, Object> meta = new HashMap<>();
+        meta.put("steering", true);
+        meta.put("source", "client");
+
+        var offer = registry.offerInputForSession(
+                "session", requestId, "steer", meta);
+        // Later mutation of the caller's map must not leak into the snapshot.
+        meta.put("steering", false);
+
+        assertThat(offer.accepted()).isTrue();
+        List<RunExecutionRegistry.InputApplication> applications =
+                registry.claimInputs("run", 10);
+        assertThat(applications).hasSize(1);
+        assertThat(applications.getFirst().input().meta())
+                .containsEntry("steering", true)
+                .containsEntry("source", "client");
+        var receipt = applications.getFirst().applyIfAccepting(
+                System.currentTimeMillis(), () -> { });
+        assertThat(receipt.state())
+                .isEqualTo(RunExecutionRegistry.InputState.APPLIED);
+    }
+
+    @Test
+    void emptyMetaMapIsAcceptedAndDeliveredAsNoMeta() {
+        RunExecutionRegistry registry = new RunExecutionRegistry();
+        registry.register("run", "session", new AbortContext());
+        String requestId = UUID.randomUUID().toString();
+
+        var offer = registry.offerInputForSession(
+                "session", requestId, "steer", Map.of());
+
+        assertThat(offer.accepted()).isTrue();
+        assertThat(offer.receipt().state())
+                .isEqualTo(RunExecutionRegistry.InputState.QUEUED);
+        List<RunExecutionRegistry.InputApplication> applications =
+                registry.claimInputs("run", 10);
+        assertThat(applications).hasSize(1);
+        // Empty metadata is normalized to "no metadata", as before.
+        assertThat(applications.getFirst().input().meta()).isNull();
     }
 }

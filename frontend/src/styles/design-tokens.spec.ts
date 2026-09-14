@@ -71,3 +71,54 @@ describe('design-tokens 防漂移（globals.css ↔ design-tokens.ts）', () => 
         expect(css).toContain('--v2-accent-active:color-mix(in srgb, var(--v2-accent-strong) 84%, black)');
     });
 });
+
+/* ================= WCAG AA 对比度守护（§10.1） ================= */
+
+/** hex → [r,g,b]（0-255） */
+function hexToRgb(hex: string): [number, number, number] {
+    const h = hex.replace('#', '');
+    return [
+        parseInt(h.slice(0, 2), 16),
+        parseInt(h.slice(2, 4), 16),
+        parseInt(h.slice(4, 6), 16),
+    ];
+}
+
+/** WCAG 2.x 相对亮度：https://www.w3.org/TR/WCAG21/#dfn-relative-luminance */
+function relativeLuminance(hex: string): number {
+    const [r, g, b] = hexToRgb(hex).map((c8) => {
+        const cs = c8 / 255;
+        return cs <= 0.04045 ? cs / 12.92 : Math.pow((cs + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+/** 对比度 = (L亮 + 0.05) / (L暗 + 0.05) */
+function contrastRatio(fgHex: string, bgHex: string): number {
+    const l1 = relativeLuminance(fgHex);
+    const l2 = relativeLuminance(bgHex);
+    const [hi, lo] = l1 >= l2 ? [l1, l2] : [l2, l1];
+    return (hi + 0.05) / (lo + 0.05);
+}
+
+describe('WCAG AA 文本对比度（正文/常规文本 ≥ 4.5:1）', () => {
+    // 每行：前景令牌、其典型承载面背景令牌（取该文字档实际落座的最低对比面）
+    const pairs: [theme: 'light' | 'dark', fg: string, bg: string][] = [
+        // light：header 连接态 text-t3 落 surface-2（axe 曾报 4.1:1 失败，本用例防回归）
+        ['light', '--v2-text-1', '--v2-bg-surface'],
+        ['light', '--v2-text-1', '--v2-bg-surface-2'],
+        ['light', '--v2-text-2', '--v2-bg-surface'],
+        ['light', '--v2-text-2', '--v2-bg-surface-2'],
+        ['light', '--v2-text-3', '--v2-bg-surface'],
+        ['light', '--v2-text-3', '--v2-bg-surface-2'],
+        // dark：t3 落 surface-2 为该档最低对比组合
+        ['dark', '--v2-text-1', '--v2-bg-surface-2'],
+        ['dark', '--v2-text-2', '--v2-bg-surface-2'],
+        ['dark', '--v2-text-3', '--v2-bg-surface-2'],
+        ['dark', '--v2-text-3', '--v2-bg-surface'],
+    ];
+    it.each(pairs)('%s %s on %s ≥ 4.5:1', (theme, fg, bg) => {
+        const ratio = contrastRatio(TOKENS[theme][fg as never], TOKENS[theme][bg as never]);
+        expect(ratio).toBeGreaterThanOrEqual(4.5);
+    });
+});

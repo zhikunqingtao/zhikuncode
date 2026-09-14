@@ -24,11 +24,9 @@ import type { Message, ContentBlock, ToolCallState } from '@/types';
 import TextBlock from './TextBlock';
 import ThinkingBlock from './ThinkingBlock';
 import ToolCallBlock from './ToolCallBlock';
-import ImageBlock from './ImageBlock';
-import TtsPlayButton from './TtsPlayButton';
-import MessageActions from './MessageActions';
+import AssistantMessageActions from './AssistantMessageActions';
+import { AssistantBlockRenderer } from './assistantBlockRenderer';
 import { useStreamingText } from '@/hooks/useStreamingText';
-import { useTtsAvailability } from '@/hooks/useTtsAvailability';
 
 interface AssistantMessageProps {
     message: Extract<Message, { type: 'assistant' }>;
@@ -49,13 +47,6 @@ const AssistantMessage: React.FC<AssistantMessageProps> = ({
     thinkingContent,
     activeToolCalls,
 }) => {
-    const ttsAvailable = useTtsAvailability();
-    const plainText = message.content
-        .filter(b => b.type === 'text')
-        .map(b => (b as Extract<ContentBlock, { type: 'text' }>).text)
-        .join('\n')
-        .trim();
-
     return (
         <div className="assistant-message group flex gap-3 px-4 py-3">
             {/* Avatar（§7.2：渐变 accent 方块 30px rounded-lg） */}
@@ -67,9 +58,6 @@ const AssistantMessage: React.FC<AssistantMessageProps> = ({
             <div className="flex-1 min-w-0 rounded-panel border border-hairline bg-surfacev2 shadow-e2 px-[18px] py-5">
                 <div className="flex items-center gap-1.5 mb-2 text-xs text-t3 font-medium">
                     <span>Assistant</span>
-                    {ttsAvailable && !isStreaming && plainText && (
-                        <TtsPlayButton messageId={message.uuid} text={plainText} />
-                    )}
                 </div>
 
                 <div className="text-sm text-t1 leading-[1.75]">
@@ -88,8 +76,8 @@ const AssistantMessage: React.FC<AssistantMessageProps> = ({
                     )}
                 </div>
 
-                {/* 操作行（ghost 小钮 + 顶部 hairline） */}
-                <MessageActions message={message} isStreaming={isStreaming} />
+                {/* 操作行（TTS + 复制 + 时间戳；与轮次分组路径共享 AssistantMessageActions） */}
+                <AssistantMessageActions message={message} isStreaming={isStreaming} />
             </div>
         </div>
     );
@@ -181,66 +169,5 @@ const FinalizedContent: React.FC<FinalizedContentProps> = ({ blocks, activeToolC
         ))}
     </>
 );
-
-// ==================== Block Router ====================
-
-interface AssistantBlockRendererProps {
-    block: ContentBlock;
-    activeToolCalls?: Map<string, ToolCallState>;
-}
-
-const AssistantBlockRenderer: React.FC<AssistantBlockRendererProps> = ({ block, activeToolCalls }) => {
-    switch (block.type) {
-        case 'text':
-            return <TextBlock text={block.text} />;
-        case 'thinking':
-            return <ThinkingBlock content={block.thinking} />;
-        case 'redacted_thinking':
-            return <ThinkingBlock content="" redacted />;
-        case 'tool_use': {
-            // Try to find state from activeToolCalls, fallback to basic info
-            const state = activeToolCalls?.get(block.toolUseId);
-            // P1 兑底：activeToolCalls 命中但 input 为空对象时，回退使用 block.input
-            const activeInputEmpty = !!state
-                && state.input != null
-                && typeof state.input === 'object'
-                && !Array.isArray(state.input)
-                && Object.keys(state.input as Record<string, unknown>).length === 0;
-            const tc: ToolCallState = state
-                ? { ...state, input: activeInputEmpty ? block.input : state.input }
-                : {
-                    toolName: block.toolName,
-                    input: block.input,
-                    // 无 result 的工具仍在执行中，不得误标 completed
-                    status: block.result ? (block.result.isError ? 'error' : 'completed') : 'running',
-                    result: block.result,
-                    startTime: 0,
-                };
-            return <ToolCallBlock toolUseId={block.toolUseId} toolCall={tc} />;
-        }
-        case 'tool_result': {
-            // Tool results are displayed within their ToolCallBlock
-            // Standalone rendering for cases where tool_use block is not adjacent
-            const tc: ToolCallState = {
-                toolName: 'Tool',
-                input: {},
-                status: block.isError ? 'error' : 'completed',
-                result: { content: block.content, isError: block.isError, metadata: block.metadata },
-                startTime: 0,
-            };
-            return <ToolCallBlock toolUseId={block.toolUseId} toolCall={tc} />;
-        }
-        case 'image':
-            return <ImageBlock base64Data={block.base64Data} src={block.url} mediaType={block.mediaType} />;
-        case 'server_tool_use':
-            return (
-                <div className="text-xs text-t4 italic my-1">
-                    Server tool: {block.toolName}
-                </div>
-            );
-        default:
-            return null;
-    }
-};
 
 export default React.memo(AssistantMessage);

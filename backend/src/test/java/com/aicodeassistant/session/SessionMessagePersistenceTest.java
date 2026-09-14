@@ -28,7 +28,24 @@ class SessionMessagePersistenceTest {
         persistence.reconcile(List.of(message));
 
         verify(sessions, times(1)).addMessageWithId(eq("message-1"), eq("session-1"),
-                eq("user"), eq(message.content()), eq(null), eq(0), eq(0));
+                eq("user"), eq(message.content()), eq(null), eq(0), eq(0), eq(null));
+    }
+
+    @Test
+    void userMessageMetaIsForwardedToPersistence() {
+        SessionManager sessions = mock(SessionManager.class);
+        QueryLoopState state = new QueryLoopState(List.of(), ToolUseContext.of(".", "session-1"));
+        SessionMessagePersistence.attach(state, sessions, "session-1", "test");
+        Message.UserMessage steering = new Message.UserMessage(
+                "message-steering", Instant.now(),
+                List.of(new ContentBlock.TextBlock("change direction")),
+                null, null, java.util.Map.of("steering", true));
+
+        state.addMessage(steering);
+
+        verify(sessions, times(1)).addMessageWithId(eq("message-steering"), eq("session-1"),
+                eq("user"), eq(steering.content()), eq(null), eq(0), eq(0),
+                eq(java.util.Map.of("steering", true)));
     }
 
     @Test
@@ -39,7 +56,7 @@ class SessionMessagePersistenceTest {
         doThrow(new RuntimeException("temporary"))
                 .doNothing()
                 .when(sessions).addMessageWithId(eq("message-2"), eq("session-1"),
-                        eq("user"), eq(message.content()), eq(null), eq(0), eq(0));
+                        eq("user"), eq(message.content()), eq(null), eq(0), eq(0), eq(null));
         SessionMessagePersistence persistence = SessionMessagePersistence.attach(
                 state, sessions, "session-1", "test");
 
@@ -47,7 +64,7 @@ class SessionMessagePersistenceTest {
         persistence.reconcile(List.of(message));
 
         verify(sessions, times(2)).addMessageWithId(eq("message-2"), eq("session-1"),
-                eq("user"), eq(message.content()), eq(null), eq(0), eq(0));
+                eq("user"), eq(message.content()), eq(null), eq(0), eq(0), eq(null));
     }
 
     private static Message.UserMessage user(String id) {

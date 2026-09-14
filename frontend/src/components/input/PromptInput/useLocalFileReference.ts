@@ -4,21 +4,28 @@
  * §8.3.1 PromptInput 拆分：从原 PromptInput.tsx 纯搬运（零行为变化）。
  * 职责：本地路径引用（native picker）与 OSS 上传引用（浏览器 file input），
  * 以及会话切换 / 任务运行期间 / 组件卸载时的清理与防护。
+ *
+ * 草稿持久化（P2 修复）：引用列表按活动 sessionId 键控托管到
+ * promptDraftStore（仅内存，同 usePromptState/usePromptAttachments 模式），
+ * 移动端打开文件管理卸载输入条后引用可恢复，不同会话相互隔离。
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import type {
     FileReferenceCapability,
+    PickedLocalFile,
     PublishedLocalFile,
 } from '@/types';
 import { useNotificationStore } from '@/store/notificationStore';
+import {
+    resolvePromptDraftKey,
+    usePromptDraftStore,
+} from '@/store/promptDraftStore';
 import { generateUUID } from '@/utils/uuid';
 
-export interface PickedLocalFile {
-    path: string;
-    name: string;
-    size: number;
-}
+// PickedLocalFile 已上移到 @/types（供 promptDraftStore 引用）；
+// 此处保留再导出，既有消费方（PromptToolbar 等）无需改导入路径。
+export type { PickedLocalFile } from '@/types';
 
 export function formatFileSize(bytes: number): string {
     if (bytes < 1024) return `${bytes} B`;
@@ -37,6 +44,10 @@ export interface UseLocalFileReferenceParams {
     fileReferenceCapability: FileReferenceCapability | null;
 }
 
+/** 选择器兜底空数组（模块级常量保证引用稳定，避免无意义重渲染） */
+const EMPTY_LOCAL_FILES: PickedLocalFile[] = [];
+const EMPTY_PUBLISHED_LOCAL_FILES: PublishedLocalFile[] = [];
+
 export function useLocalFileReference({
     sessionId,
     disabled,
@@ -49,8 +60,35 @@ export function useLocalFileReference({
 }: UseLocalFileReferenceParams) {
     const [isPickingLocalFile, setIsPickingLocalFile] = useState(false);
     const [isUploadingLocalFile, setIsUploadingLocalFile] = useState(false);
-    const [localFiles, setLocalFiles] = useState<PickedLocalFile[]>([]);
-    const [publishedLocalFiles, setPublishedLocalFiles] = useState<PublishedLocalFile[]>([]);
+    // P2 修复：本地文件引用随草稿托管到 promptDraftStore（按活动 sessionId
+    // 键控，仅内存，同图片附件模式）。移动端打开文件管理会卸载输入条，
+    // 组件 useState 随之销毁；store 化后卸载/重挂载引用可恢复。
+    const draftKey = resolvePromptDraftKey(sessionId);
+    const localFiles = usePromptDraftStore(
+        s => s.drafts[draftKey]?.localFiles ?? EMPTY_LOCAL_FILES,
+    );
+    const publishedLocalFiles = usePromptDraftStore(
+        s => s.drafts[draftKey]?.publishedLocalFiles ?? EMPTY_PUBLISHED_LOCAL_FILES,
+    );
+    // P1 修复（stale draft-key writes）：OSS 上传引用会先 ensureSessionReady()
+    // 创建首个会话（sessionId null → id），await 之后的写入若仍用渲染期捕获的
+    // 兜底键，引用会落到已迁空的 '__none__' 上。所有写在调用时经
+    // latestSessionIdRef 解析目标键，写到上传实际归属的会话。
+    const latestSessionIdRef = useRef(sessionId);
+    useEffect(() => {
+        latestSessionIdRef.current = sessionId;
+    }, [sessionId]);
+    const setLocalFiles = useCallback<Dispatch<SetStateAction<PickedLocalFile[]>>>((value) => {
+        const targetKey = resolvePromptDraftKey(latestSessionIdRef.current);
+        usePromptDraftStore.getState().setLocalFiles(targetKey, value);
+    }, []);
+    const setPublishedLocalFiles = useCallback<Dispatch<SetStateAction<PublishedLocalFile[]>>>(
+        (value) => {
+            const targetKey = resolvePromptDraftKey(latestSessionIdRef.current);
+            usePromptDraftStore.getState().setPublishedLocalFiles(targetKey, value);
+        },
+        [],
+    );
     const browserFileInputRef = useRef<HTMLInputElement>(null);
     const pickerRequestIdRef = useRef(0);
     const previousSessionIdRef = useRef(sessionId);
@@ -71,13 +109,14 @@ export function useLocalFileReference({
         previousSessionIdRef.current = sessionId;
         // Selecting a remote file may create the first authorized Session.
         // That initial null -> id binding belongs to the same draft and must not
-        // invalidate the in-flight upload. Real switches still clear references.
+        // invalidate the in-flight upload. Real switches still cancel it.
         if (previousSessionId == null && sessionId != null) return;
+        // 引用列表不再随会话切换清空：store 化后各会话引用按键隔离，
+        // 切回时原样恢复（与图片附件/文本草稿同语义）；切换仅取消
+        // 进行中的读取/上传（requestId 失配使其续体空操作）并复位 busy。
         pickerRequestIdRef.current += 1;
         setIsPickingLocalFile(false);
         setIsUploadingLocalFile(false);
-        setLocalFiles([]);
-        setPublishedLocalFiles([]);
     }, [sessionId]);
 
     useEffect(() => {
