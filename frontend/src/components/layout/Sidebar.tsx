@@ -617,7 +617,8 @@ function SessionList({ onCollapse }: { onCollapse?: () => void }) {
             if (cursor) {
                 setSessions(prev => pageSessionOrder.order([...new Map([...prev, ...data.sessions].map(session => [session.id, session])).values()]));
             } else {
-                setSessions(pageSessionOrder.order(data.sessions));
+                // 'front'：无 cursor 刷新（首载/轮询/WS）发现的新会话排到最前
+                setSessions(pageSessionOrder.order(data.sessions, 'front'));
             }
             setHasMore(data.hasMore);
             setNextCursor(data.nextCursor);
@@ -859,7 +860,7 @@ function SimpleTaskList({ onCollapse }: { onCollapse?: () => void }) {
             const response = await fetch(`/api/workbench/tasks${params.size ? `?${params}` : ''}`);
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const data = await response.json() as { groups?: WorkbenchTaskGroupView[] };
-            setGroups(Array.isArray(data.groups) ? data.groups.map(group => ({ ...group, tasks: pageSessionOrder.order(group.tasks.map(task => ({ ...task, id: task.sessionId }))) })) : []);
+            setGroups(Array.isArray(data.groups) ? data.groups.map(group => ({ ...group, tasks: pageSessionOrder.order(group.tasks.map(task => ({ ...task, id: task.sessionId })), 'front') })) : []);
         } catch (error) { console.warn('[SimpleTaskList] Failed to fetch tasks:', error); }
         finally { setLoading(false); }
     }, [query]);
