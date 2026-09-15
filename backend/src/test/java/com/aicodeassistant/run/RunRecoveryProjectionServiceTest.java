@@ -24,7 +24,7 @@ class RunRecoveryProjectionServiceTest {
                 event(run.id(), 2, "tool_started",
                         "{\"schemaVersion\":1,\"data\":{\"toolUseId\":\"legacy-id\",\"toolName\":\"Read\"}}"),
                 event(run.id(), 3, "tool_finished",
-                        "{\"schemaVersion\":2,\"toolUseId\":\"top-id\",\"data\":{}}")));
+                        "{\"schemaVersion\":2,\"toolUseId\":\"top-id\",\"data\":{\"toolName\":\"Bash\",\"durationMs\":1500,\"isError\":false,\"executionStatus\":\"succeeded\",\"outputPreview\":\"done\"}}")));
 
         var projection = new RunRecoveryProjectionService(
                 runs, events, new ObjectMapper()).latestForSession("session");
@@ -36,6 +36,16 @@ class RunRecoveryProjectionServiceTest {
                         "toolName", "Read",
                         "input", java.util.Map.of(),
                         "startedAt", 2L));
+        assertThat(projection.settledToolResults()).containsExactly(
+                java.util.Map.of(
+                        "type", "tool_result",
+                        "toolUseId", "top-id",
+                        "content", "done",
+                        "isError", false,
+                        "metadata", java.util.Map.of(
+                                "executionStatus", "succeeded",
+                                "outputTruncated", false,
+                                "durationMs", 1500L)));
     }
 
     private static RunEvent event(

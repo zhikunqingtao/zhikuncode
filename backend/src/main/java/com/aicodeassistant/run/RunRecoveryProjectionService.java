@@ -24,9 +24,10 @@ public class RunRecoveryProjectionService {
     @Transactional(transactionManager = "projectTransactionManager", readOnly = true)
     public Projection latestForSession(String sessionId) {
         RunEnvelope run = runs.findBySession(sessionId, 1).stream().findFirst().orElse(null);
-        if (run == null) return new Projection(null, 0, List.of());
+        if (run == null) return new Projection(null, 0, List.of(), List.of());
         int cursor = events.getMaxSeq(run.id());
         Map<String, Map<String, Object>> active = new LinkedHashMap<>();
+        Map<String, Map<String, Object>> settledResults = new LinkedHashMap<>();
         int after = 0;
         while (after < cursor) {
             List<RunEvent> page = events.getEvents(run.id(), after, PAGE_SIZE);
@@ -44,11 +45,28 @@ public class RunRecoveryProjectionService {
                     tool.put("input", payload.getOrDefault("input", Map.of()));
                     tool.put("startedAt", event.ts());
                     active.put(toolUseId, tool);
-                } else if ("tool_finished".equals(event.eventType())) active.remove(toolUseId);
+                    settledResults.remove(toolUseId);
+                } else if ("tool_finished".equals(event.eventType())) {
+                    active.remove(toolUseId);
+                    boolean isError = Boolean.TRUE.equals(payload.get("isError"));
+                    String outputPreview = string(payload.get("outputPreview"));
+                    Map<String, Object> result = new LinkedHashMap<>();
+                    result.put("type", "tool_result");
+                    result.put("toolUseId", toolUseId);
+                    result.put("content", outputPreview);
+                    result.put("isError", isError);
+                    Map<String, Object> metadata = new LinkedHashMap<>();
+                    metadata.put("executionStatus", string(payload.get("executionStatus")));
+                    metadata.put("outputTruncated", Boolean.TRUE.equals(payload.get("outputTruncated"))
+                            || longValue(payload.get("outputLength")) > outputPreview.length());
+                    metadata.put("durationMs", longValue(payload.get("durationMs")));
+                    result.put("metadata", metadata);
+                    settledResults.put(toolUseId, result);
+                }
             }
             after = page.getLast().seq();
         }
-        return new Projection(run, cursor, List.copyOf(active.values()));
+        return new Projection(run, cursor, List.copyOf(active.values()), List.copyOf(settledResults.values()));
     }
 
     @SuppressWarnings("unchecked")
@@ -69,8 +87,14 @@ public class RunRecoveryProjectionService {
     }
 
     private static String string(Object value) { return value == null ? "" : String.valueOf(value); }
+    private static long longValue(Object value) {
+        if (value instanceof Number number) return Math.max(0L, number.longValue());
+        try { return Math.max(0L, Long.parseLong(string(value))); }
+        catch (NumberFormatException ignored) { return 0L; }
+    }
     private record EventPayload(
             String toolUseId, Map<String, Object> data) {}
     public record Projection(RunEnvelope runSnapshot, int snapshotEventSeq,
-                             List<Map<String, Object>> activeToolCalls) { }
+                             List<Map<String, Object>> activeToolCalls,
+                             List<Map<String, Object>> settledToolResults) { }
 }

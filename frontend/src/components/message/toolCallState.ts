@@ -36,6 +36,7 @@ export function resolveToolCallState(
         && typeof state.input === 'object'
         && !Array.isArray(state.input)
         && Object.keys(state.input as Record<string, unknown>).length === 0;
+    const recoveredDuration = block.result?.metadata?.durationMs;
     return state
         ? { ...state, input: activeInputEmpty ? block.input : state.input }
         : {
@@ -45,6 +46,8 @@ export function resolveToolCallState(
             status: block.result ? (block.result.isError ? 'error' : 'completed') : 'running',
             result: block.result,
             startTime: 0,
+            duration: typeof recoveredDuration === 'number' && Number.isFinite(recoveredDuration)
+                ? Math.max(0, recoveredDuration) : undefined,
         };
 }
 

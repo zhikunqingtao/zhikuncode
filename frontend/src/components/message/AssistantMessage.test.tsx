@@ -74,6 +74,15 @@ describe('AssistantMessage finalized tool_use fallback status', () => {
         expect(screen.getByText('Completed')).toBeInTheDocument();
     });
 
+    it('恢复结果携带 durationMs 时显示固定耗时', () => {
+        render(<AssistantMessage message={assistantMessage({
+            content: 'ok',
+            isError: false,
+            metadata: { durationMs: 1_053_658 },
+        })} />);
+        expect(screen.getByText('17m 33s')).toBeInTheDocument();
+    });
+
     it('带错误 result 的工具渲染为 Error', () => {
         render(<AssistantMessage message={assistantMessage({ content: 'boom', isError: true })} />);
         expect(screen.getAllByText('Error').length).toBeGreaterThan(0);

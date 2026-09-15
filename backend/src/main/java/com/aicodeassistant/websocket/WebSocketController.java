@@ -1745,7 +1745,8 @@ public class WebSocketController implements PermissionNotifier {
                         .toList();
 
                     Map<String, Object> restoredPayload = new HashMap<>();
-                    restoredPayload.put("messages", convertMessagesForWs(data.messages()));
+                    List<Map<String, Object>> restoredMessages = new ArrayList<>(convertMessagesForWs(data.messages()));
+                    restoredPayload.put("messages", restoredMessages);
                     restoredPayload.put("metadata", metadata);
                     restoredPayload.put("activities", activities);
                     restoredPayload.put("totalActivityCount", totalActivityCount);
@@ -1781,6 +1782,40 @@ public class WebSocketController implements PermissionNotifier {
                             }
                         }
                         restoredPayload.put("activeToolCalls", recoveredToolCalls);
+                        // 并行工具可能已完成并写入 run_event_log，但要等同批工具全部结束后
+                        // tool_result 才会进入消息历史。恢复时补回这段窗口内的终态，避免
+                        // 前端把“不再 active、暂未有 result”的工具误判为仍在运行。
+                        Set<String> unresolvedToolUseIds = new HashSet<>();
+                        if (data.messages() != null) {
+                            for (Message msg : data.messages()) {
+                                if (msg instanceof Message.AssistantMessage assistant) {
+                                    for (ContentBlock block : assistant.content()) {
+                                        if (block instanceof ContentBlock.ToolUseBlock toolUse) {
+                                            unresolvedToolUseIds.add(toolUse.id());
+                                        }
+                                    }
+                                } else if (msg instanceof Message.UserMessage user) {
+                                    for (ContentBlock block : user.content()) {
+                                        if (block instanceof ContentBlock.ToolResultBlock result) {
+                                            unresolvedToolUseIds.remove(result.toolUseId());
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        List<Map<String, Object>> recoveredSettledResults = projection.settledToolResults().stream()
+                                .filter(result -> unresolvedToolUseIds.contains(
+                                        String.valueOf(result.getOrDefault("toolUseId", ""))))
+                                .toList();
+                        if (!recoveredSettledResults.isEmpty()) {
+                            Map<String, Object> resultMessage = new LinkedHashMap<>();
+                            resultMessage.put("type", "user");
+                            resultMessage.put("uuid", "recovery-" + projection.runSnapshot().id()
+                                    + "-" + projection.snapshotEventSeq());
+                            resultMessage.put("timestamp", System.currentTimeMillis());
+                            resultMessage.put("content", recoveredSettledResults);
+                            restoredMessages.add(resultMessage);
+                        }
                     }
                     restoredPayload.put("costSummary", costTrackerService == null
                             ? Map.of() : costTrackerService.getSessionCost(sessionId));
