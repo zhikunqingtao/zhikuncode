@@ -15,6 +15,7 @@ import type { ThemeConfig, OutputStyleDef, Config } from '@/types';
 export interface ConfigStoreState {
     // 状态
     theme: ThemeConfig;
+    themePreferenceSet: boolean;
     locale: string;
     autoCompact: { enabled: boolean; threshold: number };
     verbose: boolean;
@@ -33,13 +34,28 @@ export interface ConfigStoreState {
 }
 
 const DEFAULT_THEME: ThemeConfig = {
-    mode: 'system',
+    mode: 'light',
     // §3.4/§9.6：默认强调色改靛蓝（仅改默认值，无存量迁移逻辑）
     accentColor: '#6366F1',
     fontSize: 'medium',
     fontFamily: 'monospace',
     borderRadius: 'md',
 };
+
+/** 旧 system 偏好按当前系统外观迁移一次；未知值回退浅色。 */
+export function normalizeThemeMode(mode: unknown): ThemeConfig['mode'] {
+    if (mode === 'light' || mode === 'dark' || mode === 'glass') return mode;
+    if (mode === 'system' && typeof window !== 'undefined'
+        && typeof window.matchMedia === 'function'
+        && window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
+    return 'light';
+}
+
+function normalizeTheme(value: unknown, base: ThemeConfig = DEFAULT_THEME): ThemeConfig {
+    const update = typeof value === 'string' ? { mode: value }
+        : value && typeof value === 'object' && !Array.isArray(value) ? value as Partial<ThemeConfig> : {};
+    return { ...base, ...update, mode: normalizeThemeMode(update.mode ?? base.mode) };
+}
 
 export const useConfigStore = create<ConfigStoreState>()(
     subscribeWithSelector(
@@ -48,6 +64,7 @@ export const useConfigStore = create<ConfigStoreState>()(
                 'ai-coder-config-broadcast',
                 (s) => ({
                     theme: s.theme,
+                    themePreferenceSet: s.themePreferenceSet,
                     locale: s.locale,
                     autoCompact: s.autoCompact,
                     verbose: s.verbose,
@@ -58,6 +75,7 @@ export const useConfigStore = create<ConfigStoreState>()(
             )(
                 immer((set) => ({
                 theme: { ...DEFAULT_THEME },
+                themePreferenceSet: false,
                 locale: 'zh-CN',
                 autoCompact: { enabled: true, threshold: 80 },
                 verbose: false,
@@ -65,8 +83,8 @@ export const useConfigStore = create<ConfigStoreState>()(
                 outputStyle: { availableStyles: [] as OutputStyleDef[], activeStyleName: null as string | null },
                 defaultModel: 'qwen3.8-max-0902',
 
-                setTheme: (update) => set(d => { Object.assign(d.theme, update); }),
-                resetTheme: () => set(d => { d.theme = { ...DEFAULT_THEME }; }),
+                setTheme: (update) => set(d => { d.theme = normalizeTheme(update, d.theme); d.themePreferenceSet = true; }),
+                resetTheme: () => set(d => { d.theme = { ...DEFAULT_THEME }; d.themePreferenceSet = true; }),
                 setLocale: (locale) => set(d => { d.locale = locale; }),
                 loadConfig: async () => {
                     // §8.3 loadConfig 实现: 3 次指数退避 + localStorage 降级
@@ -78,13 +96,10 @@ export const useConfigStore = create<ConfigStoreState>()(
                             if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
                             const config = await resp.json();
                             set(d => {
-                                if (config.theme) {
-                                    // Normalize v1 string format to v2 object format
-                                    if (typeof config.theme === 'string') {
-                                        d.theme = { ...d.theme, mode: config.theme };
-                                    } else {
-                                        d.theme = config.theme;
-                                    }
+                                // 用户在本机选择的外观优先，避免刷新时被服务端默认主题覆盖。
+                                if (config.theme && !d.themePreferenceSet) {
+                                    // 服务端主题可为模式字符串或完整配置。
+                                    d.theme = normalizeTheme(config.theme, d.theme);
                                 }
                                 if (config.locale) d.locale = config.locale;
                                 if (config.autoCompact) d.autoCompact = config.autoCompact;
@@ -107,13 +122,10 @@ export const useConfigStore = create<ConfigStoreState>()(
                         try {
                             const config = JSON.parse(cached);
                             set(d => {
-                                if (config.theme) {
-                                    // Normalize v1 string format to v2 object format
-                                    if (typeof config.theme === 'string') {
-                                        d.theme = { ...d.theme, mode: config.theme };
-                                    } else {
-                                        d.theme = config.theme;
-                                    }
+                                // 用户在本机选择的外观优先，避免刷新时被服务端默认主题覆盖。
+                                if (config.theme && !d.themePreferenceSet) {
+                                    // 服务端主题可为模式字符串或完整配置。
+                                    d.theme = normalizeTheme(config.theme, d.theme);
                                 }
                                 if (config.locale) d.locale = config.locale;
                                 if (config.autoCompact) d.autoCompact = config.autoCompact;
@@ -130,6 +142,7 @@ export const useConfigStore = create<ConfigStoreState>()(
                 saveConfig: async (updates) => {
                     // P2-11: try-catch + 回滚
                     const prevState = useConfigStore.getState();
+                    if (updates.theme !== undefined) updates = { ...updates, theme: normalizeTheme(updates.theme, prevState.theme) };
                     const snapshot = {
                         theme: prevState.theme,
                         locale: prevState.locale,
@@ -162,6 +175,7 @@ export const useConfigStore = create<ConfigStoreState>()(
                 storage: createJSONStorage(() => localStorage),
                 partialize: (s) => ({
                     theme: s.theme,
+                    themePreferenceSet: s.themePreferenceSet,
                     locale: s.locale,
                     autoCompact: s.autoCompact,
                     verbose: s.verbose,
@@ -169,21 +183,24 @@ export const useConfigStore = create<ConfigStoreState>()(
                     outputStyle: s.outputStyle,
                     defaultModel: s.defaultModel,
                 }),
-                version: 2,
+                version: 3,
                 migrate: (persisted: unknown, version: number) => {
-                    const data = persisted as Record<string, unknown>;
+                    const data = (persisted ?? {}) as Record<string, unknown>;
                     if (version <= 1) {
-                        const oldTheme = typeof data.theme === 'string' ? data.theme : 'system';
                         return {
                             ...data,
                             // §3.4/§9.6：兜底默认与 DEFAULT_THEME 统一为靛蓝
-                            theme: { mode: oldTheme, accentColor: '#6366F1', fontSize: 'medium', fontFamily: 'monospace', borderRadius: 'md' },
+                            theme: normalizeTheme(data.theme),
                             autoCompact: (data.autoCompact as Record<string, unknown>) ?? { enabled: true, threshold: 80 },
                             expandedView: data.expandedView ?? false,
                             outputStyle: data.outputStyle ?? { availableStyles: [], activeStyleName: null },
                         };
                     }
-                    return data;
+                    return { ...data, theme: normalizeTheme(data.theme) };
+                },
+                merge: (persisted, current) => {
+                    const data = persisted as Partial<ConfigStoreState> | undefined;
+                    return { ...current, ...data, theme: normalizeTheme(data?.theme ?? current.theme) };
                 },
             }
         )

@@ -3,7 +3,7 @@
  *
  * 空态 Hero 的快捷 chips 只做「填入模板文本 + 聚焦输入框」，不自动提交。
  * EmptyHero 与 PromptInput 不互引：前者 dispatch CustomEvent，
- * 后者（usePromptState）监听并写入草稿，两侧均可独立存在。
+ * 后者（usePromptState）挂载时监听，写入当前会话草稿并聚焦；卸载时移除监听。
  */
 
 export const PROMPT_TEMPLATE_FILL_EVENT = 'zhikun:prompt-template-fill';

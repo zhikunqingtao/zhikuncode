@@ -40,6 +40,12 @@ public interface QueryMessageHandler {
     /** 系统消息 (如 compact_boundary) */
     default void onSystemMessage(Message.SystemMessage message) {}
 
+    /**
+     * 任务边界 — TodoWrite 任务首次进入 IN_PROGRESS（#42 task_boundary）。
+     * 同一 run 内同一任务只回调一次，seq 从 1 递增。
+     */
+    default void onTaskBoundary(Message.SystemMessage message) {}
+
     /** 使用量统计 */
     default void onUsage(Usage usage) {}
 

@@ -6,7 +6,6 @@ export {
     useIsMobile,
     useIsTablet,
     useIsDesktop,
-    usePrefersDark,
     usePrefersReducedMotion,
 } from './useMediaQuery';
 

@@ -7,7 +7,7 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { subscribeWithSelector } from 'zustand/middleware';
-import type { Message, ToolResult, ToolCallState, Usage, TokenWarningPayload } from '@/types';
+import type { ContentBlock, Message, ToolResult, ToolCallState, Usage, TokenWarningPayload } from '@/types';
 import { streamingStore, flushStreamingBuffer } from '@/hooks/useStreamingText';
 import { generateUUID } from '@/utils/uuid';
 import { stripInternalMarkers } from '@/utils/internalMarkers';
@@ -80,6 +80,33 @@ function attachCompletedToolResults(messages: Message[]): Message[] {
     return projected;
 }
 
+function toolInputRecord(input: unknown): Record<string, unknown> {
+    return input !== null && typeof input === 'object' && !Array.isArray(input)
+        ? input as Record<string, unknown> : {};
+}
+
+function findToolBlock(messages: Message[], id: string): Extract<ContentBlock, { type: 'tool_use' }> | undefined {
+    // 当前工具通常位于末段，从尾部查找，避免每次参数更新扫描全部历史。
+    for (let index = messages.length - 1; index >= 0; index--) {
+        const message = messages[index];
+        if (message.type !== 'assistant') continue;
+        for (const block of message.content) {
+            if (block.type === 'tool_use' && block.toolUseId === id) return block;
+        }
+    }
+}
+
+/** 权威段带回的工具块保留已经先到达的结果。 */
+function mergeSegmentTools(
+    message: Extract<Message, { type: 'assistant' }>,
+    messages: Message[],
+    calls: Map<string, ToolCallState>,
+): Extract<Message, { type: 'assistant' }> {
+    return { ...message, content: message.content.map(block => block.type === 'tool_use'
+        ? { ...block, result: block.result ?? calls.get(block.toolUseId)?.result ?? findToolBlock(messages, block.toolUseId)?.result }
+        : block) };
+}
+
 export interface MessageStoreState {
     // 状态
     messages: Message[];
@@ -110,7 +137,7 @@ export interface MessageStoreState {
     replaceActiveToolCalls: (calls: RecoveredToolCall[]) => void;
     restoreSessionSnapshot: (messages: Message[], calls: RecoveredToolCall[]) => void;
     reconcileCommittedRun: (replaceAfterMessageId: string | null, messages: Message[]) => boolean;
-    finalizeAssistantSegment: () => void;
+    finalizeAssistantSegment: (message?: Extract<Message, { type: 'assistant' }>) => void;
     finalizeStream: (usage: Usage) => void;
     clearMessages: () => void;
     rewindToMessage: (messageId: string) => void;
@@ -126,7 +153,7 @@ export interface MessageStoreState {
 export const MAX_STEERING_IDS_PER_SESSION = 200;
 
 export const useMessageStore = create<MessageStoreState>()(
-    subscribeWithSelector(immer((set) => ({
+    subscribeWithSelector(immer((set, get) => ({
         messages: [],
         streamingMessageId: null,
         streamingContent: '',
@@ -182,18 +209,27 @@ export const useMessageStore = create<MessageStoreState>()(
                 }
             }
         }),
-        startToolCall: (id, name, input) => set(d => {
-            d.activeToolCalls.set(id, {
-                toolName: name, input, status: 'running', startTime: Date.now(),
+        startToolCall: (id, name, input) => {
+            const existing = findToolBlock(get().messages, id);
+            // 快照/最终对账后的旧 start 重放不能把已完成工具重新标为运行中。
+            if (existing?.result) return;
+            if (!existing && !get().streamingMessageId) get().appendStreamDelta('');
+            set(d => {
+                if (!d.activeToolCalls.has(id)) d.activeToolCalls.set(id, {
+                    toolName: name, input, status: 'running', startTime: Date.now(),
+                });
+                const message = d.messages.find(m => m.uuid === d.streamingMessageId);
+                if (!existing && message?.type === 'assistant') message.content.push({
+                    type: 'tool_use', toolUseId: id, toolName: name, input: toolInputRecord(input),
+                });
             });
-        }),
+        },
         updateToolCallInput: (id, input) => set(d => {
             const tc = d.activeToolCalls.get(id);
-            if (tc) {
-                tc.input = input;
-            } else {
-                console.warn(`[MessageStore] tool_use_input: 未找到 toolUseId=${id} 的活跃工具调用，input 被丢弃`);
-            }
+            if (tc) tc.input = input;
+            const block = findToolBlock(d.messages, id);
+            if (block) block.input = toolInputRecord(input);
+            if (!tc && !block) console.warn(`[MessageStore] tool_use_input: 未找到 toolUseId=${id}`);
         }),
         updateToolCallProgress: (id, progress) => set(d => {
             const tc = d.activeToolCalls.get(id);
@@ -209,9 +245,11 @@ export const useMessageStore = create<MessageStoreState>()(
                 tc.status = result.isError ? 'error' : 'completed';
                 tc.result = result;
                 tc.duration = Date.now() - tc.startTime;
-            } else {
-                console.warn(`[MessageStore] tool_result: 未找到 toolUseId=${id} 的活跃工具调用，result 被丢弃`);
             }
+            // 结果可晚于段完成/快照到达，仍按 toolUseId 回填所属消息。
+            const block = findToolBlock(d.messages, id);
+            if (block) block.result = result;
+            if (!tc && !block) console.warn(`[MessageStore] tool_result: 未找到 toolUseId=${id}`);
         }),
         failAllRunningToolCalls: (errorMessage) => set(d => {
             // 错误/run_failed 路径上 tool_result 永远不会到来：
@@ -295,103 +333,62 @@ export const useMessageStore = create<MessageStoreState>()(
             }
             return reconciled;
         },
-        finalizeAssistantSegment: () => set(d => {
+        finalizeAssistantSegment: (authoritative) => {
+            // 同 UUID 重放只更新原段，绝不能封掉随后正在流式生成的新段。
+            if (authoritative && get().messages.some(message => message.uuid === authoritative.uuid)) {
+                set(d => {
+                    const index = d.messages.findIndex(message => message.uuid === authoritative.uuid);
+                    d.messages[index] = mergeSegmentTools(authoritative, d.messages, d.activeToolCalls);
+                });
+                return;
+            }
             flushStreamingBuffer();
             const externalContent = streamingStore.clear();
-            const combinedContent = d.streamingContent + externalContent;
-            if (d.streamingMessageId) {
-                const msg = d.messages.find(m => m.uuid === d.streamingMessageId);
-                if (msg && msg.type === 'assistant') {
-                    const content: any[] = [];
-                    if (d.thinkingContent) {
-                        content.push({ type: 'thinking' as const, thinking: d.thinkingContent, completed: true });
-                    }
-                    if (combinedContent) {
-                        // 兜底剥离 LLM 模仿输出的内部折叠标记（错误路径无 committedMessages 清洗版替换）；
-                        // 剥离后为空且消息还有其他块时跳过空文本块，仅此一块时保留原文避免空气泡
-                        const cleaned = stripInternalMarkers(combinedContent);
-                        if (cleaned) {
-                            content.push({ type: 'text' as const, text: cleaned });
-                        } else if (content.length === 0) {
-                            content.push({ type: 'text' as const, text: combinedContent });
+            set(d => {
+                const index = d.messages.findIndex(m => m.uuid === d.streamingMessageId);
+                if (authoritative) {
+                    const merged = mergeSegmentTools(authoritative, d.messages, d.activeToolCalls);
+                    if (index >= 0) d.messages[index] = merged;
+                    else d.messages.push(merged);
+                } else if (index >= 0) {
+                    const message = d.messages[index];
+                    if (message.type === 'assistant') {
+                        const content: ContentBlock[] = [];
+                        if (d.thinkingContent) content.push({ type: 'thinking', thinking: d.thinkingContent });
+                        const rawText = d.streamingContent + externalContent;
+                        const text = stripInternalMarkers(rawText);
+                        const otherBlocks = message.content.filter(block => block.type !== 'text' && block.type !== 'thinking');
+                        if (text) content.push({ type: 'text', text });
+                        else if (rawText && content.length === 0 && otherBlocks.length === 0) {
+                            content.push({ type: 'text', text: rawText });
                         }
+                        // steering 封段也必须保留工具，不能只保存 thinking/text。
+                        content.push(...otherBlocks);
+                        message.content = content;
                     }
-                    (msg as { content: unknown }).content = content;
                 }
-            }
-            d.streamingMessageId = null;
-            d.streamingContent = '';
-            d.thinkingContent = '';
-        }),
-        finalizeStream: (_usage) => set(d => {
-            // 先刷新 streamingStore 中的剩余缓冲
-            flushStreamingBuffer();
-            const externalContent = streamingStore.clear();
-
-            // 将累积的流式内容保存到 messages 中的 assistant 消息
-            const combinedContent = d.streamingContent + externalContent;
-            if (d.streamingMessageId) {
-                const msg = d.messages.find(m => m.uuid === d.streamingMessageId);
-                if (msg && 'content' in msg && msg.type === 'assistant') {
-                    const content: any[] = [];
-                    // 保留 thinking block (标记为 completed)
-                    if (d.thinkingContent) {
-                        content.push({ type: 'thinking' as const, thinking: d.thinkingContent, completed: true });
-                    }
-                    // 文本内容：兜底剥离 LLM 模仿输出的内部折叠标记（错误路径无落库清洗版替换）
-                    if (combinedContent) {
-                        const cleaned = stripInternalMarkers(combinedContent);
-                        // 剥离后为空且消息还有其他块（thinking/tool_use）时跳过空文本块；
-                        // 仅此一块时保留原文，避免渲染空消息气泡
-                        if (cleaned) {
-                            content.push({ type: 'text' as const, text: cleaned });
-                        } else if (content.length === 0 && d.activeToolCalls.size === 0) {
-                            content.push({ type: 'text' as const, text: combinedContent });
-                        }
-                    }
-                    // 将本条流式消息期间的工具调用迁移为 tool_use block，
-                    // 保证流式→终态切换后工具卡片数据（id/name/完整 input/result/status）不丢失
-                    for (const [toolUseId, tc] of Array.from(d.activeToolCalls.entries())) {
-                        // error 状态（无 result）条目合成 isError result：错误状态借此持久化进消息内容，
-                        // 迁移后的 tool_use block 渲染为终态错误而非回退 running 转圈
-                        const result = tc.result
-                            ?? (tc.error ? { content: tc.error, isError: true } : undefined);
-                        content.push({
-                            type: 'tool_use' as const,
-                            toolUseId,
-                            toolName: tc.toolName,
-                            input: tc.input ?? {},
-                            ...(result ? { result } : {}),
-                        });
-                        // 已有终态（result 或合成 error result）的条目迁移后即可清理；running 条目保留，
-                        // 使后续到达的 tool_result 仍能通过 completeToolCall 关联
-                        if (result) d.activeToolCalls.delete(toolUseId);
-                    }
-                    (msg as { content: unknown }).content = content;
-                }
-            }
-            // 兜底清理：无流式消息承载时 error 条目（有 error 无 result）无人清理，
-            // 直接删除防止跨 run 残留（下一轮流式渲染重复展示旧卡片）；running/permission 条目语义不变。
-            // 但 tool_use block 可能已随此前的局部提交写入某条 assistant 消息（无 result）：
-            // 删除前先为其补写合成 isError result（与迁移路径一致），
-            // 避免 block 因失去 map 条目而回退 running 永久转圈
-            for (const [toolUseId, tc] of Array.from(d.activeToolCalls.entries())) {
-                if (!tc.result && tc.error) {
+                d.streamingMessageId = null;
+                d.streamingContent = '';
+                d.thinkingContent = '';
+            });
+        },
+        finalizeStream: (_usage) => {
+            get().finalizeAssistantSegment();
+            set(d => {
+                // 每个结果只回填它所属的段，不能把先前所有工具搬到最终回复。
+                for (const [id, call] of d.activeToolCalls) {
+                    const result = call.result ?? (call.error ? { content: call.error, isError: true } : undefined);
+                    if (!result) continue;
                     for (const message of d.messages) {
                         if (message.type !== 'assistant') continue;
                         for (const block of message.content) {
-                            if (block.type === 'tool_use' && block.toolUseId === toolUseId && !block.result) {
-                                block.result = { content: tc.error, isError: true };
-                            }
+                            if (block.type === 'tool_use' && block.toolUseId === id && !block.result) block.result = result;
                         }
                     }
-                    d.activeToolCalls.delete(toolUseId);
+                    d.activeToolCalls.delete(id);
                 }
-            }
-            d.streamingMessageId = null;
-            d.streamingContent = '';
-            d.thinkingContent = '';
-        }),
+            });
+        },
         clearMessages: () => {
             flushStreamingBuffer();
             streamingStore.clear();

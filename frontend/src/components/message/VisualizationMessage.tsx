@@ -3,7 +3,7 @@
  *
  * 对齐 ZhikunCode 差异化升级方案 v1.5 §4.5 C（升级项 C.4 前端接入）+ 修订版混合分发。
  *
- * 路由：MessageItem.renderMessage → case 'visualization' → 本组件
+ * 路由：renderMessageContent → case 'visualization' → 本组件
  * 数据源：后端 VisualizationPayloadBuilder 推送的 { type: 'visualization', viewType, props }
  *
  * 设计（修订版）：

@@ -1,3 +1,4 @@
+import { GlassMaterial } from '@/components/theme/GlassMaterial';
 /**
  * CommandPalette — Slash 命令面板
  *
@@ -16,17 +17,11 @@ import { Kbd } from '@/components/ui';
 import { useTurnViewStore, type TurnDensity } from '@/store/turnViewStore';
 import { useSessionStore } from '@/store/sessionStore';
 
-/**
- * 本地视图密度命令（P2 修复：detailed 视图不渲染 TurnToolbar，
- * 面板命令 = 不依赖 toolbar 的常驻密度切换路径）。
- * 与经 onSelect 上送服务端的 slash 命令不同 —— 命中后本地直接 setDensity
- * 并关闭面板，不改输入草稿、不产生服务端往返；密度口径与 TurnToolbar 一致
- * （切换即放弃当前会话手动展开偏好）。
- */
+/** 本地密度命令控制消息展示；简洁档默认折叠问题、过程与回复。 */
 const VIEW_DENSITY_COMMANDS: Array<Command & { density: TurnDensity }> = [
-    { name: '视图：简洁', description: '切换消息视图密度：轮次全折叠', group: '视图', density: 'compact' },
-    { name: '视图：均衡', description: '切换消息视图密度：仅最新轮展开', group: '视图', density: 'balanced' },
-    { name: '视图：详细', description: '切换消息视图密度：消息平铺（旧版视图）', group: '视图', density: 'detailed' },
+    { name: '视图：简洁', description: '问题、过程与回复默认折叠，可分别展开', group: '视图', density: 'compact' },
+    { name: '视图：均衡', description: '按任务分节展示过程，展开查看步骤摘要', group: '视图', density: 'balanced' },
+    { name: '视图：详细', description: '按任务分节展示完整过程与工具详情', group: '视图', density: 'detailed' },
 ];
 
 /** 命令名 → 目标密度（本地命令命中判定） */
@@ -141,10 +136,11 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
             onKeyDown={handleKeyDown}
         >
             <div
-                className={`bg-surfacev2 border border-hairline rounded-panel shadow-e4 overflow-hidden
+                className={`glass-menu glass-surface relative bg-surfacev2 border border-hairline rounded-panel shadow-e4 overflow-hidden
                     ${isGlobal ? 'w-full max-w-lg mx-4' : 'w-full'}`}
                 onClick={e => e.stopPropagation()}
             >
+                <GlassMaterial kind="overlay" />
                 {/* Search input (global mode) */}
                 {isGlobal && (
                     <div className="flex items-center gap-2 px-3 py-2.5 border-b border-hairline">

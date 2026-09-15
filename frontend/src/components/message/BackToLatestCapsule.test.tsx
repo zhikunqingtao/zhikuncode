@@ -39,6 +39,9 @@ describe('BackToLatestCapsule 组件', () => {
         const button = screen.getByTestId('back-to-latest');
         expect(button).toHaveAttribute('aria-hidden', 'true');
         expect(button).toHaveAttribute('tabindex', '-1');
+        expect(button).toBeDisabled();
+        expect(button).toHaveClass('pointer-events-none');
+        expect(button).not.toHaveClass('pointer-events-auto');
     });
 
     it('run 进行中 → accent 呼吸点', () => {

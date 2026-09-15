@@ -562,14 +562,27 @@ public class SessionManager {
                             stopReason != null ? stopReason : "end_turn",
                             usage);
                 }
-                case "system" -> (Message) new Message.SystemMessage(
-                        id, createdAt,
-                        blocks.isEmpty() ? contentJson
-                                : blocks.stream()
-                                .filter(b -> b instanceof ContentBlock.TextBlock)
-                                .map(b -> ((ContentBlock.TextBlock) b).text())
-                                .collect(java.util.stream.Collectors.joining("\n")),
-                        SystemMessageType.INFO);
+                case "system" -> {
+                    // meta_json 承载 system 消息的 subtype + metadata（写入端合并序列化）；
+                    // 旧消息该列为 NULL → subtype/metadata 均为 null
+                    String systemMetaJson = (String) row.get("meta_json");
+                    Map<String, Object> systemMeta = (systemMetaJson == null || systemMetaJson.isBlank())
+                            ? null : new LinkedHashMap<>(parseJsonMap(systemMetaJson));
+                    String subtype = null;
+                    if (systemMeta != null && systemMeta.remove("subtype") instanceof String s) {
+                        subtype = s;
+                    }
+                    Map<String, Object> metadata = (systemMeta == null || systemMeta.isEmpty())
+                            ? null : systemMeta;
+                    yield (Message) new Message.SystemMessage(
+                            id, createdAt,
+                            blocks.isEmpty() ? contentJson
+                                    : blocks.stream()
+                                    .filter(b -> b instanceof ContentBlock.TextBlock)
+                                    .map(b -> ((ContentBlock.TextBlock) b).text())
+                                    .collect(java.util.stream.Collectors.joining("\n")),
+                            SystemMessageType.INFO, subtype, metadata);
+                }
                 default -> throw new IllegalArgumentException("Unknown role: " + role);
             });
         } catch (Exception e) {

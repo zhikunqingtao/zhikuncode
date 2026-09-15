@@ -29,6 +29,8 @@ import { AssistantBlockRenderer } from './assistantBlockRenderer';
 import { useStreamingText } from '@/hooks/useStreamingText';
 
 interface AssistantMessageProps {
+    /** 嵌入整轮助手卡片时，仅渲染正文与操作行。 */
+    embedded?: boolean;
     message: Extract<Message, { type: 'assistant' }>;
     /** 是否正在流式接收此消息 */
     isStreaming?: boolean;
@@ -43,22 +45,23 @@ interface AssistantMessageProps {
 const AssistantMessage: React.FC<AssistantMessageProps> = ({
     message,
     isStreaming = false,
+    embedded = false,
     streamingContent,
     thinkingContent,
     activeToolCalls,
 }) => {
     return (
-        <div className="assistant-message group flex gap-3 px-4 py-3">
+        <div className={embedded ? "assistant-message group min-w-0" : "assistant-message group flex gap-3 px-4 py-3"}>
             {/* Avatar（§7.2：渐变 accent 方块 30px rounded-lg） */}
-            <div className="flex-shrink-0 w-[30px] h-[30px] rounded-lg bg-gradient-to-br from-accent2 to-accent2-strong shadow-e1 flex items-center justify-center">
+            {!embedded && <div className="flex-shrink-0 w-[30px] h-[30px] rounded-lg bg-gradient-to-br from-accent2 to-accent2-strong shadow-e1 flex items-center justify-center">
                 <Bot size={16} className="text-white" />
-            </div>
+            </div>}
 
             {/* Card 容器（§7.2：surface + hairline + rounded-panel + shadow-e2，px-18/py-20） */}
-            <div className="flex-1 min-w-0 rounded-panel border border-hairline bg-surfacev2 shadow-e2 px-[18px] py-5">
-                <div className="flex items-center gap-1.5 mb-2 text-xs text-t3 font-medium">
+            <div className={embedded ? "min-w-0" : "flex-1 min-w-0 rounded-panel border border-hairline bg-surfacev2 shadow-e2 px-[18px] py-5"}>
+                {!embedded && <div className="flex items-center gap-1.5 mb-2 text-xs text-t3 font-medium">
                     <span>Assistant</span>
-                </div>
+                </div>}
 
                 <div className="text-sm text-t1 leading-[1.75]">
                     {isStreaming ? (
@@ -66,7 +69,10 @@ const AssistantMessage: React.FC<AssistantMessageProps> = ({
                             since={message.timestamp}
                             streamingContent={streamingContent}
                             thinkingContent={thinkingContent}
-                            activeToolCalls={activeToolCalls}
+                            activeToolCalls={activeToolCalls && new Map(
+                                [...activeToolCalls].filter(([id]) => message.content.some(
+                                    block => block.type === 'tool_use' && block.toolUseId === id)),
+                            )}
                         />
                     ) : (
                         <FinalizedContent

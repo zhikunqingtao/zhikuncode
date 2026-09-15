@@ -391,14 +391,14 @@ public class ImageRefInjector {
             List<ContentBlock> contentCopy = um.content() != null
                     ? new ArrayList<>(um.content()) : null;
             return new UserMessage(um.uuid(), um.timestamp(), contentCopy,
-                    MessageContentAccessor.rawLegacyToolResult(um), um.sourceToolAssistantUUID());
+                    MessageContentAccessor.rawLegacyToolResult(um), um.sourceToolAssistantUUID(), um.meta());
         } else if (msg instanceof AssistantMessage am) {
             List<ContentBlock> contentCopy = am.content() != null
                     ? new ArrayList<>(am.content()) : null;
             return new AssistantMessage(am.uuid(), am.timestamp(), contentCopy,
                     am.stopReason(), am.usage());
         } else if (msg instanceof SystemMessage sm) {
-            return new SystemMessage(sm.uuid(), sm.timestamp(), sm.content(), sm.type());
+            return new SystemMessage(sm.uuid(), sm.timestamp(), sm.content(), sm.type(), sm.subtype(), sm.metadata());
         }
         return msg;
     }
@@ -415,7 +415,7 @@ public class ImageRefInjector {
     private Message rebuildMessage(Message msg, List<ContentBlock> newContent) {
         if (msg instanceof UserMessage um) {
             return new UserMessage(um.uuid(), um.timestamp(), newContent,
-                    MessageContentAccessor.rawLegacyToolResult(um), um.sourceToolAssistantUUID());
+                    MessageContentAccessor.rawLegacyToolResult(um), um.sourceToolAssistantUUID(), um.meta());
         } else if (msg instanceof AssistantMessage am) {
             return new AssistantMessage(am.uuid(), am.timestamp(), newContent,
                     am.stopReason(), am.usage());

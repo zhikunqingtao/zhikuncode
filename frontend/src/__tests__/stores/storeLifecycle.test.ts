@@ -76,7 +76,6 @@ describe('TC-STORE-002: sessionStore 会话生命周期', () => {
             model: null,
             status: 'idle',
             turnCount: 0,
-            effortValue: 3,
             isAborted: false,
         });
     });

@@ -115,11 +115,9 @@ test.describe('AUTO_APPROVE permission mode', () => {
     await page.getByLabel('新建会话', { exact: true }).click();
     await page.getByText(project.name, { exact: true }).click();
     await page.getByRole('button', { name: '使用所选授权' }).click();
-    await page.locator('button[title="设置"]').click();
-
-    const autoApprove = page.getByText('完全访问权限').first().locator('..');
-    await expect(autoApprove).toBeEnabled();
-    await autoApprove.click();
+    // sessionId is committed only after the matching session_restored frame.
+    await expect(page.getByText('Session: session-...', { exact: true })).toBeVisible();
+    await page.getByRole('combobox', { name: '权限模式', exact: true }).selectOption('auto_approve');
 
     await expect.poll(() => requestedMode).toBe('AUTO_APPROVE');
     await expect(page.locator('footer').getByText('完全访问权限')).toBeVisible();
@@ -128,10 +126,10 @@ test.describe('AUTO_APPROVE permission mode', () => {
   test('does not allow a mode request before a session is bound', async ({ page }) => {
     await mockHttpApi(page);
     await page.goto('/');
-    await page.locator('button[title="设置"]').click();
-
-    const autoApprove = page.getByText('完全访问权限').first().locator('..');
-    await expect(autoApprove).toBeDisabled();
-    await expect(page.getByText('请先创建或选择会话后再设置权限模式。')).toBeVisible();
+    const mode = page.getByRole('combobox', { name: '权限模式', exact: true });
+    const previous = await mode.inputValue();
+    await mode.selectOption('auto_approve');
+    await expect(mode).toHaveValue(previous);
+    await expect(page.getByText('New Session', { exact: true })).toBeVisible();
   });
 });

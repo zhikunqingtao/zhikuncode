@@ -265,6 +265,23 @@ describe('Dialog 交互（§10.7-④ 焦点归还链）', () => {
         expect(document.activeElement).toBe(trigger);
     });
 
+    it('条件渲染的弹层卸载后也归还焦点', () => {
+        function Conditional() {
+            const [open, setOpen] = useState(false);
+            return <>
+                <button onClick={() => setOpen(true)}>条件打开</button>
+                {open && <Dialog open title="条件弹层" onClose={() => setOpen(false)}>内容</Dialog>}
+            </>;
+        }
+        render(<Conditional />);
+        const trigger = screen.getByRole('button', { name: '条件打开' });
+        trigger.focus();
+        fireEvent.click(trigger);
+        fireEvent.keyDown(document, { key: 'Escape' });
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        expect(trigger).toHaveFocus();
+    });
+
     it('关闭按钮与遮罩走同一 close handler', () => {
         const onOpenChange = vi.fn();
         function Controlled() {

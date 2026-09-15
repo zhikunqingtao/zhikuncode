@@ -1,7 +1,10 @@
+import { useId } from 'react';
+import { GlassSelection } from '@/components/theme/GlassSelection';
 import { Check, Code2, LayoutDashboard, Pin } from 'lucide-react';
 import { useWorkbenchViewStore } from '@/store/workbenchViewStore';
 
 export function WorkbenchViewSwitch() {
+    const glassId = useId();
     const mode = useWorkbenchViewStore(state => state.viewMode);
     const defaultMode = useWorkbenchViewStore(state => state.defaultView);
     const setMode = useWorkbenchViewStore(state => state.setViewMode);
@@ -10,7 +13,7 @@ export function WorkbenchViewSwitch() {
     return (
         <div className="flex items-center gap-1">
             <div
-                className="flex shrink-0 items-center rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] p-0.5"
+                className="glass-segments flex shrink-0 items-center rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] p-0.5"
                 role="tablist"
                 aria-label="工作台视图"
             >
@@ -23,6 +26,7 @@ export function WorkbenchViewSwitch() {
                     onClick={() => setMode('simple')}
                     className={`flex items-center gap-1.5 rounded-md px-2 lg:px-2.5 py-1.5 text-xs font-medium transition-colors ${mode === 'simple' ? 'bg-blue-600 text-white' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
                 >
+                    {mode === 'simple' && <GlassSelection id={glassId} />}
                     <LayoutDashboard className="h-3.5 w-3.5 shrink-0" />
                     <span className="hidden whitespace-nowrap lg:inline">简洁工作台</span>
                 </button>
@@ -35,6 +39,7 @@ export function WorkbenchViewSwitch() {
                     onClick={() => setMode('development')}
                     className={`flex items-center gap-1.5 rounded-md px-2 lg:px-2.5 py-1.5 text-xs font-medium transition-colors ${mode === 'development' ? 'bg-blue-600 text-white' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
                 >
+                    {mode === 'development' && <GlassSelection id={glassId} />}
                     <Code2 className="h-3.5 w-3.5 shrink-0" />
                     <span className="hidden whitespace-nowrap lg:inline">开发工作台</span>
                 </button>

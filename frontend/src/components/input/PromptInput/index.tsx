@@ -1,3 +1,4 @@
+import { GlassMaterial } from '@/components/theme/GlassMaterial';
 /**
  * PromptInput — 用户输入组件（容器：对外接口 + 形态分发）
  *
@@ -28,6 +29,7 @@ import { PromptAttachmentBar, PromptToolbar } from './PromptToolbar';
 import PromptSendButton from './PromptSendButton';
 import MobilePromptBar from './MobilePromptBar';
 import { ModelChip, PermissionModeChip } from './PromptComposerChips';
+import { DensitySwitch } from './DensitySwitch';
 
 interface PromptInputProps {
     sessionId?: string | null;
@@ -57,10 +59,11 @@ const PromptInput: React.FC<PromptInputProps> = (props) => {
 
     return (
         <div
-            className="relative"
+            className="chat-composer-surface glass-surface relative"
             onDrop={a.handleDrop}
             onDragOver={e => e.preventDefault()}
         >
+            <GlassMaterial kind="control" interactive />
             {/* File auto-complete (@trigger) */}
             {s.showFileComplete && (
                 <FileAutoComplete
@@ -161,10 +164,12 @@ const PromptInput: React.FC<PromptInputProps> = (props) => {
                         />
                     </div>
 
-                    {/* composer-row：权限/模型 mini-chip + 键盘提示（仅桌面分支渲染） */}
+                    {/* composer-row：权限/模型 mini-chip + 消息密度分段控件 + 键盘提示
+                        （仅桌面分支渲染；密度切换自消息区工具条迁入） */}
                     <div className="mt-2 flex items-center gap-2">
                         <PermissionModeChip />
                         <ModelChip />
+                        <DensitySwitch />
                         <span className="flex-1" />
                         <span className="text-xs text-t2">⏎ 发送&ensp;·&ensp;⇧⏎ 换行</span>
                     </div>

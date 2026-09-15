@@ -2,11 +2,11 @@
  * ThemeProvider — 主题提供者
  * SPEC: §8.7 主题系统
  *
- * 管理主题模式切换 (light/dark/system/glass) 和 CSS 变量应用
+ * 管理主题模式切换 (light/dark/glass) 和 CSS 变量应用
  */
 
 import React, { useEffect, useCallback } from 'react';
-import { useConfigStore } from '@/store/configStore';
+import { normalizeThemeMode, useConfigStore } from '@/store/configStore';
 import { applyAccent } from '@/theme/accents';
 import { resolveTheme } from '@/styles/design-tokens';
 
@@ -20,23 +20,20 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     // 应用主题到 document
     const applyTheme = useCallback(() => {
         const root = document.documentElement;
+        const mode = normalizeThemeMode(theme.mode);
         
         // 移除旧的 theme class
-        root.classList.remove('light', 'dark', 'glass');
+        root.classList.remove('light', 'dark', 'glass', 'system');
         
         // Force reflow to ensure CSS variables are recalculated immediately
         void root.offsetHeight;
         
         // 根据模式设置
-        if (theme.mode === 'glass') {
+        if (mode === 'glass') {
             // 液态玻璃模式: 添加 glass class，基于浅色方案
             root.classList.add('glass');
-        } else if (theme.mode === 'system') {
-            // 检测系统偏好
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            root.classList.add(prefersDark ? 'dark' : 'light');
         } else {
-            root.classList.add(theme.mode);
+            root.classList.add(mode);
         }
         
         // 应用强调色
@@ -44,20 +41,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
             root.style.setProperty('--accent-color', theme.accentColor);
         }
         // v2 强调色令牌（§3.4）：--accent-color 保留给旧组件；
-        // v2 令牌按 effectiveTheme 写入（glass→light；system→matchMedia，主题/强调色变化时随 applyTheme 重算）
-        applyAccent(theme.accentColor ?? '#6366F1', resolveTheme(theme.mode));
+        // v2 令牌按 effectiveTheme 写入（glass→light，主题/强调色变化时随 applyTheme 重算）
+        applyAccent(theme.accentColor ?? '#6366F1', resolveTheme(mode));
 
-        // §9.4 Glass 降级：低端设备（deviceMemory<4）或偏好低透明（prefers-reduced-transparency）时
-        // 加 .glass-reduced（globals.css 中 backdrop-filter:none + 面板实色回退）；仅 glass 模式生效。
-        const prefersReducedTransparency = window.matchMedia('(prefers-reduced-transparency: reduce)').matches;
-        const deviceMemory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
-        const lowMemory = typeof deviceMemory === 'number' && deviceMemory < 4;
-        if (theme.mode === 'glass' && (prefersReducedTransparency || lowMemory)) {
-            root.classList.add('glass-reduced');
-        } else {
-            root.classList.remove('glass-reduced');
-        }
-        
         // 应用字体大小
         if (theme.fontSize) {
             const fontSizeMap: Record<string, string> = {
@@ -82,17 +68,6 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
             root.style.setProperty('--border-radius', radiusMap[theme.borderRadius] || '8px');
         }
     }, [theme]);
-
-    // 监听系统主题变化 (仅 system 模式需要)
-    useEffect(() => {
-        if (theme.mode !== 'system') return;
-        
-        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        const handler = () => applyTheme();
-        
-        mediaQuery.addEventListener('change', handler);
-        return () => mediaQuery.removeEventListener('change', handler);
-    }, [theme.mode, applyTheme]);
 
     // 初始化和主题变化时应用
     useEffect(() => {

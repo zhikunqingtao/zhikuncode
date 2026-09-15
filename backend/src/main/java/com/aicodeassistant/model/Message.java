@@ -66,10 +66,31 @@ public sealed interface Message {
             Usage usage
     ) implements Message {}
 
+    /**
+     * @param type     后端系统消息种类，以 JSON "kind" 往返保存；"type" 仅表示消息角色。
+     *                 兼容旧快照中角色判别字段之后重复的业务 type；两者均缺失时保持 null。
+     * @param subtype  业务子类型（如 "task_boundary"），对应前端 system 消息的 subtype 字段；可空
+     * @param metadata 业务元数据（如 task_boundary 的 {task_id,title,seq,turn_index}），
+     *                 持久化于 messages.meta_json，REST/WS 历史原样回传；
+     *                 对应前端 system 消息的 metadata 字段；可空
+     */
     record SystemMessage(
             String uuid,
             Instant timestamp,
             String content,
-            SystemMessageType type
-    ) implements Message {}
+            @com.fasterxml.jackson.annotation.JsonProperty("kind")
+            @com.fasterxml.jackson.annotation.JsonAlias("type") SystemMessageType type,
+            @JsonInclude(JsonInclude.Include.NON_NULL) String subtype,
+            @JsonInclude(JsonInclude.Include.NON_NULL) Map<String, Object> metadata
+    ) implements Message {
+
+        /** 兼容旧调用方的 4 参构造（subtype/metadata = null）。 */
+        public SystemMessage(
+                String uuid,
+                Instant timestamp,
+                String content,
+                SystemMessageType type) {
+            this(uuid, timestamp, content, type, null, null);
+        }
+    }
 }

@@ -45,7 +45,7 @@ test.describe('P2b-2b 移动虚拟键盘接线 probe', () => {
     const baselineBox = await bar.boundingBox();
     expect(baselineBox).not.toBeNull();
 
-    // ── 1. 聚焦输入胶囊（真实键盘弹起的前置动作） ──
+    // ── 1. 聚焦输入卡片（真实键盘弹起的前置动作） ──
     const textarea = page.locator('textarea[aria-label="输入消息"]');
     await textarea.tap();
     await expect(textarea).toBeFocused();
@@ -101,7 +101,7 @@ test.describe('P2b-2b 移动虚拟键盘接线 probe', () => {
     });
     const list = page.locator('.message-list');
     await expect(list).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText('kb-scroll-0：滚底验证消息')).toBeVisible();
+    await expect(page.getByText('kb-scroll-39：滚底验证消息')).toBeVisible();
 
     // 消息区滚动元素（Virtuoso scroller，不依赖内部 DOM 结构）
     const readScroll = () => page.evaluate(() => {

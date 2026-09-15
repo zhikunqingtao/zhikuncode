@@ -74,7 +74,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     // 独立 Sidebar 模式：只渲染 Sidebar 全屏
     if (isDetachedSidebar) {
         return (
-            <div className="h-screen flex flex-col bg-[var(--bg-primary)] overflow-hidden">
+            <div className="app-workspace h-screen flex flex-col bg-[var(--bg-primary)] overflow-hidden">
                 <Sidebar className="flex-1" isDrawerMode={false} defaultTab={detachedTab} />
                 {!isConnected && (
                     <div className="fixed bottom-4 left-1/2 -translate-x-1/2 
@@ -89,7 +89,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     }
 
     return (
-        <div className="h-screen flex flex-col bg-[var(--bg-primary)] overflow-hidden">
+        <div className="app-workspace h-screen flex flex-col bg-[var(--bg-primary)] overflow-hidden">
             {/* Header */}
             <Header 
                 onMenuClick={toggleSidebar} 
@@ -139,7 +139,9 @@ export function AppLayout({ children }: AppLayoutProps) {
                     </div>
 
                     {/* StatusBar */}
-                    <StatusBar />
+                    {isMobile && aposEnabled && mobileStatusEnabled
+                        ? <div aria-hidden="true" className="shrink-0" style={{ height: 'calc(36px + env(safe-area-inset-bottom))' }} />
+                        : <StatusBar />}
                 </main>
             </div>
 

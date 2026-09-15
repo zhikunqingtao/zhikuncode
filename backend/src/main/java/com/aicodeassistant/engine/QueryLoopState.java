@@ -50,6 +50,9 @@ public class QueryLoopState {
     /** 恢复耗尽标记 — 413/本地预算守卫恢复全部失败后设置，通知 execute() 标记 run 为 FAILED */
     private boolean recoveryExhausted = false;
 
+    /** task_boundary 追踪 — run 作用域，随 state 回收；仅内存状态，不参与序列化 */
+    private final TaskBoundaryTracker taskBoundaryTracker = new TaskBoundaryTracker();
+
     public QueryLoopState(List<Message> messages, ToolUseContext toolUseContext) {
         this.messages = new ArrayList<>(messages);
         this.toolUseContext = toolUseContext;
@@ -161,6 +164,10 @@ public class QueryLoopState {
 
     public boolean isRecoveryExhausted() { return recoveryExhausted; }
     public void setRecoveryExhausted(boolean exhausted) { this.recoveryExhausted = exhausted; }
+
+    /** task_boundary 去重/序号追踪（run 作用域；@JsonIgnore 防止被序列化路径带出） */
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public TaskBoundaryTracker getTaskBoundaryTracker() { return taskBoundaryTracker; }
 
     // ==================== Withheld Errors ====================
 

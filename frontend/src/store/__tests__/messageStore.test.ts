@@ -210,13 +210,14 @@ describe('MessageStore', () => {
         useMessageStore.setState({ messages: liveMessages });
         useMessageStore.getState().startToolCall('running-tool', 'Bash', { command: 'pwd' });
 
+        const beforeReconcile = useMessageStore.getState().messages;
         const reconciled = useMessageStore.getState().reconcileCommittedRun('missing-anchor', [{
             uuid: 'committed-new', type: 'assistant',
             content: [{ type: 'text', text: 'new' }], timestamp: 2,
         }] as Message[]);
 
         expect(reconciled).toBe(false);
-        expect(useMessageStore.getState().messages).toEqual(liveMessages);
+        expect(useMessageStore.getState().messages).toBe(beforeReconcile);
         expect(useMessageStore.getState().activeToolCalls.has('running-tool')).toBe(true);
     });
 

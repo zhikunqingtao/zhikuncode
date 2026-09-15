@@ -106,7 +106,27 @@ export interface MessageCompletePayload {
     replaceAfterMessageId?: string | null;
     committedMessages?: Message[];
 }
+export interface AssistantSegmentCompletePayload {
+    type: 'assistant_segment_complete';
+    message: Extract<Message, { type: 'assistant' }>;
+}
 export interface PongPayload { type: 'pong'; timestamp: number }
+/**
+ * 任务边界事件 — TodoWrite 任务首次进入 in_progress 时后端持久化一条
+ * task_boundary 系统消息并通过 WS/STOMP 下发。字段名防御性兼容驼峰/下划线。
+ */
+export interface TaskBoundaryPayload {
+    type: 'task_boundary';
+    message_id?: string;
+    messageId?: string;
+    ts?: number;
+    taskId?: string;
+    task_id?: string;
+    title?: string;
+    seq?: number;
+    turnIndex?: number;
+    turn_index?: number;
+}
 /** Provider 错误码 — 与后端 error 事件契约约定的 errorCode 取值 */
 export type ProviderErrorCode = 'PROVIDER_PAYMENT_REQUIRED' | 'PROVIDER_FORBIDDEN' | 'PROVIDER_RATE_LIMITED' | 'PROVIDER_ERROR' | 'PROVIDER_UNREACHABLE';
 export interface ErrorPayload { type: 'error'; code?: string; message: string; retryable?: boolean; errorCode?: ProviderErrorCode; httpStatus?: number }
@@ -233,7 +253,9 @@ export type ServerMessage =
     | SwarmStateUpdatePayload
     | WorkerProgressPayload
     | ToolPermissionDeniedPayload
-    | WorkflowPhaseUpdatePayload;
+    | WorkflowPhaseUpdatePayload
+    | AssistantSegmentCompletePayload
+    | TaskBoundaryPayload;
 
 // ==================== 工具相关类型 ====================
 
@@ -486,7 +508,7 @@ export interface PermissionRequest {
 // ==================== 配置相关 ====================
 
 export interface ThemeConfig {
-    mode: 'light' | 'dark' | 'system' | 'glass';
+    mode: 'light' | 'dark' | 'glass';
     accentColor: string;
     fontSize?: string;
     fontFamily?: string;

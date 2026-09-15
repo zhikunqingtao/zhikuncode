@@ -3,7 +3,7 @@
  * SPEC: §8.8.1
  *
  * 监听 CSS 媒体查询匹配状态，支持 SSR 安全。
- * 用于响应式断点检测、prefers-color-scheme 跟随等。
+ * 用于响应式断点检测、动画偏好检测等。
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -13,7 +13,6 @@ import { useState, useEffect, useCallback } from 'react';
  *
  * @example
  * const isMobile = useMediaQuery('(max-width: 767px)');
- * const prefersDark = useMediaQuery('(prefers-color-scheme: dark)');
  * const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
  */
 export function useMediaQuery(query: string): boolean {
@@ -72,10 +71,6 @@ export function useIsTablet(): boolean {
 
 export function useIsDesktop(): boolean {
     return useMediaQuery('(min-width: 1024px)');
-}
-
-export function usePrefersDark(): boolean {
-    return useMediaQuery('(prefers-color-scheme: dark)');
 }
 
 export function usePrefersReducedMotion(): boolean {

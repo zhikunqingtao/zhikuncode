@@ -1119,6 +1119,9 @@ public class QueryEngine {
                         session, handler, aborted, toolUseBlocks, tracker);
                 state.addMessages(toolResults);
 
+                // ★ task_boundary：TodoWrite 任务首次进入 IN_PROGRESS → 实时推送 + 持久化 system 消息
+                emitTaskBoundaries(state, handler, toolResults, toolUseBlocks);
+
                 // ★ 新增：获取工具执行后更新的 context（contextModifier 传播）
                 ToolUseContext updatedContext = session.getCurrentContext();
                 if (updatedContext != null) {
@@ -1775,6 +1778,83 @@ public class QueryEngine {
     private static String toolName(List<ContentBlock.ToolUseBlock> blocks, String toolUseId) {
         return blocks.stream().filter(block -> block.id().equals(toolUseId))
                 .map(ContentBlock.ToolUseBlock::name).findFirst().orElse("unknown");
+    }
+
+    /**
+     * task_boundary 检测（#42）— TodoWrite 结果中某任务首次进入 IN_PROGRESS 时：
+     * (a) 通过 handler 实时推送 task_boundary 事件；
+     * (b) 向 state 追加 subtype=task_boundary 的 system 消息（listener 自动持久化，供历史回放）。
+     * 同一 run 内同一任务只发一次（QueryLoopState 上的 TaskBoundaryTracker 去重），seq 从 1 递增。
+     * 检测基于 TodoWriteTool 返回的 {oldTodos, newTodos} JSON diff，失败静默（不影响主循环）。
+     */
+    private void emitTaskBoundaries(QueryLoopState state, QueryMessageHandler handler,
+                                    List<Message> toolResults,
+                                    List<ContentBlock.ToolUseBlock> toolUseBlocks) {
+        try {
+            if (toolResults == null || toolResults.isEmpty()
+                    || toolUseBlocks == null || toolUseBlocks.isEmpty()) return;
+            Set<String> todoWriteIds = toolUseBlocks.stream()
+                    .filter(b -> "TodoWrite".equals(b.name()))
+                    .map(ContentBlock.ToolUseBlock::id)
+                    .collect(Collectors.toSet());
+            if (todoWriteIds.isEmpty()) return;
+
+            TaskBoundaryTracker tracker = state.getTaskBoundaryTracker();
+            for (Message toolResultMsg : toolResults) {
+                if (!(toolResultMsg instanceof Message.UserMessage um) || um.content() == null) continue;
+                for (ContentBlock block : um.content()) {
+                    if (!(block instanceof ContentBlock.ToolResultBlock trb)
+                            || trb.isError() || !todoWriteIds.contains(trb.toolUseId())) continue;
+                    List<TaskBoundaryTracker.TaskBoundary> boundaries =
+                            tracker.onTodoWriteResult(trb.content());
+                    for (TaskBoundaryTracker.TaskBoundary boundary : boundaries) {
+                        emitTaskBoundary(state, handler, boundary);
+                    }
+                }
+            }
+        } catch (RuntimeException detectionFailure) {
+            log.warn("task_boundary detection failed (non-fatal): {}", detectionFailure.getMessage());
+        }
+    }
+
+    private void emitTaskBoundary(QueryLoopState state, QueryMessageHandler handler,
+                                  TaskBoundaryTracker.TaskBoundary boundary) {
+        int turnIndex = currentInstructionTurnIndex(state);
+        String title = boundary.title() != null ? boundary.title() : "";
+        // 构造持久化 system 消息（metadata 与实时事件同构，snake_case 键与前端契约一致）
+        Map<String, Object> metadata = new LinkedHashMap<>();
+        metadata.put("task_id", boundary.taskId());
+        metadata.put("title", title);
+        metadata.put("seq", boundary.seq());
+        metadata.put("turn_index", turnIndex);
+        Message.SystemMessage message = new Message.SystemMessage(
+                UUID.randomUUID().toString(), Instant.now(), "",
+                SystemMessageType.INFO, "task_boundary", metadata);
+        // 先进入状态并尝试增量写入；监听器失败由既有 reconcile 补偿，不代表已确认落盘。
+        state.addMessage(message);
+        try {
+            handler.onTaskBoundary(message);
+        } catch (RuntimeException pushFailure) {
+            log.warn("task_boundary push failed: taskId={}, seq={}, error={}",
+                    boundary.taskId(), boundary.seq(), pushFailure.getMessage());
+        }
+    }
+
+    /**
+     * turn_index 近似值 — 会话累计"指令性" user 消息数（含 TextBlock/ImageBlock、
+     * 排除 steering 干预指令），与前端轮次投影的切轮口径一致；tool_result 形态的
+     * user 消息不计。首条用户指令 → 1。该字段为冗余元数据（前端分节按消息位置 + seq）。
+     */
+    private static int currentInstructionTurnIndex(QueryLoopState state) {
+        int count = 0;
+        for (Message m : state.getMessages()) {
+            if (!(m instanceof Message.UserMessage u) || u.content() == null) continue;
+            if (u.meta() != null && Boolean.TRUE.equals(u.meta().get("steering"))) continue;
+            boolean instructional = u.content().stream().anyMatch(b ->
+                    b instanceof ContentBlock.TextBlock || b instanceof ContentBlock.ImageBlock);
+            if (instructional) count++;
+        }
+        return count;
     }
 
     /** Only explicitly presentation-safe structured results may cross into UI/session messages. */

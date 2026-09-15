@@ -36,7 +36,7 @@ const BackToLatestCapsule: React.FC<BackToLatestCapsuleProps> = ({
 }) => (
     <div
         className={cn(
-            'pointer-events-none absolute inset-x-0 bottom-4 z-20 flex justify-center',
+            'back-to-latest-position pointer-events-none absolute inset-x-0 bottom-4 z-20 flex justify-center',
             'transition-pop duration-base ease-soft motion-reduce:transition-none',
             visible ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0',
         )}
@@ -44,11 +44,13 @@ const BackToLatestCapsule: React.FC<BackToLatestCapsuleProps> = ({
         <button
             type="button"
             onClick={onClick}
+            disabled={!visible}
             aria-hidden={!visible}
             tabIndex={visible ? 0 : -1}
             data-testid="back-to-latest"
             className={cn(
-                'pointer-events-auto inline-flex items-center gap-1.5 rounded-full',
+                'inline-flex items-center gap-1.5 rounded-full',
+                visible ? 'pointer-events-auto' : 'pointer-events-none',
                 'border border-hairline bg-surfacev2 px-3 py-1.5 shadow-e2',
                 'text-xs font-medium text-t2',
                 'transition-interactive duration-fast hover:bg-hover2 hover:text-t1 hover:shadow-e3',

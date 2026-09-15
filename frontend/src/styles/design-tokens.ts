@@ -132,18 +132,15 @@ export const CHART_COLORS = {
     dark: ['#818CF8', '#2DD4BF', '#FBBF24', '#FB7185', '#38BDF8', '#C084FC', '#A3E635', '#94A3B8'],
 } as const;
 
-export type ThemeMode = 'light' | 'dark' | 'system' | 'glass';
+export type ThemeMode = 'light' | 'dark' | 'glass';
 
 /**
  * resolveTheme — effectiveTheme 解析（§4.5 第二职责）
- * Glass → 'light'；System → matchMedia 落类；其余原样返回。
+ * Glass → 'light'；其余原样返回。
  * Recharts / Mermaid / Monaco 三处统一消费，替代裸 isDark 布尔。
  */
 export function resolveTheme(mode: ThemeMode): 'light' | 'dark' {
     if (mode === 'glass') return 'light';
-    if (mode === 'system') {
-        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
     return mode;
 }
 

@@ -192,7 +192,7 @@ describe('messageStore tool call lifecycle', () => {
             expect(state.activeToolCalls.size).toBe(0);
         });
 
-        it('无流式消息时 error 条目直接清理，不跨 run 残留', () => {
+        it('纯工具段也保存错误结果并清理活动条目，不跨 run 残留', () => {
             const s = useMessageStore.getState();
             // 无 appendStreamDelta/appendThinkingDelta → 无流式消息承载
             s.startToolCall('e-2', 'Read', { path: 'a.ts' });
@@ -201,7 +201,8 @@ describe('messageStore tool call lifecycle', () => {
 
             const state = useMessageStore.getState();
             expect(state.activeToolCalls.size).toBe(0);
-            expect(state.messages.filter(m => m.type === 'assistant')).toHaveLength(0);
+            expect(state.messages.filter(m => m.type === 'assistant')).toHaveLength(1);
+            expect(toolUseBlocks(state.messages[0])[0].result?.isError).toBe(true);
         });
 
         it('两轮 run：第一轮错误迁移清理后，第二轮 map 与新消息均不含旧工具条目', () => {

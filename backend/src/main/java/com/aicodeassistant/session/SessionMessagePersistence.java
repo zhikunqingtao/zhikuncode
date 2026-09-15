@@ -45,6 +45,20 @@ public final class SessionMessagePersistence {
         return recovered;
     }
 
+    /**
+     * SystemMessage 的可持久化 meta：messages 表只有 meta_json 一列，
+     * subtype 无独立列，故合并进 metadata 一并序列化（读取端按 "subtype" 键拆出还原）。
+     */
+    private static java.util.Map<String, Object> persistableMeta(Message.SystemMessage system) {
+        java.util.Map<String, Object> meta = system.metadata() == null
+                ? new java.util.LinkedHashMap<>()
+                : new java.util.LinkedHashMap<>(system.metadata());
+        if (system.subtype() != null && !system.subtype().isBlank()) {
+            meta.put("subtype", system.subtype());
+        }
+        return meta.isEmpty() ? null : meta;
+    }
+
     private boolean persistBestEffort(Message message) {
         if (message == null || message.uuid() == null
                 || persistedMessageIds.contains(message.uuid())) return true;
@@ -61,7 +75,7 @@ public final class SessionMessagePersistence {
                         null);
                 case Message.SystemMessage system -> sessions.addMessageWithId(
                         system.uuid(), sessionId, "system", system.content(), null, 0, 0,
-                        null);
+                        persistableMeta(system));
             }
             persistedMessageIds.add(message.uuid());
             return true;

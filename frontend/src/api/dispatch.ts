@@ -6,6 +6,7 @@
  * 跨 Store 消息通过私有 handle* 方法协调。
  */
 
+import type { TaskBoundaryPayload, AssistantSegmentCompletePayload } from '@/types';
 import { isPermissionMode } from '@/types';
 import type { Message, MessageCompletePayload, ServerMessage, PermissionRequest, TokenWarningPayload, ToolPermissionDeniedPayload } from '@/types';
 import type { ActivityData } from '@/types/apos';
@@ -347,6 +348,10 @@ const handlers: Record<string, (data: any) => void> = {
         // 后续 delta 仅写入外部高性能 store（绕过 Immer 开销）
         appendStreamDelta(d.delta);
     },
+    'assistant_segment_complete': (d: AssistantSegmentCompletePayload) => {
+        if (d.message?.type !== 'assistant' || !d.message.uuid || !Array.isArray(d.message.content)) return;
+        useMessageStore.getState().finalizeAssistantSegment(d.message);
+    },
     'thinking_delta':     (d) => useMessageStore.getState().appendThinkingDelta(d.delta),
     'tool_use_start':     (d) => useMessageStore.getState().startToolCall(d.toolUseId, d.toolName, d.input),
     'tool_use_input':     (d) => {
@@ -516,6 +521,27 @@ const handlers: Record<string, (data: any) => void> = {
 
     // === 心跳 (1 种) ===
     'pong':               ()  => { /* 连接存活确认, 重置超时计时器 */ },
+
+    // === messageStore: 任务边界（TodoWrite 任务首次 in_progress，任务分节数据源） ===
+    // 持久化为 subtype='task_boundary' 的 system 消息；不渲染成聊天气泡
+    // （SystemMessage 对该 subtype 返回 null），仅供轮次任务分节推导消费。
+    'task_boundary': (d: TaskBoundaryPayload) => {
+        const taskId = d.task_id ?? d.taskId;
+        const turnIndex = d.turn_index ?? d.turnIndex;
+        useMessageStore.getState().addMessage({
+            type: 'system',
+            uuid: d.message_id ?? d.messageId ?? generateUUID(),
+            timestamp: d.ts ?? Date.now(),
+            content: '',
+            subtype: 'task_boundary',
+            metadata: {
+                ...(taskId !== undefined ? { task_id: taskId } : {}),
+                ...(typeof d.title === 'string' ? { title: d.title } : {}),
+                ...(typeof d.seq === 'number' ? { seq: d.seq } : {}),
+                ...(turnIndex !== undefined ? { turn_index: turnIndex } : {}),
+            },
+        });
+    },
 
     // === 新增: 压缩进度/token警告/中断确认 (3 种) ===
     'compact_event':      (d: { phase: string; usagePercent: number }) => {

@@ -1,3 +1,6 @@
+import { GlassMaterial } from '@/components/theme/GlassMaterial';
+import { animate, useReducedMotion } from 'framer-motion';
+import { useConfigStore } from '@/store/configStore';
 import { forwardRef, useCallback, useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
@@ -45,6 +48,8 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
         },
         ref,
     ) => {
+        const reducedMotion = useReducedMotion();
+        const glassMode = useConfigStore(s => s.theme.mode === 'glass');
         const autoId = useId();
         const titleId = `${autoId}-title`;
         const panelRef = useRef<HTMLDivElement | null>(null);
@@ -58,6 +63,13 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
             parent: null,
         });
         const wasOpenRef = useRef(false);
+        useEffect(() => {
+            if (!open || !glassMode || !panelRef.current || reducedMotion) return;
+            const animation = animate(panelRef.current, { opacity: [0, 1], scale: [.97, 1] },
+                { type: 'spring', stiffness: 420, damping: 36 });
+            return () => animation.stop();
+        }, [open, glassMode, reducedMotion]);
+
 
         /** 唯一关闭入口：Esc / 遮罩 / 关闭按钮全部走这里（§10.7-④） */
         const requestClose = useCallback(() => {
@@ -119,7 +131,9 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
             wasOpenRef.current = open;
             return () => {
                 if (wasOpenRef.current) {
+                    wasOpenRef.current = false;
                     document.body.style.overflow = '';
+                    returnFocus();
                 }
             };
         }, [open, triggerRef, returnFocus]);
@@ -193,12 +207,14 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
                     id={id}
                     tabIndex={-1}
                     className={cn(
-                        'relative w-full max-w-md bg-surfacev2 rounded-panel shadow-e4 outline-none',
-                        'motion-safe:animate-scale-in',
+                        'glass-dialog glass-surface relative w-full max-w-md bg-surfacev2 rounded-panel shadow-e4 outline-none',
+                        !glassMode && 'motion-safe:animate-scale-in',
                         className,
                     )}
                     {...props}
                 >
+                    <GlassMaterial kind="overlay" />
+
                     {(title !== undefined || showClose) && (
                         <div className="flex items-start justify-between gap-4 px-5 pt-4">
                             {title !== undefined ? (

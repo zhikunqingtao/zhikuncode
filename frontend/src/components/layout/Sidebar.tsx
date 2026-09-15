@@ -1,3 +1,5 @@
+import { GlassMaterial } from '@/components/theme/GlassMaterial';
+import { motion, useReducedMotion } from 'framer-motion';
 /**
  * Sidebar — 左侧边栏组件
  * SPEC: §8.6.2
@@ -12,6 +14,9 @@ import {
     XCircle, 
     Loader2, 
     FolderTree,
+    Folder,
+    PanelLeftClose,
+    PanelLeftOpen,
     ChevronDown,
     ChevronRight,
     Trash2,
@@ -56,7 +61,9 @@ import { generateUUID } from '@/utils/uuid';
 import type { TaskState } from '@/types';
 import { useWorkbenchViewStore } from '@/store/workbenchViewStore';
 import { taskTitle } from '@/utils/workbenchPresentation';
+import { useConfigStore } from '@/store/configStore';
 import { useViewportWidth } from '@/hooks/useResponsive';
+import { groupSessionsByDirectory, type SessionSummary } from '@/utils/sessionGroups';
 
 export type TabType = 'sessions' | 'tasks' | 'files' | 'sequence' | 'dag' | 'git' | 'complexity' | 'impact' | 'api-docs' | 'diagram' | 'code-path' | 'apos';
 
@@ -104,12 +111,26 @@ const PANEL_NEW_BUTTON_CLASS =
 const PANEL_CARD_ACTIVE_CLASS = 'bg-accent2-soft shadow-[inset_2px_0_0_0_var(--v2-accent)]';
 
 /** §7.5 面板头：Label（大写）+ 计数 chip */
-function PanelHeader({ label, count }: { label: string; count?: number }) {
+function PanelHeader({ label, count, onCollapse }: { label: string; count?: number; onCollapse?: () => void }) {
     return (
         <div className="flex items-center justify-between gap-2 px-3 pt-3 pb-2 flex-shrink-0">
-            <span className={PANEL_LABEL_CLASS}>{label}</span>
-            {count !== undefined && (
-                <Chip variant="accent" className="tabular-nums">{count}</Chip>
+            <div className="flex items-center gap-2 min-w-0">
+                <span className={PANEL_LABEL_CLASS}>{label}</span>
+                {count !== undefined && <Chip variant="accent" className="tabular-nums">{count}</Chip>}
+            </div>
+            {onCollapse && (
+                <button
+                    type="button"
+                    onClick={onCollapse}
+                    aria-label="收起整个对话列表"
+                    title="收起整个对话列表"
+                    className="inline-flex items-center gap-1.5 shrink-0 rounded-lg px-2 py-1 text-xs text-t2
+                        hover:bg-hover2 hover:text-t1 focus-visible:outline-none
+                        focus-visible:ring-[3px] focus-visible:ring-accent2-ring"
+                >
+                    <PanelLeftClose className="w-4 h-4" aria-hidden="true" />
+                    收起列表
+                </button>
             )}
         </div>
     );
@@ -169,6 +190,12 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab, onNa
         }
         return 'sessions';
     });
+    const glassMode = useConfigStore(s => s.theme.mode === 'glass');
+    const reducedMotion = useReducedMotion();
+    const [panelCollapsed, setPanelCollapsed] = useState(() => localStorage.getItem('sidebar-panel-collapsed') === 'true');
+    useEffect(() => {
+        localStorage.setItem('sidebar-panel-collapsed', String(panelCollapsed));
+    }, [panelCollapsed]);
     const { tasks } = useTaskStore();
     const workbenchEnabled = useWorkbenchViewStore(s => s.enabled);
     const viewMode = useWorkbenchViewStore(s => s.viewMode);
@@ -176,6 +203,7 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab, onNa
 
     // ── Auto-Routing 跳转接收端（v1.5 升级项 C Beta） ──
     // VisualizationMessage 点击“查看”时写入 pendingVisualizationTab，本处消费后置空。
+    const setMobileNavTab = useAppUiStore((s) => s.setMobileNavTab);
     const pendingVisualizationTab = useAppUiStore((s) => s.pendingVisualizationTab);
     const requestVisualizationTab = useAppUiStore((s) => s.requestVisualizationTab);
     useEffect(() => {
@@ -183,9 +211,14 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab, onNa
         const valid = ['sessions','tasks','files','sequence','dag','git','complexity','impact','api-docs','diagram','code-path','apos'] as const;
         if ((valid as readonly string[]).includes(pendingVisualizationTab)) {
             setActiveTab(pendingVisualizationTab as TabType);
+            setPanelCollapsed(false);
+            if (isDrawerMode) {
+                setMobileNavTab(pendingVisualizationTab as TabType);
+                onNavigate?.();
+            }
         }
         requestVisualizationTab(null);
-    }, [pendingVisualizationTab, requestVisualizationTab]);
+    }, [pendingVisualizationTab, requestVisualizationTab, isDrawerMode, setMobileNavTab, onNavigate]);
 
     // ── 可拖拽宽度 ──
     // §8.1 职责分离：断点走 useResponsive、像素走 useViewportWidth（rAF 节流，随缩放更新）
@@ -272,7 +305,6 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab, onNa
     }, [activeTab, simpleMode]);
 
     // §7.5 移动端抽屉：选中 nav-item → 记录主区移动面板 Tab 并自动关闭抽屉
-    const setMobileNavTab = useAppUiStore((s) => s.setMobileNavTab);
     const handleDrawerTabSelect = useCallback((tab: TabType) => {
         setActiveTab(tab);
         setMobileNavTab(tab);
@@ -280,14 +312,17 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab, onNa
     }, [setMobileNavTab, onNavigate]);
 
     // Drawer 模式不使用动态宽度
-    const sidebarStyle = isDrawerMode ? undefined : { width: `${width}px` };
+    const sidebarStyle = isDrawerMode ? undefined : { width: `${panelCollapsed ? RAIL_WIDTH : width}px` };
     const sidebarWidthClass = isDrawerMode ? 'w-full' : '';
 
     return (
-        <aside
-            className={`${sidebarWidthClass} h-full bg-surface2 ${isDrawerMode ? '' : 'border-r border-hairline'} flex flex-col relative z-10 ${className}`}
+        <motion.aside
+            className={`app-sidebar ${isDrawerMode ? '' : 'glass-surface'} ${sidebarWidthClass} h-full bg-surface2 ${isDrawerMode ? '' : 'border-r border-hairline'} flex flex-col relative z-10 ${className}`}
             style={sidebarStyle}
+            animate={isDrawerMode ? undefined : { width: panelCollapsed ? RAIL_WIDTH : width }}
+            transition={{ duration: glassMode && !reducedMotion && !isDragging ? .24 : 0, ease: [.2, .8, .2, 1] }}
         >
+            {!isDrawerMode && <GlassMaterial />}
             {isDrawerMode ? (
                 /* §7.5 移动端抽屉 = 文字列表：图标 + 文字 + badge，38px 行高、rounded-xl、
                    active = accent2-soft 底 + accent 字 + 600 字重；选中后自动关闭抽屉 */
@@ -338,15 +373,26 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab, onNa
                     {/* 图标轨：48px，12 Tab；active = accent2-soft 底 + accent 图标，命中区 40px */}
                     <nav
                         aria-label="侧边栏导航"
-                        className="w-12 flex-shrink-0 flex flex-col items-center gap-1 py-2
+                        className="sidebar-rail w-12 flex-shrink-0 flex flex-col items-center gap-1 py-2
                             border-r border-hairline bg-surface2 overflow-y-auto"
                     >
+                        <button
+                            type="button"
+                            onClick={() => setPanelCollapsed(value => !value)}
+                            aria-label={panelCollapsed ? '展开侧栏列表' : '收起侧栏列表'}
+                            title={panelCollapsed ? '展开侧栏列表' : '收起侧栏列表'}
+                            aria-expanded={!panelCollapsed}
+                            className="w-10 h-10 shrink-0 flex items-center justify-center rounded-xl text-t2 hover:bg-hover2
+                                focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring"
+                        >
+                            {panelCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+                        </button>
                         {tabs.map((tab) => {
                             const isActive = activeTab === tab.id;
                             return (
                                 <button
                                     key={tab.id}
-                                    onClick={() => setActiveTab(tab.id)}
+                                    onClick={() => { setActiveTab(tab.id); setPanelCollapsed(false); }}
                                     title={tab.label}
                                     aria-label={tab.label}
                                     aria-current={isActive ? 'page' : undefined}
@@ -380,14 +426,14 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab, onNa
 
                     {/* 面板：236–320px（沿用现有 width state + 拖拽调宽 + detached 窗口逻辑）；
                         内容区宽 = aside 宽 - 图标轨宽（FileTreePanel 等依此计算树宽） */}
-                    <div className="flex-1 min-w-0 overflow-y-auto">
-                        <SidebarTabContent activeTab={activeTab} width={Math.max(width - RAIL_WIDTH, MIN_WIDTH - RAIL_WIDTH)} />
+                    <div className="flex-1 min-w-0 overflow-y-auto" hidden={panelCollapsed}>
+                        <SidebarTabContent activeTab={activeTab} width={Math.max(width - RAIL_WIDTH, MIN_WIDTH - RAIL_WIDTH)} onCollapse={() => setPanelCollapsed(true)} />
                     </div>
                 </div>
             )}
 
             {/* 拖拽手柄 — 仅桌面端 */}
-            {!isDrawerMode && (
+            {!isDrawerMode && !panelCollapsed && (
                 <div
                     className={`absolute right-0 top-0 bottom-0 w-1 cursor-col-resize
                         transition-colors z-30
@@ -399,18 +445,19 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab, onNa
                     <div className="absolute -left-2 -right-2 top-0 bottom-0" />
                 </div>
             )}
-        </aside>
+        </motion.aside>
     );
 }
 
 // ═══ Sidebar Tab 内容渲染器 — 桌面侧栏 / 移动主区面板共用（§7.5） ═══
 export interface SidebarTabContentProps {
+    onCollapse?: () => void;
     activeTab: TabType;
     /** FileTreePanel 等需要的宽度参考（桌面=侧栏宽，移动主区=视口宽） */
     width?: number;
 }
 
-export function SidebarTabContent({ activeTab, width = 280 }: SidebarTabContentProps) {
+export function SidebarTabContent({ activeTab, width = 280, onCollapse }: SidebarTabContentProps) {
     const { tasks, clearTasks } = useTaskStore();
     const workbenchEnabled = useWorkbenchViewStore(s => s.enabled);
     const viewMode = useWorkbenchViewStore(s => s.viewMode);
@@ -418,7 +465,7 @@ export function SidebarTabContent({ activeTab, width = 280 }: SidebarTabContentP
 
     return (
         <>
-            {activeTab === 'sessions' && (simpleMode ? <SimpleTaskList /> : <SessionList />)}
+            {activeTab === 'sessions' && (simpleMode ? <SimpleTaskList onCollapse={onCollapse} /> : <SessionList onCollapse={onCollapse} />)}
             {activeTab === 'tasks' && <TaskPanel tasks={tasks} onClear={clearTasks} />}
             {activeTab === 'files' && <FileTreePanel sidebarWidth={width} />}
             {activeTab === 'sequence' && <APISequenceDiagram />}
@@ -481,26 +528,27 @@ function ApiDocsTab() {
     );
 }
 
-// ═══ Session Summary 类型 ═══
-interface SessionSummary {
-    id: string;
-    title: string | null;
-    goalPreview?: string | null;
-    model: string;
-    workingDirectory: string;
-    messageCount: number;
-    costUsd: number;
-    createdAt: string;
-    updatedAt: string;
-}
-
 // Session List Component — 从后端 API 获取会话列表
-function SessionList() {
+function SessionList({ onCollapse }: { onCollapse?: () => void }) {
     const [sessions, setSessions] = useState<SessionSummary[]>([]);
     const [loading, setLoading] = useState(true);
     const [hasMore, setHasMore] = useState(false);
     const [nextCursor, setNextCursor] = useState<string | null>(null);
     const [query, setQuery] = useState('');
+    const [collapsedFolders, setCollapsedFolders] = useState<Set<string>>(() => {
+        try {
+            const saved: unknown = JSON.parse(localStorage.getItem('session-collapsed-folders') ?? '[]');
+            return new Set(Array.isArray(saved) ? saved.filter((key): key is string => typeof key === 'string') : []);
+        } catch { return new Set(); }
+    });
+    useEffect(() => {
+        localStorage.setItem('session-collapsed-folders', JSON.stringify([...collapsedFolders]));
+    }, [collapsedFolders]);
+    const toggleFolder = (key: string) => setCollapsedFolders(previous => {
+        const next = new Set(previous);
+        if (next.has(key)) next.delete(key); else next.add(key);
+        return next;
+    });
     const currentSessionId = useSessionStore(s => s.sessionId);
     const currentMessages = useMessageStore(s => s.messages);
     const simpleMode = useWorkbenchViewStore(s => s.enabled && s.viewMode === 'simple');
@@ -517,16 +565,25 @@ function SessionList() {
             || s.workingDirectory.toLowerCase().includes(q));
     }, [sessions, query]);
 
+    const sessionGroups = useMemo(() => groupSessionsByDirectory(filteredSessions), [filteredSessions]);
+
+    const loadedCountRef = useRef(50);
+    const requestVersionRef = useRef(0);
+
+    // 刷新时保留已加载范围，防止较早的文件夹在实时更新后消失。
     // 加载会话列表
     const fetchSessions = useCallback(async (cursor?: string | null) => {
+        const requestVersion = ++requestVersionRef.current;
         try {
-            const params = new URLSearchParams({ limit: '50' });
+            const params = new URLSearchParams({ limit: String(cursor ? 50 : loadedCountRef.current) });
             if (cursor) params.set('cursor', cursor);
             const resp = await fetch(`/api/sessions?${params}`);
             if (!resp.ok) return;
             const data = await resp.json();
+            if (requestVersion !== requestVersionRef.current) return;
+            loadedCountRef.current = cursor ? loadedCountRef.current + data.sessions.length : Math.max(50, data.sessions.length);
             if (cursor) {
-                setSessions(prev => [...prev, ...data.sessions]);
+                setSessions(prev => [...new Map([...prev, ...data.sessions].map(session => [session.id, session])).values()]);
             } else {
                 setSessions(data.sessions);
             }
@@ -535,7 +592,7 @@ function SessionList() {
         } catch (e) {
             console.warn('[SessionList] Failed to fetch sessions:', e);
         } finally {
-            setLoading(false);
+            if (requestVersion === requestVersionRef.current) setLoading(false);
         }
     }, []);
 
@@ -615,7 +672,7 @@ function SessionList() {
     return (
         <div className="flex flex-col h-full">
             {/* §7.5 面板头：Label + 计数 chip */}
-            <PanelHeader label={simpleMode ? '任务' : '会话'} count={filteredSessions.length} />
+            <PanelHeader label={simpleMode ? '任务' : '会话'} count={filteredSessions.length} onCollapse={onCollapse} />
 
             {/* 新建按钮 + 搜索框（§7.5 配方） */}
             <div className="px-2 pb-2 space-y-2 border-b border-hairline flex-shrink-0">
@@ -643,61 +700,88 @@ function SessionList() {
                             : (simpleMode ? '暂无任务记录' : '暂无会话记录')}
                     </div>
                 ) : (
-                    filteredSessions.map(session => {
-                        const folder = session.workingDirectory.split(/[\\/]/).filter(Boolean).at(-1);
-                        const displayTitle = simpleMode
-                            ? taskTitle(
-                                session.title,
-                                session.id === currentSessionId ? currentMessages : [],
-                                session.workingDirectory,
-                                session.goalPreview,
-                            )
-                            : session.title || taskTitle(null, [], session.workingDirectory, session.goalPreview);
+                    sessionGroups.map(group => {
+                        // 搜索时临时展开匹配组，不改用户保存的折叠状态。
+                        const expanded = Boolean(query.trim()) || !collapsedFolders.has(group.directory);
                         return (
-                        <div
-                            key={session.id}
-                            onClick={() => { void handleSwitchSession(session.id); }}
-                            className={`group px-3 py-2.5 rounded-xl cursor-pointer border border-transparent
-                                transition-interactive duration-fast
-                                ${session.id === currentSessionId
-                                    ? PANEL_CARD_ACTIVE_CLASS
-                                    : 'hover:bg-hover2'}`}
-                        >
-                            <div className="flex items-start justify-between gap-1">
-                                <div className="flex-1 min-w-0">
-                                    <div className="text-sm font-medium text-t1 truncate">
-                                        {displayTitle}
-                                    </div>
-                                    {!simpleMode && <div className="flex items-center gap-2 mt-1">
-                                        <span className="text-xs text-t2 truncate">
-                                            {session.model} · {session.id.slice(0, 8)}
-                                        </span>
-                                        <span className="text-xs text-t2 tabular-nums">
-                                            {session.messageCount} 条消息
-                                        </span>
-                                    </div>}
-                                    {simpleMode && folder && (
-                                        <div className="mt-1 truncate text-xs text-t2" title={session.workingDirectory}>
-                                            文件夹：{folder}
-                                        </div>
-                                    )}
-                                    <div className="flex items-center gap-1 mt-1 text-xs text-t2">
-                                        <Clock className="w-3 h-3" />
-                                        {formatTime(session.updatedAt)}
-                                    </div>
-                                </div>
+                            <section key={group.directory} aria-label={group.directory || '未关联文件夹'}>
                                 <button
-                                    onClick={(e) => handleDeleteSession(e, session.id)}
-                                    className="p-1 rounded opacity-0 group-hover:opacity-100
-                                        hover:bg-errsoft text-t3 hover:text-err
-                                        transition-interactive duration-fast"
-                                    title={simpleMode ? '删除任务' : '删除会话'}
-                                    aria-label={simpleMode ? '删除任务' : '删除会话'}
+                                    type="button"
+                                    onClick={() => toggleFolder(group.directory)}
+                                    aria-expanded={expanded}
+                                    aria-label={`${expanded ? '收起' : '展开'}文件夹 ${group.directory || group.name}`}
+                                    title={group.directory || group.name}
+                                    className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-t2 hover:bg-hover2
+                                        focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring"
                                 >
-                                    <Trash2 className="w-3.5 h-3.5" />
+                                    {expanded ? <ChevronDown className="w-3.5 h-3.5 shrink-0" /> : <ChevronRight className="w-3.5 h-3.5 shrink-0" />}
+                                    <Folder className="w-4 h-4 shrink-0" />
+                                    <span className="min-w-0 flex-1 text-left">
+                                        <span className="block truncate text-sm font-medium text-t1">{group.name}</span>
+                                        {group.directory && <span className="block truncate text-[11px]">{group.directory}</span>}
+                                    </span>
+                                    <span className="text-xs tabular-nums">{group.sessions.length}</span>
                                 </button>
-                            </div>
-                        </div>
+                                {expanded && <div className="ml-2 border-l border-hairline pl-1 space-y-1">
+                                    {group.sessions.map(session => {
+                                        const folder = session.workingDirectory.split(/[\\/]/).filter(Boolean).at(-1);
+                                        const displayTitle = simpleMode
+                                            ? taskTitle(
+                                                session.title,
+                                                session.id === currentSessionId ? currentMessages : [],
+                                                session.workingDirectory,
+                                                session.goalPreview,
+                                            )
+                                            : session.title || taskTitle(null, [], session.workingDirectory, session.goalPreview);
+                                        return (
+                                            <div
+                                                key={session.id}
+                                                onClick={() => { void handleSwitchSession(session.id); }}
+                                                className={`group px-3 py-2.5 rounded-xl cursor-pointer border border-transparent
+                                                    transition-interactive duration-fast
+                                                    ${session.id === currentSessionId
+                                                        ? PANEL_CARD_ACTIVE_CLASS
+                                                        : 'hover:bg-hover2'}`}
+                                            >
+                                                <div className="flex items-start justify-between gap-1">
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="text-sm font-medium text-t1 truncate">
+                                                            {displayTitle}
+                                                        </div>
+                                                        {!simpleMode && <div className="flex items-center gap-2 mt-1">
+                                                            <span className="text-xs text-t2 truncate">
+                                                                {session.model} · {session.id.slice(0, 8)}
+                                                            </span>
+                                                            <span className="text-xs text-t2 tabular-nums">
+                                                                {session.messageCount} 条消息
+                                                            </span>
+                                                        </div>}
+                                                        {simpleMode && folder && (
+                                                            <div className="mt-1 truncate text-xs text-t2" title={session.workingDirectory}>
+                                                                文件夹：{folder}
+                                                            </div>
+                                                        )}
+                                                        <div className="flex items-center gap-1 mt-1 text-xs text-t2">
+                                                            <Clock className="w-3 h-3" />
+                                                            {formatTime(session.updatedAt)}
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        onClick={(e) => handleDeleteSession(e, session.id)}
+                                                        className="p-1 rounded opacity-0 group-hover:opacity-100
+                                                            hover:bg-errsoft text-t3 hover:text-err
+                                                            transition-interactive duration-fast"
+                                                        title={simpleMode ? '删除任务' : '删除会话'}
+                                                        aria-label={simpleMode ? '删除任务' : '删除会话'}
+                                                    >
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>}
+                            </section>
                         );
                     })
                 )}
@@ -729,7 +813,7 @@ interface WorkbenchTaskItem {
 interface WorkbenchTaskGroupView { status: WorkbenchTaskGroup; label: string; tasks: WorkbenchTaskItem[]; }
 
 /** 简洁模式任务导航只消费服务端权威分组，不从消息数或客户端状态推断。 */
-function SimpleTaskList() {
+function SimpleTaskList({ onCollapse }: { onCollapse?: () => void }) {
     const [groups, setGroups] = useState<WorkbenchTaskGroupView[]>([]);
     const [query, setQuery] = useState('');
     const [loading, setLoading] = useState(true);
@@ -784,7 +868,7 @@ function SimpleTaskList() {
 
     return <div className="flex h-full flex-col">
         {/* §7.5 面板头：Label + 计数 chip */}
-        <PanelHeader label="任务" count={totalTasks} />
+        <PanelHeader label="任务" count={totalTasks} onCollapse={onCollapse} />
         <div className="space-y-2 border-b border-hairline px-2 pb-2 flex-shrink-0">
             <button onClick={() => dispatchNewAuthorizedSessionRequest()} className={PANEL_NEW_BUTTON_CLASS}><Plus className="h-4 w-4" />新建任务</button>
             <PanelSearchBox value={query} onChange={setQuery} placeholder="搜索任务或文件夹" ariaLabel="搜索任务或文件夹" />

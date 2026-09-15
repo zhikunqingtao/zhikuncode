@@ -90,9 +90,11 @@ public class SseStreamHandler implements QueryMessageHandler {
 
     @Override
     public void onSystemMessage(Message.SystemMessage message) {
+        // type 组件经 Jackson 反序列化后可能为 null（不参与序列化，见 Message.SystemMessage），
+        // Map.of 不接受 null 值，这里做防御
         sendEvent("system_message", Map.of(
-                "content", message.content(),
-                "type", message.type().name()));
+                "content", message.content() != null ? message.content() : "",
+                "type", message.type() != null ? message.type().name() : "INFO"));
     }
 
     @Override

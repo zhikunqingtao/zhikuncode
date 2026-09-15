@@ -1,3 +1,4 @@
+import { GlassMaterial } from '@/components/theme/GlassMaterial';
 /**
  * Header — 顶部导航栏组件
  * SPEC: §8.6.1
@@ -6,11 +7,11 @@
  */
 
 import { useCallback, useEffect } from 'react';
-import { Settings, Plus, Menu, Bot, DollarSign, Sun, Moon, Sparkles } from 'lucide-react';
+import { Plus, Menu, Bot, DollarSign, Sun, Moon, Sparkles, Keyboard, ChevronDown } from 'lucide-react';
 import { useSessionStore } from '@/store/sessionStore';
 import { useCostStore } from '@/store/costStore';
 import { useDialogStore } from '@/store/dialogStore';
-import { useConfigStore } from '@/store/configStore';
+import { normalizeThemeMode, useConfigStore } from '@/store/configStore';
 import { useModelStore } from '@/store/modelStore';
 import { useBridgeStore } from '@/store/bridgeStore';
 import { sendSetModel } from '@/api/stompClient';
@@ -35,7 +36,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
     const { sessionCost, totalCost } = useCostStore();
     const { bridgeStatus } = useBridgeStore();
     const { openDialog } = useDialogStore();
-    const { theme, setTheme } = useConfigStore();
+    const { theme } = useConfigStore();
     const workbenchEnabled = useWorkbenchViewStore(s => s.enabled);
     const viewMode = useWorkbenchViewStore(s => s.viewMode);
     const simpleMode = workbenchEnabled && viewMode === 'simple';
@@ -62,21 +63,12 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
         }
     }, [loaded, defaultModel, model, setModel]);
 
-    // 判断当前是否为深色模式（含 system 跟随）
-    const isDark = theme.mode === 'dark' || 
-        (theme.mode === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    const isGlass = theme.mode === 'glass';
-
-    const toggleTheme = useCallback(() => {
-        // 循环切换: light → dark → glass → light
-        if (theme.mode === 'light') {
-            setTheme({ mode: 'dark' });
-        } else if (theme.mode === 'dark') {
-            setTheme({ mode: 'glass' });
-        } else {
-            setTheme({ mode: 'light' });
-        }
-    }, [theme.mode, setTheme]);
+    const currentTheme = {
+        light: { label: '浅色', icon: Sun },
+        dark: { label: '深色', icon: Moon },
+        glass: { label: '液态玻璃', icon: Sparkles },
+    }[normalizeThemeMode(theme.mode)];
+    const ThemeIcon = currentTheme.icon;
 
     const handleNewSession = useCallback(() => {
         dispatchNewAuthorizedSessionRequest();
@@ -100,7 +92,8 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
     };
 
     return (
-        <header className="h-14 border-b border-hairline bg-surface2 flex items-center px-2 md:px-4 shrink-0">
+        <header className="app-header glass-surface relative h-14 border-b border-hairline bg-surface2 flex items-center px-2 md:px-4 shrink-0">
+            <GlassMaterial />
             {/* Left: Menu Button (mobile) + Logo */}
             <div className="flex items-center gap-3">
                 {showMenuButton && (
@@ -210,14 +203,17 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                     </span>
                 </div>
 
-                {/* Theme Toggle */}
+                {/* 显示当前主题；点击选择，不再循环切换。 */}
                 <button
-                    onClick={toggleTheme}
-                    className={`hidden md:inline-flex ${HEADER_BUTTON_CLASS}`}
-                    title={isGlass ? '切换到浅色模式' : isDark ? '切换到液态玻璃模式' : '切换到深色模式'}
-                    aria-label={isGlass ? '切换到浅色模式' : isDark ? '切换到液态玻璃模式' : '切换到深色模式'}
+                    onClick={() => openDialog('settings')}
+                    className={`hidden md:inline-flex items-center gap-1.5 border border-hairline bg-surface2 ${HEADER_BUTTON_CLASS}`}
+                    title="外观设置"
+                    aria-label="外观设置"
+                    aria-haspopup="dialog"
                 >
-                    {isGlass ? <Sparkles className="w-5 h-5" /> : isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                    <ThemeIcon className="w-4 h-4" aria-hidden="true" />
+                    <span className="text-sm whitespace-nowrap">{currentTheme.label}</span>
+                    <ChevronDown className="w-3.5 h-3.5" aria-hidden="true" />
                 </button>
 
                 {/* New Session */}
@@ -241,12 +237,14 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                 </button>
 
                 <button
-                    onClick={() => openDialog('settings')}
+                    onClick={() => openDialog('keybindings')}
                     className={`hidden md:inline-flex ${HEADER_BUTTON_CLASS}`}
-                    title="设置"
+                    title="快捷键帮助"
+                    aria-label="快捷键帮助"
                 >
-                    <Settings className="w-5 h-5" />
+                    <Keyboard className="w-5 h-5" />
                 </button>
+
             </div>
         </header>
     );

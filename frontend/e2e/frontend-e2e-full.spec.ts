@@ -310,8 +310,8 @@ test.describe('前端 E2E 与 UI 功能测试 (Task 13)', () => {
     await page.goto('/', { waitUntil: 'networkidle' });
     await page.waitForTimeout(2000);
 
-    // 找到设置按钮 (title="设置")
-    const settingsBtn = page.locator('button[title="设置"]');
+    // 找到设置按钮 (title="外观设置")
+    const settingsBtn = page.locator('button[title="外观设置"]');
     await expect(settingsBtn).toBeVisible();
 
     await settingsBtn.click();
@@ -335,40 +335,44 @@ test.describe('前端 E2E 与 UI 功能测试 (Task 13)', () => {
   });
 
   // ─── TC-FE-06: 主题切换 ───
-  test('TC-FE-06: 主题切换', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' });
-    await page.waitForTimeout(2000);
-
-    // 记录当前主题
-    const bgBefore = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-    const dataBefore = await page.evaluate(() => document.documentElement.getAttribute('data-theme') || document.documentElement.className || 'none');
-    await screenshot(page, 'fe-06-theme-before');
-
-    // 找到主题切换按钮 (aria-label 包含 "切换")
-    const themeBtn = page.locator('button[aria-label*="切换"]').first();
-    const themeBtnExists = await themeBtn.isVisible().catch(() => false);
-
-    if (themeBtnExists) {
-      await themeBtn.click();
-      await page.waitForTimeout(1000);
-      
-      const bgAfter = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-      const dataAfter = await page.evaluate(() => document.documentElement.getAttribute('data-theme') || document.documentElement.className || 'none');
-      await screenshot(page, 'fe-06-theme-after');
-
-      const changed = dataBefore !== dataAfter || bgBefore !== bgAfter;
-      console.log(`[TC-FE-06] Theme before: data="${dataBefore}", bg="${bgBefore}"`);
-      console.log(`[TC-FE-06] Theme after: data="${dataAfter}", bg="${bgAfter}"`);
-      console.log(`[TC-FE-06] Theme changed: ${changed}`);
-
-      // 再次切换回来
-      await themeBtn.click();
-      await page.waitForTimeout(500);
-      await screenshot(page, 'fe-06-theme-restored');
-    } else {
-      console.log('[TC-FE-06] Theme toggle button not found');
+  test('TC-FE-06: 主题切换与刷新持久化', async ({ page }) => {
+    await page.route('**/api/config', route => route.fulfill({ json: { theme: 'dark' } }));
+    await page.goto('/');
+    await page.getByRole('button', { name: '外观设置', exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: '外观设置' });
+    await expect(dialog).toBeVisible();
+    for (const [mode, label] of [['dark', '深色'], ['glass', '液态玻璃'], ['light', '浅色']]) {
+      const option = dialog.getByRole('button', { name: label, exact: true });
+      await option.click();
+      await expect(option).toHaveAttribute('aria-pressed', 'true');
+      await expect(page.locator('html')).toHaveClass(new RegExp(`(^|\\s)${mode}(\\s|$)`));
+      expect(await page.evaluate(() => JSON.parse(localStorage.getItem('ai-coder-config')!).state.theme.mode)).toBe(mode);
     }
+    await dialog.getByRole('button', { name: '完成', exact: true }).click();
+    await expect(dialog).not.toBeVisible();
+    await page.reload();
+    await expect(page.getByRole('button', { name: '外观设置', exact: true })).toContainText('浅色');
+    await expect(page.locator('html')).toHaveClass(/\blight\b/);
   });
+
+  for (const colorScheme of ['light', 'dark'] as const) {
+    test(`TC-FE-06: 旧 system 主题迁移为 ${colorScheme}，首屏正常`, async ({ page }) => {
+      await page.emulateMedia({ colorScheme });
+      await page.route('**/api/config', route => route.fulfill({ json: {} }));
+      await page.addInitScript(() => {
+        localStorage.setItem('ai-coder-config', JSON.stringify({
+          version: 2, state: { theme: { mode: 'system', accentColor: '#6366F1' } },
+        }));
+      });
+      const errors: string[] = [];
+      page.on('pageerror', error => errors.push(error.message));
+      await page.goto('/');
+      await expect(page.getByRole('button', { name: '外观设置', exact: true })).toBeVisible();
+      await expect(page.locator('html')).toHaveClass(new RegExp(`(^|\\s)${colorScheme}(\\s|$)`));
+      expect(await page.evaluate(() => JSON.parse(localStorage.getItem('ai-coder-config')!).state.theme.mode)).toBe(colorScheme);
+      expect(errors).toEqual([]);
+    });
+  }
 
   // ─── TC-FE-07: 响应式布局 ───
   test('TC-FE-07: 响应式布局', async ({ page }) => {

@@ -9,7 +9,6 @@ describe('SessionStore', () => {
             model: null,
             status: 'idle',
             turnCount: 0,
-            effortValue: 3,
             isAborted: false,
         });
     });
@@ -33,11 +32,6 @@ describe('SessionStore', () => {
     it('setStatus updates status', () => {
         useSessionStore.getState().setStatus('streaming');
         expect(useSessionStore.getState().status).toBe('streaming');
-    });
-
-    it('setEffort updates effort value', () => {
-        useSessionStore.getState().setEffort(5);
-        expect(useSessionStore.getState().effortValue).toBe(5);
     });
 
     it('abort sets isAborted and status to idle', () => {

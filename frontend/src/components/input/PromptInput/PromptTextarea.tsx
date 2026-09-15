@@ -91,9 +91,10 @@ const PromptTextarea: React.FC<PromptTextareaProps> = ({
                 compacting
                     ? '正在压缩上下文，请稍候…'
                     : runActive
-                    ? '输入对当前任务的新指令，将在当前操作完成后应用'
+                    ? (isMobileVariant ? '补充当前任务…' : '输入对当前任务的新指令，将在当前操作完成后应用')
                     : simpleMode
                     ? '描述你希望完成或继续修改的事情…'
+                    : isMobileVariant ? '输入消息…'
                     : `输入消息…（/ 查看命令，${navigator.platform.includes('Mac') ? '⌘' : 'Ctrl+'}K 打开命令面板）`
             }
             disabled={disabled}

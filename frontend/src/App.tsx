@@ -84,6 +84,18 @@ function App() {
   const { isMobile } = useResponsive();
   const { keyboardHeight } = useVirtualKeyboard(isMobile);
   const messageListRef = useRef<MessageListHandle>(null);
+  const composerRef = useRef<HTMLDivElement>(null);
+  const glassMode = useConfigStore(s => s.theme.mode === 'glass');
+  useEffect(() => {
+    const composer = composerRef.current;
+    const workspace = composer?.parentElement;
+    if (!composer || !workspace || !glassMode) return;
+    const update = () => workspace.style.setProperty('--glass-composer-height', `${composer.getBoundingClientRect().height + 12}px`);
+    const observer = new ResizeObserver(update);
+    observer.observe(composer);
+    update();
+    return () => { observer.disconnect(); workspace.style.removeProperty('--glass-composer-height'); };
+  }, [glassMode, isMobile]);
   const { loadConfig } = useConfigStore();
   const sessionReadinessRef = useRef<Promise<string | null> | null>(null);
   const newSessionRequestRef = useRef<Promise<string | null> | null>(null);
@@ -442,8 +454,8 @@ function App() {
   return (
     <>
       <AppLayout>
-        <div className="h-full flex flex-col">
-          <div className="flex-1 overflow-hidden">
+        <div className="chat-workspace h-full flex flex-col">
+          <div className="chat-content flex-1 overflow-hidden">
             {workbenchEnabled && viewMode === 'simple' ? (
               <SimpleWorkbench sessionId={sessionId} messages={messages} status={status} />
             ) : messages.length === 0 ? (
@@ -454,15 +466,15 @@ function App() {
               )}
           </div>
 
-          {(!workbenchEnabled || viewMode === 'development') && <JourneyVerifyPanel />}
-
           {/* §7.6 移动虚拟键盘桥：仅移动挂载，键盘弹起时滚底 */}
           {isMobile && <MobileKeyboardBridge listRef={messageListRef} keyboardHeight={keyboardHeight} />}
 
           {/* Input（移动态：prompt-input-container = 键盘高度+safe-area 内边距，承载悬浮胶囊条） */}
-          <div className={isMobile
-            ? 'prompt-input-container px-3 pt-1'
-            : 'border-t border-hairline bg-app2 p-4'}>
+          <div ref={composerRef} className="chat-composer-dock">
+            {(!workbenchEnabled || viewMode === 'development') && <JourneyVerifyPanel />}
+            <div className={isMobile
+              ? 'chat-composer-inset prompt-input-container px-3 pt-1'
+              : 'chat-composer-inset border-t border-hairline bg-app2 p-4'}>
             <PromptInput
               sessionId={sessionId}
               onSubmit={handleSubmit}
@@ -479,6 +491,7 @@ function App() {
               commands={allCommands}
               simpleMode={workbenchEnabled && viewMode === 'simple'}
             />
+            </div>
           </div>
         </div>
       </AppLayout>

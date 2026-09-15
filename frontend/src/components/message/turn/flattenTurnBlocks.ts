@@ -77,6 +77,10 @@ export function flattenTurnBlocks(
             continue;
         }
 
+        // task_boundary 系统消息：任务分节推导的结构化数据源，不产出渲染项
+        // （透明跳过，不阻断工具段合并 —— 与纯 tool_result 载体同一处理）
+        if (message.type === 'system' && message.subtype === 'task_boundary') continue;
+
         if (message.type === 'user') {
             const hasRenderableBlock = message.content.some(
                 block => block.type === 'text' || block.type === 'image',

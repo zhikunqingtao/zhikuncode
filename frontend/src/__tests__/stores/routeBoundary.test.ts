@@ -18,7 +18,7 @@ describe('State-based routing', () => {
     beforeEach(() => {
         useSessionStore.setState({
             sessionId: null, model: null, status: 'idle',
-            turnCount: 0, effortValue: 3, isAborted: false,
+            turnCount: 0, isAborted: false,
         });
         useMessageStore.setState({
             messages: [], streamingMessageId: null, streamingContent: '',

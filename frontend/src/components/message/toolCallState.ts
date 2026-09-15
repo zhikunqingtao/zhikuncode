@@ -3,9 +3,10 @@
  *
  * 从 AssistantMessage 的 tool_use 渲染分支加法式抽取，供多处复用同一套
  * 「tool_use block ↔ 实时状态 / 结果」配对逻辑，避免行为发散：
- * - AssistantMessage（legacy detailed 平铺路径 + 轮内 text/thinking 段）
- * - turn/ToolRunBlock（轮次分组路径的工具聚合段）
- * - turn/turnUtils.turnToolStats（轮次卡 meta 统计）
+ * - AssistantMessage / assistantBlockRenderer（legacy 平铺路径 + 轮内块级渲染）
+ * - turn/ToolRunBlock（轮级过程清单的工具聚合段）
+ * - turn/TaskSection（分节工具摘要行）、turn/TurnProcessArea（聚合条状态点与
+ *   实时工具判定）、turn/turnUtils.resolveSectionStatus（分节状态推导）
  *
  * 配对语义（与抽取前 AssistantMessage 完全一致）：
  * 1. activeToolCalls 命中 → 以实时状态为准；但实时 input 为空对象时

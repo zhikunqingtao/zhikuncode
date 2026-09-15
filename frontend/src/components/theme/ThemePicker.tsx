@@ -3,11 +3,11 @@
  * SPEC: §8.7 主题系统
  *
  * 提供主题模式、强调色、字体大小等选项的快速切换
- * P1b（指南 §9.6）：6 色按 §3.4 终值；选中态 accent 驱动；字号档与 4 模式逻辑不动
+ * P1b（指南 §9.6）：6 色按 §3.4 终值；选中态 accent 驱动；字号档与 3 模式逻辑不动
  */
 
 import React from 'react';
-import { Sun, Moon, Monitor, Check, Sparkles } from 'lucide-react';
+import { Sun, Moon, Check, Sparkles } from 'lucide-react';
 import { useConfigStore } from '@/store/configStore';
 import { ACCENT_PRESETS } from '@/theme/accents';
 import { cn } from '@/components/ui';
@@ -19,7 +19,6 @@ export const ThemePicker: React.FC = () => {
     const modes: { value: ThemeConfig['mode']; label: string; icon: typeof Sun }[] = [
         { value: 'light', label: '浅色', icon: Sun },
         { value: 'dark', label: '深色', icon: Moon },
-        { value: 'system', label: '系统', icon: Monitor },
         { value: 'glass', label: '液态玻璃', icon: Sparkles },
     ];
 

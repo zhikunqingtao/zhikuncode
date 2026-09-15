@@ -4,7 +4,7 @@
  * 统一管理应用中所有对话框的显示：
  * - PermissionDialog (权限请求)
  * - ElicitationDialog (反向提问)
- * - SettingsPanel (设置面板)
+ * - SettingsPanel (外观设置)
  */
 
 import React from 'react';
@@ -17,6 +17,7 @@ import { useNotificationStore } from '@/store/notificationStore';
 import PermissionDialog from '@/components/permission/PermissionDialog';
 import { ElicitationDialog } from '@/components/dialog/ElicitationDialog';
 import { SettingsPanel } from '@/components/dialog/SettingsPanel';
+import { KeyboardShortcutsDialog } from '@/components/dialog/KeyboardShortcutsDialog';
 import { McpManagementPage } from '@/components/mcp/McpManagementPage';
 import { recoverPendingInteractions } from '@/api/dispatch';
 
@@ -147,6 +148,10 @@ export const DialogManager: React.FC = () => {
             {/* Settings Panel */}
             {activeDialog === 'settings' && (
                 <SettingsPanel onClose={closeDialog} />
+            )}
+
+            {activeDialog === 'keybindings' && (
+                <KeyboardShortcutsDialog onClose={closeDialog} />
             )}
 
             {activeDialog === 'mcp' && (

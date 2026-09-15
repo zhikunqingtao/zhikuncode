@@ -14,6 +14,7 @@ import {
     vi,
 } from 'vitest';
 import PromptInput from './PromptInput';
+import { dispatchPromptTemplateFill } from '@/services/promptTemplateFill';
 import type {
     Command,
     FileReferenceCapability,
@@ -78,6 +79,20 @@ describe('PromptInput asynchronous submit', () => {
         }).scrollIntoView;
         vi.restoreAllMocks();
         vi.unstubAllGlobals();
+    });
+
+    it('fills the current draft from a hero template and focuses without submitting', () => {
+        const submit = vi.fn().mockResolvedValue(true);
+        renderInput(submit);
+        fireEvent(window, new CustomEvent('zhikun:prompt-template-fill', { detail: { text: '生成 API 文档' } }));
+        const input = screen.getByRole('textbox', { name: '输入消息' });
+        expect(input).toHaveValue('生成 API 文档');
+        expect(input).toHaveFocus();
+        expect(submit).not.toHaveBeenCalled();
+        cleanup();
+        const drafts = usePromptDraftStore.getState().drafts;
+        dispatchPromptTemplateFill('unmounted');
+        expect(usePromptDraftStore.getState().drafts).toBe(drafts);
     });
 
     it('uploads a pasted screenshot through the fixed OSS path and submits its URL', async () => {

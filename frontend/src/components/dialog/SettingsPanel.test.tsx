@@ -1,104 +1,41 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { SettingsPanel } from '@/components/dialog/SettingsPanel';
-import { useNotificationStore } from '@/store/notificationStore';
-import { usePermissionStore } from '@/store/permissionStore';
-import { useSessionStore } from '@/store/sessionStore';
-import { useModelStore } from '@/store/modelStore';
+import { KeyboardShortcutsDialog } from '@/components/dialog/KeyboardShortcutsDialog';
+import { useConfigStore } from '@/store/configStore';
 
-const { binding, sendSetPermissionMode } = vi.hoisted(() => ({
-    binding: { bound: true },
-    sendSetPermissionMode: vi.fn(() => true),
-}));
-
-vi.mock('@/api/dispatch', () => ({
-    isSessionBound: () => binding.bound,
-}));
-
-vi.mock('@/api/stompClient', () => ({
-    sendSetPermissionMode,
-}));
-
-describe('SettingsPanel permission modes', () => {
+describe('Appearance settings and shortcut help', () => {
     beforeEach(() => {
-        sendSetPermissionMode.mockClear();
-        sendSetPermissionMode.mockReturnValue(true);
-        binding.bound = true;
-        useSessionStore.setState({ sessionId: 'session-1', model: 'dynamic-model' });
-        useModelStore.setState({
-            models: [{
-                id: 'dynamic-model', displayName: 'Dynamic Model',
-                supportsImages: false, maxImages: 0,
-            }],
-            defaultModel: 'dynamic-model',
-            loaded: true,
-            loading: false,
-            error: null,
+        useConfigStore.setState({
+            theme: { ...useConfigStore.getState().theme, mode: 'light' },
         });
-        usePermissionStore.setState({ permissionMode: 'default', pendingPermissions: [] });
-        useNotificationStore.getState().clearAll();
     });
 
-    it('shows all five permission modes', () => {
+    it('applies theme changes and persists them without session controls', () => {
         render(<SettingsPanel onClose={vi.fn()} />);
-
-        expect(screen.getByText('默认模式')).toBeInTheDocument();
-        expect(screen.getByText('计划模式')).toBeInTheDocument();
-        expect(screen.getByText('接受编辑')).toBeInTheDocument();
-        expect(screen.getByText('无需询问')).toBeInTheDocument();
-        expect(screen.getByText('完全访问权限')).toBeInTheDocument();
+        expect(screen.getByRole('dialog', { name: '外观设置' })).toBeInTheDocument();
+        expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: '跟随系统' })).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole('button', { name: '液态玻璃' }));
+        expect(useConfigStore.getState().theme.mode).toBe('glass');
+        expect(screen.getByRole('button', { name: '液态玻璃' })).toHaveAttribute('aria-pressed', 'true');
+        expect(JSON.parse(localStorage.getItem('ai-coder-config')!).state.theme.mode).toBe('glass');
     });
 
-    it('uses the models advertised by the active providers', () => {
-        useModelStore.setState({
-            models: [
-                { id: 'dynamic-model', displayName: 'Dynamic Model', supportsImages: false, maxImages: 0 },
-                { id: 'new-model', displayName: 'New Provider Model', supportsImages: true, maxImages: 2 },
-            ],
-        });
-        render(<SettingsPanel onClose={vi.fn()} />);
-
-        const modelOption = screen.getByRole('option', { name: 'New Provider Model' });
-        expect(modelOption).toBeInTheDocument();
-        const modelSelect = modelOption.closest('select');
-        expect(modelSelect).not.toBeNull();
-        if (modelSelect) {
-            fireEvent.change(modelSelect, { target: { value: 'new-model' } });
-        }
-
-        expect(useSessionStore.getState().model).toBe('new-model');
+    it('closes appearance settings with Escape', () => {
+        const onClose = vi.fn();
+        render(<SettingsPanel onClose={onClose} />);
+        fireEvent.keyDown(document, { key: 'Escape' });
+        expect(onClose).toHaveBeenCalledOnce();
     });
 
-    it('requests AUTO_APPROVE without optimistically changing local state', () => {
-        render(<SettingsPanel onClose={vi.fn()} />);
-
-        fireEvent.click(screen.getByText('完全访问权限'));
-
-        expect(sendSetPermissionMode).toHaveBeenCalledWith('AUTO_APPROVE');
-        expect(usePermissionStore.getState().permissionMode).toBe('default');
-    });
-
-    it('keeps the confirmed mode and reports a transport send failure', () => {
-        sendSetPermissionMode.mockReturnValue(false);
-        render(<SettingsPanel onClose={vi.fn()} />);
-
-        fireEvent.click(screen.getByText('完全访问权限'));
-
-        expect(usePermissionStore.getState().permissionMode).toBe('default');
-        expect(useNotificationStore.getState().notifications)
-            .toEqual(expect.arrayContaining([expect.objectContaining({
-                key: 'permission-mode-send-failed',
-                level: 'error',
-            })]));
-    });
-
-    it('disables permission changes until the session is bound', () => {
-        binding.bound = false;
-        render(<SettingsPanel onClose={vi.fn()} />);
-
-        const option = screen.getByText('完全访问权限').closest('button');
-        expect(option).toBeDisabled();
-        if (option) fireEvent.click(option);
-        expect(sendSetPermissionMode).not.toHaveBeenCalled();
+    it('shows shortcut help independently and closes with Done', () => {
+        const onClose = vi.fn();
+        render(<KeyboardShortcutsDialog onClose={onClose} />);
+        expect(screen.getByRole('dialog', { name: '快捷键帮助' })).toBeInTheDocument();
+        expect(screen.getByText('输入框内中断生成（未选中文字时）')).toBeInTheDocument();
+        expect(screen.queryByRole('group', { name: '主题' })).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole('button', { name: '完成' }));
+        expect(onClose).toHaveBeenCalledOnce();
     });
 });

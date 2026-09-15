@@ -36,6 +36,7 @@ import { useAsrAvailability } from '@/hooks/useAsrAvailability';
 import { usePromptAttachments } from './usePromptAttachments';
 import { useLocalFileReference } from './useLocalFileReference';
 import { usePromptDraftKey } from './usePromptDraftKey';
+import { PROMPT_TEMPLATE_FILL_EVENT } from '@/services/promptTemplateFill';
 
 export interface UsePromptStateParams {
     sessionId?: string | null;
@@ -104,6 +105,19 @@ export function usePromptState({
         localFiles,
         publishedLocalFiles,
     } = localFileReference;
+
+    // 模板只写入当前会话草稿并聚焦，不触发提交。
+    useEffect(() => {
+        const fill = (event: Event) => {
+            if (!(event instanceof CustomEvent) || typeof event.detail?.text !== 'string') return;
+            setInput(event.detail.text);
+            setShowCommands(false);
+            setShowGlobalPalette(false);
+            textareaRef.current?.focus();
+        };
+        window.addEventListener(PROMPT_TEMPLATE_FILL_EVENT, fill);
+        return () => window.removeEventListener(PROMPT_TEMPLATE_FILL_EVENT, fill);
+    }, [setInput]);
 
     // Global Ctrl+K listener
     useEffect(() => {

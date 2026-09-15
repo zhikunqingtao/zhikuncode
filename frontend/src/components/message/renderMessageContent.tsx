@@ -1,12 +1,7 @@
 /**
  * renderMessageContent — 按消息类型分发渲染单条消息的共享逻辑
  *
- * 从 MessageItem 抽取，供两条渲染路径复用，避免逻辑发散：
- * - detailed（平铺）路径：MessageItem 在时间分隔条之下调用本函数；
- * - compact/balanced（轮次分组）路径：turn/TurnContent 逐条调用本函数。
- *
- * 仅负责「消息本体」的分发渲染；时间分隔条、轮次卡壳等上下文装饰由调用方负责。
- * SystemMessage 内部的大面板分发（GitDiff/Diagnostic/HelpPanel 等）保持原位不动。
+ * 供轮次回复区与过程分节共用的消息渲染入口。
  */
 
 import React, { useMemo } from 'react';
@@ -19,6 +14,7 @@ import { Paperclip, Layers, FolderSearch } from 'lucide-react';
 
 /** 单条消息渲染上下文（流式透传 + 活跃工具调用） */
 export interface MessageRenderContext {
+    embeddedAssistant?: boolean;
     /** 是否正在流式接收此消息 */
     isStreaming?: boolean;
     streamingContent?: string;
@@ -37,6 +33,7 @@ export function renderMessageContent(
             return (
                 <AssistantMessage
                     message={message}
+                    embedded={ctx?.embeddedAssistant}
                     isStreaming={ctx?.isStreaming}
                     streamingContent={ctx?.streamingContent}
                     thinkingContent={ctx?.thinkingContent}

@@ -25,7 +25,6 @@ import {
 import Editor from '@monaco-editor/react';
 import { ensureZkMonacoThemes } from '@/styles/zkMonaco';
 import { useConfigStore } from '@/store/configStore';
-import { usePrefersDark } from '@/hooks/useMediaQuery';
 import MermaidBlock from '@/components/visualization/shared/MermaidBlock';
 import { useDiagramStore } from '@/store/diagramStore';
 
@@ -103,7 +102,6 @@ const MetadataBar: React.FC<{
 
 export const CodeDiagramGenerator: React.FC = () => {
   const themeMode = useConfigStore(s => s.theme.mode);
-  const prefersDark = usePrefersDark();
   const diagramType = useDiagramStore(s => s.diagramType);
   const target = useDiagramStore(s => s.target);
   const projectRoot = useDiagramStore(s => s.projectRoot);
@@ -301,7 +299,7 @@ export const CodeDiagramGenerator: React.FC = () => {
                 value={editorValue}
                 onChange={handleEditorChange}
                 beforeMount={ensureZkMonacoThemes}
-                theme={themeMode === 'dark' || (themeMode === 'system' && prefersDark) ? 'zk-dark' : 'zk-light'}
+                theme={themeMode === 'dark' ? 'zk-dark' : 'zk-light'}
                 options={{
                   minimap: { enabled: false },
                   fontSize: 12,

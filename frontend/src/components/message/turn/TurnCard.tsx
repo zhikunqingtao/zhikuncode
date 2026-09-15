@@ -1,68 +1,53 @@
 /**
- * TurnCard — 一轮 = 一张卡（compact/balanced 分组路径的 Virtuoso item）
+ * TurnCard — 一轮 = 完整 query ｜ 过程区 ｜ 完整回复（三层模型，Virtuoso item）
  *
- * 折叠态：v2 卡（surfacev2 + rounded-2xl + hairline + shadow-e1，hover 升 e2），
- * header 单行 = 状态点 + 「第 N 轮」+ 指令首行粗体截断 + 右侧耗时 + 复制本轮 + chevron；
- * header 下挂折叠态 meta 行（.turn-card-meta）：耗时 + 消息条数 + 工具统计
- * （.turn-card-tool-stats：🔧 N 次工具 · top3 工具名计数，turnToolStats 数据源）
- * + 文件变更数（>0 时显示）；completed 轮再追加一行结论预览
- * （turnConclusionPreview：最后一个 assistant text 块首行 ~80 字符，tertiary 色
- * + 右侧渐隐 mask）。
- * 展开态：header 吸顶（sticky，长轮滚动中可随时折回）+ 内容区左侧 hairline 竖导轨。
+ * 三层渲染（splitTurnLayers 取层）：
+ * - instruction（query）与 steering 用户消息：简洁档默认折叠，其他档完整可见；
+ * - 过程区：TurnProcessArea，按密度分档（compact 聚合条 / balanced 任务分节条 /
+ *   detailed 分节全展开，详见 TurnProcessArea 头注释）；
+ * - answer（最终回复）与 tail（error / provider_error / interrupt 系统消息）：
+ *   answer 在简洁档默认折叠，tail 保持可见；answer 命中 streamingMessageId 时按流式渲染
+ *   （isStreaming + streamingContent / thinkingContent / activeToolCalls 透传，
+ *   与原平铺路径 MessageList.itemContent 规则一致）。
  *
- * 状态点：active 且 run 进行中 → accent 呼吸点；否则轮内任一工具 error 或
- * error/provider_error system 消息 → 红；interrupt system 消息或已取消工具 → 琥珀；
- * 其余 → 翠绿。
+ * 展开态为分节粒度受控语义：本组件订阅 density 与本会话 expandOverrides，
+ * 过程区内部经 resolveSectionExpanded / setSectionExpanded 求值与写入
+ * （string key：轮级 `${turnIndex}` / 分节 `${turnIndex}:${sectionIndex}` /
+ * 准备段 `${turnIndex}:prep`）。
  *
- * preamble 轮（instruction = null）不渲染卡片头，消息平铺展示。
+ * preamble 轮（instruction = null）天然走同一三层结构（query 层为空，
+ * 过程区无任务数据时退化为聚合条）。
  *
- * 展开/折叠动画复用 globals.css 的 .expand-collapse（grid-rows 方案，reduced-motion
- * 已由全局 §8.8.5 规则降级）；折叠时内容延迟 300ms 卸载，兼顾折叠动画与长列表性能。
+ * key 用位置序号而非 uuid：reconcileCommittedRun 会整体替换消息 uuid，
+ * 位置 key 与原 TurnContent / 平铺路径语义一致，避免替换后无谓重挂载。
  */
 
-import React, { useCallback, useEffect, useState } from 'react';
-import { Check, ChevronDown, Copy, FilePen, Wrench } from 'lucide-react';
-import type { ToolCallState } from '@/types';
+import React, { useMemo, useState } from 'react';
+import { Bot, ChevronRight } from 'lucide-react';
+import type { Message, ToolCallState } from '@/types';
 import type { Turn } from '@/store/selectors/turnProjection';
-import { useTurnViewStore } from '@/store/turnViewStore';
-import { useNotificationStore } from '@/store/notificationStore';
-import { cn } from '@/components/ui/cn';
-import TurnContent from './TurnContent';
-import {
-    extractTurnText,
-    formatTurnDuration,
-    instructionFirstLine,
-    resolveTurnOutcome,
-    turnConclusionPreview,
-    turnToolStats,
-} from './turnUtils';
-
-/** 复制成功图标反馈时长 (ms)，与 MessageActions/CodeBlock 保持一致 */
-const COPY_ICON_RESET_MS = 2000;
-/** 折叠动画（--v2-dur-slow 240ms）结束后卸载内容的缓冲时长 */
-const COLLAPSE_UNMOUNT_MS = 300;
+import { turnMessageExpandKey, useTurnViewStore } from '@/store/turnViewStore';
+import { buildTurnTaskSections, splitTurnLayers } from '@/store/selectors/turnSections';
+import { renderMessageContent } from '../renderMessageContent';
+import TurnProcessArea from './TurnProcessArea';
+import UserMessage from '../UserMessage';
 
 export interface TurnCardProps {
     turn: Turn;
-    /** 「第 N 轮」序号（preamble 为 null） */
-    turnNumber: number | null;
     sessionId: string | null;
-    expanded: boolean;
     /** 运行中（streaming / waiting_permission），仅对 active 轮生效 */
     isRunActive: boolean;
     streamingMessageId?: string | null;
     streamingContent?: string;
     thinkingContent?: string;
     activeToolCalls?: Map<string, ToolCallState>;
-    /** 切换展开后的回调（MessageList 用于「手动展开历史轮不抢滚动」对齐） */
+    /** 过程区聚合条切换展开后的回调（MessageList 用于滚动对齐） */
     onAfterToggle?: (turnIndex: number, expanded: boolean) => void;
 }
 
 const TurnCard: React.FC<TurnCardProps> = ({
     turn,
-    turnNumber,
     sessionId,
-    expanded,
     isRunActive,
     streamingMessageId,
     streamingContent,
@@ -70,224 +55,119 @@ const TurnCard: React.FC<TurnCardProps> = ({
     activeToolCalls,
     onAfterToggle,
 }) => {
-    const [copied, setCopied] = useState(false);
-    // 折叠时延迟卸载内容：保留 grid-rows 折叠动画，避免长轮内容常驻 DOM
-    const [contentMounted, setContentMounted] = useState(expanded);
-    useEffect(() => {
-        if (expanded) {
-            setContentMounted(true);
-            return;
-        }
-        if (!contentMounted) return;
-        const timer = setTimeout(() => setContentMounted(false), COLLAPSE_UNMOUNT_MS);
-        return () => clearTimeout(timer);
-    }, [expanded, contentMounted]);
+    const density = useTurnViewStore(s => s.density);
+    const overrides = useTurnViewStore(s =>
+        (sessionId ? s.expandOverrides[sessionId] : undefined));
+    const [localOverrides, setLocalOverrides] = useState<Record<string, boolean>>({});
+    const compact = density === 'compact';
+    const messageExpanded = (key: string) => !compact || (sessionId ? overrides : localOverrides)?.[key] === true;
+    const toggleMessage = (key: string) => {
+        const next = !messageExpanded(key);
+        if (sessionId) useTurnViewStore.getState().setSectionExpanded(sessionId, key, next);
+        else setLocalOverrides(current => ({ ...current, [key]: next }));
+    };
+    const renderUser = (message: Message, key: string) => message.type === 'user'
+        ? <UserMessage message={message} disclosure={compact ? {
+            expanded: messageExpanded(key), onToggle: () => toggleMessage(key),
+        } : undefined} />
+        : renderMessageContent(message);
+    const answerKey = turnMessageExpandKey(turn.index, 'answer');
+    const answerExpanded = messageExpanded(answerKey);
 
-    const handleToggle = useCallback(() => {
-        if (sessionId) {
-            useTurnViewStore.getState().setTurnExpanded(sessionId, turn.index, !expanded);
-        }
-        onAfterToggle?.(turn.index, !expanded);
-    }, [sessionId, turn.index, expanded, onAfterToggle]);
-
-    const turnText = extractTurnText(turn);
-
-    const handleCopy = useCallback(async (event: React.MouseEvent<HTMLButtonElement>) => {
-        event.stopPropagation();
-        if (!turnText) return;
-        try {
-            await navigator.clipboard.writeText(turnText);
-            setCopied(true);
-            setTimeout(() => setCopied(false), COPY_ICON_RESET_MS);
-            useNotificationStore.getState().addNotification({
-                key: `turn-copy-${turn.key}`,
-                level: 'success',
-                message: '已复制本轮内容',
-            });
-        } catch {
-            // 剪贴板权限被拒等场景静默失败，与 MessageActions 保持一致
-        }
-    }, [turnText, turn.key]);
-
-    // preamble 轮：无卡片头，消息平铺
-    if (!turn.instruction) {
-        return (
-            <div className="turn-preamble" data-turn-index={turn.index}>
-                <TurnContent
-                    turn={turn}
-                    streamingMessageId={streamingMessageId}
-                    streamingContent={streamingContent}
-                    thinkingContent={thinkingContent}
-                    activeToolCalls={activeToolCalls}
-                />
-            </div>
-        );
-    }
-
+    const layers = useMemo(
+        () => splitTurnLayers(turn, streamingMessageId),
+        [turn, streamingMessageId],
+    );
+    const taskSections = useMemo(
+        () => buildTurnTaskSections(layers.process),
+        [layers.process],
+    );
     const running = turn.status === 'active' && isRunActive;
-    const outcome = resolveTurnOutcome(turn);
-    // 工具统计（meta 行 + 状态点数据源）：轮内 tool_use 计数/top 工具名/
-    // 文件变更/失败与取消计数（O(轮内块数)，纯函数）
-    const toolStats = turnToolStats(turn, activeToolCalls);
-    // completed 轮结论预览（折叠态追加行）；active 轮不展示
-    const conclusion = turn.status === 'completed' ? turnConclusionPreview(turn) : null;
-    // 状态点：工具 error 与 error 系统消息同级判红；取消与 interrupt 同级判琥珀
-    const hasError = outcome === 'error' || toolStats.errorCount > 0;
-    const hasInterrupt = outcome === 'interrupted' || toolStats.cancelledCount > 0;
-    const dotClass = running
-        ? 'bg-accent2 animate-accent-pulse motion-reduce:animate-none'
-        : hasError
-          ? 'bg-err'
-          : hasInterrupt
-            ? 'bg-warn'
-            : 'bg-ok';
-    const dotLabel = running
-        ? '进行中'
-        : hasError
-          ? '出错'
-          : hasInterrupt
-            ? '被中断'
-            : '已完成';
-    const duration = formatTurnDuration(turn.startedAt, turn.endedAt);
+    const answerStreaming = layers.answer !== null
+        && layers.answer.uuid === streamingMessageId;
+    const answerContent = layers.answer && renderMessageContent(layers.answer, {
+        embeddedAssistant: true,
+        isStreaming: answerStreaming,
+        streamingContent: answerStreaming ? streamingContent : undefined,
+        thinkingContent: answerStreaming ? thinkingContent : undefined,
+        activeToolCalls,
+    });
 
     return (
         <div
-            className={cn(
-                'turn-card group/turn-card mx-3 my-2 rounded-2xl border border-hairline',
-                'bg-surfacev2 shadow-e1 transition-surface duration-base hover:shadow-e2',
-            )}
+            className="turn-card"
             data-turn-index={turn.index}
             data-testid={`turn-card-${turn.index}`}
         >
-            {/* Header（单行；展开时吸顶 + 底部 hairline）。展开切换 = 真实 <button>
-                （包裹全部非交互内容，原生支持 Enter/Space），复制按钮为其兄弟节点，
-                避免嵌套交互元素。 */}
-            <div
-                className={cn(
-                    'flex items-center select-none rounded-t-2xl',
-                    expanded && 'sticky top-0 z-10 border-b border-hairline bg-surfacev2',
-                )}
-            >
-                <button
-                    type="button"
-                    aria-expanded={expanded}
-                    aria-label={`第 ${turnNumber} 轮，${expanded ? '点击折叠' : '点击展开'}`}
-                    data-turn-header={turn.index}
-                    onClick={handleToggle}
-                    className={cn(
-                        'flex min-w-0 flex-1 cursor-pointer items-center gap-2 px-3 py-2.5 text-left',
-                        'rounded-t-2xl focus-visible:outline-none focus-visible:ring-[3px]',
-                        'focus-visible:ring-accent2-ring focus-visible:ring-inset',
-                    )}
-                >
-                    <span
-                        className={cn('inline-block h-2 w-2 shrink-0 rounded-full', dotClass)}
-                        role="img"
-                        aria-label={dotLabel}
-                        data-testid={`turn-status-dot-${turn.index}`}
-                    />
-                    <span className="shrink-0 text-xs text-t4 tabular-nums">
-                        第 {turnNumber} 轮
-                    </span>
-                    <span className="min-w-0 flex-1 truncate text-left text-sm font-semibold text-t1">
-                        {instructionFirstLine(turn.instruction)}
-                    </span>
-                    <span className="shrink-0 text-xs text-t4 tabular-nums">{duration}</span>
-                    <ChevronDown
-                        className={cn(
-                            'h-4 w-4 shrink-0 text-t4 transition-transform duration-base motion-reduce:transition-none',
-                            expanded && 'rotate-180',
-                        )}
-                    />
-                </button>
-                {turnText !== null && (
-                    <button
-                        type="button"
-                        onClick={handleCopy}
-                        title={copied ? '已复制' : '复制本轮'}
-                        aria-label={copied ? '已复制' : '复制本轮'}
-                        data-testid={`turn-copy-button-${turn.index}`}
-                        className={cn(
-                            'mr-3 shrink-0 rounded-md p-1 text-t4 transition-all duration-fast',
-                            'hover:bg-hover2 hover:text-t1',
-                            'opacity-0 group-hover/turn-card:opacity-100 focus-visible:opacity-100',
-                            copied && 'opacity-100 text-ok',
-                        )}
-                    >
-                        {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                    </button>
-                )}
-            </div>
-
-            {/* 折叠态 meta 行：耗时 + 消息条数 + 工具统计 + 文件变更 */}
-            {!expanded && (
-                <div className="turn-card-meta flex items-center gap-1.5 px-3 pb-2 text-xs text-t4">
-                    <span className="tabular-nums">{duration}</span>
-                    <span aria-hidden="true">·</span>
-                    <span className="tabular-nums">{turn.messages.length} 条消息</span>
-                    <span
-                        className="turn-card-tool-stats flex min-w-0 items-center gap-1.5"
-                        data-testid="turn-card-tool-stats"
-                    >
-                        {toolStats.total > 0 && (
-                            <>
-                                <span aria-hidden="true">·</span>
-                                <Wrench size={12} className="shrink-0" aria-hidden="true" />
-                                <span className="shrink-0 tabular-nums">{toolStats.total} 次工具</span>
-                                {toolStats.topNames.length > 0 && (
-                                    <>
-                                        <span aria-hidden="true">·</span>
-                                        <span className="min-w-0 truncate tabular-nums">
-                                            {toolStats.topNames
-                                                .map(([name, count]) => `${name}×${count}`)
-                                                .join(' ')}
-                                        </span>
-                                    </>
-                                )}
-                            </>
-                        )}
-                    </span>
-                    {toolStats.filesChanged > 0 && (
-                        <>
-                            <span aria-hidden="true">·</span>
-                            <FilePen size={12} className="shrink-0" aria-hidden="true" />
-                            <span className="shrink-0 tabular-nums">
-                                {toolStats.filesChanged} 个文件变更
-                            </span>
-                        </>
-                    )}
+            {/* query 层：简洁档默认折叠（preamble 轮为 null） */}
+            {layers.instruction && (
+                <div data-message-uuid={layers.instruction.uuid} className="turn-message">
+                    {renderUser(layers.instruction, turnMessageExpandKey(turn.index, 'query'))}
                 </div>
             )}
 
-            {/* 折叠态结论预览（completed 轮：最后一个 assistant text 块首行，右侧渐隐） */}
-            {!expanded && conclusion !== null && (
-                <div
-                    className={cn(
-                        'turn-card-conclusion overflow-hidden whitespace-nowrap px-3 pb-2 text-xs text-t3',
-                        '[mask-image:linear-gradient(to_right,black_72%,transparent_98%)]',
-                    )}
-                    data-testid={`turn-card-conclusion-${turn.index}`}
-                >
-                    {conclusion}
+            {/* steering 用户消息与 query 使用相同密度规则 */}
+            {layers.steering.map((message, index) => (
+                <div key={index} data-message-uuid={message.uuid} className="turn-message">
+                    {renderUser(message, turnMessageExpandKey(turn.index, `steering-${index}`))}
                 </div>
-            )}
+            ))}
 
-            {/* 展开内容（grid-rows 展开/收起动画 + 左侧 hairline 竖导轨） */}
-            <div className="expand-collapse" data-open={expanded}>
-                <div className="expand-collapse-inner">
-                    {contentMounted && (
-                        <div className="turn-card-content ml-4 border-l border-hairline pb-1 pl-1">
-                            <TurnContent
+            {/* 过程与回复共用一个外框和身份标识，形成一份完整的助手回应。 */}
+            {(layers.process.length > 0 || layers.answer || layers.tail.length > 0) && (
+                <section className="mx-3 mb-5 mt-1 min-w-0 rounded-2xl border border-hairline bg-surfacev2 shadow-e1 sm:mx-4"
+                    aria-label="助手回复" data-testid={`turn-response-${turn.index}`}>
+                    <div className="flex items-center gap-2 px-3 pt-3 text-xs font-medium text-t3 sm:px-[18px] sm:pt-4">
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-accent2 to-accent2-strong text-white shadow-e1">
+                            <Bot size={15} aria-hidden="true" />
+                        </span>
+                        <span>Assistant</span>
+                    </div>
+                    {/* 过程区（密度分档；无过程消息则不渲染） */}
+                    {layers.process.length > 0 && (
+                        <div className="px-3 pb-3 pt-3 sm:px-[18px]">
+                            <TurnProcessArea
                                 turn={turn}
+                                process={layers.process}
+                                taskSections={taskSections}
+                                density={density}
+                                sessionId={sessionId}
+                                overrides={overrides}
+                                running={running}
+                                isRunActive={isRunActive}
                                 streamingMessageId={streamingMessageId}
                                 streamingContent={streamingContent}
                                 thinkingContent={thinkingContent}
                                 activeToolCalls={activeToolCalls}
+                                onAfterToggle={onAfterToggle}
                             />
                         </div>
                     )}
-                </div>
-            </div>
+
+                    {/* answer 层：完整最终回复（流式命中时实时渲染） */}
+                    {layers.answer && (
+                        <div data-message-uuid={layers.answer.uuid} className="turn-message min-w-0 px-3 pb-3 pt-3 sm:px-[18px] sm:pb-4">
+                            {compact && (
+                                <button type="button" aria-expanded={answerExpanded} aria-label={`最终回复，点击${answerExpanded ? '收起' : '展开'}`}
+                                    onClick={() => toggleMessage(answerKey)}
+                                    className="flex min-h-11 w-full items-center gap-2 rounded-xl border border-hairline bg-surface2 px-3 py-2 text-left text-sm text-t2 hover:bg-hover2 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring">
+                                    <span className="font-medium">{answerStreaming ? '回复生成中' : '最终回复'}</span>
+                                    <span className="ml-auto shrink-0 text-xs">{answerExpanded ? '收起' : '展开'}</span>
+                                    <ChevronRight size={13} aria-hidden="true" className={`shrink-0 text-t3 ${answerExpanded ? 'rotate-90' : ''}`} />
+                                </button>
+                            )}
+                            {answerExpanded && (compact ? <div className="pt-3">{answerContent}</div> : answerContent)}
+                        </div>
+                    )}
+
+                    {/* tail 层：轮次结果类系统消息（error / provider_error / interrupt） */}
+                    {layers.tail.map((message, index) => (
+                        <div key={index} data-message-uuid={message.uuid} className="turn-message">
+                            {renderMessageContent(message)}
+                        </div>
+                    ))}
+                </section>
+            )}
         </div>
     );
 };

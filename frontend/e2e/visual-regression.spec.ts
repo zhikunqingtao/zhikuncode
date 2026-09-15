@@ -105,7 +105,7 @@ function dynamicMasks(page: Page): Locator[] {
     ];
 }
 
-test.describe('视觉基线 P0（纯增量令牌层，零视觉变化）', () => {
+test.describe('三主题视觉基线', () => {
     for (const theme of THEMES) {
         test(`①主界面空态 - ${theme}`, async ({ page }) => {
             await openApp(page, theme);
@@ -119,9 +119,9 @@ test.describe('视觉基线 P0（纯增量令牌层，零视觉变化）', () =>
 
         test(`②设置面板打开态 - ${theme}`, async ({ page }) => {
             await openApp(page, theme);
-            // Header 设置钮：title="设置"（无 aria-label，桌面视口可见）
-            await page.locator('button[title="设置"]').click();
-            await expect(page.getByRole('heading', { name: '设置' })).toBeVisible();
+            // Header 设置钮：title="外观设置"（桌面视口可见）
+            await page.locator('button[title="外观设置"]').click();
+            await expect(page.getByRole('heading', { name: '外观设置' })).toBeVisible();
             await page.waitForTimeout(300);
             await expect(page).toHaveScreenshot(`settings-open-${theme}.png`, {
                 maxDiffPixelRatio: 0.01,

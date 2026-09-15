@@ -150,8 +150,8 @@ test.describe('axe WCAG 2.1 A/AA 闸', () => {
 
     test('设置面板打开态 - light', async ({ page }) => {
         await openMain(page);
-        await page.locator('button[title="设置"]').click();
-        await expect(page.getByRole('heading', { name: '设置' })).toBeVisible();
+        await page.locator('button[title="外观设置"]').click();
+        await expect(page.getByRole('heading', { name: '外观设置' })).toBeVisible();
 
         const results = await scan(page);
         const { legacy, fresh } = splitNewVsLegacy(flatten(results));

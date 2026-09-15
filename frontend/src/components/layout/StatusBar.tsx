@@ -100,7 +100,7 @@ export function StatusBar() {
 
     if (simpleMode) {
         return (
-            <footer className="h-[34px] border-t border-hairline bg-surface2 flex items-center justify-between px-4 text-xs shrink-0">
+            <footer className="app-status h-[34px] border-t border-hairline bg-surface2 flex items-center justify-between px-4 text-xs shrink-0">
                 <div className="flex items-center gap-2">
                     <StatusDot tone={statusDot.tone} pulse={statusDot.pulse} />
                     <span className="text-t2">{getStatusLabel(status)}</span>
@@ -118,7 +118,7 @@ export function StatusBar() {
             {/* Token Budget Indicator */}
             <TokenBudgetIndicator />
 
-            <footer className="h-[34px] border-t border-hairline bg-surface2
+            <footer className="app-status h-[34px] border-t border-hairline bg-surface2
                 flex items-center px-4 text-xs shrink-0">
 
             {/* Left: Permission Mode & Status */}

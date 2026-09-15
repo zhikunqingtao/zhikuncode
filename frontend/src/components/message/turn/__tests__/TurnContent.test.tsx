@@ -53,7 +53,7 @@ describe('TurnContent 轮内渲染', () => {
             .toEqual(['u1', 'a1', 'a2']);
     });
 
-    it('纯 tool_result 载体 user 消息整条跳过（与 MessageItem 兜底一致）', () => {
+    it('纯 tool_result 载体 user 消息整条跳过', () => {
         // 载体消息不开新轮，归并到 u1 所在轮
         const [turn] = buildTurns([
             userText('u1', 1, '问题'),
@@ -234,7 +234,7 @@ describe('TurnContent 工具聚合接线', () => {
         const [turn] = buildTurns([
             userText('u1', 1, '问题'),
             assistantWithBlocks('a1', 2, [toolUseBlock('t1', 'Read', okResult())]),
-            assistantWithBlocks('a2', 3, [{ type: 'text', text: '' }]),
+            assistantWithBlocks('a2', 3, [{ type: 'text', text: '' }, toolUseBlock('live-1', 'Bash')]),
         ]);
         const live = new Map<string, ToolCallState>([
             ['live-1', { toolName: 'Bash', input: {}, status: 'running', startTime: 0 }],

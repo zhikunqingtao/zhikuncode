@@ -27,6 +27,12 @@ const SystemMessage: React.FC<SystemMessageProps> = ({ message }) => {
     const subtype = message.subtype;
     const metadata = (message as any).metadata as Record<string, unknown> | undefined;
 
+    // 任务边界标记 —— 仅供轮次任务分节推导（store/selectors/turnSections）
+    // 消费的结构化数据，不渲染成聊天气泡
+    if (subtype === 'task_boundary') {
+        return null;
+    }
+
     // JSX result — route by metadata.action
     if (subtype === 'jsx_result' && metadata) {
         const action = metadata.action as string;

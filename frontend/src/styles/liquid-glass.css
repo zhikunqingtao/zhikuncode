@@ -1,0 +1,141 @@
+/* Web material calibrated against Apple's WWDC26 design refinements.
+   These values are application choices, not Apple API constants. */
+html.glass {
+  --bg-primary: #f3f5f9;
+  --bg-secondary: #f7f8fc;
+  --text-primary: #202737;
+  --text-secondary: #505b6d;
+  --text-muted: #576276;
+  --border: rgba(49, 66, 96, .18);
+  --code-bg: #edf0f6;
+  --v2-bg-app: #f3f5f9;
+  --v2-bg-surface: #fafbfe;
+  --v2-bg-surface-2: #f0f3f9;
+  --v2-bg-sunken: #e9edf5;
+  --v2-text-1: #202737;
+  --v2-text-2: #505b6d;
+  --v2-text-3: #576276;
+  --v2-text-4: #596579;
+  --v2-border-hairline: rgba(49, 66, 96, .16);
+  --glass-edge: rgba(45, 61, 87, .3);
+  --glass-highlight: rgba(255, 255, 255, .94);
+}
+
+.glass .app-workspace {
+  background:
+    radial-gradient(ellipse at 0% 32%, #a7c5eb 0%, transparent 42%),
+    radial-gradient(ellipse at 90% 5%, #d6c8ec 0%, transparent 42%),
+    radial-gradient(ellipse at 76% 98%, #ead1b9 0%, transparent 42%),
+    #edf1f7;
+}
+
+.glass .glass-surface {
+  isolation: isolate;
+  background: transparent;
+  border-color: var(--glass-edge);
+}
+.liquid-glass-material {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: inherit;
+  --glass-blur: 18px;
+  --glass-tint: rgba(245, 249, 255, .38);
+  --glass-shadow: 0 2px 5px rgba(35, 51, 82, .08), 0 10px 32px rgba(35, 51, 82, .12);
+  box-shadow: var(--glass-shadow);
+}
+.liquid-glass-material[data-kind="control"] {
+  --glass-blur: 12px;
+  --glass-tint: rgba(248, 251, 255, .32);
+}
+.liquid-glass-material[data-kind="overlay"] {
+  --glass-blur: 26px;
+  --glass-tint: rgba(250, 252, 255, .72);
+  --glass-shadow: 0 8px 20px rgba(35, 51, 82, .12), 0 28px 80px rgba(35, 51, 82, .22);
+}
+.glass-scatter, .glass-lens, .glass-light {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+.glass-scatter {
+  background: var(--glass-tint);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(145%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(145%);
+}
+.liquid-glass-material[data-refracting="true"] .glass-scatter {
+  border: 6px solid transparent;
+  background-clip: padding-box;
+  mask: linear-gradient(#fff 0 0) padding-box;
+}
+.glass-lens {
+  border: 10px solid transparent;
+  mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+}
+.glass-light {
+  border: 1px solid var(--glass-edge);
+  background:
+    radial-gradient(ellipse 240px 110px at var(--glass-pointer-x, 15%) var(--glass-pointer-y, 0%), rgba(255,255,255,.38), transparent 75%),
+    linear-gradient(155deg, rgba(255,255,255,.2), transparent 28%, transparent 72%, rgba(255,255,255,.16));
+  box-shadow: inset 0 1px 1px var(--glass-highlight), inset 1px 0 1px rgba(255,255,255,.58), inset 0 -1px 1px rgba(31,47,73,.16);
+}
+.glass-filter-defs { position: absolute; }
+
+/* One continuous chrome layer, readable content beneath it. */
+.glass .app-header { z-index: 20; border-bottom: 0; }
+.glass .app-sidebar { border-right: 0; }
+.glass .app-sidebar .sidebar-rail { background: transparent; }
+.glass .app-sidebar .liquid-glass-material { --glass-tint: rgba(244,248,255,.3); }
+.glass .app-sidebar button[aria-current="page"] { color: var(--v2-accent-strong); }
+.glass .app-status { background: rgba(246,249,253,.8); }
+.glass .chat-workspace { position: relative; }
+.glass .chat-composer-dock {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 15;
+  border: 0;
+  background: transparent;
+  pointer-events: none;
+}
+.glass .chat-composer-dock > * { pointer-events: auto; }
+.glass .chat-composer-inset { border: 0; background: transparent; }
+.glass .chat-composer-surface { border-radius: 24px; padding: 14px 16px; }
+.glass .chat-composer-surface textarea { background: rgba(255,255,255,.46); box-shadow: none; }
+.glass .chat-composer-surface [data-testid="mobile-prompt-bar"] { background: transparent; border: 0; box-shadow: none; }
+.glass .chat-content { padding-bottom: var(--glass-composer-height, 132px); }
+/* Virtualized development chat extends behind the composer. Footer reserves its real height. */
+.glass .chat-content:has(.message-list) { padding-bottom: 0; }
+.glass-chat-spacer { display: none; }
+.glass .glass-chat-spacer { display: block; height: var(--glass-composer-height, 132px); }
+.glass .message-list { scroll-padding-bottom: var(--glass-composer-height, 132px); }
+.glass .message-list > .back-to-latest-position { bottom: calc(var(--glass-composer-height, 132px) + 12px); }
+.glass .glass-dialog { border-radius: 24px; box-shadow: none; }
+.glass .glass-menu { border-radius: 20px; }
+.glass .glass-segments { position: relative; isolation: isolate; background: rgba(80,100,132,.1); border-color: rgba(50,68,98,.18); }
+.glass .glass-segments button { position: relative; background: transparent; z-index: 0; }
+.glass .glass-segments button[aria-selected="true"] { color: #202737; box-shadow: none; }
+.glass .glass-selection { background: linear-gradient(155deg, rgba(255,255,255,.94), rgba(255,255,255,.5)); box-shadow: inset 0 1px 1px white, inset 0 -1px 1px rgba(31,47,73,.18), 0 1px 4px rgba(31,47,73,.12); border: 1px solid rgba(45,61,87,.24); position: absolute; inset: 0; z-index: -1; border-radius: inherit; }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .glass .glass-surface button:not(:disabled):active { transform: scale(.97); }
+}
+@media (max-width: 767px) {
+  .glass .chat-composer-surface { border-radius: 22px; padding: 0; }
+  .glass .chat-composer-inset { padding-top: 8px; }
+}
+
+/* User accessibility preferences are material modifiers, not alternate themes. */
+.liquid-glass-material[data-reduced="true"] .glass-scatter { background: #f5f7fb; backdrop-filter: none; -webkit-backdrop-filter: none; }
+.liquid-glass-material[data-reduced="true"] .glass-light { background: none; }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass-scatter { background: #f5f7fb; }
+}
+@media (prefers-contrast: more) {
+  html.glass { --glass-edge: #39465b; --v2-border-hairline: #596579; }
+}
+@media (forced-colors: active) {
+  .glass .glass-surface { background: Canvas; border: 1px solid CanvasText; }
+  .liquid-glass-material { display: none; }
+}

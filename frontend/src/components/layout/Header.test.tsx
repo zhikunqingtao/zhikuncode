@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Header } from '@/components/layout/Header';
+import { ThemeProvider } from '@/components/theme/ThemeProvider';
 import { useConfigStore } from '@/store/configStore';
 import { useModelStore } from '@/store/modelStore';
 import { useSessionStore } from '@/store/sessionStore';
@@ -17,6 +18,18 @@ describe('Header model selection', () => {
 
     afterEach(() => {
         vi.unstubAllGlobals();
+        document.documentElement.classList.remove('light', 'dark', 'glass', 'system');
+    });
+
+    it.each(['system', 'unknown'])('safely renders unexpected runtime theme %s', mode => {
+        useModelStore.setState({ loaded: true, loading: false, models: [], defaultModel: null });
+        // 模拟未经持久化迁移的旧运行态，验证最后一层渲染防护。
+        useConfigStore.setState({ theme: JSON.parse(JSON.stringify({ ...useConfigStore.getState().theme, mode })) });
+        document.documentElement.classList.add('system');
+        render(<ThemeProvider><Header /></ThemeProvider>);
+        expect(screen.getByRole('button', { name: '外观设置' })).toBeVisible();
+        expect(document.documentElement.classList.contains('system')).toBe(false);
+        expect(document.documentElement.classList.contains('light') || document.documentElement.classList.contains('dark')).toBe(true);
     });
 
     it('shows a retry action when the provider model list fails to load', async () => {

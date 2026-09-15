@@ -7,7 +7,6 @@
 // 消息列表 (虚拟滚动)
 export { default as MessageList } from './MessageList';
 export type { MessageListHandle } from './MessageList';
-export { default as MessageItem } from './MessageItem';
 
 // 消息类型渲染器
 export { default as UserMessage } from './UserMessage';

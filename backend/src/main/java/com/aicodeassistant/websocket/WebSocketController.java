@@ -261,7 +261,7 @@ public class WebSocketController implements PermissionNotifier {
         "run_completed", "run_failed", "error", "cost_update",
         "interaction_created", "interaction_terminal", "interaction_updated",
         "permission_mode_changed", "tool_use_start", "tool_use_input",
-        "run_input_applied", "run_input_rejected"
+        "run_input_applied", "run_input_rejected", "assistant_segment_complete", "task_boundary"
     );
 
     private boolean isCriticalMessage(String type) {
@@ -1152,7 +1152,20 @@ public class WebSocketController implements PermissionNotifier {
 
         @Override
         public void onAssistantMessage(Message.AssistantMessage message) {
-            // 已通过 onTextDelta 流式推送
+            // assistant 段结束不等于整个 run 结束。复用历史转换，保持工具块契约一致。
+            try {
+                push(sessionId, "assistant_segment_complete",
+                        Map.of("message", convertMessagesForWs(List.of(message)).getFirst()));
+            } catch (RuntimeException failure) {
+                log.warn("assistant segment push failed: sessionId={}, messageId={}", sessionId, message.uuid(), failure);
+            }
+        }
+
+        @Override
+        public void onTaskBoundary(Message.SystemMessage message) {
+            Map<String, Object> fields = new LinkedHashMap<>(message.metadata());
+            fields.put("message_id", message.uuid());
+            push(sessionId, "task_boundary", fields);
         }
 
         @Override
@@ -2023,6 +2036,14 @@ public class WebSocketController implements PermissionNotifier {
                     map.put("uuid", s.uuid());
                     map.put("timestamp", s.timestamp() != null ? s.timestamp().toEpochMilli() : 0);
                     map.put("content", s.content());
+                    // 业务子类型与元数据（如 task_boundary）原样回传，
+                    // 字段名与前端 system 消息契约一致（subtype / metadata）
+                    if (s.subtype() != null) {
+                        map.put("subtype", s.subtype());
+                    }
+                    if (s.metadata() != null && !s.metadata().isEmpty()) {
+                        map.put("metadata", s.metadata());
+                    }
                 }
             }
             result.add(map);

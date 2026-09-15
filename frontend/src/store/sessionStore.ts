@@ -38,7 +38,6 @@ export interface SessionStoreState {
     model: string | null;
     status: 'idle' | 'streaming' | 'waiting_permission' | 'compacting';
     turnCount: number;
-    effortValue: number;
     isAborted: boolean;
 
     // Actions
@@ -48,7 +47,6 @@ export interface SessionStoreState {
     ) => Promise<string>;
     resumeSession: (sessionId: string) => Promise<void>;
     setModel: (model: string) => void;
-    setEffort: (value: number) => void;
     setStatus: (status: SessionStoreState['status']) => void;
     handleRateLimit: (data: { retryAfterMs: number; limitType: string }) => void;
     abort: () => void;
@@ -61,7 +59,6 @@ export const useSessionStore = create<SessionStoreState>()(
         model: null,
         status: 'idle' as const,
         turnCount: 0,
-        effortValue: 3,
         isAborted: false,
 
         // Actions
@@ -101,7 +98,6 @@ export const useSessionStore = create<SessionStoreState>()(
             saveActiveSessionId(sessionId);
         },
         setModel: (model) => set(d => { d.model = model; }),
-        setEffort: (value) => set(d => { d.effortValue = value; }),
         setStatus: (status) => set(d => { d.status = status; }),
         handleRateLimit: (_data) => set(d => { d.status = 'idle'; }),
         abort: () => set(d => { d.isAborted = true; d.status = 'idle'; }),

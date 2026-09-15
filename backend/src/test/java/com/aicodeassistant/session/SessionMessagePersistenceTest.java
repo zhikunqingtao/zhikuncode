@@ -3,6 +3,7 @@ package com.aicodeassistant.session;
 import com.aicodeassistant.engine.QueryLoopState;
 import com.aicodeassistant.model.ContentBlock;
 import com.aicodeassistant.model.Message;
+import com.aicodeassistant.model.SystemMessageType;
 import com.aicodeassistant.tool.ToolUseContext;
 import org.junit.jupiter.api.Test;
 
@@ -65,6 +66,37 @@ class SessionMessagePersistenceTest {
 
         verify(sessions, times(2)).addMessageWithId(eq("message-2"), eq("session-1"),
                 eq("user"), eq(message.content()), eq(null), eq(0), eq(0), eq(null));
+    }
+
+    @Test
+    void systemMessageSubtypeIsMergedIntoPersistedMeta() {
+        SessionManager sessions = mock(SessionManager.class);
+        QueryLoopState state = new QueryLoopState(List.of(), ToolUseContext.of(".", "session-1"));
+        SessionMessagePersistence.attach(state, sessions, "session-1", "test");
+        Message.SystemMessage boundary = new Message.SystemMessage(
+                "sys-1", Instant.now(), "", SystemMessageType.INFO,
+                "task_boundary", java.util.Map.of("task_id", "t1", "seq", 1));
+
+        state.addMessage(boundary);
+
+        // messages 表只有 meta_json 一列：subtype 合并进 metadata 一并持久化
+        verify(sessions, times(1)).addMessageWithId(eq("sys-1"), eq("session-1"),
+                eq("system"), eq(""), eq(null), eq(0), eq(0),
+                eq(java.util.Map.of("task_id", "t1", "seq", 1, "subtype", "task_boundary")));
+    }
+
+    @Test
+    void systemMessageWithoutSubtypeOrMetadataPersistsNullMeta() {
+        SessionManager sessions = mock(SessionManager.class);
+        QueryLoopState state = new QueryLoopState(List.of(), ToolUseContext.of(".", "session-1"));
+        SessionMessagePersistence.attach(state, sessions, "session-1", "test");
+        Message.SystemMessage plain = new Message.SystemMessage(
+                "sys-2", Instant.now(), "note", SystemMessageType.INFO);
+
+        state.addMessage(plain);
+
+        verify(sessions, times(1)).addMessageWithId(eq("sys-2"), eq("session-1"),
+                eq("system"), eq("note"), eq(null), eq(0), eq(0), eq(null));
     }
 
     private static Message.UserMessage user(String id) {
