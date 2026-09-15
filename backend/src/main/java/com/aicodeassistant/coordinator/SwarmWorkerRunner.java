@@ -115,6 +115,15 @@ public class SwarmWorkerRunner {
             ToolUseContext parentContext,
             SwarmState swarmState) {
 
+        // 未单独指定 Worker 模型时，继承本次父查询的模型，不使用固定模型或快速模型。
+        boolean explicitModel = config.workerModel() != null && !config.workerModel().isBlank();
+        String model = explicitModel ? config.workerModel() : parentContext.parentModel();
+        if (model == null || model.isBlank()) {
+            throw new IllegalArgumentException("Swarm worker model is missing: provide the parent query model or an explicit workerModel");
+        }
+        log.info("Worker {} using model={} (source={})", workerId, model,
+                explicitModel ? "worker config" : "parent query");
+
         // 1. 构建 worker 工具集（应用 allowList/denyList 过滤）
         List<Tool> allTools = toolRegistry.getEnabledTools();
         List<Tool> filteredTools = allTools.stream()
@@ -135,6 +144,7 @@ public class SwarmWorkerRunner {
         // 保留根会话 ID，并通过 parentSessionId/currentRunId 建立持久化子 Run 父链；
         // 权限继承只信任数据库父链，不依赖临时 worker 标识。
         ToolUseContext workerContext = parentContext
+                .withParentModel(model)
                 .withNestingDepth(parentContext.nestingDepth() + 1)
                 .withCurrentTaskId(workerId)
                 .withParentSessionId(parentContext.sessionId())
@@ -146,7 +156,6 @@ public class SwarmWorkerRunner {
                         : parentContext.workingDirectory());
 
         // 3. 构建 QueryConfig（复用现有引擎签名）
-        String model = config.workerModel() != null ? config.workerModel() : "qwen3.7-plus";
         String systemPrompt = buildWorkerSystemPrompt(taskPrompt, config);
 
         QueryConfig workerConfig = QueryConfig.withDefaults(

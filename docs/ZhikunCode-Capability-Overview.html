@@ -433,9 +433,10 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
       <text x="0" y="12" fill="#F87171" font-size="10" font-weight="bold">国产模型</text>
       <text x="0" y="26" fill="#8da4b0" font-size="8">deepseek-flash · V4.1 Flash (384K, thinking)</text>
       <text x="0" y="38" fill="#8da4b0" font-size="8">1M context · native vision · tools</text>
-      <text x="0" y="50" fill="#8da4b0" font-size="8">qwen3.8-max-0902（默认）| qwen3.8-max（百炼）| qwen3.8-flash（百炼，1M）</text>
-      <text x="0" y="62" fill="#8da4b0" font-size="8">DeepSeek Pro 0813 / Flash 0731（百炼）| kimi-k3</text>
-      <text x="0" y="74" fill="#8da4b0" font-size="8">glm-5.3 (1M) | glm-5.3-flash (1M, 50张图)</text>
+      <text x="0" y="50" fill="#8da4b0" font-size="8">deepseek-v4.1-flash（百炼默认，1M）</text>
+      <text x="0" y="62" fill="#8da4b0" font-size="8">qwen3.8-max-0902 | qwen3.8-max / flash（百炼）</text>
+      <text x="0" y="74" fill="#8da4b0" font-size="8">DeepSeek Pro 0813 / Flash 0731（百炼）| kimi-k3</text>
+      <text x="0" y="86" fill="#8da4b0" font-size="8">glm-5.3 (1M) | glm-5.3-flash (1M, 50张图)</text>
     </g>
 
     <g transform="translate(420, 35)">
@@ -457,8 +458,8 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
     <!-- Degradation chain -->
     <g transform="translate(20, 250)">
       <rect x="0" y="0" width="580" height="38" rx="3" fill="#1a1a2e" stroke="#ff8f00" stroke-width="0.6"/>
-      <text x="10" y="14" fill="#ff8f00" font-size="9" font-weight="bold">降级链</text>
-      <text x="10" y="28" fill="#8da4b0" font-size="8">预定义降级链: qwen3.8-max-0902 / qwen3.7-plus / deepseek-flash | Agent与全局默认: qwen3.8-max-0902</text>
+      <text x="10" y="14" fill="#ff8f00" font-size="9" font-weight="bold">默认 / 快速 / 摘要 / 图片兜底：百炼 V4.1 Flash · reasoning_effort="max"</text>
+      <text x="10" y="28" fill="#8da4b0" font-size="8">Sonnet / Qwen Max → deepseek-v4.1-flash（百炼）→ deepseek-flash（直连）</text>
     </g>
   </g>
 
@@ -1254,7 +1255,7 @@ svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 8px 32px 
       <rect x="0" y="30" width="610" height="26" rx="2" fill="#312E81" stroke="#A78BFA" stroke-width="0.6"/>
       <text x="8" y="40" fill="#C4B5FD" font-size="9" font-weight="bold">Swarm模式</text>
       <text x="85" y="40" fill="#8da4b0" font-size="8">四阶段(Research→Synthesis→Implementation→Verification) + 30min超时</text>
-      <text x="8" y="52" fill="#7a95a8" font-size="7">SwarmCoordinator → 阶段流转 → Worker动态调整 → 超时熔断</text>
+      <text x="8" y="52" fill="#7a95a8" font-size="7">Swarm：显式 workerModel 优先，否则继承父查询模型；均缺失则报错</text>
 
       <rect x="0" y="60" width="610" height="26" rx="2" fill="#312E81" stroke="#7C3AED" stroke-width="0.6"/>
       <text x="8" y="70" fill="#C4B5FD" font-size="9" font-weight="bold">SubAgent模式</text>

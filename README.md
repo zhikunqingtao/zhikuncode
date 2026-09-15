@@ -362,8 +362,8 @@ LLM_PROVIDER_ZENMUX_API_KEY=your-zenmux-api-key-here
 
 | 服务商 | Base URL | 推荐模型 | 备注 |
 |--------|----------|----------|------|
-| **千问/DashScope** | `https://dashscope.aliyuncs.com/compatible-mode/v1` | qwen3.8-max-0902 / qwen3.7-plus | **默认 Provider**，国内直连 |
-| **阿里云百炼 Token Plan** | `https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1` | qwen3.8-max / qwen3.8-flash / deepseek-v4-pro-0813 / deepseek-v4-flash-0731 | 可选订阅 Provider，使用独立 `sk-sp-` Key；四个模型在前端均标注“百炼”，且不进入全局默认或预定义降级链 |
+| **千问/DashScope** | `https://dashscope.aliyuncs.com/compatible-mode/v1` | qwen3.8-max-0902 | 按量计费 Provider，国内直连 |
+| **阿里云百炼 Token Plan** | `https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1` | qwen3.8-max / qwen3.8-flash / deepseek-v4-pro-0813 / deepseek-v4-flash-0731 / deepseek-v4.1-flash | 使用独立 `sk-sp-` Key；模型均标注“百炼”。V4.1 Flash 为全局默认、快速查询、摘要及图片兜底模型，并进入预定义降级链 |
 | **DeepSeek** | `https://api.deepseek.com/v1` | deepseek-flash | 国内直连；DeepSeek V4.1 Flash，支持思考、工具调用与原生视觉 |
 | **Moonshot（Kimi）** | `https://api.moonshot.cn/v1` | kimi-k3 / kimi-k2.7-code | 国内直连；kimi-k3 支持 1M 上下文和原生视觉 |
 | **Zhipu（智谱 GLM）** | `https://open.bigmodel.cn/api/paas/v4/chat/completions` | glm-5.3, glm-5.3-flash | 国内直连 |
@@ -1240,6 +1240,7 @@ Research → Synthesis → Implementation → Verification
 
 - 适用场景：复杂重构、大规模代码迁移
 - Worker 数量动态调整，无需预声明
+- Worker 未显式配置模型时继承父查询的用户选择；`workerModel` 显式配置优先。两者均缺失时明确报错
 - 每个 Worker 一个 Virtual Thread，30 分钟超时保护
 - Worker 工具集通过 allowList/denyList 精确控制
 - Worker 使用根会话授权主体进行权限裁决；符合约束的 SESSION/WORKSPACE Grant 可被后代复用
@@ -1419,6 +1420,12 @@ ZhikunCode 内置 11 项可视化能力，让 AI 编程过程中的数据和状�
 
 ## ⚙️ 配置说明
 
+### 模型选择与路由
+
+主对话使用用户选择的模型；Swarm 缺省 Worker 继承父查询模型。快速查询与压缩摘要使用各自配置，默认均为百炼 `deepseek-v4.1-flash`；只有当前模型不支持图片时才触发视觉兜底。百炼与 DeepSeek 直连的模型 ID、端点和 Key 独立。
+
+百炼 V4.1 Flash 的流式请求、快速查询和压缩摘要统一发送 `thinking.type=enabled`、字符串 `reasoning_effort="max"`。2026-09-15 Token Plan 实测接受 `"max"`、拒绝整数；未验证内部数值映射。
+
 ### 环境变量
 
 环境变量通过 `.env` 文件管理。复制 `.env.example` 后按需修改：
@@ -1432,7 +1439,10 @@ ZhikunCode 内置 11 项可视化能力，让 AI 编程过程中的数据和状�
 | `LLM_PROVIDER_DEEPSEEK_API_KEY` | — | — | DeepSeek API Key |
 | `LLM_PROVIDER_MOONSHOT_API_KEY` | — | — | Moonshot/Kimi API Key |
 | `LLM_PROVIDER_ZHIPU_API_KEY` | — | — | 智谱 GLM API Key |
-| `LLM_DEFAULT_MODEL` | — | qwen3.8-max-0902 | 默认模型；不可用时回退到当前 Provider 的有效默认模型 |
+| `LLM_DEFAULT_MODEL` | — | deepseek-v4.1-flash | 默认模型（百炼 Token Plan）；不可用时回退到当前 Provider 的有效默认模型 |
+| `LLM_FAST_MODEL` | — | deepseek-v4.1-flash | 快速辅助查询与分类器回退优先使用的模型 |
+| `LLM_COMPACT_MODEL` | — | deepseek-v4.1-flash | 对话压缩摘要模型，独立于快速模型选择 |
+| `LLM_VISION_FALLBACK_MODEL` | — | deepseek-v4.1-flash | 当前模型不支持图片时优先使用的视觉模型 |
 
 > 多 Provider 模式下至少配置一个 Provider 的 API Key 即可。前端支持自由切换已配置的 Provider。
 
@@ -1469,8 +1479,8 @@ ZhikunCode 内置 11 项可视化能力，让 AI 编程过程中的数据和状�
 | 变量 | 必填 | 默认值 | 说明 |
 |------|:---:|--------|------|
 | `ZHIKUN_COORDINATOR_MODE` | — | 0 | Feature flag，启用协调器模式（0=关闭，1=开启） |
-| `LLM_PROVIDER_DASHSCOPE_MODELS` | — | qwen3.8-max-0902,qwen3.7-plus | 按量计费 DashScope 可用模型列表（逗号分隔；实际目录可动态扩展） |
-| `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS` | — | qwen3.8-max,qwen3.8-flash,deepseek-v4-pro-0813,deepseek-v4-flash-0731 | 百炼 Token Plan Provider 可用模型列表；与普通 DashScope、DeepSeek 直连配置相互独立 |
+| `LLM_PROVIDER_DASHSCOPE_MODELS` | — | qwen3.8-max-0902 | 按量计费 DashScope 可用模型列表（逗号分隔；实际目录可动态扩展） |
+| `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS` | — | qwen3.8-max,qwen3.8-flash,deepseek-v4-pro-0813,deepseek-v4-flash-0731,deepseek-v4.1-flash | 百炼 Token Plan Provider 可用模型列表；与普通 DashScope、DeepSeek 直连配置相互独立 |
 | `LLM_PROVIDER_DEEPSEEK_MODELS` | — | deepseek-flash | DeepSeek 可用模型列表；默认使用 V4.1 Flash（逗号分隔） |
 | `LLM_PROVIDER_MOONSHOT_MODELS` | — | kimi-k3,moonshot-v1-128k | Moonshot 可用模型列表（逗号分隔） |
 | `LLM_PROVIDER_ZHIPU_MODELS` | — | glm-5.3,glm-5.3-flash | 智谱 GLM 可用模型列表（逗号分隔） |

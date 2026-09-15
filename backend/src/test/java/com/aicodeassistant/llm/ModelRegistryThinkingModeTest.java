@@ -15,7 +15,7 @@ import static org.mockito.Mockito.lenient;
  * 验证目标：
  * <ul>
  *   <li>qwen3.8-max-0902: contextWindow=1000000, maxOutputTokens=65536, supportsThinking=true</li>
- *   <li>qwen3.7-plus: contextWindow=1000000, maxOutputTokens=8192, supportsThinking=true</li>
+ *   <li>deepseek-v4.1-flash: contextWindow=1000000, maxOutputTokens=393216, supportsThinking=true</li>
  *   <li>qwen-turbo (对照): supportsThinking=false</li>
  *   <li>deepseek-flash: V4.1 Flash 的思考、视觉、工具与上下文能力</li>
  *   <li>glm-5.3-flash: 1M 上下文 / 128K 输出 / 强制思考 / 50 张图片上限（官方规格）</li>
@@ -63,25 +63,25 @@ class ModelRegistryThinkingModeTest {
     }
 
     @Test
-    @DisplayName("tc004: qwen3.7-plus contextWindow = 1000000")
-    void tc004_qwen37Plus_contextWindow1M() {
-        ModelCapabilities caps = modelRegistry.getCapabilities("qwen3.7-plus");
+    @DisplayName("tc004: deepseek-v4.1-flash contextWindow = 1000000")
+    void tc004_bailianDeepSeek_contextWindow1M() {
+        ModelCapabilities caps = modelRegistry.getCapabilities("deepseek-v4.1-flash");
 
         assertThat(caps.contextWindow()).isEqualTo(1_000_000);
     }
 
     @Test
-    @DisplayName("tc005: qwen3.7-plus maxOutputTokens = 8192")
-    void tc005_qwen37Plus_maxOutputTokens8192() {
-        ModelCapabilities caps = modelRegistry.getCapabilities("qwen3.7-plus");
+    @DisplayName("tc005: deepseek-v4.1-flash maxOutputTokens = 393216")
+    void tc005_bailianDeepSeek_maxOutputTokens393216() {
+        ModelCapabilities caps = modelRegistry.getCapabilities("deepseek-v4.1-flash");
 
-        assertThat(caps.maxOutputTokens()).isEqualTo(8192);
+        assertThat(caps.maxOutputTokens()).isEqualTo(393216);
     }
 
     @Test
-    @DisplayName("tc006: qwen3.7-plus supportsThinking = true")
-    void tc006_qwen37Plus_supportsThinkingTrue() {
-        ModelCapabilities caps = modelRegistry.getCapabilities("qwen3.7-plus");
+    @DisplayName("tc006: deepseek-v4.1-flash supportsThinking = true")
+    void tc006_bailianDeepSeek_supportsThinkingTrue() {
+        ModelCapabilities caps = modelRegistry.getCapabilities("deepseek-v4.1-flash");
 
         assertThat(caps.supportsThinking()).isTrue();
     }
@@ -111,11 +111,11 @@ class ModelRegistryThinkingModeTest {
     }
 
     @Test
-    @DisplayName("tc010: getMaxOutputTokensForModel(qwen3.7-plus) 与 capabilities 一致")
+    @DisplayName("tc010: getMaxOutputTokensForModel(deepseek-v4.1-flash) 与 capabilities 一致")
     void tc010_getMaxOutputTokens_consistent() {
-        int out = modelRegistry.getMaxOutputTokensForModel("qwen3.7-plus");
+        int out = modelRegistry.getMaxOutputTokensForModel("deepseek-v4.1-flash");
 
-        assertThat(out).isEqualTo(8192);
+        assertThat(out).isEqualTo(393216);
     }
 
     @Test

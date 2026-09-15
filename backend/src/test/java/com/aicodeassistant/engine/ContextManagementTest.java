@@ -219,8 +219,7 @@ class ContextManagementTest {
                 "\n- pom.xml: 升级依赖版本\n## 当前工作\n持续优化各模块功能。\n</summary>";
 
             when(providerRegistry.hasProviders()).thenReturn(true);
-            when(providerRegistry.getFastModel()).thenReturn("qwen-turbo");
-            when(providerRegistry.getProvider("qwen-turbo")).thenReturn(llmProvider);
+            when(providerRegistry.getProvider("deepseek-v4.1-flash")).thenReturn(llmProvider);
             when(llmProvider.chatSync(anyString(), anyString(), anyString(), anyInt(), any(), anyLong()))
                 .thenReturn(mockSummary);
 

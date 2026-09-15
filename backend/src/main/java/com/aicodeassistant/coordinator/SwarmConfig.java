@@ -11,7 +11,7 @@ import java.util.List;
  * @param teamName              团队名称（唯一标识）
  * @param maxWorkers            最大 Worker 数量（默认 5）
  * @param backend               执行后端类型
- * @param workerModel           Worker 使用的模型（null 时继承 Leader 模型）
+ * @param workerModel           Worker 使用的模型（null 或空白时继承父查询中用户选择的模型）
  * @param workerToolAllowList   Worker 工具白名单（空列表表示不限制）
  * @param workerToolDenyList    Worker 工具黑名单
  * @param scratchpadDir         Scratchpad 共享目录路径

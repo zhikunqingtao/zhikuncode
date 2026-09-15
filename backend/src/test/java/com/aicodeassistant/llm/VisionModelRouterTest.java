@@ -6,6 +6,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import org.springframework.test.util.ReflectionTestUtils;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -54,6 +55,48 @@ class VisionModelRouterTest {
                 .thenReturn(imageCaps(VisionModelRouter.DEEPSEEK_VISION_MODEL));
 
         assertNull(router.resolveVisionModel(VisionModelRouter.DEEPSEEK_VISION_MODEL));
+    }
+
+    @Test
+    void configuredBailianFallbackTakesPriorityOverDirectDeepSeekAndSameProvider() {
+        configureDeepSeekVisionAvailable();
+        when(modelRegistry.getCapabilities("deepseek-v4-pro-0813"))
+                .thenReturn(textCaps("deepseek-v4-pro-0813"));
+        when(modelRegistry.getCapabilities("deepseek-v4.1-flash"))
+                .thenReturn(imageCaps("deepseek-v4.1-flash"));
+        when(providerRegistry.getProvider("deepseek-v4.1-flash")).thenReturn(mock(LlmProvider.class));
+        assertEquals("deepseek-v4.1-flash", router.resolveVisionModel("deepseek-v4-pro-0813"));
+    }
+
+    @Test
+    void configuredFallbackAlsoHandlesOtherTextOnlyModelFamilies() {
+        ReflectionTestUtils.setField(router, "fallbackVisionModel", "custom-vision");
+        when(modelRegistry.getCapabilities("text-model")).thenReturn(textCaps("text-model"));
+        when(modelRegistry.getCapabilities("custom-vision")).thenReturn(imageCaps("custom-vision"));
+        when(providerRegistry.getProvider("custom-vision")).thenReturn(mock(LlmProvider.class));
+        assertEquals("custom-vision", router.resolveVisionModel("text-model"));
+    }
+
+    @Test
+    void bailianCurrentModelAlreadySupportsImages() {
+        when(modelRegistry.getCapabilities("deepseek-v4.1-flash"))
+                .thenReturn(imageCaps("deepseek-v4.1-flash"));
+        assertNull(router.resolveVisionModel("deepseek-v4.1-flash"));
+    }
+
+    @Test
+    void findsAvailableGlobalModelInsteadOfReturningAnUnconfiguredFallback() {
+        when(modelRegistry.getCapabilities("text-model")).thenReturn(textCaps("text-model"));
+        when(providerRegistry.listAvailableModels()).thenReturn(List.of("other-vision"));
+        when(modelRegistry.getCapabilities("other-vision")).thenReturn(imageCaps("other-vision"));
+        when(providerRegistry.getProvider("other-vision")).thenReturn(mock(LlmProvider.class));
+        assertEquals("other-vision", router.resolveVisionModel("text-model"));
+    }
+
+    @Test
+    void returnsNoTargetWhenNoVisionProviderIsConfigured() {
+        when(modelRegistry.getCapabilities("text-model")).thenReturn(textCaps("text-model"));
+        assertNull(router.resolveVisionModel("text-model"));
     }
 
     private void configureDeepSeekVisionAvailable() {

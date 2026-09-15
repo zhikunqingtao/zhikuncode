@@ -1,6 +1,9 @@
 package com.aicodeassistant.engine;
 
 import com.aicodeassistant.llm.LlmProviderRegistry;
+import com.aicodeassistant.llm.LlmProvider;
+import org.springframework.test.util.ReflectionTestUtils;
+import static org.mockito.Mockito.*;
 import com.aicodeassistant.model.ContentBlock;
 import com.aicodeassistant.model.Message;
 import com.aicodeassistant.model.SystemMessageType;
@@ -297,6 +300,26 @@ class CompactServiceUnitTest {
                     List.of(), 1000, 500, 5, 0.5);
             assertThat(result.summary()).contains("5 条消息").contains("1000").contains("500");
         }
+    }
+
+    @Test
+    void summaryUsesConfiguredModelInsteadOfProviderFastModel() {
+        LlmProviderRegistry registry = mock(LlmProviderRegistry.class);
+        LlmProvider provider = mock(LlmProvider.class);
+        when(registry.hasProviders()).thenReturn(true);
+        when(registry.getProvider(anyString())).thenReturn(provider);
+        when(provider.chatSync(anyString(), anyString(), anyString(), eq(4096), isNull(), eq(90_000L)))
+                .thenReturn("<summary>保存用户请求、已修改的文件及待执行的测试。</summary>");
+        CompactService service = new CompactService(tokenCounter, registry, null, null);
+        List<Message> messages = List.of(userMessage("任务细节".repeat(300)), assistantTextMessage("已检查".repeat(300)),
+                userMessage("继续"), assistantTextMessage("收到"));
+        service.compact(messages, 100000, true);
+        verify(provider).chatSync(eq("deepseek-v4.1-flash"), anyString(), anyString(), eq(4096), isNull(), eq(90_000L));
+        verify(registry, never()).getFastModel();
+
+        ReflectionTestUtils.setField(service, "summaryModel", "custom-summary-model");
+        service.compact(messages, 100000, true);
+        verify(provider).chatSync(eq("custom-summary-model"), anyString(), anyString(), eq(4096), isNull(), eq(90_000L));
     }
 
     // ═══════════════ 辅助方法 ═══════════════

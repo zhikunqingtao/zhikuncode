@@ -1954,7 +1954,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
         <div style="padding-left:20px"><span style="color:var(--text3)">└──</span> <span style="color:var(--cyan);font-weight:600">OpenAiCompatibleProvider</span> <span style="color:var(--text3)">(1,218行)</span></div>
         <div style="padding-left:56px"><span style="color:var(--text3)">├──</span> OpenAI GPT</div>
         <div style="padding-left:56px"><span style="color:var(--text3)">├──</span> 通义千问 (Qwen)</div>
-        <div style="padding-left:56px"><span style="color:var(--text3)">├──</span> DeepSeek（deepseek-flash / V4.1 Flash 原生视觉）</div>
+        <div style="padding-left:56px"><span style="color:var(--text3)">├──</span> DeepSeek 直连（deepseek-flash / V4.1 Flash 原生视觉）</div>
         <div style="padding-left:56px"><span style="color:var(--text3)">├──</span> Moonshot / Kimi</div>
         <div style="padding-left:56px"><span style="color:var(--text3)">├──</span> 智谱 GLM-5.3</div>
         <div style="padding-left:56px"><span style="color:var(--text3)">├──</span> ZenMux：Anthropic → Chat Completions；OpenAI / Google / xAI → Responses</div>
@@ -1965,12 +1965,13 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
         <div><span class="tag cyan">light</span> → qwen3.8-max-0902</div>
         <div><span class="tag java">standard</span> → qwen3.8-max-0902</div>
         <div><span class="tag purple">premium</span> → qwen3.8-max-0902</div>
-        <div><span class="tag green">百炼 Token Plan</span> → qwen3.8-max / qwen3.8-flash / deepseek-v4-pro-0813 / deepseek-v4-flash-0731（独立 Provider，不进入默认降级链）</div>
+        <div><span class="tag green">百炼 Token Plan</span> → qwen3.8-max / qwen3.8-flash / deepseek-v4-pro-0813 / deepseek-v4-flash-0731 / deepseek-v4.1-flash（独立 Provider；V4.1 Flash 为全局默认并进入降级链）</div>
       </div>
     </div>
   </div>
 
   <div class="card java-accent" style="margin-top:12px">
+    <div style="padding:12px 16px;font-size:.82rem;line-height:1.8">主对话跟随用户选择；Swarm Worker 默认继承父查询模型。快速查询用 LLM_FAST_MODEL，摘要用独立的 LLM_COMPACT_MODEL，图片兜底用 LLM_VISION_FALLBACK_MODEL；三者默认 deepseek-v4.1-flash（百炼）。该模型流式与同步请求均发送 thinking=enabled、reasoning_effort=&quot;max&quot;。</div>
     <div class="card-title" onclick="toggleDetail(this)"><span class="toggle">▶</span> 辅助组件</div>
     <div class="card-detail">
       <div class="grid-3" style="font-size:.8rem">
@@ -2048,7 +2049,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <line x1="310" y1="240" x2="310" y2="262" stroke="#F59E0B" stroke-width="1" opacity=".5"/>
       <rect x="236" y="262" width="148" height="42" rx="8" fill="#151829" stroke="#F59E0B" stroke-width="1.2"/>
       <text x="310" y="282" fill="#F59E0B" font-size="10" font-weight="600" text-anchor="middle" style="font-family:'JetBrains Mono',monospace">通义千问 Qwen</text>
-      <text x="310" y="296" fill="#6B70A0" font-size="8" text-anchor="middle" style="font-family:'JetBrains Mono',monospace">3.7-max/plus · 3.8-max（百炼）</text>
+      <text x="310" y="296" fill="#6B70A0" font-size="8" text-anchor="middle" style="font-family:'JetBrains Mono',monospace">3.8-max-0902 · 3.8-max（百炼）</text>
       <!-- DeepSeek -->
       <line x1="460" y1="240" x2="460" y2="262" stroke="#3B82F6" stroke-width="1" opacity=".5"/>
       <rect x="386" y="262" width="148" height="42" rx="8" fill="#151829" stroke="#3B82F6" stroke-width="1.2"/>
@@ -2155,35 +2156,35 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <rect x="770" y="122" width="8" height="8" rx="2" fill="#10B981"/>
       <text x="782" y="130" fill="#9FA4C4" font-size="7">Tier 2</text>
     
-      <!-- Chain 1: claude-sonnet-4-6 → qwen3.8-max-0902 → deepseek-flash -->
+      <!-- Chain 1: claude-sonnet-4-6 → deepseek-v4.1-flash → deepseek-flash -->
       <rect x="40" y="160" width="180" height="26" rx="5" fill="#1C1F34" stroke="#FF6B9D" stroke-width="1.2"/>
       <text x="130" y="177" fill="#FF6B9D" font-size="8" font-weight="600" text-anchor="middle">claude-sonnet-4-6</text>
       <line x1="220" y1="173" x2="264" y2="173" stroke="#F59E0B" stroke-width="1.5" class="mts-fl"/>
       <polygon points="262,169 270,173 262,177" fill="#F59E0B"/>
       <rect x="272" y="160" width="140" height="26" rx="5" fill="#1C1F34" stroke="#F59E0B" stroke-width="1.2"/>
-      <text x="342" y="177" fill="#F59E0B" font-size="8" font-weight="600" text-anchor="middle">qwen3.8-max-0902</text>
+      <text x="342" y="177" fill="#F59E0B" font-size="8" font-weight="600" text-anchor="middle">deepseek-v4.1-flash</text>
       <line x1="412" y1="173" x2="456" y2="173" stroke="#10B981" stroke-width="1.5" class="mts-fl"/>
       <polygon points="454,169 462,173 454,177" fill="#10B981"/>
       <rect x="464" y="160" width="140" height="26" rx="5" fill="#1C1F34" stroke="#10B981" stroke-width="1.2"/>
       <text x="534" y="177" fill="#10B981" font-size="8" font-weight="600" text-anchor="middle">deepseek-flash</text>
       <text x="620" y="177" fill="#6B70A0" font-size="7">跨厂商降级</text>
     
-      <!-- Chain 2: qwen3.8-max-0902 → qwen3.7-plus → deepseek-flash -->
+      <!-- Chain 2: qwen3.8-max-0902 → deepseek-v4.1-flash → deepseek-flash -->
       <rect x="40" y="210" width="180" height="26" rx="5" fill="#1C1F34" stroke="#FF6B9D" stroke-width="1.2"/>
       <text x="130" y="227" fill="#FF6B9D" font-size="8" font-weight="600" text-anchor="middle">qwen3.8-max-0902</text>
       <line x1="220" y1="223" x2="264" y2="223" stroke="#F59E0B" stroke-width="1.5" class="mts-fl"/>
       <polygon points="262,219 270,223 262,227" fill="#F59E0B"/>
       <rect x="272" y="210" width="140" height="26" rx="5" fill="#1C1F34" stroke="#F59E0B" stroke-width="1.2"/>
-      <text x="342" y="227" fill="#F59E0B" font-size="8" font-weight="600" text-anchor="middle">qwen3.7-plus</text>
+      <text x="342" y="227" fill="#F59E0B" font-size="8" font-weight="600" text-anchor="middle">deepseek-v4.1-flash</text>
       <line x1="412" y1="223" x2="456" y2="223" stroke="#10B981" stroke-width="1.5" class="mts-fl"/>
       <polygon points="454,219 462,223 454,227" fill="#10B981"/>
       <rect x="464" y="210" width="140" height="26" rx="5" fill="#1C1F34" stroke="#10B981" stroke-width="1.2"/>
       <text x="534" y="227" fill="#10B981" font-size="8" font-weight="600" text-anchor="middle">deepseek-flash</text>
-      <text x="620" y="227" fill="#6B70A0" font-size="7">同族 + 跨厂商</text>
+      <text x="620" y="227" fill="#6B70A0" font-size="7">百炼 → DeepSeek 直连</text>
     
-      <!-- Chain 3: qwen3.7-plus → deepseek-flash → qwen3.8-max-0902 -->
+      <!-- Chain 3: deepseek-v4.1-flash → deepseek-flash → qwen3.8-max-0902 -->
       <rect x="40" y="260" width="180" height="26" rx="5" fill="#1C1F34" stroke="#FF6B9D" stroke-width="1.2"/>
-      <text x="130" y="277" fill="#FF6B9D" font-size="8" font-weight="600" text-anchor="middle">qwen3.7-plus</text>
+      <text x="130" y="277" fill="#FF6B9D" font-size="8" font-weight="600" text-anchor="middle">deepseek-v4.1-flash</text>
       <line x1="220" y1="273" x2="264" y2="273" stroke="#F59E0B" stroke-width="1.5" class="mts-fl"/>
       <polygon points="262,269 270,273 262,277" fill="#F59E0B"/>
       <rect x="272" y="260" width="140" height="26" rx="5" fill="#1C1F34" stroke="#F59E0B" stroke-width="1.2"/>
@@ -2192,7 +2193,7 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
       <polygon points="454,269 462,273 454,277" fill="#10B981"/>
       <rect x="464" y="260" width="140" height="26" rx="5" fill="#1C1F34" stroke="#10B981" stroke-width="1.2"/>
       <text x="534" y="277" fill="#10B981" font-size="8" font-weight="600" text-anchor="middle">qwen3.8-max-0902</text>
-      <text x="620" y="277" fill="#6B70A0" font-size="7">跨厂商 + 同族</text>
+      <text x="620" y="277" fill="#6B70A0" font-size="7">直连 → 千问</text>
     
       <!-- 注: claude-haiku-4-5 / claude-opus-4-8 / gpt-5.6-sol 等模型未在降级链中, 由 ModelTierService 走默认策略 -->
       <text x="40" y="320" fill="#6B70A0" font-size="7" font-style="italic">注：未在表中的模型（Claude Opus/Haiku、GPT、Kimi、GLM 等）走 ModelTierService 默认策略，不触发降级链</text>
@@ -6422,8 +6423,8 @@ code, .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia C
     <text x="500" y="467" text-anchor="middle" fill="#e8e8f0" font-size="9" style="font-family:'JetBrains Mono',monospace">SwarmState · 203行 · 状态管理</text>
 
     <!-- Swarm说明 -->
-    <text x="500" y="510" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">每阶段可并行多个 Worker</text>
-    <text x="500" y="525" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">阶段间同步屏障（Barrier）</text>
+    <text x="500" y="510" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">模型：显式 workerModel 优先，否则继承父查询</text>
+    <text x="500" y="525" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">模型均缺失则报错；阶段间同步屏障</text>
     <text x="500" y="540" text-anchor="middle" fill="#6B70A0" font-size="8" style="font-family:'JetBrains Mono',monospace">SwarmController 299行 · 对外API</text>
 
     <!-- ===== RIGHT: SubAgent Mode ===== -->

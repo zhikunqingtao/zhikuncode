@@ -62,6 +62,23 @@ class ChatSyncTest {
     }
 
     @Test
+    void bailianSummaryUsesExplicitThinkingWithoutChangingDirectSyncRequests() throws Exception {
+        for (String model : List.of("deepseek-v4.1-flash", "deepseek-flash")) {
+            server.enqueue(new MockResponse().setHeader("Content-Type", "application/json")
+                    .setBody("{\"choices\":[{\"message\":{\"content\":\"summary\"},\"finish_reason\":\"stop\"}]}"));
+            assertEquals("summary", provider.chatSync(model, "Summarize", "conversation", 4096, null, 3000));
+            JsonNode body = objectMapper.readTree(server.takeRequest().getBody().readUtf8());
+            if (model.equals("deepseek-v4.1-flash")) {
+                assertEquals("enabled", body.path("thinking").path("type").asText());
+                assertEquals("max", body.path("reasoning_effort").asText());
+            } else {
+                assertFalse(body.has("thinking"));
+                assertFalse(body.has("reasoning_effort"));
+            }
+        }
+    }
+
+    @Test
     void testChatSyncRequestFormat() throws Exception {
         // 模拟成功响应
         String responseBody = """

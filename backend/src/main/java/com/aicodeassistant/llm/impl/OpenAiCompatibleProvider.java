@@ -65,9 +65,11 @@ public class OpenAiCompatibleProvider implements LlmProvider {
     private static final Map<String, ModelCapabilities> MODEL_CAPABILITIES = Map.ofEntries(
             // DeepSeek 模型
             Map.entry("deepseek-flash", new ModelCapabilities("deepseek-flash", "DeepSeek V4.1 Flash", 384000, 1000000, true, true, true, 600, true, 0.0003, 0.0012)),
+            // 百炼：4 张图片为应用保守上限；价格为北京忙时按量参考，非订阅实际账单。
+            Map.entry("deepseek-v4.1-flash", new ModelCapabilities("deepseek-v4.1-flash", "DeepSeek V4.1 Flash（百炼）", 393216, 1000000, true, true, true, 4, true, 0.002, 0.008)),
             Map.entry("deepseek-v4-pro-0813", new ModelCapabilities("deepseek-v4-pro-0813", "DeepSeek V4 Pro 0813（百炼）", 384000, 1000000, true, true, false, 0, true, 0.001, 0.004)),
             Map.entry("deepseek-v4-flash-0731", new ModelCapabilities("deepseek-v4-flash-0731", "DeepSeek V4 Flash 0731（百炼）", 384000, 1000000, true, true, false, 0, true, 0.0005, 0.002)),
-            // 阿里云百炼 - 通义千问模型（qwen3.8-max-0902/qwen3.7-plus/qwen-turbo 已迁移至 ModelRegistry.BUILTIN_MODELS）
+            // 阿里云百炼 - 通义千问模型（qwen3.8-max-0902/qwen-turbo 已迁移至 ModelRegistry.BUILTIN_MODELS）
             Map.entry("qwen-coder-plus", new ModelCapabilities("qwen-coder-plus", "通义千问 Coder Plus", 8192, 131072, true, false, false, 0, true, 0.0007, 0.002))
     );
 
@@ -120,7 +122,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
     @Override
     public String getFastModel() {
         // 优先使用轻量级模型用于摘要/分类等低延迟场景
-        for (String candidate : List.of("qwen-turbo", "qwen3.7-plus")) {
+        for (String candidate : List.of("deepseek-v4.1-flash", "qwen-turbo")) {
             if (supportedModels.contains(candidate)) {
                 return candidate;
             }
@@ -139,7 +141,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
 
     /**
      * 思考能力快捷判定 — 覆盖 LlmProvider 默认实现以避免对 MODEL_CAPABILITIES 之外的模型
-     * （例如 qwen3.8-max-0902 / qwen3.7-plus，已迁移到 ModelRegistry.BUILTIN_MODELS）
+     * （例如 qwen3.8-max-0902，已迁移到 ModelRegistry.BUILTIN_MODELS）
      * 触发 getModelCapabilities() 的 IllegalArgumentException。
      * <p>
      * 此处复用 Provider 已有的模型族判定函数（{@link #isDeepSeekV4Model} /
@@ -680,6 +682,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
     private static boolean isDeepSeekV4Model(String model) {
         return model != null
                 && ("deepseek-flash".equals(model)
+                    || "deepseek-v4.1-flash".equals(model)
                     || model.startsWith("deepseek-v4-"));
     }
 
@@ -934,6 +937,11 @@ public class OpenAiCompatibleProvider implements LlmProvider {
                 List.of(Map.of("role", "user", "content", userContent)),
                 systemPrompt, List.of(), maxTokens);
         requestBody.put("stream", false);
+        // 百炼摘要调用与该模型流式请求使用相同的已验证推理参数。
+        if ("deepseek-v4.1-flash".equals(model)) {
+            requestBody.putObject("thinking").put("type", "enabled");
+            requestBody.put("reasoning_effort", "max");
+        }
 
         // 2. 添加 stop sequences
         if (stopSequences != null && stopSequences.length > 0) {

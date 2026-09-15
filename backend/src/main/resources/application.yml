@@ -71,13 +71,13 @@ llm:
       api-key: ${LLM_PROVIDER_DASHSCOPE_API_KEY:}
       base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
       default-model: qwen3.8-max-0902
-      models: ${LLM_PROVIDER_DASHSCOPE_MODELS:qwen3.8-max-0902,qwen3.7-plus}
+      models: ${LLM_PROVIDER_DASHSCOPE_MODELS:qwen3.8-max-0902}
     # 阿里云百炼 Token Plan 订阅专属端点（sk-sp- key），与上方按量计费 key 相互独立。
     dashscope-token-plan:
       api-key: ${LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_API_KEY:}
       base-url: https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1
-      default-model: qwen3.8-max
-      models: ${LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS:qwen3.8-max,qwen3.8-flash,deepseek-v4-pro-0813,deepseek-v4-flash-0731}
+      default-model: deepseek-v4.1-flash
+      models: ${LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS:qwen3.8-max,qwen3.8-flash,deepseek-v4-pro-0813,deepseek-v4-flash-0731,deepseek-v4.1-flash}
     deepseek:
       api-key: ${LLM_PROVIDER_DEEPSEEK_API_KEY:}
       base-url: https://api.deepseek.com/v1
@@ -123,7 +123,7 @@ llm:
     # 默认模型（各提供商模型名不同，请配合 base-url 设置）
     default-model: ${LLM_DEFAULT_MODEL:qwen3.8-max-0902}
     # 支持的模型列表（逗号分隔）
-    models: ${LLM_MODELS:qwen3.8-max-0902,qwen3.7-plus,qwen-turbo,qwen-coder-plus}
+    models: ${LLM_MODELS:qwen3.8-max-0902,qwen-turbo,qwen-coder-plus}
   http:
     pool:
       max-idle-connections: 5
@@ -258,6 +258,8 @@ app:
     rerank-enabled: true
     rerank-timeout-ms: 3000
   compact:
+    # Independent summary model; does not use getFastModel().
+    model: ${LLM_COMPACT_MODEL:deepseek-v4.1-flash}
     session-memory-compact-enabled: true
     smc-min-tokens: 10000
     smc-max-tokens: 40000
@@ -281,11 +283,14 @@ app:
     session-timeout-hours: 24
   model:
     # LlmProviderRegistry verifies the configured value against registered providers.
-    default: ${LLM_DEFAULT_MODEL:qwen3.8-max-0902}
+    default: ${LLM_DEFAULT_MODEL:deepseek-v4.1-flash}
+    # Preferred image fallback when the selected model cannot accept images.
+    vision-fallback: ${LLM_VISION_FALLBACK_MODEL:deepseek-v4.1-flash}
+    fast: ${LLM_FAST_MODEL:deepseek-v4.1-flash}
     # 降级链 — 按性能从高到低
     tier-chain:
+      - deepseek-v4.1-flash
       - qwen3.8-max-0902
-      - qwen3.7-plus
       - qwen-turbo
     # 降级时是否自动剥离 thinking blocks
     strip-thinking-on-downgrade: true
@@ -324,11 +329,6 @@ model:
       contextWindow: 1000000
       tokenCharRatio: 2.5
       outputMaxTokens: 65536
-      supportsToolUse: true
-    qwen3.7-plus:
-      contextWindow: 1000000
-      tokenCharRatio: 2.5
-      outputMaxTokens: 8192
       supportsToolUse: true
     deepseek-coder:
       contextWindow: 65536

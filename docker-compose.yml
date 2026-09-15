@@ -25,7 +25,7 @@ services:
       # ---- Multi-Provider LLM (Recommended) ----
       - LLM_PROVIDER_DASHSCOPE_API_KEY=${LLM_PROVIDER_DASHSCOPE_API_KEY:-}
       - LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_API_KEY=${LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_API_KEY:-}
-      - LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS=${LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS:-qwen3.8-max,qwen3.8-flash,deepseek-v4-pro-0813,deepseek-v4-flash-0731}
+      - LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS=${LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS:-qwen3.8-max,qwen3.8-flash,deepseek-v4-pro-0813,deepseek-v4-flash-0731,deepseek-v4.1-flash}
       - LLM_PROVIDER_DEEPSEEK_API_KEY=${LLM_PROVIDER_DEEPSEEK_API_KEY:-}
       - LLM_PROVIDER_DEEPSEEK_MODELS=${LLM_PROVIDER_DEEPSEEK_MODELS:-deepseek-flash}
       - LLM_PROVIDER_MOONSHOT_API_KEY=${LLM_PROVIDER_MOONSHOT_API_KEY:-}
@@ -33,10 +33,13 @@ services:
       - LLM_PROVIDER_ZHIPU_MODELS=${LLM_PROVIDER_ZHIPU_MODELS:-glm-5.3,glm-5.3-flash}
       - LLM_PROVIDER_MINIMAX_API_KEY=${LLM_PROVIDER_MINIMAX_API_KEY:-}
       - LLM_PROVIDER_ZENMUX_API_KEY=${LLM_PROVIDER_ZENMUX_API_KEY:-}
+      - LLM_FAST_MODEL=${LLM_FAST_MODEL:-deepseek-v4.1-flash}
+      - LLM_COMPACT_MODEL=${LLM_COMPACT_MODEL:-deepseek-v4.1-flash}
+      - LLM_VISION_FALLBACK_MODEL=${LLM_VISION_FALLBACK_MODEL:-deepseek-v4.1-flash}
       # ---- Legacy Single-Provider (Backward Compatible) ----
       - LLM_API_KEY=${LLM_API_KEY:-}
       - LLM_BASE_URL=${LLM_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
-      - LLM_DEFAULT_MODEL=${LLM_DEFAULT_MODEL:-qwen3.8-max-0902}
+      - LLM_DEFAULT_MODEL=${LLM_DEFAULT_MODEL:-deepseek-v4.1-flash}
       - LLM_MODELS=${LLM_MODELS:-}
       # ---- External MCP servers ----
       - ZHIKUN_MCP_SERVERS=${ZHIKUN_MCP_SERVERS:-}

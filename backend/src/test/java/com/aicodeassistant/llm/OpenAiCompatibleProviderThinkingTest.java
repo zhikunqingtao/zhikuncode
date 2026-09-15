@@ -41,8 +41,8 @@ class OpenAiCompatibleProviderThinkingTest {
                 new ApiKeyRotationManager("sk-test"),
                 "sk-test",
                 "https://dashscope.aliyuncs.com/compatible-mode/v1",
-                "qwen3.7-plus",
-                List.of("qwen3.8-max-0902", "qwen3.7-plus", "qwen-coder-plus", "deepseek-flash")
+                "qwen3.8-flash",
+                List.of("qwen3.8-max-0902", "qwen3.8-flash", "qwen-coder-plus", "deepseek-flash")
         );
     }
 
@@ -53,9 +53,9 @@ class OpenAiCompatibleProviderThinkingTest {
     }
 
     @Test
-    @DisplayName("tc002: supportsThinking(qwen3.7-plus) 返回 true")
-    void tc002_qwen37Plus_supportsThinkingTrue() {
-        assertThat(provider.supportsThinking("qwen3.7-plus")).isTrue();
+    @DisplayName("tc002: supportsThinking(qwen3.8-flash) 返回 true")
+    void tc002_qwen38Flash_supportsThinkingTrue() {
+        assertThat(provider.supportsThinking("qwen3.8-flash")).isTrue();
     }
 
     @Test
@@ -95,7 +95,7 @@ class OpenAiCompatibleProviderThinkingTest {
         m.setAccessible(true);
 
         assertThat((boolean) m.invoke(null, "qwen3.8-max-0902")).isTrue();
-        assertThat((boolean) m.invoke(null, "qwen3.7-plus")).isTrue();
+        assertThat((boolean) m.invoke(null, "qwen3.8-flash")).isTrue();
         assertThat((boolean) m.invoke(null, "qwen3.7-anything-future")).isTrue();
     }
 
@@ -120,6 +120,7 @@ class OpenAiCompatibleProviderThinkingTest {
         m.setAccessible(true);
 
         assertThat((boolean) m.invoke(null, "deepseek-flash")).isTrue();
+        assertThat((boolean) m.invoke(null, "deepseek-v4.1-flash")).isTrue();
         assertThat((boolean) m.invoke(null, "deepseek-v4-pro-0813")).isTrue();
         assertThat((boolean) m.invoke(null, "deepseek-v4-flash-0731")).isTrue();
         assertThat((boolean) m.invoke(null, "deepseek-v3-pro")).isFalse();

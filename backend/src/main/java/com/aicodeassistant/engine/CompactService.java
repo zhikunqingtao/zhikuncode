@@ -9,6 +9,7 @@ import com.aicodeassistant.security.PathSecurityService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.time.Instant;
 import java.util.*;
@@ -64,6 +65,9 @@ public class CompactService {
     private static final int SMC_MIN_TOKENS = 10_000;
     private static final int SMC_MIN_TEXT_BLOCK_MESSAGES = 5;
     private static final int SMC_MAX_TOKENS = 40_000;
+
+    @Value("${app.compact.model:deepseek-v4.1-flash}")
+    private String summaryModel = "deepseek-v4.1-flash";
 
     private final TokenCounter tokenCounter;
     private final LlmProviderRegistry providerRegistry;
@@ -370,7 +374,7 @@ public class CompactService {
     // ============ Level 1: LLM 摘要 ============
 
     /**
-     * 生成 LLM 摘要 — 用轻量模型生成对话摘要。
+     * 生成 LLM 摘要 — 使用独立配置的摘要模型。
      */
     private Optional<String> generateLlmSummary(List<Message> compactionMessages, int targetTokens) {
         if (providerRegistry == null || !providerRegistry.hasProviders()) {
@@ -380,7 +384,7 @@ public class CompactService {
         try {
             String conversationText = formatMessagesForSummary(compactionMessages);
             String prompt = "Target summary length: ~" + targetTokens + " tokens.\n\n" + conversationText;
-            String model = providerRegistry.getFastModel();
+            String model = summaryModel;
             log.info("LLM 摘要开始: 模型={}, 压缩消息数={}, 目标tokens={}, prompt长度={}",
                     model, compactionMessages.size(), targetTokens, prompt.length());
             LlmProvider provider = providerRegistry.getProvider(model);

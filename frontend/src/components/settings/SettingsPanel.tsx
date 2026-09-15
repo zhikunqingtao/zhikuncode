@@ -77,12 +77,12 @@ export function SettingsPanel() {
 
 /** 模型选择下拉框 */
 function ModelPicker() {
-  const [model, setModel] = useState('qwen3.8-max-0902');
+  const [model, setModel] = useState('deepseek-v4.1-flash');
   const models = [
     { id: 'qwen3.8-max-0902', name: 'Qwen 3.8 Max 0902', description: '最强推理' },
-    { id: 'qwen3.7-plus', name: 'Qwen 3.7 Plus', description: '均衡性能' },
     { id: 'qwen3.8-max', name: 'Qwen 3.8 Max（百炼）', description: '百炼订阅' },
     { id: 'qwen3.8-flash', name: 'Qwen 3.8 Flash（百炼）', description: '百炼订阅 · 快速多模态' },
+    { id: 'deepseek-v4.1-flash', name: 'DeepSeek V4.1 Flash（百炼）', description: '默认模型 · 百炼订阅 · 多模态' },
     { id: 'deepseek-flash', name: 'DeepSeek V4.1 Flash', description: '高性能 · 快速 · 原生多模态' },
     { id: 'deepseek-v4-pro-0813', name: 'DeepSeek V4 Pro 0813（百炼）', description: '百炼深度推理' },
     { id: 'deepseek-v4-flash-0731', name: 'DeepSeek V4 Flash 0731（百炼）', description: '百炼快速响应' },

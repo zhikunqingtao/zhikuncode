@@ -33,8 +33,11 @@ public class LlmProviderRegistry {
     @Value("${classifier.model:}")
     private String classifierModel;
 
-    @Value("${app.model.default:qwen3.8-max-0902}")
+    @Value("${app.model.default:deepseek-v4.1-flash}")
     private String configuredDefaultModel;
+
+    @Value("${app.model.fast:deepseek-v4.1-flash}")
+    private String configuredFastModel = "deepseek-v4.1-flash";
 
     /** 内置别名映射（模型层级别名 → 实际部署模型） */
     private static final Map<String, String> BUILTIN_ALIASES = Map.ofEntries(
@@ -139,11 +142,13 @@ public class LlmProviderRegistry {
 
         // 启动早期或测试环境可能尚无 Provider；保留非空返回契约。
         return configuredDefaultModel != null && !configuredDefaultModel.isBlank()
-                ? configuredDefaultModel : "qwen3.8-max-0902";
+                ? configuredDefaultModel : "deepseek-v4.1-flash";
     }
 
     /** 获取快速模型 — 用于分类器/摘要 */
     public String getFastModel() {
+        // 全局快速模型优先于 Provider 注册顺序。
+        if (supportsModel(configuredFastModel)) return configuredFastModel;
         return providerSnapshot().stream()
                 .map(LlmProvider::getFastModel)
                 .filter(Objects::nonNull)
@@ -171,7 +176,7 @@ public class LlmProviderRegistry {
      * 解析模型别名为实际模型名称。
      * <p>
      * 别名映射规则（四级回退）：
-     * 1. 环境变量 AGENT_MODEL_<ALIAS> (如 AGENT_MODEL_LIGHT=qwen3.7-plus)
+     * 1. 环境变量 AGENT_MODEL_<ALIAS> (如 AGENT_MODEL_LIGHT=deepseek-v4.1-flash)
      * 2. application.yml 配置 agent.model-aliases.<alias>
      * 3. 内置映射表（light→轻量模型, standard→默认模型, premium→旗舰模型）
      * 4. 显式模型 ID 按既有契约直接透传

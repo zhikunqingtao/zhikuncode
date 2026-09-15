@@ -43,6 +43,10 @@ public class ModelRegistry {
         // 模型规格：https://api-docs.deepseek.com/quick_start/pricing/
         // 视觉限制：https://api-docs.deepseek.com/guides/vision/（单个请求最多 600 张图片）
         entry("deepseek-flash", caps("deepseek-flash", "DeepSeek V4.1 Flash", 384000, 1000000, true, true, true, 600, true, 0.0003, 0.0012)),
+        // 百炼官方规格：1M context / 393216 output / vision + tools.
+        // https://help.aliyun.com/zh/model-studio/deepseek-v4-1-flash
+        // 图片保守限制为 4 张（已实测）；价格为北京忙时按量参考，非 Token Plan Credits 账单。
+        entry("deepseek-v4.1-flash", caps("deepseek-v4.1-flash", "DeepSeek V4.1 Flash（百炼）", 393216, 1000000, true, true, true, 4, true, 0.002, 0.008)),
         entry("deepseek-v4-pro-0813",   caps("deepseek-v4-pro-0813",   "DeepSeek V4 Pro 0813（百炼）",   384000, 1000000, true, true, false, 0, true, 0.001, 0.004)),
         entry("deepseek-v4-flash-0731", caps("deepseek-v4-flash-0731", "DeepSeek V4 Flash 0731（百炼）", 384000, 1000000, true, true, false, 0, true, 0.0005, 0.002)),
         // Moonshot
@@ -56,7 +60,6 @@ public class ModelRegistry {
         // 1M 上下文 / 131072 最大输出 / 多模态（Image/Text/Video 输入）/ 支持思考模式（最大思维链 262144）
         // 北京区定价：输入 0.8 元/M、输出 2.7 元/M tokens
         entry("qwen3.8-flash", caps("qwen3.8-flash", "Qwen 3.8 Flash（百炼）", 131072, 1000000, true, true, true, 4, true, 0.0008, 0.0027)),
-        entry("qwen3.7-plus",      caps("qwen3.7-plus",      "Qwen 3.7 Plus",      8192, 1000000,  true, true, true, 4, true, 0.0008, 0.002)),
         entry("glm-5.3",           caps("glm-5.3",           "GLM-5.3",            131072, 1048576,  true, true, false, 0, true, 0.001, 0.001)),
         // GLM-5.3-Flash 官方规格（docs.bigmodel.cn/cn/guide/models/vlm/glm-5.3-flash）：
         // 1M 上下文 / 128K 最大输出 / 原生多模态（单图≤5MB，系列上限 50 张）/ 强制思考不可关闭

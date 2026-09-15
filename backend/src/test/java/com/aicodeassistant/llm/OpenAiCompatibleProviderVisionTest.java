@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -29,8 +31,9 @@ class OpenAiCompatibleProviderVisionTest {
                 "key", "https://api.deepseek.com/v1", MODEL, List.of(MODEL));
     }
 
-    @Test
-    void visionRequestUsesOpenAiImageUrlAndV41ThinkingParams() throws Exception {
+    @ParameterizedTest
+    @ValueSource(strings = {"deepseek-flash", "deepseek-v4.1-flash"})
+    void visionRequestUsesOpenAiImageUrlAndV41ThinkingParams(String model) throws Exception {
         Map<String, Object> image = Map.of(
                 "type", "image",
                 "source", Map.of(
@@ -47,10 +50,10 @@ class OpenAiCompatibleProviderVisionTest {
                 List.class, int.class, ThinkingConfig.class);
         buildRequest.setAccessible(true);
         JsonNode body = (JsonNode) buildRequest.invoke(
-                provider, MODEL, List.of(userMessage), "", List.of(), 512,
+                provider, model, List.of(userMessage), "", List.of(), 512,
                 new ThinkingConfig.Enabled(10_000));
 
-        assertEquals(MODEL, body.path("model").asText());
+        assertEquals(model, body.path("model").asText());
         assertEquals("enabled", body.path("thinking").path("type").asText());
         assertEquals("max", body.path("reasoning_effort").asText());
 

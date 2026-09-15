@@ -357,8 +357,8 @@ If no multi-Provider keys are configured, the system automatically falls back to
 
 | Provider | Base URL | Recommended Model | Notes |
 |----------|----------|-------------------|-------|
-| **Qwen / DashScope** | `https://dashscope.aliyuncs.com/compatible-mode/v1` | qwen3.8-max-0902 | **Default**, direct connection in China |
-| **Alibaba Cloud Bailian Token Plan** | `https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1` | qwen3.8-max / qwen3.8-flash / deepseek-v4-pro-0813 / deepseek-v4-flash-0731 | Optional subscription Provider using an independent `sk-sp-` key; all four models are labeled “Bailian” in the UI |
+| **Qwen / DashScope** | `https://dashscope.aliyuncs.com/compatible-mode/v1` | qwen3.8-max-0902 | Pay-as-you-go Provider, direct connection in China |
+| **Alibaba Cloud Bailian Token Plan** | `https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1` | qwen3.8-max / qwen3.8-flash / deepseek-v4-pro-0813 / deepseek-v4-flash-0731 / deepseek-v4.1-flash | Independent `sk-sp-` key; models are labeled “Bailian”. V4.1 Flash is the global, fast-query, summary and vision-fallback default and participates in predefined fallback chains |
 | **DeepSeek** | `https://api.deepseek.com/v1` | deepseek-flash | Direct connection in China; DeepSeek V4.1 Flash with thinking, tool use, and native vision |
 | **Moonshot (Kimi)** | `https://api.moonshot.cn/v1` | kimi-k3 / kimi-k2.7-code | Direct connection; kimi-k3 features 1M context window and native vision |
 | **Zhipu (GLM)** | `https://open.bigmodel.cn/api/paas/v4/chat/completions` | glm-5.3, glm-5.3-flash | China direct access |
@@ -1227,6 +1227,7 @@ Phases follow strict sequential order (no skipping). Each phase records timestam
 
 - Use case: complex refactoring, large-scale code migrations
 - Worker count adjusts dynamically, no pre-declaration needed
+- Workers inherit the parent query’s selected model unless `workerModel` is explicitly set; missing both values is an error
 - One Virtual Thread per Worker, 30-minute timeout protection
 - Worker toolsets precisely controlled via allowList/denyList
 - Workers use the root-session authorization subject; matching SESSION/WORKSPACE grants can be reused by descendants under identical constraints
@@ -1406,6 +1407,12 @@ ZhikunCode includes 11 built-in visualization features that make data and status
 
 ## ⚙️ Configuration
 
+### Model Selection and Routing
+
+Main queries use the user-selected model; Swarm workers inherit the parent query model by default. Fast queries and summaries have independent configuration, both defaulting to Bailian `deepseek-v4.1-flash`. Vision fallback applies only when the selected model cannot accept images. Bailian and direct DeepSeek use separate model IDs, endpoints and keys.
+
+Bailian V4.1 Flash streaming requests, fast queries and summaries send `thinking.type=enabled` and the string `reasoning_effort="max"`. Tests on 2026-09-15 confirmed that the Token Plan endpoint accepts `"max"` and rejects integers; its internal numeric mapping remains unverified.
+
 ### Environment Variables
 
 Environment variables are managed via the `.env` file. Copy `.env.example` and modify as needed:
@@ -1419,7 +1426,10 @@ Environment variables are managed via the `.env` file. Copy `.env.example` and m
 | `LLM_PROVIDER_DEEPSEEK_API_KEY` | — | — | DeepSeek API Key |
 | `LLM_PROVIDER_MOONSHOT_API_KEY` | — | — | Moonshot/Kimi API Key |
 | `LLM_PROVIDER_ZHIPU_API_KEY` | — | — | Zhipu GLM API Key |
-| `LLM_DEFAULT_MODEL` | — | qwen3.8-max-0902 | Default model; falls back to an active Provider default when unavailable |
+| `LLM_DEFAULT_MODEL` | — | deepseek-v4.1-flash | Bailian Token Plan default; falls back to an active Provider default when unavailable |
+| `LLM_FAST_MODEL` | — | deepseek-v4.1-flash | Preferred fast-query model and classifier fallback |
+| `LLM_COMPACT_MODEL` | — | deepseek-v4.1-flash | Summary model, configured independently of the fast model |
+| `LLM_VISION_FALLBACK_MODEL` | — | deepseek-v4.1-flash | Preferred model when the selected model cannot accept images |
 
 > In multi-Provider mode, configure at least one Provider's API Key. The frontend supports free switching between configured Providers.
 
@@ -1456,8 +1466,8 @@ Environment variables are managed via the `.env` file. Copy `.env.example` and m
 | Variable | Required | Default | Description |
 |----------|:---:|---------|-------------|
 | `ZHIKUN_COORDINATOR_MODE` | — | 0 | Feature flag, enable coordinator mode (0=off, 1=on) |
-| `LLM_PROVIDER_DASHSCOPE_MODELS` | — | qwen3.8-max-0902,qwen3.7-plus | DashScope available models (comma-separated) |
-| `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS` | — | qwen3.8-max,qwen3.8-flash,deepseek-v4-pro-0813,deepseek-v4-flash-0731 | Alibaba Cloud Bailian Token Plan models; independent from standard DashScope and direct DeepSeek settings |
+| `LLM_PROVIDER_DASHSCOPE_MODELS` | — | qwen3.8-max-0902 | DashScope available models (comma-separated) |
+| `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS` | — | qwen3.8-max,qwen3.8-flash,deepseek-v4-pro-0813,deepseek-v4-flash-0731,deepseek-v4.1-flash | Alibaba Cloud Bailian Token Plan models; independent from standard DashScope and direct DeepSeek settings |
 | `LLM_PROVIDER_DEEPSEEK_MODELS` | — | deepseek-flash | DeepSeek models; defaults to V4.1 Flash (comma-separated) |
 | `LLM_PROVIDER_MOONSHOT_MODELS` | — | kimi-k3,moonshot-v1-128k | Moonshot available models (comma-separated) |
 | `LLM_PROVIDER_ZHIPU_MODELS` | — | glm-5.3,glm-5.3-flash | Zhipu GLM available models (comma-separated) |
