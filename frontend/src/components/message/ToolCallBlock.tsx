@@ -26,9 +26,10 @@ import { DiffRenderer } from './renderers/DiffRenderer';
 import { SearchResultRenderer } from './renderers/SearchResultRenderer';
 import { FileListRenderer } from './renderers/FileListRenderer';
 import ExternalResourceRenderer from './renderers/ExternalResourceRenderer';
+import SitePublicationRenderer from './renderers/SitePublicationRenderer';
 import ToolProgressBar from '../visualization/shared/ToolProgressBar';
 import MiniLogViewer from '../visualization/shared/MiniLogViewer';
-import { parseExternalResourceResult, structuredResultSchema } from '@/utils/structuredToolResult';
+import { parseExternalResourceResult, parseSitePublicationResult, structuredResultSchema } from '@/utils/structuredToolResult';
 
 interface ToolCallBlockProps {
     toolUseId: string;
@@ -355,6 +356,11 @@ const ToolResultRenderer: React.FC<ToolResultRendererProps> = ({
             {showFullResult ? '收起' : `展开全部（共 ${resultLineCount} 行）`}
         </button>
     ) : null;
+
+    if (structuredResultSchema(metadata) === 'site-publication/v1') {
+        const publication = parseSitePublicationResult(metadata);
+        if (publication) return <SitePublicationRenderer publication={publication} />;
+    }
 
     if (isError) {
         return (

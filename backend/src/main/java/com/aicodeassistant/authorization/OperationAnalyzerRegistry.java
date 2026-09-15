@@ -55,6 +55,10 @@ public final class OperationAnalyzerRegistry {
     private final OperationAnalyzer mcp = new GenericAnalyzer("mcp-v1");
     private final OperationAnalyzer generic = new GenericAnalyzer("static-or-remote-v1");
     private ArtifactPublicationPolicy artifactPublicationPolicy;
+    private com.aicodeassistant.artifact.meoo.MeooPublicationPolicy meooPolicy;
+    private final OperationAnalyzer meooPublish = new MeooPublishAnalyzer();
+    @Autowired(required = false)
+    void setMeooPublicationPolicy(com.aicodeassistant.artifact.meoo.MeooPublicationPolicy policy) { this.meooPolicy = policy; }
 
     @Autowired
     public OperationAnalyzerRegistry(ObjectMapper mapper, BashSecurityAnalyzer bashSecurity,
@@ -86,6 +90,7 @@ public final class OperationAnalyzerRegistry {
         // Bash 语法无法证明 PowerShell 的语义，因此 PowerShell 保持精确 ONCE 授权。
         if ("PowerShell".equals(tool.getName())) return generic;
         if ("PublishArtifact".equals(tool.getName())) return artifactPublish;
+        if ("PublishMeoo".equals(tool.getName()) || "InspectMeooDeployment".equals(tool.getName())) return meooPublish;
         if (FILE_READ.contains(tool.getName()) || FILE_WRITE.contains(tool.getName())) return file;
         if (NETWORK.contains(tool.getName())) return network;
         if (CONTROL.contains(tool.getName()) || VERIFY_CONTROL.contains(tool.getName())
@@ -95,7 +100,7 @@ public final class OperationAnalyzerRegistry {
     }
 
     public boolean isExplicitCoreTool(String name) {
-        return "Bash".equals(name) || "PowerShell".equals(name) || "PublishArtifact".equals(name)
+        return "Bash".equals(name) || "PowerShell".equals(name) || "PublishArtifact".equals(name) || "PublishMeoo".equals(name) || "InspectMeooDeployment".equals(name)
                 || FILE_READ.contains(name)
                 || FILE_WRITE.contains(name) || NETWORK.contains(name) || CONTROL.contains(name)
                 || VERIFY_CONTROL.contains(name) || SAFE_INTERNAL.contains(name);
@@ -110,6 +115,14 @@ public final class OperationAnalyzerRegistry {
     public ToolInput bindExecutionInput(
             Tool tool, OperationDescriptor descriptor,
             ToolInput input, AuthorizationSubject subject) {
+        if ("meoo-publish-v1".equals(descriptor.analyzerId())) {
+            Map<String,Object> bound = new LinkedHashMap<>(input.getRawData());
+            for (ResourceRef r : descriptor.resources()) {
+                if (r.kind().equals("meoo-snapshot")) bound.put("_approved_sha256", r.value());
+                if (r.kind().equals("meoo-account")) bound.put("_approved_account", r.value());
+            }
+            return ToolInput.from(bound);
+        }
         if (!"file-v1".equals(descriptor.analyzerId())) return input;
         ResourceRef resource = descriptor.resources().stream()
                 .filter(candidate -> "path".equals(candidate.kind()))
@@ -523,6 +536,29 @@ public final class OperationAnalyzerRegistry {
                     List.of(new ResourceRef("path", snapshot.relativePath(), false)),
                     List.of(), List.of(redactEndpoint(snapshot.endpoint())), RiskClass.HIGH,
                     summary, snapshot.authorizationFacts());
+        }
+    }
+
+    private final class MeooPublishAnalyzer implements OperationAnalyzer {
+        @Override public String id() { return "meoo-publish-v1"; }
+        private com.aicodeassistant.artifact.meoo.MeooPublicationPolicy.Snapshot inspect(Tool tool, ToolInput input, ToolUseContext context) {
+            if (meooPolicy == null) throw new AuthorizationException("MEOO_ANALYZER_UNAVAILABLE", "Meoo policy unavailable");
+            try { return meooPolicy.inspect(input, context, "PublishMeoo".equals(tool.getName())); }
+            catch (com.aicodeassistant.artifact.meoo.MeooException e) { throw new AuthorizationException(e.code(), "Meoo publication check: " + e.code()); }
+        }
+        @Override public OperationDescriptor analyze(Tool tool, FrozenToolInput frozen, ToolInput input, ToolUseContext context, AuthorizationSubject subject) {
+            return describe(tool, frozen.inputHash(), inspect(tool,input,context));
+        }
+        private OperationDescriptor describe(Tool tool, String hash, com.aicodeassistant.artifact.meoo.MeooPublicationPolicy.Snapshot s) {
+            boolean publish = "PublishMeoo".equals(tool.getName());
+            return descriptor(id(), tool, hash, publish ? "publish-new-meoo-site" : "inspect-meoo-site",
+                publish ? List.of(EffectClass.READ_RESOURCE,EffectClass.NETWORK,EffectClass.WRITE_RESOURCE) : List.of(EffectClass.READ_RESOURCE),
+                List.of(new ResourceRef("path",s.relativePath(),false),new ResourceRef("meoo-snapshot",s.sha256(),false),new ResourceRef("meoo-account",s.account(),false)),
+                List.of(),publish ? List.of("https://meoo.com") : List.of(),publish ? RiskClass.HIGH : RiskClass.SAFE,s.summary(),s.facts());
+        }
+        @Override public void recheck(Tool tool, OperationDescriptor approved, ToolInput input, ToolUseContext context, AuthorizationSubject subject) {
+            OperationDescriptor current=describe(tool,approved.inputHash(),inspect(tool,input,context));
+            if(!approved.operationHash().equals(current.operationHash())) throw new AuthorizationException("AUTHORIZATION_FINAL_RECHECK_DENIED","Meoo files or publication configuration changed");
         }
     }
 

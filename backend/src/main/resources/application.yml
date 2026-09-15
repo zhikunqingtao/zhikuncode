@@ -32,6 +32,13 @@ zhikuncode:
   scratchpad:
     # Server-owned shared root used by coordinator and swarm runs.
     system-root: ${app.working-dir:${user.dir}}/.zhikun/scratchpad
+  meoo:
+    enabled: ${ZHIKUN_MEOO_ENABLED:false}
+    credentials-file: ${ZHIKUN_MEOO_CREDENTIALS_FILE:${user.home}/.meoo/credentials.json}
+    executable: ${ZHIKUN_MEOO_EXECUTABLE:meoo}
+    max-bytes: ${ZHIKUN_MEOO_MAX_BYTES:104857600}
+    max-files: ${ZHIKUN_MEOO_MAX_FILES:10000}
+    timeout-seconds: ${ZHIKUN_MEOO_TIMEOUT_SECONDS:1200}
   oss:
     # Disabled by default. auto prefers local ALIBABA_CLOUD_* credentials, then a named ECS RAM Role.
     enabled: ${ZHIKUN_OSS_ENABLED:false}

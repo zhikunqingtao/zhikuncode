@@ -73,15 +73,24 @@ public class ManagedProcessRunner {
     }
 
     public Result run(Request request) throws IOException, InterruptedException {
+        return runWithEnvironment(request, null);
+    }
+
+    /** Internal services only: replaces inherited environment; values are never logged. */
+    public Result runIsolated(Request request, Map<String, String> environment) throws IOException, InterruptedException {
+        return runWithEnvironment(request, Map.copyOf(environment));
+    }
+
+    private Result runWithEnvironment(Request request, Map<String, String> environment) throws IOException, InterruptedException {
         RunExecutionRegistry.WorkLease workLease = acquireLease(request.runId(), request.toolUseId(), request.ownership());
         try {
-            return runWithLease(request, workLease);
+            return runWithLease(request, workLease, environment);
         } finally {
             if (workLease != null) workLease.close();
         }
     }
 
-    private Result runWithLease(Request request, RunExecutionRegistry.WorkLease workLease)
+    private Result runWithLease(Request request, RunExecutionRegistry.WorkLease workLease, Map<String, String> environment)
             throws IOException, InterruptedException {
         if (!capacity.tryAcquire()) throw new IOException("PROCESS_CAPACITY_EXCEEDED");
         long started = System.nanoTime();
@@ -89,6 +98,10 @@ public class ManagedProcessRunner {
         try {
             ProcessBuilder builder = new ProcessBuilder(request.command());
             builder.directory(request.workingDirectory().toFile());
+            if (environment != null) {
+                builder.environment().clear();
+                builder.environment().putAll(environment);
+            }
             builder.redirectErrorStream(false);
             process = builder.start();
         } catch (IOException | RuntimeException startFailure) {

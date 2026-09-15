@@ -56,7 +56,7 @@ public class SkillRegistry {
             "commit", "review", "fix", "test", "pr",
             "debug", "verify", "stuck", "remember",
             "software-architecture", "csv-data-summarizer",
-            "prompt-engineering", "test-driven-development", "publish-oss"
+            "prompt-engineering", "test-driven-development", "publish-oss", "publish-meoo"
     );
 
     /** 文件监听 WatchService 实例 (§11.3.3) */

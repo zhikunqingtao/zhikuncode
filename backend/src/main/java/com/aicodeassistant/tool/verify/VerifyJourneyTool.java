@@ -72,6 +72,12 @@ public class VerifyJourneyTool implements Tool {
     private final ObjectMapper objectMapper;
     private final NotificationService notificationService;
     private volatile BestEffortObservabilityRecorder observabilityRecorder;
+    private com.aicodeassistant.artifact.meoo.MeooPublicationPolicy meooPolicy;
+
+    @Autowired(required = false)
+    public void setMeooPublicationPolicy(com.aicodeassistant.artifact.meoo.MeooPublicationPolicy policy) {
+        this.meooPolicy = policy;
+    }
 
     public VerifyJourneyTool(PythonCapabilityAwareClient pythonClient,
                              DevServerLauncher devServerLauncher,
@@ -147,6 +153,8 @@ public class VerifyJourneyTool implements Tool {
                     "maxLength", 1000,
                     "description", "Optional exact user acceptance criterion verified by this journey. Copy one original requirement verbatim; omit for a general technical check"
                 )),
+                Map.entry("publication_path", Map.of("type", "string", "description", "Exact Meoo publication path to bind to verified evidence; do not change its files during verification")),
+                Map.entry("publication_runtime", Map.of("type", "string", "enum", List.of("static", "image"))),
                 Map.entry("record", Map.of(
                     "type", "boolean",
                     "description", "Whether to record video/trace/HAR. Only for browser verification. Default: true"
@@ -231,6 +239,14 @@ public class VerifyJourneyTool implements Tool {
 
         String workspace = context.workingDirectory();
         String sessionId = context.sessionId();
+        ToolInput publicationInput = null;
+        com.aicodeassistant.artifact.meoo.MeooPublicationPolicy.Snapshot publicationSnapshot = null;
+        if(input.has("publication_path")) {
+            if(meooPolicy == null) return ToolResult.validationError("MEOO_DISABLED", "Meoo verification binding is unavailable");
+            publicationInput = ToolInput.from(Map.of("path",input.getString("publication_path"),"runtime",input.getString("publication_runtime", "")));
+            try { publicationSnapshot=meooPolicy.inspect(publicationInput,context,false); }
+            catch(com.aicodeassistant.artifact.meoo.MeooException e) { return ToolResult.validationError(e.code(),e.code()); }
+        }
 
         // 2. 选择 Verifier（多态）
         JourneyRequest req = new JourneyRequest(sessionId, null, journey, Map.of());
@@ -277,7 +293,7 @@ public class VerifyJourneyTool implements Tool {
                 String principal = sessionId;
                 JourneyResult result = verifier.verify(browserReq, principal);
                 return handleVerificationResult(result, sessionId, journey.size(),
-                        evidenceClaim, observationRunId, selectedMode, startedNanos);
+                        evidenceClaim, observationRunId, selectedMode, startedNanos, publicationInput, publicationSnapshot, context);
 
             } catch (DevServerTimeoutException e) {
                 recordVerificationFailure(observationRunId, selectedMode, journey.size(),
@@ -340,7 +356,7 @@ public class VerifyJourneyTool implements Tool {
             String principal = sessionId;
             JourneyResult result = verifier.verify(apiReq, principal);
             return handleVerificationResult(result, sessionId, journey.size(),
-                    evidenceClaim, observationRunId, selectedMode, startedNanos);
+                    evidenceClaim, observationRunId, selectedMode, startedNanos, publicationInput, publicationSnapshot, context);
         }
     }
 
@@ -355,14 +371,26 @@ public class VerifyJourneyTool implements Tool {
      */
     private ToolResult handleVerificationResult(JourneyResult result, String sessionId, int stepCount,
                                                 String evidenceClaim, String runId, String mode,
-                                                long startedNanos) {
+                                                long startedNanos, ToolInput publicationInput,
+                                                com.aicodeassistant.artifact.meoo.MeooPublicationPolicy.Snapshot publicationSnapshot,
+                                                ToolUseContext context) {
+        var publicationItems = new java.util.ArrayList<>(buildEvidenceItems(result));
+        if(publicationSnapshot != null) {
+            try {
+                var after=meooPolicy.inspect(publicationInput,context,false);
+                if(!publicationSnapshot.facts().equals(after.facts()))
+                    return ToolResult.validationError("MEOO_VERIFICATION_STALE", "Publication files changed during verification; verify again");
+                publicationItems.add(new EvidenceItem(null,"test","Verified Meoo publication snapshot",null,
+                    Map.of("workspace",after.root().toString(),"meooSnapshotSha256",after.sha256(),"meooRuntime",after.runtime())));
+            } catch(com.aicodeassistant.artifact.meoo.MeooException e) { return ToolResult.validationError(e.code(),e.code()); }
+        }
         EvidenceBundle bundle = EvidenceBundle.builder()
                 .sessionId(sessionId)
                 .runId(runId)
                 .kind("journey")
                 .verdict(result.verdict())
                 .claim(evidenceClaim)
-                .items(buildEvidenceItems(result))
+                .items(publicationItems)
                 .build();
         EvidenceBundle saved = evidenceStore.save(bundle);
         recordVerificationCompleted(runId, mode, stepCount, result, saved, startedNanos);

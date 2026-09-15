@@ -719,3 +719,19 @@ export interface SwarmLogEntry {
     workerId?: string;
     content: string;
 }
+
+/** Server-owned publication result; independent of the OSS download contract. */
+export interface SitePublicationResult {
+    schema: 'site-publication/v1';
+    provider: 'meoo';
+    publicationId: string;
+    label: string;
+    runtime: 'static' | 'image';
+    state: 'public_verified' | 'deployed_unverified' | 'failed' | 'unknown';
+    projectId?: string;
+    projectUrl?: string;
+    version?: string;
+    url?: string;
+    errorCode?: string;
+    guidance?: string;
+}

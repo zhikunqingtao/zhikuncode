@@ -66,6 +66,10 @@ services:
       - ZHIKUN_WORKSPACE_ALLOWED_ROOTS=/app/workspace
       - ZHIKUN_GLOBAL_DB_PATH=/app/data/global.db
       - ZHIKUNCODE_DATABASE_PROJECT_ROOT=/app/data
+      # ---- Optional Meoo publishing (credentials file is read by the backend only) ----
+      - ZHIKUN_MEOO_ENABLED=${ZHIKUN_MEOO_ENABLED:-false}
+      - ZHIKUN_MEOO_CREDENTIALS_FILE=${ZHIKUN_MEOO_CREDENTIALS_FILE:-/run/secrets/meoo-credentials.json}
+      - ZHIKUN_MEOO_TIMEOUT_SECONDS=${ZHIKUN_MEOO_TIMEOUT_SECONDS:-1200}
       # ---- Optional OSS publishing + clipboard image paste (disabled by default) ----
       # auto prefers local ALIBABA_CLOUD_* credentials, then a named ECS RAM Role.
       - ZHIKUN_OSS_ENABLED=${ZHIKUN_OSS_ENABLED:-false}
@@ -86,6 +90,8 @@ services:
       - zhikun-data:/app/data
       # User workspace mount (the code project to work on)
       - ${WORKSPACE_PATH:-./workspace}:/app/workspace
+      # When enabling Meoo, add a read-only secret mount in a compose override:
+      # - /absolute/private/meoo-credentials.json:/run/secrets/meoo-credentials.json:ro
       # Optional: persist logs to host
       # - ./logs:/app/log
     healthcheck:

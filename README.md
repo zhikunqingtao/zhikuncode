@@ -129,6 +129,7 @@ ZhikunCode 使用 Kimi K3 在 2026-08-09 凌晨一次性完成了一个纯静态
 | 🇨🇳 | **国产大模型直连** | 千问 / DeepSeek / Moonshot / 智谱GLM / MiniMax 开箱即用，国内网络直连，无需科学上网 |
 | 🐳 | **Docker 一键部署** | `docker compose up -d` 默认启动 Java 后端和内置静态前端；镜像同时包含可选的受管 Python 服务，数据存本地 |
 | 📤 | **OSS 发布与截图粘贴（可选）** | `/publish-oss` 仍只按明确指令发布已验证产物；粘贴截图支持双路径——OSS 已配置时走后端快速上传，OSS 未配置时自动降级为 Base64 直传，无需额外配置即可使用图片分析能力 |
+| 🌍 | **秒悟应用发布（可选）** | 通过 `/publish-meoo` 将已验证的静态网站或全栈应用发布为独立新站点，获取可分享的网站链接；默认关闭，每次发布需单独确认 |
 | 🎙️ | **语音交互（ASR / TTS）** | 对话输入支持麦克风语音识别（qwen3-asr-flash），AI 回复支持一键朗读（qwen3-tts-flash）；接入阿里云百炼 DashScope，配置 API Key 即用，未配置时自动隐藏 |
 | ⚡ | **智能上下文管理** | 六层压缩级联（Snip / MicroCompact / ContextCollapse / AutoCompact / CollapseDrain / ReactiveCompact）+ 增量折叠（每10轮自动压缩）+ 413 两阶段恢复（CollapseDrain 激进压缩 → ReactiveCompact 反应式压缩）+ 精确 Token 计数（tiktoken 多模型支持）+ 自纠错循环（SelfCorrectionLoop，编译/测试失败自动诊断修复，最多3次）+ Token三级告警 + 图片上下文治理（大图外置化 → 按需注入 → 预算守卫三层防护），无缝应对超长对话。核心引擎为 ContextCascade 与 QueryEngine |
 | 📷 | **多模态图片对话** | 支持图片上传输入，模型自动识别图片内容并分析；**智能视觉模型路由**——当前模型不支持图片时，自动切换至同厂商视觉模型处理，处理完成后无缝切回原模型；DeepSeek V4.1 Flash（`deepseek-flash`）原生支持视觉，并作为 DeepSeek 系列图片理解兜底。**图片预算守卫**——大图片（>50KB）自动外置化为轻量 JSON 引用，API 调用前按需注入，两阶段 Token 预算守卫确保多图对话不累积超限（单张≤1.5MB，总量≤2MB，单次最多注入 8 张）。ZenMux 图片模型包括 Opus 4.8、Fable 5.1、GPT-5.6 Sol、GPT-6 Astra、Gemini 3.8 Flash 与 Grok 4.6（各模型数量上限见模型目录） |
@@ -666,9 +667,9 @@ Web 新会话必须先选择一个已授权目录。远程和 Docker 部署的�
 | PLAN | 只允许安全工作区读取，其他 Effect 拒绝 |
 | ACCEPT_EDITS | 自动允许工作区内非高风险文件编辑，其他受控操作仍需确认 |
 | DONT_ASK | 不创建交互；安全读取、已有 Grant 和已授权 Project 内普通文件操作可执行，其他需要交互的操作直接拒绝 |
-| AUTO_APPROVE | 自动批准所有到达人工授权阶段的工具操作，包括工作区外文件和公共互联网请求；硬拒绝、安全 Hook、SSRF 防护和部署沙箱仍然生效 |
+| AUTO_APPROVE | 自动批准到达人工授权阶段的工具操作，包括工作区外文件和公共互联网请求；秒悟发布仍需逐次确认；硬拒绝、安全 Hook、SSRF 防护和部署沙箱仍然生效 |
 
-`AUTO_APPROVE` 会取消工具权限确认，远程部署使用时应确认运行账户、文件系统和网络边界符合预期。它不会赋予操作系统之外的新权限，也不会绕过系统安全与部署限制。
+`AUTO_APPROVE` 会取消工具权限确认，但秒悟发布仍需逐次确认；远程部署使用时应确认运行账户、文件系统和网络边界符合预期。它不会赋予操作系统之外的新权限，也不会绕过系统安全与部署限制。
 
 ### 受保护路径
 
@@ -815,6 +816,7 @@ ZhikunCode 的skill技能系统（Skill System）是一个 **Markdown 驱动的�
 | **Prompt工程** | `/prompt-engineering` | 优化prompt结构、清晰度和有效性 |
 | **测试驱动开发** | `/test-driven-development` | TDD红→绿→重构循环方法论指导 |
 | **OSS 产物发布** | `/publish-oss` | 经单次高风险授权，从同一持久化根 Session 的根 Run 或授权后代 Run 中发布目标条目已验证且哈希仍匹配的产物；默认关闭且不会自动上传 |
+| **秒悟应用发布** | `/publish-meoo` | 每次创建新站点、保留旧站点并占用平台额度；结果卡显示匿名访问验证状态。[配置与使用说明](docs/deployment/meoo.md) |
 
 ### 6 级加载源优先级
 
@@ -1074,7 +1076,7 @@ aica --continue "fix the bug we just discussed"
 |------|------|
 | 三种输出格式 | `text`（终端 Markdown 渲染）/ `json`（结构化）/ `stream-json`（SSE 流式） |
 | 管道支持 | 自动读取 stdin，与 shell 管道无缝组合 |
-| 权限模式 | `--permission-mode default/plan/accept_edits/dont_ask/auto_approve` 控制授权策略（CLI 默认 `dont_ask`；`auto_approve` 取消人工确认，但不能绕过硬拒绝、安全 Hook、SSRF 或部署沙箱） |
+| 权限模式 | `--permission-mode default/plan/accept_edits/dont_ask/auto_approve` 控制授权策略（CLI 默认 `dont_ask`；`auto_approve` 取消人工确认，秒悟发布除外；不能绕过硬拒绝、安全 Hook、SSRF 或部署沙箱） |
 | 会话管理 | `--continue` 继续上次会话，`--resume <id>` 恢复指定会话 |
 | 模型选择 | `--model` 指定模型，`--effort` 控制推理深度 |
 | 工具控制 | `--allowed-tools` / `--disallowed-tools` 白名单/黑名单 |

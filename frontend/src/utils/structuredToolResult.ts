@@ -69,3 +69,33 @@ export function parseExternalResourceResult(
         downloadExpected: raw.downloadExpected,
     };
 }
+
+/** Only server-issued HTTPS Meoo site and project links can be rendered. */
+export function parseSitePublicationResult(metadata: Record<string, unknown> | undefined): import('@/types').SitePublicationResult | null {
+    if (!isRecord(metadata) || !isRecord(metadata.structuredResult)) return null;
+    const r = metadata.structuredResult;
+    if (r.schema !== 'site-publication/v1' || r.provider !== 'meoo'
+        || typeof r.publicationId !== 'string' || !r.publicationId
+        || typeof r.label !== 'string' || !r.label
+        || !['static', 'image'].includes(String(r.runtime))
+        || !['public_verified', 'deployed_unverified', 'failed', 'unknown'].includes(String(r.state))) return null;
+    for (const key of ['projectId', 'projectUrl', 'version', 'url', 'errorCode', 'guidance']) {
+        if (r[key] !== undefined && typeof r[key] !== 'string') return null;
+    }
+    if (r.projectId !== undefined && !/^[A-Za-z0-9_-]{1,128}$/.test(String(r.projectId))) return null;
+    if (r.projectUrl !== undefined && (!r.projectId || r.projectUrl !== `https://meoo.com/chat/${r.projectId}`)) return null;
+    if (r.url !== undefined) {
+        try {
+            const u = new URL(String(r.url));
+            if (u.protocol !== 'https:' || !/^[a-z0-9-]+\.meoo\.(?:fun|pub)$/i.test(u.hostname)
+                || u.port || u.username || u.password || u.search || u.hash || u.pathname !== '/') return null;
+        } catch { return null; }
+    }
+    if (['public_verified', 'deployed_unverified'].includes(String(r.state)) && (!r.url || !r.projectId || !r.version)) return null;
+    return {
+        schema: 'site-publication/v1', provider: 'meoo', publicationId: r.publicationId, label: r.label,
+        runtime: r.runtime as 'static' | 'image', state: r.state as import('@/types').SitePublicationResult['state'],
+        projectId: r.projectId as string | undefined, projectUrl: r.projectUrl as string | undefined,
+        version: r.version as string | undefined, url: r.url as string | undefined, errorCode: r.errorCode as string | undefined, guidance: r.guidance as string | undefined,
+    };
+}

@@ -123,6 +123,7 @@ Two official rankings are reported: on the six-task equal-weight board ZhikunCod
 | 🇨🇳 | **Native Chinese LLM Support** | Qwen / DeepSeek / Moonshot / Zhipu GLM / MiniMax work out of the box with direct connections from mainland China — no VPN required |
 | 🐳 | **One-Command Docker Deployment** | `docker compose up -d` starts the Java backend and bundled static frontend by default; the image also includes the optional managed Python service, and data stays local |
 | 📤 | **OSS Publishing and Screenshot Paste (Optional)** | `/publish-oss` remains explicit-only for verified artifacts; pasted screenshots support dual-path — OSS upload when configured, automatic Base64 fallback when OSS is not configured, enabling image analysis with no extra setup |
+| 🌍 | **Meoo App Publishing (Optional)** | Use `/publish-meoo` to publish a verified static website or full-stack app as a new site with a shareable URL. Disabled by default; each publication requires separate approval |
 | 🎙️ | **Voice Interaction (ASR / TTS)** | Microphone speech-to-text input (qwen3-asr-flash) and one-click text-to-speech for AI replies (qwen3-tts-flash); powered by Alibaba Cloud DashScope — just configure the API Key; buttons auto-hide when unconfigured |
 | ⚡ | **Intelligent Context Management** | Six-layer compression cascade (Snip / MicroCompact / ContextCollapse / AutoCompact / CollapseDrain / ReactiveCompact) + incremental collapse (auto-compress every 10 turns) + 413 two-phase recovery (CollapseDrain aggressive compression → ReactiveCompact) + Precise Token Counting (tiktoken multi-model support) + Self-Correction Loop (SelfCorrectionLoop, auto-diagnose compile/test failures, max 3 retries) + three-level token alerts + image context governance (large image externalization → on-demand injection → budget guard three-layer protection) for seamless ultra-long conversations. The core engines are ContextCascade and QueryEngine |
 | 📷 | **Multimodal Image Chat** | Upload images for AI analysis; **Intelligent Vision Routing** — when the selected model lacks image input support, the system auto-routes to a vision-capable model and reverts afterward. DeepSeek V4.1 Flash (`deepseek-flash`) supports native vision and is the DeepSeek-family image fallback. **Image Budget Guard** externalizes large images (>50KB), injects them on demand, and applies a two-phase token budget guard (≤1.5MB per image, ≤2MB total, and at most 8 images injected per API call). ZenMux image models include Opus 4.8, Fable 5.1, GPT-5.6 Sol, GPT-6 Astra, Gemini 3.8 Flash, and Grok 4.6 (limits vary by model) |
@@ -652,9 +653,9 @@ Sub-agents match parent grants through an authorization subject composed of root
 | PLAN | Only safe workspace reads are allowed; other effects are denied |
 | ACCEPT_EDITS | Non-high-risk in-workspace file edits are auto-allowed; other controlled operations still require confirmation |
 | DONT_ASK | Creates no interaction; safe reads, existing grants, and ordinary file operations inside an authorized Project may run; other operations requiring confirmation are denied |
-| AUTO_APPROVE | Automatically approves every operation that reaches the interactive authorization stage, including requests for files outside the workspace and the public internet; hard denials, security hooks, SSRF protection, and deployment sandboxes remain in force |
+| AUTO_APPROVE | Automatically approves operations that reach the interactive authorization stage, including requests for files outside the workspace and the public internet; Meoo publishing still requires approval for each publication; hard denials, security hooks, SSRF protection, and deployment sandboxes remain in force |
 
-`AUTO_APPROVE` removes tool permission prompts. On remote deployments, use it only when the runtime account, filesystem, and network boundaries are appropriate. It grants no privileges beyond the operating system and does not bypass system or deployment security controls.
+`AUTO_APPROVE` removes tool permission prompts, except for Meoo publishing, which still requires approval for each publication. On remote deployments, use it only when the runtime account, filesystem, and network boundaries are appropriate. It grants no privileges beyond the operating system and does not bypass system or deployment security controls.
 
 ### Protected Paths
 
@@ -801,6 +802,7 @@ Ready to use out of the box — type `/skill-name` to invoke:
 | **Prompt Engineering** | `/prompt-engineering` | Optimizes prompt structure, clarity and effectiveness |
 | **Test-Driven Dev** | `/test-driven-development` | TDD red→green→refactor cycle methodology guidance |
 | **OSS Artifact Publishing** | `/publish-oss` | With one-time approval, publishes one verified artifact from the current session as a permanently public OSS download; disabled by default and never automatic |
+| **Meoo App Publishing** | `/publish-meoo` | Each publication creates a new site, preserves existing sites, and consumes platform quota. The result card shows anonymous access verification status. [Setup guide (Chinese)](deployment/meoo.md) |
 
 ### 6-Level Loading Priority
 
@@ -1060,7 +1062,7 @@ When neither `--working-dir` nor `--project-id` is provided, and no Session is s
 |---------|-------------|
 | Three output formats | `text` (terminal Markdown rendering) / `json` (structured) / `stream-json` (SSE streaming) |
 | Pipe support | Auto-reads stdin, seamlessly composable with shell pipes |
-| Permission modes | `--permission-mode default/plan/accept_edits/dont_ask/auto_approve` controls authorization (CLI defaults to `dont_ask`; `auto_approve` removes interactive confirmation but cannot bypass hard denials, security hooks, SSRF protection, or deployment sandboxes) |
+| Permission modes | `--permission-mode default/plan/accept_edits/dont_ask/auto_approve` controls authorization (CLI defaults to `dont_ask`; `auto_approve` removes interactive confirmation except for Meoo publishing, and cannot bypass hard denials, security hooks, SSRF protection, or deployment sandboxes) |
 | Session management | `--continue` resumes last session, `--resume <id>` restores a specific session |
 | Model selection | `--model` to specify model, `--effort` to control reasoning depth |
 | Tool control | `--allowed-tools` / `--disallowed-tools` whitelist/blocklist |

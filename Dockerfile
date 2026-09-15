@@ -73,6 +73,16 @@ RUN cd backend && ./mvnw package -DskipTests -B \
 # Official GitHub MCP binary, pinned to a release tag.
 FROM ghcr.io/github/github-mcp-server:v1.11.0 AS github-mcp
 
+# Pinned Meoo CLI and glibc Node runtime (not the Alpine frontend build).
+FROM node:22.14.0-bookworm-slim AS meoo-cli
+ARG NPM_REGISTRY=https://registry.npmjs.org/
+RUN case "${NPM_REGISTRY}" in https://*) ;; \
+        *) echo "NPM_REGISTRY must use HTTPS" >&2; exit 2 ;; \
+    esac && \
+    npm install --global @aliyun-meoo/cli@0.5.3 --ignore-scripts --no-audit --no-fund \
+        --registry="${NPM_REGISTRY}" \
+        --replace-registry-host=always
+
 # ---- Stage 3: Production Runtime ----
 # Ubuntu 24.04 (noble) provides Python 3.12, matching pyproject.toml's
 # supported range (>=3.11,<3.13). Jammy's Python 3.10 is not supported.
@@ -114,7 +124,7 @@ RUN if [ -n "${UBUNTU_MIRROR_HOST}" ]; then \
     apt-get update && \
     apt-get install -y --no-install-recommends \
         python3 python3-pip python3-venv libmagic1 \
-        ripgrep curl git && \
+        ripgrep curl git zip && \
     python3 -c 'import sys; assert (3, 11) <= sys.version_info[:2] < (3, 13), sys.version' && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
@@ -123,6 +133,11 @@ RUN if [ -n "${UBUNTU_MIRROR_HOST}" ]; then \
 RUN groupadd -r zhikun && useradd -r -g zhikun -d /app -s /bin/sh zhikun
 
 WORKDIR /app
+
+COPY --from=meoo-cli /usr/local/bin/node /usr/local/bin/node
+COPY --from=meoo-cli /usr/local/lib/node_modules/@aliyun-meoo /usr/local/lib/node_modules/@aliyun-meoo
+RUN ln -s /usr/local/lib/node_modules/@aliyun-meoo/cli/bin/meoo.js /usr/local/bin/meoo \
+    && node --version && meoo --version
 
 # Copy backend JAR (explicitly renamed in build stage)
 COPY --from=backend-build /build/backend/target/app.jar ./app.jar

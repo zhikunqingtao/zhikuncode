@@ -41,3 +41,27 @@ describe('parseExternalResourceResult', () => {
         expect(parseExternalResourceResult(metadata({ objectKey: 'different/file.html' }))).toBeNull();
     });
 });
+
+import { parseSitePublicationResult } from './structuredToolResult';
+const site = (overrides: Record<string, unknown> = {}) => ({ structuredResult: {
+    schema: 'site-publication/v1', provider: 'meoo', publicationId: 'id', label: 'Site',
+    runtime: 'image', state: 'public_verified', projectId: 'demo', projectUrl: 'https://meoo.com/chat/demo',
+    version: '1', url: 'https://demo.meoo.fun', ...overrides,
+} });
+describe('parseSitePublicationResult', () => {
+    it('accepts official meoo.pub responses after serialization and rejects lookalike domains', () => {
+        expect(parseSitePublicationResult(JSON.parse(JSON.stringify(site({url:'https://demo.meoo.pub'}))))?.url).toBe('https://demo.meoo.pub');
+        expect(parseSitePublicationResult(site({url:'https://demo.meoo.pub.evil.test'}))).toBeNull();
+    });
+    it('round-trips persisted publication metadata', () => {
+        expect(parseSitePublicationResult(JSON.parse(JSON.stringify(site())))?.url).toBe('https://demo.meoo.fun');
+    });
+    it.each(['http://demo.meoo.fun', 'https://127.0.0.1', 'https://demo.meoo.fun.evil.test', 'https://user@demo.meoo.fun', 'javascript:alert(1)', 'https://demo.meoo.fun/?token=secret'])('rejects unsafe URL %s', url => {
+        expect(parseSitePublicationResult(site({ url }))).toBeNull();
+    });
+    it('rejects fabricated project URLs or missing successful URL', () => {
+        expect(parseSitePublicationResult(site({ projectUrl: 'https://evil.test' }))).toBeNull();
+        expect(parseSitePublicationResult(site({ url: undefined }))).toBeNull();
+        expect(parseSitePublicationResult(site({ state: 'unknown', url: undefined }))).not.toBeNull();
+    });
+});
