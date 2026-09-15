@@ -9,7 +9,7 @@
   <p>
     <a href="#-quick-start">Quick Start</a> ·
     <a href="#-key-features">Key Features</a> ·
-    <a href="#-demo">Demo</a> ·
+    <a href="https://zhikunqingtao.github.io/zhikuncode/#demo">Demo</a> ·
     <a href="#-open-engineering-cases">Engineering Cases</a> ·
     <a href="#-swe-bench-lite-evaluation">SWE-bench</a> ·
     <a href="#-cli-tools">CLI Tools</a> ·
@@ -133,39 +133,6 @@ Two official rankings are reported: on the six-task equal-weight board ZhikunCod
 | 🏆 | **Historical SWE-bench Lite Submission (2026-05)** | Historical evaluation model `qwen3.7-max` (original record retained) + closed six-tool set (Read/Edit/Write/Bash/Grep/Glob); no internet, no sub-agent. Official harness reports **Resolve 56.0% (168/300)** and Patch generation **94.7% (284/300)**. [Technical Report →](https://zhikunqingtao.github.io/zhikuncode/swe-bench-report.html) |
 | 🚀 | **Extreme Performance** | REST API p50 1.5ms · WS STOMP handshake 2.22ms · 490 real request samples verified, core engines are zero-external-dependency pure Java implementations |
 | 🏭 | **Runtime Reliability** | Run state CAS atomic management · Durable Interaction Inbox (reconnect recovery) · Process hard timeout + graceful termination cascade · Scoped grants with controlled sub-agent inheritance · Artifact declare→seal→hash verification · Provider local budget guard |
-
----
-
-## 🎬 Demo
-
-### 📱 Mobile Full-Stack TODO App Development (End-to-End)
-
-https://github.com/user-attachments/assets/bf1f1d3a-4a9b-4d91-af48-97a7d3dd7b8a
-
-### Auto-Code to Download Xiaohongshu Videos
-
-https://github.com/user-attachments/assets/4b66261b-3258-44bd-82d3-6b2b3bbd4995
-
-![Auto-Code to Download Xiaohongshu Videos](assets/demo-auto-code-xiaohongshu.gif)
-
-### 📱 Project Analysis and Command Execution Demo
-
-https://github.com/user-attachments/assets/7b45c5d4-e540-4ffd-80d4-e11502477dba
-
-### File Operations
-![File Operations Demo](assets/demo-file-operation.gif)
-
-### Game Generation
-![Game Generation Demo](assets/demo-game-generation.gif)
-
-### Code Optimization
-![Code Optimization Demo](assets/demo-code-optimization.gif)
-
-### Multi-Agent Collaborative Full-Stack Development
-![Multi-Agent Collaboration Demo](assets/demo-multi-agent-todo.gif)
-
-### Full Browser-Based Control on iPad
-![iPad Browser Control Demo](assets/demo-ipad-browser.gif)
 
 ---
 
