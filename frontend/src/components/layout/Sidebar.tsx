@@ -483,13 +483,14 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab, onNa
 
 // ═══ Sidebar Tab 内容渲染器 — 桌面侧栏 / 移动主区面板共用（§7.5） ═══
 export interface SidebarTabContentProps {
+    onSessionActivated?: () => void;
     onCollapse?: () => void;
     activeTab: TabType;
     /** FileTreePanel 等需要的宽度参考（桌面=侧栏宽，移动主区=视口宽） */
     width?: number;
 }
 
-export function SidebarTabContent({ activeTab, width = 280, onCollapse }: SidebarTabContentProps) {
+export function SidebarTabContent({ activeTab, width = 280, onCollapse, onSessionActivated }: SidebarTabContentProps) {
     const { tasks, clearTasks } = useTaskStore();
     const workbenchEnabled = useWorkbenchViewStore(s => s.enabled);
     const viewMode = useWorkbenchViewStore(s => s.viewMode);
@@ -497,7 +498,7 @@ export function SidebarTabContent({ activeTab, width = 280, onCollapse }: Sideba
 
     return (
         <>
-            {activeTab === 'sessions' && (simpleMode ? <SimpleTaskList onCollapse={onCollapse} /> : <SessionList onCollapse={onCollapse} />)}
+            {activeTab === 'sessions' && (simpleMode ? <SimpleTaskList onCollapse={onCollapse} onSessionActivated={onSessionActivated} /> : <SessionList onCollapse={onCollapse} onSessionActivated={onSessionActivated} />)}
             {activeTab === 'tasks' && <TaskPanel tasks={tasks} onClear={clearTasks} />}
             {activeTab === 'files' && <FileTreePanel sidebarWidth={width} />}
             {activeTab === 'sequence' && <APISequenceDiagram />}
@@ -561,7 +562,7 @@ function ApiDocsTab() {
 }
 
 // Session List Component — 从后端 API 获取会话列表
-function SessionList({ onCollapse }: { onCollapse?: () => void }) {
+function SessionList({ onCollapse, onSessionActivated }: { onCollapse?: () => void; onSessionActivated?: () => void }) {
     const [sessions, setSessions] = useState<SessionSummary[]>([]);
     const [loading, setLoading] = useState(true);
     const [hasMore, setHasMore] = useState(false);
@@ -645,8 +646,12 @@ function SessionList({ onCollapse }: { onCollapse?: () => void }) {
 
     // 切换会话
     const handleSwitchSession = useCallback(async (sessionId: string) => {
-        if (sessionId === currentSessionId) return;
+        if (sessionId === currentSessionId) {
+            onSessionActivated?.();
+            return;
+        }
         const result = await activateSessionCandidate(sessionId);
+        if (result.status === 'activated') onSessionActivated?.();
         if (result.status === 'failed') {
             useNotificationStore.getState().addNotification({
                 key: `session-switch-failed-${generateUUID()}`,
@@ -654,7 +659,7 @@ function SessionList({ onCollapse }: { onCollapse?: () => void }) {
                 message: `切换会话失败：${result.error.message}`,
             });
         }
-    }, [currentSessionId]);
+    }, [currentSessionId, onSessionActivated]);
 
     // 新建会话
     const handleNewSession = useCallback(() => {
@@ -846,7 +851,7 @@ interface WorkbenchTaskItem {
 interface WorkbenchTaskGroupView { status: WorkbenchTaskGroup; label: string; tasks: WorkbenchTaskItem[]; }
 
 /** 简洁模式任务导航只消费服务端权威分组，不从消息数或客户端状态推断。 */
-function SimpleTaskList({ onCollapse }: { onCollapse?: () => void }) {
+function SimpleTaskList({ onCollapse, onSessionActivated }: { onCollapse?: () => void; onSessionActivated?: () => void }) {
     const [groups, setGroups] = useState<WorkbenchTaskGroupView[]>([]);
     const [query, setQuery] = useState('');
     const [loading, setLoading] = useState(true);
@@ -877,8 +882,12 @@ function SimpleTaskList({ onCollapse }: { onCollapse?: () => void }) {
     }, [fetchTasks, query]);
 
     const switchTask = async (sessionId: string) => {
-        if (sessionId === currentSessionId) return;
+        if (sessionId === currentSessionId) {
+            onSessionActivated?.();
+            return;
+        }
         const result = await activateSessionCandidate(sessionId);
+        if (result.status === 'activated') onSessionActivated?.();
         if (result.status === 'failed') useNotificationStore.getState().addNotification({ key: `task-switch-${generateUUID()}`, level: 'error', message: `切换任务失败：${result.error.message}` });
     };
     const deleteTask = async (event: React.MouseEvent, sessionId: string) => {

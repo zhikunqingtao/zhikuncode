@@ -131,7 +131,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                                     </span>
                                 </div>
                                 <div className="flex-1 min-h-0 overflow-hidden">
-                                    <SidebarTabContent activeTab={mobileNavTab as TabType} width={viewportWidth} />
+                                    <SidebarTabContent activeTab={mobileNavTab as TabType} width={viewportWidth} onSessionActivated={() => setMobileNavTab(null)} />
                                 </div>
                             </div>
                         ) : (
