@@ -66,6 +66,9 @@ public class QueryEngine {
             "no recap of what you were doing. Pick up mid-thought if " +
             "that is where the cut happened. Break remaining work " +
             "into smaller pieces.";
+    private static final String EMPTY_FINAL_RESPONSE_MESSAGE =
+            "Your previous response ended without a visible final answer. " +
+            "Please provide the final answer now.";
     private static final int MAX_RUN_INPUTS_PER_TURN = 10;
 
     /** 匹配 LLM 可能模仿的内部压缩标记前缀（每行行首、支持连续多个） */
@@ -588,6 +591,8 @@ public class QueryEngine {
 
         // 创建局部工具调用追踪器（每次 queryLoop 独立实例，避免跨会话状态污染）
         ToolCallTracker tracker = new ToolCallTracker();
+        boolean emptyFinalResponseRecoveryAttempted = false;
+        boolean emptyFinalResponsePending = false;
 
         log.debug("queryLoop 进入: model={}, messageCount={}, maxTurns={}, aborted={}",
                 config.model(), state.getMessages().size(), config.maxTurns(), aborted.get());
@@ -1215,6 +1220,11 @@ public class QueryEngine {
 
             // ===== Step 6: 继续/终止判定（策略模式）=====
             String stopReason = assistantMessage.stopReason();
+            // 仅完整的最终答复能结束空正文恢复；工具调用和截断正文不计入。
+            if (toolUseBlocks.isEmpty()
+                    && ("end_turn".equals(stopReason) || "stop".equals(stopReason))) {
+                emptyFinalResponsePending = !hasVisibleFinalText(assistantMessage);
+            }
 
             // 构建 LoopContext 供终止策略评估
             long tokenBudgetValue = config.tokenBudget() != null ? config.tokenBudget() : 0L;
@@ -1276,7 +1286,6 @@ public class QueryEngine {
 
             // 6b: TERMINATE_SUCCESS — 执行 stopHooks 后终止
             if (decision == TerminationDecision.TERMINATE_SUCCESS) {
-                // 
                 boolean isApiError = "api_error".equals(assistantMessage.stopReason())
                         || (assistantMessage.content() != null
                             && assistantMessage.content().size() == 1
@@ -1397,6 +1406,22 @@ public class QueryEngine {
                     break;
                 }
 
+                // 遵守既有续写与轮次约束，在关闭追加指令入口前最多注入一次恢复提示。
+                if (emptyFinalResponsePending) {
+                    if (emptyFinalResponseRecoveryAttempted) {
+                        handler.onTurnEnd(turn, "empty_final_response");
+                        break;
+                    }
+                    emptyFinalResponseRecoveryAttempted = true;
+                    log.warn("Empty final response at turn {}; requesting one completion retry", turn);
+                    state.addMessage(new Message.UserMessage(
+                            UUID.randomUUID().toString(), Instant.now(),
+                            List.of(new ContentBlock.TextBlock(EMPTY_FINAL_RESPONSE_MESSAGE)),
+                            null, null));
+                    handler.onTurnEnd(turn, "empty_final_response_retry");
+                    continue;
+                }
+
                 if (runExecutions != null) {
                     String completionRunId = currentRunId(state);
                     if (completionRunId != null) {
@@ -1475,6 +1500,11 @@ public class QueryEngine {
             // ===== Step 8: 状态更新 → 回到 Step 1 =====
         }
 
+        // 轮次耗尽或停止钩子可能直接退出循环，不能把尚未恢复的空答复标记成功。
+        // 放在钩子的 catch 之外；用户取消和上下文恢复失败仍保留各自的终态。
+        if (emptyFinalResponsePending && !aborted.get() && !state.isRecoveryExhausted()) {
+            throw new IllegalStateException("EMPTY_FINAL_RESPONSE");
+        }
         return totalUsage;
     }
 
@@ -2427,6 +2457,19 @@ public class QueryEngine {
         return new Message.AssistantMessage(
                 msg.uuid(), msg.timestamp(), List.copyOf(cleaned),
                 msg.stopReason(), msg.usage());
+    }
+
+    /** 是否包含用户可见的最终正文（thinking、工具调用和内部标记均不计入）。 */
+    static boolean hasVisibleFinalText(Message.AssistantMessage msg) {
+        if (msg == null || msg.content() == null) return false;
+        for (ContentBlock block : msg.content()) {
+            if (!(block instanceof ContentBlock.TextBlock textBlock)
+                    || textBlock.text() == null) continue;
+            String text = INTERNAL_MARKER_PREFIX.matcher(textBlock.text()).replaceAll("");
+            text = INTERNAL_MARKER_SUFFIX.matcher(text).replaceFirst("");
+            if (!text.isBlank()) return true;
+        }
+        return false;
     }
 
     /**
