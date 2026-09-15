@@ -21,18 +21,28 @@ import { useWorkbenchViewStore } from '@/store/workbenchViewStore';
 
 export function getPermissionModeLabel(mode: PermissionMode): string {
     switch (mode) {
-        case 'default': return '默认模式';
-        case 'plan': return '计划模式';
-        case 'accept_edits': return '接受编辑';
-        case 'dont_ask': return '无需询问';
-        case 'auto_approve': return '完全访问权限';
+        case 'default': return '标准授权';
+        case 'plan': return '先做计划';
+        case 'accept_edits': return '自动编辑';
+        case 'dont_ask': return '拒绝待批';
+        case 'auto_approve': return '完全访问';
     }
+}
+
+export function getPermissionModeDescription(mode: PermissionMode): string {
+    return {
+        default: '按需确认操作',
+        plan: '先制定计划，再执行',
+        accept_edits: '自动接受文件编辑',
+        dont_ask: '需要确认的操作自动拒绝',
+        auto_approve: '自动批准工具权限请求，仍受系统限制',
+    }[mode];
 }
 
 export function getPermissionModeColor(mode: PermissionMode): string {
     switch (mode) {
-        case 'default': return 'text-accent2';
-        case 'plan': return 'text-accent2-strong';
+        case 'default': return 'text-accent2-ink';
+        case 'plan': return 'text-accent2-ink';
         case 'accept_edits': return 'text-ok';
         case 'dont_ask': return 'text-warn';
         case 'auto_approve': return 'text-err';
@@ -100,7 +110,7 @@ export function StatusBar() {
 
     if (simpleMode) {
         return (
-            <footer className="app-status h-[34px] border-t border-hairline bg-surface2 flex items-center justify-between px-4 text-xs shrink-0">
+            <footer className="app-status h-[34px] border-t border-hairline bg-surface2 flex items-center justify-between px-4 text-[13px] shrink-0">
                 <div className="flex items-center gap-2">
                     <StatusDot tone={statusDot.tone} pulse={statusDot.pulse} />
                     <span className="text-t2">{getStatusLabel(status)}</span>
@@ -119,7 +129,7 @@ export function StatusBar() {
             <TokenBudgetIndicator />
 
             <footer className="app-status h-[34px] border-t border-hairline bg-surface2
-                flex items-center px-4 text-xs shrink-0">
+                flex items-center px-4 text-[13px] shrink-0">
 
             {/* Left: Permission Mode & Status */}
             <div className="flex items-center gap-4">
@@ -166,7 +176,7 @@ export function StatusBar() {
                     <span title="输入 Tokens">↑ {usage.inputTokens.toLocaleString()}</span>
                     <span title="输出 Tokens">↓ {usage.outputTokens.toLocaleString()}</span>
                     {usage.cacheReadInputTokens > 0 && (
-                        <span title="缓存读取" className="text-accent2-strong">
+                        <span title="缓存读取" className="text-accent2-ink">
                             ⚡ {usage.cacheReadInputTokens.toLocaleString()}
                         </span>
                     )}
@@ -183,7 +193,7 @@ export function StatusBar() {
                 <HairlineDivider />
 
                 {/* Global Total Cost */}
-                <span className="text-xs text-t2 tabular-nums" title={`全局累计: $${totalCost.toFixed(3)}`}>
+                <span className="text-[13px] text-t2 tabular-nums" title={`全局累计: $${totalCost.toFixed(3)}`}>
                     ∑ ${totalCost.toFixed(3)}
                 </span>
 

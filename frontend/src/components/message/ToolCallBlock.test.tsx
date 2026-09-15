@@ -38,6 +38,12 @@ function expandCardAndResult(name: string | RegExp) {
 }
 
 describe('ToolCallBlock 主卡默认折叠行为', () => {
+    it('does not display elapsed time for a missing start timestamp', () => {
+        render(<ToolCallBlock toolUseId="missing-time" toolCall={makeToolCall({ status: 'running', startTime: 0, duration: undefined })} />);
+        expect(screen.getByText('Running')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /FileReadTool/ }).textContent).not.toMatch(/\d+[hms]/);
+    });
+
     it('完成态默认折叠，折叠 header 一行自解释（名称/主目标/状态/耗时）', () => {
         render(<ToolCallBlock toolUseId="t-1" toolCall={makeToolCall()} />);
 

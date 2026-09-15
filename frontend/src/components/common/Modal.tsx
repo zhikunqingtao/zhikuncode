@@ -4,7 +4,8 @@
  * 支持 Escape 关闭、背景点击关闭、标题栏
  */
 
-import { ReactNode, useEffect, useCallback } from 'react';
+import { ReactNode, useRef } from 'react';
+import { useModalBehavior } from '@/hooks/useModalBehavior';
 
 interface ModalProps {
     isOpen: boolean;
@@ -14,16 +15,8 @@ interface ModalProps {
 }
 
 export function Modal({ isOpen, onClose, title, children }: ModalProps) {
-    const handleKeyDown = useCallback((e: KeyboardEvent) => {
-        if (e.key === 'Escape') onClose();
-    }, [onClose]);
-
-    useEffect(() => {
-        if (isOpen) {
-            document.addEventListener('keydown', handleKeyDown);
-            return () => document.removeEventListener('keydown', handleKeyDown);
-        }
-    }, [isOpen, handleKeyDown]);
+    const panelRef = useRef<HTMLDivElement>(null);
+    useModalBehavior(isOpen, panelRef, onClose);
 
     if (!isOpen) return null;
 
@@ -33,15 +26,20 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
             onClick={onClose}
         >
             <div
+                ref={panelRef}
+                role="dialog"
+                aria-modal="true"
+                aria-label={title ?? '详情'}
+                tabIndex={-1}
                 className="bg-surfacev2 border border-hairline rounded-panel shadow-e4 motion-safe:animate-scale-in max-w-lg w-full mx-4 max-h-[80vh] overflow-y-auto"
                 onClick={e => e.stopPropagation()}
             >
                 {title && (
-                    <div className="px-5 py-3 border-b border-[var(--border)] font-semibold text-sm">
+                    <div className="px-4 md:px-6 py-4 border-b border-hairline font-semibold text-xl text-t1">
                         {title}
                     </div>
                 )}
-                <div className="p-5">{children}</div>
+                <div className="p-4 md:p-6">{children}</div>
             </div>
         </div>
     );

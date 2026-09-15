@@ -25,12 +25,12 @@ const MAX_DEPTH = 5;
 
 /** 类型 → badge 颜色 */
 const TYPE_COLORS: Record<string, string> = {
-    string:  'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400',
-    integer: 'bg-blue-500/15 text-blue-600 dark:text-blue-400',
-    number:  'bg-blue-500/15 text-blue-600 dark:text-blue-400',
+    string:  'bg-oksoft text-ok dark:text-ok',
+    integer: 'bg-accent2-soft text-accent2-ink',
+    number:  'bg-accent2-soft text-accent2-ink',
     boolean: 'bg-purple-500/15 text-purple-600 dark:text-purple-400',
-    array:   'bg-orange-500/15 text-orange-600 dark:text-orange-400',
-    object:  'bg-gray-500/15 text-gray-600 dark:text-gray-400',
+    array:   'bg-warnsoft text-warn dark:text-warn',
+    object:  'bg-sunken2 text-t2',
 };
 
 /** 解引用 $ref */
@@ -80,7 +80,7 @@ const TypeBadge: React.FC<{ typeName: string }> = ({ typeName }) => {
     const baseType = typeName.replace('[]', '').toLowerCase();
     const colorClass = TYPE_COLORS[baseType] ?? TYPE_COLORS.object;
     return (
-        <span className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-mono font-medium ${colorClass}`}>
+        <span className={`inline-flex px-1.5 py-0.5 rounded text-[13px] font-mono font-medium ${colorClass}`}>
             {typeName}
         </span>
     );
@@ -137,8 +137,8 @@ const SchemaViewer: React.FC<SchemaViewerProps> = ({
     if (depth > MAX_DEPTH) {
         return (
             <div className="flex items-center gap-1.5 py-0.5" style={{ paddingLeft: depth * 16 }}>
-                {name && <span className="font-medium text-xs text-[var(--text-primary)]">{name}</span>}
-                <span className="text-xs text-[var(--text-muted)] italic">... (max depth)</span>
+                {name && <span className="font-medium text-[13px] text-[var(--v2-text-1)]">{name}</span>}
+                <span className="text-[13px] text-[var(--v2-text-2)] italic">... (max depth)</span>
             </div>
         );
     }
@@ -147,13 +147,13 @@ const SchemaViewer: React.FC<SchemaViewerProps> = ({
         <div>
             {/* 当前字段行 */}
             <div
-                className={`flex items-center gap-1.5 py-1 ${expandable ? 'cursor-pointer hover:bg-[var(--bg-hover)] rounded' : ''}`}
+                className={`flex items-center gap-1.5 py-1 ${expandable ? 'cursor-pointer hover:bg-[var(--v2-bg-hover)] rounded' : ''}`}
                 style={{ paddingLeft: depth * 16 }}
                 onClick={expandable ? toggleExpand : undefined}
             >
                 {/* 展开/收起箭头 */}
                 {expandable ? (
-                    <span className="shrink-0 text-[var(--text-muted)]">
+                    <span className="shrink-0 text-[var(--v2-text-2)]">
                         {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                     </span>
                 ) : (
@@ -162,9 +162,9 @@ const SchemaViewer: React.FC<SchemaViewerProps> = ({
 
                 {/* 字段名 */}
                 {name && (
-                    <span className="font-semibold text-xs text-[var(--text-primary)]">
+                    <span className="font-semibold text-[13px] text-[var(--v2-text-1)]">
                         {name}
-                        {isRequired && <span className="text-red-500 ml-0.5">*</span>}
+                        {isRequired && <span className="text-err ml-0.5">*</span>}
                     </span>
                 )}
 
@@ -173,20 +173,20 @@ const SchemaViewer: React.FC<SchemaViewerProps> = ({
 
                 {/* Format */}
                 {resolved.format && (
-                    <span className="text-[10px] text-[var(--text-muted)] italic">
+                    <span className="text-[13px] text-[var(--v2-text-2)] italic">
                         ({resolved.format})
                     </span>
                 )}
 
                 {/* Deprecated */}
                 {resolved.nullable && (
-                    <span className="text-[10px] text-yellow-500">nullable</span>
+                    <span className="text-[13px] text-warn">nullable</span>
                 )}
             </div>
 
             {/* Description */}
             {resolved.description && (
-                <div className="text-[11px] text-[var(--text-muted)] leading-tight pb-0.5" style={{ paddingLeft: depth * 16 + 28 }}>
+                <div className="text-[13px] text-[var(--v2-text-2)] leading-tight pb-0.5" style={{ paddingLeft: depth * 16 + 28 }}>
                     {resolved.description}
                 </div>
             )}
@@ -194,11 +194,11 @@ const SchemaViewer: React.FC<SchemaViewerProps> = ({
             {/* Enum values */}
             {resolved.enum && resolved.enum.length > 0 && (
                 <div className="flex flex-wrap gap-1 pb-0.5" style={{ paddingLeft: depth * 16 + 28 }}>
-                    <span className="text-[10px] text-[var(--text-muted)]">enum:</span>
+                    <span className="text-[13px] text-[var(--v2-text-2)]">enum:</span>
                     {resolved.enum.map((v, i) => (
                         <span
                             key={i}
-                            className="inline-flex px-1.5 py-0.5 rounded bg-[var(--bg-secondary)] text-[10px] font-mono text-[var(--text-secondary)]"
+                            className="inline-flex px-1.5 py-0.5 rounded bg-[var(--v2-bg-sunken)] text-[13px] font-mono text-[var(--v2-text-2)]"
                         >
                             {String(v)}
                         </span>
@@ -208,8 +208,8 @@ const SchemaViewer: React.FC<SchemaViewerProps> = ({
 
             {/* Default value */}
             {resolved.default !== undefined && (
-                <div className="text-[10px] text-[var(--text-muted)] pb-0.5" style={{ paddingLeft: depth * 16 + 28 }}>
-                    default: <code className="font-mono bg-[var(--bg-secondary)] px-1 rounded">{JSON.stringify(resolved.default)}</code>
+                <div className="text-[13px] text-[var(--v2-text-2)] pb-0.5" style={{ paddingLeft: depth * 16 + 28 }}>
+                    default: <code className="font-mono bg-[var(--v2-bg-sunken)] px-1 rounded">{JSON.stringify(resolved.default)}</code>
                 </div>
             )}
 

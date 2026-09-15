@@ -31,13 +31,13 @@ export class ErrorBoundary extends Component<Props, State> {
         if (this.state.hasError) {
             return this.props.fallback || (
                 <div className="flex flex-col items-center justify-center h-screen gap-4">
-                    <h2 className="text-lg font-semibold">Something went wrong</h2>
-                    <p className="text-sm text-[var(--text-secondary)]">
+                    <h2 className=" text-xl font-semibold">Something went wrong</h2>
+                    <p className="text-sm text-[var(--v2-text-2)]">
                         {this.state.error?.message}
                     </p>
                     <button
                         onClick={() => this.setState({ hasError: false, error: null })}
-                        className="px-4 py-2 rounded bg-[var(--accent)] text-white text-sm"
+                        className="panel-control px-4 py-2 rounded bg-[var(--accent)] text-white text-sm"
                     >
                         Try Again
                     </button>

@@ -1,3 +1,4 @@
+import { getPermissionModeLabel, getPermissionModeDescription } from '@/components/layout/StatusBar';
 import { useState, useCallback } from 'react';
 import { McpCapabilityPanel } from './McpCapabilityPanel';
 import { PromptsTab } from './PromptsTab';
@@ -41,16 +42,16 @@ export function SettingsPanel() {
   const [activeTab, setActiveTab] = useState<SettingsTab>('model');
 
   return (
-    <div className="settings-panel flex flex-col h-full">
+    <div className="settings-panel flex flex-col h-full min-w-0">
       {/* Tab 导航 */}
-      <div className="settings-tabs flex border-b border-hairline">
+      <div className="settings-tabs flex shrink-0 overflow-x-auto border-b border-hairline">
         {TABS.map((tab) => (
           <button
             key={tab.id}
-            className={`settings-tab px-4 py-2 text-sm font-medium transition-interactive duration-fast
+            className={`panel-control settings-tab shrink-0 whitespace-nowrap px-4 py-2 text-sm font-medium transition-interactive duration-fast
               focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring
               ${activeTab === tab.id
-                ? 'border-b-2 border-accent2 text-accent2-strong dark:text-accent2'
+                ? 'border-b-2 border-accent2 text-accent2-ink dark:text-accent2-ink'
                 : 'text-t3 hover:text-t1'
               }`}
             onClick={() => setActiveTab(tab.id)}
@@ -99,11 +100,12 @@ function ModelPicker() {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold">Model Selection</h3>
+      <h3 className=" text-base font-semibold">Model Selection</h3>
       <select
+        aria-label="Model Selection"
         value={model}
         onChange={(e) => setModel(e.target.value)}
-        className="w-full p-2 border border-hairline rounded-xl bg-sunken2 shadow-well text-t1
+        className="panel-control w-full p-2 border border-hairline rounded-xl bg-sunken2 shadow-well text-t1
                    transition-surface duration-fast
                    focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring"
       >
@@ -120,12 +122,9 @@ function ModelPicker() {
 /** 权限模式选择 */
 function PermissionModePicker() {
   const { permissionMode, setPermissionMode } = usePermissionStore();
-  const modes: { id: PermissionMode; name: string; description: string }[] = [
-    { id: 'default', name: 'Default', description: 'Ask for each destructive operation' },
-    { id: 'plan', name: 'Plan', description: 'Read-only operations auto-allowed' },
-    { id: 'accept_edits', name: 'Accept Edits', description: 'File edits auto-allowed' },
-    { id: 'dont_ask', name: "Don't Ask", description: 'No prompts, write operations auto-denied' },
-  ];
+  const modes = (['default', 'plan', 'accept_edits', 'dont_ask'] as PermissionMode[]).map(id => ({
+    id, name: getPermissionModeLabel(id), description: getPermissionModeDescription(id),
+  }));
 
   const handleChange = (mode: PermissionMode) => {
     setPermissionMode(mode);
@@ -135,7 +134,7 @@ function PermissionModePicker() {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold">Permission Mode</h3>
+      <h3 className=" text-base font-semibold">权限</h3>
       {modes.map((m) => (
         <label
           key={m.id}
@@ -180,7 +179,7 @@ function MemoryManager() {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold">Memory Manager</h3>
+      <h3 className=" text-base font-semibold">Memory Manager</h3>
       <p className="text-sm text-t3">
         管理跨会话持久化的项目记忆文件。
       </p>
@@ -188,7 +187,7 @@ function MemoryManager() {
       <div className="flex gap-2">
         <button
           onClick={() => setActiveFile('zhikun.md')}
-          className={`px-3 py-1.5 min-h-10 rounded-xl text-sm transition-interactive duration-fast
+          className={`panel-control px-3 py-1.5 min-h-10 rounded-xl text-sm transition-interactive duration-fast
             focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring active:scale-[.98] ${
             activeFile === 'zhikun.md'
               ? 'bg-accent2-strong text-white'
@@ -199,7 +198,7 @@ function MemoryManager() {
         </button>
         <button
           onClick={() => setActiveFile('zhikun.local.md')}
-          className={`px-3 py-1.5 min-h-10 rounded-xl text-sm transition-interactive duration-fast
+          className={`panel-control px-3 py-1.5 min-h-10 rounded-xl text-sm transition-interactive duration-fast
             focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring active:scale-[.98] ${
             activeFile === 'zhikun.local.md'
               ? 'bg-accent2-strong text-white'
@@ -240,7 +239,7 @@ function KeybindingsEditor() {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold">Keyboard Shortcuts</h3>
+      <h3 className=" text-base font-semibold">Keyboard Shortcuts</h3>
       <table className="w-full text-sm">
         <thead>
           <tr className="text-left border-b border-hairline">
@@ -256,11 +255,11 @@ function KeybindingsEditor() {
               className="border-b border-hairline"
             >
               <td className="py-2 pr-4">
-                <kbd className="px-2 py-1 bg-sunken2 border border-hairline rounded text-xs font-mono">
+                <kbd className="px-2 py-1 bg-sunken2 border border-hairline rounded text-[13px] font-mono">
                   {binding.key}
                 </kbd>
               </td>
-              <td className="py-2 pr-4 font-mono text-xs">{binding.action}</td>
+              <td className="py-2 pr-4 font-mono text-[13px]">{binding.action}</td>
               <td className="py-2 text-t3">{binding.context}</td>
             </tr>
           ))}

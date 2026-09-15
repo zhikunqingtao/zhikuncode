@@ -68,16 +68,16 @@ const MessageActions: React.FC<MessageActionsProps> = ({ message, isStreaming = 
                 <button
                     type="button"
                     onClick={handleCopy}
-                    className="rounded-md p-1 text-t4 transition-colors duration-fast group-hover:text-t2 hover:bg-hover2 hover:!text-t1"
+                    className="message-action-button inline-flex shrink-0 items-center justify-center rounded-[10px] text-t4 transition-colors duration-fast group-hover:text-t2 hover:bg-hover2 hover:!text-t1"
                     title={copied ? '已复制' : '复制'}
                     aria-label={copied ? '已复制' : '复制'}
                     data-testid="message-copy-button"
                 >
-                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    {copied ? <Check className="h-[18px] w-[18px]" /> : <Copy className="h-[18px] w-[18px]" />}
                 </button>
             )}
             <span
-                className="text-xs text-t4 tabular-nums select-none transition-colors duration-fast group-hover:text-t3"
+                className="text-[13px] text-t4 tabular-nums select-none transition-colors duration-fast group-hover:text-t3"
                 data-testid="message-timestamp"
             >
                 {formatMessageTime(message.timestamp)}

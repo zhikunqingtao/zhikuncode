@@ -50,8 +50,8 @@ export const ThemePicker: React.FC = () => {
                                 )}
                             >
                                 {/* 选中态：accent 经边/soft 底/图标编码，文字保 t1（§10.1 对比度） */}
-                                <Icon className={cn('w-5 h-5', selected ? 'text-accent2' : 'text-t2')} />
-                                <span className="text-xs text-t1">{label}</span>
+                                <Icon className={cn('w-5 h-5', selected ? 'text-accent2-ink' : 'text-t2')} />
+                                <span className="text-[13px] text-t1">{label}</span>
                             </button>
                         );
                     })}

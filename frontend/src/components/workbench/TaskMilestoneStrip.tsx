@@ -4,7 +4,7 @@ import type { CurrentWorkbenchView } from '@/hooks/useSimpleWorkbenchData';
 /**
  * TaskMilestoneStrip — §7.2 milestone 卡（记忆点②）
  * Label（任务进度 · xxx，11px 大写 tracking-wider text-t3）+ 胶囊链：
- *   done = bg-accent2-soft text-accent2 + ✓
+ *   done = bg-accent2-soft text-accent2-ink + ✓
  *   now  = bg-accent2 实底白字 + ring-accent2-ring 光晕
  *   todo = bg-sunken2 text-t4
  * 连接线 22×2（done = accent 50%）；横向可滚（scrollbar 隐藏）。
@@ -24,7 +24,7 @@ interface Stage {
 }
 
 const PILL_CLASS: Record<StageState, string> = {
-    done: 'bg-accent2-soft text-accent2',
+    done: 'bg-accent2-soft text-accent2-ink',
     now: 'bg-accent2 text-white ring-2 ring-accent2-ring',
     todo: 'bg-sunken2 text-t4',
 };
@@ -80,7 +80,7 @@ export function TaskMilestoneStrip({ current }: { current: CurrentWorkbenchView 
 
     return (
         <section aria-label="任务里程碑" className="min-w-0">
-            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-t3">
+            <p className="mb-2 text-[13px] font-semibold uppercase tracking-wider text-t3">
                 任务进度{currentStage ? ` · ${currentStage.value}` : ''}
             </p>
             <div className="flex items-center overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
@@ -101,7 +101,7 @@ export function TaskMilestoneStrip({ current }: { current: CurrentWorkbenchView 
                             )}
                             <span
                                 title={stage.value}
-                                className={`flex items-center gap-1 whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium ${PILL_CLASS[state]}`}
+                                className={`flex items-center gap-1 whitespace-nowrap rounded-full px-3 py-1 text-[13px] font-medium ${PILL_CLASS[state]}`}
                             >
                                 {state === 'done' && <Check size={12} aria-hidden="true" />}
                                 {stage.label}

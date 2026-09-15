@@ -1,3 +1,4 @@
+import { isTopModal, lockModalScroll, unlockModalScroll } from '@/hooks/useModalBehavior';
 import { GlassMaterial } from '@/components/theme/GlassMaterial';
 import { animate, useReducedMotion } from 'framer-motion';
 import { useConfigStore } from '@/store/configStore';
@@ -123,16 +124,16 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
                     const first = panel.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
                     (first ?? panel).focus();
                 }
-                document.body.style.overflow = 'hidden';
+                lockModalScroll();
             } else if (!open && wasOpenRef.current) {
-                document.body.style.overflow = '';
+                unlockModalScroll();
                 returnFocus();
             }
             wasOpenRef.current = open;
             return () => {
                 if (wasOpenRef.current) {
                     wasOpenRef.current = false;
-                    document.body.style.overflow = '';
+                    unlockModalScroll();
                     returnFocus();
                 }
             };
@@ -142,6 +143,7 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
         useEffect(() => {
             if (!open) return;
             const handleKeyDown = (e: KeyboardEvent) => {
+                if (!isTopModal(panelRef.current)) return;
                 if (e.key === 'Escape') {
                     e.preventDefault();
                     requestClose();
@@ -216,9 +218,9 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
                     <GlassMaterial kind="overlay" />
 
                     {(title !== undefined || showClose) && (
-                        <div className="flex items-start justify-between gap-4 px-5 pt-4">
+                        <div className="flex items-start justify-between gap-4 px-4 md:px-6 pt-4">
                             {title !== undefined ? (
-                                <h2 id={titleId} className="text-base font-semibold text-t1">
+                                <h2 id={titleId} className="text-t1 text-xl font-semibold">
                                     {title}
                                 </h2>
                             ) : (
@@ -229,9 +231,9 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
                                     type="button"
                                     aria-label="关闭"
                                     onClick={requestClose}
-                                    className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-t2 transition-interactive duration-fast hover:bg-hover2 hover:text-t1 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring"
+                                    className="inline-flex h-8 w-8 max-md:h-11 max-md:w-11 shrink-0 items-center justify-center rounded-[10px] text-t2 transition-interactive duration-fast hover:bg-hover2 hover:text-t1 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring"
                                 >
-                                    <X className="h-4 w-4" aria-hidden="true" />
+                                    <X className="h-5 w-5" aria-hidden="true" />
                                 </button>
                             )}
                         </div>

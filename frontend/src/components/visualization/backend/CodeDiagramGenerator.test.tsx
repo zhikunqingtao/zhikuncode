@@ -1,0 +1,40 @@
+import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { CodeDiagramGenerator } from './CodeDiagramGenerator';
+import { useDiagramStore } from '@/store/diagramStore';
+vi.mock('@monaco-editor/react', () => ({ default: ({ value, onChange }: { value: string; onChange: (value: string) => void }) => <textarea aria-label="源码编辑器" value={value} onChange={e => onChange(e.target.value)} /> }));
+vi.mock('@/components/visualization/shared/MermaidBlock', () => ({ default: ({ code }: { code: string }) => <div><svg data-testid="toolbar-icon"/><div role="region"><svg><text>{code}</text></svg></div></div> }));
+const result = { diagramType: 'flowchart', mermaidSyntax: 'flowchart TD\n A --> B', confidenceScore: .85, metadata: { nodesCount: 2, edgesCount: 1, languagesAnalyzed: ['Java'], analysisTimeMs: 42 }, warnings: ['示例警告'] };
+beforeEach(() => useDiagramStore.setState({ diagramType: 'sequence', target: '', projectRoot: '.', depth: 3, result: null, loading: false, error: null, editedMermaidSyntax: null }));
+afterEach(() => vi.unstubAllGlobals());
+describe('diagram generator', () => {
+  it('keeps generation parameters, editing, warning details and form values when clearing', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => result });
+    vi.stubGlobal('fetch', fetchMock);
+    render(<CodeDiagramGenerator />);
+    fireEvent.click(screen.getByRole('button', { name: '流程图' }));
+    fireEvent.change(screen.getByRole('textbox', { name: '方法签名' }), { target: { value: 'Demo.run' } });
+    fireEvent.change(screen.getByRole('textbox', { name: '项目路径' }), { target: { value: '/tmp/demo' } });
+    fireEvent.click(screen.getByRole('button', { name: '追踪深度 4' }));
+    fireEvent.click(screen.getByRole('button', { name: '生成图表' }));
+    await screen.findByRole('textbox', { name: '源码编辑器' });
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ diagramType: 'flowchart', target: 'Demo.run', projectRoot: '/tmp/demo', depth: 4 });
+    fireEvent.change(screen.getByRole('textbox', { name: '源码编辑器' }), { target: { value: 'flowchart TD\n A --> C' } });
+    expect(useDiagramStore.getState().editedMermaidSyntax).toContain('A --> C');
+    fireEvent.click(screen.getByRole('button', { name: '1 个警告' }));
+    expect(screen.getByText('• 示例警告')).toBeInTheDocument();
+    fireEvent.click(screen.getByTitle('清除结果'));
+    expect(screen.getByRole('textbox', { name: '方法签名' })).toHaveValue('Demo.run');
+    expect(useDiagramStore.getState().result).toBeNull();
+  });
+  it('copies the diagram SVG rather than the toolbar icon', async () => {
+    const copy = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText: copy } });
+    useDiagramStore.setState({ result });
+    render(<CodeDiagramGenerator />);
+    fireEvent.click(await screen.findByTitle('复制 SVG'));
+    expect(copy).toHaveBeenCalledTimes(1);
+    expect(copy.mock.calls[0][0]).toContain('flowchart TD');
+    expect(copy.mock.calls[0][0]).not.toContain('toolbar-icon');
+  });
+});

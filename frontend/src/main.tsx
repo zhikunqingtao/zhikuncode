@@ -7,6 +7,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
 import './styles/globals.css';
+import './styles/interface-refinements.css';
 /* e2e Store Bridge：DEV 门控，挂载 zustand 单例到 window.__e2eStores（见 src/dev/e2eStoreBridge.ts） */
 import '@/dev/e2eStoreBridge';
 

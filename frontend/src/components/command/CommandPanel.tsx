@@ -24,19 +24,19 @@ export function CommandPanel({
 
     return (
         <div
-            className={`rounded-lg border border-[var(--border)] overflow-hidden ${className}`}
+            className={`rounded-lg border border-[var(--v2-border-hairline)] overflow-hidden ${className}`}
         >
             <div
-                className={`flex items-center justify-between px-4 py-2 bg-[var(--bg-secondary)] ${
+                className={`flex items-center justify-between px-4 py-2 bg-[var(--v2-bg-sunken)] ${
                     collapsible ? 'cursor-pointer' : ''
                 }`}
                 onClick={collapsible ? () => setExpanded(prev => !prev) : undefined}
             >
                 <div className="flex items-center gap-2">
                     {icon && (
-                        <span className="text-[var(--text-muted)]">{icon}</span>
+                        <span className="text-[var(--v2-text-2)]">{icon}</span>
                     )}
-                    <h3 className="text-sm font-medium text-[var(--text-primary)]">
+                    <h3 className="text-[var(--v2-text-1)] text-base font-semibold">
                         {title}
                     </h3>
                 </div>
@@ -44,7 +44,7 @@ export function CommandPanel({
                     {actions}
                     {collapsible && (
                         <ChevronDown
-                            className={`w-4 h-4 text-[var(--text-muted)] transition-transform duration-base ${
+                            className={`w-4 h-4 text-[var(--v2-text-2)] transition-transform duration-base ${
                                 expanded ? 'rotate-180' : ''
                             }`}
                         />

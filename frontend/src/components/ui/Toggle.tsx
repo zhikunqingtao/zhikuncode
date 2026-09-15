@@ -44,10 +44,10 @@ export const Toggle = forwardRef<HTMLButtonElement, ToggleProps>(
                 disabled={disabled}
                 onClick={handleClick}
                 className={cn(
-                    'relative inline-flex h-[30px] w-[50px] shrink-0 items-center rounded-full transition-colors duration-base',
+                    'relative before:absolute before:inset-x-0 before:top-1/2 before:h-11 before:-translate-y-1/2 md:before:hidden inline-flex h-[30px] w-[50px] shrink-0 items-center rounded-full transition-colors duration-base',
                     'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring',
                     'disabled:opacity-50 disabled:pointer-events-none',
-                    on ? 'bg-accent2' : 'bg-sunken2 shadow-well',
+                    on ? 'bg-accent2-strong' : 'bg-t3 shadow-well',
                     className,
                 )}
                 {...props}
@@ -55,9 +55,9 @@ export const Toggle = forwardRef<HTMLButtonElement, ToggleProps>(
                 <span
                     aria-hidden="true"
                     className={cn(
-                        'pointer-events-none block h-6 w-6 rounded-full bg-white shadow-soft-sm',
+                        'pointer-events-none block h-6 w-6 rounded-full shadow-soft-sm',
                         'transition-transform duration-base ease-spring',
-                        on ? 'translate-x-[23px]' : 'translate-x-[3px]',
+                        on ? 'translate-x-[23px] bg-white' : 'translate-x-[3px] bg-surfacev2',
                     )}
                 />
             </button>

@@ -8,6 +8,12 @@ import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { subscribeWithSelector } from 'zustand/middleware';
 
+import { useWorkbenchViewStore } from './workbenchViewStore';
+import { useTurnViewStore } from './turnViewStore';
+
+// Apply new-chat presentation defaults only after binding succeeds.
+const newSessionCandidates = new Set<string>();
+
 const ACTIVE_SESSION_KEY = 'zhikuncode.activeSessionId';
 
 function readActiveSessionId(): string | null {
@@ -91,11 +97,18 @@ export const useSessionStore = create<SessionStoreState>()(
             // REST creation only yields a candidate. The active Session and
             // sessionStorage are committed by the matching session_restored
             // frame after WebSocket binding succeeds.
+            newSessionCandidates.add(body.sessionId);
             return body.sessionId;
         },
         resumeSession: async (sessionId) => {
             set(d => { d.sessionId = sessionId; d.status = 'idle'; });
             saveActiveSessionId(sessionId);
+            if (newSessionCandidates.delete(sessionId)) {
+                const workbench = useWorkbenchViewStore.getState();
+                workbench.setActiveSession(sessionId);
+                workbench.setViewMode('development');
+                useTurnViewStore.getState().setDensity('balanced', sessionId);
+            }
         },
         setModel: (model) => set(d => { d.model = model; }),
         setStatus: (status) => set(d => { d.status = status; }),

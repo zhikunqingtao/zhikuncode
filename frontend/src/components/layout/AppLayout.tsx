@@ -8,6 +8,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { ChevronLeft } from 'lucide-react';
+import { MobileComposerNavigation } from '@/components/input/PromptInput/MobileComposerNavigation';
 import { Header } from './Header';
 import { Sidebar, SidebarTabContent, SIDEBAR_TAB_LABELS, type TabType } from './Sidebar';
 import { StatusBar } from './StatusBar';
@@ -74,7 +75,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     // 独立 Sidebar 模式：只渲染 Sidebar 全屏
     if (isDetachedSidebar) {
         return (
-            <div className="app-workspace h-screen flex flex-col bg-[var(--bg-primary)] overflow-hidden">
+            <div className="app-workspace h-screen flex flex-col bg-[var(--v2-bg-surface)] overflow-hidden">
                 <Sidebar className="flex-1" isDrawerMode={false} defaultTab={detachedTab} />
                 {!isConnected && (
                     <div className="fixed bottom-4 left-1/2 -translate-x-1/2 
@@ -89,7 +90,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     }
 
     return (
-        <div className="app-workspace h-screen flex flex-col bg-[var(--bg-primary)] overflow-hidden">
+        <div className="app-workspace h-screen flex flex-col bg-[var(--v2-bg-surface)] overflow-hidden">
             {/* Header */}
             <Header 
                 onMenuClick={toggleSidebar} 
@@ -116,11 +117,11 @@ export function AppLayout({ children }: AppLayoutProps) {
                     <div className="flex-1 overflow-hidden relative">
                         {isMobile && mobileNavTab ? (
                             <div className="h-full flex flex-col">
-                                <div className="flex items-center gap-1 h-11 px-1 border-b border-[var(--border)] flex-shrink-0">
+                                <div className="flex items-center gap-1 h-11 px-1 border-b border-[var(--v2-border-hairline)] flex-shrink-0">
                                     <button
                                         onClick={() => setMobileNavTab(null)}
                                         aria-label="返回"
-                                        className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl
+                                        className="panel-control min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl
                                             text-t2 hover:bg-hover2 transition-colors duration-fast"
                                     >
                                         <ChevronLeft className="w-5 h-5" />
@@ -138,10 +139,11 @@ export function AppLayout({ children }: AppLayoutProps) {
                         )}
                     </div>
 
+                    {isMobile && mobileNavTab && <MobileComposerNavigation />}
                     {/* StatusBar */}
                     {isMobile && aposEnabled && mobileStatusEnabled
-                        ? <div aria-hidden="true" className="shrink-0" style={{ height: 'calc(36px + env(safe-area-inset-bottom))' }} />
-                        : <StatusBar />}
+                        ? <MobileStatusBar />
+                        : !isMobile && <StatusBar />}
                 </main>
             </div>
 
@@ -156,9 +158,6 @@ export function AppLayout({ children }: AppLayoutProps) {
             )}
 
             {/* Phase 2: Mobile Status Bar */}
-            {isMobile && aposEnabled && mobileStatusEnabled && (
-                <MobileStatusBar />
-            )}
         </div>
     );
 }

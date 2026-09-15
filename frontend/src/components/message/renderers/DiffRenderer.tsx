@@ -44,22 +44,22 @@ export const DiffRenderer: React.FC<{ content: string; filePath?: string }> = ({
     const removeCount = diffLines.filter(l => l.type === 'remove').length;
 
     return (
-        <div className="rounded-xl border border-hairline overflow-hidden bg-sunken2">
+        <div className="rounded-[14px] border border-hairline overflow-hidden bg-sunken2">
             {filePath && (
                 <div className="bg-surface2 px-3 py-1.5 text-sm flex justify-between border-b border-hairline">
-                    <span className="text-t2 font-mono text-xs">{filePath}</span>
-                    <span className="flex items-center gap-1 text-[11px]">
+                    <span className="text-t2 font-mono text-[13px]">{filePath}</span>
+                    <span className="flex items-center gap-1 text-[13px]">
                         <span className="rounded bg-oksoft px-1.5 py-0.5 font-medium tabular-nums text-ok">+{addCount}</span>
                         <span className="rounded bg-errsoft px-1.5 py-0.5 font-medium tabular-nums text-err">−{removeCount}</span>
                     </span>
                 </div>
             )}
-            <div className="font-mono text-[12.5px] leading-[1.7] overflow-x-auto">
+            <div className="font-mono panel-code overflow-x-auto">
                 {diffLines.map((line, i) => (
                     <div key={i} className={`flex
                         ${line.type === 'add' ? 'bg-[var(--v2-diff-add-bg)]' : ''}
                         ${line.type === 'remove' ? 'bg-[var(--v2-diff-remove-bg)]' : ''}
-                        ${line.type === 'header' ? 'bg-accent2-soft text-accent2' : ''}`}>
+                        ${line.type === 'header' ? 'bg-accent2-soft text-accent2-ink' : ''}`}>
                         <span className="w-10 text-right text-t4 select-none px-1 flex-shrink-0 tabular-nums">
                             {line.oldLine || ''}
                         </span>

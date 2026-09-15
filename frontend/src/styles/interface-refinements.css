@@ -1,0 +1,186 @@
+/* Shared typography and component presentation. Theme colours live in globals.css
+   and its design-tokens.ts mirror; legacy components consume the same values. */
+:root {
+    --text-primary: var(--v2-text-1);
+    --text-secondary: var(--v2-text-2);
+    --text-muted: var(--v2-text-3);
+    --color-text-muted: var(--v2-text-3);
+    --bg-primary: var(--v2-bg-app);
+    --bg-secondary: var(--v2-bg-surface);
+}
+:root.dark, :root.glass {
+    --text-primary: var(--v2-text-1);
+    --text-secondary: var(--v2-text-2);
+    --text-muted: var(--v2-text-3);
+    --color-text-muted: var(--v2-text-3);
+    --bg-primary: var(--v2-bg-app);
+    --bg-secondary: var(--v2-bg-surface);
+}
+:root body {
+    font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+}
+
+:root .tool-call-block .text-ok {
+    color: var(--v2-ok);
+}
+
+:root .tool-call-block .text-err {
+    color: var(--v2-err);
+}
+
+:root .tool-call-block .text-accent2 {
+    color: var(--v2-accent-ink);
+}
+
+:root .app-header [role=tab][aria-selected=true] {
+    background: var(--v2-accent-strong);
+}
+
+:root.glass .app-header [role=tab][aria-selected=true] {
+    background: transparent;
+}
+
+:root .chat-composer-surface textarea {
+    font-size: 15px;
+    line-height: 1.65;
+}
+
+:root .chat-composer-surface textarea::placeholder {
+    color: var(--v2-text-3);
+}
+
+:root .chat-composer-surface button[aria-label='停止当前任务'] {
+    background: var(--v2-err-soft);
+    color: var(--v2-err);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb,var(--v2-err) 28%,transparent);
+}
+
+:root .chat-composer-surface button:disabled {
+    box-shadow: none;
+}
+
+:root .glass-light {
+    box-shadow: inset 0 1px 1px var(--glass-highlight),inset 1px 0 1px rgba(255,255,255,.5),inset 0 -1px 1px rgba(31,47,73,.12);
+}
+
+@media (max-width: 767px) {
+    :root .chat-composer-surface textarea { font-size: 16px; }
+    :root.glass .chat-composer-surface textarea { background: transparent; }
+}
+
+/* Shared by highlighted and plain code; CSS variables also work in inline Prism styles. */
+.code-block {
+    --code-font-size: 13px;
+    --code-line-height: 1.65;
+}
+@media (max-width: 767px) {
+    .code-block { --code-font-size: 14px; }
+}
+/* Keep accessibility modes stronger than decorative glass highlights. */
+@media (forced-colors: active) {
+    :root .glass-light { box-shadow: none; }
+    :root .tool-call-block .text-ok,
+    :root .tool-call-block .text-err,
+    :root .tool-call-block .text-accent2 { color: CanvasText; }
+}
+
+/* Opt-in business-dialog controls; never changes submitting/disabled semantics. */
+.dialog-control, .workbench-control, .panel-control {
+    transition-duration: var(--v2-dur-fast);
+}
+.dialog-control:focus-visible, .workbench-control:focus-visible, .panel-control:focus-visible {
+    outline: 2px solid var(--v2-accent-strong);
+    outline-offset: 2px;
+}
+@media (max-width: 767px) {
+    .dialog-control, .workbench-control, .panel-control { min-height: 44px; min-width: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .dialog-control, .workbench-control, .panel-control { transition: none; }
+}
+
+@media (max-width: 767px) {
+    .app-header select[data-compact-label="true"] { color: transparent; }
+    .app-header select[data-compact-label="true"] option { color: var(--v2-text-1); }
+}
+
+.panel-code { font-size: 13px; line-height: 1.65; }
+@media (max-width: 767px) {
+    .panel-code { font-size: 14px; }
+}
+
+/* Code-path canvas controls share the surrounding panel's material. */
+:is(.code-path-tracer, .impact-graph, .agent-dag) {
+  --xy-controls-button-background-color: var(--v2-bg-surface);
+  --xy-controls-button-background-color-hover: var(--v2-bg-hover);
+  --xy-controls-button-color: var(--v2-text-1);
+  --xy-controls-button-color-hover: var(--v2-text-1);
+  --xy-controls-button-border-color: var(--v2-border-hairline);
+  --xy-minimap-background-color: var(--v2-bg-surface-2);
+  --xy-minimap-mask-background-color: var(--v2-bg-hover);
+  --xy-minimap-node-background-color: var(--v2-text-2);
+}
+:is(.code-path-tracer, .impact-graph, .agent-dag) .react-flow__controls-button:focus-visible {
+  outline: 2px solid var(--v2-accent);
+  outline-offset: 2px;
+}
+@media (max-width: 767px) {
+  :is(.code-path-tracer, .impact-graph, .agent-dag) .react-flow__controls-button {
+    width: 44px;
+    height: 44px;
+  }
+  :is(.code-path-tracer, .impact-graph, .agent-dag) .react-flow__minimap {
+    width: 100px;
+    height: 70px;
+  }
+  :is(.code-path-tracer, .impact-graph, .agent-dag) .react-flow__minimap svg {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+/* Explicitly opted-in controls use one radius; pills keep their silhouette. */
+.panel-control:not(.rounded-full) { border-radius: 10px; }
+
+/* Reading widths are applied to content, never to the virtual scroll viewport. */
+.turn-card { width: 100%; max-width: 1200px; margin-inline: auto; }
+.text-block > :is(p, ul, ol, blockquote) { max-width: 860px; }
+.panel-control > .lucide, .dialog-control > .lucide, .workbench-control > .lucide {
+    width: 18px; height: 18px; flex-shrink: 0;
+}
+.panel-control:disabled, .dialog-control:disabled, .workbench-control:disabled {
+    cursor: not-allowed;
+}
+.panel-control:not(:disabled):active, .dialog-control:not(:disabled):active { filter: brightness(.96); }
+@media (prefers-reduced-motion: reduce) {
+    .panel-control:not(:disabled):active, .dialog-control:not(:disabled):active { filter: none; }
+}
+
+:root { --v2-accent-ink: color-mix(in srgb, var(--v2-accent-strong) 80%, black); }
+:root.dark { --v2-accent-ink: var(--v2-accent); }
+
+/* Controls use a distinct readable label tier. Auxiliary metadata remains 13px. */
+.panel-control, .dialog-control, .workbench-control { font-size: 14px; line-height: 1.5; }
+.panel-control:is(input, select, textarea) { border-color: var(--v2-text-3); }
+.panel-control[aria-invalid=true] { border-color: var(--v2-err); }
+
+/* One focus indicator: pointer clicks stay quiet; keyboard focus stays visible. */
+.process-aggregate-toggle:focus:not(:focus-visible) {
+    outline: none;
+    box-shadow: none;
+}
+.process-aggregate-toggle:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: -2px;
+    box-shadow: none;
+}
+@media (forced-colors: active) {
+    .process-aggregate-toggle:focus-visible { outline-color: Highlight; }
+}
+
+/* Compact message footer; invisible touch expansion keeps icons easy to tap. */
+.message-action-button { position: relative; width: 32px; height: 32px; }
+.message-action-button:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 1px; }
+@media (pointer: coarse) {
+    .message-action-button::after { content: ''; position: absolute; inset: -6px; }
+}

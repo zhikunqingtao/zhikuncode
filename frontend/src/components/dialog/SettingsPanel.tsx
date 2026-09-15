@@ -31,7 +31,7 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
                                     : 'border-hairline hover:bg-hover2',
                             )}
                         >
-                            <Icon className="w-5 h-5 text-accent2-strong" aria-hidden="true" />
+                            <Icon className="w-5 h-5 text-accent2-ink" aria-hidden="true" />
                             <span>{label}</span>
                         </button>
                     ))}

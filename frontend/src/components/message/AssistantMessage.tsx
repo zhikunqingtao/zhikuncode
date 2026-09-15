@@ -19,7 +19,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { Bot } from 'lucide-react';
+import { BrandLogo } from '@/components/ui/BrandLogo';
 import type { Message, ContentBlock, ToolCallState } from '@/types';
 import TextBlock from './TextBlock';
 import ThinkingBlock from './ThinkingBlock';
@@ -52,15 +52,12 @@ const AssistantMessage: React.FC<AssistantMessageProps> = ({
 }) => {
     return (
         <div className={embedded ? "assistant-message group min-w-0" : "assistant-message group flex gap-3 px-4 py-3"}>
-            {/* Avatar（§7.2：渐变 accent 方块 30px rounded-lg） */}
-            {!embedded && <div className="flex-shrink-0 w-[30px] h-[30px] rounded-lg bg-gradient-to-br from-accent2 to-accent2-strong shadow-e1 flex items-center justify-center">
-                <Bot size={16} className="text-white" />
-            </div>}
+            {!embedded && <BrandLogo className="h-8 w-8" />}
 
             {/* Card 容器（§7.2：surface + hairline + rounded-panel + shadow-e2，px-18/py-20） */}
-            <div className={embedded ? "min-w-0" : "flex-1 min-w-0 rounded-panel border border-hairline bg-surfacev2 shadow-e2 px-[18px] py-5"}>
-                {!embedded && <div className="flex items-center gap-1.5 mb-2 text-xs text-t3 font-medium">
-                    <span>Assistant</span>
+            <div className={embedded ? "min-w-0" : "flex-1 min-w-0 rounded-panel border border-hairline bg-surfacev2 shadow-e1 px-[18px] py-5"}>
+                {!embedded && <div className="flex items-center gap-1.5 mb-2 text-[13px] text-t3 font-medium">
+                    <span>zhikuncode</span>
                 </div>}
 
                 <div className="text-sm text-t1 leading-[1.75]">

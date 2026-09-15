@@ -82,14 +82,14 @@ export function SimpleWorkbench({ sessionId, messages: _messages, status: _statu
         }, 0);
     };
 
-    return <div className="h-full overflow-y-auto bg-[var(--bg-primary)]"><div className="mx-auto max-w-6xl space-y-4 p-4 md:p-6">
+    return <div className="h-full overflow-y-auto bg-[var(--v2-bg-surface)]"><div className="mx-auto max-w-6xl space-y-4 p-4 md:p-6">
         <TaskOverviewCard session={data.session.data} request={current?.request ?? null}
             correlationMode={current?.correlationMode ?? 'LEGACY_FALLBACK'}
             loading={data.session.loading || data.current.loading} error={data.session.error ?? data.current.error} />
         <TaskMilestoneStrip current={current} />
-        {primaryAction && <section className={`flex flex-wrap items-center justify-between gap-3 rounded-2xl border p-4 ${primaryAction.tone === 'amber' ? 'border-amber-500/30 bg-amber-500/5' : 'border-blue-500/25 bg-blue-500/5'}`}>
-            <div><p className="text-xs font-medium text-[var(--text-muted)]">现在最值得做的事</p><p className="mt-1 text-sm font-medium text-[var(--text-primary)]">{primaryAction.label}</p></div>
-            <button type="button" onClick={primaryAction.action} className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white ${primaryAction.tone === 'amber' ? 'bg-amber-600 hover:bg-amber-500' : 'bg-blue-600 hover:bg-blue-500'}`}><primaryAction.icon className="h-4 w-4" />{primaryAction.label}<ArrowRight className="h-4 w-4" /></button>
+        {primaryAction && <section className={`flex flex-wrap items-center justify-between gap-3 rounded-[14px] border p-4 ${primaryAction.tone === 'amber' ? 'border-warn bg-warnsoft' : 'border-accent2-ring bg-accent2-soft'}`}>
+            <div><p className="text-[13px] font-medium text-[var(--v2-text-2)]">现在最值得做的事</p><p className="mt-1 text-sm font-medium text-[var(--v2-text-1)]">{primaryAction.label}</p></div>
+            <button type="button" onClick={primaryAction.action} className={`workbench-control inline-flex items-center gap-2 rounded-[10px] px-4 py-2 text-sm font-medium text-white ${primaryAction.tone === 'amber' ? 'bg-accent2-strong hover:bg-accent2-hover' : 'bg-accent2-strong hover:bg-accent2-hover'}`}><primaryAction.icon className="h-4 w-4" />{primaryAction.label}<ArrowRight className="h-4 w-4" /></button>
         </section>}
         <StructuredResultCard current={current} loading={data.current.loading} error={data.current.error} onOpenMessage={openMessageInDevelopment} />
         <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)]">
@@ -100,10 +100,10 @@ export function SimpleWorkbench({ sessionId, messages: _messages, status: _statu
                 overall={current?.verification.overallStatus ?? 'NOT_VERIFIED'} />
         </div>
         {failedWithPrevious && current?.previousAvailableDelivery && (
-            <section className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-5"><p className="text-xs font-medium uppercase tracking-wide text-amber-500">上次可用交付</p><div className="mt-2 flex flex-wrap items-center justify-between gap-3"><p className="text-sm text-[var(--text-secondary)]">当前执行失败，上一轮仍有 {current.previousAvailableDelivery.delivery.totalFiles} 个可用文件。</p>{current.previousAvailableDelivery.delivery.primaryArtifactPath && <button onClick={() => openResult(current.previousAvailableDelivery!.delivery.primaryArtifactPath!)} className="rounded-lg bg-amber-600 px-3 py-2 text-sm font-medium text-white">查看上次主要成果</button>}</div></section>
+            <section className="rounded-[14px] border border-warn bg-warnsoft p-4 md:p-6"><p className="text-[13px] font-medium uppercase tracking-wide text-warnstrong dark:text-warn">上次可用交付</p><div className="mt-2 flex flex-wrap items-center justify-between gap-3"><p className="text-sm text-[var(--v2-text-2)]">当前执行失败，上一轮仍有 {current.previousAvailableDelivery.delivery.totalFiles} 个可用文件。</p>{current.previousAvailableDelivery.delivery.primaryArtifactPath && <button onClick={() => openResult(current.previousAvailableDelivery!.delivery.primaryArtifactPath!)} className="workbench-control rounded-[10px] bg-accent2-strong px-3 py-2 text-sm font-medium text-white">查看上次主要成果</button>}</div></section>
         )}
         <div id="simple-pending-actions"><PendingActionsSummary actions={current?.pendingActions ?? []} onSelect={id => void focusPendingAction(id)} /></div>
-        {openError && <p className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 text-sm text-amber-400">{openError}</p>}
-        <details className="rounded-2xl border border-[var(--border)] bg-[var(--bg-secondary)]"><summary className="cursor-pointer px-5 py-4 text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]">展开技术记录</summary><div className="border-t border-[var(--border)] p-4"><ResultActivityList activities={activities} onOpenActivity={openActivity} /></div></details>
+        {openError && <p className="rounded-[14px] border border-warn bg-warnsoft p-3 text-sm text-warnstrong dark:text-warn">{openError}</p>}
+        <details className="rounded-[14px] border border-[var(--v2-border-hairline)] bg-[var(--v2-bg-sunken)]"><summary className="workbench-control cursor-pointer px-4 md:px-6 py-4 text-sm font-medium text-[var(--v2-text-2)] hover:bg-[var(--v2-bg-hover)]">展开技术记录</summary><div className="border-t border-[var(--v2-border-hairline)] p-4"><ResultActivityList activities={activities} onOpenActivity={openActivity} /></div></details>
     </div>{sessionId && previewPath && <FilePreviewDialog sessionId={sessionId} path={previewPath} onClose={() => setPreviewPath(null)} onFallback={() => { const path = previewPath; setPreviewPath(null); openFile(path); }} />}</div>;
 }

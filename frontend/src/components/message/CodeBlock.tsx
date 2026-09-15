@@ -7,8 +7,8 @@
  * - 长代码 (≥100行): 默认纯 <pre>，用户可点击手动触发高亮
  *
  * §7.2 代码块：bg-sunken2 + rounded-xl + border-hairline；
- * 头行（三圆点 + 文件名 + 复制 ghost 钮）；
- * 正文 JetBrains Mono 12.5px / 行高 1.7，横向滚动。
+ * 头行（文件名或语言 + 复制 ghost 钮）；
+ * 正文系统等宽字体 13px（手机 14px）/ 行高 1.65，横向滚动。
  * 语法色走 §4.2 design-tokens 语法表（zkSyntax 从 MONACO_ZK_THEMES 派生，
  * 主题感知；不新增/修改任何色值）。
  */
@@ -32,8 +32,8 @@ interface CodeBlockProps {
 
 const LONG_CODE_THRESHOLD = 100;
 
-/** §3.8 Code 档位：JetBrains Mono 栈 */
-const CODE_FONT_FAMILY = "'JetBrains Mono', ui-monospace, Menlo, monospace";
+/** 本地系统等宽字体，不依赖远程字体。 */
+const CODE_FONT_FAMILY = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
 
 const CodeBlock: React.FC<CodeBlockProps> = ({
     code,
@@ -76,22 +76,17 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
     }, [highlightLines]);
 
     return (
-        <div className="code-block relative rounded-xl border border-hairline bg-sunken2 overflow-hidden">
-            {/* Header：三圆点 + 文件名 + 复制 ghost 钮 */}
-            <div className="flex items-center gap-2 border-b border-hairline px-3 py-2">
-                <span className="flex shrink-0 items-center gap-1.5" aria-hidden="true">
-                    <span className="h-2.5 w-2.5 rounded-full bg-err opacity-70" />
-                    <span className="h-2.5 w-2.5 rounded-full bg-warn opacity-70" />
-                    <span className="h-2.5 w-2.5 rounded-full bg-ok opacity-70" />
-                </span>
-                <span className="min-w-0 flex-1 truncate font-mono text-[11px] text-t3">
+        <div className="code-block relative rounded-[10px] border border-hairline bg-sunken2 overflow-hidden">
+            {/* Header：文件名或语言 + 复制 */}
+            <div className="flex items-center gap-2 border-b border-hairline px-3 py-1.5">
+                <span className="min-w-0 flex-1 truncate font-mono text-[13px] text-t3">
                     {fileName ?? resolvedLang}
                 </span>
                 <span className="flex shrink-0 items-center gap-1">
                     {isLong && !forceHighlight && (
                         <button
                             onClick={() => setForceHighlight(true)}
-                            className="rounded-md px-1.5 py-1 text-[11px] text-t4 transition-colors duration-fast hover:bg-hover2 hover:text-t1"
+                            className="panel-control rounded-md px-1.5 py-1 text-[13px] text-t4 transition-colors duration-fast hover:bg-hover2 hover:text-t1"
                         >
                             Enable highlighting
                         </button>
@@ -99,7 +94,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
                     {copyable && (
                         <button
                             onClick={handleCopy}
-                            className="rounded-md p-1 text-t4 transition-colors duration-fast hover:bg-hover2 hover:text-t1"
+                            className="panel-control rounded-md p-1 text-t4 transition-colors duration-fast hover:bg-hover2 hover:text-t1"
                             aria-label="Copy code"
                             title={copied ? '已复制' : '复制'}
                         >
@@ -109,7 +104,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
                 </span>
             </div>
 
-            {/* Code content：JetBrains Mono 12.5px / 1.7，横向滚动 */}
+            {/* 共享响应式字号，保留横向滚动和长代码纯文本回退。 */}
             <div style={{ maxHeight, overflowY: 'auto' }}>
                 {shouldHighlight ? (
                     <SyntaxHighlighter
@@ -122,8 +117,9 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
                             margin: 0,
                             padding: '12px 14px',
                             background: 'transparent',
-                            fontSize: '12.5px',
-                            lineHeight: 1.7,
+                            fontSize: 'var(--code-font-size)',
+                            fontFamily: CODE_FONT_FAMILY,
+                            lineHeight: 'var(--code-line-height)',
                             overflowX: 'auto',
                         }}
                         codeTagProps={{
@@ -134,8 +130,8 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
                     </SyntaxHighlighter>
                 ) : (
                     <pre
-                        className="px-3.5 py-3 text-[12.5px] leading-[1.7] text-t1 overflow-x-auto whitespace-pre"
-                        style={{ fontFamily: CODE_FONT_FAMILY }}
+                        className="px-3.5 py-3 text-t1 overflow-x-auto whitespace-pre"
+                        style={{ fontFamily: CODE_FONT_FAMILY, fontSize: 'var(--code-font-size)', lineHeight: 'var(--code-line-height)' }}
                     >
                         {code}
                     </pre>

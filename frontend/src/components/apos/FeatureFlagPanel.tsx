@@ -43,16 +43,16 @@ export function FeatureFlagPanel() {
   const flagKeys = Object.keys(APOS_FLAG_DEFAULTS) as (keyof APOSFeatureFlags)[];
 
   return (
-    <div className="mx-3 my-3 rounded-lg border border-gray-700/50 bg-[#1e1e30] overflow-hidden">
+    <div className="mx-3 my-3 rounded-[14px] border border-gray-700/50 bg-[#1e1e30] overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-gray-700/50 bg-[#16162a]">
         <div className="flex items-center gap-2">
-          <Settings2 className="w-3.5 h-3.5 text-gray-400" />
-          <span className="text-xs font-medium text-gray-300">Feature Flags</span>
+          <Settings2 className="w-3.5 h-3.5 text-t2" />
+          <span className="text-[13px] font-medium text-t2">Feature Flags</span>
         </div>
         <button
           onClick={resetToDefaults}
-          className="text-[10px] px-2 py-0.5 rounded text-gray-500 hover:text-gray-300 hover:bg-gray-700/50 transition-colors"
+          className="panel-control text-[13px] px-2 py-0.5 rounded text-t2 hover:text-t2 hover:bg-sunken2 transition-colors"
         >
           重置
         </button>
@@ -73,14 +73,14 @@ export function FeatureFlagPanel() {
               }`}
             >
               <div className="flex-1 min-w-0 mr-3">
-                <div className="text-xs font-medium text-gray-200 truncate">
+                <div className="text-[13px] font-medium text-t2 truncate">
                   {FLAG_LABELS[key]}
                 </div>
-                <div className="text-[10px] text-gray-500 mt-0.5 truncate">
+                <div className="text-[13px] text-t2 mt-0.5 truncate">
                   {FLAG_DESCRIPTIONS[key]}
                 </div>
                 {isBlocked && (
-                  <div className="text-[10px] text-amber-500/80 mt-0.5">
+                  <div className="text-[13px] text-warn mt-0.5">
                     需要先启用: {missing.join(', ')}
                   </div>
                 )}
@@ -90,7 +90,7 @@ export function FeatureFlagPanel() {
               <button
                 onClick={() => !isBlocked && toggleFlag(key)}
                 disabled={isBlocked}
-                className={`relative w-8 h-[18px] rounded-full transition-colors flex-shrink-0 ${
+                className={`panel-control relative w-8 h-[18px] rounded-full transition-colors flex-shrink-0 ${
                   enabled
                     ? 'bg-blue-600'
                     : isBlocked

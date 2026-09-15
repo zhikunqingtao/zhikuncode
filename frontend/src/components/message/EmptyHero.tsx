@@ -76,11 +76,11 @@ export function EmptyHero({ readyAgentCount }: { readyAgentCount?: number }) {
                             className="text-t2 hover:-translate-y-0.5"
                             onClick={() => dispatchPromptTemplateFill(chip.template)}
                         >
-                            <chip.icon className="h-3.5 w-3.5 text-accent2" aria-hidden="true" />
+                            <chip.icon className="h-3.5 w-3.5 text-accent2-ink" aria-hidden="true" />
                             {chip.label}
                         </Button>
                     ))}
-                    <div className="mt-3 flex basis-full flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-xs text-t2">
+                    <div className="mt-3 flex basis-full flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-[13px] text-t2">
                         <span className="flex items-center gap-1">
                             <Kbd>⌘</Kbd><Kbd>K</Kbd> 命令面板
                         </span>

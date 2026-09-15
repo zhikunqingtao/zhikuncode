@@ -27,12 +27,12 @@ interface GitTimelineProps {
 type CommitColor = { dot: string; border: string; label: string };
 
 const COMMIT_COLORS: Record<string, CommitColor> = {
-    feat:     { dot: 'bg-blue-500',   border: 'border-l-blue-500',   label: 'text-blue-400' },
-    fix:      { dot: 'bg-orange-500', border: 'border-l-orange-500', label: 'text-orange-400' },
+    feat:     { dot: 'bg-blue-500',   border: 'border-l-blue-500',   label: 'text-accent2-ink' },
+    fix:      { dot: 'bg-orange-500', border: 'border-l-orange-500', label: 'text-warn' },
     refactor: { dot: 'bg-purple-500', border: 'border-l-purple-500', label: 'text-purple-400' },
-    test:     { dot: 'bg-green-500',  border: 'border-l-green-500',  label: 'text-green-400' },
-    docs:     { dot: 'bg-gray-400',   border: 'border-l-gray-400',   label: 'text-gray-400' },
-    default:  { dot: 'bg-gray-400',   border: 'border-l-gray-400',   label: 'text-gray-400' },
+    test:     { dot: 'bg-green-500',  border: 'border-l-green-500',  label: 'text-ok' },
+    docs:     { dot: 'bg-gray-400',   border: 'border-l-gray-400',   label: 'text-t2' },
+    default:  { dot: 'bg-gray-400',   border: 'border-l-gray-400',   label: 'text-t2' },
 };
 
 const TYPE_PATTERNS: [RegExp, string][] = [
@@ -130,14 +130,14 @@ export function GitTimeline({ repoPath = '.' }: GitTimelineProps) {
     if (blameTarget) {
         return (
             <div className="flex flex-col h-full">
-                <div className="flex items-center gap-2 px-3 py-2 border-b border-[var(--border)] bg-[var(--bg-secondary)]">
+                <div className="flex items-center gap-2 px-3 py-2 border-b border-[var(--v2-border-hairline)] bg-[var(--v2-bg-sunken)]">
                     <button
                         onClick={() => setBlameTarget(null)}
-                        className="text-xs px-2 py-1 rounded bg-[var(--bg-hover)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                        className="panel-control text-[13px] px-2 py-1 rounded bg-[var(--v2-bg-hover)] text-[var(--v2-text-2)] hover:text-[var(--v2-text-1)] transition-colors"
                     >
                         ← 返回时间线
                     </button>
-                    <span className="text-xs text-[var(--text-muted)] truncate">
+                    <span className="text-[13px] text-[var(--v2-text-2)] truncate">
                         {blameTarget.filePath}
                     </span>
                 </div>
@@ -158,11 +158,11 @@ export function GitTimeline({ repoPath = '.' }: GitTimelineProps) {
             <div className="p-4 space-y-4">
                 {[1, 2, 3, 4].map(i => (
                     <div key={i} className="flex gap-3 animate-pulse">
-                        <div className="w-3 h-3 rounded-full bg-[var(--border)] mt-1.5 shrink-0" />
+                        <div className="w-3 h-3 rounded-full bg-[var(--v2-border-hairline)] mt-1.5 shrink-0" />
                         <div className="flex-1 space-y-2">
-                            <div className="h-4 bg-[var(--border)] rounded w-3/4" />
-                            <div className="h-3 bg-[var(--border)] rounded w-1/2" />
-                            <div className="h-3 bg-[var(--border)] rounded w-1/3" />
+                            <div className="h-4 bg-[var(--v2-border-hairline)] rounded w-3/4" />
+                            <div className="h-3 bg-[var(--v2-border-hairline)] rounded w-1/2" />
+                            <div className="h-3 bg-[var(--v2-border-hairline)] rounded w-1/3" />
                         </div>
                     </div>
                 ))}
@@ -173,12 +173,12 @@ export function GitTimeline({ repoPath = '.' }: GitTimelineProps) {
     // ── Error ──
     if (gitError) {
         return (
-            <div className="p-4 flex flex-col items-center gap-2 text-[var(--text-muted)]">
-                <AlertCircle className="w-8 h-8 text-red-400" />
+            <div className="p-4 flex flex-col items-center gap-2 text-[var(--v2-text-2)]">
+                <AlertCircle className="w-8 h-8 text-err" />
                 <p className="text-sm text-center">{gitError}</p>
                 <button
                     onClick={() => fetchGitLog(repoPath, 20)}
-                    className="text-xs px-3 py-1.5 rounded bg-[var(--bg-hover)] hover:bg-[var(--bg-primary)] transition-colors"
+                    className="panel-control text-[13px] px-3 py-1.5 rounded bg-[var(--v2-bg-hover)] hover:bg-[var(--v2-bg-surface)] transition-colors"
                 >
                     重试
                 </button>
@@ -189,10 +189,10 @@ export function GitTimeline({ repoPath = '.' }: GitTimelineProps) {
     // ── 空状态 ──
     if (gitCommits.length === 0) {
         return (
-            <div className="p-8 flex flex-col items-center gap-3 text-[var(--text-muted)]">
+            <div className="p-8 flex flex-col items-center gap-3 text-[var(--v2-text-2)]">
                 <GitCommitHorizontal className="w-10 h-10 opacity-40" />
                 <p className="text-sm">暂无 commit 记录</p>
-                <p className="text-xs">请确认仓库路径是否正确</p>
+                <p className="text-[13px]">请确认仓库路径是否正确</p>
             </div>
         );
     }
@@ -203,7 +203,7 @@ export function GitTimeline({ repoPath = '.' }: GitTimelineProps) {
             <div className="flex-1 overflow-y-auto p-3">
                 <div className="relative ml-1.5">
                     {/* 垂直线 */}
-                    <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-[var(--border)]" />
+                    <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-[var(--v2-border-hairline)]" />
 
                     {gitCommits.map((commit) => {
                         const color = getCommitColor(commit.message);
@@ -213,11 +213,11 @@ export function GitTimeline({ repoPath = '.' }: GitTimelineProps) {
                         return (
                             <div key={commit.sha} className="relative pl-6 pb-4">
                                 {/* 圆点 */}
-                                <div className={`absolute left-0 top-2.5 w-2.5 h-2.5 rounded-full ${color.dot} -translate-x-[4px] ring-3 ring-[var(--bg-secondary)]`} />
+                                <div className={`absolute left-0 top-2.5 w-2.5 h-2.5 rounded-full ${color.dot} -translate-x-[4px] ring-3 ring-[var(--v2-bg-sunken)]`} />
 
                                 {/* Commit 卡片 */}
                                 <div
-                                    className={`rounded-lg border border-l-2 ${color.border} bg-[var(--bg-secondary)] hover:bg-[var(--bg-hover)] transition-colors cursor-pointer`}
+                                    className={`rounded-lg border border-l-2 ${color.border} bg-[var(--v2-bg-sunken)] hover:bg-[var(--v2-bg-hover)] transition-colors cursor-pointer`}
                                     onClick={() => handleToggleCommit(commit.sha)}
                                 >
                                     <div className="p-2.5">
@@ -225,21 +225,21 @@ export function GitTimeline({ repoPath = '.' }: GitTimelineProps) {
                                         <div className="flex items-center gap-1.5 mb-1">
                                             <button
                                                 onClick={(e) => handleCopySha(commit.sha, e)}
-                                                className="flex items-center gap-1 text-xs font-mono text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+                                                className="panel-control flex items-center gap-1 text-[13px] font-mono text-[var(--v2-text-2)] hover:text-[var(--v2-text-1)] transition-colors"
                                                 title="复制 SHA"
                                             >
                                                 {copiedSha === commit.sha
-                                                    ? <Check className="w-3 h-3 text-green-500" />
+                                                    ? <Check className="w-3 h-3 text-ok" />
                                                     : <Copy className="w-3 h-3" />
                                                 }
                                                 {commit.sha.slice(0, 7)}
                                             </button>
                                             <button
                                                 onClick={(e) => handleViewDiff(commit, e)}
-                                                className={`ml-auto text-xs px-1.5 py-0.5 rounded transition-colors ${
+                                                className={`panel-control ml-auto text-[13px] px-1.5 py-0.5 rounded transition-colors ${
                                                     isDiffActive
-                                                        ? 'bg-blue-500/20 text-blue-400'
-                                                        : 'text-[var(--text-muted)] hover:bg-[var(--bg-primary)]'
+                                                        ? 'bg-accent2-soft text-accent2-ink'
+                                                        : 'text-[var(--v2-text-2)] hover:bg-[var(--v2-bg-surface)]'
                                                 }`}
                                                 title="查看 Diff"
                                             >
@@ -248,12 +248,12 @@ export function GitTimeline({ repoPath = '.' }: GitTimelineProps) {
                                         </div>
 
                                         {/* Commit message */}
-                                        <p className="text-sm font-medium text-[var(--text-primary)] truncate leading-snug">
+                                        <p className="text-sm font-medium text-[var(--v2-text-1)] truncate leading-snug">
                                             {commit.message.split('\n')[0]}
                                         </p>
 
                                         {/* Author + time + file count */}
-                                        <div className="flex items-center gap-2 mt-1.5 text-xs text-[var(--text-muted)]">
+                                        <div className="flex items-center gap-2 mt-1.5 text-[13px] text-[var(--v2-text-2)]">
                                             <span className="truncate max-w-[100px]">{commit.author}</span>
                                             <span>·</span>
                                             <span>{relativeTime(commit.date)}</span>
@@ -270,7 +270,7 @@ export function GitTimeline({ repoPath = '.' }: GitTimelineProps) {
 
                                         {/* 展开图标 */}
                                         {commit.files && commit.files.length > 0 && (
-                                            <div className="flex items-center gap-1 mt-1 text-xs text-[var(--text-muted)]">
+                                            <div className="flex items-center gap-1 mt-1 text-[13px] text-[var(--v2-text-2)]">
                                                 {isExpanded
                                                     ? <ChevronDown className="w-3 h-3" />
                                                     : <ChevronRight className="w-3 h-3" />
@@ -282,19 +282,19 @@ export function GitTimeline({ repoPath = '.' }: GitTimelineProps) {
 
                                     {/* 展开的文件列表 */}
                                     {isExpanded && commit.files && (
-                                        <div className="border-t border-[var(--border)] bg-[var(--bg-primary)]">
+                                        <div className="border-t border-[var(--v2-border-hairline)] bg-[var(--v2-bg-surface)]">
                                             {commit.files.map((filePath) => (
                                                 <div
                                                     key={filePath}
-                                                    className="flex items-center gap-2 px-3 py-1.5 text-xs hover:bg-[var(--bg-hover)] transition-colors"
+                                                    className="flex items-center gap-2 px-3 py-1.5 text-[13px] hover:bg-[var(--v2-bg-hover)] transition-colors"
                                                 >
-                                                    <FileText className="w-3 h-3 text-[var(--text-muted)] shrink-0" />
-                                                    <span className="font-mono text-[var(--text-secondary)] truncate flex-1">
+                                                    <FileText className="w-3 h-3 text-[var(--v2-text-2)] shrink-0" />
+                                                    <span className="font-mono text-[var(--v2-text-2)] truncate flex-1">
                                                         {filePath}
                                                     </span>
                                                     <button
                                                         onClick={(e) => handleViewBlame(filePath, commit.sha, e)}
-                                                        className="text-[var(--text-muted)] hover:text-blue-400 px-1.5 py-0.5 rounded hover:bg-blue-500/10 transition-colors shrink-0"
+                                                        className="panel-control text-[var(--v2-text-2)] hover:text-accent2-ink px-1.5 py-0.5 rounded hover:bg-accent2-soft transition-colors shrink-0"
                                                         title="Blame"
                                                     >
                                                         Blame
@@ -306,29 +306,29 @@ export function GitTimeline({ repoPath = '.' }: GitTimelineProps) {
 
                                     {/* Diff 内容 */}
                                     {isDiffActive && (
-                                        <div className="border-t border-[var(--border)] bg-[var(--bg-primary)]">
+                                        <div className="border-t border-[var(--v2-border-hairline)] bg-[var(--v2-bg-surface)]">
                                             {diffLoading ? (
                                                 <div className="flex items-center justify-center py-4">
-                                                    <Loader2 className="w-4 h-4 animate-spin text-[var(--text-muted)]" />
+                                                    <Loader2 className="w-4 h-4 animate-spin text-[var(--v2-text-2)]" />
                                                 </div>
                                             ) : activeDiff ? (
                                                 <div className="max-h-60 overflow-auto">
-                                                    <pre className="px-3 py-2 text-xs font-mono text-[var(--text-secondary)] whitespace-pre-wrap break-all">
+                                                    <pre className="px-3 py-2 text-[13px] font-mono text-[var(--v2-text-2)] whitespace-pre-wrap break-all">
                                                         {activeDiff.summary}
                                                     </pre>
                                                     {activeDiff.detailed && (
-                                                        <div className="border-t border-[var(--border)]">
+                                                        <div className="border-t border-[var(--v2-border-hairline)]">
                                                             {activeDiff.detailed.split('\n').map((line, i) => (
                                                                 <div
                                                                     key={i}
-                                                                    className={`px-3 py-0.5 text-xs font-mono whitespace-pre ${
+                                                                    className={`px-3 py-0.5 text-[13px] font-mono whitespace-pre ${
                                                                         line.startsWith('+') && !line.startsWith('+++')
-                                                                            ? 'bg-green-900/20 text-green-300'
+                                                                            ? 'bg-green-900/20 text-ok'
                                                                             : line.startsWith('-') && !line.startsWith('---')
-                                                                                ? 'bg-red-900/20 text-red-300'
+                                                                                ? 'bg-red-900/20 text-err'
                                                                                 : line.startsWith('@@')
-                                                                                    ? 'bg-blue-900/10 text-blue-300'
-                                                                                    : 'text-[var(--text-secondary)]'
+                                                                                    ? 'bg-blue-900/10 text-accent2-ink'
+                                                                                    : 'text-[var(--v2-text-2)]'
                                                                     }`}
                                                                 >
                                                                     {line}
@@ -352,9 +352,9 @@ export function GitTimeline({ repoPath = '.' }: GitTimelineProps) {
                         <button
                             onClick={handleLoadMore}
                             disabled={gitLoading}
-                            className="flex items-center gap-1.5 text-xs px-4 py-2 rounded-lg
-                                bg-[var(--bg-hover)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]
-                                hover:bg-[var(--bg-primary)] transition-colors disabled:opacity-50"
+                            className="panel-control flex items-center gap-1.5 text-[13px] px-4 py-2 rounded-lg
+                                bg-[var(--v2-bg-hover)] text-[var(--v2-text-2)] hover:text-[var(--v2-text-1)]
+                                hover:bg-[var(--v2-bg-surface)] transition-colors disabled:opacity-50"
                         >
                             {gitLoading ? (
                                 <Loader2 className="w-3 h-3 animate-spin" />

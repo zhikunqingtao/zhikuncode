@@ -5,6 +5,7 @@
  */
 
 import { useMemo, useState, useCallback, useEffect, memo } from 'react';
+import { useReducedMotion } from 'framer-motion';
 import { CHART_COLORS } from '@/styles/design-tokens';
 import {
   ReactFlow,
@@ -111,7 +112,9 @@ function convertToFlowElements(
       type: 'smoothstep',
       animated: false,
       label,
-      style: { stroke: '#6b7280', strokeWidth: 1.5 },
+      style: { stroke: 'var(--v2-text-2)', strokeWidth: 1.5 },
+      labelStyle: { fill: 'var(--v2-text-1)', fontSize: 13 },
+      labelBgStyle: { fill: 'var(--v2-bg-surface)' },
     };
   });
 
@@ -121,7 +124,7 @@ function convertToFlowElements(
 function layoutElements(nodes: Node[], edges: Edge[]): { nodes: Node[]; edges: Edge[] } {
   if (nodes.length === 0) return { nodes, edges };
 
-  const rawNodes = nodes.map(n => ({ id: n.id, width: 220, height: 90 }));
+  const rawNodes = nodes.map(n => ({ id: n.id, width: 220, height: 110 }));
   const rawEdges = edges.map(e => ({ source: e.source, target: e.target }));
 
   const layout = computeDAGLayout(rawNodes, rawEdges, 'TB');
@@ -129,7 +132,7 @@ function layoutElements(nodes: Node[], edges: Edge[]): { nodes: Node[]; edges: E
 
   const layoutedNodes = nodes.map(node => {
     const pos = posMap.get(node.id) || { x: 0, y: 0 };
-    return { ...node, position: { x: pos.x - 110, y: pos.y - 45 } };
+    return { ...node, position: { x: pos.x - 110, y: pos.y - 55 } };
   });
 
   return { nodes: layoutedNodes, edges };
@@ -144,7 +147,7 @@ function LayerNodeComponent({ data }: NodeProps) {
 
   return (
     <div
-      className="w-[220px] min-h-[80px] rounded-lg px-3 py-2.5 bg-white dark:bg-gray-900 transition-shadow"
+      className="w-[220px] min-h-[100px] rounded-[14px] px-3 py-2.5 bg-surfacev2 transition-shadow"
       style={{
         border: `2px solid ${config.color}`,
         boxShadow: `0 0 6px ${config.color}20`,
@@ -156,21 +159,21 @@ function LayerNodeComponent({ data }: NodeProps) {
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: config.color }} />
         <span
-          className="text-[10px] px-1.5 py-0.5 rounded font-medium"
-          style={{ backgroundColor: `${config.color}15`, color: config.color }}
+          className="text-[13px] px-1.5 py-0.5 rounded font-medium"
+          style={{ backgroundColor: 'var(--v2-bg-sunken)', color: 'var(--v2-text-2)' }}
         >
           {config.label}
         </span>
       </div>
 
       {/* Name */}
-      <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 truncate leading-tight mb-0.5">
+      <p className="text-sm font-semibold text-t1 truncate leading-tight mb-0.5">
         {d.label}
       </p>
 
       {/* Class name */}
       {d.className && (
-        <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
+        <p className="text-[13px] text-t2 truncate">
           {d.className}
         </p>
       )}
@@ -222,19 +225,20 @@ function EndpointListPanel({
   }, [filtered]);
 
   return (
-    <div className="flex flex-col h-full border-r border-[var(--border)] bg-[var(--bg-secondary)]" style={{ width: 260, minWidth: 260 }}>
+    <div className="flex flex-col h-full border-r border-[var(--v2-border-hairline)] bg-[var(--v2-bg-surface-2)] w-[260px] min-w-[260px] max-md:w-full max-md:min-w-0 max-md:h-[min(240px,35%)] max-md:shrink-0 max-md:border-r-0 max-md:border-b">
       {/* Search */}
-      <div className="p-2 border-b border-[var(--border)]">
+      <div className="p-2 border-b border-[var(--v2-border-hairline)]">
         <div className="relative">
-          <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)]" />
+          <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--v2-text-2)]" />
           <input
             type="text"
             value={searchText}
             onChange={e => onSearchChange(e.target.value)}
+            aria-label="搜索端点"
             placeholder="搜索端点..."
-            className="w-full pl-7 pr-2 py-1.5 text-xs rounded border border-[var(--border)]
-              bg-[var(--bg-primary)] text-[var(--text-primary)]
-              placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="panel-control w-full pl-7 pr-2 py-1.5 text-[13px] rounded border border-[var(--v2-border-hairline)]
+              bg-[var(--v2-bg-surface)] text-[var(--v2-text-1)]
+              placeholder:text-[var(--v2-text-2)] focus:outline-none focus:ring-1 focus:ring-accent2"
           />
         </div>
       </div>
@@ -243,17 +247,17 @@ function EndpointListPanel({
       <div className="flex-1 overflow-y-auto p-1">
         {loading ? (
           <div className="flex items-center justify-center py-8">
-            <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+            <Loader2 className="w-5 h-5 animate-spin text-accent2-ink" />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="py-8 text-center text-xs text-[var(--text-muted)]">
+          <div className="py-8 text-center text-[13px] text-[var(--v2-text-2)]">
             {endpoints.length === 0 ? '点击扫描加载端点' : '无匹配端点'}
           </div>
         ) : (
           Array.from(grouped.entries()).map(([method, eps]) => (
             <div key={method} className="mb-2">
-              <div className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider"
-                style={{ color: METHOD_COLORS[method] || '#6b7280' }}>
+              <div className="px-2 py-1 text-[13px] font-semibold uppercase tracking-wider"
+                style={{ color: 'var(--v2-text-2)', borderLeft: `3px solid ${METHOD_COLORS[method] || '#6b7280'}` }}>
                 {method} ({eps.length})
               </div>
               {eps.map((ep, i) => {
@@ -264,15 +268,15 @@ function EndpointListPanel({
                   <button
                     key={`${method}-${i}`}
                     onClick={() => onEndpointClick(ep)}
-                    className={`w-full text-left px-2 py-1.5 rounded text-xs transition-colors
+                    className={`panel-control w-full text-left px-2 py-1.5 rounded text-[13px] transition-colors
                       ${isSelected
-                        ? 'bg-blue-500/10 border border-blue-500/30'
-                        : 'hover:bg-[var(--bg-hover)] border border-transparent'}`}
+                        ? 'bg-accent2-soft border border-accent2-ring'
+                        : 'hover:bg-[var(--v2-bg-hover)] border border-transparent'}`}
                   >
-                    <span className="font-mono text-[var(--text-primary)] truncate block">
+                    <span className="font-mono text-[var(--v2-text-1)] truncate block">
                       {ep.path}
                     </span>
-                    <span className="text-[10px] text-[var(--text-muted)] truncate block">
+                    <span className="text-[13px] text-[var(--v2-text-2)] truncate block">
                       {ep.handlerClass}.{ep.handlerFunction}
                     </span>
                   </button>
@@ -300,41 +304,41 @@ function NodeDetailPanel({
   const Icon = config.icon;
 
   return (
-    <div className="absolute right-0 top-0 bottom-0 w-72 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 shadow-lg z-20 overflow-y-auto">
-      <div className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-700">
-        <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">节点详情</span>
-        <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800">
-          <X className="w-4 h-4 text-gray-500" />
+    <div className="absolute right-0 top-0 bottom-0 w-72 max-w-full bg-surfacev2 border-l border-border-hairline shadow-lg z-20 overflow-y-auto">
+      <div className="flex items-center justify-between p-3 border-b border-border-hairline">
+        <span className="text-sm font-semibold text-t1">节点详情</span>
+        <button aria-label="关闭节点详情" onClick={onClose} className="panel-control p-1 rounded hover:bg-hover2">
+          <X className="w-4 h-4 text-t2" />
         </button>
       </div>
-      <div className="p-3 space-y-3">
+      <div className="p-3 space-y-3 break-words [overflow-wrap:anywhere]">
         <div>
-          <label className="text-[10px] uppercase font-semibold text-gray-500">方法名</label>
-          <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{node.name}</p>
+          <label className="text-[13px] uppercase font-semibold text-t2">方法名</label>
+          <p className="text-sm font-medium text-t1">{node.name}</p>
         </div>
         <div>
-          <label className="text-[10px] uppercase font-semibold text-gray-500">类名</label>
-          <p className="text-xs text-gray-600 dark:text-gray-400">{node.className}</p>
+          <label className="text-[13px] uppercase font-semibold text-t2">类名</label>
+          <p className="text-[13px] text-t2">{node.className}</p>
         </div>
         <div>
-          <label className="text-[10px] uppercase font-semibold text-gray-500">层级</label>
+          <label className="text-[13px] uppercase font-semibold text-t2">层级</label>
           <div className="flex items-center gap-1.5 mt-0.5">
             <Icon className="w-3.5 h-3.5" style={{ color: config.color }} />
-            <span className="text-xs text-gray-600 dark:text-gray-400">{config.label}</span>
+            <span className="text-[13px] text-t2">{config.label}</span>
           </div>
         </div>
         <div>
-          <label className="text-[10px] uppercase font-semibold text-gray-500">返回类型</label>
-          <p className="text-xs text-gray-600 dark:text-gray-400 font-mono">{node.returnType}</p>
+          <label className="text-[13px] uppercase font-semibold text-t2">返回类型</label>
+          <p className="text-[13px] text-t2 font-mono">{node.returnType}</p>
         </div>
         {node.parameters.length > 0 && (
           <div>
-            <label className="text-[10px] uppercase font-semibold text-gray-500">参数</label>
+            <label className="text-[13px] uppercase font-semibold text-t2">参数</label>
             <div className="mt-1 space-y-1">
               {node.parameters.map((p, i) => (
-                <div key={i} className="text-xs text-gray-600 dark:text-gray-400 font-mono">
+                <div key={i} className="text-[13px] text-t2 font-mono">
                   {p.name}: {p.type}
-                  {p.annotation && <span className="text-blue-500 ml-1">@{p.annotation}</span>}
+                  {p.annotation && <span className="text-accent2-ink ml-1">@{p.annotation}</span>}
                 </div>
               ))}
             </div>
@@ -342,10 +346,10 @@ function NodeDetailPanel({
         )}
         {node.annotations.length > 0 && (
           <div>
-            <label className="text-[10px] uppercase font-semibold text-gray-500">注解</label>
+            <label className="text-[13px] uppercase font-semibold text-t2">注解</label>
             <div className="mt-1 flex flex-wrap gap-1">
               {node.annotations.map((a, i) => (
-                <span key={i} className="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                <span key={i} className="text-[13px] px-1.5 py-0.5 rounded bg-accent2-soft text-accent2-ink">
                   @{a}
                 </span>
               ))}
@@ -353,13 +357,13 @@ function NodeDetailPanel({
           </div>
         )}
         <div>
-          <label className="text-[10px] uppercase font-semibold text-gray-500">文件</label>
-          <p className="text-xs text-gray-600 dark:text-gray-400 break-all">{node.filePath}</p>
+          <label className="text-[13px] uppercase font-semibold text-t2">文件</label>
+          <p className="text-[13px] text-t2 break-all">{node.filePath}</p>
         </div>
         {node.lineRange.length >= 2 && (
           <div>
-            <label className="text-[10px] uppercase font-semibold text-gray-500">行范围</label>
-            <p className="text-xs text-gray-600 dark:text-gray-400 font-mono">
+            <label className="text-[13px] uppercase font-semibold text-t2">行范围</label>
+            <p className="text-[13px] text-t2 font-mono">
               L{node.lineRange[0]}–{node.lineRange[1]}
             </p>
           </div>
@@ -374,13 +378,13 @@ function NodeDetailPanel({
 function LayerStatsBar({ layers }: { layers: Array<{ layer: string; nodeCount: number; description: string }> }) {
   if (layers.length === 0) return null;
   return (
-    <div className="border-t border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-2 flex items-center gap-4 text-xs flex-shrink-0">
+    <div className="border-t border-[var(--v2-border-hairline)] bg-[var(--v2-bg-surface-2)] px-3 py-2 flex items-center gap-x-4 gap-y-2 flex-wrap text-[13px] flex-shrink-0">
       {layers.map(l => {
         const config = LAYER_CONFIG[l.layer] || LAYER_CONFIG.utility;
         return (
           <span key={l.layer} className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: config.color }} />
-            <span className="text-[var(--text-secondary)]">{config.label}: {l.nodeCount}</span>
+            <span className="text-[var(--v2-text-2)]">{config.label}: {l.nodeCount}</span>
           </span>
         );
       })}
@@ -391,6 +395,7 @@ function LayerStatsBar({ layers }: { layers: Array<{ layer: string; nodeCount: n
 // ── 主图组件（需在 ReactFlowProvider 内） ──
 
 function CodePathTracerInner() {
+  const reduceMotion = useReducedMotion();
   const { fitView } = useReactFlow();
   const pathResult = useCodePathStore(s => s.pathResult);
   const loading = useCodePathStore(s => s.loading);
@@ -455,10 +460,10 @@ function CodePathTracerInner() {
           opacity: connected ? 1 : 0.15,
           strokeWidth: connected ? 2.5 : (e.style?.strokeWidth ?? 1.5),
         },
-        animated: connected,
+        animated: connected && !reduceMotion,
       };
     });
-  }, [edges, hoveredNodeId]);
+  }, [edges, hoveredNodeId, reduceMotion]);
 
   const highlightedNodes = useMemo(() => {
     if (!hoveredNodeId) return nodes;
@@ -502,24 +507,25 @@ function CodePathTracerInner() {
   }, [fetchEndpoints]);
 
   return (
-    <div className="flex flex-col w-full h-full bg-[var(--bg-primary)]">
+    <div className="code-path-tracer flex flex-col w-full h-full bg-[var(--v2-bg-surface)]">
       {/* 顶部：项目路径 + 扫描 */}
-      <div className="flex items-center gap-2 px-3 py-2 border-b border-[var(--border)] flex-shrink-0">
-        <label className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] flex-shrink-0">项目路径</label>
+      <div className="flex items-center gap-2 px-3 py-2 border-b border-[var(--v2-border-hairline)] flex-shrink-0">
+        <label className="text-[13px] uppercase tracking-wider text-[var(--v2-text-2)] flex-shrink-0">项目路径</label>
         <input
           type="text"
           value={projectRoot}
           onChange={e => setProjectRoot(e.target.value)}
+          aria-label="项目路径"
           placeholder="."
-          className="flex-1 px-2 py-1 text-xs rounded border border-[var(--border)]
-            bg-[var(--bg-primary)] text-[var(--text-primary)]
-            placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="panel-control flex-1 min-w-0 px-2 py-1 text-[13px] rounded border border-[var(--v2-border-hairline)]
+            bg-[var(--v2-bg-surface)] text-[var(--v2-text-1)]
+            placeholder:text-[var(--v2-text-2)] focus:outline-none focus:ring-1 focus:ring-accent2"
         />
         <button
           onClick={handleScan}
           disabled={endpointsLoading}
-          className="flex items-center gap-1 px-3 py-1 rounded text-xs font-medium
-            bg-blue-500 text-white hover:bg-blue-600
+          className="panel-control flex items-center gap-1 px-3 py-1 rounded text-[13px] font-medium
+            bg-accent2 text-white hover:brightness-95
             disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {endpointsLoading ? <Loader2 size={12} className="animate-spin" /> : <Play size={12} />}
@@ -529,14 +535,14 @@ function CodePathTracerInner() {
 
       {/* 错误提示 */}
       {error && (
-        <div className="mx-3 mt-2 px-3 py-2 rounded border border-red-500/30 bg-red-500/5 text-xs text-red-500 flex items-center gap-2 flex-shrink-0">
+        <div className="mx-3 mt-2 px-3 py-2 rounded border border-[color:color-mix(in_srgb,var(--v2-err)_30%,transparent)] bg-errsoft text-[13px] text-err flex items-center gap-2 flex-shrink-0">
           <AlertTriangle size={13} />
           {error}
         </div>
       )}
 
       {/* 主内容：左端点列表 + 右流图 */}
-      <div className="flex flex-1 min-h-0">
+      <div className="flex flex-1 min-h-0 max-md:flex-col">
         {/* 左侧端点列表 */}
         <EndpointListPanel
           endpoints={endpoints}
@@ -548,25 +554,25 @@ function CodePathTracerInner() {
         />
 
         {/* 右侧流图区域 */}
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 min-h-0">
           {loading ? (
             <div className="flex-1 flex flex-col items-center justify-center">
-              <Loader2 className="w-8 h-8 text-blue-500 animate-spin mb-3" />
-              <p className="text-sm text-[var(--text-muted)]">正在追踪代码路径...</p>
+              <Loader2 className="w-8 h-8 text-accent2-ink animate-spin mb-3" />
+              <p className="text-sm text-[var(--v2-text-2)]">正在追踪代码路径...</p>
             </div>
           ) : !pathResult ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center p-6">
-              <Network className="w-12 h-12 text-gray-300 dark:text-gray-600 mb-3" />
-              <p className="text-sm text-[var(--text-muted)] font-medium">暂无路径数据</p>
-              <p className="text-xs text-[var(--text-muted)] mt-1 opacity-60">
+              <Network className="w-12 h-12 text-t3 mb-3" />
+              <p className="text-sm text-[var(--v2-text-2)] font-medium">暂无路径数据</p>
+              <p className="text-[13px] text-[var(--v2-text-2)] mt-1">
                 扫描端点后，点击任意端点开始追踪
               </p>
             </div>
           ) : pathResult.nodes.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center p-6">
-              <Network className="w-12 h-12 text-green-300 dark:text-green-600 mb-3" />
-              <p className="text-sm text-[var(--text-muted)] font-medium">未发现调用路径</p>
-              <p className="text-xs text-[var(--text-muted)] mt-1 opacity-60">
+              <Network className="w-12 h-12 text-ok mb-3" />
+              <p className="text-sm text-[var(--v2-text-2)] font-medium">未发现调用路径</p>
+              <p className="text-[13px] text-[var(--v2-text-2)] mt-1">
                 该端点未检测到下游调用链路
               </p>
             </div>
@@ -589,12 +595,12 @@ function CodePathTracerInner() {
                 >
                   <MiniMap
                     nodeStrokeWidth={2}
-                    className="!bg-gray-50 dark:!bg-gray-800"
+                    className="!bg-surface2"
                   />
                   <Background variant={BackgroundVariant.Dots} gap={16} size={1} />
                   <Controls
                     showInteractive={false}
-                    className="!bg-white/90 dark:!bg-gray-800/90 !border-gray-200 dark:!border-gray-700 !shadow-sm"
+                    className="!bg-surfacev2 !border-border-hairline !shadow-sm"
                   />
                 </ReactFlow>
 

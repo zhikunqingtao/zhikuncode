@@ -1,4 +1,7 @@
-import { useEffect, useCallback, useState, Suspense, lazy } from 'react';
+import { useActivityStore } from '@/store/activityStore';
+import { ActivityDecisionStatus } from './ActivityDecisionStatus';
+import { useRef, useState, Suspense, lazy } from 'react';
+import { useModalBehavior } from '@/hooks/useModalBehavior';
 import { createPortal } from 'react-dom';
 import { X, Check, ChevronDown, ChevronRight, FileCode, Terminal } from 'lucide-react';
 import type { ActivityData, RiskAssessment, FileChange } from '@/types/apos';
@@ -31,18 +34,18 @@ interface ToolSectionProps {
 function ToolSection({ title, passed, details, defaultOpen = false }: ToolSectionProps) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="border border-[var(--border)] rounded">
+    <div className="border border-[var(--v2-border-hairline)] rounded">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-[var(--bg-hover)] transition-colors"
+        className="panel-control w-full flex items-center gap-2 px-3 py-2 text-[13px] hover:bg-[var(--v2-bg-hover)] transition-colors"
       >
         {open ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
         <VerificationIcon status={passed ? 'all_pass' : 'has_error'} size={14} />
-        <span className="text-[var(--text-primary)] font-medium">{title}</span>
+        <span className="text-[var(--v2-text-1)] font-medium">{title}</span>
       </button>
       {open && (
         <div className="px-3 pb-2">
-          <pre className="text-xs text-[var(--text-secondary)] whitespace-pre-wrap font-mono bg-[var(--code-bg)] rounded p-2 max-h-[120px] overflow-y-auto">
+          <pre className="panel-code text-[13px] text-[var(--v2-text-2)] whitespace-pre-wrap font-mono bg-[var(--code-bg)] rounded p-2 max-h-[120px] overflow-y-auto">
             {details || 'No details available'}
           </pre>
         </div>
@@ -55,14 +58,14 @@ function DiffFallback({ original, modified }: { original: string; modified: stri
   return (
     <div className="grid grid-cols-2 gap-2">
       <div>
-        <p className="text-xs text-[var(--text-muted)] mb-1">Original</p>
-        <pre className="text-xs text-[var(--text-primary)] font-mono bg-[var(--code-bg)] rounded p-2 max-h-[300px] overflow-auto whitespace-pre-wrap">
+        <p className="text-[13px] text-[var(--v2-text-2)] mb-1">Original</p>
+        <pre className="panel-code text-[13px] text-[var(--v2-text-1)] font-mono bg-[var(--code-bg)] rounded p-2 max-h-[300px] overflow-auto whitespace-pre-wrap">
           {original || '(empty)'}
         </pre>
       </div>
       <div>
-        <p className="text-xs text-[var(--text-muted)] mb-1">Modified</p>
-        <pre className="text-xs text-[var(--text-primary)] font-mono bg-[var(--code-bg)] rounded p-2 max-h-[300px] overflow-auto whitespace-pre-wrap">
+        <p className="text-[13px] text-[var(--v2-text-2)] mb-1">Modified</p>
+        <pre className="panel-code text-[13px] text-[var(--v2-text-1)] font-mono bg-[var(--code-bg)] rounded p-2 max-h-[300px] overflow-auto whitespace-pre-wrap">
           {modified || '(empty)'}
         </pre>
       </div>
@@ -74,7 +77,7 @@ function DiffFallback({ original, modified }: { original: string; modified: stri
 function FileDiffPreview({ file }: { file: FileChange }) {
   if (!file.diffContent) {
     return (
-      <div className="px-3 py-2 text-xs text-[var(--text-muted)] italic">
+      <div className="px-3 py-2 text-[13px] text-[var(--v2-text-2)] italic">
         无预览内容
       </div>
     );
@@ -87,16 +90,16 @@ function FileDiffPreview({ file }: { file: FileChange }) {
   const displayLines = truncated ? lines.slice(0, maxLines) : lines;
 
   return (
-    <div className="bg-[var(--code-bg)] rounded border border-[var(--border)] mt-1 overflow-hidden">
+    <div className="bg-[var(--code-bg)] rounded border border-[var(--v2-border-hairline)] mt-1 overflow-hidden">
       <div className="max-h-[280px] overflow-y-auto overflow-x-auto">
-        <pre className="text-[11px] font-mono leading-[1.6] p-2 m-0">
+        <pre className="panel-code text-[13px] font-mono leading-[1.6] p-2 m-0">
           {displayLines.map((line, i) => {
-            let lineClass = 'text-[var(--text-secondary)]';
-            if (line.startsWith('+ ')) lineClass = 'text-emerald-400 bg-emerald-500/10';
-            else if (line.startsWith('- ')) lineClass = 'text-red-400 bg-red-500/10';
+            let lineClass = 'text-[var(--v2-text-2)]';
+            if (line.startsWith('+ ')) lineClass = 'text-ok bg-oksoft';
+            else if (line.startsWith('- ')) lineClass = 'text-err bg-errsoft';
             return (
               <div key={i} className={`flex ${lineClass}`}>
-                <span className="text-[var(--text-muted)] w-8 text-right mr-2 select-none flex-shrink-0 opacity-50">
+                <span className="text-[var(--v2-text-2)] w-8 text-right mr-2 select-none flex-shrink-0 opacity-50">
                   {i + 1}
                 </span>
                 <span className="whitespace-pre">{line}</span>
@@ -106,7 +109,7 @@ function FileDiffPreview({ file }: { file: FileChange }) {
         </pre>
       </div>
       {truncated && (
-        <div className="px-3 py-1 text-[10px] text-[var(--text-muted)] border-t border-[var(--border)] bg-[var(--bg-secondary)]">
+        <div className="px-3 py-1 text-[13px] text-[var(--v2-text-2)] border-t border-[var(--v2-border-hairline)] bg-[var(--v2-bg-sunken)]">
           … 剩余 {lines.length - maxLines} 行未显示
         </div>
       )}
@@ -130,42 +133,37 @@ function CommandOutputViewer({ output, isError, command, metadata }: CommandOutp
   const exitCode = metadata?.exitCode as number | undefined;
 
   return (
-    <div className="rounded-lg overflow-hidden border border-[var(--border-primary)]">
+    <div className="rounded-[14px] overflow-hidden border border-hairline">
       {/* 终端标题栏 */}
-      <div className="flex items-center gap-2 px-3 py-2 bg-[var(--bg-tertiary)] border-b border-[var(--border-primary)]">
-        <div className="flex gap-1.5">
-          <span className="w-3 h-3 rounded-full bg-red-500/80"></span>
-          <span className="w-3 h-3 rounded-full bg-yellow-500/80"></span>
-          <span className="w-3 h-3 rounded-full bg-green-500/80"></span>
-        </div>
+      <div className="flex items-center gap-2 px-3 py-2 bg-sunken2 border-b border-hairline">
         {command && (
-          <span className="text-xs font-mono text-[var(--text-muted)] ml-2 truncate max-w-[60%]">
+          <span className="text-[13px] font-mono text-[var(--v2-text-2)] ml-2 truncate max-w-[60%]">
             $ {command}
           </span>
         )}
         {isError ? (
-          <span className="ml-auto text-xs text-red-400 font-medium flex items-center gap-1">
+          <span className="ml-auto text-[13px] text-err font-medium flex items-center gap-1">
             <Terminal size={12} />
             {exitCode !== undefined ? `EXIT ${exitCode}` : 'EXIT ERROR'}
           </span>
         ) : (
-          <span className="ml-auto text-xs text-green-400 font-medium flex items-center gap-1">
+          <span className="ml-auto text-[13px] text-ok font-medium flex items-center gap-1">
             <Terminal size={12} />
             {exitCode !== undefined ? `EXIT ${exitCode}` : 'EXIT 0'}
           </span>
         )}
       </div>
       {/* 终端内容区 */}
-      <div className="bg-[#1a1b26] p-3 overflow-x-auto max-h-[400px] overflow-y-auto">
-        <pre className="text-xs font-mono leading-5 whitespace-pre-wrap m-0">
+      <div className="bg-sunken2 p-3 overflow-x-auto max-h-[400px] overflow-y-auto">
+        <pre className="panel-code text-[13px] font-mono leading-5 whitespace-pre-wrap m-0">
           {displayLines.map((line, i) => (
-            <div key={i} className={isError ? 'text-red-300' : 'text-gray-200'}>
+            <div key={i} className={isError ? 'text-err' : 'text-t1'}>
               {line || '\u00A0'}
             </div>
           ))}
         </pre>
         {truncated && (
-          <div className="text-xs text-yellow-400 mt-2 pt-2 border-t border-gray-700">
+          <div className="text-[13px] text-warnstrong dark:text-warn mt-2 pt-2 border-t border-hairline">
             ... 输出已截断（共 {lines.length} 行，仅显示前 {maxLines} 行）
           </div>
         )}
@@ -187,26 +185,26 @@ function FileListWithDiff({ files }: { files: FileChange[] }) {
           <div key={file.filePath}>
             <div
               onClick={() => setExpandedFile(isExpanded ? null : file.filePath)}
-              className={`flex items-center gap-2 px-2 py-1.5 rounded text-xs cursor-pointer transition-colors ${
-                isExpanded ? 'bg-[var(--bg-hover)]' : 'hover:bg-[var(--bg-hover)]'
+              className={`flex items-center gap-2 px-2 py-1.5 rounded text-[13px] cursor-pointer transition-colors ${
+                isExpanded ? 'bg-[var(--v2-bg-hover)]' : 'hover:bg-[var(--v2-bg-hover)]'
               }`}
             >
               {hasDiff ? (
                 isExpanded
-                  ? <ChevronDown size={12} className="text-[var(--text-muted)] flex-shrink-0" />
-                  : <ChevronRight size={12} className="text-[var(--text-muted)] flex-shrink-0" />
+                  ? <ChevronDown size={12} className="text-[var(--v2-text-2)] flex-shrink-0" />
+                  : <ChevronRight size={12} className="text-[var(--v2-text-2)] flex-shrink-0" />
               ) : (
-                <FileCode size={12} className="text-[var(--text-muted)] flex-shrink-0" />
+                <FileCode size={12} className="text-[var(--v2-text-2)] flex-shrink-0" />
               )}
-              <span className="text-[var(--text-primary)] font-mono truncate flex-1">
+              <span className="text-[var(--v2-text-1)] font-mono truncate flex-1">
                 {file.filePath}
               </span>
-              <span className="text-green-400">+{file.additions}</span>
-              <span className="text-red-400">-{file.deletions}</span>
-              <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                file.changeType === 'added' ? 'bg-green-500/20 text-green-300' :
-                file.changeType === 'deleted' ? 'bg-red-500/20 text-red-300' :
-                'bg-blue-500/20 text-blue-300'
+              <span className="text-ok">+{file.additions}</span>
+              <span className="text-err">-{file.deletions}</span>
+              <span className={`px-1.5 py-0.5 rounded text-[13px] font-medium ${
+                file.changeType === 'added' ? 'bg-oksoft text-ok' :
+                file.changeType === 'deleted' ? 'bg-errsoft text-err' :
+                'bg-accent2-soft text-accent2-ink'
               }`}>
                 {file.changeType ?? 'modified'}
               </span>
@@ -226,21 +224,9 @@ export function ActivityCardL3({
   onApprove,
   onReject,
 }: ActivityCardL3Props) {
-  const handleEscape = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    },
-    [onClose]
-  );
-
-  useEffect(() => {
-    document.addEventListener('keydown', handleEscape);
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = '';
-    };
-  }, [handleEscape]);
+  const decisionPending = useActivityStore(s => s.decisionRequests.get(activity.id)?.pending ?? false);
+  const panelRef = useRef<HTMLDivElement>(null);
+  useModalBehavior(true, panelRef, onClose);
 
   // 从 messageStore 获取 toolCall result（备用降级）
   const toolCallResult = useMessageStore((state) => {
@@ -268,17 +254,18 @@ export function ActivityCardL3({
       />
 
       {/* Panel */}
-      <div className="relative z-40 w-full max-w-[900px] max-h-[80vh] bg-[var(--bg-primary)] rounded-lg border border-[var(--border)] shadow-2xl flex flex-col mx-4">
+      <div ref={panelRef} role="dialog" aria-modal="true" aria-label={activity.summary} tabIndex={-1} className="relative z-40 w-full max-w-[900px] max-h-[calc(100dvh-32px)] bg-[var(--v2-bg-surface)] rounded-[22px] border border-[var(--v2-border-hairline)] shadow-2xl flex flex-col mx-4">
         {/* Header */}
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-[var(--border)] flex-shrink-0">
+        <div className="flex items-center gap-3 px-5 py-4 border-b border-[var(--v2-border-hairline)] flex-shrink-0">
           <OperationIcon type={activity.operationType} size={20} />
-          <h2 className="text-sm font-medium text-[var(--text-primary)] flex-1 truncate">
+          <h2 className="text-[var(--v2-text-1)] flex-1 truncate text-xl font-semibold">
             {activity.summary}
           </h2>
           <SignalBadge signal={signal} size="md" reason={assessment?.reason} />
           <button
             onClick={onClose}
-            className="p-1.5 rounded hover:bg-[var(--bg-hover)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+            aria-label="关闭详情"
+            className="panel-control p-1.5 rounded hover:bg-[var(--v2-bg-hover)] text-[var(--v2-text-2)] hover:text-[var(--v2-text-1)] transition-colors"
           >
             <X size={18} />
           </button>
@@ -289,7 +276,7 @@ export function ActivityCardL3({
           {/* 命令执行类：显示命令输出 */}
           {activity.operationType === 'command_execute' && resultData && (
             <section>
-              <h3 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-2">
+              <h3 className="text-[var(--v2-text-2)] uppercase tracking-wide mb-2 text-base font-semibold">
                 命令输出
               </h3>
               <CommandOutputViewer
@@ -304,11 +291,11 @@ export function ActivityCardL3({
           {/* 命令执行但无结果（尚未完成） */}
           {activity.operationType === 'command_execute' && !resultData && (
             <section>
-              <h3 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-2">
+              <h3 className="text-[var(--v2-text-2)] uppercase tracking-wide mb-2 text-base font-semibold">
                 命令输出
               </h3>
-              <div className="flex items-center gap-2 text-sm text-[var(--text-muted)] py-4">
-                <div className="w-4 h-4 border-2 border-[var(--text-muted)] border-t-transparent rounded-full animate-spin"></div>
+              <div className="flex items-center gap-2 text-sm text-[var(--v2-text-2)] py-4">
+                <div className="w-4 h-4 border-2 border-[var(--v2-text-2)] border-t-transparent rounded-full animate-spin"></div>
                 等待命令执行完成...
               </div>
             </section>
@@ -317,7 +304,7 @@ export function ActivityCardL3({
           {/* 文件操作类：显示变更文件列表 */}
           {activity.changedFiles.length > 0 && (
             <section>
-              <h3 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-2">
+              <h3 className="text-[var(--v2-text-2)] uppercase tracking-wide mb-2 text-base font-semibold">
                 变更文件列表
               </h3>
               <FileListWithDiff files={activity.changedFiles} />
@@ -327,17 +314,17 @@ export function ActivityCardL3({
           {/* 非命令执行且无文件变更时显示空状态 */}
           {activity.operationType !== 'command_execute' && activity.changedFiles.length === 0 && (
             <section>
-              <h3 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-2">
+              <h3 className="text-[var(--v2-text-2)] uppercase tracking-wide mb-2 text-base font-semibold">
                 变更文件列表
               </h3>
-              <div className="text-sm text-[var(--text-muted)] py-2">无文件变更</div>
+              <div className="text-sm text-[var(--v2-text-2)] py-2">无文件变更</div>
             </section>
           )}
 
           {/* Verification Logs */}
           {assessment && (
             <section>
-              <h3 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-2">
+              <h3 className="text-[var(--v2-text-2)] uppercase tracking-wide mb-2 text-base font-semibold">
                 验证日志
               </h3>
               <div className="space-y-1.5">
@@ -363,7 +350,7 @@ export function ActivityCardL3({
           {/* Diff Preview */}
           {activity.originalContent != null && activity.modifiedContent != null && (
             <section>
-              <h3 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-2">
+              <h3 className="text-[var(--v2-text-2)] uppercase tracking-wide mb-2 text-base font-semibold">
                 Diff 预览
               </h3>
               {hasMonaco ? (
@@ -375,7 +362,7 @@ export function ActivityCardL3({
                     />
                   }
                 >
-                  <div className="h-[300px] border border-[var(--border)] rounded overflow-hidden">
+                  <div className="h-[300px] border border-[var(--v2-border-hairline)] rounded overflow-hidden">
                     <MonacoDiffEditor
                       original={activity.originalContent}
                       modified={activity.modifiedContent}
@@ -403,12 +390,13 @@ export function ActivityCardL3({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center gap-2 px-5 py-3 border-t border-[var(--border)] flex-shrink-0">
+        <div className="flex items-center gap-2 px-5 py-3 border-t border-[var(--v2-border-hairline)] flex-shrink-0">
+          <ActivityDecisionStatus id={activity.id} />
           {activity.decision ? (
-            <span className={`inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium rounded ${
+            <span className={`inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-medium rounded ${
               activity.decision === 'approved'
-                ? 'bg-green-600/10 text-green-400/70'
-                : 'bg-red-600/10 text-red-400/70'
+                ? 'bg-[color:color-mix(in_srgb,var(--v2-accent-strong)_10%,transparent)] text-ok'
+                : 'bg-errsoft text-err'
             }`}>
               {activity.decision === 'approved' ? (
                 <><Check size={14} /> 已批准 ✓</>
@@ -417,13 +405,13 @@ export function ActivityCardL3({
               )}
             </span>
           ) : activity.insight?.signal === 'auto_approve' ? (
-            <span className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded bg-gray-600/10 text-gray-400">
+            <span className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded bg-sunken2 text-t2">
               <Check size={16} /> 已自动放行
             </span>
           ) : (
             (() => {
               // 统一三重禁用判定（与 L2 保持一致）
-              const isDisabled = computeButtonDisabled(activity, !!resultData);
+              const isDisabled = decisionPending || computeButtonDisabled(activity, !!resultData);
               const disabledClass = isDisabled
                 ? 'opacity-40 cursor-not-allowed pointer-events-none'
                 : '';
@@ -432,7 +420,7 @@ export function ActivityCardL3({
                   <button
                     onClick={onApprove}
                     disabled={isDisabled}
-                    className={`inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium rounded bg-green-600/20 text-green-300 hover:bg-green-600/30 transition-colors ${disabledClass}`}
+                    className={`panel-control inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-medium rounded bg-[color:color-mix(in_srgb,var(--v2-accent-strong)_20%,transparent)] text-ok hover:bg-[color:color-mix(in_srgb,var(--v2-accent-strong)_30%,transparent)] transition-colors ${disabledClass}`}
                     title={isDisabled ? '等待文件变更数据或验证完成' : '批准此操作'}
                   >
                     <Check size={14} /> 批准
@@ -440,7 +428,7 @@ export function ActivityCardL3({
                   <button
                     onClick={onReject}
                     disabled={isDisabled}
-                    className={`inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium rounded bg-red-600/20 text-red-300 hover:bg-red-600/30 transition-colors ${disabledClass}`}
+                    className={`panel-control inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-medium rounded bg-errsoft text-err hover:bg-errsoft transition-colors ${disabledClass}`}
                     title={isDisabled ? '等待文件变更数据或验证完成' : '拒绝此操作'}
                   >
                     <X size={14} /> 拒绝
@@ -448,7 +436,7 @@ export function ActivityCardL3({
                   <button
                     disabled
                     title="Phase 2 功能"
-                    className="px-3 py-1.5 text-xs rounded bg-zinc-700 text-zinc-500 cursor-not-allowed opacity-50"
+                    className="panel-control px-3 py-1.5 text-[13px] rounded bg-zinc-700 text-t3 cursor-not-allowed opacity-50"
                   >
                     应用建议
                   </button>
@@ -458,7 +446,8 @@ export function ActivityCardL3({
           )}
           <button
             onClick={onClose}
-            className="ml-auto inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium rounded bg-gray-600/20 text-[var(--text-secondary)] hover:bg-gray-600/30 transition-colors"
+            aria-label="关闭详情"
+            className="panel-control ml-auto inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-medium rounded bg-sunken2 text-[var(--v2-text-2)] hover:bg-sunken2 transition-colors"
           >
             关闭
           </button>

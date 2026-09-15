@@ -56,7 +56,7 @@ export const AssistantBlockRenderer: React.FC<AssistantBlockRendererProps> = ({ 
             return <ImageBlock base64Data={block.base64Data} src={block.url} mediaType={block.mediaType} />;
         case 'server_tool_use':
             return (
-                <div className="text-xs text-t4 italic my-1">
+                <div className="text-[13px] text-t4 italic my-1">
                     Server tool: {block.toolName}
                 </div>
             );

@@ -513,11 +513,15 @@ export function useAPOSInitialization(): void {
             // 需要验证的操作（文件编辑/创建/删除等）→ 'pending'，显示 spinner
             // 不需要验证的操作（command_execute/test_run/unknown）→ 'skipped'，不显示 spinner
             const needsVerification = NEEDS_VERIFICATION_OPS.includes(operationType);
+            const defaultSignal = inferDefaultSignal(operationType);
+            const shouldAutoApprove = defaultSignal === 'auto_approve'
+              && useInsightStore.getState().autoApproveEnabled;
 
             // 决定初始 decision:
             // - 已被用户批准（在 PermissionDialog 中点击“允许”）→ 'approved'
             // - 工具成功执行且未被拒绝，属于写入操作 → 'approved'（成功执行意味着已被批准）
-            // - 其他情况 → undefined（由 UI 根据 signal 显示“已自动放行”）
+            // - 符合自动放行策略 → 随 Activity 一次性持久化为 approved
+            // - 其他情况 → undefined
             let initialDecision: 'approved' | 'rejected' | undefined;
             if (isDenied) {
               initialDecision = 'rejected';
@@ -528,6 +532,8 @@ export function useAPOSInitialization(): void {
               WRITE_OPS.includes(operationType)
             ) {
               // 写入操作成功完成，必然已被批准（用户批准或系统自动放行）
+              initialDecision = 'approved';
+            } else if (shouldAutoApprove) {
               initialDecision = 'approved';
             }
 
@@ -550,8 +556,8 @@ export function useAPOSInitialization(): void {
                 },
               }),
               insight: {
-                signal: inferDefaultSignal(operationType),
-                riskLevel: signalToRiskLevel(inferDefaultSignal(operationType)),
+                signal: defaultSignal,
+                riskLevel: signalToRiskLevel(defaultSignal),
                 summary: !needsVerification
                   ? '只读/命令操作，无需验证'
                   : '等待验证或人工审查',
@@ -565,18 +571,6 @@ export function useAPOSInitialization(): void {
 
             // 同步到后端持久化
             saveActivity(activity);
-
-            // 只读/无害操作直接自动审批（signal 已为 auto_approve 且 feature flag 开启）
-            if (
-              activity.insight?.signal === 'auto_approve' &&
-              useInsightStore.getState().autoApproveEnabled
-            ) {
-              const current = useActivityStore.getState().activities.get(activity.id);
-              if (current && current.decision === undefined) {
-                useActivityStore.getState().approveActivity(activity.id);
-                console.log('[APOS] Auto-approved read-only activity:', activity.id);
-              }
-            }
 
             // 写入类操作 → 异步触发后端验证（不阻塞 UI）
             if (

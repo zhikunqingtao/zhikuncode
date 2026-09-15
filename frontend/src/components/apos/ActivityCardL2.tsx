@@ -1,3 +1,5 @@
+import { useActivityStore } from '@/store/activityStore';
+import { ActivityDecisionStatus } from './ActivityDecisionStatus';
 import { Check, X, ArrowRight, Loader2 } from 'lucide-react';
 import type { ActivityData, RiskAssessment } from '@/types/apos';
 import { computeButtonDisabled } from '@/types/apos';
@@ -13,9 +15,9 @@ interface ActivityCardL2Props {
 }
 
 const IMPACT_BADGE_COLORS: Record<string, string> = {
-  direct: 'bg-red-500/20 text-red-300',
-  indirect: 'bg-yellow-500/20 text-yellow-300',
-  potential: 'bg-blue-500/20 text-blue-300',
+  direct: 'bg-errsoft text-err',
+  indirect: 'bg-warnsoft text-warnstrong dark:text-warn',
+  potential: 'bg-accent2-soft text-accent2-ink dark:text-accent2-ink',
 };
 
 export function ActivityCardL2({
@@ -26,18 +28,19 @@ export function ActivityCardL2({
   onReject,
   onViewDetails,
 }: ActivityCardL2Props) {
+  const decisionPending = useActivityStore(s => s.decisionRequests.get(activity.id)?.pending ?? false);
   return (
-    <div className="expand-collapse" data-open={isVisible}>
+    <div className="expand-collapse" data-open={isVisible} {...(!isVisible ? { inert: '' } : {})}>
       <div className="expand-collapse-inner">
-        <div className={`px-4 py-3 bg-[var(--bg-secondary)] space-y-3 ${isVisible ? 'border-b border-[var(--border)]' : ''}`}>
+        <div className={`px-4 py-3 bg-[var(--v2-bg-sunken)] space-y-3 ${isVisible ? 'border-b border-[var(--v2-border-hairline)]' : ''}`}>
             {/* Loading state when verification in progress */}
             {!assessment && activity.insight?.verificationStatus === 'pending' && (
               <div className="space-y-2">
-                <h4 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide">
+                <h4 className="text-[13px] font-semibold text-[var(--v2-text-2)] uppercase tracking-wide">
                   确定性验证
                 </h4>
-                <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
-                  <Loader2 size={14} className="animate-spin text-blue-400" />
+                <div className="flex items-center gap-2 text-[13px] text-[var(--v2-text-2)]">
+                  <Loader2 size={14} className="animate-spin text-accent2-ink dark:text-accent2-ink" />
                   <span>验证进行中...</span>
                 </div>
               </div>
@@ -46,29 +49,29 @@ export function ActivityCardL2({
             {/* Deterministic Verification Results */}
             {assessment && (
               <div className="space-y-2">
-                <h4 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide">
+                <h4 className="text-[13px] font-semibold text-[var(--v2-text-2)] uppercase tracking-wide">
                   确定性验证
                 </h4>
                 <div className="grid grid-cols-3 gap-2">
                   {/* TypeScript Check */}
-                  <div className="flex items-center gap-1.5 text-xs">
+                  <div className="flex items-center gap-1.5 text-[13px]">
                     <VerificationIcon
                       status={assessment.deterministic.typeCheck.passed ? 'all_pass' : 'has_error'}
                       size={14}
                     />
-                    <span className="text-[var(--text-primary)]">tsc</span>
+                    <span className="text-[var(--v2-text-1)]">tsc</span>
                     {assessment.deterministic.typeCheck.errorCount > 0 && (
-                      <span className="text-red-400">
+                      <span className="text-err">
                         {assessment.deterministic.typeCheck.errorCount} 错误
                       </span>
                     )}
                     {assessment.deterministic.typeCheck.passed && (
-                      <span className="text-green-400">通过</span>
+                      <span className="text-ok">通过</span>
                     )}
                   </div>
 
                   {/* ESLint Check */}
-                  <div className="flex items-center gap-1.5 text-xs">
+                  <div className="flex items-center gap-1.5 text-[13px]">
                     <VerificationIcon
                       status={
                         assessment.deterministic.lint.errorCount > 0
@@ -79,20 +82,20 @@ export function ActivityCardL2({
                       }
                       size={14}
                     />
-                    <span className="text-[var(--text-primary)]">eslint</span>
+                    <span className="text-[var(--v2-text-1)]">eslint</span>
                     {assessment.deterministic.lint.errorCount > 0 && (
-                      <span className="text-red-400">{assessment.deterministic.lint.errorCount} 错误</span>
+                      <span className="text-err">{assessment.deterministic.lint.errorCount} 错误</span>
                     )}
                     {assessment.deterministic.lint.warningCount > 0 && assessment.deterministic.lint.errorCount === 0 && (
-                      <span className="text-yellow-400">{assessment.deterministic.lint.warningCount} 警告</span>
+                      <span className="text-warnstrong dark:text-warn">{assessment.deterministic.lint.warningCount} 警告</span>
                     )}
                     {assessment.deterministic.lint.passed && assessment.deterministic.lint.warningCount === 0 && (
-                      <span className="text-green-400">通过</span>
+                      <span className="text-ok">通过</span>
                     )}
                   </div>
 
                   {/* Test Check */}
-                  <div className="flex items-center gap-1.5 text-xs">
+                  <div className="flex items-center gap-1.5 text-[13px]">
                     <VerificationIcon
                       status={
                         assessment.deterministic.tests.failedCount > 0
@@ -103,8 +106,8 @@ export function ActivityCardL2({
                       }
                       size={14}
                     />
-                    <span className="text-[var(--text-primary)]">test</span>
-                    <span className={assessment.deterministic.tests.failedCount > 0 ? 'text-red-400' : 'text-green-400'}>
+                    <span className="text-[var(--v2-text-1)]">test</span>
+                    <span className={assessment.deterministic.tests.failedCount > 0 ? 'text-err' : 'text-ok'}>
                       {assessment.deterministic.tests.passedCount}/{assessment.deterministic.tests.passedCount + assessment.deterministic.tests.failedCount}
                     </span>
                   </div>
@@ -115,13 +118,13 @@ export function ActivityCardL2({
             {/* Heuristic Analysis */}
             {assessment && (
               <div className="space-y-1.5">
-                <h4 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide">
+                <h4 className="text-[13px] font-semibold text-[var(--v2-text-2)] uppercase tracking-wide">
                   启发式分析
                 </h4>
-                <div className="flex gap-4 text-xs text-[var(--text-secondary)]">
-                  <span>影响 API: <strong className="text-[var(--text-primary)]">{assessment.heuristic.affectedApiCount}</strong></span>
-                  <span>间接文件: <strong className="text-[var(--text-primary)]">{assessment.heuristic.indirectImpactCount}</strong></span>
-                  <span>置信度: <strong className={assessment.heuristic.hasHighConfidenceImpact ? 'text-yellow-500 dark:text-yellow-300' : 'text-[var(--text-primary)]'}>
+                <div className="flex gap-4 text-[13px] text-[var(--v2-text-2)]">
+                  <span>影响 API: <strong className="text-[var(--v2-text-1)]">{assessment.heuristic.affectedApiCount}</strong></span>
+                  <span>间接文件: <strong className="text-[var(--v2-text-1)]">{assessment.heuristic.indirectImpactCount}</strong></span>
+                  <span>置信度: <strong className={assessment.heuristic.hasHighConfidenceImpact ? 'text-warnstrong dark:text-warn' : 'text-[var(--v2-text-1)]'}>
                     {assessment.heuristic.hasHighConfidenceImpact ? '高' : '低'}
                   </strong></span>
                 </div>
@@ -130,22 +133,22 @@ export function ActivityCardL2({
 
             {/* Affected Files (first 3) */}
             <div className="space-y-1.5">
-              <h4 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide">
+              <h4 className="text-[13px] font-semibold text-[var(--v2-text-2)] uppercase tracking-wide">
                 受影响文件
               </h4>
               <div className="space-y-1">
                 {activity.changedFiles.slice(0, 3).map((file) => (
-                  <div key={file.filePath} className="flex items-center gap-2 text-xs">
-                    <span className="text-[var(--text-primary)] truncate flex-1 font-mono">
+                  <div key={file.filePath} className="flex items-center gap-2 text-[13px]">
+                    <span className="text-[var(--v2-text-1)] truncate flex-1 font-mono">
                       {file.filePath}
                     </span>
-                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${IMPACT_BADGE_COLORS[file.changeType === 'added' ? 'direct' : file.changeType === 'modified' ? 'direct' : 'potential'] ?? IMPACT_BADGE_COLORS.direct}`}>
+                    <span className={`px-1.5 py-0.5 rounded text-[13px] font-medium ${IMPACT_BADGE_COLORS[file.changeType === 'added' ? 'direct' : file.changeType === 'modified' ? 'direct' : 'potential'] ?? IMPACT_BADGE_COLORS.direct}`}>
                       {file.changeType ?? 'modified'}
                     </span>
                   </div>
                 ))}
                 {activity.changedFiles.length > 3 && (
-                  <p className="text-xs text-[var(--text-muted)]">
+                  <p className="text-[13px] text-[var(--v2-text-2)]">
                     +{activity.changedFiles.length - 3} 个文件...
                   </p>
                 )}
@@ -154,11 +157,12 @@ export function ActivityCardL2({
 
             {/* Action Buttons */}
             <div className="flex items-center gap-2 pt-1">
-              {activity.decision ? (
-                <span className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded ${
+              <ActivityDecisionStatus id={activity.id} />
+          {activity.decision ? (
+                <span className={`inline-flex items-center gap-1 px-3 py-1.5 text-[13px] font-medium rounded ${
                   activity.decision === 'approved'
-                    ? 'bg-green-600/10 text-green-400/70'
-                    : 'bg-red-600/10 text-red-400/70'
+                    ? 'bg-[color:color-mix(in_srgb,var(--v2-accent-strong)_10%,transparent)] text-ok'
+                    : 'bg-errsoft text-err'
                 }`}>
                   {activity.decision === 'approved' ? (
                     <><Check size={12} /> 已批准 ✓</>
@@ -167,14 +171,14 @@ export function ActivityCardL2({
                   )}
                 </span>
               ) : activity.insight?.signal === 'auto_approve' ? (
-                <span className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded bg-gray-600/10 text-gray-400">
+                <span className="inline-flex items-center gap-1 px-3 py-1.5 text-[13px] font-medium rounded bg-sunken2 text-t2">
                   <Check size={12} /> 已自动放行
                 </span>
               ) : (
                 <>
                   {(() => {
                     // 统一三重禁用判定（与 L3 保持一致）
-                    const isDisabled = computeButtonDisabled(activity);
+                    const isDisabled = decisionPending || computeButtonDisabled(activity);
                     const disabledClass = isDisabled
                       ? 'opacity-40 cursor-not-allowed pointer-events-none'
                       : '';
@@ -183,7 +187,7 @@ export function ActivityCardL2({
                         <button
                           onClick={(e) => { e.stopPropagation(); onApprove(); }}
                           disabled={isDisabled}
-                          className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded bg-green-600/20 text-green-300 hover:bg-green-600/30 transition-colors ${disabledClass}`}
+                          className={`panel-control inline-flex items-center gap-1 px-3 py-1.5 text-[13px] font-medium rounded bg-oksoft text-ok hover:bg-hover2 transition-colors ${disabledClass}`}
                           title={isDisabled ? '等待文件变更数据或验证完成' : '批准此操作'}
                         >
                           <Check size={12} /> 批准
@@ -191,7 +195,7 @@ export function ActivityCardL2({
                         <button
                           onClick={(e) => { e.stopPropagation(); onReject(); }}
                           disabled={isDisabled}
-                          className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded bg-red-600/20 text-red-300 hover:bg-red-600/30 transition-colors ${disabledClass}`}
+                          className={`panel-control inline-flex items-center gap-1 px-3 py-1.5 text-[13px] font-medium rounded bg-errsoft text-err hover:bg-hover2 transition-colors ${disabledClass}`}
                           title={isDisabled ? '等待文件变更数据或验证完成' : '拒绝此操作'}
                         >
                           <X size={12} /> 拒绝
@@ -203,7 +207,7 @@ export function ActivityCardL2({
               )}
               <button
                 onClick={(e) => { e.stopPropagation(); onViewDetails(); }}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded bg-gray-600/20 text-[var(--text-secondary)] hover:bg-gray-600/30 transition-colors ml-auto"
+                className="panel-control inline-flex items-center gap-1 px-3 py-1.5 text-[13px] font-medium rounded bg-sunken2 text-[var(--v2-text-2)] hover:bg-hover2 transition-colors ml-auto"
               >
                 详情 <ArrowRight size={12} />
               </button>

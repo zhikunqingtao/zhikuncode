@@ -98,16 +98,45 @@ const MessageList = React.forwardRef<MessageListHandle, { keyboardHeight?: numbe
     // §7.6 移动态：消息流底部 96px 渐隐遮罩（仅移动渲染，桌面零变化）
     const { isMobile } = useResponsive();
 
-    // §7.6 滚底 API（behavior:'auto' 一帧到位，避免与键盘/容器动画竞争）
-    useImperativeHandle(ref, () => ({
-        scrollToBottom: () => {
-            virtuosoRef.current?.scrollToIndex({ index: 'LAST', align: 'end', behavior: 'auto' });
-            // scrollToIndex 以估算行高定位末项，未测高行会欠冲；
-            // 用 scroller 真实几何强制抵底，保证「弹起滚底」语义当帧确定落地
-            const scroller = scrollerRef.current;
-            if (scroller) scroller.scrollTop = scroller.scrollHeight - scroller.clientHeight;
-        },
-    }), []);
+    // Virtual rows can change height after the last index is mounted. Follow that
+    // one explicit jump until geometry settles; any user scroll cancels it.
+    const latestTurnIndex = useRef(0);
+    const cancelLatestJump = useRef<() => void>(() => {});
+    useEffect(() => () => cancelLatestJump.current(), []);
+    const jumpToLatest = useCallback(() => {
+        cancelLatestJump.current();
+        const scroller = scrollerRef.current;
+        if (!scroller) return;
+        let frame = 0, attempts = 0, stableFrames = 0, previousHeight = -1;
+        const cancel = () => {
+            cancelAnimationFrame(frame);
+            scroller.removeEventListener('wheel', cancel);
+            scroller.removeEventListener('touchstart', cancel);
+            scroller.removeEventListener('pointerdown', cancel);
+            scroller.removeEventListener('keydown', cancel);
+        };
+        cancelLatestJump.current = cancel;
+        scroller.addEventListener('wheel', cancel, { passive: true });
+        scroller.addEventListener('touchstart', cancel, { passive: true });
+        scroller.addEventListener('pointerdown', cancel);
+        scroller.addEventListener('keydown', cancel);
+        virtuosoRef.current?.scrollToIndex({ index: 'LAST', align: 'end', behavior: 'auto' });
+        const settle = () => {
+            const height = scroller.scrollHeight;
+            const lastMounted = scroller.querySelector(`[data-turn-index="${latestTurnIndex.current}"]`);
+            const lastRect = lastMounted?.getBoundingClientRect();
+            const viewport = scroller.getBoundingClientRect();
+            const footerHeight = scroller.querySelector('.glass-chat-spacer')?.getBoundingClientRect().height ?? 0;
+            const inPlace = lastRect && lastRect.bottom > viewport.top && lastRect.bottom <= viewport.bottom - footerHeight + 2;
+            stableFrames = inPlace && height === previousHeight ? stableFrames + 1 : 0;
+            previousHeight = height;
+            if (!inPlace) virtuosoRef.current?.scrollToIndex({ index: 'LAST', align: 'end', behavior: 'auto', offset: footerHeight });
+            if (++attempts < 60 && stableFrames < 5) frame = requestAnimationFrame(settle);
+            else cancel();
+        };
+        frame = requestAnimationFrame(settle);
+    }, []);
+    useImperativeHandle(ref, () => ({ scrollToBottom: jumpToLatest }), [jumpToLatest]);
 
     // Subscribe to store slices
     const messages = useMessageStore(s => s.messages);
@@ -131,6 +160,8 @@ const MessageList = React.forwardRef<MessageListHandle, { keyboardHeight?: numbe
         }),
         [messages, steeringIds],
     );
+    latestTurnIndex.current = turns.at(-1)?.index ?? 0;
+    useEffect(() => () => cancelLatestJump.current(), [sessionId]);
     const density = useTurnViewStore(s => s.density);
     const navigationSignature = JSON.stringify(buildTurnNavigation(turns));
     const navigationEntries = useMemo(() => JSON.parse(navigationSignature) as ReturnType<typeof buildTurnNavigation>, [navigationSignature]);
@@ -248,12 +279,12 @@ const MessageList = React.forwardRef<MessageListHandle, { keyboardHeight?: numbe
     // 「回到最新」胶囊显隐：atBottom 追踪
     const [atBottom, setAtBottom] = useState(true);
 
-    // 「回到最新」：平滑滚底；滚动到位后 atBottomStateChange(true) 使
+    // 「回到最新」：精确定位末项并计入输入区留白；到位后 atBottomStateChange(true) 使
     // followOutput(isAtBottom=true) 重新成立，跟随语义自动恢复（无需额外状态接管）
     const handleBackToLatest = useCallback(() => {
         navigation.cancelNavigation();
-        virtuosoRef.current?.scrollToIndex({ index: 'LAST', align: 'end', behavior: 'smooth' });
-    }, [navigation.cancelNavigation]);
+        jumpToLatest();
+    }, [navigation.cancelNavigation, jumpToLatest]);
 
     // 每个 Virtuoso item = 一张 TurnCard（三层模型；密度/展开态由 TurnCard 自订阅）
     const turnItemContent = useCallback((_index: number, turn: Turn) => (
@@ -349,11 +380,11 @@ const MessageList = React.forwardRef<MessageListHandle, { keyboardHeight?: numbe
 // ==================== Empty State ====================
 
 const EmptyState: React.FC = () => (
-    <div className="flex-1 flex items-center justify-center text-gray-500">
+    <div className="flex-1 flex items-center justify-center text-t2">
         <div className="text-center">
             <div className="text-4xl mb-3">💬</div>
             <div className="text-sm">Start a conversation</div>
-            <div className="text-xs text-gray-600 mt-1">
+            <div className="text-[13px] text-t2 mt-1">
                 Type a message or use / for commands
             </div>
         </div>

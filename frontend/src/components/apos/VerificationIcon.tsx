@@ -11,12 +11,12 @@ const STATUS_MAP: Record<
   VerificationStatus,
   { Icon: LucideIcon; color: string; animate?: boolean }
 > = {
-  all_pass: { Icon: CheckCircle, color: 'text-green-400' },
-  has_error: { Icon: XCircle, color: 'text-red-400' },
-  has_warning: { Icon: AlertTriangle, color: 'text-yellow-400' },
-  pending: { Icon: Loader2, color: 'text-blue-400', animate: true },
-  skipped: { Icon: MinusCircle, color: 'text-gray-500' },
-  failed: { Icon: XCircle, color: 'text-orange-400' },
+  all_pass: { Icon: CheckCircle, color: 'text-ok' },
+  has_error: { Icon: XCircle, color: 'text-err' },
+  has_warning: { Icon: AlertTriangle, color: 'text-warn' },
+  pending: { Icon: Loader2, color: 'text-accent2-ink', animate: true },
+  skipped: { Icon: MinusCircle, color: 'text-t2' },
+  failed: { Icon: XCircle, color: 'text-warn' },
 };
 
 export function VerificationIcon({ status, size = 16 }: VerificationIconProps) {

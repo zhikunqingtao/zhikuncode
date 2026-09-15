@@ -43,7 +43,7 @@ export const MobileApprovalSheet: React.FC = () => {
     };
 
     const pendingBadge = (
-        <span className="px-2 py-0.5 text-xs rounded bg-warnsoft text-warnstrong">
+        <span className="px-2 py-0.5 text-[13px] rounded bg-warnsoft text-warnstrong">
             {attentions.length} pending
         </span>
     );
@@ -56,11 +56,11 @@ export const MobileApprovalSheet: React.FC = () => {
                     type="button"
                     onClick={() => setCollapsed(false)}
                     aria-label="Expand approvals"
-                    className="mobile-approval-sheet fixed bottom-0 left-0 right-0 z-50 block w-full
+                    className="panel-control mobile-approval-sheet fixed bottom-0 left-0 right-0 z-50 block w-full
                         bg-surfacev2 border-t border-hairline shadow-e3 rounded-t-panel px-4 pt-2
                         pb-[max(env(safe-area-inset-bottom),8px)]"
                 >
-                    <div className="h-1 w-9 rounded-full bg-t3/40 mx-auto mb-2" aria-hidden="true" />
+                    <div className="h-1 w-9 rounded-full bg-[color:color-mix(in_srgb,var(--v2-text-3)_40%,transparent)] mx-auto mb-2" aria-hidden="true" />
                     <div className="flex items-center justify-between">
                         <span className="text-sm font-medium text-t1">Verification Attention</span>
                         {pendingBadge}
@@ -75,7 +75,7 @@ export const MobileApprovalSheet: React.FC = () => {
                 ariaLabel="Verification Attention"
                 header={
                     <div className="flex items-center justify-between px-4 pb-3 border-b border-hairline">
-                        <h3 className="text-sm font-medium text-t1">Verification Attention</h3>
+                        <h3 className="text-t1 text-base font-semibold">Verification Attention</h3>
                         {pendingBadge}
                     </div>
                 }
@@ -108,30 +108,30 @@ interface AttentionCardProps {
 }
 
 const AttentionCard: React.FC<AttentionCardProps> = ({ attention, onApprove, onReject, expanded, onToggleDetail }) => (
-    <div className="border border-hairline rounded-xl p-3">
+    <div className="border border-hairline rounded-[14px] p-3">
         <div className="flex items-center justify-between gap-2 mb-1">
             <VerdictBadge verdict={attention.verdict} />
-            <span className="text-[10px] text-t3">
+            <span className="text-[13px] text-t3">
                 {formatRelative(attention.timestamp)}
             </span>
         </div>
 
         {attention.claim && (
-            <div className="text-xs font-medium text-t1 truncate">{attention.claim}</div>
+            <div className="text-[13px] font-medium text-t1 truncate">{attention.claim}</div>
         )}
 
         {attention.summary && (
-            <div className="text-xs text-t2 mt-1 line-clamp-3">{attention.summary}</div>
+            <div className="text-[13px] text-t2 mt-1 line-clamp-3">{attention.summary}</div>
         )}
 
-        <div className="text-[10px] text-t3 mt-1 font-mono truncate">
+        <div className="text-[13px] text-t3 mt-1 font-mono truncate">
             bundle: {attention.bundleId}
         </div>
 
         <button
             type="button"
             onClick={onToggleDetail}
-            className="mt-1.5 inline-flex items-center min-h-[44px] text-xs text-accent2 hover:underline"
+            className="panel-control mt-1.5 inline-flex items-center min-h-[44px] text-[13px] text-accent2-ink hover:underline"
         >
             {expanded ? '收起详情' : '查看详情'}
         </button>
@@ -146,14 +146,14 @@ const AttentionCard: React.FC<AttentionCardProps> = ({ attention, onApprove, onR
                 <button
                     type="button"
                     onClick={onApprove}
-                    className="flex-1 px-3 min-h-[44px] text-xs rounded-xl bg-okstrong text-white dark:text-app2 hover:brightness-110 active:scale-[.97] transition-interactive duration-fast"
+                    className="panel-control flex-1 px-3 min-h-[44px] text-[13px] rounded-xl bg-okstrong text-white dark:text-app2 hover:brightness-110 active:scale-[.97] transition-interactive duration-fast"
                 >
                     Approve
                 </button>
                 <button
                     type="button"
                     onClick={onReject}
-                    className="flex-1 px-3 min-h-[44px] text-xs rounded-xl bg-err text-white active:scale-[.97] transition-interactive duration-fast"
+                    className="panel-control flex-1 px-3 min-h-[44px] text-[13px] rounded-xl bg-err text-white active:scale-[.97] transition-interactive duration-fast"
                 >
                     Reject
                 </button>
@@ -165,15 +165,15 @@ const AttentionCard: React.FC<AttentionCardProps> = ({ attention, onApprove, onR
 const VerdictBadge: React.FC<{ verdict: string }> = ({ verdict }) => {
     const v = (verdict || '').toLowerCase();
     if (v === 'verified' || v === 'passed') {
-        return <span className="px-2 py-0.5 text-xs rounded bg-oksoft text-okstrong">Verified</span>;
+        return <span className="px-2 py-0.5 text-[13px] rounded bg-oksoft text-okstrong">Verified</span>;
     }
     if (v === 'failed') {
-        return <span className="px-2 py-0.5 text-xs rounded bg-errsoft text-errstrong">Failed</span>;
+        return <span className="px-2 py-0.5 text-[13px] rounded bg-errsoft text-errstrong">Failed</span>;
     }
     if (v === 'inconclusive') {
-        return <span className="px-2 py-0.5 text-xs rounded bg-warnsoft text-warnstrong">Inconclusive</span>;
+        return <span className="px-2 py-0.5 text-[13px] rounded bg-warnsoft text-warnstrong">Inconclusive</span>;
     }
-    return <span className="px-2 py-0.5 text-xs rounded bg-accent2-soft text-accent2">{verdict || 'Pending'}</span>;
+    return <span className="px-2 py-0.5 text-[13px] rounded bg-accent2-soft text-accent2-ink">{verdict || 'Pending'}</span>;
 };
 
 function formatRelative(iso: string): string {

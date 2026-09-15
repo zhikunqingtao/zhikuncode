@@ -1,3 +1,4 @@
+import { BrandLogo } from '@/components/ui/BrandLogo';
 /**
  * TurnCard — 一轮 = 完整 query ｜ 过程区 ｜ 完整回复（三层模型，Virtuoso item）
  *
@@ -23,7 +24,7 @@
  */
 
 import React, { useMemo, useState } from 'react';
-import { Bot, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import type { Message, ToolCallState } from '@/types';
 import type { Turn } from '@/store/selectors/turnProjection';
 import { turnMessageExpandKey, useTurnViewStore } from '@/store/turnViewStore';
@@ -115,17 +116,15 @@ const TurnCard: React.FC<TurnCardProps> = ({
 
             {/* 过程与回复共用一个外框和身份标识，形成一份完整的助手回应。 */}
             {(layers.process.length > 0 || layers.answer || layers.tail.length > 0) && (
-                <section className="mx-3 mb-5 mt-1 min-w-0 rounded-2xl border border-hairline bg-surfacev2 shadow-e1 sm:mx-4"
+                <section className="mx-3 mb-5 mt-1 min-w-0 rounded-[14px] border border-hairline bg-surfacev2 shadow-e1 sm:mx-4"
                     aria-label="助手回复" data-testid={`turn-response-${turn.index}`}>
-                    <div className="flex items-center gap-2 px-3 pt-3 text-xs font-medium text-t3 sm:px-[18px] sm:pt-4">
-                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-accent2 to-accent2-strong text-white shadow-e1">
-                            <Bot size={15} aria-hidden="true" />
-                        </span>
-                        <span>Assistant</span>
+                    <div className="flex items-center gap-2 px-3 pt-3 text-[13px] font-medium text-t3 sm:px-4 sm:pt-4">
+                        <BrandLogo className="h-7 w-7" />
+                        <span>zhikuncode</span>
                     </div>
                     {/* 过程区（密度分档；无过程消息则不渲染） */}
                     {layers.process.length > 0 && (
-                        <div className="px-3 pb-3 pt-3 sm:px-[18px]">
+                        <div className="px-3 pb-3 pt-3 sm:px-4">
                             <TurnProcessArea
                                 turn={turn}
                                 process={layers.process}
@@ -146,13 +145,13 @@ const TurnCard: React.FC<TurnCardProps> = ({
 
                     {/* answer 层：完整最终回复（流式命中时实时渲染） */}
                     {layers.answer && (
-                        <div data-message-uuid={layers.answer.uuid} className="turn-message min-w-0 px-3 pb-3 pt-3 sm:px-[18px] sm:pb-4">
+                        <div data-message-uuid={layers.answer.uuid} className="turn-message min-w-0 px-3 pb-3 pt-3 sm:px-4 sm:pb-4">
                             {compact && (
                                 <button type="button" aria-expanded={answerExpanded} aria-label={`最终回复，点击${answerExpanded ? '收起' : '展开'}`}
                                     onClick={() => toggleMessage(answerKey)}
-                                    className="flex min-h-11 w-full items-center gap-2 rounded-xl border border-hairline bg-surface2 px-3 py-2 text-left text-sm text-t2 hover:bg-hover2 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring">
+                                    className="panel-control flex min-h-11 w-full items-center gap-2 rounded-xl border border-hairline bg-surface2 px-3 py-2 text-left text-sm text-t2 hover:bg-hover2 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring">
                                     <span className="font-medium">{answerStreaming ? '回复生成中' : '最终回复'}</span>
-                                    <span className="ml-auto shrink-0 text-xs">{answerExpanded ? '收起' : '展开'}</span>
+                                    <span className="ml-auto shrink-0 text-[13px]">{answerExpanded ? '收起' : '展开'}</span>
                                     <ChevronRight size={13} aria-hidden="true" className={`shrink-0 text-t3 ${answerExpanded ? 'rotate-90' : ''}`} />
                                 </button>
                             )}

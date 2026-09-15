@@ -106,10 +106,10 @@ const MarkdownImage: React.FC<{ src?: string; alt?: string }> = ({ src, alt }) =
     if (error || !sessionId) {
         const forbidden = error?.includes('403');
         return (
-            <span className="my-2 inline-flex items-center rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-sm text-amber-400">
+            <span className="my-2 inline-flex items-center rounded-lg border border-amber-500/30 bg-warnsoft px-3 py-2 text-sm text-warn">
                 {forbidden ? '图片不在当前工作区范围内' : `图片加载失败 (${error ?? '无会话'})`}
                 {workspacePath && (
-                    <span className="ml-2 text-xs text-[var(--text-muted)]">{workspacePath}</span>
+                    <span className="ml-2 text-[13px] text-[var(--v2-text-2)]">{workspacePath}</span>
                 )}
             </span>
         );
@@ -117,7 +117,7 @@ const MarkdownImage: React.FC<{ src?: string; alt?: string }> = ({ src, alt }) =
 
     if (!objectUrl) {
         return (
-            <span className="my-2 inline-block h-32 w-48 animate-pulse rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)]" />
+            <span className="my-2 inline-block h-32 w-48 animate-pulse rounded-lg border border-[var(--v2-border-hairline)] bg-[var(--v2-bg-sunken)]" />
         );
     }
 
@@ -165,7 +165,7 @@ const TextBlock: React.FC<TextBlockProps> = ({ text, streaming = false }) => {
             if (!match && !codeStr.includes('\n')) {
                 return (
                     <code
-                        className="px-1.5 py-0.5 rounded-md border border-hairline bg-sunken2 text-[12.5px] font-mono text-t1"
+                        className="px-1.5 py-0.5 rounded-md bg-sunken2 text-[13px] max-md:text-sm font-mono text-t1"
                         {...props}
                     >
                         {children}
@@ -182,17 +182,17 @@ const TextBlock: React.FC<TextBlockProps> = ({ text, streaming = false }) => {
             return <CodeBlock code={codeStr} language={lang} />;
         },
         // Headings（§7.2 长文排印：小节标题 = Title-2 16px/600）
-        h1: ({ children }) => <h1 className="text-xl font-semibold mt-6 mb-3">{children}</h1>,
-        h2: ({ children }) => <h2 className="text-base font-semibold mt-5 mb-2">{children}</h2>,
-        h3: ({ children }) => <h3 className="text-sm font-semibold mt-4 mb-2">{children}</h3>,
+        h1: ({ children }) => <h1 className="text-[22px] leading-snug font-semibold mt-6 mb-3">{children}</h1>,
+        h2: ({ children }) => <h2 className="leading-normal mt-6 mb-2 text-base font-semibold">{children}</h2>,
+        h3: ({ children }) => <h3 className="leading-normal  mt-4 mb-2 text-base font-semibold">{children}</h3>,
         // Paragraphs：含图片的段落改用 <div> 输出，避免 MarkdownImage/ImageBlock
         // 的块级容器造成 p > div 非法嵌套（validateDOMNesting 告警）
         p: ({ node, children }) => {
             const hasImage = node ? containsImageElement(node.children) : false;
             if (hasImage) {
-                return <div className="my-2 leading-[1.75]">{children}</div>;
+                return <div className="my-2 leading-[1.7]">{children}</div>;
             }
-            return <p className="my-2 leading-[1.75]">{children}</p>;
+            return <p className="my-2 leading-[1.7]">{children}</p>;
         },
         // Lists（GFM 任务清单 contains-task-list → 去圆点，✓ 由 input 渲染器输出）
         ul: ({ node, children }) => {
@@ -206,9 +206,9 @@ const TextBlock: React.FC<TextBlockProps> = ({ text, streaming = false }) => {
         ol: ({ children }) => <ol className="list-decimal pl-6 my-2 space-y-1">{children}</ol>,
         li: ({ node, children }) => {
             if (hasClass(node, 'task-list-item')) {
-                return <li className="leading-[1.75] flex items-start gap-1.5">{children}</li>;
+                return <li className="leading-[1.7] flex items-start gap-1.5">{children}</li>;
             }
-            return <li className="leading-[1.75]">{children}</li>;
+            return <li className="leading-[1.7]">{children}</li>;
         },
         // §7.2 ticks 清单：✓（ok 色 lucide Check）引导已勾选项；未勾选 = 空方框
         input: ({ node: _node, ...props }) => {
@@ -231,7 +231,7 @@ const TextBlock: React.FC<TextBlockProps> = ({ text, streaming = false }) => {
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-accent2 hover:text-accent2-strong underline"
+                className="text-accent2-ink hover:text-accent2-ink underline"
             >
                 {children}
             </a>
@@ -239,18 +239,18 @@ const TextBlock: React.FC<TextBlockProps> = ({ text, streaming = false }) => {
         // Tables
         table: ({ children }) => (
             <div className="overflow-x-auto my-3">
-                <table className="min-w-full border-collapse border border-hairline text-sm">
+                <table className="min-w-full border-collapse text-sm">
                     {children}
                 </table>
             </div>
         ),
         th: ({ children }) => (
-            <th className="border border-hairline px-3 py-2 bg-surface2 text-left font-semibold">
+            <th className="border-b border-hairline px-3 py-2 bg-surface2 text-left font-semibold">
                 {children}
             </th>
         ),
         td: ({ children }) => (
-            <td className="border border-hairline px-3 py-2">{children}</td>
+            <td className="border-b border-hairline px-3 py-2">{children}</td>
         ),
         // Horizontal rule
         hr: () => <hr className="my-4 border-hairline" />,
@@ -262,7 +262,7 @@ const TextBlock: React.FC<TextBlockProps> = ({ text, streaming = false }) => {
     }), []);
 
     return (
-        <div className="text-block max-w-none text-sm text-t1 leading-[1.75]">
+        <div className="text-block max-w-none text-[15px] max-md:text-base max-md:leading-[1.7] text-t1 leading-[1.7]">
             <ReactMarkdown remarkPlugins={[remarkGfm]} components={components} urlTransform={urlTransform}>{text}</ReactMarkdown>
             {streaming && (
                 <span className="inline-block w-2 h-4 ml-0.5 bg-accent2 animate-pulse rounded-sm" />

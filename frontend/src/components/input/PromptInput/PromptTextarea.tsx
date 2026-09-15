@@ -44,17 +44,48 @@ const PromptTextarea: React.FC<PromptTextareaProps> = ({
 }) => {
     const isMobileVariant = variant === 'mobile';
 
-    // Auto-resize textarea height
+    // Re-measure on text, width and visible viewport changes (including mobile keyboards).
     useEffect(() => {
         const el = textareaRef.current;
         if (!el) return;
-        // 移动收起态：单行高度预览，不随内容撑高（展开后恢复自适应）
-        if (isMobileVariant && collapsed) {
-            el.style.height = '24px';
-            return;
-        }
-        el.style.height = 'auto';
-        el.style.height = Math.min(el.scrollHeight, 200) + 'px';
+        const resize = () => {
+            const lineHeight = parseFloat(getComputedStyle(el).lineHeight) || 24;
+            if (isMobileVariant && collapsed) {
+                el.style.height = `${Math.ceil(lineHeight + 4)}px`;
+                return;
+            }
+            const visibleHeight = window.visualViewport?.height ?? window.innerHeight;
+            const panel = el.closest('[data-testid="mobile-prompt-bar"]');
+            const controlsHeight = panel
+                ? Array.from(panel.querySelectorAll('[data-testid="mobile-persistent-actions"], .mobile-composer-navigation'))
+                    .reduce((height, control) => height + control.getBoundingClientRect().height, 0)
+                : 0;
+            // 38.2% caps the whole mobile panel, including controls and padding.
+            const maxHeight = isMobileVariant
+                ? Math.max(lineHeight + 4, visibleHeight * 0.382 - controlsHeight - 20)
+                : 200;
+            el.style.height = 'auto';
+            el.style.height = `${Math.min(el.scrollHeight, maxHeight)}px`;
+        };
+        resize();
+        let width = el.getBoundingClientRect().width;
+        const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(() => {
+            const nextWidth = el.getBoundingClientRect().width;
+            if (nextWidth !== width) { width = nextWidth; resize(); }
+        });
+        observer?.observe(el);
+        const controlsObserver = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(resize);
+        if (isMobileVariant) el.closest('[data-testid="mobile-prompt-bar"]')
+            ?.querySelectorAll('[data-testid="mobile-persistent-actions"], .mobile-composer-navigation')
+            .forEach(control => controlsObserver?.observe(control));
+        window.addEventListener('resize', resize);
+        window.visualViewport?.addEventListener('resize', resize);
+        return () => {
+            observer?.disconnect();
+            controlsObserver?.disconnect();
+            window.removeEventListener('resize', resize);
+            window.visualViewport?.removeEventListener('resize', resize);
+        };
     }, [value, textareaRef, isMobileVariant, collapsed]);
 
     return (
@@ -91,7 +122,7 @@ const PromptTextarea: React.FC<PromptTextareaProps> = ({
                 compacting
                     ? '正在压缩上下文，请稍候…'
                     : runActive
-                    ? (isMobileVariant ? '补充当前任务…' : '输入对当前任务的新指令，将在当前操作完成后应用')
+                    ? '输入补充指令，将在本次操作完成后执行…'
                     : simpleMode
                     ? '描述你希望完成或继续修改的事情…'
                     : isMobileVariant ? '输入消息…'
@@ -102,7 +133,7 @@ const PromptTextarea: React.FC<PromptTextareaProps> = ({
             aria-multiline="true"
             className={
                 isMobileVariant
-                    ? `w-full flex-1 resize-none bg-transparent py-0.5 text-sm text-t1
+                    ? `w-full flex-none resize-none bg-transparent py-0.5 text-sm text-t1
                        placeholder-t4 focus:outline-none
                        disabled:opacity-50${collapsed ? ' overflow-y-hidden' : ''}`
                     : `flex-1 resize-none rounded-xl bg-sunken2 shadow-well

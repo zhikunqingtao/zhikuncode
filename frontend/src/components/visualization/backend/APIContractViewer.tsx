@@ -23,13 +23,13 @@ import SchemaViewer from '@/components/visualization/backend/SchemaViewer';
 // ── HTTP 方法颜色 ──
 
 const METHOD_COLORS: Record<string, string> = {
-    get:    'bg-green-500',
-    post:   'bg-blue-500',
-    put:    'bg-orange-500',
-    delete: 'bg-red-500',
-    patch:  'bg-purple-500',
-    head:   'bg-gray-500',
-    options:'bg-gray-500',
+    get:    'bg-green-700',
+    post:   'bg-blue-700',
+    put:    'bg-orange-700',
+    delete: 'bg-red-700',
+    patch:  'bg-purple-700',
+    head:   'bg-gray-700',
+    options:'bg-gray-700',
 };
 
 const METHOD_BORDER: Record<string, string> = {
@@ -65,7 +65,7 @@ interface TagGroup {
 // ── HTTP 方法 Badge ──
 
 const MethodBadge: React.FC<{ method: string }> = ({ method }) => (
-    <span className={`shrink-0 inline-flex items-center justify-center w-16 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase text-white ${METHOD_COLORS[method] ?? 'bg-gray-500'}`}>
+    <span className={`shrink-0 inline-flex items-center justify-center w-16 px-1.5 py-0.5 rounded text-[13px] font-bold uppercase text-white ${METHOD_COLORS[method] ?? 'bg-gray-700'}`}>
         {method}
     </span>
 );
@@ -74,11 +74,11 @@ const MethodBadge: React.FC<{ method: string }> = ({ method }) => (
 
 const Skeleton: React.FC = () => (
     <div className="space-y-3 p-4 animate-pulse">
-        <div className="h-4 bg-[var(--bg-secondary)] rounded w-1/3" />
+        <div className="h-4 bg-[var(--v2-bg-sunken)] rounded w-1/3" />
         {[...Array(6)].map((_, i) => (
             <div key={i} className="flex items-center gap-2">
-                <div className="h-5 w-14 bg-[var(--bg-secondary)] rounded" />
-                <div className="h-4 bg-[var(--bg-secondary)] rounded flex-1" />
+                <div className="h-5 w-14 bg-[var(--v2-bg-sunken)] rounded" />
+                <div className="h-4 bg-[var(--v2-bg-sunken)] rounded flex-1" />
             </div>
         ))}
     </div>
@@ -90,26 +90,26 @@ const ParametersTable: React.FC<{ parameters: ParameterObject[] }> = ({ paramete
     if (parameters.length === 0) return null;
     return (
         <div>
-            <h4 className="text-xs font-semibold text-[var(--text-primary)] mb-2">Parameters</h4>
-            <div className="overflow-x-auto rounded-lg border border-[var(--border)]">
-                <table className="w-full text-xs">
+            <h4 className="text-[13px] font-semibold text-[var(--v2-text-1)] mb-2">Parameters</h4>
+            <div className="overflow-x-auto rounded-[14px] border border-[var(--v2-border-hairline)]">
+                <table className="w-full text-[13px]">
                     <thead>
-                        <tr className="bg-[var(--bg-secondary)]">
-                            <th className="text-left px-3 py-1.5 text-[var(--text-muted)] font-medium">Name</th>
-                            <th className="text-left px-3 py-1.5 text-[var(--text-muted)] font-medium">In</th>
-                            <th className="text-left px-3 py-1.5 text-[var(--text-muted)] font-medium">Type</th>
-                            <th className="text-left px-3 py-1.5 text-[var(--text-muted)] font-medium">Required</th>
-                            <th className="text-left px-3 py-1.5 text-[var(--text-muted)] font-medium">Description</th>
+                        <tr className="bg-[var(--v2-bg-sunken)]">
+                            <th className="text-left px-3 py-1.5 text-[var(--v2-text-2)] font-medium">Name</th>
+                            <th className="text-left px-3 py-1.5 text-[var(--v2-text-2)] font-medium">In</th>
+                            <th className="text-left px-3 py-1.5 text-[var(--v2-text-2)] font-medium">Type</th>
+                            <th className="text-left px-3 py-1.5 text-[var(--v2-text-2)] font-medium">Required</th>
+                            <th className="text-left px-3 py-1.5 text-[var(--v2-text-2)] font-medium">Description</th>
                         </tr>
                     </thead>
                     <tbody>
                         {parameters.map((p, i) => (
-                            <tr key={i} className="border-t border-[var(--border)]">
-                                <td className="px-3 py-1.5 font-mono text-[var(--text-primary)]">{p.name}</td>
-                                <td className="px-3 py-1.5 text-[var(--text-secondary)]">{p.in}</td>
-                                <td className="px-3 py-1.5 text-[var(--text-secondary)] font-mono">{p.schema?.type ?? '—'}</td>
-                                <td className="px-3 py-1.5">{p.required ? <span className="text-red-500">Yes</span> : <span className="text-[var(--text-muted)]">No</span>}</td>
-                                <td className="px-3 py-1.5 text-[var(--text-muted)]">{p.description ?? '—'}</td>
+                            <tr key={i} className="border-t border-[var(--v2-border-hairline)]">
+                                <td className="px-3 py-1.5 font-mono text-[var(--v2-text-1)]">{p.name}</td>
+                                <td className="px-3 py-1.5 text-[var(--v2-text-2)]">{p.in}</td>
+                                <td className="px-3 py-1.5 text-[var(--v2-text-2)] font-mono">{p.schema?.type ?? '—'}</td>
+                                <td className="px-3 py-1.5">{p.required ? <span className="text-err">Yes</span> : <span className="text-[var(--v2-text-2)]">No</span>}</td>
+                                <td className="px-3 py-1.5 text-[var(--v2-text-2)]">{p.description ?? '—'}</td>
                             </tr>
                         ))}
                     </tbody>
@@ -140,18 +140,18 @@ const EndpointDetailPanel: React.FC<{
             <div>
                 <div className="flex items-center gap-2 flex-wrap">
                     <MethodBadge method={method} />
-                    <span className="font-mono text-sm font-semibold text-[var(--text-primary)] break-all">{path}</span>
+                    <span className="font-mono text-sm font-semibold text-[var(--v2-text-1)] break-all">{path}</span>
                     {detail.deprecated && (
-                        <span className="px-1.5 py-0.5 rounded bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 text-[10px] font-medium">
+                        <span className="px-1.5 py-0.5 rounded bg-warnsoft text-warn text-[13px] font-medium">
                             Deprecated
                         </span>
                     )}
                 </div>
                 {detail.summary && (
-                    <p className="text-sm text-[var(--text-secondary)] mt-1">{detail.summary}</p>
+                    <p className="text-sm text-[var(--v2-text-2)] mt-1">{detail.summary}</p>
                 )}
                 {detail.description && detail.description !== detail.summary && (
-                    <p className="text-xs text-[var(--text-muted)] mt-1">{detail.description}</p>
+                    <p className="text-[13px] text-[var(--v2-text-2)] mt-1">{detail.description}</p>
                 )}
             </div>
 
@@ -163,14 +163,14 @@ const EndpointDetailPanel: React.FC<{
             {/* Request Body */}
             {requestSchema && (
                 <div>
-                    <h4 className="text-xs font-semibold text-[var(--text-primary)] mb-2">
+                    <h4 className="text-[13px] font-semibold text-[var(--v2-text-1)] mb-2">
                         Request Body
-                        {detail.requestBody?.required && <span className="text-red-500 ml-1">*</span>}
+                        {detail.requestBody?.required && <span className="text-err ml-1">*</span>}
                     </h4>
                     {detail.requestBody?.description && (
-                        <p className="text-[11px] text-[var(--text-muted)] mb-1">{detail.requestBody.description}</p>
+                        <p className="text-[13px] text-[var(--v2-text-2)] mb-1">{detail.requestBody.description}</p>
                     )}
-                    <div className="rounded-lg border border-[var(--border)] p-3 bg-[var(--bg-secondary)]">
+                    <div className="rounded-[14px] border border-[var(--v2-border-hairline)] p-3 bg-[var(--v2-bg-sunken)]">
                         <SchemaViewer schema={requestSchema} allSchemas={allSchemas} />
                     </div>
                 </div>
@@ -179,19 +179,19 @@ const EndpointDetailPanel: React.FC<{
             {/* Responses */}
             {detail.responses && Object.keys(detail.responses).length > 0 && (
                 <div>
-                    <h4 className="text-xs font-semibold text-[var(--text-primary)] mb-2">Responses</h4>
+                    <h4 className="text-[13px] font-semibold text-[var(--v2-text-1)] mb-2">Responses</h4>
                     <div className="space-y-2">
                         {Object.entries(detail.responses).map(([code, resp]) => {
                             const respSchema = resp.content?.['application/json']?.schema
                                 ?? (resp.content ? Object.values(resp.content)[0]?.schema : null);
                             return (
-                                <div key={code} className="rounded-lg border border-[var(--border)] overflow-hidden">
-                                    <div className={`flex items-center gap-2 px-3 py-1.5 bg-[var(--bg-secondary)] border-b border-[var(--border)]`}>
-                                        <span className={`font-mono text-xs font-bold ${code.startsWith('2') ? 'text-green-500' : code.startsWith('4') ? 'text-yellow-500' : code.startsWith('5') ? 'text-red-500' : 'text-[var(--text-secondary)]'}`}>
+                                <div key={code} className="rounded-[14px] border border-[var(--v2-border-hairline)] overflow-hidden">
+                                    <div className={`flex items-center gap-2 px-3 py-1.5 bg-[var(--v2-bg-sunken)] border-b border-[var(--v2-border-hairline)]`}>
+                                        <span className={`font-mono text-[13px] font-bold ${code.startsWith('2') ? 'text-ok' : code.startsWith('4') ? 'text-warn' : code.startsWith('5') ? 'text-err' : 'text-[var(--v2-text-2)]'}`}>
                                             {code}
                                         </span>
                                         {resp.description && (
-                                            <span className="text-[11px] text-[var(--text-muted)]">{resp.description}</span>
+                                            <span className="text-[13px] text-[var(--v2-text-2)]">{resp.description}</span>
                                         )}
                                     </div>
                                     {respSchema && (
@@ -222,17 +222,17 @@ const TagGroupPanel: React.FC<{
     const [expanded, setExpanded] = useState(true);
 
     return (
-        <div className="border-b border-[var(--border)] last:border-b-0">
+        <div className="border-b border-[var(--v2-border-hairline)] last:border-b-0">
             {/* Tag header */}
             <button
                 onClick={() => setExpanded(e => !e)}
-                className="w-full flex items-center gap-2 px-3 py-2 hover:bg-[var(--bg-hover)] transition-colors"
+                className="panel-control w-full flex items-center gap-2 px-3 py-2 hover:bg-[var(--v2-bg-hover)] transition-colors"
             >
-                {expanded ? <ChevronDown size={14} className="text-[var(--text-muted)]" /> : <ChevronRight size={14} className="text-[var(--text-muted)]" />}
-                <span className="text-xs font-semibold text-[var(--text-primary)]">{group.tag}</span>
-                <span className="text-[10px] text-[var(--text-muted)]">({group.endpoints.length})</span>
+                {expanded ? <ChevronDown size={14} className="text-[var(--v2-text-2)]" /> : <ChevronRight size={14} className="text-[var(--v2-text-2)]" />}
+                <span className="text-[13px] font-semibold text-[var(--v2-text-1)]">{group.tag}</span>
+                <span className="text-[13px] text-[var(--v2-text-2)]">({group.endpoints.length})</span>
                 {group.description && (
-                    <span className="text-[10px] text-[var(--text-muted)] truncate ml-1 hidden md:inline">— {group.description}</span>
+                    <span className="text-[13px] text-[var(--v2-text-2)] truncate ml-1 hidden md:inline">— {group.description}</span>
                 )}
             </button>
 
@@ -245,20 +245,20 @@ const TagGroupPanel: React.FC<{
                             <div key={`${ep.method}-${ep.path}`}>
                                 <button
                                     onClick={() => onSelect({ path: ep.path, method: ep.method })}
-                                    className={`w-full flex items-center gap-2 px-4 py-1.5 text-left hover:bg-[var(--bg-hover)] transition-colors
-                                        ${isSelected ? 'bg-blue-500/8 border-l-2 border-l-blue-500' : 'border-l-2 border-l-transparent'}`}
+                                    className={`panel-control w-full flex items-center gap-2 px-4 py-1.5 text-left hover:bg-[var(--v2-bg-hover)] transition-colors
+                                        ${isSelected ? 'bg-blue-700/8 border-l-2 border-l-blue-500' : 'border-l-2 border-l-transparent'}`}
                                 >
                                     <MethodBadge method={ep.method} />
-                                    <span className="font-mono text-xs text-[var(--text-primary)] truncate">{ep.path}</span>
+                                    <span className="font-mono text-[13px] text-[var(--v2-text-1)] truncate">{ep.path}</span>
                                     {ep.detail.summary && (
-                                        <span className="text-[10px] text-[var(--text-muted)] truncate ml-auto hidden md:inline">
+                                        <span className="text-[13px] text-[var(--v2-text-2)] truncate ml-auto hidden md:inline">
                                             {ep.detail.summary}
                                         </span>
                                     )}
                                 </button>
                                 {/* 移动端：选中时展开详情 */}
                                 {isMobile && isSelected && (
-                                    <div className={`border-t border-[var(--border)] ${METHOD_BORDER[ep.method] ?? ''}`}>
+                                    <div className={`border-t border-[var(--v2-border-hairline)] ${METHOD_BORDER[ep.method] ?? ''}`}>
                                         <EndpointDetailPanel
                                             path={ep.path}
                                             method={ep.method}
@@ -381,7 +381,7 @@ export const APIContractViewer: React.FC<APIContractViewerProps> = ({ source: in
         <div className="flex flex-col h-full">
             {/* 警告横幅 */}
             {warnings.length > 0 && (
-                <div className="flex items-start gap-2 px-3 py-2 bg-yellow-500/10 border-b border-yellow-500/30 text-xs text-yellow-600 dark:text-yellow-400">
+                <div className="flex items-start gap-2 px-3 py-2 bg-warnsoft border-b border-yellow-500/30 text-[13px] text-warn">
                     <AlertTriangle size={14} className="shrink-0 mt-0.5" />
                     <div className="space-y-0.5">
                         {warnings.map((w, i) => (
@@ -392,17 +392,19 @@ export const APIContractViewer: React.FC<APIContractViewerProps> = ({ source: in
             )}
 
             {/* 顶部工具栏 */}
-            <div className="flex flex-wrap items-center gap-2 px-3 py-2 border-b border-[var(--border)] shrink-0">
+            <div className="flex flex-wrap items-center gap-2 px-3 py-2 border-b border-[var(--v2-border-hairline)] shrink-0">
                 {/* 数据源 Tab */}
-                <div className="flex items-center rounded-lg border border-[var(--border)] overflow-hidden">
+                <div className="flex items-center rounded-[14px] border border-[var(--v2-border-hairline)] overflow-hidden">
                     {SOURCE_TABS.map(tab => (
                         <button
                             key={tab.key}
                             onClick={() => handleSourceChange(tab.key)}
-                            className={`flex items-center gap-1 px-2.5 py-1.5 text-xs transition-colors
+                            aria-label={tab.label}
+                            aria-pressed={source === tab.key}
+                            className={`panel-control flex items-center gap-1 px-2.5 py-1.5 text-[13px] transition-colors
                                 ${source === tab.key
-                                    ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 font-medium'
-                                    : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]'}`}
+                                    ? 'bg-accent2-soft text-accent2-ink font-medium'
+                                    : 'text-[var(--v2-text-2)] hover:bg-[var(--v2-bg-hover)]'}`}
                         >
                             {tab.icon}
                             <span className="hidden md:inline">{tab.label}</span>
@@ -412,15 +414,16 @@ export const APIContractViewer: React.FC<APIContractViewerProps> = ({ source: in
 
                 {/* 搜索框 */}
                 <div className="relative flex-1 min-w-[160px] max-w-xs">
-                    <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+                    <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--v2-text-2)]" />
                     <input
                         type="text"
                         value={localSearch}
                         onChange={e => setLocalSearch(e.target.value)}
-                        placeholder="Search endpoints..."
-                        className="w-full pl-8 pr-3 py-1.5 text-xs rounded-md border border-[var(--border)]
-                            bg-[var(--bg-primary)] text-[var(--text-primary)]
-                            placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+                        aria-label="搜索 API 端点"
+                        placeholder="搜索 API 端点..."
+                        className="w-full pl-8 pr-3 py-1.5 text-[13px] rounded-md border border-[var(--v2-border-hairline)]
+                            bg-[var(--v2-bg-surface)] text-[var(--v2-text-1)]
+                            placeholder:text-[var(--v2-text-2)] focus:outline-none focus:ring-1 focus:ring-blue-500/50"
                     />
                 </div>
 
@@ -428,16 +431,16 @@ export const APIContractViewer: React.FC<APIContractViewerProps> = ({ source: in
                 <button
                     onClick={handleRefresh}
                     disabled={isLoading}
-                    className="p-1.5 rounded-md border border-[var(--border)]
-                        hover:bg-[var(--bg-hover)] text-[var(--text-secondary)] transition-colors disabled:opacity-50"
-                    title="Refresh"
+                    className="panel-control p-1.5 rounded-md border border-[var(--v2-border-hairline)]
+                        hover:bg-[var(--v2-bg-hover)] text-[var(--v2-text-2)] transition-colors disabled:opacity-50"
+                    title="刷新 API 文档"
                 >
                     <RefreshCw size={13} className={isLoading ? 'animate-spin' : ''} />
                 </button>
 
                 {/* 端点计数 */}
-                <span className="ml-auto text-[10px] text-[var(--text-muted)]">
-                    {totalEndpoints} endpoints
+                <span className="ml-auto text-[13px] text-[var(--v2-text-2)]">
+                    {totalEndpoints} 个端点
                 </span>
             </div>
 
@@ -447,32 +450,32 @@ export const APIContractViewer: React.FC<APIContractViewerProps> = ({ source: in
             ) : error ? (
                 /* 错误状态 */
                 <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-                    <FileWarning className="w-10 h-10 text-red-400 mb-3 opacity-60" />
-                    <p className="text-sm text-[var(--text-primary)] font-medium mb-1">Failed to load API specification</p>
-                    <p className="text-xs text-[var(--text-muted)] mb-4 max-w-sm">{error}</p>
+                    <FileWarning className="w-10 h-10 text-err mb-3 opacity-60" />
+                    <p className="text-sm text-[var(--v2-text-1)] font-medium mb-1">API 文档加载失败</p>
+                    <p className="text-[13px] text-[var(--v2-text-2)] mb-4 max-w-sm">{error}</p>
                     <button
                         onClick={handleRefresh}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs
-                            bg-blue-500/15 text-blue-600 dark:text-blue-400 hover:bg-blue-500/25 transition-colors"
+                        className="panel-control flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[13px]
+                            bg-accent2-soft text-accent2-ink hover:bg-accent2-soft transition-colors"
                     >
                         <RefreshCw size={12} />
-                        Retry
+                        重试
                     </button>
                 </div>
             ) : totalEndpoints === 0 ? (
                 /* 空状态 */
                 <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-                    <Globe className="w-10 h-10 text-[var(--text-muted)] mb-3 opacity-40" />
-                    <p className="text-sm text-[var(--text-muted)]">No endpoints found</p>
-                    <p className="text-xs text-[var(--text-muted)] mt-1 opacity-60">
-                        {searchQuery ? 'Try adjusting your search query' : 'The selected source has no API endpoints'}
+                    <Globe className="w-10 h-10 text-[var(--v2-text-2)] mb-3 opacity-40" />
+                    <p className="text-sm text-[var(--v2-text-2)]">未找到 API 端点</p>
+                    <p className="text-[13px] text-[var(--v2-text-2)] mt-1 opacity-60">
+                        {searchQuery ? '请调整搜索条件' : '当前来源没有 API 端点'}
                     </p>
                 </div>
             ) : (
                 /* 主内容 — 桌面双栏 / 移动单栏 */
-                <div className="flex-1 overflow-hidden flex">
+                <div className="flex-1 min-h-0 min-w-0 overflow-hidden flex">
                     {/* 桌面：左侧端点列表 */}
-                    <div className="w-full lg:w-[40%] overflow-y-auto border-r border-[var(--border)] lg:block">
+                    <div className="w-full lg:w-[40%] overflow-y-auto border-r border-[var(--v2-border-hairline)] lg:block">
                         {/* 移动端：单栏 Accordion */}
                         <div className="lg:hidden">
                             {tagGroups.map(group => (
@@ -503,7 +506,7 @@ export const APIContractViewer: React.FC<APIContractViewerProps> = ({ source: in
                     </div>
 
                     {/* 桌面：右侧详情面板 */}
-                    <div className="hidden lg:block flex-1 overflow-y-auto">
+                    <div className="hidden lg:block flex-1 min-w-0 overflow-auto">
                         {selectedDetail && selectedEndpoint ? (
                             <EndpointDetailPanel
                                 path={selectedEndpoint.path}
@@ -513,8 +516,8 @@ export const APIContractViewer: React.FC<APIContractViewerProps> = ({ source: in
                             />
                         ) : (
                             <div className="flex flex-col items-center justify-center h-full text-center px-4">
-                                <Search className="w-8 h-8 text-[var(--text-muted)] mb-2 opacity-30" />
-                                <p className="text-sm text-[var(--text-muted)]">Select an endpoint to view details</p>
+                                <Search className="w-8 h-8 text-[var(--v2-text-2)] mb-2 opacity-30" />
+                                <p className="text-sm text-[var(--v2-text-2)]">Select an endpoint to view details</p>
                             </div>
                         )}
                     </div>

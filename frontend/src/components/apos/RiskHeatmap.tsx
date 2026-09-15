@@ -37,11 +37,11 @@ export function RiskHeatmap() {
   if (total === 0) return null;
 
   return (
-    <div className="px-3 py-2 border-b border-[var(--border)]">
+    <div className="px-3 py-2 border-b border-[var(--v2-border-hairline)]">
       {/* Header */}
       <div className="flex items-center justify-between mb-1">
-        <span className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">风险分布</span>
-        <span className="text-[10px] text-[var(--text-muted)]">{total} ops</span>
+        <span className="text-[13px] text-[var(--v2-text-2)] uppercase tracking-wider">风险分布</span>
+        <span className="text-[13px] text-[var(--v2-text-2)]">{total} ops</span>
       </div>
 
       {/* Bar */}
@@ -68,7 +68,7 @@ export function RiskHeatmap() {
           return (
             <div key={signal} className="flex items-center gap-1">
               <div className={`w-2 h-2 rounded-sm ${SIGNAL_CONFIG[signal].color}`} />
-              <span className="text-[10px] text-[var(--text-secondary)]">{count}</span>
+              <span className="text-[13px] text-[var(--v2-text-2)]">{count}</span>
             </div>
           );
         })}

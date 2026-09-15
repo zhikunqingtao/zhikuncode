@@ -6,6 +6,7 @@ import { useConfigStore } from '@/store/configStore';
 import { useModelStore } from '@/store/modelStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { useWorkbenchViewStore } from '@/store/workbenchViewStore';
+import { useBridgeStore } from '@/store/bridgeStore';
 
 describe('Header model selection', () => {
     beforeEach(() => {
@@ -14,6 +15,7 @@ describe('Header model selection', () => {
             theme: { ...useConfigStore.getState().theme, mode: 'dark' },
         });
         useSessionStore.setState({ sessionId: null, model: null });
+        useBridgeStore.setState({ bridgeStatus: 'connected' });
     });
 
     afterEach(() => {
@@ -54,5 +56,20 @@ describe('Header model selection', () => {
 
         fireEvent.click(retry);
         await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    });
+
+    it('presents an active mobile run as a distinct status label', () => {
+        useModelStore.setState({
+            loaded: true,
+            loading: false,
+            error: null,
+            defaultModel: 'kimi-k3',
+            models: [{ id: 'kimi-k3', displayName: 'Kimi K3', supportsImages: false, maxImages: 0 }],
+        });
+        useSessionStore.setState({ model: 'kimi-k3', status: 'streaming' });
+
+        render(<Header />);
+
+        expect(screen.getByRole('status')).toHaveTextContent('运行中');
     });
 });

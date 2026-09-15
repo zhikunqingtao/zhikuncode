@@ -44,24 +44,24 @@ const GroupedToolUseBlock: React.FC<GroupedToolUseBlockProps> = ({
     const toolNames = [...new Set(entries.map(([, tc]) => tc.toolName))];
 
     return (
-        <div className="grouped-tool-use my-2 rounded-lg border border-gray-700 bg-gray-900/30 overflow-hidden">
+        <div className="grouped-tool-use my-2 rounded-[14px] border border-gray-700 bg-sunken2 overflow-hidden">
             {/* Group Header */}
             <button
                 onClick={toggle}
-                className="flex items-center gap-2 w-full px-3 py-2 bg-gray-800/30 hover:bg-gray-800/50 transition-colors text-left"
+                className="panel-control flex items-center gap-2 w-full px-3 py-2 bg-sunken2 hover:bg-sunken2 transition-colors text-left"
             >
                 <ChevronRight
                     size={14}
-                    className={`text-gray-500 transition-transform duration-base ${expanded ? 'rotate-90' : ''}`}
+                    className={`text-t2 transition-transform duration-base ${expanded ? 'rotate-90' : ''}`}
                 />
-                <Wrench size={14} className="text-gray-500" />
-                <span className="text-sm text-gray-300 font-medium">
+                <Wrench size={14} className="text-t2" />
+                <span className="text-sm text-t2 font-medium">
                     {entries.length} tool calls
                 </span>
-                <span className="text-xs text-gray-500">
+                <span className="text-[13px] text-t2">
                     ({toolNames.join(', ')})
                 </span>
-                <span className="ml-auto text-xs text-gray-500">
+                <span className="ml-auto text-[13px] text-t2">
                     {completedCount}/{entries.length} done
                     {runningCount > 0 && ` · ${runningCount} running`}
                 </span>

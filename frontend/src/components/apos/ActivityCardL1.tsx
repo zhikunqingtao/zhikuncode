@@ -47,9 +47,9 @@ export function ActivityCardL1({
     <div
       data-testid="activity-card-l1"
       onClick={onClick}
-      className={`h-[52px] flex items-center gap-3 px-3 cursor-pointer border-b border-[var(--border)] transition-colors
-        ${isExpanded ? 'bg-[var(--bg-hover)]' : 'hover:bg-[var(--bg-hover)]'}
-        ${isSelected ? 'bg-blue-500/10 border-l-2 border-l-blue-500' : ''}
+      className={`h-[52px] flex items-center gap-3 px-3 cursor-pointer border-b border-[var(--v2-border-hairline)] transition-colors
+        ${isExpanded ? 'bg-[var(--v2-bg-hover)]' : 'hover:bg-[var(--v2-bg-hover)]'}
+        ${isSelected ? 'bg-accent2-soft border-l-2 border-l-blue-500' : ''}
       `}
     >
       {/* Left: Checkbox (batch mode) + Operation Icon */}
@@ -60,7 +60,7 @@ export function ActivityCardL1({
             checked={isSelected}
             onClick={handleCheckboxClick}
             onChange={() => {}}
-            className="w-4 h-4 rounded border-gray-600 bg-gray-800 text-blue-500 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
+            className="w-4 h-4 rounded border-gray-600 bg-gray-800 text-accent2-ink dark:text-accent2-ink focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
           />
         )}
         <OperationIcon type={activity.operationType} size={18} />
@@ -68,10 +68,10 @@ export function ActivityCardL1({
 
       {/* Middle: Summary + Agent */}
       <div className="flex-1 min-w-0">
-        <p className="text-sm text-[var(--text-primary)] truncate leading-tight">
+        <p className="text-sm text-[var(--v2-text-1)] truncate leading-tight">
           {activity.summary}
         </p>
-        <p className="text-xs text-[var(--text-muted)] truncate leading-tight">
+        <p className="text-[13px] text-[var(--v2-text-2)] truncate leading-tight">
           {activity.fileCount ?? activity.changedFiles.length} 文件
           {activity.duration ? ` · ${(activity.duration / 1000).toFixed(1)}s` : ''}
         </p>
@@ -84,7 +84,7 @@ export function ActivityCardL1({
           size="sm"
           reason={activity.insight?.summary}
         />
-        <span className="text-xs text-[var(--text-muted)] whitespace-nowrap shrink-0">
+        <span className="text-[13px] text-[var(--v2-text-2)] whitespace-nowrap shrink-0">
           {formatRelativeTime(activity.timestamp)}
         </span>
       </div>

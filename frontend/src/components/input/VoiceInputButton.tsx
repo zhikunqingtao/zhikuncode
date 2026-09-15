@@ -65,7 +65,7 @@ const VoiceInputButton: React.FC<VoiceInputButtonProps> = ({ onTranscript, disab
             <button
                 onClick={handleClick}
                 disabled={buttonDisabled}
-                className={`${compact ? 'h-11 w-11 flex items-center justify-center' : ''} shrink-0 p-2 rounded-lg transition-interactive duration-fast
+                className={`panel-control ${compact ? 'h-11 w-11 flex items-center justify-center' : 'h-10 w-10 flex items-center justify-center'} shrink-0 p-2 rounded-[10px] transition-interactive duration-fast
                     focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring
                     ${buttonDisabled
                         ? 'text-t4 cursor-not-allowed opacity-50'
@@ -99,12 +99,12 @@ const VoiceInputButton: React.FC<VoiceInputButtonProps> = ({ onTranscript, disab
                 </span>
             )}
             {isRecording && (
-                <span className="text-xs text-t3 font-mono tabular-nums select-none">
+                <span className="text-[13px] text-t3 font-mono tabular-nums select-none">
                     {formatTime(elapsedSeconds)}
                 </span>
             )}
             {isError && error && (
-                <span className="text-xs text-err select-none whitespace-normal break-words">{error}</span>
+                <span className="text-[13px] text-err select-none whitespace-normal break-words">{error}</span>
             )}
             </div>
         </div>

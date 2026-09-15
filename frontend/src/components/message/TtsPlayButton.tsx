@@ -37,30 +37,29 @@ const TtsPlayButton: React.FC<TtsPlayButtonProps> = ({ messageId, text }) => {
 
     const titleText = isPlaying || isLoading ? '停止朗读' : '朗读';
 
-    // 始终可见的按钮实体：淡边框 + 浅背景；各状态用颜色区分
     const stateClasses = disabled
-        ? 'border-gray-600/40 bg-gray-700/20 text-[var(--text-muted)] cursor-not-allowed opacity-50'
+        ? 'text-t3 cursor-not-allowed opacity-50'
         : isPlaying
-            ? 'border-red-500/40 bg-red-500/15 text-red-400 hover:bg-red-500/25'
+            ? 'text-err hover:bg-errsoft'
             : isLoading
-                ? 'border-gray-600/60 bg-gray-700/30 text-purple-400 hover:bg-gray-600/50'
-                : 'border-gray-600/60 bg-gray-700/30 text-gray-300 hover:bg-gray-600/50 hover:text-white';
+                ? 'text-accent2-ink hover:bg-hover2'
+                : 'text-t2 hover:bg-hover2 hover:text-t1';
 
     return (
         <button
             onClick={handleClick}
             disabled={disabled}
-            className={`shrink-0 flex items-center rounded-md border px-1.5 py-1 transition-colors ${stateClasses}`}
+            className={`message-action-button shrink-0 flex items-center justify-center rounded-[10px] transition-colors ${stateClasses}`}
             title={titleText}
             type="button"
             aria-label={titleText}
         >
             {isLoading ? (
-                <Loader2 size={16} className="animate-spin" />
+                <Loader2 size={18} className="animate-spin" />
             ) : isPlaying ? (
-                <Square size={16} fill="currentColor" />
+                <Square size={18} fill="currentColor" />
             ) : (
-                <Volume2 size={16} />
+                <Volume2 size={18} />
             )}
         </button>
     );

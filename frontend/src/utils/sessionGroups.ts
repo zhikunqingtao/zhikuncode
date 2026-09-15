@@ -17,9 +17,9 @@ export interface SessionFolderGroup {
 }
 
 /** 完整授权路径作为组标识；组和会话都按真实活动时间排序。 */
-export function groupSessionsByDirectory(sessions: SessionSummary[]): SessionFolderGroup[] {
+export function groupSessionsByDirectory(sessions: SessionSummary[], preserveOrder = false): SessionFolderGroup[] {
     const activity = (session: SessionSummary) => Date.parse(session.updatedAt) || Date.parse(session.createdAt) || 0;
-    const sorted = [...sessions].sort((a, b) => activity(b) - activity(a) || a.id.localeCompare(b.id));
+    const sorted = preserveOrder ? sessions : [...sessions].sort((a, b) => activity(b) - activity(a) || a.id.localeCompare(b.id));
     const groups = new Map<string, SessionFolderGroup>();
     for (const session of sorted) {
         const path = session.workingDirectory || '';

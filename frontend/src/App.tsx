@@ -85,17 +85,16 @@ function App() {
   const { keyboardHeight } = useVirtualKeyboard(isMobile);
   const messageListRef = useRef<MessageListHandle>(null);
   const composerRef = useRef<HTMLDivElement>(null);
-  const glassMode = useConfigStore(s => s.theme.mode === 'glass');
   useEffect(() => {
     const composer = composerRef.current;
     const workspace = composer?.parentElement;
-    if (!composer || !workspace || !glassMode) return;
+    if (!composer || !workspace) return;
     const update = () => workspace.style.setProperty('--glass-composer-height', `${composer.getBoundingClientRect().height + 12}px`);
     const observer = new ResizeObserver(update);
     observer.observe(composer);
     update();
     return () => { observer.disconnect(); workspace.style.removeProperty('--glass-composer-height'); };
-  }, [glassMode, isMobile]);
+  }, [isMobile]);
   const { loadConfig } = useConfigStore();
   const sessionReadinessRef = useRef<Promise<string | null> | null>(null);
   const newSessionRequestRef = useRef<Promise<string | null> | null>(null);

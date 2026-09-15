@@ -19,18 +19,18 @@ export const TokenWarningBanner: React.FC = () => {
   return (
     <div className={`px-3 py-2 text-sm rounded-md mb-2 flex items-center gap-2 ${
       isCritical
-        ? 'bg-red-50 text-red-700 border border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-800'
-        : 'bg-yellow-50 text-yellow-700 border border-yellow-200 dark:bg-yellow-950 dark:text-yellow-300 dark:border-yellow-800'
+        ? 'bg-red-50 text-err border border-red-200 dark:bg-red-950 dark:text-err dark:border-red-800'
+        : 'bg-yellow-50 text-warn border border-yellow-200 dark:bg-yellow-950 dark:text-warn dark:border-yellow-800'
     }`}>
       <span className="font-medium shrink-0">
         {isCritical ? '⚠️ 上下文窗口即将用尽' : '⚠ 上下文窗口占用较高'}
       </span>
-      <span className="text-xs opacity-80">
+      <span className="text-[13px] opacity-80">
         {tokenWarning.usagePercent.toFixed(0)}% 已使用
         ({tokenWarning.currentTokens.toLocaleString()} / {tokenWarning.maxTokens.toLocaleString()} tokens)
       </span>
       {isCritical && (
-        <span className="text-xs opacity-70 ml-auto">
+        <span className="text-[13px] opacity-70 ml-auto">
           建议执行 /compact 压缩上下文
         </span>
       )}

@@ -90,8 +90,8 @@ html.glass {
 .glass .app-sidebar .liquid-glass-material { --glass-tint: rgba(244,248,255,.3); }
 .glass .app-sidebar button[aria-current="page"] { color: var(--v2-accent-strong); }
 .glass .app-status { background: rgba(246,249,253,.8); }
-.glass .chat-workspace { position: relative; }
-.glass .chat-composer-dock {
+.chat-workspace { position: relative; }
+.chat-composer-dock {
   position: absolute;
   inset-inline: 0;
   bottom: 0;
@@ -100,20 +100,19 @@ html.glass {
   background: transparent;
   pointer-events: none;
 }
-.glass .chat-composer-dock > * { pointer-events: auto; }
-.glass .chat-composer-inset { border: 0; background: transparent; }
-.glass .chat-composer-surface { border-radius: 24px; padding: 14px 16px; }
+.chat-composer-dock > * { pointer-events: auto; }
+.chat-composer-inset { border: 0; background: transparent; }
+.chat-composer-surface { border-radius: 22px; padding: 12px 16px; }
 .glass .chat-composer-surface textarea { background: rgba(255,255,255,.46); box-shadow: none; }
 .glass .chat-composer-surface [data-testid="mobile-prompt-bar"] { background: transparent; border: 0; box-shadow: none; }
-.glass .chat-content { padding-bottom: var(--glass-composer-height, 132px); }
+.chat-content { padding-bottom: var(--glass-composer-height, 132px); }
 /* Virtualized development chat extends behind the composer. Footer reserves its real height. */
-.glass .chat-content:has(.message-list) { padding-bottom: 0; }
-.glass-chat-spacer { display: none; }
-.glass .glass-chat-spacer { display: block; height: var(--glass-composer-height, 132px); }
-.glass .message-list { scroll-padding-bottom: var(--glass-composer-height, 132px); }
-.glass .message-list > .back-to-latest-position { bottom: calc(var(--glass-composer-height, 132px) + 12px); }
-.glass .glass-dialog { border-radius: 24px; box-shadow: none; }
-.glass .glass-menu { border-radius: 20px; }
+.chat-content:has(.message-list) { padding-bottom: 0; }
+.glass-chat-spacer { display: block; height: var(--glass-composer-height, 132px); }
+.message-list { scroll-padding-bottom: var(--glass-composer-height, 132px); }
+.message-list > .back-to-latest-position { bottom: calc(var(--glass-composer-height, 132px) + 12px); }
+.glass .glass-dialog { border-radius: 22px; box-shadow: none; }
+.glass .glass-menu { border-radius: 22px; }
 .glass .glass-segments { position: relative; isolation: isolate; background: rgba(80,100,132,.1); border-color: rgba(50,68,98,.18); }
 .glass .glass-segments button { position: relative; background: transparent; z-index: 0; }
 .glass .glass-segments button[aria-selected="true"] { color: #202737; box-shadow: none; }
@@ -122,8 +121,8 @@ html.glass {
   .glass .glass-surface button:not(:disabled):active { transform: scale(.97); }
 }
 @media (max-width: 767px) {
-  .glass .chat-composer-surface { border-radius: 22px; padding: 0; }
-  .glass .chat-composer-inset { padding-top: 8px; }
+  .chat-composer-surface { border-radius: 22px; padding: 0; }
+  .chat-composer-inset { padding-top: 8px; }
 }
 
 /* User accessibility preferences are material modifiers, not alternate themes. */
@@ -138,4 +137,18 @@ html.glass {
 @media (forced-colors: active) {
   .glass .glass-surface { background: Canvas; border: 1px solid CanvasText; }
   .liquid-glass-material { display: none; }
+}
+
+:root:not(.glass) .chat-composer-surface { background: var(--v2-bg-surface); border: 1px solid var(--v2-border-strong); box-shadow: var(--v2-shadow-md); }
+
+/* Keep the chrome light without changing the material's lens or content layout. */
+@media (prefers-contrast: no-preference) {
+  .glass .app-header { --glass-edge: rgba(45, 61, 87, .14); }
+  .glass .chat-composer-surface { --glass-edge: rgba(45, 61, 87, .18); }
+  .glass .app-header > .liquid-glass-material,
+  .glass .chat-composer-surface > .liquid-glass-material {
+    --glass-tint: rgba(250, 252, 255, .28);
+    --glass-shadow: 0 2px 5px rgba(35, 51, 82, .05), 0 8px 24px rgba(35, 51, 82, .08);
+  }
+  :root:not(.glass) .chat-composer-surface { border-color: var(--v2-border-hairline); }
 }

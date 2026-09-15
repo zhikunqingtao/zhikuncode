@@ -145,6 +145,13 @@ test.describe('TC-APOS-E2E-01: 完整工具调用流程 + input 回溯更新', (
 
 test.describe('TC-APOS-E2E-02: 批量操作实装验证', () => {
   test('批量选中 → 批量批准 → Bar 消失 → 状态清空', async ({ page }) => {
+    await page.route('**/api/sessions/*/activities/*/decision', async route => {
+      const segments = new URL(route.request().url()).pathname.split('/');
+      const sessionId = decodeURIComponent(segments[3]);
+      const id = decodeURIComponent(segments[5]);
+      const { decision } = route.request().postDataJSON() as { decision: 'approved' | 'rejected' };
+      await route.fulfill({ json: { id, sessionId, decision } });
+    });
     await page.goto('/');
     await waitForAppReady(page);
     await navigateToAPOSTab(page);
@@ -187,8 +194,7 @@ test.describe('TC-APOS-E2E-02: 批量操作实装验证', () => {
       const mod = await import('/src/store/activityStore.ts');
       const store = (mod as any).useActivityStore;
       const state = store.getState();
-      // 模拟 BatchOperationBar: selectedIds.forEach(id => approveActivity(id))
-      state.selectedIds.forEach((id: string) => state.approveActivity(id));
+      await Promise.all([...state.selectedIds].map((id: string) => state.submitDecision(id, 'approved')));
       // 清理选中状态
       state.setBatchMode(false);
       if (state.clearSelection) state.clearSelection();

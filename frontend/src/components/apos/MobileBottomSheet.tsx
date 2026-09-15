@@ -1,3 +1,5 @@
+import { ActivityDecisionStatus } from './ActivityDecisionStatus';
+import { useModalBehavior } from '@/hooks/useModalBehavior';
 import { GlassMaterial } from '@/components/theme/GlassMaterial';
 /**
  * MobileBottomSheet — 移动端 Bottom Sheet 体系（§8.4）
@@ -16,9 +18,9 @@ import { GlassMaterial } from '@/components/theme/GlassMaterial';
  * - `MobileBottomSheet` — Activity 详情 sheet（由 MobileStatusBar 点击展开接线）
  */
 
-import { useEffect, useCallback, useRef, type ReactNode, type PointerEvent as ReactPointerEvent } from 'react';
+import { useRef, type ReactNode, type PointerEvent as ReactPointerEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence, useDragControls, type PanInfo } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion, useDragControls, type PanInfo } from 'framer-motion';
 import { X, Check, ArrowRight } from 'lucide-react';
 import type { ActivityData, RiskAssessment } from '@/types/apos';
 import { useActivityStore } from '@/store/activityStore';
@@ -49,30 +51,8 @@ export function SheetShell({ isOpen, onClose, ariaLabel, children, header, foote
   const panelRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  // ESC key close
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    },
-    [onClose]
-  );
-
-  // 打开时：锁定背景滚动 + 聚焦面板；关闭/卸载时：归还焦点到触发器（§10.7-④）
-  useEffect(() => {
-    if (!isOpen) return;
-    const previousActive = document.activeElement as HTMLElement | null;
-    document.body.style.overflow = 'hidden';
-    document.addEventListener('keydown', handleKeyDown);
-    const raf = requestAnimationFrame(() => panelRef.current?.focus());
-    return () => {
-      cancelAnimationFrame(raf);
-      document.body.style.overflow = '';
-      document.removeEventListener('keydown', handleKeyDown);
-      if (previousActive && document.contains(previousActive)) {
-        previousActive.focus();
-      }
-    };
-  }, [isOpen, handleKeyDown]);
+  const reducedMotion = useReducedMotion();
+  useModalBehavior(isOpen, panelRef, onClose);
 
   // 拖拽结束 — 下拉 >25% 高度或速度 >500px/s 才关闭，否则回弹（spring 参数保留）
   const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
@@ -110,7 +90,7 @@ export function SheetShell({ isOpen, onClose, ariaLabel, children, header, foote
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: reducedMotion ? 0 : 0.2 }}
             className="absolute inset-0 bg-overlay2"
             onClick={onClose}
           />
@@ -119,10 +99,10 @@ export function SheetShell({ isOpen, onClose, ariaLabel, children, header, foote
           <motion.div
             ref={panelRef}
             tabIndex={-1}
-            initial={{ y: '100%' }}
+            initial={{ y: reducedMotion ? 0 : '100%' }}
             animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            exit={{ y: reducedMotion ? 0 : '100%' }}
+            transition={reducedMotion ? { duration: 0 } : { duration: 0.24, ease: [0.2, 0.8, 0.2, 1] }}
             drag="y"
             dragListener={false}
             dragControls={dragControls}
@@ -140,7 +120,7 @@ export function SheetShell({ isOpen, onClose, ariaLabel, children, header, foote
               className="flex justify-center pt-2 pb-1 flex-shrink-0 cursor-grab active:cursor-grabbing"
               aria-hidden="true"
             >
-              <div className="h-1 w-9 rounded-full bg-t3/40" />
+              <div className="h-1 w-9 rounded-full bg-[color:color-mix(in_srgb,var(--v2-text-3)_40%,transparent)]" />
             </div>
 
             {header && (
@@ -186,7 +166,7 @@ export interface MobileBottomSheetProps {
 const IMPACT_BADGE_COLORS: Record<string, string> = {
   direct: 'bg-errsoft text-errstrong',
   indirect: 'bg-warnsoft text-warnstrong',
-  potential: 'bg-accent2-soft text-accent2',
+  potential: 'bg-accent2-soft text-accent2-ink',
 };
 
 export function MobileBottomSheet({
@@ -199,6 +179,7 @@ export function MobileBottomSheet({
   onViewDetails,
 }: MobileBottomSheetProps) {
   // 订阅 store 获取最新数据，prop 作为 fallback
+  const decisionPending = useActivityStore(s => activityProp ? s.decisionRequests.get(activityProp.id)?.pending ?? false : false);
   const liveActivity = useActivityStore(
     (s) => (activityProp ? s.activities.get(activityProp.id) : undefined)
   );
@@ -213,14 +194,14 @@ export function MobileBottomSheet({
   const header = (
     <div className="flex items-center justify-between px-4 pb-3 border-b border-hairline">
       <div className="flex items-center gap-2 min-w-0">
-        <h3 className="text-sm font-semibold text-t1 truncate">
+        <h3 className="text-t1 truncate text-base font-semibold">
           {activity ? activity.summary : '状态详情'}
         </h3>
         {activity && <SignalBadge signal={signal} size="sm" />}
       </div>
       <button
         onClick={onClose}
-        className="flex-shrink-0 min-w-[44px] min-h-[44px] -mr-2 flex items-center justify-center rounded-full hover:bg-hover2 transition-colors duration-fast"
+        className="panel-control flex-shrink-0 min-w-[44px] min-h-[44px] -mr-2 flex items-center justify-center rounded-full hover:bg-hover2 transition-colors duration-fast"
         aria-label="关闭"
       >
         <X size={18} className="text-t3" />
@@ -230,8 +211,9 @@ export function MobileBottomSheet({
 
   const footer = activity ? (
     <div className="flex items-center gap-2 px-4 py-2 border-t border-hairline pb-[max(env(safe-area-inset-bottom),8px)]">
+      <ActivityDecisionStatus id={activity.id} />
       {activity.decision ? (
-        <span className={`inline-flex items-center gap-1 px-4 min-h-[44px] text-xs font-medium rounded-xl ${
+        <span className={`inline-flex items-center gap-1 px-4 min-h-[44px] text-[13px] font-medium rounded-xl ${
           activity.decision === 'approved'
             ? 'bg-oksoft text-okstrong'
             : 'bg-errsoft text-errstrong'
@@ -243,20 +225,22 @@ export function MobileBottomSheet({
           )}
         </span>
       ) : activity.insight?.signal === 'auto_approve' ? (
-        <span className="inline-flex items-center gap-1 px-4 min-h-[44px] text-xs font-medium rounded-xl bg-sunken2 text-t3">
+        <span className="inline-flex items-center gap-1 px-4 min-h-[44px] text-[13px] font-medium rounded-xl bg-sunken2 text-t3">
           <Check size={14} /> 已自动放行
         </span>
       ) : (
         <>
           <button
+            disabled={decisionPending}
             onClick={() => onApprove?.(activity.id)}
-            className="inline-flex items-center gap-1 px-4 min-h-[44px] text-xs font-medium rounded-xl bg-oksoft text-okstrong active:scale-[.97] transition-interactive duration-fast"
+            className="panel-control inline-flex items-center gap-1 px-4 min-h-[44px] text-[13px] font-medium rounded-xl bg-oksoft text-okstrong active:scale-[.97] transition-interactive duration-fast"
           >
             <Check size={14} /> 批准
           </button>
           <button
+            disabled={decisionPending}
             onClick={() => onReject?.(activity.id)}
-            className="inline-flex items-center gap-1 px-4 min-h-[44px] text-xs font-medium rounded-xl bg-errsoft text-errstrong active:scale-[.97] transition-interactive duration-fast"
+            className="panel-control inline-flex items-center gap-1 px-4 min-h-[44px] text-[13px] font-medium rounded-xl bg-errsoft text-errstrong active:scale-[.97] transition-interactive duration-fast"
           >
             <X size={14} /> 拒绝
           </button>
@@ -264,7 +248,7 @@ export function MobileBottomSheet({
       )}
       <button
         onClick={() => onViewDetails?.(activity.id)}
-        className="inline-flex items-center gap-1 px-4 min-h-[44px] text-xs font-medium rounded-xl bg-sunken2 text-t2 active:scale-[.97] transition-interactive duration-fast ml-auto"
+        className="panel-control inline-flex items-center gap-1 px-4 min-h-[44px] text-[13px] font-medium rounded-xl bg-sunken2 text-t2 active:scale-[.97] transition-interactive duration-fast ml-auto"
       >
         详情 <ArrowRight size={14} />
       </button>
@@ -283,12 +267,12 @@ export function MobileBottomSheet({
         {/* Deterministic Verification Results */}
         {assessment && (
           <div className="space-y-2">
-            <h4 className="text-xs font-semibold text-t3 uppercase tracking-wide">
+            <h4 className="text-[13px] font-semibold text-t3 uppercase tracking-wide">
               确定性验证
             </h4>
             <div className="grid grid-cols-3 gap-2">
               {/* TypeScript Check */}
-              <div className="flex items-center gap-1.5 text-xs">
+              <div className="flex items-center gap-1.5 text-[13px]">
                 <VerificationIcon
                   status={assessment.deterministic.typeCheck.passed ? 'all_pass' : 'has_error'}
                   size={14}
@@ -305,7 +289,7 @@ export function MobileBottomSheet({
               </div>
 
               {/* ESLint Check */}
-              <div className="flex items-center gap-1.5 text-xs">
+              <div className="flex items-center gap-1.5 text-[13px]">
                 <VerificationIcon
                   status={
                     assessment.deterministic.lint.errorCount > 0
@@ -329,7 +313,7 @@ export function MobileBottomSheet({
               </div>
 
               {/* Test Check */}
-              <div className="flex items-center gap-1.5 text-xs">
+              <div className="flex items-center gap-1.5 text-[13px]">
                 <VerificationIcon
                   status={
                     assessment.deterministic.tests.failedCount > 0
@@ -352,10 +336,10 @@ export function MobileBottomSheet({
         {/* Heuristic Analysis */}
         {assessment && (
           <div className="space-y-1.5">
-            <h4 className="text-xs font-semibold text-t3 uppercase tracking-wide">
+            <h4 className="text-[13px] font-semibold text-t3 uppercase tracking-wide">
               启发式分析
             </h4>
-            <div className="flex gap-4 text-xs text-t3">
+            <div className="flex gap-4 text-[13px] text-t3">
               <span>影响 API: <strong className="text-t1">{assessment.heuristic.affectedApiCount}</strong></span>
               <span>间接文件: <strong className="text-t1">{assessment.heuristic.indirectImpactCount}</strong></span>
               <span>置信度: <strong className={assessment.heuristic.hasHighConfidenceImpact ? 'text-warn' : 'text-t1'}>
@@ -368,22 +352,22 @@ export function MobileBottomSheet({
         {/* Affected Files */}
         {activity && (
           <div className="space-y-1.5">
-            <h4 className="text-xs font-semibold text-t3 uppercase tracking-wide">
+            <h4 className="text-[13px] font-semibold text-t3 uppercase tracking-wide">
               受影响文件
             </h4>
             <div className="space-y-1">
               {activity.changedFiles.slice(0, 5).map((file) => (
-                <div key={file.filePath} className="flex items-center gap-2 text-xs">
+                <div key={file.filePath} className="flex items-center gap-2 text-[13px]">
                   <span className="text-t2 truncate flex-1 font-mono">
                     {file.filePath}
                   </span>
-                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${IMPACT_BADGE_COLORS[file.changeType === 'added' ? 'direct' : file.changeType === 'modified' ? 'direct' : 'potential'] ?? IMPACT_BADGE_COLORS.direct}`}>
+                  <span className={`px-1.5 py-0.5 rounded text-[13px] font-medium ${IMPACT_BADGE_COLORS[file.changeType === 'added' ? 'direct' : file.changeType === 'modified' ? 'direct' : 'potential'] ?? IMPACT_BADGE_COLORS.direct}`}>
                     {file.changeType ?? 'modified'}
                   </span>
                 </div>
               ))}
               {activity.changedFiles.length > 5 && (
-                <p className="text-xs text-t3">
+                <p className="text-[13px] text-t3">
                   +{activity.changedFiles.length - 5} 个文件...
                 </p>
               )}
@@ -393,7 +377,7 @@ export function MobileBottomSheet({
 
         {/* 高风险文件 — 状态细条详情（§8.5 点击展开内容） */}
         <div className="space-y-1.5">
-          <h4 className="text-xs font-semibold text-t3 uppercase tracking-wide">
+          <h4 className="text-[13px] font-semibold text-t3 uppercase tracking-wide">
             高风险文件
           </h4>
           <div className="-mx-1">

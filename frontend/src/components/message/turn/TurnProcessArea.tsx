@@ -24,7 +24,7 @@
  */
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ChevronRight } from 'lucide-react';
+import { ChevronDown, Check, X, Minus, Loader2 } from 'lucide-react';
 import type { Message, ToolCallState } from '@/types';
 import type { Turn } from '@/store/selectors/turnProjection';
 import {
@@ -240,8 +240,13 @@ const ProcessAggregateBar: React.FC<TurnProcessAreaProps> = ({
 
     const steps = useMemo(() => countToolUses(process), [process]);
     const now = useNow(running);
-    const duration = formatTurnDuration(turn.startedAt, running ? now : turn.endedAt);
+    const duration = formatTurnDuration(turn.startedAt, running ? now : turn.endedAt)
+        .replace(/(\d+)h/g, (_, n) => `${Number(n)}时`)
+        .replace(/(\d+)m/g, (_, n) => `${Number(n)}分`)
+        .replace(/(\d+)s/g, (_, n) => `${Number(n)}秒`);
     const dotStatus = resolveProcessDotStatus(turn, process, running, activeToolCalls);
+    const statusLabel = { completed: '执行已完成', running: '正在执行', error: '执行有失败', interrupted: '执行已中断' }[dotStatus];
+    const StatusIcon = { completed: Check, running: Loader2, error: X, interrupted: Minus }[dotStatus];
     // 运行中实时状态条：当前任务 = 最后一个分节；无任务数据回退当前运行工具名
     const currentTitle = !running
         ? null
@@ -258,7 +263,7 @@ const ProcessAggregateBar: React.FC<TurnProcessAreaProps> = ({
 
     return (
         <div
-            className="turn-process-aggregate overflow-hidden rounded-xl border border-hairline bg-surface2"
+            className="turn-process-aggregate overflow-hidden rounded-[14px] border border-hairline bg-surface2"
             data-testid={`turn-process-${turn.index}`}
         >
             <button
@@ -268,32 +273,27 @@ const ProcessAggregateBar: React.FC<TurnProcessAreaProps> = ({
                 aria-label={`详细过程区，${expanded ? '点击收起' : '点击展开'}${running ? `，当前任务：${currentTitle}` : ''}`}
                 data-turn-header={turn.index}
                 className={cn(
-                    'flex min-h-11 w-full items-center gap-2 px-3 py-2 text-left sm:min-h-10',
+                    'process-aggregate-toggle flex min-h-11 w-full flex-col gap-2 rounded-[13px] px-3 py-3 text-left',
                     'transition-colors duration-fast hover:bg-hover2',
-                    'focus-visible:outline-none focus-visible:ring-[3px]',
-                    'focus-visible:ring-accent2-ring focus-visible:ring-inset',
                 )}
             >
-                <TaskStatusDot status={dotStatus} testId={`turn-process-dot-${turn.index}`} />
-                <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-0.5">
-                    <span className="text-sm font-medium text-t2">详细过程</span>
-                    <span className="flex flex-wrap items-center gap-x-1.5 text-xs tabular-nums text-t3">
+                <span className="flex w-full flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                    <span className="inline-flex items-center gap-2 text-sm font-medium text-t1">
+                        <span role="img" aria-label={{ completed: '已完成', running: '进行中', error: '失败', interrupted: '被中断' }[dotStatus]} data-testid={`turn-process-dot-${turn.index}`} className={cn('inline-flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full text-white',
+                            dotStatus === 'completed' ? 'bg-ok' : dotStatus === 'error' ? 'bg-err' : dotStatus === 'interrupted' ? 'bg-warn' : 'bg-accent2 animate-accent-pulse motion-reduce:animate-none')}><StatusIcon size={12} aria-hidden="true" /></span>
+                        {statusLabel}
+                    </span>
+                    <span className="flex flex-wrap items-center gap-x-1.5 text-[13px] tabular-nums text-t2">
                         {hasTaskData && <><span>{tasks.length} 个任务</span><span aria-hidden="true">·</span></>}
                         {steps > 0 && <><span>{steps} 步</span><span aria-hidden="true">·</span></>}
                         <span>{duration}</span>
                     </span>
-                    {running && <span className="basis-full truncate text-xs text-t3">当前任务：{currentTitle}</span>}
                 </span>
-                <span className="shrink-0 text-xs font-medium text-t2">
-                    {expanded ? '收起' : '展开'}
+                {running && <span className="w-full truncate text-[13px] text-t2">当前任务：{currentTitle}</span>}
+                <span className="flex w-full items-center justify-between gap-2 text-sm font-medium text-accent2-ink">
+                    <span>{expanded ? '收起执行过程' : '查看执行过程'}</span>
+                    <ChevronDown size={18} aria-hidden="true" className={cn('shrink-0 transition-transform duration-base motion-reduce:transition-none', expanded && 'rotate-180')} />
                 </span>
-                <ChevronRight
-                    size={13}
-                    className={cn(
-                        'shrink-0 text-t4 transition-transform duration-base motion-reduce:transition-none',
-                        expanded && 'rotate-90',
-                    )}
-                />
             </button>
 
             <div className="expand-collapse" data-open={expanded}>

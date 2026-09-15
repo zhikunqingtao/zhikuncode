@@ -8,7 +8,6 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
 import { Treemap, ResponsiveContainer, Tooltip } from 'recharts';
-import { TOKENS, CHART_COLORS } from '@/styles/design-tokens';
 import {
   FolderOpen,
   FileCode,
@@ -27,21 +26,11 @@ import { useComplexityStore, type ComplexityNode } from '@/store/complexityStore
 
 // ── 风险等级颜色映射 ──
 
+// Solid risk fills keep white labels legible in all three themes.
 const RISK_COLORS: Record<string, string> = {
-  'A': TOKENS.light['--v2-ok'],
-  'B': CHART_COLORS.light[6],
-  'C': TOKENS.light['--v2-warn'],
-  'D': CHART_COLORS.light[2],
-  'E': TOKENS.light['--v2-err'],
+  A: '#176B50', B: '#526B26', C: '#865F13', D: '#A34720', E: '#A93243',
 };
-
-const RISK_BG_COLORS: Record<string, string> = {
-  'A': 'rgba(18,166,107,0.85)',
-  'B': 'rgba(101,163,13,0.80)',
-  'C': 'rgba(217,143,31,0.80)',
-  'D': 'rgba(217,119,6,0.85)',
-  'E': 'rgba(220,76,72,0.85)',
-};
+const RISK_BG_COLORS = RISK_COLORS;
 
 const RISK_LABELS: Record<string, string> = {
   'A': '低风险',
@@ -105,18 +94,18 @@ const CustomizedContent: React.FC<CustomizedContentProps> = (props) => {
   const gw = width - GAP;
   const gh = height - GAP;
 
-  const showCC = gw > 50 && gh > 32;
-  const showName = gw > 24 && gh > 16;
-  const showBadge = gw > 60 && gh > 44;
+  const showCC = gw > 70 && gh > 46;
+  const showName = gw > 48 && gh > 24;
+  const showBadge = gw > 70 && gh > 70;
 
   const riskLevel = risk_level ?? 'A';
-  const textColor = ['D', 'E'].includes(riskLevel) ? 'rgba(255,255,255,0.95)' : 'rgba(0,0,0,0.85)';
-  const subtextColor = ['D', 'E'].includes(riskLevel) ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.55)';
+  const textColor = '#FFFFFF';
+  const subtextColor = '#FFFFFF';
 
   const truncateName = (n: string, maxChars: number) =>
     n.length > maxChars ? n.slice(0, maxChars - 1) + '…' : n;
 
-  const maxChars = Math.max(3, Math.floor(gw / 7));
+  const maxChars = Math.max(3, Math.floor((gw - 12) / 8));
 
   const handleClick = useCallback(() => {
     if (hasChildren && originalNode && onDrill) {
@@ -129,6 +118,15 @@ const CustomizedContent: React.FC<CustomizedContentProps> = (props) => {
   return (
     <g
       onClick={handleClick}
+      role={hasChildren ? 'button' : undefined}
+      tabIndex={hasChildren ? 0 : undefined}
+      aria-label={hasChildren ? `展开 ${name}` : undefined}
+      onKeyDown={event => {
+        if (hasChildren && (event.key === 'Enter' || event.key === ' ')) {
+          event.preventDefault();
+          handleClick();
+        }
+      }}
       style={{ cursor: hasChildren ? 'pointer' : 'default' }}
     >
       <rect
@@ -156,8 +154,8 @@ const CustomizedContent: React.FC<CustomizedContentProps> = (props) => {
       {showName && name && (
         <text
           x={gx + 6}
-          y={gy + 14}
-          fontSize={11}
+          y={gy + 19}
+          fontSize={13}
           fontWeight={600}
           fill={textColor}
           style={{ pointerEvents: 'none' }}
@@ -168,8 +166,8 @@ const CustomizedContent: React.FC<CustomizedContentProps> = (props) => {
       {showCC && cc !== undefined && (
         <text
           x={gx + 6}
-          y={gy + 28}
-          fontSize={10}
+          y={gy + 39}
+          fontSize={13}
           fill={subtextColor}
           style={{ pointerEvents: 'none' }}
         >
@@ -180,16 +178,16 @@ const CustomizedContent: React.FC<CustomizedContentProps> = (props) => {
         <>
           <rect
             x={gx + 6}
-            y={gy + 34}
+            y={gy + 48}
             width={18}
-            height={13}
+            height={18}
             rx={2}
             fill="rgba(0,0,0,0.2)"
           />
           <text
             x={gx + 15}
-            y={gy + 44}
-            fontSize={9}
+            y={gy + 62}
+            fontSize={13}
             fontWeight={700}
             fill="white"
             textAnchor="middle"
@@ -204,7 +202,7 @@ const CustomizedContent: React.FC<CustomizedContentProps> = (props) => {
         <text
           x={gx + gw - 14}
           y={gy + gh - 6}
-          fontSize={10}
+          fontSize={13}
           fill={subtextColor}
           style={{ pointerEvents: 'none' }}
         >
@@ -230,46 +228,45 @@ const CustomTreemapTooltip: React.FC<CustomTooltipProps> = ({ active, payload })
 
   return (
     <div
-      className="z-50 px-3 py-2.5 rounded-lg shadow-xl
-        border border-[var(--border)] bg-[var(--bg-primary)]"
+      className="z-50 px-3 py-2.5 rounded-[14px] shadow-xl\n        border border-[var(--v2-border-hairline)] bg-[var(--v2-bg-surface)]"
       style={{ maxWidth: 280 }}
     >
       <div className="flex items-center gap-1.5 mb-1.5">
         {node.type === 'directory' || node.type === 'project' ? (
-          <FolderOpen size={13} className="text-[var(--text-muted)]" />
+          <FolderOpen size={13} className="text-[var(--v2-text-2)]" />
         ) : (
-          <FileCode size={13} className="text-[var(--text-muted)]" />
+          <FileCode size={13} className="text-[var(--v2-text-2)]" />
         )}
-        <span className="text-xs font-medium text-[var(--text-primary)] truncate">
+        <span className="text-[13px] font-medium text-[var(--v2-text-1)] truncate">
           {node.name}
         </span>
         <span
-          className="ml-auto px-1.5 py-0.5 rounded text-[10px] font-bold text-white"
+          className="ml-auto px-1.5 py-0.5 rounded text-[13px] font-bold text-white"
           style={{ backgroundColor: RISK_COLORS[node.risk_level] }}
         >
           {node.risk_level}
         </span>
       </div>
       {node.file_path && (
-        <p className="text-[10px] text-[var(--text-muted)] mb-1.5 truncate">{node.file_path}</p>
+        <p className="text-[13px] text-[var(--v2-text-2)] mb-1.5 truncate">{node.file_path}</p>
       )}
-      <div className="grid grid-cols-3 gap-x-3 gap-y-1 text-[10px]">
+      <div className="grid grid-cols-3 gap-x-3 gap-y-1 text-[13px]">
         <div>
-          <span className="text-[var(--text-muted)]">LOC</span>
-          <p className="font-medium text-[var(--text-primary)]">{node.loc.toLocaleString()}</p>
+          <span className="text-[var(--v2-text-2)]">LOC</span>
+          <p className="font-medium text-[var(--v2-text-1)]">{node.loc.toLocaleString()}</p>
         </div>
         <div>
-          <span className="text-[var(--text-muted)]">CC</span>
-          <p className="font-medium text-[var(--text-primary)]">{node.cc.toFixed(1)}</p>
+          <span className="text-[var(--v2-text-2)]">CC</span>
+          <p className="font-medium text-[var(--v2-text-1)]">{node.cc.toFixed(1)}</p>
         </div>
         <div>
-          <span className="text-[var(--text-muted)]">MI</span>
-          <p className="font-medium text-[var(--text-primary)]">{node.mi.toFixed(1)}</p>
+          <span className="text-[var(--v2-text-2)]">MI</span>
+          <p className="font-medium text-[var(--v2-text-1)]">{node.mi.toFixed(1)}</p>
         </div>
       </div>
       {node.language && (
-        <p className="text-[10px] text-[var(--text-muted)] mt-1">
-          语言: <span className="text-[var(--text-secondary)]">{node.language}</span>
+        <p className="text-[13px] text-[var(--v2-text-2)] mt-1">
+          语言: <span className="text-[var(--v2-text-2)]">{node.language}</span>
         </p>
       )}
     </div>
@@ -294,17 +291,18 @@ const RiskFilterDropdown: React.FC<{
   }, [selected, onChange]);
 
   return (
-    <div className="relative">
+    <div className="relative min-w-[160px]" onKeyDown={event => { if (event.key === 'Escape') setOpen(false); }}>
       <button
         onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs
-          border border-[var(--border)] bg-[var(--bg-primary)]
-          hover:bg-[var(--bg-hover)] text-[var(--text-secondary)] transition-colors"
+        aria-expanded={open}
+        className="panel-control relative z-20 w-full flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[13px]
+          border border-[var(--v2-border-hairline)] bg-[var(--v2-bg-surface)]
+          hover:bg-[var(--v2-bg-hover)] text-[var(--v2-text-2)] transition-colors"
       >
         <AlertTriangle size={13} />
         <span>风险等级</span>
         {selected.length > 0 && (
-          <span className="px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-500 text-[10px] font-medium">
+          <span className="px-1.5 py-0.5 rounded-full bg-warnsoft text-warn text-[13px] font-medium">
             {selected.length}
           </span>
         )}
@@ -314,11 +312,11 @@ const RiskFilterDropdown: React.FC<{
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
           <div className="absolute top-full left-0 mt-1 z-20 min-w-[160px]
-            rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] shadow-lg">
-            <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--border)]">
-              <span className="text-xs text-[var(--text-muted)]">选择风险等级</span>
+            rounded-lg border border-[var(--v2-border-hairline)] bg-[var(--v2-bg-surface)] shadow-lg">
+            <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--v2-border-hairline)]">
+              <span className="text-[13px] text-[var(--v2-text-2)]">选择风险等级</span>
               {selected.length > 0 && (
-                <button onClick={() => onChange([])} className="text-[10px] text-blue-500 hover:underline">
+                <button onClick={() => onChange([])} className="panel-control text-[13px] text-accent2-ink hover:underline">
                   清除
                 </button>
               )}
@@ -326,14 +324,14 @@ const RiskFilterDropdown: React.FC<{
             {levels.map(level => (
               <label
                 key={level}
-                className="flex items-center gap-2 px-3 py-1.5 hover:bg-[var(--bg-hover)]
-                  cursor-pointer text-xs text-[var(--text-primary)]"
+                className="flex items-center gap-2 px-3 py-1.5 hover:bg-[var(--v2-bg-hover)]
+                  max-md:min-h-11 cursor-pointer text-[13px] text-[var(--v2-text-1)]"
               >
                 <input
                   type="checkbox"
                   checked={selected.includes(level)}
                   onChange={() => toggle(level)}
-                  className="rounded border-gray-400 text-blue-500 focus:ring-blue-500"
+                  className="rounded border-border-hairline text-accent2-ink focus:ring-accent2"
                 />
                 <span
                   className="w-2 h-2 rounded-full"
@@ -359,12 +357,13 @@ const LanguageFilterDropdown: React.FC<{
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="relative">
+    <div className="relative min-w-[140px]" onKeyDown={event => { if (event.key === 'Escape') setOpen(false); }}>
       <button
         onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs
-          border border-[var(--border)] bg-[var(--bg-primary)]
-          hover:bg-[var(--bg-hover)] text-[var(--text-secondary)] transition-colors"
+        aria-expanded={open}
+        className="panel-control relative z-20 w-full flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[13px]
+          border border-[var(--v2-border-hairline)] bg-[var(--v2-bg-surface)]
+          hover:bg-[var(--v2-bg-hover)] text-[var(--v2-text-2)] transition-colors"
       >
         <Filter size={13} />
         <span>{selected ?? '所有语言'}</span>
@@ -374,11 +373,11 @@ const LanguageFilterDropdown: React.FC<{
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
           <div className="absolute top-full left-0 mt-1 z-20 min-w-[140px]
-            rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] shadow-lg">
+            rounded-lg border border-[var(--v2-border-hairline)] bg-[var(--v2-bg-surface)] shadow-lg">
             <button
               onClick={() => { onChange(null); setOpen(false); }}
-              className={`w-full text-left px-3 py-1.5 text-xs hover:bg-[var(--bg-hover)]
-                ${!selected ? 'text-blue-500 font-medium' : 'text-[var(--text-primary)]'}`}
+              className={`panel-control w-full text-left px-3 py-1.5 text-[13px] hover:bg-[var(--v2-bg-hover)]
+                ${!selected ? 'text-accent2-ink font-medium' : 'text-[var(--v2-text-1)]'}`}
             >
               所有语言
             </button>
@@ -386,8 +385,8 @@ const LanguageFilterDropdown: React.FC<{
               <button
                 key={lang}
                 onClick={() => { onChange(lang); setOpen(false); }}
-                className={`w-full text-left px-3 py-1.5 text-xs hover:bg-[var(--bg-hover)]
-                  ${selected === lang ? 'text-blue-500 font-medium' : 'text-[var(--text-primary)]'}`}
+                className={`panel-control w-full text-left px-3 py-1.5 text-[13px] hover:bg-[var(--v2-bg-hover)]
+                  ${selected === lang ? 'text-accent2-ink font-medium' : 'text-[var(--v2-text-1)]'}`}
               >
                 {lang}
               </button>
@@ -402,26 +401,26 @@ const LanguageFilterDropdown: React.FC<{
 // ── 统计卡片 ──
 
 const StatsCards: React.FC<{ stats: { total_files: number; avg_cc: number; high_risk_count: number; analysis_time_ms: number }; cached: boolean }> = ({ stats, cached }) => (
-  <div className="flex items-center gap-3">
-    <div className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)]">
-      <Layers size={12} className="text-[var(--text-muted)]" />
+  <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+    <div className="flex items-center gap-1.5 text-[13px] text-[var(--v2-text-2)]">
+      <Layers size={12} className="text-[var(--v2-text-2)]" />
       <span>{stats.total_files} 文件</span>
     </div>
-    <div className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)]">
-      <BarChart3 size={12} className="text-[var(--text-muted)]" />
+    <div className="flex items-center gap-1.5 text-[13px] text-[var(--v2-text-2)]">
+      <BarChart3 size={12} className="text-[var(--v2-text-2)]" />
       <span>CC {stats.avg_cc.toFixed(1)}</span>
     </div>
-    <div className="flex items-center gap-1.5 text-xs">
-      <FileWarning size={12} className={stats.high_risk_count > 0 ? 'text-orange-500' : 'text-[var(--text-muted)]'} />
-      <span className={stats.high_risk_count > 0 ? 'text-orange-500 font-medium' : 'text-[var(--text-secondary)]'}>
+    <div className="flex items-center gap-1.5 text-[13px]">
+      <FileWarning size={12} className={stats.high_risk_count > 0 ? 'text-warn' : 'text-[var(--v2-text-2)]'} />
+      <span className={stats.high_risk_count > 0 ? 'text-warn font-medium' : 'text-[var(--v2-text-2)]'}>
         {stats.high_risk_count} 高风险
       </span>
     </div>
-    <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
+    <div className="flex items-center gap-1.5 text-[13px] text-[var(--v2-text-2)]">
       <Clock size={12} />
       <span>{stats.analysis_time_ms}ms</span>
       {cached && (
-        <span className="px-1 py-0.5 rounded bg-blue-500/10 text-blue-500 text-[10px]">缓存</span>
+        <span className="px-1 py-0.5 rounded bg-accent2-soft text-accent2-ink text-[13px]">缓存</span>
       )}
     </div>
   </div>
@@ -434,7 +433,7 @@ const TreemapSkeleton: React.FC = () => (
     {Array.from({ length: 12 }).map((_, i) => (
       <div
         key={i}
-        className="rounded bg-[var(--bg-secondary)]"
+        className="rounded bg-[var(--v2-bg-sunken)]"
         style={{
           gridColumn: i === 0 ? 'span 2' : i === 3 ? 'span 2' : undefined,
           gridRow: i === 0 ? 'span 2' : undefined,
@@ -524,13 +523,13 @@ export const CodeComplexityTreemap: React.FC = () => {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-6 text-center">
-        <AlertTriangle className="w-10 h-10 text-red-400 mb-3" />
-        <p className="text-sm text-[var(--text-primary)] font-medium mb-1">分析失败</p>
-        <p className="text-xs text-[var(--text-muted)] mb-4 max-w-xs">{error}</p>
+        <AlertTriangle className="w-10 h-10 text-err mb-3" />
+        <p className="text-sm text-[var(--v2-text-1)] font-medium mb-1">分析失败</p>
+        <p className="text-[13px] text-[var(--v2-text-2)] mb-4 max-w-xs">{error}</p>
         <button
           onClick={handleRetry}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs
-            bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+          className="panel-control flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[13px]
+            bg-accent2 text-white hover:brightness-95 transition-colors"
         >
           <RefreshCw size={12} />
           重试
@@ -543,8 +542,8 @@ export const CodeComplexityTreemap: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex flex-col h-full">
-        <div className="px-3 py-2 border-b border-[var(--border)] shrink-0">
-          <div className="h-4 w-48 bg-[var(--bg-secondary)] rounded animate-pulse" />
+        <div className="px-3 py-2 border-b border-[var(--v2-border-hairline)] shrink-0">
+          <div className="h-4 w-48 bg-[var(--v2-bg-sunken)] rounded animate-pulse" />
         </div>
         <div className="flex-1 p-2">
           <TreemapSkeleton />
@@ -557,9 +556,9 @@ export const CodeComplexityTreemap: React.FC = () => {
   if (!complexityTree || !currentNode) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-6 text-center">
-        <BarChart3 className="w-10 h-10 text-[var(--text-muted)] mb-3 opacity-40" />
-        <p className="text-sm text-[var(--text-muted)]">暂无复杂度数据</p>
-        <p className="text-xs text-[var(--text-muted)] mt-1 opacity-60">
+        <BarChart3 className="w-10 h-10 text-[var(--v2-text-2)] mb-3 opacity-40" />
+        <p className="text-sm text-[var(--v2-text-2)]">暂无复杂度数据</p>
+        <p className="text-[13px] text-[var(--v2-text-2)] mt-1">
           请先选择项目路径进行代码复杂度分析
         </p>
       </div>
@@ -569,18 +568,18 @@ export const CodeComplexityTreemap: React.FC = () => {
   return (
     <div className="flex flex-col h-full">
       {/* 顶部工具栏 */}
-      <div className="flex items-center gap-2 px-3 py-2 border-b border-[var(--border)] shrink-0 flex-wrap">
+      <div className="flex items-center gap-2 px-3 py-2 border-b border-[var(--v2-border-hairline)] shrink-0 flex-wrap">
         {/* 面包屑导航 */}
-        <nav className="flex items-center gap-0.5 text-xs mr-auto min-w-0 overflow-hidden">
+        <nav className="flex items-center gap-0.5 text-[13px] mr-auto min-w-0 overflow-hidden">
           {currentDrillPath.map((pathNode, idx) => (
             <React.Fragment key={`${pathNode.name}-${idx}`}>
-              {idx > 0 && <ChevronRight size={12} className="text-[var(--text-muted)] shrink-0" />}
+              {idx > 0 && <ChevronRight size={12} className="text-[var(--v2-text-2)] shrink-0" />}
               <button
                 onClick={() => drillUp(idx)}
-                className={`truncate max-w-[120px] px-1 py-0.5 rounded transition-colors
+                className={`panel-control truncate max-w-[120px] px-1 py-0.5 rounded transition-colors
                   ${idx === currentDrillPath.length - 1
-                    ? 'text-[var(--text-primary)] font-medium'
-                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]'
+                    ? 'text-[var(--v2-text-1)] font-medium'
+                    : 'text-[var(--v2-text-2)] hover:text-[var(--v2-text-1)] hover:bg-[var(--v2-bg-hover)]'
                   }`}
               >
                 {pathNode.type === 'project' || pathNode.type === 'directory' ? (
@@ -617,7 +616,7 @@ export const CodeComplexityTreemap: React.FC = () => {
       </div>
 
       {/* Treemap 区域 */}
-      <div className="flex-1 overflow-hidden p-1">
+      <div className="flex-1 min-h-0 overflow-hidden p-1">
         {rechartsData.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
             <Treemap
@@ -634,8 +633,8 @@ export const CodeComplexityTreemap: React.FC = () => {
           </ResponsiveContainer>
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-center">
-            <X className="w-8 h-8 text-[var(--text-muted)] mb-2 opacity-40" />
-            <p className="text-xs text-[var(--text-muted)]">
+            <X className="w-8 h-8 text-[var(--v2-text-2)] mb-2 opacity-40" />
+            <p className="text-[13px] text-[var(--v2-text-2)]">
               {(languageFilter || (riskLevelFilter && riskLevelFilter.length > 0))
                 ? '当前过滤条件下无匹配文件'
                 : '该节点无子项'}
@@ -645,15 +644,15 @@ export const CodeComplexityTreemap: React.FC = () => {
       </div>
 
       {/* 底部图例 */}
-      <div className="flex items-center gap-3 px-3 py-1.5 border-t border-[var(--border)] shrink-0">
-        <span className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">风险等级</span>
+      <div className="flex flex-wrap items-center gap-3 px-3 py-2 border-t border-[var(--v2-border-hairline)] shrink-0">
+        <span className="text-[13px] text-[var(--v2-text-2)] uppercase tracking-wider">风险等级</span>
         {Object.entries(RISK_COLORS).map(([level, color]) => (
           <div key={level} className="flex items-center gap-1">
             <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: color }} />
-            <span className="text-[10px] text-[var(--text-secondary)]">{level}</span>
+            <span className="text-[13px] text-[var(--v2-text-2)]">{level}</span>
           </div>
         ))}
-        <span className="ml-auto text-[10px] text-[var(--text-muted)]">
+        <span className="ml-auto text-[13px] text-[var(--v2-text-2)]">
           面积 = 代码行数 (LOC) · 颜色 = 风险等级
         </span>
       </div>

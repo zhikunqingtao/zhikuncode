@@ -5,6 +5,7 @@
  */
 
 import { useMemo, useState, useCallback, useRef, useEffect } from 'react';
+import { useReducedMotion } from 'framer-motion';
 import { CHART_COLORS } from '@/styles/design-tokens';
 import {
   ReactFlow,
@@ -54,7 +55,7 @@ function fallbackGridLayout(
   rawNodes.forEach((n, i) => {
     const col = i % cols;
     const row = Math.floor(i / cols);
-    posMap.set(n.id, { x: col * 280 + 140, y: row * 140 + 70 });
+    posMap.set(n.id, { x: col * 280 + 140, y: row * 188 + 94 });
   });
   return posMap;
 }
@@ -109,7 +110,7 @@ function buildGraph(
     rawNodes.push({
       id: task.taskId,
       width: 220,
-      height: 80,
+      height: 128,
       data: {
         agentName: task.agentName,
         agentType: task.agentType,
@@ -134,7 +135,7 @@ function buildGraph(
       rawNodes.push({
         id: workerId,
         width: 220,
-        height: 80,
+        height: 128,
         data: {
           agentName: `Worker ${worker.workerId}`,
           agentType: 'swarm-worker',
@@ -306,49 +307,50 @@ function NodeDetailPanel({
   if (!nodeData) return null;
 
   return (
-    <div className="absolute right-0 top-0 bottom-0 w-72 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 shadow-lg z-20 overflow-y-auto">
-      <div className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-700">
-        <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+    <div className="absolute right-0 top-0 bottom-0 w-72 max-w-full bg-surfacev2 border-l border-border-hairline shadow-lg z-20 overflow-y-auto">
+      <div className="flex items-center justify-between p-3 border-b border-border-hairline">
+        <span className="text-sm font-semibold text-t1">
           节点详情
         </span>
         <button
+          aria-label="关闭 Agent 节点详情"
           onClick={onClose}
-          className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+          className="panel-control p-1 rounded hover:bg-hover2"
         >
-          <X className="w-4 h-4 text-gray-500" />
+          <X className="w-4 h-4 text-t2" />
         </button>
       </div>
-      <div className="p-3 space-y-3">
+      <div className="p-3 space-y-3 [overflow-wrap:anywhere]">
         <div>
-          <label className="text-[10px] uppercase font-semibold text-gray-500">Agent</label>
-          <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{nodeData.agentName}</p>
+          <label className="text-[13px] uppercase font-semibold text-t2">Agent</label>
+          <p className="text-sm font-medium text-t1">{nodeData.agentName}</p>
         </div>
         <div>
-          <label className="text-[10px] uppercase font-semibold text-gray-500">类型</label>
-          <p className="text-xs text-gray-600 dark:text-gray-400">{nodeData.agentType}</p>
+          <label className="text-[13px] uppercase font-semibold text-t2">类型</label>
+          <p className="text-[13px] text-t2">{nodeData.agentType}</p>
         </div>
         <div>
-          <label className="text-[10px] uppercase font-semibold text-gray-500">状态</label>
-          <p className="text-xs text-gray-600 dark:text-gray-400">{nodeData.status}</p>
+          <label className="text-[13px] uppercase font-semibold text-t2">状态</label>
+          <p className="text-[13px] text-t2">{nodeData.status}</p>
         </div>
         <div>
-          <label className="text-[10px] uppercase font-semibold text-gray-500">描述</label>
-          <p className="text-xs text-gray-600 dark:text-gray-400 whitespace-pre-wrap break-all">
+          <label className="text-[13px] uppercase font-semibold text-t2">描述</label>
+          <p className="text-[13px] text-t2 whitespace-pre-wrap break-all">
             {nodeData.description}
           </p>
         </div>
         {nodeData.progress && (
           <div>
-            <label className="text-[10px] uppercase font-semibold text-gray-500">进度</label>
-            <p className="text-xs text-gray-600 dark:text-gray-400 whitespace-pre-wrap break-all max-h-40 overflow-y-auto">
+            <label className="text-[13px] uppercase font-semibold text-t2">进度</label>
+            <p className="text-[13px] text-t2 whitespace-pre-wrap break-all max-h-40 overflow-y-auto">
               {nodeData.progress}
             </p>
           </div>
         )}
         {nodeData.result && (
           <div>
-            <label className="text-[10px] uppercase font-semibold text-gray-500">结果</label>
-            <p className="text-xs text-gray-600 dark:text-gray-400 whitespace-pre-wrap break-all max-h-40 overflow-y-auto">
+            <label className="text-[13px] uppercase font-semibold text-t2">结果</label>
+            <p className="text-[13px] text-t2 whitespace-pre-wrap break-all max-h-40 overflow-y-auto">
               {nodeData.result}
             </p>
           </div>
@@ -360,9 +362,10 @@ function NodeDetailPanel({
 
 /** 内部 DAG 组件（需要在 ReactFlowProvider 内部） */
 function AgentDAGChartInner({ liveSessionId }: { liveSessionId?: string }) {
+  const reduceMotion = useReducedMotion();
   const [direction, setDirection] = useState<'TB' | 'LR'>('TB');
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [selectedNode, setSelectedNode] = useState<AgentDAGNodeData | null>(null);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const { fitView } = useReactFlow();
 
@@ -396,6 +399,7 @@ function AgentDAGChartInner({ liveSessionId }: { liveSessionId?: string }) {
     [agentTasks, swarms, currentPhaseIndex, direction, mailboxEvents]
   );
 
+  const selectedNode = graphData.nodes.find(node => node.id === selectedNodeId)?.data as AgentDAGNodeData | undefined;
   const [nodes, setNodes, onNodesChange] = useNodesState(graphData.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(graphData.edges);
 
@@ -408,22 +412,21 @@ function AgentDAGChartInner({ liveSessionId }: { liveSessionId?: string }) {
   // 布局变化后自动 fitView
   useEffect(() => {
     if (nodes.length > 0) {
-      setTimeout(() => fitView({ padding: 0.2 }), 50);
+      const timer = setTimeout(() => fitView({ padding: 0.2 }), 50);
+      return () => clearTimeout(timer);
     }
   }, [direction, nodes.length, fitView]);
 
   const handleNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
-    setSelectedNode(node.data as unknown as AgentDAGNodeData);
+    setSelectedNodeId(node.id);
   }, []);
 
   const toggleFullscreen = useCallback(() => {
     if (!containerRef.current) return;
     if (!document.fullscreenElement) {
-      containerRef.current.requestFullscreen().catch(() => {});
-      setIsFullscreen(true);
+      containerRef.current.requestFullscreen?.().catch(() => {});
     } else {
-      document.exitFullscreen().catch(() => {});
-      setIsFullscreen(false);
+      document.exitFullscreen?.().catch(() => {});
     }
   }, []);
 
@@ -437,11 +440,11 @@ function AgentDAGChartInner({ liveSessionId }: { liveSessionId?: string }) {
   if (agentTasks.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center p-6">
-        <Network className="w-12 h-12 text-gray-300 dark:text-gray-600 mb-3" />
-        <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+        <Network className="w-12 h-12 text-t3 mb-3" />
+        <p className="text-sm text-t2 font-medium">
           暂无 Agent 任务
         </p>
-        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+        <p className="text-[13px] text-t2 mt-1">
           当 Agent 协作任务开始时，DAG 将自动显示
         </p>
       </div>
@@ -449,43 +452,43 @@ function AgentDAGChartInner({ liveSessionId }: { liveSessionId?: string }) {
   }
 
   return (
-    <div ref={containerRef} className="relative w-full h-full bg-white dark:bg-gray-900">
+    <div ref={containerRef} className="agent-dag relative w-full h-full bg-surfacev2">
       {/* 工具栏 */}
-      <div className="absolute top-2 left-2 z-10 flex items-center gap-1 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-1">
+      <div className="absolute top-2 left-2 z-10 flex items-center gap-1 bg-surfacev2 backdrop-blur-sm rounded-lg shadow-sm border border-border-hairline p-1">
         <button
           onClick={() => setDirection(direction === 'TB' ? 'LR' : 'TB')}
-          className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          className="panel-control p-1.5 rounded hover:bg-hover2 transition-colors"
           title={direction === 'TB' ? '切换为从左到右' : '切换为从上到下'}
         >
           {direction === 'TB' ? (
-            <ArrowRightFromLine className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400" />
+            <ArrowRightFromLine className="w-3.5 h-3.5 text-t2" />
           ) : (
-            <ArrowDownFromLine className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400" />
+            <ArrowDownFromLine className="w-3.5 h-3.5 text-t2" />
           )}
         </button>
         <button
           onClick={() => fitView({ padding: 0.2 })}
-          className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          className="panel-control p-1.5 rounded hover:bg-hover2 transition-colors"
           title="适应视图"
         >
-          <Maximize2 className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400" />
+          <Maximize2 className="w-3.5 h-3.5 text-t2" />
         </button>
         <button
           onClick={toggleFullscreen}
-          className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          className="panel-control p-1.5 rounded hover:bg-hover2 transition-colors"
           title={isFullscreen ? '退出全屏' : '全屏'}
         >
           {isFullscreen ? (
-            <Minimize2 className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400" />
+            <Minimize2 className="w-3.5 h-3.5 text-t2" />
           ) : (
-            <Maximize2 className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400" />
+            <Maximize2 className="w-3.5 h-3.5 text-t2" />
           )}
         </button>
       </div>
 
       <ReactFlow
         nodes={nodes}
-        edges={edges}
+        edges={reduceMotion ? edges.map(edge => ({ ...edge, animated: false })) : edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onNodeClick={handleNodeClick}
@@ -497,17 +500,17 @@ function AgentDAGChartInner({ liveSessionId }: { liveSessionId?: string }) {
       >
         <MiniMap
           nodeStrokeWidth={2}
-          className="!bg-gray-50 dark:!bg-gray-800"
+          className="!bg-surface2"
         />
         <Background variant={BackgroundVariant.Dots} gap={16} size={1} />
         <Controls
           showInteractive={false}
-          className="!bg-white/90 dark:!bg-gray-800/90 !border-gray-200 dark:!border-gray-700 !shadow-sm"
+          className="!bg-surfacev2 !border-border-hairline !shadow-sm"
         />
       </ReactFlow>
 
       {/* 节点详情面板 */}
-      <NodeDetailPanel nodeData={selectedNode} onClose={() => setSelectedNode(null)} />
+      <NodeDetailPanel nodeData={selectedNode ?? null} onClose={() => setSelectedNodeId(null)} />
     </div>
   );
 }

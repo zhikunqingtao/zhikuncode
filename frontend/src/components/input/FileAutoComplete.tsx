@@ -101,13 +101,13 @@ export const FileAutoComplete: React.FC<FileAutoCompleteProps> = ({
     if (!results.length && !loading) return null;
 
     return (
-        <div className="absolute bottom-full mb-1 left-0 z-50 bg-white dark:bg-gray-800
+        <div className="absolute bottom-full mb-1 left-0 z-50 bg-surfacev2
             border rounded-lg shadow-xl max-h-64 overflow-y-auto w-80">
-            {loading && <div className="p-2 text-xs text-gray-400">搜索中...</div>}
+            {loading && <div className="p-2 text-[13px] text-t2">搜索中...</div>}
             {results.map((r, i) => (
                 <button key={r.path}
-                    className={`w-full text-left px-3 py-1.5 flex items-center gap-2 text-sm
-                        ${i === selectedIndex ? 'bg-blue-600 text-white' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                    className={`panel-control w-full text-left px-3 py-1.5 flex items-center gap-2 text-sm
+                        ${i === selectedIndex ? 'bg-blue-600 text-white' : 'hover:bg-hover2'}`}
                     onClick={() => onSelect(r.path)}
                     onMouseEnter={() => setSelectedIndex(i)}>
                     <span>{r.type === 'directory' ? '📁' : '📄'}</span>

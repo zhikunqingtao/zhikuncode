@@ -9,11 +9,11 @@ import { cn } from './cn';
  * 注：accent 文字档取 strong 以满足 §10.1 对比度（soft 底上基准档不足 4.5:1）。
  */
 const chipVariants = cva(
-    'inline-flex items-center gap-1 rounded-full h-6 px-2.5 text-xs font-medium whitespace-nowrap select-none',
+    'inline-flex items-center gap-1 rounded-full h-6 px-2.5 text-[13px] font-medium whitespace-nowrap select-none',
     {
         variants: {
             variant: {
-                accent: 'bg-accent2-soft text-accent2-strong dark:text-accent2',
+                accent: 'bg-accent2-soft text-accent2-ink dark:text-accent2-ink',
                 ok: 'bg-oksoft text-okstrong dark:text-ok',
                 warn: 'bg-warnsoft text-warnstrong dark:text-warn',
                 err: 'bg-errsoft text-errstrong dark:text-err',

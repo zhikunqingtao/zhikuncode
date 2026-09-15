@@ -52,7 +52,7 @@
     /* §8.6 可配置主题属性 */
     --accent-color:            #3b82f6;
     --font-size:               14px;
-    --font-family-code:        'JetBrains Mono', 'Fira Code', monospace;
+    --font-family-code:        ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     --border-radius:           8px;
     --text-muted:              #94a3b8;
 
@@ -116,7 +116,7 @@
 /* ===== 全局 Body 样式 ===== */
 body {
   margin: 0;
-  font-family: Inter, system-ui, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   font-size: var(--font-size, 14px);
   background-color: var(--bg-primary);
   color: var(--text-primary);
@@ -240,14 +240,14 @@ body {
 
 /* ===== v2 令牌（新增，不动任何旧变量） ===== */
 :root{
-  --v2-bg-app:#F4F5F7; --v2-bg-surface:#FFFFFF; --v2-bg-surface-2:#FAFBFC; --v2-bg-sunken:#EFF1F4;
+  --v2-bg-app:#F5F6F8; --v2-bg-surface:#FFFFFF; --v2-bg-surface-2:#F8F9FC; --v2-bg-sunken:#F0F2F7;
   --v2-bg-hover:rgba(16,24,40,.045); --v2-bg-active:rgba(16,24,40,.07);
   --v2-border-hairline:rgba(16,24,40,.08); --v2-border-strong:rgba(16,24,40,.14);
   --v2-overlay:rgba(16,24,40,.32);
-  --v2-text-1:#1A1D26; --v2-text-2:#4A5160; --v2-text-3:#6B7280; --v2-text-4:#9AA1B2;
-  --v2-ok:#12A66B; --v2-ok-soft:rgba(18,166,107,.12); --v2-ok-strong:#065F46;
-  --v2-warn:#D98F1F; --v2-warn-soft:rgba(217,143,31,.12); --v2-warn-strong:#92400E;
-  --v2-err:#DC4C48; --v2-err-soft:rgba(220,76,72,.12); --v2-err-strong:#B91C1C;
+  --v2-text-1:#202737; --v2-text-2:#505D70; --v2-text-3:#606C7E; --v2-text-4:#606C7E;
+  --v2-ok:#16704D; --v2-ok-soft:rgba(18,166,107,.12); --v2-ok-strong:#065F46;
+  --v2-warn:#92400E; --v2-warn-soft:rgba(217,143,31,.12); --v2-warn-strong:#92400E;
+  --v2-err:#B3303B; --v2-err-soft:rgba(220,76,72,.12); --v2-err-strong:#B91C1C;
   --v2-diff-add-bg:rgba(18,166,107,.10); --v2-diff-remove-bg:rgba(220,76,72,.10);
   --v2-accent:#6366F1; --v2-accent-strong:#4F46E5;
   --v2-accent-soft:rgba(99,102,241,.10); --v2-accent-ring:rgba(99,102,241,.32);
@@ -260,22 +260,22 @@ body {
   --v2-shadow-inset:inset 0 2px 5px rgba(16,24,40,.07);
   --v2-shadow-soft:-8px -8px 20px rgba(255,255,255,.85),8px 8px 20px rgba(16,24,40,.07);
   --v2-shadow-soft-sm:-4px -4px 10px rgba(255,255,255,.8),4px 4px 10px rgba(16,24,40,.06);
-  --v2-r-xs:6px; --v2-r-sm:8px; --v2-r-md:12px; --v2-r-lg:16px; --v2-r-panel:20px; --v2-r-pill:999px;
-  --v2-dur-fast:120ms; --v2-dur-base:180ms; --v2-dur-slow:240ms; --v2-dur-sheet:320ms;
+  --v2-r-xs:6px; --v2-r-sm:10px; --v2-r-md:14px; --v2-r-lg:16px; --v2-r-panel:22px; --v2-r-pill:999px;
+  --v2-dur-fast:120ms; --v2-dur-base:180ms; --v2-dur-slow:240ms; --v2-dur-sheet:240ms;
   --v2-ease:cubic-bezier(.2,.8,.2,1); --v2-ease-in-out:cubic-bezier(.4,0,.2,1);
   --v2-spring:cubic-bezier(.34,1.56,.64,1);
   --v2-chart-1:#6366F1; --v2-chart-2:#0D9488; --v2-chart-3:#D97706; --v2-chart-4:#E11D48;
   --v2-chart-5:#0284C7; --v2-chart-6:#9333EA; --v2-chart-7:#65A30D; --v2-chart-8:#64748B;
 }
 .dark{
-  --v2-bg-app:#0F1117; --v2-bg-surface:#161A23; --v2-bg-surface-2:#1B2029; --v2-bg-sunken:#0B0E14;
+  --v2-bg-app:#101217; --v2-bg-surface:#191C24; --v2-bg-surface-2:#1C212B; --v2-bg-sunken:#11151C;
   --v2-bg-hover:rgba(255,255,255,.05); --v2-bg-active:rgba(255,255,255,.08);
   --v2-border-hairline:rgba(255,255,255,.08); --v2-border-strong:rgba(255,255,255,.15);
   --v2-overlay:rgba(0,0,0,.55);
-  --v2-text-1:#EDEEF3; --v2-text-2:#B7BCC9; --v2-text-3:#878FA0; --v2-text-4:#5F6779;
-  --v2-ok:#34D399; --v2-ok-soft:rgba(52,211,153,.14); --v2-ok-strong:#6EE7B7;
+  --v2-text-1:#EBEDF3; --v2-text-2:#B9C2D1; --v2-text-3:#9CA8BA; --v2-text-4:#9CA8BA;
+  --v2-ok:#80D2AC; --v2-ok-soft:rgba(52,211,153,.14); --v2-ok-strong:#6EE7B7;
   --v2-warn:#FBBF24; --v2-warn-soft:rgba(251,191,36,.14); --v2-warn-strong:#FDE68A;
-  --v2-err:#F87171; --v2-err-soft:rgba(248,113,113,.14); --v2-err-strong:#DC2626;
+  --v2-err:#EE9DA6; --v2-err-soft:rgba(248,113,113,.14); --v2-err-strong:#DC2626;
   --v2-diff-add-bg:rgba(52,211,153,.12); --v2-diff-remove-bg:rgba(248,113,113,.12);
   --v2-shadow-xs:0 1px 2px rgba(0,0,0,.4);
   --v2-shadow-sm:0 1px 2px rgba(0,0,0,.4),0 2px 8px rgba(0,0,0,.35);

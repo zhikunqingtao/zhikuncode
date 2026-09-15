@@ -88,7 +88,7 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
                 <div
                     role="tablist"
                     onKeyDown={handleKeyDown}
-                    className="inline-flex items-center gap-1 rounded-2xl bg-sunken2 p-1 shadow-well"
+                    className="inline-flex items-center gap-1 rounded-[14px] bg-sunken2 p-1 shadow-well"
                 >
                     {items.map((item, idx) => {
                         const isSelected = item.value === selected;

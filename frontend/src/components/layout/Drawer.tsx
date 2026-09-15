@@ -10,6 +10,7 @@ import { GlassMaterial } from '@/components/theme/GlassMaterial';
  */
 
 import { useEffect, useCallback, ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 
 interface DrawerProps {
     open: boolean;
@@ -44,7 +45,7 @@ export function Drawer({
         }
     }, [open, handleKeyDown]);
 
-    return (
+    return createPortal(
         <>
             {/* Overlay 背景 — overlay2 令牌 */}
             <div
@@ -57,7 +58,9 @@ export function Drawer({
             {/* 抽屉面板 — 宽 280px / max 82%，rounded-r-panel + shadow-e4 */}
             <div
                 role="dialog"
-                aria-modal="true"
+                aria-modal={open ? true : undefined}
+                aria-hidden={!open}
+                {...(!open ? { inert: '' } : {})}
                 aria-label="侧边栏"
                 className={`glass-surface fixed top-0 ${side === 'left' ? 'left-0' : 'right-0'} z-50
                     h-full bg-surfacev2 shadow-e4 overflow-hidden
@@ -76,6 +79,7 @@ export function Drawer({
                     {children}
                 </div>
             </div>
-        </>
+        </>,
+        document.body,
     );
 }

@@ -135,7 +135,7 @@ const ToolSummaryRow: React.FC<{
             {cancelled ? (
                 <CircleSlash size={13} className="shrink-0 text-warn" aria-label="已取消" />
             ) : running ? (
-                <Loader2 size={13} className="shrink-0 animate-spin text-accent2" aria-label="执行中" />
+                <Loader2 size={13} className="shrink-0 animate-spin text-accent2-ink" aria-label="执行中" />
             ) : tc.status === 'error' ? (
                 <CircleSlash size={13} className="shrink-0 text-err" aria-label="失败" />
             ) : (
@@ -144,7 +144,7 @@ const ToolSummaryRow: React.FC<{
             <span className="shrink-0 text-sm font-medium text-t1">{tc.toolName}</span>
             {target && (
                 <span
-                    className="shrink-0 max-w-[36%] truncate rounded bg-sunken2 px-1.5 py-0.5 font-mono text-[11px] text-t2"
+                    className="shrink-0 max-w-[36%] truncate rounded bg-sunken2 px-1.5 py-0.5 font-mono text-[13px] text-t2"
                     style={target.isPath ? { direction: 'rtl', textAlign: 'left' } : undefined}
                     title={target.target}
                 >
@@ -152,12 +152,12 @@ const ToolSummaryRow: React.FC<{
                 </span>
             )}
             {resultLine && (
-                <span className="min-w-0 flex-1 truncate text-xs text-t4" title={resultLine}>
+                <span className="min-w-0 flex-1 truncate text-[13px] text-t4" title={resultLine}>
                     {resultLine}
                 </span>
             )}
             {typeof duration === 'number' && (
-                <span className="ml-auto shrink-0 text-xs tabular-nums text-t4">
+                <span className="ml-auto shrink-0 text-[13px] tabular-nums text-t4">
                     {formatToolDuration(duration)}
                 </span>
             )}
@@ -181,7 +181,7 @@ export const ToolSummaryRows: React.FC<{
         }
     }
     if (blocks.length === 0) {
-        return <div className="py-1.5 pl-9 pr-3 text-xs text-t4">无工具调用</div>;
+        return <div className="py-1.5 pl-9 pr-3 text-[13px] text-t4">无工具调用</div>;
     }
     return (
         <div className="divide-y divide-hairline" data-testid="tool-summary-rows">
@@ -297,7 +297,7 @@ const TaskSectionBar: React.FC<TaskSectionBarProps> = ({
     return (
         <div
             data-navigation-key={section.isPrep ? undefined : expandKey}
-            className="task-section overflow-hidden rounded-xl border border-hairline bg-surface2"
+            className="task-section overflow-hidden rounded-[14px] border border-hairline bg-surface2"
             data-testid={`task-section-${turnIndex}-${section.isPrep ? 'prep' : section.index}`}
         >
             <button
@@ -305,7 +305,7 @@ const TaskSectionBar: React.FC<TaskSectionBarProps> = ({
                 onClick={handleToggle}
                 aria-expanded={expanded}
                 data-expand-key={expandKey}
-                className="flex w-full items-center gap-2 px-3 py-2 text-left transition-colors duration-fast hover:bg-hover2"
+                className="panel-control flex w-full items-center gap-2 px-3 py-2 text-left transition-colors duration-fast hover:bg-hover2"
             >
                 <ChevronRight
                     size={13}
@@ -319,18 +319,18 @@ const TaskSectionBar: React.FC<TaskSectionBarProps> = ({
                     {section.title}
                 </span>
                 {stepCount > 0 && (
-                    <span className="shrink-0 text-xs tabular-nums text-t4">{stepCount} 步</span>
+                    <span className="shrink-0 text-[13px] tabular-nums text-t4">{stepCount} 步</span>
                 )}
-                <span className="shrink-0 text-xs tabular-nums text-t4">{duration}</span>
+                <span className="shrink-0 text-[13px] tabular-nums text-t4">{duration}</span>
             </button>
 
             {/* 运行中分节条内嵌实时行（当前工具 + 耗时实时刷新） */}
             {running && (
                 <div
-                    className="flex items-center gap-2 border-t border-hairline py-1.5 pl-9 pr-3 text-xs text-t3"
+                    className="flex items-center gap-2 border-t border-hairline py-1.5 pl-9 pr-3 text-[13px] text-t3"
                     data-testid={`task-section-live-${turnIndex}-${section.index}`}
                 >
-                    <Loader2 size={12} className="shrink-0 animate-spin text-accent2" />
+                    <Loader2 size={12} className="shrink-0 animate-spin text-accent2-ink" />
                     <span className="min-w-0 truncate">
                         执行中{runningToolName ? ` · ` : ''}
                         {runningToolName && <span className="font-semibold">{runningToolName}</span>}

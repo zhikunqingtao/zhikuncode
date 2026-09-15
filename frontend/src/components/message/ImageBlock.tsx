@@ -43,7 +43,7 @@ const ImageBlock: React.FC<ImageBlockProps> = ({
 
     if (!imageSrc) {
         return (
-            <div className="flex items-center justify-center h-32 rounded-lg border border-gray-700 bg-gray-800 text-gray-500 text-sm">
+            <div className="flex items-center justify-center h-32 rounded-[14px] border border-gray-700 bg-gray-800 text-t2 text-sm">
                 No image data
             </div>
         );
@@ -51,7 +51,7 @@ const ImageBlock: React.FC<ImageBlockProps> = ({
 
     if (loadError) {
         return (
-            <div className="flex items-center justify-center h-32 rounded-lg border border-red-700/50 bg-red-900/20 text-red-400 text-sm">
+            <div className="flex items-center justify-center h-32 rounded-[14px] border border-red-700/50 bg-red-900/20 text-err text-sm">
                 Failed to load image
             </div>
         );
@@ -71,7 +71,7 @@ const ImageBlock: React.FC<ImageBlockProps> = ({
                 />
                 <button
                     onClick={toggleZoom}
-                    className="absolute top-2 right-2 p-1 rounded bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="panel-control absolute top-2 right-2 p-1 rounded bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity"
                     aria-label="Zoom image"
                 >
                     <ZoomIn size={16} />
@@ -89,7 +89,7 @@ const ImageBlock: React.FC<ImageBlockProps> = ({
                             event.stopPropagation();
                             setZoomed(false);
                         }}
-                        className="absolute top-4 right-4 p-2 rounded-full bg-gray-800 text-white hover:bg-gray-700"
+                        className="panel-control absolute top-4 right-4 p-2 rounded-full bg-gray-800 text-white hover:bg-gray-700"
                         aria-label="Close zoom"
                         type="button"
                     >

@@ -40,7 +40,7 @@ export function ToastContainer() {
                 <div
                     key={n.key}
                     role="alert"
-                    className="relative overflow-hidden max-w-sm rounded-xl border border-hairline bg-surfacev2 shadow-e3 animate-slide-up"
+                    className="relative overflow-hidden max-w-sm rounded-[14px] border border-hairline bg-surfacev2 shadow-e3 animate-slide-up"
                 >
                     {/* 语义色左条 3px */}
                     <span aria-hidden="true" className={`absolute inset-y-0 left-0 w-[3px] ${barClass[n.level] ?? 'bg-accent2'}`} />
@@ -50,7 +50,7 @@ export function ToastContainer() {
                             {n.level === 'error' && n.onRetry && (
                                 <button
                                     onClick={() => { void n.onRetry?.(); }}
-                                    className="rounded-md px-2 py-0.5 text-xs font-medium text-accent2-strong hover:bg-accent2-soft transition-interactive duration-fast"
+                                    className="panel-control rounded-md px-2 py-0.5 text-[13px] font-medium text-accent2-ink hover:bg-accent2-soft transition-interactive duration-fast"
                                 >
                                     重试
                                 </button>
@@ -58,7 +58,7 @@ export function ToastContainer() {
                             <button
                                 onClick={() => removeNotification(n.key)}
                                 aria-label="关闭通知"
-                                className="rounded-md p-0.5 text-t3 transition-interactive duration-fast hover:bg-hover2 hover:text-t1"
+                                className="panel-control rounded-md p-0.5 text-t3 transition-interactive duration-fast hover:bg-hover2 hover:text-t1"
                             >
                                 ×
                             </button>

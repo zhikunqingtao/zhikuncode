@@ -171,7 +171,7 @@ const PromptInput: React.FC<PromptInputProps> = (props) => {
                         <ModelChip />
                         <DensitySwitch />
                         <span className="flex-1" />
-                        <span className="text-xs text-t2">⏎ 发送&ensp;·&ensp;⇧⏎ 换行</span>
+                        <span className="text-[13px] text-t2">⏎ 发送&ensp;·&ensp;⇧⏎ 换行</span>
                     </div>
                 </>
             )}

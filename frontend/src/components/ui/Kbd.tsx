@@ -7,7 +7,7 @@ import { cn } from './cn';
  * 下沿 2px 内阴影（inset -2px，取 hairline 令牌）。
  */
 const kbdVariants = cva(
-    'inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-hairline bg-surfacev2 px-1.5 font-mono text-[11px] leading-none text-t2 shadow-[inset_0_-2px_0_0_var(--v2-border-hairline)]',
+    'inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-hairline bg-surfacev2 px-1.5 font-mono text-[13px] leading-none text-t2 shadow-[inset_0_-2px_0_0_var(--v2-border-hairline)]',
 );
 
 export interface KbdProps

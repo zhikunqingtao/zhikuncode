@@ -61,10 +61,10 @@ const AttachmentMessage: React.FC<{
     message: Extract<Message, { type: 'attachment' }>;
 }> = ({ message }) => (
     <div className="px-4 py-2 my-1">
-        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-surface2 border border-hairline text-sm">
+        <div className="flex items-center gap-2 px-3 py-2 rounded-[14px] bg-surface2 border border-hairline text-sm">
             <Paperclip size={14} className="text-t4" />
             <span className="text-t1">{message.fileName}</span>
-            <span className="text-xs text-t4 tabular-nums">
+            <span className="text-[13px] text-t4 tabular-nums">
                 ({formatFileSize(message.size)})
             </span>
         </div>
@@ -77,16 +77,16 @@ const GroupedToolUseMessage: React.FC<{
     message: Extract<Message, { type: 'grouped_tool_use' }>;
 }> = ({ message }) => (
     <div className="px-4 py-2 my-1">
-        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-surface2 border border-hairline">
+        <div className="flex items-center gap-2 px-3 py-2 rounded-[14px] bg-surface2 border border-hairline">
             <Layers size={14} className="text-t4" />
-            <span className="text-xs text-t2 tabular-nums">
+            <span className="text-[13px] text-t2 tabular-nums">
                 {message.toolCalls.length} tool calls
             </span>
             <div className="flex flex-wrap gap-1 ml-1">
                 {message.toolCalls.map((tc) => (
                     <span
                         key={tc.toolUseId}
-                        className={`text-xs px-1.5 py-0.5 rounded ${
+                        className={`text-[13px] px-1.5 py-0.5 rounded ${
                             tc.status === 'completed'
                                 ? 'bg-oksoft text-ok'
                                 : tc.status === 'error'
@@ -118,9 +118,9 @@ const CollapsedReadSearchMessage: React.FC<{
 
     return (
         <div className="px-4 py-2 my-1">
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-surface2 border border-hairline">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-[14px] bg-surface2 border border-hairline">
                 <FolderSearch size={14} className="text-t4" />
-                <span className="text-xs text-t2">{summary}</span>
+                <span className="text-[13px] text-t2">{summary}</span>
             </div>
         </div>
     );

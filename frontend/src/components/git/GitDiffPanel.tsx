@@ -33,12 +33,12 @@ export const GitDiffPanel: React.FC<{ data: GitDiffData }> = ({ data }) => {
     };
 
     return (
-        <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] overflow-hidden">
+        <div className="rounded-[14px] border border-[var(--v2-border-hairline)] bg-[var(--v2-bg-sunken)] overflow-hidden">
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-2 border-b border-[var(--border)]">
+            <div className="flex items-center justify-between px-4 py-2 border-b border-[var(--v2-border-hairline)]">
                 <div className="flex items-center gap-2">
-                    <GitBranch size={16} className="text-blue-400" />
-                    <span className="font-semibold text-sm text-[var(--text-primary)]">
+                    <GitBranch size={16} className="text-accent2-ink dark:text-accent2-ink" />
+                    <span className="font-semibold text-base text-[var(--v2-text-1)]">
                         Git Diff {data.staged ? '(Staged)' : '(Working Tree)'}
                     </span>
                 </div>
@@ -46,14 +46,14 @@ export const GitDiffPanel: React.FC<{ data: GitDiffData }> = ({ data }) => {
                     {!isMobile && (
                         <button
                             onClick={() => setUseMonaco(!useMonaco)}
-                            className="flex items-center gap-1 px-2 py-1 rounded text-xs bg-[var(--bg-tertiary)] hover:bg-[var(--bg-primary)] text-[var(--text-secondary)]"
+                            className="panel-control flex items-center gap-1 px-2 py-1 rounded text-[13px] bg-sunken2 hover:bg-[var(--v2-bg-surface)] text-[var(--v2-text-2)]"
                             title={useMonaco ? '切换为行级着色' : '切换为 Side-by-Side Diff'}
                         >
                             {useMonaco ? <AlignLeft size={12} /> : <Columns size={12} />}
                             {useMonaco ? 'Inline' : 'Side-by-Side'}
                         </button>
                     )}
-                    <span className="text-xs text-[var(--text-muted)]">
+                    <span className="text-[13px] text-[var(--v2-text-2)]">
                         {data.fileCount} 个文件变更
                     </span>
                 </div>
@@ -61,29 +61,29 @@ export const GitDiffPanel: React.FC<{ data: GitDiffData }> = ({ data }) => {
 
             {/* Stat overview */}
             {data.stat && (
-                <pre className="px-4 py-2 text-xs font-mono text-[var(--text-secondary)] border-b border-[var(--border)] bg-[var(--bg-tertiary)]">
+                <pre className="panel-code px-4 py-2 text-[13px] font-mono text-[var(--v2-text-2)] border-b border-[var(--v2-border-hairline)] bg-sunken2">
                     {data.stat}
                 </pre>
             )}
 
             {/* File-by-file diff */}
-            <div className="divide-y divide-[var(--border)]">
+            <div className="divide-y divide-[var(--v2-border-hairline)]">
                 {fileDiffs.map(({ path, additions, deletions, lines }) => (
                     <div key={path}>
                         <button
                             onClick={() => toggleFile(path)}
-                            className="w-full flex items-center gap-2 px-4 py-2 text-xs hover:bg-[var(--bg-tertiary)] transition-colors"
+                            className="panel-control w-full flex items-center gap-2 px-4 py-2 text-[13px] hover:bg-sunken2 transition-colors"
                         >
                             {expandedFiles.has(path) ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-                            <FileText size={12} className="text-[var(--text-muted)]" />
-                            <span className="flex-1 text-left font-mono text-[var(--text-primary)]">{path}</span>
-                            <span className="text-green-400">+{additions}</span>
-                            <span className="text-red-400">-{deletions}</span>
+                            <FileText size={12} className="text-[var(--v2-text-2)]" />
+                            <span className="min-w-0 flex-1 truncate text-left font-mono text-[var(--v2-text-1)]">{path}</span>
+                            <span className="text-ok">+{additions}</span>
+                            <span className="text-err">-{deletions}</span>
                         </button>
                         {expandedFiles.has(path) && (
-                            <div className="bg-[var(--bg-primary)] overflow-x-auto">
+                            <div className="bg-[var(--v2-bg-surface)] overflow-x-auto">
                                 {useMonaco && !isMobile ? (
-                                    <Suspense fallback={<div className="p-4 text-xs text-[var(--text-muted)]">Loading diff editor...</div>}>
+                                    <Suspense fallback={<div className="p-4 text-[13px] text-[var(--v2-text-2)]">Loading diff editor...</div>}>
                                         <DiffEditor
                                             height="300px"
                                             beforeMount={ensureZkMonacoThemes}
@@ -94,20 +94,21 @@ export const GitDiffPanel: React.FC<{ data: GitDiffData }> = ({ data }) => {
                                                 readOnly: true,
                                                 minimap: { enabled: false },
                                                 renderSideBySide: true,
-                                                fontSize: 12,
+                                                fontSize: 13,
+                                                lineHeight: 21.45,
                                             }}
                                         />
                                     </Suspense>
                                 ) : (
                                     lines.map((line, i) => (
                                         <div key={i}
-                                             className={`px-4 py-0.5 text-xs font-mono whitespace-pre ${
+                                             className={`panel-code px-4 py-0.5 text-[13px] font-mono whitespace-pre ${
                                                  line.startsWith('+') && !line.startsWith('+++')
                                                      ? 'bg-[var(--v2-diff-add-bg)] text-t1'
                                                      : line.startsWith('-') && !line.startsWith('---')
                                                          ? 'bg-[var(--v2-diff-remove-bg)] text-t1'
                                                          : line.startsWith('@@')
-                                                             ? 'bg-accent2-soft text-accent2'
+                                                             ? 'bg-accent2-soft text-accent2-ink'
                                                              : 'text-t2'
                                              }`}
                                         >

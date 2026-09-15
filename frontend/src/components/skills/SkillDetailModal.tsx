@@ -39,8 +39,8 @@ export const SkillDetailModal: React.FC<{
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay2 backdrop-blur-[3px]" onClick={onClose}>
             <div className="bg-surfacev2 border border-hairline rounded-panel shadow-e4 motion-safe:animate-scale-in
                             w-full max-w-lg mx-4 p-6" onClick={e => e.stopPropagation()}>
-                <p className="text-red-400 text-sm">{error}</p>
-                <button onClick={onClose} className="mt-3 text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)]">
+                <p className="text-err text-sm">{error}</p>
+                <button onClick={onClose} className="dialog-control mt-3 text-[13px] text-[var(--v2-text-2)] hover:text-[var(--v2-text-2)]">
                     Close
                 </button>
             </div>
@@ -54,43 +54,43 @@ export const SkillDetailModal: React.FC<{
                             w-full max-w-lg mx-4 max-h-[70vh] overflow-hidden flex flex-col"
                  onClick={e => e.stopPropagation()}>
                 {/* Header */}
-                <div className="p-4 border-b border-[var(--border)] flex items-center justify-between">
+                <div className="p-4 border-b border-[var(--v2-border-hairline)] flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <Zap size={18} className="text-yellow-400" />
-                        <h3 className="text-sm font-semibold text-[var(--text-primary)]">{detail.name}</h3>
-                        <span className="text-xs px-1.5 py-0.5 rounded bg-gray-700 text-gray-400">{detail.source}</span>
+                        <Zap size={18} className="text-warn" />
+                        <h3 className="text-[var(--v2-text-1)] text-base font-semibold">{detail.name}</h3>
+                        <span className="text-[13px] px-1.5 py-0.5 rounded bg-gray-700 text-t2">{detail.source}</span>
                     </div>
-                    <button onClick={onClose} className="p-1 hover:bg-[var(--bg-tertiary)] rounded">
+                    <button onClick={onClose} className="dialog-control p-1 hover:bg-[var(--bg-tertiary)] rounded">
                         <X size={16} />
                     </button>
                 </div>
                 {/* Body */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                    <p className="text-sm text-[var(--text-secondary)]">{detail.description}</p>
-                    <div className="text-xs text-[var(--text-muted)]">文件: {detail.filePath}</div>
-                    <pre className="text-xs font-mono bg-[var(--bg-tertiary)] p-3 rounded-lg overflow-x-auto
-                                    text-[var(--text-secondary)]">
+                    <p className="text-sm text-[var(--v2-text-2)]">{detail.description}</p>
+                    <div className="text-[13px] text-[var(--v2-text-2)]">文件: {detail.filePath}</div>
+                    <pre className="text-[13px] font-mono bg-[var(--bg-tertiary)] p-3 rounded-[10px] overflow-x-auto
+                                    text-[var(--v2-text-2)]">
                         {detail.content}
                     </pre>
                 </div>
                 {/* User Input */}
                 <div className="px-4 pb-3">
-                    <label className="text-xs text-[var(--text-muted)] mb-1 block">补充说明（可选）</label>
+                    <label className="text-[13px] text-[var(--v2-text-2)] mb-1 block">补充说明（可选）</label>
                     <textarea
                         value={userInput}
                         onChange={e => setUserInput(e.target.value)}
                         placeholder="输入你希望 AI 处理的内容或补充说明..."
-                        className="w-full h-20 text-sm bg-[var(--bg-tertiary)] border border-[var(--border)] rounded-lg p-2
-                                   text-[var(--text-primary)] placeholder-[var(--text-muted)] resize-none
-                                   focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="w-full h-20 text-sm bg-[var(--bg-tertiary)] border border-[var(--v2-border-hairline)] rounded-[10px] p-2
+                                   text-[var(--v2-text-1)] placeholder-[var(--v2-text-2)] resize-none
+                                   focus:outline-none focus:ring-1 focus:ring-accent2-ring"
                         autoFocus
                     />
                 </div>
                 {/* Footer */}
-                <div className="p-3 border-t border-[var(--border)] flex justify-end">
+                <div className="p-3 border-t border-[var(--v2-border-hairline)] flex justify-end">
                     <button onClick={() => onExecute(detail.name, userInput.trim())}
-                            className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg
-                                       bg-blue-600 hover:bg-blue-500 text-white transition-colors">
+                            className="dialog-control flex items-center gap-1 px-3 py-1.5 text-[13px] font-medium rounded-[10px]
+                                       bg-accent2-strong hover:bg-accent2 text-white transition-colors">
                         <Play size={12} />
                         执行技能
                     </button>

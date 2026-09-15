@@ -7,16 +7,16 @@ interface FileChangeItemProps {
 }
 
 const RISK_BG: Record<AggregatedFileChange['riskLevel'], string> = {
-  danger: 'bg-red-500/10 border-red-500/30',
-  warning: 'bg-yellow-500/10 border-yellow-500/30',
-  review: 'bg-blue-500/10 border-blue-500/30',
-  safe: 'bg-transparent border-[var(--border)]',
+  danger: 'bg-errsoft border-red-500/30',
+  warning: 'bg-warnsoft border-yellow-500/30',
+  review: 'bg-accent2-soft border-blue-500/30',
+  safe: 'bg-transparent border-[var(--v2-border-hairline)]',
 };
 
 const CHANGE_TYPE_CONFIG: Record<AggregatedFileChange['changeType'], { icon: string; color: string }> = {
-  added: { icon: '+', color: 'text-green-400' },
-  modified: { icon: '~', color: 'text-orange-400' },
-  deleted: { icon: '-', color: 'text-red-400' },
+  added: { icon: '+', color: 'text-ok' },
+  modified: { icon: '~', color: 'text-warn' },
+  deleted: { icon: '-', color: 'text-err' },
 };
 
 function truncatePath(filePath: string): string {
@@ -53,20 +53,20 @@ export function FileChangeItem({ file, onClick }: FileChangeItemProps) {
         </span>
 
         {/* File path */}
-        <span className="text-sm text-[var(--text-primary)] truncate flex-1 min-w-0" title={file.filePath}>
+        <span className="text-sm text-[var(--v2-text-1)] truncate flex-1 min-w-0" title={file.filePath}>
           {truncatePath(file.filePath)}
         </span>
 
         {/* Touch count badge */}
         {file.touchCount > 1 && (
-          <span className="text-xs px-1.5 py-0.5 rounded bg-[var(--bg-hover)] text-[var(--text-muted)] flex-shrink-0">
+          <span className="text-[13px] px-1.5 py-0.5 rounded bg-[var(--v2-bg-hover)] text-[var(--v2-text-2)] flex-shrink-0">
             ×{file.touchCount}
           </span>
         )}
 
         {/* Test coverage gap label */}
         {file.testCoverageGap && (
-          <span className="text-xs px-1.5 py-0.5 rounded bg-red-500/20 text-red-300 flex-shrink-0">
+          <span className="text-[13px] px-1.5 py-0.5 rounded bg-errsoft text-err flex-shrink-0">
             缺少测试覆盖
           </span>
         )}
@@ -74,10 +74,10 @@ export function FileChangeItem({ file, onClick }: FileChangeItemProps) {
 
       {/* Additions / Deletions summary */}
       <div className="flex items-center gap-3 mt-1 ml-7">
-        <span className="text-xs text-green-400">+{file.totalAdditions}</span>
-        <span className="text-xs text-red-400">-{file.totalDeletions}</span>
+        <span className="text-[13px] text-ok">+{file.totalAdditions}</span>
+        <span className="text-[13px] text-err">-{file.totalDeletions}</span>
         {file.riskReason && (
-          <span className="text-xs text-[var(--text-muted)] truncate">{file.riskReason}</span>
+          <span className="text-[13px] text-[var(--v2-text-2)] truncate">{file.riskReason}</span>
         )}
       </div>
 
@@ -86,7 +86,7 @@ export function FileChangeItem({ file, onClick }: FileChangeItemProps) {
         <div className="mt-1.5 ml-7">
           <button
             onClick={handleExpandToggle}
-            className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+            className="panel-control text-[13px] text-accent2-ink hover:text-accent2-ink transition-colors"
           >
             {expanded ? '▾' : '▸'} 间接影响 ({file.indirectImpacts.length})
           </button>
@@ -94,7 +94,7 @@ export function FileChangeItem({ file, onClick }: FileChangeItemProps) {
           {expanded && (
             <ul className="mt-1 space-y-0.5">
               {file.indirectImpacts.map((impact, idx) => (
-                <li key={idx} className="text-xs text-[var(--text-muted)] flex items-start gap-1.5">
+                <li key={idx} className="text-[13px] text-[var(--v2-text-2)] flex items-start gap-1.5">
                   <span className={`flex-shrink-0 mt-0.5 w-1.5 h-1.5 rounded-full ${
                     impact.severity === 'high' ? 'bg-red-400' :
                     impact.severity === 'medium' ? 'bg-yellow-400' : 'bg-blue-400'

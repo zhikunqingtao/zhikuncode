@@ -26,6 +26,21 @@ public class ActivityController {
         this.activityRepository = activityRepository;
     }
 
+    /** Confirm a saved Activity decision; this does not change tool permission rules. */
+    @PutMapping("/{sessionId}/activities/{id}/decision")
+    public ResponseEntity<Map<String, Object>> updateDecision(
+            @PathVariable String sessionId, @PathVariable String id,
+            @RequestBody Map<String, String> body) {
+        String decision = body.get("decision");
+        if (!"approved".equals(decision) && !"rejected".equals(decision)) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid decision"));
+        }
+        if (!activityRepository.updateDecisionForSession(sessionId, id, decision)) {
+            return ResponseEntity.status(404).body(Map.of("error", "Activity not found in session"));
+        }
+        return ResponseEntity.ok(Map.of("id", id, "sessionId", sessionId, "decision", decision));
+    }
+
     /**
      * 分页获取指定会话的 Activity 列表。
      *

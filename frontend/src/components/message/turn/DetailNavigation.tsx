@@ -11,7 +11,7 @@ interface Props {
     onSelect: (entry: TurnNavigationEntry) => void;
     onLatest: () => void;
 }
-const buttonClass = 'inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-1 rounded-lg px-3 text-xs text-t2 hover:bg-hover2 focus-visible:ring-2 focus-visible:ring-accent2';
+const buttonClass = 'inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-1 rounded-lg px-3 text-[13px] text-t2 hover:bg-hover2 focus-visible:ring-2 focus-visible:ring-accent2';
 
 export default function DetailNavigation({ entries, activeKey, isMobile, onSelect, onLatest }: Props) {
     const [open, setOpen] = useState(false);
@@ -43,7 +43,7 @@ export default function DetailNavigation({ entries, activeKey, isMobile, onSelec
             ) : (
                 <div ref={pills} className="relative flex min-w-0 flex-1 gap-1 overflow-x-auto" data-testid="detail-navigation-pills">
                     {entries.map(entry => (
-                        <button key={entry.key} className={cn(buttonClass, 'max-w-48', entry.key === activeKey && 'bg-accent2-soft text-accent2')}
+                        <button key={entry.key} className={cn(buttonClass, 'max-w-48', entry.key === activeKey && 'bg-accent2-soft text-accent2-ink')}
                             aria-current={entry.key === activeKey ? 'location' : undefined} title={entry.title} onClick={() => onSelect(entry)}>
                             <span className="truncate">{entry.title}</span>
                         </button>
@@ -55,7 +55,7 @@ export default function DetailNavigation({ entries, activeKey, isMobile, onSelec
                 <div className="flex items-center justify-between px-4"><h3>{label}导航</h3><button className={buttonClass} aria-label="关闭任务导航" onClick={close}><X size={18} /></button></div>
             }>
                 <div className="flex flex-col px-3 pb-4">{entries.map(entry => (
-                    <button key={entry.key} className={cn(buttonClass, 'justify-start text-left', entry.key === activeKey && 'bg-hover2 text-accent2')}
+                    <button key={entry.key} className={cn(buttonClass, 'justify-start text-left', entry.key === activeKey && 'bg-hover2 text-accent2-ink')}
                         aria-current={entry.key === activeKey ? 'location' : undefined}
                         onClick={() => { close(); onSelect(entry); }}>{entry.title}</button>
                 ))}</div>

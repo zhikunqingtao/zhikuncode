@@ -196,9 +196,9 @@ describe('TurnCard compact 聚合条', () => {
         const bar = screen.getByRole('button', { name: /过程区/ });
         expect(bar).toHaveAttribute('aria-expanded', 'false');
         expect(bar).toHaveTextContent('2 步');
-        expect(bar).toHaveTextContent('2m34s');
-        expect(bar).toHaveTextContent('详细过程');
-        expect(bar).toHaveTextContent('展开');
+        expect(bar).toHaveTextContent('2分34秒');
+        expect(bar).toHaveTextContent('执行');
+        expect(bar).toHaveTextContent('查看执行过程');
         // 折叠时工具聚合段不挂载
         expect(document.querySelector('[data-message-uuid="a1"]')).toBeNull();
     });

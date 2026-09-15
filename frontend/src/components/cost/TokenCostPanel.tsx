@@ -32,34 +32,34 @@ export function TokenCostPanel({ sessionCost, totalCost, usage, history: _histor
         totalTokens > 0 ? (value / totalTokens) * 100 : 0;
 
     return (
-        <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] p-4">
-            <h3 className="text-sm font-medium text-[var(--text-primary)] mb-3">
+        <div className="rounded-[14px] border border-[var(--v2-border-hairline)] bg-[var(--v2-bg-sunken)] p-4">
+            <h3 className="text-[var(--v2-text-1)] mb-3 text-base font-semibold">
                 Token & Cost
             </h3>
 
             {/* Cost Summary */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-                <div className="bg-blue-500/10 rounded-lg p-3">
-                    <div className="text-xs text-blue-400">Session Cost</div>
-                    <div className="text-lg font-semibold text-blue-300">
+                <div className="bg-accent2-soft rounded-lg p-3">
+                    <div className="text-[13px] text-accent2-ink">Session Cost</div>
+                    <div className="text-lg font-semibold text-accent2-ink">
                         {formatCost(sessionCost)}
                     </div>
                 </div>
-                <div className="bg-green-500/10 rounded-lg p-3">
-                    <div className="text-xs text-green-400">Total Cost</div>
-                    <div className="text-lg font-semibold text-green-300">
+                <div className="bg-oksoft rounded-lg p-3">
+                    <div className="text-[13px] text-ok">Total Cost</div>
+                    <div className="text-lg font-semibold text-ok">
                         {formatCost(totalCost)}
                     </div>
                 </div>
                 <div className="bg-purple-500/10 rounded-lg p-3">
-                    <div className="text-xs text-purple-400">Total Tokens</div>
+                    <div className="text-[13px] text-purple-400">Total Tokens</div>
                     <div className="text-lg font-semibold text-purple-300">
                         {formatTokens(totalTokens)}
                     </div>
                 </div>
-                <div className="bg-amber-500/10 rounded-lg p-3">
-                    <div className="text-xs text-amber-400">Cache Hit</div>
-                    <div className="text-lg font-semibold text-amber-300">
+                <div className="bg-warnsoft rounded-lg p-3">
+                    <div className="text-[13px] text-warn">Cache Hit</div>
+                    <div className="text-lg font-semibold text-warn">
                         {formatTokens(usage.cacheReadInputTokens ?? 0)}
                     </div>
                 </div>
@@ -67,11 +67,11 @@ export function TokenCostPanel({ sessionCost, totalCost, usage, history: _histor
 
             {/* Token Usage Bar */}
             <div className="space-y-2">
-                <div className="flex justify-between text-xs text-[var(--text-muted)]">
+                <div className="flex justify-between text-[13px] text-[var(--v2-text-2)]">
                     <span>Input: {formatTokens(usage.inputTokens)}</span>
                     <span>Output: {formatTokens(usage.outputTokens)}</span>
                 </div>
-                <div className="h-2 bg-[var(--bg-primary)] rounded-full overflow-hidden flex">
+                <div className="h-2 bg-[var(--v2-bg-surface)] rounded-full overflow-hidden flex">
                     <div
                         className="bg-blue-500 h-full"
                         style={{ width: `${pct(usage.inputTokens)}%` }}
@@ -87,7 +87,7 @@ export function TokenCostPanel({ sessionCost, totalCost, usage, history: _histor
                         />
                     )}
                 </div>
-                <div className="flex gap-4 text-xs text-[var(--text-muted)]">
+                <div className="flex gap-4 text-[13px] text-[var(--v2-text-2)]">
                     <span className="flex items-center gap-1">
                         <span className="w-2 h-2 bg-blue-500 rounded-full inline-block" />
                         Input

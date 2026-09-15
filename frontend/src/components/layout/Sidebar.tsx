@@ -1,3 +1,4 @@
+import { pageSessionOrder } from '@/utils/pageSessionOrder';
 import { GlassMaterial } from '@/components/theme/GlassMaterial';
 import { motion, useReducedMotion } from 'framer-motion';
 /**
@@ -61,7 +62,7 @@ import { generateUUID } from '@/utils/uuid';
 import type { TaskState } from '@/types';
 import { useWorkbenchViewStore } from '@/store/workbenchViewStore';
 import { taskTitle } from '@/utils/workbenchPresentation';
-import { useConfigStore } from '@/store/configStore';
+import { normalizeThemeMode, useConfigStore } from '@/store/configStore';
 import { useViewportWidth } from '@/hooks/useResponsive';
 import { groupSessionsByDirectory, type SessionSummary } from '@/utils/sessionGroups';
 
@@ -96,13 +97,13 @@ const RAIL_WIDTH = 48;
 /** 面板 Label：11px/600/大写/tracking-wider（§3.8 Label）。
  *  颜色取 text-t2 而非任务书字面 text-t3：text-t3 实测对比度 <4.5:1 不达 §10.1 AA 红线
  * （同 SettingsPanel P1b 先例：对比度红线优先于色级偏好）。 */
-const PANEL_LABEL_CLASS = 'text-[11px] font-semibold uppercase tracking-wider text-t2';
+const PANEL_LABEL_CLASS = 'text-[13px] font-semibold uppercase tracking-wider text-t2';
 
 /** 「新建」按钮：accent2-soft 底 + accent 字，rounded-xl；
  *  文字档取 strong（soft 底上基准档不足 4.5:1，同 Chip 基元注释的 §10.1 处理）。 */
 const PANEL_NEW_BUTTON_CLASS =
     'w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl ' +
-    'bg-accent2-soft text-accent2-strong dark:text-accent2 text-sm font-medium ' +
+    'bg-accent2-soft text-accent2-ink dark:text-accent2-ink text-sm font-medium ' +
     'transition-interactive duration-fast active:scale-[0.98] ' +
     'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring';
 
@@ -124,7 +125,7 @@ function PanelHeader({ label, count, onCollapse }: { label: string; count?: numb
                     onClick={onCollapse}
                     aria-label="收起整个对话列表"
                     title="收起整个对话列表"
-                    className="inline-flex items-center gap-1.5 shrink-0 rounded-lg px-2 py-1 text-xs text-t2
+                    className="panel-control inline-flex items-center gap-1.5 shrink-0 rounded-lg px-2 py-1 text-[13px] text-t2
                         hover:bg-hover2 hover:text-t1 focus-visible:outline-none
                         focus-visible:ring-[3px] focus-visible:ring-accent2-ring"
                 >
@@ -161,7 +162,7 @@ function PanelSearchBox({ value, onChange, placeholder, ariaLabel }: {
                 <button
                     onClick={() => onChange('')}
                     aria-label="清除搜索"
-                    className="absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 rounded-md
+                    className="panel-control absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 rounded-md
                         text-t3 hover:bg-hover2 hover:text-t1 transition-interactive duration-fast"
                 >
                     <X className="w-3.5 h-3.5" />
@@ -190,7 +191,9 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab, onNa
         }
         return 'sessions';
     });
-    const glassMode = useConfigStore(s => s.theme.mode === 'glass');
+    const themeMode = useConfigStore(s => s.theme.mode);
+    const setTheme = useConfigStore(s => s.setTheme);
+    const glassMode = themeMode === 'glass';
     const reducedMotion = useReducedMotion();
     const [panelCollapsed, setPanelCollapsed] = useState(() => localStorage.getItem('sidebar-panel-collapsed') === 'true');
     useEffect(() => {
@@ -199,6 +202,8 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab, onNa
     const { tasks } = useTaskStore();
     const workbenchEnabled = useWorkbenchViewStore(s => s.enabled);
     const viewMode = useWorkbenchViewStore(s => s.viewMode);
+    const defaultView = useWorkbenchViewStore(s => s.defaultView);
+    const setDefaultView = useWorkbenchViewStore(s => s.setDefaultView);
     const simpleMode = workbenchEnabled && viewMode === 'simple';
 
     // ── Auto-Routing 跳转接收端（v1.5 升级项 C Beta） ──
@@ -336,10 +341,10 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab, onNa
                                 title={tab.label}
                                 aria-current={isActive ? 'page' : undefined}
                                 onClick={() => handleDrawerTabSelect(tab.id)}
-                                className={`flex items-center gap-3 h-[38px] px-3 rounded-xl text-sm
+                                className={`panel-control flex items-center gap-3 min-h-11 shrink-0 px-3 rounded-xl text-sm
                                     transition-interactive duration-fast ${
                                     isActive
-                                        ? 'bg-accent2-soft text-accent2 font-semibold'
+                                        ? 'bg-accent2-soft text-accent2-ink font-semibold'
                                         : 'text-t2 hover:bg-hover2 hover:text-t1'
                                 }`}
                             >
@@ -347,7 +352,7 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab, onNa
                                 <span className="flex-1 text-left truncate">{tab.label}</span>
                                 {badge !== null && (
                                     <span className="min-w-[20px] h-5 px-1.5 inline-flex items-center justify-center
-                                        rounded-full bg-accent2-soft text-accent2 text-xs font-semibold tabular-nums">
+                                        rounded-full bg-accent2-soft text-accent2-ink text-[13px] font-semibold tabular-nums">
                                         {badge}
                                     </span>
                                 )}
@@ -359,7 +364,7 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab, onNa
                         <button
                             onClick={handleOpenInNewWindow}
                             title="在新窗口中打开侧边栏"
-                            className="flex items-center gap-3 h-[38px] px-3 rounded-xl text-sm
+                            className="panel-control flex items-center gap-3 min-h-11 shrink-0 px-3 rounded-xl text-sm
                                 text-t3 hover:bg-hover2 hover:text-t1 transition-interactive duration-fast"
                         >
                             <ExternalLink className="w-4 h-4 shrink-0" />
@@ -382,7 +387,7 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab, onNa
                             aria-label={panelCollapsed ? '展开侧栏列表' : '收起侧栏列表'}
                             title={panelCollapsed ? '展开侧栏列表' : '收起侧栏列表'}
                             aria-expanded={!panelCollapsed}
-                            className="w-10 h-10 shrink-0 flex items-center justify-center rounded-xl text-t2 hover:bg-hover2
+                            className="panel-control w-10 h-10 shrink-0 flex items-center justify-center rounded-xl text-t2 hover:bg-hover2
                                 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring"
                         >
                             {panelCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
@@ -396,11 +401,11 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab, onNa
                                     title={tab.label}
                                     aria-label={tab.label}
                                     aria-current={isActive ? 'page' : undefined}
-                                    className={`w-10 h-10 flex items-center justify-center rounded-xl
+                                    className={`panel-control w-10 h-10 flex items-center justify-center rounded-xl
                                         transition-interactive duration-fast
                                         focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring ${
                                         isActive
-                                            ? 'bg-accent2-soft text-accent2'
+                                            ? 'bg-accent2-soft text-accent2-ink'
                                             : 'text-t3 hover:bg-hover2 hover:text-t1'
                                     }`}
                                 >
@@ -412,7 +417,7 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab, onNa
                         {!simpleMode && (
                             <button
                                 onClick={handleOpenInNewWindow}
-                                className="mt-auto w-10 h-10 flex items-center justify-center rounded-xl
+                                className="panel-control mt-auto w-10 h-10 flex items-center justify-center rounded-xl
                                     text-t3 hover:bg-hover2 hover:text-t1
                                     transition-interactive duration-fast
                                     focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring"
@@ -429,6 +434,33 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab, onNa
                     <div className="flex-1 min-w-0 overflow-y-auto" hidden={panelCollapsed}>
                         <SidebarTabContent activeTab={activeTab} width={Math.max(width - RAIL_WIDTH, MIN_WIDTH - RAIL_WIDTH)} onCollapse={() => setPanelCollapsed(true)} />
                     </div>
+                </div>
+            )}
+
+            {isDrawerMode && (
+                <div className="shrink-0 border-t border-hairline p-4 pb-[max(16px,env(safe-area-inset-bottom))]">
+                    {workbenchEnabled && (
+                        <button
+                            type="button"
+                            onClick={() => setDefaultView(viewMode)}
+                            className="panel-control mb-3 min-h-11 w-full rounded-[10px] border border-hairline px-3 text-left text-sm text-t2 hover:bg-hover2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent2-ring"
+                        >
+                            {defaultView === viewMode ? '当前工作台已设为默认' : '将当前工作台设为默认'}
+                        </button>
+                    )}
+                    <label className="flex items-center gap-3 text-sm text-t2">
+                        <span>外观</span>
+                        <select
+                            aria-label="外观主题"
+                            value={normalizeThemeMode(themeMode)}
+                            onChange={event => setTheme({ mode: event.target.value as 'light' | 'dark' | 'glass' })}
+                            className="panel-control min-h-11 min-w-0 flex-1 rounded-[10px] border border-hairline bg-surfacev2 px-3 text-sm text-t1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent2-ring"
+                        >
+                            <option value="light">浅色</option>
+                            <option value="dark">深色</option>
+                            <option value="glass">液态玻璃</option>
+                        </select>
+                    </label>
                 </div>
             )}
 
@@ -565,7 +597,7 @@ function SessionList({ onCollapse }: { onCollapse?: () => void }) {
             || s.workingDirectory.toLowerCase().includes(q));
     }, [sessions, query]);
 
-    const sessionGroups = useMemo(() => groupSessionsByDirectory(filteredSessions), [filteredSessions]);
+    const sessionGroups = useMemo(() => groupSessionsByDirectory(filteredSessions, true), [filteredSessions]);
 
     const loadedCountRef = useRef(50);
     const requestVersionRef = useRef(0);
@@ -583,9 +615,9 @@ function SessionList({ onCollapse }: { onCollapse?: () => void }) {
             if (requestVersion !== requestVersionRef.current) return;
             loadedCountRef.current = cursor ? loadedCountRef.current + data.sessions.length : Math.max(50, data.sessions.length);
             if (cursor) {
-                setSessions(prev => [...new Map([...prev, ...data.sessions].map(session => [session.id, session])).values()]);
+                setSessions(prev => pageSessionOrder.order([...new Map([...prev, ...data.sessions].map(session => [session.id, session])).values()]));
             } else {
-                setSessions(data.sessions);
+                setSessions(pageSessionOrder.order(data.sessions));
             }
             setHasMore(data.hasMore);
             setNextCursor(data.nextCursor);
@@ -711,16 +743,16 @@ function SessionList({ onCollapse }: { onCollapse?: () => void }) {
                                     aria-expanded={expanded}
                                     aria-label={`${expanded ? '收起' : '展开'}文件夹 ${group.directory || group.name}`}
                                     title={group.directory || group.name}
-                                    className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-t2 hover:bg-hover2
+                                    className="panel-control w-full flex items-center gap-2 px-2 py-2 rounded-lg text-t2 hover:bg-hover2
                                         focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring"
                                 >
                                     {expanded ? <ChevronDown className="w-3.5 h-3.5 shrink-0" /> : <ChevronRight className="w-3.5 h-3.5 shrink-0" />}
                                     <Folder className="w-4 h-4 shrink-0" />
                                     <span className="min-w-0 flex-1 text-left">
                                         <span className="block truncate text-sm font-medium text-t1">{group.name}</span>
-                                        {group.directory && <span className="block truncate text-[11px]">{group.directory}</span>}
+                                        {group.directory && <span className="block truncate text-[13px]">{group.directory}</span>}
                                     </span>
-                                    <span className="text-xs tabular-nums">{group.sessions.length}</span>
+                                    <span className="text-[13px] tabular-nums">{group.sessions.length}</span>
                                 </button>
                                 {expanded && <div className="ml-2 border-l border-hairline pl-1 space-y-1">
                                     {group.sessions.map(session => {
@@ -749,26 +781,26 @@ function SessionList({ onCollapse }: { onCollapse?: () => void }) {
                                                             {displayTitle}
                                                         </div>
                                                         {!simpleMode && <div className="flex items-center gap-2 mt-1">
-                                                            <span className="text-xs text-t2 truncate">
+                                                            <span className="text-[13px] text-t2 truncate">
                                                                 {session.model} · {session.id.slice(0, 8)}
                                                             </span>
-                                                            <span className="text-xs text-t2 tabular-nums">
+                                                            <span className="text-[13px] text-t2 tabular-nums whitespace-nowrap shrink-0">
                                                                 {session.messageCount} 条消息
                                                             </span>
                                                         </div>}
                                                         {simpleMode && folder && (
-                                                            <div className="mt-1 truncate text-xs text-t2" title={session.workingDirectory}>
+                                                            <div className="mt-1 truncate text-[13px] text-t2" title={session.workingDirectory}>
                                                                 文件夹：{folder}
                                                             </div>
                                                         )}
-                                                        <div className="flex items-center gap-1 mt-1 text-xs text-t2">
+                                                        <div className="flex items-center gap-1 mt-1 text-[13px] text-t2">
                                                             <Clock className="w-3 h-3" />
                                                             {formatTime(session.updatedAt)}
                                                         </div>
                                                     </div>
                                                     <button
                                                         onClick={(e) => handleDeleteSession(e, session.id)}
-                                                        className="p-1 rounded opacity-0 group-hover:opacity-100
+                                                        className="panel-control p-1 rounded opacity-0 group-hover:opacity-100
                                                             hover:bg-errsoft text-t3 hover:text-err
                                                             transition-interactive duration-fast"
                                                         title={simpleMode ? '删除任务' : '删除会话'}
@@ -790,7 +822,7 @@ function SessionList({ onCollapse }: { onCollapse?: () => void }) {
                 {hasMore && (
                     <button
                         onClick={() => fetchSessions(nextCursor)}
-                        className="w-full py-2 text-xs text-t2 hover:text-t1 transition-interactive duration-fast"
+                        className="panel-control w-full py-2 text-[13px] text-t2 hover:text-t1 transition-interactive duration-fast"
                     >
                         加载更多...
                     </button>
@@ -827,7 +859,7 @@ function SimpleTaskList({ onCollapse }: { onCollapse?: () => void }) {
             const response = await fetch(`/api/workbench/tasks${params.size ? `?${params}` : ''}`);
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const data = await response.json() as { groups?: WorkbenchTaskGroupView[] };
-            setGroups(Array.isArray(data.groups) ? data.groups : []);
+            setGroups(Array.isArray(data.groups) ? data.groups.map(group => ({ ...group, tasks: pageSessionOrder.order(group.tasks.map(task => ({ ...task, id: task.sessionId }))) })) : []);
         } catch (error) { console.warn('[SimpleTaskList] Failed to fetch tasks:', error); }
         finally { setLoading(false); }
     }, [query]);
@@ -857,7 +889,7 @@ function SimpleTaskList({ onCollapse }: { onCollapse?: () => void }) {
     const iconFor = (status: WorkbenchTaskGroup) => status === 'ACTION_REQUIRED' ? XCircle
         : status === 'RUNNING' ? Loader2 : status === 'REVIEWABLE' ? CheckCircle2 : CircleDashed;
     const toneFor = (status: WorkbenchTaskGroup) => status === 'ACTION_REQUIRED' ? 'text-warn'
-        : status === 'RUNNING' ? 'text-accent2' : status === 'REVIEWABLE' ? 'text-ok' : 'text-t3';
+        : status === 'RUNNING' ? 'text-accent2-ink' : status === 'REVIEWABLE' ? 'text-ok' : 'text-t3';
     const totalTasks = groups.reduce((n, group) => n + group.tasks.length, 0);
     const formatTime = (value: string) => {
         const diff = Date.now() - Date.parse(value); const minutes = Math.floor(diff / 60000);
@@ -879,8 +911,8 @@ function SimpleTaskList({ onCollapse }: { onCollapse?: () => void }) {
             {groups.map(group => {
                 if (group.tasks.length === 0) return null;
                 const collapsedGroup = collapsed.has(group.status); const GroupIcon = iconFor(group.status);
-                return <section key={group.status} className="mb-3"><button onClick={() => setCollapsed(previous => { const next = new Set(previous); next.has(group.status) ? next.delete(group.status) : next.add(group.status); return next; })} className="flex w-full items-center gap-2 px-2 py-1.5 text-xs font-medium text-t2"><span>{collapsedGroup ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}</span><GroupIcon className={`h-3.5 w-3.5 ${toneFor(group.status)} ${group.status === 'RUNNING' ? 'animate-spin' : ''}`} />{group.label}<span className="ml-auto text-t2 tabular-nums">{group.tasks.length}</span></button>
-                    {!collapsedGroup && <div className="space-y-1">{group.tasks.map(task => <div key={task.sessionId} onClick={() => { void switchTask(task.sessionId); }} className={`group cursor-pointer rounded-xl border border-transparent px-3 py-2.5 transition-interactive duration-fast ${task.sessionId === currentSessionId ? PANEL_CARD_ACTIVE_CLASS : 'hover:bg-hover2'}`}><div className="flex items-start gap-2"><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-t1">{task.title}</p><p className="mt-1 truncate text-xs text-t2">{task.folderName} · {task.hint}</p><p className="mt-1 flex items-center gap-1 text-xs text-t2"><Clock className="h-3 w-3" />{formatTime(task.updatedAt)}</p></div><button onClick={event => { void deleteTask(event, task.sessionId); }} className="rounded p-1 text-t3 opacity-0 hover:bg-errsoft hover:text-err group-hover:opacity-100 transition-interactive duration-fast" aria-label={`删除任务 ${task.title}`}><Trash2 className="h-3.5 w-3.5" /></button></div></div>)}</div>}
+                return <section key={group.status} className="mb-3"><button onClick={() => setCollapsed(previous => { const next = new Set(previous); next.has(group.status) ? next.delete(group.status) : next.add(group.status); return next; })} className="panel-control flex w-full items-center gap-2 px-2 py-1.5 text-[13px] font-medium text-t2"><span>{collapsedGroup ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}</span><GroupIcon className={`h-3.5 w-3.5 ${toneFor(group.status)} ${group.status === 'RUNNING' ? 'animate-spin' : ''}`} />{group.label}<span className="ml-auto text-t2 tabular-nums whitespace-nowrap shrink-0">{group.tasks.length}</span></button>
+                    {!collapsedGroup && <div className="space-y-1">{group.tasks.map(task => <div key={task.sessionId} onClick={() => { void switchTask(task.sessionId); }} className={`group cursor-pointer rounded-xl border border-transparent px-3 py-2.5 transition-interactive duration-fast ${task.sessionId === currentSessionId ? PANEL_CARD_ACTIVE_CLASS : 'hover:bg-hover2'}`}><div className="flex items-start gap-2"><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-t1">{task.title}</p><p className="mt-1 truncate text-[13px] text-t2">{task.folderName} · {task.hint}</p><p className="mt-1 flex items-center gap-1 text-[13px] text-t2"><Clock className="h-3 w-3" />{formatTime(task.updatedAt)}</p></div><button onClick={event => { void deleteTask(event, task.sessionId); }} className="panel-control rounded p-1 text-t3 opacity-0 hover:bg-errsoft hover:text-err group-hover:opacity-100 transition-interactive duration-fast" aria-label={`删除任务 ${task.title}`}><Trash2 className="h-3.5 w-3.5" /></button></div></div>)}</div>}
                 </section>;
             })}
         </div>
@@ -910,7 +942,7 @@ function TaskPanel({ tasks, onClear }: { tasks: Map<string, TaskState>; onClear:
             case 'failed':
                 return <XCircle className="w-4 h-4 text-err" />;
             case 'running':
-                return <Loader2 className="w-4 h-4 text-accent2 animate-spin" />;
+                return <Loader2 className="w-4 h-4 text-accent2-ink animate-spin" />;
             default:
                 return <div className="w-4 h-4 rounded-full border-2 border-t3" />;
         }
@@ -933,7 +965,7 @@ function TaskPanel({ tasks, onClear }: { tasks: Map<string, TaskState>; onClear:
                     <Chip variant="accent" className="tabular-nums">{tasks.size}</Chip>
                     <button
                         onClick={onClear}
-                        className="p-1.5 rounded-lg hover:bg-hover2 text-t3 hover:text-t1
+                        className="panel-control p-1.5 rounded-lg hover:bg-hover2 text-t3 hover:text-t1
                             transition-interactive duration-fast"
                         title="清除已完成任务"
                     >
@@ -947,7 +979,7 @@ function TaskPanel({ tasks, onClear }: { tasks: Map<string, TaskState>; onClear:
                 <div key={taskId} className="mb-1">
                     <button
                         onClick={() => toggleTask(taskId)}
-                        className="w-full px-3 py-2 rounded-xl hover:bg-hover2 flex items-center gap-2
+                        className="panel-control w-full px-3 py-2 rounded-xl hover:bg-hover2 flex items-center gap-2
                             transition-interactive duration-fast"
                     >
                         {expandedTasks.has(taskId) ? (
@@ -972,7 +1004,7 @@ function TaskPanel({ tasks, onClear }: { tasks: Map<string, TaskState>; onClear:
                                 </div>
                             )}
                             {task.result !== undefined && task.result !== null && (
-                                <div className="text-xs text-t2 p-2 bg-sunken2 rounded-lg">
+                                <div className="text-[13px] text-t2 p-2 bg-sunken2 rounded-lg">
                                     {typeof task.result === 'string' ? task.result : JSON.stringify(task.result).slice(0, 100)}
                                 </div>
                             )}

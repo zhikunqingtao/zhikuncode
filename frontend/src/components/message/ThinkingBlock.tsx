@@ -49,18 +49,18 @@ const ThinkingBlock: React.FC<ThinkingBlockProps> = ({
     }, [durationMs, redacted, preview]);
 
     return (
-        <div className="thinking-block my-2 rounded-xl border border-hairline bg-surface2 overflow-hidden">
+        <div className="thinking-block my-2 rounded-[14px] border border-hairline bg-surface2 overflow-hidden">
             {/* Header — always visible */}
             <button
                 onClick={toggle}
-                className="flex items-center gap-2 w-full px-3 py-2 text-left text-sm text-t3 hover:bg-hover2 transition-colors duration-fast"
+                className="panel-control flex items-center gap-2 w-full px-3 py-2 text-left text-sm text-t3 hover:bg-hover2 transition-colors duration-fast"
                 disabled={redacted}
             >
                 <ChevronRight
                     size={14}
                     className={`transition-transform duration-base ${expanded ? 'rotate-90' : ''}`}
                 />
-                <Brain size={14} className="text-accent2" />
+                <Brain size={14} className="text-accent2-ink" />
                 <span className="flex-1 truncate">
                     {expanded ? 'Thinking' : collapsedLabel}
                 </span>

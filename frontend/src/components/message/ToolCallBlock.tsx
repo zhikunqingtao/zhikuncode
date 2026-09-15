@@ -43,7 +43,7 @@ interface ToolCallBlockProps {
 /** 状态 → 图标/颜色/文案（导出供 turn/ToolRunBlock 的 L2 行复用同一套语义） */
 export const STATUS_CONFIG = {
     pending:           { icon: Loader2, color: 'text-t4',      label: 'Pending',    spin: false },
-    running:           { icon: Loader2, color: 'text-accent2', label: 'Running',    spin: true  },
+    running:           { icon: Loader2, color: 'text-accent2-ink', label: 'Running',    spin: true  },
     completed:         { icon: Check,   color: 'text-ok',      label: 'Completed',  spin: false },
     error:             { icon: XCircle, color: 'text-err',     label: 'Error',      spin: false },
     permission_needed: { icon: ShieldAlert, color: 'text-warn', label: 'Permission', spin: false },
@@ -144,14 +144,14 @@ const ToolCallBlock: React.FC<ToolCallBlockProps> = ({ toolUseId, toolCall, expa
 
     const [now, setNow] = useState(() => Date.now());
     useEffect(() => {
-        if (toolCall.status !== 'running') return;
+        if (toolCall.status !== 'running' || !Number.isFinite(toolCall.startTime) || toolCall.startTime <= 0) return;
         setNow(Date.now());
         const timer = window.setInterval(() => setNow(Date.now()), 1000);
         return () => window.clearInterval(timer);
-    }, [toolCall.status]);
+    }, [toolCall.status, toolCall.startTime]);
 
     const effectiveDuration = toolCall.status === 'running'
-        ? Math.max(0, now - toolCall.startTime)
+        ? (Number.isFinite(toolCall.startTime) && toolCall.startTime > 0 ? Math.max(0, now - toolCall.startTime) : undefined)
         : toolCall.duration;
 
     const formattedDuration = useMemo(() => {
@@ -174,8 +174,8 @@ const ToolCallBlock: React.FC<ToolCallBlockProps> = ({ toolUseId, toolCall, expa
         <div
             className={`tool-call-block my-2 overflow-hidden border border-hairline transition-surface duration-fast
                 ${expanded
-                    ? 'rounded-panel bg-surfacev2 shadow-e2'
-                    : 'rounded-xl bg-surface2'}`}
+                    ? 'rounded-[14px] bg-surfacev2'
+                    : 'rounded-[14px] bg-surface2'}`}
             data-tool-use-id={toolUseId}
         >
             {/* Header — 折叠态一行：图标 + 名称(600) + 文件 chip + diff chip + 状态 + 耗时 */}
@@ -183,19 +183,19 @@ const ToolCallBlock: React.FC<ToolCallBlockProps> = ({ toolUseId, toolCall, expa
                 type="button"
                 onClick={toggleExpanded}
                 aria-expanded={expanded}
-                className="flex w-full items-center gap-2 px-3 py-2 text-left transition-colors duration-fast hover:bg-hover2"
+                className="panel-control flex w-full items-center gap-2 px-3 py-2 text-left transition-colors duration-fast hover:bg-hover2"
             >
                 <ChevronRight
                     size={13}
                     className={`shrink-0 text-t4 transition-transform duration-base ${expanded ? 'rotate-90' : ''}`}
                 />
                 <Wrench size={14} className="shrink-0 text-t3" />
-                <span className="font-semibold text-sm text-t1 truncate">
+                <span className="min-w-[3rem] max-w-[40%] font-semibold text-sm text-t1 truncate">
                     {toolCall.toolName}
                 </span>
                 {primaryTarget && (
                     <span
-                        className="shrink-0 max-w-[40%] truncate rounded-md bg-sunken2 px-2 py-0.5 font-mono text-[11px] text-t2"
+                        className="min-w-0 max-w-[40%] truncate rounded-md bg-sunken2 px-2 py-0.5 font-mono text-[13px] text-t2"
                         // 路径类目标省略号前置（保留文件名可见），命令/pattern 省略号后置
                         style={primaryTarget.isPath ? { direction: 'rtl', textAlign: 'left' } : undefined}
                         title={primaryTarget.target}
@@ -204,12 +204,12 @@ const ToolCallBlock: React.FC<ToolCallBlockProps> = ({ toolUseId, toolCall, expa
                     </span>
                 )}
                 {diffStats && diffStats.added > 0 && (
-                    <span className="shrink-0 rounded bg-oksoft px-1.5 py-0.5 text-[11px] font-medium tabular-nums text-ok">
+                    <span className="shrink-0 rounded bg-oksoft px-1.5 py-0.5 text-[13px] font-medium tabular-nums text-ok">
                         +{diffStats.added}
                     </span>
                 )}
                 {diffStats && diffStats.removed > 0 && (
-                    <span className="shrink-0 rounded bg-errsoft px-1.5 py-0.5 text-[11px] font-medium tabular-nums text-err">
+                    <span className="shrink-0 rounded bg-errsoft px-1.5 py-0.5 text-[13px] font-medium tabular-nums text-err">
                         −{diffStats.removed}
                     </span>
                 )}
@@ -218,11 +218,11 @@ const ToolCallBlock: React.FC<ToolCallBlockProps> = ({ toolUseId, toolCall, expa
                         size={14}
                         className={`${statusCfg.color} ${statusCfg.spin ? 'animate-spin' : ''}`}
                     />
-                    <span className={`text-xs ${statusCfg.color}`}>
+                    <span className={`text-[13px] ${statusCfg.color}`}>
                         {statusCfg.label}
                     </span>
                     {formattedDuration && (
-                        <span className="text-xs tabular-nums text-t4">
+                        <span className="text-[13px] tabular-nums text-t4">
                             {formattedDuration}
                         </span>
                     )}
@@ -251,7 +251,7 @@ const ToolCallBlock: React.FC<ToolCallBlockProps> = ({ toolUseId, toolCall, expa
                     <div className="border-t border-hairline">
                         <button
                             onClick={toggleInput}
-                            className="flex items-center gap-1.5 w-full px-3 py-1.5 text-xs text-t4 hover:text-t2 transition-colors"
+                            className="panel-control flex items-center gap-1.5 w-full px-3 py-1.5 text-[13px] text-t4 hover:text-t2 transition-colors"
                         >
                             <ChevronRight
                                 size={12}
@@ -271,7 +271,7 @@ const ToolCallBlock: React.FC<ToolCallBlockProps> = ({ toolUseId, toolCall, expa
                         <div className="border-t border-hairline">
                             <button
                                 onClick={toggleResult}
-                                className="flex items-center gap-1.5 w-full px-3 py-1.5 text-xs text-t4 hover:text-t2 transition-colors"
+                                className="panel-control flex items-center gap-1.5 w-full px-3 py-1.5 text-[13px] text-t4 hover:text-t2 transition-colors"
                             >
                                 <ChevronRight
                                     size={12}
@@ -346,7 +346,7 @@ const ToolResultRenderer: React.FC<ToolResultRendererProps> = ({
         <button
             type="button"
             onClick={toggleShowFull}
-            className="mt-1.5 flex items-center gap-1 text-xs text-t4 hover:text-t2 transition-colors"
+            className="panel-control mt-1.5 flex items-center gap-1 text-[13px] text-t4 hover:text-t2 transition-colors"
         >
             <ChevronRight
                 size={12}
@@ -359,12 +359,12 @@ const ToolResultRenderer: React.FC<ToolResultRendererProps> = ({
     if (isError) {
         return (
             <div>
-                <div className="rounded-xl border border-err bg-errsoft px-3 py-2 text-sm text-err">
+                <div className="rounded-[14px] border border-err bg-errsoft px-3 py-2 text-sm text-err">
                     <div className="flex items-center gap-1.5 mb-1 font-medium">
                         <XCircle size={14} />
                         Error
                     </div>
-                    <pre className="whitespace-pre-wrap text-xs">{displayContent}</pre>
+                    <pre className="whitespace-pre-wrap text-[13px]">{displayContent}</pre>
                 </div>
                 {truncateToggle}
             </div>
@@ -380,7 +380,7 @@ const ToolResultRenderer: React.FC<ToolResultRendererProps> = ({
 
     if (!content?.trim()) {
         return (
-            <div className="text-xs text-t4 italic">No output</div>
+            <div className="text-[13px] text-t4 italic">No output</div>
         );
     }
 

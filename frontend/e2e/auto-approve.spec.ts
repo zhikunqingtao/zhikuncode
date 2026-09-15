@@ -120,7 +120,7 @@ test.describe('AUTO_APPROVE permission mode', () => {
     await page.getByRole('combobox', { name: '权限模式', exact: true }).selectOption('auto_approve');
 
     await expect.poll(() => requestedMode).toBe('AUTO_APPROVE');
-    await expect(page.locator('footer').getByText('完全访问权限')).toBeVisible();
+    await expect(page.locator('footer').getByText('完全访问', { exact: true })).toBeVisible();
   });
 
   test('does not allow a mode request before a session is bound', async ({ page }) => {

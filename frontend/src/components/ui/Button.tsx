@@ -3,13 +3,9 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from './cn';
 import { Spinner } from './Spinner';
 
-/**
- * 指南 §6.3 cva 骨架（严格照抄 base / variant / size / iconOnly / defaultVariants）。
- * 唯一偏差：secondary 的 `bg-surface` 改为 `bg-surfacev2`
- * （--v2-bg-surface 在 P0 无 Tailwind key，P1a 增量追加 surfacev2 映射）。
- */
+/** Shared button states; compact desktop sizing and 44px mobile hit targets. */
 const buttonVariants = cva(
-    'inline-flex items-center justify-center gap-2 rounded-xl font-medium select-none transition-interactive duration-fast ease-out focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring disabled:opacity-50 disabled:pointer-events-none active:scale-[.98]',
+    'inline-flex items-center justify-center gap-2 rounded-[10px] font-medium select-none transition-interactive duration-fast ease-out focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring disabled:opacity-50 disabled:pointer-events-none active:scale-[.98]',
     {
         variants: {
             variant: {
@@ -21,13 +17,13 @@ const buttonVariants = cva(
                 danger: 'bg-errstrong text-white shadow-e1 hover:opacity-90',
             },
             size: {
-                sm: 'h-8 px-3 text-xs',
-                md: 'h-9 px-4 text-sm',
+                sm: 'h-8 max-md:min-h-11 px-3 text-sm',
+                md: 'h-9 max-md:min-h-11 px-4 text-sm',
                 /* 移动端命中区 ≥44px，桌面恢复 40px */
                 lg: 'h-10 px-5 text-sm min-h-11 md:min-h-0',
             },
             iconOnly: {
-                true: 'px-0 aspect-square',
+                true: 'px-0 aspect-square max-md:min-w-11',
             },
         },
         defaultVariants: {

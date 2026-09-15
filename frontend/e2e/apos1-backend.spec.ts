@@ -114,6 +114,13 @@ test.describe('AA. Activity 后端持久化', () => {
   });
 
   test('TC-APOS-048: Activity 审批决定更新验证', async ({ page }) => {
+    await page.route('**/api/sessions/*/activities/*/decision', async route => {
+      const segments = new URL(route.request().url()).pathname.split('/');
+      const sessionId = decodeURIComponent(segments[3]);
+      const id = decodeURIComponent(segments[5]);
+      const { decision } = route.request().postDataJSON() as { decision: 'approved' | 'rejected' };
+      await route.fulfill({ json: { id, sessionId, decision } });
+    });
     await page.goto('/');
     await waitForAppReady(page);
     await navigateToAPOSTab(page);
@@ -134,9 +141,8 @@ test.describe('AA. Activity 后端持久化', () => {
     await page.evaluate(async () => {
       const mod = await import('/src/store/activityStore.ts');
       const store = (mod as any).useActivityStore;
-      store.getState().approveActivity('decision-test-001');
+      await store.getState().submitDecision('decision-test-001', 'approved');
     });
-    await page.waitForTimeout(500);
 
     // 验证 decision 已更新
     const result = await page.evaluate(async () => {

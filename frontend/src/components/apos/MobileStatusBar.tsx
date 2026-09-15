@@ -7,6 +7,7 @@
  * 形态：细条视觉高度 ≤36px（h-9），通过 ::after 上下各扩 4px 补足 ≥44px 点击区（§8.6）
  */
 
+import { useSessionStore } from '@/store/sessionStore';
 import { useMemo, useState } from 'react';
 import { AlertTriangle, ChevronUp } from 'lucide-react';
 import { useSwarmStore } from '@/store/swarmStore';
@@ -34,14 +35,19 @@ export function MobileStatusBar({ onExpandDetails }: MobileStatusBarProps) {
   const anomalyCount = useAnomalyStore((s) => s.activeAnomalies.length);
 
   // 最新 Activity —— sheet 的详情对象（§8.4 接线）
+  const sessionId = useSessionStore(s => s.sessionId);
+  const sessionStatus = useSessionStore(s => s.status);
   const activities = useActivityStore((s) => s.activities);
   const latestActivity = useMemo(() => {
     let latest: ActivityData | undefined;
+    let pending: ActivityData | undefined;
     activities.forEach((a) => {
+      if (sessionId && a.sessionId !== sessionId) return;
       if (!latest || a.timestamp > latest.timestamp) latest = a;
+      if (!a.decision && a.insight && a.insight.signal !== 'auto_approve' && (!pending || a.timestamp > pending.timestamp)) pending = a;
     });
-    return latest;
-  }, [activities]);
+    return pending ?? latest;
+  }, [activities, sessionId]);
 
   // 获取 Worker 列表
   const workers: WorkerInfo[] = swarm
@@ -67,6 +73,13 @@ export function MobileStatusBar({ onExpandDetails }: MobileStatusBarProps) {
     setSheetOpen(false);
   };
 
+  const pendingApproval = Boolean(latestActivity && !latestActivity.decision && latestActivity.insight && latestActivity.insight.signal !== 'auto_approve');
+  const activityRunning = latestActivity?.status === 'running';
+  const activityError = latestActivity?.status === 'error' || latestActivity?.status === 'failed' || latestActivity?.toolResult?.isError;
+  const swarmRunning = workers.some(worker => ['STARTING', 'WORKING'].includes(worker.status));
+  const visible = sessionStatus !== 'idle' || pendingApproval || activityRunning || activityError || anomalyCount > 0 || swarmRunning;
+  if (!visible && !sheetOpen) return null;
+
   return (
     <>
       {/* §8.4 Bottom Sheet — 点击状态细条展开 */}
@@ -81,13 +94,13 @@ export function MobileStatusBar({ onExpandDetails }: MobileStatusBarProps) {
 
       {/* 固定底部状态细条 — ≤36px 视觉高度，44px 点击区 */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-50 bg-surfacev2/95 backdrop-blur-sm border-t border-hairline shadow-e1"
+        className="shrink-0 relative z-50 bg-[color:color-mix(in_srgb,var(--v2-bg-surface)_95%,transparent)] backdrop-blur-sm border-t border-hairline shadow-e1"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         <button
           onClick={handleBarClick}
           aria-expanded={sheetOpen}
-          className="relative flex items-center justify-between w-full h-9 px-3 gap-2 active:bg-hover2 transition-colors duration-fast
+          className="panel-control relative flex items-center justify-between w-full h-9 px-3 gap-2 active:bg-hover2 transition-colors duration-fast
             after:absolute after:inset-x-0 after:-inset-y-1 after:content-['']"
           aria-label="展开状态详情"
         >
@@ -96,14 +109,14 @@ export function MobileStatusBar({ onExpandDetails }: MobileStatusBarProps) {
             {activeSwarmId && workers.length > 0 ? (
               <MobilePipelineSummary workers={workers} />
             ) : (
-              <span className="text-xs text-t3">无活动 Pipeline</span>
+              <span className="text-[13px] text-t2">{pendingApproval || sessionStatus === 'waiting_permission' ? '待审批' : activityError || anomalyCount > 0 ? '有异常待查看' : sessionStatus === 'compacting' ? '压缩中' : sessionStatus === 'streaming' || activityRunning ? '运行中' : '任务详情'}</span>
             )}
           </div>
 
           {/* 右侧：异常计数徽章 + 展开箭头 */}
           <div className="flex items-center gap-2 flex-shrink-0">
             {anomalyCount > 0 && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-errsoft text-errstrong text-xs font-medium">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-errsoft text-errstrong text-[13px] font-medium">
                 <AlertTriangle size={12} />
                 {anomalyCount}
               </span>

@@ -90,6 +90,7 @@ export function applyAccent(hex: string, effectiveTheme: EffectiveTheme): void {
         : preset.light;
     const style = document.documentElement.style;
     style.setProperty('--v2-accent', values.accent);
+    style.setProperty('--v2-accent-ink', effectiveTheme === 'dark' ? values.accent : `color-mix(in srgb, ${values.strong} 80%, black)`);
     style.setProperty('--v2-accent-strong', values.strong);
     style.setProperty('--v2-accent-soft', values.soft);
     style.setProperty('--v2-accent-ring', values.ring);

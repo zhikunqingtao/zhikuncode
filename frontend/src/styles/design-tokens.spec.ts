@@ -124,3 +124,25 @@ describe('WCAG AA 文本对比度（正文/常规文本 ≥ 4.5:1）', () => {
         expect(ratio).toBeGreaterThanOrEqual(4.5);
     });
 });
+
+// Guard readable text when shared colours are changed, not just CSS/JS equality.
+describe('shared text contrast', () => {
+    const luminance = (hex: string) => {
+        const channels = [1, 3, 5].map(offset => {
+            const value = parseInt(hex.slice(offset, offset + 2), 16) / 255;
+            return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+        });
+        return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+    };
+    for (const theme of ['light', 'dark'] as const) {
+        it(`${theme}: text and status labels meet 4.5:1 on content surfaces`, () => {
+            const palette = TOKENS[theme];
+            for (const foreground of ['--v2-text-1', '--v2-text-2', '--v2-text-3', '--v2-text-4', '--v2-ok', '--v2-warn', '--v2-err'] as const) {
+                for (const background of ['--v2-bg-app', '--v2-bg-surface', '--v2-bg-surface-2', '--v2-bg-sunken'] as const) {
+                    const values = [luminance(palette[foreground]), luminance(palette[background])].sort((a, b) => b - a);
+                    expect((values[0] + 0.05) / (values[1] + 0.05), `${foreground} on ${background}`).toBeGreaterThanOrEqual(4.5);
+                }
+            }
+        });
+    }
+});

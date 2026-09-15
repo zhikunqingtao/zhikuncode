@@ -47,24 +47,24 @@ export const CommandAutoComplete: React.FC<CommandAutoCompleteProps> = ({
     if (!filtered.length) return null;
 
     return (
-        <div className="absolute bottom-full mb-1 left-0 z-50 bg-white dark:bg-gray-800
+        <div className="absolute bottom-full mb-1 left-0 z-50 bg-surfacev2
             border rounded-lg shadow-xl max-h-64 overflow-y-auto w-72">
             {filtered.map((cmd, i) => (
                 <button key={cmd.name}
-                    className={`w-full text-left px-3 py-2 flex flex-col
-                        ${i === selectedIndex ? 'bg-blue-600 text-white' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                    className={`panel-control w-full text-left px-3 py-2 flex flex-col
+                        ${i === selectedIndex ? 'bg-blue-600 text-white' : 'hover:bg-hover2'}`}
                     onClick={() => onSelect('/' + cmd.name)}
                     onMouseEnter={() => setSelectedIndex(i)}>
                     <div className="flex items-center gap-2">
                         <span className="font-mono font-semibold">/{cmd.name}</span>
-                        <span className={`text-xs px-1 rounded
-                            ${cmd.category === 'builtin' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                            : cmd.category === 'skill' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                            : 'bg-gray-100 text-gray-600'}`}>
+                        <span className={`text-[13px] px-1 rounded
+                            ${cmd.category === 'builtin' ? 'bg-blue-100 text-accent2-ink dark:bg-blue-900 dark:text-accent2-ink'
+                            : cmd.category === 'skill' ? 'bg-green-100 text-ok dark:bg-green-900 dark:text-ok'
+                            : 'bg-gray-100 text-t2'}`}>
                             {cmd.category}
                         </span>
                     </div>
-                    <span className={`text-xs mt-0.5 ${i === selectedIndex ? 'text-blue-100' : 'text-gray-500'}`}>
+                    <span className={`text-[13px] mt-0.5 ${i === selectedIndex ? 'text-accent2-ink' : 'text-t2'}`}>
                         {cmd.description}
                     </span>
                 </button>

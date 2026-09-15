@@ -48,7 +48,7 @@ const TaskCardItem: React.FC<TaskCardItemProps> = ({ task }) => {
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 min-w-0 flex-1">
                     {/* Status indicator */}
-                    <span className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs
+                    <span className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[13px]
                         ${task.status === 'running' ? 'bg-blue-500 text-white animate-spin-slow' :
                           task.status === 'completed' ? 'bg-emerald-500 text-white' :
                           'bg-red-500 text-white'}`}>
@@ -63,14 +63,14 @@ const TaskCardItem: React.FC<TaskCardItemProps> = ({ task }) => {
                     {/* Agent name & type */}
                     <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
-                            <span className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
+                            <span className="text-sm font-medium text-t1 truncate">
                                 {task.agentName}
                             </span>
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 flex-shrink-0">
+                            <span className="text-[13px] px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-t2 flex-shrink-0">
                                 {task.agentType}
                             </span>
                         </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
+                        <p className="text-[13px] text-t2 truncate mt-0.5">
                             {task.description}
                         </p>
                     </div>
@@ -78,18 +78,18 @@ const TaskCardItem: React.FC<TaskCardItemProps> = ({ task }) => {
 
                 {/* Elapsed time + expand button */}
                 <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-                    <span className="text-[11px] text-gray-400 dark:text-gray-500 font-mono">
+                    <span className="text-[13px] text-t2 font-mono">
                         {elapsed}
                     </span>
                     {(task.progress || task.result) && (
                         <button
                             onClick={toggleExpand}
-                            className="w-6 h-6 rounded flex items-center justify-center
+                            className="panel-control w-6 h-6 rounded flex items-center justify-center
                                        hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                             title={expanded ? '收起' : '展开详情'}
                         >
                             <svg
-                                className={`w-3.5 h-3.5 text-gray-500 transition-transform duration-base
+                                className={`w-3.5 h-3.5 text-t2 transition-transform duration-base
                                             ${expanded ? 'rotate-180' : ''}`}
                                 fill="none" stroke="currentColor" viewBox="0 0 24 24"
                             >
@@ -102,23 +102,23 @@ const TaskCardItem: React.FC<TaskCardItemProps> = ({ task }) => {
 
             {/* Expanded details */}
             {expanded && (
-                <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                <div className="mt-2 pt-2 border-t border-border-hairline">
                     {task.progress && (
                         <div className="mb-1.5">
-                            <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase">
+                            <span className="text-[13px] font-semibold text-t2 uppercase">
                                 进度
                             </span>
-                            <p className="text-xs text-gray-600 dark:text-gray-300 mt-0.5 whitespace-pre-wrap break-all max-h-24 overflow-y-auto">
+                            <p className="text-[13px] text-t2 dark:text-t2 mt-0.5 whitespace-pre-wrap break-all max-h-24 overflow-y-auto">
                                 {task.progress}
                             </p>
                         </div>
                     )}
                     {task.result && (
                         <div>
-                            <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase">
+                            <span className="text-[13px] font-semibold text-t2 uppercase">
                                 输出
                             </span>
-                            <p className="text-xs text-gray-600 dark:text-gray-300 mt-0.5 whitespace-pre-wrap break-all max-h-32 overflow-y-auto">
+                            <p className="text-[13px] text-t2 dark:text-t2 mt-0.5 whitespace-pre-wrap break-all max-h-32 overflow-y-auto">
                                 {task.result}
                             </p>
                         </div>
@@ -138,19 +138,19 @@ export const AgentTaskCard: React.FC = () => {
     const completedCount = agentTasks.filter((t) => t.status === 'completed').length;
 
     return (
-        <div className="px-4 py-3 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm">
+        <div className="px-4 py-3 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border border-border-hairline rounded-[14px] shadow-sm">
             {/* Header */}
             <div className="flex items-center justify-between mb-2.5">
-                <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                <span className="text-sm font-semibold text-t1">
                     Agent 任务
                 </span>
-                <div className="flex items-center gap-2 text-[11px]">
+                <div className="flex items-center gap-2 text-[13px]">
                     {runningCount > 0 && (
-                        <span className="text-blue-600 dark:text-blue-400">
+                        <span className="text-accent2-ink">
                             {runningCount} 运行中
                         </span>
                     )}
-                    <span className="text-gray-400">
+                    <span className="text-t2">
                         {completedCount}/{agentTasks.length} 完成
                     </span>
                 </div>

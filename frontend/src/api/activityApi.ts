@@ -15,12 +15,20 @@ export function saveActivity(activity: ActivityData): void {
 /**
  * 更新 Activity 的 decision 字段
  */
-export function updateActivityDecision(id: string, decision: 'approved' | 'rejected'): void {
+export async function updateActivityDecision(id: string, decision: 'approved' | 'rejected', sessionId: string): Promise<void> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15_000);
   try {
-    sendToServer('/app/activity-update', { id, decision });
-  } catch (e) {
-    console.warn('[ActivityAPI] updateDecision failed:', e);
-  }
+    const response = await fetch(`/api/sessions/${encodeURIComponent(sessionId)}/activities/${encodeURIComponent(id)}/decision`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ decision }), signal: controller.signal,
+    });
+    if (!response.ok) throw new Error(`保存失败（HTTP ${response.status}）`);
+    const result = await response.json();
+    if (result.id !== id || result.sessionId !== sessionId || result.decision !== decision) {
+      throw new Error('服务端确认与当前操作不一致');
+    }
+  } finally { clearTimeout(timeout); }
 }
 
 /**

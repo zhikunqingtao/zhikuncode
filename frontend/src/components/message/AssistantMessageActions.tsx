@@ -45,7 +45,7 @@ const AssistantMessageActions: React.FC<AssistantMessageActionsProps> = ({
     return (
         <div
             className={cn(
-                'mt-2 flex items-center gap-1 border-t border-hairline pt-1.5',
+                'mt-2 flex items-center gap-1 border-t border-hairline pt-1',
                 className,
             )}
             data-testid="assistant-message-actions"

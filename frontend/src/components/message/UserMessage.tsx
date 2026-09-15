@@ -35,17 +35,17 @@ const UserMessage: React.FC<UserMessageProps> = ({ message, disclosure }) => {
     return (
         <div className="user-message group flex flex-col items-end px-3 py-3 sm:px-4">
             {/* Label */}
-            <div className="mb-1 text-xs font-medium text-t3">You</div>
+            <div className="mb-1 text-[13px] font-medium text-t3">我</div>
 
             {/* Bubble（§7.2：soft 底 + ring 边 + 尾角 6px，右对齐） */}
-            <div className="min-w-0 max-w-[92%] sm:max-w-[76%] [overflow-wrap:anywhere] rounded-2xl rounded-br-md border border-accent2-ring bg-accent2-soft px-[17px] py-[11px] text-sm text-t1">
+            <div className="min-w-0 max-w-[92%] sm:max-w-[76%] [overflow-wrap:anywhere] rounded-[14px] rounded-br-md border border-accent2-ring bg-accent2-soft px-[17px] py-[11px] text-sm text-t1">
                 {disclosure && (
                     <button type="button" aria-expanded={expanded} aria-label={`用户问题，点击${expanded ? '收起' : '展开'}`}
                         onClick={disclosure.onToggle}
-                        className="flex min-h-11 w-full min-w-0 items-center gap-2 text-left focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring rounded-lg">
+                        className="panel-control flex min-h-11 w-full min-w-0 items-center gap-2 text-left focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring rounded-lg">
                         <span className="shrink-0 font-medium">用户问题</span>
-                        {!expanded && <span className="min-w-0 flex-1 truncate text-xs text-t3">{summary}</span>}
-                        <span className="ml-auto shrink-0 text-xs text-t2">{expanded ? '收起' : '展开'}</span>
+                        {!expanded && <span className="min-w-0 flex-1 truncate text-[13px] text-t3">{summary}</span>}
+                        <span className="ml-auto shrink-0 text-[13px] text-t2">{expanded ? '收起' : '展开'}</span>
                         <ChevronRight size={13} aria-hidden="true" className={`shrink-0 text-t3 ${expanded ? 'rotate-90' : ''}`} />
                     </button>
                 )}

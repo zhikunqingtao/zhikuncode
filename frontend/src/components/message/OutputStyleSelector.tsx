@@ -43,11 +43,11 @@ const OutputStyleSelector: React.FC = () => {
                     key={style.name}
                     onClick={() => handleSelect(style.name)}
                     title={style.description}
-                    className={`
-                        px-2 py-0.5 text-xs rounded transition-colors
+                    className={`panel-control
+                        px-2 py-0.5 text-[13px] rounded transition-colors
                         ${activeStyleName === style.name
-                            ? 'bg-blue-600/30 text-blue-300 border border-blue-500/50'
-                            : 'text-gray-500 hover:text-gray-300 hover:bg-gray-700/30 border border-transparent'
+                            ? 'bg-accent2-soft text-accent2-ink border border-blue-500/50'
+                            : 'text-t2 hover:text-t2 hover:bg-sunken2 border border-transparent'
                         }
                     `}
                 >

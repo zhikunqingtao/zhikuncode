@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useSessionStore } from '../sessionStore';
+import { useWorkbenchViewStore } from '../workbenchViewStore';
+import { useTurnViewStore } from '../turnViewStore';
 
 describe('SessionStore', () => {
     beforeEach(() => {
@@ -15,6 +17,26 @@ describe('SessionStore', () => {
 
     afterEach(() => {
         vi.unstubAllGlobals();
+    });
+
+    it('applies development and balanced only when a new candidate is activated, once', async () => {
+        useWorkbenchViewStore.setState({ activeSessionId: 'old-chat', viewMode: 'simple', defaultView: 'simple' });
+        useTurnViewStore.setState({ density: 'detailed', expandOverrides: { 'old-chat': { '0:0': true } } });
+        vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+            ok: true, json: async () => ({ sessionId: 'new-defaults-chat' }),
+        }));
+        const candidate = await useSessionStore.getState().createSession('project', 'model');
+        expect(useWorkbenchViewStore.getState().viewMode).toBe('simple');
+        expect(useTurnViewStore.getState().density).toBe('detailed');
+        await useSessionStore.getState().resumeSession(candidate);
+        expect(useWorkbenchViewStore.getState().viewMode).toBe('development');
+        expect(useTurnViewStore.getState().density).toBe('balanced');
+        expect(useTurnViewStore.getState().expandOverrides['old-chat']).toEqual({ '0:0': true });
+        useWorkbenchViewStore.getState().setViewMode('simple');
+        useTurnViewStore.getState().setDensity('compact');
+        await useSessionStore.getState().resumeSession(candidate);
+        expect(useWorkbenchViewStore.getState().viewMode).toBe('simple');
+        expect(useTurnViewStore.getState().density).toBe('compact');
     });
 
     it('should start with idle status', () => {

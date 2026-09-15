@@ -14,7 +14,7 @@ export function KeyboardShortcutsDialog({ onClose }: { onClose: () => void }) {
 
     return (
         <Dialog open title="快捷键帮助" onClose={onClose} className="max-w-lg border border-hairline">
-            <div className="p-5">
+            <div className="p-4 md:p-6">
                 <dl className="space-y-4 text-sm">
                     {shortcuts.map(({ keys, description }) => (
                         <div key={description} className="flex items-center justify-between gap-4">

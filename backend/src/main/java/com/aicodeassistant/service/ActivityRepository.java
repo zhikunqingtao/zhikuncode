@@ -124,6 +124,12 @@ public class ActivityRepository {
     /**
      * 更新 Activity 的 decision 字段。
      */
+    public boolean updateDecisionForSession(String sessionId, String id, String decision) {
+        return jdbcTemplate.update(
+                "UPDATE activities SET decision = ?, updated_at = ? WHERE id = ? AND session_id = ?",
+                decision, Instant.now().toString(), id, sessionId) == 1;
+    }
+
     public void updateDecision(String id, String decision) {
         String now = Instant.now().toString();
         jdbcTemplate.update(

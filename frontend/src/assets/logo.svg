@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="b" x1="0.2" y1="0" x2="0.8" y2="1">
+      <stop offset="0%" stop-color="#58a6ff"/>
+      <stop offset="100%" stop-color="#3d8bdb"/>
+    </linearGradient>
+    <linearGradient id="wu" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#58a6ff"/>
+      <stop offset="100%" stop-color="#58a6ff" stop-opacity="0.15"/>
+    </linearGradient>
+    <linearGradient id="wl" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#58a6ff"/>
+      <stop offset="100%" stop-color="#58a6ff" stop-opacity="0.15"/>
+    </linearGradient>
+    <linearGradient id="t" x1="1" y1="0.5" x2="0" y2="0.5">
+      <stop offset="0%" stop-color="#58a6ff"/>
+      <stop offset="100%" stop-color="#58a6ff" stop-opacity="0.2"/>
+    </linearGradient>
+  </defs>
+  <!-- Body: round cute whale facing right, head-heavy -->
+  <path d="M100 260C100 158,190 85,290 95C350 90,422 148,440 218Q454 262,440 308C422 378,350 435,290 428C190 438,100 365,100 260Z" fill="url(#b)"/>
+  <!-- Belly highlight -->
+  <ellipse cx="328" cy="340" rx="85" ry="55" fill="#8dc8ff" opacity="0.25"/>
+  <!-- Tail upper lobe -->
+  <path d="M100 250C72 232,38 178,22 158C16 148,28 154,48 180C66 202,86 232,100 250Z" fill="url(#t)"/>
+  <!-- Tail lower lobe -->
+  <path d="M100 270C72 288,38 342,22 362C16 372,28 366,48 340C66 318,86 288,100 270Z" fill="url(#t)"/>
+  <!-- Upper wing (far side) -->
+  <path d="M218 130C198 78,152 28,122 16C110 12,116 36,132 66C156 100,194 126,218 130Z" fill="url(#wu)"/>
+  <!-- Lower wing (near side, mirror) -->
+  <path d="M218 390C198 442,152 492,122 504C110 508,116 484,132 454C156 420,194 394,218 390Z" fill="url(#wl)"/>
+  <!-- Dorsal fin -->
+  <path d="M260 98C256 72,270 56,286 66C292 72,280 94,270 100Z" fill="url(#b)"/>
+  <!-- Eye white -->
+  <circle cx="362" cy="228" r="30" fill="#fff"/>
+  <!-- Pupil -->
+  <circle cx="368" cy="232" r="17" fill="#1a3a5c"/>
+  <!-- Eye highlight -->
+  <circle cx="354" cy="220" r="8" fill="#fff"/>
+  <!-- Mouth -->
+  <path d="M332 298Q356 314,380 302" fill="none" stroke="#1a3a5c" stroke-width="4" stroke-linecap="round"/>
+</svg>

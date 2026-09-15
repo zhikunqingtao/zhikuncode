@@ -68,7 +68,7 @@ const ToolProgressBar: React.FC<ToolProgressBarProps> = ({ progress, startTime }
     return (
         <div className="flex flex-col gap-0.5" style={{ maxHeight: 40 }}>
             {/* 进度文本 */}
-            <div className="text-xs text-gray-400 truncate leading-tight">
+            <div className="text-[13px] text-t2 truncate leading-tight">
                 {parsed.raw}
             </div>
 
@@ -85,7 +85,7 @@ const ToolProgressBar: React.FC<ToolProgressBarProps> = ({ progress, startTime }
             </div>
 
             {/* 百分比 + ETA / 处理中 */}
-            <div className="text-[10px] text-gray-500 leading-tight">
+            <div className="text-[13px] text-t2 leading-tight">
                 {parsed.percent != null ? (
                     <span>{parsed.percent}%{eta ? ` · ${eta}` : ''}</span>
                 ) : (

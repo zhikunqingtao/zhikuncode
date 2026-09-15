@@ -1,3 +1,4 @@
+import { useResponsive } from '@/hooks/useResponsive';
 /**
  * FileTreePanel — 侧边栏文件树导航组件
  * 使用 react-arborist 实现虚拟滚动文件树
@@ -10,8 +11,8 @@ import { useFileTreeStore, type FileTreeNode } from '@/store/fileTreeStore';
 import { Chip, Kbd } from '@/components/ui';
 import { useState } from 'react';
 
-/** §7.5 面板 Label（11px 大写）：色取 text-t2 而非字面 text-t3（<4.5:1 不达 §10.1 AA，同 SettingsPanel 先例） */
-const PANEL_LABEL_CLASS = 'text-[11px] font-semibold uppercase tracking-wider text-t2';
+/** 面板标题与辅助说明使用统一字号。 */
+const PANEL_LABEL_CLASS = 'text-[13px] font-semibold text-t2';
 
 // ── react-arborist 数据格式 ──
 
@@ -55,7 +56,7 @@ function FileIcon({ icon }: { icon: string }) {
     const isTextIcon = icon === 'TS' || icon === 'JS' || icon === '{}';
     if (isTextIcon) {
         return (
-            <span className="inline-flex items-center justify-center w-4 h-4 text-[9px] font-bold rounded shrink-0"
+            <span className="inline-flex items-center justify-center w-4 h-4 text-[13px] font-bold rounded shrink-0"
                 style={{
                     color: icon === 'TS' ? '#3178c6' : icon === 'JS' ? '#f7df1e' : 'var(--v2-text-3)',
                     backgroundColor: icon === 'TS' ? '#3178c620' : icon === 'JS' ? '#f7df1e20' : 'transparent',
@@ -142,7 +143,7 @@ function FileNode({ node, style, dragHandle }: NodeRendererProps<ArboristNode>) 
         >
             {/* 展开/折叠指示器（目录） */}
             {!node.isLeaf && (
-                <span className="text-[10px] text-t3 w-3 shrink-0">
+                <span className="text-[13px] text-t3 w-3 shrink-0">
                     {node.isOpen ? '▾' : '▸'}
                 </span>
             )}
@@ -150,21 +151,21 @@ function FileNode({ node, style, dragHandle }: NodeRendererProps<ArboristNode>) 
 
             <FileIcon icon={icon} />
 
-            <span className="truncate text-[13px] leading-7 flex-1">
+            <span className="truncate text-sm leading-7 flex-1">
                 {node.data.name}
             </span>
 
-            {/* 复制路径按钮 — 仅文件，悬停时显示 */}
+            {/* 复制路径按钮 — 桌面悬停或聚焦显示，手机常驻 */}
             {node.isLeaf && (
                 <button
                     onClick={handleCopy}
-                    className="p-0.5 rounded opacity-0 group-hover:opacity-100
+                    className="panel-control p-0.5 rounded opacity-0 group-hover:opacity-100 focus:opacity-100 max-md:opacity-100 max-md:min-h-11 max-md:min-w-11
                         hover:bg-hover2 text-t3 transition-interactive duration-fast"
                     title="复制路径"
                 >
                     {copied
-                        ? <Check className="w-3 h-3 text-ok" />
-                        : <Copy className="w-3 h-3" />
+                        ? <Check className="w-[18px] h-[18px] text-ok" />
+                        : <Copy className="w-[18px] h-[18px]" />
                     }
                 </button>
             )}
@@ -176,6 +177,7 @@ function FileNode({ node, style, dragHandle }: NodeRendererProps<ArboristNode>) 
 const DEFAULT_ROOT = '.';
 
 export function FileTreePanel({ sidebarWidth = 256 }: { sidebarWidth?: number }) {
+    const { isMobile } = useResponsive();
     const { treeData, loading, error, searchQuery, fetchTree, setSearchQuery } = useFileTreeStore();
     const containerRef = useRef<HTMLDivElement>(null);
     const [containerHeight, setContainerHeight] = useState(500);
@@ -254,7 +256,7 @@ export function FileTreePanel({ sidebarWidth = 256 }: { sidebarWidth?: number })
                         <button
                             onClick={handleClearSearch}
                             aria-label="清除搜索"
-                            className="absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 rounded-md
+                            className="panel-control absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 rounded-md
                                 text-t3 hover:bg-hover2 hover:text-t1 transition-interactive duration-fast"
                         >
                             <X className="w-3.5 h-3.5" />
@@ -266,7 +268,7 @@ export function FileTreePanel({ sidebarWidth = 256 }: { sidebarWidth?: number })
                 <button
                     onClick={handleRefresh}
                     disabled={loading}
-                    className="p-1.5 rounded-lg hover:bg-hover2 text-t3 hover:text-t1
+                    className="panel-control p-1.5 rounded-lg hover:bg-hover2 text-t3 hover:text-t1
                         disabled:opacity-50 transition-interactive duration-fast shrink-0"
                     title="刷新文件树"
                 >
@@ -284,10 +286,10 @@ export function FileTreePanel({ sidebarWidth = 256 }: { sidebarWidth?: number })
 
                 {error && (
                     <div className="p-4 text-center">
-                        <p className="text-xs text-err mb-2">{error}</p>
+                        <p className="text-[13px] text-err mb-2">{error}</p>
                         <button
                             onClick={handleRefresh}
-                            className="text-xs text-accent2-strong hover:underline"
+                            className="panel-control text-[13px] text-accent2-ink hover:underline"
                         >
                             重试
                         </button>
@@ -295,7 +297,7 @@ export function FileTreePanel({ sidebarWidth = 256 }: { sidebarWidth?: number })
                 )}
 
                 {treeData && arboristData.length === 0 && searchQuery && (
-                    <div className="p-4 text-center text-t2 text-xs">
+                    <div className="p-4 text-center text-t2 text-[13px]">
                         未找到匹配 "{searchQuery}" 的文件
                     </div>
                 )}
@@ -305,7 +307,7 @@ export function FileTreePanel({ sidebarWidth = 256 }: { sidebarWidth?: number })
                         data={arboristData}
                         width={Math.max(sidebarWidth - 16, 200)}
                         height={containerHeight}
-                        rowHeight={28}
+                        rowHeight={isMobile ? 44 : 28}
                         indent={16}
                         openByDefault={false}
                         disableDrag

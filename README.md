@@ -36,7 +36,7 @@
 
 > **部署到服务器，打开浏览器就能用，手机上也行**
 
-外观支持浅色、深色和液态玻璃。玻璃主题参考 [Apple 材质指南](https://developer.apple.com/design/human-interface-guidelines/materials)及 [WWDC26 设计更新](https://developer.apple.com/videos/play/wwdc2026/102/)，将散射、高光和暗边用于导航与操作层，正文和代码保持清晰。Chrome 为输入区与弹层提供背景边缘折射，其他浏览器采用 CSS 材质；减少透明度、增强对比度或低内存设备使用实色显示。这是 Web 实现，不使用苹果原生材质引擎。
+外观支持浅色、深色和液态玻璃。玻璃主题参考 [Apple 材质指南](https://developer.apple.com/design/human-interface-guidelines/materials)及 [WWDC26 设计更新](https://developer.apple.com/videos/play/wwdc2026/102/)，将散射、高光和暗边用于导航与操作层，正文和代码保持清晰。Chrome 为输入区与弹层提供背景边缘折射，其他浏览器采用 CSS 材质；减少透明度、增强对比度或低内存设备使用实色显示。这是 Web 实现，不使用苹果原生材质引擎。 三种主题共用正文与代码字号层级、辅助文字灰度及工具状态样式；桌面正文 15px、代码 13px，手机分别为 16px、14px；正文行高 1.7、代码行高 1.65，保留现有工作台布局和操作入口。 手机可在侧栏底部切换外观、设置默认工作台；顶栏模型列表保留完整名称，输入区随可视高度变化调整高度。 任务、Git、API 文档、分析图表及 Agent DAG 使用同一套辅助字号、状态色与控件焦点样式；DAG 已打开的节点详情随状态更新。通用弹层和 Activity 详情共享焦点约束与叠层滚动锁，Esc 只作用于最上层。 阅读区最大宽度 1200px，普通段落最大宽度 860px；表格、图片和代码保留内容区宽度。弹层标题 20px／600、分区标题 16px／600，操作控件使用 14px 文字和手机 44px 命中区。强调文字与按钮填充分开取色，七种已有强调色继续生效。三主题共用悬浮输入区的定位和高度测量，消息列表按实际输入区高度预留空间。
 
 
 > 🏗️ **[查看完整系统架构图 →](https://zhikunqingtao.github.io/zhikuncode/ZhikunCode-Architecture.html)**  

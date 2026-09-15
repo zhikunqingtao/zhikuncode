@@ -13,7 +13,7 @@ export function WorkbenchViewSwitch() {
     return (
         <div className="flex items-center gap-1">
             <div
-                className="glass-segments flex shrink-0 items-center rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] p-0.5"
+                className="glass-segments flex shrink-0 items-center rounded-lg border border-[var(--v2-border-hairline)] bg-[var(--v2-bg-surface)] p-0.5"
                 role="tablist"
                 aria-label="工作台视图"
             >
@@ -24,7 +24,7 @@ export function WorkbenchViewSwitch() {
                     aria-label="简洁工作台"
                     title="简洁工作台"
                     onClick={() => setMode('simple')}
-                    className={`flex items-center gap-1.5 rounded-md px-2 lg:px-2.5 py-1.5 text-xs font-medium transition-colors ${mode === 'simple' ? 'bg-blue-600 text-white' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+                    className={`panel-control flex items-center gap-1.5 rounded-md px-2 lg:px-2.5 py-1.5 text-[13px] font-medium transition-colors ${mode === 'simple' ? 'bg-blue-600 text-white' : 'text-[var(--v2-text-2)] hover:text-[var(--v2-text-1)]'}`}
                 >
                     {mode === 'simple' && <GlassSelection id={glassId} />}
                     <LayoutDashboard className="h-3.5 w-3.5 shrink-0" />
@@ -37,7 +37,7 @@ export function WorkbenchViewSwitch() {
                     aria-label="开发工作台"
                     title="开发工作台"
                     onClick={() => setMode('development')}
-                    className={`flex items-center gap-1.5 rounded-md px-2 lg:px-2.5 py-1.5 text-xs font-medium transition-colors ${mode === 'development' ? 'bg-blue-600 text-white' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+                    className={`panel-control flex items-center gap-1.5 rounded-md px-2 lg:px-2.5 py-1.5 text-[13px] font-medium transition-colors ${mode === 'development' ? 'bg-blue-600 text-white' : 'text-[var(--v2-text-2)] hover:text-[var(--v2-text-1)]'}`}
                 >
                     {mode === 'development' && <GlassSelection id={glassId} />}
                     <Code2 className="h-3.5 w-3.5 shrink-0" />
@@ -47,12 +47,12 @@ export function WorkbenchViewSwitch() {
             <button
                 type="button"
                 onClick={() => setDefaultMode(mode)}
-                className="shrink-0 rounded-lg p-2 text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
+                className="panel-control hidden md:inline-flex shrink-0 rounded-lg p-2 text-[var(--v2-text-2)] hover:bg-[var(--v2-bg-hover)] hover:text-[var(--v2-text-1)]"
                 title={defaultMode === mode ? '当前视图已是本机默认' : '将当前视图设为本机默认'}
                 aria-label={defaultMode === mode ? '当前视图已是本机默认' : '将当前视图设为本机默认'}
             >
                 {defaultMode === mode
-                    ? <Check className="h-3.5 w-3.5 text-green-500" />
+                    ? <Check className="h-3.5 w-3.5 text-ok" />
                     : <Pin className="h-3.5 w-3.5" />}
             </button>
         </div>

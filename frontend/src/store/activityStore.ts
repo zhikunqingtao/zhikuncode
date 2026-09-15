@@ -7,6 +7,8 @@ import { updateActivityDecision } from '@/api/activityApi';
 import { useSessionStore } from '@/store/sessionStore';
 
 interface ActivityStoreState {
+  decisionRequests: Map<string, { pending: boolean; error?: string }>;
+  submitDecision: (id: string, decision: 'approved' | 'rejected') => Promise<void>;
   activities: Map<string, ActivityData>;
   deniedToolUseIds: Set<string>;
   approvedToolUseIds: Set<string>;
@@ -47,6 +49,7 @@ interface ActivityStoreState {
 export const useActivityStore = create<ActivityStoreState>()(
   subscribeWithSelector(immer((set, get) => ({
     activities: new Map(),
+    decisionRequests: new Map(),
     deniedToolUseIds: new Set(),
     approvedToolUseIds: new Set(),
     currentSessionId: null,
@@ -114,19 +117,28 @@ export const useActivityStore = create<ActivityStoreState>()(
       const activity = d.activities.get(activityId);
       if (activity) activity.insight = insight;
     }),
-    approveActivity: (id) => {
-      set(d => {
-        const activity = d.activities.get(id);
-        if (activity) activity.decision = 'approved';
-      });
-      updateActivityDecision(id, 'approved');
-    },
-    rejectActivity: (id) => {
-      set(d => {
-        const activity = d.activities.get(id);
-        if (activity) activity.decision = 'rejected';
-      });
-      updateActivityDecision(id, 'rejected');
+    approveActivity: id => { void get().submitDecision(id, 'approved'); },
+    rejectActivity: id => { void get().submitDecision(id, 'rejected'); },
+    submitDecision: async (id, decision) => {
+      if (get().decisionRequests.get(id)?.pending) return;
+      const activity = get().activities.get(id);
+      if (!activity) return;
+      const sessionId = activity.sessionId;
+      if (!sessionId) {
+        set(d => { d.decisionRequests.set(id, { pending: false, error: '缺少所属会话，无法提交' }); });
+        return;
+      }
+      set(d => { d.decisionRequests.set(id, { pending: true }); });
+      try {
+        await updateActivityDecision(id, decision, sessionId);
+        set(d => {
+          const current = d.activities.get(id);
+          if (current?.sessionId === sessionId) current.decision = decision;
+          d.decisionRequests.delete(id);
+        });
+      } catch (error) {
+        set(d => { d.decisionRequests.set(id, { pending: false, error: error instanceof Error ? error.message : '提交失败，请重试' }); });
+      }
     },
     markToolUseDenied: (toolUseId) => set(d => {
       d.deniedToolUseIds.add(toolUseId);

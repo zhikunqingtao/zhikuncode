@@ -15,10 +15,10 @@ interface BlameViewProps {
 
 // ── 交替背景色组（用于相同 commit 分组） ──
 const GROUP_COLORS = [
-    'bg-blue-500/5',
+    'bg-accent2-soft',
     'bg-purple-500/5',
-    'bg-green-500/5',
-    'bg-orange-500/5',
+    'bg-oksoft',
+    'bg-warnsoft',
     'bg-pink-500/5',
     'bg-cyan-500/5',
 ];
@@ -68,7 +68,7 @@ export function BlameView({ repoPath, filePath, gitRef }: BlameViewProps) {
     if (blameLoading) {
         return (
             <div className="flex items-center justify-center h-full">
-                <Loader2 className="w-5 h-5 animate-spin text-[var(--text-muted)]" />
+                <Loader2 className="w-5 h-5 animate-spin text-[var(--v2-text-2)]" />
             </div>
         );
     }
@@ -76,7 +76,7 @@ export function BlameView({ repoPath, filePath, gitRef }: BlameViewProps) {
     // ── Error / Empty ──
     if (!activeBlame || activeBlame.lines.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center h-full gap-2 text-[var(--text-muted)]">
+            <div className="flex flex-col items-center justify-center h-full gap-2 text-[var(--v2-text-2)]">
                 <AlertCircle className="w-6 h-6 opacity-50" />
                 <p className="text-sm">无法加载 blame 数据</p>
             </div>
@@ -105,11 +105,11 @@ export function BlameView({ repoPath, filePath, gitRef }: BlameViewProps) {
     return (
         <div className="flex flex-col h-full">
             {/* 文件路径栏 */}
-            <div className="flex items-center px-3 py-1.5 border-b border-[var(--border)] bg-[var(--bg-secondary)]">
-                <span className="text-xs font-mono text-[var(--text-secondary)] truncate">
+            <div className="flex items-center px-3 py-1.5 border-b border-[var(--v2-border-hairline)] bg-[var(--v2-bg-sunken)]">
+                <span className="text-[13px] font-mono text-[var(--v2-text-2)] truncate">
                     {activeBlame.file_path}
                 </span>
-                <span className="ml-auto text-xs text-[var(--text-muted)]">
+                <span className="ml-auto text-[13px] text-[var(--v2-text-2)]">
                     {activeBlame.total_lines} 行
                 </span>
             </div>
@@ -120,7 +120,7 @@ export function BlameView({ repoPath, filePath, gitRef }: BlameViewProps) {
                 <div
                     ref={leftPanelRef}
                     onScroll={() => handleScroll('left')}
-                    className="w-[220px] shrink-0 overflow-y-auto border-r border-[var(--border)] bg-[var(--bg-secondary)] scrollbar-thin"
+                    className="w-[220px] shrink-0 overflow-y-auto border-r border-[var(--v2-border-hairline)] bg-[var(--v2-bg-sunken)] scrollbar-thin"
                 >
                     {activeBlame.lines.map((line, i) => {
                         const bgColor = shaColorMap.get(line.sha) ?? '';
@@ -129,18 +129,18 @@ export function BlameView({ repoPath, filePath, gitRef }: BlameViewProps) {
                         return (
                             <div
                                 key={line.line_no}
-                                className={`flex items-center h-[20px] px-2 text-[11px] leading-[20px] ${bgColor} border-b border-[var(--border)]/30`}
+                                className={`flex items-center h-[24px] px-2 text-[13px] leading-[24px] ${bgColor} border-b border-[var(--v2-border-hairline)]/30`}
                             >
                                 {showInfo ? (
                                     <>
-                                        <span className="w-[80px] shrink-0 truncate text-[var(--text-muted)]" title={line.author}>
+                                        <span className="w-[80px] shrink-0 truncate text-[var(--v2-text-2)]" title={line.author}>
                                             {line.author}
                                         </span>
-                                        <span className="w-[36px] shrink-0 text-center text-[var(--text-muted)]">
+                                        <span className="w-[36px] shrink-0 text-center text-[var(--v2-text-2)]">
                                             {relativeTime(line.date)}
                                         </span>
                                         <span
-                                            className="ml-auto shrink-0 font-mono text-[var(--text-muted)] cursor-pointer hover:text-blue-400 transition-colors"
+                                            className="ml-auto shrink-0 font-mono text-[var(--v2-text-2)] cursor-pointer hover:text-accent2-ink transition-colors"
                                             title={`Commit ${line.sha}`}
                                         >
                                             {line.sha.slice(0, 7)}
@@ -166,14 +166,14 @@ export function BlameView({ repoPath, filePath, gitRef }: BlameViewProps) {
                         return (
                             <div
                                 key={line.line_no}
-                                className={`flex h-[20px] leading-[20px] font-mono text-xs ${bgColor} border-b border-[var(--border)]/30`}
+                                className={`flex h-[24px] leading-[24px] font-mono text-[13px] ${bgColor} border-b border-[var(--v2-border-hairline)]/30`}
                             >
                                 {/* 行号 */}
-                                <span className="w-[40px] shrink-0 text-right pr-3 text-[var(--text-muted)] select-none text-[11px]">
+                                <span className="w-[40px] shrink-0 text-right pr-3 text-[var(--v2-text-2)] select-none text-[13px]">
                                     {line.line_no}
                                 </span>
                                 {/* 代码 */}
-                                <span className="text-[var(--text-primary)] whitespace-pre pr-4">
+                                <span className="text-[var(--v2-text-1)] whitespace-pre pr-4">
                                     {line.content}
                                 </span>
                             </div>

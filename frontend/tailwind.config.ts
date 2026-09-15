@@ -48,6 +48,7 @@ export default {
                 overlay2: 'var(--v2-overlay)',
                 accent2: {
                     DEFAULT: 'var(--v2-accent)',
+                    ink: 'var(--v2-accent-ink)',
                     strong: 'var(--v2-accent-strong)',
                     hover: 'var(--v2-accent-hover)',
                     active: 'var(--v2-accent-active)',
@@ -92,8 +93,8 @@ export default {
                 spring: 'cubic-bezier(.34,1.56,.64,1)',
             },
             fontFamily: {
-                sans: ['Inter', 'system-ui', 'sans-serif'],
-                mono: ["'JetBrains Mono'", "'Fira Code'", 'monospace'],
+                sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'sans-serif'],
+                mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'],
             },
             animation: {
                 'shimmer': 'shimmer 2s linear infinite',
@@ -102,7 +103,7 @@ export default {
                 /* v2 动效（slide-up 与上方现有 key 同值合并，不重复定义） */
                 'fade-in': 'fadeIn .18s cubic-bezier(.2,.8,.2,1)',
                 'scale-in': 'scaleIn .24s cubic-bezier(.2,.8,.2,1)',
-                'sheet-up': 'sheetUp .32s cubic-bezier(.2,.8,.2,1)',
+                'sheet-up': 'sheetUp .24s cubic-bezier(.2,.8,.2,1)',
                 'accent-pulse': 'accentPulse 1.6s ease-in-out infinite',
                 'indeterminate': 'indeterminate 1.4s ease-in-out infinite',
             },

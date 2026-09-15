@@ -112,12 +112,12 @@ export function ActivityStream() {
   );
 
   return (
-    <div className="flex flex-col min-h-0 overflow-hidden bg-[var(--bg-primary)]">
+    <div className="flex flex-col min-h-0 overflow-hidden bg-[var(--v2-bg-surface)]">
       {/* Phase 2: Change Impact Panel */}
       {changeImpactEnabled && (
-        <div className="border-b border-[var(--border)] flex-shrink-0 max-h-[120px] overflow-y-auto">
+        <div className="border-b border-[var(--v2-border-hairline)] flex-shrink-0 max-h-[120px] overflow-y-auto">
           <details className="group">
-            <summary className="px-3 py-2 text-xs font-medium text-[var(--text-secondary)] cursor-pointer hover:bg-[var(--bg-hover)] select-none flex items-center gap-1">
+            <summary className="px-3 py-2 text-[13px] font-medium text-[var(--v2-text-2)] cursor-pointer hover:bg-[var(--v2-bg-hover)] select-none flex items-center gap-1">
               <span className="transition-transform group-open:rotate-90">▶</span>
               变更影响全景
             </summary>
@@ -128,9 +128,9 @@ export function ActivityStream() {
 
       {/* Phase 2: Agent Pipeline + Anomaly Alert */}
       {agentPipelineEnabled && (
-        <div className="border-b border-[var(--border)] flex-shrink-0">
+        <div className="border-b border-[var(--v2-border-hairline)] flex-shrink-0">
           <details className="group">
-            <summary className="px-3 py-2 text-xs font-medium text-[var(--text-secondary)] cursor-pointer hover:bg-[var(--bg-hover)] select-none flex items-center gap-1">
+            <summary className="px-3 py-2 text-[13px] font-medium text-[var(--v2-text-2)] cursor-pointer hover:bg-[var(--v2-bg-hover)] select-none flex items-center gap-1">
               <span className="transition-transform group-open:rotate-90">▶</span>
               Agent Pipeline
             </summary>
@@ -141,15 +141,15 @@ export function ActivityStream() {
       )}
 
       {/* Filter Bar */}
-      <div className="flex items-center gap-1 px-3 py-2 border-b border-[var(--border)] flex-shrink-0">
+      <div className="flex flex-wrap items-center gap-1 px-3 py-2 border-b border-[var(--v2-border-hairline)] flex-shrink-0">
         {SIGNAL_FILTERS.map((f) => (
           <button
             key={f.value}
             onClick={() => handleFilterChange(f.value)}
-            className={`px-2.5 py-1 text-xs rounded-full transition-colors ${
+            className={`panel-control px-2.5 py-1 text-[13px] rounded-full transition-colors ${
               activeFilterValue === f.value
-                ? 'bg-blue-600/30 text-blue-600 dark:text-blue-300 font-medium'
-                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]'
+                ? 'bg-[color:color-mix(in_srgb,var(--v2-accent-strong)_30%,transparent)] text-accent2-ink dark:text-accent2-ink font-medium'
+                : 'text-[var(--v2-text-2)] hover:text-[var(--v2-text-1)] hover:bg-[var(--v2-bg-hover)]'
             }`}
           >
             {f.label}
@@ -165,8 +165,8 @@ export function ActivityStream() {
 
       {/* Activity List */}
       {sortedActivities.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center text-[var(--text-muted)] gap-3">
-          <Inbox size={40} className="text-[var(--text-muted)]" />
+        <div className="flex-1 flex flex-col items-center justify-center text-[var(--v2-text-2)] gap-3">
+          <Inbox size={40} className="text-[var(--v2-text-2)]" />
           <p className="text-sm">暂无活动记录</p>
         </div>
       ) : (

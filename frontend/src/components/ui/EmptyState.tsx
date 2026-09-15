@@ -51,7 +51,7 @@ export const EmptyState = forwardRef<HTMLDivElement, EmptyStateProps>(
                     )}
                     <p className="text-sm font-medium text-t1">{title}</p>
                     {description !== undefined && (
-                        <p className="max-w-[320px] text-xs leading-normal text-t2">{description}</p>
+                        <p className="max-w-[320px] text-[13px] leading-normal text-t2">{description}</p>
                     )}
                     {actions !== undefined && (
                         <div className="mt-1 flex items-center gap-2">{actions}</div>
@@ -63,7 +63,7 @@ export const EmptyState = forwardRef<HTMLDivElement, EmptyStateProps>(
         return (
             <div ref={ref} className={cn(emptyStateVariants({ variant }), className)} {...props}>
                 {badge !== undefined && <div>{badge}</div>}
-                <h1 className="text-[clamp(34px,5.4vw,50px)] font-light leading-[1.15] tracking-[-0.02em] text-t1 [&_b]:font-semibold [&_b]:text-accent2">
+                <h1 className="text-[clamp(34px,5.4vw,50px)] font-light leading-[1.15] tracking-[-0.02em] text-t1 [&_b]:font-semibold [&_b]:text-accent2-ink">
                     {title}
                 </h1>
                 {description !== undefined && (

@@ -51,7 +51,8 @@ describe('PromptComposerChips', () => {
         it('keeps the optimistic mode when the send succeeds', () => {
             render(<PermissionModeChip />);
 
-            fireEvent.change(screen.getByLabelText('权限模式'), { target: { value: 'auto_approve' } });
+            fireEvent.click(screen.getByRole('button', { name: '权限模式' }));
+            fireEvent.click(screen.getByRole('button', { name: /完全访问/ }));
 
             expect(sendSetPermissionMode).toHaveBeenCalledWith('AUTO_APPROVE');
             expect(usePermissionStore.getState().permissionMode).toBe('auto_approve');
@@ -62,7 +63,8 @@ describe('PromptComposerChips', () => {
             sendSetPermissionMode.mockReturnValue(false);
             render(<PermissionModeChip />);
 
-            fireEvent.change(screen.getByLabelText('权限模式'), { target: { value: 'auto_approve' } });
+            fireEvent.click(screen.getByRole('button', { name: '权限模式' }));
+            fireEvent.click(screen.getByRole('button', { name: /完全访问/ }));
 
             expect(usePermissionStore.getState().permissionMode).toBe('default');
             expect(useNotificationStore.getState().notifications)
@@ -78,7 +80,8 @@ describe('PromptComposerChips', () => {
             });
             render(<PermissionModeChip />);
 
-            fireEvent.change(screen.getByLabelText('权限模式'), { target: { value: 'auto_approve' } });
+            fireEvent.click(screen.getByRole('button', { name: '权限模式' }));
+            fireEvent.click(screen.getByRole('button', { name: /完全访问/ }));
 
             expect(usePermissionStore.getState().permissionMode).toBe('default');
             expect(useNotificationStore.getState().notifications)
@@ -92,7 +95,8 @@ describe('PromptComposerChips', () => {
             binding.bound = false;
             render(<PermissionModeChip />);
 
-            fireEvent.change(screen.getByLabelText('权限模式'), { target: { value: 'auto_approve' } });
+            fireEvent.click(screen.getByRole('button', { name: '权限模式' }));
+            fireEvent.click(screen.getByRole('button', { name: /完全访问/ }));
 
             expect(sendSetPermissionMode).not.toHaveBeenCalled();
             expect(usePermissionStore.getState().permissionMode).toBe('default');
