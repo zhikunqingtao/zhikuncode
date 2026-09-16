@@ -99,15 +99,15 @@ public class MeooPublicationPolicy {
             for(FileFact f:files) manifest.append(f.relativePath()).append('\0').append(f.size()).append('\0').append(f.sha256()).append('\n');
             String verification=input.getString("verification_id", "");
             String digest=hash(manifest.toString().getBytes(StandardCharsets.UTF_8));
-            if(requireVerification || !verification.isBlank()) checkEvidence(verification,context,root,files,digest,runtime);
+            if(requireVerification || !verification.isBlank()) checkEvidence(verification,root,files,digest,runtime);
             return new Snapshot(root,workspace.relativize(target).toString(),runtime,name,account,List.copyOf(files),total,digest,verification);
         } catch(MeooException e) { throw e; }
         catch(Exception e) { throw error("MEOO_INSPECTION_FAILED"); }
     }
-    private void checkEvidence(String id, ToolUseContext context, Path root, List<FileFact> files, String digest, String runtime) throws IOException {
+    private void checkEvidence(String id, Path root, List<FileFact> files, String digest, String runtime) throws IOException {
         if(id.isBlank()) throw error("MEOO_VERIFICATION_REQUIRED");
         var bundle=evidence.findById(id).orElseThrow(()->error("MEOO_VERIFICATION_REQUIRED"));
-        if(!"verified".equals(bundle.verdict()) || !Objects.equals(bundle.sessionId(),context.sessionId()) || bundle.createdAt()==null)
+        if(!"verified".equals(bundle.verdict()) || bundle.createdAt()==null)
             throw error("MEOO_VERIFICATION_REQUIRED");
         boolean bound=bundle.items()!=null && bundle.items().stream().anyMatch(item->item.meta()!=null && item.meta().get("workspace") instanceof String w && root.equals(Path.of(w)) && digest.equals(item.meta().get("meooSnapshotSha256")) && runtime.equals(item.meta().get("meooRuntime")));
         if(!bound) throw error("MEOO_VERIFICATION_WORKSPACE_MISMATCH");

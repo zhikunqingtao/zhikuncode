@@ -81,6 +81,32 @@ class MeooPublicationPolicyTest {
         assertThatThrownBy(()->policy.stage(snapshot,temp.resolve("stage"))).hasMessage("MEOO_SNAPSHOT_CHANGED");
         assertThatThrownBy(()->policy.inspect(input(".","static"),context,true)).hasMessage("MEOO_VERIFICATION_REQUIRED");
     }
+
+    @Test void failedEvidenceCannotAuthorizePublicationRegardlessOfSession() {
+        var snapshot = policy.inspect(input(".", "static"), context, false);
+        for (var identity : List.of(List.of("session", "failed"), List.of("other-session", "failed"))) {
+            var bundle = EvidenceBundle.builder().bundleId("ev-invalid").sessionId(identity.get(0)).verdict(identity.get(1))
+                    .items(List.of(new EvidenceItem(null, "test", "snapshot", null, Map.of("workspace", root.toString(),
+                            "meooSnapshotSha256", snapshot.sha256(), "meooRuntime", "static"))))
+                    .createdAt(Instant.now().plusSeconds(1)).build();
+            when(evidence.findById("ev-invalid")).thenReturn(Optional.of(bundle));
+            var publish = ToolInput.from(Map.of("path", ".", "runtime", "static", "verification_id", "ev-invalid"));
+            assertThatThrownBy(() -> policy.inspect(publish, context, true)).hasMessage("MEOO_VERIFICATION_REQUIRED");
+        }
+    }
+    @Test void anotherSessionCanPublishExistingVerifiedContentButNotChangedContent() throws Exception {
+        var snapshot = policy.inspect(input(".", "static"), context, false);
+        var bundle = EvidenceBundle.builder().bundleId("ev-existing").sessionId("original-session").verdict("verified")
+                .items(List.of(new EvidenceItem(null, "test", "snapshot", null, Map.of("workspace", root.toString(),
+                        "meooSnapshotSha256", snapshot.sha256(), "meooRuntime", "static"))))
+                .createdAt(Instant.now().plusSeconds(1)).build();
+        when(evidence.findById("ev-existing")).thenReturn(Optional.of(bundle));
+        var publish = ToolInput.from(Map.of("path", ".", "runtime", "static", "verification_id", "ev-existing"));
+        assertThat(policy.inspect(publish, context, true).sha256()).isEqualTo(snapshot.sha256());
+        Files.writeString(root.resolve("index.html"), "<h1>Changed content</h1>");
+        assertThatThrownBy(() -> policy.inspect(publish, context, true))
+                .hasMessage("MEOO_VERIFICATION_WORKSPACE_MISMATCH");
+    }
     @Test void imageChecksScriptsStorageAndIgnoreRules() throws Exception {
         assertThatThrownBy(()->policy.inspect(input(".","image"),context,false)).hasMessage("MEOO_IMAGE_SCRIPTS_REQUIRED");
         Files.createDirectories(root.resolve("scripts"));

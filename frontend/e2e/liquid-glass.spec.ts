@@ -93,12 +93,13 @@ test('增强对比度关闭光学滤镜并使用实色材质', async ({ page }) 
     await expect(material.locator('.glass-scatter')).toHaveCSS('backdrop-filter', 'none');
 });
 
-test('移动玻璃输入区随键盘避让并保留末条消息空间', async ({ page }) => {
+test('移动玻璃输入区随键盘调整且不覆盖消息区', async ({ page }) => {
     await page.setViewportSize({ width: 393, height: 852 });
     await openGlass(page);
     await page.evaluate(async () => {
         const path = '/src/store/messageStore.ts';
         const { useMessageStore } = await import(path);
+        window.__e2eStores!.sessionStore.setState({ sessionId: 'glass-mobile', status: 'idle' });
         useMessageStore.setState({ messages: Array.from({ length: 40 }, (_, i) => ({
             type: 'user', uuid: `glass-mobile-${i}`, timestamp: i,
             content: [{ type: 'text', text: `第 ${i + 1} 条：检查悬浮输入与滚动避让。` }],
@@ -106,7 +107,7 @@ test('移动玻璃输入区随键盘避让并保留末条消息空间', async ({
     });
     const composer = page.locator('.chat-composer-surface');
     await expect(composer).toBeVisible();
-    await expect.poll(() => page.locator('.glass-chat-spacer').evaluate(el => el.getBoundingClientRect().height)).toBeGreaterThan(100);
+    await expect.poll(() => page.locator('.glass-chat-spacer').evaluate(el => el.getBoundingClientRect().height)).toBe(12);
     await page.getByRole('textbox', { name: '输入消息', exact: true }).focus();
     await page.setViewportSize({ width: 393, height: 640 });
     await expect.poll(() => page.evaluate(() => document.documentElement.style.getPropertyValue('--keyboard-height'))).toBe('212px');

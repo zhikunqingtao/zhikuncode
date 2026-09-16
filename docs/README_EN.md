@@ -204,7 +204,7 @@ All three services start simultaneously:
 
 #### Using the Local Workbench
 
-- First-time users enter the **Simple Workbench** by default and can switch to the **Development Workbench** from the page header at any time.
+- First-time users default to the **Development Workbench**, with a welcome page until a session is selected, and can switch to the **Simple Workbench** from the page header at any time.
 - The Simple Workbench presents the request, final response, primary deliverable, pending actions, recent activities, and acceptance status for the current Root Run without mixing in older execution results.
 - The Development Workbench retains the full conversation, tool calls, files, diffs, Git, terminal, browser, Agent, and evidence views.
 - The selected view is stored in the current browser and can be remembered per Session. Switching views does not interrupt a task or alter its runtime state.

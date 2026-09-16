@@ -3,7 +3,7 @@
  * SPEC: §8.6
  *
  * 三栏布局: Sidebar (左) | Main Content (中) | StatusBar (底)
- * 响应式: 移动端 Sidebar 变为 Drawer
+ * 响应式: 手机和平板菜单直接进入会话列表，桌面保留 Sidebar
  */
 
 import { useState, useCallback, useMemo } from 'react';
@@ -12,7 +12,6 @@ import { MobileComposerNavigation } from '@/components/input/PromptInput/MobileC
 import { Header } from './Header';
 import { Sidebar, SidebarTabContent, SIDEBAR_TAB_LABELS, type TabType } from './Sidebar';
 import { StatusBar } from './StatusBar';
-import { Drawer } from './Drawer';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useResponsive, useViewportWidth } from '@/hooks/useResponsive';
 import { useFeatureFlagStore } from '@/store/featureFlagStore';
@@ -24,14 +23,14 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
-    const [sidebarOpen, setSidebarOpen] = useState(false);
-    // §8.1 断点统一：<768px 走 Drawer + 移动 Chrome；768–1023px compact 保留桌面侧栏；≥1024px 桌面
-    const { isMobile } = useResponsive();
+    // 手机和平板共用会话列表入口，≥1024px 保留桌面侧栏。
+    const { isMobile, isTablet } = useResponsive();
+    const compactNavigation = isMobile || isTablet;
 
     const aposEnabled = useFeatureFlagStore((s) => s.flags.APOS_ACTIVITY_STREAM);
     const mobileStatusEnabled = useFeatureFlagStore((s) => s.flags.APOS_MOBILE_STATUS);
 
-    // §7.5 移动端：抽屉文字列表选中的 Tab 在主区呈现（null = 聊天）
+    // 手机和平板的会话列表在主区呈现（null = 聊天）。
     const mobileNavTab = useAppUiStore((s) => s.mobileNavTab);
     const setMobileNavTab = useAppUiStore((s) => s.setMobileNavTab);
     const viewportWidth = useViewportWidth();
@@ -64,18 +63,14 @@ export function AppLayout({ children }: AppLayoutProps) {
         },
     });
 
-    const toggleSidebar = useCallback(() => {
-        setSidebarOpen(prev => !prev);
-    }, []);
-
-    const closeSidebar = useCallback(() => {
-        setSidebarOpen(false);
-    }, []);
+    const openSessionList = useCallback(() => {
+        setMobileNavTab('sessions');
+    }, [setMobileNavTab]);
 
     // 独立 Sidebar 模式：只渲染 Sidebar 全屏
     if (isDetachedSidebar) {
         return (
-            <div className="app-workspace h-screen flex flex-col bg-[var(--v2-bg-surface)] overflow-hidden">
+            <div className="app-root app-workspace flex flex-col bg-[var(--v2-bg-surface)] overflow-hidden">
                 <Sidebar className="flex-1" isDrawerMode={false} defaultTab={detachedTab} />
                 {!isConnected && (
                     <div className="fixed bottom-4 left-1/2 -translate-x-1/2 
@@ -90,34 +85,27 @@ export function AppLayout({ children }: AppLayoutProps) {
     }
 
     return (
-        <div className="app-workspace h-screen flex flex-col bg-[var(--v2-bg-surface)] overflow-hidden">
+        <div className="app-root app-workspace flex flex-col bg-[var(--v2-bg-surface)] overflow-hidden">
             {/* Header */}
             <Header 
-                onMenuClick={toggleSidebar} 
-                showMenuButton={isMobile}
+                onMenuClick={openSessionList}
+                showMenuButton={compactNavigation}
             />
 
             {/* Main Layout */}
-            <div className="flex-1 flex overflow-hidden">
+            <div className="flex-1 min-h-0 flex overflow-hidden">
                 {/* Desktop Sidebar */}
-                {!isMobile && (
+                {!compactNavigation && (
                     <Sidebar className="shrink-0" />
                 )}
 
-                {/* Mobile Drawer — §7.5 文字列表，选中 Tab 后自动关闭 */}
-                {isMobile && (
-                    <Drawer open={sidebarOpen} onClose={closeSidebar}>
-                        <Sidebar isDrawerMode onNavigate={closeSidebar} />
-                    </Drawer>
-                )}
-
                 {/* Main Content Area */}
-                <main className="flex-1 flex flex-col min-w-0">
-                    {/* Content — 移动形态下抽屉选中 Tab 时主区切换为对应面板 */}
-                    <div className="flex-1 overflow-hidden relative">
-                        {isMobile && mobileNavTab ? (
+                <main className="flex-1 min-h-0 flex flex-col min-w-0">
+                    {/* Content — 手机和平板菜单直接在主区打开会话列表 */}
+                    <div className="flex-1 min-h-0 overflow-hidden relative">
+                        {compactNavigation && mobileNavTab ? (
                             <div className="h-full flex flex-col">
-                                <div className="flex items-center gap-1 h-11 px-1 border-b border-[var(--v2-border-hairline)] flex-shrink-0">
+                                {mobileNavTab !== 'sessions' && <div className="flex items-center gap-1 h-11 px-1 border-b border-[var(--v2-border-hairline)] flex-shrink-0">
                                     <button
                                         onClick={() => setMobileNavTab(null)}
                                         aria-label="返回"
@@ -129,9 +117,9 @@ export function AppLayout({ children }: AppLayoutProps) {
                                     <span className="text-sm font-semibold text-t1 truncate">
                                         {SIDEBAR_TAB_LABELS[mobileNavTab as TabType] ?? mobileNavTab}
                                     </span>
-                                </div>
+                                </div>}
                                 <div className="flex-1 min-h-0 overflow-hidden">
-                                    <SidebarTabContent activeTab={mobileNavTab as TabType} width={viewportWidth} onSessionActivated={() => setMobileNavTab(null)} />
+                                    <SidebarTabContent activeTab={mobileNavTab as TabType} width={viewportWidth} onSessionActivated={() => setMobileNavTab(null)} onBack={() => setMobileNavTab(null)} />
                                 </div>
                             </div>
                         ) : (

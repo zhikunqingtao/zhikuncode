@@ -13,8 +13,6 @@ import { useState, useEffect, useRef } from 'react';
 const KEYBOARD_CONFIG = {
     /** 键盘弹出判定阈值 — visualViewport.height 减少超过此值视为键盘弹出 */
     keyboardThreshold: 150,
-    /** 布局调整防抖 — 防止键盘动画过程中频繁重排 */
-    resizeDebounceMs: 100,
     /** 键盘弹出后滚动延迟 — 等待布局稳定后再滚动到输入框 */
     scrollIntoViewDelay: 300,
     /** 输入框底部安全距离 */
@@ -34,43 +32,55 @@ export interface VirtualKeyboardState {
 export function useVirtualKeyboard(enabled = true): VirtualKeyboardState {
     const [keyboardHeight, setKeyboardHeight] = useState(0);
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
-    const initialViewportHeight = useRef(0);
-
     useEffect(() => {
         if (!enabled) return;
         const vv = window.visualViewport;
-        if (!vv) return;
+        let baselineHeight = vv?.height ?? window.innerHeight;
+        let layoutWidth = window.innerWidth;
+        let frame = 0;
 
-        initialViewportHeight.current = vv.height;
-        let debounceTimer: ReturnType<typeof setTimeout>;
-
-        const handleResize = () => {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => {
-                const kbHeight = initialViewportHeight.current - vv.height;
-                const isVisible = kbHeight > KEYBOARD_CONFIG.keyboardThreshold;
-
-                setKeyboardHeight(isVisible ? kbHeight : 0);
-                setIsKeyboardVisible(isVisible);
-
-                // 设置 CSS 变量 — 供整个应用使用
-                document.documentElement.style.setProperty(
-                    '--keyboard-height', `${isVisible ? kbHeight : 0}px`
-                );
-                document.documentElement.style.setProperty(
-                    '--viewport-height', `${vv.height}px`
-                );
-            }, KEYBOARD_CONFIG.resizeDebounceMs);
+        const update = () => {
+            // Pinch zoom must remain browser-controlled, not resize the app as a keyboard.
+            if (vv && Math.abs(vv.scale - 1) > 0.01) return;
+            const height = vv?.height ?? window.innerHeight;
+            const focused = document.activeElement;
+            const editing = focused instanceof HTMLElement
+                && (focused.matches('textarea, input:not([type="button"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"])')
+                    || focused.isContentEditable === true);
+            // Rotation and unfocused toolbar changes establish a new baseline.
+            if (!editing || layoutWidth !== window.innerWidth) baselineHeight = height;
+            layoutWidth = window.innerWidth;
+            baselineHeight = Math.max(baselineHeight, height);
+            const delta = baselineHeight - height;
+            const visible = editing && delta > KEYBOARD_CONFIG.keyboardThreshold;
+            setKeyboardHeight(visible ? delta : 0);
+            setIsKeyboardVisible(visible);
+            const style = document.documentElement.style;
+            style.setProperty('--keyboard-height', `${visible ? delta : 0}px`);
+            style.setProperty('--viewport-height', `${height}px`);
+            style.setProperty('--viewport-offset-top', `${vv?.offsetTop ?? 0}px`);
         };
-
-        vv.addEventListener('resize', handleResize);
-        vv.addEventListener('scroll', handleResize);
+        const scheduleUpdate = () => {
+            cancelAnimationFrame(frame);
+            frame = requestAnimationFrame(update);
+        };
+        update();
+        vv?.addEventListener('resize', scheduleUpdate);
+        vv?.addEventListener('scroll', scheduleUpdate);
+        window.addEventListener('resize', scheduleUpdate);
+        document.addEventListener('focusin', scheduleUpdate);
+        document.addEventListener('focusout', scheduleUpdate);
         return () => {
-            vv.removeEventListener('resize', handleResize);
-            vv.removeEventListener('scroll', handleResize);
-            clearTimeout(debounceTimer);
-            document.documentElement.style.removeProperty('--keyboard-height');
-            document.documentElement.style.removeProperty('--viewport-height');
+            cancelAnimationFrame(frame);
+            vv?.removeEventListener('resize', scheduleUpdate);
+            vv?.removeEventListener('scroll', scheduleUpdate);
+            window.removeEventListener('resize', scheduleUpdate);
+            document.removeEventListener('focusin', scheduleUpdate);
+            document.removeEventListener('focusout', scheduleUpdate);
+            const style = document.documentElement.style;
+            style.removeProperty('--keyboard-height');
+            style.removeProperty('--viewport-height');
+            style.removeProperty('--viewport-offset-top');
             setKeyboardHeight(0);
             setIsKeyboardVisible(false);
         };

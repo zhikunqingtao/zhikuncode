@@ -35,6 +35,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.nio.file.Path;
+import java.nio.file.Files;
+import java.net.URI;
+import java.util.Comparator;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -119,7 +122,8 @@ public class VerifyJourneyTool implements Tool {
     @Override
     public String getDescription() {
         return "Run a user journey verification against the running application. "
-             + "Starts dev server, executes steps DSL, collects evidence (screenshots + console + video). "
+             + "Browser mode starts a dev server; HTTP mode requires an already running service. "
+             + "Executes steps DSL and collects evidence (screenshots + console + video). "
              + "Returns verified/failed with evidence bundle.";
     }
 
@@ -133,11 +137,15 @@ public class VerifyJourneyTool implements Tool {
                     "type", "array",
                     "description", "Steps DSL array. "
                         + "Browser actions: navigate, click, type, wait_for, assert_text, assert_url, assert_no_console_error, screenshot. "
-                        + "HTTP actions: http_get, http_post, http_put, http_delete, assert_status, assert_json, assert_header, set_variable"
+                        + "HTTP actions: http_get, http_post, http_put, http_delete, assert_status, assert_json, assert_header, set_variable. "
+                        + "Examples: {action:'navigate',url:'/'}, {action:'wait_for',selector:'#loading.done',state:'attached'}, "
+                        + "{action:'assert_text',selector:'body',expected:'Hello'}, {action:'http_get',url:'/api/health'}, "
+                        + "{action:'assert_status',expected_code:200}. wait_for supports selector/state or wait_until (load/domcontentloaded/networkidle), not js. "
+                        + "Browser timeout is milliseconds; HTTP timeout is seconds."
                 )),
                 Map.entry("start_command", Map.of(
                     "type", "string",
-                    "description", "Dev server start command (e.g. 'npm run dev'). Only for browser verification. If omitted, auto-detected from package.json"
+                    "description", "Dev server start command (e.g. 'npm run dev'). Only for browser verification. Omit for static publication: the checked files are served automatically. Otherwise auto-detected if omitted."
                 )),
                 Map.entry("base_url", Map.of(
                     "type", "string",
@@ -230,10 +238,17 @@ public class VerifyJourneyTool implements Tool {
             return ToolResult.validationError("VERIFY_JOURNEY_EMPTY", "VerifyJourney requires a non-empty 'journey' array");
         }
         List<Map<String, Object>> journey = (List<Map<String, Object>>) journeyRaw;
+        if (journeyList.stream().anyMatch(step -> !(step instanceof Map<?, ?> m)
+                || !(m.get("action") instanceof String))) {
+            return ToolResult.validationError("VERIFY_JOURNEY_INVALID_STEP", "Every journey step needs a string action");
+        }
 
         String startCommand = input.getString("start_command", null);
         String baseUrl = input.getString("base_url", null);
         String verificationMode = input.getString("verification_mode", "auto");
+        if (!List.of("auto", "browser", "http_api").contains(verificationMode)) {
+            return ToolResult.validationError("VERIFY_JOURNEY_INVALID_MODE", "Use browser, http_api or auto");
+        }
         String evidenceClaim = normalizedClaim(input.getString("claim", null));
         boolean record = input.has("record") ? input.getBoolean("record") : true;
 
@@ -252,36 +267,70 @@ public class VerifyJourneyTool implements Tool {
         JourneyRequest req = new JourneyRequest(sessionId, null, journey, Map.of());
         Verifier verifier = verifierFactory.selectVerifier(req, verificationMode);
         String selectedMode = verifier instanceof com.aicodeassistant.verify.BrowserVerifier ? "browser" : "http_api";
+        String stepError = com.aicodeassistant.verify.JourneyStepValidator.validate(journey, selectedMode);
+        if (stepError != null) return ToolResult.validationError("VERIFY_JOURNEY_INVALID_STEP", stepError);
+        if ("http_api".equals(selectedMode) && startCommand != null) {
+            return ToolResult.validationError("VERIFY_JOURNEY_HTTP_START_UNSUPPORTED",
+                    "HTTP mode does not execute start_command. Start the service first and use its actual base_url.");
+        }
 
         // 3. 浏览器模式：需要启动 DevServer
         if ("browser".equals(selectedMode)) {
             if (!pythonClient.isCapabilityAvailable(CAPABILITY)) {
                 recordVerificationSkipped(observationRunId, selectedMode, journey.size(),
                         "capability_unavailable", startedNanos);
+                if (publicationSnapshot != null) return publicationUnavailable(CAPABILITY);
                 return ToolResult.success("Runtime verification unavailable: BROWSER_AUTOMATION capability not available. "
                         + "This does not block your task - proceed without runtime verification.");
             }
 
             // PreviewStackDetector 探测
-            StackInfo stack = previewStackDetector.detect(Path.of(workspace));
-            if ("unknown".equals(stack.stackId())) {
+            boolean staticPublication = publicationSnapshot != null && "static".equals(publicationSnapshot.runtime());
+            Path verificationRoot = publicationSnapshot == null ? Path.of(workspace) : publicationSnapshot.root();
+            if (staticPublication && (startCommand != null || baseUrl != null)) {
+                return ToolResult.validationError("MEOO_STATIC_PREVIEW_MANAGED",
+                        "Omit start_command and base_url for static publication. VerifyJourney serves the checked snapshot automatically; use relative navigate URLs.");
+            }
+            if (staticPublication && journey.stream().anyMatch(step -> "navigate".equals(step.get("action"))
+                    && !isLocalNavigation((String) step.get("url")))) {
+                return ToolResult.validationError("VERIFY_JOURNEY_INVALID_STEP",
+                        "Static publication navigate URLs must be relative to the checked site, for example '/'.");
+            }
+            StackInfo stack = staticPublication ? null : previewStackDetector.detect(verificationRoot);
+            if (!staticPublication && "unknown".equals(stack.stackId()) && (startCommand == null || baseUrl == null)) {
                 recordVerificationSkipped(observationRunId, selectedMode, journey.size(),
                         "unsupported_stack", startedNanos);
+                if (publicationSnapshot != null) return ToolResult.validationError("MEOO_VERIFICATION_SETUP_REQUIRED",
+                        "Cannot detect the publication server. Supply start_command and its local base_url for browser verification.");
                 return ToolResult.success("Runtime verification skipped: unsupported stack (" + stack.stackId() + "). "
                         + "Proceed without runtime verification.");
             }
-            if (startCommand == null) {
+            if (!staticPublication && startCommand == null) {
                 startCommand = stack.defaultStartCommand();
             }
-            if (baseUrl == null) {
+            if (!staticPublication && baseUrl == null) {
                 baseUrl = "http://127.0.0.1:" + stack.defaultPort();
             }
 
             // 启动 DevServer
             DevServerHandle handle = null;
+            Path staticStage = null;
             try {
-                handle = devServerLauncher.start(Path.of(workspace), startCommand, stack.defaultPort(),
-                        DEV_SERVER_TIMEOUT);
+                if (staticPublication) {
+                    staticStage = Files.createTempDirectory("zhikun-meoo-verify-");
+                    meooPolicy.stage(publicationSnapshot, staticStage);
+                    handle = devServerLauncher.startStatic(staticStage, DEV_SERVER_TIMEOUT);
+                    baseUrl = "http://127.0.0.1:" + handle.port();
+                } else {
+                    URI endpoint = URI.create(baseUrl);
+                    if (!"http".equals(endpoint.getScheme()) || endpoint.getHost() == null
+                            || !List.of("localhost", "127.0.0.1").contains(endpoint.getHost())
+                            || endpoint.getUserInfo() != null || endpoint.getPort() < 1 || endpoint.getPort() > 65535) {
+                        return ToolResult.validationError("VERIFY_JOURNEY_INVALID_BASE_URL",
+                                "Managed browser verification requires an http loopback base_url with an explicit port.");
+                    }
+                    handle = devServerLauncher.start(verificationRoot, startCommand, endpoint.getPort(), DEV_SERVER_TIMEOUT);
+                }
 
                 JourneyRequest browserReq = new JourneyRequest(
                         sessionId,
@@ -330,6 +379,13 @@ public class VerifyJourneyTool implements Tool {
                 } catch (Exception ignored) {
                     // 清理失败不影响主流程
                 }
+                if (staticStage != null) {
+                    try (var paths = Files.walk(staticStage)) {
+                        for (Path p : paths.sorted(Comparator.reverseOrder()).toList()) Files.deleteIfExists(p);
+                    } catch (Exception e) {
+                        log.warn("Failed to clean static verification directory: {}", e.getClass().getSimpleName());
+                    }
+                }
             }
 
         } else {
@@ -337,6 +393,7 @@ public class VerifyJourneyTool implements Tool {
             if (!pythonClient.isCapabilityAvailable("HTTP_API")) {
                 recordVerificationSkipped(observationRunId, selectedMode, journey.size(),
                         "capability_unavailable", startedNanos);
+                if (publicationSnapshot != null) return publicationUnavailable("HTTP_API");
                 return ToolResult.success("Runtime verification unavailable: HTTP_API capability not available. "
                         + "This does not block your task - proceed without runtime verification.");
             }
@@ -358,6 +415,19 @@ public class VerifyJourneyTool implements Tool {
             return handleVerificationResult(result, sessionId, journey.size(),
                     evidenceClaim, observationRunId, selectedMode, startedNanos, publicationInput, publicationSnapshot, context);
         }
+    }
+
+    private static ToolResult publicationUnavailable(String capability) {
+        return ToolResult.validationError("MEOO_VERIFICATION_UNAVAILABLE",
+                capability + " is unavailable in the Python verification service. Publication is blocked. "
+                + "Ask the administrator to check /api/health/capabilities on that service and fix its runtime; do not call PublishMeoo without verified evidence.");
+    }
+
+    private static boolean isLocalNavigation(String url) {
+        try {
+            URI uri = URI.create(url);
+            return !uri.isAbsolute() && uri.getRawAuthority() == null && !url.contains("\\");
+        } catch (IllegalArgumentException e) { return false; }
     }
 
     private static String safeRunId(ToolUseContext context) {
@@ -418,6 +488,7 @@ public class VerifyJourneyTool implements Tool {
         } else if ("unavailable".equals(result.verdict())) {
             recordActivity(sessionId, result.verdict(), saved.bundleId(), "skipped",
                     "Runtime verification unavailable", result.errorMessage());
+            if (publicationSnapshot != null) return publicationUnavailable(mode.equals("browser") ? CAPABILITY : "HTTP_API");
             return ToolResult.success("Runtime verification unavailable: " + result.errorMessage()
                     + ". This does not block your task.");
         } else {

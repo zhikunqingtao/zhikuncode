@@ -27,8 +27,8 @@ export default defineConfig({
   ],
   use: {
     baseURL: E2E_BASE_URL,
-    // The legacy suite exercises the full developer surface. Production still
-    // defaults to the simple workbench; dedicated workbench tests override this
+    // The suite and production default to the developer surface.
+    // Dedicated simple-workbench tests override this
     // stored preference before the application boots.
     storageState: {
       cookies: [],

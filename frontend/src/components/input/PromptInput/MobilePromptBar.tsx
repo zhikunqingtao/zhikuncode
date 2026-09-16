@@ -34,7 +34,7 @@ const MobilePromptBar: React.FC<MobilePromptBarProps> = ({ state: s, runActive, 
 
 
     return (
-        <div data-testid="mobile-prompt-bar" className="flex min-h-0 min-w-0 flex-col rounded-[14px] border border-hairline bg-surfacev2 shadow-e2" style={{ maxHeight: 'calc(var(--viewport-height, 100dvh) * 0.382 - 2px)' }}>
+        <div data-testid="mobile-prompt-bar" className="flex min-h-0 min-w-0 flex-col rounded-[14px] border border-hairline bg-surfacev2 shadow-e2" style={{ minHeight: 'var(--mobile-composer-min-height, 0px)', maxHeight: 'calc(var(--viewport-height, 100dvh) * 0.382 - 2px)' }}>
             <input ref={imageInputRef} data-mobile-image-input type="file" accept="image/*" multiple className="hidden" disabled={attachmentDisabled}
                 onChange={event => {
                     const files = Array.from(event.currentTarget.files ?? []);
@@ -62,7 +62,7 @@ const MobilePromptBar: React.FC<MobilePromptBarProps> = ({ state: s, runActive, 
                     localFiles={f.localFiles} publishedLocalFiles={f.publishedLocalFiles} onRemoveAttachment={a.removeAttachment}
                     setLocalFiles={f.setLocalFiles} setPublishedLocalFiles={f.setPublishedLocalFiles} />}
             </div>
-            <div data-testid="mobile-persistent-actions" className="flex shrink-0 flex-wrap min-w-0 items-center gap-1 px-2 py-1.5">
+            <div data-testid="mobile-persistent-actions" className={`flex shrink-0 flex-wrap min-w-0 items-center px-2 py-1.5 ${runActive ? 'gap-0' : 'gap-1'}`}>
                 <button type="button" aria-label={fileReferenceCapability?.mode === 'oss_upload' ? '上传本地文件' : '文件引用'} title="文件" disabled={attachmentDisabled} className={iconClass} onClick={pickFile}><Paperclip size={20} /></button>
                 <button type="button" aria-label="图片附件" title="图片" disabled={attachmentDisabled} className={iconClass} onClick={pickImages}><ImagePlus size={20} /></button>
                 <button type="button" aria-label="拍照" title="拍照" disabled={attachmentDisabled} className={iconClass} onClick={() => cameraInputRef.current?.click()}><Camera size={20} /></button>

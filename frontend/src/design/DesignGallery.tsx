@@ -11,7 +11,6 @@ import {
     Plus,
     Search,
     Send,
-    Sparkles,
     Zap,
 } from 'lucide-react';
 import {
@@ -28,6 +27,7 @@ import {
     Textarea,
     Toggle,
 } from '@/components/ui';
+import { EmptyHero } from '@/components/message/EmptyHero';
 import { ACCENT_PRESETS, applyAccent, DEFAULT_ACCENT_HEX } from '@/theme/accents';
 
 /* ===== 主题与强调色（值取自指南 §3.4 终值表，与 ThemePicker 共用 @/theme/accents 同一写入机制） ===== */
@@ -358,35 +358,7 @@ export default function DesignGallery() {
 
                 <Section title="11 · EmptyState">
                     <Card className="mb-4">
-                        <EmptyState
-                            variant="hero"
-                            badge={
-                                <Chip variant="accent" className="h-7 px-3">
-                                    <span className="h-1.5 w-1.5 rounded-full bg-accent2 animate-accent-pulse" aria-hidden="true" />
-                                    APOS · 智能体已就绪
-                                </Chip>
-                            }
-                            title={
-                                <>
-                                    今天想<b>构建</b>什么？
-                                </>
-                            }
-                            description="描述目标，剩下的交给智能体。代码、测试、文档，一站完成。"
-                            actions={
-                                <>
-                                    <Button variant="secondary" size="sm">
-                                        <Sparkles className="h-3.5 w-3.5 text-accent2" aria-hidden="true" />
-                                        新建落地页
-                                    </Button>
-                                    <Button variant="secondary" size="sm">
-                                        修复 CI 失败
-                                    </Button>
-                                    <Button variant="secondary" size="sm">
-                                        生成 API 文档
-                                    </Button>
-                                </>
-                            }
-                        />
+                        <EmptyHero />
                     </Card>
                     <Card>
                         <EmptyState

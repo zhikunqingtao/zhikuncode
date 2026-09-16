@@ -29,7 +29,7 @@ class VerifyJourneyMeooBindingTest {
         var first=new MeooPublicationPolicy.Snapshot(root,".","static","Demo","account",List.of(),12,"a".repeat(64),"");
         var changed=new MeooPublicationPolicy.Snapshot(root,".","static","Demo","account",List.of(),13,"b".repeat(64),"");
         when(policy.inspect(any(),any(),eq(false))).thenReturn(first);
-        var input=ToolInput.from(Map.of("journey",List.of(Map.of("action","http_get","path","/")),"verification_mode","http_api","publication_path",".","publication_runtime","static"));
+        var input=ToolInput.from(Map.of("journey",List.of(Map.of("action","http_get","url","/")),"verification_mode","http_api","publication_path",".","publication_runtime","static"));
         var ctx=ToolUseContext.of(root.toString(),"s").withCurrentRunId("r");
         assertThat(tool.call(input,ctx).isError()).isFalse();
         var captor=org.mockito.ArgumentCaptor.forClass(EvidenceBundle.class);verify(evidence).save(captor.capture());

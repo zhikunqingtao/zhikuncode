@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -17,6 +19,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -34,6 +37,7 @@ public class DevServerLauncher {
     }
 
     public DevServerHandle start(Path workspace, String command, int port, Duration timeout) {
+        requireAvailablePort(port);
         // D7: npm install 前置检查（仅针对 Node 项目，需存在 package.json）
         Path packageJson = workspace.resolve("package.json");
         Path nodeModules = workspace.resolve("node_modules");
@@ -41,6 +45,33 @@ public class DevServerLauncher {
             log.info("node_modules not found, running npm install...");
             runSync(workspace, "npm install", Duration.ofSeconds(300));
         }
+
+        return startProcess(workspace, List.of("bash", "-c", command), port, timeout);
+    }
+
+    /** Serve only the staged static files; never install dependencies or run project scripts. */
+    public DevServerHandle startStatic(Path directory, Duration timeout) {
+        int port;
+        try (ServerSocket socket = new ServerSocket()) {
+            socket.bind(new InetSocketAddress("127.0.0.1", 0));
+            port = socket.getLocalPort();
+        } catch (IOException e) {
+            throw new IllegalStateException("Cannot allocate a static preview port", e);
+        }
+        return startProcess(directory, List.of("python3", "-m", "http.server", String.valueOf(port),
+                "--bind", "127.0.0.1"), port, timeout);
+    }
+
+    private static void requireAvailablePort(int port) {
+        try (ServerSocket socket = new ServerSocket()) {
+            socket.bind(new InetSocketAddress("127.0.0.1", port));
+        } catch (IOException e) {
+            throw new IllegalStateException("Dev server port is already in use: " + port, e);
+        }
+    }
+
+    private DevServerHandle startProcess(Path workspace, List<String> command, int port, Duration timeout) {
+        requireAvailablePort(port);
 
         // 日志文件
         Path logFile = workspace.resolve(".ai-code-assistant/devserver.log");
@@ -51,7 +82,7 @@ public class DevServerLauncher {
         }
 
         // D5: bash -c
-        ProcessBuilder pb = new ProcessBuilder("bash", "-c", command);
+        ProcessBuilder pb = new ProcessBuilder(command);
         pb.directory(workspace.toFile());
         pb.redirectErrorStream(true);
         pb.redirectOutput(ProcessBuilder.Redirect.appendTo(logFile.toFile()));
@@ -66,7 +97,7 @@ public class DevServerLauncher {
 
         long pid = process.pid();
         log.info("Dev server started: pid={}, commandLength={}, commandFingerprint={}, port={}", pid,
-                SafeLogValue.length(command), SafeLogValue.fingerprint(command), port);
+                SafeLogValue.length(command.toString()), SafeLogValue.fingerprint(command.toString()), port);
 
         // PID 持久化
         Path pidFile = workspace.resolve(".ai-code-assistant/devserver.pid");
@@ -77,11 +108,14 @@ public class DevServerLauncher {
         }
 
         // HTTP 轮询就绪
-        boolean ready = pollUntilReady(port, timeout);
+        boolean ready = pollUntilReady(process, port, timeout);
         if (!ready) {
             String logTail = readLogTail(logFile, 2000);
+            boolean exited = !process.isAlive();
+            int exitCode = exited ? process.exitValue() : -1;
             DevServerHandle handle = new DevServerHandle(process, pid, port, logFile, pidFile);
             stop(handle);
+            if (exited) throw new IllegalStateException("Dev server exited with code " + exitCode + ": " + logTail);
             throw new DevServerTimeoutException(port, timeout, logTail);
         }
 
@@ -102,17 +136,18 @@ public class DevServerLauncher {
         activeHandles.values().forEach(this::stop);
     }
 
-    private boolean pollUntilReady(int port, Duration timeout) {
+    private boolean pollUntilReady(Process process, int port, Duration timeout) {
         long deadline = System.currentTimeMillis() + timeout.toMillis();
         HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(2)).build();
         while (System.currentTimeMillis() < deadline) {
+            if (!process.isAlive()) return false;
             try {
                 var req = HttpRequest.newBuilder()
                     .uri(URI.create("http://127.0.0.1:" + port + "/"))
                     .timeout(Duration.ofSeconds(3))
                     .GET().build();
                 var resp = client.send(req, HttpResponse.BodyHandlers.discarding());
-                if (resp.statusCode() < 500) return true;
+                if (resp.statusCode() < 500 && process.isAlive()) return true;
             } catch (Exception ignored) {}
             try { Thread.sleep(1000); } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();

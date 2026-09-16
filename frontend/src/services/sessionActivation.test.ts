@@ -15,6 +15,7 @@ import { useCostStore } from '@/store/costStore';
 import type { Message } from '@/types';
 import {
     activateSessionCandidate,
+    clearSessionSelection,
     getPendingSessionActivation,
 } from './sessionActivation';
 
@@ -80,6 +81,35 @@ describe('Session activation transaction', () => {
         vi.useRealTimers();
         vi.unstubAllGlobals();
         vi.clearAllMocks();
+    });
+
+    it('returns home without remote writes and ignores late restore and session events', async () => {
+        await useSessionStore.getState().resumeSession('old-session');
+        useMessageStore.getState().addMessage(oldMessage);
+        const activation = activateSessionCandidate('pending-session');
+        await Promise.resolve();
+        const payload = vi.mocked(sendToServer).mock.calls.find(([destination]) => destination === '/app/bind-session')?.[1] as BindPayload;
+        expect(payload).toBeDefined();
+        vi.mocked(sendToServer).mockClear();
+
+        clearSessionSelection();
+        expect(getPendingSessionActivation()).toBeNull();
+        expect(useSessionStore.getState().sessionId).toBe('');
+        expect(sessionStorage.getItem('zhikuncode.activeSessionId')).toBeNull();
+        expect(useMessageStore.getState().messages).toEqual([]);
+        restore(payload, [oldMessage]);
+        dispatch({ type: 'model_changed', model: 'old-model', _sessionId: 'old-session', _bindingEpoch: 1 } as never);
+        await expect(activation).resolves.toMatchObject({ status: 'superseded' });
+        expect(useSessionStore.getState().sessionId).toBe('');
+        expect(useSessionStore.getState().model).not.toBe('old-model');
+        expect(useMessageStore.getState().messages).toEqual([]);
+        expect(sendToServer).not.toHaveBeenCalled();
+
+        const next = activateSessionCandidate('next-session');
+        await Promise.resolve();
+        const nextPayload = vi.mocked(sendToServer).mock.calls[0][1] as BindPayload;
+        restore(nextPayload);
+        await expect(next).resolves.toMatchObject({ status: 'activated', sessionId: 'next-session' });
     });
 
     it('keeps the old Session until a timed-out switch is safely rebound', async () => {

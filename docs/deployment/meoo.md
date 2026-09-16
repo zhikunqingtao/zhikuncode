@@ -23,11 +23,19 @@ services:
     environment:
       ZHIKUN_MEOO_ENABLED: "true"
       ZHIKUN_MEOO_CREDENTIALS_FILE: /run/secrets/meoo-credentials.json
+      PYTHON_SERVICE_AUTO_START: "true"
+      PYTHON_SERVICE_PATH: /app/python-service
+      PYTHON_SERVICE_EXECUTABLE: /app/python-service/.venv/bin/python
+      WORKSPACE_ROOT: /app/workspace
     volumes:
       - /absolute/private/path/credentials.json:/run/secrets/meoo-credentials.json:ro
 ```
 
 服务名以当前 Compose 为准。容器重建或应用重启后生效；不要把 credentials.json 复制进镜像。不会在每次发布时安装或升级 CLI。
+
+发布前验证依赖 Python 服务。镜像在构建时安装与 Python Playwright 匹配的 Chromium headless shell 和系统依赖，浏览器放在运行用户可读的 `/opt/playwright-browsers`，使用默认的无头模式。上面的 override 启用同容器 Python 服务，静态验证服务和浏览器通过容器内回环地址通信，不需要映射额外公网端口。若使用外置 Python 服务，必须另行确保它能够访问验证服务；其 localhost 不代表 Java 容器。
+
+部署后在该容器内运行 `curl -fsS http://127.0.0.1:8000/api/health/capabilities`，确认 `BROWSER_AUTOMATION.available=true`。不可用时检查返回的 reason 和 Python 启动日志；补齐依赖后重启服务，能力与路由在启动时初始化。旧镜像需要重新构建，不能仅打开秒悟开关。
 
 ## 使用与验证
 
@@ -36,6 +44,8 @@ services:
 3. InspectMeooDeployment 检查文件与配置，不写云端。VerifyJourney 验证主要交互或 HTTP 服务，传入 `publication_path` 和 `publication_runtime`，通过证据会绑定具体文件摘要。
 4. PublishMeoo 携带同一路径、模式及 verification_id；权限卡展示应用、账号、文件数、大小、摘要和额度影响。点击仅本次允许才创建云项目；拒绝后不写云端。验证或授权后文件变化会被拒绝。
 5. 网站卡显示版本、访问状态，可打开网站、复制链接、前往项目设置。静态页面必须匿名请求成功且入口内容一致（规范化 HTML 并剔除平台固定 favicon、水印和安全脚本；正文、样式、业务脚本仍须一致）；全栈必须匿名 HTTPS 请求成功。失败或跳转登录页不会显示“匿名访问已验证”。
+
+静态浏览器验证自动从精确上传清单建立临时站点（单 HTML 对应 index.html），分配本地端口，不执行 npm install 或构建。省略 start_command/base_url，使用相对 navigate URL。HTTP 模式要求已有服务，拒绝 start_command，状态断言使用 expected_code；它不能替代 3D 页面的渲染和交互验收。与 OSS 一样，可发布当前授权工作区内已有的内容，不要求由当前对话生成。验证凭据可来自其他会话，但必须匹配同一发布路径、模式及未变化的内容；验证不可用或跳过均不能发布。
 
 静态上传保持目录结构，使用 `--runtime static --skip-build --skip-push`，不执行沙箱源码同步。全栈遵循 .dockerignore（支持常用 `*`、`**`、`?`、否定和目录规则；字符类或转义规则明确拒绝，需先简化）。两种模式强制排除凭证、.env、数据库文件、Git、符号链接、缓存等；项目规则不能重新包含它们。发现文件内明显的令牌或连接密码时拒绝整个包。
 
@@ -56,6 +66,9 @@ CLI 创建项目产生的配置与上传目录隔离。复制后的文件再次�
 | MEOO_AUTH_FAILED | 通过官方 CLI 修复账号登录，再由用户明确发起新发布 |
 | MEOO_CLI_VERSION_MISMATCH | 安装固定版本 0.5.3 |
 | MEOO_VERIFICATION_REQUIRED / MEOO_VERIFICATION_WORKSPACE_MISMATCH / MEOO_VERIFICATION_STALE | 对精确目录重新 VerifyJourney，传 publication_path、publication_runtime |
+| MEOO_VERIFICATION_UNAVAILABLE | 检查 Python capabilities 的 reason，修复浏览器/HTTP 验证环境并重启；不要跳过验证 |
+| MEOO_VERIFICATION_SETUP_REQUIRED / VERIFY_JOURNEY_INVALID_BASE_URL | 全栈浏览器验证需提供启动命令和同一端口的本地 HTTP 地址 |
+| VERIFY_JOURNEY_INVALID_STEP / VERIFY_JOURNEY_HTTP_START_UNSUPPORTED | 按工具字段说明修正步骤；HTTP 模式先启动服务，再指定实际地址 |
 | MEOO_SNAPSHOT_CHANGED | 文件在授权后变化，重新检查、验证、授权 |
 | MEOO_STATIC_RESOURCE_MISSING | 补齐目录内资源或改选完整站点 |
 | MEOO_QUOTA_EXCEEDED | 用户在平台检查额度；不自动购买或重试 |

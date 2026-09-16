@@ -1,163 +1,190 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 
-/**
- * P2b-2b 移动虚拟键盘接线回归（mobile project 393×852）
- *
- * 覆盖任务验收点：
- *  T1. 键盘弹起模拟（视口 852→500 触发 visualViewport.resize 路径）：
- *      ① --keyboard-height 被写入非 0 值（352px = 852-500）
- *      ② .prompt-input-container padding-bottom 增大（352 + 12 基线 = 364）
- *      ③ 输入条未被"压出"可视区（boundingBox 完整落在视口内）
- *      ④ 恢复视口高度后 --keyboard-height 归零、布局回弹
- *  T2. 键盘弹起瞬间消息流一次性滚底（MessageList scrollToBottom API，
- *      852→640 压缩以保证消息区仍有可视高度），且布局沉降期间
- *      （padding 0.25s 过渡 + Virtuoso 重测）持续锚底 —— ~2s 多次采样
- *      距底全部 ≤80px，而非单一瞬间达标
- *
- * 模拟原理：useVirtualKeyboard 监听 window.visualViewport 的 resize/scroll，
- * Playwright setViewportSize 会同步改变 visualViewport.height 并派发 resize，
- * 与真实设备键盘弹起引发的 visualViewport 收缩同路径（852-500=352 > 150 阈值）。
- */
-
-const SHOT_DIR = '/tmp/zhikun-p2b2b-probe';
-
-const readKeyboardVar = (page: import('@playwright/test').Page) =>
-  page.evaluate(() =>
-    document.documentElement.style.getPropertyValue('--keyboard-height'));
-
-const readContainerPaddingBottom = (page: import('@playwright/test').Page) =>
-  page.locator('.prompt-input-container')
-    .evaluate(el => parseFloat(getComputedStyle(el).paddingBottom));
-
-test.describe('P2b-2b 移动虚拟键盘接线 probe', () => {
-
-  test('T1: 键盘弹起 → --keyboard-height 写入 / 输入条上浮且在视口内 / 恢复后回弹', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' });
-
-    const bar = page.getByTestId('mobile-prompt-bar');
-    await expect(bar).toBeVisible({ timeout: 15000 });
-    const container = page.locator('.prompt-input-container');
-    await expect(container).toBeVisible();
-
-    // ── 0. 基线：键盘收起，padding-bottom = 12px 基线间距 ──
-    const baselinePb = await readContainerPaddingBottom(page);
-    expect(baselinePb).toBeLessThanOrEqual(13);
-    const baselineBox = await bar.boundingBox();
-    expect(baselineBox).not.toBeNull();
-
-    // ── 1. 聚焦输入卡片（真实键盘弹起的前置动作） ──
-    const textarea = page.locator('textarea[aria-label="输入消息"]');
-    await textarea.tap();
-    await expect(textarea).toBeFocused();
-
-    // ── 2. 模拟键盘弹起：可视区 852→500 ──
-    await page.setViewportSize({ width: 393, height: 500 });
-
-    // ① --keyboard-height 写入非 0（hook 有 100ms 防抖，poll 等待）
-    await expect.poll(() => readKeyboardVar(page), { timeout: 5000 }).toBe('352px');
-
-    // ② 容器 padding-bottom = 352 键盘 + 12 基线
-    await expect
-      .poll(() => readContainerPaddingBottom(page), { timeout: 5000 })
-      .toBeCloseTo(364, 0);
-
-    // ③ 输入条上浮且完整落在压缩后的可视区内
-    const raisedBox = await bar.boundingBox();
-    expect(raisedBox).not.toBeNull();
-    expect(raisedBox!.y).toBeGreaterThanOrEqual(0);
-    expect(raisedBox!.y + raisedBox!.height).toBeLessThanOrEqual(500);
-    // 确实上浮了（底缘离开视口底部 = 键盘高度区域）
-    expect(raisedBox!.y + raisedBox!.height)
-      .toBeLessThan(baselineBox!.y + baselineBox!.height);
-    await page.screenshot({ path: `${SHOT_DIR}/01-keyboard-open.png` });
-
-    // ── 3. 恢复视口 → 变量归零、布局回弹 ──
-    await page.setViewportSize({ width: 393, height: 852 });
-    await expect.poll(() => readKeyboardVar(page), { timeout: 5000 }).toBe('0px');
-    await expect
-      .poll(() => readContainerPaddingBottom(page), { timeout: 5000 })
-      .toBeLessThanOrEqual(13);
-    const restoredBox = await bar.boundingBox();
-    expect(restoredBox).not.toBeNull();
-    // 回到视口底部区（底缘 ≈ 852 - 12 基线）
-    expect(restoredBox!.y + restoredBox!.height).toBeGreaterThan(800);
-    await page.screenshot({ path: `${SHOT_DIR}/02-keyboard-closed-rebound.png` });
+// All network traffic is mocked; no session creation, model calls or publishing.
+test.beforeEach(async ({ page }) => {
+  await page.route('**/api/**', route => {
+    const path = new URL(route.request().url()).pathname;
+    if (!path.startsWith('/api/')) return route.continue();
+    return route.fulfill({ json: path === '/api/config' ? { theme: 'glass' }
+      : path.startsWith('/api/sessions') ? { sessions: [], hasMore: false }
+      : path.endsWith('/workbench/current') ? null : path === '/api/skills' ? [] : {} });
   });
-
-  test('T2: 键盘弹起瞬间消息流一次性滚底（scrollToBottom API）', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' });
-    await expect(page.getByTestId('mobile-prompt-bar')).toBeVisible({ timeout: 15000 });
-
-    // ── 注入 40 条消息使消息流可滚动 ──
-    await page.evaluate(async () => {
-      const mod = await import('/src/store/messageStore.ts');
-      const messages = Array.from({ length: 40 }, (_, i) => ({
-        uuid: `kb-scroll-${i}`,
-        type: 'user',
-        timestamp: Date.now() + i,
-        content: [{ type: 'text', text: `kb-scroll-${i}：滚底验证消息` }],
-      }));
-      (mod as any).useMessageStore.setState({ messages });
-    });
-    const list = page.locator('.message-list');
-    await expect(list).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText('kb-scroll-39：滚底验证消息')).toBeVisible();
-
-    // 消息区滚动元素（Virtuoso scroller，不依赖内部 DOM 结构）
-    const readScroll = () => page.evaluate(() => {
-      const root = document.querySelector('.message-list');
-      if (!root) return null;
-      const all = [root as HTMLElement,
-        ...Array.from(root.querySelectorAll<HTMLElement>('*'))];
-      const scroller = all.find(e => e.scrollHeight - e.clientHeight > 100);
-      if (!scroller) return null;
-      return {
-        top: scroller.scrollTop,
-        height: scroller.clientHeight,
-        full: scroller.scrollHeight,
-      };
-    });
-
-    // ── 归一化为"用户上翻"状态（初始置顶，followOutput 不接管） ──
-    await page.evaluate(() => {
-      const root = document.querySelector('.message-list');
-      const all = [root as HTMLElement,
-        ...Array.from(root!.querySelectorAll<HTMLElement>('*'))];
-      const scroller = all.find(e => e.scrollHeight - e.clientHeight > 100);
-      if (scroller) scroller.scrollTop = 0;
-    });
-    const before = await readScroll();
-    expect(before).not.toBeNull();
-    expect(before!.top).toBe(0);
-
-    // ── 模拟键盘弹起（852→640，压缩 212px > 150 阈值，且消息区保留可视高度） ──
-    await page.setViewportSize({ width: 393, height: 640 });
-    await expect.poll(() => readKeyboardVar(page), { timeout: 5000 }).toBe('212px');
-
-    // ── 弹起瞬间触发一次性滚底：scroller 抵近底部（Virtuoso 测量容差 80px） ──
-    await expect.poll(async () => {
-      const s = await readScroll();
-      return s ? s.full - s.top - s.height : Number.MAX_SAFE_INTEGER;
-    }, { timeout: 8000 }).toBeLessThanOrEqual(80);
-    const after = await readScroll();
-    expect(after!.top).toBeGreaterThan(0); // 确实发生了滚动
-    await page.screenshot({ path: `${SHOT_DIR}/03-scrolled-to-bottom.png` });
-
-    // ── 稳定性：布局沉降期间持续锚底 —— ~2s 内 10 次采样，距底全部 ≤80px ──
-    // 回归点：键盘压缩视口后 padding-bottom 有 0.25s CSS 过渡、Virtuoso
-    // 行高/总高重测亦异步多帧完成，一次性 scrollBy 会残留距底缺口（曾实测
-    // 276px）；补偿须在沉降全程持续生效，而非单一瞬间达标。
-    const gaps: number[] = [];
-    for (let i = 0; i < 10; i += 1) {
-      const s = await readScroll();
-      expect(s).not.toBeNull();
-      gaps.push(s!.full - s!.top - s!.height);
-      await page.waitForTimeout(200);
-    }
-    expect(
-      Math.max(...gaps),
-      `距底 10 次采样须全部 ≤80px，实际：${gaps.join(', ')}`,
-    ).toBeLessThanOrEqual(80);
-    await page.screenshot({ path: `${SHOT_DIR}/04-bottom-stable-after-settle.png` });
-  });
+  await page.route('**/ws/**', route => route.abort());
 });
+
+async function openConversation(page: Page) {
+  await page.goto('/');
+  await expect(page.locator('.chat-composer-dock')).toBeVisible();
+  await page.evaluate(async () => {
+    const path = '/src/store/messageStore.ts';
+    const { useMessageStore } = await import(path);
+    window.__e2eStores!.sessionStore.setState({ sessionId: 'viewport-probe', status: 'waiting_permission' });
+    window.__e2eStores!.featureFlagStore.setState(s => ({ flags: {
+      ...s.flags, APOS_ACTIVITY_STREAM: true, APOS_MOBILE_STATUS: true,
+    } }));
+    useMessageStore.setState({ messages: Array.from({ length: 40 }, (_, i) => ({
+      uuid: `viewport-${i}`, type: 'user', timestamp: i,
+      content: [{ type: 'text', text: `第 ${i + 1} 条：检查消息与输入区独立布局。` }],
+    })) });
+  });
+  await expect(page.locator('.message-list')).toBeVisible();
+}
+
+async function expectSeparatedLayout(page: Page, height: number, top = 0) {
+  await expect.poll(() => page.evaluate(({ height, top }) => {
+    const root = document.querySelector('.app-root')!.getBoundingClientRect();
+    const list = document.querySelector('.message-list')!.getBoundingClientRect();
+    const composer = document.querySelector('.chat-composer-dock')!.getBoundingClientRect();
+    const input = document.querySelector('textarea[aria-label="输入消息"]')!.getBoundingClientRect();
+    return Math.abs(root.top - top) < 1 && Math.abs(root.height - height) < 1
+      && list.height > 0 && list.bottom <= composer.top + 1
+      && composer.bottom <= root.bottom + 1 && input.top >= root.top && input.bottom <= root.bottom;
+  }, { height, top })).toBe(true);
+}
+
+for (const width of [393, 820]) {
+  test(`消息与输入区分离，列表返回和布局视口缩放后仍可用 (${width}px)`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 852 });
+    await openConversation(page);
+    await expectSeparatedLayout(page, 852);
+    await page.getByRole('button', { name: '打开会话列表', exact: true }).first().click();
+    await expect(page.locator('.chat-composer-dock')).toHaveCount(0);
+    await page.getByRole('button', { name: '返回', exact: true }).click();
+    await expectSeparatedLayout(page, 852);
+    // The capsule must remain above the composer, even after a remount.
+    const scroller = page.locator('[data-virtuoso-scroller="true"]');
+    await expect(page.getByText('第 40 条：检查消息与输入区独立布局。', { exact: true })).toBeVisible();
+    await expect.poll(() => scroller.evaluate(el => el.scrollHeight - el.scrollTop - el.clientHeight)).toBeLessThanOrEqual(80);
+    await scroller.hover();
+    await page.mouse.wheel(0, -3000);
+    const latest = page.getByTestId('back-to-latest');
+    await expect(latest).toBeVisible();
+    await expect(latest).toBeEnabled();
+    const buttonBox = (await latest.boundingBox())!;
+    expect(buttonBox.y + buttonBox.height).toBeLessThanOrEqual((await page.locator('.chat-composer-dock').boundingBox())!.y);
+    await latest.click();
+    await expect.poll(() => page.locator('[data-virtuoso-scroller="true"]').evaluate(el => el.scrollHeight - el.scrollTop - el.clientHeight)).toBeLessThanOrEqual(80);
+    const input = page.getByRole('textbox', { name: '输入消息', exact: true });
+    await input.fill('仍然可以编辑');
+    await page.setViewportSize({ width, height: 500 });
+    await expectSeparatedLayout(page, 500);
+    await expect(input).toHaveValue('仍然可以编辑');
+    if (width < 768) {
+      await expect.poll(() => page.locator('.prompt-input-container').evaluate(el => parseFloat(getComputedStyle(el).paddingBottom))).toBe(12);
+    }
+    await input.blur();
+    await page.setViewportSize({ width, height: 852 });
+    await expectSeparatedLayout(page, 852);
+    await expect.poll(() => page.evaluate(() => document.documentElement.style.getPropertyValue('--keyboard-height'))).toBe('0px');
+    await page.screenshot({ path: `/tmp/zhikun-viewport-${width}.png` });
+    // Returning to desktop must restore real measured spacing, not the old detached node.
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await expect.poll(() => page.locator('.glass-chat-spacer').evaluate(el => el.getBoundingClientRect().height)).toBeGreaterThan(100);
+    await expect.poll(() => page.evaluate(() => {
+      const spacer = document.querySelector('.glass-chat-spacer')!.getBoundingClientRect().height;
+      const composer = document.querySelector('.chat-composer-dock')!.getBoundingClientRect().height;
+      return Math.abs(spacer - composer - 12);
+    })).toBeLessThan(1);
+  });
+}
+
+test('内置浏览器：首次可视高度小于布局视口，键盘仅缩小可视视口并平移', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperties(window.visualViewport!, {
+      height: { configurable: true, get: () => 700 },
+      offsetTop: { configurable: true, get: () => 0 },
+    });
+  });
+  await openConversation(page);
+  await expectSeparatedLayout(page, 700);
+  await page.getByRole('textbox', { name: '输入消息', exact: true }).fill('测试键盘');
+  await page.evaluate(() => {
+    Object.defineProperties(window.visualViewport!, {
+      height: { configurable: true, get: () => 400 },
+      offsetTop: { configurable: true, get: () => 30 },
+    });
+    window.visualViewport!.dispatchEvent(new Event('resize'));
+  });
+  await expectSeparatedLayout(page, 400, 30);
+  // Closing the keyboard restores visible height without reloading the page.
+  await page.evaluate(() => {
+    (document.activeElement as HTMLElement).blur();
+    Object.defineProperties(window.visualViewport!, {
+      height: { configurable: true, get: () => 700 },
+      offsetTop: { configurable: true, get: () => 0 },
+    });
+    window.visualViewport!.dispatchEvent(new Event('resize'));
+  });
+  await expectSeparatedLayout(page, 700);
+  await expect.poll(() => page.evaluate(() => document.documentElement.style.getPropertyValue('--keyboard-height'))).toBe('0px');
+});
+
+
+test('旧 WebView 回退、长输入与横竖屏切换', async ({ page }) => {
+  await page.addInitScript(() => { Object.defineProperty(window, 'visualViewport', { value: undefined }); });
+  await page.setViewportSize({ width: 393, height: 700 });
+  await openConversation(page);
+  await expectSeparatedLayout(page, 700);
+  const input = page.getByRole('textbox', { name: '输入消息', exact: true });
+  await input.fill('这是多行输入，检查输入区仍可编辑。\n'.repeat(30));
+  await page.setViewportSize({ width: 393, height: 500 });
+  await expectSeparatedLayout(page, 500);
+  await page.setViewportSize({ width: 820, height: 393 });
+  await expectSeparatedLayout(page, 393);
+  await expect(input).toBeEditable();
+  await page.setViewportSize({ width: 393, height: 700 });
+  await expectSeparatedLayout(page, 700);
+});
+
+
+for (const width of [393, 820]) {
+  test(`长验证结果内部滚动，键盘弹出后输入控件仍完整可见 (${width}px)`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 700 });
+    await openConversation(page);
+    await page.evaluate(async () => {
+      const path = '/src/store/journeyVerifyStore.ts';
+      const { useJourneyVerifyStore } = await import(path);
+      const turnPath = '/src/store/turnViewStore.ts';
+      const { useTurnViewStore } = await import(turnPath);
+      useTurnViewStore.getState().setDensity('detailed');
+      useJourneyVerifyStore.setState({
+        status: 'failed',
+        steps: Array.from({ length: 30 }, (_, stepIndex) => ({ stepIndex, action: 'click', ok: true, durationMs: 10 })),
+        errorMessage: '这是用于检查长验证结果的错误详情。'.repeat(30) + '验证详情结束',
+      });
+    });
+    const panel = page.locator('.journey-verify-panel');
+    await expect(panel).toBeVisible();
+    const input = page.getByRole('textbox', { name: '输入消息', exact: true });
+    await input.fill('检查长验证结果时仍可输入');
+    for (const height of [700, 400, 700]) {
+      await page.setViewportSize({ width, height });
+      if (width === 393 && height === 400) {
+        // A tall attachment preview must scroll inside the text area, not raise the card's minimum.
+        await page.getByTestId('mobile-prompt-text-area').evaluate(el => {
+          const preview = document.createElement('div');
+          preview.style.height = '600px';
+          preview.textContent = '附件预览占位';
+          el.appendChild(preview);
+        });
+      }
+      await expectSeparatedLayout(page, height);
+      await expect.poll(() => page.locator('[data-virtuoso-scroller="true"]').evaluate(el => el.clientHeight)).toBeGreaterThan(0);
+      // Check the whole input surface, including send/navigation controls, not just the textarea.
+      await expect.poll(() => page.evaluate(() => {
+        const root = document.querySelector('.app-root')!.getBoundingClientRect();
+        const surface = document.querySelector('.chat-composer-surface')!.getBoundingClientRect();
+        const controls = document.querySelectorAll('.chat-composer-inset button');
+        return surface.bottom <= root.bottom && Array.from(controls).every(button => {
+          const rect = button.getBoundingClientRect();
+          return rect.height === 0 || (rect.top >= surface.top && rect.bottom <= surface.bottom + 1);
+        });
+      })).toBe(true);
+      await expect.poll(() => panel.evaluate(el => el.scrollHeight > el.clientHeight)).toBe(true);
+      await panel.evaluate(el => { el.scrollTop = el.scrollHeight; });
+      await expect.poll(() => panel.evaluate(el => el.scrollHeight - el.scrollTop - el.clientHeight)).toBeLessThanOrEqual(1);
+      await expect(input).toBeEditable();
+    }
+    await page.screenshot({ path: `/tmp/zhikun-verify-panel-${width}.png` });
+  });
+}

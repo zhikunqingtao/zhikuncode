@@ -80,21 +80,25 @@ function App() {
   const { status, sessionId } = useSessionStore();
   const workbenchEnabled = useWorkbenchViewStore(s => s.enabled);
   const viewMode = useWorkbenchViewStore(s => s.viewMode);
-  // §7.6 移动态：输入区容器换肤（悬浮胶囊条 + safe-area + 键盘高度），桌面保持既有样式
-  const { isMobile } = useResponsive();
-  const { keyboardHeight } = useVirtualKeyboard(isMobile);
+  // 手机和平板按可视视口布局，键盘高度仅用于消息滚动。
+  const { isMobile, isTablet } = useResponsive();
+  const { keyboardHeight } = useVirtualKeyboard(isMobile || isTablet);
   const messageListRef = useRef<MessageListHandle>(null);
-  const composerRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const composer = composerRef.current;
+  const composerCleanupRef = useRef<(() => void) | null>(null);
+  const composerRef = useCallback((composer: HTMLDivElement | null) => {
+    composerCleanupRef.current?.();
+    composerCleanupRef.current = null;
     const workspace = composer?.parentElement;
     if (!composer || !workspace) return;
     const update = () => workspace.style.setProperty('--glass-composer-height', `${composer.getBoundingClientRect().height + 12}px`);
     const observer = new ResizeObserver(update);
     observer.observe(composer);
     update();
-    return () => { observer.disconnect(); workspace.style.removeProperty('--glass-composer-height'); };
-  }, [isMobile]);
+    composerCleanupRef.current = () => {
+      observer.disconnect();
+      workspace.style.removeProperty('--glass-composer-height');
+    };
+  }, []);
   const { loadConfig } = useConfigStore();
   const sessionReadinessRef = useRef<Promise<string | null> | null>(null);
   const newSessionRequestRef = useRef<Promise<string | null> | null>(null);
@@ -455,7 +459,9 @@ function App() {
       <AppLayout>
         <div className="chat-workspace h-full flex flex-col">
           <div className="chat-content flex-1 overflow-hidden">
-            {workbenchEnabled && viewMode === 'simple' ? (
+            {!sessionId ? (
+              <EmptyHero />
+            ) : workbenchEnabled && viewMode === 'simple' ? (
               <SimpleWorkbench sessionId={sessionId} messages={messages} status={status} />
             ) : messages.length === 0 ? (
                 /* §7.1 空态 Hero（记忆点①）：今天想构建什么？ */
@@ -468,7 +474,7 @@ function App() {
           {/* §7.6 移动虚拟键盘桥：仅移动挂载，键盘弹起时滚底 */}
           {isMobile && <MobileKeyboardBridge listRef={messageListRef} keyboardHeight={keyboardHeight} />}
 
-          {/* Input（移动态：prompt-input-container = 键盘高度+safe-area 内边距，承载悬浮胶囊条） */}
+          {/* 移动端输入区占据独立空间，桌面保留悬浮布局。 */}
           <div ref={composerRef} className="chat-composer-dock">
             {(!workbenchEnabled || viewMode === 'development') && <JourneyVerifyPanel />}
             <div className={isMobile

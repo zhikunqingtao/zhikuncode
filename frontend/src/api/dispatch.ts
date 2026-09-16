@@ -75,6 +75,21 @@ const RECOVERY_BYPASS_TYPES: ReadonlySet<string> = new Set([
 
 /** 已绑定的会话 ID — 跟踪当前 WS 连接已绑定的 sessionId，避免重复发送 bind-session */
 let boundSessionId: string | null = null;
+const bindingListeners = new Set<() => void>();
+
+export function subscribeSessionBinding(listener: () => void): () => void {
+    bindingListeners.add(listener);
+    return () => { bindingListeners.delete(listener); };
+}
+
+/** Session controls must wait until the current bind/recovery has completed. */
+export function isSessionBindingReady(sessionId: string): boolean {
+    return !activeRecoveryId && isSessionBound(sessionId);
+}
+
+function notifySessionBinding(): void {
+    bindingListeners.forEach(listener => listener());
+}
 
 interface InteractionView {
     protocolVersion: number;
@@ -158,6 +173,7 @@ function handleInteractionCreated(interaction: InteractionView): void {
 /** 标记会话已绑定 */
 export function markSessionBound(sessionId: string): void {
     boundSessionId = sessionId;
+    notifySessionBinding();
     // 切换 Session 后不保留其他 Session 的前端 ACK；再次进入时由服务端 pending
     // 权威数据重放，避免终态消息未送达时在浏览器进程内长期积累陈旧条目。
     for (const [interactionId, pending] of pendingInteractionAcks) {
@@ -178,6 +194,13 @@ export function resetBoundSession(): void {
     boundSessionId = null;
     boundBindingEpoch = 0;
     boundBindRequestId = null;
+    notifySessionBinding();
+}
+
+/** Leave the selected Session locally; late restore frames must not reopen it. */
+export function clearSessionBinding(): void {
+    for (const id of pendingBinds.keys()) finishBind(id, false, false);
+    resetBoundSession();
 }
 
 function queueInteractionAck(sessionId: string | null, interactionId?: string,
@@ -235,6 +258,7 @@ export function bindSessionAndWait(
             queued: [],
         });
         activeRecoveryId = bindRequestId;
+        notifySessionBinding();
         try {
             const published = publish({
                 sessionId,
@@ -258,6 +282,7 @@ function finishBind(bindRequestId: string, restored: boolean, replayQueued: bool
     clearTimeout(pending.timer);
     pendingBinds.delete(bindRequestId);
     if (activeRecoveryId === bindRequestId) activeRecoveryId = null;
+    notifySessionBinding();
     pending.resolve(restored);
     if (replayQueued) pending.queued.forEach(message => dispatch(message));
 }
@@ -268,6 +293,7 @@ function finishBind(bindRequestId: string, restored: boolean, replayQueued: bool
  */
 export function dispatch(data: ServerMessage & { ts?: number }): void {
     const routed = data as ServerMessage & { ts?: number; _sessionId?: string; _bindingEpoch?: number };
+    if (!activeRecoveryId && routed._sessionId && !useSessionStore.getState().sessionId) return;
     if (activeRecoveryId && !RECOVERY_BYPASS_TYPES.has(data.type)) {
         const pending = pendingBinds.get(activeRecoveryId);
         if (pending) {

@@ -139,19 +139,13 @@ COPY --from=meoo-cli /usr/local/lib/node_modules/@aliyun-meoo /usr/local/lib/nod
 RUN ln -s /usr/local/lib/node_modules/@aliyun-meoo/cli/bin/meoo.js /usr/local/bin/meoo \
     && node --version && meoo --version
 
-# Copy backend JAR (explicitly renamed in build stage)
-COPY --from=backend-build /build/backend/target/app.jar ./app.jar
-
-# Copy frontend build output (served by Spring Boot as static resources)
-COPY --from=frontend-build /build/frontend/dist ./static/
-
-# Copy python-service source (PythonProcessManager starts it as subprocess)
-COPY python-service/src ./python-service/src/
+# Keep dependency layers independent of application source changes.
 COPY python-service/requirements.lock ./python-service/
 COPY python-service/requirements.txt ./python-service/
 COPY python-service/pyproject.toml ./python-service/
 
 # Setup Python virtual environment
+ENV PLAYWRIGHT_BROWSERS_PATH=/opt/playwright-browsers
 RUN case "${PIP_INDEX_URL}" in https://*) ;; \
         *) echo "PIP_INDEX_URL must use HTTPS" >&2; exit 2 ;; \
     esac && \
@@ -161,6 +155,17 @@ RUN case "${PIP_INDEX_URL}" in https://*) ;; \
     /app/python-service/.venv/bin/pip install --no-cache-dir \
         --index-url "${PIP_INDEX_URL}" \
         -r /app/python-service/requirements.lock
+
+# The service runs headless. Cache system libraries separately from browser downloads.
+RUN /app/python-service/.venv/bin/python -m playwright install-deps chromium && \
+    rm -rf /var/lib/apt/lists/*
+RUN /app/python-service/.venv/bin/python -m playwright install --only-shell chromium && \
+    chmod -R a+rX /opt/playwright-browsers
+
+COPY --from=backend-build /build/backend/target/app.jar ./app.jar
+COPY --from=frontend-build /build/frontend/dist ./static/
+# PythonProcessManager starts this service as a subprocess.
+COPY python-service/src ./python-service/src/
 
 # Alibaba Cloud Ops has stricter FastMCP/Pydantic pins than the application,
 # so isolate it from the Python analysis service.

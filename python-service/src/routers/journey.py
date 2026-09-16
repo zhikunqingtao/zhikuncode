@@ -9,6 +9,7 @@ import base64
 import time
 import uuid
 import logging
+from urllib.parse import urljoin
 from typing import Dict, Any
 
 from fastapi import APIRouter
@@ -39,6 +40,8 @@ async def journey_run(request: JourneyRunRequest) -> JourneyRunResponse:
         start_time = time.time()
 
         try:
+            if step.get("action") == "navigate":
+                step = {**step, "url": urljoin(request.base_url.rstrip("/") + "/", step.get("url", ""))}
             result = await _execute_step(browser_service, session_id, session, step, timeout)
             duration_ms = int((time.time() - start_time) * 1000)
 
@@ -121,9 +124,9 @@ async def _execute_step(
         return {"success": True, **(result if isinstance(result, dict) else {})}
 
     elif action == "click":
-        result = await service.click(session_id, step["selector"], timeout=timeout)
-        if isinstance(result, dict) and "error" in result:
-            return {"success": False, "error": result["error"]}
+        # A timed-out click may already have taken effect. Do not retry it via JS
+        # (the general browser helper does), which can undo a toggle or submit twice.
+        await session.page.click(step["selector"], timeout=timeout)
         return {"success": True}
 
     elif action == "type":
@@ -137,6 +140,7 @@ async def _execute_step(
             session_id,
             wait_until=step.get("wait_until"),
             selector=step.get("selector"),
+            state=step.get("state", "visible"),
             timeout=timeout,
         )
         if isinstance(result, dict) and "error" in result:

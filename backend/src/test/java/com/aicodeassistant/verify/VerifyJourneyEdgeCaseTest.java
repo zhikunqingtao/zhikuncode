@@ -519,4 +519,38 @@ class VerifyJourneyEdgeCaseTest {
     private static int anyInt() {
         return org.mockito.ArgumentMatchers.anyInt();
     }
+
+    @Test
+    void httpStartCommandIsRejectedWithoutExecutingAnything() {
+        when(verifierFactory.selectVerifier(any(), anyString())).thenReturn(mock(HttpApiVerifier.class));
+        var input = ToolInput.from(Map.of("verification_mode", "http_api", "start_command", "python3 -m http.server 8766",
+                "base_url", "http://localhost:8766", "journey", List.of(Map.of("action", "http_get", "url", "/"))));
+        assertEquals("VERIFY_JOURNEY_HTTP_START_UNSUPPORTED", tool.call(input, browserCtx()).failureCode());
+        verifyNoInteractions(devServerLauncher, pythonClient, evidenceStore);
+    }
+
+    @Test
+    void explicitBrowserPortIsUsedForServerReadiness() {
+        prepareBrowserModeStubs();
+        var browser = stubBrowserVerifier();
+        when(browser.verify(any(), anyString())).thenReturn(new JourneyResult("verified", null, List.of(), Map.of()));
+        when(evidenceStore.save(any())).thenAnswer(c -> c.getArgument(0));
+        Map<String, Object> fields = new HashMap<>(browserInput("npm run dev -- --port 8766").getRawData());
+        fields.put("base_url", "http://127.0.0.1:8766");
+        assertFalse(tool.call(ToolInput.from(fields), browserCtx()).isError());
+        verify(devServerLauncher).start(eq(workspace), anyString(), eq(8766), any());
+    }
+
+    @Test
+    void invalidManagedBaseUrlIsRejectedBeforeStartingServer() {
+        prepareBrowserModeStubs();
+        stubBrowserVerifier();
+        for (String url : List.of("http:missing-host", "http://127.0.0.1:65536", "http://example.com:8080")) {
+            Map<String, Object> fields = new HashMap<>(browserInput("npm run dev").getRawData());
+            fields.put("base_url", url);
+            assertEquals("VERIFY_JOURNEY_INVALID_BASE_URL", tool.call(ToolInput.from(fields), browserCtx()).failureCode());
+        }
+        verifyNoInteractions(devServerLauncher, evidenceStore);
+    }
+
 }

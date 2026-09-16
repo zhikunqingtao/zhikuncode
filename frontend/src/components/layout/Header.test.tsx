@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Header } from '@/components/layout/Header';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
@@ -7,6 +7,8 @@ import { useModelStore } from '@/store/modelStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { useWorkbenchViewStore } from '@/store/workbenchViewStore';
 import { useBridgeStore } from '@/store/bridgeStore';
+import { bindSessionAndWait, clearSessionBinding, markSessionBound } from '@/api/dispatch';
+import * as stompClient from '@/api/stompClient';
 
 describe('Header model selection', () => {
     beforeEach(() => {
@@ -19,8 +21,47 @@ describe('Header model selection', () => {
     });
 
     afterEach(() => {
+        clearSessionBinding();
+        vi.restoreAllMocks();
         vi.unstubAllGlobals();
         document.documentElement.classList.remove('light', 'dark', 'glass', 'system');
+    });
+
+    it('enables only bound session details and never changes a default model', async () => {
+        const send = vi.spyOn(stompClient, 'sendSetModel').mockImplementation(() => {});
+        vi.spyOn(stompClient, 'isWsConnected').mockReturnValue(true);
+        vi.stubGlobal('fetch', vi.fn());
+        useModelStore.setState({
+            loaded: true, loading: false, error: null, defaultModel: 'model-a',
+            models: ['a', 'b'].map(id => ({ id: `model-${id}`, displayName: `Model ${id}`, supportsImages: false, maxImages: 0 })),
+        });
+        useConfigStore.setState({ defaultModel: 'original-default' });
+        useSessionStore.setState({ sessionId: 'session-a', model: 'model-a' });
+        clearSessionBinding();
+        render(<Header />);
+        const selector = screen.getByLabelText('模型选择');
+        expect(selector).toBeDisabled();
+        act(() => markSessionBound('session-a'));
+        expect(selector).toBeEnabled();
+        fireEvent.change(selector, { target: { value: 'model-b' } });
+        expect(send).toHaveBeenCalledTimes(1);
+        expect(send).toHaveBeenCalledWith('model-b');
+        expect(useConfigStore.getState().defaultModel).toBe('original-default');
+        expect(fetch).not.toHaveBeenCalled();
+
+        let pending!: Promise<boolean>;
+        act(() => { pending = bindSessionAndWait('session-b', () => true); });
+        expect(selector).toBeDisabled();
+        fireEvent.change(selector, { target: { value: 'model-a' } });
+        act(() => clearSessionBinding());
+        await expect(pending).resolves.toBe(false);
+        act(() => markSessionBound('session-a'));
+        expect(selector).toBeEnabled();
+        fireEvent.click(screen.getAllByRole('button', { name: '返回首页' })[0]);
+        expect(selector).toBeDisabled();
+        fireEvent.change(selector, { target: { value: 'model-a' } });
+        expect(send).toHaveBeenCalledTimes(1);
+        expect(fetch).not.toHaveBeenCalled();
     });
 
     it.each(['system', 'unknown'])('safely renders unexpected runtime theme %s', mode => {

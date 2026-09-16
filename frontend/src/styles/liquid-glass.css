@@ -120,6 +120,31 @@ html.glass {
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   .glass .glass-surface button:not(:disabled):active { transform: scale(.97); }
 }
+/* Compact screens keep messages and the composer in separate layout rows. */
+@media (max-width: 1023px) {
+  .chat-workspace, .chat-content { min-height: 0; }
+  .chat-composer-dock {
+    position: relative;
+    inset: auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    /* Leave room for turn navigation and a message row; shrink verification details first. */
+    max-height: calc(100% - 80px);
+  }
+  .chat-composer-inset { flex-shrink: 0; }
+  .chat-composer-dock > .journey-verify-panel {
+    min-height: 0;
+    max-height: calc(var(--viewport-height, 100vh) * 0.25);
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+  .chat-content { padding-bottom: 0; }
+  .chat-content:has(.message-list) { padding-bottom: 0; }
+  .glass-chat-spacer { height: 12px; }
+  .message-list { scroll-padding-bottom: 12px; }
+  .message-list > .back-to-latest-position { bottom: 12px; }
+}
 @media (max-width: 767px) {
   .chat-composer-surface { border-radius: 22px; padding: 0; }
   .chat-composer-inset { padding-top: 8px; }

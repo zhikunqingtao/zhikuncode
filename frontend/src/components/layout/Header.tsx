@@ -17,8 +17,9 @@ import { useDialogStore } from '@/store/dialogStore';
 import { normalizeThemeMode, useConfigStore } from '@/store/configStore';
 import { useModelStore } from '@/store/modelStore';
 import { useBridgeStore } from '@/store/bridgeStore';
-import { sendSetModel } from '@/api/stompClient';
+import { useSessionModelSelection } from '@/hooks/useSessionModelSelection';
 import { dispatchNewAuthorizedSessionRequest } from '@/services/authorizedSession';
+import { clearSessionSelection } from '@/services/sessionActivation';
 import { useWorkbenchViewStore } from '@/store/workbenchViewStore';
 import { WorkbenchViewSwitch } from '@/components/workbench/WorkbenchViewSwitch';
 import { McpIcon } from '@/components/mcp/McpIcon';
@@ -36,6 +37,7 @@ interface HeaderProps {
 
 export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
     const { sessionId, model, setModel } = useSessionStore();
+    const modelSelection = useSessionModelSelection();
     const { sessionCost, totalCost } = useCostStore();
     const { bridgeStatus } = useBridgeStore();
     const { openDialog } = useDialogStore();
@@ -69,7 +71,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
     const status = useSessionStore(s => s.status);
     const sessionTitle = useMessageStore(s => {
         const block = s.messages.find(m => m.type === 'user')?.content.find(b => b.type === 'text');
-        return block?.type === 'text' ? block.text : '新会话';
+        return block?.type === 'text' ? block.text : '任务';
     });
     const currentTheme = {
         light: { label: '浅色', icon: Sun },
@@ -119,7 +121,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
         <header className="app-header glass-surface relative h-14 border-b border-hairline bg-surface2 flex items-center px-2 md:px-4 shrink-0">
             <GlassMaterial />
             <div className="flex md:hidden min-w-0 w-full items-center gap-3 px-1" aria-label="当前会话信息">
-                <button type="button" onClick={onMenuClick} aria-label="打开菜单" title="打开菜单" aria-haspopup="dialog" className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-[10px] text-t2 hover:bg-hover2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent2-ink"><Menu size={20} /></button>
+                <button type="button" onClick={onMenuClick} aria-label="打开会话列表" title="打开会话列表" className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-[10px] text-t2 hover:bg-hover2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent2-ink"><Menu size={20} /></button>
                 <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-medium text-t1" title={sessionTitle}>{sessionTitle}</div>
                     <div className="mt-0.5 flex min-w-0 items-center gap-2">
@@ -132,25 +134,29 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                         )}
                     </div>
                 </div>
-                <BrandLogo className="h-8 w-8" />
+                <button type="button" onClick={clearSessionSelection} aria-label="返回首页" title="返回首页"
+                    className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-[10px] hover:bg-hover2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent2-ink">
+                    <BrandLogo className="h-8 w-8" />
+                </button>
             </div>
             {/* Left: Menu Button (mobile) + Logo */}
             <div className="hidden md:flex items-center gap-3">
                 {showMenuButton && (
                     <button
                         onClick={onMenuClick}
-                        className={`panel-control ${HEADER_BUTTON_CLASS} lg:hidden`}
-                        aria-label="打开侧边栏"
+                        className={`panel-control ${HEADER_BUTTON_CLASS} min-h-11 min-w-11 lg:hidden`}
+                        aria-label="打开会话列表"
                     >
                         <Menu className="w-5 h-5" />
                     </button>
                 )}
-                <div className="hidden md:flex items-center gap-2">
+                <button type="button" onClick={clearSessionSelection} aria-label="返回首页" title="返回首页"
+                    className="hidden md:flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-[10px] hover:bg-hover2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent2-ink">
                     <BrandLogo />
-                    <span className="font-semibold text-t1 hidden md:block">
+                    <span className="font-semibold text-t1 hidden lg:block">
                         zhikuncode
                     </span>
-                </div>
+                </button>
             </div>
 
             {/* Center: Session Title & Model Selector */}
@@ -165,16 +171,10 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                         <span className="h-2 w-2 shrink-0 rounded-full bg-accent2" aria-hidden="true" />
                         <select
                             aria-label="模型选择"
-                            title={currentModelName}
+                            title={modelSelection.disabledReason ?? currentModelName}
                             value={model || ''}
-                            onChange={(e) => {
-                                const newModel = e.target.value;
-                                if (!newModel) return;
-                                setModel(newModel);
-                                void useConfigStore.getState().saveConfig({ defaultModel: newModel });
-                                sendSetModel(newModel);
-                            }}
-                            disabled={modelsLoading || availableModels.length === 0}
+                            onChange={(e) => modelSelection.selectModel(e.target.value)}
+                            disabled={modelSelection.disabled}
                             data-compact-label={Boolean(currentModelName)}
                             className="panel-control min-w-0 max-w-[220px] max-md:min-w-[76px] truncate text-sm bg-transparent text-t1
                                 focus:outline-none disabled:opacity-50"

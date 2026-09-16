@@ -794,6 +794,7 @@ class BrowserService:
         # 注入 JS 错误收集
         js_errors: list[str] = []
         page.on("pageerror", lambda error: js_errors.append(str(error)))
+        page.on("console", lambda msg: js_errors.append(msg.text) if msg.type == "error" else None)
 
         # trace
         if record_opts.get("trace"):

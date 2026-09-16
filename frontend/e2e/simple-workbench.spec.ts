@@ -13,9 +13,8 @@ test.describe('Local simple workbench', () => {
     await bootSimpleWorkbench(page);
 
     await expect(page.getByRole('tab', { name: '简洁工作台' })).toHaveAttribute('aria-selected', 'true');
-    for (const heading of ['当前任务', '本次结果', '当前交付', '待我处理', '要求核验']) {
-      await expect(page.getByText(heading, { exact: true }).first()).toBeVisible();
-    }
+    // 未选择会话时，两种工作台模式都显示欢迎页。
+    await expect(page.getByRole('heading', { name: '今天想构建什么？' })).toBeVisible();
 
     const input = page.locator('textarea[aria-label="输入消息"]');
     await expect(input).toHaveAttribute('placeholder', '描述你希望完成或继续修改的事情…');

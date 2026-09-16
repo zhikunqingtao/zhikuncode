@@ -95,7 +95,6 @@ export function MobileStatusBar({ onExpandDetails }: MobileStatusBarProps) {
       {/* 固定底部状态细条 — ≤36px 视觉高度，44px 点击区 */}
       <div
         className="shrink-0 relative z-50 bg-[color:color-mix(in_srgb,var(--v2-bg-surface)_95%,transparent)] backdrop-blur-sm border-t border-hairline shadow-e1"
-        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         <button
           onClick={handleBarClick}

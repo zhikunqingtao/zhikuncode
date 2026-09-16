@@ -58,7 +58,7 @@
 
     /* 虚拟键盘 (§8.8.3) */
     --keyboard-height:         0px;
-    --viewport-height:         100dvh;
+    --viewport-height:         100vh;
   }
 
   /* ===== Dark 主题 ===== */
@@ -163,27 +163,24 @@ body {
   }
 }
 
-/* ===== §8.8.4 安全区域 ===== */
-.app-root {
-  height: var(--viewport-height, 100dvh);
-  padding-top: env(safe-area-inset-top);
-  padding-left: env(safe-area-inset-left);
-  padding-right: env(safe-area-inset-right);
+/* ===== 可视视口与安全区域 ===== */
+@supports (height: 100dvh) {
+  :root { --viewport-height: 100dvh; }
 }
-
-.prompt-input-container {
-  /* §7.6 键盘适配：padding-bottom = 键盘高度 + max(0.75rem 基线间距, safe-area)。
-     保留 0.75rem 下限以维持 P2b-2a 胶囊条既有视觉（键盘收起时与 pb-[max(0.75rem,…)] 完全一致） */
-  padding-bottom: calc(var(--keyboard-height, 0px) + max(0.75rem, env(safe-area-inset-bottom)));
-}
-
-/* 键盘避让属功能性过渡（§5.2）：仅在无 reduced-motion 偏好时声明 transition ——
-   motion-safe 等价写法，规避下方全局 !important 压平；reduced-motion 下 padding 瞬时生效、布局不变 */
-@media (prefers-reduced-motion: no-preference) {
-  .prompt-input-container {
-    transition: padding-bottom 0.25s ease-out;
+.app-root { height: 100vh; }
+@media (max-width: 1023px) {
+  .app-root {
+    position: fixed;
+    inset-inline: 0;
+    top: var(--viewport-offset-top, 0px);
+    height: var(--viewport-height, 100vh);
+    padding: env(safe-area-inset-top) env(safe-area-inset-right)
+      env(safe-area-inset-bottom) env(safe-area-inset-left);
   }
 }
+
+/* 根容器已经按键盘上方的可视高度布局；不再重复扣除键盘和安全区。 */
+.prompt-input-container { padding-bottom: 0.75rem; }
 
 /* ===== §8.8.5 动画偏好 ===== */
 @media (prefers-reduced-motion: reduce) {

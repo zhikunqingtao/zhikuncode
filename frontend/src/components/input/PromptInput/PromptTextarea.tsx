@@ -55,11 +55,15 @@ const PromptTextarea: React.FC<PromptTextareaProps> = ({
                 return;
             }
             const visibleHeight = window.visualViewport?.height ?? window.innerHeight;
-            const panel = el.closest('[data-testid="mobile-prompt-bar"]');
+            const panel = el.closest<HTMLElement>('[data-testid="mobile-prompt-bar"]');
             const controlsHeight = panel
                 ? Array.from(panel.querySelectorAll('[data-testid="mobile-persistent-actions"], .mobile-composer-navigation'))
                     .reduce((height, control) => height + control.getBoundingClientRect().height, 0)
                 : 0;
+            // Keep one editable line and wrapped controls visible; attachments still scroll.
+            if (isMobileVariant && panel) {
+                panel.style.setProperty('--mobile-composer-min-height', `${controlsHeight + Math.ceil(lineHeight + 4) + 20}px`);
+            }
             // 38.2% caps the whole mobile panel, including controls and padding.
             const maxHeight = isMobileVariant
                 ? Math.max(lineHeight + 4, visibleHeight * 0.382 - controlsHeight - 20)

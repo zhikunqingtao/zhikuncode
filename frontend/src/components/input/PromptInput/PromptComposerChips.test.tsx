@@ -1,10 +1,12 @@
-import { fireEvent, render, screen } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ModelChip, PermissionModeChip } from './PromptComposerChips';
 import { useModelStore } from '@/store/modelStore';
 import { useNotificationStore } from '@/store/notificationStore';
 import { usePermissionStore } from '@/store/permissionStore';
 import { useSessionStore } from '@/store/sessionStore';
+import { useAppUiStore } from '@/store/appUiStore';
+import { useBridgeStore } from '@/store/bridgeStore';
 
 const { binding, connection, sendSetModel, sendSetPermissionMode } = vi.hoisted(() => ({
     binding: { bound: true },
@@ -15,6 +17,8 @@ const { binding, connection, sendSetModel, sendSetPermissionMode } = vi.hoisted(
 
 vi.mock('@/api/dispatch', () => ({
     isSessionBound: () => binding.bound,
+    isSessionBindingReady: () => binding.bound,
+    subscribeSessionBinding: () => () => {},
 }));
 
 vi.mock('@/api/stompClient', () => ({
@@ -25,13 +29,14 @@ vi.mock('@/api/stompClient', () => ({
 
 describe('PromptComposerChips', () => {
     beforeEach(() => {
-        sendSetModel.mockClear();
+        sendSetModel.mockReset();
         sendSetPermissionMode.mockClear();
         sendSetPermissionMode.mockReturnValue(true);
         binding.bound = true;
         connection.connected = true;
-        // ModelChip 切换会经 saveConfig 持久化 defaultModel（fetch PUT /api/config）
         vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{}', { status: 200 })));
+        useBridgeStore.setState({ bridgeStatus: 'connected' });
+        useAppUiStore.setState({ mobileNavTab: null });
         useSessionStore.setState({ sessionId: 'session-1', model: 'model-a' });
         usePermissionStore.setState({ permissionMode: 'default', pendingPermissions: [] });
         useModelStore.setState({
@@ -46,6 +51,7 @@ describe('PromptComposerChips', () => {
         });
         useNotificationStore.getState().clearAll();
     });
+    afterEach(() => vi.unstubAllGlobals());
 
     describe('PermissionModeChip', () => {
         it('keeps the optimistic mode when the send succeeds', () => {
@@ -117,21 +123,20 @@ describe('PromptComposerChips', () => {
             expect(sendSetModel).toHaveBeenCalledWith('model-b');
             expect(useSessionStore.getState().model).toBe('model-b');
             expect(useNotificationStore.getState().notifications).toHaveLength(0);
+            expect(fetch).not.toHaveBeenCalled();
         });
 
-        it('rolls back and notifies when the socket is disconnected', () => {
+        it('disables model changes when disconnected', () => {
             connection.connected = false;
+            useBridgeStore.setState({ bridgeStatus: 'disconnected' });
             render(<ModelChip />);
 
+            expect(screen.getByLabelText('模型选择')).toBeDisabled();
             fireEvent.change(screen.getByLabelText('模型选择'), { target: { value: 'model-b' } });
 
             expect(sendSetModel).not.toHaveBeenCalled();
             expect(useSessionStore.getState().model).toBe('model-a');
-            expect(useNotificationStore.getState().notifications)
-                .toEqual(expect.arrayContaining([expect.objectContaining({
-                    key: 'model-send-failed',
-                    level: 'error',
-                })]));
+            expect(fetch).not.toHaveBeenCalled();
         });
 
         it('rolls back and notifies when the send throws', () => {
@@ -150,19 +155,37 @@ describe('PromptComposerChips', () => {
                 })]));
         });
 
-        it('rolls back and notifies without sending when no session is bound', () => {
+        it('disables model changes when no session is bound', () => {
             binding.bound = false;
             render(<ModelChip />);
 
+            expect(screen.getByLabelText('模型选择')).toBeDisabled();
             fireEvent.change(screen.getByLabelText('模型选择'), { target: { value: 'model-b' } });
 
             expect(sendSetModel).not.toHaveBeenCalled();
             expect(useSessionStore.getState().model).toBe('model-a');
-            expect(useNotificationStore.getState().notifications)
-                .toEqual(expect.arrayContaining([expect.objectContaining({
-                    key: 'model-no-session',
-                    level: 'error',
-                })]));
+            expect(fetch).not.toHaveBeenCalled();
+        });
+
+        it('disables the mobile selector on the session list and closes it on leaving detail', async () => {
+            vi.stubGlobal('innerWidth', 390);
+            vi.stubGlobal('matchMedia', vi.fn((query: string) => ({
+                matches: query === '(max-width: 767px)', addEventListener: vi.fn(), removeEventListener: vi.fn(),
+            })));
+            useAppUiStore.setState({ mobileNavTab: 'sessions' });
+            render(<ModelChip mobile />);
+            const selector = screen.getByRole('button', { name: /模型/ });
+            expect(selector).toBeDisabled();
+            act(() => useAppUiStore.getState().setMobileNavTab(null));
+            expect(selector).toBeEnabled();
+            fireEvent.click(selector);
+            const option = screen.getByRole('button', { name: 'Model B' });
+            act(() => useSessionStore.setState({ sessionId: '' }));
+            fireEvent.click(option);
+            expect(selector).toBeDisabled();
+            await waitFor(() => expect(screen.queryByRole('dialog', { name: '选择模型' })).not.toBeInTheDocument());
+            expect(sendSetModel).not.toHaveBeenCalled();
+            expect(fetch).not.toHaveBeenCalled();
         });
     });
 });

@@ -51,7 +51,7 @@ export function parseWorkbenchView(value: unknown): WorkbenchViewMode | null {
 export function readDefaultWorkbenchView(
     storage: StorageLike | null = browserStorage(),
 ): WorkbenchViewMode {
-    if (!storage) return 'simple';
+    if (!storage) return 'development';
     try {
         const raw = storage.getItem(WORKBENCH_DEFAULT_VIEW_KEY);
         const parsed = parseWorkbenchView(raw);
@@ -60,7 +60,7 @@ export function readDefaultWorkbenchView(
     } catch {
         // Fall through to the safe first-use default.
     }
-    return 'simple';
+    return 'development';
 }
 
 export function readSessionWorkbenchView(

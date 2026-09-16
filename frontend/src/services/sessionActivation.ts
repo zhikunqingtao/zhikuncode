@@ -1,5 +1,6 @@
 import {
     bindSessionAndWait,
+    clearSessionBinding,
     isSessionBound,
     resetBoundSession,
 } from '@/api/dispatch';
@@ -9,6 +10,10 @@ import {
     waitForWsConnection,
 } from '@/api/stompClient';
 import { useSessionStore } from '@/store/sessionStore';
+import { useMessageStore } from '@/store/messageStore';
+import { usePermissionStore } from '@/store/permissionStore';
+import { useAppUiStore } from '@/store/appUiStore';
+import { useCostStore } from '@/store/costStore';
 
 export type SessionActivationResult =
     | { status: 'activated'; sessionId: string }
@@ -28,6 +33,19 @@ interface PendingActivation {
 
 let activationGeneration = 0;
 let pendingActivation: PendingActivation | null = null;
+
+/** Return home without deleting the Session or interrupting its remote Run. */
+export function clearSessionSelection(): void {
+    ++activationGeneration;
+    pendingActivation?.connectionController.abort();
+    pendingActivation = null;
+    clearSessionBinding();
+    void useSessionStore.getState().resumeSession('');
+    useMessageStore.getState().clearMessages();
+    usePermissionStore.getState().clearPermissions();
+    useCostStore.getState().resetSessionCost();
+    useAppUiStore.setState({ mobileNavTab: null, elicitationDialog: null });
+}
 
 /** Returns the authoritative Session activation already in progress, if any. */
 export function getPendingSessionActivation():

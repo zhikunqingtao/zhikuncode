@@ -19,6 +19,7 @@ import {
     PanelLeftClose,
     PanelLeftOpen,
     ChevronDown,
+    ChevronLeft,
     ChevronRight,
     Trash2,
     Plus,
@@ -112,10 +113,16 @@ const PANEL_NEW_BUTTON_CLASS =
 const PANEL_CARD_ACTIVE_CLASS = 'bg-accent2-soft shadow-[inset_2px_0_0_0_var(--v2-accent)]';
 
 /** §7.5 面板头：Label（大写）+ 计数 chip */
-function PanelHeader({ label, count, onCollapse }: { label: string; count?: number; onCollapse?: () => void }) {
+function PanelHeader({ label, count, onCollapse, onBack }: { label: string; count?: number; onCollapse?: () => void; onBack?: () => void }) {
     return (
-        <div className="flex items-center justify-between gap-2 px-3 pt-3 pb-2 flex-shrink-0">
+        <div className={`flex items-center justify-between gap-2 flex-shrink-0 ${onBack ? 'min-h-11 px-1 pb-2' : 'px-3 pt-3 pb-2'}`}>
             <div className="flex items-center gap-2 min-w-0">
+                {onBack && (
+                    <button type="button" onClick={onBack} aria-label="返回"
+                        className="panel-control min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl text-t2 hover:bg-hover2 transition-colors duration-fast">
+                        <ChevronLeft className="w-5 h-5" aria-hidden="true" />
+                    </button>
+                )}
                 <span className={PANEL_LABEL_CLASS}>{label}</span>
                 {count !== undefined && <Chip variant="accent" className="tabular-nums">{count}</Chip>}
             </div>
@@ -483,6 +490,8 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab, onNa
 
 // ═══ Sidebar Tab 内容渲染器 — 桌面侧栏 / 移动主区面板共用（§7.5） ═══
 export interface SidebarTabContentProps {
+    /** Mobile session panel folds back navigation into its own title/count row. */
+    onBack?: () => void;
     onSessionActivated?: () => void;
     onCollapse?: () => void;
     activeTab: TabType;
@@ -490,7 +499,7 @@ export interface SidebarTabContentProps {
     width?: number;
 }
 
-export function SidebarTabContent({ activeTab, width = 280, onCollapse, onSessionActivated }: SidebarTabContentProps) {
+export function SidebarTabContent({ activeTab, width = 280, onCollapse, onSessionActivated, onBack }: SidebarTabContentProps) {
     const { tasks, clearTasks } = useTaskStore();
     const workbenchEnabled = useWorkbenchViewStore(s => s.enabled);
     const viewMode = useWorkbenchViewStore(s => s.viewMode);
@@ -498,7 +507,7 @@ export function SidebarTabContent({ activeTab, width = 280, onCollapse, onSessio
 
     return (
         <>
-            {activeTab === 'sessions' && (simpleMode ? <SimpleTaskList onCollapse={onCollapse} onSessionActivated={onSessionActivated} /> : <SessionList onCollapse={onCollapse} onSessionActivated={onSessionActivated} />)}
+            {activeTab === 'sessions' && (simpleMode ? <SimpleTaskList onBack={onBack} onCollapse={onCollapse} onSessionActivated={onSessionActivated} /> : <SessionList onBack={onBack} onCollapse={onCollapse} onSessionActivated={onSessionActivated} />)}
             {activeTab === 'tasks' && <TaskPanel tasks={tasks} onClear={clearTasks} />}
             {activeTab === 'files' && <FileTreePanel sidebarWidth={width} />}
             {activeTab === 'sequence' && <APISequenceDiagram />}
@@ -562,7 +571,7 @@ function ApiDocsTab() {
 }
 
 // Session List Component — 从后端 API 获取会话列表
-function SessionList({ onCollapse, onSessionActivated }: { onCollapse?: () => void; onSessionActivated?: () => void }) {
+function SessionList({ onCollapse, onSessionActivated, onBack }: { onCollapse?: () => void; onSessionActivated?: () => void; onBack?: () => void }) {
     const [sessions, setSessions] = useState<SessionSummary[]>([]);
     const [loading, setLoading] = useState(true);
     const [hasMore, setHasMore] = useState(false);
@@ -701,8 +710,11 @@ function SessionList({ onCollapse, onSessionActivated }: { onCollapse?: () => vo
 
     if (loading) {
         return (
-            <div className="p-4 flex justify-center">
-                <Loader2 className="w-5 h-5 animate-spin text-t3" />
+            <div className="flex flex-col h-full">
+                {onBack && <PanelHeader label="会话" onBack={onBack} />}
+                <div className="p-4 flex justify-center">
+                    <Loader2 className="w-5 h-5 animate-spin text-t3" />
+                </div>
             </div>
         );
     }
@@ -710,7 +722,7 @@ function SessionList({ onCollapse, onSessionActivated }: { onCollapse?: () => vo
     return (
         <div className="flex flex-col h-full">
             {/* §7.5 面板头：Label + 计数 chip */}
-            <PanelHeader label={simpleMode ? '任务' : '会话'} count={filteredSessions.length} onCollapse={onCollapse} />
+            <PanelHeader onBack={onBack} label={simpleMode ? '任务' : '会话'} count={filteredSessions.length} onCollapse={onCollapse} />
 
             {/* 新建按钮 + 搜索框（§7.5 配方） */}
             <div className="px-2 pb-2 space-y-2 border-b border-hairline flex-shrink-0">
@@ -851,7 +863,7 @@ interface WorkbenchTaskItem {
 interface WorkbenchTaskGroupView { status: WorkbenchTaskGroup; label: string; tasks: WorkbenchTaskItem[]; }
 
 /** 简洁模式任务导航只消费服务端权威分组，不从消息数或客户端状态推断。 */
-function SimpleTaskList({ onCollapse, onSessionActivated }: { onCollapse?: () => void; onSessionActivated?: () => void }) {
+function SimpleTaskList({ onCollapse, onSessionActivated, onBack }: { onCollapse?: () => void; onSessionActivated?: () => void; onBack?: () => void }) {
     const [groups, setGroups] = useState<WorkbenchTaskGroupView[]>([]);
     const [query, setQuery] = useState('');
     const [loading, setLoading] = useState(true);
@@ -910,7 +922,7 @@ function SimpleTaskList({ onCollapse, onSessionActivated }: { onCollapse?: () =>
 
     return <div className="flex h-full flex-col">
         {/* §7.5 面板头：Label + 计数 chip */}
-        <PanelHeader label="任务" count={totalTasks} onCollapse={onCollapse} />
+        <PanelHeader onBack={onBack} label="任务" count={totalTasks} onCollapse={onCollapse} />
         <div className="space-y-2 border-b border-hairline px-2 pb-2 flex-shrink-0">
             <button onClick={() => dispatchNewAuthorizedSessionRequest()} className={PANEL_NEW_BUTTON_CLASS}><Plus className="h-4 w-4" />新建任务</button>
             <PanelSearchBox value={query} onChange={setQuery} placeholder="搜索任务或文件夹" ariaLabel="搜索任务或文件夹" />

@@ -12,9 +12,9 @@
  *   直至布局稳定；用户上滚手势立即停让。
  */
 
-import { renderHook } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
-import { useKeyboardScrollCompensation } from './useVirtualKeyboard';
+import { act, renderHook } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { useKeyboardScrollCompensation, useVirtualKeyboard } from './useVirtualKeyboard';
 
 function makeList(scrollTop: number) {
     const el = document.createElement('div');
@@ -110,5 +110,81 @@ describe('useKeyboardScrollCompensation', () => {
         geo.scrollHeight = 2000;
         await waitFrames(100);
         expect(el.scrollTop).toBe(600);
+    });
+});
+
+
+describe('useVirtualKeyboard viewport sizing', () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+        vi.useRealTimers();
+        document.body.replaceChildren();
+    });
+
+    function viewport() {
+        vi.useFakeTimers();
+        const vv = Object.assign(new EventTarget(), { height: 700, offsetTop: 0, scale: 1 });
+        vi.stubGlobal('visualViewport', vv);
+        vi.stubGlobal('innerWidth', 390);
+        const resize = (height: number, offsetTop = 0) => act(() => {
+            Object.assign(vv, { height, offsetTop });
+            vv.dispatchEvent(new Event('resize'));
+            vi.advanceTimersByTime(20);
+        });
+        return { vv, resize };
+    }
+    const css = (name: string) => document.documentElement.style.getPropertyValue(name);
+    const focusInput = () => {
+        const input = document.createElement('textarea');
+        document.body.appendChild(input);
+        act(() => { input.focus(); vi.advanceTimersByTime(20); });
+    };
+
+    it('measures immediately, distinguishes unfocused resizes, and clears styles on disable', () => {
+        const { resize } = viewport();
+        const { result, rerender } = renderHook(({ enabled }) => useVirtualKeyboard(enabled), { initialProps: { enabled: true } });
+        expect(css('--viewport-height')).toBe('700px');
+        resize(450);
+        expect(css('--viewport-height')).toBe('450px');
+        expect(result.current.isKeyboardVisible).toBe(false);
+        rerender({ enabled: false });
+        expect(css('--viewport-height')).toBe('');
+        expect(css('--viewport-offset-top')).toBe('');
+        resize(600);
+        expect(css('--viewport-height')).toBe('');
+    });
+
+    it('tracks keyboard height and viewport pan without treating pinch zoom or rotation as a keyboard', () => {
+        const { vv, resize } = viewport();
+        const { result } = renderHook(() => useVirtualKeyboard());
+        focusInput();
+        resize(400, 30);
+        expect(result.current.keyboardHeight).toBe(300);
+        expect(css('--viewport-offset-top')).toBe('30px');
+        vv.scale = 2;
+        resize(200, 100);
+        expect(css('--viewport-height')).toBe('400px');
+        vv.scale = 1;
+        resize(700);
+        expect(result.current.keyboardHeight).toBe(0);
+        vi.stubGlobal('innerWidth', 820);
+        resize(390);
+        expect(result.current.keyboardHeight).toBe(0);
+        expect(css('--viewport-height')).toBe('390px');
+    });
+
+    it('falls back to innerHeight when VisualViewport is unavailable', () => {
+        vi.useFakeTimers();
+        vi.stubGlobal('visualViewport', undefined);
+        vi.stubGlobal('innerHeight', 640);
+        renderHook(() => useVirtualKeyboard());
+        expect(css('--viewport-height')).toBe('640px');
+        act(() => {
+            vi.stubGlobal('innerHeight', 400);
+            window.dispatchEvent(new Event('resize'));
+            vi.advanceTimersByTime(20);
+        });
+        expect(css('--viewport-height')).toBe('400px');
+        expect(css('--keyboard-height')).toBe('0px');
     });
 });
