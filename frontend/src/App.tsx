@@ -30,6 +30,7 @@ import { useAPOSInitialization } from '@/hooks/useAPOSInitialization';
 import { useActivityStore } from '@/store/activityStore';
 import { useNotificationStore } from '@/store/notificationStore';
 import { ProjectSelectionDialog } from '@/components/project/ProjectSelectionDialog';
+import { InterruptConfirmDialog } from '@/components/dialog/InterruptConfirmDialog';
 import {
   NEW_AUTHORIZED_SESSION_EVENT,
   requestAuthorizedSession,
@@ -446,13 +447,28 @@ function App() {
     );
   }, [startNewAuthorizedSession]);
 
-  // 中断请求
-  const handleInterrupt = useCallback(() => {
+  // 真正执行中断（仅在二次确认通过后调用）
+  const executeInterrupt = useCallback(() => {
     // 通过 store 中断前端状态
     useSessionStore.getState().abort();
     // 发送 WebSocket 中断消息到后端
     sendToServer('/app/interrupt', { isSubmitInterrupt: false });
   }, []);
+
+  // 停止按钮 / Ctrl+C 一律先弹二次确认，防止误点
+  const [interruptConfirmOpen, setInterruptConfirmOpen] = useState(false);
+  const handleInterrupt = useCallback(() => {
+    setInterruptConfirmOpen(true);
+  }, []);
+
+  // 边界：弹窗打开期间 run 自然结束（status → idle/compacting）时自动关闭，
+  // 避免用户对着已结束的 run 点「确认停止」，多发一帧 /app/interrupt，
+  // 后端回 interrupt_ack 后在聊天里留下多余的「已中断 AI 响应」系统消息。
+  useEffect(() => {
+    if (interruptConfirmOpen && status !== 'streaming' && status !== 'waiting_permission') {
+      setInterruptConfirmOpen(false);
+    }
+  }, [interruptConfirmOpen, status]);
 
   return (
     <>
@@ -516,6 +532,21 @@ function App() {
       {/* Global Dialogs */}
       <DialogManager />
       <ProjectSelectionDialog />
+
+      {/* 停止任务二次确认 — 桌面/平板 Dialog，手机 Bottom Sheet */}
+      <InterruptConfirmDialog
+        open={interruptConfirmOpen}
+        onClose={() => setInterruptConfirmOpen(false)}
+        onConfirm={() => {
+          setInterruptConfirmOpen(false);
+          // 二次读取 store 实时状态：防止「effect 关闭弹窗」与「本次点击」之间的
+          // 竞态导致对已结束的 run 发中断帧。
+          const currentStatus = useSessionStore.getState().status;
+          if (currentStatus === 'streaming' || currentStatus === 'waiting_permission') {
+            executeInterrupt();
+          }
+        }}
+      />
     </>
   );
 }
