@@ -125,7 +125,7 @@ Two official rankings are reported: on the six-task equal-weight board ZhikunCod
 | 📤 | **OSS Publishing and Screenshot Paste (Optional)** | `/publish-oss` remains explicit-only for verified artifacts; pasted screenshots support dual-path — OSS upload when configured, automatic Base64 fallback when OSS is not configured, enabling image analysis with no extra setup |
 | 🌍 | **Meoo App Publishing (Optional)** | Use `/publish-meoo` to publish a verified static website or full-stack app as a new site with a shareable URL. Disabled by default; each publication requires separate approval |
 | 🎙️ | **Voice Interaction (ASR / TTS)** | Microphone speech-to-text input (qwen3-asr-flash) and one-click text-to-speech for AI replies (qwen3-tts-flash); powered by Alibaba Cloud DashScope — just configure the API Key; buttons auto-hide when unconfigured |
-| ⚡ | **Intelligent Context Management** | Six-layer compression cascade (Snip / MicroCompact / ContextCollapse / AutoCompact / CollapseDrain / ReactiveCompact) + incremental collapse (auto-compress every 10 turns) + 413 two-phase recovery (CollapseDrain aggressive compression → ReactiveCompact) + Precise Token Counting (tiktoken multi-model support) + Self-Correction Loop (SelfCorrectionLoop, auto-diagnose compile/test failures, max 3 retries) + three-level token alerts + image context governance (large image externalization → on-demand injection → budget guard three-layer protection) for seamless ultra-long conversations. The core engines are ContextCascade and QueryEngine |
+| ⚡ | **Intelligent Context Management** | Six-layer compression cascade (Snip / MicroCompact / ContextCollapse / AutoCompact / CollapseDrain / ReactiveCompact) + incremental collapse (auto-compress every 10 turns) + two-stage context compaction for 413 (CollapseDrain aggressive compression → ReactiveCompact) + Precise Token Counting (tiktoken multi-model support) + Self-Correction Loop (SelfCorrectionLoop, auto-diagnose compile/test failures, max 3 retries) + three-level token alerts + image context governance (large image externalization → on-demand injection → budget guard three-layer protection) for seamless ultra-long conversations. The core engines are ContextCascade and QueryEngine |
 | 📷 | **Multimodal Image Chat** | Upload images for AI analysis; **Intelligent Vision Routing** — when the selected model lacks image input support, the system auto-routes to a vision-capable model and reverts afterward. DeepSeek V4.1 Flash (`deepseek-flash`) supports native vision and is the DeepSeek-family image fallback. **Image Budget Guard** externalizes large images (>50KB), injects them on demand, and applies a two-phase token budget guard (≤1.5MB per image, ≤2MB total, and at most 8 images injected per API call). ZenMux image models include Opus 4.8, Fable 5.1, GPT-5.6 Sol, GPT-6 Astra, Gemini 3.8 Flash, and Grok 4.6 (limits vary by model) |
 | 🖼️ | **Browser Semantic Snapshot** | `/snap` command captures full web page state (DOM structure + interactive elements), extracts structured JSON for Agent parsing and replay verification |
 | 📊 | **Real-Time Activity Tracking & Approval** | Activity Panel records full AI tool execution lifecycle, L1/L2/L3 three-layer display, Signal smart tagging (auto_approve/review_recommended/needs_review), one-click batch approval, SQLite backend persistence, session restoration support |
@@ -136,6 +136,20 @@ Two official rankings are reported: on the six-task equal-weight board ZhikunCod
 | 🏭 | **Runtime Reliability** | Run state CAS atomic management · Durable Interaction Inbox (reconnect recovery) · Process hard timeout + graceful termination cascade · Scoped grants with controlled sub-agent inheritance · Artifact declare→seal→hash verification · Provider local budget guard |
 
 ---
+
+### Conversation Workbench and Change Review
+
+New sessions start in the **development workbench with balanced message density**. Simple and development workbenches share the session; density can be concise, balanced, or detailed. Light, dark, and liquid-glass themes share business state. On phones, session navigation, file references, images/camera, commands, voice, and send controls remain accessible. Workbench, density, and permission controls show their current values; model selection is under More. Desktop and tablet selectors adapt to their available width.
+
+**Source capabilities added on 2026-09-16 (not a deployed-version claim):** On the home screen without a server session, model selection is stored locally for the first session creation. It does not change the configured default or send a switch request to a nonexistent session. Existing sessions still require the appropriate connection and binding state.
+
+The “Changes this turn” summary at the end of an assistant turn expands into a file list and individual operation details; lists longer than five files can be expanded. At widths ≥1024px, details use a right overlay panel; phones and narrow tablets use a full-screen panel. This feature is also part of the source update above.
+
+Only native `Edit` and `Write` operations with a successful result, a verifiable path, and a matching tool call in the turn are included. Edits prefer recorded diffs, otherwise showing a labeled fragment; a write does not imply a new file. Repeated operations remain separate, not a net Git diff. Commands, deletions, and unverified batch or subtask changes are excluded. An absent summary does not mean no files changed. Historical views never read current disk contents.
+
+Session restoration recovers recorded terminal tool states. Activity approval/rejection updates follow server acknowledgement. An empty final response gets at most one recovery attempt; another empty response or a limit terminates according to its reason, not as a successful empty delivery.
+
+Meoo publishing requires its feature switch, deployment credentials, pinned CLI, and an available verification service. It is disabled by default and requires separate approval per publication. A timeout or unsuccessful public-access check is not success and does not guarantee remote cancellation. See the [deployment and troubleshooting guide (Chinese)](deployment/meoo.md).
 
 ## ⚡ Quick Start
 
@@ -326,7 +340,7 @@ If no multi-Provider keys are configured, the system automatically falls back to
 | Provider | Base URL | Recommended Model | Notes |
 |----------|----------|-------------------|-------|
 | **Qwen / DashScope** | `https://dashscope.aliyuncs.com/compatible-mode/v1` | qwen3.8-max-0902 | Pay-as-you-go Provider, direct connection in China |
-| **Alibaba Cloud Bailian Token Plan** | `https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1` | qwen3.8-max / qwen3.8-flash / deepseek-v4-pro-0813 / deepseek-v4-flash-0731 / deepseek-v4.1-flash | Independent `sk-sp-` key; models are labeled “Bailian”. V4.1 Flash is the global, fast-query, summary and vision-fallback default and participates in predefined fallback chains |
+| **Alibaba Cloud Bailian Token Plan** | `https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1` | qwen3.8-max / qwen3.8-flash / deepseek-v4-pro-0813 / deepseek-v4-flash-0731 / deepseek-v4.1-flash | Independent `sk-sp-` key; models are labeled “Bailian”. V4.1 Flash defaults `app.model.default`, fast queries, summaries and vision fallback; the frontend initial preference remains `qwen3.8-max-0902`, with configured/session selections taking precedence |
 | **DeepSeek** | `https://api.deepseek.com/v1` | deepseek-flash | Direct connection in China; DeepSeek V4.1 Flash with thinking, tool use, and native vision |
 | **Moonshot (Kimi)** | `https://api.moonshot.cn/v1` | kimi-k3 / kimi-k2.7-code | Direct connection; kimi-k3 features 1M context window and native vision |
 | **Zhipu (GLM)** | `https://open.bigmodel.cn/api/paas/v4/chat/completions` | glm-5.3, glm-5.3-flash | China direct access |
@@ -465,7 +479,7 @@ ZhikunCode has completed an end-to-end SWE-bench Lite evaluation (300 instances,
 
 | Capability | ZhikunCode Implementation | Technical Highlight |
 |------------|--------------------------|--------------------|
-| Context Compression | ✅ 6-layer cascade + 413 two-phase recovery | ContextCascade provides progressive compression from L0 Snip to L4 ReactiveCompact |
+| Context Compression | ✅ 6-layer cascade + two-stage context compaction for 413 | ContextCascade provides progressive compression from L0 Snip to L4 ReactiveCompact |
 | Runtime Verification | ✅ Tri-modal runtime verification + 7-type evidence chain | VerifierFactory dispatch (browser/http_api/auto), Feature Flag controlled |
 | MCP Transport Protocol | ✅ 4 transport modes (StdIO/SSE/WebSocket/HTTP) | Client+Server dual mode, covering both local and remote scenarios |
 | SWE-bench Verified | ✅ 56.0% pass rate (open-source reproducible) | Full evaluation pipeline open-sourced, supports independent verification |
@@ -532,7 +546,7 @@ ZhikunCode’s intelligent decision-making is driven by the following core engin
 | **OperationAnalyzerRegistry** | Tool semantics and risk analysis | File, Bash, network, MCP/dynamic tool classification |
 | **ToolExecutionGateway** | Single core-tool execution entry point | Execution slot, final authorization recheck, structured results |
 | **PermissionGrantRepository** | Grant persistence, matching, and revocation | RUN/SESSION/WORKSPACE scopes and parent-child Agent inheritance |
-| **ContextCascade** | Context compression & recovery | 6-layer cascade + 413 two-phase recovery |
+| **ContextCascade** | Context compression & recovery | 6-layer cascade + two-stage context compaction for 413 |
 | **ImageRefInjector** | Safe image-reference injection and budget management | Candidate selection, dynamic budgets, integrity checks, and deduplication |
 | **TokenBudgetGuard** | Two-phase token budget control | Historical Base64 cleanup and final-payload gradient degradation |
 | **ToolExecutionPipeline** | Full tool execution lifecycle | Validation, input freezing, authorization, execution, and result normalization |
@@ -557,9 +571,11 @@ Compression Cascade (ContextCascade) → Streaming Session Creation → API Call
 | MicroCompactService | Clears old tool result content to reduce context size | `features.flags.CACHED_MICROCOMPACT` |
 | ModelTierService | Model downgrade chain management with 30-min cooldown auto-recovery | `app.model.tier-chain` |
 
-**413 Two-Phase Recovery**: When the API returns 413 (Payload Too Large), automatic two-phase recovery is triggered (source: [ContextCascade.java](../backend/src/main/java/com/aicodeassistant/engine/ContextCascade.java) `recoverFromPayloadTooLarge`):
+**413 recovery**: [QueryEngine.java](../backend/src/main/java/com/aicodeassistant/engine/QueryEngine.java) orchestrates two context-compaction stages first:
 1. **Level 3** — CollapseDrain aggressive compression (contextWindow × 0.5 target)
 2. **Level 4** — ReactiveCompact (keep only 1 turn + extreme compression)
+
+If compaction cannot recover and the error is media-related, QueryEngine additionally attempts to strip media blocks. Exhaustion releases the error and terminates instead of falling through to ordinary model fallback. The two compaction stages are not the entire error-recovery path.
 
 <details>
 <summary><b>Six-Layer Compression Cascade (ContextCascade) Details</b></summary>
@@ -782,7 +798,7 @@ Full test report: [ZhikunCode v9.3 End-to-End Test Report](test-results/v9.3/Zhi
 
 ZhikunCode's Skill System is a **Markdown-driven extensible workflow engine**. Each skill is a `.md` file — YAML frontmatter defines metadata, Markdown body defines execution instructions.
 
-### 14 Built-in Skills
+### 15 Built-in Skills
 
 Ready to use out of the box — type `/skill-name` to invoke:
 
@@ -818,7 +834,7 @@ managed > user > project > plugin > bundled > mcp
 | **user** | `~/.zhikun/skills/` | User global custom skills | ✅ Implemented |
 | **project** | `.zhikun/skills/` | Project-level skills, distributed with the codebase | ✅ Implemented |
 | **plugin** | Plugin-provided | Skills embedded in JAR plugins | Reserved |
-| **bundled** | Built-in | 14 out-of-the-box skills | ✅ Implemented |
+| **bundled** | Built-in | 15 out-of-the-box skills | ✅ Implemented |
 | **mcp** | MCP-built | Skills registered via MCP protocol | Reserved |
 
 ### Custom Skills
@@ -1231,7 +1247,7 @@ Slots are auto-released via RAII pattern (`try-with-resources`), ensuring no res
 
 ### Model Alias Routing
 
-Agents use a three-level fallback strategy for model resolution: user parameter → Agent type default → global default. Aliases are configured in `application.yml` under `agent.model-aliases` (e.g., `light → qwen-plus`), avoiding hardcoded model names — configure once, apply everywhere.
+Agents use a three-level fallback strategy for model resolution: user parameter → Agent type default → global default. Aliases are configured in `application.yml` under `agent.model-aliases` (`light`, `standard`, and `premium` currently default to `qwen3.8-max-0902`), avoiding hardcoded model names — configure once, apply everywhere.
 
 ---
 

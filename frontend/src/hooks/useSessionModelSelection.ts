@@ -19,21 +19,27 @@ export function useSessionModelSelection() {
     const bound = useSyncExternalStore(subscribeSessionBinding,
         () => Boolean(sessionId && isSessionBindingReady(sessionId)));
     const inDetail = Boolean(sessionId) && !((isMobile || isTablet) && mobileNavTab);
-    const disabledReason = !inDetail ? '进入会话后可切换模型'
+    const disabledReason = loading || models.length === 0 ? '模型暂不可用'
+        : !sessionId ? undefined
+        : !inDetail ? '进入会话后可切换模型'
         : bridgeStatus !== 'connected' ? '连接恢复后可切换模型'
-        : !bound ? '会话连接完成后可切换模型'
-        : loading || models.length === 0 ? '模型暂不可用' : undefined;
+        : !bound ? '会话连接完成后可切换模型' : undefined;
 
     const selectModel = (newModel: string) => {
         // Read live state: an open selector may outlive a navigation or rebind.
         const current = useSessionStore.getState();
         const modelState = useModelStore.getState();
-        if (!sessionId || current.sessionId !== sessionId
-                || (window.innerWidth < 1024 && useAppUiStore.getState().mobileNavTab)
+        if (current.sessionId !== sessionId || modelState.loading
+                || !modelState.models.some(model => model.id === newModel)) return;
+        // Home has no server Session yet; keep a local selection for its first creation.
+        if (!sessionId) {
+            current.setModel(newModel);
+            return;
+        }
+        if ((window.innerWidth < 1024 && useAppUiStore.getState().mobileNavTab)
                 || !isSessionBindingReady(sessionId)
                 || useBridgeStore.getState().bridgeStatus !== 'connected'
-                || !isWsConnected() || modelState.loading
-                || !modelState.models.some(model => model.id === newModel)) return;
+                || !isWsConnected()) return;
 
         const previousModel = current.model;
         current.setModel(newModel);

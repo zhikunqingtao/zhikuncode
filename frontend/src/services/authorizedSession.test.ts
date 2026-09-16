@@ -32,6 +32,7 @@ describe('requestAuthorizedSession', () => {
         });
         useSessionStore.setState({
             sessionId: null,
+            model: null,
             createSession: originalCreateSession,
         });
         useModelStore.setState({
@@ -50,6 +51,7 @@ describe('requestAuthorizedSession', () => {
         });
         useSessionStore.setState({
             sessionId: null,
+            model: null,
             createSession: originalCreateSession,
         });
         useModelStore.setState({
@@ -79,6 +81,17 @@ describe('requestAuthorizedSession', () => {
             project.id,
             'model-default',
         );
+    });
+
+    it('uses the home model selection for the first Session without changing the default', async () => {
+        useModelStore.setState({ models: [model('model-default'), model('chosen')] });
+        useSessionStore.setState({ model: 'chosen' });
+        useProjectStore.setState({ requestSelection: vi.fn().mockResolvedValue(project) });
+        const createSession = vi.fn().mockResolvedValue('new');
+        useSessionStore.setState({ createSession });
+        await requestAuthorizedSession();
+        expect(createSession).toHaveBeenCalledWith(project.id, 'chosen');
+        expect(useConfigStore.getState().defaultModel).toBe('model-default');
     });
 
     it('does not create a Session when folder selection is canceled', async () => {

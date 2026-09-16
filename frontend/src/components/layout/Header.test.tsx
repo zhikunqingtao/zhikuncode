@@ -58,8 +58,9 @@ describe('Header model selection', () => {
         act(() => markSessionBound('session-a'));
         expect(selector).toBeEnabled();
         fireEvent.click(screen.getAllByRole('button', { name: '返回首页' })[0]);
-        expect(selector).toBeDisabled();
+        expect(selector).toBeEnabled();
         fireEvent.change(selector, { target: { value: 'model-a' } });
+        expect(useSessionStore.getState().model).toBe('model-a');
         expect(send).toHaveBeenCalledTimes(1);
         expect(fetch).not.toHaveBeenCalled();
     });

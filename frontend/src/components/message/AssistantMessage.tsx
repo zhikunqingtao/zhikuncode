@@ -31,6 +31,7 @@ import { useStreamingText } from '@/hooks/useStreamingText';
 interface AssistantMessageProps {
     /** 嵌入整轮助手卡片时，仅渲染正文与操作行。 */
     embedded?: boolean;
+    hideActions?: boolean;
     message: Extract<Message, { type: 'assistant' }>;
     /** 是否正在流式接收此消息 */
     isStreaming?: boolean;
@@ -46,6 +47,7 @@ const AssistantMessage: React.FC<AssistantMessageProps> = ({
     message,
     isStreaming = false,
     embedded = false,
+    hideActions = false,
     streamingContent,
     thinkingContent,
     activeToolCalls,
@@ -80,7 +82,7 @@ const AssistantMessage: React.FC<AssistantMessageProps> = ({
                 </div>
 
                 {/* 操作行（TTS + 复制 + 时间戳；与轮次分组路径共享 AssistantMessageActions） */}
-                <AssistantMessageActions message={message} isStreaming={isStreaming} />
+                {!hideActions && <AssistantMessageActions message={message} isStreaming={isStreaming} />}
             </div>
         </div>
     );

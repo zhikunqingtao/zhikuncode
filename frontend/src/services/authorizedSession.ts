@@ -29,7 +29,10 @@ export function requestAuthorizedSession(): Promise<string | null> {
             await currentModels.fetchModels();
         }
         const refreshedModels = useModelStore.getState();
-        const configuredDefault = useConfigStore.getState().defaultModel;
+        const session = useSessionStore.getState();
+        const homeModel = !session.sessionId ? session.model : null;
+        const configuredDefault = homeModel && refreshedModels.models.some(model => model.id === homeModel)
+            ? homeModel : useConfigStore.getState().defaultModel;
         const defaultModel = refreshedModels.models.some(
             model => model.id === configuredDefault)
             ? configuredDefault

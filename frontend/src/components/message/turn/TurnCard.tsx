@@ -32,6 +32,9 @@ import { buildTurnTaskSections, splitTurnLayers } from '@/store/selectors/turnSe
 import { renderMessageContent } from '../renderMessageContent';
 import TurnProcessArea from './TurnProcessArea';
 import UserMessage from '../UserMessage';
+import AssistantMessageActions from '../AssistantMessageActions';
+import { TurnFileChanges } from './TurnFileChanges';
+import { projectTurnFileChanges } from '@/store/selectors/turnFileChanges';
 
 export interface TurnCardProps {
     turn: Turn;
@@ -86,8 +89,10 @@ const TurnCard: React.FC<TurnCardProps> = ({
     const running = turn.status === 'active' && isRunActive;
     const answerStreaming = layers.answer !== null
         && layers.answer.uuid === streamingMessageId;
+    const files = useMemo(() => projectTurnFileChanges(turn.messages, activeToolCalls), [turn.messages, activeToolCalls]);
     const answerContent = layers.answer && renderMessageContent(layers.answer, {
         embeddedAssistant: true,
+        hideAssistantActions: files.length > 0,
         isStreaming: answerStreaming,
         streamingContent: answerStreaming ? streamingContent : undefined,
         thinkingContent: answerStreaming ? thinkingContent : undefined,
@@ -165,6 +170,10 @@ const TurnCard: React.FC<TurnCardProps> = ({
                             {renderMessageContent(message)}
                         </div>
                     ))}
+                    {files.length > 0 && <div className="min-w-0 px-3 pb-3 sm:px-4">
+                        <TurnFileChanges key={`${sessionId}:${turn.key}`} files={files} running={running} />
+                        {layers.answer?.type === 'assistant' && answerExpanded && <AssistantMessageActions message={layers.answer} isStreaming={answerStreaming} />}
+                    </div>}
                 </section>
             )}
         </div>

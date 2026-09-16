@@ -167,7 +167,7 @@ describe('PromptComposerChips', () => {
             expect(fetch).not.toHaveBeenCalled();
         });
 
-        it('disables the mobile selector on the session list and closes it on leaving detail', async () => {
+        it('disables the mobile selector and closes its sheet when entering the session list', async () => {
             vi.stubGlobal('innerWidth', 390);
             vi.stubGlobal('matchMedia', vi.fn((query: string) => ({
                 matches: query === '(max-width: 767px)', addEventListener: vi.fn(), removeEventListener: vi.fn(),
@@ -179,10 +179,28 @@ describe('PromptComposerChips', () => {
             act(() => useAppUiStore.getState().setMobileNavTab(null));
             expect(selector).toBeEnabled();
             fireEvent.click(selector);
+            expect(screen.getByRole('dialog', { name: '选择模型' })).toBeInTheDocument();
+            act(() => useAppUiStore.getState().setMobileNavTab('sessions'));
+            expect(selector).toBeDisabled();
+            await waitFor(() => expect(screen.queryByRole('dialog', { name: '选择模型' })).not.toBeInTheDocument());
+            expect(useSessionStore.getState().model).toBe('model-a');
+            expect(sendSetModel).not.toHaveBeenCalled();
+            expect(fetch).not.toHaveBeenCalled();
+        });
+
+        it('keeps a choice from an open mobile sheet local after returning home', async () => {
+            vi.stubGlobal('innerWidth', 390);
+            vi.stubGlobal('matchMedia', vi.fn((query: string) => ({
+                matches: query === '(max-width: 767px)', addEventListener: vi.fn(), removeEventListener: vi.fn(),
+            })));
+            render(<ModelChip mobile />);
+            const selector = screen.getByRole('button', { name: /模型/ });
+            fireEvent.click(selector);
             const option = screen.getByRole('button', { name: 'Model B' });
             act(() => useSessionStore.setState({ sessionId: '' }));
             fireEvent.click(option);
-            expect(selector).toBeDisabled();
+            expect(selector).toBeEnabled();
+            expect(useSessionStore.getState().model).toBe('model-b');
             await waitFor(() => expect(screen.queryByRole('dialog', { name: '选择模型' })).not.toBeInTheDocument());
             expect(sendSetModel).not.toHaveBeenCalled();
             expect(fetch).not.toHaveBeenCalled();

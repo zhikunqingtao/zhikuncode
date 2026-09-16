@@ -15,6 +15,7 @@ import { Paperclip, Layers, FolderSearch } from 'lucide-react';
 /** 单条消息渲染上下文（流式透传 + 活跃工具调用） */
 export interface MessageRenderContext {
     embeddedAssistant?: boolean;
+    hideAssistantActions?: boolean;
     /** 是否正在流式接收此消息 */
     isStreaming?: boolean;
     streamingContent?: string;
@@ -34,6 +35,7 @@ export function renderMessageContent(
                 <AssistantMessage
                     message={message}
                     embedded={ctx?.embeddedAssistant}
+                    hideActions={ctx?.hideAssistantActions}
                     isStreaming={ctx?.isStreaming}
                     streamingContent={ctx?.streamingContent}
                     thinkingContent={ctx?.thinkingContent}
