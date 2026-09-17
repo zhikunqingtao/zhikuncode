@@ -13,6 +13,17 @@ import static org.mockito.Mockito.when;
 class LlmProviderRegistryModelContractTest {
 
     @Test
+    void duplicateModelIdsFailExplicitlyInsteadOfDependingOnRegistrationOrder() {
+        LlmProvider first = provider(List.of("shared"), "shared");
+        LlmProvider second = provider(List.of("shared"), "shared");
+        when(first.getProviderName()).thenReturn("first");
+        when(second.getProviderName()).thenReturn("second");
+        LlmProviderRegistry registry = new LlmProviderRegistry(List.of(first, second), mock(Environment.class));
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> registry.getProvider("shared"))
+                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("Ambiguous model route");
+    }
+
+    @Test
     void fallsBackFromUnavailableConfiguredDefaultToProviderDefault() {
         LlmProvider provider = provider(
                 List.of("available-first", "available-default"),

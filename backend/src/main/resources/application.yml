@@ -105,6 +105,12 @@ llm:
       base-url: https://api.minimax.chat/v1
       default-model: MiniMax-M3
       models: ${LLM_PROVIDER_MINIMAX_MODELS:MiniMax-M3}
+    # OpenRouter：复用 OpenAI Chat Completions 协议，未配置 Key 时不注册。
+    openrouter:
+      api-key: ${LLM_PROVIDER_OPENROUTER_API_KEY:}
+      base-url: https://openrouter.ai/api/v1
+      default-model: stealth/union-alpha
+      models: ${LLM_PROVIDER_OPENROUTER_MODELS:stealth/union-alpha,openrouter/openai/gpt-6-astra,openrouter/anthropic/claude-fable-5.1}
     # ZenMux（Anthropic Claude / OpenAI / Gemini / Grok 系列，1M 上下文）。
     # api-key 支持逗号分隔多 key（通用能力，所有 provider 均可）：订阅 key（sk-ss-v1- 前缀）
     # 放前面优先使用，按量计费 key（sk-ai-v1- 前缀）放后面兜底；订阅配额耗尽
@@ -146,7 +152,7 @@ agent:
     default-seconds: 1800
     max-seconds: 1800
     graceful-shutdown-seconds: 30
-    max-wait-minutes: 15
+    max-wait-minutes: ${AGENT_TIMEOUT_MAX_WAIT_MINUTES:31}  # 覆盖默认 30 分钟子代理上限及 30 秒退出窗口；AGENT_TIMEOUT_MAX_WAIT_MINUTES 可覆盖
     watchdog-multiplier: 2.0
     tool-consume-max-wait-minutes: 0
   loop:
@@ -184,7 +190,7 @@ features:
     GIT_ENHANCED_TOOL: ${GIT_ENHANCED_TOOL:true}   # B4: GitTool 门控，默认开启（只读工具）
     RESOURCE_MONITOR: ${RESOURCE_MONITOR:false}    # B5: MonitorTool 门控，默认关闭
     # ── C 组：后台代理生命周期修复 ──
-    BACKGROUND_AGENT_WAIT: false     # C1: 后台代理等待功能总开关（灰度用）
+    BACKGROUND_AGENT_WAIT: true      # 当前 Run 收齐后台代理结果后汇总；FEATURE_BACKGROUND_AGENT_WAIT 可覆盖
     AGENT_ABORT_CASCADE: true        # C2: abort 级联到子代理（安全性修复，默认开）
     # ── D 组：自纠错循环 ──
     SELF_CORRECTION_LOOP: ${SELF_CORRECTION_LOOP:false}  # D1: SelfCorrectionLoop 总开关（默认关闭，SWE-bench评测时通过环境变量启用）
@@ -267,6 +273,12 @@ app:
   compact:
     # Independent summary model; does not use getFastModel().
     model: ${LLM_COMPACT_MODEL:deepseek-v4.1-flash}
+    llm-enabled: ${LLM_COMPACT_LLM_ENABLED:true}
+    provider: ${LLM_COMPACT_PROVIDER:dashscope-token-plan}
+    thinking-mode: ${LLM_COMPACT_THINKING_MODE:max}
+    max-completion-tokens: ${LLM_COMPACT_MAX_COMPLETION_TOKENS:8192}
+    max-summary-tokens: ${LLM_COMPACT_MAX_SUMMARY_TOKENS:4096}
+    timeout-ms: ${LLM_COMPACT_TIMEOUT_MS:90000}
     session-memory-compact-enabled: true
     smc-min-tokens: 10000
     smc-max-tokens: 40000

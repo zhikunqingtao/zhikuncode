@@ -63,11 +63,20 @@ public class LlmProviderRegistry {
 
     /** 根据模型名称查找对应供应商 */
     public LlmProvider getProvider(String model) {
-        return providers.values().stream()
+        List<LlmProvider> matches = providerSnapshot().stream()
                 .filter(p -> p.getSupportedModels().contains(model))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "No provider found for model: " + model));
+                .toList();
+        if (matches.isEmpty()) throw new IllegalArgumentException("No provider found for model: " + model);
+        if (matches.size() > 1) throw new IllegalArgumentException(
+                "Ambiguous model route: " + model + " in "
+                        + matches.stream().map(LlmProvider::getProviderName).toList()
+                        + "; configure distinct provider-qualified model IDs");
+        return matches.getFirst();
+    }
+
+    /** Exact routing for explicitly configured optional capabilities. */
+    public java.util.Optional<LlmProvider> findProviderByName(String name) {
+        return java.util.Optional.ofNullable(name == null ? null : providers.get(name));
     }
 
     /** 注册供应商 */

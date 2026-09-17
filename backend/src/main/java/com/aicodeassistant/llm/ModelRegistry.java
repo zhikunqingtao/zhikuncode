@@ -30,14 +30,21 @@ public class ModelRegistry {
         entry("claude-haiku-4-5", caps("claude-haiku-4-5", "Claude Haiku 4.5", 8192, 200000, true, false, true, 10, true, 0.0008, 0.004)),
          // Anthropic via ZenMux (anthropic/ 前缀 = zenmux 中转，1M ctx · 128K 最大输出，我们保守设 64K)
         entry("anthropic/claude-opus-4.8", caps("anthropic/claude-opus-4.8", "Claude Opus 4.8", 64000, 1000000, true, false, true, 5, true, 0.005, 0.025)),
-        entry("anthropic/claude-fable-5.1", cacheCaps("anthropic/claude-fable-5.1", "Claude Fable 5.1", 64000, 1000000, true, false, true, 5, true, 0.010, 0.050)),
+        entry("anthropic/claude-fable-5.1", cacheCaps("anthropic/claude-fable-5.1", "Claude Fable 5.1（ZenMux）", 64000, 1000000, true, false, true, 5, true, 0.010, 0.050)),
         // OpenAI via ZenMux (openai/ 前缀 = zenmux 中转)
         entry("openai/gpt-5.6-sol",   caps("openai/gpt-5.6-sol",   "OpenAI GPT-5.6 Sol",   128000, 1050000, true,  true, true, 4, true, 0.030, 0.180)),
-        entry("openai/gpt-6-astra",   caps("openai/gpt-6-astra",   "OpenAI GPT-6 Astra",   128000, 1050000, true,  true, true, 4, true, 0.010, 0.050)),
+        entry("openai/gpt-6-astra",   caps("openai/gpt-6-astra",   "GPT-6 Astra（ZenMux）",   128000, 1050000, true,  true, true, 4, true, 0.010, 0.050)),
         // Google via ZenMux (google/ 前缀 = zenmux 中转)
         entry("google/gemini-3.8-flash",   caps("google/gemini-3.8-flash",   "Google Gemini 3.8 Flash",   65536, 1048576, true, true, true, 4, true, 0.0015, 0.0075)),
         // xAI via ZenMux
         entry("x-ai/grok-4.6", caps("x-ai/grok-4.6", "xAI Grok 4.6", 65536, 500000, true, true, true, 4, true, 0.004, 0.012)),
+        entry(OpenRouterModels.ASTRA, OpenRouterModels.capabilities(OpenRouterModels.ASTRA)),
+        entry(OpenRouterModels.FABLE, OpenRouterModels.capabilities(OpenRouterModels.FABLE)),
+        // OpenRouter Union Alpha（2026-09-17 核对）：262144 context / 131072 output，免费预览。
+        // https://openrouter.ai/api/v1/models/stealth/union-alpha/endpoints
+        // 支持图片与工具调用；未公布图片数量上限，应用保守限制为 4 张。
+        // supported_parameters 未包含 reasoning，故不暴露可配置思考模式。
+        entry("stealth/union-alpha", caps("stealth/union-alpha", "Union Alpha（OpenRouter）", 131072, 262144, true, false, true, 4, true, 0.0, 0.0)),
         // 国产大模型
         // DeepSeek V4.1 Flash 官方规格：1M 上下文 / 384K 最大输出 / 原生视觉 / 思考与工具调用。
         // 模型规格：https://api-docs.deepseek.com/quick_start/pricing/
@@ -145,6 +152,29 @@ public class ModelRegistry {
             log.warn("Unknown model '{}'; using conservative DEFAULT capabilities", modelId);
         }
         return ModelCapabilities.DEFAULT;
+    }
+
+    /** Summary-specific resolution: never consult another provider or DEFAULT capabilities. */
+    public java.util.Optional<ModelCapabilities> findExplicitCapabilities(String modelId, LlmProvider selected) {
+        ModelCapabilities base = null;
+        try {
+            if (selected != null && selected.getSupportedModels().contains(modelId)) {
+                var candidate = selected.getModelCapabilities(modelId);
+                if (candidate != null && modelId.equals(candidate.modelId())) base = candidate;
+            }
+        } catch (RuntimeException ignored) { }
+        if (base == null) base = BUILTIN_MODELS.get(modelId);
+        var override = properties.getCapabilities().get(modelId);
+        if (override == null) return java.util.Optional.ofNullable(base);
+        if (base == null && (override.getContextWindow() == null || override.getOutputMaxTokens() == null
+                || override.getTokenCharRatio() == null)) return java.util.Optional.empty();
+        try {
+            return java.util.Optional.of(new ModelCapabilities(modelId, modelId,
+                    override.getOutputMaxTokens() != null ? override.getOutputMaxTokens() : base.maxOutputTokens(),
+                    override.getContextWindow() != null ? override.getContextWindow() : base.contextWindow(),
+                    true, true, false, 0, false, 0, 0,
+                    override.getTokenCharRatio() != null ? override.getTokenCharRatio() : base.tokenCharRatio()));
+        } catch (IllegalArgumentException e) { return java.util.Optional.empty(); }
     }
 
     public boolean isKnownModel(String modelId) {

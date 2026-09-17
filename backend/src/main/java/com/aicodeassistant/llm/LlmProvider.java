@@ -126,6 +126,12 @@ public interface LlmProvider {
         return response.toString();
     }
 
+    /** Optional detailed summary capability; never bridge through a string-only API. */
+    default boolean supportsSummary(String model, SummaryRequest.ThinkingMode mode) { return false; }
+    default SummaryResult summarize(SummaryRequest request, LlmCallContext context) {
+        return SummaryResult.failed("unsupported_summary");
+    }
+
     // ==================== 模型能力查询 ====================
 
     /** 获取默认/推荐模型 */

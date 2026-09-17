@@ -92,8 +92,9 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         this.apiKey = apiKey;
         this.keyRotationManager = keyRotationManager;
         this.baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
-        this.defaultModel = defaultModel;
-        this.supportedModels = supportedModels;
+        this.defaultModel = isOpenRouter() ? OpenRouterModels.localId(defaultModel) : defaultModel;
+        this.supportedModels = isOpenRouter()
+                ? supportedModels.stream().map(OpenRouterModels::localId).distinct().toList() : supportedModels;
         this.payloadGuard = payloadGuard;
 
         this.httpClient = new OkHttpClient.Builder()
@@ -117,6 +118,20 @@ public class OpenAiCompatibleProvider implements LlmProvider {
     public List<String> getSupportedModels() { return supportedModels; }
 
     @Override
+    public boolean supportsSummary(String model, SummaryRequest.ThinkingMode mode) {
+        return BailianSummaryClient.ENDPOINT.equals(baseUrl) && supportedModels.contains(model)
+                && SummaryRequest.supports(model, mode);
+    }
+
+    @Override
+    public SummaryResult summarize(SummaryRequest request, LlmCallContext context) {
+        if (!supportsSummary(request.model(), request.thinkingMode())) return SummaryResult.failed("unsupported_summary");
+        if (request.maxCompletionTokens() <= 0) return SummaryResult.failed("invalid_summary_configuration");
+        String key = keyRotationManager.getKeyCount() > 0 ? keyRotationManager.getNextKey() : apiKey;
+        return BailianSummaryClient.execute(httpClient, objectMapper, key, activeCalls, request, context);
+    }
+
+    @Override
     public String getDefaultModel() { return defaultModel; }
 
     @Override
@@ -130,8 +145,12 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         return defaultModel;
     }
 
+    private boolean isOpenRouter() { return "openrouter".equalsIgnoreCase(providerName); }
+
     @Override
     public ModelCapabilities getModelCapabilities(String model) {
+        if (isOpenRouter() && OpenRouterModels.capabilities(model) != null)
+            return OpenRouterModels.capabilities(model);
         ModelCapabilities caps = MODEL_CAPABILITIES.get(model);
         if (caps != null) return caps;
         // 未匹配时抛异常，让 ModelRegistry.getCapabilities() Level 2 的 catch(Exception)
@@ -152,6 +171,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
     @Override
     public boolean supportsThinking(String model) {
         if (model == null) return false;
+        if (isOpenRouter() && OpenRouterModels.capabilities(model) != null) return true;
         if ("zenmux".equalsIgnoreCase(providerName)
                 && ZENMUX_RESPONSES_MODELS.contains(model)) return true;
         ModelCapabilities caps = MODEL_CAPABILITIES.get(model);
@@ -205,6 +225,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         Call call = httpClient.newCall(request);
         // 工具调用累积器 — OpenAI 的工具调用通过多个 delta 增量拼接
         Map<Integer, ToolCallAccumulator> toolCallAccumulators = new HashMap<>();
+        OpenRouterReasoning routerReasoning = isOpenRouter() ? new OpenRouterReasoning() : null;
 
         try (AutoCloseable ignored = LlmCallRegistration.register(activeCalls, callId, call,
                      callContext.cancellation(), Call::cancel);
@@ -236,14 +257,20 @@ public class OpenAiCompatibleProvider implements LlmProvider {
                 if (line.isEmpty()) continue;
 
                 if ("data: [DONE]".equals(line)) {
+                    if (routerReasoning != null) routerReasoning.complete(objectMapper, callback);
                     callback.onComplete();
                     return;
                 }
 
                 if (line.startsWith("data: ")) {
                     String json = line.substring(6);
+                    if (routerReasoning != null) routerReasoning.accept(objectMapper.readTree(json), callback);
                     processChunk(json, toolCallAccumulators, callback);
                 }
+            }
+            if (routerReasoning != null) {
+                callback.onError(new LlmApiException("OpenRouter stream ended before [DONE]", true));
+                return;
             }
             // Stream ended without [DONE] — still complete
             callback.onComplete();
@@ -713,7 +740,12 @@ public class OpenAiCompatibleProvider implements LlmProvider {
             int maxTokens) {
 
         ObjectNode root = objectMapper.createObjectNode();
-        root.put("model", model);
+        root.put("model", isOpenRouter() ? OpenRouterModels.upstreamId(model) : model);
+        if (isOpenRouter() && OpenRouterModels.capabilities(model) != null) {
+            // Both models mandate reasoning; strongest confirmed effort as of 2026-09-17.
+            root.putObject("reasoning").put("effort", "max").put("exclude", false);
+            root.putObject("provider").put("require_parameters", true);
+        }
         // Kimi 系列模型使用 max_completion_tokens 参数名（官方要求）
         String maxTokensKey = model.startsWith("kimi-") ? "max_completion_tokens" : "max_tokens";
         root.put(maxTokensKey, maxTokens);
@@ -807,9 +839,10 @@ public class OpenAiCompatibleProvider implements LlmProvider {
                         msgNode.putNull("content");
                     }
                     // DeepSeek: reasoning_content 必须回传
-                    if (!thinkingContent.isEmpty()) {
+                    if (!isOpenRouter() && !thinkingContent.isEmpty()) {
                         msgNode.put("reasoning_content", thinkingContent.toString());
                     }
+                    if (isOpenRouter()) OpenRouterReasoning.replay(objectMapper, msgNode, blocks, model);
                     // 构建 tool_calls 数组
                     ArrayNode toolCalls = msgNode.putArray("tool_calls");
                     for (Object block : blocks) {
@@ -874,7 +907,9 @@ public class OpenAiCompatibleProvider implements LlmProvider {
                     msgNode.put("content", textContent.toString());
                 }
                 // DeepSeek: reasoning_content 必须回传
-                if ("assistant".equals(role) && !thinkingContent.isEmpty()) {
+                if (isOpenRouter() && "assistant".equals(role))
+                    OpenRouterReasoning.replay(objectMapper, msgNode, blocks, model);
+                if (!isOpenRouter() && "assistant".equals(role) && !thinkingContent.isEmpty()) {
                     msgNode.put("reasoning_content", thinkingContent.toString());
                 }
             } else {
@@ -1083,7 +1118,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
 
             if (delta != null) {
                 // DeepSeek reasoning_content 思考增量
-                if (delta.has("reasoning_content") && !delta.get("reasoning_content").isNull()) {
+                if (!isOpenRouter() && delta.has("reasoning_content") && !delta.get("reasoning_content").isNull()) {
                     String thinking = delta.get("reasoning_content").asText();
                     if (!thinking.isEmpty()) {
                         callback.onEvent(new LlmStreamEvent.ThinkingDelta(thinking));
