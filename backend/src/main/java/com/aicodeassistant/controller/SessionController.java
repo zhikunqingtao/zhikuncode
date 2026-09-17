@@ -8,6 +8,8 @@ import com.aicodeassistant.model.Message;
 import com.aicodeassistant.model.PermissionMode;
 import com.aicodeassistant.model.SessionSummary;
 import com.aicodeassistant.permission.PermissionModeManager;
+import com.aicodeassistant.run.RunEnvelope;
+import com.aicodeassistant.run.RunEnvelopeRepository;
 import com.aicodeassistant.session.SessionData;
 import com.aicodeassistant.session.SessionManager;
 import com.aicodeassistant.session.SessionPage;
@@ -56,6 +58,7 @@ public class SessionController {
     private final ProjectWorkspaceService projectWorkspaces;
     private final PermissionModeManager permissionModes;
     private final PublicMessageProjection publicMessages;
+    private final RunEnvelopeRepository runEnvelopes;
 
     public SessionController(SessionManager sessionManager,
                              CompactService compactService,
@@ -64,7 +67,8 @@ public class SessionController {
                              WebSocketSessionManager wsSessionManager,
                              ProjectWorkspaceService projectWorkspaces,
                              PermissionModeManager permissionModes,
-                             PublicMessageProjection publicMessages) {
+                             PublicMessageProjection publicMessages,
+                             RunEnvelopeRepository runEnvelopes) {
         this.sessionManager = sessionManager;
         this.compactService = compactService;
         this.providerRegistry = providerRegistry;
@@ -73,6 +77,7 @@ public class SessionController {
         this.projectWorkspaces = projectWorkspaces;
         this.permissionModes = permissionModes;
         this.publicMessages = publicMessages;
+        this.runEnvelopes = runEnvelopes;
     }
 
     /**
@@ -158,8 +163,28 @@ public class SessionController {
                     (last.updatedAt() + "|" + last.id()).getBytes());
         }
 
+        // 附带运行中标记（与 WorkbenchTaskService 的 RUNNING 语义一致：
+        // 最新根 Run 未达到终态即视为生成中），供前端列表展示"生成中"状态。
+        List<SessionSummaryView> views = page.sessions().stream()
+                .map(summary -> SessionSummaryView.of(summary, isRunning(summary.id())))
+                .toList();
+
         return ResponseEntity.ok(new SessionListResponse(
-                page.sessions(), page.hasMore(), nextCursor));
+                views, page.hasMore(), nextCursor));
+    }
+
+    private boolean isRunning(String sessionId) {
+        try {
+            // 与前端"运行中"(streaming) 语义对齐：仅 RUNNING 视为运行中。
+            // WAITING_INTERACTION（等待审批）虽非终态但不是运行中——否则同一会话
+            // 切到后台会被误标"运行中"，与前台"等待权限"的展示不一致。
+            return runEnvelopes.findLatestRootBySession(sessionId)
+                    .map(run -> run.status() == RunEnvelope.RunStatus.RUNNING)
+                    .orElse(false);
+        } catch (Exception e) {
+            log.debug("Failed to resolve run status for session {}: {}", sessionId, e.getMessage());
+            return false;
+        }
     }
 
     /**
@@ -360,10 +385,30 @@ public class SessionController {
     ) {}
 
     public record SessionListResponse(
-            List<SessionSummary> sessions,
+            List<SessionSummaryView> sessions,
             boolean hasMore,
             String nextCursor
     ) {}
+
+    /** 会话列表项视图 — SessionSummary + 运行中标记。 */
+    public record SessionSummaryView(
+            String id,
+            String title,
+            String goalPreview,
+            String model,
+            String workingDirectory,
+            int messageCount,
+            double costUsd,
+            Instant createdAt,
+            Instant updatedAt,
+            boolean running
+    ) {
+        static SessionSummaryView of(SessionSummary s, boolean running) {
+            return new SessionSummaryView(
+                    s.id(), s.title(), s.goalPreview(), s.model(), s.workingDirectory(),
+                    s.messageCount(), s.costUsd(), s.createdAt(), s.updatedAt(), running);
+        }
+    }
 
     public record ResumeSessionResponse(
             String sessionId,

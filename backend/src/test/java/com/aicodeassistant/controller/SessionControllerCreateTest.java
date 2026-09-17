@@ -156,6 +156,7 @@ class SessionControllerCreateTest {
                 mock(WebSocketSessionManager.class),
                 projects,
                 permissionModes,
-                new com.aicodeassistant.service.PublicMessageProjection());
+                new com.aicodeassistant.service.PublicMessageProjection(),
+                mock(com.aicodeassistant.run.RunEnvelopeRepository.class));
     }
 }

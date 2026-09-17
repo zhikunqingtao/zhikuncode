@@ -65,7 +65,7 @@ import { useWorkbenchViewStore } from '@/store/workbenchViewStore';
 import { taskTitle } from '@/utils/workbenchPresentation';
 import { normalizeThemeMode, useConfigStore } from '@/store/configStore';
 import { useViewportWidth } from '@/hooks/useResponsive';
-import { groupSessionsByDirectory, type SessionSummary } from '@/utils/sessionGroups';
+import { groupSessionsByDirectory, isSessionGenerating, type SessionSummary } from '@/utils/sessionGroups';
 
 export type TabType = 'sessions' | 'tasks' | 'files' | 'sequence' | 'dag' | 'git' | 'complexity' | 'impact' | 'api-docs' | 'diagram' | 'code-path' | 'apos';
 
@@ -592,6 +592,7 @@ function SessionList({ onCollapse, onSessionActivated, onBack }: { onCollapse?: 
         return next;
     });
     const currentSessionId = useSessionStore(s => s.sessionId);
+    const currentStatus = useSessionStore(s => s.status);
     const currentMessages = useMessageStore(s => s.messages);
     const simpleMode = useWorkbenchViewStore(s => s.enabled && s.viewMode === 'simple');
     const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -660,7 +661,11 @@ function SessionList({ onCollapse, onSessionActivated, onBack }: { onCollapse?: 
             return;
         }
         const result = await activateSessionCandidate(sessionId);
-        if (result.status === 'activated') onSessionActivated?.();
+        if (result.status === 'activated') {
+            onSessionActivated?.();
+            // 切走后原会话可能仍在后台生成：刷新列表拿到服务端 running 标记
+            window.dispatchEvent(new Event('session-list-updated'));
+        }
         if (result.status === 'failed') {
             useNotificationStore.getState().addNotification({
                 key: `session-switch-failed-${generateUUID()}`,
@@ -783,6 +788,9 @@ function SessionList({ onCollapse, onSessionActivated, onBack }: { onCollapse?: 
                                                 session.goalPreview,
                                             )
                                             : session.title || taskTitle(null, [], session.workingDirectory, session.goalPreview);
+                                        // 仅"运行中"需要在列表项展示状态（当前会话取实时 store 状态，
+                                        // 其余会话取服务端 running 标记）；其他状态不展示。
+                                        const generating = isSessionGenerating(session, currentSessionId, currentStatus);
                                         return (
                                             <div
                                                 key={session.id}
@@ -795,8 +803,17 @@ function SessionList({ onCollapse, onSessionActivated, onBack }: { onCollapse?: 
                                             >
                                                 <div className="flex items-start justify-between gap-1">
                                                     <div className="flex-1 min-w-0">
-                                                        <div className="text-sm font-medium text-t1 truncate">
-                                                            {displayTitle}
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="min-w-0 flex-1 truncate text-sm font-medium text-t1">
+                                                                {displayTitle}
+                                                            </div>
+                                                            {generating && (
+                                                                <span role="status"
+                                                                    className="inline-flex shrink-0 items-center gap-1 rounded-full border border-accent2-ring bg-accent2-soft px-2 py-0.5 text-[13px] font-medium leading-5 text-accent2-ink">
+                                                                    <Loader2 aria-hidden="true" className="h-3 w-3 animate-spin" />
+                                                                    运行中
+                                                                </span>
+                                                            )}
                                                         </div>
                                                         {!simpleMode && <div className="flex items-center gap-2 mt-1">
                                                             <span className="text-[13px] text-t2 truncate">

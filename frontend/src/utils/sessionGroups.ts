@@ -8,6 +8,8 @@ export interface SessionSummary {
     costUsd: number;
     createdAt: string;
     updatedAt: string;
+    /** 服务端标记：最新根 Run 未达终态 = 正在运行（用于列表"运行中"状态展示） */
+    running?: boolean;
 }
 
 export interface SessionFolderGroup {
@@ -36,4 +38,18 @@ export function groupSessionsByDirectory(sessions: SessionSummary[], preserveOrd
         group.sessions.push(session);
     }
     return [...groups.values()];
+}
+
+/**
+ * 列表项"运行中"展示判定：当前会话取前端实时 store 状态（即时），
+ * 其余会话取服务端 running 标记（后台运行中的会话）。其他状态一律不展示。
+ */
+export function isSessionGenerating(
+    session: Pick<SessionSummary, 'id' | 'running'>,
+    currentSessionId: string | null,
+    currentStatus: string,
+): boolean {
+    return session.id === currentSessionId
+        ? currentStatus === 'streaming'
+        : session.running === true;
 }
