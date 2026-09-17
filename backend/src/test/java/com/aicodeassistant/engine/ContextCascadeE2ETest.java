@@ -240,7 +240,7 @@ class ContextCascadeE2ETest {
 
         CompactService.CompactResult compactResult = new CompactService.CompactResult(
                 compacted, 70000, 20000, 15, 0.71);
-        when(compactService.compact(anyList(), eq(CONTEXT_WINDOW), eq(false)))
+        when(compactService.compact(anyList(), any(CompactionContext.class), eq(false)))
                 .thenReturn(compactResult);
 
         // When
@@ -252,7 +252,7 @@ class ContextCascadeE2ETest {
         assertThat(result.autoCompactExecuted()).isTrue();
         assertThat(result.autoCompactResult()).isNotNull();
         assertThat(result.autoCompactResult().beforeTokens()).isEqualTo(70000);
-        verify(compactService).compact(anyList(), eq(CONTEXT_WINDOW), eq(false));
+        verify(compactService).compact(anyList(), any(CompactionContext.class), eq(false));
     }
 
     @Test
@@ -271,7 +271,7 @@ class ContextCascadeE2ETest {
         // Then
         assertThat(result.autoCompactAttempted()).isFalse();
         assertThat(result.autoCompactExecuted()).isFalse();
-        verify(compactService, never()).compact(anyList(), anyInt(), anyBoolean());
+        verify(compactService, never()).compact(anyList(), any(CompactionContext.class), anyBoolean());
     }
 
     @Test
@@ -290,7 +290,7 @@ class ContextCascadeE2ETest {
 
         // Then
         assertThat(result.autoCompactAttempted()).isFalse();
-        verify(compactService, never()).compact(anyList(), anyInt(), anyBoolean());
+        verify(compactService, never()).compact(anyList(), any(CompactionContext.class), anyBoolean());
     }
 
     @Test
@@ -315,7 +315,7 @@ class ContextCascadeE2ETest {
         // Then
         assertThat(result.contextCollapseExecuted()).isTrue();
         assertThat(result.autoCompactAttempted()).isFalse();
-        verify(compactService, never()).compact(anyList(), anyInt(), anyBoolean());
+        verify(compactService, never()).compact(anyList(), any(CompactionContext.class), anyBoolean());
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -331,7 +331,7 @@ class ContextCascadeE2ETest {
         CompactService.CompactResult drainResult = new CompactService.CompactResult(
                 drained, 80000, 30000, 20, 0.625);
 
-        when(compactService.compact(eq(messages), eq(50000), eq(true))).thenReturn(drainResult);
+        when(compactService.compact(eq(messages), any(CompactionContext.class), eq(true))).thenReturn(drainResult);
 
         // When
         List<Message> result = cascade.executeErrorRecoveryCascade(messages, CONTEXT_WINDOW, false);
@@ -339,7 +339,7 @@ class ContextCascadeE2ETest {
         // Then
         assertThat(result).isNotNull().hasSize(10);
         // 验证 compact 被调用，isUrgent=true，目标为 contextWindow*0.5
-        verify(compactService).compact(eq(messages), eq(50000), eq(true));
+        verify(compactService).compact(eq(messages), any(CompactionContext.class), eq(true));
     }
 
     @Test
@@ -348,12 +348,12 @@ class ContextCascadeE2ETest {
         // Given: Level 3 返回跳过
         List<Message> messages = buildMessages(20);
         CompactService.CompactResult skipResult = CompactService.CompactResult.skipped("no_compactable");
-        when(compactService.compact(anyList(), anyInt(), eq(true))).thenReturn(skipResult);
+        when(compactService.compact(anyList(), any(CompactionContext.class), eq(true))).thenReturn(skipResult);
 
         List<Message> reactiveResult = buildMessages(5);
         CompactService.CompactResult reactiveCompactResult = new CompactService.CompactResult(
                 reactiveResult, 60000, 15000, 15, 0.75);
-        when(compactService.reactiveCompact(eq(messages), eq(CONTEXT_WINDOW), eq(false)))
+        when(compactService.reactiveCompact(eq(messages), any(CompactionContext.class), eq(false)))
                 .thenReturn(reactiveCompactResult);
 
         // When
@@ -361,7 +361,7 @@ class ContextCascadeE2ETest {
 
         // Then
         assertThat(result).isNotNull().hasSize(5);
-        verify(compactService).reactiveCompact(eq(messages), eq(CONTEXT_WINDOW), eq(false));
+        verify(compactService).reactiveCompact(eq(messages), any(CompactionContext.class), eq(false));
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -374,14 +374,14 @@ class ContextCascadeE2ETest {
         // Given: hasAttemptedReactive=true, Level 3 也失败
         List<Message> messages = buildMessages(20);
         CompactService.CompactResult skipResult = CompactService.CompactResult.skipped("failed");
-        when(compactService.compact(anyList(), anyInt(), eq(true))).thenReturn(skipResult);
+        when(compactService.compact(anyList(), any(CompactionContext.class), eq(true))).thenReturn(skipResult);
 
         // When: hasAttemptedReactive=true
         List<Message> result = cascade.executeErrorRecoveryCascade(messages, CONTEXT_WINDOW, true);
 
         // Then: 返回 null（所有恢复策略耗尽）
         assertThat(result).isNull();
-        verify(compactService, never()).reactiveCompact(anyList(), anyInt(), anyBoolean());
+        verify(compactService, never()).reactiveCompact(anyList(), any(CompactionContext.class), anyBoolean());
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -417,7 +417,7 @@ class ContextCascadeE2ETest {
         when(tokenCounter.estimateTokens(afterCollapse)).thenReturn(75000);
         CompactService.CompactResult acResult = new CompactService.CompactResult(
                 afterCompact, 75000, 25000, 20, 0.67);
-        when(compactService.compact(eq(afterCollapse), eq(CONTEXT_WINDOW), eq(false)))
+        when(compactService.compact(eq(afterCollapse), any(CompactionContext.class), eq(false)))
                 .thenReturn(acResult);
 
         // final token count

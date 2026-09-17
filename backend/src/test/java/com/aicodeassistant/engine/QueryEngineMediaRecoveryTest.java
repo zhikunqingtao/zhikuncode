@@ -167,12 +167,22 @@ class QueryEngineMediaRecoveryTest {
         // 默认 UserImageTranscoder mock: 直接返回原消息
         lenient().when(userImageTranscoder.transcode(anyList(), any(), nullable(String.class), any(), anyInt()))
                 .thenAnswer(inv -> new UserImageTranscoder.TranscodeResult(inv.getArgument(0), 0, List.of()));
-        // 默认 RunTracker mock: 返回真实 RunEnvelope，保证 execute() 的 Run 注册路径可用
+        var runs = new java.util.HashMap<String,RunEnvelope>();
         lenient().when(runTracker.startRun(anyString(), nullable(String.class), anyString(), anyString()))
-                .thenAnswer(inv -> RunEnvelope.start(
-                        inv.getArgument(0), inv.getArgument(1), inv.getArgument(2), inv.getArgument(3)));
+            .thenAnswer(inv -> { var run = RunEnvelope.start(inv.getArgument(0),inv.getArgument(1),inv.getArgument(2),inv.getArgument(3)); runs.put(run.id(),run); return run; });
+        lenient().when(runTracker.getRun(anyString())).thenAnswer(inv -> java.util.Optional.ofNullable(runs.get(inv.getArgument(0))));
+        lenient().doAnswer(inv -> { String id = inv.getArgument(0); var run = runs.get(id);
+            runs.put(id, new RunEnvelope(id,run.sessionId(),null,RunEnvelope.RunStatus.COMPLETED,run.agentType(),run.model(),null,
+                run.startedAt(),Instant.now(),null,0,0,0,0,null,run.createdAt(),Instant.now(),1,
+                RunEnvelope.RunExitReason.MODEL_FINISHED,null,RunEnvelope.VerificationStatus.NOT_REQUESTED,Instant.now(),null)); return null; })
+            .when(runTracker).completeRun(anyString(),anyInt(),anyDouble(),anyInt(),anyInt());
+        lenient().doAnswer(inv -> { String id = inv.getArgument(0); var run = runs.get(id);
+            runs.put(id, new RunEnvelope(id,run.sessionId(),null,RunEnvelope.RunStatus.FAILED,run.agentType(),run.model(),null,
+                run.startedAt(),Instant.now(),null,0,0,0,0,inv.getArgument(1),run.createdAt(),Instant.now(),1,
+                RunEnvelope.RunExitReason.INTERNAL_ERROR,null,RunEnvelope.VerificationStatus.NOT_REQUESTED,Instant.now(),null)); return null; })
+            .when(runTracker).failRun(anyString(),anyString());
         // 默认 ContextCascade mock: 直接返回原消息列表（无压缩）
-        lenient().when(contextCascade.executePreApiCascade(anyList(), anyString(), any()))
+        lenient().when(contextCascade.executePreApiCascade(anyList(), anyString(), any(), any()))
                 .thenAnswer(inv -> {
                     List<Message> msgs = inv.getArgument(0);
                     int tokens = msgs.size() * 100;
@@ -431,7 +441,7 @@ class QueryEngineMediaRecoveryTest {
         var current = new Message.UserMessage("current", Instant.now(), List.of(new ContentBlock.ImageBlock(
                 "image/png", java.util.Base64.getEncoder().encodeToString(UserImageTranscoderTest.png(16)))), null, null, Map.of("steering", true));
         var summary = new Message.UserMessage("summary", Instant.now(), List.of(new ContentBlock.TextBlock("summary")), null, null);
-        when(compactService.reactiveCompact(eq(List.of(history)), anyInt(), eq(false)))
+        when(compactService.reactiveCompact(eq(List.of(history)), any(CompactionContext.class), eq(false)))
                 .thenReturn(new CompactService.CompactResult(freesSpace ? List.of(summary) : List.of(history),
                         181000, freesSpace ? 10 : 181000, 1, freesSpace ? 0.001 : 1,
                         "skipped".equals(outcome) ? "NOT_COMPACTABLE" : null, 0));
@@ -443,7 +453,7 @@ class QueryEngineMediaRecoveryTest {
                 new ThinkingConfig.Disabled(), 1, "test");
         var result = newEngine(new MessageNormalizer(), new UserImageTranscoder(UserImageTranscoderTest.properties()))
                 .execute(config, state, handler);
-        verify(compactService, times(1)).reactiveCompact(eq(List.of(history)), anyInt(), eq(false));
+        verify(compactService, times(1)).reactiveCompact(eq(List.of(history)), any(CompactionContext.class), eq(false));
         assertThat(state.getTurnCount()).isEqualTo(1);
         assertThat(state.getMessages()).contains(current);
         assertThat(result.isSuccess()).isEqualTo(freesSpace);

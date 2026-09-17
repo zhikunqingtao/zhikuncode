@@ -70,7 +70,7 @@ class ContextManagementTest {
         @Test
         @DisplayName("压缩后 CompactResult 包含压缩前后 token 数")
         void compactResultContainsTokenCounts() {
-            int contextWindowSize = 5000;
+            int contextWindowSize = 12000;
             List<Message> messages = buildLargeMessageList(30, 500);
 
             CompactService.CompactResult result = compactService.compact(
@@ -85,7 +85,7 @@ class ContextManagementTest {
         @Test
         @DisplayName("压缩后消息数减少")
         void compactReducesMessageCount() {
-            int contextWindowSize = 5000;
+            int contextWindowSize = 12000;
             List<Message> messages = buildLargeMessageList(30, 500);
 
             CompactService.CompactResult result = compactService.compact(
@@ -213,15 +213,19 @@ class ContextManagementTest {
                     null, null));
             }
 
-            String mockSummary = "<analysis>分析对话历史</analysis>" +
+            String mockSummary = "" +
                 "<summary>\n## 主要请求\n用户请求修改 DatabaseConfig、UserService、pom.xml 和 Spring Boot 3.2 相关配置。" +
                 "\n## 文件和代码段\n- DatabaseConfig: 添加连接池配置\n- UserService: 新增验证逻辑" +
                 "\n- pom.xml: 升级依赖版本\n## 当前工作\n持续优化各模块功能。\n</summary>";
 
-            when(providerRegistry.hasProviders()).thenReturn(true);
-            when(providerRegistry.getProvider("deepseek-v4.1-flash")).thenReturn(llmProvider);
-            when(llmProvider.chatSync(anyString(), anyString(), anyString(), anyInt(), any(), anyLong()))
-                .thenReturn(mockSummary);
+            var models = mock(com.aicodeassistant.llm.ModelRegistry.class);
+            when(providerRegistry.findProviderByName("dashscope-token-plan")).thenReturn(java.util.Optional.of(llmProvider));
+            when(llmProvider.supportsSummary(any(),any())).thenReturn(true);
+            when(models.findExplicitCapabilities(any(),eq(llmProvider))).thenReturn(java.util.Optional.of(
+                new com.aicodeassistant.llm.ModelCapabilities("deepseek-v4.1-flash","DS",32768,1000000,true,true,false,0,false,0,0)));
+            when(llmProvider.summarize(any(),any())).thenReturn(new com.aicodeassistant.llm.SummaryResult(mockSummary,"stop",null,null,null,null));
+            org.springframework.test.util.ReflectionTestUtils.setField(compactService,"contextCompactor",
+                new ContextCompactor(tokenCounter,providerRegistry,models,new CompactConfiguration(null)));
 
             CompactService.CompactResult result = compactService.compact(messages, 5000, false);
 
@@ -233,7 +237,6 @@ class ContextManagementTest {
         @Test
         @DisplayName("LLM 不可用时降级到关键消息选择")
         void fallbackWhenLlmUnavailable() {
-            when(providerRegistry.hasProviders()).thenReturn(false);
             List<Message> messages = new ArrayList<>();
             for (int i = 0; i < 20; i++) {
                 messages.add(new Message.UserMessage(

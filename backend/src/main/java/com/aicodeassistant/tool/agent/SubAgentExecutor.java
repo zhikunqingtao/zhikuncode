@@ -131,6 +131,10 @@ public class SubAgentExecutor {
         if (error != null) {
             return AgentResult.STATUS_FAILED;
         }
+        if (result != null && ("cancelled".equals(result.stopReason()) || "aborted".equals(result.stopReason()))) {
+            return AgentResult.STATUS_INTERRUPTED;
+        }
+        if (result != null && "timeout".equals(result.stopReason())) return AgentResult.STATUS_TIMEOUT;
         if (result == null || result.error() != null) {
             return AgentResult.STATUS_FAILED;
         }
@@ -439,9 +443,9 @@ public class SubAgentExecutor {
         String finalAnswer = answer;
         // failed 时把 QueryResult.error 透出到结果开头，确保失败原因进入
         // task-notification 的 summary（前 200 字符），不再被静默丢弃
-        if (AgentResult.STATUS_FAILED.equals(status)
+        if (!AgentResult.STATUS_COMPLETED.equals(status)
                 && result != null && result.error() != null) {
-            finalAnswer = "failed: " + result.error()
+            finalAnswer = status + ": " + result.error()
                     + (answer == null || answer.isBlank() ? "" : "\n" + answer);
         }
         if (formatter != null && coordinatorMode) {
@@ -459,23 +463,28 @@ public class SubAgentExecutor {
     public AgentResult executeAsync(AgentRequest request, ToolUseContext parentContext) {
         String outputFile = Path.of(System.getProperty("java.io.tmpdir"), "agent-" + request.agentId() + "-output.txt").toString();
 
-        Thread.ofVirtual().name("zhiku-agent-" + request.agentId()).start(() -> {
-            try {
-                AgentResult result = executeSync(request, parentContext);
-                Files.writeString(Path.of(outputFile), result.result() != null ? result.result() : "");
-                backgroundTracker.markCompleted(request.agentId(), result);
-            } catch (Throwable t) {
-                log.error("Background agent {} terminated with {}: {}",
-                        request.agentId(), t.getClass().getSimpleName(), t.getMessage(), t);
-                backgroundTracker.markFailed(request.agentId(),
-                        t.getClass().getSimpleName() + ": " + t.getMessage());
-            } finally {
-                cleanupAgentResources(request.agentId(), request);
-            }
-        });
-
-        backgroundTracker.register(request.agentId(), parentContext.sessionId(),
+        backgroundTracker.register(request.agentId(), parentContext.sessionId(), parentContext.currentRunId(),
                 request.prompt(), outputFile);
+        try {
+            Thread.ofVirtual().name("zhiku-agent-" + request.agentId()).start(() -> {
+                try {
+                    AgentResult result = executeSync(request, parentContext);
+                    Files.writeString(Path.of(outputFile), result.result() != null ? result.result() : "");
+                    backgroundTracker.markCompleted(request.agentId(), result);
+                } catch (Throwable t) {
+                    log.error("Background agent {} terminated with {}: {}",
+                            request.agentId(), t.getClass().getSimpleName(), t.getMessage(), t);
+                    backgroundTracker.markFailed(request.agentId(),
+                            t.getClass().getSimpleName() + ": " + t.getMessage());
+                } finally {
+                    cleanupAgentResources(request.agentId(), request);
+                }
+            });
+
+        } catch (RuntimeException | Error startFailure) {
+            backgroundTracker.markFailed(request.agentId(), "AGENT_START_FAILED: " + startFailure.getClass().getSimpleName());
+            throw startFailure;
+        }
 
         return new AgentResult(AgentResult.STATUS_ASYNC_LAUNCHED, null, request.prompt(), outputFile);
     }

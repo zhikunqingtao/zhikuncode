@@ -32,6 +32,8 @@ public class BackgroundAgentTracker {
     private final SimpMessagingTemplate messagingTemplate;
     private final Map<String, AgentStatus> activeAgents = new ConcurrentHashMap<>();
 
+    private final java.util.Set<String> retainedRuns = ConcurrentHashMap.newKeySet();
+
     // 会话级锁 — 用于 awaitAllAgents 等待通知
     private final ConcurrentHashMap<String, ReentrantLock> sessionLocks = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Condition> sessionConditions = new ConcurrentHashMap<>();
@@ -49,8 +51,12 @@ public class BackgroundAgentTracker {
      * @param outputFile 输出文件路径
      */
     public void register(String agentId, String sessionId, String prompt, String outputFile) {
+        register(agentId, sessionId, null, prompt, outputFile);
+    }
+
+    public void register(String agentId, String sessionId, String parentRunId, String prompt, String outputFile) {
         AgentStatus status = new AgentStatus(
-                agentId, sessionId, prompt, outputFile, "running",
+                agentId, sessionId, parentRunId, prompt, outputFile, "running",
                 Instant.now(), null, null);
         activeAgents.put(agentId, status);
         pushEvent(agentId, "agent_started", Map.of(
@@ -62,36 +68,46 @@ public class BackgroundAgentTracker {
      * 标记代理完成。
      */
     public void markCompleted(String agentId, SubAgentExecutor.AgentResult result) {
-        AgentStatus current = activeAgents.get(agentId);
-        if (current != null) {
-            activeAgents.put(agentId, current.withStatus("completed", Instant.now()));
-            // 通知等待线程
-            signalSession(current.sessionId());
-            pushEvent(agentId, "agent_completed", Map.of(
-                    "agentId", agentId,
-                    "resultPreview", truncate(result.result(), 500)));
-            log.info("Background agent completed: {}", agentId);
+        String status = result.status();
+        if (status == null || !java.util.Set.of("completed", "failed", "timeout", "interrupted", "max_turns").contains(status)) {
+            status = "failed";
         }
+        finish(agentId, status, "completed".equals(status) ? null : truncate(result.result(), 500), result.result());
     }
 
-    /**
-     * 标记代理失败。
-     */
     public void markFailed(String agentId, String error) {
-        AgentStatus current = activeAgents.get(agentId);
-        if (current != null) {
-            AgentStatus failed = new AgentStatus(
-                    current.agentId(), current.sessionId(), current.prompt(),
-                    current.outputFile(), "failed", current.startedAt(),
-                    Instant.now(), error);
-            activeAgents.put(agentId, failed);
-            // 通知等待线程
-            signalSession(current.sessionId());
-            pushEvent(agentId, "agent_failed", Map.of(
-                    "agentId", agentId, "error", error != null ? error : "unknown"));
-            log.warn("Background agent failed: {} — {}", agentId, error);
-        }
+        finish(agentId, "failed", error != null ? error : "unknown", null);
     }
+
+    private void finish(String agentId, String status, String error, String output) {
+        var changed = new java.util.concurrent.atomic.AtomicReference<AgentStatus>();
+        activeAgents.computeIfPresent(agentId, (id, current) -> {
+            if (!"running".equals(current.status())) return current;
+            var terminal = new AgentStatus(current.agentId(), current.sessionId(), current.parentRunId(),
+                    current.prompt(), current.outputFile(), status, current.startedAt(), Instant.now(), error);
+            changed.set(terminal);
+            return terminal;
+        });
+        AgentStatus terminal = changed.get();
+        if (terminal == null) return;
+        signalSession(terminal.sessionId());
+        pushEvent(agentId, "completed".equals(status) ? "agent_completed" : "agent_failed",
+                Map.of("agentId", agentId, "status", status, "resultPreview", truncate(output, 500),
+                        "error", error == null ? "" : error));
+        log.info("Background agent terminal: agentId={}, parentRunId={}, status={}", agentId, terminal.parentRunId(), status);
+    }
+
+    public List<AgentStatus> listForRun(String sessionId, String runId) {
+        if (runId == null) return List.of();
+        return activeAgents.values().stream()
+                .filter(a -> sessionId.equals(a.sessionId()) && runId.equals(a.parentRunId()))
+                .sorted(java.util.Comparator.comparing(AgentStatus::startedAt).thenComparing(AgentStatus::agentId))
+                .toList();
+    }
+
+    // Keep result files available while their parent Run may still need to collect them.
+    public void retainRun(String runId) { if (runId != null) retainedRuns.add(runId); }
+    public void releaseRun(String runId) { if (runId != null) retainedRuns.remove(runId); }
 
     /**
      * 列出指定会话的活跃代理。
@@ -124,39 +140,37 @@ public class BackgroundAgentTracker {
      * 等待指定会话的所有后台代理完成。
      * @return true=全部完成, false=超时或被 abort
      */
+    public enum WaitResult { COMPLETED, TIMED_OUT, CANCELLED, INTERRUPTED }
+
     public boolean awaitAllAgents(String sessionId, Duration timeout, AbortContext abortContext) {
+        return await(sessionId, timeout, abortContext, () -> getActiveAgentIds(sessionId).isEmpty()) == WaitResult.COMPLETED;
+    }
+
+    public WaitResult awaitRun(String sessionId, String runId, Duration timeout, AbortContext abortContext) {
+        return await(sessionId, timeout, abortContext,
+                () -> listForRun(sessionId, runId).stream().noneMatch(a -> "running".equals(a.status())));
+    }
+
+    private WaitResult await(String sessionId, Duration timeout, AbortContext abortContext,
+                             java.util.function.BooleanSupplier complete) {
         ReentrantLock lock = sessionLocks.computeIfAbsent(sessionId, k -> new ReentrantLock());
         Condition condition = sessionConditions.computeIfAbsent(sessionId, k -> lock.newCondition());
-
         long deadline = System.nanoTime() + timeout.toNanos();
+        var registration = abortContext == null ? (com.aicodeassistant.llm.CancellationSignal.Registration) () -> { }
+                : abortContext.register(() -> signalSession(sessionId));
         lock.lock();
-        try {
+        try (registration) {
             while (true) {
-                // 检查是否全部完成
-                List<String> running = getActiveAgentIds(sessionId);
-                if (running.isEmpty()) {
-                    return true;
-                }
-
-                // 检查 abort 信号
-                if (abortContext != null && abortContext.isAborted()) {
-                    log.info("Abort signal received while waiting for agents in session {}", sessionId);
-                    return false;
-                }
-
-                // 计算剩余等待时间
-                long remainingNanos = deadline - System.nanoTime();
-                if (remainingNanos <= 0) {
-                    log.warn("Timeout waiting for {} agents in session {}", running.size(), sessionId);
-                    return false;
-                }
-
-                // 等待信号（被 markCompleted/markFailed 唤醒）
+                if (abortContext != null && abortContext.isAborted()) return WaitResult.CANCELLED;
+                if (Thread.currentThread().isInterrupted()) return WaitResult.INTERRUPTED;
+                if (complete.getAsBoolean()) return WaitResult.COMPLETED;
+                long remaining = deadline - System.nanoTime();
+                if (remaining <= 0) return WaitResult.TIMED_OUT;
                 try {
-                    condition.awaitNanos(remainingNanos);
+                    condition.awaitNanos(remaining);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
-                    return false;
+                    return WaitResult.INTERRUPTED;
                 }
             }
         } finally {
@@ -183,7 +197,7 @@ public class BackgroundAgentTracker {
         if (lock != null && condition != null) {
             lock.lock();
             try {
-                condition.signal();
+                condition.signalAll();
             } finally {
                 lock.unlock();
             }
@@ -201,7 +215,8 @@ public class BackgroundAgentTracker {
         while (it.hasNext()) {
             var entry = it.next();
             AgentStatus status = entry.getValue();
-            if (!"running".equals(status.status())
+            if ((status.parentRunId() == null || !retainedRuns.contains(status.parentRunId()))
+                    && !"running".equals(status.status())
                     && status.completedAt() != null
                     && status.completedAt().isBefore(cutoff)) {
                 // 清理对应的输出文件（确保 QueryEngine.formatAgentResults() 已读取完毕）
@@ -258,14 +273,7 @@ public class BackgroundAgentTracker {
      * 代理状态记录。
      */
     public record AgentStatus(
-            String agentId, String sessionId, String prompt, String outputFile,
+            String agentId, String sessionId, String parentRunId, String prompt, String outputFile,
             String status, Instant startedAt, Instant completedAt, String error
-    ) {
-        /** 创建新状态的副本 */
-        AgentStatus withStatus(String newStatus, Instant time) {
-            return new AgentStatus(agentId, sessionId, prompt, outputFile,
-                    newStatus, startedAt, time,
-                    "completed".equals(newStatus) ? null : error);
-        }
-    }
+    ) {}
 }

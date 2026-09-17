@@ -367,12 +367,49 @@ public class SessionManager {
      * 游标分页查询 — 对齐 v1.9.0 分页 API。
      */
     public SessionPage listSessionsPaginated(boolean anchorToLatest, String beforeId, int limit) {
+        return listSessionsPaginated(anchorToLatest, beforeId, limit, null);
+    }
+
+    // Search decoded text blocks from the first user message before applying pagination.
+    // Invalid or non-array historical JSON contributes no searchable body.
+    private static final String SESSION_SEARCH_CONDITION = """
+              AND (s.title LIKE ? ESCAPE '\\'
+                OR EXISTS (
+                    SELECT 1 FROM json_each(
+                        (SELECT CASE WHEN json_valid(m.content_json) THEN
+                            CASE WHEN json_type(m.content_json) = 'array' THEN m.content_json ELSE '[]' END
+                            ELSE '[]' END
+                         FROM messages m WHERE m.session_id = s.id AND m.role = 'user'
+                         ORDER BY m.seq_num ASC LIMIT 1)
+                    ) AS block
+                    WHERE CASE WHEN block.type = 'object' THEN
+                        CASE WHEN json_extract(block.value, '$.type') = 'text'
+                                  AND json_type(block.value, '$.text') = 'text'
+                             THEN json_extract(block.value, '$.text') END
+                        END LIKE ? ESCAPE '\\'
+                ))
+            """;
+
+    /**
+     * 游标分页查询 + 服务端搜索（§7.5 面板搜索框）。
+     * <p>
+     * query 非空白时，按「会话标题」或「首条用户消息全文」做 LIKE 匹配；
+     * query 为 null/空白时行为与 3 参版本完全一致。
+     */
+    public SessionPage listSessionsPaginated(boolean anchorToLatest, String beforeId, int limit, String query) {
         List<SessionSummary> sessions;
+
+        // LIKE 参数：转义 \ % _ 后前后包 %
+        String like = null;
+        if (query != null && !query.isBlank()) {
+            like = "%" + query.trim()
+                    .replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%";
+        }
+        String searchCondition = like == null ? "" : SESSION_SEARCH_CONDITION;
 
         if (anchorToLatest || beforeId == null) {
             // 首次加载：从最新开始，多取 1 条用于判断 hasMore
-            sessions = jdbcTemplate.query(
-                    """
+            String sql = """
                     SELECT s.*,
                         (SELECT m.content_json FROM messages m
                          WHERE m.session_id = s.id AND m.role = 'user'
@@ -380,18 +417,23 @@ public class SessionManager {
                         (SELECT COUNT(*) FROM messages m WHERE m.session_id = s.id) AS message_count
                     FROM sessions s
                     WHERE (s.metadata_json IS NULL OR s.metadata_json NOT LIKE '%"type":"subagent"%')
+                    """ + searchCondition + """
                     ORDER BY s.updated_at DESC LIMIT ?
-                    """,
-                    summaryMapper, limit + 1
-            );
+                    """;
+            List<Object> args = new ArrayList<>();
+            if (like != null) {
+                args.add(like);
+                args.add(like);
+            }
+            args.add(limit + 1);
+            sessions = jdbcTemplate.query(sql, summaryMapper, args.toArray());
         } else {
             // 游标翻页：获取 beforeId 的 updated_at，然后查询更早的记录
             String cursorTime = jdbcTemplate.queryForObject(
                     "SELECT updated_at FROM sessions WHERE id = ?",
                     String.class, beforeId
             );
-            sessions = jdbcTemplate.query(
-                    """
+            String sql = """
                     SELECT s.*,
                         (SELECT m.content_json FROM messages m
                          WHERE m.session_id = s.id AND m.role = 'user'
@@ -400,10 +442,17 @@ public class SessionManager {
                     FROM sessions s
                     WHERE s.updated_at < ?
                       AND (s.metadata_json IS NULL OR s.metadata_json NOT LIKE '%"type":"subagent"%')
+                    """ + searchCondition + """
                     ORDER BY s.updated_at DESC LIMIT ?
-                    """,
-                    summaryMapper, cursorTime, limit + 1
-            );
+                    """;
+            List<Object> args = new ArrayList<>();
+            args.add(cursorTime);
+            if (like != null) {
+                args.add(like);
+                args.add(like);
+            }
+            args.add(limit + 1);
+            sessions = jdbcTemplate.query(sql, summaryMapper, args.toArray());
         }
 
         boolean hasMore = sessions.size() > limit;

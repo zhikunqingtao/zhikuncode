@@ -100,7 +100,7 @@ class QueryFlowIntegrationTest {
         MicroCompactService microCompactService = new MicroCompactService(tokenCounter);
 
         ContextCascade contextCascade = mock(ContextCascade.class);
-        when(contextCascade.executePreApiCascade(any(), anyString(), any())).thenAnswer(inv -> {
+        when(contextCascade.executePreApiCascade(any(), anyString(), any(), any())).thenAnswer(inv -> {
             List<Message> msgs = inv.getArgument(0);
             int tokens = tokenCounter.estimateTokens(msgs);
             return new ContextCascade.CascadeResult(msgs, tokens, tokens, false, 0, false, 0, false, 0, false, false, null);

@@ -66,8 +66,20 @@ public class CompactService {
     private static final int SMC_MIN_TEXT_BLOCK_MESSAGES = 5;
     private static final int SMC_MAX_TOKENS = 40_000;
 
-    @Value("${app.compact.model:deepseek-v4.1-flash}")
-    private String summaryModel = "deepseek-v4.1-flash";
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private ContextCompactor contextCompactor;
+
+    private ContextCompactor compactor() {
+        return contextCompactor != null ? contextCompactor
+                : new ContextCompactor(tokenCounter, providerRegistry, null, new CompactConfiguration(null));
+    }
+
+    public CompactResult compactForPreview(List<Message> messages, String model) {
+        return compact(messages, compactor().previewContext(model), false);
+    }
+
+    public long summaryTimeoutMillis() { return compactor().timeoutMillis(); }
 
     private final TokenCounter tokenCounter;
     private final LlmProviderRegistry providerRegistry;
@@ -84,40 +96,6 @@ public class CompactService {
 
     // ============ 压缩系统提示 ============
 
-    private static final String NO_TOOLS_PREAMBLE = """
-            严格要求：仅以纯文本回复。绝不调用任何工具。
-            工具调用将被拒绝，并浪费你唯一的回合。
-            你的完整回复必须是纯文本：一个 <analysis> 块，后接一个 <summary> 块。
-            """;
-
-    private static final String COMPACT_SYSTEM_PROMPT = NO_TOOLS_PREAMBLE + """
-            你的任务是为到目前为止的对话创建一份详细摘要，
-            密切关注用户的明确请求和你之前的操作。
-
-            在提供最终摘要之前，将你的分析包裹在 <analysis> 标签中。
-            在分析过程中：
-            1. 按时间顺序分析每条消息。针对每个部分识别：
-               - 用户的明确请求和意图
-               - 关键决策、技术概念和代码模式
-               - 具体细节：文件名、代码片段、函数签名、文件编辑
-               - 遇到的错误及其修复方式
-               - 用户反馈，特别是纠正意见
-            2. 反复检查技术准确性和完整性。
-
-            你的摘要应在 <summary> 标签中包含以下章节：
-            1. 主要请求和意图
-            2. 关键技术概念
-            3. 文件和代码段（附代码片段）
-            4. 错误和修复
-            5. 问题解决过程
-            6. 所有用户消息（非工具结果）
-            7. 待处理任务
-            8. 当前工作（附文件名的精确描述）
-            9. 可选的下一步（仅限与近期工作直接相关的）
-
-            保留所有文件路径、错误消息和具体值。
-            绝不使用"该文件"等模糊引用——必须使用实际路径。
-            """;
 
     // ============ 压缩计划 ============
 
@@ -142,8 +120,15 @@ public class CompactService {
             int compactedMessageCount,
             double compressionRatio,
             String skipReason,
-            int consecutiveFailures
+            int consecutiveFailures,
+            String mode,
+            String failureReason
     ) {
+        public CompactResult(List<Message> messages, int before, int after, int count, double ratio,
+                             String skipReason, int failures) {
+            this(messages, before, after, count, ratio, skipReason, failures,
+                    skipReason == null ? "legacy" : "unchanged", skipReason);
+        }
         /** 5 参数便捷构造器 */
         public CompactResult(List<Message> compactedMessages, int beforeTokens,
                              int afterTokens, int compactedMessageCount, double compressionRatio) {
@@ -233,92 +218,20 @@ public class CompactService {
     /**
      * 执行压缩 — 3 级降级策略。
      * <p>
-     * Level 1: LLM 摘要 (P0 阶段使用关键消息选择替代)
-     * Level 2: 关键消息选择 (按优先级保留)
-     * Level 3: 尾部截断 (保留最近 1/3 消息)
+     * 完整摘要验证失败后，按完整工具事务选择本地历史；不截断消息。
      */
     public CompactResult compact(List<Message> messages, int contextWindowSize, boolean isReactive) {
-        int preserveTurns = isReactive ? REACTIVE_PRESERVED_TURNS : PRESERVED_RECENT_TURNS;
-        CompactionPlan plan = planCompaction(messages, contextWindowSize, preserveTurns);
+        return compact(messages, CompactionContext.unscoped(contextWindowSize), isReactive);
+    }
 
-        if (plan.compactionMessages().isEmpty()) {
-            return CompactResult.notNeeded();
-        }
+    public CompactResult compact(List<Message> messages, CompactionContext context, boolean reactive) {
+        CompactResult result = compactor().compact(messages, context, reactive);
+        if (result.skipReason() == null) executeCompactHooks(result.compactedMessages(), result);
+        return result;
+    }
 
-        // ★ 新增：SMC 配对完整性保证 ★
-        plan = ensureToolPairIntegrity(plan, messages);
-
-        int beforeTokens = tokenCounter.estimateTokens(messages);
-
-        // ---- Level 1: LLM 摘要 (增强版) ----
-        Optional<String> rawSummary = generateLlmSummary(plan.compactionMessages(), plan.targetSummaryTokens());
-        if (rawSummary.isPresent()) {
-            String structuredSummary = extractStructuredSummary(rawSummary.get());
-            if (validateSummaryQuality(structuredSummary, plan.compactionMessages())) {
-                List<Message> compactedMessages = buildCompactResultWithSummary(plan, structuredSummary);
-                int afterTokens = tokenCounter.estimateTokens(compactedMessages);
-                double ratio = beforeTokens > 0 ? (double) (beforeTokens - afterTokens) / beforeTokens : 0.0;
-                if (afterTokens < beforeTokens) {
-                    log.info("压缩完成 (LLM 摘要, 质量校验通过): {} → {} tokens, 压缩率 {}%",
-                            beforeTokens, afterTokens, String.format("%.1f", ratio * 100));
-                    CompactResult result = new CompactResult(compactedMessages, beforeTokens, afterTokens,
-                            plan.compactionMessages().size(), ratio);
-                    executeCompactHooks(compactedMessages, result);
-                    return result;
-                }
-                log.warn("LLM 摘要未减少 token，拒绝应用候选并降级: {} → {}",
-                        beforeTokens, afterTokens);
-            } else {
-                log.warn("LLM 摘要质量不足，降级到关键消息选择");
-            }
-        }
-
-        // ---- Level 2: 关键消息选择 ----
-        try {
-            int tokenBudget = (int) (contextWindowSize * COMPACT_TARGET_RATIO);
-            List<Message> selected = fallbackKeyMessageSelection(plan.compactionMessages(), tokenBudget);
-            if (!selected.isEmpty()) {
-                List<Message> compactedMessages = new ArrayList<>();
-                compactedMessages.addAll(plan.frozenMessages());
-
-                // 插入压缩边界标记
-                Message boundary = new Message.SystemMessage(
-                        UUID.randomUUID().toString(), Instant.now(),
-                        "[对话历史已压缩] 保留 " + selected.size() + "/" + plan.compactionMessages().size() + " 条关键消息",
-                        SystemMessageType.COMPACT_SUMMARY);
-                compactedMessages.add(boundary);
-                compactedMessages.addAll(selected);
-                compactedMessages.addAll(plan.preservedMessages());
-
-                int afterTokens = tokenCounter.estimateTokens(compactedMessages);
-                double ratio = beforeTokens > 0 ? (double) (beforeTokens - afterTokens) / beforeTokens : 0.0;
-                if (afterTokens < beforeTokens) {
-                    log.info("压缩完成 (关键消息选择): {} → {} tokens, 压缩率 {}",
-                            beforeTokens, afterTokens, String.format("%.1f%%", ratio * 100));
-                    return new CompactResult(compactedMessages, beforeTokens, afterTokens,
-                            plan.compactionMessages().size() - selected.size(), ratio);
-                }
-                log.warn("关键消息选择未减少 token，拒绝应用候选并降级: {} → {}",
-                        beforeTokens, afterTokens);
-            }
-        } catch (RuntimeException e) {
-            log.error("关键消息选择失败，进入尾部截断", e);
-        }
-
-        // ---- Level 3: 尾部截断 (最后手段) ----
-        log.warn("降级策略: 尾部截断 — 保留最近消息，丢弃最早消息");
-        int keepCount = Math.max(plan.preservedMessages().size(), messages.size() / 3);
-        List<Message> truncated = new ArrayList<>(
-                messages.subList(messages.size() - keepCount, messages.size()));
-
-        int afterTokens = tokenCounter.estimateTokens(truncated);
-        if (afterTokens >= beforeTokens) {
-            log.warn("尾部截断未减少 token，保留原上下文: {} → {}", beforeTokens, afterTokens);
-            return CompactResult.skipped("no_token_savings");
-        }
-        double ratio = beforeTokens > 0 ? (double) (beforeTokens - afterTokens) / beforeTokens : 0.0;
-        return new CompactResult(truncated, beforeTokens, afterTokens,
-                messages.size() - keepCount, ratio);
+    public CompactResult reactiveCompact(List<Message> messages, CompactionContext context, boolean attempted) {
+        return attempted ? CompactResult.failed(1) : compact(messages, context, true);
     }
 
     /**
@@ -366,7 +279,7 @@ public class CompactService {
         int targetSummaryTokens = Math.min(
                 (int) (contextWindowSize * COMPACT_TARGET_RATIO) - frozenTokens - preservedTokens,
                 SUMMARY_MAX_TOKENS);
-        targetSummaryTokens = Math.max(targetSummaryTokens, 512);
+        targetSummaryTokens = Math.max(targetSummaryTokens, 0);
 
         return new CompactionPlan(frozen, compaction, preserved, compactionTokens, targetSummaryTokens);
     }
@@ -376,95 +289,6 @@ public class CompactService {
     /**
      * 生成 LLM 摘要 — 使用独立配置的摘要模型。
      */
-    private Optional<String> generateLlmSummary(List<Message> compactionMessages, int targetTokens) {
-        if (providerRegistry == null || !providerRegistry.hasProviders()) {
-            log.warn("LLM 摘要跳过: 无可用 Provider");
-            return Optional.empty();
-        }
-        try {
-            String conversationText = formatMessagesForSummary(compactionMessages);
-            String prompt = "Target summary length: ~" + targetTokens + " tokens.\n\n" + conversationText;
-            String model = summaryModel;
-            log.info("LLM 摘要开始: 模型={}, 压缩消息数={}, 目标tokens={}, prompt长度={}",
-                    model, compactionMessages.size(), targetTokens, prompt.length());
-            LlmProvider provider = providerRegistry.getProvider(model);
-            // 超时从 30s 增加到 90s，避免大体量摘要生成超时
-            String summaryText = provider.chatSync(
-                    model, COMPACT_SYSTEM_PROMPT, prompt,
-                    SUMMARY_MAX_TOKENS, null, 90_000L);
-            if (summaryText != null && !summaryText.isBlank()) {
-                int summaryTokens = tokenCounter.estimateTokens(summaryText);
-                log.info("LLM 摘要成功: 摘要长度={}字符, 估算tokens={}, 上限={}",
-                        summaryText.length(), summaryTokens, SUMMARY_MAX_TOKENS);
-                if (summaryTokens <= SUMMARY_MAX_TOKENS) {
-                    return Optional.of(summaryText);
-                }
-                log.warn("LLM 摘要 token 超限: {} > {}，尝试截断", summaryTokens, SUMMARY_MAX_TOKENS);
-                // 截断而非丢弃，保留部分摘要仍优于完全丢失
-                String truncated = summaryText.substring(0, Math.min(summaryText.length(), summaryText.length() * SUMMARY_MAX_TOKENS / summaryTokens));
-                return Optional.of(truncated);
-            }
-            log.warn("LLM 摘要返回空内容: model={}", model);
-            return Optional.empty();
-        } catch (Exception e) {
-            log.error("LLM 摘要失败 [{}]: {}", e.getClass().getSimpleName(), e.getMessage(), e);
-            return Optional.empty();
-        }
-    }
-
-    /**
-     * 将消息列表格式化为摘要输入文本。
-     */
-    private String formatMessagesForSummary(List<Message> messages) {
-        StringBuilder sb = new StringBuilder();
-        for (Message msg : messages) {
-            switch (msg) {
-                case Message.UserMessage user -> {
-                    if (MessageContentAccessor.legacyToolResult(user) != null) {
-                        String canonicalResult = MessageContentAccessor.legacyToolResult(user);
-                        sb.append("[ToolResult] ").append(canonicalResult, 0,
-                                Math.min(canonicalResult.length(), 500)).append("\n");
-                    } else if (user.content() != null) {
-                        for (var block : user.content()) {
-                            if (block instanceof ContentBlock.TextBlock text) {
-                                sb.append("[User] ").append(text.text()).append("\n");
-                            }
-                        }
-                    }
-                }
-                case Message.AssistantMessage assistant -> {
-                    if (assistant.content() != null) {
-                        for (var block : assistant.content()) {
-                            if (block instanceof ContentBlock.TextBlock text) {
-                                sb.append("[Assistant] ").append(text.text(), 0,
-                                        Math.min(text.text().length(), 500)).append("\n");
-                            } else if (block instanceof ContentBlock.ToolUseBlock toolUse) {
-                                sb.append("[ToolUse] ").append(toolUse.name()).append("\n");
-                            }
-                        }
-                    }
-                }
-                case Message.SystemMessage sys ->
-                        sb.append("[System] ").append(sys.content()).append("\n");
-            }
-        }
-        return sb.toString();
-    }
-
-    /**
-     * 使用 LLM 摘要构建压缩结果。
-     */
-    private List<Message> buildCompactResultWithSummary(CompactionPlan plan, String summary) {
-        List<Message> compactedMessages = new ArrayList<>();
-        compactedMessages.addAll(plan.frozenMessages());
-        Message summaryMessage = new Message.SystemMessage(
-                UUID.randomUUID().toString(), Instant.now(),
-                summary, SystemMessageType.COMPACT_SUMMARY);
-        compactedMessages.add(summaryMessage);
-        compactedMessages.addAll(plan.preservedMessages());
-        return compactedMessages;
-    }
-
     // ============ 关键消息选择 ============
 
     public enum MessagePriority {
@@ -488,117 +312,28 @@ public class CompactService {
      * 4. 剩余按优先级填充
      */
     public List<Message> fallbackKeyMessageSelection(List<Message> messages, int tokenBudget) {
-        // Phase 1: 无条件保留 system 消息
-        List<Message> systemMessages = new ArrayList<>();
-        List<Message> nonSystemMessages = new ArrayList<>();
-        for (Message m : messages) {
-            if (m instanceof Message.SystemMessage) {
-                systemMessages.add(m);
-            } else {
-                nonSystemMessages.add(m);
+        var units = CompactionHistory.analyze(messages).units();
+        boolean[] keep = new boolean[messages.size()];
+        int used = 0;
+        for (var unit : units) {
+            if (unit.userContent() || messages.subList(unit.start(), unit.end()).stream().anyMatch(Message.SystemMessage.class::isInstance)) {
+                Arrays.fill(keep, unit.start(), unit.end(), true);
+                used += tokenCounter.estimateTokens(messages.subList(unit.start(), unit.end()));
             }
         }
-
-        List<Message> selected = new ArrayList<>(systemMessages);
-        int usedTokens = tokenCounter.estimateTokens(selected);
-
-        // Phase 2: 识别工具调用对（AssistantMessage 含 ToolUseBlock + 紧随的 UserMessage 含 toolUseResult）
-        List<List<Message>> toolPairs = new ArrayList<>();
-        Set<Integer> pairedIndices = new HashSet<>();
-        for (int i = 0; i < nonSystemMessages.size(); i++) {
-            Message msg = nonSystemMessages.get(i);
-            if (msg instanceof Message.AssistantMessage assistant && assistant.content() != null) {
-                boolean hasToolUse = assistant.content().stream()
-                        .anyMatch(b -> b instanceof ContentBlock.ToolUseBlock);
-                if (hasToolUse && i + 1 < nonSystemMessages.size()) {
-                    Message next = nonSystemMessages.get(i + 1);
-                    if (next instanceof Message.UserMessage user && MessageContentAccessor.legacyToolResult(user) != null) {
-                        toolPairs.add(List.of(msg, next));
-                        pairedIndices.add(i);
-                        pairedIndices.add(i + 1);
-                    }
-                }
+        if (used > tokenBudget) return List.of();
+        for (int i = units.size() - 1; i >= 0; i--) {
+            var unit = units.get(i);
+            if (keep[unit.start()]) continue;
+            int cost = tokenCounter.estimateTokens(messages.subList(unit.start(), unit.end()));
+            if (used + cost <= tokenBudget) {
+                Arrays.fill(keep, unit.start(), unit.end(), true); used += cost;
             }
         }
-
-        // 从最近的工具调用对开始填充
-        for (int i = toolPairs.size() - 1; i >= 0; i--) {
-            int pairTokens = tokenCounter.estimateTokens(toolPairs.get(i));
-            if (usedTokens + pairTokens <= tokenBudget) {
-                selected.addAll(toolPairs.get(i));
-                usedTokens += pairTokens;
-            }
-        }
-
-        // Phase 3: 填充剩余消息（从最近开始，优先用户消息）
-        List<Message> remaining = new ArrayList<>();
-        for (int i = 0; i < nonSystemMessages.size(); i++) {
-            if (!pairedIndices.contains(i)) {
-                remaining.add(nonSystemMessages.get(i));
-            }
-        }
-
-        // 先填充最近的用户消息
-        for (int i = remaining.size() - 1; i >= 0; i--) {
-            Message msg = remaining.get(i);
-            if (msg instanceof Message.UserMessage user && MessageContentAccessor.legacyToolResult(user) == null) {
-                int msgTokens = tokenCounter.estimateTokens(List.of(msg));
-                if (usedTokens + msgTokens <= tokenBudget) {
-                    selected.add(msg);
-                    usedTokens += msgTokens;
-                    remaining.remove(i);
-                }
-            }
-        }
-
-        // 填充其他剩余消息
-        for (int i = remaining.size() - 1; i >= 0; i--) {
-            Message msg = remaining.get(i);
-            int msgTokens = tokenCounter.estimateTokens(List.of(msg));
-            if (usedTokens + msgTokens <= tokenBudget) {
-                selected.add(msg);
-                usedTokens += msgTokens;
-            }
-        }
-
-        // 按原始顺序排列
-        List<Message> originalOrder = new ArrayList<>(messages);
-        selected.sort(Comparator.comparingInt(originalOrder::indexOf));
+        List<Message> selected = new ArrayList<>();
+        for (int i = 0; i < messages.size(); i++) if (keep[i]) selected.add(messages.get(i));
         return selected;
     }
-
-    /**
-     * 消息优先级分类。
-     */
-    private MessagePriority classifyPriority(Message message) {
-        if (message instanceof Message.SystemMessage) {
-            return MessagePriority.P0_SYSTEM;
-        }
-        if (message instanceof Message.UserMessage user) {
-            if (MessageContentAccessor.legacyToolResult(user) != null) {
-                String result = MessageContentAccessor.legacyToolResult(user);
-                if (result.contains("error") || result.contains("Error")
-                        || result.contains("failed") || result.contains("Failed")) {
-                    return MessagePriority.P2_ERROR_CONTEXT;
-                }
-                return MessagePriority.P4_TOOL_SUCCESS;
-            }
-            return MessagePriority.P3_USER_INTENT;
-        }
-        if (message instanceof Message.AssistantMessage assistant) {
-            if (assistant.content() != null) {
-                for (var block : assistant.content()) {
-                    if (block instanceof ContentBlock.ToolUseBlock) {
-                        return MessagePriority.P1_FILE_OPERATION;
-                    }
-                }
-            }
-            return MessagePriority.P5_INTERMEDIATE;
-        }
-        return MessagePriority.P5_INTERMEDIATE;
-    }
-
-    // ============ 辅助方法 ============
 
     // ============ SMC (SessionMemoryCompact) 方法 ============
 
@@ -619,21 +354,8 @@ public class CompactService {
         List<Message> toSummarize = messages.subList(
                 Math.max(0, lastSummaryIndex + 1), keepIndex);
         if (toSummarize.isEmpty()) return CompactResult.notNeeded();
-        int beforeTokens = tokenCounter.estimateTokens(messages);
-        Optional<String> summary = generateLlmSummary(toSummarize, SMC_MAX_TOKENS);
-        if (summary.isEmpty()) {
-            return CompactResult.notNeeded();
-        }
-        List<Message> result = new ArrayList<>();
-        if (lastSummaryIndex >= 0) {
-            result.addAll(messages.subList(0, lastSummaryIndex + 1));
-        }
-        result.add(new Message.SystemMessage(
-                UUID.randomUUID().toString(), Instant.now(),
-                summary.get(), SystemMessageType.COMPACT_SUMMARY));
-        result.addAll(messages.subList(keepIndex, messages.size()));
-        int afterTokens = tokenCounter.estimateTokens(result);
-        return CompactResult.success(result, beforeTokens, afterTokens);
+        // Keep the existing inactive SMC planning gate; never bypass shared candidate validation.
+        return compact(messages, contextWindow, false);
     }
 
     private int calculateMessagesToKeepIndex(List<Message> messages, int lastSummaryIndex) {
@@ -727,17 +449,7 @@ public class CompactService {
 
     /** 结构化摘要解析 */
     private String extractStructuredSummary(String rawSummary) {
-        if (rawSummary == null || rawSummary.isBlank()) return "";
-        int summaryStart = rawSummary.indexOf("<summary>");
-        int summaryEnd = rawSummary.indexOf("</summary>");
-        if (summaryStart >= 0 && summaryEnd > summaryStart) {
-            return rawSummary.substring(summaryStart + "<summary>".length(), summaryEnd).trim();
-        }
-        int analysisEnd = rawSummary.indexOf("</analysis>");
-        if (analysisEnd >= 0) {
-            return rawSummary.substring(analysisEnd + "</analysis>".length()).trim();
-        }
-        return rawSummary.trim();
+        return ContextCompactor.extract(rawSummary);
     }
 
     /** 摘要质量校验 */

@@ -186,6 +186,13 @@ public class ContextCascade {
             List<Message> messages, String model,
             AutoCompactTrackingState trackingState) {
 
+        return executePreApiCascade(messages, model, trackingState,
+                CompactionContext.unscoped(modelRegistry.getContextWindowForModel(model)));
+    }
+
+    public CascadeResult executePreApiCascade(List<Message> messages, String model,
+            AutoCompactTrackingState trackingState, CompactionContext compactionContext) {
+        compactionContext.checkValid();
         long cascadeStartedAt = System.nanoTime();
         int contextWindow = modelRegistry.getContextWindowForModel(model);
         int originalTokens = tokenCounter.estimateTokens(messages, model);
@@ -251,11 +258,12 @@ public class ContextCascade {
                 autoCompactDecision = "ATTEMPT";
                 acAttempted = true;
                 try {
-                    acResult = compactService.compact(current, contextWindow, false);
+                    acResult = compactService.compact(current, compactionContext, false);
                     if (acResult.skipReason() == null && !acResult.compactedMessages().isEmpty()) {
                         acExecuted = true;
                         current = acResult.compactedMessages();
                     }
+                } catch (java.util.concurrent.CancellationException e) { throw e;
                 } catch (Exception e) {
                     log.error("Level 2 AutoCompact failed", e);
                 }
@@ -269,11 +277,12 @@ public class ContextCascade {
                 autoCompactDecision = "ATTEMPT";
                 acAttempted = true;
                 try {
-                    acResult = compactService.compact(current, contextWindow, false);
+                    acResult = compactService.compact(current, compactionContext, false);
                     if (acResult.skipReason() == null && !acResult.compactedMessages().isEmpty()) {
                         acExecuted = true;
                         current = acResult.compactedMessages();
                     }
+                } catch (java.util.concurrent.CancellationException e) { throw e;
                 } catch (Exception e) {
                     log.error("Level 2 AutoCompact failed", e);
                 }
@@ -380,10 +389,11 @@ public class ContextCascade {
             List<Message> messages, int contextWindow,
             boolean hasAttemptedReactive) {
 
+        CompactionContext recoveryContext = CompactionContext.unscoped(contextWindow);
         // Level 3: CollapseDrain — 更激进的压缩 (contextWindow * 0.5 目标)
         try {
             CompactService.CompactResult drainResult = compactService.compact(
-                    messages, (int) (contextWindow * 0.5), true);
+                    messages, recoveryContext, true);
             if (drainResult.skipReason() == null && !drainResult.compactedMessages().isEmpty()) {
                 log.info("Level 3 CollapseDrain: {} → {} tokens",
                         drainResult.beforeTokens(), drainResult.afterTokens());
@@ -397,7 +407,7 @@ public class ContextCascade {
         if (!hasAttemptedReactive) {
             try {
                 CompactService.CompactResult reactiveResult =
-                        compactService.reactiveCompact(messages, contextWindow, false);
+                        compactService.reactiveCompact(messages, recoveryContext, false);
                 if (reactiveResult.skipReason() == null) {
                     log.info("Level 4 ReactiveCompact: {} → {} tokens",
                             reactiveResult.beforeTokens(), reactiveResult.afterTokens());

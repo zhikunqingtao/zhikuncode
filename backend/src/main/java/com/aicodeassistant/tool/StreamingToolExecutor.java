@@ -330,17 +330,40 @@ public class StreamingToolExecutor {
                         toolExecutionTotal.increment();
                         toolExecutionErrors.increment();
                     } finally {
-                        // ★ 记录工具执行耗时 (按工具名称分 tag)
-                        sample.stop(Timer.builder("zhiku.tool.execution_time")
-                                .tag("tool", next.tool != null ? next.tool.getName() : "unknown")
-                                .description("Tool execution time")
-                                .register(meterRegistry));
-                        activeVirtualThreads.decrementAndGet();
-                        active.decrementAndGet();
-                        next.executionThread = null;
-                        notifyCompletion();
-                        processQueue();
-                        if (active.get() == 0 && queue.isEmpty()) deregister();
+                        try {
+                            // Error bypasses catch(Exception). Publish a terminal result before
+                            // allowing it to propagate; an exited worker must not remain EXECUTING.
+                            if (next.state == ToolState.EXECUTING) {
+                                if (next.result == null) {
+                                    next.result = ToolResult.internalError("TOOL_EXECUTION_TERMINATED_WITHOUT_RESULT",
+                                            "Tool execution terminated without a result; execution outcome unknown. "
+                                                    + "Side effects may have occurred; verify before retrying.",
+                                            ToolResult.EffectState.UNKNOWN);
+                                }
+                                next.state = ToolState.COMPLETED;
+                                notifyCompletion();
+                                checkAndCascadeError(next);
+                            }
+                        } finally {
+                            try {
+                                sample.stop(Timer.builder("zhiku.tool.execution_time")
+                                        .tag("tool", next.tool != null ? next.tool.getName() : "unknown")
+                                        .description("Tool execution time")
+                                        .register(meterRegistry));
+                            } catch (RuntimeException metricFailure) {
+                                log.warn("Tool timing metric failed: toolUseId={}", next.toolUseId, metricFailure);
+                            } finally {
+                                activeVirtualThreads.decrementAndGet();
+                                active.decrementAndGet();
+                                next.executionThread = null;
+                                notifyCompletion();
+                                try {
+                                    processQueue();
+                                } finally {
+                                    if (active.get() == 0 && queue.isEmpty()) deregister();
+                                }
+                            }
+                        }
                     }
                     }
                 });
@@ -357,6 +380,18 @@ public class StreamingToolExecutor {
                 yielded.add(t);
             }
             return yielded;
+        }
+
+        /** Read completed results without ordered yielding hiding later completions. */
+        public Map<String, ToolResult> completedResultsSnapshot() {
+            Map<String, ToolResult> results = new java.util.LinkedHashMap<>();
+            for (TrackedTool t : tracked) {
+                ToolState state = t.state;
+                if ((state == ToolState.COMPLETED || state == ToolState.YIELDED) && t.result != null) {
+                    results.put(t.toolUseId, t.result);
+                }
+            }
+            return Map.copyOf(results);
         }
 
         /** 是否所有工具都已完成 */

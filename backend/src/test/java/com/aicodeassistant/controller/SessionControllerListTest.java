@@ -36,27 +36,27 @@ class SessionControllerListTest {
         RunEnvelopeRepository runs = mock(RunEnvelopeRepository.class);
         SessionSummary summary = new SessionSummary(
                 "s1", "title", null, "model", "/tmp", 3, 0.0, Instant.now(), Instant.now());
-        when(sessions.listSessionsPaginated(true, null, 20))
+        when(sessions.listSessionsPaginated(true, null, 20, null))
                 .thenReturn(new SessionPage(List.of(summary), false, null));
 
         SessionController controller = controller(sessions, runs);
 
         when(runs.findLatestRootBySession("s1"))
                 .thenReturn(Optional.of(runWithStatus(RunEnvelope.RunStatus.RUNNING)));
-        var runningBody = controller.listSessions(null, 20, null).getBody();
+        var runningBody = controller.listSessions(null, 20, null, null).getBody();
         assertNotNull(runningBody);
         assertTrue(runningBody.sessions().getFirst().running(),
                 "RUNNING 状态的会话应标记为运行中");
 
         when(runs.findLatestRootBySession("s1"))
                 .thenReturn(Optional.of(runWithStatus(RunEnvelope.RunStatus.WAITING_INTERACTION)));
-        var waitingBody = controller.listSessions(null, 20, null).getBody();
+        var waitingBody = controller.listSessions(null, 20, null, null).getBody();
         assertNotNull(waitingBody);
         assertFalse(waitingBody.sessions().getFirst().running(),
                 "等待审批（WAITING_INTERACTION）的会话不得标记为运行中");
 
         when(runs.findLatestRootBySession("s1")).thenReturn(Optional.empty());
-        var noRunBody = controller.listSessions(null, 20, null).getBody();
+        var noRunBody = controller.listSessions(null, 20, null, null).getBody();
         assertNotNull(noRunBody);
         assertFalse(noRunBody.sessions().getFirst().running(),
                 "无 run 记录的会话不得标记为运行中");

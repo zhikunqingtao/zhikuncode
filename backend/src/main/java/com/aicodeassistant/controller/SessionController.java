@@ -136,7 +136,8 @@ public class SessionController {
     public ResponseEntity<SessionListResponse> listSessions(
             @RequestParam(required = false) String cursor,
             @RequestParam(defaultValue = "20") int limit,
-            @RequestParam(required = false) String workingDir) {
+            @RequestParam(required = false) String workingDir,
+            @RequestParam(required = false) String query) {
 
         boolean anchorToLatest = cursor == null;
         String beforeId = null;
@@ -153,7 +154,7 @@ public class SessionController {
             }
         }
 
-        SessionPage page = sessionManager.listSessionsPaginated(anchorToLatest, beforeId, limit);
+        SessionPage page = sessionManager.listSessionsPaginated(anchorToLatest, beforeId, limit, query);
 
         // 生成 nextCursor
         String nextCursor = null;
@@ -228,13 +229,10 @@ public class SessionController {
         SessionData data = getSessionOrThrow(sessionId);
 
         // 使用 CompactService 执行压缩
-        CompactService.CompactResult result = compactService.compact(
-                data.messages(),
-                128000, // 默认上下文窗口大小
-                false);
+        CompactService.CompactResult result = compactService.compactForPreview(data.messages(), data.model());
 
         return ResponseEntity.ok(new CompactResponse(
-                true, result.beforeTokens(), result.afterTokens()));
+                result.skipReason() == null, result.beforeTokens(), result.afterTokens()));
     }
 
     /**

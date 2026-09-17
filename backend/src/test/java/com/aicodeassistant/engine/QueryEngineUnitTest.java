@@ -111,13 +111,20 @@ class QueryEngineUnitTest {
         lenient().when(userImageTranscoder.transcode(anyList(), any(), nullable(String.class), any(), anyInt()))
                 .thenAnswer(inv -> new UserImageTranscoder.TranscodeResult(inv.getArgument(0), 0, List.of()));
         // 默认 ContextCascade mock: 直接返回原消息列表（无压缩）
-        lenient().when(contextCascade.executePreApiCascade(anyList(), anyString(), any()))
+        lenient().when(contextCascade.executePreApiCascade(anyList(), anyString(), any(), any()))
                 .thenAnswer(inv -> {
                     List<Message> msgs = inv.getArgument(0);
                     int tokens = msgs.size() * 100;
                     return new ContextCascade.CascadeResult(
                             msgs, tokens, tokens, false, 0, false, 0, false, 0, false, false, null);
                 });
+    }
+
+    private static RunEnvelope terminalSnapshot(RunEnvelope run, RunEnvelope.RunStatus status,
+                                               RunEnvelope.RunExitReason reason, String error) {
+        return new RunEnvelope(run.id(),run.sessionId(),null,status,run.agentType(),run.model(),null,
+                run.startedAt(),Instant.now(),null,0,0,0,0,error,run.createdAt(),Instant.now(),1,reason,reason,
+                RunEnvelope.VerificationStatus.NOT_REQUESTED,Instant.now(),null);
     }
 
     private static ModelCapabilities testModelCapabilities() {
@@ -130,6 +137,53 @@ class QueryEngineUnitTest {
     @Nested
     @DisplayName("核心循环步骤")
     class CoreLoopTests {
+
+        @Test
+        void resumesIncompleteHistoryWithoutReexecutingOrPersistingHistoricalTool() {
+            LlmProvider provider = mock(LlmProvider.class);
+            when(providerRegistry.getProvider(anyString())).thenReturn(provider);
+            when(messageNormalizer.normalizeTyped(anyList()))
+                    .thenAnswer(inv -> new MessageNormalizer().normalizeTyped(inv.getArgument(0)));
+            var session = mock(StreamingToolExecutor.ExecutionSession.class);
+            when(streamingToolExecutor.newSession(any())).thenReturn(session);
+            when(apiRetryService.executeWithRetry(any(), anyString(), anyString(), any()))
+                    .thenAnswer(inv -> inv.getArgument(0, Supplier.class).get());
+            var outbound = new AtomicReference<List<Map<String, Object>>>();
+            doAnswer(inv -> {
+                outbound.set(inv.getArgument(1));
+                StreamChatCallback callback = inv.getArgument(7);
+                callback.onEvent(new LlmStreamEvent.TextDelta("I will verify the current state before continuing."));
+                callback.onEvent(new LlmStreamEvent.MessageDelta(new Usage(10, 5, 0, 0), "end_turn"));
+                callback.onComplete();
+                return null;
+            }).when(provider).streamChat(anyString(), anyList(), anyString(), anyList(),
+                    anyInt(), any(), any(LlmCallContext.class), any(StreamChatCallback.class));
+            when(hookService.executeStopHooks(anyList(), anyString())).thenReturn(HookRegistry.StopHookResult.ok());
+
+            var historicalCall = new Message.AssistantMessage("historical-assistant", Instant.EPOCH,
+                    List.of(new ContentBlock.ToolUseBlock("historical-call", "Bash",
+                            objectMapper.createObjectNode().put("command", "npm test"))), "tool_use", null);
+            var latest = new Message.UserMessage("latest", Instant.EPOCH,
+                    List.of(new ContentBlock.TextBlock("Continue")), null, null);
+            var state = new QueryLoopState(List.of(historicalCall, latest), ToolUseContext.of("/tmp", "test-session"));
+            List<Message> persistenceEvents = new ArrayList<>();
+            state.addMessageListener(persistenceEvents::add);
+
+            var result = queryEngine.execute(buildConfig(), state, handler);
+
+            assertThat(result.isSuccess()).isTrue();
+            assertThat(handler.errors).isEmpty();
+            var results = objectMapper.valueToTree(outbound.get()).findParents("tool_use_id");
+            assertThat(results).hasSize(1);
+            assertThat(results.getFirst().path("tool_use_id").asText()).isEqualTo("historical-call");
+            assertThat(results.getFirst().path("is_error").asBoolean()).isTrue();
+            assertThat(results.getFirst().path("content").asText()).contains("execution outcome unknown", "verify before retrying");
+            assertThat(state.getMessages()).contains(historicalCall, latest);
+            assertThat(state.getMessages().stream().filter(Message.UserMessage.class::isInstance).toList()).containsExactly(latest);
+            assertThat(persistenceEvents).hasSize(1).allMatch(Message.AssistantMessage.class::isInstance);
+            verify(session, never()).addTool(any(), any(), anyString(), any());
+            verify(streamingToolExecutor, never()).executeDetached(any(), any(), anyString(), any());
+        }
 
         @Test
         @DisplayName("Step 3: streamChat 调用参数正确传递")
@@ -303,8 +357,14 @@ class QueryEngineUnitTest {
     class EmptyFinalResponseReviewTests {
         private RunExecutionRegistry executions;
         private RunEnvelope run;
+        private AtomicReference<RunEnvelope> authority;
         private StreamingToolExecutor.ExecutionSession toolSession;
         private final List<List<Map<String, Object>>> requests = new ArrayList<>();
+        private final com.aicodeassistant.tool.agent.BackgroundAgentTracker backgrounds =
+                spy(new com.aicodeassistant.tool.agent.BackgroundAgentTracker(mock(org.springframework.messaging.simp.SimpMessagingTemplate.class)));
+        private final AgentTimeoutConfig backgroundTimeouts = new AgentTimeoutConfig();
+        @org.junit.jupiter.api.io.TempDir java.nio.file.Path backgroundOutputs;
+
 
         @BeforeEach
         void useRealNormalizationAndRunAdmission() {
@@ -312,15 +372,27 @@ class QueryEngineUnitTest {
             run = RunEnvelope.start("test-session", null, "query", "mock-model");
             when(runTracker.startRun("test-session", null, "query", "mock-model"))
                     .thenReturn(run);
+            authority = new AtomicReference<>(run);
+            lenient().when(runTracker.getRun(run.id())).thenAnswer(inv -> java.util.Optional.of(authority.get()));
+            lenient().doAnswer(inv -> { authority.set(terminalSnapshot(run, RunEnvelope.RunStatus.COMPLETED,
+                    RunEnvelope.RunExitReason.MODEL_FINISHED, null)); return null; })
+                    .when(runTracker).completeRun(eq(run.id()), anyInt(), anyDouble(), anyInt(), anyInt());
+            lenient().doAnswer(inv -> { authority.set(terminalSnapshot(run, RunEnvelope.RunStatus.FAILED,
+                    RunEnvelope.RunExitReason.INTERNAL_ERROR, inv.getArgument(1))); return null; })
+                    .when(runTracker).failRun(eq(run.id()), anyString());
+            lenient().doAnswer(inv -> { boolean timeout = inv.getArgument(1) == AbortReason.TIMEOUT;
+                authority.set(terminalSnapshot(run, timeout ? RunEnvelope.RunStatus.FAILED : RunEnvelope.RunStatus.CANCELLED,
+                    timeout ? RunEnvelope.RunExitReason.DEADLINE_EXCEEDED : RunEnvelope.RunExitReason.USER_CANCELLED, inv.getArgument(2))); return null; })
+                    .when(runTracker).abortRun(eq(run.id()), any(), anyString());
             queryEngine = new QueryEngine(
                     providerRegistry, compactService, apiRetryService, tokenCounter,
                     objectMapper, streamingToolExecutor, new MessageNormalizer(), hookService,
                     snipService, microCompactService, modelRegistry,
                     thinkingBudgetCalculator, modelTierService, fileHistoryService,
                     toolResultSummarizer, contextCascade, compactMetrics,
-                    null, null, null, featureFlagService,
+                    null, null, backgrounds, featureFlagService,
                     new DefaultTerminationStrategy(), new ToolPriorityScheduler(),
-                    null, new AgentTimeoutConfig(), tokenBudgetGuard, imageRefInjector,
+                    null, backgroundTimeouts, tokenBudgetGuard, imageRefInjector,
                     runTracker, executions, userImageTranscoder);
             toolSession = mock(StreamingToolExecutor.ExecutionSession.class);
             when(streamingToolExecutor.newSession(any())).thenReturn(toolSession);
@@ -667,6 +739,219 @@ class QueryEngineUnitTest {
             assertRunAdmissionClosed();
         }
 
+        @Test void gracefulDeadlineRetainsPartialUsageButNeverSuccess() {
+            script((call, callback) -> {
+                finish(callback,"end_turn",new LlmStreamEvent.TextDelta("partial result"));
+                queryEngine.abort("test-session",AbortReason.TIMEOUT);
+            });
+            var result=queryEngine.execute(buildConfig(),buildState("question"),handler);
+            assertThat(result.stopReason()).isEqualTo("timeout");
+            assertThat(result.error()).isEqualTo("DEADLINE_EXCEEDED");
+            assertThat(result.isSuccess()).isFalse();
+            assertThat(result.totalUsage().totalTokens()).isEqualTo(15);
+            assertThat(result.messages().toString()).contains("partial result");
+        }
+
+        @Test void cancellationExceptionUsesSameTerminalProjection() {
+            script((call,callback) -> { queryEngine.abort("test-session",AbortReason.USER_INTERRUPT);
+                throw new java.util.concurrent.CancellationException("cancelled HTTP"); });
+            var result=queryEngine.execute(buildConfig(),buildState("question"),handler);
+            assertThat(result.stopReason()).isEqualTo("cancelled");
+            assertThat(result.error()).isEqualTo("USER_CANCELLED");
+            assertThat(result.isSuccess()).isFalse();
+        }
+
+        @Test void terminalWriteFailureReadsCommittedWinnerAndDoesNotRewrite() {
+            script((call,callback) -> finish(callback,"end_turn",new LlmStreamEvent.TextDelta("answer")));
+            doAnswer(inv -> { authority.set(terminalSnapshot(run,RunEnvelope.RunStatus.FAILED,
+                    RunEnvelope.RunExitReason.DEADLINE_EXCEEDED,"deadline"));
+                throw new IllegalStateException("write lost CAS or acknowledgement"); })
+                .when(runTracker).completeRun(anyString(),anyInt(),anyDouble(),anyInt(),anyInt());
+            var result=queryEngine.execute(buildConfig(),buildState("question"),handler);
+            assertThat(result.stopReason()).isEqualTo("timeout");
+            verify(runTracker,never()).failRun(anyString(),anyString());
+            verify(runTracker,times(1)).completeRun(anyString(),anyInt(),anyDouble(),anyInt(),anyInt());
+        }
+
+        @Test void unconfirmedWriteOrReadCannotReturnSuccess() {
+            script((call,callback) -> finish(callback,"end_turn",new LlmStreamEvent.TextDelta("partial answer")));
+            doThrow(new IllegalStateException("database unavailable")).when(runTracker)
+                .completeRun(anyString(),anyInt(),anyDouble(),anyInt(),anyInt());
+            var result=queryEngine.execute(buildConfig(),buildState("question"),handler);
+            assertThat(result.error()).contains("RUN_TERMINATION_UNCONFIRMED");
+            assertThat(result.stopReason()).isEqualTo("error");
+            assertThat(handler.errors).hasSize(1);
+        }
+
+        @Test void completedCasWinnerRemainsCompletedAfterLateCancellation() {
+            script((call,callback) -> { finish(callback,"end_turn",new LlmStreamEvent.TextDelta("answer"));
+                queryEngine.abort("test-session",AbortReason.USER_INTERRUPT); });
+            doAnswer(inv -> { authority.set(terminalSnapshot(run,RunEnvelope.RunStatus.COMPLETED,
+                    RunEnvelope.RunExitReason.MODEL_FINISHED,null)); return null; })
+                .when(runTracker).abortRun(anyString(),any(),anyString());
+            assertThat(queryEngine.execute(buildConfig(),buildState("question"),handler).isSuccess()).isTrue();
+        }
+
+        @Test
+        void partialToolStreamFallbackPreservesCallsCompletedResultsAndUnknownOutcomes() {
+            when(toolSession.completedResultsSnapshot()).thenReturn(Map.of(
+                    "done", ToolResult.success("completed evidence"),
+                    "failed", ToolResult.validationError("FAILED", "actual failure")));
+            doAnswer(inv -> { when(toolSession.isDiscarded()).thenReturn(true); return null; })
+                    .when(toolSession).discard();
+            script((call, callback) -> {
+                if (call == 1) {
+                    for (String id : List.of("done", "failed", "pending")) {
+                        callback.onEvent(new LlmStreamEvent.ToolUseStart(id, "Bash"));
+                        callback.onEvent(new LlmStreamEvent.ToolInputDelta(id, "{}"));
+                        if (!id.equals("pending")) callback.onEvent(new LlmStreamEvent.BlockStop(0));
+                    }
+                    throw new LlmApiException("overloaded", true, 529);
+                }
+                finish(callback, "end_turn", new LlmStreamEvent.TextDelta("fallback answer"));
+            });
+            QueryConfig config = new QueryConfig("mock-model", "fallback-model", "You are helpful.",
+                    List.of(), List.of(), 8192, 200000, new ThinkingConfig.Disabled(), 10, "test", null, List.of());
+            var state = buildState("question");
+            var result = queryEngine.execute(config, state, handler);
+            assertThat(result.isSuccess()).isTrue();
+            assertThat(requests).hasSize(2);
+            verify(toolSession, never()).addErrorResult(eq("pending"), anyString());
+            assertThat(requests.get(1).toString()).contains("completed evidence", "actual failure", "execution outcome unconfirmed");
+            var canonical = CompactionHistory.analyze(state.getMessages()).canonical();
+            var results = canonical.stream().filter(m -> m instanceof Message.UserMessage)
+                    .map(m -> (Message.UserMessage)m).flatMap(m -> m.content().stream())
+                    .filter(b -> b instanceof ContentBlock.ToolResultBlock).map(b -> (ContentBlock.ToolResultBlock)b).toList();
+            assertThat(results).hasSize(3);
+            assertThat(results.stream().filter(b -> b.toolUseId().equals("done")).findFirst().orElseThrow().isError()).isFalse();
+            assertThat(results.stream().filter(b -> b.toolUseId().equals("failed")).findFirst().orElseThrow().isError()).isTrue();
+        }
+
+        @Test
+        void backgroundResultsCompletedEarlyAreDeliveredOnceWithStatusAndFilePath() throws Exception {
+            when(featureFlagService.isEnabled(anyString())).thenAnswer(inv -> "BACKGROUND_AGENT_WAIT".equals(inv.getArgument(0)));
+            var output = backgroundOutputs.resolve("result.txt");
+            java.nio.file.Files.writeString(output, "EVIDENCE_START" + "x".repeat(4100) + "TAIL_EVIDENCE");
+            when(toolResultSummarizer.processToolResults(anyList(), anyInt())).thenAnswer(inv -> inv.getArgument(0));
+            completedToolResult();
+            script((call, callback) -> {
+                if (call == 1) {
+                    backgrounds.register("old-child", "test-session", "old-run", "old task", null);
+                    backgrounds.register("early-child", "test-session", run.id(), "task", output.toString());
+                    backgrounds.markCompleted("early-child", new com.aicodeassistant.tool.agent.SubAgentExecutor.AgentResult(
+                            "timeout", "partial", "task", output.toString()));
+                    finish(callback, "end_turn", new LlmStreamEvent.TextDelta("I started the review"));
+                } else if (call == 2) {
+                    finish(callback, "tool_use", new LlmStreamEvent.ToolUseStart("review-tool-1", "Bash"),
+                            new LlmStreamEvent.ToolInputDelta("review-tool-1", "{}"), new LlmStreamEvent.BlockStop(0));
+                } else finish(callback, "end_turn", new LlmStreamEvent.TextDelta("Review incomplete: child timed out"));
+            });
+            var result = queryEngine.execute(buildConfig(), buildState("review"), handler);
+            assertThat(result.isSuccess()).isTrue();
+            assertThat(requests).hasSize(3);
+            for (var request : requests.subList(1, 3)) {
+                String body = request.toString();
+                assertThat(body).contains("Status: timeout", output.toString(), "EVIDENCE_START", "[truncated]");
+                assertThat(body).doesNotContain("old-child", "TAIL_EVIDENCE");
+                assertThat(body.indexOf("### Agent: early-child")).isEqualTo(body.lastIndexOf("### Agent: early-child"));
+            }
+        }
+
+        @Test
+        void backgroundLateResultResumesMainModelBeforeRunCompletes() throws Exception {
+            when(featureFlagService.isEnabled(anyString())).thenAnswer(inv -> "BACKGROUND_AGENT_WAIT".equals(inv.getArgument(0)));
+            var waiting = new java.util.concurrent.CountDownLatch(1);
+            var waitBudget = new java.util.concurrent.atomic.AtomicReference<java.time.Duration>();
+            doAnswer(inv -> {
+                waitBudget.set(inv.getArgument(2));
+                waiting.countDown();
+                return inv.callRealMethod();
+            }).when(backgrounds).awaitRun(anyString(), anyString(), any(), any());
+            var output = backgroundOutputs.resolve("late.txt");
+            java.nio.file.Files.writeString(output, "late review evidence");
+            script((call, callback) -> {
+                if (call == 1) {
+                    backgrounds.register("late", "test-session", run.id(), "review", output.toString());
+                    finish(callback, "end_turn", new LlmStreamEvent.TextDelta("started review"));
+                } else finish(callback, "end_turn", new LlmStreamEvent.TextDelta("consolidated review"));
+            });
+            var future = java.util.concurrent.CompletableFuture.supplyAsync(() -> queryEngine.execute(buildConfig(), buildState("review"), handler));
+            try {
+                assertThat(waiting.await(2, java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+                assertThat(waitBudget.get()).isGreaterThan(java.time.Duration.ofSeconds(
+                        backgroundTimeouts.getMaxSeconds() + backgroundTimeouts.getGracefulShutdownSeconds()));
+                assertThat(future.isDone()).isFalse();
+                backgrounds.markCompleted("late", new com.aicodeassistant.tool.agent.SubAgentExecutor.AgentResult("completed", "evidence", "review", output.toString()));
+                var result = future.get(3, java.util.concurrent.TimeUnit.SECONDS);
+                assertThat(result.isSuccess()).isTrue();
+                assertThat(requests).hasSize(2);
+                assertThat(requests.get(1).toString()).contains("late review evidence");
+            } finally { queryEngine.abort("test-session", AbortReason.USER_INTERRUPT); }
+        }
+
+        @Test
+        void cancellationDuringBackgroundWaitStopsWithoutConsolidation() throws Exception {
+            when(featureFlagService.isEnabled(anyString())).thenAnswer(inv -> "BACKGROUND_AGENT_WAIT".equals(inv.getArgument(0)));
+            var waiting = new java.util.concurrent.CountDownLatch(1);
+            doAnswer(inv -> { waiting.countDown(); return inv.callRealMethod(); })
+                    .when(backgrounds).awaitRun(anyString(), anyString(), any(), any());
+            script((call, callback) -> {
+                backgrounds.register("pending", "test-session", run.id(), "review", null);
+                finish(callback, "end_turn", new LlmStreamEvent.TextDelta("started review"));
+            });
+            var future = java.util.concurrent.CompletableFuture.supplyAsync(() -> queryEngine.execute(buildConfig(), buildState("review"), handler));
+            try {
+                assertThat(waiting.await(2, java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+                queryEngine.abort("test-session", AbortReason.USER_INTERRUPT);
+                var result = future.get(3, java.util.concurrent.TimeUnit.SECONDS);
+                assertThat(result.stopReason()).isEqualTo("cancelled");
+                assertThat(result.isSuccess()).isFalse();
+                assertThat(requests).hasSize(1);
+                assertThat(result.totalUsage().outputTokens()).isEqualTo(5);
+            } finally { queryEngine.abort("test-session", AbortReason.USER_INTERRUPT); }
+        }
+
+        @Test
+        void backgroundWaitTimeoutReturnsErrorWithPartialTextAndUsage() {
+            when(featureFlagService.isEnabled(anyString())).thenAnswer(inv -> "BACKGROUND_AGENT_WAIT".equals(inv.getArgument(0)));
+            backgroundTimeouts.setMaxWaitMinutes(0);
+            script((call, callback) -> {
+                backgrounds.register("pending", "test-session", run.id(), "task", null);
+                finish(callback, "end_turn", new LlmStreamEvent.TextDelta("progress before waiting"));
+            });
+            var result = queryEngine.execute(buildConfig(), buildState("review"), handler);
+            assertThat(result.isSuccess()).isFalse();
+            assertThat(result.stopReason()).isEqualTo("error");
+            assertThat(result.error()).contains("BACKGROUND_AGENT_WAIT_TIMEOUT", "termination unconfirmed");
+            assertThat(result.messages().toString()).contains("progress before waiting");
+            assertThat(result.totalUsage().outputTokens()).isEqualTo(5);
+            assertThat(backgrounds.getStatus("pending").status()).isEqualTo("running");
+            assertThat(requests).hasSize(1);
+        }
+
+        @Test
+        void backgroundResultsDoNotBypassTurnLimit() {
+            when(featureFlagService.isEnabled(anyString())).thenAnswer(inv -> "BACKGROUND_AGENT_WAIT".equals(inv.getArgument(0)));
+            script((call, callback) -> {
+                backgrounds.register("pending", "test-session", run.id(), "task", null);
+                finish(callback, "end_turn", new LlmStreamEvent.TextDelta("progress"));
+            });
+            var result = queryEngine.execute(withMaxTurns(1), buildState("review"), handler);
+            assertThat(result.isSuccess()).isFalse();
+            assertThat(result.error()).contains("BACKGROUND_AGENT_RESULTS_UNDELIVERED_TURN_LIMIT");
+            assertThat(requests).hasSize(1);
+        }
+
+        @Test
+        void disabledBackgroundWaitKeepsExistingImmediateReturn() {
+            script((call, callback) -> {
+                backgrounds.register("pending", "test-session", run.id(), "task", null);
+                finish(callback, "end_turn", new LlmStreamEvent.TextDelta("launched"));
+            });
+            assertThat(queryEngine.execute(buildConfig(), buildState("review"), handler).isSuccess()).isTrue();
+            assertThat(requests).hasSize(1);
+        }
+
         private void script(BiConsumer<Integer, StreamChatCallback> response) {
             LlmProvider provider = mock(LlmProvider.class);
             when(providerRegistry.getProvider(anyString())).thenReturn(provider);
@@ -887,7 +1172,7 @@ class QueryEngineUnitTest {
             });
 
             // Mock compact service for reactive compact
-            when(compactService.reactiveCompact(anyList(), anyInt(), eq(false)))
+            when(compactService.reactiveCompact(anyList(), any(CompactionContext.class), eq(false)))
                     .thenReturn(new CompactService.CompactResult(List.of(), 5000, 2000, 3, 0.4));
 
             doAnswer(inv -> {
@@ -1094,6 +1379,7 @@ class QueryEngineUnitTest {
                     .thenReturn(HookRegistry.StopHookResult.ok());
             lenient().doNothing().when(hookService).executeNotification(anyString(), anyString());
 
+            when(modelRegistry.getContextWindowForModel("fallback-model")).thenReturn(32000);
             // Config with fallback model
             QueryConfig config = new QueryConfig(
                     "mock-model", "fallback-model", "You are helpful.",
@@ -1106,6 +1392,10 @@ class QueryEngineUnitTest {
             QueryEngine.QueryResult result = queryEngine.execute(config, state, handler);
 
             assertThat(result.isSuccess()).isTrue();
+            assertThat(state.getCompactionContext().model()).isEqualTo("fallback-model");
+            assertThat(state.getCompactionContext().contextWindow()).isEqualTo(32000);
+            int fallbackBudget = 32000 - 8192 - (int)("You are helpful.".length()/3.5) - 1600;
+            verify(tokenBudgetGuard).enforcePhase2(anyList(),eq(fallbackBudget),anySet(),eq(3.5));
             // Verify fallback provider was used
             verify(fallbackProvider).streamChat(
                     eq("fallback-model"), anyList(), anyString(), anyList(),
@@ -1155,8 +1445,9 @@ class QueryEngineUnitTest {
 
             QueryEngine.QueryResult result = queryEngine.execute(config, state, handler);
 
-            // ContextCascade 引入后，循环正常执行， abort 标记保留在 state 上
-            assertThat(result.stopReason()).isEqualTo("max_turns");
+            // Without a Run authority cancellation cannot be claimed as confirmed or successful.
+            assertThat(result.stopReason()).isEqualTo("error");
+            assertThat(result.error()).contains("RUN_TERMINATION_UNCONFIRMED");
             assertThat(state.getAbortReason()).isEqualTo(AbortReason.USER_INTERRUPT);
         }
 

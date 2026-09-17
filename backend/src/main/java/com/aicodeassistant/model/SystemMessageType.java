@@ -10,5 +10,6 @@ public enum SystemMessageType {
     ERROR,
     WELCOME,
     COMPACT_SUMMARY,
+    COMPACT_OMISSION,
     FILE_REINJECT
 }

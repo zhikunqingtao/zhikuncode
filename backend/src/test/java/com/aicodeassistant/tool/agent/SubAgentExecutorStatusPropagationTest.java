@@ -12,6 +12,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SubAgentExecutorStatusPropagationTest {
 
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource({"cancelled,USER_CANCELLED,interrupted", "timeout,DEADLINE_EXCEEDED,timeout",
+            "error,TOOL_TERMINATION_UNCONFIRMED,failed", "error,RUN_TERMINATION_UNCONFIRMED,failed"})
+    void cancellationAndTimeoutTakePrecedenceOverGenericError(String stop,String reason,String status) {
+        var query=new QueryEngine.QueryResult(List.of(),null,stop,reason,2);
+        var request=new SubAgentExecutor.AgentRequest("child","test","worker",null,SubAgentExecutor.IsolationMode.NONE,false);
+        var result=SubAgentExecutor.buildFinalResult(query,"partial",request,new TaskNotificationFormatter(),true,10L);
+        assertEquals(status,result.status());assertTrue(result.result().contains(reason));
+        assertTrue(result.result().contains("partial"));
+    }
+
     @Test
     @DisplayName("max_turns 状态同时传播到返回值和 Coordinator 通知")
     void maxTurnsStatusIsPreservedInCoordinatorNotification() {

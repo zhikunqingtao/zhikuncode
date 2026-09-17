@@ -17,6 +17,9 @@ import java.util.function.Consumer;
  */
 public class QueryLoopState {
 
+    private CompactionContext compactionContext;
+    public CompactionContext getCompactionContext() { return compactionContext; }
+    public void setCompactionContext(CompactionContext context) { compactionContext = context; }
     private List<Message> messages;
     private final List<Consumer<Message>> messageListeners = new ArrayList<>();
     private ToolUseContext toolUseContext;
@@ -28,7 +31,10 @@ public class QueryLoopState {
     /** Final serialized provider payload may trigger at most one local compact/rebuild. */
     private boolean providerPayloadGuardRetryAttempted = false;
     private int turnCount = 0;
-    private AbortReason abortReason = null;
+    private volatile AbortReason abortReason = null;
+    private com.aicodeassistant.model.Usage observedUsage = com.aicodeassistant.model.Usage.zero();
+    public com.aicodeassistant.model.Usage getObservedUsage() { return observedUsage; }
+    public void setObservedUsage(com.aicodeassistant.model.Usage usage) { observedUsage = usage; }
     private boolean stopHookActive = false;
     private String lastTransitionReason = null;
 

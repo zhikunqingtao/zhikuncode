@@ -14,6 +14,39 @@ import static org.mockito.Mockito.*;
 
 class StreamingToolExecutorCancellationTest {
     @Test
+    void snapshotIncludesCompletedResultsBehindPendingToolWithoutConsumingThem() throws Exception {
+        var pipeline = mock(ToolExecutionPipeline.class);
+        var executor = new StreamingToolExecutor(pipeline, new SimpleMeterRegistry(), mock(ManagedProcessRunner.class));
+        var tool = mock(Tool.class);
+        when(tool.getName()).thenReturn("ConcurrentTool");
+        when(tool.getMaxExecutionTimeMs()).thenReturn(60_000L);
+        var started = new CountDownLatch(1);
+        var release = new CountDownLatch(1);
+        when(pipeline.execute(eq(tool), any(), any(), any())).thenAnswer(inv -> {
+            started.countDown();
+            release.await();
+            return ToolExecutionResult.of(ToolResult.success("first result"));
+        });
+        var context = ToolUseContext.of("/tmp", "snapshot-session");
+        var session = executor.newSession(context);
+        try {
+            session.addTool(tool, ToolInput.from(Map.of()), "pending", context);
+            assertTrue(started.await(2, TimeUnit.SECONDS));
+            session.addErrorResult("done", "completed failure");
+            assertTrue(session.yieldCompleted().isEmpty());
+            var snapshot = session.completedResultsSnapshot();
+            assertEquals(java.util.Set.of("done"), snapshot.keySet());
+            assertTrue(snapshot.get("done").isError());
+            assertTrue(snapshot.get("done").content().contains("completed failure"));
+            assertEquals(snapshot, session.completedResultsSnapshot());
+            assertTrue(session.yieldCompleted().isEmpty());
+        } finally {
+            release.countDown();
+            session.discard();
+        }
+    }
+
+    @Test
     void cancelRunInterruptsAndConfirmsRunningNonProcessTool() throws Exception {
         ToolExecutionPipeline pipeline = mock(ToolExecutionPipeline.class);
         ManagedProcessRunner processes = mock(ManagedProcessRunner.class);

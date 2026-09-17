@@ -4,7 +4,7 @@ import com.aicodeassistant.command.*;
 import com.aicodeassistant.engine.CompactService;
 import com.aicodeassistant.engine.CompactService.CompactResult;
 import com.aicodeassistant.engine.TokenCounter;
-import com.aicodeassistant.llm.ModelRegistry;
+import com.aicodeassistant.llm.LlmProviderRegistry;
 import com.aicodeassistant.model.Message;
 import com.aicodeassistant.session.SessionManager;
 import org.slf4j.Logger;
@@ -29,16 +29,16 @@ public class CompactCommand implements Command {
 
     private final CompactService compactService;
     private final TokenCounter tokenCounter;
-    private final ModelRegistry modelRegistry;
+    private final LlmProviderRegistry providerRegistry;
     private final SessionManager sessionManager;
 
     public CompactCommand(CompactService compactService,
                           TokenCounter tokenCounter,
-                          ModelRegistry modelRegistry,
+                          LlmProviderRegistry providerRegistry,
                           SessionManager sessionManager) {
         this.compactService = compactService;
         this.tokenCounter = tokenCounter;
-        this.modelRegistry = modelRegistry;
+        this.providerRegistry = providerRegistry;
         this.sessionManager = sessionManager;
     }
 
@@ -61,12 +61,14 @@ public class CompactCommand implements Command {
                 return CommandResult.text("Nothing to compact — conversation is empty.");
             }
 
-            // 从 ModelRegistry 动态获取当前模型的上下文窗口大小（替换硬编码 200000）
-            String model = context.currentModel() != null ? context.currentModel() : "default";
-            int contextWindow = modelRegistry.getContextWindowForModel(model);
+            // 计数与预览使用同一个有效模型；缺少当前模型时采用已注册的默认模型。
+            String model = context.currentModel();
+            if (model == null || model.isBlank()) {
+                model = providerRegistry.getDefaultModel();
+            }
 
-            int beforeTokens = tokenCounter.estimateTokens(messages);
-            CompactResult result = compactService.compact(messages, contextWindow, false);
+            int beforeTokens = tokenCounter.estimateTokens(messages, model);
+            CompactResult result = compactService.compactForPreview(messages, model);
 
             if (result.skipReason() != null) {
                 return CommandResult.text("Compact skipped: " + result.skipReason());
