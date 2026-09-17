@@ -1411,12 +1411,33 @@ Environment variables are managed via the `.env` file. Copy `.env.example` and m
 | `LLM_PROVIDER_DEEPSEEK_API_KEY` | — | — | DeepSeek API Key |
 | `LLM_PROVIDER_MOONSHOT_API_KEY` | — | — | Moonshot/Kimi API Key |
 | `LLM_PROVIDER_ZHIPU_API_KEY` | — | — | Zhipu GLM API Key |
+| `LLM_PROVIDER_OPENROUTER_API_KEY` | — | — | OpenRouter API Key; leave empty to skip registering this Provider |
+| `LLM_PROVIDER_OPENROUTER_MODELS` | — | stealth/union-alpha,openrouter/openai/gpt-6-astra,openrouter/anthropic/claude-fable-5.1 | Available OpenRouter models (comma-separated) |
 | `LLM_DEFAULT_MODEL` | — | deepseek-v4.1-flash | Bailian Token Plan default; falls back to an active Provider default when unavailable |
 | `LLM_FAST_MODEL` | — | deepseek-v4.1-flash | Preferred fast-query model and classifier fallback |
 | `LLM_COMPACT_MODEL` | — | deepseek-v4.1-flash | Summary model, configured independently of the fast model |
 | `LLM_VISION_FALLBACK_MODEL` | — | deepseek-v4.1-flash | Preferred model when the selected model cannot accept images |
 
 > In multi-Provider mode, configure at least one Provider's API Key. The frontend supports free switching between configured Providers.
+
+**OpenRouter / Union Alpha:** Set `LLM_PROVIDER_OPENROUTER_API_KEY` in `.env`, restart the service, then select `Union Alpha（OpenRouter）` (`stealth/union-alpha`) from the model list. To make it the default model, add `LLM_DEFAULT_MODEL=stealth/union-alpha`. Both local startup and Docker Compose support these variables.
+
+Integration reuses the existing `llm.providers.*` → `MultiProviderConfiguration` → `OpenAiCompatibleProvider` chain with the endpoint `https://openrouter.ai/api/v1`, keeping streaming output, image input, tool calls, and key rotation. Capabilities are exposed uniformly by `ModelRegistry` via `/api/models`, with no new frontend branches. [Official model specs](https://openrouter.ai/stealth/union-alpha) (verified 2026-09-17): 262,144 context, 131,072 max output, currently in free preview; the app currently limits each request to 4 images. Union Alpha does not advertise a reasoning parameter, so configurable thinking mode is not enabled; preview pricing and availability are subject to future official announcements.
+
+**OpenRouter forced-reasoning models and channel isolation:**
+
+| Display name | ZhikunCode model ID | Upstream model ID | Context / Max output |
+|---|---|---|---|
+| GPT-6 Astra（OpenRouter） | `openrouter/openai/gpt-6-astra` | `openai/gpt-6-astra` | 1,050,000 / 128,000 |
+| Claude Fable 5.1（OpenRouter） | `openrouter/anthropic/claude-fable-5.1` | `anthropic/claude-fable-5.1` | 1,000,000 / 128,000 |
+
+Both use the existing OpenRouter key and request `reasoning.effort=max` with `exclude=false` by default, and are not downgraded by the global thinking-off switch; OpenRouter currently marks these two models as forced-reasoning. Context uses the official full window, while the existing output reservation, compaction thresholds, and safety margins still apply. The per-run output budget is determined by the current runtime configuration; the table lists model ceilings, not the length generated every time.
+
+The `openrouter/` prefix of internal IDs is only used for routing, capabilities, sessions, and retry isolation, and is stripped when sending requests; existing ZenMux routes for `openai/gpt-6-astra` and `anthropic/claude-fable-5.1` stay unchanged. If these two official raw IDs appear in the OpenRouter model list, they are normalized and deduplicated at startup so registration order never decides the channel. Any other duplicate IDs are explicitly rejected as ambiguous routing. To make Astra the global default, set `LLM_DEFAULT_MODEL=openrouter/openai/gpt-6-astra`.
+
+Streaming thinking uses the existing display events; `reasoning_details` (including signed/encrypted data) are stored in order and only replayed to subsequent requests of the same Provider and model—never reused across channels or models. Pricing follows the official standard-context reference: currently $10/M input and $50/M output for both; Astra charges more for long context beyond 272K input, and the UI cost estimate does not apply tiered pricing yet—actual billing follows OpenRouter.
+
+Specs and reasoning parameters verified on 2026-09-17. References: [Astra](https://openrouter.ai/openai/gpt-6-astra), [Fable](https://openrouter.ai/anthropic/claude-fable-5.1), [Reasoning docs](https://openrouter.ai/docs/guides/best-practices/reasoning-tokens).
 
 **Single-Provider Configuration (Backward Compatible):**
 
@@ -1742,3 +1763,10 @@ If this project is useful to you, a Star ⭐ would be appreciated.
 <div align="center">
   <p>Built with ❤️ and AI</p>
 </div>
+
+### Background Agent Wait
+
+`BACKGROUND_AGENT_WAIT` is enabled by default: the main run waits for this turn's background agents to finish before summarizing their results.
+The default wait budget is 31 minutes, covering the default 30-minute sub-agent limit plus the 30-second exit window; exceeding the budget still reports `BACKGROUND_AGENT_WAIT_TIMEOUT`.
+Disable the wait with `FEATURE_BACKGROUND_AGENT_WAIT=false`, or tune the budget via `AGENT_TIMEOUT_MAX_WAIT_MINUTES`.
+If you raise the sub-agent timeout limit, adjust the wait budget accordingly; the budget is the total cap on waiting for background results, not an unlimited-wait guarantee.

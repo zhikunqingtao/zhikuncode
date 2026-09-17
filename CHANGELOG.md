@@ -8,7 +8,7 @@
 ## [Unreleased]
 
 ### Added
-- Web 新增独立快捷键帮助对话框；会话列表支持按文件夹分组与折叠为图标轨。
+- Web 新增独立快捷键帮助对话框；会话列表支持按文件夹分组。
 - 新增浏览器截图粘贴的固定 OSS 快速通道：无需 Skill 或额外 LLM 调用，上传后将可信 HTTPS 图片地址直接交给视觉模型；未配置 OSS 时给出明确提示。
 - OSS 凭证支持 ECS RAM Role/IMDSv2 与本地阿里云默认凭证链双模式，覆盖本地一键启动和 Docker Compose 透传。
 - 新增可浏览、持久且可撤销的 Project 文件夹授权；Project 作为信任范围和默认相对路径根，普通操作在其内免打扰，范围外操作进入常规授权，敏感路径和高风险操作仍需逐次确认。
@@ -16,6 +16,7 @@
 - 新增百炼 Token Plan 渠道 `deepseek-v4-pro-0813` 与 `deepseek-v4-flash-0731`，并与 `qwen3.8-max` 统一标注“百炼”。
 - 新增 `deepseek-v4-flash-vision-exp` 图片理解模型，作为 DeepSeek 系列的专属视觉兜底。
 - 同一 LLM Provider 支持逗号分隔多 API Key（ZenMux 订阅 Key `sk-ss-v1-` 优先、按量 Key `sk-ai-v1-` 兜底），402 quote_exceeded / 404 model_not_available / 429 时自动冷却切换。
+- 新增 OpenRouter Provider：`stealth/union-alpha`（Union Alpha，当前免费预览）及强推理模型 `openrouter/openai/gpt-6-astra`、`openrouter/anthropic/claude-fable-5.1`（默认 `reasoning.effort=max`）；内部 `openrouter/` 前缀用于渠道隔离，复用 OpenAI 兼容链路与 Key 轮换。
 
 ### Changed
 - Web 设置面板精简为外观设置，顶栏主题入口改为打开选择面板；移除“跟随系统”、语言和努力程度设置入口。旧“跟随系统”偏好按升级时的系统外观迁移为浅色或深色。
@@ -28,7 +29,11 @@
 - Docker 运行时升级到 Python 3.12 并内置可选的受管 Python 服务；基础 Compose 保持默认不启动 Python，部署方须通过显式 override 启用。
 - **Breaking:** Query 不再接受客户端提供的 `workingDirectory`。CLI 本地连接会登记当前目录，远程连接应使用 `--project-id` 或服务端默认工作区。
 - 无 allowed roots 时，本机目录选择默认关闭；直连本机桌面服务须显式设置 `ZHIKUN_LOCAL_PICKER_ENABLED=true`，远程或反向代理部署须配置 `ZHIKUN_WORKSPACE_ALLOWED_ROOTS`。
-- 简洁工作台顶栏的模型选择器、模型重试与成本指示改为两种视图模式常驻（≥768px），视图切换器防挤压并在 <1024px 收缩为图标模式。
+- 顶栏的模型选择器、模型重试与成本指示改为桌面端常驻（≥768px）。
+- 上下文压缩引擎重构为 ContextCompactor / CompactConfiguration / CompactionContext / CompactionHistory：摘要失败时按完整工具事务本地选择，用户原文永不省略且不再尾部截断，工具终止未确认不宣告成功。
+- `BACKGROUND_AGENT_WAIT` 默认开启：主 Run 等待本轮后台代理完成再汇总结果，默认预算 31 分钟，可用 `FEATURE_BACKGROUND_AGENT_WAIT=false` 关闭或 `AGENT_TIMEOUT_MAX_WAIT_MINUTES` 调整。
+- Web 侧边栏移除图标轨改为直接面板加收起展开条，会话搜索下推服务端（防抖 + 分页互斥），停止按钮三端统一，隐藏工作台切换；移除侧边栏“新窗口打开”导航入口（独立窗口渲染能力保留）。
+- 多 Provider 重复模型 ID 由“首个匹配”改为明确拒绝歧义路由；OpenRouter 列表中的官方原始 ID 启动时自动规范化去重。
 
 ### Fixed
 - 修复 Kimi 视觉模型拒绝粘贴图片公网 URL 的问题：发送前临时转为 base64，历史保留引用；图片上下文按尺寸估算并独立限制传输大小。

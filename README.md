@@ -1425,12 +1425,33 @@ ZhikunCode 内置 11 项可视化能力，让 AI 编程过程中的数据和状�
 | `LLM_PROVIDER_DEEPSEEK_API_KEY` | — | — | DeepSeek API Key |
 | `LLM_PROVIDER_MOONSHOT_API_KEY` | — | — | Moonshot/Kimi API Key |
 | `LLM_PROVIDER_ZHIPU_API_KEY` | — | — | 智谱 GLM API Key |
+| `LLM_PROVIDER_OPENROUTER_API_KEY` | — | — | OpenRouter API Key；留空不注册此 Provider |
+| `LLM_PROVIDER_OPENROUTER_MODELS` | — | stealth/union-alpha,openrouter/openai/gpt-6-astra,openrouter/anthropic/claude-fable-5.1 | OpenRouter 可用模型列表（逗号分隔） |
 | `LLM_DEFAULT_MODEL` | — | deepseek-v4.1-flash | 默认模型（百炼 Token Plan）；不可用时回退到当前 Provider 的有效默认模型 |
 | `LLM_FAST_MODEL` | — | deepseek-v4.1-flash | 快速辅助查询与分类器回退优先使用的模型 |
 | `LLM_COMPACT_MODEL` | — | deepseek-v4.1-flash | 对话压缩摘要模型，独立于快速模型选择 |
 | `LLM_VISION_FALLBACK_MODEL` | — | deepseek-v4.1-flash | 当前模型不支持图片时优先使用的视觉模型 |
 
 > 多 Provider 模式下至少配置一个 Provider 的 API Key 即可。前端支持自由切换已配置的 Provider。
+
+**OpenRouter / Union Alpha：** 在 `.env` 中填写 `LLM_PROVIDER_OPENROUTER_API_KEY`，重启服务后从模型列表选择 `Union Alpha（OpenRouter）`（`stealth/union-alpha`）。如需设为默认模型，增加 `LLM_DEFAULT_MODEL=stealth/union-alpha`。本地启动与 Docker Compose 均支持上述变量。
+
+接入复用现有 `llm.providers.*` → `MultiProviderConfiguration` → `OpenAiCompatibleProvider` 链路，端点为 `https://openrouter.ai/api/v1`，沿用流式输出、图片输入、工具调用和 Key 轮换。能力由 `ModelRegistry` 统一提供给 `/api/models`，无需新增前端分支。[官方模型规格](https://openrouter.ai/stealth/union-alpha)（2026-09-17 核对）：262,144 上下文、131,072 最大输出、当前免费预览；应用暂限每次 4 张图片。官方未提供 reasoning 参数，因此不启用可配置思考模式；预览价格和可用性以后续官方信息为准。
+
+**OpenRouter 强推理模型与渠道隔离：**
+
+| 界面名称 | ZhikunCode 模型 ID | 上游模型 ID | 上下文 / 最大输出 |
+|---|---|---|---|
+| GPT-6 Astra（OpenRouter） | `openrouter/openai/gpt-6-astra` | `openai/gpt-6-astra` | 1,050,000 / 128,000 |
+| Claude Fable 5.1（OpenRouter） | `openrouter/anthropic/claude-fable-5.1` | `anthropic/claude-fable-5.1` | 1,000,000 / 128,000 |
+
+两者使用已有 OpenRouter Key，默认请求 `reasoning.effort=max`、`exclude=false`，不受通用 thinking 关闭开关降档；官方当前标记这两个模型为强制推理模型。上下文使用官方完整窗口，仍保留现有输出预留、压缩阈值和安全余量。单次输出预算由现有运行配置决定，上表是模型支持上限，并非每次都生成该长度。
+
+内部 ID 的 `openrouter/` 前缀只用于路由、能力、会话与重试隔离，发送请求时去掉；现有 ZenMux 的 `openai/gpt-6-astra`、`anthropic/claude-fable-5.1` 路由保持不变。OpenRouter 的模型列表若填写这两个官方原始 ID，启动时也会自动规范化并去重，避免注册顺序决定渠道。其他重复 ID 明确拒绝歧义路由。若需将 Astra 设为全局默认，配置 `LLM_DEFAULT_MODEL=openrouter/openai/gpt-6-astra`。
+
+流式 thinking 使用现有展示事件；`reasoning_details`（含签名/加密数据）按原序保存，并仅对同 Provider、同模型的后续请求回传，切换渠道或模型不复用。价格按官方普通上下文参考录入，当前两者输入 $10/M、输出 $50/M；Astra 超过 272K 输入的长上下文价格更高，界面费用估算尚未按阶梯计价，实际账单以 OpenRouter 为准。
+
+规格与推理参数核对日期：2026-09-17。参考：[Astra](https://openrouter.ai/openai/gpt-6-astra)、[Fable](https://openrouter.ai/anthropic/claude-fable-5.1)、[Reasoning 文档](https://openrouter.ai/docs/guides/best-practices/reasoning-tokens)。
 
 **单 Provider 配置（向后兼容）：**
 
@@ -1756,3 +1777,10 @@ docker compose up -d
 <div align="center">
   <p>用 ❤️ 和 AI 构建</p>
 </div>
+
+### 后台代理等待
+
+默认启用 `BACKGROUND_AGENT_WAIT`：主 Run 等待本轮后台代理完成，再汇总结果。
+默认等待预算为 31 分钟，覆盖子代理默认最长 30 分钟及 30 秒退出窗口；超出等待预算仍会报告 `BACKGROUND_AGENT_WAIT_TIMEOUT`。
+可用 `FEATURE_BACKGROUND_AGENT_WAIT=false` 关闭等待，或通过 `AGENT_TIMEOUT_MAX_WAIT_MINUTES` 调整预算。
+若提高子代理超时上限，应同步调整等待预算；该预算是后台结果等待的总限额，不是无限等待保证。
