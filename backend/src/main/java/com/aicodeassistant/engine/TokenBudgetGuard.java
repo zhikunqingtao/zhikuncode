@@ -67,6 +67,10 @@ public class TokenBudgetGuard {
     }
 
     public GuardResult enforcePhase1(List<Message> messages, int inputBudget, double textTokenRatio) {
+        return enforcePhase1(messages, inputBudget, textTokenRatio, null);
+    }
+
+    public GuardResult enforcePhase1(List<Message> messages, int inputBudget, double textTokenRatio, String protectedMessageId) {
         validateRatio(textTokenRatio);
         int tokensBefore = estimateTokens(messages, textTokenRatio);
         if (tokensBefore <= inputBudget) {
@@ -74,7 +78,7 @@ public class TokenBudgetGuard {
         }
 
         // 第一遍: protectTail=true, 跳过最后2条
-        List<Message> cleaned = deepCleanBase64(messages, 2);
+        List<Message> cleaned = deepCleanBase64(messages, 2, protectedMessageId);
         int tokensAfterFirstPass = estimateTokens(cleaned, textTokenRatio);
 
         if (tokensAfterFirstPass <= inputBudget) {
@@ -87,7 +91,7 @@ public class TokenBudgetGuard {
         // The newest request/tool-result message is never silently deleted.
         // If historical cleanup is insufficient the later cascade/guard fails
         // explicitly instead of changing the current user intent.
-        cleaned = deepCleanBase64(messages, 1);
+        cleaned = deepCleanBase64(messages, 1, protectedMessageId);
         int tokensAfterSecondPass = estimateTokens(cleaned, textTokenRatio);
         log.info("Phase1 second pass: {} -> {} tokens (budget={})",
                 tokensBefore, tokensAfterSecondPass, inputBudget);
@@ -155,13 +159,13 @@ public class TokenBudgetGuard {
 
     // ==================== Phase1 辅助方法 ====================
 
-    private List<Message> deepCleanBase64(List<Message> messages, int protectTailCount) {
+    private List<Message> deepCleanBase64(List<Message> messages, int protectTailCount, String protectedMessageId) {
         List<Message> result = new ArrayList<>(messages.size());
         int protectFrom = Math.max(0, messages.size() - Math.max(1, protectTailCount));
 
         for (int i = 0; i < messages.size(); i++) {
             Message msg = messages.get(i);
-            if (i >= protectFrom) {
+            if (i >= protectFrom || Objects.equals(msg.uuid(), protectedMessageId)) {
                 // 受保护的尾部消息，直接保留
                 result.add(msg);
                 continue;
@@ -455,7 +459,7 @@ public class TokenBudgetGuard {
 
     /**
      * 估算消息列表的 token 数。
-     * 文本: length / 3.5, Base64: 1:1
+     * 文本按模型比例估算，图片按尺寸估算；非图片的不透明编码保留保守计量。
      */
     int estimateTokens(List<Message> messages) {
         return estimateTokens(messages, TEXT_TOKEN_RATIO);
@@ -496,7 +500,14 @@ public class TokenBudgetGuard {
             if (block instanceof ContentBlock.TextBlock tb) {
                 total += tb.text() != null ? (int) (tb.text().length() / textTokenRatio) : 0;
             } else if (block instanceof ContentBlock.ImageBlock img) {
-                total += img.base64Data() != null ? img.base64Data().length() : 0;
+                if (img.base64Data() != null) {
+                    try { total += com.aicodeassistant.llm.InlineImageBudget.estimate(img.base64Data()); }
+                    catch (com.aicodeassistant.llm.LlmApiException invalidImage) {
+                        // Phase1 only estimates/cleans history. Preparation must still get the
+                        // opportunity to omit a bad historical attachment or explain a current failure.
+                        total += img.base64Data().length();
+                    }
+                }
             } else if (block instanceof ContentBlock.ToolResultBlock trb) {
                 total += trb.content() != null ? estimateStringTokens(trb.content(), textTokenRatio) : 0;
             } else if (block instanceof ContentBlock.ToolUseBlock tub) {
@@ -556,7 +567,7 @@ public class TokenBudgetGuard {
                                 Object rawData = sourceMap.get("data");
                                 String data = rawData instanceof String text ? text : null;
                                 if (data != null) {
-                                    total += data.length(); // 1:1
+                                    total += com.aicodeassistant.llm.InlineImageBudget.estimate(data);
                                 }
                             }
                         } else if ("tool_result".equals(type)) {

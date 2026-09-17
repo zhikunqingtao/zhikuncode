@@ -24,6 +24,7 @@ public class ModelCapabilitiesProperties {
         private Boolean supportsToolUse;
         private Boolean supportsVision;
         private Boolean supportsStreaming;
+        private ModelCapabilities.ImageInputMode imageInputMode;
         public Integer getContextWindow(){return contextWindow;} public void setContextWindow(Integer v){contextWindow=v;}
         public Double getTokenCharRatio(){return tokenCharRatio;} public void setTokenCharRatio(Double v){tokenCharRatio=v;}
         public Integer getOutputMaxTokens(){return outputMaxTokens;} public void setOutputMaxTokens(Integer v){outputMaxTokens=v;}
@@ -31,5 +32,6 @@ public class ModelCapabilitiesProperties {
         public Boolean getSupportsToolUse(){return supportsToolUse;} public void setSupportsToolUse(Boolean v){supportsToolUse=v;}
         public Boolean getSupportsVision(){return supportsVision;} public void setSupportsVision(Boolean v){supportsVision=v;}
         public Boolean getSupportsStreaming(){return supportsStreaming;} public void setSupportsStreaming(Boolean v){supportsStreaming=v;}
+        public ModelCapabilities.ImageInputMode getImageInputMode(){return imageInputMode;} public void setImageInputMode(ModelCapabilities.ImageInputMode v){imageInputMode=v;}
     }
 }

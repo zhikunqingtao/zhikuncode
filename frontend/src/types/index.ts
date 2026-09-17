@@ -110,6 +110,10 @@ export interface AssistantSegmentCompletePayload {
     type: 'assistant_segment_complete';
     message: Extract<Message, { type: 'assistant' }>;
 }
+export interface SystemMessagePayload {
+    type: 'system_message';
+    message: Extract<Message, { type: 'system' }>;
+}
 export interface PongPayload { type: 'pong'; timestamp: number }
 /**
  * 任务边界事件 — TodoWrite 任务首次进入 in_progress 时后端持久化一条
@@ -255,6 +259,7 @@ export type ServerMessage =
     | ToolPermissionDeniedPayload
     | WorkflowPhaseUpdatePayload
     | AssistantSegmentCompletePayload
+    | SystemMessagePayload
     | TaskBoundaryPayload;
 
 // ==================== 工具相关类型 ====================

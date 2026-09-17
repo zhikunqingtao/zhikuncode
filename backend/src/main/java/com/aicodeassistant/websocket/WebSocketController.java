@@ -1162,6 +1162,15 @@ public class WebSocketController implements PermissionNotifier {
         }
 
         @Override
+        public void onSystemMessage(Message.SystemMessage message) {
+            // Only persisted image notices use this channel; legacy transient notices
+            // would otherwise flash and disappear when committed messages reconcile.
+            if (!"image_notice".equals(message.subtype())) return;
+            push(sessionId, "system_message",
+                    Map.of("message", convertMessagesForWs(List.of(message)).getFirst()));
+        }
+
+        @Override
         public void onTaskBoundary(Message.SystemMessage message) {
             Map<String, Object> fields = new LinkedHashMap<>(message.metadata());
             fields.put("message_id", message.uuid());

@@ -18,8 +18,21 @@ public record ModelCapabilities(
         double costPer1kInput,
         double costPer1kOutput,
         double tokenCharRatio,
-        boolean supportsCache
+        boolean supportsCache,
+        ImageInputMode imageInputMode
 ) {
+
+    /** 图片输入方式 — URL 直传或仅接受 base64（如 Kimi K3 不支持公网图片 URL）。 */
+    public enum ImageInputMode { URL, BASE64_ONLY }
+
+    public ModelCapabilities(String modelId, String displayName, int maxOutputTokens, int contextWindow,
+                             boolean supportsStreaming, boolean supportsThinking, boolean supportsImages,
+                             int maxImages, boolean supportsToolUse, double costPer1kInput,
+                             double costPer1kOutput, double tokenCharRatio, boolean supportsCache) {
+        this(modelId, displayName, maxOutputTokens, contextWindow, supportsStreaming, supportsThinking,
+                supportsImages, maxImages, supportsToolUse, costPer1kInput, costPer1kOutput,
+                tokenCharRatio, supportsCache, ImageInputMode.URL);
+    }
 
     public ModelCapabilities(String modelId, String displayName, int maxOutputTokens, int contextWindow,
                              boolean supportsStreaming, boolean supportsThinking, boolean supportsImages,
@@ -39,6 +52,9 @@ public record ModelCapabilities(
     }
 
     public ModelCapabilities {
+        if (imageInputMode == null) {
+            imageInputMode = ImageInputMode.URL;
+        }
         if (maxOutputTokens <= 0 || contextWindow <= 0 || maxOutputTokens >= contextWindow)
             throw new IllegalArgumentException("Invalid model token limits for " + modelId);
         if (!Double.isFinite(tokenCharRatio) || tokenCharRatio <= 0.5 || tokenCharRatio > 16.0)

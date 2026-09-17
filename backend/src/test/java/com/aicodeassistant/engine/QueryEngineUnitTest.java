@@ -62,6 +62,7 @@ class QueryEngineUnitTest {
     @Mock FeatureFlagService featureFlagService;
     @Mock TokenBudgetGuard tokenBudgetGuard;
     @Mock ImageRefInjector imageRefInjector;
+    @Mock UserImageTranscoder userImageTranscoder;
     @Mock RunTracker runTracker;
 
     private ObjectMapper objectMapper;
@@ -80,7 +81,7 @@ class QueryEngineUnitTest {
                 toolResultSummarizer, contextCascade, compactMetrics,
                 null, null,  // incrementalCollapseManager, visualizationAutoRouter (both @Nullable)
                 null, featureFlagService,  // backgroundAgentTracker (@Nullable), featureFlagService
-                new DefaultTerminationStrategy(), new ToolPriorityScheduler(), null, new AgentTimeoutConfig(), tokenBudgetGuard, imageRefInjector, null, null);  // Run authority is covered by integration tests
+                new DefaultTerminationStrategy(), new ToolPriorityScheduler(), null, new AgentTimeoutConfig(), tokenBudgetGuard, imageRefInjector, null, null, userImageTranscoder);  // Run authority is covered by integration tests
         handler = new TestHandler();
 
         // 默认 Snip/MicroCompact mock: 直接返回原消息列表
@@ -96,7 +97,7 @@ class QueryEngineUnitTest {
         // 默认 TokenBudgetGuard mock: 直接放行
         lenient().when(tokenBudgetGuard.enforcePhase1(anyList(), anyInt()))
                 .thenAnswer(inv -> new TokenBudgetGuard.GuardResult(inv.getArgument(0), false, 0, 0));
-        lenient().when(tokenBudgetGuard.enforcePhase1(anyList(), anyInt(), anyDouble()))
+        lenient().when(tokenBudgetGuard.enforcePhase1(anyList(), anyInt(), anyDouble(), nullable(String.class)))
                 .thenAnswer(inv -> new TokenBudgetGuard.GuardResult(inv.getArgument(0), false, 0, 0));
         lenient().when(tokenBudgetGuard.enforcePhase2(anyList(), anyInt()))
                 .thenAnswer(inv -> new TokenBudgetGuard.FinalBudgetResult(inv.getArgument(0), Set.of(), 0, inv.getArgument(1), true, ""));
@@ -106,6 +107,9 @@ class QueryEngineUnitTest {
         lenient().when(imageRefInjector.injectForApiCall(
                         anyList(), anyInt(), anyInt(), anySet(), anyMap(), nullable(String.class), anyInt()))
                 .thenAnswer(inv -> new ImageRefInjector.InjectResult(inv.getArgument(0), Set.of()));
+        // 默认 UserImageTranscoder mock: 直接返回原消息
+        lenient().when(userImageTranscoder.transcode(anyList(), any(), nullable(String.class), any(), anyInt()))
+                .thenAnswer(inv -> new UserImageTranscoder.TranscodeResult(inv.getArgument(0), 0, List.of()));
         // 默认 ContextCascade mock: 直接返回原消息列表（无压缩）
         lenient().when(contextCascade.executePreApiCascade(anyList(), anyString(), any()))
                 .thenAnswer(inv -> {
@@ -317,7 +321,7 @@ class QueryEngineUnitTest {
                     null, null, null, featureFlagService,
                     new DefaultTerminationStrategy(), new ToolPriorityScheduler(),
                     null, new AgentTimeoutConfig(), tokenBudgetGuard, imageRefInjector,
-                    runTracker, executions);
+                    runTracker, executions, userImageTranscoder);
             toolSession = mock(StreamingToolExecutor.ExecutionSession.class);
             when(streamingToolExecutor.newSession(any())).thenReturn(toolSession);
             when(apiRetryService.executeWithRetry(any(), anyString(), anyString(), any()))

@@ -61,4 +61,24 @@ class AssistantSegmentContractTest {
         handler.onAssistantMessage(new Message.AssistantMessage("assistant", Instant.now(), List.of(), "end_turn", new Usage(0, 0, 0, 0)));
         verify(messaging).convertAndSendToUser(anyString(), anyString(), any(Object.class));
     }
+
+    @Test void imageNoticeIsPushedButLegacyThinkingNoticeIsNot() {
+        when(sessions.getPrincipalsForSession("session", false)).thenReturn(Set.of("principal"));
+        handler.onSystemMessage(new Message.SystemMessage("thinking", Instant.now(),
+                "Extended thinking disabled: model kimi-k3 on moonshot does not support it",
+                SystemMessageType.WARNING));
+        verifyNoInteractions(messaging);
+
+        handler.onSystemMessage(new Message.SystemMessage("image", Instant.ofEpochMilli(123),
+                "历史图片本轮已省略", SystemMessageType.WARNING, "image_notice", Map.of()));
+        ArgumentCaptor<Object> payload = ArgumentCaptor.forClass(Object.class);
+        verify(messaging).convertAndSendToUser(eq("principal"), eq("/queue/messages"), payload.capture());
+        Map<?, ?> frame = (Map<?, ?>) payload.getValue();
+        assertThat(frame.get("type")).isEqualTo("system_message");
+        assertThat(frame.get("_sessionId")).isEqualTo("session");
+        Map<?, ?> message = (Map<?, ?>) frame.get("message");
+        assertThat(message.get("uuid")).isEqualTo("image");
+        assertThat(message.get("content")).isEqualTo("历史图片本轮已省略");
+        assertThat(message.get("timestamp")).isEqualTo(123L);
+    }
 }

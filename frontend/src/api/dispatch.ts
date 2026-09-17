@@ -378,6 +378,11 @@ const handlers: Record<string, (data: any) => void> = {
         if (d.message?.type !== 'assistant' || !d.message.uuid || !Array.isArray(d.message.content)) return;
         useMessageStore.getState().finalizeAssistantSegment(d.message);
     },
+    'system_message': (d) => {
+        if (d.message?.type !== 'system' || !d.message.uuid || typeof d.message.content !== 'string') return;
+        const store = useMessageStore.getState();
+        if (!store.messages.some(message => message.uuid === d.message.uuid)) store.addMessage(d.message);
+    },
     'thinking_delta':     (d) => useMessageStore.getState().appendThinkingDelta(d.delta),
     'tool_use_start':     (d) => useMessageStore.getState().startToolCall(d.toolUseId, d.toolName, d.input),
     'tool_use_input':     (d) => {

@@ -49,9 +49,9 @@ public class ModelRegistry {
         entry("deepseek-v4.1-flash", caps("deepseek-v4.1-flash", "DeepSeek V4.1 Flash（百炼）", 393216, 1000000, true, true, true, 4, true, 0.002, 0.008)),
         entry("deepseek-v4-pro-0813",   caps("deepseek-v4-pro-0813",   "DeepSeek V4 Pro 0813（百炼）",   384000, 1000000, true, true, false, 0, true, 0.001, 0.004)),
         entry("deepseek-v4-flash-0731", caps("deepseek-v4-flash-0731", "DeepSeek V4 Flash 0731（百炼）", 384000, 1000000, true, true, false, 0, true, 0.0005, 0.002)),
-        // Moonshot
-        entry("kimi-k3",          caps("kimi-k3",          "Kimi K3",         131072, 1000000,  true, true, true, 8, true, 0.002, 0.012)),
-        entry("kimi-k2.7-code",     caps("kimi-k2.7-code",     "Kimi K2.7 Code",    16384, 256000,  true, true, true, 8, true, 0.002, 0.012)),
+        // Moonshot（Kimi K3/K2.7 视觉模型仅接受 base64 图片输入，不支持公网 URL）
+        entry("kimi-k3",          caps("kimi-k3",          "Kimi K3",         131072, 1000000,  true, true, true, 8, true, 0.002, 0.012, ModelCapabilities.ImageInputMode.BASE64_ONLY)),
+        entry("kimi-k2.7-code",     caps("kimi-k2.7-code",     "Kimi K2.7 Code",    16384, 256000,  true, true, true, 8, true, 0.002, 0.012, ModelCapabilities.ImageInputMode.BASE64_ONLY)),
         entry("moonshot-v1-128k",  caps("moonshot-v1-128k",  "Moonshot V1 128K",   8192, 128000,  true, false, false, 0, true, 0.001, 0.002)),
         entry("qwen-turbo",        caps("qwen-turbo",        "Qwen Turbo",         8192, 1000000,  true, false, false, 0, true, 0.0003, 0.0006)),
         entry("qwen3.8-max-0902", caps("qwen3.8-max-0902", "Qwen 3.8 Max 0902", 65536, 1000000, true, true, true, 4, true, 0.009, 0.054)),
@@ -184,6 +184,13 @@ public class ModelRegistry {
         return new ModelCapabilities(id, name, maxOut, ctx, stream, think, img, maxImages, tool, in$, out$, 3.5);
     }
 
+    private static ModelCapabilities caps(String id, String name, int maxOut, int ctx,
+            boolean stream, boolean think, boolean img, int maxImages, boolean tool,
+            double in$, double out$, ModelCapabilities.ImageInputMode imageInputMode) {
+        return new ModelCapabilities(id, name, maxOut, ctx, stream, think, img,
+                maxImages, tool, in$, out$, 3.5, false, imageInputMode);
+    }
+
     private static ModelCapabilities cacheCaps(String id, String name, int maxOut, int ctx,
             boolean stream, boolean think, boolean img, int maxImages, boolean tool,
             double in$, double out$) {
@@ -206,7 +213,8 @@ public class ModelRegistry {
                     value(override.getSupportsVision(), base.supportsImages()), base.maxImages(),
                     value(override.getSupportsToolUse(), base.supportsToolUse()),
                     base.costPer1kInput(), base.costPer1kOutput(), override.getTokenCharRatio(),
-                    value(override.getSupportsCache(), base.supportsCache())));
+                    value(override.getSupportsCache(), base.supportsCache()),
+                    override.getImageInputMode() != null ? override.getImageInputMode() : base.imageInputMode()));
         }
     }
 

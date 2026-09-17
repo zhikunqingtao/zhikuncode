@@ -112,6 +112,7 @@ public class QueryEngine {
     private final RunTracker runTracker;
     private final TokenBudgetGuard tokenBudgetGuard;
     private final ImageRefInjector imageRefInjector;
+    private final UserImageTranscoder userImageTranscoder;
     private final com.aicodeassistant.run.RunExecutionRegistry runExecutions;
     private volatile com.aicodeassistant.workbench.WorkbenchRunLinkService workbenchLinks;
 
@@ -162,7 +163,8 @@ public class QueryEngine {
                        TokenBudgetGuard tokenBudgetGuard,
                        ImageRefInjector imageRefInjector,
                        @org.springframework.context.annotation.Lazy RunTracker runTracker,
-                       @org.springframework.lang.Nullable com.aicodeassistant.run.RunExecutionRegistry runExecutions) {
+                       @org.springframework.lang.Nullable com.aicodeassistant.run.RunExecutionRegistry runExecutions,
+                       UserImageTranscoder userImageTranscoder) {
         this.providerRegistry = providerRegistry;
         this.compactService = compactService;
         this.apiRetryService = apiRetryService;
@@ -192,6 +194,7 @@ public class QueryEngine {
         this.imageRefInjector = imageRefInjector;
         this.runTracker = runTracker;
         this.runExecutions = runExecutions;
+        this.userImageTranscoder = userImageTranscoder;
     }
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
@@ -599,6 +602,8 @@ public class QueryEngine {
 
         // P1-6 fix: 扫描所有消息，依赖 confirmedHashes 防重复（避免 ContextCascade 后索引漂移）
         final int runStartIndex = 0;
+        final String currentImageRequestId = UserImageTranscoder.currentRequestId(state.getMessages());
+        final Set<String> imageNotices = new HashSet<>();
         final Set<String> confirmedImageHashes = new HashSet<>();
         final Map<String,Integer> rejectedImageBudgets = new HashMap<>();
 
@@ -729,28 +734,95 @@ public class QueryEngine {
             int inputBudget = effectiveContextWindow - effectiveMaxTokens - systemPromptTokens - toolDefsTokens - bufferTokens;
 
             TokenBudgetGuard.GuardResult guardResult = tokenBudgetGuard.enforcePhase1(
-                    state.getMessages(), inputBudget, tokenCharRatio);
+                    state.getMessages(), inputBudget, tokenCharRatio, currentImageRequestId);
             if (guardResult.trimmed()) {
                 state.setMessages(guardResult.messages());
                 log.info("[ImageOpt] Phase1 cleanup: {} → {} tokens", guardResult.tokensBefore(), guardResult.tokensAfter());
             }
 
             // === 图片临时注入 ===
-            int currentTokens = tokenCounter.estimateTokens(state.getMessages(), effectiveModel);
+            ModelCapabilities modelCaps = modelRegistry.getCapabilities(effectiveModel);
+            // The transcoder accounts for every image below, so reserve only non-image
+            // message tokens here. URL-capable models retain their existing budget path.
+            List<Message> budgetMessages = modelCaps.imageInputMode() == ModelCapabilities.ImageInputMode.BASE64_ONLY
+                    ? UserImageTranscoder.withoutImagesForBudget(state.getMessages()) : state.getMessages();
+            int currentTokens = tokenCounter.estimateTokens(budgetMessages, effectiveModel);
             int remainingBudget = inputBudget - currentTokens;
             String workingDir = state.getToolUseContext() != null ? state.getToolUseContext().workingDirectory() : null;
-            int modelMaxImages = modelRegistry.getCapabilities(effectiveModel).maxImages();
+            int modelMaxImages = modelCaps.maxImages();
+            List<Message> imagePreparedMessages = state.getMessages();
+            if (modelCaps.imageInputMode() == ModelCapabilities.ImageInputMode.BASE64_ONLY) {
+                var cancellation = loopSessionId == null
+                        ? com.aicodeassistant.llm.CancellationSignal.none() : getOrCreateAbortContext(loopSessionId);
+                for (int preparationAttempt = 0; ; preparationAttempt++) {
+                    try {
+                        // Reserve current attachments first. Historical attachments are admitted only
+                        // after fresh tool images have had a chance to use the remaining slots.
+                        var currentMessages = imagePreparedMessages.stream()
+                                .filter(message -> Objects.equals(message.uuid(), currentImageRequestId)).toList();
+                        var prepared = userImageTranscoder.transcode(currentMessages, modelCaps,
+                                currentImageRequestId, cancellation, remainingBudget);
+                        var currentPrepared = prepared.messages().stream()
+                                .collect(java.util.stream.Collectors.toMap(Message::uuid, message -> message));
+                        imagePreparedMessages = imagePreparedMessages.stream()
+                                .map(message -> currentPrepared.getOrDefault(message.uuid(), message)).toList();
+                        for (String warning : prepared.warnings()) {
+                            if (imageNotices.add(warning)) emitImageNotice(state, handler, warning);
+                        }
+                        // Only mandatory attachments reserve slots before tool injection.
+                        int existingImages = prepared.messages().stream()
+                                .filter(Message.UserMessage.class::isInstance).map(Message.UserMessage.class::cast)
+                                .filter(user -> user.content() != null)
+                                .mapToInt(user -> (int) user.content().stream().filter(ContentBlock.ImageBlock.class::isInstance).count()).sum();
+                        modelMaxImages = Math.max(0, Math.min(UserImageTranscoder.MAX_IMAGES_PER_CALL, modelMaxImages) - existingImages);
+                        break;
+                    } catch (LlmApiException failure) {
+                        if (preparationAttempt == 0 && "IMAGE_CONTEXT_BUDGET_EXCEEDED".equals(failure.getErrorType())
+                                && tryReactiveCompact(config, state, handler, currentImageRequestId)) {
+                            imagePreparedMessages = state.getMessages();
+                            remainingBudget = inputBudget - tokenCounter.estimateTokens(
+                                    UserImageTranscoder.withoutImagesForBudget(imagePreparedMessages), effectiveModel);
+                            continue; // Retry preparation within the same model turn, including maxTurns=1.
+                        }
+                        if (!isCancellation(failure)) emitImageNotice(state, handler, failure.getMessage());
+                        throw failure;
+                    }
+                }
+            }
+            int toolImageBudget = remainingBudget;
+            if (modelCaps.imageInputMode() == ModelCapabilities.ImageInputMode.BASE64_ONLY) {
+                toolImageBudget = Math.max(0, remainingBudget - UserImageTranscoder.imageTokens(
+                        imagePreparedMessages, currentImageRequestId));
+            }
             ImageRefInjector.InjectResult injectResult = imageRefInjector.injectForApiCall(
-                state.getMessages(), runStartIndex, remainingBudget, confirmedImageHashes,
+                imagePreparedMessages, runStartIndex, toolImageBudget, confirmedImageHashes,
                 rejectedImageBudgets, workingDir, modelMaxImages);
             // Optional/mocked injectors used by extensions may return null. Image
             // injection is an optimization and must never break the query loop.
             if (injectResult == null) {
                 log.warn("ImageRefInjector returned null; continuing without transient images");
-                injectResult = new ImageRefInjector.InjectResult(state.getMessages(), Set.of());
+                injectResult = new ImageRefInjector.InjectResult(imagePreparedMessages, Set.of());
             }
             List<Message> apiReadyMessages = injectResult.messages();
-            Set<String> pendingHashes = injectResult.pendingHashes();
+            if (modelCaps.imageInputMode() == ModelCapabilities.ImageInputMode.BASE64_ONLY) {
+                var cancellation = loopSessionId == null
+                        ? com.aicodeassistant.llm.CancellationSignal.none() : getOrCreateAbortContext(loopSessionId);
+                try {
+                    var prepared = userImageTranscoder.transcode(apiReadyMessages, modelCaps,
+                            currentImageRequestId, cancellation, remainingBudget);
+                    apiReadyMessages = prepared.messages();
+                    for (String warning : prepared.warnings()) {
+                        if (imageNotices.add(warning)) emitImageNotice(state, handler, warning);
+                    }
+                } catch (LlmApiException failure) {
+                    if (!isCancellation(failure)) emitImageNotice(state, handler, failure.getMessage());
+                    throw failure;
+                }
+            }
+            Set<String> pendingHashes = new HashSet<>(injectResult.pendingHashes());
+            // A tool reference can have the same bytes as a mandatory attachment. Hash-based
+            // degradation must not remove either occurrence in that case.
+            pendingHashes.removeAll(UserImageTranscoder.imageHashes(imagePreparedMessages, currentImageRequestId));
 
             List<MessageParam> typedMessages = messageNormalizer.normalizeTyped(apiReadyMessages);
             List<Map<String, Object>> apiMessages = MessageParamConverter.toMaps(typedMessages);
@@ -1633,6 +1705,22 @@ public class QueryEngine {
 
     private boolean tryReactiveCompact(QueryConfig config, QueryLoopState state,
                                         QueryMessageHandler handler) {
+        return tryReactiveCompact(config, state, handler, null);
+    }
+
+    private boolean tryReactiveCompact(QueryConfig config, QueryLoopState state,
+                                        QueryMessageHandler handler, String protectedRequestId) {
+        List<Message> compactable = state.getMessages();
+        List<Message> protectedTail = List.of();
+        if (protectedRequestId != null) {
+            int boundary = -1;
+            for (int i = 0; i < compactable.size(); i++) {
+                if (Objects.equals(compactable.get(i).uuid(), protectedRequestId)) { boundary = i; break; }
+            }
+            if (boundary <= 0) return false;
+            protectedTail = List.copyOf(compactable.subList(boundary, compactable.size()));
+            compactable = List.copyOf(compactable.subList(0, boundary));
+        }
         if (state.hasAttemptedReactiveCompact()) {
             log.error("反应式压缩已尝试过，拒绝重试以防死亡螺旋");
             return false;
@@ -1645,9 +1733,11 @@ public class QueryEngine {
 
         try {
             CompactService.CompactResult result = compactService.reactiveCompact(
-                    state.getMessages(), config.contextWindow(), false);
+                    compactable, config.contextWindow(), false);
             if (result.skipReason() == null) {
-                state.setMessages(result.compactedMessages());
+                var restored = new ArrayList<Message>(result.compactedMessages());
+                restored.addAll(protectedTail);
+                state.setMessages(restored);
                 handler.onCompactEvent("reactive_compact",
                         result.beforeTokens(), result.afterTokens());
                 recordCurrentRunEvent("context_compacted", Map.of(
@@ -1986,6 +2076,15 @@ public class QueryEngine {
         if (changed) state.setMessages(cleaned);
     }
 
+    private void emitImageNotice(QueryLoopState state, QueryMessageHandler handler, String text) {
+        Message.SystemMessage notice = new Message.SystemMessage(
+                UUID.randomUUID().toString(), Instant.now(), text, SystemMessageType.WARNING,
+                "image_notice", Map.of());
+        state.addMessage(notice);
+        try { handler.onSystemMessage(notice); }
+        catch (RuntimeException pushFailure) { log.warn("Image notice push failed: {}", pushFailure.getMessage()); }
+    }
+
     // ==================== 媒体恢复辅助方法 ====================
 
     /**
@@ -1997,7 +2096,8 @@ public class QueryEngine {
         return (msg.contains("image") && (msg.contains("invalid") || msg.contains("too_large")))
                 || msg.contains("file_too_large") || msg.contains("invalid_image")
                 || msg.contains("could not process image")
-                || msg.contains("media_type_not_supported");
+                || msg.contains("media_type_not_supported")
+                || msg.contains("unsupported image");
     }
 
     /**
@@ -2022,12 +2122,12 @@ public class QueryEngine {
                     filteredBlockCount += filteredBlocks.size();
                     if (filteredBlocks.isEmpty()) {
                         filteredBlocks = List.of(new ContentBlock.TextBlock(
-                                "[Media content was present but removed to reduce context size. " +
-                                "The original content included image(s) that exceeded size limits.]"));
+                                "[Media content was present but removed because the model " +
+                                "could not process it.]"));
                     }
                     cleaned.add(new Message.UserMessage(
                             userMsg.uuid(), userMsg.timestamp(), filteredBlocks,
-                            MessageContentAccessor.rawLegacyToolResult(userMsg), userMsg.sourceToolAssistantUUID()));
+                            MessageContentAccessor.rawLegacyToolResult(userMsg), userMsg.sourceToolAssistantUUID(), userMsg.meta()));
                 } else {
                     cleaned.add(msg);
                 }
@@ -2398,7 +2498,7 @@ public class QueryEngine {
             - (int)(contextWindow * 0.05);
 
         TokenBudgetGuard.GuardResult result = tokenBudgetGuard.enforcePhase1(
-            state.getMessages(), inputBudget, tokenCharRatio);
+            state.getMessages(), inputBudget, tokenCharRatio, UserImageTranscoder.currentRequestId(state.getMessages()));
         if (result.trimmed()) {
             state.setMessages(result.messages());
             log.info("[PreClean] 历史 Base64 清理: {} → {} tokens",

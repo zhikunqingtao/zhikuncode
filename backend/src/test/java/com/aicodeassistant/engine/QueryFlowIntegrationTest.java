@@ -109,7 +109,7 @@ class QueryFlowIntegrationTest {
         TokenBudgetGuard tokenBudgetGuard = mock(TokenBudgetGuard.class);
         when(tokenBudgetGuard.enforcePhase1(any(), anyInt()))
                 .thenAnswer(inv -> new TokenBudgetGuard.GuardResult(inv.getArgument(0), false, 0, 0));
-        when(tokenBudgetGuard.enforcePhase1(any(), anyInt(), anyDouble()))
+        when(tokenBudgetGuard.enforcePhase1(any(), anyInt(), anyDouble(), nullable(String.class)))
                 .thenAnswer(inv -> new TokenBudgetGuard.GuardResult(inv.getArgument(0), false, 0, 0));
         when(tokenBudgetGuard.enforcePhase2(any(), anyInt()))
                 .thenAnswer(inv -> new TokenBudgetGuard.FinalBudgetResult(inv.getArgument(0), Set.of(), 0, inv.getArgument(1), true, ""));
@@ -120,6 +120,10 @@ class QueryFlowIntegrationTest {
         when(imageRefInjector.injectForApiCall(
                         anyList(), anyInt(), anyInt(), anySet(), anyMap(), nullable(String.class), anyInt()))
                 .thenAnswer(inv -> new ImageRefInjector.InjectResult(inv.getArgument(0), Set.of()));
+
+        UserImageTranscoder userImageTranscoder = mock(UserImageTranscoder.class);
+        lenient().when(userImageTranscoder.transcode(anyList(), any(), nullable(String.class), any(), anyInt()))
+                .thenAnswer(inv -> new UserImageTranscoder.TranscodeResult(inv.getArgument(0), 0, List.of()));
 
         ModelRegistry modelRegistryMock = mock(ModelRegistry.class);
         when(modelRegistryMock.getContextWindowForModel(anyString())).thenReturn(200000);
@@ -137,7 +141,8 @@ class QueryFlowIntegrationTest {
                 null, null,  // incrementalCollapseManager, visualizationAutoRouter (both @Nullable)
                 null, mock(FeatureFlagService.class),  // backgroundAgentTracker (@Nullable), featureFlagService
                 new DefaultTerminationStrategy(), new ToolPriorityScheduler(), null,  // selfCorrectionLoop (@Nullable)
-                new AgentTimeoutConfig(), tokenBudgetGuard, imageRefInjector, null, null  // runTracker, runExecutions
+                new AgentTimeoutConfig(), tokenBudgetGuard, imageRefInjector, null, null,  // runTracker, runExecutions
+                userImageTranscoder
         );
 
         handler = new RecordingHandler();
