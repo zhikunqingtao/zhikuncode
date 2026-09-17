@@ -294,6 +294,18 @@ body {
 @keyframes indeterminate {                                 /* 不定进度条 */
   0% { transform: translateX(-60%) scaleX(.4) }
   100% { transform: translateX(160%) scaleX(.4) } }
+@keyframes stopPulseRing {                                 /* 运行中停止钮：红色光环扩散 */
+  0%   { box-shadow: 0 0 0 0   color-mix(in srgb, var(--v2-err) 45%, transparent) }
+  70%  { box-shadow: 0 0 0 9px color-mix(in srgb, var(--v2-err) 0%, transparent) }
+  100% { box-shadow: 0 0 0 9px color-mix(in srgb, var(--v2-err) 0%, transparent) } }
+@keyframes stopIconBeat {                                  /* 运行中停止钮：方块心跳 */
+  0%,100% { transform: scale(1);   opacity: 1 }
+  50%     { transform: scale(.78); opacity: .8 } }
+
+/* 运行中停止按钮动效（三端统一：光环扩散 + 方块心跳，1.6s 同相循环；
+   reduced-motion 由 §8.8.5 全局压制，无需重复 media query） */
+.stop-btn-running { animation: stopPulseRing 1.6s cubic-bezier(.4, 0, .6, 1) infinite; }
+.stop-btn-running > svg { animation: stopIconBeat 1.6s ease-in-out infinite; }
 
 /* ===== §5.4 展开/收起容器（grid-rows 方案；旧 Safari @supports 兜底 max-height） ===== */
 .expand-collapse {

@@ -1,8 +1,8 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { beforeEach, expect, it, vi } from 'vitest';
 import PromptInput from './index';
 import { usePromptDraftStore } from '@/store/promptDraftStore';
-import { useWorkbenchViewStore } from '@/store/workbenchViewStore';
+import { useModelStore } from '@/store/modelStore';
 import { useTurnViewStore } from '@/store/turnViewStore';
 
 const mocks = vi.hoisted(() => ({ available: true, start: vi.fn() }));
@@ -14,6 +14,7 @@ beforeEach(() => {
     mocks.available = true; mocks.start.mockClear();
     usePromptDraftStore.setState({ drafts: {} });
     useTurnViewStore.setState({ density: 'compact', expandOverrides: {} });
+    useModelStore.setState({ models: [{ id: 'kimi-k3', displayName: 'Kimi K3', maxImages: 0, supportsImages: false }], loading: false, error: null });
 });
 function mount(runActive = false) {
     return render(<PromptInput sessionId="mobile-review" onSubmit={vi.fn()} onSlashCommand={vi.fn()} onInterrupt={vi.fn()}
@@ -54,27 +55,38 @@ it('语音服务不可用时保留禁用入口及原因', () => {
     mocks.available = false; mount();
     expect(screen.getByRole('button', { name: '语音输入（服务暂不可用）' })).toBeDisabled();
 });
-it('不聚焦输入框也能打开三档选择并切换', () => {
+it('不聚焦输入框也能打开三档选择并切换（上下列表）', () => {
     mount();
-    fireEvent.click(screen.getByRole('button', { name: /^消息密度：/ }));
-    expect(screen.getByRole('dialog', { name: '消息密度' })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('tab', { name: /^详细/ }));
+    fireEvent.click(screen.getByRole('button', { name: /^密度：/ }));
+    expect(screen.getByRole('dialog', { name: '选择密度' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /^详细/ }));
     expect(useTurnViewStore.getState().density).toBe('detailed');
     expect(screen.getByTestId('mobile-persistent-actions')).toBeInTheDocument();
 });
 
-it('工作台独立选择保留默认偏好，更多不再重复工作台和密度', () => {
-    useWorkbenchViewStore.setState({ enabled: true, viewMode: 'development', defaultView: 'development' });
+it('导航顺序统一为状态权限、模型、密度、更多（与桌面一致）', () => {
     mount();
-    fireEvent.click(screen.getByRole('button', { name: /^工作台：/ }));
-    fireEvent.click(screen.getByRole('button', { name: '简洁工作台' }));
-    expect(useWorkbenchViewStore.getState().viewMode).toBe('simple');
-    fireEvent.click(screen.getByRole('button', { name: '设为默认工作台' }));
-    expect(useWorkbenchViewStore.getState().defaultView).toBe('simple');
-    fireEvent.click(screen.getByRole('button', { name: '关闭工作台' }));
+    const nav = document.querySelector('.mobile-composer-navigation');
+    expect(nav).not.toBeNull();
+    const names = Array.from(nav!.querySelectorAll('button')).map(b => b.getAttribute('aria-label') ?? b.textContent);
+    expect(names).toEqual([
+        expect.stringMatching(/^权限：/),
+        expect.stringMatching(/^模型：/),
+        expect.stringMatching(/^密度：/),
+        '更多',
+    ]);
+});
+
+it('导航提供模型切换入口，更多不再重复模型和密度', () => {
+    mount();
+    expect(screen.queryByRole('button', { name: /^工作台：/ })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /^模型：/ }));
+    expect(screen.getByRole('dialog', { name: '选择模型' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '完成' }));
     fireEvent.click(screen.getByRole('button', { name: '更多' }));
-    expect(screen.queryByRole('button', { name: '简洁工作台' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('tab', { name: /^详细/ })).not.toBeInTheDocument();
+    const moreDialog = screen.getByRole('dialog', { name: '更多操作' });
+    expect(within(moreDialog).queryByRole('region', { name: '模型选择' })).not.toBeInTheDocument();
+    expect(within(moreDialog).queryByRole('tab', { name: /^详细/ })).not.toBeInTheDocument();
 });
 
 it('命令位于附件和语音之间，点击打开斜杠命令入口', () => {

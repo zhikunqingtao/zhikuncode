@@ -3,6 +3,9 @@ import { createPortal } from 'react-dom';
 import { Check, ChevronDown, Shield } from 'lucide-react';
 import { PERMISSION_MODES, type PermissionMode } from '@/types';
 import { getPermissionModeDescription, getPermissionModeLabel } from '@/components/layout/StatusBar';
+import { getSessionStatusMeta } from '@/components/layout/Header';
+import { SessionStatusIcon } from '@/components/status/SessionStatusIcon';
+import { useSessionStore } from '@/store/sessionStore';
 import { useModalBehavior } from '@/hooks/useModalBehavior';
 
 export function PermissionMenu({ value, onChange }: { value: PermissionMode; onChange: (mode: PermissionMode) => void }) {
@@ -10,6 +13,9 @@ export function PermissionMenu({ value, onChange }: { value: PermissionMode; onC
     const [position, setPosition] = useState({ left: 8, top: 8, maxHeight: 400 });
     const trigger = useRef<HTMLButtonElement>(null);
     const panel = useRef<HTMLDivElement>(null);
+    // 当前会话状态（标题提示文案；图标由 SessionStatusIcon 呈现，与 Header 状态胶囊同款）
+    const sessionStatus = useSessionStore(s => s.status);
+    const statusMeta = getSessionStatusMeta(sessionStatus);
     useModalBehavior(open, panel, () => setOpen(false));
     useLayoutEffect(() => {
         if (!open) return;
@@ -26,7 +32,8 @@ export function PermissionMenu({ value, onChange }: { value: PermissionMode; onC
         return () => { window.removeEventListener('resize', place); window.removeEventListener('scroll', place, true); };
     }, [open]);
     return <>
-        <button ref={trigger} type="button" aria-label="权限模式" aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(true)} className="inline-flex min-h-7 items-center gap-1.5 rounded-full border border-hairline bg-surface2 px-2.5 text-[13px] text-t2 hover:bg-hover2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent2-ink">
+        <button ref={trigger} type="button" aria-label="权限模式" aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(true)} title={`会话状态：${statusMeta.label}`} className="inline-flex min-h-7 items-center gap-1.5 rounded-full border border-hairline bg-surface2 px-2.5 text-[13px] text-t2 hover:bg-hover2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent2-ink">
+            <SessionStatusIcon />
             <Shield size={14} aria-hidden="true" />{getPermissionModeLabel(value)}<ChevronDown size={14} aria-hidden="true" />
         </button>
         {open && createPortal(<div className="fixed inset-0 z-[200]" onPointerDown={event => { if (event.target === event.currentTarget) setOpen(false); }}>

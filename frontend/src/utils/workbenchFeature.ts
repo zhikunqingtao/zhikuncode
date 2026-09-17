@@ -51,14 +51,16 @@ export function parseWorkbenchView(value: unknown): WorkbenchViewMode | null {
 export function readDefaultWorkbenchView(
     storage: StorageLike | null = browserStorage(),
 ): WorkbenchViewMode {
-    if (!storage) return 'development';
-    try {
-        const raw = storage.getItem(WORKBENCH_DEFAULT_VIEW_KEY);
-        const parsed = parseWorkbenchView(raw);
-        if (parsed) return parsed;
-        if (raw !== null) storage.removeItem(WORKBENCH_DEFAULT_VIEW_KEY);
-    } catch {
-        // Fall through to the safe first-use default.
+    // 工作台切换已从前台隐藏，全部默认开发工作台（能力保留在 store/utils 层）；
+    // 清除历史本机偏好，避免旧 simple 值残留生效。
+    if (storage) {
+        try {
+            if (storage.getItem(WORKBENCH_DEFAULT_VIEW_KEY) !== null) {
+                storage.removeItem(WORKBENCH_DEFAULT_VIEW_KEY);
+            }
+        } catch {
+            // Privacy mode or a full storage quota must not block startup.
+        }
     }
     return 'development';
 }
@@ -68,15 +70,14 @@ export function readSessionWorkbenchView(
     defaultView: WorkbenchViewMode,
     storage: StorageLike | null = browserStorage(),
 ): WorkbenchViewMode {
-    if (!sessionId || !storage) return defaultView;
-    try {
-        const key = `${WORKBENCH_SESSION_VIEW_PREFIX}${sessionId}`;
-        const raw = storage.getItem(key);
-        const parsed = parseWorkbenchView(raw);
-        if (parsed) return parsed;
-        if (raw !== null) storage.removeItem(key);
-    } catch {
-        // Fall through to the machine default.
+    // 会话级视图偏好同样不再读取（切换 UI 已隐藏）；清除历史值后回落到本机默认（开发工作台）。
+    if (sessionId && storage) {
+        try {
+            const key = `${WORKBENCH_SESSION_VIEW_PREFIX}${sessionId}`;
+            if (storage.getItem(key) !== null) storage.removeItem(key);
+        } catch {
+            // Fall through to the machine default.
+        }
     }
     return defaultView;
 }

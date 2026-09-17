@@ -10,18 +10,15 @@ import { GlassMaterial } from '@/components/theme/GlassMaterial';
  * （会话状态与用量指标自底部状态栏右簇上移；连接状态由 SessionTitle 副行呈现，不再重复）
  */
 
-import { useCallback, useEffect } from 'react';
-import { Plus, Menu, Sun, Moon, Sparkles, Keyboard, ChevronDown, Coins, Loader2 } from 'lucide-react';
+import { useEffect } from 'react';
+import { Menu, Sun, Moon, Sparkles, Keyboard, ChevronDown, Coins, Loader2 } from 'lucide-react';
 import { useSessionStore } from '@/store/sessionStore';
 import { useCostStore } from '@/store/costStore';
 import { useDialogStore } from '@/store/dialogStore';
 import { normalizeThemeMode, useConfigStore } from '@/store/configStore';
 import { useModelStore } from '@/store/modelStore';
 import { useBridgeStore } from '@/store/bridgeStore';
-import { dispatchNewAuthorizedSessionRequest } from '@/services/authorizedSession';
 import { clearSessionSelection } from '@/services/sessionActivation';
-import { useWorkbenchViewStore } from '@/store/workbenchViewStore';
-import { WorkbenchViewSwitch } from '@/components/workbench/WorkbenchViewSwitch';
 import { McpIcon } from '@/components/mcp/McpIcon';
 
 /** §7.4 头部按钮共性：hover/active/焦点环（ring-accent2-ring） */
@@ -38,6 +35,11 @@ const SESSION_STATUS_META: Record<string, { label: string; color: string; pulse:
     waiting_permission: { label: '等待权限', color: 'var(--v2-warn)', pulse: false },
     compacting: { label: '压缩中...', color: 'var(--v2-accent)', pulse: true },
 };
+
+/** 会话状态 → 图标规则（颜色/脉冲/旋转），供 Header 与输入区权限 chip 等复用同款状态图标 */
+export function getSessionStatusMeta(status: string): { label: string; color: string; pulse: boolean; spinner?: boolean } {
+    return SESSION_STATUS_META[status] ?? { label: status, color: 'var(--v2-ok)', pulse: false };
+}
 
 /** 会话状态 → 展示文案 */
 export function getSessionStatusLabel(status: string): string {
@@ -60,9 +62,6 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
     const { bridgeStatus } = useBridgeStore();
     const { openDialog } = useDialogStore();
     const { theme } = useConfigStore();
-    const workbenchEnabled = useWorkbenchViewStore(s => s.enabled);
-    const viewMode = useWorkbenchViewStore(s => s.viewMode);
-    const simpleMode = workbenchEnabled && viewMode === 'simple';
 
     // 动态加载可用模型列表（统一从 modelStore 缓存读取；移动端头部展示当前模型名）
     const {
@@ -98,7 +97,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
     const currentModelName = availableModels.find(item => item.id === model)?.displayName ?? model ?? '';
     // Compact presentation only; option labels, ids and model requests remain unchanged.
     const compactModelName = currentModelName.replace(/\s*[（(][^）)]*[）)]\s*$/, '');
-    const sessionStatusMeta = SESSION_STATUS_META[status] ?? { label: status, color: 'var(--v2-ok)', pulse: false };
+    const sessionStatusMeta = getSessionStatusMeta(status);
     const streaming = bridgeStatus === 'connected' && status === 'streaming';
     /** 桌面右簇状态胶囊语气：运行中/压缩中=accent 软底高亮，等待权限=警告色，就绪=透明低调（无事态不抢视觉） */
     const sessionStatusChipTone =
@@ -107,11 +106,6 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
             : status === 'waiting_permission'
                 ? 'border-warnsoft bg-warnsoft text-warn'
                 : 'border-accent2-ring bg-accent2-soft text-accent2-ink';
-
-
-    const handleNewSession = useCallback(() => {
-        dispatchNewAuthorizedSessionRequest();
-    }, []);
 
     const mobileStatus = bridgeStatus !== 'connected'
         ? ({ disconnected: '连接已断开', reconnecting: '连接中', error: '连接异常' }[bridgeStatus])
@@ -168,7 +162,6 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
 
             {/* Center: Session Title */}
             <div className="hidden md:flex flex-1 items-center justify-center gap-1.5 md:gap-3 min-w-0">
-                {workbenchEnabled && <WorkbenchViewSwitch />}
                 <SessionTitle title={sessionTitle} sessionId={sessionId} connection={bridgeStatus === 'connected' ? '已连接' : ({disconnected: '连接已断开', reconnecting: '连接中', error: '连接异常'}[bridgeStatus])} />
             </div>
 
@@ -227,16 +220,6 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                     <ThemeIcon className="w-4 h-4" aria-hidden="true" />
                     <span className="text-sm whitespace-nowrap">{currentTheme.label}</span>
                     <ChevronDown className="w-3.5 h-3.5" aria-hidden="true" />
-                </button>
-
-                {/* New Session */}
-                <button
-                    onClick={handleNewSession}
-                    className={HEADER_BUTTON_CLASS}
-                    title={simpleMode ? '新建任务' : '新建会话'}
-                    aria-label={simpleMode ? '新建任务' : '新建会话'}
-                >
-                    <Plus className="w-5 h-5" />
                 </button>
 
                 {/* Settings */}

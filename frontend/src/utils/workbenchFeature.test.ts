@@ -33,19 +33,22 @@ describe('workbenchFeature', () => {
         expect(readDefaultWorkbenchView(memoryStorage({ [WORKBENCH_DEFAULT_VIEW_KEY]: 'invalid' }))).toBe('development');
     });
 
-    it('preserves a manually chosen default and falls back if storage is unavailable', () => {
-        expect(readDefaultWorkbenchView(memoryStorage({ [WORKBENCH_DEFAULT_VIEW_KEY]: 'simple' }))).toBe('simple');
-        const storage = memoryStorage();
-        storage.getItem = () => { throw new Error('Storage unavailable'); };
+    it('locks the default view to development and clears any stored preference', () => {
+        const storage = memoryStorage({ [WORKBENCH_DEFAULT_VIEW_KEY]: 'simple' });
         expect(readDefaultWorkbenchView(storage)).toBe('development');
+        expect(storage.getItem(WORKBENCH_DEFAULT_VIEW_KEY)).toBeNull();
+        const throwing = memoryStorage();
+        throwing.getItem = () => { throw new Error('Storage unavailable'); };
+        expect(readDefaultWorkbenchView(throwing)).toBe('development');
     });
 
-    it('uses a per-session view without changing the machine default', () => {
+    it('ignores per-session views and always falls back to the machine default', () => {
         const storage = memoryStorage({
-            'zhikun.workbench.session-view.session-1': 'development',
+            'zhikun.workbench.session-view.session-1': 'simple',
         });
-        expect(readSessionWorkbenchView('session-1', 'simple', storage)).toBe('development');
-        expect(readSessionWorkbenchView('session-2', 'simple', storage)).toBe('simple');
+        expect(readSessionWorkbenchView('session-1', 'development', storage)).toBe('development');
+        expect(storage.getItem('zhikun.workbench.session-view.session-1')).toBeNull();
+        expect(readSessionWorkbenchView('session-2', 'development', storage)).toBe('development');
     });
 
 });

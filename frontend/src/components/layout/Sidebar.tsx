@@ -90,9 +90,8 @@ const MIN_WIDTH = 256;
 const MAX_WIDTH = 800;
 const DEFAULT_WIDTH = 320;
 const STORAGE_KEY = 'sidebar-width';
-
-/** §7.5 图标轨宽度（w-12 = 48px）：面板内容区宽度 = aside 宽 - 图标轨 */
-const RAIL_WIDTH = 48;
+/** 桌面端收起后侧栏保留的固定展开条宽度（图标 + 竖排文字，整条可点击恢复） */
+const COLLAPSED_STRIP_WIDTH = 36;
 
 // ═══ §7.5 桌面面板配方常量（移动抽屉文字列表路径不消费） ═══
 /** 面板 Label：11px/600/大写/tracking-wider（§3.8 Label）。
@@ -209,8 +208,6 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab, onNa
     const { tasks } = useTaskStore();
     const workbenchEnabled = useWorkbenchViewStore(s => s.enabled);
     const viewMode = useWorkbenchViewStore(s => s.viewMode);
-    const defaultView = useWorkbenchViewStore(s => s.defaultView);
-    const setDefaultView = useWorkbenchViewStore(s => s.setDefaultView);
     const simpleMode = workbenchEnabled && viewMode === 'simple';
 
     // ── Auto-Routing 跳转接收端（v1.5 升级项 C Beta） ──
@@ -323,15 +320,15 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab, onNa
         onNavigate?.();
     }, [setMobileNavTab, onNavigate]);
 
-    // Drawer 模式不使用动态宽度
-    const sidebarStyle = isDrawerMode ? undefined : { width: `${panelCollapsed ? RAIL_WIDTH : width}px` };
+    // Drawer 模式不使用动态宽度；桌面端收起后保留固定展开条（COLLAPSED_STRIP_WIDTH）
+    const sidebarStyle = isDrawerMode ? undefined : { width: `${panelCollapsed ? COLLAPSED_STRIP_WIDTH : width}px` };
     const sidebarWidthClass = isDrawerMode ? 'w-full' : '';
 
     return (
         <motion.aside
-            className={`app-sidebar ${isDrawerMode ? '' : 'glass-surface'} ${sidebarWidthClass} h-full bg-surface2 ${isDrawerMode ? '' : 'border-r border-hairline'} flex flex-col relative z-10 ${className}`}
+            className={`app-sidebar ${isDrawerMode ? '' : 'glass-surface'} ${sidebarWidthClass} h-full bg-surface2 ${isDrawerMode ? '' : 'border-r border-hairline'} flex flex-col relative z-10 overflow-hidden ${className}`}
             style={sidebarStyle}
-            animate={isDrawerMode ? undefined : { width: panelCollapsed ? RAIL_WIDTH : width }}
+            animate={isDrawerMode ? undefined : { width: panelCollapsed ? COLLAPSED_STRIP_WIDTH : width }}
             transition={{ duration: glassMode && !reducedMotion && !isDragging ? .24 : 0, ease: [.2, .8, .2, 1] }}
         >
             {!isDrawerMode && <GlassMaterial />}
@@ -379,82 +376,47 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab, onNa
                         </button>
                     )}
                 </nav>
+            ) : panelCollapsed ? (
+                /* 收起后的固定展开条：左侧常驻窄条（图标 + 竖排文字），整条可点击恢复 */
+                <button
+                    type="button"
+                    onClick={() => setPanelCollapsed(false)}
+                    aria-label="展开侧栏列表"
+                    title="展开侧栏列表"
+                    className="flex h-full w-full flex-col items-center gap-2 pt-3 text-t3
+                        transition-interactive duration-fast hover:bg-hover2 hover:text-t1
+                        focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent2-ink"
+                >
+                    <PanelLeftOpen className="w-4 h-4 shrink-0" aria-hidden="true" />
+                    <span aria-hidden="true" className="text-xs tracking-wider [writing-mode:vertical-lr]">展开列表</span>
+                </button>
             ) : (
-                /* §7.5 PC 混合方案：[48px 图标轨][面板]；面板宽度 state/拖拽/detached 逻辑保留 */
-                <div className="flex flex-1 min-h-0">
-                    {/* 图标轨：48px，12 Tab；active = accent2-soft 底 + accent 图标，命中区 40px */}
-                    <nav
-                        aria-label="侧边栏导航"
-                        className="sidebar-rail w-12 flex-shrink-0 flex flex-col items-center gap-1 py-2
-                            border-r border-hairline bg-surface2 overflow-y-auto"
-                    >
-                        <button
-                            type="button"
-                            onClick={() => setPanelCollapsed(value => !value)}
-                            aria-label={panelCollapsed ? '展开侧栏列表' : '收起侧栏列表'}
-                            title={panelCollapsed ? '展开侧栏列表' : '收起侧栏列表'}
-                            aria-expanded={!panelCollapsed}
-                            className="panel-control w-10 h-10 shrink-0 flex items-center justify-center rounded-xl text-t2 hover:bg-hover2
-                                focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring"
-                        >
-                            {panelCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
-                        </button>
-                        {tabs.map((tab) => {
-                            const isActive = activeTab === tab.id;
-                            return (
-                                <button
-                                    key={tab.id}
-                                    onClick={() => { setActiveTab(tab.id); setPanelCollapsed(false); }}
-                                    title={tab.label}
-                                    aria-label={tab.label}
-                                    aria-current={isActive ? 'page' : undefined}
-                                    className={`panel-control w-10 h-10 flex items-center justify-center rounded-xl
-                                        transition-interactive duration-fast
-                                        focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring ${
-                                        isActive
-                                            ? 'bg-accent2-soft text-accent2-ink'
-                                            : 'text-t3 hover:bg-hover2 hover:text-t1'
-                                    }`}
-                                >
-                                    <tab.icon className="w-4 h-4" />
-                                </button>
-                            );
-                        })}
-                        {/* 新窗口打开按钮（detached 入口保留） */}
-                        {!simpleMode && (
+                /* §7.5 PC：图标轨已从前台隐藏，面板直接呈现（默认会话列表）；
+                   Tab 面板能力保留——可视化跳转等内部路径切入其他面板时，
+                   顶部提供"返回会话列表"出口 */
+                <div className="flex flex-1 min-h-0 flex-col">
+                    {activeTab !== 'sessions' && (
+                        <div className="shrink-0 border-b border-hairline px-1.5 py-1">
                             <button
-                                onClick={handleOpenInNewWindow}
-                                className="panel-control mt-auto w-10 h-10 flex items-center justify-center rounded-xl
-                                    text-t3 hover:bg-hover2 hover:text-t1
-                                    transition-interactive duration-fast
-                                    focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring"
-                                title="在新窗口中打开侧边栏"
-                                aria-label="在新窗口中打开侧边栏"
+                                type="button"
+                                onClick={() => setActiveTab('sessions')}
+                                className="panel-control inline-flex min-h-9 items-center gap-1 rounded-lg px-2 text-[13px] text-t2
+                                    hover:bg-hover2 hover:text-t1 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring"
                             >
-                                <ExternalLink className="w-4 h-4" />
+                                <ChevronLeft className="w-4 h-4" aria-hidden="true" />
+                                返回会话列表
                             </button>
-                        )}
-                    </nav>
-
-                    {/* 面板：236–320px（沿用现有 width state + 拖拽调宽 + detached 窗口逻辑）；
-                        内容区宽 = aside 宽 - 图标轨宽（FileTreePanel 等依此计算树宽） */}
-                    <div className="flex-1 min-w-0 overflow-y-auto" hidden={panelCollapsed}>
-                        <SidebarTabContent activeTab={activeTab} width={Math.max(width - RAIL_WIDTH, MIN_WIDTH - RAIL_WIDTH)} onCollapse={() => setPanelCollapsed(true)} />
+                        </div>
+                    )}
+                    {/* 面板：236–320px（沿用现有 width state + 拖拽调宽 + detached 窗口逻辑） */}
+                    <div className="flex-1 min-w-0 overflow-y-auto">
+                        <SidebarTabContent activeTab={activeTab} width={width} onCollapse={() => setPanelCollapsed(true)} />
                     </div>
                 </div>
             )}
 
             {isDrawerMode && (
                 <div className="shrink-0 border-t border-hairline p-4 pb-[max(16px,env(safe-area-inset-bottom))]">
-                    {workbenchEnabled && (
-                        <button
-                            type="button"
-                            onClick={() => setDefaultView(viewMode)}
-                            className="panel-control mb-3 min-h-11 w-full rounded-[10px] border border-hairline px-3 text-left text-sm text-t2 hover:bg-hover2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent2-ring"
-                        >
-                            {defaultView === viewMode ? '当前工作台已设为默认' : '将当前工作台设为默认'}
-                        </button>
-                    )}
                     <label className="flex items-center gap-3 text-sm text-t2">
                         <span>外观</span>
                         <select
@@ -597,52 +559,83 @@ function SessionList({ onCollapse, onSessionActivated, onBack }: { onCollapse?: 
     const simpleMode = useWorkbenchViewStore(s => s.enabled && s.viewMode === 'simple');
     const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-    // §7.5 面板搜索框：客户端过滤已加载会话（标题/模型/ID/目录），不改请求逻辑
-    const filteredSessions = useMemo(() => {
-        const q = query.trim().toLowerCase();
-        if (!q) return sessions;
-        return sessions.filter(s =>
-            (s.title ?? '').toLowerCase().includes(q)
-            || s.model.toLowerCase().includes(q)
-            || s.id.toLowerCase().includes(q)
-            || s.workingDirectory.toLowerCase().includes(q));
-    }, [sessions, query]);
+    // §7.5 面板搜索框：搜索已下推服务端（GET /api/sessions?query=，匹配标题与首条用户消息全文），
+    // 客户端不再二次过滤，避免把服务端匹配到的结果过滤掉。
+    const filteredSessions = sessions;
 
     const sessionGroups = useMemo(() => groupSessionsByDirectory(filteredSessions, true), [filteredSessions]);
 
     const loadedCountRef = useRef(50);
     const requestVersionRef = useRef(0);
+    const queryRef = useRef('');
+    const firstPageReadyRef = useRef(false);
+    const pendingRequestRef = useRef<number | null>(null);
+    const [listPending, setListPending] = useState(false);
+
+    const handleQueryChange = (value: string) => {
+        if (value === queryRef.current) return;
+        queryRef.current = value;
+        ++requestVersionRef.current;
+        pendingRequestRef.current = null;
+        firstPageReadyRef.current = false;
+        loadedCountRef.current = 50;
+        setSessions([]);
+        setHasMore(false);
+        setNextCursor(null);
+        setListPending(true);
+        setQuery(value);
+    };
 
     // 刷新时保留已加载范围，防止较早的文件夹在实时更新后消失。
     // 加载会话列表
     const fetchSessions = useCallback(async (cursor?: string | null) => {
+        if (query !== queryRef.current) return;
+        if (cursor && (!firstPageReadyRef.current || pendingRequestRef.current !== null)) return;
         const requestVersion = ++requestVersionRef.current;
+        pendingRequestRef.current = requestVersion;
+        setListPending(true);
         try {
             const params = new URLSearchParams({ limit: String(cursor ? 50 : loadedCountRef.current) });
             if (cursor) params.set('cursor', cursor);
+            const q = query.trim();
+            if (q) params.set('query', q);
             const resp = await fetch(`/api/sessions?${params}`);
             if (!resp.ok) return;
             const data = await resp.json();
             if (requestVersion !== requestVersionRef.current) return;
             loadedCountRef.current = cursor ? loadedCountRef.current + data.sessions.length : Math.max(50, data.sessions.length);
             if (cursor) {
-                setSessions(prev => pageSessionOrder.order([...new Map([...prev, ...data.sessions].map(session => [session.id, session])).values()]));
+                setSessions(prev => {
+                    const merged = [...new Map([...prev, ...data.sessions].map(session => [session.id, session])).values()];
+                    return q ? merged : pageSessionOrder.order(merged);
+                });
             } else {
-                // 'front'：无 cursor 刷新（首载/轮询/WS）发现的新会话排到最前
-                setSessions(pageSessionOrder.order(data.sessions, 'front'));
+                // 搜索保留服务端顺序；普通列表刷新继续使用页面内稳定排序。
+                setSessions(q ? data.sessions : pageSessionOrder.order(data.sessions, 'front'));
+                firstPageReadyRef.current = true;
             }
             setHasMore(data.hasMore);
             setNextCursor(data.nextCursor);
         } catch (e) {
             console.warn('[SessionList] Failed to fetch sessions:', e);
         } finally {
-            if (requestVersion === requestVersionRef.current) setLoading(false);
+            if (requestVersion === requestVersionRef.current) {
+                pendingRequestRef.current = null;
+                setListPending(false);
+                setLoading(false);
+            }
         }
-    }, []);
+    }, [query]);
 
-    // 初始加载 + 兆底轮询（60s，防止 WS 推送丢失）
+    // 初始加载 + 搜索词变化防抖（250ms）重新拉取
     useEffect(() => {
-        fetchSessions();
+        loadedCountRef.current = 50;
+        const timer = window.setTimeout(() => { void fetchSessions(); }, query.trim() ? 250 : 0);
+        return () => window.clearTimeout(timer);
+    }, [fetchSessions, query]);
+
+    // 兜底轮询（60s，防止 WS 推送丢失）
+    useEffect(() => {
         pollRef.current = setInterval(() => fetchSessions(), 60000);
         return () => { if (pollRef.current) clearInterval(pollRef.current); };
     }, [fetchSessions]);
@@ -740,7 +733,7 @@ function SessionList({ onCollapse, onSessionActivated, onBack }: { onCollapse?: 
                 </button>
                 <PanelSearchBox
                     value={query}
-                    onChange={setQuery}
+                    onChange={handleQueryChange}
                     placeholder={simpleMode ? '搜索任务' : '搜索会话'}
                     ariaLabel={simpleMode ? '搜索任务' : '搜索会话'}
                 />
@@ -856,6 +849,7 @@ function SessionList({ onCollapse, onSessionActivated, onBack }: { onCollapse?: 
                 {/* 加载更多 */}
                 {hasMore && (
                     <button
+                        disabled={listPending}
                         onClick={() => fetchSessions(nextCursor)}
                         className="panel-control w-full py-2 text-[13px] text-t2 hover:text-t1 transition-interactive duration-fast"
                     >
