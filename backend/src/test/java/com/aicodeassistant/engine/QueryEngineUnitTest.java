@@ -943,6 +943,55 @@ class QueryEngineUnitTest {
         }
 
         @Test
+        void eachBackgroundWaitWaveReceivesFullIndependentBudget() throws Exception {
+            when(featureFlagService.isEnabled(anyString())).thenAnswer(inv -> "BACKGROUND_AGENT_WAIT".equals(inv.getArgument(0)));
+            var waitBudgets = java.util.Collections.synchronizedList(new java.util.ArrayList<java.time.Duration>());
+            var firstWait = new java.util.concurrent.CountDownLatch(1);
+            var secondWait = new java.util.concurrent.CountDownLatch(1);
+            doAnswer(inv -> {
+                java.time.Duration budget = inv.getArgument(2);
+                waitBudgets.add(budget);
+                if (waitBudgets.size() == 1) firstWait.countDown();
+                if (waitBudgets.size() == 2) secondWait.countDown();
+                return inv.callRealMethod();
+            }).when(backgrounds).awaitRun(anyString(), anyString(), any(), any());
+            var firstOutput = backgroundOutputs.resolve("wave1.txt");
+            java.nio.file.Files.writeString(firstOutput, "wave one evidence");
+            var secondOutput = backgroundOutputs.resolve("wave2.txt");
+            java.nio.file.Files.writeString(secondOutput, "wave two evidence");
+            script((call, callback) -> {
+                if (call == 1) {
+                    backgrounds.register("wave-1", "test-session", run.id(), "wave one", firstOutput.toString());
+                    finish(callback, "end_turn", new LlmStreamEvent.TextDelta("wave one launched"));
+                } else if (call == 2) {
+                    backgrounds.register("wave-2", "test-session", run.id(), "wave two", secondOutput.toString());
+                    finish(callback, "end_turn", new LlmStreamEvent.TextDelta("wave two launched"));
+                } else {
+                    finish(callback, "end_turn", new LlmStreamEvent.TextDelta("consolidated final answer"));
+                }
+            });
+            var future = java.util.concurrent.CompletableFuture.supplyAsync(() -> queryEngine.execute(buildConfig(), buildState("review"), handler));
+            try {
+                assertThat(firstWait.await(2, java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+                backgrounds.markCompleted("wave-1", new com.aicodeassistant.tool.agent.SubAgentExecutor.AgentResult(
+                        "completed", "wave one evidence", "wave one", firstOutput.toString()));
+                assertThat(secondWait.await(3, java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+                backgrounds.markCompleted("wave-2", new com.aicodeassistant.tool.agent.SubAgentExecutor.AgentResult(
+                        "completed", "wave two evidence", "wave two", secondOutput.toString()));
+                var result = future.get(5, java.util.concurrent.TimeUnit.SECONDS);
+                assertThat(result.isSuccess()).isTrue();
+                // 关键回归断言：第二波等待必须获得与第一波完全相同的完整预算。
+                // 旧实现共享运行级截止时间，第二波只能拿到剩余预算（生产事故中为 0，立即超时）。
+                assertThat(waitBudgets).hasSize(2);
+                assertThat(waitBudgets.get(0)).isEqualTo(java.time.Duration.ofMinutes(backgroundTimeouts.getMaxWaitMinutes()));
+                assertThat(waitBudgets.get(1)).isEqualTo(waitBudgets.get(0));
+                assertThat(requests).hasSize(3);
+                assertThat(requests.get(1).toString()).contains("wave one evidence");
+                assertThat(requests.get(2).toString()).contains("wave two evidence");
+            } finally { queryEngine.abort("test-session", AbortReason.USER_INTERRUPT); }
+        }
+
+        @Test
         void disabledBackgroundWaitKeepsExistingImmediateReturn() {
             script((call, callback) -> {
                 backgrounds.register("pending", "test-session", run.id(), "task", null);

@@ -12,7 +12,7 @@ import jakarta.annotation.PostConstruct;
  *   <li>default-seconds: 单个子代理默认超时（默认 600s = 10min）</li>
  *   <li>max-seconds: 超时上限（默认 1800s = 30min）</li>
  *   <li>graceful-shutdown-seconds: abort 信号后优雅关闭窗口（默认 30s）</li>
- *   <li>max-wait-minutes: 父 QueryEngine 等待所有后台代理的总超时（默认 31min，覆盖子代理 30min 上限及退出窗口）</li>
+ *   <li>max-wait-minutes: 父 QueryEngine 每个后台等待周期的预算（默认 31min，覆盖子代理 30min 上限及退出窗口）；每批等待独立获得完整预算，不在整个 Run 内累计</li>
  *   <li>watchdog-multiplier: Watchdog 超时倍数（Watchdog = 最长工具超时 × 此值，默认 2.0）</li>
  *   <li>tool-consume-max-wait-minutes: 工具消费等待覆盖值（0 = 动态计算（推荐），>0 = 调试覆盖值）</li>
  * </ul>

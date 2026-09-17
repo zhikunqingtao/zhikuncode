@@ -152,7 +152,7 @@ agent:
     default-seconds: 1800
     max-seconds: 1800
     graceful-shutdown-seconds: 30
-    max-wait-minutes: ${AGENT_TIMEOUT_MAX_WAIT_MINUTES:31}  # 覆盖默认 30 分钟子代理上限及 30 秒退出窗口；AGENT_TIMEOUT_MAX_WAIT_MINUTES 可覆盖
+    max-wait-minutes: ${AGENT_TIMEOUT_MAX_WAIT_MINUTES:31}  # 每个后台等待周期的预算（不在整个 Run 内累计）；覆盖默认 30 分钟子代理上限及 30 秒退出窗口；AGENT_TIMEOUT_MAX_WAIT_MINUTES 可覆盖
     watchdog-multiplier: 2.0
     tool-consume-max-wait-minutes: 0
   loop:

@@ -635,7 +635,6 @@ public class QueryEngine {
         boolean emptyFinalResponseRecoveryAttempted = false;
         boolean emptyFinalResponsePending = false;
         Set<String> deliveredBackgroundAgents = new HashSet<>();
-        Long backgroundWaitDeadline = null;
 
         log.debug("queryLoop 进入: model={}, messageCount={}, maxTurns={}, aborted={}",
                 config.model(), state.getMessages().size(), config.maxTurns(), aborted.get());
@@ -1474,12 +1473,12 @@ public class QueryEngine {
                         }
                         if (pendingAgents.stream().anyMatch(a -> "running".equals(a.status()))) {
                             handler.onTurnEnd(turn, "waiting_for_background_agents");
-                            if (backgroundWaitDeadline == null) {
-                                backgroundWaitDeadline = System.nanoTime()
-                                        + Duration.ofMinutes(agentTimeoutConfig.getMaxWaitMinutes()).toNanos();
-                            }
+                            // 每个等待周期独立获得完整预算：awaitRun 内部固定本次截止时间，
+                            // 同一次等待中的唤醒不会刷新预算，后续新一批后台代理才获得新预算。
+                            // 不得改为跨批次共享运行级截止时间，否则首次等待后超过预算的
+                            // 新批次会以 0 预算立即触发 BACKGROUND_AGENT_WAIT_TIMEOUT。
                             var wait = backgroundAgentTracker.awaitRun(bgSessionId, bgRunId,
-                                    Duration.ofNanos(Math.max(0, backgroundWaitDeadline - System.nanoTime())),
+                                    Duration.ofMinutes(agentTimeoutConfig.getMaxWaitMinutes()),
                                     getAbortContext(bgSessionId));
                             if (wait == BackgroundAgentTracker.WaitResult.CANCELLED || aborted.get()) break;
                             if (wait != BackgroundAgentTracker.WaitResult.COMPLETED) {

@@ -1769,4 +1769,4 @@ If this project is useful to you, a Star ⭐ would be appreciated.
 `BACKGROUND_AGENT_WAIT` is enabled by default: the main run waits for this turn's background agents to finish before summarizing their results.
 The default wait budget is 31 minutes, covering the default 30-minute sub-agent limit plus the 30-second exit window; exceeding the budget still reports `BACKGROUND_AGENT_WAIT_TIMEOUT`.
 Disable the wait with `FEATURE_BACKGROUND_AGENT_WAIT=false`, or tune the budget via `AGENT_TIMEOUT_MAX_WAIT_MINUTES`.
-If you raise the sub-agent timeout limit, adjust the wait budget accordingly; the budget is the total cap on waiting for background results, not an unlimited-wait guarantee.
+Each wait cycle receives the full budget independently instead of sharing one run-level deadline; if you raise the sub-agent timeout limit, adjust the wait budget accordingly; the budget caps each background-result wait, not an unlimited-wait guarantee.

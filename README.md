@@ -1783,4 +1783,4 @@ docker compose up -d
 默认启用 `BACKGROUND_AGENT_WAIT`：主 Run 等待本轮后台代理完成，再汇总结果。
 默认等待预算为 31 分钟，覆盖子代理默认最长 30 分钟及 30 秒退出窗口；超出等待预算仍会报告 `BACKGROUND_AGENT_WAIT_TIMEOUT`。
 可用 `FEATURE_BACKGROUND_AGENT_WAIT=false` 关闭等待，或通过 `AGENT_TIMEOUT_MAX_WAIT_MINUTES` 调整预算。
-若提高子代理超时上限，应同步调整等待预算；该预算是后台结果等待的总限额，不是无限等待保证。
+每个等待周期独立获得完整预算，不在整个 Run 内累计；若提高子代理超时上限，应同步调整等待预算；该预算是单次后台结果等待的限额，不是无限等待保证。
