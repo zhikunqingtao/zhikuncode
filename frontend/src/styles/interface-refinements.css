@@ -99,11 +99,6 @@
     .dialog-control, .workbench-control, .panel-control { transition: none; }
 }
 
-@media (max-width: 767px) {
-    .app-header select[data-compact-label="true"] { color: transparent; }
-    .app-header select[data-compact-label="true"] option { color: var(--v2-text-1); }
-}
-
 .panel-code { font-size: 13px; line-height: 1.65; }
 @media (max-width: 767px) {
     .panel-code { font-size: 14px; }

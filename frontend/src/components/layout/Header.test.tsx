@@ -1,16 +1,14 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Header } from '@/components/layout/Header';
+import { getSessionStatusLabel, Header } from '@/components/layout/Header';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
 import { useConfigStore } from '@/store/configStore';
 import { useModelStore } from '@/store/modelStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { useWorkbenchViewStore } from '@/store/workbenchViewStore';
 import { useBridgeStore } from '@/store/bridgeStore';
-import { bindSessionAndWait, clearSessionBinding, markSessionBound } from '@/api/dispatch';
-import * as stompClient from '@/api/stompClient';
 
-describe('Header model selection', () => {
+describe('Header', () => {
     beforeEach(() => {
         useWorkbenchViewStore.setState({ enabled: false });
         useConfigStore.setState({
@@ -21,48 +19,9 @@ describe('Header model selection', () => {
     });
 
     afterEach(() => {
-        clearSessionBinding();
         vi.restoreAllMocks();
         vi.unstubAllGlobals();
         document.documentElement.classList.remove('light', 'dark', 'glass', 'system');
-    });
-
-    it('enables only bound session details and never changes a default model', async () => {
-        const send = vi.spyOn(stompClient, 'sendSetModel').mockImplementation(() => {});
-        vi.spyOn(stompClient, 'isWsConnected').mockReturnValue(true);
-        vi.stubGlobal('fetch', vi.fn());
-        useModelStore.setState({
-            loaded: true, loading: false, error: null, defaultModel: 'model-a',
-            models: ['a', 'b'].map(id => ({ id: `model-${id}`, displayName: `Model ${id}`, supportsImages: false, maxImages: 0 })),
-        });
-        useConfigStore.setState({ defaultModel: 'original-default' });
-        useSessionStore.setState({ sessionId: 'session-a', model: 'model-a' });
-        clearSessionBinding();
-        render(<Header />);
-        const selector = screen.getByLabelText('模型选择');
-        expect(selector).toBeDisabled();
-        act(() => markSessionBound('session-a'));
-        expect(selector).toBeEnabled();
-        fireEvent.change(selector, { target: { value: 'model-b' } });
-        expect(send).toHaveBeenCalledTimes(1);
-        expect(send).toHaveBeenCalledWith('model-b');
-        expect(useConfigStore.getState().defaultModel).toBe('original-default');
-        expect(fetch).not.toHaveBeenCalled();
-
-        let pending!: Promise<boolean>;
-        act(() => { pending = bindSessionAndWait('session-b', () => true); });
-        expect(selector).toBeDisabled();
-        fireEvent.change(selector, { target: { value: 'model-a' } });
-        act(() => clearSessionBinding());
-        await expect(pending).resolves.toBe(false);
-        act(() => markSessionBound('session-a'));
-        expect(selector).toBeEnabled();
-        fireEvent.click(screen.getAllByRole('button', { name: '返回首页' })[0]);
-        expect(selector).toBeEnabled();
-        fireEvent.change(selector, { target: { value: 'model-a' } });
-        expect(useSessionStore.getState().model).toBe('model-a');
-        expect(send).toHaveBeenCalledTimes(1);
-        expect(fetch).not.toHaveBeenCalled();
     });
 
     it.each(['system', 'unknown'])('safely renders unexpected runtime theme %s', mode => {
@@ -76,31 +35,7 @@ describe('Header model selection', () => {
         expect(document.documentElement.classList.contains('light') || document.documentElement.classList.contains('dark')).toBe(true);
     });
 
-    it('shows a retry action when the provider model list fails to load', async () => {
-        const fetchMock = vi.fn().mockResolvedValue({ ok: false, status: 503 });
-        vi.stubGlobal('fetch', fetchMock);
-        useModelStore.setState({
-            models: [],
-            defaultModel: null,
-            loaded: false,
-            loading: false,
-            error: null,
-        });
-
-        render(<Header />);
-
-        const retry = await screen.findByRole('button', {
-            name: '重新加载模型列表',
-        });
-        expect(screen.getByRole('combobox')).toBeDisabled();
-        expect(screen.getByRole('option', { name: '模型列表加载失败' }))
-            .toBeInTheDocument();
-
-        fireEvent.click(retry);
-        await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
-    });
-
-    it('presents an active mobile run as a distinct status label', () => {
+    it('presents an active run as 运行中 with a spinner on both desktop and mobile', () => {
         useModelStore.setState({
             loaded: true,
             loading: false,
@@ -110,8 +45,36 @@ describe('Header model selection', () => {
         });
         useSessionStore.setState({ model: 'kimi-k3', status: 'streaming' });
 
+        const { container } = render(<Header />);
+
+        // 桌面右簇状态与移动端状态胶囊同时呈现"运行中"（PC/手机/平板全覆盖）
+        const statusEls = screen.getAllByRole('status');
+        expect(statusEls.length).toBeGreaterThanOrEqual(2);
+        for (const el of statusEls) expect(el).toHaveTextContent('运行中');
+        // 旋转图标（Loader2 animate-spin）替代原脉冲圆点
+        expect(container.querySelectorAll('.animate-spin').length).toBeGreaterThan(0);
+    });
+
+    it('shows the session status in the header metrics cluster', () => {
+        useModelStore.setState({ loaded: true, loading: false, error: null, models: [], defaultModel: null });
+        useSessionStore.setState({ status: 'idle' });
+
         render(<Header />);
 
-        expect(screen.getByRole('status')).toHaveTextContent('运行中');
+        // idle 时移动端无状态胶囊，role=status 唯一命中桌面右簇的会话状态
+        expect(screen.getByRole('status')).toHaveTextContent('就绪');
+    });
+});
+
+describe('getSessionStatusLabel', () => {
+    it('maps known session statuses to Chinese labels', () => {
+        expect(getSessionStatusLabel('idle')).toBe('就绪');
+        expect(getSessionStatusLabel('streaming')).toBe('运行中');
+        expect(getSessionStatusLabel('waiting_permission')).toBe('等待权限');
+        expect(getSessionStatusLabel('compacting')).toBe('压缩中...');
+    });
+
+    it('falls back to the raw status for unknown values', () => {
+        expect(getSessionStatusLabel('some_future_status')).toBe('some_future_status');
     });
 });

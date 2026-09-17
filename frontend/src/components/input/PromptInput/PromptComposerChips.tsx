@@ -87,6 +87,7 @@ export const ModelChip: React.FC<{ mobile?: boolean }> = ({ mobile = false }) =>
         models: availableModels,
         loading: modelsLoading,
         error: modelsError,
+        fetchModels,
     } = useModelStore();
     const currentLabel = availableModels.find(m => m.id === model)?.displayName
         ?? model
@@ -95,6 +96,28 @@ export const ModelChip: React.FC<{ mobile?: boolean }> = ({ mobile = false }) =>
             : modelsError
             ? '模型列表加载失败'
             : '暂无可用模型');
+
+    // 模型列表加载失败时的重试入口（原 Header 重试钮迁入输入区；
+    // Header effect 不会因失败自动重跑，已有会话此前无恢复路径）
+    const retryable = Boolean(modelsError) && availableModels.length === 0 && !modelsLoading;
+    if (retryable) {
+        return (
+            <button
+                type="button"
+                onClick={() => void fetchModels()}
+                className={mobile
+                    ? 'flex min-h-11 w-full items-center gap-3 rounded-[14px] border border-hairline bg-surface2 px-3 py-3 text-left text-sm text-t2 hover:bg-hover2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent2-ink'
+                    : CHIP_SHELL}
+                aria-label="重新加载模型列表"
+                title="模型列表加载失败，点击重试"
+            >
+                {mobile ? <Cpu size={20} className="shrink-0" aria-hidden="true" />
+                    : <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: 'var(--v2-err)' }} aria-hidden="true" />}
+                {mobile ? <span><span className="block text-[13px]">模型列表加载失败</span><span className="mt-0.5 block font-medium text-t1">重新加载</span></span>
+                    : '重新加载'}
+            </button>
+        );
+    }
 
     if (mobile) return <MobileChoice label="模型" row value={model ?? ''} disabled={modelSelection.disabled} options={availableModels.map(m => ({ value: m.id, label: m.displayName }))} onChange={modelSelection.selectModel} title={modelSelection.disabledReason} />;
 

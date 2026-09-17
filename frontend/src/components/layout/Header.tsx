@@ -6,29 +6,48 @@ import { GlassMaterial } from '@/components/theme/GlassMaterial';
  * Header — 顶部导航栏组件
  * SPEC: §8.6.1
  *
- * 包含: Logo, SessionTitle, ModelSelector, CostIndicator, SettingsButton
+ * 包含: Logo, SessionTitle, SessionStatus, Metrics(Tokens/Cost), ThemeSwitch, NewSession, Settings
+ * （会话状态与用量指标自底部状态栏右簇上移；连接状态由 SessionTitle 副行呈现，不再重复）
  */
 
 import { useCallback, useEffect } from 'react';
-import { Plus, Menu, DollarSign, Sun, Moon, Sparkles, Keyboard, ChevronDown } from 'lucide-react';
+import { Plus, Menu, Sun, Moon, Sparkles, Keyboard, ChevronDown, Coins, Loader2 } from 'lucide-react';
 import { useSessionStore } from '@/store/sessionStore';
 import { useCostStore } from '@/store/costStore';
 import { useDialogStore } from '@/store/dialogStore';
 import { normalizeThemeMode, useConfigStore } from '@/store/configStore';
 import { useModelStore } from '@/store/modelStore';
 import { useBridgeStore } from '@/store/bridgeStore';
-import { useSessionModelSelection } from '@/hooks/useSessionModelSelection';
 import { dispatchNewAuthorizedSessionRequest } from '@/services/authorizedSession';
 import { clearSessionSelection } from '@/services/sessionActivation';
 import { useWorkbenchViewStore } from '@/store/workbenchViewStore';
 import { WorkbenchViewSwitch } from '@/components/workbench/WorkbenchViewSwitch';
 import { McpIcon } from '@/components/mcp/McpIcon';
-import { Kbd } from '@/components/ui';
 
 /** §7.4 头部按钮共性：hover/active/焦点环（ring-accent2-ring） */
 const HEADER_BUTTON_CLASS =
     'p-2 max-md:min-h-11 max-md:min-w-11 rounded-[10px] hover:bg-hover2 active:scale-95 transition-interactive duration-fast text-t2 ' +
     'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring';
+
+/** 会话状态展示（自底部状态栏上移至 Header 右簇）。
+ *  streaming 用旋转图标（Loader2，accent2 墨色）——与任务面板/SimpleTaskList 的运行中约定一致，
+ *  比脉冲点更直观；其余状态用色点 + 8% 光晕。 */
+const SESSION_STATUS_META: Record<string, { label: string; color: string; pulse: boolean; spinner?: boolean }> = {
+    idle: { label: '就绪', color: 'var(--v2-ok)', pulse: false },
+    streaming: { label: '运行中', color: 'var(--v2-accent)', pulse: false, spinner: true },
+    waiting_permission: { label: '等待权限', color: 'var(--v2-warn)', pulse: false },
+    compacting: { label: '压缩中...', color: 'var(--v2-accent)', pulse: true },
+};
+
+/** 会话状态 → 展示文案 */
+export function getSessionStatusLabel(status: string): string {
+    return SESSION_STATUS_META[status]?.label ?? status;
+}
+
+/** 指标间 hairline 竖向分割（同原 StatusBar 右簇 §7.4），装饰性 */
+function MetricDivider({ className = '' }: { className?: string }) {
+    return <span aria-hidden="true" className={`w-px h-3.5 bg-hairline shrink-0 ${className}`} />;
+}
 
 interface HeaderProps {
     onMenuClick?: () => void;
@@ -37,8 +56,7 @@ interface HeaderProps {
 
 export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
     const { sessionId, model, setModel } = useSessionStore();
-    const modelSelection = useSessionModelSelection();
-    const { sessionCost, totalCost } = useCostStore();
+    const { sessionCost, totalCost, usage } = useCostStore();
     const { bridgeStatus } = useBridgeStore();
     const { openDialog } = useDialogStore();
     const { theme } = useConfigStore();
@@ -46,13 +64,11 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
     const viewMode = useWorkbenchViewStore(s => s.viewMode);
     const simpleMode = workbenchEnabled && viewMode === 'simple';
 
-    // 动态加载可用模型列表（统一从 modelStore 缓存读取，附带 supportsImages / maxImages 能力）
+    // 动态加载可用模型列表（统一从 modelStore 缓存读取；移动端头部展示当前模型名）
     const {
         models: availableModels,
         defaultModel,
         loaded,
-        loading: modelsLoading,
-        error: modelsError,
         fetchModels,
     } = useModelStore();
 
@@ -82,25 +98,19 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
     const currentModelName = availableModels.find(item => item.id === model)?.displayName ?? model ?? '';
     // Compact presentation only; option labels, ids and model requests remain unchanged.
     const compactModelName = currentModelName.replace(/\s*[（(][^）)]*[）)]\s*$/, '');
-    const firstSpace = compactModelName.indexOf(' ');
-    const modelFamily = firstSpace > 0 ? compactModelName.slice(0, firstSpace) : compactModelName;
-    const modelVersion = firstSpace > 0 ? compactModelName.slice(firstSpace + 1) : '';
+    const sessionStatusMeta = SESSION_STATUS_META[status] ?? { label: status, color: 'var(--v2-ok)', pulse: false };
+    const streaming = bridgeStatus === 'connected' && status === 'streaming';
+    /** 桌面右簇状态胶囊语气：运行中/压缩中=accent 软底高亮，等待权限=警告色，就绪=透明低调（无事态不抢视觉） */
+    const sessionStatusChipTone =
+        status === 'idle'
+            ? 'border-transparent text-t2'
+            : status === 'waiting_permission'
+                ? 'border-warnsoft bg-warnsoft text-warn'
+                : 'border-accent2-ring bg-accent2-soft text-accent2-ink';
 
 
     const handleNewSession = useCallback(() => {
         dispatchNewAuthorizedSessionRequest();
-    }, []);
-
-    /** §7.4 ⌘K 命令钮：与 Ctrl+K 全局命令面板同一入口——
-     *  向 window 派发合成 keydown，命中 usePromptState 既有全局监听
-     * （运行中/压缩中的关闭语义与真实按键完全一致），不新写面板、不提升状态。 */
-    const openCommandPalette = useCallback(() => {
-        window.dispatchEvent(new KeyboardEvent('keydown', {
-            key: 'k',
-            ctrlKey: true,
-            bubbles: true,
-            cancelable: true,
-        }));
     }, []);
 
     const mobileStatus = bridgeStatus !== 'connected'
@@ -111,11 +121,6 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
         : status === 'waiting_permission'
             ? 'border-warnsoft bg-warnsoft text-warn'
             : 'border-accent2-ring bg-accent2-soft text-accent2-ink';
-
-    const formatCost = (cost: number) => {
-        if (cost < 0.01) return '<$0.01';
-        return `$${cost.toFixed(2)}`;
-    };
 
     return (
         <header className="app-header glass-surface relative h-14 border-b border-hairline bg-surface2 flex items-center px-2 md:px-4 shrink-0">
@@ -128,7 +133,9 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                         <span className="truncate text-[13px] text-t2" title={currentModelName}>{compactModelName || '模型加载中'}</span>
                         {mobileStatus && (
                             <span role="status" className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2 py-0.5 text-[13px] font-medium leading-5 ${mobileStatusTone}`}>
-                                <span className="h-1.5 w-1.5 rounded-full bg-current motion-safe:animate-pulse" aria-hidden="true" />
+                                {streaming
+                                    ? <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
+                                    : <span className="h-1.5 w-1.5 rounded-full bg-current motion-safe:animate-pulse" aria-hidden="true" />}
                                 {mobileStatus}
                             </span>
                         )}
@@ -159,83 +166,53 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                 </button>
             </div>
 
-            {/* Center: Session Title & Model Selector */}
+            {/* Center: Session Title */}
             <div className="hidden md:flex flex-1 items-center justify-center gap-1.5 md:gap-3 min-w-0">
                 {workbenchEnabled && <WorkbenchViewSwitch />}
                 <SessionTitle title={sessionTitle} sessionId={sessionId} connection={bridgeStatus === 'connected' ? '已连接' : ({disconnected: '连接已断开', reconnecting: '连接中', error: '连接异常'}[bridgeStatus])} />
-                {/* 模型选择器：两种视图模式下常驻，避免 simple 模式下无法切换模型 */}
-                {/* §7.4 模型 chip：bg-surface2 + hairline + rounded-full + accent 点（select 逻辑原样） */}
-                <div className="flex min-w-0 items-center gap-2">
-                    <div className="relative flex min-w-0 items-center gap-2 px-2 md:px-3 py-1.5 max-md:min-h-11 rounded-full border border-hairline bg-surface2
-                        transition-surface duration-fast focus-within:ring-[3px] focus-within:ring-accent2-ring">
-                        <span className="h-2 w-2 shrink-0 rounded-full bg-accent2" aria-hidden="true" />
-                        <select
-                            aria-label="模型选择"
-                            title={modelSelection.disabledReason ?? currentModelName}
-                            value={model || ''}
-                            onChange={(e) => modelSelection.selectModel(e.target.value)}
-                            disabled={modelSelection.disabled}
-                            data-compact-label={Boolean(currentModelName)}
-                            className="panel-control min-w-0 max-w-[220px] max-md:min-w-[76px] truncate text-sm bg-transparent text-t1
-                                focus:outline-none disabled:opacity-50"
-                        >
-                            {availableModels.length === 0 && (
-                                <option value="">
-                                    {modelsLoading ? '模型加载中…'
-                                        : modelsError ? '模型列表加载失败' : '暂无可用模型'}
-                                </option>
-                            )}
-                            {availableModels.map(m => (
-                                <option key={m.id} value={m.id} className="text-t1 bg-surfacev2">{m.displayName}</option>
-                            ))}
-                        </select>
-                        <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-1.5 h-3 w-3 text-t2 md:hidden" />
-                        {currentModelName && (
-                            <span aria-hidden="true" className="pointer-events-none absolute left-6 right-5 flex flex-col justify-center md:hidden text-t1 leading-tight">
-                                <span className="truncate text-[13px] font-medium">{modelFamily}</span>
-                                {modelVersion && <span className="truncate text-[13px]">{modelVersion}</span>}
+            </div>
+
+            {/* Right: SessionStatus + Metrics + Theme + New Session + MCP + Shortcuts */}
+            <div className="hidden md:flex items-center gap-2">
+                {/* 会话状态 + 用量指标（自底部状态栏右簇上移；指标细节 ≥lg 展示，空间不足时让位） */}
+                <div className="flex items-center gap-2.5 pr-1 text-[13px] text-t2">
+                    <div
+                        className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2 py-0.5 text-[13px] font-medium leading-5 ${sessionStatusChipTone}`}
+                        title="会话状态"
+                        role="status"
+                    >
+                        {sessionStatusMeta.spinner ? (
+                            <Loader2 aria-hidden="true" className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                            <span
+                                aria-hidden="true"
+                                className={`h-2 w-2 rounded-full ${sessionStatusMeta.pulse ? 'motion-safe:animate-pulse' : ''}`}
+                                style={{
+                                    backgroundColor: sessionStatusMeta.color,
+                                    boxShadow: `0 0 0 3px color-mix(in srgb, ${sessionStatusMeta.color} 8%, transparent)`,
+                                }}
+                            />
+                        )}
+                        <span>{sessionStatusMeta.label}</span>
+                    </div>
+                    <MetricDivider className="hidden lg:block" />
+                    <div className="hidden lg:flex items-center gap-2 tabular-nums">
+                        <span title="输入 Tokens">↑ {usage.inputTokens.toLocaleString()}</span>
+                        <span title="输出 Tokens">↓ {usage.outputTokens.toLocaleString()}</span>
+                        {usage.cacheReadInputTokens > 0 && (
+                            <span title="缓存读取" className="text-accent2-ink">
+                                ⚡ {usage.cacheReadInputTokens.toLocaleString()}
                             </span>
                         )}
                     </div>
-                    {modelsError && (
-                        <button
-                            type="button"
-                            onClick={() => void fetchModels()}
-                            className="panel-control inline-flex text-[13px] text-accent2-ink hover:underline"
-                            aria-label="重新加载模型列表"
-                        >
-                            重试
-                        </button>
-                    )}
-                </div>
-            </div>
-
-            {/* Right: ⌘K 命令钮 + Cost + New Session + Settings */}
-            <div className="hidden md:flex items-center gap-2">
-                {/* §7.4 ⌘K 命令钮（Demo-A）：命令 ⌘K 胶囊，点击 = Ctrl+K 全局命令面板同一入口。
-                    移动端不显示（§7.4 移动端只留 菜单+名称+新建）；compact(768–1023) 头部空间不足亦隐藏。
-                    现状无头像入口，按任务要求不新增。 */}
-                <button
-                    onClick={openCommandPalette}
-                    className="panel-control hidden lg:inline-flex items-center gap-1.5 h-8 px-3 rounded-full
-                        border border-hairline bg-surface2 text-sm text-t2
-                        hover:bg-hover2 active:scale-95 transition-interactive duration-fast
-                        focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring"
-                    title="全局命令面板（Ctrl+K）"
-                    aria-keyshortcuts="Control+K Meta+K"
-                >
-                    命令
-                    <Kbd>⌘K</Kbd>
-                </button>
-
-                {/* Cost Indicator（§3.8：成本数字 tabular-nums） */}
-                <div className="hidden md:flex items-center gap-1 px-3 py-1.5 rounded-[14px] bg-surface2 border border-hairline">
-                    <DollarSign className="w-4 h-4 text-ok" />
-                    <span className="text-sm tabular-nums text-t1">
-                        {formatCost(sessionCost)}
-                    </span>
-                    <span className="text-[13px] tabular-nums text-t2">
-                        / {formatCost(totalCost)}
+                    <MetricDivider className="hidden lg:block" />
+                    <div className="hidden lg:flex items-center gap-1 tabular-nums" title="当前会话成本">
+                        <Coins className="w-3.5 h-3.5 text-t3" />
+                        <span>${sessionCost.toFixed(3)}</span>
+                    </div>
+                    <MetricDivider className="hidden lg:block" />
+                    <span className="hidden lg:block tabular-nums" title={`全局累计: $${totalCost.toFixed(3)}`}>
+                        ∑ ${totalCost.toFixed(3)}
                     </span>
                 </div>
 

@@ -115,6 +115,41 @@ describe('PromptComposerChips', () => {
     });
 
     describe('ModelChip', () => {
+        it.each([false, true])('recovers from model loading failures (mobile=%s)', async mobile => {
+            const models = useModelStore.getState().models;
+            let resolveFetch!: (response: Response) => void;
+            const fetchMock = vi.fn()
+                .mockResolvedValueOnce(new Response(null, { status: 503 }))
+                .mockImplementationOnce(() => new Promise<Response>(resolve => { resolveFetch = resolve; }));
+            vi.stubGlobal('fetch', fetchMock);
+            useModelStore.setState({ models: [], loaded: false, error: 'HTTP 503' });
+            render(<ModelChip mobile={mobile} />);
+
+            // A failed retry must leave a usable recovery action.
+            fireEvent.click(screen.getByRole('button', { name: '重新加载模型列表' }));
+            await waitFor(() => expect(screen.getByRole('button', { name: '重新加载模型列表' })).toBeEnabled());
+            expect(fetchMock).toHaveBeenCalledTimes(1);
+
+            fireEvent.click(screen.getByRole('button', { name: '重新加载模型列表' }));
+            expect(screen.queryByRole('button', { name: '重新加载模型列表' })).not.toBeInTheDocument();
+            expect(mobile ? screen.getByRole('button', { name: /模型/ }) : screen.getByLabelText('模型选择')).toBeDisabled();
+            await act(async () => {
+                resolveFetch(new Response(JSON.stringify({ models, defaultModel: 'model-a' })));
+            });
+
+            expect(fetchMock).toHaveBeenCalledTimes(2);
+            expect(fetchMock).toHaveBeenLastCalledWith('/api/models');
+            if (mobile) {
+                fireEvent.click(screen.getByRole('button', { name: /模型/ }));
+                expect(screen.getByRole('dialog', { name: '选择模型' })).toBeInTheDocument();
+                expect(screen.getByRole('button', { name: 'Model B' })).toBeEnabled();
+            } else {
+                expect(screen.getByLabelText('模型选择')).toBeEnabled();
+                expect(screen.getByRole('option', { name: 'Model B' })).toBeInTheDocument();
+            }
+            expect(sendSetModel).not.toHaveBeenCalled();
+        });
+
         it('keeps the optimistic model when the send succeeds', () => {
             render(<ModelChip />);
 
