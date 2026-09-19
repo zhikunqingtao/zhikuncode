@@ -350,6 +350,187 @@ public class MemdirService {
         writeMemory(content, source, MemoryCategory.SEMANTIC);
     }
 
+    // ==================== 用户编辑整体覆盖 ====================
+
+    /** 条目头前缀 — 正文中出现该字符串会被误认为条目头，覆盖写前需转义 */
+    private static final String ENTRY_HEADER_PREFIX = "<!-- source:";
+    /** 条目头前缀的转义形式 */
+    private static final String ENTRY_HEADER_PREFIX_ESCAPED = "&lt;!-- source:";
+
+    /**
+     * 用户整篇编辑覆盖保存 — 规范化后整体替换 MEMORY.md。
+     * <p>
+     * 规范化规则:
+     * 1. 按条目头切分后，无 (合法) 头部的段落包装为 USER 条目 (time=now, category=semantic)
+     * 2. 已有合法头部 (source 为合法枚举值且时间戳可解析) 的段落头部原样保留
+     * 3. 所有段落正文中的伪造头标记 {@code <!-- source:} 转义为 {@code &lt;!-- source:}，
+     *    防止正文伪造头在再次解析时劈裂为伪条目 (先判定头部，再对 body 转义)
+     * <p>
+     * 与 writeMemory 的差异: 超限时抛出 IllegalArgumentException 而非触发 compactMemories
+     * — 用户编辑不应静默丢内容。
+     *
+     * @param rawContent 用户编辑的原始全文
+     * @return 规范化后的实际写入内容
+     * @throws IllegalArgumentException 规范化内容超过 MAX_MEMORY_SIZE
+     */
+    public String overwriteFromUserEdit(String rawContent) {
+        return overwriteFromUserEdit(rawContent, null);
+    }
+
+    /**
+     * 用户整篇编辑覆盖保存 (带乐观并发基线)。
+     * <p>
+     * baseMtime 非 null 时，在 writeLock 内、备份之前比对 MEMORY.md 当前 mtime 与 baseMtime，
+     * 不一致 (或文件已不存在) → 抛 {@link MemdirConflictException}，避免他处的并发写入被静默覆盖；
+     * baseMtime 为 null 时跳过检测 (契约明示行为)。
+     *
+     * @param rawContent 用户编辑的原始全文
+     * @param baseMtime  客户端持有的基线 mtime (来自 GET /api/memory/file 的 updatedAt)，null 表示跳过冲突检测
+     * @return 规范化后的实际写入内容
+     * @throws IllegalArgumentException 规范化内容超过 MAX_MEMORY_SIZE
+     * @throws MemdirConflictException  baseMtime 与当前文件 mtime 不一致
+     */
+    public String overwriteFromUserEdit(String rawContent, Instant baseMtime) {
+        return persistUserEdit(normalizeRawUserEdit(rawContent), baseMtime);
+    }
+
+    /**
+     * 用户卡片编辑覆盖保存 — 将条目列表重建为标准格式后整体替换 MEMORY.md。
+     * <p>
+     * content 为空白的条目被丢弃；null/非法的 source/timestamp/category
+     * 分别降级为 USER / EPOCH / SEMANTIC；content 中的伪造头标记同样转义。
+     *
+     * @param entries 卡片模式提交的完整条目列表
+     * @return 规范化后的实际写入内容
+     * @throws IllegalArgumentException 规范化内容超过 MAX_MEMORY_SIZE
+     */
+    public String overwriteEntriesFromUserEdit(List<MemoryEntry> entries) {
+        return overwriteEntriesFromUserEdit(entries, null);
+    }
+
+    /**
+     * 用户卡片编辑覆盖保存 (带乐观并发基线)。
+     * <p>
+     * baseMtime 语义与 {@link #overwriteFromUserEdit(String, Instant)} 相同:
+     * 非 null 时在 writeLock 内比对当前文件 mtime，不一致 → 抛 {@link MemdirConflictException}；
+     * null 时跳过检测。
+     *
+     * @param entries   卡片模式提交的完整条目列表
+     * @param baseMtime 客户端持有的基线 mtime，null 表示跳过冲突检测
+     * @return 规范化后的实际写入内容
+     * @throws IllegalArgumentException 规范化内容超过 MAX_MEMORY_SIZE
+     * @throws MemdirConflictException  baseMtime 与当前文件 mtime 不一致
+     */
+    public String overwriteEntriesFromUserEdit(List<MemoryEntry> entries, Instant baseMtime) {
+        List<MemoryEntry> safe = entries == null ? List.of() : entries;
+        String normalized = safe.stream()
+                .filter(Objects::nonNull)
+                .filter(e -> e.content() != null && !e.content().isBlank())
+                .map(e -> String.format("<!-- source:%s time:%s category:%s -->\n%s",
+                        e.source() != null ? e.source() : MemorySource.USER,
+                        e.timestamp() != null ? e.timestamp() : Instant.EPOCH,
+                        (e.category() != null ? e.category() : MemoryCategory.SEMANTIC).tag(),
+                        escapeForgedHeaderMarkers(e.content().trim())))
+                .collect(Collectors.joining("\n\n"));
+        return persistUserEdit(normalized, baseMtime);
+    }
+
+    /**
+     * 规范化用户整篇编辑的原始内容 (纯文本变换，不触碰磁盘)。
+     */
+    private String normalizeRawUserEdit(String rawContent) {
+        if (rawContent == null || rawContent.isBlank()) return "";
+        Instant now = Instant.now();
+        List<String> sections = new ArrayList<>();
+        // 与 parseEntries 相同的切分方式，保证覆盖写 → 解析往返一致
+        for (String section : rawContent.split("(?=<!-- source:)")) {
+            String trimmed = section.trim();
+            if (trimmed.isEmpty()) continue;
+            Matcher m = ENTRY_HEADER_PATTERN.matcher(trimmed);
+            if (m.lookingAt() && isValidEntryHeader(m)) {
+                // 合法头部: 头部原样保留，仅转义正文中的伪造标记
+                String header = trimmed.substring(0, m.end());
+                String body = escapeForgedHeaderMarkers(trimmed.substring(m.end()).trim());
+                sections.add(body.isEmpty() ? header : header + "\n" + body);
+            } else {
+                // 无 (合法) 头部: 包装为 USER 条目
+                sections.add(String.format("<!-- source:USER time:%s category:semantic -->\n%s",
+                        now, escapeForgedHeaderMarkers(trimmed)));
+            }
+        }
+        return String.join("\n\n", sections);
+    }
+
+    /** 判定条目头是否合法: source 为合法枚举值且时间戳可解析。 */
+    private boolean isValidEntryHeader(Matcher m) {
+        try {
+            MemorySource.valueOf(m.group(1));
+            Instant.parse(m.group(2));
+            return true;
+        } catch (RuntimeException e) {
+            return false;
+        }
+    }
+
+    /** 转义正文中的伪造条目头标记，防止再次解析时正文被劈裂为伪条目。 */
+    private String escapeForgedHeaderMarkers(String body) {
+        return body.replace(ENTRY_HEADER_PREFIX, ENTRY_HEADER_PREFIX_ESCAPED);
+    }
+
+    /**
+     * 用户编辑覆盖写盘的共享实现: 大小检查 → writeLock 内 [锁内冲突检测] → 备份 MEMORY.md.bak → 临时文件 + ATOMIC_MOVE。
+     * <p>
+     * 乐观并发冲突检测 (baseMtime != null 时): 在 writeLock 内、备份之前读取 MEMORY.md 当前 mtime
+     * (文件不存在视为 null)，与 baseMtime 不一致则抛 {@link MemdirConflictException}。
+     * 检测与写入同锁，消除"锁外检测到取锁写盘"之间被 writeMemory 等并发追加静默覆盖的 TOCTOU 窗口。
+     *
+     * @param baseMtime 客户端基线 mtime；null 时跳过检测 (契约明示行为)
+     * @throws IllegalArgumentException 规范化内容超过 MAX_MEMORY_SIZE (不触发 compactMemories)
+     * @throws MemdirConflictException  baseMtime 非 null 且与当前文件 mtime 不一致
+     */
+    private String persistUserEdit(String normalizedContent, Instant baseMtime) {
+        if (normalizedContent.length() > MAX_MEMORY_SIZE) {
+            throw new IllegalArgumentException(
+                    "Memory content too large: " + normalizedContent.length()
+                            + " chars (max " + MAX_MEMORY_SIZE + ")");
+        }
+        writeLock.lock();
+        try {
+            Files.createDirectories(memoryDir);
+            // 锁内乐观并发检测: 基线 mtime 与当前文件不一致 (或文件已不存在) → 拒绝覆盖
+            if (baseMtime != null) {
+                Instant currentMtime = Files.exists(memoryFile)
+                        ? Files.getLastModifiedTime(memoryFile).toInstant() : null;
+                if (currentMtime == null || !currentMtime.equals(baseMtime)) {
+                    throw new MemdirConflictException(
+                            "记忆已在别处被修改 (基线 mtime 与当前 MEMORY.md 不一致)，请重新加载后重试");
+                }
+            }
+            // 覆盖前备份现有文件，便于误操作回滚
+            if (Files.exists(memoryFile)) {
+                Files.copy(memoryFile, memoryFile.resolveSibling(ENTRYPOINT_NAME + ".bak"),
+                        StandardCopyOption.REPLACE_EXISTING);
+            }
+            Path tempFile = memoryFile.resolveSibling(memoryFile.getFileName() + ".tmp");
+            Files.writeString(tempFile, normalizedContent,
+                    StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            Files.move(tempFile, memoryFile, StandardCopyOption.ATOMIC_MOVE,
+                    StandardCopyOption.REPLACE_EXISTING);
+            log.info("Memory file overwritten by user edit: length={}", normalizedContent.length());
+            return normalizedContent;
+        } catch (IOException e) {
+            log.error("Failed to overwrite memory file: {}", e.getMessage(), e);
+            throw new MemdirException("Failed to overwrite memory file", e);
+        } finally {
+            writeLock.unlock();
+        }
+    }
+
+    /** 返回记忆文件大小上限 (字符数)，供 Controller 层展示。 */
+    public int getMaxMemorySize() {
+        return MAX_MEMORY_SIZE;
+    }
+
     // ==================== 删除 ====================
 
     /**
@@ -509,6 +690,13 @@ public class MemdirService {
     public static class MemdirException extends RuntimeException {
         public MemdirException(String message, Throwable cause) {
             super(message, cause);
+        }
+    }
+
+    /** Memdir 乐观并发冲突异常 — 基线 mtime 与当前文件不一致时抛出 (对应 HTTP 409) */
+    public static class MemdirConflictException extends RuntimeException {
+        public MemdirConflictException(String message) {
+            super(message);
         }
     }
 

@@ -19,6 +19,7 @@ import { ElicitationDialog } from '@/components/dialog/ElicitationDialog';
 import { SettingsPanel } from '@/components/dialog/SettingsPanel';
 import { KeyboardShortcutsDialog } from '@/components/dialog/KeyboardShortcutsDialog';
 import { McpManagementPage } from '@/components/mcp/McpManagementPage';
+import { MemoryPage } from '@/components/memory/MemoryPage';
 import { recoverPendingInteractions } from '@/api/dispatch';
 
 export const DialogManager: React.FC = () => {
@@ -156,6 +157,10 @@ export const DialogManager: React.FC = () => {
 
             {activeDialog === 'mcp' && (
                 <McpManagementPage onClose={closeDialog} />
+            )}
+
+            {activeDialog === 'memory' && (
+                <MemoryPage onClose={closeDialog} />
             )}
         </>
     );

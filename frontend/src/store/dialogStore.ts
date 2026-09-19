@@ -12,6 +12,7 @@ export type DialogType =
     | 'elicitation' 
     | 'settings' 
     | 'mcp'
+    | 'memory'
     | 'export' 
     | 'resume' 
     | 'theme' 

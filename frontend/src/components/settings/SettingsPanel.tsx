@@ -1,15 +1,14 @@
 import { getPermissionModeLabel, getPermissionModeDescription } from '@/components/layout/StatusBar';
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { McpCapabilityPanel } from './McpCapabilityPanel';
 import { PromptsTab } from './PromptsTab';
 import { ThemePicker } from '@/components/theme/ThemePicker';
-import { MemoryEditorPanel } from '@/components/memory/MemoryEditorPanel';
 import { usePermissionStore } from '@/store/permissionStore';
 import { sendSetPermissionMode } from '@/api/stompClient';
 import type { PermissionMode } from '@/types';
 
 /** 设置面板 Tab 类型 */
-type SettingsTab = 'model' | 'theme' | 'permission' | 'memory' | 'keybindings' | 'mcp' | 'prompts';
+type SettingsTab = 'model' | 'theme' | 'permission' | 'keybindings' | 'mcp' | 'prompts';
 
 interface SettingsTabConfig {
   id: SettingsTab;
@@ -21,7 +20,6 @@ const TABS: SettingsTabConfig[] = [
   { id: 'model', label: 'Model', icon: '🤖' },
   { id: 'theme', label: 'Theme', icon: '🎨' },
   { id: 'permission', label: 'Permissions', icon: '🔒' },
-  { id: 'memory', label: 'Memory', icon: '🧠' },
   { id: 'keybindings', label: 'Keybindings', icon: '⌨️' },
   { id: 'mcp', label: 'MCP Tools', icon: '🔌' },
   { id: 'prompts', label: 'Prompts', icon: '📝' },
@@ -30,12 +28,11 @@ const TABS: SettingsTabConfig[] = [
 /**
  * SettingsPanel — 图形化设置界面。
  *
- * 5 个 Tab:
+ * Tab:
  * 1. Model — 模型选择下拉框
  * 2. Theme — 主题切换（亮/暗/系统）
  * 3. Permissions — 权限模式选择
- * 4. Memory — 记忆条目管理
- * 5. Keybindings — 快捷键编辑
+ * 4. Keybindings — 快捷键编辑
  *
  */
 export function SettingsPanel() {
@@ -67,7 +64,6 @@ export function SettingsPanel() {
         {activeTab === 'model' && <ModelPicker />}
         {activeTab === 'theme' && <ThemePicker />}
         {activeTab === 'permission' && <PermissionModePicker />}
-        {activeTab === 'memory' && <MemoryManager />}
         {activeTab === 'keybindings' && <KeybindingsEditor />}
         {activeTab === 'mcp' && <McpCapabilityPanel />}
         {activeTab === 'prompts' && <PromptsTab />}
@@ -158,65 +154,6 @@ function PermissionModePicker() {
           </div>
         </label>
       ))}
-    </div>
-  );
-}
-
-/** 记忆条目管理 — 集成 MemoryEditorPanel */
-function MemoryManager() {
-  const [activeFile, setActiveFile] = useState<'zhikun.md' | 'zhikun.local.md'>('zhikun.md');
-  const [globalContent, setGlobalContent] = useState('');
-  const [localContent, setLocalContent] = useState('');
-
-  const handleSave = useCallback(async (content: string) => {
-    // Save memory file via backend API (not yet connected)
-    if (activeFile === 'zhikun.md') {
-      setGlobalContent(content);
-    } else {
-      setLocalContent(content);
-    }
-  }, [activeFile]);
-
-  return (
-    <div className="space-y-4">
-      <h3 className=" text-base font-semibold">Memory Manager</h3>
-      <p className="text-sm text-t3">
-        管理跨会话持久化的项目记忆文件。
-      </p>
-      {/* 文件切换 */}
-      <div className="flex gap-2">
-        <button
-          onClick={() => setActiveFile('zhikun.md')}
-          className={`panel-control px-3 py-1.5 min-h-10 rounded-xl text-sm transition-interactive duration-fast
-            focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring active:scale-[.98] ${
-            activeFile === 'zhikun.md'
-              ? 'bg-accent2-strong text-white'
-              : 'bg-surface2 text-t2 hover:bg-hover2'
-          }`}
-        >
-          🌐 zhikun.md (全局)
-        </button>
-        <button
-          onClick={() => setActiveFile('zhikun.local.md')}
-          className={`panel-control px-3 py-1.5 min-h-10 rounded-xl text-sm transition-interactive duration-fast
-            focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring active:scale-[.98] ${
-            activeFile === 'zhikun.local.md'
-              ? 'bg-accent2-strong text-white'
-              : 'bg-surface2 text-t2 hover:bg-hover2'
-          }`}
-        >
-          📁 zhikun.local.md (项目)
-        </button>
-      </div>
-      {/* 编辑器 */}
-      <div className="h-[400px]">
-        <MemoryEditorPanel
-          workingDir="."
-          initialContent={activeFile === 'zhikun.md' ? globalContent : localContent}
-          fileName={activeFile}
-          onSave={handleSave}
-        />
-      </div>
     </div>
   );
 }

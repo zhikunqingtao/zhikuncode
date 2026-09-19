@@ -355,7 +355,7 @@ If no multi-Provider keys are configured, the system automatically falls back to
 
 ZhikunCode currently ships with 17 preconfigured Alibaba Cloud Bailian MCP services providing 83 allowlisted tools. Runtime uses a minimal service-level default: Zhipu Web Search, Amap, QwenImage, and WanVideo start enabled; 13 lower-frequency or higher-risk news, legal, business, moderation, finance, academic, sourcing, logistics, market, and industry-data services start disabled. Without a Bailian API Key, remote connections are simply skipped—core chat, code editing, and local tools are unaffected.
 
-An MCP service that is disabled by default or by the user is not connected, does not register tools, and contributes no tool descriptions to the model context; direct invocation is rejected. Open **MCP Management** from the plug icon in the top bar to enable or disable services immediately. Choices are stored locally and do not require a restart.
+An MCP service that is disabled by default or by the user is not connected, does not register tools, and contributes no tool descriptions to the model context; direct invocation is rejected. Open **MCP Management** from the **MCP** badge in the top bar to enable or disable services immediately. Choices are stored locally and do not require a restart.
 
 | MCP Service | Transport | Capability | Tools |
 |-------------|-----------|------------|-------|
@@ -1000,6 +1000,14 @@ The AI automatically records and retrieves memories via the built-in MemoryTool:
 - **Source Tracking** — Memory source tracking (source field) to distinguish REST API-created vs LLM tool-created memories
 - **LLM Reranking** — Optional LLM reranking service for precision after BM25 initial retrieval
 
+### Managing Memories from the UI
+
+Click the **Memory** badge in the top bar to view and edit your personal memories (`MEMORY.md`):
+
+- **Card mode** — View, edit, and delete entries individually, or add new ones manually
+- **Full-text mode** — Edit the entire file as Markdown with live preview
+- **Safety** — Entries are normalized on save with a `.bak` backup, and concurrent-edit conflicts are detected; responsive layout on PC, tablet, and mobile
+
 ### Project Memory Files
 
 Create memory files in your project root — the AI will automatically read and follow them:
@@ -1262,7 +1270,7 @@ The current registry contains 17 services and 83 allowlisted tools. Runtime expo
 - **Enabled by default (4):** Zhipu Web Search, Amap, QwenImage, and WanVideo.
 - **Disabled by default (13):** News, legal research, business information, content moderation, A-share financial data, enterprise intellectual property, Wanfang, arXiv, 1688 sourcing, logistics, precious metals, retail insights, and tourism insights.
 - **Context isolation:** A disabled service is not connected or registered and injects no tool definitions into the model context. Direct invocation is rejected.
-- **User control:** Open **MCP Management** from the plug icon in the top bar. Changes take effect immediately and are stored in `~/.zhikun/mcp-service-states.json`; Docker persists them at `/app/data/mcp-service-states.json`.
+- **User control:** Open **MCP Management** from the **MCP** badge in the top bar. Changes take effect immediately and are stored in `~/.zhikun/mcp-service-states.json`; Docker persists them at `/app/data/mcp-service-states.json`.
 
 | Tool | Description | Source |
 |------|-------------|--------|

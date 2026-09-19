@@ -20,10 +20,11 @@ import { useModelStore } from '@/store/modelStore';
 import { useBridgeStore } from '@/store/bridgeStore';
 import { clearSessionSelection } from '@/services/sessionActivation';
 import { McpIcon } from '@/components/mcp/McpIcon';
+import { MemoryIcon } from '@/components/memory/MemoryIcon';
 
 /** §7.4 头部按钮共性：hover/active/焦点环（ring-accent2-ring） */
 const HEADER_BUTTON_CLASS =
-    'p-2 max-md:min-h-11 max-md:min-w-11 rounded-[10px] hover:bg-hover2 active:scale-95 transition-interactive duration-fast text-t2 ' +
+    'px-2 h-7 items-center justify-center max-md:min-h-11 max-md:min-w-11 rounded-[10px] hover:bg-hover2 active:scale-95 transition-interactive duration-fast text-t2 ' +
     'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring';
 
 /** 会话状态展示（自底部状态栏上移至 Header 右簇）。
@@ -229,7 +230,17 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                     title="MCP 管理"
                     aria-label="MCP 管理"
                 >
-                    <McpIcon className="h-5 w-8" />
+                    <McpIcon className="h-7 w-auto" />
+                </button>
+
+                {/* Memory */}
+                <button
+                    onClick={() => openDialog('memory')}
+                    className={`panel-control inline-flex ${HEADER_BUTTON_CLASS}`}
+                    title="记忆"
+                    aria-label="记忆"
+                >
+                    <MemoryIcon className="h-7 w-auto" />
                 </button>
 
                 <button
@@ -238,7 +249,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                     title="快捷键帮助"
                     aria-label="快捷键帮助"
                 >
-                    <Keyboard className="w-5 h-5" />
+                    <Keyboard className="w-6 h-6" />
                 </button>
 
             </div>

@@ -8,20 +8,19 @@ export function McpIcon({ className }: McpIconProps) {
     <svg
       aria-hidden="true"
       className={className}
-      viewBox="0 0 32 20"
+      viewBox="0 0 40 28"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <rect x="1" y="2" width="30" height="16" rx="4" stroke="currentColor" strokeWidth="1.75" />
-      <path d="M5 0.75V2M27 0.75V2M5 18V19.25M27 18V19.25" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+      <rect x="1" y="1" width="38" height="26" rx="5" stroke="currentColor" strokeOpacity="0.45" strokeWidth="1.5" />
       <text
-        x="16"
-        y="13.25"
+        x="20"
+        y="19"
         fill="currentColor"
         fontFamily="ui-sans-serif, system-ui, sans-serif"
-        fontSize="8.5"
+        fontSize="11"
         fontWeight="800"
-        letterSpacing="0.45"
+        letterSpacing="0.5"
         textAnchor="middle"
       >
         MCP

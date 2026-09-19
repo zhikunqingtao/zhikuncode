@@ -1,14 +1,19 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { Save, Eye, Edit3, FileText, Plus, RefreshCw } from 'lucide-react';
+import React, { useState, useCallback } from 'react';
+import { Eye, Edit3, FileText, Plus } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import DOMPurify from 'dompurify';
 
-interface MemoryEditorProps {
-    workingDir: string;
-    initialContent: string;
-    fileName: 'zhikun.md' | 'zhikun.local.md';
-    onSave: (content: string) => Promise<void>;
+/**
+ * MemoryEditorPanel — 整篇 Markdown 编辑器（受控组件）。
+ *
+ * 仅负责编辑/预览/模板插入；保存由外层页面统一触发（MemoryPage 顶栏保存按钮）。
+ */
+interface MemoryEditorPanelProps {
+    content: string;
+    onChange: (value: string) => void;
+    fileName?: string;
+    dirty?: boolean;
 }
 
 const MEMORY_TEMPLATES: Record<string, string> = {
@@ -18,39 +23,15 @@ const MEMORY_TEMPLATES: Record<string, string> = {
     '注意事项': '## 注意事项\n- \n',
 };
 
-export const MemoryEditorPanel: React.FC<MemoryEditorProps> = ({
-    workingDir: _workingDir, initialContent, fileName, onSave,
+export const MemoryEditorPanel: React.FC<MemoryEditorPanelProps> = ({
+    content, onChange, fileName = 'memory.md', dirty = false,
 }) => {
-    const [content, setContent] = useState(initialContent);
     const [isPreview, setIsPreview] = useState(false);
-    const [saving, setSaving] = useState(false);
-    const [dirty, setDirty] = useState(false);
     const [showTemplateMenu, setShowTemplateMenu] = useState(false);
 
-    useEffect(() => {
-        setContent(initialContent);
-        setDirty(false);
-    }, [initialContent]);
-
-    const handleChange = useCallback((value: string) => {
-        setContent(value);
-        setDirty(true);
-    }, []);
-
-    const handleSave = useCallback(async () => {
-        setSaving(true);
-        try {
-            await onSave(content);
-            setDirty(false);
-        } finally {
-            setSaving(false);
-        }
-    }, [content, onSave]);
-
     const insertTemplate = useCallback((template: string) => {
-        setContent(prev => prev + '\n\n' + template);
-        setDirty(true);
-    }, []);
+        onChange(content + '\n\n' + template);
+    }, [content, onChange]);
 
     return (
         <div className="flex flex-col h-full border border-[var(--v2-border-hairline)] rounded-[14px] overflow-hidden">
@@ -64,7 +45,7 @@ export const MemoryEditorPanel: React.FC<MemoryEditorProps> = ({
                 <div className="flex items-center gap-1">
                     <div className="relative">
                         <button className="panel-control p-1.5 min-h-10 min-w-10 rounded hover:bg-[var(--bg-tertiary)] flex items-center justify-center"
-                            title="插入模板" onClick={() => setShowTemplateMenu(!showTemplateMenu)}>
+                            title="插入模板" aria-label="插入模板" onClick={() => setShowTemplateMenu(!showTemplateMenu)}>
                             <Plus size={14} />
                         </button>
                         {showTemplateMenu && (
@@ -81,13 +62,9 @@ export const MemoryEditorPanel: React.FC<MemoryEditorProps> = ({
                     </div>
                     <button onClick={() => setIsPreview(!isPreview)}
                         className="panel-control p-1.5 min-h-10 min-w-10 rounded hover:bg-[var(--bg-tertiary)] flex items-center justify-center"
-                        title={isPreview ? '编辑模式' : '预览模式'}>
+                        title={isPreview ? '编辑模式' : '预览模式'}
+                        aria-label={isPreview ? '切换到编辑模式' : '切换到预览模式'}>
                         {isPreview ? <Edit3 size={14} /> : <Eye size={14} />}
-                    </button>
-                    <button onClick={handleSave} disabled={!dirty || saving}
-                        className="panel-control flex items-center gap-1 px-2 py-1 min-h-10 rounded text-[13px] bg-blue-600 hover:bg-blue-700 disabled:opacity-50">
-                        {saving ? <RefreshCw size={12} className="animate-spin" /> : <Save size={12} />}
-                        保存
                     </button>
                 </div>
             </div>
@@ -101,10 +78,11 @@ export const MemoryEditorPanel: React.FC<MemoryEditorProps> = ({
                 ) : (
                     <textarea
                         value={content}
-                        onChange={e => handleChange(e.target.value)}
+                        onChange={e => onChange(e.target.value)}
                         className="w-full h-full p-4 bg-transparent text-sm font-mono text-[var(--v2-text-1)] resize-none focus:outline-none"
                         placeholder="# 项目记忆&#10;&#10;在此输入项目记忆内容..."
                         spellCheck={false}
+                        aria-label="记忆文件内容"
                     />
                 )}
             </div>

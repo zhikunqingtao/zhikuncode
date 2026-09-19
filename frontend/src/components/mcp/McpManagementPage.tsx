@@ -60,7 +60,7 @@ export function McpManagementPage({ onClose }: McpManagementPageProps) {
         <header className="flex items-start justify-between border-b border-[var(--v2-border-hairline)] px-4 md:px-6 py-5">
           <div>
             <div className="flex items-center gap-2">
-              <McpIcon className="h-5 w-8 text-accent2-ink" />
+              <McpIcon className="h-6 w-auto text-accent2-ink" />
               <h2 className="text-[var(--v2-text-1)] text-xl font-semibold">MCP 管理</h2>
             </div>
             <p className="mt-1 text-sm text-[var(--v2-text-2)]">

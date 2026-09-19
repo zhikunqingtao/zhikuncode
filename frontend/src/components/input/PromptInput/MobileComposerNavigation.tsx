@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Sun, Moon, Sparkles, Blocks, CircleHelp, ChevronRight } from 'lucide-react';
+import { X, Sun, Moon, Sparkles, Blocks, CircleHelp, ChevronRight, Brain } from 'lucide-react';
 import { SheetShell } from '@/components/apos/MobileBottomSheet';
 import { ModelChip, PermissionModeChip, MobileChoice } from './PromptComposerChips';
 import { useTurnViewStore, type TurnDensity } from '@/store/turnViewStore';
@@ -25,7 +25,7 @@ export function MobileComposerNavigation() {
     const open = panel !== null;
     const openDialog = useDialogStore(s => s.openDialog);
     const { theme, setTheme } = useConfigStore();
-    const dialog = (type: 'mcp' | 'keybindings') => { setPanel(null); openDialog(type); };
+    const dialog = (type: 'mcp' | 'keybindings' | 'memory') => { setPanel(null); openDialog(type); };
     return <>
         <nav aria-label="手机会话操作" className="mobile-composer-navigation flex shrink-0 items-center justify-between gap-0.5 overflow-x-auto px-2 pb-1">
             <PermissionModeChip mobile />
@@ -46,6 +46,7 @@ export function MobileComposerNavigation() {
                     </section>
                     <div className="overflow-hidden rounded-[14px] border border-hairline bg-surface2 divide-y divide-[var(--v2-border-hairline)]">
                         {[
+                            { label: '记忆', icon: Brain, run: () => dialog('memory') },
                             { label: 'MCP 管理', icon: Blocks, run: () => dialog('mcp') },
                             { label: '帮助与快捷键', icon: CircleHelp, run: () => dialog('keybindings') },
                         ].map(({ label, icon: Icon, run }) => <button key={label} className="flex min-h-12 w-full items-center gap-3 px-3 py-3 text-left text-sm text-t1 hover:bg-hover2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent2-ink" onClick={run}><Icon size={20} className="text-t2" aria-hidden="true" /><span className="flex-1">{label}</span><ChevronRight size={16} className="text-t3" aria-hidden="true" /></button>)}
