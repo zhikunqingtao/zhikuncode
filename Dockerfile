@@ -129,6 +129,24 @@ RUN if [ -n "${UBUNTU_MIRROR_HOST}" ]; then \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+# Preinstall the full capability set so sessions can render/convert without
+# runtime root. Split into two layers for Docker cache granularity:
+#   layer 1: toolchain (gcc/python headers), media, docs, diagrams, OCR, CJK fonts
+#   layer 2: LibreOffice office suite (heaviest; isolated so layer 1 stays cached)
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        build-essential python3-dev \
+        ffmpeg imagemagick poppler-utils qpdf graphviz pandoc \
+        tesseract-ocr tesseract-ocr-chi-sim \
+        fonts-wqy-zenhei fonts-noto-cjk && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        libreoffice-impress libreoffice-calc libreoffice-writer && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 # Create non-root user
 RUN groupadd -r zhikun && useradd -r -g zhikun -d /app -s /bin/sh zhikun
 
@@ -136,8 +154,11 @@ WORKDIR /app
 
 COPY --from=meoo-cli /usr/local/bin/node /usr/local/bin/node
 COPY --from=meoo-cli /usr/local/lib/node_modules/@aliyun-meoo /usr/local/lib/node_modules/@aliyun-meoo
+COPY --from=meoo-cli /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/npm
+COPY --from=meoo-cli /usr/local/bin/npm /usr/local/bin/npm
+COPY --from=meoo-cli /usr/local/bin/npx /usr/local/bin/npx
 RUN ln -s /usr/local/lib/node_modules/@aliyun-meoo/cli/bin/meoo.js /usr/local/bin/meoo \
-    && node --version && meoo --version
+    && node --version && meoo --version && npm --version
 
 # Keep dependency layers independent of application source changes.
 COPY python-service/requirements.lock ./python-service/
