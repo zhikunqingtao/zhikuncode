@@ -155,9 +155,9 @@ WORKDIR /app
 COPY --from=meoo-cli /usr/local/bin/node /usr/local/bin/node
 COPY --from=meoo-cli /usr/local/lib/node_modules/@aliyun-meoo /usr/local/lib/node_modules/@aliyun-meoo
 COPY --from=meoo-cli /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/npm
-COPY --from=meoo-cli /usr/local/bin/npm /usr/local/bin/npm
-COPY --from=meoo-cli /usr/local/bin/npx /usr/local/bin/npx
 RUN ln -s /usr/local/lib/node_modules/@aliyun-meoo/cli/bin/meoo.js /usr/local/bin/meoo \
+    && ln -sf /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
+    && ln -sf /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx \
     && node --version && meoo --version && npm --version
 
 # Keep dependency layers independent of application source changes.
