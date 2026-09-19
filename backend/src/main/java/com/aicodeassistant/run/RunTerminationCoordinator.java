@@ -39,8 +39,14 @@ public class RunTerminationCoordinator {
     }
 
     public Result terminate(String runId, RunEnvelope.RunExitReason reason, String detail) {
-        DurableInteractionService.CancellationResult requested =
-                interactions.beginRunTermination(runId, reason, detail == null ? reason.dbValue() : detail);
+        DurableInteractionService.CancellationResult requested;
+        try {
+            requested = interactions.beginRunTermination(
+                    runId, reason, detail == null ? reason.dbValue() : detail);
+        } catch (RuntimeException persistenceFailure) {
+            cancelLocallyAfterClaimFailure(runId, reason, persistenceFailure);
+            throw persistenceFailure;
+        }
         if (requested.runTransition() != RunControlService.TransitionResult.APPLIED) {
             recordSummary(runId, reason, requested.runTransition(), null, null, false);
             return new Result(requested.runTransition(), null, false);
@@ -73,6 +79,24 @@ public class RunTerminationCoordinator {
         boolean confirmed = quiescent && stopped.allTerminated() && toolsStopped.allTerminated();
         recordSummary(runId, reason, terminal, stopped, toolsStopped, quiescent);
         return new Result(terminal, stopped, confirmed);
+    }
+
+    private void cancelLocallyAfterClaimFailure(
+            String runId, RunEnvelope.RunExitReason reason, RuntimeException persistenceFailure) {
+        runBestEffort(() -> executions.beginTermination(runId), persistenceFailure);
+        runBestEffort(() -> executions.abortRun(runId, abortReason(reason)), persistenceFailure);
+        runBestEffort(() -> tools.cancelRunDetailed(runId), persistenceFailure);
+        runBestEffort(() -> processes.cancelRunDetailed(runId), persistenceFailure);
+        runBestEffort(() -> executions.awaitQuiescence(
+                runId, java.time.Duration.ofSeconds(2)), persistenceFailure);
+    }
+
+    private static void runBestEffort(Runnable action, RuntimeException primary) {
+        try {
+            action.run();
+        } catch (RuntimeException cleanupFailure) {
+            primary.addSuppressed(cleanupFailure);
+        }
     }
 
     @EventListener

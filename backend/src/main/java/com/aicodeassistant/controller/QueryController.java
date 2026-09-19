@@ -23,6 +23,8 @@ import com.aicodeassistant.service.ProjectWorkspaceService;
 import com.aicodeassistant.session.SessionData;
 import com.aicodeassistant.session.SessionManager;
 import com.aicodeassistant.session.SessionMessagePersistence;
+import com.aicodeassistant.session.SessionExecutionGate;
+import com.aicodeassistant.session.SessionExecutionBusyException;
 import com.aicodeassistant.tool.Tool;
 import com.aicodeassistant.tool.ToolRegistry;
 import com.aicodeassistant.tool.ToolUseContext;
@@ -73,6 +75,7 @@ public class QueryController {
     private final PermissionModeManager permissionModeManager;
     private final ModelRegistry modelRegistry;
     private final ProjectWorkspaceService projectWorkspaces;
+    private final SessionExecutionGate executionGate;
 
     public QueryController(QueryEngine queryEngine,
                            ToolRegistry toolRegistry,
@@ -83,7 +86,8 @@ public class QueryController {
                            EffectiveSystemPromptBuilder systemPromptBuilder,
                            PermissionModeManager permissionModeManager,
                            ModelRegistry modelRegistry,
-                           ProjectWorkspaceService projectWorkspaces) {
+                           ProjectWorkspaceService projectWorkspaces,
+                           SessionExecutionGate executionGate) {
         this.queryEngine = queryEngine;
         this.toolRegistry = toolRegistry;
         this.sessionManager = sessionManager;
@@ -94,6 +98,7 @@ public class QueryController {
         this.permissionModeManager = permissionModeManager;
         this.modelRegistry = modelRegistry;
         this.projectWorkspaces = projectWorkspaces;
+        this.executionGate = executionGate;
     }
 
     // ════════════════════════════════════════════
@@ -110,7 +115,8 @@ public class QueryController {
     @PostMapping
     public ResponseEntity<QueryResponse> query(@RequestBody QueryRequest request) {
         // 1. 创建或复用会话
-        SessionData session = resolveSession(request);
+        try (LockedSession locked = resolveSessionLocked(request)) {
+        SessionData session = locked.session();
         String sessionId = session.sessionId();
 
         // 无界面的 REST 调用没有持久交互传输，默认必须拒绝需要询问的操作，不能静默绕过授权。
@@ -157,7 +163,7 @@ public class QueryController {
         ToolUseContext toolCtx = ToolUseContext.of(
                 session.workingDir(), sessionId);
         QueryLoopState state = new QueryLoopState(historyMessages, toolCtx);
-        SessionMessagePersistence persistence = SessionMessagePersistence.attach(
+        SessionMessagePersistence.attach(
                 state, sessionManager, sessionId, "REST /api/query");
         // 添加用户消息
         Message.UserMessage requestMessage = new Message.UserMessage(
@@ -170,22 +176,8 @@ public class QueryController {
         ResultCollectingHandler handler = new ResultCollectingHandler();
         QueryEngine.QueryResult result = queryEngine.execute(config, state, handler);
 
-        // 7.5 ★ 持久化新增消息到数据库（跳过历史消息，避免重复持久化）★
-        try {
-            int existingCount = historyMessages.size();
-            List<Message> newMessages = result.messages().subList(
-                    Math.min(existingCount, result.messages().size()),
-                    result.messages().size());
-            int recovered = persistence.reconcile(newMessages);
-            log.debug("REST API /api/query: 已确认 {} 条新消息，补写 {} 条，会话 {}（历史 {} 条）",
-                    newMessages.size(), recovered, sessionId, historyMessages.size());
-        } catch (Exception e) {
-            log.error("REST API 消息持久化失败, sessionId={}", sessionId, e);
-            // 持久化失败不阻塞响应返回（降级策略）
-        }
-
         // 8. 提取最终文本
-        String finalText = extractFinalText(result.messages());
+        String finalText = extractCurrentRunText(result.messages(), state, result.isSuccess());
 
         return ResponseEntity.ok(new QueryResponse(
                 sessionId,
@@ -196,6 +188,7 @@ public class QueryController {
                 result.stopReason(),
                 result.isSuccess() ? null : result.error()
         ));
+        }
     }
 
     // ════════════════════════════════════════════
@@ -217,8 +210,10 @@ public class QueryController {
         // 在 Virtual Thread 中执行
         Thread.ofVirtual().name("zhiku-query-stream").start(() -> {
             try {
-                SessionData session = resolveSession(request);
+                LockedSession locked = resolveSessionLocked(request);
+                SessionData session = locked.session();
                 String sessionId = session.sessionId();
+                try (locked) {
                 // INC-3 fix: 使用请求传入的 permissionMode
                 PermissionMode effectiveMode = request.permissionMode() != null
                         ? request.permissionMode()
@@ -255,7 +250,7 @@ public class QueryController {
                 ToolUseContext toolCtx = ToolUseContext.of(
                         session.workingDir(), sessionId);
                 QueryLoopState state = new QueryLoopState(historyMessages, toolCtx);
-                SessionMessagePersistence persistence = SessionMessagePersistence.attach(
+                SessionMessagePersistence.attach(
                         state, sessionManager, sessionId, "SSE /api/query/stream");
                 Message.UserMessage requestMessage = new Message.UserMessage(
                         UUID.randomUUID().toString(), Instant.now(),
@@ -267,25 +262,13 @@ public class QueryController {
                 SseStreamHandler handler = new SseStreamHandler(emitter, objectMapper);
                 QueryEngine.QueryResult result = queryEngine.execute(config, state, handler);
 
-                // ★ 持久化新增消息（跳过历史消息）★
-                try {
-                    int existingCount = historyMessages.size();
-                    List<Message> newMessages = result.messages().subList(
-                            Math.min(existingCount, result.messages().size()),
-                            result.messages().size());
-                    int recovered = persistence.reconcile(newMessages);
-                    log.debug("SSE /api/query/stream: 已确认 {} 条新消息，补写 {} 条，会话 {}（历史 {} 条）",
-                            newMessages.size(), recovered, sessionId, historyMessages.size());
-                } catch (Exception e) {
-                    log.error("SSE 消息持久化失败, sessionId={}", sessionId, e);
-                }
-
                 // 完成事件
                 sendEvent(emitter, "message_complete", Map.of(
                         "sessionId", sessionId,
                         "usage", result.totalUsage(),
                         "stopReason", result.stopReason()));
                 emitter.complete();
+                }
 
             } catch (Exception e) {
                 log.error("Stream query error", e);
@@ -314,6 +297,7 @@ public class QueryController {
             @RequestBody ConversationRequest request) {
 
         rejectClientWorkingDirectory(request.workingDirectory());
+        try (SessionExecutionGate.Token ignored = acquireSession(request.sessionId())) {
 
         // 1. 加载会话
         SessionData session = sessionManager.loadSession(request.sessionId())
@@ -359,7 +343,7 @@ public class QueryController {
         log.debug("REST API conversation: permissionMode={}, notifier=null (by design)",
                 effectiveMode);
         QueryLoopState state = new QueryLoopState(new ArrayList<>(session.messages()), toolCtx);
-        SessionMessagePersistence persistence = SessionMessagePersistence.attach(
+        SessionMessagePersistence.attach(
                 state, sessionManager, request.sessionId(), "REST /api/query/conversation");
 
         // 追加新用户消息
@@ -373,21 +357,7 @@ public class QueryController {
         ResultCollectingHandler handler = new ResultCollectingHandler();
         QueryEngine.QueryResult result = queryEngine.execute(config, state, handler);
 
-        // ★ 持久化新增消息（排除已有历史消息，使用实际 6 参数签名）★
-        try {
-            int existingCount = session.messages().size();
-            List<Message> newMessages = result.messages().subList(
-                    Math.min(existingCount, result.messages().size()),
-                    result.messages().size());
-            int recovered = persistence.reconcile(newMessages);
-            log.debug("REST API /api/query/conversation: 已确认 {} 条新消息，补写 {} 条，会话 {}",
-                    newMessages.size(), recovered, request.sessionId());
-        } catch (Exception e) {
-            log.error("Conversation 消息持久化失败, sessionId={}",
-                    request.sessionId(), e);
-        }
-
-        String finalText = extractFinalText(result.messages());
+        String finalText = extractCurrentRunText(result.messages(), state, result.isSuccess());
 
         return ResponseEntity.ok(new QueryResponse(
                 request.sessionId(),
@@ -398,9 +368,43 @@ public class QueryController {
                 result.stopReason(),
                 result.isSuccess() ? null : result.error()
         ));
+        }
     }
 
     // ═══ 私有方法 ═══
+
+    private SessionExecutionGate.Token acquireSession(String sessionId) {
+        // 门闩 Key 对 sessionId 有 requireNonNull 断言；空会话 id 必须复用既有
+        // SessionNotFoundException → 404 映射，不能让 NPE 漂移为 500。
+        if (sessionId == null || sessionId.isBlank()) {
+            throw new SessionNotFoundException(String.valueOf(sessionId));
+        }
+        SessionExecutionGate.Token token = executionGate.tryAcquire(
+                sessionManager.dataSourceIdentity(), sessionId);
+        if (token == null) throw new SessionExecutionBusyException(sessionId);
+        return token;
+    }
+
+    private record LockedSession(SessionData session, SessionExecutionGate.Token token)
+            implements AutoCloseable {
+        @Override public void close() { token.close(); }
+    }
+
+    /** Existing sessions are locked before their history is read. */
+    private LockedSession resolveSessionLocked(QueryRequest request) {
+        SessionExecutionGate.Token token = null;
+        try {
+            if (request.sessionId() != null && !request.sessionId().isBlank()) {
+                token = acquireSession(request.sessionId());
+            }
+            SessionData session = resolveSession(request);
+            if (token == null) token = acquireSession(session.sessionId());
+            return new LockedSession(session, token);
+        } catch (RuntimeException failure) {
+            if (token != null) token.close();
+            throw failure;
+        }
+    }
 
     private SessionData resolveSession(QueryRequest request) {
         rejectClientWorkingDirectory(request.workingDirectory());
@@ -471,11 +475,15 @@ public class QueryController {
         return modelRegistry.getContextWindowForModel(model);
     }
 
-    private String extractFinalText(List<Message> messages) {
-        // 从最后一条 AssistantMessage 提取文本
+    private String extractCurrentRunText(List<Message> messages, QueryLoopState state, boolean success) {
+        Set<String> allowed = new HashSet<>(state.getCurrentRunAssistantIds());
+        String preferred = success ? state.getCurrentRunFinalMessageId() : null;
         for (int i = messages.size() - 1; i >= 0; i--) {
             Message msg = messages.get(i);
-            if (msg instanceof Message.AssistantMessage assistant && assistant.content() != null) {
+            if (msg instanceof Message.AssistantMessage assistant
+                    && allowed.contains(assistant.uuid())
+                    && (preferred == null || preferred.equals(assistant.uuid()))
+                    && assistant.content() != null) {
                 StringBuilder sb = new StringBuilder();
                 for (var block : assistant.content()) {
                     if (block instanceof ContentBlock.TextBlock text) {

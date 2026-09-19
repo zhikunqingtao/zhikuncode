@@ -135,6 +135,9 @@ public class SubAgentExecutor {
             return AgentResult.STATUS_INTERRUPTED;
         }
         if (result != null && "timeout".equals(result.stopReason())) return AgentResult.STATUS_TIMEOUT;
+        if (result != null && "max_turns".equals(result.stopReason())) {
+            return AgentResult.STATUS_MAX_TURNS;
+        }
         if (result == null || result.error() != null) {
             return AgentResult.STATUS_FAILED;
         }
@@ -142,15 +145,8 @@ public class SubAgentExecutor {
         if ("end_turn".equals(stopReason) || "stop".equals(stopReason)) {
             return AgentResult.STATUS_COMPLETED;
         }
-        if ("max_turns".equals(stopReason)) {
-            return AgentResult.STATUS_MAX_TURNS;
-        }
         if ("aborted".equals(stopReason) || "cancelled".equals(stopReason)) {
             return AgentResult.STATUS_INTERRUPTED;
-        }
-        // stopReason 为 null 或其他未知值：如果消息非空视为成功，否则失败
-        if (result.messages() != null && !result.messages().isEmpty()) {
-            return AgentResult.STATUS_COMPLETED;
         }
         return AgentResult.STATUS_FAILED;
     }
@@ -378,7 +374,7 @@ public class SubAgentExecutor {
             }
 
             // 9. 截取结果
-            String answer = extractFinalAnswer(result);
+            String answer = extractFinalAnswer(result, state);
             if (answer.length() > MAX_RESULT_SIZE_CHARS) {
                 answer = answer.substring(0, MAX_RESULT_SIZE_CHARS) + "\n...[truncated]";
             }
@@ -691,14 +687,18 @@ public class SubAgentExecutor {
 
     // ═══ 结果提取 ═══
 
-    private String extractFinalAnswer(QueryEngine.QueryResult result) {
+    private String extractFinalAnswer(QueryEngine.QueryResult result, QueryLoopState state) {
         if (result == null || result.messages() == null || result.messages().isEmpty()) {
             return "子代理未返回响应。";
         }
-        // 从最后一条 assistant 消息提取文本
+        java.util.Set<String> allowed = new java.util.HashSet<>(state.getCurrentRunAssistantIds());
+        String preferred = result.isSuccess() ? state.getCurrentRunFinalMessageId() : null;
         for (int i = result.messages().size() - 1; i >= 0; i--) {
             Message msg = result.messages().get(i);
-            if (msg instanceof Message.AssistantMessage assistant && assistant.content() != null) {
+            if (msg instanceof Message.AssistantMessage assistant
+                    && allowed.contains(assistant.uuid())
+                    && (preferred == null || preferred.equals(assistant.uuid()))
+                    && assistant.content() != null) {
                 StringBuilder sb = new StringBuilder();
                 for (ContentBlock block : assistant.content()) {
                     if (block instanceof ContentBlock.TextBlock text) {
@@ -871,7 +871,7 @@ public class SubAgentExecutor {
             sessionManager.closeSubAgentSession(childSessionId);
 
             // 8. 提取结果
-            String answer = extractFinalAnswer(result);
+            String answer = extractFinalAnswer(result, state);
             if (answer.length() > MAX_RESULT_SIZE_CHARS) {
                 answer = answer.substring(0, MAX_RESULT_SIZE_CHARS) + "\n...[truncated]";
             }

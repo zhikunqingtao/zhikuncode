@@ -69,17 +69,27 @@ public class QueryEngine {
     private static final String EMPTY_FINAL_RESPONSE_MESSAGE =
             "Your previous response ended without a visible final answer. " +
             "Please provide the final answer now.";
+    /**
+     * 系统内部折叠占位符独占整段正文 —— 仅当文本去除首尾空白后，
+     * 从头到尾只由这类占位符（可含中间空白）构成时才命中。
+     * 模型把工作集中见到的折叠占位符当作完整答复原样回传时，
+     * 视为"无可见正文"进入既有空正文恢复，而非判定成功答复。
+     * 窄域设计：占位符出现在段落中（如 INI 段名 [collapsed]）不构成整串匹配，
+     * 用户合法内容一律保真。
+     */
+    private static final Pattern SYSTEM_COLLAPSE_ONLY = Pattern.compile(
+            "\\s*(?:\\[(?:content compressed by system|content truncated by system"
+                    + "|collapsed|skeleton|summary-collapsed)\\]\\s*)+",
+            Pattern.CASE_INSENSITIVE);
     private static final int MAX_RUN_INPUTS_PER_TURN = 10;
 
-    /** 匹配 LLM 可能模仿的内部压缩标记前缀（每行行首、支持连续多个） */
-    private static final Pattern INTERNAL_MARKER_PREFIX = Pattern.compile(
-            "^\\s*(?:\\[(?:skeleton|collapsed|summary-collapsed|content compressed by system|content truncated by system|tool result cleared[^\\]]*|final)\\]\\s*)+",
-            Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
+    private enum LoopExit {
+        MODEL_FINISHED, MAX_TURNS, TOKEN_BUDGET_EXHAUSTED,
+        OUTPUT_RECOVERY_EXHAUSTED, USER_INPUT_REQUIRED, HOOK_STOPPED,
+        CONTEXT_RECOVERY_EXHAUSTED, CANCELLED, INTERNAL_ERROR
+    }
 
-    /** 匹配内嵌的折叠/摘要后缀标记（支持连续多个，结尾锚定） */
-    private static final Pattern INTERNAL_MARKER_SUFFIX = Pattern.compile(
-            "(?:\\.\\.\\.[\\s]*\\[(?:collapsed|summary-collapsed|content truncated by system)[^\\]]*\\]\\s*)+$",
-            Pattern.CASE_INSENSITIVE);
+    private record LoopOutcome(LoopExit reason, Usage usage, String finalMessageId) { }
 
     private final LlmProviderRegistry providerRegistry;
     private final CompactService compactService;
@@ -286,6 +296,7 @@ public class QueryEngine {
 
         AtomicBoolean aborted = new AtomicBoolean(false);
         Usage totalUsage = Usage.zero();
+        LoopOutcome loopOutcome = null;
 
         // 将 AbortContext 连接到本地 aborted 标志，使得外部 abort() 调用能实际停止循环
         String sessionId = state.getToolUseContext() != null
@@ -346,9 +357,11 @@ public class QueryEngine {
         try {
             if (backgroundAgentTracker != null) backgroundAgentTracker.retainRun(currentRunId);
             preCleanImageHistory(config, state);
-            totalUsage = queryLoop(config, state, handler, aborted);
+            loopOutcome = queryLoop(config, state, handler, aborted);
+            totalUsage = loopOutcome.usage();
         } catch (Exception e) {
-            boolean cancelled = aborted.get() || isCancellation(e);
+            boolean persistenceFailed = e instanceof com.aicodeassistant.session.MessagePersistenceException;
+            boolean cancelled = !persistenceFailed && (aborted.get() || isCancellation(e));
             if (cancelled && state.getAbortReason() == null) state.setAbortReason(AbortReason.USER_INTERRUPT);
             if (cancelled) log.info("QueryEngine execution cancelled: {}", e.getMessage());
             else {
@@ -358,9 +371,11 @@ public class QueryEngine {
             // 保证子代理/父链路消费 result.error() 时能拿到结构化错误码
             com.aicodeassistant.llm.ProviderErrorClassifier.ClassifiedError classified =
                     com.aicodeassistant.llm.ProviderErrorClassifier.classify(e);
-            String errorDetail = classified != null
-                    ? classified.errorCode() + ": " + classified.message()
-                    : e.getMessage();
+            String errorDetail = e instanceof com.aicodeassistant.session.MessagePersistenceException persistenceFailure
+                    ? persistenceFailureDetail(persistenceFailure)
+                    : classified != null
+                            ? classified.errorCode() + ": " + classified.message()
+                            : e.getMessage();
             rejectPendingRunInputs(
                     currentRunId,
                     state.getTurnCount() >= config.maxTurns()
@@ -375,7 +390,9 @@ public class QueryEngine {
                                 ? state.getAbortReason() : AbortReason.USER_INTERRUPT;
                         runTracker.abortRun(currentRunId, reason, cancellationDetail(reason));
                     }
-                    else runTracker.failRun(currentRunId, errorDetail);
+                    else if (e instanceof com.aicodeassistant.session.MessagePersistenceException) {
+                        runTracker.failRun(currentRunId, RunEnvelope.RunExitReason.INCOMPLETE, errorDetail);
+                    } else runTracker.failRun(currentRunId, errorDetail);
                     runFailureRecorded = true;
                 } catch (Exception ex) {
                     log.warn("Failed to record RunTracker failure: {}", ex.getMessage());
@@ -402,18 +419,24 @@ public class QueryEngine {
                         ? "TURN_LIMIT_REACHED"
                         : "RUN_NOT_ACCEPTING_INPUT",
                 handler);
+        // Terminal persistence closes local Run execution as a side effect. Preserve
+        // whether cancellation existed before that transition so it cannot overwrite
+        // the query loop's real exit reason (for example MAX_TURNS).
+        boolean abortedBeforeTerminalTransition = aborted.get();
 
         // ★ RunTracker: 根据实际结束原因选择正确的状态转换
         if (!runFailureRecorded && currentRunId != null && runTracker != null) {
             try {
-                if (aborted.get()) {
+                if (abortedBeforeTerminalTransition) {
                     // 用户中断或超时 — 标记为 ABORTED
                     AbortReason abortReason = state.getAbortReason() != null
                             ? state.getAbortReason() : AbortReason.USER_INTERRUPT;
                     runTracker.abortRun(currentRunId, abortReason, cancellationDetail(abortReason));
-                } else if (state.isRecoveryExhausted()) {
-                    // 恢复耗尽（413/本地预算守卫）— 标记为 FAILED
-                    runTracker.failRun(currentRunId, "context budget recovery exhausted");
+                } else if (loopOutcome == null || loopOutcome.reason() != LoopExit.MODEL_FINISHED) {
+                    String detail = loopOutcome == null
+                            ? "INTERNAL_ERROR: query loop returned no outcome"
+                            : loopError(loopOutcome.reason(), state);
+                    runTracker.failRun(currentRunId, RunEnvelope.RunExitReason.INCOMPLETE, detail);
                 } else {
                     // 正常完成 — 标记为 COMPLETED
                     runTracker.completeRun(currentRunId, totalUsage.totalTokens(),
@@ -425,28 +448,46 @@ public class QueryEngine {
         }
         unregisterRunExecution(currentRunId);
 
-        // P1: 恢复耗尽时返回失败 QueryResult，而非伪装成功
-        if (state.isRecoveryExhausted()) {
-            log.warn("QueryEngine 恢复耗尽: turns={}, totalTokens={}",
-                    state.getTurnCount(), totalUsage.totalTokens());
-            return projectTerminalResult(new QueryResult(state.getMessages(), totalUsage,
-                    "error", "Context budget exceeded: recovery exhausted", state.getTurnCount()),
-                    currentRunId, state.getAbortReason(), handler);
-        }
-
-        String stopReason = state.getTurnCount() >= config.maxTurns()
-                ? "max_turns" : "end_turn";
+        LoopExit actualExit = abortedBeforeTerminalTransition ? LoopExit.CANCELLED
+                : loopOutcome == null ? LoopExit.INTERNAL_ERROR : loopOutcome.reason();
+        String stopReason = actualExit == LoopExit.MODEL_FINISHED ? "end_turn"
+                : actualExit == LoopExit.MAX_TURNS ? "max_turns" : "error";
+        String error = actualExit == LoopExit.MODEL_FINISHED ? null : loopError(actualExit, state);
         log.info("QueryEngine 完成: turns={}, stopReason={}, totalTokens={}",
                 state.getTurnCount(), stopReason, totalUsage.totalTokens());
 
+        // CONTEXT_RECOVERY_EXHAUSTED 的三个循环出口（本地预算守卫、最终 payload 413、
+        // 413 恢复耗尽）已在循环内向 handler 发布过真实异常（LlmApiException 等）。
+        // 此处传 errorAlreadyPublished=true，避免 projectTerminalResult 再用包装的
+        // IllegalStateException 重发一次，导致前端重复报错并丢失 413 状态码/原始异常类型。
+        boolean errorAlreadyPublished = actualExit == LoopExit.CONTEXT_RECOVERY_EXHAUSTED;
         return projectTerminalResult(new QueryResult(state.getMessages(), totalUsage,
-                stopReason, null, state.getTurnCount()), currentRunId, state.getAbortReason(), handler);
+                stopReason, error, state.getTurnCount()), currentRunId, state.getAbortReason(),
+                handler, errorAlreadyPublished);
         }
+    }
+
+    private static String loopError(LoopExit exit, QueryLoopState state) {
+        if (exit == LoopExit.CONTEXT_RECOVERY_EXHAUSTED
+                && state != null && state.getRecoveryFailureMessage() != null) {
+            return "CONTEXT_RECOVERY_EXHAUSTED: " + state.getRecoveryFailureMessage();
+        }
+        return switch (exit) {
+            case MAX_TURNS -> "MAX_TURNS: maximum turn count reached";
+            case TOKEN_BUDGET_EXHAUSTED -> "TOKEN_BUDGET_EXHAUSTED: token budget exhausted";
+            case OUTPUT_RECOVERY_EXHAUSTED -> "OUTPUT_RECOVERY_EXHAUSTED: final output could not be completed";
+            case USER_INPUT_REQUIRED -> "USER_INPUT_REQUIRED: user guidance is required";
+            case HOOK_STOPPED -> "HOOK_STOPPED: stop hook prevented completion";
+            case CONTEXT_RECOVERY_EXHAUSTED -> "CONTEXT_RECOVERY_EXHAUSTED: context recovery exhausted";
+            case CANCELLED -> "CANCELLED: execution aborted";
+            case INTERNAL_ERROR -> "INTERNAL_ERROR: query loop exited unexpectedly";
+            case MODEL_FINISHED -> null;
+        };
     }
 
     private QueryResult projectTerminalResult(QueryResult proposed, String runId,
                                               AbortReason requested, QueryMessageHandler handler) {
-        return projectTerminalResult(proposed, runId, requested, handler, proposed.error() != null);
+        return projectTerminalResult(proposed, runId, requested, handler, false);
     }
 
     private QueryResult projectTerminalResult(QueryResult proposed, String runId,
@@ -475,12 +516,13 @@ public class QueryEngine {
             QueryLoopState state,
             QueryMessageHandler handler) {
         int appliedCount = 0;
-        for (var application : applications) {
+        for (int index = 0; index < applications.size(); index++) {
+            var application = applications.get(index);
             com.aicodeassistant.run.RunExecutionRegistry.InputReceipt
                     appliedReceipt = null;
             com.aicodeassistant.run.RunExecutionRegistry.InputReceipt
                     rejectedReceipt = null;
-            try (application) {
+            try {
                 var input = application.input();
                 var receipt = application.applyIfAccepting(
                         System.currentTimeMillis(),
@@ -501,12 +543,34 @@ public class QueryEngine {
                 }
             } catch (RuntimeException applyFailure) {
                 try {
-                    rejectedReceipt = application.reject("APPLY_FAILED");
+                    rejectedReceipt = application.reject(
+                            applyFailure instanceof com.aicodeassistant.session.MessagePersistenceException
+                                    ? "APPLY_UNCONFIRMED" : "APPLY_FAILED");
                 } catch (RuntimeException settleFailure) {
                     applyFailure.addSuppressed(settleFailure);
                 }
                 log.error("Failed to apply queued run input: requestId={}",
                         application.input().requestId(), applyFailure);
+                if (applyFailure instanceof com.aicodeassistant.session.MessagePersistenceException) {
+                    if (rejectedReceipt != null) emitRunInputRejected(handler, rejectedReceipt);
+                    for (int remaining = index + 1; remaining < applications.size(); remaining++) {
+                        var pending = applications.get(remaining);
+                        try {
+                            emitRunInputRejected(handler, pending.reject("APPLY_FAILED"));
+                        } catch (RuntimeException pendingFailure) {
+                            applyFailure.addSuppressed(pendingFailure);
+                        } finally {
+                            try {
+                                pending.close();
+                            } catch (RuntimeException closeFailure) {
+                                applyFailure.addSuppressed(closeFailure);
+                            }
+                        }
+                    }
+                    throw applyFailure;
+                }
+            } finally {
+                application.close();
             }
             if (appliedReceipt != null) {
                 emitRunInputApplied(handler, appliedReceipt);
@@ -584,12 +648,13 @@ public class QueryEngine {
 
     private Usage retainPartialResponse(StreamCollector collector, QueryLoopState state,
                                         QueryMessageHandler handler, Usage accumulated) {
-        Message.AssistantMessage partial = sanitizeInternalMarkers(collector.partialTextSnapshot());
+        Message.AssistantMessage partial = collector.partialTextSnapshot();
         // Pending tool calls have no confirmed result: retain received prose without inventing tool outcomes.
         var text = partial.content().stream().filter(ContentBlock.TextBlock.class::isInstance).toList();
         if (!text.isEmpty()) {
             var message = new Message.AssistantMessage(partial.uuid(), partial.timestamp(), text, state.getAbortReason() == AbortReason.TIMEOUT ? "timeout" : "cancelled", partial.usage());
             state.addMessage(message);
+            state.recordCurrentRunAssistant(message);
             handler.onAssistantMessage(message);
         }
         Usage usage = partial.usage() == null ? accumulated : accumulated.add(partial.usage());
@@ -607,6 +672,11 @@ public class QueryEngine {
         return false;
     }
 
+    private static String persistenceFailureDetail(
+            com.aicodeassistant.session.MessagePersistenceException failure) {
+        return "PERSISTENCE_FAILED: " + failure.code() + ": " + failure.getMessage();
+    }
+
     private static String cancellationDetail(AbortReason reason) {
         return switch (reason) {
             case USER_INTERRUPT, SUBMIT_INTERRUPT -> "user_cancelled";
@@ -619,9 +689,11 @@ public class QueryEngine {
     /**
      * 核心查询循环 — 8 步迭代。
      */
-    private Usage queryLoop(QueryConfig config, QueryLoopState state,
+    private LoopOutcome queryLoop(QueryConfig config, QueryLoopState state,
                             QueryMessageHandler handler, AtomicBoolean aborted) {
         Usage totalUsage = Usage.zero();
+        LoopExit loopExit = LoopExit.INTERNAL_ERROR;
+        String finalMessageId = null;
         String[] currentModel = { config.model() };
         // ★ 注入 parentModel 到 ToolUseContext，供子代理继承父会话模型
         if (state.getToolUseContext() != null) {
@@ -652,6 +724,7 @@ public class QueryEngine {
             if (state.getTurnCount() >= config.maxTurns()) {
                 rejectPendingRunInputs(
                         runInputRunId, "TURN_LIMIT_REACHED", handler);
+                loopExit = LoopExit.MAX_TURNS;
                 break;
             }
             applyRunInputs(
@@ -661,7 +734,10 @@ public class QueryEngine {
                                     runInputRunId,
                                     MAX_RUN_INPUTS_PER_TURN),
                     state, handler);
-            if (aborted.get()) break;
+            if (aborted.get()) {
+                loopExit = LoopExit.CANCELLED;
+                break;
+            }
 
             state.incrementTurnCount();
             int turn = state.getTurnCount();
@@ -876,6 +952,7 @@ public class QueryEngine {
                 state.setRecoveryExhausted(true);
                 handler.onError(new LlmApiException("Local context budget exceeded: "
                     + finalCheck.estimatedTokens() + " > " + inputBudget, true, 413));
+                loopExit = LoopExit.CONTEXT_RECOVERY_EXHAUSTED;
                 break;
             }
             final List<Map<String, Object>> finalApiMessages = finalCheck.apiMessages();
@@ -892,8 +969,10 @@ public class QueryEngine {
 
             if (aborted.get()) {
                 log.info("[ABORT] Turn {} Step3: abort detected before streamChat, breaking loop", turn);
+                loopExit = LoopExit.CANCELLED;
                 break;
             }
+            state.assertPersistenceHealthy();
             log.debug("Turn {} Step3: 开始 API 调用 streamChat...", turn);
             String llmRequestId = "llm-" + java.util.UUID.randomUUID();
             long llmStartedNanos = System.nanoTime();
@@ -944,8 +1023,7 @@ public class QueryEngine {
                     if (terminalError != null) {
                         if (collector.hasReceivedEvents()) {
                             // 已接收流事件，禁止透明重试（状态已污染）
-                            throw new LlmApiException(
-                                    terminalError.getMessage(), terminalError, false);
+                            throw terminalError.withRetryable(false);
                         }
                         throw terminalError;
                     }
@@ -968,6 +1046,7 @@ public class QueryEngine {
                 if (aborted.get() || isCancellation(e)) {
                     totalUsage = retainPartialResponse(collector, state, handler, totalUsage);
                     session.discard();
+                    loopExit = LoopExit.CANCELLED;
                     break;
                 }
                 // The final serialized request guard is local and must never enter
@@ -988,6 +1067,7 @@ public class QueryEngine {
                     }
                     state.setRecoveryExhausted(true);
                     handler.onError(e);
+                    loopExit = LoopExit.CONTEXT_RECOVERY_EXHAUSTED;
                     break;
                 }
                 // 413 prompt_too_long → 消息扣留 + 两阶段恢复
@@ -1041,6 +1121,7 @@ public class QueryEngine {
                     }
                     state.clearWithheldErrors();
                     state.setPromptTooLongWithheld(false);
+                    loopExit = LoopExit.CONTEXT_RECOVERY_EXHAUSTED;
                     break;  // 413恢复耗尽，终止循环防止异常继续流向Fallback处理
                 }
                 // FIX-03: Fallback 模型降级
@@ -1061,11 +1142,9 @@ public class QueryEngine {
                     hookService.executeNotification("warn",
                             "Model fallback: " + currentModel[0] + " → " + config.fallbackModel());
                     session.discard();
-                    Message.AssistantMessage interrupted = collector.buildAssistantMessage();
-                    List<ContentBlock.ToolUseBlock> orphanBlocks = extractToolUseBlocks(interrupted);
-                    if (!orphanBlocks.isEmpty()) {
-                        state.addMessage(interrupted);
-                        state.addMessages(generateSyntheticResults(orphanBlocks, session, "Model fallback triggered"));
+                    Message.AssistantMessage partial = collector.partialTextSnapshot();
+                    if (partial.content() != null && !partial.content().isEmpty()) {
+                        state.addMessage(partial);
                     }
                     currentModel[0] = config.fallbackModel();
                     // 移除 thinking blocks 防止跨模型 API 400
@@ -1096,13 +1175,13 @@ public class QueryEngine {
                 log.info("[ABORT] Turn {} Step4: abort detected after streamChat", turn);
                 totalUsage = retainPartialResponse(collector, state, handler, totalUsage);
                 session.discard();
+                loopExit = LoopExit.CANCELLED;
                 break;
             }
 
             // ===== Step 4: 收集 API 响应 =====
             log.debug("Turn {} Step4: streamChat returned, building AssistantMessage...", turn);
             Message.AssistantMessage assistantMessage = collector.buildAssistantMessage();
-            assistantMessage = sanitizeInternalMarkers(assistantMessage);  // P1-1: 剥离模仿的内部标记
             Usage callUsage = assistantMessage.usage();
             recordCurrentRunEvent("llm_call_completed", () -> {
                 Map<String, Object> llmCompleted = new LinkedHashMap<>();
@@ -1119,6 +1198,7 @@ public class QueryEngine {
                 return llmCompleted;
             });
             state.addMessage(assistantMessage);
+            state.recordCurrentRunAssistant(assistantMessage);
             handler.onAssistantMessage(assistantMessage);
             String eventRunId = state.getToolUseContext() == null
                     ? null : state.getToolUseContext().currentRunId();
@@ -1205,10 +1285,17 @@ public class QueryEngine {
                 }
 
                 handler.onTurnEnd(turn, "aborted");
+                loopExit = LoopExit.CANCELLED;
                 break;
             }
 
-            // ===== Step 5: 消费工具结果（流式并行执行已在 StreamCollector 中启动）=====
+            // The complete assistant is durable and cancellation has been checked.
+            // Only now may validated tools enter the executor.
+            state.assertPersistenceHealthy();
+            List<String> unknownTools = collector.unknownToolNames(assistantMessage);
+            if (unknownTools.isEmpty()) collector.submitValidatedTools(assistantMessage);
+
+            // ===== Step 5: 消费工具结果 =====
             if (!toolUseBlocks.isEmpty()) {
                 // 为每个 ToolUseBlock 发送完整 input 到前端（触发 tool_use_input 消息）
                 for (ContentBlock.ToolUseBlock block : toolUseBlocks) {
@@ -1224,9 +1311,22 @@ public class QueryEngine {
                             sortedBlocks.stream().map(ContentBlock.ToolUseBlock::name).toList());
                 }
 
-                List<Message> toolResults = consumeToolResults(
-                        session, handler, aborted, toolUseBlocks, tracker);
-                state.addMessages(toolResults);
+                List<Message> toolResults;
+                if (unknownTools.isEmpty()) {
+                    toolResults = consumeToolResults(session, aborted, toolUseBlocks, tracker);
+                } else {
+                    toolResults = rejectedToolBatchResults(toolUseBlocks, unknownTools, tracker);
+                }
+                for (Message toolResult : toolResults) {
+                    state.addMessage(toolResult);
+                    if (toolResult instanceof Message.UserMessage user) {
+                        for (ContentBlock block : user.content()) {
+                            if (block instanceof ContentBlock.ToolResultBlock resultBlock) {
+                                handler.onToolResult(resultBlock.toolUseId(), resultBlock);
+                            }
+                        }
+                    }
+                }
 
                 // ★ task_boundary：TodoWrite 任务首次进入 IN_PROGRESS → 实时推送 + 持久化 system 消息
                 emitTaskBoundaries(state, handler, toolResults, toolUseBlocks);
@@ -1325,9 +1425,11 @@ public class QueryEngine {
             // ===== Step 6: 继续/终止判定（策略模式）=====
             String stopReason = assistantMessage.stopReason();
             // 仅完整的最终答复能结束空正文恢复；工具调用和截断正文不计入。
+            // 整段正文仅为系统折叠占位符时等同无可见正文：触发恢复而非成功。
             if (toolUseBlocks.isEmpty()
                     && ("end_turn".equals(stopReason) || "stop".equals(stopReason))) {
-                emptyFinalResponsePending = !hasVisibleFinalText(assistantMessage);
+                emptyFinalResponsePending = !hasVisibleFinalText(assistantMessage)
+                        || isSystemPlaceholderOnly(assistantMessage);
             }
 
             // 构建 LoopContext 供终止策略评估
@@ -1353,6 +1455,7 @@ public class QueryEngine {
                 log.warn("终止: Token 预算耗尽 (used={}, budget={})",
                         totalUsage.totalTokens(), tokenBudgetValue);
                 handler.onTurnEnd(turn, "token_budget_exhausted");
+                loopExit = LoopExit.TOKEN_BUDGET_EXHAUSTED;
                 break;
             }
 
@@ -1360,6 +1463,7 @@ public class QueryEngine {
                 log.warn("终止: 达到有效最大轮次 (turn={}, maxTurns={}, errors={})",
                         turn, config.maxTurns(), tracker.getConsecutiveErrors());
                 handler.onTurnEnd(turn, "max_turns");
+                loopExit = LoopExit.MAX_TURNS;
                 break;
             }
 
@@ -1370,6 +1474,7 @@ public class QueryEngine {
                         "Multiple consecutive tool failures detected. Waiting for user guidance.",
                         SystemMessageType.WARNING));
                 handler.onTurnEnd(turn, "request_user_input");
+                loopExit = LoopExit.USER_INPUT_REQUIRED;
                 break;
             }
 
@@ -1407,6 +1512,7 @@ public class QueryEngine {
                         // preventContinuation → 直接终止
                         if (stopResult.preventContinuation()) {
                             handler.onTurnEnd(turn, "stop_hook_prevented");
+                            loopExit = LoopExit.HOOK_STOPPED;
                             break;
                         }
 
@@ -1425,6 +1531,9 @@ public class QueryEngine {
                             continue; // 继续循环
                         }
                     } catch (Exception e) {
+                        if (e instanceof com.aicodeassistant.session.MessagePersistenceException persistenceFailure) {
+                            throw persistenceFailure;
+                        }
                         log.warn("Stop hook execution failed: {}", e.getMessage());
                         handler.onSystemMessage(new Message.SystemMessage(
                                 UUID.randomUUID().toString(), Instant.now(),
@@ -1501,18 +1610,11 @@ public class QueryEngine {
                     }
                 }
 
-                if (turn >= config.maxTurns()) {
-                    rejectPendingRunInputs(
-                            currentRunId(state),
-                            "TURN_LIMIT_REACHED", handler);
-                    handler.onTurnEnd(turn, "max_turns");
-                    break;
-                }
-
                 // 遵守既有续写与轮次约束，在关闭追加指令入口前最多注入一次恢复提示。
                 if (emptyFinalResponsePending) {
-                    if (emptyFinalResponseRecoveryAttempted) {
+                    if (emptyFinalResponseRecoveryAttempted || turn >= config.maxTurns()) {
                         handler.onTurnEnd(turn, "empty_final_response");
+                        loopExit = LoopExit.OUTPUT_RECOVERY_EXHAUSTED;
                         break;
                     }
                     emptyFinalResponseRecoveryAttempted = true;
@@ -1546,6 +1648,9 @@ public class QueryEngine {
                 }
 
                 handler.onTurnEnd(turn, stopReason);
+                loopExit = LoopExit.MODEL_FINISHED;
+                finalMessageId = assistantMessage.uuid();
+                state.setCurrentRunFinalMessageId(finalMessageId);
                 break;
             }
 
@@ -1555,6 +1660,7 @@ public class QueryEngine {
                         >= QueryConfig.MAX_OUTPUT_TOKENS_RECOVERY_LIMIT) {
                     log.warn("max_tokens 恢复次数已达上限，终止循环");
                     handler.onTurnEnd(turn, stopReason);
+                    loopExit = LoopExit.OUTPUT_RECOVERY_EXHAUSTED;
                     break;
                 }
                 // 尝试 escalate
@@ -1578,6 +1684,7 @@ public class QueryEngine {
             // 6c: 用户中断（二次检查，工具执行后可能 aborted）
             if (aborted.get()) {
                 handler.onTurnEnd(turn, "aborted");
+                loopExit = LoopExit.CANCELLED;
                 break;
             }
 
@@ -1585,6 +1692,7 @@ public class QueryEngine {
             if (turn >= config.maxTurns()) {
                 log.warn("安全网触发: 达到硬性最大循环轮次: {}", config.maxTurns());
                 handler.onTurnEnd(turn, "max_turns");
+                loopExit = LoopExit.MAX_TURNS;
                 break;
             }
 
@@ -1605,10 +1713,14 @@ public class QueryEngine {
 
         // 轮次耗尽或停止钩子可能直接退出循环，不能把尚未恢复的空答复标记成功。
         // 放在钩子的 catch 之外；用户取消和上下文恢复失败仍保留各自的终态。
-        if (emptyFinalResponsePending && !aborted.get() && !state.isRecoveryExhausted()) {
-            throw new IllegalStateException("EMPTY_FINAL_RESPONSE");
+        if (emptyFinalResponsePending && loopExit == LoopExit.MODEL_FINISHED
+                && !aborted.get() && !state.isRecoveryExhausted()) {
+            loopExit = LoopExit.OUTPUT_RECOVERY_EXHAUSTED;
+            finalMessageId = null;
+            state.setCurrentRunFinalMessageId(null);
         }
-        return totalUsage;
+        if (aborted.get()) loopExit = LoopExit.CANCELLED;
+        return new LoopOutcome(loopExit, totalUsage, finalMessageId);
     }
 
     private static String diagnosticValue(String value) {
@@ -1813,6 +1925,10 @@ public class QueryEngine {
                         System.currentTimeMillis() - startTime);
                 return true;
             }
+            if ("mandatory_context_over_budget".equals(result.skipReason())) {
+                state.setRecoveryFailureMessage(
+                        "必须保留的上下文超过模型窗口，请使用已有新会话并重新提供必要要求。");
+            }
         } catch (java.util.concurrent.CancellationException e) { throw e;
         } catch (Exception e) {
             log.error("反应式压缩失败", e);
@@ -1864,7 +1980,6 @@ public class QueryEngine {
          */
     private List<Message> consumeToolResults(
             StreamingToolExecutor.ExecutionSession session,
-            QueryMessageHandler handler,
             AtomicBoolean aborted,
             List<ContentBlock.ToolUseBlock> toolUseBlocks,
             ToolCallTracker tracker) {
@@ -1917,7 +2032,6 @@ public class QueryEngine {
                 ContentBlock.ToolResultBlock resultBlock = new ContentBlock.ToolResultBlock(
                         tt.getToolUseId(), tt.getResult().content(), tt.getResult().isError(),
                         structuredResultMetadata(tt.getResult()));
-                handler.onToolResult(tt.getToolUseId(), resultBlock);
                 results.add(buildToolResultMessage(resultBlock));
             }
 
@@ -1933,7 +2047,6 @@ public class QueryEngine {
             ContentBlock.ToolResultBlock resultBlock = new ContentBlock.ToolResultBlock(
                     tt.getToolUseId(), tt.getResult().content(), tt.getResult().isError(),
                     structuredResultMetadata(tt.getResult()));
-            handler.onToolResult(tt.getToolUseId(), resultBlock);
             results.add(buildToolResultMessage(resultBlock));
         }
 
@@ -1956,7 +2069,6 @@ public class QueryEngine {
                         "<tool_use_error>Tool execution did not complete: "
                                 + "executor contract violated or watchdog timeout</tool_use_error>",
                         true);
-                handler.onToolResult(block.id(), synthetic);
                 results.add(buildToolResultMessage(synthetic));
             }
         }
@@ -2002,6 +2114,9 @@ public class QueryEngine {
                 }
             }
         } catch (RuntimeException detectionFailure) {
+            if (detectionFailure instanceof com.aicodeassistant.session.MessagePersistenceException) {
+                throw detectionFailure;
+            }
             log.warn("task_boundary detection failed (non-fatal): {}", detectionFailure.getMessage());
         }
     }
@@ -2019,7 +2134,7 @@ public class QueryEngine {
         Message.SystemMessage message = new Message.SystemMessage(
                 UUID.randomUUID().toString(), Instant.now(), "",
                 SystemMessageType.INFO, "task_boundary", metadata);
-        // 先进入状态并尝试增量写入；监听器失败由既有 reconcile 补偿，不代表已确认落盘。
+        // The durable append must succeed before the live event is published.
         state.addMessage(message);
         try {
             handler.onTaskBoundary(message);
@@ -2055,9 +2170,29 @@ public class QueryEngine {
                 : Map.of();
     }
 
+    private List<Message> rejectedToolBatchResults(
+            List<ContentBlock.ToolUseBlock> toolUseBlocks,
+            List<String> unknownTools,
+            ToolCallTracker tracker) {
+        Set<String> unknown = new HashSet<>(unknownTools);
+        List<Message> results = new ArrayList<>(toolUseBlocks.size());
+        for (ContentBlock.ToolUseBlock block : toolUseBlocks) {
+            String detail = unknown.contains(block.name())
+                    ? "Unknown tool '" + block.name() + "'."
+                    : "Another tool in this response could not be routed.";
+            String content = "<tool_use_error>" + detail
+                    + " No tools in this response were executed. Use an available tool and try again."
+                    + "</tool_use_error>";
+            tracker.record(block.name(), false, "UNKNOWN_TOOL_BATCH_REJECTED");
+            results.add(buildToolResultMessage(new ContentBlock.ToolResultBlock(
+                    block.id(), content, true)));
+        }
+        return results;
+    }
+
     /**
      * 保留已完成结果；仅为状态未确认的调用生成明确的未知结果。
-         */
+     */
     private List<Message> generateSyntheticResults(
             List<ContentBlock.ToolUseBlock> toolUseBlocks,
             StreamingToolExecutor.ExecutionSession session,
@@ -2067,7 +2202,8 @@ public class QueryEngine {
         for (ContentBlock.ToolUseBlock block : toolUseBlocks) {
             ToolResult actual = completed.get(block.id());
             ContentBlock.ToolResultBlock result = actual != null
-                    ? new ContentBlock.ToolResultBlock(block.id(), actual.content(), actual.isError(), structuredResultMetadata(actual))
+                    ? new ContentBlock.ToolResultBlock(block.id(), actual.content(), actual.isError(),
+                            structuredResultMetadata(actual))
                     : new ContentBlock.ToolResultBlock(block.id(),
                             "<tool_use_error>" + reason + "; execution outcome unconfirmed. "
                                     + "Side effects may have occurred; verify before retrying.</tool_use_error>", true);
@@ -2291,21 +2427,21 @@ public class QueryEngine {
         private final ObjectMapper objectMapper;
         private final String providerName;
         private final String model;
-        private final List<ContentBlock> contentBlocks = new ArrayList<>();
+        private final List<Object> contentParts = new ArrayList<>();
+        private final Map<String, PendingTool> pendingTools = new LinkedHashMap<>();
         private final StringBuilder currentThinking = new StringBuilder();
         private final StringBuilder currentText = new StringBuilder();
-        private String currentToolId;
-        private String currentToolName;
-        private final StringBuilder currentToolInput = new StringBuilder();
         private Usage usage;
         private String stopReason;
-
-        // P0-2: 保存 provider 通过 callback.onError() 报告的 terminal 错误，
-        // 在 streamChat 返回后重新抛出以触发 ApiRetryService/QueryEngine 恢复逻辑
         private volatile LlmApiException terminalError;
+        private volatile boolean hasReceivedEvents;
 
-        // 流式重试污染防护：一旦收到有意义的流事件，禁止透明重试
-        private volatile boolean hasReceivedEvents = false;
+        private static final class PendingTool {
+            final String id;
+            final String name;
+            final StringBuilder input = new StringBuilder();
+            PendingTool(String id, String name) { this.id = id; this.name = name; }
+        }
 
         StreamCollector(QueryMessageHandler handler,
                         StreamingToolExecutor.ExecutionSession session,
@@ -2328,7 +2464,6 @@ public class QueryEngine {
             switch (event) {
                 case LlmStreamEvent.TextDelta delta -> {
                     hasReceivedEvents = true;
-                    // 首次收到文本时，将已累积的 thinking 内容 flush 为 ThinkingBlock
                     flushThinkingBlock();
                     currentText.append(delta.text());
                     handler.onTextDelta(delta.text());
@@ -2340,100 +2475,76 @@ public class QueryEngine {
                 }
                 case LlmStreamEvent.ToolUseStart start -> {
                     hasReceivedEvents = true;
-                    // 结束之前的文本块，并 flush 上一个未完成的 tool block（多工具场景）
                     flushTextBlock();
-                    flushToolBlock();
-                    currentToolId = start.id();
-                    currentToolName = start.name();
-                    currentToolInput.setLength(0);
+                    if (start.id() == null || start.id().isBlank()
+                            || start.name() == null || start.name().isBlank()
+                            || pendingTools.containsKey(start.id())) {
+                        terminalError = new LlmApiException(
+                                "INVALID_TOOL_CALL_STREAM: duplicate or missing tool identity", false);
+                        break;
+                    }
+                    PendingTool pending = new PendingTool(start.id(), start.name());
+                    pendingTools.put(start.id(), pending);
+                    contentParts.add(pending);
                     handler.onToolUseStart(start.id(), start.name());
                 }
                 case LlmStreamEvent.ToolInputDelta delta -> {
                     hasReceivedEvents = true;
-                    currentToolInput.append(delta.jsonDelta());
+                    PendingTool pending = delta.toolUseId() == null
+                            ? null : pendingTools.get(delta.toolUseId());
+                    if (pending == null) {
+                        terminalError = new LlmApiException(
+                                "INVALID_TOOL_CALL_STREAM: arguments without a known tool id", false);
+                        break;
+                    }
+                    pending.input.append(delta.jsonDelta());
                     handler.onToolInputDelta(delta.toolUseId(), delta.jsonDelta());
                 }
                 case LlmStreamEvent.MessageDelta delta -> {
                     this.usage = delta.usage();
-                    if (delta.stopReason() != null
-                            && !delta.stopReason().isBlank()) {
+                    if (delta.stopReason() != null && !delta.stopReason().isBlank()) {
                         this.stopReason = delta.stopReason();
                     }
-                    log.debug("MessageDelta: stopReason={}, currentToolId={}", delta.stopReason(), currentToolId);
-                    // ★ 修复：不在 MessageDelta 中触发 flushToolBlock()。
-                    // Qwen 等 OpenAI 兼容模型可能在最后一批 ToolInputDelta 到达前
-                    // 先发送 finish_reason，导致工具参数被截断。
-                    // 工具块的 flush 由 BlockStop（Anthropic）或 onComplete（兜底）负责。
                     flushTextBlock();
                 }
-                case LlmStreamEvent.Error error -> {
-                    handler.onError(new LlmApiException(error.message(), error.retryable()));
-                }
+                case LlmStreamEvent.Error error -> onError(
+                        new LlmApiException(error.message(), error.retryable()));
                 case LlmStreamEvent.ProviderProgress ignored -> hasReceivedEvents = true;
                 case LlmStreamEvent.ProviderResponseState state -> {
                     hasReceivedEvents = true;
-                    contentBlocks.add(new ContentBlock.ProviderResponseStateBlock(
+                    contentParts.add(new ContentBlock.ProviderResponseStateBlock(
                             providerName, model, currentThinking.toString(), state.outputItems()));
                     currentThinking.setLength(0);
                 }
-                // Anthropic 细粒度事件 — 无需额外处理
-                case LlmStreamEvent.MessageStart ms -> { /* no-op */ }
-                case LlmStreamEvent.TextStart ts -> { /* no-op */ }
-                case LlmStreamEvent.ThinkingStart ths -> { /* no-op */ }
-                case LlmStreamEvent.BlockStop bs -> {
-                    // ★ 流式即时启动：tool_use block 结束时立即 flush 并提交执行
-                    // 无需等待 MessageDelta，实现 "收到即启动" 而非 "收集完再启动"
-                    log.debug("BlockStop event: currentToolId={}, currentToolName={}", currentToolId, currentToolName);
-                    flushToolBlock();
-                }
+                case LlmStreamEvent.MessageStart ignored -> { }
+                case LlmStreamEvent.TextStart ignored -> { }
+                case LlmStreamEvent.ThinkingStart ignored -> { }
+                case LlmStreamEvent.BlockStop ignored -> { }
             }
         }
 
         @Override
         public void onComplete() {
-            log.debug("onComplete: contentBlocks={}, stopReason={}, hasTerminalError={}",
-                    contentBlocks.size(), stopReason, terminalError != null);
-            // P1: 不清除 terminalError — 如果 onError 已设置错误（如 chunk 解析失败后流仍到达 [DONE]），
-            // 让 retry lambda 在 streamChat 返回后检测到并重新抛出。
-            // clearTerminalError() 已在每次 retry 前调用，无需此处重复清除。
-            if (terminalError == null) {
-                flushTextBlock();
-                flushToolBlock();
-            }
-            // 有 terminalError 时跳过 flush — 数据可能不完整，retry 会重新请求
+            if (terminalError == null) flushTextBlock();
         }
 
         @Override
         public void onError(Throwable error) {
-            // P0-2: 保存为 terminalError，不立即通知前端。
-            // 错误将在 streamChat 返回后由 retry lambda 重新抛出，
-            // 由 ApiRetryService（重试）或 QueryEngine catch（413 恢复/降级）处理。
             if (error instanceof LlmApiException llmEx) {
                 this.terminalError = llmEx;
             } else {
                 this.terminalError = new LlmApiException(
-                        error.getMessage(), error, error instanceof java.io.IOException);
+                        error.getMessage(), error, error instanceof IOException);
             }
         }
 
-        /** P0-2: 每次 retry 前清除上一轮的 terminalError */
-        void clearTerminalError() {
-            this.terminalError = null;
-        }
-
-        /** P0-2: 获取 terminal error（streamChat 返回后检查） */
-        LlmApiException getTerminalError() {
-            return this.terminalError;
-        }
-
-        /** 流式重试防护：是否已接收有意义的流事件 */
-        boolean hasReceivedEvents() {
-            return this.hasReceivedEvents;
-        }
+        void clearTerminalError() { this.terminalError = null; }
+        LlmApiException getTerminalError() { return terminalError; }
+        boolean hasReceivedEvents() { return hasReceivedEvents; }
 
         private void flushThinkingBlock() {
             if (!currentThinking.isEmpty()) {
-                contentBlocks.add(new ContentBlock.ThinkingBlock(currentThinking.toString()));
+                contentParts.add(new ContentBlock.ThinkingBlock(currentThinking.toString()));
                 currentThinking.setLength(0);
             }
         }
@@ -2441,62 +2552,8 @@ public class QueryEngine {
         private void flushTextBlock() {
             flushThinkingBlock();
             if (!currentText.isEmpty()) {
-                contentBlocks.add(new ContentBlock.TextBlock(currentText.toString()));
+                contentParts.add(new ContentBlock.TextBlock(currentText.toString()));
                 currentText.setLength(0);
-            }
-        }
-
-        private void flushToolBlock() {
-            if (currentToolId != null) {
-                String inputStr = currentToolInput.toString();
-                log.debug("flushToolBlock: toolId={}, toolName={}, inputLen={}",
-                        currentToolId, currentToolName, inputStr.length());
-                JsonNode inputNode;
-                try {
-                    inputNode = inputStr.isEmpty()
-                            ? objectMapper.createObjectNode()
-                            : objectMapper.readTree(inputStr);
-                } catch (Exception e) {
-                    log.warn("Tool input JSON incomplete: toolId={}, toolName={}, inputLen={}",
-                            currentToolId, currentToolName, inputStr.length());
-                    terminalError = new LlmApiException(
-                            "INVALID_TOOL_INPUT_JSON", e, false);
-                    currentToolId = null;
-                    currentToolName = null;
-                    currentToolInput.setLength(0);
-                    return;
-                }
-                ContentBlock.ToolUseBlock toolBlock = new ContentBlock.ToolUseBlock(
-                        currentToolId, currentToolName, inputNode);
-                contentBlocks.add(toolBlock);
-
-                // 立即提交到 StreamingToolExecutor 开始并行执行
-                log.debug("flushToolBlock submit: session={}, discarded={}",
-                        session != null, session != null && session.isDiscarded());
-                if (session != null && !session.isDiscarded()) {
-                    Tool tool = findToolByName(currentToolName);
-                    log.debug("findToolByName({}): found={}", currentToolName, tool != null);
-                    if (tool != null) {
-                        ToolInput toolInput = ToolInput.fromJsonNode(inputNode);
-                        session.addTool(tool, toolInput, currentToolId, toolUseContext);
-                        log.debug("addTool submitted: toolId={}, toolName={}", currentToolId, currentToolName);
-                    } else {
-                        // 工具未找到 — 直接标记 COMPLETED + error，附带可用工具列表引导恢复
-                        log.warn("Tool not found in streaming phase: {}", currentToolName);
-                        String availableToolNames = (tools != null)
-                                ? tools.stream().map(Tool::getName).collect(Collectors.joining(", "))
-                                : "Read, Edit, Write, Bash, Grep, Glob";
-                        session.addErrorResult(currentToolId,
-                                "<tool_use_error>Error: Tool '" + currentToolName + "' does not exist in this environment. "
-                                + "You ONLY have access to these tools: [" + availableToolNames + "]. "
-                                + "Do NOT attempt to use '" + currentToolName + "' again. "
-                                + "Continue solving the problem using ONLY the available tools listed above.</tool_use_error>");
-                    }
-                }
-
-                currentToolId = null;
-                currentToolName = null;
-                currentToolInput.setLength(0);
             }
         }
 
@@ -2507,23 +2564,72 @@ public class QueryEngine {
                     .findFirst().orElse(null);
         }
 
-        /** Read received text/usage without flushing or submitting an unfinished tool call. */
         Message.AssistantMessage partialTextSnapshot() {
-            List<ContentBlock> text = new ArrayList<>(contentBlocks.stream()
-                    .filter(ContentBlock.TextBlock.class::isInstance).toList());
+            List<ContentBlock> text = new ArrayList<>(contentParts.stream()
+                    .filter(ContentBlock.TextBlock.class::isInstance)
+                    .map(ContentBlock.class::cast).toList());
             if (!currentText.isEmpty()) text.add(new ContentBlock.TextBlock(currentText.toString()));
-            return new Message.AssistantMessage(UUID.randomUUID().toString(), Instant.now(), text, "cancelled", usage);
+            return new Message.AssistantMessage(UUID.randomUUID().toString(), Instant.now(),
+                    text, "cancelled", usage);
         }
 
         Message.AssistantMessage buildAssistantMessage() {
-            log.debug("buildAssistantMessage: contentBlocks={}, stopReason={}", contentBlocks.size(), stopReason);
+            if (terminalError != null) throw terminalError;
             flushTextBlock();
-            flushToolBlock();
+            List<ContentBlock> blocks = new ArrayList<>(contentParts.size());
+            for (Object part : contentParts) {
+                if (part instanceof ContentBlock block) {
+                    blocks.add(block);
+                    continue;
+                }
+                PendingTool pending = (PendingTool) part;
+                final JsonNode input;
+                try {
+                    input = pending.input.isEmpty()
+                            ? objectMapper.createObjectNode()
+                            : objectMapper.readTree(pending.input.toString());
+                } catch (Exception invalidJson) {
+                    throw new LlmApiException("INVALID_TOOL_INPUT_JSON", invalidJson, false);
+                }
+                if (input == null || !input.isObject()) {
+                    throw new LlmApiException("INVALID_TOOL_INPUT_JSON: expected object", false);
+                }
+                blocks.add(new ContentBlock.ToolUseBlock(pending.id, pending.name, input));
+            }
+            if (!pendingTools.isEmpty()
+                    && ("max_tokens".equals(stopReason) || "length".equals(stopReason))) {
+                throw new LlmApiException("TRUNCATED_TOOL_CALLS: " + stopReason, false);
+            }
             return new Message.AssistantMessage(
-                    UUID.randomUUID().toString(), Instant.now(),
-                    List.copyOf(contentBlocks),
+                    UUID.randomUUID().toString(), Instant.now(), List.copyOf(blocks),
                     stopReason != null ? stopReason : "end_turn",
                     usage != null ? usage : Usage.zero());
+        }
+
+        List<String> unknownToolNames(Message.AssistantMessage assistant) {
+            if (assistant == null || assistant.content() == null) return List.of();
+            return assistant.content().stream()
+                    .filter(ContentBlock.ToolUseBlock.class::isInstance)
+                    .map(ContentBlock.ToolUseBlock.class::cast)
+                    .map(ContentBlock.ToolUseBlock::name)
+                    .filter(name -> findToolByName(name) == null)
+                    .distinct()
+                    .toList();
+        }
+
+        void submitValidatedTools(Message.AssistantMessage assistant) {
+            if (session == null || session.isDiscarded()) return;
+            List<String> unknown = unknownToolNames(assistant);
+            if (!unknown.isEmpty()) {
+                throw new LlmApiException("UNKNOWN_TOOL: " + String.join(", ", unknown), false);
+            }
+            for (ContentBlock block : assistant.content()) {
+                if (!(block instanceof ContentBlock.ToolUseBlock toolUse)) continue;
+                Tool tool = findToolByName(toolUse.name());
+                if (tool == null) throw new LlmApiException("UNKNOWN_TOOL: " + toolUse.name(), false);
+                session.addTool(tool, ToolInput.fromJsonNode(toolUse.input()),
+                        toolUse.id(), toolUseContext);
+            }
         }
     }
 
@@ -2590,58 +2696,34 @@ public class QueryEngine {
             || lower.contains("token limit");
     }
 
-    /**
-     * 剥离 LLM 输出中模仿的内部压缩标记，防止脏输出落库后形成正反馈循环。
-     */
-    static Message.AssistantMessage sanitizeInternalMarkers(Message.AssistantMessage msg) {
-        if (msg == null || msg.content() == null || msg.content().isEmpty()) return msg;
-        boolean changed = false;
-        List<ContentBlock> cleaned = new ArrayList<>(msg.content().size());
-        for (ContentBlock block : msg.content()) {
-            if (block instanceof ContentBlock.TextBlock t && t.text() != null) {
-                String text = t.text();
-                // 快速路径：无方括号则跳过正则
-                if (text.indexOf('[') < 0) {
-                    cleaned.add(block);
-                    continue;
-                }
-                String sanitized = INTERNAL_MARKER_PREFIX.matcher(text).replaceAll("");
-                sanitized = INTERNAL_MARKER_SUFFIX.matcher(sanitized).replaceFirst("");
-                sanitized = sanitized.strip();
-                if (sanitized.isEmpty()) {
-                    // 剥离后为空：丢弃该块，避免空 TextBlock 直发 API 触发 400
-                    changed = true;
-                } else if (!sanitized.equals(text)) {
-                    changed = true;
-                    cleaned.add(new ContentBlock.TextBlock(sanitized));
-                } else {
-                    cleaned.add(block);
-                }
-            } else {
-                cleaned.add(block);
-            }
-        }
-        if (!changed) return msg;
-        if (cleaned.isEmpty()) {
-            // 所有块都被剥离丢弃：返回原消息，避免产生 content=[] 的非法消息
-            return msg;
-        }
-        return new Message.AssistantMessage(
-                msg.uuid(), msg.timestamp(), List.copyOf(cleaned),
-                msg.stopReason(), msg.usage());
-    }
-
-    /** 是否包含用户可见的最终正文（thinking、工具调用和内部标记均不计入）。 */
+    /** 是否包含用户可见的最终正文（thinking 和工具调用不计入）。 */
     static boolean hasVisibleFinalText(Message.AssistantMessage msg) {
         if (msg == null || msg.content() == null) return false;
         for (ContentBlock block : msg.content()) {
             if (!(block instanceof ContentBlock.TextBlock textBlock)
                     || textBlock.text() == null) continue;
-            String text = INTERNAL_MARKER_PREFIX.matcher(textBlock.text()).replaceAll("");
-            text = INTERNAL_MARKER_SUFFIX.matcher(text).replaceFirst("");
-            if (!text.isBlank()) return true;
+            if (!textBlock.text().isBlank()) return true;
         }
         return false;
+    }
+
+    /**
+     * 整段可见正文是否仅由系统内部折叠占位符组成。
+     * 模型可能把工作集中见到的占位符当作最终答复原样回传（已在超长会话复现），
+     * 这类答复不含任何用户可见信息，应走空正文恢复而不是判定成功。
+     */
+    static boolean isSystemPlaceholderOnly(Message.AssistantMessage msg) {
+        if (msg == null || msg.content() == null) return false;
+        boolean sawText = false;
+        for (ContentBlock block : msg.content()) {
+            if (!(block instanceof ContentBlock.TextBlock textBlock)
+                    || textBlock.text() == null) continue;
+            String text = textBlock.text();
+            if (text.isBlank()) continue;
+            sawText = true;
+            if (!SYSTEM_COLLAPSE_ONLY.matcher(text).matches()) return false;
+        }
+        return sawText;
     }
 
     /**
@@ -2655,8 +2737,8 @@ public class QueryEngine {
             int turnCount
     ) {
         public boolean isSuccess() {
-            return error == null && !"cancelled".equals(stopReason)
-                    && !"aborted".equals(stopReason) && !"timeout".equals(stopReason);
+            return error == null
+                    && ("end_turn".equals(stopReason) || "stop".equals(stopReason));
         }
     }
 }

@@ -79,6 +79,7 @@ class SessionControllerListTest {
                 mock(ProjectWorkspaceService.class),
                 mock(PermissionModeManager.class),
                 new PublicMessageProjection(),
-                runs);
+                runs,
+                mock(com.aicodeassistant.session.SessionExecutionGate.class));
     }
 }

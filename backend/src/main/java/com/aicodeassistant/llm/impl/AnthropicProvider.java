@@ -243,6 +243,9 @@ public class AnthropicProvider implements LlmProvider {
         int outputTokens = 0;
         int cacheReadTokens = 0;
         int cacheCreationTokens = 0;
+        boolean messageStop = false;
+        java.util.Set<Integer> openBlocks = new java.util.HashSet<>();
+        java.util.Map<Integer, String> toolIdsByBlock = new java.util.HashMap<>();
 
         while (!source.exhausted()) {
             String line = source.readUtf8Line();
@@ -289,17 +292,22 @@ public class AnthropicProvider implements LlmProvider {
                 }
                 case "content_block_start" -> {
                     int blockIndex = event.get("index").asInt();
+                    openBlocks.add(blockIndex);
                     JsonNode block = event.get("content_block");
                     String blockType = block.get("type").asText();
                     switch (blockType) {
                         case "text" -> callback.onEvent(new LlmStreamEvent.TextStart(blockIndex));
-                        case "tool_use" -> callback.onEvent(new LlmStreamEvent.ToolUseStart(
-                                block.get("id").asText(),
-                                block.get("name").asText()));
+                        case "tool_use" -> {
+                            String toolId = block.get("id").asText();
+                            toolIdsByBlock.put(blockIndex, toolId);
+                            callback.onEvent(new LlmStreamEvent.ToolUseStart(
+                                    toolId, block.get("name").asText()));
+                        }
                         case "thinking" -> callback.onEvent(new LlmStreamEvent.ThinkingStart(blockIndex));
                     }
                 }
                 case "content_block_delta" -> {
+                    int blockIndex = event.get("index").asInt();
                     JsonNode delta = event.get("delta");
                     String deltaType = delta.get("type").asText();
                     switch (deltaType) {
@@ -307,13 +315,16 @@ public class AnthropicProvider implements LlmProvider {
                                 new LlmStreamEvent.TextDelta(delta.get("text").asText()));
                         case "input_json_delta" -> callback.onEvent(
                                 new LlmStreamEvent.ToolInputDelta(
-                                        null, delta.get("partial_json").asText()));
+                                        toolIdsByBlock.get(blockIndex),
+                                        delta.get("partial_json").asText()));
                         case "thinking_delta" -> callback.onEvent(
                                 new LlmStreamEvent.ThinkingDelta(delta.get("thinking").asText()));
                     }
                 }
                 case "content_block_stop" -> {
-                    callback.onEvent(new LlmStreamEvent.BlockStop(event.get("index").asInt()));
+                    int blockIndex = event.get("index").asInt();
+                    openBlocks.remove(blockIndex);
+                    callback.onEvent(new LlmStreamEvent.BlockStop(blockIndex));
                 }
                 case "message_delta" -> {
                     JsonNode delta = event.get("delta");
@@ -328,10 +339,15 @@ public class AnthropicProvider implements LlmProvider {
                             stopReason));
                 }
                 case "message_stop" -> {
-                    // Stream complete — onComplete called by caller
+                    messageStop = true;
                 }
                 default -> log.trace("Unknown Anthropic SSE event: {}", eventType);
             }
+        }
+        if (!messageStop || !openBlocks.isEmpty()) {
+            throw new LlmApiException(
+                    "ANTHROPIC_INCOMPLETE_STREAM: message_stop=" + messageStop
+                            + ", openBlocks=" + openBlocks.size(), false);
         }
     }
 }

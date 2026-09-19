@@ -10,7 +10,6 @@ import { subscribeWithSelector } from 'zustand/middleware';
 import type { ContentBlock, Message, ToolResult, ToolCallState, Usage, TokenWarningPayload } from '@/types';
 import { streamingStore, flushStreamingBuffer } from '@/hooks/useStreamingText';
 import { generateUUID } from '@/utils/uuid';
-import { stripInternalMarkers } from '@/utils/internalMarkers';
 
 export interface TokenBudgetState {
     pct: number;
@@ -356,7 +355,7 @@ export const useMessageStore = create<MessageStoreState>()(
                         const content: ContentBlock[] = [];
                         if (d.thinkingContent) content.push({ type: 'thinking', thinking: d.thinkingContent });
                         const rawText = d.streamingContent + externalContent;
-                        const text = stripInternalMarkers(rawText);
+                        const text = rawText;
                         const otherBlocks = message.content.filter(block => block.type !== 'text' && block.type !== 'thinking');
                         if (text) content.push({ type: 'text', text });
                         else if (rawText && content.length === 0 && otherBlocks.length === 0) {

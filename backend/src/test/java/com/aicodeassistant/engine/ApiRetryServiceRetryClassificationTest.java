@@ -144,4 +144,20 @@ class ApiRetryServiceRetryClassificationTest {
         verify(policy, times(9)).calculateDelay(anyString(), anyInt());
         verify(circuit, times(1)).recordFailure();
     }
+
+    @Test
+    void explicitRetrySuppressionOverridesStatusAndErrorTypeClassifiers() {
+        AtomicInteger calls = new AtomicInteger();
+
+        LlmApiException failure = assertThrows(LlmApiException.class,
+                () -> retries.executeWithRetry(() -> {
+                    calls.incrementAndGet();
+                    throw new LlmApiException("partial stream failed", true, 429,
+                            "rate_limit_error", 100).withRetryable(false);
+                }, "sdk", "model"));
+
+        assertTrue(failure.isRetrySuppressed());
+        assertEquals(1, calls.get());
+        verify(policy, never()).calculateDelay(anyString(), anyInt());
+    }
 }

@@ -871,17 +871,18 @@ function handleMessageComplete(data: MessageCompletePayload): void {
         const currentSessionId = useSessionStore.getState().sessionId;
         const hasCommittedMessages = Array.isArray(data.committedMessages);
         const sessionMatches = !data.sessionId || data.sessionId === currentSessionId;
+        const preserveFailureProjection = data.stopReason === 'error';
         // A late completion from a session the user has already left must never
         // overwrite or reload the newly selected session.
         if (hasCommittedMessages && !sessionMatches) return;
-        const reconciled = hasCommittedMessages && sessionMatches
+        const reconciled = hasCommittedMessages && sessionMatches && !preserveFailureProjection
             ? useMessageStore.getState().reconcileCommittedRun(
                 data.replaceAfterMessageId ?? null,
                 data.committedMessages ?? [],
             )
             : false;
         if (!reconciled) {
-            if (hasCommittedMessages) {
+            if (hasCommittedMessages && !preserveFailureProjection) {
                 recoverAuthoritativeSession(currentSessionId);
                 return;
             }

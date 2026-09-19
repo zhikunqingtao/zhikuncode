@@ -225,6 +225,8 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         Call call = httpClient.newCall(request);
         // 工具调用累积器 — OpenAI 的工具调用通过多个 delta 增量拼接
         Map<Integer, ToolCallAccumulator> toolCallAccumulators = new HashMap<>();
+        java.util.concurrent.atomic.AtomicBoolean sawFinishReason =
+                new java.util.concurrent.atomic.AtomicBoolean(false);
         OpenRouterReasoning routerReasoning = isOpenRouter() ? new OpenRouterReasoning() : null;
 
         try (AutoCloseable ignored = LlmCallRegistration.register(activeCalls, callId, call,
@@ -257,6 +259,11 @@ public class OpenAiCompatibleProvider implements LlmProvider {
                 if (line.isEmpty()) continue;
 
                 if ("data: [DONE]".equals(line)) {
+                    if (!sawFinishReason.get()) {
+                        callback.onError(new LlmApiException(
+                                "OPENAI_COMPATIBLE_INCOMPLETE_STREAM: missing finish_reason", false));
+                        return;
+                    }
                     if (routerReasoning != null) routerReasoning.complete(objectMapper, callback);
                     callback.onComplete();
                     return;
@@ -265,14 +272,19 @@ public class OpenAiCompatibleProvider implements LlmProvider {
                 if (line.startsWith("data: ")) {
                     String json = line.substring(6);
                     if (routerReasoning != null) routerReasoning.accept(objectMapper.readTree(json), callback);
-                    processChunk(json, toolCallAccumulators, callback);
+                    processChunk(json, toolCallAccumulators, callback, sawFinishReason);
                 }
             }
             if (routerReasoning != null) {
                 callback.onError(new LlmApiException("OpenRouter stream ended before [DONE]", true));
                 return;
             }
-            // Stream ended without [DONE] — still complete
+            if (!sawFinishReason.get()) {
+                callback.onError(new LlmApiException(
+                        "OPENAI_COMPATIBLE_INCOMPLETE_STREAM: missing finish_reason", false));
+                return;
+            }
+            // A normal compatible endpoint may end at EOF after a valid finish_reason.
             callback.onComplete();
 
         } catch (IOException e) {
@@ -1095,7 +1107,8 @@ public class OpenAiCompatibleProvider implements LlmProvider {
 
     private void processChunk(String json,
                               Map<Integer, ToolCallAccumulator> accumulators,
-                              StreamChatCallback callback) {
+                              StreamChatCallback callback,
+                              java.util.concurrent.atomic.AtomicBoolean sawFinishReason) {
         try {
             JsonNode chunk = objectMapper.readTree(json);
             JsonNode choices = chunk.get("choices");
@@ -1147,6 +1160,9 @@ public class OpenAiCompatibleProvider implements LlmProvider {
                                 throw invalidToolCallStream(
                                         index, "empty id before identity");
                             }
+                            if (!id.isBlank() && acc.id != null && !acc.id.equals(id)) {
+                                throw invalidToolCallStream(index, "conflicting id");
+                            }
                             if (!id.isBlank() && acc.id == null) acc.id = id;
                         }
                         JsonNode fn = null;
@@ -1159,9 +1175,11 @@ public class OpenAiCompatibleProvider implements LlmProvider {
                                     throw invalidToolCallStream(
                                             index, "empty name before identity");
                                 }
-                                if (!name.isBlank() && acc.name == null) {
-                                    acc.name = name;
+                                if (!name.isBlank() && acc.name != null
+                                        && !acc.name.equals(name)) {
+                                    throw invalidToolCallStream(index, "conflicting name");
                                 }
+                                if (!name.isBlank() && acc.name == null) acc.name = name;
                             }
                         }
                         if (!acc.startEmitted && acc.id != null && acc.name != null) {
@@ -1185,7 +1203,8 @@ public class OpenAiCompatibleProvider implements LlmProvider {
             }
 
             // 流结束原因 — 接受有 usage 或有 finish_reason 的 chunk
-            if (finishReason != null) {
+            if (finishReason != null && !finishReason.isBlank()) {
+                sawFinishReason.set(true);
                 // ★ 修复：当流结束时，先为所有累积的 tool call 发送 BlockStop 事件，
                 // 确保 QueryEngine 在收到 MessageDelta 之前已 flush 完所有工具块。
                 // 这解决了 Qwen 等模型将 finish_reason 和最后一批 arguments

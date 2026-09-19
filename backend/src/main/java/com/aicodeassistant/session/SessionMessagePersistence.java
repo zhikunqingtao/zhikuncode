@@ -2,24 +2,14 @@ package com.aicodeassistant.session;
 
 import com.aicodeassistant.engine.QueryLoopState;
 import com.aicodeassistant.model.Message;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.concurrent.atomic.AtomicReference;
 
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
-/**
- * Persists messages as they enter a query state and retries only messages whose
- * first persistence attempt failed. Message UUIDs remain the database idempotency key.
- */
-public final class SessionMessagePersistence {
-    private static final Logger log = LoggerFactory.getLogger(SessionMessagePersistence.class);
-
+/** Strict synchronous message writer; the first failure is latched for the run. */
+public final class SessionMessagePersistence implements QueryLoopState.MessagePersistenceSink {
     private final SessionManager sessions;
     private final String sessionId;
     private final String channel;
-    private final Set<String> persistedMessageIds = ConcurrentHashMap.newKeySet();
+    private final AtomicReference<MessagePersistenceException> failure = new AtomicReference<>();
 
     private SessionMessagePersistence(SessionManager sessions, String sessionId, String channel) {
         this.sessions = sessions;
@@ -31,18 +21,14 @@ public final class SessionMessagePersistence {
             QueryLoopState state, SessionManager sessions, String sessionId, String channel) {
         SessionMessagePersistence persistence =
                 new SessionMessagePersistence(sessions, sessionId, channel);
-        state.addMessageListener(persistence::persistBestEffort);
+        state.setPersistenceSink(persistence);
         return persistence;
     }
 
-    /** Retry only messages not confirmed by the incremental listener. */
-    public int reconcile(List<Message> messages) {
-        int recovered = 0;
-        for (Message message : messages) {
-            if (persistedMessageIds.contains(message.uuid())) continue;
-            if (persistBestEffort(message)) recovered++;
-        }
-        return recovered;
+    @Override
+    public void assertHealthy() {
+        MessagePersistenceException latched = failure.get();
+        if (latched != null) throw latched;
     }
 
     /**
@@ -59,9 +45,13 @@ public final class SessionMessagePersistence {
         return meta.isEmpty() ? null : meta;
     }
 
-    private boolean persistBestEffort(Message message) {
-        if (message == null || message.uuid() == null
-                || persistedMessageIds.contains(message.uuid())) return true;
+    @Override
+    public void persist(Message message) {
+        assertHealthy();
+        if (message == null || message.uuid() == null) {
+            throw latch(new MessagePersistenceException(
+                    "PERSISTENCE_FAILED", channel + " cannot persist a message without an id"));
+        }
         try {
             switch (message) {
                 case Message.UserMessage user -> sessions.addMessageWithId(
@@ -77,12 +67,18 @@ public final class SessionMessagePersistence {
                         system.uuid(), sessionId, "system", system.content(), null, 0, 0,
                         persistableMeta(system));
             }
-            persistedMessageIds.add(message.uuid());
-            return true;
         } catch (RuntimeException failure) {
-            log.error("{} message persistence failed, sessionId={}, messageId={}",
-                    channel, sessionId, message.uuid(), failure);
-            return false;
+            if (failure instanceof MessagePersistenceException persistenceFailure) {
+                throw latch(persistenceFailure);
+            }
+            throw latch(new MessagePersistenceException(
+                    "PERSISTENCE_FAILED",
+                    channel + " message persistence failed for " + message.uuid(), failure));
         }
+    }
+
+    private MessagePersistenceException latch(MessagePersistenceException candidate) {
+        failure.compareAndSet(null, candidate);
+        return failure.get();
     }
 }

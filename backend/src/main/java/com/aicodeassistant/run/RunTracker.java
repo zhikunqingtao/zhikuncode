@@ -93,6 +93,10 @@ public class RunTracker {
         termination.terminate(runId, RunEnvelope.RunExitReason.INTERNAL_ERROR, errorSummary);
     }
 
+    public void failRun(String runId, RunEnvelope.RunExitReason reason, String errorSummary) {
+        termination.terminate(runId, reason, errorSummary);
+    }
+
     public void abortRun(String runId, AbortReason reason, String detail) {
         AbortReason effective = reason == null ? AbortReason.USER_INTERRUPT : reason;
         switch (effective) {

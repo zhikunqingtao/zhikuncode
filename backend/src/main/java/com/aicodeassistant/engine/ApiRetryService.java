@@ -124,6 +124,13 @@ public class ApiRetryService {
                     throw e;
                 }
 
+                // A caller that has already emitted observable stream data must be
+                // able to suppress every classifier-based retry for this attempt.
+                if (e.isRetrySuppressed()) {
+                    circuitBreaker.recordFailure();
+                    throw e;
+                }
+
                 // 1. 检查是否为 529 错误 (容量超限)
                 if (e.getStatusCode() == 529) {
                     // ★ 触发模型冷却

@@ -120,6 +120,7 @@ llm:
       base-url: https://zenmux.ai/api/v1
       default-model: anthropic/claude-opus-4.8
       models: ${LLM_PROVIDER_ZENMUX_MODELS:anthropic/claude-opus-4.8,anthropic/claude-fable-5.1,openai/gpt-5.6-sol,openai/gpt-6-astra,google/gemini-3.8-flash,x-ai/grok-4.6}
+      key-selection-strategy: PRIORITY_FAILOVER
   # ===== 单 Provider 配置（向后兼容）=====
   # 如果 llm.providers 为空，回退到此配置
   openai:

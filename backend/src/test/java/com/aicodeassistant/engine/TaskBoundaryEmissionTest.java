@@ -11,6 +11,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 class TaskBoundaryEmissionTest {
@@ -60,18 +61,18 @@ class TaskBoundaryEmissionTest {
         emit(state, mock(QueryMessageHandler.class), payload, false);
         assertThat(((Message.SystemMessage) state.getMessages().getLast()).metadata()).containsEntry("turn_index", 2);
     }
-    @Test void failedDatabaseAttemptIsRetriedWithSameIdAfterPush() {
+    @Test void failedDatabaseAttemptStopsBeforeStateAndPush() {
         QueryLoopState state = state();
         SessionManager sessions = mock(SessionManager.class);
-        doThrow(new IllegalStateException("temporary")).doNothing().when(sessions)
+        doThrow(new IllegalStateException("temporary")).when(sessions)
                 .addMessageWithId(anyString(), anyString(), eq("system"), any(), isNull(), eq(0), eq(0), anyMap());
-        SessionMessagePersistence persistence = SessionMessagePersistence.attach(state, sessions, "session", "test");
+        SessionMessagePersistence.attach(state, sessions, "session", "test");
         QueryMessageHandler handler = mock(QueryMessageHandler.class);
-        emit(state, handler, payload, false);
-        Message.SystemMessage message = (Message.SystemMessage) state.getMessages().getFirst();
-        verify(handler).onTaskBoundary(message);
-        assertThat(persistence.reconcile(state.getMessages())).isEqualTo(1);
-        assertThat(persistence.reconcile(state.getMessages())).isZero();
-        verify(sessions, times(2)).addMessageWithId(eq(message.uuid()), anyString(), eq("system"), any(), isNull(), eq(0), eq(0), anyMap());
+        assertThatThrownBy(() -> emit(state, handler, payload, false))
+                .isInstanceOf(com.aicodeassistant.session.MessagePersistenceException.class)
+                .hasRootCauseInstanceOf(IllegalStateException.class);
+        assertThat(state.getMessages()).isEmpty();
+        verify(handler, never()).onTaskBoundary(any());
+        verify(sessions, times(1)).addMessageWithId(anyString(), anyString(), eq("system"), any(), isNull(), eq(0), eq(0), anyMap());
     }
 }

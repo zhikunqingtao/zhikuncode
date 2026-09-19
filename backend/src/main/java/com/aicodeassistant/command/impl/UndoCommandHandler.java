@@ -3,6 +3,8 @@ package com.aicodeassistant.command.impl;
 import com.aicodeassistant.command.*;
 import com.aicodeassistant.history.FileHistoryService;
 import com.aicodeassistant.service.MessageRepository;
+import com.aicodeassistant.session.SessionExecutionGate;
+import com.aicodeassistant.session.SessionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -32,13 +34,19 @@ public class UndoCommandHandler implements Command {
     private final FileHistoryService fileHistoryService;
     private final MessageRepository messageRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final SessionExecutionGate executionGate;
+    private final SessionManager sessionManager;
 
     public UndoCommandHandler(FileHistoryService fileHistoryService,
                               MessageRepository messageRepository,
-                              SimpMessagingTemplate messagingTemplate) {
+                              SimpMessagingTemplate messagingTemplate,
+                              SessionExecutionGate executionGate,
+                              SessionManager sessionManager) {
         this.fileHistoryService = fileHistoryService;
         this.messageRepository = messageRepository;
         this.messagingTemplate = messagingTemplate;
+        this.executionGate = executionGate;
+        this.sessionManager = sessionManager;
     }
 
     @Override public String getName() { return "undo"; }
@@ -51,6 +59,12 @@ public class UndoCommandHandler implements Command {
         if (sessionId == null || sessionId.isBlank()) {
             return CommandResult.error("No active session.");
         }
+        SessionExecutionGate.Token executionToken = executionGate.tryAcquire(
+                sessionManager.dataSourceIdentity(), sessionId);
+        if (executionToken == null) {
+            return CommandResult.error("Session is currently executing; undo was not applied.");
+        }
+        try (executionToken) {
 
         // 1. 查找最近有文件变更的事务
         Optional<FileHistoryService.TransactionRecord> lastTx =
@@ -59,7 +73,6 @@ public class UndoCommandHandler implements Command {
         if (lastTx.isEmpty()) {
             return CommandResult.text("Nothing to undo — no recent file changes found.");
         }
-
         FileHistoryService.TransactionRecord tx = lastTx.get();
         List<String> changedFiles = tx.changedFiles();
 
@@ -113,6 +126,7 @@ public class UndoCommandHandler implements Command {
         } catch (Exception e) {
             log.error("/undo failed: sessionId={}, messageId={}", sessionId, tx.messageId(), e);
             return CommandResult.error("Undo failed: " + e.getMessage());
+        }
         }
     }
 }

@@ -30,7 +30,7 @@ public record RunEnvelope(
         MODEL_FINISHED, USER_CANCELLED, DEADLINE_EXCEEDED, INTERACTION_EXPIRED,
         TOOL_FAILURE, PROVIDER_FAILURE, INTERACTION_CAPACITY_EXCEEDED,
         PROCESS_TERMINATION_UNCONFIRMED, TOOL_TERMINATION_UNCONFIRMED,
-        SERVICE_RESTART, INTERNAL_ERROR;
+        SERVICE_RESTART, INCOMPLETE, INTERNAL_ERROR;
         public String dbValue() { return name().toLowerCase(Locale.ROOT); }
         public static RunExitReason fromDbValue(String value) {
             return value == null ? null : valueOf(value.toUpperCase(Locale.ROOT));

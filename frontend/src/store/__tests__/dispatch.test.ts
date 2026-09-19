@@ -229,6 +229,34 @@ describe('dispatch 消息分发', () => {
         expect(useSessionStore.getState().sessionId).toBe('s2');
     });
 
+    test('failed completion preserves the live error and terminal tool result', async () => {
+        useSessionStore.setState({ sessionId: 's1', status: 'streaming' });
+        useMessageStore.getState().startToolCall('tool-1', 'Read', { path: 'file.txt' });
+        useMessageStore.getState().completeToolCall('tool-1', {
+            content: 'read failed', isError: true,
+        });
+        dispatch({ type: 'error', code: 'query_error', message: 'persistence failed', ts: 1 } as never);
+
+        dispatch({
+            type: 'message_complete', ts: 2, sessionId: 's1', runId: 'run-1',
+            replaceAfterMessageId: null,
+            committedMessages: [{
+                type: 'assistant', uuid: 'tool-message', timestamp: 1,
+                stopReason: 'tool_use', content: [{
+                    type: 'tool_use', toolUseId: 'tool-1', toolName: 'Read', input: { path: 'file.txt' },
+                }],
+            }],
+            usage: { inputTokens: 1, outputTokens: 1, cacheReadInputTokens: 0, cacheCreationInputTokens: 0 },
+            stopReason: 'error',
+        } as never);
+        await new Promise<void>(resolve => queueMicrotask(resolve));
+
+        expect(useMessageStore.getState().messages).toEqual(expect.arrayContaining([
+            expect.objectContaining({ type: 'system', content: 'persistence failed', subtype: 'error' }),
+        ]));
+        expect(useMessageStore.getState().messages.some(message => message.uuid === 'tool-message')).toBe(false);
+    });
+
     test('run_input_applied closes the current assistant segment without ending the run', () => {
         useSessionStore.getState().setStatus('streaming');
         useMessageStore.getState().appendStreamDelta('before steering');

@@ -12,6 +12,7 @@ public class LlmApiException extends RuntimeException {
     private final int httpStatus;
     private final String errorType;
     private final long retryAfterMs;
+    private final boolean retrySuppressed;
 
     public LlmApiException(String message, boolean retryable) {
         super(message);
@@ -19,6 +20,7 @@ public class LlmApiException extends RuntimeException {
         this.httpStatus = 0;
         this.errorType = null;
         this.retryAfterMs = 0;
+        this.retrySuppressed = false;
     }
 
     public LlmApiException(String message, boolean retryable, int httpStatus) {
@@ -27,6 +29,7 @@ public class LlmApiException extends RuntimeException {
         this.httpStatus = httpStatus;
         this.errorType = null;
         this.retryAfterMs = 0;
+        this.retrySuppressed = false;
     }
 
     public LlmApiException(String message, boolean retryable, int httpStatus,
@@ -36,6 +39,7 @@ public class LlmApiException extends RuntimeException {
         this.httpStatus = httpStatus;
         this.errorType = errorType;
         this.retryAfterMs = retryAfterMs;
+        this.retrySuppressed = false;
     }
 
     public LlmApiException(String message, Throwable cause, boolean retryable) {
@@ -44,6 +48,33 @@ public class LlmApiException extends RuntimeException {
         this.httpStatus = 0;
         this.errorType = null;
         this.retryAfterMs = 0;
+        this.retrySuppressed = false;
+    }
+
+    public LlmApiException(String message, Throwable cause, boolean retryable,
+                           int httpStatus, String errorType, long retryAfterMs) {
+        super(message, cause);
+        this.retryable = retryable;
+        this.httpStatus = httpStatus;
+        this.errorType = errorType;
+        this.retryAfterMs = retryAfterMs;
+        this.retrySuppressed = false;
+    }
+
+    private LlmApiException(String message, Throwable cause, boolean retryable,
+                            int httpStatus, String errorType, long retryAfterMs,
+                            boolean retrySuppressed) {
+        super(message, cause);
+        this.retryable = retryable;
+        this.httpStatus = httpStatus;
+        this.errorType = errorType;
+        this.retryAfterMs = retryAfterMs;
+        this.retrySuppressed = retrySuppressed;
+    }
+
+    public LlmApiException withRetryable(boolean value) {
+        return new LlmApiException(getMessage(), this, value,
+                httpStatus, errorType, retryAfterMs, !value);
     }
 
     public boolean isRetryable() { return retryable; }
@@ -51,6 +82,7 @@ public class LlmApiException extends RuntimeException {
     public int getStatusCode() { return httpStatus; }
     public String getErrorType() { return errorType; }
     public long getRetryAfterMs() { return retryAfterMs; }
+    public boolean isRetrySuppressed() { return retrySuppressed; }
 
     /**
      * 判断是否应触发模型降级。

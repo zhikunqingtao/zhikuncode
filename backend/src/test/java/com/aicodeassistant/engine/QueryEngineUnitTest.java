@@ -146,7 +146,7 @@ class QueryEngineUnitTest {
                     .thenAnswer(inv -> new MessageNormalizer().normalizeTyped(inv.getArgument(0)));
             var session = mock(StreamingToolExecutor.ExecutionSession.class);
             when(streamingToolExecutor.newSession(any())).thenReturn(session);
-            when(apiRetryService.executeWithRetry(any(), anyString(), anyString(), any()))
+            lenient().when(apiRetryService.executeWithRetry(any(), anyString(), anyString(), any()))
                     .thenAnswer(inv -> inv.getArgument(0, Supplier.class).get());
             var outbound = new AtomicReference<List<Map<String, Object>>>();
             doAnswer(inv -> {
@@ -346,7 +346,7 @@ class QueryEngineUnitTest {
                     buildConfig(), buildState("question"), handler);
 
             assertThat(result.isSuccess()).isFalse();
-            assertThat(result.error()).isEqualTo("EMPTY_FINAL_RESPONSE");
+            assertThat(result.error()).startsWith("OUTPUT_RECOVERY_EXHAUSTED:");
             assertThat(callCount.get()).isEqualTo(2);
             assertThat(handler.errors).hasSize(1);
         }
@@ -359,6 +359,7 @@ class QueryEngineUnitTest {
         private RunEnvelope run;
         private AtomicReference<RunEnvelope> authority;
         private StreamingToolExecutor.ExecutionSession toolSession;
+        private Tool bashTool;
         private final List<List<Map<String, Object>>> requests = new ArrayList<>();
         private final com.aicodeassistant.tool.agent.BackgroundAgentTracker backgrounds =
                 spy(new com.aicodeassistant.tool.agent.BackgroundAgentTracker(mock(org.springframework.messaging.simp.SimpMessagingTemplate.class)));
@@ -380,6 +381,9 @@ class QueryEngineUnitTest {
             lenient().doAnswer(inv -> { authority.set(terminalSnapshot(run, RunEnvelope.RunStatus.FAILED,
                     RunEnvelope.RunExitReason.INTERNAL_ERROR, inv.getArgument(1))); return null; })
                     .when(runTracker).failRun(eq(run.id()), anyString());
+            lenient().doAnswer(inv -> { authority.set(terminalSnapshot(run, RunEnvelope.RunStatus.FAILED,
+                    inv.getArgument(1), inv.getArgument(2))); return null; })
+                    .when(runTracker).failRun(eq(run.id()), any(RunEnvelope.RunExitReason.class), anyString());
             lenient().doAnswer(inv -> { boolean timeout = inv.getArgument(1) == AbortReason.TIMEOUT;
                 authority.set(terminalSnapshot(run, timeout ? RunEnvelope.RunStatus.FAILED : RunEnvelope.RunStatus.CANCELLED,
                     timeout ? RunEnvelope.RunExitReason.DEADLINE_EXCEEDED : RunEnvelope.RunExitReason.USER_CANCELLED, inv.getArgument(2))); return null; })
@@ -396,7 +400,10 @@ class QueryEngineUnitTest {
                     runTracker, executions, userImageTranscoder);
             toolSession = mock(StreamingToolExecutor.ExecutionSession.class);
             when(streamingToolExecutor.newSession(any())).thenReturn(toolSession);
-            when(apiRetryService.executeWithRetry(any(), anyString(), anyString(), any()))
+            bashTool = mock(Tool.class);
+            lenient().when(bashTool.getName()).thenReturn("Bash");
+            lenient().when(bashTool.getAliases()).thenReturn(List.of());
+            lenient().when(apiRetryService.executeWithRetry(any(), anyString(), anyString(), any()))
                     .thenAnswer(inv -> inv.getArgument(0, Supplier.class).get());
             lenient().when(hookService.executeStopHooks(anyList(), anyString()))
                     .thenReturn(HookRegistry.StopHookResult.ok());
@@ -413,8 +420,9 @@ class QueryEngineUnitTest {
 
             assertThat(requests).hasSize(1);
             assertThat(result.isSuccess()).isFalse();
-            assertThat(result.error()).isEqualTo("EMPTY_FINAL_RESPONSE");
-            verify(runTracker).failRun(run.id(), "EMPTY_FINAL_RESPONSE");
+            assertThat(result.error()).startsWith("OUTPUT_RECOVERY_EXHAUSTED:");
+            verify(runTracker).failRun(eq(run.id()), eq(RunEnvelope.RunExitReason.INCOMPLETE),
+                    startsWith("OUTPUT_RECOVERY_EXHAUSTED:"));
             verify(runTracker, never()).completeRun(anyString(), anyInt(), anyDouble(), anyInt(), anyInt());
             assertRunAdmissionClosed();
         }
@@ -433,8 +441,9 @@ class QueryEngineUnitTest {
             assertThat(requests).hasSize(1);
             verify(hookService).executeStopHooks(anyList(), eq("test-session"));
             assertThat(result.isSuccess()).isFalse();
-            assertThat(result.error()).isEqualTo("EMPTY_FINAL_RESPONSE");
-            verify(runTracker).failRun(run.id(), "EMPTY_FINAL_RESPONSE");
+            assertThat(result.error()).startsWith("HOOK_STOPPED:");
+            verify(runTracker).failRun(eq(run.id()), eq(RunEnvelope.RunExitReason.INCOMPLETE),
+                    startsWith("HOOK_STOPPED:"));
             verify(runTracker, never()).completeRun(anyString(), anyInt(), anyDouble(), anyInt(), anyInt());
             assertRunAdmissionClosed();
         }
@@ -453,8 +462,9 @@ class QueryEngineUnitTest {
             assertThat(requests).hasSize(1);
             verify(hookService).executeStopHooks(anyList(), eq("test-session"));
             assertThat(result.isSuccess()).isFalse();
-            assertThat(result.error()).isEqualTo("EMPTY_FINAL_RESPONSE");
-            verify(runTracker).failRun(run.id(), "EMPTY_FINAL_RESPONSE");
+            assertThat(result.error()).startsWith("MAX_TURNS:");
+            verify(runTracker).failRun(eq(run.id()), eq(RunEnvelope.RunExitReason.INCOMPLETE),
+                    startsWith("MAX_TURNS:"));
             verify(runTracker, never()).completeRun(anyString(), anyInt(), anyDouble(), anyInt(), anyInt());
             assertRunAdmissionClosed();
         }
@@ -473,8 +483,9 @@ class QueryEngineUnitTest {
 
             assertThat(requests).hasSize(1);
             assertThat(result.isSuccess()).isFalse();
-            assertThat(result.error()).isEqualTo("EMPTY_FINAL_RESPONSE");
-            verify(runTracker).failRun(run.id(), "EMPTY_FINAL_RESPONSE");
+            assertThat(result.error()).startsWith("TOKEN_BUDGET_EXHAUSTED:");
+            verify(runTracker).failRun(eq(run.id()), eq(RunEnvelope.RunExitReason.INCOMPLETE),
+                    startsWith("TOKEN_BUDGET_EXHAUSTED:"));
             verify(runTracker, never()).completeRun(anyString(), anyInt(), anyDouble(), anyInt(), anyInt());
             assertRunAdmissionClosed();
         }
@@ -509,8 +520,8 @@ class QueryEngineUnitTest {
         }
 
         @Test
-        @DisplayName("thinking 加内部 final 标记清洗后为空，补请求确实送到模型并恢复正文")
-        void sanitizedMarkerOnlyFinalRecovers() {
+        @DisplayName("正文中的 final marker 原样保留并作为可见回答")
+        void markerOnlyFinalIsPreserved() {
             script((call, callback) -> {
                 if (call == 1) {
                     finish(callback, "end_turn",
@@ -524,11 +535,12 @@ class QueryEngineUnitTest {
             QueryEngine.QueryResult result = queryEngine.execute(
                     buildConfig(), buildState("question"), handler);
 
-            assertRecovered(result);
+            assertThat(result.isSuccess()).isTrue();
+            assertThat(requests).hasSize(1);
             Message.AssistantMessage first = result.messages().stream()
                     .filter(Message.AssistantMessage.class::isInstance)
                     .map(Message.AssistantMessage.class::cast).findFirst().orElseThrow();
-            assertThat(first.content()).noneMatch(ContentBlock.TextBlock.class::isInstance);
+            assertThat(first.content()).contains(new ContentBlock.TextBlock("[final]"));
         }
 
         @Test
@@ -552,6 +564,55 @@ class QueryEngineUnitTest {
         }
 
         @Test
+        @DisplayName("整段正文仅为系统折叠占位符时按空正文恢复，而非判定成功")
+        void collapseMarkerOnlyFinalTriggersRecovery() {
+            script((call, callback) -> {
+                if (call == 1) {
+                    finish(callback, "end_turn",
+                            new LlmStreamEvent.ThinkingDelta("real analysis"),
+                            new LlmStreamEvent.TextDelta("[content compressed by system]"));
+                } else {
+                    finish(callback, "end_turn", new LlmStreamEvent.TextDelta("Recovered answer"));
+                }
+            });
+
+            assertRecovered(queryEngine.execute(buildConfig(), buildState("question"), handler));
+        }
+
+        @Test
+        @DisplayName("多个折叠占位符组合独占正文同样按空正文恢复")
+        void combinedMarkersOnlyAlsoRecovers() {
+            script((call, callback) -> {
+                if (call == 1) {
+                    finish(callback, "end_turn",
+                            new LlmStreamEvent.TextDelta("[collapsed]\n[skeleton]"));
+                } else {
+                    finish(callback, "end_turn", new LlmStreamEvent.TextDelta("Recovered answer"));
+                }
+            });
+
+            assertRecovered(queryEngine.execute(buildConfig(), buildState("question"), handler));
+        }
+
+        @Test
+        @DisplayName("INI 段名与正文中引用的占位符保持原样，不触发恢复")
+        void iniSectionNamesStayFidelity() {
+            String ini = "[server]\nhost=example.com\n[collapsed]\nretry=3";
+            script((call, callback) -> finish(callback, "end_turn",
+                    new LlmStreamEvent.TextDelta(ini)));
+
+            QueryEngine.QueryResult result = queryEngine.execute(
+                    buildConfig(), buildState("question"), handler);
+
+            assertThat(result.isSuccess()).isTrue();
+            assertThat(requests).hasSize(1);
+            Message.AssistantMessage first = result.messages().stream()
+                    .filter(Message.AssistantMessage.class::isInstance)
+                    .map(Message.AssistantMessage.class::cast).findFirst().orElseThrow();
+            assertThat(first.content()).contains(new ContentBlock.TextBlock(ini));
+        }
+
+        @Test
         @DisplayName("补请求仍无正文时仅调用两次并进入 Run 失败与清理路径")
         void repeatedEmptyFinalFailsRunAndCleansAdmission() {
             script((call, callback) -> finish(callback, "end_turn",
@@ -563,9 +624,10 @@ class QueryEngineUnitTest {
             assertThat(requests).hasSize(2);
             assertThat(userTexts(requests.get(1))).anyMatch(text -> text.contains("final answer"));
             assertThat(result.isSuccess()).isFalse();
-            assertThat(result.error()).isEqualTo("EMPTY_FINAL_RESPONSE");
+            assertThat(result.error()).startsWith("OUTPUT_RECOVERY_EXHAUSTED:");
             assertThat(handler.errors).hasSize(1);
-            verify(runTracker).failRun(run.id(), "EMPTY_FINAL_RESPONSE");
+            verify(runTracker).failRun(eq(run.id()), eq(RunEnvelope.RunExitReason.INCOMPLETE),
+                    startsWith("OUTPUT_RECOVERY_EXHAUSTED:"));
             verify(runTracker, never()).completeRun(anyString(), anyInt(), anyDouble(), anyInt(), anyInt());
             assertRunAdmissionClosed();
         }
@@ -648,10 +710,33 @@ class QueryEngineUnitTest {
 
             assertThat(requests).hasSize(2);
             assertThat(result.isSuccess()).isFalse();
-            assertThat(result.error()).isEqualTo("EMPTY_FINAL_RESPONSE");
-            verify(runTracker).failRun(run.id(), "EMPTY_FINAL_RESPONSE");
+            assertThat(result.error()).startsWith("MAX_TURNS:");
+            verify(runTracker).failRun(eq(run.id()), eq(RunEnvelope.RunExitReason.INCOMPLETE),
+                    startsWith("MAX_TURNS:"));
             verify(runTracker, never()).completeRun(anyString(), anyInt(), anyDouble(), anyInt(), anyInt());
             assertRunAdmissionClosed();
+        }
+
+        @Test
+        void maxTurnsProjectionIgnoresAbortCausedByTerminalTransition() {
+            completedToolResult();
+            script((call, callback) -> finish(callback, "tool_use",
+                    new LlmStreamEvent.ToolUseStart("review-tool-1", "Bash"),
+                    new LlmStreamEvent.ToolInputDelta("review-tool-1", "{}")));
+            doAnswer(inv -> {
+                authority.set(terminalSnapshot(run, RunEnvelope.RunStatus.FAILED,
+                        RunEnvelope.RunExitReason.INCOMPLETE, inv.getArgument(2)));
+                executions.abortRun(run.id(), AbortReason.ERROR);
+                return null;
+            }).when(runTracker).failRun(eq(run.id()), eq(RunEnvelope.RunExitReason.INCOMPLETE),
+                    startsWith("MAX_TURNS:"));
+
+            QueryEngine.QueryResult result = queryEngine.execute(
+                    withMaxTurns(1), buildState("question"), handler);
+
+            assertThat(result.stopReason()).isEqualTo("max_turns");
+            assertThat(result.error()).startsWith("MAX_TURNS:");
+            assertThat(result.isSuccess()).isFalse();
         }
 
         @Test
@@ -794,11 +879,6 @@ class QueryEngineUnitTest {
 
         @Test
         void partialToolStreamFallbackPreservesCallsCompletedResultsAndUnknownOutcomes() {
-            when(toolSession.completedResultsSnapshot()).thenReturn(Map.of(
-                    "done", ToolResult.success("completed evidence"),
-                    "failed", ToolResult.validationError("FAILED", "actual failure")));
-            doAnswer(inv -> { when(toolSession.isDiscarded()).thenReturn(true); return null; })
-                    .when(toolSession).discard();
             script((call, callback) -> {
                 if (call == 1) {
                     for (String id : List.of("done", "failed", "pending")) {
@@ -811,20 +891,200 @@ class QueryEngineUnitTest {
                 finish(callback, "end_turn", new LlmStreamEvent.TextDelta("fallback answer"));
             });
             QueryConfig config = new QueryConfig("mock-model", "fallback-model", "You are helpful.",
-                    List.of(), List.of(), 8192, 200000, new ThinkingConfig.Disabled(), 10, "test", null, List.of());
+                    List.of(bashTool), List.of(), 8192, 200000, new ThinkingConfig.Disabled(), 10, "test", null, List.of());
             var state = buildState("question");
             var result = queryEngine.execute(config, state, handler);
             assertThat(result.isSuccess()).isTrue();
             assertThat(requests).hasSize(2);
-            verify(toolSession, never()).addErrorResult(eq("pending"), anyString());
-            assertThat(requests.get(1).toString()).contains("completed evidence", "actual failure", "execution outcome unconfirmed");
-            var canonical = CompactionHistory.analyze(state.getMessages()).canonical();
-            var results = canonical.stream().filter(m -> m instanceof Message.UserMessage)
-                    .map(m -> (Message.UserMessage)m).flatMap(m -> m.content().stream())
-                    .filter(b -> b instanceof ContentBlock.ToolResultBlock).map(b -> (ContentBlock.ToolResultBlock)b).toList();
-            assertThat(results).hasSize(3);
-            assertThat(results.stream().filter(b -> b.toolUseId().equals("done")).findFirst().orElseThrow().isError()).isFalse();
-            assertThat(results.stream().filter(b -> b.toolUseId().equals("failed")).findFirst().orElseThrow().isError()).isTrue();
+            verify(toolSession, never()).addTool(any(), any(), anyString(), any());
+            verify(toolSession, never()).addErrorResult(anyString(), anyString());
+            assertThat(requests.get(1).toString()).doesNotContain(
+                    "completed evidence", "actual failure", "execution outcome unconfirmed");
+            assertThat(state.getMessages()).noneMatch(message -> message instanceof Message.UserMessage user
+                    && user.content().stream().anyMatch(ContentBlock.ToolResultBlock.class::isInstance));
+        }
+
+        @Test
+        void oneInvalidToolInputRejectsTheWholeTurnBeforeAnyToolStarts() {
+            script((call, callback) -> finish(callback, "tool_use",
+                    new LlmStreamEvent.ToolUseStart("valid", "Bash"),
+                    new LlmStreamEvent.ToolInputDelta("valid", "{}"),
+                    new LlmStreamEvent.ToolUseStart("broken", "Bash"),
+                    new LlmStreamEvent.ToolInputDelta("broken", "{")));
+
+            var result = queryEngine.execute(buildConfig(), buildState("question"), handler);
+
+            assertThat(result.isSuccess()).isFalse();
+            assertThat(result.error()).contains("INVALID_TOOL_INPUT_JSON");
+            verify(toolSession, never()).addTool(any(), any(), anyString(), any());
+        }
+
+        @Test
+        void truncatedToolTurnStartsNoTools() {
+            script((call, callback) -> finish(callback, "max_tokens",
+                    new LlmStreamEvent.ToolUseStart("truncated", "Bash"),
+                    new LlmStreamEvent.ToolInputDelta("truncated", "{}")));
+
+            var result = queryEngine.execute(buildConfig(), buildState("question"), handler);
+
+            assertThat(result.isSuccess()).isFalse();
+            assertThat(result.error()).contains("TRUNCATED_TOOL_CALLS");
+            verify(toolSession, never()).addTool(any(), any(), anyString(), any());
+        }
+
+        @Test
+        void assistantPersistenceFailureStartsNoTools() {
+            script((call, callback) -> finish(callback, "tool_use",
+                    new LlmStreamEvent.ToolUseStart("durability", "Bash"),
+                    new LlmStreamEvent.ToolInputDelta("durability", "{}")));
+            QueryLoopState state = buildState("question");
+            state.setPersistenceSink(message -> {
+                throw new com.aicodeassistant.session.MessagePersistenceException(
+                        "TEST_WRITE_FAILED", "injected assistant write failure");
+            });
+
+            var result = queryEngine.execute(buildConfig(), state, handler);
+
+            assertThat(result.isSuccess()).isFalse();
+            assertThat(result.error()).contains("PERSISTENCE_FAILED", "TEST_WRITE_FAILED");
+            verify(toolSession, never()).addTool(any(), any(), anyString(), any());
+            assertThat(requests).hasSize(1);
+        }
+
+        @Test
+        void stopHookPersistenceFailureCannotCompleteTheRun() {
+            script((call, callback) -> finish(callback, "end_turn",
+                    new LlmStreamEvent.TextDelta("initial answer")));
+            when(hookService.executeStopHooks(anyList(), eq("test-session")))
+                    .thenReturn(HookRegistry.StopHookResult.blocking(List.of("fix remaining issue")));
+            QueryLoopState state = buildState("question");
+            state.setPersistenceSink(message -> {
+                if (message instanceof Message.UserMessage user
+                        && user.content().stream().anyMatch(ContentBlock.TextBlock.class::isInstance)) {
+                    throw new com.aicodeassistant.session.MessagePersistenceException(
+                            "TEST_HOOK_WRITE_FAILED", "injected stop-hook write failure");
+                }
+            });
+
+            var result = queryEngine.execute(buildConfig(), state, handler);
+
+            assertThat(result.isSuccess()).isFalse();
+            assertThat(result.error()).contains("PERSISTENCE_FAILED", "TEST_HOOK_WRITE_FAILED");
+            assertThat(requests).hasSize(1);
+            verify(runTracker, never()).completeRun(anyString(), anyInt(), anyDouble(), anyInt(), anyInt());
+        }
+
+        @Test
+        void unknownToolRejectsWholeBatchAndAllowsModelSelfCorrection() {
+            script((call, callback) -> {
+                if (call == 1) {
+                    finish(callback, "tool_use",
+                            new LlmStreamEvent.ToolUseStart("missing", "MissingTool"),
+                            new LlmStreamEvent.ToolInputDelta("missing", "{}"),
+                            new LlmStreamEvent.ToolUseStart("valid", "Bash"),
+                            new LlmStreamEvent.ToolInputDelta("valid", "{}"));
+                } else {
+                    finish(callback, "end_turn", new LlmStreamEvent.TextDelta("recovered"));
+                }
+            });
+            QueryLoopState state = buildState("question");
+
+            var result = queryEngine.execute(buildConfig(), state, handler);
+
+            assertThat(result.isSuccess()).isTrue();
+            assertThat(requests).hasSize(2);
+            verify(toolSession, never()).addTool(any(), any(), anyString(), any());
+            assertThat(handler.toolResults)
+                    .hasSize(2)
+                    .allMatch(ContentBlock.ToolResultBlock::isError);
+        }
+
+        @Test
+        void toolResultPersistenceFailurePreventsAnotherModelRequest() {
+            completedToolResult();
+            script((call, callback) -> {
+                if (call == 1) {
+                    finish(callback, "tool_use",
+                            new LlmStreamEvent.ToolUseStart("review-tool-1", "Bash"),
+                            new LlmStreamEvent.ToolInputDelta("review-tool-1", "{}"));
+                } else {
+                    finish(callback, "end_turn", new LlmStreamEvent.TextDelta("must not run"));
+                }
+            });
+            QueryLoopState state = buildState("question");
+            state.setPersistenceSink(message -> {
+                if (message instanceof Message.UserMessage user
+                        && user.content().stream().anyMatch(ContentBlock.ToolResultBlock.class::isInstance)) {
+                    throw new com.aicodeassistant.session.MessagePersistenceException(
+                            "TEST_RESULT_WRITE_FAILED", "injected result write failure");
+                }
+            });
+
+            var result = queryEngine.execute(buildConfig(), state, handler);
+
+            assertThat(result.isSuccess()).isFalse();
+            assertThat(result.error()).contains("PERSISTENCE_FAILED", "TEST_RESULT_WRITE_FAILED");
+            assertThat(requests).hasSize(1);
+            verify(toolSession, times(1)).addTool(eq(bashTool), any(), eq("review-tool-1"), any());
+        }
+
+        @Test
+        void mandatoryContextOverBudgetFailsBeforeProviderCallWithActionableMessage() {
+            LlmProvider provider = mock(LlmProvider.class);
+            when(providerRegistry.getProvider(anyString())).thenReturn(provider);
+            when(tokenBudgetGuard.enforcePhase2(anyList(), anyInt(), anySet(), anyDouble()))
+                    .thenAnswer(inv -> new TokenBudgetGuard.FinalBudgetResult(
+                            inv.getArgument(0), Set.of(), 20_000, inv.getArgument(1), false,
+                            "mandatory context exceeds budget"));
+            CompactService.CompactResult cannotCompact = new CompactService.CompactResult(
+                    List.of(), 20_000, 20_000, 0, 1.0,
+                    "mandatory_context_over_budget", 0);
+            when(compactService.compact(anyList(), any(CompactionContext.class), eq(true)))
+                    .thenReturn(cannotCompact);
+            when(compactService.reactiveCompact(anyList(), any(CompactionContext.class), eq(false)))
+                    .thenReturn(cannotCompact);
+            QueryLoopState state = buildState("question");
+            List<Message> original = List.copyOf(state.getMessages());
+
+            var result = queryEngine.execute(buildConfig(), state, handler);
+
+            assertThat(result.isSuccess()).isFalse();
+            assertThat(result.error()).contains(
+                    "必须保留的上下文超过模型窗口，请使用已有新会话并重新提供必要要求。");
+            assertThat(state.getMessages()).containsExactlyElementsOf(original);
+            verify(provider, never()).streamChat(anyString(), anyList(), anyString(), anyList(),
+                    anyInt(), any(), any(LlmCallContext.class), any(StreamChatCallback.class));
+        }
+
+        @Test
+        void textToolTextOrderIsPreservedAndToolStartsExactlyOnce() {
+            completedToolResult();
+            when(toolResultSummarizer.processToolResults(anyList(), anyInt()))
+                    .thenAnswer(inv -> inv.getArgument(0));
+            script((call, callback) -> {
+                if (call == 1) {
+                    finish(callback, "tool_use",
+                            new LlmStreamEvent.TextDelta("before"),
+                            new LlmStreamEvent.ToolUseStart("review-tool-1", "Bash"),
+                            new LlmStreamEvent.ToolInputDelta("review-tool-1", "{}"),
+                            new LlmStreamEvent.TextDelta("after"));
+                } else {
+                    finish(callback, "end_turn", new LlmStreamEvent.TextDelta("done"));
+                }
+            });
+
+            var result = queryEngine.execute(buildConfig(), buildState("question"), handler);
+
+            assertThat(result.isSuccess()).isTrue();
+            Message.AssistantMessage toolTurn = result.messages().stream()
+                    .filter(Message.AssistantMessage.class::isInstance)
+                    .map(Message.AssistantMessage.class::cast)
+                    .filter(message -> message.content().stream()
+                            .anyMatch(ContentBlock.ToolUseBlock.class::isInstance))
+                    .findFirst().orElseThrow();
+            assertThat(toolTurn.content()).extracting(block -> block.getClass().getSimpleName())
+                    .containsExactly("TextBlock", "ToolUseBlock", "TextBlock");
+            verify(toolSession, times(1)).addTool(eq(bashTool), any(), eq("review-tool-1"), any());
         }
 
         @Test
@@ -1030,8 +1290,15 @@ class QueryEngineUnitTest {
 
         private QueryConfig withMaxTurns(int maxTurns) {
             return QueryConfig.withDefaults("mock-model", "You are a helpful assistant.",
-                    List.of(), List.of(), 8192, 200000,
+                    List.of(bashTool), List.of(), 8192, 200000,
                     new ThinkingConfig.Disabled(), maxTurns, "test");
+        }
+
+        private QueryConfig buildConfig() {
+            return QueryConfig.withDefaults(
+                    "mock-model", "You are a helpful assistant.",
+                    List.of(bashTool), List.of(), 8192, 200000,
+                    new ThinkingConfig.Disabled(), 10, "test");
         }
 
         private List<String> userTexts(List<Map<String, Object>> messages) {
@@ -1251,13 +1518,15 @@ class QueryEngineUnitTest {
         @DisplayName("#3 maxTurns 达到上限 → 返回 max_turns")
         void maxTurns_reached_returnsMaxTurns() {
             LlmProvider mockProvider = mock(LlmProvider.class);
+            Tool bashTool = mock(Tool.class);
+            when(bashTool.getName()).thenReturn("BashTool");
             when(providerRegistry.getProvider(anyString())).thenReturn(mockProvider);
             when(messageNormalizer.normalizeTyped(anyList())).thenReturn(List.of());
 
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
             when(streamingToolExecutor.newSession(any())).thenReturn(session);
-            when(session.isAllCompleted()).thenReturn(true);
-            when(session.yieldCompleted()).thenReturn(List.of());
+            lenient().when(session.isAllCompleted()).thenReturn(true);
+            lenient().when(session.yieldCompleted()).thenReturn(List.of());
 
             when(apiRetryService.executeWithRetry(any(), anyString(), anyString(), any())).thenAnswer(inv -> {
                 @SuppressWarnings("unchecked")
@@ -1268,8 +1537,9 @@ class QueryEngineUnitTest {
             // Always return tool_use to keep loop going
             doAnswer(inv -> {
                 StreamChatCallback callback = inv.getArgument(7);
-                callback.onEvent(new LlmStreamEvent.ToolUseStart("t-" + System.nanoTime(), "BashTool"));
-                callback.onEvent(new LlmStreamEvent.ToolInputDelta("t-" + System.nanoTime(), "{}"));
+                String toolId = "t-" + System.nanoTime();
+                callback.onEvent(new LlmStreamEvent.ToolUseStart(toolId, "BashTool"));
+                callback.onEvent(new LlmStreamEvent.ToolInputDelta(toolId, "{}"));
                 callback.onEvent(new LlmStreamEvent.MessageDelta(
                         new Usage(10, 5, 0, 0), "tool_use"));
                 callback.onComplete();
@@ -1281,7 +1551,7 @@ class QueryEngineUnitTest {
             // maxTurns = 2
             QueryConfig config = QueryConfig.withDefaults(
                     "mock-model", "You are helpful.",
-                    List.of(), List.of(),
+                    List.of(bashTool), List.of(),
                     8192, 200000,
                     new ThinkingConfig.Disabled(), 2, "test"
             );
@@ -1460,8 +1730,6 @@ class QueryEngineUnitTest {
 
             StreamingToolExecutor.ExecutionSession session = mock(StreamingToolExecutor.ExecutionSession.class);
             when(streamingToolExecutor.newSession(any())).thenReturn(session);
-            when(session.isAllCompleted()).thenReturn(true);
-            when(session.yieldCompleted()).thenReturn(List.of());
 
             when(apiRetryService.executeWithRetry(any(), anyString(), anyString(), any())).thenAnswer(inv -> {
                 @SuppressWarnings("unchecked")
@@ -1571,10 +1839,11 @@ class QueryEngineUnitTest {
     static class TestHandler implements QueryMessageHandler {
         final List<String> textDeltas = new CopyOnWriteArrayList<>();
         final List<Throwable> errors = new CopyOnWriteArrayList<>();
+        final List<ContentBlock.ToolResultBlock> toolResults = new CopyOnWriteArrayList<>();
         @Override public void onTextDelta(String text) { textDeltas.add(text); }
         @Override public void onToolUseStart(String id, String name) {}
         @Override public void onToolUseComplete(String id, ContentBlock.ToolUseBlock toolUse) {}
-        @Override public void onToolResult(String id, ContentBlock.ToolResultBlock result) {}
+        @Override public void onToolResult(String id, ContentBlock.ToolResultBlock result) { toolResults.add(result); }
         @Override public void onAssistantMessage(Message.AssistantMessage message) {}
         @Override public void onError(Throwable error) { errors.add(error); }
     }

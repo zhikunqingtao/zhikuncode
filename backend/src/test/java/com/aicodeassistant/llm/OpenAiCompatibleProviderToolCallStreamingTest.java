@@ -99,6 +99,37 @@ class OpenAiCompatibleProviderToolCallStreamingTest {
         assertTrue(error.getMessage().startsWith("INVALID_TOOL_CALL_STREAM:"));
     }
 
+    @Test
+    void rejectsIdentityChangesForTheSameToolIndex() {
+        Capture capture = run(
+                toolChunk("call-1", "Brief", "{"),
+                toolChunk("call-2", "Bash", "}"),
+                finishChunk());
+
+        assertFalse(capture.completed);
+        LlmApiException error = assertInstanceOf(LlmApiException.class, capture.error);
+        assertFalse(error.isRetryable());
+        assertTrue(error.getMessage().contains("conflicting id"));
+    }
+
+    @Test
+    void rejectsEofAndDoneWithoutFinishReason() {
+        Capture withDone = run(toolChunk("call-1", "Brief", "{}"));
+        assertFalse(withDone.completed);
+        assertInstanceOf(LlmApiException.class, withDone.error);
+
+        Capture atEof = runRaw("data: " + toolChunk("call-1", "Brief", "{}") + "\n\n");
+        assertFalse(atEof.completed);
+        assertInstanceOf(LlmApiException.class, atEof.error);
+    }
+
+    @Test
+    void acceptsValidFinishAtEofForOrdinaryCompatibleProvider() {
+        Capture capture = runRaw("data: " + finishChunk() + "\n\n");
+        assertTrue(capture.completed);
+        assertNull(capture.error);
+    }
+
     private void assertAccepted(
             String model,
             String continuationId, String continuationName,
@@ -154,6 +185,17 @@ class OpenAiCompatibleProviderToolCallStreamingTest {
         Capture capture = new Capture();
         provider.streamChat(
                 model,
+                List.of(Map.of("role", "user", "content", "test")),
+                "system", List.of(), 1024, new ThinkingConfig.Disabled(),
+                LlmCallContext.unscoped(), capture);
+        return capture;
+    }
+
+    private Capture runRaw(String body) {
+        server.enqueue(new MockResponse().setResponseCode(200)
+                .setHeader("Content-Type", "text/event-stream").setBody(body));
+        Capture capture = new Capture();
+        provider.streamChat("qwen3.8-max",
                 List.of(Map.of("role", "user", "content", "test")),
                 "system", List.of(), 1024, new ThinkingConfig.Disabled(),
                 LlmCallContext.unscoped(), capture);

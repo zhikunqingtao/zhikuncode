@@ -3,6 +3,7 @@ package com.aicodeassistant.controller;
 import com.aicodeassistant.engine.QueryEngine;
 import com.aicodeassistant.engine.TokenCounter;
 import com.aicodeassistant.exception.RequestValidationException;
+import com.aicodeassistant.exception.SessionNotFoundException;
 import com.aicodeassistant.llm.LlmProviderRegistry;
 import com.aicodeassistant.llm.ModelRegistry;
 import com.aicodeassistant.model.Usage;
@@ -11,6 +12,7 @@ import com.aicodeassistant.permission.PermissionModeManager;
 import com.aicodeassistant.prompt.EffectiveSystemPromptBuilder;
 import com.aicodeassistant.service.ProjectWorkspaceService;
 import com.aicodeassistant.session.SessionData;
+import com.aicodeassistant.session.SessionExecutionGate;
 import com.aicodeassistant.session.SessionManager;
 import com.aicodeassistant.tool.ToolRegistry;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -174,6 +176,48 @@ class QueryControllerProjectContractTest {
                 mock(LlmProviderRegistry.class), projects);
     }
 
+    @Test
+    void conversationWithoutSessionIdFailsAsNotFoundBeforeTouchingGate()
+            throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        SessionManager sessions = mock(SessionManager.class);
+        ProjectWorkspaceService projects =
+                mock(ProjectWorkspaceService.class);
+        SessionExecutionGate gate = mock(SessionExecutionGate.class);
+        QueryController controller = new QueryController(
+                mock(QueryEngine.class),
+                mock(ToolRegistry.class),
+                sessions,
+                mock(LlmProviderRegistry.class),
+                mock(TokenCounter.class),
+                mapper,
+                mock(EffectiveSystemPromptBuilder.class),
+                mock(PermissionModeManager.class),
+                mock(ModelRegistry.class),
+                projects,
+                gate);
+
+        // null sessionId 与 blank sessionId 都必须命中既有的
+        // SessionNotFoundException → 404 契约，不能漂移为 NPE → 500。
+        QueryController.ConversationRequest nullId = mapper.readValue("""
+                {
+                  "prompt": "hello"
+                }
+                """, QueryController.ConversationRequest.class);
+        QueryController.ConversationRequest blankId = mapper.readValue("""
+                {
+                  "sessionId": "  ",
+                  "prompt": "hello"
+                }
+                """, QueryController.ConversationRequest.class);
+
+        assertThatThrownBy(() -> controller.conversationQuery(nullId))
+                .isInstanceOf(SessionNotFoundException.class);
+        assertThatThrownBy(() -> controller.conversationQuery(blankId))
+                .isInstanceOf(SessionNotFoundException.class);
+        verifyNoInteractions(gate, sessions, projects);
+    }
+
     private static QueryController controller(
             ObjectMapper mapper,
             SessionManager sessions,
@@ -189,7 +233,8 @@ class QueryControllerProjectContractTest {
                 mock(EffectiveSystemPromptBuilder.class),
                 mock(PermissionModeManager.class),
                 mock(ModelRegistry.class),
-                projects);
+                projects,
+                mock(com.aicodeassistant.session.SessionExecutionGate.class));
     }
 
     private static SessionData session(

@@ -2,6 +2,7 @@ package com.aicodeassistant.llm;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
+import org.springframework.boot.context.properties.bind.ConstructorBinding;
 
 import java.util.List;
 import java.util.Map;
@@ -41,8 +42,21 @@ public record LlmProvidersProperties(
             String apiKey,
             String baseUrl,
             String defaultModel,
-            @DefaultValue List<String> models
+            @DefaultValue List<String> models,
+            @DefaultValue("ROUND_ROBIN") ApiKeyRotationManager.KeySelectionStrategy keySelectionStrategy
     ) {
+        @ConstructorBinding
+        public ProviderConfig {
+            if (keySelectionStrategy == null) {
+                keySelectionStrategy = ApiKeyRotationManager.KeySelectionStrategy.ROUND_ROBIN;
+            }
+        }
+
+        public ProviderConfig(String apiKey, String baseUrl, String defaultModel, List<String> models) {
+            this(apiKey, baseUrl, defaultModel, models,
+                    ApiKeyRotationManager.KeySelectionStrategy.ROUND_ROBIN);
+        }
+
         /** 检查配置是否有效（至少有 API Key 和 Base URL） */
         public boolean isValid() {
             return apiKey != null && !apiKey.isBlank()

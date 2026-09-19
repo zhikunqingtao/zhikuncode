@@ -85,4 +85,18 @@ class MultiApiKeySplitTest {
         assertThat(manager.getNextKey()).isEqualTo("sk-ai-v1-second");
         assertThat(manager.getNextKey()).isEqualTo("sk-ss-v1-first");
     }
+
+    @Test
+    void priorityFailoverKeepsUsingFirstHealthyKey() {
+        ApiKeyRotationManager manager = new ApiKeyRotationManager(
+                List.of("primary", "backup"),
+                ApiKeyRotationManager.KeySelectionStrategy.PRIORITY_FAILOVER);
+
+        assertThat(manager.getNextKey()).isEqualTo("primary");
+        assertThat(manager.getNextKey()).isEqualTo("primary");
+        manager.markRateLimited("primary", java.time.Duration.ofMinutes(1));
+        assertThat(manager.getNextKey()).isEqualTo("backup");
+        manager.clearCooldown("primary");
+        assertThat(manager.getNextKey()).isEqualTo("primary");
+    }
 }

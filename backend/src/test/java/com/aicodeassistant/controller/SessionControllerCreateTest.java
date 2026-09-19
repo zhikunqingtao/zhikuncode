@@ -157,6 +157,7 @@ class SessionControllerCreateTest {
                 projects,
                 permissionModes,
                 new com.aicodeassistant.service.PublicMessageProjection(),
-                mock(com.aicodeassistant.run.RunEnvelopeRepository.class));
+                mock(com.aicodeassistant.run.RunEnvelopeRepository.class),
+                mock(com.aicodeassistant.session.SessionExecutionGate.class));
     }
 }

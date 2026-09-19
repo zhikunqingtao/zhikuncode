@@ -112,6 +112,22 @@ describe('MessageStore', () => {
         expect(state.messages).toHaveLength(1);
     });
 
+    it('preserves marker-like user content through streaming completion', () => {
+        const content = '[final]\n[skeleton]\n```ini\n[collapsed]\n```';
+        useMessageStore.getState().appendStreamDelta(content);
+        useMessageStore.getState().finalizeStream({
+            inputTokens: 0,
+            outputTokens: 0,
+            cacheReadInputTokens: 0,
+            cacheCreationInputTokens: 0,
+        });
+
+        const message = useMessageStore.getState().messages[0];
+        expect(message.type).toBe('assistant');
+        if (message.type !== 'assistant') throw new Error('expected assistant message');
+        expect(message.content).toEqual([{ type: 'text', text: content }]);
+    });
+
     it('atomically replaces the transient run with the committed generic message tail', () => {
         const objectKey = 'zhikuncode-artifacts/session/artifact/live.html';
         const url = `https://zhikunshare.oss-cn-beijing.aliyuncs.com/${objectKey}`;

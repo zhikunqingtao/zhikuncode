@@ -9,6 +9,8 @@ import com.aicodeassistant.tool.ToolUseContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 查询循环状态 — 跨迭代共享的可变状态。
@@ -17,11 +19,20 @@ import java.util.function.Consumer;
  */
 public class QueryLoopState {
 
+    private static final Logger log = LoggerFactory.getLogger(QueryLoopState.class);
+
+    @FunctionalInterface
+    public interface MessagePersistenceSink {
+        void persist(Message message);
+        default void assertHealthy() { }
+    }
+
     private CompactionContext compactionContext;
     public CompactionContext getCompactionContext() { return compactionContext; }
     public void setCompactionContext(CompactionContext context) { compactionContext = context; }
     private List<Message> messages;
     private final List<Consumer<Message>> messageListeners = new ArrayList<>();
+    private MessagePersistenceSink persistenceSink;
     private ToolUseContext toolUseContext;
     private boolean autoCompactEnabled = true;
     private int autoCompactFailures = 0;
@@ -55,6 +66,12 @@ public class QueryLoopState {
 
     /** 恢复耗尽标记 — 413/本地预算守卫恢复全部失败后设置，通知 execute() 标记 run 为 FAILED */
     private boolean recoveryExhausted = false;
+    private String recoveryFailureMessage;
+    /** IDs created by the current run only; never serialized. */
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private final List<String> currentRunAssistantIds = new ArrayList<>();
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private String currentRunFinalMessageId;
 
     /** task_boundary 追踪 — run 作用域，随 state 回收；仅内存状态，不参与序列化 */
     private final TaskBoundaryTracker taskBoundaryTracker = new TaskBoundaryTracker();
@@ -85,19 +102,33 @@ public class QueryLoopState {
     }
 
     public void addMessage(Message message) {
+        if (persistenceSink != null) persistenceSink.persist(message);
         this.messages.add(message);
         for (Consumer<Message> listener : messageListeners) {
-            listener.accept(message);
+            try {
+                listener.accept(message);
+            } catch (RuntimeException observerFailure) {
+                log.warn("Message observer failed after durable append: messageId={}",
+                        message == null ? null : message.uuid(), observerFailure);
+            }
         }
     }
 
     public void addMessages(List<Message> messages) {
-        this.messages.addAll(messages);
         for (Message msg : messages) {
-            for (Consumer<Message> listener : messageListeners) {
-                listener.accept(msg);
-            }
+            addMessage(msg);
         }
+    }
+
+    public void setPersistenceSink(MessagePersistenceSink sink) {
+        if (this.persistenceSink != null && this.persistenceSink != sink) {
+            throw new IllegalStateException("Message persistence sink already configured");
+        }
+        this.persistenceSink = sink;
+    }
+
+    public void assertPersistenceHealthy() {
+        if (persistenceSink != null) persistenceSink.assertHealthy();
     }
 
     public void addMessageListener(Consumer<Message> listener) {
@@ -170,6 +201,16 @@ public class QueryLoopState {
 
     public boolean isRecoveryExhausted() { return recoveryExhausted; }
     public void setRecoveryExhausted(boolean exhausted) { this.recoveryExhausted = exhausted; }
+    public String getRecoveryFailureMessage() { return recoveryFailureMessage; }
+    public void setRecoveryFailureMessage(String message) { recoveryFailureMessage = message; }
+
+    public void recordCurrentRunAssistant(Message.AssistantMessage message) {
+        if (message != null && message.uuid() != null) currentRunAssistantIds.add(message.uuid());
+    }
+
+    public List<String> getCurrentRunAssistantIds() { return List.copyOf(currentRunAssistantIds); }
+    public String getCurrentRunFinalMessageId() { return currentRunFinalMessageId; }
+    public void setCurrentRunFinalMessageId(String messageId) { currentRunFinalMessageId = messageId; }
 
     /** task_boundary 去重/序号追踪（run 作用域；@JsonIgnore 防止被序列化路径带出） */
     @com.fasterxml.jackson.annotation.JsonIgnore

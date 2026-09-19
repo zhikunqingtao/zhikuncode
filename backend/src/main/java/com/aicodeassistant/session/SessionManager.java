@@ -14,9 +14,16 @@ import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
+
+import javax.sql.DataSource;
 
 import java.nio.file.Path;
 import java.time.Duration;
@@ -28,6 +35,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.aicodeassistant.service.FileStateCache;
@@ -54,6 +62,7 @@ public class SessionManager {
     private final BackgroundAgentTracker backgroundAgentTracker;
     private final RunExecutionRegistry runExecutions;
     private final RunTerminationCoordinator runTermination;
+    private final TransactionTemplate messageTransaction;
 
     // ★ FileStateCache — 会话级文件状态缓存 (§11.5.9)
     private final ConcurrentHashMap<String, FileStateCache> fileStateCaches = new ConcurrentHashMap<>();
@@ -115,6 +124,23 @@ public class SessionManager {
                           BackgroundAgentTracker backgroundAgentTracker,
                           RunExecutionRegistry runExecutions,
                           @org.springframework.context.annotation.Lazy RunTerminationCoordinator runTermination) {
+        this(jdbcTemplate, objectMapper, sqliteConfig, appStateStore, hookService,
+                snapshotService, backgroundAgentTracker, runExecutions, runTermination,
+                jdbcTemplate.getDataSource() == null ? null
+                        : new DataSourceTransactionManager(jdbcTemplate.getDataSource()));
+    }
+
+    @Autowired
+    public SessionManager(@Qualifier("projectJdbcTemplate") JdbcTemplate jdbcTemplate,
+                          ObjectMapper objectMapper,
+                          SqliteConfig sqliteConfig,
+                          AppStateStore appStateStore,
+                          HookService hookService,
+                          SessionSnapshotService snapshotService,
+                          BackgroundAgentTracker backgroundAgentTracker,
+                          RunExecutionRegistry runExecutions,
+                          @org.springframework.context.annotation.Lazy RunTerminationCoordinator runTermination,
+                          @Qualifier("projectTransactionManager") PlatformTransactionManager transactionManager) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
         this.sqliteConfig = sqliteConfig;
@@ -124,6 +150,11 @@ public class SessionManager {
         this.backgroundAgentTracker = backgroundAgentTracker;
         this.runExecutions = runExecutions;
         this.runTermination = runTermination;
+        this.messageTransaction = transactionManager == null ? null : new TransactionTemplate(transactionManager);
+    }
+
+    public DataSource dataSourceIdentity() {
+        return Objects.requireNonNull(jdbcTemplate.getDataSource(), "project DataSource");
     }
 
     // ───── RowMapper ─────
@@ -311,12 +342,7 @@ public class SessionManager {
         return msgId;
     }
 
-    /**
-     * 幂等消息写入：使用外部传入的 messageId 作为主键，INSERT OR IGNORE 保证幂等。
-     * 当主键冲突时静默跳过（已由 listener 或其他路径写入），不抛出异常。
-     *
-     * @param meta 通用客户端元数据（如 steering 标记），序列化为 meta_json 列；null 则不写入
-     */
+    /** Durable idempotent message append. UUID reuse is accepted only for identical stored data. */
     public void addMessageWithId(String messageId, String sessionId, String role,
                                  Object content, String stopReason,
                                  int inputTokens, int outputTokens,
@@ -324,21 +350,82 @@ public class SessionManager {
         String contentJson = toJsonString(content);
         String metaJson = (meta == null || meta.isEmpty()) ? null : toJsonString(meta);
         String now = Instant.now().toString();
-        int rows = jdbcTemplate.update(
-                """
-                INSERT OR IGNORE INTO messages (id, session_id, role, content_json, stop_reason,
-                    input_tokens, output_tokens, created_at, seq_num, meta_json)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?,
-                    (SELECT COALESCE(MAX(seq_num), 0) + 1 FROM messages WHERE session_id = ?), ?)
-                """,
-                messageId, sessionId, role, contentJson, stopReason,
-                inputTokens, outputTokens, now, sessionId, metaJson
-        );
-        // 仅在真正插入新消息时更新会话时间戳（INSERT OR IGNORE 被忽略时 rows=0）
-        if (rows > 0) {
+        Runnable append = () -> {
+            try {
+                jdbcTemplate.update(
+                        """
+                        INSERT INTO messages (id, session_id, role, content_json, stop_reason,
+                            input_tokens, output_tokens, created_at, seq_num, meta_json)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?,
+                            (SELECT COALESCE(MAX(seq_num), 0) + 1 FROM messages WHERE session_id = ?), ?)
+                        """,
+                        messageId, sessionId, role, contentJson, stopReason,
+                        inputTokens, outputTokens, now, sessionId, metaJson);
+            } catch (DataAccessException conflict) {
+                StoredMessageComparison comparison = compareStoredMessage(
+                        messageId, sessionId, role, contentJson, stopReason,
+                        inputTokens, outputTokens, metaJson);
+                if (comparison == StoredMessageComparison.MISSING) {
+                    throw conflict;
+                }
+                if (comparison == StoredMessageComparison.CONFLICT) {
+                    throw new MessagePersistenceException(
+                            "MESSAGE_ID_CONFLICT", "Message id conflicts with stored content: " + messageId,
+                            conflict);
+                }
+                return;
+            }
             jdbcTemplate.update(
                     "UPDATE sessions SET updated_at = ? WHERE id = ?", now, sessionId
             );
+        };
+        if (messageTransaction == null) append.run();
+        else messageTransaction.executeWithoutResult(status -> append.run());
+    }
+
+    private enum StoredMessageComparison { MISSING, IDENTICAL, CONFLICT }
+
+    private StoredMessageComparison compareStoredMessage(
+                                      String messageId, String sessionId, String role,
+                                      String contentJson, String stopReason,
+                                      int inputTokens, int outputTokens, String metaJson) {
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(
+                """
+                SELECT session_id, role, content_json, stop_reason,
+                       input_tokens, output_tokens, meta_json
+                FROM messages WHERE id = ?
+                """, messageId);
+        if (rows.isEmpty()) return StoredMessageComparison.MISSING;
+        if (rows.size() != 1) return StoredMessageComparison.CONFLICT;
+        Map<String, Object> row = rows.getFirst();
+        boolean identical = Objects.equals(sessionId, row.get("session_id"))
+                && Objects.equals(role, row.get("role"))
+                && jsonSemanticallyEqual(contentJson, (String) row.get("content_json"))
+                && Objects.equals(stopReason, row.get("stop_reason"))
+                && inputTokens == ((Number) row.get("input_tokens")).intValue()
+                && outputTokens == ((Number) row.get("output_tokens")).intValue()
+                && jsonSemanticallyEqual(normalizeMetadata(metaJson),
+                        normalizeMetadata((String) row.get("meta_json")));
+        return identical ? StoredMessageComparison.IDENTICAL : StoredMessageComparison.CONFLICT;
+    }
+
+    private boolean jsonSemanticallyEqual(String left, String right) {
+        if (Objects.equals(left, right)) return true;
+        if (left == null || right == null) return false;
+        try {
+            return objectMapper.readTree(left).equals(objectMapper.readTree(right));
+        } catch (JsonProcessingException invalidStoredJson) {
+            return false;
+        }
+    }
+
+    private String normalizeMetadata(String value) {
+        if (value == null || value.isBlank()) return null;
+        try {
+            var node = objectMapper.readTree(value);
+            return node != null && node.isObject() && node.isEmpty() ? null : value;
+        } catch (JsonProcessingException invalid) {
+            return value;
         }
     }
 

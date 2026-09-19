@@ -33,6 +33,12 @@ final class RunResultProjection {
         if (reason == RunEnvelope.RunExitReason.DEADLINE_EXCEEDED) {
             return with(proposed, "timeout", "DEADLINE_EXCEEDED");
         }
+        if (reason == RunEnvelope.RunExitReason.INCOMPLETE
+                && "max_turns".equals(proposed.stopReason())) {
+            String error = run.errorSummary() != null
+                    ? run.errorSummary() : "MAX_TURNS: maximum turn count reached";
+            return with(proposed, "max_turns", error);
+        }
         String error = run.errorSummary() != null ? run.errorSummary()
                 : proposed.error() != null ? proposed.error() : String.valueOf(reason);
         return with(proposed, "error", error);

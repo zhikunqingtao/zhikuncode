@@ -87,4 +87,28 @@ class RunTerminationCoordinatorTest {
         assertEquals(RunControlService.TransitionResult.ALREADY_TERMINAL, result.transition());
         verifyNoInteractions(processes, executions, tools, runs);
     }
+
+    @Test
+    void databaseFailureStillStopsLocalRunOwnedWork() {
+        RunControlService runs = mock(RunControlService.class);
+        DurableInteractionService interactions = mock(DurableInteractionService.class);
+        ManagedProcessRunner processes = mock(ManagedProcessRunner.class);
+        RunExecutionRegistry executions = mock(RunExecutionRegistry.class);
+        StreamingToolExecutor tools = mock(StreamingToolExecutor.class);
+        RuntimeException databaseFailure = new RuntimeException("database unavailable");
+        when(interactions.beginRunTermination(anyString(), any(), anyString()))
+                .thenThrow(databaseFailure);
+
+        RuntimeException thrown = assertThrows(RuntimeException.class,
+                () -> new RunTerminationCoordinator(runs, interactions, processes, executions, tools)
+                        .cancelByUser("run", "user"));
+
+        assertSame(databaseFailure, thrown);
+        verify(executions).beginTermination("run");
+        verify(executions).abortRun("run", AbortReason.USER_INTERRUPT);
+        verify(tools).cancelRunDetailed("run");
+        verify(processes).cancelRunDetailed("run");
+        verify(executions).awaitQuiescence(eq("run"), any());
+        verifyNoInteractions(runs);
+    }
 }

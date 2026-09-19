@@ -867,7 +867,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
   <div class="flow">
     <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--java)">1</div><div class="line"></div></div><div class="flow-body"><div class="ft">压缩级联 <span class="tag java">ContextCascade</span></div><div class="fd">AutoCompact 状态回写 · 上下文窗口管理 · 触发条件: token数 &gt; 阈值</div></div></div>
     <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--java)">2</div><div class="line"></div></div><div class="flow-body"><div class="ft">创建流式执行会话 <span class="tag java">StreamingToolExecutor.newSession</span></div><div class="fd">初始化工具执行上下文 · 并行通道就绪</div></div></div>
-    <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--java)">3</div><div class="line"></div></div><div class="flow-body"><div class="ft">API 调用 + 模型降级 <span class="tag java">LlmProvider.streamChat</span></div><div class="fd">流式工具执行(立即启动) · 413两级压缩 + 条件性媒体恢复 · 模型降级链</div></div></div>
+    <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--java)">3</div><div class="line"></div></div><div class="flow-body"><div class="ft">API 调用 + 模型降级 <span class="tag java">LlmProvider.streamChat</span></div><div class="fd">流式收集 · 完整响应验证后提交工具 · 413两级压缩 + 条件性媒体恢复 · 模型降级链</div></div></div>
     <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--java)">4</div><div class="line"></div></div><div class="flow-body"><div class="ft">收集 API 响应 <span class="tag java">StreamCollector.buildAssistantMessage</span></div><div class="fd">流式chunk聚合 · 工具调用提取 · thinking块处理</div></div></div>
     <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--java)">5</div><div class="line"></div></div><div class="flow-body"><div class="ft">消费工具结果 <span class="tag green">并行执行，异步等待</span></div><div class="fd">StreamingToolExecutor 调度 → 每个调用进入统一授权/Gateway → 结果按序收集</div></div></div>
     <div class="flow-step"><div class="flow-num"><div class="circle" style="background:var(--java)">6</div><div class="line"></div></div><div class="flow-body"><div class="ft">继续/终止判定</div><div class="fd">end_turn 信号检测 · max_tokens 恢复机制 · StopHook 自定义拦截</div></div></div>
@@ -1002,7 +1002,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
     <div class="card-title" onclick="toggleDetail(this)"><span class="toggle">▶</span> 引擎关键特性</div>
     <div class="card-detail">
       <div class="grid-3">
-        <div><span class="tag java">流式工具执行</span><p style="font-size:.78rem;color:var(--text2);margin-top:4px">流到即执行 · 无需等完整响应</p></div>
+        <div><span class="tag java">流式工具执行</span><p style="font-size:.78rem;color:var(--text2);margin-top:4px">完整响应验证后执行 · 工具参数实时预览</p></div>
         <div><span class="tag red">413两级压缩 + 条件性媒体恢复</span><p style="font-size:.78rem;color:var(--text2);margin-top:4px">两级压缩 → 条件性媒体恢复 → 耗尽后报错终止</p></div>
         <div><span class="tag green">事务边界</span><p style="font-size:.78rem;color:var(--text2);margin-top:4px">独立事务语义 · 失败不影响历史</p></div>
       </div>
@@ -2266,7 +2266,7 @@ body{min-width:0}.reference-scroll{overflow-x:auto;max-width:100%}.reference-scr
       <text x="740" y="364" fill="#06B6D4" font-size="10" font-weight="700" text-anchor="middle">密钥轮换 + 重试策略</text>
       <text x="740" y="376" fill="#6B70A0" font-size="7" text-anchor="middle">ApiKeyRotationManager ModelAwareRetryPolicy</text>
       <!-- Key rotation -->
-      <text x="612" y="393" fill="#06B6D4" font-size="8" font-weight="600">▸ Round-robin 密钥轮换</text>
+      <text x="612" y="393" fill="#06B6D4" font-size="8" font-weight="600">▸ Round-robin 轮换（ZenMux: PRIORITY_FAILOVER 主Key优先）</text>
       <text x="620" y="407" fill="#9FA4C4" font-size="7">Key₁ → Key₂ → Key₃ → ⟲ 循环</text>
       <text x="620" y="419" fill="#9FA4C4" font-size="7">429限流 → 冷却60s → 自动跳过</text>
       <text x="620" y="431" fill="#9FA4C4" font-size="7">全部冷却 → 选最早解冻Key</text>

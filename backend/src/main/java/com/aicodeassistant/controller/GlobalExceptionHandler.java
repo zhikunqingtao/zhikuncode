@@ -4,6 +4,7 @@ import com.aicodeassistant.exception.ResourceNotFoundException;
 import com.aicodeassistant.exception.RequestValidationException;
 import com.aicodeassistant.exception.WorkspaceException;
 import com.aicodeassistant.llm.LlmApiException;
+import com.aicodeassistant.session.SessionExecutionBusyException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -129,6 +130,12 @@ public class GlobalExceptionHandler {
         log.error("Unhandled exception", ex);
         return ResponseEntity.status(500).body(
                 errorBody("INTERNAL_ERROR", "An unexpected error occurred", null));
+    }
+
+    @ExceptionHandler(SessionExecutionBusyException.class)
+    public ResponseEntity<Map<String, Object>> handleSessionBusy(SessionExecutionBusyException ex) {
+        return ResponseEntity.status(409)
+                .body(errorBody("SESSION_CONCURRENT_MODIFICATION", ex.getMessage(), null));
     }
 
     // ───── 错误响应构建 ─────

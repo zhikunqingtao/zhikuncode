@@ -45,6 +45,7 @@ import com.aicodeassistant.run.RunEventRepository;
 import com.aicodeassistant.session.SessionData;
 import com.aicodeassistant.session.SessionManager;
 import com.aicodeassistant.session.SessionMessagePersistence;
+import com.aicodeassistant.session.SessionExecutionGate;
 import com.aicodeassistant.tool.Tool;
 import com.aicodeassistant.tool.ToolRegistry;
 import com.aicodeassistant.tool.ToolUseContext;
@@ -66,7 +67,6 @@ import java.security.Principal;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * WebSocket STOMP 消息控制器 (§8.5.4)。
@@ -112,8 +112,7 @@ public class WebSocketController implements PermissionNotifier {
     private final com.aicodeassistant.run.RunTerminationCoordinator runTermination;
     private final OssPublishProperties ossPublishProperties;
 
-    /** 会话级查询运行守卫 — 防止同一会话并发执行多个 QueryEngine */
-    private final ConcurrentHashMap<String, AtomicBoolean> sessionQueryRunning = new ConcurrentHashMap<>();
+    private final SessionExecutionGate executionGate;
 
     /** 会话级模型选择 — 记录每个会话当前使用的模型 */
     private final ConcurrentHashMap<String, String> sessionModels = new ConcurrentHashMap<>();
@@ -143,7 +142,8 @@ public class WebSocketController implements PermissionNotifier {
                                 com.aicodeassistant.run.RunRecoveryProjectionService runRecoveryProjectionService,
                                 com.aicodeassistant.run.RunExecutionRegistry runExecutions,
                                 com.aicodeassistant.run.RunTerminationCoordinator runTermination,
-                                OssPublishProperties ossPublishProperties) {
+                                OssPublishProperties ossPublishProperties,
+                                SessionExecutionGate executionGate) {
         this.messaging = messaging;
         this.wsSessionManager = wsSessionManager;
         this.queryEngine = queryEngine;
@@ -170,6 +170,7 @@ public class WebSocketController implements PermissionNotifier {
         this.runExecutions = runExecutions;
         this.runTermination = runTermination;
         this.ossPublishProperties = ossPublishProperties;
+        this.executionGate = executionGate;
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -654,71 +655,87 @@ public class WebSocketController implements PermissionNotifier {
                 SafeLogValue.length(msg.text()), SafeLogValue.fingerprint(msg.text()));
 
         // ★ 并发查询保护: 同一会话同时只允许一个 QueryEngine 运行
-        AtomicBoolean running = sessionQueryRunning.computeIfAbsent(sessionId, k -> new AtomicBoolean(false));
-        if (!running.compareAndSet(false, true)) {
+        SessionExecutionGate.Token executionToken = executionGate.tryAcquire(
+                sessionManager.dataSourceIdentity(), sessionId);
+        if (executionToken == null) {
             log.warn("Rejecting concurrent query for session {}: another query is already running", sessionId);
             sendError(sessionId, "query_busy", "当前会话正在处理中，请等待上一个请求完成", false);
             return;
         }
-
-        // 提取图片附件 → ContentBlock.ImageBlock
-        List<ContentBlock.ImageBlock> imageBlocks = new ArrayList<>();
-        if (msg.attachments() != null) {
-            for (ClientMessage.UserMessagePayload.Attachment att : msg.attachments()) {
-                if (att == null || !"image".equals(att.type())) continue;
-                String mediaType = att.mediaType() != null ? att.mediaType() : "image/png";
-                if (att.url() != null && !att.url().isBlank()) {
-                    if (!ossPublishProperties.isTrustedClipboardImageUrl(att.url())) {
-                        sendError(sessionId, "image_url_untrusted", "图片地址不是当前服务生成的可信 OSS 地址", false);
-                        running.set(false);
-                        return;
+        boolean tokenTransferred = false;
+        try {
+            // 提取图片附件 → ContentBlock.ImageBlock
+            List<ContentBlock.ImageBlock> imageBlocks = new ArrayList<>();
+            if (msg.attachments() != null) {
+                for (ClientMessage.UserMessagePayload.Attachment att : msg.attachments()) {
+                    if (att == null || !"image".equals(att.type())) continue;
+                    String mediaType = att.mediaType() != null ? att.mediaType() : "image/png";
+                    if (att.url() != null && !att.url().isBlank()) {
+                        if (!ossPublishProperties.isTrustedClipboardImageUrl(att.url())) {
+                            sendError(sessionId, "image_url_untrusted", "图片地址不是当前服务生成的可信 OSS 地址", false);
+                            return;
+                        }
+                        imageBlocks.add(ContentBlock.ImageBlock.fromUrl(mediaType, att.url()));
+                    } else if (att.base64Data() != null && !att.base64Data().isEmpty()) {
+                        imageBlocks.add(new ContentBlock.ImageBlock(mediaType, att.base64Data()));
                     }
-                    imageBlocks.add(ContentBlock.ImageBlock.fromUrl(mediaType, att.url()));
-                } else if (att.base64Data() != null && !att.base64Data().isEmpty()) {
-                    imageBlocks.add(new ContentBlock.ImageBlock(mediaType, att.base64Data()));
                 }
             }
-        }
-        if (!imageBlocks.isEmpty()) {
-            log.info("WS user_message attached {} image(s): sessionId={}", imageBlocks.size(), sessionId);
-        }
+            if (!imageBlocks.isEmpty()) {
+                log.info("WS user_message attached {} image(s): sessionId={}", imageBlocks.size(), sessionId);
+            }
 
-        // ★ 图片附件校验：模型能力 + 单张大小硬上限 + 视觉模型自动路由
-        String routedModelOverride = null;
-        if (!imageBlocks.isEmpty()) {
-            ImageValidationResult validationResult = validateImageAttachments(sessionId, imageBlocks);
-            if (!validationResult.valid()) {
-                sendError(sessionId, "image_validation_failed", validationResult.errorMessage(), false);
-                running.set(false);
-                return;
+            // ★ 图片附件校验：模型能力 + 单张大小硬上限 + 视觉模型自动路由
+            String routedModelOverride = null;
+            if (!imageBlocks.isEmpty()) {
+                ImageValidationResult validationResult = validateImageAttachments(sessionId, imageBlocks);
+                if (!validationResult.valid()) {
+                    sendError(sessionId, "image_validation_failed", validationResult.errorMessage(), false);
+                    return;
+                }
+                if (validationResult.routedModel() != null) {
+                    routedModelOverride = validationResult.routedModel();
+                    String originalModel = sessionModels.getOrDefault(sessionId, providerRegistry.getDefaultModel());
+                    ModelCapabilities routedCaps = modelRegistry.getCapabilities(routedModelOverride);
+                    push(sessionId, "model_routed", Map.of(
+                            "originalModel", originalModel,
+                            "routedModel", routedModelOverride,
+                            "routedModelName", routedCaps.displayName(),
+                            "reason", "当前模型不支持图片，已自动切换到 " + routedCaps.displayName()
+                    ));
+                }
             }
-            if (validationResult.routedModel() != null) {
-                routedModelOverride = validationResult.routedModel();
-                String originalModel = sessionModels.getOrDefault(sessionId, providerRegistry.getDefaultModel());
-                ModelCapabilities routedCaps = modelRegistry.getCapabilities(routedModelOverride);
-                push(sessionId, "model_routed", Map.of(
-                        "originalModel", originalModel,
-                        "routedModel", routedModelOverride,
-                        "routedModelName", routedCaps.displayName(),
-                        "reason", "当前模型不支持图片，已自动切换到 " + routedCaps.displayName()
-                ));
-            }
-        }
 
-        // 在 Virtual Thread 中执行 QueryEngine
-        final List<ContentBlock.ImageBlock> imagesForQuery = imageBlocks;
-        final String modelOverride = routedModelOverride;
-        Thread.ofVirtual().name("zhiku-ws-query-" + sessionId).start(() -> {
-            try {
-                executeQuery(sessionId, msg.text(), imagesForQuery, modelOverride);
-            } catch (Exception e) {
-                log.error("QueryEngine 执行异常: sessionId={}", sessionId, e);
-                sendError(sessionId, "query_error", e.getMessage() != null ? e.getMessage() : "Unknown error", true);
-            } finally {
-                // ★ 释放并发锁
-                running.set(false);
-            }
-        });
+            final List<ContentBlock.ImageBlock> imagesForQuery = imageBlocks;
+            final String modelOverride = routedModelOverride;
+            startGatedVirtualThread("zhiku-ws-query-" + sessionId, executionToken, () -> {
+                try {
+                    executeQuery(sessionId, msg.text(), imagesForQuery, modelOverride);
+                } catch (Exception e) {
+                    log.error("QueryEngine 执行异常: sessionId={}", sessionId, e);
+                    sendError(sessionId, "query_error", e.getMessage() != null ? e.getMessage() : "Unknown error", true);
+                }
+            });
+            tokenTransferred = true;
+        } finally {
+            if (!tokenTransferred) executionToken.close();
+        }
+    }
+
+    private static void startGatedVirtualThread(
+            String name, SessionExecutionGate.Token token, Runnable task) {
+        try {
+            Thread.ofVirtual().name(name).start(() -> {
+                try {
+                    task.run();
+                } finally {
+                    token.close();
+                }
+            });
+        } catch (RuntimeException startFailure) {
+            token.close();
+            throw startFailure;
+        }
     }
 
     /** Queues a user instruction for the currently running root Run. */
@@ -913,10 +930,12 @@ public class WebSocketController implements PermissionNotifier {
         }
         String replaceAfterMessageId = historyMessages.isEmpty()
                 ? null : historyMessages.getLast().uuid();
+        Set<String> historicalMessageIds = historyMessages.stream()
+                .map(Message::uuid).collect(java.util.stream.Collectors.toSet());
 
         QueryLoopState state = new QueryLoopState(new ArrayList<>(historyMessages), toolUseContext);
 
-        SessionMessagePersistence persistence = SessionMessagePersistence.attach(
+        SessionMessagePersistence.attach(
                 state, sessionManager, sessionId, "WebSocket");
 
         // 组装用户消息 content：TextBlock + 所有 ImageBlock（多模态）
@@ -937,27 +956,15 @@ public class WebSocketController implements PermissionNotifier {
         try {
             result = queryEngine.execute(config, state, handler);
 
-            // 6. Listener 是正常写入入口；这里只补偿 listener 未确认的消息。
-            List<Message> newMessages = List.of();
-            try {
-                List<Message> allMessages = result.messages();
-                int newStartIndex = historyMessages.size();
-                newMessages = new ArrayList<>(allMessages.subList(
-                        Math.min(newStartIndex, allMessages.size()), allMessages.size()));
-                int fallbackCount = persistence.reconcile(newMessages);
-                if (fallbackCount > 0) {
-                    log.info("WS 兜底补写 {} 条 listener 未确认消息, sessionId={}", fallbackCount, sessionId);
-                }
-            } catch (Exception e) {
-                log.error("WS 兜底持久化失败, sessionId={}", sessionId, e);
-            }
-
             // 7. 发送完成消息
             Usage totalUsage = result.totalUsage() != null ? result.totalUsage() : Usage.zero();
             List<Message> committedMessages;
             try {
                 committedMessages = loadPersistedMessagesAfter(
-                        sessionId, replaceAfterMessageId, newMessages);
+                        sessionId, replaceAfterMessageId,
+                        result.messages().stream()
+                                .filter(message -> !historicalMessageIds.contains(message.uuid()))
+                                .toList());
             } catch (RuntimeException persistenceNotConfirmed) {
                 // An empty authoritative tail is an explicit recovery signal. The
                 // frontend keeps its live projection and reloads the durable session
@@ -1445,19 +1452,17 @@ public class WebSocketController implements PermissionNotifier {
                                 String modelOverride = (cmd instanceof PromptCommand pc2)
                                         ? pc2.getModel() : null;
 
-                                // 3. 并发保护（复用 sessionQueryRunning）
-                                AtomicBoolean running = sessionQueryRunning
-                                        .computeIfAbsent(sessionId, k -> new AtomicBoolean(false));
-                                if (!running.compareAndSet(false, true)) {
+                                SessionExecutionGate.Token executionToken = executionGate.tryAcquire(
+                                        sessionManager.dataSourceIdentity(), sessionId);
+                                if (executionToken == null) {
                                     sendError(sessionId, "query_busy",
                                             "当前会话正在处理中，请等待上一个请求完成", false);
                                     return;
                                 }
 
                                 // 4. Virtual Thread 异步执行
-                                Thread.ofVirtual()
-                                        .name("zhiku-prompt-cmd-" + sessionId)
-                                        .start(() -> {
+                                startGatedVirtualThread(
+                                        "zhiku-prompt-cmd-" + sessionId, executionToken, () -> {
                                             try {
                                                 executePromptCommand(sessionId, cmdResult.value(),
                                                         allowedTools, modelOverride);
@@ -1467,8 +1472,6 @@ public class WebSocketController implements PermissionNotifier {
                                                 sendError(sessionId, "query_error",
                                                         e.getMessage() != null ? e.getMessage()
                                                                 : "Unknown error", true);
-                                            } finally {
-                                                running.set(false);
                                             }
                                         });
                             } else {

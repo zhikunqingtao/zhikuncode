@@ -1,7 +1,6 @@
 import { AlertTriangle, ArrowUpRight, CheckCircle2, CircleDashed, ListChecks } from 'lucide-react';
 import TextBlock from '@/components/message/TextBlock';
 import type { CurrentWorkbenchView } from '@/hooks/useSimpleWorkbenchData';
-import { stripInternalMarkers } from '@/utils/internalMarkers';
 
 export function StructuredResultCard({ current, loading, error, onOpenMessage }: {
     current: CurrentWorkbenchView | null;
@@ -46,7 +45,7 @@ export function StructuredResultCard({ current, loading, error, onOpenMessage }:
                 {result && (
                     <details className="rounded-[14px] border border-[var(--v2-border-hairline)]">
                         <summary className="workbench-control cursor-pointer px-4 py-3 text-sm font-medium text-[var(--v2-text-2)] hover:bg-[var(--v2-bg-hover)]">展开完整回复</summary>
-                        <div className="border-t border-[var(--v2-border-hairline)] p-4"><TextBlock text={stripInternalMarkers(result.text)} />
+                        <div className="border-t border-[var(--v2-border-hairline)] p-4"><TextBlock text={result.text} />
                             <button type="button" onClick={() => onOpenMessage(result.messageId)} className="workbench-control mt-4 inline-flex items-center gap-1.5 rounded-[10px] border border-accent2-ring bg-accent2-soft px-3 py-2 text-sm font-medium text-accent2-ink dark:text-accent2-ink hover:bg-[color:color-mix(in_srgb,var(--v2-accent-hover)_15%,transparent)]">在完整对话中查看<ArrowUpRight className="h-4 w-4" /></button>
                         </div>
                     </details>

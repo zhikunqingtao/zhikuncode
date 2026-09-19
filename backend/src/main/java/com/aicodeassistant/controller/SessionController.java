@@ -12,6 +12,8 @@ import com.aicodeassistant.run.RunEnvelope;
 import com.aicodeassistant.run.RunEnvelopeRepository;
 import com.aicodeassistant.session.SessionData;
 import com.aicodeassistant.session.SessionManager;
+import com.aicodeassistant.session.SessionExecutionGate;
+import com.aicodeassistant.session.SessionExecutionBusyException;
 import com.aicodeassistant.session.SessionPage;
 import com.aicodeassistant.service.ProjectWorkspaceService;
 import com.aicodeassistant.service.PublicMessageProjection;
@@ -59,6 +61,7 @@ public class SessionController {
     private final PermissionModeManager permissionModes;
     private final PublicMessageProjection publicMessages;
     private final RunEnvelopeRepository runEnvelopes;
+    private final SessionExecutionGate executionGate;
 
     public SessionController(SessionManager sessionManager,
                              CompactService compactService,
@@ -68,7 +71,8 @@ public class SessionController {
                              ProjectWorkspaceService projectWorkspaces,
                              PermissionModeManager permissionModes,
                              PublicMessageProjection publicMessages,
-                             RunEnvelopeRepository runEnvelopes) {
+                             RunEnvelopeRepository runEnvelopes,
+                             SessionExecutionGate executionGate) {
         this.sessionManager = sessionManager;
         this.compactService = compactService;
         this.providerRegistry = providerRegistry;
@@ -78,6 +82,7 @@ public class SessionController {
         this.permissionModes = permissionModes;
         this.publicMessages = publicMessages;
         this.runEnvelopes = runEnvelopes;
+        this.executionGate = executionGate;
     }
 
     /**
@@ -201,10 +206,14 @@ public class SessionController {
      */
     @DeleteMapping("/{sessionId}")
     public ResponseEntity<Map<String, Boolean>> deleteSession(@PathVariable String sessionId) {
-        sessionManager.deleteSession(sessionId);
-        // 通知所有活跃 WebSocket 连接刷新会话列表
-        notifySessionListChanged();
-        return ResponseEntity.ok(Map.of("success", true));
+        SessionExecutionGate.Token token = executionGate.tryAcquire(
+                sessionManager.dataSourceIdentity(), sessionId);
+        if (token == null) throw new SessionExecutionBusyException(sessionId);
+        try (token) {
+            sessionManager.deleteSession(sessionId);
+            notifySessionListChanged();
+            return ResponseEntity.ok(Map.of("success", true));
+        }
     }
 
     /**

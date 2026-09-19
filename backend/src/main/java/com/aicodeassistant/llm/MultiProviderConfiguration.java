@@ -66,7 +66,8 @@ public class MultiProviderConfiguration {
                 // 拆分后传给 ApiKeyRotationManager，首个 key 作为构造 provider 的 fallback apiKey。
                 // 单 key 配置零行为变化（单 key 时 getNextKey() 返回唯一 key）。
                 List<String> apiKeys = splitApiKeys(config.apiKey());
-                ApiKeyRotationManager keyManager = new ApiKeyRotationManager(apiKeys);
+                ApiKeyRotationManager keyManager = new ApiKeyRotationManager(
+                        apiKeys, config.keySelectionStrategy());
                 OpenAiCompatibleProvider provider = new OpenAiCompatibleProvider(
                         name, objectMapper, httpProperties, keyManager,
                         apiKeys.isEmpty() ? null : apiKeys.getFirst(), config.baseUrl(),
