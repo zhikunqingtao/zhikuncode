@@ -6,6 +6,8 @@
  */
 
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { useMessageStore } from '@/store/messageStore';
+import { buildAsrContext } from '@/store/selectors/asrContext';
 
 export type VoiceState = 'idle' | 'requesting' | 'recording' | 'transcribing' | 'error';
 
@@ -182,6 +184,11 @@ export function useVoiceRecorder(
 
             const formData = new FormData();
             formData.append('audio', blob, `recording.${format}`);
+            // 携带最近对话上下文（最近 3 轮 query+回复），提高专有名词识别准确率
+            const asrContext = buildAsrContext(useMessageStore.getState().messages);
+            if (asrContext) {
+                formData.append('context', asrContext);
+            }
 
             const controller = new AbortController();
             abortRef.current = controller;

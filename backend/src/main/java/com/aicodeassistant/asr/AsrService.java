@@ -13,7 +13,9 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -21,6 +23,12 @@ import java.util.Map;
  * <p>
  * 使用 OpenAI 兼容协议调用 DashScope ASR API。ASR 模型不在 Token Plan 白名单中（实测返回 model_not_found），
  * 故仅支持标准 dashscope provider。
+ * <p>
+ * 对话上下文注入：{@link #recognize(byte[], String, String)} 接受可选的 context 文本（最近对话的
+ * query+回复），非空时在请求 messages 列表【首位】插入一条 {"role":"system","content":context}
+ * 消息作为识别上下文 —— qwen3-asr-flash 的词表匹配机制会使上下文中出现过的词识别更准，
+ * 用于提高专有名词识别准确率（依据：阿里云 Qwen-ASR API 参考文档中 qwen3-asr-flash 的
+ * chat/completions 请求对 system 上下文消息的支持）。
  */
 @Service
 public class AsrService {
@@ -66,11 +74,12 @@ public class AsrService {
      *
      * @param audioData 原始音频字节数组
      * @param mimeType  MIME 类型（如 audio/webm）
+     * @param context   识别上下文（最近对话文本），可为 null/空；非空时作为 system 消息置于请求 messages 首位
      * @return 转录后的文本
      * @throws IllegalArgumentException 音频过大或参数无效
      * @throws RuntimeException         API 调用失败
      */
-    public String recognize(byte[] audioData, String mimeType) {
+    public String recognize(byte[] audioData, String mimeType, String context) {
         if (audioData == null || audioData.length == 0) {
             throw new IllegalArgumentException("音频数据不能为空");
         }
@@ -93,15 +102,29 @@ public class AsrService {
         String url = baseUrl + "/chat/completions";
 
         try {
+            // 构造 messages：上下文非空时首位插入 system 消息（词表匹配机制，
+            // 上下文中出现过的词识别更准），其后为携带 input_audio 的 user 消息。
+            // 注意：system 的 content 必须是数组格式 [{"type":"text","text":...}]；
+            // 纯字符串 content 会被阿里云拒绝（400 InvalidParameter，实测验证）。
+            List<Map<String, Object>> messages = new ArrayList<>();
+            if (context != null && !context.isBlank()) {
+                messages.add(Map.of(
+                        "role", "system",
+                        "content", List.of(Map.of("type", "text", "text", context))
+                ));
+                log.debug("ASR 请求携带上下文，长度 {} 字符", context.length());
+            }
+            messages.add(Map.of(
+                    "role", "user",
+                    "content", List.of(Map.of(
+                            "type", "input_audio",
+                            "input_audio", Map.of("data", dataUri)
+                    ))
+            ));
+
             Map<String, Object> requestBody = Map.of(
                     "model", ASR_MODEL,
-                    "messages", java.util.List.of(Map.of(
-                            "role", "user",
-                            "content", java.util.List.of(Map.of(
-                                    "type", "input_audio",
-                                    "input_audio", Map.of("data", dataUri)
-                            ))
-                    )),
+                    "messages", messages,
                     "stream", false,
                     "asr_options", Map.of("enable_itn", true)
             );
