@@ -59,6 +59,13 @@ public class ModelRegistry {
         // Moonshot（Kimi K3/K2.7 视觉模型仅接受 base64 图片输入，不支持公网 URL）
         entry("kimi-k3",          caps("kimi-k3",          "Kimi K3",         131072, 1000000,  true, true, true, 8, true, 0.002, 0.012, ModelCapabilities.ImageInputMode.BASE64_ONLY)),
         entry("kimi-k2.7-code",     caps("kimi-k2.7-code",     "Kimi K2.7 Code",    16384, 256000,  true, true, true, 8, true, 0.002, 0.012, ModelCapabilities.ImageInputMode.BASE64_ONLY)),
+        // Kimi Code 订阅（2026-09-20）：两款均配置最大 1M 上下文；K3 需套餐具备 1M 权限。
+        // https://www.kimi.com/code/docs/kimi-code/models.html
+        // 131072 为应用单次输出预算，8 张图片为应用保守上限；订阅用量不按按量单价估算。
+        entry("k3", new ModelCapabilities("k3", "Kimi K3（订阅）", 131072, 1048576,
+                true, true, true, 8, true, 0.0, 0.0, 3.5, true, ModelCapabilities.ImageInputMode.BASE64_ONLY)),
+        entry("kimi-for-coding", new ModelCapabilities("kimi-for-coding", "Kimi K2.8 Preview（订阅）", 131072, 1048576,
+                true, true, true, 8, true, 0.0, 0.0, 3.5, true, ModelCapabilities.ImageInputMode.BASE64_ONLY)),
         entry("moonshot-v1-128k",  caps("moonshot-v1-128k",  "Moonshot V1 128K",   8192, 128000,  true, false, false, 0, true, 0.001, 0.002)),
         entry("qwen-turbo",        caps("qwen-turbo",        "Qwen Turbo",         8192, 1000000,  true, false, false, 0, true, 0.0003, 0.0006)),
         entry("qwen3.8-max-0902", caps("qwen3.8-max-0902", "Qwen 3.8 Max 0902", 65536, 1000000, true, true, true, 4, true, 0.009, 0.054)),

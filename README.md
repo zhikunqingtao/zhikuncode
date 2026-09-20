@@ -122,6 +122,7 @@ ZhikunCode 使用 Kimi K3 在 2026-08-09 凌晨一次性完成了一个纯静态
 | 🌐 | **浏览器全流程操控** | 部署一次，任何设备的浏览器即可完成全流程操作 —— 权限审批、方案协商、任务管控，手机上也能用，无需安装客户端 |
 | 🧭 | **双视图任务工作台** | 同一 Session 可在简洁工作台与开发工作台之间自由切换。简洁工作台集中展示当前要求、执行状态、主要成果、待处理事项和验收结果；开发工作台保留完整对话、工具、文件、Git、终端、浏览器与 Agent 信息。切换只改变信息组织，不改变后台执行方式 |
 | 📦 | **当前交付投影** | 按当前 Root Run 及其递归子 Run 关联本轮要求、最终回复、交付物、待处理 Interaction、活动与 Evidence，避免把不同执行轮次的数据拼接成一次交付；无法精确关联的旧 Session 会明确采用兼容回退 |
+| 🔀 | **会话资料合并** | 将 2～5 个空闲会话的摘要、已持久化过程文本和可确认归属的临时产物整理到一个新会话，保留来源会话；新会话等待下一条指令，不自动合并工程代码 |
 | 📁 | **Project 与 Run 控制** | 直连本机可选用原生目录选择器，远程部署只浏览配置的 allowed roots；Project 经真实路径规范化并持久授权，Session 拒绝客户端任意 `workingDirectory`。运行中输入按 Session 投递并返回 queued/applied/rejected，支持取消、包含 INTERRUPTED 的 CAS 单一终态与 WebSocket 恢复 |
 | 🔗 | **引用本地文件** | 直连本机通过系统选择器把 canonical 路径加入提示词（不上传内容）；ECS、远程或代理访问通过浏览器选择文件，立即上传为 OSS 永久公开对象，再把地址加入提示词。远程上传需要先配置 OSS |
 | 🤖 | **多 Agent 协作** | Team（固定分工）/ Swarm（动态协商）/ SubAgent（主从委派）三种协作模式，复杂任务自动分工 |
@@ -157,6 +158,18 @@ ZhikunCode 使用 Kimi K3 在 2026-08-09 凌晨一次性完成了一个纯静态
 会话恢复会补回已记录的工具终态；Activity 批准／拒绝等待服务端确认后更新结果。空最终回复最多尝试一次恢复，仍为空或达到限制时按终止原因处理，不把空回复当作成功交付。
 
 秒悟发布需要启用开关、部署账号、固定版本 CLI 及可用的验证服务；默认关闭，每次发布独立授权。超时或公网验证未通过不等于发布成功，也不保证远端取消。详见[部署与故障说明](docs/deployment/meoo.md)。
+
+### 会话资料合并（2～5 个来源）
+
+在会话列表点击“合并为新会话”，选择总计 2～5 个空闲会话，确认主会话、新标题和模型。发起会话固定保留，可再选择最多四个来源。新会话使用主会话的工作目录，接收交接摘要、已持久化过程的文本资料、可确认归属的临时产物副本及文件清单。摘要生成会调用所选模型并产生 API 用量。
+
+所有来源会话及相关后台任务需要停止执行。合并期间来源会话可以查看，暂不能继续执行或删除；其他会话仍可使用。原会话保留，原生工具卡片继续在来源会话查看。缺失、不可读或归属不明的文件会明确列出。
+
+所选会话可以来自不同文件夹。新会话仅使用主会话的工作目录作为默认相对路径根，其余目录仅作为外部引用，不会成为额外工作目录；访问其他工程时应使用明确路径。工程代码保留原路径，不自动合并代码。
+
+新会话使用与 Web 普通新建会话一致的 **“完全访问权限”（`AUTO_APPROVE`）** 模式，不复制来源会话的历史授权。通过安全检查的跨目录读写操作可能无需再次确认；系统安全限制和操作系统权限仍然生效。“不复制历史授权”不代表访问其他目录一定会再次请求批准。
+
+创建完成后，新会话等待你的下一条指令，暂不支持注入已有会话。每次合并仍共享 10 分钟、16 次模型调用及现有产物复制容量上限，不随来源数量增加；摘要超出预算时明确失败，不忽略来源或截断过程。
 
 ## ⚡ 快速开始
 
@@ -327,6 +340,10 @@ LLM_PROVIDER_DEEPSEEK_API_KEY=your-deepseek-key
 # Moonshot (Kimi)
 LLM_PROVIDER_MOONSHOT_API_KEY=your-moonshot-key
 
+# Kimi Code 订阅：K3 + K2.8 Preview（与 Moonshot 按量渠道独立）
+LLM_PROVIDER_KIMI_CODE_API_KEY=your-kimi-code-key
+# LLM_PROVIDER_KIMI_CODE_MODELS=k3,kimi-for-coding
+
 # Zhipu (智谱 GLM)
 LLM_PROVIDER_ZHIPU_API_KEY=your-zhipu-api-key-here
 
@@ -338,6 +355,8 @@ LLM_PROVIDER_MINIMAX_API_KEY=your-minimax-api-key-here
 # 402 quote_exceeded / 404 model_not_available 时自动冷却 15 分钟切换到下一把 Key。
 LLM_PROVIDER_ZENMUX_API_KEY=your-zenmux-api-key-here
 ```
+
+**Kimi Code 订阅：** 配置 `LLM_PROVIDER_KIMI_CODE_API_KEY` 并重启后，可选择 **Kimi K3（订阅）**（`k3`）或 **Kimi K2.8 Preview（订阅）**（`kimi-for-coding`）。两者走 `https://api.kimi.com/coding/v1`，流式与非流式调用均固定 `thinking.type=enabled`、`reasoning_effort=max`，上下文配置为 **1,048,576 tokens**，单次输出预算为 131,072 tokens（应用上限，非官方最大输出声明）。K3 的 1M 权限要求 Pro / Allegretto 及以上套餐；K2.8 Preview 对具备 coding 权益的会员开放 1M。订阅模型 ID、密钥和路由独立于按量 `kimi-k3`，不自动跨渠道切换；本地启动与 Docker Compose 均支持。订阅用量不折算为 Moonshot 按量价格，界面估算为 0 不代表免费。模型 ID 与规格核对日期：2026-09-20，见 [官方模型配置](https://www.kimi.com/code/docs/kimi-code/models.html)。
 
 **方式二：单 Provider 配置（向后兼容）**
 
@@ -684,6 +703,8 @@ Web 新会话必须先选择一个已授权目录。远程和 Docker 部署的�
 | ACCEPT_EDITS | 自动允许工作区内非高风险文件编辑，其他受控操作仍需确认 |
 | DONT_ASK | 不创建交互；安全读取、已有 Grant 和已授权 Project 内普通文件操作可执行，其他需要交互的操作直接拒绝 |
 | AUTO_APPROVE | 自动批准到达人工授权阶段的工具操作，包括工作区外文件和公共互联网请求；秒悟发布仍需逐次确认；硬拒绝、安全 Hook、SSRF 防护和部署沙箱仍然生效 |
+
+新建 Web、REST 和合并会话默认使用完全访问（`AUTO_APPROVE`），创建接口显式传入其他合法权限模式时使用该模式。已有会话的 REST 查询沿用保存的权限；若显式传入的 `permissionMode` 与会话不同，三个查询接口（包括 SSE）在开始执行前返回 HTTP 409，错误码 `PERMISSION_MODE_MISMATCH`，请先在页面修改会话权限。页面收到保存确认后更新显示；修改影响后续工具授权，已经获准或执行中的操作不会被终止。
 
 `AUTO_APPROVE` 会取消工具权限确认，但秒悟发布仍需逐次确认；远程部署使用时应确认运行账户、文件系统和网络边界符合预期。它不会赋予操作系统之外的新权限，也不会绕过系统安全与部署限制。
 
@@ -1100,7 +1121,7 @@ aica --continue "fix the bug we just discussed"
 |------|------|
 | 三种输出格式 | `text`（终端 Markdown 渲染）/ `json`（结构化）/ `stream-json`（SSE 流式） |
 | 管道支持 | 自动读取 stdin，与 shell 管道无缝组合 |
-| 权限模式 | `--permission-mode default/plan/accept_edits/dont_ask/auto_approve` 控制授权策略（CLI 默认 `dont_ask`；`auto_approve` 取消人工确认，秒悟发布除外；不能绕过硬拒绝、安全 Hook、SSRF 或部署沙箱） |
+| 权限模式 | `--permission-mode default/plan/accept_edits/dont_ask/auto_approve` 控制授权策略（CLI 未指定时新建默认完全访问、续接沿用会话权限；`auto_approve` 取消人工确认，秒悟发布除外；不能绕过硬拒绝、安全 Hook、SSRF 或部署沙箱） |
 | 会话管理 | `--continue` 继续上次会话，`--resume <id>` 恢复指定会话 |
 | 模型选择 | `--model` 指定模型，`--effort` 控制推理深度 |
 | 工具控制 | `--allowed-tools` / `--disallowed-tools` 白名单/黑名单 |
@@ -1432,6 +1453,8 @@ ZhikunCode 内置 11 项可视化能力，让 AI 编程过程中的数据和状�
 | `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_API_KEY` | — | — | 阿里云百炼 Token Plan 专属 API Key |
 | `LLM_PROVIDER_DEEPSEEK_API_KEY` | — | — | DeepSeek API Key |
 | `LLM_PROVIDER_MOONSHOT_API_KEY` | — | — | Moonshot/Kimi API Key |
+| `LLM_PROVIDER_KIMI_CODE_API_KEY` | — | — | Kimi Code 订阅 API Key；留空不注册订阅渠道 |
+| `LLM_PROVIDER_KIMI_CODE_MODELS` | — | k3,kimi-for-coding | Kimi K3 / K2.8 Preview 订阅模型列表 |
 | `LLM_PROVIDER_ZHIPU_API_KEY` | — | — | 智谱 GLM API Key |
 | `LLM_PROVIDER_OPENROUTER_API_KEY` | — | — | OpenRouter API Key；留空不注册此 Provider |
 | `LLM_PROVIDER_OPENROUTER_MODELS` | — | stealth/union-alpha,openrouter/openai/gpt-6-astra,openrouter/anthropic/claude-fable-5.1 | OpenRouter 可用模型列表（逗号分隔） |

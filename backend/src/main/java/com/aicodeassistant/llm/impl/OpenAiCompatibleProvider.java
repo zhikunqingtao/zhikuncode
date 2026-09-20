@@ -147,6 +147,11 @@ public class OpenAiCompatibleProvider implements LlmProvider {
 
     private boolean isOpenRouter() { return "openrouter".equalsIgnoreCase(providerName); }
 
+    private boolean isKimiCodeModel(String model) {
+        return "kimi-code".equalsIgnoreCase(providerName)
+                && ("k3".equals(model) || "kimi-for-coding".equals(model));
+    }
+
     @Override
     public ModelCapabilities getModelCapabilities(String model) {
         if (isOpenRouter() && OpenRouterModels.capabilities(model) != null)
@@ -171,6 +176,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
     @Override
     public boolean supportsThinking(String model) {
         if (model == null) return false;
+        if (isKimiCodeModel(model)) return true;
         if (isOpenRouter() && OpenRouterModels.capabilities(model) != null) return true;
         if ("zenmux".equalsIgnoreCase(providerName)
                 && ZENMUX_RESPONSES_MODELS.contains(model)) return true;
@@ -753,13 +759,20 @@ public class OpenAiCompatibleProvider implements LlmProvider {
 
         ObjectNode root = objectMapper.createObjectNode();
         root.put("model", isOpenRouter() ? OpenRouterModels.upstreamId(model) : model);
+        if (isKimiCodeModel(model)) {
+            // 订阅 K3 / K2.8 Preview 统一使用最强推理；关闭思考会让 K3 改路由到 K2.8。
+            // 放在共享请求构建处，保证流式对话与 chatSync 都显式启用 max。
+            root.putObject("thinking").put("type", "enabled");
+            root.put("reasoning_effort", "max");
+        }
         if (isOpenRouter() && OpenRouterModels.capabilities(model) != null) {
             // Both models mandate reasoning; strongest confirmed effort as of 2026-09-17.
             root.putObject("reasoning").put("effort", "max").put("exclude", false);
             root.putObject("provider").put("require_parameters", true);
         }
-        // Kimi 系列模型使用 max_completion_tokens 参数名（官方要求）
-        String maxTokensKey = model.startsWith("kimi-") ? "max_completion_tokens" : "max_tokens";
+        // Moonshot 使用 max_completion_tokens；Kimi Code 订阅接口使用 max_tokens。
+        String maxTokensKey = model.startsWith("kimi-") && !isKimiCodeModel(model)
+                ? "max_completion_tokens" : "max_tokens";
         root.put(maxTokensKey, maxTokens);
 
         ArrayNode messagesArray = root.putArray("messages");

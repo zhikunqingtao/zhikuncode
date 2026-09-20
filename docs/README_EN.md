@@ -117,6 +117,7 @@ Two official rankings are reported: on the six-task equal-weight board ZhikunCod
 | 🌐 | **Full Browser-Based Control** | Deploy once, then manage everything from any device's browser — permission approvals, plan discussions, task management. Works on mobile. No client installation needed |
 | 🧭 | **Dual-View Task Workbench** | Switch freely between a result-focused Simple Workbench and the full Development Workbench within the same Session. The simple view brings the current request, execution state, primary deliverable, pending actions, and acceptance results together; the development view keeps the full conversation, tools, files, Git, terminal, browser, and Agent details. Switching views does not change runtime behavior |
 | 📦 | **Current Delivery Projection** | Correlates the current request, final response, deliverables, pending Interactions, activities, and Evidence through the current Root Run and its recursive child Runs, preventing results from different executions from being presented as one delivery. Legacy Sessions that cannot be correlated exactly are explicitly marked as compatibility fallbacks |
+| 🔀 | **Session Context Merge** | Bring summaries, text records of persisted activity, and temporary artifacts with established ownership from 2–5 idle sessions into a new session. Source sessions are preserved; the new session waits for your next instruction and does not automatically merge project code |
 | 🔗 | **Local File References** | Direct local access adds a canonical path through the native picker without uploading content. ECS, remote, and proxied access uses the browser picker, immediately publishes the file as a permanently public OSS object, and adds its URL to the prompt. OSS must be configured for remote references |
 | 🤖 | **Multi-Agent Collaboration** | Three collaboration modes: Team (fixed roles) / Swarm (dynamic negotiation) / SubAgent (parent-child delegation). Complex tasks are automatically distributed |
 | 🔒 | **Unified Authorization Security** | Every core tool passes through the Tool Gateway: canonical input freezing → Operation Analyzer risk/resource analysis → system invariants → RUN/SESSION/WORKSPACE grant matching or durable permission interaction → final dynamic recheck → structured result auditing. High-risk operations are ONCE-only, and unknown MCP/dynamic tools default to one-time approval |
@@ -150,6 +151,18 @@ Only native `Edit` and `Write` operations with a successful result, a verifiable
 Session restoration recovers recorded terminal tool states. Activity approval/rejection updates follow server acknowledgement. An empty final response gets at most one recovery attempt; another empty response or a limit terminates according to its reason, not as a successful empty delivery.
 
 Meoo publishing requires its feature switch, deployment credentials, pinned CLI, and an available verification service. It is disabled by default and requires separate approval per publication. A timeout or unsuccessful public-access check is not success and does not guarantee remote cancellation. See the [deployment and troubleshooting guide (Chinese)](deployment/meoo.md).
+
+### Session Context Merge (2–5 Sources)
+
+In the session list, click “合并为新会话” (Merge into a new session), select a total of 2–5 idle sessions, and confirm the primary session, title, and model. The initiating session stays selected; you can add up to four other sources. The new session uses the primary session’s working directory and receives a handoff summary, text records of persisted activity, copies of temporary artifacts with established ownership, and a file manifest. Summary generation uses the selected model and incurs API usage.
+
+All source sessions and their associated background tasks must be idle. During merging, the sources remain viewable but cannot run tasks or be deleted; other sessions remain available. Source sessions are preserved, including their native tool cards. Missing or unreadable files, and files whose ownership cannot be established, are explicitly listed.
+
+The selected sessions may use different folders. The new session uses only the primary session’s working directory as the default base for relative paths. Other directories remain external references, not additional working directories; use explicit paths when accessing those projects. Project code remains at its original paths and is not automatically merged.
+
+The new session uses **Full Access (`AUTO_APPROVE`)**, matching the default for ordinary sessions created through the Web UI. Historical permission grants from the sources are not copied. Cross-directory reads and writes that pass security checks may proceed without another confirmation; system security restrictions and operating-system permissions still apply. Not copying historical grants does not mean that access to other directories will always prompt for approval.
+
+The new session waits for your next instruction; injecting context into an existing session is not supported. Each merge shares the existing limits of 10 minutes, 16 model calls, and artifact copy capacity, regardless of the number of sources. Exceeding the summary budget fails explicitly without omitting sources or truncating their activity records.
 
 ## ⚡ Quick Start
 
@@ -320,6 +333,10 @@ LLM_PROVIDER_DEEPSEEK_API_KEY=your-deepseek-key
 # Moonshot (Kimi)
 LLM_PROVIDER_MOONSHOT_API_KEY=your-moonshot-key
 
+# Kimi Code subscription: K3 + K2.8 Preview (independent from Moonshot pay-as-you-go)
+LLM_PROVIDER_KIMI_CODE_API_KEY=your-kimi-code-key
+# LLM_PROVIDER_KIMI_CODE_MODELS=k3,kimi-for-coding
+
 # Zhipu (GLM)
 LLM_PROVIDER_ZHIPU_API_KEY=your-zhipu-api-key-here
 
@@ -332,6 +349,8 @@ LLM_PROVIDER_MINIMAX_API_KEY=your-minimax-api-key-here
 # 402 quote_exceeded / 404 model_not_available.
 LLM_PROVIDER_ZENMUX_API_KEY=your-zenmux-api-key-here
 ```
+
+**Kimi Code subscription:** Set `LLM_PROVIDER_KIMI_CODE_API_KEY` and restart to select **Kimi K3（订阅）** (`k3`) or **Kimi K2.8 Preview（订阅）** (`kimi-for-coding`). Both use `https://api.kimi.com/coding/v1`, explicit `thinking.type=enabled` and `reasoning_effort=max` in streaming and synchronous requests, and a **1,048,576-token** context window. The application output budget is 131,072 tokens, not a claim about the official maximum output. K3's 1M context requires Pro / Allegretto or above; K2.8 Preview supports 1M for members with coding access. IDs, credentials and routes are separate from Moonshot's `kimi-k3`, with no automatic cross-provider fallback. Local startup and Docker Compose are supported. Zero estimated token cost denotes subscription accounting, not free usage. Model IDs and specifications checked on 2026-09-20 against the [official model configuration](https://www.kimi.com/code/docs/kimi-code/models.html).
 
 **Option B: Single-Provider Configuration (Backward Compatible)**
 
@@ -670,6 +689,8 @@ Sub-agents match parent grants through an authorization subject composed of root
 | ACCEPT_EDITS | Non-high-risk in-workspace file edits are auto-allowed; other controlled operations still require confirmation |
 | DONT_ASK | Creates no interaction; safe reads, existing grants, and ordinary file operations inside an authorized Project may run; other operations requiring confirmation are denied |
 | AUTO_APPROVE | Automatically approves operations that reach the interactive authorization stage, including requests for files outside the workspace and the public internet; Meoo publishing still requires approval for each publication; hard denials, security hooks, SSRF protection, and deployment sandboxes remain in force |
+
+New Web, REST, and merged sessions default to Full Access (`AUTO_APPROVE`); creation endpoints honor an explicitly supplied valid mode. REST queries on existing sessions use the saved mode. An explicit `permissionMode` that differs from the session returns HTTP 409 with `PERMISSION_MODE_MISMATCH` before execution, including for SSE. Change the session permission setting first. The UI updates after server confirmation; subsequent tool authorizations use the saved mode, while already authorized or running operations continue.
 
 `AUTO_APPROVE` removes tool permission prompts, except for Meoo publishing, which still requires approval for each publication. On remote deployments, use it only when the runtime account, filesystem, and network boundaries are appropriate. It grants no privileges beyond the operating system and does not bypass system or deployment security controls.
 
@@ -1086,7 +1107,7 @@ When neither `--working-dir` nor `--project-id` is provided, and no Session is s
 |---------|-------------|
 | Three output formats | `text` (terminal Markdown rendering) / `json` (structured) / `stream-json` (SSE streaming) |
 | Pipe support | Auto-reads stdin, seamlessly composable with shell pipes |
-| Permission modes | `--permission-mode default/plan/accept_edits/dont_ask/auto_approve` controls authorization (CLI defaults to `dont_ask`; `auto_approve` removes interactive confirmation except for Meoo publishing, and cannot bypass hard denials, security hooks, SSRF protection, or deployment sandboxes) |
+| Permission modes | `--permission-mode default/plan/accept_edits/dont_ask/auto_approve` controls authorization (when omitted, new sessions default to Full Access and existing sessions retain their saved mode; `auto_approve` removes interactive confirmation except for Meoo publishing, and cannot bypass hard denials, security hooks, SSRF protection, or deployment sandboxes) |
 | Session management | `--continue` resumes last session, `--resume <id>` restores a specific session |
 | Model selection | `--model` to specify model, `--effort` to control reasoning depth |
 | Tool control | `--allowed-tools` / `--disallowed-tools` whitelist/blocklist |
@@ -1418,6 +1439,8 @@ Environment variables are managed via the `.env` file. Copy `.env.example` and m
 | `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_API_KEY` | — | — | Alibaba Cloud Bailian Token Plan API Key |
 | `LLM_PROVIDER_DEEPSEEK_API_KEY` | — | — | DeepSeek API Key |
 | `LLM_PROVIDER_MOONSHOT_API_KEY` | — | — | Moonshot/Kimi API Key |
+| `LLM_PROVIDER_KIMI_CODE_API_KEY` | — | — | Kimi Code subscription API key; empty disables this provider |
+| `LLM_PROVIDER_KIMI_CODE_MODELS` | — | k3,kimi-for-coding | Kimi K3 / K2.8 Preview subscription model IDs |
 | `LLM_PROVIDER_ZHIPU_API_KEY` | — | — | Zhipu GLM API Key |
 | `LLM_PROVIDER_OPENROUTER_API_KEY` | — | — | OpenRouter API Key; leave empty to skip registering this Provider |
 | `LLM_PROVIDER_OPENROUTER_MODELS` | — | stealth/union-alpha,openrouter/openai/gpt-6-astra,openrouter/anthropic/claude-fable-5.1 | Available OpenRouter models (comma-separated) |

@@ -95,6 +95,12 @@ llm:
       base-url: https://api.moonshot.cn/v1
       default-model: kimi-k3
       models: ${LLM_PROVIDER_MOONSHOT_MODELS:kimi-k3,kimi-k2.7-code,moonshot-v1-128k}
+    # Kimi Code 订阅独立渠道；模型 ID 与 Moonshot 按量渠道不同，避免路由冲突。
+    kimi-code:
+      api-key: ${LLM_PROVIDER_KIMI_CODE_API_KEY:}
+      base-url: https://api.kimi.com/coding/v1
+      default-model: k3
+      models: ${LLM_PROVIDER_KIMI_CODE_MODELS:k3,kimi-for-coding}
     zhipu:
       api-key: ${LLM_PROVIDER_ZHIPU_API_KEY:}
       base-url: https://open.bigmodel.cn/api/paas/v4
