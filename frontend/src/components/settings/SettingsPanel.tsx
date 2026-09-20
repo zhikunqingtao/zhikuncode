@@ -3,9 +3,8 @@ import { useState } from 'react';
 import { McpCapabilityPanel } from './McpCapabilityPanel';
 import { PromptsTab } from './PromptsTab';
 import { ThemePicker } from '@/components/theme/ThemePicker';
-import { usePermissionStore } from '@/store/permissionStore';
-import { sendSetPermissionMode } from '@/api/stompClient';
-import type { PermissionMode } from '@/types';
+import { useSessionPermissionSelection } from '@/hooks/useSessionPermissionSelection';
+import { PERMISSION_MODES } from '@/types';
 
 /** 设置面板 Tab 类型 */
 type SettingsTab = 'model' | 'theme' | 'permission' | 'keybindings' | 'mcp' | 'prompts';
@@ -84,6 +83,8 @@ function ModelPicker() {
     { id: 'deepseek-v4-pro-0813', name: 'DeepSeek V4 Pro 0813（百炼）', description: '百炼深度推理' },
     { id: 'deepseek-v4-flash-0731', name: 'DeepSeek V4 Flash 0731（百炼）', description: '百炼快速响应' },
     { id: 'kimi-k3', name: 'Kimi K3', description: '长文本理解' },
+    { id: 'k3', name: 'Kimi K3（订阅）', description: '1M 上下文 · 最强推理' },
+    { id: 'kimi-for-coding', name: 'Kimi K2.8 Preview（订阅）', description: '1M 上下文 · 最强推理' },
     { id: 'kimi-k2.7-code', name: 'Kimi K2.7 Code', description: '长文本理解' },
     { id: 'moonshot-v1-128k', name: 'Moonshot V1 128K', description: '128K上下文' },
     { id: 'glm-5.3', name: 'GLM-5.3', description: '智谱最新' },
@@ -117,20 +118,15 @@ function ModelPicker() {
 
 /** 权限模式选择 */
 function PermissionModePicker() {
-  const { permissionMode, setPermissionMode } = usePermissionStore();
-  const modes = (['default', 'plan', 'accept_edits', 'dont_ask'] as PermissionMode[]).map(id => ({
+  const { permissionMode, selectMode, pending, disabled, message } = useSessionPermissionSelection();
+  const modes = PERMISSION_MODES.map(id => ({
     id, name: getPermissionModeLabel(id), description: getPermissionModeDescription(id),
   }));
-
-  const handleChange = (mode: PermissionMode) => {
-    setPermissionMode(mode);
-    // 同步到后端，后端枚举使用大写值
-    sendSetPermissionMode(mode.toUpperCase());
-  };
 
   return (
     <div className="space-y-4">
       <h3 className=" text-base font-semibold">权限</h3>
+      {(pending || message) && <p role="status">{pending ? '正在切换' : message}</p>}
       {modes.map((m) => (
         <label
           key={m.id}
@@ -145,7 +141,8 @@ function PermissionModePicker() {
             name="permission-mode"
             value={m.id}
             checked={permissionMode === m.id}
-            onChange={() => handleChange(m.id)}
+            disabled={disabled}
+            onChange={() => selectMode(m.id)}
             className="mr-3 accent-accent2"
           />
           <div>

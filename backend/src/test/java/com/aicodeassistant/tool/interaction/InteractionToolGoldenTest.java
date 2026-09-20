@@ -8,6 +8,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.util.HashMap;
@@ -95,20 +98,33 @@ class InteractionToolGoldenTest {
             assertTrue(result.isError());
         }
 
-        @Test
-        @DisplayName("1.7 ElicitationService 返回成功 — 工具返回成功")
-        void elicitationSuccess() throws Exception {
-            // Mock ElicitationService 返回成功响应
-            when(elicitationService.requestAndWait(anyString(), nullable(String.class), anyString(), anyList(), anyLong()))
-                    .thenReturn(ElicitationService.ElicitationResponse.success("opt-A"));
+        @ParameterizedTest
+        @NullSource
+        @ValueSource(booleans = {false, true})
+        @DisplayName("1.7 多选参数按结构化值传递，省略时保持单选")
+        void elicitationSuccess(Boolean multiSelect) throws Exception {
+            boolean expectedMultiSelect = Boolean.TRUE.equals(multiSelect);
+            Object answer = expectedMultiSelect ? List.of("opt-A", "opt-B") : "opt-A";
+            when(elicitationService.requestAndWait(anyString(), nullable(String.class), anyString(),
+                    anyList(), eq(expectedMultiSelect), anyLong()))
+                    .thenReturn(ElicitationService.ElicitationResponse.success(answer));
 
-            List<Map<String, Object>> questions = List.of(makeQuestion(2));
-            ToolInput input = ToolInput.from(Map.of("questions", questions));
+            Map<String, Object> question = makeQuestion(2);
+            question.put("question", "希望包含哪些内容？（可多选）");
+            if (multiSelect == null) {
+                question.remove("multiSelect");
+            } else {
+                question.put("multiSelect", multiSelect);
+            }
+            ToolInput input = ToolInput.from(Map.of("questions", List.of(question)));
             ToolResult result = tool.call(input, ToolUseContext.of("/tmp", "s1"));
 
             assertFalse(result.isError());
-            assertTrue(result.content().contains("answers"));
-            verify(elicitationService).requestAndWait(eq("s1"), nullable(String.class), anyString(), anyList(), anyLong());
+            Map<?, ?> answers = (Map<?, ?>) new com.fasterxml.jackson.databind.ObjectMapper()
+                    .readValue(result.content(), Map.class).get("answers");
+            assertEquals(answer, answers.get("q1"));
+            verify(elicitationService).requestAndWait(eq("s1"), nullable(String.class),
+                    eq("希望包含哪些内容？（可多选）"), anyList(), eq(expectedMultiSelect), anyLong());
         }
 
         private Map<String, Object> makeQuestion(int numOptions) {

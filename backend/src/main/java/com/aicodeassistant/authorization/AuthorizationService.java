@@ -127,7 +127,7 @@ public final class AuthorizationService {
             }
             return interact(tool, frozen, executionInput, context, subject, operation, executionAttemptId);
         }
-        PermissionGrantRepository.Match match = grants.findMatch(subject, operation);
+        PermissionGrantRepository.Match match = mode == PermissionMode.PLAN ? null : grants.findMatch(subject, operation);
         if (match != null) {
             return new AuthorizedOperation(subject, operation, executionInput,
                     AuthorizationDiagnostic.Source.GRANT, "GRANT_MATCH", match.grantId(), match.scope(),
@@ -417,6 +417,19 @@ public final class AuthorizationService {
         if (operation.risk() == RiskClass.HIGH && Boolean.TRUE.equals(response.get("remember"))) {
             throw new AuthorizationException("PERMISSION_HIGH_RISK_NOT_REMEMBERABLE",
                     "HIGH risk operations cannot be remembered");
+        }
+        // Waiting for approval is not an authorization yet. Honor the latest session choice.
+        PermissionMode currentMode = modes.getMode(subject.rootSessionId());
+        String changedModeDenial = currentMode == PermissionMode.PLAN ? "PLAN_MODE_EFFECT_DENIED"
+                : currentMode == PermissionMode.DONT_ASK
+                    && (operation.risk() == RiskClass.HIGH || grants.findMatch(subject, operation) == null)
+                        ? "PERMISSION_INTERACTION_REQUIRED" : null;
+        if (changedModeDenial != null) {
+            recordDenial(context, subject, operation, executionAttemptId,
+                    AuthorizationDiagnostic.Source.POLICY, AuthorizationDiagnostic.EvaluationStage.INTERACTION,
+                    changedModeDenial);
+            throw new AuthorizationException(changedModeDenial,
+                    "The current session permission mode does not permit this operation");
         }
         if (Boolean.TRUE.equals(response.get("remember"))) {
             PermissionGrantRepository.Match remembered = grants.findMatch(subject, operation);

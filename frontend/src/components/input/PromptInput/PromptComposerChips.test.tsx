@@ -1,4 +1,6 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { useSessionPermissionSelection } from '@/hooks/useSessionPermissionSelection';
+import { SettingsPanel } from '@/components/settings/SettingsPanel';
+import { act, fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ModelChip, PermissionModeChip } from './PromptComposerChips';
 import { useModelStore } from '@/store/modelStore';
@@ -9,7 +11,7 @@ import { useAppUiStore } from '@/store/appUiStore';
 import { useBridgeStore } from '@/store/bridgeStore';
 
 const { binding, connection, sendSetModel, sendSetPermissionMode } = vi.hoisted(() => ({
-    binding: { bound: true },
+    binding: { bound: true, ready: true },
     connection: { connected: true },
     sendSetModel: vi.fn(),
     sendSetPermissionMode: vi.fn(() => true),
@@ -17,7 +19,7 @@ const { binding, connection, sendSetModel, sendSetPermissionMode } = vi.hoisted(
 
 vi.mock('@/api/dispatch', () => ({
     isSessionBound: () => binding.bound,
-    isSessionBindingReady: () => binding.bound,
+    isSessionBindingReady: () => binding.bound && binding.ready,
     subscribeSessionBinding: () => () => {},
 }));
 
@@ -33,12 +35,13 @@ describe('PromptComposerChips', () => {
         sendSetPermissionMode.mockClear();
         sendSetPermissionMode.mockReturnValue(true);
         binding.bound = true;
+        binding.ready = true;
         connection.connected = true;
         vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{}', { status: 200 })));
         useBridgeStore.setState({ bridgeStatus: 'connected' });
         useAppUiStore.setState({ mobileNavTab: null });
         useSessionStore.setState({ sessionId: 'session-1', model: 'model-a' });
-        usePermissionStore.setState({ permissionMode: 'default', pendingPermissions: [] });
+        usePermissionStore.setState({ permissionMode: 'default', pendingPermissions: [], pendingModeChange: null, modeChangeMessage: null });
         useModelStore.setState({
             models: [
                 { id: 'model-a', displayName: 'Model A', supportsImages: false, maxImages: 0 },
@@ -54,15 +57,55 @@ describe('PromptComposerChips', () => {
     afterEach(() => vi.unstubAllGlobals());
 
     describe('PermissionModeChip', () => {
-        it('keeps the optimistic mode when the send succeeds', () => {
+        it('waits for server confirmation when the send succeeds', () => {
             render(<PermissionModeChip />);
 
             fireEvent.click(screen.getByRole('button', { name: '权限模式' }));
             fireEvent.click(screen.getByRole('button', { name: /完全访问/ }));
 
-            expect(sendSetPermissionMode).toHaveBeenCalledWith('AUTO_APPROVE');
-            expect(usePermissionStore.getState().permissionMode).toBe('auto_approve');
+            expect(sendSetPermissionMode).toHaveBeenCalledWith('AUTO_APPROVE', expect.any(String));
+            expect(usePermissionStore.getState().permissionMode).toBe('default');
+            expect(screen.getByRole('status')).toHaveTextContent('正在切换');
             expect(useNotificationStore.getState().notifications).toHaveLength(0);
+        });
+
+        it.each([false, true])('submits once and updates only after confirmation (mobile=%s)', mobile => {
+            render(<PermissionModeChip mobile={mobile} />);
+            fireEvent.click(screen.getByRole('button', { name: mobile ? /权限：/ : '权限模式' }));
+            fireEvent.click(screen.getByRole('button', { name: /完全访问/ }));
+            expect(usePermissionStore.getState().permissionMode).toBe('default');
+            expect(sendSetPermissionMode).toHaveBeenCalledTimes(1);
+            expect(screen.getByRole('status')).toHaveTextContent('正在切换');
+            act(() => usePermissionStore.getState().setPermissionMode('auto_approve', usePermissionStore.getState().pendingModeChange?.requestId));
+            expect(usePermissionStore.getState().pendingModeChange).toBeNull();
+            expect(screen.queryByRole('status')).not.toBeInTheDocument();
+            expect(usePermissionStore.getState().permissionMode).toBe('auto_approve');
+        });
+
+        it('settings exposes the same five modes and waits for confirmation', () => {
+            render(<SettingsPanel />);
+            fireEvent.click(screen.getByRole('button', { name: /Permissions/ }));
+            expect(screen.getAllByRole('radio')).toHaveLength(5);
+            fireEvent.click(screen.getByRole('radio', { name: /完全访问/ }));
+            expect(sendSetPermissionMode).toHaveBeenCalledWith('AUTO_APPROVE', expect.any(String));
+            expect(usePermissionStore.getState().permissionMode).toBe('default');
+            expect(screen.getByRole('status')).toHaveTextContent('正在切换');
+            act(() => usePermissionStore.getState().setPermissionMode('auto_approve', usePermissionStore.getState().pendingModeChange?.requestId));
+            expect(screen.getByRole('radio', { name: /完全访问/ })).toBeChecked();
+        });
+
+        it('times out without claiming success and still accepts a late confirmation', () => {
+            vi.useFakeTimers();
+            try {
+                render(<PermissionModeChip />);
+                fireEvent.click(screen.getByRole('button', { name: '权限模式' }));
+                fireEvent.click(screen.getByRole('button', { name: /完全访问/ }));
+                act(() => vi.advanceTimersByTime(10000));
+                expect(screen.getByRole('status')).toHaveTextContent('切换结果尚未确认');
+                expect(usePermissionStore.getState().permissionMode).toBe('default');
+                act(() => usePermissionStore.getState().setPermissionMode('auto_approve', usePermissionStore.getState().pendingModeChange?.requestId));
+                expect(screen.queryByRole('status')).not.toBeInTheDocument();
+            } finally { vi.useRealTimers(); }
         });
 
         it('rolls back and notifies when the send returns false', () => {
@@ -78,6 +121,25 @@ describe('PromptComposerChips', () => {
                     key: 'permission-mode-send-failed',
                     level: 'error',
                 })]));
+        });
+
+        it('late confirmation cannot acknowledge a newer selection or cancel its timeout', () => {
+            vi.useFakeTimers();
+            try {
+                const { result } = renderHook(() => useSessionPermissionSelection());
+                act(() => result.current.selectMode('auto_approve'));
+                const oldId = usePermissionStore.getState().pendingModeChange!.requestId;
+                act(() => vi.advanceTimersByTime(10000));
+                act(() => result.current.selectMode('plan'));
+                const pending = usePermissionStore.getState().pendingModeChange;
+                expect(pending?.requestId).not.toBe(oldId);
+                act(() => usePermissionStore.getState().setPermissionMode('auto_approve', oldId));
+                expect(usePermissionStore.getState().permissionMode).toBe('auto_approve');
+                expect(usePermissionStore.getState().pendingModeChange).toBe(pending);
+                expect(result.current.disabled).toBe(true);
+                act(() => vi.advanceTimersByTime(10000));
+                expect(result.current.message).toBe('切换结果尚未确认');
+            } finally { vi.useRealTimers(); }
         });
 
         it('rolls back and notifies when the send throws', () => {
@@ -97,21 +159,38 @@ describe('PromptComposerChips', () => {
                 })]));
         });
 
-        it('rolls back and notifies without sending when no session is bound', () => {
+        it('disables selection without a ready binding', () => {
             binding.bound = false;
             render(<PermissionModeChip />);
+            expect(screen.getByRole('button', { name: '权限模式' })).toBeDisabled();
+            expect(sendSetPermissionMode).not.toHaveBeenCalled();
+        });
 
+        it('rechecks binding readiness even for a previously obtained handler', () => {
+            const { result } = renderHook(() => useSessionPermissionSelection());
+            const select = result.current.selectMode;
+            binding.ready = false;
+            act(() => select('auto_approve'));
+            expect(sendSetPermissionMode).not.toHaveBeenCalled();
+            expect(usePermissionStore.getState().pendingModeChange).toBeNull();
+        });
+
+        it('closes an open menu during rebinding and re-enables it after recovery', () => {
+            const { rerender } = render(<PermissionModeChip />);
+            fireEvent.click(screen.getByRole('button', { name: '权限模式' }));
+            expect(screen.getByRole('dialog', { name: '选择权限' })).toBeVisible();
+            binding.ready = false; // old session is still bound while the next bind is in flight
+            rerender(<PermissionModeChip />);
+            expect(screen.getByRole('button', { name: '权限模式' })).toBeDisabled();
+            expect(screen.queryByRole('dialog', { name: '选择权限' })).not.toBeInTheDocument();
+            binding.ready = true;
+            rerender(<PermissionModeChip />);
+            expect(screen.getByRole('button', { name: '权限模式' })).toBeEnabled();
             fireEvent.click(screen.getByRole('button', { name: '权限模式' }));
             fireEvent.click(screen.getByRole('button', { name: /完全访问/ }));
-
-            expect(sendSetPermissionMode).not.toHaveBeenCalled();
-            expect(usePermissionStore.getState().permissionMode).toBe('default');
-            expect(useNotificationStore.getState().notifications)
-                .toEqual(expect.arrayContaining([expect.objectContaining({
-                    key: 'permission-mode-no-session',
-                    level: 'error',
-                })]));
+            expect(sendSetPermissionMode).toHaveBeenCalledTimes(1);
         });
+
     });
 
     describe('ModelChip', () => {

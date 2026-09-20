@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
     bindSessionAndWait,
+    isSessionBindingReady,
     dispatch,
     recoverPendingInteractions,
     resetBoundSession,
@@ -303,6 +304,32 @@ describe('transport-scoped bind recovery', () => {
             '/app/interaction-received',
             expect.objectContaining({ interactionId: 'permission-ack' }),
         );
+    });
+
+    it('clears pending mode on bind start and rejects old-session confirmations during and after recovery', async () => {
+        vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response([])));
+        type Binding = { sessionId: string; protocolVersion: number; bindRequestId: string; bindingEpoch: number };
+        let a!: Binding, b!: Binding;
+        const restore = (binding: Binding, mode: string) => dispatch({
+            type: 'session_restored', ...binding, messages: [],
+            metadata: { sessionId: binding.sessionId, model: 'model', permissionMode: mode, status: 'idle' },
+        });
+        const first = bindSessionAndWait('session-a', payload => { a = payload; });
+        restore(a, 'PLAN');
+        await expect(first).resolves.toBe(true);
+        usePermissionStore.setState({ pendingModeChange: { requestId: 'selection-1', sessionId: 'session-a', mode: 'auto_approve', startedAt: 1 } });
+        const second = bindSessionAndWait('session-b', payload => { b = payload; });
+        expect(usePermissionStore.getState().pendingModeChange).toBeNull();
+        expect(isSessionBindingReady('session-a')).toBe(false);
+        const stale = { type: 'permission_mode_changed', mode: 'AUTO_APPROVE',
+            _sessionId: 'session-a', _bindingEpoch: a.bindingEpoch } as any;
+        dispatch(stale);
+        expect(usePermissionStore.getState().permissionMode).toBe('plan');
+        restore(b, 'DONT_ASK');
+        await expect(second).resolves.toBe(true);
+        dispatch(stale);
+        expect(usePermissionStore.getState().permissionMode).toBe('dont_ask');
+        expect(isSessionBindingReady('session-b')).toBe(true);
     });
 
     it('matches bindRequestId, snapshots atomically, then replays frames received during recovery', async () => {

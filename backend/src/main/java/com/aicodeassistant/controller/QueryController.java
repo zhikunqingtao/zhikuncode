@@ -1,5 +1,7 @@
 package com.aicodeassistant.controller;
 
+import com.aicodeassistant.exception.PermissionModeMismatchException;
+
 import com.aicodeassistant.engine.CompactService;
 import com.aicodeassistant.engine.QueryConfig;
 import com.aicodeassistant.engine.QueryEngine;
@@ -110,7 +112,7 @@ public class QueryController {
      * <p>
      * 阻塞直到 LLM 完成所有轮次，返回完整结果。
      * 在 Virtual Thread 中执行，不阻塞平台线程。
-     * 权限策略: 默认 DONT_ASK (非交互场景)。
+     * 权限策略: 新会话默认 AUTO_APPROVE；已有会话沿用保存的权限。
      */
     @PostMapping
     public ResponseEntity<QueryResponse> query(@RequestBody QueryRequest request) {
@@ -119,11 +121,8 @@ public class QueryController {
         SessionData session = locked.session();
         String sessionId = session.sessionId();
 
-        // 无界面的 REST 调用没有持久交互传输，默认必须拒绝需要询问的操作，不能静默绕过授权。
-        PermissionMode effectiveMode = request.permissionMode() != null
-                ? request.permissionMode()
-                : PermissionMode.DONT_ASK;
-        permissionModeManager.setMode(sessionId, effectiveMode);
+        // 请求参数仅校验已有会话权限，不隐式修改会话选择。
+        PermissionMode effectiveMode = requireMatchingMode(sessionId, request.permissionMode());
         log.debug("REST API /api/query: permissionMode={} (requested={})",
                 effectiveMode, request.permissionMode());
 
@@ -206,19 +205,18 @@ public class QueryController {
         long timeoutMs = (request.timeoutSeconds() != null
                 ? request.timeoutSeconds() : 600) * 1000L;
         SseEmitter emitter = new SseEmitter(timeoutMs);
+        // Validate admission before returning an SSE response so conflicts remain HTTP 409.
+        LockedSession locked = resolveSessionLocked(request);
 
-        // 在 Virtual Thread 中执行
+        // The session token supports transfer to the worker thread.
+        try {
         Thread.ofVirtual().name("zhiku-query-stream").start(() -> {
             try {
-                LockedSession locked = resolveSessionLocked(request);
                 SessionData session = locked.session();
                 String sessionId = session.sessionId();
                 try (locked) {
-                // INC-3 fix: 使用请求传入的 permissionMode
-                PermissionMode effectiveMode = request.permissionMode() != null
-                        ? request.permissionMode()
-                        : PermissionMode.DONT_ASK;
-                permissionModeManager.setMode(sessionId, effectiveMode);
+                // Execution uses the saved session permission mode.
+                // Admission was checked before returning the SSE response.
                 List<Tool> tools = assembleToolPool(
                         request.allowedTools(), request.disallowedTools());
                 SystemPromptConfig promptConfig = SystemPromptConfig.defaults()
@@ -277,6 +275,10 @@ public class QueryController {
                 emitter.completeWithError(e);
             }
         });
+        } catch (RuntimeException | Error failure) {
+            locked.close();
+            throw failure;
+        }
 
         return emitter;
     }
@@ -304,11 +306,8 @@ public class QueryController {
                 .orElseThrow(() -> new SessionNotFoundException(request.sessionId()));
         projectWorkspaces.requireCurrentBinding(session.workingDir());
 
-        // INC-3 fix: 使用请求传入的 permissionMode
-        PermissionMode effectiveMode = request.permissionMode() != null
-                ? request.permissionMode()
-                : PermissionMode.DONT_ASK;
-        permissionModeManager.setMode(request.sessionId(), effectiveMode);
+        // Execution uses the saved session permission mode.
+        PermissionMode effectiveMode = requireMatchingMode(request.sessionId(), request.permissionMode());
 
         // 2. 准备工具和系统提示
         List<Tool> tools = assembleToolPool(
@@ -335,8 +334,7 @@ public class QueryController {
         );
 
         // 3. 初始化状态 — 加载历史消息
-        // REST API 无交互式权限确认能力：null notifier 保证
-        // DONT_ASK 下需要新确认的操作失败闭合。
+        // Do not install a request-specific notifier or override the saved session mode.
         ToolUseContext toolCtx = ToolUseContext.of(
                 session.workingDir(), request.sessionId())
                 .withPermissionNotifier(null);  // 明确标注: REST无pusher
@@ -398,6 +396,7 @@ public class QueryController {
                 token = acquireSession(request.sessionId());
             }
             SessionData session = resolveSession(request);
+            requireMatchingMode(session.sessionId(), request.permissionMode());
             if (token == null) token = acquireSession(session.sessionId());
             return new LockedSession(session, token);
         } catch (RuntimeException failure) {
@@ -428,10 +427,19 @@ public class QueryController {
         String workingDir = projectWorkspaces.resolveWorkspace(
                 request.projectId()).toString();
         String sessionId = sessionManager.createSession(
-                model, workingDir);
+                model, workingDir, request.permissionMode() != null
+                        ? request.permissionMode() : PermissionMode.AUTO_APPROVE);
         return sessionManager.loadSession(sessionId)
                 .orElseThrow(() ->
                         new SessionNotFoundException(sessionId));
+    }
+
+    private PermissionMode requireMatchingMode(String sessionId, PermissionMode requested) {
+        PermissionMode actual = permissionModeManager.getMode(sessionId);
+        if (requested != null && requested != actual) {
+            throw new PermissionModeMismatchException();
+        }
+        return actual;
     }
 
     private void rejectClientWorkingDirectory(

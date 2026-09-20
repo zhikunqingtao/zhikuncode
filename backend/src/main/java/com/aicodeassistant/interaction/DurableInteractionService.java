@@ -34,6 +34,8 @@ import java.util.concurrent.Semaphore;
 public class DurableInteractionService {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DurableInteractionService.class);
 
+    /** Maximum wait for the first available session transport; never extended by recovery. */
+    public static final int FIRST_DELIVERY_WAIT_SECONDS = 600;
     public static final int DELIVERY_WINDOW_SECONDS = 30;
     public static final int ACK_WINDOW_SECONDS = 5;
     public static final int DECISION_SECONDS = 300;
@@ -128,7 +130,7 @@ public class DurableInteractionService {
                       source,child_session_id,updated_at,authorization_context_json)
                       VALUES(?,?,?,?,?,'pending',?,?,?,?,?,?,?,?,?)
                     """, id, correlationKey, sessionId, runId, InteractionRequest.db(type), promptJson,
-                    decisionsJson, scopesJson, now.toString(), now.plusSeconds(DELIVERY_WINDOW_SECONDS).toString(),
+                    decisionsJson, scopesJson, now.toString(), now.plusSeconds(FIRST_DELIVERY_WAIT_SECONDS).toString(),
                     source == null ? "direct" : source, childSessionId, now.toString(), authorizationJson);
                 Map<String, Object> created = new java.util.LinkedHashMap<>();
                 created.put("interactionId", id);
@@ -212,15 +214,21 @@ public class DurableInteractionService {
     }
 
     public boolean markDispatched(String id, String transportId) {
-        Instant now = Instant.now();
+        expireIfDue(id);
         return write(() -> {
+            Instant now = Instant.now();
             int updated = jdbc.update("""
-                UPDATE interaction_requests SET first_dispatched_at=COALESCE(first_dispatched_at,?),
+                UPDATE interaction_requests SET delivery_window_ends_at=CASE
+                    WHEN first_dispatched_at IS NULL THEN MIN(delivery_window_ends_at,?)
+                    ELSE delivery_window_ends_at END,
+                  first_dispatched_at=COALESCE(first_dispatched_at,?),
                   delivery_ack_deadline_at=COALESCE(delivery_ack_deadline_at,?),
                   delivery_generation=delivery_generation+1,dispatch_attempts=dispatch_attempts+1,last_transport_id=?,
                   updated_at=? WHERE interaction_id=? AND status='pending' AND received_at IS NULL
-                """, now.toString(), now.plusSeconds(ACK_WINDOW_SECONDS).toString(), transportId,
-                now.toString(), id);
+                  AND delivery_window_ends_at>?
+                """, now.plusSeconds(DELIVERY_WINDOW_SECONDS).toString(), now.toString(),
+                now.plusSeconds(ACK_WINDOW_SECONDS).toString(), transportId,
+                now.toString(), id, now.toString());
             if (updated == 1) return true;
             Integer acknowledged = jdbc.queryForObject("""
                     SELECT COUNT(*) FROM interaction_requests
@@ -268,14 +276,14 @@ public class DurableInteractionService {
             log.warn("ACK rejected without valid deliveryGeneration: interactionId={}", id);
             return false;
         }
-        Instant now = Instant.now();
         return write(() -> {
+            Instant now = Instant.now();
             int updated = jdbc.update("""
                 UPDATE interaction_requests SET received_at=?,decision_deadline_at=?,last_transport_id=?,
                   updated_at=? WHERE interaction_id=? AND status='pending'
                   AND received_at IS NULL
                   AND delivery_generation=?
-                  AND delivery_window_ends_at>=?
+                  AND delivery_window_ends_at>?
                 """, now.toString(), now.plusSeconds(DECISION_SECONDS).toString(), transportId,
                 now.toString(), id, deliveryGeneration, now.toString());
             if (updated == 1) {
@@ -295,17 +303,8 @@ public class DurableInteractionService {
 
     /** 重连投递：仅在尚未收到 ACK 时递增投递代次，防止旧页面确认新请求。 */
     public InteractionRequest prepareRecoveryDelivery(String id, String transportId) {
-        Instant now = Instant.now();
-        write(() -> {
-            jdbc.update("""
-                    UPDATE interaction_requests SET delivery_generation=delivery_generation+1,
-                      dispatch_attempts=dispatch_attempts+1,last_transport_id=?,
-                      delivery_ack_deadline_at=?,updated_at=?
-                    WHERE interaction_id=? AND status='pending' AND received_at IS NULL
-                    """, transportId, now.plusSeconds(ACK_WINDOW_SECONDS).toString(),
-                    now.toString(), id);
-            return null;
-        });
+        // Use the same first-dispatch bookkeeping and bounded deadline as initial delivery.
+        if (!markDispatched(id, transportId)) expireIfDue(id);
         return findById(id);
     }
 
@@ -321,13 +320,13 @@ public class DurableInteractionService {
         if (terminal != InteractionRequest.Status.ANSWERED && terminal != InteractionRequest.Status.DENIED
                 && terminal != InteractionRequest.Status.CANCELLED)
             throw new IllegalArgumentException("Invalid user terminal status");
-        Instant now = Instant.now();
         String responseJson;
         try { responseJson = response == null ? null : json.writeValueAsString(response); }
         catch (Exception e) { throw new IllegalArgumentException("INTERACTION_RESPONSE_INVALID", e); }
         // 交互终态、可选持久授权与 Run 恢复必须在同一个项目库事务中完成。
         // 任一步失败都回滚，避免出现“前端显示已允许，但授权或 Run 状态未落库”的分裂状态。
         boolean applied = write(() -> {
+            Instant now = Instant.now();
             InteractionRequest before = findById(id);
             if (before.status() != InteractionRequest.Status.PENDING || before.version() != expectedVersion) return false;
             AuthorizationInteractionContext authorization = null;
@@ -366,8 +365,10 @@ public class DurableInteractionService {
             int updated = jdbc.update("""
                 UPDATE interaction_requests SET status=?,response_json=?,decided_at=?,terminal_reason=?,
                   updated_at=?,version=version+1 WHERE interaction_id=? AND status='pending' AND version=?
+                  AND (CASE WHEN received_at IS NULL THEN delivery_window_ends_at
+                       ELSE decision_deadline_at END)>?
                 """, InteractionRequest.db(terminal), responseJson, now.toString(), reason,
-                now.toString(), id, expectedVersion);
+                now.toString(), id, expectedVersion, now.toString());
             if (updated == 1) {
                 InteractionRequest request = findById(id);
                 if (authorization != null && terminal == InteractionRequest.Status.ANSWERED
@@ -413,6 +414,7 @@ public class DurableInteractionService {
             }
             return updated == 1;
         });
+        if (!applied) expireIfDue(id);
         InteractionRequest current = findById(id);
         if (applied) {
             log.info("Interaction decided: interactionId={}, runId={}, type={}, status={}",
@@ -703,10 +705,20 @@ public class DurableInteractionService {
     }
 
     private void expire(String id, InteractionRequest.Status status, String reason) {
-        Instant now = Instant.now();
         boolean applied = write(() -> {
-            int updated = jdbc.update("UPDATE interaction_requests SET status=?,terminal_reason=?,decided_at=?,updated_at=?,version=version+1 WHERE interaction_id=? AND status='pending'",
-                    InteractionRequest.db(status), reason, now.toString(), now.toString(), id);
+            Instant now = Instant.now();
+            // Recheck the deadline and ACK under the writer transaction: the scheduler's
+            // candidate snapshot may predate an ACK or a user decision.
+            int updated = jdbc.update("""
+                    UPDATE interaction_requests SET status=?,terminal_reason=CASE
+                      WHEN ?='undeliverable' AND first_dispatched_at IS NULL THEN 'delivery_not_dispatched'
+                      ELSE ? END,decided_at=?,updated_at=?,version=version+1
+                    WHERE interaction_id=? AND status='pending' AND (
+                      (?='undeliverable' AND received_at IS NULL AND delivery_window_ends_at<=?) OR
+                      (?='expired' AND received_at IS NOT NULL AND decision_deadline_at<=?))
+                    """, InteractionRequest.db(status), InteractionRequest.db(status), reason,
+                    now.toString(), now.toString(), id,
+                    InteractionRequest.db(status), now.toString(), InteractionRequest.db(status), now.toString());
             if (updated == 1) {
                 InteractionRequest request = findById(id);
                 appendTerminalEventInCurrentWrite(request);

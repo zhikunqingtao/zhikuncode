@@ -4,12 +4,20 @@ import com.aicodeassistant.config.database.DatabaseResolver;
 import com.aicodeassistant.config.database.SqliteConfig;
 import com.aicodeassistant.config.database.V015_CreateInteractionSchema;
 import com.aicodeassistant.config.database.V019_CreateAuthorizationSchema;
+import com.aicodeassistant.controller.InteractionController;
+import com.aicodeassistant.engine.ElicitationService;
 import com.aicodeassistant.run.RunControlService;
 import com.aicodeassistant.run.RunEnvelope;
+import com.aicodeassistant.security.SessionAccessAuthorizer;
+import com.aicodeassistant.tool.ToolInput;
+import com.aicodeassistant.tool.ToolUseContext;
+import com.aicodeassistant.tool.interaction.AskUserQuestionTool;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -17,6 +25,7 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
@@ -32,6 +41,158 @@ class DurableInteractionServiceCasTest {
     private SqliteConfig sqlite;
 
     @AfterEach void close() { if (sqlite != null) sqlite.destroy(); }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void questionSelectionModeSurvivesRecoveryAndAnswersRoundTrip(boolean multiSelect) throws Exception {
+        CompletableFuture<InteractionRequest> created = new CompletableFuture<>();
+        Fixture fixture = fixture(event -> {
+            if (event instanceof InteractionCreatedEvent interaction) created.complete(interaction.request());
+        });
+        ObjectMapper json = new ObjectMapper();
+        AskUserQuestionTool tool = new AskUserQuestionTool(new ElicitationService(fixture.interactions, json));
+        Map<String, Object> question = new java.util.LinkedHashMap<>();
+        question.put("question", "Which directions?");
+        question.put("options", List.of(Map.of("label", "A"), Map.of("label", "B")));
+        // An omitted flag must retain the existing single-select behavior.
+        if (multiSelect) question.put("multiSelect", true);
+        Object answer = multiSelect ? List.of("A", "B") : "A";
+
+        try (var pool = Executors.newVirtualThreadPerTaskExecutor()) {
+            var result = pool.submit(() -> tool.call(ToolInput.from(Map.of("questions", List.of(question))),
+                    ToolUseContext.of("/tmp", "s1").withCurrentRunId(fixture.run.id())));
+            InteractionRequest pending = created.get(5, TimeUnit.SECONDS);
+            try {
+                assertThat(fixture.interactions.view(pending).prompt()).containsEntry("multiSelect", multiSelect);
+                assertThat(fixture.interactions.pendingViews("s1").getFirst().prompt())
+                        .containsEntry("multiSelect", multiSelect);
+                InteractionRequest recovered = fixture.interactions.prepareRecoveryDelivery(
+                        pending.interactionId(), "transport-reconnected");
+                assertThat(fixture.interactions.view(recovered).prompt()).containsEntry("multiSelect", multiSelect);
+
+                SessionAccessAuthorizer access = org.mockito.Mockito.mock(SessionAccessAuthorizer.class);
+                org.mockito.Mockito.when(access.canAccessSession("s1", "s1")).thenReturn(true);
+                InteractionController controller = new InteractionController(fixture.interactions, access, json);
+                var decision = controller.decide(pending.interactionId(), "s1", new InteractionController.DecisionRequest(
+                        recovered.version(), "answer", answer, false, null, null, null,
+                        recovered.deliveryGeneration()));
+
+                assertThat(decision.getStatusCode().is2xxSuccessful()).isTrue();
+                var completed = result.get(5, TimeUnit.SECONDS);
+                assertThat(completed.isError()).isFalse();
+                assertThat(json.readTree(completed.content()).path("answers").path("q1"))
+                        .isEqualTo(json.valueToTree(answer));
+                assertThat(fixture.interactions.view(fixture.interactions.findById(pending.interactionId())).response())
+                        .isEqualTo(answer);
+            } finally {
+                // Release the waiting tool even when an assertion fails before the answer is submitted.
+                fixture.interactions.decide(pending.interactionId(), pending.version(),
+                        InteractionRequest.Status.CANCELLED, null, "test_cleanup");
+            }
+        }
+    }
+
+    @Test
+    void offlineRecoveryIsBoundedAndRetryable() {
+        Fixture f = fixture();
+        InteractionRequest r = f.interactions.create("offline", "s1", f.run.id(),
+                InteractionRequest.Type.ELICITATION, Map.of("question", "Continue?"),
+                List.of("answer", "cancel"), List.of(), "direct", null);
+        assertThat(java.time.Duration.between(r.createdAt(), r.deliveryWindowEndsAt()).toSeconds()).isEqualTo(600);
+        f.jdbc.update("UPDATE interaction_requests SET created_at=?,delivery_window_ends_at=? WHERE interaction_id=?",
+                Instant.now().minusSeconds(60).toString(), Instant.now().plusSeconds(540).toString(), r.interactionId());
+        f.interactions.expireDeadlines();
+        InteractionRequest recovered = f.interactions.prepareRecoveryDelivery(r.interactionId(), "t1");
+        assertThat(recovered.status()).isEqualTo(InteractionRequest.Status.PENDING);
+        assertThat(recovered.firstDispatchedAt()).isNotNull();
+        assertThat(java.time.Duration.between(recovered.firstDispatchedAt(), recovered.deliveryWindowEndsAt()).toSeconds()).isEqualTo(30);
+        assertThat(f.interactions.redeliveryCandidates(Instant.now().plusSeconds(2)))
+                .extracting(InteractionRequest::interactionId).contains(r.interactionId());
+        InteractionRequest again = f.interactions.prepareRecoveryDelivery(r.interactionId(), "t2");
+        assertThat(again.firstDispatchedAt()).isEqualTo(recovered.firstDispatchedAt());
+        assertThat(again.deliveryWindowEndsAt()).isEqualTo(recovered.deliveryWindowEndsAt());
+        assertThat(f.interactions.acknowledgeReceived(r.interactionId(), again.deliveryGeneration(), "t2")).isTrue();
+        // A scheduler candidate selected before ACK must not terminate the newly acknowledged question.
+        f.jdbc.update("UPDATE interaction_requests SET delivery_window_ends_at=? WHERE interaction_id=?",
+                Instant.EPOCH.toString(), r.interactionId());
+        org.springframework.test.util.ReflectionTestUtils.invokeMethod(f.interactions, "expire",
+                r.interactionId(), InteractionRequest.Status.UNDELIVERABLE, "delivery_not_acknowledged");
+        assertThat(f.interactions.findById(r.interactionId()).status()).isEqualTo(InteractionRequest.Status.PENDING);
+        assertThat(f.events).noneMatch(e -> e instanceof com.aicodeassistant.run.RunTerminationRequestedEvent);
+        assertThat(f.interactions.decide(r.interactionId(), again.version(), InteractionRequest.Status.ANSWERED,
+                "yes", "user_answered")).isEqualTo(InteractionRequest.Status.ANSWERED);
+    }
+
+    @Test
+    void overdueRecoveryCannotResurrectQuestion() {
+        Fixture f = fixture();
+        InteractionRequest r = f.interactions.create("overdue", "s1", f.run.id(),
+                InteractionRequest.Type.ELICITATION, Map.of("question", "Continue?"),
+                List.of("answer", "cancel"), List.of(), "direct", null);
+        f.jdbc.update("UPDATE interaction_requests SET delivery_window_ends_at=? WHERE interaction_id=?",
+                Instant.EPOCH.toString(), r.interactionId());
+        InteractionRequest recovered = f.interactions.prepareRecoveryDelivery(r.interactionId(), "t1");
+        assertThat(recovered.status()).isEqualTo(InteractionRequest.Status.UNDELIVERABLE);
+        assertThat(recovered.terminalReason()).isEqualTo("delivery_not_dispatched");
+        assertThat(recovered.dispatchAttempts()).isZero();
+        assertThat(f.interactions.prepareRecoveryDelivery(r.interactionId(), "t2").status())
+                .isEqualTo(InteractionRequest.Status.UNDELIVERABLE);
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {0, 1, 2})
+    void deliveryFailureReachesToolWithoutBlamingUser(int stage) throws Exception {
+        CompletableFuture<InteractionRequest> created = new CompletableFuture<>();
+        Fixture f = fixture(e -> { if (e instanceof InteractionCreatedEvent event) created.complete(event.request()); });
+        AskUserQuestionTool tool = new AskUserQuestionTool(new ElicitationService(f.interactions, new ObjectMapper()));
+        try (var pool = Executors.newVirtualThreadPerTaskExecutor()) {
+            var result = pool.submit(() -> tool.call(ToolInput.from(Map.of("questions", List.of(Map.of(
+                    "question", "Continue?", "options", List.of(Map.of("label", "Yes"), Map.of("label", "No")))))),
+                    ToolUseContext.of("/tmp", "s1").withCurrentRunId(f.run.id())));
+            InteractionRequest r = created.get(5, TimeUnit.SECONDS);
+            try {
+                if (stage > 0) f.interactions.markDispatched(r.interactionId(), "t1");
+                if (stage == 2) {
+                    assertThat(f.interactions.acknowledgeReceived(r.interactionId(), 1, "t1")).isTrue();
+                    f.jdbc.update("UPDATE interaction_requests SET decision_deadline_at=? WHERE interaction_id=?",
+                            Instant.EPOCH.toString(), r.interactionId());
+                } else {
+                    f.jdbc.update("UPDATE interaction_requests SET delivery_window_ends_at=? WHERE interaction_id=?",
+                            Instant.EPOCH.toString(), r.interactionId());
+                }
+                f.interactions.expireDeadlines();
+                var completed = result.get(5, TimeUnit.SECONDS);
+                assertThat(completed.isError()).isTrue();
+                assertThat(completed.failureCode()).isEqualTo(stage == 2 ? "ELICITATION_EXPIRED" : "ELICITATION_UNDELIVERABLE");
+                assertThat(completed.content()).contains(stage == 2 ? "no answer was received"
+                        : stage == 1 ? "did not acknowledge" : "could not be dispatched")
+                        .doesNotContain("User did not respond");
+            } finally {
+                f.interactions.decide(r.interactionId(), r.version(), InteractionRequest.Status.CANCELLED, null, "cleanup");
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void lateAnswerAndCancelledQuestionCannotBeRecovered(boolean cancelled) {
+        Fixture f = fixture();
+        InteractionRequest r = f.interactions.create("terminal", "s1", f.run.id(),
+                InteractionRequest.Type.ELICITATION, Map.of("question", "Continue?"),
+                List.of("answer", "cancel"), List.of(), "direct", null);
+        if (cancelled) {
+            f.interactions.decide(r.interactionId(), r.version(), InteractionRequest.Status.CANCELLED, null, "user_cancelled");
+        } else {
+            f.interactions.markDispatched(r.interactionId(), "t1");
+            f.interactions.acknowledgeReceived(r.interactionId(), 1, "t1");
+            f.jdbc.update("UPDATE interaction_requests SET decision_deadline_at=? WHERE interaction_id=?",
+                    Instant.EPOCH.toString(), r.interactionId());
+            assertThat(f.interactions.decide(r.interactionId(), r.version(), InteractionRequest.Status.ANSWERED,
+                    "late", "user_answered")).isEqualTo(InteractionRequest.Status.EXPIRED);
+        }
+        assertThat(f.interactions.prepareRecoveryDelivery(r.interactionId(), "t2").status())
+                .isEqualTo(cancelled ? InteractionRequest.Status.CANCELLED : InteractionRequest.Status.EXPIRED);
+    }
 
     @Test
     void concurrentDifferentInteractionsShareOneProjectWriterWithoutBusyFailures() throws Exception {
@@ -269,6 +430,10 @@ class DurableInteractionServiceCasTest {
     }
 
     private Fixture fixture() {
+        return fixture(event -> {});
+    }
+
+    private Fixture fixture(java.util.function.Consumer<Object> eventListener) {
         DatabaseResolver resolver = new DatabaseResolver("", temp.toString());
         sqlite = new SqliteConfig(resolver);
         var dataSource = sqlite.getProjectDataSource(Path.of("ignored"));
@@ -281,7 +446,10 @@ class DurableInteractionServiceCasTest {
         RunControlService runs = new RunControlService(jdbc, sqlite, resolver, tx, new ObjectMapper());
         RunEnvelope run = runs.start("s1", null, "main", "known");
         java.util.List<Object> publishedEvents = new java.util.concurrent.CopyOnWriteArrayList<>();
-        ApplicationEventPublisher events = publishedEvents::add;
+        ApplicationEventPublisher events = event -> {
+            publishedEvents.add(event);
+            eventListener.accept(event);
+        };
         DurableInteractionService interactions = new DurableInteractionService(
                 jdbc, sqlite, resolver, tx, new ObjectMapper(), runs, events,
                 org.mockito.Mockito.mock(com.aicodeassistant.authorization.PermissionGrantRepository.class));

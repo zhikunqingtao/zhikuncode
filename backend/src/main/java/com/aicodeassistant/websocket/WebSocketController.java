@@ -909,10 +909,7 @@ public class WebSocketController implements PermissionNotifier {
         );
 
         // 4. 初始化循环状态 + 加载历史消息 + 添加用户消息
-        // 确保 WebSocket 会话使用 DEFAULT 权限模式（允许交互式权限确认）
-        if (!permissionModeManager.hasExplicitMode(sessionId)) {
-            permissionModeManager.setMode(sessionId, com.aicodeassistant.model.PermissionMode.DEFAULT);
-        }
+        // 会话权限从数据库读取，不能在重连或首次执行时覆盖用户已保存的选择。
         log.debug("WebSocket session permissionMode: {}",
                 permissionModeManager.getMode(sessionId));
         ToolUseContext toolUseContext = ToolUseContext.of(
@@ -1394,6 +1391,7 @@ public class WebSocketController implements PermissionNotifier {
             return;
         }
         String requestedMode = payload == null ? null : payload.mode();
+        String requestId = payload == null ? null : payload.requestId();
         try {
             if (requestedMode == null || requestedMode.isBlank()) {
                 throw new IllegalArgumentException("Permission mode is required");
@@ -1401,15 +1399,22 @@ public class WebSocketController implements PermissionNotifier {
             com.aicodeassistant.model.PermissionMode mode =
                     com.aicodeassistant.model.PermissionMode.valueOf(requestedMode);
             log.info("WS set_permission_mode: sessionId={}, mode={}", sessionId, mode);
-            permissionModeManager.setMode(sessionId, mode);
+            permissionModeManager.setMode(sessionId, mode, requestId);
         } catch (IllegalArgumentException e) {
             log.warn("Invalid permission mode: length={}, fingerprint={}",
                     SafeLogValue.length(requestedMode), SafeLogValue.fingerprint(requestedMode));
-            push(sessionId, "error", Map.of(
-                    "code", "INVALID_PERMISSION_MODE",
-                    "message", "Invalid permission mode",
-                    "retryable", false));
+            pushPermissionModeError(sessionId, requestId, "INVALID_PERMISSION_MODE", "Invalid permission mode", false);
+        } catch (RuntimeException e) {
+            log.error("Failed to save permission mode: sessionId={}", sessionId, e);
+            pushPermissionModeError(sessionId, requestId, "PERMISSION_MODE_SAVE_FAILED", "权限模式保存失败，请重试", true);
         }
+    }
+
+    private void pushPermissionModeError(String sessionId, String requestId, String code, String message, boolean retryable) {
+        var error = new HashMap<String, Object>();
+        error.put("code", code); error.put("message", message); error.put("retryable", retryable);
+        if (requestId != null) error.put("requestId", requestId);
+        push(sessionId, "error", error);
     }
 
     /**

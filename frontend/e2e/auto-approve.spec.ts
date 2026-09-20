@@ -40,10 +40,14 @@ async function mockHttpApi(page: import('@playwright/test').Page) {
     } else if (pathname === '/api/sessions' && request.method() === 'POST') {
       await route.fulfill({ status: 201, json: {
         sessionId: 'session-auto-approve', projectId: project.id,
-        permissionMode: 'DEFAULT',
+        permissionMode: 'AUTO_APPROVE',
       }});
     } else if (pathname === '/api/sessions') {
       await route.fulfill({ json: { sessions: [], hasMore: false, nextCursor: null } });
+    } else if (pathname === '/api/models') {
+      await route.fulfill({ json: { models: [{ id: 'test-model', displayName: 'Test Model' }], defaultModel: 'test-model' } });
+    } else if (pathname === '/api/interactions/pending') {
+      await route.fulfill({ json: [] });
     } else if (pathname === '/api/skills') {
       await route.fulfill({ json: [] });
     } else if (pathname === '/api/config') {
@@ -56,9 +60,11 @@ async function mockHttpApi(page: import('@playwright/test').Page) {
 }
 
 test.describe('AUTO_APPROVE permission mode', () => {
-  test('switches only after the bound server confirms AUTO_APPROVE', async ({ page }) => {
+  test('defaults to full access, waits for confirmation, and restores the saved mode after reload', async ({ page }) => {
     const project = await mockHttpApi(page);
     let requestedMode: string | null = null;
+    let savedMode = 'AUTO_APPROVE';
+    let confirm: (() => void) | undefined;
     await page.route('**/ws/info**', route => route.fulfill({ json: {
       websocket: true, cookie_needed: false, origins: ['*:*'], entropy: 123456,
     }}));
@@ -95,16 +101,17 @@ test.describe('AUTO_APPROVE permission mode', () => {
               messages: [], activities: [], totalActivityCount: 0, hasMore: false,
               metadata: {
                 sessionId: bind.sessionId, model: 'test-model',
-                permissionMode: 'DEFAULT', status: 'idle',
+                permissionMode: savedMode, status: 'idle',
               },
             });
           } else if (frame.command === 'SEND'
               && frame.headers.destination === '/app/permission-mode') {
-            requestedMode = (JSON.parse(frame.body) as { mode: string }).mode;
-            sendMessage({
-              type: 'permission_mode_changed', ts: Date.now(),
-              mode: 'AUTO_APPROVE', previous: 'DEFAULT',
-            });
+            const request = JSON.parse(frame.body) as { mode: string; requestId: string };
+            requestedMode = request.mode;
+            confirm = () => {
+              savedMode = request.mode;
+              sendMessage({ type: 'permission_mode_changed', ts: Date.now(), mode: savedMode, requestId: request.requestId });
+            };
           }
         }
       });
@@ -112,24 +119,21 @@ test.describe('AUTO_APPROVE permission mode', () => {
     });
 
     await page.goto('/');
-    await page.getByLabel('新建会话', { exact: true }).click();
+    await page.getByRole('button', { name: '新建会话', exact: true }).click();
     await page.getByText(project.name, { exact: true }).click();
     await page.getByRole('button', { name: '使用所选授权' }).click();
-    // sessionId is committed only after the matching session_restored frame.
-    await expect(page.getByText('Session: session-...', { exact: true })).toBeVisible();
-    await page.getByRole('combobox', { name: '权限模式', exact: true }).selectOption('auto_approve');
-
-    await expect.poll(() => requestedMode).toBe('AUTO_APPROVE');
-    await expect(page.locator('footer').getByText('完全访问', { exact: true })).toBeVisible();
-  });
-
-  test('does not allow a mode request before a session is bound', async ({ page }) => {
-    await mockHttpApi(page);
-    await page.goto('/');
-    const mode = page.getByRole('combobox', { name: '权限模式', exact: true });
-    const previous = await mode.inputValue();
-    await mode.selectOption('auto_approve');
-    await expect(mode).toHaveValue(previous);
-    await expect(page.getByText('New Session', { exact: true })).toBeVisible();
+    const mode = page.getByRole('button', { name: '权限模式', exact: true });
+    await expect(mode).toContainText('完全访问');
+    await mode.click();
+    await page.getByRole('button', { name: /先做计划/ }).click();
+    await expect.poll(() => requestedMode).toBe('PLAN');
+    await expect(mode).toContainText('完全访问');
+    await expect(page.getByText('正在切换', { exact: true })).toBeVisible();
+    confirm!();
+    await expect(mode).toContainText('计划');
+    await expect(page.getByText('正在切换', { exact: true })).toHaveCount(0);
+    await expect(page.getByText('切换结果尚未确认', { exact: true })).toHaveCount(0);
+    await page.reload();
+    await expect(page.getByRole('button', { name: '权限模式', exact: true })).toContainText('计划');
   });
 });

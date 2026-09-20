@@ -13,10 +13,13 @@ export interface PermissionStoreState {
     pendingPermissions: PermissionRequest[];
     permissionMode: PermissionMode;
     denialTracking: DenialTrackingState;
+    pendingModeChange: { sessionId: string; mode: PermissionMode; startedAt: number; requestId: string } | null;
+    modeChangeMessage: string | null;
+    clearModeChange: () => void;
 
     showPermission: (request: PermissionRequest) => void;
     respondPermission: (decision: PermissionDecision, interactionId?: string) => void;
-    setPermissionMode: (mode: PermissionMode) => void;
+    setPermissionMode: (mode: PermissionMode, requestId?: string) => void;
     clearPermissions: () => void;
     removeInteraction: (interactionId: string) => void;
     updateInteractionDeadline: (interactionId: string, decisionDeadlineAt: number, version?: number) => void;
@@ -25,7 +28,10 @@ export interface PermissionStoreState {
 export const usePermissionStore = create<PermissionStoreState>()(
     subscribeWithSelector(immer((set) => ({
         pendingPermissions: [],
-        permissionMode: 'default' as PermissionMode,
+        permissionMode: 'auto_approve' as PermissionMode,
+        pendingModeChange: null,
+        modeChangeMessage: null,
+        clearModeChange: () => set(d => { d.pendingModeChange = null; d.modeChangeMessage = null; }),
         denialTracking: { consecutiveDenials: 0, totalDenials: 0 },
 
         showPermission: (req) => set(d => {
@@ -51,7 +57,13 @@ export const usePermissionStore = create<PermissionStoreState>()(
                 d.denialTracking.consecutiveDenials = 0;
             }
         }),
-        setPermissionMode: (mode) => set(d => { d.permissionMode = mode; }),
+        setPermissionMode: (mode, requestId) => set(d => {
+            d.permissionMode = mode;
+            // Broadcasts update the authoritative value; only our own acknowledgement ends a pending request.
+            if (!d.pendingModeChange || d.pendingModeChange.requestId === requestId) {
+                d.pendingModeChange = null; d.modeChangeMessage = null;
+            }
+        }),
         clearPermissions: () => set(d => { d.pendingPermissions = []; }),
         removeInteraction: (interactionId) => set(d => {
             d.pendingPermissions = d.pendingPermissions.filter(p =>

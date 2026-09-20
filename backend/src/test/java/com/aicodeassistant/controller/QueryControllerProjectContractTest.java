@@ -100,7 +100,7 @@ class QueryControllerProjectContractTest {
         when(projects.resolveWorkspace("project-1"))
                 .thenReturn(workspace);
         when(sessions.createSession(
-                "model-1", workspace.toString()))
+                "model-1", workspace.toString(), PermissionMode.AUTO_APPROVE))
                 .thenReturn("session-1");
         when(sessions.loadSession("session-1"))
                 .thenReturn(Optional.of(created));
@@ -118,7 +118,7 @@ class QueryControllerProjectContractTest {
 
         assertThat(resolved).isSameAs(created);
         verify(sessions).createSession(
-                "model-1", workspace.toString());
+                "model-1", workspace.toString(), PermissionMode.AUTO_APPROVE);
     }
 
     @Test
@@ -165,6 +165,48 @@ class QueryControllerProjectContractTest {
                         error -> assertThat(error.getCode())
                                 .isEqualTo(
                                         "QUERY_PROJECT_WITH_SESSION_UNSUPPORTED"));
+    }
+
+    @Test
+    void allRestEntrypointsRejectModeMismatchBeforeExecution() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        SessionManager sessions = mock(SessionManager.class);
+        ProjectWorkspaceService projects = mock(ProjectWorkspaceService.class);
+        PermissionModeManager modes = mock(PermissionModeManager.class);
+        QueryEngine engine = mock(QueryEngine.class);
+        SessionExecutionGate gate = new SessionExecutionGate();
+        javax.sql.DataSource ds = mock(javax.sql.DataSource.class);
+        when(sessions.dataSourceIdentity()).thenReturn(ds);
+        when(sessions.loadSession("session-1")).thenReturn(Optional.of(session("session-1", workspace.toString())));
+        when(modes.getMode("session-1")).thenReturn(PermissionMode.PLAN);
+        QueryController controller = new QueryController(engine, mock(ToolRegistry.class), sessions,
+                mock(LlmProviderRegistry.class), mock(TokenCounter.class), mapper,
+                mock(EffectiveSystemPromptBuilder.class), modes, mock(ModelRegistry.class), projects, gate);
+        var request = mapper.readValue("{\"prompt\":\"hello\",\"sessionId\":\"session-1\",\"permissionMode\":\"AUTO_APPROVE\"}", QueryController.QueryRequest.class);
+        var conversation = mapper.readValue("{\"prompt\":\"hello\",\"sessionId\":\"session-1\",\"permissionMode\":\"AUTO_APPROVE\"}", QueryController.ConversationRequest.class);
+        for (Runnable call : List.<Runnable>of(() -> controller.query(request), () -> controller.streamQuery(request),
+                () -> controller.conversationQuery(conversation))) {
+            assertThatThrownBy(call::run).isInstanceOf(com.aicodeassistant.exception.PermissionModeMismatchException.class);
+            assertThat(gate.isBusy(ds, "session-1")).isFalse();
+        }
+        verifyNoInteractions(engine);
+        org.mockito.Mockito.verify(modes, org.mockito.Mockito.never()).setMode(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+        var response = new GlobalExceptionHandler().handlePermissionModeMismatch(new com.aicodeassistant.exception.PermissionModeMismatchException());
+        assertThat(response.getStatusCode().value()).isEqualTo(409);
+        assertThat(response.getBody().toString()).contains("PERMISSION_MODE_MISMATCH");
+        var mvc = org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup(controller)
+                .setControllerAdvice(new GlobalExceptionHandler()).build();
+        for (String accept : List.of("text/event-stream", "text/event-stream, application/json")) {
+            mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/query/stream")
+                    .contentType("application/json").header("Accept", accept)
+                    .content("{\"prompt\":\"hello\",\"sessionId\":\"session-1\",\"permissionMode\":\"AUTO_APPROVE\"}"))
+                    .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isConflict())
+                    .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content().contentTypeCompatibleWith("application/json"))
+                    .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.error.code").value("PERMISSION_MODE_MISMATCH"));
+        }
+        verifyNoInteractions(engine);
+        assertThat((PermissionMode) ReflectionTestUtils.invokeMethod(controller, "requireMatchingMode", "session-1", null)).isEqualTo(PermissionMode.PLAN);
+        assertThat((PermissionMode) ReflectionTestUtils.invokeMethod(controller, "requireMatchingMode", "session-1", PermissionMode.PLAN)).isEqualTo(PermissionMode.PLAN);
     }
 
     private static QueryController controller(

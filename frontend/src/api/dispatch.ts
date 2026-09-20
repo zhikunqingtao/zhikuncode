@@ -70,7 +70,7 @@ const pendingInteractionAcks = new Map<string, PendingInteractionAck>();
 const RECOVERY_BYPASS_TYPES: ReadonlySet<string> = new Set([
     'session_restored', 'protocol_error',
     'interaction_created', 'interaction_updated', 'interaction_terminal',
-    'permission_request', 'permission_mode_changed'
+    'permission_request'
 ]);
 
 /** 已绑定的会话 ID — 跟踪当前 WS 连接已绑定的 sessionId，避免重复发送 bind-session */
@@ -163,6 +163,7 @@ function handleInteractionCreated(interaction: InteractionView): void {
             requestId: interaction.interactionId,
             question: String(prompt.question ?? ''),
             options: prompt.options ?? [],
+            multiSelect: prompt.multiSelect === true,
             decisionDeadlineAt: deadline,
         });
         queueInteractionAck(interaction.sessionId, interaction.interactionId,
@@ -191,6 +192,7 @@ export function isSessionBound(sessionId: string): boolean {
 
 /** 重置绑定状态 — WS 重连时调用，确保下次发消息时重新发送 bind-session */
 export function resetBoundSession(): void {
+    usePermissionStore.getState().clearModeChange();
     boundSessionId = null;
     boundBindingEpoch = 0;
     boundBindRequestId = null;
@@ -240,6 +242,7 @@ export function bindSessionAndWait(
     publish: (payload: { sessionId: string; protocolVersion: number; bindRequestId: string; bindingEpoch: number }) => void | boolean,
     timeoutMs = 5000,
 ): Promise<boolean> {
+    usePermissionStore.getState().clearModeChange();
     if (activeRecoveryId) finishBind(activeRecoveryId, false, false);
     const bindRequestId = generateUUID();
     const bindingEpoch = ++nextBindingEpoch;
@@ -622,7 +625,7 @@ const handlers: Record<string, (data: any) => void> = {
             timeout: 6000,
         });
     },
-    'permission_mode_changed':  (d: { mode: string }) => {
+    'permission_mode_changed':  (d: { mode: string; requestId?: string }) => {
         // 后端枚举为大写，前端使用小写稳定值。
         const normalizedMode = d.mode.toLowerCase();
         if (!isPermissionMode(normalizedMode)) {
@@ -630,8 +633,9 @@ const handlers: Record<string, (data: any) => void> = {
             return;
         }
         // 服务端确认是唯一的主动切换提交点。
-        usePermissionStore.getState().setPermissionMode(normalizedMode);
+        usePermissionStore.getState().setPermissionMode(normalizedMode, d.requestId);
         // 通知用户权限模式已变更
+        useNotificationStore.getState().removeNotification('permission-mode-changed');
         useNotificationStore.getState().addNotification({
             key: 'permission-mode-changed',
             level: 'info',
@@ -940,7 +944,15 @@ function recoverAuthoritativeSession(sessionId: string | null): void {
  * errorCode 存在时渲染醒目的 provider_error 错误横幅；缺失时保持既有行为（向后兼容）。
  * 无论哪种情况都必须终止“生成中”状态，避免用户体感卡死。
  */
-function handleError(data: { code?: string; message: string; retryable?: boolean; errorCode?: string; httpStatus?: number }): void {
+function handleError(data: { code?: string; message: string; retryable?: boolean; errorCode?: string; httpStatus?: number; requestId?: string }): void {
+    if (data.code === 'PERMISSION_MODE_SAVE_FAILED' || data.code === 'INVALID_PERMISSION_MODE') {
+        if (data.requestId && usePermissionStore.getState().pendingModeChange?.requestId === data.requestId)
+            usePermissionStore.getState().clearModeChange();
+        const notifications = useNotificationStore.getState();
+        notifications.removeNotification('permission-mode-save-failed');
+        notifications.addNotification({ key: 'permission-mode-save-failed', level: 'error', message: data.message });
+        return; // A settings failure must not terminate an unrelated running query.
+    }
     // 错误路径上 tool_result 永远不会到来：先将仍在 running 的工具调用标记为 error，
     // 避免 ToolCallBlock 在 running 状态下无限计时转圈
     useMessageStore.getState().failAllRunningToolCalls(data.message);

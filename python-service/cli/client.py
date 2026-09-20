@@ -113,10 +113,12 @@ class AicaClient:
         """
         url = f"{self.server}/api/query/stream"
         headers = self._headers()
-        headers["Accept"] = "text/event-stream"
+        headers["Accept"] = "text/event-stream, application/json"
 
         with httpx.Client(timeout=self.timeout) as client:
             with client.stream("POST", url, json=body, headers=headers) as response:
+                if response.is_error:
+                    response.read()  # Preserve the REST error envelope after the stream closes.
                 response.raise_for_status()
                 buffer = ""
                 for chunk in response.iter_text():

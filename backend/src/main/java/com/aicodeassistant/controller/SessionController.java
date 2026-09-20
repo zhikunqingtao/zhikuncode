@@ -115,10 +115,9 @@ public class SessionController {
         String workingDir = projectWorkspaces.resolveWorkspace(projectId)
                 .toString();
         PermissionMode permissionMode = request != null && request.permissionMode() != null
-                ? request.permissionMode() : PermissionMode.DEFAULT;
+                ? request.permissionMode() : PermissionMode.AUTO_APPROVE;
 
-        String sessionId = sessionManager.createSession(model, workingDir);
-        permissionModes.setMode(sessionId, permissionMode);
+        String sessionId = sessionManager.createSession(model, workingDir, permissionMode);
 
         // 通知所有活跃 WebSocket 连接刷新会话列表
         notifySessionListChanged();
@@ -172,7 +171,8 @@ public class SessionController {
         // 附带运行中标记（与 WorkbenchTaskService 的 RUNNING 语义一致：
         // 最新根 Run 未达到终态即视为生成中），供前端列表展示"生成中"状态。
         List<SessionSummaryView> views = page.sessions().stream()
-                .map(summary -> SessionSummaryView.of(summary, isRunning(summary.id())))
+                .map(summary -> SessionSummaryView.of(summary, isRunning(summary.id()),
+                        executionGate.mergeOperationId(sessionManager.dataSourceIdentity(), summary.id())))
                 .toList();
 
         return ResponseEntity.ok(new SessionListResponse(
@@ -333,6 +333,11 @@ public class SessionController {
         }
     }
 
+    @org.springframework.context.event.EventListener
+    public void onMergeChanged(com.aicodeassistant.session.merge.SessionMergeService.StatusChanged event) {
+        notifySessionListChanged();
+    }
+
     private SessionData getSessionOrThrow(String sessionId) {
         return sessionManager.loadSession(sessionId)
                 .orElseThrow(() -> new SessionNotFoundException(sessionId));
@@ -408,12 +413,16 @@ public class SessionController {
             double costUsd,
             Instant createdAt,
             Instant updatedAt,
-            boolean running
+            boolean running,
+            String mergeOperationId
     ) {
         static SessionSummaryView of(SessionSummary s, boolean running) {
+            return of(s, running, null);
+        }
+        static SessionSummaryView of(SessionSummary s, boolean running, String mergeOperationId) {
             return new SessionSummaryView(
                     s.id(), s.title(), s.goalPreview(), s.model(), s.workingDirectory(),
-                    s.messageCount(), s.costUsd(), s.createdAt(), s.updatedAt(), running);
+                    s.messageCount(), s.costUsd(), s.createdAt(), s.updatedAt(), running, mergeOperationId);
         }
     }
 

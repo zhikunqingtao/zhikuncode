@@ -1,3 +1,4 @@
+import { usePermissionStore } from '@/store/permissionStore';
 /**
  * error 事件契约测试
  * 契约: type="error", payload = { message: string(人类可读中文),
@@ -8,7 +9,7 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { dispatch } from '@/api/dispatch';
+import { dispatch, resetBoundSession } from '@/api/dispatch';
 import { useMessageStore } from '@/store/messageStore';
 import { useNotificationStore } from '@/store/notificationStore';
 import { useSessionStore } from '@/store/sessionStore';
@@ -29,6 +30,40 @@ describe('error 事件契约解析', () => {
         useMessageStore.getState().clearMessages();
         useNotificationStore.getState().clearAll();
         useSessionStore.getState().setStatus('streaming');
+    });
+
+    it('same-mode confirmation and binding reset clear pending selection', () => {
+        usePermissionStore.setState({ permissionMode: 'plan', pendingModeChange: { requestId: 'selection-1', sessionId: 's', mode: 'plan', startedAt: 1 } });
+        dispatch({ type: 'permission_mode_changed', mode: 'PLAN', requestId: 'selection-1' } as ServerMessage);
+        expect(usePermissionStore.getState().pendingModeChange).toBeNull();
+        usePermissionStore.setState({ pendingModeChange: { requestId: 'selection-1', sessionId: 's', mode: 'auto_approve', startedAt: 2 } });
+        resetBoundSession();
+        expect(usePermissionStore.getState().pendingModeChange).toBeNull();
+        expect(usePermissionStore.getState().permissionMode).toBe('plan');
+    });
+
+    it('permission save failure clears pending selection without terminating a running query', () => {
+        usePermissionStore.setState({ permissionMode: 'plan', pendingModeChange: { requestId: 'selection-1', sessionId: 's', mode: 'auto_approve', startedAt: 1 } });
+        useMessageStore.getState().appendStreamDelta('正在处理');
+        const stream = useMessageStore.getState().streamingMessageId;
+        dispatch({ type: 'error', code: 'PERMISSION_MODE_SAVE_FAILED', requestId: 'selection-1', message: '保存失败' } as ServerMessage);
+        expect(usePermissionStore.getState().pendingModeChange).toBeNull();
+        expect(usePermissionStore.getState().permissionMode).toBe('plan');
+        expect(useSessionStore.getState().status).toBe('streaming');
+        expect(useMessageStore.getState().streamingMessageId).toBe(stream);
+        expect(findSystemMessage()).toBeUndefined();
+    });
+
+    it('unrelated permission events update authority without acknowledging the pending request', () => {
+        const pending = { requestId: 'new', sessionId: 's', mode: 'plan' as const, startedAt: 1 };
+        usePermissionStore.setState({ pendingModeChange: pending });
+        dispatch({ type: 'permission_mode_changed', mode: 'AUTO_APPROVE', requestId: 'old' } as ServerMessage);
+        expect(usePermissionStore.getState().permissionMode).toBe('auto_approve');
+        expect(usePermissionStore.getState().pendingModeChange).toBe(pending);
+        dispatch({ type: 'error', code: 'PERMISSION_MODE_SAVE_FAILED', requestId: 'old', message: 'old failure' } as ServerMessage);
+        expect(usePermissionStore.getState().pendingModeChange).toBe(pending);
+        dispatch({ type: 'permission_mode_changed', mode: 'PLAN', requestId: 'new' } as ServerMessage);
+        expect(usePermissionStore.getState().pendingModeChange).toBeNull();
     });
 
     it('errorCode 存在时渲染 provider_error 消息 + 常驻通知，并终止生成中状态', () => {

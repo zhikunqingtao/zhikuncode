@@ -15,7 +15,7 @@ import java.util.*;
  * AskUserQuestionTool — 向用户提出多选问题。
  * <p>
  * 通过 {@link ElicitationService} 逐个推送问题到前端，复用已有的 ElicitationDialog UI。
- * 每个问题阻塞等待用户选择（带 5 分钟超时）。
+ * 每个问题等待投递及用户选择，期限由持久交互服务管理。
  * <p>
  * 输入验证: 1-4 个问题，每个 2-4 个选项。
  */
@@ -56,10 +56,17 @@ public class AskUserQuestionTool implements Tool {
                 
                 Usage notes:
                 - Users will always be able to select "Other" to provide custom text input
-                - Use multiSelect: true to allow multiple answers to be selected for a question
+                - Set multiSelect on each question: true allows multiple answers; false or omission allows only one.
+                - Keep question wording consistent with multiSelect. If the question says "可多选" or \
+                allows multiple answers, you must set that question's multiSelect to true. Wording alone does not enable it.
                 - If you recommend a specific option, make that the first option in the list and \
                 add "(Recommended)" at the end of the label
                 
+                Multiple-selection example:
+                {"questions":[{"question":"希望包含哪些内容？（可多选）","multiSelect":true,"options":[
+                  {"label":"历史背景","description":"介绍时代背景"},
+                  {"label":"制度变化","description":"介绍制度演进"}]}]}
+
                 Plan mode note: In plan mode, use this tool to clarify requirements or choose \
                 between approaches BEFORE finalizing your plan. Do NOT use this tool to ask \
                 "Is my plan ready?" or "Should I proceed?" - use ExitPlanMode for plan approval. \
@@ -90,7 +97,12 @@ public class AskUserQuestionTool implements Tool {
                                                                 )
                                                         )
                                                 ),
-                                                "multiSelect", Map.of("type", "boolean")
+                                                "multiSelect", Map.of(
+                                                        "type", "boolean",
+                                                        "description", "Whether this question allows multiple selected options. " +
+                                                                "True allows multiple answers; false or omission allows only one. " +
+                                                                "Set true when the question says 可多选 or otherwise allows multiple answers."
+                                                )
                                         )
                                 )
                         )
@@ -143,6 +155,7 @@ public class AskUserQuestionTool implements Tool {
         for (int i = 0; i < questions.size(); i++) {
             Map<String, Object> q = questions.get(i);
             String questionText = (String) q.get("question");
+            boolean multiSelect = Boolean.TRUE.equals(q.get("multiSelect"));
             List<Map<String, String>> rawOptions = (List<Map<String, String>>) q.get("options");
 
             // 转换为 ElicitationOption 格式
@@ -156,7 +169,8 @@ public class AskUserQuestionTool implements Tool {
             log.info("AskUserQuestion: sending question {}/{}: '{}'", i + 1, questions.size(), questionText);
 
             ElicitationResponse response = elicitationService.requestAndWait(
-                    context.sessionId(), context.currentRunId(), questionText, elicitOptions, QUESTION_TIMEOUT_MS);
+                    context.sessionId(), context.currentRunId(), questionText, elicitOptions,
+                    multiSelect, QUESTION_TIMEOUT_MS);
 
             switch (response.status()) {
                 case SUCCESS -> allAnswers.put("q" + (i + 1), response.value());
@@ -166,7 +180,11 @@ public class AskUserQuestionTool implements Tool {
                 }
                 case TIMEOUT -> {
                     return ToolResult.internalError("ELICITATION_EXPIRED",
-                            "User did not respond within 5 minutes.", ToolResult.EffectState.NOT_STARTED);
+                            "The client acknowledged receipt, but no answer was received before the decision deadline.", ToolResult.EffectState.NOT_STARTED);
+                }
+                case UNDELIVERABLE -> {
+                    return ToolResult.internalError("ELICITATION_UNDELIVERABLE",
+                            response.error(), ToolResult.EffectState.NOT_STARTED);
                 }
                 case ERROR -> {
                     return ToolResult.internalError("ELICITATION_FAILED",

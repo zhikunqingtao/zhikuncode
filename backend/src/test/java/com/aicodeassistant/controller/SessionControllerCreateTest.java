@@ -41,7 +41,7 @@ class SessionControllerCreateTest {
         when(providers.supportsModel("model-1"))
                 .thenReturn(true);
         when(sessions.createSession(
-                "model-1", workspace.toString()))
+                "model-1", workspace.toString(), PermissionMode.AUTO_APPROVE))
                 .thenReturn("session-1");
         SessionController controller =
                 controller(sessions, providers, projects, permissionModes);
@@ -57,9 +57,26 @@ class SessionControllerCreateTest {
         assertThat(response.getBody().permissionMode())
                 .isEqualTo(PermissionMode.AUTO_APPROVE);
         verify(sessions).createSession(
-                "model-1", workspace.toString());
-        verify(permissionModes).setMode(
-                "session-1", PermissionMode.AUTO_APPROVE);
+                "model-1", workspace.toString(), PermissionMode.AUTO_APPROVE);
+        org.mockito.Mockito.verifyNoInteractions(permissionModes);
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.EnumSource(PermissionMode.class)
+    void explicitCreationModeIsWrittenAsPartOfCreation(PermissionMode mode) {
+        SessionManager sessions = mock(SessionManager.class);
+        LlmProviderRegistry providers = mock(LlmProviderRegistry.class);
+        ProjectWorkspaceService projects = mock(ProjectWorkspaceService.class);
+        PermissionModeManager modes = mock(PermissionModeManager.class);
+        when(projects.resolveWorkspace(null)).thenReturn(workspace);
+        when(providers.resolveModelAlias("model")).thenReturn("model");
+        when(providers.supportsModel("model")).thenReturn(true);
+        when(sessions.createSession("model", workspace.toString(), mode)).thenReturn("created");
+        var response = controller(sessions, providers, projects, modes).createSession(
+                new SessionController.CreateSessionRequest(null, null, "model", mode, null));
+        assertThat(response.getBody().permissionMode()).isEqualTo(mode);
+        verify(sessions).createSession("model", workspace.toString(), mode);
+        org.mockito.Mockito.verifyNoInteractions(modes);
     }
 
     @Test
@@ -80,7 +97,7 @@ class SessionControllerCreateTest {
         when(projects.resolveWorkspace(null))
                 .thenReturn(workspace);
         when(sessions.createSession(
-                "default-model", workspace.toString()))
+                "default-model", workspace.toString(), PermissionMode.AUTO_APPROVE))
                 .thenReturn("session-default");
         SessionController controller =
                 controller(sessions, providers, projects, permissionModes);
@@ -89,10 +106,9 @@ class SessionControllerCreateTest {
                 .getBody())
                 .satisfies(body -> {
                     assertThat(body.sessionId()).isEqualTo("session-default");
-                    assertThat(body.permissionMode()).isEqualTo(PermissionMode.DEFAULT);
+                    assertThat(body.permissionMode()).isEqualTo(PermissionMode.AUTO_APPROVE);
                 });
-        verify(permissionModes).setMode(
-                "session-default", PermissionMode.DEFAULT);
+        org.mockito.Mockito.verifyNoInteractions(permissionModes);
         assertThatThrownBy(() -> controller.createSession(
                 new SessionController.CreateSessionRequest(
                         null, "/client/path", null,
@@ -133,14 +149,14 @@ class SessionControllerCreateTest {
         when(providers.resolveModelAlias("light")).thenReturn("available-default");
         when(providers.supportsModel("available-default")).thenReturn(true);
         when(projects.resolveWorkspace(null)).thenReturn(workspace);
-        when(sessions.createSession("available-default", workspace.toString()))
+        when(sessions.createSession("available-default", workspace.toString(), PermissionMode.AUTO_APPROVE))
                 .thenReturn("session-1");
 
         controller(sessions, providers, projects, permissionModes)
                 .createSession(new SessionController.CreateSessionRequest(
                         null, null, "light", null, null));
 
-        verify(sessions).createSession("available-default", workspace.toString());
+        verify(sessions).createSession("available-default", workspace.toString(), PermissionMode.AUTO_APPROVE);
     }
 
     private static SessionController controller(

@@ -361,7 +361,7 @@ public class BashTool implements Tool {
                         pid, SafeLogValue.length(command), SafeLogValue.fingerprint(command));
                 return ToolResult.backgroundStarted(String.format(
                         "Background process started with PID %d.%n"
-                        + "It remains owned by the current session; use `kill %d` to stop it earlier.%n"
+                        + "It remains owned by the current session; use `kill -- -%d` to stop its process group earlier.%n"
                         + "Note: output is not captured for background processes.",
                         pid, pid), pid);
             }

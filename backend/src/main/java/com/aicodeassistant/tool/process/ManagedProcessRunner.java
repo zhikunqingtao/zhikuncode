@@ -46,6 +46,9 @@ public class ManagedProcessRunner {
     private volatile Semaphore capacity = new Semaphore(16);
     private final RunExecutionRegistry runExecutions;
     private volatile BestEffortObservabilityRecorder observabilityRecorder;
+    @Autowired(required = false)
+    @org.springframework.context.annotation.Lazy
+    private com.aicodeassistant.session.SessionManager sessions;
 
     @Autowired
     public ManagedProcessRunner(RunExecutionRegistry runExecutions) {
@@ -109,7 +112,7 @@ public class ManagedProcessRunner {
             throw startFailure;
         }
         ActiveProcess activeProcess = new ActiveProcess(process, new AtomicBoolean(false), new AtomicBoolean(false),
-                new AtomicBoolean(false), new CompletableFuture<>(), request.terminationHook());
+                new AtomicBoolean(false), new CompletableFuture<>(), request.terminationHook(), null);
         process.getOutputStream().close();
         ProcessKey key = new ProcessKey(request.runId(), request.toolUseId());
         if (key.trackable() && active.putIfAbsent(key, activeProcess) != null) {
@@ -173,6 +176,19 @@ public class ManagedProcessRunner {
 
     /** Starts a bounded, owned background process whose output is discarded. */
     public BackgroundResult startBackground(BackgroundRequest request) throws IOException {
+        var lease = sessions == null ? null : sessions.acquireBackgroundLease(request.sessionId());
+        var processOwnsLease = new AtomicBoolean(false);
+        try {
+            return startBackgroundLeased(request, lease, processOwnsLease);
+        } catch (IOException | RuntimeException | Error failure) {
+            if (lease != null && !processOwnsLease.get()) lease.close();
+            throw failure;
+        }
+    }
+
+    private BackgroundResult startBackgroundLeased(BackgroundRequest request,
+            com.aicodeassistant.session.SessionExecutionGate.BackgroundLease sessionLease,
+            AtomicBoolean processOwnsLease) throws IOException {
         long startedNanos = System.nanoTime();
         RunExecutionRegistry.WorkLease workLease = acquireLease(
                 request.runId(), request.toolUseId(), Ownership.RUN);
@@ -180,67 +196,61 @@ public class ManagedProcessRunner {
             if (workLease != null) workLease.close();
             throw new IOException("PROCESS_CAPACITY_EXCEEDED");
         }
-        Process process;
+        BackgroundProcessGroup group;
         try {
-            ProcessBuilder builder = new ProcessBuilder(request.command());
-            builder.directory(request.workingDirectory().toFile());
-            builder.redirectOutput(ProcessBuilder.Redirect.DISCARD);
-            builder.redirectError(ProcessBuilder.Redirect.DISCARD);
-            process = builder.start();
-            process.getOutputStream().close();
+            group = BackgroundProcessGroup.launch(request.command(), request.workingDirectory());
         } catch (IOException | RuntimeException failure) {
             capacity.release();
             if (workLease != null) workLease.close();
             throw failure;
         }
+        Process process = group.launcher;
         ProcessKey key = new ProcessKey("session:" + request.sessionId(), request.toolUseId());
         ActiveProcess owned = new ActiveProcess(process, new AtomicBoolean(false), new AtomicBoolean(false),
-                new AtomicBoolean(false), new CompletableFuture<>(), null);
+                new AtomicBoolean(false), new CompletableFuture<>(), null, group);
         ActiveProcess previous = active.putIfAbsent(key, owned);
-        if (previous != null) {
-            process.destroyForcibly();
-            capacity.release();
-            if (workLease != null) workLease.close();
-            throw new IOException("PROCESS_OWNERSHIP_CONFLICT");
-        }
-        if (workLease != null) {
-            workLease.onCancel(() -> {
-                owned.cancelled().set(true);
-                long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
-                terminate(owned, deadline);
-            });
-        }
-        if (!process.isAlive() || owned.cancelled().get()) {
+        processOwnsLease.set(true);
+        group.exited.whenComplete((ignored, error) -> {
             active.remove(key, owned);
             capacity.release();
-            if (workLease != null) workLease.close();
-            throw new IOException("PROCESS_CANCELLED_DURING_BACKGROUND_START");
-        }
-        process.onExit().whenComplete((ignored, error) -> {
-            active.remove(key, owned);
-            capacity.release();
-            int exitCode;
-            try { exitCode = process.exitValue(); }
-            catch (RuntimeException unavailable) { exitCode = -1; }
-            int observedExitCode = exitCode;
-            long elapsedMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedNanos);
-            String eventType = owned.cancelled().get() ? "process_cancelled" : "process_exited";
-            recordProcessEvent(request.runId(), eventType, request.toolUseId(), () -> Map.of(
-                    "pid", process.pid(), "exitCode", observedExitCode, "durationMs", elapsedMs,
-                    "cancelled", owned.cancelled().get(),
-                    "errorType", SafeLogValue.errorType(error)));
+            if (sessionLease != null) sessionLease.close();
+            recordProcessEvent(request.runId(), owned.cancelled().get() ? "process_cancelled" : "process_exited",
+                    request.toolUseId(), () -> Map.of("pid", group.pid,
+                            "exitCode", process.exitValue(), "errorType", SafeLogValue.errorType(error),
+                            "durationMs", TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedNanos),
+                            "cancelled", owned.cancelled().get()));
         });
-        // Launch is Run-owned, but the successfully-started background service is
-        // session-owned. This transfer lets development servers survive the query
-        // that started them while still making a cancellation during launch safe.
-        if (workLease != null) workLease.close();
-        recordProcessEvent(request.runId(), "process_started", request.toolUseId(), () -> Map.of(
-                "pid", process.pid(), "background", true,
-                "executableCategory", executableCategory(request.command()),
-                "argvCount", request.command().size(),
-                "argvLength", SafeLogValue.totalLength(request.command()),
-                "commandFingerprint", SafeLogValue.fingerprintParts(request.command())));
-        return new BackgroundResult(process.pid());
+        try {
+            if (previous != null) {
+                throw new IOException("PROCESS_OWNERSHIP_CONFLICT");
+            }
+            if (workLease != null) {
+                workLease.onCancel(() -> {
+                    owned.cancelled().set(true);
+                    long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
+                    terminate(owned, deadline);
+                });
+            }
+            if (!process.isAlive() || owned.cancelled().get()) {
+                throw new IOException("PROCESS_CANCELLED_DURING_BACKGROUND_START");
+            }
+            group.admit();
+            // Launch is Run-owned, but the successfully-started background service is
+            // session-owned. This transfer lets development servers survive the query
+            // that started them while still making a cancellation during launch safe.
+            recordProcessEvent(request.runId(), "process_started", request.toolUseId(), () -> Map.of(
+                    "pid", group.pid, "background", true,
+                    "executableCategory", executableCategory(request.command()),
+                    "argvCount", request.command().size(),
+                    "argvLength", SafeLogValue.totalLength(request.command()),
+                    "commandFingerprint", SafeLogValue.fingerprintParts(request.command())));
+            return new BackgroundResult(group.pid);
+        } catch (IOException | RuntimeException | Error failure) {
+            group.terminate(System.nanoTime() + TimeUnit.SECONDS.toNanos(2), terminateGraceMs);
+            throw failure;
+        } finally {
+            if (workLease != null) workLease.close();
+        }
     }
 
     public CancelSummary cancelSessionBackground(String sessionId) {
@@ -323,6 +333,7 @@ public class ManagedProcessRunner {
     }
 
     private boolean terminate(ActiveProcess owned, long cleanupDeadlineNanos) {
+        if (owned.backgroundGroup() != null) return owned.backgroundGroup().terminate(cleanupDeadlineNanos, terminateGraceMs);
         Process process = owned.process();
         if (!process.isAlive()) return true;
         if (!owned.terminationStarted().compareAndSet(false, true)) {
@@ -512,7 +523,7 @@ public class ManagedProcessRunner {
     @FunctionalInterface public interface TerminationHook { boolean cleanup(long deadlineNanos) throws Exception; }
     private record ActiveProcess(Process process, AtomicBoolean cancelled, AtomicBoolean terminationStarted,
                                  AtomicBoolean cleanupStarted, CompletableFuture<Boolean> cleanupResult,
-                                 TerminationHook terminationHook) {}
+                                 TerminationHook terminationHook, BackgroundProcessGroup backgroundGroup) {}
     private record ProcessKey(String runId, String toolUseId) {
         boolean trackable() { return runId != null && toolUseId != null; }
     }

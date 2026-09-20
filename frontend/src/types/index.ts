@@ -403,6 +403,7 @@ export interface ElicitationRequest {
     version?: number;
     question: string;
     options: unknown;
+    multiSelect?: boolean;
     decisionDeadlineAt?: number;
 }
 

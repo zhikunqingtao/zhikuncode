@@ -37,7 +37,9 @@ public final class ClientMessage {
     public record SetModelPayload(String model) {}
 
     /** #5 set_permission_mode → /app/permission-mode */
-    public record SetPermissionModePayload(String mode) {}
+    public record SetPermissionModePayload(String mode, String requestId) {
+        public SetPermissionModePayload(String mode) { this(mode, null); }
+    }
 
     /** #6 slash_command → /app/command */
     public record SlashCommandPayload(String command, String args) {}

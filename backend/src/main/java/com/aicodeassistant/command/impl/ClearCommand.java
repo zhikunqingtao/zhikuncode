@@ -2,6 +2,7 @@ package com.aicodeassistant.command.impl;
 
 import com.aicodeassistant.command.*;
 import com.aicodeassistant.session.SessionManager;
+import com.aicodeassistant.permission.PermissionModeManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -25,9 +26,11 @@ public class ClearCommand implements Command {
     private static final Logger log = LoggerFactory.getLogger(ClearCommand.class);
 
     private final SessionManager sessionManager;
+    private final PermissionModeManager permissionModes;
 
-    public ClearCommand(SessionManager sessionManager) {
+    public ClearCommand(SessionManager sessionManager, PermissionModeManager permissionModes) {
         this.sessionManager = sessionManager;
+        this.permissionModes = permissionModes;
     }
 
     @Override public String getName() { return "clear"; }
@@ -45,7 +48,7 @@ public class ClearCommand implements Command {
         try {
             // 创建新会话替代当前会话（清除历史）
             String newSessionId = sessionManager.createSession(
-                    context.currentModel(), context.workingDir());
+                    context.currentModel(), context.workingDir(), permissionModes.getMode(sessionId));
 
             log.info("Conversation cleared. Old session: {}, New session: {}",
                     sessionId, newSessionId);

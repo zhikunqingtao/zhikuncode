@@ -23,14 +23,27 @@ public class ElicitationService {
         this.json = json;
     }
 
+    /** Compatibility entry point that defaults to single selection. */
     public ElicitationResponse requestAndWait(String sessionId, String runId, String question,
                                                List<ElicitationOption> options, long ignoredTimeoutMs) {
+        return requestAndWait(sessionId, runId, question, options, false, ignoredTimeoutMs);
+    }
+
+    /**
+     * Creates a durable question and waits for its answer or terminal status.
+     *
+     * @param multiSelect whether the question allows multiple selected options
+     * @param ignoredTimeoutMs retained for API compatibility; the durable interaction service owns deadlines
+     */
+    public ElicitationResponse requestAndWait(String sessionId, String runId, String question,
+                                               List<ElicitationOption> options, boolean multiSelect,
+                                               long ignoredTimeoutMs) {
         String correlation = UUID.randomUUID().toString();
         InteractionRequest request;
         try {
             request = interactions.create(correlation, sessionId, runId,
                     InteractionRequest.Type.ELICITATION,
-                    Map.of("question", question, "options", options),
+                    Map.of("question", question, "options", options, "multiSelect", multiSelect),
                     List.of("answer", "cancel"), List.of(), "direct", null);
             InteractionRequest.Status status = interactions.awaitTerminal(request.interactionId()).join();
             InteractionRequest terminal = interactions.findById(request.interactionId());
@@ -38,7 +51,11 @@ public class ElicitationService {
                 case ANSWERED -> ElicitationResponse.success(terminal.responseJson() == null ? null
                         : json.readValue(terminal.responseJson(), Object.class));
                 case CANCELLED, DENIED -> ElicitationResponse.cancelled();
-                case EXPIRED, UNDELIVERABLE -> ElicitationResponse.timeout();
+                case EXPIRED -> ElicitationResponse.timeout();
+                case UNDELIVERABLE -> ElicitationResponse.undeliverable(
+                        terminal.firstDispatchedAt() == null
+                                ? "Question could not be dispatched before the delivery deadline."
+                                : "Question delivery was attempted, but the client did not acknowledge receipt.");
                 default -> ElicitationResponse.error("Unexpected interaction state: " + status);
             };
         } catch (Exception e) {
@@ -75,9 +92,12 @@ public class ElicitationService {
 
     public record ElicitationOption(String label, String value, String description) {}
     public record ElicitationResponse(Status status, Object value, String error) {
-        public enum Status { SUCCESS, CANCELLED, TIMEOUT, ERROR }
+        public enum Status { SUCCESS, CANCELLED, TIMEOUT, UNDELIVERABLE, ERROR }
         public static ElicitationResponse success(Object v) { return new ElicitationResponse(Status.SUCCESS,v,null); }
         public static ElicitationResponse cancelled() { return new ElicitationResponse(Status.CANCELLED,null,null); }
+        public static ElicitationResponse undeliverable(String reason) {
+            return new ElicitationResponse(Status.UNDELIVERABLE, null, reason);
+        }
         public static ElicitationResponse timeout() { return new ElicitationResponse(Status.TIMEOUT,null,"Request timed out"); }
         public static ElicitationResponse error(String e) { return new ElicitationResponse(Status.ERROR,null,e); }
     }

@@ -1,5 +1,7 @@
 package com.aicodeassistant.controller;
 
+import com.aicodeassistant.exception.PermissionModeMismatchException;
+
 import com.aicodeassistant.exception.ResourceNotFoundException;
 import com.aicodeassistant.exception.RequestValidationException;
 import com.aicodeassistant.exception.WorkspaceException;
@@ -47,6 +49,14 @@ public class GlobalExceptionHandler {
             WorkspaceException ex) {
         return ResponseEntity.status(ex.getStatus())
                 .body(errorBody(ex.getCode(), ex.getMessage(), null));
+    }
+
+    @ExceptionHandler(PermissionModeMismatchException.class)
+    public ResponseEntity<Map<String, Object>> handlePermissionModeMismatch(
+            PermissionModeMismatchException ex) {
+        return ResponseEntity.status(409)
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .body(errorBody("PERMISSION_MODE_MISMATCH", ex.getMessage(), null));
     }
 
     @ExceptionHandler(RequestValidationException.class)

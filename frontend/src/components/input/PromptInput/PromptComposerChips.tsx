@@ -5,10 +5,7 @@
  * select 承担交互，视觉为令牌化胶囊。
  *
  * 行为复用出处：
- * - 权限/模型切换：乐观更新后校验发送结果——无绑定会话或 WS 发送失败/抛错时
- *   回滚本地 store 并经 notificationStore 推送错误通知，失败处理与文案风格
- *   对齐 components/dialog/SettingsPanel.tsx handlePermissionModeChange，
- *   避免 chip 显示与服务端实际状态发散（后端枚举大写）；
+ * - 权限切换：与设置页共用服务端确认流程，保存确认前保留当前显示值。
  * - 模型切换：与 Header 共用会话详情/连接/绑定检查，仅修改当前会话。
  * 运行中/压缩中 chips 不禁用（与 Header 模型 select 现状一致）。
  */
@@ -18,13 +15,10 @@ import { SheetShell } from '@/components/apos/MobileBottomSheet';
 import { PermissionMenu } from './PermissionMenu';
 import { ChevronDown, Cpu } from 'lucide-react';
 import { PERMISSION_MODES, type PermissionMode } from '@/types';
-import { usePermissionStore } from '@/store/permissionStore';
+import { useSessionPermissionSelection } from '@/hooks/useSessionPermissionSelection';
 import { useSessionStore } from '@/store/sessionStore';
 import { useModelStore } from '@/store/modelStore';
 import { useSessionModelSelection } from '@/hooks/useSessionModelSelection';
-import { useNotificationStore } from '@/store/notificationStore';
-import { sendSetPermissionMode } from '@/api/stompClient';
-import { isSessionBound } from '@/api/dispatch';
 import { getPermissionModeLabel, getPermissionModeDescription } from '@/components/layout/StatusBar';
 import { SessionStatusIcon } from '@/components/status/SessionStatusIcon';
 
@@ -40,44 +34,15 @@ const OVERLAY_SELECT =
 
 /** 权限模式 chip：Shield + 当前模式名 + ChevronDown */
 export const PermissionModeChip: React.FC<{ mobile?: boolean }> = ({ mobile = false }) => {
-    const { permissionMode, setPermissionMode } = usePermissionStore();
-    const sessionId = useSessionStore(s => s.sessionId);
-    const addNotification = useNotificationStore(s => s.addNotification);
-    const hasBoundSession = Boolean(sessionId && isSessionBound(sessionId));
-
-    // 乐观更新 + 失败回滚（对齐 SettingsPanel.tsx handlePermissionModeChange，见文件头注释）
-    const handleChange = (mode: PermissionMode) => {
-        const prevMode = permissionMode;
-        setPermissionMode(mode);
-        if (!hasBoundSession) {
-            setPermissionMode(prevMode);
-            addNotification({
-                key: 'permission-mode-no-session',
-                level: 'error',
-                message: '请先创建或选择会话，再切换权限模式',
-            });
-            return;
-        }
-        let sent = false;
-        try {
-            // 同步到后端，后端枚举使用大写值
-            sent = sendSetPermissionMode(mode.toUpperCase());
-        } catch {
-            sent = false;
-        }
-        if (!sent) {
-            setPermissionMode(prevMode);
-            addNotification({
-                key: 'permission-mode-send-failed',
-                level: 'error',
-                message: '权限模式切换发送失败，请检查连接后重试',
-            });
-        }
-    };
-
-    if (mobile) return <MobileChoice label="权限" showCurrent leading={<SessionStatusIcon />} value={permissionMode} options={PERMISSION_MODES.map(value => ({ value, label: getPermissionModeLabel(value), description: getPermissionModeDescription(value) }))} onChange={value => handleChange(value as PermissionMode)} />;
-
-    return <PermissionMenu value={permissionMode} onChange={handleChange} />;
+    const { permissionMode, selectMode, pending, disabled, message } = useSessionPermissionSelection();
+    return <div className="flex items-center gap-2">
+        <fieldset disabled={disabled} className="min-w-0">
+            {mobile
+                ? <MobileChoice disabled={disabled} label="权限" showCurrent leading={<SessionStatusIcon />} value={permissionMode} options={PERMISSION_MODES.map(value => ({ value, label: getPermissionModeLabel(value), description: getPermissionModeDescription(value) }))} onChange={value => selectMode(value as PermissionMode)} />
+                : <PermissionMenu disabled={disabled} value={permissionMode} onChange={selectMode} />}
+        </fieldset>
+        {(pending || message) && <span role="status" className="text-xs text-t3">{pending ? '正在切换' : message}</span>}
+    </div>;
 };
 
 /** 模型 chip：accent 点 + 当前模型名 + ChevronDown；mobileRow 保留"更多"面板整行形态（能力保留），默认紧凑形态供手机导航栏使用 */

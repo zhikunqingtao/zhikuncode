@@ -139,6 +139,7 @@ export const DialogManager: React.FC = () => {
                     interactionId={elicitationDialog.interactionId}
                     question={elicitationDialog.question}
                     options={elicitationDialog.options as { value: string; label: string; description?: string }[] | undefined}
+                    inputType={elicitationDialog.multiSelect ? 'multiselect' : 'select'}
                     decisionDeadlineAt={elicitationDialog.decisionDeadlineAt}
                     allowFreeText={!elicitationDialog.options || (elicitationDialog.options as unknown[]).length === 0}
                     onSubmit={handleElicitationSubmit}

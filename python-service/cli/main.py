@@ -192,8 +192,8 @@ def main(
     json_schema: Optional[str] = typer.Option(
         None, "--json-schema", help="JSON Schema 约束输出结构"),
     # 权限
-    permission_mode: PermissionMode = typer.Option(
-        PermissionMode.dont_ask, "--permission-mode", help="权限模式"),
+    permission_mode: Optional[PermissionMode] = typer.Option(
+        None, "--permission-mode", help="权限模式；未指定时新建默认完全访问，续接沿用会话权限"),
     # 工具
     allowed_tools: Optional[str] = typer.Option(
         None, "--allowed-tools", help="工具白名单(逗号分隔)"),
@@ -258,7 +258,7 @@ def main(
 
     # 4. 解析权限模式
     # 权限模式只控制授权决策；任何模式都不能绕过系统安全不变量。
-    perm = permission_mode.value.upper()
+    perm = permission_mode.value.upper() if permission_mode is not None else None
 
     if working_dir is not None and not _is_loopback_server(server):
         console.print(
@@ -343,6 +343,15 @@ def main(
         console.print(f"[red]Error: Backend not reachable at {server}[/red]")
         raise typer.Exit(code=3)
     except httpx.HTTPStatusError as e:
+        if e.response.status_code == 409:
+            try:
+                body = e.response.json()
+            except ValueError:
+                body = {}
+            error = body.get("error") if isinstance(body, dict) else None
+            if isinstance(error, dict) and error.get("code") == "PERMISSION_MODE_MISMATCH":
+                console.print("[red]Error: 指定权限与会话权限不一致；请先在页面修改会话权限，或省略 --permission-mode 沿用当前设置。[/red]")
+                raise typer.Exit(code=1)
         if e.response.status_code in (401, 403):
             console.print("[red]Error: Authentication failed[/red]")
             raise typer.Exit(code=4)

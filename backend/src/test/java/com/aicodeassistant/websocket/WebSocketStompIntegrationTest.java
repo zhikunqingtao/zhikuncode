@@ -82,14 +82,14 @@ class WebSocketStompIntegrationTest {
         Principal principal = () -> "user-1";
 
         controller.handleSetPermissionMode(
-                new ClientMessage.SetPermissionModePayload("AUTO_APPROVE"), principal);
+                new ClientMessage.SetPermissionModePayload("AUTO_APPROVE", "selection-1"), principal);
 
-        verify(permissionModes).setMode("session-1", PermissionMode.AUTO_APPROVE);
+        verify(permissionModes).setMode("session-1", PermissionMode.AUTO_APPROVE, "selection-1");
 
         controller.handleSetPermissionMode(
                 new ClientMessage.SetPermissionModePayload("invalid-client-value"), principal);
 
-        verify(permissionModes, times(1)).setMode(anyString(), any());
+        verify(permissionModes, times(1)).setMode(anyString(), any(), any());
         verify(messaging).convertAndSendToUser(
                 eq("user-1"), eq("/queue/messages"),
                 argThat(message -> {
