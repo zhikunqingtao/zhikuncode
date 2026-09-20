@@ -544,6 +544,117 @@ class QueryEngineUnitTest {
         }
 
         @Test
+        @DisplayName("尾部截断标记触发一次恢复，原文完整持久化并交付")
+        void trailingTruncationEchoTriggersRecovery() {
+            String original = "表格内容\n...[content truncated by system]";
+            script((call, callback) -> finish(callback, "end_turn", new LlmStreamEvent.TextDelta(
+                    call == 1 ? original : "完整表格内容")));
+            QueryLoopState state = buildState("question");
+            List<Message> persisted = new ArrayList<>();
+            state.setPersistenceSink(persisted::add);
+
+            QueryEngine.QueryResult result = queryEngine.execute(
+                    buildConfig(), state, handler);
+
+            assertThat(requests).hasSize(2);
+            assertThat(result.isSuccess()).isTrue();
+            List<Message.AssistantMessage> assistants = result.messages().stream()
+                    .filter(Message.AssistantMessage.class::isInstance)
+                    .map(Message.AssistantMessage.class::cast)
+                    .toList();
+            assertThat(assistants).hasSize(2);
+            assertThat(assistants.get(0).content())
+                    .containsExactly(new ContentBlock.TextBlock(original));
+            assertThat(assistants.get(1).content())
+                    .containsExactly(new ContentBlock.TextBlock("完整表格内容"));
+            assertThat(persisted.stream().filter(Message.AssistantMessage.class::isInstance).toList())
+                    .containsExactlyElementsOf(assistants);
+            assertThat(handler.assistantMessages).containsExactlyElementsOf(assistants);
+            assertThat(handler.textDeltas).containsExactly(original, "完整表格内容");
+            assertThat(requests.get(1).toString()).contains(original);
+            assertThat(state.getCurrentRunFinalMessageId()).isEqualTo(assistants.get(1).uuid());
+        }
+
+        @Test
+        @DisplayName("尾部压缩标记触发一次恢复并保留原文")
+        void trailingCompressionEchoTriggersRecovery() {
+            script((call, callback) -> finish(callback, "end_turn", new LlmStreamEvent.TextDelta(
+                    call == 1 ? "部分内容[content compressed by system]" : "完整内容")));
+
+            QueryEngine.QueryResult result = queryEngine.execute(
+                    buildConfig(), buildState("question"), handler);
+
+            assertThat(requests).hasSize(2);
+            assertThat(result.isSuccess()).isTrue();
+            List<Message.AssistantMessage> assistants = result.messages().stream()
+                    .filter(Message.AssistantMessage.class::isInstance)
+                    .map(Message.AssistantMessage.class::cast)
+                    .toList();
+            assertThat(assistants).hasSize(2);
+            assertThat(assistants.get(0).content())
+                    .containsExactly(new ContentBlock.TextBlock("部分内容[content compressed by system]"));
+            assertThat(assistants.get(1).content())
+                    .containsExactly(new ContentBlock.TextBlock("完整内容"));
+        }
+
+        @Test
+        @DisplayName("恢复重试仍返回尾部标记回声时明确失败")
+        void recoveryExhaustedOnPersistentEcho() {
+            script((call, callback) -> finish(callback, "end_turn", new LlmStreamEvent.TextDelta(
+                    "第" + call + "段内容...[content truncated by system]")));
+            QueryLoopState state = buildState("question");
+            List<Message> persisted = new ArrayList<>();
+            state.setPersistenceSink(persisted::add);
+
+            QueryEngine.QueryResult result = queryEngine.execute(
+                    buildConfig(), state, handler);
+
+            assertThat(requests).hasSize(2);
+            assertThat(result.isSuccess()).isFalse();
+            assertThat(result.error()).startsWith("OUTPUT_RECOVERY_EXHAUSTED:");
+            assertThat(persisted.stream().filter(Message.AssistantMessage.class::isInstance)
+                    .map(Message.AssistantMessage.class::cast).map(Message.AssistantMessage::content).toList())
+                    .containsExactly(
+                            List.of(new ContentBlock.TextBlock("第1段内容...[content truncated by system]")),
+                            List.of(new ContentBlock.TextBlock("第2段内容...[content truncated by system]")));
+            assertThat(state.getCurrentRunFinalMessageId()).isNull();
+        }
+
+        @Test
+        @DisplayName("连续尾标记走完整补答流程且不会进入递归占位符匹配")
+        void repeatedTrailingMarkersRecoverWithoutStackOverflow() {
+            String original = "[content truncated by system]".repeat(2500);
+            script((call, callback) -> finish(callback, "end_turn", new LlmStreamEvent.TextDelta(
+                    call == 1 ? original : "Recovered answer")));
+
+            QueryEngine.QueryResult result = queryEngine.execute(buildConfig(), buildState("question"), handler);
+
+            assertThat(requests).hasSize(2);
+            assertThat(result.isSuccess()).isTrue();
+            assertThat(handler.assistantMessages.getFirst().content())
+                    .containsExactly(new ContentBlock.TextBlock(original));
+        }
+
+        @Test
+        @DisplayName("正文中间的方括号段名保持原样且不触发恢复")
+        void midTextBracketPreserved() {
+            String content = "配置如下:\n[server]\nhost=localhost\n[collapsed]\nkey=value";
+            script((call, callback) -> finish(callback, "end_turn",
+                    new LlmStreamEvent.TextDelta(content)));
+
+            QueryEngine.QueryResult result = queryEngine.execute(
+                    buildConfig(), buildState("question"), handler);
+
+            assertThat(requests).hasSize(1);
+            assertThat(result.isSuccess()).isTrue();
+            Message.AssistantMessage response = result.messages().stream()
+                    .filter(Message.AssistantMessage.class::isInstance)
+                    .map(Message.AssistantMessage.class::cast)
+                    .findFirst().orElseThrow();
+            assertThat(response.content()).containsExactly(new ContentBlock.TextBlock(content));
+        }
+
+        @Test
         @DisplayName("完全空的 end_turn 内容可以补请求恢复")
         void emptyContentRecovers() {
             script((call, callback) -> {
@@ -838,10 +949,21 @@ class QueryEngineUnitTest {
         }
 
         @Test void cancellationExceptionUsesSameTerminalProjection() {
-            script((call,callback) -> { queryEngine.abort("test-session",AbortReason.USER_INTERRUPT);
+            String original = "取消前正文...[content truncated by system]";
+            script((call,callback) -> {
+                callback.onEvent(new LlmStreamEvent.TextDelta(original));
+                queryEngine.abort("test-session",AbortReason.USER_INTERRUPT);
                 throw new java.util.concurrent.CancellationException("cancelled HTTP"); });
-            var result=queryEngine.execute(buildConfig(),buildState("question"),handler);
+            var state = buildState("question");
+            List<Message> persisted = new ArrayList<>();
+            state.setPersistenceSink(persisted::add);
+            var result=queryEngine.execute(buildConfig(),state,handler);
             assertThat(result.stopReason()).isEqualTo("cancelled");
+            assertThat(requests).hasSize(1);
+            assertThat(handler.assistantMessages).hasSize(1);
+            assertThat(handler.assistantMessages.getFirst().content())
+                    .containsExactly(new ContentBlock.TextBlock(original));
+            assertThat(persisted).contains(handler.assistantMessages.getFirst());
             assertThat(result.error()).isEqualTo("USER_CANCELLED");
             assertThat(result.isSuccess()).isFalse();
         }
@@ -879,8 +1001,10 @@ class QueryEngineUnitTest {
 
         @Test
         void partialToolStreamFallbackPreservesCallsCompletedResultsAndUnknownOutcomes() {
+            String original = "降级前正文...[content truncated by system]";
             script((call, callback) -> {
                 if (call == 1) {
+                    callback.onEvent(new LlmStreamEvent.TextDelta(original));
                     for (String id : List.of("done", "failed", "pending")) {
                         callback.onEvent(new LlmStreamEvent.ToolUseStart(id, "Bash"));
                         callback.onEvent(new LlmStreamEvent.ToolInputDelta(id, "{}"));
@@ -893,6 +1017,8 @@ class QueryEngineUnitTest {
             QueryConfig config = new QueryConfig("mock-model", "fallback-model", "You are helpful.",
                     List.of(bashTool), List.of(), 8192, 200000, new ThinkingConfig.Disabled(), 10, "test", null, List.of());
             var state = buildState("question");
+            List<Message> persisted = new ArrayList<>();
+            state.setPersistenceSink(persisted::add);
             var result = queryEngine.execute(config, state, handler);
             assertThat(result.isSuccess()).isTrue();
             assertThat(requests).hasSize(2);
@@ -900,6 +1026,9 @@ class QueryEngineUnitTest {
             verify(toolSession, never()).addErrorResult(anyString(), anyString());
             assertThat(requests.get(1).toString()).doesNotContain(
                     "completed evidence", "actual failure", "execution outcome unconfirmed");
+            assertThat(requests.get(1).toString()).contains(original);
+            assertThat(persisted.getFirst()).isInstanceOfSatisfying(Message.AssistantMessage.class,
+                    partial -> assertThat(partial.content()).containsExactly(new ContentBlock.TextBlock(original)));
             assertThat(state.getMessages()).noneMatch(message -> message instanceof Message.UserMessage user
                     && user.content().stream().anyMatch(ContentBlock.ToolResultBlock.class::isInstance));
         }
@@ -1838,13 +1967,14 @@ class QueryEngineUnitTest {
 
     static class TestHandler implements QueryMessageHandler {
         final List<String> textDeltas = new CopyOnWriteArrayList<>();
+        final List<Message.AssistantMessage> assistantMessages = new CopyOnWriteArrayList<>();
         final List<Throwable> errors = new CopyOnWriteArrayList<>();
         final List<ContentBlock.ToolResultBlock> toolResults = new CopyOnWriteArrayList<>();
         @Override public void onTextDelta(String text) { textDeltas.add(text); }
         @Override public void onToolUseStart(String id, String name) {}
         @Override public void onToolUseComplete(String id, ContentBlock.ToolUseBlock toolUse) {}
         @Override public void onToolResult(String id, ContentBlock.ToolResultBlock result) { toolResults.add(result); }
-        @Override public void onAssistantMessage(Message.AssistantMessage message) {}
+        @Override public void onAssistantMessage(Message.AssistantMessage message) { assistantMessages.add(message); }
         @Override public void onError(Throwable error) { errors.add(error); }
     }
 }

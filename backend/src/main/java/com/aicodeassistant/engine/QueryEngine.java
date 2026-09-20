@@ -81,6 +81,8 @@ public class QueryEngine {
             "\\s*(?:\\[(?:content compressed by system|content truncated by system"
                     + "|collapsed|skeleton|summary-collapsed)\\]\\s*)+",
             Pattern.CASE_INSENSITIVE);
+    private static final String TRUNCATED_SYSTEM_MARKER = "[content truncated by system]";
+    private static final String COMPRESSED_SYSTEM_MARKER = "[content compressed by system]";
     private static final int MAX_RUN_INPUTS_PER_TURN = 10;
 
     private enum LoopExit {
@@ -1182,6 +1184,8 @@ public class QueryEngine {
             // ===== Step 4: 收集 API 响应 =====
             log.debug("Turn {} Step4: streamChat returned, building AssistantMessage...", turn);
             Message.AssistantMessage assistantMessage = collector.buildAssistantMessage();
+            // 尾标记仅作为补答信号；原始正文仍完整持久化并交付给消费者。
+            final boolean systemMarkerTerminated = isSystemMarkerTerminated(assistantMessage);
             Usage callUsage = assistantMessage.usage();
             recordCurrentRunEvent("llm_call_completed", () -> {
                 Map<String, Object> llmCompleted = new LinkedHashMap<>();
@@ -1429,6 +1433,7 @@ public class QueryEngine {
             if (toolUseBlocks.isEmpty()
                     && ("end_turn".equals(stopReason) || "stop".equals(stopReason))) {
                 emptyFinalResponsePending = !hasVisibleFinalText(assistantMessage)
+                        || systemMarkerTerminated
                         || isSystemPlaceholderOnly(assistantMessage);
             }
 
@@ -2724,6 +2729,48 @@ public class QueryEngine {
             if (!SYSTEM_COLLAPSE_ONLY.matcher(text).matches()) return false;
         }
         return sawText;
+    }
+
+    /**
+     * 可见正文是否以系统标记结尾（模型回声的典型形态：半截正文 + 尾部截断标记）。
+     * 与 isSystemPlaceholderOnly 互补：后者拦“整段纯占位符”（全文匹配），
+     * 本方法拦“正文 + 尾部标记”变体，不修改正文。
+     * 保留原有逐块检测范围；只扫描尾部空白和固定标记，避免正则回溯与递归。
+     */
+    static boolean isSystemMarkerTerminated(Message.AssistantMessage msg) {
+        if (msg == null || msg.content() == null) return false;
+        for (ContentBlock block : msg.content()) {
+            if (!(block instanceof ContentBlock.TextBlock t) || t.text() == null) continue;
+            String text = t.text();
+            int end = text.length();
+            // 与原正则的 $ 一致：允许最后一个非 ASCII 行终止符。
+            if (end > 0 && (text.charAt(end - 1) == '\u0085'
+                    || text.charAt(end - 1) == '\u2028' || text.charAt(end - 1) == '\u2029')) {
+                end--;
+            }
+            // 保持原正则默认 \\s 的 ASCII 空白范围。
+            while (end > 0 && isMarkerWhitespace(text.charAt(end - 1))) end--;
+            if (endsWithAsciiIgnoreCase(text, end, TRUNCATED_SYSTEM_MARKER)
+                    || endsWithAsciiIgnoreCase(text, end, COMPRESSED_SYSTEM_MARKER)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isMarkerWhitespace(char c) {
+        return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' || c == 0x0b;
+    }
+
+    private static boolean endsWithAsciiIgnoreCase(String text, int end, String marker) {
+        int start = end - marker.length();
+        if (start < 0) return false;
+        for (int i = 0; i < marker.length(); i++) {
+            char c = text.charAt(start + i);
+            if (c >= 'A' && c <= 'Z') c += 'a' - 'A';
+            if (c != marker.charAt(i)) return false;
+        }
+        return true;
     }
 
     /**
