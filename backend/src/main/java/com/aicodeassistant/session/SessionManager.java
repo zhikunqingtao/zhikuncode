@@ -153,6 +153,25 @@ public class SessionManager {
         this.messageTransaction = transactionManager == null ? null : new TransactionTemplate(transactionManager);
     }
 
+    private SessionExecutionGate executionGate = new SessionExecutionGate();
+
+    @Autowired
+    public void setExecutionGate(SessionExecutionGate gate) { this.executionGate = gate; }
+
+    /** Background ownership follows the durable parent-session chain. */
+    public SessionExecutionGate.BackgroundLease acquireBackgroundLease(String sessionId) {
+        String root = sessionId;
+        var seen = new java.util.HashSet<String>();
+        while (root != null && seen.add(root)) {
+            var rows = jdbcTemplate.queryForList("SELECT metadata_json FROM sessions WHERE id = ?", root);
+            if (rows.isEmpty()) break;
+            Object parent = parseJsonMap((String) rows.getFirst().get("metadata_json")).get("parent_session_id");
+            if (!(parent instanceof String id) || id.isBlank()) break;
+            root = id;
+        }
+        return executionGate.acquireBackground(dataSourceIdentity(), root);
+    }
+
     public DataSource dataSourceIdentity() {
         return Objects.requireNonNull(jdbcTemplate.getDataSource(), "project DataSource");
     }
@@ -178,29 +197,18 @@ public class SessionManager {
      * 创建新会话 — 返回会话 ID。
      */
     public String createSession(String model, String workingDir) {
-        String sessionId = UUID.randomUUID().toString();
-        String now = Instant.now().toString();
+        return createSession(model, workingDir, PermissionMode.AUTO_APPROVE);
+    }
 
+    public String createSession(String model, String workingDir, PermissionMode mode) {
+        Objects.requireNonNull(mode, "mode");
+        String sessionId = UUID.randomUUID().toString();
         Path dbPath = Path.of(workingDir).resolve(".ai-code-assistant/data.db");
-        sqliteConfig.executeWriteVoid(dbPath, () ->
-                jdbcTemplate.update(
-                        """
-                        INSERT INTO sessions (id, model, working_dir, status, created_at, updated_at)
-                        VALUES (?, ?, ?, ?, ?, ?)
-                        """,
-                        sessionId, model, workingDir,
-                        SessionStatus.ACTIVE.name().toLowerCase(), now, now
-                )
-        );
+        sqliteConfig.executeWriteVoid(dbPath, () -> createSessionRecord(sessionId, model, workingDir, null, mode));
 
         log.info("Session created: {} (model={})", sessionId, model);
 
-        // 触发 SESSION_START 钩子
-        try {
-            hookService.executeSessionStart(sessionId);
-        } catch (Exception e) {
-            log.warn("SESSION_START hook failed: {}", e.getMessage());
-        }
+        notifySessionCreated(sessionId);
 
         // 更新 AppState
         appStateStore.setState(state ->
@@ -209,6 +217,25 @@ public class SessionManager {
         );
 
         return sessionId;
+    }
+
+    /** Pure database operation: caller may atomically add the initial history. */
+    public void createSessionRecord(String sessionId, String model, String workingDir, String title) {
+        createSessionRecord(sessionId, model, workingDir, title, PermissionMode.AUTO_APPROVE);
+    }
+
+    public void createSessionRecord(String sessionId, String model, String workingDir, String title,
+                                    PermissionMode mode) {
+        Objects.requireNonNull(mode, "mode");
+        String now = Instant.now().toString();
+        jdbcTemplate.update("INSERT INTO sessions (id, model, working_dir, title, status, permission_mode, created_at, updated_at) VALUES (?, ?, ?, ?, 'active', ?, ?, ?)",
+                sessionId, model, workingDir, title, mode.name(), now, now);
+    }
+
+    /** Best-effort lifecycle hook, only after durable creation. Does not change current selection. */
+    public void notifySessionCreated(String sessionId) {
+        try { hookService.executeSessionStart(sessionId); }
+        catch (Exception e) { log.warn("SESSION_START hook failed: {}", e.getMessage()); }
     }
 
     // ───── 加载会话 ─────
@@ -267,48 +294,52 @@ public class SessionManager {
      * 保存/更新会话元数据。
      */
     public void saveSession(SessionData data) {
-        String now = Instant.now().toString();
-        String metadataJson = toJsonString(data.config());
+        try (var mutation = executionGate.acquireBackground(dataSourceIdentity(), data.sessionId())) {
+            String now = Instant.now().toString();
+            String metadataJson = toJsonString(data.config());
 
-        Path dbPath = Path.of(data.workingDir()).resolve(".ai-code-assistant/data.db");
-        sqliteConfig.executeWriteVoid(dbPath, () ->
-                jdbcTemplate.update(
-                        """
-                        UPDATE sessions SET
-                            title = ?, model = ?, status = ?,
-                            total_input_tokens = ?, total_output_tokens = ?,
-                            total_cache_read = ?, total_cache_create = ?,
-                            total_cost_usd = ?, summary = ?,
-                            metadata_json = ?, updated_at = ?
-                        WHERE id = ?
-                        """,
-                        data.title(), data.model(), data.status(),
-                        data.totalUsage().inputTokens(), data.totalUsage().outputTokens(),
-                        data.totalUsage().cacheReadInputTokens(), data.totalUsage().cacheCreationInputTokens(),
-                        data.totalCostUsd(), data.summary(),
-                        metadataJson, now,
-                        data.sessionId()
-                )
-        );
+            Path dbPath = Path.of(data.workingDir()).resolve(".ai-code-assistant/data.db");
+            sqliteConfig.executeWriteVoid(dbPath, () ->
+                    jdbcTemplate.update(
+                            """
+                            UPDATE sessions SET
+                                title = ?, model = ?, status = ?,
+                                total_input_tokens = ?, total_output_tokens = ?,
+                                total_cache_read = ?, total_cache_create = ?,
+                                total_cost_usd = ?, summary = ?,
+                                metadata_json = ?, updated_at = ?
+                            WHERE id = ?
+                            """,
+                            data.title(), data.model(), data.status(),
+                            data.totalUsage().inputTokens(), data.totalUsage().outputTokens(),
+                            data.totalUsage().cacheReadInputTokens(), data.totalUsage().cacheCreationInputTokens(),
+                            data.totalCostUsd(), data.summary(),
+                            metadataJson, now,
+                            data.sessionId()
+                    )
+            );
+        }
     }
 
     /**
      * 更新会话模型。
      */
     public void updateSessionModel(String sessionId, String model) {
-        String now = Instant.now().toString();
-        Path dbPath = Path.of(System.getProperty("user.dir")).resolve(".ai-code-assistant/data.db");
-        sqliteConfig.executeWriteVoid(dbPath, () ->
-                jdbcTemplate.update(
-                        "UPDATE sessions SET model = ?, updated_at = ? WHERE id = ?",
-                        model, now, sessionId
-                )
-        );
-        // 同步更新 AppState
-        appStateStore.setState(state ->
-                state.withSession(s -> s.withCurrentModel(model))
-        );
-        log.info("Session model updated: sessionId={}, model={}", sessionId, model);
+        try (var mutation = executionGate.acquireBackground(dataSourceIdentity(), sessionId)) {
+            String now = Instant.now().toString();
+            Path dbPath = Path.of(System.getProperty("user.dir")).resolve(".ai-code-assistant/data.db");
+            sqliteConfig.executeWriteVoid(dbPath, () ->
+                    jdbcTemplate.update(
+                            "UPDATE sessions SET model = ?, updated_at = ? WHERE id = ?",
+                            model, now, sessionId
+                    )
+            );
+            // 同步更新 AppState
+            appStateStore.setState(state ->
+                    state.withSession(s -> s.withCurrentModel(model))
+            );
+            log.info("Session model updated: sessionId={}, model={}", sessionId, model);
+        }
     }
 
     // ───── 添加消息 ─────
@@ -318,28 +349,30 @@ public class SessionManager {
      */
     public String addMessage(String sessionId, String role, Object content,
                              String stopReason, int inputTokens, int outputTokens) {
-        String msgId = UUID.randomUUID().toString();
-        String now = Instant.now().toString();
-        String contentJson = toJsonString(content);
+        try (var mutation = executionGate.acquireBackground(dataSourceIdentity(), sessionId)) {
+            String msgId = UUID.randomUUID().toString();
+            String now = Instant.now().toString();
+            String contentJson = toJsonString(content);
 
-        // 原子获取 seq_num — 避免 SELECT MAX + INSERT 竞态
-        jdbcTemplate.update(
-                """
-                INSERT INTO messages (id, session_id, role, content_json, stop_reason,
-                    input_tokens, output_tokens, created_at, seq_num)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?,
-                    (SELECT COALESCE(MAX(seq_num), 0) + 1 FROM messages WHERE session_id = ?))
-                """,
-                msgId, sessionId, role, contentJson, stopReason,
-                inputTokens, outputTokens, now, sessionId
-        );
+            // 原子获取 seq_num — 避免 SELECT MAX + INSERT 竞态
+            jdbcTemplate.update(
+                    """
+                    INSERT INTO messages (id, session_id, role, content_json, stop_reason,
+                        input_tokens, output_tokens, created_at, seq_num)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?,
+                        (SELECT COALESCE(MAX(seq_num), 0) + 1 FROM messages WHERE session_id = ?))
+                    """,
+                    msgId, sessionId, role, contentJson, stopReason,
+                    inputTokens, outputTokens, now, sessionId
+            );
 
-        // 更新会话的 updated_at
-        jdbcTemplate.update(
-                "UPDATE sessions SET updated_at = ? WHERE id = ?", now, sessionId
-        );
+            // 更新会话的 updated_at
+            jdbcTemplate.update(
+                    "UPDATE sessions SET updated_at = ? WHERE id = ?", now, sessionId
+            );
 
-        return msgId;
+            return msgId;
+        }
     }
 
     /** Durable idempotent message append. UUID reuse is accepted only for identical stored data. */
@@ -347,40 +380,42 @@ public class SessionManager {
                                  Object content, String stopReason,
                                  int inputTokens, int outputTokens,
                                  Map<String, Object> meta) {
-        String contentJson = toJsonString(content);
-        String metaJson = (meta == null || meta.isEmpty()) ? null : toJsonString(meta);
-        String now = Instant.now().toString();
-        Runnable append = () -> {
-            try {
+        try (var mutation = executionGate.acquireBackground(dataSourceIdentity(), sessionId)) {
+            String contentJson = toJsonString(content);
+            String metaJson = (meta == null || meta.isEmpty()) ? null : toJsonString(meta);
+            String now = Instant.now().toString();
+            Runnable append = () -> {
+                try {
+                    jdbcTemplate.update(
+                            """
+                            INSERT INTO messages (id, session_id, role, content_json, stop_reason,
+                                input_tokens, output_tokens, created_at, seq_num, meta_json)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?,
+                                (SELECT COALESCE(MAX(seq_num), 0) + 1 FROM messages WHERE session_id = ?), ?)
+                            """,
+                            messageId, sessionId, role, contentJson, stopReason,
+                            inputTokens, outputTokens, now, sessionId, metaJson);
+                } catch (DataAccessException conflict) {
+                    StoredMessageComparison comparison = compareStoredMessage(
+                            messageId, sessionId, role, contentJson, stopReason,
+                            inputTokens, outputTokens, metaJson);
+                    if (comparison == StoredMessageComparison.MISSING) {
+                        throw conflict;
+                    }
+                    if (comparison == StoredMessageComparison.CONFLICT) {
+                        throw new MessagePersistenceException(
+                                "MESSAGE_ID_CONFLICT", "Message id conflicts with stored content: " + messageId,
+                                conflict);
+                    }
+                    return;
+                }
                 jdbcTemplate.update(
-                        """
-                        INSERT INTO messages (id, session_id, role, content_json, stop_reason,
-                            input_tokens, output_tokens, created_at, seq_num, meta_json)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?,
-                            (SELECT COALESCE(MAX(seq_num), 0) + 1 FROM messages WHERE session_id = ?), ?)
-                        """,
-                        messageId, sessionId, role, contentJson, stopReason,
-                        inputTokens, outputTokens, now, sessionId, metaJson);
-            } catch (DataAccessException conflict) {
-                StoredMessageComparison comparison = compareStoredMessage(
-                        messageId, sessionId, role, contentJson, stopReason,
-                        inputTokens, outputTokens, metaJson);
-                if (comparison == StoredMessageComparison.MISSING) {
-                    throw conflict;
-                }
-                if (comparison == StoredMessageComparison.CONFLICT) {
-                    throw new MessagePersistenceException(
-                            "MESSAGE_ID_CONFLICT", "Message id conflicts with stored content: " + messageId,
-                            conflict);
-                }
-                return;
-            }
-            jdbcTemplate.update(
-                    "UPDATE sessions SET updated_at = ? WHERE id = ?", now, sessionId
-            );
-        };
-        if (messageTransaction == null) append.run();
-        else messageTransaction.executeWithoutResult(status -> append.run());
+                        "UPDATE sessions SET updated_at = ? WHERE id = ?", now, sessionId
+                );
+            };
+            if (messageTransaction == null) append.run();
+            else messageTransaction.executeWithoutResult(status -> append.run());
+        }
     }
 
     private enum StoredMessageComparison { MISSING, IDENTICAL, CONFLICT }
@@ -558,33 +593,35 @@ public class SessionManager {
      * 删除会话（级联删除消息、文件快照、任务）。
      */
     public void deleteSession(String sessionId) {
-        // ★ 新增：检查活跃后台代理
-        List<String> activeAgents = backgroundAgentTracker.getActiveAgentIds(sessionId);
-        if (!activeAgents.isEmpty()) {
-            log.warn("Session {} has {} active background agents, aborting them before delete",
-                    sessionId, activeAgents.size());
-            // 向所有活跃代理发送 abort 信号
-            for (String agentId : activeAgents) {
-                String childSessionId = "subagent-" + agentId;
-                runExecutions.activeRunForSession(childSessionId).ifPresent(runId ->
-                        runTermination.cancelByUser(runId, "session_deleted"));
+        try (var mutation = executionGate.acquireBackground(dataSourceIdentity(), sessionId)) {
+            // ★ 新增：检查活跃后台代理
+            List<String> activeAgents = backgroundAgentTracker.getActiveAgentIds(sessionId);
+            if (!activeAgents.isEmpty()) {
+                log.warn("Session {} has {} active background agents, aborting them before delete",
+                        sessionId, activeAgents.size());
+                // 向所有活跃代理发送 abort 信号
+                for (String agentId : activeAgents) {
+                    String childSessionId = "subagent-" + agentId;
+                    runExecutions.activeRunForSession(childSessionId).ifPresent(runId ->
+                            runTermination.cancelByUser(runId, "session_deleted"));
+                }
+                // 给代理最多 5 秒优雅关闭
+                backgroundAgentTracker.awaitAllAgents(sessionId, Duration.ofSeconds(5), null);
             }
-            // 给代理最多 5 秒优雅关闭
-            backgroundAgentTracker.awaitAllAgents(sessionId, Duration.ofSeconds(5), null);
-        }
 
-        // 触发 SESSION_END 钩子 (在删除前，以便钩子可访问会话数据)
-        try {
-            hookService.executeSessionEnd(sessionId, Map.of("reason", "deleted"));
-        } catch (Exception e) {
-            log.warn("SESSION_END hook failed: {}", e.getMessage());
-        }
+            // 触发 SESSION_END 钩子 (在删除前，以便钩子可访问会话数据)
+            try {
+                hookService.executeSessionEnd(sessionId, Map.of("reason", "deleted"));
+            } catch (Exception e) {
+                log.warn("SESSION_END hook failed: {}", e.getMessage());
+            }
 
-        jdbcTemplate.update("DELETE FROM sessions WHERE id = ?", sessionId);
-        removeFileStateCache(sessionId);
-        // 清理 BackgroundAgentTracker 中该会话的记录
-        backgroundAgentTracker.removeSession(sessionId);
-        log.info("Session deleted: {}", sessionId);
+            jdbcTemplate.update("DELETE FROM sessions WHERE id = ?", sessionId);
+            removeFileStateCache(sessionId);
+            // 清理 BackgroundAgentTracker 中该会话的记录
+            backgroundAgentTracker.removeSession(sessionId);
+            log.info("Session deleted: {}", sessionId);
+        }
     }
 
     // ───── 会话恢复 ─────

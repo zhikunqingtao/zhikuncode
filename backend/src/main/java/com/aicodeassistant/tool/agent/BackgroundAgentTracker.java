@@ -119,6 +119,11 @@ public class BackgroundAgentTracker {
                 .toList();
     }
 
+    /** Completed output paths remain owned while the tracker retains their records. */
+    public List<AgentStatus> listForSession(String sessionId) {
+        return activeAgents.values().stream().filter(a -> sessionId.equals(a.sessionId())).toList();
+    }
+
     /**
      * 获取指定代理状态。
      */

@@ -50,6 +50,9 @@ public class AgentResumeService {
         this.modelRegistry = modelRegistry;
     }
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.aicodeassistant.session.SessionManager sessions;
+
     public QueryEngine.QueryResult resume(String agentId, String additionalContext)
             throws IOException {
         AgentMemorySnapshot.Snapshot snapshot = memorySnapshot.load(agentId);
@@ -101,14 +104,16 @@ public class AgentResumeService {
 
         QueryLoopState state = new QueryLoopState(messages, toolContext);
 
-        QueryEngine.QueryResult result = queryEngine.execute(
-            config, state, new ResumeAgentMessageHandler());
+        try (var lease = sessions == null ? null : sessions.acquireBackgroundLease(sessionId)) {
+            QueryEngine.QueryResult result = queryEngine.execute(
+                config, state, new ResumeAgentMessageHandler());
 
-        memorySnapshot.delete(agentId);
-        log.info("Agent resumed and completed: id={}, stopReason={}",
-            agentId, result.stopReason());
+            memorySnapshot.delete(agentId);
+            log.info("Agent resumed and completed: id={}, stopReason={}",
+                agentId, result.stopReason());
 
-        return result;
+            return result;
+        }
     }
 
     public boolean hasResumableAgent(String agentId) {

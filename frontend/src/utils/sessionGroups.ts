@@ -10,6 +10,7 @@ export interface SessionSummary {
     updatedAt: string;
     /** 服务端标记：最新根 Run 未达终态 = 正在运行（用于列表"运行中"状态展示） */
     running?: boolean;
+    mergeOperationId?: string | null;
 }
 
 export interface SessionFolderGroup {

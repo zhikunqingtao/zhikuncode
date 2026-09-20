@@ -1,4 +1,5 @@
 import { pageSessionOrder } from '@/utils/pageSessionOrder';
+import { selectMergeSourceIds, useSessionMergeStore } from '@/store/sessionMergeStore';
 import { GlassMaterial } from '@/components/theme/GlassMaterial';
 import { motion, useReducedMotion } from 'framer-motion';
 /**
@@ -26,6 +27,7 @@ import {
     Clock,
     ArrowDownUp,
     GitBranch,
+    GitMerge,
     GitCommitHorizontal,
     BarChart3,
     FileText,
@@ -534,6 +536,7 @@ function ApiDocsTab() {
 
 // Session List Component — 从后端 API 获取会话列表
 function SessionList({ onCollapse, onSessionActivated, onBack }: { onCollapse?: () => void; onSessionActivated?: () => void; onBack?: () => void }) {
+    const mergeSourceIds = useSessionMergeStore(selectMergeSourceIds);
     const [sessions, setSessions] = useState<SessionSummary[]>([]);
     const [loading, setLoading] = useState(true);
     const [hasMore, setHasMore] = useState(false);
@@ -677,7 +680,12 @@ function SessionList({ onCollapse, onSessionActivated, onBack }: { onCollapse?: 
     const handleDeleteSession = useCallback(async (e: React.MouseEvent, sessionId: string) => {
         e.stopPropagation();
         try {
-            await fetch(`/api/sessions/${sessionId}`, { method: 'DELETE' });
+            const response = await fetch(`/api/sessions/${sessionId}`, { method: 'DELETE' });
+            if (!response.ok) {
+                useNotificationStore.getState().addNotification({ key: `delete-${sessionId}`, level: 'error',
+                    message: response.status === 409 ? '会话正在执行或合并，暂不能删除。' : '删除失败，请稍后重试。' });
+                return;
+            }
             setSessions(prev => prev.filter(s => s.id !== sessionId));
             // 如果删除的是当前会话，清除状态
             if (sessionId === currentSessionId) {
@@ -784,6 +792,7 @@ function SessionList({ onCollapse, onSessionActivated, onBack }: { onCollapse?: 
                                         // 仅"运行中"需要在列表项展示状态（当前会话取实时 store 状态，
                                         // 其余会话取服务端 running 标记）；其他状态不展示。
                                         const generating = isSessionGenerating(session, currentSessionId, currentStatus);
+                                        const merging = !!session.mergeOperationId || mergeSourceIds.includes(session.id);
                                         return (
                                             <div
                                                 key={session.id}
@@ -807,6 +816,7 @@ function SessionList({ onCollapse, onSessionActivated, onBack }: { onCollapse?: 
                                                                     运行中
                                                                 </span>
                                                             )}
+                                                            {merging && <span role="status" className="text-xs text-accent2-ink whitespace-nowrap">合并中</span>}
                                                         </div>
                                                         {!simpleMode && <div className="flex items-center gap-2 mt-1">
                                                             <span className="text-[13px] text-t2 truncate">
@@ -827,6 +837,14 @@ function SessionList({ onCollapse, onSessionActivated, onBack }: { onCollapse?: 
                                                         </div>
                                                     </div>
                                                     <button
+                                                        title="合并为新会话" aria-label="合并为新会话"
+                                                        disabled={generating || merging}
+                                                        className="panel-control p-1 rounded text-t3 hover:text-t1 disabled:opacity-30"
+                                                        onClick={e => { e.stopPropagation(); useSessionMergeStore.getState().openDialog(session); }}>
+                                                        <GitMerge className="w-3.5 h-3.5" />
+                                                    </button>
+                                                    <button
+                                                        disabled={merging}
                                                         onClick={(e) => handleDeleteSession(e, session.id)}
                                                         className="panel-control p-1 rounded opacity-0 group-hover:opacity-100
                                                             hover:bg-errsoft text-t3 hover:text-err

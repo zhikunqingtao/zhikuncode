@@ -64,6 +64,9 @@ public class SwarmWorkerRunner {
         this.modelRegistry = modelRegistry;
     }
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.aicodeassistant.session.SessionManager sessions;
+
     /**
      * 在 Virtual Thread 中启动一个 Worker Agent。
      *
@@ -81,25 +84,32 @@ public class SwarmWorkerRunner {
             ToolUseContext parentContext,
             SwarmState swarmState) {
 
-        return CompletableFuture.supplyAsync(() -> {
-            log.info("Worker {} starting: task='{}'", workerId,
-                    taskPrompt.length() > 80 ? taskPrompt.substring(0, 80) + "..." : taskPrompt);
-            try {
-                return executeWorkerLoop(workerId, taskPrompt, config, parentContext, swarmState);
-            } catch (Exception e) {
-                log.error("Worker {} failed with exception", workerId, e);
-                swarmState.markWorkerTerminated(workerId);
-                return new WorkerResult(workerId, "Worker failed: " + e.getMessage(), 0, 0L);
-            }
-        }, workerExecutor)
-        .orTimeout(WORKER_TIMEOUT_MINUTES, TimeUnit.MINUTES)
-        .exceptionally(ex -> {
-            if (ex instanceof TimeoutException || (ex.getCause() instanceof TimeoutException)) {
-                log.error("Worker {} timed out after {} minutes, forcing abort", workerId, WORKER_TIMEOUT_MINUTES);
-                swarmState.markWorkerTerminated(workerId);
-            }
-            return new WorkerResult(workerId, "Worker failed: " + ex.getMessage(), 0, 0L);
-        });
+        var lease = sessions == null ? null : sessions.acquireBackgroundLease(parentContext.sessionId());
+        try {
+            var execution = new CompletableFuture<WorkerResult>();
+            workerExecutor.execute(() -> {
+                log.info("Worker {} starting: task='{}'", workerId,
+                        taskPrompt.length() > 80 ? taskPrompt.substring(0, 80) + "..." : taskPrompt);
+                try (lease) {
+                    execution.complete(executeWorkerLoop(workerId, taskPrompt, config, parentContext, swarmState));
+                } catch (Throwable e) {
+                    log.error("Worker {} failed with exception", workerId, e);
+                    swarmState.markWorkerTerminated(workerId);
+                    execution.complete(new WorkerResult(workerId, "Worker failed: " + e.getMessage(), 0, 0L));
+                }
+            });
+            return execution.orTimeout(WORKER_TIMEOUT_MINUTES, TimeUnit.MINUTES)
+            .exceptionally(ex -> {
+                if (ex instanceof TimeoutException || (ex.getCause() instanceof TimeoutException)) {
+                    log.error("Worker {} timed out after {} minutes, forcing abort", workerId, WORKER_TIMEOUT_MINUTES);
+                    swarmState.markWorkerTerminated(workerId);
+                }
+                return new WorkerResult(workerId, "Worker failed: " + ex.getMessage(), 0, 0L);
+            });
+        } catch (RuntimeException | Error failure) {
+            if (lease != null) lease.close();
+            throw failure;
+        }
     }
 
     /**

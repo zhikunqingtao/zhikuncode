@@ -45,6 +45,8 @@ import { useJourneyVerifyStore } from '@/store/journeyVerifyStore';
 import { usePageExitGuard } from '@/hooks/usePageExitGuard';
 import { useResponsive } from '@/hooks/useResponsive';
 import { useVirtualKeyboard } from '@/hooks/useVirtualKeyboard';
+import { SessionMergePanel } from '@/components/session/SessionMergePanel';
+import { isMergeSource, selectMergeSourceIds, useSessionMergeStore } from '@/store/sessionMergeStore';
 
 interface SkillItem {
   name: string;
@@ -79,6 +81,7 @@ function App() {
 
   const { messages, addMessage } = useMessageStore();
   const { status, sessionId } = useSessionStore();
+  const mergeBlocked = useSessionMergeStore(s => !!sessionId && selectMergeSourceIds(s).includes(sessionId));
   const workbenchEnabled = useWorkbenchViewStore(s => s.enabled);
   const viewMode = useWorkbenchViewStore(s => s.viewMode);
   // 手机和平板按可视视口布局，键盘高度仅用于消息滚动。
@@ -261,6 +264,10 @@ function App() {
       return false;
     }
     if (!currentSessionId) return false;
+    if (isMergeSource(currentSessionId)) {
+      addSessionError('会话正在合并，完成后可以继续发送。');
+      return false;
+    }
 
     const currentStatus = useSessionStore.getState().status;
     if (currentStatus === 'streaming' || currentStatus === 'waiting_permission') {
@@ -334,6 +341,12 @@ function App() {
   }, [addMessage, addSessionError, ensureSessionReady]);
 
   const rejectCommandWhileBusy = useCallback((): boolean => {
+    if (isMergeSource(useSessionStore.getState().sessionId)) {
+      const notifications = useNotificationStore.getState();
+      notifications.removeNotification('command-blocked-merge');
+      notifications.addNotification({ key: 'command-blocked-merge', level: 'warning', message: '会话正在合并，暂不能执行命令。' });
+      return true;
+    }
     if (useSessionStore.getState().status === 'idle') return false;
     const notifications = useNotificationStore.getState();
     notifications.removeNotification('command-blocked-while-running');
@@ -472,6 +485,7 @@ function App() {
 
   return (
     <>
+      <SessionMergePanel />
       <AppLayout>
         <div className="chat-workspace h-full flex flex-col">
           <div className="chat-content flex-1 overflow-hidden">
@@ -504,7 +518,7 @@ function App() {
               onPasteImages={publishPastedImages}
               onPublishLocalFile={publishLocalFile}
               fileReferenceCapability={fileReferenceCapability}
-              disabled={false}
+              disabled={mergeBlocked}
               runActive={status === 'streaming' || status === 'waiting_permission'}
               compacting={status === 'compacting'}
               permissionMode="read_write"

@@ -27,6 +27,36 @@ class SwarmWorkerRunnerModelTest {
     private final ModelRegistry models = mock(ModelRegistry.class);
     private final SwarmWorkerRunner runner = new SwarmWorkerRunner(engine, tools, models);
 
+    @org.junit.jupiter.api.Test
+    void cancelledWaiterDoesNotReleaseAnExecutingWorkerLease() throws Exception {
+        var entered = new java.util.concurrent.CountDownLatch(1);
+        var finish = new java.util.concurrent.CountDownLatch(1);
+        var gate = new com.aicodeassistant.session.SessionExecutionGate();
+        var ds = mock(javax.sql.DataSource.class);
+        var sessions = mock(com.aicodeassistant.session.SessionManager.class);
+        when(sessions.acquireBackgroundLease("test-session")).thenAnswer(call -> gate.acquireBackground(ds, "test-session"));
+        ReflectionTestUtils.setField(runner, "sessions", sessions);
+        when(engine.execute(any(), any(), any())).thenAnswer(call -> {
+            entered.countDown(); finish.await(5, java.util.concurrent.TimeUnit.SECONDS);
+            return new QueryEngine.QueryResult(List.of(), null, "end_turn", null, 1);
+        });
+        var config = new SwarmConfig("test", 1, SwarmConfig.SwarmBackendType.IN_PROCESS,
+                "test-model", List.of(), List.of(), null, 1000, 10, false);
+        var future = runner.startWorker("worker", "test", config, ToolUseContext.of("/tmp", "test-session"), mock(SwarmState.class));
+        try {
+            assertTrue(entered.await(5, java.util.concurrent.TimeUnit.SECONDS));
+            future.cancel(true);
+            assertNull(gate.tryAcquireMerge(ds, "test-session", "merge"));
+        } finally { finish.countDown(); }
+        long deadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(3);
+        com.aicodeassistant.session.SessionExecutionGate.Token token = null;
+        while (token == null && System.nanoTime() < deadline) {
+            token = gate.tryAcquireMerge(ds, "test-session", "merge");
+            if (token == null) Thread.sleep(10);
+        }
+        assertNotNull(token); token.close();
+    }
+
     @BeforeEach
     void setUp() {
         when(tools.getEnabledTools()).thenReturn(List.of());

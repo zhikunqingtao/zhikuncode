@@ -159,6 +159,12 @@ public class SubAgentExecutor {
      * @return AgentResult 执行结果
      */
     public AgentResult executeSync(AgentRequest request, ToolUseContext parentContext) {
+        try (var lease = sessionManager.acquireBackgroundLease(parentContext.sessionId())) {
+            return executeSyncLeased(request, parentContext);
+        }
+    }
+
+    private AgentResult executeSyncLeased(AgentRequest request, ToolUseContext parentContext) {
         long startedNanos = System.nanoTime();
         String parentRunId = parentContext == null ? null : parentContext.currentRunId();
         recordSubAgentEvent(parentRunId, "subagent_started", request, null, 0L, null);
@@ -258,16 +264,14 @@ public class SubAgentExecutor {
             // 8. 执行查询循环 (带超时 + 统一资源清理)
             String checkpointRunId = childSessionId;  // 用会话ID作为检查点的runId
             SubAgentMessageHandler handler = new SubAgentMessageHandler(
-                    checkpointService, objectMapper, state,
+                    checkpointService, objectMapper, sessionManager, state,
                     checkpointRunId, childSessionId, request.agentId(),
                     workDir.toString());
             Duration timeout = resolveAgentTimeout(request);
             log.info("Sub-agent {} starting with timeout {}s (type={})",
                     request.agentId(), timeout.toSeconds(), request.agentType());
 
-            CompletableFuture<QueryEngine.QueryResult> future = CompletableFuture.supplyAsync(
-                    () -> queryEngine.execute(config, state, handler),
-                    AGENT_EXECUTOR);
+            CompletableFuture<QueryEngine.QueryResult> future = executeLeased(config, state, handler, parentContext.sessionId());
 
             QueryEngine.QueryResult result;
             try {
@@ -396,6 +400,24 @@ public class SubAgentExecutor {
         }
     }
 
+    private CompletableFuture<QueryEngine.QueryResult> executeLeased(QueryConfig config, QueryLoopState state,
+            com.aicodeassistant.engine.QueryMessageHandler handler, String parentSessionId) {
+        var lease = sessionManager.acquireBackgroundLease(parentSessionId);
+        try {
+            var result = new CompletableFuture<QueryEngine.QueryResult>();
+            // A cancelled CompletableFuture may skip supplyAsync's supplier entirely.
+            // This runnable always enters the lease scope, even if its waiter has timed out.
+            AGENT_EXECUTOR.execute(() -> {
+                try (lease) { result.complete(queryEngine.execute(config, state, handler)); }
+                catch (Throwable failure) { result.completeExceptionally(failure); }
+            });
+            return result;
+        } catch (RuntimeException | Error failure) {
+            if (lease != null) lease.close();
+            throw failure;
+        }
+    }
+
     private void recordSubAgentEvent(String parentRunId, String eventType,
                                      AgentRequest request, String status,
                                      long durationMs, Throwable error) {
@@ -459,9 +481,10 @@ public class SubAgentExecutor {
     public AgentResult executeAsync(AgentRequest request, ToolUseContext parentContext) {
         String outputFile = Path.of(System.getProperty("java.io.tmpdir"), "agent-" + request.agentId() + "-output.txt").toString();
 
-        backgroundTracker.register(request.agentId(), parentContext.sessionId(), parentContext.currentRunId(),
-                request.prompt(), outputFile);
+        var lease = sessionManager.acquireBackgroundLease(parentContext.sessionId());
         try {
+            backgroundTracker.register(request.agentId(), parentContext.sessionId(), parentContext.currentRunId(),
+                    request.prompt(), outputFile);
             Thread.ofVirtual().name("zhiku-agent-" + request.agentId()).start(() -> {
                 try {
                     AgentResult result = executeSync(request, parentContext);
@@ -473,11 +496,13 @@ public class SubAgentExecutor {
                     backgroundTracker.markFailed(request.agentId(),
                             t.getClass().getSimpleName() + ": " + t.getMessage());
                 } finally {
-                    cleanupAgentResources(request.agentId(), request);
+                    try { cleanupAgentResources(request.agentId(), request); }
+                    finally { if (lease != null) lease.close(); }
                 }
             });
 
         } catch (RuntimeException | Error startFailure) {
+            if (lease != null) lease.close();
             backgroundTracker.markFailed(request.agentId(), "AGENT_START_FAILED: " + startFailure.getClass().getSimpleName());
             throw startFailure;
         }
@@ -841,12 +866,10 @@ public class SubAgentExecutor {
 
             // 6. 执行查询循环
             SubAgentMessageHandler handler = new SubAgentMessageHandler(
-                    checkpointService, objectMapper, state,
+                    checkpointService, objectMapper, sessionManager, state,
                     childSessionId, childSessionId, request.agentId(),
                     parentContext.workingDirectory());
-            CompletableFuture<QueryEngine.QueryResult> future = CompletableFuture.supplyAsync(
-                    () -> queryEngine.execute(config, state, handler),
-                    AGENT_EXECUTOR);
+            CompletableFuture<QueryEngine.QueryResult> future = executeLeased(config, state, handler, parentContext.sessionId());
 
             QueryEngine.QueryResult result;
             try {
@@ -1251,6 +1274,7 @@ public class SubAgentExecutor {
 
         // 检查点相关状态
         private final CheckpointService checkpointService;
+        private final SessionManager sessionManager;
         private final ObjectMapper objectMapper;
         private final QueryLoopState state;
         private final String runId;
@@ -1263,10 +1287,11 @@ public class SubAgentExecutor {
         private int checkpointSeq = 0;
         private long tokensConsumed = 0;
 
-        SubAgentMessageHandler(CheckpointService checkpointService, ObjectMapper objectMapper,
+        SubAgentMessageHandler(CheckpointService checkpointService, ObjectMapper objectMapper, SessionManager sessionManager,
                                QueryLoopState state, String runId, String sessionId,
                                String agentId, String workDir) {
             this.checkpointService = checkpointService;
+            this.sessionManager = sessionManager;
             this.objectMapper = objectMapper;
             this.state = state;
             this.runId = runId;
@@ -1335,13 +1360,19 @@ public class SubAgentExecutor {
                         checkpointSeq++, messagesJson, null,
                         toolCallCount, turnCount, tokensConsumed, workDir);
                 lastCheckpointTurn = turnCount;
-                Thread.ofVirtual().name("checkpoint-save-" + runId).start(() -> {
-                    try {
-                        checkpointService.save(cp);
-                    } catch (Exception e) {
-                        log.warn("Async checkpoint save failed for run {}: {}", runId, e.getMessage());
-                    }
-                });
+                var lease = sessionManager.acquireBackgroundLease(sessionId);
+                try {
+                    Thread.ofVirtual().name("checkpoint-save-" + runId).start(() -> {
+                        try (lease) {
+                            checkpointService.save(cp);
+                        } catch (Exception e) {
+                            log.warn("Async checkpoint save failed for run {}: {}", runId, e.getMessage());
+                        }
+                    });
+                } catch (RuntimeException | Error failed) {
+                    if (lease != null) lease.close();
+                    throw failed;
+                }
             } catch (Exception e) {
                 log.warn("Failed to prepare checkpoint for agent {}: {}", agentId, e.getMessage());
             }

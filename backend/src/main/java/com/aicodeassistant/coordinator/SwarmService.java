@@ -85,6 +85,35 @@ public class SwarmService {
         this.eventBus = eventBus;
     }
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.aicodeassistant.session.SessionManager sessions;
+    private final ConcurrentHashMap<String, Path> swarmPaths = new ConcurrentHashMap<>();
+    private final Set<String> ambiguousScratchpads = ConcurrentHashMap.newKeySet();
+
+    public boolean hasActiveSwarm(String sessionId) {
+        return swarmSessionMap.entrySet().stream().anyMatch(e -> {
+            SwarmState state = activeSwarms.getIfPresent(e.getKey());
+            return sessionId.equals(e.getValue()) && state != null
+                    && !Set.of(SwarmPhase.IDLE, SwarmPhase.TERMINATED).contains(state.phase());
+        });
+    }
+
+    /** Only currently unambiguous ownership is exportable. Never infer ownership from teamName. */
+    public List<Path> ownedScratchpads(String sessionId) {
+        return swarmSessionMap.entrySet().stream().filter(e -> sessionId.equals(e.getValue()))
+                .filter(e -> !ambiguousScratchpads.contains(e.getKey()))
+                .map(e -> swarmPaths.get(e.getKey())).filter(Objects::nonNull)
+                .filter(path -> swarmPaths.entrySet().stream().noneMatch(other -> path.equals(other.getValue())
+                        && !sessionId.equals(swarmSessionMap.get(other.getKey())))).distinct().toList();
+    }
+
+    public List<Path> ambiguousScratchpads(String sessionId) {
+        var owned = ownedScratchpads(sessionId);
+        return swarmSessionMap.entrySet().stream().filter(e -> sessionId.equals(e.getValue()))
+                .map(e -> swarmPaths.get(e.getKey())).filter(Objects::nonNull)
+                .filter(path -> !owned.contains(path)).distinct().toList();
+    }
+
     // ═══════════════════════════════════════════════════════════════
     // 1. 创建 Swarm
     // ═══════════════════════════════════════════════════════════════
@@ -97,6 +126,12 @@ public class SwarmService {
      * @return SwarmState 初始状态
      */
     public SwarmState createSwarm(SwarmConfig config, String sessionId) {
+        try (var lease = sessions == null ? null : sessions.acquireBackgroundLease(sessionId)) {
+            return createSwarmInternal(config, sessionId);
+        }
+    }
+
+    private SwarmState createSwarmInternal(SwarmConfig config, String sessionId) {
         ensureSwarmEnabled();
 
         String swarmId = "swarm-" + UUID.randomUUID().toString().substring(0, 8);
@@ -107,8 +142,14 @@ public class SwarmService {
         // 初始化 Scratchpad 目录
         if (config.scratchpadDir() != null) {
             try {
+                // A reused team directory may contain another historical swarm's files.
+                // Without durable ownership evidence do not attribute its existing contents.
+                if (Files.exists(config.scratchpadDir())) try (var files = Files.list(config.scratchpadDir())) {
+                    if (files.findAny().isPresent()) ambiguousScratchpads.add(swarmId);
+                }
                 Files.createDirectories(config.scratchpadDir());
             } catch (IOException e) {
+                ambiguousScratchpads.add(swarmId);
                 log.warn("Failed to create scratchpad dir: {}", config.scratchpadDir(), e);
             }
         }
@@ -117,6 +158,7 @@ public class SwarmService {
         SwarmState state = new SwarmState(swarmId, config.teamName());
         activeSwarms.put(swarmId, state);
         swarmSessionMap.put(swarmId, sessionId);
+        if (config.scratchpadDir() != null) swarmPaths.put(swarmId, config.scratchpadDir());
         workerFutures.put(swarmId, Collections.synchronizedList(new ArrayList<>()));
 
         log.info("Swarm created: {} (team={}, maxWorkers={}, session={})",
@@ -143,6 +185,13 @@ public class SwarmService {
      * @throws IllegalStateException 如果 Swarm 不存在或已达到最大 Worker 数量
      */
     public String addWorker(String swarmId, String taskPrompt,
+                             SwarmConfig config, ToolUseContext parentContext) {
+        try (var lease = sessions == null ? null : sessions.acquireBackgroundLease(parentContext.sessionId())) {
+            return addWorkerInternal(swarmId, taskPrompt, config, parentContext);
+        }
+    }
+
+    private String addWorkerInternal(String swarmId, String taskPrompt,
                              SwarmConfig config, ToolUseContext parentContext) {
         ensureSwarmEnabled();
 
@@ -383,6 +432,8 @@ public class SwarmService {
 
         activeSwarms.invalidate(swarmId);
         swarmSessionMap.remove(swarmId);
+        swarmPaths.remove(swarmId);
+        ambiguousScratchpads.remove(swarmId);
         workerFutures.remove(swarmId);
 
         // 清理相关邮箱
