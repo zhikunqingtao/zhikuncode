@@ -14,11 +14,12 @@
  * （surface + hairline + rounded-panel + shadow-e2）。
  */
 
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useContext, useState, useCallback, useEffect, useMemo } from 'react';
 import {
     ChevronRight, Wrench, Loader2,
     Check, XCircle, ShieldAlert,
 } from 'lucide-react';
+import { PublicationDisplayContext } from './PublicationDisplayContext';
 import type { ToolCallState } from '@/types';
 import CodeBlock from './CodeBlock';
 import { TerminalRenderer } from './renderers/TerminalRenderer';
@@ -126,6 +127,7 @@ function countLines(text: string): number {
 const RESULT_PREVIEW_LINES = 30;
 
 const ToolCallBlock: React.FC<ToolCallBlockProps> = ({ toolUseId, toolCall, expanded: expandedProp }) => {
+    const publicationTarget = useContext(PublicationDisplayContext).get(toolUseId);
     // 主折叠开关：running/pending 默认展开，完成态默认折叠（折叠后为一行）；
     // 调用方显式传入 expanded 时受控优先
     const [internalExpanded, setInternalExpanded] = useState(
@@ -285,12 +287,21 @@ const ToolCallBlock: React.FC<ToolCallBlockProps> = ({ toolUseId, toolCall, expa
                             </button>
                             {resultExpanded && (
                                 <div className="px-3 pb-3">
-                                    <ToolResultRenderer
+                                    {publicationTarget ? (
+                                        <button type="button" className="text-sm text-accent2-ink underline"
+                                            onClick={() => {
+                                                const target = document.getElementById(publicationTarget);
+                                                target?.scrollIntoView({ block: 'nearest' });
+                                                target?.focus({ preventScroll: true });
+                                            }}>
+                                            查看发布成果
+                                        </button>
+                                    ) : <ToolResultRenderer
                                         toolName={toolCall.toolName}
                                         content={toolCall.result.content}
                                         isError={toolCall.result.isError}
                                         metadata={toolCall.result.metadata}
-                                    />
+                                    />}
                                 </div>
                             )}
                         </div>

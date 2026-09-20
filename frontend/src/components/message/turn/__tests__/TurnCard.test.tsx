@@ -10,7 +10,7 @@
 
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ContentBlock, Message, ToolResult } from '@/types';
+import type { ContentBlock, Message, ToolCallState, ToolResult } from '@/types';
 import { buildTurns, type Turn } from '@/store/selectors/turnProjection';
 import { useTurnViewStore, type TurnDensity } from '@/store/turnViewStore';
 import TurnCard from '../TurnCard';
@@ -495,5 +495,52 @@ describe('审查回归：命令结果与任务终态', () => {
             }
             unmount();
         }
+    });
+});
+
+describe('visible publication results', () => {
+    const publicationResult: ToolResult = { content: 'published', isError: false, metadata: { structuredResult: {
+        schema: 'site-publication/v1', provider: 'meoo', publicationId: 'p', label: 'Published game',
+        runtime: 'static', state: 'public_verified', url: 'https://game.meoo.pub', projectId: 'p', version: '1',
+    } } };
+    const publicationTurn = () => singleTurn([
+        userText('u', 1),
+        assistantWithBlocks('a', 2, [toolUseBlock('publish', 'PublishMeoo', {}, publicationResult)]),
+        assistantMsg('answer', 3, '发布完成'),
+    ]);
+    it.each(['compact', 'balanced', 'detailed'] as const)('shows website without expanding anything in %s', density => {
+        renderCard(publicationTurn(), { density });
+        expect(screen.getAllByTestId('site-publication-card')).toHaveLength(1);
+        expect(screen.getByRole('link', { name: '打开网站' })).toHaveAttribute('href', 'https://game.meoo.pub');
+    });
+    it('keeps a live-only publication visible once when committed and restored', () => {
+        useTurnViewStore.setState({ density: 'compact', expandOverrides: {} });
+        const turn = singleTurn([userText('u', 1), assistantMsg('stream', 2, '')]);
+        const calls = new Map<string, ToolCallState>([['publish', {
+            toolName: 'PublishMeoo', input: {}, status: 'completed', startTime: 0, result: publicationResult,
+        }]]);
+        const { rerender } = render(<TurnCard turn={turn} sessionId="sess-1" isRunActive
+            streamingMessageId="stream" activeToolCalls={calls} />);
+        expect(screen.getAllByTestId('site-publication-card')).toHaveLength(1);
+        rerender(<TurnCard turn={publicationTurn()} sessionId="sess-1" isRunActive={false} />);
+        expect(screen.getAllByTestId('site-publication-card')).toHaveLength(1);
+        expect(screen.getByRole('link', { name: '打开网站' })).toHaveAttribute('href', 'https://game.meoo.pub');
+    });
+    it('does not duplicate the card after expanding tool details', () => {
+        renderCard(publicationTurn(), { density: 'detailed' });
+        fireEvent.click(screen.getByRole('button', { name: /PublishMeoo/ }));
+        fireEvent.click(screen.getByRole('button', { name: 'Result' }));
+        expect(screen.getAllByTestId('site-publication-card')).toHaveLength(1);
+        expect(screen.getByRole('button', { name: '查看发布成果' })).toBeVisible();
+    });
+    it('shows download action even when the final answer is collapsed', () => {
+        const result: ToolResult = { content: 'uploaded', isError: false, metadata: { structuredResult: {
+            schema: 'external-resource/v1', kind: 'download', provider: 'oss', url: 'https://files.example.com/a.pptx',
+            label: 'a.pptx', size: 1024, sha256: 'a'.repeat(64), objectKey: 'a.pptx',
+            mimeType: 'application/octet-stream', permanentlyPublic: true, downloadExpected: true,
+        } } };
+        renderCard(singleTurn([userText('u', 1), assistantWithBlocks('a', 2,
+            [toolUseBlock('upload', 'PublishArtifact', {}, result)]), assistantMsg('answer', 3)]));
+        expect(screen.getByRole('link', { name: '下载 a.pptx' })).toBeVisible();
     });
 });
