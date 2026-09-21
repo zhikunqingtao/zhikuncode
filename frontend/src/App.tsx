@@ -43,6 +43,7 @@ import { SimpleWorkbench } from '@/components/workbench/SimpleWorkbench';
 import { useWorkbenchViewStore } from '@/store/workbenchViewStore';
 import { useJourneyVerifyStore } from '@/store/journeyVerifyStore';
 import { usePageExitGuard } from '@/hooks/usePageExitGuard';
+import { useTabStatus } from '@/hooks/useTabStatus';
 import { useResponsive } from '@/hooks/useResponsive';
 import { useVirtualKeyboard } from '@/hooks/useVirtualKeyboard';
 import { SessionMergePanel } from '@/components/session/SessionMergePanel';
@@ -78,6 +79,7 @@ const MobileKeyboardBridge: React.FC<{
 
 function App() {
   usePageExitGuard();
+  useTabStatus();
 
   const { messages, addMessage } = useMessageStore();
   const { status, sessionId } = useSessionStore();
