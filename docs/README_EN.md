@@ -140,6 +140,8 @@ Two official rankings are reported: on the six-task equal-weight board ZhikunCod
 
 ### Conversation Workbench and Change Review
 
+Appearance settings offer light, dark, and liquid-glass themes with eight accent presets: Celadon (青瓷, default), Ice Cyan (冰青), Azure (蔚蓝), Indigo (靛蓝), Wisteria (藤紫), Violet (紫罗兰), Magenta (品红), and Graphite (石墨). Changes apply immediately and are saved locally. The browser tab title shows the current session's running, compacting, or approval-pending state with a shortened title. Pending approvals take priority, multiple requests show a count, and idle tabs return to `zhikuncode`.
+
 New sessions start in the **development workbench with balanced message density**. Simple and development workbenches share the session; density can be concise, balanced, or detailed. Light, dark, and liquid-glass themes share business state. On phones, session navigation, file references, images/camera, commands, voice, and send controls remain accessible. Workbench, density, and permission controls show their current values; model selection is under More. Desktop and tablet selectors adapt to their available width.
 
 **Source capabilities added on 2026-09-16 (not a deployed-version claim):** On the home screen without a server session, model selection is stored locally for the first session creation. It does not change the configured default or send a switch request to a nonexistent session. Existing sessions still require the appropriate connection and binding state.
@@ -150,9 +152,13 @@ Only native `Edit` and `Write` operations with a successful result, a verifiable
 
 Session restoration recovers recorded terminal tool states. Activity approval/rejection updates follow server acknowledgement. An empty final response gets at most one recovery attempt; another empty response or a limit terminates according to its reason, not as a successful empty delivery.
 
+After a refresh or reconnection, a restored failed Run also restores an error notice. If no error summary is available, the notice explains that the previous reply did not finish and that you can send a message to continue.
+
 Meoo publishing requires its feature switch, deployment credentials, pinned CLI, and an available verification service. It is disabled by default and requires separate approval per publication. A timeout or unsuccessful public-access check is not success and does not guarantee remote cancellation. See the [deployment and troubleshooting guide (Chinese)](deployment/meoo.md).
 
 ### Session Context Merge (2–5 Sources)
+
+Merge progress is polled periodically and checked immediately when you return to the page, regain connectivity, or reopen the panel. A synchronization failure shows “合并状态待确认” (merge status awaiting confirmation) with a retry action. Source sessions remain reserved until the result is confirmed; temporarily unavailable progress is not treated as completion.
 
 In the session list, click “合并为新会话” (Merge into a new session), select a total of 2–5 idle sessions, and confirm the primary session, title, and model. The initiating session stays selected; you can add up to four other sources. The new session uses the primary session’s working directory and receives a handoff summary, text records of persisted activity, copies of temporary artifacts with established ownership, and a file manifest. Summary generation uses the selected model and incurs API usage.
 
@@ -163,6 +169,18 @@ The selected sessions may use different folders. The new session uses only the p
 The new session uses **Full Access (`AUTO_APPROVE`)**, matching the default for ordinary sessions created through the Web UI. Historical permission grants from the sources are not copied. Cross-directory reads and writes that pass security checks may proceed without another confirmation; system security restrictions and operating-system permissions still apply. Not copying historical grants does not mean that access to other directories will always prompt for approval.
 
 The new session waits for your next instruction; injecting context into an existing session is not supported. Each merge shares the existing limits of 10 minutes, 16 model calls, and artifact copy capacity, regardless of the number of sources. Exceeding the summary budget fails explicitly without omitting sources or truncating their activity records.
+
+### Speech Recognition Hotword Configuration
+
+Speech recognition uses the standard DashScope provider and requires `LLM_PROVIDER_DASHSCOPE_API_KEY`; a Token Plan Key cannot substitute for it. Set `ASR_CORRECTIONS` in the project's root `.env` file and restart the backend after changes. For Docker Compose deployments, recreate the container to apply the updated environment.
+
+Use the format `Canonical:variant1,variant2;Canonical2:variant3`, for example:
+
+```dotenv
+ASR_CORRECTIONS='zhikuncode:zhi kun code,zkun code,智坤code;PostgreSQL:post gre sql'
+```
+
+Canonical names are included in the recognition context as an entity vocabulary, and configured variants in the transcript are then replaced with their canonical names. Matching ignores ASCII letter case and tolerates spaces or hyphens at token boundaries. To add vocabulary without replacement rules, use an entry such as `PostgreSQL:`. A custom value replaces the entire default rule set; when unset, common misrecognitions of `zhikuncode` are corrected by default. See also [`.env.example`](../.env.example).
 
 ## ⚡ Quick Start
 

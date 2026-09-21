@@ -144,3 +144,5 @@ docs/case-studies/assets/king/videos/*.mp4
 
 # 临时工作目录
 .tmp/
+docs/plans/
+screenshots/
