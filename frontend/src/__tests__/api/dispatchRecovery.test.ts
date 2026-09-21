@@ -13,6 +13,8 @@ import { usePermissionStore } from '@/store/permissionStore';
 import { useRunStore } from '@/store/runStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { useAppUiStore } from '@/store/appUiStore';
+import { buildTurns } from '@/store/selectors/turnProjection';
+import type { Message, SessionRestoredPayload } from '@/types';
 
 const sendToServerMock = vi.hoisted(() => vi.fn(() => true));
 vi.mock('@/api/stompClient', () => ({
@@ -34,6 +36,21 @@ const response = (interactions: unknown[]) => ({
     ok: true,
     json: async () => interactions,
 });
+
+function startRestore(
+    sessionId: string,
+    runSnapshot: SessionRestoredPayload['runSnapshot'],
+    messages: Message[] = [],
+) {
+    let restored!: SessionRestoredPayload;
+    const bound = bindSessionAndWait(sessionId, binding => {
+        restored = {
+            type: 'session_restored', ...binding, messages, runSnapshot,
+            metadata: { sessionId, model: 'model', permissionMode: 'DEFAULT', status: 'idle' },
+        };
+    });
+    return { bound, restored };
+}
 
 const permissionInteraction = (sessionId: string, suffix: string) => ({
     protocolVersion: 3,
@@ -93,6 +110,155 @@ describe('transport-scoped bind recovery', () => {
         });
         useRunStore.setState({ recoverySnapshots: new Map(), recoveryEventSeq: new Map() });
         vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => [] }));
+    });
+
+    it.each(['refresh', 'reconnect'])('restores a FAILED run error after %s while keeping input available', async (recovery) => {
+        useSessionStore.getState().setStatus('streaming');
+        if (recovery === 'reconnect') {
+            dispatch({ type: 'error', message: '实时错误提示', code: 'INCOMPLETE' });
+        }
+        const messages: Message[] = [{
+            type: 'user', uuid: 'user-prompt', timestamp: 1,
+            content: [{ type: 'text', text: '继续任务' }],
+        }];
+        const { bound, restored } = startRestore('session-failed', {
+            id: 'run-failed', status: 'FAILED',
+            errorSummary: '模型未返回有效正文', exitReason: 'INCOMPLETE',
+        }, messages);
+        restored.activeToolCalls = [{ toolUseId: 'stale-tool', toolName: 'Bash', input: {} }];
+        dispatch(restored);
+        await expect(bound).resolves.toBe(true);
+
+        expect(useMessageStore.getState().messages).toEqual([
+            messages[0],
+            expect.objectContaining({
+                type: 'system', uuid: 'run-failure-run-failed', subtype: 'error',
+                content: '模型未返回有效正文', errorCode: 'INCOMPLETE',
+            }),
+        ]);
+        expect(messages).toHaveLength(1);
+        expect(useMessageStore.getState().activeToolCalls.size).toBe(0);
+        expect(useMessageStore.getState().streamingMessageId).toBeNull();
+        expect(useSessionStore.getState().status).toBe('idle');
+        expect(isSessionBindingReady('session-failed')).toBe(true);
+        expect(useNotificationStore.getState().notifications).toHaveLength(0);
+    });
+
+    it('keeps one failure card with a stable identity and terminal time across duplicate snapshots and rebinds', async () => {
+        const terminalAt = '2026-09-21T01:30:00Z';
+        const snapshot = {
+            id: 'run-failed', status: 'FAILED', errorSummary: '回复未完成', terminalAt,
+            finishedAt: '2026-09-21T01:30:01Z', updatedAt: '2026-09-21T01:30:02Z',
+        };
+        const first = startRestore('session-failed', snapshot);
+        dispatch(first.restored);
+        dispatch(first.restored);
+        await expect(first.bound).resolves.toBe(true);
+        const firstMessage = useMessageStore.getState().messages[0];
+        expect(useMessageStore.getState().messages).toHaveLength(1);
+        expect(firstMessage.timestamp).toBe(Date.parse(terminalAt));
+        expect(buildTurns(useMessageStore.getState().messages)[0].endedAt).toBe(Date.parse(terminalAt));
+
+        resetBoundSession();
+        const rebound = startRestore('session-failed', snapshot, [firstMessage]);
+        dispatch(rebound.restored);
+        await expect(rebound.bound).resolves.toBe(true);
+        expect(useMessageStore.getState().messages).toHaveLength(1);
+        expect(useMessageStore.getState().messages[0].uuid).toBe(firstMessage.uuid);
+        expect(buildTurns(useMessageStore.getState().messages)[0].endedAt).toBe(Date.parse(terminalAt));
+    });
+
+    it.each([
+        {
+            source: 'finishedAt',
+            times: { terminalAt: 'invalid', finishedAt: '2026-09-21T01:30:00Z', updatedAt: '2026-09-21T01:30:01Z' },
+            expectedTimestamp: Date.parse('2026-09-21T01:30:00Z'),
+        },
+        {
+            source: 'updatedAt',
+            times: { terminalAt: null, finishedAt: 'invalid', updatedAt: '2026-09-21T01:30:01Z' },
+            expectedTimestamp: Date.parse('2026-09-21T01:30:01Z'),
+        },
+        {
+            source: 'history when terminal timestamps are invalid',
+            times: { terminalAt: 'invalid', finishedAt: '', updatedAt: 'invalid' },
+            expectedTimestamp: 1234,
+        },
+        { source: 'history when terminal timestamps are absent', times: {}, expectedTimestamp: 1234 },
+    ])('uses $source as the failure card timestamp', async ({ times, expectedTimestamp }) => {
+        const { bound, restored } = startRestore('session-failed', {
+            id: 'run-failed', status: 'FAILED', ...times,
+        }, [{ type: 'user', uuid: 'user-prompt', timestamp: 1234, content: [{ type: 'text', text: '继续' }] }]);
+        dispatch(restored);
+        await expect(bound).resolves.toBe(true);
+        expect(useMessageStore.getState().messages.at(-1)?.timestamp).toBe(expectedTimestamp);
+        expect(buildTurns(useMessageStore.getState().messages)[0].endedAt).toBe(expectedTimestamp);
+    });
+
+    it('falls back to the restore time only when the old snapshot has no valid run or history timestamp', async () => {
+        const beforeRestore = Date.now();
+        const { bound, restored } = startRestore('session-failed', {
+            id: 'run-failed', status: 'FAILED', terminalAt: 'invalid', updatedAt: null,
+        });
+        dispatch(restored);
+        await expect(bound).resolves.toBe(true);
+        const timestamp = useMessageStore.getState().messages[0].timestamp;
+        expect(timestamp).toBeGreaterThanOrEqual(beforeRestore);
+        expect(timestamp).toBeLessThanOrEqual(Date.now());
+    });
+
+    it.each([
+        { errorSummary: null, exitReason: 'PROVIDER_FAILURE', expectedCode: 'PROVIDER_FAILURE' },
+        { errorSummary: '  ', exitReason: null, expectedCode: 'RUN_FAILED' },
+        { errorSummary: undefined, exitReason: undefined, expectedCode: 'RUN_FAILED' },
+    ])('uses a readable fallback for a failed run without an error summary ($expectedCode)', async (testCase) => {
+        const { bound, restored } = startRestore('session-failed', {
+            id: 'run-failed', status: 'FAILED',
+            errorSummary: testCase.errorSummary, exitReason: testCase.exitReason,
+        });
+        dispatch(restored);
+        await expect(bound).resolves.toBe(true);
+        expect(useMessageStore.getState().messages).toEqual([
+            expect.objectContaining({
+                subtype: 'error', content: '上次回复未完成，你可以发送消息继续对话',
+                errorCode: testCase.expectedCode,
+            }),
+        ]);
+    });
+
+    it.each(['COMPLETED', 'CANCELLED', 'INTERRUPTED', 'RUNNING', 'CANCELLING', 'WAITING_INTERACTION'])
+    ('does not display a failure for a %s run', async (status) => {
+        const { bound, restored } = startRestore('session-current', {
+            id: 'run-current', status, errorSummary: '不应作为失败显示', exitReason: 'INCOMPLETE',
+        });
+        dispatch(restored);
+        await expect(bound).resolves.toBe(true);
+        expect(useMessageStore.getState().messages).toHaveLength(0);
+    });
+
+    it('ignores failed snapshots for stale binds, mismatched epochs and other sessions', async () => {
+        const old = startRestore('session-old', { id: 'run-old', status: 'FAILED', errorSummary: '旧会话失败' });
+        const current = startRestore('session-current', { id: 'run-current', status: 'COMPLETED' });
+        await expect(old.bound).resolves.toBe(false);
+        dispatch(old.restored);
+        dispatch({
+            ...current.restored,
+            bindingEpoch: current.restored.bindingEpoch - 1,
+            runSnapshot: { id: 'run-wrong-epoch', status: 'FAILED', errorSummary: '旧绑定失败' },
+        });
+        dispatch({
+            ...current.restored,
+            metadata: { ...current.restored.metadata, sessionId: 'session-other' },
+            runSnapshot: { id: 'run-other', status: 'FAILED', errorSummary: '其他会话失败' },
+        });
+        expect(useMessageStore.getState().messages).toHaveLength(0);
+        expect(isSessionBindingReady('session-current')).toBe(false);
+
+        dispatch(current.restored);
+        await expect(current.bound).resolves.toBe(true);
+        dispatch(old.restored);
+        expect(useSessionStore.getState().sessionId).toBe('session-current');
+        expect(useMessageStore.getState().messages).toHaveLength(0);
     });
 
     it('clears old interactions at the matching restore and keeps recovered interactions for the new Session', async () => {

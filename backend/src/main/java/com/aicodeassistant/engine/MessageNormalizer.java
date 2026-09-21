@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
  * 将内部 Message 列表转为 API 兼容格式，处理各种边界情况。
  * <p>
  * 处理管线:
- * 1. 过滤 SystemMessage
+ * 1. 过滤 SystemMessage，并清理请求历史中的压缩占位符回合
  * 2. 转换 + 合并连续同角色消息
  * 3. thinking 块处理（orphan过滤 + 尾部thinking移除）
  * 4. tool_use/tool_result 配对保证
@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 public class MessageNormalizer {
 
     private static final Logger log = LoggerFactory.getLogger(MessageNormalizer.class);
+    private static final String COMPRESSED_HISTORY_PLACEHOLDER = "[content compressed by system]";
 
     /**
      * 完整标准化管线。
@@ -55,12 +56,54 @@ public class MessageNormalizer {
 
     /**
      * Phase 1: 过滤消息。
-     * 过滤 SystemMessage（已在 systemPrompt 中处理）。
+     * 过滤 SystemMessage（已在 systemPrompt 中处理），在请求副本中清理压缩占位符。
+     * 此步骤在合并 user 消息之前执行，不修改持久化消息或调用方的历史列表。
      */
     private List<Message> filterMessages(List<Message> messages) {
-        return messages.stream()
-                .filter(msg -> !(msg instanceof Message.SystemMessage))
+        List<Message> result = new ArrayList<>(messages.size());
+        for (Message message : messages) {
+            if (message instanceof Message.SystemMessage) continue;
+            if (message instanceof Message.AssistantMessage assistant) {
+                Message.AssistantMessage projected = projectCompressedAssistant(assistant);
+                if (projected != null) result.add(projected);
+            } else {
+                result.add(message);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 压缩标记不是助手答复示例：无工具的占位符回合不回放，有工具时只移除占位文本。
+     * 仅匹配完整的已知骨架标记；正文引用、部分截断内容和 provider 私有状态保留原样。
+     * 返回 null 表示仅从本次请求中移除该回合。
+     */
+    private Message.AssistantMessage projectCompressedAssistant(Message.AssistantMessage assistant) {
+        if (assistant.content() == null) return assistant;
+        boolean sawPlaceholder = false;
+        boolean hasToolUse = false;
+        for (ContentBlock block : assistant.content()) {
+            switch (block) {
+                case ContentBlock.TextBlock text -> {
+                    if (text.text() == null || text.text().isBlank()) continue;
+                    if (!COMPRESSED_HISTORY_PLACEHOLDER.equals(text.text().strip())) return assistant;
+                    sawPlaceholder = true;
+                }
+                case ContentBlock.ThinkingBlock ignored -> { }
+                case ContentBlock.RedactedThinkingBlock ignored -> { }
+                case ContentBlock.ToolUseBlock ignored -> hasToolUse = true;
+                // Opaque provider state and any other non-text payload may be needed for continuation.
+                default -> { return assistant; }
+            }
+        }
+        if (!sawPlaceholder) return assistant;
+        if (!hasToolUse) return null;
+
+        List<ContentBlock> content = assistant.content().stream()
+                .filter(block -> !(block instanceof ContentBlock.TextBlock))
                 .toList();
+        return new Message.AssistantMessage(assistant.uuid(), assistant.timestamp(), content,
+                assistant.stopReason(), assistant.usage());
     }
 
     /**

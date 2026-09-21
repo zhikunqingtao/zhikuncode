@@ -1031,7 +1031,15 @@ function handleSessionRestore(data: {
         permissionMode: string;
         status: 'idle' | 'interrupted';
     };
-    runSnapshot?: { id: string; status: string };
+    runSnapshot?: {
+        id: string;
+        status: string;
+        errorSummary?: string | null;
+        exitReason?: string | null;
+        terminalAt?: string | null;
+        finishedAt?: string | null;
+        updatedAt?: string | null;
+    } | null;
     snapshotEventSeq?: number;
     activeToolCalls?: Array<{ toolUseId: string; toolName: string; input: unknown; startedAt?: number }>;
     costSummary?: { totalCost?: number };
@@ -1071,6 +1079,25 @@ function handleSessionRestore(data: {
             data.runSnapshot as unknown as Record<string, unknown>,
             data.snapshotEventSeq ?? 0,
         );
+        if (runStatus === 'FAILED') {
+            // 实时错误卡仅存在前端，刷新/重连后从持久化 Run 终态恢复。
+            // 使用稳定 ID，让重复快照恢复仍然只有一张错误卡。
+            const failureTimestamp = [
+                data.runSnapshot.terminalAt, data.runSnapshot.finishedAt, data.runSnapshot.updatedAt,
+            ].map(value => Date.parse(value ?? '')).find(Number.isFinite);
+            // 旧快照优先沿用历史末次有效时间；没有任何时间信息才使用恢复时间。
+            const historyTimestamp = data.messages.map(message => message.timestamp)
+                .filter(Number.isFinite).at(-1);
+            useMessageStore.getState().addMessage({
+                type: 'system',
+                uuid: `run-failure-${data.runSnapshot.id}`,
+                timestamp: failureTimestamp ?? historyTimestamp ?? Date.now(),
+                content: data.runSnapshot.errorSummary?.trim()
+                    || '上次回复未完成，你可以发送消息继续对话',
+                subtype: 'error',
+                errorCode: data.runSnapshot.exitReason || 'RUN_FAILED',
+            });
+        }
     }
 
     // 4. 恢复会话元数据

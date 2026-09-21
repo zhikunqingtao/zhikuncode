@@ -1,7 +1,7 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, afterEach, expect, it, vi } from 'vitest';
 import { SessionMergePanel } from './SessionMergePanel';
-import { useSessionMergeStore, type MergeOperation } from '@/store/sessionMergeStore';
+import { isMergeSource, useSessionMergeStore, type MergeOperation } from '@/store/sessionMergeStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { useModelStore } from '@/store/modelStore';
 import { activateSessionCandidate } from '@/services/sessionActivation';
@@ -24,7 +24,7 @@ beforeEach(() => {
         url === '/api/sessions/merge' || url === '/api/session-merges/op' ? operation : url === '/api/models'
             ? { models: useModelStore.getState().models } : { sessions: [a, b, { ...b, id: 'running', title: '正在执行', running: true }], hasMore: false } })));
 });
-afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
+afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); vi.useRealTimers(); });
 async function begin() {
     render(<SessionMergePanel />);
     act(() => useSessionMergeStore.getState().openDialog(a));
@@ -201,4 +201,121 @@ it.each([true, false])('shows missing-operation recovery with panel open=%s with
     expect(fetch).toHaveBeenCalledTimes(1);
     fireEvent.click(screen.getByRole('button', { name: '关闭合并恢复提示' }));
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+});
+
+const progressResponse = (progress: MergeOperation) => ({ ok: true, json: async () => progress }) as Response;
+const failedOperation: MergeOperation = { ...operation, status: 'failed', stage: 'failed', error: '合并总时限已到' };
+
+it.each(['focus', 'online', 'session-list-updated', 'visible', 'reopen'] as const)(
+    'recovers the server failure immediately on %s without resubmitting or switching sessions', async trigger => {
+        vi.useFakeTimers();
+        useSessionMergeStore.setState({ pending: { key: 'key', request, operation } });
+        vi.mocked(fetch).mockResolvedValueOnce(progressResponse(operation))
+            .mockResolvedValueOnce(progressResponse(failedOperation));
+        await act(async () => { render(<SessionMergePanel />); });
+        expect(fetch).toHaveBeenCalledTimes(1);
+        expect(isMergeSource('A')).toBe(true);
+        const listUpdated = vi.fn();
+        window.addEventListener('session-list-updated', listUpdated);
+        try {
+            if (trigger === 'visible') {
+                const visibility = vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden');
+                await act(async () => { document.dispatchEvent(new Event('visibilitychange')); });
+                expect(fetch).toHaveBeenCalledTimes(1);
+                visibility.mockReturnValue('visible');
+            }
+            await act(async () => {
+                if (trigger === 'reopen') fireEvent.click(screen.getByRole('button', { name: '合并中 · 查看进度' }));
+                else if (trigger === 'visible') document.dispatchEvent(new Event('visibilitychange'));
+                else window.dispatchEvent(new Event(trigger));
+            });
+            expect(useSessionMergeStore.getState().pending?.operation?.status).toBe('failed');
+            expect(isMergeSource('A')).toBe(false);
+            expect(isMergeSource('B')).toBe(false);
+            expect(listUpdated).toHaveBeenCalledTimes(trigger === 'session-list-updated' ? 2 : 1);
+            expect(screen.queryByRole('button', { name: '合并中 · 查看进度' })).not.toBeInTheDocument();
+            if (trigger === 'reopen') expect(screen.getByRole('alert')).toHaveTextContent('合并总时限已到');
+            else expect(screen.getByRole('button', { name: '合并结果' })).toBeInTheDocument();
+            expect(fetch).toHaveBeenCalledTimes(2);
+            for (const [url, options] of vi.mocked(fetch).mock.calls) {
+                expect(url).toBe('/api/session-merges/op');
+                expect(options?.method).not.toBe('POST');
+            }
+            expect(activateSessionCandidate).not.toHaveBeenCalled();
+            expect(useSessionStore.getState().sessionId).toBe('A');
+            await act(async () => {
+                window.dispatchEvent(new Event('focus'));
+                window.dispatchEvent(new Event('online'));
+                window.dispatchEvent(new Event('session-list-updated'));
+                await vi.advanceTimersByTimeAsync(2000);
+            });
+            expect(fetch).toHaveBeenCalledTimes(2);
+        } finally { window.removeEventListener('session-list-updated', listUpdated); }
+    },
+);
+
+it('keeps unknown progress visible while closed and preserves occupancy until a manual query succeeds', async () => {
+    vi.useFakeTimers();
+    useSessionMergeStore.setState({ pending: { key: 'key', request, operation } });
+    vi.mocked(fetch).mockRejectedValue(new Error('网络不可用'));
+    await act(async () => { render(<SessionMergePanel />); });
+    expect(screen.getByRole('alert')).toHaveTextContent('网络不可用');
+    expect(screen.getByRole('button', { name: '合并状态待确认 · 查看进度' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '重试查询' })).toBeEnabled();
+    expect(isMergeSource('A')).toBe(true);
+    expect(isMergeSource('B')).toBe(true);
+    await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: '合并状态待确认 · 查看进度' }));
+    });
+    expect(screen.getByRole('status')).toHaveTextContent('合并状态待确认');
+    expect(screen.getByText('进度同步失败，正在重试查询；确认结果前暂不能操作来源会话。')).toBeInTheDocument();
+    expect(screen.queryByText(/个来源会话暂被占用/)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '关闭面板' }));
+
+    let respond!: (response: Response) => void;
+    vi.mocked(fetch).mockImplementationOnce(() => new Promise(resolve => { respond = resolve; }));
+    fireEvent.click(screen.getByRole('button', { name: '重试查询' }));
+    expect(screen.getByRole('button', { name: '重试查询' })).toBeDisabled();
+    expect(isMergeSource('A')).toBe(true);
+    await act(async () => { respond(progressResponse(operation)); });
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '合并中 · 查看进度' })).toBeInTheDocument();
+    expect(useSessionMergeStore.getState().error).toBeNull();
+    expect(isMergeSource('A')).toBe(true);
+    expect(fetch).toHaveBeenCalledTimes(3);
+    expect(vi.mocked(fetch).mock.calls.every(([url, options]) => url === '/api/session-merges/op' && options?.method !== 'POST')).toBe(true);
+    expect(activateSessionCandidate).not.toHaveBeenCalled();
+});
+
+it('coalesces recovery signals with the active query and removes listeners and polling on unmount', async () => {
+    vi.useFakeTimers();
+    vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('visible');
+    useSessionMergeStore.setState({ pending: { key: 'key', request, operation } });
+    let respond!: (response: Response) => void;
+    vi.mocked(fetch).mockImplementationOnce(() => new Promise(resolve => { respond = resolve; }));
+    const { unmount } = render(<SessionMergePanel />);
+    const recoverySignals = () => {
+        window.dispatchEvent(new Event('focus'));
+        window.dispatchEvent(new Event('online'));
+        window.dispatchEvent(new Event('session-list-updated'));
+        document.dispatchEvent(new Event('visibilitychange'));
+    };
+    act(() => {
+        recoverySignals();
+        fireEvent.click(screen.getByRole('button', { name: '合并中 · 查看进度' }));
+    });
+    await act(async () => { await vi.advanceTimersByTimeAsync(2000); });
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(isMergeSource('A')).toBe(true);
+    await act(async () => { respond(progressResponse(operation)); });
+    await act(async () => { await vi.advanceTimersByTimeAsync(2000); });
+    expect(fetch).toHaveBeenCalledTimes(2);
+    unmount();
+    await act(async () => {
+        recoverySignals();
+        await vi.advanceTimersByTimeAsync(4000);
+    });
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(isMergeSource('A')).toBe(true);
+    expect(activateSessionCandidate).not.toHaveBeenCalled();
 });
