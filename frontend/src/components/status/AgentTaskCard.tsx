@@ -10,17 +10,17 @@ import type { AgentTask } from '@/types';
 
 const statusConfig: Record<string, { color: string; label: string; icon: string }> = {
     running: {
-        color: 'border-blue-400 dark:border-blue-600 bg-blue-50/50 dark:bg-blue-950/20',
+        color: 'border-accent2 bg-accent2-soft',
         label: '运行中',
         icon: '⏳',
     },
     completed: {
-        color: 'border-emerald-400 dark:border-emerald-600 bg-emerald-50/50 dark:bg-emerald-950/20',
+        color: 'border-ok bg-oksoft',
         label: '已完成',
         icon: '✓',
     },
     failed: {
-        color: 'border-red-400 dark:border-red-600 bg-red-50/50 dark:bg-red-950/20',
+        color: 'border-err bg-errsoft',
         label: '失败',
         icon: '✗',
     },
@@ -43,15 +43,15 @@ const TaskCardItem: React.FC<TaskCardItemProps> = ({ task }) => {
     }, [task.startTime]);
 
     return (
-        <div className={`border rounded-lg p-3 transition-colors duration-base ${config.color}`}>
+        <div className={`border rounded-[10px] p-3 transition-colors duration-base ${config.color}`}>
             {/* Header row */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 min-w-0 flex-1">
                     {/* Status indicator */}
                     <span className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[13px]
-                        ${task.status === 'running' ? 'bg-blue-500 text-white animate-spin-slow' :
-                          task.status === 'completed' ? 'bg-emerald-500 text-white' :
-                          'bg-red-500 text-white'}`}>
+                        ${task.status === 'running' ? 'bg-accent2 text-white dark:text-app2 animate-spin-slow' :
+                          task.status === 'completed' ? 'bg-ok text-white dark:text-app2' :
+                          'bg-err text-white dark:text-app2'}`}>
                         {task.status === 'running' ? (
                             <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -66,7 +66,7 @@ const TaskCardItem: React.FC<TaskCardItemProps> = ({ task }) => {
                             <span className="text-sm font-medium text-t1 truncate">
                                 {task.agentName}
                             </span>
-                            <span className="text-[13px] px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-t2 flex-shrink-0">
+                            <span className="text-[13px] px-1.5 py-0.5 rounded bg-sunken2 text-t2 flex-shrink-0">
                                 {task.agentType}
                             </span>
                         </div>
@@ -85,7 +85,7 @@ const TaskCardItem: React.FC<TaskCardItemProps> = ({ task }) => {
                         <button
                             onClick={toggleExpand}
                             className="panel-control w-6 h-6 rounded flex items-center justify-center
-                                       hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                                       hover:bg-sunken2 transition-colors"
                             title={expanded ? '收起' : '展开详情'}
                         >
                             <svg
@@ -138,7 +138,7 @@ export const AgentTaskCard: React.FC = () => {
     const completedCount = agentTasks.filter((t) => t.status === 'completed').length;
 
     return (
-        <div className="px-4 py-3 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border border-border-hairline rounded-[14px] shadow-sm">
+        <div className="px-4 py-3 bg-surfacev2 backdrop-blur-sm border border-border-hairline rounded-[14px] shadow-e1">
             {/* Header */}
             <div className="flex items-center justify-between mb-2.5">
                 <span className="text-sm font-semibold text-t1">

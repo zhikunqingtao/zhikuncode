@@ -40,15 +40,15 @@ function getStatusIcon(worker: WorkerInfo): string {
 function getStatusBorderColor(worker: WorkerInfo): string {
     switch (worker.status) {
         case 'STARTING':
-            return 'border-yellow-400';
+            return 'border-warn';
         case 'WORKING':
-            return 'border-blue-500';
+            return 'border-accent2';
         case 'IDLE':
-            return 'border-gray-400';
+            return 'border-hairline';
         case 'TERMINATED':
-            return worker.terminationReason === 'error' ? 'border-red-500' : 'border-gray-500';
+            return worker.terminationReason === 'error' ? 'border-err' : 'border-hairline';
         default:
-            return 'border-gray-300';
+            return 'border-hairline';
     }
 }
 
@@ -57,7 +57,7 @@ export const PipelineNode: React.FC<PipelineNodeProps> = ({ worker, swarmId: _sw
     const borderColor = getStatusBorderColor(worker);
 
     return (
-        <div className={`rounded-lg border-2 ${borderColor} bg-surfacev2 p-4 shadow-sm transition-[width]`}>
+        <div className={`rounded-[10px] border-2 ${borderColor} bg-surfacev2 p-4 shadow-e1 transition-[width]`}>
             {/* Header: Name + Status */}
             <div className="flex items-center justify-between mb-2">
                 <span className="font-semibold text-sm text-t1 truncate">
@@ -71,9 +71,9 @@ export const PipelineNode: React.FC<PipelineNodeProps> = ({ worker, swarmId: _sw
             {/* Progress bar (WORKING state) */}
             {worker.status === 'WORKING' && worker.progressPercent != null && (
                 <div className="mb-2">
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div className="w-full bg-sunken2 rounded-full h-2">
                         <div
-                            className="bg-blue-500 h-2 rounded-full transition-[width] duration-slow"
+                            className="bg-accent2 h-2 rounded-full transition-[width] duration-slow"
                             style={{ width: `${Math.min(100, Math.max(0, worker.progressPercent))}%` }}
                         />
                     </div>

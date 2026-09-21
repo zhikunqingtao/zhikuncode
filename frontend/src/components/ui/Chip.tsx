@@ -9,7 +9,7 @@ import { cn } from './cn';
  * 注：accent 文字档取 strong 以满足 §10.1 对比度（soft 底上基准档不足 4.5:1）。
  */
 const chipVariants = cva(
-    'inline-flex items-center gap-1 rounded-full h-6 px-2.5 text-[13px] font-medium whitespace-nowrap select-none',
+    'inline-flex items-center gap-1 rounded-full h-6 px-2.5 text-[13px] font-medium whitespace-nowrap select-none border border-hairline shadow-e1',
     {
         variants: {
             variant: {
@@ -17,10 +17,10 @@ const chipVariants = cva(
                 ok: 'bg-oksoft text-okstrong dark:text-ok',
                 warn: 'bg-warnsoft text-warnstrong dark:text-warn',
                 err: 'bg-errsoft text-errstrong dark:text-err',
-                neutral: 'bg-sunken2 text-t2',
+                neutral: 'bg-surfacev2 text-t2',
             },
             selected: {
-                true: 'bg-accent2-strong text-white',
+                true: 'bg-accent2-strong text-white border-transparent shadow-raised',
             },
         },
         defaultVariants: {

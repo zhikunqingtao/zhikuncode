@@ -10,6 +10,7 @@ import { immer } from 'zustand/middleware/immer';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { subscribeWithSelector } from 'zustand/middleware';
 import { broadcastMiddleware } from './broadcastMiddleware';
+import { DEFAULT_ACCENT_HEX } from '@/theme/accents';
 import type { ThemeConfig, OutputStyleDef, Config } from '@/types';
 
 export interface ConfigStoreState {
@@ -35,8 +36,8 @@ export interface ConfigStoreState {
 
 const DEFAULT_THEME: ThemeConfig = {
     mode: 'light',
-    // §3.4/§9.6：默认强调色改靛蓝（仅改默认值，无存量迁移逻辑）
-    accentColor: '#6366F1',
+    // §3.4：默认强调色为青瓷，单一事实来源在 theme/accents.ts
+    accentColor: DEFAULT_ACCENT_HEX,
     fontSize: 'medium',
     fontFamily: 'monospace',
     borderRadius: 'md',

@@ -9,44 +9,56 @@
  * TOKENS.light 镜像 `:root` v2 块；TOKENS.dark 镜像 `.dark` v2 块。
  * `.dark` 块未覆盖的条目（accent 系、圆角、时长、缓动）在深色下沿用 :root 值，
  * 消费方按需从 TOKENS.light 读取（与 CSS 变量继承行为一致）。
+ *
+ * 动态派生（跟随强调色，不触碰静态镜像）：
+ * - getChartColors(mode, accentHex?)：CHART_COLORS 拷贝 + chart-1 替换为当前 accent
+ * - getMonacoZkThemes(mode, accentHex?)：MONACO_ZK_THEMES 基底 + 4 处 accent 色派生
+ * - getXtermPalette(mode, accentHex?)：XTERM_ANSI 基底 + cursor/selection 派生
+ * （accents.ts 不依赖本文件，无循环依赖风险）
  */
+import { ACCENT_PRESETS, DEFAULT_ACCENT_HEX, normalizeAccentHex } from '@/theme/accents';
+
 export const TOKENS = {
     light: {
-        '--v2-bg-app': '#F5F6F8',
+        '--v2-bg-app': '#F2F7F4',
         '--v2-bg-surface': '#FFFFFF',
-        '--v2-bg-surface-2': '#F8F9FC',
-        '--v2-bg-sunken': '#F0F2F7',
-        '--v2-bg-hover': 'rgba(16,24,40,.045)',
-        '--v2-bg-active': 'rgba(16,24,40,.07)',
-        '--v2-border-hairline': 'rgba(16,24,40,.08)',
-        '--v2-border-strong': 'rgba(16,24,40,.14)',
-        '--v2-overlay': 'rgba(16,24,40,.32)',
-        '--v2-text-1': '#202737',
-        '--v2-text-2': '#505D70',
-        '--v2-text-3': '#606C7E',
-        '--v2-text-4': '#606C7E',
-        '--v2-ok': '#16704D',
-        '--v2-ok-soft': 'rgba(18,166,107,.12)',
-        '--v2-ok-strong': '#065F46',
-        '--v2-warn': '#92400E',
-        '--v2-warn-soft': 'rgba(217,143,31,.12)',
-        '--v2-warn-strong': '#92400E',
-        '--v2-err': '#B3303B',
-        '--v2-err-soft': 'rgba(220,76,72,.12)',
-        '--v2-err-strong': '#B91C1C',
-        '--v2-diff-add-bg': 'rgba(18,166,107,.10)',
-        '--v2-diff-remove-bg': 'rgba(220,76,72,.10)',
-        '--v2-accent': '#6366F1',
-        '--v2-accent-strong': '#4F46E5',
-        '--v2-accent-soft': 'rgba(99,102,241,.10)',
-        '--v2-accent-ring': 'rgba(99,102,241,.32)',
-        '--v2-shadow-xs': '0 1px 2px rgba(16,24,40,.04)',
-        '--v2-shadow-sm': '0 1px 2px rgba(16,24,40,.04),0 2px 8px rgba(16,24,40,.05)',
-        '--v2-shadow-md': '0 2px 6px rgba(16,24,40,.05),0 10px 28px rgba(16,24,40,.08)',
-        '--v2-shadow-lg': '0 4px 12px rgba(16,24,40,.07),0 20px 56px rgba(16,24,40,.14)',
-        '--v2-shadow-inset': 'inset 0 2px 5px rgba(16,24,40,.07)',
-        '--v2-shadow-soft': '-8px -8px 20px rgba(255,255,255,.85),8px 8px 20px rgba(16,24,40,.07)',
-        '--v2-shadow-soft-sm': '-4px -4px 10px rgba(255,255,255,.8),4px 4px 10px rgba(16,24,40,.06)',
+        '--v2-bg-surface-2': '#EAF3ED',
+        '--v2-bg-sunken': '#E0EDE4',
+        '--v2-bg-hover': 'rgba(20,40,34,.045)',
+        '--v2-bg-active': 'rgba(20,40,34,.07)',
+        '--v2-border-hairline': 'rgba(20,40,34,.08)',
+        '--v2-border-strong': 'rgba(20,40,34,.14)',
+        '--v2-overlay': 'rgba(20,40,34,.32)',
+        '--v2-text-1': '#1F2430',
+        '--v2-text-2': '#49546B',
+        '--v2-text-3': '#596A60',
+        '--v2-text-4': '#596A60',
+        '--v2-ok': '#2C724B',
+        '--v2-ok-soft': 'rgba(63,143,98,.12)',
+        '--v2-ok-strong': '#245E3E',
+        '--v2-warn': '#8F5C12',
+        '--v2-warn-soft': 'rgba(180,116,27,.12)',
+        '--v2-warn-strong': '#7A4E0F',
+        '--v2-err': '#B03B35',
+        '--v2-err-soft': 'rgba(196,69,63,.12)',
+        '--v2-err-strong': '#A3352F',
+        '--v2-diff-add-bg': 'rgba(63,143,98,.10)',
+        '--v2-diff-remove-bg': 'rgba(196,69,63,.10)',
+        '--v2-code-bg': '#E4F0E8',
+        '--v2-accent': '#12967F',
+        '--v2-accent-strong': '#0C7563',
+        '--v2-accent-soft': 'rgba(18,150,127,.10)',
+        '--v2-accent-ring': 'rgba(18,150,127,.32)',
+        '--v2-shadow-xs': '0 1px 2px rgba(20,40,34,.04)',
+        '--v2-shadow-sm': '0 1px 2px rgba(20,40,34,.04),0 2px 8px rgba(20,40,34,.05)',
+        '--v2-shadow-md': '0 2px 6px rgba(20,40,34,.05),0 10px 28px rgba(20,40,34,.08)',
+        '--v2-shadow-lg': '0 4px 12px rgba(20,40,34,.07),0 20px 56px rgba(20,40,34,.14)',
+        '--v2-shadow-inset': 'inset 2px 2px 5px rgba(20,40,34,.12),inset -2px -2px 5px rgba(255,255,255,.7)',
+        '--v2-shadow-raised': '-3px -3px 8px rgba(255,255,255,.85),3px 3px 8px rgba(20,40,34,.10)',
+        '--v2-shadow-raised-hover': '-1.5px -1.5px 4px rgba(255,255,255,.85),1.5px 1.5px 4px rgba(20,40,34,.10)',
+        '--v2-shadow-pressed': 'inset 2px 2px 5px rgba(20,40,34,.12),inset -2px -2px 5px rgba(255,255,255,.7)',
+        '--v2-shadow-soft': '-8px -8px 20px rgba(255,255,255,.85),8px 8px 20px rgba(20,40,34,.07)',
+        '--v2-shadow-soft-sm': '-4px -4px 10px rgba(255,255,255,.8),4px 4px 10px rgba(20,40,34,.06)',
         '--v2-r-xs': '6px',
         '--v2-r-sm': '10px',
         '--v2-r-md': '14px',
@@ -60,55 +72,59 @@ export const TOKENS = {
         '--v2-ease': 'cubic-bezier(.2,.8,.2,1)',
         '--v2-ease-in-out': 'cubic-bezier(.4,0,.2,1)',
         '--v2-spring': 'cubic-bezier(.34,1.56,.64,1)',
-        '--v2-chart-1': '#6366F1',
-        '--v2-chart-2': '#0D9488',
-        '--v2-chart-3': '#D97706',
-        '--v2-chart-4': '#E11D48',
-        '--v2-chart-5': '#0284C7',
-        '--v2-chart-6': '#9333EA',
-        '--v2-chart-7': '#65A30D',
-        '--v2-chart-8': '#64748B',
+        '--v2-chart-1': '#5E63DE',
+        '--v2-chart-2': '#2C8C7E',
+        '--v2-chart-3': '#B4741B',
+        '--v2-chart-4': '#C4453F',
+        '--v2-chart-5': '#2D7DB3',
+        '--v2-chart-6': '#7E4FB8',
+        '--v2-chart-7': '#6B8E23',
+        '--v2-chart-8': '#596A60',
     },
     dark: {
-        '--v2-bg-app': '#101217',
-        '--v2-bg-surface': '#191C24',
-        '--v2-bg-surface-2': '#1C212B',
-        '--v2-bg-sunken': '#11151C',
-        '--v2-bg-hover': 'rgba(255,255,255,.05)',
-        '--v2-bg-active': 'rgba(255,255,255,.08)',
-        '--v2-border-hairline': 'rgba(255,255,255,.08)',
-        '--v2-border-strong': 'rgba(255,255,255,.15)',
+        '--v2-bg-app': '#161A22',
+        '--v2-bg-surface': '#1E2430',
+        '--v2-bg-surface-2': '#262E3D',
+        '--v2-bg-sunken': '#12161E',
+        '--v2-bg-hover': 'rgba(148,163,184,.05)',
+        '--v2-bg-active': 'rgba(148,163,184,.08)',
+        '--v2-border-hairline': 'rgba(148,163,184,.12)',
+        '--v2-border-strong': 'rgba(148,163,184,.18)',
         '--v2-overlay': 'rgba(0,0,0,.55)',
-        '--v2-text-1': '#EBEDF3',
-        '--v2-text-2': '#B9C2D1',
-        '--v2-text-3': '#9CA8BA',
-        '--v2-text-4': '#9CA8BA',
-        '--v2-ok': '#80D2AC',
-        '--v2-ok-soft': 'rgba(52,211,153,.14)',
-        '--v2-ok-strong': '#6EE7B7',
-        '--v2-warn': '#FBBF24',
-        '--v2-warn-soft': 'rgba(251,191,36,.14)',
-        '--v2-warn-strong': '#FDE68A',
-        '--v2-err': '#EE9DA6',
-        '--v2-err-soft': 'rgba(248,113,113,.14)',
-        '--v2-err-strong': '#DC2626',
-        '--v2-diff-add-bg': 'rgba(52,211,153,.12)',
-        '--v2-diff-remove-bg': 'rgba(248,113,113,.12)',
+        '--v2-text-1': '#DCE3EE',
+        '--v2-text-2': '#A3AFC2',
+        '--v2-text-3': '#8B99AD',
+        '--v2-text-4': '#8B99AD',
+        '--v2-ok': '#7BC79A',
+        '--v2-ok-soft': 'rgba(123,199,154,.14)',
+        '--v2-ok-strong': '#9AD6B1',
+        '--v2-warn': '#E0A94A',
+        '--v2-warn-soft': 'rgba(224,169,74,.14)',
+        '--v2-warn-strong': '#EBC27A',
+        '--v2-err': '#F0756C',
+        '--v2-err-soft': 'rgba(240,117,108,.14)',
+        '--v2-err-strong': '#C4453F',
+        '--v2-diff-add-bg': 'rgba(123,199,154,.12)',
+        '--v2-diff-remove-bg': 'rgba(240,117,108,.12)',
+        '--v2-code-bg': '#1A2029',
         '--v2-shadow-xs': '0 1px 2px rgba(0,0,0,.4)',
         '--v2-shadow-sm': '0 1px 2px rgba(0,0,0,.4),0 2px 8px rgba(0,0,0,.35)',
         '--v2-shadow-md': '0 2px 6px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.45)',
         '--v2-shadow-lg': '0 4px 12px rgba(0,0,0,.5),0 20px 56px rgba(0,0,0,.55)',
-        '--v2-shadow-inset': 'inset 0 2px 6px rgba(0,0,0,.5)',
+        '--v2-shadow-inset': 'inset 2px 2px 6px rgba(0,0,0,.5)',
+        '--v2-shadow-raised': 'inset 0 1px 0 rgba(255,255,255,.04),2px 3px 8px rgba(0,0,0,.45)',
+        '--v2-shadow-raised-hover': 'inset 0 1px 0 rgba(255,255,255,.04),1px 1.5px 4px rgba(0,0,0,.45)',
+        '--v2-shadow-pressed': 'inset 2px 2px 6px rgba(0,0,0,.5)',
         '--v2-shadow-soft': 'none',
         '--v2-shadow-soft-sm': 'none',
-        '--v2-chart-1': '#818CF8',
-        '--v2-chart-2': '#2DD4BF',
-        '--v2-chart-3': '#FBBF24',
-        '--v2-chart-4': '#FB7185',
-        '--v2-chart-5': '#38BDF8',
-        '--v2-chart-6': '#C084FC',
-        '--v2-chart-7': '#A3E635',
-        '--v2-chart-8': '#94A3B8',
+        '--v2-chart-1': '#8A8FF0',
+        '--v2-chart-2': '#5FC4B2',
+        '--v2-chart-3': '#E0A94A',
+        '--v2-chart-4': '#EF6B63',
+        '--v2-chart-5': '#6DB4E6',
+        '--v2-chart-6': '#B58CD6',
+        '--v2-chart-7': '#A3C24E',
+        '--v2-chart-8': '#8B99AD',
     },
 } as const;
 
@@ -128,8 +144,8 @@ export const ACCENT_DERIVED = {
 
 /** §4.1 图表数据色板（Recharts / React Flow / Mermaid pie 共用，按序取色） */
 export const CHART_COLORS = {
-    light: ['#6366F1', '#0D9488', '#D97706', '#E11D48', '#0284C7', '#9333EA', '#65A30D', '#64748B'],
-    dark: ['#818CF8', '#2DD4BF', '#FBBF24', '#FB7185', '#38BDF8', '#C084FC', '#A3E635', '#94A3B8'],
+    light: ['#5E63DE', '#2C8C7E', '#B4741B', '#C4453F', '#2D7DB3', '#7E4FB8', '#6B8E23', '#596A60'],
+    dark: ['#8A8FF0', '#5FC4B2', '#E0A94A', '#EF6B63', '#6DB4E6', '#B58CD6', '#A3C24E', '#8B99AD'],
 } as const;
 
 export type ThemeMode = 'light' | 'dark' | 'glass';
@@ -142,6 +158,30 @@ export type ThemeMode = 'light' | 'dark' | 'glass';
 export function resolveTheme(mode: ThemeMode): 'light' | 'dark' {
     if (mode === 'glass') return 'light';
     return mode;
+}
+
+/**
+ * accentForMode — 从 ACCENT_PRESETS 查当前强调色在指定档位的 accent 值。
+ * 空值/未知值回退 DEFAULT_ACCENT_HEX（青瓷）；大小写与旧版 hex 经 normalizeAccentHex 归一。
+ * mode='glass' 的调用方应先经 resolveTheme 归一为 light。
+ */
+function accentForMode(mode: 'light' | 'dark', accentHex?: string): string {
+    const normalized = normalizeAccentHex(accentHex);
+    const preset = ACCENT_PRESETS.find((p) => p.hex === normalized)
+        ?? ACCENT_PRESETS.find((p) => p.hex === DEFAULT_ACCENT_HEX)
+        ?? ACCENT_PRESETS[0];
+    return mode === 'dark' ? preset.dark.accent : preset.light.accent;
+}
+
+/**
+ * getChartColors — 跟随强调色的图表色板（§4.1 动态版）。
+ * 返回 CHART_COLORS[mode] 的拷贝，chart-1（[0]）替换为当前 accent 在该档位的值；
+ * 静态 CHART_COLORS 保持不变（globals.css 对拍与存量消费方不受影响）。
+ */
+export function getChartColors(mode: 'light' | 'dark', accentHex?: string): string[] {
+    const colors: string[] = [...CHART_COLORS[mode]];
+    colors[0] = accentForMode(mode, accentHex);
+    return colors;
 }
 
 /* ================= §4.2 Monaco zk 主题（从 TOKENS 派生，供 defineTheme 使用） ================= */
@@ -159,31 +199,33 @@ export const MONACO_ZK_THEMES: Record<'zk-light' | 'zk-dark', MonacoThemeDef> = 
         inherit: true,
         rules: [
             { token: 'comment', foreground: TOKENS.light['--v2-text-3'], fontStyle: 'italic' },
-            { token: 'string', foreground: '#0E8A64' },
-            { token: 'keyword', foreground: '#6D28D9' },
-            { token: 'number', foreground: '#C2410C' },
-            { token: 'type', foreground: '#B45309' },
-            { token: 'class', foreground: '#B45309' },
-            { token: 'function', foreground: '#4F46E5' },
+            { token: 'string', foreground: '#2C724B' },
+            { token: 'string.escape', foreground: '#4F5878' },
+            { token: 'string.special', foreground: '#2C724B' },
+            { token: 'keyword', foreground: '#6E45A6' },
+            { token: 'number', foreground: '#8F5C12' },
+            { token: 'type', foreground: '#4F5878' },
+            { token: 'class', foreground: '#4F5878' },
+            { token: 'function', foreground: '#5054C8' },
             { token: 'variable', foreground: TOKENS.light['--v2-text-1'] },
-            { token: 'constant', foreground: '#C8427D' },
-            { token: 'enum', foreground: '#C8427D' },
+            { token: 'constant', foreground: '#8F5C12' },
+            { token: 'enum', foreground: '#8F5C12' },
         ],
         colors: {
-            'editor.background': TOKENS.light['--v2-bg-sunken'],
+            'editor.background': TOKENS.light['--v2-code-bg'],
             'editor.foreground': TOKENS.light['--v2-text-1'],
             'editorLineNumber.foreground': TOKENS.light['--v2-text-4'],
             'editorLineNumber.activeForeground': TOKENS.light['--v2-text-2'],
-            'editor.lineHighlightBackground': '#0F172A0A',
-            'editor.selectionBackground': '#6366F140',
+            'editor.lineHighlightBackground': '#1F24300A',
+            'editor.selectionBackground': '#12967F40',
             'editorCursor.foreground': TOKENS.light['--v2-accent'],
-            'editorIndentGuide.background1': '#0F172A14',
-            'editorGutter.background': TOKENS.light['--v2-bg-sunken'],
+            'editorIndentGuide.background1': '#1F243014',
+            'editorGutter.background': TOKENS.light['--v2-code-bg'],
             'editorWidget.background': TOKENS.light['--v2-bg-surface'],
-            'editorWidget.border': '#0F172A14',
-            'editorSuggestWidget.selectedBackground': '#6366F11F',
-            'scrollbarSlider.background': '#CBD5E180',
-            'editorBracketMatch.border': '#6366F180',
+            'editorWidget.border': '#1F243014',
+            'editorSuggestWidget.selectedBackground': '#12967F1F',
+            'scrollbarSlider.background': '#596A6040',
+            'editorBracketMatch.border': '#12967F80',
         },
     },
     'zk-dark': {
@@ -191,35 +233,63 @@ export const MONACO_ZK_THEMES: Record<'zk-light' | 'zk-dark', MonacoThemeDef> = 
         inherit: true,
         rules: [
             { token: 'comment', foreground: TOKENS.dark['--v2-text-3'], fontStyle: 'italic' },
-            { token: 'string', foreground: '#3BC49B' },
-            { token: 'keyword', foreground: '#A78BFA' },
-            { token: 'number', foreground: '#F0A94E' },
-            { token: 'type', foreground: '#F0C24E' },
-            { token: 'class', foreground: '#F0C24E' },
-            { token: 'function', foreground: '#818CF8',
-            },
+            { token: 'string', foreground: '#6FA88A' },
+            { token: 'string.escape', foreground: '#9DA5C4' },
+            { token: 'string.special', foreground: '#6FA88A' },
+            { token: 'keyword', foreground: '#B58CD6' },
+            { token: 'number', foreground: '#D2A24C' },
+            { token: 'type', foreground: '#9DA5C4' },
+            { token: 'class', foreground: '#9DA5C4' },
+            { token: 'function', foreground: '#8A8FF0' },
             { token: 'variable', foreground: TOKENS.dark['--v2-text-1'] },
-            { token: 'constant', foreground: '#EC7CAC' },
-            { token: 'enum', foreground: '#EC7CAC' },
+            { token: 'constant', foreground: '#D2A24C' },
+            { token: 'enum', foreground: '#D2A24C' },
         ],
         colors: {
-            'editor.background': TOKENS.dark['--v2-bg-sunken'],
+            'editor.background': TOKENS.dark['--v2-code-bg'],
             'editor.foreground': TOKENS.dark['--v2-text-1'],
             'editorLineNumber.foreground': TOKENS.dark['--v2-text-4'],
             'editorLineNumber.activeForeground': TOKENS.dark['--v2-text-2'],
-            'editor.lineHighlightBackground': '#FFFFFF0D',
-            'editor.selectionBackground': '#818CF840',
-            'editorCursor.foreground': '#818CF8',
-            'editorIndentGuide.background1': '#FFFFFF12',
-            'editorGutter.background': TOKENS.dark['--v2-bg-sunken'],
+            'editor.lineHighlightBackground': '#DCE3EE0D',
+            'editor.selectionBackground': '#7FD4E840',
+            'editorCursor.foreground': '#7FD4E8',
+            'editorIndentGuide.background1': '#DCE3EE12',
+            'editorGutter.background': TOKENS.dark['--v2-code-bg'],
             'editorWidget.background': TOKENS.dark['--v2-bg-surface'],
-            'editorWidget.border': '#FFFFFF12',
-            'editorSuggestWidget.selectedBackground': '#818CF81F',
-            'scrollbarSlider.background': '#47556980',
-            'editorBracketMatch.border': '#818CF880',
+            'editorWidget.border': '#DCE3EE12',
+            'editorSuggestWidget.selectedBackground': '#7FD4E81F',
+            'scrollbarSlider.background': '#8B99AD80',
+            'editorBracketMatch.border': '#7FD4E880',
         },
     },
 } as const;
+
+/**
+ * getMonacoZkThemes — 跟随强调色的 Monaco zk 主题（§4.2 动态版）。
+ * 以静态 MONACO_ZK_THEMES 为基底（非 accent 色值一律不动），
+ * 每档 4 处 accent 相关色由当前 accent 派生（alpha 后缀沿用既有模式）：
+ * - editor.selectionBackground：accent + '40'
+ * - editorCursor.foreground：accent 本色
+ * - editorSuggestWidget.selectedBackground：accent + '1F'
+ * - editorBracketMatch.border：accent + '80'
+ * 缺省/未知 accentHex 的结果与静态 MONACO_ZK_THEMES 完全等值。
+ */
+export function getMonacoZkThemes(mode: 'light' | 'dark', accentHex?: string): MonacoThemeDef {
+    const base = MONACO_ZK_THEMES[mode === 'light' ? 'zk-light' : 'zk-dark'];
+    const accent = accentForMode(mode, accentHex);
+    return {
+        base: base.base,
+        inherit: base.inherit,
+        rules: base.rules.map((rule) => ({ ...rule })),
+        colors: {
+            ...base.colors,
+            'editor.selectionBackground': `${accent}40`,
+            'editorCursor.foreground': accent,
+            'editorSuggestWidget.selectedBackground': `${accent}1F`,
+            'editorBracketMatch.border': `${accent}80`,
+        },
+    };
+}
 
 /* ================= §4.3 xterm / ANSI 16 色（供 xterm theme 与 ANSI-to-HTML 使用） ================= */
 
@@ -236,47 +306,58 @@ export const XTERM_ANSI: Record<'light' | 'dark', AnsiPalette> = {
         background: TOKENS.light['--v2-bg-sunken'],
         foreground: TOKENS.light['--v2-text-1'],
         cursor: TOKENS.light['--v2-accent'],
-        selectionBackground: '#6366F140',
+        selectionBackground: '#12967F40',
         black: TOKENS.light['--v2-text-1'],
-        red: '#C23A36',
-        green: '#0E8A64',
-        yellow: '#B45309',
-        blue: '#4F46E5',
-        magenta: '#C8427D',
-        cyan: '#0E7490',
-        white: '#D5DAE3',
+        red: '#B03B35',
+        green: '#2C724B',
+        yellow: '#8F5C12',
+        blue: '#5054C8',
+        magenta: '#6E45A6',
+        cyan: '#2C7A78',
+        white: '#D9D5CD',
         brightBlack: TOKENS.light['--v2-text-3'],
-        brightRed: '#E0534F',
-        brightGreen: '#17A67B',
+        brightRed: '#C4453F',
+        brightGreen: '#3F8F62',
         brightYellow: TOKENS.light['--v2-warn'],
         brightBlue: TOKENS.light['--v2-accent'],
-        brightMagenta: '#E15C97',
-        brightCyan: '#0891B2',
+        brightMagenta: '#8A63C9',
+        brightCyan: '#3A9E9B',
         brightWhite: TOKENS.light['--v2-bg-app'],
     },
     dark: {
         background: TOKENS.dark['--v2-bg-sunken'],
         foreground: TOKENS.dark['--v2-text-1'],
-        cursor: '#818CF8',
-        selectionBackground: '#818CF840',
+        cursor: '#7FD4E8',
+        selectionBackground: '#7FD4E840',
         black: TOKENS.dark['--v2-bg-surface-2'],
-        red: '#F17570',
+        red: '#EF6B63',
         green: TOKENS.dark['--v2-ok'],
-        yellow: '#F0C24E',
-        blue: '#818CF8',
-        magenta: '#EC7CAC',
-        cyan: '#5EEAD4',
+        yellow: '#E0A94A',
+        blue: '#8A8FF0',
+        magenta: '#B58CD6',
+        cyan: '#6FC2BE',
         white: TOKENS.dark['--v2-text-1'],
         brightBlack: TOKENS.dark['--v2-text-4'],
-        brightRed: '#FCA5A1',
-        brightGreen: '#6EE7B7',
-        brightYellow: '#FDE68A',
-        brightBlue: '#A5B4FC',
-        brightMagenta: '#F9A8D4',
-        brightCyan: '#99F6E4',
+        brightRed: '#F59A94',
+        brightGreen: '#9AD6B1',
+        brightYellow: '#EBC27A',
+        brightBlue: '#AEB2F5',
+        brightMagenta: '#CDB0E6',
+        brightCyan: '#9ADBD7',
         brightWhite: '#FFFFFF',
     },
 } as const;
+
+/**
+ * getXtermPalette — 跟随强调色的 xterm zk 色板（§4.3 动态版）。
+ * 以静态 XTERM_ANSI 为基底（ANSI 16 色不动），cursor 与
+ * selectionBackground（accent + '40' alpha）由当前 accent 派生；
+ * 缺省/未知 accentHex 的结果与静态 XTERM_ANSI 完全等值。
+ */
+export function getXtermPalette(mode: 'light' | 'dark', accentHex?: string): AnsiPalette {
+    const accent = accentForMode(mode, accentHex);
+    return { ...XTERM_ANSI[mode], cursor: accent, selectionBackground: `${accent}40` };
+}
 
 /** ANSI 数字码 → AnsiPalette 键名（供 ANSI-to-HTML 渲染器查色） */
 export const ANSI_CODE_TO_KEY: Record<string, keyof AnsiPalette> = {

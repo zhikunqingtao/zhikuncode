@@ -58,7 +58,7 @@ const ToolFilterDropdown: React.FC<{
                 <>
                     <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
                     <div className="absolute top-full left-0 mt-1 z-20 w-[200px] max-h-[240px] overflow-y-auto
-                        rounded-[14px] border border-[var(--v2-border-hairline)] bg-[var(--v2-bg-surface)] shadow-lg">
+                        rounded-[14px] border border-[var(--v2-border-hairline)] bg-[var(--v2-bg-surface)] shadow-e3">
                         {/* Header */}
                         <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--v2-border-hairline)]">
                             <span className="text-[13px] text-[var(--v2-text-2)]">选择工具类型</span>

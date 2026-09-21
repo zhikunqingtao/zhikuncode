@@ -95,15 +95,15 @@ export const FileChangesDashboard: React.FC<{ sessionId: string }> = ({ sessionI
                         {selectedFile} 变更统计
                     </h4>
                     <div className="grid grid-cols-3 gap-2">
-                        <div className="bg-green-900/20 rounded-lg p-2 text-center">
+                        <div className="bg-oksoft rounded-[10px] p-2 text-center">
                             <div className="text-lg font-bold text-ok">{diffStats.filesAdded}</div>
                             <div className="text-[13px] text-[var(--v2-text-2)]">新增</div>
                         </div>
-                        <div className="bg-yellow-900/20 rounded-lg p-2 text-center">
+                        <div className="bg-warnsoft rounded-[10px] p-2 text-center">
                             <div className="text-lg font-bold text-warn">{diffStats.filesModified}</div>
                             <div className="text-[13px] text-[var(--v2-text-2)]">修改</div>
                         </div>
-                        <div className="bg-red-900/20 rounded-lg p-2 text-center">
+                        <div className="bg-errsoft rounded-[10px] p-2 text-center">
                             <div className="text-lg font-bold text-err">{diffStats.filesDeleted}</div>
                             <div className="text-[13px] text-[var(--v2-text-2)]">删除</div>
                         </div>
@@ -138,12 +138,12 @@ export const FileChangesDashboard: React.FC<{ sessionId: string }> = ({ sessionI
                 <div className="flex border-b border-[var(--v2-border-hairline)]">
                     <button onClick={() => setActiveTab('files')}
                             className={`panel-control flex-1 py-2 text-[13px] font-medium text-center
-                                ${activeTab === 'files' ? 'text-accent2-ink border-b-2 border-blue-400' : 'text-[var(--v2-text-2)]'}`}>
+                                ${activeTab === 'files' ? 'text-accent2-ink border-b-2 border-accent2' : 'text-[var(--v2-text-2)]'}`}>
                         文件列表
                     </button>
                     <button onClick={() => setActiveTab('diff')}
                             className={`panel-control flex-1 py-2 text-[13px] font-medium text-center
-                                ${activeTab === 'diff' ? 'text-accent2-ink border-b-2 border-blue-400' : 'text-[var(--v2-text-2)]'}`}>
+                                ${activeTab === 'diff' ? 'text-accent2-ink border-b-2 border-accent2' : 'text-[var(--v2-text-2)]'}`}>
                         Diff 视图
                     </button>
                 </div>

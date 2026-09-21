@@ -27,12 +27,12 @@ interface GitTimelineProps {
 type CommitColor = { dot: string; border: string; label: string };
 
 const COMMIT_COLORS: Record<string, CommitColor> = {
-    feat:     { dot: 'bg-blue-500',   border: 'border-l-blue-500',   label: 'text-accent2-ink' },
-    fix:      { dot: 'bg-orange-500', border: 'border-l-orange-500', label: 'text-warn' },
-    refactor: { dot: 'bg-purple-500', border: 'border-l-purple-500', label: 'text-purple-400' },
-    test:     { dot: 'bg-green-500',  border: 'border-l-green-500',  label: 'text-ok' },
-    docs:     { dot: 'bg-gray-400',   border: 'border-l-gray-400',   label: 'text-t2' },
-    default:  { dot: 'bg-gray-400',   border: 'border-l-gray-400',   label: 'text-t2' },
+    feat:     { dot: 'bg-accent2',   border: 'border-l-accent2',   label: 'text-accent2-ink' },
+    fix:      { dot: 'bg-warn', border: 'border-l-warn', label: 'text-warn' },
+    refactor: { dot: 'bg-accent2', border: 'border-l-accent2', label: 'text-accent2-ink' },
+    test:     { dot: 'bg-ok',  border: 'border-l-ok',  label: 'text-ok' },
+    docs:     { dot: 'bg-t3',   border: 'border-l-hairline',   label: 'text-t2' },
+    default:  { dot: 'bg-t3',   border: 'border-l-hairline',   label: 'text-t2' },
 };
 
 const TYPE_PATTERNS: [RegExp, string][] = [
@@ -217,7 +217,7 @@ export function GitTimeline({ repoPath = '.' }: GitTimelineProps) {
 
                                 {/* Commit 卡片 */}
                                 <div
-                                    className={`rounded-lg border border-l-2 ${color.border} bg-[var(--v2-bg-sunken)] hover:bg-[var(--v2-bg-hover)] transition-colors cursor-pointer`}
+                                    className={`rounded-[10px] border border-l-2 ${color.border} bg-[var(--v2-bg-sunken)] hover:bg-[var(--v2-bg-hover)] transition-colors cursor-pointer`}
                                     onClick={() => handleToggleCommit(commit.sha)}
                                 >
                                     <div className="p-2.5">
@@ -323,11 +323,11 @@ export function GitTimeline({ repoPath = '.' }: GitTimelineProps) {
                                                                     key={i}
                                                                     className={`px-3 py-0.5 text-[13px] font-mono whitespace-pre ${
                                                                         line.startsWith('+') && !line.startsWith('+++')
-                                                                            ? 'bg-green-900/20 text-ok'
+                                                                            ? 'bg-oksoft text-ok'
                                                                             : line.startsWith('-') && !line.startsWith('---')
-                                                                                ? 'bg-red-900/20 text-err'
+                                                                                ? 'bg-errsoft text-err'
                                                                                 : line.startsWith('@@')
-                                                                                    ? 'bg-blue-900/10 text-accent2-ink'
+                                                                                    ? 'bg-accent2-soft text-accent2-ink'
                                                                                     : 'text-[var(--v2-text-2)]'
                                                                     }`}
                                                                 >
@@ -352,7 +352,7 @@ export function GitTimeline({ repoPath = '.' }: GitTimelineProps) {
                         <button
                             onClick={handleLoadMore}
                             disabled={gitLoading}
-                            className="panel-control flex items-center gap-1.5 text-[13px] px-4 py-2 rounded-lg
+                            className="panel-control flex items-center gap-1.5 text-[13px] px-4 py-2 rounded-[10px]
                                 bg-[var(--v2-bg-hover)] text-[var(--v2-text-2)] hover:text-[var(--v2-text-1)]
                                 hover:bg-[var(--v2-bg-surface)] transition-colors disabled:opacity-50"
                         >

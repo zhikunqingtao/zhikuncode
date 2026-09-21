@@ -53,8 +53,8 @@ interface StepItemProps {
 function StepItem({ step, isCurrent, onToggleChecked }: StepItemProps) {
     return (
         <div
-            className={`group flex items-start gap-2 px-3 py-2 rounded-lg transition-colors
-                ${isCurrent ? 'bg-accent2-soft border border-blue-500/30' : 'hover:bg-[var(--v2-bg-hover)]'}`}
+            className={`group flex items-start gap-2 px-3 py-2 rounded-[10px] transition-colors
+                ${isCurrent ? 'bg-accent2-soft border border-accent2' : 'hover:bg-[var(--v2-bg-hover)]'}`}
         >
             {/* 拖拽把手占位 */}
             <GripVertical className="w-4 h-4 mt-0.5 text-[var(--v2-text-2)] opacity-0 group-hover:opacity-50 shrink-0 cursor-grab" />
@@ -128,7 +128,7 @@ function ProgressBar({ steps }: { steps: PlanStep[] }) {
             </div>
             <div className="h-1.5 bg-[var(--v2-bg-surface)] rounded-full overflow-hidden">
                 <div
-                    className="h-full bg-blue-500 transition-[width] duration-slow"
+                    className="h-full bg-accent2 transition-[width] duration-slow"
                     style={{ width: `${pct}%` }}
                 />
             </div>
@@ -308,7 +308,7 @@ function MobileDrawer() {
                 onClick={() => setOpen(true)}
                 className="panel-control fixed bottom-14 left-0 right-0 z-30 mx-4
                     flex items-center justify-between px-4 py-2
-                    bg-[var(--v2-bg-sunken)] border border-[var(--v2-border-hairline)] rounded-xl shadow-lg
+                    bg-[var(--v2-bg-sunken)] border border-[var(--v2-border-hairline)] rounded-xl shadow-e3
                     text-sm text-[var(--v2-text-1)]"
             >
                 <span className="font-medium truncate">

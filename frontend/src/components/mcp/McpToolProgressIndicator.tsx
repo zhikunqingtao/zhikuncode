@@ -39,9 +39,9 @@ export const McpToolProgressIndicator: React.FC<Props> = ({ progress, onCancel }
                     </span>
                     <span className="ml-2 flex-shrink-0">{statusLabel}</span>
                 </div>
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                <div className="w-full bg-sunken2 rounded-full h-1.5">
                     <div
-                        className="bg-blue-500 h-1.5 rounded-full transition-[width] duration-slow"
+                        className="bg-accent2 h-1.5 rounded-full transition-[width] duration-slow"
                         style={{ width: `${Math.max(percentage, 5)}%` }}
                     />
                 </div>
@@ -54,7 +54,7 @@ export const McpToolProgressIndicator: React.FC<Props> = ({ progress, onCancel }
             <button
                 type="button"
                 onClick={() => onCancel(progress.progressToken)}
-                className="panel-control text-[13px] text-err hover:text-err px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
+                className="panel-control text-[13px] text-err hover:text-err px-2 py-1 rounded hover:bg-errsoft"
                 title="取消"
             >
                 取消

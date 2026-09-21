@@ -60,7 +60,7 @@ export default function PluginManager() {
         <button
           onClick={reloadPlugins}
           disabled={reloading}
-          className="panel-control px-3 py-1 text-sm bg-primary text-white rounded hover:bg-primary-hover disabled:opacity-50"
+          className="panel-control px-3 py-1 text-sm bg-accent2-strong text-white rounded hover:bg-accent2-hover active:bg-accent2-active disabled:opacity-50"
         >
           {reloading ? 'Reloading...' : 'Reload Plugins'}
         </button>
@@ -77,7 +77,7 @@ export default function PluginManager() {
       ) : (
         <div className="space-y-3">
           {plugins.map(plugin => (
-            <div key={plugin.name} className="border border-border rounded-[14px] p-4 hover:shadow-sm transition-shadow">
+            <div key={plugin.name} className="border border-border rounded-[14px] p-4 hover:shadow-e2 transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
                   <span className="font-medium">{plugin.name}</span>

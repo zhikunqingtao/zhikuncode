@@ -14,7 +14,7 @@ export const StreamingText: React.FC = () => {
     return (
         <div className="animate-pulse-subtle">
             <pre className="whitespace-pre-wrap text-sm">{text}</pre>
-            <span className="inline-block w-2 h-4 bg-blue-500 animate-pulse ml-0.5" />
+            <span className="inline-block w-2 h-4 bg-accent2 animate-pulse ml-0.5" />
         </div>
     );
 };

@@ -153,7 +153,7 @@ const AttentionCard: React.FC<AttentionCardProps> = ({ attention, onApprove, onR
                 <button
                     type="button"
                     onClick={onReject}
-                    className="panel-control flex-1 px-3 min-h-[44px] text-[13px] rounded-xl bg-err text-white active:scale-[.97] transition-interactive duration-fast"
+                    className="panel-control flex-1 px-3 min-h-[44px] text-[13px] rounded-xl bg-err text-white dark:text-app2 active:scale-[.97] transition-interactive duration-fast"
                 >
                     Reject
                 </button>

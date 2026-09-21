@@ -7,8 +7,7 @@
 
 import React, { useEffect, useCallback } from 'react';
 import { normalizeThemeMode, useConfigStore } from '@/store/configStore';
-import { applyAccent } from '@/theme/accents';
-import { resolveTheme } from '@/styles/design-tokens';
+import { applyAccent, DEFAULT_ACCENT_HEX } from '@/theme/accents';
 
 interface ThemeProviderProps {
     children: React.ReactNode;
@@ -36,13 +35,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
             root.classList.add(mode);
         }
         
-        // 应用强调色
-        if (theme.accentColor) {
-            root.style.setProperty('--accent-color', theme.accentColor);
-        }
-        // v2 强调色令牌（§3.4）：--accent-color 保留给旧组件；
-        // v2 令牌按 effectiveTheme 写入（glass→light，主题/强调色变化时随 applyTheme 重算）
-        applyAccent(theme.accentColor ?? '#6366F1', resolveTheme(mode));
+        // v2 强调色令牌（§3.4）：按 effectiveTheme 写入（glass 有独立清透档；主题/强调色变化时随 applyTheme 重算）。
+        // 旧 --accent-color/--accent/--color-primary 链路已退役（消费方全部迁移至 v2 令牌）。
+        applyAccent(theme.accentColor ?? DEFAULT_ACCENT_HEX, mode);
 
         // 应用字体大小
         if (theme.fontSize) {

@@ -158,7 +158,7 @@ export function MemoryPage({ onClose }: MemoryPageProps) {
                   onClick={() => switchMode(id)}
                   className={`flex min-h-11 md:min-h-9 items-center gap-1 rounded-[8px] px-3 text-sm transition-colors
                     focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring
-                    ${mode === id ? 'bg-surfacev2 text-[var(--v2-text-1)] shadow-sm' : 'text-[var(--v2-text-2)] hover:text-[var(--v2-text-1)]'}`}
+                    ${mode === id ? 'bg-surfacev2 text-[var(--v2-text-1)] shadow-e1' : 'text-[var(--v2-text-2)] hover:text-[var(--v2-text-1)]'}`}
                 >
                   <Icon className="h-4 w-4" aria-hidden="true" />
                   {label}

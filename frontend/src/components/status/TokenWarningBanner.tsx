@@ -19,8 +19,8 @@ export const TokenWarningBanner: React.FC = () => {
   return (
     <div className={`px-3 py-2 text-sm rounded-md mb-2 flex items-center gap-2 ${
       isCritical
-        ? 'bg-red-50 text-err border border-red-200 dark:bg-red-950 dark:text-err dark:border-red-800'
-        : 'bg-yellow-50 text-warn border border-yellow-200 dark:bg-yellow-950 dark:text-warn dark:border-yellow-800'
+        ? 'bg-errsoft text-err border border-err dark:text-err'
+        : 'bg-warnsoft text-warn border border-warn dark:text-warn'
     }`}>
       <span className="font-medium shrink-0">
         {isCritical ? '⚠️ 上下文窗口即将用尽' : '⚠ 上下文窗口占用较高'}

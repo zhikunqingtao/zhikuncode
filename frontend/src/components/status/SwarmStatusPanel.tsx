@@ -53,7 +53,7 @@ export const SwarmStatusPanel: React.FC = () => {
     if (!panelVisible || !swarm) return null;
 
     return (
-        <div className="fixed right-0 top-0 h-full w-80 lg:w-96 bg-surfacev2 border-l border-hairline shadow-xl z-40 flex flex-col overflow-hidden">
+        <div className="fixed right-0 top-0 h-full w-80 lg:w-96 bg-surfacev2 border-l border-hairline shadow-e4 z-40 flex flex-col overflow-hidden">
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-hairline bg-surface2">
                 <div className="flex items-center gap-2">

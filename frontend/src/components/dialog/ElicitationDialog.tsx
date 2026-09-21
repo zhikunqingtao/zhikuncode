@@ -298,7 +298,7 @@ export const ElicitationDialog: React.FC<ElicitationDialogProps> = ({
                         className={`dialog-control px-4 py-2 rounded-[10px] text-sm text-white transition-colors
                             ${canSubmit && canAct
                                 ? 'bg-accent2-strong hover:bg-accent2-hover'
-                                : 'bg-gray-400 cursor-not-allowed'
+                                : 'bg-t3 cursor-not-allowed'
                             }`}
                     >
                         确认

@@ -1,59 +1,85 @@
 /**
  * zkSyntax — react-syntax-highlighter(Prism) 的 zk 语法样式（指南 §4.2）。
  *
- * 与 zkMonaco 同源：直接从 MONACO_ZK_THEMES 的 rules 派生 Prism 样式对象，
- * 保证代码块语法色与 Monaco §4.2 语法表逐色一致、零新增色值。
- * 色表本身定义于 design-tokens.ts，此处只做 token 名映射，不改配色。
+ * 浅 / 深两套样式对象显式列出，色值与 design-tokens.ts MONACO_ZK_THEMES 同源：
+ * 键（JSON key / 类型 / 类名）、字符串、数字、关键字、函数五色 + 文字三档（t1/t2/t3）。
+ * 浅色四色为定稿色经 WCAG 4.5:1 同色相加深后的终值；深色使用定稿原值。
  */
 import type { CSSProperties } from 'react';
-import { MONACO_ZK_THEMES, TOKENS } from './design-tokens';
+import { TOKENS } from './design-tokens';
 
 export type ZkSyntaxStyle = Record<string, CSSProperties>;
 
-/** Monaco rule token → Prism token 键名（覆盖 react-syntax-highlighter 常用键） */
-const PRISM_TOKEN_GROUPS: { rule: string; keys: string[] }[] = [
-    { rule: 'comment', keys: ['comment', 'prolog', 'cdata'] },
-    { rule: 'string', keys: ['string', 'char', 'attr-value', 'regex'] },
-    { rule: 'keyword', keys: ['keyword', 'tag', 'important', 'rule', 'doctype'] },
-    { rule: 'number', keys: ['number', 'boolean', 'unit'] },
-    { rule: 'class', keys: ['class-name', 'maybe-class-name', 'builtin', 'namespace', 'url-reference'] },
-    { rule: 'function', keys: ['function', 'function-variable', 'selector'] },
-    { rule: 'variable', keys: ['variable', 'attr-name', 'property', 'parameter'] },
-    { rule: 'constant', keys: ['constant', 'symbol'] },
-];
+interface SyntaxPalette {
+    key: string;
+    string: string;
+    number: string;
+    keyword: string;
+    fn: string;
+    comment: string;
+    text1: string;
+    text2: string;
+    text4: string;
+}
 
-function buildZkSyntaxStyle(theme: 'zk-light' | 'zk-dark'): ZkSyntaxStyle {
-    const def = MONACO_ZK_THEMES[theme];
-    const tokens = theme === 'zk-light' ? TOKENS.light : TOKENS.dark;
-    const ruleStyle = (name: string): CSSProperties => {
-        const rule = def.rules.find(r => r.token === name);
-        if (!rule) return {};
-        return {
-            color: rule.foreground,
-            ...(rule.fontStyle ? { fontStyle: rule.fontStyle } : {}),
-        };
-    };
-    const base: CSSProperties = {
-        color: tokens['--v2-text-1'],
-        background: 'transparent',
-        textShadow: 'none',
-    };
-    const style: ZkSyntaxStyle = {
+const LIGHT_PALETTE: SyntaxPalette = {
+    key: '#4F5878',
+    string: '#2C724B',
+    number: '#8F5C12',
+    keyword: '#6E45A6',
+    fn: '#5054C8',
+    comment: TOKENS.light['--v2-text-3'],
+    text1: TOKENS.light['--v2-text-1'],
+    text2: TOKENS.light['--v2-text-2'],
+    text4: TOKENS.light['--v2-text-4'],
+};
+
+const DARK_PALETTE: SyntaxPalette = {
+    key: '#9DA5C4',
+    string: '#6FA88A',
+    number: '#D2A24C',
+    keyword: '#B58CD6',
+    fn: '#8A8FF0',
+    comment: TOKENS.dark['--v2-text-3'],
+    text1: TOKENS.dark['--v2-text-1'],
+    text2: TOKENS.dark['--v2-text-2'],
+    text4: TOKENS.dark['--v2-text-4'],
+};
+
+function buildZkSyntaxStyle(p: SyntaxPalette): ZkSyntaxStyle {
+    const base: CSSProperties = { color: p.text1, background: 'transparent', textShadow: 'none' };
+    const comment: CSSProperties = { color: p.comment, fontStyle: 'italic' };
+    const key: CSSProperties = { color: p.key };
+    const str: CSSProperties = { color: p.string };
+    const num: CSSProperties = { color: p.number };
+    const kw: CSSProperties = { color: p.keyword };
+    const fn: CSSProperties = { color: p.fn };
+    const variable: CSSProperties = { color: p.text1 };
+    const aux: CSSProperties = { color: p.text2 };
+    return {
         'code[class*="language-"]': base,
         'pre[class*="language-"]': base,
+        comment, prolog: comment, cdata: comment,
+        string: str, char: str, 'attr-value': str, regex: str,
+        keyword: kw, tag: kw, important: kw, rule: kw, doctype: kw,
+        number: num, boolean: num, unit: num, constant: num, symbol: num,
+        'class-name': key, 'maybe-class-name': key, builtin: key, namespace: key, 'url-reference': key,
+        property: key, 'attr-name': key,
+        function: fn, 'function-variable': fn, selector: fn,
+        variable, parameter: variable,
+        punctuation: aux, operator: aux, delimiter: aux,
+        linenumber: { color: p.text4 },
     };
-    for (const { rule, keys } of PRISM_TOKEN_GROUPS) {
-        const s = ruleStyle(rule);
-        for (const key of keys) style[key] = s;
-    }
-    const aux: CSSProperties = { color: tokens['--v2-text-2'] };
-    for (const key of ['punctuation', 'operator', 'delimiter']) style[key] = aux;
-    style.linenumber = { color: tokens['--v2-text-4'] };
-    return style;
 }
+
+/** 浅色样式对象（显式终值） */
+export const ZK_SYNTAX_LIGHT: ZkSyntaxStyle = buildZkSyntaxStyle(LIGHT_PALETTE);
+
+/** 深色样式对象（定稿原值） */
+export const ZK_SYNTAX_DARK: ZkSyntaxStyle = buildZkSyntaxStyle(DARK_PALETTE);
 
 /** 预构建双主题样式（静态常量，模块加载时一次性派生） */
 export const ZK_SYNTAX_STYLES: Record<'light' | 'dark', ZkSyntaxStyle> = {
-    light: buildZkSyntaxStyle('zk-light'),
-    dark: buildZkSyntaxStyle('zk-dark'),
+    light: ZK_SYNTAX_LIGHT,
+    dark: ZK_SYNTAX_DARK,
 };

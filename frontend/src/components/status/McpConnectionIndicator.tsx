@@ -9,12 +9,12 @@ import { useMcpStore } from '@/store/mcpStore';
 import type { McpHealthState } from '@/store/mcpStore';
 
 const statusConfig: Record<string, { color: string; label: string; pulse: boolean }> = {
-    CONNECTED:    { color: 'bg-green-500', label: '已连接', pulse: false },
-    DEGRADED:     { color: 'bg-yellow-500', label: '降级', pulse: true },
-    FAILED:       { color: 'bg-red-500', label: '已断开', pulse: false },
-    PENDING:      { color: 'bg-blue-400', label: '连接中', pulse: true },
-    NEEDS_AUTH:   { color: 'bg-orange-400', label: '需认证', pulse: false },
-    DISABLED:     { color: 'bg-gray-400', label: '已禁用', pulse: false },
+    CONNECTED:    { color: 'bg-ok', label: '已连接', pulse: false },
+    DEGRADED:     { color: 'bg-warn', label: '降级', pulse: true },
+    FAILED:       { color: 'bg-err', label: '已断开', pulse: false },
+    PENDING:      { color: 'bg-accent2', label: '连接中', pulse: true },
+    NEEDS_AUTH:   { color: 'bg-warn', label: '需认证', pulse: false },
+    DISABLED:     { color: 'bg-t3', label: '已禁用', pulse: false },
 };
 
 /** 格式化最后成功 ping 时间为相对时间 */

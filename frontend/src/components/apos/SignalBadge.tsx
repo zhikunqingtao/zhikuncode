@@ -40,7 +40,7 @@ export function SignalBadge({ signal, size = 'sm', showTooltip = true, reason }:
 
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full ${padding} ${config.bgColor} ${config.color} ${isUnavailable ? 'border border-dashed border-gray-400 dark:border-gray-600' : ''}`}
+      className={`inline-flex items-center gap-1 rounded-full ${padding} ${config.bgColor} ${config.color} ${isUnavailable ? 'border border-dashed border-hairline' : ''}`}
       title={tooltipText}
     >
       <config.Icon

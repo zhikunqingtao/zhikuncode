@@ -270,7 +270,7 @@ export const CodeDiagramGenerator: React.FC = () => {
             onClick={handleGenerate}
             disabled={loading || !target.trim()}
             className="panel-control flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium
-              bg-accent2 text-white hover:brightness-95
+              bg-accent2-strong text-white hover:bg-accent2-hover
               disabled:opacity-50 disabled:cursor-not-allowed transition-colors mt-3"
           >
             {loading ? (

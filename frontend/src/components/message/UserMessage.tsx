@@ -4,7 +4,8 @@
  * SPEC: §8.2.1 UserMessage, §8.2.4J MessageType='user'
  * 渲染用户输入文本 + 附件预览。
  *
- * §7.2 用户气泡（Demo-A）：bg-accent2-soft 底 + 1px accent2-ring 边 +
+ * §7.2 用户气泡（Demo-A；视觉换肤 §6.3.2 改为凸起白卡）：bg-surfacev2 底 +
+ * 1px hairline 边 + shadow-raised +
  * rounded-2xl rounded-br-md（20px 主圆角 + 6px 尾角）+ max-w-[92%] sm:max-w-[76%] +
  * padding 11×17，右对齐；禁用高饱和实底。
  */
@@ -35,14 +36,14 @@ const UserMessage: React.FC<UserMessageProps> = ({ message, disclosure }) => {
     return (
         <div className="user-message group flex flex-col items-end px-3 py-3 sm:px-4">
             {/* Label */}
-            <div className="mb-1 text-[13px] font-medium text-t3">我</div>
+            <div className="mb-1 text-[12px] font-medium tracking-[.06em] text-t3">我</div>
 
-            {/* Bubble（§7.2：soft 底 + ring 边 + 尾角 6px，右对齐） */}
-            <div className="min-w-0 max-w-[92%] sm:max-w-[76%] [overflow-wrap:anywhere] rounded-[14px] rounded-br-md border border-accent2-ring bg-accent2-soft px-[17px] py-[11px] text-sm text-t1">
+            {/* Bubble（视觉换肤 §6.3.2：凸起白卡 + hairline 边 + 尾角 6px，右对齐） */}
+            <div className="min-w-0 max-w-[92%] sm:max-w-[76%] [overflow-wrap:anywhere] rounded-[14px] rounded-br-md border border-hairline bg-surfacev2 shadow-raised px-[17px] py-[11px] text-[15px] leading-[1.6] text-t1">
                 {disclosure && (
                     <button type="button" aria-expanded={expanded} aria-label={`用户问题，点击${expanded ? '收起' : '展开'}`}
                         onClick={disclosure.onToggle}
-                        className="panel-control flex min-h-11 w-full min-w-0 items-center gap-2 text-left focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring rounded-lg">
+                        className="panel-control flex min-h-11 w-full min-w-0 items-center gap-2 text-left focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring rounded-[10px]">
                         <span className="shrink-0 font-medium">用户问题</span>
                         {!expanded && <span className="min-w-0 flex-1 truncate text-[13px] text-t3">{summary}</span>}
                         <span className="ml-auto shrink-0 text-[13px] text-t2">{expanded ? '收起' : '展开'}</span>

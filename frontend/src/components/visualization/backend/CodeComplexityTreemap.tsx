@@ -28,7 +28,7 @@ import { useComplexityStore, type ComplexityNode } from '@/store/complexityStore
 
 // Solid risk fills keep white labels legible in all three themes.
 const RISK_COLORS: Record<string, string> = {
-  A: '#176B50', B: '#526B26', C: '#865F13', D: '#A34720', E: '#A93243',
+  A: 'var(--v2-ok-strong)', B: 'var(--v2-ok)', C: 'var(--v2-warn)', D: 'var(--v2-warn-strong)', E: 'var(--v2-err)',
 };
 const RISK_BG_COLORS = RISK_COLORS;
 
@@ -99,8 +99,8 @@ const CustomizedContent: React.FC<CustomizedContentProps> = (props) => {
   const showBadge = gw > 70 && gh > 70;
 
   const riskLevel = risk_level ?? 'A';
-  const textColor = '#FFFFFF';
-  const subtextColor = '#FFFFFF';
+  const textColor = 'var(--v2-bg-surface)';
+  const subtextColor = 'var(--v2-bg-surface)';
 
   const truncateName = (n: string, maxChars: number) =>
     n.length > maxChars ? n.slice(0, maxChars - 1) + '…' : n;
@@ -189,7 +189,7 @@ const CustomizedContent: React.FC<CustomizedContentProps> = (props) => {
             y={gy + 62}
             fontSize={13}
             fontWeight={700}
-            fill="white"
+            className="fill-white dark:fill-app2"
             textAnchor="middle"
             style={{ pointerEvents: 'none' }}
           >
@@ -228,7 +228,7 @@ const CustomTreemapTooltip: React.FC<CustomTooltipProps> = ({ active, payload })
 
   return (
     <div
-      className="z-50 px-3 py-2.5 rounded-[14px] shadow-xl\n        border border-[var(--v2-border-hairline)] bg-[var(--v2-bg-surface)]"
+      className="z-50 px-3 py-2.5 rounded-[14px] shadow-e4\n        border border-[var(--v2-border-hairline)] bg-[var(--v2-bg-surface)]"
       style={{ maxWidth: 280 }}
     >
       <div className="flex items-center gap-1.5 mb-1.5">
@@ -241,7 +241,7 @@ const CustomTreemapTooltip: React.FC<CustomTooltipProps> = ({ active, payload })
           {node.name}
         </span>
         <span
-          className="ml-auto px-1.5 py-0.5 rounded text-[13px] font-bold text-white"
+          className="ml-auto px-1.5 py-0.5 rounded text-[13px] font-bold text-white dark:text-app2"
           style={{ backgroundColor: RISK_COLORS[node.risk_level] }}
         >
           {node.risk_level}
@@ -312,7 +312,7 @@ const RiskFilterDropdown: React.FC<{
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
           <div className="absolute top-full left-0 mt-1 z-20 min-w-[160px]
-            rounded-lg border border-[var(--v2-border-hairline)] bg-[var(--v2-bg-surface)] shadow-lg">
+            rounded-[10px] border border-[var(--v2-border-hairline)] bg-[var(--v2-bg-surface)] shadow-e3">
             <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--v2-border-hairline)]">
               <span className="text-[13px] text-[var(--v2-text-2)]">选择风险等级</span>
               {selected.length > 0 && (
@@ -373,7 +373,7 @@ const LanguageFilterDropdown: React.FC<{
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
           <div className="absolute top-full left-0 mt-1 z-20 min-w-[140px]
-            rounded-lg border border-[var(--v2-border-hairline)] bg-[var(--v2-bg-surface)] shadow-lg">
+            rounded-[10px] border border-[var(--v2-border-hairline)] bg-[var(--v2-bg-surface)] shadow-e3">
             <button
               onClick={() => { onChange(null); setOpen(false); }}
               className={`panel-control w-full text-left px-3 py-1.5 text-[13px] hover:bg-[var(--v2-bg-hover)]
@@ -529,7 +529,7 @@ export const CodeComplexityTreemap: React.FC = () => {
         <button
           onClick={handleRetry}
           className="panel-control flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[13px]
-            bg-accent2 text-white hover:brightness-95 transition-colors"
+            bg-accent2-strong text-white hover:bg-accent2-hover transition-colors"
         >
           <RefreshCw size={12} />
           重试

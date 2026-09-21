@@ -8,7 +8,7 @@
  * - ToolCallBlock (工具调用卡片)
  * - ImageBlock (图片内容块)
  *
- * §7.2 AI 消息（Demo-A 卡式）：渐变 accent 方块头像（30px rounded-lg）+
+ * §7.2 AI 消息（Demo-A 卡式）：渐变 accent 方块头像（30px rounded-[10px]）+
  * Card 容器（bg-surfacev2 + border-hairline + rounded-panel + shadow-e2，
  * padding 18×20，行高 1.75）。
  * 运行状态（§7.2/§10.2）：呼吸点 animate-accent-pulse + 文本 + tabular-nums 计时，

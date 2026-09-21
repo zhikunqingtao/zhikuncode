@@ -45,18 +45,29 @@ import {
   type ChangeImpactEdge,
   type ChangeImpactSummary,
 } from '@/store/changeImpactStore';
+import { getChartColors, resolveTheme } from '@/styles/design-tokens';
+import { useConfigStore } from '@/store/configStore';
 
 // ── 节点类型配置 ──
 
-const nodeTypeConfig: Record<string, { color: string; icon: LucideIcon; label: string }> = {
-  api:        { color: '#3b82f6', icon: Globe,    label: 'API' },
-  service:    { color: '#22c55e', icon: Cog,      label: 'Service' },
-  repository: { color: '#a855f7', icon: Database, label: 'Repository' },
-  scheduler:  { color: '#f97316', icon: Clock,    label: 'Scheduler' },
-  config:     { color: '#6b7280', icon: Settings, label: 'Config' },
-  function:   { color: '#06b6d4', icon: Code,     label: 'Function' },
-  class:      { color: '#8b5cf6', icon: Box,      label: 'Class' },
-};
+/** 当前主题模式 + 强调色的图表色板（§4.1 动态版；glass 归一为 light） */
+function useChartColors(): string[] {
+  const mode = useConfigStore(s => s.theme.mode);
+  const accentColor = useConfigStore(s => s.theme.accentColor);
+  return useMemo(() => getChartColors(resolveTheme(mode), accentColor), [mode, accentColor]);
+}
+
+function getNodeTypeConfig(colors: string[]): Record<string, { color: string; icon: LucideIcon; label: string }> {
+  return {
+    api:        { color: colors[4], icon: Globe,    label: 'API' },
+    service:    { color: colors[1], icon: Cog,      label: 'Service' },
+    repository: { color: colors[5], icon: Database, label: 'Repository' },
+    scheduler:  { color: colors[2], icon: Clock,    label: 'Scheduler' },
+    config:     { color: colors[7], icon: Settings, label: 'Config' },
+    function:   { color: colors[0], icon: Code,     label: 'Function' },
+    class:      { color: colors[6], icon: Box,      label: 'Class' },
+  };
+}
 
 const impactLevelStyles: Record<string, { border: string; shadow: string; dashArray?: string }> = {
   direct:    { border: 'var(--v2-err)', shadow: '0 2px 8px rgba(0,0,0,0.08)' },
@@ -72,12 +83,12 @@ const confidenceBadge: Record<string, { bg: string; text: string; label: string 
 
 // ── 边样式 ──
 
-function getEdgeStyle(type: string): React.CSSProperties {
+function getEdgeStyle(type: string, colors: string[]): React.CSSProperties {
   switch (type) {
-    case 'call':       return { stroke: '#3b82f6', strokeWidth: 2 };
-    case 'dependency': return { stroke: '#6b7280', strokeWidth: 1.5, strokeDasharray: '5,5' };
-    case 'data-flow':  return { stroke: '#8b5cf6', strokeWidth: 1.5, strokeDasharray: '2,4' };
-    default:           return { stroke: '#9ca3af', strokeWidth: 1 };
+    case 'call':       return { stroke: colors[4], strokeWidth: 2 };
+    case 'dependency': return { stroke: colors[7], strokeWidth: 1.5, strokeDasharray: '5,5' };
+    case 'data-flow':  return { stroke: colors[5], strokeWidth: 1.5, strokeDasharray: '2,4' };
+    default:           return { stroke: 'var(--v2-text-3)', strokeWidth: 1 };
   }
 }
 
@@ -134,7 +145,7 @@ function convertToFlowNodes(impactNodes: ChangeImpactNode[], changedFile: string
   return nodes;
 }
 
-function convertToFlowEdges(impactEdges: ChangeImpactEdge[], impactNodes: ChangeImpactNode[]): Edge[] {
+function convertToFlowEdges(impactEdges: ChangeImpactEdge[], impactNodes: ChangeImpactNode[], colors: string[]): Edge[] {
   const edges: Edge[] = [];
 
   // 将变更源连接到所有 direct 节点
@@ -158,7 +169,7 @@ function convertToFlowEdges(impactEdges: ChangeImpactEdge[], impactNodes: Change
       target: edge.target,
       type: 'smoothstep',
       animated: edge.type === 'call',
-      style: getEdgeStyle(edge.type),
+      style: getEdgeStyle(edge.type, colors),
       label: edge.type,
       labelStyle: { fill: 'var(--v2-text-1)', fontSize: 13 },
       labelBgStyle: { fill: 'var(--v2-bg-surface)' },
@@ -189,6 +200,8 @@ function layoutElements(nodes: Node[], edges: Edge[]): { nodes: Node[]; edges: E
 
 function ImpactNodeComponent({ data }: NodeProps) {
   const d = data as unknown as ImpactNodeData;
+  const colors = useChartColors();
+  const nodeTypeConfig = getNodeTypeConfig(colors);
   const config = nodeTypeConfig[d.nodeType] || nodeTypeConfig.function;
   const impact = impactLevelStyles[d.impactLevel] || impactLevelStyles.potential;
   const badge = confidenceBadge[d.confidence] || confidenceBadge.low;
@@ -311,14 +324,16 @@ function NodeDetailPanel({
   node: ChangeImpactNode | null;
   onClose: () => void;
 }) {
+  const colors = useChartColors();
   if (!node) return null;
 
+  const nodeTypeConfig = getNodeTypeConfig(colors);
   const config = nodeTypeConfig[node.type] || nodeTypeConfig.function;
   const badge = confidenceBadge[node.confidence] || confidenceBadge.low;
   const Icon = config.icon;
 
   return (
-    <div className="absolute right-0 top-0 bottom-0 w-72 max-w-full bg-surfacev2 border-l border-border-hairline shadow-lg z-20 overflow-y-auto">
+    <div className="absolute right-0 top-0 bottom-0 w-72 max-w-full bg-surfacev2 border-l border-border-hairline shadow-e3 z-20 overflow-y-auto">
       <div className="flex items-center justify-between p-3 border-b border-border-hairline">
         <span className="text-sm font-semibold text-t1">节点详情</span>
         <button
@@ -358,7 +373,7 @@ function NodeDetailPanel({
           <div className="flex items-center gap-1.5 mt-0.5">
             <span
               className="w-2 h-2 rounded-full inline-block"
-              style={{ backgroundColor: impactLevelStyles[node.impact_level]?.border || '#9ca3af' }}
+              style={{ backgroundColor: impactLevelStyles[node.impact_level]?.border || 'var(--v2-text-3)' }}
             />
             <span className="text-[13px] text-t2 capitalize">{node.impact_level}</span>
           </div>
@@ -394,12 +409,14 @@ function ChangeImpactGraphInner() {
 
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
 
+  const chartColors = useChartColors();
+
   const graphData = useMemo(() => {
     if (!impactData) return { nodes: [], edges: [] };
     const flowNodes = convertToFlowNodes(impactData.impact_nodes, impactData.changed_file);
-    const flowEdges = convertToFlowEdges(impactData.impact_edges, impactData.impact_nodes);
+    const flowEdges = convertToFlowEdges(impactData.impact_edges, impactData.impact_nodes, chartColors);
     return layoutElements(flowNodes, flowEdges);
-  }, [impactData]);
+  }, [impactData, chartColors]);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(graphData.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(graphData.edges);
@@ -549,7 +566,7 @@ function ChangeImpactGraphInner() {
           <Background variant={BackgroundVariant.Dots} gap={16} size={1} />
           <Controls
             showInteractive={false}
-            className="!bg-surfacev2 !border-border-hairline !shadow-sm"
+            className="!bg-surfacev2 !border-border-hairline !shadow-e1"
           />
         </ReactFlow>
 

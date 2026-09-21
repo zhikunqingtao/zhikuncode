@@ -70,7 +70,7 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
 function Swatch({ cls, name }: { cls: string; name: string }) {
     return (
         <div className="flex w-24 flex-col gap-1">
-            <div className={`h-10 rounded-lg border border-hairline ${cls}`} />
+            <div className={`h-10 rounded-[10px] border border-hairline ${cls}`} />
             <span className="truncate font-mono text-[11px] text-t2">{name}</span>
         </div>
     );
@@ -85,8 +85,8 @@ export default function DesignGallery() {
     const [toggleOn, setToggleOn] = useState(true);
 
     useEffect(() => applyTheme(theme), [theme]);
-    // glass 按 resolveTheme 语义归一为 light；dark 档写 dark soft/ring
-    useEffect(() => applyAccent(accentHex, theme === 'dark' ? 'dark' : 'light'), [accentHex, theme]);
+    // 三主题各有独立 accent 档（glass 为清透档），直接按主题名取档
+    useEffect(() => applyAccent(accentHex, theme), [accentHex, theme]);
 
     return (
         <div data-design-gallery className="min-h-screen bg-app2 text-t1">
@@ -186,7 +186,7 @@ export default function DesignGallery() {
                     </div>
                     <div className="mt-4 flex flex-wrap items-end gap-4">
                         <div className="h-12 w-12 rounded-md bg-accent2-soft" title="rounded-md 6" />
-                        <div className="h-12 w-12 rounded-lg bg-accent2-soft" title="rounded-lg 8" />
+                        <div className="h-12 w-12 rounded-[10px] bg-accent2-soft" title="rounded-[10px] 8" />
                         <div className="h-12 w-12 rounded-xl bg-accent2-soft" title="rounded-xl 12" />
                         <div className="h-12 w-12 rounded-2xl bg-accent2-soft" title="rounded-2xl 16" />
                         <div className="h-12 w-12 rounded-panel bg-accent2-soft" title="rounded-panel 20" />

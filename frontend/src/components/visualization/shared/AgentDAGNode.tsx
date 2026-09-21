@@ -66,9 +66,9 @@ function AgentDAGNodeComponent({ data }: NodeProps) {
 
   return (
     <div
-      className={`w-[220px] min-h-[128px] rounded-[14px] border-2 shadow-md px-3 py-2.5 ${borderClass} `}
+      className={`w-[220px] min-h-[128px] rounded-[14px] border-2 shadow-e2 px-3 py-2.5 ${borderClass} `}
     >
-      <Handle type="target" position={Position.Top} className="!bg-gray-400 !w-2 !h-2" />
+      <Handle type="target" position={Position.Top} className="!bg-t3 !w-2 !h-2" />
 
       {/* Header: name + status */}
       <div className="flex items-center justify-between gap-1.5 mb-1">
@@ -95,7 +95,7 @@ function AgentDAGNodeComponent({ data }: NodeProps) {
         </div>
       )}
 
-      <Handle type="source" position={Position.Bottom} className="!bg-gray-400 !w-2 !h-2" />
+      <Handle type="source" position={Position.Bottom} className="!bg-t3 !w-2 !h-2" />
     </div>
   );
 }

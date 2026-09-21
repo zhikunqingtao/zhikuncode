@@ -58,7 +58,7 @@ export const SkillDetailModal: React.FC<{
                     <div className="flex items-center gap-2">
                         <Zap size={18} className="text-warn" />
                         <h3 className="text-[var(--v2-text-1)] text-base font-semibold">{detail.name}</h3>
-                        <span className="text-[13px] px-1.5 py-0.5 rounded bg-gray-700 text-t2">{detail.source}</span>
+                        <span className="text-[13px] px-1.5 py-0.5 rounded bg-sunken2 text-t2">{detail.source}</span>
                     </div>
                     <button onClick={onClose} className="dialog-control p-1 hover:bg-[var(--bg-tertiary)] rounded">
                         <X size={16} />

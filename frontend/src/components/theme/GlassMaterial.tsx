@@ -24,7 +24,8 @@ export function GlassMaterial({ kind = 'navigation', interactive = false }: {
     // Chromium's SVG backdrop path is verified by the optical browser regression.
     // Other engines retain the complete CSS material without the displacement layer.
     const chromium = /Chrome\//.test(navigator.userAgent) && !/EdgiOS|CriOS/.test(navigator.userAgent);
-    const refract = enabled && kind !== 'navigation' && !reduced && chromium;
+    // 折射对所有 kind 开放（含 navigation 的侧栏/Header）；低内存/减弱透明度/高对比/强制色仍降级。
+    const refract = enabled && !reduced && chromium;
 
     useEffect(() => {
         const host = ref.current?.parentElement;

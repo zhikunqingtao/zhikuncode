@@ -38,7 +38,7 @@ export function PermissionMenu({ value, onChange, disabled = false }: { disabled
             <Shield size={14} aria-hidden="true" />{getPermissionModeLabel(value)}<ChevronDown size={14} aria-hidden="true" />
         </button>
         {open && !disabled && createPortal(<div className="fixed inset-0 z-[200]" onPointerDown={event => { if (event.target === event.currentTarget) setOpen(false); }}>
-            <div ref={panel} role="dialog" aria-modal="true" aria-label="选择权限" tabIndex={-1} style={{ ...position, width: 'min(320px, calc(100vw - 16px))' }} className="fixed overflow-y-auto rounded-[14px] border border-hairline bg-surface2 p-2 shadow-xl focus:outline-none" onKeyDown={event => {
+            <div ref={panel} role="dialog" aria-modal="true" aria-label="选择权限" tabIndex={-1} style={{ ...position, width: 'min(320px, calc(100vw - 16px))' }} className="fixed overflow-y-auto rounded-[14px] border border-hairline bg-surface2 p-2 shadow-e4 focus:outline-none" onKeyDown={event => {
                 if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
                 event.preventDefault();
                 const options = [...event.currentTarget.querySelectorAll<HTMLButtonElement>('button')];

@@ -43,7 +43,7 @@ const ImageBlock: React.FC<ImageBlockProps> = ({
 
     if (!imageSrc) {
         return (
-            <div className="flex items-center justify-center h-32 rounded-[14px] border border-gray-700 bg-gray-800 text-t2 text-sm">
+            <div className="flex items-center justify-center h-32 rounded-[14px] border border-hairline bg-surfacev2 text-t2 text-sm">
                 No image data
             </div>
         );
@@ -51,7 +51,7 @@ const ImageBlock: React.FC<ImageBlockProps> = ({
 
     if (loadError) {
         return (
-            <div className="flex items-center justify-center h-32 rounded-[14px] border border-red-700/50 bg-red-900/20 text-err text-sm">
+            <div className="flex items-center justify-center h-32 rounded-[14px] border border-err bg-errsoft text-err text-sm">
                 Failed to load image
             </div>
         );
@@ -64,7 +64,7 @@ const ImageBlock: React.FC<ImageBlockProps> = ({
                 <img
                     src={imageSrc}
                     alt={alt}
-                    className="max-w-full max-h-80 rounded-lg border border-gray-700 cursor-pointer"
+                    className="max-w-full max-h-80 rounded-[10px] border border-hairline cursor-pointer"
                     onClick={toggleZoom}
                     onError={() => setLoadError(true)}
                     loading="lazy"
@@ -89,7 +89,7 @@ const ImageBlock: React.FC<ImageBlockProps> = ({
                             event.stopPropagation();
                             setZoomed(false);
                         }}
-                        className="panel-control absolute top-4 right-4 p-2 rounded-full bg-gray-800 text-white hover:bg-gray-700"
+                        className="panel-control absolute top-4 right-4 p-2 rounded-full bg-surfacev2 text-t1 hover:bg-sunken2"
                         aria-label="Close zoom"
                         type="button"
                     >
@@ -98,7 +98,7 @@ const ImageBlock: React.FC<ImageBlockProps> = ({
                     <img
                         src={imageSrc}
                         alt={alt}
-                        className="max-w-[90vw] max-h-[90vh] rounded-lg"
+                        className="max-w-[90vw] max-h-[90vh] rounded-[10px]"
                         onClick={(e) => e.stopPropagation()}
                     />
                 </div>

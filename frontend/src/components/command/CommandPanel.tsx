@@ -24,7 +24,7 @@ export function CommandPanel({
 
     return (
         <div
-            className={`rounded-lg border border-[var(--v2-border-hairline)] overflow-hidden ${className}`}
+            className={`rounded-[10px] border border-[var(--v2-border-hairline)] overflow-hidden ${className}`}
         >
             <div
                 className={`flex items-center justify-between px-4 py-2 bg-[var(--v2-bg-sunken)] ${

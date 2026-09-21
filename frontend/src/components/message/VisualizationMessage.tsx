@@ -238,7 +238,7 @@ const HintCard: React.FC<HintCardProps> = ({ title, description, targetTab, view
             <button
                 type="button"
                 onClick={handleOpen}
-                className="panel-control flex items-center gap-1 text-[13px] px-2 py-1 rounded bg-accent2-soft hover:bg-accent2-soft text-accent2-ink border border-blue-500/30 transition-colors flex-shrink-0"
+                className="panel-control flex items-center gap-1 text-[13px] px-2 py-1 rounded bg-accent2-soft hover:bg-accent2-soft text-accent2-ink border border-accent2 transition-colors flex-shrink-0"
             >
                 <ExternalLink size={12} />
                 <span>在可视化面板查看</span>
@@ -289,7 +289,7 @@ function safeStringify(value: unknown): string {
 
 const LoadingSkeleton: React.FC = () => (
     <div className="flex items-center justify-center py-6">
-        <div className="w-4 h-4 rounded-full bg-blue-400 animate-pulse" />
+        <div className="w-4 h-4 rounded-full bg-accent2 animate-pulse" />
     </div>
 );
 

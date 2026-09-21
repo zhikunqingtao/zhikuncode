@@ -129,7 +129,7 @@ const BrowserReplayTimeline: React.FC<BrowserReplayTimelineProps> = ({
             </div>
 
             {error && (
-                <div className="px-4 py-2 text-[13px] text-err bg-errsoft border-b border-red-500/20">
+                <div className="px-4 py-2 text-[13px] text-err bg-errsoft border-b border-err">
                     {error}
                 </div>
             )}
@@ -240,7 +240,7 @@ const InteractiveList: React.FC<InteractiveListProps> = ({ interactive }) => {
             <ul className="space-y-1 text-[13px] font-mono">
                 {interactive.slice(0, 50).map((it, idx) => (
                     <li key={idx} className="flex gap-2">
-                        <span className="text-[var(--accent)] min-w-[64px]">{it.role}</span>
+                        <span className="text-accent2-ink min-w-[64px]">{it.role}</span>
                         <span className="text-[var(--v2-text-1)] truncate flex-1">
                             {it.name || '(no name)'}
                         </span>

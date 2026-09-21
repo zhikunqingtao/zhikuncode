@@ -4,7 +4,7 @@ import { cn } from './cn';
 /**
  * Tabs 基元（§6.2 / §10.2）：
  * - 容器 role="tablist"（sunken 槽），项 role="tab" + aria-selected，面板 role="tabpanel"
- * - 选中 = bg-surfacev2 + shadow-e1 + rounded-xl（容器 rounded-2xl 满足嵌套圆角规则）
+ * - 选中 = bg-surfacev2 + shadow-raised + rounded-[10px]（容器 rounded-2xl 满足嵌套圆角规则）
  * - 键盘：←/→/↑/↓ 循环移动，Home/End 首尾；自动激活（焦点移动即选中）
  * - 受控（value + onValueChange）/ 非受控（defaultValue）
  * - aria-controls ↔ tabpanel 接线：凡携带 content 的项都会渲染对应 tabpanel
@@ -88,7 +88,7 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
                 <div
                     role="tablist"
                     onKeyDown={handleKeyDown}
-                    className="inline-flex items-center gap-1 rounded-[14px] bg-sunken2 p-1 shadow-well"
+                    className="inline-flex items-center gap-1 rounded-[14px] bg-sunken2 p-1 shadow-pressed"
                 >
                     {items.map((item, idx) => {
                         const isSelected = item.value === selected;
@@ -111,12 +111,12 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
                                 disabled={item.disabled}
                                 onClick={() => select(item.value)}
                                 className={cn(
-                                    'inline-flex h-8 items-center justify-center gap-1.5 rounded-xl px-3 text-sm font-medium transition-interactive duration-fast',
+                                    'inline-flex h-8 items-center justify-center gap-1.5 rounded-[10px] px-3 text-sm font-medium transition-interactive duration-fast',
                                     'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring',
                                     'disabled:opacity-50 disabled:pointer-events-none',
                                     isSelected
-                                        ? 'bg-surfacev2 text-t1 shadow-e1'
-                                        : 'text-t2 hover:text-t1',
+                                        ? 'bg-surfacev2 text-t1 shadow-raised'
+                                        : 'text-t2 hover:text-t1 hover:bg-hover2',
                                 )}
                             >
                                 {item.label}

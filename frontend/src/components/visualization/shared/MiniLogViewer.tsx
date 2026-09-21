@@ -50,7 +50,7 @@ const MiniLogViewer: React.FC<MiniLogViewerProps> = ({ logs, defaultCollapsed = 
             {!collapsed && (
                 <div
                     ref={scrollRef}
-                    className="mt-1 max-h-[150px] overflow-y-auto rounded bg-sunken2 dark:bg-sunken2 border border-gray-700/30 p-1.5"
+                    className="mt-1 max-h-[150px] overflow-y-auto rounded bg-sunken2 dark:bg-sunken2 border border-hairline p-1.5"
                 >
                     {logs.map((log, i) => (
                         <div key={i} className="font-mono text-[13px] leading-4 text-t2">

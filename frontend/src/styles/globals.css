@@ -12,22 +12,15 @@
     --text-primary:            #1a1a2e;
     --text-secondary:          #6b7280;
     --border:                  #e5e7eb;
-    --accent:                  var(--accent-color, #3b82f6);
-    --code-bg:                 #f3f4f6;
+    --code-bg:                 #E4F0E8;
     --diff-add:                #d4edda;
     --diff-remove:             #f8d7da;
-    --focus-ring:              #6366f1;
     --bg-hover:                #f3f4f6;
 
     /* 扩展色板 — Tailwind 集成 */
     --color-surface:           #ffffff;
     --color-surface-elevated:  #f8fafc;
     --color-surface-sunken:    #f1f5f9;
-    --color-primary:           #6366f1;
-    --color-primary-hover:     #4f46e5;
-    --color-primary-active:    #4338ca;
-    --color-accent:            var(--accent-color, #8b5cf6);
-    --color-accent-muted:      #c4b5fd;
     --color-muted:             #64748b;
     --color-border:            #e2e8f0;
     --color-text:              #0f172a;
@@ -35,8 +28,6 @@
     --color-text-muted:        #94a3b8;
     --color-code-bg:           #f1f5f9;
     --color-code-border:       #e2e8f0;
-    --color-info:              #3b82f6;
-    --color-info-bg:           #eff6ff;
     --color-success:           #22c55e;
     --color-success-bg:        #f0fdf4;
     --color-warning:           #eab308;
@@ -45,12 +36,10 @@
     --color-danger-bg:         #fef2f2;
     --color-scrollbar:         #cbd5e1;
     --color-scrollbar-hover:   #94a3b8;
-    --color-focus-ring:        #6366f1;
     --color-skeleton:          #e2e8f0;
     --color-overlay:           rgba(0, 0, 0, 0.5);
 
-    /* §8.6 可配置主题属性 */
-    --accent-color:            #3b82f6;
+    /* §8.6 可配置主题属性（accent 由 applyAccent 写 v2 令牌，--accent-color 旧链已退役） */
     --font-size:               14px;
     --font-family-code:        ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     --border-radius:           8px;
@@ -69,11 +58,9 @@
     --text-primary:            #e6edf3;
     --text-secondary:          #8b949e;
     --border:                  #30363d;
-    --accent:                  var(--accent-color, #3b82f6);
-    --code-bg:                 #1c2128;
+    --code-bg:                 #1A2029;
     --diff-add:                #1a4d2e;
     --diff-remove:             #4d1a1a;
-    --focus-ring:              #818cf8;
     --bg-hover:                #1c2128;
     --text-muted:              #64748b;
 
@@ -81,11 +68,6 @@
     --color-surface:           #0f172a;
     --color-surface-elevated:  #1e293b;
     --color-surface-sunken:    #020617;
-    --color-primary:           #818cf8;
-    --color-primary-hover:     #6366f1;
-    --color-primary-active:    #4f46e5;
-    --color-accent:            var(--accent-color, #a78bfa);
-    --color-accent-muted:      #5b21b6;
     --color-muted:             #94a3b8;
     --color-border:            #334155;
     --color-text:              #f8fafc;
@@ -93,8 +75,6 @@
     --color-text-muted:        #64748b;
     --color-code-bg:           #1e293b;
     --color-code-border:       #334155;
-    --color-info:              #60a5fa;
-    --color-info-bg:           #172554;
     --color-success:           #4ade80;
     --color-success-bg:        #052e16;
     --color-warning:           #facc15;
@@ -103,7 +83,6 @@
     --color-danger-bg:         #450a0a;
     --color-scrollbar:         #475569;
     --color-scrollbar-hover:   #64748b;
-    --color-focus-ring:        #818cf8;
     --color-skeleton:          #334155;
     --color-overlay:           rgba(0, 0, 0, 0.7);
   }
@@ -141,7 +120,7 @@ body {
   width: auto;
   height: auto;
   padding: 8px 16px;
-  background: var(--accent);
+  background: var(--v2-accent-strong);
   color: white;
   border-radius: var(--border-radius);
   font-size: 14px;
@@ -237,51 +216,71 @@ body {
 
 /* ===== v2 令牌（新增，不动任何旧变量） ===== */
 :root{
-  --v2-bg-app:#F5F6F8; --v2-bg-surface:#FFFFFF; --v2-bg-surface-2:#F8F9FC; --v2-bg-sunken:#F0F2F7;
-  --v2-bg-hover:rgba(16,24,40,.045); --v2-bg-active:rgba(16,24,40,.07);
-  --v2-border-hairline:rgba(16,24,40,.08); --v2-border-strong:rgba(16,24,40,.14);
-  --v2-overlay:rgba(16,24,40,.32);
-  --v2-text-1:#202737; --v2-text-2:#505D70; --v2-text-3:#606C7E; --v2-text-4:#606C7E;
-  --v2-ok:#16704D; --v2-ok-soft:rgba(18,166,107,.12); --v2-ok-strong:#065F46;
-  --v2-warn:#92400E; --v2-warn-soft:rgba(217,143,31,.12); --v2-warn-strong:#92400E;
-  --v2-err:#B3303B; --v2-err-soft:rgba(220,76,72,.12); --v2-err-strong:#B91C1C;
-  --v2-diff-add-bg:rgba(18,166,107,.10); --v2-diff-remove-bg:rgba(220,76,72,.10);
-  --v2-accent:#6366F1; --v2-accent-strong:#4F46E5;
-  --v2-accent-soft:rgba(99,102,241,.10); --v2-accent-ring:rgba(99,102,241,.32);
+  --v2-bg-app:#F2F7F4; --v2-bg-surface:#FFFFFF; --v2-bg-surface-2:#EAF3ED; --v2-bg-sunken:#E0EDE4;
+  --v2-bg-hover:rgba(20,40,34,.045); --v2-bg-active:rgba(20,40,34,.07);
+  --v2-border-hairline:rgba(20,40,34,.08); --v2-border-strong:rgba(20,40,34,.14);
+  --v2-overlay:rgba(20,40,34,.32);
+  --v2-text-1:#1F2430; --v2-text-2:#49546B; --v2-text-3:#596A60; --v2-text-4:#596A60;
+  --v2-ok:#2C724B; --v2-ok-soft:rgba(63,143,98,.12); --v2-ok-strong:#245E3E;
+  --v2-warn:#8F5C12; --v2-warn-soft:rgba(180,116,27,.12); --v2-warn-strong:#7A4E0F;
+  --v2-err:#B03B35; --v2-err-soft:rgba(196,69,63,.12); --v2-err-strong:#A3352F;
+  --v2-diff-add-bg:rgba(63,143,98,.10); --v2-diff-remove-bg:rgba(196,69,63,.10);
+  --v2-code-bg:#E4F0E8;
+  --v2-accent:#12967F; --v2-accent-strong:#0C7563;
+  --v2-accent-soft:rgba(18,150,127,.10); --v2-accent-ring:rgba(18,150,127,.32);
+  /* --focus-ring 跟随 accent（旧变量区不再定义，集中于 v2 块以满足单块对拍约定） */
+  --focus-ring:var(--v2-accent);
   --v2-accent-hover:color-mix(in srgb, var(--v2-accent-strong) 92%, black);
   --v2-accent-active:color-mix(in srgb, var(--v2-accent-strong) 84%, black);
-  --v2-shadow-xs:0 1px 2px rgba(16,24,40,.04);
-  --v2-shadow-sm:0 1px 2px rgba(16,24,40,.04),0 2px 8px rgba(16,24,40,.05);
-  --v2-shadow-md:0 2px 6px rgba(16,24,40,.05),0 10px 28px rgba(16,24,40,.08);
-  --v2-shadow-lg:0 4px 12px rgba(16,24,40,.07),0 20px 56px rgba(16,24,40,.14);
-  --v2-shadow-inset:inset 0 2px 5px rgba(16,24,40,.07);
-  --v2-shadow-soft:-8px -8px 20px rgba(255,255,255,.85),8px 8px 20px rgba(16,24,40,.07);
-  --v2-shadow-soft-sm:-4px -4px 10px rgba(255,255,255,.8),4px 4px 10px rgba(16,24,40,.06);
+  --v2-shadow-xs:0 1px 2px rgba(20,40,34,.04);
+  --v2-shadow-sm:0 1px 2px rgba(20,40,34,.04),0 2px 8px rgba(20,40,34,.05);
+  --v2-shadow-md:0 2px 6px rgba(20,40,34,.05),0 10px 28px rgba(20,40,34,.08);
+  --v2-shadow-lg:0 4px 12px rgba(20,40,34,.07),0 20px 56px rgba(20,40,34,.14);
+  --v2-shadow-inset:inset 2px 2px 5px rgba(20,40,34,.12),inset -2px -2px 5px rgba(255,255,255,.7);
+  --v2-shadow-raised:-3px -3px 8px rgba(255,255,255,.85),3px 3px 8px rgba(20,40,34,.10);
+  --v2-shadow-raised-hover:-1.5px -1.5px 4px rgba(255,255,255,.85),1.5px 1.5px 4px rgba(20,40,34,.10);
+  --v2-shadow-pressed:inset 2px 2px 5px rgba(20,40,34,.12),inset -2px -2px 5px rgba(255,255,255,.7);
+  --v2-shadow-soft:-8px -8px 20px rgba(255,255,255,.85),8px 8px 20px rgba(20,40,34,.07);
+  --v2-shadow-soft-sm:-4px -4px 10px rgba(255,255,255,.8),4px 4px 10px rgba(20,40,34,.06);
   --v2-r-xs:6px; --v2-r-sm:10px; --v2-r-md:14px; --v2-r-lg:16px; --v2-r-panel:22px; --v2-r-pill:999px;
   --v2-dur-fast:120ms; --v2-dur-base:180ms; --v2-dur-slow:240ms; --v2-dur-sheet:240ms;
   --v2-ease:cubic-bezier(.2,.8,.2,1); --v2-ease-in-out:cubic-bezier(.4,0,.2,1);
   --v2-spring:cubic-bezier(.34,1.56,.64,1);
-  --v2-chart-1:#6366F1; --v2-chart-2:#0D9488; --v2-chart-3:#D97706; --v2-chart-4:#E11D48;
-  --v2-chart-5:#0284C7; --v2-chart-6:#9333EA; --v2-chart-7:#65A30D; --v2-chart-8:#64748B;
+  --v2-chart-1:#5E63DE; --v2-chart-2:#2C8C7E; --v2-chart-3:#B4741B; --v2-chart-4:#C4453F;
+  --v2-chart-5:#2D7DB3; --v2-chart-6:#7E4FB8; --v2-chart-7:#6B8E23; --v2-chart-8:#596A60;
 }
 .dark{
-  --v2-bg-app:#101217; --v2-bg-surface:#191C24; --v2-bg-surface-2:#1C212B; --v2-bg-sunken:#11151C;
-  --v2-bg-hover:rgba(255,255,255,.05); --v2-bg-active:rgba(255,255,255,.08);
-  --v2-border-hairline:rgba(255,255,255,.08); --v2-border-strong:rgba(255,255,255,.15);
+  --v2-bg-app:#161A22; --v2-bg-surface:#1E2430; --v2-bg-surface-2:#262E3D; --v2-bg-sunken:#12161E;
+  --v2-bg-hover:rgba(148,163,184,.05); --v2-bg-active:rgba(148,163,184,.08);
+  --v2-border-hairline:rgba(148,163,184,.12); --v2-border-strong:rgba(148,163,184,.18);
   --v2-overlay:rgba(0,0,0,.55);
-  --v2-text-1:#EBEDF3; --v2-text-2:#B9C2D1; --v2-text-3:#9CA8BA; --v2-text-4:#9CA8BA;
-  --v2-ok:#80D2AC; --v2-ok-soft:rgba(52,211,153,.14); --v2-ok-strong:#6EE7B7;
-  --v2-warn:#FBBF24; --v2-warn-soft:rgba(251,191,36,.14); --v2-warn-strong:#FDE68A;
-  --v2-err:#EE9DA6; --v2-err-soft:rgba(248,113,113,.14); --v2-err-strong:#DC2626;
-  --v2-diff-add-bg:rgba(52,211,153,.12); --v2-diff-remove-bg:rgba(248,113,113,.12);
+  --v2-text-1:#DCE3EE; --v2-text-2:#A3AFC2; --v2-text-3:#8B99AD; --v2-text-4:#8B99AD;
+  --v2-ok:#7BC79A; --v2-ok-soft:rgba(123,199,154,.14); --v2-ok-strong:#9AD6B1;
+  --v2-warn:#E0A94A; --v2-warn-soft:rgba(224,169,74,.14); --v2-warn-strong:#EBC27A;
+  --v2-err:#F0756C; --v2-err-soft:rgba(240,117,108,.14); --v2-err-strong:#C4453F;
+  --v2-diff-add-bg:rgba(123,199,154,.12); --v2-diff-remove-bg:rgba(240,117,108,.12);
+  --v2-code-bg:#1A2029;
+  /* dark 同样跟随 accent（值由 applyAccent 运行时写入 --v2-accent） */
+  --focus-ring:var(--v2-accent);
   --v2-shadow-xs:0 1px 2px rgba(0,0,0,.4);
   --v2-shadow-sm:0 1px 2px rgba(0,0,0,.4),0 2px 8px rgba(0,0,0,.35);
   --v2-shadow-md:0 2px 6px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.45);
   --v2-shadow-lg:0 4px 12px rgba(0,0,0,.5),0 20px 56px rgba(0,0,0,.55);
-  --v2-shadow-inset:inset 0 2px 6px rgba(0,0,0,.5);
+  --v2-shadow-inset:inset 2px 2px 6px rgba(0,0,0,.5);
+  --v2-shadow-raised:inset 0 1px 0 rgba(255,255,255,.04),2px 3px 8px rgba(0,0,0,.45);
+  --v2-shadow-raised-hover:inset 0 1px 0 rgba(255,255,255,.04),1px 1.5px 4px rgba(0,0,0,.45);
+  --v2-shadow-pressed:inset 2px 2px 6px rgba(0,0,0,.5);
   --v2-shadow-soft:none; --v2-shadow-soft-sm:none;
-  --v2-chart-1:#818CF8; --v2-chart-2:#2DD4BF; --v2-chart-3:#FBBF24; --v2-chart-4:#FB7185;
-  --v2-chart-5:#38BDF8; --v2-chart-6:#C084FC; --v2-chart-7:#A3E635; --v2-chart-8:#94A3B8;
+  --v2-chart-1:#8A8FF0; --v2-chart-2:#5FC4B2; --v2-chart-3:#E0A94A; --v2-chart-4:#EF6B63;
+  --v2-chart-5:#6DB4E6; --v2-chart-6:#B58CD6; --v2-chart-7:#A3C24E; --v2-chart-8:#8B99AD;
+}
+
+/* 深色氛围光：左上跟随 accent + 右上固定紫光，极低透明度，正中保持纯净阅读区（柔夜墨蓝 §D） */
+.dark .app-workspace {
+  background:
+    radial-gradient(ellipse at 10% 0%, color-mix(in srgb, var(--v2-accent) 5.5%, transparent) 0%, transparent 48%),
+    radial-gradient(ellipse at 92% 6%, rgba(183,166,240,.05) 0%, transparent 48%),
+    var(--v2-bg-surface);
 }
 
 /* ===== v2 keyframes（新增；保留现有 shimmer/slideUp/soundwave，合计 8 个） ===== */

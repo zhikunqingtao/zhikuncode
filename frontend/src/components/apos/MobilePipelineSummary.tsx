@@ -15,7 +15,7 @@ function getWorkerDotClass(worker: WorkerInfo): string {
     case 'STARTING':
       return 'bg-t3';
     case 'WORKING':
-      return 'bg-accent motion-safe:animate-pulse';
+      return 'bg-accent2 motion-safe:animate-pulse';
     case 'IDLE':
       return 'bg-warn';
     case 'TERMINATED':

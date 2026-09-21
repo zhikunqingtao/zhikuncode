@@ -43,9 +43,9 @@ export function FeatureFlagPanel() {
   const flagKeys = Object.keys(APOS_FLAG_DEFAULTS) as (keyof APOSFeatureFlags)[];
 
   return (
-    <div className="mx-3 my-3 rounded-[14px] border border-gray-700/50 bg-[#1e1e30] overflow-hidden">
+    <div className="mx-3 my-3 rounded-[14px] border border-hairline bg-surfacev2 overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-3 py-2 border-b border-gray-700/50 bg-[#16162a]">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-hairline bg-surface2">
         <div className="flex items-center gap-2">
           <Settings2 className="w-3.5 h-3.5 text-t2" />
           <span className="text-[13px] font-medium text-t2">Feature Flags</span>
@@ -59,7 +59,7 @@ export function FeatureFlagPanel() {
       </div>
 
       {/* Flag List */}
-      <div className="divide-y divide-gray-800/50">
+      <div className="divide-y divide-hairline">
         {flagKeys.map((key) => {
           const enabled = flags[key];
           const missing = getMissingDependencies(key);
@@ -92,10 +92,10 @@ export function FeatureFlagPanel() {
                 disabled={isBlocked}
                 className={`panel-control relative w-8 h-[18px] rounded-full transition-colors flex-shrink-0 ${
                   enabled
-                    ? 'bg-blue-600'
+                    ? 'bg-accent2-strong'
                     : isBlocked
-                      ? 'bg-gray-700 cursor-not-allowed'
-                      : 'bg-gray-600 hover:bg-gray-500'
+                      ? 'bg-sunken2 cursor-not-allowed'
+                      : 'bg-sunken2 hover:bg-t3'
                 }`}
                 title={isBlocked ? `依赖未满足: ${missing.join(', ')}` : `切换 ${FLAG_LABELS[key]}`}
               >

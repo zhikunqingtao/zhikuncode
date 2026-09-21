@@ -9,7 +9,7 @@
 import React from 'react';
 import { Sun, Moon, Check, Sparkles } from 'lucide-react';
 import { useConfigStore } from '@/store/configStore';
-import { ACCENT_PRESETS } from '@/theme/accents';
+import { ACCENT_PRESETS, normalizeAccentHex } from '@/theme/accents';
 import { cn } from '@/components/ui';
 import type { ThemeConfig } from '@/types';
 
@@ -43,7 +43,7 @@ export const ThemePicker: React.FC = () => {
                                 key={value}
                                 onClick={() => setTheme({ mode: value })}
                                 className={cn(
-                                    'flex-1 flex flex-col items-center gap-1 p-3 rounded-lg border transition-interactive duration-fast',
+                                    'flex-1 flex flex-col items-center gap-1 p-3 rounded-[10px] border transition-interactive duration-fast',
                                     selected
                                         ? 'border-accent2 bg-accent2-soft'
                                         : 'border-hairline text-t1 hover:border-accent2-ring hover:bg-hover2'
@@ -63,7 +63,7 @@ export const ThemePicker: React.FC = () => {
                 <h4 className="text-sm font-medium text-t2 mb-3">强调色</h4>
                 <div className="flex gap-2 flex-wrap">
                     {accentColors.map(({ value, label }) => {
-                        const selected = theme.accentColor?.toLowerCase() === value.toLowerCase();
+                        const selected = normalizeAccentHex(theme.accentColor) === value;
                         return (
                             <button
                                 key={value}
@@ -99,7 +99,7 @@ export const ThemePicker: React.FC = () => {
                             key={value}
                             onClick={() => setTheme({ fontSize: value })}
                             className={cn(
-                                'flex-1 py-2 rounded-lg border text-sm transition-interactive duration-fast',
+                                'flex-1 py-2 rounded-[10px] border text-sm transition-interactive duration-fast',
                                 theme.fontSize === value
                                     ? 'border-accent2 bg-accent2-soft text-t1'
                                     : 'border-hairline text-t1 hover:border-accent2-ring hover:bg-hover2'

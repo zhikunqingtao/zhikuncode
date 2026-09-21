@@ -39,7 +39,7 @@ const RISK_CONFIG = {
         iconClass: 'text-warnstrong dark:text-warn',
         icon: ShieldAlert,
         label: 'Medium Risk',
-        btnClass: 'bg-warn hover:opacity-90',
+        btnClass: 'bg-warn hover:opacity-90 text-white dark:text-app2',
     },
     high: {
         bg: 'bg-errsoft',
@@ -48,7 +48,7 @@ const RISK_CONFIG = {
         iconClass: 'text-errstrong dark:text-err',
         icon: ShieldAlert,
         label: 'High Risk',
-        btnClass: 'bg-err hover:opacity-90',
+        btnClass: 'bg-err hover:opacity-90 text-white dark:text-app2',
     },
 } as const;
 

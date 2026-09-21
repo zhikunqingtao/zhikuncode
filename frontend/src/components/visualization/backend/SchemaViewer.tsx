@@ -28,7 +28,7 @@ const TYPE_COLORS: Record<string, string> = {
     string:  'bg-oksoft text-ok dark:text-ok',
     integer: 'bg-accent2-soft text-accent2-ink',
     number:  'bg-accent2-soft text-accent2-ink',
-    boolean: 'bg-purple-500/15 text-purple-600 dark:text-purple-400',
+    boolean: 'bg-accent2-soft text-accent2-ink',
     array:   'bg-warnsoft text-warn dark:text-warn',
     object:  'bg-sunken2 text-t2',
 };

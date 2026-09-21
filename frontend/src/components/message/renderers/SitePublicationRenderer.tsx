@@ -21,7 +21,7 @@ export const SitePublicationRenderer: React.FC<{ publication: SitePublicationRes
         }
     };
     return (
-        <div className="rounded-[14px] border border-emerald-700/50 bg-emerald-950/20 p-3" data-testid="site-publication-card">
+        <div className="rounded-[14px] border border-ok bg-oksoft p-3" data-testid="site-publication-card">
             <div className="flex items-center gap-2 font-medium"><Globe size={18} />{p.label}</div>
             <div className="mt-1 text-[13px] text-[var(--v2-text-2)]">
                 秒悟 · {p.runtime === 'static' ? '静态网站' : '全栈应用'}{p.version ? ` · v${p.version}` : ''}

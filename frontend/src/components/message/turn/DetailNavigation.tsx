@@ -11,7 +11,7 @@ interface Props {
     onSelect: (entry: TurnNavigationEntry) => void;
     onLatest: () => void;
 }
-const buttonClass = 'inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-1 rounded-lg px-3 text-[13px] text-t2 hover:bg-hover2 focus-visible:ring-2 focus-visible:ring-accent2';
+const buttonClass = 'inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-1 rounded-[10px] px-3 text-[13px] text-t2 hover:bg-hover2 focus-visible:ring-2 focus-visible:ring-accent2';
 
 export default function DetailNavigation({ entries, activeKey, isMobile, onSelect, onLatest }: Props) {
     const [open, setOpen] = useState(false);

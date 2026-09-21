@@ -44,7 +44,7 @@ const GroupedToolUseBlock: React.FC<GroupedToolUseBlockProps> = ({
     const toolNames = [...new Set(entries.map(([, tc]) => tc.toolName))];
 
     return (
-        <div className="grouped-tool-use my-2 rounded-[14px] border border-gray-700 bg-sunken2 overflow-hidden">
+        <div className="grouped-tool-use my-2 rounded-[14px] border border-hairline bg-sunken2 overflow-hidden">
             {/* Group Header */}
             <button
                 onClick={toggle}

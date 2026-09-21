@@ -14,11 +14,11 @@ function formatBytes(bytes: number): string {
 
 export const ExternalResourceRenderer: React.FC<ExternalResourceRendererProps> = ({ resource }) => (
     <div
-        className="rounded-[14px] border border-emerald-700/50 bg-emerald-950/20 p-3"
+        className="rounded-[14px] border border-ok bg-oksoft p-3"
         data-testid="external-resource-card"
     >
         <div className="flex items-start gap-3">
-            <div className="mt-0.5 rounded-md bg-emerald-900/40 p-2 text-ok">
+            <div className="mt-0.5 rounded-md bg-oksoft p-2 text-ok">
                 <File size={18} />
             </div>
             <div className="min-w-0 flex-1">
@@ -45,7 +45,7 @@ export const ExternalResourceRenderer: React.FC<ExternalResourceRendererProps> =
                 target="_blank"
                 rel="noopener noreferrer"
                 referrerPolicy="no-referrer"
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-emerald-600 px-3 py-2 text-[13px] font-medium text-white hover:bg-emerald-500"
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-ok px-3 py-2 text-[13px] font-medium text-white dark:text-app2 hover:bg-ok"
                 aria-label={`下载 ${resource.label}`}
                 data-testid="external-resource-download"
             >

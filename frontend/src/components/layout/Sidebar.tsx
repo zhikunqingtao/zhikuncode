@@ -96,10 +96,9 @@ const STORAGE_KEY = 'sidebar-width';
 const COLLAPSED_STRIP_WIDTH = 36;
 
 // ═══ §7.5 桌面面板配方常量（移动抽屉文字列表路径不消费） ═══
-/** 面板 Label：11px/600/大写/tracking-wider（§3.8 Label）。
- *  颜色取 text-t2 而非任务书字面 text-t3：text-t3 实测对比度 <4.5:1 不达 §10.1 AA 红线
- * （同 SettingsPanel P1b 先例：对比度红线优先于色级偏好）。 */
-const PANEL_LABEL_CLASS = 'text-[13px] font-semibold uppercase tracking-wider text-t2';
+/** 面板 Label：12px/500/大写/tracking .06em（视觉换肤 §1.6 小标签）。
+ *  颜色取 text-t3：t3 终值 #596A60 / #8B99AD 在 surface-2 上对比度 ≥4.5，满足 AA 红线。 */
+const PANEL_LABEL_CLASS = 'text-[12px] font-medium uppercase tracking-[.06em] text-t3';
 
 /** 「新建」按钮：accent2-soft 底 + accent 字，rounded-xl；
  *  文字档取 strong（soft 底上基准档不足 4.5:1，同 Chip 基元注释的 §10.1 处理）。 */
@@ -111,7 +110,7 @@ const PANEL_NEW_BUTTON_CLASS =
 
 /** 列表卡 active：accent2-soft 底 + inset 2px 内嵌左边条。
  *  box-shadow 复合写法——若卡片另有外影，需把外影并列进同一 shadow 列表防止被覆盖。 */
-const PANEL_CARD_ACTIVE_CLASS = 'bg-accent2-soft shadow-[inset_2px_0_0_0_var(--v2-accent)]';
+const PANEL_CARD_ACTIVE_CLASS = 'bg-surfacev2 border-hairline shadow-raised';
 
 /** §7.5 面板头：Label（大写）+ 计数 chip */
 function PanelHeader({ label, count, onCollapse, onBack }: { label: string; count?: number; onCollapse?: () => void; onBack?: () => void }) {
@@ -133,7 +132,7 @@ function PanelHeader({ label, count, onCollapse, onBack }: { label: string; coun
                     onClick={onCollapse}
                     aria-label="收起整个对话列表"
                     title="收起整个对话列表"
-                    className="panel-control inline-flex items-center gap-1.5 shrink-0 rounded-lg px-2 py-1 text-[13px] text-t2
+                    className="panel-control inline-flex items-center gap-1.5 shrink-0 rounded-[10px] px-2 py-1 text-[13px] text-t2
                         hover:bg-hover2 hover:text-t1 focus-visible:outline-none
                         focus-visible:ring-[3px] focus-visible:ring-accent2-ring"
                 >
@@ -333,7 +332,7 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab, onNa
             animate={isDrawerMode ? undefined : { width: panelCollapsed ? COLLAPSED_STRIP_WIDTH : width }}
             transition={{ duration: glassMode && !reducedMotion && !isDragging ? .24 : 0, ease: [.2, .8, .2, 1] }}
         >
-            {!isDrawerMode && <GlassMaterial />}
+            {!isDrawerMode && <GlassMaterial interactive />}
             {isDrawerMode ? (
                 /* §7.5 移动端抽屉 = 文字列表：图标 + 文字 + badge，38px 行高、rounded-xl、
                    active = accent2-soft 底 + accent 字 + 600 字重；选中后自动关闭抽屉 */
@@ -350,7 +349,7 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab, onNa
                                 className={`panel-control flex items-center gap-3 min-h-11 shrink-0 px-3 rounded-xl text-sm
                                     transition-interactive duration-fast ${
                                     isActive
-                                        ? 'bg-accent2-soft text-accent2-ink font-semibold'
+                                        ? 'bg-surfacev2 text-accent2-ink font-semibold shadow-raised'
                                         : 'text-t2 hover:bg-hover2 hover:text-t1'
                                 }`}
                             >
@@ -402,7 +401,7 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab, onNa
                             <button
                                 type="button"
                                 onClick={() => setActiveTab('sessions')}
-                                className="panel-control inline-flex min-h-9 items-center gap-1 rounded-lg px-2 text-[13px] text-t2
+                                className="panel-control inline-flex min-h-9 items-center gap-1 rounded-[10px] px-2 text-[13px] text-t2
                                     hover:bg-hover2 hover:text-t1 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring"
                             >
                                 <ChevronLeft className="w-4 h-4" aria-hidden="true" />
@@ -440,7 +439,7 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab, onNa
                 <div
                     className={`absolute right-0 top-0 bottom-0 w-1 cursor-col-resize
                         transition-colors z-30
-                        ${isDragging ? 'bg-blue-500/70' : 'hover:bg-blue-500/50'}`}
+                        ${isDragging ? 'bg-accent2' : 'hover:bg-accent2-soft'}`}
                     onMouseDown={handleMouseDown}
                     onDoubleClick={handleDoubleClick}
                 >
@@ -767,7 +766,7 @@ function SessionList({ onCollapse, onSessionActivated, onBack }: { onCollapse?: 
                                     aria-expanded={expanded}
                                     aria-label={`${expanded ? '收起' : '展开'}文件夹 ${group.directory || group.name}`}
                                     title={group.directory || group.name}
-                                    className="panel-control w-full flex items-center gap-2 px-2 py-2 rounded-lg text-t2 hover:bg-hover2
+                                    className="panel-control w-full flex items-center gap-2 px-2 py-2 rounded-[10px] text-t2 hover:bg-hover2
                                         focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring"
                                 >
                                     {expanded ? <ChevronDown className="w-3.5 h-3.5 shrink-0" /> : <ChevronRight className="w-3.5 h-3.5 shrink-0" />}
@@ -797,11 +796,11 @@ function SessionList({ onCollapse, onSessionActivated, onBack }: { onCollapse?: 
                                             <div
                                                 key={session.id}
                                                 onClick={() => { void handleSwitchSession(session.id); }}
-                                                className={`group px-3 py-2.5 rounded-xl cursor-pointer border border-transparent
+                                                className={`group px-3 py-2.5 rounded-[14px] cursor-pointer border border-transparent
                                                     transition-interactive duration-fast
                                                     ${session.id === currentSessionId
                                                         ? PANEL_CARD_ACTIVE_CLASS
-                                                        : 'hover:bg-hover2'}`}
+                                                        : 'hover:bg-hover2 hover:border-hairline'}`}
                                             >
                                                 <div className="flex items-start justify-between gap-1">
                                                     <div className="flex-1 min-w-0">
@@ -819,10 +818,10 @@ function SessionList({ onCollapse, onSessionActivated, onBack }: { onCollapse?: 
                                                             {merging && <span role="status" className="text-xs text-accent2-ink whitespace-nowrap">合并中</span>}
                                                         </div>
                                                         {!simpleMode && <div className="flex items-center gap-2 mt-1">
-                                                            <span className="text-[13px] text-t2 truncate">
+                                                            <span className="text-[13px] text-t3 truncate">
                                                                 {session.model} · {session.id.slice(0, 8)}
                                                             </span>
-                                                            <span className="text-[13px] text-t2 tabular-nums whitespace-nowrap shrink-0">
+                                                            <span className="text-[13px] text-t3 font-mono tabular-nums whitespace-nowrap shrink-0">
                                                                 {session.messageCount} 条消息
                                                             </span>
                                                         </div>}
@@ -1016,7 +1015,7 @@ function TaskPanel({ tasks, onClear }: { tasks: Map<string, TaskState>; onClear:
                     <Chip variant="accent" className="tabular-nums">{tasks.size}</Chip>
                     <button
                         onClick={onClear}
-                        className="panel-control p-1.5 rounded-lg hover:bg-hover2 text-t3 hover:text-t1
+                        className="panel-control p-1.5 rounded-[10px] hover:bg-hover2 text-t3 hover:text-t1
                             transition-interactive duration-fast"
                         title="清除已完成任务"
                     >
@@ -1055,7 +1054,7 @@ function TaskPanel({ tasks, onClear }: { tasks: Map<string, TaskState>; onClear:
                                 </div>
                             )}
                             {task.result !== undefined && task.result !== null && (
-                                <div className="text-[13px] text-t2 p-2 bg-sunken2 rounded-lg">
+                                <div className="text-[13px] text-t2 p-2 bg-sunken2 rounded-[10px]">
                                     {typeof task.result === 'string' ? task.result : JSON.stringify(task.result).slice(0, 100)}
                                 </div>
                             )}

@@ -36,7 +36,7 @@ export const DensitySwitch: React.FC = () => {
             role="tablist"
             aria-label="消息密度"
             data-testid="density-switch"
-            className="glass-segments inline-flex h-7 shrink-0 items-center gap-0.5 rounded-full border border-hairline bg-surface2 p-0.5"
+            className="glass-segments inline-flex h-7 shrink-0 items-center gap-0.5 rounded-full border border-hairline bg-sunken2 p-0.5 shadow-pressed"
         >
             {DENSITY_OPTIONS.map(option => {
                 const selected = option.value === density;
@@ -53,8 +53,8 @@ export const DensitySwitch: React.FC = () => {
                             'transition-interactive duration-fast',
                             'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring',
                             selected
-                                ? 'bg-surfacev2 text-t1 shadow-e1'
-                                : 'text-t2 hover:text-t1',
+                                ? 'bg-surfacev2 text-t1 shadow-raised'
+                                : 'text-t2 hover:text-t1 hover:bg-hover2',
                         )}
                     >
                         {selected && <GlassSelection id={glassId} />}

@@ -32,7 +32,7 @@ export const DelegationWarningBanner: React.FC = () => {
             {visibleWarnings.map((warning) => (
                 <div
                     key={warning.id}
-                    className="flex items-start gap-3 px-4 py-2.5\n                               bg-amber-50 dark:bg-amber-950/30\n                               border border-amber-300 dark:border-amber-700\n                               rounded-[14px] shadow-sm\n                               animate-in slide-in-from-top-2 duration-slow"
+                    className="flex items-start gap-3 px-4 py-2.5\n                               bg-warnsoft\n                               border border-warn\n                               rounded-[14px] shadow-e1\n                               animate-in slide-in-from-top-2 duration-slow"
                     role="alert"
                 >
                     {/* Warning icon */}
@@ -67,7 +67,7 @@ export const DelegationWarningBanner: React.FC = () => {
                     <button
                         onClick={() => handleDismiss(warning.id)}
                         className="panel-control flex-shrink-0 w-5 h-5 rounded flex items-center justify-center
-                                   hover:bg-amber-200 dark:hover:bg-amber-800 transition-colors"
+                                   hover:bg-warnsoft transition-colors"
                         title="关闭警告"
                     >
                         <svg

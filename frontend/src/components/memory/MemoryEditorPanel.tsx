@@ -49,7 +49,7 @@ export const MemoryEditorPanel: React.FC<MemoryEditorPanelProps> = ({
                             <Plus size={14} />
                         </button>
                         {showTemplateMenu && (
-                            <div className="absolute right-0 top-full mt-1 bg-[var(--v2-bg-surface)] border border-[var(--v2-border-hairline)] rounded-lg shadow-lg z-10 min-w-[140px]">
+                            <div className="absolute right-0 top-full mt-1 bg-[var(--v2-bg-surface)] border border-[var(--v2-border-hairline)] rounded-[10px] shadow-e3 z-10 min-w-[140px]">
                                 {Object.entries(MEMORY_TEMPLATES).map(([name, tpl]) => (
                                     <button key={name}
                                         onClick={() => { insertTemplate(tpl); setShowTemplateMenu(false); }}

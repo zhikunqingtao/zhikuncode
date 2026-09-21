@@ -2,7 +2,7 @@
  * EvidenceBundleView — RV-4 证据包详情展示
  *
  * 设计风格对齐 JourneyVerifyPanel：
- * - 紧凑面板：border rounded-lg p-4
+ * - 紧凑面板：border rounded-[10px] p-4
  * - 状态色：verified=green / failed=red / inconclusive=amber / running=blue
  * - 按 EvidenceItem.type 分组展示，提供 tabs 切换
  *
@@ -60,7 +60,7 @@ export const EvidenceBundleView: React.FC<EvidenceBundleViewProps> = ({ bundleId
 
     if (error && !currentBundle) {
         return (
-            <div className="evidence-bundle-view border rounded-[14px] p-4 mt-2 text-[13px] text-err bg-red-50">
+            <div className="evidence-bundle-view border rounded-[14px] p-4 mt-2 text-[13px] text-err bg-errsoft">
                 Failed to load evidence bundle: {error}
             </div>
         );
@@ -87,8 +87,8 @@ export const EvidenceBundleView: React.FC<EvidenceBundleViewProps> = ({ bundleId
                                 className={
                                     'px-2 py-0.5 text-[13px] rounded transition-colors ' +
                                     (activeTab === key
-                                        ? 'bg-blue-100 text-accent2-ink font-medium'
-                                        : 'text-t2 hover:bg-gray-100')
+                                        ? 'bg-accent2-soft text-accent2-ink font-medium'
+                                        : 'text-t2 hover:bg-surface2')
                                 }
                             >
                                 {(ITEM_TYPE_LABELS[key] ?? capitalize(key))}
@@ -117,7 +117,7 @@ const Header: React.FC<{ bundle: EvidenceBundle }> = ({ bundle }) => (
                 <h3 className="truncate text-base font-semibold">
                     {bundle.claim || `Evidence Bundle ${shortId(bundle.bundleId)}`}
                 </h3>
-                <span className="px-1.5 py-0.5 text-[13px] rounded bg-gray-100 text-t2 uppercase">
+                <span className="px-1.5 py-0.5 text-[13px] rounded bg-surface2 text-t2 uppercase">
                     {bundle.kind}
                 </span>
             </div>
@@ -132,15 +132,15 @@ const Header: React.FC<{ bundle: EvidenceBundle }> = ({ bundle }) => (
 const VerdictBadge: React.FC<{ verdict: string }> = ({ verdict }) => {
     const v = (verdict || '').toLowerCase();
     if (v === 'verified' || v === 'passed') {
-        return <span className="px-2 py-0.5 text-[13px] rounded bg-green-100 text-ok">Verified</span>;
+        return <span className="px-2 py-0.5 text-[13px] rounded bg-oksoft text-ok">Verified</span>;
     }
     if (v === 'failed') {
-        return <span className="px-2 py-0.5 text-[13px] rounded bg-red-100 text-err">Failed</span>;
+        return <span className="px-2 py-0.5 text-[13px] rounded bg-errsoft text-err">Failed</span>;
     }
     if (v === 'inconclusive') {
-        return <span className="px-2 py-0.5 text-[13px] rounded bg-amber-100 text-warn">Inconclusive</span>;
+        return <span className="px-2 py-0.5 text-[13px] rounded bg-warnsoft text-warn">Inconclusive</span>;
     }
-    return <span className="px-2 py-0.5 text-[13px] rounded bg-blue-100 text-accent2-ink">{verdict || 'Unknown'}</span>;
+    return <span className="px-2 py-0.5 text-[13px] rounded bg-accent2-soft text-accent2-ink">{verdict || 'Unknown'}</span>;
 };
 
 // ==================== Item Group Renderer ====================
@@ -175,7 +175,7 @@ const ScreenshotGrid: React.FC<{ items: EvidenceItem[] }> = ({ items }) => (
         {items.map((item) => {
             const src = pickImageSrc(item);
             return (
-                <div key={item.id} className="border rounded overflow-hidden bg-gray-50">
+                <div key={item.id} className="border rounded overflow-hidden bg-surface2">
                     {src ? (
                         <img
                             src={src}
@@ -206,15 +206,15 @@ const CommandList: React.FC<{ items: EvidenceItem[] }> = ({ items }) => (
             const stdout = (item.meta?.stdout as string | undefined) ?? '';
             return (
                 <div key={item.id} className="border rounded">
-                    <div className="flex items-center justify-between px-2 py-1 bg-gray-50 border-b text-[13px]">
+                    <div className="flex items-center justify-between px-2 py-1 bg-surface2 border-b text-[13px]">
                         <span className="font-mono truncate">{cmd || shortId(item.id)}</span>
                         {exitCode !== null && (
                             <span
                                 className={
                                     'ml-2 px-1.5 py-0.5 text-[13px] rounded ' +
                                     (exitCode === 0
-                                        ? 'bg-green-100 text-ok'
-                                        : 'bg-red-100 text-err')
+                                        ? 'bg-oksoft text-ok'
+                                        : 'bg-errsoft text-err')
                                 }
                             >
                                 exit {exitCode}
@@ -222,7 +222,7 @@ const CommandList: React.FC<{ items: EvidenceItem[] }> = ({ items }) => (
                         )}
                     </div>
                     {stdout && (
-                        <pre className="p-2 text-[13px] font-mono bg-gray-50 max-h-32 overflow-auto whitespace-pre-wrap">
+                        <pre className="p-2 text-[13px] font-mono bg-surface2 max-h-32 overflow-auto whitespace-pre-wrap">
                             {stdout}
                         </pre>
                     )}
@@ -243,7 +243,7 @@ const ConsoleList: React.FC<{ items: EvidenceItem[] }> = ({ items }) => (
                     key={item.id}
                     className={
                         'flex items-start gap-2 px-2 py-1 rounded text-[13px] ' +
-                        (isError ? 'bg-red-50 text-err' : 'bg-amber-50 text-warn')
+                        (isError ? 'bg-errsoft text-err' : 'bg-warnsoft text-warn')
                     }
                 >
                     <span className="font-mono uppercase text-[13px] shrink-0 mt-0.5">{level}</span>
@@ -352,11 +352,11 @@ const DiffList: React.FC<{ items: EvidenceItem[] }> = ({ items }) => (
             return (
                 <div key={item.id} className="border rounded">
                     {item.meta?.path ? (
-                        <div className="px-2 py-1 bg-gray-50 border-b text-[13px] font-mono truncate">
+                        <div className="px-2 py-1 bg-surface2 border-b text-[13px] font-mono truncate">
                             {String(item.meta.path)}
                         </div>
                     ) : null}
-                    <pre className="p-2 text-[13px] font-mono bg-gray-50 max-h-48 overflow-auto whitespace-pre">
+                    <pre className="p-2 text-[13px] font-mono bg-surface2 max-h-48 overflow-auto whitespace-pre">
                         {renderDiffWithColor(patch)}
                     </pre>
                 </div>

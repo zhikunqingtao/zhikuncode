@@ -16,11 +16,11 @@ interface BlameViewProps {
 // ── 交替背景色组（用于相同 commit 分组） ──
 const GROUP_COLORS = [
     'bg-accent2-soft',
-    'bg-purple-500/5',
+    'bg-accent2-soft',
     'bg-oksoft',
     'bg-warnsoft',
-    'bg-pink-500/5',
-    'bg-cyan-500/5',
+    'bg-errsoft',
+    'bg-accent2-soft',
 ];
 
 function relativeTime(isoStr: string): string {

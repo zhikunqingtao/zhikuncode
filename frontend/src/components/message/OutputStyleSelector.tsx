@@ -46,7 +46,7 @@ const OutputStyleSelector: React.FC = () => {
                     className={`panel-control
                         px-2 py-0.5 text-[13px] rounded transition-colors
                         ${activeStyleName === style.name
-                            ? 'bg-accent2-soft text-accent2-ink border border-blue-500/50'
+                            ? 'bg-accent2-soft text-accent2-ink border border-accent2'
                             : 'text-t2 hover:text-t2 hover:bg-sunken2 border border-transparent'
                         }
                     `}

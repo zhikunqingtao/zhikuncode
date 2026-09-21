@@ -45,7 +45,7 @@ const CollapsedReadSearchBlock: React.FC<CollapsedReadSearchBlockProps> = ({
     const preview = lines.slice(0, previewLines).join('\n');
 
     return (
-        <div className="collapsed-read-search rounded-[14px] border border-gray-700 bg-sunken2 overflow-hidden">
+        <div className="collapsed-read-search rounded-[14px] border border-hairline bg-sunken2 overflow-hidden">
             {/* Header */}
             <button
                 onClick={toggle}
@@ -69,7 +69,7 @@ const CollapsedReadSearchBlock: React.FC<CollapsedReadSearchBlockProps> = ({
                 ) : (
                     <div className="relative">
                         <CodeBlock code={preview + '\n...'} language="text" showLineNumbers={false} maxHeight={200} />
-                        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-gray-900/80 to-transparent pointer-events-none" />
+                        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-overlay2 to-transparent pointer-events-none" />
                     </div>
                 )}
             </div>

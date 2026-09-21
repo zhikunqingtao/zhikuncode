@@ -155,7 +155,7 @@ function TreeNodeItem({
     <div
       onClick={() => onFileClick(node.path)}
       className={`flex items-center gap-1.5 py-[5px] pr-2 transition-colors cursor-pointer group
-        ${isSelected ? 'bg-accent2-soft border-l-2 border-l-blue-500' : 'hover:bg-[var(--v2-bg-hover)]'}`}
+        ${isSelected ? 'bg-accent2-soft border-l-2 border-l-accent2' : 'hover:bg-[var(--v2-bg-hover)]'}`}
       style={{ paddingLeft: paddingLeft + 16 }}
       title={`点击查看: ${node.path}`}
     >

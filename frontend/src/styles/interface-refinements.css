@@ -60,7 +60,7 @@
 }
 
 :root .glass-light {
-    box-shadow: inset 0 1px 1px var(--glass-highlight),inset 1px 0 1px rgba(255,255,255,.5),inset 0 -1px 1px rgba(31,47,73,.12);
+    box-shadow: inset 0 1px 0 var(--glass-highlight),inset 1px 0 1px rgba(255,255,255,.5),inset 0 -1px 1px rgba(31,30,27,.12);
 }
 
 @media (max-width: 767px) {
@@ -156,7 +156,7 @@
 
 /* Controls use a distinct readable label tier. Auxiliary metadata remains 13px. */
 .panel-control, .dialog-control, .workbench-control { font-size: 14px; line-height: 1.5; }
-.panel-control:is(input, select, textarea) { border-color: var(--v2-text-3); }
+.panel-control:is(input, select, textarea) { border-color: var(--v2-border-hairline); box-shadow: var(--v2-shadow-inset); }
 .panel-control[aria-invalid=true] { border-color: var(--v2-err); }
 
 /* One focus indicator: pointer clicks stay quiet; keyboard focus stays visible. */

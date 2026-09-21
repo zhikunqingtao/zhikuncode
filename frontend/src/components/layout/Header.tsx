@@ -24,7 +24,7 @@ import { MemoryIcon } from '@/components/memory/MemoryIcon';
 
 /** §7.4 头部按钮共性：hover/active/焦点环（ring-accent2-ring） */
 const HEADER_BUTTON_CLASS =
-    'px-2 h-7 items-center justify-center max-md:min-h-11 max-md:min-w-11 rounded-[10px] hover:bg-hover2 active:scale-95 transition-interactive duration-fast text-t2 ' +
+    'px-2 h-7 items-center justify-center max-md:min-h-11 max-md:min-w-11 rounded-[10px] hover:bg-hover2 hover:text-t1 active:scale-95 active:shadow-pressed transition-interactive duration-fast text-t2 ' +
     'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring';
 
 /** 会话状态展示（自底部状态栏上移至 Header 右簇）。
@@ -119,7 +119,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
 
     return (
         <header className="app-header glass-surface relative h-14 border-b border-hairline bg-surface2 flex items-center px-2 md:px-4 shrink-0">
-            <GlassMaterial />
+            <GlassMaterial interactive />
             <div className="flex md:hidden min-w-0 w-full items-center gap-3 px-1" aria-label="当前会话信息">
                 <button type="button" onClick={onMenuClick} aria-label="打开会话列表" title="打开会话列表" className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-[10px] text-t2 hover:bg-hover2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent2-ink"><Menu size={20} /></button>
                 <div className="min-w-0 flex-1">
@@ -169,7 +169,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
             {/* Right: SessionStatus + Metrics + Theme + New Session + MCP + Shortcuts */}
             <div className="hidden md:flex items-center gap-2">
                 {/* 会话状态 + 用量指标（自底部状态栏右簇上移；指标细节 ≥lg 展示，空间不足时让位） */}
-                <div className="flex items-center gap-2.5 pr-1 text-[13px] text-t2">
+                <div className="flex items-center gap-2.5 pr-1 text-[13px] font-mono tabular-nums text-t3">
                     <div
                         className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2 py-0.5 text-[13px] font-medium leading-5 ${sessionStatusChipTone}`}
                         title="会话状态"
@@ -213,7 +213,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
                 {/* 显示当前主题；点击选择，不再循环切换。 */}
                 <button
                     onClick={() => openDialog('settings')}
-                    className={`panel-control hidden md:inline-flex items-center gap-1.5 border border-hairline bg-surface2 ${HEADER_BUTTON_CLASS}`}
+                    className={`panel-control hidden md:inline-flex items-center gap-1.5 border border-hairline bg-surfacev2 shadow-raised hover:shadow-raised-hover ${HEADER_BUTTON_CLASS}`}
                     title="外观设置"
                     aria-label="外观设置"
                     aria-haspopup="dialog"

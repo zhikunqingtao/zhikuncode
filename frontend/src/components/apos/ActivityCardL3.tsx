@@ -395,7 +395,7 @@ export function ActivityCardL3({
           {activity.decision ? (
             <span className={`inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-medium rounded ${
               activity.decision === 'approved'
-                ? 'bg-[color:color-mix(in_srgb,var(--v2-accent-strong)_10%,transparent)] text-ok'
+                ? 'bg-oksoft text-ok'
                 : 'bg-errsoft text-err'
             }`}>
               {activity.decision === 'approved' ? (
@@ -420,7 +420,7 @@ export function ActivityCardL3({
                   <button
                     onClick={onApprove}
                     disabled={isDisabled}
-                    className={`panel-control inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-medium rounded bg-[color:color-mix(in_srgb,var(--v2-accent-strong)_20%,transparent)] text-ok hover:bg-[color:color-mix(in_srgb,var(--v2-accent-strong)_30%,transparent)] transition-colors ${disabledClass}`}
+                    className={`panel-control inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-medium rounded bg-oksoft text-ok hover:bg-[color:color-mix(in_srgb,var(--v2-ok)_22%,transparent)] transition-colors ${disabledClass}`}
                     title={isDisabled ? '等待文件变更数据或验证完成' : '批准此操作'}
                   >
                     <Check size={14} /> 批准
@@ -436,7 +436,7 @@ export function ActivityCardL3({
                   <button
                     disabled
                     title="Phase 2 功能"
-                    className="panel-control px-3 py-1.5 text-[13px] rounded bg-zinc-700 text-t3 cursor-not-allowed opacity-50"
+                    className="panel-control px-3 py-1.5 text-[13px] rounded bg-sunken2 text-t3 cursor-not-allowed opacity-50"
                   >
                     应用建议
                   </button>

@@ -6,7 +6,8 @@
 
 import { useMemo, useState, useCallback, useEffect, memo } from 'react';
 import { useReducedMotion } from 'framer-motion';
-import { CHART_COLORS } from '@/styles/design-tokens';
+import { getChartColors, resolveTheme } from '@/styles/design-tokens';
+import { useConfigStore } from '@/store/configStore';
 import {
   ReactFlow,
   MiniMap,
@@ -48,22 +49,33 @@ import {
 
 // ── 层级颜色 & 图标配置 ──
 
-const LAYER_CONFIG: Record<string, { color: string; icon: LucideIcon; label: string }> = {
-  controller: { color: CHART_COLORS.light[4], icon: Globe,    label: 'Controller' },
-  service:    { color: CHART_COLORS.light[1], icon: Cog,      label: 'Service' },
-  repository: { color: CHART_COLORS.light[5], icon: Database, label: 'Repository' },
-  database:   { color: CHART_COLORS.light[2], icon: Database, label: 'Database' },
-  external:   { color: CHART_COLORS.light[3], icon: Zap,      label: 'External' },
-  utility:    { color: CHART_COLORS.light[7], icon: Box,      label: 'Utility' },
-};
+/** 当前主题模式 + 强调色的图表色板（§4.1 动态版；glass 归一为 light） */
+function useChartColors(): string[] {
+  const mode = useConfigStore(s => s.theme.mode);
+  const accentColor = useConfigStore(s => s.theme.accentColor);
+  return useMemo(() => getChartColors(resolveTheme(mode), accentColor), [mode, accentColor]);
+}
 
-const METHOD_COLORS: Record<string, string> = {
-  GET: CHART_COLORS.light[1],
-  POST: CHART_COLORS.light[4],
-  PUT: CHART_COLORS.light[2],
-  DELETE: CHART_COLORS.light[3],
-  PATCH: CHART_COLORS.light[5],
-};
+function getLayerConfig(colors: string[]): Record<string, { color: string; icon: LucideIcon; label: string }> {
+  return {
+    controller: { color: colors[4], icon: Globe,    label: 'Controller' },
+    service:    { color: colors[1], icon: Cog,      label: 'Service' },
+    repository: { color: colors[5], icon: Database, label: 'Repository' },
+    database:   { color: colors[2], icon: Database, label: 'Database' },
+    external:   { color: colors[3], icon: Zap,      label: 'External' },
+    utility:    { color: colors[7], icon: Box,      label: 'Utility' },
+  };
+}
+
+function getMethodColors(colors: string[]): Record<string, string> {
+  return {
+    GET: colors[1],
+    POST: colors[4],
+    PUT: colors[2],
+    DELETE: colors[3],
+    PATCH: colors[5],
+  };
+}
 
 // ── 数据转换 ──
 
@@ -142,7 +154,9 @@ function layoutElements(nodes: Node[], edges: Edge[]): { nodes: Node[]; edges: E
 
 function LayerNodeComponent({ data }: NodeProps) {
   const d = data as unknown as LayerNodeData;
-  const config = LAYER_CONFIG[d.layer] || LAYER_CONFIG.utility;
+  const colors = useChartColors();
+  const layerConfig = getLayerConfig(colors);
+  const config = layerConfig[d.layer] || layerConfig.utility;
   const Icon = config.icon;
 
   return (
@@ -153,7 +167,7 @@ function LayerNodeComponent({ data }: NodeProps) {
         boxShadow: `0 0 6px ${config.color}20`,
       }}
     >
-      <Handle type="target" position={Position.Top} className="!bg-gray-400 !w-2 !h-2" />
+      <Handle type="target" position={Position.Top} className="!bg-t3 !w-2 !h-2" />
 
       {/* Header: layer badge */}
       <div className="flex items-center gap-1.5 mb-1">
@@ -178,7 +192,7 @@ function LayerNodeComponent({ data }: NodeProps) {
         </p>
       )}
 
-      <Handle type="source" position={Position.Bottom} className="!bg-gray-400 !w-2 !h-2" />
+      <Handle type="source" position={Position.Bottom} className="!bg-t3 !w-2 !h-2" />
     </div>
   );
 }
@@ -203,6 +217,8 @@ function EndpointListPanel({
   onEndpointClick: (ep: ApiEndpointItem) => void;
   selectedEndpoint: ApiEndpointItem | null;
 }) {
+  const colors = useChartColors();
+  const methodColors = getMethodColors(colors);
   const filtered = useMemo(() => {
     if (!searchText.trim()) return endpoints;
     const q = searchText.toLowerCase();
@@ -257,7 +273,7 @@ function EndpointListPanel({
           Array.from(grouped.entries()).map(([method, eps]) => (
             <div key={method} className="mb-2">
               <div className="px-2 py-1 text-[13px] font-semibold uppercase tracking-wider"
-                style={{ color: 'var(--v2-text-2)', borderLeft: `3px solid ${METHOD_COLORS[method] || '#6b7280'}` }}>
+                style={{ color: 'var(--v2-text-2)', borderLeft: `3px solid ${methodColors[method] || colors[7]}` }}>
                 {method} ({eps.length})
               </div>
               {eps.map((ep, i) => {
@@ -299,12 +315,14 @@ function NodeDetailPanel({
   node: PathNode | null;
   onClose: () => void;
 }) {
+  const colors = useChartColors();
   if (!node) return null;
-  const config = LAYER_CONFIG[node.layer] || LAYER_CONFIG.utility;
+  const layerConfig = getLayerConfig(colors);
+  const config = layerConfig[node.layer] || layerConfig.utility;
   const Icon = config.icon;
 
   return (
-    <div className="absolute right-0 top-0 bottom-0 w-72 max-w-full bg-surfacev2 border-l border-border-hairline shadow-lg z-20 overflow-y-auto">
+    <div className="absolute right-0 top-0 bottom-0 w-72 max-w-full bg-surfacev2 border-l border-border-hairline shadow-e3 z-20 overflow-y-auto">
       <div className="flex items-center justify-between p-3 border-b border-border-hairline">
         <span className="text-sm font-semibold text-t1">节点详情</span>
         <button aria-label="关闭节点详情" onClick={onClose} className="panel-control p-1 rounded hover:bg-hover2">
@@ -376,11 +394,13 @@ function NodeDetailPanel({
 // ── 底部层级统计栏 ──
 
 function LayerStatsBar({ layers }: { layers: Array<{ layer: string; nodeCount: number; description: string }> }) {
+  const colors = useChartColors();
   if (layers.length === 0) return null;
+  const layerConfig = getLayerConfig(colors);
   return (
     <div className="border-t border-[var(--v2-border-hairline)] bg-[var(--v2-bg-surface-2)] px-3 py-2 flex items-center gap-x-4 gap-y-2 flex-wrap text-[13px] flex-shrink-0">
       {layers.map(l => {
-        const config = LAYER_CONFIG[l.layer] || LAYER_CONFIG.utility;
+        const config = layerConfig[l.layer] || layerConfig.utility;
         return (
           <span key={l.layer} className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: config.color }} />
@@ -525,7 +545,7 @@ function CodePathTracerInner() {
           onClick={handleScan}
           disabled={endpointsLoading}
           className="panel-control flex items-center gap-1 px-3 py-1 rounded text-[13px] font-medium
-            bg-accent2 text-white hover:brightness-95
+            bg-accent2-strong text-white hover:bg-accent2-hover
             disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {endpointsLoading ? <Loader2 size={12} className="animate-spin" /> : <Play size={12} />}
@@ -600,7 +620,7 @@ function CodePathTracerInner() {
                   <Background variant={BackgroundVariant.Dots} gap={16} size={1} />
                   <Controls
                     showInteractive={false}
-                    className="!bg-surfacev2 !border-border-hairline !shadow-sm"
+                    className="!bg-surfacev2 !border-border-hairline !shadow-e1"
                   />
                 </ReactFlow>
 

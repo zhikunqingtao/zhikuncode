@@ -23,21 +23,27 @@ import SchemaViewer from '@/components/visualization/backend/SchemaViewer';
 // ── HTTP 方法颜色 ──
 
 const METHOD_COLORS: Record<string, string> = {
-    get:    'bg-green-700',
-    post:   'bg-blue-700',
-    put:    'bg-orange-700',
-    delete: 'bg-red-700',
-    patch:  'bg-purple-700',
-    head:   'bg-gray-700',
-    options:'bg-gray-700',
+    // 每项自带文字色，按深色主题下的底色明度配对前景（text-app2 = 页面底色，深色主题为深字）：
+    // - sunken2 浅底 → t1 深字（白字在浅色主题对比度不足）；
+    // - ok/warn 是「文字色」语义 token，深色主题为亮色值（#7BC79A/#E0A94A），作背景时白字仅
+    //   2.0:1/2.1:1（WCAG AA 需 4.5:1），须 dark:text-app2 换深字（浅色白字 5.8:1+，深色深字 7.2:1+）；
+    // - errstrong/accent2-strong 深色主题仍为深底（#C4453F/#0C7563），白字 4.9:1/5.6:1 达标，
+    //   深字反而仅 3.2:1/2.8:1 会 FAIL —— 保持白字。
+    get:    'bg-ok text-white dark:text-app2',
+    post:   'bg-accent2-strong text-white',
+    put:    'bg-warn text-white dark:text-app2',
+    delete: 'bg-errstrong text-white',
+    patch:  'bg-accent2-strong text-white',
+    head:   'bg-sunken2 text-t1',
+    options:'bg-sunken2 text-t1',
 };
 
 const METHOD_BORDER: Record<string, string> = {
-    get:    'border-green-500/30',
-    post:   'border-blue-500/30',
-    put:    'border-orange-500/30',
-    delete: 'border-red-500/30',
-    patch:  'border-purple-500/30',
+    get:    'border-ok',
+    post:   'border-accent2',
+    put:    'border-warn',
+    delete: 'border-err',
+    patch:  'border-accent2',
 };
 
 // ── 数据源 Tab 配置 ──
@@ -65,7 +71,7 @@ interface TagGroup {
 // ── HTTP 方法 Badge ──
 
 const MethodBadge: React.FC<{ method: string }> = ({ method }) => (
-    <span className={`shrink-0 inline-flex items-center justify-center w-16 px-1.5 py-0.5 rounded text-[13px] font-bold uppercase text-white ${METHOD_COLORS[method] ?? 'bg-gray-700'}`}>
+    <span className={`shrink-0 inline-flex items-center justify-center w-16 px-1.5 py-0.5 rounded text-[13px] font-bold uppercase ${METHOD_COLORS[method] ?? 'bg-sunken2 text-t1'}`}>
         {method}
     </span>
 );
@@ -246,7 +252,7 @@ const TagGroupPanel: React.FC<{
                                 <button
                                     onClick={() => onSelect({ path: ep.path, method: ep.method })}
                                     className={`panel-control w-full flex items-center gap-2 px-4 py-1.5 text-left hover:bg-[var(--v2-bg-hover)] transition-colors
-                                        ${isSelected ? 'bg-blue-700/8 border-l-2 border-l-blue-500' : 'border-l-2 border-l-transparent'}`}
+                                        ${isSelected ? 'bg-accent2-soft border-l-2 border-l-accent2' : 'border-l-2 border-l-transparent'}`}
                                 >
                                     <MethodBadge method={ep.method} />
                                     <span className="font-mono text-[13px] text-[var(--v2-text-1)] truncate">{ep.path}</span>
@@ -381,7 +387,7 @@ export const APIContractViewer: React.FC<APIContractViewerProps> = ({ source: in
         <div className="flex flex-col h-full">
             {/* 警告横幅 */}
             {warnings.length > 0 && (
-                <div className="flex items-start gap-2 px-3 py-2 bg-warnsoft border-b border-yellow-500/30 text-[13px] text-warn">
+                <div className="flex items-start gap-2 px-3 py-2 bg-warnsoft border-b border-warn text-[13px] text-warn">
                     <AlertTriangle size={14} className="shrink-0 mt-0.5" />
                     <div className="space-y-0.5">
                         {warnings.map((w, i) => (
@@ -423,7 +429,7 @@ export const APIContractViewer: React.FC<APIContractViewerProps> = ({ source: in
                         placeholder="搜索 API 端点..."
                         className="w-full pl-8 pr-3 py-1.5 text-[13px] rounded-md border border-[var(--v2-border-hairline)]
                             bg-[var(--v2-bg-surface)] text-[var(--v2-text-1)]
-                            placeholder:text-[var(--v2-text-2)] focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+                            placeholder:text-[var(--v2-text-2)] focus:outline-none focus:ring-1 focus:ring-accent2-ring"
                     />
                 </div>
 

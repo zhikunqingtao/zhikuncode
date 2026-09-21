@@ -44,7 +44,7 @@ interface ToolCallBlockProps {
 
 /** 状态 → 图标/颜色/文案（导出供 turn/ToolRunBlock 的 L2 行复用同一套语义） */
 export const STATUS_CONFIG = {
-    pending:           { icon: Loader2, color: 'text-t4',      label: 'Pending',    spin: false },
+    pending:           { icon: Loader2, color: 'text-t3',      label: 'Pending',    spin: false },
     running:           { icon: Loader2, color: 'text-accent2-ink', label: 'Running',    spin: true  },
     completed:         { icon: Check,   color: 'text-ok',      label: 'Completed',  spin: false },
     error:             { icon: XCircle, color: 'text-err',     label: 'Error',      spin: false },
@@ -177,8 +177,8 @@ const ToolCallBlock: React.FC<ToolCallBlockProps> = ({ toolUseId, toolCall, expa
         <div
             className={`tool-call-block my-2 overflow-hidden border border-hairline transition-surface duration-fast
                 ${expanded
-                    ? 'rounded-[14px] bg-surfacev2'
-                    : 'rounded-[14px] bg-surface2'}`}
+                    ? 'rounded-[14px] bg-surfacev2 shadow-e2'
+                    : 'rounded-[14px] bg-surface2 hover:border-[var(--v2-border-strong)]'}`}
             data-tool-use-id={toolUseId}
         >
             {/* Header — 折叠态一行：图标 + 名称(600) + 文件 chip + diff chip + 状态 + 耗时 */}
@@ -376,7 +376,7 @@ const ToolResultRenderer: React.FC<ToolResultRendererProps> = ({
     if (isError) {
         return (
             <div>
-                <div className="rounded-[14px] border border-err bg-errsoft px-3 py-2 text-sm text-err">
+                <div className="rounded-[10px] border border-err bg-errsoft px-3 py-2 text-sm text-err font-mono text-[13px] leading-[1.65]">
                     <div className="flex items-center gap-1.5 mb-1 font-medium">
                         <XCircle size={14} />
                         Error

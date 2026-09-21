@@ -86,7 +86,7 @@ const VoiceInputButton: React.FC<VoiceInputButtonProps> = ({ onTranscript, disab
                     <Mic size={18} />
                 )}
             </button>
-            <div className={compact ? 'absolute bottom-full right-0 z-30 mb-2 flex max-w-[240px] items-center gap-1 rounded-lg bg-surfacev2 shadow-e2' : 'flex items-center gap-1'}>
+            <div className={compact ? 'absolute bottom-full right-0 z-30 mb-2 flex max-w-[240px] items-center gap-1 rounded-[10px] bg-surfacev2 shadow-e2' : 'flex items-center gap-1'}>
             {isRecording && (
                 <span className="flex items-center gap-0.5 h-4" aria-hidden="true">
                     {soundwaveBars.map((bar, i) => (

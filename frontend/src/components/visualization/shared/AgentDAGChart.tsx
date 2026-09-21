@@ -6,7 +6,8 @@
 
 import { useMemo, useState, useCallback, useRef, useEffect } from 'react';
 import { useReducedMotion } from 'framer-motion';
-import { CHART_COLORS } from '@/styles/design-tokens';
+import { getChartColors, resolveTheme } from '@/styles/design-tokens';
+import { useConfigStore } from '@/store/configStore';
 import {
   ReactFlow,
   MiniMap,
@@ -39,12 +40,21 @@ import type { CollaborationEdge, MailboxWriteEvent } from '@/types/apos';
 
 const nodeTypes = { agentNode: AgentDAGNode };
 
+/** 当前主题模式 + 强调色的图表色板（§4.1 动态版；glass 归一为 light） */
+function useChartColors(): string[] {
+  const mode = useConfigStore(s => s.theme.mode);
+  const accentColor = useConfigStore(s => s.theme.accentColor);
+  return useMemo(() => getChartColors(resolveTheme(mode), accentColor), [mode, accentColor]);
+}
+
 /** 边样式映射 */
-const EDGE_STYLES: Record<CollaborationEdge['type'], { stroke: string; strokeDasharray?: string }> = {
-  explicit_dependency: { stroke: CHART_COLORS.light[0] },
-  mailbox_communication: { stroke: CHART_COLORS.light[1] },
-  time_inferred: { stroke: CHART_COLORS.light[7], strokeDasharray: '5,5' },
-};
+function getEdgeStyles(colors: string[]): Record<CollaborationEdge['type'], { stroke: string; strokeDasharray?: string }> {
+  return {
+    explicit_dependency: { stroke: colors[0] },
+    mailbox_communication: { stroke: colors[1] },
+    time_inferred: { stroke: colors[7], strokeDasharray: '5,5' },
+  };
+}
 
 /** 简单网格布局（dagre 失败时的回退方案） */
 function fallbackGridLayout(
@@ -75,9 +85,12 @@ function buildGraph(
   swarms: Map<string, SwarmInfo>,
   _activeWorkflowPhaseIndex: number,
   direction: 'TB' | 'LR',
-  mailboxEvents: MailboxWriteEvent[] = []
+  mailboxEvents: MailboxWriteEvent[] = [],
+  chartColors: string[] = getChartColors('light')
 ): { nodes: Node[]; edges: Edge[] } {
   if (agentTasks.length === 0) return { nodes: [], edges: [] };
+
+  const edgeStyles = getEdgeStyles(chartColors);
 
   const rawNodes: Array<{ id: string; width: number; height: number; data: AgentDAGNodeData }> = [];
   const collabEdges: RawCollaborationEdge[] = [];
@@ -273,7 +286,7 @@ function buildGraph(
   const edges: Edge[] = collabEdges
     .filter((e) => displayNodeIds.has(e.source) && displayNodeIds.has(e.target))
     .map((e, idx) => {
-      const style = EDGE_STYLES[e.type];
+      const style = edgeStyles[e.type];
       const sourceTask = agentTasks.find((t) => t.taskId === e.source);
       const isActive = sourceTask?.status === 'running';
       return {
@@ -307,7 +320,7 @@ function NodeDetailPanel({
   if (!nodeData) return null;
 
   return (
-    <div className="absolute right-0 top-0 bottom-0 w-72 max-w-full bg-surfacev2 border-l border-border-hairline shadow-lg z-20 overflow-y-auto">
+    <div className="absolute right-0 top-0 bottom-0 w-72 max-w-full bg-surfacev2 border-l border-border-hairline shadow-e3 z-20 overflow-y-auto">
       <div className="flex items-center justify-between p-3 border-b border-border-hairline">
         <span className="text-sm font-semibold text-t1">
           节点详情
@@ -394,9 +407,11 @@ function AgentDAGChartInner({ liveSessionId }: { liveSessionId?: string }) {
 
   const currentPhaseIndex = activeWorkflow?.currentPhaseIndex ?? -1;
 
+  const chartColors = useChartColors();
+
   const graphData = useMemo(
-    () => buildGraph(agentTasks, swarms, currentPhaseIndex, direction, mailboxEvents),
-    [agentTasks, swarms, currentPhaseIndex, direction, mailboxEvents]
+    () => buildGraph(agentTasks, swarms, currentPhaseIndex, direction, mailboxEvents, chartColors),
+    [agentTasks, swarms, currentPhaseIndex, direction, mailboxEvents, chartColors]
   );
 
   const selectedNode = graphData.nodes.find(node => node.id === selectedNodeId)?.data as AgentDAGNodeData | undefined;
@@ -454,7 +469,7 @@ function AgentDAGChartInner({ liveSessionId }: { liveSessionId?: string }) {
   return (
     <div ref={containerRef} className="agent-dag relative w-full h-full bg-surfacev2">
       {/* 工具栏 */}
-      <div className="absolute top-2 left-2 z-10 flex items-center gap-1 bg-surfacev2 backdrop-blur-sm rounded-lg shadow-sm border border-border-hairline p-1">
+      <div className="absolute top-2 left-2 z-10 flex items-center gap-1 bg-surfacev2 backdrop-blur-sm rounded-[10px] shadow-e1 border border-border-hairline p-1">
         <button
           onClick={() => setDirection(direction === 'TB' ? 'LR' : 'TB')}
           className="panel-control p-1.5 rounded hover:bg-hover2 transition-colors"
@@ -505,7 +520,7 @@ function AgentDAGChartInner({ liveSessionId }: { liveSessionId?: string }) {
         <Background variant={BackgroundVariant.Dots} gap={16} size={1} />
         <Controls
           showInteractive={false}
-          className="!bg-surfacev2 !border-border-hairline !shadow-sm"
+          className="!bg-surfacev2 !border-border-hairline !shadow-e1"
         />
       </ReactFlow>
 

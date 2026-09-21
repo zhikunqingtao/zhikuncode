@@ -7,9 +7,9 @@ interface FileChangeItemProps {
 }
 
 const RISK_BG: Record<AggregatedFileChange['riskLevel'], string> = {
-  danger: 'bg-errsoft border-red-500/30',
-  warning: 'bg-warnsoft border-yellow-500/30',
-  review: 'bg-accent2-soft border-blue-500/30',
+  danger: 'bg-errsoft border-err',
+  warning: 'bg-warnsoft border-warn',
+  review: 'bg-accent2-soft border-accent2',
   safe: 'bg-transparent border-[var(--v2-border-hairline)]',
 };
 
@@ -96,8 +96,8 @@ export function FileChangeItem({ file, onClick }: FileChangeItemProps) {
               {file.indirectImpacts.map((impact, idx) => (
                 <li key={idx} className="text-[13px] text-[var(--v2-text-2)] flex items-start gap-1.5">
                   <span className={`flex-shrink-0 mt-0.5 w-1.5 h-1.5 rounded-full ${
-                    impact.severity === 'high' ? 'bg-red-400' :
-                    impact.severity === 'medium' ? 'bg-yellow-400' : 'bg-blue-400'
+                    impact.severity === 'high' ? 'bg-err' :
+                    impact.severity === 'medium' ? 'bg-warn' : 'bg-accent2'
                   }`} />
                   <span className="truncate" title={impact.filePath}>
                     {truncatePath(impact.filePath)} — {impact.reason}

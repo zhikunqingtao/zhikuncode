@@ -161,7 +161,7 @@ export function ActivityCardL2({
           {activity.decision ? (
                 <span className={`inline-flex items-center gap-1 px-3 py-1.5 text-[13px] font-medium rounded ${
                   activity.decision === 'approved'
-                    ? 'bg-[color:color-mix(in_srgb,var(--v2-accent-strong)_10%,transparent)] text-ok'
+                    ? 'bg-oksoft text-ok'
                     : 'bg-errsoft text-err'
                 }`}>
                   {activity.decision === 'approved' ? (

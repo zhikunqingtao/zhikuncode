@@ -74,7 +74,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                 <Sidebar className="flex-1" isDrawerMode={false} defaultTab={detachedTab} />
                 {!isConnected && (
                     <div className="fixed bottom-4 left-1/2 -translate-x-1/2 
-                        px-4 py-2 bg-red-500 text-white text-sm rounded-lg shadow-lg
+                        px-4 py-2 bg-err text-white dark:text-app2 text-sm rounded-[10px] shadow-e3
                         flex items-center gap-2 z-50">
                         <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
                         连接断开，正在重连...
@@ -138,7 +138,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             {/* Connection Status Toast */}
             {!isConnected && (
                 <div className="fixed bottom-12 left-1/2 -translate-x-1/2 
-                    px-4 py-2 bg-red-500 text-white text-sm rounded-lg shadow-lg
+                    px-4 py-2 bg-err text-white dark:text-app2 text-sm rounded-[10px] shadow-e3
                     flex items-center gap-2 z-50">
                     <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
                     连接断开，正在重连...

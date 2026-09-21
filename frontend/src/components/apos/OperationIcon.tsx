@@ -13,10 +13,10 @@ interface OperationIconProps {
 const OPERATION_ICON_MAP: Record<OperationType, { Icon: LucideIcon; color: string }> = {
   file_edit: { Icon: FileEdit, color: 'text-accent2-ink' },
   file_create: { Icon: FilePlus, color: 'text-ok' },
-  command_execute: { Icon: Terminal, color: 'text-purple-400' },
-  test_run: { Icon: TestTube, color: 'text-cyan-400' },
+  command_execute: { Icon: Terminal, color: 'text-accent2-ink' },
+  test_run: { Icon: TestTube, color: 'text-accent2-ink' },
   git_commit: { Icon: GitCommit, color: 'text-warn' },
-  refactor: { Icon: RefreshCw, color: 'text-indigo-400' },
+  refactor: { Icon: RefreshCw, color: 'text-accent2-ink' },
   dependency: { Icon: Package, color: 'text-warn' },
   config_change: { Icon: Settings, color: 'text-t2' },
   delete: { Icon: Trash2, color: 'text-err' },

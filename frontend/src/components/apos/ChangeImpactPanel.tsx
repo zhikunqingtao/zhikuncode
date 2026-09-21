@@ -59,9 +59,9 @@ interface SummaryCardProps {
 
 const VARIANT_STYLES: Record<SummaryCardProps['variant'], string> = {
   default: 'border-[var(--v2-border-hairline)] text-[var(--v2-text-1)]',
-  danger: 'border-red-500/30 text-err',
-  warning: 'border-yellow-500/30 text-warn',
-  info: 'border-blue-500/30 text-accent2-ink',
+  danger: 'border-err text-err',
+  warning: 'border-warn text-warn',
+  info: 'border-accent2 text-accent2-ink',
 };
 
 function SummaryCard({ label, value, variant }: SummaryCardProps) {

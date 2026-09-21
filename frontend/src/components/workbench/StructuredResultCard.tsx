@@ -14,7 +14,7 @@ export function StructuredResultCard({ current, loading, error, onOpenMessage }:
     const result = current?.result;
     const hasSections = Boolean(summary?.completed.length || summary?.issues.length || summary?.nextSteps.length);
     return (
-        <section className="overflow-hidden rounded-[14px] border border-accent2-ring bg-[var(--v2-bg-sunken)] shadow-sm">
+        <section className="overflow-hidden rounded-[14px] border border-accent2-ring bg-[var(--v2-bg-sunken)] shadow-e1">
             <div className="border-b border-[var(--v2-border-hairline)] px-4 md:px-6 py-4">
                 <p className="text-[13px] font-medium uppercase tracking-wide text-accent2-ink dark:text-accent2-ink">本次结果</p>
                 <h2 className="mt-1   text-[var(--v2-text-1)] text-xl font-semibold">

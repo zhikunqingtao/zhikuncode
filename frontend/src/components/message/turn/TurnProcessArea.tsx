@@ -279,7 +279,7 @@ const ProcessAggregateBar: React.FC<TurnProcessAreaProps> = ({
             >
                 <span className="flex w-full flex-wrap items-center justify-between gap-x-3 gap-y-1">
                     <span className="inline-flex items-center gap-2 text-sm font-medium text-t1">
-                        <span role="img" aria-label={{ completed: '已完成', running: '进行中', error: '失败', interrupted: '被中断' }[dotStatus]} data-testid={`turn-process-dot-${turn.index}`} className={cn('inline-flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full text-white',
+                        <span role="img" aria-label={{ completed: '已完成', running: '进行中', error: '失败', interrupted: '被中断' }[dotStatus]} data-testid={`turn-process-dot-${turn.index}`} className={cn('inline-flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full text-white dark:text-app2',
                             dotStatus === 'completed' ? 'bg-ok' : dotStatus === 'error' ? 'bg-err' : dotStatus === 'interrupted' ? 'bg-warn' : 'bg-accent2 animate-accent-pulse motion-reduce:animate-none')}><StatusIcon size={12} aria-hidden="true" /></span>
                         {statusLabel}
                     </span>

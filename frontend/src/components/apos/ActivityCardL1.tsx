@@ -49,7 +49,7 @@ export function ActivityCardL1({
       onClick={onClick}
       className={`h-[52px] flex items-center gap-3 px-3 cursor-pointer border-b border-[var(--v2-border-hairline)] transition-colors
         ${isExpanded ? 'bg-[var(--v2-bg-hover)]' : 'hover:bg-[var(--v2-bg-hover)]'}
-        ${isSelected ? 'bg-accent2-soft border-l-2 border-l-blue-500' : ''}
+        ${isSelected ? 'bg-accent2-soft border-l-2 border-l-accent2' : ''}
       `}
     >
       {/* Left: Checkbox (batch mode) + Operation Icon */}
@@ -60,7 +60,7 @@ export function ActivityCardL1({
             checked={isSelected}
             onClick={handleCheckboxClick}
             onChange={() => {}}
-            className="w-4 h-4 rounded border-gray-600 bg-gray-800 text-accent2-ink dark:text-accent2-ink focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
+            className="w-4 h-4 rounded border-hairline bg-surfacev2 text-accent2-ink dark:text-accent2-ink focus:ring-accent2-ring focus:ring-offset-0 cursor-pointer"
           />
         )}
         <OperationIcon type={activity.operationType} size={18} />

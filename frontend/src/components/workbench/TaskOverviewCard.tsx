@@ -17,7 +17,7 @@ export function TaskOverviewCard({
     const folder = session?.workingDir?.split('/').filter(Boolean).at(-1) ?? '尚未选择';
 
     return (
-        <section className="rounded-[14px] border border-[var(--v2-border-hairline)] bg-[var(--v2-bg-sunken)] p-4 md:p-6 shadow-sm">
+        <section className="rounded-[14px] border border-[var(--v2-border-hairline)] bg-[var(--v2-bg-sunken)] p-4 md:p-6 shadow-e1">
             <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">

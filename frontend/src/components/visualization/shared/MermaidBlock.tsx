@@ -51,6 +51,7 @@ const MermaidBlock: React.FC<MermaidBlockProps> = ({ code }) => {
     const theme = useConfigStore(s => s.theme);
     // Glass diagrams use the light palette for a stable reading surface.
     const effectiveTheme = useMemo(() => resolveTheme(theme.mode), [theme.mode]);
+    const accentColor = theme.accentColor;
 
     const diagramWidth = useMemo(() => {
         if (!svg) return undefined;
@@ -68,7 +69,7 @@ const MermaidBlock: React.FC<MermaidBlockProps> = ({ code }) => {
             return;
         }
 
-        const cacheKey = `${effectiveTheme === 'dark' ? 'd' : 'l'}:${code}`;
+        const cacheKey = `${effectiveTheme === 'dark' ? 'd' : 'l'}:${accentColor ?? ''}:${code}`;
         const cached = cacheRef.current.get(cacheKey);
         if (cached) {
             setSvg(cached);
@@ -81,7 +82,7 @@ const MermaidBlock: React.FC<MermaidBlockProps> = ({ code }) => {
 
         (async () => {
             try {
-                initMermaid(effectiveTheme);
+                initMermaid(effectiveTheme, accentColor);
                 const result = await renderMermaid(id, code);
                 if (!cancelled) {
                     cacheRef.current.set(cacheKey, result.svg);
@@ -100,7 +101,7 @@ const MermaidBlock: React.FC<MermaidBlockProps> = ({ code }) => {
         })();
 
         return () => { cancelled = true; };
-    }, [code, effectiveTheme, incomplete]);
+    }, [code, effectiveTheme, accentColor, incomplete]);
 
     const handleCopySvg = useCallback(async () => {
         if (!svg) return;

@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { X, Sun, Moon, Sparkles, Blocks, CircleHelp, ChevronRight, Brain } from 'lucide-react';
+import { X, Sun, Moon, Sparkles, Blocks, CircleHelp, ChevronRight, Brain, Check } from 'lucide-react';
 import { SheetShell } from '@/components/apos/MobileBottomSheet';
 import { ModelChip, PermissionModeChip, MobileChoice } from './PromptComposerChips';
 import { useTurnViewStore, type TurnDensity } from '@/store/turnViewStore';
 import { useSessionStore } from '@/store/sessionStore';
 import { useDialogStore } from '@/store/dialogStore';
 import { useConfigStore } from '@/store/configStore';
+import { ACCENT_PRESETS, normalizeAccentHex } from '@/theme/accents';
 
 const action = 'min-h-11 rounded-[10px] px-1.5 text-sm text-t2 hover:bg-hover2 active:bg-hover2 transition-interactive duration-fast focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent2-ink';
 
@@ -43,6 +44,19 @@ export function MobileComposerNavigation() {
                             const selected = theme.mode === mode;
                             return <button key={mode} className={`flex min-h-[72px] flex-col items-center justify-center gap-2 rounded-[14px] border text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent2-ink ${selected ? 'border-accent2-ink bg-accent2-soft text-accent2-ink' : 'border-hairline bg-surface2 text-t2 hover:bg-hover2'}`} aria-pressed={selected} onClick={() => setTheme({ mode })}><Icon size={20} aria-hidden="true" /><span>{['浅色', '深色', '液态玻璃'][i]}</span></button>;
                         })}</div>
+                    </section>
+                    <section>
+                        <h3 className="mb-2 text-[13px] font-medium text-t2">强调色</h3>
+                        <div className="flex flex-wrap gap-2" role="group" aria-label="强调色">
+                            {ACCENT_PRESETS.map(({ hex, label }) => {
+                                const selected = normalizeAccentHex(theme.accentColor) === hex;
+                                return <button key={hex} type="button" aria-pressed={selected} aria-label={`强调色 ${label}`} title={label} onClick={() => setTheme({ accentColor: hex })}
+                                    className={`flex h-11 w-11 items-center justify-center rounded-full border-2 border-transparent transition-interactive duration-fast focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent2-ink ${selected ? 'scale-110' : 'active:scale-95'}`}
+                                    style={{ backgroundColor: hex, boxShadow: selected ? '0 0 0 3px var(--v2-accent-ring)' : undefined }}>
+                                    {selected && <Check size={18} className="text-white" aria-hidden="true" />}
+                                </button>;
+                            })}
+                        </div>
                     </section>
                     <div className="overflow-hidden rounded-[14px] border border-hairline bg-surface2 divide-y divide-[var(--v2-border-hairline)]">
                         {[

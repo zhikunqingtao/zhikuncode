@@ -25,8 +25,8 @@ export const CompactResultPanel: React.FC<{ data: CompactResultData; displayText
                     <span>压缩前: {data.beforeTokens.toLocaleString()} tokens</span>
                     <span>压缩后: {data.afterTokens.toLocaleString()} tokens</span>
                 </div>
-                <div className="h-2 bg-gray-700 rounded-full overflow-hidden flex">
-                    <div className="h-full bg-blue-500 rounded-full" style={{ width: `${100 - savedPct}%` }} />
+                <div className="h-2 bg-sunken2 rounded-full overflow-hidden flex">
+                    <div className="h-full bg-accent2 rounded-full" style={{ width: `${100 - savedPct}%` }} />
                     <div className="h-full bg-oksoft rounded-full" style={{ width: `${savedPct}%` }} />
                 </div>
             </div>

@@ -25,8 +25,8 @@ import { SessionStatusIcon } from '@/components/status/SessionStatusIcon';
 /** 两个 chip 共用的胶囊壳（v2 令牌：hairline + surface2 + hover2 + accent2-ring） */
 const CHIP_SHELL =
     'relative inline-flex h-7 items-center gap-1.5 rounded-full border border-hairline ' +
-    'bg-surface2 px-2.5 text-[13px] text-t2 transition-interactive duration-fast ' +
-    'hover:bg-hover2 hover:text-t1 focus-within:ring-[3px] focus-within:ring-accent2-ring';
+    'bg-surfacev2 px-2.5 text-[13px] text-t2 shadow-raised transition-interactive duration-fast ' +
+    'hover:bg-hover2 hover:text-t1 hover:shadow-raised-hover active:shadow-pressed focus-within:ring-[3px] focus-within:ring-accent2-ring';
 
 /** chip 内嵌的透明原生 select（承担全部交互与键盘可达性） */
 const OVERLAY_SELECT =

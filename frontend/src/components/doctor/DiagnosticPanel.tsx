@@ -51,9 +51,9 @@ export const DiagnosticPanel: React.FC<{
 
     const overallStatus = summary.error > 0 ? 'error' : summary.warn > 0 ? 'warn' : 'ok';
     const statusColor = {
-        ok: 'text-ok border-green-600/30 bg-oksoft',
-        warn: 'text-warn border-yellow-600/30 bg-warnsoft',
-        error: 'text-err border-red-600/30 bg-errsoft',
+        ok: 'text-ok border-ok bg-oksoft',
+        warn: 'text-warn border-warn bg-warnsoft',
+        error: 'text-err border-err bg-errsoft',
     }[overallStatus];
 
     const handleExport = () => {
@@ -85,7 +85,7 @@ export const DiagnosticPanel: React.FC<{
                     </div>
                     {onRecheck && (
                         <button onClick={onRecheck}
-                            className="panel-control flex items-center gap-1 px-2 py-1 rounded text-[13px] bg-blue-600 hover:bg-blue-700 text-white">
+                            className="panel-control flex items-center gap-1 px-2 py-1 rounded text-[13px] bg-accent2-strong hover:bg-accent2-strong text-white">
                             <RefreshCw size={12} /> 重新检查
                         </button>
                     )}

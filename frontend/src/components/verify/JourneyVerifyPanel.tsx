@@ -41,7 +41,7 @@ export const JourneyVerifyPanel: React.FC = () => {
             </div>
 
             {errorMessage && (
-                <div className="mt-2 text-[13px] text-err bg-red-50 rounded p-2">
+                <div className="mt-2 text-[13px] text-err bg-errsoft rounded p-2">
                     {errorMessage}
                 </div>
             )}
@@ -70,13 +70,13 @@ interface StatusBadgeProps {
 
 const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
     if (status === 'running') {
-        return <span className="px-2 py-0.5 text-[13px] rounded bg-blue-100 text-accent2-ink">Running...</span>;
+        return <span className="px-2 py-0.5 text-[13px] rounded bg-accent2-soft text-accent2-ink">Running...</span>;
     }
     if (status === 'passed') {
-        return <span className="px-2 py-0.5 text-[13px] rounded bg-green-100 text-ok">Passed</span>;
+        return <span className="px-2 py-0.5 text-[13px] rounded bg-oksoft text-ok">Passed</span>;
     }
     if (status === 'failed') {
-        return <span className="px-2 py-0.5 text-[13px] rounded bg-red-100 text-err">Failed</span>;
+        return <span className="px-2 py-0.5 text-[13px] rounded bg-errsoft text-err">Failed</span>;
     }
     return null;
 };

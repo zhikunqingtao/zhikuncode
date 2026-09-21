@@ -177,10 +177,11 @@ export const APOS_FLAG_DEPENDENCIES: Record<string, string[]> = {
 // === Signal Config ===
 
 export const SIGNAL_CONFIG: Record<Signal, { color: string; label: string }> = {
-  auto_approve: { color: 'bg-green-500', label: '自动通过' },
-  review_recommended: { color: 'bg-yellow-500', label: '建议审查' },
-  manual_required: { color: 'bg-orange-500', label: '需人工' },
-  blocked: { color: 'bg-red-500', label: '阻塞' },
+  // v2 令牌实色块，映射与 SignalBadge 的 SIGNAL_MAP 保持一致（ok / warn / accent2 / err）
+  auto_approve: { color: 'bg-ok', label: '自动通过' },
+  review_recommended: { color: 'bg-warn', label: '建议审查' },
+  manual_required: { color: 'bg-accent2', label: '需人工' },
+  blocked: { color: 'bg-err', label: '阻塞' },
 };
 
 // === Retention Config ===

@@ -58,7 +58,7 @@ function FileIcon({ icon }: { icon: string }) {
         return (
             <span className="inline-flex items-center justify-center w-4 h-4 text-[13px] font-bold rounded shrink-0"
                 style={{
-                    color: icon === 'TS' ? '#3178c6' : icon === 'JS' ? '#f7df1e' : 'var(--v2-text-3)',
+                    color: icon === 'TS' ? 'var(--v2-chart-5)' : icon === 'JS' ? 'var(--v2-chart-3)' : 'var(--v2-text-3)',
                     backgroundColor: icon === 'TS' ? '#3178c620' : icon === 'JS' ? '#f7df1e20' : 'transparent',
                 }}>
                 {icon}
@@ -268,7 +268,7 @@ export function FileTreePanel({ sidebarWidth = 256 }: { sidebarWidth?: number })
                 <button
                     onClick={handleRefresh}
                     disabled={loading}
-                    className="panel-control p-1.5 rounded-lg hover:bg-hover2 text-t3 hover:text-t1
+                    className="panel-control p-1.5 rounded-[10px] hover:bg-hover2 text-t3 hover:text-t1
                         disabled:opacity-50 transition-interactive duration-fast shrink-0"
                     title="刷新文件树"
                 >

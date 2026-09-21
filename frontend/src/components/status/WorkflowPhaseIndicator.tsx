@@ -32,27 +32,27 @@ const PhaseStep: React.FC<PhaseStepProps> = ({ phase, isLast }) => {
         switch (phase.status) {
             case 'completed':
                 return {
-                    circle: 'bg-emerald-500 text-white ring-2 ring-emerald-200',
+                    circle: 'bg-ok text-white dark:text-app2 ring-2 ring-oksoft',
                     label: 'text-ok dark:text-ok font-medium',
-                    line: 'bg-emerald-500',
+                    line: 'bg-ok',
                 };
             case 'active':
                 return {
-                    circle: 'bg-blue-500 text-white ring-4 ring-blue-200 dark:ring-blue-900 animate-pulse',
+                    circle: 'bg-accent2 text-white ring-4 ring-accent2-ring animate-pulse',
                     label: 'text-accent2-ink dark:text-accent2-ink font-semibold',
-                    line: 'bg-gradient-to-r from-emerald-500 to-blue-300',
+                    line: 'bg-gradient-to-r from-ok to-accent2',
                 };
             case 'skipped':
                 return {
-                    circle: 'bg-amber-400 text-white ring-2 ring-amber-200',
+                    circle: 'bg-warn text-white dark:text-app2 ring-2 ring-warnsoft',
                     label: 'text-warn dark:text-warn',
-                    line: 'bg-amber-300',
+                    line: 'bg-warnsoft',
                 };
             default: // pending
                 return {
-                    circle: 'bg-gray-200 dark:bg-gray-700 text-t2',
+                    circle: 'bg-sunken2 text-t2',
                     label: 'text-t2 dark:text-t2',
-                    line: 'bg-gray-200 dark:bg-gray-700',
+                    line: 'bg-sunken2',
                 };
         }
     }, [phase.status]);
@@ -129,7 +129,7 @@ export const WorkflowPhaseIndicator: React.FC = () => {
     if (!workflow) return null;
 
     return (
-        <div className="px-4 py-3 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border border-border-hairline rounded-[14px] shadow-sm">
+        <div className="px-4 py-3 bg-surfacev2 backdrop-blur-sm border border-border-hairline rounded-[14px] shadow-e1">
             {/* Header */}
             <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
