@@ -46,6 +46,7 @@ services:
       - LLM_COMPACT_MAX_SUMMARY_TOKENS=${LLM_COMPACT_MAX_SUMMARY_TOKENS:-4096}
       - LLM_COMPACT_TIMEOUT_MS=${LLM_COMPACT_TIMEOUT_MS:-90000}
       - LLM_VISION_FALLBACK_MODEL=${LLM_VISION_FALLBACK_MODEL:-deepseek-v4.1-flash}
+      - ASR_CORRECTIONS=${ASR_CORRECTIONS:-zhikuncode:zhi kun code,zkun code,智坤code,志鲲Code,智kuncode,zhi坤code}
       # ---- Legacy Single-Provider (Backward Compatible) ----
       - LLM_API_KEY=${LLM_API_KEY:-}
       - LLM_BASE_URL=${LLM_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
