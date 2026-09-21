@@ -358,6 +358,8 @@ LLM_PROVIDER_ZENMUX_API_KEY=your-zenmux-api-key-here
 
 **Kimi Code 订阅：** 配置 `LLM_PROVIDER_KIMI_CODE_API_KEY` 并重启后，可选择 **Kimi K3（订阅）**（`k3`）或 **Kimi K2.8 Preview（订阅）**（`kimi-for-coding`）。两者走 `https://api.kimi.com/coding/v1`，流式与非流式调用均固定 `thinking.type=enabled`、`reasoning_effort=max`，上下文配置为 **1,048,576 tokens**，单次输出预算为 131,072 tokens（应用上限，非官方最大输出声明）。K3 的 1M 权限要求 Pro / Allegretto 及以上套餐；K2.8 Preview 对具备 coding 权益的会员开放 1M。订阅模型 ID、密钥和路由独立于按量 `kimi-k3`，不自动跨渠道切换；本地启动与 Docker Compose 均支持。订阅用量不折算为 Moonshot 按量价格，界面估算为 0 不代表免费。模型 ID 与规格核对日期：2026-09-20，见 [官方模型配置](https://www.kimi.com/code/docs/kimi-code/models.html)。
 
+**GLM-5.3（百炼）：** 复用 `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_API_KEY`，默认模型列表已包含 `bailian/glm-5.3`；若 `.env` 自定义了 `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS`，请将该 ID 加入列表并重启。内部模型 ID 为 `bailian/glm-5.3`，仅发往百炼 Token Plan 的请求使用上游 ID `glm-5.3`，现有 `glm-5.3` 仍走智谱直连。百炼配置中填写裸 `glm-5.3` 也会自动规范化并去重，避免注册顺序影响路由。流式与非流式均固定 `enable_thinking=true`、`reasoning_effort=max`、`clear_thinking=false`，配置最大 **1,000,000 tokens** 上下文和 65,536 tokens 单次输出预算（已实测接受的应用预算，非官方最大输出声明）；支持工具调用与历史思考回传，文本模型不开放图片输入。订阅 Credits 以百炼账单为准，界面 0 单价不代表免费。2026-09-21 核对：[Token Plan 支持模型](https://help.aliyun.com/zh/model-studio/token-plan-personal-overview)、[GLM 参数](https://help.aliyun.com/zh/model-studio/glm)、[官方上下文配置](https://help.aliyun.com/zh/model-studio/openclaw)。
+
 **方式二：单 Provider 配置（向后兼容）**
 
 如未配置多 Provider，系统自动回退到单 Provider 模式。在 `.env` 中配置 `LLM_BASE_URL` 和 `LLM_API_KEY` 即可切换：
@@ -1518,7 +1520,7 @@ ZhikunCode 内置 11 项可视化能力，让 AI 编程过程中的数据和状�
 |------|:---:|--------|------|
 | `ZHIKUN_COORDINATOR_MODE` | — | 0 | Feature flag，启用协调器模式（0=关闭，1=开启） |
 | `LLM_PROVIDER_DASHSCOPE_MODELS` | — | qwen3.8-max-0902 | 按量计费 DashScope 可用模型列表（逗号分隔；实际目录可动态扩展） |
-| `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS` | — | qwen3.8-max,qwen3.8-flash,deepseek-v4-pro-0813,deepseek-v4-flash-0731,deepseek-v4.1-flash | 百炼 Token Plan Provider 可用模型列表；与普通 DashScope、DeepSeek 直连配置相互独立 |
+| `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS` | — | qwen3.8-max,qwen3.8-flash,deepseek-v4-pro-0813,deepseek-v4-flash-0731,deepseek-v4.1-flash,bailian/glm-5.3 | 百炼 Token Plan Provider 可用模型列表；与普通 DashScope、DeepSeek 直连配置相互独立 |
 | `LLM_PROVIDER_DEEPSEEK_MODELS` | — | deepseek-flash | DeepSeek 可用模型列表；默认使用 V4.1 Flash（逗号分隔） |
 | `LLM_PROVIDER_MOONSHOT_MODELS` | — | kimi-k3,moonshot-v1-128k | Moonshot 可用模型列表（逗号分隔） |
 | `LLM_PROVIDER_ZHIPU_MODELS` | — | glm-5.3,glm-5.3-flash | 智谱 GLM 可用模型列表（逗号分隔） |

@@ -352,6 +352,8 @@ LLM_PROVIDER_ZENMUX_API_KEY=your-zenmux-api-key-here
 
 **Kimi Code subscription:** Set `LLM_PROVIDER_KIMI_CODE_API_KEY` and restart to select **Kimi K3（订阅）** (`k3`) or **Kimi K2.8 Preview（订阅）** (`kimi-for-coding`). Both use `https://api.kimi.com/coding/v1`, explicit `thinking.type=enabled` and `reasoning_effort=max` in streaming and synchronous requests, and a **1,048,576-token** context window. The application output budget is 131,072 tokens, not a claim about the official maximum output. K3's 1M context requires Pro / Allegretto or above; K2.8 Preview supports 1M for members with coding access. IDs, credentials and routes are separate from Moonshot's `kimi-k3`, with no automatic cross-provider fallback. Local startup and Docker Compose are supported. Zero estimated token cost denotes subscription accounting, not free usage. Model IDs and specifications checked on 2026-09-20 against the [official model configuration](https://www.kimi.com/code/docs/kimi-code/models.html).
 
+**GLM-5.3 (Bailian):** Reuses `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_API_KEY`. The default catalog includes `bailian/glm-5.3`; append it to `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS` if your `.env` overrides that list, then restart. Only requests sent to Token Plan translate this local ID to the upstream `glm-5.3`; existing `glm-5.3` sessions still use direct Zhipu. Bare `glm-5.3` in the Token Plan catalog is normalized and deduplicated before registration. Streaming and synchronous calls force `enable_thinking=true`, `reasoning_effort=max`, and `clear_thinking=false`, with a **1,000,000-token** context and an accepted application output budget of 65,536 tokens (not a claim about the official output maximum). Tool calls and reasoning replay are supported; image input is disabled for this text model. Zero estimated token cost represents subscription accounting, not free usage. Verified 2026-09-21: [supported models](https://help.aliyun.com/zh/model-studio/token-plan-personal-overview), [GLM parameters](https://help.aliyun.com/zh/model-studio/glm), [official context configuration](https://help.aliyun.com/zh/model-studio/openclaw).
+
 **Option B: Single-Provider Configuration (Backward Compatible)**
 
 If no multi-Provider keys are configured, the system automatically falls back to single-Provider mode. Configure `LLM_BASE_URL` and `LLM_API_KEY` in `.env`:
@@ -1504,7 +1506,7 @@ Specs and reasoning parameters verified on 2026-09-17. References: [Astra](https
 |----------|:---:|---------|-------------|
 | `ZHIKUN_COORDINATOR_MODE` | — | 0 | Feature flag, enable coordinator mode (0=off, 1=on) |
 | `LLM_PROVIDER_DASHSCOPE_MODELS` | — | qwen3.8-max-0902 | DashScope available models (comma-separated) |
-| `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS` | — | qwen3.8-max,qwen3.8-flash,deepseek-v4-pro-0813,deepseek-v4-flash-0731,deepseek-v4.1-flash | Alibaba Cloud Bailian Token Plan models; independent from standard DashScope and direct DeepSeek settings |
+| `LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS` | — | qwen3.8-max,qwen3.8-flash,deepseek-v4-pro-0813,deepseek-v4-flash-0731,deepseek-v4.1-flash,bailian/glm-5.3 | Alibaba Cloud Bailian Token Plan models; independent from standard DashScope and direct DeepSeek settings |
 | `LLM_PROVIDER_DEEPSEEK_MODELS` | — | deepseek-flash | DeepSeek models; defaults to V4.1 Flash (comma-separated) |
 | `LLM_PROVIDER_MOONSHOT_MODELS` | — | kimi-k3,moonshot-v1-128k | Moonshot available models (comma-separated) |
 | `LLM_PROVIDER_ZHIPU_MODELS` | — | glm-5.3,glm-5.3-flash | Zhipu GLM available models (comma-separated) |

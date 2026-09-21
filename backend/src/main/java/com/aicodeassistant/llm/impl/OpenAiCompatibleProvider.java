@@ -92,9 +92,9 @@ public class OpenAiCompatibleProvider implements LlmProvider {
         this.apiKey = apiKey;
         this.keyRotationManager = keyRotationManager;
         this.baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
-        this.defaultModel = isOpenRouter() ? OpenRouterModels.localId(defaultModel) : defaultModel;
-        this.supportedModels = isOpenRouter()
-                ? supportedModels.stream().map(OpenRouterModels::localId).distinct().toList() : supportedModels;
+        this.defaultModel = localModelId(defaultModel);
+        this.supportedModels = isOpenRouter() || isBailianTokenPlan()
+                ? supportedModels.stream().map(this::localModelId).distinct().toList() : supportedModels;
         this.payloadGuard = payloadGuard;
 
         this.httpClient = new OkHttpClient.Builder()
@@ -147,6 +147,24 @@ public class OpenAiCompatibleProvider implements LlmProvider {
 
     private boolean isOpenRouter() { return "openrouter".equalsIgnoreCase(providerName); }
 
+    private boolean isBailianTokenPlan() { return "dashscope-token-plan".equalsIgnoreCase(providerName); }
+
+    private String localModelId(String model) {
+        if (isOpenRouter()) return OpenRouterModels.localId(model);
+        if (isBailianTokenPlan()) return BailianTokenPlanModels.localId(model);
+        return model;
+    }
+
+    private String upstreamModelId(String model) {
+        if (isOpenRouter()) return OpenRouterModels.upstreamId(model);
+        if (isBailianTokenPlan()) return BailianTokenPlanModels.upstreamId(model);
+        return model;
+    }
+
+    private boolean isBailianGlm(String model) {
+        return isBailianTokenPlan() && BailianTokenPlanModels.GLM_53.equals(model);
+    }
+
     private boolean isKimiCodeModel(String model) {
         return "kimi-code".equalsIgnoreCase(providerName)
                 && ("k3".equals(model) || "kimi-for-coding".equals(model));
@@ -154,6 +172,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
 
     @Override
     public ModelCapabilities getModelCapabilities(String model) {
+        if (isBailianGlm(model)) return BailianTokenPlanModels.capabilities(model);
         if (isOpenRouter() && OpenRouterModels.capabilities(model) != null)
             return OpenRouterModels.capabilities(model);
         ModelCapabilities caps = MODEL_CAPABILITIES.get(model);
@@ -176,6 +195,7 @@ public class OpenAiCompatibleProvider implements LlmProvider {
     @Override
     public boolean supportsThinking(String model) {
         if (model == null) return false;
+        if (isBailianGlm(model)) return true;
         if (isKimiCodeModel(model)) return true;
         if (isOpenRouter() && OpenRouterModels.capabilities(model) != null) return true;
         if ("zenmux".equalsIgnoreCase(providerName)
@@ -758,7 +778,14 @@ public class OpenAiCompatibleProvider implements LlmProvider {
             int maxTokens) {
 
         ObjectNode root = objectMapper.createObjectNode();
-        root.put("model", isOpenRouter() ? OpenRouterModels.upstreamId(model) : model);
+        root.put("model", upstreamModelId(model));
+        if (isBailianGlm(model)) {
+            // 百炼托管 GLM 使用顶层参数；与智谱直连的 thinking 对象协议分别处理。
+            // 同步/流式均强制最强推理，并保留工具续轮的历史思考。
+            root.put("enable_thinking", true);
+            root.put("reasoning_effort", "max");
+            root.put("clear_thinking", false);
+        }
         if (isKimiCodeModel(model)) {
             // 订阅 K3 / K2.8 Preview 统一使用最强推理；关闭思考会让 K3 改路由到 K2.8。
             // 放在共享请求构建处，保证流式对话与 chatSync 都显式启用 max。

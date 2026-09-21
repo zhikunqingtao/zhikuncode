@@ -208,7 +208,7 @@ class McpModelCompatibilityLiveTest {
                 env("LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_BASE_URL",
                         "https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1"),
                 "LLM_PROVIDER_DASHSCOPE_TOKEN_PLAN_MODELS",
-                "qwen3.8-max,qwen3.8-flash,deepseek-v4-pro-0813,deepseek-v4-flash-0731,deepseek-v4.1-flash");
+                "qwen3.8-max,qwen3.8-flash,deepseek-v4-pro-0813,deepseek-v4-flash-0731,deepseek-v4.1-flash,bailian/glm-5.3");
         addProvider(endpoints, "deepseek", "LLM_PROVIDER_DEEPSEEK_API_KEY",
                 env("LLM_PROVIDER_DEEPSEEK_BASE_URL", "https://api.deepseek.com/v1"),
                 "LLM_PROVIDER_DEEPSEEK_MODELS",
@@ -245,9 +245,15 @@ class McpModelCompatibilityLiveTest {
             String defaultModels) {
         String apiKey = System.getenv(apiKeyVariable);
         if (apiKey == null || apiKey.isBlank()) return;
-        for (String model : csv(System.getenv(modelsVariable), defaultModels)) {
+        for (String model : normalizeModelIds(provider, csv(System.getenv(modelsVariable), defaultModels))) {
             endpoints.add(new ModelEndpoint(provider, apiKey, baseUrl, model));
         }
+    }
+
+    /** Match production registration before filtering or dispatching a diagnostic request. */
+    static List<String> normalizeModelIds(String provider, List<String> models) {
+        if (!"dashscope-token-plan".equalsIgnoreCase(provider)) return models;
+        return models.stream().map(BailianTokenPlanModels::localId).distinct().toList();
     }
 
     private static List<String> csv(String raw, String fallback) {

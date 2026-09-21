@@ -75,6 +75,7 @@ public class ModelRegistry {
         // 北京区定价：输入 0.8 元/M、输出 2.7 元/M tokens
         entry("qwen3.8-flash", caps("qwen3.8-flash", "Qwen 3.8 Flash（百炼）", 131072, 1000000, true, true, true, 4, true, 0.0008, 0.0027)),
         entry("glm-5.3",           caps("glm-5.3",           "GLM-5.3",            131072, 1048576,  true, true, false, 0, true, 0.001, 0.001)),
+        entry(BailianTokenPlanModels.GLM_53, BailianTokenPlanModels.capabilities(BailianTokenPlanModels.GLM_53)),
         // GLM-5.3-Flash 官方规格（docs.bigmodel.cn/cn/guide/models/vlm/glm-5.3-flash）：
         // 1M 上下文 / 128K 最大输出 / 原生多模态（单图≤5MB，系列上限 50 张）/ 强制思考不可关闭
         // 定价为 GLM-5.3 的 1/10（输入 $0.15/M、输出 $0.50/M）
