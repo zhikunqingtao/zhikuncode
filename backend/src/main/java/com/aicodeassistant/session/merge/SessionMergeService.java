@@ -35,24 +35,28 @@ public class SessionMergeService {
     private static final Logger log = LoggerFactory.getLogger(SessionMergeService.class);
     public record Request(List<String> sourceSessionIds, String primarySessionId, String title, String model) { }
     public record Operation(String operationId, String targetSessionId, String status, String stage,
-            Request request, String packagePath, Map<String, Object> result, Object usage, String error) { }
+            Request request, String packagePath, Map<String,Object> result, Object usage, String error,
+            int protocolVersion, long runEpoch, boolean snapshotSealed, List<String> lockedSourceSessionIds,
+            MergeHandoffData.Progress progress, String retryAt, String errorCode,
+            boolean canResume, boolean canCancel, boolean targetAvailable) { }
+    public record Resume(long expectedEpoch, String model) { }
+    public static final class Conflict extends RuntimeException {
+        public final String code; public final Operation operation;
+        Conflict(String code,String message,Operation operation) { super(message); this.code=code; this.operation=operation; }
+    }
     private final JdbcTemplate jdbc;
     private final SessionManager sessions;
     private final SessionExecutionGate gate;
     private final MergePackageService packages;
     private final MergeSummaryService summaries;
     private final ProjectWorkspaceService workspaces;
-    private final PermissionModeManager permissions;
     private final BackgroundAgentTracker agents;
     private final SwarmService swarms;
     private final ObjectMapper json;
     private final TransactionTemplate tx;
-    private final ExecutorService worker = Executors.newVirtualThreadPerTaskExecutor();
-    private final ScheduledExecutorService deadlines = Executors.newSingleThreadScheduledExecutor(r -> {
-        Thread t = new Thread(r, "session-merge-deadline"); t.setDaemon(true); return t;
-    });
-    private final Semaphore generation = new Semaphore(1);
-    private final Set<AbortContext> active = ConcurrentHashMap.newKeySet();
+    private final MergeProgressRepository progress;
+    private final ExecutorService worker=Executors.newVirtualThreadPerTaskExecutor();
+    private final Map<String,AbortContext> writers=new ConcurrentHashMap<>();
     private volatile boolean closing;
     public record StatusChanged(String operationId) { }
     @org.springframework.beans.factory.annotation.Autowired
@@ -63,78 +67,92 @@ public class SessionMergeService {
             ProjectWorkspaceService workspaces, PermissionModeManager permissions, BackgroundAgentTracker agents,
             SwarmService swarms, ObjectMapper json,
             @Qualifier("projectTransactionManager") PlatformTransactionManager transactions) {
-        this.jdbc = jdbc; this.sessions = sessions; this.gate = gate; this.packages = packages; this.summaries = summaries;
-        this.workspaces = workspaces; this.permissions = permissions; this.agents = agents; this.swarms = swarms;
-        this.json = json; this.tx = new TransactionTemplate(transactions);
+        this.jdbc=jdbc; this.sessions=sessions; this.gate=gate; this.packages=packages; this.summaries=summaries;
+        this.workspaces=workspaces; this.agents=agents; this.swarms=swarms; this.json=json;
+        this.tx=new TransactionTemplate(transactions); this.progress=new MergeProgressRepository(jdbc,json,transactions);
     }
-
-    @PostConstruct
-    public void recover() {
-        // A committed target and completed ledger are one transaction. Never clean completed packages.
-        jdbc.update("UPDATE session_merges SET status='failed', stage='interrupted', error='合并因进程中断而失败', updated_at=? WHERE status='preparing'",
-                Instant.now().toString());
-        for (var row : jdbc.queryForList("SELECT package_path FROM session_merges WHERE status='failed' AND target_session_id NOT IN (SELECT id FROM sessions)"))
-            cleanup(Path.of(row.get("package_path").toString()));
-    }
-
-    public synchronized Operation start(Request raw, String key) {
-        if (closing) throw conflict("服务正在关闭");
-        if (key == null || key.isBlank() || key.length() > 128) throw bad("需要不超过 128 字符的幂等键");
-        Request request = normalize(raw);
-        String params = encode(request);
-        var previous = jdbc.queryForList("SELECT operation_id,params_json FROM session_merges WHERE idempotency_key=?", key);
-        if (!previous.isEmpty()) {
-            if (!params.equals(previous.getFirst().get("params_json"))) throw conflict("幂等键已用于不同的合并参数");
-            return get(previous.getFirst().get("operation_id").toString());
+    @PostConstruct public synchronized void recover() {
+        for(var row:progress.interrupted()) {
+            var resumed=progress.resume(row.operationId(),row.runEpoch(),row.execution(),true);
+            launch(resumed,new ArrayList<>());
         }
-        if (!generation.tryAcquire()) throw conflict("已有会话正在合并，请稍后重试");
-        var leases = new ArrayList<SessionExecutionGate.Token>();
-        String operation = UUID.randomUUID().toString();
-        String target = UUID.randomUUID().toString();
-        boolean submitted = false;
+        cleanupFinished();
+    }
+    public synchronized Operation start(Request raw,String key) {
+        if(closing) throw conflict("MERGE_SERVICE_SHUTDOWN","服务正在关闭",null);
+        if(key==null || key.isBlank() || key.length()>128) throw bad("需要不超过 128 字符的幂等键");
+        Request request=normalize(raw); String params=progress.encode(request);
+        var previous=progress.byKey(key);
+        if(previous.isPresent()) {
+            if(!params.equals(previous.get().paramsJson())) throw conflict("MERGE_IDEMPOTENCY_CONFLICT","幂等键已用于不同参数",get(previous.get().operationId()));
+            return get(previous.get().operationId());
+        }
+        var active=progress.active();
+        if(active.isPresent()) throw conflict("MERGE_ACTIVE_EXISTS","已有未结束的合并，请恢复或取消",get(active.get().operationId()));
+        if(!writers.isEmpty()) throw conflict("MERGE_CANCEL_CLEANUP","取消操作仍在停止写入及清理，请稍后重试",null);
+        cleanupFinished(); // Reclaim deleted targets only within merge work, never from ordinary session deletion.
+        String id=UUID.randomUUID().toString();
+        List<SessionExecutionGate.Token> leases=lockSources(request,id); boolean launched=false;
         try {
-            Path path = packages.packagePath(target, operation);
-            var ids = packages.descendants(request.sourceSessionIds());
-            for (String id : ids.stream().sorted().toList()) {
-                var lease = gate.tryAcquireMerge(sessions.dataSourceIdentity(), id, operation);
-                if (lease == null) throw conflict("来源会话或关联子会话（ID：" + id + "）仍有执行占用，暂不能合并。"
-                        + "可能有尚未退出的后台任务或开发服务；开发服务可能持续运行，不会因等待合并而自动停止。"
-                        + "请回到对应来源会话查看任务；若由 Bash 后台启动，可在启动结果中查看 PID 和停止说明，"
-                        + "确认服务可以停止后再操作，待进程退出后重试合并。");
+            for(String source:request.sourceSessionIds()) {
+                var info=sourceInfo(source);
+                if(info.metadata().has("parent_session_id") || "subagent".equals(info.metadata().path("type").asText())) throw bad("只能选择普通会话");
+            }
+            var primary=sourceInfo(request.primarySessionId());
+            String directory=workspaces.requireCurrentBinding(primary.workingDir()).toString();
+            var selected=summaries.select(request.model()==null?primary.model():request.model());
+            String title=request.title()==null?"合并 · "+Objects.toString(primary.title(),"会话"):request.title();
+            progress.create(id,key,params,UUID.randomUUID().toString(),packages.snapshotPath(id).toString(),
+                    new MergeHandoffData.Execution(selected.model(),directory,title,MergeHandoffData.PROCESSOR_VERSION,"handoff-v2-1"));
+            launch(progress.find(id).orElseThrow(),leases); launched=true;
+            notifyChanged(id); return get(id);
+        } finally { if(!launched) leases.forEach(SessionExecutionGate.Token::close); }
+    }
+    private List<SessionExecutionGate.Token> lockSources(Request request,String operation) {
+        var leases=new ArrayList<SessionExecutionGate.Token>();
+        try {
+            List<String> ids=packages.descendants(request.sourceSessionIds()).stream().sorted().toList();
+            for(String id:ids) {
+                var lease=gate.tryAcquireMerge(sessions.dataSourceIdentity(),id,operation);
+                if(lease==null) throw conflict("MERGE_SOURCE_BUSY","来源会话或子任务仍在执行："+id,null);
                 leases.add(lease);
             }
-            for (String id : ids) {
-                if (!agents.getActiveAgentIds(id).isEmpty() || swarms.hasActiveSwarm(id)
-                        || jdbc.queryForObject("SELECT COUNT(*) FROM run_envelopes WHERE session_id=? AND status NOT IN ('completed','failed','cancelled','interrupted')", Long.class, id) > 0)
-                    throw conflict("来源会话或关联子会话（ID：" + id + "）仍在执行、等待审批或取消中，请回到对应来源会话处理，待任务完全结束后重试合并");
+            if(!ids.equals(packages.descendants(request.sourceSessionIds()).stream().sorted().toList()))
+                throw conflict("MERGE_SOURCE_BUSY","来源子任务刚发生变化，请重试",null);
+            for(String id:ids) {
+                if(!agents.getActiveAgentIds(id).isEmpty() || swarms.hasActiveSwarm(id)
+                        || jdbc.queryForObject("SELECT COUNT(*) FROM run_envelopes WHERE session_id=? AND status NOT IN ('completed','failed','cancelled','interrupted')",Long.class,id)>0)
+                    throw conflict("MERGE_SOURCE_BUSY","来源或子任务仍在执行、等待审批或取消中："+id,null);
             }
-            for (String id : request.sourceSessionIds()) {
-                var data = sourceInfo(id);
-                if (data.metadata().has("parent_session_id") || "subagent".equals(data.metadata().path("type").asText()))
-                    throw bad("只能选择普通会话");
-            }
-            var primary = sourceInfo(request.primarySessionId());
-            String directory = workspaces.requireCurrentBinding(primary.workingDir()).toString();
-            MergeSummaryService.Selection selection;
-            try { selection = summaries.select(request.model() == null ? primary.model() : request.model()); }
-            catch (IllegalArgumentException e) { throw bad(e.getMessage()); }
-            String title = request.title() == null ? "合并 · " + Objects.toString(primary.title(), "会话") : request.title();
-            String now = Instant.now().toString();
-            jdbc.update("INSERT INTO session_merges(operation_id,idempotency_key,params_json,target_session_id,status,stage,package_path,created_at,updated_at) VALUES(?,?,?,?,'preparing','snapshot',?,?,?)",
-                    operation, key, params, target, path.toString(), now, now);
-            worker.execute(() -> execute(operation, target, path, request, selection, directory, title, leases));
-            submitted = true;
-            notifyChanged(operation);
-            return get(operation);
-        } catch (RuntimeException failure) {
-            if (!submitted) jdbc.update("UPDATE session_merges SET status='failed',stage='failed',error='无法启动合并',updated_at=? WHERE operation_id=? AND status='preparing'",
-                    Instant.now().toString(), operation);
-            throw failure;
-        } finally {
-            if (!submitted) { leases.forEach(SessionExecutionGate.Token::close); generation.release(); }
-        }
+            return leases;
+        } catch(RuntimeException e) { leases.forEach(SessionExecutionGate.Token::close); throw e; }
     }
-
+    private void launch(MergeHandoffData.Ledger ledger,List<SessionExecutionGate.Token> leases) {
+        AbortContext abort=new AbortContext();
+        if(writers.putIfAbsent(ledger.operationId(),abort)!=null) throw conflict("MERGE_STALE_OPERATION","该合并仍在执行",get(ledger.operationId()));
+        try { worker.execute(() -> execute(ledger,leases,abort)); }
+        catch(RuntimeException e) { writers.remove(ledger.operationId()); progress.pause(ledger.operationId(),ledger.runEpoch(),"MERGE_START_FAILED","无法启动整理，进度已保留"); throw e; }
+    }
+    public synchronized Operation resume(String id,Resume request) {
+        var ledger=progress.find(id).orElseThrow(() -> new ResourceNotFoundException("MERGE_OPERATION_NOT_FOUND","合并不存在"));
+        if(closing || writers.containsKey(id) || !"paused".equals(ledger.status()) || request.expectedEpoch()!=ledger.runEpoch())
+            throw conflict("MERGE_STALE_OPERATION","状态已变化，请刷新后重试",get(id));
+        var execution=ledger.execution();
+        var selected=summaries.select(request.model()==null || request.model().isBlank()?execution.resolvedModel():request.model());
+        var next=new MergeHandoffData.Execution(selected.model(),execution.workingDirectory(),execution.targetTitle(),execution.processorVersion(),execution.promptVersion());
+        var resumed=progress.resume(id,request.expectedEpoch(),next,false);
+        launch(resumed,new ArrayList<>()); notifyChanged(id); return get(id);
+    }
+    public synchronized Operation cancel(String id) {
+        var state=get(id);
+        if("completed".equals(state.status())) throw conflict("MERGE_ALREADY_COMPLETED","合并已完成，不能取消",state);
+        if("cancelled".equals(state.status())) return state;
+        if(!progress.cancel(id)) throw conflict("MERGE_STALE_OPERATION","状态已变化",get(id));
+        AbortContext abort=writers.get(id);
+        if(abort!=null) abort.abort(AbortReason.USER_INTERRUPT); else cleanupFinished();
+        notifyChanged(id); return get(id);
+    }
+    public Optional<Operation> active() { return progress.active().map(row -> get(row.operationId())); }
     private MergePackageService.SessionInfo sourceInfo(String id) {
         try { return packages.sessionInfo(id); }
         catch (IllegalArgumentException invalid) { throw bad(invalid.getMessage()); }
@@ -151,119 +169,123 @@ public class SessionMergeService {
                 raw.model() == null || raw.model().isBlank() ? null : raw.model().strip());
     }
 
-    private void execute(String operation, String target, Path path, Request request, MergeSummaryService.Selection selection,
-            String directory, String title, List<SessionExecutionGate.Token> leases) {
-        AbortContext abort = new AbortContext(); active.add(abort);
-        ScheduledFuture<?> timer = null;
-        boolean committed = false;
-        boolean commitAttempted = false;
-        var usage = new ArrayList<MergeSummaryService.CallUsage>();
-        Runnable check = () -> {
-            if (closing || abort.isAborted()) throw new IllegalStateException("MERGE_INTERRUPTED_OR_TIMED_OUT");
+    private void execute(MergeHandoffData.Ledger initial,List<SessionExecutionGate.Token> initialLeases,AbortContext abort) {
+        String id=initial.operationId(); long epoch=initial.runEpoch(); Path path=Path.of(initial.packagePath());
+        List<SessionExecutionGate.Token> leases=initialLeases;
+        Runnable check=() -> {
+            if(closing || abort.isAborted()) throw new IllegalStateException("MERGE_INTERRUPTED");
+            progress.assertCurrent(id,epoch);
         };
+        boolean committed=false;
         try {
-            check.run();
-            timer = deadlines.schedule(() -> abort.abort(AbortReason.TIMEOUT), 10, TimeUnit.MINUTES);
-            var bundle = packages.build(path, request.sourceSessionIds(), check);
-            jdbc.update("UPDATE session_merges SET result_json=? WHERE operation_id=? AND status='preparing'",
-                    encode(Map.of("copiedCount", bundle.copiedCount(), "warningCount", bundle.warningCount(),
-                            "warnings", bundle.assets().stream().filter(a -> Set.of("missing", "ownership_unknown", "copy_failed").contains(a.status())).toList())), operation);
-            stage(operation, "summarizing");
-            String body = summaries.summarize(bundle, request.sourceSessionIds(), selection, operation, abort, check, call -> {
-                usage.add(call);
-                jdbc.update("UPDATE session_merges SET usage_json=?,updated_at=? WHERE operation_id=? AND status='preparing'",
-                        encode(usage), Instant.now().toString(), operation);
-            });
-            check.run();
-            // Revalidate the primary project binding in case it was revoked while generating.
-            workspaces.requireCurrentBinding(directory);
-            stage(operation, "committing");
-            String result = encode(Map.of("copiedCount", bundle.copiedCount(), "warningCount", bundle.warningCount(),
-                    "warnings", bundle.assets().stream().filter(a -> Set.of("missing", "ownership_unknown", "copy_failed").contains(a.status())).toList(),
-                    "indexPath", path.resolve("index.md").toString(), "model", selection.model(), "title", title));
-            commitAttempted = true;
+            check.run(); var ledger=initial; var request=progress.decode(ledger.paramsJson(),Request.class);
+            MergePackageService.Snapshot snapshot;
+            if(ledger.snapshotHash()==null) {
+                if(java.nio.file.Files.exists(path.resolve("snapshot/seal.json"))) {
+                    snapshot=packages.validateSnapshot(path,null,check);
+                    if(snapshot.version()!=ledger.snapshotVersion()) throw new java.io.IOException("MERGE_SNAPSHOT_VERSION_MISMATCH");
+                } else {
+                    if(leases.isEmpty()) leases=lockSources(request,id);
+                    int version=progress.nextSnapshot(id,epoch);
+                    snapshot=packages.seal(path,request.sourceSessionIds(),version,check);
+                }
+                progress.sealed(id,epoch,snapshot.version(),snapshot.hash(),Map.of("copiedCount",snapshot.copiedCount(),"warningCount",snapshot.warningCount()));
+            } else snapshot=packages.validateSnapshot(path,ledger.snapshotHash(),check);
+            leases.forEach(SessionExecutionGate.Token::close); leases=List.of(); notifyChanged(id);
+            if(snapshot.blockedReason()!=null) {
+                if(snapshot.blockedReason().startsWith("RECORD_REQUIRES_HANDLING")) packages.recoverBlockedProjections(path,check);
+                else throw new java.io.IOException(snapshot.blockedReason());
+            }
+            ledger=progress.find(id).orElseThrow();
+            var selected=summaries.select(ledger.execution().resolvedModel());
+            var prepared=summaries.prepare(ledger,progress,packages,selected,abort,check);
+            check.run(); workspaces.requireCurrentBinding(ledger.execution().workingDirectory());
+            packages.validateSnapshot(path,ledger.snapshotHash(),check);
+            HandoffReadService.verifyPrepared(path,ledger.snapshotHash(),prepared.hash(),json);
+            progress.stage(id,epoch,"publishing");
+            var ready=ledger;
             tx.executeWithoutResult(status -> {
                 check.run();
-                sessions.createSessionRecord(target, selection.model(), directory, title, PermissionMode.AUTO_APPROVE);
-                sessions.addMessageWithId(UUID.randomUUID().toString(), target, "user", List.of(new ContentBlock.TextBlock(body)),
-                        null, 0, 0, Map.of("sessionMergeOperationId", operation));
-                if (jdbc.update("UPDATE session_merges SET status='completed',stage='completed',result_json=?,usage_json=?,updated_at=? WHERE operation_id=? AND status='preparing'",
-                        result, encode(usage), Instant.now().toString(), operation) != 1) throw new IllegalStateException("MERGE_STATE_CONFLICT");
+                sessions.createSessionRecord(ready.targetSessionId(),selected.model(),ready.execution().workingDirectory(),ready.execution().targetTitle(),PermissionMode.AUTO_APPROVE);
+                jdbc.update("UPDATE sessions SET metadata_json=? WHERE id=?",
+                        progress.encode(Map.of("sessionMergeOperationId",id)),ready.targetSessionId());
+                sessions.addMessageWithId(UUID.randomUUID().toString(),ready.targetSessionId(),"user",List.of(new ContentBlock.TextBlock(prepared.body())),
+                        null,0,0,Map.of("sessionMergeOperationId",id));
+                progress.complete(id,epoch,prepared.hash(),Map.of("copiedCount",snapshot.copiedCount(),"warningCount",snapshot.warningCount(),
+                        "model",selected.model(),"title",ready.execution().targetTitle(),"indexPath",path.resolve("handoff/handoff.md").toString()));
             });
-            committed = true;
-        } catch (Throwable failure) {
-            log.warn("Merge preparation failed: {}", operation, failure);
-            // Before the target transaction starts, no database read is needed to prove ownership.
-            if (!commitAttempted) cleanup(path);
-            // Re-read durable state after an uncertain commit. Failure to read means do not clean.
+            committed=true;
+        } catch(Throwable e) {
+            log.warn("Merge paused; snapshot and committed units retained: id={}, code={}, type={}",id,safeCode(e),e.getClass().getSimpleName());
             try {
-                committed = "completed".equals(get(operation).status());
-                if (!committed) {
-                    if (commitAttempted) {
-                        if (jdbc.queryForObject("SELECT COUNT(*) FROM sessions WHERE id=?", Long.class, target) != 0)
-                            throw new IllegalStateException("MERGE_COMMIT_STATE_UNCERTAIN");
-                        cleanup(path);
-                    }
-                    // Reclaim space before trying to persist failure; a failed status write must not skip cleanup.
-                    jdbc.update("UPDATE session_merges SET status='failed',stage='failed',error=?,usage_json=?,updated_at=? WHERE operation_id=? AND status='preparing'",
-                            abort.isAborted() ? "合并超时或中断，未创建目标会话" : "合并失败，未创建目标会话：" + safeError(failure),
-                            encode(usage), Instant.now().toString(), operation);
+                // A driver may report failure after COMMIT; durable completion is authoritative.
+                committed=progress.find(id).map(row -> "completed".equals(row.status())).orElse(false)
+                        && jdbc.queryForObject("SELECT COUNT(*) FROM sessions WHERE id=?",Integer.class,initial.targetSessionId())==1;
+                if(!committed) {
+                    String code=closing?"SERVICE_SHUTDOWN":safeCode(e);
+                    progress.pause(id,epoch,code,"合并已暂停，尚未发布目标；已保存的原件与进度保留。"+explain(code));
                 }
-            } catch (Exception uncertain) { log.error("Unable to determine or persist merge failure state: {}", operation, uncertain); }
+            } catch(Exception failure) { log.error("Unable to persist merge pause: {}",id,failure); }
         } finally {
-            if (timer != null) timer.cancel(false);
-            active.remove(abort);
-            leases.forEach(SessionExecutionGate.Token::close); generation.release();
-            notifyChanged(operation);
+            leases.forEach(SessionExecutionGate.Token::close);
+            // Do not release the in-process cleanup guard before the old writer has stopped touching its package.
+            try { cleanupFinished(id); } finally { writers.remove(id,abort); notifyChanged(id); }
         }
-        // E is already durable. Slow hooks must not retain A/B or the merge generation slot.
-        if (committed) {
-            try { sessions.notifySessionCreated(target); }
-            catch (Exception notification) { log.warn("Merge creation hook failed: {}", operation, notification); }
-        }
+        if(committed) try { sessions.notifySessionCreated(initial.targetSessionId()); }
+        catch(Exception e) { log.warn("Merge creation notification failed: {}",id,e); }
     }
-    private String safeError(Throwable error) {
-        // Provider errors may contain endpoint details. Expose a bounded diagnostic category only.
-        String message = Objects.toString(error.getMessage(), "");
-        return switch (message.split(":", 2)[0]) {
-            case "SUMMARY_CALL_BUDGET_EXCEEDED" -> "历史过长，超出本次摘要调用上限（16 次）";
-            case "SUMMARY_INCOMPLETE" -> "模型未完整生成摘要，请稍后重新合并或选择其他模型";
-            case "SUMMARY_EXCEEDS_BUDGET", "HANDOFF_EXCEEDS_BUDGET" -> "生成的摘要超过交接消息容量，请选择其他模型后重试";
-            case "HANDOFF_BUDGET_TOO_SMALL", "SUMMARY_INPUT_BUDGET_TOO_SMALL" -> "所选模型上下文容量不足";
-            case "SOURCE_RECORD_TOO_LARGE_OR_NULL" -> "来源存在空记录或超过 16 MiB 的单条记录，已停止合并以保护正常会话";
-            case "MERGE_DISK_SPACE_LOW" -> "磁盘可用空间不足以安全保存交接资料，未创建目标会话";
-            case "SOURCE_MESSAGE_UNREADABLE", "CHECKPOINT_UNREADABLE", "CHECKPOINT_MESSAGE_UNREADABLE" -> "来源中有无法读取的持久化消息，未跳过这些消息";
-            default -> "资料读取、生成或保存失败，请检查服务日志";
+    private String explain(String code) {
+        return switch(code) {
+            case "MERGE_PROVIDER_AUTH" -> "请修正模型凭据或访问权限后恢复。";
+            case "MERGE_PROVIDER_QUOTA" -> "模型服务额度不足，请补充额度或选择其他模型后恢复。";
+            case "MERGE_PROVIDER_UNAVAILABLE", "MERGE_PROVIDER_ERROR", "MERGE_CALL_TIMEOUT", "MERGE_RESPONSE_INCOMPLETE" -> "模型调用暂未成功，请稍后恢复；也可选择其他模型。";
+            case "MERGE_MODEL_UNAVAILABLE", "MERGE_MODEL_BUDGET_TOO_SMALL" -> "所选模型不可用或容量不足，请选择其他模型后恢复。";
+            case "RECORD_REQUIRES_HANDLING", "MERGE_MIN_UNIT_FAILED" -> "原件解析或模型整理仍未通过，未跳过该部分；请检查日志及原件后再恢复。";
+            case "MERGE_DISK_SPACE_LOW", "MERGE_COPY_INCOMPLETE" -> "磁盘、复制配额或文件一致性检查未通过；未复制部分不算已保存，请排查后恢复。";
+            case "MERGE_SOURCE_BUSY" -> "来源仍有执行占用，等待任务退出后恢复。";
+            default -> "原因："+code+"；请排查后恢复，或取消本次合并。";
         };
     }
-    private void stage(String id, String stage) {
-        jdbc.update("UPDATE session_merges SET stage=?,updated_at=? WHERE operation_id=? AND status='preparing'", stage, Instant.now().toString(), id);
+    private String safeCode(Throwable e) {
+        if(e instanceof Conflict conflict) return conflict.code;
+        if(e instanceof com.aicodeassistant.llm.LlmApiException api) {
+            if(api.getHttpStatus()==401 || api.getHttpStatus()==403) return "MERGE_PROVIDER_AUTH";
+            if(api.getHttpStatus()==402 || Objects.toString(api.getErrorType(),"").contains("quota")) return "MERGE_PROVIDER_QUOTA";
+            if(api.getHttpStatus()==404) return "MERGE_MODEL_UNAVAILABLE";
+            return "MERGE_PROVIDER_UNAVAILABLE";
+        }
+        String message=Objects.toString(e.getMessage(),"").split(":",2)[0];
+        return message.matches("[A-Z][A-Z0-9_]{2,100}")?message:"MERGE_PREPARATION_FAILED";
     }
-    @SuppressWarnings("unchecked")
-    public Operation get(String operation) {
-        var rows = jdbc.queryForList("SELECT * FROM session_merges WHERE operation_id=?", operation);
-        if (rows.isEmpty()) throw new ResourceNotFoundException("MERGE_OPERATION_NOT_FOUND", "合并操作不存在");
-        var row = rows.getFirst();
-        try {
-            return new Operation(operation, row.get("target_session_id").toString(), row.get("status").toString(), row.get("stage").toString(),
-                    json.readValue(row.get("params_json").toString(), Request.class), row.get("package_path").toString(),
-                    json.readValue(row.get("result_json").toString(), Map.class), json.readTree(row.get("usage_json").toString()), (String) row.get("error"));
-        } catch (java.io.IOException e) { throw new IllegalStateException("MERGE_RECORD_UNREADABLE", e); }
+    @SuppressWarnings("unchecked") public Operation get(String id) {
+        var r=progress.find(id).orElseThrow(() -> new ResourceNotFoundException("MERGE_OPERATION_NOT_FOUND","合并操作不存在"));
+        Request request=progress.decode(r.paramsJson(),Request.class);
+        List<String> locked=request.sourceSessionIds().stream().filter(source -> id.equals(gate.mergeOperationId(sessions.dataSourceIdentity(),source))).toList();
+        boolean available="completed".equals(r.status()) && jdbc.queryForObject("SELECT COUNT(*) FROM sessions WHERE id=?",Integer.class,r.targetSessionId())==1;
+        return new Operation(id,r.targetSessionId(),r.status(),r.stage(),request,r.packagePath(),progress.decode(r.resultJson(),Map.class),
+                progress.decode(r.usageJson(),Object.class),r.error(),r.protocolVersion(),r.runEpoch(),r.snapshotHash()!=null,locked,
+                progress.progress(id,r.stage()),r.retryAt(),r.errorCode(),"paused".equals(r.status()) && !writers.containsKey(id),
+                r.protocolVersion()==2 && Set.of("preparing","paused","failed").contains(r.status()),available);
     }
-    private String encode(Object value) {
-        try { return json.writeValueAsString(value); } catch (java.io.IOException e) { throw new IllegalStateException(e); }
+    private void cleanupFinished() { cleanupFinished(null); }
+    private void cleanupFinished(String stoppedWriter) {
+        for(var row:progress.cleanupCandidates()) try {
+            if(writers.containsKey(row.operationId()) && !row.operationId().equals(stoppedWriter)) continue;
+            packages.deleteUnreferenced(Path.of(row.packagePath())); }
+        catch(Exception e) { log.warn("Merge cleanup deferred: {}",row.operationId(),e); }
     }
-    private void cleanup(Path path) {
-        try { packages.deleteUnreferenced(path); } catch (Exception e) { log.warn("Unreferenced merge package cleanup deferred: {}", path, e); }
-    }
-    private void notifyChanged(String operation) {
-        try { if (events != null) events.publishEvent(new StatusChanged(operation)); }
-        catch (Exception e) { log.warn("Merge list notification failed: {}", operation, e); }
+    private void notifyChanged(String id) {
+        try { if(events!=null) events.publishEvent(new StatusChanged(id)); }
+        catch(Exception e) { log.warn("Merge notification failed: {}",id,e); }
     }
     @PreDestroy public synchronized void shutdown() {
-        closing = true; active.forEach(a -> a.abort(AbortReason.SYSTEM_SHUTDOWN));
-        worker.shutdown(); deadlines.shutdown();
+        closing=true;
+        for(var entry:writers.entrySet()) {
+            progress.find(entry.getKey()).ifPresent(row -> progress.pause(row.operationId(),row.runEpoch(),"SERVICE_SHUTDOWN","服务关闭，进度已保留，请恢复合并"));
+            entry.getValue().abort(AbortReason.SYSTEM_SHUTDOWN);
+        }
+        worker.shutdown();
     }
-    private static ResponseStatusException bad(String message) { return new ResponseStatusException(HttpStatus.BAD_REQUEST, message); }
-    private static ResponseStatusException conflict(String message) { return new ResponseStatusException(HttpStatus.CONFLICT, message); }
+    private static ResponseStatusException bad(String message) { return new ResponseStatusException(HttpStatus.BAD_REQUEST,message); }
+    private static Conflict conflict(String code,String message,Operation operation) { return new Conflict(code,message,operation); }
 }

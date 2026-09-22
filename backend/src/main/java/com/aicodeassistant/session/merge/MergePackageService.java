@@ -16,6 +16,7 @@ import java.security.*;
 import java.time.Instant;
 import java.util.*;
 import java.util.regex.Pattern;
+import static com.aicodeassistant.session.merge.MergeHandoffData.*;
 
 /** A readable, immutable handoff. It never imports executable tool or provider state. */
 @Service
@@ -80,9 +81,21 @@ public class MergePackageService {
         } catch (IOException invalid) { throw new IllegalArgumentException("来源会话元数据无法读取", invalid); }
     }
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.aicodeassistant.config.database.DatabaseResolver databaseResolver;
+
+    public Path packageRoot() {
+        Path database;
+        if (databaseResolver != null) database = databaseResolver.getProjectDbPath(Path.of(System.getProperty("user.dir")));
+        else database = jdbc.queryForList("PRAGMA database_list").stream()
+                .filter(row -> "main".equals(row.get("name"))).map(row -> Path.of(row.get("file").toString()))
+                .findFirst().orElseThrow();
+        return database.toAbsolutePath().normalize().getParent().resolve("session-merges");
+    }
     public Path packagePath(String target, String operation) {
         return scratchpads.resolveChild(target).resolve("handoffs").resolve(UUID.fromString(operation).toString());
     }
+    public Path snapshotPath(String operation) { return packageRoot().resolve(UUID.fromString(operation).toString()); }
 
     public List<String> descendants(List<String> roots) {
         var result = new LinkedHashSet<>(roots);
@@ -99,6 +112,587 @@ public class MergePackageService {
             }
         } while (added);
         return List.copyOf(result);
+    }
+
+    public record Snapshot(String hash, int version, long records, long files, long copiedCount,
+                           long warningCount, String blockedReason) { }
+    @org.springframework.beans.factory.annotation.Value("${zhikuncode.session-merge.max-record-materialize-bytes:67108864}")
+    private int maxRecordMaterializeBytes = 64 * 1024 * 1024;
+
+    /** A bounded reader of a SQLite TEXT column. No JDBC allocation grows with the whole record. */
+    private Reader columnReader(String table, String column, String id) { return columnReader(table,column,"id",id); }
+    private Reader columnReader(String table, String column, String idColumn, String id) {
+        InputStream chunks = new InputStream() {
+            byte[] bytes = new byte[0]; int index; long offset = 1; boolean ended;
+            @Override public int read() throws IOException {
+                byte[] one = new byte[1]; return read(one,0,1) < 0 ? -1 : one[0] & 255;
+            }
+            @Override public int read(byte[] out, int start, int length) throws IOException {
+                if (length == 0) return 0;
+                if (index == bytes.length && !ended) {
+                    // Table and column names are internal constants, never request/model input.
+                    List<byte[]> rows = jdbc.query("SELECT substr(CAST("+column+" AS BLOB),?,65536) FROM "+table+" WHERE "+idColumn+"=?",
+                            (rs,n) -> rs.getBytes(1),offset,id);
+                    if (rows.isEmpty()) throw new IOException("SOURCE_CHANGED");
+                    bytes = rows.getFirst(); if (bytes == null) bytes = new byte[0];
+                    index = 0; offset += bytes.length; ended = bytes.length == 0;
+                }
+                if (ended) return -1;
+                int count = Math.min(length,bytes.length-index); System.arraycopy(bytes,index,out,start,count); index += count;
+                return count;
+            }
+        };
+        return new InputStreamReader(chunks,StandardCharsets.UTF_8.newDecoder()
+                .onMalformedInput(java.nio.charset.CodingErrorAction.REPORT));
+    }
+    MergeTextBudget textBudget(Path directory) { return new MergeTextBudget(minFreeBytes,() -> availableBytes(directory)); }
+
+    public Snapshot seal(Path directory, List<String> roots, int version, Runnable check) throws IOException {
+        requireOperationPath(directory);
+        Files.createDirectories(directory);
+        Path sealed = directory.resolve("snapshot");
+        if (Files.exists(sealed,LinkOption.NOFOLLOW_LINKS)) return validateSnapshot(directory,null,check);
+        Path staging = directory.resolve("staging");
+        deleteTree(staging); Files.createDirectories(staging);
+        try (var writer = new SnapshotWriter(staging,check)) {
+            for (String id : descendants(roots)) { check.run(); writer.source(id); }
+            writer.closeCatalogs();
+            Map<String,Object> manifest = new LinkedHashMap<>();
+            manifest.put("schemaVersion",2); manifest.put("operationId",directory.getFileName().toString());
+            manifest.put("snapshotVersion",version); manifest.put("sources",roots);
+            manifest.put("capturedAt",Instant.now().toString()); manifest.put("recordCount",writer.recordCount);
+            manifest.put("fileCount",writer.fileCount); manifest.put("copiedCount",writer.copiedCount);
+            manifest.put("warningCount",writer.warningCount); manifest.put("blockedReason",writer.blockedReason);
+            var catalogs = new LinkedHashMap<String,Object>();
+            for (String name : List.of("records.jsonl","files.jsonl","occurrences.jsonl","gaps.jsonl"))
+                catalogs.put(name,Map.of("sha256",hash(staging.resolve(name),check),"bytes",Files.size(staging.resolve(name))));
+            manifest.put("catalogs",catalogs);
+            writer.budget.write(staging.resolve("manifest.json"),json.writeValueAsString(manifest),StandardOpenOption.CREATE_NEW);
+            String manifestHash = hash(staging.resolve("manifest.json"),check);
+            writer.budget.write(staging.resolve("seal.json"),json.writeValueAsString(Map.of("snapshotVersion",version,"manifestHash",manifestHash)),StandardOpenOption.CREATE_NEW);
+            check.run(); Files.move(staging,sealed,StandardCopyOption.ATOMIC_MOVE);
+            return new Snapshot(manifestHash,version,writer.recordCount,writer.fileCount,writer.copiedCount,writer.warningCount,writer.blockedReason);
+        }
+    }
+    public Snapshot validateSnapshot(Path directory, String expectedHash, Runnable check) throws IOException {
+        requireOperationPath(directory);
+        Path root = directory.resolve("snapshot");
+        Path manifestPath = safeFile(root,"manifest.json");
+        if (Files.size(manifestPath) > 1024*1024) throw new IOException("MERGE_SNAPSHOT_CORRUPT");
+        String actual = hash(manifestPath,check);
+        JsonNode manifest = json.readTree(Files.readString(manifestPath));
+        JsonNode seal = json.readTree(Files.readString(safeFile(root,"seal.json")));
+        if ((expectedHash != null && !expectedHash.equals(actual)) || !actual.equals(seal.path("manifestHash").asText())
+                || !directory.getFileName().toString().equals(manifest.path("operationId").asText())
+                || manifest.path("schemaVersion").asInt()!=2 || manifest.path("snapshotVersion").asInt()!=seal.path("snapshotVersion").asInt())
+            throw new IOException("MERGE_SNAPSHOT_CORRUPT");
+        for (String name : List.of("records.jsonl","files.jsonl","occurrences.jsonl","gaps.jsonl")) {
+            if (!hash(safeFile(root,name),check).equals(manifest.path("catalogs").path(name).path("sha256").asText()))
+                throw new IOException("MERGE_SNAPSHOT_CORRUPT");
+        }
+        try (var lines = Files.newBufferedReader(safeFile(root,"files.jsonl"))) {
+            String line;
+            while ((line=lines.readLine())!=null) {
+                check.run(); FileEntry entry=json.readValue(line,FileEntry.class);
+                Path file=safeFile(directory,entry.path());
+                if (Files.size(file)!=entry.bytes() || !hash(file,check).equals(entry.sha256())) throw new IOException("MERGE_SNAPSHOT_CORRUPT");
+            }
+        }
+        return new Snapshot(actual,manifest.path("snapshotVersion").asInt(),manifest.path("recordCount").asLong(),
+                manifest.path("fileCount").asLong(),manifest.path("copiedCount").asLong(),manifest.path("warningCount").asLong(),
+                manifest.path("blockedReason").isNull() ? null : manifest.path("blockedReason").asText(null));
+    }
+    /** Retry parsing only immutable raw copies after a materialization limit/configuration change. */
+    public void recoverBlockedProjections(Path directory,Runnable check) throws IOException {
+        requireOperationPath(directory);
+        Path recovered=directory.resolve("work/recovered");
+        Set<String> projected=new HashSet<>(); Map<String,FileEntry> rawFiles=new HashMap<>();
+        Map<String,RecordEntry> blockedRecords=new LinkedHashMap<>();
+        try(var records=Files.newBufferedReader(safeFile(directory,"snapshot/records.jsonl"))) {
+            String line; while((line=records.readLine())!=null) {
+                RecordEntry record=json.readValue(line,RecordEntry.class);
+                if("blocked".equals(record.processingPolicy())) blockedRecords.put(record.recordRef(),record);
+            }
+        }
+        try(var lines=Files.newBufferedReader(safeFile(directory,"snapshot/files.jsonl"))) {
+            String line; while((line=lines.readLine())!=null) {
+                FileEntry file=json.readValue(line,FileEntry.class);
+                if(file.kind().equals("raw")) rawFiles.put(file.ref(),file);
+                if(file.ref().contains(":recovered:p")) {
+                    verifyRecoveredFile(directory,file,check);
+                    projected.add(file.ref().split(":recovered:p",2)[0]);
+                }
+            }
+        }
+        try(var gaps=Files.newBufferedReader(safeFile(directory,"snapshot/gaps.jsonl"))) {
+            String line; while((line=gaps.readLine())!=null) {
+                JsonNode gap=json.readTree(line);
+                if(!gap.path("blocking").asBoolean()) continue;
+                String reason=gap.path("reason").asText();
+                String prefix="RECORD_REQUIRES_HANDLING:";
+                // Only an explicitly blocked raw record can be retried. An archived checkpoint,
+                // malformed attachment or unbound gap must not disappear behind an empty seal.
+                if(!reason.startsWith(prefix) || !blockedRecords.containsKey(reason.substring(prefix.length())))
+                    throw new IOException("RECORD_REQUIRES_HANDLING");
+            }
+        }
+        // Completed derived projections are immutable too. Reuse them when resuming model work.
+        if(Files.exists(recovered.resolve("seal.json"))) {
+            for(Path catalog:projectionCatalogs(directory)) try(var lines=Files.newBufferedReader(catalog)) {
+                String line; while((line=lines.readLine())!=null) {
+                    FileEntry file=json.readValue(line,FileEntry.class);
+                    if(file.ref().contains(":recovered:p")) {
+                        verifyRecoveredFile(directory,file,check);
+                        projected.add(file.ref().split(":recovered:p",2)[0]);
+                    }
+                }
+            }
+            if(!projected.containsAll(blockedRecords.keySet())) throw new IOException("RECORD_REQUIRES_HANDLING");
+            return;
+        }
+        Files.createDirectories(recovered.getParent()); deleteTree(recovered);
+        try(var writer=new SnapshotWriter(recovered,check)) {
+            for(RecordEntry record:blockedRecords.values()) {
+                check.run(); if(projected.contains(record.recordRef())) continue;
+                FileEntry raw=rawFiles.get(record.rawRef());
+                if(raw==null) throw new IOException("MERGE_RAW_RECORD_MISSING");
+                Path original=safeFile(directory,raw.path());
+                if(Files.size(original)>maxRecordMaterializeBytes) throw new IOException("RECORD_REQUIRES_HANDLING");
+                JsonNode node;
+                try { node=writer.parser.readTree(original.toFile()); }
+                catch(IOException invalid) { throw new IOException("RECORD_REQUIRES_HANDLING",invalid); }
+                if(node.hasNonNull("meta_json") && !node.path("meta_json").asText().isBlank()) writer.parser.readTree(node.path("meta_json").asText());
+                String contentColumn=node.has("content_json") ? "content_json" : node.has("messages_json") ? "messages_json" : null;
+                JsonNode content=contentColumn==null ? node : writer.parser.readTree(node.path(contentColumn).asText());
+                if(content==null || (contentColumn!=null && !content.isArray() && !content.isTextual())
+                        || ("messages_json".equals(contentColumn) && !content.isArray())) throw new IOException("RECORD_REQUIRES_HANDLING");
+                // The sealed original remains unchanged; the derived text has a stable reference back to it.
+                writer.text(record.recordRef()+":recovered",record.origin().sessionId(),
+                        "Recovered immutable raw ref="+record.rawRef()+"; source="+record.origin().sessionId()+"\n"+content);
+                projected.add(record.recordRef());
+            }
+            writer.closeCatalogs();
+        }
+        Path catalog=recovered.resolve("files.jsonl"); Path adjusted=recovered.resolve("projection-files.jsonl");
+        var budget=textBudget(directory);
+        try(var reader=Files.newBufferedReader(catalog); var out=new java.io.BufferedWriter(new java.io.OutputStreamWriter(budget.output(adjusted),StandardCharsets.UTF_8))) {
+            String line; while((line=reader.readLine())!=null) {
+                FileEntry e=json.readValue(line,FileEntry.class);
+                FileEntry derived=new FileEntry(e.ref(),e.recordRef(),e.sourceId(),e.part(),"work/recovered/"+e.path().substring("snapshot/".length()),e.bytes(),e.sha256(),e.kind());
+                out.write(json.writeValueAsString(derived)); out.newLine();
+            }
+        }
+        if(!projected.containsAll(blockedRecords.keySet())) throw new IOException("RECORD_REQUIRES_HANDLING");
+        budget.atomicWrite(recovered.resolve("seal.json"),json.writeValueAsString(Map.of("catalogHash",hash(adjusted,check))));
+    }
+    private void verifyRecoveredFile(Path directory,FileEntry file,Runnable check) throws IOException {
+        Path path=safeFile(directory,file.path());
+        if(!"text".equals(file.kind()) || Files.size(path)!=file.bytes() || !hash(path,check).equals(file.sha256()))
+            throw new IOException("MERGE_RECOVERED_HASH_MISMATCH");
+    }
+    public static List<Path> projectionCatalogs(Path directory) throws IOException {
+        List<Path> result=new ArrayList<>(); result.add(safeFile(directory,"snapshot/files.jsonl"));
+        Path seal=directory.resolve("work/recovered/seal.json");
+        if(Files.exists(seal,LinkOption.NOFOLLOW_LINKS)) {
+            Path catalog=safeFile(directory,"work/recovered/projection-files.jsonl");
+            JsonNode node=new ObjectMapper().readTree(Files.readString(safeFile(directory,"work/recovered/seal.json")));
+            if(!hash(catalog,()->{}).equals(node.path("catalogHash").asText())) throw new IOException("MERGE_RECOVERED_HASH_MISMATCH");
+            result.add(catalog);
+        }
+        return result;
+    }
+    public static Path safeFile(Path root, String relative) throws IOException {
+        Path rel;
+        try { rel=Path.of(relative); } catch (RuntimeException invalid) { throw new IOException("MERGE_INVALID_REF",invalid); }
+        if (rel.isAbsolute() || rel.getNameCount()==0 || rel.normalize().startsWith("..")) throw new IOException("MERGE_INVALID_REF");
+        Path base=root.toAbsolutePath().normalize();
+        if (Files.isSymbolicLink(base)) throw new IOException("MERGE_INVALID_REF");
+        Path candidate=base.resolve(rel).normalize();
+        if (!candidate.startsWith(base)) throw new IOException("MERGE_INVALID_REF");
+        Path current=base;
+        for (Path part : base.relativize(candidate)) {
+            current=current.resolve(part);
+            if (Files.isSymbolicLink(current)) throw new IOException("MERGE_INVALID_REF");
+        }
+        if (!Files.isRegularFile(candidate,LinkOption.NOFOLLOW_LINKS)) throw new IOException("MERGE_REF_MISSING");
+        return candidate;
+    }
+    private void requireOperationPath(Path directory) throws IOException {
+        Path path=directory.toAbsolutePath().normalize();
+        if (!Objects.equals(path.getParent(),packageRoot()) || !path.getFileName().toString().matches("[0-9a-fA-F-]{36}")
+                || Files.isSymbolicLink(path) || Files.isSymbolicLink(packageRoot())) throw new IOException("INVALID_PACKAGE_PATH");
+    }
+    private static void deleteTree(Path root) throws IOException {
+        if (!Files.exists(root,LinkOption.NOFOLLOW_LINKS)) return;
+        if (Files.isSymbolicLink(root)) throw new IOException("INVALID_PACKAGE_PATH");
+        Files.walkFileTree(root,new SimpleFileVisitor<>() {
+            @Override public FileVisitResult visitFile(Path path,java.nio.file.attribute.BasicFileAttributes attrs) throws IOException {
+                Files.delete(path); return FileVisitResult.CONTINUE;
+            }
+            @Override public FileVisitResult postVisitDirectory(Path dir,IOException error) throws IOException {
+                if (error!=null) throw error; Files.delete(dir); return FileVisitResult.CONTINUE;
+            }
+        });
+    }
+    private String messageVersion(String role,JsonNode content,String stop,JsonNode metadata) {
+        var semantic=json.createObjectNode();
+        semantic.put("role",role); semantic.set("content",content); semantic.put("stopReason",stop);
+        var meta=metadata!=null && metadata.isObject()
+                ? (com.fasterxml.jackson.databind.node.ObjectNode)metadata.deepCopy() : json.createObjectNode();
+        meta.remove("handoffOrigin"); semantic.set("metadata",meta);
+        return sha256(semantic.toString());
+    }
+    private final class SnapshotWriter implements AutoCloseable {
+        final Path root; final Runnable check; final MergeTextBudget budget; final CopyBudget copyBudget;
+        final BufferedWriter records,files,occurrences,gaps;
+        final Set<String> recordRefs=new HashSet<>(),fileRefs=new HashSet<>(),seenAssets=new HashSet<>();
+        final ObjectMapper parser;
+        long recordCount,fileCount,copiedCount,warningCount; String blockedReason; boolean catalogsClosed;
+        SnapshotWriter(Path root,Runnable check) throws IOException {
+            this.root=root; this.check=check; budget=textBudget(root); copyBudget=new CopyBudget(root);
+            for (String name : List.of("raw","text","assets")) Files.createDirectories(root.resolve(name));
+            records=writer("records.jsonl"); files=writer("files.jsonl"); occurrences=writer("occurrences.jsonl"); gaps=writer("gaps.jsonl");
+            parser=json.copy(); parser.getFactory().setStreamReadConstraints(com.fasterxml.jackson.core.StreamReadConstraints.builder()
+                    .maxStringLength(maxRecordMaterializeBytes).build());
+        }
+        BufferedWriter writer(String name) throws IOException { return new BufferedWriter(new OutputStreamWriter(budget.output(root.resolve(name),StandardOpenOption.CREATE_NEW),StandardCharsets.UTF_8)); }
+        void line(BufferedWriter writer,Object value) throws IOException { writer.write(json.writeValueAsString(value)); writer.newLine(); }
+        void gap(String source,String reason,boolean blocked) throws IOException {
+            warningCount++; if (blocked) blockedReason=reason;
+            line(gaps,Map.of("sourceId",source,"reason",reason,"blocking",blocked));
+        }
+        void file(String ref,String recordRef,String source,Path path,String kind,int part) throws IOException {
+            if (!fileRefs.add(ref)) return;
+            line(files,new FileEntry(ref,recordRef,source,part,"snapshot/"+root.relativize(path),Files.size(path),hash(path,check),kind)); fileCount++;
+        }
+        String record(Origin origin,String role,String created,Path raw,String policy) throws IOException {
+            String ref="r_"+digest(json.writeValueAsString(origin));
+            line(occurrences,Map.of("recordRef",ref,"sourceId",origin.sessionId(),"recordId",origin.recordId(),"createdAt",Objects.toString(created,"")));
+            if (!recordRefs.add(ref)) { Files.deleteIfExists(raw); return null; }
+            Path destination=root.resolve("raw/"+ref+".json"); Files.move(raw,destination);
+            line(records,new RecordEntry(ref,origin,role,created,ref+":raw",policy)); recordCount++;
+            file(ref+":raw",ref,origin.sessionId(),destination,"raw",0);
+            return ref;
+        }
+        Path rawRow(Map<String,Object> row) throws IOException {
+            Path raw=root.resolve("raw/tmp-"+UUID.randomUUID()+".json");
+            budget.write(raw,json.writeValueAsString(row),StandardOpenOption.CREATE_NEW); return raw;
+        }
+        Path rawColumns(String table,Map<String,Object> header,List<String> columns) throws IOException {
+            return rawColumns(table,"id",header,columns);
+        }
+        Path rawColumns(String table,String idColumn,Map<String,Object> header,List<String> columns) throws IOException {
+            Path raw=root.resolve("raw/tmp-"+UUID.randomUUID()+".json");
+            try (var out=budget.output(raw,StandardOpenOption.CREATE_NEW); var generator=json.getFactory().createGenerator(out)) {
+                generator.writeStartObject();
+                for (var entry:header.entrySet()) generator.writeObjectField(entry.getKey(),entry.getValue());
+                for (String column:columns) {
+                    if (jdbc.queryForObject("SELECT "+column+" IS NULL FROM "+table+" WHERE "+idColumn+"=?",Integer.class,header.get(idColumn))==1) {
+                        generator.writeNullField(column); continue;
+                    }
+                    check.run(); generator.writeFieldName(column);
+                    try (Reader reader=columnReader(table,column,idColumn,header.get(idColumn).toString())) { generator.writeString(reader,-1); }
+                }
+                generator.writeEndObject();
+            }
+            return raw;
+        }
+        JsonNode parse(Path raw,String source,String recordId,String kind,String role,String created) throws IOException {
+            try {
+                if (Files.size(raw)>maxRecordMaterializeBytes) throw new IOException("record materialization limit");
+                return parser.readTree(raw.toFile());
+            } catch (IOException invalid) {
+                String ref=record(new Origin(source,recordId,"raw-"+hash(raw,check),kind),role,created,raw,"blocked");
+                gap(source,"RECORD_REQUIRES_HANDLING"+(ref==null ? "" : ":"+ref),true); return null;
+            }
+        }
+        void source(String source) throws IOException {
+            SessionInfo info=sessionInfo(source);
+            var cutoff=jdbc.queryForMap("SELECT COALESCE(MAX(seq_num),-1) AS lastSeq,COUNT(*) AS messages FROM messages WHERE session_id=?",source);
+            long lastSeq=((Number)cutoff.get("lastSeq")).longValue();
+            Path meta=rawRow(Map.of("sourceId",source,"title",Objects.toString(info.title(),""),"workingDirectory",info.workingDir(),
+                    "model",info.model(),"metadata",info.metadata(),"messageCutoff",cutoff,"capturedAt",Instant.now().toString()));
+            String metaRef=record(new Origin(source,source,hash(meta,check),"session"),"reference",null,meta,"extract");
+            if (metaRef!=null) text(metaRef,source,"来源 "+source+"; 工程目录为共享外部引用: "+info.workingDir()+"; 标题: "+info.title());
+            importPrevious(source);
+            var assets=new ArrayList<Asset>(); var calls=new HashSet<String>(); var outputs=new LinkedHashSet<Path>();
+            long sequence=-1;
+            while (true) {
+                check.run(); var rows=jdbc.queryForList("SELECT id,seq_num,role,created_at,stop_reason FROM messages WHERE session_id=? AND seq_num>? AND seq_num<=? ORDER BY seq_num LIMIT 1",source,sequence,lastSeq);
+                if (rows.isEmpty()) break;
+                var row=rows.getFirst(); sequence=((Number)row.get("seq_num")).longValue();
+                Path raw=rawColumns("messages",row,List.of("content_json","meta_json"));
+                JsonNode parsed=parse(raw,source,row.get("id").toString(),"message",row.get("role").toString(),(String)row.get("created_at"));
+                if (parsed==null) continue;
+                try {
+                    JsonNode content=parser.readTree(parsed.path("content_json").asText());
+                    String metaText=parsed.path("meta_json").asText();
+                    JsonNode metadata=metaText.isBlank() ? json.createObjectNode() : parser.readTree(metaText);
+                    exportMessage(source,row.get("id").toString(),(String)row.get("role"),(String)row.get("created_at"),
+                            (String)row.get("stop_reason"),content,metadata,raw,assets,calls,outputs);
+                } catch (IOException invalid) {
+                    if (!parseFailure(invalid)) throw invalid;
+                    if (Files.exists(raw)) record(new Origin(source,row.get("id").toString(),"raw-"+hash(raw,check),"message"),"reference",null,raw,"blocked");
+                    gap(source,"RECORD_REQUIRES_HANDLING",true);
+                }
+            }
+            if(!cutoff.equals(jdbc.queryForMap("SELECT COALESCE(MAX(seq_num),-1) AS lastSeq,COUNT(*) AS messages FROM messages WHERE session_id=?",source))) throw new IOException("SOURCE_CHANGED");
+            if (info.metadata().path("history_storage_version").asInt()!=2) exportCheckpoints(source,assets,calls,outputs);
+            exportSimpleRows(source,"run_envelopes","id", "session_id",source);
+            if (tableExists("artifact_manifests")) {
+                String last="";
+                while (true) {
+                    var manifests=jdbc.queryForList("SELECT manifest_id FROM artifact_manifests WHERE session_id=? AND manifest_id>? ORDER BY manifest_id LIMIT 1",source,last);
+                    if (manifests.isEmpty()) break;
+                    var row=manifests.getFirst(); last=row.get("manifest_id").toString();
+                    exportRow(source,"artifact_manifests","manifest_id",last);
+                    exportSimpleRows(source,"artifact_entries","artifact_id","manifest_id",last);
+                }
+            }
+            Path own=scratchpads.systemRoot().resolve(source);
+            if (Files.exists(own,LinkOption.NOFOLLOW_LINKS)) copyTree(source,own,root.resolve("assets"),assets,seenAssets,check,copyBudget);
+            for (Path swarm:swarms.ownedScratchpads(source)) copyTree(source,swarm,root.resolve("assets"),assets,seenAssets,check,copyBudget);
+            for (Path swarm:swarms.ambiguousScratchpads(source)) gap(source,"ownership_unknown:"+swarm,false);
+            for (var agent:agents.listForSession(source)) if (agent.outputFile()!=null) outputs.add(Path.of(agent.outputFile()));
+            for (Path output:outputs) copyFile(source,output,root.resolve("assets"),assets,seenAssets,check,copyBudget);
+            for (Asset asset:List.copyOf(assets)) {
+                if ("external_reference".equals(asset.status()) && asset.originalPath().startsWith("/")) {
+                    Path path=Path.of(asset.originalPath()).toAbsolutePath().normalize();
+                    if (path.startsWith(own.toAbsolutePath().normalize()) && !Files.isDirectory(path,LinkOption.NOFOLLOW_LINKS))
+                        copyFile(source,path,root.resolve("assets"),assets,seenAssets,check,copyBudget);
+                }
+            }
+            for (Asset asset:assets) exportAsset(asset);
+        }
+        boolean tableExists(String name) { return jdbc.queryForObject("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name=?",Integer.class,name)==1; }
+        boolean parseFailure(IOException failure) {
+            return failure instanceof com.fasterxml.jackson.core.JsonProcessingException
+                    || Set.of("SOURCE_MESSAGE_UNREADABLE","CHECKPOINT_UNREADABLE","SOURCE_TEXT_INVALID_UTF16")
+                    .contains(Objects.toString(failure.getMessage(),""));
+        }
+        void simpleRecord(String source,String kind,String id,Map<String,Object> row) throws IOException {
+            check.run(); Path raw=rawRow(row);
+            String ref=record(new Origin(source,id,hash(raw,check),kind),"reference",Objects.toString(row.get("created_at"),null),raw,"extract");
+            if (ref!=null) text(ref,source,json.writeValueAsString(row));
+        }
+        void exportSimpleRows(String source,String table,String idColumn,String filter,String value) throws IOException {
+            String last="";
+            while (true) {
+                check.run(); var rows=jdbc.queryForList("SELECT "+idColumn+" FROM "+table+" WHERE "+filter+"=? AND "+idColumn+">? ORDER BY "+idColumn+" LIMIT 1",value,last);
+                if (rows.isEmpty()) return; last=rows.getFirst().get(idColumn).toString(); exportRow(source,table,idColumn,last);
+            }
+        }
+        void exportRow(String source,String table,String idColumn,String id) throws IOException {
+            List<String> columns=jdbc.queryForList("PRAGMA table_info("+table+")").stream()
+                    .map(row -> row.get("name").toString()).filter(name -> !name.equals(idColumn)).toList();
+            Path raw=rawColumns(table,idColumn,Map.of(idColumn,id),columns);
+            JsonNode node=parse(raw,source,id,table,"reference",null);
+            if(node==null) return;
+            String ref=record(new Origin(source,id,hash(raw,check),table),"reference",null,raw,"extract");
+            if(ref!=null) text(ref,source,node.toString());
+        }
+        void exportMessage(String source,String id,String role,String created,String stop,JsonNode content,JsonNode meta,
+                           Path raw,List<Asset> assets,Set<String> calls,Set<Path> outputs) throws IOException {
+            if (content==null || !(content.isArray() || content.isTextual()) || !Set.of("user","assistant","system").contains(role))
+                throw new IOException("SOURCE_MESSAGE_UNREADABLE");
+            Origin origin;
+            if (meta!=null && meta.path("handoffOrigin").isObject()) origin=json.treeToValue(meta.get("handoffOrigin"),Origin.class);
+            else origin=new Origin(source,id,messageVersion(role,content,stop,meta),
+                    meta!=null && meta.has("sessionMergeOperationId") ? "derived_context" : "message");
+            String ref=record(origin,role,created,raw,"extract"); if (ref==null) return;
+            try (var projection=new TextParts(ref,source)) {
+                projection.append("来源 "+source+"; 消息 "+id+"; "+role+"; "+Objects.toString(created,"")+"; stop="+Objects.toString(stop,"")+"\n");
+                render(content,projection,source,assets,calls,outputs);
+                if (meta!=null) projection.append("\n消息元数据: "+meta);
+            }
+        }
+        void render(JsonNode content,TextParts out,String source,List<Asset> assets,Set<String> calls,Set<Path> outputs) throws IOException {
+            if (content.isTextual()) { out.append(content.asText()); return; }
+            if (!content.isArray()) { out.append(content.toString()); return; }
+            for (JsonNode block:content) {
+                check.run(); String type=block.path("type").asText();
+                if (Set.of("thinking","redacted_thinking","provider_response_state").contains(type)) continue;
+                collectAgentOutput(block,calls,outputs); collectReferences(block,source,assets,seenAssets);
+                switch(type) {
+                    case "text" -> out.append(block.path("text").asText());
+                    case "tool_use" -> out.append("\n工具调用 "+block.path("name").asText()+" · "+block.path("id").asText()+"\n"+block.path("input"));
+                    case "tool_result" -> {
+                        out.append("\n工具结果 "+toolUseId(block)+" · is_error="+(block.path("is_error").asBoolean() || block.path("isError").asBoolean())+"\n");
+                        render(block.path("content"),out,source,assets,calls,outputs); out.append("\nmetadata="+block.path("metadata"));
+                    }
+                    case "image" -> {
+                        String data=block.path("base64Data").asText(block.path("source").path("data").asText());
+                        if (!data.isBlank()) {
+                            Path image=root.resolve("assets/"+UUID.randomUUID());
+                            try {
+                                byte[] bytes=Base64.getDecoder().decode(data); copyBudget.check(bytes.length); copyBudget.written+=bytes.length;
+                                try(var stream=budget.output(image,StandardOpenOption.CREATE_NEW)) { stream.write(bytes); }
+                                assets.add(new Asset(source,"embedded:"+out.recordRef+":"+assets.size(),image.toString(),"copied",null,bytes.length,hash(image,check)));
+                            } catch (IllegalArgumentException invalid) { gap(source,"RECORD_REQUIRES_HANDLING:invalid_image",true); }
+                        }
+                        out.append("\n[历史图片原件见附件目录，尚未解释其视觉内容]\n");
+                    }
+                    default -> out.append(block.toString());
+                }
+                out.append("\n");
+            }
+        }
+        void exportCheckpoints(String source,List<Asset> assets,Set<String> calls,Set<Path> outputs) throws IOException {
+            if (!tableExists("agent_checkpoints")) return;
+            String last=""; boolean any=false;
+            while (true) {
+                check.run(); var rows=jdbc.queryForList("SELECT id,run_id,seq,created_at FROM agent_checkpoints WHERE session_id=? AND id>? ORDER BY id LIMIT 1",source,last);
+                if (rows.isEmpty()) break; any=true; var row=rows.getFirst(); last=row.get("id").toString();
+                Path raw=rawColumns("agent_checkpoints",row,List.of("messages_json"));
+                JsonNode parsed=parse(raw,source,last,"checkpoint","reference",(String)row.get("created_at"));
+                if(parsed==null) continue;
+                String container=record(new Origin(source,last,hash(raw,check),"checkpoint"),"reference",(String)row.get("created_at"),raw,"archive");
+                try {
+                    JsonNode messages=parser.readTree(parsed.path("messages_json").asText());
+                    if (messages==null || !messages.isArray()) throw new IOException("CHECKPOINT_UNREADABLE");
+                    int position=0;
+                    for (JsonNode message:messages) {
+                        position++; String id=message.path("uuid").asText();
+                        if (id.isBlank()) id="inferred-"+digest(message.toString());
+                        line(occurrences,Map.of("sourceId",source,"checkpointId",last,"position",position,"recordId",id,"identityInferred",id.startsWith("inferred-")));
+                        Path messageRaw=rawRow(Map.of("checkpointId",last,"position",position,"message",message));
+                        JsonNode meta=message.path("meta"); if (!meta.isObject()) meta=message.path("metadata");
+                        exportMessage(source,id,message.path("type").asText(),message.path("timestamp").asText(),
+                                message.path("stopReason").asText(message.path("stop_reason").asText(null)),message.path("content"),meta,messageRaw,assets,calls,outputs);
+                    }
+                } catch (IOException invalid) {
+                    if (!parseFailure(invalid)) throw invalid;
+                    gap(source,"RECORD_REQUIRES_HANDLING:"+Objects.toString(container,last),true);
+                }
+            }
+            if (any) gap(source,"legacy_history:checkpoint 可能已经裁剪，缺失历史无法恢复",false);
+            else {
+                JsonNode metadata=sessionInfo(source).metadata();
+                if(metadata.has("parent_session_id") || "subagent".equals(metadata.path("type").asText()))
+                    gap(source,"legacy_history:子任务未保存 checkpoint，未持久化的过程无法恢复",false);
+            }
+        }
+        void exportAsset(Asset asset) throws IOException {
+            if ("copy_failed".equals(asset.status())) throw new IOException("MERGE_COPY_INCOMPLETE");
+            if (!"copied".equals(asset.status())) { gap(asset.sourceSessionId(),asset.status()+":"+asset.originalPath(),false); return; }
+            Path path=Path.of(asset.copiedPath());
+            String id=digest(asset.sourceSessionId()+":"+asset.originalPath()+":"+asset.sha256());
+            Path destination=root.resolve("assets/a_"+id);
+            if (!path.equals(destination)) Files.move(path,destination,StandardCopyOption.REPLACE_EXISTING);
+            Path raw=rawRow(Map.of("originalPath",asset.originalPath(),"sha256",asset.sha256(),"bytes",asset.size()));
+            String ref=record(new Origin(asset.sourceSessionId(),asset.originalPath(),asset.sha256(),"asset"),"reference",null,raw,"extract");
+            if (ref==null) return;
+            file("a_"+id,ref,asset.sourceSessionId(),destination,"asset",0); copiedCount++;
+            text(ref,asset.sourceSessionId(),"资料原件 a_"+id+"; 原路径: "+asset.originalPath());
+            String lower=asset.originalPath().toLowerCase(Locale.ROOT);
+            if (lower.matches(".*\\.(txt|md|json|jsonl|log|csv|yaml|yml|xml|html|java|ts|tsx|js|py|sh)$")) {
+                try(var reader=Files.newBufferedReader(destination,StandardCharsets.UTF_8); var out=new TextParts(ref+"-body",asset.sourceSessionId())) {
+                    out.recordRef=ref; char[] buffer=new char[4096]; int count;
+                    while((count=reader.read(buffer))!=-1) {
+                        String chunk=new String(buffer,0,count);
+                        if (count>0 && Character.isHighSurrogate(chunk.charAt(count-1))) {
+                            int low=reader.read(); if(low<0 || !Character.isLowSurrogate((char)low)) throw new IOException("INVALID_UTF16"); chunk+=(char)low;
+                        }
+                        out.append(chunk);
+                    }
+                } catch(java.nio.charset.CharacterCodingException invalid) { gap(asset.sourceSessionId(),"RECORD_REQUIRES_HANDLING:"+ref,true); }
+            } else gap(asset.sourceSessionId(),"attachment_uninterpreted:"+ref,false);
+        }
+        void importPrevious(String source) throws IOException {
+            if (!jdbc.queryForList("PRAGMA table_info(session_merges)").stream().anyMatch(row -> "protocol_version".equals(row.get("name")))) return;
+            var rows=jdbc.queryForList("SELECT package_path,snapshot_hash,handoff_hash,protocol_version FROM session_merges WHERE target_session_id=? AND status='completed'",source);
+            if (rows.isEmpty()) return;
+            Path previous=Path.of(rows.getFirst().get("package_path").toString());
+            if(((Number)rows.getFirst().get("protocol_version")).intValue()==1) {
+                if(!Files.isDirectory(previous,LinkOption.NOFOLLOW_LINKS) || Files.isSymbolicLink(previous)) {
+                    gap(source,"legacy_package_missing",true); return;
+                }
+                // Legacy packages lack canonical origin IDs; retain every available file and state this limitation.
+                gap(source,"legacy_package_origin_inferred",false);
+                try(var paths=Files.walk(previous)) {
+                    var iterator=paths.iterator();
+                    while(iterator.hasNext()) {
+                        check.run(); Path original=iterator.next();
+                        if(Files.isSymbolicLink(original)) { gap(source,"legacy_symlink_not_copied:"+original,true); continue; }
+                        if(!Files.isRegularFile(original,LinkOption.NOFOLLOW_LINKS)) continue;
+                        safeFile(previous,previous.relativize(original).toString());
+                        var copies=new ArrayList<Asset>();
+                        copyFile(source,original,root.resolve("assets"),copies,seenAssets,check,copyBudget);
+                        for(var asset:copies) exportAsset(asset);
+                    }
+                }
+                return;
+            }
+            validateSnapshot(previous,rows.getFirst().get("snapshot_hash").toString(),check);
+            if(Files.exists(previous.resolve("work/recovered/seal.json")))
+                HandoffReadService.verifyPrepared(previous,rows.getFirst().get("snapshot_hash").toString(),
+                        Objects.toString(rows.getFirst().get("handoff_hash"),""),json);
+            try(var reader=Files.newBufferedReader(safeFile(previous,"snapshot/records.jsonl"))) {
+                String line;
+                while((line=reader.readLine())!=null) {
+                    check.run(); RecordEntry entry=json.readValue(line,RecordEntry.class);
+                    if (recordRefs.add(entry.recordRef())) { line(records,entry); recordCount++; }
+                    else line(occurrences,Map.of("recordRef",entry.recordRef(),"importedFrom",source));
+                }
+            }
+            for(Path previousCatalog:projectionCatalogs(previous)) try(var reader=Files.newBufferedReader(previousCatalog)) {
+                String line;
+                while((line=reader.readLine())!=null) {
+                    check.run(); FileEntry entry=json.readValue(line,FileEntry.class);
+                    if(!fileRefs.add(entry.ref())) continue;
+                    Path original=safeFile(previous,entry.path());
+                    Path relative=Path.of(entry.path());
+                    if (!relative.startsWith("snapshot")) {
+                        relative=Path.of("snapshot/recovered/"+sha256(entry.ref())+".txt");
+                        entry=new FileEntry(entry.ref(),entry.recordRef(),entry.sourceId(),entry.part(),relative.toString(),entry.bytes(),entry.sha256(),entry.kind());
+                    }
+                    Path destination=root.resolve(Path.of("snapshot").relativize(relative));
+                    Files.createDirectories(destination.getParent());
+                    copyBudget.check(entry.bytes());
+                    try(var input=Files.newInputStream(original,LinkOption.NOFOLLOW_LINKS); var output=budget.output(destination,StandardOpenOption.CREATE_NEW)) {
+                        byte[] buffer=new byte[65536];int count;
+                        while((count=input.read(buffer))!=-1) { check.run();copyBudget.check(count);copyBudget.written+=count;output.write(buffer,0,count); }
+                    }
+                    if (!hash(destination,check).equals(entry.sha256())) throw new IOException("MERGE_SNAPSHOT_CORRUPT");
+                    line(files,entry);fileCount++; if("asset".equals(entry.kind())) copiedCount++;
+                }
+            }
+            for(String name:List.of("occurrences.jsonl","gaps.jsonl")) {
+                try(var reader=Files.newBufferedReader(safeFile(previous,"snapshot/"+name))) {
+                    String line;
+                    while((line=reader.readLine())!=null) {
+                        check.run(); if ("gaps.jsonl".equals(name)) {
+                            JsonNode gap=json.readTree(line); warningCount++;
+                            if(gap.path("blocking").asBoolean()) blockedReason=gap.path("reason").asText();
+                        }
+                        var output="gaps.jsonl".equals(name)?gaps:occurrences;output.write(line);output.newLine();
+                    }
+                }
+            }
+        }
+        void text(String ref,String source,String text) throws IOException { try(var out=new TextParts(ref,source)) { out.append(text); } }
+        final class TextParts implements AutoCloseable {
+            final String ref,source; String recordRef; final StringBuilder text=new StringBuilder(); int bytes,part;
+            TextParts(String ref,String source) { this.ref=ref;this.recordRef=ref;this.source=source; }
+            void append(String value) throws IOException {
+                for(int i=0;i<value.length();) {
+                    if((i&4095)==0) check.run(); int cp=value.codePointAt(i);
+                    if(cp>=0xD800 && cp<=0xDFFF) throw new IOException("SOURCE_TEXT_INVALID_UTF16");
+                    int width=cp<=127?1:cp<=2047?2:cp<=65535?3:4;
+                    if(bytes+width>32768) flush(); text.appendCodePoint(cp);bytes+=width;i+=Character.charCount(cp);
+                }
+            }
+            void flush() throws IOException {
+                if(text.isEmpty()) return;
+                Path path=root.resolve("text/"+ref+"-"+part+".txt"); budget.write(path,text,StandardOpenOption.CREATE_NEW);
+                file(ref+":p"+part,recordRef,source,path,"text",part);part++;text.setLength(0);bytes=0;
+            }
+            @Override public void close() throws IOException { flush(); }
+        }
+        void closeCatalogs() throws IOException {
+            if(!catalogsClosed) { catalogsClosed=true; records.close();files.close();occurrences.close();gaps.close(); }
+        }
+        @Override public void close() throws IOException { closeCatalogs(); }
     }
 
     public Bundle build(Path directory, List<String> roots, Runnable check) throws IOException {
@@ -516,6 +1110,9 @@ public class MergePackageService {
         } catch (NoSuchAlgorithmException impossible) { throw new IllegalStateException(impossible); }
     }
     public void deleteUnreferenced(Path directory) throws IOException {
+        if (Objects.equals(directory.toAbsolutePath().normalize().getParent(),packageRoot())) {
+            requireOperationPath(directory); deleteTree(directory); return;
+        }
         if (!directory.normalize().startsWith(scratchpads.systemRoot()) || !directory.getParent().getFileName().toString().equals("handoffs"))
             throw new IOException("INVALID_PACKAGE_PATH");
         if (Files.exists(directory, LinkOption.NOFOLLOW_LINKS)) try (var paths = Files.walk(directory)) {

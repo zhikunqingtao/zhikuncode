@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { Sidebar } from './Sidebar';
 import { useAppUiStore } from '@/store/appUiStore';
+import { useSessionStore } from '@/store/sessionStore';
 
 function mockSessionListFetch() {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({
@@ -11,8 +12,18 @@ function mockSessionListFetch() {
     }) }));
 }
 
+/** 两条会话（target 为当前会话，other 未选中），供选中态 pill 测试使用 */
+function mockTwoSessionsFetch() {
+    const row = (id: string, title: string) => ({ id, title, model: 'test', workingDirectory: '/workspace', updatedAt: new Date().toISOString(), messageCount: 1 });
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({
+        sessions: [row('target', '目标会话'), row('other', '其他会话')],
+        hasMore: false,
+    }) }));
+}
+
 beforeEach(() => {
     localStorage.clear();
+    useSessionStore.setState({ sessionId: null });
     mockSessionListFetch();
     // framer-motion useReducedMotion 依赖 matchMedia（jsdom 未实现）
     window.matchMedia = vi.fn().mockImplementation((query: string) => ({
@@ -180,4 +191,29 @@ it('搜索首页和分页保留服务端顺序，清空搜索后仍使用普通�
     } finally {
         vi.useRealTimers();
     }
+});
+
+it('当前会话卡渲染 .session-active-pill 且标题为 font-semibold', async () => {
+    mockTwoSessionsFetch();
+    useSessionStore.setState({ sessionId: 'target' });
+    render(<Sidebar />);
+    const title = await screen.findByText('目标会话');
+    const card = title.closest('.session-card');
+    expect(card).not.toBeNull();
+    expect(card).toHaveAttribute('data-active', 'true');
+    expect(card!.querySelector('.session-active-pill')).not.toBeNull();
+    expect(title).toHaveClass('font-semibold');
+});
+
+it('非选中卡不渲染 pill', async () => {
+    mockTwoSessionsFetch();
+    useSessionStore.setState({ sessionId: 'target' });
+    render(<Sidebar />);
+    await screen.findByText('目标会话');
+    const otherTitle = screen.getByText('其他会话');
+    const otherCard = otherTitle.closest('.session-card');
+    expect(otherCard).not.toBeNull();
+    expect(otherCard).toHaveAttribute('data-active', 'false');
+    expect(otherCard!.querySelector('.session-active-pill')).toBeNull();
+    expect(otherTitle).toHaveClass('font-medium');
 });

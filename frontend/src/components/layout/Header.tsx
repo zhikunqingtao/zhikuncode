@@ -21,31 +21,18 @@ import { useBridgeStore } from '@/store/bridgeStore';
 import { clearSessionSelection } from '@/services/sessionActivation';
 import { McpIcon } from '@/components/mcp/McpIcon';
 import { MemoryIcon } from '@/components/memory/MemoryIcon';
+import { SessionStatusCapsule } from '@/components/status/SessionStatusCapsule';
 
 /** §7.4 头部按钮共性：hover/active/焦点环（ring-accent2-ring） */
 const HEADER_BUTTON_CLASS =
     'px-2 h-7 items-center justify-center max-md:min-h-11 max-md:min-w-11 rounded-[10px] hover:bg-hover2 hover:text-t1 active:scale-95 active:shadow-pressed transition-interactive duration-fast text-t2 ' +
     'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring';
 
-/** 会话状态展示（自底部状态栏上移至 Header 右簇）。
- *  streaming 用旋转图标（Loader2，accent2 墨色）——与任务面板/SimpleTaskList 的运行中约定一致，
- *  比脉冲点更直观；其余状态用色点 + 8% 光晕。 */
-const SESSION_STATUS_META: Record<string, { label: string; color: string; pulse: boolean; spinner?: boolean }> = {
-    idle: { label: '就绪', color: 'var(--v2-ok)', pulse: false },
-    streaming: { label: '运行中', color: 'var(--v2-accent)', pulse: false, spinner: true },
-    waiting_permission: { label: '等待权限', color: 'var(--v2-warn)', pulse: false },
-    compacting: { label: '压缩中...', color: 'var(--v2-accent)', pulse: true },
-};
-
-/** 会话状态 → 图标规则（颜色/脉冲/旋转），供 Header 与输入区权限 chip 等复用同款状态图标 */
-export function getSessionStatusMeta(status: string): { label: string; color: string; pulse: boolean; spinner?: boolean } {
-    return SESSION_STATUS_META[status] ?? { label: status, color: 'var(--v2-ok)', pulse: false };
-}
-
-/** 会话状态 → 展示文案 */
-export function getSessionStatusLabel(status: string): string {
-    return SESSION_STATUS_META[status]?.label ?? status;
-}
+/** 会话状态展示规则（颜色/脉冲/旋转/文案/胶囊语气）已抽取至
+ *  status/sessionStatusMeta——Header 状态胶囊、输入区 SessionStatusCapsule、
+ *  SessionStatusIcon 共用同款视觉约定；此处保留再导出兼容既有引用
+ *  （Header.test、SessionStatusIcon 等）。 */
+export { getSessionStatusMeta, getSessionStatusLabel } from '@/components/status/sessionStatusMeta';
 
 /** 指标间 hairline 竖向分割（同原 StatusBar 右簇 §7.4），装饰性 */
 function MetricDivider({ className = '' }: { className?: string }) {
@@ -98,15 +85,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
     const currentModelName = availableModels.find(item => item.id === model)?.displayName ?? model ?? '';
     // Compact presentation only; option labels, ids and model requests remain unchanged.
     const compactModelName = currentModelName.replace(/\s*[（(][^）)]*[）)]\s*$/, '');
-    const sessionStatusMeta = getSessionStatusMeta(status);
     const streaming = bridgeStatus === 'connected' && status === 'streaming';
-    /** 桌面右簇状态胶囊语气：运行中/压缩中=accent 软底高亮，等待权限=警告色，就绪=透明低调（无事态不抢视觉） */
-    const sessionStatusChipTone =
-        status === 'idle'
-            ? 'border-transparent text-t2'
-            : status === 'waiting_permission'
-                ? 'border-warnsoft bg-warnsoft text-warn'
-                : 'border-accent2-ring bg-accent2-soft text-accent2-ink';
 
     const mobileStatus = bridgeStatus !== 'connected'
         ? ({ disconnected: '连接已断开', reconnecting: '连接中', error: '连接异常' }[bridgeStatus])
@@ -170,25 +149,7 @@ export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
             <div className="hidden md:flex items-center gap-2">
                 {/* 会话状态 + 用量指标（自底部状态栏右簇上移；指标细节 ≥lg 展示，空间不足时让位） */}
                 <div className="flex items-center gap-2.5 pr-1 text-[13px] font-mono tabular-nums text-t3">
-                    <div
-                        className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2 py-0.5 text-[13px] font-medium leading-5 ${sessionStatusChipTone}`}
-                        title="会话状态"
-                        role="status"
-                    >
-                        {sessionStatusMeta.spinner ? (
-                            <Loader2 aria-hidden="true" className="h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                            <span
-                                aria-hidden="true"
-                                className={`h-2 w-2 rounded-full ${sessionStatusMeta.pulse ? 'motion-safe:animate-pulse' : ''}`}
-                                style={{
-                                    backgroundColor: sessionStatusMeta.color,
-                                    boxShadow: `0 0 0 3px color-mix(in srgb, ${sessionStatusMeta.color} 8%, transparent)`,
-                                }}
-                            />
-                        )}
-                        <span>{sessionStatusMeta.label}</span>
-                    </div>
+                    <SessionStatusCapsule />
                     <MetricDivider className="hidden lg:block" />
                     <div className="hidden lg:flex items-center gap-2 tabular-nums">
                         <span title="输入 Tokens">↑ {usage.inputTokens.toLocaleString()}</span>

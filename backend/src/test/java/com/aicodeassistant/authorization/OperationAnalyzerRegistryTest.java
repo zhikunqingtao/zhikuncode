@@ -33,12 +33,38 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class OperationAnalyzerRegistryTest {
     @TempDir Path temp;
+
+    @Test
+    void handoffReadRequiresBuiltinIdentityAndRechecksTheRootBinding() throws Exception {
+        var reads=mock(com.aicodeassistant.session.merge.HandoffReadService.class);
+        when(reads.authorize(eq("root-session"),any())).thenReturn("op:hash");
+        var tool=new com.aicodeassistant.tool.impl.HandoffReadTool(reads,mock(AuthorizationSubjectResolver.class),mock(ImageResultExternalizer.class));
+        var registry=registry(safeBash());
+        var input=ToolInput.from(Map.of("action","list"));
+        var subject=new AuthorizationSubject("root-session","root-run","child-run","wk",temp);
+        var context=ToolUseContext.of(temp.toString(),"synthetic-child").withCurrentRunId("child-run");
+        try(var frozen=frozen(input)) {
+            var analyzer=registry.analyzerFor(tool);
+            var descriptor=analyzer.analyze(tool,frozen,input,context,subject);
+            assertThat(descriptor.analyzerId()).isEqualTo("handoff-read-v1");
+            assertThat(descriptor.effects()).containsExactly(EffectClass.READ_RESOURCE);
+            assertThat(descriptor.risk()).isEqualTo(RiskClass.SAFE);
+            analyzer.recheck(tool,descriptor,input,context,subject);
+            when(reads.authorize(eq("root-session"),any())).thenReturn("different:hash");
+            assertThatThrownBy(() -> analyzer.recheck(tool,descriptor,input,context,subject)).isInstanceOf(AuthorizationException.class);
+        }
+        Tool impersonator=mock(Tool.class); when(impersonator.getName()).thenReturn("HandoffRead");
+        assertThat(registry.analyzerFor(impersonator).id()).isEqualTo("static-or-remote-v1");
+        when(impersonator.isMcp()).thenReturn(true);
+        assertThat(registry.analyzerFor(impersonator).id()).isEqualTo("mcp-v1");
+    }
 
     @Test
     void mcpToolsUseDedicatedAnalyzerWithoutExpandingGenericControlTools() {

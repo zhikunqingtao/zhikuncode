@@ -12,6 +12,189 @@ import static org.assertj.core.api.Assertions.*;
 
 class MergePackageServiceTest {
     @TempDir Path root;
+    @Test void legacyPublishedPackageIsCopiedWithoutDependingOnItsOldDirectory() throws Exception {
+        var f=new MergeFixture(root); f.message("A","LEGACY_HISTORY_TAIL");
+        String oldId=UUID.randomUUID().toString();
+        var legacy=f.packages.build(f.packages.packagePath("legacy",oldId),List.of("A","B"),()->{});
+        f.sessions.createSessionRecord("legacy","test-model",root.toString(),"legacy");
+        f.jdbc.update("INSERT INTO session_merges(operation_id,idempotency_key,params_json,target_session_id,status,stage,package_path,created_at,updated_at) VALUES(?,?,'{}','legacy','completed','completed',?,'now','now')",oldId,oldId,legacy.path().toString());
+        Path path=f.packages.snapshotPath(UUID.randomUUID().toString());
+        var snapshot=f.packages.seal(path,List.of("legacy","C"),1,()->{});
+        f.packages.deleteUnreferenced(legacy.path());
+        f.packages.validateSnapshot(path,snapshot.hash(),()->{});
+        StringBuilder text=new StringBuilder();
+        try(var lines=Files.lines(path.resolve("snapshot/files.jsonl"))) {
+            for(String line:lines.toList()) {
+                var file=f.json.readValue(line,MergeHandoffData.FileEntry.class);
+                if(file.kind().equals("text")) text.append(Files.readString(path.resolve(file.path())));
+            }
+        }
+        assertThat(text).contains("LEGACY_HISTORY_TAIL");
+    }
+
+    @Test void blockedLargeRecordCanBeReparsedOnlyFromItsImmutableCopy() throws Exception {
+        var f=new MergeFixture(root);
+        f.message("A","RECOVER_FROM_SNAPSHOT_ONLY "+"long text ".repeat(100));
+        org.springframework.test.util.ReflectionTestUtils.setField(f.packages,"maxRecordMaterializeBytes",128);
+        String id=UUID.randomUUID().toString(); Path path=f.packages.snapshotPath(id);
+        var snapshot=f.packages.seal(path,List.of("A","B"),1,()->{});
+        assertThat(snapshot.blockedReason()).isNotNull();
+        f.jdbc.update("DELETE FROM messages WHERE session_id='A'");
+        org.springframework.test.util.ReflectionTestUtils.setField(f.packages,"maxRecordMaterializeBytes",1024*1024);
+        f.packages.recoverBlockedProjections(path,()->{});
+        assertThat(f.packages.validateSnapshot(path,snapshot.hash(),()->{}).hash()).isEqualTo(snapshot.hash());
+        String catalog=Files.readString(MergePackageService.projectionCatalogs(path).getLast());
+        var entry=f.json.readValue(catalog.lines().findFirst().orElseThrow(),MergeHandoffData.FileEntry.class);
+        assertThat(Files.readString(path.resolve(entry.path()))).contains("RECOVER_FROM_SNAPSHOT_ONLY");
+    }
+
+    @Test void emptyRecoveredSealCannotSatisfyABlockedRecord() throws Exception {
+        var f=new MergeFixture(root); f.message("A","long text ".repeat(100));
+        org.springframework.test.util.ReflectionTestUtils.setField(f.packages,"maxRecordMaterializeBytes",128);
+        Path path=f.packages.snapshotPath(UUID.randomUUID().toString());
+        assertThat(f.packages.seal(path,List.of("A","B"),1,()->{}).blockedReason()).isNotNull();
+        Path recovered=Files.createDirectories(path.resolve("work/recovered"));
+        Path catalog=Files.writeString(recovered.resolve("projection-files.jsonl"),"");
+        Files.writeString(recovered.resolve("seal.json"),f.json.writeValueAsString(Map.of("catalogHash",MergePackageService.hash(catalog,()->{}))));
+        org.springframework.test.util.ReflectionTestUtils.setField(f.packages,"maxRecordMaterializeBytes",1024*1024);
+        assertThatThrownBy(()->f.packages.recoverBlockedProjections(path,()->{})).hasMessage("RECORD_REQUIRES_HANDLING");
+    }
+
+    @Test void corruptTextAttachmentCannotBeBypassedByRecovery() throws Exception {
+        var f=new MergeFixture(root);
+        Path scratch=Files.createDirectories(root.resolve("scratch/A"));
+        Files.write(scratch.resolve("plan.md"),new byte[]{(byte)0xc3,0x28});
+        Path path=f.packages.snapshotPath(UUID.randomUUID().toString());
+        var snapshot=f.packages.seal(path,List.of("A","B"),1,()->{});
+        assertThat(snapshot.blockedReason()).startsWith("RECORD_REQUIRES_HANDLING:");
+        assertThatThrownBy(()->f.packages.recoverBlockedProjections(path,()->{})).hasMessage("RECORD_REQUIRES_HANDLING");
+        assertThat(Files.exists(path.resolve("work/recovered/seal.json"))).isFalse();
+        assertThat(f.packages.validateSnapshot(path,snapshot.hash(),()->{})).isEqualTo(snapshot);
+    }
+
+    @Test void largeCheckpointCanRecoverAfterRaisingTheMaterializationLimit() throws Exception {
+        var f=new MergeFixture(root);
+        String messages=f.json.writeValueAsString(List.of(Map.of("uuid","historical","type","assistant",
+                "content",List.of(Map.of("type","text","text","long checkpoint ".repeat(100)+"CHECKPOINT_TAIL")))));
+        f.jdbc.update("INSERT INTO agent_checkpoints(id,run_id,session_id,agent_id,seq,messages_json,created_at) VALUES('cp','run','A','agent',0,?,'now')",messages);
+        org.springframework.test.util.ReflectionTestUtils.setField(f.packages,"maxRecordMaterializeBytes",128);
+        Path path=f.packages.snapshotPath(UUID.randomUUID().toString());
+        assertThat(f.packages.seal(path,List.of("A","B"),1,()->{}).blockedReason()).isNotNull();
+        f.jdbc.update("DELETE FROM agent_checkpoints");
+        org.springframework.test.util.ReflectionTestUtils.setField(f.packages,"maxRecordMaterializeBytes",1024*1024);
+        f.packages.recoverBlockedProjections(path,()->{});
+        f.packages.recoverBlockedProjections(path,()->{}); // a complete, verified seal remains reusable
+        StringBuilder text=new StringBuilder();
+        for(String line:Files.readAllLines(MergePackageService.projectionCatalogs(path).getLast())) {
+            var file=f.json.readValue(line,MergeHandoffData.FileEntry.class);
+            text.append(Files.readString(path.resolve(file.path())));
+        }
+        assertThat(text).contains("CHECKPOINT_TAIL");
+    }
+
+    @Test void missingUnpersistedChildHistoryIsAnExplicitNonBlockingGap() throws Exception {
+        var f=new MergeFixture(root);
+        f.sessions.registerSubAgentSession("child",root.toString(),"A");
+        Path path=f.packages.snapshotPath(UUID.randomUUID().toString());
+        var snapshot=f.packages.seal(path,List.of("A","B"),1,()->{});
+        assertThat(snapshot.blockedReason()).isNull();
+        var gaps=Files.readAllLines(path.resolve("snapshot/gaps.jsonl"));
+        assertThat(gaps).anySatisfy(line -> {
+            var gap=f.json.readTree(line);
+            assertThat(gap.path("sourceId").asText()).isEqualTo("child");
+            assertThat(gap.path("reason").asText()).contains("未持久化");
+            assertThat(gap.path("blocking").asBoolean()).isFalse();
+        });
+    }
+
+    @Test void v2SnapshotPreservesRawAndTextAfterSourceDeletion() throws Exception {
+        var f = new MergeFixture(root);
+        f.message("A", "中文🙂".repeat(12000)+"FINAL_TAIL");
+        Path scratch=Files.createDirectories(root.resolve("scratch/A"));
+        Files.writeString(scratch.resolve("plan.md"),"PLAN_ONLY_FACT");
+        Path path=f.packages.snapshotPath(UUID.randomUUID().toString());
+        var snapshot=f.packages.seal(path,List.of("A","B"),1,()->{});
+        assertThat(snapshot.blockedReason()).isNull();
+        f.jdbc.update("DELETE FROM messages WHERE session_id='A'");
+        f.jdbc.update("DELETE FROM sessions WHERE id='A'");
+        Files.delete(scratch.resolve("plan.md"));
+        assertThat(f.packages.validateSnapshot(path,snapshot.hash(),()->{})).isEqualTo(snapshot);
+        StringBuilder text=new StringBuilder();
+        for(String line:Files.readAllLines(path.resolve("snapshot/files.jsonl"))) {
+            var entry=f.json.readValue(line,MergeHandoffData.FileEntry.class);
+            if("text".equals(entry.kind())) {
+                assertThat(entry.bytes()).isLessThanOrEqualTo(32768);
+                text.append(Files.readString(path.resolve(entry.path())));
+            }
+        }
+        assertThat(text.toString()).contains("FINAL_TAIL","PLAN_ONLY_FACT");
+    }
+    @Test void v2ParsingFailurePreservesRawAndSealsWithExplicitBlocker() throws Exception {
+        var f=new MergeFixture(root); f.message("A","placeholder");
+        f.jdbc.update("UPDATE messages SET content_json='not-json' WHERE session_id='A'");
+        Path path=f.packages.snapshotPath(UUID.randomUUID().toString());
+        var snapshot=f.packages.seal(path,List.of("A","B"),1,()->{});
+        assertThat(snapshot.blockedReason()).contains("RECORD_REQUIRES_HANDLING");
+        assertThat(f.packages.validateSnapshot(path,snapshot.hash(),()->{})).isEqualTo(snapshot);
+        try(var files=Files.list(path.resolve("snapshot/raw"))) {
+            assertThat(files.filter(p -> { try { return Files.readString(p).contains("not-json"); } catch(Exception e) { throw new RuntimeException(e); }}).count()).isEqualTo(1);
+        }
+    }
+    @Test void v2DetectsTamperedSnapshotAndRejectsPathTraversal() throws Exception {
+        var f=new MergeFixture(root); f.message("A","before");
+        Path path=f.packages.snapshotPath(UUID.randomUUID().toString());
+        var snapshot=f.packages.seal(path,List.of("A","B"),1,()->{});
+        Path text;
+        try(var files=Files.list(path.resolve("snapshot/text"))) { text=files.findFirst().orElseThrow(); }
+        Files.writeString(text,"tampered");
+        assertThatThrownBy(()->f.packages.validateSnapshot(path,snapshot.hash(),()->{})).hasMessageContaining("SNAPSHOT_CORRUPT");
+        assertThatThrownBy(()->MergePackageService.safeFile(path,"../private" )).hasMessageContaining("INVALID_REF");
+    }
+    @Test void v2OrdinaryTextBeyondLegacyRecordLimitIsFullySplit() throws Exception {
+        var f=new MergeFixture(root);
+        f.message("A","x".repeat(MergePackageService.MAX_RECORD_BYTES+1)+"LARGE_FINAL_TAIL");
+        Path path=f.packages.snapshotPath(UUID.randomUUID().toString());
+        var snapshot=f.packages.seal(path,List.of("A","B"),1,()->{});
+        assertThat(snapshot.blockedReason()).isNull();
+        boolean tail=false;
+        try(var lines=Files.lines(path.resolve("snapshot/files.jsonl"))) {
+            for(var iterator=lines.iterator();iterator.hasNext();) {
+                var entry=f.json.readValue(iterator.next(),MergeHandoffData.FileEntry.class);
+                if("text".equals(entry.kind())) {
+                    assertThat(entry.bytes()).isLessThanOrEqualTo(32768);
+                    tail |= Files.readString(path.resolve(entry.path())).contains("LARGE_FINAL_TAIL");
+                }
+            }
+        }
+        assertThat(tail).isTrue();
+    }
+    @Test void v2RepeatedMergeCopiesIndependentOriginalsAndDeduplicatesMessages() throws Exception {
+        var f=new MergeFixture(root);
+        new com.aicodeassistant.config.database.V026_ExtendSessionMerges(f.jdbc).execute();
+        f.message("A","ONE_ORIGINAL_FACT");
+        String firstId=UUID.randomUUID().toString();
+        Path first=f.packages.snapshotPath(firstId);
+        var snapshot=f.packages.seal(first,List.of("A","B"),1,()->{});
+        f.jdbc.update("""
+                INSERT INTO session_merges(operation_id,idempotency_key,params_json,target_session_id,status,stage,
+                    package_path,created_at,updated_at,protocol_version,snapshot_hash,handoff_hash)
+                VALUES(?,?,?,'C','completed','completed',?,'now','now',2,?,'test-handoff')
+                """,firstId,firstId,"{}",first.toString(),snapshot.hash());
+        f.message("C","AFTER_FIRST_MERGE");
+        Path second=f.packages.snapshotPath(UUID.randomUUID().toString());
+        var merged=f.packages.seal(second,List.of("C","A"),1,()->{});
+        try(var paths=Files.walk(first)) {
+            for(Path p:paths.sorted(Comparator.reverseOrder()).toList()) Files.delete(p);
+        }
+        f.jdbc.update("DELETE FROM sessions WHERE id IN ('A','B','C')");
+        assertThat(f.packages.validateSnapshot(second,merged.hash(),()->{})).isEqualTo(merged);
+        StringBuilder contents=new StringBuilder();
+        for(String line:Files.readAllLines(second.resolve("snapshot/files.jsonl"))) {
+            var entry=f.json.readValue(line,MergeHandoffData.FileEntry.class);
+            if("text".equals(entry.kind())) contents.append(Files.readString(second.resolve(entry.path())));
+        }
+        assertThat(contents.toString()).containsOnlyOnce("ONE_ORIGINAL_FACT").contains("AFTER_FIRST_MERGE");
+    }
     @Test void preservesLastUnicodeRecordAndBinaryCopiesWithoutImportingToolState() throws Exception {
         var f = new MergeFixture(root);
         Path scratch = Files.createDirectories(root.resolve("scratch/A"));

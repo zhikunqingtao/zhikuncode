@@ -27,6 +27,13 @@ public class QueryLoopState {
         default void assertHealthy() { }
     }
 
+    /** Set only by a merged session's trusted, persisted metadata at the request entry. */
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private String handoffOperationId;
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public String getHandoffOperationId() { return handoffOperationId; }
+    public void setHandoffOperationId(String id) { handoffOperationId = id; }
+
     private CompactionContext compactionContext;
     public CompactionContext getCompactionContext() { return compactionContext; }
     public void setCompactionContext(CompactionContext context) { compactionContext = context; }

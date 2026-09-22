@@ -41,6 +41,7 @@ final class MergeFixture {
         jdbc.execute("CREATE TABLE run_envelopes (id TEXT PRIMARY KEY, session_id TEXT, status TEXT, exit_reason TEXT, abort_reason TEXT, error_summary TEXT, verification_status TEXT NOT NULL DEFAULT 'not_requested')");
         new V024_CreateSessionMerges(jdbc).execute();
         new V025_AddSessionPermissionMode(jdbc).execute();
+        new V026_ExtendSessionMerges(jdbc).execute();
         var sqlite = mock(SqliteConfig.class);
         doAnswer(invocation -> { ((Runnable) invocation.getArgument(1)).run(); return null; })
                 .when(sqlite).executeWriteVoid(any(), any());

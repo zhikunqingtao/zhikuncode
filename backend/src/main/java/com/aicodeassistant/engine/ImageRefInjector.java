@@ -93,6 +93,14 @@ public class ImageRefInjector {
                                          int remainingBudget, Set<String> confirmedHashes,
                                          Map<String,Integer> rejectedBudgetByHash,
                                          String workingDirectory, int modelMaxImages) {
+        return injectForApiCall(messages,runStartIndex,remainingBudget,confirmedHashes,rejectedBudgetByHash,
+                workingDirectory,modelMaxImages,(path,hash) -> false);
+    }
+
+    /** Additional access is supplied only by the trusted root's bound handoff catalog. */
+    public InjectResult injectForApiCall(List<Message> messages, int runStartIndex,
+            int remainingBudget, Set<String> confirmedHashes, Map<String,Integer> rejectedBudgetByHash,
+            String workingDirectory, int modelMaxImages, java.util.function.BiPredicate<String,String> boundHandoffAsset) {
         // 模型不支持图片，直接返回原消息（不注入）
         if (modelMaxImages <= 0) {
             log.debug("Model does not support images (maxImages={}), skipping injection", modelMaxImages);
@@ -185,7 +193,7 @@ public class ImageRefInjector {
                         Optional<ImageToolRef> refOpt = parseRef(toolContent);
                         if (refOpt.isPresent()) {
                             ImageToolRef ref = refOpt.get();
-                            ContentBlock imageBlock = validateAndLoad(ref, budgetLeft, workingDirectory);
+                            ContentBlock imageBlock = validateAndLoad(ref, budgetLeft, workingDirectory, boundHandoffAsset);
                             if (imageBlock != null && imageBlock instanceof ImageBlock ib) {
                                 int dataLen = ib.base64Data().length();
                                 // 二次硬校验：单张超限
@@ -245,6 +253,10 @@ public class ImageRefInjector {
      * 校验并加载图片为 ImageBlock。任何步骤失败则静默降级返回 null。
      */
     ContentBlock validateAndLoad(ImageToolRef ref, int budgetTokens, String workingDirectory) {
+        return validateAndLoad(ref,budgetTokens,workingDirectory,(path,hash) -> false);
+    }
+    private ContentBlock validateAndLoad(ImageToolRef ref, int budgetTokens, String workingDirectory,
+            java.util.function.BiPredicate<String,String> boundHandoffAsset) {
         try {
             if (ref.width() <= 0 || ref.height() <= 0
                     || (long) ref.width() * ref.height() > MAX_IMAGE_PIXELS) {
@@ -254,7 +266,7 @@ public class ImageRefInjector {
             // ① 路径安全检查
             PathSecurityService.PathCheckResult checkResult =
                     pathSecurityService.checkReadPermission(ref.path(), workingDirectory);
-            if (!checkResult.isAllowed()) {
+            if (!checkResult.isAllowed() && !boundHandoffAsset.test(ref.path(),ref.sha256())) {
                 log.debug("Image ref path security denied: {}", ref.path());
                 return null;
             }

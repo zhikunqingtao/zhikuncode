@@ -1,7 +1,7 @@
 import { pageSessionOrder } from '@/utils/pageSessionOrder';
 import { selectMergeSourceIds, useSessionMergeStore } from '@/store/sessionMergeStore';
 import { GlassMaterial } from '@/components/theme/GlassMaterial';
-import { motion, useReducedMotion } from 'framer-motion';
+import { LayoutGroup, motion, useReducedMotion } from 'framer-motion';
 /**
  * Sidebar — 左侧边栏组件
  * SPEC: §8.6.2
@@ -100,17 +100,21 @@ const COLLAPSED_STRIP_WIDTH = 36;
  *  颜色取 text-t3：t3 终值 #596A60 / #8B99AD 在 surface-2 上对比度 ≥4.5，满足 AA 红线。 */
 const PANEL_LABEL_CLASS = 'text-[12px] font-medium uppercase tracking-[.06em] text-t3';
 
-/** 「新建」按钮：accent2-soft 底 + accent 字，rounded-xl；
- *  文字档取 strong（soft 底上基准档不足 4.5:1，同 Chip 基元注释的 §10.1 处理）。 */
+/** 「新建」按钮：主操作实心 accent-strong + 白字（≥4.5:1，与公共 Button primary 一致）。
+ *  注意不可用 bg-accent2：--v2-accent 是表面强调色（dark 档刻意取亮如 #7FD4E8），压白字不达标；
+ *  strong 档三主题复用 light 深值，专为白字实心底设计（accents.ts §3.4）。 */
 const PANEL_NEW_BUTTON_CLASS =
     'w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl ' +
-    'bg-accent2-soft text-accent2-ink dark:text-accent2-ink text-sm font-medium ' +
-    'transition-interactive duration-fast active:scale-[0.98] ' +
+    'bg-accent2-strong text-white text-sm font-medium shadow-e2 ' +
+    'transition-interactive duration-fast hover:bg-accent2-hover active:bg-accent2-active active:scale-[0.98] ' +
     'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring';
 
-/** 列表卡 active：accent2-soft 底 + inset 2px 内嵌左边条。
- *  box-shadow 复合写法——若卡片另有外影，需把外影并列进同一 shadow 列表防止被覆盖。 */
-const PANEL_CARD_ACTIVE_CLASS = 'bg-surfacev2 border-hairline shadow-raised';
+/** 会话卡：surface 底浮在 app 底上（三主题自动适配），hover 泛 accent 微光 + 浮起阴影。
+ *  选中视觉不再改卡片本身，由卡内 .session-active-pill 独立层承担（globals.css）。 */
+const SESSION_CARD_CLASS =
+    'session-card group relative px-3 py-2.5 rounded-[14px] cursor-pointer border border-hairline ' +
+    'bg-surfacev2 shadow-e1 transition-interactive duration-fast ' +
+    'hover:shadow-raised hover:border-accent2-ring';
 
 /** §7.5 面板头：Label（大写）+ 计数 chip */
 function PanelHeader({ label, count, onCollapse, onBack }: { label: string; count?: number; onCollapse?: () => void; onBack?: () => void }) {
@@ -327,7 +331,7 @@ export function Sidebar({ className = '', isDrawerMode = false, defaultTab, onNa
 
     return (
         <motion.aside
-            className={`app-sidebar ${isDrawerMode ? '' : 'glass-surface'} ${sidebarWidthClass} h-full bg-surface2 ${isDrawerMode ? '' : 'border-r border-hairline'} flex flex-col relative z-10 overflow-hidden ${className}`}
+            className={`app-sidebar ${isDrawerMode ? '' : 'glass-surface'} ${sidebarWidthClass} h-full bg-app2 ${isDrawerMode ? '' : 'border-r border-hairline'} flex flex-col relative z-10 overflow-hidden ${className}`}
             style={sidebarStyle}
             animate={isDrawerMode ? undefined : { width: panelCollapsed ? COLLAPSED_STRIP_WIDTH : width }}
             transition={{ duration: glassMode && !reducedMotion && !isDragging ? .24 : 0, ease: [.2, .8, .2, 1] }}
@@ -558,6 +562,7 @@ function SessionList({ onCollapse, onSessionActivated, onBack }: { onCollapse?: 
     const currentSessionId = useSessionStore(s => s.sessionId);
     const currentStatus = useSessionStore(s => s.status);
     const currentMessages = useMessageStore(s => s.messages);
+    const reducedMotion = useReducedMotion();
     const simpleMode = useWorkbenchViewStore(s => s.enabled && s.viewMode === 'simple');
     const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -746,8 +751,9 @@ function SessionList({ onCollapse, onSessionActivated, onBack }: { onCollapse?: 
                 />
             </div>
 
-            {/* 会话列表 */}
-            <div className="flex-1 overflow-y-auto p-2 space-y-1">
+            {/* 会话列表（LayoutGroup 保证选中 pill 跨文件夹分组 section 滑动稳定） */}
+            <LayoutGroup>
+            <div className="flex-1 overflow-y-auto p-2 space-y-2">
                 {filteredSessions.length === 0 ? (
                     <div className="p-4 text-center text-t2 text-sm">
                         {query
@@ -759,25 +765,22 @@ function SessionList({ onCollapse, onSessionActivated, onBack }: { onCollapse?: 
                         // 搜索时临时展开匹配组，不改用户保存的折叠状态。
                         const expanded = Boolean(query.trim()) || !collapsedFolders.has(group.directory);
                         return (
-                            <section key={group.directory} aria-label={group.directory || '未关联文件夹'}>
+                            <section key={group.directory} aria-label={group.directory || '未关联文件夹'} className="mb-1">
                                 <button
                                     type="button"
                                     onClick={() => toggleFolder(group.directory)}
                                     aria-expanded={expanded}
                                     aria-label={`${expanded ? '收起' : '展开'}文件夹 ${group.directory || group.name}`}
                                     title={group.directory || group.name}
-                                    className="panel-control w-full flex items-center gap-2 px-2 py-2 rounded-[10px] text-t2 hover:bg-hover2
+                                    className="panel-control w-full flex items-center gap-2 px-2 py-1.5 rounded-[10px] text-t2 hover:bg-hover2
                                         focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent2-ring"
                                 >
                                     {expanded ? <ChevronDown className="w-3.5 h-3.5 shrink-0" /> : <ChevronRight className="w-3.5 h-3.5 shrink-0" />}
                                     <Folder className="w-4 h-4 shrink-0" />
-                                    <span className="min-w-0 flex-1 text-left">
-                                        <span className="block truncate text-sm font-medium text-t1">{group.name}</span>
-                                        {group.directory && <span className="block truncate text-[13px]">{group.directory}</span>}
-                                    </span>
+                                    <span className="min-w-0 flex-1 truncate text-left text-sm font-medium text-t1">{group.name}</span>
                                     <span className="text-[13px] tabular-nums">{group.sessions.length}</span>
                                 </button>
-                                {expanded && <div className="ml-2 border-l border-hairline pl-1 space-y-1">
+                                {expanded && <div className="mt-1.5 space-y-2">
                                     {group.sessions.map(session => {
                                         const folder = session.workingDirectory.split(/[\\/]/).filter(Boolean).at(-1);
                                         const displayTitle = simpleMode
@@ -792,20 +795,29 @@ function SessionList({ onCollapse, onSessionActivated, onBack }: { onCollapse?: 
                                         // 其余会话取服务端 running 标记）；其他状态不展示。
                                         const generating = isSessionGenerating(session, currentSessionId, currentStatus);
                                         const merging = !!session.mergeOperationId || mergeSourceIds.includes(session.id);
+                                        const isActive = session.id === currentSessionId;
                                         return (
                                             <div
                                                 key={session.id}
                                                 onClick={() => { void handleSwitchSession(session.id); }}
-                                                className={`group px-3 py-2.5 rounded-[14px] cursor-pointer border border-transparent
-                                                    transition-interactive duration-fast
-                                                    ${session.id === currentSessionId
-                                                        ? PANEL_CARD_ACTIVE_CLASS
-                                                        : 'hover:bg-hover2 hover:border-hairline'}`}
+                                                data-active={isActive}
+                                                title={`${session.id} · ${session.workingDirectory}`}
+                                                className={SESSION_CARD_CLASS}
                                             >
-                                                <div className="flex items-start justify-between gap-1">
+                                                {/* 选中「荧光浮起」pill：所有 active 视觉在此独立层，切换会话时
+                                                    framer-motion 对同一 layoutId 做 FLIP 魔法滑动 */}
+                                                {isActive && (
+                                                    <motion.span
+                                                        layoutId="session-active-pill"
+                                                        aria-hidden="true"
+                                                        className="session-active-pill"
+                                                        transition={reducedMotion ? { duration: 0 } : { type: 'spring', stiffness: 480, damping: 32, mass: 0.6 }}
+                                                    />
+                                                )}
+                                                <div className="relative flex items-start justify-between gap-1">
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex items-center gap-2">
-                                                            <div className="min-w-0 flex-1 truncate text-sm font-medium text-t1">
+                                                            <div className={`min-w-0 flex-1 truncate text-sm ${isActive ? 'font-semibold' : 'font-medium'} text-t1`}>
                                                                 {displayTitle}
                                                             </div>
                                                             {generating && (
@@ -817,42 +829,51 @@ function SessionList({ onCollapse, onSessionActivated, onBack }: { onCollapse?: 
                                                             )}
                                                             {merging && <span role="status" className="text-xs text-accent2-ink whitespace-nowrap">合并中</span>}
                                                         </div>
-                                                        {!simpleMode && <div className="flex items-center gap-2 mt-1">
-                                                            <span className="text-[13px] text-t3 truncate">
-                                                                {session.model} · {session.id.slice(0, 8)}
-                                                            </span>
-                                                            <span className="text-[13px] text-t3 font-mono tabular-nums whitespace-nowrap shrink-0">
-                                                                {session.messageCount} 条消息
-                                                            </span>
-                                                        </div>}
-                                                        {simpleMode && folder && (
-                                                            <div className="mt-1 truncate text-[13px] text-t2" title={session.workingDirectory}>
-                                                                文件夹：{folder}
+                                                        {!simpleMode && (
+                                                            <div className={`mt-1 flex items-center gap-1.5 text-[13px] ${isActive ? 'text-t2' : 'text-t3'}`}>
+                                                                <span className="truncate">{session.model}</span>
+                                                                <span aria-hidden="true">·</span>
+                                                                <span className="whitespace-nowrap tabular-nums">{session.messageCount} 条</span>
+                                                                <span aria-hidden="true">·</span>
+                                                                <span className="inline-flex items-center gap-1 whitespace-nowrap tabular-nums">
+                                                                    <Clock className="w-3 h-3" aria-hidden="true" />
+                                                                    {formatTime(session.updatedAt)}
+                                                                </span>
                                                             </div>
                                                         )}
-                                                        <div className="flex items-center gap-1 mt-1 text-[13px] text-t2">
-                                                            <Clock className="w-3 h-3" />
-                                                            {formatTime(session.updatedAt)}
-                                                        </div>
+                                                        {simpleMode && (
+                                                            <div className={`mt-1 flex items-center gap-1.5 text-[13px] ${isActive ? 'text-t2' : 'text-t3'}`} title={session.workingDirectory}>
+                                                                {folder && <span className="truncate">文件夹：{folder}</span>}
+                                                                {folder && <span aria-hidden="true">·</span>}
+                                                                <span className="inline-flex items-center gap-1 whitespace-nowrap tabular-nums">
+                                                                    <Clock className="w-3 h-3" aria-hidden="true" />
+                                                                    {formatTime(session.updatedAt)}
+                                                                </span>
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                    <button
-                                                        title="合并为新会话" aria-label="合并为新会话"
-                                                        disabled={generating || merging}
-                                                        className="panel-control p-1 rounded text-t3 hover:text-t1 disabled:opacity-30"
-                                                        onClick={e => { e.stopPropagation(); useSessionMergeStore.getState().openDialog(session); }}>
-                                                        <GitMerge className="w-3.5 h-3.5" />
-                                                    </button>
-                                                    <button
-                                                        disabled={merging}
-                                                        onClick={(e) => handleDeleteSession(e, session.id)}
-                                                        className="panel-control p-1 rounded opacity-0 group-hover:opacity-100
-                                                            hover:bg-errsoft text-t3 hover:text-err
-                                                            transition-interactive duration-fast"
-                                                        title={simpleMode ? '删除任务' : '删除会话'}
-                                                        aria-label={simpleMode ? '删除任务' : '删除会话'}
-                                                    >
-                                                        <Trash2 className="w-3.5 h-3.5" />
-                                                    </button>
+                                                    {/* 操作区：可见性由 globals.css 按指针能力切换
+                                                        （触屏常驻可见；鼠标设备 hover/聚焦显示） */}
+                                                    <div className="card-actions flex shrink-0 items-start gap-0.5 transition-interactive duration-fast">
+                                                        <button
+                                                            title="合并为新会话" aria-label="合并为新会话"
+                                                            disabled={generating || merging}
+                                                            className="panel-control p-1 rounded text-t3 hover:text-t1 disabled:opacity-30"
+                                                            onClick={e => { e.stopPropagation(); useSessionMergeStore.getState().openDialog(session); }}>
+                                                            <GitMerge className="w-3.5 h-3.5" />
+                                                        </button>
+                                                        <button
+                                                            disabled={merging}
+                                                            onClick={(e) => handleDeleteSession(e, session.id)}
+                                                            className="panel-control p-1 rounded
+                                                                hover:bg-errsoft text-t3 hover:text-err
+                                                                transition-interactive duration-fast"
+                                                            title={simpleMode ? '删除任务' : '删除会话'}
+                                                            aria-label={simpleMode ? '删除任务' : '删除会话'}
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         );
@@ -874,6 +895,7 @@ function SessionList({ onCollapse, onSessionActivated, onBack }: { onCollapse?: 
                     </button>
                 )}
             </div>
+            </LayoutGroup>
         </div>
     );
 }
@@ -897,6 +919,7 @@ function SimpleTaskList({ onCollapse, onSessionActivated, onBack }: { onCollapse
     const [loading, setLoading] = useState(true);
     const [collapsed, setCollapsed] = useState<Set<WorkbenchTaskGroup>>(new Set(['OTHER']));
     const currentSessionId = useSessionStore(state => state.sessionId);
+    const reducedMotion = useReducedMotion();
     const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     const fetchTasks = useCallback(async (search = query) => {
@@ -955,6 +978,7 @@ function SimpleTaskList({ onCollapse, onSessionActivated, onBack }: { onCollapse
             <button onClick={() => dispatchNewAuthorizedSessionRequest()} className={PANEL_NEW_BUTTON_CLASS}><Plus className="h-4 w-4" />新建任务</button>
             <PanelSearchBox value={query} onChange={setQuery} placeholder="搜索任务或文件夹" ariaLabel="搜索任务或文件夹" />
         </div>
+        <LayoutGroup>
         <div className="flex-1 overflow-y-auto p-2">
             {loading && <div className="flex justify-center p-4"><Loader2 className="h-5 w-5 animate-spin text-t3" /></div>}
             {!loading && groups.every(group => group.tasks.length === 0) && <p className="p-4 text-center text-sm text-t2">没有匹配的任务</p>}
@@ -962,10 +986,45 @@ function SimpleTaskList({ onCollapse, onSessionActivated, onBack }: { onCollapse
                 if (group.tasks.length === 0) return null;
                 const collapsedGroup = collapsed.has(group.status); const GroupIcon = iconFor(group.status);
                 return <section key={group.status} className="mb-3"><button onClick={() => setCollapsed(previous => { const next = new Set(previous); next.has(group.status) ? next.delete(group.status) : next.add(group.status); return next; })} className="panel-control flex w-full items-center gap-2 px-2 py-1.5 text-[13px] font-medium text-t2"><span>{collapsedGroup ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}</span><GroupIcon className={`h-3.5 w-3.5 ${toneFor(group.status)} ${group.status === 'RUNNING' ? 'animate-spin' : ''}`} />{group.label}<span className="ml-auto text-t2 tabular-nums whitespace-nowrap shrink-0">{group.tasks.length}</span></button>
-                    {!collapsedGroup && <div className="space-y-1">{group.tasks.map(task => <div key={task.sessionId} onClick={() => { void switchTask(task.sessionId); }} className={`group cursor-pointer rounded-xl border border-transparent px-3 py-2.5 transition-interactive duration-fast ${task.sessionId === currentSessionId ? PANEL_CARD_ACTIVE_CLASS : 'hover:bg-hover2'}`}><div className="flex items-start gap-2"><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-t1">{task.title}</p><p className="mt-1 truncate text-[13px] text-t2">{task.folderName} · {task.hint}</p><p className="mt-1 flex items-center gap-1 text-[13px] text-t2"><Clock className="h-3 w-3" />{formatTime(task.updatedAt)}</p></div><button onClick={event => { void deleteTask(event, task.sessionId); }} className="panel-control rounded p-1 text-t3 opacity-0 hover:bg-errsoft hover:text-err group-hover:opacity-100 transition-interactive duration-fast" aria-label={`删除任务 ${task.title}`}><Trash2 className="h-3.5 w-3.5" /></button></div></div>)}</div>}
+                    {!collapsedGroup && <div className="space-y-2">{group.tasks.map(task => {
+                        const isActive = task.sessionId === currentSessionId;
+                        return (
+                        <div
+                            key={task.sessionId}
+                            onClick={() => { void switchTask(task.sessionId); }}
+                            data-active={isActive}
+                            className={SESSION_CARD_CLASS}
+                        >
+                            {/* 选中 pill：同 SessionList，layoutId 共享元素承载魔法滑动 */}
+                            {isActive && (
+                                <motion.span
+                                    layoutId="session-active-pill"
+                                    aria-hidden="true"
+                                    className="session-active-pill"
+                                    transition={reducedMotion ? { duration: 0 } : { type: 'spring', stiffness: 480, damping: 32, mass: 0.6 }}
+                                />
+                            )}
+                            <div className="relative flex items-start gap-2">
+                                <div className="min-w-0 flex-1">
+                                    <p className={`truncate text-sm ${isActive ? 'font-semibold' : 'font-medium'} text-t1`}>{task.title}</p>
+                                    <p className={`mt-1 flex items-center gap-1.5 text-[13px] ${isActive ? 'text-t2' : 'text-t3'}`}>
+                                        <span className="truncate">{task.folderName}{task.hint ? ` · ${task.hint}` : ''}</span>
+                                        <span aria-hidden="true">·</span>
+                                        <span className="inline-flex items-center gap-1 whitespace-nowrap tabular-nums">
+                                            <Clock className="h-3 w-3" aria-hidden="true" />
+                                            {formatTime(task.updatedAt)}
+                                        </span>
+                                    </p>
+                                </div>
+                                <button onClick={event => { void deleteTask(event, task.sessionId); }} className="card-actions panel-control rounded p-1 text-t3 hover:bg-errsoft hover:text-err transition-interactive duration-fast" aria-label={`删除任务 ${task.title}`}><Trash2 className="h-3.5 w-3.5" /></button>
+                            </div>
+                        </div>
+                        );
+                    })}</div>}
                 </section>;
             })}
         </div>
+        </LayoutGroup>
     </div>;
 }
 

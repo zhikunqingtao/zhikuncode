@@ -89,6 +89,8 @@ public class WebSocketController implements PermissionNotifier {
     private final WebSocketSessionManager wsSessionManager;
     private final QueryEngine queryEngine;
     private final ToolRegistry toolRegistry;
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.aicodeassistant.engine.HandoffContextService handoffContext;
     private final LlmProviderRegistry providerRegistry;
     private final EffectiveSystemPromptBuilder systemPromptBuilder;
     private final ModelRegistry modelRegistry;            // P0-1 新增
@@ -838,7 +840,7 @@ public class WebSocketController implements PermissionNotifier {
         log.info("executeQuery: sessionId={}, model={} (raw={}, override={}), images={}",
                 sessionId, model, rawModel, modelOverride, images != null ? images.size() : 0);
 
-        executeQueryInternal(sessionId, userText, images, tools, toolDefs, model);
+        executeQueryInternal(sessionId, userText, images, tools, toolDefs, model, null);
     }
 
     /**
@@ -873,7 +875,7 @@ public class WebSocketController implements PermissionNotifier {
                 : sessionModels.getOrDefault(sessionId, providerRegistry.getDefaultModel());
         String model = providerRegistry.resolveModelAlias(rawModel);
 
-        executeQueryInternal(sessionId, promptText, List.of(), tools, toolDefs, model);
+        executeQueryInternal(sessionId, promptText, List.of(), tools, toolDefs, model, allowedToolNames);
     }
 
     /**
@@ -889,7 +891,7 @@ public class WebSocketController implements PermissionNotifier {
     private void executeQueryInternal(String sessionId, String userText,
                                       List<ContentBlock.ImageBlock> images,
                                       List<Tool> tools, List<Map<String, Object>> toolDefs,
-                                      String model) {
+                                      String model, Set<String> allowedToolNames) {
         Path workingDir = requireSessionWorkingDirectory(sessionId);
 
         // 构建系统提示
@@ -918,10 +920,13 @@ public class WebSocketController implements PermissionNotifier {
 
         // ★ 加载历史消息到 QueryLoopState（支持多轮对话上下文）
         List<Message> historyMessages = new ArrayList<>();
+        Map<String,Object> sessionMetadata = Map.of();
         try {
-            sessionManager.loadSession(sessionId).ifPresent(data -> {
-                historyMessages.addAll(data.messages());
-            });
+            var loaded = sessionManager.loadSession(sessionId);
+            if (loaded.isPresent()) {
+                historyMessages.addAll(loaded.get().messages());
+                sessionMetadata = loaded.get().config();
+            }
         } catch (Exception e) {
             log.warn("Failed to load history messages for session {}: {}", sessionId, e.getMessage());
         }
@@ -951,6 +956,8 @@ public class WebSocketController implements PermissionNotifier {
         WsMessageHandler handler = new WsMessageHandler(sessionId);
         QueryEngine.QueryResult result = null;
         try {
+            if (com.aicodeassistant.engine.HandoffContextService.isMerged(sessionMetadata))
+                config = handoffContext.configure(config, state, sessionMetadata, allowedToolNames, null);
             result = queryEngine.execute(config, state, handler);
 
             // 7. 发送完成消息

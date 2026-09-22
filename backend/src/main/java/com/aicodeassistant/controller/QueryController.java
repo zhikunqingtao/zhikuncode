@@ -69,6 +69,8 @@ public class QueryController {
 
     private final QueryEngine queryEngine;
     private final ToolRegistry toolRegistry;
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.aicodeassistant.engine.HandoffContextService handoffContext;
     private final SessionManager sessionManager;
     private final LlmProviderRegistry providerRegistry;
     private final TokenCounter tokenCounter;
@@ -173,6 +175,8 @@ public class QueryController {
 
         // 7. 执行查询
         ResultCollectingHandler handler = new ResultCollectingHandler();
+        if (com.aicodeassistant.engine.HandoffContextService.isMerged(session.config()))
+            config = handoffContext.configure(config, state, session.config(), request.allowedTools(), request.disallowedTools());
         QueryEngine.QueryResult result = queryEngine.execute(config, state, handler);
 
         // 8. 提取最终文本
@@ -258,6 +262,8 @@ public class QueryController {
 
                 // 流式回调 → SSE 推送（使用独立 SseStreamHandler）
                 SseStreamHandler handler = new SseStreamHandler(emitter, objectMapper);
+                if (com.aicodeassistant.engine.HandoffContextService.isMerged(session.config()))
+                    config = handoffContext.configure(config, state, session.config(), request.allowedTools(), request.disallowedTools());
                 QueryEngine.QueryResult result = queryEngine.execute(config, state, handler);
 
                 // 完成事件
@@ -353,6 +359,8 @@ public class QueryController {
 
         // 4. 执行查询
         ResultCollectingHandler handler = new ResultCollectingHandler();
+        if (com.aicodeassistant.engine.HandoffContextService.isMerged(session.config()))
+            config = handoffContext.configure(config, state, session.config(), request.allowedTools(), request.disallowedTools());
         QueryEngine.QueryResult result = queryEngine.execute(config, state, handler);
 
         String finalText = extractCurrentRunText(result.messages(), state, result.isSuccess());

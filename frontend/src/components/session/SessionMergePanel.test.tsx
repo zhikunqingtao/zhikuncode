@@ -13,14 +13,14 @@ vi.mock('@/services/sessionActivation', () => ({ activateSessionCandidate: vi.fn
 const a: SessionSummary = { id: 'A', title: '开发 A', model: 'm', workingDirectory: '/project-a', messageCount: 1, costUsd: 0, createdAt: '', updatedAt: '' };
 const b = { ...a, id: 'B', title: '开发 B', workingDirectory: '/project-b' };
 const request = { sourceSessionIds: ['A', 'B'], primarySessionId: 'A', title: '', model: 'm' };
-const operation: MergeOperation = { operationId: 'op', targetSessionId: 'E', status: 'preparing', stage: 'summarizing', request, result: {} };
+const operation: MergeOperation = { operationId: 'op', targetSessionId: 'E', status: 'preparing', stage: 'summarizing', lockedSourceSessionIds: ['A', 'B'], request, result: {} };
 beforeEach(() => {
     localStorage.clear(); vi.clearAllMocks();
     useSessionMergeStore.setState({ pending: null, open: false, source: null, error: null, storageWarning: null, recoveryNotice: null, submitting: false });
     useSessionStore.setState({ sessionId: 'A', status: 'idle' });
     useModelStore.setState({ models: [{ id: 'm', displayName: 'Model', supportsImages: false, maxImages: 0 }], loaded: true });
     vi.mocked(activateSessionCandidate).mockResolvedValue({ status: 'activated', sessionId: 'E' });
-    vi.stubGlobal('fetch', vi.fn().mockImplementation(async (url: string) => ({ ok: true, json: async () =>
+    vi.stubGlobal('fetch', vi.fn().mockImplementation(async (url: string) => url === '/api/session-merges/active' ? { ok: true, status: 204 } : ({ ok: true, json: async () =>
         url === '/api/sessions/merge' || url === '/api/session-merges/op' ? operation : url === '/api/models'
             ? { models: useModelStore.getState().models } : { sessions: [a, b, { ...b, id: 'running', title: '正在执行', running: true }], hasMore: false } })));
 });
@@ -183,7 +183,7 @@ it('limits selection to five, preserves it across search and pagination, and res
     expect(screen.getByText('已选 5/5')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '移除 开发 A' })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '开始合并' }));
-    await screen.findByText('5 个来源会话暂被占用，其他会话可正常使用。');
+    await screen.findByText('2 个来源会话正在复制；快照封存后可继续使用来源。');
     const call = vi.mocked(fetch).mock.calls.find(([url]) => url === '/api/sessions/merge');
     expect(JSON.parse(call![1]!.body as string)).toMatchObject({ sourceSessionIds: ['A', 'B', 'D', 'E', 'F'], primarySessionId: 'A', title: '保留标题' });
 });
@@ -268,7 +268,7 @@ it('keeps unknown progress visible while closed and preserves occupancy until a 
         fireEvent.click(screen.getByRole('button', { name: '合并状态待确认 · 查看进度' }));
     });
     expect(screen.getByRole('status')).toHaveTextContent('合并状态待确认');
-    expect(screen.getByText('进度同步失败，正在重试查询；确认结果前暂不能操作来源会话。')).toBeInTheDocument();
+    expect(screen.getByText('进度同步失败，正在重试查询；来源占用以服务端为准。')).toBeInTheDocument();
     expect(screen.queryByText(/个来源会话暂被占用/)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '关闭面板' }));
 

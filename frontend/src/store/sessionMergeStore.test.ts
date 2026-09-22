@@ -5,7 +5,7 @@ const savedRecovery = () => {
     return key ? localStorage.getItem(key) : null;
 };
 const request = { sourceSessionIds: ['A', 'B'], primarySessionId: 'A', title: 'E', model: 'm' };
-const preparing = { operationId: 'op', targetSessionId: 'E', status: 'preparing', stage: 'snapshot', request, result: {} };
+const preparing = { operationId: 'op', targetSessionId: 'E', status: 'preparing', stage: 'snapshotting', lockedSourceSessionIds: ['A', 'B'], request, result: {} };
 beforeEach(() => { localStorage.clear(); vi.resetModules(); });
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
@@ -175,7 +175,7 @@ const missingOperation = { ok: false, status: 404,
 
 it('restores all five source occupancies and releases all on completion without another POST', async () => {
     const five = { ...request, sourceSessionIds: ['A', 'B', 'C', 'D', 'E'] };
-    const accepted = { ...preparing, request: five };
+    const accepted = { ...preparing, request: five, lockedSourceSessionIds: five.sourceSessionIds };
     const fetchMock = vi.fn().mockResolvedValueOnce({ ok: true, json: async () => accepted })
         .mockResolvedValueOnce({ ok: true, json: async () => ({ ...accepted, status: 'completed' }) });
     vi.stubGlobal('fetch', fetchMock);
@@ -393,4 +393,117 @@ it('retries failed persistence even when server progress is unchanged', async ()
     expect(save).toHaveBeenCalledTimes(1);
     expect(store.getState().storageWarning).toBeNull();
     expect(store.getState().pending).toBe(pending);
+});
+
+it('discovers paused server operation without local recovery and sends no new merge POST', async () => {
+    const paused = { ...preparing, status: 'paused', stage: 'extracting', protocolVersion: 2,
+        runEpoch: 3, canResume: true, canCancel: true, snapshotSealed: true, lockedSourceSessionIds: [] };
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => paused }));
+    const { useSessionMergeStore: store, isMergeSource } = await import('./sessionMergeStore');
+    await store.getState().refresh();
+    expect(fetch).toHaveBeenCalledWith('/api/session-merges/active', expect.anything());
+    expect(store.getState().pending?.operation?.status).toBe('paused');
+    expect(isMergeSource('A')).toBe(false);
+    expect(vi.mocked(fetch).mock.calls.some(([, options]) => options?.method === 'POST')).toBe(false);
+});
+
+it('does not rewrite a stored paused or completed status into preparing', async () => {
+    localStorage.setItem('session-merge-pending-v2:saved', JSON.stringify({ key: 'saved', request,
+        operation: { ...preparing, status: 'paused', lockedSourceSessionIds: [], canResume: true, runEpoch: 4 } }));
+    const { useSessionMergeStore: store } = await import('./sessionMergeStore');
+    expect(store.getState().pending?.operation?.status).toBe('paused');
+    expect(store.getState().pending?.operation?.runEpoch).toBe(4);
+});
+
+it('releases source occupancy while the same operation continues extracting', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce({ ok: true, json: async () => preparing })
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ ...preparing, stage: 'extracting', snapshotSealed: true, lockedSourceSessionIds: [] }) }));
+    const { useSessionMergeStore: store, isMergeSource } = await import('./sessionMergeStore');
+    await store.getState().submit(request); expect(isMergeSource('A')).toBe(true);
+    await store.getState().refresh(); expect(isMergeSource('A')).toBe(false);
+    expect(store.getState().pending?.operation?.status).toBe('preparing');
+});
+
+it('resumes the same operation using its stable epoch and optional selected model', async () => {
+    const paused = { ...preparing, status: 'paused' as const, runEpoch: 7, canResume: true, canCancel: true, lockedSourceSessionIds: [] };
+    const { useSessionMergeStore: store } = await import('./sessionMergeStore');
+    store.setState({ pending: { key: 'key', request, operation: paused } });
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({ ...paused, status: 'preparing', runEpoch: 8 }) }));
+    await store.getState().resume('smaller-model');
+    expect(fetch).toHaveBeenCalledWith('/api/session-merges/op/resume', expect.objectContaining({
+        method: 'POST', body: JSON.stringify({ expectedEpoch: 7, model: 'smaller-model' }),
+    }));
+    expect(store.getState().pending?.key).toBe('key');
+    expect(store.getState().pending?.operation?.runEpoch).toBe(8);
+});
+
+it('cancels without an epoch precondition and adopts the authoritative terminal state', async () => {
+    const { useSessionMergeStore: store } = await import('./sessionMergeStore');
+    store.setState({ pending: { key: 'key', request, operation: { ...preparing, status: 'preparing', runEpoch: 5, canCancel: true } } });
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({ ...preparing, status: 'cancelled', lockedSourceSessionIds: [], canCancel: false }) }));
+    await store.getState().cancel();
+    expect(fetch).toHaveBeenCalledWith('/api/session-merges/op/cancel', expect.objectContaining({ method: 'POST', body: undefined }));
+    expect(store.getState().pending?.operation?.status).toBe('cancelled');
+});
+
+
+it('silently retries active discovery after a network failure on a page without a merge', async () => {
+    const now = vi.spyOn(Date, 'now').mockReturnValue(10000);
+    const fetchMock = vi.fn().mockRejectedValueOnce(new Error('offline'))
+        .mockResolvedValueOnce({ ok: true, status: 204 });
+    vi.stubGlobal('fetch', fetchMock);
+    const { useSessionMergeStore: store } = await import('./sessionMergeStore');
+    await store.getState().refresh();
+    expect(store.getState().pending).toBeNull();
+    expect(store.getState().error).toBeNull();
+    expect(store.getState().submitting).toBe(false);
+    await store.getState().refresh();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    now.mockReturnValue(16000);
+    await store.getState().refresh();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(store.getState().pending).toBeNull();
+    expect(store.getState().error).toBeNull();
+});
+
+it('does not overwrite or clear a submission rejection during background discovery', async () => {
+    const now = vi.spyOn(Date, 'now').mockReturnValue(10000);
+    const fetchMock = vi.fn().mockResolvedValueOnce({ ok: false, status: 409,
+        json: async () => ({ error: { message: '来源仍在运行' } }) })
+        .mockRejectedValueOnce(new Error('offline'))
+        .mockResolvedValueOnce({ ok: true, status: 204 });
+    vi.stubGlobal('fetch', fetchMock);
+    const { useSessionMergeStore: store } = await import('./sessionMergeStore');
+    await store.getState().submit(request);
+    await store.getState().refresh();
+    expect(store.getState().pending).toBeNull();
+    expect(store.getState().error).toBe('来源仍在运行');
+    now.mockReturnValue(16000);
+    await store.getState().refresh();
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(store.getState().error).toBe('来源仍在运行');
+});
+
+it.each(['resume', 'cancel'] as const)('serializes progress polling with %s so an older GET cannot overwrite its result', async action => {
+    const paused = { ...preparing, status: 'paused' as const, runEpoch: 7, canResume: true, canCancel: true };
+    const updated = { ...paused, status: action === 'resume' ? 'preparing' : 'cancelled', runEpoch: 8 };
+    let finishControl!: (response: unknown) => void;
+    let finishPolling: ((response: unknown) => void) | undefined;
+    const fetchMock = vi.fn().mockImplementation((_url, options) => new Promise(resolve => {
+        if (options.method === 'POST') finishControl = resolve;
+        else finishPolling = resolve;
+    }));
+    vi.stubGlobal('fetch', fetchMock);
+    const { useSessionMergeStore: store } = await import('./sessionMergeStore');
+    store.setState({ pending: { key: 'key', request, operation: paused } });
+    const controlling = store.getState()[action]();
+    const polling = store.getState().refresh();
+    finishControl({ ok: true, json: async () => updated });
+    await controlling;
+    finishPolling?.({ ok: true, json: async () => paused });
+    await polling;
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(store.getState().pending?.operation?.runEpoch).toBe(8);
+    expect(store.getState().pending?.operation?.status).toBe(updated.status);
+    expect(store.getState().submitting).toBe(false);
 });
