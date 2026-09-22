@@ -1,5 +1,17 @@
 # 17 份会话合并 v2 审查报告排名：分析方法、过程、证据与结论
 
+**录屏 1（2026-09-22 23:36）** · 原片 796MB / 36 分 12 秒，压缩后约 89MB
+
+<video src="./钉钉录屏_2026-09-22_233604.mp4" controls preload="metadata" width="100%">
+  <a href="./钉钉录屏_2026-09-22_233604.mp4">评测过程录屏 1（36 分 12 秒，压缩后 89MB）</a>
+</video>
+
+**录屏 2（2026-09-23 01:07）** · 原片 350MB / 23 分 17 秒，压缩后约 42MB
+
+<video src="./钉钉录屏_2026-09-23_010719.mp4" controls preload="metadata" width="100%">
+  <a href="./钉钉录屏_2026-09-23_010719.mp4">评测过程录屏 2（23 分 17 秒，压缩后 42MB）</a>
+</video>
+
 - 评测对象：`docs/case-studies/assets/aicoding评测` 下 17 份审查报告
 - 被审查代码：`zhikuncode` 会话合并 v2 本地改动（对照 `docs/session-merge-architecture-v2.md`，更新日期 2026-09-22）
 - 评测人：Opus5.5（主）+Grok 4.7
