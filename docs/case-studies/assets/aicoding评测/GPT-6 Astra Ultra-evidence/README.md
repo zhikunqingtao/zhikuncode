@@ -21,13 +21,19 @@
 
 ## 评分复算
 
-在仓库根目录运行，Python 3 标准库即可：
+复算必须使用本轮冻结输入。当前开发源码修复后，直接在当前工作区运行脚本会因哈希不符而拒绝，这是预期保护。请使用完整证据发布提交 `e8877b36d5794fb7f64ebea10bfb080a026fe3c7`：该提交包含复算脚本及材料，清单中的 54 项输入均符合原冻结哈希。评分前源码提交 `207fe6d0d159db1b575af243dbf3c77536377431` 本身尚未包含复算脚本。
+
+需要 Git、Python 3 标准库，以及包含上述发布提交的仓库历史。在仓库根目录的 Bash/zsh/Git Bash 中执行以下命令，创建独立工作目录，不切换或覆盖当前工作区：
 
 ```sh
-python3 "docs/case-studies/assets/aicoding评测/GPT-6 Astra Ultra-evidence/recompute.py"
+eval_review_dir="$(mktemp -d "${TMPDIR:-/tmp}/zhikuncode-eval-recompute.XXXXXX")"
+git worktree add --detach "$eval_review_dir" e8877b36d5794fb7f64ebea10bfb080a026fe3c7 &&
+python3 "$eval_review_dir/docs/case-studies/assets/aicoding评测/GPT-6 Astra Ultra-evidence/recompute.py"
 ```
 
-脚本核对原文件哈希、规则冻结及最终裁定哈希，生成主榜 JSON/CSV、全量核验台账、命中矩阵、27 个敏感性方案 JSON/CSV 和反转明细。输入文件或规则已改变会拒绝复算，不悄悄把新代码当旧版本。
+若本地没有该提交，先获取评测分支历史：`git fetch origin aicoding-eval-0923`；浅克隆还需补齐历史，再重新执行上述步骤。不要修改冻结清单的哈希来适配当前源码。
+
+成功时输出 `Recomputed 17 reports / 27 scenarios` 及排名。脚本核对原文件哈希、规则冻结及最终裁定哈希，在独立目录的本证据包下生成主榜 JSON/CSV、全量核验台账、命中矩阵、27 个敏感性方案 JSON/CSV 和反转明细；结果位于 `$eval_review_dir/docs/case-studies/assets/aicoding评测/GPT-6 Astra Ultra-evidence/`。输入文件或规则已改变会拒绝复算，不悄悄把新代码当旧版本。完成核对且不再需要副本时，可运行 `git worktree remove "$eval_review_dir"`；如有新增修改，Git 会拒绝删除，先保留所需结果，不使用强制删除。
 
 原 Opus 排名在评分冻结后按用户要求重命名为 [Claude Opus5.5-17份审查报告排名分析方法过程证据与结论.md](../Claude%20Opus5.5-17份审查报告排名分析方法过程证据与结论.md)，内容未改。冻结清单保留原文件名；复算脚本仅在旧路径不存在时接受这一固定新路径，并继续校验原 SHA-256。
 
